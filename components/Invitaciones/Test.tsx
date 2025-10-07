@@ -150,7 +150,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
     <div className="w-full h-full font-display flex flex-col space-y-2">
       {showModalTemplate && (
         <ModalDefault onClose={() => setShowModalTemplate(false)}>
-          <ModalTemplates action={(template) => { handleChangeTemplate(template as TemplateDesign) }} use={"load"} optionSelect={optionSelect} />
+          <ModalTemplates action={(template) => { handleChangeTemplate(template as TemplateDesign) }} use={"load"} optionSelect={optionSelect} />
         </ModalDefault>
       )}
       <div className="md:w-max">

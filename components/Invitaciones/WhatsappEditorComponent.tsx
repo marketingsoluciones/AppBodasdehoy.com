@@ -1,5 +1,5 @@
 import { Form, Formik, FormikValues, useField, useFormikContext } from "formik";
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useState, useRef, useMemo } from 'react';
 import { AuthContextProvider } from '../../context/AuthContext';
 import { EventContextProvider } from '../../context/EventContext';
 import { fetchApiEventos, queries } from '../../utils/Fetching';
@@ -11,88 +11,100 @@ import InputField from '../Forms/InputField';
 import SelectField from '../Forms/SelectField';
 import * as yup from "yup";
 import { GoArrowLeft } from "react-icons/go";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, } from '@dnd-kit/core';
-import { SortableButton } from './SortableButton';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, } from '@dnd-kit/sortable';
-import { useSortable, } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import dynamic from 'next/dynamic';
+import 'react-quill/dist/quill.bubble.css';
+import 'react-quill/dist/quill.snow.css';
+import Picker, { EmojiStyle, SuggestionMode, } from 'emoji-picker-react';
+import ClickAwayListener from 'react-click-away-listener';
+import { GrEmoji } from "react-icons/gr";
 
-interface Button {
-    type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER' | 'WHATSAPP';
-    text: string;
-    url?: string;
-    phoneNumber?: string;
-    example?: string;
-}
+const ReactQuill = dynamic(() => import('react-quill'), {
+    ssr: false,
+});
 
-interface ButtonOption {
-    title: string;
-    description: string;
-    type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER' | 'WHATSAPP';
-}
 
 export interface TemplateWathsappValues {
     _id?: string;
     templateName: string;
-    language: { _id: "es" | "en", title: string };
-    category: { _id: "UTILITY" | "WEDDING", title: string };
-    headerType: { _id: "none" | "text" | "image" | "video", title: string };
-    headerContent: string;
+    category: { _id: "INVITATION" | "REMINDER" | "CONFIRMATION" | "CUSTOM", title: string };
+    mediaType: { _id: "none" | "image" | "video", title: string };
+    mediaUrl: string;
     bodyContent: string;
-    footerContent: string;
-    buttons: Button[];
+    buttons?: any[]; // Opcional para compatibilidad con preview
     createdAt?: Date;
     updatedAt?: Date;
 }
 
 interface props {
+    variablesTemplatesInvitaciones: any[]
     setShowEditorModal: (value: boolean) => void
 }
 
-export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...props }) => {
+export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, variablesTemplatesInvitaciones, ...props }) => {
     const { config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const { t } = useTranslation();
     const toast = useToast();
     const [values, setValues] = useState<TemplateWathsappValues>()
     const [cursorPosition, setCursorPosition] = useState(0)
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+    const [enableEditor, setEnableEditor] = useState(false)
+    const [isMounted, setIsMounted] = useState(false)
+    const divEditableRef = useRef(null)
 
-    const variables = [
-        { id: 1, name: "tipo de evento", value: "{{params.typeEvent}}", sample: [`event`][`tipo`] },
-        { id: 2, name: "nombre del evento", value: "{{params.nameEvent}}", sample: event?.nombre },
-        { id: 3, name: "invitado", value: "{{params.nameGuest}}", sample: event?.invitados_array[0]?.nombre },
-        { id: 4, name: "fecha", value: "{{params.dateEvent}}", sample: new Date(parseInt(event?.fecha)).toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' }) },
-        { id: 5, name: "estilo", value: "{{params.styleEvent}}", sample: event?.estilo },
-        { id: 6, name: "tematica", value: "{{params.themeEvent}}", sample: event?.tematica },
-        { id: 7, name: "usuario_nombre", value: "{{params.userEvent}}", sample: event?.usuario_nombre },
-        { id: 8, name: "imgEvento", value: "{{params.imgEvent}}", sample: event?.imgEvento?.i640 ? `https://apiapp.bodasdehoy.com/${event?.imgEvento?.i640}` : "sin imagen cargada" },
-        { id: 9, name: "lugar", value: "{{params.placeEvent}}", sample: event?.lugar?.title },
-    ];
+    const variables = variablesTemplatesInvitaciones
 
-    const buttonOptions: ButtonOption[] = [{
-        title: t("Go to website"),
-        description: t("2 buttons maximum"),
-        type: "URL",
-    },
-    {
-        title: t("Call on WhatsApp"),
-        description: t("1 button maximum"),
-        type: "WHATSAPP",
-    },
-    {
-        title: t("Call phone number"),
-        description: t("1 button maximum"),
-        type: "PHONE_NUMBER",
-    },
-    {
-        title: t("Quick reply"),
-        description: t("5 buttons maximum"),
-        type: "QUICK_REPLY",
-    },
-    ]
 
     const [generatedJson, setGeneratedJson] = useState('');
     const [variableMap, setVariableMap] = useState<any>({});
+
+    const quillModules = useMemo(
+        () => ({
+            history: {
+                delay: 1000,
+                maxStack: 100,
+                userOnly: false
+            },
+            toolbar: {
+                container: [
+                    ['bold', 'italic', 'underline', 'strike', { color: [] }],
+                ],
+                'emoji-toolbar': true,
+                'emoji-textarea': true,
+                'emoji-shortname': true
+            },
+            keyboard: {
+                bindings: false
+            }
+        }),
+        [],
+    );
+
+    const handleEmojiClick = (emojiObject: any, setFieldValue: any) => {
+        const elem = document.getElementById("selected")
+        if (elem) {
+            const content = elem?.textContent
+            const cursorPosition = parseInt(elem.getAttribute("focusOffset"))
+            let value = ""
+            if (cursorPosition > 0) {
+                if (cursorPosition < content.length) {
+                    value = content.slice(0, cursorPosition) + emojiObject.emoji + content.slice(cursorPosition)
+                } else {
+                    value = content + emojiObject.emoji
+                }
+            } else {
+                if (content.length === 0) {
+                    value = emojiObject.emoji
+                } else {
+                    value = emojiObject.emoji + content
+                }
+            }
+            elem.textContent = value
+            setFieldValue('bodyContent', value)
+            const newCP = cursorPosition + 2
+            elem.setAttribute("focusOffset", newCP.toString())
+        }
+    };
 
     useEffect(() => {
         const map = {};
@@ -102,124 +114,70 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
         setVariableMap(map);
     }, []);
 
+    useEffect(() => {
+        if (!isMounted) {
+            setIsMounted(true)
+        }
+        return () => {
+            setIsMounted(false)
+        }
+    }, [])
+
+    useEffect(() => {
+        if (isMounted) {
+            setEnableEditor(true)
+        }
+    }, [isMounted])
+
     const validationSchema = yup.object().shape({
         templateName: yup.string().required(t("Name required")),
         bodyContent: yup.string().required(t("Message body is required")),
-        headerContent: yup.string().when('headerType', {
-            is: (headerType: string) => headerType === 'TEXT' || headerType === 'IMAGE',
-            then: (schema) => schema.required(t("Header content is required")),
+        mediaUrl: yup.string().when('mediaType', {
+            is: (mediaType: string) => mediaType === 'image' || mediaType === 'video',
+            then: (schema) => schema.required(t("Media URL is required")),
             otherwise: (schema) => schema.optional(),
         }),
-        buttons: yup.array().of(
-            yup.object().shape({
-                text: yup.string().required(t("Button text is required")),
-                url: yup.string().when('type', {
-                    is: 'URL',
-                    then: (schema) => schema.required(t("URL is required for URL buttons")),
-                    otherwise: (schema) => schema.optional(),
-                }),
-                phoneNumber: yup.string().when('type', {
-                    is: 'PHONE_NUMBER',
-                    then: (schema) => schema.required(t("Phone number is required")),
-                    otherwise: (schema) => schema.optional(),
-                }),
-            })
-        ),
     });
 
     const initialValues: TemplateWathsappValues = {
         templateName: '',
-        language: { _id: "es", title: "ES" },
-        category: { _id: "UTILITY", title: "UTILITY" },
-        headerType: { _id: "none", title: "NONE" },
-        headerContent: '',
+        category: { _id: "INVITATION", title: "INVITATION" },
+        mediaType: { _id: "none", title: "NONE" },
+        mediaUrl: '',
         bodyContent: t("hello") + " {{params.nameGuest}}",
-        footerContent: '',
-        buttons: [],
+        buttons: [], // Array vacío para compatibilidad con preview
     };
 
     const handleVariableSelect = (e: React.ChangeEvent<HTMLSelectElement>, setFieldValue: any, fieldName: string) => {
         const selectedValue = e.target.value;
         if (selectedValue) {
-            const currentContent = values?.[fieldName] || '';
-            const beforeCursor = currentContent.substring(0, cursorPosition);
-            const afterCursor = currentContent.substring(cursorPosition);
-            const newContent = beforeCursor + selectedValue + afterCursor;
-            setFieldValue(fieldName, newContent);
-            // Actualizar la posición del cursor después de insertar la variable
-            setCursorPosition(cursorPosition + selectedValue.length);
+            if (fieldName === 'bodyContent') {
+                // Para el editor Quill, insertar la variable en el contenido actual
+                const currentContent = values?.[fieldName] || '';
+                const plainTextContent = currentContent.replace(/<[^>]*>/g, '');
+                const newContent = currentContent + selectedValue;
+                setFieldValue(fieldName, newContent);
+            } else {
+                // Para otros campos, usar la lógica original
+                const currentContent = values?.[fieldName] || '';
+                const beforeCursor = currentContent.substring(0, cursorPosition);
+                const afterCursor = currentContent.substring(cursorPosition);
+                const newContent = beforeCursor + selectedValue + afterCursor;
+                setFieldValue(fieldName, newContent);
+                setCursorPosition(cursorPosition + selectedValue.length);
+            }
             e.target.value = "";
         }
     };
 
-    const addEmptyButton = (type: Button['type'], setFieldValue: any) => {
-        if (values?.buttons.length >= 5) {
-            toast("error", t("Maximum 5 buttons allowed"));
-            return;
-        }
 
-        // Encontrar el título correspondiente al tipo de botón
-        const buttonOption = buttonOptions.find(option => option.type === type);
-        const buttonTitle = buttonOption ? buttonOption.title : '';
 
-        const newButton: Button = { type, text: buttonTitle };
-        if (type === 'URL') newButton.url = 'https://example.com';
-        if (type === 'PHONE_NUMBER') newButton.phoneNumber = '+1234567890';
-        if (type === 'WHATSAPP') newButton.phoneNumber = '+1234567890';
-        setFieldValue('buttons', [...values?.buttons || [], newButton])
-    };
-
-    const isButtonDisabled = (buttonType: string) => {
-        const currentButtons = values?.buttons || [];
-        const buttonCount = currentButtons.filter(btn => btn.type === buttonType).length;
-
-        switch (buttonType) {
-            case 'URL':
-                return buttonCount >= 2; // Máximo 2 botones URL
-            case 'WHATSAPP':
-                return buttonCount >= 1; // Máximo 1 botón WhatsApp
-            case 'PHONE_NUMBER':
-                return buttonCount >= 1; // Máximo 1 botón PHONE_NUMBER
-            case 'QUICK_REPLY':
-                return buttonCount >= 5; // Máximo 5 botones QUICK_REPLY
-            default:
-                return false;
-        }
-    };
-
-    const sensors = useSensors(
-        useSensor(PointerSensor),
-        useSensor(KeyboardSensor, {
-            coordinateGetter: sortableKeyboardCoordinates,
-        })
-    );
-
-    const handleDragEnd = (event: DragEndEvent, setFieldValue: any) => {
-        const { active, over } = event;
-
-        if (active.id !== over?.id) {
-            const oldIndex = active.id as number;
-            const newIndex = over?.id as number;
-
-            const currentButtons = [...(values?.buttons || [])];
-            const newButtons = arrayMove(currentButtons, oldIndex, newIndex);
-            setFieldValue('buttons', newButtons);
-            toast("success", t("Button order updated"));
-        }
-    };
-
-    const removeButton = (index: number, setFieldValue: any) => {
-        values?.buttons.splice(index, 1)
-        setFieldValue('buttons', [...values?.buttons || []])
-    };
-
-    const updateButton = (index: number, field: string, value: string, setFieldValue: any) => {
-        setFieldValue(`buttons.${index}.${field}`, value);
-    };
 
     const generateTemplateJson = (values: TemplateWathsappValues) => {
         values = { ...values, templateName: values.templateName.trim() }
         console.log(100038, values)
+
+        // Guardar plantilla en el backend para uso interno
         fetchApiEventos({
             query: queries.createWhatsappInvitationTemplate,
             variables: {
@@ -229,138 +187,26 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
         }).then((res: any) => {
             toast("success", t("Template created successfully"));
         })
+
         setValues({ ...values })
-        const components = [];
-        const collectedExamplesMap: any = {};
-        const processContentAndCollectExamples = (content: string) => {
-            let newContent = content;
-            const matches = content.match(/\{\{params\.[a-zA-Z0-9_]+\}\}/g);
-            if (matches) {
-                matches.forEach(match => {
-                    const varInfo = variableMap[match];
-                    if (varInfo) {
-                        const metaPlaceholder = `{{${varInfo.id}}}`;
-                        newContent = newContent.split(match).join(metaPlaceholder);
-                        collectedExamplesMap[varInfo.id] = varInfo.sample;
-                    }
-                });
-            }
-            return newContent;
-        };
-        // Header
-        if (values.headerType._id === 'text') {
-            const finalHeaderContent = processContentAndCollectExamples(values.headerContent);
-            components.push({
-                type: 'HEADER',
-                format: 'TEXT',
-                text: finalHeaderContent,
-            });
-        } else if (values.headerType._id === 'image') {
-            components.push({
-                type: 'HEADER',
-                format: 'IMAGE',
-                example: {
-                    header_handle: values.headerContent
-                }
-            });
-        } else if (values.headerType._id === 'video') {
-            components.push({
-                type: 'HEADER',
-                format: 'VIDEO',
-                example: {
-                    header_handle: values.headerContent
-                }
-            });
-        }
-        // Body
-        const finalBodyContent = processContentAndCollectExamples(values.bodyContent);
-        components.push({
-            type: 'BODY',
-            text: finalBodyContent,
-        });
-        // Footer
-        if (values.footerContent.trim()) {
-            components.push({
-                type: 'FOOTER',
-                text: values.footerContent.trim(),
-            });
-        }
-        // Buttons
-        if (values.buttons.length > 0) {
-            const apiButtons = values.buttons.map(btn => {
-                if (btn.type === 'URL') {
-                    let processedUrl = btn.url || '';
-                    const urlMatches = btn.url?.match(/\{\{params\.[a-zA-Z0-9_]+\}\}/g);
-                    if (urlMatches) {
-                        urlMatches.forEach(match => {
-                            const varInfo = variableMap[match];
-                            if (varInfo) {
-                                const metaPlaceholder = `{{${varInfo.id}}}`;
-                                processedUrl = processedUrl.split(match).join(metaPlaceholder);
-                                collectedExamplesMap[varInfo.id] = varInfo.sample;
-                            }
-                        });
-                        return {
-                            type: 'URL',
-                            text: btn.text,
-                            url: processedUrl,
-                            example: btn.example ? [btn.example] : undefined
-                        };
-                    } else {
-                        return {
-                            type: 'URL',
-                            text: btn.text,
-                            url: btn.url,
-                        };
-                    }
-                } else if (btn.type === 'PHONE_NUMBER') {
-                    return {
-                        type: 'PHONE_NUMBER',
-                        text: btn.text,
-                        phone_number: btn.phoneNumber,
-                    };
-                } else if (btn.type === 'QUICK_REPLY') {
-                    return {
-                        type: 'QUICK_REPLY',
-                        text: btn.text,
-                    };
-                } else if (btn.type === 'WHATSAPP') {
-                    return {
-                        type: 'PHONE_NUMBER',
-                        text: btn.text,
-                        phone_number: btn.phoneNumber,
-                    };
-                }
-                return null;
-            }).filter(Boolean);
-            if (apiButtons.length > 0) {
-                components.push({
-                    type: 'BUTTONS',
-                    buttons: apiButtons,
-                });
-            }
-        }
-        // Final examples array
-        const finalExamplesArray = [];
-        const maxVarId = Math.max(...Object.keys(collectedExamplesMap).map(Number), 0);
-        for (let i = 1; i <= maxVarId; i++) {
-            finalExamplesArray.push(collectedExamplesMap[i] || `Ejemplo Variable ${i}`);
-        }
-        const templateJson = {
+
+        // Generar plantilla simple para WhatsApp normal
+        const templateData = {
             name: values.templateName.toLowerCase().replace(/[^a-z0-9_]/g, ''),
-            language: values.language,
-            category: values.category,
-            components: components,
+            category: values.category._id,
+            message: values.bodyContent,
+            media: values.mediaType._id !== 'none' ? {
+                type: values.mediaType._id,
+                url: values.mediaUrl
+            } : undefined,
+            variables: variables.map(v => ({
+                name: v.name,
+                placeholder: v.value,
+                sample: v.sample
+            }))
         };
-        if (finalExamplesArray.length > 0) {
-            const bodyComp = templateJson.components.find(comp => comp.type === 'BODY');
-            if (bodyComp) {
-                bodyComp.example = {
-                    body_text: finalExamplesArray
-                };
-            }
-        }
-        setGeneratedJson(JSON.stringify(templateJson, null, 2));
+
+        setGeneratedJson(JSON.stringify(templateData, null, 2));
         toast("success", t("Template JSON generated successfully"));
     };
 
@@ -419,108 +265,119 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                             size={6}
                                         />
                                         <SelectField
-                                            name="language"
-                                            label={t("Language")}
-                                            options={[{ _id: "es", title: "ES" }, { _id: "en", title: "EN" }]}
-                                            className="text-xs"
-                                        />
-                                        <SelectField
                                             name="category"
                                             label={t("Category")}
-                                            options={[{ _id: "utility", title: t("Utility") }, { _id: "marketing", title: t("Marketing") }, { _id: "authentication", title: t("Authentication") }]}
+                                            options={[{ _id: "INVITATION", title: t("Invitation") }, { _id: "REMINDER", title: t("Reminder") }, { _id: "CONFIRMATION", title: t("Confirmation") }, { _id: "CUSTOM", title: t("Custom") }]}
                                             className="text-xs"
                                         />
                                     </div>
-                                    {/* Header */}
+                                    {/* Media */}
                                     <div className="mb-2 p-4 border border-gray-200 rounded-md bg-gray-50">
                                         <SelectField
-                                            name="headerType"
-                                            label={t("Header Type")}
-                                            options={[{ _id: "none", title: t("NONE") }, { _id: "text", title: t("TEXT") }, { _id: "image", title: t("IMAGE") }, { _id: "video", title: t("VIDEO") }]}
+                                            name="mediaType"
+                                            label={t("Media Type")}
+                                            options={[{ _id: "none", title: t("None") }, { _id: "image", title: t("Image") }, { _id: "video", title: t("Video") }]}
                                             className="text-xs"
                                         />
 
-                                        {values.headerType._id === 'text' && (
-                                            <div>
-                                                <InputField
-                                                    name="headerContent"
-                                                    placeholder={t("Enter header content")}
-                                                    label={t("Header Content (Text)")}
-                                                    type="text"
-                                                    maxLength={60}
-                                                    className="text-xs"
-                                                />
-
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    <label className="text-[11px] font-medium text-gray-700">{t("Add Variable")}:</label>
-                                                    <select
-                                                        className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-xs"
-                                                        onChange={(e) => handleVariableSelect(e, setFieldValue, 'headerContent')}
-                                                        value=""
-                                                        disabled={values.headerContent.includes('{{params.')}
-                                                    >
-                                                        <option value="" disabled>{t("Select a variable")}</option>
-                                                        {variables.map(v => (
-                                                            <option key={v.id} value={v.value}>
-                                                                {v.name}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        )}
-                                        {values.headerType._id === 'image' && (
+                                        {values.mediaType._id === 'image' && (
                                             <div className="mt-2">
                                                 <InputField
-                                                    name="headerContent"
-                                                    label={t("Image URL (example)")}
-                                                    type="text"
+                                                    name="mediaUrl"
+                                                    label={t("Image URL")}
+                                                    type="url"
                                                     placeholder={t("https://example.com/image.jpg")}
                                                     className="text-xs"
                                                 />
-                                                <p className="text-gray-500 text-[11px] mt-1">{t("Note: In the real API, you will need to upload the image to Meta and use a handle or uri.")}</p>
+                                                <p className="text-gray-500 text-[11px] mt-1">{t("Enter the URL of the image to include in the message")}</p>
                                             </div>
                                         )}
-                                        {values.headerType._id === 'video' && (
+
+                                        {values.mediaType._id === 'video' && (
                                             <div className="mt-2">
                                                 <InputField
-                                                    name="headerContent"
-                                                    label={t("Video URL (example)")}
-                                                    type="text"
+                                                    name="mediaUrl"
+                                                    label={t("Video URL")}
+                                                    type="url"
                                                     placeholder={t("https://example.com/video.mp4")}
                                                     className="text-xs"
                                                 />
-                                                <p className="text-gray-500 text-[11px] mt-1">{t("Note: In the real API, you will need to upload the video to Meta and use a handle or uri.")}</p>
+                                                <p className="text-gray-500 text-[11px] mt-1">{t("Enter the URL of the video to include in the message")}</p>
                                             </div>
                                         )}
                                     </div>
                                     {/* Body */}
-                                    <div className="mb-2 relative">
-                                        <label className="font-display text-sm text-primary w-full">{t("Message Body")}</label>
-                                        <textarea
-                                            name="bodyContent"
-                                            rows={5}
-                                            maxLength={1048}
-                                            placeholder={t("e.g. Your order #{{params.nameEvent}} has been confirmed and will be shipped on {{params.dateEvent}}. Thank you for your purchase!")}
-                                            className="font-display text-xs text-gray-500 border border-gray-200 focus:border-gray-400 focus:ring-0 transition w-full py-2 px-4 rounded-xl focus:outline-none"
-                                            value={values?.bodyContent || ''}
-                                            onChange={(e) => setFieldValue('bodyContent', e.target.value)}
-                                            onSelect={(e) => setCursorPosition(e.currentTarget.selectionStart)}
-                                            onClick={(e) => setCursorPosition(e.currentTarget.selectionStart)}
-                                            onKeyUp={(e) => setCursorPosition(e.currentTarget.selectionStart)}
-                                        />
-                                        <div className={`h-10 absolute bottom-9 right-2 flex items-center justify-center`}>
-                                            <span id='masStr' className={`text-gray-500 text-xs`}>
-                                                {values?.bodyContent?.length}/{1048}
-                                            </span>
+                                    <div className="mb-2">
+                                        <label className="font-display text-sm text-primary w-full mb-2 block">{t("Message Body")}</label>
+
+                                        {/* Quill Editor with Emoji Picker */}
+                                        <div className='flex w-full items-center space-x-2 border border-gray-200 rounded-xl p-2 bg-white'>
+                                            <div className='flex'>
+                                                <div className='flex justify-center items-center select-none'>
+                                                    <ClickAwayListener onClickAway={() => { setShowEmojiPicker(false) }}>
+                                                        <div className='w-full relative cursor-pointer'>
+                                                            <div onClick={() => {
+                                                                const elemFather = divEditableRef?.current?.getElementsByClassName("ql-editor")[0]
+                                                                const elem = elemFather?.childNodes[elemFather?.childNodes.length - 1] as HTMLElement
+                                                                const cPString = elem?.getAttribute("focusOffset")
+                                                                const elemLats = document.getElementById("selected")
+                                                                !!elemLats && elemLats.setAttribute("id", "")
+                                                                !cPString && elem?.setAttribute("focusOffset", "0")
+                                                                elem?.setAttribute("id", "selected")
+                                                                setTimeout(() => {
+                                                                    const position = elem?.getAttribute("focusOffset")
+                                                                    const range = document.createRange();
+                                                                    const sel = window.getSelection();
+                                                                    if (elem?.firstChild) {
+                                                                        range.setStart(elem.firstChild, elem.textContent ? parseInt(position || "0") : 0)
+                                                                        range.collapse(true);
+                                                                        sel?.removeAllRanges();
+                                                                        sel?.addRange(range);
+                                                                    }
+                                                                    setShowEmojiPicker(!showEmojiPicker)
+                                                                }, 50);
+                                                            }} className='w-10 h-10 flex justify-center items-center hover:bg-gray-100 rounded-full'>
+                                                                <GrEmoji className='w-6 h-6' />
+                                                            </div>
+                                                            {showEmojiPicker && (
+                                                                <div className='absolute -translate-x-[110px] -translate-y-[418px] scale-[70%] z-50 shadow-md'>
+                                                                    <Picker
+                                                                        onEmojiClick={(emojiObject) => handleEmojiClick(emojiObject, setFieldValue)}
+                                                                        emojiStyle={'apple' as EmojiStyle}
+                                                                        searchDisabled={true}
+                                                                        skinTonesDisabled={true}
+                                                                        suggestedEmojisMode={'recent' as SuggestionMode}
+                                                                        allowExpandReactions={false}
+                                                                        width={480}
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </ClickAwayListener>
+                                                </div>
+                                            </div>
+                                            <div ref={divEditableRef} className="bg-white min-h-[42.45px] flex-1">
+                                                {enableEditor && <ReactQuill
+                                                    theme="bubble"
+                                                    value={values?.bodyContent || ''}
+                                                    onChange={(value) => {
+                                                        setFieldValue('bodyContent', value)
+                                                    }}
+                                                    modules={quillModules}
+                                                    className='whatsapp-editor'
+                                                    placeholder={t("e.g. Your order #{{params.nameEvent}} has been confirmed and will be shipped on {{params.dateEvent}}. Thank you for your purchase!")}
+                                                />}
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
+
+                                        {/* Variable Selector */}
+                                        <div className="flex items-center gap-2 mt-2">
                                             <label className="text-[11px] font-medium text-gray-700">{t("Add Variable")}:</label>
                                             <select
-                                                className="p-2 flex-1 md:mr-20 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-xs"
+                                                className="p-2 flex-1 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-xs"
                                                 onChange={(e) => handleVariableSelect(e, setFieldValue, 'bodyContent')}
                                                 value=""
-                                                disabled={values?.bodyContent?.match(/\{\{params\.[a-zA-Z0-9_]+\}\}/g).length > 5}
+                                                disabled={values?.bodyContent?.match(/\{\{params\.[a-zA-Z0-9_]+\}\}/g)?.length > 5}
                                             >
                                                 <option value="" disabled>{t("Select a variable")}</option>
                                                 {variables.map(v => (
@@ -530,80 +387,13 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                                                 ))}
                                             </select>
                                         </div>
-                                    </div>
-                                    {/* Footer */}
-                                    <div className="mb-2">
-                                        <InputField
-                                            name="footerContent"
-                                            placeholder={t("Enter header content")}
-                                            label={t("Footer (Optional)")}
-                                            type="text"
-                                            maxLength={60}
-                                            className="text-xs"
-                                        />
-                                        <p className="text-gray-500 text-[11px] mt-1">{t("The footer cannot contain variables.")}</p>
-                                    </div>
-                                    {/* Buttons */}
-                                    <div className="mb-2">
-                                        <div className="flex gap-2 items-end mb-4">
-                                            <h2 className="text-sm font-semibold text-primary">{t("Buttons (Optional)")}</h2>
-                                            <span className="text-[11px] text-gray-500">{t("You can add up to 5 buttons")}</span>
+
+                                        {/* Character Count */}
+                                        <div className="flex justify-end mt-1">
+                                            <span className="text-gray-500 text-xs">
+                                                {(values?.bodyContent || '').replace(/<[^>]*>/g, '').length}/1048
+                                            </span>
                                         </div>
-                                        <div id="buttons-container" className="flex space-x-2 mb-2">
-                                            {buttonOptions.map((buttonOption, index) => {
-                                                const getButtonColor = (type: string) => {
-                                                    switch (type) {
-                                                        case 'QUICK_REPLY':
-                                                            return 'bg-emerald-500 hover:bg-emerald-600';
-                                                        case 'URL':
-                                                            return 'bg-sky-500 hover:bg-sky-600';
-                                                        case 'PHONE_NUMBER':
-                                                            return 'bg-amber-500 hover:bg-amber-600';
-                                                        case 'WHATSAPP':
-                                                            return 'bg-teal-500 hover:bg-teal-600';
-                                                        default:
-                                                            return 'bg-gray-500 hover:bg-gray-600';
-                                                    }
-                                                };
-                                                const isDisabled = isButtonDisabled(buttonOption.type);
-                                                const disabledColor = 'bg-gray-400 cursor-not-allowed opacity-50';
-                                                return (
-                                                    <button
-                                                        key={index}
-                                                        type="button"
-                                                        onClick={() => !isDisabled && addEmptyButton(buttonOption.type, setFieldValue)}
-                                                        disabled={isDisabled}
-                                                        className={`w-1/3 flex flex-col items-center justify-center px-1 md:px-2 py-2 text-white rounded-md transition-colors text-[10px] md:text-[11px] ${isDisabled ? disabledColor : getButtonColor(buttonOption.type)
-                                                            }`}
-                                                        title={isDisabled ? t("Maximum limit reached for this button type") : buttonOption.description}
-                                                    >
-                                                        <span className="text-center text-[11px]">{buttonOption.title}</span>
-                                                        <span className="text-center text-[10px]">{buttonOption.description}</span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                        <DndContext
-                                            sensors={sensors}
-                                            collisionDetection={closestCenter}
-                                            onDragEnd={(event) => handleDragEnd(event, setFieldValue)}
-                                        >
-                                            <SortableContext
-                                                items={values.buttons.map((_, index) => index)}
-                                                strategy={verticalListSortingStrategy}
-                                            >
-                                                {values.buttons.map((button, index) => (
-                                                    <SortableButton
-                                                        key={index}
-                                                        button={button}
-                                                        index={index}
-                                                        setFieldValue={setFieldValue}
-                                                        removeButton={removeButton}
-                                                        t={t}
-                                                    />
-                                                ))}
-                                            </SortableContext>
-                                        </DndContext>
                                     </div>
                                     <button
                                         className={`font-display rounded-full py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"}`}
@@ -657,6 +447,28 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, ...prop
                     @keyframes spinner {
                         0% { transform: rotate(0deg); }
                         100% { transform: rotate(360deg); }
+                    }
+                    .whatsapp-editor .ql-editor {
+                        min-height: 60px !important;
+                        max-height: 150px !important;
+                        word-break: break-all;
+                        scrollbar-width: none;
+                        font-size: 14px;
+                        line-height: 1.4;
+                        padding: 8px 12px;
+                    }
+                    .whatsapp-editor .ql-tooltip {
+                        transform: translateY(-220%) !important;
+                    }
+                    .whatsapp-editor .ql-tooltip-arrow {
+                        visibility: hidden;
+                    }
+                    .whatsapp-editor .ql-bubble .ql-editor {
+                        border: none !important;
+                        outline: none !important;
+                    }
+                    .whatsapp-editor .ql-bubble .ql-toolbar {
+                        display: none;
                     }
                 `}
             </style>

@@ -5,6 +5,7 @@ import { HashtagMatcher, Link, UrlMatcher, UrlProps } from "interweave-autolink"
 import { IoMdCall } from 'react-icons/io';
 import { BiLinkExternal } from 'react-icons/bi';
 import { PiClipboardTextBold } from 'react-icons/pi';
+import { TemplateWathsappBusinessValues } from './WhatsappBusinessEditorComponent';
 import { TemplateWathsappValues } from './WhatsappEditorComponent';
 
 // Función auxiliar para formatear un número añadiendo un cero inicial si es menor que 10.
@@ -24,17 +25,16 @@ const getCurrentFormattedDateTime = () => {
 };
 
 interface Props {
-  values: TemplateWathsappValues;
+  values: TemplateWathsappBusinessValues | TemplateWathsappValues;
   variableMap: any[];
 }
 // Componente de vista previa de WhatsApp
 export const WhatsappPreview: FC<Props> = ({ values, variableMap }) => {
 
-  const headerType = values?.headerType ?? { _id: "none", title: "NONE" }
-  const headerContent = values?.headerContent ?? ""
   const bodyContent = values?.bodyContent ?? ""
-  const footerContent = values?.footerContent ?? ""
   const buttons = values?.buttons ?? []
+  const mediaType = (values as any)?.mediaType ?? { _id: "none", title: "NONE" }
+  const mediaUrl = (values as any)?.mediaUrl ?? ""
 
   const { t } = useTranslation();
   // Función para reemplazar variables con ejemplos del variableMap
@@ -60,7 +60,7 @@ export const WhatsappPreview: FC<Props> = ({ values, variableMap }) => {
     return processedText;
   };
   const formattedBody = replaceVariables(bodyContent, variableMap);
-  const formattedHeader = headerType._id === 'text' ? replaceVariables(headerContent, variableMap) : headerContent;
+  const formattedMediaUrl = replaceVariables(mediaUrl, variableMap);
 
   return (
     <div className="md:w-[332px] h-max flex items-start justify-center pt-4 pb-16">
@@ -95,20 +95,39 @@ export const WhatsappPreview: FC<Props> = ({ values, variableMap }) => {
           {/* Message Bubble */}
           <div className="bg-white rounded-r-lg rounded-b-lg shadow-sm max-w-[85%] mr-auto ml-0 break-words">
             <div className="p-2 pb-0">
-              {headerType._id === 'text' && headerContent && (
-                <div className="font-semibold text-gray-800 text-[16px] font-optimistic mb-2" >{formattedHeader}</div>
+              {/* Media */}
+              {mediaType._id === 'image' && mediaUrl && (
+                <div className="mb-2">
+                  <img
+                    src={formattedMediaUrl}
+                    alt="Media Preview"
+                    className="w-full h-auto rounded-md max-h-48 object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                  <div className="w-full h-24 bg-gray-200 rounded-md flex items-center justify-center text-gray-500 text-xs" style={{ display: 'none' }}>
+                    {t("Image not available")}
+                  </div>
+                </div>
               )}
-              {headerType._id === 'image' && headerContent && (
-                <img src={formattedHeader} alt="Header Preview" className="w-full h-auto rounded-md mb-2" />
-              )}
-              {headerType._id === 'video' && headerContent && (
-                <div className="w-full rounded-md mb-2 bg-white  overflow-hidden">
-                  <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
+
+              {mediaType._id === 'video' && mediaUrl && (
+                <div className="mb-2">
+                  <div className="w-full rounded-md overflow-hidden bg-gray-100">
                     <video
-                      src={formattedHeader}
+                      src={formattedMediaUrl}
                       controls
-                      className="absolute top-0 left-0 w-full h-full object-contain"
+                      className="w-full h-auto max-h-48 object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
                     />
+                    <div className="w-full h-24 bg-gray-200 rounded-md flex items-center justify-center text-gray-500 text-xs" style={{ display: 'none' }}>
+                      {t("Video not available")}
+                    </div>
                   </div>
                 </div>
               )}
@@ -119,11 +138,6 @@ export const WhatsappPreview: FC<Props> = ({ values, variableMap }) => {
                   content={formattedBody}
                 />
               </div>
-
-
-              {footerContent && (
-                <p className="text-[13px] text-gray-500 mt-2 font-light font-segoe-historic">{footerContent}</p>
-              )}
               <div className="text-right text-[11px] font-light font-segoe-historic text-gray-400 mt-1">{getCurrentFormattedDateTime().split(' ')[1]}</div>
             </div>
 
@@ -138,8 +152,6 @@ export const WhatsappPreview: FC<Props> = ({ values, variableMap }) => {
                         return { color: '#34B7F1', borderTop: '1px solid #e5e7eb' };
                       case 'PHONE_NUMBER':
                         return { color: '#34B7F1', borderTop: '1px solid #e5e7eb' };
-                      case 'WHATSAPP':
-                        return { color: '#25D366', borderTop: '1px solid #e5e7eb' };
                     }
                   };
 

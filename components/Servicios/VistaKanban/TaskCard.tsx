@@ -38,20 +38,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
   const isCompleted = column?.id === 'completed';
   const isBlocked = column?.id === 'blocked';
 
-  // Función para alternar completado
-  /* const handleToggleComplete = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onTaskUpdate(task._id, {
-      estatus: !task.estatus
-    });
-  }, [task._id, task.estatus, onTaskUpdate]); */
-
-  // Función para crear sub-tarea
-  /*  const handleCreateSubTask = useCallback((e: React.MouseEvent) => {
-     e.stopPropagation();
-     onCreateSubTask(task._id);
-     setShowActions(false);
-   }, [task._id, onCreateSubTask]); */
 
   // Modificar el handleEdit
   const handleEdit = useCallback((e: React.MouseEvent) => {
@@ -67,15 +53,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
     ) || null;
   }, []);
 
-  // Formatear fecha
-  /*   const formatDate = useCallback((dateString: string | Date) => {
-      if (!dateString) return null;
-      const date = new Date(dateString);
-      return date.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit'
-      });
-    }, []); */
 
   // Calcular días restantes
   const getDaysRemaining = useCallback(() => {
@@ -95,11 +72,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
   const getPriorityTag = (tags: string[]): string | undefined => {
     return tags.find(tag => tag.startsWith('prioridad:'));
   };
-
-  /* const updatePriority = (taskId: string, priority: string) => {
-    const newTags = [...task.tags.filter(tag => !tag.startsWith('prioridad:')), `prioridad:${priority}`];
-    onTaskUpdate(taskId, { tags: newTags });
-  }; */
 
 
   // Funciones auxiliares para manejar subtareas
@@ -172,11 +144,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
         {...attributes}
         {...listeners}
         className={`
-        relative group bg-white cursor-grab active:cursor-grabbing rounded-lg border transition-all duration-200
-        ${isSelected
-            ? 'border-primary shadow-md ring-2 ring-pink-100'
-            : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-          }
+        relative group bg-white cursor-grab active:cursor-grabbing rounded-lg border transition-all duration-200 
+       border-gray-200 hover:border-gray-300 hover:shadow-sm
         ${isDragging || isSortableDragging ? 'rotate-2 shadow-lg' : ''}
       `}
         onClick={() => onTaskClick(task._id)}
@@ -186,20 +155,20 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
           setShowMoreMenu(false);
         }}
       >
-        {/* Botones de acción en hover */}
-        {showActions && !isDragging && !isSortableDragging && (
-          <div className="absolute top-2 right-2 flex bg-white rounded-md shadow-md items-center space-x-1 z-50">
 
-            {/* Botón de editar */}
-{/*             <button
-              onClick={handleEdit}
-              className="p-1 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors"
-              title="Editar tarea"
-            >
-              <Edit3 className="w-4 h-4" />
-            </button> */}
 
-            {/* Botón de más opciones */}
+
+        {/* Contenido principal de la tarjeta */}
+        <div className="p-3">
+          {/* Título de la tarea */}
+          <div className="flex  justify-between">
+            <h4 className={` font-medium text-sm mb-2 pr-8 ${isBlocked ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+              {(task.descripcion && task.descripcion.length > 30)
+                ? `${task.descripcion.slice(0, 30)}...`
+                : (task.descripcion || 'Sin título')}
+            </h4>
+            {/* Botones de acción en hover */}
+
             <div className="relative">
               <button
                 onClick={handleMoreOptions}
@@ -238,19 +207,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
               )}
             </div>
           </div>
-        )}
-
-        {/* Contenido principal de la tarjeta */}
-        <div className="p-3">
-          {/* Título de la tarea */}
-          <h4 className={` font-medium text-sm mb-2 pr-8 ${isBlocked ? 'line-through text-gray-500' : 'text-gray-800'}`}>
-            {(task.descripcion && task.descripcion.length > 30)
-              ? `${task.descripcion.slice(0, 30)}...`
-              : (task.descripcion || 'Sin título')}
-          </h4>
 
           {/* Indicadores de estado */}
-          <div className="flex items-center space-x-2 mb-2">
+          <div className="flex-1 items-center space-x-2 mb-2">
             {/* Prioridad */}
             <PriorityBadge
               priority={getValidPriority(task.prioridad)}
@@ -276,13 +235,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
 
             {/* Indicador de bloqueo */}
             {isCompleted && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#e9fdf1] text-green">
-                <CheckCircle2 className="w-3 h-3 mr-1" />
-                Completado
-              </span>
+              <div className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#e9fdf1] text-green border border-green">
+                <div className="">
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                </div>
+                <div className="ml-1 font-medium">Completado</div>
+              </div>
             )}
             {isBlocked && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#ffdada] text-red">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#ffdada] text-red border border-red mt-1">
                 <AlertCircle className="w-3 h-3 mr-1" />
                 Bloqueado
               </span>
@@ -290,7 +251,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
 
             {/* Indicador de prioridad */}
             {getPriorityTag(task.tags)?.split(':')[1] === 'alta' && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-800">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-800 border border-orange-800 mt-1">
                 Alta
               </span>
             )}
@@ -298,12 +259,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
             {/* Indicador de fecha */}
             {daysRemaining !== null && (
               <span className={`
-              inline-flex items-center px-2 py-1 rounded-full text-xs
+              inline-flex items-center. px-2 py-1 rounded-full text-xs
               ${isOverdue
-                  ? 'bg-[#ffdada] text-red'
+                  ? 'bg-[#ffdada] text-red border border-red mt-1'
                   : isDueSoon
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-gray-100 text-gray-600'
+                    ? 'bg-yellow-100 text-yellow-800 border border-yellow-800'
+                    : 'bg-gray-100 text-gray-600 border border-gray-600'
                 }
             `}>
                 <Calendar className="w-3 h-3 mr-1" />

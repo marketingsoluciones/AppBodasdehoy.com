@@ -45,7 +45,6 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   tempPastedAndDropFiles?: TempPastedAndDropFile[];
   setTempPastedAndDropFiles?: any;
   isTaskPublic?: boolean;
-  onUpdate?: (taskId: string, updates: Partial<Task>) => void;
   onUpdateComments?: (taskId: string, newComments: Comment[]) => void;
   onDeleteComment?: (commentId: string) => void;
   minimalView?: boolean;
@@ -65,7 +64,7 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
   const [comments, setComments] = useState<Comment[]>([]);
 
   const canEdit = !user?.uid ? false : isAllowed() || task.responsable?.includes(user?.uid);
- 
+
   const [localTask, setLocalTask] = useState<TaskFormValues>({
     _id: task?._id,
     icon: task?.icon || '',
