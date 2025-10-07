@@ -45,13 +45,12 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   tempPastedAndDropFiles?: TempPastedAndDropFile[];
   setTempPastedAndDropFiles?: any;
   isTaskPublic?: boolean;
-  onUpdate?: (taskId: string, updates: Partial<Task>) => void;
   onUpdateComments?: (taskId: string, newComments: Comment[]) => void;
   onDeleteComment?: (commentId: string) => void;
   minimalView?: boolean;
   setSelectTask?: (taskId: string) => void;
   selectTask?: string;
-  handleUpdate?: (field: string, value: any) => Promise<void>;
+  handleUpdate: (field: string, value: any) => Promise<void>;
 }
 
 export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryButtonBox, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, selectTask, handleUpdate, ...props }) => {

@@ -235,10 +235,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
 
             {/* Indicador de bloqueo */}
             {isCompleted && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#e9fdf1] text-green border border-green mt-1">
-                <CheckCircle2 className="w-3 h-3 mr-1" />
-                Completado
-              </span>
+              <div className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#e9fdf1] text-green border border-green">
+                <div className="">
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                </div>
+                <div className="ml-1 font-medium">Completado</div>
+              </div>
             )}
             {isBlocked && (
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#ffdada] text-red border border-red mt-1">
@@ -257,7 +259,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
             {/* Indicador de fecha */}
             {daysRemaining !== null && (
               <span className={`
-              inline-flex items-center px-2 py-1 rounded-full text-xs
+              inline-flex items-center. px-2 py-1 rounded-full text-xs
               ${isOverdue
                   ? 'bg-[#ffdada] text-red border border-red mt-1'
                   : isDueSoon

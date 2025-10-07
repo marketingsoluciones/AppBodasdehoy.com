@@ -660,6 +660,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                     selectTask={selectTask}
                     setSelectTask={setSelectTask}
                     onTaskUpdate={handleTaskUpdate}
+                    deleteTask={deleteTask}
                     onTaskDelete={(taskId) => {
                       const task = tasks.find(t => t._id === taskId);
                       if (task) {
@@ -669,6 +670,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                     onTaskCreate={handleTaskCreate}
                     tempPastedAndDropFiles={tempPastedAndDropFiles}
                     setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+                    optionsItineraryButtonBox={optionsItineraryButtonBox}
                   />
                 </PermissionTaskWrapper>
               </div>)

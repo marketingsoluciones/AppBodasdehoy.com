@@ -56,7 +56,7 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = ({
   return (
     <div 
       className={`
-        inline-flex items-center px-2 py-1 rounded-full text-xs border
+        inline-flex px-2 py-1 rounded-full text-xs border
         ${config.bgColor} ${config.textColor} ${config.borderColor}
         ${onClick ? 'cursor-pointer hover:opacity-80' : ''}
         ${className}
@@ -64,7 +64,7 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = ({
       onClick={onClick}
     >
       {config.icon}
-      <span className="ml-1 font-medium">{config.text}</span>
+      <div className="ml-1 font-medium">{config.text}</div>
     </div>
   );
 };

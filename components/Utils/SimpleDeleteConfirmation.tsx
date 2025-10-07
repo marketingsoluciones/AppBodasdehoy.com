@@ -23,11 +23,11 @@ export const SimpleDeleteConfirmation: FC<props> = ({ setModal, handleDelete, me
           <button onClick={() => setModal({ state: false })} className=" bg-gray-400 h-10 w-24 rounded-lg text-white font-body hover:opacity-80">
             {t("discard")}
           </button>
-          {
+          
             <button onClick={() => handleDelete()} className={` "hover:opacity-80 bg-primary transition-all   h-10 w-24 rounded-lg text-white font-body`}>
               {t("eliminate")}
             </button>
-          }
+          
         </div>
       </div>
     </Modal>

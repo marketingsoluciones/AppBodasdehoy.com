@@ -38,6 +38,8 @@ interface TaskDetailModalProps {
   onTaskCreate: (task: Partial<Task>) => void;
   tempPastedAndDropFiles?: any[];
   setTempPastedAndDropFiles?: any;
+  deleteTask: (task: Task, itinerario: Itinerary) => void;
+  optionsItineraryButtonBox: OptionsSelect[] | undefined;
 }
 
 interface EditTask {
@@ -61,6 +63,8 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   onTaskCreate,
   tempPastedAndDropFiles,
   setTempPastedAndDropFiles,
+  deleteTask,
+  optionsItineraryButtonBox,
 }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider();
@@ -101,66 +105,6 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     }
   }, [event, itinerario._id, task._id]);
 
-  // Función para manejar actualizaciones de la tarea en tiempo real
-  const handleTaskUpdate = useCallback(async (taskId: string, updates: Partial<Task>) => {
-    try {
-      // Actualizar primero en la API
-      const updatePromises = Object.entries(updates).map(([key, value]) => {
-        return fetchApiEventos({
-          query: queries.editTask,
-          variables: {
-            eventID: event._id,
-            itinerarioID: itinerario._id,
-            taskID: taskId,
-            variable: key,
-            valor: typeof value === 'boolean' ? value.toString() :
-              typeof value === 'object' ? JSON.stringify(value) :
-                String(value)
-          },
-          domain: config.domain
-        });
-      });
-
-      await Promise.all(updatePromises);
-
-      // Actualizar el estado global del evento de forma inmersiva
-      setEvent((prevEvent) => {
-        const newEvent = { ...prevEvent };
-        const itineraryIndex = newEvent.itinerarios_array.findIndex(it => it._id === itinerario._id);
-
-        if (itineraryIndex !== -1) {
-          const taskIndex = newEvent.itinerarios_array[itineraryIndex].tasks.findIndex(t => t._id === taskId);
-
-          if (taskIndex !== -1) {
-            // Crear nueva referencia de la tarea para forzar re-render
-            newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex] = {
-              ...newEvent.itinerarios_array[itineraryIndex].tasks[taskIndex],
-              ...updates,
-            };
-
-            // Crear nueva referencia del array de tareas
-            newEvent.itinerarios_array[itineraryIndex].tasks = [...newEvent.itinerarios_array[itineraryIndex].tasks];
-          }
-        }
-
-        // Crear nueva referencia del array de itinerarios
-        newEvent.itinerarios_array = [...newEvent.itinerarios_array];
-
-        return newEvent;
-      });
-
-      // Actualizar el estado local
-      setLocalTask(prev => ({ ...prev, ...updates }));
-
-      // Llamar al callback padre
-      onUpdate(taskId, updates);
-
-      toast('success', t('Tarea actualizada correctamente'));
-    } catch (error) {
-      console.error('Error al actualizar la tarea:', error);
-      toast('error', t('Error al actualizar la tarea'));
-    }
-  }, [event._id, itinerario._id, onUpdate, t, config.domain, setEvent]);
 
   // Función para manejar eliminación de comentarios en tiempo real
   const handleDeleteComment = useCallback(async (commentId: string) => {
@@ -250,34 +194,10 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     e.stopPropagation();
   };
 
-  // Función para alternar visibilidad spectatorView
-  const handleAddSpectatorView = async (values: Task) => {
-    try {
-      await fetchApiEventos({
-        query: queries.editTask,
-        variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          taskID: values._id,
-          variable: "spectatorView",
-          valor: JSON.stringify(!values?.spectatorView)
-        },
-        domain: config.domain
-      });
 
-      const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-      const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id);
-      event.itinerarios_array[f1].tasks[f2].spectatorView = !values?.spectatorView;
-      setEvent({ ...event });
-      onUpdate(values._id, { spectatorView: !values?.spectatorView });
-      toast("success", t("Item guardado con exito"));
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   // Función para eliminar tarea
-  const deleteTask = (values: Task, itinerario: Itinerary) => {
+  /* const deleteTask = (values: Task, itinerario: Itinerary) => {
     try {
       setLoading(true);
       deleteAllFiles(storage, `${values?._id}`)
@@ -313,18 +233,80 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     } catch (error) {
       console.log(error);
     }
-  };
+  }; */
 
   // Opciones del menú
-  const optionsItineraryButtonBox: OptionsSelect[] = [
+  /* const optionsItineraryButtonBox: OptionsSelect[] = [
     {
       value: "delete",
       icon: <Trash2 className="w-5 h-5" />,
       title: "borrar",
-      onClick: (values: Task, itinerario: Itinerary) => !isAllowed() ? ht() : user.uid === event.usuario_id ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : ["/itinerario"].includes(window?.location?.pathname) ? values?.estatus === false || values?.estatus === null || values?.estatus === undefined ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }) : null : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
+      onClick: (values: Task) => !isAllowed()
+        ? ht()
+        : user.uid === event.usuario_id
+          ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion })
+          : ["/itinerario"].includes(window?.location?.pathname)
+            ? (values?.estatus === true || values?.estatus === null)
+              ? setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion })
+              : null
+            : setModal({ values: values, itinerario: itinerario, state: true, title: values.descripcion }),
       vew: "all"
     }
-  ];
+  ]; */
+
+  const handleUpdate = async (fieldName: string, value: any) => {
+    const task = localTask;
+    const canEdit = !user?.uid ? false : isAllowed() || task.responsable?.includes(user?.uid);
+    if (!canEdit) {
+      ht();
+      return;
+    }
+
+    try {
+      let apiValue: string;
+      if (fieldName === 'horaActiva') {
+        apiValue = value ? "true" : "false";
+      } else if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
+        apiValue = JSON.stringify(value || []);
+      } else if (fieldName === 'duracion') {
+        apiValue = String(value || "0");
+      } else if (fieldName === 'fecha' && value) {
+        // Manejar fecha para evitar problemas de zona horaria
+        if (value?.includes('T')) {
+          apiValue = value;
+        }
+      } else if (fieldName === 'spectatorView') {
+        apiValue = `${value}`;
+      } else {
+        apiValue = String(value || "");
+      }
+      await fetchApiEventos({
+        query: queries.editTask,
+        variables: {
+          eventID: event._id,
+          itinerarioID: itinerario._id,
+          taskID: task._id,
+          variable: fieldName,
+          valor: apiValue,
+        },
+        domain: config.domain,
+      }).then((result) => {
+        const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario?._id);
+        const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task?._id);
+        if (fieldName === 'spectatorView') {
+          event.itinerarios_array[f1].tasks[f2].spectatorView = value;
+          setEvent({ ...event });
+        } else {
+          event.itinerarios_array[f1].tasks[f2][fieldName] = value;
+          setEvent({ ...event });
+        }
+      });
+      !['horaActiva'].includes(fieldName) && (fieldName === 'duracion' ? value !== 0 : true) && toast("success", t("Campo actualizado"));
+    } catch (error) {
+      console.error('Error al actualizar:', error);
+      toast("error", t("Error al actualizar"));
+    }
+  };
 
   return (
     <>
@@ -334,7 +316,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           onClick={onClose}
         >
           <div
-            className="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-screen h-auto mx-4 flex flex-col sm:max-h-[90vh]"
+            className="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-screen h-auto md:mx-4 flex flex-col sm:max-h-[90vh]"
             onClick={handleContentClick}
           >
             {/* Header del modal */}
@@ -357,7 +339,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             </div>
 
             {/* Contenido principal usando TaskNew con la tarea local actualizada */}
-            <div className="flex-1 overflow-y-auto py-6 px-6">
+            <div className="flex-1 overflow-y-auto md:py-6 md:px-6">
               <TaskNew
                 id={localTask._id}
                 task={localTask}
@@ -368,10 +350,10 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 onClick={() => { }}
                 tempPastedAndDropFiles={tempPastedAndDropFiles}
                 setTempPastedAndDropFiles={setTempPastedAndDropFiles}
-                onUpdate={handleTaskUpdate}
                 onUpdateComments={handleUpdateComments}
                 onDeleteComment={handleDeleteComment}
                 view="kanban"
+                handleUpdate={handleUpdate}
               />
             </div>
           </div>

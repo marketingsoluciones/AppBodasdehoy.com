@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, Dispatch, SetStateAction } from 'react';
 import { DndContext, PointerSensor, useSensor, useSensors, closestCorners, } from '@dnd-kit/core';
 import { SortableContext, horizontalListSortingStrategy, } from '@dnd-kit/sortable';
-import { Task, Itinerary, Event as EventInterface } from '../../../utils/Interfaces';
+import { Task, Itinerary, Event as EventInterface, OptionsSelect } from '../../../utils/Interfaces';
 import { BoardFilters } from './BoardFilters';
 import { SubTaskModal } from '../Utils/SubTaskModal';
 import { toast } from "react-toastify";
@@ -30,9 +30,12 @@ interface BoardViewProps {
   setEvent: (event: EventInterface | ((prev: EventInterface) => EventInterface)) => void;
   tempPastedAndDropFiles?: any[];
   setTempPastedAndDropFiles?: any;
+  deleteTask: (task: Task, itinerario: Itinerary) => void;
+  optionsItineraryButtonBox: OptionsSelect[] | undefined;
+  
 }
 
-export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate, setEvent, tempPastedAndDropFiles, setTempPastedAndDropFiles }) => {
+export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, selectTask, setSelectTask, onTaskUpdate, onTaskDelete, onTaskCreate, setEvent, tempPastedAndDropFiles, setTempPastedAndDropFiles, deleteTask, optionsItineraryButtonBox }) => {
 
   const { config } = AuthContextProvider();
   const { t } = useTranslation();
@@ -455,6 +458,8 @@ export const BoardView: React.FC<BoardViewProps> = ({ data, itinerario, event, s
           onTaskCreate={handleTaskCreate}
           tempPastedAndDropFiles={tempPastedAndDropFiles}
           setTempPastedAndDropFiles={setTempPastedAndDropFiles}
+          deleteTask={deleteTask}
+          optionsItineraryButtonBox={optionsItineraryButtonBox}
         />
       )}
     </div>
