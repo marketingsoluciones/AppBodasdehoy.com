@@ -68,7 +68,7 @@ const EventContext = createContext<Context>({
 export let GlobalCurrency = ""
 
 
-const EventProvider = ({ children }) => {
+const EventProvider = ({ children }: { children: React.ReactNode }) => {
   const [event, setEvent] = useState<Event | null>(null);
   const [invitadoCero, setInvitadoCero] = useState<string | null>(null);
   const [valir, setValir] = useState<boolean | null>(false);
@@ -77,7 +77,7 @@ const EventProvider = ({ children }) => {
   const [planSpaceActive, setPlanSpaceActive] = useState<planSpace | null>(null);
   const [filterGuests, setFilterGuests] = useState<filterGuests>({ sentados: [], noSentados: [], update: 0 })
   const [allFilterGuests, setAllFilterGuests] = useState<filterGuests>({ sentados: [], noSentados: [], update: 0 })
-  const [editDefault, setEditDefault] = useState<EditDefaultTableAndElement>()
+  const [editDefault, setEditDefault] = useState<EditDefaultTableAndElement | null>(null)
   const { user, setUser } = AuthContextProvider()
   const [planSpaceSelect, setPlanSpaceSelect] = useState<string>("")
   const { config } = AuthContextProvider()
@@ -93,14 +93,17 @@ const EventProvider = ({ children }) => {
           const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente")
           const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
           let eventSelected = eventsGroupSort?.find(elem => elem._id === user?.eventSelected)
-          if (!eventSelected?.timeZone) {
-            const defaultTimeZone = config?.timeZone || "UTC";
-            eventSelected.timeZone = defaultTimeZone;
-            fetchApiEventos({
-              query: queries.eventUpdate,
-              variables: { idEvento: eventSelected?._id, variable: "timeZone", value: defaultTimeZone },
-              token: null
-            })
+          console.log(100081, eventSelected)
+          if (!!eventSelected) {
+            if (!eventSelected?.timeZone) {
+              const defaultTimeZone = config?.timeZone || "UTC";
+              eventSelected.timeZone = defaultTimeZone;
+              fetchApiEventos({
+                query: queries.eventUpdate,
+                variables: { idEvento: eventSelected?._id, variable: "timeZone", value: defaultTimeZone },
+                token: null
+              })
+            }
           }
           setEvent({ ...eventSelected });
         } else {
