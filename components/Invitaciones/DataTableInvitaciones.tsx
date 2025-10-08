@@ -17,6 +17,17 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({
 }) => {
   const { dataTableGroup: { arrIDs } } = DataTableGroupContextProvider();
 
+  // Para correos:
+  const selectedEmails = data
+    .filter(guest => arrIDs.includes(guest._id))
+    .map(guest => guest.correo);
+
+  // Para teléfonos:
+  const selectedPhones = data
+    .filter(guest => arrIDs.includes(guest._id))
+    .map(guest => guest.telefono);
+
+
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
     useTable({ columns, data }, useSortBy, useRowSelect, (hooks) => {
       hooks.visibleColumns.push((columns) => [
@@ -47,7 +58,7 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({
 
   const handleSendInvitations = () => {
     if (arrIDs?.length) {
-      setArrEnviatInvitaciones(arrIDs);
+      setArrEnviatInvitaciones(selectedEmails);
     }
   };
 

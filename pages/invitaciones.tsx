@@ -177,7 +177,7 @@ const Invitaciones = () => {
                       optionSelect={optionSelect}
                       setOptionSelect={setOptionSelect}
                     />
-                    <div className="col-span-3 w-full h-[280px] md:h-full">
+                    <div className="col-span-3 w-full md:h-[280px] md:h-full">
                       {optionSelect === "diseño" && <DiseñoComponent setEmailEditorModal={setShowEditorModal} EmailEditorModal={ShowEditorModal} />}
                       {["email", "whatsapp"].includes(optionSelect) && <Test TitleComponent={optionSelect} setEmailEditorModal={setShowEditorModal} setPreviewEmailReactEditor={setPreviewEmailReactEditor} optionSelect={optionSelect} />}
                     </div>

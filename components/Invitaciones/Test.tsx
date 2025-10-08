@@ -41,6 +41,21 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
   const [isAllowed, ht] = useAllowed()
   const [templateName, setTemplateName] = useState<string>()
 
+  const [isMobile, setIsMobile] = useState<boolean>(false)
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+
+    return () => window.removeEventListener('resize', checkIsMobile)
+  }, [])
+
+  console.log(99999, event)
+
 
   useEffect(() => {
     if (event?.templateEmailSelect && optionSelect === "email") {
@@ -82,6 +97,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
       }
     }),
   })
+
   const validationSchemaPhoneNumber = yup.object().shape({
     phoneNumber: yup.string().test("Unico", `Campo requerido`, (value) => {
       const name = document.activeElement?.getAttribute("name")
@@ -153,14 +169,14 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
           <ModalTemplates action={(template) => { handleChangeTemplate(template as TemplateDesign) }} use={"load"} optionSelect={optionSelect} />
         </ModalDefault>
       )}
-      <div className="md:w-max">
-        <div className="w-full h-10 flex gap-2 items-end px-2">
+      <div className="flex flex-col justify-center items-center ">
+        <div className="w-full md:w-[400px] md:h-10 flex flex-col md:flex-row gap-2 md:items-end px-2 ">
           <span className="text-sm text-gray-600 text-primary py-1">{t("template")} {optionSelect === "email" ? t("email") : "Whatsapp"}</span>
           <div className="flex-1 h-8 bg-gray-100 rounded-md px-2 py-2 text-sm text-gray-600">
             {templateName}
           </div>
         </div>
-        <div className="w-full h-10 flex justify-end gap-2 items-center px-2">
+        <div className="w-[500px] h-10 flex justify-center gap-2 items-center px-2">
           <ButtonPrimary onClick={(e) => !isAllowed() ? ht() : setShowModalTemplate(true)} >
             {`${event[optionSelect === "email" ? "templateEmailSelect" : "templateWhatsappSelect"] ? t("change") : t("select")} ${t("template")}`}
           </ButtonPrimary>
@@ -186,21 +202,23 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
           </ButtonPrimary>
         </div>
       </div>
-      <div className="flex w-full h-full p-2">
-        <div className="flex-1 h-full flex items-center justify-center">
+      <div className="flex w-full h-full p-2 justify-center">
+        <div className={`h-full flex items-center justify-center  ${isMobile ? "hidden" : ""} `}>
           {TitleComponent === "email" && <HiOutlineMail className="w-2/3 h-2/3 -rotate-12 text-primary -translate-y-4" />}
           {TitleComponent === "whatsapp" && <FaWhatsapp className="w-2/3 h-2/3 text-emerald-500 -rotate-12 -translate-y-4" />}
         </div>
-        <Formik
-          validationSchema={TitleComponent === "email" ? validationSchemaEmail : validationSchemaPhoneNumber}
-          onSubmit={(values) => handleClick(values)}
-          initialValues={initialValues}
-        >
-          {({ handleChange, values }) => (
-            <Form className="md:w-1/2 flex flex-col gap-2 mx-auto">
-              <>
+        <div className="">
+          <Formik
+            validationSchema={TitleComponent === "email" ? validationSchemaEmail : validationSchemaPhoneNumber}
+            onSubmit={(values) => handleClick(values)}
+            initialValues={initialValues}
+          >
+            {({ handleChange, values }) => (
+              <Form className="md:w-[400px] flex flex-col gap-2 mx-auto items-center">
                 <AutoSubmitToken TitelComponent={TitleComponent} valirReset={valirReset} setValirReset={setValirReset} />
-                <h3 className="font-medium text-gray-500 first-letter:uppercase">{`${TitleComponent} ${t("de prueba")}`}</h3>
+                <div className="">
+                  <h3 className="font-medium text-gray-500 first-letter:uppercase">{`${TitleComponent} ${t("de prueba")}`}</h3>
+                </div>
                 {TitleComponent === "email"
                   ? <InputField
                     name="email"
@@ -218,33 +236,32 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
                   label={t("firstyoumust")}
                   icon={<IconLightBulb16 className="w-6 h-6" />}
                   disabled={TitleComponent !== "email" || !!event?.imgInvitacion}>
-                  <ButtonSecondary
-                    onClick={() => !isAllowed() ? ht() : null}
-                    type="submit"
-                    disabled={
-                      TitleComponent === "email"
-                        ? !event?.templateEmailSelect
-                        : TitleComponent === "whatsapp"
-                          ? true
-                          : !event?.imgInvitacion
-                    }
-                  >
-                    Enviar {TitleComponent} de prueba
-                  </ButtonSecondary>
+                  <div className="w-[300px]">
+                    <ButtonSecondary
+                      onClick={() => !isAllowed() ? ht() : null}
+                      type="submit"
+                      disabled={
+                        TitleComponent === "email"
+                          ? !event?.templateEmailSelect
+                          : TitleComponent === "whatsapp"
+                            ? true
+                            : !event?.imgInvitacion
+                      }
+                    >
+                      Enviar {TitleComponent} de prueba
+                    </ButtonSecondary>
+                  </div>
                 </Tooltip>
-              </>
-            </Form>
-          )}
-        </Formik>
-        <div className="flex-1 h-full p-4">
-
+              </Form>
+            )}
+          </Formik>
         </div>
+
         {!["email", "whatsapp"].includes(TitleComponent) && <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2 text-sm cursor-default gap-4">
           <ActivatorPremium link={redireccionFacturacion} />
         </div>}
       </div>
     </div>
-
   );
 }
 const AutoSubmitToken = ({ TitelComponent, valirReset, setValirReset }) => {
