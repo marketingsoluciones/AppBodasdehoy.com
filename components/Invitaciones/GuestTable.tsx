@@ -12,7 +12,8 @@ import { GuestDateCell } from "./cells/GuestDateCell";
 export const GuestTable: FC<GuestTableProps> = ({
   data,
   multiSeled = false,
-  activeFunction
+  activeFunction,
+  optionSelect
 }) => {
   const { t } = useTranslation();
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState<string[]>([]);
@@ -63,18 +64,13 @@ export const GuestTable: FC<GuestTableProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
-      {arrEnviarInvitaciones.length > 0 && (
-        <ConfirmationBlock
-          arrEnviarInvitaciones={arrEnviarInvitaciones}
-          set={setArrEnviatInvitaciones}
-        />
-      )}
       <DataTableInvitaciones
         columns={columns}
         data={data}
         multiSeled={multiSeled}
-        setArrEnviatInvitaciones={setArrEnviatInvitaciones}
         activeFunction={activeFunction}
+        optionSelect={optionSelect}
+        arrEnviarInvitaciones={arrEnviarInvitaciones}
       />
     </div>
   );

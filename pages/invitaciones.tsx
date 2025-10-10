@@ -185,7 +185,7 @@ const Invitaciones = () => {
                 </div>
               </div>
               <div className={`${["email", "diseño"].includes(optionSelect) ? !stateConfi ? "" : "md:pt-3" : null} pt-3`}>
-                <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} event={event} />
+                <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent}  optionSelect={optionSelect} />
               </div>
             </div>
           </motion.div>

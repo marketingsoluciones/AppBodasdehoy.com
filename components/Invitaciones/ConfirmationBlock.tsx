@@ -12,10 +12,10 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 
 
-export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
+export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set, optionSelect }) => {
   const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider();
-  const [optionSelect, setOptionSelect] = useState("email")
+  /*  const [optionSelect, setOptionSelect] = useState("email") */
   const [isAllowed, ht] = useAllowed()
   const toast = useToast()
 
@@ -41,89 +41,23 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
     set([]);
   };
 
-  /* const handleSendInvitation = async () => {
-    console.log("handleSendInvitation")
-    const params = {
-      query: `mutation enviaInvitacion (
-          $evento_id : String,
-          $invitados_ids_array : [String],
-          $dominio: String,
-          $transport: String
-          $lang: String
-        ){
-          enviaInvitacion(
-            evento_id:$evento_id,
-            invitados_ids_array:$invitados_ids_array,
-            dominio:$dominio,
-            transport:$transport,
-            lang:$lang
-          ){
-            _id,
-            invitados_array{
-              _id,
-              invitacion,
-              nombre,
-              correo,
-              rol,
-              chats_array{
-                _id,
-                tipo
-              }
-            }
-          }
-        }        
-        `,
-      variables: {
-        evento_id: event?._id,
-        invitados_ids_array: arrEnviarInvitaciones,
-        dominio: process.env.NEXT_PUBLIC_BASE_URL,
-        transport: optionSelect,
-        lang: i18next.language
-      },
-    };
-    if (event?.imgInvitacion) {
-      try {
-        await api.ApiApp(params);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setEvent((old) => {
-          arrEnviarInvitaciones.forEach((invitado) => {
-            const idxInvitado = event?.invitados_array?.findIndex(
-              (inv) => inv._id == invitado
-            );
-            old.invitados_array[idxInvitado] = {
-              ...old.invitados_array[idxInvitado],
-              invitacion: true,
-              fecha_invitacion: new Date().getTime().toString()
-            };
-          });
-
-          return { ...old };
-        });
-        set([])
-      }
-    }
-  }; */
 
   const handleSendInvitation = async () => {
-    console.log("handleSendInvitation")
-
-
-    try {
-      fetchApiEventos({
-        query: queries.testInvitacion,
-        variables: {
-          evento_id: event?._id,
-          email: arrEnviarInvitaciones,
-          lang: i18next.language
-        }
-      })
-      toast("success", t("Invitación enviada"))
-    } catch (error) {
-      console.log(error)
+    if (optionSelect === "email") {
+      try {
+        fetchApiEventos({
+          query: queries.testInvitacion,
+          variables: {
+            evento_id: event?._id,
+            email: arrEnviarInvitaciones,
+            lang: i18next.language
+          }
+        })
+        toast("success", t("Invitación enviada"))
+      } catch (error) {
+        console.log(error)
+      }
     }
-
   };
 
   const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
@@ -139,13 +73,13 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set }) => {
                 {`¿${t("desea enviar")} ${arrEnviarInvitaciones.length} ${arrEnviarInvitaciones.length > 1 ? t("invitaciones") : t("invitación")} ${t("de su evento")}?`}
               </p>
               <span>{t("selectmedia")}</span>
-              <div className="grip grid-cols-3 -mt-2">
+              {/* <div className="grip grid-cols-3 -mt-2">
                 <OptionsMenu
                   arryOptions={arryOptions}
                   optionSelect={optionSelect}
                   setOptionSelect={setOptionSelect}
                 />
-              </div>
+              </div> */}
               {<div className="w-full flex gap-10 mt-6 justify-center h-max items-center">
                 <button
                   onClick={() => handleSendInvitation()}

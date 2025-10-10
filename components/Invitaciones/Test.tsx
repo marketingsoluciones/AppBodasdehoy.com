@@ -40,7 +40,6 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
   const toast = useToast()
   const [isAllowed, ht] = useAllowed()
   const [templateName, setTemplateName] = useState<string>()
-
   const [isMobile, setIsMobile] = useState<boolean>(false)
 
   useEffect(() => {
@@ -53,8 +52,6 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
 
     return () => window.removeEventListener('resize', checkIsMobile)
   }, [])
-
-  console.log(99999, event)
 
 
   useEffect(() => {
@@ -162,6 +159,8 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
   const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
   const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
 
+
+
   return (
     <div className="w-full h-full font-display flex flex-col space-y-2">
       {showModalTemplate && (
@@ -172,8 +171,8 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
       <div className="flex flex-col justify-center items-center ">
         <div className="w-full md:w-[400px] md:h-10 flex flex-col md:flex-row gap-2 md:items-end px-2 ">
           <span className="text-sm text-gray-600 text-primary py-1">{t("template")} {optionSelect === "email" ? t("email") : "Whatsapp"}</span>
-          <div className="flex-1 h-8 bg-gray-100 rounded-md px-2 py-2 text-sm text-gray-600">
-            {templateName}
+          <div className="md:flex-1 h-8 bg-gray-100 rounded-md px-2 py-2 text-sm text-gray-600">
+            {templateName ? templateName : "No hay template seleccionado"}
           </div>
         </div>
         <div className="w-[500px] h-10 flex justify-center gap-2 items-center px-2">

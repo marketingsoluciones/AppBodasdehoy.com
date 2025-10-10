@@ -13,6 +13,7 @@ export interface GuestTableProps {
   data: Guest[];
   multiSeled?: boolean;
   activeFunction?: () => void;
+  optionSelect?: string;
 }
 
 export interface ColumnConfig {
@@ -27,8 +28,9 @@ export interface DataTableProps {
   columns: ColumnConfig[];
   data: Guest[];
   multiSeled?: boolean;
-  setArrEnviatInvitaciones: (ids: string[]) => void;
   activeFunction?: () => void;
+  optionSelect?: string;
+  arrEnviarInvitaciones: string[];
 }
 
 export interface ConfirmationBlockProps {

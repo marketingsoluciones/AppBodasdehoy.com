@@ -13,7 +13,7 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({
   columns,
   data = [],
   multiSeled = false,
-  setArrEnviatInvitaciones,
+  optionSelect,
 }) => {
   const { dataTableGroup: { arrIDs } } = DataTableGroupContextProvider();
 
@@ -26,7 +26,6 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({
   const selectedPhones = data
     .filter(guest => arrIDs.includes(guest._id))
     .map(guest => guest.telefono);
-
 
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
     useTable({ columns, data }, useSortBy, useRowSelect, (hooks) => {
@@ -56,21 +55,17 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({
 
   const getColumnSpan = (columnId: string) => `col-span-${COLUMN_SPAN_CONFIG[columnId] || 1}`;
 
-  const handleSendInvitations = () => {
-    if (arrIDs?.length) {
-      setArrEnviatInvitaciones(selectedEmails);
-    }
-  };
-
   const isSendButtonDisabled = !arrIDs?.length;
+  
 
   return (
     <div className="relative">
       {multiSeled && (
         <SendButton
           isDisabled={isSendButtonDisabled}
-          onClick={handleSendInvitations}
           isResend={data?.length && data[0]?.invitacion}
+          optionSelect={optionSelect}
+          arrEnviarInvitaciones={selectedEmails}
         />
       )}
 

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useTranslation } from 'react-i18next';
 import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
 
-export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, event }) => {
+export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, optionSelect }) => {
     const { t } = useTranslation();
     const { config } = AuthContextProvider()
     const [stateTable, setStateTable] = useState("noenviados")
@@ -37,7 +37,7 @@ export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, e
                     </div>
                     <div className="w-full overflow-auto">
                         <div className="w-[200%] md:w-full">
-                            <GuestTable data={stateTable === "noenviados" ? dataInvitationNotSent : dataInvitationSent} multiSeled={true} />
+                            <GuestTable data={stateTable === "noenviados" ? dataInvitationNotSent : dataInvitationSent} multiSeled={true}  optionSelect={optionSelect} />
                         </div>
                     </div>
                 </div>
