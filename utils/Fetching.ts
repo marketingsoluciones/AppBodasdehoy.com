@@ -2415,4 +2415,82 @@ export const queries = {
   deleteTaskAttachment: `mutation ($eventID: String, $itinerarioID: String, $taskID: String, $attachmentID: String) {
     deleteTaskAttachment(eventID: $eventID, itinerarioID: $itinerarioID, taskID: $taskID, attachmentID: $attachmentID)
   }`,
+
+  // WhatsApp Queries and Mutations
+  whatsappGetSession: `query ($args: GetWhatsAppSessionArgs!) {
+    whatsappGetSession(args: $args) {
+      id
+      development
+      userId
+      isConnected
+      qrCode
+      phoneNumber
+      connectionTime
+      lastActivity
+    }
+  }`,
+
+  whatsappGetAllSessions: `query {
+    whatsappGetAllSessions {
+      id
+      development
+      userId
+      isConnected
+      qrCode
+      phoneNumber
+      connectionTime
+      lastActivity
+    }
+  }`,
+
+  whatsappCreateSession: `mutation ($args: CreateWhatsAppSessionArgs!) {
+    whatsappCreateSession(args: $args) {
+      success
+      session {
+        id
+        development
+        userId
+        isConnected
+        qrCode
+        phoneNumber
+        connectionTime
+        lastActivity
+      }
+      qrCode
+      error
+    }
+  }`,
+
+  whatsappRegenerateQR: `mutation ($sessionId: String!) {
+    whatsappRegenerateQR(sessionId: $sessionId) {
+      success
+      session {
+        id
+        development
+        userId
+        isConnected
+        qrCode
+        phoneNumber
+        connectionTime
+        lastActivity
+      }
+      qrCode
+      error
+    }
+  }`,
+
+  whatsappDisconnectSession: `mutation ($args: DisconnectWhatsAppSessionArgs!) {
+    whatsappDisconnectSession(args: $args) {
+      success
+      error
+    }
+  }`,
+
+  whatsappSendMessage: `mutation ($args: SendWhatsAppMessageArgs!) {
+    whatsappSendMessage(args: $args) {
+      success
+      messageId
+      error
+    }
+  }`,
 };

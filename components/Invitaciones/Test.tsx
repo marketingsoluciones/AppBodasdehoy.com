@@ -2,7 +2,7 @@ import { Formik, Form, useFormikContext } from "formik";
 import { AuthContextProvider } from "../../context/AuthContext";
 import { EventContextProvider } from "../../context/EventContext";
 import InputField from "../Forms/InputField";
-import { EmailIcon, IconLightBulb16, WhatsappIcon } from "../icons";
+import { IconLightBulb16 } from "../icons";
 import * as yup from "yup";
 import { phoneUtil, useAuthentication } from "../../utils/Authentication";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
@@ -20,6 +20,7 @@ import ButtonSecondary from "./ButtonSecondary";
 import i18next from "i18next";
 import { FaWhatsapp } from "react-icons/fa";
 import { HiOutlineMail } from "react-icons/hi";
+import { WhatsappSetupComponent } from "./WhatsappSetupComponent";
 
 export type TitleComponent = "email" | "whatsapp" | "sms" | "diseño"
 
@@ -40,6 +41,8 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
   const toast = useToast()
   const [isAllowed, ht] = useAllowed()
   const [templateName, setTemplateName] = useState<string>()
+  const [showModalSetupWhatsapp, setShowModalSetupWhatsapp] = useState(false)
+
   const [isMobile, setIsMobile] = useState<boolean>(false)
 
   useEffect(() => {
@@ -52,7 +55,6 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
 
     return () => window.removeEventListener('resize', checkIsMobile)
   }, [])
-
 
   useEffect(() => {
     if (event?.templateEmailSelect && optionSelect === "email") {
@@ -163,6 +165,9 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
 
   return (
     <div className="w-full h-full font-display flex flex-col space-y-2">
+      {showModalSetupWhatsapp && (
+        <WhatsappSetupComponent setShowModalSetupWhatsapp={setShowModalSetupWhatsapp} />
+      )}
       {showModalTemplate && (
         <ModalDefault onClose={() => setShowModalTemplate(false)}>
           <ModalTemplates action={(template) => { handleChangeTemplate(template as TemplateDesign) }} use={"load"} optionSelect={optionSelect} />
@@ -198,6 +203,9 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
             }
           }} >
             {t("preview")}
+          </ButtonPrimary>
+          <ButtonPrimary onClick={(e) => setShowModalSetupWhatsapp(true)} >
+            {t("setupWhatsapp")}
           </ButtonPrimary>
         </div>
       </div>
