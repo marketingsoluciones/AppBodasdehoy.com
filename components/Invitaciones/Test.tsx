@@ -5,8 +5,8 @@ import InputField from "../Forms/InputField";
 import { IconLightBulb16 } from "../icons";
 import * as yup from "yup";
 import { phoneUtil, useAuthentication } from "../../utils/Authentication";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
-import { FC, useEffect, useState } from "react";
+import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
+import { Dispatch, FC, SetStateAction, useEffect, useState, useCallback } from "react";
 import { ActivatorPremium } from "../ActivatorPremium";
 import { Tooltip } from "../Utils/Tooltip";
 import { useToast } from "../../hooks/useToast";
@@ -15,12 +15,14 @@ import { useTranslation } from 'react-i18next';
 import ButtonPrimary from "./ButtonPrimary";
 import ModalDefault from "./ModalDefault";
 import { ModalTemplates } from "./ModalTemplates";
-import { TemplateDesign } from "../../utils/Interfaces";
+import { detalle_compartidos_array, TemplateDesign } from "../../utils/Interfaces";
 import ButtonSecondary from "./ButtonSecondary";
 import i18next from "i18next";
 import { FaWhatsapp } from "react-icons/fa";
 import { HiOutlineMail } from "react-icons/hi";
 import { WhatsappSetupComponent } from "./WhatsappSetupComponent";
+import { WhatsAppSession } from "./whatsappSetupComponents";
+import { SocketContextProvider } from "../../context";
 
 export type TitleComponent = "email" | "whatsapp" | "sms" | "diseño"
 
@@ -42,6 +44,31 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
   const [isAllowed, ht] = useAllowed()
   const [templateName, setTemplateName] = useState<string>()
   const [showModalSetupWhatsapp, setShowModalSetupWhatsapp] = useState(false)
+  const { user, config } = AuthContextProvider();
+  const [session, setSession] = useState<WhatsAppSession | null>(null);
+  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [dupplicatingConnection, setDupplicatingConnection] = useState<{ state: boolean, user: detalle_compartidos_array }>({ state: false, user: undefined })
+  const [loading, setLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string>('');
+  const [checkingConnection, setCheckingConnection] = useState(false);
+  const { socket } = SocketContextProvider()
+  const [error, setError] = useState<string | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
+
+  // Limpiar estados de WhatsApp al cambiar de opción
+  useEffect(() => {
+    if (optionSelect !== "whatsapp") {
+      // Limpiar estados cuando no es whatsapp
+      setSession(null);
+      setQrCode(null);
+      setDupplicatingConnection({ state: false, user: undefined });
+      setCheckingConnection(false);
+      setError(null);
+      setLoading(false);
+    }
+  }, [optionSelect])
+
+
 
   const [isMobile, setIsMobile] = useState<boolean>(false)
 
@@ -85,6 +112,93 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
     email: "",
     phoneNumber: `+${phoneUtil.getCountryCodeForRegion(geoInfo?.ipcountry)}`
   }
+
+  // Manejo del socket - solo para WhatsApp
+  useEffect(() => {
+    if (optionSelect !== "whatsapp") return;
+
+    const handleMessage = async (msg: any) => {
+      if (msg?.payload?.action === "qrCode") {
+        setQrCode(msg?.payload?.value);
+        setLoading(false);
+      }
+      if (msg?.payload?.action === "whatsapp_deleted") {
+        try {
+          setQrCode(null);
+          setSession(null);
+          setPhoneNumber('');
+          setCheckingConnection(false);
+          setError(null);
+          setLoading(false);
+        } catch (error) {
+          console.error('Error al desconectar la sesión:', error);
+        }
+      }
+      if (msg?.payload?.action === "connected") {
+        setQrCode(null);
+        setLoading(false);
+        setSession(msg?.payload?.value);
+        setCheckingConnection(true);
+      }
+    }
+
+    socket?.on("app:message", handleMessage)
+    return () => {
+      socket?.off("app:message", handleMessage)
+    }
+  }, [socket, optionSelect]);
+
+  // Generar sessionId único basado en el evento - solo para WhatsApp
+  useEffect(() => {
+    if (optionSelect === "whatsapp" && event?._id && user?.uid) {
+      const uniqueSessionId = `${event._id}`;
+      setSessionId(uniqueSessionId);
+    }
+  }, [event, user, optionSelect]);
+
+  const checkExistingSession = useCallback(async () => {
+    if (!sessionId || !config?.development || optionSelect !== "whatsapp") return;
+    try {
+      setLoading(true);
+      const result = await fetchApiBodas({
+        query: queries.whatsappGetSession,
+        variables: {
+          args: {
+            sessionId
+          }
+        },
+        development: config.development
+      });
+
+      if (result) {
+        setSession(result);
+        if (result.isConnected) {
+          setQrCode(null);
+        } else if (result.qrCode) {
+          console.log(100012, result.userId, user?.uid)
+          if (result.userId !== user?.uid) {
+            setQrCode(null);
+            console.log(100013, user, event?.detalles_compartidos_array)
+            const dupplicatingUser = [event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])].find(elem => elem.uid === result.userId)
+            setDupplicatingConnection({ state: true, user: dupplicatingUser })
+          } else {
+            setQrCode(result.qrCode);
+          }
+        }
+      }
+    } catch (err) {
+      console.log('No existe sesión previa', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [sessionId, config, user, event, optionSelect, setLoading, setSession, setQrCode, setDupplicatingConnection]);
+
+  // Verificar sesión existente - solo para WhatsApp
+  useEffect(() => {
+    if (optionSelect === "whatsapp") {
+      checkExistingSession();
+    }
+  }, [sessionId, config, showModalSetupWhatsapp, optionSelect, checkExistingSession]);
 
   const validationSchemaEmail = yup.object().shape({
     email: yup.string().required("Campo requerido").test("Unico", "Correo inválido", async (value) => {
@@ -166,7 +280,22 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
   return (
     <div className="w-full h-full font-display flex flex-col space-y-2">
       {showModalSetupWhatsapp && (
-        <WhatsappSetupComponent setShowModalSetupWhatsapp={setShowModalSetupWhatsapp} />
+        <WhatsappSetupComponent
+          setShowModalSetupWhatsapp={setShowModalSetupWhatsapp}
+          setSession={setSession}
+          setQrCode={setQrCode}
+          setLoading={setLoading}
+          sessionId={sessionId} session={session}
+          dupplicatingConnection={dupplicatingConnection}
+          checkingConnection={checkingConnection}
+          qrCode={qrCode} loading={loading}
+          checkExistingSession={checkExistingSession}
+          setError={setError}
+          phoneNumber={phoneNumber}
+          setPhoneNumber={setPhoneNumber}
+          error={error}
+        />
+
       )}
       {showModalTemplate && (
         <ModalDefault onClose={() => setShowModalTemplate(false)}>
@@ -204,9 +333,16 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
           }} >
             {t("preview")}
           </ButtonPrimary>
-          <ButtonPrimary onClick={(e) => setShowModalSetupWhatsapp(true)} >
-            {t("setupWhatsapp")}
-          </ButtonPrimary>
+          {optionSelect === "whatsapp" && (
+            <div className="relative flex items-center">
+              <div className={`group w-3 h-3 absolute right-2 rounded-full ${session?.isConnected ? "bg-green" : "bg-gray-300"}`} >
+                <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">{session?.isConnected ? t("connected") : t("disconnected")}</span>
+              </div>
+              <ButtonPrimary onClick={(e) => setShowModalSetupWhatsapp(true)} >
+                {t("setupWhatsapp")}
+              </ButtonPrimary>
+            </div>
+          )}
         </div>
       </div>
       <div className="flex w-full h-full p-2 justify-center">
@@ -271,13 +407,21 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
     </div>
   );
 }
-const AutoSubmitToken = ({ TitelComponent, valirReset, setValirReset }) => {
-  const { resetForm, setValues, values } = useFormikContext();
+interface AutoSubmitTokenProps {
+  TitelComponent: TitleComponent;
+  valirReset: boolean;
+  setValirReset: (value: boolean) => void;
+}
+
+const AutoSubmitToken: FC<AutoSubmitTokenProps> = ({ TitelComponent, valirReset, setValirReset }) => {
+  const { resetForm } = useFormikContext();
 
   useEffect(() => {
-    resetForm()
-    setValirReset(false)
-  }, [TitelComponent, valirReset])
+    if (valirReset) {
+      resetForm()
+      setValirReset(false)
+    }
+  }, [TitelComponent, valirReset, resetForm, setValirReset])
 
   return null;
 };

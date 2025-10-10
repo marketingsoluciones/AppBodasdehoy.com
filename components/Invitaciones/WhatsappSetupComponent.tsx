@@ -5,140 +5,77 @@ import { fetchApiBodas, queries } from '../../utils/Fetching';
 import { FaWhatsapp } from 'react-icons/fa';
 import { ErrorMessage, ConnectedView, PhoneNumberForm, QRCodeDisplay } from './whatsappSetupComponents';
 import type { WhatsAppSession, CreateSessionResponse } from './whatsappSetupComponents/types';
-import { SocketContextProvider } from '../../context/SocketContext';
 import ModalDefault from './ModalDefault';
 import { LoadingSpinner } from '../Utils/LoadingSpinner';
+import { ImageAvatar } from '../Utils/ImageAvatar';
+import { detalle_compartidos_array } from '../../utils/Interfaces';
 
 interface props {
   setShowModalSetupWhatsapp: Dispatch<SetStateAction<boolean>>
+  setSession: Dispatch<SetStateAction<WhatsAppSession | null>>
+  setQrCode: Dispatch<SetStateAction<string | null>>
+  setLoading: Dispatch<SetStateAction<boolean>>
+  sessionId: string
+  session: WhatsAppSession | null
+  dupplicatingConnection: { state: boolean, user: detalle_compartidos_array }
+  checkingConnection: boolean
+  qrCode: string | null
+  loading: boolean
+  checkExistingSession: () => void
+  setError: Dispatch<SetStateAction<string | null>>
+  phoneNumber: string
+  setPhoneNumber: Dispatch<SetStateAction<string>>
+  error: string | null
 }
 
-export function WhatsappSetupComponent({ setShowModalSetupWhatsapp }: props) {
+export function WhatsappSetupComponent({ setShowModalSetupWhatsapp, setSession, setQrCode, setLoading, sessionId, session, dupplicatingConnection, checkingConnection, qrCode, loading, checkExistingSession, setError, phoneNumber, setPhoneNumber, error }: props) {
   const { user, config } = AuthContextProvider();
   const { event } = EventContextProvider();
-
-  const [session, setSession] = useState<WhatsAppSession | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [qrCode, setQrCode] = useState<string | null>(null);
-  const [sessionId, setSessionId] = useState<string>('');
-  const [phoneNumber, setPhoneNumber] = useState<string>('');
-  const [checkingConnection, setCheckingConnection] = useState(false);
-  const { socket } = SocketContextProvider()
   const [loadingSpinner, setLoadingSpinner] = useState(true)
-  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    if (!isMounted) {
-      setIsMounted(true)
-      setTimeout(() => {
-        setLoadingSpinner(false)
-      }, 500);
-    }
+    const timer = setTimeout(() => {
+      setLoadingSpinner(false)
+    }, 500);
+
     return () => {
-      setIsMounted(false)
+      clearTimeout(timer)
     }
   }, [])
 
-  // Manejo del socket
-  useEffect(() => {
-    const handleMessage = async (msg: any) => {
-      if (msg?.payload?.action === "qrCode") {
-        setQrCode(msg?.payload?.value);
-        setLoading(false);
-      }
-      if (msg?.payload?.action === "whatsapp_deleted") {
-        try {
-          setQrCode(null);
-          setSession(null);
-          setPhoneNumber('');
-          setCheckingConnection(false);
-          setError(null);
-          setLoading(false);
-        } catch (error) {
-          console.error('Error al desconectar la sesión:', error);
-        }
-      }
-      if (msg?.payload?.action === "connected") {
-        setQrCode(null);
-        setLoading(false);
-        setSession(msg?.payload?.value);
-        setCheckingConnection(true);
-      }
-    }
-    socket?.on("app:message", handleMessage)
-    return () => {
-      socket?.off("app:message", handleMessage)
-    }
-  }, [socket]);
-
-  // Generar sessionId único basado en el evento y usuario
-  useEffect(() => {
-    if (event?._id && user?.uid) {
-      const uniqueSessionId = `${event._id}_${user.uid}`;
-      setSessionId(uniqueSessionId);
-    }
-  }, [event, user]);
-
-  // Verificar si ya existe una sesión
-  useEffect(() => {
-    if (sessionId && config?.development) {
-      checkExistingSession();
-    }
-  }, [sessionId, config]);
-
   // Desconectar sesión al desmontar el componente si no está conectada
-  const disconnectSessionComponent = () => {
+  const disconnectSessionComponent = async () => {
+    console.log(100014, "para desconectar")
     setLoadingSpinner(true)
 
-    if (sessionId && config?.development && !session?.isConnected) {
-      // Llamar a la API directamente sin actualizar el estado
-      fetchApiBodas({
-        query: queries.whatsappDisconnectSession,
-        variables: {
-          args: {
-            sessionId
-          }
-        },
-        development: config.development
-      }).then(() => {
+    if (sessionId && config?.development && !session?.isConnected && !dupplicatingConnection.state) {
+      try {
+        // Llamar a la API directamente sin actualizar el estado
+        await fetchApiBodas({
+          query: queries.whatsappDisconnectSession,
+          variables: {
+            args: {
+              sessionId
+            }
+          },
+          development: config.development
+        })
+      } catch (err) {
+        console.error('Error al desconectar en cleanup:', err)
+      } finally {
+        setLoadingSpinner(false)
         setShowModalSetupWhatsapp(false)
-      }).catch(err => console.error('Error al desconectar en cleanup:', err))
+      }
     } else {
+      setLoadingSpinner(false)
       setShowModalSetupWhatsapp(false)
     }
-    setLoadingSpinner(false)
-
   };
 
-  const checkExistingSession = async () => {
-    if (!sessionId || !config?.development) return;
-    try {
-      setLoading(true);
-      const result = await fetchApiBodas({
-        query: queries.whatsappGetSession,
-        variables: {
-          args: {
-            sessionId
-          }
-        },
-        development: config.development
-      });
+  useEffect(() => {
+    console.log(100011, { dupplicatingConnection }, session, event?.detalles_compartidos_array?.find(elem => elem.uid === session?.userId))
+  }, [dupplicatingConnection, session, event])
 
-      if (result) {
-        setSession(result);
-        if (result.isConnected) {
-          setQrCode(null);
-        } else if (result.qrCode) {
-          setQrCode(result.qrCode);
-        }
-      }
-    } catch (err) {
-      console.log('No existe sesión previa', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const createSession = async () => {
     if (!sessionId || !config?.development) {
@@ -237,7 +174,7 @@ export function WhatsappSetupComponent({ setShowModalSetupWhatsapp }: props) {
     } finally {
       setLoading(false);
     }
-  }, [sessionId, config]);
+  }, [sessionId, config, setError, setLoading, setSession, setQrCode, setPhoneNumber]);
 
   return (
     <ModalDefault onClose={() => {
@@ -268,6 +205,18 @@ export function WhatsappSetupComponent({ setShowModalSetupWhatsapp }: props) {
                 onDisconnect={disconnectSession}
                 loading={loading}
               />
+            ) : dupplicatingConnection.state ? (
+              <div className="w-full md:w-1/2 flex flex-col items-center space-y-4 text-center text-gray-600">
+                <div className="w-20 h-20 shadow-md rounded-full overflow-hidden">
+                  <ImageAvatar disabledTooltip size="xs" user={dupplicatingConnection.user} />
+                </div>
+                <p className="font-display text-sm font-semibold">
+                  {dupplicatingConnection.user?.displayName || dupplicatingConnection.user?.email}
+                </p>
+                <p className="font-display text-sm">
+                  Está intentando conectarse a WhatsApp en este momento, sólo puedes tener una conexión activa por evento
+                </p>
+              </div>
             ) : (
               <>
                 {!qrCode && (
@@ -291,15 +240,15 @@ export function WhatsappSetupComponent({ setShowModalSetupWhatsapp }: props) {
             )}
           </div>
           {/* Footer con información */}
-          {!qrCode && <div className="border-t-[1px] bg-gray-50 p-4">
+          {!session?.isConnected && !dupplicatingConnection.state && <div className="border-t-[1px] bg-gray-50 p-4">
             <h4 className="font-display text-sm font-semibold text-gray-700 mb-2">
               Información importante
             </h4>
             <ul className="font-body text-[11px] text-gray-600 space-y-1">
               <li>• La conexión se mantendrá activa mientras tu teléfono esté conectado</li>
-              <li>• Puedes desconectar desde WhatsApp o desde el botón arriba de desconectar</li>
-              <li>• Manten la conexión activa solo si vas a enviar invitaciones</li>
-              {!session?.isConnected && (
+              <li>• Puedes desconectar desde WhatsApp o desde el botón de desconectar</li>
+              <li>• Mantén la conexión activa solo si vas a enviar invitaciones</li>
+              {qrCode && (
                 <>
                   <li>• El código QR expira después de unos minutos</li>
                   <li>• Asegúrate de tener una conexión estable en tu teléfono</li>
