@@ -45,7 +45,6 @@ export function WhatsappSetupComponent({ setShowModalSetupWhatsapp, setSession, 
 
   // Desconectar sesión al desmontar el componente si no está conectada
   const disconnectSessionComponent = async () => {
-    console.log(100014, "para desconectar")
     setLoadingSpinner(true)
 
     if (sessionId && config?.development && !session?.isConnected && !dupplicatingConnection.state) {
@@ -71,11 +70,6 @@ export function WhatsappSetupComponent({ setShowModalSetupWhatsapp, setSession, 
       setShowModalSetupWhatsapp(false)
     }
   };
-
-  useEffect(() => {
-    console.log(100011, { dupplicatingConnection }, session, event?.detalles_compartidos_array?.find(elem => elem.uid === session?.userId))
-  }, [dupplicatingConnection, session, event])
-
 
   const createSession = async () => {
     if (!sessionId || !config?.development) {

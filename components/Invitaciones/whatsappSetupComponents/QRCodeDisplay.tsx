@@ -1,4 +1,5 @@
 import { LoadingSpinner } from './LoadingSpinner';
+import Image from 'next/image';
 
 interface QRCodeDisplayProps {
   qrCode: string;
@@ -19,10 +20,13 @@ export function QRCodeDisplay({ qrCode, checkingConnection, onRegenerateQR, load
         </p>
 
         <div className="bg-white p-4 rounded-md inline-block border-[1px] border-gray-200 mb-2">
-          <img
+          <Image
             src={`https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(qrCode)}`}
             alt="Código QR de WhatsApp"
+            width={256}
+            height={256}
             className="w-64 h-64"
+            unoptimized
           />
         </div>
 
@@ -42,7 +46,7 @@ export function QRCodeDisplay({ qrCode, checkingConnection, onRegenerateQR, load
           <ol className="font-body text-left text-xs text-gray-600 space-y-1 max-w-md mx-auto">
             <li>1. Abre WhatsApp en tu teléfono</li>
             <li>2. Ve a Menú → Dispositivos vinculados</li>
-            <li>3. Toca "Vincular un dispositivo"</li>
+            <li>3. Toca &ldquo;Vincular un dispositivo&rdquo;</li>
             <li>4. Escanea este código QR</li>
           </ol>
         </div>

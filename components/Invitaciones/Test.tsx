@@ -175,10 +175,8 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
         if (result.isConnected) {
           setQrCode(null);
         } else if (result.qrCode) {
-          console.log(100012, result.userId, user?.uid)
           if (result.userId !== user?.uid) {
             setQrCode(null);
-            console.log(100013, user, event?.detalles_compartidos_array)
             const dupplicatingUser = [event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])].find(elem => elem.uid === result.userId)
             setDupplicatingConnection({ state: true, user: dupplicatingUser })
           } else {
