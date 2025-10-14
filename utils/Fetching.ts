@@ -1163,6 +1163,23 @@ export const queries = {
     }
   }`,
 
+  sendInvitations: ` mutation( $evento_id:String, $invitados_ids_array:[String], $dominio:String, $transport:String, $lang:String){
+      enviaInvitacion(evento_id:$evento_id, invitados_ids_array:$invitados_ids_array, dominio:$dominio, transport:$transport, lang:$lang){
+        _id,
+        invitados_array{
+          _id,
+          invitacion,
+          nombre,
+          correo,
+          rol,
+          chats_array{
+          _id,
+          tipo
+          }
+      }
+    }
+  }`,
+
   editVisibleColumns: `mutation ($evento_id:String, $visibleColumns:[inputVisibleColumn]){
     editVisibleColumns(evento_id:$evento_id, visibleColumns:$visibleColumns ){
       presupuesto_total

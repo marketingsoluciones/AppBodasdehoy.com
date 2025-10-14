@@ -12,7 +12,7 @@ export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, o
 
     return (
         <>
-            <div className="my-4">
+            <div className="">
                 <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
                     <span className="text-primary flex items-center text-[20px] first-letter:capitalize ml-3">
                         {`${stateTable === "noenviados" ? "Invitaciones pendientes" : "Invitaciones enviadas"}`}
@@ -35,11 +35,9 @@ export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, o
                             {t("sent")}
                         </button>
                     </div>
-                    <div className="w-full overflow-auto">
                         <div className="w-[200%] md:w-full">
                             <GuestTable data={stateTable === "noenviados" ? dataInvitationNotSent : dataInvitationSent} multiSeled={true}  optionSelect={optionSelect} />
                         </div>
-                    </div>
                 </div>
             </div>
             <style jsx>

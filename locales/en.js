@@ -770,5 +770,7 @@ export const en = {
     'Quick reply': 'Quick reply',
     'PHONE NUMBER': 'PHONE NUMBER',
     'QUICK REPLY': 'QUICK REPLY',
+    'columns': 'Columns',
+    'show_columns': 'Show columns',
   }
 }

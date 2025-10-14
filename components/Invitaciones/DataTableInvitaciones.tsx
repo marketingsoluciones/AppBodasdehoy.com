@@ -8,14 +8,25 @@ import { TableHeader } from "./components/TableHeader";
 import { TableBody } from "./components/TableBody";
 import { SendButton } from "./components/SendButton";
 import { useRowSelectionCell } from "./hooks/useRowSelection";
+import { ColumnToggle } from "./ColumnToggle";
+import { useColumnVisibility } from "./hooks/useColumnVisibility";
 
 export const DataTableInvitaciones: FC<DataTableProps> = ({
   columns,
   data = [],
   multiSeled = false,
   optionSelect,
+  eventId,
 }) => {
   const { dataTableGroup: { arrIDs } } = DataTableGroupContextProvider();
+  console.log(99999, arrIDs)
+
+  // Hook para gestionar visibilidad de columnas
+  const {
+    visibleColumns,
+    toggleColumn,
+    filteredColumns,
+  } = useColumnVisibility(columns, eventId);
 
   // Para correos:
   const selectedEmails = data
@@ -28,7 +39,7 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({
     .map(guest => guest.telefono);
 
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
-    useTable({ columns, data }, useSortBy, useRowSelect, (hooks) => {
+    useTable({ columns: filteredColumns, data }, useSortBy, useRowSelect, (hooks) => {
       hooks.visibleColumns.push((columns) => [
         {
           id: "selection",
@@ -53,35 +64,44 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({
       ]);
     });
 
-  const getColumnSpan = (columnId: string) => `col-span-${COLUMN_SPAN_CONFIG[columnId] || 1}`;
+  // Calcular el total de spans de las columnas visibles
+  const totalSpan = headerGroups[0]?.headers.reduce((sum: number, header: any) => {
+    return sum + (COLUMN_SPAN_CONFIG[header.id] || 1);
+  }, 0) || 24;
 
   const isSendButtonDisabled = !arrIDs?.length;
-  
+
 
   return (
     <div className="relative">
-      {multiSeled && (
-        <SendButton
-          isDisabled={isSendButtonDisabled}
-          isResend={data?.length && data[0]?.invitacion}
-          optionSelect={optionSelect}
-          arrEnviarInvitaciones={selectedEmails}
+      <div className="flex justify-between items-center px-4 border-b border-gray-200">
+        {multiSeled && (
+          <SendButton
+            isDisabled={isSendButtonDisabled}
+            isResend={data?.length && data[0]?.invitacion}
+            optionSelect={optionSelect}
+            arrEnviarInvitaciones={selectedEmails}
+          />
+        )}
+        <ColumnToggle
+          columns={columns}
+          visibleColumns={visibleColumns}
+          onToggleColumn={toggleColumn}
         />
-      )}
-
+      </div>
       <table
         {...getTableProps()}
-        className="table-auto border-collapse w-full rounded-lg relative p-4"
+        className="table-auto border-collapse w-full  relative p-4"
       >
         <TableHeader
           headerGroups={headerGroups}
-          getColumnSpan={getColumnSpan}
+          totalSpan={totalSpan}
         />
         <TableBody
           getTableBodyProps={getTableBodyProps}
           rows={rows}
           prepareRow={prepareRow}
-          getColumnSpan={getColumnSpan}
+          totalSpan={totalSpan}
         />
       </table>
     </div>

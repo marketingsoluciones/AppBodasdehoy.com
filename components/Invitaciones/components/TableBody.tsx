@@ -1,24 +1,24 @@
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TABLE_GRID_CLASSES } from '../constants';
+import { COLUMN_SPAN_CONFIG } from '../constants';
 
 interface TableBodyProps {
   getTableBodyProps: () => any;
   rows: any[];
   prepareRow: (row: any) => void;
-  getColumnSpan: (columnId: string) => string;
+  totalSpan: number;
 }
 
 export const TableBody: FC<TableBodyProps> = ({
   getTableBodyProps,
   rows,
   prepareRow,
-  getColumnSpan
+  totalSpan
 }) => {
   const { t } = useTranslation();
 
   return (
-    <tbody {...getTableBodyProps()} className="text-gray-600 text-sm">
+    <tbody {...getTableBodyProps()} className="text-gray-600 text-sm ">
       {rows.length >= 1 ? (
         rows.map((row, idx) => {
           prepareRow(row);
@@ -26,16 +26,22 @@ export const TableBody: FC<TableBodyProps> = ({
             <tr
               {...row.getRowProps()}
               key={idx}
-              className={TABLE_GRID_CLASSES.row}
+              className="w-full bg-white border-b font-display text-sm grid"
+              style={{ gridTemplateColumns: `repeat(${totalSpan}, minmax(0, 1fr))` }}
             >
-              {row.cells.map((cell: any, idx: number) => (
-                <td
-                  key={idx}
-                  className={`${TABLE_GRID_CLASSES.cell} ${getColumnSpan(cell.column.id)}`}
-                >
-                  {cell.render("Cell")}
-                </td>
-              ))}
+              {row.cells.map((cell: any, idx: number) => {
+                const span = COLUMN_SPAN_CONFIG[cell.column.id] || 1;
+                
+                return (
+                  <td
+                    key={idx}
+                    className="truncate px-3 py-2 flex items-center"
+                    style={{ gridColumn: `span ${span} / span ${span}` }}
+                  >
+                    {cell.render("Cell")}
+                  </td>
+                );
+              })}
             </tr>
           );
         })

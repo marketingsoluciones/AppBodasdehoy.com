@@ -769,5 +769,7 @@ export const es = {
     'Quick reply': 'Respuesta rápida',
     'PHONE NUMBER': 'Número de teléfono',
     'QUICK REPLY': 'RESPUESTA RÁPIDA',
+    'columns': 'Columnas',
+    'show_columns': 'Mostrar columnas',
   }
 }

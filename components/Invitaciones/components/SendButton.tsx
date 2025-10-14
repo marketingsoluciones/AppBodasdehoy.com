@@ -4,6 +4,7 @@ import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { EventContextProvider } from '../../../context/EventContext';
 import i18next from 'i18next';
 import { useToast } from '../../../hooks/useToast';
+import { AuthContextProvider } from '../../../context/AuthContext';
 
 
 interface SendButtonProps {
@@ -19,20 +20,25 @@ export const SendButton: FC<SendButtonProps> = ({
   optionSelect,
   arrEnviarInvitaciones
 }) => {
+  const auth = AuthContextProvider();
+  const { event } = EventContextProvider();
   const { t } = useTranslation();
   const buttonText = isResend ? t("reenviar") : t("enviar");
-  const { event, setEvent } = EventContextProvider();
   const toast = useToast()
+
+  console.log(99999, auth)
 
 
   const handleSendInvitation = async () => {
     if (optionSelect === "email") {
       try {
         fetchApiEventos({
-          query: queries.testInvitacion,
+          query: queries.sendInvitations,
           variables: {
             evento_id: event?._id,
-            email: arrEnviarInvitaciones,
+            invitados_ids_array: arrEnviarInvitaciones,
+            dominio: auth.config?.dominio,
+            transport: "email",
             lang: i18next.language
           }
         })

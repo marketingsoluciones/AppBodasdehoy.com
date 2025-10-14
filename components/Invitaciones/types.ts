@@ -31,6 +31,7 @@ export interface DataTableProps {
   activeFunction?: () => void;
   optionSelect?: string;
   arrEnviarInvitaciones: string[];
+  eventId?: string;
 }
 
 export interface ConfirmationBlockProps {

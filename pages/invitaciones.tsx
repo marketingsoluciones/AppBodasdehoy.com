@@ -129,12 +129,12 @@ const Invitaciones = () => {
     if (!event) return <></>
     return (
       <DataTableGroupProvider>
-        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base w-full pb-6 pt-2 md:py-0"}>
+        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base. w-full pb-6 pt-2 md:py-0"}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 h-full"
+            className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 h-full pb-10"
           >
             {ShowEditorModal && <Modal classe={" md:w-[90%] h-[90%] "} >
               {optionSelect === "email"
@@ -144,7 +144,7 @@ const Invitaciones = () => {
             </Modal>}
             <BlockTitle title="Invitaciones" />
             <CounterInvitations />
-            <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full py-2 relative">
+            <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 relative">
               <button className="text-primary flex items-center text-[20px] first-letter:capitalize ml-3" onClick={() => setStateConfi(!stateConfi)}>
                 {t("invitationsettings")}
                 <span> <GoChevronDown className={`h-6 w-6 text-azulCorporativo cursor-pointer transition-all ml-2 ${stateConfi && "rotate-180"}`} /></span>

@@ -1,6 +1,5 @@
 import { FC, useState, useMemo } from "react";
 import { useTranslation } from 'react-i18next';
-import { ConfirmationBlock } from "./ConfirmationBlock";
 import { DataTableInvitaciones } from "./DataTableInvitaciones";
 import { GuestTableProps, ColumnConfig } from "./types";
 import { GuestNameCell } from "./cells/GuestNameCell";
@@ -8,6 +7,7 @@ import { GuestEmailCell } from "./cells/GuestEmailCell";
 import { GuestInvitationCell } from "./cells/GuestInvitationCell";
 import { GuestCompanionsCell } from "./cells/GuestCompanionsCell";
 import { GuestDateCell } from "./cells/GuestDateCell";
+import { EventContextProvider } from "../../context";
 
 export const GuestTable: FC<GuestTableProps> = ({
   data,
@@ -16,6 +16,7 @@ export const GuestTable: FC<GuestTableProps> = ({
   optionSelect
 }) => {
   const { t } = useTranslation();
+  const { event } = EventContextProvider();
   const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState<string[]>([]);
 
   const columns = useMemo((): ColumnConfig[] => [
@@ -23,7 +24,6 @@ export const GuestTable: FC<GuestTableProps> = ({
       Header: t("name"),
       accessor: "nombre",
       id: "nombre",
-      isVisible: false,
       Cell: (props: any) => <GuestNameCell {...props} />
     },
     {
@@ -71,6 +71,7 @@ export const GuestTable: FC<GuestTableProps> = ({
         activeFunction={activeFunction}
         optionSelect={optionSelect}
         arrEnviarInvitaciones={arrEnviarInvitaciones}
+        eventId={event?._id}
       />
     </div>
   );

@@ -54,6 +54,8 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
   const { socket } = SocketContextProvider()
   const [error, setError] = useState<string | null>(null);
   const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const [isMobile, setIsMobile] = useState<boolean>(false)
+
 
   // Limpiar estados de WhatsApp al cambiar de opción
   useEffect(() => {
@@ -68,18 +70,12 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
     }
   }, [optionSelect])
 
-
-
-  const [isMobile, setIsMobile] = useState<boolean>(false)
-
   useEffect(() => {
     const checkIsMobile = () => {
       setIsMobile(window.innerWidth < 768)
     }
-
     checkIsMobile()
     window.addEventListener('resize', checkIsMobile)
-
     return () => window.removeEventListener('resize', checkIsMobile)
   }, [])
 
@@ -276,7 +272,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
 
 
   return (
-    <div className="w-full h-full font-display flex flex-col space-y-2">
+    <div className="w-full h-full font-display flex flex-col ">
       {showModalSetupWhatsapp && (
         <WhatsappSetupComponent
           setShowModalSetupWhatsapp={setShowModalSetupWhatsapp}
@@ -307,7 +303,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
             {templateName ? templateName : "No hay template seleccionado"}
           </div>
         </div>
-        <div className="w-[500px] h-10 flex justify-center gap-2 items-center px-2">
+        <div className={` py-2  justify-center gap-2 items-center px-2 ${isMobile ? "grid grid-cols-2 w-[300px]" : "flex w-[700px]"}`}>
           <ButtonPrimary onClick={(e) => !isAllowed() ? ht() : setShowModalTemplate(true)} >
             {`${event[optionSelect === "email" ? "templateEmailSelect" : "templateWhatsappSelect"] ? t("change") : t("select")} ${t("template")}`}
           </ButtonPrimary>
@@ -332,11 +328,11 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
             {t("preview")}
           </ButtonPrimary>
           {optionSelect === "whatsapp" && (
-            <div className="relative flex items-center">
-              <div className={`group w-3 h-3 absolute right-2 rounded-full ${session?.isConnected ? "bg-green" : "bg-gray-300"}`} >
+            <div className="relative  ">
+              <div className={`absolute w-3 h-3 right-1 top-1.5 rounded-full ${session?.isConnected ? "bg-green" : "bg-gray-300"}`} >
                 <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">{session?.isConnected ? t("connected") : t("disconnected")}</span>
               </div>
-              <ButtonPrimary onClick={(e) => setShowModalSetupWhatsapp(true)} >
+              <ButtonPrimary className="w-full" onClick={(e) => setShowModalSetupWhatsapp(true)} >
                 {t("setupWhatsapp")}
               </ButtonPrimary>
             </div>
