@@ -1,7 +1,6 @@
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
 import { useRowSelect, useSortBy, useTable } from "react-table";
 import { IndeterminateCheckbox } from "./IndeterminateCheckbox";
-import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
 import { DataTableProps } from "./types";
 import { COLUMN_SPAN_CONFIG } from "./constants";
 import { TableHeader } from "./components/TableHeader";
@@ -11,15 +10,7 @@ import { useRowSelectionCell } from "./hooks/useRowSelection";
 import { ColumnToggle } from "./ColumnToggle";
 import { useColumnVisibility } from "./hooks/useColumnVisibility";
 
-export const DataTableInvitaciones: FC<DataTableProps> = ({
-  columns,
-  data = [],
-  multiSeled = false,
-  optionSelect,
-  eventId,
-}) => {
-  const { dataTableGroup: { arrIDs } } = DataTableGroupContextProvider();
-  console.log(99999, arrIDs)
+export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], multiSeled = false, optionSelect, eventId, }) => {
 
   // Hook para gestionar visibilidad de columnas
   const {
@@ -27,16 +18,6 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({
     toggleColumn,
     filteredColumns,
   } = useColumnVisibility(columns, eventId);
-
-  // Para correos:
-  const selectedEmails = data
-    .filter(guest => arrIDs.includes(guest._id))
-    .map(guest => guest.correo);
-
-  // Para teléfonos:
-  const selectedPhones = data
-    .filter(guest => arrIDs.includes(guest._id))
-    .map(guest => guest.telefono);
 
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
     useTable({ columns: filteredColumns, data }, useSortBy, useRowSelect, (hooks) => {
@@ -69,18 +50,13 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({
     return sum + (COLUMN_SPAN_CONFIG[header.id] || 1);
   }, 0) || 24;
 
-  const isSendButtonDisabled = !arrIDs?.length;
-
-
   return (
     <div className="relative">
       <div className="flex justify-between items-center px-4 border-b border-gray-200">
         {multiSeled && (
           <SendButton
-            isDisabled={isSendButtonDisabled}
             isResend={data?.length && data[0]?.invitacion}
             optionSelect={optionSelect}
-            arrEnviarInvitaciones={selectedEmails}
           />
         )}
         <ColumnToggle

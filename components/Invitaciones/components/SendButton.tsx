@@ -5,29 +5,20 @@ import { EventContextProvider } from '../../../context/EventContext';
 import i18next from 'i18next';
 import { useToast } from '../../../hooks/useToast';
 import { AuthContextProvider } from '../../../context/AuthContext';
-
+import { DataTableGroupContextProvider } from '../../../context/DataTableGroupContext';
 
 interface SendButtonProps {
-  isDisabled: boolean;
   isResend?: boolean;
   optionSelect?: string;
-  arrEnviarInvitaciones: string[];
 }
 
-export const SendButton: FC<SendButtonProps> = ({
-  isDisabled,
-  isResend = false,
-  optionSelect,
-  arrEnviarInvitaciones
-}) => {
+export const SendButton: FC<SendButtonProps> = ({ isResend = false, optionSelect }) => {
   const auth = AuthContextProvider();
   const { event } = EventContextProvider();
   const { t } = useTranslation();
   const buttonText = isResend ? t("reenviar") : t("enviar");
   const toast = useToast()
-
-  console.log(99999, auth)
-
+  const { dataTableGroup: { arrIDs } } = DataTableGroupContextProvider();
 
   const handleSendInvitation = async () => {
     if (optionSelect === "email") {
@@ -36,7 +27,7 @@ export const SendButton: FC<SendButtonProps> = ({
           query: queries.sendInvitations,
           variables: {
             evento_id: event?._id,
-            invitados_ids_array: arrEnviarInvitaciones,
+            invitados_ids_array: arrIDs,
             dominio: auth.config?.dominio,
             transport: "email",
             lang: i18next.language
@@ -52,9 +43,9 @@ export const SendButton: FC<SendButtonProps> = ({
   return (
     <div className="flex justify-between py-3 ml-[52px] w-auto pr-5 relative">
       <button
-        disabled={isDisabled}
+        disabled={!arrIDs?.length}
         onClick={() => handleSendInvitation()}
-        className={`focus:outline-none ${isDisabled
+        className={`focus:outline-none ${!arrIDs?.length
           ? "bg-gray-300"
           : "hover:opacity-70 transition bg-primary"
           } text-white py-1 px-2 rounded-lg text-center text-[10px] md:text-sm capitalize`}
