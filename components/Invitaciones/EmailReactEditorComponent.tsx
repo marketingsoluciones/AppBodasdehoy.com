@@ -313,7 +313,6 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
         }
     }, [template?.configTemplate?.name, template?.configTemplate?.subject])
 
-console.log(event)
 
     return (
         <div className='relative w-full h-full'>
@@ -362,7 +361,7 @@ console.log(event)
                 </ModalDefault>
             )}
             {showSubjectModal.state && (
-                <div className='bg-blue-300 flex items-start space-x-3 w-[500px] p-2 absolute top-10 left-40 border-2 border-gray-300 rounded-lg'>
+                <div className='bg-blue-300 flex items-start space-x-3 md:w-[500px] w-[350px] p-2 absolute top-10 md:left-40 left-2 border-2 border-gray-300 rounded-lg'>
                     <Textarea value={showSubjectModal.value} setValue={(value) => setShowSubjectModal({ state: true, value: value })} allowEnter={false}  defaultValue={`${event?.tipo} ${event?.nombre}`}/>
                     <ButtonPrimary onClick={() => {
                         setTemplate({ ...template, configTemplate: { ...template?.configTemplate, subject: showSubjectModal.value } })
@@ -373,7 +372,7 @@ console.log(event)
             {(!isLoad || loading) && <div className="absolute z-50 w-full h-full bg-white opacity-30" />}
             {(!isLoad || loading) && <div className="absolute z-50  top-[calc(50%-20px)] left-[calc(50%-20px)] loader ease-linear rounded-full border-[7px] border-black border-opacity-35 w-10 h-10" />}
             <div className={`h-full ${isLoad ? "opacity-100" : "opacity-0"} transition-all duration-300`} >
-                {editorReady && <div className='absolute flex w-[604px]'>
+                {editorReady && <div className='absolute flex w-[252px] md:w-[604px]'>
                     <div onClick={handleCloseEditor} className={"flex w-16 h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
                         <div className='pt-[2px]'>
                             <GoArrowLeft className='h-5 w-5' />

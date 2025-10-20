@@ -136,7 +136,7 @@ const Invitaciones = () => {
             exit={{ opacity: 0 }}
             className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 h-full pb-10"
           >
-            {ShowEditorModal && <Modal classe={" md:w-[90%] h-[90%] "} >
+            {ShowEditorModal && <Modal classe={" w-[95%] md:w-[90%] h-[90%] "} >
               {optionSelect === "email"
                 ? < EmailReactEditorComponent setShowEditorModal={setShowEditorModal} previewEmailReactEditor={previewEmailReactEditor} variablesTemplatesInvitaciones={variablesTemplatesInvitaciones} />
                 : <WhatsappEditorComponent setShowEditorModal={setShowEditorModal} variablesTemplatesInvitaciones={variablesTemplatesInvitaciones} />
