@@ -14,7 +14,7 @@ interface SendButtonProps {
 
 export const SendButton: FC<SendButtonProps> = ({ isResend = false, optionSelect }) => {
   const auth = AuthContextProvider();
-  const { event } = EventContextProvider();
+  const { event, setEvent } = EventContextProvider();
   const { t } = useTranslation();
   const buttonText = isResend ? t("reenviar") : t("enviar");
   const toast = useToast()
@@ -32,8 +32,19 @@ export const SendButton: FC<SendButtonProps> = ({ isResend = false, optionSelect
             transport: "email",
             lang: i18next.language
           }
+        }).then((result: any) => {
+          toast("success", t("Invitación enviada"))          
+          if (result?.invitados_array) {
+            const invitadosActualizados = event.invitados_array.map(invitado => {
+              const invitadoActualizado = result.invitados_array.find((inv: any) => inv._id === invitado._id);
+              return invitadoActualizado 
+                ? { ...invitado, ...invitadoActualizado } 
+                : invitado;
+            });
+            
+            setEvent({ ...event, invitados_array: invitadosActualizados });
+          }
         })
-        toast("success", t("Invitación enviada"))
       } catch (error) {
         console.log(error)
       }
