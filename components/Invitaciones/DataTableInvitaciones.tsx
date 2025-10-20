@@ -1,8 +1,8 @@
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import { useRowSelect, useSortBy, useTable } from "react-table";
 import { IndeterminateCheckbox } from "./IndeterminateCheckbox";
 import { DataTableProps } from "./types";
-import { COLUMN_SPAN_CONFIG } from "./constants";
+import { COLUMN_WIDTH_CONFIG } from "./constants";
 import { TableHeader } from "./components/TableHeader";
 import { TableBody } from "./components/TableBody";
 import { SendButton } from "./components/SendButton";
@@ -45,10 +45,12 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
       ]);
     });
 
-  // Calcular el total de spans de las columnas visibles
-  const totalSpan = headerGroups[0]?.headers.reduce((sum: number, header: any) => {
-    return sum + (COLUMN_SPAN_CONFIG[header.id] || 1);
-  }, 0) || 24;
+  // Construir el gridTemplate basado en las columnas visibles y sus anchos configurados
+  const gridTemplate = useMemo(() => {
+    return headerGroups[0]?.headers
+      .map((header: any) => COLUMN_WIDTH_CONFIG[header.id] || '150px')
+      .join(' ') || 'auto';
+  }, [headerGroups]);
 
   return (
     <div className="relative">
@@ -65,21 +67,23 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
           onToggleColumn={toggleColumn}
         />
       </div>
-      <table
-        {...getTableProps()}
-        className="table-auto border-collapse w-full  relative p-4"
-      >
-        <TableHeader
-          headerGroups={headerGroups}
-          totalSpan={totalSpan}
-        />
-        <TableBody
-          getTableBodyProps={getTableBodyProps}
-          rows={rows}
-          prepareRow={prepareRow}
-          totalSpan={totalSpan}
-        />
-      </table>
+      <div className="overflow-x-auto">
+        <table
+          {...getTableProps()}
+          className="border-collapse min-w-full w-max relative"
+        >
+          <TableHeader
+            headerGroups={headerGroups}
+            gridTemplate={gridTemplate}
+          />
+          <TableBody
+            getTableBodyProps={getTableBodyProps}
+            rows={rows}
+            prepareRow={prepareRow}
+            gridTemplate={gridTemplate}
+          />
+        </table>
+      </div>
     </div>
   );
 };

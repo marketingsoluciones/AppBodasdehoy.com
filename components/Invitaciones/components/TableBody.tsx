@@ -1,19 +1,18 @@
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { COLUMN_SPAN_CONFIG } from '../constants';
 
 interface TableBodyProps {
   getTableBodyProps: () => any;
   rows: any[];
   prepareRow: (row: any) => void;
-  totalSpan: number;
+  gridTemplate: string;
 }
 
 export const TableBody: FC<TableBodyProps> = ({
   getTableBodyProps,
   rows,
   prepareRow,
-  totalSpan
+  gridTemplate
 }) => {
   const { t } = useTranslation();
 
@@ -27,16 +26,13 @@ export const TableBody: FC<TableBodyProps> = ({
               {...row.getRowProps()}
               key={idx}
               className="w-full bg-white border-b font-display text-sm grid"
-              style={{ gridTemplateColumns: `repeat(${totalSpan}, minmax(0, 1fr))` }}
+              style={{ gridTemplateColumns: gridTemplate }}
             >
               {row.cells.map((cell: any, idx: number) => {
-                const span = COLUMN_SPAN_CONFIG[cell.column.id] || 1;
-                
                 return (
                   <td
                     key={idx}
                     className="truncate px-3 py-2 flex items-center"
-                    style={{ gridColumn: `span ${span} / span ${span}` }}
                   >
                     {cell.render("Cell")}
                   </td>

@@ -13,12 +13,13 @@ export const PROFILE_IMAGES: ProfileImages = {
 
 export const DEFAULT_PROFILE_IMAGE = "/placeholder/user.png";
 
-export const COLUMN_SPAN_CONFIG: { [key: string]: number } = {
-  selection: 1,
-  nombre: 4,
-  correo: 5,
-  telefono: 4,
-  invitacion: 4,
-  acompañantes: 3,
-  date: 3
+// Configuración de anchos fijos para cada columna
+export const COLUMN_WIDTH_CONFIG: { [key: string]: string } = {
+  selection: '60px',
+  nombre: '190px',
+  correo: '230px',
+  telefono: '140px',
+  invitacion: '130px',
+  acompañantes: '120px',
+  date: '130px'
 }; 

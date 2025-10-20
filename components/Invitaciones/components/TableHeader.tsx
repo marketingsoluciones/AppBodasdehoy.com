@@ -1,13 +1,13 @@
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { COLUMN_SPAN_CONFIG } from '../constants';
+import { COLUMN_WIDTH_CONFIG } from '../constants';
 
 interface TableHeaderProps {
   headerGroups: any[];
-  totalSpan: number;
+  gridTemplate: string;
 }
 
-export const TableHeader: FC<TableHeaderProps> = ({ headerGroups, totalSpan }) => {
+export const TableHeader: FC<TableHeaderProps> = ({ headerGroups, gridTemplate }) => {
   const { t } = useTranslation();
 
   return (
@@ -16,27 +16,26 @@ export const TableHeader: FC<TableHeaderProps> = ({ headerGroups, totalSpan }) =
         <tr
           {...headerGroup.getHeaderGroupProps()}
           className="grid w-full"
-          style={{ gridTemplateColumns: `repeat(${totalSpan}, minmax(0, 1fr))` }}
+          style={{ gridTemplateColumns: gridTemplate }}
           key={idx}
         >
           {headerGroup.headers.map((column: any, idx: number) => {
             const headerProps = column.getHeaderProps(column.getSortByToggleProps());
             delete headerProps.key;
             delete headerProps.role;
-            
-            const span = COLUMN_SPAN_CONFIG[column.id] || 1;
 
             return (
               <th
                 key={idx}
                 {...headerProps}
-                className="px-6 py-1 md:py-2 text-center flex justify-center items-center text-sm font-light font-display"
-                style={{ gridColumn: `span ${span} / span ${span}` }}
+                className="px-1 py-1 md:py-2 text-center flex items-center justify-center text-sm font-light font-display"
               >
-                {typeof column.render("Header") === "string" && t(column.render("Header"))}
-                <span>
-                  {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
-                </span>
+                <div className="truncate w-full text-center">
+                  {typeof column.render("Header") === "string" && t(column.render("Header"))}
+                  <span>
+                    {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
+                  </span>
+                </div>
               </th>
             );
           })}

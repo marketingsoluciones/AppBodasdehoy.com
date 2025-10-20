@@ -35,7 +35,7 @@ export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, o
                             {t("sent")}
                         </button>
                     </div>
-                        <div className="w-[200%] md:w-full">
+                        <div className=" md:w-full">
                             <GuestTable data={stateTable === "noenviados" ? dataInvitationNotSent : dataInvitationSent} multiSeled={true}  optionSelect={optionSelect} />
                         </div>
                 </div>
