@@ -258,7 +258,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             }
             setEvent({ ...event })
             setItinerario({ ...result })
-            setEditTitle(true)
+           /*  setEditTitle(true) */
         })
     }
     const handleSelectItinerario = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
@@ -582,7 +582,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                         {itinerario.icon}
                                     </div>
                                 )}
-                                <span className="truncate">
+                                <span className="truncate w-[100px]">
                                     {itinerario?.title || t("Seleccionar itinerario")}
                                 </span>
                             </div>
@@ -616,7 +616,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                                                 {item.icon}
                                                             </div>
                                                         )}
-                                                        <span className={`text-sm truncate ${itinerario?._id === item?._id ? 'text-primary font-medium' : 'text-gray-700'}`}>
+                                                        <span className={`text-sm break-words whitespace-normal ${itinerario?._id === item?._id ? 'text-primary font-medium' : 'text-gray-700'}`}>
                                                             {item?.title}
                                                         </span>
                                                     </button>
