@@ -20,8 +20,8 @@ import { Modal } from "../components/Utils/Modal";
 import { EmailReactEditorComponent } from "../components/Invitaciones/EmailReactEditorComponent";
 import { fetchApiEventos, queries } from "../utils/Fetching";
 import { TemplateWathsappValues, WhatsappEditorComponent } from "../components/Invitaciones/WhatsappEditorComponent";
-import { WhatsappBusinessEditorComponent } from "../components/Invitaciones/WhatsappBusinessEditorComponent";
-import { WhatsappPreview } from "../components/Invitaciones/WhatsappPreview";
+import { TemplateWathsappBusinessValues, WhatsappBusinessEditorComponent } from "../components/Invitaciones/WhatsappBusinessEditorComponent";
+import { WhatsappBusinessPreview } from "../components/Invitaciones/WhatsappBusinessPreview";
 
 export type optionArryOptions = {
   title: string;
@@ -41,8 +41,18 @@ const Invitaciones = () => {
   const [ShowEditorModal, setShowEditorModal] = useState(false)
   const [previewEmailReactEditor, setPreviewEmailReactEditor] = useState(false)
   const [previewEmailTemplate, setPreviewEmailTemplate] = useState<string>()
-  const [previewWhatsappTemplate, setPreviewWhatsappTemplate] = useState<TemplateWathsappValues>()
+  const [previewWhatsappTemplate, setPreviewWhatsappTemplate] = useState<TemplateWathsappBusinessValues>()
   const [variablesTemplatesInvitaciones, setVariablesTemplatesInvitaciones] = useState<any[]>([])
+  const variables = variablesTemplatesInvitaciones;
+  const [variableMap, setVariableMap] = useState<any>({});
+  useEffect(() => {
+    const map = {};
+    variables.forEach(v => {
+      map[v.value] = { id: v.id, name: v.name, sample: v.sample };
+    });
+    setVariableMap(map);
+  }, []);
+
 
   const arryOptions: optionArryOptions[] = [
     {
@@ -115,7 +125,9 @@ const Invitaciones = () => {
           evento_id: event?._id
         },
       }).then((res: any) => {
-        setPreviewWhatsappTemplate(res?.preview as TemplateWathsappValues)
+        const template = res.find((elem: any) => elem._id === event?.templateWhatsappSelect)
+        console.log(100030, template)
+        setPreviewWhatsappTemplate(template?.data as TemplateWathsappBusinessValues)
       })
     }
   }, [optionSelect, event?.templateEmailSelect, event?.fecha_actualizacion, event?.updatedAt, event?.invitados_array]);
@@ -139,7 +151,7 @@ const Invitaciones = () => {
             {ShowEditorModal && <Modal classe={" w-[95%] md:w-[90%] h-[90%] "} >
               {optionSelect === "email"
                 ? < EmailReactEditorComponent setShowEditorModal={setShowEditorModal} previewEmailReactEditor={previewEmailReactEditor} variablesTemplatesInvitaciones={variablesTemplatesInvitaciones} />
-                : <WhatsappEditorComponent setShowEditorModal={setShowEditorModal} variablesTemplatesInvitaciones={variablesTemplatesInvitaciones} />
+                : <WhatsappBusinessEditorComponent setShowEditorModal={setShowEditorModal} variablesTemplatesInvitaciones={variablesTemplatesInvitaciones} />
               }
             </Modal>}
             <BlockTitle title="Invitaciones" />
@@ -164,8 +176,8 @@ const Invitaciones = () => {
                             <p className="text-gray-500 text-xs text-center">{`No hay template de ${optionSelect} seleccionado`}</p>
                           </div>
                         : optionSelect === "whatsapp"
-                          ? <div className="w-full h-full flex items-center justify-center translate-y-4 scale-[50%]">
-                            <WhatsappPreview values={previewWhatsappTemplate} variableMap={[]} />
+                          ? <div className={`w-full h-full flex items-center justify-center translate-y-4 transition-all duration-300 ${!false ? "scale-[50%]" : "scale-[100%] absolute top-0 left-0 z-10"}`}>
+                            <WhatsappBusinessPreview values={previewWhatsappTemplate} variableMap={variableMap} />
                           </div>
                           : <ModuloSubida event={event} use={"imgInvitacion"} />
                       }
@@ -185,7 +197,7 @@ const Invitaciones = () => {
                 </div>
               </div>
               <div className={`${["email", "diseño"].includes(optionSelect) ? !stateConfi ? "" : "md:pt-3" : null} pt-3`}>
-                <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent}  optionSelect={optionSelect} />
+                <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} optionSelect={optionSelect} />
               </div>
             </div>
           </motion.div>

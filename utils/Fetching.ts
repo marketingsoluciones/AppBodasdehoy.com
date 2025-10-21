@@ -287,6 +287,24 @@ export const queries = {
     deleteWhatsappInvitationTemplate(evento_id:$evento_id, template_id:$template_id)
   }`,
 
+  uploadMediaToFacebook: `mutation($fileName: String!, $fileBuffer: String!, $fileType: String!, $development: String){
+    uploadMediaToFacebook(fileName: $fileName, fileBuffer: $fileBuffer, fileType: $fileType, development: $development){
+      success
+      handle
+      message
+      error
+    }
+  }`,
+
+  uploadBase64MediaToFacebook: `mutation($base64Image: String!, $fileName: String!, $development: String){
+    uploadBase64MediaToFacebook(base64Image: $base64Image, fileName: $fileName, development: $development){
+      success
+      handle
+      message
+      error
+    }
+  }`,
+
   getAllBusiness: `query ($criteria :searchCriteriaBusiness, $sort : sortCriteriaBusiness, $skip :Int, $limit : Int, $development: String!) {
     getAllBusinesses(searchCriteria:$criteria, sort: $sort, skip: $skip, limit: $limit, development: $development){
       total
@@ -1160,6 +1178,16 @@ export const queries = {
         }
       }
       showChildrenGuest
+    }
+  }`,
+
+  //        createWhatsappTemplate( data: JSON, development: String! ): JSON
+  createWhatsappTemplate: `mutation( $data:JSON, $development:String!){
+    createWhatsappTemplate(data:$data, development:$development){
+      _id
+      title
+      content
+      createdAt
     }
   }`,
 

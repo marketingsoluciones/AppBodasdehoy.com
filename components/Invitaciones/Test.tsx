@@ -18,9 +18,10 @@ import { ModalTemplates } from "./ModalTemplates";
 import { detalle_compartidos_array, TemplateDesign } from "../../utils/Interfaces";
 import ButtonSecondary from "./ButtonSecondary";
 import i18next from "i18next";
-import { FaWhatsapp } from "react-icons/fa";
+import { FaWhatsapp, FaCreditCard } from "react-icons/fa";
 import { HiOutlineMail } from "react-icons/hi";
 import { WhatsappSetupComponent } from "./WhatsappSetupComponent";
+import { WhatsAppRechargeComponent } from "./WhatsAppRechargeComponent";
 import { WhatsAppSession } from "./whatsappSetupComponents";
 import { SocketContextProvider } from "../../context";
 
@@ -55,6 +56,8 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
   const [error, setError] = useState<string | null>(null);
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [isMobile, setIsMobile] = useState<boolean>(false)
+  const [showModalRecharge, setShowModalRecharge] = useState(false)
+  const [currentMessages, setCurrentMessages] = useState<number>(258) // Estado para mensajes disponibles
 
 
   // Limpiar estados de WhatsApp al cambiar de opción
@@ -255,6 +258,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
       setTemplateName(template.configTemplate.name)
     }
     if (optionSelect === "whatsapp") {
+      console.log(100010, template)
       fetchApiEventos({
         query: queries.eventUpdate,
         variables: {
@@ -289,7 +293,15 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
           setPhoneNumber={setPhoneNumber}
           error={error}
         />
-
+      )}
+      {showModalRecharge && (
+        <WhatsAppRechargeComponent
+          setShowModalRecharge={setShowModalRecharge}
+          currentMessages={currentMessages}
+          onRechargeSuccess={(newTotal) => {
+            setCurrentMessages(newTotal);
+          }}
+        />
       )}
       {showModalTemplate && (
         <ModalDefault onClose={() => setShowModalTemplate(false)}>
@@ -328,14 +340,23 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
             {t("preview")}
           </ButtonPrimary>
           {optionSelect === "whatsapp" && (
-            <div className="relative  ">
-              <div className={`absolute w-3 h-3 right-1 top-1.5 rounded-full ${session?.isConnected ? "bg-green" : "bg-gray-300"}`} >
-                <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">{session?.isConnected ? t("connected") : t("disconnected")}</span>
-              </div>
-              <ButtonPrimary className="w-full" onClick={(e) => setShowModalSetupWhatsapp(true)} >
-                {t("setupWhatsapp")}
+            <>
+              {/* <div className="relative">
+                <div className={`absolute w-3 h-3 right-1 top-1.5 rounded-full ${session?.isConnected ? "bg-green" : "bg-gray-300"}`} >
+                  <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 whitespace-nowrap z-10">{session?.isConnected ? t("connected") : t("disconnected")}</span>
+                </div>
+                <ButtonPrimary className="w-full" onClick={(e) => setShowModalSetupWhatsapp(true)} >
+                  {t("setupWhatsapp")}
+                </ButtonPrimary>
+              </div> */}
+              <ButtonPrimary
+                className="flex items-center justify-center space-x-2"
+                onClick={(e) => setShowModalRecharge(true)}
+              >
+                <FaCreditCard className="w-4 h-4" />
+                <span>Recargar Saldo</span>
               </ButtonPrimary>
-            </div>
+            </>
           )}
         </div>
       </div>
