@@ -4,7 +4,7 @@ const NavigationTabs = ({ activeTab, onTabChange, tabs }) => {
   const defaultTabs = tabs || [
     { id: 'dashboard', label: 'Dashboard Principal' },
     { id: 'depositos', label: 'Historial de Depósitos' },
-    { id: 'reportes', label: 'Reportes y Análisis' }
+   /*  { id: 'reportes', label: 'Reportes y Análisis' } */
   ];
 
   return (
