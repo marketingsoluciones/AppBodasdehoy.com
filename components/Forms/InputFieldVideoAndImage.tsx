@@ -11,6 +11,8 @@ interface propsInputFieldMedia {
   disabled?: boolean
   mediaType: 'image' | 'video'
   accept?: string
+  acceptedTypes?: string[]  // Tipos legibles para mostrar al usuario, ej: ['JPG', 'PNG', 'GIF']
+  maxFileSize?: number  // Tamaño máximo en MB
   dragDropText?: string
   selectFileText?: string
   disabledPreview?: boolean
@@ -21,7 +23,7 @@ export interface MediaFileContent {
   preview: string | null;
 }
 
-const InputFieldVideoAndImage: FC<propsInputFieldMedia> = ({ label, className, disabled = false, mediaType = 'image', accept, dragDropText, selectFileText, disabledPreview = false, ...props }) => {
+const InputFieldVideoAndImage: FC<propsInputFieldMedia> = ({ label, className, disabled = false, mediaType = 'image', accept, acceptedTypes, maxFileSize = 16, dragDropText, selectFileText, disabledPreview = false, ...props }) => {
   const { t } = useTranslation();
   const [field, meta, helpers] = useField<MediaFileContent>({ name: props.name })
   const [isAllowed] = useAllowed()
@@ -31,6 +33,12 @@ const InputFieldVideoAndImage: FC<propsInputFieldMedia> = ({ label, className, d
   const defaultAccept = mediaType === 'image'
     ? 'image/jpeg,image/png,image/gif,image/webp'
     : 'video/mp4,video/mpeg,video/quicktime'
+
+  const defaultAcceptedTypes = mediaType === 'image'
+    ? ['JPG', 'PNG', 'GIF', 'WEBP']
+    : ['MP4', 'MPEG', 'MOV']
+
+  const displayAcceptedTypes = acceptedTypes || defaultAcceptedTypes
 
   const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
@@ -82,7 +90,14 @@ const InputFieldVideoAndImage: FC<propsInputFieldMedia> = ({ label, className, d
     })
 
     if (!isValidType) {
-      alert(t(`Please select a valid ${mediaType} file`))
+      alert(t(`Please select a valid ${mediaType} file. Accepted types: ${displayAcceptedTypes.join(', ')}`))
+      return
+    }
+
+    // Validar tamaño de archivo
+    const fileSizeInMB = file.size / (1024 * 1024)
+    if (fileSizeInMB > maxFileSize) {
+      alert(t(`File size exceeds ${maxFileSize}MB. Please select a smaller file.`))
       return
     }
 
@@ -194,9 +209,14 @@ const InputFieldVideoAndImage: FC<propsInputFieldMedia> = ({ label, className, d
               <p className="text-gray-400 text-[10px] text-center">
                 {selectFileText || t("O elige archivos de tu dispositivo")}
               </p>
-              <p className="text-gray-400 text-[10px] text-center mt-1">
-                {mediaType === 'image' ? t("Supported formats: JPG, PNG, GIF, WEBP") : t("Supported formats: MP4, MPEG, MOV")}
-              </p>
+              <div className="flex flex-col items-center mt-1">
+                <p className="text-gray-400 text-[10px] text-center">
+                  {t("Supported formats")}: {displayAcceptedTypes.join(', ')}
+                </p>
+                <p className="text-gray-400 text-[10px] text-center">
+                  {t("Max size")}: {maxFileSize}MB
+                </p>
+              </div>
             </div>
           )}
         </div>

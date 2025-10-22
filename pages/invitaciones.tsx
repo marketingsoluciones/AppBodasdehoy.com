@@ -126,11 +126,10 @@ const Invitaciones = () => {
         },
       }).then((res: any) => {
         const template = res.find((elem: any) => elem._id === event?.templateWhatsappSelect)
-        console.log(100030, template)
         setPreviewWhatsappTemplate(template?.data as TemplateWathsappBusinessValues)
       })
     }
-  }, [optionSelect, event?.templateEmailSelect, event?.fecha_actualizacion, event?.updatedAt, event?.invitados_array]);
+  }, [optionSelect, event?.templateEmailSelect, event?.templateWhatsappSelect, event?.fecha_actualizacion, event?.updatedAt, event?.invitados_array]);
 
   if (verificationDone) {
     if (!user) {

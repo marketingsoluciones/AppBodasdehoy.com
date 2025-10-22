@@ -233,11 +233,12 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
         query: queries.testInvitacion,
         variables: {
           evento_id: event?._id,
-          email: [values.email],
+          email: optionSelect === "email" ? values.email : undefined,
+          phoneNumber: optionSelect === "whatsapp" ? values.phoneNumber : undefined,
           lang: i18next.language
         }
       })
-      setValirReset(true)
+      // setValirReset(true)
       toast("success", t("Invitación enviada"))
     } catch (error) {
       console.log(error)
@@ -267,6 +268,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
           value: template._id
         }
       })
+      setEvent({ ...event, templateWhatsappSelect: template._id })
     }
 
   }
@@ -402,7 +404,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
                         TitleComponent === "email"
                           ? !event?.templateEmailSelect
                           : TitleComponent === "whatsapp"
-                            ? true
+                            ? event?.templateWhatsappSelect ? false : true
                             : !event?.imgInvitacion
                       }
                     >

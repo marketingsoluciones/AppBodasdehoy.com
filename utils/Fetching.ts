@@ -2420,8 +2420,8 @@ export const queries = {
   signOut: `mutation ($sessionCookie :String){
     signOut(sessionCookie:$sessionCookie)
   }`,
-  testInvitacion: `mutation ($evento_id: String, $email: [String], $lang: String){
-    testInvitacion(evento_id:$evento_id, email:$email, lang:$lang)
+  testInvitacion: `mutation ($evento_id: String, $email: String, $phoneNumber: String, $lang: String){
+    testInvitacion(evento_id:$evento_id, email:$email, phoneNumber:$phoneNumber, lang:$lang)
   }`,
   getGalerySvgs: `query ($evento_id: ID, $tipo: String) {
     getGalerySvgs(evento_id: $evento_id, tipo: $tipo) {

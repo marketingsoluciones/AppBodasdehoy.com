@@ -101,7 +101,17 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
     }, []);
 
     const validationSchema = yup.object().shape({
-        templateName: yup.string().required(t("Name required")),
+        templateName: yup.string()
+            .required(t("Name required"))
+            .test(
+                'alphanumeric-underscore',
+                t("Template name must contain only letters, numbers and underscores"),
+                (value: string | undefined) => {
+                    if (!value) return false;
+                    const regex = /^[a-zA-Z0-9_ ]+$/;
+                    return regex.test(value);
+                }
+            ),
         bodyContent: yup.string().required(t("Message body is required")),
         headerContent: yup.mixed().when('headerType', {
             is: (headerType: any) => headerType?._id === 'text',
@@ -490,6 +500,7 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
                             <Form className="w-full flex flex-col">
                                 <AutoSubmitToken setValues={setValues} />
                                 <HeaderTypeWatcher />
+                                <TemplateNameWatcher />
                                 <div className="text-gray-500 font-body flex flex-col gap-2 w-full">
                                     {/* Configuración de la Plantilla */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-xs">
@@ -557,6 +568,8 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
                                                     label={t("Image URL (example)")}
                                                     mediaType="image"
                                                     className="text-xs"
+                                                    acceptedTypes={['JPG', 'PNG']}
+                                                    maxFileSize={5}
                                                     dragDropText="Arrastra y suelta para subir el archivo"
                                                     selectFileText="O elige archivos de tu dispositivo"
                                                     disabledPreview={true}
@@ -570,6 +583,8 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
                                                     label={t("Video URL (example)")}
                                                     mediaType="video"
                                                     className="text-xs"
+                                                    acceptedTypes={['MP4']}
+                                                    maxFileSize={16}
                                                     dragDropText="Arrastra y suelta para subir el archivo"
                                                     selectFileText="O elige archivos de tu dispositivo"
                                                     disabledPreview={true}
@@ -748,7 +763,6 @@ const AutoSubmitToken = ({ setValues }) => {
     const { values } = useFormikContext<TemplateWathsappBusinessValues>();
 
     useEffect(() => {
-        console.log("values", values)
         setValues(values)
     }, [values])
 
@@ -759,6 +773,23 @@ const AutoSubmitToken = ({ setValues }) => {
             setValues({ ...values, headerContent: { file: null, preview: null } })
         }
     }, [values.headerType])
+
+    return null;
+};
+
+const TemplateNameWatcher = () => {
+    const { values, setFieldValue } = useFormikContext<TemplateWathsappBusinessValues>();
+    useEffect(() => {
+        const currentName = values.templateName || '';
+
+        // Verificar si hay espacios
+        if (currentName.includes(' ')) {
+            const cleanedName = currentName.replace(" ", '_');
+            setTimeout(() => {
+                setFieldValue('templateName', cleanedName, false);
+            }, 10);
+        }
+    }, [values.templateName, setFieldValue]);
 
     return null;
 };
