@@ -70,29 +70,19 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
 
     const buttonOptions: ButtonOption[] = [{
         title: t("Go to website"),
-        description: t("1 buttons maximum"),
+        description: t("Max 2 URL buttons"),
         type: "URL",
         buttonId: "go_to_website",
     },
     {
         title: t("confirm attendance SRVP"),
-        description: t("1 buttons maximum"),
+        description: t("Max 2 URL buttons"),
         type: "URL",
         buttonId: "confirm_attendance_rsvp",
     },
-    // {
-    //     title: t("Call on WhatsApp"),
-    //     description: t("1 button maximum"),
-    //     type: "WHATSAPP",
-    // },
-    // {
-    //     title: t("Call phone number"),
-    //     description: t("1 button maximum"),
-    //     type: "PHONE_NUMBER",
-    // },
     {
         title: t("Quick reply"),
-        description: t("5 buttons maximum"),
+        description: t("Max 3 Quick Reply or 2 mixed"),
         type: "QUICK_REPLY",
         buttonId: "quick_reply",
     },
@@ -235,16 +225,40 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
         const currentButtons = values?.buttons || [];
 
         // Verificar si ya existe un botón con este buttonId específico
-        const buttonExists = currentButtons.some(btn => btn.buttonId === buttonId);
-
-        if (buttonExists) {
-            return true; // Ya existe, deshabilitar
+        // Solo para botones únicos (no quick_reply que se puede repetir)
+        if (buttonId !== 'quick_reply') {
+            const buttonExists = currentButtons.some(btn => btn.buttonId === buttonId);
+            if (buttonExists) {
+                return true; // Ya existe, deshabilitar
+            }
         }
 
-        // Para QUICK_REPLY, verificar límite total
+        // Obtener conteos por tipo
+        const urlCount = currentButtons.filter(btn => btn.type === 'URL').length;
+        const quickReplyCount = currentButtons.filter(btn => btn.type === 'QUICK_REPLY').length;
+        const totalCount = currentButtons.length;
+
+        // Reglas de combinaciones permitidas
         if (buttonId === 'quick_reply') {
-            const quickReplyCount = currentButtons.filter(btn => btn.type === 'QUICK_REPLY').length;
-            return quickReplyCount >= 5; // Máximo 5 botones QUICK_REPLY
+            // Solo Quick Reply: máximo 3
+            if (urlCount === 0 && quickReplyCount >= 3) {
+                return true;
+            }
+            // Mezcla: máximo 2 total Y máximo 1 Quick Reply
+            if (urlCount > 0 && (totalCount >= 2 || quickReplyCount >= 1)) {
+                return true;
+            }
+        }
+
+        if (buttonId === 'go_to_website' || buttonId === 'confirm_attendance_rsvp') {
+            // Solo URL: máximo 2
+            if (quickReplyCount === 0 && urlCount >= 2) {
+                return true;
+            }
+            // Mezcla: máximo 2 total Y máximo 1 URL
+            if (quickReplyCount > 0 && (totalCount >= 2 || urlCount >= 1)) {
+                return true;
+            }
         }
 
         return false;
@@ -616,7 +630,15 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
                                     <div className="mb-2">
                                         <div className="flex gap-2 items-end mb-4">
                                             <h2 className="text-sm font-semibold text-primary">{t("Buttons (Optional)")}</h2>
-                                            <span className="text-[11px] text-gray-500">{t("You can add up to 5 buttons")}</span>
+                                            <span className="text-[11px] text-gray-500">{t("Button combination rules")}</span>
+                                        </div>
+                                        <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                            <h3 className="text-xs font-semibold text-blue-800 mb-2">{t("Allowed combinations:")}</h3>
+                                            <ul className="text-xs text-blue-700 space-y-1">
+                                                <li>• {t("Only Quick Reply: max 3 buttons")}</li>
+                                                <li>• {t("Only URL: max 2 buttons")}</li>
+                                                <li>• {t("Mixed (URL + Quick Reply): max 2 buttons total")}</li>
+                                            </ul>
                                         </div>
                                         <div id="buttons-container" className="flex space-x-2 mb-2">
                                             {buttonOptions.map((buttonOption, index) => {
@@ -644,7 +666,7 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
                                                         disabled={isDisabled}
                                                         className={`w-1/3 flex flex-col items-center justify-center px-1 md:px-2 py-2 text-white rounded-md transition-colors text-[10px] md:text-[11px] ${isDisabled ? disabledColor : getButtonColor(buttonOption.type)
                                                             }`}
-                                                        title={isDisabled ? t("This button type is already used") : buttonOption.description}
+                                                        title={isDisabled ? t("Button combination limit reached") : buttonOption.description}
                                                     >
                                                         <span className="text-center text-[11px]">{buttonOption.title}</span>
                                                         <span className="text-center text-[10px]">{buttonOption.description}</span>
