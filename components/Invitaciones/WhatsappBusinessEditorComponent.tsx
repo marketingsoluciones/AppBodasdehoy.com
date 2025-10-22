@@ -88,7 +88,6 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
     },
     ]
 
-    const [generatedJson, setGeneratedJson] = useState('');
     const [variableMap, setVariableMap] = useState<any>({});
 
     useEffect(() => {
@@ -295,7 +294,7 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
     };
 
 
-    const generateTemplateJson = (values: TemplateWathsappBusinessValues) => {
+    const createTemplate = (values: TemplateWathsappBusinessValues) => {
         values = { ...values, templateName: values.templateName.trim() }
 
         fetchApiEventos({
@@ -308,143 +307,11 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
             toast("success", t("Template created successfully"));
         })
         setValues({ ...values })
-        const components = [];
-        const collectedExamplesMap: any = {};
-        const processContentAndCollectExamples = (content: string) => {
-            let newContent = content;
-            const matches = content.match(/\{\{params\.[a-zA-Z0-9_]+\}\}/g);
-            if (matches) {
-                matches.forEach(match => {
-                    const varInfo = variableMap[match];
-                    if (varInfo) {
-                        const metaPlaceholder = `{{${varInfo.id}}}`;
-                        newContent = newContent.split(match).join(metaPlaceholder);
-                        collectedExamplesMap[varInfo.id] = varInfo.sample;
-                    }
-                });
-            }
-            return newContent;
-        };
-        // Header
-        if (values?.headerType?._id === 'text') {
-            const finalHeaderContent = processContentAndCollectExamples(values.headerContent);
-            components.push({
-                type: 'HEADER',
-                format: 'TEXT',
-                text: finalHeaderContent,
-            });
-        } else if (values?.headerType?._id === 'image') {
-            components.push({
-                type: 'HEADER',
-                format: 'IMAGE',
-                example: {
-                    header_handle: values.headerContent
-                }
-            });
-        } else if (values?.headerType?._id === 'video') {
-            components.push({
-                type: 'HEADER',
-                format: 'VIDEO',
-                example: {
-                    header_handle: values.headerContent
-                }
-            });
-        }
-        // Body
-        const finalBodyContent = processContentAndCollectExamples(values.bodyContent);
-        components.push({
-            type: 'BODY',
-            text: finalBodyContent,
-        });
-        // Footer
-        if (values.footerContent.trim()) {
-            components.push({
-                type: 'FOOTER',
-                text: values.footerContent.trim(),
-            });
-        }
-        // Buttons
-        if (values.buttons.length > 0) {
-            const apiButtons = values.buttons.map(btn => {
-                if (btn.type === 'URL') {
-                    let processedUrl = btn.url || '';
-                    const urlMatches = btn.url?.match(/\{\{params\.[a-zA-Z0-9_]+\}\}/g);
-                    if (urlMatches) {
-                        urlMatches.forEach(match => {
-                            const varInfo = variableMap[match];
-                            if (varInfo) {
-                                const metaPlaceholder = `{{${varInfo.id}}}`;
-                                processedUrl = processedUrl.split(match).join(metaPlaceholder);
-                                collectedExamplesMap[varInfo.id] = varInfo.sample;
-                            }
-                        });
-                        return {
-                            type: 'URL',
-                            text: btn.text,
-                            url: processedUrl,
-                            example: btn.example ? [btn.example] : undefined
-                        };
-                    } else {
-                        return {
-                            type: 'URL',
-                            text: btn.text,
-                            url: btn.url,
-                        };
-                    }
-                } else if (btn.type === 'PHONE_NUMBER') {
-                    return {
-                        type: 'PHONE_NUMBER',
-                        text: btn.text,
-                        phone_number: btn.phoneNumber,
-                    };
-                } else if (btn.type === 'QUICK_REPLY') {
-                    return {
-                        type: 'QUICK_REPLY',
-                        text: btn.text,
-                    };
-                } else if (btn.type === 'WHATSAPP') {
-                    return {
-                        type: 'PHONE_NUMBER',
-                        text: btn.text,
-                        phone_number: btn.phoneNumber,
-                    };
-                }
-                return null;
-            }).filter(Boolean);
-            if (apiButtons.length > 0) {
-                components.push({
-                    type: 'BUTTONS',
-                    buttons: apiButtons,
-                });
-            }
-        }
-        // Final examples array
-        const finalExamplesArray = [];
-        const maxVarId = Math.max(...Object.keys(collectedExamplesMap).map(Number), 0);
-        for (let i = 1; i <= maxVarId; i++) {
-            finalExamplesArray.push(collectedExamplesMap[i] || `Ejemplo Variable ${i}`);
-        }
-        const templateJson = {
-            name: values.templateName.toLowerCase().replace(/[^a-z0-9_]/g, ''),
-            language: values.language,
-            category: values.category,
-            components: components,
-        };
-        if (finalExamplesArray.length > 0) {
-            const bodyComp = templateJson.components.find(comp => comp.type === 'BODY');
-            if (bodyComp) {
-                bodyComp.example = {
-                    body_text: finalExamplesArray
-                };
-            }
-        }
-        setGeneratedJson(JSON.stringify(templateJson, null, 2));
-        toast("success", t("Template JSON generated successfully"));
     };
 
     const handleSubmit = (values: TemplateWathsappBusinessValues, actions: any) => {
         try {
-            generateTemplateJson(values);
+            createTemplate(values);
         } catch (error) {
             toast("error", `${t("An error has occurred")} ${error}`);
             console.log(error);
@@ -701,29 +568,12 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
                                         disabled={isSubmitting}
                                         type="submit"
                                     >
-                                        {isSubmitting ? t("Generating...") : t("Generate Template JSON")}
+                                        {isSubmitting ? t("Creating...") : t("Create Template")}
                                     </button>
                                 </div>
                             </Form>
                         ) : null}
                     </Formik>
-                    {/* Área de visualización del JSON */}
-                    {generatedJson && (
-                        <div className="mt-8 pt-8 border-t-2 border-gray-200">
-                            <h2 className="text-2xl font-semibold text-gray-700 mb-4">{t("Generated JSON")}:</h2>
-                            <pre className="bg-gray-800 text-white p-4 rounded-md text-xs overflow-x-auto">
-                                <code>{generatedJson}</code>
-                            </pre>
-                            <button
-                                onClick={() => {
-                                    navigator.clipboard.writeText(generatedJson).then(() => toast("success", t("JSON copied to clipboard!")))
-                                }}
-                                className="mt-2 px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-800 transition-colors"
-                            >
-                                {t("Copy JSON")}
-                            </button>
-                        </div>
-                    )}
                 </div>
                 {/* Columna de la Vista Previa */}
                 {values && (

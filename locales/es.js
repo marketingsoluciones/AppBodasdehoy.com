@@ -748,6 +748,8 @@ export const es = {
     'Generate Template JSON': 'Generar JSON de Plantilla',
     'Generating...': 'Generando...',
     'Generated JSON': 'JSON Generado',
+    'Create Template': 'Crear Plantilla',
+    'Creating...': 'Creando...',
     'Language': 'Idioma',
     'Category': 'Categoría',
     'Header Type': 'Tipo de Encabezado',

@@ -749,6 +749,8 @@ export const en = {
     'Generate Template JSON': 'Generate Template JSON',
     'Generating...': 'Generating...',
     'Generated JSON': 'Generated JSON',
+    'Create Template': 'Create Template',
+    'Creating...': 'Creating...',
     'Language': 'Language',
     'Category': 'Category',
     'Header Type': 'Header Type',
