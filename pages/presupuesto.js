@@ -29,6 +29,7 @@ const Presupuesto = () => {
   const [getId, setGetId] = useState()
   const [showModalDuplicate, setShowModalDuplicate] = useState(false)
   const [isAllowed, ht] = useAllowed()
+  const [isMobile, setIsMobile] = useState(false)
 
 
   console.log(event, user)
@@ -41,6 +42,14 @@ const Presupuesto = () => {
     setCategorias(event?.presupuesto_objeto?.categorias_array)
   }, [event])
 
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+    return () => window.removeEventListener('resize', checkIsMobile)
+  }, [])
 
   if (verificationDone) {
     if (!user) {
@@ -70,7 +79,7 @@ const Presupuesto = () => {
               <div className="w-full flex justify-center my-2 mt-4 rounded-2xl text-xs md:text-sm">
                 <div
                   onClick={() => setActive("resumen")}
-                  className={`px-1 md:w-[150px]  ${active == "resumen" ? "bg-primary text-white" : "bg-white text-primary"
+                  className={`px-1 md:w-[150px] w-[20%] ${active == "resumen" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full flex justify-center items-center cursor-pointer capitalize ${event?._uid === user?._id ? "rounded-l-2xl" : ""}`}
                 >
                   <p >{t("budget")}</p>
@@ -78,10 +87,10 @@ const Presupuesto = () => {
 
                 <div
                   onClick={() => setActive("excelView")}
-                  className={`w-[30%] md:w-[200px] ${active == "excelView" ? "bg-primary text-white" : "bg-white text-primary"
+                  className={`w-[20%] md:w-[200px] ${active == "excelView" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full flex justify-center items-center cursor-pointer capitalize`}
                 >
-                  <p >{t("budgetdetails")}</p>
+                  <p > {isMobile ? t("budgetdetailsMobile") : t("budgetdetails")}</p>
                 </div>
 
                 <div
@@ -97,18 +106,18 @@ const Presupuesto = () => {
                   className={`w-[20%] md:w-[200px] py-1 ${active == "pendiente" ? "bg-primary text-white" : "bg-white text-primary"
                     } h-full flex justify-center items-center cursor-pointer capitalize ${event?.usuario_id !== user?.uid ? "rounded-r-2xl" : ""}`}
                 >
-                  <p>{t("pendingpayments")}</p>
+                  <p>{isMobile ? t("pendingpaymentsMobile") : t("pendingpayments")}</p>
                 </div>
 
                 {event?.usuario_id === user?.uid && (
-                    <div
-                      onClick={() => setActive("dashboard")}
-                      className={`px-1 md:w-[180px] py-1 ${active == "dashboard" ? "bg-primary text-white" : "bg-white text-primary"
-                        } h-full flex justify-center items-center cursor-pointer capitalize rounded-r-2xl`}
-                    >
-                      <p >{t("dashboard")}</p>
-                    </div>
-                  )}
+                  <div
+                    onClick={() => setActive("dashboard")}
+                    className={`px-1 md:w-[180px] py-1 ${active == "dashboard" ? "bg-primary text-white" : "bg-white text-primary"
+                      } h-full flex justify-center items-center cursor-pointer capitalize rounded-r-2xl`}
+                  >
+                    <p >{t("dashboard")}</p>
+                  </div>
+                )}
               </div>
 
               <div className="w-full h-[calc(100vh-260px)]">
