@@ -5,8 +5,9 @@ import { HashtagMatcher, Link, UrlMatcher, UrlProps } from "interweave-autolink"
 import { IoMdCall } from 'react-icons/io';
 import { BiLinkExternal } from 'react-icons/bi';
 import { PiClipboardTextBold } from 'react-icons/pi';
-import { TemplateWathsappBusinessValues, HeaderMediaContent } from './WhatsappBusinessEditorComponent';
+import { TemplateWathsappBusinessValues } from './WhatsappBusinessEditorComponent';
 import { BsReply } from 'react-icons/bs';
+import { EventContextProvider } from '../../context/EventContext';
 
 // Función auxiliar para formatear un número añadiendo un cero inicial si es menor que 10.
 const padZero = (num) => {
@@ -36,8 +37,9 @@ export const WhatsappBusinessPreview: FC<Props> = ({ values, variableMap }) => {
   const bodyContent = values?.bodyContent ?? ""
   const footerContent = values?.footerContent ?? ""
   const buttons = values?.buttons ?? []
-
+  const { event } = EventContextProvider();
   const { t } = useTranslation();
+
   // Función para reemplazar variables con ejemplos del variableMap
   const replaceVariables = (text, currentVariableMap) => {
     // Verificar que text sea una cadena válida
@@ -61,14 +63,13 @@ export const WhatsappBusinessPreview: FC<Props> = ({ values, variableMap }) => {
     return processedText;
   };
   const formattedBody = replaceVariables(bodyContent, variableMap);
-
+  const formattedHeaderEvent = headerType._id === 'image_event' ? `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgEvento?.i1024}` : '';
   // Manejar headerContent según su tipo
   let formattedHeader: string = '';
   if (headerType._id === 'text') {
     formattedHeader = replaceVariables(headerContent as string, variableMap);
   } else if (headerType._id === 'image' || headerType._id === 'video') {
-    const mediaContent = headerContent as HeaderMediaContent;
-    formattedHeader = mediaContent?.preview || '';
+    formattedHeader = headerContent as string;
   }
 
   return (
@@ -109,6 +110,9 @@ export const WhatsappBusinessPreview: FC<Props> = ({ values, variableMap }) => {
               )}
               {headerType._id === 'image' && headerContent && (
                 <img src={formattedHeader} alt="Header Preview" className="w-full h-auto rounded-md mb-2" />
+              )}
+              {headerType._id === 'image_event' && headerContent && (
+                <img src={formattedHeaderEvent} alt="Header Preview" className="w-full h-auto rounded-md mb-2" />
               )}
               {headerType._id === 'video' && headerContent && (
                 <div className="w-full rounded-md mb-2 bg-white  overflow-hidden">

@@ -174,7 +174,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, variabl
 
     const generateTemplateJson = (values: TemplateWathsappValues) => {
         values = { ...values, templateName: values.templateName.trim() }
-        console.log(100038, values)
 
         // Guardar plantilla en el backend para uso interno
         fetchApiEventos({
@@ -208,11 +207,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, variabl
         setGeneratedJson(JSON.stringify(templateData, null, 2));
         toast("success", t("Template JSON generated successfully"));
     };
-
-    useEffect(() => {
-        console.log("generatedJson", generatedJson)
-    }, [generatedJson])
-
 
     const handleSubmit = async (values: TemplateWathsappValues, actions: any) => {
         try {

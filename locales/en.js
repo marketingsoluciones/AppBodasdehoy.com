@@ -707,6 +707,7 @@ export const en = {
     enterText: "Enter text",
     // WhatsApp Template Button Translations
     'Go to website': 'Go to website',
+    'confirm attendance SRVP': 'Confirm attendance SRVP',
     'Call on WhatsApp': 'Call on WhatsApp',
     'Call phone number': 'Call phone number',
     'Complete process': 'Complete process',
@@ -772,6 +773,7 @@ export const en = {
     'Quick reply': 'Quick reply',
     'PHONE NUMBER': 'PHONE NUMBER',
     'QUICK REPLY': 'QUICK REPLY',
+    'This URL is automatically generated for RSVP confirmation.': 'This URL is automatically generated for RSVP confirmation.',
     'columns': 'Columns',
     'show_columns': 'Show columns',
   }

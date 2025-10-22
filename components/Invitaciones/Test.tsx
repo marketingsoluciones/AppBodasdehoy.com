@@ -259,7 +259,6 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
       setTemplateName(template.configTemplate.name)
     }
     if (optionSelect === "whatsapp") {
-      console.log(100010, template)
       fetchApiEventos({
         query: queries.eventUpdate,
         variables: {

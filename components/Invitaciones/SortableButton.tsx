@@ -10,6 +10,7 @@ interface Button {
   url?: string;
   phoneNumber?: string;
   example?: string;
+  buttonId?: string;
 }
 
 interface SortableButtonProps {
@@ -78,21 +79,28 @@ export const SortableButton: React.FC<SortableButtonProps> = ({
             label={t("URL")}
             type="text"
             placeholder={t("e.g. https://yourdomain.com/order/{{params.nameEvent}}")}
-            maxLength={2000}
-            className="text-xs"
+            maxLength={button.buttonId === 'confirm_attendance_rsvp' ? undefined : 2000}
+            className={`text-xs ${button.buttonId === 'confirm_attendance_rsvp' ? 'bg-gray-100' : 'pr-16'}`}
+            disabled={button.buttonId === 'confirm_attendance_rsvp'}
           />
-          <p className="text-gray-500 text-xs mt-1">{t("You can use variables like {{params.nameEvent}} for dynamic URLs.")}</p>
-          {button.url?.includes('{{params.') && (
-            <div className="mt-2">
-              <InputField
-                name={`buttons.${index}.example`}
-                label={t("Dynamic URL Example")}
-                type="text"
-                placeholder={t("e.g. https://yourdomain.com/order/12345")}
-                maxLength={2000}
-                className="text-xs"
-              />
-            </div>
+          {button.buttonId === 'confirm_attendance_rsvp' ? (
+            <p className="text-gray-500 text-xs mt-1">{t("This URL is automatically generated for RSVP confirmation.")}</p>
+          ) : (
+            <>
+              <p className="text-gray-500 text-xs mt-1">{t("You can use variables like {{params.nameEvent}} for dynamic URLs.")}</p>
+              {button.url?.includes('{{params.') && (
+                <div className="mt-2">
+                  <InputField
+                    name={`buttons.${index}.example`}
+                    label={t("Dynamic URL Example")}
+                    type="text"
+                    placeholder={t("e.g. https://yourdomain.com/order/12345")}
+                    maxLength={2000}
+                    className="text-xs"
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

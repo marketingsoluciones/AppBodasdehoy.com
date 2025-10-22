@@ -24,12 +24,14 @@ interface Button {
     url?: string;
     phoneNumber?: string;
     example?: string;
+    buttonId?: string; // Identificador único para cada tipo específico de botón
 }
 
 interface ButtonOption {
     title: string;
     description: string;
     type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER' | 'WHATSAPP';
+    buttonId: string; // Identificador único para cada botón específico
 }
 
 export interface HeaderMediaContent {
@@ -42,8 +44,8 @@ export interface TemplateWathsappBusinessValues {
     templateName: string;
     language: { _id: "es" | "en", title: string };
     category: { _id: "UTILITY" | "WEDDING", title: string };
-    headerType: { _id: "none" | "text" | "image" | "video", title: string };
-    headerContent: string | HeaderMediaContent;
+    headerType: { _id: "none" | "text" | "image" | "image_event" | "video", title: string };
+    headerContent: string;
     bodyContent: string;
     footerContent: string;
     buttons: Button[];
@@ -63,14 +65,20 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
     const toast = useToast();
     const [values, setValues] = useState<TemplateWathsappBusinessValues>()
     const [cursorPosition, setCursorPosition] = useState(0)
-    const [isUploadingMedia, setIsUploadingMedia] = useState(false)
 
     const variables = variablesTemplatesInvitaciones;
 
     const buttonOptions: ButtonOption[] = [{
         title: t("Go to website"),
-        description: t("2 buttons maximum"),
+        description: t("1 buttons maximum"),
         type: "URL",
+        buttonId: "go_to_website",
+    },
+    {
+        title: t("confirm attendance SRVP"),
+        description: t("1 buttons maximum"),
+        type: "URL",
+        buttonId: "confirm_attendance_rsvp",
     },
     // {
     //     title: t("Call on WhatsApp"),
@@ -86,6 +94,7 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
         title: t("Quick reply"),
         description: t("5 buttons maximum"),
         type: "QUICK_REPLY",
+        buttonId: "quick_reply",
     },
     ]
 
@@ -113,17 +122,37 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
                 }
             ),
         bodyContent: yup.string().required(t("Message body is required")),
-        headerContent: yup.mixed().when('headerType', {
-            is: (headerType: any) => headerType?._id === 'text',
-            then: () => yup.string().required(t("Header content is required")),
-            otherwise: () => yup.mixed().when('headerType', {
-                is: (headerType: any) => headerType?._id === 'image' || headerType?._id === 'video',
-                then: () => yup.object().shape({
-                    file: yup.mixed().required(t("File is required")),
-                    preview: yup.string().nullable(),
-                }).required(t("Header content is required")),
-                otherwise: () => yup.mixed().optional(),
-            }),
+        headerContent: yup.string().when('headerType', {
+            is: (headerType: any) => {
+                const type = headerType?._id;
+                return type === 'text' || type === 'image' || type === 'video' || type === 'image_event';
+            },
+            then: (schema) => {
+                return schema.test('header-content-validation', function (value) {
+                    const headerType = this.parent.headerType?._id;
+
+                    if (headerType === 'image_event') {
+                        // Para image_event, validar que el evento tenga imagen
+                        if (!value || value.trim() === '') {
+                            return this.createError({
+                                message: t("El evento no tiene imagen configurada"),
+                                path: this.path
+                            });
+                        }
+                        return true;
+                    } else {
+                        // Para text, image, video validar que no esté vacío
+                        if (!value || value.trim() === '') {
+                            return this.createError({
+                                message: t("Header content is required"),
+                                path: this.path
+                            });
+                        }
+                        return true;
+                    }
+                });
+            },
+            otherwise: (schema) => schema.optional(),
         }),
         buttons: yup.array().of(
             yup.object().shape({
@@ -147,7 +176,7 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
         language: { _id: "es", title: "ES" },
         category: { _id: "UTILITY", title: "UTILITY" },
         headerType: { _id: "none", title: "NONE" },
-        headerContent: { file: null, preview: null },
+        headerContent: '',
         bodyContent: t("hello") + " {{params.nameGuest}}",
         footerContent: '',
         buttons: [],
@@ -169,39 +198,56 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
         }
     };
 
-    const addEmptyButton = (type: Button['type'], setFieldValue: any) => {
+    const addEmptyButton = (buttonId: string, setFieldValue: any) => {
         if (values?.buttons.length >= 5) {
             toast("error", t("Maximum 5 buttons allowed"));
             return;
         }
 
-        // Encontrar el título correspondiente al tipo de botón
-        const buttonOption = buttonOptions.find(option => option.type === type);
-        const buttonTitle = buttonOption ? buttonOption.title : '';
+        // Encontrar la opción de botón por buttonId
+        const buttonOption = buttonOptions.find(option => option.buttonId === buttonId);
+        if (!buttonOption) {
+            toast("error", t("Button type not found"));
+            return;
+        }
 
-        const newButton: Button = { type, text: buttonTitle };
-        if (type === 'URL') newButton.url = 'https://example.com';
-        if (type === 'PHONE_NUMBER') newButton.phoneNumber = '+1234567890';
-        if (type === 'WHATSAPP') newButton.phoneNumber = '+1234567890';
+        const newButton: Button = {
+            type: buttonOption.type,
+            text: buttonOption.title,
+            buttonId: buttonOption.buttonId
+        };
+
+        if (buttonOption.type === 'URL') {
+            if (buttonOption.buttonId === 'confirm_attendance_rsvp') {
+                // URL específica para RSVP
+                newButton.url = `${window?.location?.origin}?pGuestEvent={{1}}`;
+            } else {
+                newButton.url = 'https://example.com';
+            }
+        }
+        if (buttonOption.type === 'PHONE_NUMBER') newButton.phoneNumber = '+1234567890';
+        if (buttonOption.type === 'WHATSAPP') newButton.phoneNumber = '+1234567890';
+
         setFieldValue('buttons', [...values?.buttons || [], newButton])
     };
 
-    const isButtonDisabled = (buttonType: string) => {
+    const isButtonDisabled = (buttonId: string) => {
         const currentButtons = values?.buttons || [];
-        const buttonCount = currentButtons.filter(btn => btn.type === buttonType).length;
 
-        switch (buttonType) {
-            case 'URL':
-                return buttonCount >= 2; // Máximo 2 botones URL
-            case 'WHATSAPP':
-                return buttonCount >= 1; // Máximo 1 botón WhatsApp
-            case 'PHONE_NUMBER':
-                return buttonCount >= 1; // Máximo 1 botón PHONE_NUMBER
-            case 'QUICK_REPLY':
-                return buttonCount >= 5; // Máximo 5 botones QUICK_REPLY
-            default:
-                return false;
+        // Verificar si ya existe un botón con este buttonId específico
+        const buttonExists = currentButtons.some(btn => btn.buttonId === buttonId);
+
+        if (buttonExists) {
+            return true; // Ya existe, deshabilitar
         }
+
+        // Para QUICK_REPLY, verificar límite total
+        if (buttonId === 'quick_reply') {
+            const quickReplyCount = currentButtons.filter(btn => btn.type === 'QUICK_REPLY').length;
+            return quickReplyCount >= 5; // Máximo 5 botones QUICK_REPLY
+        }
+
+        return false;
     };
 
     const sensors = useSensors(
@@ -234,91 +280,19 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
         setFieldValue(`buttons.${index}.${field}`, value);
     };
 
-    // Función auxiliar para convertir File a base64
-    const fileToBase64 = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                // Extraer solo la parte base64 (sin el prefijo data:image/jpeg;base64,)
-                const base64String = (reader.result as string).split(',')[1];
-                resolve(base64String);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    };
 
-    const generateTemplateJson = async (values: TemplateWathsappBusinessValues) => {
+    const generateTemplateJson = (values: TemplateWathsappBusinessValues) => {
         values = { ...values, templateName: values.templateName.trim() }
-        console.log(100038, values)
 
-        try {
-            let mediaHandle: string | null = null;
-
-            // Si es image o video, subir primero a Facebook
-            if (values.headerType._id === 'image' || values.headerType._id === 'video') {
-                const headerMedia = values.headerContent as HeaderMediaContent;
-
-                if (!headerMedia.file) {
-                    toast("error", t("Please select a file"));
-                    return;
-                }
-
-                setIsUploadingMedia(true);
-
-                // Convertir archivo a base64
-                const base64Data = await fileToBase64(headerMedia.file);
-                const fileName = headerMedia.file.name;
-                const fileType = headerMedia.file.type;
-
-                // Subir a Facebook
-                const uploadResponse: any = await fetchApiEventos({
-                    query: queries.uploadMediaToFacebook,
-                    variables: {
-                        fileName: fileName,
-                        fileBuffer: base64Data,
-                        fileType: fileType,
-                        development: config?.development
-                    }
-                });
-
-                setIsUploadingMedia(false);
-
-                if (!uploadResponse?.success) {
-                    toast("error", uploadResponse?.message || t("Error uploading media to Facebook"));
-                    console.error(100039, uploadResponse?.error);
-                    return;
-                }
-
-                mediaHandle = uploadResponse.handle;
-                toast("success", t("Media uploaded successfully"));
+        fetchApiEventos({
+            query: queries.createWhatsappInvitationTemplate,
+            variables: {
+                evento_id: event?._id,
+                data: values
             }
-
-            // Crear la plantilla con el handle de Facebook (si existe)
-            const templateData = { ...values };
-
-            // Si hay mediaHandle, reemplazar el contenido del header con el handle
-            if (mediaHandle && (values.headerType._id === 'image' || values.headerType._id === 'video')) {
-                templateData.headerContent = mediaHandle;
-            }
-
-            await fetchApiEventos({
-                query: queries.createWhatsappInvitationTemplate,
-                variables: {
-                    evento_id: event?._id,
-                    data: templateData
-                }
-            });
-
+        }).then((res: any) => {
             toast("success", t("Template created successfully"));
-            setValues({ ...values });
-
-        } catch (error) {
-            setIsUploadingMedia(false);
-            toast("error", t("Error creating template"));
-            console.error(100040, error);
-        }
-
+        })
         setValues({ ...values })
         const components = [];
         const collectedExamplesMap: any = {};
@@ -338,29 +312,27 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
             return newContent;
         };
         // Header
-        if (values.headerType._id === 'text') {
-            const finalHeaderContent = processContentAndCollectExamples(values.headerContent as string);
+        if (values?.headerType?._id === 'text') {
+            const finalHeaderContent = processContentAndCollectExamples(values.headerContent);
             components.push({
                 type: 'HEADER',
                 format: 'TEXT',
                 text: finalHeaderContent,
             });
-        } else if (values.headerType._id === 'image') {
-            const headerMedia = values.headerContent as HeaderMediaContent;
+        } else if (values?.headerType?._id === 'image') {
             components.push({
                 type: 'HEADER',
                 format: 'IMAGE',
                 example: {
-                    header_handle: headerMedia.file // El backend recibirá el File object
+                    header_handle: values.headerContent
                 }
             });
-        } else if (values.headerType._id === 'video') {
-            const headerMedia = values.headerContent as HeaderMediaContent;
+        } else if (values?.headerType?._id === 'video') {
             components.push({
                 type: 'HEADER',
                 format: 'VIDEO',
                 example: {
-                    header_handle: headerMedia.file // El backend recibirá el File object
+                    header_handle: values.headerContent
                 }
             });
         }
@@ -456,14 +428,9 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
         toast("success", t("Template JSON generated successfully"));
     };
 
-    useEffect(() => {
-        console.log("generatedJson", generatedJson)
-    }, [generatedJson])
-
-
-    const handleSubmit = async (values: TemplateWathsappBusinessValues, actions: any) => {
+    const handleSubmit = (values: TemplateWathsappBusinessValues, actions: any) => {
         try {
-            await generateTemplateJson(values);
+            generateTemplateJson(values);
         } catch (error) {
             toast("error", `${t("An error has occurred")} ${error}`);
             console.log(error);
@@ -529,11 +496,16 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
                                         <SelectField
                                             name="headerType"
                                             label={t("Header Type")}
-                                            options={[{ _id: "none", title: t("NONE") }, { _id: "text", title: t("TEXT") }, { _id: "image", title: t("IMAGE") }, { _id: "video", title: t("VIDEO") }]}
+                                            options={[
+                                                { _id: "none", title: t("NONE") },
+                                                { _id: "text", title: t("TEXT") },
+                                                { _id: "image", title: t("IMAGE") },
+                                                { _id: "image_event", title: t("IMAGE EVENT") },
+                                                { _id: "video", title: t("VIDEO") }]}
                                             className="text-xs"
                                         />
 
-                                        {values.headerType._id === 'text' && typeof values.headerContent === 'string' && (
+                                        {values?.headerType?._id === 'text' && typeof values?.headerContent === 'string' && (
                                             <div>
                                                 <InputField
                                                     name="headerContent"
@@ -561,33 +533,34 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
                                                 </div>
                                             </div>
                                         )}
-                                        {values.headerType._id === 'image' && (
+                                        {values?.headerType?._id === 'image' && (
                                             <div className="mt-2">
-                                                <InputFieldVideoAndImage
+                                                <InputField
                                                     name="headerContent"
-                                                    label={t("Image URL (example)")}
-                                                    mediaType="image"
+                                                    label={t("Image URL")}
+                                                    type="text"
                                                     className="text-xs"
-                                                    acceptedTypes={['JPG', 'PNG']}
-                                                    maxFileSize={5}
-                                                    dragDropText="Arrastra y suelta para subir el archivo"
-                                                    selectFileText="O elige archivos de tu dispositivo"
-                                                    disabledPreview={true}
                                                 />
                                             </div>
                                         )}
-                                        {values.headerType._id === 'video' && (
+                                        {values?.headerType?._id === 'image_event' && (
                                             <div className="mt-2">
-                                                <InputFieldVideoAndImage
+                                                <InputField
                                                     name="headerContent"
-                                                    label={t("Video URL (example)")}
-                                                    mediaType="video"
+                                                    label={t("Image Event URL")}
+                                                    type="text"
                                                     className="text-xs"
-                                                    acceptedTypes={['MP4']}
-                                                    maxFileSize={16}
-                                                    dragDropText="Arrastra y suelta para subir el archivo"
-                                                    selectFileText="O elige archivos de tu dispositivo"
-                                                    disabledPreview={true}
+                                                    disabled={true}
+                                                />
+                                            </div>
+                                        )}
+                                        {values?.headerType?._id === 'video' && (
+                                            <div className="mt-2">
+                                                <InputField
+                                                    name="headerContent"
+                                                    label={t("Video URL")}
+                                                    type="text"
+                                                    className="text-xs"
                                                 />
                                             </div>
                                         )}
@@ -661,17 +634,17 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
                                                             return 'bg-gray-500 hover:bg-gray-600';
                                                     }
                                                 };
-                                                const isDisabled = isButtonDisabled(buttonOption.type);
+                                                const isDisabled = isButtonDisabled(buttonOption.buttonId);
                                                 const disabledColor = 'bg-gray-400 cursor-not-allowed opacity-50';
                                                 return (
                                                     <button
                                                         key={index}
                                                         type="button"
-                                                        onClick={() => !isDisabled && addEmptyButton(buttonOption.type, setFieldValue)}
+                                                        onClick={() => !isDisabled && addEmptyButton(buttonOption.buttonId, setFieldValue)}
                                                         disabled={isDisabled}
                                                         className={`w-1/3 flex flex-col items-center justify-center px-1 md:px-2 py-2 text-white rounded-md transition-colors text-[10px] md:text-[11px] ${isDisabled ? disabledColor : getButtonColor(buttonOption.type)
                                                             }`}
-                                                        title={isDisabled ? t("Maximum limit reached for this button type") : buttonOption.description}
+                                                        title={isDisabled ? t("This button type is already used") : buttonOption.description}
                                                     >
                                                         <span className="text-center text-[11px]">{buttonOption.title}</span>
                                                         <span className="text-center text-[10px]">{buttonOption.description}</span>
@@ -702,11 +675,11 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
                                         </DndContext>
                                     </div>
                                     <button
-                                        className={`font-display rounded-full py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting || isUploadingMedia ? "bg-secondary" : "bg-primary"}`}
-                                        disabled={isSubmitting || isUploadingMedia}
+                                        className={`font-display rounded-full py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"}`}
+                                        disabled={isSubmitting}
                                         type="submit"
                                     >
-                                        {isUploadingMedia ? t("Uploading media...") : isSubmitting ? t("Generating...") : t("Generate Template JSON")}
+                                        {isSubmitting ? t("Generating...") : t("Generate Template JSON")}
                                     </button>
                                 </div>
                             </Form>
@@ -721,7 +694,6 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
                             </pre>
                             <button
                                 onClick={() => {
-                                    console.log("generatedJson")
                                     navigator.clipboard.writeText(generatedJson).then(() => toast("success", t("JSON copied to clipboard!")))
                                 }}
                                 className="mt-2 px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-800 transition-colors"
@@ -766,14 +738,6 @@ const AutoSubmitToken = ({ setValues }) => {
         setValues(values)
     }, [values])
 
-    useEffect(() => {
-        if (values.headerType._id === 'text') {
-            setValues({ ...values, headerContent: "" })
-        } else if (values.headerType._id === 'image' || values.headerType._id === 'video') {
-            setValues({ ...values, headerContent: { file: null, preview: null } })
-        }
-    }, [values.headerType])
-
     return null;
 };
 
@@ -796,29 +760,21 @@ const TemplateNameWatcher = () => {
 
 const HeaderTypeWatcher = () => {
     const { values, setFieldValue } = useFormikContext<TemplateWathsappBusinessValues>();
-    const [prevHeaderType, setPrevHeaderType] = useState(values.headerType._id);
+    const [prevHeaderType, setPrevHeaderType] = useState(values?.headerType?._id);
+    const { event } = EventContextProvider();
 
     useEffect(() => {
-        const currentHeaderType = values.headerType._id;
+        const currentHeaderType = values?.headerType?._id;
 
         // Si cambió el tipo de header
         if (currentHeaderType !== prevHeaderType) {
-            // Si cambió a text y headerContent es un objeto, convertir a string
-            if (currentHeaderType === 'text' && typeof values.headerContent === 'object') {
-                setFieldValue('headerContent', '');
-            }
-            // Si cambió a image o video y headerContent es string, convertir a objeto
-            else if ((currentHeaderType === 'image' || currentHeaderType === 'video') && typeof values.headerContent === 'string') {
-                setFieldValue('headerContent', { file: null, preview: null });
-            }
-            // Si cambió a none, limpiar
-            else if (currentHeaderType === 'none') {
-                setFieldValue('headerContent', { file: null, preview: null });
-            }
-
+            // Limpiar headerContent cuando cambie el tipo
             setPrevHeaderType(currentHeaderType);
+            setTimeout(() => {
+                setFieldValue('headerContent', currentHeaderType === 'image_event' ? event?.imgEvento?.i1024 ? `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgEvento?.i1024}` : '' : '');
+            }, 10);
         }
-    }, [values.headerType._id]);
+    }, [values?.headerType?._id, setFieldValue]);
 
     return null;
 };
