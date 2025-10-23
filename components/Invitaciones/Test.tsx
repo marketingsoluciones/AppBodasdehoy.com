@@ -100,7 +100,8 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
           evento_id: event?._id
         },
       }).then((res: any) => {
-        setTemplateName(res?.templateName)
+        setTemplateName(res?.find((elem: any) => elem._id === event?.templateWhatsappSelect)?.data?.templateName
+        )
       })
     } else {
       setTemplateName("")
