@@ -69,23 +69,38 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 newEpoch = epoch + item.duracion * 60 * 1000
             }
             const fecha = new Date(newEpoch)
-            const addNewTask = await fetchApiEventos({
+            const addNewTask = fetchApiEventos({
                 query: queries.createTask,
                 variables: {
                     eventID: event._id,
                     itinerarioID: itinerario._id,
                     descripcion: itinerario.tipo === "itinerario" ? "Tarea nueva" : "Servicio nuevo",
                     ...(itinerario.tipo === "itinerario" && { fecha: fecha }),
-                    ...(itinerario.tipo === "itinerario" && { duracion: 30 })
+                    ...(itinerario.tipo === "itinerario" && { duracion: 30 }),
+                    ...(itinerario.tipo === "itinerario" && { spectatorView: true })
                 },
                 domain: config.domain
             })
-            const task = { ...(addNewTask as any), spectatorView: false, estatus: "true" } as Task
-            const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-            event.itinerarios_array[f1].tasks.push(task)
-            setEvent({ ...event })
-            setSelectTask(task._id)
-            toast("success", t(itinerario.tipo === "itinerario" ? "Actividad añadida" : "Servicio añadido"));
+
+                .then((addNewTask: Task) => {
+                    fetchApiEventos({
+                        query: queries.editTask,
+                        variables: {
+                            eventID: event._id,
+                            itinerarioID: itinerario._id,
+                            taskID: addNewTask._id,
+                            variable: "spectatorView",
+                            valor: "true"
+                        }
+                    })
+
+                    const task = { ...(addNewTask as any), spectatorView: true, estatus: "true" } as Task
+                    const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
+                    event.itinerarios_array[f1].tasks.push(task)
+                    setEvent({ ...event })
+                    setSelectTask(task._id)
+                    toast("success", t(itinerario.tipo === "itinerario" ? "Actividad añadida" : "Servicio añadido"));
+                })
         } catch (error) {
             console.log(error)
             toast("error", t("Error al añadir"));
@@ -258,7 +273,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             }
             setEvent({ ...event })
             setItinerario({ ...result })
-           /*  setEditTitle(true) */
+            /*  setEditTitle(true) */
         })
     }
     const handleSelectItinerario = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
