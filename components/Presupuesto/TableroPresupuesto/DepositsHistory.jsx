@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { EventContextProvider } from "../../../context/";
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { getCurrency } from "../../../utils/Funciones";
@@ -21,6 +21,7 @@ const truncateText = (text, maxLength = 50) => {
 
 const DepositsHistory = ({ deposits, currency }) => {
   const { event, setEvent } = EventContextProvider();
+  const [isMobile, setIsMobile] = useState(false)
 
   const handleDeleteDeposit = (depositId) => {
     try {
@@ -51,11 +52,21 @@ const DepositsHistory = ({ deposits, currency }) => {
     }
   };
 
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+    return () => window.removeEventListener('resize', checkIsMobile)
+  }, [])
+
+
   return (
     <div className="bg-white rounded-xl shadow-md p-4">
       <h3 className="text-xl font-bold mb-3">Historial de Depósitos</h3>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className={`w-full text-sm  ${isMobile ? 'min-w-[900px]' : ''}`}>
           <thead>
             <tr className="border-b-2">
               <th className="text-left py-2 px-2">Fecha</th>
@@ -69,7 +80,7 @@ const DepositsHistory = ({ deposits, currency }) => {
             {deposits && deposits.length > 0 ? (
               deposits.map((deposito) => (
                 <tr key={deposito.id} className="border-b hover:bg-gray-50">
-                  <td className="py-2 px-2">{formatDate(deposito.fecha)}</td>
+                  <td className="py-2 px-2 ">{formatDate(deposito.fecha)}</td>
                   <td className="py-2 px-2 font-bold">
                      {getCurrency(parseFloat(deposito.monto), currency)}
                   </td>

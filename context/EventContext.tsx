@@ -93,7 +93,6 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
           const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente")
           const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
           let eventSelected = eventsGroupSort?.find(elem => elem._id === user?.eventSelected)
-          console.log(100081, eventSelected)
           if (!!eventSelected) {
             if (!eventSelected?.timeZone) {
               const defaultTimeZone = config?.timeZone || "UTC";

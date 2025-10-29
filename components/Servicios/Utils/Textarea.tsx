@@ -8,6 +8,7 @@ interface TextareaProps {
   maxRows?: number;
   minRows?: number;
   allowEnter?: boolean;
+  defaultValue?: string;
 }
 
 const DEFAULT_MAX_ROWS = 8;
@@ -20,7 +21,8 @@ export const Textarea: FC<TextareaProps> = ({
   className = "",
   maxRows = DEFAULT_MAX_ROWS,
   minRows = DEFAULT_MIN_ROWS,
-  allowEnter = true
+  allowEnter = true,
+  defaultValue
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -53,7 +55,15 @@ export const Textarea: FC<TextareaProps> = ({
 
   useEffect(() => {
     updateRows();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
+
+  useEffect(() => {
+    if (defaultValue && !value) {
+      setValue(defaultValue);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !allowEnter) {

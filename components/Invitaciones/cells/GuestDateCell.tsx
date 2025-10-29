@@ -15,7 +15,7 @@ export const GuestDateCell: FC<GuestCellProps> = ({ value }) => {
 
   return (
     <div className="group truncate relative w-full h-full flex items-center justify-center pl-3 gap-1">
-      <p className="font-display text-md truncate hidden md:block first-letter:capitalize">
+      <p className="font-display text-md truncate  first-letter:capitalize">
         {displayText}
       </p>
     </div>

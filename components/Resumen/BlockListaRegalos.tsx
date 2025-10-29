@@ -18,7 +18,7 @@ const BlockListaRegalos: FC = () => {
         {t("gift-list")}
       </h2>
       <div className="w-full shadow rounded-xl bg-white py-4 flex flex-col items-center gap-2 justify-center">
-        <div className="flex-col gap-3 flex">
+        <div className="md:flex-col gap-3 flex">
           {ListaBlockRegalos.map((item, idx) => (
             <span key={idx} className="grid grid-cols-2 items-center gap-2 w-max">
               <p className="font-display font-semibold justify-end text-xl text-gray-700 flex ">

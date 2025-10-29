@@ -76,16 +76,28 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                     itinerarioID: itinerario._id,
                     descripcion: itinerario.tipo === "itinerario" ? "Tarea nueva" : "Servicio nuevo",
                     ...(itinerario.tipo === "itinerario" && { fecha: fecha }),
-                    ...(itinerario.tipo === "itinerario" && { duracion: 30 })
+                    ...(itinerario.tipo === "itinerario" && { duracion: 30 }),
+                    ...(itinerario.tipo === "itinerario" && { spectatorView: true })
                 },
                 domain: config.domain
+            }).then((addNewTask: Task) => {
+                fetchApiEventos({
+                    query: queries.editTask,
+                    variables: {
+                        eventID: event._id,
+                        itinerarioID: itinerario._id,
+                        taskID: addNewTask._id,
+                        variable: "estatus",
+                        valor: "true"
+                    }
+                })
+                const task = { ...(addNewTask as any), spectatorView: false, estatus: "true" } as Task
+                const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
+                event.itinerarios_array[f1].tasks.push(task)
+                setEvent({ ...event })
+                setSelectTask(task._id)
+                toast("success", t(itinerario.tipo === "itinerario" ? "Actividad añadida" : "Servicio añadido"));
             })
-            const task = { ...(addNewTask as any), spectatorView: false, estatus: "true" } as Task
-            const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-            event.itinerarios_array[f1].tasks.push(task)
-            setEvent({ ...event })
-            setSelectTask(task._id)
-            toast("success", t(itinerario.tipo === "itinerario" ? "Actividad añadida" : "Servicio añadido"));
         } catch (error) {
             console.log(error)
             toast("error", t("Error al añadir"));
@@ -258,7 +270,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             }
             setEvent({ ...event })
             setItinerario({ ...result })
-            setEditTitle(true)
+            /*  setEditTitle(true) */
         })
     }
     const handleSelectItinerario = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
@@ -582,7 +594,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                         {itinerario.icon}
                                     </div>
                                 )}
-                                <span className="truncate">
+                                <span className="truncate w-[100px]">
                                     {itinerario?.title || t("Seleccionar itinerario")}
                                 </span>
                             </div>
@@ -616,7 +628,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                                                                 {item.icon}
                                                             </div>
                                                         )}
-                                                        <span className={`text-sm truncate ${itinerario?._id === item?._id ? 'text-primary font-medium' : 'text-gray-700'}`}>
+                                                        <span className={`text-sm break-words whitespace-normal ${itinerario?._id === item?._id ? 'text-primary font-medium' : 'text-gray-700'}`}>
                                                             {item?.title}
                                                         </span>
                                                     </button>
@@ -662,7 +674,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         <div className="text-gray-600 flex flex-col justify-center items-center">
                             <div className="flex justify-center space-x-0.5 w-full">
                                 <TimeZone />
-                                <span className="text-[10px]">{t("timeZone")}</span>
+                                <span className="text-[10px] hidden md:block">{t("timeZone")}</span>
                             </div>
                             <span className="text-[10px]">{getTimeZoneCity(event?.timeZone)}</span>
                         </div>

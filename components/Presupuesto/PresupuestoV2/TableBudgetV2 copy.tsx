@@ -58,6 +58,18 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
   const [showFiltersModal, setShowFiltersModal] = useState(false);
   const [viewLevel, setViewLevel] = useState(3);
   const [filters, setFilters] = useState<TableFilters>({ categories: [], paymentStatus: 'all', visibilityStatus: 'all', amountRange: { min: '', max: '' } });
+  const [isMobile, setIsMobile] = useState<boolean>(false)
+
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+    return () => window.removeEventListener('resize', checkIsMobile)
+  }, [])
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -786,7 +798,7 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
                         style={{
                           width: getColumnWidth(columnId),
                           left: isSticky ? leftPosition : undefined,
-                          position: isSticky ? 'sticky' : 'relative'
+                         /*  position: isSticky ? 'sticky' : 'relative' */
                         }}
                         className={`text-left p-1.5 font-medium text-gray-700 border-r text-xs ${isSticky ? 'bg-gray-100 z-30' : ''
                           }`}
@@ -847,7 +859,7 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
                           style={{
                             width: getColumnWidth(columnId),
                             left: isSticky ? leftPosition : undefined,
-                            position: isSticky ? 'sticky' : 'relative'
+                            /* position: isSticky ? 'sticky' : 'relative' */
                           }}
                           className={`p-1.5 border-r text-xs group-hover:bg-gray-100 ${alignmentClass} ${isSticky ? `z-10 ${rowStyles}` : ''
                             }`}

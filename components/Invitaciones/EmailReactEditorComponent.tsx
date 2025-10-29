@@ -313,7 +313,6 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
         }
     }, [template?.configTemplate?.name, template?.configTemplate?.subject])
 
-    const asd = "{{var}}"
 
     return (
         <div className='relative w-full h-full'>
@@ -362,8 +361,8 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
                 </ModalDefault>
             )}
             {showSubjectModal.state && (
-                <div className='bg-blue-300 flex items-start space-x-3 w-[500px] p-2 absolute top-10 left-40 border-2 border-gray-300 rounded-lg'>
-                    <Textarea value={showSubjectModal.value} setValue={(value) => setShowSubjectModal({ state: true, value: value })} allowEnter={false} />
+                <div className='bg-blue-300 flex items-start space-x-3 md:w-[500px] w-[350px] p-2 absolute top-10 md:left-40 left-2 border-2 border-gray-300 rounded-lg'>
+                    <Textarea value={showSubjectModal.value} setValue={(value) => setShowSubjectModal({ state: true, value: value })} allowEnter={false}  defaultValue={`${event?.tipo} ${event?.nombre}`}/>
                     <ButtonPrimary onClick={() => {
                         setTemplate({ ...template, configTemplate: { ...template?.configTemplate, subject: showSubjectModal.value } })
                         setShowSubjectModal({ state: false, value: '' })
@@ -373,7 +372,7 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
             {(!isLoad || loading) && <div className="absolute z-50 w-full h-full bg-white opacity-30" />}
             {(!isLoad || loading) && <div className="absolute z-50  top-[calc(50%-20px)] left-[calc(50%-20px)] loader ease-linear rounded-full border-[7px] border-black border-opacity-35 w-10 h-10" />}
             <div className={`h-full ${isLoad ? "opacity-100" : "opacity-0"} transition-all duration-300`} >
-                {editorReady && <div className='absolute flex w-[604px]'>
+                {editorReady && <div className='absolute flex w-[252px] md:w-[604px]'>
                     <div onClick={handleCloseEditor} className={"flex w-16 h-[38px] flex-col items-center justify-center cursor-pointer border-l hover:bg-[#F4F4F4]"} >
                         <div className='pt-[2px]'>
                             <GoArrowLeft className='h-5 w-5' />
@@ -403,19 +402,6 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
                                     textAlign="left" />
                             </div>
                         </div>
-                        {/* <div className={"bg-blue-500* flex flex-col flex-1 h-[38px] items-start justify-end cursor-pointer border-l"} >
-                            <label className='text-[10px] font-semibold text-gray-600 translate-y-0.5 px-1'>{t('subject')}</label>
-                            <div className='pb-0.5 w-full flex justify-start text-sm relative px-2'>
-                                <EditableLabelWithInput
-                                    value={template?.configTemplate?.subject ? template.configTemplate.subject : ""}
-                                    type={null}
-                                    handleChange={(values) => {
-                                        setTemplate({ ...template, configTemplate: { ...template?.configTemplate, subject: values.value } })
-                                    }}
-                                    accessor={null}
-                                    textAlign="left" />
-                            </div>
-                        </div> */}
                         <div onClick={() => setShowSubjectModal({ state: !showSubjectModal.state, value: template?.configTemplate?.subject })} className={"flex w-[50px] h-[38px] flex-col items-center justify-center cursor-pointer border-x hover:bg-[#F4F4F4]"} >
                             <div className='pt-[2px] flex flex-col items-center justify-center'>
                                 <span className='text-[10px] font-semibold text-gray-600 translate-y-0.5 px-1'>{t('subject')}</span>

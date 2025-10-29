@@ -1,12 +1,10 @@
-import { Form, Formik, FormikValues, useField, useFormikContext } from "formik";
+import { Form, Formik, useFormikContext } from "formik";
 import { FC, useEffect, useState, useRef, useMemo } from 'react';
 import { AuthContextProvider } from '../../context/AuthContext';
 import { EventContextProvider } from '../../context/EventContext';
 import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../hooks/useToast';
-import { WhatsappPreview } from './WhatsappPreview';
-import ButtonPrimary from './ButtonPrimary';
 import InputField from '../Forms/InputField';
 import SelectField from '../Forms/SelectField';
 import * as yup from "yup";
@@ -17,6 +15,7 @@ import 'react-quill/dist/quill.snow.css';
 import Picker, { EmojiStyle, SuggestionMode, } from 'emoji-picker-react';
 import ClickAwayListener from 'react-click-away-listener';
 import { GrEmoji } from "react-icons/gr";
+import { WhatsappPreview } from "./WhatsappPreview";
 
 const ReactQuill = dynamic(() => import('react-quill'), {
     ssr: false,
@@ -55,7 +54,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, variabl
     const variables = variablesTemplatesInvitaciones
 
 
-    const [generatedJson, setGeneratedJson] = useState('');
     const [variableMap, setVariableMap] = useState<any>({});
 
     const quillModules = useMemo(
@@ -173,9 +171,8 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, variabl
 
 
 
-    const generateTemplateJson = (values: TemplateWathsappValues) => {
+    const createTemplate = (values: TemplateWathsappValues) => {
         values = { ...values, templateName: values.templateName.trim() }
-        console.log(100038, values)
 
         // Guardar plantilla en el backend para uso interno
         fetchApiEventos({
@@ -189,35 +186,11 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, variabl
         })
 
         setValues({ ...values })
-
-        // Generar plantilla simple para WhatsApp normal
-        const templateData = {
-            name: values.templateName.toLowerCase().replace(/[^a-z0-9_]/g, ''),
-            category: values.category._id,
-            message: values.bodyContent,
-            media: values.mediaType._id !== 'none' ? {
-                type: values.mediaType._id,
-                url: values.mediaUrl
-            } : undefined,
-            variables: variables.map(v => ({
-                name: v.name,
-                placeholder: v.value,
-                sample: v.sample
-            }))
-        };
-
-        setGeneratedJson(JSON.stringify(templateData, null, 2));
-        toast("success", t("Template JSON generated successfully"));
     };
-
-    useEffect(() => {
-        console.log("generatedJson", generatedJson)
-    }, [generatedJson])
-
 
     const handleSubmit = async (values: TemplateWathsappValues, actions: any) => {
         try {
-            generateTemplateJson(values);
+            createTemplate(values);
         } catch (error) {
             toast("error", `${t("An error has occurred")} ${error}`);
             console.log(error);
@@ -400,30 +373,12 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, variabl
                                         disabled={isSubmitting}
                                         type="submit"
                                     >
-                                        {isSubmitting ? t("Generating...") : t("Generate Template JSON")}
+                                        {isSubmitting ? t("Creating...") : t("Create Template")}
                                     </button>
                                 </div>
                             </Form>
                         ) : null}
                     </Formik>
-                    {/* Área de visualización del JSON */}
-                    {generatedJson && (
-                        <div className="mt-8 pt-8 border-t-2 border-gray-200">
-                            <h2 className="text-2xl font-semibold text-gray-700 mb-4">{t("Generated JSON")}:</h2>
-                            <pre className="bg-gray-800 text-white p-4 rounded-md text-xs overflow-x-auto">
-                                <code>{generatedJson}</code>
-                            </pre>
-                            <button
-                                onClick={() => {
-                                    console.log("generatedJson")
-                                    navigator.clipboard.writeText(generatedJson).then(() => toast("success", t("JSON copied to clipboard!")))
-                                }}
-                                className="mt-2 px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-800 transition-colors"
-                            >
-                                {t("Copy JSON")}
-                            </button>
-                        </div>
-                    )}
                 </div>
                 {/* Columna de la Vista Previa */}
                 {values && (

@@ -1,13 +1,13 @@
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TABLE_GRID_CLASSES } from '../constants';
+import { COLUMN_WIDTH_CONFIG } from '../constants';
 
 interface TableHeaderProps {
   headerGroups: any[];
-  getColumnSpan: (columnId: string) => string;
+  gridTemplate: string;
 }
 
-export const TableHeader: FC<TableHeaderProps> = ({ headerGroups, getColumnSpan }) => {
+export const TableHeader: FC<TableHeaderProps> = ({ headerGroups, gridTemplate }) => {
   const { t } = useTranslation();
 
   return (
@@ -15,7 +15,8 @@ export const TableHeader: FC<TableHeaderProps> = ({ headerGroups, getColumnSpan 
       {headerGroups.map((headerGroup: any, idx: number) => (
         <tr
           {...headerGroup.getHeaderGroupProps()}
-          className={TABLE_GRID_CLASSES.header}
+          className="grid w-full"
+          style={{ gridTemplateColumns: gridTemplate }}
           key={idx}
         >
           {headerGroup.headers.map((column: any, idx: number) => {
@@ -27,12 +28,14 @@ export const TableHeader: FC<TableHeaderProps> = ({ headerGroups, getColumnSpan 
               <th
                 key={idx}
                 {...headerProps}
-                className={`px-6 py-1 md:py-2 text-center flex justify-center items-center text-sm font-light font-display ${getColumnSpan(column.id)}`}
+                className="px-1 py-1 md:py-2 text-center flex items-center justify-center text-sm font-light font-display"
               >
-                {typeof column.render("Header") === "string" && t(column.render("Header"))}
-                <span>
-                  {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
-                </span>
+                <div className="truncate w-full text-center">
+                  {typeof column.render("Header") === "string" && t(column.render("Header"))}
+                  <span>
+                    {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
+                  </span>
+                </div>
               </th>
             );
           })}

@@ -287,6 +287,24 @@ export const queries = {
     deleteWhatsappInvitationTemplate(evento_id:$evento_id, template_id:$template_id)
   }`,
 
+  uploadMediaToFacebook: `mutation($fileName: String!, $fileBuffer: String!, $fileType: String!, $development: String){
+    uploadMediaToFacebook(fileName: $fileName, fileBuffer: $fileBuffer, fileType: $fileType, development: $development){
+      success
+      handle
+      message
+      error
+    }
+  }`,
+
+  uploadBase64MediaToFacebook: `mutation($base64Image: String!, $fileName: String!, $development: String){
+    uploadBase64MediaToFacebook(base64Image: $base64Image, fileName: $fileName, development: $development){
+      success
+      handle
+      message
+      error
+    }
+  }`,
+
   getAllBusiness: `query ($criteria :searchCriteriaBusiness, $sort : sortCriteriaBusiness, $skip :Int, $limit : Int, $development: String!) {
     getAllBusinesses(searchCriteria:$criteria, sort: $sort, skip: $skip, limit: $limit, development: $development){
       total
@@ -1160,6 +1178,33 @@ export const queries = {
         }
       }
       showChildrenGuest
+    }
+  }`,
+
+  //        createWhatsappTemplate( data: JSON, development: String! ): JSON
+  createWhatsappTemplate: `mutation( $data:JSON, $development:String!){
+    createWhatsappTemplate(data:$data, development:$development){
+      _id
+      title
+      content
+      createdAt
+    }
+  }`,
+
+  sendInvitations: ` mutation( $evento_id:String, $invitados_ids_array:[String], $dominio:String, $transport:String, $lang:String){
+      enviaInvitacion(evento_id:$evento_id, invitados_ids_array:$invitados_ids_array, dominio:$dominio, transport:$transport, lang:$lang){
+        _id,
+        invitados_array{
+          _id,
+          invitacion,
+          nombre,
+          correo,
+          rol,
+          chats_array{
+          _id,
+          tipo
+          }
+      }
     }
   }`,
 
@@ -2375,8 +2420,8 @@ export const queries = {
   signOut: `mutation ($sessionCookie :String){
     signOut(sessionCookie:$sessionCookie)
   }`,
-  testInvitacion: `mutation ($evento_id: String, $email: [String], $lang: String){
-    testInvitacion(evento_id:$evento_id, email:$email, lang:$lang)
+  testInvitacion: `mutation ($evento_id: String, $email: String, $phoneNumber: String, $lang: String){
+    testInvitacion(evento_id:$evento_id, email:$email, phoneNumber:$phoneNumber, lang:$lang)
   }`,
   getGalerySvgs: `query ($evento_id: ID, $tipo: String) {
     getGalerySvgs(evento_id: $evento_id, tipo: $tipo) {
@@ -2414,5 +2459,83 @@ export const queries = {
   }`,
   deleteTaskAttachment: `mutation ($eventID: String, $itinerarioID: String, $taskID: String, $attachmentID: String) {
     deleteTaskAttachment(eventID: $eventID, itinerarioID: $itinerarioID, taskID: $taskID, attachmentID: $attachmentID)
+  }`,
+
+  // WhatsApp Queries and Mutations
+  whatsappGetSession: `query ($args: GetWhatsAppSessionArgs!) {
+    whatsappGetSession(args: $args) {
+      id
+      development
+      userId
+      isConnected
+      qrCode
+      phoneNumber
+      connectionTime
+      lastActivity
+    }
+  }`,
+
+  whatsappGetAllSessions: `query {
+    whatsappGetAllSessions {
+      id
+      development
+      userId
+      isConnected
+      qrCode
+      phoneNumber
+      connectionTime
+      lastActivity
+    }
+  }`,
+
+  whatsappCreateSession: `mutation ($args: CreateWhatsAppSessionArgs!) {
+    whatsappCreateSession(args: $args) {
+      success
+      session {
+        id
+        development
+        userId
+        isConnected
+        qrCode
+        phoneNumber
+        connectionTime
+        lastActivity
+      }
+      qrCode
+      error
+    }
+  }`,
+
+  whatsappRegenerateQR: `mutation ($sessionId: String!) {
+    whatsappRegenerateQR(sessionId: $sessionId) {
+      success
+      session {
+        id
+        development
+        userId
+        isConnected
+        qrCode
+        phoneNumber
+        connectionTime
+        lastActivity
+      }
+      qrCode
+      error
+    }
+  }`,
+
+  whatsappDisconnectSession: `mutation ($args: DisconnectWhatsAppSessionArgs!) {
+    whatsappDisconnectSession(args: $args) {
+      success
+      error
+    }
+  }`,
+
+  whatsappSendMessage: `mutation ($args: SendWhatsAppMessageArgs!) {
+    whatsappSendMessage(args: $args) {
+      success
+      messageId
+      error
+    }
   }`,
 };
