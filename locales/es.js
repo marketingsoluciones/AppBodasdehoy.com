@@ -785,5 +785,6 @@ export const es = {
     'Mixed (URL + Quick Reply): max 2 buttons total': 'Mixto (URL + Quick Reply): máx 2 botones total',
     'columns': 'Columnas',
     'show_columns': 'Mostrar columnas',
+    'ago': 'Hace',
   }
 }

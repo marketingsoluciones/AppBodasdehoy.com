@@ -2058,6 +2058,16 @@ export const queries = {
         }
         father
         passesQuantity
+        comunicaciones_array{	
+          transport 
+          template_id
+          template_name
+          message_id  
+          statuses{
+            name
+            timestamp
+          }
+        }
         nombre_mesa
         puesto
         asistencia

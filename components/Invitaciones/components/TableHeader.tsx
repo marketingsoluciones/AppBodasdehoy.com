@@ -21,6 +21,7 @@ export const TableHeader: FC<TableHeaderProps> = ({ headerGroups, gridTemplate }
         >
           {headerGroup.headers.map((column: any, idx: number) => {
             const headerProps = column.getHeaderProps(column.getSortByToggleProps());
+            console.log(headerProps);
             delete headerProps.key;
             delete headerProps.role;
 

@@ -1,14 +1,9 @@
-import { FC, useEffect, useState } from 'react';
+import { FC } from 'react';
 import { GuestCellProps } from '../types';
 import { PROFILE_IMAGES, DEFAULT_PROFILE_IMAGE } from '../constants';
 
-export const GuestNameCell: FC<GuestCellProps> = ({ cell, row }) => {
-  const [value, setValue] = useState(cell.value);
+export const GuestNameCell: FC<GuestCellProps> = ({ cell, row, value }) => {
   const { sexo } = row.original;
-
-  useEffect(() => {
-    setValue(cell.value);
-  }, [cell.value]);
 
   const profileImage = PROFILE_IMAGES[sexo]?.image || DEFAULT_PROFILE_IMAGE;
   const profileAlt = PROFILE_IMAGES[sexo]?.alt || 'Usuario';

@@ -453,6 +453,17 @@ export interface tableOld {
     cantidad_sillas: number
 }
 
+export interface comunicacion {
+    transport: string
+    template_id: string
+    template_name: string
+    message_id: string
+    statuses: {
+        name: string
+        timestamp: string
+    }[]
+}
+
 export interface guests {
     _id: string
     invitacion: boolean
@@ -481,6 +492,7 @@ export interface guests {
     passesQuantity: number
     tableNameRecepcion: Partial<table>
     tableNameCeremonia: Partial<table>
+    comunicaciones_array: comunicacion[]
 }
 
 export interface filterGuest extends guests {

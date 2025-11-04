@@ -22,6 +22,7 @@ import { fetchApiEventos, queries } from "../utils/Fetching";
 import { TemplateWathsappValues, WhatsappEditorComponent } from "../components/Invitaciones/WhatsappEditorComponent";
 import { TemplateWathsappBusinessValues, WhatsappBusinessEditorComponent } from "../components/Invitaciones/WhatsappBusinessEditorComponent";
 import { WhatsappBusinessPreview } from "../components/Invitaciones/WhatsappBusinessPreview";
+import { DashboardComunicacionMulticanal } from "../components/Invitaciones/DashboardComunicacionMulticanal";
 
 export type optionArryOptions = {
   title: string;
@@ -197,6 +198,24 @@ const Invitaciones = () => {
               </div>
               <div className={`${["email", "diseño"].includes(optionSelect) ? !stateConfi ? "" : "md:pt-3" : null} pt-3`}>
                 <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} optionSelect={optionSelect} />
+                {/* <DashboardComunicacionMulticanal invitados={[{
+                  _id: "672345678901234567890123",
+                  nombre: "Jafet Montilla",
+                  comunicaciones_array: [
+                    {
+                      type: "email",
+                      template_id: "1234567890",
+                      message_id: "1234567890",
+                      statuses: ["sent", "delivered", "read"]
+                    },
+                    {
+                      type: "whatsapp",
+                      template_id: "1234567890",
+                      message_id: "1234567890",
+                      statuses: ["sent", "delivered",]
+                    }
+                  ]
+                }]} /> */}
               </div>
             </div>
           </motion.div>

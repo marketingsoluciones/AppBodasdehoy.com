@@ -44,8 +44,8 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
   const [isAllowed, ht] = useAllowed()
   const toast = useToast()
   const [columnsVisibility, setColumnVisibility] = useState({});
-  const [columnWidths, setColumnWidths] = useState<{[key: string]: number}>({});
-  const [isResizing, setIsResizing] = useState<{column: string, startX: number, startWidth: number} | null>(null);
+  const [columnWidths, setColumnWidths] = useState<{ [key: string]: number }>({});
+  const [isResizing, setIsResizing] = useState<{ column: string, startX: number, startWidth: number } | null>(null);
   const columnHelper = createColumnHelper<any>()
   const [showDotsOptionsMenu, setShowDotsOptionsMenu] = useState<FloatOptionsMenuInterface>()
   const [showFloatOptionsMenu, setShowFloatOptionsMenu] = useState<FloatOptionsMenuInterface>()
@@ -109,10 +109,10 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
-      
+
       const deltaX = e.clientX - isResizing.startX;
       const newWidth = Math.max(50, isResizing.startWidth + deltaX); // Mínimo 50px
-      
+
       setColumnWidths(prev => ({
         ...prev,
         [isResizing.column]: newWidth
@@ -130,7 +130,7 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
       document.body.style.userSelect = 'none';
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      
+
       return () => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
@@ -158,19 +158,19 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
         acc[col.accessor] = col.size || 100;
       }
       return acc;
-    }, {} as {[key: string]: number});
-    
+    }, {} as { [key: string]: number });
+
     initialWidths['options'] = 60;
-    
+
     setColumnWidths(initialWidths);
   }, []);
 
   const handleResizeStart = (columnId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const currentWidth = columnWidths[columnId] || 100;
-    
+
     setIsResizing({
       column: columnId,
       startX: e.clientX,
@@ -798,7 +798,7 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
                         style={{
                           width: getColumnWidth(columnId),
                           left: isSticky ? leftPosition : undefined,
-                         /*  position: isSticky ? 'sticky' : 'relative' */
+                          /*  position: isSticky ? 'sticky' : 'relative' */
                         }}
                         className={`text-left p-1.5 font-medium text-gray-700 border-r text-xs ${isSticky ? 'bg-gray-100 z-30' : ''
                           }`}

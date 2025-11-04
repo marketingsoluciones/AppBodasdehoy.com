@@ -1,8 +1,9 @@
 import { GuestTable } from "./GuestTable"
 import { AuthContextProvider } from "../../context/AuthContext"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from 'react-i18next';
 import { DataTableGroupContextProvider } from "../../context/DataTableGroupContext";
+import { GuestTableAll } from "./GuestTableAll";
 
 export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, optionSelect }) => {
     const { t } = useTranslation();
@@ -35,9 +36,10 @@ export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, o
                             {t("sent")}
                         </button>
                     </div>
-                        <div className=" md:w-full">
-                            <GuestTable data={stateTable === "noenviados" ? dataInvitationNotSent : dataInvitationSent} multiSeled={true}  optionSelect={optionSelect} />
-                        </div>
+                    <div className=" md:w-full">
+                        <GuestTableAll multiSeled={true} />
+                        {/* <GuestTable data={stateTable === "noenviados" ? dataInvitationNotSent : dataInvitationSent} multiSeled={true} optionSelect={optionSelect} /> */}
+                    </div>
                 </div>
             </div>
             <style jsx>
