@@ -785,6 +785,13 @@ export const es = {
     'Mixed (URL + Quick Reply): max 2 buttons total': 'Mixto (URL + Quick Reply): máx 2 botones total',
     'columns': 'Columnas',
     'show_columns': 'Mostrar columnas',
+    'Canal de envío': 'Canal de envío',
+    'Seleccionar plantilla': 'Seleccionar plantilla',
+    'Sin resultados': 'Sin resultados',
+    'Sin vista previa disponible': 'Sin vista previa disponible',
+    'Error cargando plantillas': 'Error cargando plantillas',
+    'Error al seleccionar plantilla': 'Error al seleccionar plantilla',
+    'Cargando': 'Cargando',
     'ago': 'Hace',
   }
 }

@@ -29,6 +29,8 @@ export type optionArryOptions = {
   state: boolean;
 }
 
+const CONFIG_PANEL_STORAGE_KEY = 'app-bodasdehoy-invitaciones-config';
+
 const Invitaciones = () => {
   const { t } = useTranslation();
   const { user, verificationDone, forCms } = AuthContextProvider()
@@ -88,6 +90,13 @@ const Invitaciones = () => {
   ]
 
   useMounted()
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storedConfigState = window.localStorage.getItem(CONFIG_PANEL_STORAGE_KEY);
+    if (storedConfigState !== null) {
+      setStateConfi(storedConfigState === 'true');
+    }
+  }, []);
   useEffect(() => {
     const reduce = event?.invitados_array?.reduce((acc: any, item: any) => {
       const asd = {
@@ -164,9 +173,17 @@ const Invitaciones = () => {
               }
             </Modal>}
             <BlockTitle title="Invitaciones" />
-            <CounterInvitations />
-            <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 relative">
-              <button className="text-primary flex items-center text-[20px] first-letter:capitalize ml-3" onClick={() => setStateConfi(!stateConfi)}>
+            {/* <CounterInvitations /> */}
+            <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 relative mt-1 md:mt-3">
+              <button className="text-primary flex items-center text-[20px] first-letter:capitalize ml-3" onClick={() => {
+                setStateConfi(prev => {
+                  const next = !prev;
+                  if (typeof window !== 'undefined') {
+                    window.localStorage.setItem(CONFIG_PANEL_STORAGE_KEY, String(next));
+                  }
+                  return next;
+                });
+              }}>
                 {t("invitationsettings")}
                 <span> <GoChevronDown className={`h-6 w-6 text-azulCorporativo cursor-pointer transition-all ml-2 ${stateConfi && "rotate-180"}`} /></span>
               </button>
@@ -209,7 +226,7 @@ const Invitaciones = () => {
                 id="enviados-container"
                 ref={enviadosContainerRef}
                 onClick={handleScrollToEnviados}
-                className={`flex w-full border ${stateConfi ? "h-[calc(100vh-160px)]" : "h-[calc(100vh-200px)]"}`}
+                className={`flex w-full border ${stateConfi ? "h-[calc(100vh-160px)]" : "h-[calc(100vh-260px)]"}`}
               >
                 <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} optionSelect={optionSelect} />
               </div>

@@ -199,12 +199,7 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
   return (
     <div className="flex flex-col w-full h-full relative">
       <div className="flex px-3 justify-center items-center border-b border-gray-200">
-        {multiSeled && (
-          <SendButton
-            isResend={data?.length && data[0]?.invitacion}
-            optionSelect={optionSelect}
-          />
-        )}
+
 
       </div>
       <div className="flex items-center py-1 px-2 gap-2 relative">
@@ -250,7 +245,13 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
           </button>
 
         </div>}
-        <div className="flex-1 bg-white h-full" />
+        <div className="flex-1 bg-white h-full flex justify-center items-center" >
+          {multiSeled && (
+            <SendButton
+              optionSelect={optionSelect}
+            />
+          )}
+        </div>
 
         {/* Modal de Filtros */}
         {showFiltersModal && (
