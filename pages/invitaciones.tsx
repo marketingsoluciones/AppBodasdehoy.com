@@ -184,7 +184,7 @@ const Invitaciones = () => {
                   return next;
                 });
               }}>
-                {t("invitationsettings")}
+                {t("Configuración de canales")}
                 <span> <GoChevronDown className={`h-6 w-6 text-azulCorporativo cursor-pointer transition-all ml-2 ${stateConfi && "rotate-180"}`} /></span>
               </button>
               <div className={`${stateConfi ? "" : "hidden"} md:h-96`}>

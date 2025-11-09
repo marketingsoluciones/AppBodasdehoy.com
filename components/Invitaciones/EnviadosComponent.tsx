@@ -15,7 +15,7 @@ export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, o
         <>
             <div className="bg-white flex flex-col w-full h-full rounded-xl shadow-md relative">
                 <span className="text-primary flex items-center text-[20px] first-letter:capitalize px-3">
-                    {`${stateTable === "noenviados" ? "Invitaciones pendientes" : "Invitaciones enviadas"}`}
+                    {t("Lista de invitados")}
                 </span>
                 {/* <div className="w-[calc(100%-80px)] md:w-96 mx-auto inset-x-0 flex my-2 mt-4 rounded-2xl overflow-hidden border">
                         <button
