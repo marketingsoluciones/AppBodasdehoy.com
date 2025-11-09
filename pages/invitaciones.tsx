@@ -172,7 +172,7 @@ const Invitaciones = () => {
                 : <WhatsappBusinessEditorComponent setShowEditorModal={setShowEditorModal} variablesTemplatesInvitaciones={variablesTemplatesInvitaciones} />
               }
             </Modal>}
-            <BlockTitle title="Invitaciones" />
+            <BlockTitle title={t("Invitaciones")} />
             {/* <CounterInvitations /> */}
             <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 relative mt-1 md:mt-3">
               <button className="text-primary flex items-center text-[20px] first-letter:capitalize ml-3" onClick={() => {
@@ -199,7 +199,7 @@ const Invitaciones = () => {
                             className="w-full h-full object-contain rounded-lg"
                             style={{ maxWidth: "100%", maxHeight: "100%", display: "block" }} />
                           : <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
-                            <p className="text-gray-500 text-xs text-center">{`No hay template de ${optionSelect} seleccionado`}</p>
+                            <p className="text-gray-500 text-xs text-center">{t("No hay template de {{channel}} seleccionado", { channel: t(optionSelect) })}</p>
                           </div>
                         : optionSelect === "whatsapp"
                           ? <div className={`w-full h-full flex items-center justify-center translate-y-4 transition-all duration-300 ${!false ? "scale-[50%]" : "scale-[100%] absolute top-0 left-0 z-10"}`}>

@@ -42,7 +42,7 @@ export const ColumnToggle: FC<ColumnToggleProps> = ({
         className="flex items-center gap-2 px-4 py-1 text-xs text-gray-700 rounded-md hover:bg-gray-100 focus:outline-none "
       >
         <TbColumns3 className="w-3.5 h-3.5" />
-        {t("columns") || "Columnas"}
+        {t("Columnas")}
         <GoChevronDown
           className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
@@ -51,7 +51,7 @@ export const ColumnToggle: FC<ColumnToggleProps> = ({
       {isOpen && (
         <div className="absolute right-0 z-50 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200">
           <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200">
-            {t("show_columns") || "Mostrar columnas"}
+            {t("Mostrar columnas")}
           </div>
           <div className="max-h-80 overflow-y-auto">
             {columns.map((column) => (
@@ -72,7 +72,7 @@ export const ColumnToggle: FC<ColumnToggleProps> = ({
             ))}
           </div>
           <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-200 mt-2">
-            {visibleColumns.size} de {columns.length} visibles
+            {t("{{visible}} de {{total}} visibles", { visible: visibleColumns.size, total: columns.length })}
           </div>
         </div>
       )}

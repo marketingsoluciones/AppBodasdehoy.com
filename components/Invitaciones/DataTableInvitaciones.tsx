@@ -12,6 +12,7 @@ import { useColumnVisibility } from "./hooks/useColumnVisibility";
 import { HiOutlineFilter, HiOutlineSearch, HiOutlineX } from "react-icons/hi";
 import { IoCloseOutline } from "react-icons/io5";
 import { motion } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
 // Tipos de filtros adaptados para invitaciones
 interface InvitationFilters {
@@ -26,6 +27,7 @@ const getTemplateKey = (communication: Record<string, any>) => {
 };
 
 export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], multiSeled = false, optionSelect, eventId, }) => {
+  const { t } = useTranslation();
   // Estados para búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState('');
   const [showFiltersModal, setShowFiltersModal] = useState(false);
@@ -167,7 +169,7 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
       if (!Array.isArray(item?.comunicaciones_array)) return;
       item.comunicaciones_array.forEach((communication: any) => {
         const key = getTemplateKey(communication);
-        const label = communication?.template_name || 'Sin plantilla';
+        const label = communication?.template_name || t("Sin plantilla");
         if (!templatesMap.has(key)) {
           templatesMap.set(key, label);
         }
@@ -177,7 +179,7 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
     return Array.from(templatesMap.entries())
       .map(([value, label]) => ({ value, label }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [dataForTemplateOptions]);
+  }, [dataForTemplateOptions, t]);
 
   const availableStatuses = useMemo(() => {
     const statusesSet = new Set<string>();
@@ -202,8 +204,8 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
       return '';
     }
     const match = availableTemplates.find(template => template.value === filters.templateId);
-    return match?.label || 'Plantilla seleccionada';
-  }, [availableTemplates, filters.templateId]);
+    return match?.label || t("Plantilla seleccionada");
+  }, [availableTemplates, filters.templateId, t]);
 
   useEffect(() => {
     if (filters.templateId !== 'all') {
@@ -263,7 +265,7 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
           Header: ({ getToggleAllRowsSelectedProps }) => {
             return (
               <div className="flex justify-center items-center">
-                <IndeterminateCheckbox {...getToggleAllRowsSelectedProps()} tooltip="Seleccionar todos" />
+                <IndeterminateCheckbox {...getToggleAllRowsSelectedProps()} tooltip={t("Seleccionar todos")} />
               </div>
             );
           },
@@ -291,7 +293,7 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
             <HiOutlineSearch onClick={() => isMobile ? setShowSearch(!showSearch) : null} className="w-3.5 h-3.5 text-gray-700" />
             <input
               type="text"
-              placeholder="Buscar invitados, correos o teléfonos"
+              placeholder={t("Buscar invitados, correos o teléfonos")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`${showSearch ? 'block' : 'hidden'} md:block bg-transparent border-none outline-none text-xs placeholder-gray-400 w-[80vw] md:w-80 h-5`}
@@ -318,10 +320,10 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
               ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
               : 'text-gray-700 hover:text-gray-600 hover:bg-gray-100'
               }`}
-            title="Filtros"
+            title={t("Filtros")}
           >
             <HiOutlineFilter className="w-3.5 h-3.5" />
-            <span className="text-xs">Filtros</span>
+            <span className="text-xs">{t("Filtros")}</span>
             {hasActiveFilters() && (
               <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
             )}
@@ -348,13 +350,13 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
             <div className="filters-modal fixed top-1/2 left-1/2 y transform -translate-x-1/2 -translate-y-1/2 md:absolute md:top-11 md:left-32 md:translate-x-0 md:translate-y-0 bg-white shadow-xl rounded-xl border z-50 w-full h-[80vh] md:w-80 md:h-auto md:max-h-[450px] overflow-y-auto">
               <div className="px-3 py-1 border-b">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-800 text-sm">Filtros</h3>
+                  <h3 className="font-semibold text-gray-800 text-sm">{t("Filtros")}</h3>
                   <div className="flex items-center gap-4">
                     <button
                       onClick={handleClearFilters}
                       className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
                     >
-                      Limpiar
+                      {t("Limpiar")}
                     </button>
                     <button
                       onClick={() => setShowFiltersModal(false)}
@@ -369,28 +371,28 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
               <div className="p-3 space-y-3 max-h-80 overflow-y-auto">
                 {/* Filtro por canal */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Canal</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">{t("Canal")}</label>
                   <select
                     value={filters.transport}
                     onChange={(e) => handleFilterChange('transport', e.target.value)}
                     className="w-full text-xs border border-gray-300 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="all">Todos los canales</option>
-                    <option value="email">Correo electrónico</option>
-                    <option value="whatsapp">WhatsApp</option>
+                    <option value="all">{t("Todos los canales")}</option>
+                    <option value="email">{t("Correo electrónico")}</option>
+                    <option value="whatsapp">{t("whatsapp")}</option>
                   </select>
                 </div>
 
                 {/* Filtro por plantilla */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Plantilla</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">{t("template")}</label>
                   <select
                     value={filters.templateId}
                     onChange={(e) => handleFilterChange('templateId', e.target.value)}
                     className="w-full text-xs border border-gray-300 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500"
                     disabled={!availableTemplates.length}
                   >
-                    <option value="all">Todas las plantillas</option>
+                    <option value="all">{t("Todas las plantillas")}</option>
                     {availableTemplates.map((template) => (
                       <option key={template.value} value={template.value}>
                         {template.label}
@@ -401,14 +403,14 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
 
                 {/* Filtro por estado de envío */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Estado de envío</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">{t("Estado de envío")}</label>
                   <select
                     value={filters.sendStatus}
                     onChange={(e) => handleFilterChange('sendStatus', e.target.value)}
                     className="w-full text-xs border border-gray-300 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500"
                     disabled={!availableStatuses.length}
                   >
-                    <option value="all">Todos los estados</option>
+                    <option value="all">{t("Todos los estados")}</option>
                     {availableStatuses.map((status) => (
                       <option key={status} value={status}>
                         {status}
@@ -420,24 +422,24 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
                 {/* Resumen de filtros activos */}
                 {hasActiveFilters() && (
                   <div className="pt-2 mt-3 border-t border-gray-200">
-                    <div className="text-xs font-medium text-gray-700 mb-1">Filtros Activos:</div>
+                    <div className="text-xs font-medium text-gray-700 mb-1">{t("Filtros activos")}:</div>
                     <div className="space-y-1 text-xs text-gray-600">
                       {filters.transport !== 'all' && (
                         <div className="flex items-center gap-1">
                           <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                          Canal: {filters.transport === 'email' ? 'Correo electrónico' : 'WhatsApp'}
+                          {t("Canal")}: {filters.transport === 'email' ? t("Correo electrónico") : t("whatsapp")}
                         </div>
                       )}
                       {filters.templateId !== 'all' && (
                         <div className="flex items-center gap-1">
                           <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                          Plantilla: {selectedTemplateLabel}
+                          {t("template")}: {selectedTemplateLabel}
                         </div>
                       )}
                       {filters.sendStatus !== 'all' && (
                         <div className="flex items-center gap-1">
                           <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-                          Estado: {filters.sendStatus}
+                          {t("state")}: {filters.sendStatus}
                         </div>
                       )}
                     </div>

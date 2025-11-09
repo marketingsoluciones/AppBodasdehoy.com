@@ -52,7 +52,7 @@ export const ModalConfirmacionEnvio: FC<Props> = ({
 }) => {
   const { t } = useTranslation();
 
-  const getTemplateTypeLabel = () => optionSelect === "email" ? t("email") : "WhatsApp";
+  const getTemplateTypeLabel = () => optionSelect === "email" ? t("email") : t("whatsapp");
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -66,7 +66,7 @@ export const ModalConfirmacionEnvio: FC<Props> = ({
     },
     {
       value: 'whatsapp' as TransportType,
-      label: "WhatsApp",
+      label: t("whatsapp"),
       icon: <FaWhatsapp className="w-5 h-5 text-emerald-500" />
     }
   ]), [t]);
