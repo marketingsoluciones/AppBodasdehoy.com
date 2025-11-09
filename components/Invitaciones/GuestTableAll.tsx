@@ -102,7 +102,7 @@ export const GuestTableAll: FC<Props> = ({ multiSeled = false }) => {
   ], [t, setArrEnviatInvitaciones]);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm">
+    <div className="flex w-full h-full bg-white rounded-lg shadow-sm overflow-hidden">
       <DataTableInvitaciones
         columns={columns}
         data={event?.invitados_array || []}

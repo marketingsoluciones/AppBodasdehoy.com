@@ -1,4 +1,4 @@
-import { useEffect, useState, } from "react";
+import { useEffect, useState, useRef } from "react";
 import { DiseñoIcon, EmailIcon, SmsIcon, WhatsappIcon, } from "../components/icons";
 import BlockTitle from "../components/Utils/BlockTitle";
 import useHover from "../hooks/useHover";
@@ -22,7 +22,6 @@ import { fetchApiEventos, queries } from "../utils/Fetching";
 import { TemplateWathsappValues, WhatsappEditorComponent } from "../components/Invitaciones/WhatsappEditorComponent";
 import { TemplateWathsappBusinessValues, WhatsappBusinessEditorComponent } from "../components/Invitaciones/WhatsappBusinessEditorComponent";
 import { WhatsappBusinessPreview } from "../components/Invitaciones/WhatsappBusinessPreview";
-import { DashboardComunicacionMulticanal } from "../components/Invitaciones/DashboardComunicacionMulticanal";
 
 export type optionArryOptions = {
   title: string;
@@ -46,6 +45,16 @@ const Invitaciones = () => {
   const [variablesTemplatesInvitaciones, setVariablesTemplatesInvitaciones] = useState<any[]>([])
   const variables = variablesTemplatesInvitaciones;
   const [variableMap, setVariableMap] = useState<any>({});
+  const enviadosContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleScrollToEnviados = () => {
+    enviadosContainerRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+      inline: 'nearest'
+    });
+  };
+
   useEffect(() => {
     const map = {};
     variables.forEach(v => {
@@ -141,12 +150,12 @@ const Invitaciones = () => {
     if (!event) return <></>
     return (
       <DataTableGroupProvider>
-        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base. w-full pb-6 pt-2 md:py-0"}>
+        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base. w-full pt-2 md:py-0"}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 h-full pb-10"
+            className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 h-full"
           >
             {ShowEditorModal && <Modal classe={" w-[95%] md:w-[90%] h-[90%] "} >
               {optionSelect === "email"
@@ -189,33 +198,20 @@ const Invitaciones = () => {
                       optionSelect={optionSelect}
                       setOptionSelect={setOptionSelect}
                     />
-                    <div className="col-span-3 w-full md:h-[280px] md:h-full">
+                    <div className="col-span-3 w-full md:h-full">
                       {optionSelect === "diseño" && <DiseñoComponent setEmailEditorModal={setShowEditorModal} EmailEditorModal={ShowEditorModal} />}
                       {["email", "whatsapp"].includes(optionSelect) && <Test TitleComponent={optionSelect} setEmailEditorModal={setShowEditorModal} setPreviewEmailReactEditor={setPreviewEmailReactEditor} optionSelect={optionSelect} />}
                     </div>
                   </div>
                 </div>
               </div>
-              <div className={`${["email", "diseño"].includes(optionSelect) ? !stateConfi ? "" : "md:pt-3" : null} pt-3`}>
+              <div
+                id="enviados-container"
+                ref={enviadosContainerRef}
+                onClick={handleScrollToEnviados}
+                className={`flex w-full border ${stateConfi ? "h-[calc(100vh-160px)]" : "h-[calc(100vh-200px)]"}`}
+              >
                 <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} optionSelect={optionSelect} />
-                {/* <DashboardComunicacionMulticanal invitados={[{
-                  _id: "672345678901234567890123",
-                  nombre: "Jafet Montilla",
-                  comunicaciones_array: [
-                    {
-                      type: "email",
-                      template_id: "1234567890",
-                      message_id: "1234567890",
-                      statuses: ["sent", "delivered", "read"]
-                    },
-                    {
-                      type: "whatsapp",
-                      template_id: "1234567890",
-                      message_id: "1234567890",
-                      statuses: ["sent", "delivered",]
-                    }
-                  ]
-                }]} /> */}
               </div>
             </div>
           </motion.div>

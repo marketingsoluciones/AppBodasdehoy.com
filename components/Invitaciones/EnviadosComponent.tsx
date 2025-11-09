@@ -13,12 +13,11 @@ export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, o
 
     return (
         <>
-            <div className="">
-                <div className="bg-white w-full rounded-xl shadow-md relative mt-4 mb-8">
-                    <span className="text-primary flex items-center text-[20px] first-letter:capitalize ml-3">
-                        {`${stateTable === "noenviados" ? "Invitaciones pendientes" : "Invitaciones enviadas"}`}
-                    </span>
-                    <div className="w-[calc(100%-80px)] md:w-96 mx-auto inset-x-0 flex my-2 mt-4 rounded-2xl overflow-hidden border">
+            <div className="bg-white flex flex-col w-full h-full rounded-xl shadow-md relative">
+                <span className="text-primary flex items-center text-[20px] first-letter:capitalize px-3">
+                    {`${stateTable === "noenviados" ? "Invitaciones pendientes" : "Invitaciones enviadas"}`}
+                </span>
+                {/* <div className="w-[calc(100%-80px)] md:w-96 mx-auto inset-x-0 flex my-2 mt-4 rounded-2xl overflow-hidden border">
                         <button
                             className={`w-1/2 md:w-[270px] py-1 ${stateTable == "noenviados" ? "bg-primary text-white" : "bg-white text-primary"} h-full grid place-items-center font-display font-medium text-sm cursor-pointer hover:opacity-90`}
                             onClick={() => {
@@ -35,11 +34,10 @@ export const EnviadosComponent = ({ dataInvitationSent, dataInvitationNotSent, o
                             }}>
                             {t("sent")}
                         </button>
-                    </div>
-                    <div className=" md:w-full">
-                        <GuestTableAll multiSeled={true} />
-                        {/* <GuestTable data={stateTable === "noenviados" ? dataInvitationNotSent : dataInvitationSent} multiSeled={true} optionSelect={optionSelect} /> */}
-                    </div>
+                    </div> */}
+                <div className="flex w-full flex-1">
+                    <GuestTableAll multiSeled={true} />
+                    {/* <GuestTable data={stateTable === "noenviados" ? dataInvitationNotSent : dataInvitationSent} multiSeled={true} optionSelect={optionSelect} /> */}
                 </div>
             </div>
             <style jsx>

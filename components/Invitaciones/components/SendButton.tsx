@@ -121,7 +121,7 @@ export const SendButton: FC<SendButtonProps> = ({ isResend = false, optionSelect
 
   return (
     <>
-      <div className="flex justify-between py-3 ml-[52px] w-auto pr-5 relative">
+      <div className="flex relative">
         <button
           disabled={!arrIDs?.length}
           onClick={() => handleSendInvitation()}

@@ -17,7 +17,7 @@ export const TableBody: FC<TableBodyProps> = ({
   const { t } = useTranslation();
 
   return (
-    <tbody {...getTableBodyProps()} className="text-gray-600 text-sm ">
+    <tbody {...getTableBodyProps()} className="text-gray-600 text-sm flex-1">
       {rows.length >= 1 ? (
         rows.map((row, idx) => {
           prepareRow(row);
@@ -29,10 +29,15 @@ export const TableBody: FC<TableBodyProps> = ({
               style={{ gridTemplateColumns: gridTemplate }}
             >
               {row.cells.map((cell: any, idx: number) => {
+                const isSelectionColumn = cell.column.id === "selection";
+                const cellClassName = isSelectionColumn
+                  ? "px-2 py-2 flex items-center justify-center overflow-visible"
+                  : "truncate px-2 py-2 flex items-center";
+
                 return (
                   <td
                     key={idx}
-                    className="truncate px-3 py-2 flex items-center"
+                    className={cellClassName}
                   >
                     {cell.render("Cell")}
                   </td>
