@@ -68,8 +68,8 @@ export const SocketControlator = () => {
     }
     if (user?.displayName !== "anonymous") {
       if (received.channel === "app:message") {
+        // console.log(100020, "RECEIVED event")
         if (received?.msg?.payload?.action === "setEvent") {
-          // console.log(100020, "RECEIVED event")
           const eventOld = {
             galerySvgs: event?.galerySvgs,
             updatedAt: new Date()
@@ -112,6 +112,16 @@ export const SocketControlator = () => {
           event?.planSpace?.splice(f1, 1, received?.msg?.payload?.value)
           setEvent({ ...event })
           // setPlanSpaceActive(received?.msg?.payload?.value)
+        }
+        if (received?.msg?.payload?.action === "setStatusComunicacion") {
+          const f1 = event?.invitados_array?.findIndex(elem => elem._id === received?.msg?.payload?.value?.invitado_id)
+          const f2 = event?.invitados_array[f1]?.comunicaciones_array?.findIndex(elem => elem.message_id
+            === received?.msg?.payload?.value?.message_id)
+          event?.invitados_array[f1]?.comunicaciones_array[f2].statuses.push({
+            name: received?.msg?.payload?.value?.status,
+            timestamp: new Date(received?.msg?.payload?.value?.timestamp).toISOString()
+          })
+          setEvent({ ...event })
         }
       }
       if (received.channel === "cms:message") {
