@@ -17,7 +17,8 @@ export const DEFAULT_PROFILE_IMAGE = "/placeholder/user.png";
 export const COLUMN_WIDTH_CONFIG: { [key: string]: string } = {
   selection: '35px',
   nombre: '250px',
-  comunicaciones_array: '450px',
+  asistencia: '110px',
+  comunicaciones_array: '540px',
   // correo: '230px',
   // telefono: '140px',
   // invitacion: '130px',

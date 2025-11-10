@@ -264,7 +264,7 @@ export const SendButton: FC<SendButtonProps> = ({ isResend = false, optionSelect
     try {
 
       await fetchApiEventos({
-        query: queries.sendInvitations,
+        query: queries.sendComunications,
         variables: {
           evento_id: event?._id,
           invitados_ids_array: arrIDs,
