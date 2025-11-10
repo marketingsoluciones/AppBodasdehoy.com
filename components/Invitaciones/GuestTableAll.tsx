@@ -1,14 +1,10 @@
 import { FC, useState, useMemo, useCallback } from "react";
 import { useTranslation } from 'react-i18next';
 import { DataTableInvitaciones } from "./DataTableInvitaciones";
-import { GuestTableProps, ColumnConfig } from "./types";
+import { ColumnConfig } from "./types";
 import { GuestNameCell } from "./cells/GuestNameCell";
-import { GuestEmailCell } from "./cells/GuestEmailCell";
-import { GuestInvitationCell } from "./cells/GuestInvitationCell";
-import { GuestCompanionsCell } from "./cells/GuestCompanionsCell";
-import { GuestDateCell } from "./cells/GuestDateCell";
 import { EventContextProvider, AuthContextProvider } from "../../context";
-import { comunicacion, guests, Event } from "../../utils/Interfaces";
+import { comunicacion, guests } from "../../utils/Interfaces";
 import { HiOutlineMail } from "react-icons/hi";
 import { FaWhatsapp } from "react-icons/fa";
 import { RelativeTime } from "../Utils/RelativeTime";

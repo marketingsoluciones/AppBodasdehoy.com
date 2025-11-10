@@ -10,15 +10,19 @@ import { useRowSelectionCell } from "./hooks/useRowSelection";
 import { ColumnToggle } from "./ColumnToggle";
 import { useColumnVisibility } from "./hooks/useColumnVisibility";
 import { HiOutlineFilter, HiOutlineSearch, HiOutlineX } from "react-icons/hi";
-import { IoCloseOutline } from "react-icons/io5";
-import { motion } from "framer-motion";
 import { useTranslation } from 'react-i18next';
+import { FilterSelectWithMode, FilterMode } from "./components/FilterSelectWithMode";
+import { FiltersModal } from "./components/FiltersModal";
 
 // Tipos de filtros adaptados para invitaciones
 interface InvitationFilters {
   transport: 'all' | 'email' | 'whatsapp';
   templateId: 'all' | string;
+  templateMode: FilterMode;
   sendStatus: 'all' | string;
+  sendStatusMode: FilterMode;
+  attendance: 'all' | string;
+  attendanceMode: FilterMode;
 }
 
 const getTemplateKey = (communication: Record<string, any>) => {
@@ -35,7 +39,11 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
   const [filters, setFilters] = useState<InvitationFilters>({
     transport: 'all',
     templateId: 'all',
-    sendStatus: 'all'
+    templateMode: 'include',
+    sendStatus: 'all',
+    sendStatusMode: 'include',
+    attendance: 'all',
+    attendanceMode: 'include'
   });
 
   // Detectar si es móvil o desktop
@@ -68,7 +76,8 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
   const hasActiveFilters = () => {
     return filters.transport !== 'all' ||
       filters.templateId !== 'all' ||
-      filters.sendStatus !== 'all';
+      filters.sendStatus !== 'all' ||
+      filters.attendance !== 'all';
   };
 
   // Función para manejar cambios en filtros
@@ -79,12 +88,25 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
     }));
   };
 
+  type FilterModeKey = 'templateMode' | 'sendStatusMode' | 'attendanceMode';
+
+  const handleFilterModeChange = (modeKey: FilterModeKey, mode: FilterMode) => {
+    setFilters(prev => ({
+      ...prev,
+      [modeKey]: mode
+    }));
+  };
+
   // Función para limpiar todos los filtros
   const handleClearFilters = () => {
     setFilters({
       transport: 'all',
       templateId: 'all',
-      sendStatus: 'all'
+      templateMode: 'include',
+      sendStatus: 'all',
+      sendStatusMode: 'include',
+      attendance: 'all',
+      attendanceMode: 'include'
     });
   };
 
@@ -104,21 +126,31 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
     if (criteria.templateId !== 'all') {
       filteredData = filteredData.filter(item => {
         if (!Array.isArray(item.comunicaciones_array) || item.comunicaciones_array.length === 0) {
-          return false;
+          return criteria.templateMode === 'exclude';
         }
-        return item.comunicaciones_array.some((communication: any) => getTemplateKey(communication) === criteria.templateId);
+        const hasTemplate = item.comunicaciones_array.some((communication: any) => getTemplateKey(communication) === criteria.templateId);
+        return criteria.templateMode === 'include' ? hasTemplate : !hasTemplate;
       });
     }
 
     if (criteria.sendStatus !== 'all') {
       filteredData = filteredData.filter(item => {
         if (!Array.isArray(item.comunicaciones_array) || item.comunicaciones_array.length === 0) {
-          return false;
+          return criteria.sendStatusMode === 'exclude';
         }
-        return item.comunicaciones_array.some((communication: any) =>
+        const hasStatus = item.comunicaciones_array.some((communication: any) =>
           Array.isArray(communication?.statuses) &&
           communication.statuses.some((status: any) => status?.name === criteria.sendStatus)
         );
+        return criteria.sendStatusMode === 'include' ? hasStatus : !hasStatus;
+      });
+    }
+
+    if (criteria.attendance !== 'all') {
+      filteredData = filteredData.filter(item => {
+        const attendance = (item.asistencia || '').toString().toLowerCase();
+        const matches = attendance === criteria.attendance.toLowerCase();
+        return criteria.attendanceMode === 'include' ? matches : !matches;
       });
     }
 
@@ -148,19 +180,67 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
     const criteria: InvitationFilters = {
       transport: filters.transport,
       templateId: 'all',
-      sendStatus: filters.sendStatus
+      templateMode: filters.templateMode,
+      sendStatus: filters.sendStatus,
+      sendStatusMode: filters.sendStatusMode,
+      attendance: filters.attendance,
+      attendanceMode: filters.attendanceMode
     };
     return filterDataByCriteria(searchAppliedData, criteria);
-  }, [searchAppliedData, filters.transport, filters.sendStatus, filterDataByCriteria]);
+  }, [
+    searchAppliedData,
+    filters.transport,
+    filters.templateMode,
+    filters.sendStatus,
+    filters.sendStatusMode,
+    filters.attendance,
+    filters.attendanceMode,
+    filterDataByCriteria
+  ]);
 
   const dataForStatusOptions = useMemo(() => {
     const criteria: InvitationFilters = {
       transport: filters.transport,
       templateId: filters.templateId,
-      sendStatus: 'all'
+      templateMode: filters.templateMode,
+      sendStatus: 'all',
+      sendStatusMode: filters.sendStatusMode,
+      attendance: filters.attendance,
+      attendanceMode: filters.attendanceMode
     };
     return filterDataByCriteria(searchAppliedData, criteria);
-  }, [searchAppliedData, filters.transport, filters.templateId, filterDataByCriteria]);
+  }, [
+    searchAppliedData,
+    filters.transport,
+    filters.templateId,
+    filters.templateMode,
+    filters.sendStatusMode,
+    filters.attendance,
+    filters.attendanceMode,
+    filterDataByCriteria
+  ]);
+
+  const dataForAttendanceOptions = useMemo(() => {
+    const criteria: InvitationFilters = {
+      transport: filters.transport,
+      templateId: filters.templateId,
+      templateMode: filters.templateMode,
+      sendStatus: filters.sendStatus,
+      sendStatusMode: filters.sendStatusMode,
+      attendance: 'all',
+      attendanceMode: filters.attendanceMode
+    };
+    return filterDataByCriteria(searchAppliedData, criteria);
+  }, [
+    searchAppliedData,
+    filters.transport,
+    filters.templateId,
+    filters.templateMode,
+    filters.sendStatus,
+    filters.sendStatusMode,
+    filters.attendanceMode,
+    filterDataByCriteria
+  ]);
 
   const availableTemplates = useMemo(() => {
     const templatesMap = new Map<string, string>();
@@ -199,6 +279,18 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
     return Array.from(statusesSet).sort((a, b) => a.localeCompare(b));
   }, [dataForStatusOptions]);
 
+  const availableAttendance = useMemo(() => {
+    const attendanceSet = new Set<string>();
+
+    dataForAttendanceOptions.forEach((item: any) => {
+      if (item?.asistencia) {
+        attendanceSet.add(item.asistencia.toString());
+      }
+    });
+
+    return Array.from(attendanceSet).sort((a, b) => a.localeCompare(b));
+  }, [dataForAttendanceOptions]);
+
   const selectedTemplateLabel = useMemo(() => {
     if (filters.templateId === 'all') {
       return '';
@@ -206,6 +298,47 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
     const match = availableTemplates.find(template => template.value === filters.templateId);
     return match?.label || t("Plantilla seleccionada");
   }, [availableTemplates, filters.templateId, t]);
+
+  const formatAttendanceLabel = useCallback((value: string) => {
+    const normalized = value.toLowerCase();
+    switch (normalized) {
+      case 'pendiente':
+        return t("Pendiente", { defaultValue: "Pendiente" });
+      case 'aceptado':
+        return t("Aceptado", { defaultValue: "Aceptado" });
+      case 'cancelado':
+        return t("Cancelado", { defaultValue: "Cancelado" });
+      default:
+        return value;
+    }
+  }, [t]);
+
+  const templateSelectOptions = useMemo(() => {
+    return [
+      { value: 'all', label: t("Todas las plantillas") },
+      ...availableTemplates,
+    ];
+  }, [availableTemplates, t]);
+
+  const statusSelectOptions = useMemo(() => {
+    return [
+      { value: 'all', label: t("Todos los estados") },
+      ...availableStatuses.map((status) => ({ value: status, label: status })),
+    ];
+  }, [availableStatuses, t]);
+
+  const attendanceSelectOptions = useMemo(() => {
+    return [
+      { value: 'all', label: t("Todas las asistencias", { defaultValue: "Todas las asistencias" }) },
+      ...availableAttendance.map((value) => ({ value, label: formatAttendanceLabel(value) })),
+    ];
+  }, [availableAttendance, formatAttendanceLabel, t]);
+
+  const getModeLabel = useCallback((mode: FilterMode) => {
+    return mode === 'include'
+      ? t("Incluir", { defaultValue: "Incluir" })
+      : t("Excluir", { defaultValue: "Excluir" });
+  }, [t]);
 
   useEffect(() => {
     if (filters.templateId !== 'all') {
@@ -224,6 +357,15 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
       }
     }
   }, [availableStatuses, filters.sendStatus]);
+
+  useEffect(() => {
+    if (filters.attendance !== 'all') {
+      const exists = availableAttendance.some(value => value.toLowerCase() === filters.attendance.toLowerCase());
+      if (!exists) {
+        setFilters(prev => ({ ...prev, attendance: 'all' }));
+      }
+    }
+  }, [availableAttendance, filters.attendance]);
 
   const filteredData = useMemo(() => {
     return filterDataByCriteria(searchAppliedData, filters) as typeof data;
@@ -280,6 +422,94 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
       .map((header: any) => COLUMN_WIDTH_CONFIG[header.id] || '150px')
       .join(' ') || 'auto';
   }, [headerGroups]);
+
+  const filtersModalContent = (
+    <>
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">{t("Canal")}</label>
+        <select
+          value={filters.transport}
+          onChange={(e) => handleFilterChange('transport', e.target.value)}
+          className="w-full text-xs border border-gray-300 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="all">{t("Todos los canales")}</option>
+          <option value="email">{t("Correo electrónico")}</option>
+          <option value="whatsapp">{t("whatsapp")}</option>
+        </select>
+      </div>
+
+      <FilterSelectWithMode
+        label={t("template")}
+        name="templateMode"
+        options={templateSelectOptions}
+        value={filters.templateId}
+        mode={filters.templateMode}
+        includeLabel={t("Incluir")}
+        excludeLabel={t("Excluir")}
+        onChangeValue={(value) => handleFilterChange('templateId', value)}
+        onChangeMode={(mode) => handleFilterModeChange('templateMode', mode)}
+        disabled={templateSelectOptions.length <= 1}
+      />
+
+      <FilterSelectWithMode
+        label={t("Estado de envío")}
+        name="sendStatusMode"
+        options={statusSelectOptions}
+        value={filters.sendStatus}
+        mode={filters.sendStatusMode}
+        includeLabel={t("Incluir")}
+        excludeLabel={t("Excluir")}
+        onChangeValue={(value) => handleFilterChange('sendStatus', value)}
+        onChangeMode={(mode) => handleFilterModeChange('sendStatusMode', mode)}
+        disabled={statusSelectOptions.length <= 1}
+      />
+
+      <FilterSelectWithMode
+        label={t("Asistencia")}
+        name="attendanceMode"
+        options={attendanceSelectOptions}
+        value={filters.attendance}
+        mode={filters.attendanceMode}
+        includeLabel={t("Incluir")}
+        excludeLabel={t("Excluir")}
+        onChangeValue={(value) => handleFilterChange('attendance', value)}
+        onChangeMode={(mode) => handleFilterModeChange('attendanceMode', mode)}
+        disabled={attendanceSelectOptions.length <= 1}
+      />
+
+      {hasActiveFilters() && (
+        <div className="pt-2 mt-3 border-t border-gray-200">
+          <div className="text-xs font-medium text-gray-700 mb-1">{t("Filtros activos")}:</div>
+          <div className="space-y-1 text-xs text-gray-600">
+            {filters.transport !== 'all' && (
+              <div className="flex items-center gap-1">
+                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                {t("Canal")}: {filters.transport === 'email' ? t("Correo electrónico") : t("whatsapp")}
+              </div>
+            )}
+            {filters.templateId !== 'all' && (
+              <div className="flex items-center gap-1">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                {t("template")}: {getModeLabel(filters.templateMode)} · {selectedTemplateLabel}
+              </div>
+            )}
+            {filters.sendStatus !== 'all' && (
+              <div className="flex items-center gap-1">
+                <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                {t("state")}: {getModeLabel(filters.sendStatusMode)} · {filters.sendStatus}
+              </div>
+            )}
+            {filters.attendance !== 'all' && (
+              <div className="flex items-center gap-1">
+                <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                {t("Asistencia")}: {getModeLabel(filters.attendanceMode)} · {formatAttendanceLabel(filters.attendance)}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
 
   return (
     <div className="flex flex-col w-full h-full relative">
@@ -339,116 +569,17 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
         </div>
 
         {/* Modal de Filtros */}
-        {showFiltersModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: isMobile ? 0.3 : 0 }}
-          >
-            <div className="md:hidden top-0 left-0 w-full h-full bg-black bg-opacity-50 z-40" />
-            <div className="filters-modal fixed top-1/2 left-1/2 y transform -translate-x-1/2 -translate-y-1/2 md:absolute md:top-11 md:left-32 md:translate-x-0 md:translate-y-0 bg-white shadow-xl rounded-xl border z-50 w-full h-[80vh] md:w-80 md:h-auto md:max-h-[450px] overflow-y-auto">
-              <div className="px-3 py-1 border-b">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-800 text-sm">{t("Filtros")}</h3>
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={handleClearFilters}
-                      className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
-                    >
-                      {t("Limpiar")}
-                    </button>
-                    <button
-                      onClick={() => setShowFiltersModal(false)}
-                      className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors"
-                    >
-                      <IoCloseOutline className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-3 space-y-3 max-h-80 overflow-y-auto">
-                {/* Filtro por canal */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">{t("Canal")}</label>
-                  <select
-                    value={filters.transport}
-                    onChange={(e) => handleFilterChange('transport', e.target.value)}
-                    className="w-full text-xs border border-gray-300 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="all">{t("Todos los canales")}</option>
-                    <option value="email">{t("Correo electrónico")}</option>
-                    <option value="whatsapp">{t("whatsapp")}</option>
-                  </select>
-                </div>
-
-                {/* Filtro por plantilla */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">{t("template")}</label>
-                  <select
-                    value={filters.templateId}
-                    onChange={(e) => handleFilterChange('templateId', e.target.value)}
-                    className="w-full text-xs border border-gray-300 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500"
-                    disabled={!availableTemplates.length}
-                  >
-                    <option value="all">{t("Todas las plantillas")}</option>
-                    {availableTemplates.map((template) => (
-                      <option key={template.value} value={template.value}>
-                        {template.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Filtro por estado de envío */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">{t("Estado de envío")}</label>
-                  <select
-                    value={filters.sendStatus}
-                    onChange={(e) => handleFilterChange('sendStatus', e.target.value)}
-                    className="w-full text-xs border border-gray-300 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500"
-                    disabled={!availableStatuses.length}
-                  >
-                    <option value="all">{t("Todos los estados")}</option>
-                    {availableStatuses.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Resumen de filtros activos */}
-                {hasActiveFilters() && (
-                  <div className="pt-2 mt-3 border-t border-gray-200">
-                    <div className="text-xs font-medium text-gray-700 mb-1">{t("Filtros activos")}:</div>
-                    <div className="space-y-1 text-xs text-gray-600">
-                      {filters.transport !== 'all' && (
-                        <div className="flex items-center gap-1">
-                          <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                          {t("Canal")}: {filters.transport === 'email' ? t("Correo electrónico") : t("whatsapp")}
-                        </div>
-                      )}
-                      {filters.templateId !== 'all' && (
-                        <div className="flex items-center gap-1">
-                          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                          {t("template")}: {selectedTemplateLabel}
-                        </div>
-                      )}
-                      {filters.sendStatus !== 'all' && (
-                        <div className="flex items-center gap-1">
-                          <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-                          {t("state")}: {filters.sendStatus}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
+        <FiltersModal
+          isMobile={isMobile}
+          show={showFiltersModal}
+          onClose={() => setShowFiltersModal(false)}
+          onClear={handleClearFilters}
+          title={t("Filtros")}
+          clearLabel={t("Limpiar")}
+          closeAriaLabel={t("Cerrar")}
+          content={filtersModalContent}
+          t={t}
+        />
 
         {!showSearch && <ColumnToggle
           columns={columns}

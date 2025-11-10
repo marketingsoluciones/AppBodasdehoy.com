@@ -2,11 +2,9 @@ import { useEffect, useState } from "react"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, SocketContextProvider, } from "../../context"
 import { useRouter } from "next/router";
 import { handleClickCard } from "../Home/Card";
-import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { detalle_compartidos_array, Event } from "../../utils/Interfaces";
-import { el } from "date-fns/locale";
 
 export const SocketControlator = () => {
   const { t } = useTranslation();

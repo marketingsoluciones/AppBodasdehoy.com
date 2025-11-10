@@ -5,7 +5,6 @@ import { Modal } from '../../Utils/Modal';
 import { HiOutlineMail } from 'react-icons/hi';
 import { FaWhatsapp } from 'react-icons/fa';
 import { InvitadosIcon } from '../../icons';
-import Select from 'react-select';
 import { TemplateDesign } from '../../../utils/Interfaces';
 import { IoCloseSharp } from 'react-icons/io5';
 
