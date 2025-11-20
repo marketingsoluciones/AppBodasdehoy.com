@@ -513,12 +513,8 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
 
   return (
     <div className="flex flex-col w-full h-full relative">
-      <div className="flex px-3 justify-center items-center border-b border-gray-200">
-
-
-      </div>
-      <div className="flex items-center py-1 px-2 gap-2 relative">
-        <div className="flex items-center gap-1.5">
+      <div className="flex items-center justify-between pb-2 px-2 gap-2 relative">
+        <div className="flex items-center gap-2">
           <div className="relative flex items-center gap-1.5 bg-gray-50 rounded-md px-2 py-1 border h-8">
             <HiOutlineSearch onClick={() => isMobile ? setShowSearch(!showSearch) : null} className="w-3.5 h-3.5 text-gray-700" />
             <input
@@ -526,7 +522,7 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
               placeholder={t("Buscar invitados, correos o teléfonos")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`${showSearch ? 'block' : 'hidden'} md:block bg-transparent border-none outline-none text-xs placeholder-gray-400 w-[80vw] md:w-80 h-5`}
+              className={`${showSearch ? 'block' : 'hidden'} md:block bg-transparent border-none outline-none text-xs placeholder-gray-400 w-[80vw] md:w-64 h-5`}
               autoFocus
             />
             {(searchTerm || (isMobile && showSearch)) && (
@@ -541,51 +537,54 @@ export const DataTableInvitaciones: FC<DataTableProps> = ({ columns, data = [], 
               </button>
             )}
           </div>
-        </div>
-        {!showSearch && <div className="relative w-16">
-          <button
-            data-filters-button="true"
-            onClick={() => setShowFiltersModal(!showFiltersModal)}
-            className={`p-1 rounded transition-colors flex items-center gap-1 ${showFiltersModal || hasActiveFilters()
-              ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
-              : 'text-gray-700 hover:text-gray-600 hover:bg-gray-100'
-              }`}
-            title={t("Filtros")}
-          >
-            <HiOutlineFilter className="w-3.5 h-3.5" />
-            <span className="text-xs">{t("Filtros")}</span>
-            {hasActiveFilters() && (
-              <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
-            )}
-          </button>
+          {!showSearch && <div className="relative w-16">
+            <button
+              data-filters-button="true"
+              onClick={() => setShowFiltersModal(!showFiltersModal)}
+              className={`p-1 rounded transition-colors flex items-center gap-1 ${showFiltersModal || hasActiveFilters()
+                ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
+                : 'text-gray-700 hover:text-gray-600 hover:bg-gray-100'
+                }`}
+              title={t("Filtros")}
+            >
+              <HiOutlineFilter className="w-3.5 h-3.5" />
+              <span className="text-xs">{t("Filtros")}</span>
+              {hasActiveFilters() && (
+                <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+              )}
+            </button>
 
-        </div>}
-        <div className="flex-1 bg-white h-full flex justify-center items-center" >
+          </div>}
+
+
+          {/* Modal de Filtros */}
+          <FiltersModal
+            isMobile={isMobile}
+            show={showFiltersModal}
+            onClose={() => setShowFiltersModal(false)}
+            onClear={handleClearFilters}
+            title={t("Filtros")}
+            clearLabel={t("Limpiar")}
+            closeAriaLabel={t("Cerrar")}
+            content={filtersModalContent}
+            t={t}
+          />
+
+          {!showSearch && <ColumnToggle
+            columns={columns}
+            visibleColumns={visibleColumns}
+            onToggleColumn={toggleColumn}
+          />}
+        </div>
+
+
+        <div className=" bg-white h-full flex justify-center items-center" >
           {multiSeled && (
             <SendButton
               optionSelect={optionSelect}
             />
           )}
         </div>
-
-        {/* Modal de Filtros */}
-        <FiltersModal
-          isMobile={isMobile}
-          show={showFiltersModal}
-          onClose={() => setShowFiltersModal(false)}
-          onClear={handleClearFilters}
-          title={t("Filtros")}
-          clearLabel={t("Limpiar")}
-          closeAriaLabel={t("Cerrar")}
-          content={filtersModalContent}
-          t={t}
-        />
-
-        {!showSearch && <ColumnToggle
-          columns={columns}
-          visibleColumns={visibleColumns}
-          onToggleColumn={toggleColumn}
-        />}
 
       </div>
       <div id="scrolls-table-container" className="flex w-full overflow-visible">

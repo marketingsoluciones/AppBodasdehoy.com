@@ -838,5 +838,6 @@ export const en = {
     'Error al seleccionar plantilla': 'Error selecting template',
     'Cargando': 'Loading',
     'ago': 'ago',
+    'disabledtoSend': 'It is not possible to send the email to all selected guests, because some do not have a registered email',
   }
 }

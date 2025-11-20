@@ -15,9 +15,10 @@ import i18next from "i18next";
 
 interface Props {
   multiSeled?: boolean;
+  stateConfi?: boolean;
 }
 
-export const GuestTableAll: FC<Props> = ({ multiSeled = false }) => {
+export const GuestTableAll: FC<Props> = ({ multiSeled = false, stateConfi = false }) => {
   const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider();
   const auth = AuthContextProvider();
@@ -190,7 +191,7 @@ export const GuestTableAll: FC<Props> = ({ multiSeled = false }) => {
   ], [getResendKey, handleResend, resendStatus, t]);
 
   return (
-    <div className="flex w-full h-full bg-white rounded-lg shadow-sm overflow-hidden">
+    <div className={`flex w-full ${stateConfi ? "h-[calc(100vh-650px)]" : "h-[calc(100vh-300px)]"} bg-white rounded-lg shadow-sm overflow-hidden`}>
       <DataTableInvitaciones
         columns={columns}
         data={event?.invitados_array || []}

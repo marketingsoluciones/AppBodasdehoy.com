@@ -280,7 +280,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
   const titleComponentLabel = t(TitleComponent);
 
   return (
-    <div className="w-full h-full font-display flex flex-col ">
+    <div className="w-full font-display flex flex-col ">
       {showModalSetupWhatsapp && (
         <WhatsappSetupComponent
           setShowModalSetupWhatsapp={setShowModalSetupWhatsapp}
@@ -364,19 +364,19 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
           )}
         </div>
       </div>
-      <div className="flex w-full h-full p-2 justify-center">
+      <div className="flex w-full h-[170px] p-2 justify-center">
         <div className={`h-full flex items-center justify-center  ${isMobile ? "hidden" : ""} `}>
           {TitleComponent === "email" && <HiOutlineMail className="w-2/3 h-2/3 -rotate-12 text-primary -translate-y-4" />}
           {TitleComponent === "whatsapp" && <FaWhatsapp className="w-2/3 h-2/3 text-emerald-500 -rotate-12 -translate-y-4" />}
         </div>
-        <div className="">
+        <div className="h-[170px]">
           <Formik
             validationSchema={TitleComponent === "email" ? validationSchemaEmail : validationSchemaPhoneNumber}
             onSubmit={(values) => handleClick(values)}
             initialValues={initialValues}
           >
             {({ handleChange, values }) => (
-              <Form className="md:w-[400px] flex flex-col gap-2 mx-auto items-center">
+              <Form className="md:w-[400px] flex flex-col  mx-auto items-center">
                 <AutoSubmitToken TitelComponent={TitleComponent} valirReset={valirReset} setValirReset={setValirReset} />
                 <div className="">
                   <h3 className="font-medium text-gray-500 first-letter:uppercase">{t("{{channel}} de prueba", { channel: titleComponentLabel })}</h3>

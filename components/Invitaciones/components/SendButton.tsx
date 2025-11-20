@@ -51,6 +51,7 @@ export const SendButton: FC<SendButtonProps> = ({ isResend = false, optionSelect
   const [selectedWhatsappTemplate, setSelectedWhatsappTemplate] = useState<string>('');
   const [loadingTemplates, setLoadingTemplates] = useState<boolean>(false);
 
+
   useEffect(() => {
     const storedTransport = getStoredTransport();
     if (storedTransport) {
@@ -318,6 +319,7 @@ export const SendButton: FC<SendButtonProps> = ({ isResend = false, optionSelect
           templateContent={templateData.content}
           templatePreview={templateData.preview}
           invitadosCount={arrIDs?.length || 0}
+          invitadosIdsArray={arrIDs}
           optionSelect={transportSelected}
           loading={loading}
           onChangeTransport={handleTransportChange}

@@ -31,7 +31,7 @@ export const FiltersModal: FC<FiltersModalProps> = ({
   closeAriaLabel,
   closeAriaLabelKey,
   content,
-  contentClassName = "p-3 space-y-3 max-h-80 overflow-y-auto",
+  contentClassName = "p-3 space-y-3 h-max overflow-y-auto",
   t
 }) => {
   const resolvedTitle = useMemo(() => {
@@ -61,8 +61,8 @@ export const FiltersModal: FC<FiltersModalProps> = ({
       exit={{ opacity: 0 }}
       transition={{ duration: isMobile ? 0.3 : 0 }}
     >
-      <div className="md:hidden top-0 left-0 w-full h-full bg-black bg-opacity-50 z-40" />
-      <div className="filters-modal fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 md:absolute md:top-11 md:left-32 md:translate-x-0 md:translate-y-0 bg-white shadow-xl rounded-xl border z-50 w-full h-[80vh] md:w-80 md:h-auto md:max-h-[450px] overflow-y-auto">
+
+      <div className="filters-modal fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 md:absolute md:top-11 md:left-32 md:translate-x-0 md:translate-y-0 bg-white shadow-xl rounded-xl border z-50 w-[90%] h-max md:w-80 overflow-y-auto.">
         <div className="px-3 py-1 border-b">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-gray-800 text-sm">{resolvedTitle}</h3>

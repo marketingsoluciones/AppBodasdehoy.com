@@ -7,6 +7,7 @@ import { FaWhatsapp } from 'react-icons/fa';
 import { InvitadosIcon } from '../../icons';
 import { TemplateDesign } from '../../../utils/Interfaces';
 import { IoCloseSharp } from 'react-icons/io5';
+import { EventContextProvider } from '../../../context/EventContext';
 
 type TransportType = 'email' | 'whatsapp';
 
@@ -31,6 +32,7 @@ interface Props {
   onSelectTemplate: (transport: TransportType, templateId: string) => void;
   loadingTemplates: boolean;
   selectedTemplateId: string;
+  invitadosIdsArray: string[];
 }
 
 export const ModalConfirmacionEnvio: FC<Props> = ({
@@ -47,16 +49,16 @@ export const ModalConfirmacionEnvio: FC<Props> = ({
   whatsappTemplates,
   onSelectTemplate,
   loadingTemplates,
-  selectedTemplateId
+  selectedTemplateId,
+  invitadosIdsArray
 }) => {
   const { t } = useTranslation();
-
+  const { event } = EventContextProvider();
   const getTemplateTypeLabel = () => optionSelect === "email" ? t("email") : t("whatsapp");
-
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
-
+  const [canSend, setCanSend] = useState({state: false, message: ''});
   const transportOptions = useMemo(() => ([
     {
       value: 'email' as TransportType,
@@ -69,6 +71,9 @@ export const ModalConfirmacionEnvio: FC<Props> = ({
       icon: <FaWhatsapp className="w-5 h-5 text-emerald-500" />
     }
   ]), [t]);
+
+
+
 
   const selectOptions = useMemo(() => {
     if (optionSelect === 'email') {
@@ -119,11 +124,61 @@ export const ModalConfirmacionEnvio: FC<Props> = ({
     }
   };
 
+  // Funcion para obtener los invitados segun el array de ids
+  const invitadosFiltrados = useMemo(() => {
+    if (!event?.invitados_array) return [];
+    if (!invitadosIdsArray || invitadosIdsArray.length === 0) return [];
+    
+    return event.invitados_array.filter((invitado: any) => 
+      invitadosIdsArray.includes(invitado._id)
+    );
+  }, [event?.invitados_array, invitadosIdsArray]);
+
+  // Funcion para validar los invitados segun el tipo de optionSelect 
+  useEffect(() => {
+    if (!invitadosFiltrados || invitadosFiltrados.length === 0) return;
+
+    if (optionSelect === "email") {
+      invitadosFiltrados.forEach((invitado: any) => {
+        if (!invitado.correo || invitado.correo.trim() === "") {
+          setCanSend({
+            state: false, 
+            message: `⚠️ ${t("disabledtoSend")}`
+          });
+          return;
+        }else{
+          setCanSend({
+            state: true, 
+            message: ` ${t("Invitados seleccionados")} ${invitadosCount}`
+          });
+        }
+      });
+    } else if (optionSelect === "whatsapp") {
+      invitadosFiltrados.forEach((invitado: any) => {
+        if (!invitado.telefono || invitado.telefono.trim() === "") {
+          setCanSend({
+            state: false, 
+            message: `⚠️ ${t("disabledtoSend")}`
+          });
+          return;
+        }else{
+          setCanSend({
+            state: true, 
+            message: ` ${t("Invitados seleccionados")} ${invitadosCount}`
+          });
+        }
+      });
+    }
+  }, [optionSelect, invitadosFiltrados]);
+
+
+
+  console.log(canSend);
   return (
     <Modal
       set={setModal}
       loading={loading}
-      classe={"w-[95%] md:w-[600px] h-auto max-h-[80vh] flex items-center justify-center"}
+      classe={"w-[95%] md:w-[600px] h-max flex items-center justify-center"}
     >
       <div className="flex flex-col w-full h-full p-6 space-y-6 text-[16px]">
         {/* Header */}
@@ -247,7 +302,7 @@ export const ModalConfirmacionEnvio: FC<Props> = ({
                 <InvitadosIcon className="w-6 h-6" />
               </span>
               <span className="font-medium text-blue-800">
-                {t("Invitados seleccionados")}: {invitadosCount}
+                {canSend.message}
               </span>
             </div>
           </div>
@@ -263,9 +318,9 @@ export const ModalConfirmacionEnvio: FC<Props> = ({
           </button>
 
           <button
-            onClick={handleConfirmSend}
-            className="bg-primary hover:opacity-80 transition-all h-10 px-6 rounded-lg text-white font-body disabled:opacity-50"
-            disabled={loading || loadingTemplates || !selectedTemplateId}
+            onClick={ canSend.state ? handleConfirmSend : () => {} }
+            className={`${canSend.state ? ' cursor-pointer ' : 'opacity-50 cursor-not-allowed '}  text-white bg-primary font-body rounded-lg h-10 px-6 `}
+            disabled={loading || loadingTemplates || !selectedTemplateId || !canSend.state}
           >
             {loading ? t("Enviando...") : t("Confirmar envío")}
           </button>

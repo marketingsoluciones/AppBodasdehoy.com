@@ -166,7 +166,7 @@ const Invitaciones = () => {
             exit={{ opacity: 0 }}
             className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 h-full"
           >
-            {ShowEditorModal && <Modal classe={" w-[95%] md:w-[90%] h-[90%] "} >
+            {ShowEditorModal && <Modal classe={"w-[95%] md:w-[90%] h-[90%] "} >
               {optionSelect === "email"
                 ? < EmailReactEditorComponent setShowEditorModal={setShowEditorModal} previewEmailReactEditor={previewEmailReactEditor} variablesTemplatesInvitaciones={variablesTemplatesInvitaciones} />
                 : <WhatsappBusinessEditorComponent setShowEditorModal={setShowEditorModal} variablesTemplatesInvitaciones={variablesTemplatesInvitaciones} />
@@ -185,11 +185,11 @@ const Invitaciones = () => {
                 });
               }}>
                 {t("Configuración de canales")}
-                <span> <GoChevronDown className={`h-6 w-6 text-azulCorporativo cursor-pointer transition-all ml-2 ${stateConfi && "rotate-180"}`} /></span>
+                <span> <GoChevronDown className={`h-4 w-4 text-azulCorporativo cursor-pointer transition-all ml-2 ${stateConfi && "rotate-180"}`} /></span>
               </button>
-              <div className={`${stateConfi ? "" : "hidden"} md:h-96`}>
-                <div className="w-full h-full flex flex-col md:flex-row mt-3 md:space-x-6 md:px-4">
-                  <div className={`w-full h-96 md:w-auto flex justify-center`}>
+              <div className={`${stateConfi ? "" : "hidden"} md:h-max`}>
+                <div className="w-full md:h-[340px] flex flex-col md:flex-row mt-3 md:space-x-6 md:px-4">
+                  <div className={`w-full h-[320px] md:w-auto flex justify-center`}>
                     <div ref={hoverRef} className={`relative w-60 h-80 ${optionSelect === "email" ? "bg-[#808080] rounded-lg border-[1px] border-gray-300" : "bg-white"}`}>
                       {["email"].includes(optionSelect)
                         ? previewEmailTemplate
@@ -209,13 +209,13 @@ const Invitaciones = () => {
                       }
                     </div>
                   </div>
-                  <div className={`flex-1 h-[352px] flex flex-col shadow-md rounded-2xl overflow-hidden`}>
+                  <div className={`flex-1 h-[320px] flex flex-col shadow-md rounded-2xl overflow-hidden`}>
                     <OptionsMenu
                       arryOptions={arryOptions}
                       optionSelect={optionSelect}
                       setOptionSelect={setOptionSelect}
                     />
-                    <div className="col-span-3 w-full md:h-full">
+                    <div className="col-span-3 w-full ">
                       {optionSelect === "diseño" && <DiseñoComponent setEmailEditorModal={setShowEditorModal} EmailEditorModal={ShowEditorModal} />}
                       {["email", "whatsapp"].includes(optionSelect) && <Test TitleComponent={optionSelect} setEmailEditorModal={setShowEditorModal} setPreviewEmailReactEditor={setPreviewEmailReactEditor} optionSelect={optionSelect} />}
                     </div>
@@ -226,9 +226,9 @@ const Invitaciones = () => {
                 id="enviados-container"
                 ref={enviadosContainerRef}
                 onClick={handleScrollToEnviados}
-                className={`flex w-full border ${stateConfi ? "h-[calc(100vh-160px)]" : "h-[calc(100vh-260px)]"}`}
+                className={`flex w-full border ${stateConfi ? "h-[calc(100vh-616px)]" : "h-[calc(100vh-260px)]"}`}
               >
-                <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} optionSelect={optionSelect} />
+                <EnviadosComponent stateConfi={stateConfi} />
               </div>
             </div>
           </motion.div>

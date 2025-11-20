@@ -837,5 +837,6 @@ export const es = {
     'Error al seleccionar plantilla': 'Error al seleccionar plantilla',
     'Cargando': 'Cargando',
     'ago': 'Hace',
+    'disabledtoSend': 'No es posible enviar el correo a todos los invitados seleccionados, ya que algunos no tienen correo registrado',
   }
 }
