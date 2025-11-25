@@ -5,12 +5,11 @@ import { MisEventosIcon, TarjetaIcon } from "./icons";
 import { fetchApiBodas, queries } from "../utils/Fetching";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, SocketContextProvider } from "../context";
 import { Notification, ResultNotifications } from "../utils/Interfaces";
-import { formatDistanceStrict } from "date-fns";
-import { es } from "date-fns/locale";
 import { Interweave, Node } from "interweave";
 import { HashtagMatcher, Link, Url, UrlMatcher, UrlProps } from "interweave-autolink";
 import { useTranslation } from "react-i18next";
 import { ImageAvatar } from "./Utils/ImageAvatar";
+import { RelativeTime } from "./Utils/RelativeTime";
 import { useRouter } from "next/router";
 
 export const Notifications = () => {
@@ -203,13 +202,10 @@ export const Notifications = () => {
                               Tarjeta eliminada
                             </span>
                           } */}
-                          <span className="text-[10px] flex-1 text-right italic">
-                            Hace {formatDistanceStrict(
-                              new Date(item.createdAt),
-                              new Date(),
-                              { locale: es }
-                            )}
-                          </span>
+                          <RelativeTime
+                            date={item.createdAt}
+                            className="text-[10px] flex-1 text-right italic"
+                          />
                         </div>
                         <div className="w-4 flex items-center justify-center">
                           {item?.state !== "read" && <div className={`w-2.5 h-2.5 rounded-full bg-green`} />}

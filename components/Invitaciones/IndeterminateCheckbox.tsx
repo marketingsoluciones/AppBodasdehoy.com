@@ -1,40 +1,41 @@
 import { ForwardRefComponent } from "framer-motion";
-import { useEffect, forwardRef, useRef, useState } from "react";
+import { forwardRef, useEffect, useMemo, useRef } from "react";
 
-export const IndeterminateCheckbox: ForwardRefComponent<HTMLInputElement, any> =
-  forwardRef(({ indeterminate, checked, propParent, ...rest }, ref) => {
-    const [ischecked, setChecked] = useState<boolean>(false);
-    //@ts-ignore
-    const ref1: any = ref;
-    const ref2 = useRef<any>();
+type Props = React.InputHTMLAttributes<HTMLInputElement> & {
+  indeterminate?: boolean;
+  tooltip?: string;
+};
 
-    const defaultRef = ref1 || ref2;
-
-    useEffect(() => {
-      if (checked !== ischecked) {
-        setChecked(checked);
-      } else {
-        if (defaultRef?.current?.checked) {
-          defaultRef.current.checked = ischecked;
-        }
-      }
-    }, [checked, ischecked]);
+export const IndeterminateCheckbox: ForwardRefComponent<HTMLInputElement, Props> =
+  forwardRef(({ indeterminate, className, tooltip, ...rest }, ref) => {
+    const internalRef = useRef<HTMLInputElement | null>(null);
+    const resolvedRef = (ref as React.RefObject<HTMLInputElement>) ?? internalRef;
+    const combinedClassName = useMemo(() => {
+      const baseClasses = "rounded-full text-primary border-gray-300 focus:outline-none focus:ring-0 focus:ring-offset-0";
+      return className ? `${baseClasses} ${className}` : baseClasses;
+    }, [className]);
 
     useEffect(() => {
-      if (defaultRef?.current?.indeterminate) {
-        defaultRef.current.indeterminate = indeterminate;
-      }
-    }, [defaultRef, indeterminate]);
-    IndeterminateCheckbox.displayName = "IndeterminateCheckbox";
+      if (!resolvedRef.current) return;
+      resolvedRef.current.indeterminate = Boolean(indeterminate);
+    }, [resolvedRef, indeterminate]);
+
+    const { title, ...restWithoutTitle } = rest;
 
     return (
-      <label className="relative">
+      <span className="relative inline-flex items-center group">
         <input
           type="checkbox"
-          className="rounded-full text-primary focus:ring-primary border-gray-400"
-          ref={defaultRef}
-          {...rest}
+          ref={resolvedRef}
+          className={combinedClassName}
+          {...restWithoutTitle}
         />
-      </label>
+        {tooltip && (
+          <span className="pointer-events-none absolute bottom-full translate-y-1/2 translate-x-5 whitespace-nowrap rounded bg-gray-800 px-2 text-[10px] text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            {tooltip}
+          </span>
+        )}
+      </span>
     );
   });
+IndeterminateCheckbox.displayName = "IndeterminateCheckbox";

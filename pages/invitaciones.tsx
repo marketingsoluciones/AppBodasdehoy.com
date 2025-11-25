@@ -1,4 +1,4 @@
-import { useEffect, useState, } from "react";
+import { useEffect, useState, useRef } from "react";
 import { DiseñoIcon, EmailIcon, SmsIcon, WhatsappIcon, } from "../components/icons";
 import BlockTitle from "../components/Utils/BlockTitle";
 import useHover from "../hooks/useHover";
@@ -29,6 +29,8 @@ export type optionArryOptions = {
   state: boolean;
 }
 
+const CONFIG_PANEL_STORAGE_KEY = 'app-bodasdehoy-invitaciones-config';
+
 const Invitaciones = () => {
   const { t } = useTranslation();
   const { user, verificationDone, forCms } = AuthContextProvider()
@@ -45,6 +47,16 @@ const Invitaciones = () => {
   const [variablesTemplatesInvitaciones, setVariablesTemplatesInvitaciones] = useState<any[]>([])
   const variables = variablesTemplatesInvitaciones;
   const [variableMap, setVariableMap] = useState<any>({});
+  const enviadosContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleScrollToEnviados = () => {
+    enviadosContainerRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+      inline: 'nearest'
+    });
+  };
+
   useEffect(() => {
     const map = {};
     variables.forEach(v => {
@@ -78,6 +90,13 @@ const Invitaciones = () => {
   ]
 
   useMounted()
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storedConfigState = window.localStorage.getItem(CONFIG_PANEL_STORAGE_KEY);
+    if (storedConfigState !== null) {
+      setStateConfi(storedConfigState === 'true');
+    }
+  }, []);
   useEffect(() => {
     const reduce = event?.invitados_array?.reduce((acc: any, item: any) => {
       const asd = {
@@ -140,29 +159,37 @@ const Invitaciones = () => {
     if (!event) return <></>
     return (
       <DataTableGroupProvider>
-        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base. w-full pb-6 pt-2 md:py-0"}>
+        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base. w-full pt-2 md:py-0"}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 h-full pb-10"
+            className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 gap-4 h-full"
           >
-            {ShowEditorModal && <Modal classe={" w-[95%] md:w-[90%] h-[90%] "} >
+            {ShowEditorModal && <Modal classe={"w-[95%] md:w-[90%] h-[90%] "} >
               {optionSelect === "email"
                 ? < EmailReactEditorComponent setShowEditorModal={setShowEditorModal} previewEmailReactEditor={previewEmailReactEditor} variablesTemplatesInvitaciones={variablesTemplatesInvitaciones} />
                 : <WhatsappBusinessEditorComponent setShowEditorModal={setShowEditorModal} variablesTemplatesInvitaciones={variablesTemplatesInvitaciones} />
               }
             </Modal>}
-            <BlockTitle title="Invitaciones" />
-            <CounterInvitations />
-            <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 relative">
-              <button className="text-primary flex items-center text-[20px] first-letter:capitalize ml-3" onClick={() => setStateConfi(!stateConfi)}>
-                {t("invitationsettings")}
-                <span> <GoChevronDown className={`h-6 w-6 text-azulCorporativo cursor-pointer transition-all ml-2 ${stateConfi && "rotate-180"}`} /></span>
+            <BlockTitle title={t("Invitaciones")} />
+            {/* <CounterInvitations /> */}
+            <div className="bg-white min-h-full w-full shadow-lg rounded-xl h-full pt-2 relative mt-1 md:mt-3">
+              <button className="text-primary flex items-center text-[20px] first-letter:capitalize ml-3" onClick={() => {
+                setStateConfi(prev => {
+                  const next = !prev;
+                  if (typeof window !== 'undefined') {
+                    window.localStorage.setItem(CONFIG_PANEL_STORAGE_KEY, String(next));
+                  }
+                  return next;
+                });
+              }}>
+                {t("Configuración de canales")}
+                <span> <GoChevronDown className={`h-4 w-4 text-azulCorporativo cursor-pointer transition-all ml-2 ${stateConfi && "rotate-180"}`} /></span>
               </button>
-              <div className={`${stateConfi ? "" : "hidden"} md:h-96`}>
-                <div className="w-full h-full flex flex-col md:flex-row mt-3 md:space-x-6 md:px-4">
-                  <div className={`w-full h-96 md:w-auto flex justify-center`}>
+              <div className={`${stateConfi ? "" : "hidden"} md:h-max`}>
+                <div className="w-full md:h-[340px] flex flex-col md:flex-row mt-3 md:space-x-6 md:px-4">
+                  <div className={`w-full h-[320px] md:w-auto flex justify-center`}>
                     <div ref={hoverRef} className={`relative w-60 h-80 ${optionSelect === "email" ? "bg-[#808080] rounded-lg border-[1px] border-gray-300" : "bg-white"}`}>
                       {["email"].includes(optionSelect)
                         ? previewEmailTemplate
@@ -172,7 +199,7 @@ const Invitaciones = () => {
                             className="w-full h-full object-contain rounded-lg"
                             style={{ maxWidth: "100%", maxHeight: "100%", display: "block" }} />
                           : <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
-                            <p className="text-gray-500 text-xs text-center">{`No hay template de ${optionSelect} seleccionado`}</p>
+                            <p className="text-gray-500 text-xs text-center">{t("No hay template de {{channel}} seleccionado", { channel: t(optionSelect) })}</p>
                           </div>
                         : optionSelect === "whatsapp"
                           ? <div className={`w-full h-full flex items-center justify-center translate-y-4 transition-all duration-300 ${!false ? "scale-[50%]" : "scale-[100%] absolute top-0 left-0 z-10"}`}>
@@ -182,21 +209,26 @@ const Invitaciones = () => {
                       }
                     </div>
                   </div>
-                  <div className={`flex-1 h-[352px] flex flex-col shadow-md rounded-2xl overflow-hidden`}>
+                  <div className={`flex-1 h-[320px] flex flex-col shadow-md rounded-2xl overflow-hidden`}>
                     <OptionsMenu
                       arryOptions={arryOptions}
                       optionSelect={optionSelect}
                       setOptionSelect={setOptionSelect}
                     />
-                    <div className="col-span-3 w-full md:h-[280px] md:h-full">
+                    <div className="col-span-3 w-full ">
                       {optionSelect === "diseño" && <DiseñoComponent setEmailEditorModal={setShowEditorModal} EmailEditorModal={ShowEditorModal} />}
                       {["email", "whatsapp"].includes(optionSelect) && <Test TitleComponent={optionSelect} setEmailEditorModal={setShowEditorModal} setPreviewEmailReactEditor={setPreviewEmailReactEditor} optionSelect={optionSelect} />}
                     </div>
                   </div>
                 </div>
               </div>
-              <div className={`${["email", "diseño"].includes(optionSelect) ? !stateConfi ? "" : "md:pt-3" : null} pt-3`}>
-                <EnviadosComponent dataInvitationSent={dataInvitationSent} dataInvitationNotSent={dataInvitationNotSent} optionSelect={optionSelect} />
+              <div
+                id="enviados-container"
+                ref={enviadosContainerRef}
+                onClick={handleScrollToEnviados}
+                className={`flex w-full border ${stateConfi ? "h-[calc(100vh-616px)]" : "h-[calc(100vh-260px)]"}`}
+              >
+                <EnviadosComponent stateConfi={stateConfi} />
               </div>
             </div>
           </motion.div>

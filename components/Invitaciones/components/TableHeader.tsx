@@ -11,7 +11,7 @@ export const TableHeader: FC<TableHeaderProps> = ({ headerGroups, gridTemplate }
   const { t } = useTranslation();
 
   return (
-    <thead className="relative text-xs text-gray-700 uppercase bg-gray-100 w-full">
+    <thead className="sticky top-0 z-30 text-xs text-gray-700 uppercase bg-gray-100 w-full">
       {headerGroups.map((headerGroup: any, idx: number) => (
         <tr
           {...headerGroup.getHeaderGroupProps()}
@@ -24,17 +24,27 @@ export const TableHeader: FC<TableHeaderProps> = ({ headerGroups, gridTemplate }
             delete headerProps.key;
             delete headerProps.role;
 
+            const isSelectionColumn = column.id === "selection";
+            const containerClass = isSelectionColumn
+              ? "flex w-full justify-center items-center overflow-visible"
+              : "flex truncate w-full justify-center items-center";
+
             return (
               <th
                 key={idx}
                 {...headerProps}
-                className="px-1 py-1 md:py-2 text-center flex items-center justify-center text-sm font-light font-display"
+                className={`px-1 py-1 md:py-2 text-center flex items-center justify-center text-sm font-light font-display select-none ${isSelectionColumn ? "overflow-visible" : ""
+                  }`}
               >
-                <div className="truncate w-full text-center">
-                  {typeof column.render("Header") === "string" && t(column.render("Header"))}
-                  <span>
-                    {column.isSorted ? (column.isSortedDesc ? " 🠻" : " 🠹") : ""}
-                  </span>
+                <div className={containerClass}>
+                  {typeof column.render("Header") === "string"
+                    ? t(column.render("Header"))
+                    : column.render("Header")}
+                  <div className="relative h-4 bg-red">
+                    <span className="absolute text-md -translate-y-0.5 translate-x-1">
+                      {column.isSorted ? (column.isSortedDesc ? '↓' : '↑') : ""}
+                    </span>
+                  </div>
                 </div>
               </th>
             );

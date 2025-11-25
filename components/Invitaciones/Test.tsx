@@ -100,7 +100,8 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
           evento_id: event?._id
         },
       }).then((res: any) => {
-        setTemplateName(res?.templateName)
+        setTemplateName(res?.find((elem: any) => elem._id === event?.templateWhatsappSelect)?.data?.templateName
+        )
       })
     } else {
       setTemplateName("")
@@ -276,8 +277,10 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
 
 
 
+  const titleComponentLabel = t(TitleComponent);
+
   return (
-    <div className="w-full h-full font-display flex flex-col ">
+    <div className="w-full font-display flex flex-col ">
       {showModalSetupWhatsapp && (
         <WhatsappSetupComponent
           setShowModalSetupWhatsapp={setShowModalSetupWhatsapp}
@@ -311,9 +314,9 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
       )}
       <div className="flex flex-col justify-center items-center ">
         <div className="w-full md:w-[400px] md:h-10 flex flex-col md:flex-row gap-2 md:items-end px-2 ">
-          <span className="text-sm text-gray-600 text-primary py-1">{t("template")} {optionSelect === "email" ? t("email") : "Whatsapp"}</span>
+          <span className="text-sm text-gray-600 text-primary py-1">{t("template")} {optionSelect === "email" ? t("email") : t("whatsapp")}</span>
           <div className="md:flex-1 h-8 bg-gray-100 rounded-md px-2 py-2 text-sm text-gray-600">
-            {templateName ? templateName : "No hay template seleccionado"}
+            {templateName ? templateName : t("No hay template seleccionado")}
           </div>
         </div>
         <div className={` py-2  justify-center gap-2 items-center px-2 ${isMobile ? "grid grid-cols-2 w-[300px]" : "flex w-[700px]"}`}>
@@ -355,28 +358,28 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
                 onClick={(e) => setShowModalRecharge(true)}
               >
                 <FaCreditCard className="w-4 h-4" />
-                <span>Recargar Saldo</span>
+                <span>{t("Recargar Saldo")}</span>
               </ButtonPrimary>
             </>
           )}
         </div>
       </div>
-      <div className="flex w-full h-full p-2 justify-center">
+      <div className="flex w-full h-[170px] p-2 justify-center">
         <div className={`h-full flex items-center justify-center  ${isMobile ? "hidden" : ""} `}>
           {TitleComponent === "email" && <HiOutlineMail className="w-2/3 h-2/3 -rotate-12 text-primary -translate-y-4" />}
           {TitleComponent === "whatsapp" && <FaWhatsapp className="w-2/3 h-2/3 text-emerald-500 -rotate-12 -translate-y-4" />}
         </div>
-        <div className="">
+        <div className="h-[170px]">
           <Formik
             validationSchema={TitleComponent === "email" ? validationSchemaEmail : validationSchemaPhoneNumber}
             onSubmit={(values) => handleClick(values)}
             initialValues={initialValues}
           >
             {({ handleChange, values }) => (
-              <Form className="md:w-[400px] flex flex-col gap-2 mx-auto items-center">
+              <Form className="md:w-[400px] flex flex-col  mx-auto items-center">
                 <AutoSubmitToken TitelComponent={TitleComponent} valirReset={valirReset} setValirReset={setValirReset} />
                 <div className="">
-                  <h3 className="font-medium text-gray-500 first-letter:uppercase">{`${TitleComponent} ${t("de prueba")}`}</h3>
+                  <h3 className="font-medium text-gray-500 first-letter:uppercase">{t("{{channel}} de prueba", { channel: titleComponentLabel })}</h3>
                 </div>
                 {TitleComponent === "email"
                   ? <InputField
@@ -407,7 +410,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
                             : !event?.imgInvitacion
                       }
                     >
-                      Enviar {TitleComponent} de prueba
+                      {t("Enviar {{channel}} de prueba", { channel: titleComponentLabel })}
                     </ButtonSecondary>
                   </div>
                 </Tooltip>

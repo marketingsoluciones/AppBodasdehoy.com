@@ -1,3 +1,5 @@
+import { guests } from "../../utils/Interfaces";
+
 export interface Guest {
   _id: string;
   nombre: string;
@@ -26,7 +28,7 @@ export interface ColumnConfig {
 
 export interface DataTableProps {
   columns: ColumnConfig[];
-  data: Guest[];
+  data: Guest[] | guests[];
   multiSeled?: boolean;
   activeFunction?: () => void;
   optionSelect?: string;

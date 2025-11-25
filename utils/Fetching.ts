@@ -1192,18 +1192,26 @@ export const queries = {
   }`,
 
   sendInvitations: ` mutation( $evento_id:String, $invitados_ids_array:[String], $dominio:String, $transport:String, $lang:String){
-      enviaInvitacion(evento_id:$evento_id, invitados_ids_array:$invitados_ids_array, dominio:$dominio, transport:$transport, lang:$lang){
-        _id,
-        invitados_array{
-          _id,
-          invitacion,
-          nombre,
-          correo,
-          rol,
-          chats_array{
-          _id,
-          tipo
+    enviaInvitacion(evento_id:$evento_id, invitados_ids_array:$invitados_ids_array, dominio:$dominio, transport:$transport, lang:$lang){
+      _id,
+    }
+  }`,
+
+  sendComunications: ` mutation( $evento_id:String, $invitados_ids_array:[String], $dominio:String, $transport:String, $lang:String, $template_id:ID){
+    sendComunications(evento_id:$evento_id, invitados_ids_array:$invitados_ids_array, dominio:$dominio, transport:$transport, lang:$lang, template_id:$template_id){
+      total
+      results{
+        invitado_id
+        comunicacion{
+          transport
+          template_id
+          template_name
+          message_id
+          statuses{
+            name
+            timestamp
           }
+        }
       }
     }
   }`,
@@ -2058,6 +2066,16 @@ export const queries = {
         }
         father
         passesQuantity
+        comunicaciones_array{	
+          transport 
+          template_id
+          template_name
+          message_id  
+          statuses{
+            name
+            timestamp
+          }
+        }
         nombre_mesa
         puesto
         asistencia
