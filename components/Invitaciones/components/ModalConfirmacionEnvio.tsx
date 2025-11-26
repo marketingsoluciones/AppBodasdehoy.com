@@ -172,8 +172,6 @@ export const ModalConfirmacionEnvio: FC<Props> = ({
   }, [optionSelect, invitadosFiltrados]);
 
 
-
-  console.log(canSend);
   return (
     <Modal
       set={setModal}

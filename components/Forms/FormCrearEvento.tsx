@@ -86,9 +86,24 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
     try {
       const imagePreviewUrl = values?.imgEvento
       delete values?.imgEvento
+      
+      //nuevo: para evitar problemas de zona horaria
+      let fechaTimestamp = values.fecha;
+      if (values.fecha) {
+        if (typeof values.fecha === 'string' && values.fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          fechaTimestamp = new Date(values.fecha + 'T00:00:00Z').getTime().toString();
+        } else {
+          fechaTimestamp = typeof values.fecha === 'string' && !isNaN(Number(values.fecha)) 
+            ? values.fecha 
+            : new Date(values.fecha).getTime().toString();
+        }
+      }
+      //nuevo: para evitar problemas de zona horaria
+
+      
       const event: Partial<Event> = await fetchApiEventos({
         query: queries.eventCreate,
-        variables: { ...values, development: config?.development },
+        variables: { ...values, fecha: fechaTimestamp, development: config?.development },
       });
       if (event) {
         const imgEvento = await subir_archivo({ imagePreviewUrl, event, use: "imgEvento" })
