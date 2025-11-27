@@ -24,10 +24,18 @@ export const useDateTime = () => {
     /*usada en Cards BlockPrincipal */
     const utcDateFormated = (date: Date | number | string) => {
         const options: object = { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" };
+        let dateToFormat: Date;
+        
+        // Si es un timestamp (string numérico)
         if (typeof date === 'string' && !date.includes('T') && !date.includes('-')) {
-            return getDateFormated(parseInt(date), options);
+            dateToFormat = new Date(parseInt(date));
+        } else {
+            dateToFormat = new Date(date);
         }
-        return getDateFormated(date, options);
+        
+        // Para mostrar solo la fecha en UTC, no necesitamos aplicar offset de timeZone
+        // Convertir directamente a UTC sin ajustes adicionales
+        return dateToFormat.toLocaleDateString(navigator.language, options);
     };
 
     /*usada en DateTask */
