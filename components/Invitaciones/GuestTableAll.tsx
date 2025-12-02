@@ -37,7 +37,7 @@ export const GuestTableAll: FC<Props> = ({ multiSeled = false, stateConfi = fals
     return keyParts.join("-");
   }, []);
 
-  const handleResend = async (guest: guests, communication: comunicacion, index: number) => {
+  const handleResend = useCallback(async (guest: guests, communication: comunicacion, index: number) => {
     if (!event?._id) {
       toast("error", t("No hay evento seleccionado"));
       return;
@@ -62,7 +62,22 @@ export const GuestTableAll: FC<Props> = ({ multiSeled = false, stateConfi = fals
       }) as { total: number, results: { invitado_id: string, comunicacion: comunicacion }[] };
       if (result?.total > 0) {
         const f1 = event.invitados_array.findIndex((inv: any) => inv._id === guest._id);
-        event.invitados_array[f1].comunicaciones_array.push(result.results[0].comunicacion);
+        const newComunicacion = result.results[0].comunicacion;
+        
+        if (newComunicacion?.statuses && Array.isArray(newComunicacion.statuses)) {
+          const statusMap = new Map<string, { name: string; timestamp: string }>();
+          
+          newComunicacion.statuses.forEach((status: any) => {
+            const existing = statusMap.get(status.name);
+            if (!existing || new Date(status.timestamp) > new Date(existing.timestamp)) {
+              statusMap.set(status.name, status);
+            }
+          });
+          
+          newComunicacion.statuses = Array.from(statusMap.values());
+        }
+        
+        event.invitados_array[f1].comunicaciones_array.push(newComunicacion);
         setEvent({ ...event });
       }
 
@@ -73,7 +88,7 @@ export const GuestTableAll: FC<Props> = ({ multiSeled = false, stateConfi = fals
     } finally {
       setResendStatus((prev) => ({ ...prev, [resendKey]: false }));
     }
-  };
+  }, [event, setEvent, toast, t, auth?.config?.dominio, getResendKey]);
 
 
   const columns = useMemo((): ColumnConfig[] => [
@@ -95,6 +110,7 @@ export const GuestTableAll: FC<Props> = ({ multiSeled = false, stateConfi = fals
       accessor: "asistencia",
       id: "asistencia",
       Cell: (props: any) => {
+        console.log("444",props)
         return <div className="w-full flex flex-col cursor-default text-center">
           {t(props.data[props.row.index].asistencia).toUpperCase()}
         </div>
@@ -106,11 +122,25 @@ export const GuestTableAll: FC<Props> = ({ multiSeled = false, stateConfi = fals
       id: "comunicaciones_array",
       Cell: (props: any) => {
         const guest: guests = props.data[props.row.index];
+        const getUniqueStatuses = (statuses: any[]) => {
+          if (!Array.isArray(statuses)) return [];
+          const statusMap = new Map<string, { name: string; timestamp: string }>();
+          statuses.forEach((status: any) => {
+            const existing = statusMap.get(status.name);
+            if (!existing || new Date(status.timestamp) > new Date(existing.timestamp)) {
+              statusMap.set(status.name, status);
+            }
+          });
+          return Array.from(statusMap.values());
+        };
 
         return <div className="w-full flex flex-col cursor-default">
           {guest.comunicaciones_array?.map((elem: comunicacion, idx: number) => {
             const resendKey = getResendKey(guest._id, elem, idx);
             const isResending = !!resendStatus[resendKey];
+            const uniqueStatuses = getUniqueStatuses(elem.statuses || []);
+
+            console.log("555",uniqueStatuses)
 
             return (
               <div key={idx} className="w-full flex items-center py-0.5 gap-2 hover:bg-blue-100 px-2 rounded-xl">
@@ -119,9 +149,9 @@ export const GuestTableAll: FC<Props> = ({ multiSeled = false, stateConfi = fals
                   : <FaWhatsapp className="w-6 h-6 text-green" />}
                 <div className="w-[40%] flex flex-col leading-3">
                   <span className="text-xs">{elem.template_name}</span>
-                  {elem?.statuses?.[0]?.timestamp ? (
+                  {uniqueStatuses?.[0]?.timestamp ? (
                     <RelativeTime
-                      date={elem.statuses[0].timestamp}
+                      date={uniqueStatuses[0].timestamp}
                       className="text-[10px]"
                     />
                   ) : (
@@ -129,8 +159,8 @@ export const GuestTableAll: FC<Props> = ({ multiSeled = false, stateConfi = fals
                   )}
                 </div>
                 <div className="w-[50%] flex flex-wrap items-center gap-1">
-                  {elem.statuses.map((status: any, idx: number) => (
-                    <span key={idx} className="inline-flex items-center px-2 rounded-full text-[9px] bg-orange-100 text-orange-800 border-[1px] border-orange-800">{status.name}</span>
+                  {uniqueStatuses.map((status: any, statusIdx: number) => (
+                    <span key={`${elem.message_id}-${status.name}-${status.timestamp}-${statusIdx}`} className="inline-flex items-center px-2 rounded-full text-[9px] bg-orange-100 text-orange-800 border-[1px] border-orange-800">{status.name != null ? status.name : "No disponible"}</span>
                   ))}
                 </div>
                 <div className="flex flex-col items-center justify-center">
@@ -154,40 +184,6 @@ export const GuestTableAll: FC<Props> = ({ multiSeled = false, stateConfi = fals
         </div>
       }
     },
-    // {
-    //   Header: t("mail"),
-    //   accessor: "correo",
-    //   id: "correo",
-    //   Cell: (props: any) => <GuestEmailCell {...props} />
-    // },
-    // {
-    //   Header: t("phone"),
-    //   accessor: "telefono",
-    //   id: "telefono",
-    // },
-    // {
-    //   Header: t("invitation"),
-    //   accessor: "invitacion",
-    //   id: "invitacion",
-    //   Cell: (props: any) => (
-    //     <GuestInvitationCell
-    //       {...props}
-    //       setArrEnviatInvitaciones={setArrEnviatInvitaciones}
-    //     />
-    //   )
-    // },
-    // {
-    //   Header: t("companions"),
-    //   accessor: "acompañantes",
-    //   id: "acompañantes",
-    //   Cell: (props: any) => <GuestCompanionsCell {...props} />
-    // },
-    // {
-    //   Header: t("envoy"),
-    //   accessor: "date",
-    //   id: "date",
-    //   Cell: (props: any) => <GuestDateCell {...props} />
-    // },
   ], [getResendKey, handleResend, resendStatus, t]);
 
   return (
