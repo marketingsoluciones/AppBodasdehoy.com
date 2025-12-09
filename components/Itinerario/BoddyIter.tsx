@@ -176,15 +176,21 @@ export const BoddyIter = () => {
                                             } else {
                                                 if (lastListIdentifiers.end_Id === itinerario._id) {
                                                     const f1next_id = event.itinerarios_array?.findIndex(elem => elem.next_id === itinerario._id)
-                                                    lastListIdentifiers.end_Id = event.itinerarios_array[f1next_id]._id
-                                                    updatedListIdentifiers(event)
+                                                    if (f1next_id > -1 && event.itinerarios_array[f1next_id]) {
+                                                        lastListIdentifiers.end_Id = event.itinerarios_array[f1next_id]._id
+                                                        updatedListIdentifiers(event)
+                                                    }
                                                 }
                                                 const f1next_id = event.itinerarios_array?.findIndex(elem => elem.next_id === itinerario._id)
-                                                event.itinerarios_array[f1next_id].next_id = itinerario?.next_id ?? null
-                                                updatedNextId(event.itinerarios_array[f1next_id])
+                                                if (f1next_id > -1 && event.itinerarios_array[f1next_id]) {
+                                                    event.itinerarios_array[f1next_id].next_id = itinerario?.next_id ?? null
+                                                    updatedNextId(event.itinerarios_array[f1next_id])
+                                                }
                                             }
                                             const f1 = event.itinerarios_array?.findIndex(elem => elem._id === itinerario._id)
-                                            event.itinerarios_array?.splice(f1, 1)
+                                            if (f1 > -1) {
+                                                event.itinerarios_array?.splice(f1, 1)
+                                            }
                                             setEvent({ ...event })
                                             setModal({ state: false })
                                             setTimeout(() => {
