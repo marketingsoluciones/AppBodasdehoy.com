@@ -136,7 +136,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
         if (!itineraries?.length) {
             setItineraries([])
         }
-
+        
         if (itineraries?.length) {
             const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
             const listIdentifiers = event?.listIdentifiers[fListIdentifiers]
@@ -176,26 +176,40 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                     }
                 })
                 setEvent({ ...event })
+                setItineraries([...itineraries])
             } else {
                 let newItineraries = []
+                const itinerariesCopy = [...itineraries] // Copia para no modificar el original mientras iteramos
                 const pushNextElem = ({ _id }) => {
-                    const f1 = itineraries.findIndex(elem => elem._id === _id)
+                    const f1 = itinerariesCopy.findIndex(elem => elem._id === _id)
                     if (f1 > -1) {
-                        const itinerary = { ...itineraries[f1] }
+                        const itinerary = { ...itinerariesCopy[f1] }
                         newItineraries.push(itinerary)
-                        itineraries.splice(f1, 1)
+                        itinerariesCopy.splice(f1, 1)
                         if (!!itinerary?.next_id) {
                             pushNextElem({ _id: itinerary.next_id })
                         }
                     }
                 }
-                const firsItinerary = itineraries.find(elem => elem._id === listIdentifiers.start_Id)
-                newItineraries.push(firsItinerary)
-                if (firsItinerary?.next_id) {
-                    pushNextElem({ _id: firsItinerary.next_id })
+                const firsItinerary = itinerariesCopy.find(elem => elem._id === listIdentifiers.start_Id)
+                if (firsItinerary) {
+                    newItineraries.push(firsItinerary)
+                    const index = itinerariesCopy.findIndex(elem => elem._id === listIdentifiers.start_Id)
+                    if (index > -1) {
+                        itinerariesCopy.splice(index, 1)
+                    }
+                    if (firsItinerary?.next_id) {
+                        pushNextElem({ _id: firsItinerary.next_id })
+                    }
+                    if (itinerariesCopy.length > 0) {
+                        newItineraries.push(...itinerariesCopy)
+                    }
+                } else {
+                    newItineraries = [...itineraries]
                 }
                 const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
                 const lastListIdentifiers = { ...event.listIdentifiers[fListIdentifiers] }
+                
                 setItineraries([...newItineraries])
             }
         }

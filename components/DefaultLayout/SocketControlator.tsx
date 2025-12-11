@@ -115,11 +115,44 @@ export const SocketControlator = () => {
           const f1 = event?.invitados_array?.findIndex(elem => elem._id === received?.msg?.payload?.value?.invitado_id)
           const f2 = event?.invitados_array[f1]?.comunicaciones_array?.findIndex(elem => elem.message_id
             === received?.msg?.payload?.value?.message_id)
-          event?.invitados_array[f1]?.comunicaciones_array[f2].statuses.push({
-            name: received?.msg?.payload?.value?.status,
-            timestamp: new Date(received?.msg?.payload?.value?.timestamp).toISOString()
-          })
-          setEvent({ ...event })
+          
+          if (f1 > -1 && f2 > -1) {
+            const comunicacion = event?.invitados_array[f1]?.comunicaciones_array[f2]
+            const newStatus = {
+              name: received?.msg?.payload?.value?.status,
+              timestamp: new Date(received?.msg?.payload?.value?.timestamp).toISOString()
+            }
+            
+            // Verificar si el status ya existe con el mismo name y timestamp (duplicado exacto)
+            const exactDuplicate = comunicacion?.statuses?.some(
+              (status: any) => 
+                status.name === newStatus.name && 
+                status.timestamp === newStatus.timestamp
+            )
+            
+            // Si es un duplicado exacto, no hacer nada
+            if (exactDuplicate) {
+              return;
+            }
+            
+            // Agregar el nuevo status al array (si no es duplicado exacto ya lo verificamos arriba)
+            comunicacion.statuses.push(newStatus)
+            
+            // Limpiar duplicados del array completo: mantener solo la versión más reciente de cada status por name
+            const statusMap = new Map<string, { name: string; timestamp: string }>()
+            
+            comunicacion.statuses.forEach((status: any) => {
+              const existing = statusMap.get(status.name)
+              if (!existing || new Date(status.timestamp) > new Date(existing.timestamp)) {
+                statusMap.set(status.name, status)
+              }
+            })
+            
+            // Reemplazar el array completo con los statuses únicos y actualizados
+            comunicacion.statuses = Array.from(statusMap.values())
+            
+            setEvent({ ...event })
+          }
         }
       }
       if (received.channel === "cms:message") {
