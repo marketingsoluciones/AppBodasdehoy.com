@@ -27,7 +27,8 @@ export const defaultImagenes = {
   otro: "/cards/pexels-pixabay-50675.jpg"
 };
 
-export const handleClickCard = ({ t, final = true, data, user, setUser, config, setEvent, router }) => {
+export const handleClickCard = async ({ t, final = true, data, user, setUser, config, setEvent, router }) => {
+  console.log(100079, data)
   try {
     if (!data?.timeZone) {
       // fetchApiEventos({
@@ -36,7 +37,7 @@ export const handleClickCard = ({ t, final = true, data, user, setUser, config, 
       // })
       data.timeZone = config?.timeZone
     }
-    fetchApiBodas({
+    await fetchApiBodas({
       query: queries.updateUser,
       variables: {
         uid: user?.uid,
@@ -49,29 +50,31 @@ export const handleClickCard = ({ t, final = true, data, user, setUser, config, 
     setUser(user)
   } catch (error) {
     console.log(error);
-  } finally {
     if (final) {
-      if (data?.permissions) {
-        const permissions = data?.permissions?.filter(elem => ["view", "edit"].includes(elem.value))
-        if (permissions.length) {
-          const f1 = permissions.findIndex(elem => elem.value === "resumen")
-          if (f1 > -1) {
-            setEvent(data);
-            router.push("/resumen-evento");
-          } else {
-            setEvent(data);
-            let p = permissions[0].title
-            if (p === "regalos") p = "lista-regalos"
-            if (p === "resumen") p = "resumen-evento"
-            router.push("/" + p);
-          }
+      return t("Ha ocurrido un error al actualizar el evento seleccionado")
+    }
+  }
+  if (final) {
+    if (data?.permissions) {
+      const permissions = data?.permissions?.filter(elem => ["view", "edit"].includes(elem.value))
+      if (permissions.length) {
+        const f1 = permissions.findIndex(elem => elem.value === "resumen")
+        if (f1 > -1) {
+          setEvent(data);
+          router.push("/resumen-evento");
         } else {
-          return t("No tienes permiso, contactar al organizador del evento")
+          setEvent(data);
+          let p = permissions[0].title
+          if (p === "regalos") p = "lista-regalos"
+          if (p === "resumen") p = "resumen-evento"
+          router.push("/" + p);
         }
       } else {
-        setEvent(data);
-        router.push("/resumen-evento");
+        return t("No tienes permiso, contactar al organizador del evento")
       }
+    } else {
+      setEvent(data);
+      router.push("/resumen-evento");
     }
   }
 };
@@ -162,8 +165,13 @@ const Card = ({ data, grupoStatus, idx }) => {
 
   useEffect(() => {
     if (eventsGroup?.length === 1) {
-      const resp = handleClickCard({ t, final: false, config, data: data[idx], setEvent, user, setUser, router })
-      if (resp) toast("warning", resp)
+      handleClickCard({ t, final: false, config, data: data[idx], setEvent, user, setUser, router })
+        .then((resp) => {
+          if (resp) toast("warning", resp)
+        })
+        .catch((error) => {
+          console.error("Error en handleClickCard:", error)
+        })
     }
   }, [])
 
@@ -188,8 +196,13 @@ const Card = ({ data, grupoStatus, idx }) => {
             <div onClick={() => {
               if (user?.displayName !== "guest") {
                 setTimeout(() => {
-                  const resp = handleClickCard({ t, final: false, config, data: data[idx], setEvent, user, setUser, router, toast })
-                  if (resp) toast("warning", resp)
+                  handleClickCard({ t, final: false, config, data: data[idx], setEvent, user, setUser, router, toast })
+                    .then((resp) => {
+                      if (resp) toast("warning", resp)
+                    })
+                    .catch((error) => {
+                      console.error("Error en handleClickCard:", error)
+                    })
                 }, 100);
                 setOpenModal(!openModal)
               }
@@ -210,8 +223,14 @@ const Card = ({ data, grupoStatus, idx }) => {
 
         {data[idx]?._id == user?.eventSelected ? <div className="flex w-[304px] h-40 border-dashed border-2 border-yellow-300 absolute z-0 rounded-xl" /> : <></>}
         <div onClick={() => {
-          const resp = handleClickCard({ t, final: true, config, data: data[idx], setEvent, user, setUser, router })
-          if (resp) toast("warning", resp)
+          handleClickCard({ t, final: true, config, data: data[idx], setEvent, user, setUser, router })
+            .then((resp) => {
+              if (resp) toast("warning", resp)
+            })
+            .catch((error) => {
+              console.error("Error en handleClickCard:", error)
+              toast("error", t("Ha ocurrido un error"))
+            })
         }} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden `}>
           <img
             src={data[idx]?.imgEvento ? `https://apiapp.bodasdehoy.com/${data[idx].imgEvento.i320}` : defaultImagenes[data[idx]?.tipo]}

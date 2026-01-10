@@ -1,4 +1,4 @@
-import { SetStateAction, useEffect, useState, Dispatch, FC } from "react";
+import { SetStateAction, useEffect, useState, useRef, Dispatch, FC } from "react";
 import { motion } from "framer-motion";
 import { LineaHome } from "../components/icons";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, LoadingContextProvider, } from "../context";
@@ -27,19 +27,35 @@ const Home: NextPage = () => {
   const router = useRouter()
   const toast = useToast()
   const { t } = useTranslation()
+  const processedRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    const pAccShas = router?.query?.pAccShas as string
+
+    if (verificationDone && eventsGroupDone && pAccShas && processedRef.current !== pAccShas) {
+      if (!user || user?.displayName === "guest") {
+        router.push(config?.pathLogin ? `${config?.pathLogin}?pAccShas=${pAccShas}` : `/login?pAccShas=${pAccShas}`)
+        return
+      }
+      const data = eventsGroup?.find(elem => elem?._id === pAccShas?.slice(-24))
+      if (data) {
+        processedRef.current = pAccShas
+        handleClickCard({ t, final: true, config, data, setEvent, user, setUser, router })
+          .then((resp) => {
+            if (resp) toast("warning", resp)
+          })
+          .catch((error) => {
+            console.error("Error en handleClickCard:", error)
+            toast("error", t("Ha ocurrido un error"))
+          })
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [verificationDone, eventsGroupDone, router?.query?.pAccShas, user, eventsGroup])
 
   if (verificationDone && eventsGroupDone) {
     if (router?.query?.pAccShas) {
-      if (!user || user?.displayName === "guest") {
-        router.push(config?.pathLogin ? `${config?.pathLogin}?pAccShas=${router?.query?.pAccShas}` : `/login?pAccShas=${router?.query?.pAccShas}`)
-        return <></>
-      }
-      const data = eventsGroup?.find(elem => elem?._id === router?.query?.pAccShas?.slice(-24))
-      if (data) {
-        const resp = handleClickCard({ t, final: true, config, data, setEvent, user, setUser, router })
-        if (resp) toast("warning", resp)
-        return <></>
-      }
+      return <></>
     }
     if (router?.query?.pGuestEvent) {
       router.push(`/confirmar-asistencia?pGuestEvent=${router?.query?.pGuestEvent}`)
