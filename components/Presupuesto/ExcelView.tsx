@@ -110,8 +110,8 @@ export const ExcelView = ({ showCategoria }) => {
                                     let valirFirtsChildGasto = true
 
                                     elem?.items_array?.map((el, idxEl) => {
-                                        // Si no puede editar y el item está oculto, no mostrarlo
-                                        if (!canEdit && el.estatus === false) {
+                                        // Los items ocultos NO deben sumar al total, independientemente de los permisos
+                                        if (el.estatus === false) {
                                             return;
                                         }
                                         const cantidad = el.unidad === "xUni."
@@ -145,8 +145,8 @@ export const ExcelView = ({ showCategoria }) => {
                                     !elem?.items_array?.length && accessorEditables.push("coste_final")
                                     let valirFirtsChildGasto = true
                                     elem?.items_array?.map((el, idxEl) => {
-                                        // Si no puede editar y el item está oculto, no mostrarlo
-                                        if (!canEdit && el.estatus === false) {
+                                        // Los items ocultos NO deben sumar al total, independientemente de los permisos
+                                        if (el.estatus === false) {
                                             return;
                                         }
                                         const cantidad = el.unidad === "xUni."
