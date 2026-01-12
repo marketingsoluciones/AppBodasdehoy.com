@@ -96,6 +96,9 @@ export const ExcelView = ({ showCategoria }) => {
                     <div className={`flex w-full h-full TableWidth pl-2 `}>
                         <TableBudgetV2 showDataState={showDataState} setShowDataState={setShowDataState} setShowModalDelete={setShowModalDelete}
                             data={data.reduce((acc, item) => {
+                                // Verificar si el usuario puede editar (ver items ocultos)
+                                const canEdit = event?.usuario_id === user?.uid || event?.permissions?.find(elem => elem?.title === "presupuesto")?.value === "edit";
+                                
                                 let coste_final_categoria = 0
                                 let valirFirtsChild = true
 
@@ -107,10 +110,8 @@ export const ExcelView = ({ showCategoria }) => {
                                     let valirFirtsChildGasto = true
 
                                     elem?.items_array?.map((el, idxEl) => {
-                                        if (
-                                            event?.usuario_id !== user?.uid &&
-                                            el.estatus !== false
-                                        ) {
+                                        // Si no puede editar y el item está oculto, no mostrarlo
+                                        if (!canEdit && el.estatus === false) {
                                             return;
                                         }
                                         const cantidad = el.unidad === "xUni."
@@ -144,10 +145,8 @@ export const ExcelView = ({ showCategoria }) => {
                                     !elem?.items_array?.length && accessorEditables.push("coste_final")
                                     let valirFirtsChildGasto = true
                                     elem?.items_array?.map((el, idxEl) => {
-                                        if (
-                                            event?.usuario_id !== user?.uid &&
-                                            el.estatus !== false
-                                        ) {
+                                        // Si no puede editar y el item está oculto, no mostrarlo
+                                        if (!canEdit && el.estatus === false) {
                                             return;
                                         }
                                         const cantidad = el.unidad === "xUni."
@@ -178,10 +177,8 @@ export const ExcelView = ({ showCategoria }) => {
                                         accessorEditables
                                     })
                                     elem?.items_array?.map((el, idxEl) => {
-                                        if (
-                                            event?.usuario_id !== user?.uid &&
-                                            el.estatus !== false
-                                        ) {
+                                        // Si no puede editar y el item está oculto, no mostrarlo
+                                        if (!canEdit && el.estatus === false) {
                                             return;
                                         }
                                         let accessorEditables = []
