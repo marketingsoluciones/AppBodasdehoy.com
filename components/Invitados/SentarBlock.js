@@ -1,4 +1,4 @@
-import { useRouter } from "next/router"
+import { useRouter } from "next/navigation"
 import { MesaIcon } from "../icons"
 import { useTranslation } from 'react-i18next';
 

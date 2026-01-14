@@ -3,7 +3,7 @@ import { motion } from "framer-motion"
 import { TbInfoTriangle } from "react-icons/tb";
 import { MisEventosIcon } from "../icons";
 import { useTranslation } from "react-i18next";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 export const BlockRedirection: FC = () => {
   const { t } = useTranslation()

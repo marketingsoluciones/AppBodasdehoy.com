@@ -2,7 +2,7 @@ import { FC, useEffect, useState } from "react";
 import CompVentas1 from "./CompVentas1";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { AuthContextProvider } from "../../context";
 
 interface propsVentasEntradas { }

@@ -1,4 +1,4 @@
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import React from "react";
 import { getCurrency } from "../../../utils/Funciones";
 
@@ -7,13 +7,14 @@ const SummaryCard = ({
   amount,
   subtitle,
   icon: Icon,
-  iconColor,  
+  iconColor,
   bgColor,
   textColor,
   percentage,
   description,
   currency
 }) => {
+  const router = useRouter();
 
   const Redirection = () => {
     if (subtitle === 'Total'){

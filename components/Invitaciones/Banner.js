@@ -2,7 +2,7 @@ import { useContext } from 'react'
 import EventoContext from '../../context/EventContext'
 import { EventContextProvider } from "../../context";
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 const Banner = ({ setEmailEditorModal, EmailEditorModal }) => {
   const { t } = useTranslation();

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { ArrowDownBodasIcon, Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, LugaresBodas, Posts, TarjetaIcon, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
-import router, { useRouter } from "next/router";
+import { useRouter, usePathname } from "next/navigation";
 import { getAuth, signOut } from "firebase/auth";
 import { AuthContextProvider, EventContextProvider, LoadingContextProvider } from "../../context";
 import Cookies from "js-cookie";
@@ -46,7 +46,8 @@ const idiomaArray = [
 
 const Profile = ({ user, state, set, ...rest }) => {
   const { t } = useTranslation()
-  const { route } = useRouter()
+  const router = useRouter()
+  const pathname = usePathname()
   const toast = useToast()
   const [updateActivity, updateActivityLink] = useActivity()
   const { config, setUser, setActionModals, actionModals } = AuthContextProvider()
@@ -67,14 +68,14 @@ const Profile = ({ user, state, set, ...rest }) => {
   const optionsStart: Option[] = [
     {
       title: "Iniciar sesión",
-      onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${route}`) },
+      onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${pathname}`) },
       icon: <RiLoginBoxLine />,
       development: ["bodasdehoy", "all"],
       rol: undefined,
     },
     {
       title: "Registrarse",
-      onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${route}`) },
+      onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${pathname}`) },
       icon: <PiUserPlusLight />,
       development: ["bodasdehoy", "all"],
       rol: undefined,
@@ -83,7 +84,7 @@ const Profile = ({ user, state, set, ...rest }) => {
       title: "Mis empresas",
       onClick: async () => {
         const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-        router.push((user?.role?.includes("empresa")) ? path ?? "" : config?.pathLogin ? `${config?.pathDirectory}/info-empresa?d=app` : `/login?d=${route}`)
+        router.push((user?.role?.includes("empresa")) ? path ?? "" : config?.pathLogin ? `${config?.pathDirectory}/info-empresa?d=app` : `/login?d=${pathname}`)
       },
       icon: <CompanyIcon />,
       development: ["bodasdehoy"],
@@ -101,7 +102,7 @@ const Profile = ({ user, state, set, ...rest }) => {
       onClick: async () => {
         const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
         const pathEnd = `${window.origin.includes("://test.") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}/InfoPage/publicaciones`
-        router.push((user?.displayName !== "guest") ? `${path}/InfoPage/publicaciones` : config?.pathLogin ? `${config?.pathLogin}?d=app&end=${pathEnd}` : `/login?d=${route}`)
+        router.push((user?.displayName !== "guest") ? `${path}/InfoPage/publicaciones` : config?.pathLogin ? `${config?.pathLogin}?d=app&end=${pathEnd}` : `/login?d=${pathname}`)
       },
       icon: <Posts />,
       development: ["bodasdehoy"],

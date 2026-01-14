@@ -1,9 +1,10 @@
 import { CrearEventoIcon } from "../../icons"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { Autoplay, Pagination } from "swiper";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 
 export const Card = ({ DataCards }) => {
+    const router = useRouter();
     return (
         <>
             <div className="hidden md:block">

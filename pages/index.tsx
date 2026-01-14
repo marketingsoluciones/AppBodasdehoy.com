@@ -10,7 +10,7 @@ import { useDelayUnmount } from "../utils/Funciones";
 import { NextPage } from "next";
 import { Event, SelectModeSortType } from "../utils/Interfaces";
 import VistaSinCookie from "../pages/vista-sin-cookie"
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { TbTableShare } from "react-icons/tb";
@@ -26,14 +26,17 @@ const Home: NextPage = () => {
   const shouldRenderChild = useDelayUnmount(valirQuery, 500);
   const [showEditEvent, setShowEditEvent] = useState<boolean>(false);
   const router = useRouter()
+  const searchParams = useSearchParams()
   const toast = useToast()
   const { t } = useTranslation()
   const processedRef = useRef<string | null>(null)
   const [eventNotFound, setEventNotFound] = useState<boolean>(false)
 
-  useEffect(() => {
-    const pAccShas = router?.query?.pAccShas as string
+  // Query params usando useSearchParams (Next.js 15)
+  const pAccShas = searchParams.get("pAccShas")
+  const pGuestEvent = searchParams.get("pGuestEvent")
 
+  useEffect(() => {
     if (verificationDone && eventsGroupDone && pAccShas && processedRef.current !== pAccShas) {
       if (!user || user?.displayName === "guest") {
         router.push(config?.pathLogin ? `${config?.pathLogin}?pAccShas=${pAccShas}` : `/login?pAccShas=${pAccShas}`)
@@ -59,13 +62,13 @@ const Home: NextPage = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [verificationDone, eventsGroupDone, router?.query?.pAccShas, user, eventsGroup])
+  }, [verificationDone, eventsGroupDone, pAccShas, user, eventsGroup])
 
   if (verificationDone && eventsGroupDone) {
     // Mostrar componente cuando el evento no se encuentra
-    if (router?.query?.pAccShas && eventNotFound) {
+    if (pAccShas && eventNotFound) {
       return (
-        <EventNotFound 
+        <EventNotFound
           onBackToHome={() => {
             setEventNotFound(false)
             processedRef.current = null
@@ -74,11 +77,11 @@ const Home: NextPage = () => {
       )
     }
     // Mientras procesa el pAccShas, mostrar pantalla en blanco
-    if (router?.query?.pAccShas && !eventNotFound) {
+    if (pAccShas && !eventNotFound) {
       return <></>
     }
-    if (router?.query?.pGuestEvent) {
-      router.push(`/confirmar-asistencia?pGuestEvent=${router?.query?.pGuestEvent}`)
+    if (pGuestEvent) {
+      router.push(`/confirmar-asistencia?pGuestEvent=${pGuestEvent}`)
     }
     if ((!user || user.displayName === "guest") && ["vivetuboda"].includes(config?.development)) {
       router?.push(`/login`)

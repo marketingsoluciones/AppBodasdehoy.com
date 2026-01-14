@@ -1,7 +1,7 @@
 import { FC } from "react";
 import DatosUsurariosR from "../../components/RRPP/Sub-Componentes/DataUsuarios";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { AuthContextProvider } from "../../context";
 import { id } from "date-fns/locale";
 interface propsReciboEntradas { }

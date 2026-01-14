@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, FC, Dispatch, SetStateAction, cloneElement, useCallback } from "react";
 import ClickAwayListener from "react-click-away-listener";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { EventContextProvider } from "../../context";
 import { api } from "../../api";
 import DataTableFinal from "./DataTable";

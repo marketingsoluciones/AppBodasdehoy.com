@@ -2,7 +2,7 @@ import { createContext, useState, useContext, useEffect, SetStateAction, Dispatc
 import { AuthContextProvider } from "../context";
 import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
 import { Event, detalle_compartidos_array } from '../utils/Interfaces';
-import { useRouter } from 'next/router';
+import { useRouter, usePathname } from 'next/navigation';
 
 type Context = {
   eventsGroup: Event[],
@@ -60,6 +60,7 @@ const reducerAction = (state: Event[], action: action) => {
 
 const EventsGroupProvider = ({ children }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const [eventsGroup, setEventsGroup] = useReducer<Reducer<Event[], action>>(reducerAction, []);
   const [psTemplates, setPsTemplates] = useState<any>([]);
   const { user, config, verificationDone } = AuthContextProvider();
@@ -76,7 +77,7 @@ const EventsGroupProvider = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    if (!["servicios", "credic-card", "public-card"].includes(router?.route.split("/")[1]) || (user?.displayName !== "anonymous" && user?.displayName !== "guest")) {
+    if (!["servicios", "credic-card", "public-card"].includes(pathname.split("/")[1]) || (user?.displayName !== "anonymous" && user?.displayName !== "guest")) {
       if (verificationDone) {
         if (user) {
           fetchApiEventos({
@@ -84,7 +85,7 @@ const EventsGroupProvider = ({ children }) => {
             variables: { variable: "usuario_id", valor: user?.uid, development: config?.development },
           })
             .then((events: Event[]) => {
-              if (!["RelacionesPublicas", "facturacion", "event", "public-card", "public-itinerary"].includes(router?.route.split("/")[1])) {
+              if (!["RelacionesPublicas", "facturacion", "event", "public-card", "public-itinerary"].includes(pathname.split("/")[1])) {
                 setTimeout(() => {
                   if (events.length === 0) router.push("/")
                 }, 100);

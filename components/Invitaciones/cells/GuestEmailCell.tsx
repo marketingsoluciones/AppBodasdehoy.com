@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { GuestCellProps } from '../types';
 
 export const GuestEmailCell: FC<GuestCellProps> = ({ value, row }) => {

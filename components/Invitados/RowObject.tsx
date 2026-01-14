@@ -3,7 +3,7 @@ import ClickAwayListener from "react-click-away-listener";
 import { useAllowed } from "../../hooks/useAllowed";
 import { EventContextProvider } from "../../context";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { table } from "../../utils/Interfaces";
 import { useToast } from "../../hooks/useToast";
 import { handleMoveGuest } from "./GrupoTablas";

@@ -2,7 +2,7 @@ import { FC } from "react";
 import Checkbox from "../../components/RRPP/Sub-Componentes/Checkbox1";
 import Card1 from "../../components/RRPP/Sub-Componentes/Card";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 interface propsComprasComp { }
 

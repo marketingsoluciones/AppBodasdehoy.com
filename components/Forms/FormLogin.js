@@ -1,5 +1,5 @@
 import { Formik } from "formik";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { api } from "../../api";
 import {getCookie, setCookie} from "../../utils/Cookies";
 import InputField from "./InputField";

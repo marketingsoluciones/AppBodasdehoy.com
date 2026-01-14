@@ -11,7 +11,7 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from "../utils/i18n"
 import { useAllowedRouter } from '../hooks/useAllowed';
 import { BlockRedirection } from '../components/Utils/BlockRedirection';
-import { useRouter } from 'next/router';
+import { useRouter, usePathname } from 'next/navigation';
 import { NextSeo } from 'next-seo';
 import { dataMetaData } from "../utils/SeoRecurses"
 import { varGlobalDevelopment } from "../context/AuthContext"
@@ -90,11 +90,11 @@ const Load = ({ setValirBlock }) => {
   const [isAllowedRouter] = useAllowedRouter()
   const { event } = EventContextProvider()
   const { user } = AuthContextProvider()
-  const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     setValirBlock(!isAllowedRouter())
-  }, [event, user, router])
+  }, [event, user, pathname])
 
   return (
     <>

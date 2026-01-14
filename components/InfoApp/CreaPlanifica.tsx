@@ -1,5 +1,4 @@
-import { useRouter } from "next/router"
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import { useTranslation } from 'react-i18next';
 
 export const CreaPlanifica = () => {
@@ -21,6 +20,7 @@ export const CreaPlanifica = () => {
 }
 
 export const CuadroInfo = () => {
+    const router = useRouter();
     const { t } = useTranslation();
     return (
         <>

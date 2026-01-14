@@ -5,7 +5,7 @@ import { api } from '../api';
 import { Dispatch } from 'react';
 import { getCookie } from '../utils/Cookies';
 import Cookies from "js-cookie";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { parseJwt } from "../utils/Authentication"
 import { Notification, ResultNotifications } from "../utils/Interfaces";
 
@@ -27,6 +27,7 @@ const SocketContext = createContext<Context>(initialContext);
 
 const SocketProvider: FC<any> = ({ children }): JSX.Element => {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, config } = AuthContextProvider()
   const [socket, setSocket] = useState<Socket | null>(initialContext.socket);
   const [notifications, setNotifications] = useState<ResultNotifications>({ total: 0, results: [] });
@@ -41,7 +42,7 @@ const SocketProvider: FC<any> = ({ children }): JSX.Element => {
       setSocket(api.socketIO({
         token,
         development: config?.development,
-        father: router?.query?.father,
+        father: searchParams?.get("father"),
         origin: window?.origin
       }))
     }

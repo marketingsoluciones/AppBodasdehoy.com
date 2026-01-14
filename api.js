@@ -1,7 +1,7 @@
 import axios from "axios";
 import Cookies from "js-cookie"
-import { SubscriptionClient } from "graphql-subscriptions-client";
-import { Manager, io } from "socket.io-client";
+import { createClient } from "graphql-ws";
+import { Manager } from "socket.io-client";
 import { getAuth } from "firebase/auth";
 import { parseJwt } from "./utils/Authentication";
 import { varGlobalDomain, varGlobalDevelopment, varGlobalSubdomain } from "./context/AuthContext"
@@ -76,14 +76,17 @@ export const api = {
   Suscripcion: async () => {
     const token = Cookies.get("idTokenV0.1.0")
     const GRAPHQL_ENDPOINT = WebSocket;
-    const client = new SubscriptionClient(GRAPHQL_ENDPOINT, {
-      reconnect: true,
-      lazy: true, // only connect when there is a query
-      connectionParams: {
+    const client = createClient({
+      url: GRAPHQL_ENDPOINT ?? "",
+      lazy: true,
+      retryAttempts: 5,
+      connectionParams: () => ({
         headers: { Authorization: `Bearer ${token}` },
-      },
-      connectionCallback: (error) => {
-        error && console.error(error);
+      }),
+      on: {
+        error: (error) => {
+          console.error("GraphQL WS Error:", error);
+        },
       },
     });
     return client

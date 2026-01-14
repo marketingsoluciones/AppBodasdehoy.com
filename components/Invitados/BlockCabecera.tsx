@@ -1,6 +1,6 @@
 import { CanceladoIcon, ConfirmadosIcon, MesaIcon, PendienteIcon } from "../icons";
 import { EventContextProvider } from "../../context";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import BlockTitle from "../Utils/BlockTitle";
 import { useAllowed } from "../../hooks/useAllowed";

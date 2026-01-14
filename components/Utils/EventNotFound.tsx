@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { AuthContextProvider } from "../../context";
 
@@ -14,7 +14,7 @@ const EventNotFound: FC<EventNotFoundProps> = ({ onBackToHome }) => {
 
   const handleBackToHome = () => {
     // Limpiar el query param de la URL
-    router.replace("/", undefined, { shallow: true });
+    router.replace("/");
     if (onBackToHome) {
       onBackToHome();
     }

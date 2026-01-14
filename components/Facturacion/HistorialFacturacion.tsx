@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AuthContextProvider } from "../../context";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { PiNewspaperClippingThin } from "react-icons/pi";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useTranslation } from 'react-i18next';
 
 export const HistorialFacturacion = () => {

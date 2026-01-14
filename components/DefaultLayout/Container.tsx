@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter, usePathname } from "next/navigation";
 import { AuthContextProvider, LoadingContextProvider } from "../../context";
 import NavigationMobile from "./NavigationMobile";
 import Navigation from "./Navigation";
@@ -9,6 +9,7 @@ const Container = (props) => {
   const { children } = props;
   const { forCms } = AuthContextProvider();
   const router = useRouter();
+  const pathname = usePathname();
   const { setLoading } = LoadingContextProvider()
   useEffect(() => {
     if (setLoading)
@@ -19,7 +20,7 @@ const Container = (props) => {
 
   return (
     <>
-      {(!["RelacionesPublicas", "event", "public-card", "public-itinerary"].includes(router?.route.split("/")[1])) && <>
+      {(!["RelacionesPublicas", "event", "public-card", "public-itinerary"].includes(pathname?.split("/")[1])) && <>
         <NavigationMobile />
         {!forCms && <motion.div
           initial={{ opacity: 0 }}
@@ -32,7 +33,7 @@ const Container = (props) => {
       </>
       }
 
-      <div className={`w-[100%] ${router.pathname === "/" ? "" : "bg-base"} overflow-auto overflow-y-scroll ${urls.includes(router?.pathname) ? "" : forCms ? "h-[100vh]" : "h-[calc(100vh-144px)]"}`}>
+      <div className={`w-[100%] ${pathname === "/" ? "" : "bg-base"} overflow-auto overflow-y-scroll ${urls.includes(pathname) ? "" : forCms ? "h-[100vh]" : "h-[calc(100vh-144px)]"}`}>
         <main id="rootElementMain" className="w-full h-full">
           {children}
         </main>

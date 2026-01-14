@@ -1,7 +1,7 @@
 import React from "react";
 import { CochinoIcon, DineroIcon } from "../icons";
 import { Swiper, SwiperSlide } from "swiper/react";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import { getCurrency } from "../../utils/Funciones";
 import { EventContextProvider, AuthContextProvider } from "../../context";
 import { useAllowed } from "../../hooks/useAllowed";
@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 
 const BlockPresupuesto = () => {
+  const router = useRouter()
   const { event } = EventContextProvider();
   const [isAllowed, ht] = useAllowed()
   const { t } = useTranslation();

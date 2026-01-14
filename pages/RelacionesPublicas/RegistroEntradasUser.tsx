@@ -4,7 +4,7 @@ import { ResumenComponents } from "../../components/RRPP/Sub-Componentes/Resumen
 import { CabeceraR } from "../../components/RRPP/Sub-Componentes/CabeceraR";
 import { CheckCondition } from "../../components/RRPP/Sub-Componentes/CheckConition";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AuthContextProvider } from "../../context";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 
@@ -20,14 +20,18 @@ interface propsRegistroEntradasUser {
 const RegistroEntradasUser: FC<propsRegistroEntradasUser> = ({ componentState, setComponentState }) => {
   const { storage_id, config, } = AuthContextProvider()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [data, setData] = useState()
   const [valirButton, setValirButton] = useState(true)
   const [spinner, setSpinner] = useState(false)
-  
+
+  // Query params usando useSearchParams (Next.js 15)
+  const sId = searchParams.get("sId")
 
   useEffect(() => {
-    if (storage_id === router?.query?.sId?.slice(0, 24)) {
-      const unique = router.query.sId.slice(-24)
+    if (!sId) return
+    if (storage_id === sId.slice(0, 24)) {
+      const unique = sId.slice(-24)
       //fetching
       fetchApiBodas({
         query: queries.getCheckoutItems,
@@ -45,7 +49,7 @@ const RegistroEntradasUser: FC<propsRegistroEntradasUser> = ({ componentState, s
         }
       })
     }
-  }, [router])
+  }, [sId, storage_id])
 
   useEffect(() => {
     if (!valirButton) {

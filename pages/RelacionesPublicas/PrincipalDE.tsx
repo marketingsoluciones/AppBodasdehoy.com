@@ -1,6 +1,6 @@
 import { FC } from "react";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 const PrincipalDE: FC = () => {
   const router = useRouter()

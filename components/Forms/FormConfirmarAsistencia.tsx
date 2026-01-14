@@ -5,7 +5,7 @@ import { phoneUtil } from "../../utils/Authentication";
 import { AuthContextProvider } from "../../context";
 import { FC } from "react";
 import { guests, menu } from "../../utils/Interfaces";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useTranslation } from 'react-i18next';
 
@@ -22,9 +22,10 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
     const { t } = useTranslation();
     const { geoInfo } = AuthContextProvider();
     const router = useRouter()
+    const searchParams = useSearchParams()
     const GuestAcompañantes = guestData.filter(e => e.father != null)
     const GuetsArray = Array.from({ length: guestFather?.passesQuantity }, (_, index) => index);
-    const eventID = router?.query?.pGuestEvent?.slice(-24)
+    const eventID = searchParams?.get("pGuestEvent")?.slice(-24)
 
     let initialValues = {
         _id: guestFather?._id,

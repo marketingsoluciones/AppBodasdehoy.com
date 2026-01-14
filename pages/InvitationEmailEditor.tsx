@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { IoSaveOutline } from "react-icons/io5";
 import EmailEditor, { EditorRef, EmailEditorProps, Unlayer } from 'react-email-editor';
 import { GoArrowLeft } from "react-icons/go";
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { BlockTitle } from "../components/Utils/BlockTitle"
 
 const InvitationEmailEditor = (props) => {

@@ -18,7 +18,7 @@ import { SubHeader } from "../../Servicios/Utils/SubHeader";
 import { ViewItinerary } from "../../../pages/invitados";
 import FormTask from "../../Forms/FormTask";
 import { getStorage } from "firebase/storage";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { VscFiles } from "react-icons/vsc";
 import { TbLock } from "react-icons/tb";
 import { TbLockOpen } from "react-icons/tb";
@@ -93,7 +93,11 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   const [modal, setModal] = useState<ModalItinerario>({ state: false, title: null, values: null, itinerario: null })
   const [showModalCompartir, setShowModalCompartir] = useState({ state: false, id: null });
   const router = useRouter()
+  const searchParams = useSearchParams()
   const notification = useNotification()
+
+  // Query params usando useSearchParams (Next.js 15)
+  const queryTask = searchParams.get("task")
   const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFile[]>([]);
   const [loading, setLoading] = useState<boolean>(false)
   const [currentItinerario, setCurrentItinerario] = useState<Itinerary>(itinerario);
@@ -392,10 +396,10 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   }
 
   useEffect(() => {
-    if (router?.query?.task) {
-      setSelectTask(`${router.query.task}`)
+    if (queryTask) {
+      setSelectTask(queryTask)
     }
-  }, [router])
+  }, [queryTask])
 
   const infoLeftOptions: Info[] = [
     {

@@ -2,7 +2,7 @@ import { AuthContextProvider, EventsGroupContextProvider, LoadingContextProvider
 import { ArrowLeft, CompanyIcon, CorazonPaddinIcon, UserIcon, TarjetaIcon } from "../icons"
 import { useToast } from "../../hooks/useToast"
 import { capitalize } from "../../utils/Capitalize"
-import router, { useRouter } from "next/router";
+import { useRouter, usePathname } from "next/navigation";
 import { RiLoginBoxLine } from "react-icons/ri"
 import { PiUserPlusLight } from "react-icons/pi"
 import { MdLogout } from "react-icons/md";
@@ -18,7 +18,8 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
     const { eventsGroup } = EventsGroupContextProvider()
     const [updateActivity, updateActivityLink] = useActivity()
     const { t } = useTranslation()
-    const { route } = useRouter()
+    const router = useRouter()
+    const pathname = usePathname()
     const toast = useToast()
 
     const ListaNavbar = [
@@ -26,7 +27,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             title: "Iniciar sesión",
             icon: <RiLoginBoxLine className="w-6 h-6" />,
             onClick: () => {
-                router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${route}`)
+                router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${pathname}`)
             },
             development: ["bodasdehoy", "all"],
             user: "guest"
@@ -35,7 +36,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             title: "Registrarse",
             icon: <PiUserPlusLight className="w-6 h-6" />,
             onClick: () => {
-                router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${route}`)
+                router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${pathname}`)
             },
             development: ["bodasdehoy", "all"],
             user: "guest"
@@ -75,7 +76,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             icon: <CompanyIcon className="w-6 h-6" />,
             onClick: async () => {
                 const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-                router.push((user?.role?.includes("empresa")) ? path ?? "" : config?.pathLogin ? `${config?.pathDirectory}/info-empresa?d=app` : `/login?d=${route}`)
+                router.push((user?.role?.includes("empresa")) ? path ?? "" : config?.pathLogin ? `${config?.pathDirectory}/info-empresa?d=app` : `/login?d=${pathname}`)
             },
             development: ["bodasdehoy"],
             user: config?.pathDirectory ? "all" : null
@@ -89,7 +90,7 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
         if (item?.onClick) {
             setShowSidebar(!showSidebar)
             await item?.onClick()
-            await item?.route != route && setLoading(true)
+            await item?.route != pathname && setLoading(true)
         }
     }
 
@@ -110,7 +111,6 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             <div className="bg-white w-full h-[calc(100%-205px)] overflow-auto flex flex-col justify-between">
                 <ul className="flex flex-col pl-6 pt-2">
                     {ListaNavbarFilter.map((item, idx) => (
-                        // eslint-disable-next-line @next/next/link-passhref
                         <li
                             key={idx}
                             onClick={(e) => { handleOnClip(e, item) }}

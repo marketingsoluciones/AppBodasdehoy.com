@@ -1,6 +1,6 @@
 import { FC, useState } from "react"
 import { detalle_compartidos_array } from "../../utils/Interfaces"
-import { useRouter } from "next/router"
+import { useRouter } from "next/navigation"
 
 interface props {
   user: detalle_compartidos_array

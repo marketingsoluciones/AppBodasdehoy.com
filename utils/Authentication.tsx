@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { signInWithPopup, UserCredential, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, getAuth } from 'firebase/auth';
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import Cookies from 'js-cookie';
 import { LoadingContextProvider, AuthContextProvider } from "../context";
 import { fetchApiBodas, queries } from "./Fetching";

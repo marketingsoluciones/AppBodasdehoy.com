@@ -6,7 +6,7 @@ import { Interweave } from "interweave"
 import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink"
 import Link from "next/link"
 import { detalle_compartidos_array } from "../../../utils/Interfaces"
-import { useRouter } from "next/router"
+import { useRouter, useSearchParams } from "next/navigation"
 import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel"
 import { FileIconComponent } from "../../Itinerario/MicroComponente/FileIconComponent"
 import { CgSoftwareDownload } from "react-icons/cg"
@@ -30,6 +30,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
   const { event } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const userAsd = event?.detalles_compartidos_array
     ? [...event?.detalles_compartidos_array, event?.detalles_usuario_id, user]?.find(elem => elem?.uid === item?.uid) as detalle_compartidos_array
     : undefined
@@ -38,14 +39,18 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
   const { t } = useTranslation();
   const toast = useToast()
 
+  // Query params usando useSearchParams (Next.js 15)
+  const queryTask = searchParams.get("task")
+  const queryComment = searchParams.get("comment")
+
   useEffect(() => {
-    if (router.query?.task) {
-      document.getElementById(`${router.query.task}`)?.scrollIntoView({ behavior: 'smooth' });
+    if (queryTask) {
+      document.getElementById(queryTask)?.scrollIntoView({ behavior: 'smooth' });
     }
-    if (router.query?.comment) {
+    if (queryComment) {
       router.push(`${window.location.origin}${window.location.pathname}`)
     }
-  }, [router])
+  }, [queryTask, queryComment])
 
   const replacesLink: ComponentType<UrlProps> = (props) => {
     return (

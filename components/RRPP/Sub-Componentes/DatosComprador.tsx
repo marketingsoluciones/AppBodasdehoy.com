@@ -1,7 +1,7 @@
 import { Formik, Form } from 'formik';
 import { FC, useState } from "react"
 import InputField from "../../Forms/InputField";
-import { useRouter } from 'next/router';
+import { useRouter, useSearchParams } from 'next/navigation';
 import * as yup from "yup";
 import { fetchApiBodas, queries } from '../../../utils/Fetching';
 import { AuthContextProvider } from '../../../context';
@@ -15,7 +15,8 @@ export const DatosComprador: FC<propsDatosComprador> = ({ valirButton, setValirB
   const { setUsuariosTickets } = AuthContextProvider()
 
   const router = useRouter()
-  const quantity = parseInt(`${router?.query?.count}`, 10)
+  const searchParams = useSearchParams()
+  const quantity = parseInt(`${searchParams?.get("count")}`, 10)
   const arr = Array.from({ length: quantity }, (_, index) => index);
 
 
@@ -39,7 +40,7 @@ export const DatosComprador: FC<propsDatosComprador> = ({ valirButton, setValirB
   const validationSchema = yup.object().shape(yupSchema);
 
   const handleSubmit = (values) => {
-    const unique = router?.query?.sId?.slice(-24)
+    const unique = searchParams?.get("sId")?.slice(-24)
     let sendValues = []
     for (let i = 0; i < quantity; i++) {
       const item = {

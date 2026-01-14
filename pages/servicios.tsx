@@ -4,7 +4,7 @@ import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, 
 import { BlockTitle } from "../components/Utils/BlockTitle"
 import VistaSinCookie from "./vista-sin-cookie"
 import { motion } from "framer-motion"
-import { useRouter } from "next/router"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useMounted } from "../hooks/useMounted"
 
 
@@ -13,18 +13,22 @@ const Itinerario: FC<any> = (props) => {
     const { event, setEvent } = EventContextProvider()
     const { user, setUser, verificationDone, forCms } = AuthContextProvider()
     const router = useRouter()
+    const searchParams = useSearchParams()
     useMounted()
 
+    // Query params usando useSearchParams (Next.js 15)
+    const queryEvent = searchParams.get("event")
+
     useEffect(() => {
-        if (router.query?.event && router.query?.event !== event?._id) {
-            const event = eventsGroup.find(elem => elem._id === router.query?.event)
-            if (event) {
-                setEvent({ ...event })
-                user.eventSelected = router.query?.event
+        if (queryEvent && queryEvent !== event?._id) {
+            const eventFound = eventsGroup.find(elem => elem._id === queryEvent)
+            if (eventFound) {
+                setEvent({ ...eventFound })
+                user.eventSelected = queryEvent
                 setUser({ ...user })
             }
         }
-    }, [router])
+    }, [queryEvent, eventsGroup])
 
     if (verificationDone) {
         if (!user || user?.displayName === "guest") {

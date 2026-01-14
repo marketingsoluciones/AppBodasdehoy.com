@@ -1,4 +1,4 @@
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 const SummaryCard = ({
@@ -12,6 +12,7 @@ const SummaryCard = ({
   percentage,
   description,
 }) => {
+  const router = useRouter();
 
   const Redirection = () => {
     if (subtitle === 'Total'){

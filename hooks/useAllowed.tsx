@@ -1,4 +1,4 @@
-import { useRouter } from "next/router"
+import { useRouter, usePathname } from "next/navigation"
 import { AuthContextProvider, EventContextProvider, LoadingContextProvider } from "../context"
 import { useToast } from "./useToast";
 import { useTranslation } from "react-i18next";
@@ -19,13 +19,14 @@ export const useAllowed = () => {
     const { event } = EventContextProvider()
     const toast = useToast();
     const router = useRouter()
+    const pathname = usePathname()
     const { user } = AuthContextProvider()
 
     const isAllowed = (pathM?: keyof typeof types) => {
       if (event?.usuario_id === user?.uid) {
         return true
       }
-      let path = pathM ? pathM : router.asPath.split("/")[1].split("-")[0]
+      let path = pathM ? pathM : pathname.split("/")[1].split("-")[0]
       if (path !== "") {
         if (path === "lista") {
           path = "regalos"
@@ -53,6 +54,7 @@ export const useAllowedRouter = () => {
     const { event } = EventContextProvider()
     const toast = useToast();
     const router = useRouter()
+    const pathname = usePathname()
     const { t } = useTranslation()
     const { user } = AuthContextProvider()
 
@@ -60,7 +62,7 @@ export const useAllowedRouter = () => {
       if (event?.usuario_id === user?.uid) {
         return true
       }
-      let path = pathM ? pathM.split("/")[1].split("-")[0] : router.asPath.split("/")[1].split("-")[0]
+      let path = pathM ? pathM.split("/")[1].split("-")[0] : pathname.split("/")[1].split("-")[0]
       if (path !== "") {
         if (path === "lista") {
           path = "regalos"
@@ -96,9 +98,10 @@ export const useAllowedViewer = () => {
     const toast = useToast();
     const { user } = AuthContextProvider()
     const router = useRouter()
+    const pathname = usePathname()
 
     const isAllowedViewer = (viewers: string[] = []) => {
-      let path = router.asPath.split("/")[1].split("-")[0]
+      let path = pathname.split("/")[1].split("-")[0]
       if (path !== "") {
         if (path === "lista") {
           path = "regalos"

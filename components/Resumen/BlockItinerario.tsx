@@ -1,5 +1,5 @@
 import { GoChecklist } from "react-icons/go";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 

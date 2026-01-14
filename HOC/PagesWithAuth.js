@@ -1,4 +1,4 @@
-import { useRouter } from "next/router"
+import { useRouter } from "next/navigation"
 import Loading from "../components/DefaultLayout/Loading"
 import { AuthContextProvider } from "../context"
 import { getCookie } from "../utils/Cookies"

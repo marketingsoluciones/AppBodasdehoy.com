@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { AuthContextProvider, LoadingContextProvider } from "../context";
-import { useRouter } from "next/router";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 
 const VistaSinCookie = () => {
   const { t } = useTranslation();
   const router = useRouter()
+  const pathname = usePathname()
   const { config } = AuthContextProvider()
   const { setLoading } = LoadingContextProvider()
   const [isMounted, setIsMounted] = useState(false)
@@ -22,11 +23,11 @@ const VistaSinCookie = () => {
     }
   }, [isMounted])
   if (isMounted) {
-    if (router.route == "/servicios") {
-      router?.push(`/public-card${router?.asPath}`)
+    if (pathname == "/servicios") {
+      router?.push(`/public-card${pathname}`)
     } else {
       if (config?.development !== "bodasdehoy") {
-        router?.push(`/login${router.asPath !== "/" ? `?d=${router.asPath}` : ""}`)
+        router?.push(`/login${pathname !== "/" ? `?d=${pathname}` : ""}`)
       }
     }
 

@@ -1,5 +1,5 @@
 import { Swiper, SwiperSlide } from "swiper/react";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import { FC } from "react";
 import { EventContextProvider } from "../../context";
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import {
 import { useAllowed } from "../../hooks/useAllowed";
 
 const BlockInvitados: FC = () => {
+  const router = useRouter()
   const { event } = EventContextProvider();
   const [isAllowed, ht] = useAllowed()
   const { t } = useTranslation();

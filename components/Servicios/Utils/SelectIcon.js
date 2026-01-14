@@ -5,7 +5,7 @@ import { IconList } from "../../Itinerario/MicroComponente/IconList";
 import { useEffect, useState } from "react";
 import { useAllowed } from "../../../hooks/useAllowed";
 import { AuthContextProvider, EventContextProvider } from "../../../context";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { IconArray } from "../VistaTabla/NewSelectIcon";
 
 export const SelectIcon = ({ handleChange, ...props }) => {

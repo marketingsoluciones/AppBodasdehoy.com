@@ -2,7 +2,7 @@ import { FC } from "react"
 import { useAllowed, useAllowedRouter } from "../../../hooks/useAllowed"
 import { AuthContextProvider, EventContextProvider } from "../../../context"
 import { useTranslation } from "react-i18next"
-import { useRouter } from "next/router"
+import { useRouter, usePathname } from "next/navigation"
 import { MdOutlineEdit, MdSecurity } from "react-icons/md"
 import { IoEyeOutline } from "react-icons/io5"
 import { FaCrown } from "react-icons/fa"
@@ -12,6 +12,7 @@ export const PermissionIndicator: FC = () => {
   const { event } = EventContextProvider()
   const { t } = useTranslation()
   const router = useRouter()
+  const pathname = usePathname()
   const [isAllowed] = useAllowed()
   const [isAllowedRouter] = useAllowedRouter()
 
@@ -27,7 +28,7 @@ export const PermissionIndicator: FC = () => {
 
   // Obtener permisos para la ruta actual
   const getCurrentPath = () => {
-    let path = router.asPath.split("/")[1].split("-")[0]
+    let path = pathname.split("/")[1].split("-")[0]
     if (path === "lista") path = "regalos"
     return path
   }

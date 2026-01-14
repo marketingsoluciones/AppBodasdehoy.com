@@ -2,12 +2,13 @@ import { useState } from "react"
 import ClickAwayListener from "react-click-away-listener"
 import { ExclamacionIcon } from "../icons"
 import { IoSettingsOutline } from "react-icons/io5";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from 'react-i18next';
 
 export const Productos = ({ data, setProducts, products }) => {
   const { t } = useTranslation();
   const router = useRouter()
+  const searchParams = useSearchParams()
   const options: object = {
     year: "2-digit",
     month: "2-digit",
@@ -59,7 +60,7 @@ export const Productos = ({ data, setProducts, products }) => {
                     {item?.name?.toLowerCase().includes("marca") &&
                       <div onClick={() => {
                         const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-                        router?.query?.show === "iframe"
+                        searchParams?.get("show") === "iframe"
                           ? window.parent.postMessage(JSON.stringify({ type: "route", path: `${path}/whitelabel/setup` }), '*')
                           : router.push(`${path}/whitelabel/setup`)
                       }} className="absolute -top-5 w-full h-4 flex justify-center items-center space-x-1 cursor-pointer hover:scale-105">
@@ -132,7 +133,7 @@ export const Productos = ({ data, setProducts, products }) => {
                 {MarcaBlancaData?.name?.toLowerCase().includes("marca") &&
                   <div onClick={() => {
                     const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-                    router?.query?.show === "iframe"
+                    searchParams?.get("show") === "iframe"
                       ? window.parent.postMessage(JSON.stringify({ type: "route", path: `${path}/whitelabel/setup` }), '*')
                       : router.push(`${path}/whitelabel/setup`)
                   }} className="absolute -top-5 w-full h-4 flex justify-center items-center space-x-1 cursor-pointer hover:scale-105">
@@ -210,7 +211,7 @@ export const Productos = ({ data, setProducts, products }) => {
                     {item?.name?.toLowerCase().includes("marca") &&
                       <div onClick={() => {
                         const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-                        router?.query?.show === "iframe"
+                        searchParams?.get("show") === "iframe"
                           ? window.parent.postMessage(JSON.stringify({ type: "route", path: `${path}/whitelabel/setup` }), '*')
                           : router.push(`${path}/whitelabel/setup`)
                       }} className="absolute -top-5 w-full h-4 flex justify-center items-center space-x-1 cursor-pointer hover:scale-105">

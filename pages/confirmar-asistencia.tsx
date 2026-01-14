@@ -3,7 +3,7 @@ import { DescripcionComponente } from "../components/ConfirmarAsistencia/Descrip
 import { FormComponent } from "../components/Forms/FormAcompañantes"
 import { Event, guests, menu } from "../utils/Interfaces"
 import { fetchApiEventos, queries } from "../utils/Fetching"
-import { useRouter } from "next/router"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslation } from 'react-i18next';
 
 /* import {  LogoOrganizador } from "../components/icons" */
@@ -12,16 +12,21 @@ import { useTranslation } from 'react-i18next';
 const ConfirmaAsistencia = () => {
     const { t } = useTranslation();
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [guestData, setGuestData] = useState<guests[]>()
     const [guestFather, setGuestFather] = useState<guests>()
     const [menus_array, setMenus_array] = useState<menu[]>()
 
+    // Query params usando useSearchParams (Next.js 15)
+    const pGuestEvent = searchParams.get("pGuestEvent")
+
     useEffect(() => {
+        if (!pGuestEvent) return
         try {
             fetchApiEventos({
                 query: queries.getPGuestEvent,
                 variables: {
-                    p: router?.query?.pGuestEvent
+                    p: pGuestEvent
                 },
             }).then((result: Event) => {
                 setGuestData(result?.invitados_array)
@@ -31,7 +36,7 @@ const ConfirmaAsistencia = () => {
         } catch (error) {
             console.log(error)
         }
-    }, [router?.query?.pGuestEvent])
+    }, [pGuestEvent])
     return (
         <>
             <div className="grid md:grid-cols-2 md:px-10 px-5 py-10 bg-base h-[calc(100vh-64px)]">

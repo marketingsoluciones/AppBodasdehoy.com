@@ -10,7 +10,7 @@ import { AuthContextProvider, LoadingContextProvider } from "../../../../context
 import { UserCredential, createUserWithEmailAndPassword, getAuth, signInWithCustomToken, updateProfile } from "firebase/auth";
 import { parseJwt, phoneUtil, useAuthentication } from "../../../../utils/Authentication";
 import { fetchApiBodas, fetchApiEventos, queries } from "../../../../utils/Fetching";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { FirebaseError } from 'firebase/app';
 import Cookies from 'js-cookie';
 import * as yup from "yup";

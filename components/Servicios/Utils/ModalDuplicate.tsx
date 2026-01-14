@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter, usePathname } from "next/navigation";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../../context";
 import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast";
@@ -12,7 +12,8 @@ import { LoadingSpinner } from "../../Utils/LoadingSpinner";
 
 export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
   const router = useRouter()
-  const cleanedPath = router.asPath.replace(/\//g, '');
+  const pathname = usePathname()
+  const cleanedPath = pathname.replace(/\//g, '');
   const { event, setEvent } = EventContextProvider()
   const { eventsGroup, setEventsGroup } = EventsGroupContextProvider();
   const { config, user } = AuthContextProvider()

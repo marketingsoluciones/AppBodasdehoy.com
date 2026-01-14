@@ -10,7 +10,7 @@ import { guests, table, Event } from "../../utils/Interfaces";
 import { SlOptionsVertical } from "react-icons/sl";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import ClickAwayListener from "react-click-away-listener";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { BorrarInvitado } from "../../hooks/EditarInvitado";
 import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "../Utils/DeleteConfirmation";

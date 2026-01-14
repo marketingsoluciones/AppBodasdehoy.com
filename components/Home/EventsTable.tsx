@@ -5,7 +5,7 @@ import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider }
 import { getCurrency } from "../../utils/Funciones";
 import { LiaPaperclipSolid } from "react-icons/lia";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useToast } from "../../hooks/useToast";
 import { UsuariosCompartidos } from "../Utils/Compartir";
 import { IoShareSocial } from "react-icons/io5";

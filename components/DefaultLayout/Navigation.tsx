@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useState, FC, useRef } from "react";
-import { useRouter } from "next/router";
+import { useRouter, usePathname } from "next/navigation";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import { Banner, IconLightBulb16, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MenuIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
 import { useDelayUnmount } from "../../utils/Funciones";
@@ -17,18 +17,19 @@ const Navigation: FC = () => {
   const { event } = EventContextProvider();
   const { user, config, setIsActiveStateSwiper } = AuthContextProvider();
   const router = useRouter();
+  const pathname = usePathname();
   const [showSidebar, setShowSidebar] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [route, setRoute] = useState<string>("");
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
-  const url = router.pathname
+  const url = pathname
   const [isAllowedRouter, ht] = useAllowedRouter()
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
 
   useEffect(() => {
-    setRoute(router.pathname)
-  }, [router])
+    setRoute(pathname)
+  }, [pathname])
 
   const Navbar = useMemo(() => [
     {

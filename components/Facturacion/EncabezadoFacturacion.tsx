@@ -1,4 +1,4 @@
-import { useRouter } from "next/router"
+import { useRouter, useSearchParams } from "next/navigation"
 import { AuthContextProvider } from "../../context"
 import { fetchApiBodas, queries } from "../../utils/Fetching"
 import { DiamanteIcon } from "../icons"
@@ -9,6 +9,7 @@ export const EncabezadoFacturacion = ({ products, currency, setCurrency, stripeC
     const { t } = useTranslation();
     const { user, config } = AuthContextProvider()
     const router = useRouter()
+    const searchParams = useSearchParams()
 
     const handleCheckout = () => {
         const items = products.map((elem) => {
@@ -18,7 +19,7 @@ export const EncabezadoFacturacion = ({ products, currency, setCurrency, stripeC
                 metadata: { ...elem.metadata, productId: elem.id },
             }
         })
-        const path = router?.query?.show === "iframe"
+        const path = searchParams?.get("show") === "iframe"
             ? window?.origin?.includes("://test.") ? `${process.env.NEXT_PUBLIC_CMS?.replace("//", "//test")}/facturacion` : `${process.env.NEXT_PUBLIC_CMS}/facturacion`
             : `${window.location.href}`
         fetchApiBodas({
@@ -33,7 +34,7 @@ export const EncabezadoFacturacion = ({ products, currency, setCurrency, stripeC
             development: config.development
         }).then((result) => {
             if (result != null) {
-                router?.query?.show === "iframe"
+                searchParams?.get("show") === "iframe"
                     ? window.parent.postMessage(JSON.stringify({ type: "route", path: result }), '*')
                     : router.push(result)
             }

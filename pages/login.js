@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ButtonClose } from "../components/Forms/ButtonClose";
 import { Login, Register, ResetPass } from "../components/Forms/Login/Forms";
 import { useEffect, useState } from "react";
@@ -10,7 +10,13 @@ const PageLogin = () => {
   const { config, user, linkMedia, preregister } = AuthContextProvider()
   const { setLoading } = LoadingContextProvider()
   const router = useRouter()
-  const [stage, setStage] = useState((linkMedia != null ? "register" : null) ?? router.query?.q ?? "login");
+  const searchParams = useSearchParams()
+
+  // Query params usando useSearchParams (Next.js 15)
+  const queryQ = searchParams.get("q")
+  const queryD = searchParams.get("d")
+
+  const [stage, setStage] = useState((linkMedia != null ? "register" : null) ?? queryQ ?? "login");
   const [stageRegister, setStageRegister] = useState(0)
   const [whoYouAre, setWhoYouAre] = useState("");
   const [isMounted, setIsMounted] = useState(false)
@@ -47,11 +53,11 @@ const PageLogin = () => {
 
   const handleClose = () => {
     setTimeout(() => {
-      router.push(!router.query?.d ? "/111" : router.query?.d)
+      router.push(!queryD ? "/111" : queryD)
     }, 100);
   }
   if (user && user?.displayName !== "guest") {
-    router.push(!router.query?.d ? "/" : window.location.search.replace("?d=", ""))
+    router.push(!queryD ? "/" : queryD)
   } else {
     return (
       config?.development !== "bodasdehoy" && (

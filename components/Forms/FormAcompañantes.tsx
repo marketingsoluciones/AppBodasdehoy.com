@@ -1,7 +1,7 @@
 import {  useState } from "react"
 import { FormConfirmarAsistencia } from "../Forms/FormConfirmarAsistencia"
 import { ConfirmacionIcon } from "../icons"
-import { useRouter } from "next/router"
+import { useRouter } from "next/navigation"
 import { useTranslation } from 'react-i18next';
 
 export const FormComponent = ({ guestData, guestFather, menus_array }) => {

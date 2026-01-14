@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { DiamanteIcon } from "../icons";
 import Link from "next/link";
 import { useTranslation } from 'react-i18next';

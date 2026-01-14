@@ -1,9 +1,10 @@
 import React, { FC } from "react";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 
 const BlockListaRegalos: FC = () => {
+  const router = useRouter()
   const { t } = useTranslation();
   const ListaBlockRegalos: { amount: number, subtitle: string }[] = [
     { amount: 1000, subtitle: t("raised") },

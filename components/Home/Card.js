@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context/";
 import useHover from "../../hooks/useHover";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from '../../hooks/useToast'
 import { IoShareSocial } from "react-icons/io5";

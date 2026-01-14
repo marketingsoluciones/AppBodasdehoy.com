@@ -222,7 +222,7 @@ const SelectWithSearchField: FC<propsSelectField> = ({ label, children, options,
                                 return (
                                     <div
                                         key={idx}
-                                        ref={(el) => (optionRefs.current[idx] = el)}
+                                        ref={(el) => { optionRefs.current[idx] = el; }}
                                         className={`select-none px-3 py-2 text-sm text-gray-600 cursor-pointer hover:bg-gray-100 ${selectedIndex === idx ? 'bg-gray-100' : ''
                                             }`}
                                         onClick={() => handleOptionSelect(option)}

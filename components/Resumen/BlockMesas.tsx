@@ -4,7 +4,7 @@ import { EventContextProvider } from "../../context";
 import { MesaIcon } from "../icons";
 import { guests } from '../../utils/Interfaces';
 import { useAllowed } from "../../hooks/useAllowed";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useTranslation } from 'react-i18next';
 
 const BlockMesas: FC = () => {

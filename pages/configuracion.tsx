@@ -5,7 +5,7 @@ import { FC, useState } from "react";
 import PagesWithAuth from "../HOC/PagesWithAuth";
 import { AuthContextProvider, LoadingContextProvider } from '../context'
 import { deleteCookie } from "../utils/Cookies";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useToast } from '../hooks/useToast';
 import Cookies from "js-cookie";
 import { useAuthentication } from '../utils/Authentication';

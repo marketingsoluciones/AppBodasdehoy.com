@@ -32,6 +32,7 @@ import { GalerySvg } from "../utils/Interfaces";
 import { Arbol, Arbol2, Dj, Layer2, Piano } from "../components/icons";
 import SvgFromString from "../components/SvgFromString";
 
+// eslint-disable-next-line react-hooks/rules-of-hooks
 SwiperCore.use([Pagination]);
 
 export const ListElements: GalerySvg[] = [

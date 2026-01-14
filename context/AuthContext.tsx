@@ -5,7 +5,7 @@ import { nanoid, customAlphabet, } from 'nanoid'
 import { developments } from "../firebase";
 import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
 import { initializeApp } from "firebase/app";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { parseJwt } from "../utils/Authentication";
 import { useActivity } from "../hooks/useActivity";
 import { getStorage } from "firebase/storage";
@@ -110,6 +110,7 @@ const AuthProvider = ({ children }) => {
   const [isStartingRegisterOrLogin, setIsStartingRegisterOrLogin] = useState<boolean>(null)
   const [WihtProvider, SetWihtProvider] = useState<boolean>(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [updateActivity] = useActivity()
   const [EventTicket, setEventTicket] = useState({})
 
@@ -127,26 +128,26 @@ const AuthProvider = ({ children }) => {
     }
 
     if (!forCms) {
-      setForCms(router?.query?.show === "iframe")
+      setForCms(searchParams?.get("show") === "iframe")
     }
 
-    if (!link_id && router?.query?.link) {
-      if (router?.query?._id) {
+    if (!link_id && searchParams?.get("link")) {
+      if (searchParams?.get("_id")) {
         fetchApiEventos({
           query: queries.getPreregister,
-          variables: { _id: router?.query?._id }
+          variables: { _id: searchParams?.get("_id") }
         }).then((result: any) => {
           SetPreregister(JSON.parse(result ?? {}))
         })
       }
-      SetLinkMedia(router?.query?.m)
-      SetLink_id(router?.query?.link)
-      if (![].includes(router?.query?.m?.toString()) || router?.query?._id) {
+      SetLinkMedia(searchParams?.get("m"))
+      SetLink_id(searchParams?.get("link"))
+      if (![].includes(searchParams?.get("m")?.toString()) || searchParams?.get("_id")) {
         router.push("/login?q=register")
       }
     }
 
-    if (router?.query?.eventTicket) {
+    if (searchParams?.get("eventTicket")) {
 
       const fetchData = async () => {
         const data = await fetchApiBodas({
@@ -158,7 +159,7 @@ const AuthProvider = ({ children }) => {
       }
       fetchData()
     }
-  }, [router])
+  }, [searchParams])
 
   useEffect(() => {
     if (storage_id && link_id) {

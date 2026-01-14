@@ -10,7 +10,7 @@ import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "../Utils/DeleteConfirmation";
 import { useTranslation } from "react-i18next";
 import { useAllowed, useAllowedViewer } from "../../hooks/useAllowed";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { LiaUserClockSolid } from "react-icons/lia";
 import { t } from "i18next";
 import { deleteAllFiles, deleteRecursive } from "../Utils/storages";
@@ -38,11 +38,15 @@ export const BoddyIter = () => {
     const { t } = useTranslation();
     const [title, setTitle] = useState<string>()
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [modalDuplicate, setModalDuplicate] = useState({ state: false, data: null })
     const [loadingModal, setLoadingModal] = useState<boolean>(false)
     const storage = getStorage();
     const [selectTask, setSelectTask] = useState<string>()
     const [orderAndDirection, setOrderAndDirection] = useState<SelectModeSortType>()
+
+    // Query params usando useSearchParams (Next.js 15)
+    const queryItinerary = searchParams.get("itinerary")
 
     useEffect(() => {
         try {
@@ -291,8 +295,8 @@ export const BoddyIter = () => {
         const itinerario = event.itinerarios_array.find(elem => elem._id === itinerarioSeleccionado)
         if (itinerarios.length) {
             let nuevoItinerario = itinerario;
-            if (router?.query?.itinerary) {
-                nuevoItinerario = itinerarios.find(elem => elem?._id === router.query?.itinerary)
+            if (queryItinerary) {
+                nuevoItinerario = itinerarios.find(elem => elem?._id === queryItinerary)
             } else if (!itinerario || !itinerarios.some(elem => elem._id === itinerario._id)) {
                 nuevoItinerario = itinerarios[0]
             }
@@ -307,7 +311,7 @@ export const BoddyIter = () => {
         } else {
             setItinerario({ ...itinerario })
         }
-    }, [event, router, orderAndDirection, itinerario?._id, view])
+    }, [event, queryItinerary, orderAndDirection, itinerario?._id, view])
 
     return (
         <PermissionWrapper>

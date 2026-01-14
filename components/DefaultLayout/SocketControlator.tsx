@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, SocketContextProvider, } from "../../context"
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { handleClickCard } from "../Home/Card";
 import { useTranslation } from 'react-i18next';
 import { fetchApiBodas, queries } from "../../utils/Fetching";

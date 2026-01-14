@@ -1,13 +1,12 @@
-import { ForwardRefComponent } from "framer-motion";
-import { forwardRef, useEffect, useMemo, useRef } from "react";
+import React, { forwardRef, useEffect, useMemo, useRef } from "react";
 
 type Props = React.InputHTMLAttributes<HTMLInputElement> & {
   indeterminate?: boolean;
   tooltip?: string;
 };
 
-export const IndeterminateCheckbox: ForwardRefComponent<HTMLInputElement, Props> =
-  forwardRef(({ indeterminate, className, tooltip, ...rest }, ref) => {
+export const IndeterminateCheckbox = forwardRef<HTMLInputElement, Props>(
+  ({ indeterminate, className, tooltip, ...rest }, ref) => {
     const internalRef = useRef<HTMLInputElement | null>(null);
     const resolvedRef = (ref as React.RefObject<HTMLInputElement>) ?? internalRef;
     const combinedClassName = useMemo(() => {

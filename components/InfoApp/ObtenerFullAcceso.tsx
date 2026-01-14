@@ -1,12 +1,13 @@
 import ClickAwayListener from "react-click-away-listener"
 import { AuthContextProvider } from "../../context"
 import { GoX } from "react-icons/go";
-import { useRouter } from "next/router";
+import { useRouter, usePathname } from "next/navigation";
 import { useTranslation } from 'react-i18next';
 
 export const ObtenerFullAcceso = () => {
     const { t } = useTranslation();
     const router = useRouter()
+    const pathname = usePathname()
     const { actionModals, setActionModals } = AuthContextProvider()
     const DataInfoModulos = [
         {
@@ -66,7 +67,7 @@ export const ObtenerFullAcceso = () => {
             estado: true
         },
     ]
-    const objetoEncontrado = DataInfoModulos?.find(objeto => objeto?.alt === router?.asPath);
+    const objetoEncontrado = DataInfoModulos?.find(objeto => objeto?.alt === pathname);
 
     return (
         <div className="p-4 overflow-y-auto h-full space-y-5 relative text-gray-800">

@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 interface propsRecuperarCompra { }
 

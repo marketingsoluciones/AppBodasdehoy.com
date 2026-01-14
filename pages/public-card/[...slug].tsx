@@ -9,7 +9,7 @@ import { openGraphData } from "../_app";
 import { AuthContextProvider } from "../../context/AuthContext";
 import { EventContextProvider } from "../../context";
 import { TempPastedAndDropFile } from "../../components/Itinerario/MicroComponente/ItineraryPanel";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 interface props {
   evento: Event

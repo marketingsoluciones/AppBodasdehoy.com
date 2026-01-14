@@ -1,7 +1,7 @@
 import { t } from "i18next";
 import { Form, Formik } from "formik";
 import InputField from "../../../Forms/InputField";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { PiXBold } from "react-icons/pi";
 import { fetchApiEventos, queries } from "../../../../utils/Fetching";
 import { useToast } from "../../../../hooks/useToast";

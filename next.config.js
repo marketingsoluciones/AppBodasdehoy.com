@@ -1,6 +1,9 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Habilitar React Strict Mode para mejor desarrollo
+  reactStrictMode: true,
 
-
-module.exports = {
+  // Headers CORS para API routes
   async headers() {
     return [
       {
@@ -22,8 +25,28 @@ module.exports = {
       },
     ];
   },
+
+  // Configuración de imágenes - Next.js 15 usa remotePatterns en lugar de domains
   images: {
-    domains:
-      ['i.ibb.co', 'api.qrserver.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'i.ibb.co',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.qrserver.com',
+        pathname: '/**',
+      },
+    ],
+  },
+
+  // Configuración experimental para compatibilidad
+  experimental: {
+    // Optimizar imports de paquetes grandes
+    optimizePackageImports: ['react-icons', 'lucide-react', 'framer-motion'],
   },
 };
+
+module.exports = nextConfig;

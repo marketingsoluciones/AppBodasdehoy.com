@@ -3,7 +3,7 @@ import NumericCounter from "../../components/RRPP/Sub-Componentes/ContadorNumeri
 import HeaderComp from "../../components/RRPP/Sub-Componentes/HeaderComp";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { AuthContextProvider } from "../../context";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useToast } from "../../hooks/useToast";
 import Loading from "../../components/DefaultLayout/Loading";
 import { useTranslation } from "react-i18next";

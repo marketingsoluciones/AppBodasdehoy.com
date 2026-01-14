@@ -10,7 +10,7 @@ import { HashtagMatcher, Link, Url, UrlMatcher, UrlProps } from "interweave-auto
 import { useTranslation } from "react-i18next";
 import { ImageAvatar } from "./Utils/ImageAvatar";
 import { RelativeTime } from "./Utils/RelativeTime";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 export const Notifications = () => {
   const { t } = useTranslation()
