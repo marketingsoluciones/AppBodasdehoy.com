@@ -106,25 +106,16 @@ const Navigation: FC = () => {
         />
       )}
       <header className="f-top relative w-full bg-white ">
-        {/* primer menu superior con logo, redirecion al directiorio y opciones de perfil para la vista desktop  */}
         <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0  ">
-          {/* <ClickAwayListener onClickAway={() => {
-            setTimeout(() => {
-              setShowSidebar(false)
-            }, 50);
-          }}>
-            <div >
-              <MenuIcon
-                onClick={() => setShowSidebar(!showSidebar)}
-                className="text-primary w-8 h-8 md:hidden cursor-pointer"
-              />
-              <Sidebar showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
-            </div>
-          </ClickAwayListener> */}
           <span
             onClick={() => {
-              //Loading(setLoading);
-              router.push(config?.pathDirectory ? `${config?.pathDirectory}` : ``)
+              const path = config?.pathDomain ? `${config?.pathDomain}` : '/';
+              // Verificar si es una URL externa (comienza con http:// o https://)
+              if (path && (path.startsWith('http://') || path.startsWith('https://'))) {
+                window.open(path, '_blank');
+              } else if (path) {
+                router.push(path);
+              }
               setIsActiveStateSwiper(0)
             }}
             className="cursor-pointer items-center flex justify-center w-[130px] md:w-[208px] h-[60px] md:h-[64px] translate-x-[-14px] md:translate-x-[-160px]">

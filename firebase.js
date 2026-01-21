@@ -214,7 +214,7 @@ export const developments = [
     cookie: "sessionChampagne-events",
     domain: ".champagne-events.com.mx",
     cookieGuest: "guestchampagne-events",
-    pathDomain: "https://www.champagne-events.com.mx/",
+    pathDomain: "https://www.champagne-events.com.mx",
     pathLogin: "",
     pathDirectory: "champagne-events.com.mx",
     logoDirectory: <img className="hover:opacity-80 transition text-primary w-full h-full object-contain" src="https://i.ibb.co/Nsr8LgX/cropped-Logo-Gray-Champagne-1.png" />,
