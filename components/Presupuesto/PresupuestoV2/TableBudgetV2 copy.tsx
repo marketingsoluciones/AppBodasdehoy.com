@@ -530,7 +530,7 @@ export const TableBudgetV2: FC<props> = ({ data, setShowModalDelete }) => {
           cell: info => {
             let value = info.getValue()
             const isHidden = (elem?.accessor === "gasto" && info?.row?.original?.gastoOriginal?.estatus === false) ||
-              (elem?.accessor === "nombre" && info?.row?.original?.itemOriginal?.estatus === true);
+              (elem?.accessor === "nombre" && info?.row?.original?.itemOriginal?.estatus === false);
 
             return elem.isEditabled || info?.row?.original?.accessorEditables?.includes(elem.accessor)
               ? elem?.type !== "select"

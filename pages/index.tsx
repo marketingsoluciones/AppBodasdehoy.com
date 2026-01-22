@@ -15,6 +15,7 @@ import { useToast } from "../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { TbTableShare } from "react-icons/tb";
 import { SelectModeSort } from "../components/Utils/SelectModeSort";
+import EventNotFound from "../components/Utils/EventNotFound";
 
 const Home: NextPage = () => {
   const { user, verificationDone, config, setUser } = AuthContextProvider()
@@ -28,6 +29,7 @@ const Home: NextPage = () => {
   const toast = useToast()
   const { t } = useTranslation()
   const processedRef = useRef<string | null>(null)
+  const [eventNotFound, setEventNotFound] = useState<boolean>(false)
 
   useEffect(() => {
     const pAccShas = router?.query?.pAccShas as string
@@ -40,6 +42,7 @@ const Home: NextPage = () => {
       const data = eventsGroup?.find(elem => elem?._id === pAccShas?.slice(-24))
       if (data) {
         processedRef.current = pAccShas
+        setEventNotFound(false)
         handleClickCard({ t, final: true, config, data, setEvent, user, setUser, router })
           .then((resp) => {
             if (resp) toast("warning", resp)
@@ -48,13 +51,30 @@ const Home: NextPage = () => {
             console.error("Error en handleClickCard:", error)
             toast("error", t("Ha ocurrido un error"))
           })
+      } else {
+        // Evento no encontrado
+        processedRef.current = pAccShas
+        setEventNotFound(true)
+        setLoading(false)
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [verificationDone, eventsGroupDone, router?.query?.pAccShas, user, eventsGroup])
 
   if (verificationDone && eventsGroupDone) {
-    if (router?.query?.pAccShas) {
+    // Mostrar componente cuando el evento no se encuentra
+    if (router?.query?.pAccShas && eventNotFound) {
+      return (
+        <EventNotFound 
+          onBackToHome={() => {
+            setEventNotFound(false)
+            processedRef.current = null
+          }}
+        />
+      )
+    }
+    // Mientras procesa el pAccShas, mostrar pantalla en blanco
+    if (router?.query?.pAccShas && !eventNotFound) {
       return <></>
     }
     if (router?.query?.pGuestEvent) {

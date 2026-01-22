@@ -60,7 +60,14 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
                 valor: totalItem
               }
             }).then((result: any) => {
-              const SumaTotalItems = original.gastoOriginal.items_array.reduce((acumulador, item) => acumulador + (item.total || 0), 0)
+              // Los items ocultos NO deben sumar al total
+              const SumaTotalItems = original.gastoOriginal.items_array.reduce((acumulador, item) => {
+                // Excluir items ocultos del cálculo
+                if (item.estatus === false) {
+                  return acumulador;
+                }
+                return acumulador + (item.total || 0);
+              }, 0)
               event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].coste_final = SumaTotalItems
               const sumaTotalesGastos = original.categoriaOriginal.gastos_array.reduce((acumulador, item) => acumulador + (item.coste_final || 0), 0)
               const nuevasCategorias = event.presupuesto_objeto.categorias_array.map((cat, idx) =>
@@ -379,7 +386,38 @@ export const handleChangeEstatusItem = async ({ event, categoriaID, gastoId, ite
         valor: !ItemEstatus
       }
     }).then((result: any) => {
-      setEvent({ ...event })
+      // Recalcular el coste_final del gasto excluyendo items ocultos
+      const gasto = event.presupuesto_objeto.categorias_array[f1].gastos_array[f2];
+      const SumaTotalItems = gasto.items_array.reduce((acumulador, item) => {
+        // Excluir items ocultos del cálculo
+        if (item.estatus === false) {
+          return acumulador;
+        }
+        return acumulador + (item.total || 0);
+      }, 0);
+      
+      // Actualizar el coste_final del gasto
+      event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].coste_final = SumaTotalItems;
+      
+      // Recalcular el coste_final de la categoría sumando todos los gastos
+      const sumaTotalesGastos = event.presupuesto_objeto.categorias_array[f1].gastos_array.reduce(
+        (acumulador, item) => acumulador + (item.coste_final || 0), 
+        0
+      );
+      
+      // Actualizar el coste_final de la categoría en el contexto
+      const nuevasCategorias = event.presupuesto_objeto.categorias_array.map((cat, idx) =>
+        idx === f1 ? { ...cat, coste_final: sumaTotalesGastos } : cat
+      );
+      
+      // Actualizar el contexto
+      setEvent(prev => ({
+        ...prev,
+        presupuesto_objeto: {
+          ...prev.presupuesto_objeto,
+          categorias_array: nuevasCategorias
+        }
+      }));
     })
   } catch (error) {
     console.log(220046, error);
