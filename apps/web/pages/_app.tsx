@@ -1,4 +1,5 @@
 import '../styles/globals.css'
+import '../utils/react-polyfill' // Polyfill para findDOMNode en React 19
 import DefaultLayout from '../layouts/DefaultLayout'
 import 'swiper/css';
 import "swiper/css/bundle"
@@ -11,11 +12,17 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from "../utils/i18n"
 import { useAllowedRouter } from '../hooks/useAllowed';
 import { BlockRedirection } from '../components/Utils/BlockRedirection';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';
 import { dataMetaData } from "../utils/SeoRecurses"
 import { varGlobalDevelopment } from "../context/AuthContext"
 import { fetchApiBodas, queries } from '../utils/Fetching';
+import { developments } from '../firebase';
+import dynamic from 'next/dynamic';
+import Head from 'next/head';
+import useDevLogger from '../hooks/useDevLogger';
+import { verifyDomain, logUrlVerification, type UrlCheckResult } from '../utils/verifyUrls';
+import { CopilotPrewarmer } from '../components/Copilot/CopilotPrewarmer';
 
 const MyApp = ({ Component, pageProps, openGraphData }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
@@ -33,6 +40,36 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
     }
   }, [valirBlock])
 
+  // Verificar dominio y URLs al cargar (solo en cliente)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      const domainInfo = verifyDomain();
+      console.log('[App] Información del dominio:', domainInfo);
+      
+      // Verificar URLs críticas
+      const criticalUrls = [
+        process.env.NEXT_PUBLIC_BASE_URL,
+        process.env.NEXT_PUBLIC_BASE_API_BODAS,
+        window.location.origin,
+      ].filter(Boolean) as string[];
+      
+      Promise.all(
+        criticalUrls.map(async (url): Promise<UrlCheckResult> => {
+          try {
+            const response = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
+            console.log(`[App] ✅ ${url} - Status: ${response.status}`);
+            return { url, status: 'ok' as const, statusCode: response.status };
+          } catch (error: any) {
+            console.warn(`[App] ⚠️ ${url} - Error:`, error.message);
+            return { url, status: 'error' as const, error: error.message };
+          }
+        })
+      ).then(results => {
+        logUrlVerification(results);
+      });
+    }
+  }, [])
+
   return (
     <>
       <NextSeo
@@ -40,6 +77,8 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
       />
       <I18nextProvider i18n={i18n}>
         <DefaultLayout>
+          {/* Pre-calentar el chat de LobeChat en segundo plano */}
+          <CopilotPrewarmer />
           {!!message && <div className='bg-yellow-400 absolute top-[7.5rem] left-0 w-full bg-red-500 z-50 flex items-center justify-center'>
             <span className='text-center px-10 py-0.5'>{message}</span>
           </div>}
@@ -76,11 +115,6 @@ MyApp.getInitialProps = async ({ Component, ctx }) => {
 
 export default MyApp
 
-
-
-import dynamic from 'next/dynamic';
-import Head from 'next/head';
-import { developments } from '../firebase';
 const PixelTracker = dynamic(() => import("../components/PixelTracker") as any, {
   ssr: false,
 });
@@ -90,7 +124,11 @@ const Load = ({ setValirBlock }) => {
   const [isAllowedRouter] = useAllowedRouter()
   const { event } = EventContextProvider()
   const { user } = AuthContextProvider()
-  const pathname = usePathname()
+  const router = useRouter()
+  const pathname = router.pathname
+
+  // Enable browser logging in development for Claude Code integration
+  useDevLogger(process.env.NODE_ENV === 'development')
 
   useEffect(() => {
     // No bloquear mientras los datos se están cargando o si no hay evento seleccionado
@@ -100,7 +138,7 @@ const Load = ({ setValirBlock }) => {
       return
     }
     setValirBlock(!isAllowedRouter())
-  }, [event, user, pathname])
+  }, [event, user, pathname, isAllowedRouter, setValirBlock])
 
   return (
     <>
@@ -108,7 +146,7 @@ const Load = ({ setValirBlock }) => {
         <link id="favicon" rel="icon" href={config?.favicon} />
         <title>{config?.headTitle}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-        <meta name="description" content="¡Bodas de Hoy Organizador! Organiza tu boda en un sólo click., user-scalable=no, width=device-width, initial-scale=1" />
+        <meta name="description" content="¡Bodas de Hoy Organizador! Organiza tu boda en un solo click., user-scalable=no, width=device-width, initial-scale=1" />
       </Head>
       <PixelTracker />
       <style jsx global>

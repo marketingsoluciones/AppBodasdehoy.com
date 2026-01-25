@@ -49,23 +49,17 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
     const iframeRef = (ref as React.RefObject<HTMLIFrameElement>) || internalRef;
     const lastSentPath = useRef<string | null>(null);
     const lastSentEventId = useRef<string | null>(null);
+    const timeoutRef = useRef<number | null>(null);
+    const hasLoadedRef = useRef(false);
 
     // Obtener contexto de la página actual con datos reales
     const currentPath = router.pathname;
 
     const getCopilotBaseUrl = useCallback(() => {
-      // En SSR o si no hay window, mantener el comportamiento anterior.
       if (typeof window === 'undefined') return '/copilot-chat';
 
-      // En local, es más estable cargar LobeChat directo en 3210 (evita problemas de assets bajo subpath).
-      const hostname = window.location.hostname;
-      const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
-      // Nota: en algunos entornos "localhost" puede resolver a IPv6 y fallar; 127.0.0.1 es más fiable.
-      if (isLocal) return 'http://127.0.0.1:3210';
-
-      // En dominio, cargar el chat real (configurable)
+      // Este proyecto no usa localhost ni IPs locales. Siempre chat-test (o NEXT_PUBLIC_CHAT).
       const envUrl = process.env.NEXT_PUBLIC_CHAT;
-      // Default actual mientras exista solo entorno de pruebas
       const fallback = 'https://chat-test.bodasdehoy.com';
       const base = (envUrl || fallback).replace(/\/$/, '');
       return base;
@@ -104,7 +98,7 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
       // Si cargamos solo `/chat` en root, devuelve 404 (lo que ves en pantalla).
       const chatBase = (() => {
         try {
-          const u = new URL(baseUrl, typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
+          const u = new URL(baseUrl, typeof window !== 'undefined' ? window.location.origin : 'https://chat-test.bodasdehoy.com');
           const path = u.pathname.replace(/\/$/, '');
 
           // Asegurar /{variants}
@@ -146,34 +140,54 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
       setBackendCheck('idle');
       setBackendError(null);
       setCopyStatus(null);
+      hasLoadedRef.current = false;
 
-      const timeoutMs = 15000;
-      const timer = window.setTimeout(() => {
-        // Si aún no cargó, probablemente el servidor no está levantado o está compilando
-        setError(
-          'El Copilot está tardando demasiado en cargar. ' +
-            'Verifica que el servicio del chat esté levantado (local: http://127.0.0.1:3210) y recarga.'
-        );
-        setIsLoaded(true);
+      // Limpiar timeout anterior si existe
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+      }
+
+      // ✅ AUMENTADO: 60 segundos para dar tiempo a LobeChat en modo dev de compilar
+      const timeoutMs = 60000;
+      timeoutRef.current = window.setTimeout(() => {
+        // Solo mostrar error si el iframe NO ha cargado aún
+        if (!hasLoadedRef.current) {
+          setError(
+            'El Copilot tarda demasiado en cargar. Verifica que chat-test.bodasdehoy.com responda. Si usas VPN, prueba desactivarla y pulsa Reintentar.'
+          );
+          setIsLoaded(true);
+        }
       }, timeoutMs);
 
-      return () => window.clearTimeout(timer);
+      return () => {
+        if (timeoutRef.current) {
+          window.clearTimeout(timeoutRef.current);
+        }
+      };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [iframeSrc]);
 
     // Manejar carga del iframe
     const handleLoad = useCallback(() => {
       console.log('[CopilotIframe] ✅ Iframe cargado:', iframeSrc);
+      hasLoadedRef.current = true;
       setIsLoaded(true);
-      setError(null);
-      // ✅ CORRECCIÓN: Forzar que el iframe sea visible inmediatamente
+      setError(null); // ✅ Limpiar cualquier error previo
+
+      // ✅ Cancelar el timeout ya que el iframe cargó correctamente
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
       console.log('[CopilotIframe] ✅ Marcando iframe como cargado y visible');
     }, [iframeSrc]);
 
     // Manejar error del iframe
     const handleError = useCallback((e: React.SyntheticEvent) => {
       console.error('[CopilotIframe] Error loading:', iframeSrc, e);
-      setError(`No se pudo cargar: ${iframeSrc}. Error 502 - Verifica que el servidor este corriendo.`);
+      setError(
+        'No se pudo cargar el Copilot (502 Bad Gateway). Verifica que chat-test.bodasdehoy.com responda. Si usas VPN, prueba desactivarla y recarga.'
+      );
       setIsLoaded(true);
     }, [iframeSrc]);
 
@@ -320,7 +334,7 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
         hasScreenData: Object.keys(pageContextData.screenData).length > 0,
       });
 
-      // Si el iframe es cross-origin (ej: http://localhost:3210 o https://chat.bodasdehoy.com),
+      // Si el iframe es cross-origin (chat-test.bodasdehoy.com),
       // tenemos que usar su origin real como targetOrigin.
       const copilotOrigin = (() => {
         try {
@@ -427,16 +441,26 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
 
         {error && (
           <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
-            <div className="flex flex-col items-center gap-4 p-6 text-center">
+            <div className="flex flex-col items-center gap-4 p-6 text-center max-w-md">
               <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
                 <span className="text-2xl">⚠️</span>
               </div>
               <p className="text-sm text-red-600">{error}</p>
+              <a
+                href="https://chat-test.bodasdehoy.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-pink-600 hover:underline"
+              >
+                Abrir chat-test en nueva pestaña
+              </a>
               <button
                 onClick={() => {
                   setIsLoaded(false);
                   setError(null);
-                  setIframeSrc(buildCopilotUrl());
+                  const url = buildCopilotUrl();
+                  const sep = url.includes('?') ? '&' : '?';
+                  setIframeSrc(`${url}${sep}_retry=${Date.now()}`);
                 }}
                 className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
               >
