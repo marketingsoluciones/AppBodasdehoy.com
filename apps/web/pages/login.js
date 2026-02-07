@@ -2,7 +2,6 @@ import { useRouter } from "next/router";
 import { ButtonClose } from "../components/Forms/ButtonClose";
 import { Login, Register, ResetPass } from "../components/Forms/Login/Forms";
 import { useEffect, useState } from "react";
-import { useMounted } from "../hooks/useMounted";
 import { AuthContextProvider, LoadingContextProvider } from "../context";
 import { ArrowLeft } from "../components/icons";
 
@@ -26,16 +25,18 @@ const PageLogin = () => {
       if (typeof setLoading === "function") {
         setTimeout(() => {
           setLoading(false)
-        }, 1000);
+        }, 500); // Reducido de 1000ms a 500ms
       }
     }
+    // ✅ CORRECCIÓN: NO activar loading al desmontar
+    // Esto causaba que el overlay bloqueara durante redirects
     return () => {
       if (isMounted) {
         setIsMounted(false)
-        setLoading(true)
+        // setLoading(true) ← REMOVIDO - No activar loading al salir
       }
     }
-  }, [isMounted])
+  }, [isMounted, setLoading])
 
   useEffect(() => {
     if (preregister) {
