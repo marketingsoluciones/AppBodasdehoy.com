@@ -1,34 +1,210 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Monorepo Bodas de Hoy
 
-## Getting Started
+Aplicación organizador de eventos y chat IA para Bodas de Hoy.
 
-First, run the development server:
+## 🏗️ Estructura del Monorepo
 
-```bash
-npm run dev
-# or
-yarn dev
+```
+├── apps/
+│   ├── web/                    # Organizador de eventos (Next.js 15)
+│   │   ├── components/         # Componentes React
+│   │   ├── pages/              # Rutas de Next.js
+│   │   ├── services/           # Servicios API
+│   │   └── context/            # Contextos React
+│   │
+│   └── copilot/                # Chat IA - LobeChat (Next.js 15)
+│       ├── src/                # Código fuente
+│       └── .env*               # Configuración
+│
+├── packages/                   # Paquetes compartidos
+│   └── copilot-ui/            # Componentes UI del copilot
+│
+├── docs/                      # Documentación
+│   └── archive/               # Docs históricas (archivadas)
+│
+├── scripts/                   # Scripts útiles
+├── ecosystem.config.js        # PM2 config (app-test + chat-test)
+└── package.json              # Configuración del monorepo
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Quick Start
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+### Desarrollo Local
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+```bash
+# Instalar dependencias
+pnpm install
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+# Levantar app web (puerto 8080)
+pnpm dev:web
 
-## Learn More
+# Levantar copilot (puerto 3210)
+pnpm dev:copilot
 
-To learn more about Next.js, take a look at the following resources:
+# Levantar ambos en paralelo
+pnpm dev:local
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Build para Producción
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+```bash
+# Build web
+pnpm build:web
 
-## Deploy on Vercel
+# Build copilot
+pnpm build:copilot
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Build ambos
+pnpm build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## 🌐 Dominios
+
+| Entorno | App Web | Chat IA |
+|---------|---------|---------|
+| **Desarrollo Local** | http://localhost:8080 | http://localhost:3210 |
+| **Test** | https://app-test.bodasdehoy.com | https://chat-test.bodasdehoy.com |
+| **Producción** | https://organizador.bodasdehoy.com | https://iachat.bodasdehoy.com |
+
+## 📦 Apps Principales
+
+### apps/web - Organizador de Eventos
+
+Aplicación organizador para gestión de eventos (bodas, bautizos, etc.).
+
+**Tecnologías**:
+- Next.js 15
+- React 19
+- TypeScript
+- Tailwind CSS
+
+**Features**:
+- Gestión de invitados
+- Presupuesto
+- Mesas
+- Itinerario
+- Copilot IA integrado
+
+### apps/copilot - Chat IA
+
+Chat inteligente basado en LobeChat para asistencia en eventos.
+
+**Tecnologías**:
+- Next.js 15
+- LobeChat
+- PostgreSQL (Neon)
+- Cloudflare R2 (storage)
+
+**Features**:
+- Chat conversacional
+- Contexto de eventos
+- MCP Tools
+- Historial de conversaciones
+
+## 🔧 Configuración
+
+### Variables de Entorno
+
+#### apps/web/.env.production
+```env
+NEXT_PUBLIC_CHAT=https://chat.bodasdehoy.com
+NEXT_PUBLIC_EVENTSAPP=https://organizador.bodasdehoy.com
+NEXT_PUBLIC_BASE_URL=https://apiapp.bodasdehoy.com
+```
+
+#### apps/copilot/.env
+```env
+APP_URL=https://iachat.bodasdehoy.com
+DATABASE_URL=postgresql://...
+S3_ENDPOINT=https://...
+```
+
+## 📚 Documentación
+
+- [ARQUITECTURA.md](ARQUITECTURA.md) - Arquitectura del proyecto
+- [QUICK_START.md](QUICK_START.md) - Guía rápida de inicio
+- [DIAGNOSTICO_COPILOT_COMPLETO_2026.md](DIAGNOSTICO_COPILOT_COMPLETO_2026.md) - Diagnóstico del Copilot
+- [SOLUCION_COMPLETA_COPILOT.md](SOLUCION_COMPLETA_COPILOT.md) - Soluciones implementadas
+- [docs/](docs/) - Documentación adicional
+
+## 🛠️ Scripts Útiles
+
+```bash
+# Desarrollo
+pnpm dev:web              # Solo web
+pnpm dev:copilot          # Solo copilot
+pnpm dev:local            # Ambos apps
+
+# Build
+pnpm build:web            # Build web
+pnpm build:copilot        # Build copilot
+
+# Tests
+pnpm test:web             # Tests de web
+```
+
+## 🚀 Deployment
+
+### Con PM2 (Servidor)
+
+```bash
+# Iniciar servicios
+pm2 start ecosystem.config.js
+
+# Ver estado
+pm2 list
+
+# Ver logs
+pm2 logs app-test
+pm2 logs chat-test
+
+# Reiniciar
+./scripts/reiniciar-servicios-test.sh
+```
+
+## 📝 Notas Importantes
+
+### Componente Nativo vs Iframe
+
+El Copilot ahora usa **CopilotChatNative** (componente nativo) en lugar de iframe:
+
+**Archivo**: `apps/web/components/ChatSidebar/ChatSidebar.tsx`
+```tsx
+import CopilotChatNative from '../Copilot/CopilotChatNative';
+```
+
+**Ventajas**:
+- ✅ Editor completo
+- ✅ Mejor rendimiento
+- ✅ No depende de chat-test
+- ✅ Más fácil de mantener
+
+### chat-test.bodasdehoy.com
+
+Para levantar chat-test en el servidor:
+
+```bash
+# 1. Verificar builds
+ls -la apps/copilot/.next
+
+# 2. Iniciar con PM2
+pm2 start ecosystem.config.js
+
+# 3. Verificar
+curl -I https://chat-test.bodasdehoy.com
+```
+
+## 🤝 Contributing
+
+1. Crear rama desde `master`
+2. Hacer cambios
+3. Commit y push
+4. Crear PR
+
+## 📄 License
+
+Propietario - Bodas de Hoy
+
+---
+
+**Última actualización**: 2026-02-07
