@@ -32,7 +32,10 @@ export const CopilotPrewarmer: React.FC<CopilotPrewarmerProps> = ({ development 
 
     const prewarmChat = async () => {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_CHAT || 'https://chat-test.bodasdehoy.com';
+        // Monorepo: app-test ↔ chat-test. Precalentar la URL que usará el Copilot (chat-test en app-test).
+        const baseUrl = typeof window !== 'undefined' && window.location.hostname?.includes('app-test')
+          ? 'https://chat-test.bodasdehoy.com'
+          : (process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com');
         const cleanBase = baseUrl.replace(/\/$/, '');
 
         // Pre-calentar las URLs en secuencia (no en paralelo para no sobrecargar)

@@ -20,7 +20,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Cookies from 'cookies'
 
-const BACKEND_URL = process.env.BACKEND_URL || 'https://backend-chat-test.bodasdehoy.com'
+const BACKEND_URL = process.env.BACKEND_URL || 'https://api-ia.bodasdehoy.com'
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.bodasdehoy.com/graphql'
 
 // Identificar usuario por email usando el backend
@@ -76,7 +76,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Solo permitir en desarrollo o subdominios de test
   const host = req.headers.host || ''
-  const isDevOrTest = host.includes('localhost') || host.includes('chat-test') || host.includes('test')
+  const isDevOrTest = host.includes('localhost') || host.includes('chat-test') || host.includes('app-test') || host.includes('test')
+
+  // Detectar si estamos detrás de un proxy (Cloudflare Tunnel)
+  // En ese caso, la conexión interna es HTTP aunque el cliente use HTTPS
+  const isBehindProxy = req.headers['x-forwarded-proto'] === 'https' || req.headers['cf-visitor']
+  // Para dev/test, desactivar secure cookies cuando estamos detrás de proxy local
+  const useSecureCookies = !host.includes('localhost') && !isBehindProxy
 
   if (!isDevOrTest && process.env.NODE_ENV === 'production') {
     return res.status(403).json({ error: 'This endpoint is only available in development/test environments' })
@@ -90,7 +96,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (email) {
       console.log(`[dev/refresh-session] Intentando identificar usuario por email: ${email}`)
 
+      const { force } = req.body || {}
       const userData = await identifyUserByEmail(email)
+
+      // Si force=true y estamos en localhost o test, crear sesión sin verificar backend
+      if (force && isDevOrTest && !userData?.success) {
+        console.log(`[dev/refresh-session] Modo FORCE: Creando sesión sin verificar backend (host: ${host})`)
+        const oneYear = 365 * 24 * 60 * 60 * 1000
+        const expires = new Date(Date.now() + oneYear)
+
+        const devSessionToken = Buffer.from(JSON.stringify({
+          email,
+          user_id: 'dev_user_' + Date.now(),
+          role: 'user',
+          dev: true,
+          force: true,
+          exp: Date.now() + oneYear
+        })).toString('base64')
+
+        cookies.set('sessionBodas', devSessionToken, {
+          domain: host.includes('localhost') ? undefined : '.bodasdehoy.com',
+          path: '/',
+          expires,
+          httpOnly: false,
+          secure: useSecureCookies,
+          sameSite: 'lax'
+        })
+
+        return res.status(200).json({
+          success: true,
+          message: `Sesión FORCE creada para ${email}. Recarga la página.`,
+          warning: 'Esta sesión es solo para desarrollo/test',
+          expires: expires.toISOString()
+        })
+      }
 
       if (userData?.success) {
         // El usuario existe, establecer cookies de sesión simuladas
@@ -111,7 +150,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           path: '/',
           expires,
           httpOnly: false,
-          secure: !host.includes('localhost'),
+          secure: useSecureCookies,
           sameSite: 'lax'
         })
 
@@ -154,7 +193,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         path: '/',
         expires,
         httpOnly: false,
-        secure: !host.includes('localhost'),
+        secure: useSecureCookies,
         sameSite: 'lax'
       })
 
@@ -165,7 +204,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         path: '/',
         expires: new Date(Date.now() + 60 * 60 * 1000), // 1 hora para idToken
         httpOnly: false,
-        secure: !host.includes('localhost'),
+        secure: useSecureCookies,
         sameSite: 'lax'
       })
 

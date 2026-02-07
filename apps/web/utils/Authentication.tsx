@@ -45,11 +45,19 @@ export const useAuthentication = () => {
 
   const getSessionCookie = useCallback(async (tokenID: any): Promise<string | undefined> => {
     if (tokenID) {
+      console.log("[Auth] Llamando auth mutation con development:", config?.development)
       const authResult: any = await fetchApiBodas({
         query: queries.auth,
         variables: { idToken: tokenID },
         development: config?.development
       });
+      console.log("[Auth] Resultado de auth mutation:", {
+        hasResult: !!authResult,
+        hasSessionCookie: !!authResult?.sessionCookie,
+        resultType: typeof authResult,
+        resultKeys: authResult ? Object.keys(authResult) : [],
+        error: authResult instanceof Error ? authResult.message : null
+      })
       if (authResult?.sessionCookie) {
         const { sessionCookie } = authResult;
         // Setear en localStorage token JWT
@@ -235,14 +243,14 @@ export const useAuthentication = () => {
               toast("success", t("Inició sesión con éxito"))
               updateActivity("logged")
               updateActivityLink("logged")
-              
+
               // Redirigir después del login exitoso si estamos en la página de login
               // Esperar un momento para asegurar que las cookies se establezcan correctamente
               setTimeout(() => {
                 // Verificar que las cookies estén establecidas
                 const sessionCookie = Cookies.get(config?.cookie)
                 const idToken = Cookies.get("idTokenV0.1.0")
-                
+
                 if (sessionCookie && idToken) {
                   console.log("[Auth] ✅ Cookies verificadas (popup), redirigiendo...")
                 } else {
@@ -251,7 +259,7 @@ export const useAuthentication = () => {
                     idToken: !!idToken
                   })
                 }
-                
+
                 if (window.location.pathname === '/login' || window.location.pathname.includes('/login')) {
                   const queryD = new URLSearchParams(window.location.search).get('d')
                   const redirectPath = queryD || '/'
@@ -260,24 +268,52 @@ export const useAuthentication = () => {
                 }
               }, 1500)
             } else {
-              console.log(100053)
-              if (whoYouAre && whoYouAre !== "") {
-                console.log(100054)
-                // fetchApiBodas({
-                //   query: queries.createUser,
-                //   variables: {
-                //     uid: res?.user?.uid,
-                //     role: whoYouAre
-                //   },
-                //   development: config.development
-                // }).then(async () => {
-                //   await getSessionCookie(idToken)
-                //   setUser({ ...res.user, role: [whoYouAre] });
-                //   toast("success", t("Registro realizado con éxito"))
-                //   updateActivity("registered")
-                //   updateActivityLink("registered")
+              console.log("[Auth] Usuario autenticado en Firebase pero sin datos en API, verificando...")
 
-                // })
+              // Si el usuario existe en Firebase pero no tiene datos en la API,
+              // crear automáticamente el registro en la API en lugar de pedir registro
+              if (res?.user?.uid && res?.user?.email) {
+                console.log("[Auth] Creando usuario automáticamente en la API...")
+                try {
+                  // Crear usuario en la API con rol por defecto
+                  const createResult = await fetchApiBodas({
+                    query: queries.createUser,
+                    variables: {
+                      uid: res.user.uid,
+                      role: whoYouAre && whoYouAre !== "" ? [whoYouAre] : ["creator"]
+                    },
+                    development: config?.development
+                  })
+
+                  if (createResult) {
+                    console.log("[Auth] ✅ Usuario creado en API exitosamente")
+                    const token = (await res?.user?.getIdTokenResult())?.token;
+                    const sessionCookie = await getSessionCookie(token)
+
+                    // Actualizar estado con los datos
+                    setUser({ ...res.user, ...createResult, status: true })
+                    toast("success", t("Inició sesión con éxito"))
+                    updateActivity("logged")
+                    updateActivityLink("logged")
+
+                    // Redirigir después del login exitoso
+                    setTimeout(() => {
+                      if (window.location.pathname === '/login' || window.location.pathname.includes('/login')) {
+                        const queryD = new URLSearchParams(window.location.search).get('d')
+                        const redirectPath = queryD || '/'
+                        console.log("[Auth] Redirigiendo después de crear usuario a:", redirectPath)
+                        router.push(redirectPath)
+                      }
+                    }, 1500)
+                  } else {
+                    console.log("[Auth] No se pudo crear usuario, mostrando registro")
+                    setStage("register")
+                  }
+                } catch (createError) {
+                  console.error("[Auth] Error creando usuario:", createError)
+                  // Fallback: mostrar formulario de registro
+                  setStage("register")
+                }
               } else {
                 console.log(100055)
                 setStage("register")

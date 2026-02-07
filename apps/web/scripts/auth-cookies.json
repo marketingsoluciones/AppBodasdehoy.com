@@ -1,0 +1,44 @@
+[
+  {
+    "name": "cf_clearance",
+    "value": "iChWW_rW3Fy4Yna2I9jcOt.V3_23UjwY8sXe3P3tp2A-1770232020-1.2.1.1-a3lApAxgGJyj57DFB9EQ_4yr6Xyp_S5PQT5mXnwYKGwXIVJr9QuQwxnu2SGDfV4KbBsDrV2m76aBjzNH3pTLh_7Xyta0lRfGvo6oZ3q4OtDBM3mUOam7mFBjwAxuStfEGGilfyOe95taniqPY_k1sMbdsVjfnsf0_rB9QUgfKRop3Fa6vO330CZ_HNBmXjiCf_92OHr3bisS0USYtTH4XwF6UfyVWzcnGTjq19hOnY8",
+    "domain": ".bodasdehoy.com",
+    "path": "/",
+    "expires": 1801768020.622779,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "None",
+    "partitionKey": "https://bodasdehoy.com",
+    "_crHasCrossSiteAncestor": false
+  },
+  {
+    "name": "guestbodas",
+    "value": "{%22guestUid%22:%221sJ7-gdoHxjLuApgkvCMP3JNITrC%22}",
+    "domain": ".bodasdehoy.com",
+    "path": "/",
+    "expires": 1801768020,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "_ga",
+    "value": "GA1.1.1060091578.1770232021",
+    "domain": ".bodasdehoy.com",
+    "path": "/",
+    "expires": 1804792021.092772,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "_ga_9H8TT0ZRHH",
+    "value": "GS2.1.s1770232021$o1$g1$t1770232023$j58$l0$h840242161",
+    "domain": ".bodasdehoy.com",
+    "path": "/",
+    "expires": 1804792023.57455,
+    "httpOnly": false,
+    "secure": false,
+    "sameSite": "Lax"
+  }
+]

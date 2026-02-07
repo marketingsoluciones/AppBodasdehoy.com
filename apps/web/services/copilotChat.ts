@@ -12,6 +12,7 @@
  */
 
 import Cookies from 'js-cookie';
+import { reportCopilotMessageSent } from '../utils/copilotMetrics';
 
 const CHAT_API_BASE = '';
 
@@ -53,7 +54,9 @@ export type EnrichedEventType =
   | 'progress'
   | 'code_output'
   | 'tool_start'
-  | 'event_card';
+  | 'event_card'
+  | 'usage'
+  | 'reasoning';
 
 export interface EnrichedEvent {
   type: EnrichedEventType;
@@ -150,7 +153,7 @@ export const generateMessageId = (): string => {
   return `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 };
 
-/** Known enriched SSE event types */
+/** Known enriched SSE event types (alineados con api-ia: event_card, usage, reasoning) */
 const ENRICHED_EVENT_TYPES = new Set<string>([
   'tool_result',
   'ui_action',
@@ -158,6 +161,9 @@ const ENRICHED_EVENT_TYPES = new Set<string>([
   'progress',
   'code_output',
   'tool_start',
+  'event_card',
+  'usage',
+  'reasoning',
 ]);
 
 /**
@@ -171,6 +177,7 @@ export const sendChatMessage = async (
   onEnrichedEvent?: (event: EnrichedEvent) => void
 ): Promise<ChatResponse> => {
   const { message, sessionId, userId, development, eventId, eventName, pageContext, model } = params;
+  const startMs = Date.now();
 
   try {
     const requestId = createRequestId();
@@ -305,6 +312,8 @@ export const sendChatMessage = async (
         }
       }
 
+      const elapsed = Date.now() - startMs;
+      reportCopilotMessageSent({ elapsedMs: elapsed, stream: true });
       return { content: fullContent, toolCalls, navigationUrl, enrichedEvents };
     }
 
@@ -344,7 +353,8 @@ export const sendChatMessage = async (
 
     // Non-streaming enriched events (from proxy)
     const enrichedEvents: EnrichedEvent[] = data.enrichedEvents || [];
-
+    const elapsed = Date.now() - startMs;
+    reportCopilotMessageSent({ elapsedMs: elapsed, stream: false });
     return { content, toolCalls, navigationUrl, enrichedEvents };
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
@@ -366,32 +376,93 @@ export const sendChatMessage = async (
 };
 
 /**
- * Obtiene el historial de mensajes de una sesión
+ * Obtiene el historial de mensajes de una sesión desde API2 (getChatMessages).
+ * El backend api-ia guarda los mensajes en API2 al finalizar cada stream.
+ * Ver docs/ANALISIS-RESPUESTA-BACKEND-COPILOT.md.
+ */
+const normalizeHistoryMessage = (m: any): ChatMessage => ({
+  ...m,
+  createdAt: typeof m.createdAt === 'string' ? new Date(m.createdAt) : m.createdAt ?? new Date(),
+});
+
+/**
+ * Obtiene el historial de chat. Primero intenta API2 (GET /api/copilot/chat-history).
+ * Si falla, usa el store en memoria (GET /api/chat/messages) para no dejar el panel vacío.
  */
 export const getChatHistory = async (
   sessionId: string,
-  development?: string
+  development?: string,
+  limit = 50
 ): Promise<ChatMessage[]> => {
   try {
-    const response = await fetch(`${CHAT_API_BASE}/api/chat/messages?sessionId=${sessionId}`, {
-      headers: {
-        'Authorization': `Bearer ${Cookies.get('idTokenV0.1.0') || ''}`,
-        'X-Development': development || 'bodasdehoy',
-      },
-    });
+    const response = await fetch(
+      `${CHAT_API_BASE}/api/copilot/chat-history?sessionId=${encodeURIComponent(sessionId)}&limit=${limit}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${Cookies.get('idTokenV0.1.0') || ''}`,
+          'X-Development': development || 'bodasdehoy',
+        },
+      }
+    );
 
-    if (!response.ok) return [];
+    if (response.ok) {
+      const data = await response.json();
+      const list = data.messages || [];
+      return list.map(normalizeHistoryMessage);
+    }
 
-    const data = await response.json();
-    return data.messages || [];
+    // API2 o proxy falló: fallback al store en memoria
+    const fallback = await fetch(
+      `${CHAT_API_BASE}/api/chat/messages?sessionId=${encodeURIComponent(sessionId)}`
+    );
+    if (!fallback.ok) return [];
+    const fallbackData = await fallback.json();
+    const fallbackList = fallbackData.messages || [];
+    return fallbackList.map(normalizeHistoryMessage);
   } catch (error) {
-    console.error('[CopilotChat] Error fetching history:', error);
-    return [];
+    console.warn('[CopilotChat] Error fetching history (API2), trying fallback:', error);
+    try {
+      const fallback = await fetch(
+        `${CHAT_API_BASE}/api/chat/messages?sessionId=${encodeURIComponent(sessionId)}`
+      );
+      if (!fallback.ok) return [];
+      const fallbackData = await fallback.json();
+      const fallbackList = fallbackData.messages || [];
+      return fallbackList.map(normalizeHistoryMessage);
+    } catch (fallbackError) {
+      console.error('[CopilotChat] Fallback history failed:', fallbackError);
+      return [];
+    }
+  }
+};
+
+/**
+ * Persiste un mensaje en la sesión (POST /api/chat/messages).
+ * Usar después de cada intercambio user/assistant para tener historial.
+ */
+export const persistChatMessage = async (
+  sessionId: string,
+  role: 'user' | 'assistant',
+  content: string,
+  id?: string
+): Promise<void> => {
+  try {
+    const response = await fetch(`${CHAT_API_BASE}/api/chat/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, role, content, id: id || generateMessageId() }),
+    });
+    if (!response.ok) {
+      console.warn('[CopilotChat] persist message failed:', response.status);
+    }
+  } catch (error) {
+    console.warn('[CopilotChat] persist message error:', error);
   }
 };
 
 export default {
   sendChatMessage,
   getChatHistory,
+  persistChatMessage,
   generateMessageId,
 };

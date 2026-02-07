@@ -22,7 +22,7 @@ import dynamic from 'next/dynamic';
 import Head from 'next/head';
 import useDevLogger from '../hooks/useDevLogger';
 import { verifyDomain, logUrlVerification, type UrlCheckResult } from '../utils/verifyUrls';
-import { CopilotPrewarmer } from '../components/Copilot/CopilotPrewarmer';
+// import { CopilotPrewarmer } from '../components/Copilot/CopilotPrewarmer';
 
 const MyApp = ({ Component, pageProps, openGraphData }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
@@ -40,33 +40,38 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
     }
   }, [valirBlock])
 
-  // Verificar dominio y URLs al cargar (solo en cliente)
+  // Verificar dominio y URLs al cargar (solo en cliente y producción)
   useEffect(() => {
     if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
       const domainInfo = verifyDomain();
       console.log('[App] Información del dominio:', domainInfo);
-      
-      // Verificar URLs críticas
-      const criticalUrls = [
-        process.env.NEXT_PUBLIC_BASE_URL,
-        process.env.NEXT_PUBLIC_BASE_API_BODAS,
-        window.location.origin,
-      ].filter(Boolean) as string[];
-      
-      Promise.all(
-        criticalUrls.map(async (url): Promise<UrlCheckResult> => {
-          try {
-            const response = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
-            console.log(`[App] ✅ ${url} - Status: ${response.status}`);
-            return { url, status: 'ok' as const, statusCode: response.status };
-          } catch (error: any) {
-            console.warn(`[App] ⚠️ ${url} - Error:`, error.message);
-            return { url, status: 'error' as const, error: error.message };
-          }
-        })
-      ).then(results => {
-        logUrlVerification(results);
-      });
+
+      // En dominios de test, solo verificar URLs locales (evitar CORS)
+      const isTestDomain = window.location.hostname.includes('-test.') ||
+                           window.location.hostname === 'localhost' ||
+                           window.location.hostname === '127.0.0.1';
+
+      if (isTestDomain) {
+        // En test solo verificar el origen local y el proxy
+        const localUrls = [
+          window.location.origin,
+          `${window.location.origin}/api/proxy-bodas/graphql`,
+        ];
+        Promise.all(
+          localUrls.map(async (url): Promise<UrlCheckResult> => {
+            try {
+              const response = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
+              console.log(`[App] ✅ ${url} - Status: ${response.status}`);
+              return { url, status: 'ok' as const, statusCode: response.status };
+            } catch (error: any) {
+              console.warn(`[App] ⚠️ ${url} - Error:`, error.message);
+              return { url, status: 'error' as const, error: error.message };
+            }
+          })
+        ).then(results => {
+          logUrlVerification(results);
+        });
+      }
     }
   }, [])
 
@@ -78,7 +83,7 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
       <I18nextProvider i18n={i18n}>
         <DefaultLayout>
           {/* Pre-calentar el chat de LobeChat en segundo plano */}
-          <CopilotPrewarmer />
+          {/* <CopilotPrewarmer /> */}
           {!!message && <div className='bg-yellow-400 absolute top-[7.5rem] left-0 w-full bg-red-500 z-50 flex items-center justify-center'>
             <span className='text-center px-10 py-0.5'>{message}</span>
           </div>}
@@ -119,6 +124,9 @@ const PixelTracker = dynamic(() => import("../components/PixelTracker") as any, 
   ssr: false,
 });
 
+const safeThemeValue = (v: unknown) =>
+  (typeof v === 'string' && !/[\r\n`\\]/.test(v) ? v : '')
+
 const Load = ({ setValirBlock }) => {
   const { config } = AuthContextProvider()
   const [isAllowedRouter] = useAllowedRouter()
@@ -126,6 +134,12 @@ const Load = ({ setValirBlock }) => {
   const { user } = AuthContextProvider()
   const router = useRouter()
   const pathname = router.pathname
+
+  const themePrimary = safeThemeValue(config?.theme?.primaryColor) || '#ec4899'
+  const themeSecondary = safeThemeValue(config?.theme?.secondaryColor) || '#f472b6'
+  const themeTertiary = safeThemeValue(config?.theme?.tertiaryColor) || '#f9a8d4'
+  const themeBase = safeThemeValue(config?.theme?.baseColor) || '#ffffff'
+  const themeScroll = safeThemeValue(config?.theme?.colorScroll) || '#e5e7eb'
 
   // Enable browser logging in development for Claude Code integration
   useDevLogger(process.env.NODE_ENV === 'development')
@@ -150,36 +164,19 @@ const Load = ({ setValirBlock }) => {
       </Head>
       <PixelTracker />
       <style jsx global>
-        {`
-      @import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap');
+        {`@import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap');
       :root {
-        --color-primary: ${config?.theme?.primaryColor};
-        --color-secondary: ${config?.theme?.secondaryColor};
-        --color-tertiary: ${config?.theme?.tertiaryColor};
-        --color-base: ${config?.theme?.baseColor};
-        --color-scroll: ${config?.theme?.colorScroll}
+        --color-primary: ${themePrimary};
+        --color-secondary: ${themeSecondary};
+        --color-tertiary: ${themeTertiary};
+        --color-base: ${themeBase};
+        --color-scroll: ${themeScroll};
       }
-      body {
-          overscroll-behavior: contain;
-      }
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #f1f1f1
-        border-radius: 6px;
-      }
-
-      ::-webkit-scrollbar-thumb {
-        background:  ${config?.theme?.colorScroll};
-        border-radius: 6px;
-        height: 50%;
-      }
-      .my-emoji {
-        white-space: pre-wrap;
-        font-family: Montserrat, 'Noto Color Emoji';
-        }
-      `}
+      body { overscroll-behavior: contain; }
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 6px; }
+      ::-webkit-scrollbar-thumb { background: ${themeScroll}; border-radius: 6px; height: 50%; }
+      .my-emoji { white-space: pre-wrap; font-family: Montserrat, 'Noto Color Emoji'; }`}
       </style>
     </>
   )

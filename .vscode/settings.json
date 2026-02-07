@@ -1,5 +1,38 @@
 {
-    "compile-hero.disable-compile-files-on-did-save-code": false,
-    "typescript.enablePromptUseWorkspaceTsdk": true,
-    "typescript.tsdk": "node_modules/typescript/lib"
+  // Optimización de rendimiento - Excluir directorios del file watcher
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/.vercel/**": true,
+    "**/dist/**": true,
+    "**/build/**": true,
+    "**/.cache/**": true,
+    "**/.screenshots/**": true
+  },
+  
+  // Optimización de búsqueda - Excluir directorios de búsquedas
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/.vercel": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.cache": true,
+    "**/.screenshots": true,
+    "**/pnpm-lock.yaml": true,
+    "**/*.tsbuildinfo": true
+  },
+  
+  // Optimización de TypeScript
+  "typescript.tsdk": "apps/copilot/node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  
+  // Excluir archivos del explorador para mejorar rendimiento
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/*.tsbuildinfo": true
+  }
 }

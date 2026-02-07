@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-01-28T07:21:27.497Z",
+  "request": {
+    "url": "https://api-ia.bodasdehoy.com/webapi/chat/auto",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Development": "bodasdehoy",
+      "X-User-Id": "bodasdehoy.com@gmail.com",
+      "X-Event-Id": "test-event-123",
+      "X-Request-Id": "debug_1769584882373_3exrsz"
+    },
+    "body": {
+      "messages": [
+        {
+          "role": "system",
+          "content": "Eres Copilot, el asistente personal de Bodas de Hoy. Tu rol es ayudar a los usuarios a organizar sus eventos.\n\n## Contexto del Evento Actual\nEl usuario está trabajando en el evento: \"Boda Luis y Carla\"\nID del evento: test-event-123\n\nRecuerda: SIEMPRE incluye links de navegación [texto](url) cuando menciones secciones de la aplicación."
+        },
+        {
+          "role": "user",
+          "content": "¿Cuánto tengo gastado en mi presupuesto?"
+        }
+      ],
+      "stream": true,
+      "temperature": 0.7,
+      "max_tokens": 2000,
+      "metadata": {
+        "userId": "bodasdehoy.com@gmail.com",
+        "development": "bodasdehoy",
+        "eventId": "test-event-123",
+        "eventName": "Boda Luis y Carla",
+        "sessionId": "test_1769584882373"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "statusText": "OK",
+    "headers": {
+      "alt-svc": "h3=\":443\"; ma=86400",
+      "cache-control": "no-cache",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9c4ebb8c4d9103c9-MAD",
+      "connection": "keep-alive",
+      "content-type": "text/event-stream; charset=utf-8",
+      "date": "Wed, 28 Jan 2026 07:21:27 GMT",
+      "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+      "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=U0g%2BlZeOV%2FSxEX3cCmYPOWc2Obtli27hjnnxlPG6R4tQ%2BbbwHvKJH2Q%2FHuhKEuZlXduu%2BnuZVQXIyL4HJmpwpgGbyEdMeTgbVezNI6H15M9JdIOCGg%3D%3D\"}]}",
+      "server": "cloudflare",
+      "transfer-encoding": "chunked",
+      "x-model": "unknown",
+      "x-provider": "groq"
+    },
+    "elapsed_ms": 4982
+  }
+}

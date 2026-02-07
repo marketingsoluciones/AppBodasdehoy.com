@@ -1,0 +1,166 @@
+/**
+ * Tests del handler POST /api/copilot/chat.
+ * Verifican contrato con api-ia (body real) y respuesta cuando el backend no está disponible.
+ */
+
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { CHAT_REQUEST_BODY_REAL } from '../../../../__fixtures__/copilot';
+
+const PYTHON_BACKEND_DEFAULT = 'https://api-ia.bodasdehoy.com';
+
+function createMockRes(): NextApiResponse & {
+  status: jest.Mock;
+  json: jest.Mock;
+  setHeader: jest.Mock;
+  getHeader: jest.Mock;
+  write: jest.Mock;
+  end: jest.Mock;
+  headersSent: boolean;
+} {
+  return {
+    status: jest.fn().mockReturnThis(),
+    json: jest.fn(),
+    setHeader: jest.fn(),
+    getHeader: jest.fn().mockReturnValue(undefined),
+    write: jest.fn(),
+    end: jest.fn(),
+    headersSent: false,
+  } as any;
+}
+
+describe('POST /api/copilot/chat', () => {
+  const originalFetch = global.fetch;
+  const originalEnv = process.env;
+
+  beforeAll(() => {
+    process.env.ENABLE_COPILOT_FALLBACK = '';
+    process.env.OPENAI_API_KEY = '';
+    process.env.PYTHON_BACKEND_URL = process.env.PYTHON_BACKEND_URL || PYTHON_BACKEND_DEFAULT;
+  });
+
+  afterAll(() => {
+    process.env = originalEnv;
+    global.fetch = originalFetch;
+  });
+
+  beforeEach(() => {
+    jest.resetModules();
+    (global as any).fetch = jest.fn();
+  });
+
+  it('devuelve 400 cuando falta el array messages', async () => {
+    const handler = (await import('../chat')).default;
+    const req = {
+      method: 'POST',
+      body: { stream: true, metadata: {} },
+      headers: {},
+    } as NextApiRequest;
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Messages array is required' });
+  });
+
+  it('envía a api-ia body con contrato real (messages, stream, metadata)', async () => {
+    const mockFetch = (global as any).fetch as jest.Mock;
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({ 'content-type': 'text/event-stream' }),
+      body: new ReadableStream({
+        start(c: ReadableStreamDefaultController) {
+          c.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"content":"Hola"}}]}\n\n'));
+          c.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
+          c.close();
+        },
+      }),
+    });
+
+    const handler = (await import('../chat')).default;
+    const req = {
+      method: 'POST',
+      body: CHAT_REQUEST_BODY_REAL,
+      headers: {
+        'content-type': 'application/json',
+        'x-development': CHAT_REQUEST_BODY_REAL.metadata.development,
+      },
+    } as NextApiRequest;
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    expect(mockFetch).toHaveBeenCalled();
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/webapi/chat/');
+    expect(options.method).toBe('POST');
+    expect(options.headers).toEqual(
+      expect.objectContaining({
+        'Content-Type': 'application/json',
+        'X-Development': 'bodasdehoy',
+      })
+    );
+    const body = JSON.parse(options.body);
+    expect(Array.isArray(body.messages)).toBe(true);
+    expect(body.stream).toBe(true);
+    expect(body.messages.some((m: any) => m.role === 'system')).toBe(true);
+    expect(body.messages.some((m: any) => m.role === 'user')).toBe(true);
+  });
+
+  it('devuelve 503 y mensaje cuando el backend api-ia no está disponible', async () => {
+    const mockFetch = (global as any).fetch as jest.Mock;
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 503,
+      text: () =>
+        Promise.resolve(
+          JSON.stringify({ message: 'Servicio no disponible', trace_id: 'trace-123' })
+        ),
+    });
+
+    const handler = (await import('../chat')).default;
+    const req = {
+      method: 'POST',
+      body: { messages: [{ role: 'user', content: 'Hola' }], stream: true, metadata: {} },
+      headers: {},
+    } as NextApiRequest;
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/event-stream');
+    expect(res.write).toHaveBeenCalledWith(
+      expect.stringContaining('Servicio IA no disponible')
+    );
+    expect(res.write).toHaveBeenCalledWith(expect.stringContaining('data: [DONE]'));
+    expect(res.end).toHaveBeenCalled();
+  });
+});
+
+describe('OPTIONS /api/copilot/chat', () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  it('devuelve 200 y headers CORS', async () => {
+    const handler = (await import('../chat')).default;
+    const req = { method: 'OPTIONS' } as NextApiRequest;
+    const res = {
+      setHeader: jest.fn().mockReturnThis(),
+      status: jest.fn().mockReturnThis(),
+      end: jest.fn(),
+    } as any;
+
+    await handler(req, res);
+
+    expect(res.setHeader).toHaveBeenCalledWith('Access-Control-Allow-Origin', '*');
+    expect(res.setHeader).toHaveBeenCalledWith(
+      'Access-Control-Allow-Methods',
+      'POST, OPTIONS'
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.end).toHaveBeenCalled();
+  });
+});
