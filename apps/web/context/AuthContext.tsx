@@ -247,8 +247,8 @@ const AuthProvider = ({ children }) => {
       varGlobalDevelopment = resp?.development
       setConfig(resp)
 
-      // Configurar debug token para App Check en desarrollo (localhost o chat-test.bodasdehoy.com)
-      const debugHosts = ['localhost', 'chat-test.bodasdehoy.com']
+      // Configurar debug token para App Check en desarrollo (localhost, chat-test o app-test)
+      const debugHosts = ['localhost', 'chat-test.bodasdehoy.com', 'app-test.bodasdehoy.com']
       if (typeof window !== 'undefined' && debugHosts.includes(window.location.hostname)) {
         (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = 'CD2BCA5A-E34F-4F7E-B24B-81BC9DEB52C8'
         console.log('[Firebase] App Check debug token configurado para:', window.location.hostname)
@@ -264,15 +264,16 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (isMounted && config) {
-      // BYPASS: Para subdominios de test, permitir acceso con usuario de desarrollo
-      const isTestEnv = window.location.hostname.includes('chat-test') || window.location.hostname.includes('test.')
+      // BYPASS: Para subdominios de test SOLAMENTE (no localhost)
+      // localhost ahora usa autenticación real de Firebase
+      const isTestEnv = window.location.hostname.includes('chat-test') || window.location.hostname.includes('app-test') || window.location.hostname.includes('test.')
       const devBypass = sessionStorage.getItem('dev_bypass') === 'true'
 
       if (isTestEnv && devBypass) {
-        console.log("[Auth] 🔓 Bypass de desarrollo activo para subdominio de test")
-        // Crear usuario de desarrollo simulado
+        console.log("[Auth] 🔓 Bypass de desarrollo activo para subdominio de test (NO localhost)")
+        // Crear usuario de desarrollo simulado CON UID REAL
         const devUser = {
-          uid: 'dev-user-test',
+          uid: 'upSETrmXc7ZnsIhrjDjbHd7u2up1', // UID REAL de bodasdehoy.com@gmail.com
           email: 'bodasdehoy.com@gmail.com',
           displayName: 'Usuario Dev',
           role: ['creator'],
@@ -517,6 +518,18 @@ const AuthProvider = ({ children }) => {
     }
   }, [triggerAuthStateChanged])
 
+  // ✅ Timeout de seguridad: si la verificación no termina en 2s, mostrar la app (evita pantalla en blanco)
+  useEffect(() => {
+    const safetyTimeout = setTimeout(() => {
+      if (!verificationDone) {
+        console.warn('[Auth] Timeout de seguridad: estableciendo verificationDone=true a los 2s');
+        setVerificationDone(true);
+      }
+    }, 2000);
+
+    return () => clearTimeout(safetyTimeout);
+  }, [verificationDone])
+
   const moreInfo = async (user) => {
     let idToken = Cookies.get("idTokenV0.1.0")
     if (!idToken) {
@@ -549,6 +562,8 @@ const AuthProvider = ({ children }) => {
           })
             .catch((error) => {
               console.log(error);
+              // ✅ CORRECCIÓN: Establecer verificationDone incluso si hay error
+              setVerificationDone(true)
             });
         }
         if (sessionCookieParsed?.user_id === user?.uid) {
@@ -570,6 +585,8 @@ const AuthProvider = ({ children }) => {
               moreInfo(result?.user)
             }).catch(error => {
               console.log(error)
+              // ✅ CORRECCIÓN: Establecer verificationDone incluso si hay error
+              setVerificationDone(true)
             })
         } else {
           setVerificationDone(true)
@@ -591,21 +608,40 @@ const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.log(90002, error)
+      // ✅ CORRECCIÓN CRÍTICA: Establecer verificationDone incluso si hay error
+      // Esto evita que la aplicación se quede en "Cargando..." indefinidamente
+      setVerificationDone(true)
     }
   }
 
   useEffect(() => {
-    fetchApiEventos({
+    // getGeoInfo está en api.bodasdehoy.com, no en api2.eventosorganizador.com
+    fetchApiBodas({
       query: queries.getGeoInfo,
       variables: {},
-    }).then(geoInfo => setGeoInfo(geoInfo)).catch(err => console.log(err))
-  }, [])
+      development: config?.development || "bodasdehoy"
+    }).then(geoInfo => setGeoInfo(geoInfo)).catch(err => console.log("[GeoInfo]", err))
+  }, [config?.development])
+
+  // Pantalla mínima mientras no hay verificationDone (evita pantalla en blanco)
+  const loadingScreen = (
+    <div
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white"
+      role="status"
+      aria-label="Cargando"
+      style={{ pointerEvents: 'none' }}
+    >
+      <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-pink-500" />
+      <p className="mt-4 text-gray-700 font-medium">Cargando...</p>
+      <p className="mt-1 text-sm text-gray-400">Si ves esto, la app está respondiendo (máx. 2 s)</p>
+    </div>
+  );
 
   return (
     <AuthContext.Provider value={{
       usuariosTickets, setUsuariosTickets, selectTicket, setSelectTicket, EventTicket, setEventTicket, setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister, SetWihtProvider, WihtProvider,
     }}>
-      {verificationDone && children}
+      {verificationDone ? children : loadingScreen}
     </AuthContext.Provider>
   );
 };
