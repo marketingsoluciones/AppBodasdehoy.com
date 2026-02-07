@@ -263,7 +263,7 @@ const Profile = ({ user, state, set, ...rest }) => {
             className="bg-white items-center pr-2 flex relative cursor-pointer"
             onClick={() => setDropwdon(!dropdown)}>
             {dropdown && (
-              <div className="bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 absolute top-0 right-0 translate-y-[46px] translate-x-[20px] md:-translate-x-[0px]  overflow-hidden z-40 title-display">
+              <div className="bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 absolute top-0 right-0 translate-y-[46px] translate-x-[20px] md:-translate-x-[0px]  overflow-hidden z-[60] title-display">
                 <div className="w-full border-b border-gray-100 pb-2">
                   <p className="text-gray-500 font-extralight uppercase tracking-wider	text-xs text-center  cursor-default">
                     {(user?.role && user?.role?.length > 0) && t(user?.role[0])}

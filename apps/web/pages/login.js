@@ -59,11 +59,14 @@ const PageLogin = () => {
   }
   
   // ✅ CORRECCIÓN: Redirigir correctamente después del login
+  // DESACTIVADO TEMPORALMENTE - El auto-redirect era demasiado rápido (100ms)
+  // Esto causaba que la página se cerrara antes de que el usuario pudiera ver nada
+  /*
   useEffect(() => {
     if (user && user?.displayName !== "guest") {
       // Validar que queryD sea una ruta válida antes de redirigir
       let redirectPath = "/"
-      
+
       if (queryD) {
         // Validar que queryD sea una ruta válida (no vacía, no solo espacios, empiece con /)
         const cleanPath = queryD.trim()
@@ -73,7 +76,7 @@ const PageLogin = () => {
           console.warn('[Login] queryD inválido, usando "/" por defecto:', queryD)
         }
       }
-      
+
       // ✅ CORRECCIÓN: Usar setTimeout para asegurar que el router esté listo
       // y forzar redirección incluso si estamos en la misma ruta (para recargar)
       const timer = setTimeout(() => {
@@ -86,22 +89,28 @@ const PageLogin = () => {
           window.location.href = redirectPath
         }
       }, 100) // Pequeño delay para asegurar que el estado esté actualizado
-      
+
       return () => clearTimeout(timer)
     }
   }, [user, queryD, router])
+  */
   
-  if (user && user?.displayName !== "guest") {
-    // Mientras redirige, mostrar loading
-    return (
-      <div className="flex items-center justify-center h-screen w-full">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
-          <p className="text-sm text-gray-500">Redirigiendo...</p>
-        </div>
-      </div>
-    )
-  } else {
+  // DESACTIVADO: No redirigir automáticamente, dejar que el usuario cierre manualmente
+  // if (user && user?.displayName !== "guest") {
+  //   // Mientras redirige, mostrar loading
+  //   return (
+  //     <div className="flex items-center justify-center h-screen w-full">
+  //       <div className="flex flex-col items-center gap-4">
+  //         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+  //         <p className="text-sm text-gray-500">Redirigiendo...</p>
+  //       </div>
+  //     </div>
+  //   )
+  // } else {
+
+  // Siempre mostrar el formulario de login, incluso si el usuario ya está logueado
+  // Esto permite al usuario cerrar manualmente el modal
+  {
     return (
       (
         <>
