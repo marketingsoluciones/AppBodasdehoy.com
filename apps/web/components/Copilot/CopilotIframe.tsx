@@ -33,11 +33,10 @@ interface CopilotIframeProps {
   className?: string;
   userData?: UserData;
   event?: Event | null;
-  eventsList?: any[];
 }
 
 const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
-  ({ userId, development = 'bodasdehoy', eventId, eventName, className, userData, event, eventsList }, ref) => {
+  ({ userId, development = 'bodasdehoy', eventId, eventName, className, userData, event }, ref) => {
     const router = useRouter();
     // ✅ CORRECCIÓN: Iniciar isLoaded como true para que el iframe se muestre inmediatamente
     const [isLoaded, setIsLoaded] = useState(true);
@@ -59,53 +58,22 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
     const getCopilotBaseUrl = useCallback(() => {
       if (typeof window === 'undefined') return '/copilot-chat';
 
-      // ✅ DESARROLLO LOCAL: Solo localhost/127.0.0.1 usa el puerto 3210 local
-      if (window.location.hostname === 'localhost' ||
-          window.location.hostname === '127.0.0.1') {
-        return 'http://localhost:3210';
-      }
-
-      // Monorepo: app-test ↔ chat-test. En app-test el Copilot usa chat-test (si no carga, no hay fallback a producción).
-      if (window.location.hostname?.includes('app-test')) {
-        return 'https://chat-test.bodasdehoy.com';
-      }
-
-      // ✅ PRODUCCIÓN: usar variable de entorno o fallback
+      // Este proyecto no usa localhost ni IPs locales. Siempre chat-test (o NEXT_PUBLIC_CHAT).
       const envUrl = process.env.NEXT_PUBLIC_CHAT;
-      const fallback = 'https://chat.bodasdehoy.com';
+      const fallback = 'https://chat-test.bodasdehoy.com';
       const base = (envUrl || fallback).replace(/\/$/, '');
       return base;
     }, []);
-
-    // URLs de fallback si chat-test falla
-    const getFallbackUrls = useCallback(() => {
-      const primary = getCopilotBaseUrl();
-      const fallbacks = [
-        primary,
-        'https://chat.bodasdehoy.com', // Producción como fallback
-      ];
-      // Eliminar duplicados
-      return [...new Set(fallbacks)];
-    }, [getCopilotBaseUrl]);
-
-    // ✅ NUEVO: Verificar si la URL principal es chat-test y está dando 502
-    // Si es así, usar directamente chat producción como fallback inmediato
-    const shouldUseProductionFallback = useCallback(() => {
-      const baseUrl = getCopilotBaseUrl();
-      // Si la URL configurada es chat-test, usar producción directamente
-      // porque chat-test está dando 502 (servidor no responde)
-      return baseUrl.includes('chat-test.bodasdehoy.com');
-    }, [getCopilotBaseUrl]);
 
     // Construir URL del LobeChat con parametros
     const buildCopilotUrl = useCallback(() => {
       const params = new URLSearchParams();
 
-      // Modo embebido: oculta navegación lateral del copilot PERO mantiene panel derecho y funcionalidad completa
+      // Modo embebido: oculta navegación lateral del copilot y deja solo conversación + input.
       params.set('embed', '1');
-      // ❌ DESACTIVADO: minimal=1 ocultaba panel lateral, contexto conversacional y features del editor
-      // params.set('embedded', '1');  // Redundante
-      // params.set('minimal', '1');  // ❌ ESTO CAUSABA LA REGRESIÓN - ocultaba todo
+      // Redundancia para compatibilidad (algunas rutas/layouts leen estos flags)
+      params.set('embedded', '1');
+      params.set('minimal', '1');
 
       if (development) {
         params.set('developer', development);
@@ -156,38 +124,12 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
       return url;
     }, [userId, userData?.email, development, eventId, getCopilotBaseUrl]);
 
-    // Intentar primero la URL configurada (chat-test), si falla se cambiará automáticamente a producción
-    const getInitialUrl = useCallback(() => {
-      return buildCopilotUrl();
-    }, [buildCopilotUrl]);
-
-    const [iframeSrc, setIframeSrc] = useState(getInitialUrl());
-    const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
-    const [retryCount, setRetryCount] = useState(0);
-    const maxRetries = 2; // Máximo 2 reintentos
+    const [iframeSrc, setIframeSrc] = useState(buildCopilotUrl());
 
     // Actualizar URL cuando cambien los parametros
     useEffect(() => {
-      const newUrl = getInitialUrl();
-      setIframeSrc(newUrl);
-      setCurrentUrlIndex(0); // Reset al cambiar parámetros
-      setRetryCount(0);
-    }, [getInitialUrl]);
-
-    // Función para intentar siguiente URL de fallback
-    const tryNextFallbackUrl = useCallback(() => {
-      const fallbackUrls = getFallbackUrls();
-      if (currentUrlIndex < fallbackUrls.length - 1 && retryCount < maxRetries) {
-        const nextIndex = currentUrlIndex + 1;
-        const nextUrl = fallbackUrls[nextIndex];
-        const newUrl = buildCopilotUrl().replace(getCopilotBaseUrl(), nextUrl);
-        console.log(`[CopilotIframe] 🔄 Intentando fallback URL ${nextIndex + 1}/${fallbackUrls.length}: ${nextUrl}`);
-        setCurrentUrlIndex(nextIndex);
-        setRetryCount(prev => prev + 1);
-        setIframeSrc(newUrl);
-        setError(null); // Limpiar error anterior
-      }
-    }, [currentUrlIndex, retryCount, getFallbackUrls, buildCopilotUrl, getCopilotBaseUrl]);
+      setIframeSrc(buildCopilotUrl());
+    }, [buildCopilotUrl]);
 
     // ✅ CORRECCIÓN: NO resetear isLoaded a false - mantenerlo en true para mostrar el iframe inmediatamente
     useEffect(() => {
@@ -205,41 +147,14 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
         window.clearTimeout(timeoutRef.current);
       }
 
-      // ✅ OPTIMIZADO: Timeout ajustado para modo producción
-      // NOTA: El timeout debe considerar NO solo la carga del iframe HTML,
-      // sino también el renderizado completo del contenido React interno
-      // - HTML load: ~1-2s
-      // - JS chunks download: ~2-4s (217KB total, sin CDN en localhost)
-      // - React bootstrap + render: ~3-8s (inicialización del store, componentes, etc.)
-      // - i18n initialization: ~2-4s (missingKey warnings en logs)
-      // - Final component mount: ~2-4s
-      // Total real observado en localhost: 15-25+ segundos (sin CDN, Next.js en producción)
-      // Localhost: 45s (muy generoso para cubrir variabilidad de máquina local)
-      // chat-test: 25s (tiene CDN pero puede tener delays de red)
-      // Producción: 60s (fallback conservador)
-      const isLocalhost = iframeSrc.includes('localhost') || iframeSrc.includes('127.0.0.1');
-      const isChatTest = iframeSrc.includes('chat-test.bodasdehoy.com');
-      const timeoutMs = isLocalhost ? 45000 : (isChatTest ? 25000 : 60000);
-      
+      // ✅ AUMENTADO: 60 segundos para dar tiempo a LobeChat en modo dev de compilar
+      const timeoutMs = 60000;
       timeoutRef.current = window.setTimeout(() => {
         // Solo mostrar error si el iframe NO ha cargado aún
         if (!hasLoadedRef.current) {
-          // Monorepo: en app-test no hay fallback a producción; si chat-test no carga, mostramos error.
-          const isAppTest = typeof window !== 'undefined' && window.location.hostname?.includes('app-test');
-          if (isChatTest && currentUrlIndex === 0 && !isAppTest) {
-            console.log('[CopilotIframe] ⚠️ chat-test timeout (probable 502), cambiando a chat producción');
-            const productionUrl = iframeSrc.replace('chat-test.bodasdehoy.com', 'chat.bodasdehoy.com');
-            setIframeSrc(productionUrl);
-            setCurrentUrlIndex(1);
-            setError(null);
-            return;
-          }
-
-          const vpnDetected = detectVPN();
-          const timeoutMessage = vpnDetected
-            ? 'El Copilot tarda demasiado en cargar. Si usas VPN, puede estar bloqueando la conexión. Por favor, desactiva la VPN y pulsa Reintentar.'
-            : 'El Copilot tarda demasiado en cargar. Verifica que el servicio responda. Si usas VPN, prueba desactivarla y pulsa Reintentar.';
-          setError(timeoutMessage);
+          setError(
+            'El Copilot tarda demasiado en cargar. Verifica que chat-test.bodasdehoy.com responda. Si usas VPN, prueba desactivarla y pulsa Reintentar.'
+          );
           setIsLoaded(true);
         }
       }, timeoutMs);
@@ -254,115 +169,27 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
 
     // Manejar carga del iframe
     const handleLoad = useCallback(() => {
-      console.log('[CopilotIframe] ✅ Iframe HTML cargado:', iframeSrc);
+      console.log('[CopilotIframe] ✅ Iframe cargado:', iframeSrc);
+      hasLoadedRef.current = true;
+      setIsLoaded(true);
+      setError(null); // ✅ Limpiar cualquier error previo
 
-      // ✅ MEJORA: Esperar un poco más para que el contenido React se renderice
-      // El evento onLoad se dispara cuando el HTML carga, pero React necesita tiempo adicional
-      setTimeout(() => {
-        console.log('[CopilotIframe] ✅ Marcando iframe como completamente cargado');
-        hasLoadedRef.current = true;
-        setIsLoaded(true);
-        setError(null); // ✅ Limpiar cualquier error previo
-
-        // ✅ Cancelar el timeout ya que el iframe cargó correctamente
-        if (timeoutRef.current) {
-          window.clearTimeout(timeoutRef.current);
-          timeoutRef.current = null;
-        }
-      }, 1000); // Dar 1 segundo adicional para que React renderice
+      // ✅ Cancelar el timeout ya que el iframe cargó correctamente
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      console.log('[CopilotIframe] ✅ Marcando iframe como cargado y visible');
     }, [iframeSrc]);
 
-    // Detectar si hay VPN activa (heurística básica)
-    const detectVPN = useCallback((): boolean => {
-      if (typeof window === 'undefined') return false;
-      
-      // Detectar VPN por características comunes:
-      // 1. Timezone diferente al esperado
-      // 2. IP de datacenter (detectable por headers si están disponibles)
-      // 3. Latencia alta en conexiones
-      
-      // Por ahora, retornamos false - se puede mejorar con detección más sofisticada
-      return false;
-    }, []);
-
-    // Detectar tipo de error específico
-    const detectErrorType = useCallback((error: any): 'dns' | '502' | 'timeout' | 'network' | 'vpn-blocked' => {
-      const errorMessage = error?.message || error?.toString() || '';
-      const errorCode = error?.code || error?.status;
-      
-      if (errorCode === 'ENOTFOUND' || errorMessage.includes('Could not resolve') || errorMessage.includes('getaddrinfo')) {
-        return 'dns';
-      }
-      if (errorCode === 502 || errorMessage.includes('502') || errorMessage.includes('Bad Gateway')) {
-        // Si es 502 y hay VPN, podría ser bloqueo de VPN
-        if (detectVPN()) {
-          return 'vpn-blocked';
-        }
-        return '502';
-      }
-      if (errorCode === 'ETIMEDOUT' || errorCode === 'TIMEOUT' || errorMessage.includes('timeout')) {
-        return 'timeout';
-      }
-      return 'network';
-    }, [detectVPN]);
-
-    // Manejar error del iframe con detección mejorada y fallback
+    // Manejar error del iframe
     const handleError = useCallback((e: React.SyntheticEvent) => {
       console.error('[CopilotIframe] Error loading:', iframeSrc, e);
-      
-      const errorType = detectErrorType(e);
-      const fallbackUrls = getFallbackUrls();
-      
-      // Monorepo: en app-test no hay fallback a producción; si chat-test da 502, mostramos error.
-      const isAppTest = typeof window !== 'undefined' && window.location.hostname?.includes('app-test');
-      if (errorType === '502' && iframeSrc.includes('chat-test.bodasdehoy.com') && !isAppTest) {
-        console.log('[CopilotIframe] ⚠️ Error 502 con chat-test, cambiando a chat producción');
-        const productionUrl = iframeSrc.replace('chat-test.bodasdehoy.com', 'chat.bodasdehoy.com');
-        setTimeout(() => {
-          setIframeSrc(productionUrl);
-          setError(null);
-          setCurrentUrlIndex(1);
-        }, 500);
-        return;
-      }
-
-      // Intentar fallback si hay URLs disponibles y no hemos excedido reintentos
-      if (currentUrlIndex < fallbackUrls.length - 1 && retryCount < maxRetries) {
-        console.log(`[CopilotIframe] ⚠️ Error ${errorType}, intentando fallback...`);
-        setTimeout(() => {
-          tryNextFallbackUrl();
-        }, 1000); // Esperar 1 segundo antes de intentar fallback
-        return; // No mostrar error aún, intentar fallback primero
-      }
-      
-      // Si no hay más fallbacks o excedimos reintentos, mostrar error
-      let errorMessage = '';
-      
-      switch (errorType) {
-        case 'dns':
-          errorMessage = 'No se puede resolver el dominio (DNS). Verifica tu conexión a internet. Si usas VPN, puede estar bloqueando la conexión.';
-          break;
-        case 'vpn-blocked':
-          errorMessage = 'Error 502: El servicio puede estar bloqueando conexiones VPN. Por favor, desactiva la VPN temporalmente y recarga la página.';
-          break;
-        case '502':
-          errorMessage = 'Error 502 Bad Gateway. El servidor de origen no responde. Si usas VPN, prueba desactivarla y recarga.';
-          break;
-        case 'timeout':
-          errorMessage = 'Timeout al cargar el Copilot. El servidor está tardando demasiado. Si usas VPN, puede estar causando latencia adicional.';
-          break;
-        default:
-          errorMessage = 'Error de red al cargar el Copilot. Verifica tu conexión y recarga. Si usas VPN, prueba desactivarla.';
-      }
-      
-      // Agregar información sobre fallbacks intentados
-      if (retryCount > 0) {
-        errorMessage += ` (Se intentaron ${retryCount + 1} URLs diferentes)`;
-      }
-      
-      setError(errorMessage);
+      setError(
+        'No se pudo cargar el Copilot (502 Bad Gateway). Verifica que chat-test.bodasdehoy.com responda. Si usas VPN, prueba desactivarla y recarga.'
+      );
       setIsLoaded(true);
-    }, [iframeSrc, detectErrorType, currentUrlIndex, retryCount, maxRetries, getFallbackUrls, tryNextFallbackUrl]);
+    }, [iframeSrc]);
 
     const handleCopyBackendReport = useCallback(async () => {
       try {
@@ -442,12 +269,7 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
         type: 'PAGE_CONTEXT',
         source: 'app-bodas',
         timestamp: Date.now(),
-        payload: {
-          ...pageContextData,
-          eventsList: (eventsList || []).map((e: any) => ({
-            id: e._id, name: e.nombre, type: e.tipo, date: e.fecha,
-          })),
-        },
+        payload: pageContextData,
       };
 
       console.log('[CopilotIframe] Enviando PAGE_CONTEXT:', {
@@ -557,9 +379,6 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
             break;
           case 'COPILOT_NAVIGATE':
             console.log('[CopilotIframe] Navigate request:', payload);
-            if (payload?.path && typeof payload.path === 'string' && payload.path.startsWith('/')) {
-              router.push(payload.path);
-            }
             break;
           case 'COPILOT_ACTION':
             console.log('[CopilotIframe] Action request:', payload);
@@ -589,27 +408,17 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
       }
     }, [isLoaded, userId, authSent, sendAuthConfig]);
 
-    // Fingerprint de datos del evento para detectar cambios en datos (no solo ID)
-    const lastDataFingerprint = useRef<string>('');
-
-    // Enviar PAGE_CONTEXT cuando cambie la pantalla, el evento o sus datos
+    // Enviar PAGE_CONTEXT cuando cambie la pantalla o el evento
     useEffect(() => {
       if (isLoaded && authSent) {
+        // Verificar si cambió el path o el evento
         const pathChanged = lastSentPath.current !== currentPath;
         const eventChanged = lastSentEventId.current !== (event?._id || null);
 
-        // Fingerprint ligero: detecta cambios en invitados, presupuesto, mesas, tareas
-        const fingerprint = event
-          ? `${event.invitados_array?.length || 0}-${event.presupuesto_objeto?.pagado || 0}-${event.mesas_array?.length || 0}-${event.itinerarios_array?.length || 0}`
-          : '';
-        const dataChanged = lastDataFingerprint.current !== fingerprint;
-
-        if (pathChanged || eventChanged || dataChanged) {
-          lastDataFingerprint.current = fingerprint;
+        if (pathChanged || eventChanged) {
           console.log('[CopilotIframe] Detectado cambio:', {
             pathChanged,
             eventChanged,
-            dataChanged,
             currentPath,
             eventId: event?._id,
           });
@@ -618,71 +427,45 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
       }
     }, [isLoaded, authSent, currentPath, event, sendPageContext]);
 
-    // ✅ Detectar si está usando localhost para mostrar mensaje de compilación
-    const isLocalhost = iframeSrc.includes('localhost') || iframeSrc.includes('127.0.0.1');
-
     return (
       <div className={`relative h-full w-full flex flex-col bg-white overflow-hidden ${className || ''}`}>
-        {/* ✅ OPTIMIZADO: Loading state más visible con información útil */}
-        {!isLoaded && !error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/95 backdrop-blur-sm z-50">
-            <div className="flex flex-col items-center gap-4 max-w-sm text-center p-6">
-              <div className="relative">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-pink-200 border-t-pink-600" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                </div>
-              </div>
-              <div>
-                <p className="text-lg font-semibold text-gray-800 mb-2">Cargando Copilot...</p>
-                {isLocalhost && (
-                  <p className="text-xs text-gray-500">
-                    Inicializando interfaz (~3-5s)
-                  </p>
-                )}
-              </div>
+        {/* Loading / Error state - Solo mostrar si hay error real, no bloquear si está cargando */}
+        {!isLoaded && error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
+            <div className="flex flex-col items-center gap-4">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+              <p className="text-sm text-gray-500">Cargando Copilot...</p>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white z-50">
+          <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
             <div className="flex flex-col items-center gap-4 p-6 text-center max-w-md">
               <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
                 <span className="text-2xl">⚠️</span>
               </div>
               <p className="text-sm text-red-600">{error}</p>
-              <div className="flex flex-col gap-2 w-full">
-                <a
-                  href={iframeSrc.split('?')[0]} // URL sin parámetros
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-pink-600 hover:underline text-center"
-                >
-                  Abrir chat-test en nueva pestaña
-                </a>
-                {error?.includes('VPN') && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded p-2 text-xs text-yellow-800">
-                    💡 <strong>Nota:</strong> El servicio puede estar bloqueando conexiones VPN por seguridad. Desactiva la VPN para acceder al Copilot.
-                  </div>
-                )}
-                <button
-                  onClick={() => {
-                    setIsLoaded(false);
-                    setError(null);
-                    setCurrentUrlIndex(0); // Reset fallback
-                    setRetryCount(0); // Reset retry count
-                    const url = buildCopilotUrl();
-                    const sep = url.includes('?') ? '&' : '?';
-                    setIframeSrc(`${url}${sep}_retry=${Date.now()}`);
-                  }}
-                  className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
-                >
-                  Reintentar
-                </button>
-              </div>
+              <a
+                href="https://chat-test.bodasdehoy.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-pink-600 hover:underline"
+              >
+                Abrir chat-test en nueva pestaña
+              </a>
+              <button
+                onClick={() => {
+                  setIsLoaded(false);
+                  setError(null);
+                  const url = buildCopilotUrl();
+                  const sep = url.includes('?') ? '&' : '?';
+                  setIframeSrc(`${url}${sep}_retry=${Date.now()}`);
+                }}
+                className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+              >
+                Reintentar
+              </button>
             </div>
           </div>
         )}
@@ -747,11 +530,11 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
           ref={iframeRef}
           src={iframeSrc}
           className="w-full h-full border-none opacity-100"
-          style={{
+          style={{ 
             // ✅ CORRECCIÓN CRÍTICA: Forzar visibilidad del iframe siempre
             pointerEvents: 'auto',
             display: 'block',
-            zIndex: 10,
+            zIndex: 1,
             visibility: 'visible'
           }}
           onLoad={handleLoad}

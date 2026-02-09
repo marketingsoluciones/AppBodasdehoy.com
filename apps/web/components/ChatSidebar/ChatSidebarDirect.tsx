@@ -11,9 +11,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useChatSidebar } from '../../context/ChatSidebarContext';
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from '../../context';
-import { CopilotEmbed } from '@bodasdehoy/copilot-ui';
+// TODO: Crear CopilotEmbed component en @bodasdehoy/copilot-ui
+// import { CopilotEmbed } from '@bodasdehoy/copilot-ui';
 import { sendChatMessage, getChatHistory } from '../../services/copilotChat';
-import type { SendMessageParams, EmbedMessage } from '@bodasdehoy/copilot-ui';
+// import type { SendMessageParams, EmbedMessage } from '@bodasdehoy/copilot-ui';
 import { IoClose, IoSparkles, IoExpand, IoChevronDown, IoOpenOutline } from 'react-icons/io5';
 
 const MIN_WIDTH = 380;
@@ -230,14 +231,21 @@ const ChatSidebarDirect: FC = () => {
           </div>
 
           {/* Copilot integrado como componente (monorepo, sin iframe) */}
-          <div className="flex-1 overflow-hidden min-h-0 flex flex-col">
+          <div className="flex-1 overflow-hidden min-h-0 flex flex-col items-center justify-center bg-gray-50">
+            <p className="text-gray-500 text-sm">
+              CopilotEmbed pendiente de implementar en @bodasdehoy/copilot-ui
+            </p>
+            <p className="text-gray-400 text-xs mt-2">
+              Por ahora, usa el ChatSidebar regular
+            </p>
+            {/* TODO: Implementar CopilotEmbed component
             <CopilotEmbed
               userId={userId}
               development={development}
               eventId={eventId}
               eventName={event?.nombre}
               sessionId={sessionId}
-              onLoadHistory={async (sid): Promise<EmbedMessage[]> => {
+              onLoadHistory={async (sid): Promise<any[]> => {
                 const list = await getChatHistory(sid, development);
                 return list
                   .filter((m) => m.role === 'user' || m.role === 'assistant')
@@ -258,7 +266,7 @@ const ChatSidebarDirect: FC = () => {
               }}
               event={event}
               eventsList={eventsGroup}
-              sendMessage={async (params: SendMessageParams, onChunk, signal, onEnrichedEvent) => {
+              sendMessage={async (params: any, onChunk, signal, onEnrichedEvent) => {
                 const sid = params.sessionId ?? sessionId;
                 const res = await sendChatMessage(
                   {
@@ -278,6 +286,7 @@ const ChatSidebarDirect: FC = () => {
                 return { content: res.content };
               }}
             />
+            */}
           </div>
         </div>
 

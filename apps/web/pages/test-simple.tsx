@@ -3,6 +3,8 @@
  * URL: http://localhost:8080/test-simple
  */
 
+import Link from 'next/link';
+
 export default function TestSimple() {
   return (
     <div style={{
@@ -25,7 +27,7 @@ export default function TestSimple() {
         <p><strong>Puerto:</strong> 8080</p>
         <p><strong>Entorno:</strong> {process.env.NODE_ENV}</p>
       </div>
-      <a
+      <Link
         href="/"
         style={{
           marginTop: '2rem',
@@ -38,7 +40,7 @@ export default function TestSimple() {
         }}
       >
         Ir a la página principal
-      </a>
+      </Link>
     </div>
   );
 }

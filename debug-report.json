@@ -1,0 +1,119 @@
+{
+  "timestamp": "2026-02-08T07:20:25.467Z",
+  "errors": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "location": "http://localhost:8080/api/proxy-bodas/graphql:0:0"
+    }
+  ],
+  "warnings": [],
+  "importantLogs": [
+    {
+      "type": "log",
+      "text": "error no firebase",
+      "location": "webpack-internal:///(pages-dir-browser)/./api.js:138:20"
+    },
+    {
+      "type": "log",
+      "text": "[App] Información del dominio: {hostname: localhost, origin: http://localhost:8080, isLocalhost: true, isTestDomain: false, domain: localhost}",
+      "location": "webpack-internal:///(pages-dir-browser)/./pages/_app.tsx:100:24"
+    },
+    {
+      "type": "log",
+      "text": "[Auth] Verificando resultado de redirect... wasRedirectPending: false",
+      "location": "webpack-internal:///(pages-dir-browser)/./context/AuthContext.tsx:329:24"
+    },
+    {
+      "type": "log",
+      "text": "[Auth] getRedirectResult completado: {hasResult: false, hasUser: false, email: undefined}",
+      "location": "webpack-internal:///(pages-dir-browser)/./context/AuthContext.tsx:335:32"
+    },
+    {
+      "type": "log",
+      "text": "[Auth] No hay resultado de redirect, continuando con flujo normal...",
+      "location": "webpack-internal:///(pages-dir-browser)/./context/AuthContext.tsx:342:36"
+    },
+    {
+      "type": "log",
+      "text": "[App] ✅ http://localhost:8080 - Status: 200",
+      "location": "webpack-internal:///(pages-dir-browser)/./pages/_app.tsx:116:40"
+    },
+    {
+      "type": "log",
+      "text": "[App] ✅ http://localhost:8080/api/proxy-bodas/graphql - Status: 500",
+      "location": "webpack-internal:///(pages-dir-browser)/./pages/_app.tsx:116:40"
+    }
+  ],
+  "componentState": {
+    "hasReactRoot": true,
+    "rootChildren": 1,
+    "bodyChildren": 7,
+    "loadingElements": 0,
+    "errorElements": 0,
+    "mainContent": "<section id=\"rootsection\" class=\"jsx-b7f8d612b798055d section relative w-full flex flex-col\"><div class=\"jsx-3c42fe688f2a9f23 banner bg-base w-full flex justify-center h-[48%] md:h-[60%] *md:h-[calc(1",
+    "scripts": [
+      {
+        "src": "http://localhost:8080/_next/static/chunks/polyfills.js",
+        "hasError": false
+      },
+      {
+        "src": "http://localhost:8080/_next/static/chunks/webpack.js",
+        "hasError": false
+      },
+      {
+        "src": "http://localhost:8080/_next/static/chunks/main.js",
+        "hasError": false
+      },
+      {
+        "src": "http://localhost:8080/_next/static/chunks/pages/_app.js",
+        "hasError": false
+      },
+      {
+        "src": "http://localhost:8080/_next/static/chunks/pages/index.js",
+        "hasError": false
+      },
+      {
+        "src": "http://localhost:8080/_next/static/development/_buildManifest.js",
+        "hasError": false
+      },
+      {
+        "src": "http://localhost:8080/_next/static/development/_ssgManifest.js",
+        "hasError": false
+      },
+      {
+        "src": "http://localhost:8080/_next/static/chunks/react-refresh.js",
+        "hasError": false
+      },
+      {
+        "src": "",
+        "hasError": false
+      },
+      {
+        "src": "https://www.googletagmanager.com/gtag/js?id=G-9H8TT0ZRHH",
+        "hasError": false
+      },
+      {
+        "src": "",
+        "hasError": false
+      }
+    ]
+  },
+  "componentState2": {
+    "rootChildren": 1,
+    "loadingElements": 0,
+    "bodyClasses": "",
+    "bodyText": "NOVIA\nNOVIO\nPROVEEDORES\nLUGARES PARA BODAS\nCopilot\nG\nes\n\nMis eventos\n\nResumen\n\nInvitados\n\nMesas\n\nLista de regalos\n\nPresupuesto\n\nInvitaciones\n\nItinerario\n\nPrimero debes crear un evento\nOrganiza tus eventos\nComparte, colabora e invita\nPlanifica tus celebraciones sin estrés.\nCrear un evento\nPendientes\nArchivados\nRealizados\nOrdenar\n\nCrea evento"
+  },
+  "authState": {
+    "hasAuthContext": true,
+    "cookies": "_ga=GA1.1.823051552.1770535210; _ga_9H8TT0ZRHH=GS2.1.s1770535210$o1$g0$t1770535210$j60$l0$h1763093900",
+    "localStorageKeys": [
+      "i18nextLng",
+      "_id"
+    ],
+    "sessionStorageKeys": [
+      "copilot_guest_session"
+    ]
+  }
+}

@@ -211,7 +211,16 @@ const AuthProvider = ({ children }) => {
       const subdomainDevelop = idx === -1 && devSubdomain[0]
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
-      resp.subdomain = ["ticket", "testticket", "invitado", "testinvitado", "dev"].includes(c[0]) ? c[0] : subdomainDevelop
+
+      // Validación: si no se encuentra el development, usar el primero como fallback
+      if (!resp) {
+        console.warn("[Auth Config] Development not found for domain:", domainDevelop, "using fallback")
+        resp = developments[0]
+      }
+
+      // Validación: verificar que c existe y tiene elementos antes de acceder a c[0]
+      const firstSubdomain = c && c.length > 0 ? c[0] : undefined
+      resp.subdomain = ["ticket", "testticket", "invitado", "testinvitado", "dev"].includes(firstSubdomain) ? firstSubdomain : subdomainDevelop
       //redireccion a: /RelacionesPublicas
       if (["ticket", "testticket"].includes(resp.subdomain) && window.location.pathname.split("/")[1] === "") {
         router.push("/RelacionesPublicas")
@@ -453,18 +462,27 @@ const AuthProvider = ({ children }) => {
                   const redirectUrl = config?.pathDirectory || expectedUrl
                   window.location.href = redirectUrl
                 } else {
+                // 🔧 DEBUG: Deshabilitar redirects si hay flag de debugging
+                const debugNoRedirect = new URLSearchParams(window.location.search).get('debug-no-redirect') === '1'
+
+                if (debugNoRedirect) {
+                  console.log("[Auth] 🛑 DEBUG MODE: Redirect deshabilitado por flag debug-no-redirect=1")
+                  // No hacer nada, permitir que el usuario permanezca en la página
+                  return
+                }
+
                 // Si estamos en la URL correcta, redirigir a la página principal o la URL de destino
                 // Esperar un momento para asegurar que las cookies se establezcan correctamente
                 const queryD = new URLSearchParams(window.location.search).get('d')
                 const redirectPath = queryD || '/'
                 console.log("[Auth] ✅ Login exitoso, esperando para establecer cookies antes de redirigir a:", redirectPath)
-                
+
                 // Esperar 1 segundo para asegurar que las cookies se establezcan
                 setTimeout(() => {
                   // Verificar cookies antes de redirigir
                   const sessionCookie = Cookies.get(config?.cookie)
                   const idToken = Cookies.get("idTokenV0.1.0")
-                  
+
                   if (sessionCookie && idToken) {
                     console.log("[Auth] ✅ Cookies verificadas, redirigiendo...")
                     window.location.href = redirectPath
@@ -478,8 +496,15 @@ const AuthProvider = ({ children }) => {
                 // Usuario no existe, redirigir a registro
                 setUser(result.user)
                 setVerificationDone(true)
-                if (window.location.pathname !== '/login') {
+
+                // 🔧 DEBUG: Deshabilitar redirects si hay flag de debugging
+                const debugNoRedirect = new URLSearchParams(window.location.search).get('debug-no-redirect') === '1'
+
+                if (!debugNoRedirect && window.location.pathname !== '/login') {
+                  console.log("[Auth] Redirigiendo a login porque usuario no existe en BD")
                   window.location.href = config?.pathLogin || '/login'
+                } else if (debugNoRedirect) {
+                  console.log("[Auth] 🛑 DEBUG MODE: Redirect a login deshabilitado por flag debug-no-redirect=1")
                 }
               }
             } catch (error) {

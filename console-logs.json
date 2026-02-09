@@ -1,0 +1,197 @@
+{
+  "consoleLogs": [
+    {
+      "timestamp": "14:15:57.171",
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "timestamp": "14:15:57.291",
+      "type": "log",
+      "text": "[HMR] connected"
+    },
+    {
+      "timestamp": "14:16:00.142",
+      "type": "log",
+      "text": "error no firebase"
+    },
+    {
+      "timestamp": "14:16:00.143",
+      "type": "log",
+      "text": "[App] Información del dominio: {hostname: localhost, origin: http://localhost:8080, isLocalhost: true, isTestDomain: false, domain: localhost}"
+    },
+    {
+      "timestamp": "14:16:00.152",
+      "type": "log",
+      "text": "[Auth Config] Using development domain: bodasdehoy idx: -1 hostname: localhost"
+    },
+    {
+      "timestamp": "14:16:00.153",
+      "type": "log",
+      "text": "[Auth Config] Using directory for redirects: https://app-test.bodasdehoy.com isTestSubdomain: false"
+    },
+    {
+      "timestamp": "14:16:00.153",
+      "type": "log",
+      "text": "[Firebase] App Check debug token configurado para: localhost"
+    },
+    {
+      "timestamp": "14:16:00.153",
+      "type": "log",
+      "text": "[Auth] Verificando resultado de redirect... wasRedirectPending: false"
+    },
+    {
+      "timestamp": "14:16:00.167",
+      "type": "log",
+      "text": "[Auth] getRedirectResult completado: {hasResult: false, hasUser: false, email: undefined}"
+    },
+    {
+      "timestamp": "14:16:00.167",
+      "type": "log",
+      "text": "[Auth] No hay resultado de redirect, continuando con flujo normal..."
+    },
+    {
+      "timestamp": "14:16:00.214",
+      "type": "log",
+      "text": "seteado planSpaceActive"
+    },
+    {
+      "timestamp": "14:16:00.214",
+      "type": "log",
+      "text": "[EventsGroup] Buscando eventos para usuario_id: gj3snwW-16mR161tOg9vXvXaBKrc"
+    },
+    {
+      "timestamp": "14:16:00.221",
+      "type": "log",
+      "text": "=======> User {uid: gj3snwW-16mR161tOg9vXvXaBKrc, displayName: guest}"
+    },
+    {
+      "timestamp": "14:16:00.221",
+      "type": "log",
+      "text": "=======> parseJwt {}"
+    },
+    {
+      "timestamp": "14:16:00.222",
+      "type": "log",
+      "text": "=======> development bodasdehoy"
+    },
+    {
+      "timestamp": "14:16:00.222",
+      "type": "log",
+      "text": "seteado planSpaceActive"
+    },
+    {
+      "timestamp": "14:16:00.222",
+      "type": "log",
+      "text": "[EventsGroup] Buscando eventos para usuario_id: gj3snwW-16mR161tOg9vXvXaBKrc"
+    },
+    {
+      "timestamp": "14:16:00.222",
+      "type": "log",
+      "text": "=======> User {uid: gj3snwW-16mR161tOg9vXvXaBKrc, displayName: guest}"
+    },
+    {
+      "timestamp": "14:16:00.222",
+      "type": "log",
+      "text": "=======> parseJwt {}"
+    },
+    {
+      "timestamp": "14:16:00.222",
+      "type": "log",
+      "text": "=======> development bodasdehoy"
+    },
+    {
+      "timestamp": "14:16:00.364",
+      "type": "log",
+      "text": "[App] ✅ http://localhost:8080 - Status: 200"
+    },
+    {
+      "timestamp": "14:16:00.628",
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "timestamp": "14:16:00.628",
+      "type": "log",
+      "text": "[App] ✅ http://localhost:8080/api/proxy-bodas/graphql - Status: 500"
+    },
+    {
+      "timestamp": "14:16:00.629",
+      "type": "startGroup",
+      "text": "🔍 Verificación de URLs y Dominios"
+    },
+    {
+      "timestamp": "14:16:00.629",
+      "type": "log",
+      "text": "✅ http://localhost:8080 - 200 (undefinedms)"
+    },
+    {
+      "timestamp": "14:16:00.629",
+      "type": "log",
+      "text": "✅ http://localhost:8080/api/proxy-bodas/graphql - 500 (undefinedms)"
+    },
+    {
+      "timestamp": "14:16:00.629",
+      "type": "log",
+      "text": "\n📋 Información del Dominio:"
+    },
+    {
+      "timestamp": "14:16:00.629",
+      "type": "log",
+      "text": "  Hostname: localhost"
+    },
+    {
+      "timestamp": "14:16:00.629",
+      "type": "log",
+      "text": "  Origin: http://localhost:8080"
+    },
+    {
+      "timestamp": "14:16:00.629",
+      "type": "log",
+      "text": "  Domain: localhost"
+    },
+    {
+      "timestamp": "14:16:00.629",
+      "type": "log",
+      "text": "  Subdomain: ninguno"
+    },
+    {
+      "timestamp": "14:16:00.629",
+      "type": "log",
+      "text": "  Is Localhost: true"
+    },
+    {
+      "timestamp": "14:16:00.629",
+      "type": "log",
+      "text": "  Is Test Domain: false"
+    },
+    {
+      "timestamp": "14:16:00.629",
+      "type": "endGroup",
+      "text": "console.groupEnd"
+    }
+  ],
+  "networkLogs": [
+    {
+      "timestamp": "14:15:56.912",
+      "event": "navigation",
+      "url": "http://localhost:8080/login?debug-no-redirect=1"
+    },
+    {
+      "timestamp": "14:16:00.140",
+      "event": "navigation",
+      "url": "http://localhost:8080/login?debug-no-redirect=1"
+    },
+    {
+      "timestamp": "14:16:01.490",
+      "event": "navigation",
+      "url": "http://localhost:8080/"
+    },
+    {
+      "timestamp": "14:16:01.815",
+      "event": "navigation",
+      "url": "http://localhost:8080/"
+    }
+  ],
+  "finalUrl": "http://localhost:8080/"
+}

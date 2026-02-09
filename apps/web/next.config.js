@@ -7,7 +7,8 @@ const nextConfig = {
   devIndicators: false,
 
   // Transpile packages del monorepo y @lobehub/ui
-  transpilePackages: ['@bodasdehoy/shared', '@lobehub/ui', 'react-layout-kit'],
+  // Agregado 'debug' y 'supports-color' para solucionar error ESM con dependencies de @lobehub/editor
+  transpilePackages: ['@bodasdehoy/shared', '@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'debug', 'supports-color'],
 
   // Headers CORS para API routes
   async headers() {
@@ -55,13 +56,25 @@ const nextConfig = {
   },
 
   // Webpack config para resolver módulos ESM de @lobehub/ui
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     // Resolver extensiones sin .js en ESM
     config.resolve.extensionAlias = {
       '.js': ['.ts', '.tsx', '.js', '.jsx'],
       '.mjs': ['.mts', '.mjs'],
       '.cjs': ['.cts', '.cjs'],
     };
+
+    // Suprimir warnings de ESM packages conocidos que funcionan correctamente
+    if (!isServer) {
+      config.ignoreWarnings = [
+        ...(config.ignoreWarnings || []),
+        {
+          module: /debug\/src\/node\.js/,
+          message: /ESM packages \(supports-color\)/,
+        },
+      ];
+    }
+
     return config;
   },
 

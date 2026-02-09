@@ -1,5 +1,5 @@
 import { useRouter, usePathname } from "next/navigation";
-import { AuthContextProvider, LoadingContextProvider, ChatSidebarContextProvider } from "../../context";
+import { AuthContextProvider, LoadingContextProvider, useChatSidebar } from "../../context";
 import NavigationMobile from "./NavigationMobile";
 import Navigation from "./Navigation";
 import { motion } from "framer-motion";
@@ -17,7 +17,7 @@ const Container = (props) => {
   const router = useRouter();
   const pathname = usePathname();
   const { setLoading } = LoadingContextProvider();
-  const chatSidebar = ChatSidebarContextProvider();
+  const chatSidebar = useChatSidebar();
 
   const [isWideScreen, setIsWideScreen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
