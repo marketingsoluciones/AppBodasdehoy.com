@@ -1,0 +1,288 @@
+import { Hotkey, Icon } from '@lobehub/ui';
+import { DiscordIcon } from '@lobehub/ui/icons';
+import { Badge } from 'antd';
+import { ItemType } from 'antd/es/menu/interface';
+import {
+  Book,
+  CircleUserRound,
+  Cloudy,
+  CreditCard,
+  Download,
+  Feather,
+  FileClockIcon,
+  HardDriveDownload,
+  LifeBuoy,
+  LogIn,
+  LogOut,
+  Mail,
+  Package,
+  Settings2,
+  TrendingUp,
+  Wallet,
+} from 'lucide-react';
+import Link from 'next/link';
+import { PropsWithChildren, memo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Flexbox } from 'react-layout-kit';
+
+import type { MenuProps } from '@/components/Menu';
+import { enableAuth } from '@/const/auth';
+import { BRANDING_EMAIL, LOBE_CHAT_CLOUD, SOCIAL_URL } from '@/const/branding';
+import { DEFAULT_DESKTOP_HOTKEY_CONFIG } from '@/const/desktop';
+import {
+  CHANGELOG,
+  DOCUMENTS_REFER_URL,
+  GITHUB_ISSUES,
+  OFFICIAL_URL,
+  UTM_SOURCE,
+  mailTo,
+} from '@/const/url';
+import { isDeprecatedEdition, isDesktop } from '@/const/version';
+import { useLoginModal } from '@/contexts/LoginModalContext';
+import DataImporter from '@/features/DataImporter';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
+import { useUserStore } from '@/store/user';
+import { authSelectors } from '@/store/user/selectors';
+
+import { useNewVersion } from './useNewVersion';
+
+const NewVersionBadge = memo(
+  ({
+    children,
+    showBadge,
+    onClick,
+  }: PropsWithChildren & { onClick?: () => void; showBadge?: boolean }) => {
+    const { t } = useTranslation('common');
+    if (!showBadge)
+      return (
+        <Flexbox flex={1} onClick={onClick}>
+          {children}
+        </Flexbox>
+      );
+    return (
+      <Flexbox align={'center'} flex={1} gap={8} horizontal onClick={onClick} width={'100%'}>
+        <span>{children}</span>
+        <Badge count={t('upgradeVersion.hasNew')} />
+      </Flexbox>
+    );
+  },
+);
+
+export const useMenu = () => {
+  const { canInstall, install } = usePWAInstall();
+  const hasNewVersion = useNewVersion();
+  const { t } = useTranslation(['common', 'setting', 'auth']);
+  const { showCloudPromotion, hideDocs } = useServerConfigStore(featureFlagsSelectors);
+  const { openLoginModal } = useLoginModal();
+  const [isLogin, isLoginWithAuth] = useUserStore((s) => [
+    authSelectors.isLogin(s),
+    authSelectors.isLoginWithAuth(s),
+  ]);
+
+  // ✅ FIX: Convertir perfil en submenú con todas las opciones de cuenta
+  const profile: MenuProps['items'] = [
+    {
+      children: [
+        {
+          icon: <Icon icon={CircleUserRound} />,
+          key: 'profile',
+          label: <Link href={'/profile'}>{t('userPanel.profile')}</Link>,
+        },
+        !isDeprecatedEdition && {
+          icon: <Icon icon={TrendingUp} />,
+          key: 'profile-stats',
+          label: <Link href={'/profile/stats'}>Estadísticas</Link>,
+        },
+        {
+          type: 'divider',
+        },
+        {
+          icon: <Icon icon={CreditCard} />,
+          key: 'billing',
+          label: <Link href={'/settings?active=billing'}>Facturación</Link>,
+        },
+        {
+          icon: <Icon icon={Wallet} />,
+          key: 'wallet',
+          label: <Link href={'/settings?active=billing'}>Mi Wallet</Link>,
+        },
+        {
+          icon: <Icon icon={Package} />,
+          key: 'packages',
+          label: <Link href={'/settings/billing/packages/history'}>Historial de Paquetes</Link>,
+        },
+        {
+          icon: <Icon icon={FileClockIcon} />,
+          key: 'transactions',
+          label: <Link href={'/settings/billing/transactions'}>Transacciones</Link>,
+        },
+      ].filter(Boolean) as ItemType[],
+      icon: <Icon icon={CircleUserRound} />,
+      key: 'account',
+      label: 'Mi Cuenta',
+    },
+  ];
+
+  // ✅ DEBUG: Log para verificar que el perfil se está generando
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    console.log('🔍 [useMenu] Profile items:', profile);
+    console.log('🔍 [useMenu] isLogin:', isLogin);
+    console.log('🔍 [useMenu] isLoginWithAuth:', isLoginWithAuth);
+  }
+
+  const settings: ItemType[] = [
+    {
+      extra: isDesktop ? (
+        <div>
+          <Hotkey keys={DEFAULT_DESKTOP_HOTKEY_CONFIG.openSettings} />
+        </div>
+      ) : undefined,
+      icon: <Icon icon={Settings2} />,
+      key: 'setting',
+      label: (
+        <Link href={'/settings'}>
+          <NewVersionBadge showBadge={hasNewVersion}>{t('userPanel.setting')}</NewVersionBadge>
+        </Link>
+      ),
+    },
+    {
+      key: 'advanced',
+      label: <Link href={'/settings/advanced'}>Advanced</Link>,
+    },
+    {
+      type: 'divider',
+    },
+  ];
+
+  /* ↓ cloud slot ↓ */
+
+  /* ↑ cloud slot ↑ */
+
+  const pwa: MenuProps['items'] = [
+    {
+      icon: <Icon icon={Download} />,
+      key: 'pwa',
+      label: t('installPWA'),
+      onClick: () => install(),
+    },
+    {
+      type: 'divider',
+    },
+  ];
+
+  const data = !isLogin
+    ? []
+    : ([
+        {
+          icon: <Icon icon={HardDriveDownload} />,
+          key: 'import',
+          label: <DataImporter>{t('importData')}</DataImporter>,
+        },
+        {
+          type: 'divider',
+        },
+      ].filter(Boolean) as ItemType[]);
+
+  const helps: MenuProps['items'] = [
+    showCloudPromotion && {
+      icon: <Icon icon={Cloudy} />,
+      key: 'cloud',
+      label: (
+        <Link href={`${OFFICIAL_URL}?utm_source=${UTM_SOURCE}`} target={'_blank'}>
+          {t('userPanel.cloud', { name: LOBE_CHAT_CLOUD })}
+        </Link>
+      ),
+    },
+    {
+      icon: <Icon icon={FileClockIcon} />,
+      key: 'changelog',
+      label: <Link href={isDesktop ? CHANGELOG : '/changelog/modal'}>{t('changelog')}</Link>,
+    },
+    {
+      children: [
+        {
+          icon: <Icon icon={Book} />,
+          key: 'docs',
+          label: (
+            <Link href={DOCUMENTS_REFER_URL} target={'_blank'}>
+              {t('userPanel.docs')}
+            </Link>
+          ),
+        },
+        {
+          icon: <Icon icon={Feather} />,
+          key: 'feedback',
+          label: (
+            <Link href={GITHUB_ISSUES} target={'_blank'}>
+              {t('userPanel.feedback')}
+            </Link>
+          ),
+        },
+        {
+          icon: <Icon icon={DiscordIcon} />,
+          key: 'discord',
+          label: (
+            <Link href={SOCIAL_URL.discord} target={'_blank'}>
+              {t('userPanel.discord')}
+            </Link>
+          ),
+        },
+        {
+          icon: <Icon icon={Mail} />,
+          key: 'email',
+          label: (
+            <Link href={mailTo(BRANDING_EMAIL.support)} target={'_blank'}>
+              {t('userPanel.email')}
+            </Link>
+          ),
+        },
+      ],
+      icon: <Icon icon={LifeBuoy} />,
+      key: 'help',
+      label: t('userPanel.help'),
+    },
+    {
+      type: 'divider',
+    },
+  ].filter(Boolean) as ItemType[];
+
+  const mainItems = [
+    {
+      type: 'divider',
+    },
+    ...(!enableAuth || (enableAuth && isLoginWithAuth) ? (profile || []) : []),
+    ...(isLogin ? (settings || []) : []),
+    /* ↓ cloud slot ↓ */
+
+    /* ↑ cloud slot ↑ */
+    ...(canInstall ? (pwa || []) : []),
+    ...(data || []),
+    ...(!hideDocs ? (helps || []) : []),
+  ].filter(Boolean) as MenuProps['items'];
+
+  // Items de login - solo se muestran cuando NO está logueado
+  const loginItems: MenuProps['items'] = !isLoginWithAuth
+    ? [
+        {
+          icon: <Icon icon={LogIn} />,
+          key: 'login',
+          label: <span>{t('signin', { ns: 'auth' })}</span>,
+          onClick: () => openLoginModal(),
+        },
+      ]
+    : [];
+
+  // Items de logout - solo se muestran cuando SÍ está logueado
+  const logoutItems: MenuProps['items'] = isLoginWithAuth
+    ? [
+        {
+          icon: <Icon icon={LogOut} />,
+          key: 'logout',
+          label: <span>{t('signout', { ns: 'auth' })}</span>,
+        },
+      ]
+    : [];
+
+  return { loginItems, logoutItems, mainItems };
+};

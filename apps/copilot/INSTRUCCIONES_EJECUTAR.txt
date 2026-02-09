@@ -1,0 +1,64 @@
+═══════════════════════════════════════════════════════════════
+  INSTRUCCIONES PARA INICIALIZAR GIT EN FRONT-IA-CHAT
+═══════════════════════════════════════════════════════════════
+
+PROBLEMA: PowerShell está bloqueando la ejecución de scripts.
+
+SOLUCIÓN: Ejecuta estos comandos desde CMD (Símbolo del sistema)
+
+═══════════════════════════════════════════════════════════════
+  OPCIÓN 1: Ejecutar el script .bat (MÁS FÁCIL)
+═══════════════════════════════════════════════════════════════
+
+1. Abre el Explorador de archivos
+2. Navega a: C:\Users\Edo\TMK\Front-IA-Chat
+3. Haz DOBLE CLIC en el archivo: EJECUTAR_AQUI.bat
+4. Sigue las instrucciones en pantalla
+
+═══════════════════════════════════════════════════════════════
+  OPCIÓN 2: Ejecutar comandos manualmente (MÁS CONTROL)
+═══════════════════════════════════════════════════════════════
+
+1. Abre CMD (Símbolo del sistema):
+   - Presiona Win + R
+   - Escribe: cmd
+   - Presiona Enter
+
+2. Copia y pega estos comandos uno por uno:
+
+   cd C:\Users\Edo\TMK\Front-IA-Chat
+   git init
+   git status
+
+3. Si necesitas configurar tu usuario de git (primera vez):
+   git config --global user.name "Tu Nombre"
+   git config --global user.email "tu.email@ejemplo.com"
+
+4. Para hacer tu primer commit:
+   git add .
+   git commit -m "Initial commit"
+
+═══════════════════════════════════════════════════════════════
+  OPCIÓN 3: Usar Git Bash (RECOMENDADO)
+═══════════════════════════════════════════════════════════════
+
+1. Abre Git Bash (busca "Git Bash" en el menú de inicio)
+
+2. Ejecuta estos comandos:
+
+   cd /c/Users/Edo/TMK/Front-IA-Chat
+   git init
+   git status
+   git add .
+   git commit -m "Initial commit"
+
+═══════════════════════════════════════════════════════════════
+  NOTAS IMPORTANTES
+═══════════════════════════════════════════════════════════════
+
+- El proyecto Front-IA-Chat es grande, git add puede tardar
+- El proyecto ya tiene un .gitignore configurado
+- Si ya existe un repositorio remoto, después puedes agregarlo:
+  git remote add origin <URL_DEL_REPOSITORIO>
+
+═══════════════════════════════════════════════════════════════

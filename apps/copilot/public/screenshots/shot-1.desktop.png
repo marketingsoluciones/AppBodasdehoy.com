@@ -1,0 +1,43 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo de la aplicación -->
+  <rect width="1200" height="800" fill="#f8fafc"/>
+  
+  <!-- Header -->
+  <rect x="0" y="0" width="1200" height="80" fill="#1e40af"/>
+  <text x="50" y="50" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">PLANNER AI - EVENT CO-PILOT</text>
+  
+  <!-- Sidebar -->
+  <rect x="0" y="80" width="300" height="720" fill="#f1f5f9"/>
+  
+  <!-- Logo en sidebar -->
+  <circle cx="150" cy="150" r="40" fill="#1e40af"/>
+  <text x="150" y="200" text-anchor="middle" fill="#1e40af" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Asistente IA</text>
+  
+  <!-- Lista de conversaciones -->
+  <rect x="20" y="250" width="260" height="60" fill="white" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="30" y="275" fill="#1e40af" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Consulta de Eventos</text>
+  <text x="30" y="295" fill="#64748b" font-family="Arial, sans-serif" font-size="12">¿Cuáles son mis próximos eventos?</text>
+  
+  <rect x="20" y="320" width="260" height="60" fill="#1e40af"/>
+  <text x="30" y="345" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Planificación de Boda</text>
+  <text x="30" y="365" fill="#e5e7eb" font-family="Arial, sans-serif" font-size="12">Necesito ayuda con el itinerario</text>
+  
+  <!-- Área de chat principal -->
+  <rect x="300" y="80" width="900" height="720" fill="white"/>
+  
+  <!-- Mensajes de chat -->
+  <rect x="320" y="200" width="400" height="40" fill="#f1f5f9" rx="20"/>
+  <text x="340" y="225" fill="#1e40af" font-family="Arial, sans-serif" font-size="14">Hola, necesito ayuda con mi boda del 15 de junio</text>
+  
+  <rect x="480" y="260" width="400" height="60" fill="#1e40af" rx="20"/>
+  <text x="500" y="285" fill="white" font-family="Arial, sans-serif" font-size="14">¡Hola! Me da mucho gusto ayudarte con tu boda. </text>
+  <text x="500" y="305" fill="white" font-family="Arial, sans-serif" font-size="14">¿En qué aspectos específicos necesitas asistencia?</text>
+  
+  <!-- Input de mensaje -->
+  <rect x="320" y="700" width="600" height="50" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" rx="25"/>
+  <text x="340" y="730" fill="#64748b" font-family="Arial, sans-serif" font-size="14">Escribe tu mensaje aquí...</text>
+  
+  <!-- Botón de envío -->
+  <circle cx="950" cy="725" r="20" fill="#1e40af"/>
+  <text x="945" y="732" fill="white" font-family="Arial, sans-serif" font-size="16">→</text>
+</svg>

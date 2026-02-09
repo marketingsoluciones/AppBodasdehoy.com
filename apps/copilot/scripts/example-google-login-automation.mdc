@@ -1,0 +1,476 @@
+# Ejemplos Prácticos: Automatización de Login con Google - Sistema Completo
+
+Este documento contiene ejemplos prácticos para todos los escenarios de automatización de login, incluyendo:
+- Login completo con Google OAuth
+- Uso de bypass para testing
+- Manejo de subdominios funcionales
+- Verificación de sesión compartida entre subdominios
+- Casos específicos entre diferentes dominios/marcas
+
+## Ejemplo Completo
+
+```typescript
+/**
+ * Ejemplo completo de automatización de login con Google
+ * usando las herramientas MCP del navegador de Cursor
+ */
+
+// ============================================
+// PASO 1: Navegar a la página
+// ============================================
+await browser_navigate({ 
+  url: 'http://localhost:8000' 
+});
+
+// Esperar a que la página cargue completamente
+await browser_wait_for({ time: 3000 });
+
+// ============================================
+// PASO 2: Abrir el modal de login
+// ============================================
+// Opción A: Usar función global (recomendado)
+await browser_execute_script({
+  script: `
+    if (typeof window.openLoginModal === 'function') {
+      window.openLoginModal();
+      return 'Modal abierto';
+    } else {
+      throw new Error('window.openLoginModal no está disponible');
+    }
+  `
+});
+
+// Opción B: Buscar y hacer clic en botón que abre el modal
+// await browser_click({
+//   element: 'Botón para abrir modal de login',
+//   ref: '[data-testid="login-trigger-button"]'
+// });
+
+// ============================================
+// PASO 3: Esperar a que el modal sea visible
+// ============================================
+await browser_wait_for({ 
+  text: 'Continuar con Google',
+  timeout: 10000
+});
+
+// Verificar que el modal está visible
+const modalVisible = await browser_execute_script({
+  script: `
+    const modal = document.querySelector('[data-testid="login-modal"]');
+    return modal && modal.offsetParent !== null;
+  `
+});
+
+if (!modalVisible) {
+  throw new Error('El modal no está visible');
+}
+
+// ============================================
+// PASO 4: Hacer clic en el botón de Google
+// ============================================
+await browser_click({
+  element: 'Botón Continuar con Google',
+  ref: '[data-testid="google-login-button"]'
+});
+
+// Esperar un momento para que se inicie el proceso
+await browser_wait_for({ time: 1000 });
+
+// ============================================
+// PASO 5: Verificar que el popup se abrió
+// ============================================
+// Nota: En este punto, el popup de Google OAuth debería haberse abierto
+// El usuario debe completar manualmente la autenticación
+
+console.log('⏸️  Pausando para interacción manual...');
+console.log('👤 Por favor, completa el proceso de autenticación en el popup de Google.');
+
+// Esperar a que el usuario complete la autenticación
+// (Esto puede tomar varios segundos o minutos)
+await browser_wait_for({ 
+  time: 60000 // Esperar hasta 60 segundos
+});
+
+// ============================================
+// PASO 6: Verificar login exitoso
+// ============================================
+const loginStatus = await browser_execute_script({
+  script: `
+    const token = localStorage.getItem('api2_jwt_token');
+    const userConfig = localStorage.getItem('dev-user-config');
+    
+    if (!token || !userConfig) {
+      return {
+        success: false,
+        message: 'Token o configuración de usuario no encontrados',
+        hasToken: !!token,
+        hasUserConfig: !!userConfig
+      };
+    }
+    
+    try {
+      const config = JSON.parse(userConfig);
+      return {
+        success: true,
+        message: 'Login exitoso',
+        userEmail: config.userId,
+        userDisplayName: config.user_data?.displayName,
+        hasToken: true,
+        tokenPreview: token.substring(0, 20) + '...',
+        currentUrl: window.location.href
+      };
+    } catch (e) {
+      return {
+        success: false,
+        message: 'Error al parsear configuración de usuario',
+        error: e.message
+      };
+    }
+  `
+});
+
+if (loginStatus.success) {
+  console.log('✅ Login exitoso!');
+  console.log(`👤 Usuario: ${loginStatus.userEmail}`);
+  console.log(`📝 Nombre: ${loginStatus.userDisplayName}`);
+  console.log(`🔗 URL: ${loginStatus.currentUrl}`);
+} else {
+  console.warn('⚠️ Login puede no haberse completado:');
+  console.warn(loginStatus.message);
+}
+
+// ============================================
+// PASO 7: Verificar que el modal se cerró
+// ============================================
+const modalClosed = await browser_execute_script({
+  script: `
+    const modal = document.querySelector('[data-testid="login-modal"]');
+    return !modal || modal.offsetParent === null;
+  `
+});
+
+if (modalClosed) {
+  console.log('✅ Modal cerrado correctamente');
+} else {
+  console.warn('⚠️ El modal aún está visible');
+}
+
+// ============================================
+// RESULTADO FINAL
+// ============================================
+return {
+  success: loginStatus.success,
+  userEmail: loginStatus.userEmail,
+  timestamp: new Date().toISOString()
+};
+```
+
+## Ejemplo Simplificado (Solo hasta el clic)
+
+Si solo quieres automatizar hasta hacer clic en el botón (sin esperar la interacción manual):
+
+```typescript
+// Navegar
+await browser_navigate({ url: 'http://localhost:8000' });
+await browser_wait_for({ time: 2000 });
+
+// Abrir modal
+await browser_execute_script({
+  script: 'window.openLoginModal && window.openLoginModal();'
+});
+
+// Esperar modal
+await browser_wait_for({ text: 'Continuar con Google' });
+
+// Hacer clic
+await browser_click({
+  element: 'Botón Continuar con Google',
+  ref: '[data-testid="google-login-button"]'
+});
+
+console.log('✅ Clic realizado. El popup de Google debería estar abierto.');
+console.log('👤 Completa manualmente la autenticación en el popup.');
+```
+
+## Manejo de Errores
+
+```typescript
+try {
+  // ... código de automatización ...
+} catch (error) {
+  // Capturar screenshot para debugging
+  await browser_take_screenshot({
+    filename: 'error-login-automation.png',
+    fullPage: true
+  });
+  
+  // Obtener logs de consola
+  const consoleLogs = await browser_console_messages();
+  console.error('Errores de consola:', consoleLogs);
+  
+  // Obtener errores de red
+  const networkErrors = await browser_network_errors();
+  console.error('Errores de red:', networkErrors);
+  
+  throw error;
+}
+```
+
+## Ejemplo 2: Usar Bypass para Testing (Más Eficiente)
+
+Para testing automatizado, el bypass es mucho más eficiente que el login completo:
+
+```typescript
+// ============================================
+// Configurar bypass antes de navegar
+// ============================================
+await browser_execute_script({
+  script: `
+    sessionStorage.setItem('dev_bypass', 'true');
+    sessionStorage.setItem('dev_bypass_email', 'test@example.com');
+    return 'Bypass configurado';
+  `
+});
+
+// ============================================
+// Navegar a subdominio de test
+// ============================================
+await browser_navigate({ url: 'https://chat-test.bodasdehoy.com' });
+await browser_wait_for({ time: 3000 });
+
+// ============================================
+// Verificar que el bypass funcionó
+// ============================================
+const bypassResult = await browser_execute_script({
+  script: `
+    ({
+      bypassActive: sessionStorage.getItem('dev_bypass') === 'true',
+      hasUser: !!localStorage.getItem('dev-user-config'),
+      userEmail: localStorage.getItem('dev-user-config') 
+        ? JSON.parse(localStorage.getItem('dev-user-config')).userId 
+        : null,
+      hasToken: !!localStorage.getItem('api2_jwt_token')
+    })
+  `
+});
+
+if (bypassResult.hasUser) {
+  console.log('✅ Bypass exitoso');
+  console.log(`👤 Usuario: ${bypassResult.userEmail}`);
+} else {
+  console.warn('⚠️ Bypass no cargó usuario');
+}
+```
+
+## Ejemplo 3: Login en Subdominio Funcional
+
+Los subdominios funcionales tienen routing especial que debe considerarse:
+
+```typescript
+// ============================================
+// Navegar a subdominio funcional
+// ============================================
+await browser_navigate({ url: 'https://ticket.bodasdehoy.com' });
+
+// ============================================
+// Esperar redirección automática
+// ============================================
+// ticket.bodasdehoy.com redirige automáticamente a /RelacionesPublicas
+await browser_wait_for({ time: 3000 });
+
+// ============================================
+// Verificar URL después de redirección
+// ============================================
+const finalUrl = await browser_execute_script({
+  script: 'window.location.href'
+});
+
+console.log('URL después de redirección:', finalUrl);
+// Esperado: https://ticket.bodasdehoy.com/RelacionesPublicas
+
+// ============================================
+// Proceder con login normalmente
+// ============================================
+await browser_execute_script({
+  script: 'window.openLoginModal && window.openLoginModal();'
+});
+
+await browser_wait_for({ text: 'Continuar con Google' });
+
+await browser_click({
+  element: 'Botón Continuar con Google',
+  ref: '[data-testid="google-login-button"]'
+});
+
+// ... resto del proceso de login ...
+```
+
+## Ejemplo 4: Verificar Sesión Compartida Entre Subdominios
+
+Una vez logueado, verificar que la sesión persiste en todos los subdominios:
+
+```typescript
+// ============================================
+// Paso 1: Login en dominio principal
+// ============================================
+await browser_navigate({ url: 'https://www.bodasdehoy.com' });
+// ... proceso de login completo ...
+
+// ============================================
+// Paso 2: Verificar login en dominio principal
+// ============================================
+const check1 = await browser_execute_script({
+  script: `
+    ({
+      hasToken: !!localStorage.getItem('api2_jwt_token'),
+      hasSessionCookie: document.cookie.includes('sessionBodas='),
+      domain: window.location.hostname
+    })
+  `
+});
+
+console.log('Login en dominio principal:', check1);
+
+// ============================================
+// Paso 3: Navegar a subdominio técnico
+// ============================================
+await browser_navigate({ url: 'https://chat-test.bodasdehoy.com' });
+await browser_wait_for({ time: 2000 });
+
+const check2 = await browser_execute_script({
+  script: `
+    ({
+      hasToken: !!localStorage.getItem('api2_jwt_token'),
+      hasSessionCookie: document.cookie.includes('sessionBodas='),
+      domain: window.location.hostname
+    })
+  `
+});
+
+console.log('Sesión en subdominio técnico:', check2);
+
+// ============================================
+// Paso 4: Navegar a subdominio funcional
+// ============================================
+await browser_navigate({ url: 'https://ticket.bodasdehoy.com' });
+await browser_wait_for({ time: 2000 });
+
+const check3 = await browser_execute_script({
+  script: `
+    ({
+      hasToken: !!localStorage.getItem('api2_jwt_token'),
+      hasSessionCookie: document.cookie.includes('sessionBodas='),
+      domain: window.location.hostname
+    })
+  `
+});
+
+console.log('Sesión en subdominio funcional:', check3);
+
+// ============================================
+// Verificación final
+// ============================================
+if (check1.hasSessionCookie && check2.hasSessionCookie && check3.hasSessionCookie) {
+  console.log('✅ Sesión compartida verificada correctamente');
+  console.log('🌐 La sesión persiste en todos los subdominios');
+} else {
+  console.warn('⚠️ La sesión no se compartió correctamente');
+}
+```
+
+## Ejemplo 5: Caso Específico Entre Diferentes Dominios/Marcas
+
+Para usuarios con cuenta en múltiples marcas:
+
+```typescript
+// ============================================
+// Paso 1: Login en primera marca
+// ============================================
+await browser_navigate({ url: 'https://www.bodasdehoy.com' });
+// ... proceso de login completo ...
+// Cookie establecida: sessionBodas
+
+const check1 = await browser_execute_script({
+  script: `
+    ({
+      hasSessionBodas: document.cookie.includes('sessionBodas='),
+      userEmail: localStorage.getItem('dev-user-config') 
+        ? JSON.parse(localStorage.getItem('dev-user-config')).userId 
+        : null
+    })
+  `
+});
+
+console.log('Login en bodasdehoy:', check1);
+
+// ============================================
+// Paso 2: Navegar a segunda marca
+// ============================================
+await browser_navigate({ url: 'https://www.eventosorganizador.com' });
+await browser_wait_for({ time: 2000 });
+
+// El sistema puede identificar al usuario por email
+// Pero requiere re-autenticación
+
+// ============================================
+// Paso 3: Re-autenticación en segunda marca
+// ============================================
+await browser_execute_script({
+  script: 'window.openLoginModal && window.openLoginModal();'
+});
+
+await browser_wait_for({ text: 'Continuar con Google' });
+
+await browser_click({
+  element: 'Botón Continuar con Google',
+  ref: '[data-testid="google-login-button"]'
+});
+
+// Esperar interacción manual...
+
+// ============================================
+// Paso 4: Verificar ambas cookies
+// ============================================
+const check2 = await browser_execute_script({
+  script: `
+    ({
+      hasSessionBodas: document.cookie.includes('sessionBodas='),
+      hasSessionOrganizador: document.cookie.includes('sessionOrganizador='),
+      userEmail: localStorage.getItem('dev-user-config') 
+        ? JSON.parse(localStorage.getItem('dev-user-config')).userId 
+        : null
+    })
+  `
+});
+
+if (check2.hasSessionBodas && check2.hasSessionOrganizador) {
+  console.log('✅ Sesión en ambas marcas establecida');
+  console.log('🌐 Puede navegar entre ambas marcas sin re-login');
+} else {
+  console.warn('⚠️ No se establecieron ambas cookies');
+}
+```
+
+## Notas Importantes
+
+1. **Login Compartido Obligatorio**: Los subdominios DEBEN compartir un único login. Es un requisito del sistema.
+
+2. **Registro Compartido**: Si te registras en un subdominio, ya estás registrado en todos los demás subdominios del mismo dominio base.
+
+3. **Subdominios Funcionales**: Los subdominios funcionales (`ticket`, `invitado`, `dev`) tienen routing especial y pueden redirigir automáticamente.
+
+4. **Bypass para Testing**: El bypass es mucho más eficiente para testing automatizado que el login completo con Google OAuth.
+
+5. **Casos Entre Dominios**: Compartir login entre diferentes dominios/marcas requiere re-autenticación, pero el sistema puede reconocer al mismo usuario por email.
+
+6. **Interacción Manual**: El popup de Google OAuth requiere interacción manual. El script solo automatiza hasta ese punto (excepto cuando se usa bypass).
+
+7. **Tiempos de Espera**: Ajusta los tiempos de espera según la velocidad de tu conexión y el rendimiento del servidor.
+
+8. **Selectores**: Si los selectores `data-testid` no funcionan, puedes usar selectores alternativos:
+   - `button:has-text("Continuar con Google")`
+   - `button[aria-label*="Google"]`
+   - `button:has(.anticon-google)`
+
+9. **Verificación**: Siempre verifica que el login fue exitoso antes de continuar con otras acciones.

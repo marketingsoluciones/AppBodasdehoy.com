@@ -1,0 +1,70 @@
+========================================
+RESUMEN EJECUTIVO - PROBLEMA CON API2
+========================================
+
+PROBLEMA:
+---------
+TODAS las peticiones GraphQL a API2 retornan "400 Bad Request"
+
+URL: https://api2.eventosorganizador.com/graphql
+
+
+HEADERS ENVIADOS:
+-----------------
+Content-Type: application/json
+X-Development: bodasdehoy
+X-Origin: https://bodasdehoy.com
+X-Support-Key: SK-bodasdehoy-a71f5b3c
+
+
+QUERIES QUE FALLAN:
+-------------------
+✗ getWhitelabelBySlug
+✗ getUserProfile
+✗ getUserApiConfigs
+✗ getUserEventsByEmail
+✗ getUserChats
+
+
+IMPACTO:
+--------
+❌ Sistema no puede cargar configuración de whitelabel
+❌ No se pueden recuperar datos de usuarios
+❌ No se muestran conversaciones ni eventos
+❌ Frontend usa configuración fallback (genérica)
+
+
+PRUEBA RÁPIDA:
+--------------
+Ejecutar: ./EJEMPLOS_CURL_API2.sh
+
+O probar manualmente:
+
+curl -X POST https://api2.eventosorganizador.com/graphql \
+  -H "Content-Type: application/json" \
+  -H "X-Development: bodasdehoy" \
+  -H "X-Origin: https://bodasdehoy.com" \
+  -H "X-Support-Key: SK-bodasdehoy-a71f5b3c" \
+  -d '{"query": "{ __schema { queryType { name } } }"}'
+
+
+NECESITAMOS:
+------------
+1. ✅ Confirmación de que el endpoint funciona
+2. ✅ Schema GraphQL actualizado
+3. ✅ Formato correcto de headers
+4. ✅ SupportKey válido
+5. ✅ Ejemplo de petición exitosa
+
+
+DOCUMENTACIÓN:
+--------------
+- Detalle completo: PETICIONES_EQUIPO_API2.md
+- Scripts de prueba: EJEMPLOS_CURL_API2.sh
+
+
+CONTACTO:
+---------
+Backend middleware: Puerto 8030
+Logs: backend.log
+

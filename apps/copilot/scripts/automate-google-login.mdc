@@ -1,0 +1,40 @@
+# Script de Automatización de Login con Google
+
+Este script proporciona funciones para automatizar el proceso de login con Google usando las herramientas MCP del navegador de Cursor.
+
+## Archivos
+
+- `automate-google-login.ts` - Script principal con funciones de automatización
+
+## Uso
+
+### Desde código TypeScript
+
+```typescript
+import { automateGoogleLoginHelper } from './scripts/automate-google-login';
+
+// Automatizar login en localhost
+await automateGoogleLoginHelper('http://localhost:8000');
+
+// Con opciones personalizadas
+await automateGoogleLoginHelper('http://localhost:8000', {
+  timeout: 60000,
+  waitForManualInteraction: true
+});
+```
+
+### Desde herramientas MCP del navegador
+
+Ver el ejemplo en `mcpAutomationExample` dentro del archivo TypeScript.
+
+## Limitaciones
+
+1. **Popup de Google OAuth**: Requiere interacción manual para seleccionar cuenta y autorizar
+2. **Seguridad**: Google puede detectar automatización y requerir verificación adicional
+3. **Cookies/Sesiones**: El navegador MCP puede no mantener cookies entre sesiones
+
+## Mejoras Implementadas
+
+- ✅ Atributos `data-testid` agregados al modal y botones
+- ✅ Función global `window.openLoginModal()` expuesta para testing
+- ✅ Script de automatización con múltiples estrategias de selección
