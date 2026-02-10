@@ -55,18 +55,33 @@ async function makeRequest(endpoint, method = 'GET', body = null) {
   try {
     const response = await fetch(url.toString(), options);
     const duration = Date.now() - start;
-    const data = await response.json();
+
+    // Intentar parsear como JSON, pero manejar errores HTML
+    let data;
+    const contentType = response.headers.get('content-type');
+    const text = await response.text();
+
+    try {
+      data = JSON.parse(text);
+    } catch (parseError) {
+      // Si no es JSON, devolver el texto como error
+      data = {
+        error: text.substring(0, 200),  // Primeros 200 caracteres
+        rawResponse: text
+      };
+    }
 
     results.times.push(duration);
 
-    if (response.ok && data.success !== false) {
+    if (response.ok && data.success !== false && !data.error) {
       results.passed++;
       console.log(`${colors.green}✓${colors.reset} ${method} ${endpoint} - ${duration}ms`);
       return { ok: true, data, duration };
     } else {
       results.failed++;
-      const errorMsg = data.error || data.message || response.statusText || 'Unknown error';
-      console.log(`${colors.red}✗${colors.reset} ${method} ${endpoint} - ${response.status} - ${errorMsg} - ${duration}ms`);
+      const errorMsg = data.error || data.detail || data.message || response.statusText || 'Unknown error';
+      const errorStr = typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg).substring(0, 100);
+      console.log(`${colors.red}✗${colors.reset} ${method} ${endpoint} - ${response.status} - ${errorStr} - ${duration}ms`);
       return { ok: false, data, duration, status: response.status };
     }
   } catch (error) {
