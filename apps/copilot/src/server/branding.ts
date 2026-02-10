@@ -9,7 +9,27 @@ import { cookies } from 'next/headers';
 // ✅ CACHE EN MEMORIA para evitar múltiples fetch durante SSR
 const brandingCache: Map<string, { data: ServerBranding; timestamp: number }> = new Map();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
-const FETCH_TIMEOUT = 1000; // 1 segundo (reducido de 3s)
+const FETCH_TIMEOUT = 2000; // 2 segundos (aumentado de 1s para evitar timeouts)
+
+// ✅ CACHE ESTÁTICO: Cargar branding desde archivo local primero
+let staticBrandingCache: Record<string, ServerBranding> | null = null;
+
+async function loadStaticBranding(): Promise<Record<string, ServerBranding>> {
+  if (staticBrandingCache) return staticBrandingCache;
+
+  try {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+
+    const brandingPath = path.join(process.cwd(), 'public', 'branding-cache.json');
+    const data = await fs.readFile(brandingPath, 'utf-8');
+    staticBrandingCache = JSON.parse(data);
+    return staticBrandingCache || {};
+  } catch (error) {
+    console.warn('⚠️ No se pudo cargar branding-cache.json:', error);
+    return {};
+  }
+}
 
 export interface ServerBranding {
   apple_touch_icon?: string;
@@ -135,10 +155,22 @@ export async function getDeveloperBranding(developer?: string): Promise<ServerBr
     dev = 'bodasdehoy';
   }
 
-  // ✅ VERIFICAR CACHE PRIMERO (instantáneo)
+  // ✅ PRIORIDAD 1: Verificar cache en memoria (instantáneo)
   const cached = brandingCache.get(dev);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return cached.data;
+  }
+
+  // ✅ PRIORIDAD 2: Cargar desde cache estático (archivo local, 0ms latencia)
+  try {
+    const staticBranding = await loadStaticBranding();
+    if (staticBranding[dev]) {
+      // Guardar en cache en memoria
+      brandingCache.set(dev, { data: staticBranding[dev], timestamp: Date.now() });
+      return staticBranding[dev];
+    }
+  } catch (error) {
+    console.warn('⚠️ Error cargando static branding:', error);
   }
 
   // Fallback por defecto
@@ -164,7 +196,7 @@ export async function getDeveloperBranding(developer?: string): Promise<ServerBr
 
     const url = `${backendUrl}/api/config/${dev}`;
 
-    // ✅ Timeout reducido a 1 segundo para SSR rápido
+    // ✅ Timeout de 2 segundos (aumentado para evitar timeouts con backend lento)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
@@ -200,7 +232,7 @@ export async function getDeveloperBranding(developer?: string): Promise<ServerBr
       clearTimeout(timeoutId);
 
       if (fetchError.name === 'AbortError') {
-        console.warn('⚠️ Timeout (1s) al obtener branding, usando fallback');
+        console.warn('⚠️ Timeout (2s) al obtener branding, usando fallback');
       } else {
         console.warn('⚠️ Error en fetch de branding:', fetchError?.message || fetchError);
       }

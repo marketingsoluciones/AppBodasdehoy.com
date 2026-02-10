@@ -14,7 +14,29 @@ const METADATA_TIMEOUT = 800; // 800ms máximo
 
 export const generateMetadata = async (props: DynamicLayoutProps) => {
   try {
-    // ✅ Ejecutar en paralelo con timeout global
+    // ✅ OPTIMIZACIÓN: En desarrollo, skip fetch de branding (usa valores por defecto)
+    // Esto reduce el tiempo de carga de 2+ minutos a <1 segundo
+    if (isDev) {
+      const locale = await RouteVariants.getLocale(props);
+      const { t } = await translation('metadata', locale);
+      const appName = BRANDING_NAME;
+
+      return {
+        title: {
+          default: t('chat.title', { appName }),
+          template: `%s · ${appName}`,
+        },
+        description: t('chat.description', { appName }),
+        metadataBase: new URL(OFFICIAL_URL),
+        icons: {
+          icon: '/favicon-dev.ico',
+          shortcut: '/favicon-32x32-dev.ico',
+          apple: '/apple-touch-icon.png?v=1',
+        },
+      };
+    }
+
+    // ✅ Ejecutar en paralelo con timeout global (solo en producción)
     const [locale, branding] = await Promise.all([
       RouteVariants.getLocale(props),
       Promise.race([
