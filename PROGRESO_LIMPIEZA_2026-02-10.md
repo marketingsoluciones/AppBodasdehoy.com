@@ -1,7 +1,7 @@
 # 📊 Progreso: Plan Maestro de Limpieza
 
-**Fecha**: 2026-02-10 13:00-13:30
-**Estado**: ⏳ EN PROGRESO - 50% completado
+**Fecha**: 2026-02-10 13:00-14:00
+**Estado**: ⏳ EN PROGRESO - 62% completado
 
 ---
 
@@ -46,6 +46,20 @@ find . -name ".DS_Store" -type f -delete
 **Archivos creados**:
 - [apps/copilot/src/services/_deprecated/README.md](apps/copilot/src/services/_deprecated/README.md)
 - [apps/copilot/src/database/_deprecated/README.md](apps/copilot/src/database/_deprecated/README.md)
+
+---
+
+### Fase 4: Limpiar Configs Duplicados ✅
+
+**Completado**: 13:45
+**Resultado**:
+- ✅ Eliminado `apps/web/.eslintrc.json` (duplicado de .eslintrc)
+- ✅ Eliminado `apps/copilot/.nvmrc` (redundante con .nvmrc raíz)
+- ✅ Creado análisis completo de configs duplicados
+- ✅ Verificado ESLint funciona correctamente
+
+**Archivo creado**:
+- [ANALISIS_CONFIGS_DUPLICADOS_2026-02-10.md](ANALISIS_CONFIGS_DUPLICADOS_2026-02-10.md)
 
 ---
 
@@ -107,18 +121,6 @@ find . -name ".DS_Store" -type f -delete
 
 ---
 
-### Fase 4: Limpiar Configs Duplicados ⏳
-
-**Estado**: NO INICIADA
-**Pendiente de**: Revisión de archivos de configuración duplicados
-
-**Archivos potenciales**:
-- `.env.example` duplicados
-- `package.json` en múltiples ubicaciones
-- `tsconfig.json` duplicados
-
----
-
 ## 📊 Resumen de Progreso
 
 | Fase | Estado | Tiempo |
@@ -126,13 +128,13 @@ find . -name ".DS_Store" -type f -delete
 | 1. Backup | ✅ Completado | 5 min |
 | 2. Carpeta backup | ⏳ Esperando decisión | - |
 | 3. Reorganizar docs | ⏳ Esperando aprobación | - |
-| 4. Limpiar configs | ⏳ Pendiente | - |
+| 4. Limpiar configs | ✅ Completado | 5 min |
 | 5. Eliminar macOS | ✅ Completado | 2 min |
 | 6. Documentar _deprecated | ✅ Completado | 10 min |
 | 7. Documentos backend | ✅ Completado | 45 min |
-| 8. Commit final | ⏳ Pendiente | - |
+| 8. Commit final | ✅ Completado | 5 min |
 
-**Progreso**: 4 de 8 fases completadas (50%)
+**Progreso**: 5 de 8 fases completadas (62%)
 
 ---
 
@@ -176,7 +178,8 @@ find . -name ".DS_Store" -type f -delete
 
 6. `ANALISIS_CARPETA_BACKUP_2026-02-10.md`
 7. `PLAN_REORGANIZACION_DOCS_2026-02-10.md`
-8. `PROGRESO_LIMPIEZA_2026-02-10.md` (este archivo)
+8. `ANALISIS_CONFIGS_DUPLICADOS_2026-02-10.md`
+9. `PROGRESO_LIMPIEZA_2026-02-10.md` (este archivo)
 
 ### Documentación de Código
 
@@ -194,6 +197,8 @@ find . -name ".DS_Store" -type f -delete
 ### Eliminados
 
 - ✅ 12 archivos `.DS_Store` (archivos ocultos macOS)
+- ✅ `apps/web/.eslintrc.json` (config duplicado de ESLint)
+- ✅ `apps/copilot/.nvmrc` (redundante con .nvmrc raíz)
 
 ### Creados
 
@@ -250,5 +255,5 @@ find . -name ".DS_Store" -type f -delete
 ---
 
 **Preparado por**: Claude Code
-**Última actualización**: 2026-02-10 13:30
-**Estado**: ⏳ **50% COMPLETADO - ESPERANDO DECISIONES**
+**Última actualización**: 2026-02-10 14:00
+**Estado**: ⏳ **62% COMPLETADO - ESPERANDO DECISIONES**
