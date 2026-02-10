@@ -118,7 +118,12 @@ const ChatHydration = memo(() => {
           timestamp: Date.now(),
         };
 
-        localStorage.setItem('copilot-context', JSON.stringify(contextData));
+        try {
+          localStorage.setItem('copilot-context', JSON.stringify(contextData));
+        } catch (storageError) {
+          console.warn('⚠️ No se pudo guardar en localStorage:', storageError);
+          // Continuar sin localStorage - no es crítico
+        }
 
         // Opcional: Crear mensaje de bienvenida con contexto
         setTimeout(() => {
