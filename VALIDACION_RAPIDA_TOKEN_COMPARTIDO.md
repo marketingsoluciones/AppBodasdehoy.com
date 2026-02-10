@@ -7,19 +7,28 @@
 
 ## 🎯 Método Simplificado (2 minutos)
 
-Como el sistema de login de AppBodasdehoy es compartido con el chat, ya tienes una sesión de Firebase activa.
+Como el sistema de login de AppBodasdehoy es compartido con el chat, puedes obtener el token desde donde ya estás logueado.
 
-### Opción 1: Página de Token (MÁS FÁCIL)
+### Opción 1: Desde appbodasdehoy.com (MÁS FÁCIL) ⭐
 
-1. **Abrir**: http://localhost:3210/get-token
+**Por qué este método**: Firebase AUTH_DOMAIN está en `bodasdehoy-1063.firebaseapp.com`, entonces localhost:3210 NO comparte la sesión. Pero appbodasdehoy.com SÍ tiene la sesión.
 
-2. **Esperar** a que cargue (automáticamente obtiene el token)
+1. **Abrir**: https://appbodasdehoy.com (o https://bodasdehoy.com)
 
-3. **Click** en "📋 Copiar Comando"
+2. **DevTools** (F12) → **Console**
 
-4. **Pegar en terminal** y ejecutar
+3. **Ejecutar** este código:
+   ```javascript
+   firebase.auth().currentUser.getIdToken().then(t => {
+     console.log('FIREBASE_TOKEN="' + t + '" node test-memories-api.js');
+   });
+   ```
 
-**Listo** - Los tests se ejecutarán automáticamente.
+4. **Copiar** el comando que aparece
+
+5. **Pegar en terminal** y ejecutar
+
+**Listo** - Los tests se ejecutarán con tu token real.
 
 ---
 
