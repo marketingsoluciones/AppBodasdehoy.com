@@ -522,11 +522,39 @@ const MemoriesPage = memo(() => {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
-          <Skeleton.Input active style={{ width: 200 }} />
+          <h1 className={styles.title}>{t('tab.memories' as any)}</h1>
           <Skeleton.Button active />
         </div>
-        <div className={styles.grid}>
-          {[1, 2, 3, 4].map((i) => (
+        <Center style={{ marginTop: 80 }}>
+          <Flexbox gap={16} style={{ alignItems: 'center', textAlign: 'center' }}>
+            <Images
+              color={theme.colorPrimary}
+              size={48}
+              strokeWidth={1.5}
+              style={{ animation: 'pulse 2s ease-in-out infinite', opacity: 0.6 }}
+            />
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 500, color: theme.colorText }}>
+                Cargando tus álbumes...
+              </div>
+              <div style={{ fontSize: 13, color: theme.colorTextSecondary, marginTop: 8 }}>
+                Primera carga puede tardar hasta 30 segundos
+              </div>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: theme.colorTextTertiary,
+                  marginTop: 4,
+                  fontStyle: 'italic',
+                }}
+              >
+                Próximas cargas serán instantáneas (caché 5 min)
+              </div>
+            </div>
+          </Flexbox>
+        </Center>
+        <div className={styles.grid} style={{ marginTop: 60 }}>
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <Skeleton.Node
               active
               key={i}

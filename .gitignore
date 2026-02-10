@@ -60,3 +60,4 @@ ERRORES_CONSOLA.json
 
 # Documentation archive (keep in git but ignore from searches)
 # docs/archive/
+.backups/

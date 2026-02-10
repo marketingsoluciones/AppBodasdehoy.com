@@ -10,11 +10,31 @@
  */
 
 export const safeLocalStorage = {
+  
   /**
+   * Limpia todo el localStorage de forma segura
+   * @returns true si se limpió exitosamente, false en caso contrario
+   */
+clear: (): boolean => {
+    if (typeof window === 'undefined') return false;
+
+    try {
+      localStorage.clear();
+      return true;
+    } catch (error) {
+      console.warn('⚠️ No se pudo limpiar localStorage:', error);
+      return false;
+    }
+  },
+
+  
+  
+
+/**
    * Lee un valor de localStorage de forma segura
    * @returns El valor almacenado o null si no está disponible
    */
-  getItem: (key: string): string | null => {
+getItem: (key: string): string | null => {
     if (typeof window === 'undefined') return null;
 
     try {
@@ -25,27 +45,14 @@ export const safeLocalStorage = {
     }
   },
 
-  /**
-   * Escribe un valor en localStorage de forma segura
-   * @returns true si se guardó exitosamente, false en caso contrario
-   */
-  setItem: (key: string, value: string): boolean => {
-    if (typeof window === 'undefined') return false;
+  
+  
 
-    try {
-      localStorage.setItem(key, value);
-      return true;
-    } catch (error) {
-      console.warn(`⚠️ No se pudo escribir en localStorage (${key}):`, error);
-      return false;
-    }
-  },
-
-  /**
+/**
    * Elimina un valor de localStorage de forma segura
    * @returns true si se eliminó exitosamente, false en caso contrario
    */
-  removeItem: (key: string): boolean => {
+removeItem: (key: string): boolean => {
     if (typeof window === 'undefined') return false;
 
     try {
@@ -57,18 +64,19 @@ export const safeLocalStorage = {
     }
   },
 
+  
   /**
-   * Limpia todo el localStorage de forma segura
-   * @returns true si se limpió exitosamente, false en caso contrario
+   * Escribe un valor en localStorage de forma segura
+   * @returns true si se guardó exitosamente, false en caso contrario
    */
-  clear: (): boolean => {
+setItem: (key: string, value: string): boolean => {
     if (typeof window === 'undefined') return false;
 
     try {
-      localStorage.clear();
+      localStorage.setItem(key, value);
       return true;
     } catch (error) {
-      console.warn('⚠️ No se pudo limpiar localStorage:', error);
+      console.warn(`⚠️ No se pudo escribir en localStorage (${key}):`, error);
       return false;
     }
   },

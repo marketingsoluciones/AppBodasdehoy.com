@@ -100,21 +100,21 @@ const ChatHydration = memo(() => {
 
       if (sessionId) {
         console.log('✅ Copilot abierto desde apps/web:', {
-          sessionId,
+          development,
           email,
           eventId,
           eventName,
-          development,
+          sessionId,
         });
 
         // Guardar contexto en localStorage para mostrarlo después
         const contextData = {
-          source: 'web',
-          sessionId,
+          development: development || 'bodasdehoy',
           email: email || null,
           eventId: eventId || null,
           eventName: eventName || null,
-          development: development || 'bodasdehoy',
+          sessionId,
+          source: 'web',
           timestamp: Date.now(),
         };
 

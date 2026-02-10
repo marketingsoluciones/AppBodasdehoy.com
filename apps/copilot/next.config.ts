@@ -16,7 +16,13 @@ const isStandaloneMode = buildWithDocker || isDesktop;
 
 const standaloneConfig: NextConfig = {
   output: 'standalone',
-  outputFileTracingIncludes: { '*': ['public/**/*', '.next/static/**/*'] },
+  outputFileTracingIncludes: {
+    '*': [
+      'public/**/*',
+      '.next/static/**/*',
+      'locales/**/*.json'  // ✅ Incluir archivos de traducción en el build
+    ]
+  },
 };
 
 const nextConfig: NextConfig = {
