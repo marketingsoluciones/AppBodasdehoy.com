@@ -1,0 +1,39 @@
+{
+  "chat": {
+    "input": {
+      "placeholder": "Type a message...",
+      "placeholderWithShortcut": "Type a message... (Enter to send, Shift+Enter for new line)",
+      "send": "Send",
+      "sending": "Sending..."
+    },
+    "message": {
+      "copy": "Copy",
+      "copied": "Copied",
+      "delete": "Delete",
+      "edit": "Edit",
+      "retry": "Retry",
+      "user": "You",
+      "assistant": "Assistant",
+      "error": "Error sending message"
+    },
+    "list": {
+      "loading": "Loading...",
+      "empty": "No messages yet",
+      "emptyDescription": "Start a conversation",
+      "loadMore": "Load more"
+    },
+    "actions": {
+      "viewComplete": "View Complete",
+      "openInNewTab": "Open in new tab",
+      "close": "Close"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save"
+  }
+}

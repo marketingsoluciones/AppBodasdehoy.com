@@ -1,0 +1,39 @@
+{
+  "chat": {
+    "input": {
+      "placeholder": "Escribe un mensaje...",
+      "placeholderWithShortcut": "Escribe un mensaje... (Enter para enviar, Shift+Enter para nueva línea)",
+      "send": "Enviar",
+      "sending": "Enviando..."
+    },
+    "message": {
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "delete": "Eliminar",
+      "edit": "Editar",
+      "retry": "Reintentar",
+      "user": "Tú",
+      "assistant": "Asistente",
+      "error": "Error al enviar mensaje"
+    },
+    "list": {
+      "loading": "Cargando...",
+      "empty": "No hay mensajes aún",
+      "emptyDescription": "Comienza una conversación",
+      "loadMore": "Cargar más"
+    },
+    "actions": {
+      "viewComplete": "Ver completo",
+      "openInNewTab": "Abrir en nueva pestaña",
+      "close": "Cerrar"
+    }
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar"
+  }
+}

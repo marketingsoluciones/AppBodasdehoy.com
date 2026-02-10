@@ -86,6 +86,73 @@ const ChatHydration = memo(() => {
     }
   }, []);
 
+  // ✅ Capturar params de URL cuando se abre desde apps/web (botón "Ver completo")
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get('sessionId');
+      const email = params.get('email');
+      const eventId = params.get('eventId');
+      const eventName = params.get('eventName');
+      const development = params.get('development');
+
+      if (sessionId) {
+        console.log('✅ Copilot abierto desde apps/web:', {
+          sessionId,
+          email,
+          eventId,
+          eventName,
+          development,
+        });
+
+        // Guardar contexto en localStorage para mostrarlo después
+        const contextData = {
+          source: 'web',
+          sessionId,
+          email: email || null,
+          eventId: eventId || null,
+          eventName: eventName || null,
+          development: development || 'bodasdehoy',
+          timestamp: Date.now(),
+        };
+
+        localStorage.setItem('copilot-context', JSON.stringify(contextData));
+
+        // Opcional: Crear mensaje de bienvenida con contexto
+        setTimeout(() => {
+          const store = useChatStore.getState();
+          const activeId = store.activeId;
+
+          if (!activeId) return;
+
+          const messages = store.messagesMap[activeId] || [];
+          const hasMessages = messages.length > 0;
+
+          // Solo mostrar mensaje de contexto si no hay mensajes
+          if (!hasMessages && eventName) {
+            const contextMessage = `Continuando conversación del evento "${eventName}"${email ? ` para ${email}` : ''}.`;
+
+            store.internal_createMessage({
+              content: contextMessage,
+              role: 'assistant',
+              sessionId: activeId,
+            });
+          }
+
+          // Limpiar params de URL después de capturarlos
+          if (window.history.replaceState) {
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, '', cleanUrl);
+          }
+        }, 1500);
+      }
+    } catch (error) {
+      console.warn('⚠️ Error capturando params de URL:', error);
+    }
+  }, []);
+
   return null;
 });
 

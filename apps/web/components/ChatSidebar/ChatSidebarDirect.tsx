@@ -7,12 +7,11 @@
 
 import { FC, memo, useCallback, useRef, useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useChatSidebar } from '../../context/ChatSidebarContext';
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from '../../context';
-// TODO: Crear CopilotEmbed component en @bodasdehoy/copilot-ui
-// import { CopilotEmbed } from '@bodasdehoy/copilot-ui';
+// CopilotEmbed usando componentes de @bodasdehoy/copilot-shared
+import { CopilotEmbed } from '../Copilot/CopilotEmbed';
 import { sendChatMessage, getChatHistory } from '../../services/copilotChat';
 // import type { SendMessageParams, EmbedMessage } from '@bodasdehoy/copilot-ui';
 import { IoClose, IoSparkles, IoExpand, IoChevronDown, IoOpenOutline } from 'react-icons/io5';
@@ -134,6 +133,39 @@ const ChatSidebarDirect: FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [viewMode, closeSidebar]);
 
+  // Monorepo: app-test ↔ chat-test. URL del iframe = chat-test en app-test (si chat-test no carga, Copilot no carga).
+  const copilotUrl = useMemo(() => {
+    if (typeof window === 'undefined') return '';
+    const host = window.location.hostname || '';
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:3210';
+    if (host.includes('app-test')) return 'https://chat-test.bodasdehoy.com';
+    return process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com';
+  }, []);
+
+  const handleOpenInNewTab = useCallback(() => {
+    const params = new URLSearchParams({
+      sessionId: sessionId || guestSessionId,
+      userId: userId,
+      development,
+    });
+
+    if (user?.email) {
+      params.set('email', user.email);
+    }
+
+    if (eventId) {
+      params.set('eventId', eventId);
+    }
+
+    if (event?.nombre) {
+      params.set('eventName', event.nombre);
+    }
+
+    const fullUrl = `${copilotUrl}?${params.toString()}`;
+    console.log('[ChatSidebarDirect] Abriendo Copilot completo:', fullUrl);
+    window.open(fullUrl, '_blank', 'noopener,noreferrer');
+  }, [sessionId, guestSessionId, userId, development, user?.email, eventId, event?.nombre, copilotUrl]);
+
   const handleNavigate = useCallback((url: string) => {
     console.log('[ChatSidebarDirect] Navegación solicitada:', url);
     let finalUrl = url;
@@ -155,18 +187,6 @@ const ChatSidebarDirect: FC = () => {
     console.log('[ChatSidebarDirect] Acción:', action, payload);
     // Manejar acciones específicas del copilot
   }, []);
-
-  // Monorepo: app-test ↔ chat-test. URL del iframe = chat-test en app-test (si chat-test no carga, Copilot no carga).
-  const copilotUrl = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    const host = window.location.hostname || '';
-    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:3210';
-    if (host.includes('app-test')) return 'https://chat-test.bodasdehoy.com';
-    return process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com';
-  }, []);
-
-  // "Abrir en nueva pestaña" = misma URL que el iframe (chat-test en app-test).
-  const copilotUrlNewTab = useMemo(() => copilotUrl, [copilotUrl]);
 
   if (!isOpen) return null;
 
@@ -209,15 +229,13 @@ const ChatSidebarDirect: FC = () => {
 
             <div className="flex items-center gap-2">
               {viewMode === 'minimal' && (
-                <Link
-                  href={copilotUrlNewTab}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={handleOpenInNewTab}
                   className="p-2 hover:bg-pink-100 rounded-lg transition-colors"
-                  title="Abrir en nueva pestaña"
+                  title="Ver completo - Abrir en nueva pestaña"
                 >
                   <IoOpenOutline className="text-gray-600" />
-                </Link>
+                </button>
               )}
 
               <button
@@ -231,62 +249,26 @@ const ChatSidebarDirect: FC = () => {
           </div>
 
           {/* Copilot integrado como componente (monorepo, sin iframe) */}
-          <div className="flex-1 overflow-hidden min-h-0 flex flex-col items-center justify-center bg-gray-50">
-            <p className="text-gray-500 text-sm">
-              CopilotEmbed pendiente de implementar en @bodasdehoy/copilot-ui
-            </p>
-            <p className="text-gray-400 text-xs mt-2">
-              Por ahora, usa el ChatSidebar regular
-            </p>
-            {/* TODO: Implementar CopilotEmbed component
+          <div className="flex-1 overflow-hidden min-h-0">
             <CopilotEmbed
               userId={userId}
+              sessionId={sessionId}
               development={development}
               eventId={eventId}
               eventName={event?.nombre}
-              sessionId={sessionId}
-              onLoadHistory={async (sid): Promise<any[]> => {
-                const list = await getChatHistory(sid, development);
-                return list
-                  .filter((m) => m.role === 'user' || m.role === 'assistant')
-                  .map((m) => ({
-                    id: m.id,
-                    role: m.role as 'user' | 'assistant',
-                    content: m.content || '',
-                  }));
+              pageContext={{
+                pageName: router.pathname,
+                eventName: event?.nombre,
+                eventId: event?._id,
+                eventsList: eventsGroup?.map(e => ({
+                  name: e.nombre,
+                  type: e.tipo,
+                  date: e.fecha,
+                  id: e._id,
+                })),
               }}
               className="w-full h-full min-h-0"
-              userData={{
-                email: user?.email || null,
-                displayName: user?.displayName || null,
-                phoneNumber: user?.phoneNumber || null,
-                photoURL: user?.photoURL || null,
-                uid: user?.uid,
-                role: user?.role || [],
-              }}
-              event={event}
-              eventsList={eventsGroup}
-              sendMessage={async (params: any, onChunk, signal, onEnrichedEvent) => {
-                const sid = params.sessionId ?? sessionId;
-                const res = await sendChatMessage(
-                  {
-                    message: params.message,
-                    sessionId: sid,
-                    userId: params.userId,
-                    development: params.development,
-                    eventId: params.eventId,
-                    eventName: params.eventName,
-                    pageContext: params.pageContext,
-                  },
-                  onChunk ?? undefined,
-                  signal ?? undefined,
-                  onEnrichedEvent ?? undefined
-                );
-                // El backend api-ia guarda user + assistant en API2 al finalizar el stream (event: done)
-                return { content: res.content };
-              }}
             />
-            */}
           </div>
         </div>
 
