@@ -116,6 +116,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
   };
 
   const handleSubmit = async (values: initialValues, actions: any) => {
+    console.log(550018, values)
     let UserFirebase: any = getAuth().currentUser ?? {};
     try {
       setIsStartingRegisterOrLogin(true)
@@ -128,21 +129,15 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
         values.password
       );
       UserFirebase = userCredential.user;
+      const idToken = await userCredential.user.getIdToken()
+      const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
+      Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
 
       values.uid = userCredential.user.uid;
     } catch (error) {
       if (error instanceof FirebaseError) {
         if (error.code === "auth/email-already-in-use") {
           try {
-            // const data = values?.password
-            // const encryptedData = crypto.publicEncrypt(
-            //   {
-            //     key: publicKey,
-            //     padding: crypto.constants.RSA_PKCS1_PADDING,
-            //     oaepHash: 'sha256',
-            //   },
-            //   new Uint8Array(Buffer.from(data))
-            // );
             const result = await fetchApiBodas({
               query: queries.createUserWithPassword,
               variables: { email: values.identifier, password: values?.password },
@@ -154,9 +149,12 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               setLoading(false)
               return false
             }
-            const asd = await signInWithCustomToken(getAuth(), result)
-            UserFirebase = asd.user
-
+            const userCredential: UserCredential = await signInWithCustomToken(getAuth(), result)
+            UserFirebase = userCredential.user
+            const idToken = await userCredential.user.getIdToken()
+            const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
+            Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+            await getSessionCookie(idToken)
             values.uid = UserFirebase.uid
           } catch (error) {
             console.log(55001, error)
@@ -176,11 +174,6 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
     if (UserFirebase && values?.phoneNumber) {
       updateProfile(UserFirebase, { displayName: values?.fullName })
         .then(async () => {
-          const idToken = await getAuth().currentUser?.getIdToken(true)
-          const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-          Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
-          await getSessionCookie(idToken)
-          // Crear usuario en MongoDB
           fetchApiBodas({
             query: queries.createUser,
             variables: {
