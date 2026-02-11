@@ -32,7 +32,7 @@ export const Notifications = () => {
     const scrollHeight = e.target.scrollHeight / zoomFactor;
     const offsetHeight = e.target.offsetHeight / zoomFactor;
     const scrollTop = e.target.scrollTop / zoomFactor;
-    if (scrollTop + offsetHeight >= scrollHeight - 5 && notifications.results.length < notifications.total && skip !== 8 * countScroll.count) {
+    if (notifications?.results && scrollTop + offsetHeight >= scrollHeight - 5 && notifications.results.length < notifications.total && skip !== 8 * countScroll.count) {
       skip = (8 * countScroll.count)
       setShowLoad(true)
       fetchApiBodas({
@@ -79,7 +79,7 @@ export const Notifications = () => {
   }, [isMounted])
 
   useEffect(() => {
-    if (showNotifications && notifications?.results[0]?.state === "sent") {
+    if (showNotifications && notifications?.results && notifications.results.length > 0 && notifications.results[0]?.state === "sent") {
       const notificationsReduce = notifications?.results.reduce((acc, item) => {
         if (item.state === "sent") {
           acc.ids.push(item._id)
@@ -106,7 +106,10 @@ export const Notifications = () => {
 
   const handleFalseShowNotifications = () => {
     setShowNotifications(false)
-    const notificationsReduce = notifications?.results.reduce((acc, item) => {
+    if (!notifications?.results || notifications.results.length === 0) {
+      return
+    }
+    const notificationsReduce = notifications.results.reduce((acc, item) => {
       if (item.state === "received") {
         acc.ids.push(item._id)
         acc.results.push({ ...item, state: "read" })
@@ -143,7 +146,7 @@ export const Notifications = () => {
       <div onClick={() => { !showNotifications ? setShowNotifications(true) : handleFalseShowNotifications() }} className="bg-white items-center flex relative cursor-default">
         <div className="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer" >
           <RiNotification2Fill className="text-primary w-6 h-6 scale-x-90" />
-          {notifications?.results[0]?.state === "sent" && <div className={`absolute w-2.5 h-2.5 rounded-full bg-green translate-x-2.5 translate-y-1.5`} />}
+          {notifications?.results && notifications.results.length > 0 && notifications.results[0]?.state === "sent" && <div className={`absolute w-2.5 h-2.5 rounded-full bg-green translate-x-2.5 translate-y-1.5`} />}
         </div>
         {showNotifications && (
           <div className="absolute bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 top-0 right-10 translate-x-1/2 translate-y-[46px] overflow-hidden z-40 title-display">

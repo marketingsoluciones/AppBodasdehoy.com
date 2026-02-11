@@ -22,16 +22,16 @@ export const generateMetadata = async (props: DynamicLayoutProps) => {
       const appName = BRANDING_NAME;
 
       return {
+        description: t('chat.description', { appName }),
+        icons: {
+          apple: '/apple-touch-icon.png?v=1',
+          icon: '/favicon-dev.ico',
+          shortcut: '/favicon-32x32-dev.ico',
+        },
+        metadataBase: new URL(OFFICIAL_URL),
         title: {
           default: t('chat.title', { appName }),
           template: `%s · ${appName}`,
-        },
-        description: t('chat.description', { appName }),
-        metadataBase: new URL(OFFICIAL_URL),
-        icons: {
-          icon: '/favicon-dev.ico',
-          shortcut: '/favicon-32x32-dev.ico',
-          apple: '/apple-touch-icon.png?v=1',
         },
       };
     }

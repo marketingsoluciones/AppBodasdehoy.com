@@ -51,7 +51,7 @@ export default function GetTokenPage() {
       await navigator.clipboard.writeText(token);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch {
       alert('Error al copiar. Selecciona y copia manualmente.');
     }
   };
@@ -62,43 +62,43 @@ export default function GetTokenPage() {
       await navigator.clipboard.writeText(command);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch {
       alert('Error al copiar. Selecciona y copia manualmente.');
     }
   };
 
   return (
     <div style={{
-      minHeight: '100vh',
-      padding: '2rem',
-      fontFamily: 'monospace',
       backgroundColor: '#1e1e1e',
-      color: '#d4d4d4'
+      color: '#d4d4d4',
+      fontFamily: 'monospace',
+      minHeight: '100vh',
+      padding: '2rem'
     }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <div style={{ margin: '0 auto', maxWidth: '800px' }}>
         <h1 style={{ color: '#4ec9b0', marginBottom: '1rem' }}>
           🔑 Firebase Token - Testing
         </h1>
 
-        <p style={{ marginBottom: '2rem', color: '#9cdcfe' }}>
+        <p style={{ color: '#9cdcfe', marginBottom: '2rem' }}>
           Token para validación de Memories API
         </p>
 
         {loading && (
-          <div style={{ padding: '1rem', backgroundColor: '#252526', borderRadius: '4px' }}>
+          <div style={{ backgroundColor: '#252526', borderRadius: '4px', padding: '1rem' }}>
             <p>⏳ Obteniendo token...</p>
           </div>
         )}
 
         {error && (
           <div style={{
-            padding: '1rem',
             backgroundColor: '#5a1d1d',
             borderRadius: '4px',
-            marginBottom: '1rem'
+            marginBottom: '1rem',
+            padding: '1rem'
           }}>
             <p style={{ color: '#f48771' }}>❌ {error}</p>
-            <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
+            <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>
               Por favor asegúrate de estar logueado en la aplicación.
             </p>
           </div>
@@ -107,10 +107,10 @@ export default function GetTokenPage() {
         {token && (
           <>
             <div style={{
-              padding: '1rem',
               backgroundColor: '#1d3d1d',
               borderRadius: '4px',
-              marginBottom: '1rem'
+              marginBottom: '1rem',
+              padding: '1rem'
             }}>
               <p style={{ color: '#4ec9b0' }}>✅ Token obtenido exitosamente</p>
               <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>
@@ -121,22 +121,22 @@ export default function GetTokenPage() {
             {/* Token */}
             <div style={{ marginBottom: '2rem' }}>
               <div style={{
+                alignItems: 'center',
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center',
                 marginBottom: '0.5rem'
               }}>
                 <h3 style={{ margin: 0 }}>Token:</h3>
                 <button
                   onClick={copyToClipboard}
                   style={{
-                    padding: '0.5rem 1rem',
                     backgroundColor: copied ? '#4ec9b0' : '#0e639c',
-                    color: 'white',
                     border: 'none',
                     borderRadius: '4px',
+                    color: 'white',
                     cursor: 'pointer',
-                    fontSize: '0.9rem'
+                    fontSize: '0.9rem',
+                    padding: '0.5rem 1rem'
                   }}
                 >
                   {copied ? '✓ Copiado' : '📋 Copiar Token'}
@@ -144,53 +144,53 @@ export default function GetTokenPage() {
               </div>
               <textarea
                 readOnly
-                value={token}
                 style={{
-                  width: '100%',
-                  minHeight: '150px',
-                  padding: '1rem',
                   backgroundColor: '#252526',
-                  color: '#d4d4d4',
                   border: '1px solid #3e3e42',
                   borderRadius: '4px',
+                  color: '#d4d4d4',
                   fontFamily: 'monospace',
                   fontSize: '0.85rem',
+                  minHeight: '150px',
+                  padding: '1rem',
+                  width: '100%',
                   wordBreak: 'break-all'
                 }}
+                value={token}
               />
             </div>
 
             {/* Comando para ejecutar */}
             <div style={{ marginBottom: '2rem' }}>
               <div style={{
+                alignItems: 'center',
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center',
                 marginBottom: '0.5rem'
               }}>
                 <h3 style={{ margin: 0 }}>Comando para testing:</h3>
                 <button
                   onClick={copyCommand}
                   style={{
-                    padding: '0.5rem 1rem',
                     backgroundColor: copied ? '#4ec9b0' : '#0e639c',
-                    color: 'white',
                     border: 'none',
                     borderRadius: '4px',
+                    color: 'white',
                     cursor: 'pointer',
-                    fontSize: '0.9rem'
+                    fontSize: '0.9rem',
+                    padding: '0.5rem 1rem'
                   }}
                 >
                   {copied ? '✓ Copiado' : '📋 Copiar Comando'}
                 </button>
               </div>
               <pre style={{
-                padding: '1rem',
                 backgroundColor: '#252526',
                 border: '1px solid #3e3e42',
                 borderRadius: '4px',
+                fontSize: '0.85rem',
                 overflow: 'auto',
-                fontSize: '0.85rem'
+                padding: '1rem'
               }}>
                 {`FIREBASE_TOKEN="${token}" node test-memories-api.js`}
               </pre>
@@ -198,11 +198,11 @@ export default function GetTokenPage() {
 
             {/* Instrucciones */}
             <div style={{
-              padding: '1rem',
               backgroundColor: '#252526',
-              borderRadius: '4px'
+              borderRadius: '4px',
+              padding: '1rem'
             }}>
-              <h3 style={{ marginTop: 0, color: '#4ec9b0' }}>📝 Instrucciones:</h3>
+              <h3 style={{ color: '#4ec9b0', marginTop: 0 }}>📝 Instrucciones:</h3>
               <ol style={{ paddingLeft: '1.5rem' }}>
                 <li style={{ marginBottom: '0.5rem' }}>
                   Copia el comando completo (botón arriba)
@@ -219,11 +219,11 @@ export default function GetTokenPage() {
               </ol>
 
               <p style={{
-                marginTop: '1rem',
-                padding: '0.5rem',
                 backgroundColor: '#1e1e1e',
                 borderRadius: '4px',
-                fontSize: '0.85rem'
+                fontSize: '0.85rem',
+                marginTop: '1rem',
+                padding: '0.5rem'
               }}>
                 💡 <strong>Tip:</strong> Este token expira en 1 hora. Si los tests fallan por autenticación,
                 recarga esta página para obtener un nuevo token.
@@ -234,11 +234,11 @@ export default function GetTokenPage() {
 
         {/* Footer */}
         <div style={{
-          marginTop: '2rem',
-          paddingTop: '1rem',
           borderTop: '1px solid #3e3e42',
+          color: '#858585',
           fontSize: '0.85rem',
-          color: '#858585'
+          marginTop: '2rem',
+          paddingTop: '1rem'
         }}>
           <p>⚠️ Esta página es solo para desarrollo y testing.</p>
           <p>No expongas este token públicamente.</p>

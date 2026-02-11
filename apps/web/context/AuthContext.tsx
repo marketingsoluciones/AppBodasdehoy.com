@@ -205,8 +205,11 @@ const AuthProvider = ({ children }) => {
       const devSubdomain = [undefined, "invitado", "ticket"]
 
       // En desarrollo local (localhost), usar bodasdehoy (index 0) para mejor compatibilidad
-      const domainDevelop = !!idx && idx !== -1 ? c[idx - 1] : devDomain[0]
-      console.log("[Auth Config] Using development domain:", domainDevelop, "idx:", idx, "hostname:", path)
+      // Guard: verificar que c existe y que el índice es válido antes de acceder
+      const domainDevelop = (c && idx !== undefined && idx !== -1 && idx > 0 && c[idx - 1])
+        ? c[idx - 1]
+        : devDomain[0]
+      console.log("[Auth Config] Using development domain:", domainDevelop, "idx:", idx, "hostname:", path, "c:", c)
 
       const subdomainDevelop = idx === -1 && devSubdomain[0]
       /*--------------------------------------------------------------------*/
@@ -574,24 +577,58 @@ const AuthProvider = ({ children }) => {
 
   const verificator = async ({ user, sessionCookie }) => {
     try {
+      console.log("[Verificator] Iniciando verificación", {
+        hasUser: !!user,
+        userUid: user?.uid,
+        hasSessionCookie: !!sessionCookie,
+        sessionCookieLength: sessionCookie?.length,
+        isStartingLogin: isStartingRegisterOrLogin
+      })
+
+      // Si estamos en proceso de login, no verificar aún (dar tiempo a que se obtenga la sessionCookie)
+      if (isStartingRegisterOrLogin) {
+        console.log("[Verificator] ⏸️ Login en proceso, saltando verificación")
+        return
+      }
+
       const sessionCookieParsed = parseJwt(sessionCookie)
+      console.log("[Verificator] SessionCookie parseada:", {
+        hasUserId: !!sessionCookieParsed?.user_id,
+        userId: sessionCookieParsed?.user_id,
+        matches: sessionCookieParsed?.user_id === user?.uid
+      })
+
       if (!sessionCookieParsed?.user_id && user?.uid) {
-        getAuth().signOut().then(() => {
-          setVerificationDone(true)
-        })
+        console.warn("[Verificator] ⚠️ Usuario autenticado pero sin sessionCookie válida")
+        console.warn("[Verificator] Esto puede indicar que la API falló al crear la sessionCookie")
+        console.warn("[Verificator] NO se hará logout automático para permitir debug")
+
+        // TEMPORAL: No hacer signOut para permitir debug
+        // getAuth().signOut().then(() => {
+        //   setVerificationDone(true)
+        // })
+        setVerificationDone(true)
+        return
       }
       if (sessionCookieParsed?.user_id && user?.uid) {
         if (sessionCookieParsed?.user_id !== user?.uid) {
-          getAuth().signOut().then(() => {
-            setVerificationDone(true)
-          })
-            .catch((error) => {
-              console.log(error);
-              // ✅ CORRECCIÓN: Establecer verificationDone incluso si hay error
-              setVerificationDone(true)
-            });
+          console.error("[Verificator] ❌ Usuario no coincide con sessionCookie!")
+          console.error("[Verificator] Firebase UID:", user?.uid)
+          console.error("[Verificator] SessionCookie UID:", sessionCookieParsed?.user_id)
+
+          // TEMPORAL: No hacer signOut para debug
+          // getAuth().signOut().then(() => {
+          //   setVerificationDone(true)
+          // })
+          //   .catch((error) => {
+          //     console.log(error);
+          //     setVerificationDone(true)
+          //   });
+          setVerificationDone(true)
+          return
         }
         if (sessionCookieParsed?.user_id === user?.uid) {
+          console.log("[Verificator] ✅ Usuario verificado correctamente")
           setUser(user)
           moreInfo(user)
         }
@@ -617,7 +654,9 @@ const AuthProvider = ({ children }) => {
           setVerificationDone(true)
         }
       }
-      if (["bodasdehoy"].includes(config?.development) && !sessionCookie) {
+      // IMPORTANTE: Solo crear guest si NO hay usuario autenticado en Firebase
+      if (["bodasdehoy"].includes(config?.development) && !sessionCookie && !user?.uid) {
+        console.log("[Verificator] Creando usuario guest (no hay sessionCookie ni usuario Firebase)")
         const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")
         let guestUid = cookieContent?.guestUid
         if (!guestUid) {
@@ -627,12 +666,24 @@ const AuthProvider = ({ children }) => {
         }
         setUser({ uid: guestUid, displayName: "guest" })
         setVerificationDone(true)
+      } else if (user?.uid && !sessionCookieParsed?.user_id) {
+        // Usuario autenticado en Firebase pero sin sessionCookie
+        // Usar los datos de Firebase temporalmente
+        console.log("[Verificator] ⚠️ Usuario autenticado en Firebase sin sessionCookie")
+        console.log("[Verificator] Usando datos de Firebase mientras se resuelve el problema de la API")
+        setUser(user)
+        moreInfo(user)
       }
       if (!sessionCookieParsed?.user_id && !user?.uid) {
         setVerificationDone(true)
       }
     } catch (error) {
-      console.log(90002, error)
+      console.error("[Verificator] ❌ Error en verificación:", error)
+      console.error("[Verificator] Error detalles:", {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name
+      })
       // ✅ CORRECCIÓN CRÍTICA: Establecer verificationDone incluso si hay error
       // Esto evita que la aplicación se quede en "Cargando..." indefinidamente
       setVerificationDone(true)

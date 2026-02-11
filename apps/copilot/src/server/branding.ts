@@ -17,18 +17,9 @@ let staticBrandingCache: Record<string, ServerBranding> | null = null;
 async function loadStaticBranding(): Promise<Record<string, ServerBranding>> {
   if (staticBrandingCache) return staticBrandingCache;
 
-  try {
-    const fs = await import('fs/promises');
-    const path = await import('path');
-
-    const brandingPath = path.join(process.cwd(), 'public', 'branding-cache.json');
-    const data = await fs.readFile(brandingPath, 'utf-8');
-    staticBrandingCache = JSON.parse(data);
-    return staticBrandingCache || {};
-  } catch (error) {
-    console.warn('⚠️ No se pudo cargar branding-cache.json:', error);
-    return {};
-  }
+  // Deshabilitado para evitar problemas de webpack en build de producción
+  // TODO: Mover a server action o API route que solo se ejecute en servidor
+  return {};
 }
 
 export interface ServerBranding {

@@ -1,4 +1,4 @@
-import { register } from '@lobechat/observability-otel/node'
-import { version } from '../package.json';
-
-register({ version })
+// Stub temporal - instrumentación desactivada para evitar loop de recompilación
+export function register() {
+  // NOOP - Telemetry temporarily disabled
+}

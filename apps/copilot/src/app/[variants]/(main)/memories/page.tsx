@@ -534,18 +534,18 @@ const MemoriesPage = memo(() => {
               style={{ animation: 'pulse 2s ease-in-out infinite', opacity: 0.6 }}
             />
             <div>
-              <div style={{ fontSize: 16, fontWeight: 500, color: theme.colorText }}>
+              <div style={{ color: theme.colorText, fontSize: 16, fontWeight: 500 }}>
                 Cargando tus álbumes...
               </div>
-              <div style={{ fontSize: 13, color: theme.colorTextSecondary, marginTop: 8 }}>
+              <div style={{ color: theme.colorTextSecondary, fontSize: 13, marginTop: 8 }}>
                 Primera carga puede tardar hasta 30 segundos
               </div>
               <div
                 style={{
-                  fontSize: 12,
                   color: theme.colorTextTertiary,
-                  marginTop: 4,
+                  fontSize: 12,
                   fontStyle: 'italic',
+                  marginTop: 4,
                 }}
               >
                 Próximas cargas serán instantáneas (caché 5 min)

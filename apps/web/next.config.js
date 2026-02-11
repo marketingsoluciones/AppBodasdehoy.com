@@ -56,13 +56,27 @@ const nextConfig = {
   },
 
   // Webpack config para resolver módulos ESM de @lobehub/ui
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
+    const path = require('path');
+
     // Resolver extensiones sin .js en ESM
     config.resolve.extensionAlias = {
       '.js': ['.ts', '.tsx', '.js', '.jsx'],
       '.mjs': ['.mts', '.mjs'],
       '.cjs': ['.cts', '.cjs'],
     };
+
+    // IMPORTANTE: Alias para hacer que next/navigation funcione en Pages Router
+    // Redirige imports de next/navigation al hook de compatibilidad
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'next/navigation': path.resolve(__dirname, 'hooks/useCompatRouter.ts'),
+    };
+
+    // Desactivar minificación en producción para debugging
+    if (!dev && !isServer) {
+      config.optimization.minimize = false;
+    }
 
     // Suprimir warnings de ESM packages conocidos que funcionan correctamente
     if (!isServer) {
@@ -104,6 +118,11 @@ const nextConfig = {
       {
         source: '/api/graphql/:path*',
         destination: 'https://apiapp.bodasdehoy.com/:path*',
+      },
+      // Proxy para API Bodas (autenticación)
+      {
+        source: '/api/proxy-bodas/graphql',
+        destination: 'https://api.bodasdehoy.com/graphql',
       },
     ];
   },

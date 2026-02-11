@@ -22,10 +22,10 @@ export async function GET(request: NextRequest) {
     const token = authHeader.replace('Bearer ', '');
 
     return NextResponse.json({
-      success: true,
-      token,
       length: token.length,
-      message: 'Token obtenido exitosamente'
+      message: 'Token obtenido exitosamente',
+      success: true,
+      token
     });
 
   } catch (error) {

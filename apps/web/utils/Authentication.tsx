@@ -46,17 +46,21 @@ export const useAuthentication = () => {
   const getSessionCookie = useCallback(async (tokenID: any): Promise<string | undefined> => {
     if (tokenID) {
       console.log("[Auth] Llamando auth mutation con development:", config?.development)
+      console.log("[Auth] Token ID (primeros 50 chars):", tokenID?.substring(0, 50))
       const authResult: any = await fetchApiBodas({
         query: queries.auth,
         variables: { idToken: tokenID },
         development: config?.development
       });
-      console.log("[Auth] Resultado de auth mutation:", {
+      console.log("[Auth] Resultado COMPLETO de auth mutation:", authResult)
+      console.log("[Auth] Análisis del resultado:", {
         hasResult: !!authResult,
         hasSessionCookie: !!authResult?.sessionCookie,
         resultType: typeof authResult,
         resultKeys: authResult ? Object.keys(authResult) : [],
-        error: authResult instanceof Error ? authResult.message : null
+        isError: authResult instanceof Error,
+        errorMessage: authResult instanceof Error ? authResult.message : null,
+        errorStack: authResult instanceof Error ? authResult.stack : null
       })
       if (authResult?.sessionCookie) {
         const { sessionCookie } = authResult;
@@ -90,11 +94,17 @@ export const useAuthentication = () => {
         
         return sessionCookie
       } else {
-        console.warn("No se pudo cargar la cookie de sesión por que hubo un problema")
+        console.error("[Auth] ❌ No se recibió sessionCookie de la API")
+        console.error("[Auth] authResult completo:", JSON.stringify(authResult, null, 2))
+        console.error("[Auth] Config development:", config?.development)
+        console.error("[Auth] Es un Error?:", authResult instanceof Error)
+        if (authResult instanceof Error) {
+          console.error("[Auth] Detalles del error:", authResult.message, authResult.stack)
+        }
         throw new Error("No se pudo cargar la cookie de sesión por que hubo un problema")
       }
     } else {
-      console.warn("No hay tokenID para pedir la cookie de sesion")
+      console.warn("[Auth] No hay tokenID para pedir la cookie de sesion")
       throw new Error("No hay tokenID para pedir la cookie de sesion")
     }
 

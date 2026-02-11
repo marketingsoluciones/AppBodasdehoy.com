@@ -114,20 +114,27 @@ const EventsGroupProvider = ({ children }) => {
           }
 
           console.log("[EventsGroup] Buscando eventos para usuario_id:", userIdToUse)
+          const startTime = performance.now()
 
           fetchApiEventos({
             query: queries.getEventsByID,
             variables: { variable: "usuario_id", valor: userIdToUse, development: config?.development },
           })
             .then((events: Event[]) => {
+              const fetchTime = performance.now() - startTime
+              console.log(`[EventsGroup] ✅ Eventos obtenidos en ${fetchTime.toFixed(0)}ms, total: ${events?.length || 0}`)
               if (!["RelacionesPublicas", "facturacion", "event", "public-card", "public-itinerary"].includes(pathname.split("/")[1])) {
                 setTimeout(() => {
                   if (events.length === 0) router.push("/")
                 }, 100);
               }
+              console.log(`[EventsGroup] Cargando detalles de usuarios para ${events.length} eventos...`)
+              const detailsStartTime = performance.now()
+
               Promise.all(
-                events.map(async (event) => {
+                events.map(async (event, index) => {
                   if (event?.compartido_array?.length) {
+                    console.log(`[EventsGroup] Procesando evento ${index + 1}/${events.length}: ${event.nombre || event._id}`)
                     const fMyUid = event?.compartido_array?.findIndex(elem => elem === user?.uid)
                     if (fMyUid > -1) {
                       event.permissions = [...event.detalles_compartidos_array[fMyUid].permissions]
@@ -152,11 +159,18 @@ const EventsGroupProvider = ({ children }) => {
                   return event
                 })
               ).then((values) => {
+                const totalTime = performance.now() - startTime
+                const detailsTime = performance.now() - detailsStartTime
+                console.log(`[EventsGroup] ✅ Detalles cargados en ${detailsTime.toFixed(0)}ms`)
+                console.log(`[EventsGroup] ✅ TOTAL tiempo de carga: ${totalTime.toFixed(0)}ms (${(totalTime/1000).toFixed(1)}s)`)
                 setEventsGroup({ type: "INITIAL_STATE", payload: values })
                 setEventsGroupDone(true)
               })
             })
-            .catch((error) => console.log(error));
+            .catch((error) => {
+              const errorTime = performance.now() - startTime
+              console.error(`[EventsGroup] ❌ Error después de ${errorTime.toFixed(0)}ms:`, error)
+            });
           fetchApiEventos({
             query: queries.getPsTemplate,
             variables: { uid: user.uid }

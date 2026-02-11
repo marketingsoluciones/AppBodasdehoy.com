@@ -1,5 +1,6 @@
 import '../styles/globals.css'
 import '../utils/react-polyfill' // Polyfill para findDOMNode en React 19
+import '../utils/next-navigation-polyfill' // Polyfill para next/navigation en Pages Router
 import DefaultLayout from '../layouts/DefaultLayout'
 import 'swiper/css';
 import "swiper/css/bundle"
@@ -22,6 +23,7 @@ import dynamic from 'next/dynamic';
 import Head from 'next/head';
 import useDevLogger from '../hooks/useDevLogger';
 import { verifyDomain, logUrlVerification, type UrlCheckResult } from '../utils/verifyUrls';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 // import { CopilotPrewarmer } from '../components/Copilot/CopilotPrewarmer';
 
 const MyApp = ({ Component, pageProps, openGraphData }) => {
@@ -76,7 +78,7 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
   }, [])
 
   return (
-    <>
+    <ErrorBoundary>
       <NextSeo
         {...openGraphData}
       />
@@ -94,7 +96,7 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
           }
         </DefaultLayout>
       </I18nextProvider>
-    </>
+    </ErrorBoundary>
   )
 }
 
@@ -104,7 +106,10 @@ MyApp.getInitialProps = async ({ Component, ctx }) => {
   const { req, pathname } = ctx;
   let pageProps = {};
 
-  const host = req ? req.headers.host : window.location.hostname;
+  // Remover puerto del host si existe (ej: app-test.bodasdehoy.com:8080 → app-test.bodasdehoy.com)
+  const hostWithPort = req ? req.headers.host : window.location.hostname;
+  const host = hostWithPort?.split(':')[0];
+
   const arr = host?.split(".")
   const f1 = arr?.findIndex(elem => ["com", "mx"].includes(elem))
   const nameDomain = arr[f1 - 1]

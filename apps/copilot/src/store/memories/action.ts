@@ -223,25 +223,25 @@ export const memoriesActionSlice: StateCreator<
     const tempId = `temp_${Date.now()}`;
     const tempAlbum: Album = {
       _id: tempId,
-      name: data.name || 'Nuevo Álbum',
-      description: data.description || '',
       coverImageUrl: data.coverImageUrl || '',
-      ownerId: userId,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      description: data.description || '',
+      eventId: data.eventId,
+      albumType: data.albumType,
       mediaCount: 0,
+      isOptimistic: true,
       memberCount: 0,
-      visibility: (data.visibility as Album['visibility']) || 'private',
+      itineraryId: data.itineraryId,
+      name: data.name || 'Nuevo Álbum',
+      ownerId: userId,
+      parentAlbumId: data.parentAlbumId,
       settings: {
         allow_comments: true,
         allow_downloads: true,
         allow_reactions: true,
       },
-      eventId: data.eventId,
-      itineraryId: data.itineraryId,
-      parentAlbumId: data.parentAlbumId,
-      albumType: data.albumType,
-      isOptimistic: true, // Mark as temporary
+      updatedAt: new Date().toISOString(),
+      visibility: (data.visibility as Album['visibility']) || 'private', // Mark as temporary
       ...data,
     } as Album;
 
@@ -902,15 +902,21 @@ export const memoriesActionSlice: StateCreator<
     const tempMedia: AlbumMedia = {
       _id: tempId,
       albumId,
-      originalUrl: tempUrl, // Temporary local URL
-      thumbnailUrl: tempUrl,
-      mediaType: file.type.startsWith('video/') ? 'video' : 'photo',
-      userId,
+      caption: caption || '', 
       createdAt: new Date().toISOString(),
-      caption: caption || '',
-      fileId: tempId,
-      sortOrder: 0,
-      isOptimistic: true,
+      
+fileId: tempId,
+      
+isOptimistic: true,
+      
+mediaType: file.type.startsWith('video/') ? 'video' : 'photo',
+      
+originalUrl: tempUrl,
+      
+sortOrder: 0,
+      // Temporary local URL
+thumbnailUrl: tempUrl,
+      userId,
     } as AlbumMedia;
 
     // Add temp media immediately
