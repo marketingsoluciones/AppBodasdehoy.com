@@ -131,7 +131,7 @@ export const api = {
 
 // Legacy: no se usa en el código actual. Endpoint unificado con el resto (HTTPS).
 // Si se elimina, verificar que ningún flujo la use. Ver docs/LISTADO-LLAMADAS-API2-AUDITORIA.md
-const API2_GRAPHQL_LEGACY = process.env.NEXT_PUBLIC_API2_GRAPHQL_URL || 'https://api2.eventosorganizador.com/graphql';
+const API2_GRAPHQL_LEGACY = process.env.NEXT_PUBLIC_API2_GRAPHQL_URL || '';
 
 export const fetchApiViewConfig = async (params) => {
   let idToken = Cookies.get("idTokenV0.1.0");

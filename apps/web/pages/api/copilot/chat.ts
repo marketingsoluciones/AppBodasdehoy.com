@@ -67,8 +67,9 @@ const respondBackendUnavailable = (
 // Default provider: backend IA auto-routing
 const DEFAULT_PROVIDER = 'auto';
 
-// Fallback API endpoints (API2 solo se usa para whitelabel si no hay api-ia; ver SKIP_WHITELABEL_VIA_API2 y API_IA_WHITELABEL_URL)
-const API2_GRAPHQL_URL = process.env.API2_GRAPHQL_URL || 'https://api2.eventosorganizador.com/graphql';
+// API2_GRAPHQL_URL: solo se usa como fallback de whitelabel si SKIP_WHITELABEL_VIA_API2 no está activo.
+// apps/web no debe apuntar a api2; preferir API_IA_WHITELABEL_URL o SKIP_WHITELABEL_VIA_API2=true.
+const API2_GRAPHQL_URL = process.env.API2_GRAPHQL_URL || '';
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -584,6 +585,8 @@ async function proxyToPythonBackend(
       let extractedMessage: string | undefined;
       let extractedTraceId: string | undefined;
       let extractedErrorCode: string | undefined;
+      let extractedPaymentUrl: string | undefined;
+      let extractedPlans: any;
 
       try {
         const bodyText = await backendResponse.text();
@@ -604,6 +607,12 @@ async function proxyToPythonBackend(
           if (traceId) { res.setHeader('X-Backend-Trace-Id', String(traceId)); extractedTraceId = String(traceId); }
           if (normalized.errorCode) { res.setHeader('X-Backend-Error-Code', String(normalized.errorCode)); extractedErrorCode = String(normalized.errorCode); }
           if (typeof msg === 'string' && msg.trim()) extractedMessage = msg;
+
+          // Capturar campos específicos de 402
+          if (backendResponse.status === 402) {
+            extractedPaymentUrl = parsed?.payment_url || parsed?.upgrade_url || undefined;
+            extractedPlans = parsed?.plans || undefined;
+          }
         } catch {
           const traceMatch = bodyText.match(/"trace_id"\s*:\s*"([^"]+)"/);
           if (traceMatch?.[1]) res.setHeader('X-Backend-Trace-Id', traceMatch[1]);
@@ -611,6 +620,51 @@ async function proxyToPythonBackend(
           if (codeMatch?.[1]) res.setHeader('X-Backend-Error-Code', codeMatch[1]);
         }
       } catch { /* ignore */ }
+
+      // 401: no autorizado — propagar al cliente para mostrar "Sesión expirada" / "No autorizado" distinto de 503
+      if (backendResponse.status === 401) {
+        const isStream = !!req.body?.stream;
+        const msg = extractedMessage || 'No autorizado. Inicia sesión de nuevo para usar el asistente.';
+        res.setHeader('X-Backend-Error-Code', 'UNAUTHORIZED');
+        if (isStream) {
+          if (!res.headersSent) {
+            res.statusCode = 401;
+            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Connection', 'keep-alive');
+          }
+          res.write(`data: ${JSON.stringify({ error: msg, errorCode: 'UNAUTHORIZED' })}\n\n`);
+          res.write('data: [DONE]\n\n');
+          res.end();
+        } else {
+          res.status(401).json({
+            error: 'UNAUTHORIZED',
+            message: msg,
+            requestId,
+            ...(extractedTraceId && { trace_id: extractedTraceId }),
+          });
+        }
+        return true;
+      }
+
+      // 402: saldo agotado — no hacer fallback, devolver directamente al cliente (siempre JSON para que el cliente pueda parsear payment_url/billing_url)
+      if (backendResponse.status === 402) {
+        const msg = extractedMessage || 'Saldo de IA agotado. Recarga tu cuenta para continuar usando el asistente.';
+        res.setHeader('X-Backend-Error-Code', 'SALDO_AGOTADO');
+        // URL de Facturación: la que envía api-ia o fallback a Copilot /settings/billing
+        const copilotOrigin = process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com';
+        const billingUrl = extractedPaymentUrl || `${copilotOrigin.replace(/\/$/, '')}/settings/billing`;
+        console.warn('[Copilot API] 402 saldo agotado recibido de api-ia', { requestId, paymentUrl: extractedPaymentUrl });
+        res.status(402).json({
+          error: 'SALDO_AGOTADO',
+          message: msg,
+          requestId,
+          payment_url: billingUrl,
+          ...(extractedPlans && { plans: extractedPlans }),
+          ...(extractedTraceId && { trace_id: extractedTraceId }),
+        });
+        return true;
+      }
 
       console.error('[Copilot API] Backend error, status:', backendResponse.status, { requestId });
 

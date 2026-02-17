@@ -210,6 +210,28 @@ export const sendChatMessage = async (
       signal: controller.signal,
     }).finally(() => clearTimeout(timeoutId));
 
+    // 401: no autorizado — mensaje específico (no confundir con 503)
+    if (response.status === 401) {
+      let errorData: any = {};
+      try { errorData = await response.json(); } catch {}
+      const msg = errorData?.message || 'No autorizado. Inicia sesión de nuevo para usar el asistente.';
+      if (onChunk) onChunk(msg);
+      return { content: msg, toolCalls: [], navigationUrl: undefined, enrichedEvents: [] };
+    }
+
+    // 402: saldo agotado — mensaje + enlace a Recargar (payment_url o billing_url de api/proxy)
+    if (response.status === 402) {
+      let errorData: any = {};
+      try { errorData = await response.json(); } catch {}
+      const msg = errorData?.message || 'Saldo de IA agotado. Recarga tu cuenta para continuar usando el asistente.';
+      const recargaUrl = errorData?.payment_url || errorData?.billing_url;
+      const contentWithLink = recargaUrl
+        ? `${msg}\n\n[Recargar saldo](${recargaUrl})`
+        : msg;
+      if (onChunk) onChunk(contentWithLink);
+      return { content: contentWithLink, toolCalls: [], navigationUrl: recargaUrl || undefined, enrichedEvents: [] };
+    }
+
     // Streaming mode
     if (onChunk && response.body) {
       const serverRequestId = response.headers.get('x-request-id') || requestId;
@@ -317,28 +339,36 @@ export const sendChatMessage = async (
       return { content: fullContent, toolCalls, navigationUrl, enrichedEvents };
     }
 
-    // Non-streaming mode
+    // Non-streaming mode (error)
     if (!response.ok) {
       const serverRequestId = response.headers.get('x-request-id') || requestId;
       const backendTraceId = response.headers.get('x-backend-trace-id') || '';
       const backendErrorCode = response.headers.get('x-backend-error-code') || '';
-      let errorMsg = response.status === 500
+      let errorMsg = response.status === 401
+        ? 'No autorizado. Inicia sesión de nuevo para usar el asistente.'
+        : response.status === 402
+        ? 'Saldo de IA agotado. Recarga tu cuenta para continuar usando el asistente.'
+        : response.status === 500
         ? 'El servicio de IA no está disponible en este momento. Por favor, intenta más tarde.'
         : `Error ${response.status}: ${response.statusText}`;
+      let navUrl: string | undefined;
       try {
         const data = await response.json();
         if (data?.message) errorMsg = String(data.message);
         else if (data?.error) errorMsg = String(data.error);
         else if (data?.detail?.error) errorMsg = String(data.detail.error);
         else if (data?.detail?.message) errorMsg = String(data.detail.message);
+        if (response.status === 402) navUrl = data?.payment_url || data?.billing_url;
       } catch { /* ignore */ }
+      const baseContent = `${errorMsg}` +
+        `${serverRequestId ? ` (RequestId: ${serverRequestId})` : ''}` +
+        `${backendTraceId ? ` (TraceId: ${backendTraceId})` : ''}` +
+        `${backendErrorCode ? ` (ErrorCode: ${backendErrorCode})` : ''}`;
+      const contentWithRecarga = navUrl ? `${baseContent}\n\n[Recargar saldo](${navUrl})` : baseContent;
       return {
-        content: `${errorMsg}` +
-          `${serverRequestId ? ` (RequestId: ${serverRequestId})` : ''}` +
-          `${backendTraceId ? ` (TraceId: ${backendTraceId})` : ''}` +
-          `${backendErrorCode ? ` (ErrorCode: ${backendErrorCode})` : ''}`,
+        content: contentWithRecarga,
         toolCalls: [],
-        navigationUrl: undefined,
+        navigationUrl: navUrl,
         enrichedEvents: [],
       };
     }
