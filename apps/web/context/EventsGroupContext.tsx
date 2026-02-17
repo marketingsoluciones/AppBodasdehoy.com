@@ -10,6 +10,7 @@ type Context = {
   psTemplates: any,
   setPsTemplates: Dispatch<SetStateAction<any>>
   eventsGroupDone: boolean,
+  eventsGroupError: boolean,
 }
 const EventsGroupContext = createContext<Context>({
   eventsGroup: null,
@@ -17,6 +18,7 @@ const EventsGroupContext = createContext<Context>({
   psTemplates: [],
   setPsTemplates: () => { },
   eventsGroupDone: false,
+  eventsGroupError: false,
 });
 
 enum actions {
@@ -66,6 +68,7 @@ const EventsGroupProvider = ({ children }) => {
   const { user, config, verificationDone } = AuthContextProvider();
   const [isMounted, setIsMounted] = useState(false)
   const [eventsGroupDone, setEventsGroupDone] = useState(false)
+  const [eventsGroupError, setEventsGroupError] = useState(false)
 
   useEffect(() => {
     if (!isMounted) {
@@ -80,6 +83,8 @@ const EventsGroupProvider = ({ children }) => {
     if (!["servicios", "credic-card", "public-card"].includes(pathname.split("/")[1]) || (user?.displayName !== "anonymous" && user?.displayName !== "guest")) {
       if (verificationDone) {
         if (user) {
+          // Esperar a que config esté cargado para tener development correcto (String! requerido en la query)
+          if (!config?.development) return;
           // BYPASS: Verificar si hay eventos del bypass en sessionStorage
           const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
           const isTestEnv = hostname.includes('chat-test') || hostname.includes('app-test') || hostname.includes('test.') || hostname.includes('localhost') || hostname.includes('127.0.0.1')
@@ -116,6 +121,7 @@ const EventsGroupProvider = ({ children }) => {
           console.log("[EventsGroup] Buscando eventos para usuario_id:", userIdToUse)
           const startTime = performance.now()
 
+          // Usar fetchApiEventos que llama a apiapp.bodasdehoy.com (API de eventos)
           fetchApiEventos({
             query: queries.getEventsByID,
             variables: { variable: "usuario_id", valor: userIdToUse, development: config?.development },
@@ -170,6 +176,27 @@ const EventsGroupProvider = ({ children }) => {
             .catch((error) => {
               const errorTime = performance.now() - startTime
               console.error(`[EventsGroup] ❌ Error después de ${errorTime.toFixed(0)}ms:`, error)
+              console.error(`[EventsGroup] Error completo:`, {
+                message: error?.message,
+                code: error?.code,
+                name: error?.name,
+                isAxiosError: error?.isAxiosError,
+                response: {
+                  data: error?.response?.data,
+                  status: error?.response?.status,
+                  statusText: error?.response?.statusText,
+                  headers: error?.response?.headers
+                },
+                request: error?.request ? 'Presente' : 'Ausente',
+                config: {
+                  url: error?.config?.url,
+                  method: error?.config?.method,
+                  baseURL: error?.config?.baseURL,
+                  headers: error?.config?.headers
+                }
+              })
+              setEventsGroupError(true)
+              setEventsGroupDone(true)
             });
           fetchApiEventos({
             query: queries.getPsTemplate,
@@ -184,10 +211,10 @@ const EventsGroupProvider = ({ children }) => {
         }
       }
     }
-  }, [user]);
+  }, [user, config?.development]);
 
   return (
-    <EventsGroupContext.Provider value={{ eventsGroup, setEventsGroup, psTemplates, setPsTemplates, eventsGroupDone }}>
+    <EventsGroupContext.Provider value={{ eventsGroup, setEventsGroup, psTemplates, setPsTemplates, eventsGroupDone, eventsGroupError }}>
       {children}
     </EventsGroupContext.Provider>
   );
