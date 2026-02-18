@@ -26,7 +26,7 @@ afterAll(() => {
 
 describe('GET /api/copilot/chat-history', () => {
   it('devuelve 400 cuando falta sessionId', async () => {
-    const req = { method: 'GET', query: {}, headers: {} } as NextApiRequest;
+    const req = { method: 'GET', query: {}, headers: {} } as unknown as NextApiRequest;
     const res = createMockRes();
 
     await handler(req, res);
@@ -44,7 +44,7 @@ describe('GET /api/copilot/chat-history', () => {
       method: 'GET',
       query: { sessionId: 'user_123' },
       headers: { authorization: 'Bearer token', 'x-development': 'bodasdehoy' },
-    } as NextApiRequest;
+    } as unknown as NextApiRequest;
     const res = createMockRes();
 
     await handler(req, res);
@@ -63,7 +63,7 @@ describe('GET /api/copilot/chat-history', () => {
       method: 'GET',
       query: { sessionId: 'user_456' },
       headers: {},
-    } as NextApiRequest;
+    } as unknown as NextApiRequest;
     const res = createMockRes();
 
     await handler(req, res);
@@ -79,7 +79,7 @@ describe('GET /api/copilot/chat-history', () => {
       method: 'GET',
       query: { sessionId: 'user_789' },
       headers: {},
-    } as NextApiRequest;
+    } as unknown as NextApiRequest;
     const res = createMockRes();
 
     await handler(req, res);
@@ -114,7 +114,7 @@ describe('GET /api/copilot/chat-history (cuando API_IA_CHAT_HISTORY_URL está de
       method: 'GET',
       query: { sessionId: 's1', limit: '20' },
       headers: { authorization: 'Bearer token', 'x-development': 'bodasdehoy' },
-    } as NextApiRequest;
+    } as unknown as NextApiRequest;
     const res = createMockRes();
 
     await handlerLocal(req, res);
@@ -133,7 +133,7 @@ describe('GET /api/copilot/chat-history (cuando API_IA_CHAT_HISTORY_URL está de
 
 describe('POST /api/copilot/chat-history', () => {
   it('devuelve 405 Method not allowed', async () => {
-    const req = { method: 'POST', query: { sessionId: 'x' }, headers: {} } as NextApiRequest;
+    const req = { method: 'POST', query: { sessionId: 'x' }, headers: {} } as unknown as NextApiRequest;
     const res = createMockRes();
 
     await handler(req, res);

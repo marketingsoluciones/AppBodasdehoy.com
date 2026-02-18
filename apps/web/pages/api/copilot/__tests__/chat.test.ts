@@ -72,7 +72,7 @@ describe('POST /api/copilot/chat', () => {
       method: 'POST',
       body: { stream: true, metadata: {} },
       headers: {},
-    } as NextApiRequest;
+    } as unknown as NextApiRequest;
     const res = createMockRes();
 
     await handler(req, res);
@@ -104,7 +104,7 @@ describe('POST /api/copilot/chat', () => {
         'content-type': 'application/json',
         'x-development': CHAT_REQUEST_BODY_REAL.metadata.development,
       },
-    } as NextApiRequest;
+    } as unknown as NextApiRequest;
     const res = createMockRes();
 
     await handler(req, res);
@@ -142,7 +142,7 @@ describe('POST /api/copilot/chat', () => {
       method: 'POST',
       body: { messages: [{ role: 'user', content: 'Hola' }], stream: true, metadata: {} },
       headers: {},
-    } as NextApiRequest;
+    } as unknown as NextApiRequest;
     const res = createMockRes();
 
     await handler(req, res);
@@ -173,7 +173,7 @@ describe('POST /api/copilot/chat', () => {
       // stream: false → usa el path JSON (res.status(401).json) no el SSE (res.statusCode=401)
       body: { messages: [{ role: 'user', content: 'Hola' }], stream: false, metadata: {} },
       headers: {},
-    } as NextApiRequest;
+    } as unknown as NextApiRequest;
     const res = createMockRes();
 
     await handler(req, res);
@@ -207,7 +207,7 @@ describe('POST /api/copilot/chat', () => {
       method: 'POST',
       body: { messages: [{ role: 'user', content: 'Hola' }], stream: false, metadata: {} },
       headers: {},
-    } as NextApiRequest;
+    } as unknown as NextApiRequest;
     const res = createMockRes();
 
     await handler(req, res);
@@ -233,7 +233,7 @@ describe('OPTIONS /api/copilot/chat', () => {
 
   it('devuelve 200 y headers CORS', async () => {
     const handler = (await import('../chat')).default;
-    const req = { method: 'OPTIONS' } as NextApiRequest;
+    const req = { method: 'OPTIONS' } as unknown as NextApiRequest;
     const res = {
       setHeader: jest.fn().mockReturnThis(),
       status: jest.fn().mockReturnThis(),

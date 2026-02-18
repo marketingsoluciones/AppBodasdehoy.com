@@ -15,7 +15,7 @@ function createMockRes(): NextApiResponse & { status: jest.Mock; json: jest.Mock
 
 describe('GET /api/chat/messages', () => {
   it('devuelve 200 y messages: [] cuando sessionId está presente y no hay mensajes', () => {
-    const req = { method: 'GET', query: { sessionId: 'guest_empty_123' } } as NextApiRequest;
+    const req = { method: 'GET', query: { sessionId: 'guest_empty_123' } } as unknown as NextApiRequest;
     const res = createMockRes();
 
     handler(req, res);
@@ -25,7 +25,7 @@ describe('GET /api/chat/messages', () => {
   });
 
   it('devuelve 400 cuando falta sessionId', () => {
-    const req = { method: 'GET', query: {} } as NextApiRequest;
+    const req = { method: 'GET', query: {} } as unknown as NextApiRequest;
     const res = createMockRes();
 
     handler(req, res);
@@ -40,7 +40,7 @@ describe('POST /api/chat/messages', () => {
     const req = {
       method: 'POST',
       body: { sessionId: 'test_post_1', role: 'user', content: 'Hola' },
-    } as NextApiRequest;
+    } as unknown as NextApiRequest;
     const res = createMockRes();
 
     handler(req, res);
@@ -50,7 +50,7 @@ describe('POST /api/chat/messages', () => {
   });
 
   it('devuelve 400 cuando faltan campos', () => {
-    const req = { method: 'POST', body: { sessionId: 'x' } } as NextApiRequest;
+    const req = { method: 'POST', body: { sessionId: 'x' } } as unknown as NextApiRequest;
     const res = createMockRes();
 
     handler(req, res);
@@ -63,16 +63,16 @@ describe('GET después de POST', () => {
   it('devuelve mensajes persistidos para la sesión', () => {
     const sid = `test_get_${Date.now()}`;
     handler(
-      { method: 'POST', body: { sessionId: sid, role: 'user', content: 'Hola' } } as NextApiRequest,
+      { method: 'POST', body: { sessionId: sid, role: 'user', content: 'Hola' } } as unknown as NextApiRequest,
       createMockRes()
     );
     handler(
-      { method: 'POST', body: { sessionId: sid, role: 'assistant', content: 'Respuesta' } } as NextApiRequest,
+      { method: 'POST', body: { sessionId: sid, role: 'assistant', content: 'Respuesta' } } as unknown as NextApiRequest,
       createMockRes()
     );
 
     const res = createMockRes();
-    handler({ method: 'GET', query: { sessionId: sid } } as NextApiRequest, res);
+    handler({ method: 'GET', query: { sessionId: sid } } as unknown as NextApiRequest, res);
 
     expect(res.status).toHaveBeenCalledWith(200);
     const payload = (res.json as jest.Mock).mock.calls[0][0];
@@ -84,7 +84,7 @@ describe('GET después de POST', () => {
 
 describe('Método no permitido', () => {
   it('devuelve 405 para PUT', () => {
-    const req = { method: 'PUT', query: {} } as NextApiRequest;
+    const req = { method: 'PUT', query: {} } as unknown as NextApiRequest;
     const res = createMockRes();
 
     handler(req, res);
