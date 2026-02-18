@@ -814,16 +814,18 @@ async function proxyToPythonBackend(
 
           // event:error -> respond with error
           if (currentEvent === 'error' || (parsed?.error && !parsed?.choices)) {
-            const msg = parsed?.error || 'Error del backend IA';
+            const technicalMsg = parsed?.error || 'Error del backend IA';
+            // user_message: mensaje amigable para el usuario final (api-ia lo incluye en errores 503)
+            const userMsg = parsed?.user_message || technicalMsg;
             const normalized = normalizeBackendErrorCode({
               errorCode: typeof parsed?.error_code === 'string' ? parsed.error_code : undefined,
-              message: String(msg),
+              message: String(technicalMsg),
               providerUsed: typeof parsed?.provider === 'string' ? parsed.provider : undefined,
               requestedProvider: provider,
               upstreamStatus: typeof parsed?.upstream_status === 'number' ? parsed.upstream_status : null,
             });
             if (normalized.errorCode) res.setHeader('X-Backend-Error-Code', normalized.errorCode);
-            writeErrorAndEnd(String(msg), { trace_id: parsed?.trace_id, error_code: normalized.errorCode });
+            writeErrorAndEnd(String(userMsg), { trace_id: parsed?.trace_id, error_code: normalized.errorCode });
             return true;
           }
 
@@ -871,7 +873,7 @@ async function proxyToPythonBackend(
       let enrichedEvents: Array<{ type: string; data: any }> = [];
       let providerMeta: string | undefined;
       let modelMeta: string | undefined;
-      let errorObj: { error?: string; error_code?: string; trace_id?: string } | null = null;
+      let errorObj: { error?: string; user_message?: string; error_code?: string; trace_id?: string } | null = null;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -909,6 +911,8 @@ async function proxyToPythonBackend(
 
           if (currentEvent === 'error' || (parsed?.error && !parsed?.choices)) {
             const msg = typeof parsed?.error === 'string' ? parsed.error : 'Error del backend IA';
+            // user_message: mensaje amigable para el usuario final (api-ia lo incluye en errores 503)
+            const userMsg = typeof parsed?.user_message === 'string' ? parsed.user_message : undefined;
             const normalized = normalizeBackendErrorCode({
               errorCode: typeof parsed?.error_code === 'string' ? parsed.error_code : undefined,
               message: msg,
@@ -916,7 +920,7 @@ async function proxyToPythonBackend(
               requestedProvider: provider,
               upstreamStatus: typeof parsed?.upstream_status === 'number' ? parsed.upstream_status : null,
             });
-            errorObj = { error: msg, error_code: normalized.errorCode, trace_id: typeof parsed?.trace_id === 'string' ? parsed.trace_id : undefined };
+            errorObj = { error: msg, user_message: userMsg, error_code: normalized.errorCode, trace_id: typeof parsed?.trace_id === 'string' ? parsed.trace_id : undefined };
             break;
           }
 
@@ -935,7 +939,8 @@ async function proxyToPythonBackend(
       if (errorObj) {
         res.status(503).json({
           error: errorObj.error_code || 'IA_BACKEND_ERROR',
-          message: String(errorObj.error || 'Error del backend IA'),
+          message: String(errorObj.user_message || errorObj.error || 'Error del backend IA'),
+          user_message: errorObj.user_message,
           requestId,
           provider: providerMeta,
           model: modelMeta,
@@ -985,7 +990,9 @@ async function proxyToPythonBackend(
       if (normalized.errorCode) res.setHeader('X-Backend-Error-Code', String(normalized.errorCode));
       res.status(503).json({
         error: normalized.errorCode || 'IA_BACKEND_ERROR',
-        message: String(data.error),
+        // user_message: mensaje amigable para el usuario; message: para logs/debug
+        message: String(data.user_message || data.error),
+        user_message: typeof data.user_message === 'string' ? data.user_message : undefined,
         requestId,
         provider: data?.provider,
         model: data?.model,

@@ -354,7 +354,9 @@ export const sendChatMessage = async (
       let navUrl: string | undefined;
       try {
         const data = await response.json();
-        if (data?.message) errorMsg = String(data.message);
+        // user_message: mensaje amigable de api-ia para mostrar al usuario (prioritario)
+        if (data?.user_message) errorMsg = String(data.user_message);
+        else if (data?.message) errorMsg = String(data.message);
         else if (data?.error) errorMsg = String(data.error);
         else if (data?.detail?.error) errorMsg = String(data.detail.error);
         else if (data?.detail?.message) errorMsg = String(data.detail.message);
