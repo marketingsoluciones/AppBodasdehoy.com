@@ -80,6 +80,8 @@ export const CopilotEmbed: FC<CopilotEmbedProps> = ({
   const [loading, setLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const abortControllerRef = useRef<AbortController | null>(null);
+  // Último mensaje del usuario para poder reintentar en errores 503/429
+  const [retryContent, setRetryContent] = useState<string | null>(null);
 
   // Load chat history on mount
   useEffect(() => {
@@ -131,6 +133,7 @@ export const CopilotEmbed: FC<CopilotEmbedProps> = ({
       setMessages((prev) => [...prev, userMessage]);
       setInput('');
       setLoading(true);
+      setRetryContent(null); // Limpiar retry anterior
 
       // Create assistant message (empty, will be filled with streaming)
       const assistantMessageId = generateMessageId();
@@ -188,6 +191,10 @@ export const CopilotEmbed: FC<CopilotEmbedProps> = ({
       } catch (error: any) {
         console.error('[CopilotEmbed] Error sending message:', error);
 
+        const isAbort = error.name === 'AbortError';
+        // Habilitar reintentar en errores no-abort (503, 429, red, etc.)
+        if (!isAbort) setRetryContent(content);
+
         // Update assistant message with error
         setMessages((prev) => {
           const updated = [...prev];
@@ -195,14 +202,12 @@ export const CopilotEmbed: FC<CopilotEmbedProps> = ({
           if (updated[lastIdx]?.id === assistantMessageId) {
             updated[lastIdx] = {
               ...updated[lastIdx],
-              message:
-                error.name === 'AbortError'
-                  ? 'Request cancelled'
-                  : 'Error sending message. Please try again.',
+              message: isAbort
+                ? 'Solicitud cancelada.'
+                : error.message || 'Error al enviar el mensaje. Por favor, inténtalo de nuevo.',
               loading: false,
               error: {
-                message:
-                  error.message || 'An error occurred while sending your message.',
+                message: error.message || 'Ocurrió un error al enviar el mensaje.',
               },
             };
           }
@@ -227,6 +232,18 @@ export const CopilotEmbed: FC<CopilotEmbedProps> = ({
       }
     }
   }, [messages]);
+
+  // Reintentar el último mensaje fallido
+  const handleRetry = useCallback(() => {
+    if (!retryContent || loading) return;
+    // Eliminar el último mensaje de error (assistant) y reenviar
+    setMessages((prev) => {
+      const last = prev[prev.length - 1];
+      if (last?.role === 'assistant' && last?.error) return prev.slice(0, -2);
+      return prev;
+    });
+    handleSend(retryContent);
+  }, [retryContent, loading, handleSend]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -272,6 +289,41 @@ export const CopilotEmbed: FC<CopilotEmbedProps> = ({
           }
         />
       </div>
+
+      {/* Banner de reintento — aparece cuando hay error recuperable */}
+      {retryContent && !loading && (
+        <div
+          style={{
+            padding: '8px 16px',
+            background: '#fff7f0',
+            borderTop: '1px solid #ffd0a8',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
+          }}
+        >
+          <span style={{ fontSize: 13, color: '#c05000' }}>
+            El asistente no pudo responder.
+          </span>
+          <button
+            onClick={handleRetry}
+            disabled={loading}
+            style={{
+              fontSize: 13,
+              color: '#fff',
+              background: '#e05a00',
+              border: 'none',
+              borderRadius: 6,
+              padding: '4px 14px',
+              cursor: 'pointer',
+              fontWeight: 500,
+            }}
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
 
       {/* Input Editor */}
       <div
