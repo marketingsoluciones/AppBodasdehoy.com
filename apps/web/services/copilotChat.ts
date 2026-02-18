@@ -363,9 +363,13 @@ export const sendChatMessage = async (
 
       // Si el stream fue de error (5xx), lanzar excepción para que CopilotEmbed
       // active el botón Reintentar. El mensaje viene del SSE o del proxy.
+      // Marcamos el error con __isStreamingHttpError para que el catch externo
+      // lo re-lance en lugar de convertirlo a respuesta (que dejaría sin retry).
       if (isErrorResponse) {
         const errMsg = streamingError || fullContent || `Error ${response.status} del servidor de IA.`;
-        throw new Error(errMsg);
+        const err = new Error(errMsg);
+        (err as any).__isStreamingHttpError = true;
+        throw err;
       }
 
       const elapsed = Date.now() - startMs;
@@ -430,6 +434,11 @@ export const sendChatMessage = async (
         navigationUrl: undefined,
         enrichedEvents: [],
       };
+    }
+    // Re-lanzar errores de streaming HTTP (5xx) para que CopilotEmbed.handleSend
+    // los capture en su propio catch y active el botón Reintentar.
+    if (error instanceof Error && (error as any).__isStreamingHttpError) {
+      throw error;
     }
     console.error('[CopilotChat] Error sending message:', error);
     return {

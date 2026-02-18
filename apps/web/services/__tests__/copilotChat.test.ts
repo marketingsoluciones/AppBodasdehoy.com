@@ -4,6 +4,22 @@
  * Jest + next/jest — mismo ecosistema que Next.
  */
 
+// Polyfill ReadableStream y TextEncoder/TextDecoder para jsdom (Node 18+)
+if (typeof ReadableStream === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const webStreams = require('stream/web');
+  Object.assign(globalThis, {
+    ReadableStream: webStreams.ReadableStream,
+    TransformStream: webStreams.TransformStream,
+    WritableStream: webStreams.WritableStream,
+  });
+}
+if (typeof TextEncoder === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { TextEncoder: TE, TextDecoder: TD } = require('util');
+  Object.assign(globalThis, { TextEncoder: TE, TextDecoder: TD });
+}
+
 import { sendChatMessage, generateMessageId, getChatHistory } from '../copilotChat';
 import {
   API2_GET_CHAT_MESSAGES_RESPONSE,
@@ -155,6 +171,166 @@ describe('copilotChat service', () => {
       expect(result.toolCalls).toEqual([]);
     });
 
+    it('503 no-ok + user_message: prioriza user_message sobre message en content', async () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: new Headers(),
+        json: () => Promise.resolve({
+          error: 'upstream_error',
+          message: 'Error técnico interno',
+          user_message: 'El asistente no está disponible ahora. Inténtalo más tarde.',
+        }),
+      });
+
+      globalThis.fetch = mockFetch as typeof fetch;
+
+      const result = await sendChatMessage({ message: 'Hola' });
+
+      expect(result.content).toContain('El asistente no está disponible ahora');
+      expect(result.content).not.toContain('Error técnico interno');
+    });
+
+    it('streaming 503: lanza Error con el mensaje SSE para activar botón Reintentar', async () => {
+      const sseChunks = [
+        'event: error\n',
+        'data: {"error":"upstream_error","user_message":"El proveedor de IA no está disponible."}\n\n',
+      ];
+      const stream = new ReadableStream({
+        start(controller) {
+          for (const c of sseChunks) {
+            controller.enqueue(new TextEncoder().encode(c));
+          }
+          controller.close();
+        },
+      });
+
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 503,
+        headers: new Headers({ 'x-request-id': 'req-503' }),
+        body: stream,
+      });
+
+      globalThis.fetch = mockFetch as typeof fetch;
+
+      const onChunk = jest.fn();
+
+      await expect(
+        sendChatMessage({ message: 'Test', development: 'bodasdehoy' }, onChunk)
+      ).rejects.toThrow('El proveedor de IA no está disponible.');
+
+      // onChunk NO debe haberse llamado con el error (solo lanza excepción)
+      expect(onChunk).not.toHaveBeenCalled();
+    });
+
+    it('streaming 503: lanza Error aunque no haya SSE event:error (usa fullContent)', async () => {
+      const sseChunks = [
+        'data: {"error":"service_error"}\n\n',
+      ];
+      const stream = new ReadableStream({
+        start(controller) {
+          for (const c of sseChunks) {
+            controller.enqueue(new TextEncoder().encode(c));
+          }
+          controller.close();
+        },
+      });
+
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 503,
+        headers: new Headers(),
+        body: stream,
+      });
+
+      globalThis.fetch = mockFetch as typeof fetch;
+
+      await expect(
+        sendChatMessage({ message: 'Test', development: 'bodasdehoy' }, jest.fn())
+      ).rejects.toThrow();
+    });
+
+    it('429 rate limit: devuelve mensaje amigable sin lanzar excepción', async () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        headers: new Headers({ 'retry-after': '30' }),
+        json: () => Promise.resolve({
+          error: 'UPSTREAM_RATE_LIMIT',
+          message: 'Demasiadas peticiones al asistente. Por favor, espera unos segundos.',
+        }),
+      });
+
+      globalThis.fetch = mockFetch as typeof fetch;
+
+      const onChunk = jest.fn();
+      const result = await sendChatMessage(
+        { message: 'Hola', development: 'bodasdehoy' },
+        onChunk
+      );
+
+      expect(result.content).toContain('Demasiadas peticiones');
+      expect(result.content).toContain('Retry-After: 30s');
+      expect(onChunk).toHaveBeenCalledWith(expect.stringContaining('Retry-After'));
+      expect(result.toolCalls).toEqual([]);
+    });
+
+    it('429 sin Retry-After: devuelve mensaje sin tiempo de espera', async () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        headers: new Headers(),
+        json: () => Promise.resolve({ message: 'Rate limit excedido.' }),
+      });
+
+      globalThis.fetch = mockFetch as typeof fetch;
+
+      const result = await sendChatMessage({ message: 'Hola', development: 'bodasdehoy' }, jest.fn());
+
+      expect(result.content).toContain('Rate limit excedido.');
+      expect(result.content).not.toContain('Retry-After');
+    });
+
+    it('SSE event:error con user_message: muestra user_message no el campo error', async () => {
+      const sseChunks = [
+        'data: {"choices":[{"delta":{"content":"Inicio "}}]}\n\n',
+        'event: error\n',
+        'data: {"error":"provider_error","user_message":"El proveedor superó su límite."}\n\n',
+      ];
+      const stream = new ReadableStream({
+        start(controller) {
+          for (const c of sseChunks) {
+            controller.enqueue(new TextEncoder().encode(c));
+          }
+          controller.close();
+        },
+      });
+
+      // Respuesta 200 con error embebido en SSE (caso raro pero posible)
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers(),
+        body: stream,
+      });
+
+      globalThis.fetch = mockFetch as typeof fetch;
+
+      const chunks: string[] = [];
+      const onChunk = (c: string) => chunks.push(c);
+
+      const result = await sendChatMessage(
+        { message: 'Test', development: 'bodasdehoy' },
+        onChunk
+      );
+
+      const full = chunks.join('');
+      expect(full).toContain('El proveedor superó su límite.');
+      expect(full).not.toContain('provider_error');
+      expect(result.content).toContain('Inicio');
+    });
+
     it('cuando fetch lanza AbortError devuelve mensaje de cancelación', async () => {
       const mockFetch = jest.fn().mockRejectedValue(new DOMException('abort', 'AbortError'));
 
@@ -190,8 +366,9 @@ describe('copilotChat service', () => {
       });
       globalThis.fetch = mockFetch as typeof fetch;
 
+      const onChunk2 = jest.fn();
       const onEnriched = jest.fn();
-      const result = await sendChatMessage({ message: 'Test', development: 'bodasdehoy' }, undefined, undefined, onEnriched);
+      const result = await sendChatMessage({ message: 'Test', development: 'bodasdehoy' }, onChunk2, undefined, onEnriched);
 
       expect(result.content).toBe('Respuesta final.');
       expect(onEnriched).toHaveBeenCalledWith(
@@ -251,7 +428,7 @@ describe('copilotChat service', () => {
 
       expect(mockFetch).toHaveBeenCalledTimes(2);
       expect(mockFetch).toHaveBeenNthCalledWith(1, expect.stringContaining('/api/copilot/chat-history'), expect.any(Object));
-      expect(mockFetch).toHaveBeenNthCalledWith(2, expect.stringContaining('/api/chat/messages'), expect.any(Object));
+      expect(mockFetch).toHaveBeenNthCalledWith(2, expect.stringContaining('/api/chat/messages'));
       expect(result).toHaveLength(1);
       expect(result[0].content).toBe('Fallback');
     });
