@@ -12,8 +12,14 @@
 9. Notificaciones keys – esperando decisión de api-ia
 10. ~~**Botón "Reintentar" en 503**~~ ✅ Implementado (commits a78a66c9 + 1ebba2d3 + 5f388fc7, 18-feb): banner aparece en 503/429/red; `__isStreamingHttpError` flag corrige bug donde streaming 503 nunca activaba retry.
 10b. ~~**Filtro AUTH_ERROR en Reintentar**~~ ✅ Implementado (18-feb tarde): no mostrar Reintentar si `X-Backend-Error-Code: AUTH_ERROR`; se propaga `__errorCode` en el error lanzado.
-11. Pruebas usuario real (opcional)
-12. UI saldo agotado con enlace a Facturación – proxy ya devuelve billing_url; api-ia avisará cuando API2 exponga payment_url/upgrade_url
+11. ~~**Pruebas usuario real**~~ ✅ Realizadas 18-feb: front, APIs y SSE verificados end-to-end.
+12. UI saldo agotado con enlace a Facturación – ✅ cliente ya muestra mensaje + link billing_url; payment_url llegará cuando API2 lo exponga.
+
+## Recordatorio api-ia (18-feb noche) + Respuesta nuestra
+- UI 402 saldo agotado: ✅ ya implementado (mensaje + link en chat)
+- 401 sesión expirada: ✅ ya implementado
+- Batería B [20] "catering": ✅ ahora responde 200 (trace_id: 8afe0237) — el 503 era transitorio
+- Ítems 8 y 9 (balance keys, notificaciones): pendientes de respuesta de api-ia
 
 ## Respuesta api-ia (18-feb tarde)
 - user_message en 503: confirmado ✅ disponible en todos los errores
@@ -24,8 +30,8 @@
 ## Resultados baterías 18-feb
 | Batería | OK | Fallos | Notas |
 |---------|-----|--------|-------|
-| A (20q) | 20/20 | 0 | Todas coherentes ✅ (×2 hoy: mañana + tarde) |
-| B (20q) | 19/20 | 1 | [20] Catering financiero → 503 orchestrator |
+| A (20q) | 20/20 | 0 | Todas coherentes ✅ (×3 hoy) |
+| B (20q) | 19/20 | 1 | [20] Catering → 503 orchestrator (ahora 200 al re-probar) |
 | C (20q) | 13/20 | 7 | Rate limit upstream (5×), provider 400 (1×), orchestrator vacío (1×) |
 | D (20q) | 17/20 | 3 | Auth error (1×), provider 400 (1×), rate limit (1×) |
 | E (20q) | 20/20 | 0 | Todas coherentes ✅ (secuencial, misma tarde) |
