@@ -114,16 +114,10 @@ const nextConfig = {
         source: '/copilot-chat/:path*',
         destination: `${copilotBase}/:path*`,
       },
-      // Proxy para API GraphQL (evitar CORS en desarrollo)
-      {
-        source: '/api/graphql/:path*',
-        destination: 'https://apiapp.bodasdehoy.com/:path*',
-      },
-      // Proxy para API Bodas (autenticación)
-      {
-        source: '/api/proxy-bodas/graphql',
-        destination: 'https://api.bodasdehoy.com/graphql',
-      },
+      // NOTA: Los proxies de API ahora se manejan con API routes en /pages/api/
+      // en lugar de rewrites, para evitar problemas de CORS que ocurrían porque
+      // los rewrites mantienen los headers originales (incluido Origin).
+      // Ver: /pages/api/proxy/graphql.ts y /pages/api/proxy-bodas/graphql.ts
     ];
   },
 };
