@@ -253,6 +253,10 @@ export const sendChatMessage = async (
         `${backendTraceId ? ` TraceId: ${backendTraceId}` : ''}` +
         `${backendErrorCode ? ` ErrorCode: ${backendErrorCode}` : ''}`;
 
+      // Si el status es 5xx (ej. 503), el proxy envía el error como SSE pero la respuesta
+      // ya está marcada como error — lo capturamos y lanzamos para que catch lo maneje.
+      const isErrorResponse = !response.ok;
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let fullContent = '';
@@ -261,6 +265,7 @@ export const sendChatMessage = async (
       let enrichedEvents: EnrichedEvent[] = [];
       let pending = '';
       let currentEvent: string | null = null;
+      let streamingError: string | null = null; // Error capturado del SSE en respuesta de error
 
       while (true) {
         const { done, value } = await reader.read();
@@ -300,22 +305,33 @@ export const sendChatMessage = async (
               continue;
             }
 
-            // Error events
+            // Error events — si la respuesta es error HTTP (5xx), capturar para lanzar
+            // después del loop (activa el catch de CopilotEmbed → botón Reintentar).
+            // Si la respuesta es 200 con error embebido (raro), mostrar como contenido.
             if (currentEvent === 'error' && parsed?.error) {
-              const base = String(parsed.error);
+              const userMsg = parsed?.user_message ? String(parsed.user_message) : null;
+              const base = userMsg || String(parsed.error);
               const msg = base.includes('RequestId:') ? base : `${base}${metaSuffix}`;
-              fullContent += msg;
-              onChunk(msg);
+              if (isErrorResponse) {
+                streamingError = msg;
+              } else {
+                fullContent += msg;
+                onChunk(msg);
+              }
               currentEvent = null;
               continue;
             }
 
             // Backend error without event type
             if (parsed?.error && !parsed?.choices) {
-              const base = String(parsed.error);
+              const base = String(parsed.user_message || parsed.error);
               const msg = base.includes('RequestId:') ? base : `${base}${metaSuffix}`;
-              fullContent += msg;
-              onChunk(msg);
+              if (isErrorResponse) {
+                streamingError = msg;
+              } else {
+                fullContent += msg;
+                onChunk(msg);
+              }
               continue;
             }
 
@@ -343,6 +359,13 @@ export const sendChatMessage = async (
           // Reset event after processing data line
           currentEvent = null;
         }
+      }
+
+      // Si el stream fue de error (5xx), lanzar excepción para que CopilotEmbed
+      // active el botón Reintentar. El mensaje viene del SSE o del proxy.
+      if (isErrorResponse) {
+        const errMsg = streamingError || fullContent || `Error ${response.status} del servidor de IA.`;
+        throw new Error(errMsg);
       }
 
       const elapsed = Date.now() - startMs;
