@@ -10,7 +10,7 @@
 7. Sistema monitoreo API Keys – enviar doc si api-ia pide más
 8. Balance keys en UI – esperando endpoint de api-ia
 9. Notificaciones keys – esperando decisión de api-ia
-10. Botón "Reintentar" en 503 – esperando confirmación de api-ia (cuándo es seguro reintentar)
+10. ~~**Botón "Reintentar" en 503**~~ ✅ Implementado (commits a78a66c9 + 1ebba2d3 + 5f388fc7, 18-feb): banner aparece en 503/429/red; `__isStreamingHttpError` flag corrige bug donde streaming 503 nunca activaba retry.
 11. Pruebas usuario real (opcional)
 12. UI saldo agotado con enlace a Facturación – proxy ya devuelve billing_url; api-ia no expone aún payment_url en 402
 
