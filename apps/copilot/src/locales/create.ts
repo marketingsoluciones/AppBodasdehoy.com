@@ -7,7 +7,7 @@ import { isRtlLang } from 'rtl-detect';
 import { DEFAULT_LANG } from '@/const/locale';
 import { getDebugConfig } from '@/envs/debug';
 import { normalizeLocale } from '@/locales/resources';
-import { isDev, isOnServerSide } from '@/utils/env';
+import { isOnServerSide } from '@/utils/env';
 
 const { I18N_DEBUG, I18N_DEBUG_BROWSER, I18N_DEBUG_SERVER } = getDebugConfig();
 const debugMode = (I18N_DEBUG ?? isOnServerSide) ? I18N_DEBUG_SERVER : I18N_DEBUG_BROWSER;
@@ -26,20 +26,8 @@ export const createI18nNext = (lang?: string) => {
 
           const normalizedLng = normalizeLocale(lng);
 
-          if (isDev) {
-            // En desarrollo: dynamic import (webpack puede resolver en dev mode)
-            const translationPath = `../../locales/${normalizedLng}/${ns}.json`;
-            try {
-              return await import(translationPath);
-            } catch {
-              if (debugMode) console.warn(`[i18n] Dev: Namespace "${ns}" no encontrado para "${lng}"`);
-              return {};
-            }
-          }
-
-          // En producción: fetch estático desde /locales/ (public folder)
-          // Los archivos JSON están en public/locales/ servidos estáticamente por Next.js
-          // Evita conflictos con el proxy genérico /api/:path* y problemas de webpack
+          // Fetch desde /locales/ (public folder) - funciona en dev y prod
+          // Next.js sirve public/ en ambos modos; evita problemas de webpack con dynamic import
           const url = `/locales/${normalizedLng}/${ns}.json`;
           try {
             const res = await fetch(url);
@@ -116,8 +104,7 @@ missingKeyHandler: (lng, ns, key) => {
           }
         },
         
-        // ✅ FIX: Evitar que intente cargar namespaces que no existen
-ns: ['error', 'common', 'chat', 'editor', 'auth', 'setting'],
+        ns: ['error', 'common', 'chat', 'editor', 'auth', 'setting', 'welcome', 'plugin', 'tool', 'file', 'image', 'topic', 'components'],
         // ✅ FIX: No fallar si un namespace no existe
         partialBundledLanguages: true,
       });
