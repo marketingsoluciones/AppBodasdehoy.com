@@ -224,6 +224,38 @@ export function adaptUrlForTestEnv(prodUrl: string): string {
 }
 
 /**
+ * Normaliza la URL de redirección después del login para no enviar al usuario a otro subdominio.
+ * En app-test/chat-test, si d= apunta a otro origen (ej. chat-test desde app-test), falla por subdominio;
+ * por eso nos quedamos en el mismo origen.
+ *
+ * @param redirectPath - Valor del param d (puede ser "/", "/app", o una URL absoluta)
+ * @returns Ruta segura: mismo origen o path relativo, nunca otro subdominio
+ */
+export function normalizeRedirectAfterLogin(redirectPath: string): string {
+  if (typeof window === "undefined") return redirectPath || "/";
+  const trimmed = (redirectPath || "/").trim();
+  if (!trimmed || trimmed === "/") return "/";
+
+  try {
+    const currentOrigin = window.location.origin;
+    const isTest = isTestSubdomain();
+
+    if (isTest && (trimmed.startsWith("http://") || trimmed.startsWith("https://"))) {
+      const target = new URL(trimmed);
+      if (target.origin !== currentOrigin) {
+        console.warn("[Auth] Redirect a otro subdominio ignorado para evitar fallo (origen actual:", currentOrigin, ", destino:", target.origin, ")");
+        return "/";
+      }
+      return target.pathname + target.search || "/";
+    }
+  } catch {
+    // Si no es URL válida, tratar como path
+  }
+
+  return trimmed.startsWith("/") ? trimmed : "/" + trimmed;
+}
+
+/**
  * Adapta una URL de producción manteniendo el mismo prefijo de subdominio
  * Útil cuando necesitas ir a otro servicio pero mantener el entorno
  *

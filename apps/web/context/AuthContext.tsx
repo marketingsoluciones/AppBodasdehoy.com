@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { parseJwt } from "../utils/Authentication";
 import { useActivity } from "../hooks/useActivity";
 import { getStorage } from "firebase/storage";
-import { isTestSubdomain } from "../utils/urlHelpers";
+import { isTestSubdomain, normalizeRedirectAfterLogin } from "../utils/urlHelpers";
 
 const initialContext = {
   user: undefined,
@@ -475,9 +475,9 @@ const AuthProvider = ({ children }) => {
                 }
 
                 // Si estamos en la URL correcta, redirigir a la página principal o la URL de destino
-                // Esperar un momento para asegurar que las cookies se establezcan correctamente
+                // En subdominios de test no redirigir a otro subdominio (ej. chat-test) para evitar fallos
                 const queryD = new URLSearchParams(window.location.search).get('d')
-                const redirectPath = queryD || '/'
+                const redirectPath = normalizeRedirectAfterLogin(queryD || '/')
                 console.log("[Auth] ✅ Login exitoso, esperando para establecer cookies antes de redirigir a:", redirectPath)
 
                 // Esperar 1 segundo para asegurar que las cookies se establezcan
@@ -559,20 +559,27 @@ const AuthProvider = ({ children }) => {
   }, [verificationDone])
 
   const moreInfo = async (user) => {
-    let idToken = Cookies.get("idTokenV0.1.0")
-    if (!idToken) {
-      idToken = await getAuth().currentUser?.getIdToken(true)
-      const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-      Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
+    try {
+      let idToken = Cookies.get("idTokenV0.1.0")
+      if (!idToken) {
+        idToken = await getAuth().currentUser?.getIdToken(true)
+        const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
+        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
+      }
+      const userInfo = await fetchApiBodas({
+        query: queries.getUser,
+        variables: { uid: user?.uid },
+        development: config?.development
+      });
+      setUser({ ...user, ...userInfo });
+      updateActivity("accessed")
+    } catch (error) {
+      console.error("[moreInfo] ❌ Error obteniendo info del usuario:", error?.message || error)
+      // Fallback: usar datos básicos de Firebase para no bloquear la app
+      setUser(user)
+    } finally {
+      setVerificationDone(true)
     }
-    const moreInfo = await fetchApiBodas({
-      query: queries.getUser,
-      variables: { uid: user?.uid },
-      development: config?.development
-    });
-    setUser({ ...user, ...moreInfo });
-    updateActivity("accessed")
-    setVerificationDone(true)
   }
 
   const verificator = async ({ user, sessionCookie }) => {
@@ -599,15 +606,12 @@ const AuthProvider = ({ children }) => {
       })
 
       if (!sessionCookieParsed?.user_id && user?.uid) {
-        console.warn("[Verificator] ⚠️ Usuario autenticado pero sin sessionCookie válida")
-        console.warn("[Verificator] Esto puede indicar que la API falló al crear la sessionCookie")
-        console.warn("[Verificator] NO se hará logout automático para permitir debug")
-
-        // TEMPORAL: No hacer signOut para permitir debug
-        // getAuth().signOut().then(() => {
-        //   setVerificationDone(true)
-        // })
-        setVerificationDone(true)
+        console.warn("[Verificator] ⚠️ Usuario autenticado en Firebase pero sin sessionCookie válida")
+        console.warn("[Verificator] Cargando datos del usuario igualmente para no bloquear la app")
+        // ✅ FIX: Cargar datos del usuario aunque no haya sessionCookie válida
+        // Esto evita que user quede undefined y que los eventos no se carguen
+        setUser(user)
+        moreInfo(user) // ← setVerificationDone(true) se llama dentro de moreInfo
         return
       }
       if (sessionCookieParsed?.user_id && user?.uid) {

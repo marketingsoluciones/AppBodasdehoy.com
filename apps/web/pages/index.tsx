@@ -19,7 +19,7 @@ import EventNotFound from "../components/Utils/EventNotFound";
 
 const Home: NextPage = () => {
   const { user, verificationDone, config, setUser } = AuthContextProvider()
-  const { eventsGroup, eventsGroupDone } = EventsGroupContextProvider()
+  const { eventsGroup, eventsGroupDone, eventsGroupError } = EventsGroupContextProvider()
   const { setEvent } = EventContextProvider()
   const loadingContext = LoadingContextProvider()
   const setLoading = loadingContext?.setLoading || (() => {}) // Safe fallback
@@ -42,6 +42,13 @@ const Home: NextPage = () => {
       setLoading(false)
     }
   }, [verificationDone, eventsGroupDone, user, pAccShas, setLoading])
+
+  // Mostrar error si la API de eventos falla (ej: apiapp.bodasdehoy.com caído)
+  useEffect(() => {
+    if (eventsGroupError) {
+      toast("error", t("Error al cargar los eventos. El servidor no responde, inténtalo de nuevo en unos minutos."))
+    }
+  }, [eventsGroupError])
 
   useEffect(() => {
     if (verificationDone && eventsGroupDone && pAccShas && processedRef.current !== pAccShas) {

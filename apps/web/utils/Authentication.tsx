@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Cookies from 'js-cookie';
 import { LoadingContextProvider, AuthContextProvider } from "../context";
 import { fetchApiBodas, queries } from "./Fetching";
+import { normalizeRedirectAfterLogin } from "./urlHelpers";
 import { useToast } from "../hooks/useToast";
 import { PhoneNumberUtil } from 'google-libphonenumber';
 import { useActivity } from "../hooks/useActivity";
@@ -272,7 +273,7 @@ export const useAuthentication = () => {
 
                 if (window.location.pathname === '/login' || window.location.pathname.includes('/login')) {
                   const queryD = new URLSearchParams(window.location.search).get('d')
-                  const redirectPath = queryD || '/'
+                  const redirectPath = normalizeRedirectAfterLogin(queryD || '/')
                   console.log("[Auth] Redirigiendo después de login exitoso (popup) a:", redirectPath)
                   router.push(redirectPath)
                 }
@@ -306,11 +307,11 @@ export const useAuthentication = () => {
                     updateActivity("logged")
                     updateActivityLink("logged")
 
-                    // Redirigir después del login exitoso
+                    // Redirigir después del login exitoso (sin enviar a otro subdominio)
                     setTimeout(() => {
                       if (window.location.pathname === '/login' || window.location.pathname.includes('/login')) {
                         const queryD = new URLSearchParams(window.location.search).get('d')
-                        const redirectPath = queryD || '/'
+                        const redirectPath = normalizeRedirectAfterLogin(queryD || '/')
                         console.log("[Auth] Redirigiendo después de crear usuario a:", redirectPath)
                         router.push(redirectPath)
                       }

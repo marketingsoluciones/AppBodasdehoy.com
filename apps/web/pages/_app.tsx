@@ -24,7 +24,7 @@ import Head from 'next/head';
 import useDevLogger from '../hooks/useDevLogger';
 import { verifyDomain, logUrlVerification, type UrlCheckResult } from '../utils/verifyUrls';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-// import { CopilotPrewarmer } from '../components/Copilot/CopilotPrewarmer';
+import { CopilotPrewarmer } from '../components/Copilot/CopilotPrewarmer';
 
 const MyApp = ({ Component, pageProps, openGraphData }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
@@ -85,7 +85,7 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
       <I18nextProvider i18n={i18n}>
         <DefaultLayout>
           {/* Pre-calentar el chat de LobeChat en segundo plano */}
-          {/* <CopilotPrewarmer /> */}
+          <CopilotPrewarmer />
           {!!message && <div className='bg-yellow-400 absolute top-[7.5rem] left-0 w-full bg-red-500 z-50 flex items-center justify-center'>
             <span className='text-center px-10 py-0.5'>{message}</span>
           </div>}
