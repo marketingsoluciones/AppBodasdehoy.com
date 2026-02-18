@@ -369,6 +369,9 @@ export const sendChatMessage = async (
         const errMsg = streamingError || fullContent || `Error ${response.status} del servidor de IA.`;
         const err = new Error(errMsg);
         (err as any).__isStreamingHttpError = true;
+        // Incluir error_code para que CopilotEmbed decida si mostrar Reintentar
+        // AUTH_ERROR no se debe reintentar (error de configuración/admin)
+        if (backendErrorCode) (err as any).__errorCode = backendErrorCode;
         throw err;
       }
 

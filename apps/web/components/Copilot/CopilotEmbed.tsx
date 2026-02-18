@@ -192,8 +192,9 @@ export const CopilotEmbed: FC<CopilotEmbedProps> = ({
         console.error('[CopilotEmbed] Error sending message:', error);
 
         const isAbort = error.name === 'AbortError';
-        // Habilitar reintentar en errores no-abort (503, 429, red, etc.)
-        if (!isAbort) setRetryContent(content);
+        // No reintentar en AUTH_ERROR: requiere acción de admin, no del usuario
+        const isAuthError = error.__errorCode === 'AUTH_ERROR';
+        if (!isAbort && !isAuthError) setRetryContent(content);
 
         // Update assistant message with error
         setMessages((prev) => {

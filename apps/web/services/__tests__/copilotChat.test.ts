@@ -225,6 +225,43 @@ describe('copilotChat service', () => {
       expect(onChunk).not.toHaveBeenCalled();
     });
 
+    it('streaming 503 AUTH_ERROR: lanza error con __errorCode para suprimir Reintentar', async () => {
+      const sseChunks = [
+        'event: error\n',
+        'data: {"error":"AUTH_ERROR","user_message":"Error de autenticación con el proveedor. Contacta al administrador."}\n\n',
+      ];
+      const stream = new ReadableStream({
+        start(controller) {
+          for (const c of sseChunks) {
+            controller.enqueue(new TextEncoder().encode(c));
+          }
+          controller.close();
+        },
+      });
+
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 503,
+        headers: new Headers({ 'x-backend-error-code': 'AUTH_ERROR' }),
+        body: stream,
+      });
+
+      globalThis.fetch = mockFetch as typeof fetch;
+
+      const onChunkAuth = jest.fn();
+      let caughtError: any = null;
+      try {
+        await sendChatMessage({ message: 'Test', development: 'bodasdehoy' }, onChunkAuth);
+      } catch (e) {
+        caughtError = e;
+      }
+
+      expect(caughtError).not.toBeNull();
+      expect(caughtError.__isStreamingHttpError).toBe(true);
+      // __errorCode debe estar presente para que CopilotEmbed suprima el botón Reintentar
+      expect(caughtError.__errorCode).toBe('AUTH_ERROR');
+    });
+
     it('streaming 503: lanza Error aunque no haya SSE event:error (usa fullContent)', async () => {
       const sseChunks = [
         'data: {"error":"service_error"}\n\n',
