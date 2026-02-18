@@ -137,6 +137,72 @@ describe('POST /api/copilot/chat', () => {
     expect(res.write).toHaveBeenCalledWith(expect.stringContaining('data: [DONE]'));
     expect(res.end).toHaveBeenCalled();
   });
+
+  it('devuelve 401 cuando el backend api-ia devuelve 401 (no autorizado)', async () => {
+    const mockFetch = (global as any).fetch as jest.Mock;
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 401,
+      text: () =>
+        Promise.resolve(JSON.stringify({ message: 'Token expirado', trace_id: 'trace-401' })),
+    });
+
+    const handler = (await import('../chat')).default;
+    const req = {
+      method: 'POST',
+      body: { messages: [{ role: 'user', content: 'Hola' }], stream: true, metadata: {} },
+      headers: {},
+    } as NextApiRequest;
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.setHeader).toHaveBeenCalledWith('X-Backend-Error-Code', 'UNAUTHORIZED');
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: 'UNAUTHORIZED',
+        message: expect.any(String),
+        requestId: expect.any(String),
+      })
+    );
+  });
+
+  it('devuelve 402 con payment_url (fallback billing) cuando el backend devuelve 402 sin payment_url', async () => {
+    const mockFetch = (global as any).fetch as jest.Mock;
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 402,
+      text: () =>
+        Promise.resolve(
+          JSON.stringify({ error: 'saldo_agotado', message: 'Sin saldo', trace_id: 'trace-402' })
+        ),
+    });
+    const prevChat = process.env.NEXT_PUBLIC_CHAT;
+    process.env.NEXT_PUBLIC_CHAT = 'https://chat.bodasdehoy.com';
+
+    const handler = (await import('../chat')).default;
+    const req = {
+      method: 'POST',
+      body: { messages: [{ role: 'user', content: 'Hola' }], stream: false, metadata: {} },
+      headers: {},
+    } as NextApiRequest;
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(402);
+    expect(res.setHeader).toHaveBeenCalledWith('X-Backend-Error-Code', 'SALDO_AGOTADO');
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: 'SALDO_AGOTADO',
+        message: 'Sin saldo',
+        requestId: expect.any(String),
+        payment_url: 'https://chat.bodasdehoy.com/settings/billing',
+      })
+    );
+    process.env.NEXT_PUBLIC_CHAT = prevChat;
+  });
 });
 
 describe('OPTIONS /api/copilot/chat', () => {
