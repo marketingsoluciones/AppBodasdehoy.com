@@ -666,6 +666,23 @@ async function proxyToPythonBackend(
         return true;
       }
 
+      // 429: rate limit — propagar al cliente sin fallback (no tiene sentido reintentar en otro proveedor)
+      if (backendResponse.status === 429) {
+        const msg = extractedMessage || 'Demasiadas peticiones. Por favor, espera unos segundos e inténtalo de nuevo.';
+        res.setHeader('X-Backend-Error-Code', 'UPSTREAM_RATE_LIMIT');
+        const retryAfter = backendResponse.headers.get('retry-after');
+        if (retryAfter) res.setHeader('Retry-After', retryAfter);
+        console.warn('[Copilot API] 429 rate limit recibido de api-ia', { requestId, retryAfter });
+        res.status(429).json({
+          error: 'UPSTREAM_RATE_LIMIT',
+          message: msg,
+          requestId,
+          ...(retryAfter && { retry_after: retryAfter }),
+          ...(extractedTraceId && { trace_id: extractedTraceId }),
+        });
+        return true;
+      }
+
       console.error('[Copilot API] Backend error, status:', backendResponse.status, { requestId });
 
       if (!ENABLE_COPILOT_FALLBACK) {

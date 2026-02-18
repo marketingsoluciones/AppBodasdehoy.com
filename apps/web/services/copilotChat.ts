@@ -232,6 +232,17 @@ export const sendChatMessage = async (
       return { content: contentWithLink, toolCalls: [], navigationUrl: recargaUrl || undefined, enrichedEvents: [] };
     }
 
+    // 429: rate limit — mostrar mensaje con tiempo de espera si está disponible
+    if (response.status === 429) {
+      let errorData: any = {};
+      try { errorData = await response.json(); } catch {}
+      const retryAfter = response.headers.get('retry-after') || errorData?.retry_after;
+      const baseMsg = errorData?.message || 'Demasiadas peticiones al asistente. Por favor, espera unos segundos e inténtalo de nuevo.';
+      const msg = retryAfter ? `${baseMsg} (Retry-After: ${retryAfter}s)` : baseMsg;
+      if (onChunk) onChunk(msg);
+      return { content: msg, toolCalls: [], navigationUrl: undefined, enrichedEvents: [] };
+    }
+
     // Streaming mode
     if (onChunk && response.body) {
       const serverRequestId = response.headers.get('x-request-id') || requestId;
