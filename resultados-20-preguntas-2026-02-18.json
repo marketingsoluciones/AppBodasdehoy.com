@@ -1,0 +1,29 @@
+
+🧪 Ejecutando 20 preguntas contra https://api-ia.bodasdehoy.com/webapi/chat/auto
+
+[1/20] ✅ HTTP 200 (2674ms) Hola
+[2/20] ✅ HTTP 200 (7474ms) ¿Cuántos invitados tengo?
+[3/20] ✅ HTTP 200 (4211ms) ¿Cuánto llevo pagado del presupuesto?
+[4/20] ✅ HTTP 200 (7071ms) Quiero ver mis invitados
+[5/20] ✅ HTTP 200 (4141ms) Llévame al presupuesto
+[6/20] ✅ HTTP 200 (2277ms) ¿Cómo se llama mi evento?
+[7/20] ✅ HTTP 200 (3427ms) ¿Cuántas mesas tengo?
+[8/20] ✅ HTTP 200 (3411ms) Dime 3 consejos para organizar una boda
+[9/20] ✅ HTTP 200 (3581ms) Dame un resumen completo de mi evento
+[10/20] ✅ HTTP 200 (4262ms) Agrega a Jose Garcia y Jose Morales como invitados…
+[11/20] ✅ HTTP 200 (2271ms) ¿Cuántos días faltan para mi boda?
+[12/20] ✅ HTTP 200 (2369ms) ¿Cuál es la boda de Raul?
+[13/20] ✅ HTTP 200 (2793ms) Muéstrame la lista de todas las bodas
+[14/20] ✅ HTTP 200 (2725ms) ¿Qué tareas tengo pendientes para mi boda?
+[15/20] ✅ HTTP 200 (5198ms) Dame ideas para el menú del banquete
+[16/20] ✅ HTTP 200 (4268ms) ¿Cuánto llevo gastado en el presupuesto?
+[17/20] ✅ HTTP 200 (2832ms) ¿Qué eventos tengo para el próximo año?
+[18/20] ✅ HTTP 200 (3713ms) ¿Quién es mi proveedor de flores?
+[19/20] ✅ HTTP 200 (7066ms) Resume los invitados confirmados
+[20/20] ✅ HTTP 200 (2501ms) ¿En qué fecha es la boda de María?
+
+────────────────────────────────────────────────────────────
+📊 Resumen: coherentes 20 / 20 — incoherentes 0 / 20
+────────────────────────────────────────────────────────────
+
+📁 JSON guardado: resultados-20-preguntas-2026-02-18.json
