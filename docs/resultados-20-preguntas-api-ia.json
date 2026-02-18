@@ -1,0 +1,190 @@
+{
+  "fecha": "2026-02-16T15:38:07.869Z",
+  "backendUrl": "https://api-ia.bodasdehoy.com",
+  "development": "bodasdehoy",
+  "total": 20,
+  "coherentes": 1,
+  "incoherentes": 19,
+  "resultados": [
+    {
+      "index": 1,
+      "question": "Hola",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "Error de autenticación con el proveedor de IA. La API key configurada no es válida.",
+      "coherente": false,
+      "elapsedMs": 884
+    },
+    {
+      "index": 2,
+      "question": "¿Cuántos invitados tengo?",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "No se pudo generar una respuesta. El orchestrator devolvió una respuesta vacía o genérica.",
+      "coherente": false,
+      "elapsedMs": 8879
+    },
+    {
+      "index": 3,
+      "question": "¿Cuánto llevo pagado del presupuesto?",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "No se pudo generar una respuesta. El orchestrator devolvió una respuesta vacía o genérica.",
+      "coherente": false,
+      "elapsedMs": 10187
+    },
+    {
+      "index": 4,
+      "question": "Quiero ver mis invitados",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "No se pudo generar una respuesta. El orchestrator devolvió una respuesta vacía o genérica.",
+      "coherente": false,
+      "elapsedMs": 9631
+    },
+    {
+      "index": 5,
+      "question": "Llévame al presupuesto",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "No se pudo generar una respuesta. El orchestrator devolvió una respuesta vacía o genérica.",
+      "coherente": false,
+      "elapsedMs": 8901
+    },
+    {
+      "index": 6,
+      "question": "¿Cómo se llama mi evento?",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "Error de autenticación con el proveedor de IA. La API key configurada no es válida.",
+      "coherente": false,
+      "elapsedMs": 766
+    },
+    {
+      "index": 7,
+      "question": "¿Cuántas mesas tengo?",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "No se pudo generar una respuesta. El orchestrator devolvió una respuesta vacía o genérica.",
+      "coherente": false,
+      "elapsedMs": 9705
+    },
+    {
+      "index": 8,
+      "question": "Dime 3 consejos para organizar una boda",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "Error de autenticación con el proveedor de IA. La API key configurada no es válida.",
+      "coherente": false,
+      "elapsedMs": 758
+    },
+    {
+      "index": 9,
+      "question": "Dame un resumen completo de mi evento",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "No se pudo generar una respuesta. El orchestrator devolvió una respuesta vacía o genérica.",
+      "coherente": false,
+      "elapsedMs": 9527
+    },
+    {
+      "index": 10,
+      "question": "Agrega a Jose Garcia y Jose Morales como invitados a mi evento",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "No se pudo generar una respuesta. El orchestrator devolvió una respuesta vacía o genérica.",
+      "coherente": false,
+      "elapsedMs": 9447
+    },
+    {
+      "index": 11,
+      "question": "¿Cuántos días faltan para mi boda?",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "Error de autenticación con el proveedor de IA. La API key configurada no es válida.",
+      "coherente": false,
+      "elapsedMs": 765
+    },
+    {
+      "index": 12,
+      "question": "¿Cuál es la boda de Raul?",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "Error de autenticación con el proveedor de IA. La API key configurada no es válida.",
+      "coherente": false,
+      "elapsedMs": 554
+    },
+    {
+      "index": 13,
+      "question": "Muéstrame la lista de todas las bodas",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "Error de autenticación con el proveedor de IA. La API key configurada no es válida.",
+      "coherente": false,
+      "elapsedMs": 721
+    },
+    {
+      "index": 14,
+      "question": "¿Qué tareas tengo pendientes para mi boda?",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "Error de autenticación con el proveedor de IA. La API key configurada no es válida.",
+      "coherente": false,
+      "elapsedMs": 523
+    },
+    {
+      "index": 15,
+      "question": "Dame ideas para el menú del banquete",
+      "httpStatus": 200,
+      "responseText": "¡Excelente pregunta! Para darte ideas personalizadas para el menú del banquete, necesito saber primero para **qué evento específico** estás planificando.\n\n¿Podrías decirme:\n\n1. **¿Para qué evento es el banquete?** (ej: boda, cumpleaños, comunión, evento corporativo)\n2. **¿Cuántos invitados aproximadamente?**\n3. **¿Hay alguna preferencia de cocina?** (ej: mediterránea, internacional, fusión, tradicional)\n4. **¿Alguna restricción importante?** (vegetarianos, veganos, alergias comunes, niños)\n\nMientras tanto, te puedo dar algunas **ideas generales de menús** que suelen funcionar bien:\n\n## 🍽️ **Ideas de Menú Clásico (3 tiempos)**\n\n**Entrantes:**\n- Crema de calabaza con crujiente de jamón ibérico\n- Ensalada de burrata con tomate confitado y albahaca\n- Tartar de salmón con aguacate y cítricos\n\n**Principal:**\n- Solomillo de ternera con reducción de vino tinto y puré de patatas trufado\n- Lubina a la sal con verduras asadas y salsa de azafrán\n- Risotto de setas silvestres con parmesano (opción vegetariana)\n\n**Postre:**\n- Tarta de queso con coulis de frutos rojos\n- Coulant de chocolate con helado de vainilla\n- Selección de mini postres (petit fours)\n\n## 🌿 **Menú Moderno/Fusión**\n\n**Entrantes:**\n- Ceviche de corvina con leche de tigre y maíz tostado\n- Tataki de atún con salsa de soja y jengibre\n- Volován de champiñones y trufa\n\n**Principal:**\n- Carrillera de cerdo ibérico estofada 24h con puré de boniato\n- Pasta fresca con langostinos, espárragos y limón confitado\n- Curry tailandés de pollo con arroz basmati (opción picante suave)\n\n**Postre:**\n- Deconstrucción de tiramisú\n- Esfera de chocolate rellena de frutos del bosque\n- Sorbete de mango y hierbabuena\n\n## 🥗 **Menú Ligero/Veraniego**\n\n**Entrantes:**\n- Gazpacho de sandía con virutas de jamón\n- Ensalada de quinoa con aguacate, granada y vinagreta de miel\n- Carpaccio de calabacín con queso de cabra y piñones\n\n**Principal:**\n- Dorada al horno con patatas panaderas y tomates cherry\n- Tataki de solomillo con ensalada de rúcula y parmesano\n- Wok de verduras y tofu con salsa teriyaki (vegano)\n\n**Postre:**\n- Macedonia de frutas tropicales con sorbete de coco\n- Tarta de limón merengue\n- Granizado de café con nata montada\n\n## 💡 **Consejos importantes:**\n\n1. **Considera las alergias** → Siempre incluye opciones sin gluten, lactosa y frutos secos\n2. **Equilibrio de sabores** → Combina platos ligeros con otros más contundentes\n3. **Presentación** → La vista es casi tan importante como el sabor\n4. **Coherencia** → El menú debe tener sentido como conjunto, no platos aislados\n5. **Temporada** → Usa productos de temporada para mejor sabor y precio\n\n**¿Para qué tipo de evento específico necesitas el menú?** Una vez que me digas, puedo darte ideas más personalizadas y ayudarte a crear el menú completo en el sistema con todos los detalles de ingredientes, alérgenos y costos.",
+      "error": null,
+      "coherente": true,
+      "elapsedMs": 23733
+    },
+    {
+      "index": 16,
+      "question": "¿Cuánto llevo gastado en el presupuesto?",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "No se pudo generar una respuesta. El orchestrator devolvió una respuesta vacía o genérica.",
+      "coherente": false,
+      "elapsedMs": 9281
+    },
+    {
+      "index": 17,
+      "question": "¿Qué eventos tengo para el próximo año?",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "Error de autenticación con el proveedor de IA. La API key configurada no es válida.",
+      "coherente": false,
+      "elapsedMs": 758
+    },
+    {
+      "index": 18,
+      "question": "¿Quién es mi proveedor de flores?",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "No se pudo generar una respuesta. El orchestrator devolvió una respuesta vacía o genérica.",
+      "coherente": false,
+      "elapsedMs": 9292
+    },
+    {
+      "index": 19,
+      "question": "Resume los invitados confirmados",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "No se pudo generar una respuesta. El orchestrator devolvió una respuesta vacía o genérica.",
+      "coherente": false,
+      "elapsedMs": 9303
+    },
+    {
+      "index": 20,
+      "question": "¿En qué fecha es la boda de María?",
+      "httpStatus": 503,
+      "responseText": "",
+      "error": "Error de autenticación con el proveedor de IA. La API key configurada no es válida.",
+      "coherente": false,
+      "elapsedMs": 778
+    }
+  ]
+}

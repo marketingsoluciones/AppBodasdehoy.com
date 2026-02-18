@@ -1,0 +1,23 @@
+VERIFICAR SLACK Y QUE TODO ESTE FUNCIONANDO
+===========================================
+
+Ejecuta en tu terminal desde la raiz del repo.
+
+1. LEER SLACK (#copilot-api-ia)
+   ./scripts/slack-read.sh 15
+   Comprueba: SLACK_BOT_TOKEN y canal. Si OK ves mensajes. Si invalid_auth, token mal.
+
+2. ENVIAR MENSAJE A SLACK
+   ./scripts/slack-send.sh "Prueba verificacion - Slack OK"
+   Comprueba: SLACK_WEBHOOK_FRONTEND. Si OK el mensaje aparece en el canal.
+
+3. PROBAR API-IA Y ENVIAR RESUMEN
+   bash scripts/test-api-ia-y-enviar-slack.sh
+   Comprueba: health (200), chat/auto (200 o 503), config (200). Envia resumen a Slack.
+
+4. VARIABLES .env (revisadas en tu proyecto)
+   SLACK_BOT_TOKEN         = para leer (slack-read.sh)
+   SLACK_WEBHOOK_FRONTEND  = para enviar (slack-send, test-api-ia-y-enviar-slack)
+   SLACK_CHANNEL_ID        = C0AEV0GCLM7 (#copilot-api-ia)
+
+Si algo falla: token del bot expirado/revocado, o webhook incorrecto. La config actual en .env tiene las variables definidas.
