@@ -17,6 +17,9 @@ const ChatToggleButton: FC<ChatToggleButtonProps> = ({ className = '' }) => {
 
   return (
     <button
+      type="button"
+      data-testid="copilot-toggle"
+      aria-label={isOpen ? 'Cerrar Copilot' : 'Abrir Copilot'}
       onClick={toggleSidebar}
       className={`
         relative flex items-center gap-2 px-3 py-2 rounded-lg

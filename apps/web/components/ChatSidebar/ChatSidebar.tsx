@@ -16,7 +16,6 @@ import CopilotIframe from '../Copilot/CopilotIframe';
 import { IoClose, IoSparkles, IoExpand, IoChevronDown, IoOpenOutline } from 'react-icons/io5';
 
 const MIN_WIDTH = 360;
-const MAX_WIDTH = 600;
 
 const ChatSidebar: FC = () => {
   const { isOpen, width, closeSidebar, setWidth } = useChatSidebar();
@@ -100,20 +99,17 @@ const ChatSidebar: FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [viewMode, closeSidebar]);
 
-  // Handler para navegacion desde el chat
-  const handleNavigate = useCallback((url: string) => {
-    console.log('[ChatSidebar] Navegacion solicitada:', url);
-    window.location.href = url;
-  }, []);
-
   // Handler para expandir a vista completa (modal interno)
   const handleExpandToFull = useCallback(() => {
     setViewMode('full');
   }, []);
 
-  // Handler para abrir chat-test en nueva pestaña con toda la funcionalidad
+  // Handler para abrir chat-test (o localhost:3210 en automatización) en nueva pestaña
   const handleOpenInNewTab = useCallback(() => {
-    const baseUrl = process.env.NEXT_PUBLIC_CHAT || 'https://chat-test.bodasdehoy.com';
+    const baseUrl =
+      typeof window !== 'undefined' && window.location?.hostname === 'localhost'
+        ? `${window.location.protocol}//localhost:3210`
+        : (process.env.NEXT_PUBLIC_CHAT || 'https://chat-test.bodasdehoy.com');
     const params = new URLSearchParams();
 
     // Pasar parámetros para continuar la conversación
@@ -141,94 +137,99 @@ const ChatSidebar: FC = () => {
   return (
     <>
       {/* ========== VISTA MÍNIMA (Por defecto) ========== */}
-      <AnimatePresence>
-        {isOpen && viewMode === 'minimal' && (
-          <>
-            {/* Panel del Chat - Vista Mínima */}
-            <motion.div
-              // IMPORTANTE:
-              // Este sidebar vive dentro de un contenedor `flex` (no es fixed).
-              // Animar con `x: -width` puede dejar un "hueco" en blanco si por
-              // cualquier motivo la transformación no llega a 0.
-              // Por eso aquí evitamos desplazarlo fuera del layout y hacemos fade.
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="h-full bg-white shadow-xl flex flex-col z-40 flex-shrink-0"
-              style={{ width }}
-            >
-              {/* Header Mínimo - Compacto */}
-              <div className="h-10 px-3 flex items-center justify-between border-b border-gray-100 bg-white">
-                <div className="flex items-center gap-2">
-                  <IoSparkles className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-gray-700">Copilot</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  {/* Botón Expandir - Modal interno */}
-                  <button
-                    type="button"
-                    onClick={handleExpandToFull}
-                    className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
-                    title="Expandir (modal)"
-                  >
-                    <IoExpand className="w-4 h-4 text-gray-500" />
-                  </button>
-                  {/* Botón Abrir en Nueva Pestaña - chat-test completo */}
-                  <button
-                    type="button"
-                    onClick={handleOpenInNewTab}
-                    className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors"
-                    title="Abrir chat completo en nueva pestaña"
-                  >
-                    <IoOpenOutline className="w-3.5 h-3.5" />
-                    <span>Ver completo</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={closeSidebar}
-                    className="p-1.5 hover:bg-gray-100 rounded-md transition-colors ml-1"
-                    title="Cerrar"
-                  >
-                    <IoClose className="w-4 h-4 text-gray-400" />
-                  </button>
-                </div>
-              </div>
+      {/*
+       * OPTIMIZACIÓN DE RENDIMIENTO: iframe siempre montado.
+       * El div exterior colapsa a width:0 / opacity:0 cuando está cerrado
+       * pero el iframe interior mantiene su ancho real (420px) para que
+       * LobeChat se inicialice correctamente en background.
+       * Al abrir el sidebar el chat ya está listo: 0ms de espera.
+       */}
+      <div
+        className="h-full flex-shrink-0 overflow-hidden transition-[width,opacity] duration-150"
+        style={{
+          width: isOpen && viewMode === 'minimal' ? width : 0,
+          opacity: isOpen && viewMode === 'minimal' ? 1 : 0,
+          pointerEvents: isOpen && viewMode === 'minimal' ? 'auto' : 'none',
+        }}
+        aria-hidden={!isOpen || viewMode !== 'minimal'}
+      >
+        {/* Panel interior: mantiene ancho fijo para que el iframe tenga viewport real */}
+        <div
+          className="h-full bg-white shadow-xl flex flex-col z-40"
+          style={{ width: Math.max(width, MIN_WIDTH) }}
+        >
+          {/* Header Mínimo - Compacto */}
+          <div className="h-10 px-3 flex items-center justify-between border-b border-gray-100 bg-white flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <IoSparkles className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-gray-700">Copilot</span>
+            </div>
+            <div className="flex items-center gap-1">
+              {/* Botón Expandir - Modal interno */}
+              <button
+                type="button"
+                onClick={handleExpandToFull}
+                className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+                title="Expandir (modal)"
+              >
+                <IoExpand className="w-4 h-4 text-gray-500" />
+              </button>
+              {/* Botón Abrir en Nueva Pestaña - chat-test completo */}
+              <button
+                type="button"
+                onClick={handleOpenInNewTab}
+                className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors"
+                title="Abrir chat completo en nueva pestaña"
+              >
+                <IoOpenOutline className="w-3.5 h-3.5" />
+                <span>Ver completo</span>
+              </button>
+              <button
+                type="button"
+                onClick={closeSidebar}
+                className="p-1.5 hover:bg-gray-100 rounded-md transition-colors ml-1"
+                title="Cerrar"
+              >
+                <IoClose className="w-4 h-4 text-gray-400" />
+              </button>
+            </div>
+          </div>
 
-              {/* Area del chat */}
-              {/* LobeChat completo para todos los usuarios (autenticados y guest) */}
-              <div className="flex-1 overflow-hidden relative">
-                <CopilotIframe
-                  userId={userId}
-                  development={development}
-                  eventId={eventId}
-                  className="h-full"
-                />
-                {/* Banner para invitados - sutil en la parte inferior */}
-                {isGuest && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/95 to-transparent pt-4 pb-2 px-3 pointer-events-none">
-                    <div className="flex items-center justify-between text-xs text-gray-500 pointer-events-auto">
-                      <span>Estás como invitado</span>
-                      <Link
-                        href="/login"
-                        className="text-primary hover:underline font-medium"
-                      >
-                        Iniciar sesión
-                      </Link>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-
-            {/* Resizer para vista mínima */}
-            <div
-              className="w-1 h-full cursor-col-resize bg-gray-100 hover:bg-primary/30 transition-colors flex-shrink-0"
-              onMouseDown={handleMouseDown}
+          {/* Area del chat - CopilotIframe SIEMPRE MONTADO */}
+          <div className="flex-1 overflow-hidden relative">
+            <CopilotIframe
+              userId={userId}
+              development={development}
+              eventId={eventId}
+              userData={user}
+              event={event}
+              className="h-full"
             />
-          </>
-        )}
-      </AnimatePresence>
+            {/* Banner para invitados - sutil en la parte inferior */}
+            {isGuest && isOpen && viewMode === 'minimal' && (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/95 to-transparent pt-4 pb-2 px-3 pointer-events-none">
+                <div className="flex items-center justify-between text-xs text-gray-500 pointer-events-auto">
+                  <span>Estás como invitado</span>
+                  <Link
+                    href="/login"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Iniciar sesión
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Resizer para vista mínima */}
+      {isOpen && viewMode === 'minimal' && (
+        <div
+          className="w-1 h-full cursor-col-resize bg-gray-100 hover:bg-primary/30 transition-colors flex-shrink-0"
+          onMouseDown={handleMouseDown}
+        />
+      )}
 
       {/* ========== VISTA COMPLETA (Modal) ========== */}
       <AnimatePresence>

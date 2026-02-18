@@ -58,7 +58,10 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
     const getCopilotBaseUrl = useCallback(() => {
       if (typeof window === 'undefined') return '/copilot-chat';
 
-      // Este proyecto no usa localhost ni IPs locales. Siempre chat-test (o NEXT_PUBLIC_CHAT).
+      // Si la web se abre en localhost (p. ej. navegador de Cursor / automatización), cargar Copilot en localhost:3210 para que funcione sin app-test/chat-test.
+      if (typeof window !== 'undefined' && window.location?.hostname === 'localhost') {
+        return `${window.location.protocol}//localhost:3210`;
+      }
       const envUrl = process.env.NEXT_PUBLIC_CHAT;
       const fallback = 'https://chat-test.bodasdehoy.com';
       const base = (envUrl || fallback).replace(/\/$/, '');
@@ -98,7 +101,7 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
       // Si cargamos solo `/chat` en root, devuelve 404 (lo que ves en pantalla).
       const chatBase = (() => {
         try {
-          const u = new URL(baseUrl, typeof window !== 'undefined' ? window.location.origin : 'https://chat-test.bodasdehoy.com');
+          const u = new URL(baseUrl, typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3210');
           const path = u.pathname.replace(/\/$/, '');
 
           // Asegurar /{variants}
@@ -400,10 +403,10 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
     useEffect(() => {
       if (isLoaded && userId && !authSent) {
         // Enviar inmediatamente - el iframe ya está listo
-        // Usar un pequeño delay solo para asegurar que el listener esté registrado (300ms es suficiente)
+        // Delay mínimo para asegurar que el listener esté registrado
         const timer = setTimeout(() => {
           sendAuthConfig();
-        }, 300);
+        }, 50);
         return () => clearTimeout(timer);
       }
     }, [isLoaded, userId, authSent, sendAuthConfig]);

@@ -33,33 +33,29 @@ export const CopilotPrewarmer: React.FC<CopilotPrewarmerProps> = ({ development 
     const prewarmChat = async () => {
       try {
         // Monorepo: app-test ↔ chat-test. Precalentar la URL que usará el Copilot (chat-test en app-test).
-        const baseUrl = typeof window !== 'undefined' && window.location.hostname?.includes('app-test')
-          ? 'https://chat-test.bodasdehoy.com'
-          : (process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com');
+        let baseUrl = process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com';
+        if (typeof window !== 'undefined') {
+          if (window.location.hostname === 'localhost') baseUrl = `${window.location.protocol}//localhost:3210`;
+          else if (window.location.hostname?.includes('app-test')) baseUrl = 'https://chat-test.bodasdehoy.com';
+        }
         const cleanBase = baseUrl.replace(/\/$/, '');
 
-        // Pre-calentar las URLs en secuencia (no en paralelo para no sobrecargar)
-        for (const path of PREWARM_URLS) {
-          const url = `${cleanBase}${path}`;
-
-          try {
-            // Usar fetch con mode: 'no-cors' para evitar problemas de CORS
-            // No necesitamos la respuesta, solo queremos que el servidor compile
-            await fetch(url, {
-              method: 'GET',
-              mode: 'no-cors',
-              cache: 'force-cache', // Aprovechar caché
-              credentials: 'omit',  // No enviar cookies
-            });
-            console.log(`[CopilotPrewarmer] ✅ Pre-calentado: ${url}`);
-          } catch (err) {
-            // Ignorar errores - el pre-calentamiento es opcional
-            console.log(`[CopilotPrewarmer] ⚠️ No se pudo pre-calentar: ${url}`);
-          }
-
-          // Pequeña pausa entre requests para no saturar
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
+        // Pre-calentar todas las URLs en paralelo
+        await Promise.allSettled(
+          PREWARM_URLS.map(async (path) => {
+            const url = `${cleanBase}${path}`;
+            try {
+              await fetch(url, {
+                method: 'GET',
+                mode: 'no-cors',
+                credentials: 'omit',
+              });
+              console.log(`[CopilotPrewarmer] ✅ Pre-calentado: ${url}`);
+            } catch {
+              console.log(`[CopilotPrewarmer] ⚠️ No se pudo pre-calentar: ${url}`);
+            }
+          })
+        );
 
         console.log('[CopilotPrewarmer] 🚀 Pre-calentamiento completado');
       } catch (err) {
@@ -71,12 +67,10 @@ export const CopilotPrewarmer: React.FC<CopilotPrewarmerProps> = ({ development 
     // Esto evita competir por recursos durante la carga inicial
     if (typeof window !== 'undefined') {
       if (document.readyState === 'complete') {
-        // Página ya cargada, iniciar pre-calentamiento después de un pequeño delay
-        setTimeout(prewarmChat, 2000);
+        setTimeout(prewarmChat, 500);
       } else {
-        // Esperar a que la página cargue completamente
         window.addEventListener('load', () => {
-          setTimeout(prewarmChat, 2000);
+          setTimeout(prewarmChat, 500);
         }, { once: true });
       }
     }
