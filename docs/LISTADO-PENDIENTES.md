@@ -17,7 +17,7 @@
 ## Resultados baterías 18-feb
 | Batería | OK | Fallos | Notas |
 |---------|-----|--------|-------|
-| A (20q) | 20/20 | 0 | Todas coherentes ✅ |
+| A (20q) | 20/20 | 0 | Todas coherentes ✅ (×2 hoy: mañana + tarde) |
 | B (20q) | 19/20 | 1 | [20] Catering financiero → 503 orchestrator |
 | C (20q) | 13/20 | 7 | Rate limit upstream (5×), provider 400 (1×), orchestrator vacío (1×) |
 | D (20q) | 17/20 | 3 | Auth error (1×), provider 400 (1×), rate limit (1×) |
