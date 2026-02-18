@@ -62,3 +62,24 @@ describe('Mi Test', () => {
 Variables de entorno:
 - `NEXT_PUBLIC_BACKEND_URL` - URL del backend (default: `https://api-ia.bodasdehoy.com`)
 - `SKIP_BACKEND_TESTS` - Saltar tests si hay problemas de conexión
+
+## Dependencia con api-ia (endpoints)
+
+Estos tests y el TestSuite en la UI corren contra el backend **api-ia** (p. ej. api-ia.bodasdehoy.com). Dependen de que api-ia exponga los siguientes endpoints:
+
+- `GET /api/admin/tests/questions` – preguntas para los tests (obligatorio para questions.test.ts y TestSuite)
+- `GET /api/admin/tests/stats` – estadísticas (TestSuite, opcional para scripts)
+- `GET /api/admin/tests/actions` – acciones guardadas (actions.test.ts, si existe)
+- `POST /api/admin/tests/run`, `POST /api/admin/tests/compare`, `POST /api/admin/tests/reset` – TestSuite en la UI
+
+**Si api-ia no tiene implementados** `/api/admin/tests/questions` (y los demás que use cada flujo), las peticiones devolverán 404 o error y esas partes de los tests fallarán. Health y chat (`/health`, `/webapi/chat/auto`) sí se pueden probar aunque no existan los endpoints de tests.
+
+**Recomendación:** Confirmar con el equipo api-ia que estos endpoints existen y están estables antes de ejecutar la batería de integración. Si existen, usar:
+
+```bash
+cd apps/copilot
+export NEXT_PUBLIC_BACKEND_URL=https://api-ia.bodasdehoy.com
+pnpm test-app test-helpers/integration/
+```
+
+(VPN puede ser necesaria según el entorno.)

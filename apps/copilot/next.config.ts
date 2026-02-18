@@ -39,7 +39,8 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     // ✅ Solo limitar CPUs en producción (build), no en desarrollo
-    ...(isProd && { cpus: 1 }),
+    // 2 CPUs: seguro con 8GB — 1 CPU era demasiado conservador
+    ...(isProd && { cpus: 2 }),
 
     optimizePackageImports: [
       'emoji-mart',
@@ -373,26 +374,46 @@ const nextConfig: NextConfig = {
       layers: true,
     };
 
+    // ✅ Optimizaciones de memoria para dev (evitar OOM con webpack ~6GB)
+    if (!isProd) {
+      config.parallelism = 2; // Reducir de 10 (CPU cores) a 2 para ahorrar memoria
+    }
+
     // ✅ Optimizaciones de memoria para build
     if (isProd) {
-      // Reducir paralelismo para menor uso de memoria
-      config.parallelism = 1;
+      // 2 CPUs: equilibrio entre velocidad y memoria (seguro con 8GB)
+      config.parallelism = 2;
 
-      // ✅ Deshabilitar source maps para reducir memoria
+      // ✅ Deshabilitar source maps para reducir memoria y tamaño
       config.devtool = false;
 
-      // ✅ Deshabilitar cache para reducir memoria
-      config.cache = false;
+      // ✅ Filesystem cache: builds posteriores 3-5× más rápidos
+      // Solo recompila módulos que cambiaron — sin cache = compilar todo desde 0
+      config.cache = {
+        type: 'filesystem',
+        buildDependencies: {
+          config: [__filename], // Invalida cache si cambia next.config.ts
+        },
+        // Guardar en .next/cache/webpack (ya ignorado por git)
+        cacheDirectory: require('path').join(__dirname, '.next/cache/webpack'),
+        compression: 'gzip',
+        // Máximo 500MB de cache en disco
+        maxMemoryGenerations: 1,
+      };
 
-      // ✅ Optimizaciones moderadas - mantener funcionalidad de Next.js
+      // ✅ Optimizaciones de output para código más liviano
       config.optimization = {
         ...config.optimization,
         chunkIds: 'deterministic',
-        // Mantener minimize pero con menos memoria
         minimize: true,
         minimizer: config.optimization?.minimizer,
         moduleIds: 'deterministic',
-        // Mantener valores por defecto de Next.js
+        // Evitar chunks muy pequeños (reduce cantidad de archivos)
+        mergeDuplicateChunks: true,
+        removeEmptyChunks: true,
+        // Tree-shaking más agresivo
+        innerGraph: true,
+        sideEffects: true,
       };
 
       // Reducir logging

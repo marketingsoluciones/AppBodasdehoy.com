@@ -780,8 +780,9 @@ export const externalChatSlice: StateCreator<
       // ✅ OPTIMIZACIÓN: Guardar en API en segundo plano (no bloqueante)
       if (typeof window !== 'undefined') {
         const saveConfigInBackground = () => {
-          const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
-          fetch(`${BACKEND_URL}/api/auth/save-user-config`, {
+          // En el navegador usar same-origin para evitar CORS (proxy en /api/auth/save-user-config)
+          const BACKEND_URL = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030');
+          fetch(`${BACKEND_URL || ''}/api/auth/save-user-config`, {
             body: JSON.stringify({
               config: configToSave,
               development: development,

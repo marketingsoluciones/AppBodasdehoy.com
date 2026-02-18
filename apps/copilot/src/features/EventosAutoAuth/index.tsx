@@ -45,7 +45,12 @@ function EventosAutoAuthComponent() {
   const searchParams = useSearchParams();
   const { setExternalChatConfig, currentUserId } = useChatStore();
   const [lastIdentifiedUserId, setLastIdentifiedUserId] = useState<string | null>(null);
-  const [isInParentIframe, setIsInParentIframe] = useState(false);
+  // ✅ FIX: Inicializar sincrónicamente para que el primer render ya sepa si está en iframe.
+  // Con useState(false) el primer render ejecutaba identifyAndConfigure() inmediatamente
+  // en vez de esperar AUTH_CONFIG del parent, causando un hang de hasta 20 segundos.
+  const [isInParentIframe, setIsInParentIframe] = useState(
+    () => typeof window !== 'undefined' ? window.parent !== window : false
+  );
   const [receivedAuthFromParent, setReceivedAuthFromParent] = useState(false);
 
   // ✅ CORRECCIÓN: Refs para evitar llamadas duplicadas de autenticación

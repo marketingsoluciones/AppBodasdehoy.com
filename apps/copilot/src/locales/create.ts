@@ -18,31 +18,40 @@ export const createI18nNext = (lang?: string) => {
     .use(LanguageDetector)
     .use(
       resourcesToBackend(async (lng: string, ns: string) => {
-        // ✅ FIX: Manejar errores cuando un namespace no existe
         try {
-          if (isDev && lng === 'zh-CN') {
+          // Idioma por defecto (zh-CN): usar imports estáticos TypeScript
+          if (lng === 'zh-CN') {
             return await import(`./default/${ns}`);
           }
 
           const normalizedLng = normalizeLocale(lng);
-          // ✅ FIX: Usar ruta relativa directa en lugar de alias @ (webpack no resuelve aliases en dynamic imports)
-          const translationPath = `../../locales/${normalizedLng}/${ns}.json`;
 
-          try {
-            return await import(translationPath);
-          } catch {
-            // ✅ FIX: Si el namespace no existe, retornar objeto vacío en lugar de fallar
-            if (debugMode) {
-              console.warn(`[i18n] Namespace "${ns}" no encontrado para idioma "${lng}", usando objeto vacío`);
+          if (isDev) {
+            // En desarrollo: dynamic import (webpack puede resolver en dev mode)
+            const translationPath = `../../locales/${normalizedLng}/${ns}.json`;
+            try {
+              return await import(translationPath);
+            } catch {
+              if (debugMode) console.warn(`[i18n] Dev: Namespace "${ns}" no encontrado para "${lng}"`);
+              return {};
             }
-            return {}; // Retornar objeto vacío en lugar de fallar
+          }
+
+          // En producción: fetch estático desde /locales/ (public folder)
+          // Los archivos JSON están en public/locales/ servidos estáticamente por Next.js
+          // Evita conflictos con el proxy genérico /api/:path* y problemas de webpack
+          const url = `/locales/${normalizedLng}/${ns}.json`;
+          try {
+            const res = await fetch(url);
+            if (!res.ok) return {};
+            return await res.json();
+          } catch {
+            if (debugMode) console.warn(`[i18n] Prod: Error fetching "${url}"`);
+            return {};
           }
         } catch (error) {
-          // ✅ FIX: Cualquier otro error, retornar objeto vacío
-          if (debugMode) {
-            console.warn(`[i18n] Error cargando traducción ${lng}/${ns}:`, error);
-          }
-          return {}; // Retornar objeto vacío para no bloquear la app
+          if (debugMode) console.warn(`[i18n] Error cargando traducción ${lng}/${ns}:`, error);
+          return {};
         }
       }),
     );

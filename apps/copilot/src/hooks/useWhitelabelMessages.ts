@@ -123,8 +123,8 @@ export const useWhitelabelMessages = (): UseWhitelabelResult => {
       setLoading(true);
       setError(null);
 
-      // Usar URL del backend desde env o fallback
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+      // En el navegador usar same-origin para evitar CORS con api-ia
+      const backendUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_BACKEND_URL || '');
       const url = backendUrl ? `${backendUrl}/api/config/${developer}` : `/api/config/${developer}`;
 
       const response = await fetch(url);

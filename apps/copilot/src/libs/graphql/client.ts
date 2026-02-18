@@ -26,10 +26,13 @@ if (typeof window !== 'undefined') {
   };
 }
 
-// Configuración de endpoints - usar middleware Python (evita CORS)
-// El middleware hace proxy a api2, resolviendo problemas de SSL y CORS
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
-const HTTP_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || `${BACKEND_URL}/graphql`;
+// Configuración de endpoints - en el navegador usar same-origin para evitar CORS
+const getBackendUrl = () =>
+  typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030');
+const BACKEND_URL = getBackendUrl();
+const HTTP_ENDPOINT =
+  process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT ||
+  (BACKEND_URL ? `${BACKEND_URL}/graphql` : '/api/graphql');
 const WS_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_WS_ENDPOINT || `ws://localhost:8030/graphql`;
 
 // Crear link para agregar headers de autenticación dinámicamente

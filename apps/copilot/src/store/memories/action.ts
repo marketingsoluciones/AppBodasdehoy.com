@@ -223,15 +223,15 @@ export const memoriesActionSlice: StateCreator<
     const tempId = `temp_${Date.now()}`;
     const tempAlbum: Album = {
       _id: tempId,
+      albumType: data.albumType,
       coverImageUrl: data.coverImageUrl || '',
       createdAt: new Date().toISOString(),
       description: data.description || '',
       eventId: data.eventId,
-      albumType: data.albumType,
-      mediaCount: 0,
       isOptimistic: true,
-      memberCount: 0,
       itineraryId: data.itineraryId,
+      mediaCount: 0,
+      memberCount: 0,
       name: data.name || 'Nuevo Álbum',
       ownerId: userId,
       parentAlbumId: data.parentAlbumId,

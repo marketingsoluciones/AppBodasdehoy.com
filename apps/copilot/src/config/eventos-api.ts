@@ -5,23 +5,18 @@
 
 // Detectar entorno y configurar URL del backend
 // ARQUITECTURA COMPATIBLE CON LOBE CHAT:
-// - Por defecto: usar proxy de Next.js (/api/backend) para evitar CORS
-// - Opcional: si NEXT_PUBLIC_BACKEND_URL está configurado, usar ese
+// - En el navegador: SIEMPRE same-origin ('') para evitar CORS con api-ia.bodasdehoy.com
+//   Las rutas /api/auth/identify-user, /api/auth/sync-user-identity, etc. hacen proxy al backend.
+// - En el servidor (SSR): usar NEXT_PUBLIC_BACKEND_URL o localhost.
 const getBackendURL = () => {
-  // Si hay variable de entorno para backend externo, usarla
-  if (process.env.NEXT_PUBLIC_BACKEND_URL) {
-    return process.env.NEXT_PUBLIC_BACKEND_URL;
-  }
-
-  // Por defecto en desarrollo: usar proxy de Next.js (evita CORS)
-  // El proxy redirige /api/backend/* a http://localhost:8030/*
+  // En el navegador, usar siempre same-origin para que las peticiones vayan al Copilot
+  // (localhost:3210) y sus API routes hagan proxy a api-ia. Evita CORS.
   if (typeof window !== 'undefined') {
-    // En el navegador, usar proxy de Next.js
-    return '/api/backend';
+    return '';
   }
 
-  // En el servidor (SSR), usar backend Python directamente
-  return 'http://127.0.0.1:8030';
+  // En el servidor (SSR), usar backend externo
+  return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8030';
 };
 
 export const EVENTOS_API_CONFIG = {
@@ -335,9 +330,10 @@ export class EventosAPIClient {
         phone: phone ? `${phone.slice(0, 10)}...` : undefined
       });
 
-      // ✅ CORRECCIÓN: Usar timeout más largo para identifyUser (20 segundos) y manejo robusto
+      // ✅ FIX: Reducido de 20s a 8s. En modo iframe el usuario llega via AUTH_CONFIG (~600ms),
+      // así que identifyUser solo se llama como fallback (no-iframe o fallback). 20s era excesivo.
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20_000); // 20 segundos para identifyUser
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 segundos para identifyUser
 
       // #region agent log
       const fetchStartTime = Date.now();
@@ -412,7 +408,7 @@ export class EventosAPIClient {
         fetch('http://127.0.0.1:7242/ingest/10a0d667-c77d-44ea-a28d-e9f9b782eee2',{body:JSON.stringify({data:{isAbort:fetchError.name==='AbortError',message:fetchError.message,name:fetchError.name},hypothesisId:'A',location:'eventos-api.ts:369',message:'identifyUser FETCH ERROR',runId:'run1',sessionId:'debug-session',timestamp:Date.now()}),headers:{'Content-Type':'application/json'},method:'POST'}).catch(()=>{});
         // #endregion
         if (fetchError.name === 'AbortError') {
-          throw new Error(`Timeout después de 20 segundos al identificar usuario`);
+          throw new Error(`Timeout después de 8 segundos al identificar usuario`);
         }
         throw fetchError;
       }
