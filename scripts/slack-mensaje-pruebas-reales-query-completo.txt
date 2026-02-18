@@ -1,0 +1,40 @@
+📋 *Pruebas reales – query exacta que enviamos (para que corrijan o indiquen qué falta)*
+
+*1. REQUEST EXACTO que estamos enviando*
+
+• Método y URL: POST https://api-ia.bodasdehoy.com/webapi/chat/auto
+
+• Headers que SÍ enviamos:
+  - Content-Type: application/json
+  - X-Development: bodasdehoy
+  - X-Request-Id: real_query_<timestamp> (ej. real_query_1739697721)
+
+• Headers que NO enviamos en estas pruebas (y que la app real puede enviar):
+  - Authorization: Bearer <JWT>  (no lo enviamos en el script; en producción la app web envía el idToken de Firebase)
+  - X-Support-Key (no lo usamos; ¿lo necesitáis para whitelabel?)
+  - X-User-Id, X-Event-Id, X-Page-Name (solo si hay usuario/evento en contexto)
+  - X-API-Key (solo si hay apiKey de whitelabel)
+
+• Body exacto (JSON):
+{"messages":[{"role":"user","content":"¿Cuántos invitados tengo?"}],"stream":false}
+
+(En producción la app envía también system prompt, temperature, max_tokens; aquí probamos con el mínimo.)
+
+*2. RESPONSE COMPLETO que recibimos (503)*
+
+{"success":false,"error":"No se pudo generar una respuesta. El orchestrator devolvió una respuesta vacía o genérica.","error_code":"EMPTY_RESPONSE","trace_id":"f7cf3354","provider":"openai","model":"deepseek-chat","upstream_status":null,"timestamp":"2026-02-16T08:22:01.685018","suggestion":"Por favor, intenta de nuevo o verifica la configuración de providers.","metadata":{}}
+
+• HTTP status: 503
+• trace_id: f7cf3354
+
+*3. CURL exacto para reproducir*
+
+curl -sS --max-time 30 -X POST "https://api-ia.bodasdehoy.com/webapi/chat/auto" \
+  -H "Content-Type: application/json" \
+  -H "X-Development: bodasdehoy" \
+  -H "X-Request-Id: real_query_$(date +%s)" \
+  -d '{"messages":[{"role":"user","content":"¿Cuántos invitados tengo?"}],"stream":false}'
+
+*4. PREGUNTA DIRECTA*
+
+¿Nos falta algún *parámetro u header obligatorio* en el request para que devolváis 200 (ej. Authorization, X-Support-Key, algo en el body)? Si es así, ¿de dónde podemos recuperarlo (JWT de Firebase, variable de entorno, etc.)? Con esta query exacta recibimos 503 (EMPTY_RESPONSE o AUTH_ERROR según la ejecución). Objetivo: que nos indiquéis qué añadir o cambiar para que el chat funcione.

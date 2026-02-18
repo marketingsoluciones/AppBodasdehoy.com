@@ -1,6 +1,8 @@
 # 🔧 Configuración de app-test.bodasdehoy.com
 
-**Objetivo**: Hacer pruebas reales del copilot en app-test.bodasdehoy.com con login compartido
+**Objetivo**: Hacer pruebas reales en app-test (web + login) y chat-test (Copilot) con login compartido.
+
+**Importante:** En este monorepo **app-test** = app web (`apps/web`, puerto 8080 dev / 3000 prod), **chat-test** = Copilot (`apps/copilot`, puerto 3210). Guía unificada con todos los detalles: **`docs/SUBDOMINIOS-APUNTAN-REPOSITORIO.md`**.
 
 ---
 
@@ -46,50 +48,45 @@ kill $(lsof -ti:8080)
 
 ---
 
-## Paso 3: Iniciar el Servidor Correctamente
+## Paso 3: Iniciar los servidores correctamente
 
+Necesitas **dos** procesos: web (app-test) y Copilot (chat-test).
+
+**Terminal 1 – Web (app-test, puerto 8080):**
 ```bash
-cd /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/copilot
-
-# Iniciar en puerto 3210 escuchando en todas las interfaces (0.0.0.0)
-pnpm dev
+cd apps/web
+npm run dev:local
+# 0.0.0.0:8080
 ```
 
-Esto iniciará el servidor con:
-- **Host**: 0.0.0.0 (accesible desde cualquier IP)
-- **Puerto**: 3210
-- **URLs disponibles**:
-  - http://localhost:3210
-  - http://app-test.bodasdehoy.com:3210
-  - http://chat-test.bodasdehoy.com:3210
+**Terminal 2 – Copilot (chat-test, puerto 3210):**
+```bash
+cd apps/copilot
+pnpm dev
+# 0.0.0.0:3210
+```
+
+URLs:
+- **app-test (web + login):** http://app-test.bodasdehoy.com:8080
+- **chat-test (Copilot):** http://chat-test.bodasdehoy.com:3210
 
 ---
 
-## Paso 4: Verificar Acceso
-
-Una vez iniciado el servidor, verifica que funciona:
+## Paso 4: Verificar acceso
 
 ```bash
-# Desde localhost
-curl -I http://localhost:3210
-
-# Desde app-test
-curl -I http://app-test.bodasdehoy.com:3210
-
-# Desde chat-test
+curl -I http://app-test.bodasdehoy.com:8080
 curl -I http://chat-test.bodasdehoy.com:3210
 ```
 
-Todos deberían devolver: `HTTP/1.1 200 OK`
+Deben devolver `HTTP/1.1 200 OK`.
 
 ---
 
-## Paso 5: Abrir en el Navegador
+## Paso 5: Abrir en el navegador
 
-Abre cualquiera de estas URLs:
-- **http://app-test.bodasdehoy.com:3210** ⭐ (Recomendado)
-- http://chat-test.bodasdehoy.com:3210
-- http://localhost:3210
+- **http://app-test.bodasdehoy.com:8080** ⭐ (web + login)
+- http://chat-test.bodasdehoy.com:3210 (Copilot)
 
 **Ventaja de usar app-test.bodasdehoy.com:**
 - ✅ Comparte sesión de Firebase con bodasdehoy.com
@@ -98,9 +95,9 @@ Abre cualquiera de estas URLs:
 
 ---
 
-## Paso 6: Probar Login de Firebase
+## Paso 6: Probar login de Firebase
 
-1. Abre: http://app-test.bodasdehoy.com:3210
+1. Abre: http://app-test.bodasdehoy.com:8080
 2. Haz login con Google o las credenciales de prueba
 3. Verifica que el login funcione correctamente
 4. Abre DevTools (F12) → Console
@@ -111,8 +108,8 @@ Abre cualquiera de estas URLs:
 ## ✅ Checklist de Validación
 
 - [ ] /etc/hosts configurado con app-test y chat-test
-- [ ] Servidor corriendo en puerto 3210 con host 0.0.0.0
-- [ ] Acceso desde http://app-test.bodasdehoy.com:3210 funciona
+- [ ] Web en 8080 (dev:local) y Copilot en 3210
+- [ ] Acceso desde http://app-test.bodasdehoy.com:8080 y http://chat-test.bodasdehoy.com:3210
 - [ ] Login de Firebase funcional
 - [ ] Sin errores en consola del navegador
 - [ ] Performance del copilot aceptable (<2s carga)
@@ -128,14 +125,15 @@ grep app-test /etc/hosts
 ```
 
 ### Error: "Conexión rechazada"
-**Solución**: Verifica que el servidor esté corriendo:
+**Solución**: Verifica que los procesos estén corriendo:
 ```bash
+lsof -i:8080
 lsof -i:3210
 ```
 
 ### Error: "Firebase no comparte sesión"
 **Causa**: Estás usando localhost en vez de app-test.bodasdehoy.com
-**Solución**: Usa http://app-test.bodasdehoy.com:3210 en el navegador
+**Solución**: Usa http://app-test.bodasdehoy.com:8080 en el navegador
 
 ---
 

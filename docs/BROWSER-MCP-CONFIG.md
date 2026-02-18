@@ -1,5 +1,7 @@
 # Configuración de Browser MCP para Cursor y Claude Code
 
+> **Si las herramientas fallan (timeout, "Tool rejected", sin control del navegador):** ver **[MCP-NAVEGADOR-ERRORES-Y-SOLUCION.md](./MCP-NAVEGADOR-ERRORES-Y-SOLUCION.md)** para diagnóstico y tener visibilidad y control de un solo navegador.
+
 ## 📊 Análisis de Alternativas
 
 ### ✅ Mejor Opción: Chrome DevTools MCP

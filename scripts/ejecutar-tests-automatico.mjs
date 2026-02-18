@@ -32,9 +32,12 @@ if (!fs.existsSync(RESULTS_DIR)) {
 }
 
 function getTestSuiteUrl() {
+  // Objetivo: que el agente pueda abrir y hacer pruebas. app-test/chat-test no cargan en el navegador de Cursor; localhost sí.
+  if (process.env.USE_LOCALHOST === '1' || process.env.AUTOMATION_LOCALHOST === '1') {
+    return 'http://localhost:3210/bodasdehoy/admin/tests';
+  }
   const envFile = path.join(PROJECT_ROOT, 'apps/web/.env.production');
-  let chatUrl = 'https://chat-test.bodasdehoy.com';
-  
+  let chatUrl = 'http://localhost:3210';
   if (fs.existsSync(envFile)) {
     try {
       const content = fs.readFileSync(envFile, 'utf-8');
@@ -46,7 +49,6 @@ function getTestSuiteUrl() {
       // Ignorar
     }
   }
-  
   return `${chatUrl}/bodasdehoy/admin/tests`;
 }
 

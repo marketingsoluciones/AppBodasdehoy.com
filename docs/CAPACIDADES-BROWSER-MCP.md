@@ -120,6 +120,10 @@ Runtime.evaluate({
 3. ✅ `browser-tools-mcp` configurado como alternativa
 4. ✅ Pestañas del navegador accesibles
 
+### ⚠️ Si ves "Tool rejected" o "Timeout waiting for bubble creation" (navegador de Cursor):
+- El **navegador integrado** de Cursor a veces no expone las herramientas al agente o hace timeout al pedir permiso.
+- **Solución:** Usar **Chrome externo** con `--remote-debugging-port=9222` y el MCP **chrome-devtools**. Ver **[MCP-NAVEGADOR-ERRORES-Y-SOLUCION.md](./MCP-NAVEGADOR-ERRORES-Y-SOLUCION.md)**.
+
 ### ⚠️ Pendiente:
 1. ⚠️ **Reiniciar Cursor** para que cargue los servidores MCP
 2. ⚠️ Verificar que los servidores MCP estén conectados en Settings → Tools & MCP

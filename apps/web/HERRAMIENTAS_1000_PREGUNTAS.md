@@ -36,9 +36,23 @@ node scripts/trabajar-con-1000-preguntas.mjs estadisticas
 # Exportar todas a JSON
 node scripts/trabajar-con-1000-preguntas.mjs exportar
 
-# Ejecutar tests con 50 preguntas
+# Ejecutar tests (por defecto 10 preguntas; resultado por cada pregunta esperada)
 node scripts/trabajar-con-1000-preguntas.mjs test 50
+
+# Desde la raíz del repo (autónomo)
+pnpm test:preguntas
+pnpm test:preguntas 5
+
+# Guardar resultados en JSON (resultado a cada pregunta esperada)
+node scripts/trabajar-con-1000-preguntas.mjs test 20 --json
+node scripts/trabajar-con-1000-preguntas.mjs test 20 --output resultados.json
 ```
+
+El comando **test** hace lo siguiente de forma autónoma:
+- Obtiene N preguntas del backend (con `expectedResponse` si existe).
+- Para cada pregunta: llama a `POST /webapi/chat/auto`, extrae la respuesta y la compara con la esperada.
+- Muestra por cada una: ✅/❌, HTTP status, tiempo, y si coincide con la respuesta esperada.
+- Al final: tabla resumen y opcionalmente fichero JSON con `results[]` (question, expectedResponse, responseText, ok, matchExpected, elapsedMs).
 
 ## 📍 Endpoints del Backend
 

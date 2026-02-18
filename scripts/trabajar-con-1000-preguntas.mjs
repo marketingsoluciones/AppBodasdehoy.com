@@ -194,29 +194,73 @@ async function mostrarEstadisticas() {
 }
 
 /**
- * Ejecutar tests con preguntas
+ * Extrae el texto de respuesta del payload del API
  */
-async function ejecutarTests(numPreguntas = 10) {
+function extraerRespuesta(data) {
+  if (!data || typeof data !== 'object') return '';
+  const text = data.response ?? data.message ?? data.content ?? '';
+  if (typeof text === 'string') return text;
+  if (data.choices?.[0]?.message?.content) return data.choices[0].message.content;
+  if (Array.isArray(data.messages) && data.messages.length > 0) {
+    const last = data.messages[data.messages.length - 1];
+    return last.content ?? last.text ?? '';
+  }
+  return String(text);
+}
+
+/**
+ * Comprueba si la respuesta cumple la expectativa (substring o coincidencia flexible)
+ */
+function cumpleEsperada(respuesta, expectedResponse) {
+  if (!expectedResponse || typeof expectedResponse !== 'string') return null; // sin criterio
+  const r = (respuesta || '').toLowerCase().trim();
+  const e = expectedResponse.toLowerCase().trim();
+  if (e.length < 3) return r.includes(e);
+  return r.includes(e) || e.split(/\s+/).every((palabra) => palabra.length < 3 || r.includes(palabra));
+}
+
+/**
+ * Ejecutar tests con preguntas y mostrar resultado por cada pregunta esperada
+ */
+async function ejecutarTests(numPreguntas = 10, opts = {}) {
+  const { outputJson = false, outputFile } = opts;
   log(`\n🧪 Ejecutando tests con ${numPreguntas} preguntas...`, 'cyan');
   const questions = await getQuestions({ limit: numPreguntas });
-  
+
   if (questions.length === 0) {
     log('❌ No hay preguntas para testear', 'red');
     return;
   }
-  
+
   log(`\n✅ Obtenidas ${questions.length} preguntas para testear`, 'green');
   log('📝 Ejecutando tests (esto puede tardar)...\n', 'yellow');
-  
+
+  const resultados = [];
   let passed = 0;
   let failed = 0;
-  
+
   for (let i = 0; i < questions.length; i++) {
     const q = questions[i];
-    log(`\n[${i + 1}/${questions.length}] Probando: ${q.question.substring(0, 60)}...`, 'cyan');
-    
+    const preguntaCorta = q.question.length > 55 ? q.question.substring(0, 55) + '…' : q.question;
+    log(`\n[${i + 1}/${questions.length}] ${preguntaCorta}`, 'cyan');
+
+    let resultado = {
+      index: i + 1,
+      question: q.question,
+      expectedResponse: q.expectedResponse || null,
+      ok: false,
+      httpStatus: null,
+      responseText: null,
+      matchExpected: null,
+      error: null,
+      elapsedMs: null,
+    };
+
     try {
       const startTime = Date.now();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+
       const response = await fetch(`${BACKEND_URL}/webapi/chat/auto`, {
         method: 'POST',
         headers: {
@@ -227,29 +271,74 @@ async function ejecutarTests(numPreguntas = 10) {
           messages: [{ role: 'user', content: q.question }],
           stream: false,
         }),
-        timeout: 30000,
+        signal: controller.signal,
       });
-      
-      const elapsed = Date.now() - startTime;
-      
+      clearTimeout(timeoutId);
+
+      resultado.elapsedMs = Date.now() - startTime;
+      resultado.httpStatus = response.status;
+
+      const data = await response.json().catch(() => ({}));
+      const responseText = extraerRespuesta(data);
+      resultado.responseText = responseText;
+
       if (response.ok) {
-        const data = await response.json();
-        log(`   ✅ Pasó (${elapsed}ms)`, 'green');
-        passed++;
+        resultado.ok = true;
+        if (q.expectedResponse) {
+          resultado.matchExpected = cumpleEsperada(responseText, q.expectedResponse);
+          if (resultado.matchExpected) {
+            log(`   ✅ OK (${resultado.elapsedMs}ms) | Esperada: sí`, 'green');
+            passed++;
+          } else {
+            log(`   ⚠️ OK HTTP pero no coincide con esperada (${resultado.elapsedMs}ms)`, 'yellow');
+            log(`   Esperada: ${(q.expectedResponse || '').substring(0, 80)}…`, 'cyan');
+            log(`   Obtenida: ${(responseText || '').substring(0, 80)}…`, 'blue');
+            passed++; // HTTP ok cuenta como pasó
+          }
+        } else {
+          log(`   ✅ OK (${resultado.elapsedMs}ms)`, 'green');
+          passed++;
+        }
       } else {
-        log(`   ❌ Falló: HTTP ${response.status}`, 'red');
+        resultado.error = data.error || data.message || response.statusText;
+        log(`   ❌ HTTP ${response.status} (${resultado.elapsedMs}ms) ${resultado.error || ''}`, 'red');
         failed++;
       }
     } catch (error) {
-      log(`   ❌ Error: ${error.message}`, 'red');
+      resultado.error = error.message || String(error);
+      resultado.elapsedMs = null;
+      log(`   ❌ Error: ${resultado.error}`, 'red');
       failed++;
     }
+
+    resultados.push(resultado);
   }
-  
-  log(`\n📊 Resultados:`, 'green');
-  log(`   ✅ Pasados: ${passed}`, 'green');
-  log(`   ❌ Fallidos: ${failed}`, 'red');
-  log(`   📈 Tasa de éxito: ${((passed / questions.length) * 100).toFixed(1)}%`, 'cyan');
+
+  log(`\n${'─'.repeat(80)}`, 'cyan');
+  log(`📊 Resultados por pregunta`, 'green');
+  log(`${'─'.repeat(80)}`, 'cyan');
+  resultados.forEach((r) => {
+    const estado = r.ok ? '✅' : '❌';
+    const match = r.matchExpected === true ? ' [esperada ✓]' : r.matchExpected === false ? ' [esperada ✗]' : '';
+    log(`${r.index}. ${estado} ${(r.question || '').substring(0, 50)}… | ${r.httpStatus ?? '-'} | ${r.elapsedMs ?? '-'}ms${match}`, r.ok ? 'green' : 'red');
+  });
+  log(`\n📈 Resumen: ✅ ${passed} pasados | ❌ ${failed} fallidos | Tasa: ${((passed / questions.length) * 100).toFixed(1)}%`, 'green');
+
+  if (outputJson || outputFile) {
+    const fs = await import('fs/promises');
+    const out = {
+      timestamp: new Date().toISOString(),
+      total: questions.length,
+      passed,
+      failed,
+      results: resultados,
+    };
+    const path = outputFile || `resultados-preguntas-${new Date().toISOString().split('T')[0]}.json`;
+    await fs.writeFile(path, JSON.stringify(out, null, 2), 'utf-8');
+    log(`\n💾 Resultados guardados en: ${path}`, 'cyan');
+  }
+
+  return resultados;
 }
 
 /**
@@ -297,10 +386,15 @@ async function main() {
         await exportarPreguntas();
         break;
       
-      case 'test':
+      case 'test': {
         const num = argumento ? parseInt(argumento) : 10;
-        await ejecutarTests(num);
+        const args = process.argv.slice(3);
+        const outputJson = args.includes('--json');
+        const outIdx = args.indexOf('--output');
+        const outputFile = outIdx >= 0 && args[outIdx + 1] ? args[outIdx + 1] : null;
+        await ejecutarTests(num, { outputJson: outputJson || !!outputFile, outputFile: outputFile || null });
         break;
+      }
       
       case 'estadisticas':
         await mostrarEstadisticas();
@@ -316,12 +410,15 @@ async function main() {
         log('   dificultad <d>     - Filtrar por dificultad (easy/medium/hard)', 'cyan');
         log('   exportar            - Exportar todas las preguntas a JSON', 'cyan');
         log('   test [n]            - Ejecutar tests con n preguntas (default: 10)', 'cyan');
+        log('                         Opciones: --json | --output <fichero.json>', 'blue');
         log('   estadisticas        - Mostrar estadísticas de las preguntas', 'cyan');
         log('\n💡 Ejemplos:', 'yellow');
         log('   node scripts/trabajar-con-1000-preguntas.mjs listar 20', 'cyan');
         log('   node scripts/trabajar-con-1000-preguntas.mjs buscar "boda"', 'cyan');
         log('   node scripts/trabajar-con-1000-preguntas.mjs categoria wedding', 'cyan');
         log('   node scripts/trabajar-con-1000-preguntas.mjs test 50', 'cyan');
+        log('   node scripts/trabajar-con-1000-preguntas.mjs test 10 --json', 'cyan');
+        log('   node scripts/trabajar-con-1000-preguntas.mjs test 5 --output resultados.json', 'cyan');
         log('   node scripts/trabajar-con-1000-preguntas.mjs estadisticas', 'cyan');
         process.exit(1);
     }

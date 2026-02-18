@@ -80,6 +80,12 @@ El copilot embebido usa chat-test; si el iframe carga, chat-test está bien.
 
 ---
 
+## Login automático (bot / MCP)
+
+**No ir rápido:** si no le das tiempo a que cargue la pantalla de login y no escribes usuario y clave muy despacio (carácter a carácter, 3 s entre teclas), Firebase nos banea. Flujo seguro: **tú haces el login manual**; cuando confirmes, el agente solo usa la pestaña (Copilot, preguntas). Si se automatiza el login: 1) dejar que cargue el formulario y esperar 15–20 s, 2) escribir email y clave carácter a carácter con 3 s entre cada tecla, 3) solo entonces pulsar Enviar. Detalle: [docs/TESTING-LOGIN-AUTOMATICO.md](docs/TESTING-LOGIN-AUTOMATICO.md).
+
+---
+
 ## Resumen
 
 | Qué probar | Cómo |

@@ -1,0 +1,61 @@
+*Todos los ejemplos (20) – request + response + trace_id para api-ia*
+
+*1.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"Hola"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: 7241a944 | tipo: EMPTY_RESPONSE
+
+*2.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"¿Cuántos invitados tengo?"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: 7b3a556d | tipo: EMPTY_RESPONSE
+
+*3.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"¿Cuánto llevo pagado del presupuesto?"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: 92494a23 | tipo: EMPTY_RESPONSE
+
+*4.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"Quiero ver mis invitados"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: 43d0a57e | tipo: EMPTY_RESPONSE
+
+*5.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"Llévame al presupuesto"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: fffa4ac2 | tipo: EMPTY_RESPONSE
+
+*6.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"¿Cómo se llama mi evento?"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: 3238d8e2 | tipo: EMPTY_RESPONSE
+
+*7.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"¿Cuántas mesas tengo?"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: da095c26 | tipo: EMPTY_RESPONSE
+
+*8.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"Dime 3 consejos para organizar una boda"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: 28b7a4af | tipo: EMPTY_RESPONSE
+
+*9.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"Dame un resumen completo de mi evento"}],"stream":false}
+Response: HTTP 200 | error_code: EMPTY_RESPONSE | trace_id: 2b1d4760 | tipo: EMPTY_RESPONSE
+
+*10.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"Agrega a Jose Garcia y Jose Morales como invitados a mi evento"}],"stream":false}
+Response: HTTP 503 | error_code: AUTH_ERROR | trace_id: 0f7b426b | tipo: AUTH_ERROR
+
+*11.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"¿Cuántos días faltan para mi boda?"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: 16d58c8f | tipo: EMPTY_RESPONSE
+
+*12.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"¿Cuál es la boda de Raul?"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: d2c8f749 | tipo: EMPTY_RESPONSE
+
+*13.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"Muéstrame la lista de todas las bodas"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: f3ccc0f4 | tipo: EMPTY_RESPONSE
+
+*14.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"¿Qué tareas tengo pendientes para mi boda?"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: d19b7d05 | tipo: EMPTY_RESPONSE
+
+*15.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"Dame ideas para el menú del banquete"}],"stream":false}
+Response: HTTP 200 | error_code: EMPTY_RESPONSE | trace_id: cdc9fd27 | tipo: EMPTY_RESPONSE
+
+*16.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"¿Cuánto llevo gastado en el presupuesto?"}],"stream":false}
+Response: HTTP 200 | error_code: EMPTY_RESPONSE | trace_id: e5e43809 | tipo: EMPTY_RESPONSE
+
+*17.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"¿Qué eventos tengo para el próximo año?"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: 387f41a8 | tipo: EMPTY_RESPONSE
+
+*18.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"¿Quién es mi proveedor de flores?"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: c3f331b4 | tipo: EMPTY_RESPONSE
+
+*19.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"Resume los invitados confirmados"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: 28ab1d92 | tipo: EMPTY_RESPONSE
+
+*20.* Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"¿En qué fecha es la boda de María?"}],"stream":false}
+Response: HTTP 503 | error_code: EMPTY_RESPONSE | trace_id: 0f6d5250 | tipo: EMPTY_RESPONSE
