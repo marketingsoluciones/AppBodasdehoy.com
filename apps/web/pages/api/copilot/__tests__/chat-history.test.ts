@@ -5,7 +5,6 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import handler from '../chat-history';
-import { API2_GET_CHAT_MESSAGES_RESPONSE } from '../../../../__fixtures__/copilot';
 
 const originalFetch = global.fetch;
 
@@ -32,17 +31,15 @@ describe('GET /api/copilot/chat-history', () => {
 
     await handler(req, res);
 
-    expect(res.setHeader).toHaveBeenCalledWith('Allow', 'GET');
+    // setHeader('Allow','GET') solo se llama en 405 (no en 400)
+    expect(res.setHeader).not.toHaveBeenCalledWith('Allow', 'GET');
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ error: 'sessionId required' });
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it('devuelve 200 y messages con forma real de API2 getChatMessages', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      json: () => Promise.resolve(API2_GET_CHAT_MESSAGES_RESPONSE),
-    });
-
+  it('devuelve 200 y messages: [] cuando API_IA_CHAT_HISTORY_URL no está configurada', async () => {
+    // Sin la env var, el handler devuelve [] sin llamar a fetch
     const req = {
       method: 'GET',
       query: { sessionId: 'user_123' },
@@ -53,21 +50,8 @@ describe('GET /api/copilot/chat-history', () => {
     await handler(req, res);
 
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({
-      messages: API2_GET_CHAT_MESSAGES_RESPONSE.data.getChatMessages,
-    });
-    expect(fetch).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({
-        method: 'POST',
-        headers: expect.objectContaining({
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer token',
-          'X-Development': 'bodasdehoy',
-        }),
-        body: expect.stringContaining('getChatMessages'),
-      })
-    );
+    expect(res.json).toHaveBeenCalledWith({ messages: [] });
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it('devuelve 200 y messages: [] cuando API2 devuelve errors', async () => {

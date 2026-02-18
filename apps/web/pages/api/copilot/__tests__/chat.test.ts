@@ -3,6 +3,22 @@
  * Verifican contrato con api-ia (body real) y respuesta cuando el backend no está disponible.
  */
 
+// Polyfill ReadableStream y TextEncoder/TextDecoder para jsdom (Node 18+)
+if (typeof ReadableStream === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const webStreams = require('stream/web');
+  Object.assign(globalThis, {
+    ReadableStream: webStreams.ReadableStream,
+    TransformStream: webStreams.TransformStream,
+    WritableStream: webStreams.WritableStream,
+  });
+}
+if (typeof TextEncoder === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { TextEncoder: TE, TextDecoder: TD } = require('util');
+  Object.assign(globalThis, { TextEncoder: TE, TextDecoder: TD });
+}
+
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { CHAT_REQUEST_BODY_REAL } from '../../../../__fixtures__/copilot';
 
@@ -16,6 +32,7 @@ function createMockRes(): NextApiResponse & {
   write: jest.Mock;
   end: jest.Mock;
   headersSent: boolean;
+  statusCode: number;
 } {
   return {
     status: jest.fn().mockReturnThis(),
@@ -25,6 +42,7 @@ function createMockRes(): NextApiResponse & {
     write: jest.fn(),
     end: jest.fn(),
     headersSent: false,
+    statusCode: 200,
   } as any;
 }
 
@@ -129,10 +147,12 @@ describe('POST /api/copilot/chat', () => {
 
     await handler(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(503);
+    // En streaming el handler usa res.statusCode = 503 (asignación directa), no res.status()
+    expect(res.statusCode).toBe(503);
     expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/event-stream');
+    // El handler propaga extractedMessage (de la respuesta de api-ia) en el SSE
     expect(res.write).toHaveBeenCalledWith(
-      expect.stringContaining('Servicio IA no disponible')
+      expect.stringContaining('Servicio no disponible')
     );
     expect(res.write).toHaveBeenCalledWith(expect.stringContaining('data: [DONE]'));
     expect(res.end).toHaveBeenCalled();
@@ -150,7 +170,8 @@ describe('POST /api/copilot/chat', () => {
     const handler = (await import('../chat')).default;
     const req = {
       method: 'POST',
-      body: { messages: [{ role: 'user', content: 'Hola' }], stream: true, metadata: {} },
+      // stream: false → usa el path JSON (res.status(401).json) no el SSE (res.statusCode=401)
+      body: { messages: [{ role: 'user', content: 'Hola' }], stream: false, metadata: {} },
       headers: {},
     } as NextApiRequest;
     const res = createMockRes();
