@@ -189,6 +189,41 @@ describe('POST /api/copilot/chat', () => {
     );
   });
 
+  it('devuelve 429 con Retry-After cuando el backend devuelve rate limit', async () => {
+    const mockFetch = (global as any).fetch as jest.Mock;
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 429,
+      headers: new Headers({ 'retry-after': '30' }),
+      text: () =>
+        Promise.resolve(
+          JSON.stringify({ error: 'UPSTREAM_RATE_LIMIT', message: 'Demasiadas peticiones.', trace_id: 'trace-429' })
+        ),
+    });
+
+    const handler = (await import('../chat')).default;
+    const req = {
+      method: 'POST',
+      body: { messages: [{ role: 'user', content: 'Hola' }], stream: false, metadata: {} },
+      headers: {},
+    } as unknown as NextApiRequest;
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(429);
+    expect(res.setHeader).toHaveBeenCalledWith('X-Backend-Error-Code', 'UPSTREAM_RATE_LIMIT');
+    expect(res.setHeader).toHaveBeenCalledWith('Retry-After', '30');
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: 'UPSTREAM_RATE_LIMIT',
+        message: 'Demasiadas peticiones.',
+        requestId: expect.any(String),
+        retry_after: '30',
+      })
+    );
+  });
+
   it('devuelve 402 con payment_url (fallback billing) cuando el backend devuelve 402 sin payment_url', async () => {
     const mockFetch = (global as any).fetch as jest.Mock;
     mockFetch.mockResolvedValue({
