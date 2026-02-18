@@ -89,9 +89,15 @@ export const fetchApiBodas = async ({
 
       return Object.values(data.data)[0];
     }
-  } catch (error) {
-    console.log(error);
-    return error;
+  } catch (error: any) {
+    console.error("[fetchApiBodas] Error en la llamada API:", {
+      message: error?.message,
+      code: error?.code,
+      isAxiosError: error?.isAxiosError,
+      response: error?.response?.data,
+      status: error?.response?.status
+    });
+    throw error; // Lanzar el error en lugar de retornarlo
   }
 };
 
@@ -106,10 +112,21 @@ export const fetchApiEventos = async ({
   variables,
   token,
 }: argsFetchApi) => {
-  const {
-    data: { data },
-  } = await api.ApiApp({ query, variables }, token);
-  return Object.values(data)[0];
+  try {
+    const {
+      data: { data },
+    } = await api.ApiApp({ query, variables }, token);
+    return Object.values(data)[0];
+  } catch (error: any) {
+    console.error("[fetchApiEventos] Error en la llamada API:", {
+      message: error?.message,
+      code: error?.code,
+      isAxiosError: error?.isAxiosError,
+      response: error?.response?.data,
+      status: error?.response?.status
+    });
+    throw error; // Lanzar el error en lugar de retornarlo
+  }
 };
 
 // Función específica para getServerSideProps sin autenticación
