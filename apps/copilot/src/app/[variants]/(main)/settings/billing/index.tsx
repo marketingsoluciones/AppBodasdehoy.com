@@ -326,6 +326,16 @@ const BillingPage = memo(() => {
                 )}
               </Flexbox>
             )}
+
+            <Flexbox horizontal style={{ marginTop: 8 }}>
+              <button
+                className={styles.secondaryButton}
+                onClick={() => router.push('/settings/billing/planes')}
+                type="button"
+              >
+                Cambiar plan
+              </button>
+            </Flexbox>
           </Flexbox>
         ) : (
           <Flexbox gap={12}>
@@ -333,8 +343,30 @@ const BillingPage = memo(() => {
             <span style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 14 }}>
               Usa el sistema de prepago (wallet) para pagar por uso.
             </span>
+            <button
+              className={styles.secondaryButton}
+              onClick={() => router.push('/settings/billing/planes')}
+              style={{ marginTop: 8 }}
+              type="button"
+            >
+              Ver planes
+            </button>
           </Flexbox>
         )}
+      </div>
+
+      {/* Balance / Uso de keys IA - Placeholder */}
+      <div className={styles.card}>
+        <div className={styles.sectionTitle}>
+          <Brain size={20} />
+          Uso de keys IA
+        </div>
+        <Flexbox gap={8}>
+          <span style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 14 }}>
+            El balance y uso de keys de IA se mostrara aqui cuando api-ia/API2 expongan el endpoint.
+          </span>
+          <Tag color="default">Proximamente</Tag>
+        </Flexbox>
       </div>
 
       {/* Usage Stats - Detailed */}

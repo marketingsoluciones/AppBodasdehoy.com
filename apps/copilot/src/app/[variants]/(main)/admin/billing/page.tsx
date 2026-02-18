@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { CostOverview } from './components/CostOverview';
 import { CostByProvider } from './components/CostByProvider';
@@ -22,6 +23,12 @@ export default function BillingDashboard() {
           <p className="mt-2 text-gray-600">
             Monitoreo de costos de IA, storage y facturación por cliente
           </p>
+          <Link
+            className="mt-2 inline-block text-sm text-blue-600 hover:underline"
+            href="/admin/billing/dar-credito"
+          >
+            Dar crédito a usuario (admin)
+          </Link>
         </div>
 
         {/* Period Selector */}
