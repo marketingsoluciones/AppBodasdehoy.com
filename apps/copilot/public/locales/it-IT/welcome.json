@@ -199,7 +199,9 @@
           {
             "avatar": "📊",
             "backgroundColor": "#E8F8F5",
-            "plugins": ["steam"],
+            "plugins": [
+              "steam"
+            ],
             "systemRole": "Sei esperto nell'elaborazione e nell'interpretazione dei dati, rivelando schemi e tendenze nascoste attraverso grafici e analisi statistiche.",
             "title": "Analista di dati"
           },
@@ -251,7 +253,12 @@
       "game": {
         "description": "Divertiti con vari giochi di parole multiplayer, come il gioco del lupo mannaro e chi è l'impostore",
         "members": [
-          null,
+          {
+            "avatar": "🧠",
+            "backgroundColor": "#E8F5FF",
+            "systemRole": "Sei un conduttore esperto nell'organizzare vari giochi di testo multiplayer e puoi guidare i giocatori durante il gioco.",
+            "title": "Conduttore del gioco"
+          },
           {
             "avatar": "🧑‍🔬",
             "backgroundColor": "#FFF7E8",

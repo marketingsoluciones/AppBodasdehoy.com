@@ -199,7 +199,9 @@
           {
             "avatar": "📊",
             "backgroundColor": "#E8F8F5",
-            "plugins": ["steam"],
+            "plugins": [
+              "steam"
+            ],
             "systemRole": "Specjalizujesz się w przetwarzaniu i interpretacji danych, ujawniając wzorce i trendy za pomocą wykresów i analiz statystycznych.",
             "title": "Analityk danych"
           },
@@ -251,7 +253,12 @@
       "game": {
         "description": "Graj w różne wieloosobowe gry tekstowe, takie jak Wilkołak i Kto jest zdrajcą",
         "members": [
-          null,
+          {
+            "avatar": "🧠",
+            "backgroundColor": "#E8F5FF",
+            "systemRole": "Jesteś gospodarzem biegłym w organizowaniu różnych gier tekstowych dla wielu graczy i możesz prowadzić graczy przez grę.",
+            "title": "Gospodarz gry"
+          },
           {
             "avatar": "🧑‍🔬",
             "backgroundColor": "#FFF7E8",

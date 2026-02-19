@@ -72,7 +72,7 @@ export const createI18nNext = (lang?: string) => {
             console.warn(`[i18n] Missing translation: ${lng}/${ns}/${key}`);
           }
         },
-        ns: ['error', 'common', 'chat', 'editor', 'auth', 'setting', 'welcome', 'plugin', 'tool', 'file', 'image', 'topic', 'components'],
+        ns: ['error', 'common', 'chat', 'editor', 'auth', 'setting', 'welcome', 'plugin', 'tool', 'file', 'image', 'topic', 'components', 'hotkey'],
         partialBundledLanguages: true,
       });
     },
