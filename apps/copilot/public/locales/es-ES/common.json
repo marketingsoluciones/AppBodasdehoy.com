@@ -169,6 +169,9 @@
       "star": "Agrega una estrella en GitHub"
     },
     "and": "y",
+    "branding": "Hecho con ❤️ por Eventosorganizador",
+    "brandingLink": "Eventosorganizador",
+    "brandingPrefix": "Hecho con ❤️ por ",
     "feedback": {
       "action": "Compartir retroalimentación",
       "desc": "Cada idea y sugerencia que nos brindes es invaluable. ¡Estamos ansiosos por conocer tu opinión! Siéntete libre de contactarnos para proporcionar comentarios sobre las funciones del producto y la experiencia de uso, ¡ayúdanos a mejorar LobeChat!",

@@ -172,6 +172,9 @@ export default {
       star: '在 GitHub 给添加星标',
     },
     and: '并',
+    branding: 'Hecho con ❤️ por Eventosorganizador',
+    brandingLink: 'Eventosorganizador',
+    brandingPrefix: 'Hecho con ❤️ por ',
     feedback: {
       action: '分享反馈',
       desc: '您的每一个想法和建议对我们来说都弥足珍贵，我们迫不及待地想知道您的看法！欢迎联系我们提供产品功能和使用体验反馈，帮助我们将 {{appName}} 建设得更好。',
