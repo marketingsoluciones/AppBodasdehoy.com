@@ -138,7 +138,6 @@ export function detectDevelopmentFromURL(): string | null {
   // Útil para localhost:8000?developer=bodasdehoy
   const queryDeveloper = url.searchParams.get('developer') || url.searchParams.get('development');
   if (queryDeveloper && DEVELOPMENTS_CONFIG[queryDeveloper]) {
-    console.log(`🔍 Development detectado desde query parameter: ${queryDeveloper}`);
     return queryDeveloper;
   }
 
@@ -149,7 +148,6 @@ export function detectDevelopmentFromURL(): string | null {
     if (parts.length > 1 && parts[0] !== 'localhost' && parts[0] !== 'www') {
       const subdomain = parts[0];
       if (DEVELOPMENTS_CONFIG[subdomain]) {
-        console.log(`🔍 Development detectado desde subdominio local: ${hostname} → ${subdomain}`);
         return subdomain;
       }
     }
@@ -158,8 +156,21 @@ export function detectDevelopmentFromURL(): string | null {
   // 3. Intentar desde dominio completo (ej: bodasdehoy.com → bodasdehoy)
   const developmentFromDomain = DOMAIN_TO_DEVELOPMENT[hostname];
   if (developmentFromDomain) {
-    console.log(`🔍 Development detectado desde dominio: ${hostname} → ${developmentFromDomain}`);
     return developmentFromDomain;
+  }
+
+  // 3b. Intentar por sufijo de dominio padre (ej: chat-test.bodasdehoy.com → bodasdehoy)
+  // Soporta cualquier subdominio de las marcas conocidas
+  const PARENT_DOMAIN_MAP: Record<string, string> = {
+    'annloevents.com': 'annloevents',
+    'bodasdehoy.com': 'bodasdehoy',
+    'champagneevents.com': 'champagneevents',
+    'eventosorganizador.com': 'eventosorganizador',
+  };
+  for (const [parentDomain, dev] of Object.entries(PARENT_DOMAIN_MAP)) {
+    if (hostname.endsWith(`.${parentDomain}`) || hostname === parentDomain) {
+      return dev;
+    }
   }
 
   // 4. Intentar desde primer path segment (ej: /bodasdehoy/chat)
@@ -168,7 +179,6 @@ export function detectDevelopmentFromURL(): string | null {
   if (pathParts.length > 0) {
     const firstSegment = pathParts[0];
     if (DEVELOPMENTS_CONFIG[firstSegment]) {
-      console.log(`🔍 Development detectado desde path: ${firstSegment}`);
       return firstSegment;
     }
   }

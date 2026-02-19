@@ -565,9 +565,12 @@ const AlbumDetailPage = memo(() => {
       if (result) {
         // Build share URL from the current origin so it's always correct regardless
         // of what APP_URL the backend has configured.
+        // Include ?development= so the shared page knows which brand it's for,
+        // even when opened from an unmapped subdomain (e.g. chat-test.bodasdehoy.com).
         const origin = typeof window !== 'undefined' ? window.location.origin : '';
         const token = result.shareToken;
-        const correctShareUrl = token ? `${origin}/memories/shared/${token}` : result.shareUrl;
+        const baseUrl = token ? `${origin}/memories/shared/${token}` : result.shareUrl;
+        const correctShareUrl = `${baseUrl}?development=${development}`;
         setShareUrl(correctShareUrl);
 
         // Generar QR Code directamente desde el frontend con la URL correcta
