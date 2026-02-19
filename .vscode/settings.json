@@ -1,38 +1,35 @@
 {
-  // Optimización de rendimiento - Excluir directorios del file watcher
   "files.watcherExclude": {
-    "**/.git/objects/**": true,
-    "**/.git/subtree-cache/**": true,
     "**/node_modules/**": true,
     "**/.next/**": true,
-    "**/.vercel/**": true,
     "**/dist/**": true,
-    "**/build/**": true,
-    "**/.cache/**": true,
-    "**/.screenshots/**": true
+    "**/.pnpm-store/**": true,
+    "**/.turbo/**": true,
+    "**/coverage/**": true
   },
-  
-  // Optimización de búsqueda - Excluir directorios de búsquedas
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/dist": true,
+    "**/.pnpm-store": true,
+    "**/.turbo": true,
+    "**/coverage": true
+  },
   "search.exclude": {
     "**/node_modules": true,
     "**/.next": true,
-    "**/.vercel": true,
     "**/dist": true,
-    "**/build": true,
-    "**/.cache": true,
-    "**/.screenshots": true,
-    "**/pnpm-lock.yaml": true,
-    "**/*.tsbuildinfo": true
+    "**/.pnpm-store": true,
+    "**/.turbo": true,
+    "**/coverage": true,
+    "**/.git": true
   },
-  
-  // Optimización de TypeScript
-  "typescript.tsdk": "apps/copilot/node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true,
-  
-  // Excluir archivos del explorador para mejorar rendimiento
-  "files.exclude": {
-    "**/.DS_Store": true,
-    "**/Thumbs.db": true,
-    "**/*.tsbuildinfo": true
-  }
+  "search.useIgnoreFiles": true,
+  "search.followSymlinks": false,
+  "search.maxResults": 8000,
+  "git.autorefresh": false,
+  "typescript.tsserver.maxTsServerMemory": 2048,
+  "editor.minimap.enabled": false,
+  "explorer.autoReveal": false,
+  "extensions.autoUpdate": false
 }
