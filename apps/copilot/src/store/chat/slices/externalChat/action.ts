@@ -764,6 +764,8 @@ export const externalChatSlice: StateCreator<
         timestamp: Date.now(),
         token: token,
         userId: userId,
+        // user_id (snake_case) es necesario para useAuthCheck en /messages
+        user_id: userId,
         user_data: userData,
         user_type: userType,
       };

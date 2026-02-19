@@ -600,6 +600,10 @@ export const generateAIChat: StateCreator<
       },
       isWelcomeQuestion: params?.isWelcomeQuestion,
       onErrorHandle: async (error) => {
+        // Si el backend devuelve 402 por saldo insuficiente, abrir el modal de recarga
+        if (error?.type === 'insufficient_balance') {
+          set({ showInsufficientBalance: true });
+        }
         await messageService.updateMessageError(messageId, error);
         await refreshMessages();
       },

@@ -105,6 +105,8 @@ function EventosAutoAuthComponent() {
             timestamp: Date.now(),
             token: payload.token,
             userId: payload.userId,
+            // user_id (snake_case) es necesario para useAuthCheck en /messages
+            user_id: payload.userId,
             user_data: payload.userData,
             user_type: 'registered',
           }));

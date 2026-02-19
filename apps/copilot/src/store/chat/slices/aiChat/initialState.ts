@@ -32,6 +32,11 @@ export interface ChatAIChatState {
    */
   reasoningLoadingIds: string[];
   searchWorkflowLoadingIds: string[];
+  /**
+   * Whether the insufficient balance modal should be shown
+   * Triggered when the backend returns a 402 insufficient_balance error
+   */
+  showInsufficientBalance: boolean;
   threadInputEditor: ChatInputEditor | null;
   /**
    * the tool calling stream ids
@@ -50,6 +55,7 @@ export const initialAiChatState: ChatAIChatState = {
   pluginApiLoadingIds: [],
   reasoningLoadingIds: [],
   searchWorkflowLoadingIds: [],
+  showInsufficientBalance: false,
   threadInputEditor: null,
   toolCallingStreamIds: {},
 };
