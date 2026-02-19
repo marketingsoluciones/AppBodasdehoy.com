@@ -149,6 +149,21 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           `❌ [502] Backend IA error: status=${backendResponse.status} url=${fetchUrl} body=${errorText.slice(0, 300)}`
         );
 
+        if (backendResponse.status === 402) {
+          // Sin saldo: NO hacer fallback al runtime nativo — eso bypassearía el balance check
+          let detail = '';
+          try { detail = JSON.parse(errorText)?.detail || errorText; } catch { detail = errorText; }
+          return new Response(
+            JSON.stringify({
+              error: {
+                message: detail || 'Saldo insuficiente. Recarga tu cuenta para continuar usando el asistente.',
+                type: 'insufficient_balance',
+              },
+            }),
+            { headers: { 'Content-Type': 'application/json' }, status: 402 }
+          );
+        }
+
         if (backendResponse.status === 502) {
           return new Response(
             JSON.stringify({
@@ -162,7 +177,16 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           );
         }
 
-        return null; // Fallback a lógica original
+        // Para otros errores 4xx/5xx del backend, reenviar la respuesta tal cual
+        // en lugar de hacer fallback al runtime nativo (que bypassearía validaciones del backend)
+        if (backendResponse.status >= 400) {
+          return new Response(errorText || JSON.stringify({ error: { type: 'backend_error', status: backendResponse.status } }), {
+            headers: { 'Content-Type': backendResponse.headers.get('content-type') || 'application/json' },
+            status: backendResponse.status,
+          });
+        }
+
+        return null; // Fallback a lógica original solo si no hay error de backend
       }
 
       // Transformar SSE del backend a formato OpenAI-compatible que LobeChat espera.
