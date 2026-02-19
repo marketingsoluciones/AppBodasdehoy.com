@@ -22,11 +22,10 @@ export const DateTask: FC<Props> = ({ handleUpdate, canEdit, task, setEditing, e
   const [value, setValue] = useState<string>();
   const [blockUpdate, setBlockUpdate] = useState<boolean>(false);
   const { utcDateTime, utcDateFormated2Digits, utcTime } = useDateTime()
-  
 
   return (
     <div className="w-[120px] h-full flex items-center">
-      { ValidationEdit && editing
+      {ValidationEdit && editing
         ? <ClickAwayListener onClickAway={() => setEditing(false)}>
           <div className="w-full flex items-center relative">
             <div onClick={async () => {
