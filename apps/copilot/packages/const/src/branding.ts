@@ -10,8 +10,6 @@ export const BRANDING_LOGO_URL = process.env.NEXT_PUBLIC_BRANDING_LOGO_URL || ''
 
 export const ORG_NAME = process.env.NEXT_PUBLIC_ORG_NAME || 'LobeHub';
 
-export const OFFICIAL_SITE = process.env.NEXT_PUBLIC_OFFICIAL_SITE || 'https://eventosorganizador.com';
-
 export const BRANDING_URL = {
   help: undefined,
   privacy: undefined,

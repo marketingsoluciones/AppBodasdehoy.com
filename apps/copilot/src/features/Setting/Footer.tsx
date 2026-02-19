@@ -8,7 +8,7 @@ import { PropsWithChildren, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Center, Flexbox } from 'react-layout-kit';
 
-import { OFFICIAL_SITE } from '@/const/branding';
+import { OFFICIAL_SITE } from '@/const/url';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 const useStyles = createStyles(
