@@ -46,6 +46,9 @@ interface TopicContentProps {
 const TopicContent = memo<TopicContentProps>(({ id, title, fav, showMore }) => {
   const { t } = useTranslation(['topic', 'common']);
 
+  // Translate known i18n keys stored literally in the DB (e.g. 'defaultTitle' saved before translations loaded)
+  const displayTitle = title === 'defaultTitle' ? t('defaultTitle') : title;
+
   const mobile = useIsMobile();
 
   const openTopicInNewWindow = useGlobalStore((s) => s.openTopicInNewWindow);
@@ -187,7 +190,7 @@ const TopicContent = memo<TopicContentProps>(({ id, title, fav, showMore }) => {
         ) : (
           <Text
             className={styles.title}
-            ellipsis={{ rows: 1, tooltip: { placement: 'left', title } }}
+            ellipsis={{ rows: 1, tooltip: { placement: 'left', title: displayTitle } }}
             onDoubleClick={() => {
               if (isDesktop) {
                 openTopicInNewWindow(activeId, id)
@@ -195,7 +198,7 @@ const TopicContent = memo<TopicContentProps>(({ id, title, fav, showMore }) => {
             }}
             style={{ margin: 0 }}
           >
-            {title}
+            {displayTitle}
           </Text>
         )
       ) : (
