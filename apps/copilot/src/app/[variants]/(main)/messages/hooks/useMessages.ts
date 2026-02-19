@@ -39,8 +39,8 @@ export function useMessages(channel: string, conversationId: string) {
         return;
       }
 
-      // ✅ IMPLEMENTACIÓN: Fetch real desde backend
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+      // ✅ Usar proxy Next.js /api/messages/... para evitar CORS
+      const proxyBase = '/api/messages';
 
       // Obtener token de autenticación
       let token: string | null = null;
@@ -71,7 +71,7 @@ export function useMessages(channel: string, conversationId: string) {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${backendUrl}/api/messages/conversations/${conversationId}`, {
+      const response = await fetch(`${proxyBase}/conversations/${conversationId}`, {
         headers,
       });
 

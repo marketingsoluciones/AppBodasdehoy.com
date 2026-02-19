@@ -21,8 +21,8 @@ export function useSendMessage() {
       setSending(true);
       setError(null);
 
-      // ✅ IMPLEMENTACIÓN: Envío real a backend
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+      // ✅ Usar proxy Next.js /api/messages/... para evitar CORS
+      const proxyBase = '/api/messages';
 
       // Obtener token de autenticación
       let token: string | null = null;
@@ -53,7 +53,7 @@ export function useSendMessage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${backendUrl}/api/messages/send`, {
+      const response = await fetch(`${proxyBase}/send`, {
         body: JSON.stringify({
           channel,
           conversationId,

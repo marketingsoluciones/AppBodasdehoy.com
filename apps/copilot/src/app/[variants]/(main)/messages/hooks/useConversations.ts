@@ -42,8 +42,8 @@ export function useConversations(channel: string | null) {
         return;
       }
 
-      // ✅ MEJORA 3: Preparar headers de autenticación
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+      // ✅ Usar proxy Next.js /api/messages/... para evitar CORS
+      const proxyBase = '/api/messages';
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
@@ -85,9 +85,9 @@ export function useConversations(channel: string | null) {
       const isDevelopment = process.env.NODE_ENV === 'development';
 
       if (isDevelopment) {
-        // Intentar obtener desde backend real primero
+        // Intentar obtener desde backend real primero (vía proxy)
         try {
-          const response = await fetch(`${backendUrl}/api/messages/conversations?${params}`, {
+          const response = await fetch(`${proxyBase}/conversations?${params}`, {
             headers,
           });
 
@@ -180,9 +180,9 @@ export function useConversations(channel: string | null) {
 
         setConversations(filtered);
       } else {
-        // ✅ En producción, siempre intentar obtener desde backend con autenticación
+        // ✅ En producción, siempre intentar obtener desde backend con autenticación (vía proxy)
         try {
-          const response = await fetch(`${backendUrl}/api/messages/conversations?${params}`, {
+          const response = await fetch(`${proxyBase}/conversations?${params}`, {
             headers,
           });
 
