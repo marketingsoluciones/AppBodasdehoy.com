@@ -1,5 +1,6 @@
 import type { PartialDeep } from 'type-fest';
 
+import { DEFAULT_FEATURE_FLAGS, mapFeatureFlagsEnvToState } from '@/config/featureFlags';
 import { lambdaClient } from '@/libs/trpc/client';
 import { LobeAgentConfig } from '@/types/agent';
 import { GlobalRuntimeConfig } from '@/types/serverConfig';
@@ -35,6 +36,7 @@ class GlobalService {
     }
 
     // ✅ OPTIMIZACIÓN: Config mínima para retornar inmediatamente si hay timeout
+    // serverFeatureFlags usa DEFAULT_FEATURE_FLAGS para que Discover y otros no desaparezcan
     const minimalConfig: GlobalRuntimeConfig = {
       serverConfig: {
         aiProvider: {},
@@ -44,7 +46,7 @@ class GlobalService {
         oAuthSSOProviders: ['google'],
         telemetry: { langfuse: false },
       },
-      serverFeatureFlags: {},
+      serverFeatureFlags: mapFeatureFlagsEnvToState(DEFAULT_FEATURE_FLAGS),
     };
 
     // ✅ OPTIMIZACIÓN: Timeout REDUCIDO a 3s - si tarda más, usar minimal y cargar en background
