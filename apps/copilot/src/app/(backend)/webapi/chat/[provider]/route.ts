@@ -165,8 +165,10 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
         return null; // Fallback a lógica original
       }
 
-      // Transformar SSE del backend (event: text/done) a formato OpenAI-compatible
-      // que LobeChat espera (data: {"choices":[{"delta":{"content":"..."}}]})
+      // Transformar SSE del backend a formato OpenAI-compatible que LobeChat espera.
+      // Soporta dos formatos de backend:
+      //   A) Formato custom (event: text/done): backend propio con eventos nombrados
+      //   B) Formato estándar OpenAI (data: {...}): chunks directos sin event prefix
       const contentType = backendResponse.headers.get('content-type') || '';
       const isCustomSSE = contentType.includes('text/event-stream');
 
@@ -176,6 +178,8 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
         const encoder = new TextEncoder();
         let buffer = '';
         let chunkIndex = 0;
+        // null = aún no detectado, 'custom' = event:/data: pairs, 'openai' = data: directo
+        let sseMode: 'custom' | 'openai' | null = null;
 
         const transformedStream = new ReadableStream({
           cancel() {
@@ -196,41 +200,65 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
 
               let currentEvent = '';
               for (const line of lines) {
-                if (line.startsWith('event: ')) {
-                  currentEvent = line.slice(7).trim();
-                } else if (line.startsWith('data: ') && currentEvent) {
-                  const rawData = line.slice(6);
+                const trimmedLine = line.trimEnd(); // Elimina \r en CRLF
+                if (trimmedLine.startsWith('event: ')) {
+                  currentEvent = trimmedLine.slice(7).trim();
+                  if (sseMode === null) sseMode = 'custom';
+                } else if (trimmedLine.startsWith('data: ')) {
+                  const rawData = trimmedLine.slice(6);
 
-                  if (currentEvent === 'text') {
-                    // Extraer el texto del data (puede ser JSON string o texto plano)
-                    let text = rawData;
-                    try {
-                      text = JSON.parse(rawData);
-                    } catch {
-                      // Es texto plano, usar tal cual
-                    }
-
-                    const openAIChunk = {
-                      choices: [{ delta: { content: text }, finish_reason: null, index: 0 }],
-                      created: Math.floor(Date.now() / 1000),
-                      id: `chatcmpl-proxy-${chunkIndex++}`,
-                      model: 'auto',
-                      object: 'chat.completion.chunk',
-                    };
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(openAIChunk)}\n\n`));
-                  } else if (currentEvent === 'done') {
-                    const doneChunk = {
-                      choices: [{ delta: {}, finish_reason: 'stop', index: 0 }],
-                      created: Math.floor(Date.now() / 1000),
-                      id: `chatcmpl-proxy-${chunkIndex++}`,
-                      model: 'auto',
-                      object: 'chat.completion.chunk',
-                    };
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(doneChunk)}\n\n`));
-                    controller.close();
-                    return;
+                  if (sseMode === null) {
+                    // Auto-detectar formato en el primer data: sin event: previo
+                    sseMode = currentEvent ? 'custom' : 'openai';
                   }
-                  currentEvent = '';
+
+                  if (sseMode === 'custom' && currentEvent) {
+                    // Formato A: backend propio con event: text / event: done
+                    // Re-emitir como event: text para que fetchSSE lo procese correctamente
+                    if (currentEvent === 'text') {
+                      let text = rawData;
+                      try {
+                        text = JSON.parse(rawData);
+                      } catch {
+                        // Es texto plano, usar tal cual
+                      }
+                      // fetchSSE procesa ev.event='text' con data como string JSON
+                      controller.enqueue(
+                        encoder.encode(`event: text\ndata: ${JSON.stringify(text)}\n\n`)
+                      );
+                      chunkIndex++;
+                    } else if (currentEvent === 'done') {
+                      // Stream terminado — cerrar sin emitir (fetchSSE detecta el close)
+                      controller.close();
+                      return;
+                    }
+                    currentEvent = '';
+                  } else if (sseMode === 'openai') {
+                    // Formato B: SSE estándar OpenAI → convertir a formato LobeChat (event: text)
+                    // fetchSSE procesa por ev.event; sin event: prefix, ev.event es undefined → switch no matchea
+                    if (rawData === '[DONE]') {
+                      controller.close();
+                      return;
+                    }
+                    try {
+                      const parsed = JSON.parse(rawData);
+                      const content = parsed?.choices?.[0]?.delta?.content;
+                      if (content) {
+                        // Re-emitir como event: text para que fetchSSE lo procese
+                        controller.enqueue(
+                          encoder.encode(`event: text\ndata: ${JSON.stringify(content)}\n\n`)
+                        );
+                      }
+                      // Emitir usage si viene en el chunk
+                      if (parsed?.usage) {
+                        controller.enqueue(
+                          encoder.encode(`event: usage\ndata: ${JSON.stringify(parsed.usage)}\n\n`)
+                        );
+                      }
+                    } catch {
+                      // Chunk inválido — ignorar
+                    }
+                  }
                 }
               }
             } catch (err) {
