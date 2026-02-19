@@ -69,15 +69,26 @@ const Locale = memo<LocaleLayoutProps>(({ children, defaultLang, antdLocale }) =
       });
   }
 
-  // ✅ Pre-cargar namespace 'error' explícitamente después de inicializar i18n
+  // ✅ Re-cargar traducciones desde el servidor después del montaje en el cliente
+  // Necesario porque SSR inicializa i18next con {} (URLs relativas no funcionan en Node.js)
+  // El cliente debe volver a cargar las traducciones via fetch desde /locales/
   useEffect(() => {
-    if (!i18n.instance.isInitialized) return;
-    
-    // Pre-cargar namespace 'error' explícitamente para asegurar que esté disponible
-    i18n.instance.loadNamespaces(['error']).catch(err => {
-      console.warn('[Locale] Error pre-cargando namespace error:', err);
-    });
-  }, [i18n.instance.isInitialized]);
+    if (isOnServerSide) return;
+
+    // Esperar a que i18next esté inicializado (puede ser async)
+    const reload = async () => {
+      if (!i18n.instance.isInitialized) {
+        await i18n.instance.init();
+      }
+      // Recargar todos los namespaces registrados para el idioma actual
+      await i18n.instance.reloadResources();
+    };
+
+    reload().catch(() => {});
+
+    // Pre-cargar namespace 'error' explícitamente
+    i18n.instance.loadNamespaces(['error']).catch(() => {});
+  }, []);
 
   // handle i18n instance language change
   useEffect(() => {

@@ -377,6 +377,15 @@ const nextConfig: NextConfig = {
     // ✅ Optimizaciones de memoria para dev (evitar OOM con webpack ~6GB)
     if (!isProd) {
       config.parallelism = 2; // Reducir de 10 (CPU cores) a 2 para ahorrar memoria
+
+      // ✅ Cache filesystem en dev: evita recompilar 44k módulos en cada restart
+      // Sin esto, cada crash/restart → 400s+ de recompilación completa
+      config.cache = {
+        type: 'filesystem',
+        cacheDirectory: require('path').join(__dirname, '.next/cache/webpack'),
+        compression: false, // Sin compresión en dev → más rápido escribir/leer cache
+        maxMemoryGenerations: 1, // Limitar generaciones en memoria
+      };
     }
 
     // ✅ Optimizaciones de memoria para build

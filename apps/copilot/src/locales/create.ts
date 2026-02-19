@@ -24,6 +24,10 @@ export const createI18nNext = (lang?: string) => {
             return await import(`./default/${ns}`);
           }
 
+          // En SSR, las URLs relativas fallan en Node.js (no hay base URL)
+          // El cliente cargará las traducciones correctamente desde el browser
+          if (isOnServerSide) return {};
+
           const normalizedLng = normalizeLocale(lng);
 
           // Fetch desde /locales/ (public folder) - funciona en dev y prod
@@ -57,55 +61,18 @@ export const createI18nNext = (lang?: string) => {
       return instance.init({
         debug: debugMode,
         defaultNS: ['error', 'common', 'chat'],
-        
-        // detection: {
-//   caches: ['cookie'],
-//   cookieMinutes: 60 * 24 * COOKIE_CACHE_DAYS,
-//   /**
-//      Set `sameSite` to `lax` so that the i18n cookie can be passed to the
-//      server side when returning from the OAuth authorization website.
-//      ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#samesitesamesite-value
-//      discussion: https://github.com/lobehub/lobe-chat/pull/1474
-//   */
-//   cookieOptions: {
-//     sameSite: 'lax',
-//   },
-//   lookupCookie: LOBE_LOCALE_COOKIE,
-// },
-fallbackLng: DEFAULT_LANG,
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-initAsync,
-
-        
-interpolation: {
+        fallbackLng: DEFAULT_LANG,
+        initAsync,
+        interpolation: {
           escapeValue: false,
         },
-        
-lng: lang,
-        
-// ✅ FIX: Manejar errores de carga de forma silenciosa
-missingKeyHandler: (lng, ns, key) => {
+        lng: lang,
+        missingKeyHandler: (lng, ns, key) => {
           if (debugMode) {
             console.warn(`[i18n] Missing translation: ${lng}/${ns}/${key}`);
           }
         },
-        
         ns: ['error', 'common', 'chat', 'editor', 'auth', 'setting', 'welcome', 'plugin', 'tool', 'file', 'image', 'topic', 'components'],
-        // ✅ FIX: No fallar si un namespace no existe
         partialBundledLanguages: true,
       });
     },
