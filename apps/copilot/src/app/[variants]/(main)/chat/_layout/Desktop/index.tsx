@@ -20,6 +20,7 @@ import Workspace from './Workspace';
 
 // Lazy load para componente no crítico
 const PendingIntentModal = lazy(() => import('@/features/PendingIntentModal'));
+const InsufficientBalanceModal = lazy(() => import('@/features/InsufficientBalanceModal'));
 
 const Layout = ({ children, session }: LayoutProps) => {
   const searchParams = useSearchParams();
@@ -50,6 +51,10 @@ const Layout = ({ children, session }: LayoutProps) => {
           <PendingIntentModal />
         </Suspense>
       )}
+      {/* Modal de saldo insuficiente - se abre automáticamente con errores 402 */}
+      <Suspense fallback={null}>
+        <InsufficientBalanceModal />
+      </Suspense>
       <Flexbox
         height={'100%'}
         horizontal
