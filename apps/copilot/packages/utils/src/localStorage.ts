@@ -81,93 +81,36 @@ export class AsyncLocalStorage<State> {
   }
 
   async getFromLocalStorage(key: StorageKey = this.storageKey): Promise<State> {
-    // ✅ OPTIMIZACIÓN 1: Verificar cache en memoria primero (0ms latencia)
+    // Cache en memoria primero (0ms latencia)
     const cached = this.cache.get(key);
     const timestamp = this.cacheTimestamp.get(key);
 
     if (cached && timestamp && (Date.now() - timestamp < this.CACHE_TTL)) {
-      console.log(`✅ [AsyncLocalStorage] Usando cache para ${key}`);
       return cached;
     }
 
-    // ✅ OPTIMIZACIÓN 2: Timeout agresivo de 300ms para evitar bloqueos largos
-    const timeoutMs = 300;
+    // localStorage.getItem es síncrono y tarda <1ms — leer directamente.
+    // requestIdleCallback era incorrecto aquí: espera al idle del navegador,
+    // que durante el page load puede tardar 300-900ms y bloquear la UI.
+    try {
+      const item = safeLocalStorage.getItem(key);
 
-    return new Promise<State>((resolve) => {
-      let resolved = false;
-
-      // Timeout para retornar objeto vacío si tarda mucho
-      const timeout = setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          console.warn(`⚠️ [AsyncLocalStorage] Timeout al leer ${key} después de ${timeoutMs}ms, usando objeto vacío`);
-          resolve({} as State);
-        }
-      }, timeoutMs);
-
-      // ✅ OPTIMIZACIÓN 3: Usar requestIdleCallback si está disponible para no bloquear render crítico
-      const parseData = () => {
-        try {
-          if (resolved) return;
-
-          const start = Date.now();
-          const item = safeLocalStorage.getItem(key);
-
-          // ✅ OPTIMIZACIÓN 4: Verificar tamaño antes de parsear (prevenir parseo de data gigante)
-          if (item && item.length > 1000000) { // 1MB
-            console.warn(`⚠️ [AsyncLocalStorage] ${key} es muy grande (${(item.length / 1024).toFixed(2)}KB), limitando o usando objeto vacío`);
-
-            // Intentar limpiar data vieja o corrupta
-            safeLocalStorage.removeItem(key);
-
-            if (!resolved) {
-              resolved = true;
-              clearTimeout(timeout);
-              resolve({} as State);
-            }
-            return;
-          }
-
-          const parsed = item ? JSON.parse(item) : {};
-          const elapsed = Date.now() - start;
-
-          if (elapsed > 50) {
-            console.warn(`⚠️ [AsyncLocalStorage] Parseo de ${key} tardó ${elapsed}ms`);
-          }
-
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(timeout);
-
-            // Actualizar cache en memoria
-            this.cache.set(key, parsed as State);
-            this.cacheTimestamp.set(key, Date.now());
-
-            console.log(`✅ [AsyncLocalStorage] ${key} cargado en ${elapsed}ms`);
-            resolve(parsed as State);
-          }
-        } catch (error) {
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(timeout);
-            console.warn(`⚠️ [AsyncLocalStorage] Error parseando ${key}, usando objeto vacío:`, error);
-
-            // Limpiar data corrupta
-            safeLocalStorage.removeItem(key);
-
-            resolve({} as State);
-          }
-        }
-      };
-
-      // Usar requestIdleCallback si está disponible (ejecuta cuando el navegador está idle)
-      // Esto evita bloquear el render crítico
-      if (typeof requestIdleCallback !== 'undefined') {
-        requestIdleCallback(parseData, { timeout: timeoutMs });
-      } else {
-        // Fallback a queueMicrotask (menos ideal pero mejor que síncrono)
-        queueMicrotask(parseData);
+      // Limpiar datos corruptos/gigantes (>1MB)
+      if (item && item.length > 1_000_000) {
+        console.warn(`⚠️ [AsyncLocalStorage] ${key} excede 1MB, limpiando`);
+        safeLocalStorage.removeItem(key);
+        return {} as State;
       }
-    });
+
+      const parsed = item ? JSON.parse(item) : {};
+
+      this.cache.set(key, parsed as State);
+      this.cacheTimestamp.set(key, Date.now());
+
+      return parsed as State;
+    } catch {
+      safeLocalStorage.removeItem(key);
+      return {} as State;
+    }
   }
 }
