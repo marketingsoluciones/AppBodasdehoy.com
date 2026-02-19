@@ -328,34 +328,40 @@ const nextConfig: NextConfig = {
 
     console.log('[next.config] Proxying API requests to:', backendUrl);
 
-    return [
-      // Proxy original para /api/backend/*
-      {
-        destination: `${backendUrl}/:path*`,
-        source: '/api/backend/:path*',
-      },
-      // ✅ NUEVO: Proxy para debug logs (evita CORS)
-      {
-        destination: `${backendUrl}/api/debug-logs/:path*`,
-        source: '/api/debug-logs/:path*',
-      },
-      // ✅ NUEVO: Proxy para developers API (evita CORS)
-      {
-        destination: `${backendUrl}/api/developers/:path*`,
-        source: '/api/developers/:path*',
-      },
-      // ✅ NUEVO: Proxy para config API (evita CORS)
-      {
-        destination: `${backendUrl}/api/config/:path*`,
-        source: '/api/config/:path*',
-      },
-      // ✅ NUEVO: Proxy genérico para cualquier otra llamada /api/* no cubierta arriba
-      // IMPORTANTE: Este debe ir al final para no sobrescribir los específicos
-      {
-        destination: `${backendUrl}/api/:path*`,
-        source: '/api/:path*',
-      },
-    ];
+    return {
+      // fallback: se aplica DESPUÉS de todos los routes (incluyendo dinámicos).
+      // Esto permite que src/app/(backend)/api/memories/[...path]/route.ts
+      // maneje /api/memories/* antes que el catch-all /api/:path*.
+      // El catch-all solo actúa cuando NO existe un route handler que coincida.
+      fallback: [
+        // Proxy original para /api/backend/*
+        {
+          destination: `${backendUrl}/:path*`,
+          source: '/api/backend/:path*',
+        },
+        // Proxy para debug logs (evita CORS)
+        {
+          destination: `${backendUrl}/api/debug-logs/:path*`,
+          source: '/api/debug-logs/:path*',
+        },
+        // Proxy para developers API (evita CORS)
+        {
+          destination: `${backendUrl}/api/developers/:path*`,
+          source: '/api/developers/:path*',
+        },
+        // Proxy para config API (evita CORS)
+        {
+          destination: `${backendUrl}/api/config/:path*`,
+          source: '/api/config/:path*',
+        },
+        // Catch-all: rutas /api/* sin handler propio van al backend Python.
+        // /api/memories/* tiene su route handler y nunca llega aquí.
+        {
+          destination: `${backendUrl}/api/:path*`,
+          source: '/api/:path*',
+        },
+      ],
+    };
   },
 
   // when external packages in dev mode with turbopack, this config will lead to bundle error

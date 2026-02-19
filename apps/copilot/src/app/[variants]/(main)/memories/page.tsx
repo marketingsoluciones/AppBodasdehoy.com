@@ -361,6 +361,7 @@ const MemoriesPage = memo(() => {
   const [form] = Form.useForm<CreateAlbumFormValues>();
   const [createLoading, setCreateLoading] = useState(false);
   const [loadingEvents, setLoadingEvents] = useState(false);
+  const [manualEventEntry, setManualEventEntry] = useState(false);
 
   // ✅ CORREGIDO: Usar dev-login en lugar de LobeChat auth
   const { isAuthenticated, devUserId, isChecking } = useDevUserAuth();
@@ -383,8 +384,6 @@ const MemoriesPage = memo(() => {
     setSearchTerm,
     toggleCreateAlbumModal,
     createAlbum,
-    createEventAlbumStructure,
-    getAlbumsByEvent,
   } = useMemoriesStore();
 
   // ✅ OPTIMIZACIÓN: Deferir carga de álbumes para no bloquear render inicial
@@ -441,7 +440,9 @@ const MemoriesPage = memo(() => {
     if (userId && fetchUserEvents) {
       setLoadingEvents(true);
       try {
-        await fetchUserEvents();
+        // Pass userId directly since the chat store may not have currentUserId set
+        // when the user accesses /memories without going through the chat flow first.
+        await fetchUserEvents(userId);
       } catch (error) {
         console.error('Error loading events:', error);
       } finally {
@@ -649,23 +650,49 @@ const MemoriesPage = memo(() => {
             <Input.TextArea placeholder="Describe tu álbum..." rows={3} />
           </Form.Item>
 
-          <Form.Item label="Vincular con Evento (Opcional)" name="eventId">
-            <Select
-              allowClear
-              filterOption={(input, option) =>
-                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-              }
-              loading={loadingEvents}
-              notFoundContent={loadingEvents ? 'Cargando eventos...' : userEvents.length === 0 ? 'No tienes eventos. Crea uno primero en el chat.' : 'No se encontraron eventos'}
-              options={userEvents.map((event: any) => ({
-                label: `${event.nombre || event.name || 'Evento sin nombre'} - ${event.fecha ? new Date(event.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Sin fecha'}`,
-                value: event.id || event._id,
-              }))}
-              placeholder="Buscar evento por nombre..."
-              showSearch
-            />
+          <Form.Item
+            label={
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                Vincular con Evento (Opcional)
+                <Button
+                  size="small"
+                  type="link"
+                  style={{ fontSize: 12, padding: 0, height: 'auto' }}
+                  onClick={() => {
+                    setManualEventEntry((v) => !v);
+                    form.setFieldValue('eventId', undefined);
+                  }}
+                >
+                  {manualEventEntry ? 'Seleccionar de mis eventos' : 'Introducir código manualmente'}
+                </Button>
+              </span>
+            }
+            name="eventId"
+          >
+            {manualEventEntry ? (
+              <Input placeholder="Código o ID del evento..." allowClear />
+            ) : (
+              <Select
+                allowClear
+                filterOption={(input, option) =>
+                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+                loading={loadingEvents}
+                notFoundContent={
+                  loadingEvents
+                    ? 'Cargando eventos...'
+                    : 'No se encontraron eventos. Usa "Introducir código manualmente" si conoces el ID.'
+                }
+                options={userEvents.map((event: any) => ({
+                  label: `${event.nombre || event.name || 'Evento sin nombre'} - ${event.fecha ? new Date(event.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Sin fecha'}`,
+                  value: event.id || event._id,
+                }))}
+                placeholder="Buscar evento por nombre..."
+                showSearch
+              />
+            )}
             <div style={{ color: theme.colorTextSecondary, fontSize: 12, marginTop: 4 }}>
-              Si vinculas un evento, podrás invitar a los invitados del evento directamente. El ID del evento se guarda automáticamente.
+              Si vinculas un evento, podrás invitar a los invitados del evento directamente.
             </div>
           </Form.Item>
 

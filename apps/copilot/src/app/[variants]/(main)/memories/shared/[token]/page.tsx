@@ -243,14 +243,14 @@ const PublicAlbumPage = memo(() => {
       setError(null);
 
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+        // Use same-origin ('') so the request goes through the Next.js proxy at
+        // src/app/(backend)/api/memories/[...path]/route.ts → avoids CORS.
         const development = typeof window !== 'undefined'
           ? getCurrentDevelopment()
           : 'bodasdehoy';
 
-        // Llamar directamente al endpoint
         const response = await fetch(
-          `${backendUrl}/api/memories/shared/${shareToken}?development=${development}`
+          `/api/memories/shared/${shareToken}?development=${development}`
         );
 
         if (!isMounted) return;
@@ -299,7 +299,6 @@ const PublicAlbumPage = memo(() => {
       message.loading({ content: 'Subiendo archivo...', key: 'upload' });
 
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
         const development = getCurrentDevelopment();
 
         const formData = new FormData();
@@ -310,8 +309,9 @@ const PublicAlbumPage = memo(() => {
           user_id: userId,
         });
 
+        // Same-origin request → through Next.js proxy (no CORS)
         const response = await fetch(
-          `${backendUrl}/api/memories/albums/${album.album_id || album._id}/upload?${params.toString()}`,
+          `/api/memories/albums/${album.album_id || album._id}/upload?${params.toString()}`,
           {
             body: formData,
             method: 'POST',
@@ -324,7 +324,7 @@ const PublicAlbumPage = memo(() => {
           message.success({ content: 'Archivo subido correctamente', key: 'upload' });
           // Recargar media
           const reloadResponse = await fetch(
-            `${backendUrl}/api/memories/shared/${shareToken}?development=${development}`
+            `/api/memories/shared/${shareToken}?development=${development}`
           );
           const reloadResult = await reloadResponse.json();
           if (reloadResult.success) {

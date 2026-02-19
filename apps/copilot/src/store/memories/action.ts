@@ -3,7 +3,10 @@ import { StateCreator } from 'zustand/vanilla';
 import { Album, AlbumMedia, AlbumMember } from './initialState';
 import { MemoriesStore } from './store';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+// En browser usar same-origin (proxy Next.js), en SSR usar el backend directo
+const BACKEND_URL = typeof window !== 'undefined'
+  ? ''
+  : (process.env.NEXT_PUBLIC_BACKEND_URL || '');
 
 // ============================================================================
 // CACHE SYSTEM - Reduce loading times from 30s to 0ms on revisits
@@ -261,7 +264,19 @@ export const memoriesActionSlice: StateCreator<
           method: 'POST',
         },
       );
-      const result = await response.json();
+
+      // Handle non-JSON responses (e.g. text/plain 500 from Starlette/Uvicorn)
+      let result: any;
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        result = await response.json();
+      } else {
+        const text = await response.text().catch(() => `HTTP ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`Error del servidor (${response.status}): ${text.slice(0, 200)}`);
+        }
+        result = { detail: text, success: false };
+      }
 
       if (result.success && result.album) {
         // Replace temp album with real one

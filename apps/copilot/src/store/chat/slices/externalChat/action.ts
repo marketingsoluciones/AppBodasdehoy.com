@@ -34,8 +34,8 @@ export interface ExternalChatAction {
   // Cargar configuraciones de API del usuario
   fetchUserApiConfigs: () => Promise<void>;
 
-  // Cargar eventos del usuario
-  fetchUserEvents: () => Promise<void>;
+  // Cargar eventos del usuario (userIdOverride permite llamarlo sin setExternalChatConfig previo)
+  fetchUserEvents: (userIdOverride?: string) => Promise<void>;
 
   // Cargar perfil del usuario
   fetchUserProfile: () => Promise<void>;
@@ -383,8 +383,11 @@ export const externalChatSlice: StateCreator<
   },
 
   // Cargar eventos del usuario
-  fetchUserEvents: async () => {
-    const { currentUserId, development, internal_setExternalChatsError } = get();
+  fetchUserEvents: async (userIdOverride?: string) => {
+    const { currentUserId: storeUserId, development, internal_setExternalChatsError } = get();
+    // Allow callers (e.g. memories page) to pass their own userId when the store
+    // hasn't been initialised via setExternalChatConfig yet.
+    const currentUserId = userIdOverride || storeUserId;
 
     if (!currentUserId || !development) {
       const errorMsg = `Usuario o development no configurado. userId: ${currentUserId}, development: ${development}`;

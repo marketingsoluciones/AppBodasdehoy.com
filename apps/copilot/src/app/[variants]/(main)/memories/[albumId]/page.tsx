@@ -563,13 +563,17 @@ const AlbumDetailPage = memo(() => {
     try {
       const result = await generateShareLink(albumId, userId, 30, development);
       if (result) {
-        setShareUrl(result.shareUrl);
+        // Build share URL from the current origin so it's always correct regardless
+        // of what APP_URL the backend has configured.
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const token = result.shareToken;
+        const correctShareUrl = token ? `${origin}/memories/shared/${token}` : result.shareUrl;
+        setShareUrl(correctShareUrl);
 
-        // Generar QR Code
+        // Generar QR Code — same-origin request through Next.js proxy (no CORS)
         try {
-          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
           const qrResponse = await fetch(
-            `${backendUrl}/api/memories/albums/${albumId}/qr?user_id=${userId}&development=${development}`
+            `/api/memories/albums/${albumId}/qr?user_id=${userId}&development=${development}`
           );
 
           if (!qrResponse.ok) {
