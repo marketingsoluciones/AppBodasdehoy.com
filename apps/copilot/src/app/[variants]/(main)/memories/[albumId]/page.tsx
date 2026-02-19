@@ -570,26 +570,10 @@ const AlbumDetailPage = memo(() => {
         const correctShareUrl = token ? `${origin}/memories/shared/${token}` : result.shareUrl;
         setShareUrl(correctShareUrl);
 
-        // Generar QR Code — same-origin request through Next.js proxy (no CORS)
-        try {
-          const qrResponse = await fetch(
-            `/api/memories/albums/${albumId}/qr?user_id=${userId}&development=${development}`
-          );
-
-          if (!qrResponse.ok) {
-            throw new Error(`HTTP ${qrResponse.status}`);
-          }
-
-          const qrResult = await qrResponse.json();
-          if (qrResult.success) {
-            setQrUrl(qrResult.qr_url);
-          } else {
-            console.warn('QR generation returned success=false:', qrResult);
-          }
-        } catch (error) {
-          console.error('Error generating QR:', error);
-          message.warning('Se generó el enlace pero hubo un problema al generar el QR');
-        }
+        // Generar QR Code directamente desde el frontend con la URL correcta
+        // (evita que el backend use APP_URL incorrecto)
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(correctShareUrl)}`;
+        setQrUrl(qrApiUrl);
 
         setShareModalOpen(true);
       } else {
@@ -1137,8 +1121,8 @@ const AlbumDetailPage = memo(() => {
               <Button icon={<UserPlus size={16} />} onClick={() => toggleInviteModal(true)}>
                 Invitar
               </Button>
-              <Button icon={<Share2 size={16} />} onClick={handleShare}>
-                Compartir
+              <Button icon={<Share2 size={16} />} loading={loadingQr} onClick={handleShare} type="primary">
+                Compartir / QR
               </Button>
               <Dropdown menu={{ items: moreMenuItems }} placement="bottomRight">
                 <Button icon={<MoreVertical size={16} />} />
@@ -1359,29 +1343,54 @@ const AlbumDetailPage = memo(() => {
         onCancel={() => setShareModalOpen(false)}
         open={shareModalOpen}
         title="Compartir Álbum"
+        width={420}
       >
-        <Flexbox align="center" gap={16} style={{ padding: '20px 0' }}>
-          {loadingQr ? (
-            <Skeleton.Image active style={{ height: 120, width: 120 }} />
-          ) : qrUrl ? (
-            <img alt="QR Code" src={qrUrl} style={{ height: 120, width: 120 }} />
-          ) : (
-            <QrCode size={120} strokeWidth={1} />
-          )}
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <p>Comparte este enlace o escanea el QR:</p>
-            <code
+        <Flexbox align="center" gap={20} style={{ flexDirection: 'column', padding: '16px 0' }}>
+          {/* QR grande y centrado */}
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ color: theme.colorTextSecondary, fontSize: 13, marginBottom: 12 }}>
+              Escanea el QR con la cámara o comparte el enlace para que otros suban sus fotos
+            </p>
+            {loadingQr ? (
+              <Skeleton.Image active style={{ height: 220, width: 220 }} />
+            ) : qrUrl ? (
+              <img
+                alt="QR Code"
+                src={qrUrl}
+                style={{
+                  borderRadius: 12,
+                  boxShadow: `0 4px 20px ${theme.colorPrimaryBg}`,
+                  height: 220,
+                  width: 220,
+                }}
+              />
+            ) : (
+              <QrCode size={220} strokeWidth={1} />
+            )}
+          </div>
+
+          {/* URL copiable */}
+          <div style={{ width: '100%' }}>
+            <div style={{ color: theme.colorTextSecondary, fontSize: 12, marginBottom: 6 }}>
+              Enlace del álbum:
+            </div>
+            <div
+              onClick={handleCopyShareLink}
               style={{
                 background: theme.colorBgTextHover,
-                borderRadius: 4,
-                display: 'block',
-                marginTop: 8,
-                padding: '8px 12px',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontSize: 12,
+                padding: '10px 14px',
                 wordBreak: 'break-all',
               }}
+              title="Haz clic para copiar"
             >
               {shareUrl || 'Generando enlace...'}
-            </code>
+            </div>
+            <div style={{ color: theme.colorTextSecondary, fontSize: 11, marginTop: 4, textAlign: 'center' }}>
+              Haz clic en el enlace para copiar
+            </div>
           </div>
         </Flexbox>
       </Modal>
