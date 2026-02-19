@@ -9,7 +9,6 @@ import { CURRENT_VERSION, isDesktop } from '@/const/version';
 import { useOnlyFetchOnceSWR } from '@/libs/swr';
 import { globalService } from '@/services/global';
 import type { SystemStatus } from '@/store/global/initialState';
-import { INITIAL_STATUS } from '@/store/global/initialState';
 import { LocaleMode } from '@/types/locale';
 import { setCookie } from '@/utils/client/cookie';
 import { switchLang } from '@/utils/client/switchLang';
@@ -149,36 +148,9 @@ export const generalActionSlice: StateCreator<
     ),
 
   useInitSystemStatus: () => {
-    // ✅ OPTIMIZACIÓN: Agregar timeout y logging para identificar lentitud
     return useOnlyFetchOnceSWR<SystemStatus>(
       'initSystemStatus',
-      async () => {
-        const startTime = Date.now();
-        console.log('⏱️ [SystemStatus] Iniciando lectura de estado del sistema...');
-
-        try {
-          // ✅ Agregar timeout para evitar que se quede bloqueado
-          // Aumentado a 2 segundos ya que ahora el parseo es verdaderamente asíncrono
-          const timeoutPromise = new Promise<never>((_, reject) => {
-            setTimeout(() => reject(new Error('Timeout: getFromLocalStorage tardó más de 2 segundos')), 2000);
-          });
-
-          const result = await Promise.race([
-            get().statusStorage.getFromLocalStorage(),
-            timeoutPromise
-          ]);
-
-          const elapsed = Date.now() - startTime;
-          console.log(`✅ [SystemStatus] Estado leído en ${elapsed}ms`);
-
-          return result;
-        } catch (error) {
-          const elapsed = Date.now() - startTime;
-          console.warn(`⚠️ [SystemStatus] Error después de ${elapsed}ms (usando estado por defecto):`, error);
-          // Retornar estado por defecto en lugar de fallar
-          return INITIAL_STATUS;
-        }
-      },
+      () => get().statusStorage.getFromLocalStorage(),
       {
         onSuccess: (status) => {
           set({ isStatusInit: true }, false, 'setStatusInit');

@@ -7,7 +7,6 @@ import { GlobalRuntimeConfig } from '@/types/serverConfig';
 
 const VERSION_URL = 'https://registry.npmmirror.com/@lobehub/chat/latest';
 
-// ✅ SOLUCIÓN RÁPIDA: Cache en memoria para getGlobalConfig
 interface ConfigCache {
   config: GlobalRuntimeConfig | null;
   timestamp: number;
@@ -28,15 +27,12 @@ class GlobalService {
   };
 
   getGlobalConfig = async (): Promise<GlobalRuntimeConfig> => {
-    // ✅ SOLUCIÓN RÁPIDA: Verificar cache primero
     const now = Date.now();
     if (globalConfigCache.config && now - globalConfigCache.timestamp < CACHE_TTL) {
-      console.log('✅ [ServerConfig] Usando cache de configuración');
       return globalConfigCache.config;
     }
 
-    // ✅ OPTIMIZACIÓN: Config mínima para retornar inmediatamente si hay timeout
-    // serverFeatureFlags usa DEFAULT_FEATURE_FLAGS para que Discover y otros no desaparezcan
+    // Fallback config used when the server takes >3s to respond
     const minimalConfig: GlobalRuntimeConfig = {
       serverConfig: {
         aiProvider: {},
@@ -49,50 +45,28 @@ class GlobalService {
       serverFeatureFlags: mapFeatureFlagsEnvToState(DEFAULT_FEATURE_FLAGS),
     };
 
-    // ✅ OPTIMIZACIÓN: Timeout REDUCIDO a 3s - si tarda más, usar minimal y cargar en background
     const timeoutPromise = new Promise<GlobalRuntimeConfig>((resolve) => {
-      setTimeout(() => {
-        console.warn('⚠️ [ServerConfig] Timeout después de 3s, usando config mínima');
-        resolve(minimalConfig);
-      }, 3000);
+      setTimeout(() => resolve(minimalConfig), 3000);
     });
 
     try {
-      const startTime = Date.now();
-      console.log('⏱️ [ServerConfig] Iniciando fetch de configuración del servidor...');
-
       const result = await Promise.race([
         lambdaClient.config.getGlobalConfig.query(),
-        timeoutPromise
+        timeoutPromise,
       ]);
 
-      // ✅ Guardar en cache solo si es config completa (no la minimal)
       if (result !== minimalConfig) {
         globalConfigCache = { config: result, timestamp: Date.now() };
-        const elapsed = Date.now() - startTime;
-        console.log(`✅ [ServerConfig] Configuración obtenida en ${elapsed}ms`);
       } else {
-        // ✅ Intentar cargar config completa en background sin bloquear
+        // Load full config in background after timeout
         lambdaClient.config.getGlobalConfig.query().then((fullConfig) => {
           globalConfigCache = { config: fullConfig, timestamp: Date.now() };
-          console.log('✅ [ServerConfig] Config completa cargada en background');
-        }).catch((err) => {
-          console.warn('⚠️ [ServerConfig] Error cargando config en background:', err);
-        });
+        }).catch(() => {});
       }
 
       return result;
     } catch (error) {
-      console.error('❌ [ServerConfig] Error obteniendo configuración:', error);
-
-      // ✅ SOLUCIÓN RÁPIDA: Si hay error pero tenemos cache, usar cache
-      if (globalConfigCache.config) {
-        console.warn('⚠️ [ServerConfig] Usando cache anterior debido a error');
-        return globalConfigCache.config;
-      }
-
-      // ✅ Si no hay cache, retornar config mínima en vez de lanzar error
-      console.warn('⚠️ [ServerConfig] Sin cache, usando config mínima');
+      if (globalConfigCache.config) return globalConfigCache.config;
       return minimalConfig;
     }
   };

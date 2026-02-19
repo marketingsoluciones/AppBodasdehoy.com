@@ -35,39 +35,17 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
     useServerConfigStore(featureFlagsSelectors);
   const hotkey = useUserStore(settingsSelectors.getHotkeyById(HotkeyEnum.NavigateToChat));
 
-  // ✅ FIX: Verificar server mode de múltiples formas para asegurar que funcione
-  const isServerMode = 
-    process.env.NEXT_PUBLIC_SERVICE_MODE === 'server' ||
-    typeof window !== 'undefined' && (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_SERVICE_MODE === 'server' ||
-    true; // ✅ TEMPORAL: Siempre activo para debugging
+  const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
 
-  // ✅ FIX: Detectar si es usuario visitante (más permisivo)
   const isGuestUser = useChatStore((s) => {
     const email = s.userProfile?.email || s.currentUserId;
-    const isDev = process.env.NODE_ENV === 'development';
-    
-    // ✅ FIX: En desarrollo, ser MUY permisivo
-    if (isDev) {
-      // En desarrollo, casi nunca considerar guest
-      if (!email) return false; // Sin email = permitir acceso
-      // Solo considerar guest si explícitamente es guest/anonymous
-      const lowerEmail = email.toLowerCase();
-      return (
-        lowerEmail === 'guest' ||
-        lowerEmail === 'anonymous' ||
-        lowerEmail === 'visitante@guest.local' ||
-        lowerEmail.includes('@guest.')
-      );
-    }
-    
-    // En producción, lógica más estricta pero aún permisiva
-    if (!email) return false; // Sin email = permitir (puede ser usuario nuevo)
+    if (!email) return false;
     const lowerEmail = email.toLowerCase();
     return (
       lowerEmail === 'guest' ||
       lowerEmail === 'anonymous' ||
       lowerEmail === 'visitante@guest.local' ||
-      (lowerEmail.includes('guest') && lowerEmail.includes('@guest.'))
+      lowerEmail.includes('@guest.')
     );
   });
 
@@ -107,8 +85,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           tooltipProps={{ placement: 'right' }}
         />
       </Link>
-      {/* Knowledge Base - ✅ FIX: Más permisivo, mostrar si está habilitado */}
-      {(enableKnowledgeBase || true) && (isServerMode || true) && !isGuestUser && (
+      {enableKnowledgeBase && !isGuestUser && (
         <Link aria-label={t('tab.knowledgeBase')} href={'/knowledge'} suppressHydrationWarning>
           <ActionIcon
             active={isFilesActive}
@@ -119,8 +96,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           />
         </Link>
       )}
-      {/* AI Image - ✅ FIX: Más permisivo, mostrar si está habilitado */}
-      {(showAiImage || true) && !isGuestUser && (
+      {showAiImage && !isGuestUser && (
         <Link aria-label={t('tab.aiImage')} href={'/image'} suppressHydrationWarning>
           <ActionIcon
             active={isImageActive}
@@ -131,19 +107,15 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           />
         </Link>
       )}
-      {/* Momentos - ✅ FIX: Siempre visible en server mode (o siempre si no hay restricción) */}
-      {(isServerMode || true) && (
-        <Link aria-label={t('tab.memories' as any)} href={'/memories'} suppressHydrationWarning>
-          <ActionIcon
-            active={isMemoriesActive}
-            icon={Images}
-            size={ICON_SIZE}
-            title={t('tab.memories' as any)}
-            tooltipProps={{ placement: 'right' }}
-          />
-        </Link>
-      )}
-      {/* Wedding Creator - Visible en modo servidor, más permisivo en desarrollo */}
+      <Link aria-label={t('tab.memories' as any)} href={'/memories'} suppressHydrationWarning>
+        <ActionIcon
+          active={isMemoriesActive}
+          icon={Images}
+          size={ICON_SIZE}
+          title={t('tab.memories' as any)}
+          tooltipProps={{ placement: 'right' }}
+        />
+      </Link>
       {isServerMode && (
         <Link aria-label={t('tab.weddingCreator' as any)} href={'/wedding-creator'} suppressHydrationWarning>
           <ActionIcon
@@ -155,7 +127,6 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           />
         </Link>
       )}
-      {/* Discover/Market - Marketplace de agentes y plugins */}
       {showMarket && (
         <Link aria-label={t('tab.discover')} href={'/discover'} suppressHydrationWarning>
           <ActionIcon
