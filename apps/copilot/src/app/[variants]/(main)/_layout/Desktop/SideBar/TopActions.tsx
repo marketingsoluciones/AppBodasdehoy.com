@@ -82,6 +82,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
       <Link
         aria-label={t('tab.chat')}
         href={'/chat'}
+        suppressHydrationWarning
         onClick={(e) => {
           // If Cmd key is pressed, let the default link behavior happen (open in new tab)
           if (e.metaKey || e.ctrlKey) {
@@ -108,7 +109,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
       </Link>
       {/* Knowledge Base - ✅ FIX: Más permisivo, mostrar si está habilitado */}
       {(enableKnowledgeBase || true) && (isServerMode || true) && !isGuestUser && (
-        <Link aria-label={t('tab.knowledgeBase')} href={'/knowledge'}>
+        <Link aria-label={t('tab.knowledgeBase')} href={'/knowledge'} suppressHydrationWarning>
           <ActionIcon
             active={isFilesActive}
             icon={FolderClosed}
@@ -120,7 +121,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
       )}
       {/* AI Image - ✅ FIX: Más permisivo, mostrar si está habilitado */}
       {(showAiImage || true) && !isGuestUser && (
-        <Link aria-label={t('tab.aiImage')} href={'/image'}>
+        <Link aria-label={t('tab.aiImage')} href={'/image'} suppressHydrationWarning>
           <ActionIcon
             active={isImageActive}
             icon={Palette}
@@ -132,7 +133,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
       )}
       {/* Momentos - ✅ FIX: Siempre visible en server mode (o siempre si no hay restricción) */}
       {(isServerMode || true) && (
-        <Link aria-label={t('tab.memories' as any)} href={'/memories'}>
+        <Link aria-label={t('tab.memories' as any)} href={'/memories'} suppressHydrationWarning>
           <ActionIcon
             active={isMemoriesActive}
             icon={Images}
@@ -144,7 +145,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
       )}
       {/* Wedding Creator - Visible en modo servidor, más permisivo en desarrollo */}
       {isServerMode && (
-        <Link aria-label={t('tab.weddingCreator' as any)} href={'/wedding-creator'}>
+        <Link aria-label={t('tab.weddingCreator' as any)} href={'/wedding-creator'} suppressHydrationWarning>
           <ActionIcon
             active={tab === SidebarTabKey.WeddingCreator}
             icon={Heart}
@@ -156,7 +157,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
       )}
       {/* Discover/Market - Marketplace de agentes y plugins */}
       {showMarket && (
-        <Link aria-label={t('tab.discover')} href={'/discover'}>
+        <Link aria-label={t('tab.discover')} href={'/discover'} suppressHydrationWarning>
           <ActionIcon
             active={isDiscoverActive}
             icon={Compass}

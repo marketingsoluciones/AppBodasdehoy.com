@@ -31,7 +31,7 @@ const BottomActions = memo(() => {
           />
         </Link>
       )}
-      <Link aria-label={t('labs')} href={'/labs'}>
+      <Link aria-label={t('labs')} href={'/labs'} suppressHydrationWarning>
         <ActionIcon
           icon={FlaskConical}
           size={ICON_SIZE}

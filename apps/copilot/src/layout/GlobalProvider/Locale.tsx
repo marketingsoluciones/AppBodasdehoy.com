@@ -69,24 +69,10 @@ const Locale = memo<LocaleLayoutProps>(({ children, defaultLang, antdLocale }) =
       });
   }
 
-  // ✅ Re-cargar traducciones desde el servidor después del montaje en el cliente
-  // Necesario porque SSR inicializa i18next con {} (URLs relativas no funcionan en Node.js)
-  // El cliente debe volver a cargar las traducciones via fetch desde /locales/
+  // Pre-cargar namespace 'error' después del montaje
+  // El init() del render path ya carga las traducciones vía fetch en el cliente
   useEffect(() => {
     if (isOnServerSide) return;
-
-    // Esperar a que i18next esté inicializado (puede ser async)
-    const reload = async () => {
-      if (!i18n.instance.isInitialized) {
-        await i18n.instance.init();
-      }
-      // Recargar todos los namespaces registrados para el idioma actual
-      await i18n.instance.reloadResources();
-    };
-
-    reload().catch(() => {});
-
-    // Pre-cargar namespace 'error' explícitamente
     i18n.instance.loadNamespaces(['error']).catch(() => {});
   }, []);
 
