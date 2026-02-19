@@ -20,7 +20,8 @@ interface TimeTaskProps {
 export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEditing, editing, uso, ValidationEdit }) => {
   const { t } = useTranslation();
   const [value, setValue] = useState<string>();
-  const { utcDateTime, timeFormated } = useDateTime()
+  const [blockUpdate, setBlockUpdate] = useState<boolean>(false);
+  const { utcDateTime, timeFormated, utcTime } = useDateTime()
   const { event } = EventContextProvider()
 
   const endTime = task?.fecha && task?.duracion ? calculateEndTime(task.fecha, task.duracion as number) : null;
@@ -61,48 +62,58 @@ export const TimeTask: FC<TimeTaskProps> = ({ handleUpdate, canEdit, task, setEd
             </div>
             <input
               type="time"
-              value={value
-                ? value
-                : uso !== 'endTime' ?
-                  task?.horaActiva !== false ? new Date(task.fecha).toJSON().slice(-13, -8) : undefined
-                  : new Date(endTime)?.toJSON()?.slice(-13, -8)}
-              defaultValue={'00:00'}
-              onClickCapture={async (e) => {
-                if (uso !== 'endTime') {
-                  const valir = new Date(task.fecha).toJSON().slice(-13, -8) === '00:00'
-                  if (e.currentTarget.value && valir) {
-                    await handleUpdate('horaActiva', true)
-                  }
-                  return;
-                }
+              value={
+                value !== undefined && value !== null
+                  ? value
+                  : uso !== 'endTime'
+                    ? task?.fecha
+                      ? task?.horaActiva !== false
+                        ? utcTime(task.fecha)
+                        : '00:00'
+                      : '00:00'
+                    : endTime
+                      ? new Date(endTime).toJSON().slice(-13, -8)
+                      : '00:00'
+              }
+              onClickCapture={() => {
+                setBlockUpdate(false);
               }}
               onChange={async (e) => {
                 setValue(e.currentTarget.value);
+                if (uso !== 'endTime' && !blockUpdate) {
+                  const newFecha = `${utcDateTime(task.fecha)}T${e.currentTarget.value}:00.000Z`;
+                  await handleUpdate('fecha', newFecha);
+                  await handleUpdate('horaActiva', true);
+                  setEditing(false);
+                }
+                setBlockUpdate(false);
               }}
               onKeyDown={async (e) => {
-                if (uso !== 'endTime') {
-                  if (e.key === 'Enter') {
-                    const value = `${utcDateTime(task.fecha)}T${e.currentTarget.value}:00.000Z`
-                    await handleUpdate('fecha', value)
-                    await handleUpdate('horaActiva', true)
-                    setEditing(false);
-                  } else if (e.key === 'Escape') {
-                    setEditing(false);
-                    setValue(null);
+                if (parseInt(e.key) > -1 || e.key === 'Backspace' || e.key === ':') {
+                  setBlockUpdate(true);
+                } else if (e.key === 'Enter') {
+                  if (uso !== 'endTime') {
+                    const newFecha = `${utcDateTime(task.fecha)}T${e.currentTarget.value}:00.000Z`;
+                    await handleUpdate('fecha', newFecha);
+                    await handleUpdate('horaActiva', true);
                   }
-                  return;
+                  setEditing(false);
+                } else if (e.key === 'Escape') {
+                  setBlockUpdate(false);
+                  setEditing(false);
+                  setValue(undefined);
                 }
               }}
               onBlur={async (e) => {
                 if (uso !== 'endTime') {
-                  const valir = e.currentTarget.value !== new Date(task.fecha).toJSON().slice(-13, -8)
+                  const currentTaskTime = task?.fecha ? utcTime(task.fecha) : '00:00';
+                  const valir = e.currentTarget.value !== currentTaskTime;
                   if (e.currentTarget.value && valir) {
-                    const value = `${utcDateTime(task.fecha)}T${e.currentTarget.value}:00.000Z`
-                    await handleUpdate('fecha', value)
-                    await handleUpdate('horaActiva', true)
-                    setValue(null);
+                    const newFecha = `${utcDateTime(task.fecha)}T${e.currentTarget.value}:00.000Z`;
+                    await handleUpdate('fecha', newFecha);
+                    await handleUpdate('horaActiva', true);
+                    setValue(undefined);
                   }
-                  return;
                 }
               }}
               className="px-1 py-[1px] border-none rounded text-xs focus:ring-gray-400 focus:ring-[1px] focus:outline-none transition [&::-webkit-calendar-picker-indicator]:relative [&::-webkit-calendar-picker-indicator]:-left-[11px] [&::-webkit-calendar-picker-indicator]:cursor-pointer"
