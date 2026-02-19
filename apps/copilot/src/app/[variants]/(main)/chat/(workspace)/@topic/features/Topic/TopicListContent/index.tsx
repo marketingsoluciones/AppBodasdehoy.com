@@ -51,26 +51,12 @@ const TopicListContent = memo(() => {
 
   useFetchTopics();
 
-  // ✅ DEBUG: Logs para identificar el problema
-  React.useEffect(() => {
-    console.group('🔍 TopicListContent Debug');
-    console.log('currentUserId:', currentUserId);
-    console.log('externalChatsInit:', externalChatsInit);
-    console.log('externalChats:', externalChats);
-    console.log('externalChats.length:', externalChats?.length);
-    console.log('topicsInit:', topicsInit);
-    console.log('topicLength:', topicLength);
-    console.log('hasExternalChats:', externalChatsInit && externalChats.length > 0);
-    console.groupEnd();
-  }, [externalChats, externalChatsInit, topicsInit, topicLength, currentUserId]);
-
   if (isInSearchMode) return <SearchResult />;
 
   // ✅ NUEVO: Si hay external chats disponibles, mostrarlos
   const hasExternalChats = externalChatsInit && externalChats.length > 0;
 
   if (hasExternalChats) {
-    console.log('✅ Mostrando ExternalChatsMode con', externalChats.length, 'conversaciones');
     return <ExternalChatsMode />;
   }
 

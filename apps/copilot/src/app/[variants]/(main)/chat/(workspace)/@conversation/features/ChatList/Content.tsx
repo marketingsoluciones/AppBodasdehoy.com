@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo, useCallback, useEffect } from 'react';
+import React, { memo, useCallback } from 'react';
 
 import { SkeletonList, VirtualizedList } from '@/features/Conversation';
 import WideScreenContainer from '@/features/Conversation/components/WideScreenContainer';
@@ -23,44 +23,16 @@ const Content = memo<ListProps>(({ mobile }) => {
   useFetchMessages();
   const data = useChatStore(chatSelectors.mainDisplayChatIDs);
 
-  // Debug logging para diagnosticar el problema de reset
-  // Solo logueamos en cliente (typeof window !== 'undefined')
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      console.log('📊 [ChatList/Content] Estado actual:', {
-        activeId,
-        isClient: true,
-        isCurrentChatLoaded,
-        messagesCount: data.length,
-        messagesInit,
-        timestamp: new Date().toISOString(),
-      });
-    }
-  }, [activeId, isCurrentChatLoaded, data.length, messagesInit]);
-
   const itemContent = useCallback(
     (index: number, id: string) => <MainChatItem id={id} index={index} />,
     [mobile],
   );
 
-  // Solo loguear en cliente para evitar spam en SSR
-  const isClient = typeof window !== 'undefined';
-
   if (!isCurrentChatLoaded) {
-    if (isClient)
-      console.log('⏳ [ChatList/Content] Mostrando skeleton - chat no cargado', {
-        activeId,
-        messagesInit,
-      });
     return <SkeletonList mobile={mobile} />;
   }
 
   if (data.length === 0) {
-    if (isClient)
-      console.log('👋 [ChatList/Content] Mostrando Welcome - sin mensajes', {
-        activeId,
-        isCurrentChatLoaded,
-      });
     return (
       <WideScreenContainer flex={1} height={'100%'}>
         <Welcome />
@@ -68,7 +40,6 @@ const Content = memo<ListProps>(({ mobile }) => {
     );
   }
 
-  if (isClient) console.log(`💬 [ChatList/Content] Mostrando ${data.length} mensajes`);
   return <VirtualizedList dataSource={data} itemContent={itemContent} mobile={mobile} />;
 });
 
