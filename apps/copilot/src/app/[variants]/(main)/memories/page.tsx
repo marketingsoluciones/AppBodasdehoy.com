@@ -27,7 +27,6 @@ function useDevUserAuth() {
   useEffect(() => {
     try {
       const rawConfig = localStorage.getItem('dev-user-config');
-      console.log('🔍 Momentos: Verificando auth...', { hasConfig: !!rawConfig });
 
       if (!rawConfig) {
         setIsAuthenticated(false);
@@ -58,7 +57,6 @@ function useDevUserAuth() {
         userId !== 'visitante@guest.local'
       );
 
-      console.log('🔍 Momentos: Usuario válido:', isValidUser, userId?.slice(0, 20));
       setIsAuthenticated(isValidUser);
       setDevUserId(isValidUser ? userId : null);
     } catch (error) {
@@ -581,9 +579,8 @@ const MemoriesPage = memo(() => {
             value={searchTerm}
           />
           <QRScanner
-            onScan={(url) => {
-              console.log('QR escaneado:', url);
-              // La redirección se maneja automáticamente en QRScanner
+            onScan={(_url) => {
+              // Redirection handled automatically by QRScanner
             }}
           />
           <Button
