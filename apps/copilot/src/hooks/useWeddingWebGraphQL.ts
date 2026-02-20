@@ -39,7 +39,7 @@ import type {
   GetWeddingWebResponse,
   WeddingSectionName,
 } from '@/types/wedding-web';
-import type { WeddingWebData, PaletteType, SectionType } from '@/components/wedding-site/types';
+import type { WeddingWebData, PaletteType, SectionType } from '@bodasdehoy/wedding-creator';
 import { mapTemplateToPalette, mapPaletteToTemplate  } from '@/types/wedding-web';
 import { getCurrentDevelopment } from '@/utils/developmentDetector';
 

@@ -44,7 +44,7 @@ const mockUseMemoriesStore = vi.fn(() => ({
   sendQrToGuests: vi.fn(),
 }));
 
-vi.mock('@/store/memories', () => ({
+vi.mock('@bodasdehoy/memories', () => ({
   useMemoriesStore: mockUseMemoriesStore,
 }));
 

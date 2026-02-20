@@ -10,7 +10,7 @@ import { memo, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Center, Flexbox } from 'react-layout-kit';
 
-import { type Album, useMemoriesStore } from '@/store/memories';
+import { type Album, useMemoriesStore } from '@bodasdehoy/memories';
 import { useUserStore } from '@/store/user';
 import { useChatStore } from '@/store/chat';
 import { useDevelopment } from '@/utils/developmentDetector';
@@ -395,7 +395,7 @@ const MemoriesPage = memo(() => {
           // ✅ Deferir carga 100ms para permitir que la UI se renderice primero
           await new Promise(resolve => setTimeout(resolve, 100));
           if (isMounted) {
-            await fetchAlbums(userId, development);
+            await fetchAlbums();
           }
         } catch (error) {
           if (isMounted) {
@@ -420,7 +420,7 @@ const MemoriesPage = memo(() => {
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [userId, development, fetchAlbums]);
+  }, [userId, fetchAlbums]);
 
   const handleAlbumClick = useCallback(
     (album: Album) => {
@@ -456,16 +456,12 @@ const MemoriesPage = memo(() => {
       const values = await form.validateFields();
       setCreateLoading(true);
 
-      const newAlbum = await createAlbum(
-        {
-          description: values.description,
-          eventId: values.eventId || undefined,
-          name: values.name,
-          visibility: values.visibility,
-        },
-        userId,
-        development,
-      );
+      const newAlbum = await createAlbum({
+        description: values.description,
+        eventId: values.eventId || undefined,
+        name: values.name,
+        visibility: values.visibility,
+      });
 
       if (newAlbum) {
         form.resetFields();

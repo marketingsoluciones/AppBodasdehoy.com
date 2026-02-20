@@ -368,7 +368,7 @@ const nextConfig: NextConfig = {
   // También excluimos sharp para evitar errores de compatibilidad ARM64 en Vercel
   serverExternalPackages: isProd ? ['@electric-sql/pglite', 'sharp'] : undefined,
 
-  transpilePackages: ['pdfjs-dist', 'mermaid'],
+  transpilePackages: ['pdfjs-dist', 'mermaid', '@bodasdehoy/wedding-creator'],
 
   typescript: {
     ignoreBuildErrors: true,

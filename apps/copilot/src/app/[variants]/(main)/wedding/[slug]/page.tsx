@@ -8,8 +8,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { WeddingSiteRenderer } from '@/components/wedding-site';
-import type { WeddingWebData, RSVPSubmission } from '@/components/wedding-site/types';
+import { WeddingSiteRenderer } from '@bodasdehoy/wedding-creator';
+import type { WeddingWebData, RSVPSubmission } from '@bodasdehoy/wedding-creator';
 
 // Demo data para preview - en produccion esto vendria de la API
 const getDemoWedding = (slug: string): WeddingWebData => ({

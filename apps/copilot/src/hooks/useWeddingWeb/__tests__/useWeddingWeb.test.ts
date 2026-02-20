@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useWeddingWeb } from '../index';
-import type { WeddingWebData, PaletteType } from '@/components/wedding-site/types';
+import type { WeddingWebData, PaletteType } from '@bodasdehoy/wedding-creator';
 
 describe('useWeddingWeb', () => {
   beforeEach(() => {

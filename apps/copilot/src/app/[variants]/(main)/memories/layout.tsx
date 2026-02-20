@@ -2,6 +2,8 @@ import { PropsWithChildren } from 'react';
 
 import { isServerMode } from '@/const/version';
 
+import { MemoriesProviderWrapper } from './MemoriesProviderWrapper';
+
 const MemoriesLayout = ({ children }: PropsWithChildren) => {
   if (!isServerMode) {
     return (
@@ -22,7 +24,7 @@ const MemoriesLayout = ({ children }: PropsWithChildren) => {
     );
   }
 
-  return children;
+  return <MemoriesProviderWrapper>{children}</MemoriesProviderWrapper>;
 };
 
 export default MemoriesLayout;

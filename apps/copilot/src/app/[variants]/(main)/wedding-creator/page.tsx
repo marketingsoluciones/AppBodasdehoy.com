@@ -25,12 +25,11 @@ import {
   MobileTabs,
   WeddingCreatorErrorBoundary,
   WeddingCreatorSkeleton,
-} from '@/components/wedding-site';
-import type { MobileTabType } from '@/components/wedding-site';
-import { getAllPalettes } from '@/components/wedding-site/styles/palettes';
+  getAllPalettes,
+} from '@bodasdehoy/wedding-creator';
+import type { MobileTabType, PaletteType, SectionType } from '@bodasdehoy/wedding-creator';
 import { useWeddingWeb } from '@/hooks/useWeddingWeb';
 import { useWeddingWebGraphQL } from '@/hooks/useWeddingWebGraphQL';
-import type { PaletteType, SectionType } from '@/components/wedding-site/types';
 import {
   sendWeddingChatMessage,
   checkBackendHealth,
@@ -44,28 +43,26 @@ console.log('📦 [wedding-creator/page.tsx] MÓDULO CARGADO - Este log aparece 
 
 // ✅ OPTIMIZACIÓN: Lazy load de componentes pesados
 const WeddingSiteRenderer = lazy(() =>
-  import('@/components/wedding-site').then(module => {
+  import('@bodasdehoy/wedding-creator').then(module => {
     if (!module.WeddingSiteRenderer) {
       throw new Error('WeddingSiteRenderer no encontrado en el módulo');
     }
     return { default: module.WeddingSiteRenderer };
   }).catch(error => {
     console.error('Error cargando WeddingSiteRenderer:', error);
-    // Fallback: importar directamente si lazy falla
-    return import('@/components/wedding-site').then(m => ({ default: m.WeddingSiteRenderer }));
+    return import('@bodasdehoy/wedding-creator').then(m => ({ default: m.WeddingSiteRenderer }));
   })
 );
 
 const PublishModal = lazy(() =>
-  import('@/components/wedding-site').then(module => {
+  import('@bodasdehoy/wedding-creator').then(module => {
     if (!module.PublishModal) {
       throw new Error('PublishModal no encontrado en el módulo');
     }
     return { default: module.PublishModal };
   }).catch(error => {
     console.error('Error cargando PublishModal:', error);
-    // Fallback: importar directamente si lazy falla
-    return import('@/components/wedding-site').then(m => ({ default: m.PublishModal }));
+    return import('@bodasdehoy/wedding-creator').then(m => ({ default: m.PublishModal }));
   })
 );
 
@@ -262,7 +259,7 @@ function WeddingCreatorContent() {
   const _saveWedding = legacyHook.saveWedding; // TODO: Implementar en GraphQL
 
   // Schedule events handlers - usar legacyHook (GraphQL hook no tiene estos métodos aún)
-  const addScheduleEvent = useCallback((event: Omit<import('@/components/wedding-site/types').ScheduleEvent, 'id'>) => {
+  const addScheduleEvent = useCallback((event: Omit<import('@bodasdehoy/wedding-creator').ScheduleEvent, 'id'>) => {
     if (legacyHook.addScheduleEvent) {
       legacyHook.addScheduleEvent(event);
     } else {
@@ -270,7 +267,7 @@ function WeddingCreatorContent() {
     }
   }, [legacyHook]);
 
-  const updateScheduleEvent = useCallback((eventId: string, updates: Partial<import('@/components/wedding-site/types').ScheduleEvent>) => {
+  const updateScheduleEvent = useCallback((eventId: string, updates: Partial<import('@bodasdehoy/wedding-creator').ScheduleEvent>) => {
     if (legacyHook.updateScheduleEvent) {
       legacyHook.updateScheduleEvent(eventId, updates);
     } else {

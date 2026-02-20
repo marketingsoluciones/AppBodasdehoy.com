@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { WeddingSiteRenderer } from '../WeddingSiteRenderer';
-import type { WeddingWebData } from '../types';
+import { describe, it, expect, vi } from 'vitest';
+import { WeddingSiteRenderer } from '@bodasdehoy/wedding-creator';
+import type { WeddingWebData } from '@bodasdehoy/wedding-creator';
 
 // No usar mocks - usar datos reales
 // Los tests se conectarán a servicios reales (Google Fonts, APIs, etc.)
@@ -165,7 +165,7 @@ describe('WeddingSiteRenderer', () => {
       // Verificar que el componente se renderiza correctamente
       const weddingSite = container.querySelector('.wedding-site');
       expect(weddingSite).toBeInTheDocument();
-      
+
       // Verificar que el ThemeProvider aplica las variables CSS
       const themeRoot = container.querySelector('.wedding-theme-root');
       expect(themeRoot).toBeInTheDocument();
@@ -186,7 +186,7 @@ describe('WeddingSiteRenderer', () => {
       // Verificar que el componente se renderiza con el nuevo tema
       const weddingSite = container.querySelector('.wedding-site');
       expect(weddingSite).toBeInTheDocument();
-      
+
       const themeRoot = container.querySelector('.wedding-theme-root');
       expect(themeRoot).toBeInTheDocument();
     });
@@ -207,15 +207,15 @@ describe('WeddingSiteRenderer', () => {
       // Buscar secciones por su id o className
       const locationSection = container.querySelector('#section-location');
       const scheduleSection = container.querySelector('#section-schedule');
-      
+
       expect(locationSection).toBeInTheDocument();
       expect(scheduleSection).toBeInTheDocument();
-      
+
       // Verificar que location viene antes que schedule en el DOM
       const allSections = container.querySelectorAll('.wedding-section');
-      const locationIndex = Array.from(allSections).findIndex(s => s.id === 'section-location');
-      const scheduleIndex = Array.from(allSections).findIndex(s => s.id === 'section-schedule');
-      
+      const locationIndex = Array.from(allSections).findIndex((s: Element) => s.id === 'section-location');
+      const scheduleIndex = Array.from(allSections).findIndex((s: Element) => s.id === 'section-schedule');
+
       expect(locationIndex).toBeLessThan(scheduleIndex);
     });
   });

@@ -42,7 +42,7 @@ import { useParams, useRouter } from 'next/navigation';
 import React, { memo, useCallback, useEffect, useState, useRef } from 'react';
 import { Center, Flexbox } from 'react-layout-kit';
 
-import { useMemoriesStore } from '@/store/memories';
+import { useMemoriesStore } from '@bodasdehoy/memories';
 import { useUserStore } from '@/store/user';
 import { useDevelopment } from '@/utils/developmentDetector';
 
@@ -433,9 +433,9 @@ const AlbumDetailPage = memo(() => {
       try {
         // Cargar en paralelo pero con verificación de montaje
         const [albumResult, mediaResult, membersResult] = await Promise.allSettled([
-          fetchAlbum(albumId, userId, development),
-          fetchAlbumMedia(albumId, userId, development),
-          fetchAlbumMembers(albumId, userId, development),
+          fetchAlbum(albumId),
+          fetchAlbumMedia(albumId),
+          fetchAlbumMembers(albumId),
         ]);
 
         // Verificar montaje después de las llamadas
@@ -472,14 +472,14 @@ const AlbumDetailPage = memo(() => {
       clearCurrentAlbum();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [albumId, userId, development]);
+  }, [albumId, userId]);
 
   const loadEventGuests = useCallback(async () => {
     if (!currentAlbum?.eventId) return;
 
     setLoadingGuests(true);
     try {
-      const guests = await getEventGuests(currentAlbum.eventId, development);
+      const guests = await getEventGuests(currentAlbum.eventId);
       if (guests && Array.isArray(guests)) {
         setEventGuests(guests);
         if (guests.length === 0) {
@@ -496,7 +496,7 @@ const AlbumDetailPage = memo(() => {
     } finally {
       setLoadingGuests(false);
     }
-  }, [currentAlbum?.eventId, development, getEventGuests]);
+  }, [currentAlbum?.eventId, getEventGuests]);
 
   // Cargar invitados del evento si el álbum está vinculado a un evento
   useEffect(() => {
@@ -547,13 +547,13 @@ const AlbumDetailPage = memo(() => {
         okText: 'Eliminar',
         okType: 'danger',
         onOk: async () => {
-          await deleteMedia(albumId, mediaId, userId, development);
+          await deleteMedia(albumId, mediaId);
           message.success('Foto eliminada');
         },
         title: '¿Eliminar esta foto?',
       });
     },
-    [albumId, userId, deleteMedia],
+    [albumId, deleteMedia],
   );
 
   const handleShare = useCallback(async () => {
@@ -561,7 +561,7 @@ const AlbumDetailPage = memo(() => {
 
     setLoadingQr(true);
     try {
-      const result = await generateShareLink(albumId, userId, 30, development);
+      const result = await generateShareLink(albumId, 30);
       if (result) {
         // Build share URL from the current origin so it's always correct regardless
         // of what APP_URL the backend has configured.
@@ -611,7 +611,7 @@ const AlbumDetailPage = memo(() => {
         for (const guestId of selectedGuests) {
           const guest = eventGuests.find((g) => g._id === guestId || g.id === guestId);
           if (guest?.email) {
-            const result = await inviteMember(albumId, guest.email, 'viewer', userId, development);
+            const result = await inviteMember(albumId, guest.email, 'viewer');
             if (result) {
               successCount++;
             } else {
@@ -629,16 +629,16 @@ const AlbumDetailPage = memo(() => {
 
         setSelectedGuests([]);
         toggleInviteModal(false);
-        fetchAlbumMembers(albumId, userId, development);
+        fetchAlbumMembers(albumId);
       } else {
         // Invitación manual
         const values = await inviteForm.validateFields();
-      const result = await inviteMember(albumId, values.email, values.role, userId, development);
+      const result = await inviteMember(albumId, values.email, values.role);
       if (result) {
         message.success('Invitación enviada correctamente');
         inviteForm.resetFields();
         toggleInviteModal(false);
-        fetchAlbumMembers(albumId, userId, development);
+        fetchAlbumMembers(albumId);
       } else {
         message.error('Error al enviar la invitación');
       }
@@ -669,7 +669,7 @@ const AlbumDetailPage = memo(() => {
       // Determinar método de envío (por ahora email por defecto)
       const method = 'email'; // TODO: Agregar selector en el modal
 
-      const result = await sendQrToGuests(albumId, selectedGuests, method, userId, development);
+      const result = await sendQrToGuests(albumId, selectedGuests, method);
 
       if (result && result.success) {
         message.success({
@@ -706,11 +706,11 @@ const AlbumDetailPage = memo(() => {
           allow_reactions: values.allow_reactions,
         },
         visibility: values.visibility,
-      }, userId, development);
+      });
 
       message.success('Configuración actualizada');
       setSettingsModalOpen(false);
-      fetchAlbum(albumId, userId, development);
+      fetchAlbum(albumId);
     } catch (error) {
       console.error('Error updating settings:', error);
       message.error('Error al actualizar la configuración');
@@ -729,7 +729,7 @@ const AlbumDetailPage = memo(() => {
       okType: 'danger',
       onOk: async () => {
         try {
-          await deleteAlbum(albumId, userId, development);
+          await deleteAlbum(albumId);
           message.success('Álbum eliminado');
           router.push('/memories');
         } catch {
@@ -817,7 +817,7 @@ const AlbumDetailPage = memo(() => {
 
         for (const mediaId of selectedMediaIds) {
           try {
-            await deleteMedia(albumId, mediaId, userId, development);
+            await deleteMedia(albumId, mediaId);
             successCount++;
           } catch (error) {
             console.error(`Error deleting media ${mediaId}:`, error);
@@ -834,7 +834,7 @@ const AlbumDetailPage = memo(() => {
 
         setSelectedMediaIds([]);
         setSelectionMode(false);
-        fetchAlbumMedia(albumId, userId, development);
+        fetchAlbumMedia(albumId);
       },
       title: 'Confirmar eliminación',
     });
@@ -859,11 +859,11 @@ const AlbumDetailPage = memo(() => {
       message.loading({ content: 'Subiendo archivo...', key: 'upload' });
 
       try {
-        const result = await uploadMedia(albumId, file, userId, undefined, development);
+        const result = await uploadMedia(albumId, file);
         if (result) {
           message.success({ content: 'Archivo subido correctamente', key: 'upload' });
           // Refrescar media
-          fetchAlbumMedia(albumId, userId, development);
+          fetchAlbumMedia(albumId);
         } else {
           message.error({ content: 'Error al subir el archivo', key: 'upload' });
         }
@@ -1010,9 +1010,9 @@ const AlbumDetailPage = memo(() => {
               <Button
                 onClick={() => {
                   if (albumId && userId && isMountedRef.current) {
-                    fetchAlbum(albumId, userId, development);
-                    fetchAlbumMedia(albumId, userId, development);
-                    fetchAlbumMembers(albumId, userId, development);
+                    fetchAlbum(albumId);
+                    fetchAlbumMedia(albumId);
+                    fetchAlbumMembers(albumId);
                   }
                 }}
                 type="primary"
@@ -1146,7 +1146,7 @@ const AlbumDetailPage = memo(() => {
                   <div style={{ background: '#fff2f0', border: '1px solid #ffccc7', borderRadius: 4, marginBottom: 16, padding: 12 }}>
                     <div style={{ color: '#ff4d4f', fontWeight: 500 }}>Error al cargar fotos: {mediaError}</div>
                     <Button
-                      onClick={() => fetchAlbumMedia(albumId, userId!, development)}
+                      onClick={() => fetchAlbumMedia(albumId)}
                       size="small"
                       style={{ marginTop: 8 }}
                     >
@@ -1262,7 +1262,7 @@ const AlbumDetailPage = memo(() => {
                   <div style={{ background: '#fff2f0', border: '1px solid #ffccc7', borderRadius: 4, marginBottom: 16, padding: 12 }}>
                     <div style={{ color: '#ff4d4f', fontWeight: 500 }}>Error al cargar miembros: {membersError}</div>
                     <Button
-                      onClick={() => fetchAlbumMembers(albumId, userId!, development)}
+                      onClick={() => fetchAlbumMembers(albumId)}
                       size="small"
                       style={{ marginTop: 8 }}
                     >

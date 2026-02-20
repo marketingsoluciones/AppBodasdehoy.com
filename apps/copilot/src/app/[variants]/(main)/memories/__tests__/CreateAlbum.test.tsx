@@ -66,7 +66,7 @@ const mockUseMemoriesStore = vi.fn(() => ({
   setSearchTerm: mockSetSearchTerm,
 }));
 
-vi.mock('@/store/memories', () => ({
+vi.mock('@bodasdehoy/memories', () => ({
   useMemoriesStore: mockUseMemoriesStore,
 }));
 
@@ -253,9 +253,7 @@ describe('MemoriesPage - Crear Álbum', () => {
         expect.objectContaining({
           name: 'Test Album',
           description: 'Test Description',
-        }),
-        'user123',
-        'bodasdehoy'
+        })
       );
     });
   });
@@ -296,11 +294,7 @@ describe('MemoriesPage - Crear Álbum', () => {
     await user.click(submitButton as HTMLElement);
 
     await waitFor(() => {
-      expect(mockCreateAlbum).toHaveBeenCalledWith(
-        expect.any(Object),
-        'user123',
-        'bodasdehoy'
-      );
+      expect(mockCreateAlbum).toHaveBeenCalledWith(expect.any(Object));
     });
   });
 

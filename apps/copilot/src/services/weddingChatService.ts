@@ -4,7 +4,7 @@
  * Conecta el chat del Wedding Creator con el backend AI
  */
 
-import type { WeddingWebData, PaletteType, SectionType } from '@/components/wedding-site/types';
+import type { WeddingWebData, PaletteType, SectionType } from '@bodasdehoy/wedding-creator';
 import { buildAuthHeaders } from '@/utils/authToken';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
