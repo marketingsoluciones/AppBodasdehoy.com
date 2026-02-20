@@ -16,12 +16,12 @@ Feature: Core Routes Accessibility
     And the page title should not contain "error" or "not found"
 
     Examples:
-      | route      |
-      | /          |
-      | /chat      |
-      | /discover  |
-      | /files     |
-      | /repos     |
+      | route            |
+      | /                |
+      | /chat            |
+      | /discover        |
+      | /memories        |
+      | /wedding-creator |
 
   @ROUTES-002 @P0
   Scenario Outline: Access settings routes without errors
