@@ -1609,14 +1609,14 @@ importers:
   packages/memories:
     dependencies:
       react:
-        specifier: ^18.2.0
-        version: 18.3.1
+        specifier: '>=18.0.0'
+        version: 19.2.3
       react-dom:
         specifier: '>=18.0.0'
-        version: 19.2.3(react@18.3.1)
+        version: 19.2.3(react@19.2.3)
       zustand:
         specifier: ^5.0.0
-        version: 5.0.4(@types/react@18.3.28)(react@18.3.1)
+        version: 5.0.4(@types/react@18.3.28)(react@19.2.3)
     devDependencies:
       '@types/react':
         specifier: ^18.0.0
@@ -36565,7 +36565,7 @@ packages:
       react: '>=15'
     dependencies:
       react: 19.2.3
-      unlayer-types: 1.372.0
+      unlayer-types: 1.376.0
     dev: false
 
   /react-error-boundary@5.0.0(react@18.3.1):
@@ -41844,8 +41844,8 @@ packages:
     engines: {node: '>= 10.0.0'}
     dev: true
 
-  /unlayer-types@1.372.0:
-    resolution: {integrity: sha512-VkxM4XkjZAqRXywuY0ZI8feONHEKv/IfuQOWBqho7qpv4/+y4PlzsFAaGklx3D4aZoxa/xCKgJV3FSx69FMQug==}
+  /unlayer-types@1.376.0:
+    resolution: {integrity: sha512-crSHUWPwaXu+va0wyvAeaO9kDw6pAF6f3f6URKGDtJukqC/XWbxH6OBrur2bNSs40Gl6kznkZKCUa9bmoKqQ2w==}
     dev: false
 
   /unpipe@1.0.0:
@@ -43212,6 +43212,28 @@ packages:
     dependencies:
       '@types/react': 18.3.28
       react: 18.3.1
+    dev: false
+
+  /zustand@5.0.4(@types/react@18.3.28)(react@19.2.3):
+    resolution: {integrity: sha512-39VFTN5InDtMd28ZhjLyuTnlytDr9HfwO512Ai4I8ZABCoyAj4F1+sr7sD1jP/+p7k77Iko0Pb5NhgBFDCX0kQ==}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      '@types/react': '>=18.0.0'
+      immer: '>=9.0.6'
+      react: '>=18.0.0'
+      use-sync-external-store: '>=1.2.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      immer:
+        optional: true
+      react:
+        optional: true
+      use-sync-external-store:
+        optional: true
+    dependencies:
+      '@types/react': 18.3.28
+      react: 19.2.3
     dev: false
 
   /zustand@5.0.4(@types/react@19.2.8)(immer@10.2.0)(react@19.2.3):
