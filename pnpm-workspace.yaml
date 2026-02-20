@@ -2,4 +2,5 @@ packages:
   - 'apps/*'
   - '!apps/copilot-backup-*'
   - 'apps/copilot/packages/*'
+  - 'apps/copilot/e2e'
   - 'packages/*'

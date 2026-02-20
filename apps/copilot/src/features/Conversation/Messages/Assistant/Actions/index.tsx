@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 import ShareMessageModal from '@/features/Conversation/components/ShareMessageModal';
 import { VirtuosoContext } from '@/features/Conversation/components/VirtualizedList/VirtuosoContext';
+import { sendFeedback } from '@/services/feedback';
 import { useChatStore } from '@/store/chat';
 import { threadSelectors } from '@/store/chat/selectors';
 import { useSessionStore } from '@/store/session';
@@ -42,6 +43,8 @@ export const AssistantActionsBar = memo<AssistantActionsProps>(({ id, data, inde
     share,
     tts,
     translate,
+    feedbackPositive,
+    feedbackNegative,
   } = useChatListActionsBar({ hasThread });
 
   const hasTools = !!tools;
@@ -52,7 +55,7 @@ export const AssistantActionsBar = memo<AssistantActionsProps>(({ id, data, inde
   const items = useMemo(() => {
     if (hasTools) return [delAndRegenerate, copy];
 
-    return [edit, copy, inThread || isGroupSession ? null : branching].filter(
+    return [edit, copy, feedbackPositive, feedbackNegative, inThread || isGroupSession ? null : branching].filter(
       Boolean,
     ) as ActionIconGroupItemType[];
   }, [inThread, hasTools, isGroupSession]);
@@ -150,6 +153,18 @@ export const AssistantActionsBar = memo<AssistantActionsProps>(({ id, data, inde
           setShareModal(true);
           break;
         }
+
+        case 'feedbackPositive': {
+          await sendFeedback({ messageId: id, rating: 'positive' });
+          message.success('¡Gracias por tu valoración!');
+          break;
+        }
+
+        case 'feedbackNegative': {
+          await sendFeedback({ messageId: id, rating: 'negative' });
+          message.success('Gracias, usaremos tu feedback para mejorar.');
+          break;
+        }
       }
 
       if (action.keyPath.at(-1) === 'translate') {
@@ -173,6 +188,9 @@ export const AssistantActionsBar = memo<AssistantActionsProps>(({ id, data, inde
           items: [
             edit,
             copy,
+            divider,
+            feedbackPositive,
+            feedbackNegative,
             divider,
             tts,
             translate,

@@ -33,6 +33,7 @@ export class CustomWorld extends World {
     const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
     this.browser = await chromium.launch({
+      channel: process.env.BROWSER_CHANNEL as 'chrome' | 'chromium' | undefined ?? 'chromium',
       headless: process.env.HEADLESS !== 'false',
     });
 

@@ -10,6 +10,8 @@ import {
   RotateCcw,
   Share2,
   Split,
+  ThumbsDown,
+  ThumbsUp,
   Trash,
 } from 'lucide-react';
 import { useMemo } from 'react';
@@ -33,6 +35,8 @@ interface ChatListActionsBar {
   divider: { type: 'divider' };
   edit: ActionIconGroupItemType;
   export: ActionIconGroupItemType;
+  feedbackNegative: ActionIconGroupItemType;
+  feedbackPositive: ActionIconGroupItemType;
   regenerate: ActionIconGroupItemType;
   share: ActionIconGroupItemType;
   translate: ActionIconGroupItemType;
@@ -87,6 +91,16 @@ export const useChatListActionsBar = ({
         icon: DownloadIcon,
         key: 'export',
         label: '导出为 PDF',
+      },
+      feedbackNegative: {
+        icon: ThumbsDown,
+        key: 'feedbackNegative',
+        label: 'Respuesta no útil',
+      },
+      feedbackPositive: {
+        icon: ThumbsUp,
+        key: 'feedbackPositive',
+        label: 'Respuesta útil',
       },
       regenerate: {
         icon: RotateCcw,
