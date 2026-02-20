@@ -1,7 +1,8 @@
 # Mensajes pendientes – #copilot-api-ia
 
-**Revisión:** 2026-02-12 (desde historial del canal)  
-**Canal:** #copilot-api-ia (C0AEV0GCLM7)
+**Revisión:** 2026-02-17 (lectura Slack + pruebas + respuesta enviada)  
+**Canal:** #copilot-api-ia (C0AEV0GCLM7)  
+**Resumen actual:** `docs/PENDIENTES-SLACK-RESUMEN-ACTUAL.md`
 
 ---
 
@@ -52,9 +53,10 @@ Doc referencia: `INFORME_PARA_FRONTEND_SISTEMA_KEYS.md` (api-ia, `/opt/backend/`
 | Tipo | Cantidad | Acción |
 |------|----------|--------|
 | **Decisiones nuestras** | 6 preguntas (Sistema Keys) + 1 (balance en UI) | ✅ **Enviado** 2026-02-12 a #copilot-api-ia (versión corta por slack-send.sh). |
-| **En espera** | Credenciales bodasdehoy | Esperar a API2; api-ia nos avisará. |
+| **Recordatorio api-ia (402, 401, EventSelector, re-probar, Cloudflare)** | 5 ítems | ✅ **Respuesta enviada** 2026-02-17: confirmamos 402/401/EventSelector hechos; re-probaremos cuando avisen; Cloudflare según asignación. Ver `scripts/slack-respuesta-recordatorio-api-ia.txt`. |
+| **En espera** | Credenciales bodasdehoy, cola campañas | Esperar a API2/api-ia; nos avisarán por #copilot-api-ia. |
 
-**Respuesta enviada:** Ver [RESPUESTA-SLACK-SISTEMA-KEYS.md](RESPUESTA-SLACK-SISTEMA-KEYS.md) para el texto completo. Si api-ia pide más detalle, copiar/pegar el bloque largo de ese archivo en Slack.
+**Respuesta Sistema Keys:** Ver [RESPUESTA-SLACK-SISTEMA-KEYS.md](RESPUESTA-SLACK-SISTEMA-KEYS.md). Si api-ia pide más detalle, copiar/pegar el bloque largo de ese archivo en Slack.
 
 ---
 

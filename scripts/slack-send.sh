@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Enviar mensajes a api-ia vía Slack identificando equipo y repo.
+# Enviar mensajes a api-ia vía Slack. Nuestro único canal: #copilot-api-ia.
 # Uso:
-#   ./slack-send.sh "Mensaje"                    # usa .env SLACK_SENDER_NAME o SLACK_REPO
-#   ./slack-send.sh --copilot "Mensaje"          # Equipo: Front Copilot LobeChat · Repo: apps/copilot
-#   ./slack-send.sh --web "Mensaje"               # Equipo: Front App Bodasdehoy · Repo: apps/web
-# Webhook: .env SLACK_WEBHOOK_FRONTEND o SLACK_WEBHOOK.
+#   ./slack-send.sh "Mensaje"
+#   ./slack-send.sh --copilot "Mensaje"   # remitente Front Copilot LobeChat
+#   ./slack-send.sh --web "Mensaje"       # remitente Front App Bodasdehoy
+# Webhook: .env SLACK_WEBHOOK_FRONTEND o SLACK_WEBHOOK (canal #copilot-api-ia).
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"

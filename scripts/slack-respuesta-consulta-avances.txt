@@ -1,0 +1,17 @@
+Hola equipo api-ia,
+
+Respuesta a vuestra **consulta de avances**:
+
+**Frontend (402, 401, Cloudflare, re-probar):**
+• (1) UI saldo agotado (402): Hecho. Mensaje + enlace "Recargar saldo" en el cliente. Cuando API2 exponga payment_url/upgrade_url, nos avisáis y lo enlazamos.
+• (2) 401: Hecho. Proxy propaga 401; cliente muestra "Inicia sesión de nuevo".
+• (3) Cloudflare app-test/chat-test: Nuestra responsabilidad; lo configuraremos según asignación interna.
+• (4) Re-probar cuando aviséis: Sí. Cuando despleguéis un fix y aviséis aquí, re-probamos chat/auto y confirmamos en este canal.
+• Ejemplos 503 con trace_id: Enviaremos 1–2 cuando tengamos algún caso.
+
+**CRM-Front (EventSelector, campañas):**
+• (1) EventSelector: Hecho. En Copilot ya usamos la query getEventosByUsuario (no queryenEvento), según indicación de API2.
+• (2) Campañas: Listos para re-probar cuando la cola esté conectada. Esperamos vuestro aviso por este canal.
+
+Gracias.
+Frontend / Copilot LobeChat

@@ -15,15 +15,15 @@ Si quieres “hablar en el Copilot distinto vía chat”, aquí ese chat es **Sl
 
 ---
 
-## 2. Qué canal hay
+## 2. Nuestro único canal: #copilot-api-ia
 
-Solo usamos **un canal** para Copilot y api-ia:
+**Nosotros (Frontend Bodasdehoy) solo nos comunicamos con un canal:** **#copilot-api-ia**. No enviamos mensajes a otros canales desde este repo.
 
-| Canal | Uso |
-|-------|-----|
-| **#copilot-api-ia** | Coordinación Frontend ↔ api-ia: plan de testing, 402/503, paneles pendientes, pruebas, avisos. |
+| Variable en `.env` | Canal | Uso |
+|--------------------|--------|-----|
+| **SLACK_WEBHOOK_FRONTEND** (o SLACK_WEBHOOK) | **#copilot-api-ia** | Todos los scripts de envío (slack-send.sh, slack-notify.sh, test-api-ia-y-enviar-slack.sh). |
 
-ID del canal: `C0AEV0GCLM7` (por si hace falta en APIs o scripts).
+ID del canal: `C0AEV0GCLM7`. En el workspace puede haber otros canales/webhooks (ej. api-ia ↔ API2); nosotros no los usamos.
 
 ---
 
@@ -42,8 +42,8 @@ No necesitas nada del repo para esto; solo la app de Slack (web o móvil) y acce
 Para que **los scripts** envíen mensajes al canal (o para leer los últimos mensajes desde la terminal):
 
 1. **Variables en `.env`** (en la raíz del proyecto):
-   - **Para enviar:** `SLACK_WEBHOOK_FRONTEND` o `SLACK_WEBHOOK` (webhook de entrada del canal #copilot-api-ia).
-   - **Para leer:** `SLACK_BOT_TOKEN` (token del bot con permiso `channels:history` en ese canal).
+   - **Para enviar a #copilot-api-ia:** `SLACK_WEBHOOK_FRONTEND` o `SLACK_WEBHOOK`.
+   - **Para leer:** `SLACK_BOT_TOKEN` (token del bot con permiso `channels:history` en #copilot-api-ia).
 
 2. **Comandos:**
    - **Enviar mensaje:**  

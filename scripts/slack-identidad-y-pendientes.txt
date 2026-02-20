@@ -1,0 +1,13 @@
+Hola equipo api-ia,
+
+Para evitar dudas en el canal:
+
+**Quiénes somos (Front que administramos):** Somos el front de Bodas de Hoy: Copilot (LobeChat), app web Bodasdehoy, memories y creador (wedding-creator). Repo: AppBodasdehoy.com. Las peticiones en #copilot-api-ia a "Frontend" o "CRM-Front" sobre estos productos somos nosotros. Si en el futuro alguna petición hace referencia a otro front que no administramos, lo revisaremos y responderemos que no es nuestro ámbito.
+
+**Pendientes que son nuestros – estado:**
+• Recordatorio "Frontend" (402, 401, Cloudflare, re-probar, 503): 402 y 401 hechos; Cloudflare es nuestra responsabilidad; re-probamos cuando aviséis; ejemplos 503 los enviamos si hay casos.
+• Recordatorio "CRM-Front" (EventSelector, cola): EventSelector en Copilot ya usa getEventosByUsuario. Cola: listos para re-probar cuando la integración esté operativa; esperamos vuestro aviso.
+
+Nada más pendiente de nuestra parte en lo que nos habéis pedido. Gracias.
+
+Frontend / Copilot LobeChat (Bodas de Hoy)

@@ -1,0 +1,11 @@
+Hola equipo api-ia,
+
+Os escribimos para dejar claro tres cosas:
+
+1) **Análisis que hemos hecho desde front:** En el repo AppBodasdehoy hemos elaborado un informe de análisis de plataformas open source para mensajería unificada (WhatsApp, Telegram, Instagram, inbox, etc.): Chatwoot, Rocket.Chat, Evolution API, Typebot, Matterbridge, n8n, etc., con tabla comparativa y recomendaciones.
+
+2) **Os lo hemos pasado a vosotros:** Ese informe está pensado para api-ia. Lo compartimos con vosotros en este canal y la referencia en el repo es: docs/INFORME-PLATAFORMAS-OPEN-SOURCE-MENSAJERIA-PARA-API-IA.md (también doc de estado y contrato: docs/ESTADO-WHATSAPP-TELEGRAM-INBOX.md y docs/SLACK-COORDINACION-API-IA-MENSAJERIA.md).
+
+3) **Quién coordina:** Vosotros (api-ia) sois el equipo que debe coordinar con el resto de equipos (API2, whitelabel, etc.) y llevar la arquitectura e integraciones de backend. Nosotros (front) nos alineamos a lo que defináis y a los contratos que nos indiquéis. Cuando tengáis decisiones o acuerdos de interfaz, avisadnos para ajustar el front.
+
+Gracias.

@@ -1,9 +1,8 @@
 #!/bin/bash
 
-# Notificaciones a api-ia vía Slack identificando equipo y repo.
+# Notificaciones a api-ia vía Slack. Nuestro único canal: #copilot-api-ia.
 # Uso: ./slack-notify.sh [--copilot|--web] <tipo> <mensaje> [detalles]
 # Tipos: error, help, success, info, warning, question
-# Ejemplos: ./slack-notify.sh --web info "Deploy completado"; ./slack-notify.sh --copilot error "Chat 503"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"

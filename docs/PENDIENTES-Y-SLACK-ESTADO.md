@@ -1,7 +1,7 @@
 # Pendientes y estado de Slack con api-ia (17 feb 2026)
 
 **Canal:** #copilot-api-ia (ID: C0AEV0GCLM7)  
-**Última verificación Slack:** 18 feb 2026 (slack-read.sh 10). **Última verificación pruebas:** test básico 200/200/200. **Coordinación plan:** Ver **docs/PLAN-TESTING-COORDINACION-SLACK.md**.
+**Última verificación Slack:** 17 feb 2026 (slack-read.sh 12). **Última verificación pruebas:** test-api-ia-y-enviar-slack.sh (health 200, chat 503, config 200). **Respuesta al recordatorio api-ia:** Enviada 17 feb 2026 (402/401/EventSelector/re-probar/Cloudflare). **Resumen:** **docs/PENDIENTES-SLACK-RESUMEN-ACTUAL.md**. **Coordinación plan:** Ver **docs/PLAN-TESTING-COORDINACION-SLACK.md**.
 
 **Mensaje nuevo api-ia (17 feb):** *Plan de testing coordinado – revisión y completado por Frontend.* Piden: (1) Revisar contrato de respuestas (200, 402, 503, 429, 401) y batería/triaje; (2) Completar qué pruebas ejecutamos (scripts, orden, formato de reporte); (3) Confirmar "OK" o "Cambios: [lista]". Documento suyo: PLAN_TESTING_COORDINADO_API2_MIDDLEWARE_FRONTEND.md (en su repo).  
 **Nuestra respuesta:** Ver **docs/PLAN-TESTING-COORDINADO-FRONTEND-RESPUESTA.md**. Confirmación enviada: Cambios [1. Implementar 402; 2. Adoptar formato de reporte que indiquéis].  

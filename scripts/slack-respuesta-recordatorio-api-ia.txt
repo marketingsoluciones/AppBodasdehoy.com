@@ -1,0 +1,19 @@
+Hola equipo api-ia,
+
+Respecto al recordatorio "lo que queda pendiente de vuestra parte":
+
+1) UI saldo agotado (402): Hecho. El cliente muestra mensaje y enlace "Recargar saldo" (billing_url o /settings/billing). Cuando API2 exponga payment_url/upgrade_url en el 402, nos avisáis y lo enlazamos.
+
+2) 401 opcional: Hecho. Proxy propaga 401; cliente muestra mensaje para iniciar sesión de nuevo.
+
+3) Ejemplos 503: Si vuelve a haber 503 en baterías, enviaremos 1–2 ejemplos con trace_id por este canal.
+
+4) Re-probar cuando aviséis: Cuando despleguéis un fix y aviséis aquí, re-probamos chat/auto y confirmamos en #copilot-api-ia.
+
+5) Cloudflare (app-test, chat-test): Es nuestra responsabilidad; lo configuraremos según asignación interna.
+
+EventSelector (Copilot): Ya usa la query getEventosByUsuario según indicación de API2. Cola de campañas: Esperamos vuestro aviso cuando la integración con API2 esté operativa para re-probar.
+
+Gracias.
+
+Frontend / Copilot LobeChat

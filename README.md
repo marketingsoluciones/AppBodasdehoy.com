@@ -46,6 +46,8 @@ Este monorepo implementa una arquitectura de componentes compartidos donde:
 │   │   │   ├── i18n/           # Sistema de traducciones
 │   │   │   └── theme/          # Tema Ant Design
 │   │   └── README.md
+│   ├── memories/               # ✅ @bodasdehoy/memories — Álbumes y fotos por evento
+│   ├── wedding-creator/        # ✅ @bodasdehoy/wedding-creator — Creador de webs (bodas/eventos)
 │   │
 │   └── shared/                 # Utilidades compartidas
 │       └── auth/
@@ -62,6 +64,8 @@ Este monorepo implementa una arquitectura de componentes compartidos donde:
 ├── RESUMEN_EJECUTIVO_MONOREPO.md  # ✅ Resumen ejecutivo
 └── package.json                # Configuración del monorepo
 ```
+
+**Paquetes compartidos (Memories, Wedding-creator):** ver [docs/PAQUETES-COMPARTIDOS.md](docs/PAQUETES-COMPARTIDOS.md).
 
 ## 🚀 Quick Start
 

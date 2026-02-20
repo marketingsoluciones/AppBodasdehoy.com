@@ -50,9 +50,14 @@
 
 ## 📦 Paquetes
 
-### copilot-ui
+- [PAQUETES-COMPARTIDOS.md](PAQUETES-COMPARTIDOS.md) - **Índice de paquetes compartidos** (@bodasdehoy/memories, @bodasdehoy/wedding-creator, uso e instalación)
+- [PLAN-PAQUETES-MEMORIES-CREADOR.md](PLAN-PAQUETES-MEMORIES-CREADOR.md) - Plan Opción A (Memories + Creador en el monorepo)
 
-- [packages/copilot-ui/README.md](../packages/copilot-ui/README.md) - Componentes UI del copilot
+### Por paquete
+
+- [packages/memories/README.md](../packages/memories/README.md) - Memories (álbumes y fotos por evento)
+- [packages/wedding-creator/README.md](../packages/wedding-creator/README.md) - Wedding-creator (creador de webs bodas/eventos)
+- [packages/copilot-shared/README.md](../packages/copilot-shared/README.md) - Componentes compartidos del chat (ChatItem, InputEditor, etc.)
 
 ---
 
