@@ -1,7 +1,7 @@
 'use client';
 
 import { Alert, Button, Card, Form, Input, Select, Tag, Typography } from 'antd';
-import { memo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
 import EventSelector from '@/components/EventSelector';
@@ -36,10 +36,10 @@ const CHANNEL_OPTIONS = [
  */
 const CampaignsPage = memo(() => {
   const { checkAuth } = useAuthCheck();
-  const { development } = checkAuth();
+  // Memoizar para no llamar checkAuth() en cada render
+  const { development } = useMemo(() => checkAuth(), [checkAuth]);
 
   const [form] = Form.useForm<CampaignForm>();
-  const [selectedEventoId, setSelectedEventoId] = useState<string | undefined>();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -93,16 +93,17 @@ const CampaignsPage = memo(() => {
           layout="vertical"
           onFinish={handleSubmit}
         >
+          {/*
+           * EventSelector dentro de Form.Item: NO pasar value/onChange explícitos.
+           * Form.Item los inyecta automáticamente; EventSelector llama onChange(id, evento)
+           * y Form.Item captura el primer argumento (id) como valor del campo.
+           */}
           <Form.Item
             label="Evento"
             name="eventoId"
             rules={[{ message: 'Selecciona un evento', required: true }]}
           >
-            <EventSelector
-              development={development}
-              onChange={(id) => setSelectedEventoId(id)}
-              value={selectedEventoId}
-            />
+            <EventSelector development={development} />
           </Form.Item>
 
           <Form.Item
@@ -132,10 +133,10 @@ const CampaignsPage = memo(() => {
             rules={[{ message: 'Escribe el mensaje', required: true }]}
           >
             <Input.TextArea
+              maxLength={1000}
               placeholder="Escribe el mensaje de la campaña..."
               rows={4}
               showCount
-              maxLength={1000}
             />
           </Form.Item>
 
