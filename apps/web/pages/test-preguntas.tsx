@@ -7,6 +7,7 @@
  * URL: /test-preguntas
  */
 
+import Link from 'next/link';
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from '../context';
 
 const PREGUNTAS_EJEMPLO = [
@@ -137,8 +138,8 @@ export default function TestPreguntas() {
         )}
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           {!user && (
-            <a
-              href="/login"
+            <Link
+              href="/login/"
               style={{
                 padding: '10px 20px',
                 backgroundColor: '#2563eb',
@@ -150,9 +151,9 @@ export default function TestPreguntas() {
               }}
             >
               Ir a Login
-            </a>
+            </Link>
           )}
-          <a
+          <Link
             href="/"
             style={{
               padding: '10px 20px',
@@ -165,7 +166,7 @@ export default function TestPreguntas() {
             }}
           >
             Ir al Home
-          </a>
+          </Link>
         </div>
       </section>
 
@@ -191,7 +192,7 @@ export default function TestPreguntas() {
         </p>
 
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
-          <a
+          <Link
             href="/"
             style={{
               padding: '12px 20px',
@@ -206,7 +207,7 @@ export default function TestPreguntas() {
             }}
           >
             Ir al Home y abrir Copilot (panel lateral)
-          </a>
+          </Link>
           <button
             type="button"
             onClick={openCopilot}
@@ -281,15 +282,15 @@ export default function TestPreguntas() {
           🔗 Otras páginas de test
         </h2>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <a href="/test-eventos" style={{ color: '#2563eb', fontSize: '14px' }}>
+          <Link href="/test-eventos/" style={{ color: '#2563eb', fontSize: '14px' }}>
             Test carga de eventos
-          </a>
-          <a href="/api-debug" style={{ color: '#2563eb', fontSize: '14px' }}>
+          </Link>
+          <Link href="/api-debug/" style={{ color: '#2563eb', fontSize: '14px' }}>
             API Debug
-          </a>
-          <a href="/debug-front" style={{ color: '#2563eb', fontSize: '14px' }}>
+          </Link>
+          <Link href="/debug-front/" style={{ color: '#2563eb', fontSize: '14px' }}>
             Debug front (logs y red)
-          </a>
+          </Link>
         </div>
       </section>
     </div>

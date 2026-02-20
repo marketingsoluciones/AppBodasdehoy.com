@@ -4,7 +4,7 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import handler from '../chat-history';
+import handler from '../../../pages/api/copilot/chat-history';
 
 const originalFetch = global.fetch;
 
@@ -103,7 +103,7 @@ describe('GET /api/copilot/chat-history (cuando API_IA_CHAT_HISTORY_URL está de
   });
 
   it('llama a api-ia (GET) y devuelve messages', async () => {
-    const handlerLocal = (await import('../chat-history')).default;
+    const handlerLocal = (await import('../../../pages/api/copilot/chat-history')).default;
     const mockMessages = [{ id: '1', role: 'user', content: 'Hola', createdAt: '2025-01-01T00:00:00Z' }];
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,

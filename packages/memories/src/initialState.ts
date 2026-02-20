@@ -1,0 +1,151 @@
+/**
+ * @bodasdehoy/memories - State types and initial state
+ */
+
+export interface Album {
+  _id: string;
+  albumType?: 'main' | 'sub';
+  coverImageUrl?: string;
+  createdAt: string;
+  description?: string;
+  eventId?: string;
+  itineraryId?: string;
+  mediaCount: number;
+  memberCount: number;
+  name: string;
+  ownerId: string;
+  parentAlbumId?: string;
+  settings?: {
+    allow_comments?: boolean;
+    allow_downloads?: boolean;
+    allow_reactions?: boolean;
+  };
+  updatedAt: string;
+  visibility: 'private' | 'members' | 'public';
+  isOptimistic?: boolean;
+}
+
+export interface EventAlbumStructure {
+  mainAlbum: Album | null;
+  subAlbums: Album[];
+  totalMediaCount: number;
+}
+
+export interface AlbumMedia {
+  _id: string;
+  albumId: string;
+  caption?: string;
+  createdAt: string;
+  fileId: string;
+  location?: string;
+  mediaType: 'photo' | 'video';
+  originalUrl: string;
+  sortOrder: number;
+  takenAt?: string;
+  thumbnailUrl?: string;
+  userId: string;
+}
+
+export interface AlbumMember {
+  albumId: string;
+  invitedBy?: string;
+  joinedAt: string;
+  role: 'owner' | 'admin' | 'editor' | 'viewer';
+  userAvatar?: string;
+  userEmail?: string;
+  userId: string;
+  userName?: string;
+}
+
+export interface AlbumInvitation {
+  _id: string;
+  albumId: string;
+  email?: string;
+  expiresAt: string;
+  invitedBy: string;
+  phone?: string;
+  role: string;
+  status: 'pending' | 'accepted' | 'expired';
+  token: string;
+}
+
+/** Config injected by host (apiBaseUrl, userId, development) */
+export interface MemoriesConfig {
+  apiBaseUrl: string;
+  userId: string;
+  development: string;
+}
+
+export interface MemoriesState {
+  apiBaseUrl: string;
+  userId: string;
+  development: string;
+
+  albums: Album[];
+  albumsError: string | null;
+  albumsLoading: boolean;
+
+  currentAlbum: Album | null;
+  currentAlbumError: string | null;
+  currentAlbumLoading: boolean;
+
+  currentAlbumMedia: AlbumMedia[];
+  currentAlbumMembers: AlbumMember[];
+
+  eventAlbumLoading: boolean;
+  eventAlbumStructure: EventAlbumStructure | null;
+
+  isCreateAlbumModalOpen: boolean;
+  isInviteModalOpen: boolean;
+  isShareModalOpen: boolean;
+  isUploadModalOpen: boolean;
+
+  mediaError: string | null;
+  mediaLoading: boolean;
+  membersError: string | null;
+  membersLoading: boolean;
+
+  searchTerm: string;
+  selectedMediaIds: string[];
+  subAlbums: Album[];
+
+  uploadProgress: number;
+  uploadingFiles: string[];
+}
+
+export const initialMemoriesState: MemoriesState = {
+  apiBaseUrl: '',
+  userId: '',
+  development: 'bodasdehoy',
+
+  albums: [],
+  albumsError: null,
+  albumsLoading: false,
+
+  currentAlbum: null,
+  currentAlbumError: null,
+  currentAlbumLoading: false,
+
+  currentAlbumMedia: [],
+  currentAlbumMembers: [],
+
+  eventAlbumLoading: false,
+  eventAlbumStructure: null,
+
+  isCreateAlbumModalOpen: false,
+  isInviteModalOpen: false,
+  isShareModalOpen: false,
+  isUploadModalOpen: false,
+
+  mediaError: null,
+  mediaLoading: false,
+  membersError: null,
+  membersLoading: false,
+
+  searchTerm: '',
+  selectedMediaIds: [],
+  subAlbums: [],
+
+  uploadProgress: 0,
+  uploadingFiles: [],
+};

@@ -1,5 +1,6 @@
 {
   "extends": ["next", "next/core-web-vitals"],
+  "ignorePatterns": ["**/__tests__/**", "**/*.test.ts", "**/*.test.tsx", "**/__fixtures__/**"],
   "rules": {
     "@next/next/no-img-element" : "off",
     "react/display-name" : "off",

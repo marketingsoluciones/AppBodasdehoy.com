@@ -1,6 +1,7 @@
 /**
  * Tests del handler POST /api/copilot/chat.
  * Verifican contrato con api-ia (body real) y respuesta cuando el backend no está disponible.
+ * Ubicado fuera de pages/ para que Next.js no lo compile como ruta API.
  */
 
 // Polyfill ReadableStream y TextEncoder/TextDecoder para jsdom (Node 18+)
@@ -20,7 +21,7 @@ if (typeof TextEncoder === 'undefined') {
 }
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { CHAT_REQUEST_BODY_REAL } from '../../../../__fixtures__/copilot';
+import { CHAT_REQUEST_BODY_REAL } from '../../../__fixtures__/copilot';
 
 const PYTHON_BACKEND_DEFAULT = 'https://api-ia.bodasdehoy.com';
 
@@ -67,7 +68,7 @@ describe('POST /api/copilot/chat', () => {
   });
 
   it('devuelve 400 cuando falta el array messages', async () => {
-    const handler = (await import('../chat')).default;
+    const handler = (await import('../../../pages/api/copilot/chat')).default;
     const req = {
       method: 'POST',
       body: { stream: true, metadata: {} },
@@ -96,7 +97,7 @@ describe('POST /api/copilot/chat', () => {
       }),
     });
 
-    const handler = (await import('../chat')).default;
+    const handler = (await import('../../../pages/api/copilot/chat')).default;
     const req = {
       method: 'POST',
       body: CHAT_REQUEST_BODY_REAL,
@@ -137,7 +138,7 @@ describe('POST /api/copilot/chat', () => {
         ),
     });
 
-    const handler = (await import('../chat')).default;
+    const handler = (await import('../../../pages/api/copilot/chat')).default;
     const req = {
       method: 'POST',
       body: { messages: [{ role: 'user', content: 'Hola' }], stream: true, metadata: {} },
@@ -147,10 +148,8 @@ describe('POST /api/copilot/chat', () => {
 
     await handler(req, res);
 
-    // En streaming el handler usa res.statusCode = 503 (asignación directa), no res.status()
     expect(res.statusCode).toBe(503);
     expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/event-stream');
-    // El handler propaga extractedMessage (de la respuesta de api-ia) en el SSE
     expect(res.write).toHaveBeenCalledWith(
       expect.stringContaining('Servicio no disponible')
     );
@@ -167,10 +166,9 @@ describe('POST /api/copilot/chat', () => {
         Promise.resolve(JSON.stringify({ message: 'Token expirado', trace_id: 'trace-401' })),
     });
 
-    const handler = (await import('../chat')).default;
+    const handler = (await import('../../../pages/api/copilot/chat')).default;
     const req = {
       method: 'POST',
-      // stream: false → usa el path JSON (res.status(401).json) no el SSE (res.statusCode=401)
       body: { messages: [{ role: 'user', content: 'Hola' }], stream: false, metadata: {} },
       headers: {},
     } as unknown as NextApiRequest;
@@ -201,7 +199,7 @@ describe('POST /api/copilot/chat', () => {
         ),
     });
 
-    const handler = (await import('../chat')).default;
+    const handler = (await import('../../../pages/api/copilot/chat')).default;
     const req = {
       method: 'POST',
       body: { messages: [{ role: 'user', content: 'Hola' }], stream: false, metadata: {} },
@@ -237,7 +235,7 @@ describe('POST /api/copilot/chat', () => {
     const prevChat = process.env.NEXT_PUBLIC_CHAT;
     process.env.NEXT_PUBLIC_CHAT = 'https://chat.bodasdehoy.com';
 
-    const handler = (await import('../chat')).default;
+    const handler = (await import('../../../pages/api/copilot/chat')).default;
     const req = {
       method: 'POST',
       body: { messages: [{ role: 'user', content: 'Hola' }], stream: false, metadata: {} },
@@ -267,7 +265,7 @@ describe('OPTIONS /api/copilot/chat', () => {
   });
 
   it('devuelve 200 y headers CORS', async () => {
-    const handler = (await import('../chat')).default;
+    const handler = (await import('../../../pages/api/copilot/chat')).default;
     const req = { method: 'OPTIONS' } as unknown as NextApiRequest;
     const res = {
       setHeader: jest.fn().mockReturnThis(),

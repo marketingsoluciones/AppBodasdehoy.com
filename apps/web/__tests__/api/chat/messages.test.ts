@@ -3,7 +3,7 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import handler from '../messages';
+import handler from '../../../pages/api/chat/messages';
 
 function createMockRes(): NextApiResponse & { status: jest.Mock; json: jest.Mock; setHeader: jest.Mock } {
   return {

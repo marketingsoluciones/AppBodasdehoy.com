@@ -8,7 +8,7 @@ const nextConfig = {
 
   // Transpile packages del monorepo y @lobehub/ui
   // Agregado 'debug' y 'supports-color' para solucionar error ESM con dependencies de @lobehub/editor
-  transpilePackages: ['@bodasdehoy/shared', '@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'debug', 'supports-color'],
+  transpilePackages: ['@bodasdehoy/shared', '@bodasdehoy/memories', '@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'debug', 'supports-color'],
 
   // Headers CORS para API routes
   async headers() {

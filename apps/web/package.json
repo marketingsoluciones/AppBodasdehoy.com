@@ -16,6 +16,7 @@
   "dependencies": {
     "@apollo/server": "^4.11.0",
     "@as-integrations/next": "^3.1.0",
+    "@bodasdehoy/memories": "workspace:*",
     "@bodasdehoy/shared": "workspace:*",
     "@bodasdehoy/copilot-shared": "workspace:*",
     "@dnd-kit/core": "^6.3.1",
