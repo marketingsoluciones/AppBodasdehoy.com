@@ -107,14 +107,19 @@ Base: \`${BASE_URL}\` | RequestId: \`${REQ_ID}\` | Chat: ${CHAT_MODE}
 
 _Si los fallos son 502/503/timeout, el problema está en api-ia. Si todo es 200 y el Copilot sigue sin responder, el problema puede ser nuestro proxy o CORS._ Con usuario: \`TEST_USER_EMAIL=... TEST_USER_PASSWORD=... bash scripts/test-api-ia-y-enviar-slack.sh\`"
 
-# Enviar por Slack
-echo "📤 Enviando resumen a Slack (#copilot-api-ia)..."
-if [ -x "$SCRIPT_DIR/slack-send.sh" ]; then
-  "$SCRIPT_DIR/slack-send.sh" "$SLACK_MSG"
+# Enviar por Slack o Google Chat (si GOOGLE_CHAT_WEBHOOK_URL está definido, solo Google Chat)
+if [ -n "${GOOGLE_CHAT_WEBHOOK_URL:-}" ] && [ -x "$SCRIPT_DIR/google-chat-send.sh" ]; then
+  echo "📤 Enviando resumen a Google Chat..."
+  "$SCRIPT_DIR/google-chat-send.sh" "$SLACK_MSG" || true
+  echo ""
+  echo "✅ Hecho. Revisa el espacio de Google Chat para que api-ia analice los resultados."
 else
-  # Fallback: llamar a slack-notify con tipo "info" y el resumen
-  "$SCRIPT_DIR/slack-notify.sh" "info" "Pruebas api-ia ejecutadas" "$SLACK_MSG"
+  echo "📤 Enviando resumen a Slack (#copilot-api-ia)..."
+  if [ -x "$SCRIPT_DIR/slack-send.sh" ]; then
+    "$SCRIPT_DIR/slack-send.sh" "$SLACK_MSG"
+  else
+    "$SCRIPT_DIR/slack-notify.sh" "info" "Pruebas api-ia ejecutadas" "$SLACK_MSG"
+  fi
+  echo ""
+  echo "✅ Hecho. Revisa #copilot-api-ia para que api-ia analice los resultados."
 fi
-
-echo ""
-echo "✅ Hecho. Revisa #copilot-api-ia para que api-ia analice los resultados."
