@@ -49,7 +49,20 @@ const Content = memo<ContentProps>(({ loadingStage }) => {
   }
 
   const activeStage = SERVER_LOADING_STAGES.indexOf(loadingStage);
-  const stages = SERVER_LOADING_STAGES.map((key) => t(`appLoading.${key}`));
+
+  // Fallback en español para SSR (t() devuelve la clave cruda si i18n no está listo)
+  const STAGE_FALLBACKS: Record<string, string> = {
+    [AppLoadingStage.Idle]: 'Iniciando...',
+    [AppLoadingStage.Initializing]: 'Inicializando aplicación...',
+    [AppLoadingStage.InitAuth]: 'Verificando sesión...',
+    [AppLoadingStage.InitUser]: 'Cargando tu información...',
+    [AppLoadingStage.GoToChat]: 'Abriendo chat...',
+  };
+
+  const stages = SERVER_LOADING_STAGES.map((key) => {
+    const translated = t(`appLoading.${key}`);
+    return translated !== `appLoading.${key}` ? translated : (STAGE_FALLBACKS[key] ?? key);
+  });
 
   return <FullscreenLoading activeStage={activeStage} stages={stages} />;
 });
