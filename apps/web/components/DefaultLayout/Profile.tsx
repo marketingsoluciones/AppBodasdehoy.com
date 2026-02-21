@@ -10,6 +10,7 @@ import { RiLoginBoxLine } from "react-icons/ri";
 import { PiUserPlusLight } from "react-icons/pi";
 import { MdLogout } from "react-icons/md";
 import { TbWorldWww } from "react-icons/tb";
+import { BsImages } from "react-icons/bs";
 import { useToast } from "../../hooks/useToast";
 import { Notifications } from "../Notifications";
 import { Modal } from "../Utils/Modal";
@@ -178,11 +179,19 @@ const Profile = ({ user, state, set, ...rest }) => {
       rol: ["novio", "novia", "otro", "empresa"],
     },
     {
+      title: "Momentos",
+      icon: <BsImages />,
+      onClick: async () => {
+        router.push("/momentos")
+      },
+      development: ["bodasdehoy"],
+      rol: ["novio", "novia", "otro", "empresa"],
+    },
+    {
       title: "Mi Web Creador",
       icon: <TbWorldWww />,
       onClick: async () => {
-        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-        router.push(`${path}/webCreator`)
+        router.push("/mi-web-creador")
       },
       development: ["bodasdehoy"],
       rol: ["novio", "novia", "otro", "empresa"],

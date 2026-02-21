@@ -9,7 +9,7 @@ import NavbarDirectory from "../Utils/NavbarDirectory";
 import { Tooltip } from "../Utils/Tooltip";
 import { useAllowedRouter } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
-import { BsCalendarHeartFill, BsImages, BsWindow } from "react-icons/bs";
+import { BsCalendarHeartFill } from "react-icons/bs";
 import ChatToggleButton from "../ChatSidebar/ChatToggleButton";
 
 const Navigation: FC = () => {
@@ -81,19 +81,7 @@ const Navigation: FC = () => {
       route: "/itinerario",
       condicion: event?._id ? true : false
     },
-    {
-      title: "Momentos",
-      icon: <BsImages className="w-7 h-7" />,
-      route: "/momentos",
-      condicion: !!user
-    },
-    {
-      title: "Mi web creador",
-      icon: <BsWindow className="w-7 h-7" />,
-      route: "/mi-web-creador",
-      condicion: !!user
-    },
-  ], [event, user]);
+  ], [event]);
 
   const urls = ["/info-app", "/confirmar-asistencia", "/services/[...slug]"]
 
