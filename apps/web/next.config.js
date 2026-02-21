@@ -68,12 +68,9 @@ const nextConfig = {
 
     // IMPORTANTE: Alias para hacer que next/navigation funcione en Pages Router
     // Redirige imports de next/navigation al hook de compatibilidad
-    // Forzar una sola instancia de React en todo el monorepo (evita conflictos con paquetes workspace)
     config.resolve.alias = {
       ...config.resolve.alias,
       'next/navigation': path.resolve(__dirname, 'hooks/useCompatRouter.ts'),
-      'react': path.dirname(require.resolve('react/package.json')),
-      'react-dom': path.dirname(require.resolve('react-dom/package.json')),
     };
 
     // Desactivar minificación en producción para debugging
