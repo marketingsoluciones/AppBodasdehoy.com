@@ -24,11 +24,11 @@ const StoreInitialization = memo(() => {
   useTokenRefresh();
 
   const router = useRouter();
-  const [, , useInitUserState] = useUserStore((s) => [
+  const useInitUserState = useUserStore((s) => [
     authSelectors.isLogin(s),
     s.isSignedIn,
     s.useInitUserState,
-  ]);
+  ])[2];
 
   const { serverConfig: currentServerConfig } = useServerConfigStore();
 

@@ -17,11 +17,11 @@ import { api2Client } from './client';
 
 export interface Evento {
   _id: string;
-  nombre_evento?: string;
-  nombre?: string;
-  fecha_boda?: string;
-  fecha?: string;
   development?: string;
+  fecha?: string;
+  fecha_boda?: string;
+  nombre?: string;
+  nombre_evento?: string;
   usuario_id?: string;
 }
 

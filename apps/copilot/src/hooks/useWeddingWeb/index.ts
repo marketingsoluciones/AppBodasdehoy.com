@@ -1,3 +1,4 @@
+
 'use client';
 
 /**
@@ -6,10 +7,9 @@
  */
 
 export {
+useWeddingWeb as default,
   useWeddingWeb,
   type UseWeddingWebOptions,
   type UseWeddingWebReturn,
-  type WeddingWebAPI,
-} from '@bodasdehoy/wedding-creator';
-import { useWeddingWeb } from '@bodasdehoy/wedding-creator';
-export default useWeddingWeb;
+  type WeddingWebAPI, } from '@bodasdehoy/wedding-creator';
+

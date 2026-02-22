@@ -180,7 +180,7 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
         // Para otros errores 4xx/5xx del backend, reenviar la respuesta tal cual
         // en lugar de hacer fallback al runtime nativo (que bypassearía validaciones del backend)
         if (backendResponse.status >= 400) {
-          return new Response(errorText || JSON.stringify({ error: { type: 'backend_error', status: backendResponse.status } }), {
+          return new Response(errorText || JSON.stringify({ error: { status: backendResponse.status, type: 'backend_error' } }), {
             headers: { 'Content-Type': backendResponse.headers.get('content-type') || 'application/json' },
             status: backendResponse.status,
           });

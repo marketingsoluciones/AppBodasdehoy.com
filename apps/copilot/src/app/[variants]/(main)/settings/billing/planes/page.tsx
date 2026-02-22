@@ -44,7 +44,7 @@ const PlanesPage = memo(() => {
       />
 
       <Flexbox align="center" gap={12} horizontal>
-        <Link href="/settings/billing" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <Link href="/settings/billing" style={{ alignItems: 'center', display: 'flex', gap: 6 }}>
           <ArrowLeft size={18} />
           Volver a Facturación
         </Link>

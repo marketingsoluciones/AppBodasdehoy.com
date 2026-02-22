@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Card, Input, InputNumber, message } from 'antd';
+import { Button, Input, InputNumber, message } from 'antd';
 import { createStyles } from 'antd-style';
 import { ArrowLeft, CreditCard, User } from 'lucide-react';
 import Link from 'next/link';
@@ -44,7 +44,7 @@ const DarCreditoPage = memo(() => {
   return (
     <Flexbox gap={24} style={{ padding: 24, width: '100%' }}>
       <Flexbox align="center" gap={12} horizontal>
-        <Link href="/admin/billing" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <Link href="/admin/billing" style={{ alignItems: 'center', display: 'flex', gap: 6 }}>
           <ArrowLeft size={18} />
           Volver a Facturación admin
         </Link>
@@ -99,7 +99,7 @@ const DarCreditoPage = memo(() => {
           >
             Dar crédito (pendiente de API2)
           </Button>
-          <p style={{ fontSize: 12, color: 'var(--lobe-color-text-tertiary)', margin: 0 }}>
+          <p style={{ color: 'var(--lobe-color-text-tertiary)', fontSize: 12, margin: 0 }}>
             Se requiere mutation wallet_credit o wallet_adjust en API2 para uso admin. Ver
             docs/PANELES-PENDIENTES-PETICIONES-API2-API-IA.md.
           </p>

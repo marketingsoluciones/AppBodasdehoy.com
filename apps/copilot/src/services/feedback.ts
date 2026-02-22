@@ -57,7 +57,7 @@ export const sendFeedback = async (payload: FeedbackPayload): Promise<FeedbackRe
       body: JSON.stringify(payload),
       headers,
       method: 'POST',
-      signal: AbortSignal.timeout(8_000),
+      signal: AbortSignal.timeout(8000),
     });
 
     if (!response.ok) {

@@ -65,7 +65,7 @@ class GlobalService {
       }
 
       return result;
-    } catch (error) {
+    } catch {
       if (globalConfigCache.config) return globalConfigCache.config;
       return minimalConfig;
     }

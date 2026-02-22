@@ -60,7 +60,6 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
       <Link
         aria-label={t('tab.chat')}
         href={'/chat'}
-        suppressHydrationWarning
         onClick={(e) => {
           // If Cmd key is pressed, let the default link behavior happen (open in new tab)
           if (e.metaKey || e.ctrlKey) {
@@ -71,6 +70,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           e.preventDefault();
           switchBackToChat(useSessionStore.getState().activeId);
         }}
+        suppressHydrationWarning
       >
         <ActionIcon
           active={isChatActive}

@@ -645,16 +645,16 @@ const MemoriesPage = memo(() => {
 
           <Form.Item
             label={
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ alignItems: 'center', display: 'flex', gap: 8 }}>
                 Vincular con Evento (Opcional)
                 <Button
-                  size="small"
-                  type="link"
-                  style={{ fontSize: 12, padding: 0, height: 'auto' }}
                   onClick={() => {
                     setManualEventEntry((v) => !v);
                     form.setFieldValue('eventId', undefined);
                   }}
+                  size="small"
+                  style={{ fontSize: 12, height: 'auto', padding: 0 }}
+                  type="link"
                 >
                   {manualEventEntry ? 'Seleccionar de mis eventos' : 'Introducir código manualmente'}
                 </Button>
@@ -663,7 +663,7 @@ const MemoriesPage = memo(() => {
             name="eventId"
           >
             {manualEventEntry ? (
-              <Input placeholder="Código o ID del evento..." allowClear />
+              <Input allowClear placeholder="Código o ID del evento..." />
             ) : (
               <Select
                 allowClear
