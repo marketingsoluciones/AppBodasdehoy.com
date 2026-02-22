@@ -9,6 +9,7 @@ import { getDeveloperToken, setDeveloperToken } from '@/const/developerTokens';
 import { consumeInviteToken } from '@/services/api2/invite';
 import { processGoogleRedirectResult, processFacebookRedirectResult } from '@/services/firebase-auth';
 import { useChatStore } from '@/store/chat';
+import { useAgentStore } from '@/store/agent';
 
 // ✅ OPTIMIZACIÓN: Solo loguear en desarrollo
 const isDev = process.env.NODE_ENV === 'development';
@@ -44,6 +45,7 @@ export function EventosAutoAuth() {
 function EventosAutoAuthComponent() {
   const searchParams = useSearchParams();
   const { setExternalChatConfig, currentUserId } = useChatStore();
+  const { togglePlugin } = useAgentStore();
   const [lastIdentifiedUserId, setLastIdentifiedUserId] = useState<string | null>(null);
   // ✅ FIX: Inicializar sincrónicamente para que el primer render ya sepa si está en iframe.
   // Con useState(false) el primer render ejecutaba identifyAndConfigure() inmediatamente
@@ -97,6 +99,14 @@ function EventosAutoAuthComponent() {
           setReceivedAuthFromParent(true);
           // Bienvenida se maneja desde ChatHydration para evitar duplicados
 
+          // Habilitar plugins solicitados por el parent (ej: lobe-venue-visualizer)
+          if (payload.enablePlugins && Array.isArray(payload.enablePlugins)) {
+            for (const pluginId of payload.enablePlugins) {
+              devLog('[EventosAutoAuth] Habilitando plugin desde AUTH_CONFIG:', pluginId);
+              togglePlugin(pluginId, true).catch(() => {});
+            }
+          }
+
           // Guardar en localStorage para persistencia
           localStorage.setItem('dev-user-config', JSON.stringify({
             developer: payload.development,
@@ -105,9 +115,10 @@ function EventosAutoAuthComponent() {
             timestamp: Date.now(),
             token: payload.token,
             userId: payload.userId,
-            // user_id (snake_case) es necesario para useAuthCheck en /messages
-            user_id: payload.userId,
+            
             user_data: payload.userData,
+            // user_id (snake_case) es necesario para useAuthCheck en /messages
+user_id: payload.userId,
             user_type: 'registered',
           }));
         }

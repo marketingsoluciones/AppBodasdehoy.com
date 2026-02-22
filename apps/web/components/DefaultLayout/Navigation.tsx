@@ -1,7 +1,7 @@
 import { useMemo, useEffect, useState, FC, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { AuthContextProvider, EventContextProvider, ChatSidebarContextProvider } from "../../context";
-import { Banner, IconLightBulb16, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MenuIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
+import { Banner, IconLightBulb16, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, LivingRoomIcon, MenuIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
 import { useDelayUnmount } from "../../utils/Funciones";
 import Profile from "./Profile";
 import BlockNotification from "./BlockNotification";
@@ -79,6 +79,12 @@ const Navigation: FC = () => {
       title: "Itinerario",
       icon: <BsCalendarHeartFill className="w-7 h-7" />,
       route: "/itinerario",
+      condicion: event?._id ? true : false
+    },
+    {
+      title: "Diseño IA",
+      icon: <LivingRoomIcon className="w-7 h-7" />,
+      route: "/diseño-espacios",
       condicion: event?._id ? true : false
     },
   ], [event]);

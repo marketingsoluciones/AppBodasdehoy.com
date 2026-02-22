@@ -30,3 +30,4 @@ export * from './intervention';
 export * from './plugin';
 export * from './search';
 export * from './tool';
+export * from './venueVisualizer';

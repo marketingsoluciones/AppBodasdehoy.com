@@ -6,6 +6,7 @@ import { ArtifactsManifest } from './artifacts';
 import { CodeInterpreterManifest } from './code-interpreter';
 import { DalleManifest } from './dalle';
 import { LocalSystemManifest } from './local-system';
+import { VenueVisualizerManifest } from './venue-visualizer';
 import { WebBrowsingManifest } from './web-browsing';
 
 export const builtinTools: LobeBuiltinTool[] = [
@@ -34,6 +35,11 @@ export const builtinTools: LobeBuiltinTool[] = [
   {
     identifier: CodeInterpreterManifest.identifier,
     manifest: CodeInterpreterManifest,
+    type: 'builtin',
+  },
+  {
+    identifier: VenueVisualizerManifest.identifier,
+    manifest: VenueVisualizerManifest,
     type: 'builtin',
   },
 ];

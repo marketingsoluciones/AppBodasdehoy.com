@@ -2,6 +2,7 @@ import { StateCreator } from 'zustand/vanilla';
 
 import { OpenAIImagePayload } from '@/types/openai/image';
 import { DallEImageItem } from '@/types/tool/dalle';
+import { VenueRoomType, VenueStyle, VenueVisualizerItem } from '@/types/tool/venueVisualizer';
 import { setNamespace } from '@/utils/storeDebug';
 
 import { ToolStore } from '../../store';
@@ -12,6 +13,13 @@ interface Text2ImageParams extends Pick<OpenAIImagePayload, 'quality' | 'style' 
   prompts: string[];
 }
 
+interface VisualizeVenueParams {
+  imageUrl?: string;
+  prompt?: string;
+  roomType: VenueRoomType;
+  style: VenueStyle;
+}
+
 /**
  * 代理行为接口
  */
@@ -19,6 +27,8 @@ export interface BuiltinToolAction {
   text2image: (params: Text2ImageParams) => DallEImageItem[];
   toggleBuiltinToolLoading: (key: string, value: boolean) => void;
   transformApiArgumentsToAiState: (key: string, params: any) => Promise<string | undefined>;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  visualize_venue: (params: VisualizeVenueParams) => VenueVisualizerItem[];
 }
 
 export const createBuiltinToolSlice: StateCreator<
@@ -29,11 +39,13 @@ export const createBuiltinToolSlice: StateCreator<
 > = (set, get) => ({
   text2image: ({ prompts, size = '1024x1024' as const, quality = 'standard', style = 'vivid' }) =>
     prompts.map((p) => ({ prompt: p, quality, size, style })),
+
+  
   toggleBuiltinToolLoading: (key, value) => {
     set({ builtinToolLoading: { [key]: value } }, false, n('toggleBuiltinToolLoading'));
   },
-
-  transformApiArgumentsToAiState: async (key, params) => {
+  
+transformApiArgumentsToAiState: async (key, params) => {
     const { builtinToolLoading, toggleBuiltinToolLoading } = get();
     if (builtinToolLoading[key]) return;
 
@@ -55,4 +67,14 @@ export const createBuiltinToolSlice: StateCreator<
       throw e;
     }
   },
+
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+visualize_venue: ({ imageUrl, style, roomType, prompt }) => [
+    {
+      originalUrl: imageUrl,
+      prompt,
+      roomType,
+      style,
+    },
+  ],
 });

@@ -67,6 +67,9 @@ export function extractPageContext(path: string, event: Event | null): PageConte
   } else if (path.includes('/tareas')) {
     pageName = 'Tareas';
     pageDescription = 'Lista de tareas del evento';
+  } else if (path.includes('/diseño-espacios') || path.includes('/diseno-espacios')) {
+    pageName = 'Diseño de espacios';
+    pageDescription = 'Visualización de decoración de espacios con IA';
   }
 
   // Resumen básico del evento

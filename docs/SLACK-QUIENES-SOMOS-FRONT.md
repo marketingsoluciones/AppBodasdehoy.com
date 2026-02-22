@@ -27,9 +27,15 @@ Si en el futuro api-ia (u otro) escribe pidiendo algo a "Front" o "Frontend" que
 
 ---
 
+## Comunicación: solo con api-ia
+
+**Nosotros no hablamos con API2.** Todo lo que necesitamos (fixes de chat, payment_url, planes, credenciales, etc.) **se lo pedimos a api-ia** en #copilot-api-ia. api-ia coordina con API2 o con el componente que corresponda. Ver **docs/FRONT-SOLO-HABLA-CON-API-IA.md**.
+
+---
+
 ## Resumen una línea
 
-**Somos el front de Bodas de Hoy: Copilot (LobeChat), web, memories, creador. Las peticiones en #copilot-api-ia a "Frontend" o "CRM-Front" sobre estos productos son nuestras; si es otro front, lo indicamos.**
+**Somos el front de Bodas de Hoy: Copilot (LobeChat), web, memories, creador. Las peticiones en #copilot-api-ia a "Frontend" o "CRM-Front" sobre estos productos son nuestras; si es otro front, lo indicamos. Solo hablamos con api-ia; no tenemos contacto con API2.**
 
 ---
 

@@ -33,9 +33,11 @@ interface CopilotIframeProps {
   className?: string;
   userData?: UserData;
   event?: Event | null;
+  /** Plugin identifiers to auto-enable in the copilot when the iframe loads */
+  enablePlugins?: string[];
 }
 
-const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName, className, userData, event }: CopilotIframeProps) => {
+const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName, className, userData, event, enablePlugins }: CopilotIframeProps) => {
     const router = useRouter();
     // ✅ CORRECCIÓN: Iniciar isLoaded como true para que el iframe se muestre inmediatamente
     const [isLoaded, setIsLoaded] = useState(true);
@@ -323,6 +325,8 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
           } : null,
           // Incluir contexto de página con datos reales
           pageContext: pageContextData,
+          // Plugins a habilitar automáticamente en el copilot
+          ...(enablePlugins && enablePlugins.length > 0 && { enablePlugins }),
         },
       };
 
@@ -352,7 +356,7 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
       // Guardar path enviado
       lastSentPath.current = currentPath;
       lastSentEventId.current = event?._id || null;
-    }, [userId, development, eventId, eventName, userData, event, currentPath, iframeRef, iframeSrc]);
+    }, [userId, development, eventId, eventName, userData, event, currentPath, iframeRef, iframeSrc, enablePlugins]);
 
     // Comunicacion con el iframe via postMessage
     useEffect(() => {

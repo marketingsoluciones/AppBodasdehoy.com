@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import Link from "next/link";
-import { InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
+import { InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, LivingRoomIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
 import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { BsCalendarHeartFill } from "react-icons/bs";
@@ -81,6 +81,12 @@ const NavigationMobile = () => {
       title: "Lista de regalos",
       icon: <ListaRegalosIcon />,
       route: "/lista-regalos",
+      condicion: event?._id ? "verdadero" : "falso"
+    },
+    {
+      title: "Diseño IA",
+      icon: <LivingRoomIcon className="text-primary w-7 h-7" />,
+      route: event?._id ? "/diseño-espacios" : "/",
       condicion: event?._id ? "verdadero" : "falso"
     },
   ]

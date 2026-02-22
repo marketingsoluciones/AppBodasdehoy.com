@@ -8,6 +8,7 @@ export interface ChatToolState {
   dalleImageMap: Record<string, FileItem>;
   localFileLoading: Record<string, boolean>;
   searchLoading: Record<string, boolean>;
+  venueImageLoading: Record<string, boolean>;
 }
 
 export const initialToolState: ChatToolState = {
@@ -17,4 +18,5 @@ export const initialToolState: ChatToolState = {
   dalleImageMap: {},
   localFileLoading: {},
   searchLoading: {},
+  venueImageLoading: {},
 };
