@@ -5,8 +5,9 @@
 import { AuthContextProvider } from '../context';
 import { MemoriesProvider, useMemoriesStore } from '@bodasdehoy/memories';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { LiaLinkSolid } from 'react-icons/lia';
+import { FiCheck, FiLoader } from 'react-icons/fi';
 
 const MOMENTOS_API_BASE =
   typeof window !== 'undefined'
@@ -15,8 +16,48 @@ const MOMENTOS_API_BASE =
         process.env.NEXT_PUBLIC_BASE_URL ||
         '');
 
+function ShareAlbumButton({ albumId }: { albumId: string }) {
+  const { generateShareLink } = useMemoriesStore();
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    setLoading(true);
+    try {
+      const result = await generateShareLink(albumId, 30);
+      if (result) {
+        const shareUrl = result.shareUrl ||
+          `${window.location.origin}/memories/shared/${result.shareToken}`;
+        await navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      }
+    } catch {
+      // silently ignore
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleShare}
+      disabled={loading}
+      title="Compartir álbum"
+      className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-primary transition-colors disabled:opacity-60"
+    >
+      {loading
+        ? <FiLoader className="w-3.5 h-3.5 animate-spin" />
+        : copied
+          ? <FiCheck className="w-3.5 h-3.5 text-green-500" />
+          : <LiaLinkSolid className="w-3.5 h-3.5" />
+      }
+      <span>{copied ? 'Copiado' : 'Compartir'}</span>
+    </button>
+  );
+}
+
 function MomentosContent() {
-  const router = useRouter();
   const { albums, albumsLoading, fetchAlbums } = useMemoriesStore();
 
   useEffect(() => {
@@ -47,7 +88,7 @@ function MomentosContent() {
             {albums.map((album) => (
               <li
                 key={album._id}
-                className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow"
+                className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow flex flex-col"
               >
                 <div className="font-medium text-gray-900 truncate">{album.name}</div>
                 {album.description && (
@@ -57,6 +98,9 @@ function MomentosContent() {
                 )}
                 <div className="text-xs text-gray-400 mt-2">
                   {album.mediaCount} fotos · {album.memberCount} miembros
+                </div>
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <ShareAlbumButton albumId={album._id} />
                 </div>
               </li>
             ))}
