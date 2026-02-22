@@ -169,6 +169,7 @@ function buildSystemPrompt(metadata?: { eventName?: string; eventId?: string; pa
 - Ver servicios / tareas (Kanban): [Ver servicios](/servicios?eventId=${metadata.eventId})
 - Ver lista de regalos: [Ver lista de regalos](/lista-regalos?eventId=${metadata.eventId})
 - Ver invitaciones: [Ver invitaciones](/invitaciones?eventId=${metadata.eventId})
+- Buscador de mesa para invitados (sin login): [Buscador de mesa](/buscador-mesa/${metadata.eventId})
 
 **IMPORTANTE sobre links a tareas/servicios específicos:**
 - NO puedes generar un link directo a una tarea o servicio específico sin conocer su ID interno.
