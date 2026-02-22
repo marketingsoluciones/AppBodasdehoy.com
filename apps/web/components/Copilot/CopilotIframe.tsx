@@ -10,7 +10,7 @@
  * - Envía PAGE_CONTEXT cuando cambia la pantalla con los datos reales del evento
  */
 
-import { forwardRef, useState, useCallback, memo, useEffect, useRef } from 'react';
+import { useState, useCallback, memo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Cookies from 'js-cookie';
 import { Event } from '../../utils/Interfaces';
@@ -35,8 +35,7 @@ interface CopilotIframeProps {
   event?: Event | null;
 }
 
-const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
-  ({ userId, development = 'bodasdehoy', eventId, eventName, className, userData, event }, ref) => {
+const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName, className, userData, event }: CopilotIframeProps) => {
     const router = useRouter();
     // ✅ CORRECCIÓN: Iniciar isLoaded como true para que el iframe se muestre inmediatamente
     const [isLoaded, setIsLoaded] = useState(true);
@@ -45,8 +44,7 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
     const [backendCheck, setBackendCheck] = useState<'idle' | 'checking' | 'ok' | 'error'>('idle');
     const [backendError, setBackendError] = useState<string | null>(null);
     const [copyStatus, setCopyStatus] = useState<'ok' | 'fail' | null>(null);
-    const internalRef = useRef<HTMLIFrameElement>(null);
-    const iframeRef = (ref as React.RefObject<HTMLIFrameElement>) || internalRef;
+    const iframeRef = useRef<HTMLIFrameElement>(null);
     const lastSentPath = useRef<string | null>(null);
     const lastSentEventId = useRef<string | null>(null);
     const timeoutRef = useRef<number | null>(null);
@@ -548,9 +546,8 @@ const CopilotIframe = forwardRef<HTMLIFrameElement, CopilotIframeProps>(
         />
       </div>
     );
-  }
-);
+};
 
 CopilotIframe.displayName = 'CopilotIframe';
 
-export default memo(CopilotIframe);
+export default memo(CopilotIframe) as any; // type cast: React 19 + pnpm ReactNode path mismatch

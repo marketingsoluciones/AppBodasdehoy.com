@@ -8,7 +8,7 @@
  * Conecta con copilotChat service para streaming SSE.
  */
 
-import { FC, useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { MessageList, InputEditor } from '@bodasdehoy/copilot-shared';
 import type { MessageItem } from '@bodasdehoy/copilot-shared';
 import {
@@ -66,7 +66,7 @@ export interface CopilotEmbedProps {
  * />
  * ```
  */
-export const CopilotEmbed: FC<CopilotEmbedProps> = ({
+export const CopilotEmbed = ({
   userId,
   sessionId,
   development,
@@ -74,7 +74,7 @@ export const CopilotEmbed: FC<CopilotEmbedProps> = ({
   eventName,
   pageContext,
   className,
-}) => {
+}: CopilotEmbedProps) => {
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);

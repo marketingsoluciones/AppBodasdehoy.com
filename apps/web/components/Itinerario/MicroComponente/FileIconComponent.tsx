@@ -1,15 +1,13 @@
-import { DetailedHTMLProps, FC, HTMLAttributes } from 'react';
+import { HTMLAttributes } from 'react';
 import { FileIcon, defaultStyles } from 'react-file-icon';
 
-interface props extends DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> {
+interface props extends HTMLAttributes<HTMLDivElement> {
   extension: string;
 }
 
-export const FileIconComponent: FC<props> = (props) => {
-  const { extension } = props;
-
+export const FileIconComponent = ({ extension, ...rest }: props) => {
   return (
-    <div {...props}>
+    <div {...rest}>
       <FileIcon extension={extension} {...defaultStyles[extension]} />
     </div>
   );
