@@ -8,7 +8,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 [ -f "$ROOT_DIR/.env" ] && set -a && source "$ROOT_DIR/.env" && set +a
 
-WEBHOOK_URL="${SLACK_WEBHOOK_FRONTEND:-${SLACK_WEBHOOK:-https://hooks.slack.com/services/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}}"
+CHANNEL_ID="${SLACK_CHANNEL_FRONTEND:-C0AEV0GCLM7}"
+BOT_TOKEN="${SLACK_BOT_TOKEN:-}"
+WEBHOOK_URL="${SLACK_WEBHOOK_FRONTEND:-${SLACK_WEBHOOK_LOBECHAT:-${SLACK_WEBHOOK_URL:-}}}"
 
 # Identidad por equipo/repo
 REPO=""
@@ -131,17 +133,28 @@ escape_json() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\n/\\n/g'; }
 FULL_ESC=$(escape_json "$FULL_MESSAGE")
 SENDER_ESC=$(escape_json "$SLACK_SENDER")
 
-# Enviar a Slack (username = remitente visible)
-curl -X POST "$WEBHOOK_URL" \
-  -H 'Content-Type: application/json' \
-  -d "{\"text\": \"$FULL_ESC\", \"mrkdwn\": true, \"username\": \"$SENDER_ESC\"}" \
-  -s -o /dev/null -w "%{http_code}"
-
-HTTP_CODE=$?
-
-if [ $HTTP_CODE -eq 0 ]; then
-  echo "✅ Mensaje enviado a #copilot-api-ia"
-else
-  echo "❌ Error al enviar mensaje (código: $HTTP_CODE)"
+if [ -n "$BOT_TOKEN" ]; then
+  # Enviar con API chat.postMessage (como el otro equipo)
+  RESP=$(curl -sS --max-time 15 -X POST "https://slack.com/api/chat.postMessage" \
+    -H "Authorization: Bearer $BOT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"channel\": \"$CHANNEL_ID\", \"text\": \"$FULL_ESC\", \"username\": \"$SENDER_ESC\", \"mrkdwn\": true}")
+  if echo "$RESP" | grep -q '"ok":true'; then
+    echo "✅ Mensaje enviado a #copilot-api-ia"
+    exit 0
+  fi
+  echo "❌ Error Slack API: $(echo "$RESP" | jq -r '.error // .' 2>/dev/null || echo "$RESP")"
   exit 1
 fi
+
+if [ -z "$WEBHOOK_URL" ]; then
+  echo "Error: define SLACK_BOT_TOKEN (recomendado) o SLACK_WEBHOOK_FRONTEND/SLACK_WEBHOOK_LOBECHAT en .env"
+  exit 1
+fi
+
+# Fallback: webhook
+curl -sS -X POST "$WEBHOOK_URL" \
+  -H 'Content-Type: application/json' \
+  -d "{\"text\": \"$FULL_ESC\", \"mrkdwn\": true, \"username\": \"$SENDER_ESC\"}"
+
+echo "✅ Mensaje enviado a #copilot-api-ia"

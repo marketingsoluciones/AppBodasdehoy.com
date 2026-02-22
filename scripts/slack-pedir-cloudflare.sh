@@ -7,9 +7,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 [ -f "$ROOT_DIR/.env" ] && set -a && source "$ROOT_DIR/.env" && set +a
 
-WEBHOOK_URL="${SLACK_WEBHOOK_FRONTEND:-${SLACK_WEBHOOK:-}}"
+WEBHOOK_URL="${SLACK_WEBHOOK_FRONTEND:-${SLACK_WEBHOOK_LOBECHAT:-${SLACK_WEBHOOK_URL:-}}}"
 if [ -z "$WEBHOOK_URL" ]; then
-  echo "Falta SLACK_WEBHOOK_FRONTEND o SLACK_WEBHOOK en .env"
+  echo "Error: define SLACK_WEBHOOK_FRONTEND, SLACK_WEBHOOK_LOBECHAT o SLACK_WEBHOOK_URL en .env"
   exit 1
 fi
 

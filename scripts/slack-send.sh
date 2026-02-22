@@ -1,19 +1,22 @@
 #!/bin/bash
 
-# Enviar mensajes a api-ia vía Slack. Nuestro único canal: #copilot-api-ia.
+# Enviar mensajes a api-ia vía Slack. Canal: #copilot-api-ia.
+# Usa chat.postMessage (bot token) como el otro equipo; si no hay token, usa webhook.
 # Uso:
 #   ./slack-send.sh "Mensaje"
-#   ./slack-send.sh --copilot "Mensaje"   # remitente Front Copilot LobeChat
-#   ./slack-send.sh --web "Mensaje"       # remitente Front App Bodasdehoy
-# Webhook: .env SLACK_WEBHOOK_FRONTEND o SLACK_WEBHOOK (canal #copilot-api-ia).
+#   ./slack-send.sh --copilot "Mensaje"
+#   ./slack-send.sh --web "Mensaje"
+# Requiere: .env con SLACK_BOT_TOKEN (recomendado) o SLACK_WEBHOOK_FRONTEND / SLACK_WEBHOOK_LOBECHAT.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 [ -f "$ROOT_DIR/.env" ] && set -a && source "$ROOT_DIR/.env" && set +a
 
-WEBHOOK_URL="${SLACK_WEBHOOK_FRONTEND:-${SLACK_WEBHOOK:-https://hooks.slack.com/services/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}}"
+CHANNEL_ID="${SLACK_CHANNEL_FRONTEND:-C0AEV0GCLM7}"
+BOT_TOKEN="${SLACK_BOT_TOKEN:-}"
+WEBHOOK_URL="${SLACK_WEBHOOK_FRONTEND:-${SLACK_WEBHOOK_LOBECHAT:-${SLACK_WEBHOOK_URL:-}}}"
 
-# Identidad por equipo/repo (--copilot | --web) o por .env (SLACK_REPO=copilot|web, o SLACK_SENDER_NAME)
+# Identidad por equipo/repo (--copilot | --web) o por .env
 REPO=""
 if [ "$1" = "--copilot" ]; then
   REPO="copilot"
@@ -35,7 +38,7 @@ elif [ "$REPO" = "web" ]; then
   REPO_LINE="Repo: apps/web"
 else
   SLACK_SENDER="${SLACK_SENDER_NAME:-Frontend Bodasdehoy · Copilot LobeChat}"
-  SLACK_DE="${SLACK_MSG_DE:-De: Frontend / Copilot LobeChat}"
+  SLACK_DE="De: Frontend / Copilot LobeChat"
   REPO_LINE=""
 fi
 
@@ -56,10 +59,43 @@ escape_json() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\n/\\n/g'; }
 MESSAGE_ESC=$(escape_json "$MESSAGE")
 SENDER_ESC=$(escape_json "$SLACK_SENDER")
 
-# Enviar mensaje a Slack (username = remitente visible)
-curl -X POST "$WEBHOOK_URL" \
+if [ -n "$BOT_TOKEN" ]; then
+  # Enviar con API chat.postMessage (mismo método que el otro equipo)
+  RESP=$(curl -sS --max-time 15 -X POST "https://slack.com/api/chat.postMessage" \
+    -H "Authorization: Bearer $BOT_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"channel\": \"$CHANNEL_ID\", \"text\": \"$MESSAGE_ESC\", \"username\": \"$SENDER_ESC\"}")
+  if command -v jq &>/dev/null; then
+    OK=$(echo "$RESP" | jq -r '.ok // false')
+    if [ "$OK" = "true" ]; then
+      echo ""
+      echo "✅ Mensaje enviado a #copilot-api-ia (chat.postMessage)"
+      exit 0
+    fi
+    ERR=$(echo "$RESP" | jq -r '.error // "unknown"')
+    echo "❌ Slack API error: $ERR" >&2
+    echo "$RESP" | jq '.' >&2
+    exit 1
+  else
+    if echo "$RESP" | grep -q '"ok":true'; then
+      echo ""
+      echo "✅ Mensaje enviado a #copilot-api-ia (chat.postMessage)"
+      exit 0
+    fi
+    echo "❌ Slack API error: $RESP" >&2
+    exit 1
+  fi
+fi
+
+# Fallback: webhook (si no hay bot token)
+if [ -z "$WEBHOOK_URL" ]; then
+  echo "Error: define SLACK_BOT_TOKEN (recomendado) o SLACK_WEBHOOK_FRONTEND/SLACK_WEBHOOK_LOBECHAT en .env" >&2
+  exit 1
+fi
+
+curl -sS -X POST "$WEBHOOK_URL" \
   -H 'Content-Type: application/json' \
   -d "{\"text\": \"$MESSAGE_ESC\", \"username\": \"$SENDER_ESC\"}"
 
 echo ""
-echo "✅ Mensaje enviado a #copilot-api-ia"
+echo "✅ Mensaje enviado a #copilot-api-ia (webhook)"

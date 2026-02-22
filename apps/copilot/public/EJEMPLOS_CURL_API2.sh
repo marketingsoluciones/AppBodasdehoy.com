@@ -3,10 +3,8 @@
 # ========================================
 # EJEMPLOS DE PETICIONES A API2
 # ========================================
-# 
-# Todas estas peticiones están retornando 400 Bad Request
-# Por favor, verificar qué está fallando
-#
+# Schema: Chat tiene { id }; Evento tiene { id tipo estatus } (español).
+# Batería automatizada: scripts/run-bateria-api2.mjs
 # ========================================
 
 API2_URL="https://api2.eventosorganizador.com/graphql"
@@ -94,7 +92,7 @@ curl -X POST "$API2_URL" \
   -H "X-Origin: https://${DEVELOPMENT}.com" \
   -H "X-Support-Key: $SUPPORT_KEY" \
   -d '{
-    "query": "query GetUserChats($email: String!, $development: String!) { getUserChats(email: $email, development: $development) { id channel lastMessage lastMessageAt unreadCount participants { name avatar } } }",
+    "query": "query GetUserChats($email: String!, $development: String!) { getUserChats(email: $email, development: $development) { chats { id } } }",
     "variables": {
       "email": "'"$USER_EMAIL"'",
       "development": "'"$DEVELOPMENT"'"
@@ -116,7 +114,7 @@ curl -X POST "$API2_URL" \
   -H "X-Origin: https://${DEVELOPMENT}.com" \
   -H "X-Support-Key: $SUPPORT_KEY" \
   -d '{
-    "query": "query GetUserEventsByEmail($email: String!, $development: String!) { getUserEventsByEmail(email: $email, development: $development) { id name date type status } }",
+    "query": "query GetUserEventsByEmail($email: String!, $development: String!) { getUserEventsByEmail(email: $email, development: $development) { eventos { id tipo estatus } } }",
     "variables": {
       "email": "'"$USER_EMAIL"'",
       "development": "'"$DEVELOPMENT"'"

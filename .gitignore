@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+.pnpm-store
 .pnpm-store/
 
 # Build outputs
@@ -58,6 +59,17 @@ coverage/
 *.tmp
 ERRORES_CONSOLA.json
 
+# Test results / battery output files
+resultados-bateria-*.json
+resultados-bateria-api2-*.json
+
+# Screenshots from Playwright / manual tests (root level)
+/*.png
+.playwright-mcp/
+
 # Documentation archive (keep in git but ignore from searches)
 # docs/archive/
 .backups/
+
+# GitHub Actions (managed separately)
+.github/

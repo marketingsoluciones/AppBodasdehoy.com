@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
 # Lee los últimos mensajes del canal #copilot-api-ia (Slack).
-# Requiere: SLACK_BOT_OAUTH_TOKEN y opcionalmente SLACK_CHANNEL_COPILOT_API_IA en .env
-# El Bot Token debe tener scope channels:history (y el bot añadido al canal).
+# Requiere: SLACK_BOT_TOKEN en .env. Opcional: SLACK_CHANNEL_FRONTEND (por defecto C0AEV0GCLM7).
+# El bot debe tener scope channels:history y estar en #copilot-api-ia.
 #
 # Uso:
 #   ./scripts/slack-read.sh          # últimos 10 mensajes
@@ -24,15 +24,12 @@ if [ -f "$ENV_FILE" ]; then
 fi
 
 LIMIT="${1:-${LIMIT:-10}}"
-CHANNEL_ID="${SLACK_CHANNEL_FRONTEND:-${SLACK_CHANNEL_COPILOT_API_IA:-${SLACK_CHANNEL_ID:-C0AEV0GCLM7}}}"
-# Token actual para leer: SLACK_BOT_TOKEN (api-ia). SLACK_BOT_OAUTH_TOKEN (Copilot) está deprecado si da account_inactive.
-TOKEN="${SLACK_BOT_TOKEN:-${SLACK_BOT_OAUTH_TOKEN:-}}"
+CHANNEL_ID="${SLACK_CHANNEL_FRONTEND:-C0AEV0GCLM7}"
+TOKEN="${SLACK_BOT_TOKEN:-${SLACK_OAUTH_TOKEN:-}}"
 
 if [ -z "$TOKEN" ]; then
-  echo "Error: SLACK_BOT_TOKEN o SLACK_BOT_OAUTH_TOKEN no está definido."
-  echo "Añade en $ENV_FILE:"
-  echo "  SLACK_BOT_TOKEN=xoxb-..."
-  echo "  SLACK_CHANNEL_ID=C0AEV0GCLM7"
+  echo "Error: SLACK_BOT_TOKEN o SLACK_OAUTH_TOKEN no está definido en $ENV_FILE"
+  echo "Añade: SLACK_BOT_TOKEN=xoxb-... o SLACK_OAUTH_TOKEN=xoxp-..."
   exit 1
 fi
 

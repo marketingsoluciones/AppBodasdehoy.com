@@ -57,6 +57,12 @@ Quien configuró el webhook y el bot ya tiene “conexión” desde el repo haci
 
 ---
 
+### Webhook 404 `no_service`
+
+Si al enviar recibes **HTTP 404** y cuerpo `no_service`, la URL en `SLACK_WEBHOOK_FRONTEND` está revocada o desactivada. En [api.slack.com/apps](https://api.slack.com/apps) → tu app → Incoming Webhooks → añade un webhook nuevo para #copilot-api-ia y pon la nueva URL en `.env`. La **lectura** (`slack-read.sh`) sigue funcionando con `SLACK_BOT_TOKEN`.
+
+---
+
 ## 4. Resumen rápido
 
 | Pregunta | Respuesta |
