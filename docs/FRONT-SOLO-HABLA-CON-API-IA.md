@@ -41,3 +41,11 @@ Nosotros **solo** hablamos con api-ia. Cualquier coordinación con API2 o con ot
 ## Resumen una línea
 
 **Front (Bodas de Hoy) solo se comunica con api-ia por #copilot-api-ia. Todo lo que requiera de API2 o de otros componentes lo pedimos a api-ia; no tenemos forma de hablar con API2.**
+
+---
+
+## Texto para copiar en #copilot-api-ia
+
+Podéis copiar/pegar este párrafo en el canal cuando convenga dejar claro nuestro ámbito:
+
+> *Aclaración para coordinación:* Nosotros somos solo el equipo Front (Bodas de Hoy: Copilot LobeChat, web, memories, creador). **No tenemos comunicación directa con API2** — ni canal ni contacto con ese equipo. Todo lo que necesitamos (fixes de chat, payment_url en 402, credenciales whitelabel, planes, etc.) **se lo pedimos a vosotros (api-ia)**. Vosotros sois nuestro único interlocutor; si algo depende de API2 o de otro backend, vosotros coordináis. Así evitamos malentendidos sobre a quién reclamar o a quién pedir cambios.
