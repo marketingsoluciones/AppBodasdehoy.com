@@ -1,4 +1,4 @@
-import { ComponentType, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener"
 import { RiNotification2Fill } from "react-icons/ri";
 import { MisEventosIcon, TarjetaIcon } from "./icons";
@@ -6,7 +6,6 @@ import { fetchApiBodas, queries } from "../utils/Fetching";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, SocketContextProvider } from "../context";
 import { Notification, ResultNotifications } from "../utils/Interfaces";
 import { Interweave, Node } from "interweave";
-import { HashtagMatcher, Link, Url, UrlMatcher, UrlProps } from "interweave-autolink";
 import { useTranslation } from "react-i18next";
 import { ImageAvatar } from "./Utils/ImageAvatar";
 import { RelativeTime } from "./Utils/RelativeTime";
@@ -131,14 +130,6 @@ export const Notifications = () => {
       })
     }
   }
-
-  const replacesLink: ComponentType<UrlProps> = (props) => {
-    return (
-      <Link href={props?.url}>
-        <span className="text-xs break-all underline" >{props?.children}</span>
-      </Link>
-    )
-  };
 
 
   return (

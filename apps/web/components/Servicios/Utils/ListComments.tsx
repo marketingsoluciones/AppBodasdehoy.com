@@ -4,7 +4,6 @@ import { Comment, Itinerary, Task } from "../../../utils/Interfaces"
 import { ImageAvatar } from "../../Utils/ImageAvatar"
 import { Interweave } from "interweave"
 import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink"
-import Link from "next/link"
 import { detalle_compartidos_array } from "../../../utils/Interfaces"
 import { useRouter, useSearchParams } from "next/navigation"
 import { TempPastedAndDropFile } from "../../Itinerario/MicroComponente/ItineraryPanel"
@@ -54,9 +53,7 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
 
   const replacesLink: ComponentType<UrlProps> = (props) => {
     return (
-      <Link href={props?.url}>
-        <a className="text-xs break-all underline" target="_blank"  >{props?.children}</a>
-      </Link>
+      <a href={props?.url} className="text-xs break-all underline" target="_blank" rel="noopener noreferrer">{props?.children}</a>
     )
   };
 

@@ -34,7 +34,7 @@ export const Footer = () => {
                     {
                         DataLinks.map((itemm, idx) => (
                             <div key={idx} className="text-white text-sm  md:text-base ">
-                                <Link href={itemm.router} passHref>{itemm.title}</Link>
+                                <Link href={itemm.router}>{itemm.title}</Link>
                             </div>
                         ))
                     }

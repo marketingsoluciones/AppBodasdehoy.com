@@ -15,7 +15,6 @@ import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { Interweave } from "interweave";
 import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink";
 import i18next from "i18next";
-import Link from "next/link";
 import { useToast } from "../../../hooks/useToast";
 import { IniterarySelectionMenu } from "./InitinerarySelectionMenu"
 
@@ -71,9 +70,7 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
 
   const replacesLink: ComponentType<UrlProps> = (props) => {
     return (
-      <Link href={props?.url}>
-        <a className="text-xs break-all underline" target="_blank"  >{props?.children}</a>
-      </Link>
+      <a href={props?.url} className="text-xs break-all underline" target="_blank" rel="noopener noreferrer">{props?.children}</a>
     )
   };
 

@@ -12,7 +12,6 @@ import { Interweave } from "interweave";
 import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink";
 import { CgSoftwareDownload } from "react-icons/cg";
 import { getBytes, getMetadata, getStorage, ref } from "firebase/storage";
-import Link from "next/link";
 import { GruposResponsablesArry } from "../../Servicios/Utils/ResponsableSelector";
 import { ImageAvatar } from "../../Utils/ImageAvatar";
 import { EditTastk } from "./ItineraryPanel";
@@ -341,9 +340,7 @@ const SubComponenteTable = ({ data, itinerario }) => {
 
     const replacesLink: ComponentType<UrlProps> = (props) => {
         return (
-            <Link href={props?.url}>
-                <a className="text-xs break-all underline" target="_blank"  >{props?.children}</a>
-            </Link>
+            <a href={props?.url} className="text-xs break-all underline" target="_blank" rel="noopener noreferrer">{props?.children}</a>
         )
     };
 

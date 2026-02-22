@@ -1,5 +1,5 @@
 import { Interweave } from "interweave";
-import { HashtagMatcher, Link, UrlMatcher, UrlProps } from "interweave-autolink";
+import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink";
 import dynamic from "next/dynamic";
 import { ComponentType, FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -7,9 +7,7 @@ import 'react-quill/dist/quill.snow.css';
 
 const replacesLink: ComponentType<UrlProps> = (props) => {
   return (
-    <Link href={props?.url}>
-      <a className="text-xs break-all underline" target="_blank"  >{props?.children}</a>
-    </Link>
+    <a href={props?.url} className="text-xs break-all underline" target="_blank" rel="noopener noreferrer">{props?.children}</a>
   )
 };
 
