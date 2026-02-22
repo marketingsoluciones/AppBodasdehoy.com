@@ -25,10 +25,11 @@ import { parseArgs } from 'node:util';
 
 const { values: args } = parseArgs({
   options: {
-    base: { type: 'string', default: 'http://localhost:3000' },
-    suite: { type: 'string', default: 'all' },
+    base:    { type: 'string',  default: 'http://localhost:3000' },
+    suite:   { type: 'string',  default: 'all' },
     verbose: { type: 'boolean', default: false },
-    timeout: { type: 'string', default: '45000' },
+    timeout: { type: 'string',  default: '45000' },
+    retry:   { type: 'string',  default: '1' },   // reintentos en caso de 503 de backend
   },
   strict: false,
 });
@@ -37,6 +38,13 @@ const BASE       = args.base;
 const SUITE      = args.suite;
 const VERBOSE    = args.verbose;
 const TIMEOUT_MS = parseInt(args.timeout, 10);
+const MAX_RETRY  = parseInt(args.retry, 10);
+
+// Detecta si un resultado es un fallo de backend (503 de api-ia) vs bug del front
+function isBackendFailure(result) {
+  return result.status === 503 &&
+    (result.content || '').includes('Servicio IA no disponible');
+}
 
 // Datos del evento de prueba (Boda de Paco y Pico)
 const EVENT = {
@@ -700,29 +708,47 @@ async function main() {
   const results = [];
   let passed = 0;
   let failed = 0;
+  let skippedBackend = 0;
 
   for (const test of tests) {
     process.stdout.write(`[${test.id}] ${test.name} ... `);
     const t0 = Date.now();
     let result;
-    try {
-      result = await test.fn();
-    } catch (err) {
-      result = { status: 0, content: '', provider: null, model: null, chunks: 0, error: err.message };
+    let attempts = 0;
+
+    // Retry automático si el backend devuelve 503 intermitente
+    while (attempts <= MAX_RETRY) {
+      try {
+        result = await test.fn();
+      } catch (err) {
+        result = { status: 0, content: '', provider: null, model: null, chunks: 0, error: err.message };
+      }
+      if (attempts < MAX_RETRY && isBackendFailure(result)) {
+        attempts++;
+        await new Promise(r => setTimeout(r, 2000 * attempts)); // backoff 2s, 4s
+        continue;
+      }
+      break;
     }
+
     const elapsed = Date.now() - t0;
     const evaluation = evaluate(test, result);
-    results.push({ test, result, evaluation, elapsed });
+    const backendFail = !evaluation.pass && isBackendFailure(result);
+    results.push({ test, result, evaluation, elapsed, attempts, backendFail });
 
     if (evaluation.pass) {
-      console.log(`✅  (${elapsed}ms)`);
+      const retryNote = attempts > 0 ? ` (retry ${attempts})` : '';
+      console.log(`✅  (${elapsed}ms)${retryNote}`);
       passed++;
+    } else if (backendFail) {
+      console.log(`⚠️  503-BACKEND  (${elapsed}ms, intentos: ${attempts + 1})`);
+      skippedBackend++;
     } else {
       console.log(`❌  (${elapsed}ms)`);
       failed++;
     }
 
-    if (VERBOSE || !evaluation.pass) {
+    if (VERBOSE || (!evaluation.pass && !backendFail)) {
       console.log(`     Status: ${result.status} | Provider: ${result.provider ?? '?'} | Model: ${result.model ?? '?'} | Chunks: ${result.chunks}`);
       const preview = (result.content || '').substring(0, 200).replace(/\n/g, ' ');
       if (preview) console.log(`     Resp  : "${preview}"`);
@@ -739,30 +765,29 @@ async function main() {
   console.log(`\n${SEP70}`);
   console.log('  RESUMEN');
   console.log(SEP70);
-  console.log(`  Total: ${tests.length}  |  ✅ ${passed} pasados  |  ❌ ${failed} fallados`);
+  console.log(`  Total: ${tests.length}  |  ✅ ${passed} pasados  |  ❌ ${failed} fallados  |  ⚠️  ${skippedBackend} backend-503`);
   console.log('');
-  console.log('  ID   Suite       Estado  ms      Provider        Modelo');
-  console.log('  ' + '─'.repeat(68));
-  for (const { test, result, evaluation, elapsed } of results) {
-    const estado  = evaluation.pass ? '✅' : '❌';
+  console.log('  ID   Suite       Estado          ms      Provider        Modelo');
+  console.log('  ' + '─'.repeat(74));
+  for (const { test, result, evaluation, elapsed, backendFail } of results) {
+    const estado  = evaluation.pass ? '✅ PASS       ' : backendFail ? '⚠️  503-BACKEND' : '❌ FAIL       ';
     const suite   = test.suite.padEnd(10);
-    const ms      = String(elapsed).padStart(5);
+    const ms      = String(elapsed).padStart(6);
     const prov    = (result.provider ?? '?').padEnd(15);
     const model   = (result.model ?? '?').substring(0, 22).padEnd(22);
     console.log(`  ${test.id.padEnd(4)} ${suite} ${estado}  ${ms}ms  ${prov} ${model}`);
   }
 
-  // ── Fallos detallados ──
-  const failures = results.filter(r => !r.evaluation.pass);
-  if (failures.length > 0) {
+  // ── Fallos reales del front (no 503 de backend) ──
+  const frontFailures = results.filter(r => !r.evaluation.pass && !r.backendFail);
+  const backendFailures = results.filter(r => r.backendFail);
+
+  if (frontFailures.length > 0) {
     console.log(`\n${SEP70}`);
-    console.log('  FALLOS DETALLADOS');
+    console.log('  ❌ FALLOS REALES (Front)');
     console.log(SEP70);
-    for (const { test, result, evaluation } of failures) {
+    for (const { test, result, evaluation } of frontFailures) {
       console.log(`\n  [${test.id}] ${test.name}`);
-      if (test.fn.toString().includes('message')) {
-        // Extract message for display when possible
-      }
       console.log(`  Status: ${result.status}  Error: ${result.error ?? 'none'}`);
       const preview = (result.content || '').substring(0, 400).replace(/\n/g, ' ');
       if (preview) console.log(`  Resp: "${preview}"`);
@@ -770,6 +795,17 @@ async function main() {
         console.log(`    → ${issue}`);
       }
     }
+  }
+
+  if (backendFailures.length > 0) {
+    console.log(`\n${SEP70}`);
+    console.log('  ⚠️  FALLOS DE BACKEND (api-ia 503 — no son bugs del front)');
+    console.log(SEP70);
+    for (const { test } of backendFailures) {
+      console.log(`  [${test.id}] ${test.name}`);
+    }
+    console.log(`\n  → Estos tests requieren que api-ia esté operativo.`);
+    console.log(`  → Reportar en #copilot-api-ia: stream=true y rate-limit 503.`);
   }
 
   // ── Por suite ──
@@ -788,6 +824,7 @@ async function main() {
   }
 
   console.log(`\n${SEP70}\n`);
+  // Solo falla el proceso por fallos reales del front, no por 503 de backend
   process.exit(failed > 0 ? 1 : 0);
 }
 
