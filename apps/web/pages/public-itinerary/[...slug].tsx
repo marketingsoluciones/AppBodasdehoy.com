@@ -10,6 +10,7 @@ import { openGraphData } from "../_app";
 import { TimeZone } from "../../components/icons";
 import { getTimeZoneCity } from "../../utils/FormatTime";
 import { useTranslation } from "react-i18next";
+import { BsCalendarPlus } from "react-icons/bs";
 
 interface props {
   evento: Event
@@ -28,6 +29,10 @@ const Slug: FC<props> = (props) => {
   const [end, setEnd] = useState(false)
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
   const { t } = useTranslation()
+
+  const slugParts = props?.slug?.[0]?.split("-") || []
+  const eventId = slugParts[1]
+  const itinerarioId = slugParts[2]
 
   useEffect(() => {
     const tasks = props?.evento.itinerarios_array[0].tasks.filter((task) => task.spectatorView === true)
@@ -88,6 +93,16 @@ const Slug: FC<props> = (props) => {
                 <span className='md:hidden capitalize text-gray-600 text-[12px] leading-[12px] font-medium line-clamp-2'>{event?.nombre}</span>
               </div>
             </div>
+            {eventId && itinerarioId && (
+              <a
+                href={`/api/ical/${eventId}/${itinerarioId}`}
+                download={`itinerario-${itinerarioId}.ics`}
+                title={t('Añadir al calendario')}
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 mx-2 flex-shrink-0"
+              >
+                <BsCalendarPlus className="w-4 h-4 text-primary" />
+              </a>
+            )}
             <div className='flex min-w-min px-4 md:px-8'>
               <div className="text-gray-600 flex flex-col justify-center items-center">
                 <div className="flex justify-center space-x-0.5 w-full">

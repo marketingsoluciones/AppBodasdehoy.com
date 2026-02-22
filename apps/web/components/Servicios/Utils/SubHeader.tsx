@@ -14,6 +14,7 @@ import { useAllowed } from "../../../hooks/useAllowed";
 import { ViewItinerary } from "../../../pages/invitados";
 import { GrDocumentPdf } from "react-icons/gr";
 import { LiaLinkSolid } from "react-icons/lia";
+import { BsCalendarPlus } from "react-icons/bs";
 import ClickAwayListener from "react-click-away-listener";
 import { CopiarLink } from "../../Utils/Compartir";
 
@@ -112,6 +113,17 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
                                 className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize"
                             >
                                 <CopiarLink link={link} />
+                            </li>
+                            <li className="border-t border-gray-100">
+                                <a
+                                    href={`/api/ical/${event?._id}/${itinerario?._id}`}
+                                    download={`itinerario-${itinerario?._id}.ics`}
+                                    className="flex items-center gap-2 py-3 px-6 font-display text-sm text-gray-500 hover:bg-gray-50 transition w-full"
+                                    onClick={() => setShowModalCompartir(false)}
+                                >
+                                    <BsCalendarPlus className="w-4 h-4 text-primary flex-shrink-0" />
+                                    <span>Añadir al calendario (.ics)</span>
+                                </a>
                             </li>
                         </ul>
                     </ClickAwayListener>
