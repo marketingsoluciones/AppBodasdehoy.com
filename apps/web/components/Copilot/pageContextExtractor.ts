@@ -43,6 +43,24 @@ export function extractPageContext(path: string, event: Event | null): PageConte
   } else if (path.includes('/presupuesto')) {
     pageName = 'Presupuesto';
     pageDescription = 'Gestión del presupuesto del evento';
+  } else if (path.includes('/itinerario')) {
+    pageName = 'Itinerario';
+    pageDescription = 'Vista cronológica del itinerario y tareas';
+  } else if (path.includes('/servicios')) {
+    pageName = 'Servicios';
+    pageDescription = 'Vista Kanban de tareas y servicios del evento';
+  } else if (path.includes('/mesas')) {
+    pageName = 'Mesas';
+    pageDescription = 'Gestión de mesas y distribución de invitados';
+  } else if (path.includes('/invitaciones')) {
+    pageName = 'Invitaciones';
+    pageDescription = 'Envío y gestión de invitaciones digitales';
+  } else if (path.includes('/lista-regalos')) {
+    pageName = 'Lista de regalos';
+    pageDescription = 'Lista de regalos del evento';
+  } else if (path.includes('/resumen-evento')) {
+    pageName = 'Resumen del evento';
+    pageDescription = 'Vista general y resumen del evento';
   } else if (path.includes('/proveedores')) {
     pageName = 'Proveedores';
     pageDescription = 'Gestión de proveedores';

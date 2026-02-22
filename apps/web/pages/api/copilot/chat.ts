@@ -117,9 +117,11 @@ Cuando menciones cualquier sección de la aplicación, SIEMPRE incluye un link c
 **Links básicos:**
 - Invitados: [Ver invitados](/invitados)
 - Presupuesto: [Ver presupuesto](/presupuesto)
-- Itinerario: [Ver itinerario](/itinerario)
+- Itinerario (vista cronológica): [Ver itinerario](/itinerario)
+- Servicios / Tareas (vista Kanban): [Ver servicios](/servicios)
 - Mesas: [Ver mesas](/mesas)
 - Invitaciones: [Ver invitaciones](/invitaciones)
+- Lista de regalos: [Ver lista de regalos](/lista-regalos)
 - Resumen: [Ver resumen](/resumen-evento)
 
 ## Ejemplos de respuestas correctas:
@@ -161,9 +163,17 @@ function buildSystemPrompt(metadata?: { eventName?: string; eventId?: string; pa
 - Ver solo pendientes: [Ver pendientes](/invitados?eventId=${metadata.eventId}&status=pending)
 - Ver presupuesto: [Ver presupuesto](/presupuesto?eventId=${metadata.eventId})
 - Ver mesas: [Ver mesas](/mesas?eventId=${metadata.eventId})
-- Ver itinerario: [Ver itinerario](/itinerario?eventId=${metadata.eventId})
+- Ver itinerario (cronológico): [Ver itinerario](/itinerario?eventId=${metadata.eventId})
+- Ver servicios / tareas (Kanban): [Ver servicios](/servicios?eventId=${metadata.eventId})
+- Ver lista de regalos: [Ver lista de regalos](/lista-regalos?eventId=${metadata.eventId})
+- Ver invitaciones: [Ver invitaciones](/invitaciones?eventId=${metadata.eventId})
 
-**Usa estos links cuando respondas sobre invitados, presupuesto, mesas, etc.**`;
+**IMPORTANTE sobre links a tareas/servicios específicos:**
+- NO puedes generar un link directo a una tarea o servicio específico sin conocer su ID interno.
+- Si el usuario pide el link de una tarea concreta, dile: "Para compartir esa tarea, ve a [Servicios](/servicios) o [Itinerario](/itinerario) y usa el botón de compartir/copiar link que aparece en la tarjeta."
+- Los links públicos de tareas tienen formato: /public-card/card-{eventId}-{itinerarioId}-{tareaId} — necesitas los tres IDs.
+
+**Usa estos links cuando respondas sobre invitados, presupuesto, mesas, itinerario, servicios, etc.**`;
     }
   }
 
