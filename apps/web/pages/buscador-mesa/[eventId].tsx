@@ -231,7 +231,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
     }
 
     const guests: SeatGuest[] = (evento.invitados_array || [])
-      .filter((g: any) => g.nombre_mesa)
+      .filter((g: any) => g.nombre_mesa && g.asistencia !== 'cancelado')
       .map((g: any) => ({
         _id: g._id,
         nombre: g.nombre || '',
