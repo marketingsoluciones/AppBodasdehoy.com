@@ -122,6 +122,17 @@ const ServicesVew = (props) => {
             setTempPastedAndDropFiles={setTempPastedAndDropFiles}
           />}
         </div>
+        {/* Enlace discreto al buscador de mesa */}
+        {event?._id && (
+          <div className="flex justify-center mt-6 mb-2">
+            <a
+              href={`/buscador-mesa/${event._id}`}
+              className="text-xs text-gray-400 hover:text-primary transition-colors underline underline-offset-2"
+            >
+              ¿En qué mesa estoy?
+            </a>
+          </div>
+        )}
       </motion.div>
       <style jsx>
         {`
