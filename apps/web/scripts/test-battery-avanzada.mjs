@@ -709,8 +709,15 @@ async function main() {
   let passed = 0;
   let failed = 0;
   let skippedBackend = 0;
+  let lastSuite = null;
 
   for (const test of tests) {
+    // Pausa de 5s entre suites en modo "all" para evitar rate-limit de api-ia
+    if (SUITE === 'all' && lastSuite && lastSuite !== test.suite) {
+      process.stdout.write(`\n⏳ Pausa 5s entre suites (${lastSuite} → ${test.suite})...\n\n`);
+      await new Promise(r => setTimeout(r, 5000));
+    }
+    lastSuite = test.suite;
     process.stdout.write(`[${test.id}] ${test.name} ... `);
     const t0 = Date.now();
     let result;
