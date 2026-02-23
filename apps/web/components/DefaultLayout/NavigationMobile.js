@@ -5,6 +5,7 @@ import { InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, LivingRoomIcon, Mesa
 import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { BsCalendarHeartFill } from "react-icons/bs";
+import { MdOutlinePhotoLibrary } from "react-icons/md";
 import { IoIosArrowDown } from "react-icons/io";
 import ClickAwayListener from "react-click-away-listener";
 
@@ -87,6 +88,12 @@ const NavigationMobile = () => {
       title: "Diseño IA",
       icon: <LivingRoomIcon className="text-primary w-7 h-7" />,
       route: event?._id ? "/diseño-espacios" : "/",
+      condicion: event?._id ? "verdadero" : "falso"
+    },
+    {
+      title: "Momentos",
+      icon: <MdOutlinePhotoLibrary className="text-primary w-7 h-7" />,
+      route: event?._id ? "/momentos" : "/",
       condicion: event?._id ? "verdadero" : "falso"
     },
   ]

@@ -10,6 +10,7 @@ import { Tooltip } from "../Utils/Tooltip";
 import { useAllowedRouter } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { BsCalendarHeartFill } from "react-icons/bs";
+import { MdOutlinePhotoLibrary } from "react-icons/md";
 import ChatToggleButton from "../ChatSidebar/ChatToggleButton";
 
 const Navigation: FC = () => {
@@ -85,6 +86,12 @@ const Navigation: FC = () => {
       title: "Diseño IA",
       icon: <LivingRoomIcon className="w-7 h-7" />,
       route: "/diseño-espacios",
+      condicion: event?._id ? true : false
+    },
+    {
+      title: "Momentos",
+      icon: <MdOutlinePhotoLibrary className="w-7 h-7" />,
+      route: "/momentos",
       condicion: event?._id ? true : false
     },
   ], [event]);

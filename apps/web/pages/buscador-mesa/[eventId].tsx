@@ -51,8 +51,16 @@ const BuscadorMesa: NextPage<Props> = ({ eventId, eventName, eventType, eventImg
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Evento no encontrado.</p>
+      <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white flex flex-col items-center justify-center gap-3 px-4">
+        <p className="text-2xl">😕</p>
+        <p className="text-gray-700 font-medium text-center">
+          {error === 'not_found' ? 'Evento no encontrado' : 'No se pudo cargar el evento'}
+        </p>
+        <p className="text-gray-400 text-sm text-center">
+          {error === 'not_found'
+            ? 'Comprueba el enlace o pide el link correcto a los organizadores.'
+            : 'Ocurrió un error en el servidor. Inténtalo de nuevo en unos minutos.'}
+        </p>
       </div>
     );
   }
