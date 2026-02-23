@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter } from 'next/router';
 import { useToast } from '../../hooks/useToast';
 import { MessageList, InputEditor } from '@bodasdehoy/copilot-shared';
 import type { MessageItem } from '@bodasdehoy/copilot-shared';
@@ -18,6 +19,10 @@ import {
   generateMessageId,
   type SendMessageParams,
   type PageContext,
+  type EnrichedEvent,
+  type UIActionEvent,
+  type ProgressEvent,
+  type ToolResultEvent,
 } from '../../services/copilotChat';
 
 export interface CopilotEmbedProps {
@@ -76,6 +81,7 @@ export const CopilotEmbed = ({
   pageContext,
   className,
 }: CopilotEmbedProps) => {
+  const router = useRouter();
   const toast = useToast();
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [input, setInput] = useState('');
@@ -84,6 +90,8 @@ export const CopilotEmbed = ({
   const abortControllerRef = useRef<AbortController | null>(null);
   // Último mensaje del usuario para poder reintentar en errores 503/429
   const [retryContent, setRetryContent] = useState<string | null>(null);
+  // Progress state for multi-step operations
+  const [progress, setProgress] = useState<ProgressEvent | null>(null);
 
   // Load chat history on mount
   useEffect(() => {
@@ -115,6 +123,41 @@ export const CopilotEmbed = ({
 
     loadHistory();
   }, [sessionId, development]);
+
+  // Handle enriched events from api-ia SSE stream
+  const handleEnrichedEvent = useCallback((event: EnrichedEvent) => {
+    switch (event.type) {
+      case 'ui_action': {
+        const action = event.data as UIActionEvent;
+        if (action.type === 'navigate' && action.path) {
+          router.push(action.path);
+        } else if (action.type === 'refresh_data') {
+          router.replace(router.asPath);
+        }
+        break;
+      }
+      case 'progress': {
+        const prog = event.data as ProgressEvent;
+        setProgress(prog);
+        // Clear progress when step completes or errors
+        if (prog.status === 'completed' || prog.status === 'error') {
+          setTimeout(() => setProgress(null), 2000);
+        }
+        break;
+      }
+      case 'tool_result': {
+        const toolResult = event.data as ToolResultEvent;
+        if (toolResult.result?.type === 'download' && toolResult.result.url) {
+          toast('success', `Archivo listo: ${toolResult.result.filename || 'descarga'}`);
+        } else if (toolResult.result?.type === 'error' && toolResult.result.error) {
+          toast('error', toolResult.result.error);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }, [router, toast]);
 
   // Handle sending message
   const handleSend = useCallback(
@@ -185,9 +228,7 @@ export const CopilotEmbed = ({
           },
           controller.signal,
           // onEnrichedEvent: Handle enriched events (tool results, etc.)
-          (_event) => {
-            // TODO: Handle enriched events in future phases
-          }
+          handleEnrichedEvent
         );
       } catch (error: any) {
         console.error('[CopilotEmbed] Error sending message:', error);
@@ -220,7 +261,7 @@ export const CopilotEmbed = ({
         abortControllerRef.current = null;
       }
     },
-    [sessionId, userId, development, eventId, eventName, pageContext, loading]
+    [sessionId, userId, development, eventId, eventName, pageContext, loading, handleEnrichedEvent]
   );
 
   // Handle message actions (copy, etc.)
@@ -293,6 +334,43 @@ export const CopilotEmbed = ({
           }
         />
       </div>
+
+      {/* Progress indicator — aparece durante operaciones multi-paso */}
+      {progress && (
+        <div
+          style={{
+            padding: '8px 16px',
+            background: '#f0f7ff',
+            borderTop: '1px solid #bfdbfe',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              height: 4,
+              background: '#dbeafe',
+              borderRadius: 2,
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                height: '100%',
+                width: `${Math.round((progress.step / progress.total) * 100)}%`,
+                background: progress.status === 'error' ? '#ef4444' : '#3b82f6',
+                borderRadius: 2,
+                transition: 'width 0.3s ease',
+              }}
+            />
+          </div>
+          <span style={{ fontSize: 12, color: '#1d4ed8', whiteSpace: 'nowrap' }}>
+            {progress.label} ({progress.step}/{progress.total})
+          </span>
+        </div>
+      )}
 
       {/* Banner de reintento — aparece cuando hay error recuperable */}
       {retryContent && !loading && (
