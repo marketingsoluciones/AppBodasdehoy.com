@@ -86,7 +86,6 @@ export const ItineraryGeneralTable = () => {
                 {
                     id: "ver",
                     Cell: (data) => {
-                        console.log(data)
                         const [show, setShow] = useState(false)
                         const [value, setValue] = useState("")
                         const [copied, setCopied] = useState(false)
@@ -226,7 +225,6 @@ export const ItineraryGeneralTable = () => {
     };
 
     const renderRowSubComponent = useCallback(({ row }) => {
-        console.log(row)
         return (
             <SubComponenteTable data={row.values.tasks} itinerario={row.values} />
         )
@@ -334,7 +332,6 @@ const SubComponenteTable = ({ data, itinerario }) => {
                 document.body.removeChild(link)
             })
         } catch (error) {
-            console.log(10003, error)
         }
     }
 
@@ -555,7 +552,6 @@ const SubComponenteTable = ({ data, itinerario }) => {
                                     setShowEditTask({ state: false })
                                 })
                         } catch (error) {
-                            console.log(error)
                         }
 
                     }

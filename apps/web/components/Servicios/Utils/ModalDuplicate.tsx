@@ -139,7 +139,6 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
       setModalDuplicate({ state: false })
       toast("success", t("successful"));
     } catch (error) {
-      console.log(error)
     }
   }
 

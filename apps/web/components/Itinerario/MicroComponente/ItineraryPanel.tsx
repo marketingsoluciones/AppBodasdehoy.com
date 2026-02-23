@@ -296,7 +296,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   }, [currentItinerario, itinerario]);
 
   const handleAddSpectatorView = async (values: Task) => {
-    console.log("values", values)
     try {
 
       const newSpectatorViewValue = values?.spectatorView === null ? true : !values?.spectatorView
@@ -321,7 +320,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
           setShowEditTask({ state: false })
         })
     } catch (error) {
-      console.log(error)
     }
   }
   const handleChangeStatus = async (values: Task) => {
@@ -359,7 +357,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
           })
         })
     } catch (error) {
-      console.log(error)
     }
   }
   const deleteTask = (values: Task, itinerario: Itinerary) => {
@@ -391,7 +388,6 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         )
 
     } catch (error) {
-      console.log(error)
     }
   }
 

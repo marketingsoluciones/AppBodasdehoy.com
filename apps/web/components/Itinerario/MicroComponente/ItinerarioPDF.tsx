@@ -13,7 +13,6 @@ interface TaskReduce {
 
 
 export const ItinerarioPDF = (props) => {
-  console.log(2, props)
   const { t } = useTranslation()
   const event = props.props.evento
   const [end, setEnd] = useState(false)
@@ -47,7 +46,6 @@ export const ItinerarioPDF = (props) => {
       </div>
     )
 
-  console.log("ruduce componente", tasksReduce)
   return (
     <section className={"absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4 bg-white"}>
       <motion.div

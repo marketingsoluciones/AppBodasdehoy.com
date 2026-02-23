@@ -41,7 +41,6 @@ export const AddEvent = ({ itinerario, tasks, setSelectTask }) => {
             setEvent({ ...event })
             setSelectTask(task._id)
         } catch (error) {
-            console.log(error)
         }
     }
 

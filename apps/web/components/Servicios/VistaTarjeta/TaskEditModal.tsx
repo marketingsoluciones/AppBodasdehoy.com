@@ -80,7 +80,6 @@ const handleSubmit = async (values: any, actions: any,) => {
     }
   } catch (error) {
     toast("error", `${t("Ha ocurrido un error")} ${error}`);
-    console.log(error);
   }
 };
   return (
@@ -228,7 +227,6 @@ const AutoSubmitToken = () => {
   const { values, errors } = useFormikContext();
   
   useEffect(() => {
-    console.log("errors", errors);
   }, [errors]);
 
   useEffect(() => {

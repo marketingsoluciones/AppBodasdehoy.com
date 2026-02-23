@@ -80,7 +80,7 @@ export const ColumnMenu: React.FC<ColumnMenuProps> = ({
       id: 'group',
       label: t('Agrupar'),
       icon: <Move className="w-4 h-4" />,
-      action: () => console.log('Agrupar por', column.id)
+      action: () => {}
     },
     { id: 'divider' },
     {
@@ -136,12 +136,12 @@ export const ColumnMenu: React.FC<ColumnMenuProps> = ({
         {
           label: t('Mover a la izquierda'),
           icon: <ChevronLeft className="w-4 h-4" />,
-          action: () => console.log('Mover izquierda')
+          action: () => {}
         },
         {
           label: t('Mover a la derecha'),
           icon: <ChevronRight className="w-4 h-4" />,
-          action: () => console.log('Mover derecha')
+          action: () => {}
         }
       ]
     },

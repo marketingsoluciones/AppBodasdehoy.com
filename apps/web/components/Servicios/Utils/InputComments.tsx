@@ -86,7 +86,7 @@ export const InputComments: FC<props> = ({
             .then(() => {
               elem.loading = false
             })
-            .catch((error) => { console.log(error) })
+            .catch(() => {})
         })
         Promise.all(promises).then(() => {
           setTempPastedAndDropFiles([...tempPastedAndDropFiles])

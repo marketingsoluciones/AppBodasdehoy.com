@@ -231,7 +231,6 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           })
         );
     } catch (error) {
-      console.log(error);
     }
   }; */
 

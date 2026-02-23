@@ -99,7 +99,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 toast("success", t(itinerario.tipo === "itinerario" ? "Actividad añadida" : "Servicio añadido"));
             })
         } catch (error) {
-            console.log(error)
             toast("error", t("Error al añadir"));
         }
     }

@@ -300,7 +300,6 @@ export const ExtraTableView: FC<props> = ({
                       <Formik
                         initialValues={{ descripcion: data.cell.value || "" }}
                         onSubmit={(values) => {
-                          console.log("Guardando:", values.descripcion);
                           setShowModal(false); // Cierra el modal al guardar
                         }}
                       >
@@ -429,7 +428,6 @@ export const ExtraTableView: FC<props> = ({
                         }}
                         onSubmit={(values) => {
                           // Lógica para guardar cambios
-                          console.log("Guardando Fecha y Hora:", values);
                           setShowModal(false); // Cierra el modal al guardar
                         }}
                       >
@@ -561,7 +559,6 @@ export const ExtraTableView: FC<props> = ({
                         }}
                         onSubmit={(values) => {
                           // Lógica para guardar cambios
-                          console.log("Guardando Duración:", values);
                           setShowModal(false); // Cierra el modal al guardar
                         }}
                       >
@@ -703,7 +700,6 @@ export const ExtraTableView: FC<props> = ({
                       <Formik
                         initialValues={{ responsable: tempValues.responsable }}
                         onSubmit={(values) => {
-                          console.log("Guardando responsables:", values.responsable);
                           setTempValues({ responsable: values.responsable });
                           setShowModal(false);
                         }}
@@ -841,7 +837,6 @@ export const ExtraTableView: FC<props> = ({
                       <Formik
                         initialValues={{ tips: data.cell.value || "" }}
                         onSubmit={(values) => {
-                          console.log("Guardando tips:", values.tips);
                           setShowModal(false); // Cierra el modal al guardar
                         }}
                       >
@@ -925,7 +920,6 @@ export const ExtraTableView: FC<props> = ({
                   document.body.removeChild(link);
                 });
               } catch (error) {
-                console.log(10003, error);
               }
             };
         
@@ -1019,7 +1013,6 @@ export const ExtraTableView: FC<props> = ({
                       <Formik
                         initialValues={{ attachments: data.cell.value || [] }}
                         onSubmit={(values) => {
-                          console.log("Guardando adjuntos:", values.attachments);
                           setShowModal(false); // Cierra el modal al guardar
                         }}
                       >
@@ -1189,7 +1182,6 @@ export const ExtraTableView: FC<props> = ({
                       <Formik
                         initialValues={{ tags: data.cell.value || [] }}
                         onSubmit={(values) => {
-                          console.log("Guardando etiquetas:", values.tags);
                           setShowModal(false);
                         }}
                       >

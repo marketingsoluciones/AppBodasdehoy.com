@@ -72,7 +72,7 @@ export const InputCommentsOld: FC<props> = ({ itinerario, task, tempPastedAndDro
             .then(() => {
               elem.loading = false
             })
-            .catch((error) => { console.log(error) })
+            .catch(() => {})
         })
         Promise.all(promises).then(() => {
           setTempPastedAndDropFiles([...tempPastedAndDropFiles])

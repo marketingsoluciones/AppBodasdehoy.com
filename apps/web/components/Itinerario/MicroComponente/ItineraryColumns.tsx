@@ -64,7 +64,6 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         document.body.removeChild(link)
       })
     } catch (error) {
-      console.log(10003, error)
     }
   }
 

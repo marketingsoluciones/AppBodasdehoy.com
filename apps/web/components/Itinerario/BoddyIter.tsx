@@ -205,7 +205,6 @@ export const BoddyIter = () => {
                                 })
                         })
                 } catch (error) {
-                    console.log(error)
                 }
             }
         })

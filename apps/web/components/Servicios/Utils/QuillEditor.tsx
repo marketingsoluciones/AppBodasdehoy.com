@@ -57,7 +57,6 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
       }, 50);
       elem.style.boxShadow = '';
       elem.style.borderRadius = '';
-      console.log(files)
       const pastedAndDropFiles = files.map(elem => {
         return {
           saveType: "doc",//: file.type.indexOf('image') === 0 ? "image" : "file",
@@ -87,7 +86,6 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
       }
       // }
     } catch (error) {
-      console.log(error)
     }
   }, [dispachCursorPosition])
 
@@ -113,7 +111,6 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
         }
       }
     } catch (error) {
-      console.log(error)
     }
   }, [showPicker])
 
@@ -243,7 +240,6 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
         }, 10);
       }
     } catch (error) {
-      console.log(error)
     }
   }, [dispachSel])
 
@@ -260,7 +256,6 @@ export const QuillEditor: FC<props> = ({ value, setValue, setPastedAndDropFiles,
       }
       return caretPos;
     } catch (error) {
-      console.log(error)
     }
   }
 
