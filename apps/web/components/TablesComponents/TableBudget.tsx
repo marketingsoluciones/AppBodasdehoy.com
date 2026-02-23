@@ -9,20 +9,11 @@ export const TableBudget: FC<props> = ({ data }) => {
   const [columnVisibility, setColumnVisibility] = useState({});
 
 
-  useEffect(() => {
-    if (data) {
-      console.log(data)
-    }
-  }, [data])
-
-  console.log(data)
-
   const columns = useMemo(
     () => [
       {
         Header: "Categoría", accessor: "Categoría",
         Cell: (data) => {
-          console.log(data)
           return (<>algo</>)
         }
       }, {

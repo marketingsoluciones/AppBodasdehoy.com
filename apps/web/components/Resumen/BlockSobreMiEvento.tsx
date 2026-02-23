@@ -57,7 +57,6 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
                 setEditing(false)
                 toast("success", t("Guardado con éxito"))
               } catch (error) {
-                console.log(error)
                 toast("error", t("Ha ocurrido un error"))
               }
             }}
@@ -512,7 +511,6 @@ const TartaButton: FC<propsElement> = ({ title, value}) => {
         setLoading(false)
       }, 500);
       toast("error", t("errorloadingimage"))
-      console.log(error)
     }
   }
 

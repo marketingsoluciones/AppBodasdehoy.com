@@ -44,8 +44,7 @@ export const ModalPermissionList: FC<props> = ({ data, setOpenModal, event }) =>
                 message: `ha cambiado tu privilegios en el evento ${event?.tipo}: <strong>${event?.nombre.toUpperCase()}</strong>`,
                 uids: [data?.uid]
             })
-        } catch (error) {
-            console.log(error)
+        } catch {
         }
     }
 

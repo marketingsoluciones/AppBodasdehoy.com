@@ -123,7 +123,6 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
       })();
 
       const url = queryString ? `${chatBase}?${queryString}` : chatBase;
-      console.log('[CopilotIframe] URL construida:', url);
       return url;
     }, [userId, userData?.email, development, eventId, getCopilotBaseUrl]);
 
@@ -172,7 +171,6 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
 
     // Manejar carga del iframe
     const handleLoad = useCallback(() => {
-      console.log('[CopilotIframe] ✅ Iframe cargado:', iframeSrc);
       hasLoadedRef.current = true;
       setIsLoaded(true);
       setError(null); // ✅ Limpiar cualquier error previo
@@ -182,7 +180,6 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
         window.clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
-      console.log('[CopilotIframe] ✅ Marcando iframe como cargado y visible');
     }, [iframeSrc]);
 
     // Manejar error del iframe
@@ -275,13 +272,6 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
         payload: pageContextData,
       };
 
-      console.log('[CopilotIframe] Enviando PAGE_CONTEXT:', {
-        path: currentPath,
-        pageName: pageContextData.pageName,
-        hasEventData: !!pageContextData.eventSummary,
-        screenDataKeys: Object.keys(pageContextData.screenData),
-      });
-
       const copilotOrigin = (() => {
         try {
           return new URL(iframeSrc, window.location.origin).origin;
@@ -330,15 +320,6 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
         },
       };
 
-      console.log('[CopilotIframe] Enviando AUTH_CONFIG al copilot:', {
-        userId,
-        development,
-        hasToken: !!sessionToken,
-        eventId: eventId || event?._id,
-        currentPage: pageContextData.pageName,
-        hasScreenData: Object.keys(pageContextData.screenData).length > 0,
-      });
-
       // Si el iframe es cross-origin (chat-test.bodasdehoy.com),
       // tenemos que usar su origin real como targetOrigin.
       const copilotOrigin = (() => {
@@ -349,7 +330,6 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
         }
       })();
 
-      console.log('[CopilotIframe] Enviando postMessage a origen:', copilotOrigin);
       iframe.contentWindow.postMessage(authConfig, copilotOrigin);
       setAuthSent(true);
 
@@ -369,28 +349,22 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
         switch (type) {
           case 'LOBE_CHAT_READY':
             // El copilot está listo, enviar configuración de auth
-            console.log('[CopilotIframe] Copilot listo, enviando AUTH_CONFIG');
             sendAuthConfig();
             break;
           case 'AUTH_REQUEST':
             // El copilot solicita autenticación
-            console.log('[CopilotIframe] Copilot solicita AUTH_CONFIG');
             sendAuthConfig();
             break;
           case 'PAGE_CONTEXT_REQUEST':
             // El copilot solicita contexto de página
-            console.log('[CopilotIframe] Copilot solicita PAGE_CONTEXT');
             sendPageContext();
             break;
           case 'COPILOT_NAVIGATE':
-            console.log('[CopilotIframe] Navigate request:', payload);
             break;
           case 'COPILOT_ACTION':
-            console.log('[CopilotIframe] Action request:', payload);
             break;
           case 'MCP_NAVIGATION':
             // Navegación desde MCP - podría usarse para actualizar el preview
-            console.log('[CopilotIframe] MCP Navigation:', payload);
             break;
           default:
             break;
@@ -421,12 +395,6 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
         const eventChanged = lastSentEventId.current !== (event?._id || null);
 
         if (pathChanged || eventChanged) {
-          console.log('[CopilotIframe] Detectado cambio:', {
-            pathChanged,
-            eventChanged,
-            currentPath,
-            eventId: event?._id,
-          });
           sendPageContext();
         }
       }

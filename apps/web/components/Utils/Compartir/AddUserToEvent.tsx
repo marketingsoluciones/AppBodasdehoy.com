@@ -25,7 +25,6 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             setIsMounted(true)
         }
         return () => {
-            console.log("desmontado")
             setIsMounted(false)
         }
     }, [])
@@ -65,7 +64,6 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             toast("success", t("Evento fue compartido con éxito"));
         } catch (error) {
             toast("error", t("Ha ocurrido un error al compartir el evento"));
-            console.log(error)
         }
     }
 
@@ -76,8 +74,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
                 old.splice(f1, 1, { title: values.title, value: values.value })
                 return [...old]
             })
-        } catch (error) {
-            console.log(error)
+        } catch {
         }
     }
 

@@ -18,7 +18,6 @@ export const ExportarExcelV2 = ({ data, column }) => {
     //const informacionAdicional = [{ A: `${config.development}` }, {}];
     const longitudes = [15];
     const Data = data.categorias_array.flatMap((objeto) => objeto.gastos_array)
-    console.log()
 
     const handleDownload = () => {
         let tabla = [
@@ -57,7 +56,6 @@ export const ExportarExcelV2 = ({ data, column }) => {
         ]; // Array para almacenar las fusiones de celdas
         let rowIndex = tabla.length + 6; // Comenzar después de la fila del encabezado
         Data.forEach((data) => {
-            console.log(22222, data)
             // Agregar el nombre del gasto como título
             tabla.push({
                 A: data.nombre,

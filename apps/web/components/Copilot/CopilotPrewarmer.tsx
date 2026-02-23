@@ -50,16 +50,14 @@ export const CopilotPrewarmer: React.FC<CopilotPrewarmerProps> = ({ development 
                 mode: 'no-cors',
                 credentials: 'omit',
               });
-              console.log(`[CopilotPrewarmer] ✅ Pre-calentado: ${url}`);
             } catch {
-              console.log(`[CopilotPrewarmer] ⚠️ No se pudo pre-calentar: ${url}`);
+              // Silently ignore prewarm failures
             }
           })
         );
 
-        console.log('[CopilotPrewarmer] 🚀 Pre-calentamiento completado');
-      } catch (err) {
-        console.log('[CopilotPrewarmer] ⚠️ Error en pre-calentamiento:', err);
+      } catch {
+        // Silently ignore prewarm errors
       }
     };
 

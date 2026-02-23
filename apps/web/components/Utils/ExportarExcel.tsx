@@ -8,8 +8,6 @@ export const ExportarExcel = () => {
     const longitudes = [25, 25, 25, 25, 25];
     const GuestsData = event?.invitados_array || [];
 
-    console.log(GuestsData)
-
     // Definición de columnas
     const columnas = [
         { key: "nombre", label: "Nombre" },

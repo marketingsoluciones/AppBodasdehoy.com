@@ -13,8 +13,7 @@ const SvgApiExample: React.FC = () => {
     'https://raw.githubusercontent.com/feathericons/feather/master/icons/settings.svg'
   ];
 
-  const handleLoad = useCallback((content: string) => {
-    console.log('SVG cargado desde API:', content.substring(0, 100) + '...');
+  const handleLoad = useCallback((_content: string) => {
   }, []);
 
   const handleError = useCallback((error: Error) => {

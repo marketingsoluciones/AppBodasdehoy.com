@@ -196,8 +196,7 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
               }).then((result) => {
                 setEvent({ ...event })
               })
-            } catch (error) {
-              console.log(error)
+            } catch {
             }
           };
 
@@ -235,7 +234,6 @@ const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
         setEvent({ ...event })
       })
     } catch (error) {
-      console.log(220046, error);
       throw new Error(error)
     }
   };

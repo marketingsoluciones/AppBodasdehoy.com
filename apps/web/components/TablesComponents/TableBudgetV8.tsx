@@ -141,12 +141,12 @@ export const TableBudgetV8: FC<props> = ({ data, showModalDelete, setShowModalDe
       onClick: (info) => {
         if (info.row.original.object === 'gasto') {
           handleChangeEstatus({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, setEvent })
-            .catch(error => { toast("error", "ha ocurrido un error"), console.log(error) })
+            .catch(() => { toast("error", "ha ocurrido un error") })
         }
 
         if (info.row.original.object === 'item') {
           handleChangeEstatusItem({ event, categoriaID: info.row.original.categoriaID, gastoId: info.row.original.gastoID, itemId: info.row.original.itemID, setEvent })
-            .catch(error => { toast("error", "ha ocurrido un error"), console.log(error) })
+            .catch(() => { toast("error", "ha ocurrido un error") })
         }
       },
       object: ["gasto", "item"]

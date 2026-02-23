@@ -162,12 +162,10 @@ const ChatSidebarDirect: FC = () => {
     }
 
     const fullUrl = `${copilotUrl}?${params.toString()}`;
-    console.log('[ChatSidebarDirect] Abriendo Copilot completo:', fullUrl);
     window.open(fullUrl, '_blank', 'noopener,noreferrer');
   }, [sessionId, guestSessionId, userId, development, user?.email, eventId, event?.nombre, copilotUrl]);
 
   const handleNavigate = useCallback((url: string) => {
-    console.log('[ChatSidebarDirect] Navegación solicitada:', url);
     let finalUrl = url;
     const productionHosts = ['organizador.bodasdehoy.com', 'bodasdehoy.com', 'app-test.bodasdehoy.com'];
 
@@ -183,8 +181,7 @@ const ChatSidebarDirect: FC = () => {
     router.push(finalUrl);
   }, [router]);
 
-  const handleAction = useCallback((action: string, payload: any) => {
-    console.log('[ChatSidebarDirect] Acción:', action, payload);
+  const handleAction = useCallback((_action: string, _payload: any) => {
     // Manejar acciones específicas del copilot
   }, []);
 

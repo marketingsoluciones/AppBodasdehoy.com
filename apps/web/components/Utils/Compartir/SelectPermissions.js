@@ -30,19 +30,16 @@ export const SelectPermissions = ({ item, handleChange }) => {
       </div>
       <div className="flex items-center space-x-3">
         <div className="cursor-pointer" onClick={() => {
-          console.log(100052, "none", values)
           values?.value !== "none" && setValues({ title: item?.title, value: "none" })
         }}>
           <MdOutlineCancel className={`w-[18px] h-[18px] ${values?.value === "none" ? "text-primary hover:opacity-70" : "text-gray-500 hover:text-gray-800"}`} />
         </div>
         <div className="cursor-pointer " onClick={() => {
-          console.log(100052, "view", values)
           values?.value !== "view" && setValues({ title: item?.title, value: "view" })
         }}>
           <IoEyeOutline className={`w-[18px] h-[18px] ${values?.value === "view" ? "text-primary hover:opacity-70" : "text-gray-500 hover:text-gray-800"}`} />
         </div>
         <div className="cursor-pointer" onClick={() => {
-          console.log(100052, "edit", values)
           values?.value !== "edit" && setValues({ title: item?.title, value: "edit" })
         }}>
           <MdOutlineEdit className={`w-[18px] h-[18px] ${values?.value === "edit" ? "text-primary hover:opacity-70" : "text-gray-500 hover:text-gray-800"}`} />
