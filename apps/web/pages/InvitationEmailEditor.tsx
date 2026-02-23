@@ -12,8 +12,7 @@ const InvitationEmailEditor = (props) => {
     const saveDesign = () => {
         const unlayer = emailEditorRef.current?.editor;
 
-        unlayer?.saveDesign((design) => {
-            console.log('exportHtml', design);
+        unlayer?.saveDesign((_design) => {
         });
 
         /* unlayer.exportImage(function (data) {

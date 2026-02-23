@@ -80,7 +80,6 @@ const PageLogin = () => {
       // ✅ CORRECCIÓN: Usar setTimeout para asegurar que el router esté listo
       // y forzar redirección incluso si estamos en la misma ruta (para recargar)
       const timer = setTimeout(() => {
-        console.log('[Login] Redirigiendo después del login a:', redirectPath, 'pathname actual:', router.pathname)
         // Usar replace en lugar de push para evitar que el usuario pueda volver atrás al login
         if (router.pathname !== redirectPath) {
           router.replace(redirectPath)

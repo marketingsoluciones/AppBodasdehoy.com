@@ -40,7 +40,6 @@ const LoginRapido = () => {
 
       if (data.success) {
         setSuccess(true);
-        console.log("[Login Rápido] ✅ Login exitoso:", data);
         
         // Esperar un momento y recargar
         setTimeout(() => {

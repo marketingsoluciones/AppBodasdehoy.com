@@ -146,7 +146,6 @@ const Mesas: FC = () => {
         })
       } catch (err) {
         toast("error", t("Ha ocurrido un error al añadir el objeto"))
-        console.log(err);
       }
     }
   }, [creaElement])

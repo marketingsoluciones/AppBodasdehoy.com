@@ -47,7 +47,6 @@ const Invitados: FC = () => {
   }, []);
 
   const reciboClick = (accion) => {
-    console.log("accion", accion)
     setIsMounted(accion.state)
     setFormShow(accion.click)
     if (accion.click == "acompañante") {

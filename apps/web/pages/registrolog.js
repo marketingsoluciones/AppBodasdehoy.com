@@ -145,7 +145,6 @@ const Registrolog = () => {
         const { logs_array } = data.data.queryLog[0]
         setData(logs_array)
       } catch (error) {
-        console.log(error)
       }
     }
     const asdf = llamada()

@@ -67,7 +67,6 @@ const Configuration = () => {
       _signOut()
     } catch (error) {
       toast("error", t("Ups.. Hubo un error"))
-      console.log(error)
     } finally {
       setLoading(false);
     }

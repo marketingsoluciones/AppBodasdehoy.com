@@ -34,7 +34,6 @@ const ConfirmaAsistencia = () => {
                 setMenus_array(result?.menus_array)
             })
         } catch (error) {
-            console.log(error)
         }
     }, [pGuestEvent])
     return (

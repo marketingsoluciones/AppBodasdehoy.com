@@ -22,7 +22,6 @@ const Perfil = () => {
   ]
 
   const handleClick = () => {
-    console.log("hola mundo")
   }
   return (
     <>

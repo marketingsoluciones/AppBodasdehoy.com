@@ -30,8 +30,6 @@ const Chat = () => {
 
 
     useEffect(() => {
-        //console.log(GrupoEventos)
-        console.log(user.canales)
     }, [])
 
     return (

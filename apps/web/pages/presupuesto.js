@@ -32,8 +32,6 @@ const Presupuesto = () => {
   const [isMobile, setIsMobile] = useState(false)
 
 
-  console.log(event, user)
-
   const totalCosteFinal = categorias?.reduce((sum, categoria) => {
     return sum + (categoria.coste_final || 0);
   }, 0);

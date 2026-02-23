@@ -211,7 +211,6 @@ export async function getServerSideProps(context) {
           });
         } catch (error2) {
           error_2 = error2
-          console.log('Error fetching users:', error2);
           users = [];
         }
       }
