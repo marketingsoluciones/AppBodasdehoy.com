@@ -1,8 +1,9 @@
 import { Icon } from '@lobehub/ui';
-import { Image, Spin, Tag } from 'antd';
+import { Button, Image, Spin, Tag, Tooltip } from 'antd';
 import { createStyles } from 'antd-style';
-import { Loader2 } from 'lucide-react';
-import { memo } from 'react';
+import { Download, Loader2 } from 'lucide-react';
+import { memo, useCallback } from 'react';
+import { ReactCompareSlider, ReactCompareSliderImage } from 'react-compare-slider';
 import { Flexbox } from 'react-layout-kit';
 
 import { useChatStore } from '@/store/chat';
@@ -35,16 +36,17 @@ const useStyles = createStyles(({ css, token }) => ({
     background: ${token.colorFillTertiary};
     min-height: 200px;
   `,
+  downloadBtn: css`
+    position: absolute;
+    inset-block-end: 8px;
+    inset-inline-start: 8px;
+    z-index: 10;
+  `,
   error: css`
     color: ${token.colorError};
     font-size: 12px;
     padding: 8px;
     text-align: center;
-  `,
-  image: css`
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
   `,
   loading: css`
     width: 100%;
@@ -63,6 +65,14 @@ const useStyles = createStyles(({ css, token }) => ({
     inset-inline-end: 8px;
     z-index: 10;
   `,
+  slider: css`
+    width: 100%;
+    height: 100%;
+    min-height: 200px;
+
+    /* Slider handle styles */
+    --rcs-handle-color: ${token.colorPrimary};
+  `,
 }));
 
 const VenueItem = memo<VenueVisualizerItem & { messageId: string }>(
@@ -73,6 +83,26 @@ const VenueItem = memo<VenueVisualizerItem & { messageId: string }>(
     const loading = useChatStore(chatToolSelectors.isVenueGenerating(loadingKey));
 
     const styleLabel = STYLE_LABELS[style] || style;
+
+    const handleDownload = useCallback(async () => {
+      if (!generatedUrl) return;
+      try {
+        const response = await fetch(generatedUrl);
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `venue-${style}-${roomType}.jpg`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch {
+        // Silently ignore download errors
+      }
+    }, [generatedUrl, style, roomType]);
+
+    const showSlider = !loading && !error && generatedUrl && originalUrl;
+    const showGenerated = !loading && !error && generatedUrl && !originalUrl;
+    const showOriginal = !loading && !error && !generatedUrl && originalUrl;
 
     return (
       <Flexbox className={styles.container}>
@@ -93,23 +123,55 @@ const VenueItem = memo<VenueVisualizerItem & { messageId: string }>(
           </Flexbox>
         )}
 
-        {!loading && !error && generatedUrl && (
+        {showSlider && (
+          <ReactCompareSlider
+            className={styles.slider}
+            itemOne={
+              <ReactCompareSliderImage
+                alt="Original"
+                src={originalUrl}
+                style={{ objectFit: 'cover' }}
+              />
+            }
+            itemTwo={
+              <ReactCompareSliderImage
+                alt={`${styleLabel} - ${roomType}`}
+                src={generatedUrl}
+                style={{ objectFit: 'cover' }}
+              />
+            }
+          />
+        )}
+
+        {showGenerated && (
           <Image
             alt={`${styleLabel} - ${roomType}`}
-            preview={{
-              src: generatedUrl,
-            }}
+            preview={{ src: generatedUrl }}
             src={generatedUrl}
             style={{ height: '100%', objectFit: 'cover', width: '100%' }}
           />
         )}
 
-        {!loading && !error && !generatedUrl && originalUrl && (
+        {showOriginal && (
           <Image
             alt="Original venue"
             src={originalUrl}
             style={{ height: '100%', objectFit: 'cover', opacity: 0.5, width: '100%' }}
           />
+        )}
+
+        {generatedUrl && !loading && (
+          <div className={styles.downloadBtn}>
+            <Tooltip title="Descargar imagen">
+              <Button
+                icon={<Icon icon={Download} />}
+                onClick={handleDownload}
+                shape="circle"
+                size="small"
+                type="primary"
+              />
+            </Tooltip>
+          </div>
         )}
 
         {provider && !loading && (

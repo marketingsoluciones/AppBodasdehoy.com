@@ -133,8 +133,6 @@
     "mdast-util-gfm-autolink-literal": "2.0.0"
   },
   "dependencies": {
-    "@bodasdehoy/memories": "workspace:*",
-    "@bodasdehoy/wedding-creator": "workspace:*",
     "@ant-design/icons": "^5.6.1",
     "@ant-design/pro-components": "^2.8.10",
     "@anthropic-ai/sdk": "^0.67.0",
@@ -144,6 +142,8 @@
     "@aws-sdk/s3-request-presigner": "~3.893.0",
     "@azure-rest/ai-inference": "1.0.0-beta.5",
     "@azure/core-auth": "^1.10.1",
+    "@bodasdehoy/memories": "workspace:*",
+    "@bodasdehoy/wedding-creator": "workspace:*",
     "@cfworker/json-schema": "^4.1.1",
     "@clerk/localizations": "^3.32.1",
     "@clerk/nextjs": "^6.36.5",
@@ -277,6 +277,7 @@
     "query-string": "^9.3.1",
     "random-words": "^2.0.1",
     "react": "^19.2.0",
+    "react-compare-slider": "^3.1.0",
     "react-confetti": "^6.4.0",
     "react-dom": "^19.2.0",
     "react-fast-marquee": "^1.6.5",
