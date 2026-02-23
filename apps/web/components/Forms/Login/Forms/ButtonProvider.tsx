@@ -20,9 +20,7 @@ export const ButtonProvider: FC<propsButtonProvider> = ({ provider, handle, icon
 
   const handleClick = async (provider: any) => {
     try {
-      console.log("[ButtonProvider] Iniciando login con provider:", provider);
       await signIn({ type: "provider", payload: provider, setStage, whoYouAre, setIsStartingRegisterOrLogin });
-      console.log("[ButtonProvider] signIn completado");
     } catch (error: any) {
       console.error("[ButtonProvider] Error en handleClick:", error);
       toast("error", error?.message || JSON.stringify(error));

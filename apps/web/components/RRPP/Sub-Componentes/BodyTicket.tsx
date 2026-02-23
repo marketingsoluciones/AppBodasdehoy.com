@@ -13,7 +13,6 @@ export const BodyTicket: FC<props> = ({ ticketsArray }) => {
   const { setSelectTicket } = AuthContextProvider()
 
   const onChangeCheckbox = (e) => {
-    console.log(e.target.value)
     setIsChecked(e.target.checked);
     setSelectTicket(e.target.value);
   };

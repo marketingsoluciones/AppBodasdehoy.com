@@ -44,8 +44,7 @@ export const InputMini: FC<propsInputMini> = ({ label, lienzo, setLienzo, center
         })
         setEvent({ ...event })
       }
-    } catch (error) {
-      console.log(error)
+    } catch {
     }
   }
 

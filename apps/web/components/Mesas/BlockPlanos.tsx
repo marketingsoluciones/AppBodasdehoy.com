@@ -21,8 +21,7 @@ export const BlockPlanos: FC = () => {
           isOwner: user?.uid === event?.usuario_id,
         },
       })
-    } catch (error) {
-      console.log(error)
+    } catch {
     }
   }
   return (

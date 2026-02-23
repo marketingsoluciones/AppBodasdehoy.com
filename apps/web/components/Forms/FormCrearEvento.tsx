@@ -123,7 +123,6 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       toast("success", t("successfullycreatedevent"));
     } catch (error) {
       toast("error", t("Ha ocurrido un error al crear el evento"));
-      console.log(error);
     } finally {
       set(!state);
       setValir(true)
@@ -141,7 +140,6 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
   const updateEvent = async (values: any) => {
     try {
       values.fecha = new Date(values.fecha).getTime().toString()
-      console.log(values.fecha, event.fecha)
       values.nombre !== event.nombre && await fetchApiEventos({
         query: queries.eventUpdate,
         variables: {
@@ -167,7 +165,6 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       }
     } catch (error) {
       toast("error", t("Ha ocurrido un error al modificar el evento"));
-      console.log(error)
     } finally {
       set(!state);
     }

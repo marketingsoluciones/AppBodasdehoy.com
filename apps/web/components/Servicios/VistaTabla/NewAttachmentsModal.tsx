@@ -50,9 +50,8 @@ export const AttachmentsModal: React.FC<AttachmentsModalProps> = ({
         {/* Content */}
         <div className="p-6">
           <NewAttachmentsEditor
-            handleUpdate={async (file) => {
+            handleUpdate={async (_file) => {
               // La actualización se maneja internamente en el componente
-              console.log('File updated:', file);
             }}
             task={task}
             itinerarioId={itinerarioId}

@@ -40,8 +40,7 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
           }
         })
       }
-    } catch (error) {
-      console.log(error)
+    } catch {
     }
   }
   const handleRotate = async (direcction) => {

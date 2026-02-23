@@ -8,7 +8,6 @@ const SvgAutoScaleExample: React.FC = () => {
   const [targetSize, setTargetSize] = useState({ width: 100, height: 100 });
 
   useEffect(() => {
-    console.log('targetSize', targetSize)
   }, [targetSize])
 
 

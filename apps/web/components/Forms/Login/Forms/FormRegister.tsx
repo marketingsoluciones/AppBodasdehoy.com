@@ -149,7 +149,6 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               development: config?.development
             })
             if (result === "apiBodas/email-already-in-use") {
-              console.log(550012, error.code)
               toast("error", t("emailalreadyregistered"))
               setLoading(false)
               return false
@@ -158,14 +157,12 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             UserFirebase = asd.user
 
             values.uid = UserFirebase.uid
-          } catch (error) {
-            console.log(55001, error)
+          } catch {
             return false
           }
         }
 
       } else {
-        console.log(450003, error)
         toast("error", t("gonewrong"))
         setLoading(false)
         return false
@@ -199,8 +196,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             router.push("/")
           })
         })
-        .catch((error): any => {
-          console.log(45111, error)
+        .catch((): any => {
         })
     }
   }
@@ -223,11 +219,10 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               mobile: (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
             }
           }
-        }).catch(error => console.log(90000, error))
+        }).catch(() => {})
       }
       setPhoneNumber(values?.phoneNumber)
-    } catch (error) {
-      console.log(45111, error)
+    } catch {
     }
   }
 

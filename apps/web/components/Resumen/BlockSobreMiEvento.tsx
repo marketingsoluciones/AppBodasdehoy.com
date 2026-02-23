@@ -99,7 +99,6 @@ const InsideBlockWithMultiSelected: FC<propsInsideBlock> = ({
       toast("success", t("Guardado con éxito"))
       setEditing(false)
     } catch (error) {
-      console.log(error)
       toast("error", t("Ha ocurrido un error"))
     }
   }
@@ -150,7 +149,6 @@ const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, 
           setEditing(false)
           toast("success", t("Guardado con éxito"))
         } catch (error) {
-          console.log(error)
           toast("error", t("Ha ocurrido un error"))
         }
       }}>

@@ -29,8 +29,7 @@ export const ResumenInvitados = ({ }) => {
                 setEvent({ ...event })
                 toast("success", t("suscess"))
             })
-        } catch (error) {
-            console.log(error);
+        } catch {
         }
     }
 

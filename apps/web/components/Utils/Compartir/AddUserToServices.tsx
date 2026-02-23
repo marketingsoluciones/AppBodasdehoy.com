@@ -39,8 +39,7 @@ export const AddUserToServices: FC<props> = ({ openModal, setOpenModal, itinerar
                 },
                 domain: config.domain
             })
-        } catch (error) {
-            console.log(error)
+        } catch {
         }
     }
 

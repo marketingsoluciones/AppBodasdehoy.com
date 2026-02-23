@@ -24,8 +24,6 @@ export const TableIntegration: React.FC<TableIntegrationProps> = ({
   const [tasks, setTasks] = useState<Task[]>(initialData);
   const [selectedTaskId, setSelectedTaskId] = useState<string>('');
 
-  console.log("tablero")
-
   // Manejar actualización de tarea
   const handleTaskUpdate = useCallback((taskId: string, updates: Partial<Task>) => {
     // Actualizar estado local

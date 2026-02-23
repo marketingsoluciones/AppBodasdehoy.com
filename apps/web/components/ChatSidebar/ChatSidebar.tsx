@@ -125,7 +125,6 @@ const ChatSidebar: FC = () => {
     }
 
     const fullUrl = `${baseUrl}/${development}/chat${params.toString() ? '?' + params.toString() : ''}`;
-    console.log('[ChatSidebar] Abriendo chat completo en nueva pestaña:', fullUrl);
     window.open(fullUrl, '_blank', 'noopener,noreferrer');
   }, [user?.email, eventId, development, guestSessionId]);
 

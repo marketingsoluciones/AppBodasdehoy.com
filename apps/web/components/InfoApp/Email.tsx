@@ -32,7 +32,6 @@ export const Email = () => {
         resetForm({ value: '' })
       }
     } catch (error) {
-      console.log(error)
       toast("error", t("sin datos"))
     }
   };

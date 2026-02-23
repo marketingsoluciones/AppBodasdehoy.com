@@ -47,7 +47,6 @@ const DragInvitado = (props) => {
               //e.preventDefault()
               document.getElementById(`dragN${invitado._id}`).style.background = "#f7628c"
               document.getElementById(`dragN${invitado._id}`).classList.replace("text-gray-500", "text-white")
-              console.log(e.touches[0].clientX, e.touches[0].clientY)
               const rootElement = document.getElementById('areaDrag');
               const element = document.createElement('div');
               //element.textContent = 'Hello word';

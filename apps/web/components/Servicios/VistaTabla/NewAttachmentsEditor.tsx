@@ -166,8 +166,8 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
     try {
       // Eliminar del storage con doble barra
       const storageRef = ref(storage, `${task._id}//${file.name}`);
-      await deleteObject(storageRef).catch((error) => {
-        console.log('Archivo no existe en storage o ya fue eliminado:', error);
+      await deleteObject(storageRef).catch(() => {
+        // Archivo no existe en storage o ya fue eliminado
       });
       // Actualizar lista de adjuntos
       const newAttachments = task.attachments.filter(elem => elem.name !== file.name);

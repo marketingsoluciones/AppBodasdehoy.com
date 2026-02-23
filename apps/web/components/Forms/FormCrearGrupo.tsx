@@ -34,7 +34,6 @@ const FormCrearGrupo = ({ set, state }) => {
       }));
       toast("success", t("Grupo creado con exito"));
     } catch (error) {
-      console.log(error);
       toast("error", t("Ha ocurrido un error al crear el grupo"));
     } finally {
       set(!state);

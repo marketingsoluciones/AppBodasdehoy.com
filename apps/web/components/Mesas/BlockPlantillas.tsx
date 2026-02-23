@@ -25,8 +25,7 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
         query: queries.getPsTemplate,
         variables: { uid: user.uid }
       })
-    } catch (error) {
-      console.log(error)
+    } catch {
     }
   }
   const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`

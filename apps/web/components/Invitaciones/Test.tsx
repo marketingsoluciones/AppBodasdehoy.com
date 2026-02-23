@@ -184,8 +184,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
           }
         }
       }
-    } catch (err) {
-      console.log('No existe sesión previa', err);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -241,8 +240,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
       })
       // setValirReset(true)
       toast("success", t("Invitación enviada"))
-    } catch (error) {
-      console.log(error)
+    } catch {
     }
   }
 

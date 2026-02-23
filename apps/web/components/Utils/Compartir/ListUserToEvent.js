@@ -48,8 +48,7 @@ const User = ({ data, event }) => {
                     }
                 }
             });
-        } catch (error) {
-            console.log(error)
+        } catch {
         }
     }
 
