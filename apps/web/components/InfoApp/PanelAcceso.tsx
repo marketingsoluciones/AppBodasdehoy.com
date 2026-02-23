@@ -6,7 +6,7 @@ export const PanelAcceso = () => {
         <>
             <div className="flex flex-col justify-center items-center space-y-10 font-display px-10">
                 <p className="text-2xl text-primary">{t("accessto")}</p>
-                <div className="grid md:grid-cols-2 justify-items-center md:w-[60%] *gap-5 ">
+                <div className="grid md:grid-cols-2 justify-items-center md:w-[60%] gap-5 ">
                     <div className="md:w-[90%]">
                         <p className="text-secondaryOrg">
                             <span className="font-semibold" >{t("managementofyourevents")}</span><br /><br />

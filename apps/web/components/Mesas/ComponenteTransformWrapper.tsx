@@ -105,8 +105,8 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
             <div>
               {/* <MdSaveAlt className="h-6 w-6 cursor-pointer text-primary" onClick={() => { !isAllowed() ? ht() : setShowMiniMenu(!showMiniMenu) }} /> */}
               {showMiniMenu &&
-                <div className="bg-white flex flex-col absolute z-[50] top-8 right-18 rounded-b-md shadow-md *items-center text-[9px] px-3 pt-1 pb-3 text-gray-800 gap-y-2">
-                  <div className="bg-white flex flex-col absolute z-[10] top-[0px] right-0 rounded-b-md shadow-md min-w-[140px] md:min-w-[120px] *items-center text-[10px] md:text-[12px] px-3 pt-1 pb-2 text-gray-800">
+                <div className="bg-white flex flex-col absolute z-[50] top-8 right-18 rounded-b-md shadow-md items-center text-[9px] px-3 pt-1 pb-3 text-gray-800 gap-y-2">
+                  <div className="bg-white flex flex-col absolute z-[10] top-[0px] right-0 rounded-b-md shadow-md min-w-[140px] md:min-w-[120px] items-center text-[10px] md:text-[12px] px-3 pt-1 pb-2 text-gray-800">
                     <span className="w-full text-left font-bold transform -ml-2">{t("savetemplate")}</span>
                     <span className="flex flex-col text-[9px] md:text-[11px]">
                       <span className="capitalize">{t("names")}</span>
@@ -157,7 +157,7 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
             <div>
               <mdIcons.MdSettings className="w-6 h-6 cursor-pointer text-primary" onClick={() => setShowSetup(!showSetup)} />
               {showSetup &&
-                <div className="bg-white flex flex-col absolute z-[10] top-8 right-12 rounded-b-md shadow-md min-w-[95px] md:min-w-[120px] *items-center text-[10px] md:text-[12px] px-3 pt-1 pb-3 text-gray-800">
+                <div className="bg-white flex flex-col absolute z-[10] top-8 right-12 rounded-b-md shadow-md min-w-[95px] md:min-w-[120px] items-center text-[10px] md:text-[12px] px-3 pt-1 pb-3 text-gray-800">
                   <span className="w-full text-left font-bold transform -ml-2">{t("canvassize")}</span>
                   <InputMini label={"ancho"} lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
                   <InputMini label={"alto"} lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
@@ -173,7 +173,7 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
           }
         </div>
       </div>
-      <div className="bg-gray-200 w-80 *h-5 grid grid-cols-3 absolute z-[10] top-0 left-2 md:left-8 rounded-b-md opacity-70 *items-center text-[9px] md:text-[10px] px-2 text-gray-800">
+      <div className="bg-gray-200 w-80 h-5 grid grid-cols-3 absolute z-[10] top-0 left-2 md:left-8 rounded-b-md opacity-70 items-center text-[9px] md:text-[10px] px-2 text-gray-800">
         <span className="font-bold capitalize truncate">{`${t("plan")}: ${t(planSpaceActive?.title)}`}</span>
         <span>{`${t("Size")} ${lienzo?.width / 100}x${lienzo?.height / 100}mts`}</span>
         <span>{`${t("zoom")} ${state.previousScale.toFixed(2)}X`}</span>

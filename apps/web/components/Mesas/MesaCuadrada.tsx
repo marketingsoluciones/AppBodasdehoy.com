@@ -37,7 +37,7 @@ export const MesaCuadradaNew: FC<propsMesaCuadradra> = ({ table, invitados, setD
             paddingTop: `${(spaceChairs - 45) / 2}px`,
             paddingBottom: `${(spaceChairs - 45) / 2}px`
           }}
-          className="h-full *my-auto inset-y-0 flex flex-col-reverse justify-between absolute left-1 transform -translate-x-full">
+          className="h-full my-auto inset-y-0 flex flex-col-reverse justify-between absolute left-1 transform -translate-x-full">
           {idxsSide?.a?.map((item, idx) => (
             <Chair
               table={table}
@@ -78,7 +78,7 @@ export const MesaCuadradaNew: FC<propsMesaCuadradra> = ({ table, invitados, setD
           style={{
             paddingTop: `${(spaceChairs - 45 + (idxsSide?.c?.length == numberChairForSide ? 0 : spaceChairs / idxsSide?.c?.length)) / 2}px`,
             paddingBottom: `${(spaceChairs - 45 + (idxsSide?.c?.length == numberChairForSide ? 0 : spaceChairs / idxsSide?.c?.length)) / 2}px`
-          }} className="h-full *my-auto inset-y-0 flex flex-col justify-between absolute right-1 *transform translate-x-full">
+          }} className="h-full my-auto inset-y-0 flex flex-col justify-between absolute right-1 transform translate-x-full">
           {idxsSide?.c?.map((item, idx) => {
             return (
               <Chair

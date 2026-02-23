@@ -105,7 +105,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
               </div>
             </div>
           )}
-          <div id="description-task" className={`w-full flex flex-1 basis-0 min-h-0 max-h-full overflow-y-auto break-words border border-gray-200 rounded-lg p-4 ${canEdit ? '*cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'} `}
+          <div id="description-task" className={`w-full flex flex-1 basis-0 min-h-0 max-h-full overflow-y-auto break-words border border-gray-200 rounded-lg p-4 ${canEdit ? 'cursor-pointer hover:border-gray-300' : 'cursor-default opacity-60'} `}
             onDoubleClick={() => {
               if (canShowEditButton) {
                 setCustomDescription(task.tips || '');

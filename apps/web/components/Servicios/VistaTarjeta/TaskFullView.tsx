@@ -259,7 +259,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                   </div>
                 </div>
                 : <div className="flex flex-col h-full">
-                  <div className="space-y-2 *p-4 flex-shrink-0">
+                  <div className="space-y-2 flex-shrink-0">
                     {task.comments.map((comment) => (
                       <div key={comment._id} className="relative group">
                         <ListComments

@@ -42,7 +42,7 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
 
   return (
     <>
-      <div className="flex *bg-orange-400 divOrange w-[100%] h-[100%] justify-start relative pt-8" >
+      <div className="flex divOrange w-[100%] h-[100%] justify-start relative pt-8" >
         <div id="rootElementTables" ref={refDiv} className="bg-blue-200 flex w-[100%] h-[calc(100%-32px)] relative">
           {editDefault?.clicked &&
             <ClickAwayListener

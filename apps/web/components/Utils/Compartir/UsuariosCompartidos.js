@@ -22,7 +22,7 @@ export const UsuariosCompartidos = ({ event }) => {
             {event?.usuario_id === user?.uid
                 ? <>
                     {sharedUser?.length > 5 && <div style={{ right: 7 }} className="absolute z-20">
-                        <div className="bg-white rounded-full w-7 h-7 flex items-center justify-center *text-center border border-gray-300 absolute z-30 text-[13px] truncate font-semibold">
+                        <div className="bg-white rounded-full w-7 h-7 flex items-center justify-center text-center border border-gray-300 absolute z-30 text-[13px] truncate font-semibold">
                             <div className="absolute rounded-full w-7 h-7" />
                             +{sharedUser?.length - 4}
                         </div>

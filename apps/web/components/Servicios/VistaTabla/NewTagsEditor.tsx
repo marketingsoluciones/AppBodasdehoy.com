@@ -262,7 +262,7 @@ export const TagsEditor: React.FC<TagsEditorProps> = ({
         ) : (
           <div className="flex items-center space-x-2 text-gray-400">
             <Tag className="w-4 h-4" />
-            <span className="*text-sm">{placeholder}</span>
+            <span className="text-sm">{placeholder}</span>
           </div>
         )}
       </div>

@@ -76,7 +76,7 @@ export const AddUserToServices: FC<props> = ({ openModal, setOpenModal, itinerar
                                                                 <div className="break-all line-clamp-1">{item?.displayName}</div>
                                                                 <div className="break-all line-clamp-1">{item?.email}</div>
                                                             </div>
-                                                            <div className="*break-all *line-clamp-1 text-[11px] space-x-1">
+                                                            <div className="break-all line-clamp-1 text-[11px] space-x-1">
                                                                 <span className="capitalize">{t("permisos")}:</span>
                                                                 {item.permissions.find(el => el.title === "servicios").value === "none"
                                                                     ? <span>{t("Esta persona no tiene permisos")}</span>

@@ -147,7 +147,7 @@ const BlockPrincipal: FC = () => {
             <IoShareSocial className="w-6 h-6" />
           </span>
           <span
-            className={`transition transform hover:scale-110 *hover:rotate-12 ${isAllowed() && "cursor-pointer"} z-30`}
+            className={`transition transform hover:scale-110 hover:rotate-12 ${isAllowed() && "cursor-pointer"} z-30`}
             onClick={() => isAllowed() && handleEdit()}
           >
             <PencilEdit className={`w-6 h-6 ${isAllowed() ? "text-primary" : "text-gray-300"}`} />

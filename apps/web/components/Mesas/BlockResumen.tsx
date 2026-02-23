@@ -30,7 +30,7 @@ const BlockResumen: FC<propsBlockResumen> = ({ InvitadoSentados }) => {
                             <div className="flex flex-wrap items-center">
                                 <div className="flex w-28 items-center ml-2">
                                     <MesaIcon className="text-white w-6 h-6" />
-                                    <p className="text-white m-1 font-display *font-semibold *text-lg leading-4 text-[12px]">
+                                    <p className="text-white m-1 font-display font-semibold text-lg leading-4 text-[12px]">
                                         {item?.tables?.length} {/* <span className="text-xs md:text-sm m- font-light text-right"> */} {t("table")}{/* </span> */}
                                     </p>
                                 </div>

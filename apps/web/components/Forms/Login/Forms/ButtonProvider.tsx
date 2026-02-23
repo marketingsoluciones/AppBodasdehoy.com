@@ -34,7 +34,7 @@ export const ButtonProvider: FC<propsButtonProvider> = ({ provider, handle, icon
         <span className="flex m-2 rounded">
           <button onClick={() => handleClick(handle)} className="rounded-md border-[1px] border-gray-300 hover:border-blue-300 hover:border-2 w-[250px] h-[40px] flex items-center" >
             {icon}
-            <p className="*bg-blue-300 w-[215px] font-['Roboto'] text-[14px]">{`${t("Continúa con")} ${provider}`}</p>
+            <p className="w-[215px] font-['Roboto'] text-[14px]">{`${t("Continúa con")} ${provider}`}</p>
           </button>
         </span>
       </div>

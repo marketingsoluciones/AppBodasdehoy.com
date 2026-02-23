@@ -234,7 +234,7 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
           ))}
           <div id="added-svg" onClick={() => { setShowModal(true) }} className="w-20 h-16 static">
             <span className="w-full h-full flex items-center ">
-              <div className="w-full h-full p-2 flex-col justify-center items-center *cursor-pointer relative">
+              <div className="w-full h-full p-2 flex-col justify-center items-center cursor-pointer relative">
                 <div className="w-full h-full flex transform hover:scale-105 transition justify-center items-center relative">
                   <div className="js-dragDefault w-full h-10 flex justify-center items-center">
                     <Group83 className="relative w-max" />

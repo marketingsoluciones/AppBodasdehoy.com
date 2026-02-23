@@ -67,7 +67,7 @@ const DragTable: FC<propsDragTable> = ({ item }) => {
           <PlusIcon className={`absolute inset-0 m-auto text-primary w-3 h-3`} />
         </div>
       </div>
-      <div className="w-full h-full flex-col justify-center items-center *cursor-pointer relative">
+      <div className="w-full h-full flex-col justify-center items-center cursor-pointer relative">
         <div className="w-full h-full flex transform hover:scale-105 transition justify-center items-center relative">
           <div id={`dragN${item.title}_${item.tipo}`} className="js-dragDefault w-full h-12 flex justify-center items-center"
             onMouseDown={(e) => { onMouseDown(e, item) }}
