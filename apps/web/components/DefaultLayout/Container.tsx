@@ -52,8 +52,13 @@ const Container = (props) => {
     "public-card",
     "public-itinerary",
     "copilot",
-    "login"
+    "login",
+    "diseño-espacios",
   ];
+
+  // Rutas que gestionan su propia altura (full-screen con iframe interno)
+  const fullHeightRoutes = ["diseño-espacios"];
+  const isFullHeight = fullHeightRoutes.some((r) => pathname?.includes(r));
 
   const shouldShowChatSidebar = chatSidebar && !excludeChatSidebar.includes(pathname?.split("/")[1] || "");
   const showNavigation = !["RelacionesPublicas", "event", "public-card", "public-itinerary"].includes(pathname?.split("/")[1]);
@@ -77,7 +82,7 @@ const Container = (props) => {
       </>
       }
 
-      <div className={`flex w-full min-w-0 ${pathname === "/" ? "" : "bg-base"} ${urls.includes(pathname) ? "" : forCms ? "h-[100vh]" : "h-[calc(100vh-144px)]"}`}>
+      <div className={`flex w-full min-w-0 ${pathname === "/" ? "" : "bg-base"} ${isFullHeight ? "h-[100vh]" : urls.includes(pathname) ? "" : forCms ? "h-[100vh]" : "h-[calc(100vh-144px)]"}`}>
         {/* Copilot: panel a la izquierda (20% en pantallas grandes) */}
         {shouldShowChatSidebar && <ChatSidebar />}
 
