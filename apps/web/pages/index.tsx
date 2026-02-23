@@ -202,7 +202,7 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
     }
   }
   return (
-    <div className="banner bg-base w-full flex justify-center h-[48%] md:h-[60%] *md:h-[calc(100%-200px-50px)] min-h-[48%] md:min-h-[400px] px-5 md:px-0 overflow-hidden relative mb-1">
+    <div className="banner bg-base w-full flex justify-center h-[48%] md:h-[60%] min-h-[48%] md:min-h-[400px] px-5 md:px-0 overflow-hidden relative mb-1">
       <div className="md:max-w-screen-lg 2xl:max-w-screen-xl w-full grid md:grid-cols-5 h-full">
         <div className="flex flex-col justify-center relative py-10 md:py-0 col-span-2">
           <h2 className="font-display font-medium text-2xl md:text-5xl tracking-tight	text-primary mb-1.5">
