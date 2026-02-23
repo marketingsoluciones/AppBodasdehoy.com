@@ -29,7 +29,6 @@ export const EventInfoModal: React.FC<EventInfoModalProps> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const toast = useToast();
   const link = `${window?.location?.origin}/presupuesto`
-  console.log("link", link)
 
   // Calcular invitados confirmados desde event.invitados_array
   const confirmedGuests = useMemo(() => {

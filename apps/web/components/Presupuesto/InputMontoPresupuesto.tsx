@@ -43,7 +43,6 @@ export const InputMontoPresupuesto: FC<Props> = ({ title }) => {
         })
       }
     } catch (error) {
-      console.log(error)
     }
   }
 

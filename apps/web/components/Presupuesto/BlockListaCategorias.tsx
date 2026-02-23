@@ -92,7 +92,6 @@ export const ModalOptionsCategoria = ({ showOptionsModal, setShowOptionsModal })
       event.presupuesto_objeto = result as estimate
       setEvent({ ...event })
     } catch (error) {
-      console.log(error)
     }
   }
 

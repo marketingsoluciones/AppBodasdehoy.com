@@ -45,7 +45,6 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
         toast("success", t("suscess"))
       })
     } catch (error) {
-      console.log(error);
     }
   }
 

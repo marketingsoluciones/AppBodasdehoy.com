@@ -148,7 +148,6 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                             try {
                                 setShowPagos(!PagosOrFormAdd)
                             } catch (error) {
-                                console.log(error)
                             } finally {
                                 setPagoID(props?.row?.original?._id)
                                 setGetId(props?.row?.original?.idGasto)
@@ -178,7 +177,6 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                                 const { data: res } = await api.ApiApp(params);
                                 data = res.data.borraPago;
                             } catch (error) {
-                                console.log(error);
                             } finally {
 
                                 setEvent((old) => {
@@ -336,7 +334,6 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                             try {
                                 setShowPagos(!PagosOrFormAdd)
                             } catch (error) {
-                                console.log(error)
                             } finally {
                                 setPagoID(props?.row?.original?._id)
                                 setGetId(props?.row?.original?.idGasto)
@@ -365,7 +362,6 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                                 const { data: res } = await api.ApiApp(params);
                                 data = res.data.borraPago;
                             } catch (error) {
-                                console.log(error);
                             } finally {
                                 setEvent((old) => {
                                     // Encontrar posicion de la categoria en el array categorias

@@ -86,7 +86,6 @@ const CellEditCopy = (props) => {
           const { data } = await api.ApiApp(params);
           res = data?.data?.editGasto
         } catch (error) {
-          console.log(error);
         } finally {
           setEvent((old) => {
             const index = old?.presupuesto_objeto?.categorias_array?.findIndex(

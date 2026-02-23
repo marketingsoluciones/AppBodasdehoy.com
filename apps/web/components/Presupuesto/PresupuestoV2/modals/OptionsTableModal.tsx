@@ -8,7 +8,6 @@ interface OptionsTableModalProps {
 
 export const OptionsTableModal: FC<OptionsTableModalProps> = ({ showOptionsModal, setShowOptionsModal }) => {
 
-    console.log(showOptionsModal)
     return (
         <div className="absolute top-12 right-3 bg-white shadow-lg rounded border z-50 w-48 max-w-[calc(100vw-24px)]">
             <div className="p-3 border-b">

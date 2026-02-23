@@ -48,7 +48,6 @@ export const DuplicatePresupuesto = ({ setModal, showModalDuplicate }) => {
             toast("success", t("successful"));
             setModal(false)
         } catch (error) {
-            console.log(error)
         }
 
     }

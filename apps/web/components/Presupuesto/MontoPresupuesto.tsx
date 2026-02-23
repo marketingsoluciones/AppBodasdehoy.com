@@ -39,7 +39,6 @@ export const MontoPresupuesto = () => {
       event.presupuesto_objeto = result as estimate
       setEvent({ ...event })
     } catch (error) {
-      console.log(error)
     }
   }
   const handleChangeS = (e) => {
@@ -59,7 +58,6 @@ export const MontoPresupuesto = () => {
         setEvent({ ...event })
       })
     } catch (error) {
-      console.log(error)
     }
   }
 
