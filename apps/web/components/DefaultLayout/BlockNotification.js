@@ -52,7 +52,6 @@ export default BlockNotification;
 
 const Notification = ({ data }) => {
   const { mensaje } = data
-  console.log("data", data)
   return (
     <div className="flex gap-3 w-full min-w-full justify-start items-center border-b border-base py-3 px-3 relative rounded-lg overflow-hidden hover:bg-base transition">
       <div className="w-1 h-full bg-tertiary absolute left-0 rounded-lg " />

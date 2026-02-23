@@ -96,8 +96,8 @@ export const EventsTable: FC<any> = () => {
               })
               user.eventSelected = data?._id
               setUser(user)
-            } catch (error) {
-              console.log(error);
+            } catch {
+              // silently ignore event selection errors
             } finally {
               if (final) {
                 if (data?.permissions) {
@@ -257,7 +257,6 @@ export const EventsTable: FC<any> = () => {
         accessor: "detalles_compartidos_array",
         id: "detalles_compartidos_array",
         Cell: (data) => {
-          console.log(data.data[data.cell.row.id].usuario_id === user?.uid)
           return (
             <div onClick={() => {
               data.data[data.cell.row.id]?.usuario_id === user?.uid &&

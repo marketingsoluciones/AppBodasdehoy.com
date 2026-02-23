@@ -36,7 +36,6 @@ const Breadcumbs = () => {
             graduación: "/cards/graduacion.webp",
             otro: "/cards/pexels-pixabay-50675.jpg"
         };
-        console.log(eventsGroup)
         return eventsGroup.reduce((acc, item) => {
             acc.push({
                 value: item.nombre,
@@ -59,8 +58,8 @@ const Breadcumbs = () => {
     const handleChange = (e: any) => {
         try {
             setEvent(eventsGroup.find((el: any) => el.nombre === e));
-        } catch (error) {
-            console.log(error);
+        } catch {
+            // silently ignore selection errors
         }
     };
 

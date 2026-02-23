@@ -40,9 +40,7 @@ const RegistroEntradasUser: FC<propsRegistroEntradasUser> = ({ componentState, s
         },
         development: "bodasdehoy"
       }).then((result) => {
-        console.log("aqui", unique)
         if (result) {
-          console.log("result", result)
           setData(result)
         } else {
           router.push(`${window.location.origin}/RelacionesPublicas`)
