@@ -28,13 +28,6 @@ export const defaultImagenes = {
 };
 
 export const handleClickCard = async ({ t, final = true, data, user, setUser, config, setEvent, router }) => {
-  console.log("[handleClickCard] Seleccionando evento:", {
-    eventId: data?._id,
-    eventName: data?.nombre,
-    userId: user?.uid,
-    hasPermissions: !!data?.permissions
-  })
-  
   try {
     // Establecer timeZone si no está definido
     if (!data?.timeZone) {
@@ -59,7 +52,6 @@ export const handleClickCard = async ({ t, final = true, data, user, setUser, co
           user.eventSelected = data._id
           setUser(user)
         }
-        console.log("[handleClickCard] ✅ Evento seleccionado actualizado en BD")
       } catch (updateError) {
         console.error("[handleClickCard] ⚠️ Error actualizando evento seleccionado (continuando de todas formas):", updateError)
         // Continuar aunque falle la actualización en BD
@@ -78,14 +70,12 @@ export const handleClickCard = async ({ t, final = true, data, user, setUser, co
     console.error("[handleClickCard] ❌ Error general:", error);
     if (final) {
       // No retornar error aquí, mejor continuar e intentar abrir el evento
-      console.log("[handleClickCard] Continuando a pesar del error...")
     }
   }
-  
+
   // Abrir el evento si final es true
   if (final) {
     try {
-      console.log("[handleClickCard] Abriendo evento...")
       
       // Establecer el evento en el contexto primero
       setEvent(data);
@@ -101,14 +91,12 @@ export const handleClickCard = async ({ t, final = true, data, user, setUser, co
         if (permissions.length > 0) {
           const f1 = permissions.findIndex(elem => elem.value === "resumen")
           if (f1 > -1) {
-            console.log("[handleClickCard] Navegando a /resumen-evento (con permiso resumen)")
-            router.push("/resumen-evento");
+              router.push("/resumen-evento");
             return
           } else {
             let p = permissions[0].title
             if (p === "regalos") p = "lista-regalos"
             if (p === "resumen") p = "resumen-evento"
-            console.log("[handleClickCard] Navegando a /" + p, "con permiso:", permissions[0].value)
             router.push("/" + p);
             return
           }
@@ -118,7 +106,6 @@ export const handleClickCard = async ({ t, final = true, data, user, setUser, co
         }
       } else {
         // Sin permisos definidos, ir directo a resumen
-        console.log("[handleClickCard] Navegando a /resumen-evento (sin permisos específicos)")
         router.push("/resumen-evento");
       }
     } catch (navigationError) {
@@ -183,7 +170,6 @@ const Card = ({ data, grupoStatus, idx }) => {
         toast("success", `${value == "archivado" ? `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha archivado` : `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha desarchivado`}`)
       } catch (error) {
         toast("error", "Ha ocurrido un error al archivar el evento")
-        console.log(error)
       }
     } else {
       setActionModals(!actionModals)
@@ -209,7 +195,6 @@ const Card = ({ data, grupoStatus, idx }) => {
       toast("success", "Evento eliminado ")
     } catch (error) {
       toast("error", "Ha ocurrido un error al eliminar el evento")
-      console.log(error)
     }
   }
 
@@ -278,7 +263,6 @@ const Card = ({ data, grupoStatus, idx }) => {
 
           // Prevenir múltiples clics rápidos
           if (isNavigating) {
-            console.log("[Card] ⏳ Ya se está navegando, ignorando clic")
             return
           }
 
@@ -289,15 +273,6 @@ const Card = ({ data, grupoStatus, idx }) => {
             toast("error", t("Error: Evento no válido"))
             return
           }
-
-          console.log("[Card] 🖱️ Click en evento:", {
-            eventId: eventData._id,
-            eventName: eventData.nombre,
-            hasUser: !!user,
-            hasUserId: !!user?.uid,
-            hasPermissions: !!eventData.permissions,
-            permissions: eventData.permissions
-          })
 
           setIsNavigating(true) // Bloquear más clics
           toast("info", t("Abriendo evento..."))
@@ -318,7 +293,6 @@ const Card = ({ data, grupoStatus, idx }) => {
                 toast("warning", resp)
                 setIsNavigating(false)
               } else {
-                console.log("[Card] ✅ handleClickCard completado sin errores")
                 // No resetear isNavigating aquí porque estamos navegando
               }
             })
@@ -329,7 +303,6 @@ const Card = ({ data, grupoStatus, idx }) => {
 
               // Fallback: intentar abrir el evento de todas formas
               try {
-                console.log("[Card] Intentando fallback: abrir evento directamente...")
                 setIsNavigating(true)
                 setEvent(eventData)
                 setTimeout(() => {
