@@ -92,10 +92,10 @@ export default function DebugLogsPage() {
       </div>
 
       {/* Logs por hipótesis */}
-      {Object.entries(logsByHypothesis).map(([hypothesisId, hypothesisLogs]) => (
+      {(Object.entries(logsByHypothesis) as [string, any[]][]).map(([hypothesisId, hypothesisLogs]) => (
         <Card key={hypothesisId} title={`Hipótesis ${hypothesisId} (${hypothesisLogs.length} logs)`}>
           <div className="space-y-2 max-h-96 overflow-y-auto">
-            {hypothesisLogs.map((log, idx) => (
+            {hypothesisLogs.map((log: any, idx: number) => (
               <div className="border-b pb-2" key={idx}>
                 <div className="text-xs text-gray-500">
                   {new Date(log.timestamp).toLocaleTimeString()} - {log.location}

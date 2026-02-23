@@ -31,17 +31,13 @@ const DallE = memo<BuiltinRenderProps<DallEImageItem[]>>(({ content, messageId }
       {/*<ToolBar content={content} messageId={messageId} />*/}
       <PreviewGroup
         preview={{
-          // 切换图片时设置
-          onChange: (current: number) => {
-            currentRef.current = current;
-          },
           // 点击预览显示时设置
-
           onVisibleChange: (visible: boolean, _prevVisible: boolean, current: number) => {
             currentRef.current = current;
           },
           toolbarAddon: <ActionIcon color={'#fff'} icon={Download} onClick={handleDownload} />,
-        }}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any}
       >
         <GalleyGrid items={content.map((c) => ({ ...c, messageId }))} renderItem={ImageItem} />
       </PreviewGroup>

@@ -421,7 +421,7 @@ describe('useWeddingWeb', () => {
       // Verificar que el callback fue llamado con datos reales
       expect(callbackCalled).toBe(true);
       expect(callbackData).toBeDefined();
-      expect(callbackData?.couple.partner1.name).toBe('Callback Test');
+      expect((callbackData as any)?.couple.partner1.name).toBe('Callback Test');
     });
   });
 

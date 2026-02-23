@@ -12,3 +12,11 @@ declare module 'antd-style' {
 declare module 'styled-components' {
   export interface DefaultTheme extends AntdToken, LobeCustomToken {}
 }
+
+// styled-jsx: permite <style jsx> y <style jsx global> en JSX
+declare module 'react' {
+  interface StyleHTMLAttributes<T> {
+    jsx?: boolean;
+    global?: boolean;
+  }
+}

@@ -335,7 +335,7 @@ export default function API2DebugPage() {
                   {result.response.features && (
                     <Flexbox gap={8} style={{ background: '#fff', borderRadius: 4, padding: 12 }}>
                       <Text strong style={{ fontSize: 14, marginBottom: 4 }}>⚙️ Features</Text>
-                      <Flexbox gap={4} horizontal wrap>
+                      <Flexbox gap={4} horizontal wrap="wrap">
                         {Object.entries(result.response.features).map(([key, value]) => (
                           <Tag color={value ? 'green' : 'default'} key={key}>
                             {key}: {value ? '✅' : '❌'}
@@ -354,7 +354,7 @@ export default function API2DebugPage() {
                           <Text><strong>Logo:</strong> {result.response.branding.logo}</Text>
                         )}
                         {result.response.branding.colors && (
-                          <Flexbox gap={4} horizontal wrap>
+                          <Flexbox gap={4} horizontal wrap="wrap">
                             {Object.entries(result.response.branding.colors).map(([key, value]) => (
                               <Tag color="purple" key={key}>
                                 {key}: {String(value)}
