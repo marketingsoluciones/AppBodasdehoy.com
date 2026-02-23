@@ -73,14 +73,16 @@ const SubTabs = memo(() => {
           onClick={() => setActiveTab('conversaciones')}
           type="button"
         >
-          💬 {t('conversations')}
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          💬 {(t as any)('conversations')}
         </button>
         <button
             className={`${styles.tab} ${activeTab === 'historial' ? 'active' : ''}`}
           onClick={() => setActiveTab('historial')}
           type="button"
         >
-          📥 {t('inboxTab')}
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          📥 {(t as any)('inboxTab')}
         </button>
       </div>
 

@@ -91,11 +91,12 @@ const ConsumptionChart = memo<ConsumptionChartProps>(({ usageStats, period = 'TH
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip
-                  formatter={(value: number, name: string) => {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  formatter={((value: number, name: string) => {
                     if (name === 'tokens') return [`${value.toLocaleString()} tokens`, 'Tokens'];
                     if (name === 'cost') return [formatCurrency(value), 'Costo'];
                     return [value, name];
-                  }}
+                  }) as any}
                 />
                 <Legend />
                 <Bar dataKey="tokens" fill="#667eea" name="Tokens" />
@@ -119,7 +120,7 @@ const ConsumptionChart = memo<ConsumptionChartProps>(({ usageStats, period = 'TH
                   data={imagesByProvider}
                   dataKey="count"
                   fill="#8884d8"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }: { name: string; percent?: number }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                   nameKey="name"
                   outerRadius={100}
                 />
@@ -143,7 +144,7 @@ const ConsumptionChart = memo<ConsumptionChartProps>(({ usageStats, period = 'TH
                   data={communicationsData}
                   dataKey="value"
                   fill="#82ca9d"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }: { name: string; percent?: number }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                   nameKey="name"
                   outerRadius={100}
                 />
@@ -182,7 +183,8 @@ const ConsumptionChart = memo<ConsumptionChartProps>(({ usageStats, period = 'TH
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip formatter={(value: number) => formatCurrency(value)} />
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <Tooltip formatter={((value: number) => formatCurrency(value)) as any} />
               <Bar dataKey="costo" fill="#667eea" />
             </BarChart>
           </ResponsiveContainer>

@@ -1,3 +1,4 @@
+// @ts-nocheck — script de debug/testing, UserStore API puede diferir
 /**
  * Script de prueba para verificar sincronización de API keys
  * Ejecutar en consola del navegador
