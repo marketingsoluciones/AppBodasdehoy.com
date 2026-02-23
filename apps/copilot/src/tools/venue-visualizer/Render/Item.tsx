@@ -82,6 +82,7 @@ function getEventIdFromStorage(): string | undefined {
     const raw = localStorage.getItem('dev-user-config');
     if (!raw) return undefined;
     const config = JSON.parse(raw);
+    if (config.event_id) return config.event_id;
     if (config.current_event_id) return config.current_event_id;
     if (config.eventos?.length > 0) return config.eventos[0]._id || config.eventos[0].id;
   } catch {

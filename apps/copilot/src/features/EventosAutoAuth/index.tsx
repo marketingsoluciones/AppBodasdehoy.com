@@ -111,14 +111,15 @@ function EventosAutoAuthComponent() {
           localStorage.setItem('dev-user-config', JSON.stringify({
             developer: payload.development,
             development: payload.development,
+            event_id: payload.eventId || null,
+            event_name: payload.eventName || null,
             source: 'parent_iframe',
             timestamp: Date.now(),
             token: payload.token,
-            userId: payload.userId,
-            
             user_data: payload.userData,
             // user_id (snake_case) es necesario para useAuthCheck en /messages
-user_id: payload.userId,
+            user_id: payload.userId,
+            userId: payload.userId,
             user_type: 'registered',
           }));
         }
