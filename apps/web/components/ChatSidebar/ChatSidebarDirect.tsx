@@ -12,7 +12,7 @@ import { useChatSidebar } from '../../context/ChatSidebarContext';
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from '../../context';
 // CopilotEmbed usando componentes de @bodasdehoy/copilot-shared
 import { CopilotEmbed } from '../Copilot/CopilotEmbed';
-import { sendChatMessage, getChatHistory } from '../../services/copilotChat';
+import { extractPageContext } from '../Copilot/pageContextExtractor';
 // import type { SendMessageParams, EmbedMessage } from '@bodasdehoy/copilot-ui';
 import { IoClose, IoSparkles, IoExpand, IoChevronDown, IoOpenOutline } from 'react-icons/io5';
 
@@ -254,7 +254,7 @@ const ChatSidebarDirect: FC = () => {
               eventId={eventId}
               eventName={event?.nombre}
               pageContext={{
-                pageName: router.pathname,
+                pageName: extractPageContext(router.pathname, event || null).pageName,
                 eventName: event?.nombre,
                 eventId: event?._id,
                 eventsList: eventsGroup?.map(e => ({
