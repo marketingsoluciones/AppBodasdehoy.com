@@ -4,49 +4,62 @@ export const VenueVisualizerManifest: BuiltinToolManifest = {
   api: [
     {
       description:
-        'Transforma la foto de un salón o espacio de boda aplicando un estilo de decoración con IA. Genera una visualización fotorrealista de cómo quedaría el espacio con la decoración elegida.',
+        'Transforma la foto de un salón o espacio de boda aplicando uno o varios estilos de decoración con IA. Genera visualizaciones fotorrealistas en paralelo. Puedes pedir hasta 4 variaciones a la vez pasando múltiples ítems en el array.',
       name: 'visualize_venue',
       parameters: {
         properties: {
-          imageUrl: {
+          items: {
             description:
-              'URL de la foto del salón o espacio subida por el usuario. Si el usuario no ha subido ninguna foto, pídela antes de llamar a esta herramienta.',
-            type: 'string',
-          },
-          prompt: {
-            description:
-              'Descripción adicional en inglés de detalles específicos que el usuario quiere en la decoración. Por ejemplo: "with fairy lights, long tables for 150 guests, floral centerpieces".',
-            type: 'string',
-          },
-          roomType: {
-            description: 'Tipo de espacio o venue.',
-            enum: [
-              'salon-banquetes',
-              'jardin',
-              'terraza',
-              'iglesia',
-              'restaurante',
-              'finca',
-              'rooftop',
-            ],
-            type: 'string',
-          },
-          style: {
-            description: 'Estilo de decoración a aplicar en el espacio.',
-            enum: [
-              'romantico',
-              'rustico-boho',
-              'minimalista',
-              'glamour',
-              'jardin-floral',
-              'industrial',
-              'mediterraneo',
-              'tropical',
-            ],
-            type: 'string',
+              'Lista de visualizaciones a generar. Incluye de 1 a 4 ítems para generar múltiples estilos en paralelo. Cada ítem tiene su propio estilo y tipo de espacio.',
+            items: {
+              properties: {
+                imageUrl: {
+                  description:
+                    'URL de la foto del salón o espacio subida por el usuario. Si el usuario no ha subido ninguna foto, omite este campo.',
+                  type: 'string',
+                },
+                prompt: {
+                  description:
+                    'Descripción adicional en inglés de detalles específicos que el usuario quiere. Por ejemplo: "with fairy lights, long tables for 150 guests".',
+                  type: 'string',
+                },
+                roomType: {
+                  description: 'Tipo de espacio o venue.',
+                  enum: [
+                    'salon-banquetes',
+                    'jardin',
+                    'terraza',
+                    'iglesia',
+                    'restaurante',
+                    'finca',
+                    'rooftop',
+                  ],
+                  type: 'string',
+                },
+                style: {
+                  description: 'Estilo de decoración a aplicar en el espacio.',
+                  enum: [
+                    'romantico',
+                    'rustico-boho',
+                    'minimalista',
+                    'glamour',
+                    'jardin-floral',
+                    'industrial',
+                    'mediterraneo',
+                    'tropical',
+                  ],
+                  type: 'string',
+                },
+              },
+              required: ['style', 'roomType'],
+              type: 'object',
+            },
+            maxItems: 4,
+            minItems: 1,
+            type: 'array',
           },
         },
-        required: ['style', 'roomType'],
+        required: ['items'],
         type: 'object',
       },
     },
@@ -66,10 +79,14 @@ Usa esta herramienta cuando el usuario mencione:
 
 Flujo recomendado:
 1. Si el usuario no ha subido foto del espacio, pídela con amabilidad: "Para visualizar tu espacio, ¿puedes subir una foto del salón o venue?"
-2. Pregunta qué estilo le gusta si no lo ha indicado: romántico, rústico-boho, minimalista, glamour, jardín floral, industrial, mediterráneo o tropical.
-3. Pregunta el tipo de espacio: salón de banquetes, jardín, terraza, iglesia, restaurante, finca o rooftop.
-4. Una vez tengas foto + estilo + tipo de espacio, llama a visualize_venue.
-5. Después de generar, ofrece variaciones en otros estilos o ajustes.
+2. Si el usuario no especifica estilo, genera 4 variaciones con los estilos más populares: romántico, rústico-boho, glamour y jardín floral.
+3. Si el usuario especifica un estilo concreto, genera solo ese estilo (1 ítem en el array).
+4. Si el usuario pide "muéstrame varias opciones" o "quiero ver diferentes estilos", genera hasta 4 variaciones simultáneas.
+5. Pregunta el tipo de espacio si no lo has identificado del contexto.
+6. Llama a visualize_venue con el array de ítems — se generan en paralelo automáticamente.
+7. Después de generar, ofrece ajustes o variaciones adicionales.
+
+IMPORTANTE: La herramienta acepta un array "items" con 1 a 4 visualizaciones. Aprovecha esto para generar múltiples estilos en paralelo cuando el usuario quiera ver opciones.
 
 Estilos disponibles y qué significan:
 - romantico: flores blancas, velas, drapeados, tonos rosa y marfil, muy romántico

@@ -13,11 +13,15 @@ interface Text2ImageParams extends Pick<OpenAIImagePayload, 'quality' | 'style' 
   prompts: string[];
 }
 
-interface VisualizeVenueParams {
+interface VisualizeVenueItemParam {
   imageUrl?: string;
   prompt?: string;
   roomType: VenueRoomType;
   style: VenueStyle;
+}
+
+interface VisualizeVenueParams {
+  items: VisualizeVenueItemParam[];
 }
 
 /**
@@ -69,12 +73,11 @@ transformApiArgumentsToAiState: async (key, params) => {
   },
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
-visualize_venue: ({ imageUrl, style, roomType, prompt }) => [
-    {
+  visualize_venue: ({ items }) =>
+    items.map(({ imageUrl, style, roomType, prompt }) => ({
       originalUrl: imageUrl,
       prompt,
       roomType,
       style,
-    },
-  ],
+    })),
 });
