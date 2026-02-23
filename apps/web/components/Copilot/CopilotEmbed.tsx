@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useToast } from '../../hooks/useToast';
 import { MessageList, InputEditor } from '@bodasdehoy/copilot-shared';
 import type { MessageItem } from '@bodasdehoy/copilot-shared';
 import {
@@ -75,6 +76,7 @@ export const CopilotEmbed = ({
   pageContext,
   className,
 }: CopilotEmbedProps) => {
+  const toast = useToast();
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -227,9 +229,11 @@ export const CopilotEmbed = ({
     if (action === 'copy') {
       const message = messages.find((m) => m.id === messageId);
       if (message) {
-        navigator.clipboard.writeText(message.message);
-        // TODO: Show toast notification in future
-        console.log('[CopilotEmbed] Copied message:', messageId);
+        navigator.clipboard.writeText(message.message).then(() => {
+          toast('success', 'Mensaje copiado al portapapeles');
+        }).catch(() => {
+          toast('error', 'No se pudo copiar el mensaje');
+        });
       }
     }
   }, [messages]);
