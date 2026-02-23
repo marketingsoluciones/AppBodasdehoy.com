@@ -404,7 +404,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 {/*value?.toLowerCase() == "no asignado"*/ false ? (
                   <button
                     onClick={() => router.push("/mesas")}
-                    className="bg-tertiary font-display text-sm font-medium hover:text-gray-500 *px-3 rounded-lg focus:outline-none"
+                    className="bg-tertiary font-display text-sm font-medium hover:text-gray-500 px-3 rounded-lg focus:outline-none"
                   >
                     Añadir mesa
                   </button>
@@ -447,7 +447,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     }
                   })}
                   <li
-                    className="*bg-gray-300 cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
+                    className="bg-gray-300 cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize"
                     onClick={() => router.push("/mesas")}
                   >
                     {t("addtable")}

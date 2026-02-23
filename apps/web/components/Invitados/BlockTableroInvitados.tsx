@@ -1093,7 +1093,7 @@ export const AcompañantesCard: FC<propsAcompañantesCard> = ({ passesQuantity, 
             {
                 showModalAcompañante2.state && GuestsByFather.length === 0 &&
                 <div className="border-l border-dotted ml-2 py-2 border-primary">
-                    <span className="items-center col-span-3 flex *gap-3  justify-center capitalize ">
+                    <span className="items-center col-span-3 flex gap-3 justify-center capitalize">
                         + {passesQuantity} Acompañantes.<span className="text-primary pl-1 cursor-pointer" onClick={() => router.push(`${window?.location?.origin}?pGuestEvent=${idFather}${event._id?.slice(3, 9)}${event._id}`)}>Confirmar aquí</span>
                     </span>
 

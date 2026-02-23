@@ -92,7 +92,7 @@ export const ItinerarioPDF = (props) => {
           </div>
         </div >
         {tasksReduce?.map((el, i) =>
-          <div key={i} className="w-full *h-[500px] mt-4">
+          <div key={i} className="w-full mt-4">
             <div className={`w-full flex justify-start`}>
               <span className={`border-primary border-dotted mb-1 border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
                 {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit" })}
