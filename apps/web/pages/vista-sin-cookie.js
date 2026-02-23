@@ -18,47 +18,40 @@ const VistaSinCookie = () => {
   useEffect(() => {
     // Evitar redirecciones múltiples
     if (redirected) {
-      console.log('[VistaSinCookie] Ya redirigido, ignorando');
       return;
     }
-    
-    console.log('[VistaSinCookie] Ejecutando redirección:', { pathname, hasConfig: !!config, configDev: config?.development, hasEvent: !!event, hasEventsGroup: !!eventsGroup });
-    
+
     // Si estamos en /servicios, intentar redirigir con evento (si está disponible)
     if (pathname === "/servicios") {
       const currentEvent = event || (eventsGroup && eventsGroup.length > 0 ? eventsGroup[0] : null)
-      
+
       if (currentEvent && currentEvent._id) {
-        const firstItinerary = currentEvent.itinerarios_array && currentEvent.itinerarios_array.length > 0 
-          ? currentEvent.itinerarios_array[0] 
+        const firstItinerary = currentEvent.itinerarios_array && currentEvent.itinerarios_array.length > 0
+          ? currentEvent.itinerarios_array[0]
           : null
-        
+
         if (firstItinerary && firstItinerary._id) {
-          console.log('[VistaSinCookie] Redirigiendo a servicios con evento e itinerario');
           setRedirected(true);
           router?.push(`/public-card/servicios-event-${currentEvent._id}-${firstItinerary._id}`)
           setLoading(false);
           return;
         } else if (currentEvent._id) {
-          console.log('[VistaSinCookie] Redirigiendo a servicios con evento');
           setRedirected(true);
           router?.push(`/public-card/servicios?event=${currentEvent._id}`)
           setLoading(false);
           return;
         }
       }
-      
+
       // Si no hay evento disponible, redirigir a login inmediatamente
-      console.log('[VistaSinCookie] No hay evento, redirigiendo a login');
       setRedirected(true);
       router?.push(`/login${pathname !== "/" ? `?d=${pathname}` : ""}`)
       setLoading(false);
       return;
     }
-    
+
     // ✅ CORRECCIÓN CRÍTICA: SIEMPRE redirigir a login si no hay usuario
     // No importa si es bodasdehoy o no, si no hay usuario debe ir a login
-    console.log('[VistaSinCookie] Redirigiendo a login (usuario no logueado)');
     setRedirected(true);
     router?.push(`/login${pathname !== "/" ? `?d=${pathname}` : ""}`)
     setLoading(false);
