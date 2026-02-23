@@ -2,6 +2,7 @@ import { GetServerSideProps, NextPage } from 'next';
 import Head from 'next/head';
 import { useState, useRef } from 'react';
 import { fetchApiEventosServer } from '../../utils/Fetching';
+import { MdOutlineQrCode2 } from 'react-icons/md';
 
 const SEATING_QUERY = `
   query ($variable: String, $valor: String, $development: String!) {
@@ -29,6 +30,7 @@ interface SeatGuest {
 }
 
 interface Props {
+  eventId: string;
   eventName: string;
   eventType: string;
   eventImg: string | null;
@@ -36,10 +38,16 @@ interface Props {
   error?: string;
 }
 
-const BuscadorMesa: NextPage<Props> = ({ eventName, eventType, eventImg, guests, error }) => {
+const BuscadorMesa: NextPage<Props> = ({ eventId, eventName, eventType, eventImg, guests, error }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SeatGuest[] | null>(null);
+  const [showQr, setShowQr] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const pageUrl = typeof window !== 'undefined'
+    ? window.location.href
+    : `https://bodasdehoy.com/buscador-mesa/${eventId}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(pageUrl)}`;
 
   if (error) {
     return (
@@ -161,7 +169,39 @@ const BuscadorMesa: NextPage<Props> = ({ eventName, eventType, eventImg, guests,
           )}
         </div>
 
-        <p className="mt-12 text-xs text-gray-300">
+        {/* QR del buscador */}
+        <div className="mt-10 flex flex-col items-center">
+          <button
+            onClick={() => setShowQr(!showQr)}
+            className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-600 transition"
+          >
+            <MdOutlineQrCode2 className="w-5 h-5" />
+            <span>{showQr ? 'Ocultar QR' : 'Ver QR para imprimir'}</span>
+          </button>
+          {showQr && (
+            <div className="mt-4 flex flex-col items-center gap-3">
+              <img
+                src={qrUrl}
+                alt="QR buscador de mesa"
+                width={200}
+                height={200}
+                className="rounded-xl border border-gray-100 shadow-sm"
+              />
+              <p className="text-xs text-gray-400 text-center max-w-[200px]">
+                Escanea para buscar tu mesa
+              </p>
+              <a
+                href={qrUrl}
+                download={`qr-mesas-${eventId}.png`}
+                className="text-xs text-primary hover:underline"
+              >
+                Descargar QR
+              </a>
+            </div>
+          )}
+        </div>
+
+        <p className="mt-8 text-xs text-gray-300">
           Bodas de Hoy
         </p>
       </main>
@@ -187,7 +227,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
     const evento = Array.isArray(eventos) ? eventos[0] : eventos;
 
     if (!evento) {
-      return { props: { eventName: '', eventType: '', eventImg: null, guests: [], error: 'not_found' } };
+      return { props: { eventId, eventName: '', eventType: '', eventImg: null, guests: [], error: 'not_found' } };
     }
 
     const guests: SeatGuest[] = (evento.invitados_array || [])
@@ -201,6 +241,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
 
     return {
       props: {
+        eventId,
         eventName: evento.nombre || '',
         eventType: evento.tipo || '',
         eventImg: evento.imgEvento?.i800 || null,
@@ -209,7 +250,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
     };
   } catch {
     return {
-      props: { eventName: '', eventType: '', eventImg: null, guests: [], error: 'server_error' },
+      props: { eventId, eventName: '', eventType: '', eventImg: null, guests: [], error: 'server_error' },
     };
   }
 };
