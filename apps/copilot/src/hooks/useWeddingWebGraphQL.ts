@@ -37,10 +37,9 @@ import type {
   VenueInfoInput,
   OurStoryInput,
   GetWeddingWebResponse,
-  WeddingSectionName,
 } from '@/types/wedding-web';
+import { WeddingSectionName, mapTemplateToPalette, mapPaletteToTemplate } from '@/types/wedding-web';
 import type { WeddingWebData, PaletteType, SectionType } from '@bodasdehoy/wedding-creator';
-import { mapTemplateToPalette, mapPaletteToTemplate  } from '@/types/wedding-web';
 import { getCurrentDevelopment } from '@/utils/developmentDetector';
 
 /**
@@ -327,21 +326,35 @@ export function useWeddingWebGraphQL(
     }
   );
 
-  // Mutations
-  const [createMutation] = useMutation(CREATE_WEDDING_WEB);
-  const [updateWeddingMutation] = useMutation(UPDATE_WEDDING_WEB);
-  const [updateCoupleMutation] = useMutation(UPDATE_WEDDING_COUPLE);
-  const [updateOurStoryMutation] = useMutation(UPDATE_WEDDING_OUR_STORY);
-  const [updateStyleMutation] = useMutation(UPDATE_WEDDING_STYLE);
-  const [updateColorsMutation] = useMutation(UPDATE_WEDDING_COLORS);
-  const [setHeroImageMutation] = useMutation(SET_WEDDING_HERO_IMAGE);
-  const [updateRSVPMutation] = useMutation(UPDATE_WEDDING_RSVP);
-  const [updateSectionMutation] = useMutation(UPDATE_WEDDING_SECTION);
-  const [toggleSectionMutation] = useMutation(TOGGLE_WEDDING_SECTION);
-  const [reorderSectionsMutation] = useMutation(REORDER_WEDDING_SECTIONS);
-  const [updateVenueMutation] = useMutation(UPDATE_WEDDING_VENUE);
-  const [publishMutation] = useMutation(PUBLISH_WEDDING_WEB);
-  const [unpublishMutation] = useMutation(UNPUBLISH_WEDDING_WEB);
+  // Mutations — tipados con any porque no tenemos codegen Apollo para estos schemas
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [createMutation] = useMutation<any>(CREATE_WEDDING_WEB);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [updateWeddingMutation] = useMutation<any>(UPDATE_WEDDING_WEB);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [updateCoupleMutation] = useMutation<any>(UPDATE_WEDDING_COUPLE);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [updateOurStoryMutation] = useMutation<any>(UPDATE_WEDDING_OUR_STORY);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [updateStyleMutation] = useMutation<any>(UPDATE_WEDDING_STYLE);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [updateColorsMutation] = useMutation<any>(UPDATE_WEDDING_COLORS);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [setHeroImageMutation] = useMutation<any>(SET_WEDDING_HERO_IMAGE);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [updateRSVPMutation] = useMutation<any>(UPDATE_WEDDING_RSVP);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [updateSectionMutation] = useMutation<any>(UPDATE_WEDDING_SECTION);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [toggleSectionMutation] = useMutation<any>(TOGGLE_WEDDING_SECTION);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [reorderSectionsMutation] = useMutation<any>(REORDER_WEDDING_SECTIONS);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [updateVenueMutation] = useMutation<any>(UPDATE_WEDDING_VENUE);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [publishMutation] = useMutation<any>(PUBLISH_WEDDING_WEB);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [unpublishMutation] = useMutation<any>(UNPUBLISH_WEDDING_WEB);
 
   // Estado local para cambios pendientes
   const [localWedding, setLocalWedding] = useState<WeddingWebData | null>(null);

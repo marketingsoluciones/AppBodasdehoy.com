@@ -67,9 +67,8 @@ function GuestWelcomeMessage() {
         },
         session_id: sessionId,
       });
-      console.log('✅ Intención de crear evento guardada');
     } catch (error) {
-      console.warn('⚠️ Error guardando intención:', error);
+      console.warn('[GuestWelcomeMessage] Error guardando intención:', error);
       // Continuar aunque falle el guardado
     }
 
@@ -99,7 +98,7 @@ Soy tu asistente inteligente para organizar eventos. Puedo ayudarte a:
         }}
         styles={{ body: { padding: 24 } }}
       >
-        <Flexbox direction="column" gap={16}>
+        <Flexbox direction="vertical" gap={16}>
           <Markdown variant="chat">{welcomeMessage}</Markdown>
 
           <Flexbox gap={12} horizontal style={{ marginTop: 8 }}>

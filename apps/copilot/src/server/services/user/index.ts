@@ -26,9 +26,9 @@ export class UserService {
         success: false,
       };
 
-    const email = params.email_addresses.find((e) => e.id === params.primary_email_address_id);
+    const email = params.email_addresses.find((e: any) => e.id === params.primary_email_address_id);
 
-    const phone = params.phone_numbers.find((e, index) => {
+    const phone = params.phone_numbers.find((e: any, index: number) => {
       if (!!params.primary_phone_number_id) return e.id === params.primary_phone_number_id;
 
       return index === 0;
@@ -97,8 +97,8 @@ export class UserService {
 
     pino.info('updating user due to clerk webhook');
 
-    const email = params.email_addresses.find((e) => e.id === params.primary_email_address_id);
-    const phone = params.phone_numbers.find((e, index) => {
+    const email = params.email_addresses.find((e: any) => e.id === params.primary_email_address_id);
+    const phone = params.phone_numbers.find((e: any, index: number) => {
       if (params.primary_phone_number_id) return e.id === params.primary_phone_number_id;
       return index === 0;
     });

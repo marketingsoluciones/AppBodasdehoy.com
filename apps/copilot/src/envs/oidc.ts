@@ -2,7 +2,8 @@ import { createEnv } from '@t3-oss/env-nextjs';
 import { z } from 'zod';
 
 // ✅ MEJORA: Wrapper de seguridad para evitar errores durante la carga del módulo
-let oidcEnv: ReturnType<typeof createEnv>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let oidcEnv: any;
 try {
   oidcEnv = createEnv({
     client: {},

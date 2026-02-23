@@ -23,14 +23,15 @@ export const setDeveloperToken = (developer: string, token: string): void => {
     // También actualizar en dev-user-config
     try {
       const configStr = localStorage.getItem('dev-user-config');
-      let config = {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let config: Record<string, any> = {};
       if (configStr) {
         try {
           if (configStr.trim().startsWith('{') || configStr.trim().startsWith('[')) {
             config = JSON.parse(configStr);
           }
         } catch (e) {
-          console.warn('⚠️ Error parseando dev-user-config en developerTokens:', e);
+          console.warn('[developerTokens] Error parseando dev-user-config:', e);
           config = {};
         }
       }
@@ -38,8 +39,6 @@ export const setDeveloperToken = (developer: string, token: string): void => {
       config.development = developer;
       config.timestamp = Date.now();
       localStorage.setItem('dev-user-config', JSON.stringify(config));
-      
-      console.log(`✅ Token JWT guardado para ${developer}`);
     } catch (e) {
       console.warn('Error guardando config:', e);
     }

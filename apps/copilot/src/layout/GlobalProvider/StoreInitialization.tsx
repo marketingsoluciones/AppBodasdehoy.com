@@ -24,11 +24,7 @@ const StoreInitialization = memo(() => {
   useTokenRefresh();
 
   const router = useRouter();
-  const useInitUserState = useUserStore((s) => [
-    authSelectors.isLogin(s),
-    s.isSignedIn,
-    s.useInitUserState,
-  ])[2];
+  const useInitUserState = useUserStore((s) => s.useInitUserState);
 
   const { serverConfig: currentServerConfig } = useServerConfigStore();
 
@@ -47,7 +43,7 @@ const StoreInitialization = memo(() => {
   useInitAgentStore(isLoginOnInit, currentServerConfig?.defaultAgent?.config);
   useInitAiProviderKeyVaults(isLoginOnInit);
   useInitUserState(isLoginOnInit, currentServerConfig, {
-    onSuccess: (_state) => {},
+    onSuccess: (_state: any) => {},
   });
 
   const useStoreUpdater = createStoreUpdater(useGlobalStore);

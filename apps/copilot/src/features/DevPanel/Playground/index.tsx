@@ -165,7 +165,8 @@ const Playground = () => {
               : r
           ));
         },
-        onMessageHandle: ({ text, type }) => {
+        onMessageHandle: (chunk: any) => {
+          const { text, type } = chunk;
           if (type === 'text' && text) {
             fullResponse += text;
             setCurrentResponse(fullResponse);
