@@ -42,7 +42,7 @@ export const IniterarySelectionMenu: FC<props> = ({ data, itinerario, optionsIti
       </div> */}
       <ClickAwayListener onClickAway={() => show && setShow(false)} >
         <div onClick={() => !isAllowed() ? ht() : setShow(!show)} className="w-6 h-6 flex justify-center" >
-          <div className="cursor-pointer w-4 h-6 flex items-center justify-center *bg-blue-400">
+          <div className="cursor-pointer w-4 h-6 flex items-center justify-center">
             <DotsOpcionesIcon className={`${!show ? !isAllowed() ? "text-gray-300" : "text-gray-700" : "text-gray-900"} w-4 h-4`} />
           </div>
           {show && <div className={`absolute left-full top-1/2 bg-white z-50 rounded-md shadow-md translate-x-4 ${((data?.data?.length > 10 && data?.cell?.row?.id > data?.data?.length - 6) || (data?.data?.length > 6 && data?.data?.length < 11 && data?.cell?.row?.id > 5)) && "-translate-y-full"}`}>

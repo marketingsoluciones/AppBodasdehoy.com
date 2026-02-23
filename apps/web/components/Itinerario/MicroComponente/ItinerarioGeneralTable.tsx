@@ -151,7 +151,7 @@ export const ItineraryGeneralTable = () => {
                             <div key={data.cell.row.id} className="relative w-full h-full flex justify-center items-center">
                                 <ClickAwayListener onClickAway={() => show && setShow(false)} >
                                     <div onClick={() => !isAllowed() ? ht() : setShow(!show)} className="w-full h-4 flex justify-center" >
-                                        <div className="cursor-pointer flex items-center justify-center *bg-blue-400">
+                                        <div className="cursor-pointer flex items-center justify-center">
                                             <DotsOpcionesIcon className={`${!show ? !isAllowed() ? "text-gray-300" : "text-gray-700" : "text-gray-900"} w-4 h-4`} />
                                         </div>
                                         {show &&
@@ -571,12 +571,12 @@ const SubComponenteTable = ({ data, itinerario }) => {
 
                     return (
                         <div key={data.cell.row.id} className="relative w-full h-full flex justify-center items-center">
-                            <div onClick={() => { !isAllowed() ? ht() : setShowEditTask({ state: !showEditTask.state, values: data.cell.row.original }) }} className={`hidden md:flex ${isAllowed() ? "text-gray-700" : "text-gray-300"} cursor-pointer w-4 h-6 items-center justify-center *bg-blue-400`}>
+                            <div onClick={() => { !isAllowed() ? ht() : setShowEditTask({ state: !showEditTask.state, values: data.cell.row.original }) }} className={`hidden md:flex ${isAllowed() ? "text-gray-700" : "text-gray-300"} cursor-pointer w-4 h-6 items-center justify-center`}>
                                 <PencilEdit className="w-5 h-5" />
                             </div>
                             <ClickAwayListener onClickAway={() => show && setShow(false)} >
                                 <div onClick={() => !isAllowed() ? ht() : setShow(!show)} className="w-full h-4 flex justify-center" >
-                                    <div className="cursor-pointer w-4 h-6 flex items-center justify-center *bg-blue-400">
+                                    <div className="cursor-pointer w-4 h-6 flex items-center justify-center">
                                         <DotsOpcionesIcon className={`${!show ? !isAllowed() ? "text-gray-300" : "text-gray-700" : "text-gray-900"} w-4 h-4`} />
                                     </div>
                                     {show && <div className={`absolute right-9 top-0 bg-white z-50 rounded-md shadow-md`}>
