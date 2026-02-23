@@ -62,9 +62,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: 'Event not found' });
     }
 
-    // Filtrar solo invitados con mesa asignada
+    // Filtrar invitados con mesa asignada y que no hayan cancelado
     const guests: SeatGuest[] = (evento.invitados_array || [])
-      .filter((g: any) => g.nombre_mesa)
+      .filter((g: any) => g.nombre_mesa && g.asistencia !== 'cancelado')
       .map((g: any) => ({
         _id: g._id,
         nombre: g.nombre || '',
