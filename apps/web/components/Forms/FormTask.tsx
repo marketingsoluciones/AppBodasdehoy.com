@@ -77,7 +77,6 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
         })
     } catch (error) {
       toast("error", `${t("Ha ocurrido un error")} ${error}`)
-      console.log(error);
     }
   };
 
@@ -190,7 +189,6 @@ export default FormTask;
 const AutoSubmitToken = () => {
   const { values, errors, setFieldValue } = useFormikContext<initialValuesType>();
   useEffect(() => {
-    console.log("errors", errors)
   }, [errors]);
 
   useEffect(() => {

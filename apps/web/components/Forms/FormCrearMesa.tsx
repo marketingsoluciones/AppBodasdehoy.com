@@ -110,7 +110,6 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
       toast("success", t("Mesa creada con exito"))
     } catch (err) {
       toast("error", t("Ha ocurrido un error al crear la mesa"))
-      console.log(err);
     } finally {
       actions.setSubmitting(false);
       set(!state)

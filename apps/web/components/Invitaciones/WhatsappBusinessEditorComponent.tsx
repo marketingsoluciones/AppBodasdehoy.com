@@ -314,7 +314,6 @@ export const WhatsappBusinessEditorComponent: FC<props> = ({ setShowEditorModal,
             createTemplate(values);
         } catch (error) {
             toast("error", `${t("An error has occurred")} ${error}`);
-            console.log(error);
         } finally {
             actions.setSubmitting(false);
         }

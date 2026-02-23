@@ -55,7 +55,6 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set, optionS
         })
         toast("success", t("Invitación enviada"))
       } catch (error) {
-        console.log(error)
       }
     }
   };

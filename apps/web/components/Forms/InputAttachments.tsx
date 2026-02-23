@@ -66,7 +66,6 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
       })
 
     } catch (error) {
-      console.log(error)
     }
   }
 

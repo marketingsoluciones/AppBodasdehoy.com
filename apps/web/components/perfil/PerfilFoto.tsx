@@ -65,7 +65,6 @@ const ImageProfile: FC = () => {
                 setLoading(false)
             }, 500);
             toast("error", t("errorloadingimage"))
-            console.log(error)
         }
     }
 

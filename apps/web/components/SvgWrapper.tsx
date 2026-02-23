@@ -87,12 +87,6 @@ const SvgWrapper: React.FC<SvgWrapperProps> = ({
   // Calcular transform cuando cambie el viewBox
   useEffect(() => {
     if (autoScale && targetSize && viewBox) {
-      console.log('🎯 Calculando transform:', {
-        viewBox,
-        targetSize,
-        maintainAspectRatio
-      });
-
       const scaleTransform = calculateScaleFromViewBox(
         viewBox,
         targetSize.width,
@@ -100,7 +94,6 @@ const SvgWrapper: React.FC<SvgWrapperProps> = ({
         maintainAspectRatio
       );
 
-      console.log('✨ Transform calculada:', scaleTransform);
       setCalculatedTransform(scaleTransform);
     }
   }, [viewBox, autoScale, targetSize, maintainAspectRatio]);

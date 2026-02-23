@@ -37,9 +37,6 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
   const { t } = useTranslation()
   const [isLoadingImage, setIsLoadingImage] = useState(false); // Nuevo estado
 
-  console.log("pego", pago)
-
-
   useEffect(() => {
     setPago(ListaPagos?.find(item => item._id == IDPagoAModificar))
   }, [IDPagoAModificar])
@@ -97,7 +94,6 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
       setEvent({ ...event })
       set(!state)
     } catch (error) {
-      console.log(error)
     }
   }
 
@@ -157,7 +153,6 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
             setIsLoadingImage(false);
           }
         } catch (error) {
-          console.log(error);
           setIsLoadingImage(false);
           setIsSubmitting(false);
         }
@@ -183,8 +178,6 @@ export const BasicFormLogin = ({
   isLoadingImage,
   pago
 }) => {
-
-  console.log("categoria", categorias)
 
   const { event } = EventContextProvider()
   const { config } = AuthContextProvider()
@@ -249,7 +242,6 @@ export const BasicFormLogin = ({
       reader.readAsDataURL(file);
       setSelectedFile(file);
     } catch (error) {
-      console.log(error)
     }
   };
 

@@ -35,9 +35,7 @@ const FormCrearCategoria = ({ set, state }) => {
           setEvent({ ...event })
           set(!state);
           actions.setSubmitting(false);
-        }).catch((error) => {
-          console.log(error);
-        })
+        }).catch(() => {})
       }}
       validate={validacion}
     >

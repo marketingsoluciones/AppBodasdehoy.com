@@ -77,7 +77,6 @@ const FormAcompañante: FC<propsFormAcompañante> = ({ state, set, guestFather }
         set(!state);
       }
     } catch (error) {
-      console.log(error)
     }
   };
 

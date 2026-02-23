@@ -121,7 +121,6 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
       toast("success", t("La mesa fue actualizada"))
     } catch (err) {
       toast("error", t("Ha ocurrido un error al actualizar la mesa"))
-      console.log(err);
     } finally {
       actions.setSubmitting(false);
       set(!state)
@@ -154,7 +153,6 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
         }
       }
     } catch (error) {
-      console.log(error)
     }
   }
 

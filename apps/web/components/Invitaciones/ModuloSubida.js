@@ -101,7 +101,6 @@ const ModuloSubida = (props) => {
             setEvent((old) => ({ ...old, [use]: result }));
           })
           .catch(error => {
-            console.log(100087, error)
             toast("error", t("erroroccurred"));
           })
       } else {
@@ -121,7 +120,6 @@ const ModuloSubida = (props) => {
       e.preventDefault();
       let file = e.target.files[0];
       if (!file) {
-        console.log("No file selected.");
         return;
       }
       const fileNew = file?.size > 900000 ? await resizeImage(file) : file;

@@ -99,7 +99,6 @@ const FormAddPago = ({ GastoID, cate, setGastoID }) => {
         return { ...old }
       })
     } catch (error) {
-      console.log(error)
     }
   }
 
@@ -137,7 +136,6 @@ const FormAddPago = ({ GastoID, cate, setGastoID }) => {
              setGastoID("")
           }
         } catch (error) {
-          console.log(error)
         }
       }}
       validate={ischecked ? validacion : validacion2}
@@ -181,7 +179,6 @@ export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit
       reader.readAsDataURL(event.target.files[0]);
       setSelectedFile(event.target.files[0]);
     } catch (error) {
-      console.log(error)
     }
   };
 

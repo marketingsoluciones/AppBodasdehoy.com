@@ -96,7 +96,6 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
     try {
       await BorrarInvitado(event?._id, invitado?._id);
     } catch (error) {
-      console.log(error);
     } finally {
       setEvent((old) => ({
         ...old,

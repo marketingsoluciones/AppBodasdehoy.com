@@ -32,7 +32,6 @@ const FormGuardarRegalos: FC<propsFormCrearMesa> = ({ modelo, set, state }) => {
 
     } catch (err) {
       toast("error", t("Ha ocurrido un error al guardar la lista"))
-      console.log(err);
     } finally {
       actions.setSubmitting(false);
       set(!state)

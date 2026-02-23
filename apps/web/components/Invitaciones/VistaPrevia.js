@@ -20,7 +20,6 @@ const VistaPrevia = ({ event }) => {
 
     try {
       const res = await api.ApiApp(params);
-      console.log(res.data.data.obtenerTemplate, "data de la invitacion")
       if (res.data) {
         let contenido = res.data.data.obtenerTemplate
         const refImg = `<img width="20" height="38" style="display:block; max-height:38px; max-width:20px;" alt="" src="https://img.mailinblue.com/new_images/rnb/rnb_space.gif">`;
@@ -35,7 +34,6 @@ const VistaPrevia = ({ event }) => {
         return res.data.data.obtenerTemplate;
       }
     } catch (error) {
-      console.log(error);
     }
   }
 

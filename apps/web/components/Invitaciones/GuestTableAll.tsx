@@ -110,7 +110,6 @@ export const GuestTableAll: FC<Props> = ({ multiSeled = false, stateConfi = fals
       accessor: "asistencia",
       id: "asistencia",
       Cell: (props: any) => {
-        console.log("444",props)
         return <div className="w-full flex flex-col cursor-default text-center">
           {t(props.data[props.row.index].asistencia).toUpperCase()}
         </div>
@@ -139,8 +138,6 @@ export const GuestTableAll: FC<Props> = ({ multiSeled = false, stateConfi = fals
             const resendKey = getResendKey(guest._id, elem, idx);
             const isResending = !!resendStatus[resendKey];
             const uniqueStatuses = getUniqueStatuses(elem.statuses || []);
-
-            console.log("555",uniqueStatuses)
 
             return (
               <div key={idx} className="w-full flex items-center py-0.5 gap-2 hover:bg-blue-100 px-2 rounded-xl">

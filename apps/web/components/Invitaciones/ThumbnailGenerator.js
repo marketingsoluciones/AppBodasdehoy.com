@@ -66,8 +66,6 @@ export const ThumbnailGenerator = () => {
       height: 440
     })
       .then((dataUrl) => {
-        console.log(templateRef.current)
-        console.log(100051, dataUrl)
         setThumbnailUrl(dataUrl);
       })
       .catch((err) => {

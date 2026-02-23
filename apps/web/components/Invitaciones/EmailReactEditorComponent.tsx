@@ -182,7 +182,6 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
                 setShowSaveModal(true);
             });
         } catch (error) {
-            console.log('error', error)
         }
     };
 
@@ -272,7 +271,6 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
             }
 
         } catch (error) {
-            console.log('error', error)
         }
     };
 
@@ -292,7 +290,6 @@ export const EmailReactEditorComponent: FC<props> = ({ setShowEditorModal, previ
                 })
             })
         } catch (error) {
-            console.log('error', error)
         }
     }
 

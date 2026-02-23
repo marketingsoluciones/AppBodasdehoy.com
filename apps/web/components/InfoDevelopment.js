@@ -47,17 +47,13 @@ export const InfoDevelopment = () => {
             <button
               onClick={() => {
                 onAuthStateChanged(getAuth(), async (user) => {
-                  console.log(user?.accessToken
-                  )
                 })
               }}
               type="button" className="rounded-lg bg-yellow-300 px-5 opacity-80 hover:opacity-100 hover:font-bold">algo1</button>
             <button
               onClick={async () => {
                 const resp = await getAuth().currentUser.getIdToken(true)
-                console.log(8001, "getAuth", resp)
                 onAuthStateChanged(getAuth(), async (user) => {
-                  console.log(user?.accessToken === resp)
                 })
               }}
               type="button" className="rounded-lg bg-yellow-300 px-5 opacity-80 hover:opacity-100 hover:font-bold">algo2</button>

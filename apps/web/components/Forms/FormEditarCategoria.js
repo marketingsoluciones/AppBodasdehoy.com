@@ -37,7 +37,6 @@ const FormEditarCategoria = ({ set, state, categoria }) => {
           actions.setSubmitting(true);
           await api.ApiApp(params);
         } catch (error) {
-          console.log(error);
         } finally {
           set(!state);
           setEvent(old => {

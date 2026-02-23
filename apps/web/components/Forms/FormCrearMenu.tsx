@@ -36,7 +36,6 @@ const FormCrearMenu = ({ set, state }) => {
       }));
       toast("success", t("Menú creado con exito"));
     } catch (error) {
-      console.log(error);
       toast("error", t("Ha ocurrido un error al crear el grupo"));
     } finally {
       actions.resetForm()
@@ -62,7 +61,6 @@ const FormCrearMenu = ({ set, state }) => {
       });
       toast("success", t("Menú borrado con exito"));
     } catch (error) {
-      console.log(error);
       toast("error", t("Ha ocurrido un error al borrar el grupo"));
     }
   };

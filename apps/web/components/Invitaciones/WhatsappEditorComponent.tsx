@@ -193,7 +193,6 @@ export const WhatsappEditorComponent: FC<props> = ({ setShowEditorModal, variabl
             createTemplate(values);
         } catch (error) {
             toast("error", `${t("An error has occurred")} ${error}`);
-            console.log(error);
         } finally {
             actions.setSubmitting(false);
         }

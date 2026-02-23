@@ -89,7 +89,6 @@ export const FormConfirmarAsistencia: FC<props> = ({ visible, setVisible, guestD
                 invitados_array: sendValues
             },
         }).then(result => {
-            console.log(result)
             if (result ) {
                 setVisible(!visible)
             }
