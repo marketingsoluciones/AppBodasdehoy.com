@@ -185,9 +185,8 @@ export const CopilotEmbed = ({
           },
           controller.signal,
           // onEnrichedEvent: Handle enriched events (tool results, etc.)
-          (event) => {
+          (_event) => {
             // TODO: Handle enriched events in future phases
-            console.log('[CopilotEmbed] Enriched event:', event);
           }
         );
       } catch (error: any) {
