@@ -93,7 +93,6 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
       }
     }
   } catch (error) {
-    console.log(error)
   }
 }
 
@@ -199,7 +198,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         });
       }
     } catch (error) {
-      console.log(error);
     }
   };
 
@@ -614,7 +612,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
 
               await api.ApiApp(params);
             } catch (error) {
-              console.log(error);
             } finally {
               setEvent((old) => ({
                 ...old,
@@ -661,7 +658,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
             try {
               await BorrarInvitado(event._id, rowID);
             } catch (error) {
-              console.log(error);
             } finally {
               //Modifico el estado y memo
               setEvent((old) => {
@@ -816,7 +812,6 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
       dispatch({ type: "RESET_STATE" });
       toast("success", t("Invitado eliminado con exito"));
     } catch (error) {
-      console.log(error);
       toast("error", t("Ha ocurrido un error"));
     }
   };

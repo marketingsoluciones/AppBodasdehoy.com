@@ -136,7 +136,6 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick, setL
       };
       lector.readAsArrayBuffer(file);
     } catch (error) {
-      console.log(error)
     }
   };
 

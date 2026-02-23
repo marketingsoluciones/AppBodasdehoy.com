@@ -71,7 +71,6 @@ export const InvitadosPDF = (props) => {
             icon: <CanceladoIcon />,
         },
     ];
-    console.log(dataGuests)
     const dicc = Lista.reduce((acc, el) => {
         acc[el.title] = { ...el };
         return acc;

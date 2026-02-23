@@ -283,7 +283,6 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                 toast("success", `${t("Cambio guardado")} `,)
             }
         } catch (error) {
-            console.log(error);
         }
     };
     const toggleVisibility = (option, _id, dataMesa) => {
@@ -365,7 +364,6 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
         try {
             await BorrarInvitado(event._id, rowID);
         } catch (error) {
-            console.log(error);
         } finally {
             //Modifico el estado y memo
             setEvent((old) => {
@@ -831,7 +829,6 @@ export const AcompañantesCard: FC<propsAcompañantesCard> = ({ passesQuantity, 
                 showModalAcompañante2.state && GuestsByFather.length > 0 && <div className="border-l border-b border-dotted border-primary rounded-l-lg rounded-t-none ml-2 -mt-3 pl-1 py-2 space-y-1 ">
                     {
                         GuestsByFather?.map((item: guestsExt, idx) => {
-                            console.log("--------->", item)
                             return (
                                 <div key={idx}  >
                                     <div className={`${item._id === idFather ? "bg-gray-200" : "bg-gray-100"}  mx-2 rounded-md grid grid-cols-8 relative `}>
