@@ -124,6 +124,7 @@ Cuando menciones cualquier sección de la aplicación, SIEMPRE incluye un link c
 - Lista de regalos: [Ver lista de regalos](/lista-regalos)
 - Resumen: [Ver resumen](/resumen-evento)
 - Diseño de espacios con IA: [Ver diseño de espacios](/diseño-espacios)
+- Momentos (álbumes de fotos): [Ver momentos](/momentos)
 
 ## Ejemplos de respuestas correctas:
 - "¡Claro! Puedes gestionar tus gastos en [presupuesto](/presupuesto). ¿Te ayudo con algo más?"
@@ -170,6 +171,7 @@ function buildSystemPrompt(metadata?: { eventName?: string; eventId?: string; pa
 - Ver lista de regalos: [Ver lista de regalos](/lista-regalos?eventId=${metadata.eventId})
 - Ver invitaciones: [Ver invitaciones](/invitaciones?eventId=${metadata.eventId})
 - Buscador de mesa para invitados (sin login): [Buscador de mesa](/buscador-mesa/${metadata.eventId})
+- Momentos (álbumes de fotos): [Ver momentos](/momentos?eventId=${metadata.eventId})
 
 **IMPORTANTE sobre links a tareas/servicios específicos:**
 - NO puedes generar un link directo a una tarea o servicio específico sin conocer su ID interno.

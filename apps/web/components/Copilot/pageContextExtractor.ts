@@ -70,6 +70,9 @@ export function extractPageContext(path: string, event: Event | null): PageConte
   } else if (path.includes('/diseño-espacios') || path.includes('/diseno-espacios')) {
     pageName = 'Diseño de espacios';
     pageDescription = 'Visualización de decoración de espacios con IA';
+  } else if (path.includes('/momentos')) {
+    pageName = 'Momentos';
+    pageDescription = 'Álbumes de fotos y recuerdos del evento';
   }
 
   // Resumen básico del evento
