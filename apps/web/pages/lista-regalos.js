@@ -82,9 +82,10 @@ const ListaRegalos = () => {
                     {t("withmillionsoptionschoosefrom")}
                   </span>
                 </h3>
-                <div onClick={() => !isAllowed() ? ht() : null} className="cursor-pointer flex flex-col md:flex-row gap-4">
+                <div className="cursor-pointer flex flex-col md:flex-row gap-4">
                   <a
-                    href={isAllowed() && "https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"}
+                    href={isAllowed() ? "https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing" : undefined}
+                    onClick={!isAllowed() ? (e) => { e.preventDefault(); ht(); } : undefined}
                     className="button-secondary uppercase mt-2 text-sm"
                     target={"_blank"}
                     rel={"noopener noreferrer"}
@@ -93,7 +94,8 @@ const ListaRegalos = () => {
                   </a >
                   <div className={`${event.listaRegalos ? "block mt-2.5" : "hidden"}`}>
                     <a
-                      href={isAllowed() && event.listaRegalos}
+                      href={isAllowed() ? event.listaRegalos : undefined}
+                      onClick={!isAllowed() ? (e) => { e.preventDefault(); ht(); } : undefined}
                       className={`button-secondary uppercase  text-sm`}
                       target={"_blank"}
                       rel={"noopener noreferrer"}
@@ -107,11 +109,12 @@ const ListaRegalos = () => {
             <h3 className="font-display text-xl text-gray-500 w-max inset-x-0 mx-auto pt-2 pb-2">
               {t("howdoeslistwork")}
             </h3>
-            <div onClick={() => !isAllowed() ? ht() : null} className="w-full grid-cols-1 md:grid-cols-3 grid gap-6 cursor-pointer">
+            <div className="w-full grid-cols-1 md:grid-cols-3 grid gap-6 cursor-pointer">
               {/* First Card */}
               <a
                 className="bg-secondary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform "
-                href={isAllowed() && "https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing"}
+                href={isAllowed() ? "https://www.amazon.com/-/es/registries/create-registry?ref_=gr_universal_landing" : undefined}
+                onClick={!isAllowed() ? (e) => { e.preventDefault(); ht(); } : undefined}
                 target={"_blank"}
                 rel={"noopener noreferrer"}
               >
@@ -125,11 +128,9 @@ const ListaRegalos = () => {
                 </h3>
               </a>
               {/* Second Card */}
-              <buttom
+              <button
                 className="bg-primary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform "
-                state={showForm}
-                set={setShowForm}
-                onClick={() => !isAllowed() ? null : setShowForm(!showForm)}
+                onClick={() => !isAllowed() ? ht() : setShowForm(!showForm)}
               >
                 <CompartirIcon className="text-white w-10 h-10" />
                 <h3 className="text-lg font-semibold text-white text-center leading-4 flex flex-col gap-2 ">
@@ -139,7 +140,7 @@ const ListaRegalos = () => {
                     {t("withyourgueststo")} <br />{t("whocanparticipate")}
                   </span>
                 </h3>
-              </buttom>
+              </button>
               {/* Tertiary Card */}
               <div onClick={() => !isAllowed() ? null : null} className="bg-tertiary rounded-xl shadow-lg col-span-1 flex justify-center flex-col items-center font-display h-max p-6 gap-4 hover:scale-105 transition duration-200 transform ">
                 <ListaTwo />
