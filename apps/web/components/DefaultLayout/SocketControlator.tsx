@@ -41,26 +41,34 @@ export const SocketControlator = () => {
           let itinerary = eventNew.itinerarios_array.find(elem => elem._id === event.itinerarios_array[0]._id)
           const task = itinerary?.tasks?.find(elem => elem._id === event.itinerarios_array[0].tasks[0]._id)
 
-          // falta esto
+          const commentUids = (task?.comments || [])
+            .filter((c: any) => !!c.uid)
+            .map((c: any) => c.uid)
 
-          // const users = await fetchApiBodas({
-          //   query: queries?.getUsers,
-          //   variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
-          //   development: getDevelopment(req.headers.host)
-          // })
-          // const usersMap = users.map(elem => {
-          //   return {
-          //     uid: elem.uid,
-          //     displayName: elem?.displayName,
-          //     photoURL: elem.photoURL
-          //   }
-          // })
           itinerary.tasks = [task]
-          event.itinerarios_array = [itinerary]
-          event.fecha_actualizacion = new Date().toLocaleString()
+          eventNew.itinerarios_array = [itinerary]
+          eventNew.fecha_actualizacion = new Date().toLocaleString()
 
-          // eventNew.detalles_compartidos_array = users
-          setEvent({ ...event })
+          if (commentUids.length > 0) {
+            fetchApiBodas({
+              query: queries?.getUsers,
+              variables: { uids: commentUids },
+              development: config?.development,
+            }).then((results) => {
+              if (results?.length) {
+                eventNew.detalles_compartidos_array = results.map((u: detalle_compartidos_array) => ({
+                  uid: u.uid,
+                  displayName: u.displayName,
+                  photoURL: u.photoURL,
+                }))
+              }
+              setEvent({ ...eventNew })
+            }).catch(() => {
+              setEvent({ ...eventNew })
+            })
+          } else {
+            setEvent({ ...eventNew })
+          }
         }
       }
     }
