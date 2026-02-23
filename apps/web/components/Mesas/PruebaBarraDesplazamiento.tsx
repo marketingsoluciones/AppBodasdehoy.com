@@ -5,9 +5,7 @@ import { FC, useEffect, useState } from 'react'
 export const BarraDesplazamiento = () => {
   const [slider, setSlider]: any = useState()
   useEffect(() => {
-    console.log("algo")
     const slider = interact('.slider')
-    console.log(slider)
     setSlider(slider)
     slider
       // Step 2

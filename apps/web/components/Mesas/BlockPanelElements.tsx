@@ -49,9 +49,6 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
         try {
           const svgContent = e.target?.result as string;
           const optimizationInfo = getSvgOptimizationInfo(svgContent);
-          if (optimizationInfo.canOptimize) {
-            console.log('💡 Sugerencias de optimización:', optimizationInfo.optimizationTips);
-          }
           const newElement: GalerySvg = {
             icon: <SvgFromString svgString={svgContent} className="relative w-max" />,
             title: file.name.replace('.svg', '').replace(/_/g, '-') + "-" + customAlphabet('0123456789abcdef', 5)(),
@@ -104,9 +101,6 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
         }
         const svgContent = await response.text();
         const optimizationInfo = getSvgOptimizationInfo(svgContent);
-        if (optimizationInfo.canOptimize) {
-          console.log('💡 Sugerencias de optimización:', optimizationInfo.optimizationTips);
-        }
         const urlTitle = svgUrl.split('/').pop()?.replace('.svg', '').replace(/_/g, '-') || customAlphabet('0123456789abcdef', 8)();
         const newElement: GalerySvg = {
           icon: <SvgFromString svgString={svgContent} className="relative w-max" />,

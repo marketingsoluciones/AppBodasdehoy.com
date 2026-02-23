@@ -30,8 +30,6 @@ export const InvitadoPrueba: FC = () => {
         // onTouchStart={() => { alert() }}
         onTouchStart={(e) => {
           //e.preventDefault()
-          console.log("onTouchStart", `dragN${invitado._id}`)
-          //console.log(e.touches[0].clientX, e.touches[0].clientY)
           const rootElement = document.getElementById('areaDrag');
           const element = document.createElement('div');
           element.textContent = 'Hello word';
@@ -44,7 +42,6 @@ export const InvitadoPrueba: FC = () => {
           rootElement.appendChild(element)
         }}
         onTouchEnd={() => {
-          console.log("onTouchEnd", `dragN${invitado._id}`)
           const rootElement = document.getElementById('areaDrag');
           const element = document.getElementById(`dragM${invitado._id}`)
           element && rootElement.removeChild(document.getElementById(`dragM${invitado._id}`))

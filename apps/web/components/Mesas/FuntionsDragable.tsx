@@ -39,10 +39,8 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
       .dropzone({
         accept: accept,
         ondropactivate: function (event) {
-          //console.log("ondropactivate", event.dropzone.target)
         },
         ondropdeactivate: function (event) {
-          //console.log("ondropdeactivate", event.currentTarget)
         },
         checker: function (
           dragEvent,         // related dragmove or dragend
@@ -65,19 +63,15 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
       })
       //cuando se ACTIVA la zona drogleable
       .on('dropactivate', (event) => {
-        // // // console.log("cuando se ACTIVA la zona drogleable", event.target.id)
       })
       //cuando se DESACTIVA la zona drogleable
       .on('dropdeactivate', (event) => {
-        // // // console.log("cuando se DESactiva la zona drogleable", event.target.id)
       })
       //cuando ENTRA a una zona drogleable
       .on('dragenter', (event) => {
-        // // // console.log("cuando ENTRA a la zona drogleable", event.target.id)
       })
       //cuando SALE de una zona drogleable sin haber soltado
       .on('dragleave', (event) => {
-        // // // console.log("cuando SALE de la zona drogleable", event.target.id)
       })
       //cuando SUELTA sobre una zona drogleable
       .on('drop', (event) => {
@@ -242,7 +236,7 @@ export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, p
       }
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 }
 
@@ -295,7 +289,7 @@ export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, plan
       setEvent({ ...event })
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
@@ -350,7 +344,7 @@ export const ActualizarSize = async ({ width, height, targetID, event, setEvent,
       }
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 

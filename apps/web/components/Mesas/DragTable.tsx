@@ -4,9 +4,7 @@ import SvgWrapper from "../SvgWrapper";
 import { GalerySvg } from "../../utils/Interfaces";
 
 const onMouseDown = (e: MouseEvent<HTMLDivElement>, item: GalerySvg) => {
-  console.log("DOWN1")
   const child = document.getElementById(`icon${item.title}_${item.tipo}`)
-  console.log(child)
   const rootElement = document.getElementById('areaDrag');
   const element = document.createElement('div');
   element.id = `dragM${item.title}_${item.tipo}`
@@ -24,7 +22,6 @@ const onMouseDown = (e: MouseEvent<HTMLDivElement>, item: GalerySvg) => {
 }
 
 const onTouchStart = (e: TouchEvent<HTMLDivElement>, item: GalerySvg) => {
-  console.log("DOWN")
   const child = document.getElementById(`icon${item.title}_${item.tipo}`)
   const rootElement = document.getElementById('areaDrag');
   const element = document.createElement('div');
@@ -42,7 +39,6 @@ const onTouchStart = (e: TouchEvent<HTMLDivElement>, item: GalerySvg) => {
 }
 
 const onUp = (item: GalerySvg) => {
-  console.log("UP")
   const rootElement = document.getElementById('areaDrag');
   const element = document.getElementById(`dragM${item.title}_${item.tipo}`)
   element && rootElement.removeChild(document.getElementById(`dragM${item.title}_${item.tipo}`))

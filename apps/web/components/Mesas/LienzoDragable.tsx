@@ -215,8 +215,6 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
           e.target.setAttribute('data-x', i.x)
           e.target.setAttribute('data-y', i.y)
           ActualizarPosicion({ x: Math.trunc(i.x), y: Math.trunc(i.y), event: event, targetID: e.target.getAttribute('id'), setEvent: setEvent, planSpaceActive, setPlanSpaceActive })
-        } else {
-          console.log("////////////////////////////////////////////////////////////////////////fallo")
         }
       },
     },
@@ -287,7 +285,6 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
           const divElement = e.currentTarget as HTMLElement;
           const relativeElement = divElement.firstElementChild as HTMLElement | null;
           const svgOrTextElement = (relativeElement?.firstElementChild || undefined) as HTMLElement | undefined;
-          console.log(svgOrTextElement.getAttribute("data-type"))
           const width = parseFloat(svgOrTextElement.style.width || '0');
           const height = parseFloat(svgOrTextElement.style.height || '0');
           const x = parseFloat(divElement.dataset.x || '0');
