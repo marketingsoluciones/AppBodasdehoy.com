@@ -1,10 +1,14 @@
+import { useMemoriesStore } from '@bodasdehoy/memories';
 import { BuiltinRenderProps } from '@lobechat/types';
 import { Icon } from '@lobehub/ui';
 import { Button, Tooltip } from 'antd';
 import { FileDown } from 'lucide-react';
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
+import { useUserStore } from '@/store/user';
+import { userProfileSelectors } from '@/store/user/selectors';
+import { useDevelopment } from '@/utils/developmentDetector';
 import { VenueVisualizerItem } from '@/types/tool/venueVisualizer';
 
 import VenueItem from './Item';
@@ -25,6 +29,14 @@ function getEventNameFromStorage(): string | undefined {
 const VenueVisualizerRender = memo<BuiltinRenderProps<VenueVisualizerItem[]>>(
   ({ content, messageId }) => {
     const [exporting, setExporting] = useState(false);
+
+    // Configurar memories store para que "Guardar en Momentos" funcione fuera del layout /memories
+    const userId = useUserStore((s) => userProfileSelectors.userId(s)) ?? '';
+    const { development } = useDevelopment();
+    const { setConfig } = useMemoriesStore();
+    useEffect(() => {
+      if (userId) setConfig('', userId, development);
+    }, [userId, development, setConfig]);
 
     const handleExportPdf = useCallback(async () => {
       if (!content || exporting) return;
