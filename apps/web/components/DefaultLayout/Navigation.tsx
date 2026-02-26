@@ -85,7 +85,7 @@ const Navigation: FC = () => {
     {
       title: "Diseño IA",
       icon: <LivingRoomIcon className="w-7 h-7" />,
-      route: "/diseño-espacios",
+      route: "/diseno-espacios",
       condicion: event?._id ? true : false
     },
     {

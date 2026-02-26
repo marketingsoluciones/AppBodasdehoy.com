@@ -7,15 +7,17 @@ import { Flexbox } from 'react-layout-kit';
 import { BalanceCheck } from '@/services/api2/wallet';
 
 export interface RechargeModalProps {
+  allowDebtMode?: boolean;
   balanceCheck?: BalanceCheck | null;
   isOpen: boolean;
   onClose: () => void;
+  onContinueInDebt?: () => void;
   onRecharge: (amount: number) => Promise<{ error?: string; success: boolean }>;
 }
 
 const RECHARGE_AMOUNTS = [5, 10, 20, 50, 100];
 
-const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck, onRecharge }) => {
+const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck, onRecharge, allowDebtMode, onContinueInDebt }) => {
   const suggestedAmount = balanceCheck ? Math.max(5, Math.ceil(balanceCheck.shortfall)) : 20;
 
   const [selectedAmount, setSelectedAmount] = useState(suggestedAmount);
@@ -280,6 +282,28 @@ const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck,
             )}
           </button>
         </Flexbox>
+
+        {/* Modo crédito (saldo negativo) — solo si está habilitado */}
+        {allowDebtMode && onContinueInDebt && (
+          <button
+            onClick={onContinueInDebt}
+            style={{
+              background: 'none',
+              border: '1px dashed #d97706',
+              borderRadius: 8,
+              color: '#d97706',
+              cursor: 'pointer',
+              fontSize: 13,
+              fontWeight: 500,
+              marginTop: 8,
+              padding: '10px 16px',
+              width: '100%',
+            }}
+            title="Continuar en modo crédito. Se registrará la deuda para pago posterior."
+          >
+            Continuar en modo crédito (saldo negativo)
+          </button>
+        )}
 
         {/* Security Info */}
         <Flexbox

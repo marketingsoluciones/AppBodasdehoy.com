@@ -53,11 +53,11 @@ const Container = (props) => {
     "public-itinerary",
     "copilot",
     "login",
-    "diseño-espacios",
+    "diseno-espacios",
   ];
 
   // Rutas que gestionan su propia altura (full-screen con iframe interno)
-  const fullHeightRoutes = ["diseño-espacios"];
+  const fullHeightRoutes = ["diseno-espacios"];
   const isFullHeight = fullHeightRoutes.some((r) => pathname?.includes(r));
 
   const shouldShowChatSidebar = chatSidebar && !excludeChatSidebar.includes(pathname?.split("/")[1] || "");

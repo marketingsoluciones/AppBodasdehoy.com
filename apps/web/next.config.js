@@ -10,6 +10,17 @@ const nextConfig = {
   // Agregado 'debug' y 'supports-color' para solucionar error ESM con dependencies de @lobehub/editor
   transpilePackages: ['@bodasdehoy/shared', '@bodasdehoy/memories', '@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'debug', 'supports-color'],
 
+  // Redirects para URLs con caracteres especiales → ASCII equivalente
+  async redirects() {
+    return [
+      {
+        source: '/dise%C3%B1o-espacios',
+        destination: '/diseno-espacios',
+        permanent: true,
+      },
+    ];
+  },
+
   // Headers CORS para API routes
   async headers() {
     return [

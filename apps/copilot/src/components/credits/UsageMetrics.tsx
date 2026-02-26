@@ -91,11 +91,14 @@ const UsageMetrics = memo<UsageMetricsProps>(({ usageStats, previousPeriod }) =>
               value={usageStats.ai_tokens.total?.toLocaleString() || 0}
               valueStyle={{ color: '#667eea', fontSize: 24 }}
             />
-            {usageStats.ai_tokens.by_model?.[0]?.cost && (
-              <div style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 12, marginTop: 4 }}>
-                Costo: {formatCurrency(usageStats.ai_tokens.by_model[0].cost)}
-              </div>
-            )}
+            {(() => {
+              const totalAiCost = usageStats.ai_tokens.by_model?.reduce((sum, m) => sum + (m.cost || 0), 0) || 0;
+              return totalAiCost > 0 ? (
+                <div style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 12, marginTop: 4 }}>
+                  Costo: {formatCurrency(totalAiCost)}
+                </div>
+              ) : null;
+            })()}
           </Card>
         )}
 
@@ -107,11 +110,14 @@ const UsageMetrics = memo<UsageMetricsProps>(({ usageStats, previousPeriod }) =>
               value={usageStats.images.total}
               valueStyle={{ color: '#764ba2', fontSize: 24 }}
             />
-            {usageStats.images.by_provider?.[0]?.cost && (
-              <div style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 12, marginTop: 4 }}>
-                Costo: {formatCurrency(usageStats.images.by_provider[0].cost)}
-              </div>
-            )}
+            {(() => {
+              const totalImageCost = usageStats.images.by_provider?.reduce((sum, p) => sum + (p.cost || 0), 0) || 0;
+              return totalImageCost > 0 ? (
+                <div style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 12, marginTop: 4 }}>
+                  Costo: {formatCurrency(totalImageCost)}
+                </div>
+              ) : null;
+            })()}
           </Card>
         )}
 

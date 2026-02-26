@@ -1,15 +1,26 @@
 'use client';
 
-import { Breadcrumb, DatePicker, Input, Select, Table, Tag } from 'antd';
+import { Breadcrumb, DatePicker, Input, Select, Table, Tag, Tooltip } from 'antd';
 import { createStyles } from 'antd-style';
-import { Download, History, Search } from 'lucide-react';
+import { Download, History, Search, TrendingDown, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 import dayjs from 'dayjs';
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 import { useWallet } from '@/hooks/useWallet';
 import { WalletTransaction } from '@/services/api2/wallet';
+
+// ─── Styles ──────────────────────────────────────────────────────────────────
 
 const useStyles = createStyles(({ css, token }) => ({
   card: css`
@@ -17,6 +28,17 @@ const useStyles = createStyles(({ css, token }) => ({
     border: 1px solid ${token.colorBorderSecondary};
     border-radius: 12px;
     padding: 24px;
+  `,
+  expandedRow: css`
+    background: ${token.colorFillAlter};
+    border-radius: 8px;
+    font-size: 12px;
+    padding: 12px 16px;
+  `,
+  metaKey: css`
+    color: ${token.colorTextSecondary};
+    font-weight: 500;
+    min-width: 120px;
   `,
   sectionTitle: css`
     font-size: 18px;
@@ -43,21 +65,202 @@ const useStyles = createStyles(({ css, token }) => ({
   `,
 }));
 
+// ─── Constants ───────────────────────────────────────────────────────────────
+
 const TRANSACTION_TYPE_LABELS: Record<string, string> = {
   ADJUSTMENT: 'Ajuste',
   BONUS: 'Bonificación',
   CONSUMPTION: 'Consumo',
+  EXPIRATION: 'Expiración',
   RECHARGE: 'Recarga',
   REFUND: 'Reembolso',
+  TRANSFER: 'Transferencia',
 };
+
+const SKU_LABELS: Record<string, string> = {
+  'SRV-AI-ANTHROPIC-HAIKU': 'Claude Haiku',
+  'SRV-AI-ANTHROPIC-OPUS': 'Claude Opus',
+  'SRV-AI-ANTHROPIC-SONNET': 'Claude Sonnet',
+  'SRV-AI-IMAGE-DALLE2': 'DALL-E 2',
+  'SRV-AI-IMAGE-DALLE3': 'DALL-E 3',
+  'SRV-AI-IMAGE-FLUX': 'Flux',
+  'SRV-AI-IMAGE-SD': 'Stable Diffusion',
+  'SRV-AI-IMAGE-SDXL': 'SDXL',
+  'SRV-AI-OPENAI-GPT35': 'GPT-3.5',
+  'SRV-AI-OPENAI-GPT4': 'GPT-4',
+  'SRV-AI-OPENAI-GPT4O': 'GPT-4o',
+  'SRV-EMAIL-SES-SEND': 'Email',
+  'SRV-SMS-TWILIO-ES': 'SMS España',
+  'SRV-SMS-TWILIO-INTL': 'SMS Internacional',
+  'SRV-STORAGE-CDN-GB': 'Almacenamiento CDN',
+  'SRV-STORAGE-TRANSFER-GB': 'Transferencia',
+  'SRV-WHATSAPP-MSG-INBOUND': 'WhatsApp Entrada',
+  'SRV-WHATSAPP-MSG-OUTBOUND': 'WhatsApp Salida',
+};
+
+// ─── Expanded row content ─────────────────────────────────────────────────────
+
+const ExpandedRow = memo<{ record: WalletTransaction; styles: ReturnType<typeof useStyles>['styles'] }>(
+  ({ record, styles }) => {
+    const fields: Array<{ label: string; value: React.ReactNode }> = [];
+
+    if (record.service_sku) {
+      fields.push({
+        label: 'Servicio',
+        value: (
+          <span>
+            {SKU_LABELS[record.service_sku] || record.service_sku}
+            <Tag style={{ marginLeft: 8 }}>{record.service_sku}</Tag>
+          </span>
+        ),
+      });
+    }
+    if (record.service_quantity !== undefined && record.service_quantity !== null) {
+      fields.push({ label: 'Cantidad', value: `${record.service_quantity} unidades` });
+    }
+    if (record.unit_price !== undefined && record.unit_price !== null) {
+      fields.push({ label: 'Precio unitario', value: `€${record.unit_price.toFixed(6)}` });
+    }
+    if (record.payment_method) {
+      fields.push({ label: 'Método de pago', value: record.payment_method });
+    }
+    if (record.payment_reference) {
+      fields.push({ label: 'Referencia', value: record.payment_reference });
+    }
+    if (record.stripe_payment_intent_id) {
+      fields.push({
+        label: 'Stripe ID',
+        value: (
+          <Tooltip title={record.stripe_payment_intent_id}>
+            <span style={{ fontFamily: 'monospace', fontSize: 11 }}>
+              {record.stripe_payment_intent_id.slice(0, 20)}...
+            </span>
+          </Tooltip>
+        ),
+      });
+    }
+    if (record.metadata && Object.keys(record.metadata).length > 0) {
+      const meta = record.metadata;
+      if (meta.model) fields.push({ label: 'Modelo IA', value: meta.model });
+      if (meta.provider) fields.push({ label: 'Proveedor', value: meta.provider });
+      if (meta.input_tokens) fields.push({ label: 'Tokens entrada', value: meta.input_tokens.toLocaleString() });
+      if (meta.output_tokens) fields.push({ label: 'Tokens salida', value: meta.output_tokens.toLocaleString() });
+      if (meta.session_id) {
+        fields.push({
+          label: 'Sesión',
+          value: (
+            <Tooltip title={meta.session_id}>
+              <span style={{ fontFamily: 'monospace', fontSize: 11 }}>{String(meta.session_id).slice(0, 16)}...</span>
+            </Tooltip>
+          ),
+        });
+      }
+    }
+
+    if (fields.length === 0) {
+      return (
+        <div className={styles.expandedRow}>
+          <span style={{ opacity: 0.6 }}>Sin detalles adicionales</span>
+        </div>
+      );
+    }
+
+    return (
+      <div className={styles.expandedRow}>
+        <Flexbox gap={6} style={{ flexWrap: 'wrap' }}>
+          {fields.map((f, i) => (
+            <Flexbox gap={8} horizontal key={i}>
+              <span className={styles.metaKey}>{f.label}:</span>
+              <span>{f.value}</span>
+            </Flexbox>
+          ))}
+        </Flexbox>
+      </div>
+    );
+  }
+);
+
+ExpandedRow.displayName = 'ExpandedRow';
+
+// ─── Balance evolution chart ──────────────────────────────────────────────────
+
+const BalanceChart = memo<{ currency: string; transactions: WalletTransaction[] }>(
+  ({ transactions, currency }) => {
+    const symbol = currency === 'EUR' ? '€' : currency;
+
+    const chartData = useMemo(() => {
+      // Sort ascending by date, take last 50 transactions
+      const sorted = [...transactions]
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .slice(-50);
+
+      return sorted.map((t) => ({
+        balance: t.balance_after || 0,
+        date: dayjs(t.created_at).format('DD/MM HH:mm'),
+        type: t.type,
+      }));
+    }, [transactions]);
+
+    if (chartData.length < 2) return null;
+
+    const minBalance = Math.min(...chartData.map((d) => d.balance));
+    const maxBalance = Math.max(...chartData.map((d) => d.balance));
+
+    return (
+      <div style={{ height: 200, width: '100%' }}>
+        <ResponsiveContainer height="100%" width="100%">
+          <AreaChart data={chartData} margin={{ bottom: 0, left: 0, right: 8, top: 8 }}>
+            <defs>
+              <linearGradient id="balanceGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="5%" stopColor="#667eea" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#667eea" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+            <XAxis
+              dataKey="date"
+              interval="preserveStartEnd"
+              style={{ fontSize: 10 }}
+              tick={{ fill: 'var(--lobe-color-text-secondary)' }}
+            />
+            <YAxis
+              domain={[Math.max(0, minBalance - 1), maxBalance + 1]}
+              style={{ fontSize: 10 }}
+              tick={{ fill: 'var(--lobe-color-text-secondary)' }}
+              tickFormatter={(v) => `${symbol}${v.toFixed(0)}`}
+              width={48}
+            />
+            <RechartsTooltip
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              formatter={((value: number) => [`${symbol}${value.toFixed(2)}`, 'Saldo']) as any}
+              labelStyle={{ fontSize: 11 }}
+            />
+            <Area
+              dataKey="balance"
+              fill="url(#balanceGrad)"
+              name="Saldo"
+              stroke="#667eea"
+              strokeWidth={2}
+              type="monotone"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
+);
+
+BalanceChart.displayName = 'BalanceChart';
+
+// ─── Main page ────────────────────────────────────────────────────────────────
 
 const TransactionsHistoryPage = memo(() => {
   const { styles } = useStyles();
-  const { 
-    transactions, 
-    transactionsLoading, 
-    fetchTransactions, 
-    hasMoreTransactions, 
+  const {
+    transactions,
+    transactionsLoading,
+    fetchTransactions,
+    hasMoreTransactions,
     currency,
     error: walletError,
   } = useWallet();
@@ -72,85 +275,89 @@ const TransactionsHistoryPage = memo(() => {
   const [pageSize, setPageSize] = useState(20);
 
   useEffect(() => {
-    console.log('🔍 [TransactionsHistoryPage] Cargando transacciones...');
-    fetchTransactions(1, 100); // Cargar más transacciones
+    fetchTransactions(1, 100);
   }, [fetchTransactions]);
 
-  // Aplicar filtros
-  const filteredTransactions = transactions.filter((t) => {
-    if (filters.type && t.type !== filters.type) {
-      return false;
-    }
-    if (filters.search && !t.description?.toLowerCase().includes(filters.search.toLowerCase())) {
-      return false;
-    }
-    if (filters.startDate || filters.endDate) {
-      const transDate = dayjs(t.created_at);
-      if (filters.startDate && transDate.isBefore(dayjs(filters.startDate), 'day')) {
-        return false;
-      }
-      if (filters.endDate && transDate.isAfter(dayjs(filters.endDate), 'day')) {
-        return false;
-      }
-    }
-    return true;
-  });
+  // ── Filters ──
 
-  // Calcular resumen
-  const totalConsumed = filteredTransactions
-    .filter((t) => t.type === 'CONSUMPTION')
-    .reduce((sum, t) => sum + Math.abs(t.amount || 0), 0);
-  const totalRecharged = filteredTransactions
-    .filter((t) => t.type === 'RECHARGE')
-    .reduce((sum, t) => sum + Math.abs(t.amount || 0), 0);
-  const netBalance = totalRecharged - totalConsumed;
+  const filteredTransactions = useMemo(
+    () =>
+      transactions.filter((t) => {
+        if (filters.type && t.type !== filters.type) return false;
+        if (filters.search && !t.description?.toLowerCase().includes(filters.search.toLowerCase())) return false;
+        if (filters.startDate || filters.endDate) {
+          const d = dayjs(t.created_at);
+          if (filters.startDate && d.isBefore(dayjs(filters.startDate), 'day')) return false;
+          if (filters.endDate && d.isAfter(dayjs(filters.endDate), 'day')) return false;
+        }
+        return true;
+      }),
+    [transactions, filters]
+  );
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('es-ES', {
+  // ── Summaries ──
+
+  const summary = useMemo(() => {
+    const byType: Record<string, number> = {};
+    for (const t of filteredTransactions) {
+      byType[t.type] = (byType[t.type] || 0) + Math.abs(t.amount || 0);
+    }
+    return byType;
+  }, [filteredTransactions]);
+
+  const totalConsumed = summary['CONSUMPTION'] || 0;
+  const totalRecharged = summary['RECHARGE'] || 0;
+  const totalBonus = summary['BONUS'] || 0;
+  const totalRefunded = summary['REFUND'] || 0;
+  const netBalance = totalRecharged + totalBonus + totalRefunded - totalConsumed;
+
+  // ── Utils ──
+
+  const formatDate = (d: string) =>
+    new Date(d).toLocaleDateString('es-ES', {
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
       month: 'short',
       year: 'numeric',
     });
+
+  const symbol = currency === 'EUR' ? '€' : currency;
+  const fmt = (n: number) => `${symbol}${n.toFixed(2)}`;
+
+  const typeColor: Record<string, string> = {
+    ADJUSTMENT: 'default',
+    BONUS: 'warning',
+    CONSUMPTION: 'error',
+    EXPIRATION: 'default',
+    RECHARGE: 'success',
+    REFUND: 'processing',
+    TRANSFER: 'blue',
   };
 
-  const formatCurrency = (amount: number) => {
-    const symbol = currency === 'EUR' ? '€' : currency;
-    return `${symbol}${amount.toFixed(2)}`;
-  };
-
-  const getTransactionTypeColor = (type: string) => {
-    const colors: Record<string, string> = {
-      ADJUSTMENT: 'default',
-      BONUS: 'warning',
-      CONSUMPTION: 'error',
-      RECHARGE: 'success',
-      REFUND: 'processing',
-    };
-    return colors[type] || 'default';
-  };
+  // ── CSV Export ──
 
   const handleExport = () => {
-    // Crear CSV
-    const headers = ['Fecha', 'Tipo', 'Descripción', 'Monto', 'Saldo Después', 'SKU', 'Cantidad'];
+    const headers = ['Fecha', 'Tipo', 'Descripción', 'SKU', 'Servicio', 'Cantidad', 'Monto', 'Saldo Después'];
     const rows = filteredTransactions.map((t) => [
       formatDate(t.created_at),
       TRANSACTION_TYPE_LABELS[t.type] || t.type,
       t.description || '-',
-      formatCurrency(t.amount || 0),
-      formatCurrency(t.balance_after || 0),
       t.service_sku || '-',
+      t.service_sku ? (SKU_LABELS[t.service_sku] || t.service_sku) : '-',
       t.service_quantity?.toString() || '-',
+      fmt(t.amount || 0),
+      fmt(t.balance_after || 0),
     ]);
-
-    const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `transacciones-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
   };
+
+  // ── Render ──
 
   return (
     <Flexbox gap={24} style={{ maxWidth: 1200, padding: 24, width: '100%' }}>
@@ -190,20 +397,46 @@ const TransactionsHistoryPage = memo(() => {
         <Flexbox gap={24} horizontal style={{ flexWrap: 'wrap' }}>
           <Flexbox gap={4}>
             <span className={styles.summaryLabel}>Total Recargado</span>
-            <span className={styles.summaryValue}>{formatCurrency(totalRecharged)}</span>
+            <span className={styles.summaryValue}>{fmt(totalRecharged)}</span>
           </Flexbox>
           <Flexbox gap={4}>
             <span className={styles.summaryLabel}>Total Consumido</span>
-            <span className={styles.summaryValue}>{formatCurrency(totalConsumed)}</span>
+            <span className={styles.summaryValue}>{fmt(totalConsumed)}</span>
           </Flexbox>
           <Flexbox gap={4}>
             <span className={styles.summaryLabel}>Balance Neto</span>
             <span className={styles.summaryValue} style={{ color: netBalance >= 0 ? '#10b981' : '#ef4444' }}>
-              {formatCurrency(netBalance)}
+              <Flexbox align="center" gap={6} horizontal>
+                {netBalance >= 0 ? <TrendingUp size={22} /> : <TrendingDown size={22} />}
+                {fmt(netBalance)}
+              </Flexbox>
             </span>
           </Flexbox>
+          {totalBonus > 0 && (
+            <Flexbox gap={4}>
+              <span className={styles.summaryLabel}>Bonificaciones</span>
+              <span className={styles.summaryValue} style={{ fontSize: 20 }}>+{fmt(totalBonus)}</span>
+            </Flexbox>
+          )}
+          {totalRefunded > 0 && (
+            <Flexbox gap={4}>
+              <span className={styles.summaryLabel}>Reembolsos</span>
+              <span className={styles.summaryValue} style={{ fontSize: 20 }}>+{fmt(totalRefunded)}</span>
+            </Flexbox>
+          )}
         </Flexbox>
       </div>
+
+      {/* Gráfico de evolución de saldo */}
+      {transactions.length >= 2 && (
+        <div className={styles.card}>
+          <div className={styles.sectionTitle}>
+            <History size={20} />
+            Evolución del Saldo
+          </div>
+          <BalanceChart currency={currency} transactions={transactions} />
+        </div>
+      )}
 
       {/* Filtros */}
       <div className={styles.card}>
@@ -238,16 +471,28 @@ const TransactionsHistoryPage = memo(() => {
                   startDate: dates[0].format('YYYY-MM-DD'),
                 });
               } else {
-                setFilters({
-                  ...filters,
-                  endDate: undefined,
-                  startDate: undefined,
-                });
+                setFilters({ ...filters, endDate: undefined, startDate: undefined });
               }
             }}
             placeholder={['Fecha inicio', 'Fecha fin']}
             style={{ minWidth: 250 }}
           />
+          {(filters.type || filters.search || filters.startDate) && (
+            <button
+              onClick={() => setFilters({ endDate: undefined, search: '', startDate: undefined, type: undefined })}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--lobe-color-border)',
+                borderRadius: 6,
+                color: 'var(--lobe-color-text-secondary)',
+                cursor: 'pointer',
+                fontSize: 12,
+                padding: '4px 12px',
+              }}
+            >
+              Limpiar filtros
+            </button>
+          )}
         </Flexbox>
       </div>
 
@@ -256,21 +501,25 @@ const TransactionsHistoryPage = memo(() => {
         <div className={styles.sectionTitle}>
           <History size={20} />
           Transacciones
+          {filteredTransactions.length !== transactions.length && (
+            <Tag style={{ fontWeight: 400, marginLeft: 4 }}>
+              {filteredTransactions.length} de {transactions.length}
+            </Tag>
+          )}
         </div>
 
         {walletError && transactions.length === 0 && !transactionsLoading && (
-          <div style={{
-            background: '#fff1f0',
-            border: '1px solid #ffccc7',
-            borderRadius: 8,
-            color: '#cf1322',
-            marginBottom: 16,
-            padding: 16
-          }}>
+          <div
+            style={{
+              background: '#fff1f0',
+              border: '1px solid #ffccc7',
+              borderRadius: 8,
+              color: '#cf1322',
+              marginBottom: 16,
+              padding: 16,
+            }}
+          >
             <strong>⚠️ Error:</strong> {walletError}
-            <div style={{ fontSize: 12, marginTop: 8, opacity: 0.8 }}>
-              Verifica que estés autenticado correctamente. Abre la consola del navegador (F12) para más detalles.
-            </div>
             <button
               onClick={() => fetchTransactions(1, 100)}
               style={{
@@ -279,46 +528,51 @@ const TransactionsHistoryPage = memo(() => {
                 borderRadius: 6,
                 color: 'white',
                 cursor: 'pointer',
+                display: 'block',
                 fontSize: 12,
                 marginTop: 12,
                 padding: '8px 16px',
               }}
             >
-              Reintentar Cargar Transacciones
+              Reintentar
             </button>
           </div>
         )}
 
         {!walletError && transactions.length === 0 && !transactionsLoading && (
-          <div style={{
-            background: '#f6ffed',
-            border: '1px solid #b7eb8f',
-            borderRadius: 8,
-            color: '#389e0d',
-            marginBottom: 16,
-            padding: 16
-          }}>
-            <strong>ℹ️ No hay transacciones registradas</strong>
+          <div
+            style={{
+              background: '#f6ffed',
+              border: '1px solid #b7eb8f',
+              borderRadius: 8,
+              color: '#389e0d',
+              marginBottom: 16,
+              padding: 16,
+            }}
+          >
+            <strong>ℹ️ Sin transacciones</strong>
             <div style={{ fontSize: 12, marginTop: 8, opacity: 0.8 }}>
-              Aún no tienes transacciones. Las transacciones aparecerán aquí cuando uses los servicios o recargues tu wallet.
+              Las transacciones aparecerán aquí cuando uses los servicios o recargues tu wallet.
             </div>
           </div>
         )}
 
-        <Table
+        <Table<WalletTransaction>
           columns={[
             {
               dataIndex: 'created_at',
               key: 'created_at',
-              render: (date: string) => formatDate(date),
+              render: (date: string) => (
+                <span style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{formatDate(date)}</span>
+              ),
               title: 'Fecha',
-              width: 180,
+              width: 160,
             },
             {
               dataIndex: 'type',
               key: 'type',
               render: (type: string) => (
-                <Tag color={getTransactionTypeColor(type)}>{TRANSACTION_TYPE_LABELS[type] || type}</Tag>
+                <Tag color={typeColor[type]}>{TRANSACTION_TYPE_LABELS[type] || type}</Tag>
               ),
               title: 'Tipo',
               width: 120,
@@ -326,40 +580,57 @@ const TransactionsHistoryPage = memo(() => {
             {
               dataIndex: 'description',
               key: 'description',
-              title: 'Descripción',
-              width: '25%',
-            },
-            {
-              dataIndex: 'service_sku',
-              key: 'service_sku',
-              render: (sku: string) => (sku ? <Tag>{sku}</Tag> : '-'),
-              title: 'SKU',
-              width: 120,
+              render: (desc: string, record) => (
+                <Flexbox gap={4}>
+                  <span style={{ fontSize: 13 }}>{desc || '-'}</span>
+                  {record.service_sku && (
+                    <span style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 11 }}>
+                      {SKU_LABELS[record.service_sku] || record.service_sku}
+                    </span>
+                  )}
+                </Flexbox>
+              ),
+              title: 'Descripción / Servicio',
             },
             {
               dataIndex: 'amount',
               key: 'amount',
               render: (amount: number, record: WalletTransaction) => {
-                const isPositive = record.type === 'RECHARGE' || record.type === 'REFUND' || record.type === 'BONUS';
+                const isPositive =
+                  record.type === 'RECHARGE' || record.type === 'REFUND' || record.type === 'BONUS';
                 return (
                   <span style={{ color: isPositive ? '#10b981' : '#ef4444', fontWeight: 600 }}>
                     {isPositive ? '+' : ''}
-                    {formatCurrency(amount || 0)}
+                    {fmt(amount || 0)}
                   </span>
                 );
               },
               title: 'Monto',
-              width: 120,
+              width: 100,
             },
             {
               dataIndex: 'balance_after',
               key: 'balance_after',
-              render: (balance: number) => formatCurrency(balance || 0),
-              title: 'Saldo Después',
-              width: 120,
+              render: (balance: number) => (
+                <span style={{ color: (balance || 0) < 0 ? '#ef4444' : undefined }}>
+                  {fmt(balance || 0)}
+                </span>
+              ),
+              title: 'Saldo resultante',
+              width: 130,
             },
           ]}
           dataSource={filteredTransactions.slice((page - 1) * pageSize, page * pageSize)}
+          expandable={{
+            expandedRowRender: (record) => <ExpandedRow record={record} styles={styles} />,
+            rowExpandable: (record) =>
+              !!(
+                record.service_sku ||
+                record.payment_method ||
+                record.stripe_payment_intent_id ||
+                (record.metadata && Object.keys(record.metadata).length > 0)
+              ),
+          }}
           loading={transactionsLoading}
           locale={{ emptyText: 'No hay transacciones registradas' }}
           pagination={{
@@ -374,7 +645,7 @@ const TransactionsHistoryPage = memo(() => {
             total: filteredTransactions.length,
           }}
           rowKey="_id"
-          size="middle"
+          size="small"
         />
       </div>
     </Flexbox>

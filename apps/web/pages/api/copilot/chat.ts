@@ -123,7 +123,7 @@ Cuando menciones cualquier sección de la aplicación, SIEMPRE incluye un link c
 - Invitaciones: [Ver invitaciones](/invitaciones)
 - Lista de regalos: [Ver lista de regalos](/lista-regalos)
 - Resumen: [Ver resumen](/resumen-evento)
-- Diseño de espacios con IA: [Ver diseño de espacios](/diseño-espacios)
+- Diseño de espacios con IA: [Ver diseño de espacios](/diseno-espacios)
 - Momentos (álbumes de fotos): [Ver momentos](/momentos)
 
 ## Ejemplos de respuestas correctas:

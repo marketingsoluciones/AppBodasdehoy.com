@@ -13,7 +13,7 @@ export interface WalletBadgeProps {
 }
 
 const WalletBadge = memo<WalletBadgeProps>(({ onClick, showDetails = false, size = 'medium' }) => {
-  const { totalBalance, currency, isLowBalance, loading, status, formatBalance } = useWallet();
+  const { totalBalance, currency, isLowBalance, isNegativeBalance, loading, status, formatBalance } = useWallet();
 
   const sizeStyles = {
     large: { fontSize: 16, iconSize: 20, padding: '10px 16px' },
@@ -76,10 +76,12 @@ const WalletBadge = memo<WalletBadgeProps>(({ onClick, showDetails = false, size
       horizontal
       onClick={onClick}
       style={{
-        animation: isLowBalance ? 'pulse 2s infinite' : undefined,
-        background: isLowBalance
-          ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        animation: isLowBalance || isNegativeBalance ? 'pulse 2s infinite' : undefined,
+        background: isNegativeBalance
+          ? 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)'
+          : isLowBalance
+            ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         border: 'none',
         borderRadius: 20,
         color: 'white',
@@ -89,15 +91,15 @@ const WalletBadge = memo<WalletBadgeProps>(({ onClick, showDetails = false, size
         padding,
         transition: 'all 0.2s ease',
       }}
-      title={isLowBalance ? 'Saldo bajo - Click para recargar' : 'Ver wallet'}
+      title={isNegativeBalance ? 'Saldo negativo - Click para recargar' : isLowBalance ? 'Saldo bajo - Click para recargar' : 'Ver wallet'}
     >
       <Wallet size={iconSize} />
       <span>{formatBalance(totalBalance)}</span>
-      {isLowBalance && (
+      {(isLowBalance || isNegativeBalance) && (
         <span
           style={{
             alignItems: 'center',
-            background: '#ef4444',
+            background: isNegativeBalance ? '#7f1d1d' : '#ef4444',
             borderRadius: '50%',
             display: 'flex',
             fontSize: 10,
@@ -106,7 +108,7 @@ const WalletBadge = memo<WalletBadgeProps>(({ onClick, showDetails = false, size
             width: 16,
           }}
         >
-          !
+          {isNegativeBalance ? '−' : '!'}
         </span>
       )}
 

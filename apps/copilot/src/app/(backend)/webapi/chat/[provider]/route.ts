@@ -150,7 +150,15 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
         );
 
         if (backendResponse.status === 402) {
-          // Sin saldo: NO hacer fallback al runtime nativo — eso bypassearía el balance check
+          const allowNegative = process.env.ALLOW_NEGATIVE_BALANCE === 'true';
+          if (allowNegative) {
+            // Modo saldo negativo: pasar al runtime nativo de LobeChat como fallback.
+            // El runtime nativo usará OPENAI_API_KEY del servidor (variable de entorno).
+            // El frontend detectará negativeBalanceMode: true y mostrará el banner de deuda.
+            console.warn(`⚠️ [402] Saldo insuficiente — modo deuda activo, fallback a runtime nativo para ${provider}`);
+            return null; // Cae al runtime nativo con OPENAI_API_KEY del servidor
+          }
+          // Modo estricto (por defecto): NO hacer fallback al runtime nativo
           let detail = '';
           try { detail = JSON.parse(errorText)?.detail || errorText; } catch { detail = errorText; }
           return new Response(

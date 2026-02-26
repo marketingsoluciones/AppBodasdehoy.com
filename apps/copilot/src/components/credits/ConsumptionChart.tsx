@@ -120,7 +120,8 @@ const ConsumptionChart = memo<ConsumptionChartProps>(({ usageStats, period = 'TH
                   data={imagesByProvider}
                   dataKey="count"
                   fill="#8884d8"
-                  label={({ name, percent }: { name: string; percent?: number }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  label={({ name, percent }: any) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                   nameKey="name"
                   outerRadius={100}
                 />
@@ -144,7 +145,8 @@ const ConsumptionChart = memo<ConsumptionChartProps>(({ usageStats, period = 'TH
                   data={communicationsData}
                   dataKey="value"
                   fill="#82ca9d"
-                  label={({ name, percent }: { name: string; percent?: number }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  label={({ name, percent }: any) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                   nameKey="name"
                   outerRadius={100}
                 />
@@ -163,11 +165,11 @@ const ConsumptionChart = memo<ConsumptionChartProps>(({ usageStats, period = 'TH
             <BarChart
               data={[
                 {
-                  costo: usageStats.ai_tokens?.total ? (usageStats.ai_tokens.by_model?.[0]?.cost || 0) : 0,
+                  costo: usageStats.ai_tokens?.by_model?.reduce((sum, m) => sum + (m.cost || 0), 0) || 0,
                   name: 'Tokens IA',
                 },
                 {
-                  costo: usageStats.images?.total ? (usageStats.images.by_provider?.[0]?.cost || 0) : 0,
+                  costo: usageStats.images?.by_provider?.reduce((sum, p) => sum + (p.cost || 0), 0) || 0,
                   name: 'Imágenes',
                 },
                 {

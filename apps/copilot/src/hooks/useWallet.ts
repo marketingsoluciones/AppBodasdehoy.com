@@ -21,6 +21,7 @@ export interface UseWalletState {
   currency: string;
   error: string | null;
   isLowBalance: boolean;
+  isNegativeBalance: boolean;
   loading: boolean;
   lowBalanceThreshold: number;
   status: WalletBalance['status'];
@@ -77,6 +78,7 @@ export const useWallet = (): UseWalletReturn => {
   const [hasMoreTransactions, setHasMoreTransactions] = useState(false);
 
   // Computed
+  const isNegativeBalance = totalBalance < 0;
   const isLowBalance = totalBalance <= lowBalanceThreshold;
 
   // ========================================
@@ -302,7 +304,7 @@ export const useWallet = (): UseWalletReturn => {
     balance,
     bonusBalance,
     // Actions
-canAfford,
+    canAfford,
     
 consumeService,
     
@@ -325,7 +327,8 @@ hasMoreTransactions,
 
 
 isLowBalance,
-    
+    isNegativeBalance,
+
 
 // Modal
 lastBalanceCheck,

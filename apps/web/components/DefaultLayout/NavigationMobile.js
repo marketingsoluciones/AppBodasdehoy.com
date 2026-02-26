@@ -87,7 +87,7 @@ const NavigationMobile = () => {
     {
       title: "Diseño IA",
       icon: <LivingRoomIcon className="text-primary w-7 h-7" />,
-      route: event?._id ? "/diseño-espacios" : "/",
+      route: event?._id ? "/diseno-espacios" : "/",
       condicion: event?._id ? "verdadero" : "falso"
     },
     {

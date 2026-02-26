@@ -600,9 +600,16 @@ export const generateAIChat: StateCreator<
       },
       isWelcomeQuestion: params?.isWelcomeQuestion,
       onErrorHandle: async (error) => {
-        // Si el backend devuelve 402 por saldo insuficiente, abrir el modal de recarga
+        // Si el backend devuelve 402 por saldo insuficiente
         if ((error as any)?.type === 'insufficient_balance') {
-          set({ showInsufficientBalance: true });
+          const allowNegative = process.env.NEXT_PUBLIC_ALLOW_NEGATIVE_BALANCE === 'true';
+          if (allowNegative) {
+            // Modo saldo negativo: activar debt mode (banner no-bloqueante) en lugar de modal
+            set({ negativeBalanceMode: true });
+          } else {
+            // Modo estricto: mostrar modal de recarga bloqueante
+            set({ showInsufficientBalance: true });
+          }
         }
         await messageService.updateMessageError(messageId, error);
         await refreshMessages();

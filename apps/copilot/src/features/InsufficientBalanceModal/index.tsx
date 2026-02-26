@@ -6,15 +6,24 @@ import RechargeModal from '@/components/Wallet/RechargeModal';
 import { walletService } from '@/services/api2/wallet';
 import { useChatStore } from '@/store/chat';
 
+const allowNegativeBalance = process.env.NEXT_PUBLIC_ALLOW_NEGATIVE_BALANCE === 'true';
+
 /**
  * Modal que se abre automáticamente cuando el backend devuelve 402 (saldo insuficiente)
  * durante una conversación en el chat.
+ *
+ * Si NEXT_PUBLIC_ALLOW_NEGATIVE_BALANCE=true, muestra un botón extra para continuar
+ * en modo crédito (saldo negativo permitido) sin bloquear el chat.
  */
 const InsufficientBalanceModal = memo(() => {
   const showInsufficientBalance = useChatStore((s) => s.showInsufficientBalance);
 
   const handleClose = useCallback(() => {
     useChatStore.setState({ showInsufficientBalance: false });
+  }, []);
+
+  const handleContinueInDebt = useCallback(() => {
+    useChatStore.setState({ showInsufficientBalance: false, negativeBalanceMode: true });
   }, []);
 
   const handleRecharge = useCallback(async (amount: number) => {
@@ -43,8 +52,10 @@ const InsufficientBalanceModal = memo(() => {
 
   return (
     <RechargeModal
+      allowDebtMode={allowNegativeBalance}
       isOpen={showInsufficientBalance}
       onClose={handleClose}
+      onContinueInDebt={handleContinueInDebt}
       onRecharge={handleRecharge}
     />
   );
