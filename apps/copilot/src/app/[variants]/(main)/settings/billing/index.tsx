@@ -1,6 +1,6 @@
 'use client';
 
-import { DatePicker, Divider, Input, Select, Skeleton, Table, Tag } from 'antd';
+import { DatePicker, Divider, Input, Segmented, Select, Skeleton, Table, Tag } from 'antd';
 import { createStyles } from 'antd-style';
 import {
   Brain,
@@ -26,7 +26,12 @@ import dayjs from 'dayjs';
 import { useBilling } from '@/hooks/useBilling';
 import { useWallet } from '@/hooks/useWallet';
 import { INVOICE_STATUS_LABELS, PLAN_TIER_LABELS } from '@/services/api2/invoices';
+import { walletService, SERVICE_SKUS } from '@/services/api2/wallet';
+import { useChatStore } from '@/store/chat';
+import { useUserStore } from '@/store/user';
+import { userProfileSelectors } from '@/store/user/selectors';
 
+import AutoRechargeCard from '@/components/credits/AutoRechargeCard';
 import ConsumptionChart from '@/components/credits/ConsumptionChart';
 import UsageMetrics from '@/components/credits/UsageMetrics';
 import RechargeModal from '@/components/Wallet/RechargeModal';
@@ -104,6 +109,7 @@ const BillingPage = memo(() => {
   const { styles } = useStyles();
   const router = useRouter();
   const [showRechargeModal, setShowRechargeModal] = useState(false);
+  const [usagePeriod, setUsagePeriod] = useState<'TODAY' | 'THIS_WEEK' | 'THIS_MONTH' | 'LAST_30_DAYS'>('THIS_MONTH');
 
   // Filtros de facturas
   const [invoiceFilters, setInvoiceFilters] = useState({
@@ -142,6 +148,7 @@ const BillingPage = memo(() => {
     paymentsLoading,
     fetchInvoices,
     fetchPayments,
+    fetchUsageStats,
     downloadInvoicePDF,
     refreshAll,
     error: billingError,
@@ -157,6 +164,11 @@ const BillingPage = memo(() => {
   useEffect(() => {
     fetchInvoices(invoicePage, invoiceFilters.status as any);
   }, [invoicePage, invoiceFilters.status, fetchInvoices]);
+
+  // Refetch usage stats cuando cambia el período
+  useEffect(() => {
+    fetchUsageStats(usagePeriod);
+  }, [usagePeriod, fetchUsageStats]);
 
   // Handle recharge
   const handleRecharge = async (amount: number) => {
@@ -279,6 +291,9 @@ const BillingPage = memo(() => {
         </Flexbox>
       </div>
 
+      {/* Auto-recarga */}
+      <AutoRechargeCard onConfigChange={refetchBalance} />
+
       {/* Subscription Card */}
       <div className={styles.card}>
         <div className={styles.sectionTitle}>
@@ -355,26 +370,25 @@ const BillingPage = memo(() => {
         )}
       </div>
 
-      {/* Balance / Uso de keys IA - Placeholder */}
-      <div className={styles.card}>
-        <div className={styles.sectionTitle}>
-          <Brain size={20} />
-          Uso de keys IA
-        </div>
-        <Flexbox gap={8}>
-          <span style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 14 }}>
-            El balance y uso de keys de IA se mostrara aqui cuando api-ia/API2 expongan el endpoint.
-          </span>
-          <Tag color="default">Proximamente</Tag>
-        </Flexbox>
-      </div>
-
       {/* Usage Stats - Detailed */}
       <div className={styles.card}>
-        <div className={styles.sectionTitle}>
-          <TrendingUp size={20} />
-          Uso Este Mes
-        </div>
+        <Flexbox align="center" horizontal justify="space-between" style={{ marginBottom: 16 }}>
+          <div className={styles.sectionTitle} style={{ margin: 0 }}>
+            <TrendingUp size={20} />
+            Consumo
+          </div>
+          <Segmented
+            onChange={(val) => setUsagePeriod(val as typeof usagePeriod)}
+            options={[
+              { label: 'Hoy', value: 'TODAY' },
+              { label: 'Esta semana', value: 'THIS_WEEK' },
+              { label: 'Este mes', value: 'THIS_MONTH' },
+              { label: 'Últimos 30 días', value: 'LAST_30_DAYS' },
+            ]}
+            size="small"
+            value={usagePeriod}
+          />
+        </Flexbox>
 
         {usageStatsLoading ? (
           <Skeleton active paragraph={{ rows: 4 }} />
@@ -836,10 +850,255 @@ const BillingPage = memo(() => {
         }}
         onRecharge={handleRecharge}
       />
+
+      {/* Dev Tools — solo en development */}
+      {process.env.NODE_ENV === 'development' && (
+        <WalletDevTools />
+      )}
     </Flexbox>
   );
 });
 
 BillingPage.displayName = 'BillingPage';
+
+// ============================================================
+// WalletDevTools — Solo visible en NODE_ENV=development
+// Realiza llamadas REALES a la API de wallet para simular escenarios
+// ============================================================
+
+const WalletDevTools = memo(() => {
+  const { totalBalance, formatBalance, refetchBalance } = useWallet();
+  const userId = useUserStore((s) => userProfileSelectors.userId(s));
+  const [devLog, setDevLog] = useState<string[]>([]);
+  const [devLoading, setDevLoading] = useState(false);
+
+  const log = (msg: string) => setDevLog((prev) => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev.slice(0, 9)]);
+
+  // 1. Consultar saldo real
+  const handleCheckBalance = async () => {
+    setDevLoading(true);
+    try {
+      const data = await walletService.getBalance();
+      log(`✅ Balance real: ${data.total_balance} ${data.currency} (${data.status})`);
+      await refetchBalance();
+    } catch (e: any) {
+      log(`❌ Error: ${e.message}`);
+    } finally {
+      setDevLoading(false);
+    }
+  };
+
+  // 2. Consumir una pequeña cantidad real (simula gasto)
+  const handleConsumeSmall = async () => {
+    setDevLoading(true);
+    try {
+      const result = await walletService.checkAndConsume(
+        SERVICE_SKUS.AI_ANTHROPIC_HAIKU,
+        1,
+        '[DEV] Simulación consumo test',
+        { source: 'dev-tools', test: true }
+      );
+      if (result.success) {
+        log(`✅ Consumido HAIKU x1. Saldo nuevo: ${result.new_balance}`);
+      } else {
+        log(`⚠️ No permitido: ${result.error_message || result.error_code}`);
+        if (result.balance_check?.allowed === false) {
+          log(`  Falta: €${result.balance_check.shortfall} (saldo: €${result.balance_check.total_balance})`);
+          useChatStore.setState({ showInsufficientBalance: true });
+        }
+      }
+      await refetchBalance();
+    } catch (e: any) {
+      log(`❌ Error: ${e.message}`);
+    } finally {
+      setDevLoading(false);
+    }
+  };
+
+  // 3. Verificar si hay saldo para un monto dado
+  const handleCheckAffordability = async () => {
+    setDevLoading(true);
+    try {
+      const check = await walletService.checkBalance(0.05);
+      log(`${check.allowed ? '✅' : '❌'} ¿Puede pagar €0.05? → ${check.allowed ? 'SÍ' : `NO (falta €${check.shortfall})`}`);
+      log(`  Saldo actual: €${check.total_balance}`);
+      if (!check.allowed) {
+        useChatStore.setState({ showInsufficientBalance: true });
+      }
+    } catch (e: any) {
+      log(`❌ Error: ${e.message}`);
+    } finally {
+      setDevLoading(false);
+    }
+  };
+
+  // 4. Activar estados UI directamente (sin API)
+  const handleShowModal = () => {
+    useChatStore.setState({ showInsufficientBalance: true });
+    log('🔔 Modal de recarga activado (sin llamada real)');
+  };
+
+  const handleShowBanner = () => {
+    useChatStore.setState({ negativeBalanceMode: true });
+    log('🔔 Banner modo crédito activado (sin llamada real)');
+  };
+
+  const handleReset = () => {
+    useChatStore.setState({ showInsufficientBalance: false, negativeBalanceMode: false });
+    log('🔄 Estados UI reseteados');
+  };
+
+  // 5. Drenar saldo a €0 via proxy server-side (requiere ADMIN_API_KEY en .env.local)
+  const handleDrainBalance = async () => {
+    if (!userId) {
+      log('❌ userId no disponible — inicia sesión primero');
+      return;
+    }
+    if (totalBalance <= 0) {
+      log(`⚠️ Saldo ya es €0 o negativo (${formatBalance(totalBalance)})`);
+      return;
+    }
+    setDevLoading(true);
+    try {
+      const drainAmount = -totalBalance; // importe negativo para drenar
+      const res = await fetch('/api/dev/wallet-drain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          amount: drainAmount,
+          description: '[DEV] Drenar saldo a €0 para test de flujo de pago',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        log(`❌ Error drenando: ${data.error ?? res.status}`);
+      } else {
+        log(`✅ Saldo drenado. Nuevo saldo: €${data.new_balance ?? 0}`);
+        await refetchBalance();
+      }
+    } catch (e: any) {
+      log(`❌ Error: ${e.message}`);
+    } finally {
+      setDevLoading(false);
+    }
+  };
+
+  const btnBase: React.CSSProperties = {
+    border: 'none',
+    borderRadius: 6,
+    cursor: devLoading ? 'wait' : 'pointer',
+    fontSize: 12,
+    padding: '6px 12px',
+    opacity: devLoading ? 0.6 : 1,
+  };
+
+  return (
+    <Flexbox
+      gap={12}
+      style={{
+        border: '1px dashed #d97706',
+        borderRadius: 12,
+        marginTop: 24,
+        padding: 16,
+      }}
+    >
+      <Flexbox align="center" horizontal justify="space-between">
+        <p style={{ color: '#92400e', fontSize: 12, fontWeight: 600, margin: 0 }}>
+          🛠 Dev Tools — Simulación de saldo con datos reales
+        </p>
+        <span style={{ color: '#b45309', fontSize: 11 }}>Saldo actual: {formatBalance(totalBalance)}</span>
+      </Flexbox>
+
+      <Flexbox gap={8} horizontal style={{ flexWrap: 'wrap' }}>
+        {/* Llamadas reales a API */}
+        <button
+          disabled={devLoading}
+          onClick={handleCheckBalance}
+          style={{ ...btnBase, background: '#dbeafe', color: '#1d4ed8' }}
+          title="GET /api/wallet/balance — saldo real de API"
+        >
+          📡 Consultar saldo real
+        </button>
+        <button
+          disabled={devLoading}
+          onClick={handleCheckAffordability}
+          style={{ ...btnBase, background: '#fef3c7', color: '#92400e' }}
+          title="POST /api/wallet/check — ¿puede pagar €0.05?"
+        >
+          🔍 Verificar ¿puede pagar €0.05?
+        </button>
+        <button
+          disabled={devLoading}
+          onClick={handleConsumeSmall}
+          style={{ ...btnBase, background: '#fde8e8', color: '#9b1c1c' }}
+          title="POST /api/wallet/consume — consume Haiku x1 real"
+        >
+          💸 Consumir HAIKU x1 (real)
+        </button>
+
+        <div style={{ borderLeft: '1px solid #e5e7eb', margin: '0 4px' }} />
+
+        {/* Estados UI sin API */}
+        <button
+          onClick={handleShowModal}
+          style={{ ...btnBase, background: '#fef9c3', color: '#92400e' }}
+          title="Muestra el modal de recarga (sin API)"
+        >
+          🔔 Modal sin saldo (UI)
+        </button>
+        <button
+          onClick={handleShowBanner}
+          style={{ ...btnBase, background: '#fff7ed', color: '#c2410c' }}
+          title="Muestra el banner de modo crédito (sin API)"
+        >
+          🟠 Banner modo crédito (UI)
+        </button>
+        <button
+          onClick={handleReset}
+          style={{ ...btnBase, background: '#f0fdf4', color: '#15803d' }}
+        >
+          🔄 Reset estados UI
+        </button>
+
+        <div style={{ borderLeft: '1px solid #e5e7eb', margin: '0 4px' }} />
+
+        {/* Ajuste real de saldo via proxy server-side */}
+        <button
+          disabled={devLoading || totalBalance <= 0}
+          onClick={handleDrainBalance}
+          style={{ ...btnBase, background: '#fdf2f8', color: '#9d174d' }}
+          title="Drena el saldo a €0 via POST /api/dev/wallet-drain → api-ia (requiere ADMIN_API_KEY)"
+        >
+          🚨 Drenar saldo a €0 (test)
+        </button>
+      </Flexbox>
+
+      {/* Log de operaciones */}
+      {devLog.length > 0 && (
+        <Flexbox
+          gap={2}
+          style={{
+            background: '#0f172a',
+            borderRadius: 6,
+            fontFamily: 'monospace',
+            fontSize: 11,
+            maxHeight: 160,
+            overflowY: 'auto',
+            padding: '8px 12px',
+          }}
+        >
+          {devLog.map((line, i) => (
+            <span key={i} style={{ color: line.includes('❌') ? '#f87171' : line.includes('⚠️') ? '#fbbf24' : '#86efac' }}>
+              {line}
+            </span>
+          ))}
+        </Flexbox>
+      )}
+    </Flexbox>
+  );
+});
+
+WalletDevTools.displayName = 'WalletDevTools';
 
 export default BillingPage;

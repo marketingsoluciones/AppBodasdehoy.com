@@ -1,17 +1,16 @@
 'use client';
 
-import { memo } from 'react';
+import { use, memo } from 'react';
 
 import InvoiceDetail from '@/components/billing/InvoiceDetail';
 
 interface InvoiceDetailPageProps {
-  params: {
-    id: string;
-  };
+  params: Promise<{ id: string }>;
 }
 
 const InvoiceDetailPage = memo<InvoiceDetailPageProps>(({ params }) => {
-  return <InvoiceDetail invoiceId={params.id} />;
+  const { id } = use(params);
+  return <InvoiceDetail invoiceId={id} />;
 });
 
 InvoiceDetailPage.displayName = 'InvoiceDetailPage';

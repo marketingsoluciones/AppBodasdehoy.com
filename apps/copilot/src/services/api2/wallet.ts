@@ -101,6 +101,41 @@ export interface ConsumeResponse {
   transaction?: WalletTransaction;
 }
 
+export interface AutoRechargeAttempt {
+  amount: number;
+  attempted_at: string;
+  error?: string;
+  payment_intent_id?: string;
+  success: boolean;
+  triggered_by: string;
+}
+
+export interface WalletAutoRechargeConfig {
+  amount?: number;
+  attempts_count?: number;
+  enabled: boolean;
+  failed_count?: number;
+  last_triggered_at?: string;
+  payment_method_id?: string;
+  recent_attempts?: AutoRechargeAttempt[];
+  threshold?: number;
+}
+
+export interface ConfigureAutoRechargeResponse {
+  errors?: string[];
+  success: boolean;
+  wallet?: { auto_recharge_enabled: boolean };
+}
+
+export interface StoredPaymentMethod {
+  brand?: string;
+  exp_month?: number;
+  exp_year?: number;
+  id: string;
+  is_default: boolean;
+  last4?: string;
+}
+
 // ========================================
 // QUERIES
 // ========================================
@@ -201,6 +236,50 @@ const CREATE_RECHARGE_SESSION_MUTATION = `
       session_id
       error_code
       error_message
+    }
+  }
+`;
+
+const GET_PAYMENT_METHODS_QUERY = `
+  query GetPaymentMethods {
+    wallet_getPaymentMethods {
+      id
+      brand
+      last4
+      exp_month
+      exp_year
+      is_default
+    }
+  }
+`;
+
+const GET_AUTO_RECHARGE_CONFIG_QUERY = `
+  query GetAutoRechargeConfig {
+    wallet_getAutoRechargeConfig {
+      enabled
+      threshold
+      amount
+      payment_method_id
+      last_triggered_at
+      attempts_count
+      failed_count
+      recent_attempts {
+        attempted_at
+        amount
+        success
+        error
+        payment_intent_id
+        triggered_by
+      }
+    }
+  }
+`;
+
+const CONFIGURE_AUTO_RECHARGE_MUTATION = `
+  mutation ConfigureAutoRecharge($input: WalletAutoRechargeInput!) {
+    wallet_configureAutoRecharge(input: $input) {
+      success
+      errors
     }
   }
 `;
@@ -420,6 +499,65 @@ export class WalletService {
       return {
         error_code: 'API_ERROR',
         error_message: error instanceof Error ? error.message : 'Unknown error',
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Obtiene los métodos de pago guardados en Stripe
+   */
+  async getPaymentMethods(): Promise<StoredPaymentMethod[]> {
+    try {
+      const data = await api2Client.query<{ wallet_getPaymentMethods: StoredPaymentMethod[] }>(
+        GET_PAYMENT_METHODS_QUERY
+      );
+      return data.wallet_getPaymentMethods ?? [];
+    } catch (error) {
+      console.error('[walletService] Error obteniendo métodos de pago:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Obtiene la configuración actual de auto-recarga
+   */
+  async getAutoRechargeConfig(): Promise<WalletAutoRechargeConfig | null> {
+    try {
+      const data = await api2Client.query<{ wallet_getAutoRechargeConfig: WalletAutoRechargeConfig | null }>(
+        GET_AUTO_RECHARGE_CONFIG_QUERY
+      );
+      return data.wallet_getAutoRechargeConfig ?? null;
+    } catch (error) {
+      console.error('[walletService] Error obteniendo config auto-recarga:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Configura o deshabilita la auto-recarga del wallet
+   */
+  async configureAutoRecharge(
+    enabled: boolean,
+    threshold?: number,
+    amount?: number,
+    paymentMethodId?: string
+  ): Promise<ConfigureAutoRechargeResponse> {
+    try {
+      const input: Record<string, any> = { enabled };
+      if (threshold !== undefined) input.threshold = threshold;
+      if (amount !== undefined) input.amount = amount;
+      if (paymentMethodId) input.payment_method_id = paymentMethodId;
+
+      const data = await api2Client.query<{ wallet_configureAutoRecharge: ConfigureAutoRechargeResponse }>(
+        CONFIGURE_AUTO_RECHARGE_MUTATION,
+        { input }
+      );
+      return data.wallet_configureAutoRecharge;
+    } catch (error) {
+      console.error('[walletService] Error configurando auto-recarga:', error);
+      return {
+        errors: [error instanceof Error ? error.message : 'Error desconocido'],
         success: false,
       };
     }

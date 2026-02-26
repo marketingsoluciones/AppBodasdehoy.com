@@ -399,7 +399,7 @@ function DevLoginContent() {
           }
         }
       } else {
-        const errorMsg = result.message || 'Error en el registro. Por favor, intenta de nuevo.';
+        const errorMsg = (result as any).message || result.errors?.[0] || 'Error en el registro. Por favor, intenta de nuevo.';
         console.error('❌ Registro falló:', errorMsg);
         setError(errorMsg);
       }

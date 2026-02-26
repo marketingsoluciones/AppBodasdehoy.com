@@ -26,6 +26,12 @@ export interface ChatAIChatState {
    * is the message is in RAG flow
    */
   messageRAGLoadingIds: string[];
+  /**
+   * Whether the chat is running in negative balance (debt) mode.
+   * When true, the user can continue chatting even with balance <= 0.
+   * A non-blocking warning banner is shown instead of a blocking modal.
+   */
+  negativeBalanceMode: boolean;
   pluginApiLoadingIds: string[];
   /**
    * is the AI message is reasoning
@@ -52,6 +58,7 @@ export const initialAiChatState: ChatAIChatState = {
   mainSendMessageOperations: {},
   messageInToolsCallingIds: [],
   messageRAGLoadingIds: [],
+  negativeBalanceMode: false,
   pluginApiLoadingIds: [],
   reasoningLoadingIds: [],
   searchWorkflowLoadingIds: [],

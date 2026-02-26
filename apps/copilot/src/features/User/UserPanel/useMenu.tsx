@@ -267,7 +267,7 @@ export const useMenu = () => {
         {
           icon: <Icon icon={LogIn} />,
           key: 'login',
-          label: <span>{t('signin', { ns: 'auth' })}</span>,
+          label: <span>{(t as any)('signin', { ns: 'auth' })}</span>,
           onClick: () => openLoginModal(),
         },
       ]

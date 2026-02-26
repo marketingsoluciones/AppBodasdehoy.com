@@ -29,6 +29,13 @@ export default function BillingDashboard() {
           >
             Dar crédito a usuario (admin)
           </Link>
+          {' · '}
+          <Link
+            className="mt-2 inline-block text-sm text-green-600 hover:underline"
+            href="/admin/billing/wallet-test"
+          >
+            Test de wallet/billing
+          </Link>
         </div>
 
         {/* Period Selector */}

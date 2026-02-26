@@ -6,6 +6,39 @@ import { checkAuth } from '@/app/(backend)/middleware/auth';
 import { initModelRuntimeWithUserPayload } from '@/server/modules/ModelRuntime';
 import { createErrorResponse } from '@/utils/errorResponse';
 
+/**
+ * Proxy al backend Python para proveedores no soportados por el model-runtime (p.ej. 'auto').
+ * Reenvía la petición con los headers originales, incluido el JWT de autenticación.
+ */
+async function proxyToPythonBackend(
+  req: Request,
+  provider: string,
+): Promise<Response | null> {
+  if (process.env.USE_PYTHON_BACKEND === 'false') return null;
+
+  const backendUrl =
+    process.env.BACKEND_INTERNAL_URL ||
+    process.env.PYTHON_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_BACKEND_URL;
+  if (!backendUrl) return null;
+
+  try {
+    const body = await req.text();
+    const upstream = `${backendUrl}/webapi/text-to-image/${provider}`;
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    const auth = req.headers.get('Authorization');
+    if (auth) headers['Authorization'] = auth;
+    const cookie = req.headers.get('Cookie');
+    if (cookie) headers['Cookie'] = cookie;
+
+    const response = await fetch(upstream, { body, headers, method: 'POST' });
+    const data = await response.json().catch(() => ({}));
+    return NextResponse.json(data, { status: response.status });
+  } catch {
+    return null;
+  }
+}
+
 export const preferredRegion = [
   'arn1',
   'bom1',
@@ -46,6 +79,10 @@ export const preferredRegion = [
 
 export const POST = checkAuth(async (req: Request, { params, jwtPayload }) => {
   const { provider } = await params;
+
+  // Intentar proxy al backend Python primero para 'auto' y otros proveedores no nativos
+  const proxyResponse = await proxyToPythonBackend(req.clone(), provider);
+  if (proxyResponse) return proxyResponse;
 
   try {
     // ============  1. init chat model   ============ //

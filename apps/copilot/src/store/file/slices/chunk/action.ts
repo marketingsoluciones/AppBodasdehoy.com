@@ -31,6 +31,6 @@ export const createFileChunkSlice: StateCreator<
   semanticSearch: async (text, fileId) => {
     set({ isSimilaritySearching: true });
     const data = await ragService.semanticSearch(text, [fileId]);
-    set({ isSimilaritySearching: false, similaritySearchChunks: data });
+    set({ isSimilaritySearching: false, similaritySearchChunks: data as any });
   },
 });
