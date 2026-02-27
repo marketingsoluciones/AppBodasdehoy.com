@@ -55,8 +55,8 @@ const PanelContent = memo<{ closePopover: () => void }>(({ closePopover }) => {
     <Flexbox gap={2} style={{ minWidth: 300 }}>
       {!enableAuth || (enableAuth && isLoginWithAuth) ? (
         <>
-          {/* Saludo visible si está registrado */}
-          {isRegistered && userName && (
+          {isRegistered && userName ? (
+            /* Saludo visible si está registrado */
             <Flexbox
               align={'center'}
               gap={8}
@@ -80,8 +80,31 @@ const PanelContent = memo<{ closePopover: () => void }>(({ closePopover }) => {
                 </div>
               </Flexbox>
             </Flexbox>
+          ) : (
+            /* CTA de login para visitantes anónimos */
+            <Link href="/dev-login?mode=register" style={{ color: 'inherit', display: 'block', marginBottom: 8 }}>
+              <Flexbox
+                align={'center'}
+                gap={10}
+                horizontal
+                paddingBlock={12}
+                paddingInline={16}
+                style={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  cursor: 'pointer',
+                }}
+              >
+                <span style={{ fontSize: 20 }}>🔑</span>
+                <Flexbox flex={1} gap={2}>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>Inicia sesión para más funciones</div>
+                  <div style={{ fontSize: 11, opacity: 0.9 }}>Facturación, historial y configuración</div>
+                </Flexbox>
+              </Flexbox>
+            </Link>
           )}
-          
+
           <UserInfo avatarProps={{ clickable: false }} />
           {!isDeprecatedEdition && isRegistered && (
             <Link href={'/profile/stats'} style={{ color: 'inherit' }}>

@@ -1,11 +1,12 @@
 import { ActionIcon, ActionIconProps } from '@lobehub/ui';
-import { FlaskConical, Github } from 'lucide-react';
+import { FlaskConical, Github, LogIn } from 'lucide-react';
 import Link from 'next/link';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
 import { GITHUB } from '@/const/url';
+import { useChatStore } from '@/store/chat';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 const ICON_SIZE: ActionIconProps['size'] = {
@@ -16,11 +17,23 @@ const ICON_SIZE: ActionIconProps['size'] = {
 
 const BottomActions = memo(() => {
   const { t } = useTranslation('common');
-
   const { hideGitHub } = useServerConfigStore(featureFlagsSelectors);
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const isGuest = !currentUserId || currentUserId === 'visitante@guest.local';
 
   return (
     <Flexbox gap={8}>
+      {isGuest && (
+        <Link aria-label="Iniciar sesión" href="/dev-login?mode=register">
+          <ActionIcon
+            icon={LogIn}
+            size={ICON_SIZE}
+            style={{ color: '#667eea' }}
+            title="Iniciar sesión / Registrarse"
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
       {!hideGitHub && (
         <Link aria-label={'GitHub'} href={GITHUB} target={'_blank'}>
           <ActionIcon

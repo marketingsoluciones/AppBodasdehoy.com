@@ -254,7 +254,7 @@ const BillingPage = memo(() => {
     <Flexbox gap={24} style={{ maxWidth: 1024, padding: 24, width: '100%' }}>
       {/* Header */}
       <Flexbox align="center" horizontal justify="space-between">
-        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Facturacion y Pagos</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Facturación y Pagos</h1>
         <button className={styles.secondaryButton} onClick={() => refreshAll()}>
           <Flexbox align="center" gap={6} horizontal>
             <RefreshCw size={14} />
@@ -263,100 +263,122 @@ const BillingPage = memo(() => {
         </button>
       </Flexbox>
 
-      {/* Wallet Card */}
-      <div className={styles.cardHighlight}>
-        <Flexbox gap={16}>
-          <Flexbox align="center" gap={8} horizontal>
-            <Wallet size={24} />
-            <span style={{ fontSize: 18, fontWeight: 600 }}>Mi Wallet</span>
-          </Flexbox>
-
-          {walletLoading ? (
-            <Skeleton active paragraph={{ rows: 1 }} />
-          ) : walletError && totalBalance === 0 ? (
-            <Flexbox gap={8} style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-              {walletError === 'UNAUTHORIZED' ? (
-                <>
-                  <span style={{ fontSize: 14 }}>🔐 Sesión no autenticada</span>
-                  <span style={{ fontSize: 12, opacity: 0.8 }}>
-                    Inicia sesión para ver tu saldo. Si ya tienes sesión, recarga la página.
-                  </span>
-                </>
-              ) : walletError.includes('No existe wallet') || walletError.includes('not found') ? (
-                <>
-                  <span style={{ fontSize: 14 }}>💳 Wallet sin inicializar</span>
-                  <span style={{ fontSize: 12, opacity: 0.8 }}>
-                    Tu wallet se creará automáticamente al realizar tu primera recarga.
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span style={{ fontSize: 14 }}>⚠️ No se pudo cargar el saldo</span>
-                  <span style={{ fontSize: 12, opacity: 0.8 }}>{walletError}</span>
-                </>
-              )}
-              <button
-                onClick={() => refetchBalance()}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: 6,
-                  color: 'white',
-                  cursor: 'pointer',
-                  fontSize: 12,
-                  padding: '6px 12px',
-                  width: 'fit-content',
-                }}
-              >
-                Reintentar
-              </button>
+      {/* ── Resumen superior: Saldo + Plan activo (2 columnas) ── */}
+      <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+        {/* Wallet Card */}
+        <div className={styles.cardHighlight}>
+          <Flexbox gap={12}>
+            <Flexbox align="center" gap={8} horizontal>
+              <Wallet size={20} />
+              <span style={{ fontSize: 15, fontWeight: 600 }}>Mi Wallet</span>
             </Flexbox>
-          ) : (
-            <Flexbox gap={16} horizontal style={{ flexWrap: 'wrap' }}>
-              <Flexbox gap={4}>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>Saldo Total</span>
-                <span style={{ fontSize: 32, fontWeight: 700 }}>{formatBalance(totalBalance)}</span>
+
+            {walletLoading ? (
+              <Skeleton active paragraph={{ rows: 1 }} />
+            ) : walletError && totalBalance === 0 ? (
+              <Flexbox gap={8} style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                {walletError === 'UNAUTHORIZED' ? (
+                  <span style={{ fontSize: 13 }}>🔐 Sesión no autenticada</span>
+                ) : walletError.includes('No existe wallet') || walletError.includes('not found') ? (
+                  <span style={{ fontSize: 13 }}>💳 Wallet sin inicializar — se creará en tu primera recarga</span>
+                ) : (
+                  <span style={{ fontSize: 13 }}>⚠️ {walletError}</span>
+                )}
+                <button
+                  onClick={() => refetchBalance()}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: 6,
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: 12,
+                    padding: '4px 10px',
+                    width: 'fit-content',
+                  }}
+                >
+                  Reintentar
+                </button>
               </Flexbox>
-
-              <Flexbox gap={4}>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>Saldo Principal</span>
-                <span style={{ fontSize: 20, fontWeight: 600 }}>{formatBalance(balance)}</span>
+            ) : (
+              <Flexbox gap={2}>
+                <span style={{ fontSize: 12, opacity: 0.8 }}>Saldo disponible</span>
+                <span style={{ fontSize: 36, fontWeight: 700, lineHeight: 1.1 }}>{formatBalance(totalBalance)}</span>
+                {bonusBalance > 0 && (
+                  <span style={{ fontSize: 12, opacity: 0.75 }}>
+                    {formatBalance(balance)} principal + {formatBalance(bonusBalance)} bonificación
+                  </span>
+                )}
               </Flexbox>
+            )}
 
-              {bonusBalance > 0 && (
-                <Flexbox gap={4}>
-                  <span style={{ fontSize: 12, opacity: 0.8 }}>Bonificacion</span>
-                  <span style={{ fontSize: 20, fontWeight: 600 }}>{formatBalance(bonusBalance)}</span>
-                </Flexbox>
-              )}
-            </Flexbox>
-          )}
+            {isLowBalance && !walletError && (
+              <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: 6, fontSize: 12, padding: '6px 10px' }}>
+                ⚠️ Saldo bajo — recarga para continuar
+              </div>
+            )}
 
-          <Flexbox gap={12} horizontal>
             <button
               className={styles.actionButton}
               onClick={() => setShowRechargeModal(true)}
-              style={{ background: 'white', color: '#667eea' }}
+              style={{ background: 'white', color: '#667eea', marginTop: 4 }}
             >
               <Flexbox align="center" gap={6} horizontal>
-                <CreditCard size={16} />
+                <CreditCard size={15} />
                 Recargar Saldo
               </Flexbox>
             </button>
           </Flexbox>
+        </div>
 
-          {isLowBalance && (
-            <Flexbox
-              style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                borderRadius: 8,
-                padding: '8px 12px',
-              }}
-            >
-              Saldo bajo. Recarga para continuar usando los servicios.
+        {/* Plan activo */}
+        <div
+          className={styles.card}
+          style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+        >
+          <Flexbox gap={12}>
+            <Flexbox align="center" gap={8} horizontal>
+              <TrendingUp size={20} />
+              <span style={{ fontSize: 15, fontWeight: 600 }}>Plan activo</span>
             </Flexbox>
-          )}
-        </Flexbox>
+
+            {subscriptionLoading ? (
+              <Skeleton active paragraph={{ rows: 2 }} />
+            ) : subscription ? (
+              <Flexbox gap={8}>
+                <Flexbox align="center" gap={10} horizontal style={{ flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 28, fontWeight: 700 }}>
+                    {subscription.plan_name || subscription.plan_id}
+                  </span>
+                  <Tag color={subscription.status === 'ACTIVE' ? 'success' : 'warning'} style={{ fontSize: 12 }}>
+                    {subscription.status === 'ACTIVE' ? 'Activo' : subscription.status}
+                  </Tag>
+                </Flexbox>
+                {subscription.current_period_end && (
+                  <span style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 13 }}>
+                    Próximo cobro: {formatDate(subscription.current_period_end)}
+                  </span>
+                )}
+              </Flexbox>
+            ) : (
+              <Flexbox gap={4}>
+                <span style={{ fontSize: 20, fontWeight: 600 }}>Prepago</span>
+                <span style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 13 }}>
+                  Pago por uso — sin suscripción activa
+                </span>
+              </Flexbox>
+            )}
+          </Flexbox>
+
+          <button
+            className={styles.secondaryButton}
+            onClick={() => router.push('/settings/billing/planes')}
+            style={{ marginTop: 12 }}
+            type="button"
+          >
+            {subscription ? 'Cambiar plan' : 'Ver planes disponibles'}
+          </button>
+        </div>
       </div>
 
       {/* Auto-recarga */}
@@ -435,65 +457,6 @@ const BillingPage = memo(() => {
                 </Flexbox>
               </button>
             </Flexbox>
-          </Flexbox>
-        )}
-      </div>
-
-      {/* Subscription Card */}
-      <div className={styles.card}>
-        <div className={styles.sectionTitle}>
-          <TrendingUp size={20} />
-          Mi Plan
-        </div>
-
-        {subscriptionLoading ? (
-          <Skeleton active paragraph={{ rows: 2 }} />
-        ) : subscription ? (
-          <Flexbox gap={16}>
-            <Flexbox align="center" gap={16} horizontal style={{ flexWrap: 'wrap' }}>
-              <Flexbox gap={4}>
-                <span className={styles.statLabel}>Plan Actual</span>
-                <span className={styles.statValue}>
-                  {subscription.plan_name || subscription.plan_id}
-                </span>
-              </Flexbox>
-
-              <Tag color={subscription.status === 'ACTIVE' ? 'success' : 'warning'}>
-                {subscription.status}
-              </Tag>
-
-              {subscription.current_period_end && (
-                <Flexbox gap={4}>
-                  <span className={styles.statLabel}>Proximo Cobro</span>
-                  <span style={{ fontWeight: 600 }}>{formatDate(subscription.current_period_end)}</span>
-                </Flexbox>
-              )}
-            </Flexbox>
-
-            <Flexbox horizontal style={{ marginTop: 8 }}>
-              <button
-                className={styles.secondaryButton}
-                onClick={() => router.push('/settings/billing/planes')}
-                type="button"
-              >
-                Cambiar plan
-              </button>
-            </Flexbox>
-          </Flexbox>
-        ) : (
-          <Flexbox gap={12}>
-            <span>No tienes una suscripcion activa.</span>
-            <span style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 14 }}>
-              Usa el sistema de prepago (wallet) para pagar por uso.
-            </span>
-            <button
-              className={styles.secondaryButton}
-              onClick={() => router.push('/settings/billing/planes')}
-              style={{ marginTop: 8 }}
-              type="button"
-            >
-              Ver planes
-            </button>
           </Flexbox>
         )}
       </div>
