@@ -17,18 +17,14 @@ import { api2Client } from './client';
 // ========================================
 
 export interface WalletBalance {
-  auto_recharge_enabled?: boolean;
   balance: number;
   bonus_balance: number;
   currency: string;
   error?: string;
-  last_transaction_at?: string;
-  low_balance_threshold: number;
+  errors?: string[];
   status: 'ACTIVE' | 'SUSPENDED' | 'CLOSED';
   success: boolean;
   total_balance: number;
-  total_consumed?: number;
-  total_recharged?: number;
 }
 
 export interface BalanceCheck {
@@ -149,11 +145,7 @@ const GET_BALANCE_QUERY = `
       total_balance
       currency
       status
-      low_balance_threshold
-      auto_recharge_enabled
-      total_recharged
-      total_consumed
-      last_transaction_at
+      errors
     }
   }
 `;
@@ -195,8 +187,8 @@ const GET_SERVICE_PRICE_QUERY = `
 `;
 
 const GET_TRANSACTIONS_QUERY = `
-  query GetTransactions($page: Int, $limit: Int, $type: WalletTransactionType) {
-    wallet_getTransactions(page: $page, limit: $limit, type: $type) {
+  query GetTransactions($page: Int, $limit: Int, $filter: WalletTransactionsFilter) {
+    wallet_getTransactions(page: $page, limit: $limit, filter: $filter) {
       success
       transactions {
         _id
@@ -345,7 +337,6 @@ export class WalletService {
         bonus_balance: 0,
         currency: 'EUR',
         error: errorMsg,
-        low_balance_threshold: 5,
         status: 'ACTIVE',
         success: false,
         total_balance: 0,
@@ -413,7 +404,7 @@ export class WalletService {
       console.log('🔍 [walletService] Obteniendo transacciones...', { limit, page, type });
       const data = await api2Client.query<{ wallet_getTransactions: TransactionsResponse }>(
         GET_TRANSACTIONS_QUERY,
-        { limit, page, type }
+        { limit, page, filter: type ? { type } : undefined }
       );
       console.log('📊 [walletService] Respuesta de transacciones:', {
         count: data.wallet_getTransactions?.transactions?.length || 0,
@@ -480,6 +471,14 @@ export class WalletService {
       console.log('📥 [walletService] Respuesta de API:', data);
 
       const result = data.wallet_createRechargeSession;
+
+      // Mapear UNAUTHORIZED a mensaje legible para el usuario
+      if (!result.success && (result.error_code === 'UNAUTHORIZED' || result.error_message?.toUpperCase() === 'UNAUTHORIZED')) {
+        return {
+          ...result,
+          error_message: 'Para recargar tu saldo necesitas iniciar sesión. Por favor, accede a tu cuenta.',
+        };
+      }
 
       if (!result.success) {
         console.error('❌ [walletService] Error en respuesta:', {

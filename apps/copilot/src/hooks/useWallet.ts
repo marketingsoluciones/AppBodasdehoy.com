@@ -99,17 +99,16 @@ export const useWallet = (): UseWalletReturn => {
         total_balance: data.total_balance 
       });
 
-      if (data.success) {
-        setBalance(data.balance);
-        setBonusBalance(data.bonus_balance);
-        setTotalBalance(data.total_balance);
-        setCurrency(data.currency);
-        setStatus(data.status);
-        setLowBalanceThreshold(data.low_balance_threshold);
-      } else {
-        const errorMsg = data.error || 'Error al obtener saldo';
-        console.error('❌ [useWallet] Error en respuesta:', errorMsg);
-        setError(errorMsg);
+      // Actualizar balance aunque success sea false (wallet sin fondos o no inicializado)
+      setBalance(data.balance ?? 0);
+      setBonusBalance(data.bonus_balance ?? 0);
+      setTotalBalance(data.total_balance ?? 0);
+      setCurrency(data.currency || 'EUR');
+      setStatus(data.status || 'ACTIVE');
+
+      if (!data.success && data.error) {
+        console.error('❌ [useWallet] Error en respuesta:', data.error);
+        setError(data.error);
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error desconocido';

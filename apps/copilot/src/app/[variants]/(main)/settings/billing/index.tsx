@@ -25,7 +25,7 @@ import dayjs from 'dayjs';
 
 import { useBilling } from '@/hooks/useBilling';
 import { useWallet } from '@/hooks/useWallet';
-import { INVOICE_STATUS_LABELS, PLAN_TIER_LABELS } from '@/services/api2/invoices';
+import { INVOICE_STATUS_LABELS } from '@/services/api2/invoices';
 import { walletService, SERVICE_SKUS } from '@/services/api2/wallet';
 import { useChatStore } from '@/store/chat';
 import { useUserStore } from '@/store/user';
@@ -309,7 +309,7 @@ const BillingPage = memo(() => {
               <Flexbox gap={4}>
                 <span className={styles.statLabel}>Plan Actual</span>
                 <span className={styles.statValue}>
-                  {subscription.plan_name || PLAN_TIER_LABELS[subscription.plan_tier]}
+                  {subscription.plan_name || subscription.plan_id}
                 </span>
               </Flexbox>
 
@@ -324,23 +324,6 @@ const BillingPage = memo(() => {
                 </Flexbox>
               )}
             </Flexbox>
-
-            {subscription.limits && (
-              <Flexbox gap={8} horizontal style={{ flexWrap: 'wrap' }}>
-                {subscription.limits.monthly_ai_tokens && (
-                  <Tag>
-                    Tokens: {subscription.limits.current_ai_tokens?.toLocaleString() || 0} /{' '}
-                    {subscription.limits.monthly_ai_tokens.toLocaleString()}
-                  </Tag>
-                )}
-                {subscription.limits.monthly_images && (
-                  <Tag>
-                    Imagenes: {subscription.limits.current_images || 0} /{' '}
-                    {subscription.limits.monthly_images}
-                  </Tag>
-                )}
-              </Flexbox>
-            )}
 
             <Flexbox horizontal style={{ marginTop: 8 }}>
               <button
@@ -429,7 +412,7 @@ const BillingPage = memo(() => {
             )}
 
             {/* Imagenes */}
-            {usageStats.images && usageStats.images.total > 0 && (
+            {usageStats.images && (usageStats.images.total ?? 0) > 0 && (
               <Flexbox gap={12}>
                 <Flexbox align="center" gap={8} horizontal>
                   <Image size={18} />
@@ -460,7 +443,7 @@ const BillingPage = memo(() => {
                 <Flexbox align="center" gap={8} horizontal>
                   <MessageSquare size={18} />
                   <span style={{ fontWeight: 600 }}>Comunicaciones</span>
-                  {usageStats.communications.total_cost > 0 && (
+                  {(usageStats.communications.total_cost ?? 0) > 0 && (
                     <Tag color="orange">
                       {'\u20AC'}{usageStats.communications.total_cost?.toFixed(2)}
                     </Tag>
@@ -468,7 +451,7 @@ const BillingPage = memo(() => {
                 </Flexbox>
                 <Flexbox gap={8} horizontal style={{ flexWrap: 'wrap', marginLeft: 26 }}>
                   {/* WhatsApp */}
-                  {(usageStats.communications.whatsapp_sent > 0 || usageStats.communications.whatsapp_received > 0) && (
+                  {((usageStats.communications.whatsapp_sent ?? 0) > 0 || (usageStats.communications.whatsapp_received ?? 0) > 0) && (
                     <Flexbox align="center" gap={6} horizontal style={{ minWidth: 180 }}>
                       <Smartphone size={14} style={{ color: '#25D366' }} />
                       <span style={{ fontSize: 13 }}>WhatsApp:</span>
@@ -479,7 +462,7 @@ const BillingPage = memo(() => {
                     </Flexbox>
                   )}
                   {/* SMS */}
-                  {usageStats.communications.sms_sent > 0 && (
+                  {(usageStats.communications.sms_sent ?? 0) > 0 && (
                     <Flexbox align="center" gap={6} horizontal style={{ minWidth: 120 }}>
                       <MessageSquare size={14} style={{ color: '#3b82f6' }} />
                       <span style={{ fontSize: 13 }}>SMS:</span>
@@ -489,7 +472,7 @@ const BillingPage = memo(() => {
                     </Flexbox>
                   )}
                   {/* Emails */}
-                  {usageStats.communications.emails_sent > 0 && (
+                  {(usageStats.communications.emails_sent ?? 0) > 0 && (
                     <Flexbox align="center" gap={6} horizontal style={{ minWidth: 120 }}>
                       <Mail size={14} style={{ color: '#ef4444' }} />
                       <span style={{ fontSize: 13 }}>Emails:</span>
@@ -503,7 +486,7 @@ const BillingPage = memo(() => {
             )}
 
             {/* Storage */}
-            {usageStats.storage && usageStats.storage.total_gb > 0 && (
+            {usageStats.storage && (usageStats.storage.total_gb ?? 0) > 0 && (
               <Flexbox gap={8}>
                 <Flexbox align="center" gap={8} horizontal>
                   <span style={{ fontWeight: 600 }}>Almacenamiento</span>

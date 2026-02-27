@@ -216,13 +216,13 @@ export const useBilling = (): UseBillingReturn => {
           errors: data.errors, 
           hasStats: !!data.stats,
           success: data.success,
-          totalCost: data.stats?.total_cost 
+          totalCost: data.stats?.totalCost
         });
 
         if (data.success && data.stats) {
           setUsageStats(data.stats);
         } else {
-          const errorMsg = data.errors?.[0]?.message || 'No hay estadísticas disponibles';
+          const errorMsg = (data.errors?.[0] as string) || 'No hay estadísticas disponibles';
           console.warn('⚠️ [useBilling] Sin estadísticas:', errorMsg);
           setUsageStats(null);
         }

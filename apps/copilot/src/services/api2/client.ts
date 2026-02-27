@@ -13,8 +13,13 @@ interface GraphQLResponse<T> {
   errors?: GraphQLErrorShape[];
 }
 
+// Solo borrar el token si el error indica que el token está expirado o es inválido,
+// NOT si simplemente no hay autenticación (ej: "proporciona un token válido")
 const shouldResetToken = (errors?: GraphQLErrorShape[]) =>
-  errors?.some((error) => error?.message?.toLowerCase().includes('token')) ?? false;
+  errors?.some((error) => {
+    const msg = error?.message?.toLowerCase() ?? '';
+    return msg.includes('token expired') || msg.includes('token inválido') || msg.includes('jwt expired');
+  }) ?? false;
 
 const readToken = () => {
   if (typeof window === 'undefined') return undefined;

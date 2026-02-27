@@ -147,19 +147,15 @@ export interface SubscriptionFeatures {
 
 export interface Subscription {
   _id: string;
-  cancel_at_period_end?: boolean;
-  canceled_at?: string;
+  cancelled_at?: string;
   created_at: string;
   current_period_end: string;
   current_period_start: string;
-  features?: SubscriptionFeatures;
-  limits?: SubscriptionLimits;
   plan_id: string;
-  plan_name: string;
-  plan_tier: 'FREE' | 'BASIC' | 'PRO' | 'MAX' | 'ENTERPRISE';
+  plan_name?: string;
+  plan_tier?: 'FREE' | 'BASIC' | 'PRO' | 'MAX' | 'ENTERPRISE';
   status: 'ACTIVE' | 'PAST_DUE' | 'CANCELED' | 'TRIALING' | 'INCOMPLETE';
-  stripe_customer_id?: string;
-  stripe_subscription_id?: string;
+  trial_end?: string;
   updated_at: string;
   user_id: string;
 }
@@ -170,51 +166,59 @@ export interface SubscriptionResponse {
   success: boolean;
 }
 
-export interface UsageByModel {
+export interface UsageActionCount {
+  action: string;
   cost: number;
-  model: string;
+  count: number;
   tokens: number;
 }
 
-export interface UsageByProvider {
+export interface DailyUsage {
+  actions: number;
   cost: number;
-  count: number;
-  provider: string;
+  date: string;
+  tokens: number;
 }
 
 export interface UsageStats {
+  // Campos del schema real (camelCase)
+  actionCounts?: UsageActionCount[];
+  dailyUsage?: DailyUsage[];
+  totalCost?: number;
+  totalTokens?: number;
+  // Campos del schema antiguo (snake_case, opcionales para compatibilidad)
   ai_tokens?: {
-    by_model: UsageByModel[];
-    total: number;
+    by_model?: { cost: number; model: string; tokens: number }[];
+    total?: number;
   };
   billing_source_breakdown?: {
-    free_tier: number;
-    subscription: number;
-    wallet: number;
+    free_tier?: number;
+    subscription?: number;
+    wallet?: number;
   };
   communications?: {
-    emails_sent: number;
-    sms_sent: number;
-    total_cost: number;
-    whatsapp_received: number;
-    whatsapp_sent: number;
+    emails_sent?: number;
+    sms_sent?: number;
+    total_cost?: number;
+    whatsapp_received?: number;
+    whatsapp_sent?: number;
   };
   images?: {
-    by_provider: UsageByProvider[];
-    total: number;
+    by_provider?: { cost: number; count: number; provider: string }[];
+    total?: number;
   };
-  period_end: string;
-  period_start: string;
+  period_end?: string;
+  period_start?: string;
   storage?: {
-    cost: number;
-    total_gb: number;
-    transfer_gb: number;
+    cost?: number;
+    total_gb?: number;
+    transfer_gb?: number;
   };
-  total_cost: number;
+  total_cost?: number;
 }
 
 export interface UsageStatsResponse {
-  errors?: Array<{ code: string; field: string; message: string }>;
+  errors?: string[];
   stats?: UsageStats;
   success: boolean;
 }
@@ -368,102 +372,42 @@ const GET_PAYMENT_HISTORY_QUERY = `
 `;
 
 const GET_SUBSCRIPTION_QUERY = `
-  query GetUserSubscription {
-    getUserSubscription {
-      success
-      subscription {
-        _id
-        user_id
-        plan_id
-        plan_name
-        plan_tier
-        status
-        current_period_start
-        current_period_end
-        stripe_subscription_id
-        stripe_customer_id
-        limits {
-          monthly_ai_tokens
-          monthly_images
-          monthly_whatsapp_messages
-          monthly_sms
-          monthly_emails
-          storage_gb
-          current_ai_tokens
-          current_images
-          current_whatsapp_messages
-          current_sms
-          current_emails
-          current_storage_gb
-        }
-        features {
-          has_api_access
-          has_priority_support
-          has_custom_branding
-          has_advanced_analytics
-          max_team_members
-          max_events
-        }
-        cancel_at_period_end
-        canceled_at
-        created_at
-        updated_at
-      }
-      errors {
-        field
-        message
-        code
-      }
+  query GetMySubscription {
+    getMySubscription {
+      _id
+      user_id
+      plan_id
+      status
+      current_period_start
+      current_period_end
+      trial_end
+      cancelled_at
+      created_at
+      updated_at
     }
   }
 `;
 
 const GET_USAGE_STATS_QUERY = `
-  query GetUsageStats($period: UsagePeriod!, $startDate: DateTime, $endDate: DateTime) {
-    getUsageStats(period: $period, startDate: $startDate, endDate: $endDate) {
+  query GetUsageStats($filters: UsageFilters) {
+    getUsageStats(filters: $filters) {
       success
+      errors
       stats {
-        period_start
-        period_end
-        ai_tokens {
-          total
-          by_model {
-            model
-            tokens
-            cost
-          }
-        }
-        images {
-          total
-          by_provider {
-            provider
-            count
-            cost
-          }
-        }
-        communications {
-          whatsapp_sent
-          whatsapp_received
-          sms_sent
-          emails_sent
-          total_cost
-        }
-        storage {
-          total_gb
-          transfer_gb
+        totalTokens
+        totalCost
+        actionCounts {
+          action
+          count
+          tokens
           cost
         }
-        total_cost
-        billing_source_breakdown {
-          subscription
-          wallet
-          free_tier
+        dailyUsage {
+          date
+          tokens
+          cost
+          actions
         }
-      }
-      errors {
-        field
-        message
-        code
       }
     }
   }
@@ -499,10 +443,11 @@ export class InvoicesService {
     } catch (error) {
       console.error('❌ [invoicesService] Error obteniendo facturas:', error);
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-      console.error('❌ [invoicesService] Detalles del error:', {
-        message: errorMsg,
-        stack: error instanceof Error ? error.stack : undefined,
-      });
+      // Si el campo no existe aún en api2, devolver vacío sin mostrar error al usuario
+      if (errorMsg.includes('Cannot query field')) {
+        console.warn('⚠️ [invoicesService] getInvoices no existe en api2 aún, devolviendo vacío');
+        return { invoices: [], pagination: { limit, page, total: 0, totalPages: 0 }, success: true };
+      }
       return {
         errors: [{ code: 'API_ERROR', field: 'getInvoices', message: errorMsg }],
         invoices: [],
@@ -585,6 +530,11 @@ export class InvoicesService {
     } catch (error) {
       console.error('❌ [invoicesService] Error obteniendo pagos:', error);
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
+      // Si el campo no existe aún en api2, devolver vacío sin mostrar error al usuario
+      if (errorMsg.includes('Cannot query field')) {
+        console.warn('⚠️ [invoicesService] getPaymentHistory no existe en api2 aún, devolviendo vacío');
+        return { pagination: { limit, page, total: 0, totalPages: 0 }, payments: [], success: true };
+      }
       return {
         errors: [{ code: 'API_ERROR', field: 'getPaymentHistory', message: errorMsg }],
         pagination: { limit, page, total: 0, totalPages: 0 },
@@ -600,22 +550,15 @@ export class InvoicesService {
   async getSubscription(): Promise<SubscriptionResponse> {
     try {
       console.log('🔍 [invoicesService] Obteniendo suscripción...');
-      const data = await api2Client.query<{ getUserSubscription: SubscriptionResponse }>(
+      const data = await api2Client.query<{ getMySubscription: Subscription | null }>(
         GET_SUBSCRIPTION_QUERY
       );
-      console.log('📊 [invoicesService] Respuesta de suscripción:', {
-        errors: data.getUserSubscription?.errors,
-        hasSubscription: !!data.getUserSubscription?.subscription,
-        success: data.getUserSubscription?.success,
-      });
-      return data.getUserSubscription;
+      const sub = data.getMySubscription;
+      console.log('📊 [invoicesService] Respuesta de suscripción:', { hasSubscription: !!sub });
+      return { subscription: sub ?? undefined, success: true };
     } catch (error) {
       console.error('❌ [invoicesService] Error obteniendo suscripción:', error);
-      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-      return {
-        errors: [{ code: 'API_ERROR', field: 'getSubscription', message: errorMsg }],
-        success: false,
-      };
+      return { success: false };
     }
   }
 
@@ -628,25 +571,34 @@ export class InvoicesService {
     endDate?: string
   ): Promise<UsageStatsResponse> {
     try {
-      console.log('🔍 [invoicesService] Obteniendo estadísticas de uso...', { endDate, period, startDate });
+      console.log('🔍 [invoicesService] Obteniendo estadísticas de uso...', { period, startDate, endDate });
+      // Calcular fechas a partir del período
+      const now = new Date();
+      let filterStart: string | undefined = startDate;
+      let filterEnd: string | undefined = endDate;
+      if (!filterStart) {
+        const d = new Date(now);
+        if (period === 'TODAY') { d.setHours(0, 0, 0, 0); }
+        else if (period === 'THIS_WEEK') { d.setDate(d.getDate() - d.getDay()); d.setHours(0, 0, 0, 0); }
+        else if (period === 'THIS_MONTH') { d.setDate(1); d.setHours(0, 0, 0, 0); }
+        else if (period === 'LAST_30_DAYS') { d.setDate(d.getDate() - 30); }
+        filterStart = d.toISOString();
+      }
+      if (!filterEnd) { filterEnd = now.toISOString(); }
+
       const data = await api2Client.query<{ getUsageStats: UsageStatsResponse }>(
         GET_USAGE_STATS_QUERY,
-        { endDate, period, startDate }
+        { filters: { startDate: filterStart, endDate: filterEnd } }
       );
       console.log('📊 [invoicesService] Respuesta de estadísticas:', {
-        errors: data.getUsageStats?.errors,
         hasStats: !!data.getUsageStats?.stats,
         success: data.getUsageStats?.success,
-        totalCost: data.getUsageStats?.stats?.total_cost,
+        totalCost: data.getUsageStats?.stats?.totalCost,
       });
       return data.getUsageStats;
     } catch (error) {
       console.error('❌ [invoicesService] Error obteniendo estadísticas:', error);
-      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-      return {
-        errors: [{ code: 'API_ERROR', field: 'getUsageStats', message: errorMsg }],
-        success: false,
-      };
+      return { errors: ['Error obteniendo estadísticas'], success: false };
     }
   }
 }
@@ -673,7 +625,7 @@ export const PAYMENT_TYPE_LABELS: Record<Payment['type'], string> = {
   WALLET_RECHARGE: 'Recarga de saldo',
 };
 
-export const PLAN_TIER_LABELS: Record<Subscription['plan_tier'], string> = {
+export const PLAN_TIER_LABELS: Record<'FREE' | 'BASIC' | 'PRO' | 'MAX' | 'ENTERPRISE', string> = {
   BASIC: 'Básico',
   ENTERPRISE: 'Empresa',
   FREE: 'Gratuito',
