@@ -3,11 +3,23 @@
 import { Button, Card, Form, Input, message } from 'antd';
 import { UserAddOutlined, PhoneOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
-import { memo, useMemo, useEffect, useState } from 'react';
+import { memo, useMemo, useEffect, useRef, useState } from 'react';
 import { useChatStore } from '@/store/chat';
+import { chatSelectors } from '@/store/chat/selectors';
 import { Markdown } from '@lobehub/ui';
 import { Center, Flexbox } from 'react-layout-kit';
 import { useVisitorData } from '@/hooks/useVisitorData';
+
+// Extrae teléfono y email de un texto libre (mensajes de chat)
+function extractContactFromText(text: string): { email?: string; phone?: string } {
+  const emailMatch = text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
+  // Soporta formatos: +34 666 123 456, 666123456, +34666123456, 666 123 456
+  const phoneMatch = text.match(/(\+?\d[\d\s\-]{7,14}\d)/);
+  return {
+    email: emailMatch?.[0],
+    phone: phoneMatch?.[0]?.replace(/\s/g, ''),
+  };
+}
 
 /**
  * Componente que muestra mensaje mejorado para visitantes no registrados.
@@ -28,9 +40,13 @@ function GuestWelcomeMessage() {
     userType: s.userType,
   }));
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // Mensajes del usuario en el chat activo
+  const userMessages = useChatStore((s) =>
+    chatSelectors.activeBaseChats(s)
+      .filter((m) => m.role === 'user')
+      .map((m) => (typeof m.content === 'string' ? m.content : '')),
+  );
+  const lastSeenMsgCountRef = useRef(0);
 
   const isGuest = useMemo(() => {
     if (!mounted) return false;
@@ -42,6 +58,40 @@ function GuestWelcomeMessage() {
       userType === 'guest'
     );
   }, [currentUserId, userType, mounted]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Monitorear mensajes del usuario para detectar teléfono/email automáticamente
+  useEffect(() => {
+    if (!isGuest || leadCaptured) return;
+    if (userMessages.length <= lastSeenMsgCountRef.current) return;
+
+    // Sólo analizar mensajes nuevos
+    const newMessages = userMessages.slice(lastSeenMsgCountRef.current);
+    lastSeenMsgCountRef.current = userMessages.length;
+
+    for (const text of newMessages) {
+      const { phone, email } = extractContactFromText(text);
+      if (!phone && !email) continue;
+
+      const sessionId = activeExternalChatId || `guest-${Date.now()}`;
+      saveVisitorData({
+        development: development || 'bodasdehoy',
+        intent: 'lead_capture_chat',
+        metadata: { source: 'chat_message', timestamp: new Date().toISOString() },
+        session_id: sessionId,
+        user_info: { email, phone },
+      })
+        .then(() => {
+          setLeadCaptured(true);
+          message.success('¡Gracias! Hemos guardado tu contacto.');
+        })
+        .catch(() => {/* silencioso */});
+      break; // solo capturar una vez por sesión
+    }
+  }, [userMessages, isGuest, leadCaptured, activeExternalChatId, development, saveVisitorData]);
 
   if (!mounted || !isGuest) {
     return null;

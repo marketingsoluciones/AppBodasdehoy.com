@@ -108,6 +108,28 @@ class ChatService {
     const agentConfig = agentSelectors.currentAgentConfig(agentStoreState);
     const chatConfig = agentChatConfigSelectors.currentChatConfig(agentStoreState);
 
+    // Append guest lead-capture instructions when user is anonymous
+    const { getChatStoreState: _getChatState } = await import('@/store/chat');
+    const _chatState = _getChatState();
+    const _isGuest =
+      !_chatState.currentUserId ||
+      _chatState.currentUserId === 'visitante@guest.local' ||
+      _chatState.userType === 'guest';
+
+    let effectiveSystemRole = agentConfig.systemRole || '';
+    if (_isGuest) {
+      effectiveSystemRole +=
+        '\n\n---\nINSTRUCCIONES ESPECIALES PARA VISITANTE ANÓNIMO:\n' +
+        'Este visitante aún no está registrado. Tu misión principal es ayudarle con sus dudas sobre bodas y eventos, ' +
+        'y de forma natural intentar obtener sus datos de contacto (nombre, teléfono y/o correo electrónico) para que ' +
+        'el equipo pueda hacerle seguimiento personalizado.\n' +
+        'Cuando el usuario mencione su nombre, teléfono o email, reconócelo y dile que con esos datos podrás ofrecerle ' +
+        'información personalizada. No seas insistente — pide los datos UNA sola vez si no los has recibido ya.\n' +
+        'Si el usuario proporciona su teléfono o email, indícale que sus datos han sido guardados para que el equipo ' +
+        'pueda contactarle. No ofrezcas funciones de facturación, historial ni configuración — esas funciones requieren registro.\n' +
+        '---';
+    }
+
     // Apply context engineering with preprocessing configuration
     const oaiMessages = await contextEngineering({
       enableHistoryCount: agentChatConfigSelectors.enableHistoryCount(agentStoreState),
@@ -120,7 +142,7 @@ class ChatService {
       model: payload.model,
       provider: payload.provider!,
       sessionId: options?.trace?.sessionId,
-      systemRole: agentConfig.systemRole,
+      systemRole: effectiveSystemRole,
       tools: enabledToolIds,
     });
 
