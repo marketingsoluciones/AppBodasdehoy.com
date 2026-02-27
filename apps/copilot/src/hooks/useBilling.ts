@@ -11,6 +11,7 @@ import {
   UsageStats,
   invoicesService,
 } from '@/services/api2/invoices';
+import { useChatStore } from '@/store/chat';
 
 // ========================================
 // TYPES
@@ -68,6 +69,9 @@ export interface UseBillingReturn extends UseBillingState, UseBillingActions {}
 // ========================================
 
 export const useBilling = (): UseBillingReturn => {
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
+
   // Invoices state
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [invoicesLoading, setInvoicesLoading] = useState(false);
@@ -307,11 +311,12 @@ export const useBilling = (): UseBillingReturn => {
   // EFFECTS
   // ========================================
 
-  // Cargar datos iniciales
+  // Cargar datos iniciales — solo cuando el usuario está autenticado
   useEffect(() => {
+    if (!isAuthenticated) return;
     fetchSubscription();
     fetchUsageStats('THIS_MONTH');
-  }, [fetchSubscription, fetchUsageStats]);
+  }, [isAuthenticated, fetchSubscription, fetchUsageStats]);
 
   // ========================================
   // RETURN

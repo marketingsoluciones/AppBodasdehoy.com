@@ -108,6 +108,8 @@ const useStyles = createStyles(({ css, token }) => ({
 const BillingPage = memo(() => {
   const { styles } = useStyles();
   const router = useRouter();
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [usagePeriod, setUsagePeriod] = useState<'TODAY' | 'THIS_WEEK' | 'THIS_MONTH' | 'LAST_30_DAYS'>('THIS_MONTH');
   const [paymentMethods, setPaymentMethods] = useState<StoredPaymentMethod[]>([]);
@@ -156,8 +158,9 @@ const BillingPage = memo(() => {
     error: billingError,
   } = useBilling();
 
-  // Cargar datos iniciales
+  // Cargar datos iniciales — solo usuarios autenticados
   useEffect(() => {
+    if (!isAuthenticated) return;
     fetchInvoices(1);
     fetchPayments(1);
     // Cargar métodos de pago guardados
@@ -165,17 +168,19 @@ const BillingPage = memo(() => {
     walletService.getPaymentMethods()
       .then(setPaymentMethods)
       .finally(() => setPaymentMethodsLoading(false));
-  }, [fetchInvoices, fetchPayments]);
+  }, [isAuthenticated, currentUserId, fetchInvoices, fetchPayments]);
 
-  // Aplicar filtros cuando cambien
+  // Aplicar filtros cuando cambien — solo usuarios autenticados
   useEffect(() => {
+    if (!isAuthenticated) return;
     fetchInvoices(invoicePage, invoiceFilters.status as any);
-  }, [invoicePage, invoiceFilters.status, fetchInvoices]);
+  }, [isAuthenticated, invoicePage, invoiceFilters.status, fetchInvoices]);
 
-  // Refetch usage stats cuando cambia el período
+  // Refetch usage stats cuando cambia el período — solo usuarios autenticados
   useEffect(() => {
+    if (!isAuthenticated) return;
     fetchUsageStats(usagePeriod);
-  }, [usagePeriod, fetchUsageStats]);
+  }, [isAuthenticated, usagePeriod, fetchUsageStats]);
 
   // Handle recharge
   const handleRecharge = async (amount: number) => {
@@ -206,6 +211,44 @@ const BillingPage = memo(() => {
     };
     return colors[status] || 'default';
   };
+
+  // Usuarios anónimos no tienen acceso a facturación ni configuración
+  if (!isAuthenticated) {
+    return (
+      <Flexbox
+        align="center"
+        gap={24}
+        justify="center"
+        style={{ minHeight: 400, padding: 48, textAlign: 'center', width: '100%' }}
+      >
+        <div style={{ fontSize: 48 }}>🔒</div>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px' }}>
+            Área exclusiva para usuarios registrados
+          </h2>
+          <p style={{ color: '#8c8c8c', fontSize: 14, margin: '0 0 24px', maxWidth: 360 }}>
+            La facturación, el historial de pagos y la configuración solo están disponibles
+            para usuarios con cuenta. Vuelve al chat para continuar.
+          </p>
+          <button
+            onClick={() => router.push('/')}
+            style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+              borderRadius: 8,
+              color: 'white',
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 600,
+              padding: '12px 24px',
+            }}
+          >
+            Volver al chat
+          </button>
+        </div>
+      </Flexbox>
+    );
+  }
 
   return (
     <Flexbox gap={24} style={{ maxWidth: 1024, padding: 24, width: '100%' }}>

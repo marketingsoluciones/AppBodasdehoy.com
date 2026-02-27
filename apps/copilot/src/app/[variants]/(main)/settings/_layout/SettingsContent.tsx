@@ -1,11 +1,12 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import React, { CSSProperties } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
 import Loading from '@/components/Loading/BrandTextLoading';
+import { useChatStore } from '@/store/chat';
 import { SettingsTabs } from '@/store/global/initialState';
 
 const componentMap = {
@@ -54,6 +55,48 @@ interface SettingsContentProps {
 }
 
 const SettingsContent = ({ mobile, activeTab, showLLM = true }: SettingsContentProps) => {
+  const router = useRouter();
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
+
+  // Usuarios anónimos no tienen acceso a configuración
+  if (!isAuthenticated) {
+    return (
+      <Flexbox
+        align="center"
+        gap={24}
+        justify="center"
+        style={{ minHeight: 400, padding: 48, textAlign: 'center', width: '100%' }}
+      >
+        <div style={{ fontSize: 48 }}>🔒</div>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px' }}>
+            Configuración solo para usuarios registrados
+          </h2>
+          <p style={{ color: '#8c8c8c', fontSize: 14, margin: '0 0 24px', maxWidth: 360 }}>
+            La configuración, facturación y ajustes están reservados para usuarios con cuenta.
+            Vuelve al chat para continuar o inicia sesión desde la aplicación.
+          </p>
+          <button
+            onClick={() => router.push('/')}
+            style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+              borderRadius: 8,
+              color: 'white',
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 600,
+              padding: '12px 24px',
+            }}
+          >
+            Volver al chat
+          </button>
+        </div>
+      </Flexbox>
+    );
+  }
+
   const shouldRenderLLMTabs = (tab: string) => {
     const isLLMTab =
       tab === SettingsTabs.LLM || tab === SettingsTabs.Provider || tab === SettingsTabs.Agent;

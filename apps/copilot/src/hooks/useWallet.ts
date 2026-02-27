@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
+import { useChatStore } from '@/store/chat';
 import {
   BalanceCheck,
   ConsumeResponse,
@@ -58,6 +59,9 @@ export interface UseWalletReturn extends UseWalletState, UseWalletActions {
 // ========================================
 
 export const useWallet = (): UseWalletReturn => {
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
+
   // Balance state
   const [balance, setBalance] = useState(0);
   const [bonusBalance, setBonusBalance] = useState(0);
@@ -275,22 +279,22 @@ export const useWallet = (): UseWalletReturn => {
   // EFFECTS
   // ========================================
 
-  // Cargar balance inicial — diferido 300ms para que EventosAutoAuth tenga tiempo de poner el JWT
+  // Cargar balance cuando el usuario se autentica (o cambia de usuario)
   useEffect(() => {
-    const timer = setTimeout(refetchBalance, 300);
-    return () => clearTimeout(timer);
-  }, [refetchBalance]);
+    if (!isAuthenticated) return;
+    refetchBalance();
+  }, [currentUserId]); // Re-fetch cada vez que cambia el userId (login event)
 
-  // Auto-retry si UNAUTHORIZED: espera a que EventosAutoAuth ponga el JWT (~800ms)
+  // Auto-retry si UNAUTHORIZED y hay token disponible (race condition edge case)
   useEffect(() => {
-    if (error !== 'UNAUTHORIZED' || typeof window === 'undefined') return;
+    if (error !== 'UNAUTHORIZED' || !isAuthenticated || typeof window === 'undefined') return;
     const retryTimer = setTimeout(() => {
       if (localStorage.getItem('jwt_token')) {
         refetchBalance();
       }
-    }, 800);
+    }, 500);
     return () => clearTimeout(retryTimer);
-  }, [error, refetchBalance]);
+  }, [error, isAuthenticated, refetchBalance]);
 
   // Manejar retorno de Stripe
   useEffect(() => {
