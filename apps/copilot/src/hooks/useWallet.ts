@@ -106,9 +106,13 @@ export const useWallet = (): UseWalletReturn => {
       setCurrency(data.currency || 'EUR');
       setStatus(data.status || 'ACTIVE');
 
-      if (!data.success && data.error) {
-        console.error('❌ [useWallet] Error en respuesta:', data.error);
-        setError(data.error);
+      if (!data.success) {
+        // La API puede devolver el error en data.error (string) o data.errors (string[])
+        const errorMsg = data.error || (data.errors as string[] | undefined)?.[0] || null;
+        if (errorMsg) {
+          console.error('❌ [useWallet] Error en respuesta:', errorMsg);
+          setError(errorMsg);
+        }
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
@@ -271,10 +275,22 @@ export const useWallet = (): UseWalletReturn => {
   // EFFECTS
   // ========================================
 
-  // Cargar balance inicial
+  // Cargar balance inicial — diferido 300ms para que EventosAutoAuth tenga tiempo de poner el JWT
   useEffect(() => {
-    refetchBalance();
+    const timer = setTimeout(refetchBalance, 300);
+    return () => clearTimeout(timer);
   }, [refetchBalance]);
+
+  // Auto-retry si UNAUTHORIZED: espera a que EventosAutoAuth ponga el JWT (~800ms)
+  useEffect(() => {
+    if (error !== 'UNAUTHORIZED' || typeof window === 'undefined') return;
+    const retryTimer = setTimeout(() => {
+      if (localStorage.getItem('jwt_token')) {
+        refetchBalance();
+      }
+    }, 800);
+    return () => clearTimeout(retryTimer);
+  }, [error, refetchBalance]);
 
   // Manejar retorno de Stripe
   useEffect(() => {

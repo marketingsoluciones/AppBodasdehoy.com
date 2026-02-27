@@ -26,7 +26,7 @@ import dayjs from 'dayjs';
 import { useBilling } from '@/hooks/useBilling';
 import { useWallet } from '@/hooks/useWallet';
 import { INVOICE_STATUS_LABELS } from '@/services/api2/invoices';
-import { walletService, SERVICE_SKUS } from '@/services/api2/wallet';
+import { walletService, SERVICE_SKUS, StoredPaymentMethod } from '@/services/api2/wallet';
 import { useChatStore } from '@/store/chat';
 import { useUserStore } from '@/store/user';
 import { userProfileSelectors } from '@/store/user/selectors';
@@ -110,6 +110,8 @@ const BillingPage = memo(() => {
   const router = useRouter();
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [usagePeriod, setUsagePeriod] = useState<'TODAY' | 'THIS_WEEK' | 'THIS_MONTH' | 'LAST_30_DAYS'>('THIS_MONTH');
+  const [paymentMethods, setPaymentMethods] = useState<StoredPaymentMethod[]>([]);
+  const [paymentMethodsLoading, setPaymentMethodsLoading] = useState(false);
 
   // Filtros de facturas
   const [invoiceFilters, setInvoiceFilters] = useState({
@@ -158,6 +160,11 @@ const BillingPage = memo(() => {
   useEffect(() => {
     fetchInvoices(1);
     fetchPayments(1);
+    // Cargar métodos de pago guardados
+    setPaymentMethodsLoading(true);
+    walletService.getPaymentMethods()
+      .then(setPaymentMethods)
+      .finally(() => setPaymentMethodsLoading(false));
   }, [fetchInvoices, fetchPayments]);
 
   // Aplicar filtros cuando cambien
@@ -225,8 +232,26 @@ const BillingPage = memo(() => {
             <Skeleton active paragraph={{ rows: 1 }} />
           ) : walletError && totalBalance === 0 ? (
             <Flexbox gap={8} style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-              <span style={{ fontSize: 14 }}>⚠️ No se pudo cargar el saldo</span>
-              <span style={{ fontSize: 12, opacity: 0.8 }}>Error: {walletError}</span>
+              {walletError === 'UNAUTHORIZED' ? (
+                <>
+                  <span style={{ fontSize: 14 }}>🔐 Sesión no autenticada</span>
+                  <span style={{ fontSize: 12, opacity: 0.8 }}>
+                    Inicia sesión para ver tu saldo. Si ya tienes sesión, recarga la página.
+                  </span>
+                </>
+              ) : walletError.includes('No existe wallet') || walletError.includes('not found') ? (
+                <>
+                  <span style={{ fontSize: 14 }}>💳 Wallet sin inicializar</span>
+                  <span style={{ fontSize: 12, opacity: 0.8 }}>
+                    Tu wallet se creará automáticamente al realizar tu primera recarga.
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span style={{ fontSize: 14 }}>⚠️ No se pudo cargar el saldo</span>
+                  <span style={{ fontSize: 12, opacity: 0.8 }}>{walletError}</span>
+                </>
+              )}
               <button
                 onClick={() => refetchBalance()}
                 style={{
@@ -237,13 +262,13 @@ const BillingPage = memo(() => {
                   cursor: 'pointer',
                   fontSize: 12,
                   padding: '6px 12px',
+                  width: 'fit-content',
                 }}
               >
                 Reintentar
               </button>
             </Flexbox>
           ) : (
-            // ✅ FIX: Mostrar saldo incluso si es 0
             <Flexbox gap={16} horizontal style={{ flexWrap: 'wrap' }}>
               <Flexbox gap={4}>
                 <span style={{ fontSize: 12, opacity: 0.8 }}>Saldo Total</span>
@@ -293,6 +318,83 @@ const BillingPage = memo(() => {
 
       {/* Auto-recarga */}
       <AutoRechargeCard onConfigChange={refetchBalance} />
+
+      {/* Métodos de pago */}
+      <div className={styles.card}>
+        <div className={styles.sectionTitle}>
+          <CreditCard size={20} />
+          Métodos de pago
+        </div>
+
+        {paymentMethodsLoading ? (
+          <Skeleton active paragraph={{ rows: 1 }} style={{ marginTop: 12 }} />
+        ) : paymentMethods.length > 0 ? (
+          <Flexbox gap={8} style={{ marginTop: 12 }}>
+            {paymentMethods.map((method) => {
+              const brand = method.brand
+                ? method.brand.charAt(0).toUpperCase() + method.brand.slice(1)
+                : 'Tarjeta';
+              const expiry = method.exp_month && method.exp_year
+                ? `${String(method.exp_month).padStart(2, '0')}/${method.exp_year}`
+                : null;
+              return (
+                <Flexbox
+                  key={method.id}
+                  align="center"
+                  gap={12}
+                  horizontal
+                  style={{
+                    background: 'var(--ant-color-fill-quaternary, #f5f5f5)',
+                    borderRadius: 8,
+                    padding: '10px 14px',
+                  }}
+                >
+                  <CreditCard size={18} style={{ color: '#6b7280', flexShrink: 0 }} />
+                  <Flexbox gap={2}>
+                    <span style={{ fontWeight: 600 }}>
+                      {brand} ···· {method.last4 ?? '••••'}
+                    </span>
+                    {expiry && (
+                      <span style={{ color: '#9ca3af', fontSize: 12 }}>Caduca {expiry}</span>
+                    )}
+                  </Flexbox>
+                  {method.is_default && (
+                    <Tag color="blue" style={{ marginLeft: 'auto' }}>
+                      Predeterminada
+                    </Tag>
+                  )}
+                </Flexbox>
+              );
+            })}
+            <span style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 13, marginTop: 4 }}>
+              Tus tarjetas se guardan en Stripe de forma segura. Para añadir una nueva, realiza
+              una recarga y guarda la tarjeta durante el proceso de pago.
+            </span>
+          </Flexbox>
+        ) : (
+          <Flexbox gap={12} style={{ marginTop: 12 }}>
+            <span style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 14 }}>
+              No tienes tarjetas guardadas todavía.
+            </span>
+            <span style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 13 }}>
+              Al hacer tu primera recarga en Stripe, podrás guardar tu tarjeta para futuros
+              pagos y activar la auto-recarga.
+            </span>
+            <Flexbox horizontal style={{ marginTop: 4 }}>
+              <button
+                className={styles.secondaryButton}
+                onClick={() => setShowRechargeModal(true)}
+                type="button"
+              >
+                <Flexbox align="center" gap={6} horizontal>
+                  <CreditCard size={14} />
+                  Añadir tarjeta (vía recarga)
+                </Flexbox>
+              </button>
+            </Flexbox>
+          </Flexbox>
+        )}
+      </div>
 
       {/* Subscription Card */}
       <div className={styles.card}>

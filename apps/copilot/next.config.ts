@@ -244,6 +244,8 @@ const nextConfig: NextConfig = {
   // ✅ Desactivar source maps en producción para reducir memoria
   productionBrowserSourceMaps: false,
 
+  allowedDevOrigins: ['chat-test.bodasdehoy.com', 'app-test.bodasdehoy.com'],
+
   reactStrictMode: true,
 
   redirects: async () => [
@@ -368,7 +370,7 @@ const nextConfig: NextConfig = {
   // También excluimos sharp para evitar errores de compatibilidad ARM64 en Vercel
   serverExternalPackages: isProd ? ['@electric-sql/pglite', 'sharp'] : undefined,
 
-  transpilePackages: ['pdfjs-dist', 'mermaid', '@bodasdehoy/wedding-creator', '@bodasdehoy/memories'],
+  transpilePackages: ['pdfjs-dist', 'mermaid', '@bodasdehoy/wedding-creator', '@bodasdehoy/memories', '@bodasdehoy/shared'],
 
   typescript: {
     ignoreBuildErrors: true,
@@ -391,6 +393,7 @@ const nextConfig: NextConfig = {
         cacheDirectory: require('path').join(__dirname, '.next/cache/webpack'),
         compression: false, // Sin compresión en dev → más rápido escribir/leer cache
         maxMemoryGenerations: 1, // Limitar generaciones en memoria
+        maxAge: 2 * 24 * 60 * 60 * 1000, // Expirar entradas >2 días (evita que el caché ocupe todo el disco)
       };
     }
 

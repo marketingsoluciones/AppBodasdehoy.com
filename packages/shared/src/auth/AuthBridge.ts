@@ -152,8 +152,8 @@ class AuthBridge {
       } : null,
       development: devUserConfig?.development || development,
       config,
-      sessionCookie,
-      idToken,
+      sessionCookie: sessionCookie ?? null,
+      idToken: idToken ?? null,
       isAuthenticated,
     };
   }

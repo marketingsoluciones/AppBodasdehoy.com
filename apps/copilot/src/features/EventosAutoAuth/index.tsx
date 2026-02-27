@@ -10,6 +10,7 @@ import { consumeInviteToken } from '@/services/api2/invite';
 import { processGoogleRedirectResult, processFacebookRedirectResult } from '@/services/firebase-auth';
 import { useChatStore } from '@/store/chat';
 import { useAgentStore } from '@/store/agent';
+import { authBridge } from '@bodasdehoy/shared/auth';
 
 // ✅ OPTIMIZACIÓN: Solo loguear en desarrollo
 const isDev = process.env.NODE_ENV === 'development';
@@ -313,10 +314,44 @@ function EventosAutoAuthComponent() {
       lastIdentifyAttemptRef.current = now;
 
       try {
+      // ✅ PRIORIDAD 0: Cookie de sesión compartida (login desde app-test.bodasdehoy.com)
+      // Las cookies de dominio .bodasdehoy.com son visibles en todos los subdominios
+      try {
+        const sharedAuth = authBridge.getSharedAuthState();
+        if (sharedAuth.isAuthenticated && sharedAuth.user && sharedAuth.sessionCookie) {
+          devLog('✅ [AuthBridge] Usuario autenticado via cookie compartida de la app:', sharedAuth.user.uid);
+
+          // Guardar en localStorage para que api2/client.ts pueda leer el token
+          localStorage.setItem('jwt_token', sharedAuth.sessionCookie);
+          localStorage.setItem('api2_jwt_token', sharedAuth.sessionCookie);
+
+          // Sincronizar a formato dev-user-config que usa LobeChat
+          await authBridge.syncAuthToLobechat(sharedAuth);
+
+          // Identificar al usuario en el store de LobeChat
+          await setExternalChatConfig(
+            sharedAuth.user.uid,
+            sharedAuth.development,
+            sharedAuth.sessionCookie,
+            'registered',
+            sharedAuth.user.role?.[0] || 'user',
+            undefined,
+          );
+
+          hasIdentifiedRef.current = true;
+          identifyInProgressRef.current = false;
+          return;
+        }
+        devLog('[AuthBridge] No hay cookie de sesión compartida activa, continuando con flujo normal');
+      } catch (bridgeError) {
+        devWarn('[AuthBridge] Error leyendo estado compartido:', bridgeError);
+      }
+
       // ✅ Variables globales para el scope de la función
       let developer: string;
       let email: string | undefined;
       let phone: string | undefined;
+      let developerAutoIdentified = false; // ✅ FIX: flag para evitar fallback a visitante
       let savedConfig: any = null;
 
       // ✅ PRIORIDAD ABSOLUTA 1: Query parameter ?developer=xxx (tiene máxima prioridad)
@@ -607,6 +642,28 @@ function EventosAutoAuthComponent() {
             setDeveloperToken(developer, developerToken);
             devLog(`✅ Token JWT cargado automáticamente para ${developer}`);
             devLog(`🔑 Token guardado en localStorage.jwt_token`);
+            // ✅ FIX: Decodificar JWT y llamar setExternalChatConfig directamente.
+            // Esto evita que shouldIdentify sea false y el código caiga al fallback visitante@guest.local
+            try {
+              const jwtPayload = JSON.parse(atob(developerToken.split('.')[1]));
+              const uid = jwtPayload.uid || jwtPayload.sub || jwtPayload.user_id;
+              if (uid) {
+                await setExternalChatConfig(uid, developer, developerToken, 'registered', jwtPayload.role || 'admin', undefined);
+                localStorage.setItem('dev-user-config', JSON.stringify({
+                  developer,
+                  development: developer,
+                  role: jwtPayload.role || 'admin',
+                  timestamp: Date.now(),
+                  token: developerToken,
+                  user_type: 'registered',
+                  userId: uid,
+                }));
+                developerAutoIdentified = true;
+                devLog(`✅ Usuario developer identificado automáticamente desde JWT: ${uid}`);
+              }
+            } catch (jwtError) {
+              devWarn('⚠️ Error decodificando JWT de developer, continuando con flujo normal:', jwtError);
+            }
           } else {
             devWarn(`⚠️ No se encontró token predefinido para: ${developer}`);
           }
@@ -1304,7 +1361,9 @@ function EventosAutoAuthComponent() {
             // Dejar que el usuario vea el error y pueda intentar de nuevo
           } else {
             // Fallback: modo visitante por defecto (solo si NO hay email/phone en URL)
-            if (!currentUserId || currentUserId === 'visitante@guest.local' || isUUID) {
+            if (developerAutoIdentified) {
+              devLog('ℹ️ Developer ya identificado desde JWT, omitiendo fallback visitante');
+            } else if (!currentUserId || currentUserId === 'visitante@guest.local' || isUUID) {
               await setExternalChatConfig('visitante@guest.local', developer || 'bodasdehoy');
             }
           }
