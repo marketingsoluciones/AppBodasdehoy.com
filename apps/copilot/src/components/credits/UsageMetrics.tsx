@@ -102,7 +102,7 @@ const UsageMetrics = memo<UsageMetricsProps>(({ usageStats, previousPeriod }) =>
           </Card>
         )}
 
-        {usageStats.images && usageStats.images.total > 0 && (
+        {usageStats.images && (usageStats.images.total ?? 0) > 0 && (
           <Card className={styles.card} style={{ flex: 1, minWidth: 200 }}>
             <Statistic
               prefix={<Image size={20} style={{ color: '#764ba2' }} />}
@@ -133,26 +133,26 @@ const UsageMetrics = memo<UsageMetricsProps>(({ usageStats, previousPeriod }) =>
               }
               valueStyle={{ color: '#10b981', fontSize: 24 }}
             />
-            {usageStats.communications.total_cost > 0 && (
+            {(usageStats.communications.total_cost ?? 0) > 0 && (
               <div style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 12, marginTop: 4 }}>
-                Costo: {formatCurrency(usageStats.communications.total_cost)}
+                Costo: {formatCurrency(usageStats.communications.total_cost!)}
               </div>
             )}
           </Card>
         )}
 
-        {usageStats.storage && usageStats.storage.total_gb > 0 && (
+        {usageStats.storage && (usageStats.storage.total_gb ?? 0) > 0 && (
           <Card className={styles.card} style={{ flex: 1, minWidth: 200 }}>
             <Statistic
               prefix={<Mail size={20} style={{ color: '#ef4444' }} />}
               suffix="GB"
               title="Almacenamiento"
-              value={usageStats.storage.total_gb.toFixed(2)}
+              value={(usageStats.storage.total_gb ?? 0).toFixed(2)}
               valueStyle={{ color: '#ef4444', fontSize: 24 }}
             />
-            {usageStats.storage.cost > 0 && (
+            {(usageStats.storage.cost ?? 0) > 0 && (
               <div style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 12, marginTop: 4 }}>
-                Costo: {formatCurrency(usageStats.storage.cost)}
+                Costo: {formatCurrency(usageStats.storage.cost!)}
               </div>
             )}
           </Card>
