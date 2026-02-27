@@ -24,7 +24,7 @@ const BottomActions = memo(() => {
   return (
     <Flexbox gap={8}>
       {isGuest && (
-        <Link aria-label="Iniciar sesión" href="/dev-login?mode=register">
+        <Link aria-label="Iniciar sesión" href="/login">
           <ActionIcon
             icon={LogIn}
             size={ICON_SIZE}

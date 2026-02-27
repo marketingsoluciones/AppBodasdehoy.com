@@ -82,7 +82,7 @@ const PanelContent = memo<{ closePopover: () => void }>(({ closePopover }) => {
             </Flexbox>
           ) : (
             /* CTA de login para visitantes anónimos */
-            <Link href="/dev-login?mode=register" style={{ color: 'inherit', display: 'block', marginBottom: 8 }}>
+            <Link href="/login" style={{ color: 'inherit', display: 'block', marginBottom: 8 }}>
               <Flexbox
                 align={'center'}
                 gap={10}

@@ -98,8 +98,8 @@ function GuestWelcomeMessage() {
   }
 
   const handleRegister = () => {
-    router.prefetch('/dev-login');
-    router.push('/dev-login?mode=register');
+    router.prefetch('/login');
+    router.push('/login');
   };
 
   const handleLeadSubmit = async (values: { nombre?: string; phone?: string; email?: string }) => {

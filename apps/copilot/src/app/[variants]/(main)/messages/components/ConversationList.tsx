@@ -51,7 +51,7 @@ export function ConversationList({ channel, selectedId }: ConversationListProps)
             </p>
             <a
               className="inline-block px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
-              href="/dev-login"
+              href="/login"
             >
               Iniciar sesión
             </a>
