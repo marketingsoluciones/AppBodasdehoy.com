@@ -66,7 +66,7 @@ const DataTableFinal: FC<propsDataTableFinal> = (props) => {
             );
           },
         },
-        ...columns,
+        ...(columns || []),
       ]);
     }
   );

@@ -21,21 +21,47 @@ const shouldResetToken = (errors?: GraphQLErrorShape[]) =>
     return msg.includes('token expired') || msg.includes('token inválido') || msg.includes('jwt expired');
   }) ?? false;
 
+/** Decodifica el payload de un JWT sin verificar firma */
+const decodeJwtExp = (token: string): number | null => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return payload.exp ?? null;
+  } catch {
+    return null;
+  }
+};
+
+/** Devuelve true si el token tiene exp y ya venció */
+const isExpired = (token: string): boolean => {
+  const exp = decodeJwtExp(token);
+  if (!exp) return false; // sin exp → asumir válido
+  return Date.now() >= exp * 1000;
+};
+
 const readToken = () => {
   if (typeof window === 'undefined') return undefined;
-  
-  // 1. Primero buscar jwt_token (login directo API2)
+
+  // 0. Primero buscar jwt_token_cache (api2 HS256, válido ~7 días)
+  const cache = localStorage.getItem('jwt_token_cache');
+  if (cache) {
+    try {
+      const { token, expiry } = JSON.parse(cache) as { token: string; expiry: number };
+      if (token && expiry && Date.now() < expiry) return token;
+    } catch { /* ignorar */ }
+  }
+
+  // 1. jwt_token (login directo API2 o Firebase reciente)
   const directToken = localStorage.getItem('jwt_token');
-  if (directToken && directToken !== 'null' && directToken !== 'undefined') {
+  if (directToken && directToken !== 'null' && directToken !== 'undefined' && !isExpired(directToken)) {
     return directToken;
   }
-  
-  // 2. Buscar api2_jwt_token (login con Firebase Auth)
+
+  // 2. api2_jwt_token (login con Firebase Auth)
   const firebaseToken = localStorage.getItem('api2_jwt_token');
-  if (firebaseToken && firebaseToken !== 'null' && firebaseToken !== 'undefined') {
+  if (firebaseToken && firebaseToken !== 'null' && firebaseToken !== 'undefined' && !isExpired(firebaseToken)) {
     return firebaseToken;
   }
-  
+
   return undefined;
 };
 
@@ -57,29 +83,10 @@ export class API2Client {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    // ✅ FIX: Logs detallados para debugging
-    console.log('📤 [API2] Request:', {
-      bodyPreview: body.slice(0, 200),
-      headers: {
-        'Authorization': token ? `Bearer ${token.slice(0, 20)}...` : 'NO TOKEN',
-        'Content-Type': headers['Content-Type'],
-        'X-Development': headers['X-Development'],
-      },
-      method: 'POST',
-      url: API2_GRAPHQL_URL,
-    });
-
     const response = await fetch(API2_GRAPHQL_URL, {
       body,
       headers,
       method: 'POST',
-    });
-
-    console.log('📥 [API2] Response:', {
-      headers: Object.fromEntries(response.headers.entries()),
-      ok: response.ok,
-      status: response.status,
-      statusText: response.statusText,
     });
 
     // Verificar que la respuesta sea JSON antes de parsear
@@ -115,22 +122,15 @@ export class API2Client {
     }
 
     if (shouldResetToken(payload.errors) && typeof window !== 'undefined') {
-        localStorage.removeItem('jwt_token');
-      }
+      localStorage.removeItem('jwt_token');
+      localStorage.removeItem('api2_jwt_token');
+      localStorage.removeItem('jwt_token_cache');
+    }
 
     return payload;
   }
 
   async query<T = any>(query: string, variables?: Record<string, unknown>): Promise<T> {
-    const token = readToken();
-    
-    // ✅ FIX: Logs siempre activos para debugging de recarga
-    console.log('🔍 [API2] Query:', query.split('\n')[0].trim());
-    console.log('🔍 [API2] Variables:', variables);
-    console.log('🔍 [API2] Token presente:', !!token);
-    console.log('🔍 [API2] URL:', API2_GRAPHQL_URL);
-    console.log('🔍 [API2] Development:', this.development);
-    
     try {
       const payload = await this.request<T>(JSON.stringify({ query, variables }));
 

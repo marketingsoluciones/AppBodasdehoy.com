@@ -5,6 +5,7 @@ import { isDesktop } from '@/const/version';
 import { ArtifactsManifest } from './artifacts';
 import { CodeInterpreterManifest } from './code-interpreter';
 import { DalleManifest } from './dalle';
+import { FilterAppViewManifest } from './filter-app-view';
 import { LocalSystemManifest } from './local-system';
 import { VenueVisualizerManifest } from './venue-visualizer';
 import { WebBrowsingManifest } from './web-browsing';
@@ -40,6 +41,12 @@ export const builtinTools: LobeBuiltinTool[] = [
   {
     identifier: VenueVisualizerManifest.identifier,
     manifest: VenueVisualizerManifest,
+    type: 'builtin',
+  },
+  {
+    hidden: true,
+    identifier: FilterAppViewManifest.identifier,
+    manifest: FilterAppViewManifest,
     type: 'builtin',
   },
 ];

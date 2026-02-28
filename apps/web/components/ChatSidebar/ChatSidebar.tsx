@@ -222,7 +222,7 @@ const ChatSidebar: FC = () => {
         </div>
       </div>
 
-      {/* Resizer para vista mínima */}
+      {/* Resizer - borde derecho del sidebar izquierdo */}
       {isOpen && viewMode === 'minimal' && (
         <div
           className="w-1 h-full cursor-col-resize bg-gray-100 hover:bg-primary/30 transition-colors flex-shrink-0"

@@ -1,8 +1,18 @@
-import { createContext, useState, useContext, useEffect, SetStateAction, Dispatch, useReducer, Reducer } from 'react';
+import { createContext, useState, useContext, useEffect, SetStateAction, Dispatch, useReducer, Reducer, useCallback } from 'react';
 import { AuthContextProvider } from "../context";
 import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
 import { Event, detalle_compartidos_array } from '../utils/Interfaces';
 import { useRouter, usePathname } from 'next/navigation';
+
+/** Estado de filtro activo enviado por el Copilot via postMessage FILTER_VIEW */
+export interface CopilotFilter {
+  /** Tipo de entidad filtrada: 'events' | 'guests' | 'tables' | ... */
+  entity: string;
+  /** IDs de los resultados (opcional) */
+  ids?: string[];
+  /** Texto de búsqueda original, para mostrar al usuario */
+  query?: string;
+}
 
 type Context = {
   eventsGroup: Event[],
@@ -11,6 +21,10 @@ type Context = {
   setPsTemplates: Dispatch<SetStateAction<any>>
   eventsGroupDone: boolean,
   eventsGroupError: boolean,
+  copilotFilter: CopilotFilter | null,
+  setCopilotFilter: (filter: CopilotFilter | null) => void,
+  clearCopilotFilter: () => void,
+  refreshEventsGroup: () => void,
 }
 const EventsGroupContext = createContext<Context>({
   eventsGroup: null,
@@ -19,6 +33,10 @@ const EventsGroupContext = createContext<Context>({
   setPsTemplates: () => { },
   eventsGroupDone: false,
   eventsGroupError: false,
+  copilotFilter: null,
+  setCopilotFilter: () => { },
+  clearCopilotFilter: () => { },
+  refreshEventsGroup: () => { },
 });
 
 enum actions {
@@ -69,6 +87,11 @@ const EventsGroupProvider = ({ children }) => {
   const [isMounted, setIsMounted] = useState(false)
   const [eventsGroupDone, setEventsGroupDone] = useState(false)
   const [eventsGroupError, setEventsGroupError] = useState(false)
+  const [copilotFilter, setCopilotFilterState] = useState<CopilotFilter | null>(null)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const setCopilotFilter = useCallback((filter: CopilotFilter | null) => setCopilotFilterState(filter), [])
+  const clearCopilotFilter = useCallback(() => setCopilotFilterState(null), [])
+  const refreshEventsGroup = useCallback(() => setRefreshTrigger(t => t + 1), [])
 
   useEffect(() => {
     if (!isMounted) {
@@ -129,7 +152,8 @@ const EventsGroupProvider = ({ children }) => {
             .then((events: Event[]) => {
               const fetchTime = performance.now() - startTime
               console.log(`[EventsGroup] ✅ Eventos obtenidos en ${fetchTime.toFixed(0)}ms, total: ${events?.length || 0}`)
-              if (!["RelacionesPublicas", "facturacion", "event", "public-card", "public-itinerary"].includes(pathname.split("/")[1])) {
+              const noRedirectPaths = ["RelacionesPublicas", "facturacion", "event", "public-card", "public-itinerary", "login", "confirmar-asistencia", "info-app", ""];
+              if (!noRedirectPaths.includes(pathname.split("/")[1])) {
                 setTimeout(() => {
                   if (events.length === 0) router.push("/")
                 }, 100);
@@ -211,10 +235,10 @@ const EventsGroupProvider = ({ children }) => {
         }
       }
     }
-  }, [user, config?.development]);
+  }, [user, config?.development, refreshTrigger]);
 
   return (
-    <EventsGroupContext.Provider value={{ eventsGroup, setEventsGroup, psTemplates, setPsTemplates, eventsGroupDone, eventsGroupError }}>
+    <EventsGroupContext.Provider value={{ eventsGroup, setEventsGroup, psTemplates, setPsTemplates, eventsGroupDone, eventsGroupError, copilotFilter, setCopilotFilter, clearCopilotFilter, refreshEventsGroup }}>
       {children}
     </EventsGroupContext.Provider>
   );

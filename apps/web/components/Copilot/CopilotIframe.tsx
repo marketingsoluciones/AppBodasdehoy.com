@@ -15,6 +15,9 @@ import { useRouter } from 'next/router';
 import Cookies from 'js-cookie';
 import { Event } from '../../utils/Interfaces';
 import { extractPageContext, PageContextData } from './pageContextExtractor';
+import { EventsGroupContextProvider } from '../../context';
+import { getDevelopmentConfig } from '@bodasdehoy/shared/types';
+import type { AuthConfigPayload } from '@bodasdehoy/shared/communication';
 
 interface UserData {
   displayName?: string | null;
@@ -39,6 +42,7 @@ interface CopilotIframeProps {
 
 const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName, className, userData, event, enablePlugins }: CopilotIframeProps) => {
     const router = useRouter();
+    const { setCopilotFilter, refreshEventsGroup } = EventsGroupContextProvider();
     // ✅ CORRECCIÓN: Iniciar isLoaded como true para que el iframe se muestre inmediatamente
     const [isLoaded, setIsLoaded] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -69,6 +73,9 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
     }, []);
 
     // Construir URL del LobeChat con parametros
+    // IMPORTANTE: NO incluir eventId ni datos volátiles en la URL del iframe.
+    // El eventId se comunica via postMessage AUTH_CONFIG para evitar que el iframe
+    // recargue cuando el evento carga asíncronamente (lo que borra la conversación).
     const buildCopilotUrl = useCallback(() => {
       const params = new URLSearchParams();
 
@@ -87,9 +94,9 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
       } else if (userId && userId.includes('@')) {
         params.set('email', userId);
       }
-      if (eventId) {
-        params.set('eventId', eventId);
-      }
+      // ⚠️ NO añadir eventId aquí: cambia cuando el evento carga asíncronamente
+      // y causaría que el iframe recargue borrando la conversación activa.
+      // El eventId se envía via postMessage AUTH_CONFIG una vez el iframe está listo.
 
       const queryString = params.toString();
 
@@ -124,7 +131,10 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
 
       const url = queryString ? `${chatBase}?${queryString}` : chatBase;
       return url;
-    }, [userId, userData?.email, development, eventId, getCopilotBaseUrl]);
+    // Solo userId, email y development determinan la URL base del iframe.
+    // eventId se excluye para evitar recargas cuando el evento carga asíncronamente.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userId, userData?.email, development, getCopilotBaseUrl]);
 
     const [iframeSrc, setIframeSrc] = useState(buildCopilotUrl());
 
@@ -266,77 +276,77 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
       const pageContextData: PageContextData = extractPageContext(currentPath, event || null);
 
       const pageContextMessage = {
-        type: 'PAGE_CONTEXT',
-        source: 'app-bodas',
+        type: 'PAGE_CONTEXT' as const,
+        source: 'copilot-parent' as const,
         timestamp: Date.now(),
         payload: pageContextData,
       };
 
-      const copilotOrigin = (() => {
-        try {
-          return new URL(iframeSrc, window.location.origin).origin;
-        } catch {
-          return window.location.origin;
-        }
-      })();
-      iframe.contentWindow.postMessage(pageContextMessage, copilotOrigin);
+      // Mismo razonamiento que sendAuthConfig: usar '*' para evitar race condition SSR
+      iframe.contentWindow.postMessage(pageContextMessage, '*');
 
       // Guardar para evitar duplicados
       lastSentPath.current = currentPath;
       lastSentEventId.current = event?._id || null;
-    }, [currentPath, event, isLoaded, iframeRef, iframeSrc]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPath, event?._id, isLoaded]);
 
     // Función para enviar AUTH_CONFIG al iframe del copilot
     const sendAuthConfig = useCallback(() => {
       const iframe = iframeRef.current;
       if (!iframe?.contentWindow || !userId) return;
 
-      // Obtener token de sesión de las cookies
-      const sessionToken = Cookies.get('sessionBodas') || null;
+      // Obtener cookie de sesión correcta para este whitelabel (no hardcodeada)
+      const devConfig = getDevelopmentConfig(development);
+      const sessionToken = devConfig ? (Cookies.get(devConfig.cookie) || null) : null;
+
+      // Si no hay token específico del whitelabel (cross-domain: usuario vivetuboda en app bodasdehoy),
+      // usar el Firebase idToken del usuario logueado actualmente — válido para cualquier whitelabel.
+      const idToken = Cookies.get('idTokenV0.1.0') || null;
+      const effectiveToken = sessionToken || idToken;
 
       // Extraer contexto de la página actual
       const pageContextData: PageContextData = extractPageContext(currentPath, event || null);
 
+      const payload: AuthConfigPayload = {
+        userId,
+        development,
+        token: effectiveToken,
+        eventId: eventId || event?._id || undefined,
+        eventName: eventName || event?.nombre || undefined,
+        userData: {
+          displayName: userData?.displayName || null,
+          email: userData?.email || null,
+          phoneNumber: userData?.phoneNumber || null,
+          photoURL: userData?.photoURL || null,
+        },
+        pageContext: pageContextData,
+      };
+
       const authConfig = {
-        type: 'AUTH_CONFIG',
-        source: 'app-bodas',
+        type: 'AUTH_CONFIG' as const,
+        source: 'copilot-parent' as const,
         timestamp: Date.now(),
         payload: {
-          userId,
-          development,
-          token: sessionToken,
-          eventId: eventId || event?._id || null,
-          eventName: eventName || event?.nombre || null,
-          userData: userData ? {
-            displayName: userData.displayName || null,
-            email: userData.email || null,
-            phoneNumber: userData.phoneNumber || null,
-            photoURL: userData.photoURL || null,
-          } : null,
-          // Incluir contexto de página con datos reales
-          pageContext: pageContextData,
+          ...payload,
           // Plugins a habilitar automáticamente en el copilot
           ...(enablePlugins && enablePlugins.length > 0 && { enablePlugins }),
         },
       };
 
-      // Si el iframe es cross-origin (chat-test.bodasdehoy.com),
-      // tenemos que usar su origin real como targetOrigin.
-      const copilotOrigin = (() => {
-        try {
-          return new URL(iframeSrc, window.location.origin).origin;
-        } catch {
-          return window.location.origin;
-        }
-      })();
-
-      iframe.contentWindow.postMessage(authConfig, copilotOrigin);
+      // Usar '*' como targetOrigin para evitar race condition durante carga del iframe:
+      // El iframe puede estar temporalmente en app-test.bodasdehoy.com antes de navegar
+      // a chat-test.bodasdehoy.com. La sessionToken ya está en cookies, sin riesgo extra.
+      iframe.contentWindow.postMessage(authConfig, '*');
       setAuthSent(true);
 
       // Guardar path enviado
       lastSentPath.current = currentPath;
       lastSentEventId.current = event?._id || null;
-    }, [userId, development, eventId, eventName, userData, event, currentPath, iframeRef, iframeSrc, enablePlugins]);
+    // Usar primitivos como deps en vez de objetos completos (userData, event)
+    // para evitar que sendAuthConfig se recree en cada render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userId, development, eventId, eventName, userData?.displayName, userData?.email, userData?.phoneNumber, userData?.photoURL, event?._id, event?.nombre, currentPath, enablePlugins]);
 
     // Comunicacion con el iframe via postMessage
     useEffect(() => {
@@ -344,7 +354,7 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
         const { type, payload, source } = event.data || {};
 
         // Ignorar mensajes propios
-        if (source === 'app-bodas') return;
+        if (source === 'copilot-parent') return;
 
         switch (type) {
           case 'LOBE_CHAT_READY':
@@ -359,7 +369,38 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
             // El copilot solicita contexto de página
             sendPageContext();
             break;
-          case 'COPILOT_NAVIGATE':
+          case 'COPILOT_NAVIGATE': {
+            // Navegar el parent app a la ruta indicada por el copilot.
+            // Soporta URLs absolutas (organizador.bodasdehoy.com/...) → extrae solo el path.
+            const rawUrl: string = event.data?.url || event.data?.payload?.url || '';
+            if (rawUrl) {
+              try {
+                const parsed = new URL(rawUrl, window.location.origin);
+                // Usar solo pathname + search para mantenernos en el mismo origen
+                const relativePath = parsed.pathname + parsed.search;
+                router.push(relativePath);
+              } catch {
+                // Si rawUrl ya es path relativo (empieza con /)
+                if (rawUrl.startsWith('/')) router.push(rawUrl);
+              }
+            }
+            break;
+          }
+          case 'FILTER_VIEW': {
+            // El copilot pide filtrar la vista principal con los resultados de una consulta
+            const { entity, ids, query } = payload || {};
+            if (entity) {
+              setCopilotFilter({ entity, ids, query });
+            }
+            break;
+          }
+          case 'CLEAR_FILTER':
+            // El copilot pide limpiar el filtro activo
+            setCopilotFilter(null);
+            break;
+          case 'REFRESH_EVENTS':
+            // El copilot creó o modificó un evento — refrescar lista
+            refreshEventsGroup();
             break;
           case 'COPILOT_ACTION':
             break;

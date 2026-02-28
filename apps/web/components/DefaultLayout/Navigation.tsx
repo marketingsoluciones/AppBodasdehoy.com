@@ -139,7 +139,7 @@ const Navigation: FC = () => {
           <span
             onClick={() => {
               //Loading(setLoading);
-              router.push(config?.pathDirectory ? `${config?.pathDirectory}` : ``)
+              router.push('/')
               setIsActiveStateSwiper(0)
             }}
             className="cursor-pointer items-center flex justify-center w-[130px] md:w-[208px] h-[60px] md:h-[64px] translate-x-[-14px] md:translate-x-[-160px]">
@@ -158,10 +158,10 @@ const Navigation: FC = () => {
         </div>
 
         {/* segundo menu superior con las redirecciones funcionales de la app */}
-        <div className={`${urls.includes(url) && !user ? "hidden" : "block"}`}>
+        <div className={`${(!user || user?.displayName === "guest" || urls.includes(url)) ? "hidden" : "block"}`}>
           <div className={`w-full h-20 hidden md:flex bg-base justify-center items-start`}>
             <Tooltip label={t("Primero debes crear un evento")} icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}>
-              <div style={{ width, height }} className="absolute z-50 px-16 flex justify-center">
+              <div style={{ width, height }} className="absolute top-16 z-50 px-16 flex justify-center">
                 <div className="flex w-full h-full justify-center items-center">
                   <ul className="flex w-full h-max justify-between">
                     {Navbar.map((item, idx) => (

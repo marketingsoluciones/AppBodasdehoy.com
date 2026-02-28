@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
-import { ArrowDownBodasIcon, Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, LugaresBodas, Posts, TarjetaIcon, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
+import { ArrowDownBodasIcon, Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, InvitadosIcon, LugaresBodas, Posts, PresupuestoIcon, TarjetaIcon, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
 import { useRouter, usePathname } from "next/navigation";
 import { getAuth, signOut } from "firebase/auth";
 import { AuthContextProvider, EventContextProvider, LoadingContextProvider } from "../../context";
@@ -86,7 +86,7 @@ const Profile = ({ user, state, set, ...rest }) => {
       title: "Mis empresas",
       onClick: async () => {
         const path = adaptUrlForTestEnv(process.env.NEXT_PUBLIC_CMS ?? "")
-        router.push((user?.role?.includes("empresa")) ? path ?? "" : config?.pathLogin ? `${config?.pathDirectory}/info-empresa?d=app` : `/login?d=${pathname}`)
+        router.push((user?.role?.includes("empresa")) ? path ?? "" : config?.pathLogin ? `/info-empresa?d=app` : `/login?d=${pathname}`)
       },
       icon: <CompanyIcon />,
       development: ["bodasdehoy"],
@@ -130,7 +130,7 @@ const Profile = ({ user, state, set, ...rest }) => {
     },
     {
       title: "Mis proveedores",
-      onClick: async () => { router.push(config?.pathDirectory) },
+      onClick: async () => { router.push('/') },
       icon: <CorazonPaddinIcon />,
       development: ["bodasdehoy"],
       rol: ["all"],
@@ -256,11 +256,21 @@ const Profile = ({ user, state, set, ...rest }) => {
     <>
       <div className="text-gray-100 flex space-x-4 relative" {...rest} >
         {user &&
-          <div className="items-center flex relative cursor-default ">
+          <div className="items-center hidden md:flex gap-1 relative cursor-default">
+            <div onClick={() => {
+              !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/invitados") ? ht() : router.push("/invitados")
+            }} title={t("Invitados")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/10 cursor-pointer transition`} >
+              <InvitadosIcon className="w-5 h-5 text-primary" />
+            </div>
+            <div onClick={() => {
+              !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/presupuesto") ? ht() : router.push("/presupuesto")
+            }} title={t("Presupuesto")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/10 cursor-pointer transition`} >
+              <PresupuestoIcon className="w-5 h-5 text-primary" />
+            </div>
             <div onClick={() => {
               !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/servicios") ? ht() : router.push("/servicios")
-            }} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200* cursor-pointer`} >
-              <GoTasklist className="text-primary w-6 h-6 scale-x-90" />
+            }} title={t("Servicios")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/10 cursor-pointer transition`} >
+              <GoTasklist className="text-primary w-5 h-5 scale-x-90" />
             </div>
           </div>
         }

@@ -30,6 +30,12 @@
   "defaultGroupChat": "Agent Team",
   "defaultList": "Default List",
   "defaultSession": "Default Assistant",
+  "deliveryStatus": {
+    "error": "Failed to send, click to retry",
+    "pending": "Sending...",
+    "sent": "Sent",
+    "synced": "Synced"
+  },
   "dm": {
     "placeholder": "Your private messages with {{agentTitle}} will appear here.",
     "tooltip": "Send a private message",

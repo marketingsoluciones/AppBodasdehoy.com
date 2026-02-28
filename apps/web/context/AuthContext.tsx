@@ -6,10 +6,10 @@ import { developments } from "../firebase";
 import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
 import { initializeApp } from "firebase/app";
 import { useRouter, useSearchParams } from "next/navigation";
-import { parseJwt } from "../utils/Authentication";
 import { useActivity } from "../hooks/useActivity";
-import { getStorage } from "firebase/storage";
 import { isTestSubdomain, normalizeRedirectAfterLogin } from "../utils/urlHelpers";
+import { authBridge, parseJwt } from '@bodasdehoy/shared/auth';
+import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
 
 const initialContext = {
   user: undefined,
@@ -200,18 +200,12 @@ const AuthProvider = ({ children }) => {
       const path = window.location.hostname
       const c = path?.split(".")
       const idx = c?.findIndex(el => el === "com" || el === "mx")
-      /*--------------------------------------------------------------------*/
-      const devDomain = ["bodasdehoy", "eventosplanificador", "eventosorganizador", "vivetuboda", "champagne-events", "annloevents", "miamorcitocorazon", "eventosintegrados", "ohmaratilano", "corporativozr", "theweddingplanner"]
-      const devSubdomain = [undefined, "invitado", "ticket"]
 
-      // En desarrollo local (localhost), usar bodasdehoy (index 0) para mejor compatibilidad
-      // Guard: verificar que c existe y que el índice es válido antes de acceder
-      const domainDevelop = (c && idx !== undefined && idx !== -1 && idx > 0 && c[idx - 1])
-        ? c[idx - 1]
-        : devDomain[0]
-      console.log("[Auth Config] Using development domain:", domainDevelop, "idx:", idx, "hostname:", path, "c:", c)
+      // Detectar whitelabel desde shared (incluye override __dev_domain y fallback a bodasdehoy)
+      const domainDevelop = getDevelopmentNameFromHostname(path)
+      console.log("[Auth Config] Using development domain:", domainDevelop, "hostname:", path)
 
-      const subdomainDevelop = idx === -1 && devSubdomain[0]
+      const subdomainDevelop = undefined // solo c[0] si es ticket/invitado/dev, si no queda sin subdomain
       /*--------------------------------------------------------------------*/
       resp = developments.filter(elem => elem.name === domainDevelop)[0]
 
@@ -573,6 +567,12 @@ const AuthProvider = ({ children }) => {
       });
       setUser({ ...user, ...userInfo });
       updateActivity("accessed")
+      // Sincronizar sesión con apps/copilot via AuthBridge (escribe dev-user-config en localStorage)
+      if (config) {
+        authBridge.syncFromFirebaseUser(getAuth().currentUser, config).catch(err =>
+          console.warn('[AuthBridge] Sync no crítico:', err)
+        );
+      }
     } catch (error) {
       console.error("[moreInfo] ❌ Error obteniendo info del usuario:", error?.message || error)
       // Fallback: usar datos básicos de Firebase para no bloquear la app

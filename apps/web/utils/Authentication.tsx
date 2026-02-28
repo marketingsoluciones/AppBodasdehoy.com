@@ -9,21 +9,11 @@ import { useToast } from "../hooks/useToast";
 import { PhoneNumberUtil } from 'google-libphonenumber';
 import { useActivity } from "../hooks/useActivity";
 import { useTranslation } from "react-i18next";
+import { authBridge, parseJwt } from '@bodasdehoy/shared/auth';
+
+export { parseJwt }; // re-exportar para compatibilidad con imports existentes
 
 export const phoneUtil = PhoneNumberUtil.getInstance();
-
-export const parseJwt = (token) => {
-  if (token) {
-    let base64Url = token.split('.')[1];
-    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    let jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-
-    return JSON.parse(jsonPayload);
-  }
-  return {}
-}
 
 export const useAuthentication = () => {
   const { setLoading } = LoadingContextProvider();
@@ -358,6 +348,7 @@ export const useAuthentication = () => {
   const _signOut = useCallback(async () => {
     Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
     Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
+    authBridge.clearAuth(); // Limpia dev-user-config y tokens de apps/copilot
     signOut(getAuth());
     router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
   }, [router])

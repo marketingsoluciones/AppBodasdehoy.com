@@ -54,14 +54,15 @@ const Container = (props) => {
     "copilot",
     "login",
     "diseno-espacios",
+    "asistente",
   ];
 
   // Rutas que gestionan su propia altura (full-screen con iframe interno)
-  const fullHeightRoutes = ["diseno-espacios"];
+  const fullHeightRoutes = ["diseno-espacios", "asistente"];
   const isFullHeight = fullHeightRoutes.some((r) => pathname?.includes(r));
 
   const shouldShowChatSidebar = chatSidebar && !excludeChatSidebar.includes(pathname?.split("/")[1] || "");
-  const showNavigation = !["RelacionesPublicas", "event", "public-card", "public-itinerary"].includes(pathname?.split("/")[1]);
+  const showNavigation = !["RelacionesPublicas", "event", "public-card", "public-itinerary", "asistente"].includes(pathname?.split("/")[1]);
 
   // ChatSidebarDirect en desktop está en el flujo (no fixed): ocupa su ancho y el contenido sigue a la derecha sin margen.
   // En móvil el Copilot es flotante (fixed), tampoco aplicamos margen.
@@ -83,15 +84,12 @@ const Container = (props) => {
       }
 
       <div className={`flex w-full min-w-0 ${pathname === "/" ? "" : "bg-base"} ${isFullHeight ? "h-[100vh]" : urls.includes(pathname) ? "" : forCms ? "h-[100vh]" : "h-[calc(100vh-144px)]"}`}>
-        {/* Copilot: panel a la izquierda (20% en pantallas grandes) */}
+        {/* Copilot: panel a la izquierda */}
         {shouldShowChatSidebar && <ChatSidebar />}
 
-        {/* Contenido principal: siempre el contenido real de la app (eventos, etc.), sin iframe extra */}
+        {/* Contenido principal: ocupa el espacio restante */}
         <div
           className="flex-1 min-w-0 overflow-auto overflow-y-scroll transition-all duration-300"
-          style={{
-            marginLeft: copilotWidth,
-          }}
         >
           <main id="rootElementMain" className="w-full h-full">
             {children}

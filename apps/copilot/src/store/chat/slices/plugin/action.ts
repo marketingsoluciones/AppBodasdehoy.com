@@ -287,6 +287,22 @@ export const chatPlugin: StateCreator<
 
     await get().internal_toggleMessageInToolsCalling(false, assistantId);
 
+    // Si algún tool modificó eventos, presupuesto, invitados o tareas → notificar al parent app
+    const MUTATING_TOOLS = [
+      'create_event', 'update_event', 'delete_event',
+      'add_guest', 'update_guest', 'delete_guest', 'confirm_guest', 'reject_guest',
+      'create_budget_item', 'update_budget_item', 'delete_budget_item',
+      'create_task', 'update_task', 'complete_task',
+      'create_provider', 'update_provider',
+    ];
+    const hasMutation = message.tools.some((p) => MUTATING_TOOLS.includes(p.apiName));
+    if (hasMutation && typeof window !== 'undefined' && window.parent !== window) {
+      window.parent.postMessage(
+        { type: 'REFRESH_EVENTS', source: 'copilot-chat', timestamp: Date.now(), payload: {} },
+        '*',
+      );
+    }
+
     // only default type tool calls should trigger AI message
     if (!shouldCreateMessage) return;
 

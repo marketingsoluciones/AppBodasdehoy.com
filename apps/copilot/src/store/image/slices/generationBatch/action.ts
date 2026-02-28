@@ -178,6 +178,13 @@ export const createGenerationBatchSlice: StateCreator<
       },
       {
         onSuccess: (data) => {
+          // If DB returns empty but we already have local batches (whitelabel mode),
+          // keep the local batches to avoid overwriting images that aren't persisted.
+          if (data.length === 0) {
+            const existing = get().generationBatchesMap[topicId!];
+            if (Array.isArray(existing) && existing.length > 0) return;
+          }
+
           const nextMap = {
             ...get().generationBatchesMap,
             [topicId!]: data,

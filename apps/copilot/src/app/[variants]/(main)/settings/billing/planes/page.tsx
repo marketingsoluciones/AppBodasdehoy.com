@@ -209,7 +209,7 @@ function extractFeatures(plan: SubscriptionPlan): FeatureRow[] {
     { included: true, label: 'Wallet prepago' },
   ];
 
-  if (plan.global_discount) {
+  if (plan.global_discount?.value) {
     features.push({
       included: true,
       label: `${plan.global_discount.value}% descuento en servicios`,

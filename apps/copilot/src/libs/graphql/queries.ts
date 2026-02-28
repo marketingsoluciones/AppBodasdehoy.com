@@ -208,8 +208,6 @@ export const GET_USER_EVENTS_BY_EMAIL = gql`
         estatus
         usuario_id
         usuario_nombre
-        createdAt
-        updatedAt
       }
       total
       errors {
@@ -242,8 +240,6 @@ export const GET_USER_EVENTS_BY_PHONE = gql`
         estatus
         usuario_id
         usuario_nombre
-        createdAt
-        updatedAt
       }
       total
       errors {
@@ -267,8 +263,6 @@ export const GET_USER_PROFILE = gql`
         id
         email
         name
-        role
-        status
         development
         metadata
         whitelabel_info {

@@ -17,7 +17,7 @@ import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 
 export const EventsTable: FC<any> = () => {
   const { t } = useTranslation();
-  const { eventsGroup } = EventsGroupContextProvider();
+  const { eventsGroup, copilotFilter, clearCopilotFilter } = EventsGroupContextProvider();
   const { user, setUser, config } = AuthContextProvider()
   const { setEvent } = EventContextProvider();
   const router = useRouter();
@@ -332,6 +332,12 @@ export const EventsTable: FC<any> = () => {
   useEffect(() => {
     let filteredData = eventsGroup;
 
+    // Aplicar filtro del Copilot si está activo para eventos
+    if (copilotFilter?.entity === 'events' && copilotFilter.ids?.length) {
+      const idSet = new Set(copilotFilter.ids);
+      filteredData = filteredData.filter((e: any) => idSet.has(e._id));
+    }
+
     Object.keys(filters).forEach((key) => {
       if (filters[key]) {
         filteredData = filteredData.filter((item) => {
@@ -350,7 +356,7 @@ export const EventsTable: FC<any> = () => {
     });
 
     setData(filteredData);
-  }, [eventsGroup, filters]);
+  }, [eventsGroup, filters, copilotFilter]);
 
   useEffect(() => {
     setData(eventsGroup)
@@ -387,8 +393,20 @@ export const EventsTable: FC<any> = () => {
   return (
     <div className="relative px-3 flex flex-col justify-center w-full">
 
-
       {openModal?.state && <OpenModal openModal={openModal} setOpenModal={setOpenModal} />}
+
+      {copilotFilter?.entity === 'events' && copilotFilter.ids?.length > 0 && (
+        <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-pink-50 border border-pink-200 rounded-lg text-xs text-pink-700">
+          <span>🤖</span>
+          <span className="flex-1 truncate">
+            {copilotFilter.query
+              ? `Copilot filtró: "${copilotFilter.query}" · ${copilotFilter.ids.length} evento(s)`
+              : `Copilot filtró · ${copilotFilter.ids.length} evento(s)`}
+          </span>
+          <button onClick={clearCopilotFilter} className="ml-1 text-pink-400 hover:text-pink-600 font-bold leading-none" aria-label="Limpiar filtro">✕</button>
+        </div>
+      )}
+
       <table
         {...getTableProps()}
         className="table-auto border-collapse rounded-lg relative p-4 w-full">

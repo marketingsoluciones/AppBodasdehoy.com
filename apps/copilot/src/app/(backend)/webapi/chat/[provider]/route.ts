@@ -263,6 +263,12 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
                       // Stream terminado — cerrar sin emitir (fetchSSE detecta el close)
                       controller.close();
                       return;
+                    } else if (currentEvent === 'tool_calls') {
+                      // Forwarding tool_calls event for LobeChat's builtin tool dispatch
+                      // Data format: StreamToolCallChunkData[] — frontend dispatches filter_view etc.
+                      controller.enqueue(
+                        encoder.encode(`event: tool_calls\ndata: ${rawData}\n\n`)
+                      );
                     }
                     currentEvent = '';
                   } else if (sseMode === 'openai') {

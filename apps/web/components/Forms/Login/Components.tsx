@@ -17,7 +17,7 @@ interface propsResetPassword {
 export const RegisterQuestion: FC<propsRegisterQuestion> = ({ onClick }) => {
   const { t } = useTranslation();
   return (
-    <h2 className={`font-light text-tertiary flex gap-2 items-center text-sm `}>
+    <h2 className={`font-light text-gray-500 flex gap-2 items-center text-sm `}>
       {t("dontaccount")}
       <span
         className="text-primary font-semibold cursor-pointer hover:text-tertiary transition"

@@ -13,41 +13,85 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { useChatStore } from '@/store/chat';
+import type {
+  MessageType,
+  BridgeMessage,
+  AuthConfigPayload,
+  EventContextPayload,
+  PageContextPayload,
+} from '@bodasdehoy/shared/communication';
 
-// Tipos de mensajes (deben coincidir con @bodasdehoy/shared)
-type MessageType =
-  | 'AUTH_CONFIG'
-  | 'AUTH_REQUEST'
-  | 'LOBE_CHAT_READY'
-  | 'MCP_NAVIGATION'
-  | 'EVENT_CONTEXT'
-  | 'VIEW_MODE_CHANGE';
+const RETRY_DELAYS_MS = [800, 2000, 4000, 7000];
 
-interface BridgeMessage<T = any> {
-  payload: T;
-  source: string;
-  timestamp: number;
-  type: MessageType;
-}
+// Helper: inyectar bloque de contexto en el system prompt del agente activo
+// Reintenta automáticamente si el tRPC call es abortado durante la inicialización del iframe
+async function injectContextIntoSystemPrompt(
+  pageContext: {
+    pageName?: string;
+    eventName?: string;
+    eventId?: string;
+    screenData?: Record<string, any>;
+  },
+  attempt = 0,
+): Promise<void> {
+  try {
+    const lines: string[] = ['<!-- Contexto del evento (inyectado automáticamente) -->'];
+    if (pageContext.eventName) lines.push(`Evento: ${pageContext.eventName}`);
+    if (pageContext.eventId) lines.push(`ID de evento: ${pageContext.eventId}`);
+    if (pageContext.pageName) lines.push(`Pantalla actual: ${pageContext.pageName}`);
+    if (pageContext.screenData && Object.keys(pageContext.screenData).length > 0) {
+      try {
+        const dataStr = JSON.stringify(pageContext.screenData, null, 2);
+        lines.push(`Datos de la pantalla:\n${dataStr}`);
+      } catch {
+        // Ignorar si no es serializable
+      }
+    }
+    lines.push('<!-- fin contexto -->');
+    const contextBlock = lines.join('\n');
 
-interface AuthConfigPayload {
-  development: string;
-  eventId?: string;
-  eventName?: string;
-  token: string | null;
-  userData: {
-    displayName: string | null;
-    email: string | null;
-    phoneNumber: string | null;
-    photoURL: string | null;
-  };
-  userId: string;
-}
+    const [{ useAgentStore }, { agentSelectors }] = await Promise.all([
+      import('@/store/agent'),
+      import('@/store/agent/selectors'),
+    ]);
 
-interface EventContextPayload {
-  eventId: string;
-  eventName: string;
-  eventType?: string;
+    const agentStore = useAgentStore.getState();
+    const currentSystemRole: string =
+      agentSelectors.currentAgentSystemRole(useAgentStore.getState()) || '';
+
+    // Eliminar bloque de contexto anterior (evita acumulación)
+    const cleanedSystemRole = currentSystemRole
+      .replace(/<!--\s*Contexto del evento[\s\S]*?<!--\s*fin contexto\s*-->\n*/g, '')
+      .trimStart();
+
+    const newSystemRole = cleanedSystemRole
+      ? `${contextBlock}\n\n${cleanedSystemRole}`
+      : contextBlock;
+
+    await agentStore.updateAgentConfig({ systemRole: newSystemRole });
+
+    console.log('[CopilotBridge] ✅ Contexto inyectado en system prompt:', {
+      pageName: pageContext.pageName,
+      eventName: pageContext.eventName,
+      screenDataKeys: pageContext.screenData ? Object.keys(pageContext.screenData) : [],
+    });
+  } catch (err: any) {
+    // Si el tRPC call fue abortado (iframe aún inicializando), reintentar con backoff
+    const isAborted =
+      err?.message?.toLowerCase().includes('aborted') ||
+      err?.name === 'AbortError' ||
+      err?.cause?.name === 'AbortError';
+
+    if (isAborted && attempt < RETRY_DELAYS_MS.length) {
+      const delay = RETRY_DELAYS_MS[attempt];
+      console.log(
+        `[CopilotBridge] Reintentando inyección de contexto (intento ${attempt + 1}/${RETRY_DELAYS_MS.length}) en ${delay}ms...`,
+      );
+      setTimeout(() => injectContextIntoSystemPrompt(pageContext, attempt + 1), delay);
+    } else {
+      console.error('[CopilotBridge] Error inyectando contexto en system prompt:', err);
+    }
+  }
 }
 
 export const useCopilotBridge = () => {
@@ -82,6 +126,66 @@ export const useCopilotBridge = () => {
   const sendMCPNavigation = useCallback((url: string, toolName?: string) => {
     sendToParent('MCP_NAVIGATION', { toolName, url });
   }, [sendToParent]);
+
+  // Enviar filtro al parent app para que filtre su vista principal
+  // entity: 'events' | 'guests' | 'tables' | 'budget_items' | ...
+  const sendFilterView = useCallback((entity: string, ids: string[], query?: string) => {
+    sendToParent('FILTER_VIEW', { entity, ids, query });
+  }, [sendToParent]);
+
+  // Limpiar filtro activo en el parent app
+  const clearParentFilter = useCallback(() => {
+    sendToParent('CLEAR_FILTER', {});
+  }, [sendToParent]);
+
+  // Interceptar clicks en links que apuntan al app de eventos para navegar el parent en lugar de abrir otra pestaña
+  useEffect(() => {
+    if (!isInIframe.current || typeof window === 'undefined') return;
+
+    // Dominios conocidos del app de eventos (producción y test)
+    const APP_DOMAINS = [
+      'organizador.bodasdehoy.com',
+      'app-test.bodasdehoy.com',
+      'organizador.eventosorganizador.com',
+    ];
+
+    // Rutas del app que indican navegación interna
+    const APP_PATHS = [
+      '/invitados', '/presupuesto', '/mesas', '/itinerario', '/servicios',
+      '/menus', '/invitaciones', '/lista-regalos', '/configuracion',
+      '/resumen-evento', '/facturacion', '/bandeja-de-mensajes', '/perfil',
+      '/momentos', '/diseno-ia',
+    ];
+
+    const handleLinkClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest('a');
+      if (!target || !target.href) return;
+
+      try {
+        const url = new URL(target.href);
+        const isAppDomain = APP_DOMAINS.some(d => url.hostname === d);
+        const isAppPath = APP_PATHS.some(p => url.pathname.startsWith(p));
+
+        if (isAppDomain || isAppPath) {
+          e.preventDefault();
+          e.stopPropagation();
+          const path = url.pathname + url.search;
+          window.parent.postMessage({
+            type: 'COPILOT_NAVIGATE',
+            source: 'copilot-chat',
+            timestamp: Date.now(),
+            payload: { url: target.href },
+          }, '*');
+          console.log('[CopilotBridge] Interceptado link app, enviando COPILOT_NAVIGATE:', path);
+        }
+      } catch {
+        // URL inválida, ignorar
+      }
+    };
+
+    document.addEventListener('click', handleLinkClick, true);
+    return () => document.removeEventListener('click', handleLinkClick, true);
+  }, []);
 
   // Escuchar mensajes del parent
   useEffect(() => {
@@ -120,6 +224,17 @@ export const useCopilotBridge = () => {
           if (payload.eventName) {
             localStorage.setItem('current_event_name', payload.eventName);
           }
+
+          // Inyectar pageContext en el system prompt si viene incluido en AUTH_CONFIG
+          // Sin delay inicial: la función reintenta sola si el store aún no está listo
+          if (payload.pageContext) {
+            injectContextIntoSystemPrompt({
+              pageName: payload.pageContext?.pageName,
+              eventName: payload.eventName || undefined,
+              eventId: payload.eventId || undefined,
+              screenData: payload.pageContext?.screenData,
+            });
+          }
           break;
         }
 
@@ -137,6 +252,32 @@ export const useCopilotBridge = () => {
           if (payload.eventType) {
             localStorage.setItem('current_event_type', payload.eventType);
           }
+          break;
+        }
+
+        case 'PAGE_CONTEXT': {
+          const payload = message.payload as {
+            path?: string;
+            pageName?: string;
+            pageDescription?: string;
+            eventSummary?: any;
+            screenData?: Record<string, any>;
+          };
+          console.log('[CopilotBridge] Recibido PAGE_CONTEXT:', {
+            pageName: payload.pageName,
+            screenDataKeys: payload.screenData ? Object.keys(payload.screenData) : [],
+          });
+
+          // Recuperar eventId/eventName del localStorage (guardado en AUTH_CONFIG)
+          const eventId = localStorage.getItem('current_event_id') || undefined;
+          const eventName = localStorage.getItem('current_event_name') || undefined;
+
+          injectContextIntoSystemPrompt({
+            pageName: payload.pageName,
+            eventName,
+            eventId,
+            screenData: payload.screenData,
+          });
           break;
         }
 
@@ -187,6 +328,8 @@ export const useCopilotBridge = () => {
     isInIframe: isInIframe.current,
     sendMCPNavigation,
     sendToParent,
+    sendFilterView,
+    clearParentFilter,
   };
 };
 

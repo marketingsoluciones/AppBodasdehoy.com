@@ -3,6 +3,7 @@ import { StateCreator } from 'zustand/vanilla';
 import { ChatStore } from '@/store/chat/store';
 
 import { ChatDallEAction, dalleSlice } from './dalle';
+import { ChatFilterAppViewAction, filterAppViewSlice } from './filterAppView';
 import { ChatCodeInterpreterAction, codeInterpreterSlice } from './interpreter';
 import { LocalFileAction, localSystemSlice } from './localSystem';
 import { SearchAction, searchSlice } from './search';
@@ -13,7 +14,8 @@ export interface ChatBuiltinToolAction
     SearchAction,
     LocalFileAction,
     ChatCodeInterpreterAction,
-    ChatVenueVisualizerAction {}
+    ChatVenueVisualizerAction,
+    ChatFilterAppViewAction {}
 
 export const chatToolSlice: StateCreator<
   ChatStore,
@@ -26,4 +28,5 @@ export const chatToolSlice: StateCreator<
   ...localSystemSlice(...params),
   ...codeInterpreterSlice(...params),
   ...venueVisualizerSlice(...params),
+  ...filterAppViewSlice(...params),
 });

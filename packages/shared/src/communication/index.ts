@@ -12,6 +12,9 @@ export type {
   NavigationPayload,
   AuthConfigPayload,
   EventContextPayload,
+  PageContextPayload,
+  FilterViewPayload,
+  CopilotNavigatePayload,
   MCPToolCallPayload,
   ViewModePayload,
 } from './PostMessageBridge';

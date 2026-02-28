@@ -133,20 +133,24 @@ class AuthBridge {
     const sessionCookie = config ? Cookies.get(config.cookie) : null;
     const idToken = Cookies.get('idTokenV0.1.0');
 
-    // Parsear el JWT para obtener informacion del usuario
+    // Parsear tokens de Firebase para identificar al usuario real
     const sessionPayload = parseJwt(sessionCookie || '');
+    const idTokenPayload = parseJwt(idToken || '');
 
     // Obtener datos adicionales de localStorage (guardados por Lobe-Chat)
     const devUserConfig = this.getDevUserConfig();
 
-    const isAuthenticated = !!(sessionPayload?.user_id || devUserConfig?.userId);
+    // isAuthenticated SOLO via tokens de Firebase reales (NO via devUserConfig que puede ser developer JWT)
+    // Se requiere que exista la cookie Y que sea parseable con user_id
+    const userId = sessionPayload?.user_id || idTokenPayload?.user_id;
+    const isAuthenticated = !!(sessionCookie && userId);
 
     return {
       user: isAuthenticated ? {
-        uid: sessionPayload?.user_id || devUserConfig?.userId || '',
-        email: devUserConfig?.user_data?.email || localStorage.getItem('user_email'),
-        displayName: devUserConfig?.user_data?.displayName || localStorage.getItem('user_display_name'),
-        photoURL: localStorage.getItem('user_photo_url'),
+        uid: userId || '',
+        email: devUserConfig?.user_data?.email || idTokenPayload?.email || localStorage.getItem('user_email'),
+        displayName: devUserConfig?.user_data?.displayName || idTokenPayload?.name || localStorage.getItem('user_display_name'),
+        photoURL: idTokenPayload?.picture || localStorage.getItem('user_photo_url'),
         phoneNumber: devUserConfig?.user_data?.phoneNumber || null,
         role: devUserConfig?.user_data?.role,
       } : null,

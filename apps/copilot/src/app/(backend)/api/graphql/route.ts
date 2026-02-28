@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
-const getBackendUrl = (): string =>
-  process.env.PYTHON_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  'https://api-ia.bodasdehoy.com';
+// ✅ CORRECCIÓN: Las queries del apolloClient (fetchUserEvents, fetchExternalChats, etc.) son api2 queries.
+// Usar GRAPHQL_ENDPOINT (api2) como destino del proxy, NO el Python backend (api-ia).
+const getBackendUrl = (): string => {
+  const graphqlEndpoint = process.env.GRAPHQL_ENDPOINT || process.env.API2_GRAPHQL_URL;
+  if (graphqlEndpoint) {
+    // graphqlEndpoint ya incluye /graphql — extraemos la base para que el proxy añada /graphql
+    return graphqlEndpoint.replace(/\/graphql$/, '');
+  }
+  return 'https://api2.eventosorganizador.com';
+};
 
 /**
  * Proxy: POST /api/graphql → backend api-ia/graphql

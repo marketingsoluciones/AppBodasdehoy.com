@@ -101,11 +101,73 @@ export function extractPageContext(path: string, event: Event | null): PageConte
     };
   }
 
+  // Poblar screenData con datos reales según la página actual
+  const screenData: Record<string, any> = {};
+
+  if (event) {
+    if (path.includes('/invitados') && event.invitados_array?.length > 0) {
+      screenData.totalGuests = event.invitados_array.length;
+      screenData.guestList = event.invitados_array.map((g: any) => ({
+        nombre: g.nombre,
+        asistencia: g.asistencia || 'pendiente',
+        menu: g.nombre_menu || null,
+        mesa_recepcion: g.tableNameRecepcion?.title || g.nombre_mesa || null,
+        mesa_ceremonia: g.tableNameCeremonia?.title || null,
+        grupo: g.grupo_relacion || null,
+        acompanantes: g.passesQuantity || 0,
+        sexo: g.sexo || null,
+        grupo_edad: g.grupo_edad || null,
+        alergenos: g.alergenos?.length ? g.alergenos : null,
+      }));
+    }
+
+    if (path.includes('/presupuesto') && event.presupuesto_objeto) {
+      const p = event.presupuesto_objeto as any;
+      screenData.budget = {
+        presupuesto_total: p.presupuesto_total || 0,
+        coste_final: p.coste_final || 0,
+        pagado: p.pagado || 0,
+        pendiente: (p.coste_final || 0) - (p.pagado || 0),
+        currency: p.currency || 'EUR',
+        categorias: p.partidas?.map((cat: any) => ({
+          nombre: cat.nombre,
+          presupuesto: cat.precio_estimado || 0,
+          coste: cat.precio_final || 0,
+          pagado: cat.pagado || 0,
+        })) || [],
+      };
+    }
+
+    if (path.includes('/mesas') && event.invitados_array?.length > 0) {
+      // Agrupar invitados por mesa de recepción
+      const mesaMap: Record<string, string[]> = {};
+      event.invitados_array.forEach((g: any) => {
+        const mesa = g.tableNameRecepcion?.title || g.nombre_mesa || 'Sin mesa';
+        if (!mesaMap[mesa]) mesaMap[mesa] = [];
+        mesaMap[mesa].push(g.nombre);
+      });
+      screenData.tables = Object.entries(mesaMap).map(([mesa, guests]) => ({
+        mesa,
+        invitados: guests,
+        capacidad: guests.length,
+      }));
+    }
+
+    if (path.includes('/itinerario') && (event as any).itinerario_array?.length > 0) {
+      screenData.itinerary = (event as any).itinerario_array.map((item: any) => ({
+        titulo: item.titulo || item.nombre,
+        hora: item.hora,
+        descripcion: item.descripcion || null,
+        completado: item.completado || false,
+      }));
+    }
+  }
+
   return {
     path,
     pageName,
     pageDescription,
     eventSummary,
-    screenData: {},
+    screenData,
   };
 }

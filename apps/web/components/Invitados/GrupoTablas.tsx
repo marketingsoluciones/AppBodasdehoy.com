@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, FC, Dispatch, SetStateAction, cloneElement, useCallback } from "react";
+import { useEffect, useRef, useState, useMemo, FC, Dispatch, SetStateAction, cloneElement, useCallback } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { useRouter } from "next/navigation";
-import { EventContextProvider } from "../../context";
+import { EventContextProvider, EventsGroupContextProvider } from "../../context";
 import { api } from "../../api";
 import DataTableFinal from "./DataTable";
 import { BorrarInvitado } from "../../hooks/EditarInvitado";
@@ -100,6 +100,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   const { t } = useTranslation()
   const toast = useToast()
   const { event, setEvent, invitadoCero, setInvitadoCero, allFilterGuests, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
+  const { copilotFilter, clearCopilotFilter } = EventsGroupContextProvider();
   const GuestsFathers = event?.invitados_array?.filter((invitado) => !invitado?.father)
   const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
   const [isAllowed] = useAllowed()
@@ -750,11 +751,32 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
     ];
   };
 
+  const displayedData = useMemo(() => {
+    if (!copilotFilter || copilotFilter.entity !== 'guests' || !copilotFilter.ids?.length) {
+      return data;
+    }
+    const idSet = new Set(copilotFilter.ids);
+    return data
+      .map(group => ({ ...group, data: group.data.filter((g: any) => idSet.has(g._id)) }))
+      .filter(group => group.data.length > 0);
+  }, [data, copilotFilter]);
+
   return (
     <DataTableGroupProvider>
       <div className="w-[200%] md:w-[100%]">
+        {copilotFilter?.entity === 'guests' && (copilotFilter.ids?.length ?? 0) > 0 && (
+          <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-pink-50 border border-pink-200 rounded-lg text-xs text-pink-700">
+            <span>🤖</span>
+            <span className="flex-1 truncate">
+              {copilotFilter.query
+                ? `Copilot filtró: "${copilotFilter.query}" · ${copilotFilter.ids?.length ?? 0} invitado(s)`
+                : `Copilot filtró · ${copilotFilter.ids?.length ?? 0} invitado(s)`}
+            </span>
+            <button onClick={clearCopilotFilter} className="ml-1 text-pink-400 hover:text-pink-600 font-bold leading-none" aria-label="Limpiar filtro">✕</button>
+          </div>
+        )}
         {/* <CheckBoxAll /> */}
-        {data?.map((item, idx: number) => {
+        {displayedData?.map((item, idx: number) => {
           return (
             <DataTableFinal
               key={idx}

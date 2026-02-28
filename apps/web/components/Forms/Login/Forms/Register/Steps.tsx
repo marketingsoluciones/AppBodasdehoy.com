@@ -120,7 +120,7 @@ export const SecondStep: FC<propsSecondStep> = (props) => {
       {linkMedia == null &&
         <div className={` ${WihtProvider ? "hidden" : ""}`}>
           <Providers setStage={props.setStage} whoYouAre={preregister?.role[0] ?? props?.whoYouAre} />
-          <h2 className={`font-light w-full text-tertiary text-center text-md`}>
+          <h2 className={`font-light w-full text-gray-500 text-center text-md`}>
             Ó
           </h2>
         </div>

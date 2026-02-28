@@ -1,5 +1,6 @@
 import { GoogleAuthProvider, FacebookAuthProvider, OAuthProvider } from "firebase/auth";
 import { LogoEventosOrganizador, LogoNuevoBodasBlanco } from "./components/icons";
+/** @typedef {import('@bodasdehoy/shared/types').DevelopmentConfig & { name: string, fileConfig: object, logoDirectory?: any, navbarDirectory?: any[], headTitle?: string, metaPixel_id?: string, subdomain?: string, timeZone?: string }} FullDevelopmentConfig */
 
 
 const firebaseConfigBodas = {
@@ -105,6 +106,7 @@ const firebaseConfigTheweddingplanner = {
   measurementId: "G-FW08N94PTL"
 };
 
+/** @type {FullDevelopmentConfig[]} */
 export const developments = [
   {
     name: "bodasdehoy",

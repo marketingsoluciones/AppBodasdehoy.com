@@ -1,4 +1,4 @@
-import { SetStateAction, useEffect, useState, useRef, Dispatch, FC } from "react";
+import { SetStateAction, useEffect, useState, useRef, Dispatch, FC, useMemo } from "react";
 import { motion } from "framer-motion";
 import { LineaHome } from "../components/icons";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, LoadingContextProvider, } from "../context";
@@ -271,14 +271,14 @@ type dataTab = {
 }
 
 export const Lista = [
-  { nombre: "Pendientes", value: "pendiente", color: "tertiary" },
+  { nombre: "Pendientes", value: "pendiente", color: "primary" },
   { nombre: "Archivados", value: "archivado", color: "gray-300" },
   { nombre: "Realizados", value: "realizado", color: "secondary" },
 ];
 
 const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
   const { t } = useTranslation();
-  const { eventsGroup } = EventsGroupContextProvider();
+  const { eventsGroup, copilotFilter, clearCopilotFilter } = EventsGroupContextProvider();
   const { idxGroupEvent, setIdxGroupEvent } = EventContextProvider()
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<number>(idxGroupEvent?.isActiveStateSwiper)
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
@@ -343,8 +343,37 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
     }
   }, [idxNew])
 
+  // Aplicar filtro del Copilot cuando entity === 'events'
+  const displayedTabsGroup = useMemo(() => {
+    if (!copilotFilter || copilotFilter.entity !== 'events' || !copilotFilter.ids?.length) {
+      return tabsGroup;
+    }
+    const idSet = new Set(copilotFilter.ids);
+    return tabsGroup.map(group => ({
+      ...group,
+      data: group.data.filter(e => idSet.has(e._id)),
+      vacio: [],
+    }));
+  }, [tabsGroup, copilotFilter]);
+
   return (
     <div className="flex flex-col max-h-[calc(52%-4px)]">
+      {/* Chip de filtro activo del Copilot */}
+      {copilotFilter?.entity === 'events' && (
+        <div className="flex items-center gap-2 mx-4 mb-2 px-3 py-1.5 bg-pink-50 border border-pink-200 rounded-lg text-xs text-pink-700">
+          <span>🤖</span>
+          <span className="flex-1 truncate">
+            {copilotFilter.query
+              ? `Copilot filtró: "${copilotFilter.query}" · ${copilotFilter.ids?.length ?? 0} evento(s)`
+              : `Copilot filtró · ${copilotFilter.ids?.length ?? 0} evento(s)`}
+          </span>
+          <button
+            onClick={clearCopilotFilter}
+            className="ml-1 text-pink-400 hover:text-pink-600 font-bold leading-none"
+            aria-label="Limpiar filtro del Copilot"
+          >✕</button>
+        </div>
+      )}
       <div className="w-full h-10 flex">
         <div className="flex-1" />
         <div className="inline-flex gap-4 py-2">
@@ -376,7 +405,7 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
         </div>
       </div>
       <div className="flex flex-col md:flex-1 overflow-x-scroll md:overflow-clip">
-        {tabsGroup.map((group, idx) => {
+        {displayedTabsGroup.map((group, idx) => {
           if (orderAndDirection?.order) {
             group?.data?.sort((a, b) => {
               if (orderAndDirection.order === "fecha") {

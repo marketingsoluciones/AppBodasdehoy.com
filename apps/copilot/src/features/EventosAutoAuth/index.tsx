@@ -76,8 +76,9 @@ function EventosAutoAuthComponent() {
     const handleMessage = (event: MessageEvent) => {
       const { type, source, payload } = event.data || {};
 
-      // Solo procesar mensajes del parent (app-bodas)
-      if (source !== 'app-bodas') return;
+      // Solo procesar mensajes del parent (app-bodas o copilot-parent)
+      const isFromParent = source === 'app-bodas' || source === 'copilot-parent';
+      if (!isFromParent) return;
 
       if (type === 'AUTH_CONFIG' && payload) {
         devLog('[EventosAutoAuth] 🔓 Recibido AUTH_CONFIG del parent:', {
@@ -322,20 +323,30 @@ function EventosAutoAuthComponent() {
           devLog('✅ [AuthBridge] Usuario autenticado via cookie compartida de la app:', sharedAuth.user.uid);
 
           // Guardar en localStorage para que api2/client.ts pueda leer el token
-          localStorage.setItem('jwt_token', sharedAuth.sessionCookie);
-          localStorage.setItem('api2_jwt_token', sharedAuth.sessionCookie);
+          // Usar idToken (JWT de Firebase) no sessionCookie (token opaco de servidor)
+          const apiToken = sharedAuth.idToken || sharedAuth.sessionCookie;
+          localStorage.setItem('jwt_token', apiToken);
+          localStorage.setItem('api2_jwt_token', apiToken);
 
           // Sincronizar a formato dev-user-config que usa LobeChat
           await authBridge.syncAuthToLobechat(sharedAuth);
 
           // Identificar al usuario en el store de LobeChat
+          // ✅ CRÍTICO: Usar email como userId (NO Firebase UID) porque api2 consulta eventos/chats por email.
+          // fetchUserEvents detecta si es email → usa getAllUserRelatedEventsByEmail
+          // fetchExternalChats también envía userId a getSessions query
+          const userId = sharedAuth.user.email || sharedAuth.user.uid;
           await setExternalChatConfig(
-            sharedAuth.user.uid,
+            userId,
             sharedAuth.development,
-            sharedAuth.sessionCookie,
+            sharedAuth.idToken || sharedAuth.sessionCookie,
             'registered',
             sharedAuth.user.role?.[0] || 'user',
-            undefined,
+            {
+              email: sharedAuth.user.email,
+              displayName: sharedAuth.user.displayName,
+              photoURL: sharedAuth.user.photoURL,
+            },
           );
 
           hasIdentifiedRef.current = true;
@@ -1071,9 +1082,6 @@ function EventosAutoAuthComponent() {
 
       if (shouldIdentify) {
         devLog('✅ shouldIdentify es TRUE, procediendo con identificación');
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/10a0d667-c77d-44ea-a28d-e9f9b782eee2',{body:JSON.stringify({data:{developer,hasEmail:!!email,hasPhone:!!phone},hypothesisId:'A',location:'EventosAutoAuth.tsx:793',message:'shouldIdentify TRUE',runId:'run1',sessionId:'debug-session',timestamp:Date.now()}),headers:{'Content-Type':'application/json'},method:'POST'}).catch(()=>{});
-        // #endregion
         try {
           const { eventosAPI } = await import('@/config/eventos-api');
 
@@ -1088,10 +1096,6 @@ function EventosAutoAuthComponent() {
             source: finalEmail || finalPhone ? 'URL' : savedConfig ? 'localStorage' : 'default',
           });
 
-          // #region agent log
-          const identifyStart = Date.now();
-          fetch('http://127.0.0.1:7242/ingest/10a0d667-c77d-44ea-a28d-e9f9b782eee2',{body:JSON.stringify({data:{developer,hasEmail:!!finalEmail,hasPhone:!!finalPhone,timestamp:identifyStart},hypothesisId:'A',location:'EventosAutoAuth.tsx:810',message:'BEFORE identifyUser call',runId:'run1',sessionId:'debug-session',timestamp:Date.now()}),headers:{'Content-Type':'application/json'},method:'POST'}).catch(()=>{});
-          // #endregion
           // Llamar al backend para identificar usuario
           let result;
           try {
@@ -1100,11 +1104,6 @@ function EventosAutoAuthComponent() {
               finalEmail,
               finalPhone,
             );
-
-            // #region agent log
-            const identifyEnd = Date.now();
-            fetch('http://127.0.0.1:7242/ingest/10a0d667-c77d-44ea-a28d-e9f9b782eee2',{body:JSON.stringify({data:{elapsed:identifyEnd-identifyStart,success:result.success},hypothesisId:'A',location:'EventosAutoAuth.tsx:816',message:'AFTER identifyUser call',runId:'run1',sessionId:'debug-session',timestamp:Date.now()}),headers:{'Content-Type':'application/json'},method:'POST'}).catch(()=>{});
-            // #endregion
           } catch (error: any) {
             // ✅ CRÍTICO: Capturar errores y mostrar mensaje claro al usuario
             devLog('❌ Error en identifyUser:', error);

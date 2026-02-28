@@ -22,11 +22,11 @@ export const Login: FC<propsLogin> = ({ setStage, whoYouAre }) => {
   const { SetWihtProvider } = AuthContextProvider()
   return (
     <>
-      <h2 className={`font-light text-tertiary justify-center flex text-md mt-12`}>
+      <h2 className={`font-light text-gray-500 justify-center flex text-md mt-12`}>
         {t("toyouraccount")}
       </h2>
       <Providers setStage={setStage} whoYouAre={whoYouAre} />
-      <h2 className={`font-light text-tertiary justify-center flex gap-2 text-md `}>
+      <h2 className={`font-light text-gray-500 justify-center flex gap-2 text-md `}>
         {t("withyouremail")}
       </h2>
       <FormLogin setStage={setStage} />
@@ -64,7 +64,7 @@ export const Register: FC<propsLogin> = ({ setStage, fStageRegister, stageRegist
         }
       })()}
 
-      {(linkMedia == null && !preregister) && <h2 className={`font-light text-tertiary flex gap-2 text-sm  pt-3`}>
+      {(linkMedia == null && !preregister) && <h2 className={`font-light text-gray-500 flex gap-2 text-sm  pt-3`}>
         {t("doyouhaveanaccount")}
         <span
           className="text-sm text-primary font-semibold cursor-pointer hover:text-tertiary transition"
@@ -91,7 +91,7 @@ export const ResetPass: FC<propsLogin> = ({ setStage }) => {
       </div>
       <FormResetPassword setStage={setStage} />
       <h2
-        className={`font-light text-tertiary flex gap-2 items-center text-sm `}
+        className={`font-light text-gray-500 flex gap-2 items-center text-sm `}
       >
         {t("doyouhaveanaccount")}
         <span

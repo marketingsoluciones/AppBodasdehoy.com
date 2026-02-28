@@ -52,8 +52,8 @@ const Content = memo<ContentProps>(({ loadingStage }) => {
 
   // Fallback en español para SSR (t() devuelve la clave cruda si i18n no está listo)
   const STAGE_FALLBACKS: Record<string, string> = {
-    [AppLoadingStage.Idle]: 'Iniciando...',
-    [AppLoadingStage.Initializing]: 'Inicializando aplicación...',
+    [AppLoadingStage.Idle]: 'Iniciando aplicación...',
+    [AppLoadingStage.Initializing]: 'Inicializando sistema...',
     [AppLoadingStage.InitAuth]: 'Verificando sesión...',
     [AppLoadingStage.InitUser]: 'Cargando tu información...',
     [AppLoadingStage.GoToChat]: 'Abriendo chat...',

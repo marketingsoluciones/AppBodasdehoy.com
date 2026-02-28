@@ -109,6 +109,11 @@ size: payload.params.width && payload.params.height
 use_case: useCase,
     
 user_id: userConfig?.userId || 'anonymous',
+    // Imagen de referencia para image-to-image (si se proporcionó)
+    ...(payload.params.imageUrls && payload.params.imageUrls.length > 0 && {
+      image_url: payload.params.imageUrls[0],
+      strength: 0.75,
+    }),
   };
 
   log('Creating image with backend Python (auto-routing): %O', { provider, requiresText, useCase, ...backendPayload });
@@ -156,40 +161,32 @@ export class AiImageService {
           throw new Error(backendResult.error);
         }
 
-        // Adaptar respuesta al formato esperado por el store
-        // El store espera: { success: boolean, data: { batch, generations } }
-        // Soporta múltiples formatos de imagen: url, base64, b64_json
+        // Adaptar respuesta al formato GenerationBatch esperado por el store
+        const now = new Date();
         return {
           data: {
             batch: {
-              id: `batch-${Date.now()}`,
-              model: payload.model,
-              prompt: payload.params.prompt,
-              provider: payload.provider,
-            },
-            generations: (backendResult.images || []).map((img: any, idx: number) => {
-              // Determinar URL de imagen según formato de respuesta
-              let imageUrl = '';
-              if (img.url) {
-                imageUrl = img.url;
-              } else if (img.b64_json) {
-                imageUrl = `data:image/png;base64,${img.b64_json}`;
-              } else if (img.base64) {
-                imageUrl = `data:image/png;base64,${img.base64}`;
-              }
+              config: { prompt: payload.params.prompt },
+              createdAt: now,
+              generations: (backendResult.images || []).map((img: any, idx: number) => {
+                let imageUrl = '';
+                if (img.url) imageUrl = img.url;
+                else if (img.b64_json) imageUrl = `data:image/png;base64,${img.b64_json}`;
+                else if (img.base64) imageUrl = `data:image/png;base64,${img.base64}`;
 
-              return {
-                id: `gen-${Date.now()}-${idx}`,
-                imageUrl,
-                
-model: img.model,
-                
-                // Metadatos adicionales del auto-routing
-provider: img.provider,
-                revised_prompt: img.revised_prompt,
-                status: 'completed',
-              };
-            }),
+                return {
+                  asyncTaskId: null,
+                  createdAt: now,
+                  id: `gen-${Date.now()}-${idx}`,
+                  task: { id: `task-${Date.now()}-${idx}`, status: 'success' as any },
+                  asset: imageUrl ? { type: 'image', originalUrl: imageUrl, url: imageUrl } : null,
+                };
+              }),
+              id: `batch-${Date.now()}`,
+              model: payload.model || 'gpt-image-1',
+              prompt: payload.params.prompt,
+              provider: payload.provider || 'openai',
+            },
           },
           success: true,
         };

@@ -41,10 +41,11 @@ const InitProgress = memo<InitingProps>(({ activeStage, stages }) => {
       <Flexbox align={'center'} gap={8} horizontal style={{ flexWrap: 'nowrap', justifyContent: 'center', width: '100%' }}>
         {stage?.icon ? stage?.icon : <Icon icon={Loader2} size={16} spin />}
         <Text style={{ flexShrink: 0, fontSize: 14, fontWeight: 500, whiteSpace: 'nowrap' }} type={'secondary'}>
-          {currentStageNumber} de {totalStages}
+          <span suppressHydrationWarning>{currentStageNumber} de {totalStages}</span>
         </Text>
         <Text style={{ fontSize: 14, fontWeight: 400, maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} type={'secondary'}>
-          {stage?.text}
+          {/* suppressHydrationWarning: el texto de la etapa es dinámico, SSR y CSR siempre difieren */}
+          <span suppressHydrationWarning>{stage?.text}</span>
         </Text>
       </Flexbox>
     </Center>

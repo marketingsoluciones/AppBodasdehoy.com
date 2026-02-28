@@ -15,8 +15,12 @@ export type MessageType =
   | 'MCP_TOOL_CALL'
   | 'MCP_TOOL_RESULT'
   | 'EVENT_CONTEXT'
+  | 'PAGE_CONTEXT'
   | 'REFRESH_PREVIEW'
   | 'NAVIGATE'
+  | 'COPILOT_NAVIGATE'
+  | 'FILTER_VIEW'
+  | 'CLEAR_FILTER'
   | 'VIEW_MODE_CHANGE';
 
 export type MessageSource = 'copilot-chat' | 'copilot-preview' | 'copilot-parent';
@@ -35,6 +39,14 @@ export interface NavigationPayload {
   toolName?: string;
 }
 
+export interface PageContextPayload {
+  path?: string;
+  pageName?: string;
+  pageDescription?: string;
+  eventSummary?: any;
+  screenData?: Record<string, any>;
+}
+
 export interface AuthConfigPayload {
   userId: string;
   development: string;
@@ -47,12 +59,23 @@ export interface AuthConfigPayload {
   };
   eventId?: string;
   eventName?: string;
+  pageContext?: PageContextPayload;
 }
 
 export interface EventContextPayload {
   eventId: string;
   eventName: string;
   eventType?: string;
+}
+
+export interface FilterViewPayload {
+  entity: string;
+  ids: string[];
+  query?: string;
+}
+
+export interface CopilotNavigatePayload {
+  url: string;
 }
 
 export interface MCPToolCallPayload {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useChatStore } from '@/store/chat';
 import {
@@ -80,6 +80,9 @@ export const useWallet = (): UseWalletReturn => {
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [transactionsLoading, setTransactionsLoading] = useState(false);
   const [hasMoreTransactions, setHasMoreTransactions] = useState(false);
+
+  // Retry guard: solo un reintento por sesión de error UNAUTHORIZED
+  const unauthorizedRetryDoneRef = useRef(false);
 
   // Computed
   const isNegativeBalance = totalBalance < 0;
@@ -282,12 +285,17 @@ export const useWallet = (): UseWalletReturn => {
   // Cargar balance cuando el usuario se autentica (o cambia de usuario)
   useEffect(() => {
     if (!isAuthenticated) return;
+    // Reset del retry guard al cambiar de usuario (nuevo login)
+    unauthorizedRetryDoneRef.current = false;
     refetchBalance();
   }, [currentUserId]); // Re-fetch cada vez que cambia el userId (login event)
 
-  // Auto-retry si UNAUTHORIZED y hay token disponible (race condition edge case)
+  // Auto-retry si UNAUTHORIZED y hay token disponible (solo UN reintento, evita loops)
   useEffect(() => {
     if (error !== 'UNAUTHORIZED' || !isAuthenticated || typeof window === 'undefined') return;
+    // Si ya reintentamos una vez, no volver a intentar (evita loop infinito)
+    if (unauthorizedRetryDoneRef.current) return;
+    unauthorizedRetryDoneRef.current = true;
     const retryTimer = setTimeout(() => {
       if (localStorage.getItem('jwt_token')) {
         refetchBalance();

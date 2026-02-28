@@ -24,10 +24,18 @@ interface VisualizeVenueParams {
   items: VisualizeVenueItemParam[];
 }
 
+interface FilterViewParams {
+  entity: string;
+  ids?: string[];
+  query?: string;
+}
+
 /**
  * 代理行为接口
  */
 export interface BuiltinToolAction {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  filter_view: (params: FilterViewParams) => FilterViewParams;
   text2image: (params: Text2ImageParams) => DallEImageItem[];
   toggleBuiltinToolLoading: (key: string, value: boolean) => void;
   transformApiArgumentsToAiState: (key: string, params: any) => Promise<string | undefined>;
@@ -80,4 +88,7 @@ transformApiArgumentsToAiState: async (key, params) => {
       roomType,
       style,
     })),
+
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  filter_view: ({ entity, ids, query }) => ({ entity, ids, query }),
 });
