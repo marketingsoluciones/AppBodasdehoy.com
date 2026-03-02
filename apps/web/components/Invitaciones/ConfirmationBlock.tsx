@@ -60,7 +60,7 @@ export const ConfirmationBlock: FC<any> = ({ arrEnviarInvitaciones, set, optionS
   };
 
   const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
-  const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
+  const redireccionFacturacion = (typeof window !== 'undefined' && window.origin.includes("://test")) ? path?.replace("//", "//test") : path
   return (
     <>
       <div className="bg-black w-full h-full fixed rounded-xl opacity-60 z-20 top-0 left-0" />

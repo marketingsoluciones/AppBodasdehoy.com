@@ -11,7 +11,7 @@ interface propsBlockZonas {
 const BlockZonas: FC<propsBlockZonas> = () => {
     const { t } = useTranslation();
     const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
-    const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
+    const redireccionFacturacion = (typeof window !== 'undefined' && window.origin.includes("://test")) ? path?.replace("//", "//test") : path
     const router = useRouter()
     return (
         <div className="w-full h-full overflow-auto">

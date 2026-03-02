@@ -29,7 +29,7 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
     }
   }
   const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
-  const redireccionFacturacion = window.origin.includes("://test") ? path?.replace("//", "//test") : path
+  const redireccionFacturacion = (typeof window !== 'undefined' && window.origin.includes("://test")) ? path?.replace("//", "//test") : path
 
   return (
     <div className="w-full h-full overflow-auto">
