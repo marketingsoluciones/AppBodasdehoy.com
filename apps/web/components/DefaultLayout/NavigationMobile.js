@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import Link from "next/link";
 import { InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
@@ -8,26 +8,9 @@ import { BsCalendarHeartFill } from "react-icons/bs";
 import { IoIosArrowDown } from "react-icons/io";
 import ClickAwayListener from "react-click-away-listener";
 
-const useOutsideSetShow = (ref, setShow) => {
-  const handleClickOutside = (event) => {
-    if (ref.current && !ref.current.contains(event.target)) {
-      setTimeout(() => {
-        setShow(false)
-      }, 50);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  });
-};
 /* menu inferior con las opciones de redireccion de la app en vista movil */
 const NavigationMobile = () => {
   const { t } = useTranslation();
-  const wrapperRef = useRef(null);
   const toast = useToast();
   const { event } = EventContextProvider();
   const { user } = AuthContextProvider();
@@ -84,8 +67,6 @@ const NavigationMobile = () => {
       condicion: event?._id ? "verdadero" : "falso"
     },
   ]
-
-  useOutsideSetShow(wrapperRef, setShow);
 
   return (
     <div className="w-full flex justify-center relative">
