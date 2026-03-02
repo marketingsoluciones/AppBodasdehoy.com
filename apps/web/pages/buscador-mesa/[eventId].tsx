@@ -5,8 +5,8 @@ import { fetchApiEventosServer } from '../../utils/Fetching';
 import { MdOutlineQrCode2 } from 'react-icons/md';
 
 const SEATING_QUERY = `
-  query ($variable: String, $valor: String, $development: String!) {
-    queryenEvento(variable: $variable, valor: $valor, development: $development) {
+  query ($var_1: String) {
+    queryenEvento_id(var_1: $var_1) {
       _id
       nombre
       tipo
@@ -230,14 +230,10 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   try {
     const data = await fetchApiEventosServer({
       query: SEATING_QUERY,
-      variables: {
-        variable: '_id',
-        valor: eventId,
-        development,
-      },
+      variables: { var_1: eventId },
     });
 
-    const eventos = data?.queryenEvento;
+    const eventos = data?.queryenEvento_id;
     const evento = Array.isArray(eventos) ? eventos[0] : eventos;
 
     if (!evento) {

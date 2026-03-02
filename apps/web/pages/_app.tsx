@@ -78,6 +78,21 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
     }
   }, [])
 
+  // Rutas públicas del portal del invitado — sin auth, sin nav, sin layout autenticado
+  const router = useRouter()
+  const isPublicPortal = router.pathname.startsWith('/e/') || router.pathname.startsWith('/buscador-mesa/')
+
+  if (isPublicPortal) {
+    return (
+      <ErrorBoundary>
+        <I18nextProvider i18n={i18n}>
+          <Component {...pageProps} />
+        </I18nextProvider>
+        <DevWhitelabelSwitcher />
+      </ErrorBoundary>
+    )
+  }
+
   return (
     <ErrorBoundary>
       <NextSeo
