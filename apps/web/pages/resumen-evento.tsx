@@ -42,7 +42,6 @@ const Resumen = () => {
       </section>
     </>
   );
-  return <></>
 };
 
 export default Resumen;
