@@ -1,7 +1,7 @@
 import { useMemo, useEffect, useState, FC, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { AuthContextProvider, EventContextProvider, ChatSidebarContextProvider } from "../../context";
-import { Banner, IconLightBulb16, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, LivingRoomIcon, MenuIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
+import { Banner, IconLightBulb16, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
 import { useDelayUnmount } from "../../utils/Funciones";
 import Profile from "./Profile";
 import BlockNotification from "./BlockNotification";
@@ -10,7 +10,6 @@ import { Tooltip } from "../Utils/Tooltip";
 import { useAllowedRouter } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { BsCalendarHeartFill } from "react-icons/bs";
-import { MdOutlinePhotoLibrary } from "react-icons/md";
 import ChatToggleButton from "../ChatSidebar/ChatToggleButton";
 
 const Navigation: FC = () => {
@@ -80,18 +79,6 @@ const Navigation: FC = () => {
       title: "Itinerario",
       icon: <BsCalendarHeartFill className="w-7 h-7" />,
       route: "/itinerario",
-      condicion: event?._id ? true : false
-    },
-    {
-      title: "Diseño IA",
-      icon: <LivingRoomIcon className="w-7 h-7" />,
-      route: "/diseno-espacios",
-      condicion: event?._id ? true : false
-    },
-    {
-      title: "Momentos",
-      icon: <MdOutlinePhotoLibrary className="w-7 h-7" />,
-      route: "/momentos",
       condicion: event?._id ? true : false
     },
   ], [event]);

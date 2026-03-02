@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import Link from "next/link";
-import { InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, LivingRoomIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
+import { InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
 import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { BsCalendarHeartFill } from "react-icons/bs";
-import { MdOutlinePhotoLibrary } from "react-icons/md";
 import { IoIosArrowDown } from "react-icons/io";
 import ClickAwayListener from "react-click-away-listener";
 
@@ -84,18 +83,6 @@ const NavigationMobile = () => {
       route: "/lista-regalos",
       condicion: event?._id ? "verdadero" : "falso"
     },
-    {
-      title: "Diseño IA",
-      icon: <LivingRoomIcon className="text-primary w-7 h-7" />,
-      route: event?._id ? "/diseno-espacios" : "/",
-      condicion: event?._id ? "verdadero" : "falso"
-    },
-    {
-      title: "Momentos",
-      icon: <MdOutlinePhotoLibrary className="text-primary w-7 h-7" />,
-      route: event?._id ? "/momentos" : "/",
-      condicion: event?._id ? "verdadero" : "falso"
-    },
   ]
 
   useOutsideSetShow(wrapperRef, setShow);
@@ -118,7 +105,7 @@ const NavigationMobile = () => {
               </Link>
             ))}
           </div>
-          <div className={`w-full grid grid-cols-4 pt-1 pb-5 place-items-center`}>
+          <div className={`w-full grid grid-cols-2 pt-1 pb-5 place-items-center`}>
             {Navbar.slice(6).map((item, idx) => (
               <Link key={idx} href={item.route}>
                 <li
