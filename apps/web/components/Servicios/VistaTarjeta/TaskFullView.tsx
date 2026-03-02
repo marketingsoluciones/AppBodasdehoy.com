@@ -1,4 +1,5 @@
 import React, { FC, useState, useEffect, useMemo } from 'react';
+import { usePathname } from 'next/navigation';
 import { Task, Itinerary, OptionsSelect, Comment } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import { EventContextProvider } from "../../../context/EventContext";
@@ -60,7 +61,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
   const [editingTime, setEditingTime] = useState(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [showChat, setShowChat] = useState(false);
-  const ruta = window.location.pathname;
+  const ruta = usePathname();
 
   const ValidationEdit = useMemo(() => {
     if (["/itinerario"].includes(ruta)) {

@@ -1,4 +1,5 @@
 import React, { FC, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Task } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import { Calendar, Clock } from 'lucide-react';
@@ -22,7 +23,7 @@ export const TimeDurationContainer: FC<TimeDurationContainerProps> = ({ task, ca
   const [editingStartTime, setEditingStartTime] = useState(false);
   const [editingEndTime, setEditingEndTime] = useState(false);
   const { dateTimeFormated } = useDateTime();
-  const ruta = window.location.pathname;
+  const ruta = usePathname();
 
   const ValidationEdit = useMemo(() => {
     if (["/itinerario"].includes(ruta)) {

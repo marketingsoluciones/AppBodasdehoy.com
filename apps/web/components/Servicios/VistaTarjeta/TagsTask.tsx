@@ -1,4 +1,5 @@
 import { Plus, Tag, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { FC, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ClickAwayListener from "react-click-away-listener";
@@ -13,7 +14,7 @@ interface Props {
 export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState<boolean>(false);
-  const ruta = window.location.pathname;
+  const ruta = usePathname();
 
   // Lógica de validación extraída fuera del return
   const isItinerarioRoute = ["/itinerario"].includes(ruta);

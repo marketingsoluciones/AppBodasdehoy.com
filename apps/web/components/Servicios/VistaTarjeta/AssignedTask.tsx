@@ -1,4 +1,5 @@
 import { User } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ClickUpResponsableSelector } from "../VistaTabla/NewResponsableSelector";
@@ -19,7 +20,7 @@ export const AssignedTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) 
   const { event } = EventContextProvider();
   const [editing, setEditing] = useState<boolean>(false);
   const [tempResponsable, setTempResponsable] = useState<string[]>(task.responsable || []);
-  const ruta = window.location.pathname;
+  const ruta = usePathname();
 
   useEffect(() => {
     setTempResponsable(Array.isArray(task?.responsable) ? task.responsable : []);

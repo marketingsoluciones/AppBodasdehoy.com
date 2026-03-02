@@ -1,4 +1,5 @@
 import { FC, useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { SelectIconNew } from "../Utils/SelectIconNew";
 import { Task } from "../../../utils/Interfaces";
@@ -15,7 +16,7 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task, own
   const [value, setValue] = useState<string>();
   const [editing, setEditing] = useState<boolean>(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const ruta = window.location.pathname;
+  const ruta = usePathname();
 
   useEffect(() => {
     setValue(null);
