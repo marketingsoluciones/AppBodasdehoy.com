@@ -1,0 +1,11 @@
+{
+  "_instrucciones": "Pega aquí la respuesta de error tal como la recibe el frontal (o desde Postman/DevTools). Sustituye este contenido.",
+  "error": true,
+  "source": "",
+  "message": "",
+  "statusCode": null,
+  "ourStep": "",
+  "timestamp": "",
+  "requestId": "",
+  "details": {}
+}
