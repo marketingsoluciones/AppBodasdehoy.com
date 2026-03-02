@@ -4,7 +4,7 @@ import { DineroIcon } from "../components/icons";
 import BlockPagos from "../components/Presupuesto/BlockPagos";
 import Grafico from "../components/Presupuesto/Grafico";
 import ExportExcelPresupuesto from "../components/Presupuesto/ExportExcelPresupuesto";
-import { AuthContextProvider, EventContextProvider } from "../context";
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../context";
 import { getCurrency } from "../utils/Funciones";
 import VistaSinCookie from "./vista-sin-cookie";
 import BlockTitle from "../components/Utils/BlockTitle";
@@ -22,6 +22,7 @@ const Presupuesto = () => {
   useMounted()
   const { t } = useTranslation();
   const { user, verificationDone, forCms } = AuthContextProvider()
+  const { copilotFilter, clearCopilotFilter } = EventsGroupContextProvider()
   const [showCategoria, setShowCategoria] = useState({ state: false, _id: "" });
   const [active, setActive] = useState("resumen");
   const { event } = EventContextProvider();
@@ -74,6 +75,17 @@ const Presupuesto = () => {
             >
 
               <BlockTitle title={"Presupuesto"} />
+              {copilotFilter?.entity === 'budget_items' && (copilotFilter.ids?.length ?? 0) > 0 && (
+                <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-pink-50 border border-pink-200 rounded-lg text-xs text-pink-700">
+                  <span>🤖</span>
+                  <span className="flex-1 truncate">
+                    {copilotFilter.query
+                      ? `Copilot filtró: "${copilotFilter.query}" · ${copilotFilter.ids?.length ?? 0} partida(s)`
+                      : `Copilot filtró · ${copilotFilter.ids?.length ?? 0} partida(s)`}
+                  </span>
+                  <button onClick={clearCopilotFilter} className="ml-1 text-pink-400 hover:text-pink-600 font-bold leading-none" aria-label="Limpiar filtro">✕</button>
+                </div>
+              )}
               <div className="w-full flex justify-center my-2 mt-4 rounded-2xl text-xs md:text-sm">
                 <div
                   onClick={() => setActive("resumen")}

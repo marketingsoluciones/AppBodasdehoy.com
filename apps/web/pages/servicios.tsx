@@ -9,7 +9,7 @@ import { useMounted } from "../hooks/useMounted"
 
 
 const Itinerario: FC<any> = (props) => {
-    const { eventsGroup } = EventsGroupContextProvider()
+    const { eventsGroup, copilotFilter, clearCopilotFilter } = EventsGroupContextProvider()
     const { event, setEvent } = EventContextProvider()
     const { user, setUser, verificationDone, forCms } = AuthContextProvider()
     const router = useRouter()
@@ -46,6 +46,17 @@ const Itinerario: FC<any> = (props) => {
                     exit={{ opacity: 0 }}
                     className="mx-auto inset-x-0 w-full pl-2 pr-[1px] md:px-4 gap-4 relative">
                     <BlockTitle title={"Tasks"} />
+                    {copilotFilter?.entity === 'services' && (copilotFilter.ids?.length ?? 0) > 0 && (
+                        <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-pink-50 border border-pink-200 rounded-lg text-xs text-pink-700">
+                            <span>🤖</span>
+                            <span className="flex-1 truncate">
+                                {copilotFilter.query
+                                    ? `Copilot filtró: "${copilotFilter.query}" · ${copilotFilter.ids?.length ?? 0} servicio(s)`
+                                    : `Copilot filtró · ${copilotFilter.ids?.length ?? 0} servicio(s)`}
+                            </span>
+                            <button onClick={clearCopilotFilter} className="ml-1 text-pink-400 hover:text-pink-600 font-bold leading-none" aria-label="Limpiar filtro">✕</button>
+                        </div>
+                    )}
                     <BoddyIter />
                 </motion.div>
             </section>
