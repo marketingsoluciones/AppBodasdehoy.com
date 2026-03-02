@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, Dispatch, SetStateAction } from 'react';
+import { usePathname } from 'next/navigation';
 import { Upload, X, FileText, FileImage, FileVideo, FileAudio, File, Check, Loader2, Download, Trash2, Lock, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getStorage, ref, uploadBytesResumable, deleteObject } from "firebase/storage";
@@ -65,7 +66,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [deletingFiles, setDeletingFiles] = useState<string[]>([]);
-  const ruta = window.location.pathname;
+  const ruta = usePathname();
   const isItinerarioRoute = ["/itinerario"].includes(ruta);
 
   const handleFileSelect = async (files: FileList | null) => {

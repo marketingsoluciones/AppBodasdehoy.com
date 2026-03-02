@@ -1,6 +1,7 @@
 import { Interweave } from "interweave";
 import { HashtagMatcher, UrlMatcher, UrlProps } from "interweave-autolink";
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { ComponentType, FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import 'react-quill/dist/quill.snow.css';
@@ -43,7 +44,7 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
   const { t } = useTranslation();
   const [editing, setEditing] = useState<boolean>(false);
   const [customDescription, setCustomDescription] = useState(task?.tips || '');
-  const ruta = window.location.pathname;
+  const ruta = usePathname();
 
   useEffect(() => {
     setCustomDescription(task?.tips || '');
