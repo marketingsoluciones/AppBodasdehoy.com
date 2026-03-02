@@ -51,9 +51,10 @@ interface Props {
 // Helpers
 // ──────────────────────────────────────────────
 
+// queryenEvento_id no requiere autenticación — ideal para el portal público de invitados
 const EVENT_QUERY = `
-  query ($variable: String, $valor: String, $development: String!) {
-    queryenEvento(variable: $variable, valor: $valor, development: $development) {
+  query ($var_1: String) {
+    queryenEvento_id(var_1: $var_1) {
       _id
       nombre
       tipo
@@ -118,7 +119,10 @@ function formatTaskTime(task: PublicTask): string {
 
 function formatEventDate(dateStr?: string): string {
   if (!dateStr) return '';
-  const d = new Date(dateStr);
+  // La API puede devolver timestamp en ms como string (e.g. "1789430400000") o ISO date
+  const ts = Number(dateStr);
+  const d = isNaN(ts) || String(ts) !== dateStr ? new Date(dateStr) : new Date(ts);
+  if (isNaN(d.getTime())) return '';
   return d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
 
@@ -512,10 +516,10 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   try {
     const data = await fetchApiEventosServer({
       query: EVENT_QUERY,
-      variables: { variable: '_id', valor: eventId, development },
+      variables: { var_1: eventId },
     });
 
-    const eventos = data?.queryenEvento;
+    const eventos = data?.queryenEvento_id;
     const evento = Array.isArray(eventos) ? eventos[0] : eventos;
 
     if (!evento) {
