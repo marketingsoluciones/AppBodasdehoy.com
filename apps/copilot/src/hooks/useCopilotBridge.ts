@@ -21,10 +21,13 @@ import type {
   PageContextPayload,
 } from '@bodasdehoy/shared/communication';
 
-const RETRY_DELAYS_MS = [800, 2000, 4000, 7000];
+// Delays de reintento si el tRPC call es abortado durante la inicialización del iframe.
+// Con el delay inicial de AUTH_CONFIG (2500ms) el primer intento ya llega tarde,
+// así que los reintentos pueden ser más cortos.
+const RETRY_DELAYS_MS = [1500, 3000, 5000];
 
 // Helper: inyectar bloque de contexto en el system prompt del agente activo
-// Reintenta automáticamente si el tRPC call es abortado durante la inicialización del iframe
+// Reintenta automáticamente si el tRPC call es abortado durante la inicialización del iframe.
 async function injectContextIntoSystemPrompt(
   pageContext: {
     pageName?: string;
@@ -225,15 +228,17 @@ export const useCopilotBridge = () => {
             localStorage.setItem('current_event_name', payload.eventName);
           }
 
-          // Inyectar pageContext en el system prompt si viene incluido en AUTH_CONFIG
-          // Sin delay inicial: la función reintenta sola si el store aún no está listo
+          // Inyectar pageContext en el system prompt si viene incluido en AUTH_CONFIG.
+          // Delay de 2500ms para dar tiempo al agent store a inicializarse — sin él el
+          // tRPC call se aborta y se necesitan hasta 4 reintentos (~7s de espera).
           if (payload.pageContext) {
-            injectContextIntoSystemPrompt({
+            const ctxToInject = {
               pageName: payload.pageContext?.pageName,
               eventName: payload.eventName || undefined,
               eventId: payload.eventId || undefined,
               screenData: payload.pageContext?.screenData,
-            });
+            };
+            setTimeout(() => injectContextIntoSystemPrompt(ctxToInject), 2500);
           }
           break;
         }
