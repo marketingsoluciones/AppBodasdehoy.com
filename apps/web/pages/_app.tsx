@@ -22,6 +22,7 @@ import { developments } from '../firebase';
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
 import useDevLogger from '../hooks/useDevLogger';
+import DevWhitelabelSwitcher from '../components/Dev/DevWhitelabelSwitcher';
 import { verifyDomain, logUrlVerification, type UrlCheckResult } from '../utils/verifyUrls';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { CopilotPrewarmer } from '../components/Copilot/CopilotPrewarmer';
@@ -96,6 +97,7 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
           }
         </DefaultLayout>
       </I18nextProvider>
+      <DevWhitelabelSwitcher />
     </ErrorBoundary>
   )
 }

@@ -250,30 +250,62 @@ export const getDevelopmentConfig = (name: string): DevelopmentConfig | undefine
   developments.find(d => d.development === name);
 
 /**
+ * Devuelve true si el hostname es un dominio de producción "raíz" de algún tenant.
+ * Producción = exactamente el dominio registrado o su variante www.
+ * Cualquier otro subdominio (ch1.bodasdehoy.com, dev-pedro.vivetuboda.com...) es dev/test.
+ */
+function isProductionRootHostname(hostname: string): boolean {
+  for (const d of developments) {
+    const root = d.domain.replace(/^\./, ''); // ".bodasdehoy.com" → "bodasdehoy.com"
+    if (hostname === root || hostname === `www.${root}`) return true;
+  }
+  return false;
+}
+
+/**
  * Detectar el development a partir del hostname.
- * Soporta override via localStorage '__dev_domain' en localhost y subdominios de test.
+ * Prioridad de override (de mayor a menor):
+ *   1. NEXT_PUBLIC_DEV_WHITELABEL — env var en .env.local. Tiene prioridad absoluta
+ *      cuando está definida. .env.local nunca se despliega a Vercel, así que es seguro
+ *      sin gate de hostname. Funciona en localhost, chat-test, ch1, dev-pedro, etc.
+ *   2. localStorage '__dev_domain' — override manual desde consola del navegador.
+ *      Solo activo en entornos no-producción (subdominio o localhost).
+ *   3. Detección automática por hostname.
  */
 export const getDevelopmentNameFromHostname = (hostname: string): string => {
   const knownDevelopments = developments.map(d => d.development);
 
-  // Override para localhost y test subdomains
-  const isLocal = !hostname.includes('.') || hostname.startsWith('localhost');
-  const isTest = hostname.includes('chat-test') || hostname.includes('app-test') || hostname.includes('test.');
-  if ((isLocal || isTest) && typeof localStorage !== 'undefined') {
-    const override = localStorage.getItem('__dev_domain');
-    if (override && knownDevelopments.includes(override)) {
-      return override;
+  // 1. Variable de entorno — prioridad absoluta si está definida.
+  //    Funciona en SSR (getInitialProps) y cliente.
+  //    Nunca llega a producción salvo que el desarrollador la defina explícitamente en Vercel.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const envOverride: string = (globalThis as any).process?.env?.NEXT_PUBLIC_DEV_WHITELABEL ?? '';
+  if (envOverride && knownDevelopments.includes(envOverride)) {
+    return envOverride;
+  }
+
+  // 2. localStorage — solo si NO es un dominio raíz de producción.
+  //    Cubre: localhost, chat-test.*, app-test.*, ch1.*, dev-pedro.*, cualquier subdominio.
+  const isNonProductionHost =
+    !hostname.includes('.') ||
+    hostname.startsWith('localhost') ||
+    !isProductionRootHostname(hostname);
+
+  if (isNonProductionHost && typeof localStorage !== 'undefined') {
+    const lsOverride = localStorage.getItem('__dev_domain');
+    if (lsOverride && knownDevelopments.includes(lsOverride)) {
+      return lsOverride;
     }
   }
 
-  // Detectar por posición en el dominio (ej: bodasdehoy.com → bodasdehoy)
+  // 3. Detección automática por hostname
   const parts = hostname.split('.');
   const idx = parts.findIndex(p => p === 'com' || p === 'mx');
   if (idx > 0 && knownDevelopments.includes(parts[idx - 1])) {
     return parts[idx - 1];
   }
 
-  // Detectar por inclusion en el hostname (champagne-events.com.mx)
+  // Detección por inclusión en el hostname (champagne-events.com.mx, subdominio custom)
   for (const dev of knownDevelopments) {
     if (hostname.includes(dev)) return dev;
   }

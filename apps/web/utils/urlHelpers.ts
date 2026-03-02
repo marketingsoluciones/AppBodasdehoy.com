@@ -146,26 +146,42 @@ export function buildSlug(parts: (string | undefined)[], separator: string = "-"
 }
 
 /**
- * Lista de prefijos de subdominio que se consideran entornos de test
- * Incluye: test., chat-test., dev., staging., etc.
+ * Dominios raíz de producción de cada tenant (sin subdominio).
+ * Cualquier hostname que NO esté aquí (y no sea localhost) es entorno dev/test.
+ * Producción = dominio raíz exacto o su variante www.
+ * Ejemplos de test: ch1.bodasdehoy.com, chat-test.bodasdehoy.com, dev-pedro.vivetuboda.com
  */
-const TEST_SUBDOMAIN_PATTERNS = [
-  '://test.',
-  '://chat-test.',
-  '://app-test.',
-  '://dev.',
-  '://staging.',
-  '://local.',
+const PRODUCTION_ROOT_DOMAINS = [
+  'bodasdehoy.com',
+  'eventosplanificador.com',
+  'eventosorganizador.com',
+  'vivetuboda.com',
+  'champagne-events.com.mx',
+  'annloevents.com',
+  'miamorcitocorazon.mx',
+  'eventosintegrados.com',
+  'ohmaratilano.com',
+  'corporativozr.com',
+  'theweddingplanner.mx',
 ];
 
 /**
- * Verifica si la URL actual está en un subdominio de test
- * Reconoce: test., chat-test., dev., staging., etc.
+ * Verifica si la URL actual está en un entorno no-producción (dev/test).
  *
- * @returns true si estamos en un subdominio de test
+ * Un hostname es dev/test si:
+ * - Es localhost o 127.0.0.1
+ * - NO coincide exactamente con un dominio de producción raíz (ni con su variante www.)
+ *
+ * Esto cubre TODOS los subdominios custom de cada equipo:
+ *   chat-test.bodasdehoy.com → test ✓
+ *   ch1.bodasdehoy.com       → test ✓
+ *   dev-pedro.bodasdehoy.com → test ✓
+ *   bodasdehoy.com           → producción ✗
+ *
+ * @returns true si estamos en un entorno de test/dev
  *
  * @example
- * // En https://chat-test.bodasdehoy.com
+ * // En https://ch1.bodasdehoy.com
  * isTestSubdomain() // Returns: true
  *
  * // En https://bodasdehoy.com
@@ -173,13 +189,20 @@ const TEST_SUBDOMAIN_PATTERNS = [
  */
 export function isTestSubdomain(): boolean {
   if (typeof window === "undefined") return false;
-  return TEST_SUBDOMAIN_PATTERNS.some(pattern => window.origin.includes(pattern));
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || !hostname.includes('.')) {
+    return true;
+  }
+  return !PRODUCTION_ROOT_DOMAINS.some(
+    root => hostname === root || hostname === `www.${root}`
+  );
 }
 
 /**
- * Obtiene el prefijo del subdominio de test actual
+ * Obtiene el prefijo del subdominio actual (primer segmento antes del dominio raíz).
+ * Para subdominios custom devuelve el primer segmento tal cual.
  *
- * @returns El prefijo (ej: "test", "chat-test") o null si no es test
+ * @returns El prefijo (ej: "chat-test", "ch1", "dev-pedro") o null si es producción
  */
 export function getTestSubdomainPrefix(): string | null {
   if (typeof window === "undefined") return null;
@@ -187,11 +210,14 @@ export function getTestSubdomainPrefix(): string | null {
   const hostname = window.location.hostname;
   const parts = hostname.split('.');
 
+  // Necesita al menos 3 partes (subdomain.domain.tld)
   if (parts.length >= 3) {
-    const subdomain = parts[0];
-    if (['test', 'chat-test', 'app-test', 'dev', 'staging', 'local'].includes(subdomain)) {
-      return subdomain;
-    }
+    return parts[0];
+  }
+
+  // localhost sin puerto
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'localhost';
   }
 
   return null;
