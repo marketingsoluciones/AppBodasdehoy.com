@@ -118,8 +118,8 @@ const NavigationMobile = () => {
               </Link>
             ))}
           </div>
-          <div className={`w-full grid grid-cols-6 pt-1 pb-5 place-items-center`}>
-            {Navbar.slice(6, 8).map((item, idx) => (
+          <div className={`w-full grid grid-cols-4 pt-1 pb-5 place-items-center`}>
+            {Navbar.slice(6).map((item, idx) => (
               <Link key={idx} href={item.route}>
                 <li
                   onClick={() => { item.condicion === "verdadero" ? setItemSelect(item.title) : toast("error", t("youmustcreateevent")) }}
