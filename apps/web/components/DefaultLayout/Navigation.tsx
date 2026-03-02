@@ -96,7 +96,7 @@ const Navigation: FC = () => {
     },
   ], [event]);
 
-  const urls = ["/info-app", "/confirmar-asistencia", "/services/[...slug]"]
+  const urls = ["/info-app", "/confirmar-asistencia", "/services/[...slug]", "/login", "/registro"]
 
   useEffect(() => {
     const handleResize = () => {
@@ -160,8 +160,8 @@ const Navigation: FC = () => {
         {/* segundo menu superior con las redirecciones funcionales de la app */}
         <div className={`${(!user || user?.displayName === "guest" || urls.includes(url)) ? "hidden" : "block"}`}>
           <div className={`w-full h-20 hidden md:flex bg-base justify-center items-start`}>
-            <Tooltip label={t("Primero debes crear un evento")} icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id}>
               <div style={{ width, height }} className="absolute top-16 z-50 px-16 flex justify-center">
+                <Tooltip label={t("Primero debes crear un evento")} icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id} className="w-full h-full">
                 <div className="flex w-full h-full justify-center items-center">
                   <ul className="flex w-full h-max justify-between">
                     {Navbar.map((item, idx) => (
@@ -180,18 +180,18 @@ const Navigation: FC = () => {
                             : route == "/"
                               ? "text-gray-200"
                               : "text-gray-400"
-                          } 
+                          }
                     ${event?._id ? "" : ""}
                   }`}
                       >
                         {item.icon}
-                        <p className="font-display text-sm h-max"  >{t(item.title)}</p>
+                        <p className="font-display text-[10px] text-center leading-tight h-max whitespace-nowrap">{t(item.title)}</p>
                       </li>
                     ))}
                   </ul>
                 </div>
+                </Tooltip>
               </div>
-            </Tooltip>
             <div ref={refBanner} className="flex max-w-[1020px] flex-1 items-start">
               <Banner
                 className={`${route == "/" ? "text-primary" : "text-white"} transition`}
