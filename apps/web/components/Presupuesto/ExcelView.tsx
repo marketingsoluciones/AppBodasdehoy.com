@@ -16,7 +16,7 @@ interface Categoria {
 }
 
 export const ExcelView = ({ showCategoria }) => {
-    const [windowsWidth, setWindowsWidth] = useState<number>()
+    const [windowsWidth, setWindowsWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 0)
     const { user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
     const [categoria, setCategoria] = useState<Categoria>(null);
@@ -25,10 +25,11 @@ export const ExcelView = ({ showCategoria }) => {
     const [showModalDelete, setShowModalDelete] = useState<ModalInterface>({ state: false })
     const [showDataState, setShowDataState] = useState(true)
 
-    window.addEventListener("resize", () => {
-        const nuevoAncho = window.innerWidth;
-        setWindowsWidth(nuevoAncho);
-    })
+    useEffect(() => {
+        const handleResize = () => setWindowsWidth(window.innerWidth);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, [])
 
     useEffect(() => {
         setCategoria(
