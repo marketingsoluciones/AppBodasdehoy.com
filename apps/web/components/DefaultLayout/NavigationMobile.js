@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import Link from "next/link";
 import { InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
@@ -11,6 +12,7 @@ import ClickAwayListener from "react-click-away-listener";
 /* menu inferior con las opciones de redireccion de la app en vista movil */
 const NavigationMobile = () => {
   const { t } = useTranslation();
+  const pathname = usePathname();
   const toast = useToast();
   const { event } = EventContextProvider();
   const { user } = AuthContextProvider();
@@ -80,7 +82,7 @@ const NavigationMobile = () => {
               <Link key={idx} href={item.route} className="">
                 <li
                   onClick={() => { item.condicion === "verdadero" ? setItemSelect(item.title) : toast("error", t("youmustcreateevent")) }}
-                  className={`cursor-pointer transition text-primary hover:scale-[115%] hover:opacity-100 ${window?.location?.pathname === item.route && itemSelect === item.title ? "opacity-100 scale-[115%]" : "opacity-70"}`}>
+                  className={`cursor-pointer transition text-primary hover:scale-[115%] hover:opacity-100 ${pathname === item.route && itemSelect === item.title ? "opacity-100 scale-[115%]" : "opacity-70"}`}>
                   {item.icon}
                 </li>
               </Link>
@@ -91,7 +93,7 @@ const NavigationMobile = () => {
               <Link key={idx} href={item.route}>
                 <li
                   onClick={() => { item.condicion === "verdadero" ? setItemSelect(item.title) : toast("error", t("youmustcreateevent")) }}
-                  className={`cursor-pointer transition text-primary hover:scale-[115%] hover:opacity-100 ${window?.location?.pathname === item.route && itemSelect === item.title ? "opacity-100 scale-[115%]" : "opacity-70"}`}>
+                  className={`cursor-pointer transition text-primary hover:scale-[115%] hover:opacity-100 ${pathname === item.route && itemSelect === item.title ? "opacity-100 scale-[115%]" : "opacity-70"}`}>
                   {item.icon}
                 </li>
               </Link>
