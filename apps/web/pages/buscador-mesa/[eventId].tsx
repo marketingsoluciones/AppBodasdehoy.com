@@ -209,7 +209,13 @@ const BuscadorMesa: NextPage<Props> = ({ eventId, eventName, eventType, eventImg
           )}
         </div>
 
-        <p className="mt-8 text-xs text-gray-300">
+        <a
+          href={`/e/${eventId}`}
+          className="mt-8 text-xs text-rose-400 hover:text-rose-500 transition underline"
+        >
+          Ver el programa del evento →
+        </a>
+        <p className="mt-3 text-xs text-gray-300">
           Bodas de Hoy
         </p>
       </main>

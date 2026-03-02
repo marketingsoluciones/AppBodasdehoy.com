@@ -16,6 +16,7 @@ const ConfirmaAsistencia = () => {
     const [guestData, setGuestData] = useState<guests[]>()
     const [guestFather, setGuestFather] = useState<guests>()
     const [menus_array, setMenus_array] = useState<menu[]>()
+    const [eventId, setEventId] = useState<string | undefined>()
 
     // Query params usando useSearchParams (Next.js 15)
     const pGuestEvent = searchParams.get("pGuestEvent")
@@ -32,6 +33,7 @@ const ConfirmaAsistencia = () => {
                 setGuestData(result?.invitados_array)
                 setGuestFather(result?.invitados_array?.find(e => e.father === null))
                 setMenus_array(result?.menus_array)
+                if (result?._id) setEventId(result._id)
             })
         } catch (error) {
         }
@@ -47,6 +49,8 @@ const ConfirmaAsistencia = () => {
                         guestData={guestData}
                         guestFather={guestFather}
                         menus_array={menus_array}
+                        eventId={eventId}
+                        pGuestToken={pGuestEvent}
                     />
                 </div>
             </div>

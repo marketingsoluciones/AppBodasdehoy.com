@@ -379,6 +379,7 @@ export const queries = {
   }`,
   getPGuestEvent: `query($p:String){
     getPGuestEvent(p:$p){
+      _id
       invitados_array{
         _id
         sexo

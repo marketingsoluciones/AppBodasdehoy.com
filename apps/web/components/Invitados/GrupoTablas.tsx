@@ -569,9 +569,13 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
         accessor: "compartir",
         Cell: ({ value: initialValue, row }) => {
           const [show, setShow] = useState(false);
-          const link = `${window?.location?.origin}?pGuestEvent=${row.original._id}${event._id?.slice(3, 9)}${event._id}`
+          const [showQR, setShowQR] = useState(false);
+          const pToken = `${row.original._id}${event._id?.slice(3, 9)}${event._id}`;
+          const link = `${window?.location?.origin}?pGuestEvent=${pToken}`;
+          const portalLink = `${window?.location?.origin}/e/${event._id}?g=${pToken}`;
+          const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(portalLink)}`;
           return (
-            <ClickAwayListener onClickAway={() => setShow(false)}>
+            <ClickAwayListener onClickAway={() => { setShow(false); setShowQR(false); }}>
               <div className="relative w-full flex justify-center items-center">
                 <button
                   className="focus:outline-none font-display text-sm capitalize"
@@ -587,6 +591,27 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                     className="flex items-center py-4 px-6 font-display text-sm text-gray-500 bg-base transition w-full capitalize"
                   >
                     <CopiarLink link={link} />
+                  </li>
+                  <li className="border-t border-gray-100">
+                    <button
+                      onClick={() => setShowQR(!showQR)}
+                      className="flex items-center gap-2 py-3 px-6 font-display text-sm text-pink-600 hover:bg-pink-50 transition w-full text-left"
+                    >
+                      <span>📱</span>
+                      <span>QR portal del evento</span>
+                    </button>
+                    {showQR && (
+                      <div className="px-6 pb-4 flex flex-col items-center gap-2">
+                        <img src={qrSrc} alt="QR portal" className="w-40 h-40" />
+                        <p className="text-xs text-gray-400 text-center break-all">{portalLink}</p>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(portalLink)}
+                          className="text-xs text-pink-500 hover:underline"
+                        >
+                          Copiar enlace portal
+                        </button>
+                      </div>
+                    )}
                   </li>
                 </ul>}
               </div>
