@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
-import { ArrowDownBodasIcon, Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, InvitadosIcon, LugaresBodas, Posts, PresupuestoIcon, TarjetaIcon, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
+import { ArrowDownBodasIcon, Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, InvitadosIcon, LivingRoomIcon, LugaresBodas, Posts, PresupuestoIcon, TarjetaIcon, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
 import { useRouter, usePathname } from "next/navigation";
 import { getAuth, signOut } from "firebase/auth";
 import { AuthContextProvider, EventContextProvider, LoadingContextProvider } from "../../context";
@@ -184,7 +184,7 @@ const Profile = ({ user, state, set, ...rest }) => {
       onClick: async () => {
         router.push("/momentos")
       },
-      development: ["bodasdehoy"],
+      development: ["all"],
       rol: ["novio", "novia", "otro", "empresa"],
     },
     {
@@ -193,12 +193,19 @@ const Profile = ({ user, state, set, ...rest }) => {
       onClick: async () => {
         router.push("/mi-web-creador")
       },
-      development: ["bodasdehoy"],
+      development: ["all"],
       rol: ["novio", "novia", "otro", "empresa"],
     },
   ]
 
   const optionsEnd: Option[] = [
+    {
+      title: "Diseño IA",
+      onClick: async () => { router.push("/diseno-espacios") },
+      icon: <LivingRoomIcon className="w-5 h-5" />,
+      development: ["all"],
+      rol: ["novio", "novia", "otro", "empresa"],
+    },
     {
       title: "Mi perfil",
       onClick: async () => { config?.pathPerfil ? router.push(config?.pathPerfil) : router.push("/configuracion") },
@@ -295,7 +302,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                   {optionsReduceStart.map((item: Option, idx) => (
                     <ListItemProfile key={idx} {...item} />
                   ))}
-                  {(user?.displayName !== "guest" && config?.development === "bodasdehoy") &&
+                  {(user?.displayName !== "guest" && optionsReduceCenter.length > 0) &&
                     <>
                       <hr className="col-span-2" />
                       <span className="col-span-2 text-gray-700 font-semibold">Módulos:</span>
