@@ -63,6 +63,8 @@ const Container = (props) => {
 
   const shouldShowChatSidebar = chatSidebar && !excludeChatSidebar.includes(pathname?.split("/")[1] || "");
   const showNavigation = !["RelacionesPublicas", "event", "public-card", "public-itinerary", "asistente"].includes(pathname?.split("/")[1]);
+  // Mobile bottom nav oculto en login/registro (el top nav con logo sí se muestra)
+  const showMobileNav = showNavigation && !["login", "registro"].includes(pathname?.split("/")[1] || "");
 
   // ChatSidebarDirect en desktop está en el flujo (no fixed): ocupa su ancho y el contenido sigue a la derecha sin margen.
   // En móvil el Copilot es flotante (fixed), tampoco aplicamos margen.
@@ -71,7 +73,7 @@ const Container = (props) => {
   return (
     <>
       {showNavigation && <>
-        <NavigationMobile />
+        {showMobileNav && <NavigationMobile />}
         {!forCms && <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, transition: { duration: 1, delay: 0.5 } }}

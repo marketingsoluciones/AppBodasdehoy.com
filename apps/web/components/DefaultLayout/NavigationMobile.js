@@ -90,7 +90,7 @@ const NavigationMobile = () => {
   return (
     <div className="w-full flex justify-center relative">
       <ClickAwayListener onClickAway={() => setShow(false)}>
-        <ul onClick={() => { show && setShow(false) }} className={`${window?.location?.pathname === "/login" ? "hidden" : "flex flex-col"} md:hidden bg-white z-50 rounded-t-2xl Shadow w-full fixed bottom-0 transition duration-300 ease-in-out ${!show && "translate-y-[54px]"}`}>
+        <ul onClick={() => { show && setShow(false) }} className={`flex flex-col md:hidden bg-white z-50 rounded-t-2xl Shadow w-full fixed bottom-0 transition duration-300 ease-in-out ${!show && "translate-y-[54px]"}`}>
           <div className="w-full grid grid-cols-6 py-5 place-items-center">
             <div onClick={() => setShow(!show)} className="w-9 h-9 flex items-center justify-center absolute z-[90] top-0 -translate-y-1/2 rounded-full bg-white Shadow2 text-gray-600 text-primary" >
               <IoIosArrowDown className={`w-6 h-6 transition duration-500 ease-in-out ${!show ? "scale-y-[-1]" : "scale-y-[1]"}`} />
