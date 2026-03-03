@@ -159,14 +159,25 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
             return null; // Cae al runtime nativo con OPENAI_API_KEY del servidor
           }
           // Modo estricto (por defecto): NO hacer fallback al runtime nativo
-          let detail = '';
-          try { detail = JSON.parse(errorText)?.detail || errorText; } catch { detail = errorText; }
+          let message = 'Saldo insuficiente. Recarga tu cuenta para continuar usando el asistente.';
+          try {
+            const parsed = JSON.parse(errorText);
+            const detail = parsed?.detail;
+            // FastAPI HTTPException devuelve detail como objeto o string
+            if (typeof detail === 'string') {
+              message = detail;
+            } else if (typeof detail === 'object' && detail?.error) {
+              message = String(detail.error);
+            } else if (typeof detail === 'object' && detail?.message) {
+              message = String(detail.message);
+            }
+          } catch { /* usar mensaje por defecto */ }
+          // Devolver en formato LobeChat ErrorResponse (errorType + error)
+          // parseError.ts usa data.errorType para construir ChatMessageError.type
           return new Response(
             JSON.stringify({
-              error: {
-                message: detail || 'Saldo insuficiente. Recarga tu cuenta para continuar usando el asistente.',
-                type: 'insufficient_balance',
-              },
+              errorType: 'insufficient_balance',
+              error: { message, type: 'insufficient_balance' },
             }),
             { headers: { 'Content-Type': 'application/json' }, status: 402 }
           );

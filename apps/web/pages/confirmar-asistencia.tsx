@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react"
+import { useRouter } from "next/router"
 import { DescripcionComponente } from "../components/ConfirmarAsistencia/Descripcion"
 import { FormComponent } from "../components/Forms/FormAcompañantes"
-import { Event, guests, menu } from "../utils/Interfaces"
-import { fetchApiEventos, queries } from "../utils/Fetching"
-import { useRouter, useSearchParams } from "next/navigation"
+import { guests, menu } from "../utils/Interfaces"
 import { useTranslation } from 'react-i18next';
 
 /* import {  LogoOrganizador } from "../components/icons" */
@@ -12,31 +11,28 @@ import { useTranslation } from 'react-i18next';
 const ConfirmaAsistencia = () => {
     const { t } = useTranslation();
     const router = useRouter()
-    const searchParams = useSearchParams()
     const [guestData, setGuestData] = useState<guests[]>()
     const [guestFather, setGuestFather] = useState<guests>()
     const [menus_array, setMenus_array] = useState<menu[]>()
     const [eventId, setEventId] = useState<string | undefined>()
 
-    // Query params usando useSearchParams (Next.js 15)
-    const pGuestEvent = searchParams.get("pGuestEvent")
+    // Pages Router: leer query param directamente de router.query
+    const pGuestEvent = router.isReady ? (router.query.pGuestEvent as string | undefined) : undefined
 
     useEffect(() => {
         if (!pGuestEvent) return
-        try {
-            fetchApiEventos({
-                query: queries.getPGuestEvent,
-                variables: {
-                    p: pGuestEvent
-                },
-            }).then((result: Event) => {
+        fetch(`/api/public/rsvp-guest?p=${encodeURIComponent(pGuestEvent)}`)
+            .then((r) => r.json())
+            .then((result) => {
+                if (result?.error) return
                 setGuestData(result?.invitados_array)
-                setGuestFather(result?.invitados_array?.find(e => e.father === null))
+                setGuestFather(result?.invitados_array?.find((e: guests) => e.father === null))
                 setMenus_array(result?.menus_array)
                 if (result?._id) setEventId(result._id)
             })
-        } catch (error) {
-        }
+            .catch(() => {
+                // Fallo silencioso — el formulario queda vacío
+            })
     }, [pGuestEvent])
     return (
         <>

@@ -1,38 +1,40 @@
-import { OpenAITTSPayload } from '@lobehub/tts';
-import { createOpenaiAudioSpeech } from '@lobehub/tts/server';
+/**
+ * TTS proxy → api-ia backend
+ * No llama a OpenAI directamente. Todo el audio pasa por api-ia para
+ * mantener el enrutamiento y facturación centralizada.
+ */
 
-import { createBizOpenAI } from '@/app/(backend)/middleware/createBizOpenAI';
+export const runtime = 'nodejs';
 
-export const runtime = 'edge';
-
-export const preferredRegion = [
-  'arn1',
-  'bom1',
-  'cdg1',
-  'cle1',
-  'cpt1',
-  'dub1',
-  'fra1',
-  'gru1',
-  'hnd1',
-  'iad1',
-  'icn1',
-  'kix1',
-  'lhr1',
-  'pdx1',
-  'sfo1',
-  'sin1',
-  'syd1',
-];
+const getBackendUrl = () =>
+  process.env.PYTHON_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  'https://api-ia.bodasdehoy.com';
 
 export const POST = async (req: Request) => {
-  const payload = (await req.json()) as OpenAITTSPayload;
+  const backendUrl = getBackendUrl();
 
-  // need to be refactored with jwt auth mode
-  const openaiOrErrResponse = createBizOpenAI(req);
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
 
-  // if resOrOpenAI is a Response, it means there is an error,just return it
-  if (openaiOrErrResponse instanceof Response) return openaiOrErrResponse;
+  req.headers.forEach((value, key) => {
+    const k = key.toLowerCase();
+    if (!['host', 'connection', 'content-length', 'transfer-encoding'].includes(k)) {
+      headers[key] = value;
+    }
+  });
 
-  return await createOpenaiAudioSpeech({ openai: openaiOrErrResponse as any, payload });
+  const body = await req.text();
+
+  const upstream = await fetch(`${backendUrl}/webapi/tts/openai`, {
+    body,
+    headers,
+    method: 'POST',
+  });
+
+  return new Response(upstream.body, {
+    headers: upstream.headers,
+    status: upstream.status,
+  });
 };

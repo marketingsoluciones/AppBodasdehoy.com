@@ -253,6 +253,8 @@ const ChatSidebarDirect: FC = () => {
               development={development}
               eventId={eventId}
               eventName={event?.nombre}
+              isGuest={isGuest}
+              loginPath={config?.pathLogin || '/login'}
               pageContext={{
                 pageName: extractPageContext(router.pathname, event || null).pageName,
                 eventName: event?.nombre,

@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
-import { fetchApiEventos, queries } from '../utils/Fetching';
 
 export interface GuestSession {
   guestId: string;
@@ -63,24 +62,21 @@ export function useGuestSession(eventId: string) {
     }
 
     // 2. Identificar por ?g={pGuestToken} (QR personalizado — nivel 2)
+    // Usamos el endpoint server-side para no exponer el token en llamadas
+    // directas al GraphQL (evita alertas antifraude por peticiones sin auth)
     const pGuestToken = router.query.g as string | undefined;
     if (!pGuestToken) {
       setLoading(false);
       return;
     }
 
-    fetchApiEventos({
-      query: queries.getPGuestEvent,
-      variables: { p: pGuestToken },
-    })
-      .then((result: any) => {
-        const guests: any[] = result?.invitados_array ?? [];
-        const mainGuest = guests.find((g) => g.father === null) ?? guests[0];
-        if (!mainGuest) return;
-
+    fetch(`/api/public/validate-guest?g=${encodeURIComponent(pGuestToken)}`)
+      .then((r) => r.json())
+      .then((result) => {
+        if (!result?.valid) return;
         const newSession: GuestSession = {
-          guestId: mainGuest._id,
-          guestName: mainGuest.nombre ?? 'Invitado',
+          guestId: result.guestId,
+          guestName: result.guestName,
           pGuestToken,
           eventId,
           level: 2,
@@ -88,8 +84,8 @@ export function useGuestSession(eventId: string) {
         localStorage.setItem(storageKey(eventId), JSON.stringify(newSession));
         setSession(newSession);
       })
-      .catch((err) => {
-        console.warn('[useGuestSession] Error validando token:', err);
+      .catch(() => {
+        // Fallo silencioso — el portal sigue en modo anónimo
       })
       .finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps

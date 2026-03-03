@@ -1,52 +1,41 @@
-import { OpenAISTTPayload } from '@lobehub/tts';
-import { createOpenaiAudioTranscriptions } from '@lobehub/tts/server';
+/**
+ * STT proxy → api-ia backend
+ * No llama a OpenAI directamente. El audio pasa por api-ia para
+ * mantener el enrutamiento y facturación centralizada.
+ * Reenvía el formData (multipart) tal cual a api-ia.
+ */
 
-import { createBizOpenAI } from '@/app/(backend)/middleware/createBizOpenAI';
+export const runtime = 'nodejs';
 
-export const runtime = 'edge';
-
-export const preferredRegion = [
-  'arn1',
-  'bom1',
-  'cdg1',
-  'cle1',
-  'cpt1',
-  'dub1',
-  'fra1',
-  'gru1',
-  'hnd1',
-  'iad1',
-  'icn1',
-  'kix1',
-  'lhr1',
-  'pdx1',
-  'sfo1',
-  'sin1',
-  'syd1',
-];
+const getBackendUrl = () =>
+  process.env.PYTHON_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  'https://api-ia.bodasdehoy.com';
 
 export const POST = async (req: Request) => {
-  const formData = await req.formData();
-  const speechBlob = formData.get('speech') as Blob;
-  const optionsString = formData.get('options') as string;
-  const payload = {
-    options: JSON.parse(optionsString),
-    speech: speechBlob,
-  } as OpenAISTTPayload;
+  const backendUrl = getBackendUrl();
 
-  const openaiOrErrResponse = createBizOpenAI(req);
-
-  // if resOrOpenAI is a Response, it means there is an error,just return it
-  if (openaiOrErrResponse instanceof Response) return openaiOrErrResponse;
-
-  const res = await createOpenaiAudioTranscriptions({
-    openai: openaiOrErrResponse as any,
-    payload,
+  // Reenviar headers relevantes (incluyendo content-type con boundary para multipart)
+  const headers: Record<string, string> = {};
+  req.headers.forEach((value, key) => {
+    const k = key.toLowerCase();
+    if (!['host', 'connection', 'content-length', 'transfer-encoding'].includes(k)) {
+      headers[key] = value;
+    }
   });
 
-  return new Response(JSON.stringify(res), {
-    headers: {
-      'content-type': 'application/json;charset=UTF-8',
-    },
+  // Reenviar el body raw (multipart formData con el blob de audio)
+  const body = await req.arrayBuffer();
+
+  const upstream = await fetch(`${backendUrl}/webapi/stt/openai`, {
+    body,
+    headers,
+    method: 'POST',
+  });
+
+  const result = await upstream.json().catch(() => ({ text: '' }));
+  return new Response(JSON.stringify(result), {
+    headers: { 'content-type': 'application/json;charset=UTF-8' },
+    status: upstream.status,
   });
 };

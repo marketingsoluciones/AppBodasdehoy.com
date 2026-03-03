@@ -54,6 +54,14 @@ export interface CopilotEmbedProps {
    * Optional className for container
    */
   className?: string;
+  /**
+   * Whether the current user is a guest (not registered)
+   */
+  isGuest?: boolean;
+  /**
+   * Path to the login/register page
+   */
+  loginPath?: string;
 }
 
 /**
@@ -80,6 +88,8 @@ export const CopilotEmbed = ({
   eventName,
   pageContext,
   className,
+  isGuest,
+  loginPath,
 }: CopilotEmbedProps) => {
   const router = useRouter();
   const toast = useToast();
@@ -90,6 +100,8 @@ export const CopilotEmbed = ({
   const abortControllerRef = useRef<AbortController | null>(null);
   // Último mensaje del usuario para poder reintentar en errores 503/429
   const [retryContent, setRetryContent] = useState<string | null>(null);
+  // True cuando el visitante alcanzó el límite de mensajes gratuitos (429)
+  const [isRateLimited, setIsRateLimited] = useState(false);
   // Progress state for multi-step operations
   const [progress, setProgress] = useState<ProgressEvent | null>(null);
 
@@ -236,7 +248,10 @@ export const CopilotEmbed = ({
         const isAbort = error.name === 'AbortError';
         // No reintentar en AUTH_ERROR: requiere acción de admin, no del usuario
         const isAuthError = error.__errorCode === 'AUTH_ERROR';
-        if (!isAbort && !isAuthError) setRetryContent(content);
+        // No reintentar en RATE_LIMIT: mostrar CTA de registro
+        const isRateLimitError = error.__errorCode === 'RATE_LIMIT';
+        if (!isAbort && !isAuthError && !isRateLimitError) setRetryContent(content);
+        if (isRateLimitError) setIsRateLimited(true);
 
         // Update assistant message with error
         setMessages((prev) => {
@@ -309,6 +324,30 @@ export const CopilotEmbed = ({
         width: '100%',
       }}
     >
+      {/* Guest CTA banner — visible cuando el usuario no está registrado */}
+      {isGuest && !isRateLimited && (
+        <div
+          style={{
+            padding: '7px 16px',
+            background: '#fff5f9',
+            borderBottom: '1px solid #ffe0ef',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
+            flexShrink: 0,
+          }}
+        >
+          <span style={{ fontSize: 12, color: '#999' }}>Modo gratuito · mensajes limitados</span>
+          <a
+            href={loginPath || '/login'}
+            style={{ fontSize: 12, color: '#eb2f96', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
+          >
+            Regístrate →
+          </a>
+        </div>
+      )}
+
       {/* Message List */}
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <MessageList
@@ -372,8 +411,42 @@ export const CopilotEmbed = ({
         </div>
       )}
 
-      {/* Banner de reintento — aparece cuando hay error recuperable */}
-      {retryContent && !loading && (
+      {/* Banner de límite alcanzado — reemplaza el retry cuando es 429 */}
+      {isRateLimited && (
+        <div
+          style={{
+            padding: '10px 16px',
+            background: '#fff0f6',
+            borderTop: '1px solid #ffadd2',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
+          }}
+        >
+          <span style={{ fontSize: 13, color: '#c41d7f', flex: 1 }}>
+            Límite de mensajes gratuitos alcanzado.
+          </span>
+          <a
+            href={loginPath || '/login'}
+            style={{
+              fontSize: 13,
+              color: '#fff',
+              background: '#eb2f96',
+              borderRadius: 6,
+              padding: '4px 12px',
+              textDecoration: 'none',
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Regístrate gratis
+          </a>
+        </div>
+      )}
+
+      {/* Banner de reintento — aparece cuando hay error recuperable (no rate limit) */}
+      {retryContent && !loading && !isRateLimited && (
         <div
           style={{
             padding: '8px 16px',

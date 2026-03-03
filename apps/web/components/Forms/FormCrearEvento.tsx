@@ -139,6 +139,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
 
   const updateEvent = async (values: any) => {
     try {
+      const imagePreviewUrl = values?.imgEvento
       values.fecha = new Date(values.fecha).getTime().toString()
       values.nombre !== event.nombre && await fetchApiEventos({
         query: queries.eventUpdate,
@@ -159,8 +160,18 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
         query: queries.eventUpdate,
         variables: { idEvento: values._id, variable: "timeZone", value: values.timeZone }, token: null
       })
-      if (values.fecha !== event.fecha || values.tipo !== event.tipo || values.nombre !== event.nombre || values.timeZone !== event.timeZone) {
-        setEvent({ ...event, ...values })
+
+      let updatedValues = { ...event, ...values }
+
+      if (imagePreviewUrl?.file) {
+        const imgEvento = await subir_archivo({ imagePreviewUrl, event, use: "imgEvento" })
+        if (imgEvento) {
+          updatedValues = { ...updatedValues, imgEvento }
+        }
+      }
+
+      if (values.fecha !== event.fecha || values.tipo !== event.tipo || values.nombre !== event.nombre || values.timeZone !== event.timeZone || imagePreviewUrl?.file) {
+        setEvent(updatedValues)
         toast("success", t("Evento actualizado con exito"))
       }
     } catch (error) {
@@ -243,7 +254,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
               </div>
               <div className="w-full flex justify-center">
                 <div className="relative w-[304px] h-[140px] mb-4">
-                  <ModuloSubida setValueImage={setValueImage} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={defaultImagenes[values.tipo]} />
+                  <ModuloSubida setValueImage={setValueImage} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={defaultImagenes[values.tipo?.toLowerCase()]} />
                 </div>
               </div>
               {/* <DropdownCountries

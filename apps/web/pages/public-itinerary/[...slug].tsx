@@ -114,7 +114,7 @@ const Slug: FC<props> = (props) => {
             </div>
             <div className='md:flex-none h-[100%] flex flex-row-reverse md:flex-row items-center '>
               <img
-                src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event?.imgEvento?.i800}` : defaultImagenes[event?.tipo]}
+                src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event?.imgEvento?.i800}` : defaultImagenes[event?.tipo?.toLowerCase()]}
                 className="h-[90%] object-cover object-top rounded-md border-1 border-gray-600 block"
                 alt={event?.nombre}
               />

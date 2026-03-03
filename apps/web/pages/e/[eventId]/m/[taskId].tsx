@@ -191,7 +191,7 @@ function PhotoViewer({
 const MomentGallery: NextPage = () => {
   const router = useRouter();
   const { eventId, taskId } = router.query as { eventId: string; taskId: string };
-  const { session, level, canUpload, setAnonName } = useGuestSession(eventId);
+  const { session, canUpload, setAnonName } = useGuestSession(eventId);
 
   const [album, setAlbum] = useState<PublicAlbum | null>(null);
   const [media, setMedia] = useState<AlbumMedia[]>([]);
@@ -211,9 +211,13 @@ const MomentGallery: NextPage = () => {
     const params = new URLSearchParams({ development });
 
     fetch(`/api/memories/by-itinerary/${taskId}?${params}`)
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) { setError('no_album'); return; }
+        return r.json();
+      })
       .then((data) => {
-        if (!data || data.error || data.detail) { setError('no_album'); return; }
+        if (!data) return; // ya manejado arriba
+        if (data.error || data.detail) { setError('no_album'); return; }
         const albumData: PublicAlbum = data.album ?? data;
         setAlbum(albumData);
         const albumId = albumData._id ?? albumData.album_id;
@@ -340,40 +344,42 @@ const MomentGallery: NextPage = () => {
             )}
           </div>
 
-          {/* Botón subir — siempre visible, activa modal si no tiene nombre */}
-          <div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*,video/*"
-              capture="environment"
-              onChange={handleFileChange}
-              className="hidden"
-              id="guest-upload-input"
-            />
-            <label
-              htmlFor={canUpload ? 'guest-upload-input' : undefined}
-              onClick={handleUploadClick}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold cursor-pointer select-none transition ${
-                uploading
-                  ? 'bg-gray-100 text-gray-400 pointer-events-none'
-                  : uploadSuccess
-                    ? 'bg-green-100 text-green-600'
-                    : 'bg-rose-500 text-white active:scale-95'
-              }`}
-            >
-              {uploading ? (
-                <>
-                  <span className="inline-block w-3.5 h-3.5 border-2 border-gray-300 border-t-gray-500 rounded-full animate-spin" />
-                  <span className="hidden sm:inline">Subiendo…</span>
-                </>
-              ) : uploadSuccess ? (
-                <>✓ <span className="hidden sm:inline">¡Subida!</span></>
-              ) : (
-                <>📷 <span className="hidden sm:inline">Subir foto</span></>
-              )}
-            </label>
-          </div>
+          {/* Botón subir — solo visible si hay álbum activo */}
+          {error !== 'no_album' && (
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                capture="environment"
+                onChange={handleFileChange}
+                className="hidden"
+                id="guest-upload-input"
+              />
+              <label
+                htmlFor={canUpload ? 'guest-upload-input' : undefined}
+                onClick={handleUploadClick}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold cursor-pointer select-none transition ${
+                  uploading
+                    ? 'bg-gray-100 text-gray-400 pointer-events-none'
+                    : uploadSuccess
+                      ? 'bg-green-100 text-green-600'
+                      : 'bg-rose-500 text-white active:scale-95'
+                }`}
+              >
+                {uploading ? (
+                  <>
+                    <span className="inline-block w-3.5 h-3.5 border-2 border-gray-300 border-t-gray-500 rounded-full animate-spin" />
+                    <span className="hidden sm:inline">Subiendo…</span>
+                  </>
+                ) : uploadSuccess ? (
+                  <>✓ <span className="hidden sm:inline">¡Subida!</span></>
+                ) : (
+                  <>📷 <span className="hidden sm:inline">Subir foto</span></>
+                )}
+              </label>
+            </div>
+          )}
         </div>
 
         {/* ── Banner de identidad ── */}
@@ -397,7 +403,11 @@ const MomentGallery: NextPage = () => {
               <p className="text-gray-600 font-medium">
                 {error === 'no_album' ? 'Aún no hay álbum para este momento' : 'Aún no hay fotos'}
               </p>
-              <p className="text-gray-400 text-sm">¡Pulsa "Subir foto" y sé el primero!</p>
+              <p className="text-gray-400 text-sm">
+                {error === 'no_album'
+                  ? 'Los organizadores irán publicando las fotos del evento'
+                  : '¡Pulsa "📷 Subir foto" y sé el primero!'}
+              </p>
             </div>
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">

@@ -232,15 +232,18 @@ export const sendChatMessage = async (
       return { content: contentWithLink, toolCalls: [], navigationUrl: recargaUrl || undefined, enrichedEvents: [] };
     }
 
-    // 429: rate limit — mostrar mensaje con tiempo de espera si está disponible
+    // 429: rate limit — throw con __errorCode RATE_LIMIT para que CopilotEmbed muestre CTA registro
     if (response.status === 429) {
       let errorData: any = {};
       try { errorData = await response.json(); } catch {}
       const retryAfter = response.headers.get('retry-after') || errorData?.retry_after;
       const baseMsg = errorData?.message || 'Demasiadas peticiones al asistente. Por favor, espera unos segundos e inténtalo de nuevo.';
       const msg = retryAfter ? `${baseMsg} (Retry-After: ${retryAfter}s)` : baseMsg;
-      if (onChunk) onChunk(msg);
-      return { content: msg, toolCalls: [], navigationUrl: undefined, enrichedEvents: [] };
+      const err = new Error(msg);
+      (err as any).__isStreamingHttpError = true;
+      (err as any).__errorCode = 'RATE_LIMIT';
+      if (retryAfter) (err as any).__retryAfter = Number(retryAfter);
+      throw err;
     }
 
     // Streaming mode
