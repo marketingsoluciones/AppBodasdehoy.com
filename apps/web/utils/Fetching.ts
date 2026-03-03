@@ -133,29 +133,30 @@ export const fetchApiEventos = async ({
 export const fetchApiEventosServer = async ({
   query,
   variables,
+  development,
 }: {
   query: string;
   variables: any;
+  /** Si se omite o es null, se usa NEXT_PUBLIC_DEVELOPMENT. Pasa false para omitir el header (cross-tenant). */
+  development?: string | null | false;
 }) => {
   const axios = require("axios");
   const serverInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_BASE_URL,
     timeout: 15000, // 15 segundos de timeout
   });
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "User-Agent": "Next.js-Server/1.0",
+  };
+  if (development !== false) {
+    headers.Development = (development as string) || process.env.NEXT_PUBLIC_DEVELOPMENT || "bodasdehoy";
+  }
   try {
     const response = await serverInstance.post(
       "/graphql",
-      {
-        query,
-        variables,
-      },
-      {
-        headers: {
-          Development: process.env.NEXT_PUBLIC_DEVELOPMENT || "bodasdehoy",
-          "Content-Type": "application/json",
-          "User-Agent": "Next.js-Server/1.0",
-        },
-      }
+      { query, variables },
+      { headers }
     );
     if (response.data.errors) {
       throw new Error(`GraphQL Error: ${JSON.stringify(response.data.errors)}`);

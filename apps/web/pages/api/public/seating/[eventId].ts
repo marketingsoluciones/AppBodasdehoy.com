@@ -43,12 +43,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).end('Bad Request');
   }
 
-  const development = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
-
   try {
     const data = await fetchApiEventosServer({
       query: SEATING_QUERY,
       variables: { var_1: eventId },
+      development: false, // portal público: busca en todos los tenants
     });
 
     const eventos = data?.queryenEvento_id;

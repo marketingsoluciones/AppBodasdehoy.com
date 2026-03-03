@@ -126,7 +126,8 @@ function getCurrentTask(tasks: PublicTask[]): PublicTask | null {
 function formatTaskTime(task: PublicTask): string {
   if (task.hora && task.horaActiva) return task.hora;
   const d = new Date(task.fecha);
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // Formato manual (HH:MM) para evitar hydration mismatch entre Node y browser
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 function formatEventDate(dateStr?: string): string {
@@ -800,6 +801,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
     const data = await fetchApiEventosServer({
       query: EVENT_QUERY,
       variables: { var_1: eventId },
+      development: false, // portal público: busca en todos los tenants
     });
 
     const eventos = data?.queryenEvento_id;

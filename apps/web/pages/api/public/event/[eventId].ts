@@ -49,12 +49,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const eventId = req.query.eventId as string;
-  const development = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
 
   try {
     const data = await fetchApiEventosServer({
       query: EVENT_PUBLIC_QUERY,
       variables: { var_1: eventId },
+      development: false, // portal público: todos los tenants
     });
 
     const eventos = data?.queryenEvento_id;
