@@ -1,7 +1,10 @@
 /**
  * Dashboard del organizador — /app
  * Muestra todos los álbumes del usuario.
- * Auth: userId via localStorage (primera versión — sin Firebase).
+ * Auth (prioridad):
+ *   1. sessionBodas cross-subdomain cookie via AuthBridge (@bodasdehoy/shared)
+ *   2. userId guardado en localStorage (sessions previas)
+ *   3. Email input manual (fallback)
  */
 import Head from 'next/head';
 import Link from 'next/link';
@@ -9,6 +12,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import { MemoriesProvider, useMemoriesStore } from '@bodasdehoy/memories';
 import type { Album } from '@bodasdehoy/memories';
+import { authBridge } from '@bodasdehoy/shared';
 
 const API_BASE = process.env.NEXT_PUBLIC_MEMORIES_API_URL || 'https://api-ia.bodasdehoy.com';
 const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
@@ -270,6 +274,17 @@ export default function AppPage() {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    // 1. Intentar auth via sessionBodas cross-subdomain cookie (AuthBridge)
+    const authState = authBridge.getSharedAuthState();
+    if (authState.isAuthenticated && authState.user) {
+      const bridgeId = authState.user.email || authState.user.uid;
+      setUserId(bridgeId);
+      localStorage.setItem(USER_ID_KEY, bridgeId);
+      setHydrated(true);
+      return;
+    }
+
+    // 2. Fallback: userId de localStorage o query param
     const stored = localStorage.getItem(USER_ID_KEY);
     const queryId = typeof router.query.userId === 'string' ? router.query.userId : null;
     const resolved = queryId || stored;

@@ -1,6 +1,7 @@
 /**
  * Detalle de álbum — /app/album/[id]
  * Vista del organizador: fotos, gestión, compartir QR.
+ * Auth igual que /app: AuthBridge → localStorage → redirect a /app
  */
 import Head from 'next/head';
 import Link from 'next/link';
@@ -8,6 +9,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import { MemoriesProvider, useMemoriesStore } from '@bodasdehoy/memories';
 import type { AlbumMedia } from '@bodasdehoy/memories';
+import { authBridge } from '@bodasdehoy/shared';
 
 const API_BASE = process.env.NEXT_PUBLIC_MEMORIES_API_URL || 'https://api-ia.bodasdehoy.com';
 const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
@@ -353,6 +355,17 @@ export default function AlbumPage() {
   const albumId = typeof router.query.id === 'string' ? router.query.id : null;
 
   useEffect(() => {
+    // 1. Intentar auth via sessionBodas cross-subdomain cookie (AuthBridge)
+    const authState = authBridge.getSharedAuthState();
+    if (authState.isAuthenticated && authState.user) {
+      const bridgeId = authState.user.email || authState.user.uid;
+      localStorage.setItem(USER_ID_KEY, bridgeId);
+      setUserId(bridgeId);
+      setHydrated(true);
+      return;
+    }
+
+    // 2. Fallback: userId de localStorage
     const stored = localStorage.getItem(USER_ID_KEY);
     setUserId(stored);
     setHydrated(true);
