@@ -18,8 +18,8 @@ echo "╚═══════════════════════�
 echo -e "${NC}\n"
 
 # Determinar URL base del frontend (NO del backend)
-if [ -f "apps/web/.env.production" ]; then
-  CHAT_URL=$(grep -E "^NEXT_PUBLIC_CHAT=" apps/web/.env.production | cut -d '=' -f2 | tr -d '"' | tr -d "'" || echo "")
+if [ -f "apps/appEventos/.env.production" ]; then
+  CHAT_URL=$(grep -E "^NEXT_PUBLIC_CHAT=" apps/appEventos/.env.production | cut -d '=' -f2 | tr -d '"' | tr -d "'" || echo "")
 fi
 
 if [ -z "$CHAT_URL" ]; then

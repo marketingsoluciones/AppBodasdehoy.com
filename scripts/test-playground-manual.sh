@@ -31,7 +31,7 @@ if [ "$WEB_STATUS" = "200" ]; then
   echo -e "${GREEN}✅${NC} Web App funcionando (puerto 8080)"
 else
   echo -e "${RED}❌${NC} Web App no responde (puerto 8080)"
-  echo -e "${YELLOW}   Ejecuta: cd apps/web && pnpm dev${NC}"
+  echo -e "${YELLOW}   Ejecuta: cd apps/appEventos && pnpm dev${NC}"
 fi
 
 # Verificar Copilot
@@ -40,7 +40,7 @@ if [ "$COPILOT_STATUS" = "200" ]; then
   echo -e "${GREEN}✅${NC} Copilot funcionando (puerto 3210)"
 else
   echo -e "${RED}❌${NC} Copilot no responde (puerto 3210)"
-  echo -e "${YELLOW}   Ejecuta: cd apps/copilot && pnpm dev${NC}"
+  echo -e "${YELLOW}   Ejecuta: cd apps/chat-ia && pnpm dev${NC}"
   exit 1
 fi
 
@@ -122,7 +122,7 @@ echo "tail -f /tmp/copilot-restart.log"
 echo ""
 
 echo "# Reiniciar copilot"
-echo "pkill -9 -f 'next.*3210' && cd apps/copilot && pnpm dev"
+echo "pkill -9 -f 'next.*3210' && cd apps/chat-ia && pnpm dev"
 echo ""
 
 echo "# Verificar estado del backend"

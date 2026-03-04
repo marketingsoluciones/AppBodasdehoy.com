@@ -263,7 +263,7 @@ Después de la primera limpieza quedan estas opciones, **ordenadas por impacto**
 | `apps/copilot/node_modules` | **8,7 GB** | ⚠️ Idem | Con `pnpm install` se regenera (pnpm usa enlace al store; el store está en disco externo). |
 | `apps/web/.next` | **2,3 GB** | ✅ Sí | Build de Next; se regenera con `pnpm build` o al arrancar dev. |
 | `apps/creador-standalone/.next` | 177 MB | ✅ Sí | Idem. |
-| `apps/memories-standalone/.next` | 21 MB | ✅ Sí | Idem. |
+| `apps/memories-web/.next` | 21 MB | ✅ Sí | Idem. |
 | `apps/copilot/.next` | 788 KB | ✅ Sí | Idem. |
 | `.playwright-mcp` | 5 MB | ✅ Sí | Caché Playwright MCP; se regenera. |
 | `.test-results` | 0 B | - | Ya vacío. |

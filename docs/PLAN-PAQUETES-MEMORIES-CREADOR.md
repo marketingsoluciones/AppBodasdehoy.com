@@ -45,7 +45,7 @@
 
 - **Copilot store/memories:** Eliminada la lógica duplicada; `store/memories/index.ts` solo re-exporta desde `@bodasdehoy/memories`. Eliminados `initialState.ts`, `action.ts`, `store.ts`.
 - **Apps/web:** Dependencia `@bodasdehoy/memories`, página `/momentos` con `MemoriesProvider` y lista de álbumes. **Proxy** `pages/api/memories/[...path].ts` que reenvía a la API de Memories (por defecto `https://api-ia.bodasdehoy.com`; configurable con `NEXT_PUBLIC_MEMORIES_API_URL` o `MEMORIES_API_URL`). Enlace "Momentos" y "Mi web creador" en la navegación. `next.config.js`: transpilePackages incluye `@bodasdehoy/memories`.
-- **Apps/memories-standalone:** App Next.js mínima (puerto 3080) que solo monta Memories: depende de `@bodasdehoy/memories`, página principal con formulario de userId (o `?userId=`) y lista de álbumes. Sin login propio; en producción se integra el login que se desee. README y variables `NEXT_PUBLIC_MEMORIES_API_URL`, `NEXT_PUBLIC_DEVELOPMENT`.
+- **Apps/memories-web:** App Next.js mínima (puerto 3080) que solo monta Memories: depende de `@bodasdehoy/memories`, página principal con formulario de userId (o `?userId=`) y lista de álbumes. Sin login propio; en producción se integra el login que se desee. README y variables `NEXT_PUBLIC_MEMORIES_API_URL`, `NEXT_PUBLIC_DEVELOPMENT`.
 - **Apps/creador-standalone:** App Next.js mínima (puerto 3081) solo del Creador de webs: dependencia `@bodasdehoy/wedding-creator`. **/** landing con enlace a Copilot y a "Ver vista previa de ejemplo". **/preview** vista previa con `WeddingSiteRenderer` y datos mock (sin backend). Variable `NEXT_PUBLIC_CHAT` para la URL base de Copilot. Scripts raíz: `pnpm dev:creador`, `pnpm build:creador`.
 - **Wedding-creator fase 2:** Componentes `wedding-site` movidos a `packages/wedding-creator/src/wedding-site/`. Copilot tiene dependencia `@bodasdehoy/wedding-creator`, `transpilePackages` incluye el paquete, y todas las importaciones pasan a `@bodasdehoy/wedding-creator` (página wedding-creator, wedding/[slug], services, API routes). **Hook useWeddingWeb:** En el paquete (`packages/wedding-creator/src/hooks/useWeddingWeb.ts`) con API inyectable opcional; Copilot re-exporta desde `@/hooks/useWeddingWeb` para no cambiar imports. `useWeddingWebGraphQL` y weddingChatService siguen en Copilot. **Limpieza:** Eliminada la carpeta duplicada `apps/copilot/src/components/wedding-site`; el test está en `app/[variants]/(main)/wedding-creator/__tests__/WeddingSiteRenderer.test.tsx`.
 
@@ -58,7 +58,7 @@
 ## Variables de entorno (Memories)
 
 - **apps/web** (proxy `/api/memories/[...path]`): `NEXT_PUBLIC_MEMORIES_API_URL` o `MEMORIES_API_URL` → URL base del backend (por defecto `https://api-ia.bodasdehoy.com`).
-- **apps/memories-standalone**: `NEXT_PUBLIC_MEMORIES_API_URL`, `NEXT_PUBLIC_DEVELOPMENT` (opcionales). Ver `apps/memories-standalone/README.md`.
+- **apps/memories-web**: `NEXT_PUBLIC_MEMORIES_API_URL`, `NEXT_PUBLIC_DEVELOPMENT` (opcionales). Ver `apps/memories-web/README.md`.
 - **apps/creador-standalone**: `NEXT_PUBLIC_CHAT` (URL base de Copilot; por defecto `https://chat.bodasdehoy.com`). Ver `apps/creador-standalone/README.md`.
 
 ## Testing por workspace (comandos desde la raíz)
@@ -69,7 +69,7 @@
 | packages/wedding-creator | Se comprueba al ejecutar Copilot (`test-app` o `build`). | Typecheck en contexto de consumo (React, antd). |
 | apps/copilot | `pnpm --filter @bodasdehoy/copilot run test-app` | Incluye tests Memories y Wedding-creator. |
 | apps/web | `pnpm --filter @bodasdehoy/web test:run` | Incluye test de humo Memories (`utils/__tests__/memoriesIntegration.test.ts`). |
-| apps/memories-standalone | `pnpm test:memories` o `pnpm --filter @bodasdehoy/memories-standalone test` | `test` = `next build` (smoke). |
+| apps/memories-web | `pnpm test:memories` o `pnpm --filter @bodasdehoy/memories-web test` | `test` = `next build` (smoke). |
 | apps/creador-standalone | `pnpm test:creador` o `pnpm --filter @bodasdehoy/creador-standalone test` | `test` = `next build` (smoke). TypeScript: `ignoreBuildErrors: true` en next.config; el paquete wedding-creator se type-checka en Copilot. |
 | packages/memories (desde raíz) | `pnpm typecheck:packages` | Solo typecheck del paquete memories. |
 
@@ -84,7 +84,7 @@
 1. **Variables de entorno:** Revisar [.env.example](../.env.example) (Memories y Creador) y READMEs de cada app; en producción configurar `NEXT_PUBLIC_MEMORIES_API_URL` / `MEMORIES_API_URL` y `NEXT_PUBLIC_CHAT` donde aplique.
 2. **Build de producción:** Ejecutar `pnpm run build:production` (o por separado: `pnpm build:memories`, `pnpm build:creador`, `pnpm build:web`, `pnpm build:copilot`) y comprobar que no hay errores.
 3. **Despliegue y dominios:** Configurar despliegue (Vercel u otro) y DNS para standalones; tabla y detalles en [PAQUETES-COMPARTIDOS.md - Despliegue y dominios](PAQUETES-COMPARTIDOS.md#despliegue-y-dominios-standalones).
-4. **Autenticación en standalones:** memories-standalone: ver [apps/memories-standalone/README.md](../apps/memories-standalone/README.md#autenticación); en producción integrar login (Firebase, JWT, etc.) y documentar cómo se obtiene el usuario.
+4. **Autenticación en standalones:** memories-web: ver [apps/memories-web/README.md](../apps/memories-web/README.md#autenticación); en producción integrar login (Firebase, JWT, etc.) y documentar cómo se obtiene el usuario.
 
 ## Próximos pasos recomendados
 

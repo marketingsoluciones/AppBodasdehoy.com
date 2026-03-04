@@ -55,10 +55,10 @@ echo ""
 
 # Archivos ZIP encontrados
 ZIP_FILES=(
-    "apps/copilot/wedding-icons-bodasdehoy.zip:Archivo ZIP de iconos (ya extraído)"
-    "apps/copilot/._wedding-icons-bodasdehoy.zip:Archivo ZIP de macOS (metadatos)"
-    "apps/web/public/FormRegister/french-fries-packaging-mockups-2021-04-03-14-37-18-utc.zip:Archivo ZIP de mockups"
-    "apps/web/public/FormRegister/cascadia-code.zip:Archivo ZIP de fuente"
+    "apps/chat-ia/wedding-icons-bodasdehoy.zip:Archivo ZIP de iconos (ya extraído)"
+    "apps/chat-ia/._wedding-icons-bodasdehoy.zip:Archivo ZIP de macOS (metadatos)"
+    "apps/appEventos/public/FormRegister/french-fries-packaging-mockups-2021-04-03-14-37-18-utc.zip:Archivo ZIP de mockups"
+    "apps/appEventos/public/FormRegister/cascadia-code.zip:Archivo ZIP de fuente"
 )
 
 for item in "${ZIP_FILES[@]}"; do

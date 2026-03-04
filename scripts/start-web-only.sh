@@ -16,7 +16,7 @@ if lsof -i :8080 &>/dev/null; then
 fi
 
 # Iniciar solo web app
-pnpm --filter @bodasdehoy/web dev &
+pnpm --filter @bodasdehoy/appEventos dev &
 WEB_PID=$!
 
 echo "✅ Servidor web iniciado (PID: $WEB_PID)"

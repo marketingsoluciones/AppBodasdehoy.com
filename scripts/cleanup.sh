@@ -30,15 +30,15 @@ space_freed=0
 echo "📁 Limpiando directorios de build..."
 
 # Limpiar .next
-if show_size "apps/copilot/.next"; then
-    rm -rf apps/copilot/.next
+if show_size "apps/chat-ia/.next"; then
+    rm -rf apps/chat-ia/.next
     space_freed=$((space_freed + 1))
 fi
 
 # Limpiar todos los .next en .vercel
-if [ -d "apps/copilot/.vercel/output" ]; then
-    if show_size "apps/copilot/.vercel/output"; then
-        rm -rf apps/copilot/.vercel/output
+if [ -d "apps/chat-ia/.vercel/output" ]; then
+    if show_size "apps/chat-ia/.vercel/output"; then
+        rm -rf apps/chat-ia/.vercel/output
         space_freed=$((space_freed + 1))
     fi
 fi

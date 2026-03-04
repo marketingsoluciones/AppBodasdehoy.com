@@ -24,8 +24,8 @@ pkill -9 -f "pnpm.*dev" 2>/dev/null
 
 # Limpiar cachés
 echo "🧹 Limpiando cachés..."
-rm -rf apps/web/.next/cache 2>/dev/null
-rm -rf apps/copilot/.next/cache 2>/dev/null
+rm -rf apps/appEventos/.next/cache 2>/dev/null
+rm -rf apps/chat-ia/.next/cache 2>/dev/null
 
 # Limpiar logs temporales
 echo "🧹 Limpiando logs temporales..."

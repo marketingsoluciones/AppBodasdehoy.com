@@ -10,7 +10,7 @@
  *   BASE_URL=http://localhost:8080 node scripts/run-20-preguntas-via-proxy.mjs
  *   BASE_URL=https://app-test.bodasdehoy.com node scripts/run-20-preguntas-via-proxy.mjs
  *
- * Requiere: app web (apps/web) en marcha en BASE_URL.
+ * Requiere: app web (apps/appEventos) en marcha en BASE_URL.
  */
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:8080';

@@ -98,16 +98,16 @@ echo "📊 Verificando estado del proyecto..."
 echo ""
 
 # Verificar que no haya builds grandes
-if [ ! -d "apps/copilot/.next" ] || [ "$(du -sm apps/copilot/.next 2>/dev/null | cut -f1)" -lt 100 ]; then
+if [ ! -d "apps/chat-ia/.next" ] || [ "$(du -sm apps/chat-ia/.next 2>/dev/null | cut -f1)" -lt 100 ]; then
     echo "   ${GREEN}✅ Builds .next: OK${NC}"
     ((exitosas++))
 else
-    echo "   ${YELLOW}⚠️  Builds .next: Grande ($(du -sh apps/copilot/.next 2>/dev/null | cut -f1))${NC}"
+    echo "   ${YELLOW}⚠️  Builds .next: Grande ($(du -sh apps/chat-ia/.next 2>/dev/null | cut -f1))${NC}"
     echo "      Ejecuta: ./scripts/cleanup.sh"
 fi
 ((total++))
 
-if [ ! -d "apps/copilot/.vercel/output" ]; then
+if [ ! -d "apps/chat-ia/.vercel/output" ]; then
     echo "   ${GREEN}✅ Builds Vercel: OK${NC}"
     ((exitosas++))
 else

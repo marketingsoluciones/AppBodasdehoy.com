@@ -8,7 +8,7 @@
  *   TEST_USER_EMAIL=... TEST_USER_PASSWORD=... node scripts/get-firebase-token-and-run-20.mjs --json --output docs/resultados-20-preguntas-api-ia.json
  *
  * Requiere: TEST_USER_EMAIL y TEST_USER_PASSWORD en el entorno.
- * Firebase: proyecto bodasdehoy (apiKey en apps/web/firebase.js).
+ * Firebase: proyecto bodasdehoy (apiKey en apps/appEventos/firebase.js).
  */
 
 import { spawn } from 'child_process';

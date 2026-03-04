@@ -38,9 +38,9 @@ const log = {
 function getCopilotBaseUrl() {
   // Leer .env.production o .env.local
   const envFiles = [
-    join(__dirname, '../apps/web/.env.production'),
-    join(__dirname, '../apps/web/.env.local'),
-    join(__dirname, '../apps/web/.env'),
+    join(__dirname, '../apps/appEventos/.env.production'),
+    join(__dirname, '../apps/appEventos/.env.local'),
+    join(__dirname, '../apps/appEventos/.env'),
   ];
 
   let chatUrl = null;
@@ -164,7 +164,7 @@ function testScenarios() {
 function verifyCode() {
   log.section('VERIFICANDO Código del Componente');
 
-  const componentPath = join(__dirname, '../apps/web/components/Copilot/CopilotIframe.tsx');
+  const componentPath = join(__dirname, '../apps/appEventos/components/Copilot/CopilotIframe.tsx');
   
   try {
     const code = readFileSync(componentPath, 'utf-8');

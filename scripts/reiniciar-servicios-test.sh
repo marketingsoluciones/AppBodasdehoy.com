@@ -36,21 +36,21 @@ echo ""
 echo -e "${YELLOW}4. Verificando builds...${NC}"
 
 # Verificar build de app-test
-if [ ! -d "apps/web/.next" ]; then
-    echo -e "${RED}⚠️  Build de apps/web no encontrado${NC}"
+if [ ! -d "apps/appEventos/.next" ]; then
+    echo -e "${RED}⚠️  Build de apps/appEventos no encontrado${NC}"
     echo "Ejecutando build..."
-    pnpm --filter @bodasdehoy/web build
+    pnpm --filter @bodasdehoy/appEventos build
 else
-    echo -e "${GREEN}✓ Build de apps/web existe${NC}"
+    echo -e "${GREEN}✓ Build de apps/appEventos existe${NC}"
 fi
 
 # Verificar build de chat-test
-if [ ! -d "apps/copilot/.next" ]; then
-    echo -e "${RED}⚠️  Build de apps/copilot no encontrado${NC}"
+if [ ! -d "apps/chat-ia/.next" ]; then
+    echo -e "${RED}⚠️  Build de apps/chat-ia no encontrado${NC}"
     echo "Ejecutando build..."
     pnpm build:copilot
 else
-    echo -e "${GREEN}✓ Build de apps/copilot existe${NC}"
+    echo -e "${GREEN}✓ Build de apps/chat-ia existe${NC}"
 fi
 
 echo ""

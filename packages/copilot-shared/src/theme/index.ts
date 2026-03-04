@@ -1,7 +1,7 @@
 /**
  * Shared Ant Design theme for copilot-shared components
  * 
- * This theme can be used by apps/web and apps/copilot to ensure
+ * This theme can be used by apps/appEventos and apps/chat-ia to ensure
  * consistent styling across all chat components.
  */
 

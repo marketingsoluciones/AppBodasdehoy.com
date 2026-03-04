@@ -130,9 +130,9 @@ async function checkUrl(label, url) {
  */
 function readEnvConfig() {
   const envFiles = [
-    join(__dirname, '../apps/web/.env.production'),
-    join(__dirname, '../apps/web/.env.local'),
-    join(__dirname, '../apps/web/.env'),
+    join(__dirname, '../apps/appEventos/.env.production'),
+    join(__dirname, '../apps/appEventos/.env.local'),
+    join(__dirname, '../apps/appEventos/.env'),
   ];
 
   const config = {};

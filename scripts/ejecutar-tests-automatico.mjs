@@ -36,7 +36,7 @@ function getTestSuiteUrl() {
   if (process.env.USE_LOCALHOST === '1' || process.env.AUTOMATION_LOCALHOST === '1') {
     return 'http://localhost:3210/bodasdehoy/admin/tests';
   }
-  const envFile = path.join(PROJECT_ROOT, 'apps/web/.env.production');
+  const envFile = path.join(PROJECT_ROOT, 'apps/appEventos/.env.production');
   let chatUrl = 'http://localhost:3210';
   if (fs.existsSync(envFile)) {
     try {

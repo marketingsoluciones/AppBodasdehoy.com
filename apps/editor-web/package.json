@@ -1,0 +1,24 @@
+{
+  "name": "@bodasdehoy/editor-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Web independiente solo del Creador de webs (bodas/eventos). Enlaza a Copilot para el editor completo.",
+  "scripts": {
+    "dev": "next dev -p 3081",
+    "build": "next build",
+    "start": "next start -p 3081",
+    "lint": "next lint",
+    "test": "next build"
+  },
+  "dependencies": {
+    "@bodasdehoy/wedding-creator": "workspace:*",
+    "next": "^15.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.0.0",
+    "typescript": "^5.9.0"
+  }
+}

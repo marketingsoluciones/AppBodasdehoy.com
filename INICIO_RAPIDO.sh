@@ -7,7 +7,7 @@ echo ""
 cd /Users/juancarlosparra/Projects/AppBodasdehoy.com
 
 echo "✅ 1. Verificando instalación..."
-pnpm --filter @bodasdehoy/web list --depth 0 2>/dev/null | grep -q copilot-ui
+pnpm --filter @bodasdehoy/appEventos list --depth 0 2>/dev/null | grep -q copilot-ui
 
 if [ $? -eq 0 ]; then
     echo "   ✅ @bodasdehoy/copilot-ui está instalado"
@@ -20,7 +20,7 @@ fi
 echo ""
 echo "📂 2. Archivos creados:"
 echo "   ✅ packages/copilot-ui/ (paquete completo)"
-echo "   ✅ apps/web/components/ChatSidebar/ChatSidebarDirect.tsx"
+echo "   ✅ apps/appEventos/components/ChatSidebar/ChatSidebarDirect.tsx"
 echo "   ✅ 4 archivos de documentación"
 echo ""
 

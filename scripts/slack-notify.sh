@@ -27,11 +27,11 @@ fi
 if [ "$REPO" = "copilot" ]; then
   SLACK_SENDER="Front Copilot LobeChat"
   SLACK_DE="De: Front Copilot LobeChat"
-  REPO_LINE="Repo: apps/copilot"
+  REPO_LINE="Repo: apps/chat-ia"
 elif [ "$REPO" = "web" ]; then
   SLACK_SENDER="Front App Bodasdehoy"
   SLACK_DE="De: Front App Bodasdehoy"
-  REPO_LINE="Repo: apps/web"
+  REPO_LINE="Repo: apps/appEventos"
 else
   SLACK_SENDER="${SLACK_SENDER_NAME:-Frontend Bodasdehoy · Copilot LobeChat}"
   SLACK_DE="${SLACK_MSG_DE:-De: Frontend / Copilot LobeChat}"
@@ -51,8 +51,8 @@ Uso:
   $0 [--copilot|--web] <tipo> <mensaje> [detalles]
 
 Equipo/repo (opcional):
-  --copilot   Remitente: Front Copilot LobeChat · Repo: apps/copilot
-  --web       Remitente: Front App Bodasdehoy · Repo: apps/web
+  --copilot   Remitente: Front Copilot LobeChat · Repo: apps/chat-ia
+  --web       Remitente: Front App Bodasdehoy · Repo: apps/appEventos
   (si no se indica, usa SLACK_REPO o SLACK_SENDER_NAME de .env)
 
 Tipos de notificación:
@@ -66,7 +66,7 @@ Tipos de notificación:
 Ejemplos:
   $0 --web error "Error en login" "Trace ID: abc123"
   $0 --copilot help "Credenciales Anthropic"
-  $0 --web success "Deploy apps/web completado"
+  $0 --web success "Deploy apps/appEventos completado"
   $0 --copilot info "Nueva versión Copilot desplegada"
 
 EOF

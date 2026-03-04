@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'app-test',
-      script: './apps/web/start.sh',
+      script: './apps/appEventos/start.sh',
       exec_mode: 'fork',
       autorestart: true,
       watch: false,
@@ -10,7 +10,7 @@ module.exports = {
     },
     {
       name: 'chat-test',
-      script: './apps/copilot/start.sh',
+      script: './apps/chat-ia/start.sh',
       exec_mode: 'fork',
       autorestart: true,
       watch: false,

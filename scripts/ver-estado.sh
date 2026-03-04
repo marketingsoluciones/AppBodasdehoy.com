@@ -30,22 +30,22 @@ echo ""
 
 # Directorios principales
 echo "📂 Directorios principales:"
-echo "   node_modules (copilot): $(du -sh apps/copilot/node_modules 2>/dev/null | cut -f1 || echo 'N/A')"
-echo "   node_modules (web): $(du -sh apps/web/node_modules 2>/dev/null | cut -f1 || echo 'N/A')"
+echo "   node_modules (copilot): $(du -sh apps/chat-ia/node_modules 2>/dev/null | cut -f1 || echo 'N/A')"
+echo "   node_modules (web): $(du -sh apps/appEventos/node_modules 2>/dev/null | cut -f1 || echo 'N/A')"
 echo "   .git: $(du -sh .git 2>/dev/null | cut -f1 || echo 'N/A')"
 echo ""
 
 # Verificar builds
 echo "🔍 Verificando builds y cachés:"
-if [ -d "apps/copilot/.next" ]; then
-    NEXT_SIZE=$(du -sh apps/copilot/.next 2>/dev/null | cut -f1)
+if [ -d "apps/chat-ia/.next" ]; then
+    NEXT_SIZE=$(du -sh apps/chat-ia/.next 2>/dev/null | cut -f1)
     echo "   ${YELLOW}⚠️  .next existe: $NEXT_SIZE (puede limpiarse)${NC}"
 else
     echo "   ${GREEN}✅ .next no existe${NC}"
 fi
 
-if [ -d "apps/copilot/.vercel/output" ]; then
-    VERCEL_SIZE=$(du -sh apps/copilot/.vercel/output 2>/dev/null | cut -f1)
+if [ -d "apps/chat-ia/.vercel/output" ]; then
+    VERCEL_SIZE=$(du -sh apps/chat-ia/.vercel/output 2>/dev/null | cut -f1)
     echo "   ${YELLOW}⚠️  .vercel/output existe: $VERCEL_SIZE (puede limpiarse)${NC}"
 else
     echo "   ${GREEN}✅ .vercel/output no existe${NC}"

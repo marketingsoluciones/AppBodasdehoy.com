@@ -22,7 +22,7 @@ if [ -f "$SCRIPT_DIR/cleanup.sh" ]; then
     "$SCRIPT_DIR/cleanup.sh"
 else
     echo "   Limpiando .next, logs, .cache manualmente..."
-    rm -rf apps/copilot/.next apps/web/.next 2>/dev/null || true
+    rm -rf apps/chat-ia/.next apps/appEventos/.next 2>/dev/null || true
     find . -name "*.log" -not -path "*/node_modules/*" -delete 2>/dev/null || true
     find . -type d -name ".cache" -not -path "*/node_modules/*" -exec rm -rf {} + 2>/dev/null || true
     echo -e "   ${GREEN}✓${NC} Hecho"

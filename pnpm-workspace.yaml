@@ -1,6 +1,6 @@
 packages:
   - 'apps/*'
-  - '!apps/copilot-backup-*'
-  - 'apps/copilot/packages/*'
-  - 'apps/copilot/e2e'
+  - '!apps/chat-ia-backup-*'
+  - 'apps/chat-ia/packages/*'
+  - 'apps/chat-ia/e2e'
   - 'packages/*'

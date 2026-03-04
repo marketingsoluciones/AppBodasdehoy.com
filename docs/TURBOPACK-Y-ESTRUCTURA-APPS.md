@@ -33,7 +33,7 @@ Si va lento o falla, vuelve a `pnpm dev`.
 |------------------|----------------------|--------------------------------|
 | **Copilot**      | `apps/copilot`       | LobeChat, chat IA, mensajería  |
 | **App Bodasdehoy** (web) | `apps/web` | Páginas bodas, invitados, proxy chat |
-| Memories standalone | `apps/memories-standalone` | App standalone Memorias |
+| Memories web | `apps/memories-web` | App standalone Memorias |
 | Creador standalone | `apps/creador-standalone` | App standalone Creador web |
 
 No hay un "proyecto appbodas" fuera de `apps/`: **App Bodasdehoy es `apps/web`** y está en la misma carpeta `apps` que `apps/copilot`.

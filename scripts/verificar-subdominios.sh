@@ -27,12 +27,12 @@ echo "2. Procesos en puertos (esta máquina):"
 if curl -s -o /dev/null -w "%{http_code}" --connect-timeout 2 http://127.0.0.1:8080 2>/dev/null | grep -q "200\|301\|302\|304"; then
   echo "   ✅ Puerto 8080 (web dev) responde"
 else
-  echo "   ❌ Puerto 8080 no responde → levanta: cd apps/web && npm run dev:local"
+  echo "   ❌ Puerto 8080 no responde → levanta: cd apps/appEventos && npm run dev:local"
 fi
 if curl -s -o /dev/null -w "%{http_code}" --connect-timeout 2 http://127.0.0.1:3210 2>/dev/null | grep -q "200\|301\|302\|304"; then
   echo "   ✅ Puerto 3210 (Copilot) responde"
 else
-  echo "   ❌ Puerto 3210 no responde → levanta: cd apps/copilot && pnpm dev"
+  echo "   ❌ Puerto 3210 no responde → levanta: cd apps/chat-ia && pnpm dev"
 fi
 if curl -s -o /dev/null -w "%{http_code}" --connect-timeout 2 http://127.0.0.1:3000 2>/dev/null | grep -q "200\|301\|302\|304"; then
   echo "   ✅ Puerto 3000 (web prod) responde"

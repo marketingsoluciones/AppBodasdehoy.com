@@ -93,7 +93,7 @@ echo ""
 # Verificar configuración
 echo -e "${CYAN}━━━ Verificando Configuración ━━━${NC}\n"
 
-ENV_FILE="apps/web/.env.production"
+ENV_FILE="apps/appEventos/.env.production"
 if [ -f "$ENV_FILE" ]; then
     NEXT_PUBLIC_CHAT=$(grep "^NEXT_PUBLIC_CHAT=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '"' | tr -d "'")
     if [ -n "$NEXT_PUBLIC_CHAT" ]; then

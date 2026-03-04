@@ -11,7 +11,7 @@
 |-----|-------------|--------|
 | **Copilot (LobeChat)** | apps/copilot | Chat IA, sidebar, mensajería, campañas (admin), EventSelector, página /messages. |
 | **App Bodasdehoy (web)** | apps/web | Páginas bodas, itinerario, invitados, presupuesto, proxy chat Copilot, etc. |
-| **Memories** | packages/memories, apps/memories-standalone | Paquete y app standalone de memorias. |
+| **Memories** | packages/memories, apps/memories-web | Paquete y app standalone de memorias. |
 | **Creador (wedding-creator)** | packages/wedding-creator, apps/creador-standalone | Creador de webs de boda; mi-web-creador. |
 
 **Repositorio:** AppBodasdehoy.com (monorepo). Cuando en Slack digamos "Frontend" o "De: Frontend / Copilot LobeChat" nos referimos a este equipo y estos productos.

@@ -71,7 +71,7 @@ Las peticiones HTTP usan `apiBaseUrl` del estado. En App Bodas se suele dejar `a
 ## Variables de entorno (recomendadas)
 
 - **apiBaseUrl en el host:** puede venir de `NEXT_PUBLIC_MEMORIES_API_URL` o `MEMORIES_API_URL` (server). Por defecto el backend suele ser `https://api-ia.bodasdehoy.com`.
-- **apps/memories-standalone:** `NEXT_PUBLIC_MEMORIES_API_URL`, `NEXT_PUBLIC_DEVELOPMENT`. Ver `apps/memories-standalone/README.md`.
+- **apps/memories-web:** `NEXT_PUBLIC_MEMORIES_API_URL`, `NEXT_PUBLIC_DEVELOPMENT`. Ver `apps/memories-web/README.md`.
 
 ## Estructura del paquete
 
@@ -84,4 +84,4 @@ Las peticiones HTTP usan `apiBaseUrl` del estado. En App Bodas se suele dejar `a
 ## Ver también
 
 - **Plan general:** `docs/PLAN-PAQUETES-MEMORIES-CREADOR.md`
-- **App standalone:** `apps/memories-standalone`
+- **App standalone:** `apps/memories-web`

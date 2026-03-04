@@ -2,8 +2,8 @@
  * Configuracion de developments (multi-tenant)
  *
  * FUENTE DE VERDAD para campos de identidad de cada whitelabel.
- * apps/web/firebase.js extiende esto con: fileConfig (Firebase), logoDirectory (React), navbarDirectory (React)
- * apps/copilot, apps/web y cualquier app del monorepo importan desde aquí.
+ * apps/appEventos/firebase.js extiende esto con: fileConfig (Firebase), logoDirectory (React), navbarDirectory (React)
+ * apps/chat-ia, apps/appEventos y cualquier app del monorepo importan desde aquí.
  */
 
 export interface DevelopmentTheme {

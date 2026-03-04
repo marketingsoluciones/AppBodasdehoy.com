@@ -27,7 +27,7 @@ if (!fs.existsSync(SCREENSHOT_DIR)) {
 }
 
 function getTestSuiteUrl() {
-  const envFile = path.join(PROJECT_ROOT, 'apps/web/.env.production');
+  const envFile = path.join(PROJECT_ROOT, 'apps/appEventos/.env.production');
   let chatUrl = 'https://chat-test.bodasdehoy.com';
   
   if (fs.existsSync(envFile)) {

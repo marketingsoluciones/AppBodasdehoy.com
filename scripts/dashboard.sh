@@ -39,14 +39,14 @@ TAMANO=$(du -sh . 2>/dev/null | cut -f1)
 mostrar_metrica "Tamaño total" "$TAMANO" "ok"
 
 # Verificar builds
-if [ ! -d "apps/copilot/.next" ] && [ ! -d "apps/web/.next" ]; then
+if [ ! -d "apps/chat-ia/.next" ] && [ ! -d "apps/appEventos/.next" ]; then
     mostrar_metrica "Builds .next" "Limpio" "ok"
 else
-    NEXT_SIZE=$(du -sh apps/copilot/.next apps/web/.next 2>/dev/null 2>/dev/null | head -1 | cut -f1 || echo "Existe")
+    NEXT_SIZE=$(du -sh apps/chat-ia/.next apps/appEventos/.next 2>/dev/null 2>/dev/null | head -1 | cut -f1 || echo "Existe")
     mostrar_metrica "Builds .next" "$NEXT_SIZE" "warning"
 fi
 
-if [ ! -d "apps/copilot/.vercel/output" ]; then
+if [ ! -d "apps/chat-ia/.vercel/output" ]; then
     mostrar_metrica "Builds Vercel" "Limpio" "ok"
 else
     mostrar_metrica "Builds Vercel" "Existe" "warning"

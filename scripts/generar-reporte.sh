@@ -44,21 +44,21 @@ EOF
     echo "### Directorios Principales"
     echo "| Directorio | Tamaño |"
     echo "|------------|--------|"
-    du -sh apps/copilot/node_modules apps/web/node_modules .git 2>/dev/null | \
+    du -sh apps/chat-ia/node_modules apps/appEventos/node_modules .git 2>/dev/null | \
         awk '{printf "| %s | %s |\n", $2, $1}'
     echo ""
     
     echo "### Estado de Builds y Cachés"
     echo ""
-    if [ -d "apps/copilot/.next" ]; then
-        NEXT_SIZE=$(du -sh apps/copilot/.next 2>/dev/null | cut -f1)
+    if [ -d "apps/chat-ia/.next" ]; then
+        NEXT_SIZE=$(du -sh apps/chat-ia/.next 2>/dev/null | cut -f1)
         echo "⚠️ **.next existe**: $NEXT_SIZE (puede limpiarse)"
     else
         echo "✅ **.next**: No existe (limpio)"
     fi
     
-    if [ -d "apps/copilot/.vercel/output" ]; then
-        VERCEL_SIZE=$(du -sh apps/copilot/.vercel/output 2>/dev/null | cut -f1)
+    if [ -d "apps/chat-ia/.vercel/output" ]; then
+        VERCEL_SIZE=$(du -sh apps/chat-ia/.vercel/output 2>/dev/null | cut -f1)
         echo "⚠️ **.vercel/output existe**: $VERCEL_SIZE (puede limpiarse)"
     else
         echo "✅ **.vercel/output**: No existe (limpio)"

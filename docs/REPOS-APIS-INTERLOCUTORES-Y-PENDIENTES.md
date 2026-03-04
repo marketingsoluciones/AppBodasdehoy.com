@@ -10,7 +10,7 @@
 |------------|--------|------------|
 | **apps/copilot** | Copilot (LobeChat): chat IA, sidebar, mensajería, EventSelector, /messages | Monorepo AppBodasdehoy.com |
 | **apps/web** | App Bodasdehoy: páginas bodas, invitados, presupuesto, proxy chat Copilot | Mismo monorepo |
-| **packages/memories** + **apps/memories-standalone** | Memorias / Momentos | Mismo monorepo |
+| **packages/memories** + **apps/memories-web** | Memorias / Momentos | Mismo monorepo |
 | **packages/wedding-creator** + **apps/creador-standalone** | Creador de webs de boda | Mismo monorepo |
 
 Cuando hay un error, **afecta a uno o varios de estos**. Al reclamar a api-ia indicamos qué componente se ve afectado (p. ej. "chat en Copilot", "proxy chat en web").

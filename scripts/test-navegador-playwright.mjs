@@ -13,8 +13,8 @@
 // Intentar importar desde diferentes ubicaciones
 let chromium;
 try {
-  // Intentar desde apps/copilot primero
-  const playwrightPath = require.resolve('playwright', { paths: ['./apps/copilot/node_modules'] });
+  // Intentar desde apps/chat-ia primero
+  const playwrightPath = require.resolve('playwright', { paths: ['./apps/chat-ia/node_modules'] });
   const playwright = require(playwrightPath);
   chromium = playwright.chromium;
 } catch (e) {
@@ -23,7 +23,7 @@ try {
     const playwright = require('playwright');
     chromium = playwright.chromium;
   } catch (e2) {
-    console.error('❌ Playwright no encontrado. Instala con: cd apps/copilot && npx playwright install chromium');
+    console.error('❌ Playwright no encontrado. Instala con: cd apps/chat-ia && npx playwright install chromium');
     process.exit(1);
   }
 }

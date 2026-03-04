@@ -14,10 +14,10 @@ if [ -f "$REPO_ROOT/.env" ]; then
   source "$REPO_ROOT/.env" 2>/dev/null || true
   set +a
 fi
-if [ -f "$REPO_ROOT/apps/copilot/.env" ]; then
+if [ -f "$REPO_ROOT/apps/chat-ia/.env" ]; then
   set -a
   # shellcheck source=/dev/null
-  source "$REPO_ROOT/apps/copilot/.env" 2>/dev/null || true
+  source "$REPO_ROOT/apps/chat-ia/.env" 2>/dev/null || true
   set +a
 fi
 

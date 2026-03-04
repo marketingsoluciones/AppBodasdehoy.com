@@ -32,16 +32,16 @@ check() {
 echo "📁 Verificando archivos del componente..."
 echo ""
 
-test -f "apps/web/components/Copilot/CopilotInputEditor.tsx"
+test -f "apps/appEventos/components/Copilot/CopilotInputEditor.tsx"
 check "CopilotInputEditor.tsx existe"
 
-test -f "apps/web/components/Copilot/CopilotChatNative.tsx"
+test -f "apps/appEventos/components/Copilot/CopilotChatNative.tsx"
 check "CopilotChatNative.tsx existe"
 
-test -f "apps/web/components/ChatSidebar/ChatSidebar.tsx"
+test -f "apps/appEventos/components/ChatSidebar/ChatSidebar.tsx"
 check "ChatSidebar.tsx existe"
 
-test -f "apps/web/components/Copilot/__tests__/CopilotInputEditor.test.tsx"
+test -f "apps/appEventos/components/Copilot/__tests__/CopilotInputEditor.test.tsx"
 check "Tests del CopilotInputEditor existen"
 
 echo ""
@@ -50,10 +50,10 @@ echo ""
 echo "🔍 Verificando imports..."
 echo ""
 
-grep -q "import CopilotInputEditor from './CopilotInputEditor'" apps/web/components/Copilot/CopilotChatNative.tsx
+grep -q "import CopilotInputEditor from './CopilotInputEditor'" apps/appEventos/components/Copilot/CopilotChatNative.tsx
 check "CopilotInputEditor está importado"
 
-grep -q "<CopilotInputEditor" apps/web/components/Copilot/CopilotChatNative.tsx
+grep -q "<CopilotInputEditor" apps/appEventos/components/Copilot/CopilotChatNative.tsx
 check "CopilotInputEditor está siendo usado"
 
 echo ""
@@ -62,10 +62,10 @@ echo ""
 echo "🔍 Verificando ChatSidebar..."
 echo ""
 
-grep -q "import CopilotChatNative from '../Copilot/CopilotChatNative'" apps/web/components/ChatSidebar/ChatSidebar.tsx
+grep -q "import CopilotChatNative from '../Copilot/CopilotChatNative'" apps/appEventos/components/ChatSidebar/ChatSidebar.tsx
 check "CopilotChatNative está importado en ChatSidebar"
 
-grep -q "<CopilotChatNative" apps/web/components/ChatSidebar/ChatSidebar.tsx
+grep -q "<CopilotChatNative" apps/appEventos/components/ChatSidebar/ChatSidebar.tsx
 check "CopilotChatNative está siendo usado en ChatSidebar"
 
 echo ""
@@ -74,10 +74,10 @@ echo ""
 echo "📦 Verificando dependencias..."
 echo ""
 
-grep -q "@lobehub/editor" apps/web/package.json
+grep -q "@lobehub/editor" apps/appEventos/package.json
 check "@lobehub/editor está en package.json"
 
-grep -q "@lobehub/ui" apps/web/package.json
+grep -q "@lobehub/ui" apps/appEventos/package.json
 check "@lobehub/ui está en package.json"
 
 echo ""
@@ -87,28 +87,28 @@ echo "⚙️ Verificando funcionalidades del editor..."
 echo ""
 
 # Verificar botones de acción
-grep -q "IoHappy" apps/web/components/Copilot/CopilotInputEditor.tsx
+grep -q "IoHappy" apps/appEventos/components/Copilot/CopilotInputEditor.tsx
 check "Botón de emojis implementado"
 
-grep -q "IoAttach" apps/web/components/Copilot/CopilotInputEditor.tsx
+grep -q "IoAttach" apps/appEventos/components/Copilot/CopilotInputEditor.tsx
 check "Botón de adjuntar implementado"
 
-grep -q "IoCode" apps/web/components/Copilot/CopilotInputEditor.tsx
+grep -q "IoCode" apps/appEventos/components/Copilot/CopilotInputEditor.tsx
 check "Botón de código implementado"
 
-grep -q "IoList" apps/web/components/Copilot/CopilotInputEditor.tsx
+grep -q "IoList" apps/appEventos/components/Copilot/CopilotInputEditor.tsx
 check "Botón de lista implementado"
 
 # Verificar selector de emojis
-grep -q "commonEmojis" apps/web/components/Copilot/CopilotInputEditor.tsx
+grep -q "commonEmojis" apps/appEventos/components/Copilot/CopilotInputEditor.tsx
 check "Selector de emojis implementado"
 
 # Verificar auto-resize
-grep -q "scrollHeight" apps/web/components/Copilot/CopilotInputEditor.tsx
+grep -q "scrollHeight" apps/appEventos/components/Copilot/CopilotInputEditor.tsx
 check "Auto-resize del textarea implementado"
 
 # Verificar estados visuales
-grep -q "isFocused" apps/web/components/Copilot/CopilotInputEditor.tsx
+grep -q "isFocused" apps/appEventos/components/Copilot/CopilotInputEditor.tsx
 check "Estados visuales (focus) implementados"
 
 echo ""
@@ -135,7 +135,7 @@ echo ""
 echo "🔨 Verificando build..."
 echo ""
 
-test -d "apps/web/.next"
+test -d "apps/appEventos/.next"
 check "Directorio .next existe (build realizado)"
 
 echo ""

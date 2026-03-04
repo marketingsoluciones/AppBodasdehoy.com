@@ -10,7 +10,7 @@ En este monorepo hay varios paquetes bajo `packages/` que pueden consumir **apps
 |--|--|
 | **Ruta** | `packages/memories` |
 | **Documentación** | [packages/memories/README.md](../packages/memories/README.md) |
-| **Consumido por** | Copilot, apps/web (página Momentos), apps/memories-standalone |
+| **Consumido por** | Copilot, apps/web (página Momentos), apps/memories-web |
 | **Uso** | `<MemoriesProvider apiBaseUrl={...} userId={...} development={...}>` + `useMemoriesStore()` |
 
 Instalación en una app: `"@bodasdehoy/memories": "workspace:*"` y `transpilePackages: ['@bodasdehoy/memories']` en Next.js.
@@ -58,7 +58,7 @@ O por pasos:
 ```bash
 pnpm typecheck:packages   # Paquete memories (wedding-creator se comprueba en Copilot)
 pnpm test:web             # Jest en apps/web (incl. test Memories)
-pnpm test:memories        # Build de memories-standalone (smoke)
+pnpm test:memories        # Build de memories-web (smoke)
 pnpm test:creador         # Build de creador-standalone (smoke)
 # Opcional: pnpm --filter @bodasdehoy/copilot run test-app  (Vitest Copilot)
 ```
@@ -76,7 +76,7 @@ pnpm dev:creador    # http://localhost:3081 (incluye /preview)
 
 Comandos de test por workspace (desde la raíz): ver tabla en [PLAN-PAQUETES-MEMORIES-CREADOR.md](PLAN-PAQUETES-MEMORIES-CREADOR.md#testing-por-workspace-comandos-desde-la-raíz).
 
-- **CI:** [.github/workflows/ci-packages.yml](../.github/workflows/ci-packages.yml) ejecuta typecheck de paquetes, tests de Copilot (test-app), tests de web, y build de memories-standalone y creador-standalone.
+- **CI:** [.github/workflows/ci-packages.yml](../.github/workflows/ci-packages.yml) ejecuta typecheck de paquetes, tests de Copilot (test-app), tests de web, y build de memories-web y creador-standalone.
 - **Checklist pre-producción:** Ver [PLAN-PAQUETES-MEMORIES-CREADOR.md](PLAN-PAQUETES-MEMORIES-CREADOR.md#checklist-pre-producción-puesta-en-marcha).
 
 ## Despliegue y dominios (standalones)
@@ -85,7 +85,7 @@ Para poner en producción las apps que solo usan los paquetes:
 
 | App | Despliegue | Dominio ejemplo | Variables en producción |
 |-----|------------|-----------------|-------------------------|
-| **memories-standalone** | Vercel / Node (next start) | `memories.bodasdehoy.com` | `NEXT_PUBLIC_MEMORIES_API_URL`, `NEXT_PUBLIC_DEVELOPMENT`; definir cómo se obtiene el usuario (ver README de la app). |
+| **memories-web** | Vercel / Node (next start) | `memories.bodasdehoy.com` | `NEXT_PUBLIC_MEMORIES_API_URL`, `NEXT_PUBLIC_DEVELOPMENT`; definir cómo se obtiene el usuario (ver README de la app). |
 | **creador-standalone** | Vercel / Node (next start) | `creador.bodasdehoy.com` | `NEXT_PUBLIC_CHAT` (URL base de Copilot). |
 
 Configurar en la plataforma de deploy (Vercel, etc.) las variables anteriores y el dominio; DNS debe apuntar al proyecto correspondiente.

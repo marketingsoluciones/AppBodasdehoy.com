@@ -17,10 +17,10 @@ fi
 
 # Limpiar caché antes de iniciar
 echo "🧹 Limpiando caché..."
-rm -rf apps/copilot/.next/cache
+rm -rf apps/chat-ia/.next/cache
 
 # Iniciar copilot
-pnpm --filter @bodasdehoy/copilot dev &
+pnpm --filter @bodasdehoy/chat-ia dev &
 COPILOT_PID=$!
 
 echo "✅ Servidor copilot iniciado (PID: $COPILOT_PID)"

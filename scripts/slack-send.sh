@@ -31,11 +31,11 @@ fi
 if [ "$REPO" = "copilot" ]; then
   SLACK_SENDER="Front Copilot LobeChat"
   SLACK_DE="De: Front Copilot LobeChat"
-  REPO_LINE="Repo: apps/copilot"
+  REPO_LINE="Repo: apps/chat-ia"
 elif [ "$REPO" = "web" ]; then
   SLACK_SENDER="Front App Bodasdehoy"
   SLACK_DE="De: Front App Bodasdehoy"
-  REPO_LINE="Repo: apps/web"
+  REPO_LINE="Repo: apps/appEventos"
 else
   SLACK_SENDER="${SLACK_SENDER_NAME:-Frontend Bodasdehoy · Copilot LobeChat}"
   SLACK_DE="De: Frontend / Copilot LobeChat"
