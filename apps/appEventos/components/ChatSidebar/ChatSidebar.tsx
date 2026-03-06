@@ -16,10 +16,21 @@ import CopilotIframe from '../Copilot/CopilotIframe';
 import { IoClose, IoSparkles, IoExpand, IoChevronDown, IoOpenOutline } from 'react-icons/io5';
 
 const MIN_WIDTH = 360;
+/** Por debajo de este ancho el Copilot se muestra como overlay (no comprime el contenido) */
+const MOBILE_BREAKPOINT = 768;
 
 const ChatSidebar: FC = () => {
   const { isOpen, width, closeSidebar, setWidth } = useChatSidebar();
   const [viewMode, setViewMode] = useState<'minimal' | 'full'>('minimal');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const check = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
   const [guestSessionId] = useState(() => {
     // Generar o recuperar session ID para usuarios guest
     if (typeof window !== 'undefined') {
@@ -133,38 +144,117 @@ const ChatSidebar: FC = () => {
     setViewMode('minimal');
   }, []);
 
+  // En móvil: panel como overlay (no ocupa espacio en el flex, no comprime contenido)
+  const asOverlay = isMobile && isOpen && viewMode === 'minimal';
+  // Ancho efectivo en el layout: en móvil siempre 0 para no comprimir el main
+  const layoutWidth = isMobile ? 0 : isOpen && viewMode === 'minimal' ? width : 0;
+
   return (
     <>
-      {/* ========== VISTA MÍNIMA (Por defecto) ========== */}
+      {/* ========== VISTA MÍNIMA - MÓVIL: overlay flotante ========== */}
+      <AnimatePresence>
+        {asOverlay && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 z-[45] md:hidden"
+              onClick={closeSidebar}
+              aria-hidden
+            />
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="fixed top-0 left-0 h-full w-[min(100%,400px)] max-w-full bg-white shadow-2xl flex flex-col z-50 md:hidden"
+              aria-modal
+              role="dialog"
+              aria-label="Copilot"
+            >
+              <div className="h-10 px-3 flex items-center justify-between border-b border-gray-100 bg-white flex-shrink-0">
+                <div className="flex items-center gap-2">
+                  <IoSparkles className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-gray-700">Copilot</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={handleExpandToFull}
+                    className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+                    title="Expandir"
+                  >
+                    <IoExpand className="w-4 h-4 text-gray-500" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleOpenInNewTab}
+                    className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+                    title="Ver completo en nueva pestaña"
+                  >
+                    <IoOpenOutline className="w-3.5 h-3.5 text-gray-500" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeSidebar}
+                    className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+                    title="Cerrar (minimizar)"
+                  >
+                    <IoClose className="w-4 h-4 text-gray-400" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1 overflow-hidden relative min-h-0">
+                <CopilotIframe
+                  userId={userId}
+                  development={development}
+                  eventId={eventId}
+                  userData={user}
+                  event={event}
+                  isAnonymous={isGuest}
+                  className="h-full"
+                />
+                {isGuest && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/95 to-transparent pt-4 pb-2 px-3 pointer-events-none">
+                    <div className="flex items-center justify-between text-xs text-gray-500 pointer-events-auto">
+                      <span>Invitado — los datos se perderán al cerrar</span>
+                      <Link href="/login" className="text-primary hover:underline font-medium">
+                        Guardar y registrarse
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ========== VISTA MÍNIMA - ESCRITORIO: sidebar en el flujo ========== */}
       {/*
-       * OPTIMIZACIÓN DE RENDIMIENTO: iframe siempre montado.
-       * El div exterior colapsa a width:0 / opacity:0 cuando está cerrado
-       * pero el iframe interior mantiene su ancho real (420px) para que
-       * LobeChat se inicialice correctamente en background.
-       * Al abrir el sidebar el chat ya está listo: 0ms de espera.
+       * En móvil este bloque tiene width 0 (no ocupa espacio). En desktop funciona igual que antes.
+       * OPTIMIZACIÓN: iframe siempre montado en desktop para 0ms al abrir.
        */}
       <div
-        className="h-full flex-shrink-0 overflow-hidden transition-[width,opacity] duration-150"
+        className="h-full flex-shrink-0 overflow-hidden transition-[width,opacity] duration-150 hidden md:block"
         style={{
-          width: isOpen && viewMode === 'minimal' ? width : 0,
+          width: layoutWidth,
           opacity: isOpen && viewMode === 'minimal' ? 1 : 0,
           pointerEvents: isOpen && viewMode === 'minimal' ? 'auto' : 'none',
         }}
-        aria-hidden={!isOpen || viewMode !== 'minimal'}
+        aria-hidden={!isOpen || viewMode !== 'minimal' || isMobile}
       >
-        {/* Panel interior: mantiene ancho fijo para que el iframe tenga viewport real */}
         <div
           className="h-full bg-white shadow-xl flex flex-col z-40"
           style={{ width: Math.max(width, MIN_WIDTH) }}
         >
-          {/* Header Mínimo - Compacto */}
           <div className="h-10 px-3 flex items-center justify-between border-b border-gray-100 bg-white flex-shrink-0">
             <div className="flex items-center gap-2">
               <IoSparkles className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-gray-700">Copilot</span>
             </div>
             <div className="flex items-center gap-1">
-              {/* Botón Expandir - Modal interno */}
               <button
                 type="button"
                 onClick={handleExpandToFull}
@@ -173,7 +263,6 @@ const ChatSidebar: FC = () => {
               >
                 <IoExpand className="w-4 h-4 text-gray-500" />
               </button>
-              {/* Botón Abrir en Nueva Pestaña - chat-test completo */}
               <button
                 type="button"
                 onClick={handleOpenInNewTab}
@@ -194,7 +283,6 @@ const ChatSidebar: FC = () => {
             </div>
           </div>
 
-          {/* Area del chat - CopilotIframe SIEMPRE MONTADO */}
           <div className="flex-1 overflow-hidden relative">
             <CopilotIframe
               userId={userId}
@@ -202,30 +290,35 @@ const ChatSidebar: FC = () => {
               eventId={eventId}
               userData={user}
               event={event}
+              isAnonymous={isGuest}
               className="h-full"
             />
-            {/* Banner para invitados - sutil en la parte inferior */}
             {isGuest && isOpen && viewMode === 'minimal' && (
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/95 to-transparent pt-4 pb-2 px-3 pointer-events-none">
-                <div className="flex items-center justify-between text-xs text-gray-500 pointer-events-auto">
-                  <span>Estás como invitado</span>
-                  <Link
-                    href="/login"
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Iniciar sesión
-                  </Link>
-                </div>
+              <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 pt-3 pb-3 pointer-events-auto">
+                <p className="text-xs font-semibold text-gray-700 mb-2">El copilot IA puede ayudarte a:</p>
+                <ul className="flex flex-col gap-1 mb-3">
+                  {['Crear y gestionar invitados', 'Organizar el presupuesto', 'Diseñar el itinerario del día'].map((item) => (
+                    <li key={item} className="flex items-center gap-1.5 text-xs text-gray-500">
+                      <span className="text-pink-400">✦</span> {item}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/login?q=register"
+                  className="block w-full text-center py-2 rounded-full bg-primary text-white text-xs font-medium hover:opacity-80 transition"
+                >
+                  Crear cuenta gratis y guardar mi evento
+                </Link>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Resizer - borde derecho del sidebar izquierdo */}
-      {isOpen && viewMode === 'minimal' && (
+      {/* Resizer - solo en desktop */}
+      {isOpen && viewMode === 'minimal' && !isMobile && (
         <div
-          className="w-1 h-full cursor-col-resize bg-gray-100 hover:bg-primary/30 transition-colors flex-shrink-0"
+          className="w-1 h-full cursor-col-resize bg-gray-100 hover:bg-primary/30 transition-colors flex-shrink-0 hidden md:block"
           onMouseDown={handleMouseDown}
         />
       )}
@@ -300,6 +393,9 @@ const ChatSidebar: FC = () => {
                   userId={userId}
                   development={development}
                   eventId={eventId}
+                  userData={user}
+                  event={event}
+                  isAnonymous={isGuest}
                   className="h-full"
                 />
               </div>

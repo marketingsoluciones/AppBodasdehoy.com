@@ -36,11 +36,13 @@ interface CopilotIframeProps {
   className?: string;
   userData?: UserData;
   event?: Event | null;
+  /** Usuario no logueado: aplicar restricciones anónimo (por navegador, sin consumo). */
+  isAnonymous?: boolean;
   /** Plugin identifiers to auto-enable in the copilot when the iframe loads */
   enablePlugins?: string[];
 }
 
-const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName, className, userData, event, enablePlugins }: CopilotIframeProps) => {
+const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName, className, userData, event, isAnonymous, enablePlugins }: CopilotIframeProps) => {
     const router = useRouter();
     const { setCopilotFilter, refreshEventsGroup } = EventsGroupContextProvider();
     // ✅ CORRECCIÓN: Iniciar isLoaded como true para que el iframe se muestre inmediatamente
@@ -137,9 +139,13 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
     }, [userId, userData?.email, development, getCopilotBaseUrl]);
 
     const [iframeSrc, setIframeSrc] = useState(buildCopilotUrl());
+    const retryCountRef = useRef(0);
+    const readyTimeoutRef = useRef<number | null>(null);
+    const MAX_RETRIES = 4;
 
     // Actualizar URL cuando cambien los parametros
     useEffect(() => {
+      retryCountRef.current = 0;
       setIframeSrc(buildCopilotUrl());
     }, [buildCopilotUrl]);
 
@@ -172,9 +178,8 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
       }, timeoutMs);
 
       return () => {
-        if (timeoutRef.current) {
-          window.clearTimeout(timeoutRef.current);
-        }
+        if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+        if (readyTimeoutRef.current) window.clearTimeout(readyTimeoutRef.current);
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [iframeSrc]);
@@ -183,14 +188,27 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
     const handleLoad = useCallback(() => {
       hasLoadedRef.current = true;
       setIsLoaded(true);
-      setError(null); // ✅ Limpiar cualquier error previo
+      setError(null);
 
-      // ✅ Cancelar el timeout ya que el iframe cargó correctamente
       if (timeoutRef.current) {
         window.clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
-    }, [iframeSrc]);
+
+      // Auto-retry si el iframe cargó un 404 (Turbopack aún compilando):
+      // Si en 12s no llega LOBE_CHAT_READY, reintentamos con cache-bust
+      if (readyTimeoutRef.current) window.clearTimeout(readyTimeoutRef.current);
+      if (retryCountRef.current < MAX_RETRIES) {
+        const retryDelay = 12_000 + retryCountRef.current * 5_000;
+        readyTimeoutRef.current = window.setTimeout(() => {
+          retryCountRef.current += 1;
+          const base = buildCopilotUrl();
+          const sep = base.includes('?') ? '&' : '?';
+          setIframeSrc(`${base}${sep}_r=${Date.now()}`);
+        }, retryDelay);
+      }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [iframeSrc, buildCopilotUrl]);
 
     // Manejar error del iframe
     const handleError = useCallback((e: React.SyntheticEvent) => {
@@ -213,11 +231,10 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
       }
     }, [backendError]);
 
-    // Chequeo del backend IA - OPTIMIZADO: No bloqueante, timeout corto
+    // Chequeo del backend IA (proxy /api/copilot/chat → api-ia.bodasdehoy.com). No bloqueante.
     const checkBackendIa = useCallback(async () => {
-      // No mostrar "checking" para evitar parpadeos - hacer silenciosamente
       const controller = new AbortController();
-      const timeoutId = window.setTimeout(() => controller.abort(), 3_000); // 3 segundos max
+      const timeoutId = window.setTimeout(() => controller.abort(), 5_000); // 5 s para dar margen al backend
 
       try {
         const resp = await fetch('/api/copilot/chat', {
@@ -229,14 +246,29 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
           body: JSON.stringify({
             messages: [{ role: 'user', content: 'ping' }],
             stream: false,
-            metadata: { development, eventId },
+            metadata: { development, eventId, isAnonymous: isAnonymous ?? false },
           }),
           signal: controller.signal,
         });
 
         if (!resp.ok) {
           const errorText = await resp.text().catch(() => '');
-          setBackendError(`Backend error: ${resp.status} - ${errorText.slice(0, 100)}`);
+          let userMessage: string;
+          // Usuario anónimo y 401 → mensaje claro: debe iniciar sesión para chatear
+          if (resp.status === 401 && (isAnonymous ?? false)) {
+            userMessage = 'Inicia sesión para chatear con el asistente.';
+          } else {
+            try {
+              const parsed = JSON.parse(errorText);
+              userMessage = parsed?.message || parsed?.error || errorText.slice(0, 150);
+            } catch {
+              if (resp.status === 503) userMessage = 'Servicio IA no disponible. Intenta en unos minutos.';
+              else if (resp.status === 502) userMessage = 'El servidor IA no responde (502). Comprueba que api-ia esté en marcha.';
+              else if (resp.status === 429) userMessage = 'Demasiadas peticiones. Espera unos segundos.';
+              else userMessage = `Error ${resp.status}: ${errorText.slice(0, 80)}`;
+            }
+          }
+          setBackendError(`Error: ${userMessage}`);
           setBackendCheck('error');
           return;
         }
@@ -244,18 +276,20 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
         setBackendCheck('ok');
         setBackendError(null);
       } catch (e: any) {
-        // Solo mostrar error si no es abort (timeout silencioso)
         if (e?.name !== 'AbortError') {
-          setBackendError(`Error: ${e?.message || 'unknown'}`);
+          const msg = e?.message || 'unknown';
+          const friendly = msg.includes('Failed to fetch') || msg.includes('NetworkError')
+            ? 'No se pudo conectar con el servidor IA. Comprueba tu conexión o que api-ia.bodasdehoy.com esté disponible.'
+            : msg;
+          setBackendError(`Error: ${friendly}`);
           setBackendCheck('error');
         } else {
-          // Timeout - asumir OK para no bloquear
           setBackendCheck('ok');
         }
       } finally {
         window.clearTimeout(timeoutId);
       }
-    }, [development, eventId]);
+    }, [development, eventId, isAnonymous]);
 
     // ✅ OPTIMIZACIÓN: Hacer check inmediatamente en background, sin delay
     useEffect(() => {
@@ -314,6 +348,7 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
         token: effectiveToken,
         eventId: eventId || event?._id || undefined,
         eventName: eventName || event?.nombre || undefined,
+        isAnonymous: isAnonymous ?? !userData?.email,
         userData: {
           displayName: userData?.displayName || null,
           email: userData?.email || null,
@@ -346,7 +381,7 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
     // Usar primitivos como deps en vez de objetos completos (userData, event)
     // para evitar que sendAuthConfig se recree en cada render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [userId, development, eventId, eventName, userData?.displayName, userData?.email, userData?.phoneNumber, userData?.photoURL, event?._id, event?.nombre, currentPath, enablePlugins]);
+    }, [userId, development, eventId, eventName, isAnonymous, userData?.displayName, userData?.email, userData?.phoneNumber, userData?.photoURL, event?._id, event?.nombre, currentPath, enablePlugins]);
 
     // Comunicacion con el iframe via postMessage
     useEffect(() => {
@@ -358,7 +393,12 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
 
         switch (type) {
           case 'LOBE_CHAT_READY':
-            // El copilot está listo, enviar configuración de auth
+            // El copilot está listo — cancelar retry (ruta compilada OK)
+            if (readyTimeoutRef.current) {
+              window.clearTimeout(readyTimeoutRef.current);
+              readyTimeoutRef.current = null;
+            }
+            retryCountRef.current = MAX_RETRIES; // no más retries
             sendAuthConfig();
             break;
           case 'AUTH_REQUEST':
@@ -484,6 +524,17 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
           </div>
         )}
 
+        {/* Aviso invitado: para chatear debe iniciar sesión */}
+        {isAnonymous && isLoaded && (
+          <div className="absolute top-0 left-0 right-0 bg-slate-100 border-b border-slate-200 z-20 p-2">
+            <p className="text-xs text-slate-600 text-center">
+              Estás como invitado.{' '}
+              <a href="/login" className="text-pink-600 hover:underline font-medium">Inicia sesión</a>
+              {' '}para chatear y no perder la información de tu evento.
+            </p>
+          </div>
+        )}
+
         {/* Backend IA error overlay (preflight) - NO BLOQUEAR, solo mostrar brevemente */}
         {backendCheck === 'checking' && !error && isLoaded && (
           <div className="absolute top-0 left-0 right-0 bg-blue-50 border-b border-blue-200 z-20 p-2 pointer-events-none">
@@ -495,12 +546,14 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
         )}
 
         {/* Backend IA error - Mostrar como banner no bloqueante en lugar de overlay completo */}
-        {/* ✅ CORRECCIÓN: Mostrar banner solo si hay error, pero NO bloquear el iframe */}
+        {/* ✅ CORRECCIÓN: Mostrar banner solo si hay error, pero NO bloquear el iframe. Mensaje seguro para no dar error al renderizar. */}
         {backendCheck === 'error' && backendError && !error && isLoaded && (
           <div className="absolute top-0 left-0 right-0 bg-yellow-50 border-b border-yellow-200 z-20 p-2 max-h-16 overflow-hidden">
             <div className="flex items-center justify-between max-w-full">
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <span className="text-yellow-600 text-xs">⚠️ Backend IA: {backendError.split('\n').find((line: string) => line.includes('Error'))?.replace('### Error\n', '').slice(0, 80) || 'Error de conexión'}</span>
+                <span className="text-yellow-600 text-xs">⚠️ Servicio IA: {typeof backendError === 'string'
+                  ? (backendError.replace(/^Error:\s*/i, '').split('\n')[0] || backendError).slice(0, 100)
+                  : 'Servicio IA no disponible. Puedes reintentar más tarde.'}</span>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <button

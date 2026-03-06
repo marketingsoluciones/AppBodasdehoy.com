@@ -19,13 +19,15 @@ import EventNotFound from "../components/Utils/EventNotFound";
 
 const Home: NextPage = () => {
   const { user, verificationDone, config, setUser } = AuthContextProvider()
-  const { eventsGroup, eventsGroupDone, eventsGroupError } = EventsGroupContextProvider()
+  const { eventsGroup, eventsGroupDone, eventsGroupError, eventsGroupErrorMessage } = EventsGroupContextProvider()
   const { setEvent } = EventContextProvider()
   const loadingContext = LoadingContextProvider()
   const setLoading = loadingContext?.setLoading || (() => {}) // Safe fallback
   const [valirQuery, setValirQuery] = useState<boolean>(false);
   const shouldRenderChild = useDelayUnmount(valirQuery, 500);
   const [showEditEvent, setShowEditEvent] = useState<boolean>(false);
+  const [showGuestRegisterModal, setShowGuestRegisterModal] = useState(false);
+  const prevEventsLengthRef = useRef<number>(0);
   const router = useRouter()
   const toast = useToast()
   const { t } = useTranslation()
@@ -43,12 +45,24 @@ const Home: NextPage = () => {
     }
   }, [verificationDone, eventsGroupDone, user, pAccShas, setLoading])
 
-  // Mostrar error si la API de eventos falla (ej: apiapp.bodasdehoy.com caído)
+  // Mostrar error si la API de eventos falla (403 = sesión; 502/503 = servidor; otro = genérico).
+  // No mostrar si no hay usuario logueado (usuario libre/guest): no se cargan eventos, no tiene sentido el mensaje.
   useEffect(() => {
-    if (eventsGroupError) {
-      toast("error", t("Error al cargar los eventos. El servidor no responde, inténtalo de nuevo en unos minutos."))
+    if (eventsGroupError && user && user.displayName !== "guest") {
+      const message = eventsGroupErrorMessage || t("Error al cargar los eventos. El servidor no responde, inténtalo de nuevo en unos minutos.")
+      toast("error", message)
     }
-  }, [eventsGroupError])
+  }, [eventsGroupError, eventsGroupErrorMessage, user])
+
+  // Detectar cuando un guest crea su primer evento → mostrar modal de registro
+  useEffect(() => {
+    const currentLength = eventsGroup?.length ?? 0
+    const isGuest = user?.displayName === 'guest'
+    if (isGuest && prevEventsLengthRef.current === 0 && currentLength > 0) {
+      setShowGuestRegisterModal(true)
+    }
+    prevEventsLengthRef.current = currentLength
+  }, [eventsGroup, user])
 
   useEffect(() => {
     if (verificationDone && eventsGroupDone && pAccShas && processedRef.current !== pAccShas) {
@@ -152,6 +166,36 @@ const Home: NextPage = () => {
             }
           </ModalLeft>
         )}
+
+        {/* Modal de conversión para guests — aparece tras crear el primer evento */}
+        {showGuestRegisterModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 flex flex-col items-center gap-4 text-center">
+              <div className="text-4xl">🎉</div>
+              <h2 className="font-display text-xl font-semibold text-gray-800">
+                ¡Tu evento está listo!
+              </h2>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Has creado tu evento. <strong>Regístrate gratis</strong> para guardarlo de forma permanente, gestionar invitados, presupuesto e itinerario, y usar el asistente IA.
+              </p>
+              <div className="flex flex-col gap-2 w-full mt-2">
+                <a
+                  href={config?.pathLogin ? `${config.pathLogin}?q=register` : '/login?q=register'}
+                  className="w-full py-3 rounded-full bg-primary text-white font-medium text-sm hover:opacity-80 transition text-center"
+                >
+                  Crear cuenta gratis
+                </a>
+                <button
+                  onClick={() => setShowGuestRegisterModal(false)}
+                  className="w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition"
+                >
+                  Continuar como invitado (perderás los datos al cerrar)
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <section id="rootsection" className="section relative w-full flex flex-col">
           <Banner state={valirQuery} set={setValirQuery} />
           <GridCards state={valirQuery} set={setValirQuery} />
