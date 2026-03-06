@@ -66,7 +66,8 @@ export const Notifications = () => {
   }, [showNotifications]);
 
   useEffect(() => {
-    if (user?.uid) {
+    // Solo cargar notificaciones para usuarios reales (no guests)
+    if (user?.uid && user?.displayName !== 'guest' && user?.email) {
       fetchApiBodas({
         query: queries.getNotifications,
         variables: { args: { uid: user?.uid }, sort: { createdAt: -1 }, skip: 0, limit: 8 },
@@ -140,7 +141,7 @@ export const Notifications = () => {
           {notifications?.results && notifications.results.length > 0 && notifications.results[0]?.state === "sent" && <div className={`absolute w-2.5 h-2.5 rounded-full bg-green translate-x-2.5 translate-y-1.5`} />}
         </div>
         {showNotifications && (
-          <div className="absolute bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 top-0 right-10 translate-x-1/2 translate-y-[46px] overflow-hidden z-40 title-display">
+          <div className="absolute bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 top-0 right-10 translate-x-1/2 translate-y-[46px] overflow-hidden z-[60] title-display">
             <div className="w-full pb-2 flex justify-center text-gray-600 border-[1px] border-b-2 rounded-lg rounded-b-none  border-gray-300 py-2 text-sm">
               {t("Mis notificaciones")}
             </div>
