@@ -86,16 +86,18 @@ const Navigation: FC = () => {
   const urls = ["/info-app", "/confirmar-asistencia", "/services/[...slug]", "/login", "/registro"]
 
   useEffect(() => {
-    const handleResize = () => {
-      if (refBanner.current) {
-        setWidth(refBanner.current.offsetWidth);
-        setHeight(refBanner.current.offsetHeight);
+    if (!refBanner.current) return;
+    // ResizeObserver: reacciona inmediatamente cuando el Banner tiene tamaño,
+    // sin esperar a un evento de resize de ventana (soluciona el flash con iconos apilados)
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setWidth(entry.contentRect.width);
+        setHeight(entry.contentRect.height);
       }
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [refBanner]);
+    });
+    ro.observe(refBanner.current);
+    return () => ro.disconnect();
+  }, []);
 
 
   return (
@@ -145,9 +147,9 @@ const Navigation: FC = () => {
         </div>
 
         {/* segundo menu superior con las redirecciones funcionales de la app */}
-        <div className={`${(!user || user?.displayName === "guest" || urls.includes(url)) ? "hidden" : "block"}`}>
+        <div className={`${(!user || urls.includes(url)) ? "hidden" : "block"}`}>
           <div className={`w-full h-20 hidden md:flex bg-base justify-center items-start`}>
-              <div style={{ width, height }} className="absolute top-16 z-50 px-16 flex justify-center">
+              <div style={{ width, height }} className={`absolute top-16 z-50 px-16 flex justify-center transition-opacity duration-200 ${width > 0 ? 'opacity-100' : 'opacity-0'}`}>
                 <Tooltip label={t("Primero debes crear un evento")} icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id} className="w-full h-full">
                 <div className="flex w-full h-full justify-center items-center">
                   <ul className="flex w-full h-max justify-between">

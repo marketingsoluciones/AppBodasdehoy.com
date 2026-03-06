@@ -1,6 +1,6 @@
 import { createContext, useState, useContext, useEffect, SetStateAction, Dispatch, useReducer, Reducer, useCallback } from 'react';
 import { AuthContextProvider } from "../context";
-import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
+import { fetchApiBodas, fetchApiEventos, queries, getApiErrorMessage } from "../utils/Fetching";
 import { Event, detalle_compartidos_array } from '../utils/Interfaces';
 import { useRouter, usePathname } from 'next/navigation';
 
@@ -21,6 +21,8 @@ type Context = {
   setPsTemplates: Dispatch<SetStateAction<any>>
   eventsGroupDone: boolean,
   eventsGroupError: boolean,
+  /** Mensaje amigable cuando falla la carga (403, 502, etc.). Si null, error genérico. */
+  eventsGroupErrorMessage: string | null,
   copilotFilter: CopilotFilter | null,
   setCopilotFilter: (filter: CopilotFilter | null) => void,
   clearCopilotFilter: () => void,
@@ -33,6 +35,7 @@ const EventsGroupContext = createContext<Context>({
   setPsTemplates: () => { },
   eventsGroupDone: false,
   eventsGroupError: false,
+  eventsGroupErrorMessage: null,
   copilotFilter: null,
   setCopilotFilter: () => { },
   clearCopilotFilter: () => { },
@@ -87,6 +90,7 @@ const EventsGroupProvider = ({ children }) => {
   const [isMounted, setIsMounted] = useState(false)
   const [eventsGroupDone, setEventsGroupDone] = useState(false)
   const [eventsGroupError, setEventsGroupError] = useState(false)
+  const [eventsGroupErrorMessage, setEventsGroupErrorMessage] = useState<string | null>(null)
   const [copilotFilter, setCopilotFilterState] = useState<CopilotFilter | null>(null)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const setCopilotFilter = useCallback((filter: CopilotFilter | null) => setCopilotFilterState(filter), [])
@@ -106,6 +110,25 @@ const EventsGroupProvider = ({ children }) => {
     if (!["servicios", "credic-card", "public-card"].includes(pathname.split("/")[1]) || (user?.displayName !== "anonymous" && user?.displayName !== "guest")) {
       if (verificationDone) {
         if (user) {
+          // Usuario guest: restaurar eventos de localStorage (no hay API para guests)
+          if (user.displayName === 'guest' || user.displayName === 'anonymous') {
+            // Limpiar siempre primero — evita que queden eventos del usuario anterior
+            setEventsGroup({ type: "INITIAL_STATE", payload: [] })
+            setEventsGroupError(false)
+            setEventsGroupErrorMessage(null)
+            try {
+              const key = `guest_events_${user.uid}`
+              const stored = typeof window !== 'undefined' ? localStorage.getItem(key) : null
+              if (stored) {
+                const events = JSON.parse(stored)
+                if (Array.isArray(events) && events.length > 0) {
+                  setEventsGroup({ type: "INITIAL_STATE", payload: events })
+                }
+              }
+            } catch { /* si no hay localStorage, ignorar */ }
+            setEventsGroupDone(true)
+            return
+          }
           // Esperar a que config esté cargado para tener development correcto (String! requerido en la query)
           if (!config?.development) return;
           // BYPASS: Verificar si hay eventos del bypass en sessionStorage
@@ -142,6 +165,8 @@ const EventsGroupProvider = ({ children }) => {
           }
 
           console.log("[EventsGroup] Buscando eventos para usuario_id:", userIdToUse)
+          setEventsGroupError(false)
+          setEventsGroupErrorMessage(null)
           const startTime = performance.now()
 
           // Usar fetchApiEventos que llama a apiapp.bodasdehoy.com (API de eventos)
@@ -199,26 +224,13 @@ const EventsGroupProvider = ({ children }) => {
             })
             .catch((error) => {
               const errorTime = performance.now() - startTime
-              console.error(`[EventsGroup] ❌ Error después de ${errorTime.toFixed(0)}ms:`, error)
-              console.error(`[EventsGroup] Error completo:`, {
-                message: error?.message,
-                code: error?.code,
-                name: error?.name,
-                isAxiosError: error?.isAxiosError,
-                response: {
-                  data: error?.response?.data,
-                  status: error?.response?.status,
-                  statusText: error?.response?.statusText,
-                  headers: error?.response?.headers
-                },
-                request: error?.request ? 'Presente' : 'Ausente',
-                config: {
-                  url: error?.config?.url,
-                  method: error?.config?.method,
-                  baseURL: error?.config?.baseURL,
-                  headers: error?.config?.headers
-                }
-              })
+              const status = error?.response?.status
+              console.error(`[EventsGroup] ❌ Error después de ${errorTime.toFixed(0)}ms (status ${status}):`, error)
+              if (status === 403) {
+                console.warn('[EventsGroup] 403 Forbidden: sesión no autorizada o expirada (no es error de conexión)')
+              }
+              const friendlyMessage = getApiErrorMessage(error)
+              setEventsGroupErrorMessage(friendlyMessage || null)
               setEventsGroupError(true)
               setEventsGroupDone(true)
             });
@@ -238,7 +250,7 @@ const EventsGroupProvider = ({ children }) => {
   }, [user, config?.development, refreshTrigger]);
 
   return (
-    <EventsGroupContext.Provider value={{ eventsGroup, setEventsGroup, psTemplates, setPsTemplates, eventsGroupDone, eventsGroupError, copilotFilter, setCopilotFilter, clearCopilotFilter, refreshEventsGroup }}>
+    <EventsGroupContext.Provider value={{ eventsGroup, setEventsGroup, psTemplates, setPsTemplates, eventsGroupDone, eventsGroupError, eventsGroupErrorMessage, copilotFilter, setCopilotFilter, clearCopilotFilter, refreshEventsGroup }}>
       {children}
     </EventsGroupContext.Provider>
   );
