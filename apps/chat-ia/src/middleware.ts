@@ -64,6 +64,11 @@ export const config = {
     '/wedding-creator',
     '/wedding-creator(.*)',
     '/admin/:path*',
+    // Slug de desarrollador (iframe Copilot y Prewarmer usan /bodasdehoy/chat)
+    '/bodasdehoy',
+    '/bodasdehoy(.*)',
+    '/eventosorganizador',
+    '/eventosorganizador(.*)',
 
     '/login(.*)',
     '/signup(.*)',
@@ -209,6 +214,19 @@ const defaultMiddleware = (request: NextRequest) => {
 
     logDefault('Serialized route variant: %s', route);
 
+    // Rutas con slug de desarrollador (ej. /bodasdehoy/chat) deben reescribirse a /{route}/chat
+    // para que coincidan con [variants]/(main)/chat (el slug no es un segmento real en la app).
+    let pathnameForRewrite = url.pathname;
+    const developerSlugMatch = url.pathname.match(/^\/(bodasdehoy|eventosorganizador)(\/|$)/);
+    if (developerSlugMatch) {
+      const slug = developerSlugMatch[1];
+      // Skip leading '/' + slug + '/' separator → gives path without leading slash
+      // e.g. '/bodasdehoy/chat'.slice(12) = 'chat' → pathnameForRewrite = '/chat'
+      const rest = url.pathname.slice(slug.length + 2);
+      pathnameForRewrite = rest ? `/${rest}` : '/';
+      logDefault('Developer slug rewrite: %s -> %s', url.pathname, pathnameForRewrite);
+    }
+
     // if app is in docker, rewrite to self container
     // https://github.com/lobehub/lobe-chat/issues/5876
     if (appEnv.MIDDLEWARE_REWRITE_THROUGH_LOCAL) {
@@ -228,7 +246,7 @@ const defaultMiddleware = (request: NextRequest) => {
     // new handle segment rewrite: /${route}${originalPathname}
     // / -> /zh-CN__0__dark
     // /discover -> /zh-CN__0__dark/discover
-    const nextPathname = `/${route}` + (url.pathname === '/' ? '' : url.pathname);
+    const nextPathname = `/${route}` + (pathnameForRewrite === '/' ? '' : pathnameForRewrite);
     const nextURL = appEnv.MIDDLEWARE_REWRITE_THROUGH_LOCAL
       ? urlJoin(url.origin, nextPathname)
       : nextPathname;
