@@ -1,5 +1,3 @@
-'use client';
-
 import React, { createContext, useContext, useEffect, type ReactNode } from 'react';
 
 import { useMemoriesStore } from './store';
@@ -23,11 +21,9 @@ export function MemoriesProvider({
   development = 'bodasdehoy',
   children,
 }: MemoriesProviderProps) {
-  const setConfig = useMemoriesStore((s) => s.setConfig);
-
   useEffect(() => {
-    setConfig(apiBaseUrl, userId, development);
-  }, [apiBaseUrl, userId, development, setConfig]);
+    useMemoriesStore.getState().setConfig(apiBaseUrl, userId, development);
+  }, [apiBaseUrl, userId, development]);
 
   return (
     <MemoriesContext.Provider value={{ apiBaseUrl, userId, development: development ?? 'bodasdehoy' }}>

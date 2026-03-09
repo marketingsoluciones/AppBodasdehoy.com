@@ -17,11 +17,6 @@ interface CopilotPrewarmerProps {
   development?: string;
 }
 
-const PREWARM_URLS = [
-  '/bodasdehoy/chat', // Página principal del chat
-  '/bodasdehoy',       // Página base
-];
-
 export const CopilotPrewarmer: React.FC<CopilotPrewarmerProps> = ({ development = 'bodasdehoy' }) => {
   const hasPrewarmed = useRef(false);
 
@@ -40,9 +35,14 @@ export const CopilotPrewarmer: React.FC<CopilotPrewarmerProps> = ({ development 
         }
         const cleanBase = baseUrl.replace(/\/$/, '');
 
-        // Pre-calentar todas las URLs en paralelo
+        const prewarmUrls = [
+          `/${development}/chat`, // Página principal del chat
+          `/${development}`,       // Página base
+        ];
+
+        // Pre-calentar todas las URLs en paralelo (404 en chat-ia es aceptable en dev si la ruta no existe aún)
         await Promise.allSettled(
-          PREWARM_URLS.map(async (path) => {
+          prewarmUrls.map(async (path) => {
             const url = `${cleanBase}${path}`;
             try {
               await fetch(url, {
@@ -51,7 +51,7 @@ export const CopilotPrewarmer: React.FC<CopilotPrewarmerProps> = ({ development 
                 credentials: 'omit',
               });
             } catch {
-              // Silently ignore prewarm failures
+              // Silently ignore prewarm failures (red, CORS, 404 en otro origen)
             }
           })
         );

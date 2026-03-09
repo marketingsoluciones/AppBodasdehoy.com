@@ -108,6 +108,7 @@ export function extractPageContext(path: string, event: Event | null): PageConte
     if (path.includes('/invitados') && event.invitados_array?.length > 0) {
       screenData.totalGuests = event.invitados_array.length;
       screenData.guestList = event.invitados_array.map((g: any) => ({
+        id: g._id,
         nombre: g.nombre,
         asistencia: g.asistencia || 'pendiente',
         menu: g.nombre_menu || null,
@@ -129,10 +130,10 @@ export function extractPageContext(path: string, event: Event | null): PageConte
         pagado: p.pagado || 0,
         pendiente: (p.coste_final || 0) - (p.pagado || 0),
         currency: p.currency || 'EUR',
-        categorias: p.partidas?.map((cat: any) => ({
+        categorias: p.categorias_array?.map((cat: any) => ({
           nombre: cat.nombre,
-          presupuesto: cat.precio_estimado || 0,
-          coste: cat.precio_final || 0,
+          presupuesto: cat.coste_estimado || 0,
+          coste: cat.coste_final || 0,
           pagado: cat.pagado || 0,
         })) || [],
       };
@@ -153,12 +154,16 @@ export function extractPageContext(path: string, event: Event | null): PageConte
       }));
     }
 
-    if (path.includes('/itinerario') && (event as any).itinerario_array?.length > 0) {
-      screenData.itinerary = (event as any).itinerario_array.map((item: any) => ({
-        titulo: item.titulo || item.nombre,
-        hora: item.hora,
-        descripcion: item.descripcion || null,
-        completado: item.completado || false,
+    if (path.includes('/itinerario') && (event as any).itinerarios_array?.length > 0) {
+      screenData.itinerary = (event as any).itinerarios_array.map((item: any) => ({
+        titulo: item.title || item.titulo || item.nombre,
+        tipo: item.tipo || null,
+        tareas: (item.tasks || []).map((t: any) => ({
+          descripcion: t.descripcion,
+          completada: t.completada || t.estatus || false,
+          icon: t.icon || null,
+          fecha: t.fecha || null,
+        })),
       }));
     }
   }

@@ -84,7 +84,7 @@ const ToolTitle = memo<ToolTitleProps>(({ identifier, messageId, index, apiName,
   return (
     <Flexbox align={'center'} className={isLoading ? styles.shinyText : ''} gap={6} horizontal>
       <div>{pluginTitle}</div> <Icon icon={ChevronRight} />
-      <span className={styles.apiName}>{apiName}</span>
+      <span className={styles.apiName}>{apiName != null ? String(apiName) : ''}</span>
     </Flexbox>
   );
 });

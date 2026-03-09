@@ -5,14 +5,17 @@ const createJestConfig = nextJest({ dir: './', tsconfig: './tsconfig.test.json' 
 
 const config: Config = {
   testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   testMatch: [
     '**/services/__tests__/**/*.test.ts',
     '**/pages/api/**/__tests__/**/*.test.ts',
     '**/utils/__tests__/**/*.test.ts',
     '**/__tests__/**/*.test.ts',
+    '**/components/**/__tests__/**/*.test.{ts,tsx}',
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
+    '^nanoid$': '<rootDir>/__mocks__/nanoid.js',
   },
 };
 

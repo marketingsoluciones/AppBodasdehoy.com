@@ -1,5 +1,29 @@
 import { api } from "../api";
 
+/**
+ * Mensaje amigable según el código HTTP del error de la API.
+ * 403 = no es "error de conexión", es sesión no autorizada o expirada.
+ */
+export function getApiErrorMessage(error: any): string | null {
+  const status = error?.response?.status;
+  if (status === 403) {
+    return 'Sesión no autorizada o expirada. Cierra sesión e inicia de nuevo.';
+  }
+  if (status === 401) {
+    return 'Debes iniciar sesión de nuevo.';
+  }
+  if (status === 502 || status === 503) {
+    return 'El servidor no está disponible. Inténtalo en unos minutos.';
+  }
+  if (status === 429) {
+    return 'Demasiadas peticiones. Espera un momento e inténtalo de nuevo.';
+  }
+  if (error?.code === 'ECONNREFUSED' || error?.message?.includes('Network Error')) {
+    return 'No se pudo conectar con el servidor. Comprueba tu conexión.';
+  }
+  return null;
+}
+
 interface propsFetchApiBodas {
   query: string;
   variables: any;

@@ -55,7 +55,10 @@ function GuestWelcomeMessage() {
       currentUserId === 'visitante@guest.local' ||
       currentUserId === 'guest' ||
       currentUserId === 'anonymous' ||
-      userType === 'guest'
+      currentUserId?.startsWith('visitor_') ||
+      userType === 'guest' ||
+      userType === 'visitor' ||
+      !userType  // sin userType = no autenticado
     );
   }, [currentUserId, userType, mounted]);
 
@@ -98,8 +101,9 @@ function GuestWelcomeMessage() {
   }
 
   const handleRegister = () => {
-    router.prefetch('/login');
-    router.push('/login');
+    const isTest = typeof window !== 'undefined' && window.location.hostname.includes('-test.');
+    const appBase = isTest ? 'https://app-test.bodasdehoy.com' : 'https://app.bodasdehoy.com';
+    window.open(`${appBase}/login?q=register`, '_blank');
   };
 
   const handleLeadSubmit = async (values: { nombre?: string; phone?: string; email?: string }) => {
@@ -135,15 +139,21 @@ function GuestWelcomeMessage() {
     }
   };
 
-  const welcomeMessage = `¡Hola! 👋
+  const isTestEnv = typeof window !== 'undefined' && window.location.hostname.includes('-test.');
+  const registerUrl = `${isTestEnv ? 'https://app-test.bodasdehoy.com' : 'https://app.bodasdehoy.com'}/login?q=register`;
 
-Soy tu asistente para organizar eventos y bodas. Puedo ayudarte a:
+  const welcomeMessage = `¡Hola! 👋 Bienvenido a **Bodas de Hoy**, la plataforma #1 para organizar tu boda o evento en España.
 
-📅 **Planificar tu evento** — bodas, cumpleaños, corporativos
-👥 **Gestionar invitados** y sus preferencias
-💰 **Controlar presupuesto** y proveedores
+Con tu cuenta **gratuita** tendrás acceso a:
 
-Cuéntame qué tienes en mente y te ayudo a organizarlo.`;
+✅ **Gestión completa de invitados** y confirmaciones de asistencia
+✅ **Mapa de mesas** interactivo
+✅ **Control de presupuesto** en tiempo real
+✅ **Itinerario del evento** personalizado
+✅ **Asistente IA** disponible 24/7
+✅ **Página web del evento** para compartir con tus invitados
+
+👇 Cuéntame sobre tu boda o evento y te explicaré cómo podemos ayudarte — o [**crea tu cuenta gratis ahora**](${registerUrl}) y empieza hoy mismo.`;
 
   return (
     <Center padding={16} width={'100%'}>
@@ -226,11 +236,11 @@ Cuéntame qué tienes en mente y te ayudo a organizarlo.`;
             <Button
               icon={<UserAddOutlined />}
               onClick={handleRegister}
-              size="middle"
-              style={{ flex: 1 }}
-              type="default"
+              size="large"
+              style={{ flex: 1, fontWeight: 600 }}
+              type="primary"
             >
-              Crear cuenta gratis
+              🎉 Crear cuenta gratis — empieza hoy
             </Button>
           </Flexbox>
 

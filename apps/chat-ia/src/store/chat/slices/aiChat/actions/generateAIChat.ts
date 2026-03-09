@@ -174,6 +174,23 @@ export const generateAIChat: StateCreator<
     // if message is empty or no files, then stop
     if (!message && !hasFile) return;
 
+    // Visitor/guest message limit: max 3 user messages before upsell modal
+    const { userType } = get();
+    if (userType === 'visitor' || userType === 'guest') {
+      const VISITOR_MSG_LIMIT = 3;
+      const msgs = chatSelectors.activeBaseChats(get());
+      const userMsgCount = msgs.filter((m) => m.role === 'user').length;
+      if (userMsgCount >= VISITOR_MSG_LIMIT) {
+        set({ showLoginRequired: true }, false, n('visitor/limitReached'));
+        return;
+      }
+      // Incrementar cookie vis_mc para que el servidor también pueda cortar sin llamar a api-ia
+      try {
+        const current = parseInt(document.cookie.match(/vis_mc=(\d+)/)?.[1] ?? '0', 10);
+        document.cookie = `vis_mc=${current + 1}; path=/; max-age=86400; SameSite=Lax`;
+      } catch { /* ignorar si no hay acceso a cookies */ }
+    }
+
     // router to server mode send message
     if (isServerMode)
       return sendMessageInServer({ message, files, onlyAddUserMessage, isWelcomeQuestion });
@@ -610,6 +627,11 @@ export const generateAIChat: StateCreator<
             // Modo estricto: mostrar modal de recarga bloqueante
             set({ showInsufficientBalance: true });
           }
+        }
+        // Si el backend devuelve 401 (community user sin auth)
+        // → mostrar modal de registro en lugar de "unauthorized"
+        if ((error as any)?.type === 'login_required') {
+          set({ showLoginRequired: true });
         }
         await messageService.updateMessageError(messageId, error);
         await refreshMessages();

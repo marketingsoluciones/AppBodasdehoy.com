@@ -3,17 +3,39 @@
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
 import { useConversations } from '../hooks/useConversations';
+import { useWhatsAppSession } from '../hooks/useWhatsAppSession';
 import { ConversationItem } from './ConversationItem';
+import { WhatsAppSetup } from './WhatsAppSetup';
 
 interface ConversationListProps {
   channel: string | null;
   selectedId?: string;
 }
 
-export function ConversationList({ channel, selectedId }: ConversationListProps) {
-  const { conversations, loading, error } = useConversations(channel);
-  const { checkAuth } = useAuthCheck();
-  const { isAuthenticated } = checkAuth();
+function WhatsAppConversationList({ development, selectedId }: { development: string; selectedId?: string }) {
+  const { loading: sessionLoading, status } = useWhatsAppSession(development);
+
+  if (sessionLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <div className="mb-2 text-3xl">⏳</div>
+          <p className="text-sm text-gray-500">Verificando sesión de WhatsApp...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (status !== 'connected') {
+    return <WhatsAppSetup development={development} />;
+  }
+
+  // Connected — show real conversation list
+  return <ConversationListInner channel="whatsapp" selectedId={selectedId} />;
+}
+
+function ConversationListInner({ channel, selectedId }: ConversationListProps) {
+  const { conversations, loading, error, isAuthenticated } = useConversations(channel);
 
   if (loading) {
     return (
@@ -100,4 +122,17 @@ export function ConversationList({ channel, selectedId }: ConversationListProps)
       </div>
     </div>
   );
+}
+
+export function ConversationList({ channel, selectedId }: ConversationListProps) {
+  const { checkAuth } = useAuthCheck();
+  const { development } = checkAuth();
+  const dev = development || 'bodasdehoy';
+
+  // wa-[channelId] channels from InboxSidebar → WhatsApp session check
+  if (channel === 'whatsapp' || channel?.startsWith('wa-')) {
+    return <WhatsAppConversationList development={dev} selectedId={selectedId} />;
+  }
+
+  return <ConversationListInner channel={channel} selectedId={selectedId} />;
 }

@@ -4,7 +4,7 @@ const { i18n } = require('./next-i18next.config');
 
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@bodasdehoy/memories'],
+  transpilePackages: ['@bodasdehoy/memories', '@bodasdehoy/shared'],
   i18n,
   webpack: (config) => {
     // Deduplicate React — prevents "Invalid hook call" in monorepo when packages

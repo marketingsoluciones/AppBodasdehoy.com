@@ -10,6 +10,59 @@ interface ErrorBoundaryProps {
   children: React.ReactNode;
 }
 
+// ─── ModuleErrorBoundary ──────────────────────────────────────────────────────
+// Versión inline (no full-page). Úsala para envolver secciones/módulos
+// individuales dentro de una página para que un crash no derrumbe todo.
+//
+//   <ModuleErrorBoundary label="Presupuesto">
+//     <BlockListaCategorias />
+//   </ModuleErrorBoundary>
+
+interface ModuleErrorBoundaryProps {
+  children: React.ReactNode;
+  label?: string;
+}
+
+export class ModuleErrorBoundary extends React.Component<
+  ModuleErrorBoundaryProps,
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: ModuleErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error(`[ModuleErrorBoundary:${this.props.label ?? 'módulo'}]`, error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="w-full rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <p className="font-semibold">
+            Error en {this.props.label ?? 'este módulo'}
+          </p>
+          <p className="mt-1 text-xs text-red-500">
+            {this.state.error?.message ?? 'Error desconocido'}
+          </p>
+          <button
+            className="mt-3 rounded-md bg-red-100 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-200"
+            onClick={() => this.setState({ hasError: false, error: null })}
+          >
+            Reintentar
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);

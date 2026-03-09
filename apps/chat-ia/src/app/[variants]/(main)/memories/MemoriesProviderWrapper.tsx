@@ -48,7 +48,7 @@ export function MemoriesProviderWrapper({ children }: PropsWithChildren) {
       development={development}
       userId={userId}
     >
-      {children}
+      {children as any}
     </MemoriesProvider>
   );
 }

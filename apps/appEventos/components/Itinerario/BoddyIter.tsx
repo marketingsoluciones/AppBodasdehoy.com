@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { ItineraryTabs } from "./MicroComponente/ItineraryTabs"
 import { ItineraryPanel } from "./MicroComponente/ItineraryPanel"
+import { ModuleErrorBoundary } from "../ErrorBoundary"
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import { Event, Itinerary, SelectModeSortType } from "../../utils/Interfaces"
 import { ViewItinerary } from "../../pages/invitados";
@@ -350,19 +351,21 @@ export const BoddyIter = () => {
                 />
                 {
                     (isAllowedViewer(itinerario?.viewers ?? []) || window?.location?.pathname === "/itinerario" || isAllowed())
-                        ? <ItineraryPanel
-                            itinerario={itinerario}
-                            editTitle={editTitle}
-                            setEditTitle={setEditTitle}
-                            title={title}
-                            setTitle={setTitle}
-                            view={view}
-                            handleDeleteItinerario={handleDeleteItinerario}
-                            handleUpdateTitle={handleUpdateTitle}
-                            selectTask={selectTask}
-                            setSelectTask={setSelectTask}
-                            orderAndDirection={orderAndDirection}
-                        />
+                        ? <ModuleErrorBoundary label="Itinerario">
+                            <ItineraryPanel
+                                itinerario={itinerario}
+                                editTitle={editTitle}
+                                setEditTitle={setEditTitle}
+                                title={title}
+                                setTitle={setTitle}
+                                view={view}
+                                handleDeleteItinerario={handleDeleteItinerario}
+                                handleUpdateTitle={handleUpdateTitle}
+                                selectTask={selectTask}
+                                setSelectTask={setSelectTask}
+                                orderAndDirection={orderAndDirection}
+                            />
+                          </ModuleErrorBoundary>
                         : <div className="h-full">
                             <ViewWihtoutData />
                         </div>

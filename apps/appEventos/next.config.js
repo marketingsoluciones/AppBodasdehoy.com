@@ -8,7 +8,7 @@ const nextConfig = {
 
   // Transpile packages del monorepo y @lobehub/ui
   // Agregado 'debug' y 'supports-color' para solucionar error ESM con dependencies de @lobehub/editor
-  transpilePackages: ['@bodasdehoy/shared', '@bodasdehoy/memories', '@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'debug', 'supports-color'],
+  transpilePackages: ['@bodasdehoy/auth-ui', '@bodasdehoy/shared', '@bodasdehoy/memories', '@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'debug', 'supports-color'],
 
   // Redirects para URLs con caracteres especiales → ASCII equivalente
   async redirects() {
@@ -82,6 +82,10 @@ const nextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       'next/navigation': path.resolve(__dirname, 'hooks/useCompatRouter.ts'),
+      // Forzar instancia única de React — evita "resolveDispatcher() is null"
+      // cuando @bodasdehoy/memories tiene su propio node_modules/react (versión distinta)
+      'react': path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
     };
 
     // Desactivar minificación en producción para debugging

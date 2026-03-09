@@ -17,7 +17,11 @@
       "Read(//Users/juancarlosparra/.cloudflared/**)",
       "Bash(tail:*)",
       "Bash(# Try to find process logs - check if there are any system log entries # Check if the node process has any unhandled exceptions logged # Try a different approach: look at what packages were recently modified ls -lt /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/copilot/node_modules/.cache)",
-      "Read(//Users/juancarlosparra/Projects/AppBodasdehoy.com/**)"
+      "Read(//Users/juancarlosparra/Projects/AppBodasdehoy.com/**)",
+      "Bash(ls /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/settings/integrations/)",
+      "Bash(grep -rn \"Notification\\\\|notification\" apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/_layout/ --include=\"*.tsx\")",
+      "Bash(ls apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/_layout/Desktop/SideBar/)",
+      "Bash(cat apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/_layout/Desktop/SideBar/TopActions.tsx)"
     ]
   }
 }

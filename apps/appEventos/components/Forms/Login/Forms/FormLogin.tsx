@@ -26,18 +26,21 @@ const FormLogin: FC<any> = ({ setStage }) => {
     wrong: "",
   };
 
-  const errorsCode: any = {
-    "auth/wrong-password": "Correo o contraseña invalida",
-    "auth/too-many-requests":
-      "Demasiados intentos fallidos. Intenta de nuevo más tarde",
+  const errorsCode: Record<string, string> = {
+    'auth/wrong-password': t('usuario o contraseña inválida'),
+    'auth/invalid-credential': t('usuario o contraseña inválida'),
+    'auth/user-not-found': t('usuario o contraseña inválida'),
+    'auth/invalid-email': t('usuario o contraseña inválida'),
+    'auth/too-many-requests': 'Demasiados intentos fallidos. Intenta de nuevo más tarde.',
   };
 
-  const handleSubmit = async (values: MyFormValues, actions: any) => {
+  const handleSubmit = async (values: MyFormValues) => {
     try {
-      signIn({ type: "credentials", payload: values, setStage, setIsStartingRegisterOrLogin })
+      await signIn({ type: 'credentials', payload: values, setStage, setIsStartingRegisterOrLogin });
     } catch (error: any) {
-      console.error(JSON.stringify(error));
-      toast("error", JSON.stringify(errorsCode[error.code]))
+      console.error('[FormLogin]', error?.code, error?.message);
+      const msg = error?.code ? errorsCode[error.code] : error?.message || t('usuario o contraseña inválida');
+      if (msg) toast('error', msg);
     }
   };
 

@@ -110,6 +110,32 @@ const BillingPage = memo(() => {
   const router = useRouter();
   const currentUserId = useChatStore((s) => s.currentUserId);
   const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
+
+  // Mientras EventosAutoAuth hidrata el store desde cookie/localStorage, mostrar skeleton
+  // en lugar de la pantalla de bloqueo (evita el flash de "Área exclusiva")
+  const [isCheckingAuth, setIsCheckingAuth] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const hasSSOCookie = document.cookie.includes('idTokenV0.1.0');
+      const hasUserUid = !!localStorage.getItem('user_uid');
+      const hasJwt = !!localStorage.getItem('jwt_token');
+      const hasEmail = !!localStorage.getItem('user_email');
+      return !!(hasSSOCookie || hasUserUid || (hasJwt && hasEmail));
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setIsCheckingAuth(false);
+      return;
+    }
+    // Timeout de seguridad: si en 6s no se autenticó, mostrar pantalla de bloqueo
+    const timer = setTimeout(() => setIsCheckingAuth(false), 6000);
+    return () => clearTimeout(timer);
+  }, [isAuthenticated]);
+
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [usagePeriod, setUsagePeriod] = useState<'TODAY' | 'THIS_WEEK' | 'THIS_MONTH' | 'LAST_30_DAYS'>('THIS_MONTH');
   const [paymentMethods, setPaymentMethods] = useState<StoredPaymentMethod[]>([]);
@@ -130,9 +156,12 @@ const BillingPage = memo(() => {
     totalBalance,
     balance,
     bonusBalance,
+    creditLimit,
     currency,
     loading: walletLoading,
     isLowBalance,
+    isNegativeBalance,
+    isCreditExhausted,
     formatBalance,
     startRecharge,
     refetchBalance,
@@ -211,6 +240,21 @@ const BillingPage = memo(() => {
     };
     return colors[status] || 'default';
   };
+
+  // Mientras EventosAutoAuth hidrata el store, mostrar skeleton (no bloqueo)
+  if (!isAuthenticated && isCheckingAuth) {
+    return (
+      <Flexbox gap={24} style={{ maxWidth: 1024, padding: 24, width: '100%' }}>
+        <Skeleton active paragraph={{ rows: 1 }} title={{ width: 200 }} />
+        <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+          <Skeleton active paragraph={{ rows: 4 }} />
+          <Skeleton active paragraph={{ rows: 4 }} />
+        </div>
+        <Skeleton active paragraph={{ rows: 3 }} />
+        <Skeleton active paragraph={{ rows: 5 }} />
+      </Flexbox>
+    );
+  }
 
   // Usuarios anónimos no tienen acceso a facturación ni configuración
   if (!isAuthenticated) {
@@ -301,20 +345,45 @@ const BillingPage = memo(() => {
                 </button>
               </Flexbox>
             ) : (
-              <Flexbox gap={2}>
-                <span style={{ fontSize: 12, opacity: 0.8 }}>Saldo disponible</span>
-                <span style={{ fontSize: 36, fontWeight: 700, lineHeight: 1.1 }}>{formatBalance(totalBalance)}</span>
-                {bonusBalance > 0 && (
+              <Flexbox gap={4}>
+                {/* Saldo real (cash): puede ser negativo = deuda */}
+                <span style={{ fontSize: 12, opacity: 0.8 }}>
+                  {isNegativeBalance ? 'Deuda acumulada' : 'Saldo'}
+                </span>
+                <span style={{ color: isNegativeBalance ? '#ff4d4f' : undefined, fontSize: 36, fontWeight: 700, lineHeight: 1.1 }}>
+                  {formatBalance(balance + bonusBalance)}
+                </span>
+                {/* Crédito disponible (restante tras usar el crédito) */}
+                {creditLimit > 0 && (
                   <span style={{ fontSize: 12, opacity: 0.75 }}>
-                    {formatBalance(balance)} principal + {formatBalance(bonusBalance)} bonificación
+                    {isNegativeBalance
+                      ? `Crédito restante: ${formatBalance(totalBalance)} de ${formatBalance(creditLimit)}`
+                      : `Línea de crédito: ${formatBalance(creditLimit)}`}
+                  </span>
+                )}
+                {/* Capacidad operativa total */}
+                {(bonusBalance > 0 || creditLimit > 0) && (
+                  <span style={{ fontSize: 11, opacity: 0.6 }}>
+                    Puede usar: {formatBalance(totalBalance)}
+                    {bonusBalance > 0 && ` (incl. ${formatBalance(bonusBalance)} bonificación)`}
                   </span>
                 )}
               </Flexbox>
             )}
 
-            {isLowBalance && !walletError && (
+            {isCreditExhausted && !walletLoading && !walletError && (
+              <div style={{ background: 'rgba(255,77,79,0.25)', borderRadius: 6, fontSize: 12, padding: '6px 10px' }}>
+                🚫 Crédito agotado — recarga para continuar usando el servicio
+              </div>
+            )}
+            {!isCreditExhausted && isNegativeBalance && !walletError && (
+              <div style={{ background: 'rgba(255,165,0,0.25)', borderRadius: 6, fontSize: 12, padding: '6px 10px' }}>
+                🟠 Usando crédito — recarga para saldar la deuda
+              </div>
+            )}
+            {!isCreditExhausted && !isNegativeBalance && isLowBalance && !walletError && (
               <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: 6, fontSize: 12, padding: '6px 10px' }}>
-                ⚠️ Saldo bajo — recarga para continuar
+                ⚠️ Saldo bajo — recarga pronto
               </div>
             )}
 

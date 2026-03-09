@@ -77,6 +77,14 @@ export const config = {
     '/oauth(.*)',
     '/oidc(.*)',
     '/onboard(.*)', // ✅ Agregado para manejar redirección
+    '/tasks',
+    '/tasks(.*)',
+    '/notifications',
+    '/notifications(.*)',
+    '/messages',
+    '/messages(.*)',
+    '/memories',
+    '/memories(.*)',
     // ↓ cloud ↓
   ],
 };

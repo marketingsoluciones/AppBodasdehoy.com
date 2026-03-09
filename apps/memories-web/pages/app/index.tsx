@@ -109,7 +109,7 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
         {/* Error */}
         {albumsError && (
           <div className="bg-red-50 border border-red-200 text-red-600 rounded-2xl px-4 py-3 mb-6 text-sm">
-            {albumsError}
+            No se pudieron cargar los álbumes. Comprueba tu conexión e inténtalo de nuevo.
           </div>
         )}
 

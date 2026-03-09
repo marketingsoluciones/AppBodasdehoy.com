@@ -8,6 +8,8 @@ import { AuthContextProvider, EventContextProvider } from "../context";
 import { CounterInvitations } from "../components/Invitaciones/CounterInvitations";
 import { DataTableGroupProvider } from "../context/DataTableGroupContext";
 import VistaSinCookie from "./vista-sin-cookie";
+import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
+import { SkeletonPage } from "../components/Utils/SkeletonPage";
 import { useMounted } from "../hooks/useMounted"
 import { OptionsMenu } from "../components/Invitaciones/OptionsMenu";
 import { EnviadosComponent } from "../components/Invitaciones/EnviadosComponent";
@@ -151,12 +153,27 @@ const Invitaciones = () => {
   }, [optionSelect, event?.templateEmailSelect, event?.templateWhatsappSelect, event?.fecha_actualizacion, event?.updatedAt, event?.invitados_array]);
 
   if (verificationDone) {
+    if (user?.displayName === 'guest') {
+      return (
+        <GuestUpsellPage
+          section="Invitaciones digitales"
+          icon="✉️"
+          description="Diseña y envía invitaciones digitales personalizadas por WhatsApp, email o enlace directo."
+          benefits={[
+            'Plantillas de invitación personalizables con tu branding',
+            'Envío masivo por WhatsApp, email o SMS',
+            'Seguimiento de aperturas y confirmaciones',
+            'Editor drag & drop sin conocimientos de diseño',
+          ]}
+        />
+      )
+    }
     if (!user) {
       return (
         <VistaSinCookie />
       )
     }
-    if (!event) return <></>
+    if (!event) return <SkeletonPage rows={3} />
     return (
       <DataTableGroupProvider>
         <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base. w-full pt-2 md:py-0"}>

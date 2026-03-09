@@ -5,6 +5,8 @@ import ModalGuardarRegalo from "../components/ListaDeRegalos/ModalGuardarRegalo"
 import BlockTitle from "../components/Utils/BlockTitle";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
+import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
+import { SkeletonPage } from "../components/Utils/SkeletonPage";
 import FormGuardarRegalos from "../components/Forms/FormGuardarRegalos"
 import { useMounted } from "../hooks/useMounted"
 import { useAllowed } from "../hooks/useAllowed"
@@ -20,12 +22,27 @@ const ListaRegalos = () => {
   useMounted()
 
   if (verificationDone) {
+    if (user?.displayName === 'guest') {
+      return (
+        <GuestUpsellPage
+          section="Lista de regalos"
+          icon="🎁"
+          description="Crea tu lista de bodas y compártela con tus invitados para que puedan elegir el regalo perfecto."
+          benefits={[
+            'Lista pública compartible con tus invitados',
+            'Integración con Amazon y otras tiendas',
+            'Registro de regalos recibidos y pendientes',
+            'Agradecimientos automáticos por email',
+          ]}
+        />
+      )
+    }
     if (!user) {
       return (
         <VistaSinCookie />
       )
     }
-    if (!event) return <></>
+    if (!event) return <SkeletonPage rows={4} />
     return (
       <>
         {showForm ? (

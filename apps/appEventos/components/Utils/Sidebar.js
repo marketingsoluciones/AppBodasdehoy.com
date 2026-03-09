@@ -27,7 +27,11 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             title: "Iniciar sesión",
             icon: <RiLoginBoxLine className="w-6 h-6" />,
             onClick: () => {
-                router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${pathname}`)
+                if (config?.pathLogin) {
+                    window.location.href = `${config.pathLogin}?redirect=${encodeURIComponent(window.location.origin + pathname)}`
+                } else {
+                    router.push(`/login?d=${pathname}`)
+                }
             },
             development: ["bodasdehoy", "all"],
             user: "guest"
@@ -36,7 +40,11 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             title: "Registrarse",
             icon: <PiUserPlusLight className="w-6 h-6" />,
             onClick: () => {
-                router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${pathname}`)
+                if (config?.pathLogin) {
+                    window.location.href = `${config.pathLogin}?redirect=${encodeURIComponent(window.location.origin + pathname)}&q=register`
+                } else {
+                    router.push(`/login?q=register&d=${pathname}`)
+                }
             },
             development: ["bodasdehoy", "all"],
             user: "guest"

@@ -8,36 +8,44 @@ import BlockPresupuesto from "../components/Resumen/BlockPresupuesto";
 import BlockPrincipal from "../components/Resumen/BlockPrincipal";
 import BlockSobreMiEvento from "../components/Resumen/BlockSobreMiEvento";
 import { EventContextProvider } from "../context";
+import { SkeletonPage } from "../components/Utils/SkeletonPage";
 import { useMounted } from "../hooks/useMounted"
 import { BlockItinerario } from "../components/Resumen/BlockItinerario";
 import { BlockLugarEvento } from "../components/Resumen/BlockLugarEvento";
+import { ModuleErrorBoundary } from "../components/ErrorBoundary";
 
 const Resumen = () => {
   const { event } = EventContextProvider()
   useMounted()
 
-  if (!event) return <></>
+  if (!event) return <SkeletonPage rows={6} />
   return (
     <>
       <section className="bg-base w-full md:py-10 px-2 md:px-0">
         <motion.div initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }} className="md:max-w-screen-lg mx-auto inset-x-0 flex-col flex gap-8 pb-20">
-          <BlockPrincipal />
+          <ModuleErrorBoundary label="Resumen principal">
+            <BlockPrincipal />
+          </ModuleErrorBoundary>
           <div className="w-full grid md:grid-cols-2 gap-4 md:gap-8">
-            <BlockItinerario />
-            <BlockLugarEvento />
+            <ModuleErrorBoundary label="Itinerario"><BlockItinerario /></ModuleErrorBoundary>
+            <ModuleErrorBoundary label="Lugar del evento"><BlockLugarEvento /></ModuleErrorBoundary>
           </div>
-          <div className="w-full flex md:flex-row flex-col justify-center gap-4 md:gap-8">
-            <BlockPresupuesto />
-            <BlockInvitados />
+          <div className="w-full flex md:flex-row flex-col justify-center gap-4 md:gap-8 items-stretch">
+            <ModuleErrorBoundary label="Presupuesto"><BlockPresupuesto /></ModuleErrorBoundary>
+            <ModuleErrorBoundary label="Invitados"><BlockInvitados /></ModuleErrorBoundary>
           </div>
-          <BlockInvitaciones />
+          <ModuleErrorBoundary label="Invitaciones">
+            <BlockInvitaciones />
+          </ModuleErrorBoundary>
           <div className="w-full flex-col flex md:flex-row justify-center gap-8 ">
-            <BlockMesas />
-            <BlockListaRegalos />
+            <ModuleErrorBoundary label="Mesas"><BlockMesas /></ModuleErrorBoundary>
+            <ModuleErrorBoundary label="Lista de regalos"><BlockListaRegalos /></ModuleErrorBoundary>
           </div>
-          <BlockSobreMiEvento />
+          <ModuleErrorBoundary label="Sobre mi evento">
+            <BlockSobreMiEvento />
+          </ModuleErrorBoundary>
         </motion.div>
       </section>
     </>

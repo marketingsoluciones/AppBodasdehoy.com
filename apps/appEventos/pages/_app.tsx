@@ -55,11 +55,11 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
                            window.location.hostname === '127.0.0.1';
 
       if (isTestDomain) {
-        // En test solo verificar el origen local y el proxy
+        // En test solo verificar el origen; no HEAD a graphql (solo acepta POST → 405)
         const localUrls = [
           window.location.origin,
-          `${window.location.origin}/api/proxy-bodas/graphql`,
-        ];
+          `${window.location.origin}/api/health`,
+        ].filter(Boolean);
         Promise.all(
           localUrls.map(async (url): Promise<UrlCheckResult> => {
             try {
@@ -141,6 +141,36 @@ MyApp.getInitialProps = async ({ Component, ctx }) => {
 };
 
 export default MyApp
+
+// ─── Web Vitals — reportadas por Next.js automáticamente ─────────────────────
+// Se invocan una vez por métrica por carga de página.
+// En producción podrías enviarlas a tu endpoint de analytics.
+export function reportWebVitals(metric: {
+  id: string;
+  name: string;
+  label: 'web-vital' | 'custom';
+  value: number;
+  startTime: number;
+}) {
+  if (process.env.NODE_ENV === 'development') {
+    const rounded = Math.round(metric.value * 100) / 100;
+    const status =
+      metric.name === 'LCP' ? (metric.value < 2500 ? '✅' : metric.value < 4000 ? '⚠️' : '❌')
+      : metric.name === 'FID' || metric.name === 'INP' ? (metric.value < 100 ? '✅' : metric.value < 300 ? '⚠️' : '❌')
+      : metric.name === 'CLS' ? (metric.value < 0.1 ? '✅' : metric.value < 0.25 ? '⚠️' : '❌')
+      : metric.name === 'TTFB' ? (metric.value < 800 ? '✅' : metric.value < 1800 ? '⚠️' : '❌')
+      : metric.name === 'FCP' ? (metric.value < 1800 ? '✅' : metric.value < 3000 ? '⚠️' : '❌')
+      : '📊';
+    console.log(`[WebVitals] ${status} ${metric.name}: ${rounded}${metric.name === 'CLS' ? '' : 'ms'} (id: ${metric.id})`);
+  }
+
+  // En producción: enviar a tu endpoint de analytics (descomenta cuando tengas el endpoint)
+  // if (process.env.NODE_ENV === 'production') {
+  //   navigator.sendBeacon?.('/api/vitals', JSON.stringify({
+  //     name: metric.name, value: metric.value, id: metric.id, page: window.location.pathname,
+  //   }));
+  // }
+}
 
 const PixelTracker = dynamic(() => import("../components/PixelTracker") as any, {
   ssr: false,

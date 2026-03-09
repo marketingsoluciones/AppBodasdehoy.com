@@ -4,6 +4,7 @@ import {
   User,
   createUserWithEmailAndPassword,
   getRedirectResult,
+  onIdTokenChanged,
   signInWithEmailAndPassword,
   signInWithPopup,
   signInWithRedirect,
@@ -11,6 +12,7 @@ import {
 } from 'firebase/auth';
 
 import { auth } from '@/libs/firebase';
+import { setCrossAppIdToken, clearCrossAppSession } from '@bodasdehoy/shared/auth';
 
 /**
  * Obtener la URL actual para usar como redirect URL
@@ -102,6 +104,12 @@ async function exchangeFirebaseTokenForJWT(
       localStorage.setItem('user_photo_url', user.photoURL);
     }
     console.log('💾 Datos de Firebase guardados en localStorage');
+  }
+
+  // SSO cross-domain: setear idTokenV0.1.0 con Domain=.bodasdehoy.com
+  // Permite que appEventos detecte la sesión iniciada desde chat-ia
+  if (typeof window !== 'undefined') {
+    setCrossAppIdToken(firebaseIdToken);
   }
 
   try {
@@ -620,11 +628,38 @@ export const registerWithEmailPassword = async (
 };
 
 /**
+ * Inicia el listener que renueva el cookie cross-domain idTokenV0.1.0 automáticamente.
+ * Firebase refresca el ID token cada ~55 min. Este listener mantiene el cookie siempre fresco
+ * para que la sesión de chat-ia → appEventos (SSO) sea válida indefinidamente.
+ *
+ * Llamar UNA VEZ al iniciar la app (layout/providers). Retorna la función de unsubscribe.
+ */
+export function initCrossAppTokenRefresh(): () => void {
+  if (typeof window === 'undefined') return () => {};
+
+  return onIdTokenChanged(auth, async (user) => {
+    if (user) {
+      try {
+        const freshToken = await user.getIdToken();
+        setCrossAppIdToken(freshToken);
+      } catch {
+        // Silencioso — no interrumpir la app si falla el refresh del cookie
+      }
+    } else {
+      clearCrossAppSession();
+    }
+  });
+}
+
+/**
  * Cerrar sesión
  */
 export const signOut = async () => {
   try {
     await firebaseSignOut(auth);
+
+    // Limpiar cookies cross-domain (SSO)
+    clearCrossAppSession();
 
     // Limpiar localStorage
     localStorage.removeItem('api2_jwt_token');

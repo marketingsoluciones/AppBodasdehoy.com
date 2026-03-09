@@ -7,11 +7,14 @@ import ExportExcelPresupuesto from "../components/Presupuesto/ExportExcelPresupu
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../context";
 import { getCurrency } from "../utils/Funciones";
 import VistaSinCookie from "./vista-sin-cookie";
+import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
+import { SkeletonBudget } from "../components/Utils/SkeletonPage";
 import BlockTitle from "../components/Utils/BlockTitle";
 import { useMounted } from "../hooks/useMounted"
 import { useTranslation } from 'react-i18next';
 import { ExcelView } from "../components/Presupuesto/ExcelView";
 import { BlockListaCategorias } from "../components/Presupuesto/BlockListaCategorias";
+import { ModuleErrorBoundary } from "../components/ErrorBoundary";
 import { MontoPresupuesto } from "../components/Presupuesto/MontoPresupuesto";
 import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 import { DuplicatePresupuesto } from "../components/Presupuesto/DuplicatePesupuesto";
@@ -51,12 +54,27 @@ const Presupuesto = () => {
   }, [])
 
   if (verificationDone) {
+    if (user?.displayName === 'guest') {
+      return (
+        <GuestUpsellPage
+          section="Control de presupuesto"
+          icon="💰"
+          description="Lleva el control total del presupuesto de tu boda: categorías, pagos, desglose por proveedor y mucho más."
+          benefits={[
+            'Crea categorías y partidas de gasto personalizadas',
+            'Registra pagos y calcula pendientes automáticamente',
+            'Comparte el presupuesto con tu pareja en tiempo real',
+            'Exporta a Excel para análisis detallado',
+          ]}
+        />
+      )
+    }
     if (!user) {
       return (
         <VistaSinCookie />
       )
     }
-    if (!event) return <></>
+    if (!event) return <SkeletonBudget categories={5} />
     return (
       <>
         {event &&
@@ -140,11 +158,13 @@ const Presupuesto = () => {
                       className="flex flex-col md:flex-row w-full h-full gap-6 pt-2 md:pr-0 "
                     >
                       <div className="w-full md:w-[310px]">
-                        <BlockListaCategorias
-                          setShowCategoria={setShowCategoria}
-                          categorias_array={categorias}
-                          showCategoria={showCategoria}
-                        />
+                        <ModuleErrorBoundary label="Categorías">
+                          <BlockListaCategorias
+                            setShowCategoria={setShowCategoria}
+                            categorias_array={categorias}
+                            showCategoria={showCategoria}
+                          />
+                        </ModuleErrorBoundary>
                       </div>
                       {showCategoria?.state
                         ? <BlockCategoria

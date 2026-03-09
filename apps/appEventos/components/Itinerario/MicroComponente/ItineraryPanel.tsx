@@ -1,6 +1,6 @@
 import { TaskNew } from "../../Servicios/VistaTarjeta/TaskNew"
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
-import { Dispatch, FC, SetStateAction, useCallback, useEffect, useState } from "react";
+import { Dispatch, FC, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 import { AuthContextProvider } from "../../../context/AuthContext";
 import { EventContextProvider } from "../../../context/EventContext";
 import { Modal } from "../../Utils/Modal";
@@ -101,66 +101,101 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFile[]>([]);
   const [loading, setLoading] = useState<boolean>(false)
   const [currentItinerario, setCurrentItinerario] = useState<Itinerary>(itinerario);
+  const updateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Per-field API debounce: key = `${taskId}:${fieldName}` → pending timer
+  const apiTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   // Función para manejar actualización de campos
-  const handleUpdate = async (fieldName: string, value: any) => {
+  const handleUpdate = async (fieldName: string, value: any): Promise<void> => {
     const task = tasks?.find(task => task._id === selectTask);
     const canEdit = !user?.uid ? false : isAllowed() || task.responsable?.includes(user?.uid);
     if (!canEdit) {
       ht();
       return;
     }
-    
-   /*  if (task[fieldName] === value) {
-      return;
-    } */
 
+    const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario?._id);
+    const f2 = event.itinerarios_array[f1]?.tasks.findIndex(elem => elem._id === task?._id);
+    const previousValue = event.itinerarios_array[f1]?.tasks[f2]?.[fieldName];
 
-
-    try {
-      let apiValue: string;
-      if (fieldName === 'horaActiva') {
-        apiValue = value ? "true" : "false";
-      } else if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
-        apiValue = JSON.stringify(value || []);
-      } else if (fieldName === 'duracion') {
-        apiValue = String(value || "0");
-      } else if (fieldName === 'fecha' && value) {
-        // Manejar fecha para evitar problemas de zona horaria
-        if (value?.includes('T')) {
-          apiValue = value;
-        }
-      } else if (fieldName === 'spectatorView') {
-        apiValue = `${value}`;
-      } else {
-        apiValue = String(value || "");
-      }
-      await fetchApiEventos({
-        query: queries.editTask,
-        variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          taskID: task._id,
-          variable: fieldName,
-          valor: apiValue,
-        },
-        domain: config.domain,
-      }).then((result) => {
-        const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario?._id);
-        const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task?._id);
-        if (fieldName === 'spectatorView') {
-          event.itinerarios_array[f1].tasks[f2].spectatorView = value;
-          setEvent({ ...event });
-        } else {
-          event.itinerarios_array[f1].tasks[f2][fieldName] = value;
-          setEvent({ ...event });
-        }
-      });
-      !['horaActiva'].includes(fieldName) && (fieldName === 'duracion' ? value !== 0 : true) && toast("success", t("Campo actualizado"));
-    } catch (error) {
-      console.error('Error al actualizar:', error);
-      toast("error", t("Error al actualizar"));
+    // Optimistic local update immediately — rollback if API fails
+    if (fieldName === 'spectatorView') {
+      event.itinerarios_array[f1].tasks[f2].spectatorView = value;
+    } else {
+      event.itinerarios_array[f1].tasks[f2][fieldName] = value;
     }
+    setEvent({ ...event });
+
+    let apiValue: string;
+    if (fieldName === 'horaActiva') {
+      apiValue = value ? "true" : "false";
+    } else if (['responsable', 'tags', 'attachments'].includes(fieldName)) {
+      apiValue = JSON.stringify(value || []);
+    } else if (fieldName === 'duracion') {
+      apiValue = String(value || "0");
+    } else if (fieldName === 'fecha') {
+      apiValue = value?.includes?.('T') ? value : String(value || "");
+    } else if (fieldName === 'spectatorView') {
+      apiValue = `${value}`;
+    } else {
+      apiValue = String(value || "");
+    }
+
+    // Debounce API call per task+field — only the last value in a burst is sent
+    const debounceKey = `${task._id}:${fieldName}`;
+    const pending = apiTimersRef.current.get(debounceKey);
+    if (pending) clearTimeout(pending);
+
+    const timer = setTimeout(async () => {
+      apiTimersRef.current.delete(debounceKey);
+      setLoading(true);
+      try {
+        await fetchApiEventos({
+          query: queries.editTask,
+          variables: {
+            eventID: event._id,
+            itinerarioID: itinerario._id,
+            taskID: task._id,
+            variable: fieldName,
+            valor: apiValue,
+          },
+          domain: config.domain,
+        });
+
+        // Debounced side-effects: notifications + postMessage
+        const notifiableFields = ['descripcion', 'fecha', 'prioridad', 'estatus', 'responsable'];
+        if (notifiableFields.includes(fieldName)) {
+          if (updateTimerRef.current) clearTimeout(updateTimerRef.current);
+          updateTimerRef.current = setTimeout(() => {
+            const assignees = (task.responsable ?? []).filter((uid: string) => uid !== user?.uid);
+            if (assignees.length > 0) {
+              const focused = `/itinerario?event=${event._id}&itinerary=${itinerario._id}&task=${task._id}`;
+              notification({
+                type: 'user',
+                message: ` ha actualizado la tarea: <strong>${task.descripcion}</strong> | Evento ${event?.tipo}: <strong>${event?.nombre?.toUpperCase()}</strong>`,
+                uids: assignees,
+                focused,
+              });
+            }
+            window.parent?.postMessage({ type: 'REFRESH_EVENTS', source: 'appEventos' }, '*');
+          }, 400);
+        }
+
+        !['horaActiva'].includes(fieldName) && (fieldName === 'duracion' ? value !== 0 : true) && toast("success", t("Campo actualizado"));
+      } catch (error) {
+        console.error('Error al actualizar:', error);
+        // Rollback optimistic state change
+        if (f1 >= 0 && f2 >= 0) {
+          event.itinerarios_array[f1].tasks[f2][fieldName] = previousValue;
+          setEvent({ ...event });
+        }
+        toast("error", t("Error al actualizar"));
+      } finally {
+        setLoading(false);
+      }
+    }, 400);
+
+    apiTimersRef.current.set(debounceKey, timer);
   };
 
   const optionsItineraryButtonBox: OptionsSelect[] = [
@@ -244,6 +279,14 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
 
   ]
 
+  // Cleanup pending API debounce timers on unmount to prevent state updates on unmounted component
+  useEffect(() => {
+    return () => {
+      apiTimersRef.current.forEach(clearTimeout);
+      if (updateTimerRef.current) clearTimeout(updateTimerRef.current);
+    };
+  }, []);
+
   useEffect(() => {
     if (
       event &&
@@ -274,20 +317,21 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         filteredTasks.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
       }
       setTasks(filteredTasks);
-      const taskReduce: TaskReduce[] = filteredTasks.reduce((acc: TaskReduce[], item: Task) => {
+      // O(n) con Map keyed por timestamp de fecha (UTC día)
+      const dateMap = new Map<number | null, Task[]>();
+      for (const item of filteredTasks) {
         const f = new Date(item.fecha);
-        const y = f.getUTCFullYear();
-        const m = f.getUTCMonth();
-        const d = f.getUTCDate();
-        const date = new Date(y, m, d).getTime();
-        const f1 = acc.findIndex(elem => elem.fecha === date);
-        if (f1 < 0) {
-          acc.push({ fecha: item.fecha ? date : null, tasks: [item] });
-        } else {
-          acc[f1].tasks.push(item);
-        }
-        return acc;
-      }, []);
+        const date: number | null = item.fecha
+          ? new Date(f.getUTCFullYear(), f.getUTCMonth(), f.getUTCDate()).getTime()
+          : null;
+        const bucket = dateMap.get(date);
+        if (bucket) bucket.push(item);
+        else dateMap.set(date, [item]);
+      }
+      const taskReduce: TaskReduce[] = Array.from(dateMap.entries()).map(([date, tasks]) => ({
+        fecha: date,
+        tasks,
+      }));
       setTasksReduce(taskReduce);
     } else {
       setTasks(prev => (prev && prev.length === 0 ? prev : []));

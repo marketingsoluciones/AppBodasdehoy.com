@@ -576,6 +576,8 @@ async function proxyToPythonBackend(
     if (metadata?.userId) headers['X-User-Id'] = metadata.userId;
     if (metadata?.eventId) headers['X-Event-Id'] = metadata.eventId;
     if (metadata?.pageContext?.pageName) headers['X-Page-Name'] = metadata.pageContext.pageName;
+    // Backend puede usar esto para permitir chat anónimo con límites (rate limit por sesión)
+    if (metadata?.isAnonymous === true) headers['X-Is-Anonymous'] = 'true';
 
     console.log('[Copilot API] Request:', {
       model: payload.model || '(auto)',

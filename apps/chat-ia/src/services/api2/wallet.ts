@@ -19,6 +19,7 @@ import { api2Client } from './client';
 export interface WalletBalance {
   balance: number;
   bonus_balance: number;
+  credit_limit?: number;
   currency: string;
   error?: string;
   errors?: string[];
@@ -142,6 +143,7 @@ const GET_BALANCE_QUERY = `
       success
       balance
       bonus_balance
+      credit_limit
       total_balance
       currency
       status

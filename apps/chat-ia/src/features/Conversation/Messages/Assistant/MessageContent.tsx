@@ -152,19 +152,24 @@ export const AssistantMessageContent = memo<
       {showImageItems && <ImageFileListViewer items={imageList} />}
       {tools && (
         <Flexbox gap={8}>
-          {tools.map((toolCall, index) => (
-            <Tool
-              apiName={toolCall.apiName}
-              arguments={toolCall.arguments}
-              id={toolCall.id}
-              identifier={toolCall.identifier}
-              index={index}
-              key={toolCall.id}
-              messageId={id}
-              payload={toolCall}
-              type={toolCall.type}
-            />
-          ))}
+          {tools.map((toolCall, index) => {
+            // Silent builtin tools execute without showing UI in the chat bubble
+            if (!toolCall.identifier || typeof toolCall.identifier !== 'string') return null;
+            if (['lobe-filter-app-view', 'lobe-venue-visualizer'].includes(toolCall.identifier)) return null;
+            return (
+              <Tool
+                apiName={toolCall.apiName}
+                arguments={toolCall.arguments}
+                id={toolCall.id}
+                identifier={toolCall.identifier}
+                index={index}
+                key={toolCall.id}
+                messageId={id}
+                payload={toolCall}
+                type={toolCall.type}
+              />
+            );
+          })}
         </Flexbox>
       )}
     </Flexbox>

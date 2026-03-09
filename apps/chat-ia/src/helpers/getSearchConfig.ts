@@ -27,7 +27,7 @@ export const getSearchConfig = (model: string, provider: string): SearchConfig =
   const chatConfig = agentChatConfigSelectors.currentChatConfig(getAgentStoreState());
   const aiInfraStoreState = getAiInfraStoreState();
 
-  const enabledSearch = chatConfig.searchMode !== 'off';
+  const enabledSearch = (chatConfig.searchMode ?? 'off') !== 'off';
   const isProviderHasBuiltinSearch =
     aiProviderSelectors.isProviderHasBuiltinSearch(provider)(aiInfraStoreState);
   const isModelHasBuiltinSearch = aiModelSelectors.isModelHasBuiltinSearch(

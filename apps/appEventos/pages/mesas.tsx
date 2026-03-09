@@ -10,6 +10,8 @@ import { useDelayUnmount } from "../utils/Funciones";
 import ModalLeft from "../components/Utils/ModalLeft";
 import FormInvitado from "../components/Forms/FormInvitado";
 import VistaSinCookie from "./vista-sin-cookie";
+import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
+import { SkeletonMesas } from "../components/Utils/SkeletonPage";
 import SwiperCore, { Pagination } from 'swiper';
 import Prueba from "../components/Mesas/prueba";
 import FormEditarMesa from "../components/Forms/FormEditarMesa";
@@ -172,13 +174,28 @@ const Mesas: FC = () => {
   }, [showFormEditar])
 
   if (verificationDone) {
+    if (user?.displayName === 'guest') {
+      return (
+        <GuestUpsellPage
+          section="Plano de mesas"
+          icon="🪑"
+          description="Organiza el seating de tu boda de forma visual. Asigna invitados a mesas y genera el plano de sala."
+          benefits={[
+            'Plano interactivo drag & drop de mesas',
+            'Asignación automática de invitados',
+            'Vista por zonas: ceremonia, cóctel y banquete',
+            'El copilot IA te sugiere distribuciones óptimas',
+          ]}
+        />
+      )
+    }
     if (!user) {
       return (
         <VistaSinCookie />
       )
     }
 
-    if (!event) return <></>
+    if (!event) return <SkeletonMesas tables={6} />
     return (
       <>
         {/* formulario emergente para crear mesas */}

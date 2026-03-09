@@ -66,8 +66,11 @@ export const Notifications = () => {
   }, [showNotifications]);
 
   useEffect(() => {
-    // Solo cargar notificaciones para usuarios reales (no guests)
-    if (user?.uid && user?.displayName !== 'guest' && user?.email) {
+    // Cargar notificaciones cuando el usuario real esté disponible.
+    // Depende de user?.uid para re-dispararse cuando el auth llega después del mount
+    // (el safety timeout de 1.5s puede crear un guest temporal antes de que llegue el usuario real).
+    const isRealUser = user?.uid && user?.displayName !== 'guest' && user?.displayName !== 'anonymous';
+    if (isRealUser) {
       fetchApiBodas({
         query: queries.getNotifications,
         variables: { args: { uid: user?.uid }, sort: { createdAt: -1 }, skip: 0, limit: 8 },
@@ -76,7 +79,7 @@ export const Notifications = () => {
         setNotifications(result)
       })
     }
-  }, [isMounted])
+  }, [user?.uid])
 
   useEffect(() => {
     if (showNotifications && notifications?.results && notifications.results.length > 0 && notifications.results[0]?.state === "sent") {

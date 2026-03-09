@@ -17,6 +17,7 @@ import { Modal } from "../Utils/Modal";
 import { ObtenerFullAcceso } from "../InfoApp/ObtenerFullAcceso";
 import { useActivity } from "../../hooks/useActivity";
 import { useAllowedRouter } from "../../hooks/useAllowed";
+import { useFCMToken } from "../../hooks/useFCMToken";
 import i18next from "i18next";
 import { useTranslation } from "react-i18next";
 import { flags } from "../../utils/flags.js"
@@ -57,6 +58,10 @@ const Profile = ({ user, state, set, ...rest }) => {
   const { event } = EventContextProvider()
   const [isAllowedRouter, ht] = useAllowedRouter()
   const [dropdown, setDropwdon] = useState(false);
+  const { permission: pushPermission, requestPermission: requestPushPermission, token: fcmToken } = useFCMToken(
+    user?.uid,
+    config?.development
+  );
   const [showFlags, setShowFlags] = useState(false)
   const [optionSelect, setOptionSelect] = useState<Flag>(config.development === "champagne-events" ? idiomaArray[0] : idiomaArray[1])
 
@@ -70,14 +75,26 @@ const Profile = ({ user, state, set, ...rest }) => {
   const optionsStart: Option[] = [
     {
       title: "Iniciar sesión",
-      onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app` : `/login?d=${pathname}`) },
+      onClick: async () => {
+        if (config?.pathLogin) {
+          window.location.href = `${config.pathLogin}?redirect=${encodeURIComponent(window.location.origin + pathname)}`
+        } else {
+          router.push(`/login?d=${pathname}`)
+        }
+      },
       icon: <RiLoginBoxLine />,
       development: ["bodasdehoy", "all"],
       rol: undefined,
     },
     {
       title: "Registrarse",
-      onClick: async () => { router.push(config?.pathLogin ? `${config?.pathLogin}?d=app&q=register` : `/login?q=register&d=${pathname}`) },
+      onClick: async () => {
+        if (config?.pathLogin) {
+          window.location.href = `${config.pathLogin}?redirect=${encodeURIComponent(window.location.origin + pathname)}&q=register`
+        } else {
+          router.push(`/login?q=register&d=${pathname}`)
+        }
+      },
       icon: <PiUserPlusLight />,
       development: ["bodasdehoy", "all"],
       rol: undefined,
@@ -286,15 +303,16 @@ const Profile = ({ user, state, set, ...rest }) => {
         }
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>
           <div
+            data-testid="profile-menu-trigger"
             className="bg-white items-center pr-2 flex relative cursor-pointer"
             onClick={() => setDropwdon(!dropdown)}>
             {dropdown && (
-              <div className="bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 absolute top-0 right-0 translate-y-[46px] translate-x-[20px] md:-translate-x-[0px]  overflow-hidden z-[60] title-display">
+              <div data-testid="profile-menu-dropdown" className="bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 absolute top-0 right-0 translate-y-[46px] translate-x-[20px] md:-translate-x-[0px]  overflow-hidden z-[60] title-display">
                 <div className="w-full border-b border-gray-100 pb-2">
                   <p className="text-gray-500 font-extralight uppercase tracking-wider	text-xs text-center  cursor-default">
                     {(user?.role && user?.role?.length > 0) && t(user?.role[0])}
                   </p>
-                  <h3 className="text-primary font-medium w-full text-center cursor-default ">
+                  <h3 data-testid="profile-menu-display-name" className="text-primary font-medium w-full text-center cursor-default ">
                     {user?.displayName}
                   </h3>
                 </div>
@@ -315,6 +333,22 @@ const Profile = ({ user, state, set, ...rest }) => {
                   {optionsReduceEnd.map((item: Option, idx) => (
                     <ListItemProfile key={idx} {...item} />
                   ))}
+                  {/* Botón activar notificaciones push */}
+                  {user && user.displayName !== "guest" && pushPermission !== 'granted' && (
+                    <button
+                      onClick={async () => { await requestPushPermission(); setDropwdon(false); }}
+                      className="col-span-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 transition text-left w-full"
+                    >
+                      <span className="text-base">🔔</span>
+                      <span>Activar notificaciones push</span>
+                    </button>
+                  )}
+                  {user && user.displayName !== "guest" && pushPermission === 'granted' && (
+                    <div className="col-span-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-green-700 bg-green-50">
+                      <span className="text-base">🔔</span>
+                      <span>Notificaciones push activadas</span>
+                    </div>
+                  )}
                   {
                     true ?
                       <div onClick={() => setActionModals(!actionModals)} className="col-span-2 flex text-white gap-2 bg-primary hover:bg-slate-400 transition cursor-pointer rounded-lg py-1 px-2 items-center justify-center ">

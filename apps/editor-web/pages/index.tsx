@@ -1,9 +1,9 @@
 /**
- * Creador Standalone - Web solo del Creador de webs (bodas/eventos).
- * Redirige al editor completo en Copilot hasta que el paquete @bodasdehoy/wedding-creator
+ * Editor Web - Web solo del Creador de webs (bodas/eventos).
+ * Redirige al editor completo en chat-ia hasta que el paquete @bodasdehoy/wedding-creator
  * exporte el componente de edición.
  */
-export default function CreadorStandalonePage() {
+export default function EditorWebPage() {
   const base =
     typeof window !== 'undefined'
       ? process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com'
@@ -15,7 +15,7 @@ export default function CreadorStandalonePage() {
       <h1 style={{ fontSize: 28, marginBottom: 12 }}>Creador de webs</h1>
       <p style={{ color: '#666', marginBottom: 24, lineHeight: 1.5 }}>
         Crea y edita la web de tu boda o evento: información, programa, ubicación, galería, RSVP y más.
-        El editor completo está en Copilot.
+        El editor completo está en chat-ia.
       </p>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         <a
@@ -32,7 +32,7 @@ export default function CreadorStandalonePage() {
             textDecoration: 'none',
           }}
         >
-          Abrir Creador en Copilot
+          Abrir Creador en chat-ia
         </a>
         <a
           href="/preview"

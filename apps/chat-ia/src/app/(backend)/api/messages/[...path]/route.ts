@@ -2,25 +2,57 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
-const getBackendUrl = (): string =>
+const getApiIaUrl = (): string =>
   process.env.PYTHON_BACKEND_URL ||
   process.env.NEXT_PUBLIC_BACKEND_URL ||
   'https://api-ia.bodasdehoy.com';
 
+const getApi2Url = (): string =>
+  process.env.API2_URL || 'https://api2.eventosorganizador.com';
+
 /**
- * Proxy catch-all: /api/messages/[...path] → api-ia/api/messages/[...path]
- * Evita CORS cuando el browser llama desde chat-test.bodasdehoy.com o localhost.
+ * Proxy catch-all: /api/messages/[...path]
+ *
+ * Arquitectura objetivo: TODO pasa por api-ia (orquestador).
+ *
+ * TEMPORAL (hasta que api-ia implemente GAP 1 del RFC 2026-03-05):
+ *   /api/messages/whatsapp/* → api2 /api/whatsapp/*  (Baileys QR personal)
+ *
+ * Definitivo:
+ *   todo lo demás → api-ia /api/messages/*
+ *
+ * TODO: Cuando api-ia implemente /api/messages/conversations con datos Baileys
+ *       y /api/messages/whatsapp/session/:dev, eliminar el bloque whatsapp→api2.
  */
 async function proxyRequest(request: NextRequest, path: string[]): Promise<NextResponse> {
-  const backendUrl = getBackendUrl();
   const subpath = path.join('/');
   const { search } = new URL(request.url);
-  const targetUrl = `${backendUrl}/api/messages/${subpath}${search}`;
 
+  let targetUrl: string;
+  if (subpath.startsWith('whatsapp/')) {
+    // TEMPORAL: WhatsApp Baileys va directo a api2 hasta que api-ia lo orqueste
+    const api2Path = subpath.replace(/^whatsapp\//, '');
+    targetUrl = `${getApi2Url()}/api/whatsapp/${api2Path}${search}`;
+  } else {
+    targetUrl = `${getApiIaUrl()}/api/messages/${subpath}${search}`;
+  }
+
+  // Propagar headers de autenticación y contexto completos
   const headers: Record<string, string> = {};
 
   const auth = request.headers.get('authorization');
   if (auth) headers['Authorization'] = auth;
+
+  // X-Development y X-User-ID permiten a api2/api-ia aplicar
+  // visibilidad por rol (admin ve todo, user ve solo lo suyo)
+  const xDev = request.headers.get('x-development');
+  if (xDev) headers['X-Development'] = xDev;
+
+  const xUserId = request.headers.get('x-user-id');
+  if (xUserId) headers['X-User-ID'] = xUserId;
+
+  const xRole = request.headers.get('x-role');
+  if (xRole) headers['X-Role'] = xRole;
 
   const contentType = request.headers.get('content-type');
 

@@ -5,8 +5,6 @@ import {
   Maximize2,
   Minimize2,
   PanelLeftRightDashedIcon,
-  PanelRightClose,
-  PanelRightOpen,
   SquareChartGanttIcon,
 } from 'lucide-react';
 import { memo } from 'react';
@@ -17,21 +15,15 @@ import { DESKTOP_HEADER_ICON_SIZE } from '@/const/layoutTokens';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
-import { useUserStore } from '@/store/user';
-import { settingsSelectors } from '@/store/user/selectors';
-import { HotkeyEnum } from '@/types/hotkey';
 
 import SettingButton from '../../../features/SettingButton';
 import ShareButton from '../../../features/ShareButton';
 
 const HeaderAction = memo<{ className?: string }>(({ className }) => {
   const { t } = useTranslation('chat');
-  const hotkey = useUserStore(settingsSelectors.getHotkeyById(HotkeyEnum.ToggleRightPanel));
-  const [showAgentSettings, wideScreen, isFullscreen, toggleConfig, toggleWideScreen, toggleFullscreen] = useGlobalStore((s) => [
-    systemStatusSelectors.showChatSideBar(s),
+  const [wideScreen, isFullscreen, toggleWideScreen, toggleFullscreen] = useGlobalStore((s) => [
     systemStatusSelectors.wideScreen(s),
     systemStatusSelectors.isFullscreen(s),
-    s.toggleChatSideBar,
     s.toggleWideScreen,
     s.toggleFullscreen,
   ]);
@@ -56,16 +48,6 @@ const HeaderAction = memo<{ className?: string }>(({ className }) => {
         size={DESKTOP_HEADER_ICON_SIZE}
         title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
         tooltipProps={{
-          placement: 'bottom',
-        }}
-      />
-      <ActionIcon
-        icon={showAgentSettings ? PanelRightClose : PanelRightOpen}
-        onClick={() => toggleConfig()}
-        size={DESKTOP_HEADER_ICON_SIZE}
-        title={t('toggleRightPanel.title', { ns: 'hotkey' })}
-        tooltipProps={{
-          hotkey,
           placement: 'bottom',
         }}
       />

@@ -108,26 +108,44 @@ class ChatService {
     const agentConfig = agentSelectors.currentAgentConfig(agentStoreState);
     const chatConfig = agentChatConfigSelectors.currentChatConfig(agentStoreState);
 
-    // Append guest lead-capture instructions when user is anonymous
+    // Sobrescribir system role para visitantes no registrados: modo comercial puro
     const { getChatStoreState: _getChatState } = await import('@/store/chat');
     const _chatState = _getChatState();
     const _isGuest =
       !_chatState.currentUserId ||
       _chatState.currentUserId === 'visitante@guest.local' ||
-      _chatState.userType === 'guest';
+      _chatState.userType === 'guest' ||
+      _chatState.userType === 'visitor' ||
+      _chatState.currentUserId?.startsWith('visitor_');
 
     let effectiveSystemRole = agentConfig.systemRole || '';
     if (_isGuest) {
-      effectiveSystemRole +=
-        '\n\n---\nINSTRUCCIONES ESPECIALES PARA VISITANTE ANÓNIMO:\n' +
-        'Este visitante aún no está registrado. Tu misión principal es ayudarle con sus dudas sobre bodas y eventos, ' +
-        'y de forma natural intentar obtener sus datos de contacto (nombre, teléfono y/o correo electrónico) para que ' +
-        'el equipo pueda hacerle seguimiento personalizado.\n' +
-        'Cuando el usuario mencione su nombre, teléfono o email, reconócelo y dile que con esos datos podrás ofrecerle ' +
-        'información personalizada. No seas insistente — pide los datos UNA sola vez si no los has recibido ya.\n' +
-        'Si el usuario proporciona su teléfono o email, indícale que sus datos han sido guardados para que el equipo ' +
-        'pueda contactarle. No ofrezcas funciones de facturación, historial ni configuración — esas funciones requieren registro.\n' +
-        '---';
+      // Para visitantes no registrados: modo 100% comercial/ventas.
+      // El asistente NO resuelve dudas técnicas de planificación — esas son funciones de pago.
+      // Su único objetivo es capturar el lead y convertirlo en registro o compra.
+      effectiveSystemRole =
+        'Eres un asistente comercial de Bodas de Hoy, la plataforma líder para organizar bodas y eventos en España.\n\n' +
+        'MODO: VISITANTE NO REGISTRADO — SOLO RESPUESTAS COMERCIALES.\n\n' +
+        'TU ÚNICO OBJETIVO es:\n' +
+        '1. Despertar el interés del visitante en la plataforma.\n' +
+        '2. Presentar los beneficios de registrarse (gestión de invitados, presupuesto, mesas, itinerario, chat IA 24/7).\n' +
+        '3. Conseguir sus datos de contacto (nombre, teléfono o email) para que el equipo haga seguimiento.\n' +
+        '4. Invitarle a crear una cuenta gratuita en: https://app.bodasdehoy.com/login?q=register\n\n' +
+        'REGLAS ESTRICTAS:\n' +
+        '- NO respondas preguntas técnicas detalladas de planificación (presupuestos, listas de invitados, proveedores, etc.). Esas son funciones exclusivas de usuarios registrados.\n' +
+        '- Si el usuario pregunta cómo hacer algo específico, dile que esa función está disponible en la plataforma al registrarse y anímale a probarla gratis.\n' +
+        '- Sé cálido, empático y orientado a ventas. Usa emojis con moderación.\n' +
+        '- Pide datos de contacto de forma natural, NO insistente — solo una vez por conversación.\n' +
+        '- Si el usuario da su teléfono o email, agradécelo, dile que el equipo le contactará pronto y ofrece el enlace de registro.\n' +
+        '- NUNCA menciones funciones de facturación, API, configuración técnica ni paneles de administración.\n\n' +
+        'BENEFICIOS CLAVE QUE PUEDES MENCIONAR:\n' +
+        '✅ Gestión completa de invitados y confirmaciones\n' +
+        '✅ Mapa de mesas interactivo\n' +
+        '✅ Control de presupuesto en tiempo real\n' +
+        '✅ Itinerario del evento\n' +
+        '✅ Asistente IA personalizado disponible 24/7\n' +
+        '✅ Página web del evento personalizada\n\n' +
+        'Enlace de registro: https://app.bodasdehoy.com/login?q=register';
     }
 
     // Apply context engineering with preprocessing configuration

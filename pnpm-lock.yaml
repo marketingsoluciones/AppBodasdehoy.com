@@ -42,6 +42,9 @@ importers:
       '@as-integrations/next':
         specifier: ^3.1.0
         version: 3.2.0(@apollo/server@4.12.2)(next@15.5.9)
+      '@bodasdehoy/auth-ui':
+        specifier: workspace:*
+        version: link:../../packages/auth-ui
       '@bodasdehoy/copilot-shared':
         specifier: workspace:*
         version: link:../../packages/copilot-shared
@@ -283,6 +286,12 @@ importers:
       '@tailwindcss/line-clamp':
         specifier: ^0.3.1
         version: 0.3.1(tailwindcss@3.4.19)
+      '@testing-library/jest-dom':
+        specifier: ^6.6.3
+        version: 6.9.1
+      '@testing-library/react':
+        specifier: ^16.0.1
+        version: 16.3.1(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3)(@types/react@19.2.14)(react-dom@19.2.4)(react@19.2.4)
       '@types/jest':
         specifier: ^29.5.14
         version: 29.5.14
@@ -352,6 +361,9 @@ importers:
       '@azure/core-auth':
         specifier: ^1.10.1
         version: 1.10.1
+      '@bodasdehoy/auth-ui':
+        specifier: workspace:*
+        version: link:../../packages/auth-ui
       '@bodasdehoy/memories':
         specifier: workspace:*
         version: link:../../packages/memories
@@ -1549,6 +1561,9 @@ importers:
       '@bodasdehoy/memories':
         specifier: workspace:*
         version: link:../../packages/memories
+      '@bodasdehoy/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       i18next:
         specifier: ^23.16.8
         version: 23.16.8
@@ -1585,6 +1600,19 @@ importers:
         version: 3.4.19
       typescript:
         specifier: ^5.9.0
+        version: 5.9.3
+
+  packages/auth-ui:
+    dependencies:
+      react:
+        specifier: '>=18'
+        version: 19.2.4
+    devDependencies:
+      '@types/react':
+        specifier: ^18
+        version: 18.3.28
+      typescript:
+        specifier: ^5.9.2
         version: 5.9.3
 
   packages/copilot-shared:
@@ -1661,6 +1689,9 @@ importers:
       '@types/js-cookie':
         specifier: ^3.0.1
         version: 3.0.6
+      '@types/react':
+        specifier: ^18.3.28
+        version: 18.3.28
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
@@ -18986,9 +19017,9 @@ packages:
   /@types/react-dnd-multi-backend@6.0.6(react-dom@19.2.4)(react@19.2.4):
     resolution: {integrity: sha512-rM+AUaejK5I2jUh+q3dE9/B8b5Oae2iMoirgdOAnsEseuBo/89HT8UeNXxwSJVxWndc9quBZYEW7Hcu+JlM0jA==}
     dependencies:
-      '@types/react': 19.2.14
+      '@types/react': 18.3.28
       dnd-core: 10.0.2
-      react-dnd: 10.0.2(@types/react@19.2.14)(react-dom@19.2.4)(react@19.2.4)
+      react-dnd: 10.0.2(@types/react@18.3.28)(react-dom@19.2.4)(react@19.2.4)
       react-dnd-touch-backend: 10.0.2
     transitivePeerDependencies:
       - react
@@ -36624,14 +36655,14 @@ packages:
       dnd-core: 10.0.2
     dev: false
 
-  /react-dnd@10.0.2(@types/react@19.2.14)(react-dom@19.2.4)(react@19.2.4):
+  /react-dnd@10.0.2(@types/react@18.3.28)(react-dom@19.2.4)(react@19.2.4):
     resolution: {integrity: sha512-SC2Ymvntynhoqtf5zaFhZscm9xenCoMofilxPdlwUlaelAzmbl9fw82C4ZJ//+lNm3kWAKXjGDZg2/aWjKEAtg==}
     peerDependencies:
       react: '>= 16.8'
       react-dom: '>= 16.8'
     dependencies:
       '@react-dnd/shallowequal': 2.0.0
-      '@types/hoist-non-react-statics': 3.3.7(@types/react@19.2.14)
+      '@types/hoist-non-react-statics': 3.3.7(@types/react@18.3.28)
       dnd-core: 10.0.2
       hoist-non-react-statics: 3.3.2
       react: 19.2.4

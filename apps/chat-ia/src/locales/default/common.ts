@@ -338,6 +338,7 @@ export default {
     files: '文件',
     knowledgeBase: '知识库',
     me: '我',
+    messages: 'Mensajes',
     setting: '设置',
   },
   telemetry: {

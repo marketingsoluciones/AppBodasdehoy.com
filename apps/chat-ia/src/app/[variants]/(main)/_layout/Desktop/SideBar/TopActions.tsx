@@ -1,16 +1,16 @@
 'use client';
 
 import { ActionIcon, ActionIconProps, Hotkey } from '@lobehub/ui';
-import { Compass, FolderClosed, Heart, Images, MessageSquare, Palette } from 'lucide-react';
+import { Heart, Images, Inbox, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
 import { useChatStore } from '@/store/chat';
+import { NotificationBell } from './NotificationBell';
 import { useGlobalStore } from '@/store/global';
 import { SidebarTabKey } from '@/store/global/initialState';
-import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useSessionStore } from '@/store/session';
 import { useUserStore } from '@/store/user';
 import { settingsSelectors } from '@/store/user/selectors';
@@ -31,8 +31,6 @@ export interface TopActionProps {
 const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
   const { t } = useTranslation('common');
   const switchBackToChat = useGlobalStore((s) => s.switchBackToChat);
-  const { showMarket, enableKnowledgeBase, showAiImage } =
-    useServerConfigStore(featureFlagsSelectors);
   const hotkey = useUserStore(settingsSelectors.getHotkeyById(HotkeyEnum.NavigateToChat));
 
   const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
@@ -50,10 +48,8 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
   });
 
   const isChatActive = tab === SidebarTabKey.Chat && !isPinned;
-  const isFilesActive = tab === SidebarTabKey.Files;
-  const isDiscoverActive = tab === SidebarTabKey.Discover;
-  const isImageActive = tab === SidebarTabKey.Image;
   const isMemoriesActive = tab === SidebarTabKey.Memories;
+  const isMessagesActive = tab === SidebarTabKey.Messages;
 
   return (
     <Flexbox gap={8}>
@@ -85,28 +81,6 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           tooltipProps={{ placement: 'right' }}
         />
       </Link>
-      {enableKnowledgeBase && !isGuestUser && (
-        <Link aria-label={t('tab.knowledgeBase')} href={'/knowledge'} suppressHydrationWarning>
-          <ActionIcon
-            active={isFilesActive}
-            icon={FolderClosed}
-            size={ICON_SIZE}
-            title={t('tab.knowledgeBase')}
-            tooltipProps={{ placement: 'right' }}
-          />
-        </Link>
-      )}
-      {showAiImage && !isGuestUser && (
-        <Link aria-label={t('tab.aiImage')} href={'/image'} suppressHydrationWarning>
-          <ActionIcon
-            active={isImageActive}
-            icon={Palette}
-            size={ICON_SIZE}
-            title={t('tab.aiImage')}
-            tooltipProps={{ placement: 'right' }}
-          />
-        </Link>
-      )}
       <Link aria-label={t('tab.memories' as any)} href={'/memories'} suppressHydrationWarning>
         <ActionIcon
           active={isMemoriesActive}
@@ -116,6 +90,17 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           tooltipProps={{ placement: 'right' }}
         />
       </Link>
+      {isServerMode && !isGuestUser && (
+        <Link aria-label={t('tab.messages' as any)} href={'/messages'} suppressHydrationWarning>
+          <ActionIcon
+            active={isMessagesActive}
+            icon={Inbox}
+            size={ICON_SIZE}
+            title={t('tab.messages' as any)}
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
       {isServerMode && (
         <Link aria-label={t('tab.weddingCreator' as any)} href={'/wedding-creator'} suppressHydrationWarning>
           <ActionIcon
@@ -127,17 +112,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           />
         </Link>
       )}
-      {showMarket && (
-        <Link aria-label={t('tab.discover')} href={'/discover'} suppressHydrationWarning>
-          <ActionIcon
-            active={isDiscoverActive}
-            icon={Compass}
-            size={ICON_SIZE}
-            title={t('tab.discover')}
-            tooltipProps={{ placement: 'right' }}
-          />
-        </Link>
-      )}
+      {isServerMode && !isGuestUser && <NotificationBell />}
     </Flexbox>
   );
 });

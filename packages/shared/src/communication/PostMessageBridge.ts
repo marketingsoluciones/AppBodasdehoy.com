@@ -57,6 +57,8 @@ export interface AuthConfigPayload {
     phoneNumber: string | null;
     photoURL: string | null;
   };
+  /** true = usuario no logueado; aplicar restricciones anónimo (por navegador, sin consumo previo). */
+  isAnonymous?: boolean;
   eventId?: string;
   eventName?: string;
   pageContext?: PageContextPayload;

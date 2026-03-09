@@ -1,6 +1,6 @@
 # @bodasdehoy/wedding-creator
 
-Paquete compartido: **Creador de webs** para bodas y eventos. Uso en Copilot, App Bodas, CRM/ERP o web standalone.
+Paquete compartido: **Creador de webs** para bodas y eventos. Uso en chat-ia, App Bodas, CRM/ERP o web standalone.
 
 ## Contenido
 
@@ -104,4 +104,4 @@ const { wedding, saveWedding } = useWeddingWeb({
 ## Ver también
 
 - **Plan general:** `docs/PLAN-PAQUETES-MEMORIES-CREADOR.md`
-- **App standalone:** `apps/creador-standalone` (landing que enlaza al editor en Copilot).
+- **App standalone:** `apps/editor-web` (landing que enlaza al editor en chat-ia).

@@ -50,10 +50,17 @@ const VistaSinCookie = () => {
       return;
     }
 
-    // ✅ CORRECCIÓN CRÍTICA: SIEMPRE redirigir a login si no hay usuario
-    // No importa si es bodasdehoy o no, si no hay usuario debe ir a login
+    // Home "/" es accesible para visitantes anónimos — pueden explorar la app y crear un evento de prueba
+    // Solo redirigir a login si están intentando acceder a una ruta protegida
+    if (pathname === "/") {
+      // No redirigir: dejar que home se muestre (el AuthContext creará el guest en paralelo)
+      setLoading(false);
+      return;
+    }
+
+    // Rutas protegidas sin sesión → redirigir a login con ?d= para volver tras autenticarse
     setRedirected(true);
-    router?.push(`/login${pathname !== "/" ? `?d=${pathname}` : ""}`)
+    router?.push(`/login?d=${pathname}`)
     setLoading(false);
   }, [pathname, event, eventsGroup, config, router, setLoading, redirected])
   

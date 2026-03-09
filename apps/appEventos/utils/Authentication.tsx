@@ -3,7 +3,7 @@ import { signInWithPopup, signInWithRedirect, UserCredential, signInWithEmailAnd
 import { useRouter } from "next/navigation";
 import Cookies from 'js-cookie';
 import { LoadingContextProvider, AuthContextProvider } from "../context";
-import { fetchApiBodas, queries } from "./Fetching";
+import { fetchApiBodas, queries, getApiErrorMessage } from "./Fetching";
 import { normalizeRedirectAfterLogin } from "./urlHelpers";
 import { useToast } from "../hooks/useToast";
 import { PhoneNumberUtil } from 'google-libphonenumber';
@@ -320,27 +320,45 @@ export const useAuthentication = () => {
                 setStage("register")
               }
             }
+          }).catch((err: any) => {
+            setLoading(false);
+            setIsStartingRegisterOrLogin(false);
+            console.error('[Auth] Error al cargar usuario tras login:', err);
+            const friendly = getApiErrorMessage(err);
+            if (friendly) {
+              toast('error', friendly);
+            } else {
+              toast('error', 'Sesión iniciada pero no se pudieron cargar tus datos. Comprueba tu conexión e inténtalo de nuevo.');
+            }
           })
         }
       } catch (error: any) {
-        const errorCode: string = error?.code ? error.code : error?.message
-        switch (errorCode) {
-          case "auth/too-many-requests":
-            toast("error", t("usuario o contraseña inválida"));
-            break;
-          case "user does not exist into events bd":
-            toast("error", t("debes estar invitado a un evento para poder ingresar"));
-            break;
-          default:
-            break;
+        setLoading(false);
+        setIsStartingRegisterOrLogin(false);
+        const errorCode: string = error?.code ?? error?.message ?? '';
+        const isAuthCredentialError =
+          errorCode === 'auth/invalid-credential' ||
+          errorCode === 'auth/wrong-password' ||
+          errorCode === 'auth/user-not-found' ||
+          errorCode === 'auth/invalid-email' ||
+          errorCode === 'auth/too-many-requests';
+        if (isAuthCredentialError) {
+          toast('error', t('usuario o contraseña inválida'));
+        } else if (errorCode === 'user does not exist into events bd') {
+          toast('error', t('debes estar invitado a un evento para poder ingresar'));
+        } else if (error?.message?.includes('cookie de sesión') || error?.message?.includes('sessionCookie')) {
+          toast('error', 'Sesión iniciada pero no se pudo guardar. Comprueba tu conexión e inténtalo de nuevo.');
+        } else {
+          const friendly = getApiErrorMessage(error);
+          if (friendly) {
+            toast('error', friendly);
+          } else {
+            const msg = error?.message || errorCode || 'Error al iniciar sesión';
+            toast('error', msg.length > 80 ? 'Error al iniciar sesión. Reintenta o comprueba tu conexión.' : msg);
+          }
         }
-
-
-        toast("error", t("usuario o contraseña inválida"));
-        console.log("error", error)
-        console.log("errorCode", error?.code ? error.code : error?.message)
+        console.warn('[Auth] Error en login:', errorCode, error?.message);
       }
-      setLoading(false);
     },
     [getSessionCookie, router, setLoading, setUser, toast]
   );

@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./auth": "./src/auth/index.ts",
     "./communication": "./src/communication/index.ts",
-    "./types": "./src/types/index.ts"
+    "./types": "./src/types/index.ts",
+    "./components": "./src/components/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
@@ -16,8 +17,12 @@
   "dependencies": {
     "js-cookie": "^3.0.1"
   },
+  "peerDependencies": {
+    "react": ">=18.0.0"
+  },
   "devDependencies": {
     "@types/js-cookie": "^3.0.1",
+    "@types/react": "^18.3.28",
     "typescript": "^5.9.2"
   }
 }

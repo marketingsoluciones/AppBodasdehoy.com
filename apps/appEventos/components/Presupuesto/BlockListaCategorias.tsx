@@ -12,10 +12,10 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 import ClickAwayListener from "react-click-away-listener";
 
 interface props {
-  categorias_array: estimateCategory[]
+  categorias_array?: estimateCategory[] | null
   setShowCategoria: Dispatch<SetStateAction<{ state: boolean, _id?: string }>>
   showCategoria: { state: boolean, _id: string }
-  showDataState: boolean
+  showDataState?: boolean
 }
 
 export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCategoria, showCategoria, showDataState }) => {
@@ -24,8 +24,11 @@ export const BlockListaCategorias: FC<props> = ({ categorias_array, setShowCateg
   const [showCreateCategorie, setShowCreateCategorie] = useState(false);
   const [isAllowed, ht] = useAllowed()
   const [showOptionsModal, setShowOptionsModal] = useState(false)
-  const categorias = event.presupuesto_objeto.categorias_array
 
+  if (!event) return null
+
+  const fromEvent = event?.presupuesto_objeto?.categorias_array
+  const categorias = Array.isArray(fromEvent) ? fromEvent : (Array.isArray(categorias_array) ? categorias_array : [])
 
   return (
     <>
@@ -81,11 +84,12 @@ export const ModalOptionsCategoria = ({ showOptionsModal, setShowOptionsModal })
   const { event, setEvent } = EventContextProvider()
 
   const handleChangeViewEstimates = async (value: boolean) => {
+    if (!event) return
     try {
       const result = await fetchApiEventos({
         query: queries.editPresupuesto,
         variables: {
-          evento_id: event?._id,
+          evento_id: event._id,
           viewEstimates: value
         }
       })

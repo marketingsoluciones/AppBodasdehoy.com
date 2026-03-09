@@ -19,8 +19,10 @@ import {
 export interface UseWalletState {
   balance: number;
   bonusBalance: number;
+  creditLimit: number;
   currency: string;
   error: string | null;
+  isCreditExhausted: boolean;
   isLowBalance: boolean;
   isNegativeBalance: boolean;
   loading: boolean;
@@ -65,6 +67,7 @@ export const useWallet = (): UseWalletReturn => {
   // Balance state
   const [balance, setBalance] = useState(0);
   const [bonusBalance, setBonusBalance] = useState(0);
+  const [creditLimit, setCreditLimit] = useState(0);
   const [totalBalance, setTotalBalance] = useState(0);
   const [currency, setCurrency] = useState('EUR');
   const [status, setStatus] = useState<WalletBalance['status']>('ACTIVE');
@@ -85,8 +88,9 @@ export const useWallet = (): UseWalletReturn => {
   const unauthorizedRetryDoneRef = useRef(false);
 
   // Computed
-  const isNegativeBalance = totalBalance < 0;
-  const isLowBalance = totalBalance <= lowBalanceThreshold;
+  const isNegativeBalance = balance < 0;
+  const isCreditExhausted = totalBalance <= 0;
+  const isLowBalance = totalBalance <= lowBalanceThreshold && !isCreditExhausted;
 
   // ========================================
   // BALANCE FUNCTIONS
@@ -95,36 +99,20 @@ export const useWallet = (): UseWalletReturn => {
   const refetchBalance = useCallback(async () => {
     setLoading(true);
     setError(null);
-
     try {
-      console.log('🔍 [useWallet] Obteniendo saldo...');
       const data = await walletService.getBalance();
-      console.log('📊 [useWallet] Respuesta de saldo:', { 
-        balance: data.balance, 
-        error: data.error,
-        success: data.success,
-        total_balance: data.total_balance 
-      });
-
-      // Actualizar balance aunque success sea false (wallet sin fondos o no inicializado)
       setBalance(data.balance ?? 0);
       setBonusBalance(data.bonus_balance ?? 0);
+      setCreditLimit(data.credit_limit ?? 0);
       setTotalBalance(data.total_balance ?? 0);
       setCurrency(data.currency || 'EUR');
       setStatus(data.status || 'ACTIVE');
-
       if (!data.success) {
-        // La API puede devolver el error en data.error (string) o data.errors (string[])
         const errorMsg = data.error || (data.errors as string[] | undefined)?.[0] || null;
-        if (errorMsg) {
-          console.error('❌ [useWallet] Error en respuesta:', errorMsg);
-          setError(errorMsg);
-        }
+        if (errorMsg) setError(errorMsg);
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
-      console.error('❌ [useWallet] Excepción al obtener saldo:', err);
-      setError(errorMsg);
+      setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
       setLoading(false);
     }
@@ -132,12 +120,10 @@ export const useWallet = (): UseWalletReturn => {
 
   const canAfford = useCallback(async (amount: number): Promise<BalanceCheck> => {
     const check = await walletService.checkBalance(amount);
-
     if (!check.allowed) {
       setLastBalanceCheck(check);
       setShowRechargeModal(true);
     }
-
     return check;
   }, []);
 
@@ -146,7 +132,7 @@ export const useWallet = (): UseWalletReturn => {
       const symbol = currency === 'EUR' ? '\u20AC' : currency;
       return `${symbol}${amount.toFixed(2)}`;
     },
-    [currency]
+    [currency],
   );
 
   // ========================================
@@ -157,47 +143,22 @@ export const useWallet = (): UseWalletReturn => {
     async (
       amount: number,
       successUrl?: string,
-      cancelUrl?: string
+      cancelUrl?: string,
     ): Promise<RechargeSessionResponse> => {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
       const defaultSuccessUrl = `${baseUrl}/settings/billing?recharge=success`;
       const defaultCancelUrl = `${baseUrl}/settings/billing?recharge=cancelled`;
-
-      console.log('🔍 [useWallet] Iniciando recarga:', {
-        amount,
-        cancelUrl: cancelUrl || defaultCancelUrl,
-        successUrl: successUrl || defaultSuccessUrl,
-      });
-
       try {
         const result = await walletService.createRechargeSession(
           amount,
           successUrl || defaultSuccessUrl,
-          cancelUrl || defaultCancelUrl
+          cancelUrl || defaultCancelUrl,
         );
-
-        console.log('📊 [useWallet] Respuesta de recarga:', {
-          error_code: result.error_code,
-          error_message: result.error_message,
-          hasCheckoutUrl: !!result.checkout_url,
-          sessionId: result.session_id,
-          success: result.success,
-        });
-
         if (result.success && result.checkout_url) {
-          console.log('✅ [useWallet] Redirigiendo a Stripe Checkout:', result.checkout_url);
-          // Redirigir a Stripe Checkout
           window.location.href = result.checkout_url;
-        } else {
-          console.error('❌ [useWallet] Error al crear sesión de recarga:', {
-            error_code: result.error_code,
-            error_message: result.error_message,
-          });
         }
-
         return result;
       } catch (error) {
-        console.error('❌ [useWallet] Excepción al crear sesión de recarga:', error);
         return {
           error_code: 'EXCEPTION',
           error_message: error instanceof Error ? error.message : 'Error desconocido al crear sesión de recarga',
@@ -205,7 +166,7 @@ export const useWallet = (): UseWalletReturn => {
         };
       }
     },
-    []
+    [],
   );
 
   // ========================================
@@ -217,23 +178,19 @@ export const useWallet = (): UseWalletReturn => {
       sku: string,
       quantity: number = 1,
       description?: string,
-      metadata?: Record<string, any>
+      metadata?: Record<string, any>,
     ): Promise<ConsumeResponse> => {
       const result = await walletService.checkAndConsume(sku, quantity, description, metadata);
-
       if (!result.success && result.error_code === 'INSUFFICIENT_BALANCE' && result.balance_check) {
         setLastBalanceCheck(result.balance_check);
         setShowRechargeModal(true);
-      } else if (result.success && // Actualizar balance local
-        result.new_balance !== undefined) {
-          setTotalBalance(result.new_balance);
-          // Aproximar balance (asumiendo que el consumo viene del balance principal)
-          setBalance(result.new_balance - bonusBalance);
-        }
-
+      } else if (result.success && result.new_balance !== undefined) {
+        setTotalBalance(result.new_balance);
+        setBalance(result.new_balance - bonusBalance);
+      }
       return result;
     },
-    [bonusBalance]
+    [bonusBalance],
   );
 
   // ========================================
@@ -243,18 +200,8 @@ export const useWallet = (): UseWalletReturn => {
   const fetchTransactions = useCallback(async (page: number = 1, limit: number = 20) => {
     setTransactionsLoading(true);
     setError(null);
-
     try {
-      console.log('🔍 [useWallet] Obteniendo transacciones...', { limit, page });
       const data = await walletService.getTransactions(page, limit);
-      console.log('📊 [useWallet] Respuesta de transacciones:', { 
-        count: data.transactions?.length || 0, 
-        errors: data.errors,
-        hasMore: data.hasMore,
-        success: data.success,
-        total: data.total 
-      });
-
       if (data.success) {
         if (page === 1) {
           setTransactions(data.transactions || []);
@@ -264,14 +211,11 @@ export const useWallet = (): UseWalletReturn => {
         setHasMoreTransactions(data.hasMore || false);
       } else {
         const errorMsg = data.errors?.[0]?.message || 'Error al obtener transacciones';
-        console.error('❌ [useWallet] Error en respuesta:', errorMsg);
         setError(errorMsg);
         setTransactions([]);
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
-      console.error('❌ [useWallet] Excepción al obtener transacciones:', err);
-      setError(errorMsg);
+      setError(err instanceof Error ? err.message : 'Error desconocido');
       setTransactions([]);
     } finally {
       setTransactionsLoading(false);
@@ -282,10 +226,8 @@ export const useWallet = (): UseWalletReturn => {
   // EFFECTS
   // ========================================
 
-  // Cargar balance cuando el usuario se autentica (o cambia de usuario)
   useEffect(() => {
     if (!isAuthenticated) return;
-    // Reset del retry guard al cambiar de usuario (nuevo login)
     unauthorizedRetryDoneRef.current = false;
     refetchBalance();
   }, [currentUserId]); // Re-fetch cada vez que cambia el userId (login event)
@@ -293,7 +235,6 @@ export const useWallet = (): UseWalletReturn => {
   // Auto-retry si UNAUTHORIZED y hay token disponible (solo UN reintento, evita loops)
   useEffect(() => {
     if (error !== 'UNAUTHORIZED' || !isAuthenticated || typeof window === 'undefined') return;
-    // Si ya reintentamos una vez, no volver a intentar (evita loop infinito)
     if (unauthorizedRetryDoneRef.current) return;
     unauthorizedRetryDoneRef.current = true;
     const retryTimer = setTimeout(() => {
@@ -307,17 +248,12 @@ export const useWallet = (): UseWalletReturn => {
   // Manejar retorno de Stripe
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
     const params = new URLSearchParams(window.location.search);
     const rechargeStatus = params.get('recharge');
-
     if (rechargeStatus === 'success') {
-      // Refrescar balance
       refetchBalance();
-      // Limpiar URL
       window.history.replaceState({}, '', window.location.pathname);
     } else if (rechargeStatus === 'cancelled') {
-      // Limpiar URL
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [refetchBalance]);
@@ -327,57 +263,26 @@ export const useWallet = (): UseWalletReturn => {
   // ========================================
 
   return {
-    // State
     balance,
     bonusBalance,
-    // Actions
     canAfford,
-    
-consumeService,
-    
-currency,
-    
-error,
-    
-// Transactions
-fetchTransactions,
-    
-
-formatBalance,
-    
-
-
-hasMoreTransactions,
-
-    
-    
-
-
-isLowBalance,
+    consumeService,
+    creditLimit,
+    currency,
+    error,
+    fetchTransactions,
+    formatBalance,
+    hasMoreTransactions,
+    isCreditExhausted,
+    isLowBalance,
     isNegativeBalance,
-
-
-// Modal
-lastBalanceCheck,
-    
-
-loading,
-    
-
-lowBalanceThreshold,
-    
-
-refetchBalance,
-
-    
-    
-setShowRechargeModal,
-    
-showRechargeModal,
-    
-startRecharge,
-
-    
+    lastBalanceCheck,
+    loading,
+    lowBalanceThreshold,
+    refetchBalance,
+    setShowRechargeModal,
+    showRechargeModal,
+    startRecharge,
     status,
     totalBalance,
     transactions,

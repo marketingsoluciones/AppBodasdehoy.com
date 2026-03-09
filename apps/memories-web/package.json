@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@bodasdehoy/memories": "workspace:*",
+    "@bodasdehoy/shared": "workspace:*",
     "i18next": "^23.16.8",
     "next": "^15.1.0",
     "next-i18next": "^15.3.1",

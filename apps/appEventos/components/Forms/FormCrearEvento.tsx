@@ -43,12 +43,14 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
         return true
       }),
     fecha: yup.string()
-      .test("Unico", t("Selecciona una fecha válida"), (value) => {
-        const d = new Date(value).getTime()
-        if (new Date().getTime() > d) {
-          return false
-        }
-        return true
+      .required(t("Selecciona una fecha válida"))
+      .test("future", t("Selecciona una fecha válida"), (value) => {
+        if (!value) return false
+        // Comparar sólo fechas (sin hora) para que "hoy" sea válido
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const d = new Date(value + 'T00:00:00')
+        return d >= today
       }),
     timeZone: yup.string().required(t("Selecciona una zona horaria")),
   });
@@ -87,18 +89,18 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       const imagePreviewUrl = values?.imgEvento
       delete values?.imgEvento
       
-      //nuevo: para evitar problemas de zona horaria
+      // Convertir fecha YYYY-MM-DD a timestamp UTC para evitar desfases de zona horaria
       let fechaTimestamp = values.fecha;
-      if (values.fecha) {
-        if (typeof values.fecha === 'string' && values.fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      if (values.fecha && typeof values.fecha === 'string') {
+        if (values.fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
           fechaTimestamp = new Date(values.fecha + 'T00:00:00Z').getTime().toString();
+        } else if (!isNaN(Number(values.fecha))) {
+          fechaTimestamp = values.fecha;
         } else {
-          fechaTimestamp = typeof values.fecha === 'string' && !isNaN(Number(values.fecha)) 
-            ? values.fecha 
-            : new Date(values.fecha).getTime().toString();
+          const parsed = new Date(values.fecha).getTime();
+          fechaTimestamp = isNaN(parsed) ? '' : parsed.toString();
         }
       }
-      //nuevo: para evitar problemas de zona horaria
 
       
       const event: Partial<Event> = await fetchApiEventos({
@@ -107,7 +109,16 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       });
       if (event) {
         const imgEvento = await subir_archivo({ imagePreviewUrl, event, use: "imgEvento" })
-        setEventsGroup({ type: "ADD_EVENT", payload: { ...event, imgEvento } });
+        const eventWithImg = { ...event, imgEvento }
+        setEventsGroup({ type: "ADD_EVENT", payload: eventWithImg });
+        // Persistir en localStorage para que el guest pueda ver el evento tras reload
+        if (user?.displayName === 'guest') {
+          try {
+            const key = `guest_events_${user.uid}`
+            const existing = JSON.parse(localStorage.getItem(key) || '[]')
+            localStorage.setItem(key, JSON.stringify([...existing, eventWithImg]))
+          } catch { /* ignorar si no hay localStorage */ }
+        }
         fetchApiBodas({
           query: queries.updateUser,
           variables: {

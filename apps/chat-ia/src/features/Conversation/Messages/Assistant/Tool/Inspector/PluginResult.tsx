@@ -21,7 +21,10 @@ const PluginResult = memo<FunctionMessageProps>(({ toolCallId, variant }) => {
       }
       return { data: JSON.stringify(parsed, null, 2), language: 'json' };
     } catch {
-      return { data: toolMessage?.content || '', language: 'plaintext' };
+      const raw = toolMessage?.content;
+      // Guard: if content is not a string (e.g. ContentChunk[] from DB JSONB parse), stringify it
+      const data = typeof raw === 'string' ? raw : raw != null ? JSON.stringify(raw, null, 2) : '';
+      return { data, language: typeof raw === 'string' ? 'plaintext' : 'json' };
     }
   }, [toolMessage?.content]);
 

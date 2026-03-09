@@ -1,6 +1,6 @@
 'use client';
 
-import { Breadcrumb, DatePicker, Input, Select, Table, Tag, Tooltip } from 'antd';
+import { Breadcrumb, DatePicker, Input, Select, Skeleton, Table, Tag, Tooltip } from 'antd';
 import { createStyles } from 'antd-style';
 import { Download, History, Search, TrendingDown, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
@@ -19,6 +19,7 @@ import {
 
 import { useWallet } from '@/hooks/useWallet';
 import { WalletTransaction } from '@/services/api2/wallet';
+import { useChatStore } from '@/store/chat';
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
@@ -256,6 +257,29 @@ BalanceChart.displayName = 'BalanceChart';
 
 const TransactionsHistoryPage = memo(() => {
   const { styles } = useStyles();
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
+
+  const [isCheckingAuth, setIsCheckingAuth] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const saved = JSON.parse(localStorage.getItem('dev-user-config') || '{}');
+      const hasSSOCookie = document.cookie.includes('idTokenV0.1.0');
+      return !!(hasSSOCookie || (saved?.userId && saved.userId !== 'visitante@guest.local'));
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setIsCheckingAuth(false);
+      return;
+    }
+    const timer = setTimeout(() => setIsCheckingAuth(false), 6000);
+    return () => clearTimeout(timer);
+  }, [isAuthenticated]);
+
   const {
     transactions,
     transactionsLoading,
@@ -356,6 +380,19 @@ const TransactionsHistoryPage = memo(() => {
     link.download = `transacciones-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
   };
+
+  // ── Auth loading skeleton ──
+
+  if (isCheckingAuth && !isAuthenticated) {
+    return (
+      <Flexbox gap={24} style={{ maxWidth: 1200, padding: 24, width: '100%' }}>
+        <Skeleton active paragraph={{ rows: 1 }} title={{ width: 250 }} />
+        <Skeleton active paragraph={{ rows: 3 }} />
+        <Skeleton active paragraph={{ rows: 2 }} />
+        <Skeleton active paragraph={{ rows: 6 }} />
+      </Flexbox>
+    );
+  }
 
   // ── Render ──
 

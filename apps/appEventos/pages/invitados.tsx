@@ -8,6 +8,9 @@ import { motion } from "framer-motion";
 import ModalLeft from "../components/Utils/ModalLeft";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
+import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
+import { SkeletonTable } from "../components/Utils/SkeletonPage";
+import { ModuleErrorBoundary } from "../components/ErrorBoundary";
 import FormCrearMenu from "../components/Forms/FormCrearMenu";
 import { useMounted } from "../hooks/useMounted";
 import { BlockTableroInvitados } from "../components/Invitados/BlockTableroInvitados";
@@ -67,12 +70,27 @@ const Invitados: FC = () => {
   }
 
   if (verificationDone) {
+    if (user?.displayName === 'guest') {
+      return (
+        <GuestUpsellPage
+          section="Lista de invitados"
+          icon="👥"
+          description="Gestiona todos tus invitados, grupos, mesas y confirmaciones de asistencia en un solo lugar."
+          benefits={[
+            'Añade invitados ilimitados con datos personalizados',
+            'Organiza por grupos y mesas automáticamente',
+            'Envía confirmaciones de asistencia por WhatsApp y email',
+            'Estadísticas de confirmación en tiempo real',
+          ]}
+        />
+      )
+    }
     if (!user) {
       return (
         <VistaSinCookie />
       )
     }
-    if (!event) return <></>
+    if (!event) return <SkeletonTable rows={8} />
     return (
       <>
         {shouldRenderChild && (
@@ -112,7 +130,10 @@ const Invitados: FC = () => {
               </div> */}
              {/*  {view === "cards"
                 ? <BlockTableroInvitados ConditionalAction={ConditionalAction} handleClick={handleClick} />
-                : */} <BlockListaInvitados ConditionalAction={ConditionalAction} handleClick={handleClick} />
+                : */}
+              <ModuleErrorBoundary label="Lista de invitados">
+                <BlockListaInvitados ConditionalAction={ConditionalAction} handleClick={handleClick} />
+              </ModuleErrorBoundary>
             {/*  /*  } */}
             </motion.div>
           </section >}

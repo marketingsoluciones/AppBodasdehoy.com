@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import { message } from '@/components/AntdStaticMethods';
 import { getDeveloperToken, setDeveloperToken } from '@/const/developerTokens';
 import { consumeInviteToken } from '@/services/api2/invite';
-import { processGoogleRedirectResult, processFacebookRedirectResult } from '@/services/firebase-auth';
+import { processGoogleRedirectResult, processFacebookRedirectResult, initCrossAppTokenRefresh } from '@/services/firebase-auth';
 import { useChatStore } from '@/store/chat';
 import { useAgentStore } from '@/store/agent';
 import { authBridge } from '@bodasdehoy/shared/auth';
@@ -56,6 +56,13 @@ function EventosAutoAuthComponent() {
   );
   const [receivedAuthFromParent, setReceivedAuthFromParent] = useState(false);
 
+  // ── SSO token refresh: renueva idTokenV0.1.0 automáticamente cada ~55 min
+  // Mantiene la sesión cross-domain válida indefinidamente mientras el usuario esté activo
+  useEffect(() => {
+    const unsubscribe = initCrossAppTokenRefresh();
+    return unsubscribe;
+  }, []);
+
   // ✅ CORRECCIÓN: Refs para evitar llamadas duplicadas de autenticación
   const identifyInProgressRef = useRef(false);
   const hasIdentifiedRef = useRef(false);
@@ -89,11 +96,36 @@ function EventosAutoAuthComponent() {
 
         // Usar la autenticación del parent directamente
         if (payload.userId && setExternalChatConfig) {
+          const isAnon = payload.isAnonymous === true;
+
+          // Si el parent indica que el usuario es anónimo, reusar el visitor ID de localStorage
+          // para que el límite de mensajes y el historial de conversación sean consistentes
+          // entre el copilot iframe y chat-ia standalone.
+          let effectiveUserId = payload.userId;
+          let effectiveUserType: 'registered' | 'visitor' = isAnon ? 'visitor' : 'registered';
+
+          if (isAnon) {
+            try {
+              const saved = localStorage.getItem('dev-user-config');
+              if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed.userId?.startsWith('visitor_') && parsed.user_type === 'visitor') {
+                  effectiveUserId = parsed.userId; // reusar ID existente
+                }
+              }
+            } catch { /* continuar con userId del parent */ }
+
+            // Si no hay visitor ID previo en localStorage, crear uno con prefijo visitor_
+            if (!effectiveUserId.startsWith('visitor_')) {
+              effectiveUserId = `visitor_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+            }
+          }
+
           setExternalChatConfig(
-            payload.userId,
+            effectiveUserId,
             payload.development || 'bodasdehoy',
             payload.token || undefined,
-            'registered',
+            effectiveUserType,
             undefined,
             payload.userData
           );
@@ -120,9 +152,9 @@ function EventosAutoAuthComponent() {
             token: payload.token,
             user_data: payload.userData,
             // user_id (snake_case) es necesario para useAuthCheck en /messages
-            user_id: payload.userId,
-            userId: payload.userId,
-            user_type: 'registered',
+            user_id: effectiveUserId,
+            userId: effectiveUserId,
+            user_type: effectiveUserType,
           }));
         }
       }

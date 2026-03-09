@@ -24,7 +24,9 @@ const WelcomeChatItem = memo(() => {
     currentUserId === 'visitante@guest.local' ||
     currentUserId === 'guest' ||
     currentUserId === 'anonymous' ||
-    userType === 'guest');
+    currentUserId?.startsWith('visitor_') ||
+    userType === 'guest' ||
+    userType === 'visitor');
 
   if (isGroupSession) return <GroupWelcome />;
 

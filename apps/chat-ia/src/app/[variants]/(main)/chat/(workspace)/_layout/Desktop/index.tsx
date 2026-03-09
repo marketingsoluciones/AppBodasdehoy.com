@@ -14,9 +14,8 @@ import { systemStatusSelectors } from '@/store/global/selectors';
 import { LayoutProps } from '../type';
 import ChatHeader from './ChatHeader';
 import Portal from './Portal';
-import TopicPanel from './TopicPanel';
 
-const Layout = ({ children, topic, conversation, portal }: LayoutProps) => {
+const Layout = ({ children, conversation, portal }: LayoutProps) => {
   const searchParams = useSearchParams();
   let isInIframe = false;
   try {
@@ -73,13 +72,10 @@ const Layout = ({ children, topic, conversation, portal }: LayoutProps) => {
         </Flexbox>
         {children}
         {!isEmbed && !isFullscreen && (
-          <>
-            <Portal>
-              {/* ✅ OPTIMIZACIÓN: fallback=null para no mostrar loading intermedio */}
-              <Suspense fallback={null}>{portal}</Suspense>
-            </Portal>
-            <TopicPanel>{topic}</TopicPanel>
-          </>
+          <Portal>
+            {/* ✅ OPTIMIZACIÓN: fallback=null para no mostrar loading intermedio */}
+            <Suspense fallback={null}>{portal}</Suspense>
+          </Portal>
         )}
       </Flexbox>
       <MainInterfaceTracker />

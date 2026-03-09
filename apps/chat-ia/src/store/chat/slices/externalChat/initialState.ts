@@ -26,7 +26,7 @@ export interface ExternalChatState {
   // Tipo de usuario
   userRole?: string; 
   // Perfil del usuario
-  userType?: 'registered' | 'guest'; // Rol del usuario
+  userType?: 'registered' | 'guest' | 'visitor'; // Rol del usuario
 }
 
 export const initialExternalChatState: ExternalChatState = {

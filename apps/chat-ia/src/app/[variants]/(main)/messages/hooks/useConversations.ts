@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
+import { buildHeaders } from '../utils/auth';
+
 export interface Conversation {
   channel: 'whatsapp' | 'instagram' | 'telegram' | 'email';
   contact: {
@@ -42,74 +44,51 @@ export function useConversations(channel: string | null) {
         return;
       }
 
-      // ✅ Usar proxy Next.js /api/messages/... para evitar CORS
       const proxyBase = '/api/messages';
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
+      const headers = buildHeaders();
+      const dev = development || 'bodasdehoy';
 
-      // ✅ Obtener token JWT si está disponible
-      let token: string | null = null;
-      if (typeof window !== 'undefined') {
-        token =
-          localStorage.getItem('auth-token') ||
-          sessionStorage.getItem('auth-token') ||
-          localStorage.getItem('dev-user-config')
-            ? (() => {
-                try {
-                  const configStr = localStorage.getItem('dev-user-config') || '{}';
-                  if (!configStr.trim().startsWith('{') && !configStr.trim().startsWith('[')) {
-                    return undefined;
-                  }
-                  return JSON.parse(configStr)?.token;
-                } catch {
-                  return undefined;
-                }
-              })()
-            : null;
-      }
+      // WhatsApp usa el nuevo endpoint en api2 vía proxy /api/messages/whatsapp/...
+      // Otros canales usarán api-ia cuando estén implementados
+      const fetchUrl = (channel === 'whatsapp' || !channel)
+        ? `${proxyBase}/whatsapp/conversations/${dev}`
+        : `${proxyBase}/conversations?development=${dev}&channel=${channel}`;
 
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
+      // ✅ Intentar primero con el backend real
+      try {
+        const response = await fetch(fetchUrl, { headers });
 
-      // ✅ MEJORA 3: Construir parámetros con información del usuario
-      const params = new URLSearchParams({
-        development: development || 'bodasdehoy',
-        ...(userEmail && { email: userEmail }),
-        ...(userId && { user_id: userId }),
-        ...(channel && { channel }),
-      });
-
-      // ✅ CORRECCIÓN: Solo en desarrollo/testing, usar datos mock si no hay backend
-      const isDevelopment = process.env.NODE_ENV === 'development';
-
-      if (isDevelopment) {
-        // Intentar obtener desde backend real primero (vía proxy)
-        try {
-          const response = await fetch(`${proxyBase}/conversations?${params}`, {
-            headers,
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            if (Array.isArray(data) && data.length > 0) {
-              // Filtrar por canal si está seleccionado
-              const filtered = channel
-                ? data.filter((conv: Conversation) => conv.channel === channel)
-                : data;
-              setConversations(filtered);
-              setError(null);
-              setLoading(false);
-              return;
-            }
-          }
-        } catch (backendError) {
-          console.warn(
-            '⚠️ No se pudo conectar al backend, usando datos mock (solo desarrollo):',
-            backendError,
-          );
+        if (response.ok) {
+          const data = await response.json();
+          // api2 devuelve { conversations: [...] }, api-ia devuelve []
+          const rawList = Array.isArray(data) ? data : (data.conversations || []);
+          const normalized: Conversation[] = rawList.map((c: any) => ({
+            channel: 'whatsapp' as const,
+            id: c.conversationId || c.id,
+            contact: {
+              name: c.displayName || c.phoneNumber || 'Desconocido',
+              phone: c.phoneNumber,
+            },
+            lastMessage: {
+              text: c.lastMessage || '',
+              timestamp: c.lastMessageAt || c.updatedAt || new Date().toISOString(),
+              fromUser: false,
+            },
+            unreadCount: c.unreadCount || 0,
+          }));
+          const filtered = channel ? normalized.filter((c) => c.channel === channel) : normalized;
+          setConversations(filtered);
+          setError(null);
+          setLoading(false);
+          return;
         }
+      } catch (backendError) {
+        console.warn('⚠️ Backend no disponible:', backendError);
+      }
+
+      // Solo en desarrollo, usar datos mock si backend no responde
+      const isDevelopment = process.env.NODE_ENV === 'development';
+      if (isDevelopment) {
 
         // ✅ Solo en desarrollo, si el backend no está disponible, usar datos mock
         const mockData: Conversation[] = [
@@ -180,26 +159,8 @@ export function useConversations(channel: string | null) {
 
         setConversations(filtered);
       } else {
-        // ✅ En producción, siempre intentar obtener desde backend con autenticación (vía proxy)
-        try {
-          const response = await fetch(`${proxyBase}/conversations?${params}`, {
-            headers,
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            const filtered = channel
-              ? data.filter((conv: Conversation) => conv.channel === channel)
-              : data;
-            setConversations(filtered);
-          } else {
-            console.warn('⚠️ Backend retornó error:', response.status, response.statusText);
-            setConversations([]);
-          }
-        } catch (fetchError) {
-          console.error('❌ Error al obtener conversaciones:', fetchError);
-          setConversations([]);
-        }
+        // En producción sin mock: lista vacía si backend no responde
+        setConversations([]);
       }
 
       setError(null);
@@ -215,5 +176,5 @@ export function useConversations(channel: string | null) {
     fetchConversations();
   }, [channel, isGuest, isAuthenticated, development]);
 
-  return { conversations, error, loading, refetch: fetchConversations };
+  return { conversations, error, isAuthenticated, loading, refetch: fetchConversations };
 }

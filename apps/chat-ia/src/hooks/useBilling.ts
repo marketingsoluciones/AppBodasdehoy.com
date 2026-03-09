@@ -25,7 +25,6 @@ export interface UseBillingState {
   // Invoices
   invoices: Invoice[];
   invoicesLoading: boolean;
-
   invoicesPagination: {
     hasMore: boolean;
     page: number;
@@ -35,7 +34,6 @@ export interface UseBillingState {
   // Payments
   payments: Payment[];
   paymentsLoading: boolean;
-
   paymentsPagination: {
     hasMore: boolean;
     page: number;
@@ -44,11 +42,9 @@ export interface UseBillingState {
   };
   // Subscription
   subscription: Subscription | null;
-
   subscriptionLoading: boolean;
   // Usage Stats
   usageStats: UsageStats | null;
-
   usageStatsLoading: boolean;
 }
 
@@ -112,17 +108,8 @@ export const useBilling = (): UseBillingReturn => {
   const fetchInvoices = useCallback(async (page: number = 1, status?: Invoice['status']) => {
     setInvoicesLoading(true);
     setError(null);
-
     try {
-      console.log('🔍 [useBilling] Obteniendo facturas...', { page, status });
       const data = await invoicesService.getInvoices(page, 20, status);
-      console.log('📊 [useBilling] Respuesta de facturas:', { 
-        count: data.invoices?.length || 0, 
-        errors: data.errors,
-        success: data.success,
-        total: data.pagination?.total || 0 
-      });
-
       if (data.success) {
         if (page === 1) {
           setInvoices(data.invoices || []);
@@ -136,15 +123,11 @@ export const useBilling = (): UseBillingReturn => {
           totalPages: data.pagination?.totalPages || 0,
         });
       } else {
-        const errorMsg = data.errors?.[0]?.message || 'Error al cargar facturas';
-        console.error('❌ [useBilling] Error en respuesta:', errorMsg);
-        setError(errorMsg);
+        setError(data.errors?.[0] || 'Error al cargar facturas');
         setInvoices([]);
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Error al cargar facturas';
-      console.error('❌ [useBilling] Excepción al obtener facturas:', err);
-      setError(errorMsg);
+      setError(err instanceof Error ? err.message : 'Error al cargar facturas');
       setInvoices([]);
     } finally {
       setInvoicesLoading(false);
@@ -154,10 +137,8 @@ export const useBilling = (): UseBillingReturn => {
   const fetchPayments = useCallback(async (page: number = 1) => {
     setPaymentsLoading(true);
     setError(null);
-
     try {
       const data = await invoicesService.getPaymentHistory(page, 20);
-
       if (data.success) {
         if (page === 1) {
           setPayments(data.payments);
@@ -181,27 +162,15 @@ export const useBilling = (): UseBillingReturn => {
   const fetchSubscription = useCallback(async () => {
     setSubscriptionLoading(true);
     setError(null);
-
     try {
-      console.log('🔍 [useBilling] Obteniendo suscripción...');
       const data = await invoicesService.getSubscription();
-      console.log('📊 [useBilling] Respuesta de suscripción:', { 
-        errors: data.errors, 
-        hasSubscription: !!data.subscription,
-        success: data.success 
-      });
-
       if (data.success && data.subscription) {
         setSubscription(data.subscription);
       } else {
-        // No es error si no hay suscripción, solo no se muestra
-        console.log('ℹ️ [useBilling] Usuario sin suscripción activa');
         setSubscription(null);
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Error al cargar suscripcion';
-      console.error('❌ [useBilling] Excepción al obtener suscripción:', err);
-      setError(errorMsg);
+      setError(err instanceof Error ? err.message : 'Error al cargar suscripcion');
       setSubscription(null);
     } finally {
       setSubscriptionLoading(false);
@@ -212,47 +181,32 @@ export const useBilling = (): UseBillingReturn => {
     async (period: 'TODAY' | 'THIS_WEEK' | 'THIS_MONTH' | 'LAST_30_DAYS' = 'THIS_MONTH') => {
       setUsageStatsLoading(true);
       setError(null);
-
       try {
-        console.log('🔍 [useBilling] Obteniendo estadísticas de uso...', { period });
         const data = await invoicesService.getUsageStats(period);
-        console.log('📊 [useBilling] Respuesta de estadísticas:', { 
-          errors: data.errors, 
-          hasStats: !!data.stats,
-          success: data.success,
-          totalCost: data.stats?.totalCost
-        });
-
         if (data.success && data.stats) {
           setUsageStats(data.stats);
         } else {
-          const errorMsg = (data.errors?.[0] as string) || 'No hay estadísticas disponibles';
-          console.warn('⚠️ [useBilling] Sin estadísticas:', errorMsg);
           setUsageStats(null);
         }
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Error al cargar estadisticas';
-        console.error('❌ [useBilling] Excepción al obtener estadísticas:', err);
-        setError(errorMsg);
+        setError(err instanceof Error ? err.message : 'Error al cargar estadisticas');
         setUsageStats(null);
       } finally {
         setUsageStatsLoading(false);
       }
     },
-    []
+    [],
   );
 
   const fetchInvoiceById = useCallback(async (invoiceId: string) => {
     setInvoiceDetailLoading(true);
     setError(null);
-
     try {
       const data = await invoicesService.getInvoiceById(invoiceId);
-
       if (data.success && data.invoice) {
         setInvoiceDetail(data.invoice);
       } else {
-        setError(data.errors?.[0]?.message || 'Error obteniendo detalle de factura');
+        setError(data.errors?.[0] || 'Error obteniendo detalle de factura');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar detalle de factura');
@@ -263,38 +217,18 @@ export const useBilling = (): UseBillingReturn => {
 
   const downloadInvoicePDF = useCallback(async (invoiceId: string): Promise<InvoicePDFResponse> => {
     try {
-      console.log('🔍 [useBilling] Descargando PDF de factura:', invoiceId);
       const data = await invoicesService.getInvoicePDF(invoiceId);
-      console.log('📊 [useBilling] Respuesta PDF:', { 
-        error: data.error_message, 
-        hasPdfUrl: !!data.pdf_url,
-        success: data.success 
-      });
-
       if (data.success && data.pdf_url) {
-        // ✅ FIX: Abrir PDF en nueva ventana
-        console.log('✅ [useBilling] Abriendo PDF:', data.pdf_url);
         window.open(data.pdf_url, '_blank');
       } else {
-        // ✅ FIX: Mostrar error si no se pudo obtener PDF
         const errorMsg = data.error_message || 'No se pudo obtener el PDF de la factura';
-        console.error('❌ [useBilling] Error al obtener PDF:', errorMsg);
-        if (typeof window !== 'undefined' && (window as any).alert) {
-          alert(`Error al descargar PDF: ${errorMsg}`);
-        }
+        if (typeof window !== 'undefined') alert(`Error al descargar PDF: ${errorMsg}`);
       }
-
       return data;
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error al descargar PDF';
-      console.error('❌ [useBilling] Excepción al descargar PDF:', err);
-      if (typeof window !== 'undefined' && (window as any).alert) {
-        alert(`Error al descargar PDF: ${errorMsg}`);
-      }
-      return {
-        error_message: errorMsg,
-        success: false,
-      };
+      if (typeof window !== 'undefined') alert(`Error al descargar PDF: ${errorMsg}`);
+      return { error_message: errorMsg, success: false };
     }
   }, []);
 
@@ -311,7 +245,6 @@ export const useBilling = (): UseBillingReturn => {
   // EFFECTS
   // ========================================
 
-  // Cargar datos iniciales — solo cuando el usuario está autenticado
   useEffect(() => {
     if (!isAuthenticated) return;
     fetchSubscription();
@@ -323,80 +256,28 @@ export const useBilling = (): UseBillingReturn => {
   // ========================================
 
   return {
-    
-    downloadInvoicePDF,
-    
-    
-    
-// General
-error,
-    
-
-
-fetchInvoiceById,
-    
-
-// Actions
-fetchInvoices,
-    
-
-fetchPayments,
-    
-
-fetchSubscription,
-    
-    
-    
-
-fetchUsageStats,
-    
-
-
-invoiceDetail,
-    
-
-
-invoiceDetailLoading,
-    
-    
-    
-
-// Invoices
-invoices,
-    
-
-
-invoicesLoading,
-    
-    
-    
-
-
-invoicesPagination,
-    
-
-
-// Payments
-payments,
-    
-    
-    
-
-paymentsLoading,
-    
-
-paymentsPagination,
-    
-
-refreshAll,
-    
-// Subscription
-subscription,
-    
-subscriptionLoading,
-    // Usage Stats
-usageStats,
+    // State
+    error,
+    invoiceDetail,
+    invoiceDetailLoading,
+    invoices,
+    invoicesLoading,
+    invoicesPagination,
+    payments,
+    paymentsLoading,
+    paymentsPagination,
+    subscription,
+    subscriptionLoading,
+    usageStats,
     usageStatsLoading,
+    // Actions
+    downloadInvoicePDF,
+    fetchInvoiceById,
+    fetchInvoices,
+    fetchPayments,
+    fetchSubscription,
+    fetchUsageStats,
+    refreshAll,
   };
 };
 

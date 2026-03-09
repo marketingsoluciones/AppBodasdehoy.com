@@ -97,26 +97,26 @@ export function CountdownTimer({ targetDate, className = '' }: CountdownTimerPro
       `}</style>
 
       <div className="countdown-item">
-        <span className="countdown-value">{countdown.days}</span>
+        <span className="countdown-value" suppressHydrationWarning>{countdown.days}</span>
         <span className="countdown-label">Dias</span>
       </div>
 
       <div className="countdown-item">
-        <span className="countdown-value">
+        <span className="countdown-value" suppressHydrationWarning>
           {countdown.hours.toString().padStart(2, '0')}
         </span>
         <span className="countdown-label">Horas</span>
       </div>
 
       <div className="countdown-item">
-        <span className="countdown-value">
+        <span className="countdown-value" suppressHydrationWarning>
           {countdown.minutes.toString().padStart(2, '0')}
         </span>
         <span className="countdown-label">Minutos</span>
       </div>
 
       <div className="countdown-item">
-        <span className="countdown-value">
+        <span className="countdown-value" suppressHydrationWarning>
           {countdown.seconds.toString().padStart(2, '0')}
         </span>
         <span className="countdown-label">Segundos</span>

@@ -3,6 +3,8 @@ import { BoddyIter } from "../components/Itinerario"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, } from "../context"
 import { BlockTitle } from "../components/Utils/BlockTitle"
 import VistaSinCookie from "./vista-sin-cookie"
+import GuestUpsellPage from "../components/Utils/GuestUpsellPage"
+import { SkeletonTimeline } from "../components/Utils/SkeletonPage"
 import { motion } from "framer-motion"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useMounted } from "../hooks/useMounted"
@@ -31,12 +33,25 @@ const Itinerario: FC<any> = (props) => {
     }, [queryEvent, eventsGroup])
 
     if (verificationDone) {
-        if (!user || user?.displayName === "guest") {
+        if (user?.displayName === "guest") {
             return (
-                <VistaSinCookie />
+                <GuestUpsellPage
+                    section="Servicios y proveedores"
+                    icon="🤝"
+                    description="Gestiona todos los proveedores de tu boda en un solo lugar: catering, flores, fotografía, música y más."
+                    benefits={[
+                        'Lista centralizada de todos tus proveedores',
+                        'Control de pagos y contratos',
+                        'Tareas y seguimiento por proveedor',
+                        'El copilot IA te ayuda a encontrar opciones',
+                    ]}
+                />
             )
         }
-        if (!event) return <></>
+        if (!user) {
+            return <VistaSinCookie />
+        }
+        if (!event) return <SkeletonTimeline groups={2} tasksPerGroup={3} />
         return (
             event &&
             <section className={`${forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "bg-base  w-full pt-2 md:py-0"} flex`}>

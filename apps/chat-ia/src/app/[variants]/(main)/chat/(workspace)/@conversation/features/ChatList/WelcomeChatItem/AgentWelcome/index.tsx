@@ -4,7 +4,7 @@ import { useDeveloperBranding } from '@/hooks/useDeveloperBranding';
 import { FluentEmoji, Markdown } from '@lobehub/ui';
 import { createStyles } from 'antd-style';
 import isEqual from 'fast-deep-equal';
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Center, Flexbox } from 'react-layout-kit';
 
@@ -14,7 +14,7 @@ import { useWhitelabelMessages } from '@/hooks/useWhitelabelMessages';
 import { useAgentStore } from '@/store/agent';
 import { agentSelectors } from '@/store/agent/selectors';
 import { useChatStore } from '@/store/chat';
-import { chatSelectors } from '@/store/chat/selectors';
+import { chatSelectors, topicSelectors } from '@/store/chat/selectors';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useSessionStore } from '@/store/session';
 import { sessionMetaSelectors } from '@/store/session/selectors';
@@ -22,12 +22,59 @@ import { sessionMetaSelectors } from '@/store/session/selectors';
 import AddButton from './AddButton';
 import OpeningQuestions from './OpeningQuestions';
 
-const useStyles = createStyles(({ css, responsive }) => ({
+const useStyles = createStyles(({ css, responsive, token }) => ({
   container: css`
     align-items: center;
     ${responsive.mobile} {
       align-items: flex-start;
     }
+  `,
+  continueModalOverlay: css`
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+  `,
+  continueModalCard: css`
+    width: 100%;
+    max-width: 400px;
+    margin: 16px;
+    border-radius: 16px;
+    background: ${token.colorBgContainer};
+    border: 1px solid ${token.colorBorderSecondary};
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    padding: 28px 24px 20px;
+    text-align: center;
+  `,
+  continueBtn: css`
+    width: 100%;
+    padding: 10px 20px;
+    border-radius: 10px;
+    background: ${token.colorPrimary};
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    &:hover { opacity: 0.87; }
+  `,
+  newChatBtn: css`
+    width: 100%;
+    padding: 10px 20px;
+    border-radius: 10px;
+    background: transparent;
+    color: ${token.colorTextSecondary};
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid ${token.colorBorder};
+    cursor: pointer;
+    transition: background 0.15s;
+    &:hover { background: ${token.colorFillTertiary}; }
   `,
   desc: css`
     font-size: 14px;
@@ -54,6 +101,20 @@ const InboxWelcome = memo(() => {
   const greeting = useGreeting();
   const { showCreateSession } = useServerConfigStore(featureFlagsSelectors);
   const openingQuestions = useAgentStore(agentSelectors.openingQuestions);
+
+  // Modal "continuar última conversación"
+  const [modalDismissed, setModalDismissed] = useState(false);
+  const topics = useChatStore(topicSelectors.currentTopics);
+  const activeTopicId = useChatStore((s) => s.activeTopicId);
+  const switchTopic = useChatStore((s) => s.switchTopic);
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const isGuest = !currentUserId ||
+    currentUserId === 'visitante@guest.local' ||
+    currentUserId === 'guest' ||
+    currentUserId === 'anonymous' ||
+    currentUserId?.startsWith('visitor_');
+  const lastTopic = topics && topics.length > 0 ? topics[0] : null;
+  const showContinueModal = !modalDismissed && !isGuest && !activeTopicId && !!lastTopic;
 
   // Obtener mensajes personalizados por marca blanca
   const {
@@ -104,6 +165,36 @@ const InboxWelcome = memo(() => {
 
   return (
     <Center gap={12} padding={16} width={'100%'}>
+      {showContinueModal && (
+        <div className={styles.continueModalOverlay}>
+          <div className={styles.continueModalCard}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>💬</div>
+            <h3 style={{ margin: '0 0 6px', fontSize: 17, fontWeight: 700 }}>
+              ¿Continuar donde lo dejaste?
+            </h3>
+            <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--ant-color-text-secondary, #888)', lineHeight: 1.5 }}>
+              Tienes una conversación reciente:{' '}
+              <strong>{lastTopic!.title || 'Sin título'}</strong>
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                className={styles.continueBtn}
+                onClick={() => { switchTopic(lastTopic!.id); setModalDismissed(true); }}
+                type="button"
+              >
+                Continuar conversación
+              </button>
+              <button
+                className={styles.newChatBtn}
+                onClick={() => setModalDismissed(true)}
+                type="button"
+              >
+                Empezar nueva
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <Flexbox className={styles.container} gap={16} style={{ maxWidth: 800 }} width={'100%'}>
         <Flexbox align={'center'} gap={8} horizontal>
           <FluentEmoji emoji={'👋'} size={40} type={'anim'} />

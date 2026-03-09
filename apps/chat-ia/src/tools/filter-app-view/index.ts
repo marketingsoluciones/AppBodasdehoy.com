@@ -56,10 +56,15 @@ USA filter_view cuando:
 - El resultado contenga una lista de IDs que el usuario podría querer ver en la app
 
 CÓMO USARLO:
-1. Consulta los datos normalmente via MCP u otras herramientas
-2. Identifica los IDs relevantes del resultado
-3. Llama a filter_view con entity + ids + una query descriptiva
-4. En tu respuesta, menciona que has filtrado la vista: "He filtrado la app para mostrar X resultado(s)"
+1. Los datos del evento están disponibles en el contexto de página (PAGE_CONTEXT) bajo screenData. Cada elemento tiene un campo "id" con su MongoDB _id.
+2. Filtra los elementos relevantes según la consulta del usuario (por nombre, asistencia, mesa, etc.)
+3. Extrae los IDs de los elementos filtrados (campo "id" de cada invitado/elemento)
+4. Llama a filter_view con entity + ids + una query descriptiva
+5. En tu respuesta, menciona que has filtrado la vista: "He filtrado la app para mostrar X resultado(s)"
+
+FUENTES DE IDs:
+- Invitados (guests): screenData.guestList[].id
+- También puedes usar IDs de resultados de herramientas CRUD (add_guest, get_user_events, etc.)
 
 ENTIDADES DISPONIBLES:
 - events: Eventos/bodas del organizador

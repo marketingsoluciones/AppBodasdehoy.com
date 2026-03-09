@@ -139,6 +139,8 @@ export interface SendMessageParams {
   eventName?: string;
   pageContext?: PageContext;
   model?: string;
+  /** Usuario invitado/anónimo; el proxy lo reenvía al backend como X-Is-Anonymous */
+  isAnonymous?: boolean;
 }
 
 export interface ChatResponse {
@@ -176,7 +178,7 @@ export const sendChatMessage = async (
   signal?: AbortSignal,
   onEnrichedEvent?: (event: EnrichedEvent) => void
 ): Promise<ChatResponse> => {
-  const { message, sessionId, userId, development, eventId, eventName, pageContext, model } = params;
+  const { message, sessionId, userId, development, eventId, eventName, pageContext, model, isAnonymous } = params;
   const startMs = Date.now();
 
   try {
@@ -194,7 +196,7 @@ export const sendChatMessage = async (
     const payload: any = {
       messages: [{ role: 'user', content: message }],
       stream: !!onChunk,
-      metadata: { userId, development, eventId, eventName, sessionId, pageContext },
+      metadata: { userId, development, eventId, eventName, sessionId, pageContext, isAnonymous: isAnonymous ?? false },
     };
     if (model) payload.model = model;
 
@@ -232,18 +234,15 @@ export const sendChatMessage = async (
       return { content: contentWithLink, toolCalls: [], navigationUrl: recargaUrl || undefined, enrichedEvents: [] };
     }
 
-    // 429: rate limit — throw con __errorCode RATE_LIMIT para que CopilotEmbed muestre CTA registro
+    // 429: rate limit — devolver mensaje amigable sin lanzar excepción
     if (response.status === 429) {
       let errorData: any = {};
       try { errorData = await response.json(); } catch {}
       const retryAfter = response.headers.get('retry-after') || errorData?.retry_after;
       const baseMsg = errorData?.message || 'Demasiadas peticiones al asistente. Por favor, espera unos segundos e inténtalo de nuevo.';
       const msg = retryAfter ? `${baseMsg} (Retry-After: ${retryAfter}s)` : baseMsg;
-      const err = new Error(msg);
-      (err as any).__isStreamingHttpError = true;
-      (err as any).__errorCode = 'RATE_LIMIT';
-      if (retryAfter) (err as any).__retryAfter = Number(retryAfter);
-      throw err;
+      onChunk?.(msg);
+      return { content: msg, toolCalls: [] };
     }
 
     // Streaming mode

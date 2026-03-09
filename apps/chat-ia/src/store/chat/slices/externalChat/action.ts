@@ -59,7 +59,7 @@ export interface ExternalChatAction {
     userId: string,
     development: string,
     token?: string,
-    userType?: 'registered' | 'guest',
+    userType?: 'registered' | 'guest' | 'visitor',
     userRole?: string,
     userData?: any,
   ) => Promise<void>;
@@ -654,7 +654,7 @@ export const externalChatSlice: StateCreator<
     userId,
     development,
     token?: string,
-    userType?: 'registered' | 'guest',
+    userType?: 'registered' | 'guest' | 'visitor',
     userRole?: string,
     userData?: any,
   ) => {

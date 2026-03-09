@@ -61,7 +61,7 @@ export interface InvoiceDetail extends Invoice {
 }
 
 export interface InvoicesResponse {
-  errors?: Array<{ code: string; field: string; message: string }>;
+  errors?: string[];
   invoices: Invoice[];
   pagination: {
     limit: number;
@@ -73,7 +73,7 @@ export interface InvoicesResponse {
 }
 
 export interface InvoiceDetailResponse {
-  errors?: Array<{ code: string; field: string; message: string }>;
+  errors?: string[];
   invoice?: InvoiceDetail;
   success: boolean;
 }
@@ -110,7 +110,7 @@ export interface Payment {
 }
 
 export interface PaymentsResponse {
-  errors?: Array<{ code: string; field: string; message: string }>;
+  errors?: string[];
   pagination: {
     limit: number;
     page: number;
@@ -248,14 +248,9 @@ const GET_INVOICES_QUERY = `
           unit_price
           amount
           service_sku
-          service_category
         }
         payment_method
         payment_date
-        stripe_invoice_id
-        pdf_url
-        hosted_invoice_url
-        due_date
         created_at
       }
       pagination {
@@ -264,11 +259,7 @@ const GET_INVOICES_QUERY = `
         total
         totalPages
       }
-      errors {
-        field
-        message
-        code
-      }
+      errors
     }
   }
 `;
@@ -294,29 +285,12 @@ const GET_INVOICE_BY_ID_QUERY = `
           unit_price
           amount
           service_sku
-          service_category
         }
         payment_method
         payment_date
-        stripe_invoice_id
-        stripe_payment_intent_id
-        pdf_url
-        hosted_invoice_url
-        due_date
         created_at
-        billing_info {
-          name
-          email
-          address
-          tax_id
-          company_name
-        }
       }
-      errors {
-        field
-        message
-        code
-      }
+      errors
     }
   }
 `;
@@ -347,13 +321,6 @@ const GET_PAYMENT_HISTORY_QUERY = `
         stripe_payment_intent_id
         invoice_id
         created_at
-        payment_method_details {
-          type
-          card_brand
-          card_last4
-          card_exp_month
-          card_exp_year
-        }
         receipt_url
       }
       pagination {
@@ -362,11 +329,7 @@ const GET_PAYMENT_HISTORY_QUERY = `
         total
         totalPages
       }
-      errors {
-        field
-        message
-        code
-      }
+      errors
     }
   }
 `;
@@ -449,7 +412,7 @@ export class InvoicesService {
         return { invoices: [], pagination: { limit, page, total: 0, totalPages: 0 }, success: true };
       }
       return {
-        errors: [{ code: 'API_ERROR', field: 'getInvoices', message: errorMsg }],
+        errors: [`API_ERROR:getInvoices:${errorMsg}`],
         invoices: [],
         pagination: { limit, page, total: 0, totalPages: 0 },
         success: false,
@@ -477,7 +440,7 @@ export class InvoicesService {
       console.error('❌ [invoicesService] Error obteniendo detalle de factura:', error);
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
       return {
-        errors: [{ code: 'API_ERROR', field: 'getInvoiceById', message: errorMsg }],
+        errors: [`API_ERROR:getInvoiceById:${errorMsg}`],
         success: false,
       };
     }
@@ -536,7 +499,7 @@ export class InvoicesService {
         return { pagination: { limit, page, total: 0, totalPages: 0 }, payments: [], success: true };
       }
       return {
-        errors: [{ code: 'API_ERROR', field: 'getPaymentHistory', message: errorMsg }],
+        errors: [`API_ERROR:getPaymentHistory:${errorMsg}`],
         pagination: { limit, page, total: 0, totalPages: 0 },
         payments: [],
         success: false,

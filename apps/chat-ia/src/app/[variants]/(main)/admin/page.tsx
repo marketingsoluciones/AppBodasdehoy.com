@@ -45,7 +45,8 @@ export default function AdminDashboard() {
 
   const fetchSystemHealth = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:8030/api/health/detailed');
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+      const response = await fetch(`${backendUrl}/api/health/detailed`);
       if (!response.ok) throw new Error('Error al obtener health');
       const data = await response.json();
       setHealth(data);
@@ -63,35 +64,6 @@ export default function AdminDashboard() {
     return () => clearInterval(interval);
   }, [fetchSystemHealth]);
 
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 text-4xl">⏳</div>
-          <p className="text-gray-600">Cargando estado del sistema...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 text-4xl">❌</div>
-          <p className="text-red-600">Error: {error}</p>
-          <button
-            className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-            onClick={fetchSystemHealth}
-            type="button"
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div>
@@ -101,7 +73,16 @@ export default function AdminDashboard() {
 
       {/* System Health */}
       <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-xl font-semibold">Estado del Sistema</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Estado del Sistema</h2>
+          {loading && <span className="text-xs text-gray-400">Actualizando...</span>}
+          {error && !loading && (
+            <span className="flex items-center gap-1 text-xs text-red-500">
+              Sin conexión con api-ia
+              <button className="underline" onClick={fetchSystemHealth} type="button">Reintentar</button>
+            </span>
+          )}
+        </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="rounded-lg bg-green-50 p-4">
             <div className="flex items-center justify-between">

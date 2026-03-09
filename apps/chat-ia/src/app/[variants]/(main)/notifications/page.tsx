@@ -1,0 +1,222 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+
+import { EventosAutoAuth } from '@/features/EventosAutoAuth';
+
+import {
+  AppNotification,
+  getNotifications,
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
+} from '@/services/api2/notifications';
+
+const TYPE_LABEL: Record<string, { icon: string; label: string }> = {
+  resource_shared: { icon: '📤', label: 'Recurso compartido' },
+  access_revoked: { icon: '🔒', label: 'Acceso revocado' },
+  permission_updated: { icon: '🔑', label: 'Permiso actualizado' },
+  resource_access_revoked: { icon: '🚫', label: 'Acceso eliminado' },
+  task_reminder: { icon: '📋', label: 'Tarea pendiente' },
+  whatsapp_message: { icon: '💬', label: 'Mensaje WhatsApp' },
+};
+
+function getNotificationUrl(n: AppNotification): string | null {
+  if (n.type === 'whatsapp_message' || n.resourceType === 'WHATSAPP') return '/messages';
+  if (n.type === 'task_reminder' || n.resourceType === 'SERVICE') return '/tasks';
+  if (n.resourceType === 'CONVERSATION' && n.resourceId) return `/chat/${n.resourceId}`;
+  if (n.type === 'access_revoked' || n.type === 'permission_updated') return '/settings';
+  return null;
+}
+
+function getExternalUrl(_n: AppNotification): string | null {
+  return null;
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const m = Math.floor(diff / 60_000);
+  if (m < 1) return 'ahora';
+  if (m < 60) return `hace ${m}min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `hace ${h}h`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `hace ${d}d`;
+  return new Date(dateStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+}
+
+export default function NotificationsPage() {
+  const router = useRouter();
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [filter, setFilter] = useState<'all' | 'unread'>('all');
+
+  const PAGE_SIZE = 30;
+
+  const load = useCallback(async (p: number, f: typeof filter) => {
+    setLoading(true);
+    const res = await getNotifications(p * PAGE_SIZE, f === 'unread');
+    setNotifications(res.notifications);
+    setTotal(res.total);
+    setUnreadCount(res.unreadCount);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    load(1, filter);
+    setPage(1);
+  }, [filter, load]);
+
+  const handleClick = useCallback(async (n: AppNotification) => {
+    if (!n.read) {
+      await markNotificationAsRead(n.id);
+      setNotifications((prev) => prev.map((x) => x.id === n.id ? { ...x, read: true } : x));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    }
+    const url = getNotificationUrl(n);
+    const ext = getExternalUrl(n);
+    if (url) router.push(url);
+    else if (ext) window.open(ext, '_blank');
+  }, [router]);
+
+  const handleMarkAllRead = useCallback(async () => {
+    await markAllNotificationsAsRead();
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setUnreadCount(0);
+  }, []);
+
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-8">
+      <EventosAutoAuth />
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">🔔 Notificaciones</h1>
+          {unreadCount > 0 && (
+            <p className="mt-0.5 text-sm text-gray-500">{unreadCount} sin leer</p>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          {unreadCount > 0 && (
+            <button
+              onClick={handleMarkAllRead}
+              className="text-sm text-pink-600 hover:text-pink-700 font-medium"
+            >
+              Marcar todas como leídas
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Filter tabs */}
+      <div className="mb-4 flex gap-2 border-b border-gray-200">
+        {(['all', 'unread'] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`pb-2 px-1 text-sm font-medium border-b-2 transition-colors ${
+              filter === f
+                ? 'border-pink-500 text-pink-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {f === 'all' ? 'Todas' : 'Sin leer'}
+          </button>
+        ))}
+      </div>
+
+      {/* List */}
+      <div className="space-y-1">
+        {loading && (
+          <div className="space-y-2 py-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-16 animate-pulse rounded-xl bg-gray-100" />
+            ))}
+          </div>
+        )}
+
+        {!loading && notifications.length === 0 && (
+          <div className="py-16 text-center">
+            <div className="mb-3 text-5xl">🔔</div>
+            <p className="text-gray-500">
+              {filter === 'unread' ? 'No tienes notificaciones sin leer' : 'No tienes notificaciones'}
+            </p>
+          </div>
+        )}
+
+        {!loading && notifications.map((n) => {
+          const meta = TYPE_LABEL[n.type] || { icon: '🔔', label: n.type };
+          const url = getNotificationUrl(n);
+          const ext = getExternalUrl(n);
+          const isClickable = !!(url || ext);
+
+          return (
+            <div
+              key={n.id}
+              onClick={() => handleClick(n)}
+              className={`flex items-start gap-3 rounded-xl px-4 py-3 transition-colors ${
+                n.read ? 'bg-white hover:bg-gray-50' : 'bg-pink-50 hover:bg-pink-100'
+              } ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
+            >
+              {/* Icon */}
+              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-lg">
+                {meta.icon}
+              </div>
+
+              {/* Content */}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                      {meta.label}
+                      {n.resourceName && ` · ${n.resourceName}`}
+                    </span>
+                    <p className="mt-0.5 text-sm leading-snug text-gray-800">{n.message}</p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <span className="text-xs text-gray-400 whitespace-nowrap">{timeAgo(n.createdAt)}</span>
+                    {!n.read && (
+                      <span className="h-2 w-2 rounded-full bg-pink-500" />
+                    )}
+                  </div>
+                </div>
+
+                {/* CTA chip */}
+                {isClickable && (
+                  <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-white border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+                    {url === '/messages' && '→ Ir a bandeja de mensajes'}
+                    {url === '/tasks' && '→ Ver tareas pendientes'}
+                    {url === '/settings' && '→ Ver configuración'}
+                    {url?.startsWith('/chat/') && '→ Abrir conversación'}
+                    {ext && '→ Ver en la app'}
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Load more */}
+      {!loading && notifications.length < total && (
+        <div className="mt-6 text-center">
+          <button
+            onClick={async () => {
+              const nextPage = page + 1;
+              setPage(nextPage);
+              const res = await getNotifications(nextPage * PAGE_SIZE, filter === 'unread');
+              setNotifications(res.notifications);
+              setTotal(res.total);
+            }}
+            className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Cargar más ({total - notifications.length} restantes)
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

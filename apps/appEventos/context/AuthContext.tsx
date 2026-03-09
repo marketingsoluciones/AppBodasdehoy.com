@@ -499,7 +499,10 @@ const AuthProvider = ({ children }) => {
 
                 if (!debugNoRedirect && window.location.pathname !== '/login') {
                   console.log("[Auth] Redirigiendo a login porque usuario no existe en BD")
-                  window.location.href = config?.pathLogin || '/login'
+                  const loginUrl = config?.pathLogin
+                    ? `${config.pathLogin}?redirect=${encodeURIComponent(window.location.origin + window.location.pathname)}`
+                    : '/login'
+                  window.location.href = loginUrl
                 } else if (debugNoRedirect) {
                   console.log("[Auth] 🛑 DEBUG MODE: Redirect a login deshabilitado por flag debug-no-redirect=1")
                 }
@@ -540,17 +543,31 @@ const AuthProvider = ({ children }) => {
     }
   }, [triggerAuthStateChanged])
 
-  // ✅ Timeout de seguridad: si la verificación no termina en 2s, mostrar la app (evita pantalla en blanco)
+  // ✅ Timeout de seguridad: si la verificación no termina en 1.5s, mostrar la app como guest
+  // IMPORTANTE: también setear un usuario guest para que home sea accesible (evita redirect a login)
   useEffect(() => {
     const safetyTimeout = setTimeout(() => {
-      if (!verificationDone) {
-        console.warn('[Auth] Timeout de seguridad: estableciendo verificationDone=true a los 2s');
-        setVerificationDone(true);
-      }
-    }, 2000);
+      setVerificationDone((prev) => {
+        if (!prev) {
+          console.warn('[Auth] Timeout de seguridad: mostrando app a los 1.5s como guest');
+          return true;
+        }
+        return prev;
+      });
+      // Si el verificator tardó más de 1.5s y no hay usuario, crear guest por defecto
+      // para que VistaSinCookie no redirija al visitante desde home
+      setUser((prevUser) => {
+        if (!prevUser) {
+          console.warn('[Auth] Timeout de seguridad: creando guest por defecto');
+          const guestUid = nanoid(28);
+          return { uid: guestUid, displayName: 'guest' };
+        }
+        return prevUser;
+      });
+    }, 1500);
 
     return () => clearTimeout(safetyTimeout);
-  }, [verificationDone])
+  }, [])
 
   const moreInfo = async (user) => {
     try {
@@ -658,6 +675,37 @@ const AuthProvider = ({ children }) => {
           setVerificationDone(true)
         }
       }
+      // SSO cross-domain: si no hay sessionCookie ni usuario Firebase,
+      // pero hay idTokenV0.1.0 de otra app (ej. chat-ia), crear sesión automáticamente.
+      if (!sessionCookie && !user?.uid) {
+        const crossDomainIdToken = Cookies.get("idTokenV0.1.0")
+        if (crossDomainIdToken) {
+          console.log("[Verificator] 🔗 SSO cross-domain: idTokenV0.1.0 encontrado, creando sesión...")
+          try {
+            const ssoAuthResult: any = await fetchApiBodas({
+              query: queries.auth,
+              variables: { idToken: crossDomainIdToken },
+              development: config?.development
+            })
+            if (ssoAuthResult?.sessionCookie) {
+              const cookieDomain = process.env.NEXT_PUBLIC_PRODUCTION
+                ? config?.domain
+                : (process.env.NEXT_PUBLIC_DOMINIO || ".bodasdehoy.com")
+              Cookies.set(config?.cookie, ssoAuthResult.sessionCookie, {
+                domain: cookieDomain,
+                expires: 365,
+              })
+              console.log("[Verificator] ✅ SSO cross-domain: sessionBodas creada desde idTokenV0.1.0")
+              // Re-verificar con la nueva cookie de sesión
+              await verificator({ user: null, sessionCookie: ssoAuthResult.sessionCookie })
+              return
+            }
+          } catch (ssoErr: any) {
+            console.warn("[Verificator] ⚠️ SSO cross-domain: error creando sesión:", ssoErr?.message)
+          }
+        }
+      }
+
       // IMPORTANTE: Solo crear guest si NO hay usuario autenticado en Firebase
       if (["bodasdehoy"].includes(config?.development) && !sessionCookie && !user?.uid) {
         console.log("[Verificator] Creando usuario guest (no hay sessionCookie ni usuario Firebase)")
@@ -706,14 +754,20 @@ const AuthProvider = ({ children }) => {
   // Pantalla mínima mientras no hay verificationDone (evita pantalla en blanco)
   const loadingScreen = (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white"
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white"
       role="status"
       aria-label="Cargando"
-      style={{ pointerEvents: 'none' }}
+      style={{
+        pointerEvents: 'none',
+        minHeight: '100vh',
+        minWidth: '100vw',
+        visibility: 'visible',
+        opacity: 1,
+      }}
     >
       <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-pink-500" />
       <p className="mt-4 text-gray-700 font-medium">Cargando...</p>
-      <p className="mt-1 text-sm text-gray-400">Si ves esto, la app está respondiendo (máx. 2 s)</p>
+      <p className="mt-1 text-sm text-gray-400">Si ves esto, la app está respondiendo (máx. 1.5 s)</p>
     </div>
   );
 

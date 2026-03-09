@@ -21,6 +21,7 @@ import Workspace from './Workspace';
 // Lazy load para componente no crítico
 const PendingIntentModal = lazy(() => import('@/features/PendingIntentModal'));
 const InsufficientBalanceModal = lazy(() => import('@/features/InsufficientBalanceModal'));
+const LoginRequiredModal = lazy(() => import('@/features/LoginRequiredModal'));
 const NegativeBalanceBanner = lazy(() => import('@/components/Wallet/NegativeBalanceBanner'));
 
 const Layout = ({ children, session }: LayoutProps) => {
@@ -55,6 +56,10 @@ const Layout = ({ children, session }: LayoutProps) => {
       {/* Modal de saldo insuficiente - se abre automáticamente con errores 402 */}
       <Suspense fallback={null}>
         <InsufficientBalanceModal />
+      </Suspense>
+      {/* Modal de login requerido - se abre automáticamente con errores 401 (community users) */}
+      <Suspense fallback={null}>
+        <LoginRequiredModal />
       </Suspense>
       {/* Banner de modo crédito (saldo negativo) — no bloqueante */}
       <Suspense fallback={null}>

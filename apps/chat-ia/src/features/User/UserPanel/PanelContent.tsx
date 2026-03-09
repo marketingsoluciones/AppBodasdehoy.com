@@ -6,6 +6,7 @@ import { Flexbox } from 'react-layout-kit';
 import Menu from '@/components/Menu';
 import { enableAuth, enableNextAuth } from '@/const/auth';
 import { isDeprecatedEdition } from '@/const/version';
+import { useWallet } from '@/hooks/useWallet';
 import { useChatStore } from '@/store/chat';
 import { useUserStore } from '@/store/user';
 import { authSelectors } from '@/store/user/selectors';
@@ -43,13 +44,15 @@ const PanelContent = memo<{ closePopover: () => void }>(({ closePopover }) => {
     userProfile: s.userProfile,
   }));
   
-  const isRegistered = currentUserId && 
-    currentUserId !== 'visitante@guest.local' && 
+  const isRegistered = currentUserId &&
+    currentUserId !== 'visitante@guest.local' &&
     (currentUserId.includes('@') || currentUserId.startsWith('+'));
-  
-  const userName = userProfile?.displayName || 
-                   userProfile?.nombre || 
+
+  const userName = userProfile?.displayName ||
+                   userProfile?.nombre ||
                    (currentUserId && currentUserId.includes('@') ? currentUserId.split('@')[0] : null);
+
+  const { isNegativeBalance, isCreditExhausted, balance, bonusBalance, creditLimit, totalBalance } = useWallet();
 
   return (
     <Flexbox gap={2} style={{ minWidth: 300 }}>
@@ -109,6 +112,54 @@ const PanelContent = memo<{ closePopover: () => void }>(({ closePopover }) => {
           {!isDeprecatedEdition && isRegistered && (
             <Link href={'/profile/stats'} style={{ color: 'inherit' }}>
               <DataStatistics />
+            </Link>
+          )}
+          {isRegistered && (
+            <Link href="/settings/billing" style={{ color: 'inherit', display: 'block' }}>
+              <Flexbox
+                align={'center'}
+                horizontal
+                justify={'space-between'}
+                paddingBlock={8}
+                paddingInline={16}
+                style={{
+                  background: isCreditExhausted ? 'rgba(255,77,79,0.08)' : isNegativeBalance ? 'rgba(255,165,0,0.08)' : 'rgba(0,0,0,0.03)',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  marginBottom: 4,
+                  marginInline: 8,
+                }}
+              >
+                <Flexbox align={'center'} gap={6} horizontal>
+                  <span style={{ fontSize: 14 }}>{isCreditExhausted ? '🚫' : isNegativeBalance ? '🟠' : '💰'}</span>
+                  <Flexbox gap={0}>
+                    <span style={{ color: 'var(--ant-color-text-secondary,#888)', fontSize: 12 }}>
+                      {isNegativeBalance ? 'Deuda' : 'Saldo'}
+                    </span>
+                    {creditLimit > 0 && !isNegativeBalance && (
+                      <span style={{ color: 'var(--ant-color-text-secondary,#aaa)', fontSize: 10 }}>
+                        Crédito: €{creditLimit.toFixed(2)}
+                      </span>
+                    )}
+                  </Flexbox>
+                </Flexbox>
+                <Flexbox align="flex-end" gap={0}>
+                  <span style={{
+                    color: isCreditExhausted ? '#ff4d4f' : isNegativeBalance ? '#f97316' : 'var(--ant-color-text,#333)',
+                    fontWeight: 600,
+                    fontSize: 13,
+                  }}>
+                    {typeof balance === 'number'
+                      ? `€${(balance + bonusBalance).toFixed(2)}`
+                      : '—'}
+                  </span>
+                  {creditLimit > 0 && (
+                    <span style={{ color: 'var(--ant-color-text-secondary,#aaa)', fontSize: 10 }}>
+                      usa: €{totalBalance.toFixed(2)}
+                    </span>
+                  )}
+                </Flexbox>
+              </Flexbox>
             </Link>
           )}
         </>

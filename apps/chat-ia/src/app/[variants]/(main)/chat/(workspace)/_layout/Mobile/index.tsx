@@ -6,12 +6,11 @@ import { CopilotBridgeListener } from '@/features/CopilotBridgeListener';
 
 import { LayoutProps } from '../type';
 import ChatHeader from './ChatHeader';
-import TopicModal from './TopicModal';
 
 // Lazy load para componente no crítico
 const PendingIntentModal = lazy(() => import('@/features/PendingIntentModal'));
 
-const Layout = ({ children, topic, conversation, portal }: LayoutProps) => {
+const Layout = ({ children, conversation, portal }: LayoutProps) => {
   return (
     <>
       <EventosAutoAuth />
@@ -24,7 +23,6 @@ const Layout = ({ children, topic, conversation, portal }: LayoutProps) => {
         {conversation}
         {children}
       </MobileContentLayout>
-      <TopicModal>{topic}</TopicModal>
       {portal}
       <MainInterfaceTracker />
     </>

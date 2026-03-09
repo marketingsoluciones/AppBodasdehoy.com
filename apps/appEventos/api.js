@@ -20,7 +20,33 @@ const isLocalhost = typeof window !== 'undefined' &&
    window.location.hostname === '127.0.0.1' ||
    window.location.hostname.includes('-test.'));
 const baseURL = isLocalhost ? '/api/proxy' : process.env.NEXT_PUBLIC_BASE_URL;
-const instance = axios.create({ baseURL })
+const instance = axios.create({ baseURL });
+
+// Ante 403/401: limpiar sesión y redirigir a login con mensaje (evita "Request failed with status code 403" en pantalla).
+function handleSessionExpired() {
+  if (typeof window === 'undefined') return;
+  const pathname = window.location?.pathname || '';
+  if (pathname === '/login' || pathname.startsWith('/login?')) return;
+  try {
+    Cookies.remove('idTokenV0.1.0', { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO });
+    Cookies.remove('idTokenV0.1.0');
+  } catch (_) {}
+  const returnPath = pathname + (window.location.search || '');
+  const params = new URLSearchParams({ session_expired: '1' });
+  if (returnPath && returnPath !== '/') params.set('d', returnPath);
+  window.location.href = `/login?${params.toString()}`;
+}
+
+instance.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    const status = err?.response?.status;
+    if (status === 403 || status === 401) {
+      handleSessionExpired();
+    }
+    return Promise.reject(err);
+  }
+);
 
 export const api = {
   ApiApp: async (params, token) => {
@@ -105,7 +131,6 @@ export const api = {
     let idToken = Cookies.get("idTokenV0.1.0")
     try {
       if (getAuth().currentUser) {
-        //idToken = Cookies.get("idTokenV0.1.0")
         if (!idToken) {
           idToken = await getAuth().currentUser?.getIdToken(true)
           const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
@@ -116,16 +141,22 @@ export const api = {
       console.log("error no firebase")
     }
 
-    // En desarrollo/test, usar proxy para evitar CORS
     const bodasApiUrl = isLocalhost ? '/api/proxy-bodas/graphql' : 'https://api.bodasdehoy.com/graphql';
+    const headers = {
+      Development: development,
+      IsProduction: (process?.env?.NEXT_PUBLIC_PRODUCTION && !["testticket", "testinvitado"].includes(varGlobalSubdomain)) ?? false,
+      "Content-Type": "application/json",
+    };
+    if (idToken) {
+      headers.Authorization = `Bearer ${idToken}`;
+    }
 
-    return axios.post(bodasApiUrl, data, {
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-        Development: development,
-        IsProduction: (process?.env?.NEXT_PUBLIC_PRODUCTION && !["testticket", "testinvitado"].includes(varGlobalSubdomain)) ?? false
+    return axios.post(bodasApiUrl, data, { headers }).catch((err) => {
+      if (err?.response?.status === 403 || err?.response?.status === 401) {
+        handleSessionExpired();
       }
-    })
+      throw err;
+    });
   }
 };
 

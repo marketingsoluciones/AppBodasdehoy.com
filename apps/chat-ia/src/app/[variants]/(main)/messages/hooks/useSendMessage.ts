@@ -1,11 +1,17 @@
 import { useState } from 'react';
 
-interface Message {
-  fromUser: boolean;
-  id: string;
-  status?: 'sent' | 'delivered' | 'read';
-  text: string;
-  timestamp: string;
+import { buildHeaders, jidToPhone, parseWhatsAppConversationId } from '../utils/auth';
+import type { Message } from './useMessages';
+
+function buildSendUrl(channel: string, conversationId: string): string | null {
+  if (channel === 'whatsapp') {
+    const parsed = parseWhatsAppConversationId(conversationId);
+    if (!parsed) return null;
+    const { dev, jid } = parsed;
+    const to = jidToPhone(jid);
+    return `/api/messages/whatsapp/conversations/${dev}/${encodeURIComponent(to)}/send`;
+  }
+  return `/api/messages/send`;
 }
 
 export function useSendMessage() {
@@ -17,90 +23,47 @@ export function useSendMessage() {
     conversationId: string,
     text: string,
   ): Promise<{ message: Message; success: boolean }> => {
+    const optimisticMsg: Message = {
+      fromUser: false, // false = mensaje enviado por ti (outbound)
+      id: `msg_pending_${Date.now()}`,
+      status: 'sent',
+      text,
+      timestamp: new Date().toISOString(),
+    };
+
+    const url = buildSendUrl(channel, conversationId);
+    if (!url) {
+      return { message: optimisticMsg, success: false };
+    }
+
     try {
       setSending(true);
       setError(null);
 
-      // ✅ Usar proxy Next.js /api/messages/... para evitar CORS
-      const proxyBase = '/api/messages';
-
-      // Obtener token de autenticación
-      let token: string | null = null;
-      if (typeof window !== 'undefined') {
-        token =
-          localStorage.getItem('auth-token') ||
-          sessionStorage.getItem('auth-token') ||
-          (localStorage.getItem('dev-user-config')
-            ? (() => {
-                try {
-                  const configStr = localStorage.getItem('dev-user-config') || '{}';
-                  if (!configStr.trim().startsWith('{') && !configStr.trim().startsWith('[')) {
-                    return undefined;
-                  }
-                  return JSON.parse(configStr)?.token;
-                } catch {
-                  return undefined;
-                }
-              })()
-            : null);
-      }
-
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`${proxyBase}/send`, {
-        body: JSON.stringify({
-          channel,
-          conversationId,
-          text,
-        }),
-        headers,
+      const response = await fetch(url, {
+        body: JSON.stringify({ text }),
+        headers: buildHeaders(),
         method: 'POST',
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage =
-          errorData.detail ||
-          errorData.message ||
-          `Error ${response.status}: ${response.statusText}`;
-        throw new Error(errorMessage);
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.detail || errData.error || `Error ${response.status}`);
       }
 
       const data = await response.json();
-
-      // Retornar mensaje en el formato esperado
       return {
         message: {
-          fromUser: true, // El mensaje es del usuario
-          id: data.id || data.messageId || `msg_${Date.now()}`,
-          status: 'sent' as const,
-          text,
-          timestamp: data.timestamp || new Date().toISOString(),
+          ...optimisticMsg,
+          id: data.messageId || data.id || optimisticMsg.id,
+          status: 'delivered',
         },
         success: true,
       };
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Error desconocido al enviar mensaje');
+      const error = err instanceof Error ? err : new Error('Error al enviar mensaje');
       setError(error);
-      console.error('Error al enviar mensaje:', error);
-      // No relanzar el error para evitar recarga de página
-      // El componente puede manejar el error desde el estado
-      return {
-        message: {
-          fromUser: true,
-          id: `msg_error_${Date.now()}`,
-          status: 'sent' as const,
-          text,
-          timestamp: new Date().toISOString(),
-        },
-        success: false,
-      };
+      return { message: optimisticMsg, success: false };
     } finally {
       setSending(false);
     }

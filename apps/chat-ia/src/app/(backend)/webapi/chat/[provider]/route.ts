@@ -59,6 +59,41 @@ function cleanPayload(bodyText: string): string {
   }
 }
 
+/** Límite de mensajes para visitantes anónimos (sin cuenta) */
+const VISITOR_MSG_LIMIT = 3;
+
+/**
+ * Verifica si la request viene de un visitante anónimo y si superó su límite.
+ * Los visitantes tienen userId con prefijo "visitor_" (sin Firebase auth → sin JWT válido).
+ * Devuelve una Response de rechazo si aplica, null si el request puede continuar.
+ */
+function checkVisitorLimit(req: Request): Response | null {
+  const userId = req.headers.get('X-User-ID') ?? '';
+
+  // Solo aplica a usuarios visitantes (visitor_<timestamp>_<rand>)
+  if (!userId.startsWith('visitor_')) return null;
+
+  // Leer contador de mensajes desde cookie (incrementado por el cliente)
+  const cookieHeader = req.headers.get('cookie') ?? '';
+  const match = cookieHeader.match(/vis_mc=(\d+)/);
+  const msgCount = match ? parseInt(match[1], 10) : 0;
+
+  if (msgCount >= VISITOR_MSG_LIMIT) {
+    return new Response(
+      JSON.stringify({
+        errorType: 'login_required',
+        error: {
+          message: 'Has alcanzado el límite de mensajes gratuitos. Crea una cuenta para continuar.',
+          type: 'login_required',
+        },
+      }),
+      { headers: { 'Content-Type': 'application/json' }, status: 401 },
+    );
+  }
+
+  return null;
+}
+
 /**
  * Handler que hace proxy directo al backend Python
  */
@@ -148,6 +183,21 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
         console.error(
           `❌ [502] Backend IA error: status=${backendResponse.status} url=${fetchUrl} body=${errorText.slice(0, 300)}`
         );
+
+        if (backendResponse.status === 401) {
+          // Usuario no autenticado → mostrar modal de registro en lugar de "unauthorized"
+          // Esto ocurre cuando community users sin JWT intentan usar la IA
+          return new Response(
+            JSON.stringify({
+              errorType: 'login_required',
+              error: {
+                message: 'Crea una cuenta gratuita para continuar usando el asistente IA.',
+                type: 'login_required',
+              },
+            }),
+            { headers: { 'Content-Type': 'application/json' }, status: 401 }
+          );
+        }
 
         if (backendResponse.status === 402) {
           const allowNegative = process.env.ALLOW_NEGATIVE_BALANCE === 'true';
@@ -259,11 +309,19 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
                     // Formato A: backend propio con event: text / event: done
                     // Re-emitir como event: text para que fetchSSE lo procese correctamente
                     if (currentEvent === 'text') {
-                      let text = rawData;
+                      let text: string = rawData;
                       try {
-                        text = JSON.parse(rawData);
+                        const parsed = JSON.parse(rawData);
+                        // If parsed is an object with a .text string (e.g. Anthropic content_delta
+                        // {"type":"text_delta","text":"..."}) extract the string to avoid [object Object].
+                        // Otherwise use the parsed value directly (expected to be a string).
+                        if (typeof parsed === 'object' && parsed !== null && typeof parsed.text === 'string') {
+                          text = parsed.text;
+                        } else {
+                          text = parsed;
+                        }
                       } catch {
-                        // Es texto plano, usar tal cual
+                        // rawData is plain text, use as-is
                       }
                       // fetchSSE procesa ev.event='text' con data como string JSON
                       controller.enqueue(
@@ -275,10 +333,52 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
                       controller.close();
                       return;
                     } else if (currentEvent === 'tool_calls') {
-                      // Forwarding tool_calls event for LobeChat's builtin tool dispatch
-                      // Data format: StreamToolCallChunkData[] — frontend dispatches filter_view etc.
+                      // Translate api-ia function names to LobeChat builtin format.
+                      // api-ia sends e.g. { function: { name: "filter_view" } } but LobeChat expects
+                      // the full schema name "lobe-filter-app-view____filter_view____builtin".
+                      // Without this translation, LobeChat treats it as a default plugin call,
+                      // triggers a second AI request, and overwrites the text response with empty content.
+                      const BUILTIN_TOOL_MAP: Record<string, string> = {
+                        'filter_view': 'lobe-filter-app-view____filter_view____builtin',
+                        'visualize_venue': 'lobe-venue-visualizer____visualize_venue____builtin',
+                      };
+                      let translatedData = rawData;
+                      try {
+                        const toolCalls = JSON.parse(rawData) as Array<{ function?: { name?: string } }>;
+                        const translated = toolCalls.map((tc) => {
+                          const fnName = tc.function?.name;
+                          if (fnName && BUILTIN_TOOL_MAP[fnName]) {
+                            return { ...tc, function: { ...tc.function, name: BUILTIN_TOOL_MAP[fnName] } };
+                          }
+                          return tc;
+                        });
+                        translatedData = JSON.stringify(translated);
+                      } catch {
+                        // Parse failed — forward as-is
+                      }
                       controller.enqueue(
-                        encoder.encode(`event: tool_calls\ndata: ${rawData}\n\n`)
+                        encoder.encode(`event: tool_calls\ndata: ${translatedData}\n\n`)
+                      );
+                    } else if (currentEvent === 'reasoning') {
+                      // Reasoning/thinking progress — muestra el bloque de "pensando" en el chat
+                      // api-ia envía {text: "..."} pero fetchSSE espera un string JSON.
+                      // Extraer .text si es objeto para evitar "[object Object]" en el bloque de razonamiento.
+                      let reasoningData = rawData;
+                      try {
+                        const parsed = JSON.parse(rawData);
+                        if (typeof parsed === 'object' && parsed !== null && typeof parsed.text === 'string') {
+                          reasoningData = JSON.stringify(parsed.text);
+                        }
+                      } catch {
+                        // rawData es texto plano, usar tal cual
+                      }
+                      controller.enqueue(
+                        encoder.encode(`event: reasoning\ndata: ${reasoningData}\n\n`)
+                      );
+                    } else if (currentEvent === 'tool_start' || currentEvent === 'tool_result' || currentEvent === 'event_card') {
+                      // Enriquecer UI con resultados de tools (tarjetas, imágenes, tablas...)
+                      controller.enqueue(
+                        encoder.encode(`event: ${currentEvent}\ndata: ${rawData}\n\n`)
                       );
                     }
                     currentEvent = '';
@@ -386,6 +486,10 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
 export const POST = async (req: Request, { params }: { params: Promise<{ provider: string }> }) => {
   try {
     const { provider } = await params;
+
+    // Short-circuit: rechazar visitantes que superaron el límite sin llamar a api-ia
+    const visitorLimitResponse = checkVisitorLimit(req);
+    if (visitorLimitResponse) return visitorLimitResponse;
 
     // Intentar proxy al backend Python primero
     const proxyResponse = await proxyToPythonBackend(req.clone(), provider);
