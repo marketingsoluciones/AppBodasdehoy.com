@@ -1,0 +1,32 @@
+import { StateCreator } from 'zustand/vanilla';
+
+import { ChatStore } from '@/store/chat/store';
+
+import { ChatDallEAction, dalleSlice } from './dalle';
+import { ChatFilterAppViewAction, filterAppViewSlice } from './filterAppView';
+import { ChatCodeInterpreterAction, codeInterpreterSlice } from './interpreter';
+import { LocalFileAction, localSystemSlice } from './localSystem';
+import { SearchAction, searchSlice } from './search';
+import { ChatVenueVisualizerAction, venueVisualizerSlice } from './venueVisualizer';
+
+export interface ChatBuiltinToolAction
+  extends ChatDallEAction,
+    SearchAction,
+    LocalFileAction,
+    ChatCodeInterpreterAction,
+    ChatVenueVisualizerAction,
+    ChatFilterAppViewAction {}
+
+export const chatToolSlice: StateCreator<
+  ChatStore,
+  [['zustand/devtools', never]],
+  [],
+  ChatBuiltinToolAction
+> = (...params) => ({
+  ...dalleSlice(...params),
+  ...searchSlice(...params),
+  ...localSystemSlice(...params),
+  ...codeInterpreterSlice(...params),
+  ...venueVisualizerSlice(...params),
+  ...filterAppViewSlice(...params),
+});

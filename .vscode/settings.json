@@ -1,5 +1,35 @@
 {
-    "compile-hero.disable-compile-files-on-did-save-code": false,
-    "typescript.enablePromptUseWorkspaceTsdk": true,
-    "typescript.tsdk": "node_modules/typescript/lib"
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/dist/**": true,
+    "**/.pnpm-store/**": true,
+    "**/.turbo/**": true,
+    "**/coverage/**": true
+  },
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/dist": true,
+    "**/.pnpm-store": true,
+    "**/.turbo": true,
+    "**/coverage": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/dist": true,
+    "**/.pnpm-store": true,
+    "**/.turbo": true,
+    "**/coverage": true,
+    "**/.git": true
+  },
+  "search.useIgnoreFiles": true,
+  "search.followSymlinks": false,
+  "search.maxResults": 8000,
+  "git.autorefresh": false,
+  "typescript.tsserver.maxTsServerMemory": 2048,
+  "editor.minimap.enabled": false,
+  "explorer.autoReveal": false,
+  "extensions.autoUpdate": false
 }

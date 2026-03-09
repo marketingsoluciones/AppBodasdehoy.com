@@ -1,0 +1,27 @@
+📋 *Pendientes que nos bloquean + Pruebas reales (siempre con datos)*
+
+*1. Lo que necesitamos de api-ia*
+• 503 en POST /webapi/chat/auto nos bloquea. No podemos validar Copilot hasta que responda 200.
+• Cuando credenciales whitelabel bodasdehoy estén corregidas, avisad y ejecutamos test-api-ia-providers.sh y run-20-preguntas-api-ia.mjs.
+
+*2. Request real que enviamos (ahora mismo)*
+• URL: POST https://api-ia.bodasdehoy.com/webapi/chat/auto
+• Headers: Content-Type: application/json, X-Development: bodasdehoy, X-Request-Id: notif_<timestamp>
+• Body: {"messages":[{"role":"user","content":"¿Cuántos invitados tengo?"}],"stream":false}
+
+*3. Response real que recibimos (prueba de hoy)*
+• HTTP: 503
+• trace_id: 859ba36e
+• error_code: EMPTY_RESPONSE
+• provider: openai, model: deepseek-chat
+• error: "No se pudo generar una respuesta. El orchestrator devolvió una respuesta vacía o genérica."
+
+*4. Reproducir (curl exacto)*
+curl -X POST "https://api-ia.bodasdehoy.com/webapi/chat/auto" -H "Content-Type: application/json" -H "X-Development: bodasdehoy" -d '{"messages":[{"role":"user","content":"¿Cuántos invitados tengo?"}],"stream":false}'
+
+*5. Batería 20 preguntas (ejecutada ahora)*
+Resultado: 1/20 coherentes (solo pregunta 15 "Dame ideas para el menú del banquete" → 200), 19/20 → 503.
+Script: node scripts/run-20-preguntas-api-ia.mjs --json --output docs/resultados-20-preguntas-api-ia.json
+Doc: docs/PRUEBAS-REALES-PARA-API-IA-FEB2025.md
+
+Siempre que notifiquemos un fallo enviamos consulta real + request + response (trace_id incluido). Objetivo: cerrar 503 cuanto antes.

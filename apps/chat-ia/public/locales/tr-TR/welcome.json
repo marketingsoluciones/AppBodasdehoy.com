@@ -1,0 +1,369 @@
+{
+  "guide": {
+    "agents": {
+      "replaceBtn": "Başka bir grup",
+      "title": "Yeni Asistan Önerileri:"
+    },
+    "defaultMessage": "Ben sizin özel akıllı asistanınız {{appName}}. Şu anda size nasıl yardımcı olabilirim?<br />Daha profesyonel veya özel bir asistan istiyorsanız, özel asistan oluşturmak için <plus /> butonuna tıklayabilirsiniz.",
+    "defaultMessageWithoutCreate": "Ben sizin özel akıllı asistanınız {{appName}}. Şu anda size nasıl yardımcı olabilirim?",
+    "groupActivities": {
+      "analysis": {
+        "codeReview": {
+          "description": "Kod değişiklikleri ve uygulamalar üzerinde teknik tartışma ve eş değerlendirme",
+          "emoji": "💻",
+          "prompt": "Haydi birlikte bazı kodları inceleyelim. Bu kodları analiz edip geliştirme alanlarını belirlememize yardımcı olabilir misin?",
+          "title": "Kod İncelemesi"
+        },
+        "investment": {
+          "description": "Piyasa analizi, yatırım stratejileri tartışması ve finansal içgörü paylaşımı",
+          "emoji": "📈",
+          "prompt": "Haydi birlikte piyasayı analiz edelim. Yatırım stratejilerini tartışmamıza ve finansal içgörüler paylaşmamıza yardımcı olabilir misin?",
+          "title": "Yatırım Kulübü"
+        },
+        "research": {
+          "description": "Bilimsel kavramları keşfetme, deneyler yapma ve bulguları paylaşma",
+          "emoji": "🔬",
+          "prompt": "Haydi birlikte bilimi keşfedelim! Deneyler yapmamıza ve bulgularımızı paylaşmamıza yardımcı olabilir misin?",
+          "title": "Bilim Sergisi"
+        },
+        "study": {
+          "description": "Ortak öğrenme toplantıları, kavramları tartışma ve birlikte problem çözme",
+          "emoji": "📚",
+          "prompt": "Bir çalışma grubu oluşturalım. Bu kavramları anlamamıza ve birlikte sorunları çözmemize yardımcı olabilir misin?",
+          "title": "Çalışma Grubu"
+        }
+      },
+      "brainstorm": {
+        "artWorkshop": {
+          "description": "Çeşitli görsel ve dijital sanat biçimlerini yaratma, yorumlama ve takdir etme",
+          "emoji": "🖼️",
+          "prompt": "Haydi bir sanat atölyesi düzenleyelim! Çeşitli sanat biçimlerini yaratmamıza, yorumlamamıza ve takdir etmemize yardımcı olabilir misin?",
+          "title": "Sanat Atölyesi"
+        },
+        "debate": {
+          "description": "Çeşitli konular ve güncel olaylar üzerine yapılandırılmış tartışma ve münazara",
+          "emoji": "⚖️",
+          "prompt": "Yapılandırılmış bir münazara yapalım. Bu konuda mantıklı ve sağlam bir tartışma düzenlememize yardımcı olabilir misin?",
+          "title": "Münazara Kulübü"
+        },
+        "designReview": {
+          "description": "Tasarım kavramları, prototipler veya yaratıcı çalışmalar üzerine ortak geri bildirim toplantısı",
+          "emoji": "🎨",
+          "prompt": "Bazı tasarımları incelememiz gerekiyor. Tasarım kavramları ve prototipler hakkında yapıcı geri bildirim vermemize yardımcı olabilir misin?",
+          "title": "Tasarım İncelemesi"
+        },
+        "ideation": {
+          "description": "Çoklu bakış açısıyla işbirlikçi yaratıcı fikir üretimi ve yaratıcı problem çözme",
+          "emoji": "🧠",
+          "prompt": "Projeye yönelik beyin fırtınasına başlayalım. Yaratıcı fikirler ve çözümler üretmemize yardımcı olabilir misin?",
+          "title": "Beyin Fırtınası"
+        }
+      },
+      "game": {
+        "debateClub": {
+          "description": "Çeşitli konular ve güncel olaylar üzerine yapılandırılmış tartışma ve münazara",
+          "emoji": "⚖️",
+          "prompt": "Yapılandırılmış bir münazara yapalım. Bu konuda mantıklı ve sağlam bir tartışma düzenlememize yardımcı olabilir misin?",
+          "title": "Münazara Kulübü"
+        },
+        "gameNight": {
+          "description": "Eğlenceli etkileşimli oyunlar ve aktivitelerle takım bağlarını güçlendirme ve keyif alma",
+          "emoji": "🎲",
+          "prompt": "Oyun gecesi başlıyor! Takım bağlarını güçlendirmek için eğlenceli etkileşimli oyunlar düzenlememize yardımcı olabilir misin?",
+          "title": "Oyun Gecesi"
+        },
+        "modelUN": {
+          "description": "Birleşmiş Milletler simülasyonu ve küresel konular üzerine diplomatik müzakereler",
+          "emoji": "🌍",
+          "prompt": "Bir BM münazarası simüle edelim. Küresel konular üzerine diplomatik müzakereler düzenlememize yardımcı olabilir misin?",
+          "title": "BM Simülasyonu"
+        },
+        "werewolf": {
+          "description": "Oyuncuların strateji ve tartışma yoluyla kurt adamları bulmaya çalıştığı sosyal çıkarım oyunu",
+          "emoji": "🐺",
+          "prompt": "Haydi kurt adam oyunu oynayalım! Kuralları belirlememize ve bu sosyal çıkarım oyununu yönetmemize yardımcı olabilir misin?",
+          "title": "Kurt Adam Oyunu"
+        }
+      },
+      "general": {
+        "brainstorm": {
+          "description": "Çoklu bakış açısıyla işbirlikçi yaratıcı fikir üretimi ve yaratıcı problem çözme",
+          "emoji": "🧠",
+          "prompt": "Projeye yönelik beyin fırtınasına başlayalım. Yaratıcı fikirler ve çözümler üretmemize yardımcı olabilir misin?",
+          "title": "Beyin Fırtınası"
+        },
+        "debate": {
+          "description": "Çeşitli konular ve güncel olaylar üzerine yapılandırılmış tartışma ve münazara",
+          "emoji": "⚖️",
+          "prompt": "Yapılandırılmış bir münazara yapalım. Bu konuda mantıklı ve sağlam bir tartışma düzenlememize yardımcı olabilir misin?",
+          "title": "Münazara Kulübü"
+        },
+        "languagePractice": {
+          "description": "Ana dili konuşanlarla birlikte konuşma pratiği yapma ve yeni dil öğrenme",
+          "emoji": "🗣️",
+          "prompt": "Haydi birlikte yeni bir dil pratiği yapalım. Bu dili öğrenmemize ve konuşma pratiği yapmamıza yardımcı olabilir misin?",
+          "title": "Dil Pratiği"
+        },
+        "studyGroup": {
+          "description": "Ortak öğrenme toplantıları, kavramları tartışma ve birlikte problem çözme",
+          "emoji": "📚",
+          "prompt": "Bir çalışma grubu oluşturalım. Bu kavramları anlamamıza ve birlikte sorunları çözmemize yardımcı olabilir misin?",
+          "title": "Çalışma Grubu"
+        }
+      },
+      "planning": {
+        "cookingClass": {
+          "description": "Yemek pişirme becerileri, tarifler ve yemek geleneklerini öğrenme ve paylaşma",
+          "emoji": "👨‍🍳",
+          "prompt": "Haydi yemek pişirme dersine katılalım! Yeni tarifler ve pişirme teknikleri öğrenmemize yardımcı olabilir misin?",
+          "title": "Yemek Pişirme Dersi"
+        },
+        "fitnessChallenge": {
+          "description": "Grup fitness hedefleri belirleme, egzersiz yöntemleri paylaşma ve birbirini motive etme",
+          "emoji": "💪",
+          "prompt": "Haydi fitness meydan okumasına başlayalım! Hedefler belirlememize ve sağlıklı kalmak için birbirimizi motive etmemize yardımcı olabilir misin?",
+          "title": "Fitness Meydan Okuması"
+        },
+        "planningPoker": {
+          "description": "Projelerde görev ve iş yükünü kartlarla tahmin etmeye yönelik çevik tahmin tekniği",
+          "emoji": "🃏",
+          "prompt": "Projede planlama pokeri yapıyoruz. Bu görevlerin iş yükünü çevik tekniklerle tahmin etmemize yardımcı olabilir misin?",
+          "title": "Planlama Pokeri"
+        },
+        "travelPlanning": {
+          "description": "Seyahat planlama, seyahat deneyimleri paylaşma ve yeni destinasyonlar keşfetme",
+          "emoji": "✈️",
+          "prompt": "Haydi birlikte seyahat planlayalım! Gideceğimiz yerleri araştırmamıza ve seyahat programı hazırlamamıza yardımcı olabilir misin?",
+          "title": "Seyahat Planlaması"
+        }
+      },
+      "product": {
+        "codeReview": {
+          "description": "Kod değişiklikleri ve uygulamalar üzerinde teknik tartışma ve eş değerlendirme",
+          "emoji": "💻",
+          "prompt": "Haydi birlikte bazı kodları inceleyelim. Bu kodları analiz edip geliştirme alanlarını belirlememize yardımcı olabilir misin?",
+          "title": "Kod İncelemesi"
+        },
+        "designReview": {
+          "description": "Tasarım kavramları, prototipler veya yaratıcı çalışmalar üzerine ortak geri bildirim toplantısı",
+          "emoji": "🎨",
+          "prompt": "Bazı tasarımları incelememiz gerekiyor. Tasarım kavramları ve prototipler hakkında yapıcı geri bildirim vermemize yardımcı olabilir misin?",
+          "title": "Tasarım İncelemesi"
+        },
+        "sprintPlanning": {
+          "description": "Projelerde görev ve iş yükünü kartlarla tahmin etmeye yönelik çevik tahmin tekniği",
+          "emoji": "🃏",
+          "prompt": "Projede planlama pokeri yapıyoruz. Bu görevlerin iş yükünü çevik tekniklerle tahmin etmemize yardımcı olabilir misin?",
+          "title": "Planlama Pokeri"
+        },
+        "techExchange": {
+          "description": "Yenilikçi teknolojiler, inovasyon ve sektör trendlerini tartışma",
+          "emoji": "🚀",
+          "prompt": "Haydi teknoloji alışverişi yapalım! Yeni teknolojiler ve sektör trendlerini tartışmamıza yardımcı olabilir misin?",
+          "title": "Teknoloji Alışverişi"
+        }
+      },
+      "title": "Grup Sohbeti Kullanım Önerileri",
+      "writing": {
+        "bookClub": {
+          "description": "Kitaplar, hikayeler ve edebi eserler üzerine edebi tartışma ve analiz",
+          "emoji": "📖",
+          "prompt": "Haydi kitap kulübü tartışmasına başlayalım. Bu kitabı analiz edip temalarını birlikte keşfetmemize yardımcı olabilir misin?",
+          "title": "Kitap Kulübü"
+        },
+        "movieClub": {
+          "description": "Birlikte film, belgesel ve görsel medya izleme ve tartışma",
+          "emoji": "🎬",
+          "prompt": "Haydi film kulübü tartışmasına başlayalım. Bu filmi analiz edip temalarını birlikte keşfetmemize yardımcı olabilir misin?",
+          "title": "Film Kulübü"
+        },
+        "musicSession": {
+          "description": "Ortak müzik yaratımı, paylaşımı ve takdir toplantısı",
+          "emoji": "🎵",
+          "prompt": "Haydi müzik doğaçlaması yapalım! Birlikte müzik yaratmamıza ve takdir etmemize yardımcı olabilir misin?",
+          "title": "Müzik Doğaçlaması"
+        },
+        "studyGroup": {
+          "description": "Ortak öğrenme toplantıları, kavramları tartışma ve birlikte problem çözme",
+          "emoji": "📚",
+          "prompt": "Bir çalışma grubu oluşturalım. Bu kavramları anlamamıza ve birlikte sorunları çözmemize yardımcı olabilir misin?",
+          "title": "Çalışma Grubu"
+        }
+      }
+    },
+    "groupMessage": "Grup sohbetine hoş geldiniz! Paylaşılan bir konuşma alanında birden fazla yapay zeka asistanıyla işbirliği yapın。",
+    "groupTemplates": {
+      "analysis": {
+        "description": "Veri odaklı içgörüler, derinlemesine araştırma ve analiz",
+        "members": [
+          {
+            "avatar": "📊",
+            "backgroundColor": "#E8F8F5",
+            "plugins": [
+              "steam"
+            ],
+            "systemRole": "Verileri işleme ve yorumlama konusunda uzmansınız; grafikler ve istatistiksel analizler yoluyla verilerin ardındaki kalıpları ve eğilimleri ortaya çıkarırsınız.",
+            "title": "Veri Analisti"
+          },
+          {
+            "avatar": "🧑‍🔬",
+            "backgroundColor": "#E8F5FF",
+            "systemRole": "Sen bir araştırma uzmanısın, bilgi toplama ve derinlemesine araştırma yapmaktan sorumlusun, sorunları çok boyutlu olarak kapsamlı bir şekilde analiz edebilirsin.",
+            "title": "Araştırma Uzmanı"
+          },
+          {
+            "avatar": "📈",
+            "backgroundColor": "#FFF7E8",
+            "systemRole": "Sen bir istatistik uzmanısın, çeşitli istatistik yöntemleri ve modellerinde uzmansın, verilerden değerli ticari içgörüler çıkarabilirsin.",
+            "title": "İstatistik Uzmanı"
+          },
+          {
+            "avatar": "🧮",
+            "backgroundColor": "#F0F8FF",
+            "systemRole": "Sen bir nicel analistsin, nicel modelleme ve risk değerlendirmesi yaparsın, karmaşık problemleri matematiksel yöntemlerle çözersin.",
+            "title": "Nicel Analist"
+          }
+        ],
+        "title": "Analiz Ekibi"
+      },
+      "brainstorm": {
+        "description": "Çoklu bakış açısıyla yaratıcı düşünce, sonsuz olasılıkları tetikle",
+        "members": [
+          {
+            "avatar": "🧠",
+            "backgroundColor": "#E8F5FF",
+            "systemRole": "Sen bir yaratıcı yönetmensin, yaratıcı yönü makro açıdan kontrol etmede uzmansın, soyut kavramları somut ve uygulanabilir yaratıcı çözümlere dönüştürebilirsin.",
+            "title": "Yaratıcı Yönetmen"
+          },
+          {
+            "avatar": "🧑‍🔬",
+            "backgroundColor": "#FFF7E8",
+            "systemRole": "Sen bir yenilik uzmanısın, yeni çözümler ve çığır açan düşünceler keşfetmekle sorumlusun, kalıpların dışına çıkarak düşünme becerisine sahipsin.",
+            "title": "Yenilik Uzmanı"
+          },
+          {
+            "avatar": "🎨",
+            "backgroundColor": "#F6E8FF",
+            "systemRole": "Sen bir tasarım düşüncesi uzmanısın, kullanıcı deneyimi ve görsel sunum açısından düşünürsün, yaratıcılığın görselleştirilmesine önem verirsin.",
+            "title": "Tasarım Düşüncesi Uzmanı"
+          }
+        ],
+        "title": "Beyin Fırtınası Grubu"
+      },
+      "game": {
+        "description": "Çeşitli çok oyunculu metin oyunlarının keyfini çıkar, örneğin Kurt Adam ve Kim Casus",
+        "members": [
+          {
+            "avatar": "🧠",
+            "backgroundColor": "#E8F5FF",
+            "systemRole": "Çeşitli çok oyunculu metin oyunları düzenleme konusunda yetenekli bir sunucusunuz ve oyuncuları oyun boyunca yönlendirebilirsiniz.",
+            "title": "Oyun Sunucusu"
+          },
+          {
+            "avatar": "🧑‍🔬",
+            "backgroundColor": "#FFF7E8",
+            "systemRole": "Çeşitli çok oyunculu metin tabanlı oyunlara katılmada uzmansın ve oyun kurallarına göre oynayabilirsin.",
+            "title": "Oyuncu"
+          },
+          {
+            "avatar": "🎨",
+            "backgroundColor": "#F6E8FF",
+            "systemRole": "Çeşitli çok oyunculu metin tabanlı oyunlara katılmada uzmansın ve oyun kurallarına göre oynayabilirsin.",
+            "title": "Oyuncu"
+          },
+          {
+            "avatar": "🧑‍🎨",
+            "backgroundColor": "#F6E8FF",
+            "systemRole": "Çeşitli çok oyunculu metin tabanlı oyunlara katılmada uzmansın ve oyun kurallarına göre oynayabilirsin.",
+            "title": "Oyuncu"
+          }
+        ],
+        "title": "Oyun Salonu"
+      },
+      "planning": {
+        "description": "Stratejik planlama ve proje yönetimi, genel durumu koordine etme",
+        "members": [
+          {
+            "avatar": "📋",
+            "backgroundColor": "#E8F5FF",
+            "systemRole": "Projelerin genel planlaması, ilerleme takibi ve kaynak koordinasyonundan sorumlusun, projenin zamanında ve yüksek kalitede tamamlanmasını sağlıyorsun.",
+            "title": "Şef"
+          },
+          {
+            "avatar": "🎯",
+            "backgroundColor": "#FFF7E8",
+            "systemRole": "Uzun vadeli stratejik planlama yapmaktan, pazar fırsatlarını analiz etmekten, hedefler ve gerçekleştirme yolları belirlemekten sorumlusun.",
+            "title": "Malzeme Tedarik Uzmanı"
+          },
+          {
+            "avatar": "🧑‍🎨",
+            "backgroundColor": "#F0F8FF",
+            "systemRole": "Detaylı uygulama planları hazırlamaktan, departmanlar arası kaynakları koordine etmekten ve planların uygulanabilirliğini sağlamaktan sorumlusun.",
+            "title": "Gastronomi Ar-Ge Uzmanı"
+          }
+        ],
+        "title": "Gastronomi Ar-Ge Takımı"
+      },
+      "product": {
+        "description": "Ürün tasarımı ve geliştirme, kaliteli ürünler yaratma",
+        "members": [
+          {
+            "avatar": "🎨",
+            "backgroundColor": "#F6E8FF",
+            "systemRole": "Sen bir tasarımcısın, çeşitli ürün türlerini tasarlamada uzmansın, ürün gereksinimlerine göre tasarım yapabilirsin.",
+            "title": "Tasarımcı"
+          },
+          {
+            "avatar": "🧑",
+            "backgroundColor": "#E8F5FF",
+            "systemRole": "Sen bir ürün yöneticisisin, ürünün planlaması, tasarımı, geliştirilmesi ve bakımından sorumlusun, ürün kalitesi ve kullanıcı deneyimini sağlarsın.",
+            "title": "Ürün Yöneticisi"
+          },
+          {
+            "avatar": "🧑‍💻",
+            "backgroundColor": "#E8F8F5",
+            "systemRole": "Sen deneyimli bir tam yığın mühendisisin, çeşitli ürün türlerini geliştirmede uzmansın, ürün gereksinimlerine göre geliştirme yapabilirsin.",
+            "title": "Tam Yığın Mühendis"
+          }
+        ],
+        "title": "Ürün Ar-Ge Takımı"
+      },
+      "writing": {
+        "description": "İçerik oluşturma ve düzenleme, kaliteli metinler yaratma",
+        "members": [
+          {
+            "avatar": "✍️",
+            "backgroundColor": "#F6E8FF",
+            "systemRole": "Çeşitli yazım türlerinde içerik üretmede uzmansın ve farklı senaryolara ve hedef kitlelere göre yazım tarzını ayarlayabilirsin.",
+            "title": "İçerik Yazarı"
+          },
+          {
+            "avatar": "🧑‍🎨",
+            "backgroundColor": "#E8F8F5",
+            "systemRole": "Sen bir editörsün, metinlerin düzeltme, parlatma ve optimizasyonundan sorumlusun, içeriğin doğruluğunu, akıcılığını ve profesyonelliğini sağlarsın.",
+            "title": "Editör"
+          }
+        ],
+        "title": "Yazım Çemberi"
+      }
+    },
+    "questions": {
+      "moreBtn": "Daha Fazla Bilgi",
+      "title": "Şunu sormayı deneyin:"
+    },
+    "welcome": {
+      "afternoon": "İyi akşamlar",
+      "morning": "Günaydın",
+      "night": "İyi geceler",
+      "noon": "Tünaydın"
+    }
+  },
+  "header": "Hoş geldiniz",
+  "pickAgent": "Veya aşağıdaki asistan şablonlarından birini seçin",
+  "skip": "Atla",
+  "slogan": {
+    "desc1": "Düşünmenin ve yaratmanın yeni çağının öncüsü. Size, Süper Birey'e özel olarak oluşturuldu.",
+    "desc2": "İlk asistanınızı oluşturun ve başlayalım~",
+    "title": "Beyninizin süper gücünü açığa çıkarın"
+  }
+}

@@ -1,0 +1,40 @@
+# Coordinación vía Slack con api-ia – Mensajería (WhatsApp, Telegram, inbox)
+
+Texto listo para copiar y enviar por Slack al equipo api-ia (por ejemplo en #copilot-api-ia), para que coordinen con sus probadores, prueben todo el flujo de mensajería y revisen lo planificado/implementado.
+
+---
+
+## Mensaje para Slack (copiar/pegar)
+
+```
+Hola equipo api-ia,
+
+Desde front (AppBodasdehoy / Copilot) necesitamos coordinar con vosotros para que todo el flujo de mensajería (WhatsApp, Telegram, inbox unificado) quede verificado de punta a punta.
+
+**Qué pedimos:**
+1. Que coordinéis con vuestros probadores para que prueben todo:
+   - APIs de mensajería que consumimos: GraphQL (getSessions, sendMessage, getMessages, getSession) y REST (/api/messages/conversations, /api/messages/conversations/:id, /api/messages/send).
+   - Flujos en el Copilot: lista de chats externos en el sidebar (origen GraphQL) y página /messages (inbox, origen REST).
+2. Revisar que todo lo que está planificado o implementado (en backend y en front) funcione correctamente y que no falte nada en el contrato (headers, formato de request/response).
+
+**Documentación de nuestro lado (repo AppBodasdehoy):**
+- Estado general y arquitectura (qué llamamos y a qué URL): docs/ESTADO-WHATSAPP-TELEGRAM-INBOX.md
+- Auditoría del front (dónde llamamos, qué enviamos, posibles fallos, checklist): docs/AUDITORIA-FRONT-MENSAJERIA.md
+- Análisis de plataformas open source para mensajería (para que api-ia complete con backend y repos): docs/INFORME-PLATAFORMAS-OPEN-SOURCE-MENSAJERIA-PARA-API-IA.md
+
+Ahí está detallado qué esperamos de api-ia (APIs ya desarrolladas), qué headers y payloads envía el front, y un checklist para verificar. Si algo no cuadra con vuestra implementación (nombres de campos, rutas, auth), indicadnos qué hay que ajustar en el front.
+
+Cuando tengáis resultados de las pruebas o feedback (fallos en backend, llamadas incorrectas del front, o huecos en lo implementado), podéis responder en este hilo para alinear y cerrar lo que haga falta.
+
+Gracias.
+```
+
+---
+
+## Resumen rápido para api-ia (por si piden un resumen técnico)
+
+- **Backend:** api-ia (APIs de mensajería ya desarrolladas).
+- **Front:** Solo consume; no gestiona mensajería. Copilot llama a:
+  - **GraphQL** (vía proxy same-origin a BACKEND_URL/graphql): getSessions, sendMessage, getMessages, getSession.
+  - **REST** (directo a NEXT_PUBLIC_BACKEND_URL): GET/POST /api/messages/conversations y POST /api/messages/send.
+- **Objetivo:** Que probadores de api-ia (y vosotros) verifiquen end-to-end y nos digan si algo falla o falta en contrato (headers, formato, rutas).

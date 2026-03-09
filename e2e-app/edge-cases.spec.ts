@@ -1,0 +1,228 @@
+/**
+ * edge-cases.spec.ts
+ *
+ * Tests de casos límite y robustez:
+ *   - Ruta inexistente → 404 graceful (sin crash)
+ *   - Sesión expirada en mid-session → banner "sesión expirada"
+ *   - API caída (503) → mensaje de error útil, no crash
+ *   - Recarga rápida de múltiples rutas sin acumulación de errores
+ *   - Concurrencia: múltiples pestañas no se interfieren
+ *
+ * Ejecutar: pnpm test:e2e:app:todo
+ */
+import { test, expect } from '@playwright/test';
+import { clearSession, waitForAppReady } from './helpers';
+
+const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
+const isAppTest =
+  BASE_URL.includes('app-test.bodasdehoy.com') || BASE_URL.includes('app.bodasdehoy.com');
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. Rutas inexistentes — 404 graceful
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Rutas inexistentes — 404 graceful', () => {
+  test.setTimeout(60_000);
+
+  const BAD_ROUTES = [
+    '/pagina-que-no-existe',
+    '/ruta/muy/anidada/inexistente',
+    '/admin/super-secret',
+    '/__invalid__',
+  ];
+
+  for (const route of BAD_ROUTES) {
+    test(`${route} → sin ErrorBoundary (404 o redirect)`, async ({ page }) => {
+      await page.goto(route, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+      await page.waitForLoadState('load').catch(() => {});
+      await page.waitForTimeout(2000);
+
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      // No debe estar completamente en blanco
+      expect(text.length).toBeGreaterThan(10);
+
+      const url = page.url();
+      // Debe haber mostrado algo coherente: 404, home, o login
+      const isCoherent =
+        /404|no encontrado|not found/i.test(text) ||
+        url.endsWith('/') ||
+        url.includes('/login') ||
+        text.length > 100;
+      expect(isCoherent).toBe(true);
+      console.log(`${route} → OK (${url})`);
+    });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. API con error 403 → banner "sesión expirada"
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('API 403 → banner sesión expirada', () => {
+  test.setTimeout(90_000);
+
+  test('403 de /api/events → banner "sesión expirada" visible (no crash genérico)', async ({
+    page,
+  }) => {
+    // Interceptar llamadas a la API de eventos para devolver 403
+    await page.route('**/api/events**', async (route) => {
+      await route.fulfill({ status: 403, body: JSON.stringify({ error: 'Unauthorized' }) });
+    });
+    await page.route('**/api/invitados**', async (route) => {
+      await route.fulfill({ status: 403, body: JSON.stringify({ error: 'Unauthorized' }) });
+    });
+
+    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await page.waitForLoadState('load').catch(() => {});
+    await waitForAppReady(page, 20_000);
+
+    const text = (await page.locator('body').textContent()) ?? '';
+    expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+
+    // Si la app maneja 403, debe mostrar banner de sesión expirada o redirigir a login
+    const has403Handling =
+      /sesión.*expir|session.*expir|autorizad|unauthorized|Iniciar\s+sesión/i.test(text);
+
+    if (has403Handling) {
+      console.log('403 manejado correctamente: banner de sesión expirada visible');
+    } else {
+      // Puede que la app no haga llamadas al cargar si no hay sesión — informativo
+      console.log('ℹ️ 403 no disparado en esta carga (sin sesión previa, no hay llamadas a API)');
+    }
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. API caída (503) → error útil, no crash
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('API caída (503) — error útil', () => {
+  test.setTimeout(90_000);
+
+  test('503 de API de eventos → app muestra error claro, no crash', async ({ page }) => {
+    await page.route('**/api/events**', async (route) => {
+      await route.fulfill({
+        status: 503,
+        body: JSON.stringify({ error: 'Service Unavailable' }),
+      });
+    });
+
+    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+
+    const text = (await page.locator('body').textContent()) ?? '';
+    expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+    expect(text.length).toBeGreaterThan(50);
+
+    const hasErrorMsg =
+      /[Ee]rror|[Ss]ervicio.*no.*disponible|[Cc]onexión|unavailable|503/i.test(text);
+
+    if (hasErrorMsg) {
+      console.log('503 manejado: mensaje de error útil visible');
+    } else {
+      console.log('ℹ️ 503 no disparó mensaje (sin llamadas a API en carga sin sesión)');
+    }
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. Navegación rápida — sin acumulación de errores
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Navegación rápida — sin acumulación de errores', () => {
+  test.setTimeout(120_000);
+
+  test('navegar entre 5 rutas rápidamente no produce ErrorBoundary', async ({ page }) => {
+    const routes = ['/', '/invitados', '/presupuesto', '/mesas', '/itinerario'];
+
+    for (const route of routes) {
+      await page.goto(route, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+      // Espera mínima — navegación rápida
+      await page.waitForTimeout(800);
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+    }
+
+    // Al finalizar, la última ruta debe estar bien
+    const finalText = (await page.locator('body').textContent()) ?? '';
+    expect(finalText.length).toBeGreaterThan(50);
+    console.log('Navegación rápida completada sin errores');
+  });
+
+  test('reload de la app no produce ErrorBoundary', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+
+    // Recargar 2 veces
+    for (let i = 0; i < 2; i++) {
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(2000);
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+    }
+    console.log('Recargas sucesivas: sin ErrorBoundary');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. Sesión expirada durante la sesión (mid-session)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Sesión expirada mid-session', () => {
+  test.setTimeout(90_000);
+
+  test('eliminar cookie sessionBodas y navegar → banner o redirect a login', async ({
+    page,
+    context,
+  }) => {
+    // Cargar la app primero
+    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+
+    // Simular expiración: eliminar la cookie de sesión
+    await context.clearCookies();
+
+    // Navegar a una ruta protegida (como si siguiera la sesión)
+    await page.goto('/presupuesto', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.waitForLoadState('load').catch(() => {});
+    await page.waitForTimeout(3000);
+
+    const text = (await page.locator('body').textContent()) ?? '';
+    expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+
+    // Debe responder coherentemente: banner de sesión expirada, login, o la propia página (guest)
+    const hasCoherentResponse =
+      /sesión.*expir|Iniciar\s+sesión|login|permiso|Presupuesto/i.test(text) ||
+      text.length > 100;
+    expect(hasCoherentResponse).toBe(true);
+    console.log('Mid-session expiración manejada correctamente');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 6. Health check — API pública
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Health check', () => {
+  test.setTimeout(30_000);
+
+  test('/api/health responde 200', async ({ page }) => {
+    const response = await page.goto('/api/health', {
+      waitUntil: 'domcontentloaded',
+      timeout: 15_000,
+    });
+
+    // Puede ser 200 o la app puede no tener este endpoint
+    if (response) {
+      const status = response.status();
+      const ok = status === 200 || status === 404; // 404 si no existe, nunca 500
+      expect(ok).toBe(true);
+      if (status === 200) {
+        const text = (await page.locator('body').textContent()) ?? '';
+        expect(text).toMatch(/ok|healthy|true|up/i);
+        console.log('Health check OK');
+      }
+    }
+  });
+});

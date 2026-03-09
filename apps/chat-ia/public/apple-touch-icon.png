@@ -1,0 +1,20 @@
+<svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="90" cy="90" r="85" fill="#1e40af" stroke="#1e3a8a" stroke-width="4"/>
+  <!-- Personaje central -->
+  <circle cx="90" cy="70" r="20" fill="#1e40af"/>
+  <circle cx="85" cy="65" r="3" fill="white"/>
+  <circle cx="95" cy="65" r="3" fill="white"/>
+  <path d="M80 75 Q90 85 100 75" stroke="white" stroke-width="2" fill="none"/>
+  <!-- Traje -->
+  <rect x="75" y="85" width="30" height="25" fill="#1e40af"/>
+  <rect x="80" y="90" width="20" height="15" fill="white"/>
+  <!-- Auricular -->
+  <circle cx="105" cy="70" r="3" fill="#60a5fa"/>
+  <!-- Elementos de eventos -->
+  <circle cx="50" cy="120" r="8" fill="#dc2626"/>
+  <rect x="120" y="115" width="15" height="10" fill="#dc2626"/>
+  <circle cx="127" cy="105" r="5" fill="#dc2626"/>
+  <rect x="125" y="130" width="10" height="8" fill="#dc2626"/>
+  <!-- Texto -->
+  <text x="90" y="160" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">PLANNER AI</text>
+</svg>

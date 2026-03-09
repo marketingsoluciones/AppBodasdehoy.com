@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm browser:screenshot:*)",
+      "Bash(sort:*)",
+      "Read(//dev/**)",
+      "Bash(# The api2 client looks fine \\(it has typeof window === ''undefined'' guards\\) # Let''s now directly try to reproduce the exact error by checking if Turbopack # reports any compilation failure for specific chunks # Check what''s in the server/src directory - this is unusual for Next.js ls /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/copilot/.next/server/src/)",
+      "Bash(# Let''s diff the next.config.ts between HEAD~2 and HEAD~1 \\(the commit that changed it\\) git -C /Users/juancarlosparra/Projects/AppBodasdehoy.com diff HEAD~3:apps/copilot/next.config.ts HEAD~2:apps/copilot/next.config.ts)",
+      "Bash(# The /__turbopack and /_next/turbopack-hmr also return 500 - ALL dynamic routes fail. # This is very helpful - even Next.js internal endpoints return 500. # This strongly suggests a MODULE-LEVEL crash during server initialization. # # Let me check if there''s an error in the webpack-runtime.js or edge-runtime files head -3 /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/copilot/.next/server/webpack-runtime.js)",
+      "Bash(# I notice x-nextjs-rewrite \\(not x-nextjs-rewritten-path!\\) which was from an earlier test # The response has EXACTLY 21 bytes = \"\"Internal Server Error\\\\n\"\" # This is the raw Node.js error response, NOT a Next.js formatted error. # This means it''s crashing BEFORE Next.js error handling. # # Let''s check if there''s an issue with the Next.js 15 server-side rendering pipeline # by looking at what changed in next.config.ts more carefully cat /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/copilot/next.config.ts)",
+      "Bash(# Static chunks serve fine. Dynamic routes fail. This is a Turbopack render error. # # Let me check if the server-actions manifest has an error cat /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/copilot/.next/server/server-reference-manifest.json | python3 -m json.tool)",
+      "Bash(# That change is just adding negativeBalanceMode to the error handler - no server-side impact. # # Let me now look at the actual CURRENT state of things more carefully. # The server was started at 12:06AM. At 16:07 \\(4PM\\), the [root-of-the-server] chunk was compiled. # Let me check if that chunk has any errors. head -3 \"\"/Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/copilot/.next/server/chunks/[root-of-the-server]__506c267f._.js\"\")",
+      "Bash(# The lsof -i flag requires sudo for other processes. Let me check the main process differently. # Let me look for Next.js-specific IPC sockets or pipes lsof -p 23047)",
+      "Bash(# VERY IMPORTANT: There is now a \"\"next start\"\" \\(PID 32278\\) running on port 3210! # This is a PRODUCTION server that just started \\(7:27PM\\) while the dev server was running. # # BUT WAIT - both try to bind to port 3210. One must be failing or one must have taken over. # Let me check which process actually owns port 3210 right now: lsof -i :3210)",
+      "Bash(# Good - PID 23053 is parented by PID 23047 \\(the copilot dev server\\). # So the process hierarchy is correct. # # Now let me check what''s DIFFERENT between the working dev server \\(started midnight\\) # and the current state. # # KEY OBSERVATION: The .next directory has files from MULTIPLE times: # - .next/server/app/* was compiled at 13:42 \\(the initial compilation\\) # - .next/server/chunks/* were last updated at 16:07 \\(after commits\\) # - .next/app-build-manifest.json was updated at 16:11 # - BUT .next/static/chunks/ has very few files \\(331 chunks\\) # # Wait - the server started at 12:06AM. If .next/server/app/ shows 13:42, # that means Turbopack did a fresh recompile at 1:42PM \\(startup fresh compile\\). # # Let me check if there''s a Turbopack cache invalidation issue or if the issue # is that the .next directory state is inconsistent. # Let me check the actual middleware compilation cat /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/copilot/.next/server/middleware-build-manifest.js)",
+      "Bash(# Module 337334 is in a different chunk. Let''s find it. grep -rl \"\"337334\"\" /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/copilot/.next/server/chunks/)",
+      "Read(//Users/juancarlosparra/.cloudflared/**)",
+      "Bash(tail:*)",
+      "Bash(# Try to find process logs - check if there are any system log entries # Check if the node process has any unhandled exceptions logged # Try a different approach: look at what packages were recently modified ls -lt /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/copilot/node_modules/.cache)",
+      "Read(//Users/juancarlosparra/Projects/AppBodasdehoy.com/**)",
+      "Bash(ls /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/settings/integrations/)",
+      "Bash(grep -rn \"Notification\\\\|notification\" apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/_layout/ --include=\"*.tsx\")",
+      "Bash(ls apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/_layout/Desktop/SideBar/)",
+      "Bash(cat apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/_layout/Desktop/SideBar/TopActions.tsx)"
+    ]
+  }
+}

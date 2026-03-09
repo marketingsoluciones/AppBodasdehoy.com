@@ -1,0 +1,34 @@
+# Config del túnel Cloudflare (lobe-chat-harbor) para subdominios app-test y chat-test.
+# Uso: ./scripts/iniciar-tunnel.sh (usa este archivo si existe).
+#
+# Credenciales: deben estar en ~/.cloudflared/30fdf520-9577-470f-a224-4cda1e5eb3f0.json
+# (obtenerlas desde Cloudflare Zero Trust → Tunnels → lobe-chat-harbor).
+
+tunnel: 30fdf520-9577-470f-a224-4cda1e5eb3f0
+credentials-file: ~/.cloudflared/30fdf520-9577-470f-a224-4cda1e5eb3f0.json
+
+ingress:
+  # Subdominios bodasdehoy (prioridad: que funcionen app-test y chat-test)
+  - hostname: app-test.bodasdehoy.com
+    service: http://localhost:8080
+  - hostname: chat-test.bodasdehoy.com
+    service: http://localhost:3210
+  # Otros hostnames del mismo túnel
+  - hostname: chat-test.eventosorganizador.com
+    service: http://localhost:3210
+  - hostname: auth-test.bodasdehoy.com
+    service: http://localhost:8000
+  - hostname: api-ia.bodasdehoy.com
+    service: http://164.92.81.153:8030
+  - hostname: api-ia.eventosorganizador.com
+    service: http://164.92.81.153:8030
+  - hostname: backend-chat-test.bodasdehoy.com
+    service: http://164.92.81.153:8030
+  - hostname: backend-chat-test.eventosorganizador.com
+    service: http://164.92.81.153:8030
+  - hostname: crm-leads.eventosorganizador.com
+    service: http://localhost:3002
+  - hostname: python-api.eventosorganizador.com
+    service: http://localhost:8000
+  # Regla por defecto (obligatoria)
+  - service: http_status:404

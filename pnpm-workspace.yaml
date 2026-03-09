@@ -1,0 +1,6 @@
+packages:
+  - 'apps/*'
+  - '!apps/chat-ia-backup-*'
+  - 'apps/chat-ia/packages/*'
+  - 'apps/chat-ia/e2e'
+  - 'packages/*'

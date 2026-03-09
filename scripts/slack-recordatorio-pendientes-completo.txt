@@ -1,0 +1,52 @@
+:clipboard: *RECORDATORIO COMPLETO — Pendientes y tareas (incl. 21 Feb 2026)*
+
+*De: Frontend (Bodasdehoy · Copilot · web). Para: Equipo api-ia (#copilot-api-ia).*
+
+---
+
+*1) LO QUE PEDISTEIS DE NOSOTROS — Estado*
+
+• *UI saldo agotado (402):* Hecho. Proxy devuelve 402; cliente muestra mensaje + enlace Recargar. Cuando API2 exponga payment_url/upgrade_url, nos avisáis y lo enlazamos.
+• *401 opcional (sesión expirada):* Hecho. Proxy propaga 401; cliente muestra "No autorizado. Inicia sesión de nuevo".
+• *Ejemplos 503 con trace_id:* Enviados en los informes del 21 Feb (request + response + trace_id en cada error).
+• *Re-probar cuando aviséis:* Listos. Cuando despleguéis fix y aviséis aquí, re-probamos chat/auto y confirmamos.
+• *Cloudflare (app-test, chat-test):* Según asignación interna Frontend; cuando podamos lo configuramos.
+
+---
+
+*2) INFORMES QUE ENVIAMOS EL 21 FEB 2026 — Resumen y qué necesitamos*
+
+*2.1 BUG CRÍTICO — Lo que ve el usuario (stream=true)*
+En el chat del Copilot (modo streaming) el usuario recibe siempre: "Se produjo un error de comunicación con el servidor."
+Respuesta real: HTTP 200 con body `NO_PROVIDERS_AVAILABLE` (trace_id 0088d0be). Con stream=false sí intenta anthropic/deepseek-chat (y falla por configuración). *Pregunta:* ¿Por qué con stream=true no hay ningún proveedor disponible y con stream=false sí?
+
+*2.2 AUTH_ERROR (30/80 preguntas) y PROVIDER_ERROR 400 (27/80)*
+Causa confirmada: `provider=anthropic` + `model=deepseek-chat` (combinación inválida). Upstream 401/400. *Acción en api-ia/API2:* Cambiar provider a deepseek con key DeepSeek, o model a claude-3-5-haiku (o similar) con key Anthropic correcta.
+
+*2.3 Respuestas sin contexto de usuario (22/80 HTTP 200 pero ilógicas)*
+El modelo responde "necesito saber el nombre del evento" en preguntas como "¿Cuántos invitados tengo?" o "Agrega a Jose Garcia como invitado", aunque el usuario tiene sesión y evento activo. *Preguntas:* ¿api-ia necesita recibir el JWT de Firebase del usuario para inyectar contexto del evento? ¿O es API2 quien debe enviar ese contexto?
+
+*2.4 GET /webapi/models/anthropic → array vacío []*
+*Pregunta:* ¿Es esperado o hay un problema de registro de modelos?
+
+*2.5 POST /api/ai/improve → HTTP 500*
+"Tarea no encontrada: backend.workers.granular_ai.improve_text". *Pregunta:* ¿Está desplegado el worker de Celery para improve_text?
+
+---
+
+*3) RESUMEN EJECUTIVO 21 FEB*
+
+• 80 preguntas (baterías A+B+C+D): 58/80 fallos 503 (AUTH_ERROR + PROVIDER_ERROR), 22/80 HTTP 200 pero sin datos reales del usuario, 0/80 con respuesta correcta con datos.
+• API2 (api2.eventosorganizador.com): todo OK en nuestra batería (getWhitelabelBySlug, getUserProfile, getUserApiConfigs, getUserChats, getUserEventsByEmail).
+• api-ia /health, /, /graphql, /api/jobs: OK. Problema acotado a /webapi/chat/auto (provider/model) + worker improve_text.
+
+---
+
+*4) QUÉ NECESITAMOS DE VUESTRA PARTE*
+
+• Respuesta (o avance) a los 5 bugs y 4 preguntas concretas del 21 Feb (stream=true, provider/model, contexto JWT, modelos anthropic, worker Celery).
+• Aviso cuando tengáis fix de provider/modelo para re-probar chat/auto.
+• Aviso cuando API2 exponga payment_url/upgrade_url en 402 (para enlazar en UI).
+• Cola de campañas: cuando la integración con API2 esté operativa, aviso para re-probar (ya lo teníais en vuestro recordatorio).
+
+Archivos JSON con todos los resultados de las 80 preguntas disponibles si los necesitáis. Sin prisa; cuando podáis. Gracias.

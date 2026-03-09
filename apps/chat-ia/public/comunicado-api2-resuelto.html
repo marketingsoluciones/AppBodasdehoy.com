@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>✅ RESUELTO: Problema 400 Bad Request en API2</title>
+  <style>
+    :root { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; color: #1f2937; }
+    body { margin: 32px; line-height: 1.55; }
+    h1, h2, h3 { color: #111827; }
+    code, pre { background: #f3f4f6; padding: 2px 6px; border-radius: 6px; }
+    pre { padding: 12px; overflow: auto; }
+    .tag { display:inline-block; padding:2px 8px; border-radius:999px; background:#e5f9ed; color:#065f46; font-weight:600; font-size:12px; }
+    .card { border:1px solid #e5e7eb; border-radius: 12px; padding: 16px; background: #fff; }
+    .muted { color:#6b7280; }
+    a { color:#2563eb; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+    th, td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; }
+    th { background: #f9fafb; }
+  </style>
+</head>
+<body>
+  <h1>✅ RESUELTO: Problema 400 Bad Request en API2</h1>
+  <p><strong>Para</strong>: Equipo Cliente - Lobe Chat + Backend Middleware<br/>
+     <strong>De</strong>: Equipo API2<br/>
+     <strong>Fecha</strong>: 16 de Noviembre, 2024<br/>
+     <strong>Asunto</strong>: Solución Completa Implementada
+  </p>
+
+  <hr/>
+
+  <h2>🎉 Buenas noticias</h2>
+  <p>Hemos <strong>resuelto completamente</strong> el problema de <code>400 Bad Request</code> en API2.<br/>
+  <strong>El servidor GraphQL está 100% funcional y listo para sus peticiones.</strong></p>
+
+  <hr/>
+
+  <h2>✅ Resumen rápido</h2>
+  <h3>Lo que hicimos</h3>
+  <ul>
+    <li>✅ Creamos todas las queries que faltaban: <code>getUserProfile</code>, <code>getUserApiConfigs</code>, <code>getUserChats</code>, <code>getUserEventsByEmail</code></li>
+    <li>✅ Agregamos <code>bodasdehoy.com</code> a CORS</li>
+    <li>✅ Hicimos <code>getWhitelabelBySlug</code> pública (no requiere autenticación)</li>
+  </ul>
+  <p><strong>Lo que ustedes necesitan hacer:</strong> <span class="tag">NADA</span> (el código actual funcionará sin cambios).</p>
+
+  <hr/>
+
+  <h2>🧪 Verificación rápida (30 segundos)</h2>
+  <p>Ejecutar:</p>
+  <pre><code>curl -X POST https://api2.eventosorganizador.com/graphql \
+  -H "Content-Type: application/json" \
+  -H "Origin: https://bodasdehoy.com" \
+  -d '{
+    "query": "query { getWhitelabelBySlug(slug: \"bodasdehoy\") { success whitelabel { id name } } }"
+  }'</code></pre>
+  <p>Si ven <code>"success": true</code> → ¡Todo funciona! ✅</p>
+
+  <hr/>
+
+  <h2>📋 Queries disponibles</h2>
+  <table>
+    <thead>
+      <tr><th>Query</th><th>Requiere Auth</th><th>Estado</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>getWhitelabelBySlug</code></td><td>❌ No</td><td>✅ Pública</td></tr>
+      <tr><td><code>getUserProfile</code></td><td>❌ No</td><td>✅ Funciona</td></tr>
+      <tr><td><code>getUserEventsByEmail</code></td><td>❌ No</td><td>✅ Funciona</td></tr>
+      <tr><td><code>getUserChats</code></td><td>❌ No</td><td>✅ Funciona</td></tr>
+      <tr><td><code>getUserApiConfigs</code></td><td>❌ No</td><td>✅ Funciona*</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">* <code>getUserApiConfigs</code> puede retornar estructura vacía (implementación posterior).</p>
+
+  <hr/>
+
+  <h2>🚀 Estado actual</h2>
+  <pre><code>Antes: ❌ TODAS las queries → 400 Bad Request
+Ahora: ✅ TODAS las queries → 200 OK</code></pre>
+  <p><strong>El servidor está actualizado y en producción ahora mismo.</strong></p>
+
+  <hr/>
+
+  <h2>📄 Documentación y descargas</h2>
+  <div class="card">
+    <ul>
+      <li><a href="/RESUMEN_PROBLEMA_API2.txt" download>Descargar: RESUMEN_PROBLEMA_API2.txt</a></li>
+      <li><a href="/PETICIONES_EQUIPO_API2.md" download>Descargar: PETICIONES_EQUIPO_API2.md</a></li>
+      <li><a href="/EJEMPLOS_CURL_API2.sh" download>Descargar: EJEMPLOS_CURL_API2.sh</a></li>
+      <li class="muted">Sugerencia: ejecutar en terminal <code>chmod +x EJEMPLOS_CURL_API2.sh && ./EJEMPLOS_CURL_API2.sh</code></li>
+    </ul>
+  </div>
+
+  <hr/>
+
+  <h2>📞 Siguiente paso</h2>
+  <ol>
+    <li>Prueben las queries con su código actual</li>
+    <li>Verifiquen que todo funciona</li>
+    <li>Confirmen recepción</li>
+  </ol>
+  <p>Si hay cualquier problema, respondan este comunicado inmediatamente.</p>
+
+  <hr/>
+
+  <h2>❓ Preguntas rápidas</h2>
+  <ul>
+    <li><strong>¿Necesito actualizar mi código?</strong> No, todo funcionará sin cambios.</li>
+    <li><strong>¿Cuándo está disponible?</strong> Ya está, en producción ahora.</li>
+    <li><strong>¿Y si hay problemas?</strong> Contacto: <a href="mailto:bodasdehoy.com@gmail.com">bodasdehoy.com@gmail.com</a></li>
+  </ul>
+
+  <p class="muted">Documento generado automáticamente.</p>
+</body>
+</html>

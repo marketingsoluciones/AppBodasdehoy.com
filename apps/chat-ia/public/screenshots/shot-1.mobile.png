@@ -1,0 +1,41 @@
+<svg width="375" height="812" viewBox="0 0 375 812" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo de la aplicación móvil -->
+  <rect width="375" height="812" fill="#f8fafc"/>
+  
+  <!-- Header móvil -->
+  <rect x="0" y="0" width="375" height="80" fill="#1e40af"/>
+  <circle cx="30" cy="40" r="15" fill="white"/>
+  <text x="60" y="50" fill="white" font-family="Arial, sans-serif" font-size="18" font-weight="bold">PLANNER AI</text>
+  
+  <!-- Área de chat principal -->
+  <rect x="0" y="80" width="375" height="680" fill="white"/>
+  
+  <!-- Mensajes de chat -->
+  <rect x="20" y="120" width="280" height="50" fill="#f1f5f9" rx="25"/>
+  <text x="40" y="145" fill="#1e40af" font-family="Arial, sans-serif" font-size="14">¿Cuáles son mis eventos de este mes?</text>
+  
+  <rect x="75" y="190" width="280" height="70" fill="#1e40af" rx="25"/>
+  <text x="95" y="215" fill="white" font-family="Arial, sans-serif" font-size="14">Tienes 3 eventos programados:</text>
+  <text x="95" y="235" fill="white" font-family="Arial, sans-serif" font-size="14">• Boda de María - 15 de junio</text>
+  <text x="95" y="250" fill="white" font-family="Arial, sans-serif" font-size="14">• Cumpleaños de Juan - 22 de junio</text>
+  
+  <rect x="20" y="280" width="200" height="40" fill="#f1f5f9" rx="20"/>
+  <text x="40" y="305" fill="#1e40af" font-family="Arial, sans-serif" font-size="14">¿Puedes ayudarme con el itinerario?</text>
+  
+  <rect x="95" y="340" width="280" height="60" fill="#1e40af" rx="25"/>
+  <text x="115" y="365" fill="white" font-family="Arial, sans-serif" font-size="14">¡Por supuesto! Te ayudo a crear un</text>
+  <text x="115" y="385" fill="white" font-family="Arial, sans-serif" font-size="14">itinerario detallado para tu evento.</text>
+  
+  <!-- Input de mensaje -->
+  <rect x="20" y="720" width="280" height="50" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" rx="25"/>
+  <text x="40" y="750" fill="#64748b" font-family="Arial, sans-serif" font-size="14">Escribe aquí...</text>
+  
+  <!-- Botón de envío -->
+  <circle cx="320" cy="745" r="20" fill="#1e40af"/>
+  <text x="315" y="752" fill="white" font-family="Arial, sans-serif" font-size="16">→</text>
+  
+  <!-- Elementos decorativos -->
+  <circle cx="50" cy="450" r="8" fill="#dc2626" opacity="0.3"/>
+  <circle cx="325" cy="500" r="6" fill="#60a5fa" opacity="0.3"/>
+  <circle cx="80" cy="600" r="10" fill="#dc2626" opacity="0.3"/>
+</svg>

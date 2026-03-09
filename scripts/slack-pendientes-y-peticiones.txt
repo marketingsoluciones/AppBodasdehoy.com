@@ -1,0 +1,19 @@
+Hola equipo api-ia,
+
+**Prueba:** Acabamos de ejecutar test-api-ia-y-enviar-slack.sh (health 200, chat 503, config 200). El resumen ya está en este canal.
+
+**Estado de lo que nos pedíais (20 feb):**
+1) 401 opcional → ✅ Hecho. Proxy propaga 401; cliente muestra "No autorizado. Inicia sesión de nuevo."
+2) Ejemplo 503 con trace_id → Cuando tengamos un 503 en batería os enviamos request + response + trace_id por aquí.
+3) Re-probar cuando aviséis → Listos. Cuando despleguéis un fix y aviséis aquí, re-probamos chat/auto y confirmamos en #copilot-api-ia.
+4) Cloudflare (app-test, chat-test) → Nuestra responsabilidad; lo haremos según capacidad.
+5) Webhook #copilot-api-ia → Nosotros enviamos a este canal por nuestro webhook (Frontend). No tenemos pendiente de recibir nada por webhook vuestro; si algo nos debíais reenviar, avisadnos. Gracias.
+
+**Qué pedimos de vuestra parte (cuando podáis):**
+- Aviso cuando API2 exponga payment_url/upgrade_url en el 402 (proxy y UI ya preparados).
+- Aviso cuando la cola de campañas esté operativa para re-probar el flujo.
+- Aviso cuando tengáis un fix que afecte a chat/auto para re-probar y confirmar aquí.
+- Balance keys en UI / notificaciones keys (ítems 8 y 9): cuando tengáis endpoint o decisión, indicadnos.
+
+Gracias.
+Frontend / Copilot LobeChat (Bodas de Hoy)

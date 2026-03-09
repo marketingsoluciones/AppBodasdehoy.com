@@ -1,0 +1,60 @@
+================================================================================
+  FRONTEND - Comunicación con api-ia vía Slack (#copilot-api-ia)
+  Configuración en 5 minutos - Copy-paste directo
+================================================================================
+
+CREDENCIALES (añadir a .env.local o .env):
+
+  # Bot Token (compartido por todos)
+  SLACK_BOT_TOKEN=xoxb-10503704691745-10487778333445-wrCA9l4vPDj84uyDVoRWN9lJ
+  # Para Frontend
+  SLACK_WEBHOOK_FRONTEND=https://hooks.slack.com/services/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
+  SLACK_CHANNEL_FRONTEND=C0AEV0GCLM7
+
+  Canal: #copilot-api-ia
+
+--------------------------------------------------------------------------------
+CÓDIGO BÁSICO - Enviar mensaje (webhook)
+--------------------------------------------------------------------------------
+
+// Node / Next.js API Route / React
+async function enviarSlack(texto) {
+  const webhook = process.env.SLACK_WEBHOOK_FRONTEND || process.env.SLACK_WEBHOOK;
+  const res = await fetch(webhook, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: texto })
+  });
+  return res.ok; // true si OK
+}
+await enviarSlack('[Frontend] Hola api-ia');
+
+--------------------------------------------------------------------------------
+CÓDIGO BÁSICO - Leer mensajes (bot token)
+--------------------------------------------------------------------------------
+
+async function leerSlack(limit = 20) {
+  const token = process.env.SLACK_BOT_TOKEN;
+  const channel = process.env.SLACK_CHANNEL_FRONTEND || process.env.SLACK_CHANNEL_ID;
+  const res = await fetch(
+    `https://slack.com/api/conversations.history?channel=${channel}&limit=${limit}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error);
+  return data.messages;
+}
+const mensajes = await leerSlack(20);
+
+--------------------------------------------------------------------------------
+FUNCIONALIDADES
+--------------------------------------------------------------------------------
+  ✅ Escribir mensajes a #copilot-api-ia (webhook)
+  ✅ Leer mensajes de api-ia (bot token)
+  ✅ Consultar historial completo (bot token + limit)
+
+Compatible: React, Next.js, JavaScript, TypeScript
+Tiempo: 5 minutos
+
+Para más detalle: PARA_FRONTEND_slackClient.ts, CONFIGURACION_FRONTEND.md
+================================================================================

@@ -1,0 +1,584 @@
+'use client';
+
+import { Badge, Breadcrumb, Skeleton, Tag, Tooltip } from 'antd';
+import { createStyles } from 'antd-style';
+import { ArrowLeft, Check, Info, Sparkles, X } from 'lucide-react';
+import Link from 'next/link';
+import { memo, useEffect, useState } from 'react';
+import { Flexbox } from 'react-layout-kit';
+
+import {
+  SubscriptionPlan,
+  UserSubscriptionInfo,
+  getMySubscription,
+  getSubscriptionPlans,
+} from '@/services/api2/subscriptions';
+
+const useStyles = createStyles(({ css, token }) => ({
+  billingToggle: css`
+    background: ${token.colorFillSecondary};
+    border-radius: 20px;
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+  `,
+  billingToggleActive: css`
+    background: ${token.colorPrimary};
+    border-radius: 16px;
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border: none;
+  `,
+  billingToggleInactive: css`
+    background: transparent;
+    border: none;
+    border-radius: 16px;
+    color: ${token.colorTextSecondary};
+    cursor: pointer;
+    font-size: 13px;
+    padding: 6px 16px;
+
+    &:hover {
+      color: ${token.colorText};
+    }
+  `,
+  currentBadge: css`
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+  `,
+  featureIcon: css`
+    flex-shrink: 0;
+    margin-top: 2px;
+  `,
+  featureRow: css`
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+  `,
+  highlightCard: css`
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 16px;
+    color: white;
+    padding: 28px 24px;
+    position: relative;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.35);
+  `,
+  planCard: css`
+    background: ${token.colorBgContainer};
+    border: 1px solid ${token.colorBorderSecondary};
+    border-radius: 16px;
+    padding: 28px 24px;
+    position: relative;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+  `,
+  planName: css`
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  `,
+  price: css`
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -1px;
+  `,
+  pricePeriod: css`
+    font-size: 13px;
+    opacity: 0.7;
+    margin-top: 2px;
+  `,
+}));
+
+// ============================================================
+// PLAN COLOR MAP
+// ============================================================
+
+const PLAN_COLORS: Record<string, string> = {
+  BASIC: '#3b82f6',
+  CUSTOM: '#8b5cf6',
+  ENTERPRISE: '#10b981',
+  FREE: '#6b7280',
+  MAX: '#f59e0b',
+  PRO: '#667eea',
+};
+
+// ============================================================
+// HELPERS
+// ============================================================
+
+function formatQuota(sku: string, quota: number): string {
+  const s = sku.toLowerCase();
+  if (quota <= 0) return 'Sin acceso';
+
+  if (s.includes('storage')) {
+    if (quota >= 1000) return `${quota / 1000} TB`;
+    return `${quota} GB`;
+  }
+  if (s.includes('image') || s.includes('dalle') || s.includes('flux') || s.includes('sd')) {
+    if (quota >= 999_999) return 'Ilimitado';
+    return `${quota.toLocaleString()} imágenes/mes`;
+  }
+  if (s.includes('whatsapp') || s.includes('msg')) {
+    if (quota >= 999_999) return 'Ilimitado';
+    return `${quota.toLocaleString()} mensajes/mes`;
+  }
+  // AI tokens (default)
+  if (quota >= 1_000_000_000) return 'Ilimitado';
+  if (quota >= 1_000_000) return `${quota / 1_000_000}M tokens/mes`;
+  if (quota >= 1000) return `${quota / 1000}K tokens/mes`;
+  return `${quota} tokens/mes`;
+}
+
+interface LimitRow {
+  label: string;
+  value: string;
+}
+
+function extractLimits(plan: SubscriptionPlan): LimitRow[] {
+  const rows: LimitRow[] = [];
+  const seen = new Set<string>();
+
+  const add = (label: string, value: string, key: string) => {
+    if (!seen.has(key)) {
+      seen.add(key);
+      rows.push({ label, value });
+    }
+  };
+
+  for (const l of plan.product_limits) {
+    const s = l.sku.toLowerCase();
+    if (
+      s.includes('ai') ||
+      s.includes('anthropic') ||
+      s.includes('openai') ||
+      s.includes('token')
+    ) {
+      add('Tokens IA', formatQuota(l.sku, l.free_quota), 'ai');
+    } else if (
+      s.includes('image') ||
+      s.includes('dalle') ||
+      s.includes('flux') ||
+      s.includes('-sd')
+    ) {
+      add('Imágenes', formatQuota(l.sku, l.free_quota), 'images');
+    } else if (s.includes('storage')) {
+      add('Almacenamiento', formatQuota(l.sku, l.free_quota), 'storage');
+    } else if (s.includes('whatsapp') || s.includes('-wa')) {
+      add('WhatsApp', formatQuota(l.sku, l.free_quota), 'whatsapp');
+    }
+  }
+
+  if (!seen.has('storage') && plan.feature_restrictions.max_storage_gb) {
+    add(
+      'Almacenamiento',
+      formatQuota('storage', plan.feature_restrictions.max_storage_gb),
+      'storage'
+    );
+  }
+
+  const supportLabel = plan.feature_restrictions.white_label
+    ? 'Dedicado'
+    : plan.feature_restrictions.priority_support
+      ? 'Prioritario'
+      : 'Comunidad';
+  add('Soporte', supportLabel, 'support');
+
+  return rows;
+}
+
+interface FeatureRow {
+  included: boolean;
+  label: string;
+  tooltip?: string;
+}
+
+function extractFeatures(plan: SubscriptionPlan): FeatureRow[] {
+  const features: FeatureRow[] = [
+    { included: true, label: 'Copiloto IA' },
+    { included: true, label: 'Wallet prepago' },
+  ];
+
+  if (plan.global_discount?.value) {
+    features.push({
+      included: true,
+      label: `${plan.global_discount.value}% descuento en servicios`,
+      tooltip: 'Aplicado automáticamente al consumir tokens, imágenes y mensajes',
+    });
+  } else {
+    features.push({ included: false, label: 'Descuentos en servicios' });
+  }
+
+  features.push({
+    included: plan.feature_restrictions.priority_support || plan.feature_restrictions.white_label,
+    label: 'Soporte prioritario',
+  });
+
+  if (plan.feature_restrictions.api_access) {
+    features.push({ included: true, label: 'API acceso completo' });
+  }
+
+  if (plan.feature_restrictions.white_label) {
+    features.push({ included: true, label: 'Gestor de cuenta dedicado' });
+  }
+
+  return features;
+}
+
+// ============================================================
+// PLAN CARD
+// ============================================================
+
+const PlanCard = memo<{
+  billing: 'monthly' | 'yearly';
+  isCurrent?: boolean;
+  plan: SubscriptionPlan;
+}>(({ plan, billing, isCurrent }) => {
+  const { styles } = useStyles();
+  const isHighlighted = plan.tier === 'PRO';
+  const color = PLAN_COLORS[plan.tier] ?? '#6b7280';
+
+  const priceMonthly = plan.pricing.monthly_fee;
+  const priceYearly =
+    plan.pricing.annual_fee ??
+    Math.round(priceMonthly * (1 - (plan.pricing.annual_discount_percent ?? 20) / 100));
+  const price = billing === 'yearly' ? priceYearly : priceMonthly;
+  const savingsPerYear = (priceMonthly - priceYearly) * 12;
+
+  const limits = extractLimits(plan);
+  const features = extractFeatures(plan);
+
+  return (
+    <div
+      className={isHighlighted ? styles.highlightCard : styles.planCard}
+      style={{ flex: 1, minWidth: 220 }}
+    >
+      {isCurrent && (
+        <div className={styles.currentBadge}>
+          <Tag color="green">Plan actual</Tag>
+        </div>
+      )}
+      {isHighlighted && (
+        <div className={styles.currentBadge}>
+          <Tag color="gold" style={{ fontWeight: 700 }}>
+            ✨ Más popular
+          </Tag>
+        </div>
+      )}
+
+      <Flexbox gap={12}>
+        {/* Nombre y descripción */}
+        <div>
+          <div
+            className={styles.planName}
+            style={{ color: isHighlighted ? 'white' : color }}
+          >
+            {plan.name}
+          </div>
+          <div
+            style={{
+              color: isHighlighted
+                ? 'rgba(255,255,255,0.8)'
+                : 'var(--ant-color-text-secondary)',
+              fontSize: 13,
+            }}
+          >
+            {plan.description}
+          </div>
+        </div>
+
+        {/* Precio */}
+        <Flexbox align="baseline" gap={4} horizontal>
+          <span
+            className={styles.price}
+            style={{ color: isHighlighted ? 'white' : 'inherit' }}
+          >
+            {price === 0 ? 'Gratis' : `€${price}`}
+          </span>
+          {price > 0 && (
+            <span
+              className={styles.pricePeriod}
+              style={{ color: isHighlighted ? 'rgba(255,255,255,0.7)' : undefined }}
+            >
+              / mes{billing === 'yearly' ? ' (facturado anual)' : ''}
+            </span>
+          )}
+        </Flexbox>
+
+        {billing === 'yearly' && price > 0 && savingsPerYear > 0 && (
+          <span
+            style={{
+              color: isHighlighted ? 'rgba(255,255,255,0.85)' : '#10b981',
+              fontSize: 12,
+              fontWeight: 600,
+            }}
+          >
+            Ahorras €{savingsPerYear}/año
+          </span>
+        )}
+
+        {/* CTA */}
+        <button
+          disabled={isCurrent}
+          style={{
+            background: isHighlighted
+              ? 'white'
+              : isCurrent
+                ? 'transparent'
+                : color,
+            border: isCurrent ? `1px solid ${color}` : 'none',
+            borderRadius: 8,
+            color: isHighlighted ? color : isCurrent ? color : 'white',
+            cursor: isCurrent ? 'default' : 'pointer',
+            fontSize: 14,
+            fontWeight: 600,
+            marginTop: 4,
+            opacity: isCurrent ? 0.7 : 1,
+            padding: '10px 0',
+            transition: 'opacity 0.2s',
+            width: '100%',
+          }}
+        >
+          {isCurrent ? 'Plan actual' : price === 0 ? 'Empezar gratis' : 'Elegir plan'}
+        </button>
+
+        {/* Separador */}
+        <div
+          style={{
+            borderTop: isHighlighted
+              ? '1px solid rgba(255,255,255,0.2)'
+              : '1px solid var(--ant-color-border-secondary)',
+            margin: '4px 0',
+          }}
+        />
+
+        {/* Límites */}
+        <Flexbox gap={6}>
+          {limits.map(({ label, value }) => (
+            <div
+              className={styles.featureRow}
+              key={label}
+              style={{ color: isHighlighted ? 'rgba(255,255,255,0.9)' : undefined }}
+            >
+              <Check
+                className={styles.featureIcon}
+                color={isHighlighted ? 'rgba(255,255,255,0.8)' : '#10b981'}
+                size={14}
+              />
+              <span>
+                <strong>{value}</strong>
+                {' — '}
+                {label}
+              </span>
+            </div>
+          ))}
+        </Flexbox>
+
+        {/* Features */}
+        <Flexbox gap={6}>
+          {features.map((f, i) => (
+            <div
+              className={styles.featureRow}
+              key={i}
+              style={{ color: f.included ? undefined : '#9ca3af' }}
+            >
+              {f.included ? (
+                <Check
+                  className={styles.featureIcon}
+                  color={isHighlighted ? 'rgba(255,255,255,0.7)' : '#667eea'}
+                  size={14}
+                />
+              ) : (
+                <X className={styles.featureIcon} color="#d1d5db" size={14} />
+              )}
+              <span
+                style={{
+                  color:
+                    isHighlighted && f.included ? 'rgba(255,255,255,0.85)' : undefined,
+                }}
+              >
+                {f.label}
+                {f.tooltip && (
+                  <Tooltip title={f.tooltip}>
+                    <Info size={12} style={{ cursor: 'help', marginLeft: 4, opacity: 0.6 }} />
+                  </Tooltip>
+                )}
+              </span>
+            </div>
+          ))}
+        </Flexbox>
+      </Flexbox>
+    </div>
+  );
+});
+
+PlanCard.displayName = 'PlanCard';
+
+// ============================================================
+
+const PlanesPage = memo(() => {
+  const { styles } = useStyles();
+  const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [mySubscription, setMySubscription] = useState<UserSubscriptionInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([getSubscriptionPlans(), getMySubscription()]).then(([plansData, subData]) => {
+      setPlans(plansData);
+      setMySubscription(subData);
+      setLoading(false);
+    });
+  }, []);
+
+  const maxAnnualDiscount = plans.reduce((max, p) => {
+    const pct = p.pricing.annual_discount_percent ?? 20;
+    return pct > max ? pct : max;
+  }, 20);
+
+  return (
+    <Flexbox gap={32} style={{ maxWidth: 1100, padding: 24, width: '100%' }}>
+      <Breadcrumb
+        items={[
+          { title: <Link href="/settings">Ajustes</Link> },
+          { title: <Link href="/settings/billing">Facturación</Link> },
+          { title: 'Planes' },
+        ]}
+      />
+
+      <Flexbox align="center" gap={12} horizontal>
+        <Link href="/settings/billing" style={{ alignItems: 'center', display: 'flex', gap: 6 }}>
+          <ArrowLeft size={18} />
+          Volver a Facturación
+        </Link>
+      </Flexbox>
+
+      {/* Header */}
+      <Flexbox align="center" gap={12}>
+        <Flexbox align="center" gap={8} horizontal>
+          <Sparkles color="#667eea" size={28} />
+          <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0 }}>Elige tu plan</h1>
+        </Flexbox>
+        <p
+          style={{
+            color: 'var(--ant-color-text-secondary)',
+            fontSize: 15,
+            margin: 0,
+            textAlign: 'center',
+          }}
+        >
+          Todos los planes incluyen wallet prepago. Los precios por uso se aplican sobre el saldo
+          remanente.
+        </p>
+
+        {/* Toggle mensual / anual */}
+        <div className={styles.billingToggle}>
+          <button
+            className={
+              billing === 'monthly' ? styles.billingToggleActive : styles.billingToggleInactive
+            }
+            onClick={() => setBilling('monthly')}
+          >
+            Mensual
+          </button>
+          <button
+            className={
+              billing === 'yearly' ? styles.billingToggleActive : styles.billingToggleInactive
+            }
+            onClick={() => setBilling('yearly')}
+          >
+            Anual
+            <Badge
+              color="green"
+              count={`−${maxAnnualDiscount}%`}
+              style={{ fontSize: 10, marginLeft: 6 }}
+            />
+          </button>
+        </div>
+      </Flexbox>
+
+      {/* Grid de planes */}
+      {loading ? (
+        <Flexbox gap={16} horizontal style={{ flexWrap: 'wrap' }}>
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              style={{
+                background: 'var(--ant-color-bg-container)',
+                border: '1px solid var(--ant-color-border-secondary)',
+                borderRadius: 16,
+                flex: 1,
+                minWidth: 220,
+                padding: 28,
+              }}
+            >
+              <Skeleton active paragraph={{ rows: 6 }} title />
+            </div>
+          ))}
+        </Flexbox>
+      ) : plans.length === 0 ? (
+        <div
+          style={{
+            background: 'var(--ant-color-fill-quaternary)',
+            borderRadius: 12,
+            color: 'var(--ant-color-text-secondary)',
+            padding: 40,
+            textAlign: 'center',
+          }}
+        >
+          No se pudieron cargar los planes. Por favor, inténtalo de nuevo.
+        </div>
+      ) : (
+        <Flexbox gap={16} horizontal style={{ alignItems: 'stretch', flexWrap: 'wrap' }}>
+          {plans.map((plan) => (
+            <PlanCard
+              billing={billing}
+              isCurrent={
+                mySubscription?.status === 'ACTIVE' &&
+                (mySubscription.plan_id === plan._id ||
+                  mySubscription.plan_id === plan.plan_id ||
+                  mySubscription.plan?.tier === plan.tier)
+              }
+              key={plan._id}
+              plan={plan}
+            />
+          ))}
+        </Flexbox>
+      )}
+
+      {/* Nota explicativa */}
+      <div
+        style={{
+          background: 'var(--ant-color-fill-quaternary)',
+          borderRadius: 12,
+          fontSize: 13,
+          lineHeight: 1.6,
+          padding: 20,
+        }}
+      >
+        <strong style={{ display: 'block', marginBottom: 8 }}>
+          ¿Cómo funciona el sistema de precios?
+        </strong>
+        <p style={{ margin: 0 }}>
+          Pagás una cuota mensual por el plan (acceso a la plataforma y límites base) y además
+          recargas tu wallet para consumir servicios de IA, imágenes y comunicaciones. El plan
+          determina el descuento que obtenés sobre el precio por uso.
+        </p>
+      </div>
+    </Flexbox>
+  );
+});
+
+PlanesPage.displayName = 'PlanesPage';
+
+export default PlanesPage;

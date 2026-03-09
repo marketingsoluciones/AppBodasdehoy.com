@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Memories API - Validación</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            color: #555;
+            margin-top: 0;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .success {
+            background: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            color: #2e7d32;
+        }
+        .error {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            color: #c62828;
+        }
+        .info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            color: #1565c0;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .metric-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 3px solid #2196F3;
+        }
+        .metric-card h3 {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        .metric-card p {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .config-section {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Memories API - Validación Frontend</h1>
+
+    <div class="config-section">
+        <h3>⚙️ Configuración</h3>
+        <p><strong>Backend URL:</strong> <span id="backend-url">Cargando...</span></p>
+        <p><strong>Firebase Token:</strong> <input type="text" id="firebase-token" placeholder="Pegar token de Firebase Auth" style="width: 400px"></p>
+        <p><strong>User ID:</strong> <input type="text" id="user-id" placeholder="usuario@email.com" value="test@bodasdehoy.com"></p>
+        <p><strong>Development:</strong> <input type="text" id="development" value="bodasdehoy"></p>
+        <button onclick="saveConfig()">💾 Guardar Config</button>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Endpoints Críticos (P0)</h2>
+
+        <button onclick="testListAlbums()">1. GET /albums - Listar Álbums</button>
+        <button onclick="testGetAlbum()">2. GET /albums/{id} - Detalle Álbum</button>
+        <button onclick="testGetMedia()">3. GET /albums/{id}/media - Fotos</button>
+        <button onclick="testGetMembers()">4. GET /albums/{id}/members - Miembros</button>
+
+        <div id="p0-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔥 Endpoints Altos (P1)</h2>
+
+        <button onclick="testCreateAlbum()">5. POST /albums - Crear Álbum</button>
+        <button onclick="testUpdateAlbum()">6. PUT /albums/{id} - Actualizar</button>
+        <button onclick="testInviteMember()">7. POST /albums/{id}/invite - Invitar</button>
+        <button onclick="testGenerateShare()">8. POST /albums/{id}/share-link - Compartir</button>
+
+        <div id="p1-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📈 Métricas de Performance</h2>
+        <div class="metrics" id="metrics">
+            <div class="metric-card">
+                <h3>Promedio General</h3>
+                <p id="avg-time">-- ms</p>
+            </div>
+            <div class="metric-card">
+                <h3>Más Rápido</h3>
+                <p id="min-time">-- ms</p>
+            </div>
+            <div class="metric-card">
+                <h3>Más Lento</h3>
+                <p id="max-time">-- ms</p>
+            </div>
+            <div class="metric-card">
+                <h3>Tests Exitosos</h3>
+                <p id="success-count">0/0</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🚀 Test Todo</h2>
+        <button onclick="runAllTests()" style="background: #FF5722; font-size: 18px; padding: 15px 30px;">
+            ▶️ Ejecutar Todos los Tests
+        </button>
+        <div id="all-results"></div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'https://api-ia.bodasdehoy.com';
+        document.getElementById('backend-url').textContent = BACKEND_URL;
+
+        let config = {
+            token: '',
+            userId: 'test@bodasdehoy.com',
+            development: 'bodasdehoy',
+            lastAlbumId: null
+        };
+
+        // Load saved config
+        const saved = localStorage.getItem('test_config');
+        if (saved) {
+            config = JSON.parse(saved);
+            document.getElementById('firebase-token').value = config.token || '';
+            document.getElementById('user-id').value = config.userId || '';
+            document.getElementById('development').value = config.development || '';
+        }
+
+        function saveConfig() {
+            config.token = document.getElementById('firebase-token').value;
+            config.userId = document.getElementById('user-id').value;
+            config.development = document.getElementById('development').value;
+            localStorage.setItem('test_config', JSON.stringify(config));
+            alert('✅ Configuración guardada');
+        }
+
+        let metrics = {
+            times: [],
+            successes: 0,
+            failures: 0
+        };
+
+        function updateMetrics() {
+            if (metrics.times.length > 0) {
+                const avg = metrics.times.reduce((a, b) => a + b, 0) / metrics.times.length;
+                const min = Math.min(...metrics.times);
+                const max = Math.max(...metrics.times);
+
+                document.getElementById('avg-time').textContent = Math.round(avg) + ' ms';
+                document.getElementById('min-time').textContent = Math.round(min) + ' ms';
+                document.getElementById('max-time').textContent = Math.round(max) + ' ms';
+            }
+            document.getElementById('success-count').textContent =
+                `${metrics.successes}/${metrics.successes + metrics.failures}`;
+        }
+
+        async function makeRequest(endpoint, method = 'GET', body = null) {
+            const start = performance.now();
+            const url = `${BACKEND_URL}${endpoint}`;
+
+            const params = new URLSearchParams();
+            if (config.userId) params.append('user_id', config.userId);
+            if (config.development) params.append('development', config.development);
+
+            const fullUrl = params.toString() ? `${url}?${params}` : url;
+
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(config.token && { 'Authorization': `Bearer ${config.token}` })
+                }
+            };
+
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            try {
+                const response = await fetch(fullUrl, options);
+                const duration = performance.now() - start;
+                const data = await response.json();
+
+                metrics.times.push(duration);
+                if (response.ok && data.success) {
+                    metrics.successes++;
+                } else {
+                    metrics.failures++;
+                }
+                updateMetrics();
+
+                return {
+                    ok: response.ok,
+                    status: response.status,
+                    data,
+                    duration: Math.round(duration)
+                };
+            } catch (error) {
+                const duration = performance.now() - start;
+                metrics.failures++;
+                updateMetrics();
+                return {
+                    ok: false,
+                    error: error.message,
+                    duration: Math.round(duration)
+                };
+            }
+        }
+
+        function displayResult(containerId, title, result) {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `result ${result.ok ? 'success' : 'error'}`;
+
+            let content = `<strong>${title}</strong>\n`;
+            content += `⏱️ Tiempo: ${result.duration}ms\n`;
+            content += `📊 Status: ${result.status || 'Error'}\n`;
+
+            if (result.ok) {
+                content += `\n✅ SUCCESS\n`;
+                content += `Response: ${JSON.stringify(result.data, null, 2)}`;
+            } else {
+                content += `\n❌ ERROR\n`;
+                content += `${result.error || JSON.stringify(result.data, null, 2)}`;
+            }
+
+            div.textContent = content;
+            container.appendChild(div);
+        }
+
+        async function testListAlbums() {
+            const result = await makeRequest('/api/memories/albums');
+            displayResult('p0-results', '1. GET /albums', result);
+
+            if (result.ok && result.data.albums && result.data.albums.length > 0) {
+                config.lastAlbumId = result.data.albums[0]._id;
+                localStorage.setItem('test_config', JSON.stringify(config));
+            }
+        }
+
+        async function testGetAlbum() {
+            if (!config.lastAlbumId) {
+                alert('⚠️ Primero ejecuta el test 1 para obtener un album ID');
+                return;
+            }
+            const result = await makeRequest(`/api/memories/albums/${config.lastAlbumId}`);
+            displayResult('p0-results', '2. GET /albums/{id}', result);
+        }
+
+        async function testGetMedia() {
+            if (!config.lastAlbumId) {
+                alert('⚠️ Primero ejecuta el test 1 para obtener un album ID');
+                return;
+            }
+            const result = await makeRequest(`/api/memories/albums/${config.lastAlbumId}/media`);
+            displayResult('p0-results', '3. GET /albums/{id}/media', result);
+        }
+
+        async function testGetMembers() {
+            if (!config.lastAlbumId) {
+                alert('⚠️ Primero ejecuta el test 1 para obtener un album ID');
+                return;
+            }
+            const result = await makeRequest(`/api/memories/albums/${config.lastAlbumId}/members`);
+            displayResult('p0-results', '4. GET /albums/{id}/members', result);
+        }
+
+        async function testCreateAlbum() {
+            const albumData = {
+                name: 'Test Album - ' + new Date().toLocaleTimeString(),
+                description: 'Album de prueba creado desde validación frontend',
+                visibility: 'private',
+                albumType: 'general'
+            };
+            const result = await makeRequest('/api/memories/albums', 'POST', albumData);
+            displayResult('p1-results', '5. POST /albums', result);
+
+            if (result.ok && result.data.album) {
+                config.lastAlbumId = result.data.album._id;
+                localStorage.setItem('test_config', JSON.stringify(config));
+            }
+        }
+
+        async function testUpdateAlbum() {
+            if (!config.lastAlbumId) {
+                alert('⚠️ Primero ejecuta el test 5 para crear un album');
+                return;
+            }
+            const updateData = {
+                description: 'Descripción actualizada - ' + new Date().toLocaleTimeString()
+            };
+            const result = await makeRequest(`/api/memories/albums/${config.lastAlbumId}`, 'PUT', updateData);
+            displayResult('p1-results', '6. PUT /albums/{id}', result);
+        }
+
+        async function testInviteMember() {
+            if (!config.lastAlbumId) {
+                alert('⚠️ Primero ejecuta el test 5 para crear un album');
+                return;
+            }
+            const inviteData = {
+                email: 'test-invite@example.com',
+                role: 'viewer'
+            };
+            const result = await makeRequest(`/api/memories/albums/${config.lastAlbumId}/invite`, 'POST', inviteData);
+            displayResult('p1-results', '7. POST /albums/{id}/invite', result);
+        }
+
+        async function testGenerateShare() {
+            if (!config.lastAlbumId) {
+                alert('⚠️ Primero ejecuta el test 5 para crear un album');
+                return;
+            }
+            const result = await makeRequest(`/api/memories/albums/${config.lastAlbumId}/share-link`, 'POST');
+            displayResult('p1-results', '8. POST /albums/{id}/share-link', result);
+        }
+
+        async function runAllTests() {
+            // Clear previous results
+            document.getElementById('p0-results').innerHTML = '';
+            document.getElementById('p1-results').innerHTML = '';
+            document.getElementById('all-results').innerHTML = '<div class="result info">⏳ Ejecutando todos los tests...</div>';
+
+            metrics = { times: [], successes: 0, failures: 0 };
+
+            // P0 tests
+            await testListAlbums();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testGetAlbum();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testGetMedia();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testGetMembers();
+
+            // P1 tests
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testCreateAlbum();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testUpdateAlbum();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testInviteMember();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await testGenerateShare();
+
+            // Final summary
+            const summary = `
+✅ Tests completados!
+
+📊 Resultados:
+- Exitosos: ${metrics.successes}
+- Fallidos: ${metrics.failures}
+- Total: ${metrics.successes + metrics.failures}
+
+⏱️ Performance:
+- Promedio: ${Math.round(metrics.times.reduce((a,b) => a+b, 0) / metrics.times.length)}ms
+- Más rápido: ${Math.round(Math.min(...metrics.times))}ms
+- Más lento: ${Math.round(Math.max(...metrics.times))}ms
+
+${metrics.successes === metrics.successes + metrics.failures ? '✅ TODOS LOS TESTS PASARON!' : '⚠️ Algunos tests fallaron - revisar detalles arriba'}
+            `;
+
+            document.getElementById('all-results').innerHTML = `<div class="result ${metrics.failures === 0 ? 'success' : 'error'}">${summary}</div>`;
+        }
+    </script>
+</body>
+</html>

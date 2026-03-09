@@ -1,0 +1,66 @@
+'use client';
+
+import { memo, useCallback } from 'react';
+
+import RechargeModal from '@/components/Wallet/RechargeModal';
+import { walletService } from '@/services/api2/wallet';
+import { useChatStore } from '@/store/chat';
+
+const allowNegativeBalance = process.env.NEXT_PUBLIC_ALLOW_NEGATIVE_BALANCE === 'true';
+
+/**
+ * Modal que se abre automáticamente cuando el backend devuelve 402 (saldo insuficiente)
+ * durante una conversación en el chat.
+ *
+ * Si NEXT_PUBLIC_ALLOW_NEGATIVE_BALANCE=true, muestra un botón extra para continuar
+ * en modo crédito (saldo negativo permitido) sin bloquear el chat.
+ */
+const InsufficientBalanceModal = memo(() => {
+  const showInsufficientBalance = useChatStore((s) => s.showInsufficientBalance);
+
+  const handleClose = useCallback(() => {
+    useChatStore.setState({ showInsufficientBalance: false });
+  }, []);
+
+  const handleContinueInDebt = useCallback(() => {
+    useChatStore.setState({ showInsufficientBalance: false, negativeBalanceMode: true });
+  }, []);
+
+  const handleRecharge = useCallback(async (amount: number) => {
+    try {
+      const successUrl = `${window.location.origin}/settings/billing?recharge=success`;
+      const cancelUrl = `${window.location.origin}/chat`;
+
+      const result = await walletService.createRechargeSession(amount, successUrl, cancelUrl);
+
+      if (result.success && result.checkout_url) {
+        window.location.href = result.checkout_url;
+        return { success: true };
+      }
+
+      return {
+        error: result.error_message || 'Error al crear sesión de pago',
+        success: false,
+      };
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : 'Error desconocido',
+        success: false,
+      };
+    }
+  }, []);
+
+  return (
+    <RechargeModal
+      allowDebtMode={allowNegativeBalance}
+      isOpen={showInsufficientBalance}
+      onClose={handleClose}
+      onContinueInDebt={handleContinueInDebt}
+      onRecharge={handleRecharge}
+    />
+  );
+});
+
+InsufficientBalanceModal.displayName = 'InsufficientBalanceModal';
+
+export default InsufficientBalanceModal;
