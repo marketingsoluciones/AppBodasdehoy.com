@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface TrainingQuestion {
   category: 'basic' | 'emotional' | 'technical' | 'commercial';
@@ -88,7 +88,9 @@ const getCategoryConfig = (category: string) => {
 export default function TrainingPage() {
   const [questions, setQuestions] = useState<TrainingQuestion[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [newQuestion, setNewQuestion] = useState<{
     category: TrainingQuestion['category'];
     context: string;
@@ -103,6 +105,8 @@ export default function TrainingPage() {
     tags: '',
   });
 
+  const importRef = useRef<HTMLInputElement>(null);
+
   const loadQuestions = useCallback(() => {
     setQuestions(loadFromStorage());
   }, []);
@@ -110,6 +114,10 @@ export default function TrainingPage() {
   useEffect(() => {
     loadQuestions();
   }, [loadQuestions]);
+
+  const resetForm = useCallback(() => {
+    setNewQuestion({ category: 'basic', context: '', expectedAnswer: '', question: '', tags: '' });
+  }, []);
 
   const handleAddQuestion = useCallback(() => {
     if (!newQuestion.question || !newQuestion.expectedAnswer) {
@@ -135,33 +143,126 @@ export default function TrainingPage() {
       saveToStorage(next);
       return next;
     });
-    setNewQuestion({
-      category: 'basic',
-      context: '',
-      expectedAnswer: '',
-      question: '',
-      tags: '',
-    });
+    resetForm();
     setIsAddingNew(false);
-  }, [newQuestion]);
+  }, [newQuestion, resetForm]);
 
-  const handleDeleteQuestion = useCallback(
-    (id: string) => {
-      if (confirm('¿Estás seguro de eliminar esta pregunta?')) {
+  const handleSaveEdit = useCallback(() => {
+    if (!editingId || !newQuestion.question || !newQuestion.expectedAnswer) return;
+
+    setQuestions((prev) => {
+      const next = prev.map((q) =>
+        q.id === editingId
+          ? {
+              ...q,
+              category: newQuestion.category,
+              context: newQuestion.context,
+              expectedAnswer: newQuestion.expectedAnswer,
+              question: newQuestion.question,
+              tags: newQuestion.tags.split(',').map((t) => t.trim()).filter(Boolean),
+            }
+          : q,
+      );
+      saveToStorage(next);
+      return next;
+    });
+    resetForm();
+    setEditingId(null);
+  }, [editingId, newQuestion, resetForm]);
+
+  const handleStartEdit = useCallback((q: TrainingQuestion) => {
+    setEditingId(q.id);
+    setIsAddingNew(false);
+    setNewQuestion({
+      category: q.category,
+      context: q.context || '',
+      expectedAnswer: q.expectedAnswer,
+      question: q.question,
+      tags: q.tags.join(', '),
+    });
+  }, []);
+
+  const handleDuplicate = useCallback((q: TrainingQuestion) => {
+    const dup: TrainingQuestion = {
+      ...q,
+      id: `q_${Date.now()}`,
+      question: `${q.question} (copia)`,
+      createdAt: new Date().toISOString(),
+    };
+    setQuestions((prev) => {
+      const next = [...prev, dup];
+      saveToStorage(next);
+      return next;
+    });
+  }, []);
+
+  const handleDeleteQuestion = useCallback((id: string) => {
+    if (confirm('¿Estás seguro de eliminar esta pregunta?')) {
+      setQuestions((prev) => {
+        const next = prev.filter((q) => q.id !== id);
+        saveToStorage(next);
+        return next;
+      });
+    }
+  }, []);
+
+  const handleExport = useCallback(() => {
+    const blob = new Blob([JSON.stringify(questions, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `training-questions-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [questions]);
+
+  const handleImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target?.result as string);
+        if (!Array.isArray(data)) { alert('Formato inválido: se esperaba un array JSON'); return; }
+        const valid = data.filter(
+          (q: any) => q.question && q.expectedAnswer && q.category,
+        ) as TrainingQuestion[];
+        if (valid.length === 0) { alert('No se encontraron preguntas válidas'); return; }
         setQuestions((prev) => {
-          const next = prev.filter((q) => q.id !== id);
+          const existingIds = new Set(prev.map((q) => q.id));
+          const newOnes = valid.map((q) => ({
+            ...q,
+            id: existingIds.has(q.id) ? `q_${Date.now()}_${Math.random().toString(36).slice(2, 6)}` : q.id,
+            createdAt: q.createdAt || new Date().toISOString(),
+            tags: q.tags || [],
+          }));
+          const next = [...prev, ...newOnes];
           saveToStorage(next);
           return next;
         });
+        alert(`${valid.length} preguntas importadas`);
+      } catch {
+        alert('Error al parsear el archivo JSON');
       }
-    },
-    []
-  );
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }, []);
 
-  const filteredQuestions = useMemo(
-    () => (selectedCategory ? questions.filter((q) => q.category === selectedCategory) : questions),
-    [questions, selectedCategory]
-  );
+  const filteredQuestions = useMemo(() => {
+    let result = questions;
+    if (selectedCategory) result = result.filter((q) => q.category === selectedCategory);
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      result = result.filter(
+        (item) =>
+          item.question.toLowerCase().includes(q) ||
+          item.expectedAnswer.toLowerCase().includes(q) ||
+          item.tags.some((t) => t.toLowerCase().includes(q)),
+      );
+    }
+    return result;
+  }, [questions, selectedCategory, searchTerm]);
 
   const categoryCounts = useMemo(
     () => ({
@@ -170,26 +271,52 @@ export default function TrainingPage() {
       emotional: questions.filter((q) => q.category === 'emotional').length,
       technical: questions.filter((q) => q.category === 'technical').length,
     }),
-    [questions]
+    [questions],
   );
+
+  const isEditing = editingId !== null;
+  const showForm = isAddingNew || isEditing;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">🎓 Training Panel - Entrenamiento IA</h1>
+          <h1 className="text-3xl font-bold">Training Panel - Entrenamiento IA</h1>
           <p className="mt-2 text-gray-600">
             Gestiona preguntas y respuestas para mejorar el comportamiento de la IA
           </p>
         </div>
-        <button
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          onClick={() => setIsAddingNew(true)}
-          type="button"
-        >
-          ➕ Nueva Pregunta
-        </button>
+        <div className="flex gap-2">
+          <button
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            onClick={handleExport}
+            type="button"
+          >
+            Exportar JSON
+          </button>
+          <button
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            onClick={() => importRef.current?.click()}
+            type="button"
+          >
+            Importar JSON
+          </button>
+          <input
+            accept=".json"
+            className="hidden"
+            onChange={handleImport}
+            ref={importRef}
+            type="file"
+          />
+          <button
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            onClick={() => { setIsAddingNew(true); setEditingId(null); resetForm(); }}
+            type="button"
+          >
+            + Nueva Pregunta
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -199,96 +326,80 @@ export default function TrainingPage() {
           <div className="mt-1 text-2xl font-bold text-gray-900">{questions.length}</div>
         </div>
         <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-blue-50 to-blue-100 p-4">
-          <div className="text-sm text-gray-600">📚 Básicas</div>
+          <div className="text-sm text-gray-600">Básicas</div>
           <div className="mt-1 text-2xl font-bold text-blue-700">{categoryCounts.basic}</div>
         </div>
         <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-pink-50 to-pink-100 p-4">
-          <div className="text-sm text-gray-600">❤️ Emocionales</div>
+          <div className="text-sm text-gray-600">Emocionales</div>
           <div className="mt-1 text-2xl font-bold text-pink-700">{categoryCounts.emotional}</div>
         </div>
         <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-purple-50 to-purple-100 p-4">
-          <div className="text-sm text-gray-600">⚙️ Técnicas</div>
+          <div className="text-sm text-gray-600">Técnicas</div>
           <div className="mt-1 text-2xl font-bold text-purple-700">{categoryCounts.technical}</div>
         </div>
         <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-green-50 to-green-100 p-4">
-          <div className="text-sm text-gray-600">💰 Comerciales</div>
+          <div className="text-sm text-gray-600">Comerciales</div>
           <div className="mt-1 text-2xl font-bold text-green-700">{categoryCounts.commercial}</div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-4 rounded-lg border border-gray-200 bg-white p-4">
-        <button
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-            selectedCategory === '' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-          onClick={() => setSelectedCategory('')}
-          type="button"
-        >
-          Todas ({questions.length})
-        </button>
-        <button
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-            selectedCategory === 'basic' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-          onClick={() => setSelectedCategory('basic')}
-          type="button"
-        >
-          📚 Básicas ({categoryCounts.basic})
-        </button>
-        <button
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-            selectedCategory === 'emotional' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-          onClick={() => setSelectedCategory('emotional')}
-          type="button"
-        >
-          ❤️ Emocionales ({categoryCounts.emotional})
-        </button>
-        <button
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-            selectedCategory === 'technical' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-          onClick={() => setSelectedCategory('technical')}
-          type="button"
-        >
-          ⚙️ Técnicas ({categoryCounts.technical})
-        </button>
-        <button
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-            selectedCategory === 'commercial' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-          onClick={() => setSelectedCategory('commercial')}
-          type="button"
-        >
-          💰 Comerciales ({categoryCounts.commercial})
-        </button>
+      {/* Filters + Search */}
+      <div className="space-y-3">
+        <div className="flex gap-4 rounded-lg border border-gray-200 bg-white p-4">
+          <button
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              selectedCategory === '' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            onClick={() => setSelectedCategory('')}
+            type="button"
+          >
+            Todas ({questions.length})
+          </button>
+          {(['basic', 'emotional', 'technical', 'commercial'] as const).map((cat) => {
+            const config = getCategoryConfig(cat);
+            return (
+              <button
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                  selectedCategory === cat ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                type="button"
+              >
+                {config.icon} {config.name} ({categoryCounts[cat]})
+              </button>
+            );
+          })}
+        </div>
+        <input
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Buscar por pregunta, respuesta o tag..."
+          type="text"
+          value={searchTerm}
+        />
       </div>
 
-      {/* New Question Form */}
-      {isAddingNew && (
+      {/* Add/Edit Form */}
+      {showForm && (
         <div className="rounded-lg border border-gray-200 bg-white p-6">
-          <h2 className="mb-4 text-lg font-semibold">Nueva Pregunta de Entrenamiento</h2>
+          <h2 className="mb-4 text-lg font-semibold">
+            {isEditing ? 'Editar Pregunta' : 'Nueva Pregunta de Entrenamiento'}
+          </h2>
           <div className="space-y-4">
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">Categoría</label>
               <select
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
-                onChange={(e) =>
-                  setNewQuestion({
-                    ...newQuestion,
-                    category: e.target.value as TrainingQuestion['category'],
-                  })
-                }
+                onChange={(e) => setNewQuestion({ ...newQuestion, category: e.target.value as TrainingQuestion['category'] })}
                 value={newQuestion.category}
               >
-                <option value="basic">📚 Básicas</option>
-                <option value="emotional">❤️ Emocionales</option>
-                <option value="technical">⚙️ Técnicas</option>
-                <option value="commercial">💰 Comerciales</option>
+                <option value="basic">Básicas</option>
+                <option value="emotional">Emocionales</option>
+                <option value="technical">Técnicas</option>
+                <option value="commercial">Comerciales</option>
               </select>
             </div>
-
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Pregunta <span className="text-red-500">*</span>
@@ -301,7 +412,6 @@ export default function TrainingPage() {
                 value={newQuestion.question}
               />
             </div>
-
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">Contexto (opcional)</label>
               <input
@@ -312,7 +422,6 @@ export default function TrainingPage() {
                 value={newQuestion.context}
               />
             </div>
-
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Respuesta Esperada <span className="text-red-500">*</span>
@@ -325,11 +434,8 @@ export default function TrainingPage() {
                 value={newQuestion.expectedAnswer}
               />
             </div>
-
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Tags (separados por comas)
-              </label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Tags (separados por comas)</label>
               <input
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
                 onChange={(e) => setNewQuestion({ ...newQuestion, tags: e.target.value })}
@@ -338,21 +444,20 @@ export default function TrainingPage() {
                 value={newQuestion.tags}
               />
             </div>
-
             <div className="flex gap-2">
               <button
                 className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                onClick={handleAddQuestion}
+                onClick={isEditing ? handleSaveEdit : handleAddQuestion}
                 type="button"
               >
-                💾 Guardar Pregunta
+                {isEditing ? 'Guardar Cambios' : 'Guardar Pregunta'}
               </button>
               <button
                 className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                onClick={() => setIsAddingNew(false)}
+                onClick={() => { setIsAddingNew(false); setEditingId(null); resetForm(); }}
                 type="button"
               >
-                ✖️ Cancelar
+                Cancelar
               </button>
             </div>
           </div>
@@ -386,20 +491,36 @@ export default function TrainingPage() {
                     <p className="mt-1 text-sm text-gray-600">{question.expectedAnswer}</p>
                   </div>
                 </div>
-                <button
-                  className="ml-4 rounded-lg border border-red-300 px-3 py-1 text-sm text-red-600 hover:bg-red-50"
-                  onClick={() => handleDeleteQuestion(question.id)}
-                  type="button"
-                >
-                  🗑️ Eliminar
-                </button>
+                <div className="ml-4 flex flex-col gap-1">
+                  <button
+                    className="rounded-lg border border-blue-300 px-3 py-1 text-sm text-blue-600 hover:bg-blue-50"
+                    onClick={() => handleStartEdit(question)}
+                    type="button"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    className="rounded-lg border border-gray-300 px-3 py-1 text-sm text-gray-600 hover:bg-gray-50"
+                    onClick={() => handleDuplicate(question)}
+                    type="button"
+                  >
+                    Duplicar
+                  </button>
+                  <button
+                    className="rounded-lg border border-red-300 px-3 py-1 text-sm text-red-600 hover:bg-red-50"
+                    onClick={() => handleDeleteQuestion(question.id)}
+                    type="button"
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </div>
             </div>
           );
         })}
         {filteredQuestions.length === 0 && (
           <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-gray-500">
-            No hay preguntas en esta categoría
+            {searchTerm ? `Sin resultados para "${searchTerm}"` : 'No hay preguntas en esta categoría'}
           </div>
         )}
       </div>

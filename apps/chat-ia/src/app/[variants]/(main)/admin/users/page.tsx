@@ -12,6 +12,9 @@ interface User {
   status: 'active' | 'suspended';
 }
 
+type SortKey = 'name' | 'role' | 'eventsCount' | 'lastAccess' | 'status';
+type SortDir = 'asc' | 'desc';
+
 const getRoleBadge = (role: string) => {
   const configs: Record<string, { color: string; label: string }> = {
     CREATOR: { color: 'bg-purple-100 text-purple-700', label: 'Creador' },
@@ -21,9 +24,7 @@ const getRoleBadge = (role: string) => {
   };
   const config = configs[role] || { color: 'bg-gray-100 text-gray-700', label: role };
   return (
-    <span className={`rounded-full px-2 py-1 text-xs font-medium ${config.color}`}>
-      {config.label}
-    </span>
+    <span className={`rounded-full px-2 py-1 text-xs font-medium ${config.color}`}>{config.label}</span>
   );
 };
 
@@ -40,59 +41,44 @@ const formatLastAccess = (timestamp: string) => {
   return `Hace ${diffDays} días`;
 };
 
+function SortableHeader({ label, sortKey, currentSort, currentDir, onSort, className }: {
+  label: string; sortKey: SortKey; currentSort: SortKey; currentDir: SortDir;
+  onSort: (key: SortKey) => void; className?: string;
+}) {
+  const isActive = currentSort === sortKey;
+  return (
+    <th className={`px-4 py-3 cursor-pointer hover:bg-gray-100 select-none ${className || ''}`} onClick={() => onSort(sortKey)}>
+      <span className="flex items-center gap-1">
+        {label}
+        {isActive && <span className="text-blue-600">{currentDir === 'asc' ? '▲' : '▼'}</span>}
+      </span>
+    </th>
+  );
+}
+
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('');
+  const [sortKey, setSortKey] = useState<SortKey>('name');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 20;
 
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-
       // TODO: Implementar fetch real desde backend
-      // const response = await fetch('http://localhost:8030/api/admin/users?development=bodasdehoy');
-
-      // Datos de ejemplo
       const mockUsers: User[] = [
-        {
-          email: 'juan@example.com',
-          eventsCount: 5,
-          id: 'user_1',
-          lastAccess: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          name: 'Juan Pérez',
-          role: 'CREATOR',
-          status: 'active',
-        },
-        {
-          email: 'maria@example.com',
-          eventsCount: 2,
-          id: 'user_2',
-          lastAccess: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          name: 'María García',
-          role: 'SHARED_WRITE',
-          status: 'active',
-        },
-        {
-          email: 'carlos@example.com',
-          eventsCount: 1,
-          id: 'user_3',
-          lastAccess: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          name: 'Carlos López',
-          role: 'SHARED_READ',
-          status: 'active',
-        },
-        {
-          email: 'ana@example.com',
-          eventsCount: 0,
-          id: 'user_4',
-          lastAccess: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-          name: 'Ana Martínez',
-          role: 'GUEST',
-          status: 'suspended',
-        },
+        { email: 'juan@example.com', eventsCount: 5, id: 'user_1', lastAccess: new Date(Date.now() - 2 * 3_600_000).toISOString(), name: 'Juan Pérez', role: 'CREATOR', status: 'active' },
+        { email: 'maria@example.com', eventsCount: 2, id: 'user_2', lastAccess: new Date(Date.now() - 86_400_000).toISOString(), name: 'María García', role: 'SHARED_WRITE', status: 'active' },
+        { email: 'carlos@example.com', eventsCount: 1, id: 'user_3', lastAccess: new Date(Date.now() - 7 * 86_400_000).toISOString(), name: 'Carlos López', role: 'SHARED_READ', status: 'active' },
+        { email: 'ana@example.com', eventsCount: 0, id: 'user_4', lastAccess: new Date(Date.now() - 30 * 86_400_000).toISOString(), name: 'Ana Martínez', role: 'GUEST', status: 'suspended' },
+        { email: 'pedro@example.com', eventsCount: 3, id: 'user_5', lastAccess: new Date(Date.now() - 3 * 86_400_000).toISOString(), name: 'Pedro Sánchez', role: 'CREATOR', status: 'active' },
+        { email: 'laura@example.com', eventsCount: 1, id: 'user_6', lastAccess: new Date(Date.now() - 14 * 86_400_000).toISOString(), name: 'Laura Fernández', role: 'SHARED_READ', status: 'active' },
       ];
-
       setUsers(mockUsers);
     } catch (error) {
       console.error('Error al cargar usuarios:', error);
@@ -101,34 +87,71 @@ export default function UsersPage() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
-  const filteredUsers = useMemo(
-    () =>
-      users.filter((user) => {
-        const matchesSearch =
-          user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesRole = !selectedRole || user.role === selectedRole;
-        return matchesSearch && matchesRole;
-      }),
-    [users, searchTerm, selectedRole]
-  );
+  const handleSort = useCallback((key: SortKey) => {
+    setSortKey((prev) => {
+      if (prev === key) { setSortDir((d) => d === 'asc' ? 'desc' : 'asc'); return prev; }
+      setSortDir('asc');
+      return key;
+    });
+  }, []);
+
+  const filteredUsers = useMemo(() => {
+    let result = users.filter((user) => {
+      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesRole = !selectedRole || user.role === selectedRole;
+      return matchesSearch && matchesRole;
+    });
+    result = [...result].sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case 'name': cmp = a.name.localeCompare(b.name); break;
+        case 'role': cmp = a.role.localeCompare(b.role); break;
+        case 'eventsCount': cmp = a.eventsCount - b.eventsCount; break;
+        case 'lastAccess': cmp = new Date(a.lastAccess).getTime() - new Date(b.lastAccess).getTime(); break;
+        case 'status': cmp = a.status.localeCompare(b.status); break;
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return result;
+  }, [users, searchTerm, selectedRole, sortKey, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedUsers = filteredUsers.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds((prev) => {
+      if (prev.size === pagedUsers.length) return new Set();
+      return new Set(pagedUsers.map((u) => u.id));
+    });
+  }, [pagedUsers]);
+
+  const handleBulkAction = useCallback((action: 'suspend' | 'activate') => {
+    if (selectedIds.size === 0) return;
+    const label = action === 'suspend' ? 'suspender' : 'activar';
+    if (!confirm(`¿${label.charAt(0).toUpperCase() + label.slice(1)} ${selectedIds.size} usuario(s)?`)) return;
+    setUsers((prev) => prev.map((u) => selectedIds.has(u.id) ? { ...u, status: action === 'suspend' ? 'suspended' as const : 'active' as const } : u));
+    setSelectedIds(new Set());
+  }, [selectedIds]);
 
   const handleSuspendUser = useCallback((userId: string) => {
     if (confirm('¿Estás seguro de suspender este usuario?')) {
-      setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, status: 'suspended' as const } : u))
-      );
+      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, status: 'suspended' as const } : u)));
     }
   }, []);
 
   const handleActivateUser = useCallback((userId: string) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, status: 'active' as const } : u))
-    );
+    setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, status: 'active' as const } : u)));
   }, []);
 
   const handleDeleteUser = useCallback((userId: string) => {
@@ -137,24 +160,41 @@ export default function UsersPage() {
     }
   }, []);
 
-  const roleCounts = useMemo(
-    () => ({
-      CREATOR: users.filter((u) => u.role === 'CREATOR').length,
-      GUEST: users.filter((u) => u.role === 'GUEST').length,
-      SHARED_READ: users.filter((u) => u.role === 'SHARED_READ').length,
-      SHARED_WRITE: users.filter((u) => u.role === 'SHARED_WRITE').length,
-    }),
-    [users]
-  );
+  const handleExportCSV = useCallback(() => {
+    const headers = ['Nombre', 'Email', 'Rol', 'Eventos', 'Último Acceso', 'Estado'];
+    const rows = filteredUsers.map((u) => [u.name, u.email, u.role, u.eventsCount, new Date(u.lastAccess).toLocaleString('es-ES'), u.status]);
+    const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `users-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [filteredUsers]);
+
+  const roleCounts = useMemo(() => ({
+    CREATOR: users.filter((u) => u.role === 'CREATOR').length,
+    GUEST: users.filter((u) => u.role === 'GUEST').length,
+    SHARED_READ: users.filter((u) => u.role === 'SHARED_READ').length,
+    SHARED_WRITE: users.filter((u) => u.role === 'SHARED_WRITE').length,
+  }), [users]);
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">👥 Gestión de Usuarios</h1>
-        <p className="mt-2 text-gray-600">
-          Administra los usuarios, roles y permisos del sistema
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Gestión de Usuarios</h1>
+          <p className="mt-2 text-gray-600">Administra los usuarios, roles y permisos del sistema</p>
+        </div>
+        <button
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          onClick={handleExportCSV}
+          type="button"
+        >
+          Exportar CSV
+        </button>
       </div>
 
       {/* Stats */}
@@ -185,14 +225,14 @@ export default function UsersPage() {
       <div className="flex gap-4 rounded-lg border border-gray-200 bg-white p-4">
         <input
           className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="🔍 Buscar por nombre o email..."
+          onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+          placeholder="Buscar por nombre o email..."
           type="text"
           value={searchTerm}
         />
         <select
           className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
-          onChange={(e) => setSelectedRole(e.target.value)}
+          onChange={(e) => { setSelectedRole(e.target.value); setCurrentPage(1); }}
           value={selectedRole}
         >
           <option value="">Todos los roles</option>
@@ -203,37 +243,70 @@ export default function UsersPage() {
         </select>
         <button
           className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          onClick={() => {
-            setSearchTerm('');
-            setSelectedRole('');
-          }}
+          onClick={() => { setSearchTerm(''); setSelectedRole(''); setCurrentPage(1); }}
           type="button"
         >
-          🔄 Limpiar
+          Limpiar
         </button>
       </div>
 
+      {/* Bulk Actions */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
+          <span className="text-sm font-medium text-blue-700">{selectedIds.size} seleccionado(s)</span>
+          <button
+            className="rounded-lg bg-yellow-500 px-3 py-1 text-xs font-medium text-white hover:bg-yellow-600"
+            onClick={() => handleBulkAction('suspend')}
+            type="button"
+          >
+            Suspender
+          </button>
+          <button
+            className="rounded-lg bg-green-500 px-3 py-1 text-xs font-medium text-white hover:bg-green-600"
+            onClick={() => handleBulkAction('activate')}
+            type="button"
+          >
+            Activar
+          </button>
+          <button
+            className="ml-auto text-xs text-gray-500 hover:text-gray-700"
+            onClick={() => setSelectedIds(new Set())}
+            type="button"
+          >
+            Deseleccionar todo
+          </button>
+        </div>
+      )}
+
       {/* Users Table */}
       {loading ? (
-        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-gray-500">
-          Cargando usuarios...
-        </div>
+        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-gray-500">Cargando usuarios...</div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 text-xs uppercase text-gray-700">
               <tr>
-                <th className="px-4 py-3">Usuario</th>
-                <th className="px-4 py-3">Rol</th>
-                <th className="px-4 py-3 text-center">Eventos</th>
-                <th className="px-4 py-3">Último Acceso</th>
-                <th className="px-4 py-3">Estado</th>
+                <th className="px-4 py-3 w-10">
+                  <input
+                    checked={selectedIds.size === pagedUsers.length && pagedUsers.length > 0}
+                    onChange={toggleSelectAll}
+                    type="checkbox"
+                  />
+                </th>
+                <SortableHeader label="Usuario" sortKey="name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Rol" sortKey="role" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Eventos" sortKey="eventsCount" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} className="text-center" />
+                <SortableHeader label="Último Acceso" sortKey="lastAccess" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader label="Estado" sortKey="status" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
                 <th className="px-4 py-3 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user) => (
-                <tr className="border-b hover:bg-gray-50" key={user.id}>
+              {pagedUsers.map((user) => (
+                <tr className={`border-b hover:bg-gray-50 ${selectedIds.has(user.id) ? 'bg-blue-50' : ''}`} key={user.id}>
+                  <td className="px-4 py-3">
+                    <input checked={selectedIds.has(user.id)} onChange={() => toggleSelect(user.id)} type="checkbox" />
+                  </td>
                   <td className="px-4 py-3">
                     <div>
                       <div className="font-medium text-gray-900">{user.name}</div>
@@ -241,47 +314,23 @@ export default function UsersPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3">{getRoleBadge(user.role)}</td>
-                  <td className="px-4 py-3 text-center font-semibold text-gray-900">
-                    {user.eventsCount}
-                  </td>
+                  <td className="px-4 py-3 text-center font-semibold text-gray-900">{user.eventsCount}</td>
                   <td className="px-4 py-3 text-gray-600">{formatLastAccess(user.lastAccess)}</td>
                   <td className="px-4 py-3">
                     {user.status === 'active' ? (
-                      <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
-                        Activo
-                      </span>
+                      <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">Activo</span>
                     ) : (
-                      <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700">
-                        Suspendido
-                      </span>
+                      <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700">Suspendido</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
                       {user.status === 'active' ? (
-                        <button
-                          className="rounded-lg border border-yellow-300 px-2 py-1 text-xs text-yellow-600 hover:bg-yellow-50"
-                          onClick={() => handleSuspendUser(user.id)}
-                          type="button"
-                        >
-                          ⏸️ Suspender
-                        </button>
+                        <button className="rounded-lg border border-yellow-300 px-2 py-1 text-xs text-yellow-600 hover:bg-yellow-50" onClick={() => handleSuspendUser(user.id)} type="button">Suspender</button>
                       ) : (
-                        <button
-                          className="rounded-lg border border-green-300 px-2 py-1 text-xs text-green-600 hover:bg-green-50"
-                          onClick={() => handleActivateUser(user.id)}
-                          type="button"
-                        >
-                          ✅ Activar
-                        </button>
+                        <button className="rounded-lg border border-green-300 px-2 py-1 text-xs text-green-600 hover:bg-green-50" onClick={() => handleActivateUser(user.id)} type="button">Activar</button>
                       )}
-                      <button
-                        className="rounded-lg border border-red-300 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
-                        onClick={() => handleDeleteUser(user.id)}
-                        type="button"
-                      >
-                        🗑️ Eliminar
-                      </button>
+                      <button className="rounded-lg border border-red-300 px-2 py-1 text-xs text-red-600 hover:bg-red-50" onClick={() => handleDeleteUser(user.id)} type="button">Eliminar</button>
                     </div>
                   </td>
                 </tr>
@@ -289,10 +338,22 @@ export default function UsersPage() {
             </tbody>
           </table>
           {filteredUsers.length === 0 && (
-            <div className="p-8 text-center text-gray-500">
-              No se encontraron usuarios con los filtros aplicados
-            </div>
+            <div className="p-8 text-center text-gray-500">No se encontraron usuarios con los filtros aplicados</div>
           )}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            Mostrando {(safePage - 1) * PAGE_SIZE + 1} - {Math.min(safePage * PAGE_SIZE, filteredUsers.length)} de {filteredUsers.length}
+          </div>
+          <div className="flex gap-2">
+            <button className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled={safePage === 1} onClick={() => setCurrentPage((p) => p - 1)} type="button">Anterior</button>
+            <span className="flex items-center px-4 text-sm text-gray-600">Página {safePage} de {totalPages}</span>
+            <button className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled={safePage === totalPages} onClick={() => setCurrentPage((p) => p + 1)} type="button">Siguiente</button>
+          </div>
         </div>
       )}
     </div>

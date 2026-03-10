@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { EventosAutoAuth } from '@/features/EventosAutoAuth';
 
@@ -45,6 +45,39 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 }
 
+function getDateGroup(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / 86_400_000);
+
+  if (diffDays === 0 && date.getDate() === now.getDate()) return 'Hoy';
+  if (diffDays <= 7) return 'Esta semana';
+  return 'Anteriores';
+}
+
+const SNOOZE_KEY = 'bodas_snoozed_notifications';
+
+function getSnoozed(): Record<string, number> {
+  try {
+    const stored = localStorage.getItem(SNOOZE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch { return {}; }
+}
+
+function snoozeNotification(id: string, minutes: number) {
+  try {
+    const snoozed = getSnoozed();
+    snoozed[id] = Date.now() + minutes * 60_000;
+    localStorage.setItem(SNOOZE_KEY, JSON.stringify(snoozed));
+  } catch { /* ignore */ }
+}
+
+function isSnoozed(id: string): boolean {
+  const snoozed = getSnoozed();
+  return (snoozed[id] ?? 0) > Date.now();
+}
+
 export default function NotificationsPage() {
   const router = useRouter();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -53,6 +86,8 @@ export default function NotificationsPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [snoozeMenuId, setSnoozeMenuId] = useState<string | null>(null);
 
   const PAGE_SIZE = 30;
 
@@ -88,13 +123,42 @@ export default function NotificationsPage() {
     setUnreadCount(0);
   }, []);
 
+  const handleSnooze = useCallback((id: string, minutes: number) => {
+    snoozeNotification(id, minutes);
+    setSnoozeMenuId(null);
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
+
+  // Filter by search and snoozed
+  const displayNotifications = useMemo(() => {
+    let result = notifications.filter((n) => !isSnoozed(n.id));
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      result = result.filter((n) => n.message.toLowerCase().includes(q) || (n.resourceName || '').toLowerCase().includes(q));
+    }
+    return result;
+  }, [notifications, searchTerm]);
+
+  // Group by date
+  const groupedNotifications = useMemo(() => {
+    const groups: Record<string, AppNotification[]> = {};
+    for (const n of displayNotifications) {
+      const group = getDateGroup(n.createdAt);
+      if (!groups[group]) groups[group] = [];
+      groups[group].push(n);
+    }
+    return groups;
+  }, [displayNotifications]);
+
+  const groupOrder = ['Hoy', 'Esta semana', 'Anteriores'];
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <EventosAutoAuth />
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">🔔 Notificaciones</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Notificaciones</h1>
           {unreadCount > 0 && (
             <p className="mt-0.5 text-sm text-gray-500">{unreadCount} sin leer</p>
           )}
@@ -109,6 +173,17 @@ export default function NotificationsPage() {
             </button>
           )}
         </div>
+      </div>
+
+      {/* Search */}
+      <div className="mb-4">
+        <input
+          className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-pink-400 focus:outline-none"
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Buscar notificaciones..."
+          type="text"
+          value={searchTerm}
+        />
       </div>
 
       {/* Filter tabs */}
@@ -138,63 +213,103 @@ export default function NotificationsPage() {
           </div>
         )}
 
-        {!loading && notifications.length === 0 && (
+        {!loading && displayNotifications.length === 0 && (
           <div className="py-16 text-center">
             <div className="mb-3 text-5xl">🔔</div>
             <p className="text-gray-500">
-              {filter === 'unread' ? 'No tienes notificaciones sin leer' : 'No tienes notificaciones'}
+              {searchTerm ? `Sin resultados para "${searchTerm}"` : filter === 'unread' ? 'No tienes notificaciones sin leer' : 'No tienes notificaciones'}
             </p>
           </div>
         )}
 
-        {!loading && notifications.map((n) => {
-          const meta = TYPE_LABEL[n.type] || { icon: '🔔', label: n.type };
-          const url = getNotificationUrl(n);
-          const ext = getExternalUrl(n);
-          const isClickable = !!(url || ext);
+        {!loading && groupOrder.map((groupName) => {
+          const items = groupedNotifications[groupName];
+          if (!items || items.length === 0) return null;
 
           return (
-            <div
-              key={n.id}
-              onClick={() => handleClick(n)}
-              className={`flex items-start gap-3 rounded-xl px-4 py-3 transition-colors ${
-                n.read ? 'bg-white hover:bg-gray-50' : 'bg-pink-50 hover:bg-pink-100'
-              } ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
-            >
-              {/* Icon */}
-              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-lg">
-                {meta.icon}
+            <div key={groupName}>
+              <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm px-1 py-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                  {groupName}
+                </span>
               </div>
+              {items.map((n) => {
+                const meta = TYPE_LABEL[n.type] || { icon: '🔔', label: n.type };
+                const url = getNotificationUrl(n);
+                const ext = getExternalUrl(n);
+                const isClickable = !!(url || ext);
 
-              {/* Content */}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                      {meta.label}
-                      {n.resourceName && ` · ${n.resourceName}`}
-                    </span>
-                    <p className="mt-0.5 text-sm leading-snug text-gray-800">{n.message}</p>
-                  </div>
-                  <div className="flex shrink-0 flex-col items-end gap-1.5">
-                    <span className="text-xs text-gray-400 whitespace-nowrap">{timeAgo(n.createdAt)}</span>
-                    {!n.read && (
-                      <span className="h-2 w-2 rounded-full bg-pink-500" />
-                    )}
-                  </div>
-                </div>
+                return (
+                  <div
+                    key={n.id}
+                    className={`relative flex items-start gap-3 rounded-xl px-4 py-3 transition-colors ${
+                      n.read ? 'bg-white hover:bg-gray-50' : 'bg-pink-50 hover:bg-pink-100'
+                    } ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
+                  >
+                    {/* Main content - clickable */}
+                    <div className="flex-1 flex items-start gap-3" onClick={() => handleClick(n)}>
+                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-lg">
+                        {meta.icon}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                              {meta.label}
+                              {n.resourceName && ` · ${n.resourceName}`}
+                            </span>
+                            <p className="mt-0.5 text-sm leading-snug text-gray-800">{n.message}</p>
+                          </div>
+                          <div className="flex shrink-0 flex-col items-end gap-1.5">
+                            <span className="text-xs text-gray-400 whitespace-nowrap">{timeAgo(n.createdAt)}</span>
+                            {!n.read && <span className="h-2 w-2 rounded-full bg-pink-500" />}
+                          </div>
+                        </div>
+                        {isClickable && (
+                          <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-white border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+                            {url === '/messages' && '→ Ir a bandeja de mensajes'}
+                            {url === '/tasks' && '→ Ver tareas pendientes'}
+                            {url === '/settings' && '→ Ver configuración'}
+                            {url?.startsWith('/chat/') && '→ Abrir conversación'}
+                            {ext && '→ Ver en la app'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
-                {/* CTA chip */}
-                {isClickable && (
-                  <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-white border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-600">
-                    {url === '/messages' && '→ Ir a bandeja de mensajes'}
-                    {url === '/tasks' && '→ Ver tareas pendientes'}
-                    {url === '/settings' && '→ Ver configuración'}
-                    {url?.startsWith('/chat/') && '→ Abrir conversación'}
-                    {ext && '→ Ver en la app'}
-                  </span>
-                )}
-              </div>
+                    {/* Snooze button */}
+                    <div className="relative">
+                      <button
+                        className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                        onClick={(e) => { e.stopPropagation(); setSnoozeMenuId(snoozeMenuId === n.id ? null : n.id); }}
+                        title="Posponer"
+                        type="button"
+                      >
+                        ⏰
+                      </button>
+                      {snoozeMenuId === n.id && (
+                        <div className="absolute right-0 top-8 z-20 w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                          {[
+                            { label: '30 minutos', minutes: 30 },
+                            { label: '1 hora', minutes: 60 },
+                            { label: '4 horas', minutes: 240 },
+                            { label: 'Mañana', minutes: 1440 },
+                          ].map((opt) => (
+                            <button
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                              key={opt.minutes}
+                              onClick={(e) => { e.stopPropagation(); handleSnooze(n.id, opt.minutes); }}
+                              type="button"
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           );
         })}

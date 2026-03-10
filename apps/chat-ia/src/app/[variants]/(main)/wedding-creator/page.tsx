@@ -100,7 +100,7 @@ function useRequireRegisteredUser() {
         // ✅ DEBUG: En desarrollo, SIEMPRE permitir acceso sin config
         if (!rawConfig) {
           if (isDev) {
-            console.warn('⚠️ No hay config de usuario, pero permitiendo acceso en desarrollo');
+            // Dev mode: allow access without config
             setIsRegistered(true);
             setIsChecking(false);
             return;
@@ -118,7 +118,7 @@ function useRequireRegisteredUser() {
           }
           config = JSON.parse(rawConfig);
         } catch (parseError) {
-          console.warn('⚠️ Error parseando rawConfig:', parseError);
+          // Invalid JSON in dev-user-config
           config = null;
         }
         // NOTA: dev-login guarda como "userId" (camelCase), no "user_id"
@@ -128,7 +128,7 @@ function useRequireRegisteredUser() {
         if (!registered) {
           // ✅ DEBUG: En desarrollo, SIEMPRE permitir acceso
           if (isDev) {
-            console.warn('⚠️ Usuario no registrado, pero permitiendo acceso en desarrollo');
+            // Dev mode: allow unregistered user access
             setIsRegistered(true);
             setIsChecking(false);
             return;
@@ -144,7 +144,7 @@ function useRequireRegisteredUser() {
         console.error('Error checking auth:', err);
         // ✅ DEBUG: En desarrollo, SIEMPRE permitir acceso incluso con error
         if (isDev) {
-          console.warn('⚠️ Error en verificación, pero permitiendo acceso en desarrollo');
+          // Dev mode: allow access despite auth error
           setIsRegistered(true);
         } else {
           setError('Error al verificar autenticación');
@@ -203,7 +203,7 @@ function WeddingCreatorContent() {
           setEventId(loadedEventId);
         }
       } catch (error) {
-        console.warn('⚠️ Error obteniendo eventId:', error);
+        // Error loading eventId - non-critical
       }
     };
 
@@ -261,7 +261,7 @@ function WeddingCreatorContent() {
     if (legacyHook.addScheduleEvent) {
       legacyHook.addScheduleEvent(event);
     } else {
-      console.warn('addScheduleEvent no disponible');
+      // addScheduleEvent not yet available in GraphQL hook
     }
   }, [legacyHook]);
 
@@ -269,7 +269,7 @@ function WeddingCreatorContent() {
     if (legacyHook.updateScheduleEvent) {
       legacyHook.updateScheduleEvent(eventId, updates);
     } else {
-      console.warn('updateScheduleEvent no disponible');
+      // updateScheduleEvent not yet available in GraphQL hook
     }
   }, [legacyHook]);
 
@@ -277,7 +277,7 @@ function WeddingCreatorContent() {
     if (legacyHook.deleteScheduleEvent) {
       legacyHook.deleteScheduleEvent(eventId);
     } else {
-      console.warn('deleteScheduleEvent no disponible');
+      // deleteScheduleEvent not yet available in GraphQL hook
     }
   }, [legacyHook]);
 
@@ -456,13 +456,7 @@ function WeddingCreatorContent() {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Log metadata in dev mode
-      if (process.env.NODE_ENV === 'development' && response.metadata) {
-        console.log('AI Response metadata:', response.metadata);
-      }
-
-    } catch (error) {
-      console.error('Chat error:', error);
+    } catch (error: any) {
       const errorMessage: Message = {
         content: 'Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta de nuevo.\n\n💡 **Tip:** Puedes intentar reformular tu solicitud o usar comandos más específicos como:\n• "Cambia el nombre a..."\n• "Actualiza la fecha a..."\n• "Habilita la sección de..."',
         id: `error-${Date.now()}`,
@@ -577,6 +571,20 @@ function WeddingCreatorContent() {
     }
   };
 
+  // CMD+S keyboard shortcut to save
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        if (isDirty && _saveWedding) {
+          _saveWedding();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDirty, _saveWedding]);
+
   // ✅ FIX: Timeout para mostrar editor incluso si está cargando
   const [forceShow, setForceShow] = useState(false);
 
@@ -651,6 +659,16 @@ function WeddingCreatorContent() {
                   </svg>
                 </button>
                 <h1 className="text-lg font-semibold">Editor de Eventos & Bodas</h1>
+                {/* Auto-save indicator */}
+                {isSaving && (
+                  <span className="ml-2 text-xs text-gray-400 animate-pulse">Guardando...</span>
+                )}
+                {!isSaving && isDirty && (
+                  <span className="ml-2 text-xs text-yellow-500">Sin guardar</span>
+                )}
+                {!isSaving && !isDirty && wedding.id && (
+                  <span className="ml-2 text-xs text-green-500">Guardado</span>
+                )}
               </div>
               {/* ✅ FIX: Botón de reinicio siempre visible */}
               <button
