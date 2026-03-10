@@ -41,7 +41,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ onLoginSuccess }) => {
   };
 
   const handleSuccess = (data: any) => {
-    console.log('✅ Login exitoso:', data);
     messageApi.success('¡Bienvenido!');
     closeLoginModal();
     onLoginSuccess?.();

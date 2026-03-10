@@ -160,15 +160,7 @@ const fetchConversationHistory = async ({
   url.searchParams.set('email', email);
 
   try {
-  // ✅ DEBUG: Verificar token y headers
   const headers = buildAuthHeaders();
-  console.log('📡 [ConversationHistory] Realizando petición:', {
-    development,
-    email,
-    hasToken: !!headers.Authorization,
-    tokenPreview: headers.Authorization ? headers.Authorization.slice(0, 30) + '...' : 'none',
-    url: url.toString()
-  });
 
   const response = await fetch(url.toString(), {
     credentials: 'include',
@@ -184,15 +176,6 @@ const fetchConversationHistory = async ({
   }
 
   const data: ConversationHistoryResponse = await response.json();
-
-  // ✅ DEBUG: Ver respuesta del backend
-  console.log('📡 [ConversationHistory] Respuesta:', {
-    chatsCount: data.chats?.length || 0,
-    conversationsCount: data.conversations?.length || 0,
-    error: data.error,
-    source: data.source,
-    success: data.success
-  });
 
   if (!data.success) {
     throw new Error(data.error || 'No se pudieron cargar las conversaciones');

@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Table, Input, Select, Card, Statistic, Tag, Space, Button, Modal } from 'antd';
-import { SearchOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
+import { Table, Input, Select, Card, Statistic, Tag, Space, Button, Modal, DatePicker } from 'antd';
+import { SearchOutlined, ReloadOutlined, EyeOutlined, DownloadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import dayjs, { type Dayjs } from 'dayjs';
 
 const { Search } = Input;
 const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 interface RequestDebugInfo {
   channel?: string;
@@ -46,6 +48,80 @@ interface DebugResponse {
   total_count: number;
 }
 
+function exportToCsv(requests: RequestDebugInfo[], filename: string) {
+  const headers = ['ID', 'Fecha', 'Provider', 'Modelo', 'Tokens', 'Costo', 'Tiempo (ms)', 'Estado', 'Canal', 'Tools', 'Mensaje Enviado', 'Mensaje Recibido'];
+  const rows = requests.map((req) => [
+    req.id,
+    req.timestamp,
+    req.provider,
+    req.model,
+    req.tokens_used,
+    req.cost.toFixed(6),
+    req.processing_time_ms,
+    req.success ? 'OK' : 'Error',
+    req.channel || '',
+    req.tools_used.join('; '),
+    `"${(req.message_sent || '').replace(/"/g, '""')}"`,
+    `"${(req.message_received || '').replace(/"/g, '""')}"`,
+  ]);
+
+  const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function ErrorRateChart({ requests }: { requests: RequestDebugInfo[] }) {
+  // Group by provider and calculate error rates
+  const providerStats = useMemo(() => {
+    const stats: Record<string, { total: number; errors: number }> = {};
+    for (const req of requests) {
+      if (!stats[req.provider]) stats[req.provider] = { total: 0, errors: 0 };
+      stats[req.provider].total++;
+      if (!req.success) stats[req.provider].errors++;
+    }
+    return Object.entries(stats).map(([provider, s]) => ({
+      provider,
+      total: s.total,
+      errors: s.errors,
+      rate: s.total > 0 ? (s.errors / s.total) * 100 : 0,
+    }));
+  }, [requests]);
+
+  if (providerStats.length === 0) return null;
+
+  const maxRate = Math.max(...providerStats.map((p) => p.rate), 1);
+
+  return (
+    <Card title="Error Rate por Provider" size="small">
+      <div className="space-y-3">
+        {providerStats.map(({ provider, total, errors, rate }) => (
+          <div key={provider}>
+            <div className="mb-1 flex items-center justify-between text-sm">
+              <span className="font-medium">{provider}</span>
+              <span className={rate > 10 ? 'text-red-600' : rate > 5 ? 'text-orange-500' : 'text-green-600'}>
+                {rate.toFixed(1)}% ({errors}/{total})
+              </span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-gray-100">
+              <div
+                className={`h-2 rounded-full transition-all ${
+                  rate > 10 ? 'bg-red-500' : rate > 5 ? 'bg-orange-400' : 'bg-green-500'
+                }`}
+                style={{ width: `${(rate / Math.max(maxRate, 10)) * 100}%` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 export default function DebugPage() {
   const [data, setData] = useState<DebugResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,6 +135,7 @@ export default function DebugPage() {
   const [sessionFilter, setSessionFilter] = useState<string | undefined>();
   const [userFilter, setUserFilter] = useState<string | undefined>();
   const [searchText, setSearchText] = useState('');
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -85,24 +162,39 @@ export default function DebugPage() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 10_000); // Actualizar cada 10 segundos
+    const interval = setInterval(fetchData, 10_000);
     return () => clearInterval(interval);
   }, [providerFilter, sessionFilter, userFilter, viewMode]);
 
-  // Filtrar requests por búsqueda de texto
+  // Filtrar requests por búsqueda de texto y rango de fechas
   const filteredRequests = useMemo(() => {
     if (!data?.requests) return [];
-    if (!searchText) return data.requests;
+    let filtered = data.requests;
 
-    const searchLower = searchText.toLowerCase();
-    return data.requests.filter(req =>
-      req.message_sent?.toLowerCase().includes(searchLower) ||
-      req.message_received?.toLowerCase().includes(searchLower) ||
-      req.provider?.toLowerCase().includes(searchLower) ||
-      req.model?.toLowerCase().includes(searchLower) ||
-      req.tools_used.some(tool => tool.toLowerCase().includes(searchLower))
-    );
-  }, [data, searchText]);
+    // Date range filter
+    if (dateRange && dateRange[0] && dateRange[1]) {
+      const start = dateRange[0].startOf('day').valueOf();
+      const end = dateRange[1].endOf('day').valueOf();
+      filtered = filtered.filter((req) => {
+        const ts = new Date(req.timestamp).getTime();
+        return ts >= start && ts <= end;
+      });
+    }
+
+    // Text search filter
+    if (searchText) {
+      const searchLower = searchText.toLowerCase();
+      filtered = filtered.filter(req =>
+        req.message_sent?.toLowerCase().includes(searchLower) ||
+        req.message_received?.toLowerCase().includes(searchLower) ||
+        req.provider?.toLowerCase().includes(searchLower) ||
+        req.model?.toLowerCase().includes(searchLower) ||
+        req.tools_used.some(tool => tool.toLowerCase().includes(searchLower))
+      );
+    }
+
+    return filtered;
+  }, [data, searchText, dateRange]);
 
   const columns: ColumnsType<RequestDebugInfo> = [
     {
@@ -241,6 +333,13 @@ export default function DebugPage() {
           </p>
         </div>
         <Space>
+          <Button
+            icon={<DownloadOutlined />}
+            onClick={() => exportToCsv(filteredRequests, `debug-requests-${dayjs().format('YYYY-MM-DD')}.csv`)}
+            disabled={filteredRequests.length === 0}
+          >
+            Export CSV
+          </Button>
           <Select
             onChange={setViewMode}
             style={{ width: 120 }}
@@ -296,18 +395,34 @@ export default function DebugPage() {
         </div>
       )}
 
+      {/* Error Rate Chart */}
+      {filteredRequests.length > 0 && (
+        <ErrorRateChart requests={filteredRequests} />
+      )}
+
       {/* Filtros */}
       <Card title="Filtros">
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-          <Search
-            allowClear
-            enterButton={<SearchOutlined />}
-            onChange={(e) => setSearchText(e.target.value)}
-            onSearch={setSearchText}
-            placeholder="Buscar en mensajes, providers, modelos, tools..."
-            size="large"
-            value={searchText}
-          />
+          <div className="flex flex-wrap gap-4">
+            <Search
+              allowClear
+              enterButton={<SearchOutlined />}
+              onChange={(e) => setSearchText(e.target.value)}
+              onSearch={setSearchText}
+              placeholder="Buscar en mensajes, providers, modelos, tools..."
+              size="large"
+              style={{ flex: 1, minWidth: 300 }}
+              value={searchText}
+            />
+            <RangePicker
+              size="large"
+              format="DD/MM/YYYY"
+              placeholder={['Desde', 'Hasta']}
+              onChange={(dates) => setDateRange(dates)}
+              value={dateRange}
+              allowClear
+            />
+          </div>
           <Space wrap>
             <Select
               allowClear
@@ -471,36 +586,3 @@ export default function DebugPage() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

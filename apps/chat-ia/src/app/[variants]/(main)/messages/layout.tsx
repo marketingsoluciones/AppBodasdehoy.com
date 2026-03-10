@@ -5,6 +5,9 @@ interface MessagesLayoutProps {
 }
 
 export default function MessagesLayout({ children }: MessagesLayoutProps) {
-  return <div className="flex h-full overflow-hidden bg-white">{children}</div>;
+  return (
+    <div className="flex h-full overflow-hidden bg-white">
+      {children}
+    </div>
+  );
 }
-

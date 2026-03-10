@@ -27,11 +27,3 @@ if (typeof window !== 'undefined') {
 // Exportar configuración
 export { firebaseConfig };
 
-// Verificar configuración en desarrollo
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  console.log('🔥 Firebase inicializado:', {
-    authDomain: firebaseConfig.authDomain,
-    currentOrigin: window.location.origin,
-    projectId: firebaseConfig.projectId,
-  });
-}

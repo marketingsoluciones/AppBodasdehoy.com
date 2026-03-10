@@ -144,7 +144,6 @@ const InvoiceDetail = memo<InvoiceDetailProps>(({ invoiceId, onBack }) => {
 
   const handleDownloadPDF = async () => {
     try {
-      console.log('🔍 [InvoiceDetail] Descargando PDF de factura:', invoiceId);
       const result = await downloadInvoicePDF(invoiceId);
       if (!result.success) {
         console.error('❌ [InvoiceDetail] Error al descargar PDF:', result.error_message);
@@ -169,7 +168,7 @@ const InvoiceDetail = memo<InvoiceDetailProps>(({ invoiceId, onBack }) => {
         });
       } catch (err) {
         // Usuario canceló o error
-        console.log('Error compartiendo:', err);
+        console.error('Error compartiendo:', err);
       }
     } else {
       // Fallback: copiar URL al portapapeles

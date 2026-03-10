@@ -1,7 +1,9 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Conversation } from '../hooks/useConversations';
+import { useConversationActions } from '../hooks/useConversationActions';
 import { ChannelBadge } from './ChannelBadge';
 
 interface ConversationItemProps {
@@ -9,100 +11,209 @@ interface ConversationItemProps {
   isSelected?: boolean;
 }
 
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60_000);
-    const diffHours = Math.floor(diffMs / 3_600_000);
-    const diffDays = Math.floor(diffMs / 86_400_000);
+const formatTimestamp = (timestamp: string) => {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60_000);
+  const diffHours = Math.floor(diffMs / 3_600_000);
+  const diffDays = Math.floor(diffMs / 86_400_000);
 
-    if (diffMins < 1) return 'Ahora';
-    if (diffMins < 60) return `${diffMins}m`;
-    if (diffHours < 24) return `${diffHours}h`;
-    if (diffDays < 7) return `${diffDays}d`;
-    return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+  if (diffMins < 1) return 'Ahora';
+  if (diffMins < 60) return `${diffMins}m`;
+  if (diffHours < 24) return `${diffHours}h`;
+  if (diffDays < 7) return `${diffDays}d`;
+  return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
 };
+
+function TypingIndicator() {
+  return (
+    <span className="inline-flex items-center gap-0.5 text-xs text-blue-600 italic">
+      <span>Escribiendo</span>
+      <span className="flex gap-px">
+        <span className="h-1 w-1 animate-bounce rounded-full bg-blue-500" style={{ animationDelay: '0ms' }} />
+        <span className="h-1 w-1 animate-bounce rounded-full bg-blue-500" style={{ animationDelay: '150ms' }} />
+        <span className="h-1 w-1 animate-bounce rounded-full bg-blue-500" style={{ animationDelay: '300ms' }} />
+      </span>
+    </span>
+  );
+}
 
 export function ConversationItem({
   conversation,
   isSelected,
 }: ConversationItemProps) {
   const router = useRouter();
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const { isMuted, toggleArchive, toggleMute, deleteConversation } = useConversationActions();
+
+  // Simulate presence based on recent activity
+  const lastMsgTime = new Date(conversation.lastMessage.timestamp).getTime();
+  const minutesAgo = (Date.now() - lastMsgTime) / 60_000;
+  const isOnline = minutesAgo < 5;
+
+  // Simulate typing (randomly for demo — in production this comes from websocket)
+  const isTyping = false; // Would come from real-time state
+
+  // Close context menu on outside click, scroll, or Escape
+  useEffect(() => {
+    if (!contextMenu) return;
+    const close = () => setContextMenu(null);
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('scroll', close, true);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('scroll', close, true);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [contextMenu]);
 
   const handleClick = () => {
-    router.push(
-      `/messages/${conversation.channel}/${conversation.id}`
-    );
+    router.push(`/messages/${conversation.channel}/${conversation.id}`);
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  };
+
+  const conversationMuted = isMuted(conversation.id);
+
+  const handleMenuAction = (action: string) => {
+    setContextMenu(null);
+    switch (action) {
+      case 'archive':
+        toggleArchive(conversation.id);
+        break;
+      case 'mute':
+        toggleMute(conversation.id);
+        break;
+      case 'delete':
+        deleteConversation(conversation.id);
+        break;
+    }
   };
 
   return (
-    <button
-      className={`w-full text-left transition-colors ${
-        isSelected
-          ? 'bg-blue-50 border-l-4 border-blue-600'
-          : 'hover:bg-gray-50'
-      }`}
-      onClick={handleClick}
-      type="button"
-    >
-      <div className="flex items-start gap-3 p-4">
-        {/* Avatar */}
-        <div className="relative flex-shrink-0">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-lg font-semibold text-white">
-            {conversation.contact.name.charAt(0).toUpperCase()}
-          </div>
-          {conversation.unreadCount > 0 && (
-            <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
-              {conversation.unreadCount}
+    <>
+      <button
+        className={`w-full text-left transition-colors ${
+          isSelected
+            ? 'bg-blue-50 border-l-4 border-blue-600'
+            : 'hover:bg-gray-50'
+        }`}
+        onClick={handleClick}
+        onContextMenu={handleContextMenu}
+        type="button"
+      >
+        <div className="flex items-start gap-3 p-4">
+          {/* Avatar with presence indicator */}
+          <div className="relative flex-shrink-0">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-lg font-semibold text-white">
+              {conversation.contact.name.charAt(0).toUpperCase()}
             </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="min-w-0 flex-1">
-          {/* Header */}
-          <div className="mb-1 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <h3
-                className={`truncate text-sm font-semibold ${
-                  conversation.unreadCount > 0
-                    ? 'text-gray-900'
-                    : 'text-gray-700'
-                }`}
-              >
-                {conversation.contact.name}
-              </h3>
-              <ChannelBadge channel={conversation.channel} size="sm" />
-            </div>
-            <span className="flex-shrink-0 text-xs text-gray-500">
-              {formatTimestamp(conversation.lastMessage.timestamp)}
-            </span>
-          </div>
-
-          {/* Last Message */}
-          <div className="flex items-center gap-2">
-            {!conversation.lastMessage.fromUser && (
-              <span className="text-xs text-blue-600">Tú:</span>
+            {/* Unread badge */}
+            {conversation.unreadCount > 0 && (
+              <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                {conversation.unreadCount}
+              </div>
             )}
-            <p
-              className={`truncate text-sm ${
-                conversation.unreadCount > 0
-                  ? 'font-medium text-gray-900'
-                  : 'text-gray-600'
+            {/* Presence dot */}
+            <span
+              aria-label={isOnline ? 'En línea' : 'Desconectado'}
+              className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white ${
+                isOnline ? 'bg-green-500' : 'bg-gray-300'
               }`}
-            >
-              {conversation.lastMessage.text}
-            </p>
+            />
           </div>
 
-          {/* Contact Info */}
-          <div className="mt-1 text-xs text-gray-500">
-            {conversation.contact.phone || conversation.contact.username || ''}
+          {/* Content */}
+          <div className="min-w-0 flex-1">
+            {/* Header */}
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <h3
+                  className={`truncate text-sm font-semibold ${
+                    conversation.unreadCount > 0
+                      ? 'text-gray-900'
+                      : 'text-gray-700'
+                  }`}
+                >
+                  {conversation.contact.name}
+                </h3>
+                <ChannelBadge channel={conversation.channel} size="sm" />
+              </div>
+              <span className="flex-shrink-0 text-xs text-gray-500">
+                {formatTimestamp(conversation.lastMessage.timestamp)}
+              </span>
+            </div>
+
+            {/* Last Message or Typing */}
+            {isTyping ? (
+              <TypingIndicator />
+            ) : (
+              <div className="flex items-center gap-2">
+                {!conversation.lastMessage.fromUser && (
+                  <span className="text-xs text-blue-600">Tú:</span>
+                )}
+                <p
+                  className={`truncate text-sm ${
+                    conversation.unreadCount > 0
+                      ? 'font-medium text-gray-900'
+                      : 'text-gray-600'
+                  }`}
+                >
+                  {conversation.lastMessage.text}
+                </p>
+              </div>
+            )}
+
+            {/* Contact Info */}
+            <div className="mt-1 text-xs text-gray-500">
+              {conversation.contact.phone || conversation.contact.username || ''}
+            </div>
           </div>
         </div>
-      </div>
-    </button>
+      </button>
+
+      {/* Context menu */}
+      {contextMenu && (
+        <div
+          ref={menuRef}
+          className="fixed z-50 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <button
+            aria-label="Archivar conversación"
+            className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+            onClick={() => handleMenuAction('archive')}
+            type="button"
+          >
+            📦 Archivar
+          </button>
+          <button
+            aria-label={conversationMuted ? 'Activar sonido' : 'Silenciar conversación'}
+            className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+            onClick={() => handleMenuAction('mute')}
+            type="button"
+          >
+            {conversationMuted ? '🔔 Activar sonido' : '🔇 Silenciar'}
+          </button>
+          <div className="my-1 h-px bg-gray-100" />
+          <button
+            aria-label="Eliminar conversación"
+            className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+            onClick={() => handleMenuAction('delete')}
+            type="button"
+          >
+            🗑️ Eliminar
+          </button>
+        </div>
+      )}
+    </>
   );
 }
-

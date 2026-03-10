@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
+import { useConversationActions } from '../hooks/useConversationActions';
 import { useConversations } from '../hooks/useConversations';
 import { useWhatsAppSession } from '../hooks/useWhatsAppSession';
 import { ConversationItem } from './ConversationItem';
@@ -41,19 +42,44 @@ function WhatsAppConversationList({ development, selectedId }: { development: st
   return <ConversationListInner channel="whatsapp" selectedId={selectedId} />;
 }
 
+type SortMode = 'recent' | 'unread';
+
 function ConversationListInner({ channel, selectedId }: ConversationListProps) {
   const { conversations, loading, error } = useConversations(channel);
+  const { isArchived } = useConversationActions();
   const [search, setSearch] = useState('');
+  const [sortMode, setSortMode] = useState<SortMode>('recent');
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return conversations;
-    const q = search.toLowerCase();
-    return conversations.filter(
-      (c) =>
-        c.contact.name.toLowerCase().includes(q) ||
-        c.lastMessage.text.toLowerCase().includes(q),
-    );
-  }, [conversations, search]);
+    // Hide archived conversations
+    let list = conversations.filter((c) => !isArchived(c.id));
+
+    // Search filter
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (c) =>
+          c.contact.name.toLowerCase().includes(q) ||
+          c.lastMessage.text.toLowerCase().includes(q),
+      );
+    }
+
+    // Sort
+    if (sortMode === 'unread') {
+      list = [...list].sort((a, b) => {
+        if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
+        if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
+        return new Date(b.lastMessage.timestamp).getTime() - new Date(a.lastMessage.timestamp).getTime();
+      });
+    }
+
+    return list;
+  }, [conversations, search, sortMode]);
+
+  const totalUnread = useMemo(
+    () => conversations.reduce((n, c) => n + c.unreadCount, 0),
+    [conversations],
+  );
 
   if (loading) {
     return (
@@ -95,7 +121,28 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
     <div className="h-full overflow-auto">
       {/* Header */}
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-white p-4">
-        <h2 className="text-lg font-semibold text-gray-900">Conversaciones</h2>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-gray-900">Conversaciones</h2>
+            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+              {conversations.length}
+            </span>
+            {totalUnread > 0 && (
+              <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
+                {totalUnread} sin leer
+              </span>
+            )}
+          </div>
+          {/* Sort toggle */}
+          <button
+            className="rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 transition-colors"
+            onClick={() => setSortMode((m) => (m === 'recent' ? 'unread' : 'recent'))}
+            title={sortMode === 'recent' ? 'Ordenar: no leídos primero' : 'Ordenar: recientes primero'}
+            type="button"
+          >
+            {sortMode === 'recent' ? '🕐 Recientes' : '🔴 No leídos'}
+          </button>
+        </div>
         <div className="mt-2">
           <input
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"

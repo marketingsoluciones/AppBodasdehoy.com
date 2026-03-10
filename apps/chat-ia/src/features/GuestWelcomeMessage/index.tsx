@@ -102,7 +102,7 @@ function GuestWelcomeMessage() {
 
   const handleRegister = () => {
     const isTest = typeof window !== 'undefined' && window.location.hostname.includes('-test.');
-    const appBase = isTest ? 'https://app-test.bodasdehoy.com' : 'https://app.bodasdehoy.com';
+    const appBase = isTest ? 'https://app-test.bodasdehoy.com' : 'https://organizador.bodasdehoy.com';
     window.open(`${appBase}/login?q=register`, '_blank');
   };
 
@@ -140,7 +140,7 @@ function GuestWelcomeMessage() {
   };
 
   const isTestEnv = typeof window !== 'undefined' && window.location.hostname.includes('-test.');
-  const registerUrl = `${isTestEnv ? 'https://app-test.bodasdehoy.com' : 'https://app.bodasdehoy.com'}/login?q=register`;
+  const registerUrl = `${isTestEnv ? 'https://app-test.bodasdehoy.com' : 'https://organizador.bodasdehoy.com'}/login?q=register`;
 
   const welcomeMessage = `¡Hola! 👋 Bienvenido a **Bodas de Hoy**, la plataforma #1 para organizar tu boda o evento en España.
 

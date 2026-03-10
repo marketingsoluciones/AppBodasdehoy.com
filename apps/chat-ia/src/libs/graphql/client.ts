@@ -64,10 +64,6 @@ const authLink = new SetContextLink((prevContext) => {
   // ✅ NUEVO: Obtener supportKey según el development
   const supportKey = getSupportKey(currentDevelopment);
 
-  console.log(
-    `🔐 GraphQL headers: Origin=${originHeader}, Development=${currentDevelopment}, SupportKey=${supportKey}`,
-  );
-
   // Retornar headers extendidos
   const headers = prevContext.headers || {};
   return {

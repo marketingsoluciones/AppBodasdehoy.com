@@ -65,7 +65,6 @@ const isProviderFetchOnClient =
       const { USE_PYTHON_BACKEND, PYTHON_BACKEND_URL } = getPythonBackendConfig();
 
       if (USE_PYTHON_BACKEND && PYTHON_BACKEND_URL) {
-        console.log(`✅ Backend Python activado - provider: ${provider} - forzando request al servidor (evita validación de API keys en cliente)`);
         return false; // Forzar en servidor cuando se usa backend Python
       }
     } catch (e) {

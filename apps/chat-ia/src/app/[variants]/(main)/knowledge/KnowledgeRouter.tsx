@@ -38,10 +38,8 @@ function useRequireRegisteredUser() {
     const checkAuth = () => {
       try {
         const rawConfig = localStorage.getItem('dev-user-config');
-        console.log('🔍 KnowledgeRouter: Verificando acceso...', { hasConfig: !!rawConfig });
 
         if (!rawConfig) {
-          console.log('❌ KnowledgeRouter: No hay config en localStorage, redirigiendo a /chat');
           router.replace('/chat');
           setIsChecking(false);
           return;
@@ -61,12 +59,6 @@ function useRequireRegisteredUser() {
         // NOTA: dev-login guarda como "userId" (camelCase), no "user_id"
         const userId = config?.userId || config?.user_id;
 
-        console.log('🔍 KnowledgeRouter: Config encontrada', {
-          developer: config?.developer,
-          userId: userId?.slice(0, 20),
-          userType: config?.user_type
-        });
-
         // ✅ CORREGIDO: Aceptar cualquier userId válido (email, teléfono, etc.)
         // Excluir solo valores genéricos de invitado
         const isValidUser = !!(
@@ -78,13 +70,11 @@ function useRequireRegisteredUser() {
         );
 
         if (!isValidUser) {
-          console.log('❌ KnowledgeRouter: Usuario no válido, redirigiendo a /chat');
           router.replace('/chat');
           setIsChecking(false);
           return;
         }
 
-        console.log('✅ KnowledgeRouter: Acceso permitido para:', userId);
         setIsRegistered(true);
       } catch (error) {
         console.error('❌ KnowledgeRouter: Error verificando acceso:', error);

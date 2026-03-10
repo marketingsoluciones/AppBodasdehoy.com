@@ -86,6 +86,7 @@ export default function NotificationsPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [snoozeMenuId, setSnoozeMenuId] = useState<string | null>(null);
 
@@ -129,15 +130,24 @@ export default function NotificationsPage() {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   }, []);
 
-  // Filter by search and snoozed
+  // Filter by search, type, and snoozed
   const displayNotifications = useMemo(() => {
     let result = notifications.filter((n) => !isSnoozed(n.id));
+    if (typeFilter) {
+      result = result.filter((n) => n.type === typeFilter);
+    }
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
       result = result.filter((n) => n.message.toLowerCase().includes(q) || (n.resourceName || '').toLowerCase().includes(q));
     }
     return result;
-  }, [notifications, searchTerm]);
+  }, [notifications, searchTerm, typeFilter]);
+
+  // Available types from current notifications
+  const availableTypes = useMemo(() => {
+    const types = new Set(notifications.map((n) => n.type));
+    return Array.from(types);
+  }, [notifications]);
 
   // Group by date
   const groupedNotifications = useMemo(() => {
@@ -172,6 +182,13 @@ export default function NotificationsPage() {
               Marcar todas como leídas
             </button>
           )}
+          <button
+            className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
+            onClick={() => load(1, filter)}
+            type="button"
+          >
+            {loading ? '⏳' : '🔄'}
+          </button>
         </div>
       </div>
 
@@ -202,6 +219,36 @@ export default function NotificationsPage() {
           </button>
         ))}
       </div>
+
+      {/* Type filter chips */}
+      {availableTypes.length > 1 && (
+        <div className="mb-4 flex flex-wrap gap-1.5">
+          <button
+            className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+              !typeFilter ? 'bg-pink-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+            onClick={() => setTypeFilter(null)}
+            type="button"
+          >
+            Todos
+          </button>
+          {availableTypes.map((t) => {
+            const meta = TYPE_LABEL[t] || { icon: '🔔', label: t };
+            return (
+              <button
+                key={t}
+                className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                  typeFilter === t ? 'bg-pink-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+                onClick={() => setTypeFilter(typeFilter === t ? null : t)}
+                type="button"
+              >
+                {meta.icon} {meta.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* List */}
       <div className="space-y-1">

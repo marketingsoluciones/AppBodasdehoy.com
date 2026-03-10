@@ -118,7 +118,7 @@ const FeatureGate = memo<FeatureGateProps>(({
         </div>
         <Flexbox gap={10} horizontal style={{ flexWrap: 'wrap', justifyContent: 'center', marginTop: 8 }}>
           <Button
-            href="https://app.bodasdehoy.com/login"
+            href="https://organizador.bodasdehoy.com/login"
             icon={<Sparkles size={15} />}
             size="large"
             style={{ fontWeight: 600 }}
@@ -127,7 +127,7 @@ const FeatureGate = memo<FeatureGateProps>(({
           >
             Crear cuenta gratis
           </Button>
-          <Button href="https://app.bodasdehoy.com/login" size="large" target="_parent">
+          <Button href="https://organizador.bodasdehoy.com/login" size="large" target="_parent">
             Iniciar sesión
           </Button>
         </Flexbox>

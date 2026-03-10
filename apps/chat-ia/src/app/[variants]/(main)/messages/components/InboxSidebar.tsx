@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useInboxChannels } from '../hooks/useInboxChannels';
 import type { InboxChannel, EventGroup } from '../hooks/useInboxChannels';
@@ -269,6 +269,23 @@ export function InboxSidebar() {
   const { tasks: pendingTasks, loading: tasksLoading } = usePendingTasksSidebar();
   const { conversations: recentConvs, loading: convsLoading } = useRecentConversations(12);
 
+  // Quick search
+  const [sidebarSearch, setSidebarSearch] = useState('');
+  const filteredTasks = useMemo(() => {
+    if (!sidebarSearch.trim()) return pendingTasks;
+    const q = sidebarSearch.toLowerCase();
+    return pendingTasks.filter(
+      (t) => t.tarea.descripcion.toLowerCase().includes(q) || t.itinerarioTitle.toLowerCase().includes(q),
+    );
+  }, [pendingTasks, sidebarSearch]);
+  const filteredConvs = useMemo(() => {
+    if (!sidebarSearch.trim()) return recentConvs;
+    const q = sidebarSearch.toLowerCase();
+    return recentConvs.filter(
+      (c) => c.name.toLowerCase().includes(q) || c.lastMessage?.toLowerCase().includes(q),
+    );
+  }, [recentConvs, sidebarSearch]);
+
   // Unread notifications count (poll every 60s)
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   useEffect(() => {
@@ -337,15 +354,26 @@ export function InboxSidebar() {
         )}
       </div>
 
+      {/* ── search ──────────────────────────────────────────────────────── */}
+      <div className="px-3 py-2">
+        <input
+          className="w-full rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs placeholder:text-gray-400 focus:border-blue-400 focus:outline-none"
+          onChange={(e) => setSidebarSearch(e.target.value)}
+          placeholder="Buscar tareas, chats..."
+          type="text"
+          value={sidebarSearch}
+        />
+      </div>
+
       {/* ── body (scrollable) ──────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto py-2">
 
         {/* ── Tareas pendientes ── */}
-        {!tasksLoading && pendingTasks.length > 0 && (
+        {!tasksLoading && filteredTasks.length > 0 && (
           <>
             <SectionLabel label="Tareas pendientes" />
             <div className="space-y-1 px-2">
-              {pendingTasks.map((item) => (
+              {filteredTasks.map((item) => (
                 <TaskRow
                   isActive={isTaskChannel && activeConvId === item.tarea._id}
                   item={item}
@@ -358,12 +386,12 @@ export function InboxSidebar() {
         )}
 
         {/* ── Mensajes externos (WhatsApp / Instagram / etc.) ordenados por reciente ── */}
-        {!convsLoading && recentConvs.length > 0 && (
+        {!convsLoading && filteredConvs.length > 0 && (
           <>
             <SectionLabel label="WhatsApp / Redes" />
             {/* compact list — less spacing between rows */}
             <div className="space-y-0 px-2">
-              {recentConvs.map((conv) => (
+              {filteredConvs.map((conv) => (
                 <ConversationRow
                   conv={conv}
                   isActive={isOnMessages && activeChannel === conv.channelParam && activeConvId === conv.conversationId}
@@ -376,7 +404,7 @@ export function InboxSidebar() {
         )}
 
         {/* ── Mensajería (fallback si no hay convs aún — muestra canales conectados) ── */}
-        {!convsLoading && recentConvs.length === 0 && (
+        {!convsLoading && filteredConvs.length === 0 && !sidebarSearch.trim() && (
           <>
             <SectionLabel label="Mensajería" />
             <div className="space-y-0.5 px-2">

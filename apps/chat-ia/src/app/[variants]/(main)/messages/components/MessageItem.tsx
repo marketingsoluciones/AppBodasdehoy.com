@@ -9,6 +9,7 @@ import { Message } from '../hooks/useMessages';
 
 interface MessageItemProps {
   message: Message;
+  compact?: boolean;
 }
 
 const formatTime = (timestamp: string) => {
@@ -32,7 +33,7 @@ const getStatusIcon = (status?: string) => {
   }
 };
 
-export function MessageItem({ message }: MessageItemProps) {
+export function MessageItem({ message, compact }: MessageItemProps) {
   const isFromUser = message.fromUser;
   const [feedback, setFeedback] = useState<FeedbackRating | null>(null);
 
@@ -45,10 +46,10 @@ export function MessageItem({ message }: MessageItemProps) {
   return (
     <div className={`flex ${isFromUser ? 'justify-start' : 'justify-end'}`}>
       <div
-        className={`group max-w-[70%] rounded-2xl px-4 py-2 ${
+        className={`group max-w-[70%] px-4 ${compact ? 'py-0.5' : 'py-2'} ${
           isFromUser
-            ? 'bg-white shadow-sm'
-            : 'bg-blue-600 text-white shadow-md'
+            ? `bg-white shadow-sm ${compact ? 'rounded-lg' : 'rounded-2xl'}`
+            : `bg-blue-600 text-white shadow-md ${compact ? 'rounded-lg' : 'rounded-2xl'}`
         }`}
       >
         {/* Message Text */}

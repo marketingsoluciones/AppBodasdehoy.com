@@ -21,7 +21,6 @@ export class ServerService implements ISessionService {
   batchCreateSessions: ISessionService['batchCreateSessions'] = async (importSessions) => {
     // TODO: remove any
     const data = await lambdaClient.session.batchCreateSessions.mutate(importSessions as any);
-    console.log(data);
     return data;
   };
 

@@ -47,9 +47,6 @@ export const FirebaseAuth: React.FC<FirebaseAuthProps> = ({
         const userEmail = result.user.email || '';
         const jwtToken = localStorage.getItem('api2_jwt_token') || undefined;
 
-        console.log('🔄 Configurando usuario en chat store:', userEmail);
-
-        // ✅ IMPORTANTE: Guardar en localStorage para que funcionen features premium (/knowledge, etc.)
         const configToSave = {
           developer: currentDevelopment,
           role: 'user',
@@ -64,34 +61,27 @@ export const FirebaseAuth: React.FC<FirebaseAuthProps> = ({
           user_type: 'registered'
         };
         localStorage.setItem('dev-user-config', JSON.stringify(configToSave));
-        console.log('💾 Config guardado en localStorage (Google Auth):', userEmail);
 
-        // ✅ También guardar en cookie HTTP para autenticación del servidor
         const cookieValue = encodeURIComponent(JSON.stringify(configToSave));
         document.cookie = `dev-user-config=${cookieValue}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
-        console.log('🍪 Cookie dev-user-config establecida (Google Auth)');
 
         try {
           await setExternalChatConfig(
             userEmail,
             currentDevelopment,
             jwtToken,
-            'registered', // Tipo de usuario: registrado (no visitante)
-            undefined, // role
+            'registered',
+            undefined,
             {
               displayName: result.user.displayName || '',
               photoURL: result.user.photoURL || '',
               uid: result.user.uid,
             }
           );
-          console.log('✅ Usuario configurado en chat store');
-        } catch (configError) {
-          console.warn('⚠️ Error configurando chat store:', configError);
-        }
+        } catch { /* non-critical */ }
 
         onSuccess?.(result);
 
-        // Redirigir a la página de chat
         setTimeout(() => {
           router.push('/chat');
           router.refresh();
@@ -100,9 +90,6 @@ export const FirebaseAuth: React.FC<FirebaseAuthProps> = ({
         throw new Error(result.errors?.join(', ') || 'Error desconocido');
       }
     } catch (error: any) {
-      console.error('Error en Google login:', error);
-      
-      // Si es un redirect en progreso, no mostrar error
       if (error.message === 'REDIRECT_IN_PROGRESS') {
         messageApi.info('Redirigiendo a Google para iniciar sesión...');
         return; // No detener el loading, el redirect se encargará
@@ -132,9 +119,6 @@ export const FirebaseAuth: React.FC<FirebaseAuthProps> = ({
         const userEmail = result.user.email || '';
         const jwtToken = localStorage.getItem('api2_jwt_token') || undefined;
 
-        console.log('🔄 Configurando usuario en chat store:', userEmail);
-
-        // ✅ IMPORTANTE: Guardar en localStorage para que funcionen features premium (/knowledge, etc.)
         const configToSave = {
           developer: currentDevelopment,
           role: 'user',
@@ -149,34 +133,27 @@ export const FirebaseAuth: React.FC<FirebaseAuthProps> = ({
           user_type: 'registered'
         };
         localStorage.setItem('dev-user-config', JSON.stringify(configToSave));
-        console.log('💾 Config guardado en localStorage (Facebook Auth):', userEmail);
 
-        // ✅ También guardar en cookie HTTP para autenticación del servidor
         const cookieValue = encodeURIComponent(JSON.stringify(configToSave));
         document.cookie = `dev-user-config=${cookieValue}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
-        console.log('🍪 Cookie dev-user-config establecida (Facebook Auth)');
 
         try {
           await setExternalChatConfig(
             userEmail,
             currentDevelopment,
             jwtToken,
-            'registered', // Tipo de usuario: registrado (no visitante)
-            undefined, // role
+            'registered',
+            undefined,
             {
               displayName: result.user.displayName || '',
               photoURL: result.user.photoURL || '',
               uid: result.user.uid,
             }
           );
-          console.log('✅ Usuario configurado en chat store');
-        } catch (configError) {
-          console.warn('⚠️ Error configurando chat store:', configError);
-        }
+        } catch { /* non-critical */ }
 
         onSuccess?.(result);
 
-        // Redirigir a la página de chat
         setTimeout(() => {
           router.push('/chat');
           router.refresh();
@@ -185,9 +162,6 @@ export const FirebaseAuth: React.FC<FirebaseAuthProps> = ({
         throw new Error(result.errors?.join(', ') || 'Error desconocido');
       }
     } catch (error: any) {
-      console.error('Error en Facebook login:', error);
-      
-      // Si es un redirect en progreso, no mostrar error
       if (error.message === 'REDIRECT_IN_PROGRESS') {
         messageApi.info('Redirigiendo a Facebook para iniciar sesión...');
         return; // No detener el loading, el redirect se encargará

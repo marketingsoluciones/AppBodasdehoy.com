@@ -40,6 +40,5 @@ export const filterAppViewSlice: StateCreator<
       '*',
     );
 
-    console.log('[FilterAppView] FILTER_VIEW enviado:', { entity, ids: ids?.length ?? 0, query });
   },
 });

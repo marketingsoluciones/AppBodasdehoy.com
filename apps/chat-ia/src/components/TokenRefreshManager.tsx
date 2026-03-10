@@ -10,18 +10,10 @@
 
 'use client';
 
-import { useEffect } from 'react';
 import { useTokenRefresh } from '@/hooks/useTokenRefresh';
 
 const TokenRefreshManager = () => {
   const { status } = useTokenRefresh();
-
-  // Log de debug en desarrollo
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && status.daysUntilExpiry !== null) {
-      console.log(`🔐 [TokenRefreshManager] Token expira en ${status.daysUntilExpiry.toFixed(2)} días`);
-    }
-  }, [status.daysUntilExpiry]);
 
   // Este componente no renderiza nada, solo ejecuta la lógica en el background
   return null;

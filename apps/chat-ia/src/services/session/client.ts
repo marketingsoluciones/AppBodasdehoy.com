@@ -80,30 +80,20 @@ export class ClientService extends BaseClientService implements ISessionService 
     });
 
     try {
-      const startTime = Date.now();
-      console.log(`⏱️ [SessionConfig] Obteniendo configuración de sesión: ${id}...`);
-
       const operation = async () => {
         if (id === INBOX_SESSION_ID) {
-          const findStart = Date.now();
           const item = await this.sessionModel.findByIdOrSlug(INBOX_SESSION_ID);
-          console.log(`  📦 Buscar inbox: ${Date.now() - findStart}ms`);
 
           // if there is no session for user, create one
           if (!item) {
-            console.log('  ➕ Creando sesión inbox...');
-            const createStart = Date.now();
             const defaultAgentConfig =
               window.global_serverConfigStore.getState().serverConfig.defaultAgent?.config || {};
 
             await this.sessionModel.createInbox(defaultAgentConfig);
-            console.log(`  ✅ Sesión inbox creada: ${Date.now() - createStart}ms`);
           }
         }
 
-        const resStart = Date.now();
         const res = await this.sessionModel.findByIdOrSlug(id);
-        console.log(`  📥 Obtener sesión: ${Date.now() - resStart}ms`);
 
         if (!res) throw new Error('Session not found');
 
@@ -111,8 +101,6 @@ export class ClientService extends BaseClientService implements ISessionService 
       };
 
       const result = await Promise.race([operation(), timeoutPromise]);
-      const elapsed = Date.now() - startTime;
-      console.log(`✅ [SessionConfig] Configuración obtenida en ${elapsed}ms`);
 
       return result;
     } catch (error) {

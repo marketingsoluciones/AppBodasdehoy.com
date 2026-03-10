@@ -47,7 +47,13 @@ function SortableHeader({ label, sortKey, currentSort, currentDir, onSort, class
 }) {
   const isActive = currentSort === sortKey;
   return (
-    <th className={`px-4 py-3 cursor-pointer hover:bg-gray-100 select-none ${className || ''}`} onClick={() => onSort(sortKey)}>
+    <th
+      className={`px-4 py-3 cursor-pointer hover:bg-gray-100 select-none ${className || ''}`}
+      onClick={() => onSort(sortKey)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort(sortKey); } }}
+      role="button"
+      tabIndex={0}
+    >
       <span className="flex items-center gap-1">
         {label}
         {isActive && <span className="text-blue-600">{currentDir === 'asc' ? '▲' : '▼'}</span>}
@@ -278,9 +284,42 @@ export default function UsersPage() {
         </div>
       )}
 
+      {/* Demo notice */}
+      <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+        <span>⚠️</span>
+        <span>Datos de demostración. Conectar endpoint <code className="rounded bg-amber-100 px-1 text-xs">GET /api/admin/users</code> para datos reales.</span>
+      </div>
+
       {/* Users Table */}
       {loading ? (
-        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-gray-500">Cargando usuarios...</div>
+        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-gray-50 text-xs uppercase text-gray-700">
+              <tr>
+                <th className="px-4 py-3 w-10"><div className="h-4 w-4 rounded bg-gray-200" /></th>
+                <th className="px-4 py-3">Usuario</th>
+                <th className="px-4 py-3">Rol</th>
+                <th className="px-4 py-3 text-center">Eventos</th>
+                <th className="px-4 py-3">Último Acceso</th>
+                <th className="px-4 py-3">Estado</th>
+                <th className="px-4 py-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="border-b">
+                  <td className="px-4 py-3"><div className="h-4 w-4 animate-pulse rounded bg-gray-200" /></td>
+                  <td className="px-4 py-3"><div className="space-y-1"><div className="h-4 w-32 animate-pulse rounded bg-gray-200" /><div className="h-3 w-40 animate-pulse rounded bg-gray-100" /></div></td>
+                  <td className="px-4 py-3"><div className="h-5 w-16 animate-pulse rounded-full bg-gray-200" /></td>
+                  <td className="px-4 py-3 text-center"><div className="mx-auto h-4 w-6 animate-pulse rounded bg-gray-200" /></td>
+                  <td className="px-4 py-3"><div className="h-4 w-24 animate-pulse rounded bg-gray-200" /></td>
+                  <td className="px-4 py-3"><div className="h-5 w-16 animate-pulse rounded-full bg-gray-200" /></td>
+                  <td className="px-4 py-3"><div className="flex justify-end gap-2"><div className="h-6 w-16 animate-pulse rounded bg-gray-200" /><div className="h-6 w-16 animate-pulse rounded bg-gray-200" /></div></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
           <table className="w-full text-left text-sm">

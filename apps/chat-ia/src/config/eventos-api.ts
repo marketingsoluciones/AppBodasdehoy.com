@@ -321,15 +321,6 @@ export class EventosAPIClient {
     fetch('http://127.0.0.1:7242/ingest/10a0d667-c77d-44ea-a28d-e9f9b782eee2',{body:JSON.stringify({data:{baseURL:this.baseURL,developer,hasEmail:!!email,hasPhone:!!phone},hypothesisId:'A',location:'eventos-api.ts:324',message:'identifyUser ENTRY',runId:'run1',sessionId:'debug-session',timestamp:Date.now()}),headers:{'Content-Type':'application/json'},method:'POST'}).catch(()=>{});
     // #endregion
     try {
-      console.log('📡 EventosAPIClient.identifyUser llamando a:', {
-        developer: developer || 'bodasdehoy',
-        email: email ? `${email.slice(0, 10)}...` : undefined,
-        endpoint: `${this.baseURL}/api/auth${EVENTOS_API_CONFIG.ENDPOINTS.IDENTIFY_USER}`,
-        hasEmail: !!email,
-        hasPhone: !!phone,
-        phone: phone ? `${phone.slice(0, 10)}...` : undefined
-      });
-
       // ✅ FIX: Reducido de 20s a 8s. En modo iframe el usuario llega via AUTH_CONFIG (~600ms),
       // así que identifyUser solo se llama como fallback (no-iframe o fallback). 20s era excesivo.
       const controller = new AbortController();
@@ -394,13 +385,6 @@ export class EventosAPIClient {
         // #region agent log
         fetch('http://127.0.0.1:7242/ingest/10a0d667-c77d-44ea-a28d-e9f9b782eee2',{body:JSON.stringify({data:{hasUserId:!!result.user_id,success:result.success,userType:result.user_type},hypothesisId:'A',location:'eventos-api.ts:360',message:'identifyUser SUCCESS',runId:'run1',sessionId:'debug-session',timestamp:Date.now()}),headers:{'Content-Type':'application/json'},method:'POST'}).catch(()=>{});
         // #endregion
-        console.log('✅ identifyUser respuesta recibida:', {
-          development: result.development,
-          success: result.success,
-          user_id: result.user_id ? `${result.user_id.slice(0, 20)}...` : undefined,
-          user_type: result.user_type
-        });
-
         return result;
       } catch (fetchError: any) {
         clearTimeout(timeoutId);
@@ -438,7 +422,6 @@ export class EventosAPIClient {
       // Verificar si hay token válido en cache antes de hacer login
       const cachedToken = await optimizedApiClient.getToken();
       if (cachedToken) {
-        console.log('📦 Token encontrado en cache, verificando validez...');
         // Intentar usar token cacheado primero
         // Si falla, se hará login normal
       }

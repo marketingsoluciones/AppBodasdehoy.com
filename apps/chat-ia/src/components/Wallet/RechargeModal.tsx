@@ -40,13 +40,11 @@ const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck,
       return;
     }
 
-    console.log('🔍 [RechargeModal] Iniciando recarga:', { finalAmount });
     setLoading(true);
     setError(null);
 
     try {
       const result = await onRecharge(finalAmount);
-      console.log('📊 [RechargeModal] Resultado de recarga:', result);
 
       if (!result.success) {
         const errorMsg = result.error || 'Error al crear sesión de pago';
@@ -54,7 +52,6 @@ const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck,
         setError(errorMsg);
         setLoading(false);
       } else {
-        console.log('✅ [RechargeModal] Recarga exitosa, redirigiendo a Stripe...');
         // Si es exitoso, se redirige automaticamente a Stripe
         // No resetear loading aquí porque la página se va a redirigir
       }

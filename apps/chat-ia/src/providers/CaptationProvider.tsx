@@ -31,12 +31,11 @@ export const CaptationProvider = memo<CaptationProviderProps>(({ children }) => 
   }, []);
 
   const handleContinueAsGuest = useCallback(() => {
-    console.log('Usuario eligió continuar como guest');
     hideCaptationModal();
   }, [hideCaptationModal]);
 
   const handleRegister = useCallback(() => {
-    console.log('Usuario eligió registrarse');
+    // Registration flow handled by RegisterPromptModal
   }, []);
 
   return (

@@ -47,7 +47,6 @@ function getCurrentOrigin(): string {
   
   // Fallback solo en desarrollo
   if (process.env.NODE_ENV === 'development') {
-    console.warn('⚠️ No se encontró NEXT_PUBLIC_BASE_URL ni APP_URL, usando localhost (solo para desarrollo)');
     return 'http://localhost:8000';
   }
   
@@ -103,7 +102,6 @@ async function exchangeFirebaseTokenForJWT(
     if (user.photoURL) {
       localStorage.setItem('user_photo_url', user.photoURL);
     }
-    console.log('💾 Datos de Firebase guardados en localStorage');
   }
 
   // SSO cross-domain: setear idTokenV0.1.0 con Domain=.bodasdehoy.com
@@ -113,18 +111,12 @@ async function exchangeFirebaseTokenForJWT(
   }
 
   try {
-    console.log('🔄 [AUTH-DEBUG] Intercambiando Firebase token por JWT...');
-    console.log('🔄 [AUTH-DEBUG] Backend URL:', BACKEND_URL);
-    console.log('🔄 [AUTH-DEBUG] Development:', development);
-    console.log('🔄 [AUTH-DEBUG] Firebase token (primeros 50 chars):', firebaseIdToken.slice(0, 50) + '...');
-
     const requestBody = {
       development,
       device: navigator.userAgent,
       fingerprint: generateFingerprint(),
       firebaseIdToken,
     };
-    console.log('🔄 [AUTH-DEBUG] Request body (sin token):', { ...requestBody, firebaseIdToken: '[HIDDEN]' });
 
     const response = await fetch(`${BACKEND_URL}/api/auth/firebase-login`, {
       body: JSON.stringify(requestBody),
@@ -134,13 +126,9 @@ async function exchangeFirebaseTokenForJWT(
       method: 'POST',
     });
 
-    console.log('🔄 [AUTH-DEBUG] Response status:', response.status);
-    console.log('🔄 [AUTH-DEBUG] Response ok:', response.ok);
-
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-      console.error('❌ [AUTH-DEBUG] API2 respondió con error:', errorData);
-      console.error('❌ [AUTH-DEBUG] Status code:', response.status);
+      console.error('API2 error response:', response.status);
       // ⚠️ IMPORTANTE: Retornar éxito parcial pero SIN JWT
       // El usuario está autenticado con Firebase pero no podrá ejecutar mutations
 
@@ -164,17 +152,9 @@ async function exchangeFirebaseTokenForJWT(
     }
 
     const data = await response.json();
-    console.log('🔄 [AUTH-DEBUG] Response data:', {
-      errors: data.errors,
-      expiresAt: data.expiresAt,
-      hasToken: !!data.token,
-      source: data.source,
-      success: data.success,
-      tokenLength: data.token?.length || 0,
-    });
 
     if (!data.success) {
-      console.error('❌ [AUTH-DEBUG] API retornó success=false:', data.errors);
+      console.error('API2 returned success=false');
       // ⚠️ IMPORTANTE: Retornar éxito parcial pero SIN JWT
 
       // ✅ Aún así guardar dev-user-config para que el usuario no vea el prompt de registro
@@ -196,28 +176,15 @@ async function exchangeFirebaseTokenForJWT(
       };
     }
 
-    console.log('✅ [AUTH-DEBUG] JWT obtenido exitosamente!');
-    console.log('✅ [AUTH-DEBUG] Token length:', data.token?.length);
-    console.log('✅ [AUTH-DEBUG] Token source:', data.source || 'api2');
-    console.log('✅ [AUTH-DEBUG] Expires at:', data.expiresAt);
-
     // Guardar JWT en localStorage
-    console.log('💾 [AUTH-DEBUG] Guardando tokens en localStorage...');
-
     localStorage.setItem('api2_jwt_token', data.token);
-    console.log('💾 [AUTH-DEBUG] api2_jwt_token guardado');
-
     localStorage.setItem('api2_jwt_expires_at', data.expiresAt || '');
-    console.log('💾 [AUTH-DEBUG] api2_jwt_expires_at guardado');
-
     localStorage.setItem('current_development', data.development || development);
-    console.log('💾 [AUTH-DEBUG] current_development guardado:', data.development || development);
 
-    // ✅ También guardar jwt_token para compatibilidad con getAuthToken()
+    // También guardar jwt_token para compatibilidad con getAuthToken()
     localStorage.setItem('jwt_token', data.token);
-    console.log('💾 [AUTH-DEBUG] jwt_token guardado (compatibilidad)');
 
-    // ✅ CRÍTICO: Guardar dev-user-config para que EventosAutoAuth reconozca al usuario
+    // Guardar dev-user-config para que EventosAutoAuth reconozca al usuario
     const devUserConfig = {
       developer: data.development || development,
       timestamp: Date.now(),
@@ -226,19 +193,6 @@ async function exchangeFirebaseTokenForJWT(
       user_type: 'registered',
     };
     localStorage.setItem('dev-user-config', JSON.stringify(devUserConfig));
-    console.log('💾 [AUTH-DEBUG] dev-user-config guardado:', {
-      developer: devUserConfig.developer,
-      hasToken: !!devUserConfig.token,
-      userId: devUserConfig.userId,
-    });
-
-    // ✅ Verificación final
-    const savedToken = localStorage.getItem('api2_jwt_token');
-    const savedJwtToken = localStorage.getItem('jwt_token');
-    console.log('✅ [AUTH-DEBUG] Verificación final:');
-    console.log('   - api2_jwt_token presente:', !!savedToken);
-    console.log('   - jwt_token presente:', !!savedJwtToken);
-    console.log('   - tokens coinciden:', savedToken === savedJwtToken);
 
     return {
       development: data.development,
@@ -249,7 +203,7 @@ async function exchangeFirebaseTokenForJWT(
       user_id: user?.email || user?.uid,  // ✅ CORRECCIÓN: Añadir user_id para compatibilidad
     };
   } catch (error: any) {
-    console.error('❌ Error conectando a API2 para obtener JWT:', error.message);
+    console.error('API2 connection error:', error);
     // ⚠️ IMPORTANTE: Retornar éxito parcial pero SIN JWT
 
     // ✅ Aún así guardar dev-user-config para que el usuario no vea el prompt de registro
@@ -280,11 +234,6 @@ export const processGoogleRedirectResult = async (development: string = DEFAULT_
   try {
     const redirectResult = await getRedirectResult(auth);
     if (redirectResult && redirectResult.providerId === 'google.com') {
-      console.log('✅ Login con Google completado (redirect):', {
-        email: redirectResult.user.email,
-        uid: redirectResult.user.uid,
-      });
-
       const savedDevelopment = safeGetSessionStorage('google_login_development') || development;
       safeRemoveSessionStorage('google_login_development');
       
@@ -293,7 +242,6 @@ export const processGoogleRedirectResult = async (development: string = DEFAULT_
       safeRemoveSessionStorage('google_login_redirect_url');
       
       if (redirectUrl && typeof window !== 'undefined') {
-        console.log('📍 Redirigiendo a:', redirectUrl);
         // La redirección se manejará en el componente que llama a esta función
       }
 
@@ -302,7 +250,7 @@ export const processGoogleRedirectResult = async (development: string = DEFAULT_
     }
     return null;
   } catch (error: any) {
-    console.error('❌ Error procesando redirect result de Google:', error);
+    console.error('Google redirect error', error);
     throw error;
   }
 };
@@ -332,7 +280,7 @@ function safeSetSessionStorage(key: string, value: string): void {
     try {
       sessionStorage.setItem(key, value);
     } catch (e) {
-      console.warn('⚠️ No se pudo guardar en sessionStorage, usando localStorage como fallback:', e);
+      // Fallback a localStorage si sessionStorage falla
       // Fallback a localStorage si sessionStorage no está disponible
       localStorage.setItem(key, value);
     }
@@ -350,7 +298,7 @@ function safeGetSessionStorage(key: string): string | null {
     try {
       return sessionStorage.getItem(key);
     } catch (e) {
-      console.warn('⚠️ No se pudo leer de sessionStorage, usando localStorage como fallback:', e);
+      // Fallback a localStorage si sessionStorage falla
       return localStorage.getItem(key);
     }
   }
@@ -389,23 +337,14 @@ export const loginWithGoogle = async (development: string = DEFAULT_DEVELOPMENT)
 
   // ✅ ESTRATEGIA: Intentar popup primero (mejor UX), si falla usar redirect
   try {
-    console.log('🔐 Iniciando login con Google (popup)...');
-
     const result = await signInWithPopup(auth, provider);
 
     // Obtener Firebase ID Token
     const firebaseIdToken = await result.user.getIdToken();
 
-    console.log('✅ Login con Google exitoso (popup):', {
-      email: result.user.email,
-      uid: result.user.uid,
-    });
-
     // Intercambiar por JWT de API2
     return await exchangeFirebaseTokenForJWT(firebaseIdToken, development, result.user);
   } catch (popupError: any) {
-    console.warn('⚠️ Popup falló, intentando con redirect...', popupError.code);
-
     // Si el popup fue bloqueado o cerrado, intentar con redirect
     const shouldTryRedirect = [
       'auth/popup-blocked',
@@ -416,8 +355,6 @@ export const loginWithGoogle = async (development: string = DEFAULT_DEVELOPMENT)
 
     if (shouldTryRedirect) {
       try {
-        console.log('🔄 Usando redirect como fallback...');
-        
         // Guardar development para después del redirect
         safeSetSessionStorage('google_login_development', development);
         
@@ -433,7 +370,7 @@ export const loginWithGoogle = async (development: string = DEFAULT_DEVELOPMENT)
         // El resultado se procesará con processGoogleRedirectResult después del redirect
         return undefined;
       } catch (redirectError: any) {
-        console.error('❌ Error con redirect:', redirectError);
+        console.error('Google redirect fallback error:', redirectError);
         
         // Limpiar sessionStorage
         safeRemoveSessionStorage('google_login_development');
@@ -450,7 +387,7 @@ export const loginWithGoogle = async (development: string = DEFAULT_DEVELOPMENT)
     }
 
     // Otros errores de popup - no reintentar con redirect
-    console.error('❌ Error en login con Google (popup):', popupError);
+    console.error('Google popup login error:', popupError);
 
     switch (popupError.code) {
     case 'auth/popup-closed-by-user': {
@@ -481,11 +418,6 @@ export const processFacebookRedirectResult = async (development: string = DEFAUL
   try {
     const redirectResult = await getRedirectResult(auth);
     if (redirectResult && redirectResult.providerId === 'facebook.com') {
-      console.log('✅ Login con Facebook completado (redirect):', {
-        email: redirectResult.user.email,
-        uid: redirectResult.user.uid,
-      });
-
       const savedDevelopment = safeGetSessionStorage('facebook_login_development') || development;
       safeRemoveSessionStorage('facebook_login_development');
 
@@ -494,7 +426,7 @@ export const processFacebookRedirectResult = async (development: string = DEFAUL
     }
     return null;
   } catch (error: any) {
-    console.error('❌ Error procesando redirect result de Facebook:', error);
+    console.error('Facebook redirect error:', error);
     throw error;
   }
 };
@@ -511,23 +443,16 @@ export const loginWithFacebook = async (development: string = DEFAULT_DEVELOPMEN
     provider.addScope('email');
     provider.addScope('public_profile');
 
-    console.log('🔐 Iniciando login con Facebook (popup)...');
-
     // ✅ FIX: Siempre usar popup - signInWithRedirect tiene problemas con sessionStorage
     const result = await signInWithPopup(auth, provider);
 
     // Obtener Firebase ID Token
     const firebaseIdToken = await result.user.getIdToken();
 
-    console.log('✅ Login con Facebook exitoso:', {
-      email: result.user.email,
-      uid: result.user.uid,
-    });
-
     // Intercambiar por JWT de API2
     return await exchangeFirebaseTokenForJWT(firebaseIdToken, development, result.user);
   } catch (error: any) {
-    console.error('❌ Error en login con Facebook:', error);
+    console.error('Facebook login error:', error);
 
     switch (error.code) {
     case 'auth/popup-closed-by-user': {
@@ -555,19 +480,12 @@ export const loginWithEmailPassword = async (
   development: string = DEFAULT_DEVELOPMENT,
 ) => {
   try {
-    console.log('🔐 Iniciando login con Email/Password...');
-
     const result = await signInWithEmailAndPassword(auth, email, password);
     const firebaseIdToken = await result.user.getIdToken();
 
-    console.log('✅ Login con Email/Password exitoso:', {
-      email: result.user.email,
-      uid: result.user.uid,
-    });
-
     return await exchangeFirebaseTokenForJWT(firebaseIdToken, development, result.user);
   } catch (error: any) {
-    console.error('❌ Error en login con Email/Password:', error);
+    console.error('Email/password login error:', error);
 
     switch (error.code) {
     case 'auth/user-not-found':
@@ -596,19 +514,12 @@ export const registerWithEmailPassword = async (
   development: string = DEFAULT_DEVELOPMENT,
 ) => {
   try {
-    console.log('🔐 Registrando usuario con Email/Password...');
-
     const result = await createUserWithEmailAndPassword(auth, email, password);
     const firebaseIdToken = await result.user.getIdToken();
 
-    console.log('✅ Registro exitoso:', {
-      email: result.user.email,
-      uid: result.user.uid,
-    });
-
     return await exchangeFirebaseTokenForJWT(firebaseIdToken, development, result.user);
   } catch (error: any) {
-    console.error('❌ Error en registro:', error);
+    console.error('Registration error:', error);
 
     switch (error.code) {
     case 'auth/email-already-in-use': {
@@ -670,10 +581,8 @@ export const signOut = async () => {
     localStorage.removeItem('user_uid');
     localStorage.removeItem('user_display_name');
     localStorage.removeItem('user_photo_url');
-
-    console.log('✅ Sesión cerrada');
   } catch (error: any) {
-    console.error('❌ Error cerrando sesión:', error);
+    console.error('Sign out error:', error);
     throw error;
   }
 };

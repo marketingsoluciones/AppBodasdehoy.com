@@ -47,8 +47,10 @@ function SplitLoginPage({ children }: { children: React.ReactNode }) {
 
 // Dominios permitidos para redirect cross-app (seguridad: evitar open redirect)
 const ALLOWED_REDIRECT_HOSTS = [
+  'organizador.bodasdehoy.com',
   'app.bodasdehoy.com',
   'app-test.bodasdehoy.com',
+  'organizador.eventosorganizador.com',
   'chat.bodasdehoy.com',
   'chat-test.bodasdehoy.com',
   'memories.bodasdehoy.com',
@@ -76,7 +78,8 @@ function RightPanel() {
   // ?redirect= para volver a la app de origen tras login (cross-app SSO)
   const redirectAfterLogin = searchParams.get('redirect') || null;
 
-  const [view, setView] = useState<'landing' | 'login'>('landing');
+  // La ruta es /login → mostrar login por defecto. Registro es secundario.
+  const [view, setView] = useState<'landing' | 'login'>('login');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [messageApi, contextHolder] = message.useMessage();
@@ -246,12 +249,13 @@ function RightPanel() {
         <div style={{ marginTop: 16, textAlign: 'center' }}>
           <Text type="secondary" style={{ fontSize: 13 }}>
             ¿Ya tienes cuenta?{' '}
-            <a
+            <button
               onClick={() => { setError(null); setView('login'); }}
-              style={{ color: '#ec4899', cursor: 'pointer', fontWeight: 600 }}
+              style={{ background: 'none', border: 'none', color: '#ec4899', cursor: 'pointer', font: 'inherit', fontSize: 13, fontWeight: 600, padding: 0 }}
+              type="button"
             >
               Iniciar sesión
-            </a>
+            </button>
           </Text>
         </div>
 
@@ -316,12 +320,13 @@ function RightPanel() {
       <div style={{ marginTop: 16, textAlign: 'center' }}>
         <Text type="secondary" style={{ fontSize: 13 }}>
           ¿No tienes cuenta?{' '}
-          <a
+          <button
             onClick={() => { setError(null); setView('landing'); }}
-            style={{ color: '#ec4899', cursor: 'pointer', fontWeight: 600 }}
+            style={{ background: 'none', border: 'none', color: '#ec4899', cursor: 'pointer', font: 'inherit', fontSize: 13, fontWeight: 600, padding: 0 }}
+            type="button"
           >
             Crear cuenta gratis
-          </a>
+          </button>
         </Text>
       </div>
       <div style={{ color: '#bfbfbf', fontSize: 11, marginTop: 16, textAlign: 'center' }}>

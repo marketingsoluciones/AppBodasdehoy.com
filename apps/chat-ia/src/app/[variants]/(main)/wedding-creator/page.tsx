@@ -40,7 +40,6 @@ import { getCurrentEventId } from '@/services/storage-r2';
 import { FeatureGate } from '@/components/FeatureGate';
 
 
-// ✅ OPTIMIZACIÓN: Lazy load de componentes pesados
 const WeddingSiteRenderer = lazy(() =>
   import('@bodasdehoy/wedding-creator').then(module => {
     if (!module.WeddingSiteRenderer) {
@@ -75,32 +74,24 @@ interface Message {
 }
 
 /**
- * Hook para verificar si el usuario está registrado (no es guest/anonymous)
- * Funcionalidad premium - solo disponible para usuarios registrados
- *
- * ✅ MODIFICADO: Más permisivo para debugging - permite acceso temporal
+ * Hook para verificar si el usuario está registrado (no es guest/anonymous).
+ * En desarrollo permite acceso sin configuración para facilitar testing.
  */
 function useRequireRegisteredUser() {
   const router = useRouter();
   const isDev = process.env.NODE_ENV === 'development';
 
-  // ✅ FIX HYDRATION: Inicializar estados de forma consistente entre SSR y cliente
-  // Usar valores por defecto que sean iguales en servidor y cliente
-  const [isChecking, setIsChecking] = useState(true); // Siempre empezar como true
-  const [isRegistered, setIsRegistered] = useState(false); // Siempre empezar como false
+  const [isChecking, setIsChecking] = useState(true);
+  const [isRegistered, setIsRegistered] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // ✅ OPTIMIZACIÓN: Deferir verificación para no bloquear render inicial
-    // Nota: useEffect solo se ejecuta en el cliente, no en SSR
     const checkAuth = () => {
       try {
         const rawConfig = localStorage.getItem('dev-user-config');
 
-        // ✅ DEBUG: En desarrollo, SIEMPRE permitir acceso sin config
         if (!rawConfig) {
           if (isDev) {
-            // Dev mode: allow access without config
             setIsRegistered(true);
             setIsChecking(false);
             return;
@@ -110,7 +101,6 @@ function useRequireRegisteredUser() {
           return;
         }
 
-        // ✅ FIX: Manejo robusto de parsing JSON
         let config;
         try {
           if (!rawConfig.trim().startsWith('{') && !rawConfig.trim().startsWith('[')) {
@@ -126,9 +116,7 @@ function useRequireRegisteredUser() {
         const registered = !!(userId && userId !== 'guest' && userId !== 'anonymous' && userId !== '');
 
         if (!registered) {
-          // ✅ DEBUG: En desarrollo, SIEMPRE permitir acceso
           if (isDev) {
-            // Dev mode: allow unregistered user access
             setIsRegistered(true);
             setIsChecking(false);
             return;
@@ -142,9 +130,7 @@ function useRequireRegisteredUser() {
         setError(null);
       } catch (err) {
         console.error('Error checking auth:', err);
-        // ✅ DEBUG: En desarrollo, SIEMPRE permitir acceso incluso con error
         if (isDev) {
-          // Dev mode: allow access despite auth error
           setIsRegistered(true);
         } else {
           setError('Error al verificar autenticación');
@@ -154,14 +140,9 @@ function useRequireRegisteredUser() {
       }
     };
 
-    // ✅ En desarrollo, ejecutar inmediatamente pero de forma asíncrona
-    // En producción, deferir más tiempo
-    // Nota: useEffect solo se ejecuta en el cliente, window siempre está disponible
     if (isDev) {
-      // En dev, ejecutar rápido pero asíncrono
       setTimeout(checkAuth, 0);
     } else {
-      // En producción, deferir más
       if ('requestIdleCallback' in window) {
         requestIdleCallback(checkAuth, { timeout: 100 });
       } else {
@@ -177,16 +158,10 @@ function WeddingCreatorContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // ✅ DEBUG: Log inicial
-  useEffect(() => {
-  }, []);
-
-  // ✅ FIX HYDRATION: Inicializar siempre como null para evitar mismatch SSR/cliente
   const [eventId, setEventId] = useState<string | null>(null);
 
-  // ✅ FIX HYDRATION: Cargar eventId solo en cliente después del mount
   useEffect(() => {
-    if (eventId) return; // Ya tenemos eventId
+    if (eventId) return;
 
     const loadEventId = () => {
       try {
@@ -211,28 +186,21 @@ function WeddingCreatorContent() {
     loadEventId();
   }, [eventId, searchParams]);
 
-  // ✅ OPTIMIZACIÓN: Solo cargar el hook necesario, no ambos
   const shouldUseGraphQL = !!eventId && eventId !== 'dummy';
 
-  // ✅ IMPORTANTE: Los hooks deben llamarse siempre, no condicionalmente
-  // Solo llamar al hook GraphQL si realmente hay un eventId válido
+  // Hooks must always be called (React rules) — use 'dummy' to skip actual fetching
   const graphQLHookResult = useWeddingWebGraphQL({
     autoSave: true,
     eventId: shouldUseGraphQL ? eventId : 'dummy',
   });
   const graphQLHook = shouldUseGraphQL ? graphQLHookResult : null;
 
-  // ✅ Siempre llamar legacy hook (requisito de React)
   const legacyHook = useWeddingWeb({ autoSave: true });
-
-  // Seleccionar hook activo
   const activeHook = graphQLHook || legacyHook;
 
-  // ✅ FIX HYDRATION: Usar fecha fija para evitar mismatch SSR/cliente
-  // Asegurar que wedding nunca sea null (usar datos iniciales si es necesario)
   const wedding = activeHook.wedding || legacyHook.wedding || {
     couple: { partner1: { name: '' }, partner2: { name: '' } },
-    createdAt: '1970-01-01T00:00:00.000Z', // Fecha fija para SSR
+    createdAt: '1970-01-01T00:00:00.000Z',
     date: { date: '1970-01-01T00:00:00.000Z' },
     hero: { image: '', showCountdown: false, subtitle: '' },
     id: '',
@@ -247,38 +215,24 @@ function WeddingCreatorContent() {
   const isSaving = activeHook.isSaving ?? legacyHook.isSaving ?? false;
   const weddingLoading = activeHook.isLoading ?? legacyHook.isLoading ?? false;
 
-  // Funciones de actualización - usar GraphQL si está disponible
   const updateCouple = graphQLHook?.updateCoupleLocal || legacyHook.updateCouple;
-  const updateDate = legacyHook.updateDate; // TODO: Implementar en GraphQL
+  const updateDate = legacyHook.updateDate;
   const updatePalette = graphQLHook?.updatePalette || legacyHook.updatePalette;
   const updateHero = graphQLHook?.updateHero || legacyHook.updateHero;
   const toggleSection = graphQLHook?.toggleSection || legacyHook.toggleSection;
   const _applyAIChanges = graphQLHook?.applyAIChanges || legacyHook.applyAIChanges;
-  const _saveWedding = legacyHook.saveWedding; // TODO: Implementar en GraphQL
+  const _saveWedding = legacyHook.saveWedding;
 
-  // Schedule events handlers - usar legacyHook (GraphQL hook no tiene estos métodos aún)
   const addScheduleEvent = useCallback((event: Omit<import('@bodasdehoy/wedding-creator').ScheduleEvent, 'id'>) => {
-    if (legacyHook.addScheduleEvent) {
-      legacyHook.addScheduleEvent(event);
-    } else {
-      // addScheduleEvent not yet available in GraphQL hook
-    }
+    legacyHook.addScheduleEvent?.(event);
   }, [legacyHook]);
 
   const updateScheduleEvent = useCallback((eventId: string, updates: Partial<import('@bodasdehoy/wedding-creator').ScheduleEvent>) => {
-    if (legacyHook.updateScheduleEvent) {
-      legacyHook.updateScheduleEvent(eventId, updates);
-    } else {
-      // updateScheduleEvent not yet available in GraphQL hook
-    }
+    legacyHook.updateScheduleEvent?.(eventId, updates);
   }, [legacyHook]);
 
   const deleteScheduleEvent = useCallback((eventId: string) => {
-    if (legacyHook.deleteScheduleEvent) {
-      legacyHook.deleteScheduleEvent(eventId);
-    } else {
-      // deleteScheduleEvent not yet available in GraphQL hook
-    }
+    legacyHook.deleteScheduleEvent?.(eventId);
   }, [legacyHook]);
 
   // UI State
@@ -287,20 +241,17 @@ function WeddingCreatorContent() {
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [publishedSubdomain, setPublishedSubdomain] = useState<string | undefined>(undefined);
 
-  // ✅ FIX HYDRATION: Mensaje inicial con timestamp fijo para evitar mismatch SSR/cliente
-  // El timestamp se actualiza en useEffect después del mount
   const [messages, setMessages] = useState<Message[]>([{
     content: '¡Hola! 👋 Soy tu asistente para crear webs de eventos y bodas.\n\n' +
       'Puedo ayudarte a personalizar tu evento: nombres, fecha, estilo, secciones y más.\n\n' +
       '¿Qué te gustaría configurar primero?',
     id: '1',
     role: 'assistant',
-    timestamp: new Date(0), // Timestamp fijo para SSR, se actualiza en cliente
+    timestamp: new Date(0),
   }]);
 
-  // ✅ FIX HYDRATION + OPTIMIZACIÓN: Cargar mensaje completo y timestamp real después del mount
+  // Update welcome message with real timestamp on client mount
   useEffect(() => {
-    // Actualizar mensaje inicial con timestamp real y contenido completo
     setMessages(prev => {
       if (prev.length === 1 && prev[0].id === '1') {
         return [{
@@ -325,7 +276,7 @@ function WeddingCreatorContent() {
             '   • "Agrega una sección de galería de fotos"\n' +
             '   • "Habilita el formulario de confirmación RSVP"\n\n' +
             '¿Qué te gustaría configurar primero para tu evento? 🎉',
-          timestamp: new Date(), // ✅ Timestamp real en cliente
+          timestamp: new Date(),
         }];
       }
       return prev;
@@ -335,27 +286,21 @@ function WeddingCreatorContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [_selectedSection, setSelectedSection] = useState<SectionType | null>(null);
   const [backendAvailable, setBackendAvailable] = useState<boolean | null>(null);
-  // ✅ FIX HYDRATION: Usar useEffect para generar sessionId solo en cliente
   const [sessionId, setSessionId] = useState('wedding-temp');
   useEffect(() => {
     setSessionId(`wedding-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
   }, []);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // ✅ OPTIMIZACIÓN: Memoizar palettes para evitar recalcular en cada render
   const palettes = useMemo(() => getAllPalettes(), []);
 
-  // ✅ OPTIMIZACIÓN: Deferir checkBackendHealth para no bloquear carga inicial
   useEffect(() => {
-    // Ejecutar después de que la UI esté lista
     const checkHealth = () => {
       checkBackendHealth()
         .then(setBackendAvailable)
         .catch(() => setBackendAvailable(false));
     };
 
-    // Usar requestIdleCallback si está disponible, sino setTimeout
-    // Nota: useEffect solo se ejecuta en el cliente, window siempre está disponible
     if ('requestIdleCallback' in window) {
       requestIdleCallback(checkHealth, { timeout: 2000 });
     } else {
@@ -585,24 +530,16 @@ function WeddingCreatorContent() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isDirty, _saveWedding]);
 
-  // ✅ FIX: Timeout para mostrar editor incluso si está cargando
   const [forceShow, setForceShow] = useState(false);
 
   useEffect(() => {
-    // ✅ OPTIMIZACIÓN: Reducir timeout de 3s a 1s para carga más rápida
     if (weddingLoading) {
-      const timeout = setTimeout(() => {
-        // Force show editor after timeout
-        setForceShow(true);
-      }, 1000); // Reducido de 3000ms a 1000ms
+      const timeout = setTimeout(() => setForceShow(true), 1000);
       return () => clearTimeout(timeout);
     } else {
       setForceShow(false);
     }
   }, [weddingLoading]);
-
-  // ✅ FIX: Mostrar editor siempre, incluso si está cargando (después de timeout)
-  // ✅ OPTIMIZACIÓN: Reducir timeout de 3s a 1s para carga más rápida
   if (weddingLoading && !forceShow) {
     return (
       <div className="flex h-screen flex-col items-center justify-center">
@@ -620,9 +557,6 @@ function WeddingCreatorContent() {
       </div>
     );
   }
-
-  // ✅ FIX: Nunca bloquear - siempre mostrar editor con datos por defecto si es necesario
-  // El wedding ya tiene un fallback, así que siempre debería existir
 
   const coupleName = wedding.couple.partner1.name && wedding.couple.partner2.name
     ? `${wedding.couple.partner1.name} & ${wedding.couple.partner2.name}`
@@ -670,16 +604,7 @@ function WeddingCreatorContent() {
                   <span className="ml-2 text-xs text-green-500">Guardado</span>
                 )}
               </div>
-              {/* ✅ FIX: Botón de reinicio siempre visible */}
-              <button
-                className="ml-auto rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200"
-                onClick={() => window.location.reload()}
-                title="Reiniciar editor"
-                type="button"
-              >
-                🔄 Reiniciar
-              </button>
-              <div className="flex items-center gap-2">
+              <div className="ml-auto flex items-center gap-2">
                 {backendAvailable === true && (
                   <span className="flex items-center gap-1 text-xs text-green-600" title="Conectado al backend AI">
                     <span className="h-2 w-2 rounded-full bg-green-500" />
@@ -692,12 +617,14 @@ function WeddingCreatorContent() {
                     Local
                   </span>
                 )}
-                {isDirty && (
-                  <span className="text-xs text-amber-600">Sin guardar</span>
-                )}
-                {isSaving && (
-                  <span className="text-xs text-blue-600">Guardando...</span>
-                )}
+                <button
+                  className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200"
+                  onClick={() => window.location.reload()}
+                  title="Reiniciar editor"
+                  type="button"
+                >
+                  🔄 Reiniciar
+                </button>
               </div>
             </div>
 

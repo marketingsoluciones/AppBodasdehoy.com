@@ -22,26 +22,66 @@ interface SystemHealth {
 const getStatusColor = (status: string | undefined) => {
   switch (status) {
     case 'ok':
-    case 'healthy': {
+    case 'healthy':
       return 'text-green-600';
-    }
-    case 'degraded': {
+    case 'degraded':
       return 'text-yellow-600';
-    }
     case 'error':
-    case 'down': {
+    case 'down':
       return 'text-red-600';
-    }
-    default: {
+    default:
       return 'text-gray-600';
-    }
   }
 };
+
+const getStatusBg = (status: string | undefined) => {
+  switch (status) {
+    case 'ok':
+    case 'healthy':
+      return 'bg-green-50 border-green-200';
+    case 'degraded':
+      return 'bg-yellow-50 border-yellow-200';
+    case 'error':
+    case 'down':
+      return 'bg-red-50 border-red-200';
+    default:
+      return 'bg-gray-50 border-gray-200';
+  }
+};
+
+function UptimeRing({ status }: { status: string | undefined }) {
+  const isHealthy = status === 'ok' || status === 'healthy';
+  const color = isHealthy ? '#22c55e' : status === 'degraded' ? '#eab308' : '#ef4444';
+  const pct = isHealthy ? 100 : status === 'degraded' ? 75 : 0;
+  const circumference = 2 * Math.PI * 36;
+  const offset = circumference - (pct / 100) * circumference;
+
+  return (
+    <div className="relative flex items-center justify-center">
+      <svg className="h-24 w-24 -rotate-90" viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="36" fill="none" stroke="#e5e7eb" strokeWidth="6" />
+        <circle
+          cx="40" cy="40" r="36" fill="none"
+          stroke={color} strokeWidth="6"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          className="transition-all duration-1000"
+        />
+      </svg>
+      <div className="absolute flex flex-col items-center">
+        <span className="text-lg font-bold" style={{ color }}>{pct}%</span>
+        <span className="text-[10px] text-gray-500">uptime</span>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   const fetchSystemHealth = useCallback(async () => {
     try {
@@ -51,6 +91,7 @@ export default function AdminDashboard() {
       const data = await response.json();
       setHealth(data);
       setError(null);
+      setLastRefresh(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
@@ -60,144 +101,187 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchSystemHealth();
-    const interval = setInterval(fetchSystemHealth, 30_000); // Refresh cada 30s
+    const interval = setInterval(fetchSystemHealth, 30_000);
     return () => clearInterval(interval);
   }, [fetchSystemHealth]);
 
+  const QUICK_LINKS = [
+    { href: '/admin/billing', icon: '💰', title: 'Facturación', desc: 'Costos y métricas' },
+    { href: '/admin/audit', icon: '🔍', title: 'Auditoría', desc: 'Verificar costos' },
+    { href: '/admin/tests', icon: '🧪', title: 'Tests de Calidad', desc: 'Validación IA' },
+    { href: '/admin/training', icon: '🎓', title: 'Entrenamiento', desc: 'Q&A para IA' },
+    { href: '/admin/mcps', icon: '🔧', title: 'MCPs', desc: 'Plugins sistema' },
+    { href: '/admin/campaigns', icon: '📣', title: 'Campañas', desc: 'CRM y marketing' },
+    { href: '/admin/users', icon: '👥', title: 'Usuarios', desc: 'Gestión usuarios' },
+    { href: '/admin/sessions', icon: '🔐', title: 'Sesiones', desc: 'Monitoreo activo' },
+    { href: '/admin/debug', icon: '🐛', title: 'Debug', desc: 'Peticiones API' },
+  ];
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Panel de Administración</h1>
-        <p className="mt-2 text-gray-600">Monitoreo y gestión del sistema IA V2</p>
-      </div>
-
-      {/* System Health */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Estado del Sistema</h2>
-          {loading && <span className="text-xs text-gray-400">Actualizando...</span>}
-          {error && !loading && (
-            <span className="flex items-center gap-1 text-xs text-red-500">
-              Sin conexión con api-ia
-              <button className="underline" onClick={fetchSystemHealth} type="button">Reintentar</button>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Panel de Administración</h1>
+          <p className="mt-2 text-gray-600">Monitoreo y gestión del sistema IA V2</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {lastRefresh && (
+            <span className="text-xs text-gray-400">
+              Actualizado: {lastRefresh.toLocaleTimeString('es-ES')}
             </span>
           )}
-        </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="rounded-lg bg-green-50 p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Redis</span>
-              <span className={getStatusColor(health?.services.redis)}>
-                {health?.services.redis || 'unknown'}
-              </span>
-            </div>
-          </div>
-          <div className="rounded-lg bg-green-50 p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">API2 GraphQL</span>
-              <span className={getStatusColor(health?.services.api2_graphql)}>
-                {health?.services.api2_graphql || 'unknown'}
-              </span>
-            </div>
-          </div>
-          <div className="rounded-lg bg-green-50 p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Ollama</span>
-              <span className={getStatusColor(health?.services.ollama)}>
-                {health?.services.ollama || 'unknown'}
-              </span>
-            </div>
-          </div>
+          <button
+            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            onClick={fetchSystemHealth}
+            type="button"
+          >
+            {loading ? '⏳' : '🔄'} Actualizar
+          </button>
         </div>
       </div>
+
+      {/* System Health + Uptime */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        {/* Uptime Ring */}
+        <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-white p-6">
+          <div className="text-center">
+            <UptimeRing status={health?.status} />
+            <p className="mt-2 text-sm font-medium text-gray-700">
+              {health?.status === 'healthy' || health?.status === 'ok' ? 'Sistema Operativo' : health?.status || 'Desconocido'}
+            </p>
+            <p className="text-xs text-gray-400">v{health?.version || '?'}</p>
+          </div>
+        </div>
+
+        {/* Service Cards */}
+        {[
+          { label: 'Redis', key: 'redis' as const },
+          { label: 'API2 GraphQL', key: 'api2_graphql' as const },
+          { label: 'Ollama', key: 'ollama' as const },
+        ].map(({ label, key }) => (
+          <div
+            key={key}
+            className={`rounded-lg border p-4 ${getStatusBg(health?.services[key])}`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">{label}</span>
+              <span className={`text-sm font-semibold ${getStatusColor(health?.services[key])}`}>
+                {health?.services[key] || 'unknown'}
+              </span>
+            </div>
+            <div className="mt-3">
+              <div className="h-1.5 w-full rounded-full bg-gray-200">
+                <div
+                  className={`h-1.5 rounded-full transition-all ${
+                    health?.services[key] === 'ok' || health?.services[key] === 'healthy'
+                      ? 'w-full bg-green-500'
+                      : health?.services[key] === 'degraded'
+                        ? 'w-3/4 bg-yellow-500'
+                        : 'w-0 bg-red-500'
+                  }`}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {error && !loading && (
+        <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+          <span className="text-lg">⚠️</span>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-red-800">Sin conexión con api-ia</p>
+            <p className="text-xs text-red-600">{error}</p>
+          </div>
+          <button
+            className="rounded-md bg-red-100 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-200"
+            onClick={fetchSystemHealth}
+            type="button"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
 
       {/* Metrics */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="rounded-lg border border-gray-200 bg-white p-6">
-          <div className="text-sm text-gray-600">Sesiones Activas</div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span className="text-lg">👥</span>
+            Sesiones Activas
+          </div>
           <div className="mt-2 text-3xl font-bold text-blue-700">
             {health?.metrics.active_sessions || 0}
           </div>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6">
-          <div className="text-sm text-gray-600">Requests/min</div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span className="text-lg">📊</span>
+            Requests/min
+          </div>
           <div className="mt-2 text-3xl font-bold text-green-700">
             {health?.metrics.requests_per_minute || 0}
           </div>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6">
-          <div className="text-sm text-gray-600">Tiempo de Respuesta</div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span className="text-lg">⚡</span>
+            Tiempo de Respuesta
+          </div>
           <div className="mt-2 text-3xl font-bold text-purple-700">
-            {health?.metrics.avg_response_time_ms || 0}ms
+            {health?.metrics.avg_response_time_ms || 0}
+            <span className="text-base font-normal text-gray-400">ms</span>
           </div>
         </div>
       </div>
 
       {/* Quick Links */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-        <Link
-          className="rounded-lg border border-gray-200 bg-white p-6 transition-colors hover:bg-gray-50"
-          href="/admin/billing"
-        >
-          <div className="mb-2 text-3xl">💰</div>
-          <div className="font-semibold">Facturación</div>
-          <div className="mt-1 text-sm text-gray-600">Costos y métricas</div>
-        </Link>
-        <Link
-          className="rounded-lg border border-gray-200 bg-white p-6 transition-colors hover:bg-gray-50"
-          href="/admin/tests"
-        >
-          <div className="mb-2 text-3xl">🧪</div>
-          <div className="font-semibold">Tests de Calidad</div>
-          <div className="mt-1 text-sm text-gray-600">Validación IA</div>
-        </Link>
-        <Link
-          className="rounded-lg border border-gray-200 bg-white p-6 transition-colors hover:bg-gray-50"
-          href="/admin/training"
-        >
-          <div className="mb-2 text-3xl">🎓</div>
-          <div className="font-semibold">Entrenamiento</div>
-          <div className="mt-1 text-sm text-gray-600">Q&A para IA</div>
-        </Link>
-        <Link
-          className="rounded-lg border border-gray-200 bg-white p-6 transition-colors hover:bg-gray-50"
-          href="/admin/mcps"
-        >
-          <div className="mb-2 text-3xl">🔧</div>
-          <div className="font-semibold">MCPs</div>
-          <div className="mt-1 text-sm text-gray-600">Plugins sistema</div>
-        </Link>
-        <Link
-          className="rounded-lg border border-gray-200 bg-white p-6 transition-colors hover:bg-gray-50"
-          href="/admin/users"
-        >
-          <div className="mb-2 text-3xl">👥</div>
-          <div className="font-semibold">Usuarios</div>
-          <div className="mt-1 text-sm text-gray-600">Gestión usuarios</div>
-        </Link>
-        <Link
-          className="rounded-lg border border-gray-200 bg-white p-6 transition-colors hover:bg-gray-50"
-          href="/admin/sessions"
-        >
-          <div className="mb-2 text-3xl">🔐</div>
-          <div className="font-semibold">Sesiones</div>
-          <div className="mt-1 text-sm text-gray-600">Monitoreo activo</div>
-        </Link>
+      <div>
+        <h2 className="mb-3 text-lg font-semibold text-gray-900">Acceso Rápido</h2>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          {QUICK_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              className="group flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-blue-200 hover:bg-blue-50 hover:shadow-sm"
+              href={link.href}
+            >
+              <span className="text-2xl">{link.icon}</span>
+              <div>
+                <div className="text-sm font-semibold text-gray-900 group-hover:text-blue-700">{link.title}</div>
+                <div className="text-xs text-gray-500">{link.desc}</div>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* System Info */}
       <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-xl font-semibold">Información del Sistema</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">Información del Sistema</h2>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div>
-            <span className="text-sm text-gray-600">Versión:</span>
-            <span className="ml-2 font-mono text-sm font-semibold text-gray-900">
+            <span className="block text-xs text-gray-500">Versión</span>
+            <span className="font-mono text-sm font-semibold text-gray-900">
               {health?.version || 'unknown'}
             </span>
           </div>
           <div>
-            <span className="text-sm text-gray-600">Estado:</span>
-            <span className="ml-2 font-semibold text-green-600">{health?.status || 'unknown'}</span>
+            <span className="block text-xs text-gray-500">Estado General</span>
+            <span className={`text-sm font-semibold ${getStatusColor(health?.status)}`}>
+              {health?.status || 'unknown'}
+            </span>
+          </div>
+          <div>
+            <span className="block text-xs text-gray-500">Último Health Check</span>
+            <span className="text-sm text-gray-700">
+              {health?.timestamp ? new Date(health.timestamp).toLocaleString('es-ES') : '-'}
+            </span>
+          </div>
+          <div>
+            <span className="block text-xs text-gray-500">Backend URL</span>
+            <span className="text-xs font-mono text-gray-500">
+              {process.env.NEXT_PUBLIC_BACKEND_URL || 'api-ia.bodasdehoy.com'}
+            </span>
           </div>
         </div>
       </div>

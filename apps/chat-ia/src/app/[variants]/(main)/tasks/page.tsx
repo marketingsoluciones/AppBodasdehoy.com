@@ -58,7 +58,7 @@ function getAppUrl(path: string): string {
   if (typeof window !== 'undefined' && window.location.hostname.includes('-test.')) {
     return `https://app-test.bodasdehoy.com${path}`;
   }
-  return `https://app.bodasdehoy.com${path}`;
+  return `https://organizador.bodasdehoy.com${path}`;
 }
 
 function formatResponsable(r?: string | string[]): string | null {

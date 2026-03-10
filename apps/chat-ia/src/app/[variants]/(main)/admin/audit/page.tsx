@@ -1,15 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Button, Card, Select, Table, Tag, message, Statistic, Row, Col } from 'antd';
-import { 
-  ReloadOutlined, 
-  CheckCircleOutlined, 
-  ExclamationCircleOutlined, 
+import { useState, useEffect, useMemo } from 'react';
+import { Button, Card, Select, Table, Tag, message, Statistic, Row, Col, DatePicker } from 'antd';
+import {
+  ReloadOutlined,
+  CheckCircleOutlined,
+  ExclamationCircleOutlined,
   CloseCircleOutlined,
-  BarChartOutlined
+  BarChartOutlined,
+  DownloadOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import dayjs, { type Dayjs } from 'dayjs';
+
+const { RangePicker } = DatePicker;
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
 
@@ -48,6 +52,31 @@ interface AuditHistoryItem {
   status: 'ok' | 'warning' | 'error';
 }
 
+function exportAuditCsv(items: AuditHistoryItem[], filename: string) {
+  const headers = ['Fecha', 'Proveedor', 'Status', 'Calculado', 'API', 'Diferencia', 'Diferencia %', 'Período Inicio', 'Período Fin', 'Development'];
+  const rows = items.map((item) => [
+    new Date(item.created_at).toLocaleString('es-ES'),
+    item.provider,
+    item.status,
+    item.calculated_total.toFixed(6),
+    item.api_total.toFixed(6),
+    item.difference.toFixed(6),
+    item.difference_percent.toFixed(2),
+    item.period?.start || '',
+    item.period?.end || '',
+    item.development,
+  ]);
+
+  const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function AuditDashboard() {
   const [loading, setLoading] = useState(false);
   const [auditing, setAuditing] = useState(false);
@@ -57,6 +86,7 @@ export default function AuditDashboard() {
   const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
   const [history, setHistory] = useState<AuditHistoryItem[]>([]);
   const [stats, setStats] = useState<any>(null);
+  const [historyDateRange, setHistoryDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
 
   const loadHistory = async () => {
     setLoading(true);
@@ -90,7 +120,6 @@ export default function AuditDashboard() {
     }
   };
 
-  // Cargar historial y estadísticas al montar
   useEffect(() => {
     loadHistory();
     loadStats();
@@ -105,7 +134,6 @@ export default function AuditDashboard() {
       const data = await response.json();
       setAuditResult(data);
       message.success('Auditoría completada');
-      // Recargar historial y estadísticas
       loadHistory();
       loadStats();
     } catch (error) {
@@ -115,6 +143,17 @@ export default function AuditDashboard() {
       setAuditing(false);
     }
   };
+
+  // Filter history by date range
+  const filteredHistory = useMemo(() => {
+    if (!historyDateRange || !historyDateRange[0] || !historyDateRange[1]) return history;
+    const start = historyDateRange[0].startOf('day').valueOf();
+    const end = historyDateRange[1].endOf('day').valueOf();
+    return history.filter((item) => {
+      const ts = new Date(item.created_at).getTime();
+      return ts >= start && ts <= end;
+    });
+  }, [history, historyDateRange]);
 
   const getStatusTag = (status: string) => {
     const statusConfig = {
@@ -208,7 +247,7 @@ export default function AuditDashboard() {
             const warningCount = providerStats.warning?.count || 0;
             const errorCount = providerStats.error?.count || 0;
             const total = okCount + warningCount + errorCount;
-            
+
             return (
               <Col key={providerName} span={8}>
                 <Card title={providerName.toUpperCase()}>
@@ -332,9 +371,9 @@ export default function AuditDashboard() {
                   prefix="$"
                   title="Diferencia"
                   value={auditResult.difference}
-                  valueStyle={{ 
-                    color: auditResult.difference_percent > 10 ? '#ff4d4f' : 
-                           auditResult.difference_percent > 5 ? '#faad14' : '#52c41a' 
+                  valueStyle={{
+                    color: auditResult.difference_percent > 10 ? '#ff4d4f' :
+                           auditResult.difference_percent > 5 ? '#faad14' : '#52c41a'
                   }}
                 />
               </Col>
@@ -344,9 +383,9 @@ export default function AuditDashboard() {
                   suffix="%"
                   title="Diferencia Porcentual"
                   value={auditResult.difference_percent}
-                  valueStyle={{ 
-                    color: auditResult.difference_percent > 10 ? '#ff4d4f' : 
-                           auditResult.difference_percent > 5 ? '#faad14' : '#52c41a' 
+                  valueStyle={{
+                    color: auditResult.difference_percent > 10 ? '#ff4d4f' :
+                           auditResult.difference_percent > 5 ? '#faad14' : '#52c41a'
                   }}
                 />
               </Col>
@@ -364,10 +403,32 @@ export default function AuditDashboard() {
       )}
 
       {/* Historial de Auditorías */}
-      <Card title="Historial de Auditorías">
+      <Card
+        title="Historial de Auditorías"
+        extra={
+          <div className="flex items-center gap-3">
+            <RangePicker
+              format="DD/MM/YYYY"
+              placeholder={['Desde', 'Hasta']}
+              onChange={(dates) => setHistoryDateRange(dates)}
+              value={historyDateRange}
+              allowClear
+              size="small"
+            />
+            <Button
+              icon={<DownloadOutlined />}
+              onClick={() => exportAuditCsv(filteredHistory, `audit-history-${dayjs().format('YYYY-MM-DD')}.csv`)}
+              disabled={filteredHistory.length === 0}
+              size="small"
+            >
+              Export CSV
+            </Button>
+          </div>
+        }
+      >
         <Table
           columns={historyColumns}
-          dataSource={history}
+          dataSource={filteredHistory}
           loading={loading}
           pagination={{ pageSize: 20 }}
           rowKey="_id"
@@ -376,16 +437,3 @@ export default function AuditDashboard() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -130,7 +130,7 @@ class ChatService {
         '1. Despertar el interés del visitante en la plataforma.\n' +
         '2. Presentar los beneficios de registrarse (gestión de invitados, presupuesto, mesas, itinerario, chat IA 24/7).\n' +
         '3. Conseguir sus datos de contacto (nombre, teléfono o email) para que el equipo haga seguimiento.\n' +
-        '4. Invitarle a crear una cuenta gratuita en: https://app.bodasdehoy.com/login?q=register\n\n' +
+        '4. Invitarle a crear una cuenta gratuita en: https://organizador.bodasdehoy.com/login?q=register\n\n' +
         'REGLAS ESTRICTAS:\n' +
         '- NO respondas preguntas técnicas detalladas de planificación (presupuestos, listas de invitados, proveedores, etc.). Esas son funciones exclusivas de usuarios registrados.\n' +
         '- Si el usuario pregunta cómo hacer algo específico, dile que esa función está disponible en la plataforma al registrarse y anímale a probarla gratis.\n' +
@@ -145,7 +145,7 @@ class ChatService {
         '✅ Itinerario del evento\n' +
         '✅ Asistente IA personalizado disponible 24/7\n' +
         '✅ Página web del evento personalizada\n\n' +
-        'Enlace de registro: https://app.bodasdehoy.com/login?q=register';
+        'Enlace de registro: https://organizador.bodasdehoy.com/login?q=register';
     }
 
     // Apply context engineering with preprocessing configuration
