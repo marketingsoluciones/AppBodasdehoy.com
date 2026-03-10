@@ -29,6 +29,11 @@ interface ConfigCache {
 const CACHE_TTL = process.env.NODE_ENV === 'production' ? 300_000 : 300_000;
 let configCache: ConfigCache = { config: null, timestamp: 0 };
 
+/** Reset the config cache (used in tests to ensure env var changes are picked up) */
+export const resetConfigCache = () => {
+  configCache = { config: null, timestamp: 0 };
+};
+
 export const getServerGlobalConfig = async () => {
   // ✅ OPTIMIZACIÓN CRÍTICA: SIEMPRE retornar config mínima inmediatamente
   // La configuración completa se genera en background y se usará en requests posteriores

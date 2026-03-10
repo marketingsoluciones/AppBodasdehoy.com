@@ -7,7 +7,10 @@
 import { describe, it, expect } from 'vitest';
 import { getTestActions, BACKEND_URL } from '../backend';
 
-describe('Backend - Acciones Guardadas (300-600 acciones)', () => {
+// Skip tests if no backend connection available (DNS/VPN issues)
+const SKIP_TESTS = process.env.SKIP_BACKEND_TESTS === 'true';
+
+describe.skipIf(SKIP_TESTS)('Backend - Acciones Guardadas (300-600 acciones)', () => {
   it('debe poder conectar con el backend', async () => {
     const response = await fetch(`${BACKEND_URL}/health`);
     expect(response.ok).toBe(true);

@@ -300,17 +300,32 @@ function CreateChannelModal({
   );
 }
 
-// ─── Integration Placeholder Card ─────────────────────────────────────────────
+// ─── Integration Channel Card (clickable → goes to /messages/{channel}) ───────
 
-function PlaceholderCard({ color, icon, name }: { color: string; icon: string; name: string }) {
+function IntegrationCard({
+  channelId,
+  color,
+  description,
+  icon,
+  name,
+}: {
+  channelId: string;
+  color: string;
+  description: string;
+  icon: string;
+  name: string;
+}) {
   return (
-    <div className={`flex items-center gap-3 rounded-xl border p-4 opacity-50 ${color}`}>
+    <a
+      className={`flex items-center gap-3 rounded-xl border p-4 transition-all hover:shadow-md hover:scale-[1.02] cursor-pointer ${color}`}
+      href={`/messages/${channelId}`}
+    >
       <div className="text-2xl">{icon}</div>
       <div>
-        <p className="text-sm font-medium text-gray-700">{name}</p>
-        <p className="text-xs text-gray-500">Próximamente</p>
+        <p className="text-sm font-semibold text-gray-800">{name}</p>
+        <p className="text-xs text-gray-500">{description}</p>
       </div>
-    </div>
+    </a>
   );
 }
 
@@ -325,7 +340,7 @@ function IntegrationsPageInner() {
   const [loadingChannels, setLoadingChannels] = useState(true);
   const [apiError, setApiError] = useState(false);
 
-  const [qrTarget, setQrTarget] = useState<WhatsAppChannel | null | 'new'>(undefined as any);
+  const [qrTarget, setQrTarget] = useState<WhatsAppChannel | 'new' | undefined>(undefined);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
@@ -440,22 +455,24 @@ function IntegrationsPageInner() {
         )}
       </section>
 
-      {/* Other channels placeholders */}
+      {/* Other channels */}
       <section>
         <h2 className="mb-4 text-base font-semibold text-gray-900">Otros canales</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <PlaceholderCard color="border-pink-200 bg-pink-50" icon="📷" name="Instagram" />
-          <PlaceholderCard color="border-blue-200 bg-blue-50" icon="✈️" name="Telegram" />
-          <PlaceholderCard color="border-purple-200 bg-purple-50" icon="📧" name="Email" />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <IntegrationCard channelId="instagram" color="border-pink-200 bg-pink-50" description="Conecta Instagram Business para DMs" icon="📷" name="Instagram" />
+          <IntegrationCard channelId="telegram" color="border-blue-200 bg-blue-50" description="Conecta un bot de Telegram" icon="✈️" name="Telegram" />
+          <IntegrationCard channelId="email" color="border-purple-200 bg-purple-50" description="Gmail, Outlook o SMTP/IMAP" icon="📧" name="Email" />
+          <IntegrationCard channelId="web" color="border-orange-200 bg-orange-50" description="Widget embebible para tu sitio web" icon="🌐" name="Chat Web" />
+          <IntegrationCard channelId="facebook" color="border-blue-200 bg-blue-50" description="Facebook Messenger para tu página" icon="📘" name="Facebook" />
         </div>
       </section>
 
       {/* QR Modal */}
-      {qrTarget !== undefined && qrTarget !== null && qrTarget !== ('new' as any) && (
+      {qrTarget !== undefined && qrTarget !== 'new' && (
         <QRModal
-          channel={qrTarget as WhatsAppChannel}
+          channel={qrTarget}
           development={development}
-          onClose={() => setQrTarget(undefined as any)}
+          onClose={() => setQrTarget(undefined)}
         />
       )}
 

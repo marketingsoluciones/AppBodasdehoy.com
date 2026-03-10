@@ -1,7 +1,11 @@
 /**
  * @vitest-environment node
+ * @vitest-timeout 15000
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+// oidc-provider is a heavyweight module; increase timeout for parallel suite runs
+vi.setConfig({ testTimeout: 15000 });
 
 // Mock dependencies
 vi.mock('@/const/auth', () => ({

@@ -4,11 +4,12 @@ import { useConversations } from '../hooks/useConversations';
 import { ChannelBadge } from './ChannelBadge';
 
 interface ConversationHeaderProps {
+  channel?: string;
   conversationId: string;
 }
 
-export function ConversationHeader({ conversationId }: ConversationHeaderProps) {
-  const { conversations } = useConversations(null);
+export function ConversationHeader({ channel, conversationId }: ConversationHeaderProps) {
+  const { conversations } = useConversations(channel ?? null);
   const conversation = conversations.find((c) => c.id === conversationId);
 
   if (!conversation) {
@@ -45,25 +46,28 @@ export function ConversationHeader({ conversationId }: ConversationHeaderProps) 
         </div>
       </div>
 
-      {/* Right: Actions */}
+      {/* Right: Actions — disabled until implemented */}
       <div className="flex items-center gap-2">
         <button
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-lg text-gray-600 transition-colors hover:bg-gray-100"
-          title="Buscar en conversación"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-lg text-gray-300 cursor-not-allowed"
+          disabled
+          title="Buscar en conversación (próximamente)"
           type="button"
         >
           🔍
         </button>
         <button
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-lg text-gray-600 transition-colors hover:bg-gray-100"
-          title="Llamar"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-lg text-gray-300 cursor-not-allowed"
+          disabled
+          title="Llamar (próximamente)"
           type="button"
         >
           📞
         </button>
         <button
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-lg text-gray-600 transition-colors hover:bg-gray-100"
-          title="Más opciones"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-lg text-gray-300 cursor-not-allowed"
+          disabled
+          title="Más opciones (próximamente)"
           type="button"
         >
           ⋮

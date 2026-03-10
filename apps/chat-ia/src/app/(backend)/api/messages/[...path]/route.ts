@@ -21,6 +21,12 @@ const getApi2Url = (): string =>
  * Definitivo:
  *   todo lo demás → api-ia /api/messages/*
  *
+ * Canales soportados (todos via api-ia excepto whatsapp):
+ *   /api/messages/instagram/*  → api-ia (OAuth + Graph API)
+ *   /api/messages/telegram/*   → api-ia (Bot Token + Bot API)
+ *   /api/messages/email/*      → api-ia (SMTP/IMAP o OAuth Gmail/Outlook)
+ *   /api/messages/web/*        → api-ia (Widget embebible + SSE)
+ *
  * TODO: Cuando api-ia implemente /api/messages/conversations con datos Baileys
  *       y /api/messages/whatsapp/session/:dev, eliminar el bloque whatsapp→api2.
  */

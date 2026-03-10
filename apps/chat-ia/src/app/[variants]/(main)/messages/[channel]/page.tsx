@@ -6,6 +6,11 @@ import { InboxSidebar } from '../components/InboxSidebar';
 import { ConversationList } from '../components/ConversationList';
 import { InternalChannelView } from '../components/InternalChannelView';
 import { WhatsAppSetup } from '../components/WhatsAppSetup';
+import { InstagramSetup } from '../components/InstagramSetup';
+import { TelegramSetup } from '../components/TelegramSetup';
+import { EmailSetup } from '../components/EmailSetup';
+import { WebChatSetup } from '../components/WebChatSetup';
+import { FacebookSetup } from '../components/FacebookSetup';
 
 interface ChannelPageProps {
   params: Promise<{ channel: string }>;
@@ -21,17 +26,24 @@ function isTaskChannel(channel: string) {
   return /^ev-.+-task$/.test(channel);
 }
 
-// 'whatsapp' = placeholder (no channel configured) → full-width setup screen
-function isWhatsAppPlaceholder(channel: string) {
-  return channel === 'whatsapp';
-}
+// Channels that show a full-width setup/config screen
+const SETUP_CHANNELS: Record<string, React.ComponentType<{ development: string }>> = {
+  whatsapp: WhatsAppSetup,
+  instagram: InstagramSetup,
+  telegram: TelegramSetup,
+  email: EmailSetup,
+  web: WebChatSetup,
+  facebook: FacebookSetup,
+};
 
-function WhatsAppSetupPage({ development }: { development: string }) {
+function ChannelSetupPage({ development, channel }: { development: string; channel: string }) {
+  const SetupComponent = SETUP_CHANNELS[channel];
+  if (!SetupComponent) return null;
   return (
     <>
       <InboxSidebar />
       <div className="flex flex-1 overflow-hidden bg-gray-50">
-        <WhatsAppSetup development={development} />
+        <SetupComponent development={development} />
       </div>
     </>
   );
@@ -57,8 +69,8 @@ export default function ChannelPage({ params }: ChannelPageProps) {
   const { development } = checkAuth();
   const dev = development || 'bodasdehoy';
 
-  if (isWhatsAppPlaceholder(channel)) {
-    return <WhatsAppSetupPage development={dev} />;
+  if (channel in SETUP_CHANNELS) {
+    return <ChannelSetupPage development={dev} channel={channel} />;
   }
 
   return (

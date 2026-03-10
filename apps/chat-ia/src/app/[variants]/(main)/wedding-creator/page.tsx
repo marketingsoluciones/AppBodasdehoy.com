@@ -39,8 +39,6 @@ import {
 import { getCurrentEventId } from '@/services/storage-r2';
 import { FeatureGate } from '@/components/FeatureGate';
 
-// ✅ DEBUG: Log al nivel del módulo (antes de cualquier componente)
-console.log('📦 [wedding-creator/page.tsx] MÓDULO CARGADO - Este log aparece cuando el archivo se importa');
 
 // ✅ OPTIMIZACIÓN: Lazy load de componentes pesados
 const WeddingSiteRenderer = lazy(() =>
@@ -181,7 +179,6 @@ function WeddingCreatorContent() {
 
   // ✅ DEBUG: Log inicial
   useEffect(() => {
-    console.log('🎨 WeddingCreatorContent montado');
   }, []);
 
   // ✅ FIX HYDRATION: Inicializar siempre como null para evitar mismatch SSR/cliente
@@ -377,7 +374,7 @@ function WeddingCreatorContent() {
     setMessages((prev) => [
       ...prev,
       {
-        content: `[Usuario selecciono la seccion: ${section}]`,
+        content: `[Usuario seleccionó la sección: ${section}]`,
         id: `sys-${Date.now()}`,
         role: 'system',
         timestamp: new Date(),
@@ -587,7 +584,7 @@ function WeddingCreatorContent() {
     // ✅ OPTIMIZACIÓN: Reducir timeout de 3s a 1s para carga más rápida
     if (weddingLoading) {
       const timeout = setTimeout(() => {
-        console.warn('⏱️ Timeout: Forzando mostrar editor después de 1s');
+        // Force show editor after timeout
         setForceShow(true);
       }, 1000); // Reducido de 3000ms a 1000ms
       return () => clearTimeout(timeout);
@@ -658,10 +655,7 @@ function WeddingCreatorContent() {
               {/* ✅ FIX: Botón de reinicio siempre visible */}
               <button
                 className="ml-auto rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200"
-                onClick={() => {
-                  console.log('🔄 Reiniciando editor...');
-                  window.location.reload();
-                }}
+                onClick={() => window.location.reload()}
                 title="Reiniciar editor"
                 type="button"
               >

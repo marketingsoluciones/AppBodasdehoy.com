@@ -132,11 +132,11 @@ describe('chatMessage actions', () => {
 
       expect(messageService.createMessage).toHaveBeenCalledWith({
         content: message,
+        deliveryStatus: 'pending',
         files: fileList,
         role: 'user',
         sessionId: mockState.activeId,
         topicId: mockState.activeTopicId,
-        threadId: undefined,
       });
     });
 
@@ -156,11 +156,11 @@ describe('chatMessage actions', () => {
 
       expect(messageService.createMessage).toHaveBeenCalledWith({
         content: message,
+        deliveryStatus: 'pending',
         files: undefined,
         role: 'user',
         sessionId: mockState.activeId,
         topicId: mockState.activeTopicId,
-        threadId: activeThreadId,
       });
     });
 
@@ -186,11 +186,11 @@ describe('chatMessage actions', () => {
 
       expect(messageService.createMessage).toHaveBeenCalledWith({
         content: message,
+        deliveryStatus: 'pending',
         files: undefined,
         role: 'user',
         sessionId: mockState.activeId,
         topicId: mockState.activeTopicId,
-        threadId: undefined,
       });
     });
   });
@@ -530,20 +530,13 @@ describe('chatMessage actions', () => {
         await result.current.refreshMessages();
       });
 
-      // 确保 mutate 调用了正确的参数（session 和 group 两次）
+      // 确保 mutate 调用了正确的参数
       expect(mutate).toHaveBeenCalledWith([
         'SWR_USE_FETCH_MESSAGES',
         activeId,
         activeTopicId,
-        'session',
       ]);
-      expect(mutate).toHaveBeenCalledWith([
-        'SWR_USE_FETCH_MESSAGES',
-        activeId,
-        activeTopicId,
-        'group',
-      ]);
-      expect(mutate).toHaveBeenCalledTimes(2);
+      expect(mutate).toHaveBeenCalledTimes(1);
     });
     it('should handle errors during refreshing messages', async () => {
       useChatStore.setState({ refreshMessages: realRefreshMessages });

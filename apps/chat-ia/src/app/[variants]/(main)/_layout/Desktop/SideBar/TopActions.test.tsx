@@ -69,12 +69,11 @@ const renderTopActions = (props: TopActionProps = {}) => {
 };
 
 describe('TopActions', () => {
-  it('should render Chat, AI Image and Market by default', () => {
+  it('should render Chat and Memories by default', () => {
     renderTopActions();
 
     expect(screen.getByText('tab.chat')).toBeInTheDocument();
-    expect(screen.getByText('tab.aiImage')).toBeInTheDocument();
-    expect(screen.getByText('tab.discover')).toBeInTheDocument();
+    expect(screen.getByText('tab.memories')).toBeInTheDocument();
   });
 
   it('should render only Chat icon when `-market` is set', () => {

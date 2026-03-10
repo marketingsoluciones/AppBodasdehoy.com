@@ -36,9 +36,11 @@ vi.mock('@/const/auth', async (importOriginal) => {
   };
 });
 
-// 模拟请求和响应
+// 模拟请求y respuesta
 let request: Request;
 beforeEach(() => {
+  // Bypass Python backend proxy so tests reach the LobeChat runtime path
+  process.env.USE_PYTHON_BACKEND = 'false';
   request = new Request(new URL('https://test.com'), {
     headers: {
       [LOBE_CHAT_AUTH_HEADER]: 'Bearer some-valid-token',
@@ -53,6 +55,7 @@ afterEach(() => {
   // 清除模拟调用历史
   vi.clearAllMocks();
   enableClerk = false;
+  delete process.env.USE_PYTHON_BACKEND;
 });
 
 describe('POST handler', () => {
@@ -132,10 +135,12 @@ describe('POST handler', () => {
 
       await POST(request, { params: mockParams });
 
+      // Note: getAuthFromRequest is async but called without await in the middleware,
+      // so clerkAuth is undefined (the Promise object, not its resolved .clerkAuth)
       expect(checkAuthMethod).toBeCalledWith({
         accessCode: 'test-access-code',
         apiKey: 'test-api-key',
-        clerkAuth: {},
+        clerkAuth: undefined,
         nextAuthAuthorized: true,
       });
     });

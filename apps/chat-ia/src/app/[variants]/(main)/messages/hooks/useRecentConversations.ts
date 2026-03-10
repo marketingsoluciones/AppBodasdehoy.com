@@ -8,7 +8,7 @@ import { getWhatsAppChannels } from '@/services/api2/whatsapp';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { buildHeaders } from '../utils/auth';
 
-export type ChannelKind = 'whatsapp' | 'instagram' | 'telegram' | 'email';
+export type ChannelKind = 'whatsapp' | 'instagram' | 'telegram' | 'email' | 'web' | 'facebook';
 
 export interface RecentConversation {
   /** URL segment used for navigation: wa-{channelId}, instagram, telegram, etc. */
@@ -29,6 +29,8 @@ const CHANNEL_BADGE: Record<ChannelKind, { label: string; bg: string; text: stri
   instagram: { label: 'IG', bg: 'bg-pink-500', text: 'text-white' },
   telegram: { label: 'TG', bg: 'bg-blue-500', text: 'text-white' },
   email: { label: '@', bg: 'bg-gray-500', text: 'text-white' },
+  web: { label: 'WEB', bg: 'bg-orange-500', text: 'text-white' },
+  facebook: { label: 'FB', bg: 'bg-blue-600', text: 'text-white' },
 };
 
 export { CHANNEL_BADGE };

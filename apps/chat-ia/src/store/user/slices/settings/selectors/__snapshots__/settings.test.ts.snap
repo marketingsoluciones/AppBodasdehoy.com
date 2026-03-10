@@ -51,35 +51,35 @@ exports[`settingsSelectors > currentSettings > should merge DEFAULT_SETTINGS and
 exports[`settingsSelectors > currentSystemAgent > should merge DEFAULT_SYSTEM_AGENT_CONFIG and s.settings.systemAgent correctly 1`] = `
 {
   "agentMeta": {
-    "model": "gpt-5-mini",
-    "provider": "openai",
+    "model": "auto",
+    "provider": "auto",
   },
   "enableAutoReply": true,
   "generationTopic": {
-    "model": "gpt-5-mini",
-    "provider": "openai",
+    "model": "auto",
+    "provider": "auto",
   },
   "historyCompress": {
-    "model": "gpt-5-mini",
-    "provider": "openai",
+    "model": "auto",
+    "provider": "auto",
   },
   "queryRewrite": {
     "enabled": true,
-    "model": "gpt-5-mini",
-    "provider": "openai",
+    "model": "auto",
+    "provider": "auto",
   },
   "replyMessage": "Custom auto reply",
   "thread": {
-    "model": "gpt-5-mini",
-    "provider": "openai",
+    "model": "auto",
+    "provider": "auto",
   },
   "topic": {
-    "model": "gpt-5-mini",
-    "provider": "openai",
+    "model": "auto",
+    "provider": "auto",
   },
   "translation": {
-    "model": "gpt-5-mini",
-    "provider": "openai",
+    "model": "auto",
+    "provider": "auto",
   },
 }
 `;
@@ -116,8 +116,8 @@ exports[`settingsSelectors > defaultAgent > should merge DEFAULT_AGENT and s.set
       "historyCount": 20,
       "reasoningBudgetToken": 1024,
       "searchFCModel": {
-        "model": "gpt-5-mini",
-        "provider": "openai",
+        "model": "auto",
+        "provider": "auto",
       },
       "searchMode": "off",
     },
@@ -130,7 +130,7 @@ exports[`settingsSelectors > defaultAgent > should merge DEFAULT_AGENT and s.set
       "top_p": 1,
     },
     "plugins": [],
-    "provider": "openai",
+    "provider": "auto",
     "systemRole": "user",
     "tts": {
       "showAllLocaleVoice": false,
@@ -161,8 +161,8 @@ exports[`settingsSelectors > defaultAgentConfig > should merge DEFAULT_AGENT_CON
     "historyCount": 20,
     "reasoningBudgetToken": 1024,
     "searchFCModel": {
-      "model": "gpt-5-mini",
-      "provider": "openai",
+      "model": "auto",
+      "provider": "auto",
     },
     "searchMode": "off",
   },
@@ -175,7 +175,7 @@ exports[`settingsSelectors > defaultAgentConfig > should merge DEFAULT_AGENT_CON
     "top_p": 1,
   },
   "plugins": [],
-  "provider": "openai",
+  "provider": "auto",
   "systemRole": "custom role",
   "tts": {
     "showAllLocaleVoice": false,

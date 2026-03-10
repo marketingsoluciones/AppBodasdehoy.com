@@ -13,8 +13,8 @@ exports[`agentSelectors > defaultAgentConfig > should merge DEFAULT_AGENT_CONFIG
     "historyCount": 20,
     "reasoningBudgetToken": 1024,
     "searchFCModel": {
-      "model": "gpt-5-mini",
-      "provider": "openai",
+      "model": "auto",
+      "provider": "auto",
     },
     "searchMode": "off",
   },
@@ -27,7 +27,7 @@ exports[`agentSelectors > defaultAgentConfig > should merge DEFAULT_AGENT_CONFIG
     "top_p": 1,
   },
   "plugins": [],
-  "provider": "openai",
+  "provider": "auto",
   "systemRole": "user",
   "tts": {
     "showAllLocaleVoice": false,

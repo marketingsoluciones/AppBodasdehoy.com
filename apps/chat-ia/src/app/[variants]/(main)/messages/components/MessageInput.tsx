@@ -53,10 +53,11 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
 
   return (
     <div className="flex items-end gap-2">
-      {/* Attach button (opcional) */}
+      {/* Attach button — disabled until backend supports file uploads */}
       <button
-        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-xl text-gray-600 transition-colors hover:bg-gray-100"
-        title="Adjuntar archivo"
+        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-xl text-gray-300 cursor-not-allowed"
+        disabled
+        title="Adjuntar archivo (próximamente)"
         type="button"
       >
         📎

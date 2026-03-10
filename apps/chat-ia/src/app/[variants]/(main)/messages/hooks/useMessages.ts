@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
@@ -46,7 +46,9 @@ export function useMessages(channel: string, conversationId: string) {
 
   const { isGuest } = useAuthCheck();
 
-  const fetchMessages = async () => {
+  const initialLoadDone = useRef(false);
+
+  const fetchMessages = useCallback(async () => {
     if (isGuest || !conversationId) {
       setMessages([]);
       setLoading(false);
@@ -82,13 +84,23 @@ export function useMessages(channel: string, conversationId: string) {
       setMessages([]);
     } finally {
       setLoading(false);
+      initialLoadDone.current = true;
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channel, conversationId, isGuest]);
 
   useEffect(() => {
     fetchMessages();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversationId, channel, isGuest]);
+  }, [fetchMessages]);
+
+  // Poll for new messages every 10 seconds
+  useEffect(() => {
+    if (isGuest || !conversationId) return;
+    const interval = setInterval(() => {
+      if (initialLoadDone.current) fetchMessages();
+    }, 10_000);
+    return () => clearInterval(interval);
+  }, [fetchMessages, isGuest, conversationId]);
 
   const addMessage = (message: Message) => {
     setMessages((prev) => [...prev, message]);

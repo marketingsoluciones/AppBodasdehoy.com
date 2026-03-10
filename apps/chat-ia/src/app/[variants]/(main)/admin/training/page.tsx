@@ -12,6 +12,69 @@ interface TrainingQuestion {
   tags: string[];
 }
 
+const STORAGE_KEY = 'bodas_training_questions';
+
+const defaultQuestions: TrainingQuestion[] = [
+  {
+    category: 'basic',
+    context: 'Funcionalidad básica de creación',
+    createdAt: new Date().toISOString(),
+    expectedAnswer:
+      'Para crear un evento, solo dime el tipo (boda, cumpleaños, etc), la fecha y el nombre. Yo me encargo del resto.',
+    id: 'q1',
+    question: '¿Cómo puedo crear un evento?',
+    tags: ['eventos', 'crear', 'básico'],
+  },
+  {
+    category: 'emotional',
+    context: 'Soporte emocional',
+    createdAt: new Date().toISOString(),
+    expectedAnswer:
+      'Entiendo perfectamente que puedes sentirte abrumado. Organizar una boda es un momento importante y puede generar estrés. Estoy aquí para ayudarte paso a paso y hacer este proceso más sencillo. ¿En qué puedo ayudarte primero?',
+    id: 'q2',
+    question: 'Estoy muy estresado con la organización de mi boda',
+    tags: ['estrés', 'empatía', 'apoyo'],
+  },
+  {
+    category: 'technical',
+    context: 'Explicación técnica',
+    createdAt: new Date().toISOString(),
+    expectedAnswer:
+      'MCP (Model Context Protocol) es un sistema que me permite acceder a herramientas específicas para gestionar eventos, invitados, presupuestos, etc. Funciona como extensiones que amplían mis capacidades.',
+    id: 'q3',
+    question: '¿Qué es un MCP y cómo funciona?',
+    tags: ['mcp', 'técnico', 'arquitectura'],
+  },
+  {
+    category: 'commercial',
+    context: 'Consulta comercial',
+    createdAt: new Date().toISOString(),
+    expectedAnswer:
+      'Nuestro servicio tiene diferentes planes según tus necesidades. El plan básico incluye gestión de eventos e invitados. ¿Te gustaría que te explique las opciones disponibles?',
+    id: 'q4',
+    question: '¿Cuánto cuesta vuestro servicio?',
+    tags: ['precio', 'comercial', 'planes'],
+  },
+];
+
+function loadFromStorage(): TrainingQuestion[] {
+  if (typeof window === 'undefined') return defaultQuestions;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch { /* ignore */ }
+  return defaultQuestions;
+}
+
+function saveToStorage(questions: TrainingQuestion[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(questions));
+  } catch { /* ignore */ }
+}
+
 const getCategoryConfig = (category: string) => {
   const configs = {
     basic: { color: 'bg-blue-100 text-blue-700', icon: '📚', name: 'Básicas' },
@@ -41,50 +104,7 @@ export default function TrainingPage() {
   });
 
   const loadQuestions = useCallback(() => {
-    const mockQuestions: TrainingQuestion[] = [
-      {
-        category: 'basic',
-        context: 'Funcionalidad básica de creación',
-        createdAt: new Date().toISOString(),
-        expectedAnswer:
-          'Para crear un evento, solo dime el tipo (boda, cumpleaños, etc), la fecha y el nombre. Yo me encargo del resto.',
-        id: 'q1',
-        question: '¿Cómo puedo crear un evento?',
-        tags: ['eventos', 'crear', 'básico'],
-      },
-      {
-        category: 'emotional',
-        context: 'Soporte emocional',
-        createdAt: new Date().toISOString(),
-        expectedAnswer:
-          'Entiendo perfectamente que puedes sentirte abrumado. Organizar una boda es un momento importante y puede generar estrés. Estoy aquí para ayudarte paso a paso y hacer este proceso más sencillo. ¿En qué puedo ayudarte primero?',
-        id: 'q2',
-        question: 'Estoy muy estresado con la organización de mi boda',
-        tags: ['estrés', 'empatía', 'apoyo'],
-      },
-      {
-        category: 'technical',
-        context: 'Explicación técnica',
-        createdAt: new Date().toISOString(),
-        expectedAnswer:
-          'MCP (Model Context Protocol) es un sistema que me permite acceder a herramientas específicas para gestionar eventos, invitados, presupuestos, etc. Funciona como extensiones que amplían mis capacidades.',
-        id: 'q3',
-        question: '¿Qué es un MCP y cómo funciona?',
-        tags: ['mcp', 'técnico', 'arquitectura'],
-      },
-      {
-        category: 'commercial',
-        context: 'Consulta comercial',
-        createdAt: new Date().toISOString(),
-        expectedAnswer:
-          'Nuestro servicio tiene diferentes planes según tus necesidades. El plan básico incluye gestión de eventos e invitados. ¿Te gustaría que te explique las opciones disponibles?',
-        id: 'q4',
-        question: '¿Cuánto cuesta vuestro servicio?',
-        tags: ['precio', 'comercial', 'planes'],
-      },
-    ];
-
-    setQuestions(mockQuestions);
+    setQuestions(loadFromStorage());
   }, []);
 
   useEffect(() => {
@@ -110,7 +130,11 @@ export default function TrainingPage() {
         .filter(Boolean),
     };
 
-    setQuestions((prev) => [...prev, question]);
+    setQuestions((prev) => {
+      const next = [...prev, question];
+      saveToStorage(next);
+      return next;
+    });
     setNewQuestion({
       category: 'basic',
       context: '',
@@ -124,7 +148,11 @@ export default function TrainingPage() {
   const handleDeleteQuestion = useCallback(
     (id: string) => {
       if (confirm('¿Estás seguro de eliminar esta pregunta?')) {
-        setQuestions((prev) => prev.filter((q) => q.id !== id));
+        setQuestions((prev) => {
+          const next = prev.filter((q) => q.id !== id);
+          saveToStorage(next);
+          return next;
+        });
       }
     },
     []

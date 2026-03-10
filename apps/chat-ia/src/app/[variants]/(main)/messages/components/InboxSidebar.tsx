@@ -17,6 +17,9 @@ const CHANNEL_ICON: Record<string, string> = {
   whatsapp: '📱',
   instagram: '📷',
   facebook: '📘',
+  telegram: '✈️',
+  email: '📧',
+  web: '🌐',
   itinerary: '📅',
   services: '🏢',
   guests: '👥',
@@ -179,12 +182,11 @@ function ChannelRow({
         isActive
           ? 'bg-blue-50 text-blue-700'
           : channel.isPlaceholder
-            ? 'cursor-default text-gray-400'
+            ? 'text-gray-500 hover:bg-gray-100 hover:text-gray-700 cursor-pointer'
             : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
       }`}
-      disabled={channel.isPlaceholder}
       onClick={onClick}
-      title={channel.isPlaceholder ? 'Próximamente' : undefined}
+      title={channel.isPlaceholder ? 'Configurar' : undefined}
       type="button"
     >
       <span className={`shrink-0 text-sm ${compact ? '' : 'text-base'}`}>
@@ -193,7 +195,7 @@ function ChannelRow({
       <span className={`flex-1 truncate ${compact ? 'text-xs' : 'text-sm'}`}>
         {channel.label}
         {channel.isPlaceholder && (
-          <span className="ml-1 text-[10px] text-gray-400">pronto</span>
+          <span className="ml-1 text-[10px] text-orange-400">configurar</span>
         )}
       </span>
       {channel.status === 'disconnected' && channel.kind === 'whatsapp' && !compact && (

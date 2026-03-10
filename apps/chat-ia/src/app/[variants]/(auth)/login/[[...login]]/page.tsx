@@ -97,9 +97,11 @@ function RightPanel() {
         }
         localStorage.setItem('dev-user-config', JSON.stringify({
           developer: result.development,
+          development: result.development,
           timestamp: Date.now(),
           token: result.token || null,
           userId: result.user_id,
+          user_id: result.user_id,
           user_type: 'registered',
         }));
         await setExternalChatConfig(result.user_id, result.development, result.token || undefined, 'registered');
@@ -134,9 +136,11 @@ function RightPanel() {
         }
         localStorage.setItem('dev-user-config', JSON.stringify({
           developer: result.development,
+          development: result.development,
           timestamp: Date.now(),
           token: result.token || null,
           userId: result.user_id,
+          user_id: result.user_id,
           user_type: 'registered',
         }));
         await setExternalChatConfig(result.user_id, result.development, result.token || undefined, 'registered');

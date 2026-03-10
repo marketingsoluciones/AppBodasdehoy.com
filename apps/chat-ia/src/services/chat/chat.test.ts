@@ -22,6 +22,17 @@ import { API_ENDPOINTS } from '../_url';
 import * as helpers from './helper';
 import { chatService } from './index';
 
+// Mock chat store so the service doesn't treat tests as guest/visitor
+vi.mock('@/store/chat', () => ({
+  getChatStoreState: vi.fn(() => ({
+    currentUserId: 'test@example.com',
+    userType: 'registered',
+    development: 'bodasdehoy',
+    userEvents: [],
+  })),
+  useChatStore: { getState: vi.fn(() => ({})) },
+}));
+
 // Mocking external dependencies
 vi.mock('i18next', () => ({
   t: vi.fn((key) => `translated_${key}`),
@@ -78,6 +89,14 @@ vi.mock('@/helpers/isCanUseFC', () => ({
 
 describe('ChatService', () => {
   describe('createAssistantMessage', () => {
+    beforeEach(() => {
+      // Mock createChatToolsEngine at the createAssistantMessage level to not add
+      // filter-app-view / web-browsing as defaults — isolates tests from builtin tools
+      vi.spyOn(toolEngineeringModule, 'createChatToolsEngine').mockImplementation(
+        () => toolEngineeringModule.createToolsEngine(),
+      );
+    });
+
     it('should process messages and call getChatCompletion with the right parameters', async () => {
       const getChatCompletionSpy = vi.spyOn(chatService, 'getChatCompletion');
       const messages = [{ content: 'Hello', role: 'user' }] as UIChatMessage[];
@@ -413,6 +432,7 @@ describe('ChatService', () => {
         // Verify the final result contains base64 converted URL
         expect(getChatCompletionSpy).toHaveBeenCalledWith(
           {
+            enabledSearch: undefined,
             messages: [
               {
                 content: [
@@ -484,6 +504,7 @@ describe('ChatService', () => {
         // Verify the final result preserves original URL
         expect(getChatCompletionSpy).toHaveBeenCalledWith(
           {
+            enabledSearch: undefined,
             messages: [
               {
                 content: [
@@ -666,6 +687,7 @@ describe('ChatService', () => {
           {
             model: 'gpt-3.5-turbo-1106',
             top_p: 1,
+            enabledSearch: undefined,
             tools: [
               {
                 type: 'function',
@@ -766,6 +788,7 @@ describe('ChatService', () => {
           {
             model: 'gpt-3.5-turbo-1106',
             top_p: 1,
+            enabledSearch: undefined,
             tools: [
               {
                 type: 'function',
@@ -820,6 +843,7 @@ describe('ChatService', () => {
           {
             model: 'gpt-3.5-turbo-1106',
             top_p: 1,
+            enabledSearch: undefined,
             messages: [
               {
                 content: 'system',

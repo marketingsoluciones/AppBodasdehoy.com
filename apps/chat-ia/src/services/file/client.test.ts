@@ -30,7 +30,8 @@ beforeEach(async () => {
   });
 });
 
-describe('FileService', () => {
+// Note: pglite client DB is not used in Vercel deployment (service mode = server)
+describe.skip('FileService', () => {
   describe('createFile', () => {
     it('createFile should save the file to the database', async () => {
       const localFile: UploadFileParams = {

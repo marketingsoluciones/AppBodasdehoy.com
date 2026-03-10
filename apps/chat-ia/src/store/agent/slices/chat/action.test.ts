@@ -18,6 +18,15 @@ vi.mock('swr', async (importOriginal) => {
   };
 });
 
+beforeEach(() => {
+  vi.clearAllMocks();
+  useAgentStore.setState(useAgentStore.getInitialState(), true);
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe('AgentSlice', () => {
   describe('removePlugin', () => {
     it('should call togglePlugin with the provided id and false', async () => {

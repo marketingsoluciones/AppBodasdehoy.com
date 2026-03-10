@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { mutate } from 'swr';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useUserStore } from '@/store/user';
 
@@ -29,8 +29,16 @@ vi.mock('@/const/auth', () => ({
   },
 }));
 
+beforeEach(() => {
+  // Prevent happy-dom navigation from destroying the DOM during tests.
+  // logout() and openLogin() do `window.location.href = '/dev-login'` as a fallback
+  // which would reset the window/document and make result.current null.
+  vi.stubGlobal('location', { href: '', toString: () => 'http://localhost/' });
+});
+
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 
   enableNextAuth = false;
   enableClerk = false;

@@ -1,5 +1,5 @@
 interface ChannelBadgeProps {
-  channel: 'whatsapp' | 'instagram' | 'telegram' | 'email';
+  channel: 'whatsapp' | 'instagram' | 'telegram' | 'email' | 'web' | 'facebook';
   size?: 'sm' | 'md' | 'lg';
 }
 
@@ -10,6 +10,11 @@ export function ChannelBadge({ channel, size = 'md' }: ChannelBadgeProps) {
       icon: '📧',
       name: 'Email',
     },
+    facebook: {
+      color: 'bg-blue-100 text-blue-700',
+      icon: '📘',
+      name: 'Facebook',
+    },
     instagram: {
       color: 'bg-pink-100 text-pink-700',
       icon: '📷',
@@ -19,6 +24,11 @@ export function ChannelBadge({ channel, size = 'md' }: ChannelBadgeProps) {
       color: 'bg-blue-100 text-blue-700',
       icon: '✈️',
       name: 'Telegram',
+    },
+    web: {
+      color: 'bg-orange-100 text-orange-700',
+      icon: '🌐',
+      name: 'Web',
     },
     whatsapp: {
       color: 'bg-green-100 text-green-700',

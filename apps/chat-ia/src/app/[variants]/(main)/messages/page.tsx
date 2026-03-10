@@ -1,16 +1,27 @@
 'use client';
 
+import { useState } from 'react';
+
 import { InboxSidebar } from './components/InboxSidebar';
 import { ConversationList } from './components/ConversationList';
+import { ChannelFilter } from './components/ChannelFilter';
 
 export default function MessagesPage() {
+  const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
+
   return (
     <>
       <InboxSidebar />
 
-      {/* Lista de conversaciones — todas */}
+      {/* Lista de conversaciones */}
       <div className="w-72 shrink-0 overflow-auto border-r border-gray-200 bg-white">
-        <ConversationList channel={null} />
+        <div className="sticky top-0 z-10 border-b border-gray-200 bg-white p-3">
+          <ChannelFilter
+            onChannelChange={setSelectedChannel}
+            selectedChannel={selectedChannel}
+          />
+        </div>
+        <ConversationList channel={selectedChannel} />
       </div>
 
       {/* Empty state */}

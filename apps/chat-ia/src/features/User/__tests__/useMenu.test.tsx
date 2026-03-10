@@ -78,7 +78,8 @@ describe('useMenu', () => {
 
     act(() => {
       const { mainItems, logoutItems } = result.current;
-      expect(mainItems?.some((item) => item?.key === 'profile')).toBe(true);
+      // profile items are grouped under 'account' submenu
+      expect(mainItems?.some((item) => item?.key === 'account')).toBe(true);
       expect(mainItems?.some((item) => item?.key === 'setting')).toBe(true);
       expect(mainItems?.some((item) => item?.key === 'import')).toBe(true);
       expect(mainItems?.some((item) => item?.key === 'changelog')).toBe(true);
@@ -96,7 +97,8 @@ describe('useMenu', () => {
 
     act(() => {
       const { mainItems, logoutItems } = result.current;
-      expect(mainItems?.some((item) => item?.key === 'profile')).toBe(true);
+      // profile items are grouped under 'account' submenu
+      expect(mainItems?.some((item) => item?.key === 'account')).toBe(true);
       expect(mainItems?.some((item) => item?.key === 'setting')).toBe(true);
       expect(mainItems?.some((item) => item?.key === 'import')).toBe(true);
       expect(mainItems?.some((item) => item?.key === 'changelog')).toBe(true);

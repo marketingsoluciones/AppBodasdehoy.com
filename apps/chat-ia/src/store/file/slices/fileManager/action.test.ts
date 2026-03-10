@@ -898,7 +898,8 @@ describe('FileManagerActions', () => {
 
       vi.mocked(lambdaClient.file.getFiles.query).mockResolvedValue(mockFiles);
 
-      const params = { category: 'all' as any };
+      // Use a unique category to avoid SWR dedupingInterval (500ms) cache collision with the previous test
+      const params = { category: 'image' as any };
       renderHook(() => result.current.useFetchFileManage(params));
 
       await waitFor(() => {

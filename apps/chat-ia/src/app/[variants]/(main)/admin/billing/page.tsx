@@ -101,7 +101,7 @@ function LowBalanceList({
 
 // ─── Usage tracking table ─────────────────────────────────────────────────────
 
-function UsageTrackingTable({ period }: { period: Period }) {
+function UsageTrackingTable({ period, onUserClick }: { period: Period; onUserClick?: (userId: string) => void }) {
   const [entries, setEntries] = useState<UsageTrackingEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -167,7 +167,9 @@ function UsageTrackingTable({ period }: { period: Period }) {
       <Table
         columns={[
           { dataIndex: 'created_at', title: 'Fecha', render: (v) => dayjs(v).format('DD/MM/YY HH:mm'), width: 130 },
-          { dataIndex: 'userId', title: 'Usuario', ellipsis: true },
+          { dataIndex: 'userId', title: 'Usuario', ellipsis: true, render: (v: string) => onUserClick ? (
+            <button className="text-blue-600 hover:underline text-left" onClick={() => onUserClick(v)}>{v}</button>
+          ) : v },
           { dataIndex: 'development', title: 'Tenant', width: 120, render: (v) => v || '—' },
           { dataIndex: 'action', title: 'Acción', render: (v) => <Tag>{v}</Tag>, width: 160 },
           { dataIndex: 'quantity', title: 'Cantidad', width: 90, render: (v) => (v ?? 0).toLocaleString() },
@@ -364,7 +366,15 @@ export default function BillingDashboard() {
             </Link>
           </div>
         </div>
-        {/* Period selector */}
+        {/* Period selector + refresh */}
+        <div className="flex items-center gap-3">
+        <button
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+          onClick={loadData}
+          type="button"
+        >
+          Actualizar
+        </button>
         <div className="flex gap-2 rounded-lg bg-gray-100 p-1">
           {(['day', 'week', 'month'] as Period[]).map((p) => (
             <button
@@ -378,6 +388,7 @@ export default function BillingDashboard() {
               {p === 'day' ? 'Hoy' : p === 'week' ? 'Semana' : 'Mes'}
             </button>
           ))}
+        </div>
         </div>
       </div>
 
@@ -404,7 +415,7 @@ export default function BillingDashboard() {
       {/* Usage tracking */}
       <div className="rounded-lg border border-gray-200 bg-white p-6">
         <h2 className="mb-4 text-xl font-semibold">📋 Usage Tracking</h2>
-        <UsageTrackingTable period={period} />
+        <UsageTrackingTable onUserClick={(uid) => setDrilldownUserId(uid)} period={period} />
       </div>
 
       {/* Modals */}

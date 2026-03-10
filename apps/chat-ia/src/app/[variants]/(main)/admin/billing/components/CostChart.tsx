@@ -123,14 +123,6 @@ export function CostChart({ period }: CostChartProps) {
         </div>
       </div>
 
-      {/* Note about real chart library */}
-      <div className="rounded-lg bg-yellow-50 p-3 text-sm text-yellow-800">
-        💡 <strong>Nota:</strong> Esta es una visualización simplificada. Se puede
-        implementar una gráfica más avanzada con{' '}
-        <code className="rounded bg-yellow-200 px-1">recharts</code> o{' '}
-        <code className="rounded bg-yellow-200 px-1">chart.js</code> para mayor
-        interactividad.
-      </div>
     </div>
   );
 }

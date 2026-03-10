@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { BRANDING_NAME } from '@/const/branding';
 import { DEFAULT_LANG } from '@/const/locale';
+import { OFFICIAL_SITE } from '@/const/url';
 
 import { AUTHOR_LIST, Ld } from './ld';
 
@@ -30,7 +31,7 @@ describe('Ld', () => {
 
       expect(org['@type']).toBe('Organization');
       expect(org.name).toBe('LobeHub');
-      expect(org.url).toBe('https://lobehub.com');
+      expect(org.url).toBe(OFFICIAL_SITE);
     });
   });
 

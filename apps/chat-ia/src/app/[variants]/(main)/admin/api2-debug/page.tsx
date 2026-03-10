@@ -26,7 +26,8 @@ export default function API2DebugPage() {
     const startTime = Date.now();
 
     try {
-      const response = await fetch('http://localhost:8030/graphql', {
+      const graphqlUrl = process.env.NEXT_PUBLIC_API2_GRAPHQL_URL ?? 'https://api2.eventosorganizador.com/graphql';
+      const response = await fetch(graphqlUrl, {
         body: JSON.stringify({
           query: `
             query GetWhiteLabelFullConfig($development: String!, $supportKey: String!) {

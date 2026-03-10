@@ -156,7 +156,7 @@ describe('agentSelectors', () => {
       expect(provider).toBe(agentConfig.provider);
     });
 
-    it('should fallback to openai if provider is not defined in the agent config', () => {
+    it('should fallback to auto if provider is not defined in the agent config', () => {
       const modifiedStore = {
         ...mockSessionStore,
         agentConfig: {
@@ -165,7 +165,7 @@ describe('agentSelectors', () => {
         },
       };
       const provider = agentSelectors.currentAgentModelProvider(modifiedStore);
-      expect(provider).toEqual('openai');
+      expect(provider).toEqual('auto');
     });
   });
 

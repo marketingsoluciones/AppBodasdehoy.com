@@ -93,11 +93,14 @@ export const useAuthCheck = () => {
   const checkAuth = useCallback((): AuthCheckResult => {
     const config = getUserConfig();
 
+    // Support both snake_case (user_id) and camelCase (userId) for backwards compat
+    const resolvedUserId = config?.user_id || (config as any)?.userId;
     const isAuthenticated = !!(
-      config?.user_id &&
-      config.user_id !== 'guest' &&
-      config.user_id !== 'anonymous' &&
-      config.user_id !== ''
+      resolvedUserId &&
+      resolvedUserId !== 'guest' &&
+      resolvedUserId !== 'anonymous' &&
+      resolvedUserId !== '' &&
+      !(resolvedUserId as string).startsWith('visitor_')
     );
 
     const hasValidJwt = checkJwtValidity();
@@ -110,12 +113,12 @@ export const useAuthCheck = () => {
     }
 
     return {
-      development: config?.development || 'bodasdehoy',
+      development: config?.development || (config as any)?.developer || 'bodasdehoy',
       hasValidJwt,
       isAuthenticated,
       needsRelogin,
       userEmail: config?.email || null,
-      userId: config?.user_id || null,
+      userId: resolvedUserId || null,
       userName: config?.name || null,
     };
   }, [getUserConfig, checkJwtValidity]);

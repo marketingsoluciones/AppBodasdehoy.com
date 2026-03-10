@@ -98,7 +98,7 @@ function TaskListRow({
   const fecha = tarea.fecha ? new Date(tarea.fecha).toLocaleDateString('es-ES') : null;
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white border border-gray-200 p-3">
+    <div className="rounded-lg border border-gray-200 bg-white p-3">
       <div className="flex items-start gap-3">
         <span className="mt-0.5 text-lg">{tarea.icon ?? (done ? '✅' : '⬜')}</span>
         <div className="min-w-0 flex-1">
@@ -118,7 +118,7 @@ function TaskListRow({
             <div className="mt-1 flex flex-wrap gap-1">
               {tarea.tags.map((tag) => (
                 <span
-                  className="rounded bg-slate-700 px-1.5 py-0.5 text-xs text-gray-500"
+                  className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600"
                   key={tag}
                 >
                   {tag}
@@ -172,7 +172,7 @@ function ItinerarioCard({ itinerario }: { itinerario: Itinerario }) {
   const pct = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : null;
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white border border-gray-200 p-4">
+    <div className="rounded-lg border border-gray-200 bg-white p-4">
       <div className="mb-3 flex items-center justify-between">
         <div>
           <h3 className="font-medium text-gray-900">{itinerario.title ?? 'Sin título'}</h3>
@@ -269,7 +269,7 @@ function CategoriaCard({ cat }: { cat: CategoriaPresupuesto }) {
   const coste = cat.coste_final ?? cat.coste_estimado ?? 0;
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white border border-gray-200 p-4">
+    <div className="rounded-lg border border-gray-200 bg-white p-4">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="font-medium text-gray-900">{cat.nombre}</h3>
         {coste > 0 && (

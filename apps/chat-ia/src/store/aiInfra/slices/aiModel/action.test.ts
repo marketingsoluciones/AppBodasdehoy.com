@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { AiProviderModelListItem } from 'model-bank';
 import { mutate } from 'swr';
+import { cache } from 'swr/_internal';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { aiModelService } from '@/services/aiModel';
@@ -20,6 +21,8 @@ vi.mock('swr', async () => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Clear SWR cache so each test gets a fresh fetch (no deduplication from previous test)
+  cache.clear();
 
   // Reset store to initial state
   act(() => {
@@ -471,6 +474,7 @@ describe('AiModelAction', () => {
   });
 
   describe('useFetchAiProviderModels', () => {
+    // Use unique provider IDs per test to avoid SWR dedupingInterval (500ms) cache collisions
     it('should fetch provider models and update state', async () => {
       const mockModels: AiProviderModelListItem[] = [
         {
@@ -486,14 +490,14 @@ describe('AiModelAction', () => {
       vi.spyOn(aiModelService, 'getAiProviderModelList').mockResolvedValue(mockModels);
 
       const { result } = renderHook(() =>
-        useStore.getState().useFetchAiProviderModels('test-provider'),
+        useStore.getState().useFetchAiProviderModels('provider-fetch-1'),
       );
 
       await waitFor(() => {
         expect(result.current.data).toEqual(mockModels);
       });
 
-      expect(aiModelService.getAiProviderModelList).toHaveBeenCalledWith('test-provider');
+      expect(aiModelService.getAiProviderModelList).toHaveBeenCalledWith('provider-fetch-1');
     });
 
     it('should update store state on successful fetch', async () => {
@@ -510,7 +514,7 @@ describe('AiModelAction', () => {
 
       vi.spyOn(aiModelService, 'getAiProviderModelList').mockResolvedValue(mockModels);
 
-      renderHook(() => useStore.getState().useFetchAiProviderModels('test-provider'));
+      renderHook(() => useStore.getState().useFetchAiProviderModels('provider-fetch-2'));
 
       await waitFor(() => {
         const state = useStore.getState();
@@ -542,7 +546,7 @@ describe('AiModelAction', () => {
 
       const setStateSpy = vi.spyOn(useStore, 'setState');
 
-      renderHook(() => useStore.getState().useFetchAiProviderModels('test-provider'));
+      renderHook(() => useStore.getState().useFetchAiProviderModels('provider-fetch-3'));
 
       await waitFor(() => {
         expect(aiModelService.getAiProviderModelList).toHaveBeenCalled();
@@ -584,7 +588,7 @@ describe('AiModelAction', () => {
 
       vi.spyOn(aiModelService, 'getAiProviderModelList').mockResolvedValue(newModels);
 
-      renderHook(() => useStore.getState().useFetchAiProviderModels('test-provider'));
+      renderHook(() => useStore.getState().useFetchAiProviderModels('provider-fetch-4'));
 
       await waitFor(() => {
         const state = useStore.getState();

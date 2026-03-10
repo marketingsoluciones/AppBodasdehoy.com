@@ -12,6 +12,9 @@ export type ChannelKind =
   | 'whatsapp'
   | 'instagram'
   | 'facebook'
+  | 'telegram'
+  | 'email'
+  | 'web'
   | 'itinerary'
   | 'services'
   | 'guests'
@@ -115,6 +118,27 @@ export function useInboxChannels() {
       id: 'instagram',
       label: 'Instagram',
       kind: 'instagram' as const,
+      unread: 0,
+      isPlaceholder: true,
+    },
+    {
+      id: 'telegram',
+      label: 'Telegram',
+      kind: 'telegram' as const,
+      unread: 0,
+      isPlaceholder: true,
+    },
+    {
+      id: 'email',
+      label: 'Email',
+      kind: 'email' as const,
+      unread: 0,
+      isPlaceholder: true,
+    },
+    {
+      id: 'web',
+      label: 'Chat Web',
+      kind: 'web' as const,
       unread: 0,
       isPlaceholder: true,
     },

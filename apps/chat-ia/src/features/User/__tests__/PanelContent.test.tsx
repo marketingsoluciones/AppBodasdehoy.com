@@ -14,6 +14,27 @@ vi.mock('next/navigation', () => ({
   })),
 }));
 
+vi.mock('@/store/chat', () => ({
+  useChatStore: vi.fn((selector) =>
+    selector({
+      currentUserId: 'test@example.com',
+      development: 'bodasdehoy',
+      userProfile: { displayName: 'Test User' },
+    }),
+  ),
+}));
+
+vi.mock('@/hooks/useWallet', () => ({
+  useWallet: vi.fn(() => ({
+    balance: 10,
+    bonusBalance: 0,
+    creditLimit: 0,
+    isCreditExhausted: false,
+    isNegativeBalance: false,
+    totalBalance: 10,
+  })),
+}));
+
 vi.mock('@/components/BrandWatermark', () => ({
   default: vi.fn(() => <div>Mocked BrandWatermark</div>),
 }));
@@ -41,6 +62,7 @@ vi.mock('../UserInfo', () => ({
 
 vi.mock('../UserPanel/useMenu', () => ({
   useMenu: vi.fn(() => ({
+    loginItems: [],
     logoutItems: [{ key: 'logout', label: 'Logout' }],
     mainItems: [
       { key: 'item1', label: 'Main Item 1' },
@@ -114,14 +136,15 @@ describe('PanelContent', () => {
       expect(screen.getAllByText('Mocked Menu').length).toBe(2);
     });
 
-    it('should render BrandWatermark when user is not signed in', () => {
+    it('should show SignInBlock when user is not signed in', () => {
       act(() => {
         useUserStore.setState({ isSignedIn: false });
       });
 
       render(<PanelContent closePopover={closePopover} />);
 
-      expect(screen.getByText('Mocked BrandWatermark')).toBeInTheDocument();
+      // BrandWatermark was removed from PanelContent; SignInBlock is shown instead
+      expect(screen.getByText('Mocked SignInBlock')).toBeInTheDocument();
     });
   });
 
@@ -138,7 +161,7 @@ describe('PanelContent', () => {
       expect(screen.queryByText('Mocked SignInBlock')).not.toBeInTheDocument();
     });
 
-    it('should render BrandWatermark when disable auth', () => {
+    it('should not show BrandWatermark when disable auth (component was refactored)', () => {
       enableAuth = false;
 
       act(() => {
@@ -147,13 +170,15 @@ describe('PanelContent', () => {
 
       render(<PanelContent closePopover={closePopover} />);
 
-      expect(screen.getByText('Mocked BrandWatermark')).toBeInTheDocument();
+      // BrandWatermark was removed from PanelContent — UserInfo section is shown instead
+      expect(screen.getByText('Mocked UserInfo')).toBeInTheDocument();
     });
   });
 
   it('should render Menu with main items', () => {
     render(<PanelContent closePopover={closePopover} />);
 
-    expect(screen.getByText('Mocked Menu')).toBeInTheDocument();
+    // There are multiple Menu instances (mainItems and loginItems/logoutItems)
+    expect(screen.getAllByText('Mocked Menu').length).toBeGreaterThanOrEqual(1);
   });
 });

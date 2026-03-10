@@ -56,6 +56,8 @@ vi.mock('i18next', () => ({
 beforeEach(() => {
   // Setup initial state and mocks before each test
   vi.clearAllMocks();
+  // Simulate authenticated user so isGuestUser() returns false and service calls are not skipped
+  localStorage.setItem('dev-user-config', JSON.stringify({ user_id: 'test@example.com' }));
   useChatStore.setState(
     {
       activeId: undefined,
@@ -79,6 +81,7 @@ beforeEach(() => {
 afterEach(() => {
   // Cleanup mocks after each test
   vi.restoreAllMocks();
+  localStorage.clear();
 });
 
 describe('topic action', () => {

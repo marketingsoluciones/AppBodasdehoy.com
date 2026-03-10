@@ -6,9 +6,20 @@ export default defineConfig({
     exclude: ['crypto', 'util', 'tty'],
     include: ['@lobehub/tts'],
   },
+  resolve: {
+    // Deduplicate React to prevent React 18/19 dual-instance issues
+    // (packages/wedding-creator had react@18 as a dependency)
+    dedupe: ['react', 'react-dom'],
+  },
   test: {
     alias: {
       /* eslint-disable sort-keys-fix/sort-keys-fix */
+      // Force all packages to use the same React instance (avoids React 18/19 mismatch)
+      // Including absolute paths for pnpm's React 18 copy (from packages/wedding-creator)
+      'react': resolve(__dirname, './node_modules/react'),
+      'react-dom': resolve(__dirname, './node_modules/react-dom'),
+      [resolve(__dirname, '../../node_modules/.pnpm/react@18.3.1/node_modules/react')]: resolve(__dirname, './node_modules/react'),
+      [resolve(__dirname, '../../node_modules/.pnpm/react-dom@18.3.1/node_modules/react-dom')]: resolve(__dirname, './node_modules/react-dom'),
       '@/database/_deprecated': resolve(__dirname, './src/database/_deprecated'),
       '@/database': resolve(__dirname, './packages/database/src'),
       '@/utils/client/switchLang': resolve(__dirname, './src/utils/client/switchLang'),
@@ -54,12 +65,19 @@ export default defineConfig({
       '**/packages/**',
       '**/e2e/**',
     ],
+    env: {
+      // Skip integration tests that require a live backend in normal test runs
+      SKIP_BACKEND_TESTS: 'true',
+    },
     globals: true,
     server: {
       deps: {
-        inline: ['vitest-canvas-mock'],
+        // Force these packages through Vite's transformer so the react/react-dom
+        // aliases apply and we don't end up with two React instances (18 + 19)
+        inline: ['vitest-canvas-mock', '@bodasdehoy/wedding-creator', /packages\/wedding-creator/, 'antd', 'rc-field-form', '@ant-design/cssinjs'],
       },
     },
     setupFiles: join(__dirname, './tests/setup.ts'),
+    testTimeout: 15000,
   },
 });

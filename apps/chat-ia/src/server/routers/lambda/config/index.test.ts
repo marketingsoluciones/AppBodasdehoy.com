@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
  */
 import { createCallerFactory } from '@/libs/trpc/edge';
 import { AuthContext, createContextInner } from '@/libs/trpc/edge/context';
+import { resetConfigCache } from '@/server/globalConfig';
 
 import { configRouter } from './index';
 
@@ -21,6 +22,7 @@ vi.mock('@/libs/next-auth/edge', () => {
 
 beforeEach(async () => {
   vi.resetAllMocks();
+  resetConfigCache(); // ensure env var changes are picked up between tests
   ctx = await createContextInner();
   router = createCaller(ctx);
 });

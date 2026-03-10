@@ -13,16 +13,17 @@ export function ChannelFilter({
     { icon: '📷', id: 'instagram', label: 'Instagram' },
     { icon: '✈️', id: 'telegram', label: 'Telegram' },
     { icon: '📧', id: 'email', label: 'Email' },
+    { icon: '🌐', id: 'web', label: 'Web Chat' },
   ];
 
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-1.5">
       {channels.map((channel) => (
         <button
-          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+          className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
             selectedChannel === channel.id
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
           key={channel.id || 'all'}
           onClick={() => onChannelChange(channel.id)}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useMessages } from '../hooks/useMessages';
 import { MessageItem } from './MessageItem';
 
@@ -11,15 +11,23 @@ interface MessageListProps {
 
 export function MessageList({ channel, conversationId }: MessageListProps) {
   const { messages, loading, error } = useMessages(channel, conversationId);
+  const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isInitialLoad = useRef(true);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const isNearBottom = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+  }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    // Always scroll on initial load, only scroll on updates if near bottom
+    if (isInitialLoad.current || isNearBottom()) {
+      messagesEndRef.current?.scrollIntoView({ behavior: isInitialLoad.current ? 'auto' : 'smooth' });
+      isInitialLoad.current = false;
+    }
+  }, [messages, isNearBottom]);
 
   if (loading) {
     return (
@@ -58,7 +66,7 @@ export function MessageList({ channel, conversationId }: MessageListProps) {
   }
 
   return (
-    <div className="h-full overflow-auto bg-gray-50 p-4">
+    <div className="h-full overflow-auto bg-gray-50 p-4" ref={containerRef}>
       <div className="space-y-4">
         {messages.map((message) => (
           <MessageItem key={message.id} message={message} />
@@ -68,4 +76,3 @@ export function MessageList({ channel, conversationId }: MessageListProps) {
     </div>
   );
 }
-

@@ -2,7 +2,9 @@ import fs from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-describe('Desktop Routes', () => {
+// Note: desktop/Electron-specific routes are not part of our web-only fork.
+// These routes exist in the upstream LobeChat Electron app but not in our customized web version.
+describe.skip('Desktop Routes', () => {
   const appRootDir = resolve(__dirname, '..');
 
   const desktopRoutes = [

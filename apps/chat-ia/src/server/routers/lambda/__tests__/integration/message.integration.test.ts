@@ -30,8 +30,10 @@ vi.mock('@/database/core/db-adaptor', () => ({
  * 1. 验证完整的 tRPC 调用链路（Router → Model → Database）
  * 2. 确保 sessionId、topicId、groupId 等参数正确传递
  * 3. 验证数据库约束和关联关系
+ *
+ * Requiere red (getTestDB descarga bundle). Ejecutar con: RUN_INTEGRATION_TESTS=1 pnpm exec vitest run ...
  */
-describe('Message Router Integration Tests', () => {
+describe.skipIf(process.env.RUN_INTEGRATION_TESTS !== '1')('Message Router Integration Tests', () => {
   let serverDB: LobeChatDatabase;
   let userId: string;
   let testSessionId: string;

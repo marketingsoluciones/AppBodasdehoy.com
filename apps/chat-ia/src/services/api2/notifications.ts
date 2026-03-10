@@ -30,8 +30,8 @@ const GET_UNREAD_COUNT = `
 `;
 
 const GET_NOTIFICATIONS = `
-  query GetNotifications($limit: Int, $filters: NotificationFilters) {
-    getNotifications(pagination: { page: 1, limit: $limit }, filters: $filters) {
+  query GetNotifications($page: Int, $limit: Int, $filters: NotificationFilters) {
+    getNotifications(pagination: { page: $page, limit: $limit }, filters: $filters) {
       success
       notifications {
         id
@@ -79,10 +79,10 @@ export async function getUnreadNotificationsCount(): Promise<number> {
   }
 }
 
-export async function getNotifications(limit = 20, unreadOnly = false): Promise<NotificationsResponse> {
+export async function getNotifications(limit = 20, unreadOnly = false, page = 1): Promise<NotificationsResponse> {
   try {
     const filters = unreadOnly ? { read: false } : undefined;
-    const data = await api2Client.query<{ getNotifications: any }>(GET_NOTIFICATIONS, { limit, filters });
+    const data = await api2Client.query<{ getNotifications: any }>(GET_NOTIFICATIONS, { page, limit, filters });
     const res = data.getNotifications;
     return {
       success: res.success,

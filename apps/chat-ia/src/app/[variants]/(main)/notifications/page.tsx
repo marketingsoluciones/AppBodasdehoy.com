@@ -58,7 +58,7 @@ export default function NotificationsPage() {
 
   const load = useCallback(async (p: number, f: typeof filter) => {
     setLoading(true);
-    const res = await getNotifications(p * PAGE_SIZE, f === 'unread');
+    const res = await getNotifications(PAGE_SIZE, f === 'unread', p);
     setNotifications(res.notifications);
     setTotal(res.total);
     setUnreadCount(res.unreadCount);
@@ -207,8 +207,8 @@ export default function NotificationsPage() {
             onClick={async () => {
               const nextPage = page + 1;
               setPage(nextPage);
-              const res = await getNotifications(nextPage * PAGE_SIZE, filter === 'unread');
-              setNotifications(res.notifications);
+              const res = await getNotifications(PAGE_SIZE, filter === 'unread', nextPage);
+              setNotifications((prev) => [...prev, ...res.notifications]);
               setTotal(res.total);
             }}
             className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"

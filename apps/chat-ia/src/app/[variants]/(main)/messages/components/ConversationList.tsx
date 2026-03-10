@@ -1,10 +1,17 @@
 'use client';
 
+import { useMemo, useState } from 'react';
+
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
 import { useConversations } from '../hooks/useConversations';
 import { useWhatsAppSession } from '../hooks/useWhatsAppSession';
 import { ConversationItem } from './ConversationItem';
+import { EmailSetup } from './EmailSetup';
+import { FacebookSetup } from './FacebookSetup';
+import { InstagramSetup } from './InstagramSetup';
+import { TelegramSetup } from './TelegramSetup';
+import { WebChatSetup } from './WebChatSetup';
 import { WhatsAppSetup } from './WhatsAppSetup';
 
 interface ConversationListProps {
@@ -35,7 +42,18 @@ function WhatsAppConversationList({ development, selectedId }: { development: st
 }
 
 function ConversationListInner({ channel, selectedId }: ConversationListProps) {
-  const { conversations, loading, error, isAuthenticated } = useConversations(channel);
+  const { conversations, loading, error } = useConversations(channel);
+  const [search, setSearch] = useState('');
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return conversations;
+    const q = search.toLowerCase();
+    return conversations.filter(
+      (c) =>
+        c.contact.name.toLowerCase().includes(q) ||
+        c.lastMessage.text.toLowerCase().includes(q),
+    );
+  }, [conversations, search]);
 
   if (loading) {
     return (
@@ -60,29 +78,6 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
   }
 
   if (conversations.length === 0) {
-    // ✅ MEJORA 1: Mensaje específico para usuarios invitados
-    if (!isAuthenticated) {
-      return (
-        <div className="flex h-full items-center justify-center p-4">
-          <div className="text-center max-w-sm">
-            <div className="mb-4 text-5xl">🔐</div>
-            <p className="text-sm font-medium text-gray-700 mb-2">No has iniciado sesión</p>
-            <p className="text-xs text-gray-500 mb-6">
-              Inicia sesión para ver tus conversaciones de WhatsApp, Instagram, Telegram y otros
-              canales.
-            </p>
-            <a
-              className="inline-block px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
-              href="/login"
-            >
-              Iniciar sesión
-            </a>
-          </div>
-        </div>
-      );
-    }
-
-    // Mensaje para usuarios registrados sin conversaciones
     return (
       <div className="flex h-full items-center justify-center p-4">
         <div className="text-center">
@@ -104,15 +99,22 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
         <div className="mt-2">
           <input
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar conversación..."
             type="text"
+            value={search}
           />
         </div>
       </div>
 
       {/* Conversations */}
       <div className="divide-y divide-gray-200">
-        {conversations.map((conversation) => (
+        {filtered.length === 0 && search.trim() ? (
+          <div className="p-4 text-center text-sm text-gray-400">
+            Sin resultados para &ldquo;{search}&rdquo;
+          </div>
+        ) : null}
+        {filtered.map((conversation) => (
           <ConversationItem
             conversation={conversation}
             isSelected={conversation.id === selectedId}
@@ -124,6 +126,58 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
   );
 }
 
+/**
+ * Generic wrapper for non-WhatsApp channels.
+ * Shows the setup component when no connection exists (placeholder channels),
+ * and ConversationListInner once connected.
+ *
+ * Since backend integrations for these channels are pending, we use
+ * localStorage to persist connection state set by each Setup component.
+ */
+function ChannelConversationList({
+  channel,
+  development,
+  selectedId,
+}: {
+  channel: string;
+  development: string;
+  selectedId?: string;
+}) {
+  const [connected, setConnected] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(`channel_connected_${channel}_${development}`) === 'true';
+  });
+
+  const handleConnected = () => {
+    localStorage.setItem(`channel_connected_${channel}_${development}`, 'true');
+    setConnected(true);
+  };
+
+  if (!connected) {
+    const setupMap: Record<string, React.ReactNode> = {
+      instagram: <InstagramSetup development={development} />,
+      telegram: <TelegramSetup development={development} />,
+      email: <EmailSetup development={development} />,
+      web: <WebChatSetup development={development} />,
+      facebook: <FacebookSetup development={development} />,
+    };
+
+    return (
+      <div className="h-full overflow-auto">
+        {setupMap[channel] ?? (
+          <div className="flex h-full items-center justify-center p-4">
+            <p className="text-sm text-gray-500">Canal no soportado: {channel}</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return <ConversationListInner channel={channel} selectedId={selectedId} />;
+}
+
+const SETUP_CHANNELS = new Set(['instagram', 'telegram', 'email', 'web', 'facebook']);
+
 export function ConversationList({ channel, selectedId }: ConversationListProps) {
   const { checkAuth } = useAuthCheck();
   const { development } = checkAuth();
@@ -132,6 +186,11 @@ export function ConversationList({ channel, selectedId }: ConversationListProps)
   // wa-[channelId] channels from InboxSidebar → WhatsApp session check
   if (channel === 'whatsapp' || channel?.startsWith('wa-')) {
     return <WhatsAppConversationList development={dev} selectedId={selectedId} />;
+  }
+
+  // Social / messaging channels with setup flow
+  if (channel && SETUP_CHANNELS.has(channel)) {
+    return <ChannelConversationList channel={channel} development={dev} selectedId={selectedId} />;
   }
 
   return <ConversationListInner channel={channel} selectedId={selectedId} />;

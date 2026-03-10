@@ -35,19 +35,19 @@ export default function ConversationPage({ params }: ConversationPageProps) {
       ) : (
         <>
           {/* Lista de conversaciones */}
-          <div className="w-80 shrink-0 overflow-auto border-r border-slate-700 bg-slate-900">
+          <div className="w-80 shrink-0 overflow-auto border-r border-gray-200 bg-white">
             <ConversationList channel={channel} selectedId={conversation_id} />
           </div>
 
           {/* Área de chat */}
-          <div className="flex flex-1 flex-col bg-slate-900">
-            <ConversationHeader conversationId={conversation_id} />
+          <div className="flex flex-1 flex-col bg-gray-50">
+            <ConversationHeader channel={channel} conversationId={conversation_id} />
 
             <div className="flex-1 overflow-auto">
               <MessageList channel={channel} conversationId={conversation_id} />
             </div>
 
-            <div className="border-t border-slate-700 p-4">
+            <div className="border-t border-gray-200 bg-white p-4">
               <MessageInput channel={channel} conversationId={conversation_id} />
             </div>
           </div>

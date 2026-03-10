@@ -9,6 +9,16 @@ import { useKnowledgeBaseStore } from '../../store';
 
 vi.mock('zustand/traditional');
 
+// Disable SWR deduplication so each test gets a fresh fetch regardless of timing
+vi.mock('@/libs/swr', async () => {
+  const actual = (await vi.importActual('@/libs/swr')) as any;
+  return {
+    ...actual,
+    useClientDataSWR: (key: any, fetcher: any, config: any) =>
+      actual.useClientDataSWR(key, fetcher, { ...config, dedupingInterval: 0 }),
+  };
+});
+
 beforeEach(() => {
   vi.clearAllMocks();
   useKnowledgeBaseStore.setState(

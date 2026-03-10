@@ -1,16 +1,31 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { useWeddingWeb } from '../index';
 import type { WeddingWebData, PaletteType } from '@bodasdehoy/wedding-creator';
 
 describe('useWeddingWeb', () => {
   beforeEach(() => {
-    // No usar mocks - usar datos reales
-    // Los tests se conectarán a servicios reales
+    // Mock fetch to handle /api/wedding/* endpoints without a real server
+    vi.stubGlobal('fetch', vi.fn((url: string, init?: RequestInit) => {
+      const urlStr = String(url);
+      if (urlStr.includes('/api/wedding/') && init?.method === 'PUT') {
+        return Promise.resolve(new Response(JSON.stringify({ success: true }), {
+          headers: { 'Content-Type': 'application/json' },
+          status: 200,
+        }));
+      }
+      if (urlStr.includes('/api/wedding/') && (!init?.method || init.method === 'GET')) {
+        return Promise.resolve(new Response(JSON.stringify({ success: false, wedding: null }), {
+          headers: { 'Content-Type': 'application/json' },
+          status: 200,
+        }));
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${urlStr}`));
+    }));
   });
 
   afterEach(() => {
-    // Limpiar después de cada test
+    vi.unstubAllGlobals();
   });
   describe('Initialization', () => {
     it('returns initial wedding data', async () => {
