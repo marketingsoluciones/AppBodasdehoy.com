@@ -79,6 +79,7 @@ const ClassicChatInput = memo(() => {
         <MessageFromUrl />
         <ContextFromEmbed />
         <LeadMonitor />
+        <LeadQualificationContext />
       </Suspense>
     </ChatInputProvider>
   );

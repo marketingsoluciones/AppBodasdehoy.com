@@ -8,6 +8,7 @@ import { useChatStore } from '@/store/chat';
 import { chatSelectors } from '@/store/chat/selectors';
 import { Markdown } from '@lobehub/ui';
 import { Center, Flexbox } from 'react-layout-kit';
+import { useLeads } from '@/hooks/useLeads';
 import { useVisitorData } from '@/hooks/useVisitorData';
 
 // Extrae teléfono y email de un texto libre (mensajes de chat)
@@ -28,6 +29,7 @@ function extractContactFromText(text: string): { email?: string; phone?: string 
 function GuestWelcomeMessage() {
   const router = useRouter();
   const { saveVisitorData } = useVisitorData();
+  const { saveLead } = useLeads();
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [leadCaptured, setLeadCaptured] = useState(false);
@@ -92,6 +94,13 @@ function GuestWelcomeMessage() {
           message.success('¡Gracias! Hemos guardado tu contacto.');
         })
         .catch(() => {/* silencioso */});
+      // Also save as permanent lead
+      saveLead({
+        contact: { email, phone },
+        development: development || 'bodasdehoy',
+        session_id: sessionId,
+        source: 'chat_message',
+      }).catch(() => {/* silencioso */});
       break; // solo capturar una vez por sesión
     }
   }, [userMessages, isGuest, leadCaptured, activeExternalChatId, development, saveVisitorData]);
@@ -128,6 +137,18 @@ function GuestWelcomeMessage() {
           phone: phone || undefined,
         },
       });
+
+      // Also save as permanent lead
+      saveLead({
+        contact: {
+          email: email || undefined,
+          name: nombre || undefined,
+          phone: phone || undefined,
+        },
+        development: development || 'bodasdehoy',
+        session_id: sessionId,
+        source: 'welcome_form',
+      }).catch((err) => console.warn('[GuestWelcomeMessage] Error guardando lead permanente:', err));
 
       setLeadCaptured(true);
       message.success('¡Gracias! Te contactaremos pronto.');
