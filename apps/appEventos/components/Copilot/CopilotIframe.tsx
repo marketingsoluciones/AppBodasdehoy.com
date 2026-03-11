@@ -480,10 +480,10 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
     // Escuchar CustomEvent 'copilot:send-prompt' emitido desde cualquier página del parent
     // y reenviarlo como postMessage SEND_PROMPT al iframe del copilot.
     useEffect(() => {
-      const handleSendPrompt = (e: Event) => {
+      const handleSendPrompt = (e: CustomEvent<{ message: string; context?: unknown }>) => {
         const iframe = iframeRef.current;
         if (!iframe?.contentWindow) return;
-        const { message, context } = (e as CustomEvent).detail || {};
+        const { message, context } = e.detail || {};
         if (!message) return;
         iframe.contentWindow.postMessage({
           type: 'SEND_PROMPT',
@@ -492,8 +492,8 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
           payload: { message, context },
         }, '*');
       };
-      window.addEventListener('copilot:send-prompt', handleSendPrompt);
-      return () => window.removeEventListener('copilot:send-prompt', handleSendPrompt);
+      window.addEventListener('copilot:send-prompt', handleSendPrompt as EventListener);
+      return () => window.removeEventListener('copilot:send-prompt', handleSendPrompt as EventListener);
     }, []);
 
     // Enviar PAGE_CONTEXT cuando cambie la pantalla o el evento
