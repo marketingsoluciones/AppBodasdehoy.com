@@ -442,6 +442,15 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
             // El copilot creó o modificó un evento — refrescar lista
             refreshEventsGroup();
             break;
+          case 'OPEN_FLOOR_PLAN': {
+            // El copilot quiere abrir el editor de mesas, opcionalmente con config sugerida
+            const { suggestedConfig } = payload || {};
+            if (suggestedConfig && typeof window !== 'undefined') {
+              sessionStorage.setItem('copilot_floor_plan_config', JSON.stringify(suggestedConfig));
+            }
+            router.push('/mesas');
+            break;
+          }
           case 'COPILOT_ACTION':
             break;
           case 'MCP_NAVIGATION':
@@ -467,6 +476,25 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
         return () => clearTimeout(timer);
       }
     }, [isLoaded, userId, authSent, sendAuthConfig]);
+
+    // Escuchar CustomEvent 'copilot:send-prompt' emitido desde cualquier página del parent
+    // y reenviarlo como postMessage SEND_PROMPT al iframe del copilot.
+    useEffect(() => {
+      const handleSendPrompt = (e: Event) => {
+        const iframe = iframeRef.current;
+        if (!iframe?.contentWindow) return;
+        const { message, context } = (e as CustomEvent).detail || {};
+        if (!message) return;
+        iframe.contentWindow.postMessage({
+          type: 'SEND_PROMPT',
+          source: 'copilot-parent',
+          timestamp: Date.now(),
+          payload: { message, context },
+        }, '*');
+      };
+      window.addEventListener('copilot:send-prompt', handleSendPrompt);
+      return () => window.removeEventListener('copilot:send-prompt', handleSendPrompt);
+    }, []);
 
     // Enviar PAGE_CONTEXT cuando cambie la pantalla o el evento
     useEffect(() => {

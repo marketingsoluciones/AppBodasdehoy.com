@@ -59,7 +59,7 @@ export const getAllFilterGuest = (event: Event) => {
           }
           return tables
         }, [])
-        sections.push(...guestsSection)
+        sections.push(...(guestsSection ?? []))
         return sections
       }, []) || []
       const guestsTables = planSpace?.tables?.reduce((tables, table) => {

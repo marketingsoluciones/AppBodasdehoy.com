@@ -21,7 +21,9 @@ export type MessageType =
   | 'COPILOT_NAVIGATE'
   | 'FILTER_VIEW'
   | 'CLEAR_FILTER'
-  | 'VIEW_MODE_CHANGE';
+  | 'VIEW_MODE_CHANGE'
+  | 'OPEN_FLOOR_PLAN'
+  | 'SEND_PROMPT';
 
 export type MessageSource = 'copilot-chat' | 'copilot-preview' | 'copilot-parent';
 
@@ -88,6 +90,22 @@ export interface MCPToolCallPayload {
 
 export interface ViewModePayload {
   mode: 'split' | 'chat-full' | 'preview-full';
+}
+
+export interface SendPromptPayload {
+  message: string;
+  /** Contexto adicional para el agente (se agrega al system prompt si se desea) */
+  context?: Record<string, any>;
+}
+
+export interface OpenFloorPlanPayload {
+  eventId?: string;
+  suggestedConfig?: {
+    tableType?: string;
+    seats?: number;
+    tableCount?: number;
+    label?: string;
+  };
 }
 
 export class PostMessageBridge {

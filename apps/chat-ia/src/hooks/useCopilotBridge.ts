@@ -286,6 +286,18 @@ export const useCopilotBridge = () => {
           break;
         }
 
+        case 'SEND_PROMPT': {
+          const { message: promptMessage } = message.payload as { message: string; context?: Record<string, any> };
+          if (!promptMessage) break;
+          console.log('[CopilotBridge] Recibido SEND_PROMPT:', promptMessage.slice(0, 80));
+          import('@/store/chat').then(({ useChatStore }) => {
+            useChatStore.getState().sendMessage({ message: promptMessage });
+          }).catch((err) => {
+            console.error('[CopilotBridge] Error enviando SEND_PROMPT al chat:', err);
+          });
+          break;
+        }
+
         case 'VIEW_MODE_CHANGE': {
           console.log('[CopilotBridge] Recibido VIEW_MODE_CHANGE:', message.payload);
           // Podria usarse para ajustar la UI del chat

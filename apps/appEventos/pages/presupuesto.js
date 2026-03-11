@@ -9,6 +9,7 @@ import { getCurrency } from "../utils/Funciones";
 import VistaSinCookie from "./vista-sin-cookie";
 import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
 import { SkeletonBudget } from "../components/Utils/SkeletonPage";
+import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import BlockTitle from "../components/Utils/BlockTitle";
 import { useMounted } from "../hooks/useMounted"
 import { useTranslation } from 'react-i18next';
@@ -20,6 +21,7 @@ import BlockCategoria from "../components/Presupuesto/BlockCategoria";
 import { DuplicatePresupuesto } from "../components/Presupuesto/DuplicatePesupuesto";
 import { useAllowed } from "../hooks/useAllowed";
 import WeddingFinanceManager from "../components/Presupuesto/TableroPresupuesto/WeddingFinanceManager";
+import { PresupuestoInitModal } from "../components/Presupuesto/PresupuestoInitModal";
 
 const Presupuesto = () => {
   useMounted()
@@ -32,6 +34,7 @@ const Presupuesto = () => {
   const [categorias, setCategorias] = useState([]);
   const [getId, setGetId] = useState()
   const [showModalDuplicate, setShowModalDuplicate] = useState(false)
+  const [showInitModal, setShowInitModal] = useState(false)
   const [isAllowed, ht] = useAllowed()
   const [isMobile, setIsMobile] = useState(false)
 
@@ -41,7 +44,13 @@ const Presupuesto = () => {
   }, 0);
 
   useEffect(() => {
-    setCategorias(event?.presupuesto_objeto?.categorias_array)
+    const cats = event?.presupuesto_objeto?.categorias_array;
+    setCategorias(cats);
+    // Mostrar modal de inicio solo si el evento tiene presupuesto pero sin categorías
+    // y el usuario tiene permisos de edición
+    if (event && Array.isArray(cats) && cats.length === 0) {
+      setShowInitModal(true);
+    }
   }, [event])
 
   useEffect(() => {
@@ -74,11 +83,17 @@ const Presupuesto = () => {
         <VistaSinCookie />
       )
     }
-    if (!event) return <SkeletonBudget categories={5} />
+    if (!event) return <EventLoadingOrError skeleton={<SkeletonBudget categories={5} />} />
     return (
       <>
         {event &&
           <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4 " : "bg-base w-full pb-6 pt-2 md:py-0 h-full"}>
+            {showInitModal && isAllowed() && (
+              <PresupuestoInitModal
+                onClose={() => setShowInitModal(false)}
+                onDuplicate={() => setShowModalDuplicate(true)}
+              />
+            )}
             {showModalDuplicate && (
               <div className={"absolute z-50 flex justify-center w-full"} >
                 <DuplicatePresupuesto showModalDuplicate={showModalDuplicate} setModal={setShowModalDuplicate} />

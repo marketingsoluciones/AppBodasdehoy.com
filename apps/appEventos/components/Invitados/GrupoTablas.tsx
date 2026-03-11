@@ -121,8 +121,8 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
     for (let i = 0; i < event?.grupos_array?.length; i++) {
       asd = { ...asd, [event?.grupos_array[i]]: { titulo: event?.grupos_array[i], data: [] } }
     }
-    const tablesRecepcion = event?.planSpace.find(elem => elem?.title === "recepción")?.tables
-    const tablesCeremonia = event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables
+    const tablesRecepcion = event?.planSpace?.find(elem => elem?.title === "recepción")?.tables
+    const tablesCeremonia = event?.planSpace?.find(elem => elem?.title === "ceremonia")?.tables
     const Data = GuestsFathers.reduce((acc, item: guestsExt) => {
       const guestRecepcion = allFilterGuests[0]?.sentados.find(elem => elem._id === item._id)
       const guestCeremonia = allFilterGuests[1]?.sentados.find(elem => elem._id === item._id)
@@ -421,7 +421,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 >
                   {[
                     { _id: null, title: "No Asignado" },
-                    ...event?.planSpace.find(elem => elem?.title === "recepción")?.tables
+                    ...(event?.planSpace?.find(elem => elem?.title === "recepción")?.tables ?? [])
                   ]?.map((elem: any, index) => {
                     if (elem?.guests?.length < elem?.numberChair || value?._id === elem?._id || !elem?._id) {
                       return (
@@ -429,8 +429,8 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                           key={index}
                           className={`${(value._id === elem._id || (!value._id && !elem._id)) && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
                           onClick={() => {
-                            const f1 = event?.planSpace.findIndex(elem => elem?.title === "recepción")
-                            const table = event.planSpace[f1]?.tables.find(el => el._id === elem._id)
+                            const f1 = event?.planSpace?.findIndex(elem => elem?.title === "recepción") ?? -1
+                            const table = f1 > -1 ? event.planSpace[f1]?.tables?.find(el => el._id === elem._id) : undefined
                             setShow(!show);
                             if (value?._id || elem?._id) {
                               if (value?._id !== elem?._id) {
@@ -490,7 +490,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 >
                   {[
                     { _id: null, title: "No Asignado" },
-                    ...event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables
+                    ...(event?.planSpace?.find(elem => elem?.title === "ceremonia")?.tables ?? [])
                   ]?.map((elem: any, index) => {
                     if (elem?.guests?.length < elem?.numberChair || value?._id === elem?._id || !elem?._id) {
                       return (
@@ -498,8 +498,8 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                           key={index}
                           className={`${(value._id === elem._id || (!value._id && !elem._id)) && "bg-gray-200"} cursor-pointer flex gap-2 items-center py-4 px-6 font-display text-sm text-gray-500 hover:bg-base hover:text-gray-700 transition w-full capitalize`}
                           onClick={() => {
-                            const f1 = event?.planSpace.findIndex(elem => elem?.title === "ceremonia")
-                            const table = event.planSpace[f1]?.tables.find(el => el._id === elem._id)
+                            const f1 = event?.planSpace?.findIndex(elem => elem?.title === "ceremonia") ?? -1
+                            const table = f1 > -1 ? event.planSpace[f1]?.tables?.find(el => el._id === elem._id) : undefined
                             setShow(!show);
                             if (value?._id || elem?._id) {
                               if (value?._id !== elem?._id) {
