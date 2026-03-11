@@ -232,23 +232,39 @@ export const externalChatSlice: StateCreator<
     internal_setExternalChatsError(undefined);
 
     try {
-      // ✅ OFICIAL: getSessions con CRM_PaginationInput!
+      // ✅ Cargar TODAS las páginas de conversaciones (no solo la primera)
       console.log('📡 Enviando query getSessions a api2...');
-      const { data } = await apolloClient.query<any>({
-        fetchPolicy: 'network-only',
-        query: GET_USER_CHATS,
-        variables: {
-          development,
-          pagination: { limit: 50, page: 1 }, // ✅ OFICIAL: CRM_PaginationInput!
-          userId: currentUserId,
-        },
-      });
+      let allChats: any[] = [];
+      let currentPage = 1;
+      const pageLimit = 50;
+      let hasMore = true;
 
-      console.log('✅ Respuesta recibida de api2:', data);
-      // ✅ CORRECCIÓN: Nueva estructura { success, sessions, total, errors }
-      const sessionsResponse = data?.getSessions;
-      const chats = sessionsResponse?.success ? sessionsResponse?.sessions || [] : [];
-      console.log(`📋 Sesiones encontradas: ${chats.length}`);
+      while (hasMore) {
+        const { data } = await apolloClient.query<any>({
+          fetchPolicy: 'network-only',
+          query: GET_USER_CHATS,
+          variables: {
+            development,
+            pagination: { limit: pageLimit, page: currentPage },
+            userId: currentUserId,
+          },
+        });
+
+        console.log(`✅ Respuesta página ${currentPage} de api2:`, data);
+        const sessionsResponse = data?.getSessions;
+        const pageSessions = sessionsResponse?.success ? sessionsResponse?.sessions || [] : [];
+        allChats = [...allChats, ...pageSessions];
+
+        const totalPages = sessionsResponse?.pagination?.totalPages || 1;
+        hasMore = currentPage < totalPages && pageSessions.length > 0;
+        currentPage++;
+
+        // Seguridad: máximo 10 páginas (500 conversaciones)
+        if (currentPage > 10) break;
+      }
+
+      const chats = allChats;
+      console.log(`📋 Sesiones encontradas (todas las páginas): ${chats.length}`);
 
       if (chats.length === 0) {
         console.log('ℹ️ Usuario no tiene conversaciones en API2');

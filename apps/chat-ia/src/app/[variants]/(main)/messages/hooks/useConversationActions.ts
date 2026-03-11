@@ -23,10 +23,6 @@ function subscribe(cb: () => void) {
   return () => listeners.delete(cb);
 }
 
-function notify() {
-  listeners.forEach((cb) => cb());
-}
-
 function getMap(): ActionsMap {
   if (typeof window === 'undefined') return {};
   try {
@@ -36,13 +32,20 @@ function getMap(): ActionsMap {
   }
 }
 
+let cachedSnapshot: ActionsMap = getMap();
+
+function notify() {
+  cachedSnapshot = getMap();
+  listeners.forEach((cb) => cb());
+}
+
 function saveMap(map: ActionsMap) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
   notify();
 }
 
 function getSnapshot(): ActionsMap {
-  return getMap();
+  return cachedSnapshot;
 }
 
 function getServerSnapshot(): ActionsMap {

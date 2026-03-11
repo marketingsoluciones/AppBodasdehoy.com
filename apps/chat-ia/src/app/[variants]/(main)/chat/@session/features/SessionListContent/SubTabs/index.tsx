@@ -4,6 +4,7 @@ import { createStyles } from 'antd-style';
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { BandejaView } from '@/app/[variants]/(main)/messages/components/BandejaView';
 import ConversationHistory from '../ConversationHistory';
 import DefaultMode from '../DefaultMode';
 
@@ -21,43 +22,56 @@ const useStyles = createStyles(({ css, token }) => ({
     cursor: pointer;
 
     flex: 1;
+    min-width: 0;
 
-    padding: 8px;
-    border: 2px solid transparent;
-    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    font-size: 12px;
+    padding: 6px 4px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+
+    font-size: 11px;
     font-weight: 600;
     color: ${token.colorTextSecondary};
     text-align: center;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
-    background: white;
+    background: transparent;
 
-    transition: all 0.2s;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
 
     &:hover {
-      border-color: ${token.colorPrimaryBorder};
       color: ${token.colorPrimary};
+      background: ${token.colorPrimaryBg};
     }
 
     &.active {
-      border-color: ${token.colorPrimary};
-      font-weight: 700;
+      border-bottom-color: ${token.colorPrimary};
       color: ${token.colorPrimary};
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 8%);
+      background: ${token.colorPrimaryBg};
     }
   `,
   tabsContainer: css`
     display: flex;
-    gap: 4px;
+    align-items: stretch;
+    gap: 0;
 
-    margin-block-end: 16px;
+    margin-block-end: 8px;
+    padding-inline: 6px;
     padding-block: 0;
-    padding-inline: 8px;
+
+    border-bottom: 1px solid ${token.colorBorderSecondary};
+    min-height: 36px;
   `,
 }));
 
-type SubTabType = 'conversaciones' | 'historial';
+type SubTabType = 'conversaciones' | 'bandeja' | 'historial';
 
 const SubTabs = memo(() => {
   const { styles } = useStyles();
@@ -66,10 +80,10 @@ const SubTabs = memo(() => {
 
   return (
     <div className={styles.container}>
-      {/* Sub-pestañas */}
+      {/* Sub-pestañas: Conversaciones | Bandeja (canales + mensajes directos) | Historial */}
       <div className={styles.tabsContainer}>
         <button
-            className={`${styles.tab} ${activeTab === 'conversaciones' ? 'active' : ''}`}
+          className={`${styles.tab} ${activeTab === 'conversaciones' ? 'active' : ''}`}
           onClick={() => setActiveTab('conversaciones')}
           type="button"
         >
@@ -77,18 +91,26 @@ const SubTabs = memo(() => {
           💬 {(t as any)('conversations')}
         </button>
         <button
-            className={`${styles.tab} ${activeTab === 'historial' ? 'active' : ''}`}
+          className={`${styles.tab} ${activeTab === 'bandeja' ? 'active' : ''}`}
+          onClick={() => setActiveTab('bandeja')}
+          type="button"
+        >
+          📥 Bandeja
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === 'historial' ? 'active' : ''}`}
           onClick={() => setActiveTab('historial')}
           type="button"
         >
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          📥 {(t as any)('inboxTab')}
+          📋 Historial
         </button>
       </div>
 
-      {/* Contenido de las sub-pestañas */}
+      {/* Contenido: Bandeja = canales + mensajes directos; Historial = conversaciones API2 */}
       <div className={styles.content}>
-        {activeTab === 'conversaciones' ? <DefaultMode /> : <ConversationHistory />}
+        {activeTab === 'conversaciones' && <DefaultMode />}
+        {activeTab === 'bandeja' && <BandejaView />}
+        {activeTab === 'historial' && <ConversationHistory />}
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ export enum SidebarTabKey {
   Image = 'image',
   Me = 'me',
   Memories = 'memories',
+  Knowledge = 'knowledge',
   Messages = 'messages',
   Setting = 'settings',
   WeddingCreator = 'wedding-creator',

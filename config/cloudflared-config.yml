@@ -10,7 +10,7 @@ credentials-file: ~/.cloudflared/30fdf520-9577-470f-a224-4cda1e5eb3f0.json
 ingress:
   # Subdominios bodasdehoy (prioridad: que funcionen app-test y chat-test)
   - hostname: app-test.bodasdehoy.com
-    service: http://localhost:8080
+    service: http://localhost:3001
   - hostname: chat-test.bodasdehoy.com
     service: http://localhost:3210
   # Otros hostnames del mismo túnel

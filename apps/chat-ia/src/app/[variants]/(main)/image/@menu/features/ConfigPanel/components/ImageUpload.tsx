@@ -492,6 +492,8 @@ const ImageUpload: FC<ImageUploadProps> = memo(
             ? { dimensions: result.dimensions, url: result.url }
             : result.url;
           onChange?.(callbackData);
+          // Limpiar estado para que se muestre la imagen desde value de inmediato
+          setUploadState(null);
         }
       } catch {
         // Upload failed
@@ -505,15 +507,10 @@ const ImageUpload: FC<ImageUploadProps> = memo(
             : null,
         );
       } finally {
-        // Cleanup
+        // Cleanup blob para evitar fugas de memoria
         if (isLocalBlobUrl(previewUrl)) {
           URL.revokeObjectURL(previewUrl);
         }
-
-        // Clear upload state after a delay to show completion
-        setTimeout(() => {
-          setUploadState(null);
-        }, 1000);
       }
     };
 
@@ -575,6 +572,7 @@ const ImageUpload: FC<ImageUploadProps> = memo(
             ? { dimensions: result.dimensions, url: result.url }
             : result.url;
           onChange?.(callbackData);
+          setUploadState(null);
         }
       } catch {
         // Upload failed
@@ -588,15 +586,9 @@ const ImageUpload: FC<ImageUploadProps> = memo(
             : null,
         );
       } finally {
-        // Cleanup
         if (isLocalBlobUrl(previewUrl)) {
           URL.revokeObjectURL(previewUrl);
         }
-
-        // Clear upload state after a delay to show completion
-        setTimeout(() => {
-          setUploadState(null);
-        }, 1000);
       }
     };
 

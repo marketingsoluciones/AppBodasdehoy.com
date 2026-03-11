@@ -15,7 +15,7 @@ const TODAY = new Date().toISOString().slice(0, 10).replace(/-/g, '');
 
 export const TEST_CREDENTIALS = {
   email: process.env.TEST_USER_EMAIL || 'bodasdehoy.com@gmail.com',
-  password: process.env.TEST_USER_PASSWORD || 'lorca2012M*.',
+  password: process.env.TEST_USER_PASSWORD || 'lorca2012M*+',
 };
 
 export const TEST_GUEST = {

@@ -11,6 +11,9 @@ import { useChatStore } from '@/store/chat';
 import { aiChatSelectors } from '@/store/chat/selectors';
 
 import { useSend } from '../useSend';
+import LeadMonitor from '@/features/LeadMonitor';
+import LeadQualificationContext from '@/features/LeadQualificationContext';
+
 import MessageFromUrl from './MessageFromUrl';
 import ContextFromEmbed from '../../ContextFromEmbed';
 import { useSendMenuItems } from './useSendMenuItems';
@@ -75,6 +78,7 @@ const ClassicChatInput = memo(() => {
       <Suspense fallback={null}>
         <MessageFromUrl />
         <ContextFromEmbed />
+        <LeadMonitor />
       </Suspense>
     </ChatInputProvider>
   );

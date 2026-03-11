@@ -599,9 +599,15 @@ const MultiImagesUpload: FC<MultiImagesUploadProps> = memo(
     };
 
     const handleDelete = (index: number) => {
-      if (!value) return;
-      const newUrls = value.filter((_, i) => i !== index);
+      const currentUrls = allUploadsSuccess
+        ? displayItems.map((i) => i.url)
+        : (value || []);
+      if (currentUrls.length === 0) return;
+      const newUrls = currentUrls.filter((_, i) => i !== index);
       onChange?.(newUrls);
+      if (allUploadsSuccess) {
+        setDisplayItems((prev) => prev.filter((_, i) => i !== index));
+      }
     };
 
     const handleFilesSelected = async (files: File[], baseUrls?: string[]) => {
@@ -718,10 +724,9 @@ const MultiImagesUpload: FC<MultiImagesUploadProps> = memo(
         }
       }
 
-      // Clear display items after all uploads complete
-      setTimeout(() => {
-        setDisplayItems([]);
-      }, 1000); // Show success state for 1 second before clearing
+      // Limpiar displayItems para que la vista use value (imágenes ya guardadas en el store).
+      // Así el usuario ve las imágenes de referencia subidas de inmediato.
+      setDisplayItems([]);
     };
 
     const handleFilesChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -767,9 +772,16 @@ const MultiImagesUpload: FC<MultiImagesUploadProps> = memo(
         ? displayItems.reduce((sum, item) => sum + (item.progress || 0), 0) / totalFiles
         : 0;
 
-    const hasImages = value && value.length > 0;
-    const isUploading = displayItems.length > 0;
-    const isSingleImage = value && value.length === 1;
+    // Tras subir, si todos los displayItems están en 'success', mostrar esas URLs para que el usuario vea las imágenes de inmediato
+    const allUploadsSuccess =
+      displayItems.length > 0 && displayItems.every((i) => i.status === 'success');
+    const displayUrls = allUploadsSuccess
+      ? displayItems.map((i) => i.url)
+      : (value || []);
+
+    const hasImages = displayUrls.length > 0;
+    const isUploading = displayItems.length > 0 && !allUploadsSuccess;
+    const isSingleImage = displayUrls.length === 1;
 
     return (
       <div className={className} {...dragHandlers} style={style}>
@@ -787,7 +799,7 @@ const MultiImagesUpload: FC<MultiImagesUploadProps> = memo(
           type="file"
         />
 
-        {/* Conditional rendering based on state */}
+        {/* Conditional rendering: progreso solo mientras sube; luego mostrar imágenes de referencia */}
         {isUploading ? (
           <div
             className={`${configStyles.dragTransition} ${isDragOver ? configStyles.dragOver : ''}`}
@@ -801,14 +813,14 @@ const MultiImagesUpload: FC<MultiImagesUploadProps> = memo(
           </div>
         ) : isSingleImage ? (
           <SingleImageDisplay
-            imageUrl={value[0]}
+            imageUrl={displayUrls[0]}
             isDragOver={isDragOver}
             onClick={handleOpenModal}
             onDelete={() => handleDelete(0)}
           />
         ) : hasImages ? (
           <ImageThumbnails
-            images={value || []}
+            images={displayUrls}
             isDragOver={isDragOver}
             onClick={handleOpenModal}
             onDelete={handleDelete}
@@ -819,7 +831,7 @@ const MultiImagesUpload: FC<MultiImagesUploadProps> = memo(
 
         {/* Image Management Modal */}
         <ImageManageModal
-          images={value || []}
+          images={displayUrls}
           maxCount={maxCount}
           onClose={handleCloseModal}
           onComplete={handleModalComplete}

@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { buildHeaders } from '../utils/auth';
+
 export type WhatsAppStatus = 'disconnected' | 'connecting' | 'qr_ready' | 'connected' | 'error';
 
 export interface WhatsAppSessionState {
@@ -24,7 +26,9 @@ export function useWhatsAppSession(development: string) {
 
   const fetchStatus = useCallback(async () => {
     try {
-      const response = await fetch(`/api/messages/whatsapp/session/${development}`);
+      const response = await fetch(`/api/messages/whatsapp/session/${development}`, {
+        headers: buildHeaders(),
+      });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       if (data.success) {
@@ -51,7 +55,7 @@ export function useWhatsAppSession(development: string) {
     try {
       const response = await fetch(`/api/messages/whatsapp/session/${development}/start`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: buildHeaders(),
         body: JSON.stringify({}),
       });
       const data = await response.json();
@@ -65,7 +69,10 @@ export function useWhatsAppSession(development: string) {
 
   const disconnectSession = useCallback(async () => {
     try {
-      await fetch(`/api/messages/whatsapp/session/${development}`, { method: 'DELETE' });
+      await fetch(`/api/messages/whatsapp/session/${development}`, {
+        method: 'DELETE',
+        headers: buildHeaders(),
+      });
       setState({ error: null, status: 'disconnected' });
     } catch (err) {
       console.warn('[WA] Error disconnecting:', err);
@@ -75,7 +82,7 @@ export function useWhatsAppSession(development: string) {
   const requestPairingCode = useCallback(async (phoneNumber: string): Promise<string> => {
     const response = await fetch(`/api/messages/whatsapp/session/${development}/pairing-code`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: buildHeaders(),
       body: JSON.stringify({ phoneNumber }),
     });
     const data = await response.json();
@@ -83,17 +90,18 @@ export function useWhatsAppSession(development: string) {
     return data.code as string;
   }, [development]);
 
-  // Poll status every 3s
+  // Poll status: 3s while connecting, 30s when connected
   useEffect(() => {
     fetchStatus();
+    const interval = state.status === 'connected' ? 30_000 : POLL_INTERVAL_MS;
     pollRef.current = setInterval(() => {
       fetchStatus();
-    }, POLL_INTERVAL_MS);
+    }, interval);
 
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [fetchStatus]);
+  }, [fetchStatus, state.status]);
 
   return {
     ...state,

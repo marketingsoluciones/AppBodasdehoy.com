@@ -1,14 +1,13 @@
 'use client';
 
 import { ActionIcon, ActionIconProps, Hotkey } from '@lobehub/ui';
-import { Heart, Images, Inbox, MessageSquare } from 'lucide-react';
+import { BookOpen, Compass, FolderOpen, Heart, ImagePlus, Images, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
 import { useChatStore } from '@/store/chat';
-import { NotificationBell } from './NotificationBell';
 import { useGlobalStore } from '@/store/global';
 import { SidebarTabKey } from '@/store/global/initialState';
 import { useSessionStore } from '@/store/session';
@@ -49,7 +48,6 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
 
   const isChatActive = tab === SidebarTabKey.Chat && !isPinned;
   const isMemoriesActive = tab === SidebarTabKey.Memories;
-  const isMessagesActive = tab === SidebarTabKey.Messages;
 
   return (
     <Flexbox gap={8}>
@@ -90,17 +88,6 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           tooltipProps={{ placement: 'right' }}
         />
       </Link>
-      {isServerMode && !isGuestUser && (
-        <Link aria-label={t('tab.messages' as any)} href={'/messages'} suppressHydrationWarning>
-          <ActionIcon
-            active={isMessagesActive}
-            icon={Inbox}
-            size={ICON_SIZE}
-            title={t('tab.messages' as any)}
-            tooltipProps={{ placement: 'right' }}
-          />
-        </Link>
-      )}
       {isServerMode && (
         <Link aria-label={t('tab.weddingCreator' as any)} href={'/wedding-creator'} suppressHydrationWarning>
           <ActionIcon
@@ -112,7 +99,45 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           />
         </Link>
       )}
-      {isServerMode && !isGuestUser && <NotificationBell />}
+      {/* Discover, Image, Knowledge, Files */}
+      <Link aria-label="Discover" href={'/discover'} suppressHydrationWarning>
+        <ActionIcon
+          active={tab === SidebarTabKey.Discover}
+          icon={Compass}
+          size={ICON_SIZE}
+          title="Discover"
+          tooltipProps={{ placement: 'right' }}
+        />
+      </Link>
+      <Link aria-label="Imágenes" href={'/image'} suppressHydrationWarning>
+        <ActionIcon
+          active={tab === SidebarTabKey.Image}
+          icon={ImagePlus}
+          size={ICON_SIZE}
+          title="Generación de imágenes"
+          tooltipProps={{ placement: 'right' }}
+        />
+      </Link>
+      <Link aria-label="Conocimiento" href={'/knowledge'} suppressHydrationWarning>
+        <ActionIcon
+          active={tab === SidebarTabKey.Knowledge}
+          icon={BookOpen}
+          size={ICON_SIZE}
+          title="Base de conocimiento"
+          tooltipProps={{ placement: 'right' }}
+        />
+      </Link>
+      {isServerMode && !isGuestUser && (
+        <Link aria-label="Archivos" href={'/files'} suppressHydrationWarning>
+          <ActionIcon
+            active={tab === SidebarTabKey.Files}
+            icon={FolderOpen}
+            size={ICON_SIZE}
+            title="Archivos"
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
     </Flexbox>
   );
 });

@@ -143,16 +143,13 @@ const fetchConversationHistory = async ({
   const cacheKey = buildCacheKey(development, email);
   const cached = typeof window !== 'undefined' ? readConversationHistoryCache(cacheKey) : null;
 
-  const backendURL = EVENTOS_API_CONFIG.BACKEND_URL || 'http://localhost:8030';
-
-  // ✅ CORRECCIÓN: Construir URL correctamente según el tipo de backendURL
+  // Siempre usar proxy para evitar mixed-content (HTTPS → HTTP bloqueado)
+  const backendURL = EVENTOS_API_CONFIG.BACKEND_URL;
   let url: URL;
-  if (backendURL.startsWith('/')) {
-    // Es una ruta relativa (proxy de Next.js: /api/backend)
-    url = new URL(`${backendURL}/api/conversations/last`, window.location.origin);
-  } else {
-    // Es una URL absoluta (http://localhost:8030)
+  if (backendURL && backendURL.startsWith('http')) {
     url = new URL('/api/conversations/last', backendURL);
+  } else {
+    url = new URL('/api/backend/api/conversations/last', window.location.origin);
   }
 
   url.searchParams.set('development', development);

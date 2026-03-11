@@ -16,6 +16,7 @@ export function ChannelFilter({
     { icon: '✈️', id: 'telegram', label: 'Telegram' },
     { icon: '📧', id: 'email', label: 'Email' },
     { icon: '🌐', id: 'web', label: 'Web Chat' },
+    { icon: '📘', id: 'facebook', label: 'Facebook' },
   ];
 
   // Sum all unread for the "Todos" channel

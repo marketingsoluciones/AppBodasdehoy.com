@@ -142,9 +142,9 @@ test.describe('Itinerario — editar tarea', () => {
 
     // El body debe mostrar contenido real, no pantalla en blanco
     const body = page.locator('body');
-    const text = (await body.textContent()) ?? '';
-    expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
-    expect(text.length, 'La página de itinerario parece vacía').toBeGreaterThan(50);
+    const bodyText = (await body.textContent()) ?? '';
+    expect(bodyText).not.toMatch(/Error Capturado por ErrorBoundary/);
+    expect(bodyText.length, 'La página de itinerario parece vacía').toBeGreaterThan(50);
   });
 
   test('itinerario no genera 500 ni ErrorBoundary', async ({ context, page }) => {

@@ -328,7 +328,7 @@ export function TaskDetailWorkspace({ eventId, taskId }: TaskDetailWorkspaceProp
               '_blank',
             );
           }}
-          task={{ ...tarea, completada: isCompleted }}
+          task={{ ...tarea, completada: isCompleted, estatus: tarea.estatus === true || tarea.estatus === 'true' }}
           theme="dark"
         />
 

@@ -7,6 +7,7 @@ import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
 import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
 import { SkeletonPage } from "../components/Utils/SkeletonPage";
+import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import FormGuardarRegalos from "../components/Forms/FormGuardarRegalos"
 import { useMounted } from "../hooks/useMounted"
 import { useAllowed } from "../hooks/useAllowed"
@@ -42,7 +43,7 @@ const ListaRegalos = () => {
         <VistaSinCookie />
       )
     }
-    if (!event) return <SkeletonPage rows={4} />
+    if (!event) return <EventLoadingOrError skeletonRows={4} />
     return (
       <>
         {showForm ? (

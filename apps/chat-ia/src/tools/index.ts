@@ -6,6 +6,7 @@ import { ArtifactsManifest } from './artifacts';
 import { CodeInterpreterManifest } from './code-interpreter';
 import { DalleManifest } from './dalle';
 import { FilterAppViewManifest } from './filter-app-view';
+import { FloorPlanEditorManifest } from './floor-plan-editor';
 import { LocalSystemManifest } from './local-system';
 import { VenueVisualizerManifest } from './venue-visualizer';
 import { WebBrowsingManifest } from './web-browsing';
@@ -47,6 +48,12 @@ export const builtinTools: LobeBuiltinTool[] = [
     hidden: true,
     identifier: FilterAppViewManifest.identifier,
     manifest: FilterAppViewManifest,
+    type: 'builtin',
+  },
+  {
+    hidden: true,
+    identifier: FloorPlanEditorManifest.identifier,
+    manifest: FloorPlanEditorManifest,
     type: 'builtin',
   },
 ];

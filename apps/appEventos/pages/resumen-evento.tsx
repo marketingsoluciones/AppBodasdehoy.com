@@ -9,6 +9,7 @@ import BlockPrincipal from "../components/Resumen/BlockPrincipal";
 import BlockSobreMiEvento from "../components/Resumen/BlockSobreMiEvento";
 import { EventContextProvider } from "../context";
 import { SkeletonPage } from "../components/Utils/SkeletonPage";
+import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import { useMounted } from "../hooks/useMounted"
 import { BlockItinerario } from "../components/Resumen/BlockItinerario";
 import { BlockLugarEvento } from "../components/Resumen/BlockLugarEvento";
@@ -18,7 +19,7 @@ const Resumen = () => {
   const { event } = EventContextProvider()
   useMounted()
 
-  if (!event) return <SkeletonPage rows={6} />
+  if (!event) return <EventLoadingOrError skeletonRows={6} />
   return (
     <>
       <section className="bg-base w-full md:py-10 px-2 md:px-0">

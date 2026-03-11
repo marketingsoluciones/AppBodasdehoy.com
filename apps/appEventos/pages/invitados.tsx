@@ -10,6 +10,7 @@ import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
 import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
 import { SkeletonTable } from "../components/Utils/SkeletonPage";
+import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import { ModuleErrorBoundary } from "../components/ErrorBoundary";
 import FormCrearMenu from "../components/Forms/FormCrearMenu";
 import { useMounted } from "../hooks/useMounted";
@@ -90,7 +91,7 @@ const Invitados: FC = () => {
         <VistaSinCookie />
       )
     }
-    if (!event) return <SkeletonTable rows={8} />
+    if (!event) return <EventLoadingOrError skeletonRows={8} />
     return (
       <>
         {shouldRenderChild && (

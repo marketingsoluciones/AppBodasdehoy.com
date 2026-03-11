@@ -35,7 +35,7 @@ const CHANNEL_BADGE: Record<ChannelKind, { label: string; bg: string; text: stri
 
 export { CHANNEL_BADGE };
 
-export function useRecentConversations(max = 5) {
+export function useRecentConversations(max = 50) {
   const [conversations, setConversations] = useState<RecentConversation[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -62,50 +62,73 @@ export function useRecentConversations(max = 5) {
         const firstWaChannel = waChannels.find((ch) => ch.status === 'ACTIVE') ?? waChannels[0];
         const defaultWaParam = firstWaChannel ? `wa-${firstWaChannel.id}` : 'whatsapp';
 
-        const res = await fetch(`/api/messages/whatsapp/conversations/${dev}`, {
-          headers: buildHeaders(),
-        });
-
-        if (!res.ok) {
-          setConversations([]);
-          return;
-        }
-
-        const data = await res.json();
-        const rawList: any[] = Array.isArray(data) ? data : (data.conversations ?? []);
-
         // Build a short label per channel so multiple WA/IG channels are distinguishable
         const channelLabelMap = new Map<string, string>();
         if (waChannels.length > 1) {
           waChannels.forEach((ch, idx) => {
-            // Derive a ≤3-char abbreviation from channel name, falling back to index
             const raw = ch.name || ch.sessionKey || String(idx + 1);
             const abbr = raw.replace(/\s+/g, '').slice(0, 3);
             channelLabelMap.set(ch.id, abbr || String(idx + 1));
           });
         }
 
-        const normalized: RecentConversation[] = rawList
-          .map((c: any) => {
-            // Use sessionKey to find the right wa-{id} param
-            const sessionKey = c.sessionKey || '';
-            const matchedChannel = waChannels.find(
-              (ch) => ch.sessionKey === sessionKey || ch.name === sessionKey || ch.id === sessionKey,
-            );
-            const channelParam = matchedChannel ? `wa-${matchedChannel.id}` : defaultWaParam;
-            const channelLabel = matchedChannel ? channelLabelMap.get(matchedChannel.id) : undefined;
-
-            return {
-              channelParam,
-              kind: 'whatsapp' as const,
-              conversationId: c.conversationId || c.id || '',
-              name: c.displayName || c.phoneNumber || 'Desconocido',
-              lastMessage: c.lastMessage || '',
-              lastMessageAt: c.lastMessageAt || c.updatedAt || '',
-              unreadCount: c.unreadCount || 0,
-              channelLabel,
-            };
+        // Fetch WhatsApp conversations
+        const waPromise = fetch(`/api/messages/whatsapp/conversations/${dev}`, {
+          headers: buildHeaders(),
+        })
+          .then(async (res) => {
+            if (!res.ok) return [];
+            const data = await res.json();
+            const rawList: any[] = Array.isArray(data) ? data : (data.conversations ?? []);
+            return rawList.map((c: any) => {
+              const sessionKey = c.sessionKey || '';
+              const matchedChannel = waChannels.find(
+                (ch) => ch.sessionKey === sessionKey || ch.name === sessionKey || ch.id === sessionKey,
+              );
+              const channelParam = matchedChannel ? `wa-${matchedChannel.id}` : defaultWaParam;
+              const channelLabel = matchedChannel ? channelLabelMap.get(matchedChannel.id) : undefined;
+              return {
+                channelParam,
+                kind: 'whatsapp' as const,
+                conversationId: c.conversationId || c.id || '',
+                name: c.displayName || c.phoneNumber || 'Desconocido',
+                lastMessage: c.lastMessage || '',
+                lastMessageAt: c.lastMessageAt || c.updatedAt || '',
+                unreadCount: c.unreadCount || 0,
+                channelLabel,
+              };
+            });
           })
+          .catch(() => [] as RecentConversation[]);
+
+        // Fetch other channels conversations (if backend supports them)
+        const otherChannels: ChannelKind[] = ['instagram', 'telegram', 'email', 'web', 'facebook'];
+        const othersPromise = fetch(`/api/messages/conversations?development=${dev}`, {
+          headers: buildHeaders(),
+        })
+          .then(async (res) => {
+            if (!res.ok) return [];
+            const data = await res.json();
+            const rawList: any[] = Array.isArray(data) ? data : (data.conversations ?? []);
+            return rawList.map((c: any) => {
+              const kind = (c.channel || c.platform || 'web') as ChannelKind;
+              const isKnown = otherChannels.includes(kind);
+              return {
+                channelParam: isKnown ? kind : 'web',
+                kind: isKnown ? kind : ('web' as const),
+                conversationId: c.conversationId || c.id || '',
+                name: c.displayName || c.contactName || c.username || 'Desconocido',
+                lastMessage: c.lastMessage || '',
+                lastMessageAt: c.lastMessageAt || c.updatedAt || '',
+                unreadCount: c.unreadCount || 0,
+              };
+            });
+          })
+          .catch(() => [] as RecentConversation[]);
+
+        const [waConvs, otherConvs] = await Promise.all([waPromise, othersPromise]);
+
+        const all = [...waConvs, ...otherConvs]
           .filter((c) => c.conversationId)
           .sort((a, b) => {
             const ta = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
@@ -114,7 +137,7 @@ export function useRecentConversations(max = 5) {
           })
           .slice(0, max);
 
-        setConversations(normalized);
+        setConversations(all);
       } catch {
         setConversations([]);
       } finally {

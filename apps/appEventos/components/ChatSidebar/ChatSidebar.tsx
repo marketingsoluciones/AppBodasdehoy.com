@@ -146,7 +146,7 @@ const ChatSidebar: FC = () => {
 
   // En móvil: panel como overlay (no ocupa espacio en el flex, no comprime contenido)
   const asOverlay = isMobile && isOpen && viewMode === 'minimal';
-  // Ancho efectivo en el layout: en móvil siempre 0 para no comprimir el main
+  // Ancho efectivo en el layout: en móvil siempre 0 para no comprimir el main; en desktop el Container reserva la columna con grid
   const layoutWidth = isMobile ? 0 : isOpen && viewMode === 'minimal' ? width : 0;
 
   return (

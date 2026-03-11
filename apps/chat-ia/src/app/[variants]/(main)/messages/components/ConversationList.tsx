@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
@@ -74,7 +75,7 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
     }
 
     return list;
-  }, [conversations, search, sortMode]);
+  }, [conversations, search, sortMode, isArchived]);
 
   const totalUnread = useMemo(
     () => conversations.reduce((n, c) => n + c.unreadCount, 0),
@@ -201,12 +202,13 @@ function ChannelConversationList({
   };
 
   if (!connected) {
+    const setupProps = { development, onConnected: handleConnected };
     const setupMap: Record<string, React.ReactNode> = {
-      instagram: <InstagramSetup development={development} />,
-      telegram: <TelegramSetup development={development} />,
-      email: <EmailSetup development={development} />,
-      web: <WebChatSetup development={development} />,
-      facebook: <FacebookSetup development={development} />,
+      instagram: <InstagramSetup {...setupProps} />,
+      telegram: <TelegramSetup {...setupProps} />,
+      email: <EmailSetup {...setupProps} />,
+      web: <WebChatSetup {...setupProps} />,
+      facebook: <FacebookSetup {...setupProps} />,
     };
 
     return (
@@ -225,19 +227,76 @@ function ChannelConversationList({
 
 const SETUP_CHANNELS = new Set(['instagram', 'telegram', 'email', 'web', 'facebook']);
 
+/** Empty state sin duplicar la lista de canales: redirige a Integraciones */
+function EmptyStateWithChannels(_props: { onSelectChannel: (ch: string) => void }) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center p-6">
+      <div className="mb-3 text-5xl">💬</div>
+      <h3 className="mb-1 text-base font-semibold text-gray-700">Sin conversaciones</h3>
+      <p className="mb-5 text-center text-xs text-gray-400">
+        Configura WhatsApp, Instagram, Email y otros canales en Integraciones para recibir mensajes
+      </p>
+      <Link
+        className="flex w-full max-w-xs items-center justify-center gap-2 rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 text-sm font-medium text-purple-700 transition-colors hover:border-purple-300 hover:bg-purple-100"
+        href="/settings/integrations"
+      >
+        Ir a Integraciones →
+      </Link>
+      <p className="mt-3 text-center text-[11px] text-gray-400">
+        O elige un canal en el menú de la izquierda
+      </p>
+    </div>
+  );
+}
+
 export function ConversationList({ channel, selectedId }: ConversationListProps) {
   const { checkAuth } = useAuthCheck();
   const { development } = checkAuth();
   const dev = development || 'bodasdehoy';
+  const [redirectChannel, setRedirectChannel] = useState<string | null>(null);
+
+  const activeChannel = redirectChannel || channel;
 
   // wa-[channelId] channels from InboxSidebar → WhatsApp session check
-  if (channel === 'whatsapp' || channel?.startsWith('wa-')) {
+  if (activeChannel === 'whatsapp' || activeChannel?.startsWith('wa-')) {
     return <WhatsAppConversationList development={dev} selectedId={selectedId} />;
   }
 
   // Social / messaging channels with setup flow
-  if (channel && SETUP_CHANNELS.has(channel)) {
-    return <ChannelConversationList channel={channel} development={dev} selectedId={selectedId} />;
+  if (activeChannel && SETUP_CHANNELS.has(activeChannel)) {
+    return <ChannelConversationList channel={activeChannel} development={dev} selectedId={selectedId} />;
+  }
+
+  // No channel selected — show all conversations or empty state with channel options
+  return (
+    <ConversationListWithFallback
+      channel={channel}
+      selectedId={selectedId}
+      onSelectChannel={setRedirectChannel}
+    />
+  );
+}
+
+function ConversationListWithFallback({
+  channel,
+  selectedId,
+  onSelectChannel,
+}: ConversationListProps & { onSelectChannel: (ch: string) => void }) {
+  const { conversations, loading, error } = useConversations(channel);
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <div className="mb-2 text-3xl">⏳</div>
+          <p className="text-sm text-gray-500">Cargando conversaciones...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (conversations.length === 0 && !error) {
+    return <EmptyStateWithChannels onSelectChannel={onSelectChannel} />;
   }
 
   return <ConversationListInner channel={channel} selectedId={selectedId} />;

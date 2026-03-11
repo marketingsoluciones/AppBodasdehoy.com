@@ -1,8 +1,12 @@
+'use client';
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
 import { buildHeaders, parseWhatsAppConversationId } from '../utils/auth';
+import { useMessageStream } from './useMessageStream';
+import type { StreamMessage } from './useMessageStream';
 
 export interface Message {
   attachments?: Array<{
@@ -77,7 +81,19 @@ export function useMessages(channel: string, conversationId: string) {
 
       const data = await response.json();
       const raw = Array.isArray(data) ? data : (data.messages || []);
-      setMessages(raw.map(normalizeMessage));
+      const serverMsgs = raw.map(normalizeMessage);
+      setMessages((prev) => {
+        const pendingMsgs = prev.filter((m) => m.id.startsWith('msg_pending_'));
+        const stillPending = pendingMsgs.filter(
+          (p) =>
+            !serverMsgs.some(
+              (s: Message) =>
+                s.text === p.text &&
+                Math.abs(new Date(s.timestamp).getTime() - new Date(p.timestamp).getTime()) < 30_000,
+            ),
+        );
+        return [...serverMsgs, ...stillPending];
+      });
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Error al obtener mensajes'));
@@ -93,18 +109,59 @@ export function useMessages(channel: string, conversationId: string) {
     fetchMessages();
   }, [fetchMessages]);
 
-  // Poll for new messages every 10 seconds
+  // ── SSE real-time messages ───────────────────────────────────────────────
+  const handleStreamMessage = useCallback(
+    (msg: StreamMessage) => {
+      // Only add if it belongs to this conversation
+      if (msg.conversationId && msg.conversationId !== conversationId) return;
+
+      const normalized: Message = {
+        id: msg.id,
+        text: msg.text,
+        fromUser: msg.fromUser,
+        timestamp: msg.timestamp,
+        status: msg.status,
+        attachments: msg.attachments,
+      };
+
+      setMessages((prev) => {
+        // Skip duplicates
+        if (prev.some((m) => m.id === normalized.id)) return prev;
+        // Remove matching pending message
+        const withoutPending = prev.filter(
+          (m) =>
+            !m.id.startsWith('msg_pending_') ||
+            m.text !== normalized.text ||
+            Math.abs(new Date(m.timestamp).getTime() - new Date(normalized.timestamp).getTime()) >= 30_000,
+        );
+        return [...withoutPending, normalized];
+      });
+    },
+    [conversationId],
+  );
+
+  const { shouldFallbackToPolling, connected: sseConnected } = useMessageStream({
+    conversationId,
+    channel,
+    enabled: !isGuest && !!conversationId,
+    onMessage: handleStreamMessage,
+  });
+
+  // Poll for new messages every 10 seconds — only when SSE is not connected
   useEffect(() => {
     if (isGuest || !conversationId) return;
+    // If SSE is connected and not in fallback mode, skip polling
+    if (sseConnected && !shouldFallbackToPolling) return;
+
     const interval = setInterval(() => {
       if (initialLoadDone.current) fetchMessages();
     }, 10_000);
     return () => clearInterval(interval);
-  }, [fetchMessages, isGuest, conversationId]);
+  }, [fetchMessages, isGuest, conversationId, sseConnected, shouldFallbackToPolling]);
 
   const addMessage = (message: Message) => {
     setMessages((prev) => [...prev, message]);
   };
 
-  return { addMessage, error, loading, messages, refetch: fetchMessages };
+  return { addMessage, error, loading, messages, refetch: fetchMessages, sseConnected };
 }

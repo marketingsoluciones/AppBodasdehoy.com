@@ -157,7 +157,10 @@ export class API2Client {
   async ensureDemoToken(): Promise<void> {
     const token = readToken();
     if (!token) {
-      await loginWithDemoCredentials();
+      const result = await loginWithDemoCredentials();
+      if (!result.success) {
+        console.warn('[API2Client] ensureDemoToken: login automático falló o no hay credenciales configuradas.');
+      }
     }
   }
 }

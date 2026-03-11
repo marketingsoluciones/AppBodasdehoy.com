@@ -4,9 +4,10 @@ import { useState } from 'react';
 
 interface WebChatSetupProps {
   development: string;
+  onConnected?: () => void;
 }
 
-export function WebChatSetup({ development }: WebChatSetupProps) {
+export function WebChatSetup({ development, onConnected }: WebChatSetupProps) {
   const [copied, setCopied] = useState(false);
 
   const chatUrl = typeof window !== 'undefined'

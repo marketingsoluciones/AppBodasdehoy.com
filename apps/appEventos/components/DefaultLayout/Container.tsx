@@ -66,9 +66,10 @@ const Container = (props) => {
   // Mobile bottom nav oculto en login/registro (el top nav con logo sí se muestra)
   const showMobileNav = showNavigation && !["login", "registro"].includes(pathname?.split("/")[1] || "");
 
-  // ChatSidebarDirect en desktop está en el flujo (no fixed): ocupa su ancho y el contenido sigue a la derecha sin margen.
-  // En móvil el Copilot es flotante (fixed), tampoco aplicamos margen.
-  const copilotWidth = 0;
+  // En desktop, cuando el Copilot está abierto, reservar su ancho en el layout para que el contenido
+  // (tarjetas de eventos, etc.) ceda espacio y no quede tapado por superposición.
+  const copilotOpenDesktop = shouldShowChatSidebar && !isMobile && chatSidebar?.isOpen;
+  const copilotSlotWidth = copilotOpenDesktop ? Math.max(320, Math.min(700, chatSidebar?.width ?? 420)) + 4 : 0; // +4 por el resizer
 
   return (
     <>
@@ -85,13 +86,32 @@ const Container = (props) => {
       </>
       }
 
-      <div className={`flex w-full min-w-0 ${pathname === "/" ? "" : "bg-base"} ${isFullHeight ? "h-[100vh]" : urls.includes(pathname) ? "" : forCms ? "h-[100vh]" : "h-[calc(100vh-144px)]"}`}>
-        {/* Copilot: panel a la izquierda */}
-        {shouldShowChatSidebar && <ChatSidebar />}
+      <div
+        className={`w-full max-w-full min-w-0 ${pathname === "/" ? "" : "bg-base"} ${isFullHeight ? "h-[100vh]" : urls.includes(pathname) ? "" : forCms ? "h-[100vh]" : "h-[calc(100vh-144px)]"}`}
+        style={{
+          display: "grid",
+          width: "100%",
+          maxWidth: "100%",
+          boxSizing: "border-box",
+          // Dos columnas cuando hay Copilot: primera reserva espacio (0px si cerrado), segunda 1fr = resto para banner/contenido
+          gridTemplateColumns: shouldShowChatSidebar ? `${copilotSlotWidth}px minmax(0, 1fr)` : "1fr",
+          transition: "grid-template-columns 0.2s ease",
+        }}
+      >
+        {shouldShowChatSidebar && (
+          /* Columna Copilot: ancho fijo, contenido recortado si desborda. El banner central nunca queda tapado. */
+          <div
+            className="flex flex-row h-full overflow-hidden shrink-0"
+            style={{ minWidth: 0, maxWidth: copilotSlotWidth }}
+          >
+            <ChatSidebar />
+          </div>
+        )}
 
-        {/* Contenido principal: ocupa el espacio restante */}
+        {/* Columna del contenido (banner "Organiza tus eventos", tarjetas, etc.): siempre a la derecha del Copilot */}
         <div
-          className="flex-1 min-w-0 overflow-auto overflow-y-scroll transition-all duration-300"
+          className="min-w-0 overflow-auto overflow-y-scroll transition-all duration-300 relative z-0"
+          style={{ isolation: "isolate" }}
         >
           <main id="rootElementMain" className="w-full h-full">
             {children}

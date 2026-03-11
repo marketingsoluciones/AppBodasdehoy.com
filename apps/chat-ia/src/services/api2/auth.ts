@@ -5,8 +5,8 @@ const DEFAULT_DEVELOPMENT =
   process.env.NEXT_PUBLIC_API2_DEVELOPMENT ?? process.env.NEXT_PUBLIC_WHITELABEL ?? 'bodasdehoy';
 
 export const DEMO_CREDENTIALS = Object.freeze({
-  email: 'admin@eventosorganizador.com',
-  password: 'Admin123!',
+  email: process.env.NEXT_PUBLIC_DEMO_LOGIN_EMAIL ?? process.env.DEMO_LOGIN_EMAIL ?? '',
+  password: process.env.NEXT_PUBLIC_DEMO_LOGIN_PASSWORD ?? process.env.DEMO_LOGIN_PASSWORD ?? '',
 });
 
 interface GraphQLAuthResponse {
@@ -126,11 +126,18 @@ export const loginAPI2 = async ({
   };
 };
 
-export const loginWithDemoCredentials = async (): Promise<LoginAPI2Result> =>
-  loginAPI2({
+export const loginWithDemoCredentials = async (): Promise<LoginAPI2Result> => {
+  if (!DEMO_CREDENTIALS.email || !DEMO_CREDENTIALS.password) {
+    console.warn(
+      '[auth] DEMO_LOGIN_EMAIL / DEMO_LOGIN_PASSWORD no configuradas. Omitiendo login automático.',
+    );
+    return { success: false, errors: ['Credenciales demo no configuradas en variables de entorno'] };
+  }
+  return loginAPI2({
     email: DEMO_CREDENTIALS.email,
     password: DEMO_CREDENTIALS.password,
   });
+};
 
 /**
  * Login con Firebase ID Token

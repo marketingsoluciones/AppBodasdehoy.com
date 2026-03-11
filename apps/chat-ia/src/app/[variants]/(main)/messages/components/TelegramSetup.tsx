@@ -6,9 +6,10 @@ import { buildHeaders } from '../utils/auth';
 
 interface TelegramSetupProps {
   development: string;
+  onConnected?: () => void;
 }
 
-export function TelegramSetup({ development }: TelegramSetupProps) {
+export function TelegramSetup({ development, onConnected }: TelegramSetupProps) {
   const [botToken, setBotToken] = useState('');
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +35,7 @@ export function TelegramSetup({ development }: TelegramSetupProps) {
       const data = await res.json();
       setBotName(data.botName || data.username || 'Bot conectado');
       setStatus('connected');
+      onConnected?.();
     } catch (err: any) {
       setError(err?.message ?? 'Error conectando el bot');
       setStatus('error');

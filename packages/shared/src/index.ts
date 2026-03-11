@@ -9,3 +9,6 @@ export * from './types';
 
 // Component exports
 export * from './components';
+
+// Utils exports
+export * from './utils';

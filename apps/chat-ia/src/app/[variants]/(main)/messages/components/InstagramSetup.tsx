@@ -6,9 +6,10 @@ import { buildHeaders } from '../utils/auth';
 
 interface InstagramSetupProps {
   development: string;
+  onConnected?: () => void;
 }
 
-export function InstagramSetup({ development }: InstagramSetupProps) {
+export function InstagramSetup({ development, onConnected }: InstagramSetupProps) {
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [accountName, setAccountName] = useState<string | null>(null);
@@ -44,6 +45,7 @@ export function InstagramSetup({ development }: InstagramSetupProps) {
           if (event.data?.type === 'INSTAGRAM_OAUTH_SUCCESS') {
             setAccountName(event.data.accountName || 'Cuenta conectada');
             setStatus('connected');
+            onConnected?.();
             window.removeEventListener('message', handleMessage);
           } else if (event.data?.type === 'INSTAGRAM_OAUTH_ERROR') {
             setError(event.data.error || 'Error en la autorización');

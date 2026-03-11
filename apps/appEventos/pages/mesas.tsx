@@ -12,6 +12,7 @@ import FormInvitado from "../components/Forms/FormInvitado";
 import VistaSinCookie from "./vista-sin-cookie";
 import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
 import { SkeletonMesas } from "../components/Utils/SkeletonPage";
+import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import SwiperCore, { Pagination } from 'swiper';
 import Prueba from "../components/Mesas/prueba";
 import FormEditarMesa from "../components/Forms/FormEditarMesa";
@@ -28,6 +29,7 @@ import { fetchApiEventos, queries } from "../utils/Fetching";
 import { useToast } from "../hooks/useToast";
 import BlockPlantillas from "../components/Mesas/BlockPlantillas";
 import BlockZonas from "../components/Mesas/BlockZonas";
+import { TableConfiguratorFloating } from "../components/Forms/TableConfigurator";
 import { useAllowed } from "../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { GalerySvg } from "../utils/Interfaces";
@@ -195,7 +197,7 @@ const Mesas: FC = () => {
       )
     }
 
-    if (!event) return <SkeletonMesas tables={6} />
+    if (!event) return <EventLoadingOrError skeleton={<SkeletonMesas tables={6} />} />
     return (
       <>
         {/* formulario emergente para crear mesas */}
@@ -331,6 +333,8 @@ const Mesas: FC = () => {
             </div>
           </div>
         </ModalBottomSinAway>
+        {/* Capa superior: configurador visual de mesas (no modifica el sistema existente) */}
+        <TableConfiguratorFloating />
       </>
     );
   }

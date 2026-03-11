@@ -8,6 +8,7 @@ import { ChatCodeInterpreterAction, codeInterpreterSlice } from './interpreter';
 import { LocalFileAction, localSystemSlice } from './localSystem';
 import { SearchAction, searchSlice } from './search';
 import { ChatVenueVisualizerAction, venueVisualizerSlice } from './venueVisualizer';
+import { ChatFloorPlanEditorAction, floorPlanEditorSlice } from './floorPlanEditor';
 
 export interface ChatBuiltinToolAction
   extends ChatDallEAction,
@@ -15,7 +16,8 @@ export interface ChatBuiltinToolAction
     LocalFileAction,
     ChatCodeInterpreterAction,
     ChatVenueVisualizerAction,
-    ChatFilterAppViewAction {}
+    ChatFilterAppViewAction,
+    ChatFloorPlanEditorAction {}
 
 export const chatToolSlice: StateCreator<
   ChatStore,
@@ -29,4 +31,5 @@ export const chatToolSlice: StateCreator<
   ...codeInterpreterSlice(...params),
   ...venueVisualizerSlice(...params),
   ...filterAppViewSlice(...params),
+  ...floorPlanEditorSlice(...params),
 });

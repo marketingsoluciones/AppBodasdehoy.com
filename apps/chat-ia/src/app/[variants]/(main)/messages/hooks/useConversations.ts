@@ -5,7 +5,7 @@ import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { buildHeaders } from '../utils/auth';
 
 export interface Conversation {
-  channel: 'whatsapp' | 'instagram' | 'telegram' | 'email';
+  channel: 'whatsapp' | 'instagram' | 'telegram' | 'email' | 'web' | 'facebook';
   contact: {
     avatar?: string;
     name: string;
@@ -55,7 +55,7 @@ export function useConversations(channel: string | null) {
         const data = await response.json();
         const rawList = Array.isArray(data) ? data : data.conversations || [];
         const normalized: Conversation[] = rawList.map((c: any) => ({
-          channel: 'whatsapp' as const,
+          channel: (c.channel || c.platform || channel || 'whatsapp') as Conversation['channel'],
           id: c.conversationId || c.id,
           contact: {
             name: c.displayName || c.phoneNumber || 'Desconocido',

@@ -9,7 +9,8 @@
     "./auth": "./src/auth/index.ts",
     "./communication": "./src/communication/index.ts",
     "./types": "./src/types/index.ts",
-    "./components": "./src/components/index.ts"
+    "./components": "./src/components/index.ts",
+    "./utils": "./src/utils/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

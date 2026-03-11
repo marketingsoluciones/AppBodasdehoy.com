@@ -308,7 +308,3 @@ describe('AlbumDetailPage - Modo Selección', () => {
 
 
 
-
-
-
-

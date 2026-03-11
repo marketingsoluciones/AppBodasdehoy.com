@@ -6,11 +6,12 @@ import { buildHeaders } from '../utils/auth';
 
 interface EmailSetupProps {
   development: string;
+  onConnected?: () => void;
 }
 
 type Provider = 'gmail' | 'outlook' | 'smtp';
 
-export function EmailSetup({ development }: EmailSetupProps) {
+export function EmailSetup({ development, onConnected }: EmailSetupProps) {
   const [provider, setProvider] = useState<Provider | null>(null);
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +51,7 @@ export function EmailSetup({ development }: EmailSetupProps) {
           if (event.data?.type === 'EMAIL_OAUTH_SUCCESS') {
             setConnectedEmail(event.data.email || 'Email conectado');
             setStatus('connected');
+            onConnected?.();
             window.removeEventListener('message', handleMessage);
           } else if (event.data?.type === 'EMAIL_OAUTH_ERROR') {
             setError(event.data.error || 'Error en la autorización');
@@ -89,6 +91,7 @@ export function EmailSetup({ development }: EmailSetupProps) {
 
       setConnectedEmail(smtpUser);
       setStatus('connected');
+      onConnected?.();
     } catch (err: any) {
       setError(err?.message ?? 'Error conectando SMTP');
       setStatus('error');

@@ -144,6 +144,8 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
 
       if (result.success && result.message) {
         addMessage(result.message);
+      } else {
+        setText(messageText);
       }
     } catch (error) {
       console.error('Error al enviar mensaje:', error);

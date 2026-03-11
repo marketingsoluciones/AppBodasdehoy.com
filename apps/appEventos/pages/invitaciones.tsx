@@ -10,6 +10,7 @@ import { DataTableGroupProvider } from "../context/DataTableGroupContext";
 import VistaSinCookie from "./vista-sin-cookie";
 import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
 import { SkeletonPage } from "../components/Utils/SkeletonPage";
+import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import { useMounted } from "../hooks/useMounted"
 import { OptionsMenu } from "../components/Invitaciones/OptionsMenu";
 import { EnviadosComponent } from "../components/Invitaciones/EnviadosComponent";
@@ -173,7 +174,7 @@ const Invitaciones = () => {
         <VistaSinCookie />
       )
     }
-    if (!event) return <SkeletonPage rows={3} />
+    if (!event) return <EventLoadingOrError skeletonRows={3} />
     return (
       <DataTableGroupProvider>
         <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base. w-full pt-2 md:py-0"}>

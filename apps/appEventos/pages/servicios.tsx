@@ -5,6 +5,7 @@ import { BlockTitle } from "../components/Utils/BlockTitle"
 import VistaSinCookie from "./vista-sin-cookie"
 import GuestUpsellPage from "../components/Utils/GuestUpsellPage"
 import { SkeletonTimeline } from "../components/Utils/SkeletonPage"
+import EventLoadingOrError from "../components/Utils/EventLoadingOrError"
 import { motion } from "framer-motion"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useMounted } from "../hooks/useMounted"
@@ -51,7 +52,7 @@ const Itinerario: FC<any> = (props) => {
         if (!user) {
             return <VistaSinCookie />
         }
-        if (!event) return <SkeletonTimeline groups={2} tasksPerGroup={3} />
+        if (!event) return <EventLoadingOrError skeleton={<SkeletonTimeline groups={2} tasksPerGroup={3} />} />
         return (
             event &&
             <section className={`${forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "bg-base  w-full pt-2 md:py-0"} flex`}>

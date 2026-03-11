@@ -38,6 +38,7 @@ const GET_WHATSAPP_CHANNELS = `
       displayName
       development
       createdAt
+      sessionKey
     }
   }
 `;

@@ -6,9 +6,10 @@ import { buildHeaders } from '../utils/auth';
 
 interface FacebookSetupProps {
   development: string;
+  onConnected?: () => void;
 }
 
-export function FacebookSetup({ development }: FacebookSetupProps) {
+export function FacebookSetup({ development, onConnected }: FacebookSetupProps) {
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [pageName, setPageName] = useState<string | null>(null);
@@ -41,6 +42,7 @@ export function FacebookSetup({ development }: FacebookSetupProps) {
           if (event.data?.type === 'FACEBOOK_OAUTH_SUCCESS') {
             setPageName(event.data.pageName || 'Página conectada');
             setStatus('connected');
+            onConnected?.();
             window.removeEventListener('message', handleMessage);
           } else if (event.data?.type === 'FACEBOOK_OAUTH_ERROR') {
             setError(event.data.error || 'Error en la autorización');

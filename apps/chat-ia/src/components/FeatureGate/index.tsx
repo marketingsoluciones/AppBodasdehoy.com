@@ -87,11 +87,26 @@ const FeatureGate = memo<FeatureGateProps>(({
 }) => {
   const { styles } = useStyles();
   const currentUserId = useChatStore((s) => s.currentUserId);
+
+  // Fallback: si el store Zustand aún no se hidrató, verificar localStorage
+  const resolvedUserId = currentUserId || (() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const saved = localStorage.getItem('dev-user-config');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.userId || parsed.user_id || null;
+      }
+    } catch { /* ignore */ }
+    return null;
+  })();
+
   const isGuest =
-    !currentUserId ||
-    currentUserId === 'visitante@guest.local' ||
-    currentUserId === 'guest' ||
-    currentUserId === 'anonymous';
+    !resolvedUserId ||
+    resolvedUserId === 'visitante@guest.local' ||
+    resolvedUserId === 'guest' ||
+    resolvedUserId === 'anonymous' ||
+    (typeof resolvedUserId === 'string' && resolvedUserId.startsWith('visitor_'));
 
   const { loading, totalBalance, setShowRechargeModal } = useWallet();
 
