@@ -2,27 +2,26 @@ import { test, expect } from '@playwright/test';
 
 /**
  * Comprueba que muchas rutas cargan sin ErrorBoundary y muestran contenido.
- * Texto genérico: si la ruta requiere login/evento puede mostrar permiso o My Events.
+ * Las rutas sin textoEsperado solo verifican: no ErrorBoundary + texto > 50 chars.
+ * Las rutas con textoEsperado verifican contenido específico.
  */
-const CONTENIDO_GENERICO = /permiso|My Events|Iniciar sesión|Bodas de Hoy|Resumen|Invitados|Presupuesto|Mesas|Itinerario|Invitaciones|Regalos|Configuración|Facturación|evento|login|crear|organiz/i;
-
-const RUTAS: { path: string; textoEsperado: RegExp }[] = [
-  { path: '/', textoEsperado: CONTENIDO_GENERICO },
-  { path: '/login', textoEsperado: /Iniciar sesión|Bodas de Hoy|login|Registrarse/i },
-  { path: '/invitados', textoEsperado: CONTENIDO_GENERICO },
-  { path: '/resumen-evento', textoEsperado: CONTENIDO_GENERICO },
-  { path: '/presupuesto', textoEsperado: CONTENIDO_GENERICO },
-  { path: '/mesas', textoEsperado: CONTENIDO_GENERICO },
-  { path: '/itinerario', textoEsperado: CONTENIDO_GENERICO },
-  { path: '/invitaciones', textoEsperado: CONTENIDO_GENERICO },
-  { path: '/lista-regalos', textoEsperado: CONTENIDO_GENERICO },
-  { path: '/configuracion', textoEsperado: CONTENIDO_GENERICO },
-  { path: '/facturacion', textoEsperado: CONTENIDO_GENERICO },
-  { path: '/info-app', textoEsperado: CONTENIDO_GENERICO },
-  { path: '/eventos', textoEsperado: CONTENIDO_GENERICO },
-  { path: '/servicios', textoEsperado: CONTENIDO_GENERICO },
-  { path: '/bandeja-de-mensajes', textoEsperado: CONTENIDO_GENERICO },
-  { path: '/momentos', textoEsperado: CONTENIDO_GENERICO },
+const RUTAS: { path: string; textoEsperado?: RegExp }[] = [
+  { path: '/' },
+  { path: '/login', textoEsperado: /Iniciar sesión|Bodas de Hoy|Registrarse|Email|contraseña/i },
+  { path: '/invitados', textoEsperado: /Invitados|invitado|Lista|Añadir|Permiso|Iniciar sesión/i },
+  { path: '/resumen-evento', textoEsperado: /Resumen|evento|Presupuesto|Fecha|Iniciar sesión/i },
+  { path: '/presupuesto', textoEsperado: /Presupuesto|categoría|gasto|Añadir|Iniciar sesión/i },
+  { path: '/mesas', textoEsperado: /Mesas|mesa|plano|asiento|Iniciar sesión/i },
+  { path: '/itinerario', textoEsperado: /Itinerario|tarea|servicio|Iniciar sesión/i },
+  { path: '/invitaciones', textoEsperado: /Invitaciones|Email|WhatsApp|enviar|Iniciar sesión/i },
+  { path: '/lista-regalos', textoEsperado: /Regalos|regalo|lista|Añadir|Iniciar sesión/i },
+  { path: '/configuracion', textoEsperado: /Configuración|perfil|cuenta|Iniciar sesión/i },
+  { path: '/facturacion', textoEsperado: /Facturación|plan|saldo|pago|Iniciar sesión/i },
+  { path: '/info-app' },
+  { path: '/eventos', textoEsperado: /eventos|Mi boda|Crear|Iniciar sesión/i },
+  { path: '/servicios', textoEsperado: /Tareas|Tasks|servicio|Kanban|Iniciar sesión/i },
+  { path: '/bandeja-de-mensajes' },
+  { path: '/momentos' },
 ];
 
 test.describe('Rutas cargan (navegador debe cargar)', () => {
@@ -44,8 +43,13 @@ test.describe('Rutas cargan (navegador debe cargar)', () => {
 
       const text = (await body.textContent()) ?? '';
       expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
-      expect(text.length).toBeGreaterThan(50);
-      expect(textoEsperado.test(text)).toBe(true);
+      expect(text.length, `Ruta ${path} tiene contenido insuficiente`).toBeGreaterThan(50);
+      if (textoEsperado) {
+        expect(
+          textoEsperado.test(text),
+          `Ruta ${path} no muestra texto esperado. Texto actual: ${text.slice(0, 200)}`,
+        ).toBe(true);
+      }
     });
   }
 });

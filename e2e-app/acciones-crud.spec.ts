@@ -140,12 +140,11 @@ test.describe('Itinerario — editar tarea', () => {
       return;
     }
 
-    // El itinerario no debe crashear con inputs
-    const inputs = page.locator('input, textarea, select');
-    const inputCount = await inputs.count();
-    console.log(`📝 Campos editables encontrados: ${inputCount}`);
-    // Al menos un input de búsqueda o similar
-    expect(inputCount).toBeGreaterThanOrEqual(0);
+    // El body debe mostrar contenido real, no pantalla en blanco
+    const body = page.locator('body');
+    const text = (await body.textContent()) ?? '';
+    expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+    expect(text.length, 'La página de itinerario parece vacía').toBeGreaterThan(50);
   });
 
   test('itinerario no genera 500 ni ErrorBoundary', async ({ context, page }) => {
@@ -591,9 +590,9 @@ test.describe('Botones críticos — sin crash al interactuar', () => {
     // Obtener todos los links del sidebar
     const sidebarLinks = page.locator('nav a, aside a, [role="navigation"] a');
     const count = await sidebarLinks.count();
-    console.log(`📋 Links en navegación: ${count}`);
 
-    expect(count).toBeGreaterThanOrEqual(0);
+    // La navegación debe tener al menos un link real
+    expect(count, 'La navegación no tiene ningún link').toBeGreaterThan(0);
     const text = (await page.locator('body').textContent()) ?? '';
     expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
   });

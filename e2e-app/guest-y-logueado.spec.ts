@@ -56,16 +56,18 @@ test.describe('Usuario guest (sin sesión)', () => {
       .catch(() => {});
 
     // Esperar a que se establezca la URL final
-    await page
-      .waitForURL(
+    try {
+      await page.waitForURL(
         (url) =>
           url.hostname.includes('chat-test.bodasdehoy.com') ||
           url.hostname.includes('chat.bodasdehoy.com') ||
           // Si el usuario ya tenía sesión, chat-test redirige de vuelta a app-test/
           (url.hostname.includes('app-test.bodasdehoy.com') && url.pathname !== '/login'),
-        { timeout: 35_000 },
-      )
-      .catch(() => {});
+        { timeout: 40_000 },
+      );
+    } catch {
+      // Timeout: verificar URL actual
+    }
 
     const finalUrl = page.url();
 
@@ -76,9 +78,12 @@ test.describe('Usuario guest (sin sesión)', () => {
     const redirectOccurred =
       finalUrl.includes('chat-test.bodasdehoy.com') ||
       finalUrl.includes('chat.bodasdehoy.com') ||
-      (finalUrl.includes('app-test.bodasdehoy.com') && !finalUrl.endsWith('/login'));
+      (finalUrl.includes('app-test.bodasdehoy.com') && !finalUrl.includes('/login'));
 
-    expect(redirectOccurred).toBe(true);
+    expect(
+      redirectOccurred,
+      `Redirect no ocurrió: la URL sigue siendo ${finalUrl}`,
+    ).toBe(true);
   });
 });
 

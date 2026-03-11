@@ -1,6 +1,8 @@
 # E2E — Playwright (app web)
 
-Playwright: [microsoft/playwright](https://github.com/microsoft/playwright) — framework para testing y automatización web (Chromium, Firefox, WebKit).
+Playwright: [microsoft/playwright](https://github.com/microsoft/playwright) — framework para testing y automatización web.
+
+**Navegador:** en este proyecto **solo se usa WebKit (Safari)**. Chromium está vetado/prohibido. Instalación: `pnpm test:e2e:app:install` (instala WebKit).
 
 Las **APIs y la autenticación están en servidores reales** (no hay APIs locales). Para que **login y auth funcionen**, hay que correr los tests contra el **dominio real**, no contra localhost.
 
@@ -18,12 +20,22 @@ pnpm test:e2e:app:real
 
 Ejecuta smoke + home + login + redirect contra app-test con WebKit visible. **Usad este si los otros os fallan.**
 
-Otras opciones que propusimos (más ligeras, Chromium sin Chrome del sistema):
+Otras opciones:
 
-- `pnpm test:e2e:app:basico` — solo smoke, Chromium de Playwright (más ligero).
-- `pnpm test:e2e:app:fast` — igual pero con Chrome del sistema.
+- `pnpm test:e2e:app:basico` — solo smoke, WebKit.
+- `pnpm test:e2e:app:fast` — smoke rápido, WebKit.
 
 Si algo no carga o falla, volved a **`pnpm test:e2e:app:real`**.
+
+## No veo nada en el navegador
+
+Si el navegador se abre pero la página está en blanco, suele ser porque los tests están apuntando a **app-test** (remoto) y sin VPN no carga. Para **ver la app en el navegador** usando tu entorno local:
+
+```bash
+pnpm test:e2e:app:ver:local
+```
+
+Ese comando arranca la app en **localhost:8080**, abre **WebKit (Safari)**, carga la página y **espera 8 segundos** para que puedas verla antes de seguir. Usa animación lenta (E2E_SLOW=1). Ejecútalo desde la **raíz del monorepo**. Primera vez: `pnpm test:e2e:app:install` para instalar WebKit.
 
 ## Prerequisito: ejecutar desde la raíz del monorepo
 
@@ -35,14 +47,14 @@ Todos los comandos E2E deben ejecutarse **desde la raíz del repo** (donde está
 
 ## Pruebas reales en el navegador (recomendado)
 
-Para **ver las pruebas en el navegador** (obligatorio: siempre se abre Chrome visible):
+Para **ver las pruebas en el navegador** (siempre se abre WebKit/Safari visible):
 
 ```bash
 pnpm test:e2e:app:real      # smoke + home + login + redirect (app-test → chat-test) contra app-test — WebKit visible
 pnpm test:e2e:app:real:rutas # las 16 rutas — mismo, WebKit visible
 ```
 
-Los scripts `test:e2e:app:real*`, `test:e2e:app:smoke`, `test:e2e:app:login`, `test:e2e:app:rutas` y `test:e2e:app:headed` usan **siempre** el Chrome de tu Mac y **siempre** con ventana visible (nada en segundo plano). Para ir más despacio: `E2E_SLOW=1 pnpm test:e2e:app:real`.
+Los scripts usan **siempre WebKit (Safari)** con ventana visible. Para ir más despacio: `E2E_SLOW=1 pnpm test:e2e:app:real`.
 
 ## Correr todos los tests (todo)
 

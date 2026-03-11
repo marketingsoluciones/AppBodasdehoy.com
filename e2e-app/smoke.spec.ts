@@ -22,6 +22,11 @@ test.describe('Smoke — la app carga', () => {
     const body = page.locator('body');
     await expect(body).toBeVisible({ timeout: 10_000 });
 
+    const delayMs = parseInt(process.env.E2E_DELAY_BEFORE || '0', 10);
+    if (delayMs > 0) {
+      await page.waitForTimeout(delayMs);
+    }
+
     const hasContent =
       (await page.locator('main, [role="main"], #__next, .font-display').first().isVisible().catch(() => false)) ||
       (await body.textContent()).length > 100;

@@ -55,6 +55,29 @@ export const TEST_URLS = {
   chat: process.env.CHAT_URL || 'https://chat-test.bodasdehoy.com',
 };
 
+/** Usuario secundario (novia/pareja) — comparte evento con U1 */
+export const TEST_CREDENTIALS_U2 = {
+  email: process.env.TEST_USER2_EMAIL || 'test-usuario2@bodasdehoy.com',
+  password: process.env.TEST_USER2_PASSWORD || 'TestBodas2024!',
+};
+
+/** vivetuboda — developer distinto para tests de billing/saldo */
+export const VIVETUBODA_URLS = {
+  chat: process.env.VTB_CHAT_URL || 'https://chat.vivetuboda.com',
+  app: process.env.VTB_APP_URL || 'https://app.vivetuboda.com',
+};
+
+export const TEST_CREDENTIALS_VTB = {
+  email: process.env.TEST_VIVETUBODA_EMAIL || '',
+  password: process.env.TEST_VIVETUBODA_PASSWORD || '',
+};
+
+/** Destinatario real de invitaciones de prueba */
+export const TEST_INVITATION_RECIPIENT = {
+  email: 'carlos.carrillo@recargaexpress.com',
+  name: 'Carlos',
+};
+
 /** Tiempo máximo en ms para operaciones de login */
 export const LOGIN_TIMEOUT = 45_000;
 /** Tiempo máximo para que la app cargue tras login */
