@@ -48,7 +48,8 @@ const Presupuesto = () => {
     setCategorias(cats);
     // Mostrar modal de inicio solo si el evento tiene presupuesto pero sin categorías
     // y el usuario tiene permisos de edición
-    if (event && Array.isArray(cats) && cats.length === 0) {
+    // Mostrar modal si no hay categorías (array vacío o undefined)
+    if (event && (!Array.isArray(cats) || cats.length === 0)) {
       setShowInitModal(true);
     }
   }, [event])
