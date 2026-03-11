@@ -25,9 +25,10 @@ export const PresupuestoInitModal: FC<Props> = ({ onClose, onDuplicate }) => {
     setGenerating(true);
 
     const eventName = event?.nombre || 'mi evento';
-    const guests = event?.num_invitados || event?.invitados_confirmados || '';
-    const date = event?.fecha_evento
-      ? new Date(event.fecha_evento).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })
+    const guests = (event as any)?.cant_invitados || '';
+    const eventDate = (event as any)?.fecha;
+    const date = eventDate
+      ? new Date(eventDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })
       : '';
 
     // Construir prompt rico con contexto del evento
