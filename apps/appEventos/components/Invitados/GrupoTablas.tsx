@@ -18,6 +18,7 @@ import { IoIosArrowDown } from "react-icons/io";
 import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "../Utils/DeleteConfirmation";
 import { useTranslation } from 'react-i18next';
+import CopilotFilterBar from "../Utils/CopilotFilterBar";
 
 interface propsDatatableGroup {
   GruposArray: string[];
@@ -100,7 +101,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   const { t } = useTranslation()
   const toast = useToast()
   const { event, setEvent, invitadoCero, setInvitadoCero, allFilterGuests, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
-  const { copilotFilter, clearCopilotFilter } = EventsGroupContextProvider();
+  const { copilotFilter } = EventsGroupContextProvider();
   const GuestsFathers = event?.invitados_array?.filter((invitado) => !invitado?.father)
   const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
   const [isAllowed] = useAllowed()
@@ -789,17 +790,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   return (
     <DataTableGroupProvider>
       <div className="w-[200%] md:w-[100%]">
-        {copilotFilter?.entity === 'guests' && (copilotFilter.ids?.length ?? 0) > 0 && (
-          <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-pink-50 border border-pink-200 rounded-lg text-xs text-pink-700">
-            <span>🤖</span>
-            <span className="flex-1 truncate">
-              {copilotFilter.query
-                ? `Copilot filtró: "${copilotFilter.query}" · ${copilotFilter.ids?.length ?? 0} invitado(s)`
-                : `Copilot filtró · ${copilotFilter.ids?.length ?? 0} invitado(s)`}
-            </span>
-            <button onClick={clearCopilotFilter} className="ml-1 text-pink-400 hover:text-pink-600 font-bold leading-none" aria-label="Limpiar filtro">✕</button>
-          </div>
-        )}
+        <CopilotFilterBar entity="guests" />
         {/* <CheckBoxAll /> */}
         {displayedData?.map((item, idx: number) => {
           return (

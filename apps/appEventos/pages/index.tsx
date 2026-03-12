@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { TbTableShare } from "react-icons/tb";
 import { SelectModeSort } from "../components/Utils/SelectModeSort";
 import EventNotFound from "../components/Utils/EventNotFound";
+import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
 
 const Home: NextPage = () => {
   const { user, verificationDone, config, setUser } = AuthContextProvider()
@@ -322,7 +323,7 @@ export const Lista = [
 
 const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
   const { t } = useTranslation();
-  const { eventsGroup, copilotFilter, clearCopilotFilter } = EventsGroupContextProvider();
+  const { eventsGroup, copilotFilter } = EventsGroupContextProvider();
   const { idxGroupEvent, setIdxGroupEvent } = EventContextProvider()
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<number>(idxGroupEvent?.isActiveStateSwiper)
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
@@ -402,22 +403,7 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
 
   return (
     <div className="flex flex-col max-h-[calc(52%-4px)]">
-      {/* Chip de filtro activo del Copilot */}
-      {copilotFilter?.entity === 'events' && (
-        <div className="flex items-center gap-2 mx-4 mb-2 px-3 py-1.5 bg-pink-50 border border-pink-200 rounded-lg text-xs text-pink-700">
-          <span>🤖</span>
-          <span className="flex-1 truncate">
-            {copilotFilter.query
-              ? `Copilot filtró: "${copilotFilter.query}" · ${copilotFilter.ids?.length ?? 0} evento(s)`
-              : `Copilot filtró · ${copilotFilter.ids?.length ?? 0} evento(s)`}
-          </span>
-          <button
-            onClick={clearCopilotFilter}
-            className="ml-1 text-pink-400 hover:text-pink-600 font-bold leading-none"
-            aria-label="Limpiar filtro del Copilot"
-          >✕</button>
-        </div>
-      )}
+      <CopilotFilterBar entity="events" className="mx-4" />
       <div className="w-full h-10 flex">
         <div className="flex-1" />
         <div className="inline-flex gap-4 py-2">

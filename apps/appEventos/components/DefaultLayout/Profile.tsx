@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
-import { ArrowDownBodasIcon, Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, InvitadosIcon, LivingRoomIcon, LugaresBodas, Posts, PresupuestoIcon, TarjetaIcon, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
+import { ArrowDownBodasIcon, Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, LivingRoomIcon, LugaresBodas, Posts, TarjetaIcon, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
 import { useRouter, usePathname } from "next/navigation";
 import { getAuth, signOut } from "firebase/auth";
 import { AuthContextProvider, EventContextProvider, LoadingContextProvider } from "../../context";
@@ -281,16 +281,6 @@ const Profile = ({ user, state, set, ...rest }) => {
       <div className="text-gray-100 flex space-x-4 relative" {...rest} >
         {user &&
           <div className="items-center hidden md:flex gap-1 relative cursor-default">
-            <div onClick={() => {
-              !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/invitados") ? ht() : router.push("/invitados")
-            }} title={t("Invitados")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/10 cursor-pointer transition`} >
-              <InvitadosIcon className="w-5 h-5 text-primary" />
-            </div>
-            <div onClick={() => {
-              !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/presupuesto") ? ht() : router.push("/presupuesto")
-            }} title={t("Presupuesto")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/10 cursor-pointer transition`} >
-              <PresupuestoIcon className="w-5 h-5 text-primary" />
-            </div>
             <div onClick={() => {
               !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/servicios") ? ht() : router.push("/servicios")
             }} title={t("Servicios")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/10 cursor-pointer transition`} >

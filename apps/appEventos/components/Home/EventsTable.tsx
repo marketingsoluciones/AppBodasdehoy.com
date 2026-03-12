@@ -14,10 +14,11 @@ import { TbLock } from "react-icons/tb";
 import { GoArrowUpRight } from "react-icons/go";
 import { FaSearch } from "react-icons/fa"; // Importa el ícono de lupa
 import { FaArrowDown, FaArrowUp } from "react-icons/fa";
+import CopilotFilterBar from "../Utils/CopilotFilterBar";
 
 export const EventsTable: FC<any> = () => {
   const { t } = useTranslation();
-  const { eventsGroup, copilotFilter, clearCopilotFilter } = EventsGroupContextProvider();
+  const { eventsGroup, copilotFilter } = EventsGroupContextProvider();
   const { user, setUser, config } = AuthContextProvider()
   const { setEvent } = EventContextProvider();
   const router = useRouter();
@@ -395,17 +396,7 @@ export const EventsTable: FC<any> = () => {
 
       {openModal?.state && <OpenModal openModal={openModal} setOpenModal={setOpenModal} />}
 
-      {copilotFilter?.entity === 'events' && copilotFilter.ids?.length > 0 && (
-        <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-pink-50 border border-pink-200 rounded-lg text-xs text-pink-700">
-          <span>🤖</span>
-          <span className="flex-1 truncate">
-            {copilotFilter.query
-              ? `Copilot filtró: "${copilotFilter.query}" · ${copilotFilter.ids.length} evento(s)`
-              : `Copilot filtró · ${copilotFilter.ids.length} evento(s)`}
-          </span>
-          <button onClick={clearCopilotFilter} className="ml-1 text-pink-400 hover:text-pink-600 font-bold leading-none" aria-label="Limpiar filtro">✕</button>
-        </div>
-      )}
+      <CopilotFilterBar entity="events" />
 
       <table
         {...getTableProps()}

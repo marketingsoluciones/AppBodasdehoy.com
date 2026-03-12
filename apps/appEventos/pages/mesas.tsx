@@ -1,6 +1,6 @@
 
 import React, { FC, useEffect, useState } from "react";
-import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../context";
+import { AuthContextProvider, EventContextProvider } from "../context";
 import FormCrearMesa from "../components/Forms/FormCrearMesa";
 import BlockPanelMesas, { ListTables } from "../components/Mesas/BlockPanelMesas";
 import BlockResumen from "../components/Mesas/BlockResumen";
@@ -32,6 +32,7 @@ import BlockZonas from "../components/Mesas/BlockZonas";
 import { TableConfiguratorFloating } from "../components/Forms/TableConfigurator";
 import { useAllowed } from "../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
+import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
 import { GalerySvg } from "../utils/Interfaces";
 import { Arbol, Arbol2, Dj, Layer2, Piano } from "../components/icons";
 import SvgFromString from "../components/SvgFromString";
@@ -62,7 +63,6 @@ const Mesas: FC = () => {
   const { t } = useTranslation();
   const { forCms } = AuthContextProvider()
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, allFilterGuests, setEditDefault, planSpaceSelect } = EventContextProvider();
-  const { copilotFilter, clearCopilotFilter } = EventsGroupContextProvider();
   const [values, setValues] = useState<any>({});
   const [showFormCreateTable, setShowFormCreateTable] = useState<boolean>(false);
   const [showFormEditar, setShowFormEditar] = useState<any>({ table: {}, visible: false });
@@ -235,17 +235,7 @@ const Mesas: FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="max-w-screen-lg mx-auto inset-x-0 w-full px-2 md:px-0 ">
-              {(copilotFilter?.entity === 'tables' || copilotFilter?.entity === 'guests') && (copilotFilter.ids?.length ?? 0) > 0 && (
-                <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-pink-50 border border-pink-200 rounded-lg text-xs text-pink-700">
-                  <span>🤖</span>
-                  <span className="flex-1 truncate">
-                    {copilotFilter.query
-                      ? `Copilot filtró: "${copilotFilter.query}" · ${copilotFilter.ids?.length ?? 0} ${copilotFilter.entity === 'tables' ? 'mesa(s)' : 'invitado(s)'}`
-                      : `Copilot filtró · ${copilotFilter.ids?.length ?? 0} ${copilotFilter.entity === 'tables' ? 'mesa(s)' : 'invitado(s)'}`}
-                  </span>
-                  <button onClick={clearCopilotFilter} className="ml-1 text-pink-400 hover:text-pink-600 font-bold leading-none" aria-label="Limpiar filtro">✕</button>
-                </div>
-              )}
+              <CopilotFilterBar entity={['tables', 'guests']} />
               <BlockTitle title={"Mesas y asientos"} />
             </motion.div>
             <div className={`${fullScreen || forCms ? "absolute z-[50] w-[100vw] h-[100vh] top-0 left-0" : "w-full h-[calc(100vh-208px)] md:h-[calc(100vh-210px)] md:mt-2"}`}>
