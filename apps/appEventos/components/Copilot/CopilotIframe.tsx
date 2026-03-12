@@ -496,18 +496,21 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
       return () => window.removeEventListener('copilot:send-prompt', handleSendPrompt as EventListener);
     }, []);
 
-    // Enviar PAGE_CONTEXT cuando cambie la pantalla o el evento
+    // Enviar PAGE_CONTEXT cuando cambie la pantalla; reenviar AUTH_CONFIG cuando cambie el evento
+    // para que el iframe actualice current_event_id y las consultas vayan al evento correcto.
     useEffect(() => {
       if (isLoaded && authSent) {
-        // Verificar si cambió el path o el evento
         const pathChanged = lastSentPath.current !== currentPath;
         const eventChanged = lastSentEventId.current !== (event?._id || null);
 
+        if (eventChanged) {
+          sendAuthConfig();
+        }
         if (pathChanged || eventChanged) {
           sendPageContext();
         }
       }
-    }, [isLoaded, authSent, currentPath, event, sendPageContext]);
+    }, [isLoaded, authSent, currentPath, event, sendAuthConfig, sendPageContext]);
 
     return (
       <div className={`relative h-full w-full flex flex-col bg-white overflow-hidden ${className || ''}`}>

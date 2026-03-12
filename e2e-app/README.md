@@ -109,6 +109,7 @@ PLAYWRIGHT_BROWSER=webkit BASE_URL=https://app-test.bodasdehoy.com E2E_FAST=1 np
 | **registro-y-onboarding.spec.ts** | ~15 | Login page estructura; credenciales erróneas; login real; sesión persiste; logout; SSO chat-test→app-test; modo visitante |
 | **modulos-organizador.spec.ts** | ~20 | Home, resumen, presupuesto, invitados, mesas, itinerario, servicios; crear evento; navegación entre módulos |
 | **copilot-chat.spec.ts** | ~10 | Iframe copilot presente; sin error 500; PAGE_CONTEXT; filter_view/CLEAR_FILTER; chat standalone; modal 402 |
+| **copilot-invitados-evento.spec.ts** | 1 | Con evento seleccionado: preguntar "invitados que se llama Raul" en Copilot → respuesta no es error de BD (eventId/metadata) |
 | **billing.spec.ts** | ~10 | /settings/billing, /transactions, /planes (FREE/BASIC/PRO/MAX); plan actual marcado; /facturacion en appEventos |
 | **portal-invitado.spec.ts** | ~10 | /e/[eventId] sin auth; 404 graceful; countdown; RSVP; buscador-mesa; acceso sin sesión |
 | **edge-cases.spec.ts** | ~15 | Rutas 404; 403 mid-session; API 503; navegación rápida; reload sucesivo; health check |
@@ -255,6 +256,7 @@ e2e-app/edge-cases.spec.ts
 ✅ registro-y-onboarding.spec.ts  — Login page, SSO, visitor mode, logout
 ✅ modulos-organizador.spec.ts    — Todos los módulos del organizador
 ✅ copilot-chat.spec.ts           — Iframe, filter_view, chat standalone, 402
+✅ copilot-invitados-evento.spec.ts — Consulta invitados con evento (eventId/metadata); respuesta no error BD
 ✅ billing.spec.ts                — Planes, transacciones, facturación
 ✅ portal-invitado.spec.ts        — Portal público, RSVP, buscador-mesa
 ✅ edge-cases.spec.ts             — 404, 403, 503, navegación rápida, mid-session

@@ -383,7 +383,17 @@ class ChatService {
       const status = e.estado || e.status || '';
       return status.toLowerCase() !== 'borrado' && status.toLowerCase() !== 'eliminado';
     });
-    const eventId = activeEvent?._id || activeEvent?.id || activeEvent?.id_evento;
+    let eventId = activeEvent?._id || activeEvent?.id || activeEvent?.id_evento;
+    // Si no hay eventos en el store (p. ej. usuario Firebase/UUID o Copilot en iframe),
+    // usar eventId del localStorage inyectado por AUTH_CONFIG del parent (app-test)
+    if (!eventId && typeof window !== 'undefined') {
+      try {
+        const stored = window.localStorage.getItem('current_event_id');
+        if (stored) eventId = stored;
+      } catch {
+        // ignorar
+      }
+    }
 
     // Headers de contexto de usuario
     const userContextHeaders: Record<string, string> = {};
@@ -441,7 +451,18 @@ class ChatService {
     const finalPayload = { ...payload };
     delete (finalPayload as any).original_provider;
     delete (finalPayload as any).originalProvider;
-    
+
+    // ✅ Incluir metadata para api-ia (userId, eventId, development) para que las herramientas
+    // (get_user_events, search_guests, etc.) tengan contexto aunque no venga en pageContext
+    if (currentUserId || eventId || development) {
+      (finalPayload as any).metadata = {
+        ...((finalPayload as any).metadata || {}),
+        development: development || undefined,
+        eventId: eventId || undefined,
+        userId: currentUserId || undefined,
+      };
+    }
+
     // ✅ FILTRO ULTRA-AGRESIVO: Usar regex en el JSON stringificado para eliminar cualquier rastro
     let payloadString = JSON.stringify(finalPayload);
     payloadString = payloadString.replaceAll(/"original_provider"\s*:\s*"[^"]*"\s*,?\s*/g, '');
