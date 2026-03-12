@@ -128,14 +128,14 @@ Cuando en **app-test** tienes un evento seleccionado (por ejemplo entras en Invi
 | 1 | **Verificar cambios en local** | Tú | ✅ Código verificado: chat/index.ts (eventId desde localStorage + metadata) y CopilotIframe.tsx (eventChanged → sendAuthConfig). ✅ `pnpm build:web` compila OK. `pnpm build:copilot` puede tardar 2+ min; ejecutar si quieres confirmar chat-ia. |
 | 2 | **Probar en vivo (app-test + Copilot)** | Tú | Levantar app-test (p. ej. puerto 8080) y chat-ia (3210/3211). Entrar en un evento con invitados → abrir Copilot → preguntar *"invitados que se llama Raul"*. Comprobar que la respuesta usa datos del evento. Cambiar de evento y repetir; debe usar el evento nuevo. |
 | 3 | **Ejecutar pruebas api-ia y enviar resumen a Slack** | Tú | ✅ Hecho. Health 200, chat/auto 200, config 200. Resumen enviado a #copilot-api-ia (chat.postMessage). |
-| 4 | **Merge / deploy** | Tú | Hacer merge a la rama que despliegas (main/develop) y desplegar app-test y chat-test. Ver "Commit sugerido" más abajo. |
+| 4 | **Merge / deploy** | Tú | ✅ Commit local hecho (rama feature/nextjs-15-migration). Pendiente: `git push` y desplegar app-test y chat-test. |
 | 5 | **Avisar a api-ia por Slack** | Tú | ✅ Hecho. Mensaje enviado a #copilot-api-ia (fix eventId/metadata + reenvío AUTH_CONFIG al cambiar evento). |
 | 6 | **Seguimiento** | Tú | Si tras el deploy la consulta sigue fallando: pedir en Slack que revisen logs (request_id/trace_id) y que confirmen uso de X-Event-ID/metadata.eventId y que usuario/evento existan en su BD. Revisar doc "Qué comprobar si sigue fallando" en este mismo archivo. |
 | 7 | **(Opcional) Test E2E** | Tú / equipo | ✅ Añadido `e2e-app/copilot-invitados-evento.spec.ts`: app-test con evento → abrir Copilot → "invitados que se llama Raul" → comprueba que la respuesta no es el error de BD. Ejecutar: `pnpm test:e2e:app BASE_URL=https://app-test.bodasdehoy.com e2e-app/copilot-invitados-evento.spec.ts`. |
 
 **Orden sugerido:** 1 → 2 → 3 → 4 → 5 → 6. El paso 7 cuando haya tiempo.
 
-**Estado:** Pasos 1, 3, 5 y 7 hechos. Pendientes: **2** (probar en vivo), **4** (commit + deploy), **6** (seguimiento tras deploy).
+**Estado:** Pasos 1, 3, 4 (commit), 5 y 7 hechos. Pendientes: **2** (probar en vivo), **4** (push + deploy), **6** (seguimiento tras deploy).
 
 **Commit sugerido (paso 4):**
 ```bash
