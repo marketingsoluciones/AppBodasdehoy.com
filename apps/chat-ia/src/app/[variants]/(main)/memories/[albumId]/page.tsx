@@ -409,6 +409,9 @@ const AlbumDetailPage = memo(() => {
   const [sendQrLoading, setSendQrLoading] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const isMountedRef = useRef(true);
+  const pendingUploadsRef = useRef(0);
+  const uploadSuccessCountRef = useRef(0);
+  const uploadFailCountRef = useRef(0);
 
   // Load album data
   useEffect(() => {
@@ -584,7 +587,8 @@ const AlbumDetailPage = memo(() => {
       }
     } catch (error) {
       console.error('Error in handleShare:', error);
-      message.error('Error al generar el enlace de compartir');
+      const msg = error instanceof Error ? error.message : 'Error al generar el enlace de compartir';
+      message.error(msg);
     } finally {
       setLoadingQr(false);
     }
@@ -851,30 +855,58 @@ const AlbumDetailPage = memo(() => {
   const handleUpload = useCallback(
     async (file: File) => {
       if (!userId) {
-        message.error('Debes iniciar sesion para subir archivos');
+        message.error('Debes iniciar sesión para subir archivos');
         return;
       }
 
+      const isFirst = pendingUploadsRef.current === 0;
+      if (isFirst) {
+        uploadSuccessCountRef.current = 0;
+        uploadFailCountRef.current = 0;
+      }
+      pendingUploadsRef.current += 1;
       setUploading(true);
-      message.loading({ content: 'Subiendo archivo...', key: 'upload' });
+      message.loading({
+        content: pendingUploadsRef.current > 1 ? `Subiendo ${pendingUploadsRef.current} archivos...` : 'Subiendo archivo...',
+        key: 'upload',
+      });
 
       try {
         const result = await uploadMedia(albumId, file);
         if (result) {
-          message.success({ content: 'Archivo subido correctamente', key: 'upload' });
-          // Refrescar media
-          fetchAlbumMedia(albumId);
+          uploadSuccessCountRef.current += 1;
         } else {
-          message.error({ content: 'Error al subir el archivo', key: 'upload' });
+          uploadFailCountRef.current += 1;
         }
       } catch (error) {
         console.error('Upload error:', error);
-        message.error({ content: 'Error al subir el archivo', key: 'upload' });
+        uploadFailCountRef.current += 1;
       } finally {
-        setUploading(false);
+        pendingUploadsRef.current -= 1;
+        if (pendingUploadsRef.current === 0) {
+          setUploading(false);
+          message.destroy('upload');
+          const ok = uploadSuccessCountRef.current;
+          const fail = uploadFailCountRef.current;
+          if (ok > 0 || fail > 0) {
+            if (fail === 0) {
+              message.success(ok === 1 ? 'Archivo subido correctamente' : `${ok} archivos subidos correctamente`);
+            } else if (ok === 0) {
+              message.error(fail === 1 ? 'Error al subir el archivo' : `${fail} archivos no se pudieron subir`);
+            } else {
+              message.warning(`${ok} subidos, ${fail} con error`);
+            }
+          }
+          if (ok > 0) fetchAlbumMedia(albumId);
+        } else {
+          message.loading({
+            content: `Subiendo ${pendingUploadsRef.current} archivos...`,
+            key: 'upload',
+          });
+        }
       }
     },
-    [albumId, userId, development, uploadMedia, fetchAlbumMedia],
+    [albumId, userId, uploadMedia, fetchAlbumMedia],
   );
 
   const uploadProps: UploadProps = {

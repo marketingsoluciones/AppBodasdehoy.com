@@ -103,7 +103,7 @@ function GuestWelcomeMessage() {
       }).catch(() => {/* silencioso */});
       break; // solo capturar una vez por sesión
     }
-  }, [userMessages, isGuest, leadCaptured, activeExternalChatId, development, saveVisitorData]);
+  }, [userMessages, isGuest, leadCaptured, activeExternalChatId, development, saveVisitorData, saveLead]);
 
   if (!mounted || !isGuest) {
     return null;

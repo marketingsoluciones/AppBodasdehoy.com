@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { href: '/admin/training', icon: '🎓', label: 'Entrenamiento IA' },
   { href: '/admin/mcps', icon: '🔧', label: 'MCPs' },
   { href: '/admin/campaigns', icon: '📣', label: 'Campañas CRM' },
+  { href: '/admin/leads', icon: '🎯', label: 'Leads' },
   { href: '/admin/users', icon: '👥', label: 'Usuarios' },
   { href: '/admin/sessions', icon: '🔐', label: 'Sesiones' },
   { href: '/admin/debug', icon: '🐛', label: 'Debug - Peticiones' },

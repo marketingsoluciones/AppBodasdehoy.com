@@ -61,19 +61,28 @@ const Layout = ({ children, session }: LayoutProps) => {
       <Suspense fallback={null}>
         <LoginRequiredModal />
       </Suspense>
-      {/* Banner de modo crédito (saldo negativo) — no bloqueante */}
-      <Suspense fallback={null}>
-        <NegativeBalanceBanner />
-      </Suspense>
+      {/* Contenedor en columna: banner modo crédito horizontal arriba, luego contenido del chat */}
       <Flexbox
         height={'100%'}
-        horizontal
         style={{ maxWidth: '100%', overflow: 'hidden', position: 'relative' }}
         width={'100%'}
+        vertical
       >
-        {/* En modo embed ocultamos el panel izquierdo (sessions) para dejar solo conversación + input */}
-        {!isEmbed && !isFullscreen && <SessionPanel>{session}</SessionPanel>}
-        <Workspace>{children}</Workspace>
+        {/* Banner de modo crédito (saldo negativo) — horizontal, justo encima del contenido */}
+        <Suspense fallback={null}>
+          <NegativeBalanceBanner />
+        </Suspense>
+        <Flexbox
+          flex={1}
+          height={'100%'}
+          horizontal
+          style={{ minHeight: 0, overflow: 'hidden', position: 'relative' }}
+          width={'100%'}
+        >
+          {/* En modo embed ocultamos el panel izquierdo (sessions) para dejar solo conversación + input */}
+          {!isEmbed && !isFullscreen && <SessionPanel>{session}</SessionPanel>}
+          <Workspace>{children}</Workspace>
+        </Flexbox>
       </Flexbox>
       {!isDesktop && <InitClientDB bottom={60} />}
       {/* ↓ cloud slot ↓ */}

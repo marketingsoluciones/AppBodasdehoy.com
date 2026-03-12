@@ -437,7 +437,7 @@ export const memoriesActionSlice: StateCreator<
         `${baseUrl}/api/memories/albums/${albumId}/upload?${params.toString()}`,
         { body: formData, method: 'POST' },
       );
-      const result = await res.json();
+      const result = await res.json().catch(() => ({}));
       if (result?.success && result.media) {
         set((s) => ({
           currentAlbumMedia: s.currentAlbumMedia.map((m) =>
@@ -450,11 +450,16 @@ export const memoriesActionSlice: StateCreator<
       }
       set((s) => ({ currentAlbumMedia: s.currentAlbumMedia.filter((m) => m._id !== tempId) }));
       URL.revokeObjectURL(tempUrl);
-    } catch {
+      const errMsg =
+        result?.error || result?.detail || (typeof result?.message === 'string' ? result.message : null);
+      if (errMsg) throw new Error(errMsg);
+      if (!res.ok) throw new Error(`Error ${res.status} al subir el archivo`);
+    } catch (e) {
       set((s) => ({ currentAlbumMedia: s.currentAlbumMedia.filter((m) => m._id !== tempId) }));
       URL.revokeObjectURL(tempUrl);
+      if (e instanceof Error) throw e;
+      throw new Error('Error al subir el archivo');
     }
-    return null;
   },
 
   fetchAlbumsByEvent: async (eventId) => {
@@ -520,17 +525,20 @@ export const memoriesActionSlice: StateCreator<
   generateShareLink: async (albumId, expiresInDays = 30) => {
     const { baseUrl, userId, development } = getConfig(get);
     try {
-      const res = await fetch(
-        `${baseUrl}/api/memories/albums/${albumId}/share-link?user_id=${userId}&expires_in_days=${expiresInDays}&development=${development}`,
-        { method: 'POST' },
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const result = await res.json();
+      const url = `${baseUrl}/api/memories/albums/${albumId}/share-link?user_id=${userId}&development=${development}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expires_in_days: expiresInDays, permissions: 'view' }),
+      });
+      const result = await res.json().catch(() => ({}));
       if (result?.success)
         return { shareToken: result.share_token, shareUrl: result.share_url };
-      throw new Error(result?.detail || 'Error');
+      if (!res.ok) throw new Error(result?.detail || result?.error || result?.message || `Error ${res.status}`);
+      return null;
     } catch (e) {
-      throw e;
+      if (e instanceof Error) throw e;
+      throw new Error('Error al generar el enlace de compartir');
     }
   },
 

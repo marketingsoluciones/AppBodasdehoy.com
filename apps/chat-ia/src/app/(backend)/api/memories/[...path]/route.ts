@@ -27,9 +27,10 @@ async function proxyRequest(request: NextRequest, path: string[]): Promise<NextR
   const contentType = request.headers.get('content-type');
 
   try {
-    // Pass content-type for non-multipart requests (multipart needs boundary from original)
-    if (contentType && !contentType.includes('multipart/form-data')) {
-      headers['Content-Type'] = contentType.split(';')[0].trim();
+    // Incluir Content-Type: para multipart hay que reenviar el header completo con boundary
+    // para que el backend pueda parsear el form-data
+    if (contentType) {
+      headers['Content-Type'] = contentType;
     }
 
     const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
