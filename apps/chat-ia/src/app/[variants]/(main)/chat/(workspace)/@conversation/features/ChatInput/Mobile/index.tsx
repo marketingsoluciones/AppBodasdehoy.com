@@ -1,9 +1,12 @@
 'use client';
 
 import { Alert } from '@lobehub/ui';
-import { memo } from 'react';
+import { Suspense, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
+
+import LeadMonitor from '@/features/LeadMonitor';
+import LeadQualificationContext from '@/features/LeadQualificationContext';
 
 import {
   type ActionKey,
@@ -75,6 +78,10 @@ const MobileChatInput = memo(() => {
         </Flexbox>
       )}
       <ChatInput />
+      <Suspense fallback={null}>
+        <LeadMonitor />
+        <LeadQualificationContext />
+      </Suspense>
     </ChatInputProvider>
   );
 });
