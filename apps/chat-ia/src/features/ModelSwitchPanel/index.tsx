@@ -11,6 +11,7 @@ import { Flexbox } from 'react-layout-kit';
 
 import { ModelItemRender, ProviderItemRender } from '@/components/ModelSelect';
 import UpgradeToMaxModal from '@/components/UpgradeToMaxModal';
+import { subscribeToPlan } from '@/services/api2/subscriptions';
 import { isDeprecatedEdition } from '@/const/version';
 import ActionDropdown from '@/features/ChatInput/ActionBar/components/ActionDropdown';
 import { useEnabledChatModels } from '@/hooks/useEnabledChatModels';
@@ -348,10 +349,12 @@ const ModelSwitchPanel = memo<IProps>(({ children, onOpenChange, open }) => {
       <UpgradeToMaxModal
         onClose={() => setShowUpgradeModal(false)}
         onSubscribe={async () => {
-          // ✅ TODO: Implementar lógica de suscripción
-          // Por ahora, redirigir a página de suscripción o llamar a API
-          console.log('Suscribirse a plan MAX (150€/mes)');
-          // window.location.href = '/subscription?plan=max';
+          const result = await subscribeToPlan('bodasdehoy-max', 'monthly');
+          if (result.success && result.checkout_url) {
+            window.location.href = result.checkout_url;
+          } else {
+            router.push('/settings/billing/planes');
+          }
         }}
         open={showUpgradeModal}
       />
