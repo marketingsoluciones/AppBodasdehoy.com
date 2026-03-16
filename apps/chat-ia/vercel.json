@@ -1,5 +1,6 @@
 {
   "buildCommand": "pnpm run build:vercel",
+  "installCommand": "cd /vercel/path0 && pnpm install",
   "framework": "nextjs",
   "functions": {
     "src/app/api/**/*.ts": {
