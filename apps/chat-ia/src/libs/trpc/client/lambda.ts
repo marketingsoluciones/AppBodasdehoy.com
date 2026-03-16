@@ -87,7 +87,24 @@ const customHttpBatchLink = httpBatchLink({
     }
 
     // TODO: we need to support provider select for chat page
-    const headers = await createHeaderWithAuth({ provider });
+    const headers = await createHeaderWithAuth({ provider }) as Record<string, string>;
+
+    // Incluir x-user-id desde dev-user-config localStorage para que el servidor identifique al usuario
+    // El servidor (createLambdaContext) usa este header para poblar ctx.userId en publicProcedures
+    if (typeof window !== 'undefined') {
+      try {
+        const devConfig = localStorage.getItem('dev-user-config');
+        if (devConfig) {
+          const parsed = JSON.parse(devConfig);
+          if (parsed.userId) {
+            headers['x-user-id'] = parsed.userId;
+          }
+        }
+      } catch {
+        // ignorar errores de parse
+      }
+    }
+
     log('Headers: %O', headers);
     return headers;
   },

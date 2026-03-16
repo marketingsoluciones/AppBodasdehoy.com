@@ -17,6 +17,8 @@ ingress:
   # Otros hostnames del mismo túnel
   - hostname: chat-test.eventosorganizador.com
     service: http://127.0.0.1:3210
+  - hostname: memories-test.bodasdehoy.com
+    service: http://127.0.0.1:3080
   - hostname: auth-test.bodasdehoy.com
     service: http://localhost:8000
   - hostname: api-ia.bodasdehoy.com

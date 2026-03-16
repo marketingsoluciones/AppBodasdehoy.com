@@ -63,7 +63,7 @@ const RootLayout = async ({ children, params, modal }: RootLayoutProps) => {
   const api2Url = 'https://api2.eventosorganizador.com';
 
   return (
-    <div dir={direction} lang={locale} suppressHydrationWarning>
+    <div dir={direction} lang={locale} style={{ height: '100dvh', display: 'flex', flexDirection: 'column' }} suppressHydrationWarning>
       <NuqsAdapter>
           <GlobalProvider
             appearance={theme}
