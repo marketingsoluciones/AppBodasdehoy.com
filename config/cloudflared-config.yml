@@ -8,8 +8,14 @@ tunnel: 30fdf520-9577-470f-a224-4cda1e5eb3f0
 credentials-file: ~/.cloudflared/30fdf520-9577-470f-a224-4cda1e5eb3f0.json
 
 ingress:
-  # Subdominios bodasdehoy (prioridad: que funcionen app-test y chat-test)
-  # 127.0.0.1 evita que localhost se resuelva a IPv6 (::1) y falle la conexión
+  # Subdominios de desarrollo local (esta máquina)
+  # app-dev y chat-dev → siempre apuntan al servidor local (dev con hot reload)
+  - hostname: app-dev.bodasdehoy.com
+    service: http://127.0.0.1:8080
+  - hostname: chat-dev.bodasdehoy.com
+    service: http://127.0.0.1:3210
+  # app-test y chat-test → se configurarán en Vercel (rama dev)
+  # Mantenemos entradas de fallback mientras Vercel no esté configurado
   - hostname: app-test.bodasdehoy.com
     service: http://127.0.0.1:8080
   - hostname: chat-test.bodasdehoy.com
