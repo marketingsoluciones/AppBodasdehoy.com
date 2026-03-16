@@ -16,7 +16,7 @@ export const useStyles = createStyles(({ css, token }) => ({
   `,
 }));
 
-const FileSidePanel = memo<PropsWithChildren>(({ children }) => {
+const FileSidePanel = memo<PropsWithChildren<{ id?: string }>>(({ children }) => {
   const { md = true } = useResponsive();
 
   const { styles } = useStyles();

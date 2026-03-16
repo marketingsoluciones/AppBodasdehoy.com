@@ -6,10 +6,11 @@ export const getMessageError = async (response: Response) => {
 
   // try to get the biz error
   try {
-    const data = (await response.json()) as ErrorResponse;
+    const data = (await response.json()) as ErrorResponse & { body?: { message?: string; screen_type?: string } };
+    const bodyMessage = data.body?.message;
     chatMessageError = {
       body: data.body,
-      message: t(`response.${data.errorType}` as any, { ns: 'error' }),
+      message: typeof bodyMessage === 'string' && bodyMessage ? bodyMessage : t(`response.${data.errorType}` as any, { ns: 'error' }),
       type: data.errorType,
     };
   } catch {

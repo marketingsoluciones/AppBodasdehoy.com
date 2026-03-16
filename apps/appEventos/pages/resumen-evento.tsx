@@ -14,6 +14,7 @@ import { useMounted } from "../hooks/useMounted"
 import { BlockItinerario } from "../components/Resumen/BlockItinerario";
 import { BlockLugarEvento } from "../components/Resumen/BlockLugarEvento";
 import { ModuleErrorBoundary } from "../components/ErrorBoundary";
+import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
 
 const Resumen = () => {
   const { event } = EventContextProvider()
@@ -26,6 +27,7 @@ const Resumen = () => {
         <motion.div initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }} className="md:max-w-screen-lg mx-auto inset-x-0 flex-col flex gap-8 pb-20">
+          <CopilotFilterBar entity={["events", "guests", "tables", "services", "moments", "budget_items"]} />
           <ModuleErrorBoundary label="Resumen principal">
             <BlockPrincipal />
           </ModuleErrorBoundary>

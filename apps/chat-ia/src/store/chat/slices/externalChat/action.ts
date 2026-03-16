@@ -14,6 +14,7 @@ import {
 import type {
   CHAT_CreateMessageInput,
   CHAT_SendMessageResponse,
+  ChatSource,
   IExternalChat,
 } from '@/types/externalChat';
 
@@ -280,6 +281,7 @@ export const externalChatSlice: StateCreator<
         // Mapear campos de la nueva estructura a la estructura esperada por el frontend
         _id: session.id, // Mantener compatibilidad con código existente
         id: session.id,
+        development: session.development || 'bodasdehoy',
         lastMessageAt: session.lastMessageAt,
         mensajes: (session.messages || []).map((msg: any) => ({
           _id: msg.id,
@@ -297,12 +299,13 @@ export const externalChatSlice: StateCreator<
           fecha_ultima_actividad: session.lastMessageAt,
         },
         participantes: session.participants || [],
-        source:
+        source: (
           session.session_type === 'WHATSAPP'
             ? 'whatsapp'
             : session.session_type === 'API'
               ? 'api'
-              : 'chat',
+              : 'chat'
+        ) as ChatSource,
         tipo: session.session_type || 'LOBE_CHAT',
         unreadCount: session.unreadCount || 0,
       }));

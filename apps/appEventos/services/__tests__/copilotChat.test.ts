@@ -109,6 +109,31 @@ describe('copilotChat service', () => {
       expect(body.metadata.pageContext?.screenData?.totalInvitados).toBe(42);
     });
 
+    it('con messageHistory envía historial + mensaje actual para mantener contexto', async () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers(),
+        json: () => Promise.resolve({ choices: [{ message: { content: 'OK', tool_calls: [] } }] }),
+      });
+      globalThis.fetch = mockFetch as typeof fetch;
+
+      await sendChatMessage({
+        message: 'Y la mesa 2?',
+        sessionId: 's1',
+        development: 'bodasdehoy',
+        messageHistory: [
+          { role: 'user', content: 'Muéstrame la mesa 1' },
+          { role: 'assistant', content: 'He aplicado el filtro para la mesa 1.' },
+        ],
+      });
+
+      const body = JSON.parse((mockFetch.mock.calls[0] as any)[1].body);
+      expect(body.messages).toHaveLength(3);
+      expect(body.messages[0]).toEqual({ role: 'user', content: 'Muéstrame la mesa 1' });
+      expect(body.messages[1]).toEqual({ role: 'assistant', content: 'He aplicado el filtro para la mesa 1.' });
+      expect(body.messages[2]).toEqual({ role: 'user', content: 'Y la mesa 2?' });
+    });
+
     it('con onChunk: hace streaming y llama onChunk con cada fragmento', async () => {
       const chunks = [
         'data: {"choices":[{"delta":{"content":"Hola "}}]}\n\n',

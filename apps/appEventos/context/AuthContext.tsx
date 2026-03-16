@@ -109,6 +109,7 @@ const AuthProvider = ({ children }) => {
   const [storage_id, SetStorage_id] = useState<string | null>(null)
   const [triggerAuthStateChanged, setTriggerAuthStateChanged] = useState<number | null>(null)
   const [isStartingRegisterOrLogin, setIsStartingRegisterOrLogin] = useState<boolean>(null)
+  const [showSkipLoadingButton, setShowSkipLoadingButton] = useState(false)
   const [WihtProvider, SetWihtProvider] = useState<boolean>(false)
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -615,7 +616,8 @@ const AuthProvider = ({ children }) => {
         return
       }
 
-      const sessionCookieParsed = parseJwt(sessionCookie)
+      // Evitar parseJwt con valor inválido (undefined/null/vacío) por si acaso
+      const sessionCookieParsed = sessionCookie && typeof sessionCookie === 'string' ? parseJwt(sessionCookie) : null
       console.log("[Verificator] SessionCookie parseada:", {
         hasUserId: !!sessionCookieParsed?.user_id,
         userId: sessionCookieParsed?.user_id,
@@ -751,6 +753,33 @@ const AuthProvider = ({ children }) => {
     }).then(geoInfo => setGeoInfo(geoInfo)).catch(err => console.log("[GeoInfo]", err))
   }, [config?.development])
 
+  // Mostrar botón "Continuar como invitado" tras 2s por si la verificación se cuelga
+  useEffect(() => {
+    const t = setTimeout(() => setShowSkipLoadingButton(true), 2000);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Timeout de seguridad: si la verificación tarda > 5s, mostrar la app para no quedarse en carga infinita
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setVerificationDone((done) => {
+        if (!done) {
+          console.warn('[AuthContext] Timeout de carga (5s), mostrando app');
+          setUser((prev) => prev || { uid: nanoid(28), displayName: 'guest' });
+          return true;
+        }
+        return done;
+      });
+    }, 5000);
+    return () => clearTimeout(t);
+  }, []);
+
+  const handleSkipLoading = () => {
+    setUser((prev) => prev || { uid: nanoid(28), displayName: 'guest' });
+    setVerificationDone(true);
+    setShowSkipLoadingButton(false);
+  };
+
   // Pantalla mínima mientras no hay verificationDone (evita pantalla en blanco)
   const loadingScreen = (
     <div
@@ -758,16 +787,27 @@ const AuthProvider = ({ children }) => {
       role="status"
       aria-label="Cargando"
       style={{
-        pointerEvents: 'none',
         minHeight: '100vh',
         minWidth: '100vw',
         visibility: 'visible',
         opacity: 1,
       }}
     >
-      <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-pink-500" />
-      <p className="mt-4 text-gray-700 font-medium">Cargando...</p>
-      <p className="mt-1 text-sm text-gray-400">Si ves esto, la app está respondiendo (máx. 1.5 s)</p>
+      <div style={{ pointerEvents: 'none' }}>
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-pink-500 mx-auto" />
+        <p className="mt-4 text-gray-700 font-medium">Cargando...</p>
+        <p className="mt-1 text-sm text-gray-400">Si ves esto, la app está respondiendo (máx. 1.5 s)</p>
+      </div>
+      {showSkipLoadingButton && (
+        <button
+          type="button"
+          onClick={handleSkipLoading}
+          className="mt-6 px-4 py-2 rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition"
+          style={{ pointerEvents: 'auto' }}
+        >
+          Continuar como invitado
+        </button>
+      )}
     </div>
   );
 

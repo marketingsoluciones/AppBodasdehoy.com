@@ -82,7 +82,13 @@ export const topicRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const data = await ctx.topicModel.create(input);
+      // Normalizar '' a null para evitar violación FK (session_id/group_id referencian otras tablas)
+      const createInput = {
+        ...input,
+        groupId: input.groupId || null,
+        sessionId: input.sessionId || null,
+      };
+      const data = await ctx.topicModel.create(createInput);
 
       return data.id;
     }),

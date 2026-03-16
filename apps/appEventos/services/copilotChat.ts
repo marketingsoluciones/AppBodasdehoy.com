@@ -130,6 +130,12 @@ export interface PageContext {
   eventsList?: Array<{ name?: string; type?: string; date?: string; id?: string }>;
 }
 
+/** Un mensaje para el historial (role + content) enviado al backend para mantener contexto. */
+export interface ChatMessageForHistory {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
+
 export interface SendMessageParams {
   message: string;
   sessionId?: string;
@@ -141,6 +147,11 @@ export interface SendMessageParams {
   model?: string;
   /** Usuario invitado/anónimo; el proxy lo reenvía al backend como X-Is-Anonymous */
   isAnonymous?: boolean;
+  /**
+   * Historial de la conversación (mensajes anteriores) para que el modelo mantenga contexto.
+   * Si se envía, el backend recibe [..., ...messageHistory, { role: 'user', content: message }].
+   */
+  messageHistory?: ChatMessageForHistory[];
 }
 
 export interface ChatResponse {
@@ -178,7 +189,7 @@ export const sendChatMessage = async (
   signal?: AbortSignal,
   onEnrichedEvent?: (event: EnrichedEvent) => void
 ): Promise<ChatResponse> => {
-  const { message, sessionId, userId, development, eventId, eventName, pageContext, model, isAnonymous } = params;
+  const { message, sessionId, userId, development, eventId, eventName, pageContext, model, isAnonymous, messageHistory } = params;
   const startMs = Date.now();
 
   try {
@@ -193,8 +204,18 @@ export const sendChatMessage = async (
 
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+    const maxHistoryMessages = 20;
+    const trimmedHistory =
+      messageHistory && messageHistory.length > 0
+        ? messageHistory.slice(-maxHistoryMessages)
+        : [];
+    const messagesPayload =
+      trimmedHistory.length > 0
+        ? [...trimmedHistory, { role: 'user' as const, content: message }]
+        : [{ role: 'user' as const, content: message }];
+
     const payload: any = {
-      messages: [{ role: 'user', content: message }],
+      messages: messagesPayload,
       stream: !!onChunk,
       metadata: { userId, development, eventId, eventName, sessionId, pageContext, isAnonymous: isAnonymous ?? false },
     };

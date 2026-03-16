@@ -228,10 +228,10 @@ function buildSystemPrompt(metadata?: { eventName?: string; eventId?: string; pa
 - NUNCA simules ejecución de código, funciones o herramientas. Responde directamente con los datos que tienes.
 - Si no tienes un dato específico, sugiere al usuario ir a la sección correspondiente con un link.
 - NO todas las respuestas tienen que ser "aplicar un filtro en pantalla". Usa esta regla:
-  * RESPONDE EN EL CHAT cuando: el usuario pide un resumen, estadísticas, comparación, conteo, listado de datos, o cualquier cosa que se resuelve con texto/tabla (ej: "cuántos invitados hay", "dame un resumen", "lista las tareas", "compara presupuesto vs pagado").
-  * NAVEGA A UNA PANTALLA (incluye link) cuando: el usuario dice explícitamente "muéstrame en la app", "llévame a", "quiero ver la pantalla de", o pide ver/gestionar algo concreto en la interfaz.
-  * NUNCA navegues a una pantalla si no estás seguro de que la pantalla puede mostrar lo que el usuario pide. Si no hay filtro posible o la pantalla no soporta ese dato, muestra el resultado en el chat.
-  * Los filtros solo tienen sentido si la pantalla destino puede aplicarlos (invitados por estado, mesa por número, etc.). No envíes al usuario a una pantalla vacía.
+  * UN SOLO EVENTO (o evento actual): si la pantalla puede mostrar el dato (invitados, mesa, tarea/servicio), NAVEGA y aplica el filtro para que se vea en el panel de la app (ej: invitados no confirmados, en qué mesa está Pablo, tarea pendiente de montaje).
+  * VARIOS EVENTOS o cuando la app NO puede mostrarlo: la app no muestra invitados/tareas/mesas de varios eventos a la vez. En ese caso RESPONDE EN EL CHAT: listado en texto, enlaces por evento [Ver invitados de X](/invitados?eventId=…), o resumen por evento.
+  * RESPONDE EN EL CHAT también cuando: resumen, estadísticas, conteo, listado que se resuelve con texto (ej: "cuántos invitados", "dame un resumen", "tareas de todos los eventos").
+  * Los filtros solo tienen sentido si la pantalla puede aplicarlos. Si no hay filtro posible o la pantalla no soporta ese dato, muestra el resultado en el chat.
 
 ## IMPORTANTE: Respuestas sobre eventos específicos
 - Si el usuario pregunta por UN evento específico (ej: "Boda de Ana"), responde SOLO sobre ese evento.
@@ -601,12 +601,23 @@ async function proxyToPythonBackend(
       hasApiKey: !!apiKey,
     });
 
-    const backendResponse = await fetch(backendUrl, {
+    const doFetch = () => fetch(backendUrl, {
       method: 'POST',
       headers,
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
+
+    let backendResponse = await doFetch();
+
+    // 429 single retry: wait retry-after (max 10s, default 2s) then try once more
+    if (backendResponse.status === 429) {
+      const retryAfterRaw = backendResponse.headers.get('retry-after');
+      const retryDelay = Math.min(parseInt(retryAfterRaw || '2', 10), 10) * 1000;
+      console.warn('[Copilot API] 429 recibido — reintentando tras', retryDelay, 'ms', { requestId });
+      await new Promise((resolve) => setTimeout(resolve, retryDelay));
+      backendResponse = await doFetch();
+    }
 
     clearTimeout(timeoutId);
     console.log('[Copilot API] Backend response status:', backendResponse.status);

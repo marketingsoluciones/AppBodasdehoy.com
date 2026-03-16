@@ -133,12 +133,10 @@ const ChatSidebarDirect: FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [viewMode, closeSidebar]);
 
-  // Monorepo: app-test ↔ chat-test. URL del iframe = chat-test en app-test (si chat-test no carga, Copilot no carga).
+  // Solo dominios (app-test ↔ chat-test). No localhost ni IP locales; se trabaja con túnel/VPN o desplegado.
   const copilotUrl = useMemo(() => {
     if (typeof window === 'undefined') return '';
-    const host = window.location.hostname || '';
-    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:3210';
-    if (host.includes('app-test')) return 'https://chat-test.bodasdehoy.com';
+    if (window.location.hostname?.includes('app-test')) return 'https://chat-test.bodasdehoy.com';
     return process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com';
   }, []);
 

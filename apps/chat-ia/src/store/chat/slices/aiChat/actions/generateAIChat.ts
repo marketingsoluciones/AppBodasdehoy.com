@@ -29,6 +29,12 @@ import { useSessionStore } from '@/store/session';
 import { WebBrowsingManifest } from '@/tools/web-browsing';
 import { Action, setNamespace } from '@/utils/storeDebug';
 
+import {
+  canVisitorSendMessage,
+  incrementVisitorMessageCount,
+  syncVisitorCookie,
+} from '@/utils/visitorLimit';
+
 import { chatSelectors, topicSelectors } from '../../../selectors';
 
 const n = setNamespace('ai');
@@ -174,21 +180,15 @@ export const generateAIChat: StateCreator<
     // if message is empty or no files, then stop
     if (!message && !hasFile) return;
 
-    // Visitor/guest message limit: max 3 user messages before upsell modal
+    // Visitor/guest: 5 mensajes el primer día, 2 por día después. Solo mostrar modal al alcanzar el límite.
     const { userType } = get();
     if (userType === 'visitor' || userType === 'guest') {
-      const VISITOR_MSG_LIMIT = 3;
-      const msgs = chatSelectors.activeBaseChats(get());
-      const userMsgCount = msgs.filter((m) => m.role === 'user').length;
-      if (userMsgCount >= VISITOR_MSG_LIMIT) {
+      if (!canVisitorSendMessage()) {
         set({ showLoginRequired: true }, false, n('visitor/limitReached'));
         return;
       }
-      // Incrementar cookie vis_mc para que el servidor también pueda cortar sin llamar a api-ia
-      try {
-        const current = parseInt(document.cookie.match(/vis_mc=(\d+)/)?.[1] ?? '0', 10);
-        document.cookie = `vis_mc=${current + 1}; path=/; max-age=86400; SameSite=Lax`;
-      } catch { /* ignorar si no hay acceso a cookies */ }
+      incrementVisitorMessageCount();
+      syncVisitorCookie();
     }
 
     // router to server mode send message
@@ -619,14 +619,22 @@ export const generateAIChat: StateCreator<
       onErrorHandle: async (error) => {
         // Si el backend devuelve 402 por saldo insuficiente
         if ((error as any)?.type === 'insufficient_balance') {
+          const errBody = (error as any)?.body;
           const allowNegative = process.env.NEXT_PUBLIC_ALLOW_NEGATIVE_BALANCE === 'true';
           if (allowNegative) {
-            // Modo saldo negativo: activar debt mode (banner no-bloqueante) en lugar de modal
             set({ negativeBalanceMode: true });
           } else {
-            // Modo estricto: mostrar modal de recarga bloqueante
-            set({ showInsufficientBalance: true });
+            set({
+              showInsufficientBalance: true,
+              apiErrorDetail: errBody?.message,
+              apiErrorScreenType: errBody?.screen_type,
+            });
           }
+        }
+        // Si el backend devuelve 503: guardar detail/screen_type para la UI
+        if ((error as any)?.type === 'ServiceUnavailable' || (error as any)?.type === 'service_unavailable') {
+          const errBody = (error as any)?.body;
+          set({ apiErrorDetail: errBody?.message, apiErrorScreenType: errBody?.screen_type });
         }
         // Si el backend devuelve 401 (community user sin auth)
         // → mostrar modal de registro en lugar de "unauthorized"

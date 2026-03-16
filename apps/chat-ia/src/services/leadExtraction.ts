@@ -27,6 +27,16 @@ export interface LeadContact {
 export interface ExtractedLeadData {
   contact?: LeadContact;
   qualifying_data?: LeadQualifyingData;
+  // Flat fields — when AI emits { event_type: "..." } directly at root level
+  event_type?: string;
+  guest_count?: number;
+  budget?: string;
+  event_date?: string;
+  location?: string;
+  services_needed?: string[];
+  name?: string;
+  email?: string;
+  phone?: string;
 }
 
 const LEAD_DATA_REGEX = /<!--LEAD_DATA\s*([\S\s]*?)\s*LEAD_DATA-->/g;

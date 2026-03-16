@@ -376,6 +376,7 @@ class ChatService {
     const chatStoreState = getChatStoreState();
     const currentUserId = chatStoreState.currentUserId;
     const development = chatStoreState.development;
+    const userRole = chatStoreState.userRole;
     const userEvents = chatStoreState.userEvents || [];
 
     // Obtener el primer evento activo como evento por defecto
@@ -423,6 +424,10 @@ class ChatService {
     }
     if (eventId) {
       userContextHeaders['X-Event-ID'] = eventId;
+    }
+    // api-ia: rol del usuario (super_admin, admin, organizer, collaborator, invited, guest)
+    if (userRole) {
+      userContextHeaders['X-User-Role'] = userRole;
     }
 
     const headers = await createHeaderWithAuth({

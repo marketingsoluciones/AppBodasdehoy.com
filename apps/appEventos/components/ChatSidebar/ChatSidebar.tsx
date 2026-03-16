@@ -115,11 +115,11 @@ const ChatSidebar: FC = () => {
     setViewMode('full');
   }, []);
 
-  // Handler para abrir chat-test (o localhost:3210 en automatización) en nueva pestaña
+  // Solo dominios. Abrir chat-test en nueva pestaña (túnel/VPN o desplegado).
   const handleOpenInNewTab = useCallback(() => {
     const baseUrl =
-      typeof window !== 'undefined' && window.location?.hostname === 'localhost'
-        ? `${window.location.protocol}//localhost:3210`
+      typeof window !== 'undefined' && window.location?.hostname?.includes('app-test')
+        ? 'https://chat-test.bodasdehoy.com'
         : (process.env.NEXT_PUBLIC_CHAT || 'https://chat-test.bodasdehoy.com');
     const params = new URLSearchParams();
 

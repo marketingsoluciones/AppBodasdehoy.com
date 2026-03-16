@@ -73,40 +73,37 @@ export default function SessionsPage() {
   const fetchSessions = useCallback(async () => {
     try {
       setLoading(true);
-      // TODO: Implementar fetch real desde backend
-      const mockSessions: Session[] = [
-        {
-          duration: 1200, id: 'session_1',
-          lastActivity: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-          messagesCount: 15, model: 'claude-3-opus', provider: 'anthropic',
-          status: 'active', userEmail: 'juan@example.com', userId: 'user_1', userName: 'Juan Pérez',
-        },
-        {
-          duration: 600, id: 'session_2',
-          lastActivity: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-          messagesCount: 8, model: 'gpt-4o', provider: 'openai',
-          status: 'idle', userEmail: 'maria@example.com', userId: 'user_2', userName: 'María García',
-        },
-        {
-          duration: 3600, id: 'session_3',
-          lastActivity: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-          messagesCount: 25, model: 'gemini-1.5-flash', provider: 'gemini',
-          status: 'closed', userEmail: 'carlos@example.com', userId: 'user_3', userName: 'Carlos López',
-        },
-        {
-          duration: 900, id: 'session_4',
-          lastActivity: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-          messagesCount: 12, model: 'claude-3-haiku', provider: 'anthropic',
-          status: 'active', userEmail: 'ana@example.com', userId: 'user_4', userName: 'Ana Martínez',
-        },
-        {
-          duration: 2400, id: 'session_5',
-          lastActivity: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-          messagesCount: 30, model: 'gpt-4o-mini', provider: 'openai',
-          status: 'idle', userEmail: 'pedro@example.com', userId: 'user_5', userName: 'Pedro Sánchez',
-        },
-      ];
-      setSessions(mockSessions);
+      const res = await fetch('/api/backend/debug/chat-events?days=7&only_real=true&limit=200');
+      if (!res.ok) throw new Error(`${res.status}`);
+      const data = await res.json();
+      // Agrupar eventos por user_id como sesiones
+      const byUser: Record<string, Session> = {};
+      for (const e of (data.events ?? [])) {
+        const uid = e.user_id || 'anon';
+        if (!byUser[uid]) {
+          byUser[uid] = {
+            duration: 0, id: uid,
+            lastActivity: e.ts,
+            messagesCount: 0, model: e.model ?? '', provider: e.provider ?? '',
+            status: 'closed', userEmail: uid.includes('@') ? uid : '',
+            userId: uid, userName: uid.includes('@') ? uid.split('@')[0] : uid,
+          };
+        }
+        const s = byUser[uid];
+        s.messagesCount += 1;
+        if (e.ts > s.lastActivity) {
+          s.lastActivity = e.ts; s.model = e.model; s.provider = e.provider;
+        }
+        s.duration += e.processing_time_ms ? Math.round(e.processing_time_ms / 1000) : 0;
+      }
+      // Estado basado en última actividad
+      const now = Date.now();
+      const result = Object.values(byUser).map((s) => {
+        const diffMin = (now - new Date(s.lastActivity).getTime()) / 60_000;
+        s.status = diffMin < 5 ? 'active' : diffMin < 30 ? 'idle' : 'closed';
+        return s;
+      });
+      setSessions(result);
     } catch (error) {
       console.error('Error al cargar sesiones:', error);
     } finally {

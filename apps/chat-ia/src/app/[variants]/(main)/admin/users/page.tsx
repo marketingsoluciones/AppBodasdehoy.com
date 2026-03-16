@@ -76,16 +76,19 @@ export default function UsersPage() {
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      // TODO: Implementar fetch real desde backend
-      const mockUsers: User[] = [
-        { email: 'juan@example.com', eventsCount: 5, id: 'user_1', lastAccess: new Date(Date.now() - 2 * 3_600_000).toISOString(), name: 'Juan Pérez', role: 'CREATOR', status: 'active' },
-        { email: 'maria@example.com', eventsCount: 2, id: 'user_2', lastAccess: new Date(Date.now() - 86_400_000).toISOString(), name: 'María García', role: 'SHARED_WRITE', status: 'active' },
-        { email: 'carlos@example.com', eventsCount: 1, id: 'user_3', lastAccess: new Date(Date.now() - 7 * 86_400_000).toISOString(), name: 'Carlos López', role: 'SHARED_READ', status: 'active' },
-        { email: 'ana@example.com', eventsCount: 0, id: 'user_4', lastAccess: new Date(Date.now() - 30 * 86_400_000).toISOString(), name: 'Ana Martínez', role: 'GUEST', status: 'suspended' },
-        { email: 'pedro@example.com', eventsCount: 3, id: 'user_5', lastAccess: new Date(Date.now() - 3 * 86_400_000).toISOString(), name: 'Pedro Sánchez', role: 'CREATOR', status: 'active' },
-        { email: 'laura@example.com', eventsCount: 1, id: 'user_6', lastAccess: new Date(Date.now() - 14 * 86_400_000).toISOString(), name: 'Laura Fernández', role: 'SHARED_READ', status: 'active' },
-      ];
-      setUsers(mockUsers);
+      const res = await fetch('/api/backend/debug/chat-users?days=30&limit=100');
+      if (!res.ok) throw new Error(`${res.status}`);
+      const data = await res.json();
+      const mapped: User[] = (data.users ?? []).map((u: any) => ({
+        email: u.user_id?.includes('@') ? u.user_id : '',
+        eventsCount: u.total ?? 0,
+        id: u.user_id ?? 'anon',
+        lastAccess: u.last_seen ?? new Date().toISOString(),
+        name: u.user_id?.includes('@') ? u.user_id.split('@')[0] : (u.user_id || 'anónimo'),
+        role: 'CREATOR' as const,
+        status: 'active' as const,
+      }));
+      setUsers(mapped);
     } catch (error) {
       console.error('Error al cargar usuarios:', error);
     } finally {

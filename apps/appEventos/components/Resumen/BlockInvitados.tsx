@@ -1,7 +1,7 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 import { useRouter } from "next/navigation";
 import { FC } from "react";
-import { EventContextProvider } from "../../context";
+import { EventContextProvider, EventsGroupContextProvider } from "../../context";
 import { useTranslation } from 'react-i18next';
 import {
   InvitadosCancelados,
@@ -13,14 +13,23 @@ import { useAllowed } from "../../hooks/useAllowed";
 const BlockInvitados: FC = () => {
   const router = useRouter()
   const { event } = EventContextProvider();
+  const { copilotFilter } = EventsGroupContextProvider();
   const [isAllowed, ht] = useAllowed()
   const { t } = useTranslation();
 
+  const invitados = (() => {
+    const list = event?.invitados_array ?? [];
+    if (copilotFilter?.entity === 'guests' && copilotFilter.ids?.length) {
+      return list.filter((inv) => copilotFilter.ids!.includes(inv._id));
+    }
+    return list;
+  })();
+
   const totalAccordingTo = (prop: string, param: string) => {
-    return event?.invitados_array?.filter((item) => item[prop] == param)?.length;
+    return invitados.filter((item) => item[prop] == param)?.length;
   };
 
-  const totalInvitados = event?.invitados_array?.length;
+  const totalInvitados = invitados.length;
 
   const ListaBloqueInvitados = [
     {

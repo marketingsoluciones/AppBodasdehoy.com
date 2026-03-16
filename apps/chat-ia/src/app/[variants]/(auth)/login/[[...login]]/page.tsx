@@ -2,7 +2,7 @@
 
 import { Alert, Button, Divider, Form, Input, message, Typography } from 'antd';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 import { FirebaseAuth } from '@/features/FirebaseAuth';
 import { useChatStore } from '@/store/chat';
@@ -11,9 +11,39 @@ import { optimizedApiClient } from '@/utils/api-client-optimized';
 
 const { Title, Text } = Typography;
 
+// Tipos de evento para el titular dinámico (rotación cada 2.5s)
+const EVENT_TYPES = [
+  'boda',
+  'comunión',
+  'bautizo',
+  'fiesta de 16',
+  'cumpleaños',
+  'despedida de soltero',
+  'aniversario',
+  'baby shower',
+  'graduación',
+  'fiesta de empresa',
+  'evento corporativo',
+  'confirmación',
+  'inauguración',
+  'cena de gala',
+  'fiesta temática',
+];
+
 // SplitLoginPage inline — emotion compiler de chat-ia impide importar desde @bodasdehoy/auth-ui
 // Ver packages/auth-ui/src/SplitLoginPage.tsx para la versión compartida (usada en appEventos)
 function SplitLoginPage({ children }: { children: React.ReactNode }) {
+  const [eventIndex, setEventIndex] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setEventIndex((i) => (i + 1) % EVENT_TYPES.length);
+    }, 2500);
+    return () => clearInterval(t);
+  }, []);
+
+  const eventLabel = EVENT_TYPES[eventIndex];
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'clamp(260px, 42%, 460px) 1fr', minHeight: '100vh' }}>
       <div className="auth-ui-left-panel" style={{ background: 'linear-gradient(150deg, #ec4899 0%, #a855f7 60%, #6366f1 100%)', color: 'white', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100%', overflow: 'hidden', padding: '48px 40px', position: 'relative' }}>
@@ -23,10 +53,16 @@ function SplitLoginPage({ children }: { children: React.ReactNode }) {
           <div style={{ fontSize: 40, marginBottom: 4 }}>💒</div>
           <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 2, opacity: 0.9, textTransform: 'uppercase' }}>Bodas de Hoy · Copilot IA</div>
         </div>
-        <h1 style={{ color: 'white', fontSize: 'clamp(22px, 2.8vw, 34px)', fontWeight: 800, lineHeight: 1.2, marginBottom: 16 }}>Tu asistente IA para organizar la boda perfecta</h1>
+        <h1 style={{ color: 'white', fontSize: 'clamp(22px, 2.8vw, 34px)', fontWeight: 800, lineHeight: 1.2, marginBottom: 16, minHeight: '1.2em' }}>
+          Tu asistente IA para organizar tu{' '}
+          <span style={{ display: 'inline-block', transition: 'opacity 0.4s ease', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: 4 }}>
+            {eventLabel}
+          </span>
+          {' '}ideal
+        </h1>
         <p style={{ fontSize: 15, lineHeight: 1.6, marginBottom: 32, opacity: 0.9 }}>Planifica cada detalle con inteligencia artificial. Invitados, presupuesto, itinerario y mucho más — en un solo lugar.</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 40 }}>
-          {[['✨','Asistente IA para bodas y eventos'],['👥','Gestión inteligente de invitados'],['💰','Control de presupuesto en tiempo real'],['📋','Itinerario y coordinación todo en uno'],['🎨','Creador de webs de boda personalizado']].map(([icon, text]) => (
+          {[['✨','Asistente IA para bodas y todo tipo de eventos'],['👥','Gestión inteligente de invitados'],['💰','Control de presupuesto en tiempo real'],['📋','Itinerario y coordinación todo en uno'],['🎨','Creador de webs de evento personalizado']].map(([icon, text]) => (
             <div key={text} style={{ alignItems: 'center', display: 'flex', gap: 10 }}><span style={{ fontSize: 18 }}>{icon}</span><span style={{ fontSize: 14, opacity: 0.95 }}>{text}</span></div>
           ))}
         </div>
@@ -205,7 +241,7 @@ function RightPanel() {
           </span>
         </div>
         <Title level={3} style={{ marginBottom: 6, textAlign: 'center' }}>
-          Empieza a organizar tu boda
+          Empieza a organizar tu evento
         </Title>
         <Text type="secondary" style={{ display: 'block', fontSize: 14, marginBottom: 28, textAlign: 'center' }}>
           Crea tu cuenta gratuita en 30 segundos

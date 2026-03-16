@@ -1,0 +1,27 @@
+# Batería de preguntas para E2E Copilot — probar toda la funcionalidad
+# Uso: E2E_COPILOT_QUESTIONS_FILE=e2e-app/copilot-questions-ejemplo.txt pnpm e2e:copilot:autonomo
+# Una pregunta por línea; # = comentario
+#
+# Esperado: UN evento → filtrar y mostrar en app (panel derecho). VARIOS eventos o no mostrable → responder en el chat con listado/enlaces.
+# Ver docs/COPILOT-COMPORTAMIENTO-ESPERADO.md
+
+# —— Un evento: filtrar y mostrar en app ——
+Dime qué invitados no han confirmado
+Muéstrame en la app los invitados que no han confirmado
+En qué mesa está sentado Pablo
+Muéstrame la mesa en la que está Pablo
+Dame la tarea pendiente que tenemos de montaje
+Muéstrame la tarea de montaje o la tarea que se encuentre
+Quiero ver las tareas pendientes del itinerario
+Muéstrame la lista de invitados en la app
+Quiero ver la mesa 1. Muéstramela en la app
+Muéstrame los invitados cuyos nombres empiecen por M o R
+
+# —— Varios eventos o no mostrable en pantalla → responder en el chat con info/enlaces ——
+Dime qué invitados no han confirmado en todos mis eventos
+Quiero un resumen de invitados sin confirmar de cada evento
+Dame las tareas pendientes de todos los eventos
+En qué mesa está Pablo (si tengo varios eventos, dímelo por evento o pásame los enlaces)
+
+# —— Resumen / mixto ——
+Dame un resumen: cuántas mesas hay, cuántos invitados y el total del presupuesto

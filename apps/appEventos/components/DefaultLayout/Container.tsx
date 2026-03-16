@@ -4,7 +4,8 @@ import NavigationMobile from "./NavigationMobile";
 import Navigation from "./Navigation";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { ChatSidebar } from "../ChatSidebar";
+import { ChatSidebarDirect } from "../ChatSidebar";
+import CopilotFilterBar from "../Utils/CopilotFilterBar";
 
 /** Breakpoint: a partir de este ancho el Copilot usa 20% del espacio (20vw) */
 const COPILOT_WIDE_BREAKPOINT = 1024;
@@ -104,16 +105,21 @@ const Container = (props) => {
             className="flex flex-row h-full overflow-hidden shrink-0"
             style={{ minWidth: 0, maxWidth: copilotSlotWidth }}
           >
-            <ChatSidebar />
+            <ChatSidebarDirect />
           </div>
         )}
 
         {/* Columna del contenido (banner "Organiza tus eventos", tarjetas, etc.): siempre a la derecha del Copilot */}
         <div
-          className="min-w-0 overflow-auto overflow-y-scroll transition-all duration-300 relative z-0"
+          className="min-w-0 overflow-auto overflow-y-scroll transition-all duration-300 relative z-0 flex flex-col"
           style={{ isolation: "isolate" }}
         >
-          <main id="rootElementMain" className="w-full h-full">
+          {/* Barra de filtro global: visible cuando el Copilot aplicó un filtro (mesa X, tarea X, etc.) */}
+          <CopilotFilterBar
+            entity={["events", "guests", "tables", "services", "moments", "budget_items"]}
+            className="shrink-0 mx-2 mt-2 md:mx-4 md:mt-3"
+          />
+          <main id="rootElementMain" className="w-full h-full flex-1 min-h-0">
             {children}
           </main>
         </div>

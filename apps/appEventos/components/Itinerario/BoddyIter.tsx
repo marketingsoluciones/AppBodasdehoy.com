@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { ItineraryTabs } from "./MicroComponente/ItineraryTabs"
 import { ItineraryPanel } from "./MicroComponente/ItineraryPanel"
 import { ModuleErrorBoundary } from "../ErrorBoundary"
-import { AuthContextProvider, EventContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
 import { Event, Itinerary, SelectModeSortType } from "../../utils/Interfaces"
 import { ViewItinerary } from "../../pages/invitados";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
@@ -29,6 +29,7 @@ interface Modal {
 export const BoddyIter = () => {
     const { config } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
+    const { copilotFilter } = EventsGroupContextProvider()
     const [itinerario, setItinerario] = useState<Itinerary>()
     const [editTitle, setEditTitle] = useState<boolean>(false)
     const [isAllowedViewer] = useAllowedViewer()
@@ -290,7 +291,10 @@ export const BoddyIter = () => {
     };
 
     useEffect(() => {
-        const arr = Array.isArray(event?.itinerarios_array) ? event.itinerarios_array : []
+        let arr = Array.isArray(event?.itinerarios_array) ? event.itinerarios_array : []
+        if (copilotFilter?.entity === 'moments' && copilotFilter.ids?.length) {
+            arr = arr.filter((elem) => elem?._id && copilotFilter.ids!.includes(elem._id))
+        }
         const itinerarios = arr.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
         const itinerarioSeleccionado = event?._id ? localStorage.getItem(`E_${event._id}_${window?.location?.pathname.slice(1)}`) : null
         const itinerario = arr.find(elem => elem._id === itinerarioSeleccionado)
@@ -312,7 +316,7 @@ export const BoddyIter = () => {
         } else {
             setItinerario({ ...itinerario })
         }
-    }, [event, queryItinerary, orderAndDirection, itinerario?._id, view])
+    }, [event, queryItinerary, orderAndDirection, itinerario?._id, view, copilotFilter])
 
     return (
         <PermissionWrapper>

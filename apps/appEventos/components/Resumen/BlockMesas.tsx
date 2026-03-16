@@ -1,6 +1,6 @@
 import Link from "next/link";
-import React, { FC, useContext } from "react";
-import { EventContextProvider } from "../../context";
+import React, { FC } from "react";
+import { EventContextProvider, EventsGroupContextProvider } from "../../context";
 import { MesaIcon } from "../icons";
 import { guests } from '../../utils/Interfaces';
 import { useAllowed } from "../../hooks/useAllowed";
@@ -9,17 +9,33 @@ import { useTranslation } from 'react-i18next';
 
 const BlockMesas: FC = () => {
   const { event } = EventContextProvider()
+  const { copilotFilter } = EventsGroupContextProvider()
   const [isAllowed, ht] = useAllowed()
   const router = useRouter()
   const { t } = useTranslation();
 
+  const planSpaceToShow = (() => {
+    const spaces = event?.planSpace ?? [];
+    if (copilotFilter?.entity === 'tables' && copilotFilter.ids?.length) {
+      return spaces
+        .map((space) => ({
+          ...space,
+          tables: (space.tables ?? []).filter((t: { _id?: string }) => t._id && copilotFilter.ids!.includes(t._id)),
+        }))
+        .filter((space) => space.tables.length > 0);
+    }
+    return spaces;
+  })();
+
+  const totalMesasFiltered = planSpaceToShow.reduce((acc, s) => acc + (s.tables?.length ?? 0), 0);
   const InvitadoSentados: guests[] = event?.invitados_array?.filter(
     (invitado) => invitado?.nombre_mesa?.toLowerCase() !== "no asignado"
   );
+  const totalInvitados = event?.invitados_array?.length ?? 0;
 
   const ListaBlockMesas: { amount: number | string, subtitle: string }[] = [
-    { amount: event?.mesas_array?.length, subtitle: "total de mesas" },
-    { amount: `${InvitadoSentados?.length} de ${event?.invitados_array?.length}`, subtitle: "invitados sentados" },
+    { amount: copilotFilter?.entity === 'tables' ? totalMesasFiltered : event?.mesas_array?.length, subtitle: "total de mesas" },
+    { amount: `${InvitadoSentados?.length} de ${totalInvitados}`, subtitle: "invitados sentados" },
   ]
 
   return (
@@ -31,7 +47,7 @@ const BlockMesas: FC = () => {
 
         <div className=" flex flex-col space-y-3 md:space-y-1 ">
           {
-            event?.planSpace?.map((item, idx) => {
+            planSpaceToShow.map((item, idx) => {
               return (
                 <div key={idx} className="grid md:grid-cols-3 justify-items-center items-center space-y-2">
                   <div className="text-regular font-display text-xs text-gray-700 capitalize col-span-1 font-semibold ">

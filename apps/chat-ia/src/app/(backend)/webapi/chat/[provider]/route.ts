@@ -59,26 +59,27 @@ function cleanPayload(bodyText: string): string {
   }
 }
 
-/** Límite de mensajes para visitantes anónimos (sin cuenta) */
-const VISITOR_MSG_LIMIT = 3;
+/**
+ * Techo de mensajes para visitantes en el backend (seguridad).
+ * La lógica real es en cliente: 5 el primer día, 2/día después (ver @/utils/visitorLimit).
+ */
+const VISITOR_MSG_LIMIT_CAP = 10;
 
 /**
- * Verifica si la request viene de un visitante anónimo y si superó su límite.
+ * Verifica si la request viene de un visitante anónimo y si superó el techo.
  * Los visitantes tienen userId con prefijo "visitor_" (sin Firebase auth → sin JWT válido).
- * Devuelve una Response de rechazo si aplica, null si el request puede continuar.
+ * El cliente aplica 5 mensajes día 1 y 2/día; aquí solo evitamos abusos.
  */
 function checkVisitorLimit(req: Request): Response | null {
   const userId = req.headers.get('X-User-ID') ?? '';
 
-  // Solo aplica a usuarios visitantes (visitor_<timestamp>_<rand>)
   if (!userId.startsWith('visitor_')) return null;
 
-  // Leer contador de mensajes desde cookie (incrementado por el cliente)
   const cookieHeader = req.headers.get('cookie') ?? '';
   const match = cookieHeader.match(/vis_mc=(\d+)/);
   const msgCount = match ? parseInt(match[1], 10) : 0;
 
-  if (msgCount >= VISITOR_MSG_LIMIT) {
+  if (msgCount >= VISITOR_MSG_LIMIT_CAP) {
     return new Response(
       JSON.stringify({
         errorType: 'login_required',
@@ -210,9 +211,11 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           }
           // Modo estricto (por defecto): NO hacer fallback al runtime nativo
           let message = 'Saldo insuficiente. Recarga tu cuenta para continuar usando el asistente.';
+          let screen_type: string | undefined;
           try {
             const parsed = JSON.parse(errorText);
             const detail = parsed?.detail;
+            screen_type = typeof parsed?.screen_type === 'string' ? parsed.screen_type : undefined;
             // FastAPI HTTPException devuelve detail como objeto o string
             if (typeof detail === 'string') {
               message = detail;
@@ -222,14 +225,32 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
               message = String(detail.message);
             }
           } catch { /* usar mensaje por defecto */ }
-          // Devolver en formato LobeChat ErrorResponse (errorType + error)
-          // parseError.ts usa data.errorType para construir ChatMessageError.type
+          // Devolver en formato LobeChat ErrorResponse (errorType + body con detail/screen_type para la UI)
           return new Response(
             JSON.stringify({
               errorType: 'insufficient_balance',
-              error: { message, type: 'insufficient_balance' },
+              body: { message, type: 'insufficient_balance', screen_type },
             }),
             { headers: { 'Content-Type': 'application/json' }, status: 402 }
+          );
+        }
+
+        if (backendResponse.status === 503) {
+          let message = 'Servicio no disponible. Intenta de nuevo en unos momentos.';
+          let screen_type: string | undefined;
+          try {
+            const parsed = JSON.parse(errorText);
+            const detail = parsed?.detail;
+            screen_type = typeof parsed?.screen_type === 'string' ? parsed.screen_type : undefined;
+            if (typeof detail === 'string') message = detail;
+            else if (typeof detail === 'object' && detail?.message) message = String(detail.message);
+          } catch { /* usar mensaje por defecto */ }
+          return new Response(
+            JSON.stringify({
+              errorType: 'ServiceUnavailable',
+              body: { message, type: 'service_unavailable', screen_type },
+            }),
+            { headers: { 'Content-Type': 'application/json' }, status: 503 }
           );
         }
 

@@ -7,6 +7,7 @@ import { genEndDateWhere, genRangeWhere, genStartDateWhere, genWhere } from '../
 import { idGenerator } from '../utils/idGenerator';
 
 export interface CreateTopicParams {
+  clientId?: string | null;
   favorite?: boolean;
   groupId?: string | null;
   messages?: string[];
@@ -175,11 +176,22 @@ export class TopicModel {
     id: string = this.genId(),
   ): Promise<TopicItem> => {
     return this.db.transaction(async (tx) => {
+      // Asegurar null (nunca ''): la FK session_id -> sessions.id falla si enviamos ''
+      const sessionId =
+        params.sessionId === undefined || params.sessionId === '' ? null : params.sessionId;
+      const groupId =
+        params.groupId === undefined || params.groupId === '' ? null : params.groupId;
+      // Cuando no hay sesión ni grupo (ej. Inbox), la BD tiene índice único (client_id, user_id).
+      // Para permitir varios temas "inbox" por usuario, usamos un clientId único por tema.
+      const clientId =
+        params.clientId ?? (sessionId === null && groupId === null ? id : undefined);
       const insertData = {
-        ...params,
-        groupId: params.groupId || null,
+        favorite: params.favorite ?? false,
+        clientId: clientId ?? null,
+        groupId,
         id,
-        sessionId: params.sessionId || null,
+        sessionId,
+        title: params.title ?? null,
         userId: this.userId,
       };
 

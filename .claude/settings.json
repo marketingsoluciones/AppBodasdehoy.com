@@ -21,7 +21,19 @@
       "Bash(ls /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/settings/integrations/)",
       "Bash(grep -rn \"Notification\\\\|notification\" apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/_layout/ --include=\"*.tsx\")",
       "Bash(ls apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/_layout/Desktop/SideBar/)",
-      "Bash(cat apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/_layout/Desktop/SideBar/TopActions.tsx)"
+      "Bash(cat apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/_layout/Desktop/SideBar/TopActions.tsx)",
+      "Bash(grep -n \"^describe\" /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/wedding-creator/__tests__/WeddingSiteRenderer.test.tsx)",
+      "Bash(node_modules/.bin/vitest run 'src/hooks/useWeddingWeb/__tests__/useWeddingWeb.test.ts')",
+      "Bash(grep -n \"errorType\\\\|insufficient\\\\|402\\\\|showInsufficient\" /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/\\\\\\(backend\\\\\\)/webapi/chat/[provider]/route.ts)",
+      "Bash(xargs -I {} basename {})",
+      "Bash(bun run type-check --filter @bodasdehoy/chat-ia)",
+      "Bash(pnpm --filter @bodasdehoy/chat-ia type-check)",
+      "Bash(git -C /Users/juancarlosparra/Projects/AppBodasdehoy.com diff HEAD -- apps/appEventos/services/copilotChat.ts)",
+      "Bash(git diff:*)",
+      "Bash(ls /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/\\\\\\(backend\\\\\\)/api/backend/)"
+    ],
+    "additionalDirectories": [
+      "/Users/juancarlosparra/.claude/projects/-Users-juancarlosparra-Projects-AppBodasdehoy-com/memory"
     ]
   }
 }

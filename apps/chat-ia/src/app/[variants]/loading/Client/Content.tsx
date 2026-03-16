@@ -164,6 +164,7 @@ const Content = memo<ContentProps>(({ loadingStage, setActiveStage }) => {
       <div aria-label="Cargando" className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white" role="status">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-blue-500" />
         <p className="mt-4 text-gray-500">Cargando...</p>
+        <p className="mt-1 text-sm text-gray-400">Si ves esto, la app está respondiendo</p>
       </div>
     );
   }

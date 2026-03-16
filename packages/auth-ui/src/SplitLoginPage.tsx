@@ -1,8 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+
+/** Si se define, el titular rota por estos tipos de evento (dinámico). Si no, se usa `headline` estático. */
+export const DEFAULT_EVENT_TYPES = [
+  'boda', 'comunión', 'bautizo', 'fiesta de 16', 'cumpleaños', 'despedida de soltero',
+  'aniversario', 'baby shower', 'graduación', 'fiesta de empresa', 'evento corporativo',
+  'confirmación', 'inauguración', 'cena de gala', 'fiesta temática',
+];
 
 export interface LeftPanelConfig {
   brandName?: string;
   description?: string;
+  /** Tipos de evento para titular rotatorio. Si está vacío o no se pasa, se usa `headline` estático. */
+  eventTypesForRotation?: string[];
   features?: { icon: string; text: string }[];
   gradient?: string;
   headline?: string;
@@ -15,19 +24,20 @@ export interface SplitLoginPageProps {
   leftPanel?: LeftPanelConfig;
 }
 
-const DEFAULT_LEFT_PANEL: Required<LeftPanelConfig> = {
+const DEFAULT_LEFT_PANEL: Required<Omit<LeftPanelConfig, 'eventTypesForRotation'>> & { eventTypesForRotation?: string[] } = {
   brandName: 'Bodas de Hoy · Copilot IA',
   description:
     'Planifica cada detalle con inteligencia artificial. Invitados, presupuesto, itinerario y mucho más — en un solo lugar.',
+  eventTypesForRotation: DEFAULT_EVENT_TYPES,
   features: [
-    { icon: '✨', text: 'Asistente IA para bodas y eventos' },
+    { icon: '✨', text: 'Asistente IA para bodas y todo tipo de eventos' },
     { icon: '👥', text: 'Gestión inteligente de invitados' },
     { icon: '💰', text: 'Control de presupuesto en tiempo real' },
     { icon: '📋', text: 'Itinerario y coordinación todo en uno' },
-    { icon: '🎨', text: 'Creador de webs de boda personalizado' },
+    { icon: '🎨', text: 'Creador de webs de evento personalizado' },
   ],
   gradient: 'linear-gradient(150deg, #ec4899 0%, #a855f7 60%, #6366f1 100%)',
-  headline: 'Tu asistente IA para organizar la boda perfecta',
+  headline: 'Tu asistente IA para organizar tu boda ideal',
   logoEmoji: '💒',
   stats: [
     { label: 'bodas organizadas', value: '+5.000' },
@@ -36,7 +46,18 @@ const DEFAULT_LEFT_PANEL: Required<LeftPanelConfig> = {
   ],
 };
 
-function LeftPanel({ config }: { config: Required<LeftPanelConfig> }) {
+function LeftPanel({ config }: { config: Required<Omit<LeftPanelConfig, 'eventTypesForRotation'>> & { eventTypesForRotation?: string[] } }) {
+  const eventTypes = config.eventTypesForRotation ?? [];
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    if (eventTypes.length === 0) return;
+    const t = setInterval(() => setIndex((i) => (i + 1) % eventTypes.length), 2500);
+    return () => clearInterval(t);
+  }, [eventTypes.length]);
+
+  const useDynamicHeadline = eventTypes.length > 0;
+  const eventLabel = useDynamicHeadline ? eventTypes[index] : '';
+
   return (
     <div
       style={{
@@ -91,7 +112,7 @@ function LeftPanel({ config }: { config: Required<LeftPanelConfig> }) {
         </div>
       </div>
 
-      {/* Headline */}
+      {/* Headline: dinámico (rotación por tipos de evento) o estático */}
       <h1
         style={{
           color: 'white',
@@ -99,9 +120,20 @@ function LeftPanel({ config }: { config: Required<LeftPanelConfig> }) {
           fontWeight: 800,
           lineHeight: 1.2,
           marginBottom: 16,
+          minHeight: useDynamicHeadline ? '1.2em' : undefined,
         }}
       >
-        {config.headline}
+        {useDynamicHeadline ? (
+          <>
+            Tu asistente IA para organizar tu{' '}
+            <span style={{ display: 'inline-block', transition: 'opacity 0.4s ease', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: 4 }}>
+              {eventLabel}
+            </span>
+            {' '}ideal
+          </>
+        ) : (
+          config.headline
+        )}
       </h1>
       <p style={{ fontSize: 15, lineHeight: 1.6, marginBottom: 32, opacity: 0.9 }}>
         {config.description}
@@ -146,12 +178,13 @@ function LeftPanel({ config }: { config: Required<LeftPanelConfig> }) {
  * Responsive: panel izquierdo oculto en móvil (≤768px)
  */
 export function SplitLoginPage({ children, leftPanel }: SplitLoginPageProps) {
-  const config: Required<LeftPanelConfig> = {
+  const config = {
     ...DEFAULT_LEFT_PANEL,
     ...leftPanel,
+    eventTypesForRotation: leftPanel?.eventTypesForRotation ?? DEFAULT_LEFT_PANEL.eventTypesForRotation,
     features: leftPanel?.features ?? DEFAULT_LEFT_PANEL.features,
     stats: leftPanel?.stats ?? DEFAULT_LEFT_PANEL.stats,
-  };
+  } as Required<Omit<LeftPanelConfig, 'eventTypesForRotation'>> & { eventTypesForRotation?: string[] };
 
   return (
     <div

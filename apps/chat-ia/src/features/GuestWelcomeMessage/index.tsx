@@ -4,6 +4,7 @@ import { Button, Card, Form, Input, message } from 'antd';
 import { UserAddOutlined, PhoneOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { memo, useMemo, useEffect, useRef, useState } from 'react';
+import { getVisitorLimitState } from '@/utils/visitorLimit';
 import { useChatStore } from '@/store/chat';
 import { chatSelectors } from '@/store/chat/selectors';
 import { Markdown } from '@lobehub/ui';
@@ -163,8 +164,15 @@ function GuestWelcomeMessage() {
   const isTestEnv = typeof window !== 'undefined' && window.location.hostname.includes('-test.');
   const registerUrl = `${isTestEnv ? 'https://app-test.bodasdehoy.com' : 'https://organizador.bodasdehoy.com'}/login?q=register`;
 
-  const welcomeMessage = `¡Hola! 👋 Bienvenido a **Bodas de Hoy**, la plataforma #1 para organizar tu boda o evento en España.
+  const limitState = getVisitorLimitState();
+  const limitHint =
+    limitState &&
+    (limitState.remaining > 0
+      ? `Tienes **${limitState.remaining}** mensaje${limitState.remaining !== 1 ? 's' : ''} de prueba hoy${limitState.isFirstDay ? ' (primera vez: 5)' : ' (2 por día)'}. Regístrate gratis para usar el asistente sin límites.`
+      : 'Has usado tus mensajes de hoy. Regístrate gratis para seguir chateando sin límites.');
 
+  const welcomeMessage = `¡Hola! 👋 Bienvenido a **Bodas de Hoy**, la plataforma #1 para organizar tu boda o evento en España.
+${limitHint ? `\n${limitHint}\n\n` : ''}
 Con tu cuenta **gratuita** tendrás acceso a:
 
 ✅ **Gestión completa de invitados** y confirmaciones de asistencia

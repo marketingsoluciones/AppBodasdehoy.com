@@ -8,12 +8,29 @@ import { useChatStore } from '@/store/chat';
 import { useWallet } from '@/hooks/useWallet';
 
 /**
+ * Considerar guest a visitante, anonymous, visitor_* o cualquier id que indique no autenticado para wallet.
+ * Debe coincidir con useWallet (isAuthenticated) y con el resto de la app (AgentWelcome, etc.).
+ */
+function isGuestUserId(userId: string | undefined): boolean {
+  if (!userId) return true;
+  if (userId === 'visitante@guest.local') return true;
+  if (userId === 'guest' || userId === 'anonymous') return true;
+  if (userId.startsWith('visitor_')) return true;
+  if (userId.includes('@guest.')) return true;
+  return false;
+}
+
+/**
  * Banner no-bloqueante que aparece cuando el chat está en modo saldo negativo.
  * El usuario puede seguir chateando, pero se le recuerda que tiene deuda.
+ * No se muestra a usuarios guest (saldo no aplica).
  */
 const NegativeBalanceBanner = memo(() => {
+  const currentUserId = useChatStore((s) => s.currentUserId);
   const negativeBalanceMode = useChatStore((s) => s.negativeBalanceMode);
-  const { totalBalance, formatBalance, isNegativeBalance } = useWallet();
+  const { balance, creditLimit, formatBalance, isNegativeBalance } = useWallet();
+
+  const isGuest = isGuestUserId(currentUserId);
 
   const handleDismiss = useCallback(() => {
     useChatStore.setState({ negativeBalanceMode: false });
@@ -23,7 +40,7 @@ const NegativeBalanceBanner = memo(() => {
     useChatStore.setState({ negativeBalanceMode: false, showInsufficientBalance: true });
   }, []);
 
-  if (!negativeBalanceMode && !isNegativeBalance) return null;
+  if (isGuest || (!negativeBalanceMode && !isNegativeBalance)) return null;
 
   return (
     <Flexbox
@@ -43,9 +60,12 @@ const NegativeBalanceBanner = memo(() => {
       <Flexbox align="center" gap={8} horizontal>
         <AlertTriangle size={15} style={{ flexShrink: 0 }} />
         <span>
-          Modo crédito activo — Saldo:{' '}
-          <strong>{formatBalance(totalBalance)}</strong>
-          {' '}· El chat continúa, pero tienes deuda pendiente.
+          Modo crédito activo — Saldo real:{' '}
+          <strong>{formatBalance(balance)}</strong>
+          {creditLimit > 0 && (
+            <> · Límite de crédito: <strong>{formatBalance(creditLimit)}</strong> (hasta cuánto puedes consumir)</>
+          )}
+          {balance < 0 && ' · El chat continúa, pero tienes deuda pendiente.'}
         </span>
       </Flexbox>
       <Flexbox align="center" gap={8} horizontal style={{ flexShrink: 0 }}>

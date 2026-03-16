@@ -22,7 +22,7 @@ vi.mock('swr', async () => {
 beforeEach(() => {
   vi.clearAllMocks();
   // Clear SWR cache so each test gets a fresh fetch (no deduplication from previous test)
-  cache.clear();
+  (cache as any).clear();
 
   // Reset store to initial state
   act(() => {

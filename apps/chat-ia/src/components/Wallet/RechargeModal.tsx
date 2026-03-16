@@ -9,6 +9,8 @@ import { BalanceCheck } from '@/services/api2/wallet';
 export interface RechargeModalProps {
   allowDebtMode?: boolean;
   balanceCheck?: BalanceCheck | null;
+  /** Mensaje de detalle de api-ia (402/503) para mostrar en la UI */
+  detailMessage?: string;
   isOpen: boolean;
   onClose: () => void;
   onContinueInDebt?: () => void;
@@ -17,7 +19,7 @@ export interface RechargeModalProps {
 
 const RECHARGE_AMOUNTS = [5, 10, 20, 50, 100];
 
-const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck, onRecharge, allowDebtMode, onContinueInDebt }) => {
+const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck, detailMessage, onRecharge, allowDebtMode, onContinueInDebt }) => {
   const suggestedAmount = balanceCheck ? Math.max(5, Math.ceil(balanceCheck.shortfall)) : 20;
 
   const [selectedAmount, setSelectedAmount] = useState(suggestedAmount);
@@ -109,6 +111,10 @@ const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck,
             <X size={20} />
           </button>
         </Flexbox>
+
+        {detailMessage && (
+          <p style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 14, margin: '0 0 16px 0' }}>{detailMessage}</p>
+        )}
 
         {/* Balance Info */}
         {balanceCheck && (

@@ -67,8 +67,8 @@ pm2 save
 
 echo ""
 echo -e "${YELLOW}8. Verificando puertos...${NC}"
-echo -n "Puerto 3000 (app-test): "
-if lsof -i :3000 > /dev/null 2>&1; then
+echo -n "Puerto 8080 (app-test): "
+if lsof -i :8080 > /dev/null 2>&1; then
     echo -e "${GREEN}✓ En uso${NC}"
 else
     echo -e "${RED}✗ No responde${NC}"

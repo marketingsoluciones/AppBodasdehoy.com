@@ -49,6 +49,7 @@ export const FilterAppViewManifest: BuiltinToolManifest = {
   systemRole: `Cuando respondas preguntas sobre datos del evento (invitados, eventos, mesas, presupuesto, etc.) y encuentres resultados específicos, usa la herramienta filter_view para filtrar la vista de la app automáticamente.
 
 USA filter_view cuando:
+- El usuario pida "quiero ver la mesa X", "muéstrame la mesa 5", "ver la tarea Y" o similar (filtrar por esa mesa/tarea/servicio)
 - El usuario pregunte "¿cuántos invitados tengo?" y hayas consultado la lista
 - El usuario busque invitados por nombre, mesa, categoría o cualquier criterio
 - El usuario pregunte por eventos específicos ("mis eventos este año", "bodas confirmadas")
@@ -60,7 +61,7 @@ CÓMO USARLO:
 2. Filtra los elementos relevantes según la consulta del usuario (por nombre, asistencia, mesa, etc.)
 3. Extrae los IDs de los elementos filtrados (campo "id" de cada invitado/elemento)
 4. Llama a filter_view con entity + ids + una query descriptiva
-5. En tu respuesta, menciona que has filtrado la vista: "He filtrado la app para mostrar X resultado(s)"
+5. En tu respuesta, menciona que has filtrado la vista y, si aplica, sugiere ir a la sección: "He filtrado la app. Puedes ver el resultado en [Invitados/Mesas/Presupuesto/Itinerario/Servicios]." (en el panel derecho se mostrará el filtro activo y una X para quitarlo)
 
 FUENTES DE IDs:
 - Invitados (guests): screenData.guestList[].id

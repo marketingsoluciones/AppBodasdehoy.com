@@ -43,6 +43,10 @@ export interface ChatAIChatState {
    * Triggered when the backend returns a 402 insufficient_balance error
    */
   showInsufficientBalance: boolean;
+  /** detail (message) from api-ia 402/503 for UI */
+  apiErrorDetail?: string;
+  /** screen_type from api-ia 402/503 for UI */
+  apiErrorScreenType?: string;
   /**
    * Whether the login required modal should be shown
    * Triggered when api-ia returns 401 (community user without auth hitting the limit)
@@ -68,6 +72,8 @@ export const initialAiChatState: ChatAIChatState = {
   reasoningLoadingIds: [],
   searchWorkflowLoadingIds: [],
   showInsufficientBalance: false,
+  apiErrorDetail: undefined,
+  apiErrorScreenType: undefined,
   showLoginRequired: false,
   threadInputEditor: null,
   toolCallingStreamIds: {},

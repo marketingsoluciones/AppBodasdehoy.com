@@ -63,15 +63,12 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
 
     const getCopilotBaseUrl = useCallback(() => {
       if (typeof window === 'undefined') return '/copilot-chat';
-
-      // Si la web se abre en localhost (p. ej. navegador de Cursor / automatización), cargar Copilot en localhost:3210 para que funcione sin app-test/chat-test.
-      if (typeof window !== 'undefined' && window.location?.hostname === 'localhost') {
-        return `${window.location.protocol}//localhost:3210`;
-      }
       const envUrl = process.env.NEXT_PUBLIC_CHAT;
-      const fallback = 'https://chat-test.bodasdehoy.com';
-      const base = (envUrl || fallback).replace(/\/$/, '');
-      return base;
+      if (envUrl) return envUrl.replace(/\/$/, '');
+      // En local (localhost / 127.0.0.1) usar chat local para que Copilot funcione sin depender de chat-test
+      const host = window.location.hostname;
+      if (host === 'localhost' || host === '127.0.0.1') return 'http://127.0.0.1:3210';
+      return 'https://chat-test.bodasdehoy.com';
     }, []);
 
     // Construir URL del LobeChat con parametros
@@ -431,6 +428,18 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
             const { entity, ids, query } = payload || {};
             if (entity) {
               setCopilotFilter({ entity, ids, query });
+              // Navegación automática: ir a la sección que corresponde al filtro si no estamos ya ahí
+              const entityToPath: Record<string, string> = {
+                tables: '/mesas',
+                guests: '/invitados',
+                budget_items: '/presupuesto',
+                moments: '/itinerario',
+                services: '/servicios',
+              };
+              const targetPath = entityToPath[entity];
+              if (targetPath && !currentPath.includes(targetPath)) {
+                router.push(targetPath);
+              }
             }
             break;
           }
@@ -463,7 +472,7 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
 
       window.addEventListener('message', handleMessage);
       return () => window.removeEventListener('message', handleMessage);
-    }, [sendAuthConfig, sendPageContext]);
+    }, [sendAuthConfig, sendPageContext, currentPath, setCopilotFilter, refreshEventsGroup, router]);
 
     // ✅ OPTIMIZACIÓN: Enviar AUTH_CONFIG inmediatamente cuando el iframe cargue
     useEffect(() => {

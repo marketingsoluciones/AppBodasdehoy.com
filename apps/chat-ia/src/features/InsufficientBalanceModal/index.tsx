@@ -17,13 +17,14 @@ const allowNegativeBalance = process.env.NEXT_PUBLIC_ALLOW_NEGATIVE_BALANCE === 
  */
 const InsufficientBalanceModal = memo(() => {
   const showInsufficientBalance = useChatStore((s) => s.showInsufficientBalance);
+  const apiErrorDetail = useChatStore((s) => s.apiErrorDetail);
 
   const handleClose = useCallback(() => {
-    useChatStore.setState({ showInsufficientBalance: false });
+    useChatStore.setState({ showInsufficientBalance: false, apiErrorDetail: undefined, apiErrorScreenType: undefined });
   }, []);
 
   const handleContinueInDebt = useCallback(() => {
-    useChatStore.setState({ showInsufficientBalance: false, negativeBalanceMode: true });
+    useChatStore.setState({ showInsufficientBalance: false, negativeBalanceMode: true, apiErrorDetail: undefined, apiErrorScreenType: undefined });
   }, []);
 
   const handleRecharge = useCallback(async (amount: number) => {
@@ -53,6 +54,7 @@ const InsufficientBalanceModal = memo(() => {
   return (
     <RechargeModal
       allowDebtMode={allowNegativeBalance}
+      detailMessage={apiErrorDetail}
       isOpen={showInsufficientBalance}
       onClose={handleClose}
       onContinueInDebt={handleContinueInDebt}

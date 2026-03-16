@@ -9,13 +9,14 @@ credentials-file: ~/.cloudflared/30fdf520-9577-470f-a224-4cda1e5eb3f0.json
 
 ingress:
   # Subdominios bodasdehoy (prioridad: que funcionen app-test y chat-test)
+  # 127.0.0.1 evita que localhost se resuelva a IPv6 (::1) y falle la conexión
   - hostname: app-test.bodasdehoy.com
-    service: http://localhost:3001
+    service: http://127.0.0.1:8080
   - hostname: chat-test.bodasdehoy.com
-    service: http://localhost:3210
+    service: http://127.0.0.1:3210
   # Otros hostnames del mismo túnel
   - hostname: chat-test.eventosorganizador.com
-    service: http://localhost:3210
+    service: http://127.0.0.1:3210
   - hostname: auth-test.bodasdehoy.com
     service: http://localhost:8000
   - hostname: api-ia.bodasdehoy.com

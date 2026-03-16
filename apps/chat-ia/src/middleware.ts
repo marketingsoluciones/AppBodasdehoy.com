@@ -91,9 +91,23 @@ export const config = {
 
 const backendApiEndpoints = ['/api', '/trpc', '/webapi', '/oidc'];
 
+const DEFAULT_VARIANT_PATH = 'en-US__0__light';
+
 const defaultMiddleware = (request: NextRequest) => {
+  const url = new URL(request.url);
+  const pathname = url.pathname || '/';
+
+  // ✅ FIX 404 chat-test: Redirigir "/" de inmediato a la variante por defecto.
+  // Así el app router solo recibe rutas con variante y nunca "/" sin segmento.
+  if (pathname === '/' || pathname === '') {
+    const redirectUrl = new URL(request.url);
+    redirectUrl.pathname = `/${DEFAULT_VARIANT_PATH}`;
+    redirectUrl.search = url.search;
+    logDefault('Root path: redirecting to %s', redirectUrl.pathname);
+    return NextResponse.redirect(redirectUrl, 307);
+  }
+
   try {
-    const url = new URL(request.url);
     logDefault('Processing request: %s %s', request.method, request.url);
 
     // ✅ FIX: Redirigir /onboard a /chat (onboarding deshabilitado)
@@ -222,21 +236,17 @@ const defaultMiddleware = (request: NextRequest) => {
 
     logDefault('Serialized route variant: %s', route);
 
-    // Rutas con slug de desarrollador (ej. /bodasdehoy/chat) deben reescribirse a /{route}/chat
-    // para que coincidan con [variants]/(main)/chat (el slug no es un segmento real en la app).
+    // Slug desarrollador (ej. /bodasdehoy/chat): reescribir a /{route}/chat (app tiene layout raíz).
     let pathnameForRewrite = url.pathname;
     const developerSlugMatch = url.pathname.match(/^\/(bodasdehoy|eventosorganizador)(\/|$)/);
     if (developerSlugMatch) {
       const slug = developerSlugMatch[1];
-      // Skip leading '/' + slug + '/' separator → gives path without leading slash
-      // e.g. '/bodasdehoy/chat'.slice(12) = 'chat' → pathnameForRewrite = '/chat'
       const rest = url.pathname.slice(slug.length + 2);
       pathnameForRewrite = rest ? `/${rest}` : '/';
       logDefault('Developer slug rewrite: %s -> %s', url.pathname, pathnameForRewrite);
     }
 
     // if app is in docker, rewrite to self container
-    // https://github.com/lobehub/lobe-chat/issues/5876
     if (appEnv.MIDDLEWARE_REWRITE_THROUGH_LOCAL) {
       logDefault('Local container rewrite enabled: %O', {
         host: '127.0.0.1',
@@ -244,40 +254,37 @@ const defaultMiddleware = (request: NextRequest) => {
         port: process.env.PORT || '3210',
         protocol: 'http',
       });
-
       url.protocol = 'http';
       url.host = '127.0.0.1';
       url.port = process.env.PORT || '3210';
     }
 
-    // refs: https://github.com/lobehub/lobe-chat/pull/5866
-    // new handle segment rewrite: /${route}${originalPathname}
-    // / -> /zh-CN__0__dark
-    // /discover -> /zh-CN__0__dark/discover
     const nextPathname = `/${route}` + (pathnameForRewrite === '/' ? '' : pathnameForRewrite);
     const nextURL = appEnv.MIDDLEWARE_REWRITE_THROUGH_LOCAL
       ? urlJoin(url.origin, nextPathname)
       : nextPathname;
 
-    logDefault('URL rewrite: %O', {
-      isLocalRewrite: appEnv.MIDDLEWARE_REWRITE_THROUGH_LOCAL,
-      nextPathname: nextPathname,
-      nextURL: nextURL,
-      originalPathname: url.pathname,
-    });
-
+    logDefault('URL rewrite: %O', { nextPathname, nextURL, originalPathname: url.pathname });
     url.pathname = nextPathname;
-
     return NextResponse.rewrite(url, { status: 200 });
   } catch (error) {
     console.error('❌ Error in defaultMiddleware:', error);
-    // En caso de error, retornar respuesta básica sin rewrite
+    // ✅ FIX chat-test 404: Si la ruta es "/" y falló el middleware, reescribir a variante por defecto
+    // en lugar de next() que deja "/" sin página y devuelve 404
+    if (pathname === '/' || pathname === '') {
+      const rewriteUrl = new URL(request.url);
+      rewriteUrl.pathname = `/${DEFAULT_VARIANT_PATH}`;
+      logDefault('Fallback rewrite to %s after middleware error', rewriteUrl.pathname);
+      return NextResponse.rewrite(rewriteUrl, { status: 200 });
+    }
     return NextResponse.next();
   }
 };
 
 // Route patterns for matching
 const PUBLIC_ROUTE_PATTERNS = [
+  // raíz (redirect a variante en defaultMiddleware)
+  '/',
   // backend api
   '/api/auth(.*)',
   '/api/webhooks(.*)',
@@ -345,7 +352,15 @@ if (!authEnv.NEXT_PUBLIC_ENABLE_CLERK_AUTH && !authEnv.NEXT_PUBLIC_ENABLE_NEXT_A
 const nextAuthMiddleware = NextAuth.auth((req) => {
   logNextAuth('NextAuth middleware processing request: %s %s', req.method, req.url);
 
+  const pathname = req.nextUrl.pathname || '/';
+  if (pathname === '/' || pathname === '') {
+    const url = req.nextUrl.clone();
+    url.pathname = `/${DEFAULT_VARIANT_PATH}`;
+    return NextResponse.redirect(url, 307);
+  }
+
   const response = defaultMiddleware(req);
+  if (response.status >= 301 && response.status <= 308) return response;
 
   // when enable auth protection, only public route is not protected, others are all protected
   const isProtected = appEnv.ENABLE_AUTH_PROTECTION ? !isPublicRoute(req) : isProtectedRoute(req);
@@ -402,6 +417,16 @@ const getClerkAuthMiddleware = async () => {
       async (auth: any, req: any) => {
         logClerk('Clerk middleware processing request: %s %s', req.method, req.url);
 
+        const pathname = req.nextUrl?.pathname || req.url ? new URL(req.url).pathname : '/';
+        if (pathname === '/' || pathname === '') {
+          const url = req.nextUrl ? req.nextUrl.clone() : new URL(req.url);
+          url.pathname = `/${DEFAULT_VARIANT_PATH}`;
+          return NextResponse.redirect(url, 307);
+        }
+
+        const response = defaultMiddleware(req);
+        if (response.status >= 301 && response.status <= 308) return response;
+
         // when enable auth protection, only public route is not protected, others are all protected
         const isProtected = appEnv.ENABLE_AUTH_PROTECTION ? !isPublicRoute(req) : isProtectedRoute(req);
 
@@ -411,8 +436,6 @@ const getClerkAuthMiddleware = async () => {
           logClerk('Protecting route: %s', req.url);
           await auth.protect();
         }
-
-        const response = defaultMiddleware(req);
 
         const data = await auth();
         logClerk('Clerk auth status: %O', {

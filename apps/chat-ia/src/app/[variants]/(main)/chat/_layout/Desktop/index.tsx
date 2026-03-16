@@ -64,9 +64,8 @@ const Layout = ({ children, session }: LayoutProps) => {
       {/* Contenedor en columna: banner modo crédito horizontal arriba, luego contenido del chat */}
       <Flexbox
         height={'100%'}
-        style={{ maxWidth: '100%', overflow: 'hidden', position: 'relative' }}
+        style={{ flexDirection: 'column', maxWidth: '100%', overflow: 'hidden', position: 'relative' }}
         width={'100%'}
-        vertical
       >
         {/* Banner de modo crédito (saldo negativo) — horizontal, justo encima del contenido */}
         <Suspense fallback={null}>
@@ -75,8 +74,7 @@ const Layout = ({ children, session }: LayoutProps) => {
         <Flexbox
           flex={1}
           height={'100%'}
-          horizontal
-          style={{ minHeight: 0, overflow: 'hidden', position: 'relative' }}
+          style={{ flexDirection: 'row', minHeight: 0, overflow: 'hidden', position: 'relative' }}
           width={'100%'}
         >
           {/* En modo embed ocultamos el panel izquierdo (sessions) para dejar solo conversación + input */}

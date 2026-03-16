@@ -206,7 +206,7 @@ export class DatabaseManager {
     }
 
     // Combinar chunks
-    const blob = new Blob(chunks);
+    const blob = new Blob(chunks as unknown as BlobPart[]);
     const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
     console.log(`✅ postgres.data descargado en ${totalTime}s`);
 

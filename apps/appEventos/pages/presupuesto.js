@@ -4,7 +4,7 @@ import { DineroIcon } from "../components/icons";
 import BlockPagos from "../components/Presupuesto/BlockPagos";
 import Grafico from "../components/Presupuesto/Grafico";
 import ExportExcelPresupuesto from "../components/Presupuesto/ExportExcelPresupuesto";
-import { AuthContextProvider, EventContextProvider } from "../context";
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../context";
 import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
 import { getCurrency } from "../utils/Funciones";
 import VistaSinCookie from "./vista-sin-cookie";
@@ -31,6 +31,7 @@ const Presupuesto = () => {
   const [showCategoria, setShowCategoria] = useState({ state: false, _id: "" });
   const [active, setActive] = useState("resumen");
   const { event } = EventContextProvider();
+  const { copilotFilter } = EventsGroupContextProvider();
   const [categorias, setCategorias] = useState([]);
   const [getId, setGetId] = useState()
   const [showModalDuplicate, setShowModalDuplicate] = useState(false)
@@ -38,8 +39,15 @@ const Presupuesto = () => {
   const [isAllowed, ht] = useAllowed()
   const [isMobile, setIsMobile] = useState(false)
 
+  const categoriasToShow = (() => {
+    const list = Array.isArray(categorias) ? categorias : [];
+    if (copilotFilter?.entity === 'budget_items' && copilotFilter.ids?.length) {
+      return list.filter((c) => c._id && copilotFilter.ids.includes(c._id));
+    }
+    return list;
+  })();
 
-  const totalCosteFinal = categorias?.reduce((sum, categoria) => {
+  const totalCosteFinal = categoriasToShow?.reduce((sum, categoria) => {
     return sum + (categoria.coste_final || 0);
   }, 0);
 
@@ -167,7 +175,7 @@ const Presupuesto = () => {
                         <ModuleErrorBoundary label="Categorías">
                           <BlockListaCategorias
                             setShowCategoria={setShowCategoria}
-                            categorias_array={categorias}
+                            categorias_array={categoriasToShow}
                             showCategoria={showCategoria}
                           />
                         </ModuleErrorBoundary>
@@ -224,7 +232,7 @@ const Presupuesto = () => {
                             <h2 className="font-display pb-2 text-xl text-gray-500 font-semibold text-center w-full">
                               {t("howost")}
                             </h2>
-                            <Grafico categorias={categorias} />
+                            <Grafico categorias={categoriasToShow} />
                           </div>
                         </div>}
                     </motion.div>
@@ -238,7 +246,7 @@ const Presupuesto = () => {
                       exit={{ opacity: 0 }}
                       className=" w-full gap-6 pt-2 md:pr-0 pb-4 h-[100vh]"
                     >
-                      <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={categorias} estado={"pagado"} />
+                      <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={categoriasToShow} estado={"pagado"} />
                     </motion.div>
                   )
                 }
@@ -250,7 +258,7 @@ const Presupuesto = () => {
                       exit={{ opacity: 0 }}
                       className=" w-full gap-6 pt-2 md:pr-0 pb-4 h-[100vh]"
                     >
-                      <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={categorias} estado={"pendiente"} />
+                      <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={categoriasToShow} estado={"pendiente"} />
                     </motion.div>
                   )
                 }
@@ -262,7 +270,7 @@ const Presupuesto = () => {
                       exit={{ opacity: 0 }}
                       className=" w-full h-full gap-6 pt-2 md:pr-0"
                     >
-                      <ExcelView setShowCategoria={setShowCategoria} categorias_array={categorias} showCategoria={showCategoria} />
+                      <ExcelView setShowCategoria={setShowCategoria} categorias_array={categoriasToShow} showCategoria={showCategoria} />
                     </motion.div>
                   )
                 }
