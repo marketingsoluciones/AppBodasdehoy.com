@@ -362,7 +362,12 @@ export const sendChatMessage = async (
             const content = parsed.choices?.[0]?.delta?.content || '';
             if (content) {
               fullContent += content;
-              onChunk(content);
+              // Detectar errores del orchestrator en el stream y no pasarlos al chat.
+              // Ejemplo: "⚠️ Orchestrator falló: GROQ_TOOL_USE_FAILED: ..."
+              // Se acumulan en fullContent para ser detectados post-stream.
+              if (!fullContent.includes('Orchestrator falló')) {
+                onChunk(content);
+              }
             }
 
             // Tool calls from delta
@@ -395,6 +400,15 @@ export const sendChatMessage = async (
         // Incluir error_code para que CopilotEmbed decida si mostrar Reintentar
         // AUTH_ERROR no se debe reintentar (error de configuración/admin)
         if (backendErrorCode) (err as any).__errorCode = backendErrorCode;
+        throw err;
+      }
+
+      // Detectar errores del orchestrator embebidos como contenido (200 OK + error en texto)
+      // y convertirlos a error para activar el botón Reintentar en CopilotEmbed.
+      const orchestratorErrorMatch = fullContent.match(/Orchestrator falló:\s*(\w+)/);
+      if (orchestratorErrorMatch) {
+        const err = new Error('El asistente tuvo un problema procesando tu solicitud. Por favor, inténtalo de nuevo.');
+        (err as any).__isStreamingHttpError = true;
         throw err;
       }
 

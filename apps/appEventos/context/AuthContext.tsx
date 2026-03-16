@@ -544,13 +544,14 @@ const AuthProvider = ({ children }) => {
     }
   }, [triggerAuthStateChanged])
 
-  // ✅ Timeout de seguridad: si la verificación no termina en 1.5s, mostrar la app como guest
+  // ✅ Timeout de seguridad: si la verificación no termina en 4s, mostrar la app como guest
+  // 4s da tiempo suficiente para el flujo SSO cross-domain (authStatus + signInWithCustomToken)
   // IMPORTANTE: también setear un usuario guest para que home sea accesible (evita redirect a login)
   useEffect(() => {
     const safetyTimeout = setTimeout(() => {
       setVerificationDone((prev) => {
         if (!prev) {
-          console.warn('[Auth] Timeout de seguridad: mostrando app a los 1.5s como guest');
+          console.warn('[Auth] Timeout de seguridad: mostrando app a los 4s como guest');
           return true;
         }
         return prev;
@@ -565,7 +566,7 @@ const AuthProvider = ({ children }) => {
         }
         return prevUser;
       });
-    }, 1500);
+    }, 4000);
 
     return () => clearTimeout(safetyTimeout);
   }, [])
@@ -668,9 +669,28 @@ const AuthProvider = ({ children }) => {
             .then(result => {
               setUser(result?.user)
               moreInfo(result?.user)
-            }).catch(error => {
-              console.log(error)
-              // ✅ CORRECCIÓN: Establecer verificationDone incluso si hay error
+            }).catch(async (error) => {
+              console.error('[Auth] signInWithCustomToken falló:', error?.code, error?.message)
+              // Fallback: si tenemos userId de la sessionCookie, cargar datos del usuario directamente
+              // Esto ocurre cuando el dominio no está autorizado en Firebase (ej. app-test.bodasdehoy.com)
+              if (sessionCookieParsed?.user_id) {
+                console.warn('[Auth] Fallback SSO: cargando usuario desde sessionCookie userId:', sessionCookieParsed.user_id)
+                try {
+                  const userInfo = await fetchApiBodas({
+                    query: queries.getUser,
+                    variables: { uid: sessionCookieParsed.user_id },
+                    development: config?.development
+                  })
+                  if (userInfo) {
+                    console.log('[Auth] ✅ Fallback SSO exitoso, usuario cargado:', userInfo?.email)
+                    setUser({ uid: sessionCookieParsed.user_id, ...userInfo })
+                    setVerificationDone(true)
+                    return
+                  }
+                } catch (fallbackErr) {
+                  console.error('[Auth] Fallback SSO también falló:', fallbackErr)
+                }
+              }
               setVerificationDone(true)
             })
         } else {
@@ -796,7 +816,7 @@ const AuthProvider = ({ children }) => {
       <div style={{ pointerEvents: 'none' }}>
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-pink-500 mx-auto" />
         <p className="mt-4 text-gray-700 font-medium">Cargando...</p>
-        <p className="mt-1 text-sm text-gray-400">Si ves esto, la app está respondiendo (máx. 1.5 s)</p>
+        <p className="mt-1 text-sm text-gray-400">Si ves esto, la app está respondiendo (máx. 4 s)</p>
       </div>
       {showSkipLoadingButton && (
         <button
