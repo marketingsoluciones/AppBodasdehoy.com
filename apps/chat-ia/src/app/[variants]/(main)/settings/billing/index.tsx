@@ -1,6 +1,6 @@
 'use client';
 
-import { DatePicker, Divider, Input, Segmented, Select, Skeleton, Table, Tag } from 'antd';
+import { Alert, DatePicker, Divider, Input, Segmented, Select, Skeleton, Table, Tag } from 'antd';
 import { createStyles } from 'antd-style';
 import {
   Brain,
@@ -18,7 +18,7 @@ import {
   TrendingUp,
   Wallet,
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { memo, useEffect, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 import dayjs from 'dayjs';
@@ -108,6 +108,9 @@ const useStyles = createStyles(({ css, token }) => ({
 const BillingPage = memo(() => {
   const { styles } = useStyles();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const upgradedParam = searchParams?.get('upgraded');
+  const [showUpgradedBanner, setShowUpgradedBanner] = useState(upgradedParam === '1');
   const currentUserId = useChatStore((s) => s.currentUserId);
   const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
 
@@ -296,6 +299,20 @@ const BillingPage = memo(() => {
 
   return (
     <Flexbox gap={24} style={{ maxWidth: 1024, padding: 24, width: '100%' }}>
+      {showUpgradedBanner && (
+        <Alert
+          afterClose={() => {
+            setShowUpgradedBanner(false);
+            router.replace('/settings/billing');
+          }}
+          closable
+          description="Tu suscripción ha sido activada. El nuevo plan ya está disponible en tu cuenta."
+          message="Plan actualizado correctamente"
+          showIcon
+          type="success"
+        />
+      )}
+
       {/* Header */}
       <Flexbox align="center" horizontal justify="space-between">
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Facturación y Pagos</h1>

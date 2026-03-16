@@ -4,9 +4,11 @@ import { Badge, Breadcrumb, Skeleton, Tag, Tooltip } from 'antd';
 import { createStyles } from 'antd-style';
 import { ArrowLeft, Check, Info, Sparkles, X } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { memo, useEffect, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
+import { Alert } from 'antd';
 import {
   SubscriptionPlan,
   UserSubscriptionInfo,
@@ -432,7 +434,9 @@ PlanCard.displayName = 'PlanCard';
 
 const PlanesPage = memo(() => {
   const { styles } = useStyles();
+  const searchParams = useSearchParams();
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
+  const [showCancelledBanner] = useState(searchParams?.get('cancelled') === '1');
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [mySubscription, setMySubscription] = useState<UserSubscriptionInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -480,6 +484,15 @@ const PlanesPage = memo(() => {
           Volver a Facturación
         </Link>
       </Flexbox>
+
+      {showCancelledBanner && (
+        <Alert
+          description="Puedes elegir un plan cuando quieras."
+          message="Checkout cancelado"
+          showIcon
+          type="info"
+        />
+      )}
 
       {/* Header */}
       <Flexbox align="center" gap={12}>
