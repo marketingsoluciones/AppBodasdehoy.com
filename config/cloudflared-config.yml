@@ -14,15 +14,8 @@ ingress:
     service: http://127.0.0.1:8080
   - hostname: chat-dev.bodasdehoy.com
     service: http://127.0.0.1:3210
-  # app-test y chat-test → se configurarán en Vercel (rama dev)
-  # Mantenemos entradas de fallback mientras Vercel no esté configurado
-  - hostname: app-test.bodasdehoy.com
-    service: http://127.0.0.1:8080
-  - hostname: chat-test.bodasdehoy.com
-    service: http://127.0.0.1:3210
+  # app-test y chat-test → Vercel (DNS CNAME apunta a cname.vercel-dns.com, NO al tunnel)
   # Otros hostnames del mismo túnel
-  - hostname: chat-test.eventosorganizador.com
-    service: http://127.0.0.1:3210
   - hostname: memories-test.bodasdehoy.com
     service: http://127.0.0.1:3080
   - hostname: auth-test.bodasdehoy.com
