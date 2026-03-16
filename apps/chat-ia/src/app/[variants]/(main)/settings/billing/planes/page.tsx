@@ -12,6 +12,7 @@ import {
   UserSubscriptionInfo,
   getMySubscription,
   getSubscriptionPlans,
+  subscribeToPlan,
 } from '@/services/api2/subscriptions';
 
 const useStyles = createStyles(({ css, token }) => ({
@@ -242,8 +243,10 @@ function extractFeatures(plan: SubscriptionPlan): FeatureRow[] {
 const PlanCard = memo<{
   billing: 'monthly' | 'yearly';
   isCurrent?: boolean;
+  onSelect?: (planId: string) => Promise<void>;
   plan: SubscriptionPlan;
-}>(({ plan, billing, isCurrent }) => {
+  selecting?: boolean;
+}>(({ plan, billing, isCurrent, onSelect, selecting }) => {
   const { styles } = useStyles();
   const isHighlighted = plan.tier === 'PRO';
   const color = PLAN_COLORS[plan.tier] ?? '#6b7280';
@@ -329,7 +332,8 @@ const PlanCard = memo<{
 
         {/* CTA */}
         <button
-          disabled={isCurrent}
+          disabled={isCurrent || selecting}
+          onClick={() => !isCurrent && onSelect?.(plan.plan_id)}
           style={{
             background: isHighlighted
               ? 'white'
@@ -339,17 +343,17 @@ const PlanCard = memo<{
             border: isCurrent ? `1px solid ${color}` : 'none',
             borderRadius: 8,
             color: isHighlighted ? color : isCurrent ? color : 'white',
-            cursor: isCurrent ? 'default' : 'pointer',
+            cursor: isCurrent || selecting ? 'default' : 'pointer',
             fontSize: 14,
             fontWeight: 600,
             marginTop: 4,
-            opacity: isCurrent ? 0.7 : 1,
+            opacity: isCurrent || selecting ? 0.7 : 1,
             padding: '10px 0',
             transition: 'opacity 0.2s',
             width: '100%',
           }}
         >
-          {isCurrent ? 'Plan actual' : price === 0 ? 'Empezar gratis' : 'Elegir plan'}
+          {selecting ? '...' : isCurrent ? 'Plan actual' : price === 0 ? 'Empezar gratis' : 'Elegir plan'}
         </button>
 
         {/* Separador */}
@@ -432,6 +436,8 @@ const PlanesPage = memo(() => {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [mySubscription, setMySubscription] = useState<UserSubscriptionInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectingPlanId, setSelectingPlanId] = useState<string | null>(null);
+  const [selectError, setSelectError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([getSubscriptionPlans(), getMySubscription()]).then(([plansData, subData]) => {
@@ -440,6 +446,18 @@ const PlanesPage = memo(() => {
       setLoading(false);
     });
   }, []);
+
+  const handleSelectPlan = async (planId: string) => {
+    setSelectingPlanId(planId);
+    setSelectError(null);
+    const result = await subscribeToPlan(planId, billing);
+    if (result.success && result.checkout_url) {
+      window.location.href = result.checkout_url;
+    } else {
+      setSelectError('No se pudo iniciar el checkout. Inténtalo de nuevo.');
+      setSelectingPlanId(null);
+    }
+  };
 
   const maxAnnualDiscount = plans.reduce((max, p) => {
     const pct = p.pricing.annual_discount_percent ?? 20;
@@ -540,6 +558,9 @@ const PlanesPage = memo(() => {
         </div>
       ) : (
         <Flexbox gap={16} horizontal style={{ alignItems: 'stretch', flexWrap: 'wrap' }}>
+          {selectError && (
+            <div style={{ color: '#ef4444', fontSize: 13, width: '100%' }}>{selectError}</div>
+          )}
           {plans.map((plan) => (
             <PlanCard
               billing={billing}
@@ -550,7 +571,9 @@ const PlanesPage = memo(() => {
                   mySubscription.plan?.tier === plan.tier)
               }
               key={plan._id}
+              onSelect={handleSelectPlan}
               plan={plan}
+              selecting={selectingPlanId === plan.plan_id}
             />
           ))}
         </Flexbox>
