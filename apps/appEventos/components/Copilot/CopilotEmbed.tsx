@@ -104,6 +104,8 @@ export const CopilotEmbed = ({
   const [isRateLimited, setIsRateLimited] = useState(false);
   // Progress state for multi-step operations
   const [progress, setProgress] = useState<ProgressEvent | null>(null);
+  /** Hay conversación anterior cargada: preguntar si recuperar o nueva conversación */
+  const [showRecoverBanner, setShowRecoverBanner] = useState(false);
 
   // Load chat history on mount
   useEffect(() => {
@@ -126,6 +128,7 @@ export const CopilotEmbed = ({
         }));
 
         setMessages(formattedMessages);
+        if (formattedMessages.length > 0) setShowRecoverBanner(true);
       } catch (error) {
         console.error('[CopilotEmbed] Error loading history:', error);
       } finally {
@@ -210,6 +213,11 @@ export const CopilotEmbed = ({
       abortControllerRef.current = controller;
 
       try {
+        const messageHistory = messages.map((m) => ({
+          role: m.role as 'user' | 'assistant' | 'system',
+          content: m.message || '',
+        }));
+
         const params: SendMessageParams = {
           message: content,
           sessionId,
@@ -218,6 +226,7 @@ export const CopilotEmbed = ({
           eventId,
           eventName,
           pageContext,
+          messageHistory,
         };
 
         // Send with streaming
@@ -276,7 +285,7 @@ export const CopilotEmbed = ({
         abortControllerRef.current = null;
       }
     },
-    [sessionId, userId, development, eventId, eventName, pageContext, loading, handleEnrichedEvent]
+    [sessionId, userId, development, eventId, eventName, pageContext, loading, handleEnrichedEvent, messages]
   );
 
   // Handle message actions (copy, etc.)
@@ -304,6 +313,46 @@ export const CopilotEmbed = ({
     });
     handleSend(retryContent);
   }, [retryContent, loading, handleSend]);
+
+  // Interceptar clicks en links markdown internos (ej: /invitados?eventId=X)
+  // para navegar con router.push en vez de recargar la página completa.
+  const messageListRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const container = messageListRef.current;
+    if (!container) return;
+
+    const handleClick = (e: MouseEvent) => {
+      const anchor = (e.target as HTMLElement).closest('a');
+      if (!anchor) return;
+
+      const href = anchor.getAttribute('href');
+      if (!href) return;
+
+      // Solo interceptar rutas internas (empiezan por /)
+      if (href.startsWith('/')) {
+        e.preventDefault();
+        router.push(href);
+        return;
+      }
+
+      // Links al mismo dominio: convertir a ruta relativa
+      try {
+        const url = new URL(href, window.location.origin);
+        const sameOrigin = url.origin === window.location.origin;
+        const knownHosts = ['app-test.bodasdehoy.com', 'organizador.bodasdehoy.com', 'bodasdehoy.com'];
+        const isKnown = knownHosts.some(h => url.hostname === h);
+        if (sameOrigin || isKnown) {
+          e.preventDefault();
+          router.push(url.pathname + url.search + url.hash);
+        }
+      } catch {
+        // URL inválida, dejar comportamiento por defecto
+      }
+    };
+
+    container.addEventListener('click', handleClick);
+    return () => container.removeEventListener('click', handleClick);
+  }, [router]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -348,8 +397,65 @@ export const CopilotEmbed = ({
         </div>
       )}
 
-      {/* Message List */}
-      <div style={{ flex: 1, overflow: 'hidden' }}>
+      {/* Banner: recuperar conversación anterior o nueva */}
+      {showRecoverBanner && messages.length > 0 && (
+        <div
+          style={{
+            padding: '10px 16px',
+            background: '#f0f5ff',
+            borderBottom: '1px solid #adc6ff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
+            flexWrap: 'wrap',
+          }}
+        >
+          <span style={{ fontSize: 13, color: '#2f54eb', flex: '1 1 200px' }}>
+            Tienes una conversación anterior. ¿Continuar o empezar una nueva?
+          </span>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <button
+              type="button"
+              onClick={() => setShowRecoverBanner(false)}
+              style={{
+                padding: '6px 12px',
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#2f54eb',
+                background: '#fff',
+                border: '1px solid #adc6ff',
+                borderRadius: 6,
+                cursor: 'pointer',
+              }}
+            >
+              Continuar con esta
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMessages([]);
+                setShowRecoverBanner(false);
+              }}
+              style={{
+                padding: '6px 12px',
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#fff',
+                background: '#2f54eb',
+                border: 'none',
+                borderRadius: 6,
+                cursor: 'pointer',
+              }}
+            >
+              Nueva conversación
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Message List — ref para interceptar clicks en links markdown */}
+      <div ref={messageListRef} style={{ flex: 1, overflow: 'hidden' }}>
         <MessageList
           messages={messages}
           autoScroll

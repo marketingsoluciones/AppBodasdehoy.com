@@ -151,7 +151,7 @@ test.describe('Visitante — chat-ia (chat-test)', () => {
     expect(hasWelcome).toBe(true);
   });
 
-  test('límite de mensajes visitante: al 4° mensaje se bloquea y aparece modal de registro', async ({
+  test('límite de mensajes visitante: al 6° mensaje (primer día) se bloquea y aparece modal de registro', async ({
     page,
   }) => {
     if (!isAppTest) {
@@ -163,38 +163,36 @@ test.describe('Visitante — chat-ia (chat-test)', () => {
     await page.waitForLoadState('load').catch(() => {});
     await page.waitForTimeout(5000);
 
-    // Buscar el input del chat
     const chatInput = page
       .locator('textarea[placeholder], [contenteditable="true"], textarea')
       .first();
     const inputVisible = await chatInput.isVisible({ timeout: 10_000 }).catch(() => false);
 
     if (!inputVisible) {
-      // Si no hay input visible, puede que el chat esté en otro estado — saltar gracefully
       console.log('Input de chat no visible, saltando test de límite de mensajes');
       test.skip();
       return;
     }
 
-    // Enviar 3 mensajes (el límite permitido)
+    // Límite: 5 mensajes el primer día, luego 2/día. Enviar 5 (límite del día) y luego el 6° debe bloquear.
     const testMessages = [
       '¿Qué funciones tiene la app?',
       '¿Cuánto cuesta registrarse?',
       '¿Puedo gestionar invitados?',
+      '¿Hay gestión de mesas?',
+      '¿Y de presupuesto?',
     ];
 
     for (const msg of testMessages) {
       await chatInput.fill(msg);
       await chatInput.press('Enter');
-      // Esperar un poco entre mensajes para no saturar
       await page.waitForTimeout(2000);
     }
 
-    // Pequeña espera para que el 3er mensaje se procese
     await page.waitForTimeout(3000);
 
-    // Intentar enviar el 4° mensaje (debe activar el modal de límite)
-    await chatInput.fill('Este es el 4° mensaje y debería estar bloqueado');
+    // 6° mensaje debe activar el modal de límite (primer día = 5 permitidos)
+    await chatInput.fill('Este es el 6° mensaje y debería estar bloqueado');
     await chatInput.press('Enter');
     await page.waitForTimeout(2000);
 
@@ -245,7 +243,7 @@ test.describe('Visitante — copilot embebido en appEventos', () => {
     expect(text.length).toBeGreaterThan(80);
   });
 
-  test('copilot iframe está presente en el DOM para visitante', async ({ page }) => {
+  test('copilot está presente en el DOM para visitante', async ({ page }) => {
     if (!isAppTest) {
       test.skip();
       return;
@@ -254,20 +252,21 @@ test.describe('Visitante — copilot embebido en appEventos', () => {
     // Esperar a que cargue la app
     await page.waitForTimeout(5000);
 
-    // El copilot se renderiza como iframe de chat-ia
-    const iframe = page.frameLocator('iframe[src*="chat"]').first();
-    const iframeExists = (await page.locator('iframe[src*="chat"]').count()) > 0;
+    // El copilot puede ser embed (textarea) o iframe (legacy)
+    const hasEmbed = (await page.locator('textarea[placeholder*="Escribe"]').count()) > 0;
+    const hasIframe = (await page.locator('iframe[src*="chat"]').count()) > 0;
 
-    if (iframeExists) {
-      console.log('✅ iframe del copilot detectado en el DOM');
-      // Verificar que el iframe carga sin error 500
+    if (hasEmbed) {
+      console.log('✅ Copilot embed (textarea) detectado en el DOM');
+    } else if (hasIframe) {
+      console.log('✅ Copilot iframe detectado en el DOM');
+      const iframe = page.frameLocator('iframe[src*="chat"]').first();
       const iframeBody = iframe.locator('body');
-      // innerText omite <script> y <style>, evitando falsos positivos con "500" en chunk paths
       const iframeText = await iframeBody.innerText().catch(async () => iframeBody.textContent().catch(() => '')) ?? '';
       expect(iframeText).not.toMatch(/Internal Server Error/);
     } else {
       // El copilot puede estar detrás de un botón o no visible para visitante — OK
-      console.log('ℹ️ iframe del copilot no encontrado (puede estar oculto para visitante)');
+      console.log('ℹ️ Copilot no encontrado (puede estar oculto para visitante o detrás de un botón)');
     }
   });
 });

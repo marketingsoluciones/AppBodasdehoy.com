@@ -14,7 +14,7 @@
  *   con BASE_URL=https://app-test.bodasdehoy.com
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, waitForAppReady, loginAndSelectEvent } from './helpers';
+import { clearSession, waitForAppReady, loginAndSelectEvent, waitForCopilotReady } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
@@ -62,25 +62,39 @@ test.describe('Copilot — consulta invitados con evento seleccionado', () => {
     await toggle.click();
     await page.waitForTimeout(4_000);
 
-    const iframe = page.frameLocator('iframe[src*="chat"]').first();
-    const editor = iframe.locator('div[contenteditable="true"]').last();
-    await editor.waitFor({ state: 'visible', timeout: 15_000 }).catch(() => {});
-    if (!(await editor.isVisible().catch(() => false))) {
-      console.log('ℹ️ Editor del Copilot no visible en iframe — skip');
+    const { ready, mode } = await waitForCopilotReady(page, 30_000);
+    if (!ready) {
+      console.log('ℹ️ Editor del Copilot no visible — skip');
       test.skip();
       return;
     }
 
-    await editor.click();
-    await page.keyboard.type('invitados que se llama Raul', { delay: 30 });
-    await page.keyboard.press('Enter');
+    // Escribir pregunta según el modo detectado
+    if (mode === 'embed') {
+      const textarea = page.locator('textarea[placeholder*="Escribe"]').first();
+      await textarea.click();
+      await textarea.fill('invitados que se llama Raul');
+      await textarea.press('Enter');
+    } else {
+      const iframe = page.frameLocator('iframe[src*="chat"]').first();
+      const editor = iframe.locator('div[contenteditable="true"]').last();
+      await editor.click();
+      await page.keyboard.type('invitados que se llama Raul', { delay: 30 });
+      await page.keyboard.press('Enter');
+    }
     await page.waitForTimeout(35_000);
 
-    const assistantContent = iframe.locator(
-      '[class*="markdown"], [class*="message-content"], [class*="assistant"], [data-role="assistant"]'
-    );
-    const lastMsg = assistantContent.last();
-    const text = (await lastMsg.textContent().catch(() => '')) ?? '';
+    // Buscar respuesta del asistente en el DOM (embed) o iframe (legacy)
+    const assistantSelector = '[class*="markdown"], [class*="message-content"], [class*="assistant"], [data-role="assistant"]';
+    let text = '';
+    if (mode === 'embed') {
+      const lastMsg = page.locator(assistantSelector).last();
+      text = (await lastMsg.textContent().catch(() => '')) ?? '';
+    } else {
+      const iframe = page.frameLocator('iframe[src*="chat"]').first();
+      const lastMsg = iframe.locator(assistantSelector).last();
+      text = (await lastMsg.textContent().catch(() => '')) ?? '';
+    }
 
     expect(text, 'La respuesta del Copilot no debe ser el error genérico de BD').not.toMatch(
       ERROR_BD_REGEX

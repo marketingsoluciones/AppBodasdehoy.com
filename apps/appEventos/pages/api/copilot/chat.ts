@@ -67,6 +67,11 @@ const respondBackendUnavailable = (
 // Default provider: backend IA auto-routing
 const DEFAULT_PROVIDER = 'auto';
 
+// Pedir a api-ia que enrute a un modelo lo más razonador posible (reasoning). Si el backend
+// soporta X-Prefer-Reasoning-Model, debe elegir un modelo con buen razonamiento (p. ej. Claude,
+// GPT-4, o el mejor disponible en OpenRouter). Por defecto true para el Copilot.
+const PREFER_REASONING_MODEL = process.env.COPILOT_PREFER_REASONING_MODEL !== 'false';
+
 // API2_GRAPHQL_URL: solo se usa como fallback de whitelabel si SKIP_WHITELABEL_VIA_API2 no está activo.
 // apps/web no debe apuntar a api2; preferir API_IA_WHITELABEL_URL o SKIP_WHITELABEL_VIA_API2=true.
 const API2_GRAPHQL_URL = process.env.API2_GRAPHQL_URL || '';
@@ -222,6 +227,11 @@ function buildSystemPrompt(metadata?: { eventName?: string; eventId?: string; pa
 - NUNCA digas que necesitas "ejecutar herramientas", "consultar bases de datos" o "ejecutar funciones". Ya tienes los datos arriba.
 - NUNCA simules ejecución de código, funciones o herramientas. Responde directamente con los datos que tienes.
 - Si no tienes un dato específico, sugiere al usuario ir a la sección correspondiente con un link.
+- NO todas las respuestas tienen que ser "aplicar un filtro en pantalla". Usa esta regla:
+  * RESPONDE EN EL CHAT cuando: el usuario pide un resumen, estadísticas, comparación, conteo, listado de datos, o cualquier cosa que se resuelve con texto/tabla (ej: "cuántos invitados hay", "dame un resumen", "lista las tareas", "compara presupuesto vs pagado").
+  * NAVEGA A UNA PANTALLA (incluye link) cuando: el usuario dice explícitamente "muéstrame en la app", "llévame a", "quiero ver la pantalla de", o pide ver/gestionar algo concreto en la interfaz.
+  * NUNCA navegues a una pantalla si no estás seguro de que la pantalla puede mostrar lo que el usuario pide. Si no hay filtro posible o la pantalla no soporta ese dato, muestra el resultado en el chat.
+  * Los filtros solo tienen sentido si la pantalla destino puede aplicarlos (invitados por estado, mesa por número, etc.). No envíes al usuario a una pantalla vacía.
 
 ## IMPORTANTE: Respuestas sobre eventos específicos
 - Si el usuario pregunta por UN evento específico (ej: "Boda de Ana"), responde SOLO sobre ese evento.
@@ -562,6 +572,8 @@ async function proxyToPythonBackend(
       max_tokens: 2000,
     };
     if (finalModel) payload.model = finalModel;
+    // Hint para api-ia: priorizar modelo razonador (también se envía por header X-Prefer-Reasoning-Model)
+    if (PREFER_REASONING_MODEL) payload.prefer_reasoning_model = true;
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -570,6 +582,8 @@ async function proxyToPythonBackend(
 
     if (requestId) headers['X-Request-Id'] = requestId;
     if (apiKey) headers['X-API-Key'] = apiKey;
+    // api-ia debe tener o escoger un modelo lo más razonador posible cuando este header es true
+    if (PREFER_REASONING_MODEL) headers['X-Prefer-Reasoning-Model'] = 'true';
 
     const authHeader = req.headers['authorization'];
     if (authHeader) headers['Authorization'] = authHeader as string;

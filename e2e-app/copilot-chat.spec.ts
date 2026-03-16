@@ -34,7 +34,7 @@ test.describe('Copilot iframe — appEventos', () => {
     await waitForAppReady(page, 20_000);
   });
 
-  test('iframe del copilot está presente en el DOM', async ({ page }) => {
+  test('copilot está presente en el DOM (embed o iframe)', async ({ page }) => {
     if (!isAppTest) {
       test.skip();
       return;
@@ -43,24 +43,23 @@ test.describe('Copilot iframe — appEventos', () => {
     // El copilot puede estar detrás de un botón — dar tiempo para que se monte
     await page.waitForTimeout(5000);
 
-    const iframeCount = await page.locator('iframe[src*="chat"]').count();
-    if (iframeCount === 0) {
-      // Intentar abrir el panel del copilot si hay botón
-      const copilotBtn = page
-        .locator('button, [role="button"]')
-        .filter({ hasText: /copilot|asistente|chat/i })
-        .first();
-      if (await copilotBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-        await copilotBtn.click();
-        await page.waitForTimeout(3000);
-      }
+    // Intentar abrir el panel del copilot si hay botón
+    const copilotBtn = page.getByTestId('copilot-toggle');
+    if (await copilotBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await copilotBtn.click();
+      await page.waitForTimeout(3000);
     }
 
-    const finalCount = await page.locator('iframe[src*="chat"]').count();
-    if (finalCount > 0) {
-      console.log(`iframe del copilot detectado (${finalCount})`);
+    // Detectar embed (textarea) o iframe
+    const hasEmbed = (await page.locator('textarea[placeholder*="Escribe"]').count()) > 0;
+    const hasIframe = (await page.locator('iframe[src*="chat"]').count()) > 0;
+
+    if (hasEmbed) {
+      console.log('Copilot embed (textarea) detectado');
+    } else if (hasIframe) {
+      console.log('Copilot iframe detectado');
     } else {
-      console.log('ℹ️ iframe no encontrado (puede estar oculto o requerir panel abierto)');
+      console.log('ℹ️ Copilot no encontrado (puede estar oculto o requerir panel abierto)');
     }
 
     // No debe haber ErrorBoundary en la página principal
@@ -68,7 +67,7 @@ test.describe('Copilot iframe — appEventos', () => {
     expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
   });
 
-  test('iframe del copilot carga sin Internal Server Error', async ({ page }) => {
+  test('copilot carga sin Internal Server Error', async ({ page }) => {
     if (!isAppTest) {
       test.skip();
       return;
@@ -76,25 +75,32 @@ test.describe('Copilot iframe — appEventos', () => {
 
     await page.waitForTimeout(6000);
 
-    const iframeLocator = page.locator('iframe[src*="chat"]').first();
-    const iframeExists = (await iframeLocator.count()) > 0;
-
-    if (!iframeExists) {
-      console.log('ℹ️ iframe no encontrado — test no aplicable');
-      return;
+    // Intentar abrir copilot
+    const toggle = page.getByTestId('copilot-toggle');
+    if (await toggle.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await toggle.click();
+      await page.waitForTimeout(3000);
     }
 
-    const iframe = page.frameLocator('iframe[src*="chat"]').first();
-    const iframeBody = iframe.locator('body');
+    // Verificar embed (textarea directo) o iframe
+    const hasEmbed = (await page.locator('textarea[placeholder*="Escribe"]').count()) > 0;
+    const hasIframe = (await page.locator('iframe[src*="chat"]').count()) > 0;
 
-    // innerText omite script/style — evita falsos positivos con "500" en chunk paths
-    const iframeText = await iframeBody
-      .innerText()
-      .catch(async () => iframeBody.textContent().catch(() => ''))
-      .catch(() => '') ?? '';
+    if (hasEmbed) {
+      console.log('Copilot embed cargó OK (textarea visible)');
+    } else if (hasIframe) {
+      const iframe = page.frameLocator('iframe[src*="chat"]').first();
+      const iframeBody = iframe.locator('body');
+      const iframeText = await iframeBody
+        .innerText()
+        .catch(async () => iframeBody.textContent().catch(() => ''))
+        .catch(() => '') ?? '';
 
-    expect(iframeText).not.toMatch(/Internal Server Error/);
-    console.log(`iframe cargó OK. Texto (primeros 100 chars): ${iframeText.slice(0, 100)}`);
+      expect(iframeText).not.toMatch(/Internal Server Error/);
+      console.log(`iframe cargó OK. Texto (primeros 100 chars): ${iframeText.slice(0, 100)}`);
+    } else {
+      console.log('ℹ️ Copilot no encontrado — test no aplicable');
+    }
   });
 
   test('página /presupuesto carga sin ErrorBoundary (test context copilot)', async ({ page }) => {
