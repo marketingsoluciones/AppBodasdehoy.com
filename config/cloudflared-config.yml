@@ -1,23 +1,27 @@
-# Config del túnel Cloudflare (lobe-chat-harbor) para subdominios app-test y chat-test.
+# Config del túnel Cloudflare (lobe-chat-harbor)
 # Uso: ./scripts/iniciar-tunnel.sh (usa este archivo si existe).
 #
 # Credenciales: deben estar en ~/.cloudflared/30fdf520-9577-470f-a224-4cda1e5eb3f0.json
 # (obtenerlas desde Cloudflare Zero Trust → Tunnels → lobe-chat-harbor).
+#
+# Dominios -dev → tunnel (dev local, hot reload)
+# Dominios -test → Vercel rama test (DNS CNAME a cname.vercel-dns.com, NO al tunnel)
+# Producción → Vercel rama master
 
 tunnel: 30fdf520-9577-470f-a224-4cda1e5eb3f0
 credentials-file: ~/.cloudflared/30fdf520-9577-470f-a224-4cda1e5eb3f0.json
 
 ingress:
-  # Subdominios de desarrollo local (esta máquina)
-  # app-dev y chat-dev → siempre apuntan al servidor local (dev con hot reload)
+  # DEV local (hot reload) — puertos: appEventos:8080, chat-ia:3210, memories:3080, editor:3000
   - hostname: app-dev.bodasdehoy.com
     service: http://127.0.0.1:8080
   - hostname: chat-dev.bodasdehoy.com
     service: http://127.0.0.1:3210
-  # app-test y chat-test → Vercel (DNS CNAME apunta a cname.vercel-dns.com, NO al tunnel)
-  # Otros hostnames del mismo túnel
-  - hostname: memories-test.bodasdehoy.com
+  - hostname: memories-dev.bodasdehoy.com
     service: http://127.0.0.1:3080
+  - hostname: editor-dev.bodasdehoy.com
+    service: http://127.0.0.1:3000
+  # Otros servicios del túnel (backends)
   - hostname: auth-test.bodasdehoy.com
     service: http://localhost:8000
   - hostname: api-ia.bodasdehoy.com
