@@ -74,8 +74,12 @@ export async function waitForAppReady(page: Page, timeoutMs = 25_000): Promise<v
   await body.waitFor({ state: 'visible', timeout: Math.min(timeoutMs, 10_000) }).catch(() => {});
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
-    const text = (await body.textContent()) ?? '';
-    if (text.length > 80 && !text.includes('Error Capturado por ErrorBoundary')) return;
+    try {
+      const text = (await body.textContent()) ?? '';
+      if (text.length > 80 && !text.includes('Error Capturado por ErrorBoundary')) return;
+    } catch {
+      return; // Página cerrada o navegación en curso
+    }
     await delay(400);
   }
 }
