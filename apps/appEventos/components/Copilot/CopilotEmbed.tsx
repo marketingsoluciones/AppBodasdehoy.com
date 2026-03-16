@@ -24,25 +24,6 @@ import {
   type ProgressEvent,
   type ToolResultEvent,
 } from '../../services/copilotChat';
-import { EventsGroupContextProvider } from '../../context';
-
-/** Mapeo de path → entity para filtros del Copilot */
-const PATH_TO_ENTITY: Record<string, string> = {
-  '/invitados': 'guests',
-  '/mesas': 'tables',
-  '/presupuesto': 'budget_items',
-  '/itinerario': 'moments',
-  '/servicios': 'services',
-};
-
-/** Mapeo inverso: entity → path para auto-navegación */
-const ENTITY_TO_PATH: Record<string, string> = {
-  guests: '/invitados',
-  tables: '/mesas',
-  budget_items: '/presupuesto',
-  moments: '/itinerario',
-  services: '/servicios',
-};
 
 export interface CopilotEmbedProps {
   /**
@@ -112,7 +93,6 @@ export const CopilotEmbed = ({
 }: CopilotEmbedProps) => {
   const router = useRouter();
   const toast = useToast();
-  const { setCopilotFilter, clearCopilotFilter, refreshEventsGroup } = EventsGroupContextProvider();
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -163,55 +143,10 @@ export const CopilotEmbed = ({
   const handleEnrichedEvent = useCallback((event: EnrichedEvent) => {
     switch (event.type) {
       case 'ui_action': {
-        const action = event.data as UIActionEvent & {
-          entity?: string;
-          ids?: string[];
-          query?: string;
-        };
-
+        const action = event.data as UIActionEvent;
         if (action.type === 'navigate' && action.path) {
-          // Extraer pathname y query params del path
-          let pathname = action.path;
-          let searchIds: string[] | undefined;
-          let searchQuery: string | undefined;
-          try {
-            const url = new URL(action.path, 'http://localhost');
-            pathname = url.pathname;
-            const idsParam = url.searchParams.get('ids');
-            if (idsParam) searchIds = idsParam.split(',').filter(Boolean);
-            searchQuery = url.searchParams.get('query') || undefined;
-          } catch { /* path sin query params, usar tal cual */ }
-
-          // Determinar entity desde el path o desde datos explícitos del action
-          const entity = action.entity || PATH_TO_ENTITY[pathname];
-          if (entity) {
-            setCopilotFilter({
-              entity,
-              ids: action.ids || searchIds,
-              query: action.query || searchQuery,
-            });
-          }
-
           router.push(action.path);
-        } else if ((action.type as string) === 'filter') {
-          // Filtro explícito sin navegación (o con auto-navegación)
-          const entity = action.entity;
-          if (entity) {
-            setCopilotFilter({
-              entity,
-              ids: action.ids,
-              query: action.query,
-            });
-            // Auto-navegar a la sección del filtro si no estamos ahí
-            const targetPath = ENTITY_TO_PATH[entity];
-            if (targetPath && !router.pathname.includes(targetPath)) {
-              router.push(targetPath);
-            }
-          }
-        } else if ((action.type as string) === 'clear_filter') {
-          clearCopilotFilter();
         } else if (action.type === 'refresh_data') {
-          refreshEventsGroup();
           router.replace(router.asPath);
         }
         break;
@@ -237,7 +172,7 @@ export const CopilotEmbed = ({
       default:
         break;
     }
-  }, [router, toast, setCopilotFilter, clearCopilotFilter, refreshEventsGroup]);
+  }, [router, toast]);
 
   // Handle sending message
   const handleSend = useCallback(
@@ -396,19 +331,6 @@ export const CopilotEmbed = ({
       // Solo interceptar rutas internas (empiezan por /)
       if (href.startsWith('/')) {
         e.preventDefault();
-        // Si el link apunta a una sección filtrable, aplicar filtro
-        try {
-          const url = new URL(href, 'http://localhost');
-          const entity = PATH_TO_ENTITY[url.pathname];
-          if (entity) {
-            const idsParam = url.searchParams.get('ids');
-            const ids = idsParam ? idsParam.split(',').filter(Boolean) : undefined;
-            const query = url.searchParams.get('query') || undefined;
-            if (ids || query) {
-              setCopilotFilter({ entity, ids, query });
-            }
-          }
-        } catch { /* ignorar */ }
         router.push(href);
         return;
       }
@@ -430,7 +352,7 @@ export const CopilotEmbed = ({
 
     container.addEventListener('click', handleClick);
     return () => container.removeEventListener('click', handleClick);
-  }, [router, setCopilotFilter]);
+  }, [router]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -514,7 +436,6 @@ export const CopilotEmbed = ({
               onClick={() => {
                 setMessages([]);
                 setShowRecoverBanner(false);
-                clearCopilotFilter();
               }}
               style={{
                 padding: '6px 12px',

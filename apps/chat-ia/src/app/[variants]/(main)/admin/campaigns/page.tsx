@@ -6,7 +6,6 @@ import { Flexbox } from 'react-layout-kit';
 
 import EventSelector from '@/components/EventSelector';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
-import { createCRMCampaign } from '@/services/api2/campaigns';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -158,7 +157,6 @@ const CampaignsPage = memo(() => {
   const [form] = Form.useForm<CampaignForm>();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [draftSaved, setDraftSaved] = useState(false);
   const [activeTab, setActiveTab] = useState('form');
 
@@ -191,26 +189,12 @@ const CampaignsPage = memo(() => {
 
   const handleSubmit = async (values: CampaignForm) => {
     setSubmitting(true);
-    setSubmitError(null);
-
-    const campaignName = `${values.channel} - ${new Date().toLocaleDateString('es-ES')}`;
-    const result = await createCRMCampaign({
-      name: campaignName,
-      notes: values.message,
-      scheduledAt: values.scheduledAt,
-      settings: { sendImmediately: !values.scheduledAt },
-      type: values.channel,
-      ...(values.channel === 'WHATSAPP' && { whatsappConfig: { body: values.message } }),
-    });
-
-    if (result.success) {
-      setSubmitted(true);
-      clearDraft();
-      setDraftSaved(false);
-    } else {
-      setSubmitError(result.message ?? 'Error al crear la campaña. Inténtalo de nuevo.');
-    }
+    // TODO: conectar con la cola de api-ia cuando esté disponible.
+    await new Promise((r) => setTimeout(r, 800));
+    setSubmitted(true);
     setSubmitting(false);
+    clearDraft();
+    setDraftSaved(false);
   };
 
   const channel = Form.useWatch('channel', form);
@@ -228,21 +212,25 @@ const CampaignsPage = memo(() => {
         </Paragraph>
       </Flexbox>
 
+      <Alert
+        description={
+          <>
+            La cola de envío está en integración por api-ia + API2. Cuando esté lista, este
+            formulario enviará la campaña real.{' '}
+            <Text type="secondary">Ver #copilot-api-ia para avisos.</Text>
+          </>
+        }
+        message="Cola de campañas: pendiente de conexión api-ia"
+        showIcon
+        type="info"
+      />
+
       {submitted && (
         <Alert
-          description="La campaña fue creada en API2 CRM. Será procesada según el canal y programación seleccionados."
-          message="Campaña creada correctamente"
+          description="La campaña se enviará cuando la cola esté conectada (api-ia avisará por #copilot-api-ia)."
+          message="Formulario listo"
           showIcon
           type="success"
-        />
-      )}
-
-      {submitError && (
-        <Alert
-          description={submitError}
-          message="Error al crear campaña"
-          showIcon
-          type="error"
         />
       )}
 
@@ -323,8 +311,9 @@ const CampaignsPage = memo(() => {
                             loading={submitting}
                             type="primary"
                           >
-                            {submitting ? 'Creando...' : 'Crear campaña'}
+                            {submitting ? 'Preparando...' : 'Preparar campaña'}
                           </Button>
+                          <Tag color="orange">Cola pendiente de api-ia</Tag>
                           {draftSaved && (
                             <span className="text-xs text-gray-400">Borrador guardado</span>
                           )}

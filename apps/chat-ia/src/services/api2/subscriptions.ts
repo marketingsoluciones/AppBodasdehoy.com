@@ -160,43 +160,6 @@ export async function getMySubscription(): Promise<UserSubscriptionInfo | null> 
   }
 }
 
-// ========================================
-// MUTATIONS
-// ========================================
-
-export interface SubscribePlanResult {
-  checkout_url?: string;
-  plan_name?: string;
-  session_id?: string;
-  success: boolean;
-}
-
-export async function subscribeToPlan(
-  planId: string,
-  billingPeriod: 'monthly' | 'yearly' = 'monthly'
-): Promise<SubscribePlanResult> {
-  try {
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    const data = await api2Client.query<{ subscribeToPlan: SubscribePlanResult }>(
-      `mutation SubscribeToPlan($plan_id: String!, $billing_period: String, $success_url: String!, $cancel_url: String!) {
-        subscribeToPlan(plan_id: $plan_id, billing_period: $billing_period, success_url: $success_url, cancel_url: $cancel_url) {
-          success checkout_url session_id plan_name
-        }
-      }`,
-      {
-        billing_period: billingPeriod,
-        cancel_url: `${origin}/settings/billing/planes?cancelled=1`,
-        plan_id: planId,
-        success_url: `${origin}/settings/billing?upgraded=1`,
-      }
-    );
-    return data.subscribeToPlan ?? { success: false };
-  } catch (error) {
-    console.error('[subscriptions] subscribeToPlan error:', error);
-    return { success: false };
-  }
-}
-
 export async function getSubscriptionPlans(
   tier?: SubscriptionTier
 ): Promise<SubscriptionPlan[]> {
