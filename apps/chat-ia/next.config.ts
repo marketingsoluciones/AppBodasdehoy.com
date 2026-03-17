@@ -244,7 +244,12 @@ const nextConfig: NextConfig = {
   // ✅ Desactivar source maps en producción para reducir memoria
   productionBrowserSourceMaps: false,
 
-  allowedDevOrigins: ['chat-test.bodasdehoy.com', 'app-test.bodasdehoy.com', '127.0.0.1', 'localhost'],
+  allowedDevOrigins: [
+    'chat-test.bodasdehoy.com', 'app-test.bodasdehoy.com',
+    'chat-dev.bodasdehoy.com', 'app-dev.bodasdehoy.com',
+    'memories-dev.bodasdehoy.com', 'wedding-creator.bodasdehoy.com',
+    '127.0.0.1', 'localhost',
+  ],
 
   reactStrictMode: true,
 

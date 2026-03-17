@@ -14,9 +14,13 @@ const DOMAIN_TO_DEVELOPER: Record<string, string> = {
 
   'annloevents.com': 'annloevents',
 
+  'app-dev.bodasdehoy.com': 'bodasdehoy',
+
   'bodasdehoy.com': 'bodasdehoy',
 
   'champagne-events.com.mx': 'champagne-events',
+
+  'chat-dev.bodasdehoy.com': 'bodasdehoy',
 
   'chat-test.bodasdehoy.com': 'bodasdehoy',
 
@@ -30,11 +34,15 @@ const DOMAIN_TO_DEVELOPER: Record<string, string> = {
   // Localhost y IPs (default)
   'localhost': 'bodasdehoy',
 
+  'memories-dev.bodasdehoy.com': 'bodasdehoy',
+
   'marcablanca.com': 'marcablanca',
 
   'staging.eventosorganizador.com': 'eventosorganizador',
 
   'test.bodasdehoy.com': 'bodasdehoy',
+
+  'wedding-creator.bodasdehoy.com': 'bodasdehoy',
 
   'wildliberty.com': 'wildliberty',
 };

@@ -149,6 +149,7 @@ export const useCopilotBridge = () => {
     const APP_DOMAINS = [
       'organizador.bodasdehoy.com',
       'app-test.bodasdehoy.com',
+      'app-dev.bodasdehoy.com',
       'organizador.eventosorganizador.com',
     ];
 

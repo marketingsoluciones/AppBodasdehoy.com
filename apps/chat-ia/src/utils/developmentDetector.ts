@@ -110,18 +110,17 @@ export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = {
 const DOMAIN_TO_DEVELOPMENT: Record<string, string> = {
   '127.0.0.1': 'bodasdehoy',
   'annloevents.com': 'annloevents',
+  'app-dev.bodasdehoy.com': 'bodasdehoy',
   'bodasdehoy.com': 'bodasdehoy',
   'champagneevents.com': 'champagneevents',
-  
-'eventosorganizador.com': 'eventosorganizador',
-  
-// Para desarrollo local (default)
-'localhost': 'bodasdehoy',
-  
-'www.annloevents.com': 'annloevents',
-  
-'www.bodasdehoy.com': 'bodasdehoy',
-  
+  'chat-dev.bodasdehoy.com': 'bodasdehoy',
+  'eventosorganizador.com': 'eventosorganizador',
+  // Para desarrollo local (default)
+  'localhost': 'bodasdehoy',
+  'memories-dev.bodasdehoy.com': 'bodasdehoy',
+  'wedding-creator.bodasdehoy.com': 'bodasdehoy',
+  'www.annloevents.com': 'annloevents',
+  'www.bodasdehoy.com': 'bodasdehoy',
   'www.champagneevents.com': 'champagneevents',
   'www.eventosorganizador.com': 'eventosorganizador',
 };

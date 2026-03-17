@@ -111,8 +111,14 @@ function GuestWelcomeMessage() {
   }
 
   const handleRegister = () => {
-    const isTest = typeof window !== 'undefined' && window.location.hostname.includes('-test.');
-    const appBase = isTest ? 'https://app-test.bodasdehoy.com' : 'https://organizador.bodasdehoy.com';
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const isDev = hostname.includes('-dev.');
+    const isTest = hostname.includes('-test.');
+    const appBase = isDev
+      ? 'https://app-dev.bodasdehoy.com'
+      : isTest
+        ? 'https://app-test.bodasdehoy.com'
+        : 'https://organizador.bodasdehoy.com';
     window.open(`${appBase}/login?q=register`, '_blank');
   };
 
@@ -161,8 +167,15 @@ function GuestWelcomeMessage() {
     }
   };
 
-  const isTestEnv = typeof window !== 'undefined' && window.location.hostname.includes('-test.');
-  const registerUrl = `${isTestEnv ? 'https://app-test.bodasdehoy.com' : 'https://organizador.bodasdehoy.com'}/login?q=register`;
+  const hostnameForEnv = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isDevEnv = hostnameForEnv.includes('-dev.');
+  const isTestEnv = hostnameForEnv.includes('-test.');
+  const registerAppBase = isDevEnv
+    ? 'https://app-dev.bodasdehoy.com'
+    : isTestEnv
+      ? 'https://app-test.bodasdehoy.com'
+      : 'https://organizador.bodasdehoy.com';
+  const registerUrl = `${registerAppBase}/login?q=register`;
 
   const limitState = getVisitorLimitState();
   const limitHint =

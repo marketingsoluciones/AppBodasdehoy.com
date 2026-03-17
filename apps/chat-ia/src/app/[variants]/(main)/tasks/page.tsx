@@ -55,8 +55,14 @@ function totalPending(events: EventWithTasks[]): number {
 }
 
 function getAppUrl(path: string): string {
-  if (typeof window !== 'undefined' && window.location.hostname.includes('-test.')) {
-    return `https://app-test.bodasdehoy.com${path}`;
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname.includes('-dev.')) {
+      return `https://app-dev.bodasdehoy.com${path}`;
+    }
+    if (hostname.includes('-test.')) {
+      return `https://app-test.bodasdehoy.com${path}`;
+    }
   }
   return `https://organizador.bodasdehoy.com${path}`;
 }

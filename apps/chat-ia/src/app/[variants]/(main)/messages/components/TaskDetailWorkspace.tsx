@@ -319,8 +319,12 @@ export function TaskDetailWorkspace({ eventId, taskId }: TaskDetailWorkspaceProp
           itinerarioTitle={itinerarioTitle}
           onComplete={isCompleted ? undefined : handleComplete}
           onOpenInApp={() => {
-            const appBase =
-              typeof window !== 'undefined' && window.location.hostname.includes('-test.')
+            const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+            const isDev = hostname.includes('-dev.');
+            const isTest = hostname.includes('-test.');
+            const appBase = isDev
+              ? 'https://app-dev.bodasdehoy.com'
+              : isTest
                 ? 'https://app-test.bodasdehoy.com'
                 : 'https://organizador.bodasdehoy.com';
             window.open(
