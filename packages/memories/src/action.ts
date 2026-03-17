@@ -138,6 +138,7 @@ export const memoriesActionSlice: StateCreator<
 
   fetchAlbums: async () => {
     const { baseUrl, userId, development } = getConfig(get);
+    if (!userId) return;
     const cacheKey = `albums_${userId}_${development}`;
     const cached = getCachedData<Album[]>(cacheKey);
     if (cached) {

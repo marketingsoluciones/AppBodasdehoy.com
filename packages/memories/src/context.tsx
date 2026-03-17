@@ -21,6 +21,9 @@ export function MemoriesProvider({
   development = 'bodasdehoy',
   children,
 }: MemoriesProviderProps) {
+  // Sync call so store config is ready before children mount and call fetchAlbums
+  useMemoriesStore.getState().setConfig(apiBaseUrl, userId, development);
+
   useEffect(() => {
     useMemoriesStore.getState().setConfig(apiBaseUrl, userId, development);
   }, [apiBaseUrl, userId, development]);
