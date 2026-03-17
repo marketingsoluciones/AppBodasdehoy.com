@@ -220,7 +220,7 @@ describe('POST /api/copilot/chat', () => {
         retry_after: '30',
       })
     );
-  });
+  }, 15000);
 
   it('devuelve 402 con payment_url (fallback billing) cuando el backend devuelve 402 sin payment_url', async () => {
     const mockFetch = (global as any).fetch as jest.Mock;

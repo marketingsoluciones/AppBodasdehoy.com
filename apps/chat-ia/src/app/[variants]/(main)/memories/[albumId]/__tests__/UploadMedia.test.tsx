@@ -103,6 +103,7 @@ const mockMessage = {
   warning: vi.fn(),
   info: vi.fn(),
   loading: vi.fn(),
+  destroy: vi.fn(),
 };
 vi.mock('antd', async () => {
   const actual = await vi.importActual('antd');
@@ -197,9 +198,7 @@ describe('AlbumDetailPage - Upload Media', () => {
     await userEvent.upload(fileInput as HTMLElement, file);
 
     await waitFor(() => {
-      expect(mockMessage.success).toHaveBeenCalledWith(
-        expect.objectContaining({ content: 'Archivo subido correctamente', key: 'upload' })
-      );
+      expect(mockMessage.success).toHaveBeenCalledWith('Archivo subido correctamente');
     }, { timeout: 5000 });
   });
 
@@ -218,9 +217,7 @@ describe('AlbumDetailPage - Upload Media', () => {
     await userEvent.upload(fileInput as HTMLElement, file);
 
     await waitFor(() => {
-      expect(mockMessage.error).toHaveBeenCalledWith(
-        expect.objectContaining({ content: 'Error al subir el archivo', key: 'upload' })
-      );
+      expect(mockMessage.error).toHaveBeenCalledWith('Error al subir el archivo');
     }, { timeout: 5000 });
   });
 });
