@@ -14,11 +14,12 @@ const wp = axios.create({
 const WebSocket = process.env.NEXT_PUBLIC_URL_API_SOCKET
 
 //api app
-// En desarrollo (localhost o dominios de test), usar proxy para evitar CORS
+// En desarrollo (localhost, dominios -dev o -test), usar proxy para evitar CORS
 const isLocalhost = typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' ||
    window.location.hostname === '127.0.0.1' ||
-   window.location.hostname.includes('-test.'));
+   window.location.hostname.includes('-test.') ||
+   window.location.hostname.includes('-dev.'));
 const baseURL = isLocalhost ? '/api/proxy' : process.env.NEXT_PUBLIC_BASE_URL;
 const instance = axios.create({ baseURL });
 

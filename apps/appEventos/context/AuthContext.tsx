@@ -254,8 +254,8 @@ const AuthProvider = ({ children }) => {
       varGlobalDevelopment = resp?.development
       setConfig(resp)
 
-      // Configurar debug token para App Check en desarrollo (localhost, chat-test o app-test)
-      const debugHosts = ['localhost', 'chat-test.bodasdehoy.com', 'app-test.bodasdehoy.com']
+      // Configurar debug token para App Check en desarrollo (localhost, -test o -dev)
+      const debugHosts = ['localhost', 'chat-test.bodasdehoy.com', 'app-test.bodasdehoy.com', 'chat-dev.bodasdehoy.com', 'app-dev.bodasdehoy.com']
       if (typeof window !== 'undefined' && debugHosts.includes(window.location.hostname)) {
         (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = 'CD2BCA5A-E34F-4F7E-B24B-81BC9DEB52C8'
         console.log('[Firebase] App Check debug token configurado para:', window.location.hostname)
