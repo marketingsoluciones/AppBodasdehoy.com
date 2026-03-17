@@ -391,15 +391,37 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
 
 // ─── Create album modal ────────────────────────────────────────────────────────
 
+// Categorías principales para el selector de 2 niveles
+const CATEGORY_META: { key: string; label: string; icon: string; types: AlbumType[] }[] = [
+  { key: 'general',    label: 'General',     icon: '📁', types: ['general', 'guestbook', 'photographer'] },
+  { key: 'boda',       label: 'Boda',        icon: '💍', types: ['wedding_ceremony', 'wedding_reception', 'wedding_engagement', 'wedding_bachelor', 'wedding_childhood', 'wedding_honeymoon'] },
+  { key: 'cumple',     label: 'Cumpleaños',  icon: '🎂', types: ['birthday_party', 'birthday_surprise', 'birthday_history'] },
+  { key: 'xv',         label: 'XV / Sweet 16', icon: '👑', types: ['xv_ceremony', 'xv_party', 'xv_preparation', 'xv_childhood'] },
+  { key: 'graduacion', label: 'Graduación',  icon: '🎓', types: ['graduation_ceremony', 'graduation_trip', 'graduation_memories'] },
+  { key: 'viaje',      label: 'Viaje',       icon: '✈️',  types: ['trip_destination', 'trip_day'] },
+  { key: 'corp',       label: 'Corporativo', icon: '🏢', types: ['corporate_event', 'corporate_team'] },
+  { key: 'religion',   label: 'Religioso',   icon: '🕊️',  types: ['baptism', 'communion', 'bar_mitzvah'] },
+];
+
 function CreateAlbumModal({ onClose }: { onClose: () => void }) {
   const { createAlbum } = useMemoriesStore();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [albumType, setAlbumType] = useState<AlbumType>('general');
+  const [categoryKey, setCategoryKey] = useState('general');
   const [submitting, setSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
+
+  const activeCat = CATEGORY_META.find((c) => c.key === categoryKey) ?? CATEGORY_META[0];
+  const cfg = ALBUM_TYPE_CONFIG[albumType];
+
+  const handleCategoryClick = (cat: typeof CATEGORY_META[0]) => {
+    setCategoryKey(cat.key);
+    // Selecciona automáticamente el primer subtipo de la categoría
+    setAlbumType(cat.types[0]);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -410,64 +432,31 @@ function CreateAlbumModal({ onClose }: { onClose: () => void }) {
     onClose();
   };
 
-  const cfg = ALBUM_TYPE_CONFIG[albumType];
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div data-testid="create-album-modal" className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Nuevo álbum</h2>
-        <form onSubmit={handleSubmit} className="space-y-5">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div
+        data-testid="create-album-modal"
+        className="bg-white w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl shadow-2xl max-h-[92vh] flex flex-col"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100 shrink-0">
+          <h2 className="text-lg font-bold text-gray-900">Nuevo álbum</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition text-lg leading-none"
+          >
+            ×
+          </button>
+        </div>
 
-          {/* Tipo de álbum */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5 px-6 py-5 overflow-y-auto">
+
+          {/* Nombre (primero — lo más importante) */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">Tipo de álbum</label>
-            <div data-testid="album-type-selector" className="space-y-3">
-              {ALBUM_TYPE_GROUPS.map((group) => (
-                <div key={group.label}>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">{group.label}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {group.types.map((type) => {
-                      const c = ALBUM_TYPE_CONFIG[type];
-                      const selected = albumType === type;
-                      return (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => setAlbumType(type)}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition ${
-                            selected
-                              ? 'text-white border-transparent shadow-sm'
-                              : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
-                          }`}
-                          style={selected ? { background: `linear-gradient(135deg, ${c.from}, ${c.to})`, borderColor: 'transparent' } : {}}
-                        >
-                          <span>{c.icon}</span>
-                          <span>{c.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Preview del placeholder */}
-          {cfg && (
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl">
-              <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">
-                <AlbumPlaceholder name={name || 'Álbum'} mediaCount={0} albumType={albumType} />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-800">{cfg.icon} {cfg.label}</p>
-                <p className="text-xs text-gray-400">Así se verá la portada si no añades imagen</p>
-              </div>
-            </div>
-          )}
-
-          {/* Nombre */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del álbum *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Nombre del álbum <span className="text-rose-500">*</span>
+            </label>
             <input
               ref={inputRef}
               type="text"
@@ -479,9 +468,75 @@ function CreateAlbumModal({ onClose }: { onClose: () => void }) {
             />
           </div>
 
+          {/* Tipo — 2 niveles */}
+          <div data-testid="album-type-selector">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de evento</label>
+
+            {/* Nivel 1: categoría (scroll horizontal) */}
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+              {CATEGORY_META.map((cat) => {
+                const active = categoryKey === cat.key;
+                return (
+                  <button
+                    key={cat.key}
+                    type="button"
+                    onClick={() => handleCategoryClick(cat)}
+                    className={`flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2.5 rounded-2xl border text-xs font-semibold transition ${
+                      active
+                        ? 'bg-rose-500 text-white border-rose-500 shadow-sm'
+                        : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}
+                  >
+                    <span className="text-xl leading-none">{cat.icon}</span>
+                    <span className="whitespace-nowrap">{cat.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Nivel 2: subtipo (solo los de la categoría activa) */}
+            {activeCat.types.length > 1 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {activeCat.types.map((type) => {
+                  const c = ALBUM_TYPE_CONFIG[type];
+                  const selected = albumType === type;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setAlbumType(type)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                        selected
+                          ? 'text-white border-transparent shadow-sm'
+                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                      }`}
+                      style={selected ? { background: `linear-gradient(135deg, ${c.from}, ${c.to})` } : {}}
+                    >
+                      <span>{c.icon}</span>
+                      <span>{c.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Preview compacto */}
+          {cfg && (
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl">
+              <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0">
+                <AlbumPlaceholder name={name || 'Álbum'} mediaCount={0} albumType={albumType} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-800">{cfg.icon} {name || cfg.label}</p>
+                <p className="text-xs text-gray-400">Vista previa de portada</p>
+              </div>
+            </div>
+          )}
+
           {/* Descripción */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Descripción (opcional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Descripción <span className="text-gray-400 font-normal">(opcional)</span></label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -491,11 +546,20 @@ function CreateAlbumModal({ onClose }: { onClose: () => void }) {
             />
           </div>
 
-          <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose} className="flex-1 border border-gray-200 rounded-2xl py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition">
+          {/* Botones */}
+          <div className="flex gap-3 pb-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 border border-gray-200 rounded-2xl py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition"
+            >
               Cancelar
             </button>
-            <button type="submit" disabled={!name.trim() || submitting} className="flex-1 bg-rose-500 text-white rounded-2xl py-3 text-sm font-semibold hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed transition">
+            <button
+              type="submit"
+              disabled={!name.trim() || submitting}
+              className="flex-1 bg-rose-500 text-white rounded-2xl py-3 text-sm font-semibold hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
               {submitting ? 'Creando…' : 'Crear álbum'}
             </button>
           </div>
