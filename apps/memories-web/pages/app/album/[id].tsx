@@ -220,22 +220,34 @@ type InviteTab = 'email' | 'whatsapp';
 
 function InviteModal({
   albumId,
-  shareUrl,
+  initialShareUrl,
   onClose,
 }: {
   albumId: string;
-  shareUrl: string;
+  initialShareUrl: string;
   onClose: () => void;
 }) {
-  const { inviteMember, fetchAlbumMembers, currentAlbumMembers, membersLoading } = useMemoriesStore();
+  const { inviteMember, fetchAlbumMembers, generateShareLink, currentAlbumMembers, membersLoading } = useMemoriesStore();
   const [tab, setTab] = useState<InviteTab>('email');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('viewer');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
+  const [shareUrl, setShareUrl] = useState(initialShareUrl);
+  const [shareUrlLoading, setShareUrlLoading] = useState(!initialShareUrl);
 
   useEffect(() => { fetchAlbumMembers(albumId); }, [albumId, fetchAlbumMembers]);
+
+  // Si no teníamos shareUrl precargado, lo pedimos al abrir el modal
+  useEffect(() => {
+    if (initialShareUrl) return;
+    setShareUrlLoading(true);
+    generateShareLink(albumId, 30)
+      .then((r) => { if (r?.shareUrl) setShareUrl(r.shareUrl); })
+      .catch(() => {})
+      .finally(() => setShareUrlLoading(false));
+  }, [albumId, initialShareUrl, generateShareLink]);
 
   const handleEmailInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -323,9 +335,13 @@ function InviteModal({
             <p className="text-sm text-gray-600">
               Se abrirá WhatsApp con un mensaje listo para enviar. El destinatario podrá acceder al álbum directamente desde el enlace.
             </p>
-            {shareUrl ? (
+            {shareUrlLoading ? (
+              <div className="h-24 flex items-center justify-center text-gray-400 animate-pulse text-sm">
+                Preparando enlace…
+              </div>
+            ) : shareUrl ? (
               <>
-                <div className="bg-gray-50 rounded-xl px-4 py-3 text-xs text-gray-500 font-mono break-all">
+                <div className="bg-gray-50 rounded-xl px-4 py-3 text-xs text-gray-500 break-all">
                   {whatsappText.slice(0, 120)}…
                 </div>
                 <a
@@ -339,9 +355,21 @@ function InviteModal({
                 </a>
               </>
             ) : (
-              <p className="text-sm text-amber-600 bg-amber-50 rounded-xl px-4 py-3">
-                Primero genera un enlace de compartir para poder enviarlo por WhatsApp.
-              </p>
+              <div className="h-24 flex flex-col items-center justify-center gap-2">
+                <p className="text-sm text-gray-500">No se pudo generar el enlace.</p>
+                <button
+                  onClick={() => {
+                    setShareUrlLoading(true);
+                    generateShareLink(albumId, 30)
+                      .then((r) => { if (r?.shareUrl) setShareUrl(r.shareUrl); })
+                      .catch(() => {})
+                      .finally(() => setShareUrlLoading(false));
+                  }}
+                  className="text-xs text-rose-500 underline hover:text-rose-600"
+                >
+                  Reintentar
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -585,7 +613,7 @@ function AlbumDetailContent({ albumId }: { albumId: string }) {
 
       {/* Invite modal */}
       {showInvite && (
-        <InviteModal albumId={albumId} shareUrl={shareUrl} onClose={() => setShowInvite(false)} />
+        <InviteModal albumId={albumId} initialShareUrl={shareUrl} onClose={() => setShowInvite(false)} />
       )}
     </>
   );
