@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { SelectPermissions } from "./SelectPermissions";
 import { useTranslation } from 'react-i18next';
 
-export const DataModulos = ["resumen", "invitados", "mesas", "regalos", "presupuesto", "invitaciones", "itinerario", "servicios"]
+export const DataModulos = ["resumen", "invitados", "mesas", "regalos", "presupuesto", "invitaciones", "itinerario", "servicios", "memories"]
 const permissionsObject = DataModulos.map(elem => { return { title: elem, value: elem !== "resumen" ? "none" : "view" } })
 
 export const PermissionList = ({ permissions, setPermission, handleChange }) => {
