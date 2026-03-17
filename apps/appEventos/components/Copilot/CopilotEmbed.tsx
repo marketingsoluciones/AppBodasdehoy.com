@@ -417,7 +417,7 @@ export const CopilotEmbed = ({
       try {
         const url = new URL(href, window.location.origin);
         const sameOrigin = url.origin === window.location.origin;
-        const knownHosts = ['app-test.bodasdehoy.com', 'organizador.bodasdehoy.com', 'bodasdehoy.com'];
+        const knownHosts = ['app.bodasdehoy.com', 'app-test.bodasdehoy.com', 'app-dev.bodasdehoy.com', 'organizador.bodasdehoy.com', 'bodasdehoy.com'];
         const isKnown = knownHosts.some(h => url.hostname === h);
         if (sameOrigin || isKnown) {
           e.preventDefault();

@@ -108,21 +108,42 @@ export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = {
  * Cada development tiene su propio dominio completo
  */
 const DOMAIN_TO_DEVELOPMENT: Record<string, string> = {
+  // Localhost y IPs
   '127.0.0.1': 'bodasdehoy',
+  'localhost': 'bodasdehoy',
+
+  // Dominios principales
   'annloevents.com': 'annloevents',
-  'app-dev.bodasdehoy.com': 'bodasdehoy',
   'bodasdehoy.com': 'bodasdehoy',
   'champagneevents.com': 'champagneevents',
-  'chat-dev.bodasdehoy.com': 'bodasdehoy',
   'eventosorganizador.com': 'eventosorganizador',
-  // Para desarrollo local (default)
-  'localhost': 'bodasdehoy',
-  'memories-dev.bodasdehoy.com': 'bodasdehoy',
-  'wedding-creator.bodasdehoy.com': 'bodasdehoy',
   'www.annloevents.com': 'annloevents',
   'www.bodasdehoy.com': 'bodasdehoy',
   'www.champagneevents.com': 'champagneevents',
   'www.eventosorganizador.com': 'eventosorganizador',
+
+  // bodasdehoy.com — producción
+  'app.bodasdehoy.com': 'bodasdehoy',
+  'chat.bodasdehoy.com': 'bodasdehoy',
+  'editor.bodasdehoy.com': 'bodasdehoy',
+  'memories.bodasdehoy.com': 'bodasdehoy',
+  'wedding-creator.bodasdehoy.com': 'bodasdehoy',
+
+  // bodasdehoy.com — test
+  'app-test.bodasdehoy.com': 'bodasdehoy',
+  'chat-test.bodasdehoy.com': 'bodasdehoy',
+  'editor-test.bodasdehoy.com': 'bodasdehoy',
+  'memories-test.bodasdehoy.com': 'bodasdehoy',
+
+  // bodasdehoy.com — dev
+  'app-dev.bodasdehoy.com': 'bodasdehoy',
+  'chat-dev.bodasdehoy.com': 'bodasdehoy',
+  'editor-dev.bodasdehoy.com': 'bodasdehoy',
+  'memories-dev.bodasdehoy.com': 'bodasdehoy',
+
+  // Legacy
+  'iachat.bodasdehoy.com': 'bodasdehoy',
+  'organizador.bodasdehoy.com': 'bodasdehoy',
 };
 
 /**

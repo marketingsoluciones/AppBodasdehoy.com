@@ -68,7 +68,9 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
       // En local (localhost / 127.0.0.1) usar chat local para que Copilot funcione sin depender de chat-test
       const host = window.location.hostname;
       if (host === 'localhost' || host === '127.0.0.1') return 'http://127.0.0.1:3210';
-      return 'https://chat-test.bodasdehoy.com';
+      if (host.includes('-dev.')) return 'https://chat-dev.bodasdehoy.com';
+      if (host.includes('-test.')) return 'https://chat-test.bodasdehoy.com';
+      return 'https://chat.bodasdehoy.com';
     }, []);
 
     // Construir URL del LobeChat con parametros

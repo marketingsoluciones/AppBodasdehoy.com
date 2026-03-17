@@ -83,17 +83,27 @@ function SplitLoginPage({ children }: { children: React.ReactNode }) {
 
 // Dominios permitidos para redirect cross-app (seguridad: evitar open redirect)
 const ALLOWED_REDIRECT_HOSTS = [
-  'organizador.bodasdehoy.com',
+  // Producción
   'app.bodasdehoy.com',
-  'app-test.bodasdehoy.com',
-  'app-dev.bodasdehoy.com',
-  'organizador.eventosorganizador.com',
   'chat.bodasdehoy.com',
-  'chat-test.bodasdehoy.com',
-  'chat-dev.bodasdehoy.com',
   'memories.bodasdehoy.com',
-  'memories-dev.bodasdehoy.com',
+  'editor.bodasdehoy.com',
   'wedding-creator.bodasdehoy.com',
+  // Test (Vercel, rama test)
+  'app-test.bodasdehoy.com',
+  'chat-test.bodasdehoy.com',
+  'memories-test.bodasdehoy.com',
+  'editor-test.bodasdehoy.com',
+  // Dev (local, Cloudflare Tunnel)
+  'app-dev.bodasdehoy.com',
+  'chat-dev.bodasdehoy.com',
+  'memories-dev.bodasdehoy.com',
+  'editor-dev.bodasdehoy.com',
+  // Legacy (masterv1)
+  'organizador.bodasdehoy.com',
+  'iachat.bodasdehoy.com',
+  // Otros
+  'organizador.eventosorganizador.com',
   'vivetuboda.com',
   'localhost',
 ];

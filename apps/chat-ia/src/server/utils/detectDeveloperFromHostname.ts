@@ -8,43 +8,45 @@ const devLog = (...args: any[]) => isDev && console.log(...args);
  * Mapeo de dominios/subdominios a developers
  */
 const DOMAIN_TO_DEVELOPER: Record<string, string> = {
-  '127.0.0.1': 'bodasdehoy',
-
-  '[::1]': 'bodasdehoy',
-
-  'annloevents.com': 'annloevents',
-
-  'app-dev.bodasdehoy.com': 'bodasdehoy',
-
-  'bodasdehoy.com': 'bodasdehoy',
-
-  'champagne-events.com.mx': 'champagne-events',
-
-  'chat-dev.bodasdehoy.com': 'bodasdehoy',
-
-  'chat-test.bodasdehoy.com': 'bodasdehoy',
-
-  // Subdominios de testing
-  'chat-test.eventosorganizador.com': 'eventosorganizador',
-
-  // Dominios principales
-  'eventosorganizador.com': 'eventosorganizador',
-
-  'iachat.bodasdehoy.com': 'bodasdehoy',
   // Localhost y IPs (default)
+  '127.0.0.1': 'bodasdehoy',
+  '[::1]': 'bodasdehoy',
   'localhost': 'bodasdehoy',
 
-  'memories-dev.bodasdehoy.com': 'bodasdehoy',
-
+  // Dominios principales (producción)
+  'annloevents.com': 'annloevents',
+  'bodasdehoy.com': 'bodasdehoy',
+  'champagne-events.com.mx': 'champagne-events',
+  'eventosorganizador.com': 'eventosorganizador',
   'marcablanca.com': 'marcablanca',
+  'wildliberty.com': 'wildliberty',
 
-  'staging.eventosorganizador.com': 'eventosorganizador',
-
-  'test.bodasdehoy.com': 'bodasdehoy',
-
+  // bodasdehoy.com — producción
+  'app.bodasdehoy.com': 'bodasdehoy',
+  'chat.bodasdehoy.com': 'bodasdehoy',
+  'editor.bodasdehoy.com': 'bodasdehoy',
+  'memories.bodasdehoy.com': 'bodasdehoy',
   'wedding-creator.bodasdehoy.com': 'bodasdehoy',
 
-  'wildliberty.com': 'wildliberty',
+  // bodasdehoy.com — test (Vercel, rama test)
+  'app-test.bodasdehoy.com': 'bodasdehoy',
+  'chat-test.bodasdehoy.com': 'bodasdehoy',
+  'editor-test.bodasdehoy.com': 'bodasdehoy',
+  'memories-test.bodasdehoy.com': 'bodasdehoy',
+  'test.bodasdehoy.com': 'bodasdehoy',
+
+  // bodasdehoy.com — dev (local, Cloudflare Tunnel)
+  'app-dev.bodasdehoy.com': 'bodasdehoy',
+  'chat-dev.bodasdehoy.com': 'bodasdehoy',
+  'editor-dev.bodasdehoy.com': 'bodasdehoy',
+  'memories-dev.bodasdehoy.com': 'bodasdehoy',
+
+  // bodasdehoy.com — legacy (masterv1)
+  'iachat.bodasdehoy.com': 'bodasdehoy',
+
+  // eventosorganizador.com — subdominios
+  'chat-test.eventosorganizador.com': 'eventosorganizador',
+  'staging.eventosorganizador.com': 'eventosorganizador',
 };
 
 /**

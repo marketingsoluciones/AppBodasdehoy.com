@@ -112,6 +112,13 @@ const nextConfig = {
     return config;
   },
 
+  allowedDevOrigins: [
+    'app-dev.bodasdehoy.com',
+    'app-test.bodasdehoy.com',
+    '127.0.0.1',
+    'localhost',
+  ],
+
   // Rewrites para el proxy de Lobe-Chat. Este proyecto no usa localhost; siempre chat-test.
   async rewrites() {
     const copilotBase = (process.env.NEXT_PUBLIC_CHAT || 'https://chat-test.bodasdehoy.com').replace(/\/$/, '');

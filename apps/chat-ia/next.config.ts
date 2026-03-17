@@ -245,9 +245,12 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
 
   allowedDevOrigins: [
+    'chat.bodasdehoy.com', 'app.bodasdehoy.com',
     'chat-test.bodasdehoy.com', 'app-test.bodasdehoy.com',
+    'memories-test.bodasdehoy.com', 'editor-test.bodasdehoy.com',
     'chat-dev.bodasdehoy.com', 'app-dev.bodasdehoy.com',
-    'memories-dev.bodasdehoy.com', 'wedding-creator.bodasdehoy.com',
+    'memories-dev.bodasdehoy.com', 'editor-dev.bodasdehoy.com',
+    'wedding-creator.bodasdehoy.com',
     '127.0.0.1', 'localhost',
   ],
 

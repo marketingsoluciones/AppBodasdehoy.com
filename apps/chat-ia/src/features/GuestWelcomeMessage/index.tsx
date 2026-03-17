@@ -118,7 +118,7 @@ function GuestWelcomeMessage() {
       ? 'https://app-dev.bodasdehoy.com'
       : isTest
         ? 'https://app-test.bodasdehoy.com'
-        : 'https://organizador.bodasdehoy.com';
+        : 'https://app.bodasdehoy.com';
     window.open(`${appBase}/login?q=register`, '_blank');
   };
 
@@ -174,7 +174,7 @@ function GuestWelcomeMessage() {
     ? 'https://app-dev.bodasdehoy.com'
     : isTestEnv
       ? 'https://app-test.bodasdehoy.com'
-      : 'https://organizador.bodasdehoy.com';
+      : 'https://app.bodasdehoy.com';
   const registerUrl = `${registerAppBase}/login?q=register`;
 
   const limitState = getVisitorLimitState();

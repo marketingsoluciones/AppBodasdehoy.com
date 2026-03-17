@@ -147,7 +147,8 @@ export const useCopilotBridge = () => {
 
     // Dominios conocidos del app de eventos (producción y test)
     const APP_DOMAINS = [
-      'organizador.bodasdehoy.com',
+      'app.bodasdehoy.com',
+      'organizador.bodasdehoy.com', // legacy masterv1
       'app-test.bodasdehoy.com',
       'app-dev.bodasdehoy.com',
       'organizador.eventosorganizador.com',

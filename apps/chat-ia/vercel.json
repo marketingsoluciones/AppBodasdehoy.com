@@ -7,7 +7,7 @@
       "maxDuration": 30
     }
   },
-  "ignoreCommand": "if [ \"$VERCEL_GIT_COMMIT_REF\" != \"master\" ] && [ \"$VERCEL_GIT_COMMIT_REF\" != \"masterv1\" ] && [ \"$VERCEL_GIT_COMMIT_REF\" != \"dev\" ] && [ \"$VERCEL_GIT_COMMIT_REF\" != \"test\" ]; then exit 0; fi; exit 1",
+  "ignoreCommand": "if [ \"$VERCEL_GIT_COMMIT_REF\" != \"master\" ] && [ \"$VERCEL_GIT_COMMIT_REF\" != \"masterv1\" ] && [ \"$VERCEL_GIT_COMMIT_REF\" != \"test\" ]; then exit 0; fi; exit 1",
   "regions": ["iad1"],
   "version": 2
 }

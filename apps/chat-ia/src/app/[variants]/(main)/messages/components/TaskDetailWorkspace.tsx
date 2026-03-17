@@ -326,7 +326,7 @@ export function TaskDetailWorkspace({ eventId, taskId }: TaskDetailWorkspaceProp
               ? 'https://app-dev.bodasdehoy.com'
               : isTest
                 ? 'https://app-test.bodasdehoy.com'
-                : 'https://organizador.bodasdehoy.com';
+                : 'https://app.bodasdehoy.com';
             window.open(
               `${appBase}/itinerario?event=${eventId}&itinerary=${found.itinerarioId}&task=${taskId}`,
               '_blank',

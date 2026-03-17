@@ -136,7 +136,9 @@ const ChatSidebarDirect: FC = () => {
   // Solo dominios (app-test ↔ chat-test). No localhost ni IP locales; se trabaja con túnel/VPN o desplegado.
   const copilotUrl = useMemo(() => {
     if (typeof window === 'undefined') return '';
-    if (window.location.hostname?.includes('app-test')) return 'https://chat-test.bodasdehoy.com';
+    const host = window.location.hostname;
+    if (host?.includes('-dev.')) return 'https://chat-dev.bodasdehoy.com';
+    if (host?.includes('-test.')) return 'https://chat-test.bodasdehoy.com';
     return process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com';
   }, []);
 
@@ -165,7 +167,7 @@ const ChatSidebarDirect: FC = () => {
 
   const handleNavigate = useCallback((url: string) => {
     let finalUrl = url;
-    const productionHosts = ['organizador.bodasdehoy.com', 'bodasdehoy.com', 'app-test.bodasdehoy.com'];
+    const productionHosts = ['app.bodasdehoy.com', 'app-test.bodasdehoy.com', 'app-dev.bodasdehoy.com', 'organizador.bodasdehoy.com', 'bodasdehoy.com'];
 
     try {
       const parsed = new URL(url, window.location.origin);
