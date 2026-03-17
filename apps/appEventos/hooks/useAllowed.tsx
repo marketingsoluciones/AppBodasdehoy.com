@@ -13,7 +13,8 @@ export const useAllowed = () => {
       presupuesto,
       invitaciones,
       itinerario,
-      servicios
+      servicios,
+      memories
     }
     const { t } = useTranslation()
     const { event } = EventContextProvider()
@@ -30,6 +31,9 @@ export const useAllowed = () => {
       if (path !== "") {
         if (path === "lista") {
           path = "regalos"
+        }
+        if (path === "momentos") {
+          path = "memories"
         }
         const f1 = event?.permissions?.findIndex(elem => elem.title === path)
         if (f1 > -1) {
@@ -66,6 +70,9 @@ export const useAllowedRouter = () => {
       if (path !== "") {
         if (path === "lista") {
           path = "regalos"
+        }
+        if (path === "momentos") {
+          path = "memories"
         }
         const f1 = event?.permissions?.findIndex(elem => elem.title === path)
         if (f1 > -1) {

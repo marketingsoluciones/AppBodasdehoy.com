@@ -13,6 +13,7 @@ import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import { useMounted } from "../hooks/useMounted"
 import { BlockItinerario } from "../components/Resumen/BlockItinerario";
 import { BlockLugarEvento } from "../components/Resumen/BlockLugarEvento";
+import { BlockMomentos } from "../components/Resumen/BlockMomentos";
 import { ModuleErrorBoundary } from "../components/ErrorBoundary";
 import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
 
@@ -46,6 +47,9 @@ const Resumen = () => {
             <ModuleErrorBoundary label="Mesas"><BlockMesas /></ModuleErrorBoundary>
             <ModuleErrorBoundary label="Lista de regalos"><BlockListaRegalos /></ModuleErrorBoundary>
           </div>
+          <ModuleErrorBoundary label="Momentos">
+            <BlockMomentos />
+          </ModuleErrorBoundary>
           <ModuleErrorBoundary label="Sobre mi evento">
             <BlockSobreMiEvento />
           </ModuleErrorBoundary>

@@ -9,7 +9,7 @@ import NavbarDirectory from "../Utils/NavbarDirectory";
 import { Tooltip } from "../Utils/Tooltip";
 import { useAllowedRouter } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
-import { BsCalendarHeartFill } from "react-icons/bs";
+import { BsCalendarHeartFill, BsImages } from "react-icons/bs";
 import ChatToggleButton from "../ChatSidebar/ChatToggleButton";
 
 const Navigation: FC = () => {
@@ -79,6 +79,12 @@ const Navigation: FC = () => {
       title: "Itinerario",
       icon: <BsCalendarHeartFill className="w-7 h-7" />,
       route: "/itinerario",
+      condicion: event?._id ? true : false
+    },
+    {
+      title: "Momentos",
+      icon: <BsImages className="w-7 h-7" />,
+      route: "/momentos",
       condicion: event?._id ? true : false
     },
   ], [event]);
