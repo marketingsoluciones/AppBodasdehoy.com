@@ -56,10 +56,13 @@ export async function clearSession(context: BrowserContext, page: Page): Promise
       await page.goto('https://chat-test.bodasdehoy.com/', { waitUntil: 'domcontentloaded', timeout: 15_000 });
       await clearStorageAtOrigin(page);
     } catch { /* si chat-test no está disponible, ignorar */ }
-    // Volver al origen principal
-    try {
-      await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 20_000 });
-    } catch { /* ignorar */ }
+    // Volver al origen principal (usando URL absoluta para no quedar en chat-dev)
+    const appBase = BASE_URL.startsWith('http') ? BASE_URL : '';
+    if (appBase) {
+      try {
+        await page.goto(appBase, { waitUntil: 'domcontentloaded', timeout: 20_000 });
+      } catch { /* ignorar */ }
+    }
   }
 
   await context.clearCookies();

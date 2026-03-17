@@ -88,7 +88,7 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
         <I18nextProvider i18n={i18n}>
           <Component {...pageProps} />
         </I18nextProvider>
-        <DevWhitelabelSwitcher />
+        {process.env.NODE_ENV === 'development' && <DevWhitelabelSwitcher />}
       </ErrorBoundary>
     )
   }
@@ -112,7 +112,7 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
           }
         </DefaultLayout>
       </I18nextProvider>
-      <DevWhitelabelSwitcher />
+      {process.env.NODE_ENV === 'development' && <DevWhitelabelSwitcher />}
     </ErrorBoundary>
   )
 }

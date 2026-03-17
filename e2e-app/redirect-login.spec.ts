@@ -8,14 +8,23 @@ import { clearSession } from './helpers';
 
 // Misma base que playwright.config.ts (process.env.BASE_URL) para que el worker tenga isAppTest correcto
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
+// Aplica a cualquier entorno de bodasdehoy (test, dev, prod) — no a localhost
 const isAppTest =
   BASE_URL.includes('app-test.bodasdehoy.com') ||
-  BASE_URL.includes('app.bodasdehoy.com');
+  BASE_URL.includes('app-dev.bodasdehoy.com') ||
+  /https?:\/\/app\.bodasdehoy\.com/.test(BASE_URL); // exact match para prod
 
-/** Si chat-test no está disponible, los tests de redirect se omiten (suite sigue en verde). */
+// Chat de destino según entorno
+const CHAT_TARGET = BASE_URL.includes('app-dev.bodasdehoy.com')
+  ? 'https://chat-dev.bodasdehoy.com'
+  : BASE_URL.includes('app-test.bodasdehoy.com')
+  ? 'https://chat-test.bodasdehoy.com'
+  : 'https://chat.bodasdehoy.com';
+
+/** Si el chat destino no está disponible, los tests de redirect se omiten. */
 async function isChatTestReachable(): Promise<boolean> {
   try {
-    const res = await fetch('https://chat-test.bodasdehoy.com/', {
+    const res = await fetch(CHAT_TARGET, {
       method: 'HEAD',
       signal: AbortSignal.timeout(8_000),
     });
@@ -56,8 +65,9 @@ test.describe('Redirect login (app-test → chat-test)', () => {
         (url) =>
           url.hostname.includes('chat-test.bodasdehoy.com') ||
           url.hostname.includes('chat.bodasdehoy.com') ||
-          // Si ya había sesión, chat-test redirige de vuelta a app-test home
-          (url.hostname.includes('app-test.bodasdehoy.com') && url.pathname !== '/login'),
+          // Si ya había sesión, chat redirige de vuelta a app (test o dev)
+          (url.hostname.includes('app-test.bodasdehoy.com') && url.pathname !== '/login') ||
+          (url.hostname.includes('app-dev.bodasdehoy.com') && url.pathname !== '/login'),
         { timeout: 40_000 },
       );
     } catch {
@@ -66,28 +76,32 @@ test.describe('Redirect login (app-test → chat-test)', () => {
 
     const finalUrl = page.url();
 
-    const wentToChatTest =
+    const wentToChat =
       finalUrl.includes('chat-test.bodasdehoy.com') ||
       finalUrl.includes('chat.bodasdehoy.com');
     const redirectedBackAuthenticated =
-      finalUrl.includes('app-test.bodasdehoy.com') && !finalUrl.includes('/login');
+      (finalUrl.includes('app-test.bodasdehoy.com') || finalUrl.includes('app-dev.bodasdehoy.com')) &&
+      !finalUrl.includes('/login');
     const stillAtLogin =
-      finalUrl.includes('app-test.bodasdehoy.com') && finalUrl.includes('/login');
+      (finalUrl.includes('app-test.bodasdehoy.com') || finalUrl.includes('app-dev.bodasdehoy.com')) &&
+      finalUrl.includes('/login');
 
-    if (wentToChatTest) {
-      // Flujo correcto: fue a chat-test con redirect param
+    if (wentToChat) {
+      // Flujo correcto: fue a chat con redirect param que apunta a app (cualquier entorno)
       expect(finalUrl).toContain('redirect=');
       const redirectParam = new URL(finalUrl).searchParams.get('redirect');
       expect(redirectParam).toBeTruthy();
-      expect(decodeURIComponent(redirectParam!)).toMatch(/https:\/\/app(-test)?\.bodasdehoy\.com\/?/);
+      expect(decodeURIComponent(redirectParam!)).toMatch(
+        /https:\/\/app(-test|-dev)?\.bodasdehoy\.com\/?/,
+      );
     }
 
     // Fallar con mensaje claro si sigue en /login (redirect no ocurrió)
     expect(
-      wentToChatTest || redirectedBackAuthenticated,
+      wentToChat || redirectedBackAuthenticated,
       `Redirect no ocurrió: sigue en ${finalUrl}`,
     ).toBe(true);
-    expect(stillAtLogin, `La página quedó bloqueada en app-test/login: ${finalUrl}`).toBe(false);
+    expect(stillAtLogin, `La página quedó bloqueada en /login: ${finalUrl}`).toBe(false);
   });
 
   test('desde home, clic en Iniciar sesión redirige a chat-test', async ({ page }) => {
@@ -113,6 +127,7 @@ test.describe('Redirect login (app-test → chat-test)', () => {
       await page.waitForURL(
         (url) =>
           url.hostname.includes('chat-test.bodasdehoy.com') ||
+          url.hostname.includes('chat-dev.bodasdehoy.com') ||
           url.hostname.includes('chat.bodasdehoy.com'),
         { timeout: 20_000 },
       );
@@ -121,10 +136,12 @@ test.describe('Redirect login (app-test → chat-test)', () => {
     }
 
     const finalUrl = page.url();
-    // El destino debe ser chat-test o chat (dominio), independientemente del path
+    // El destino debe ser cualquier chat de bodasdehoy, independientemente del path
     expect(
-      finalUrl.includes('chat-test.bodasdehoy.com') || finalUrl.includes('chat.bodasdehoy.com'),
-      `Se esperaba chat-test.bodasdehoy.com pero la URL final es: ${finalUrl}`,
+      finalUrl.includes('chat-test.bodasdehoy.com') ||
+        finalUrl.includes('chat-dev.bodasdehoy.com') ||
+        finalUrl.includes('chat.bodasdehoy.com'),
+      `Se esperaba un dominio chat.bodasdehoy.com pero la URL final es: ${finalUrl}`,
     ).toBe(true);
     // Debe incluir redirect param para volver a app-test después del login
     expect(finalUrl).toContain('redirect=');
