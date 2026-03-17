@@ -2,9 +2,48 @@
  * @bodasdehoy/memories - State types and initial state
  */
 
+export type AlbumType =
+  // Genéricos
+  | 'general'
+  | 'guestbook'
+  | 'photographer'
+  // Boda
+  | 'wedding_childhood'
+  | 'wedding_engagement'
+  | 'wedding_bachelor'
+  | 'wedding_ceremony'
+  | 'wedding_reception'
+  | 'wedding_honeymoon'
+  // Cumpleaños
+  | 'birthday_party'
+  | 'birthday_history'
+  | 'birthday_surprise'
+  // Quinceañera / Sweet 16
+  | 'xv_childhood'
+  | 'xv_preparation'
+  | 'xv_ceremony'
+  | 'xv_party'
+  // Graduación
+  | 'graduation_ceremony'
+  | 'graduation_memories'
+  | 'graduation_trip'
+  // Viaje
+  | 'trip_day'
+  | 'trip_destination'
+  // Corporativo
+  | 'corporate_event'
+  | 'corporate_team'
+  // Celebraciones religiosas
+  | 'communion'
+  | 'bar_mitzvah'
+  | 'baptism'
+  // Legacy
+  | 'main'
+  | 'sub';
+
 export interface Album {
   _id: string;
-  albumType?: 'main' | 'sub';
+  albumType?: AlbumType;
   coverImageUrl?: string;
   createdAt: string;
   description?: string;

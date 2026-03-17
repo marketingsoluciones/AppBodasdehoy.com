@@ -20,9 +20,11 @@ const USER_ID_KEY = 'memories_user_id';
 function PhotoGrid({
   media,
   onClickPhoto,
+  onSetCover,
 }: {
   media: AlbumMedia[];
   onClickPhoto: (i: number) => void;
+  onSetCover: (m: AlbumMedia) => void;
 }) {
   if (media.length === 0) return null;
   return (
@@ -30,6 +32,7 @@ function PhotoGrid({
       {media.map((m, i) => (
         <button
           key={m._id}
+          data-testid="photo-item"
           onClick={() => onClickPhoto(i)}
           className="relative aspect-square bg-gray-100 overflow-hidden rounded-xl group"
         >
@@ -47,6 +50,17 @@ function PhotoGrid({
               </div>
             </div>
           )}
+          {/* Set as cover overlay */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-all duration-200 flex items-end justify-center pb-2">
+            <span
+              role="button"
+              data-testid="btn-set-cover"
+              onClick={(e) => { e.stopPropagation(); onSetCover(m); }}
+              className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 hover:bg-white text-gray-800 text-xs px-3 py-1 rounded-full font-medium shadow"
+            >
+              Usar como portada
+            </span>
+          </div>
         </button>
       ))}
     </div>
@@ -112,10 +126,16 @@ function ShareModal({ albumId, onClose }: { albumId: string; onClose: () => void
   const [shareUrl, setShareUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [shareError, setShareError] = useState(false);
+  const [qrFailed, setQrFailed] = useState(false);
 
   useEffect(() => {
     generateShareLink(albumId, 30)
-      .then((result) => { if (result?.shareUrl) setShareUrl(result.shareUrl); })
+      .then((result) => {
+        if (result?.shareUrl) setShareUrl(result.shareUrl);
+        else setShareError(true);
+      })
+      .catch(() => setShareError(true))
       .finally(() => setLoading(false));
   }, [albumId, generateShareLink]);
 
@@ -133,18 +153,35 @@ function ShareModal({ albumId, onClose }: { albumId: string; onClose: () => void
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center" onClick={(e) => e.stopPropagation()}>
+      <div data-testid="share-modal" className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-xl font-bold text-gray-900 mb-6">Compartir álbum</h2>
 
         {loading ? (
           <div className="h-48 flex items-center justify-center text-gray-400 animate-pulse">Generando enlace…</div>
+        ) : shareError ? (
+          <div data-testid="share-error" className="h-48 flex flex-col items-center justify-center gap-3">
+            <p className="text-red-500 text-sm font-medium">No se pudo generar el enlace</p>
+            <p className="text-gray-400 text-xs">Comprueba tu conexión e inténtalo de nuevo.</p>
+          </div>
         ) : (
           <>
             {/* QR code */}
-            {qrUrl && (
+            {qrUrl && !qrFailed && (
               <div className="flex justify-center mb-6">
                 <div className="p-3 bg-white border-2 border-gray-100 rounded-2xl shadow-sm">
-                  <img src={qrUrl} alt="QR del álbum" className="w-40 h-40" />
+                  <img
+                    src={qrUrl}
+                    alt="QR del álbum"
+                    className="w-40 h-40"
+                    onError={() => setQrFailed(true)}
+                  />
+                </div>
+              </div>
+            )}
+            {qrFailed && (
+              <div className="flex justify-center mb-6">
+                <div className="p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-xs text-gray-400 text-center">
+                  QR no disponible.<br />Usa el enlace de abajo.
                 </div>
               </div>
             )}
@@ -153,6 +190,7 @@ function ShareModal({ albumId, onClose }: { albumId: string; onClose: () => void
             <div className="flex gap-2 mb-4">
               <input
                 readOnly
+                data-testid="share-link"
                 value={shareUrl}
                 className="flex-1 text-xs bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 truncate"
               />
@@ -189,12 +227,20 @@ function AlbumDetailContent({ albumId }: { albumId: string }) {
     fetchAlbumMedia,
     uploadMedia,
     uploadProgress,
+    updateAlbum,
   } = useMemoriesStore();
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showShare, setShowShare] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [coverSaved, setCoverSaved] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSetCover = async (m: AlbumMedia) => {
+    await updateAlbum(albumId, { coverImageUrl: m.thumbnailUrl || m.originalUrl });
+    setCoverSaved(true);
+    setTimeout(() => setCoverSaved(false), 2500);
+  };
 
   useEffect(() => {
     fetchAlbum(albumId);
@@ -239,13 +285,14 @@ function AlbumDetailContent({ albumId }: { albumId: string }) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
-            <div>
-              <h1 className="text-base font-bold text-gray-900 leading-tight">{currentAlbum.name}</h1>
+            <div data-testid="album-detail">
+              <h1 data-testid="album-detail-title" className="text-base font-bold text-gray-900 leading-tight">{currentAlbum.name}</h1>
               <p className="text-xs text-gray-400">{currentAlbumMedia.length} foto{currentAlbumMedia.length !== 1 ? 's' : ''}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
+              data-testid="btn-share"
               onClick={() => setShowShare(true)}
               className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:border-rose-300 hover:text-rose-500 px-3 py-2 rounded-xl text-sm font-medium transition"
             >
@@ -255,6 +302,7 @@ function AlbumDetailContent({ albumId }: { albumId: string }) {
               Compartir
             </button>
             <button
+              data-testid="btn-upload"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
               className="bg-rose-500 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-rose-600 disabled:opacity-50 transition flex items-center gap-1.5"
@@ -324,9 +372,16 @@ function AlbumDetailContent({ albumId }: { albumId: string }) {
           </div>
         )}
 
+        {/* Cover saved toast */}
+        {coverSaved && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-5 py-2.5 rounded-full shadow-lg z-50">
+            ✓ Portada actualizada
+          </div>
+        )}
+
         {/* Photo grid */}
         {!mediaLoading && currentAlbumMedia.length > 0 && (
-          <PhotoGrid media={currentAlbumMedia} onClickPhoto={setLightboxIndex} />
+          <PhotoGrid media={currentAlbumMedia} onClickPhoto={setLightboxIndex} onSetCover={handleSetCover} />
         )}
       </main>
 
