@@ -30,6 +30,7 @@ interface PublicAlbum {
   settings?: {
     allow_uploads?: boolean;
     allow_downloads?: boolean;
+    allow_watermark?: boolean;
   };
 }
 
@@ -39,10 +40,12 @@ function Lightbox({
   media,
   initialIndex,
   onClose,
+  watermarkText,
 }: {
   media: PublicMedia[];
   initialIndex: number;
   onClose: () => void;
+  watermarkText?: string;
 }) {
   const [current, setCurrent] = useState(initialIndex);
 
@@ -73,12 +76,28 @@ function Lightbox({
           ←
         </button>
       )}
-      <img
-        src={m?.originalUrl}
-        alt={m?.caption || ''}
-        className="max-w-full max-h-full object-contain rounded-lg"
-        onClick={(e) => e.stopPropagation()}
-      />
+      <div className="relative" onClick={(e) => e.stopPropagation()}>
+        <img
+          src={m?.originalUrl}
+          alt={m?.caption || ''}
+          draggable={watermarkText ? false : undefined}
+          onContextMenu={watermarkText ? (e) => e.preventDefault() : undefined}
+          className="max-w-full max-h-[85vh] object-contain rounded-lg"
+        />
+        {watermarkText && (
+          <div
+            className="absolute inset-0 pointer-events-none select-none flex items-center justify-center"
+            style={{ userSelect: 'none' }}
+          >
+            <span
+              className="text-white/40 font-bold text-xl rotate-[-35deg] whitespace-nowrap"
+              style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
+            >
+              {watermarkText}
+            </span>
+          </div>
+        )}
+      </div>
       {current < media.length - 1 && (
         <button
           onClick={(e) => { e.stopPropagation(); setCurrent((c) => c + 1); }}
@@ -287,6 +306,9 @@ export default function PublicAlbumPage({ shareToken }: Props) {
         <title>{album?.name || 'Álbum compartido'} — Memories</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="description" content={album?.description || 'Álbum de fotos colaborativo'} />
+        {album?.settings?.allow_watermark && (
+          <style>{`@media print { body { display: none !important; } }`}</style>
+        )}
       </Head>
 
       {/* Header */}
@@ -377,6 +399,16 @@ export default function PublicAlbumPage({ shareToken }: Props) {
               </div>
             )}
 
+            {/* Watermark notice */}
+            {album.settings?.allow_watermark && (
+              <div className="mb-4 flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <p className="text-xs text-gray-500">Las fotos están protegidas con marca de agua.</p>
+              </div>
+            )}
+
             {/* Photo grid */}
             {media.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
@@ -389,8 +421,24 @@ export default function PublicAlbumPage({ shareToken }: Props) {
                     <img
                       src={m.thumbnailUrl || m.originalUrl}
                       alt={m.caption || `Foto ${i + 1}`}
+                      draggable={album.settings?.allow_watermark ? false : undefined}
+                      onContextMenu={album.settings?.allow_watermark ? (e) => e.preventDefault() : undefined}
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                     />
+                    {/* Watermark overlay */}
+                    {album.settings?.allow_watermark && (
+                      <div
+                        className="absolute inset-0 pointer-events-none select-none flex items-center justify-center"
+                        style={{ userSelect: 'none' }}
+                      >
+                        <span
+                          className="text-white/40 font-bold text-sm rotate-[-35deg] whitespace-nowrap"
+                          style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                        >
+                          {album.name}
+                        </span>
+                      </div>
+                    )}
                     {m.mediaType === 'video' && (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="bg-black/50 rounded-full p-2">
@@ -400,7 +448,7 @@ export default function PublicAlbumPage({ shareToken }: Props) {
                         </div>
                       </div>
                     )}
-                    {m.caption && (
+                    {m.caption && !album.settings?.allow_watermark && (
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent px-2 py-1 opacity-0 group-hover:opacity-100 transition">
                         <p className="text-white text-[10px] truncate">{m.caption}</p>
                       </div>
@@ -427,7 +475,12 @@ export default function PublicAlbumPage({ shareToken }: Props) {
 
       {/* Lightbox */}
       {lightboxIndex !== null && (
-        <Lightbox media={media} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
+        <Lightbox
+          media={media}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          watermarkText={album?.settings?.allow_watermark ? (album.name || 'Memories') : undefined}
+        />
       )}
     </>
   );

@@ -24,8 +24,6 @@ export type {
   EventAlbumStructure,
   MemoriesConfig,
   MemoriesState,
-  ProfessionalProfile,
-  ProfessionalSpecialty,
 } from './initialState';
 
 export { initialMemoriesState } from './initialState';

@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand/vanilla';
 
-import type { Album, AlbumMedia, MemoriesState, ProfessionalProfile } from './initialState';
+import type { Album, AlbumMedia, MemoriesState } from './initialState';
 
 const CACHE_KEY_PREFIX = 'memories_cache_';
 const CACHE_DURATION = 5 * 60 * 1000;
@@ -103,12 +103,6 @@ export interface MemoriesAction {
   setSearchTerm: (term: string) => void;
   setSelectedMediaIds: (ids: string[]) => void;
 
-  /** Fetch the authenticated user's professional profile */
-  fetchProfessionalProfile: () => Promise<void>;
-  /** Create or update the authenticated user's professional profile */
-  upsertProfessionalProfile: (data: Partial<ProfessionalProfile>) => Promise<ProfessionalProfile | null>;
-  /** Fetch a public professional profile by slug (no auth required) */
-  fetchPublicProfile: (slug: string) => Promise<ProfessionalProfile | null>;
 }
 
 export const memoriesActionSlice: StateCreator<
@@ -681,60 +675,4 @@ export const memoriesActionSlice: StateCreator<
     }
   },
 
-  fetchProfessionalProfile: async () => {
-    const { baseUrl, userId, development } = getConfig(get);
-    set({ professionalProfileLoading: true, professionalProfileError: null });
-    try {
-      const res = await fetch(
-        `${baseUrl}/api/memories/professionals/${userId}?development=${development}`,
-      );
-      const data = await res.json();
-      if (data?.success && data.profile) {
-        set({ professionalProfile: data.profile, professionalProfileLoading: false });
-      } else {
-        set({ professionalProfile: null, professionalProfileLoading: false });
-      }
-    } catch (e) {
-      set({
-        professionalProfileError: e instanceof Error ? e.message : 'Error',
-        professionalProfileLoading: false,
-      });
-    }
-  },
-
-  upsertProfessionalProfile: async (data) => {
-    const { baseUrl, userId, development } = getConfig(get);
-    try {
-      const res = await fetch(
-        `${baseUrl}/api/memories/professionals?user_id=${userId}&development=${development}`,
-        {
-          body: JSON.stringify(data),
-          headers: { 'Content-Type': 'application/json' },
-          method: 'POST',
-        },
-      );
-      const result = await res.json();
-      if (result?.success && result.profile) {
-        set({ professionalProfile: result.profile });
-        return result.profile;
-      }
-      throw new Error(result?.detail || result?.error || 'Error al guardar el perfil');
-    } catch (e) {
-      if (e instanceof Error) throw e;
-      throw new Error('Error al guardar el perfil');
-    }
-  },
-
-  fetchPublicProfile: async (slug) => {
-    const { baseUrl, development } = getConfig(get);
-    try {
-      const res = await fetch(
-        `${baseUrl}/api/memories/professionals/slug/${slug}?development=${development}`,
-      );
-      const data = await res.json();
-      return data?.success && data.profile ? data.profile : null;
-    } catch {
-      return null;
-    }
-  },
 });

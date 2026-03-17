@@ -412,7 +412,7 @@ function InviteModal({
 
 // ─── Album detail content ──────────────────────────────────────────────────────
 
-function AlbumDetailContent({ albumId }: { albumId: string }) {
+function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: string }) {
   const {
     currentAlbum,
     currentAlbumLoading,
@@ -425,6 +425,16 @@ function AlbumDetailContent({ albumId }: { albumId: string }) {
     uploadProgress,
     updateAlbum,
   } = useMemoriesStore();
+
+  const isOwner = !!currentAlbum && currentAlbum.ownerId === userId;
+  const watermarkEnabled = currentAlbum?.settings?.allow_watermark ?? false;
+
+  const handleToggleWatermark = async () => {
+    if (!currentAlbum) return;
+    await updateAlbum(albumId, {
+      settings: { ...currentAlbum.settings, allow_watermark: !watermarkEnabled },
+    });
+  };
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showShare, setShowShare] = useState(false);
@@ -515,6 +525,19 @@ function AlbumDetailContent({ albumId }: { albumId: string }) {
               </svg>
               Compartir
             </button>
+            {isOwner && (
+              <button
+                data-testid="btn-watermark-toggle"
+                onClick={handleToggleWatermark}
+                title={watermarkEnabled ? 'Desactivar marca de agua' : 'Activar protección con marca de agua'}
+                className={`flex items-center gap-1.5 border px-3 py-2 rounded-xl text-sm font-medium transition ${watermarkEnabled ? 'border-violet-300 text-violet-600 bg-violet-50 hover:bg-violet-100' : 'border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600'}`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span className="hidden sm:inline">{watermarkEnabled ? 'Protegido' : 'Proteger'}</span>
+              </button>
+            )}
             <button
               data-testid="btn-upload"
               onClick={() => fileInputRef.current?.click()}
@@ -539,6 +562,18 @@ function AlbumDetailContent({ albumId }: { albumId: string }) {
         {/* Description */}
         {currentAlbum.description && (
           <p className="text-gray-500 text-sm mb-6">{currentAlbum.description}</p>
+        )}
+
+        {/* Watermark info banner (visible only to owner when enabled) */}
+        {isOwner && watermarkEnabled && (
+          <div className="mb-6 flex items-center gap-3 bg-violet-50 border border-violet-200 rounded-2xl px-4 py-3">
+            <svg className="w-5 h-5 text-violet-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <p className="text-sm text-violet-700">
+              <strong>Protección activada.</strong> Los invitados ven las fotos con marca de agua. Tú las ves sin marca de agua.
+            </p>
+          </div>
         )}
 
         {/* Upload progress bar */}
@@ -666,7 +701,7 @@ export default function AlbumPage() {
       </Head>
       <MemoriesProvider apiBaseUrl={API_BASE} userId={userId} development={DEVELOPMENT}>
         <div className="min-h-screen bg-gray-50">
-          <AlbumDetailContent albumId={albumId} />
+          <AlbumDetailContent albumId={albumId} userId={userId} />
         </div>
       </MemoriesProvider>
     </>

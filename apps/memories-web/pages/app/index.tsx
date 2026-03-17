@@ -314,16 +314,6 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
             >
               + Nuevo álbum
             </button>
-            <Link
-              href="/app/profile"
-              className="text-sm text-gray-400 hover:text-gray-700 transition flex items-center gap-1"
-              title="Mi Perfil Profesional"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span className="hidden sm:inline">Mi perfil</span>
-            </Link>
             <button onClick={onLogout} className="text-sm text-gray-400 hover:text-gray-700 transition">
               Salir
             </button>
