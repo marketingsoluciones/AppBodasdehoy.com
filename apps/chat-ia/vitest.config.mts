@@ -31,6 +31,7 @@ export default defineConfig({
       '@/utils/checkPythonBackendConfig': resolve(__dirname, './src/utils/checkPythonBackendConfig'),
       '@/utils/performanceMonitor': resolve(__dirname, './src/utils/performanceMonitor'),
       '@/utils/visitorLimit': resolve(__dirname, './src/utils/visitorLimit'),
+      '@/utils/authToken': resolve(__dirname, './src/utils/authToken'),
       '@/const/supportKeys': resolve(__dirname, './src/const/supportKeys'),
       '@/utils': resolve(__dirname, './packages/utils/src'),
       '@/types': resolve(__dirname, './packages/types/src'),
