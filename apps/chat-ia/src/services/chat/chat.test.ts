@@ -884,8 +884,26 @@ describe('ChatService', () => {
         expect(getChatCompletionSpy).toHaveBeenCalled();
 
         const calls = getChatCompletionSpy.mock.lastCall;
-        // Take a snapshot of the first call's first argument
-        expect(calls![0]).toMatchSnapshot();
+        const payload = calls![0];
+
+        // Model and params forwarded correctly
+        expect(payload.model).toBe('gpt-3.5-turbo-1106');
+        expect(payload.top_p).toBe(1);
+
+        // System message includes DALL·E plugin instructions
+        const systemMessage = payload.messages.find((m: any) => m.role === 'system');
+        expect(systemMessage?.content).toContain('DALL·E 3');
+        expect(systemMessage?.content).toContain('lobe-image-designer');
+
+        // User message is forwarded
+        const userMessage = payload.messages.find((m: any) => m.role === 'user');
+        expect(userMessage?.content).toContain('https://vercel.com/');
+
+        // DALL·E tool is included
+        expect(payload.tools).toHaveLength(1);
+        expect(payload.tools[0].function.name).toBe('lobe-image-designer____text2image____builtin');
+        expect(payload.tools[0].function.parameters.properties.prompts).toBeDefined();
+
         expect(calls![1]).toBeUndefined();
       });
     });

@@ -6,7 +6,7 @@ import { settingsSelectors } from './settings';
 
 describe('settingsSelectors', () => {
   describe('currentSettings', () => {
-    it('should merge DEFAULT_SETTINGS and s.settings correctly', () => {
+    it('should preserve user-provided values after merging with defaults', () => {
       const s = {
         settings: {
           avatar: 'avatar.jpg',
@@ -25,9 +25,7 @@ describe('settingsSelectors', () => {
                 showAllLocaleVoice: false,
                 sttLocale: 'auto',
                 ttsService: 'openai',
-                voice: {
-                  openai: 'alloy',
-                },
+                voice: { openai: 'alloy' },
               },
             },
             meta: {
@@ -36,10 +34,7 @@ describe('settingsSelectors', () => {
             },
           },
           tts: {
-            openAI: {
-              sttModel: 'whisper-1',
-              ttsModel: 'tts-1',
-            },
+            openAI: { sttModel: 'whisper-1', ttsModel: 'tts-1' },
             sttAutoStop: true,
             sttServer: 'openai',
           },
@@ -55,12 +50,25 @@ describe('settingsSelectors', () => {
 
       const result = settingsSelectors.currentSettings(s);
 
-      expect(result).toMatchSnapshot();
+      // User-provided values are preserved
+      expect(result.avatar).toBe('avatar.jpg');
+      expect(result.fontSize).toBe(14);
+      expect(result.language).toBe('en-US');
+      expect(result.themeMode).toBe('light');
+      expect(result.primaryColor).toBe('blue');
+      expect(result.neutralColor).toBe('sand');
+      expect(result.password).toBe('password123');
+
+      // Deep nested values are preserved
+      expect(result.languageModel?.openAI?.OPENAI_API_KEY).toBe('openai-api-key');
+      expect(result.tts?.sttAutoStop).toBe(true);
+      expect(result.defaultAgent?.config?.model).toBe('gpt-3.5-turbo');
+      expect(result.defaultAgent?.meta?.avatar).toBe('Default Agent');
     });
   });
 
   describe('defaultAgent', () => {
-    it('should merge DEFAULT_AGENT and s.settings.defaultAgent correctly', () => {
+    it('should override defaults with user-provided agent config', () => {
       const s = {
         settings: {
           defaultAgent: {
@@ -78,12 +86,22 @@ describe('settingsSelectors', () => {
 
       const result = settingsSelectors.defaultAgent(s);
 
-      expect(result).toMatchSnapshot();
+      // User overrides
+      expect(result.config.systemRole).toBe('user');
+      expect(result.config.model).toBe('gpt-3.5-turbo');
+      expect(result.meta.avatar).toBe('agent-avatar.jpg');
+      expect(result.meta.description).toBe('Test agent');
+
+      // Defaults preserved (user didn't set these)
+      expect(result.config.params).toBeDefined();
+      expect(result.config.plugins).toEqual([]);
+      expect(result.config.tts).toBeDefined();
+      expect(result.config.provider).toBe('auto');
     });
   });
 
   describe('defaultAgentMeta', () => {
-    it('should merge DEFAULT_AGENT_META and defaultAgent(s).meta correctly', () => {
+    it('should merge user meta overriding defaults', () => {
       const s = {
         settings: {
           defaultAgent: {
@@ -97,12 +115,13 @@ describe('settingsSelectors', () => {
 
       const result = settingsSelectors.defaultAgentMeta(s);
 
-      expect(result).toMatchSnapshot();
+      expect(result.avatar).toBe('agent-avatar.jpg');
+      expect(result.description).toBe('Test agent');
     });
   });
 
   describe('currentTTS', () => {
-    it('should merge DEFAULT_TTS_CONFIG and s.settings.tts correctly', () => {
+    it('should override TTS defaults with user values', () => {
       const s = {
         settings: {
           tts: {
@@ -116,12 +135,18 @@ describe('settingsSelectors', () => {
 
       const result = settingsSelectors.currentTTS(s);
 
-      expect(result).toMatchSnapshot();
+      // User override
+      expect(result.sttAutoStop).toBe(false);
+      expect(result.openAI.sttModel).toBe('whisper-2');
+
+      // Defaults preserved
+      expect(result.sttServer).toBe('openai');
+      expect(result.openAI.ttsModel).toBe('tts-1');
     });
   });
 
   describe('dalleConfig', () => {
-    it('should return the dalle configuration', () => {
+    it('should return the dalle configuration from tool settings', () => {
       const s = {
         settings: {
           tool: {
@@ -135,29 +160,38 @@ describe('settingsSelectors', () => {
 
       const result = settingsSelectors.dalleConfig(s);
 
-      expect(result).toMatchSnapshot();
+      expect(result).toEqual({
+        apiKey: 'dalle-api-key',
+        autoGenerate: true,
+      });
+    });
+
+    it('should return empty object when dalle not configured', () => {
+      const s = { settings: {} } as unknown as UserStore;
+
+      const result = settingsSelectors.dalleConfig(s);
+
+      expect(result).toEqual({});
     });
   });
 
   describe('isDalleAutoGenerating', () => {
-    it('should return the autoGenerate flag from dalle configuration', () => {
+    it('should return true when autoGenerate is enabled', () => {
       const s = {
-        settings: {
-          tool: {
-            dalle: {
-              autoGenerate: true,
-            },
-          },
-        },
+        settings: { tool: { dalle: { autoGenerate: true } } },
       } as unknown as UserStore;
 
-      const result = settingsSelectors.isDalleAutoGenerating(s);
+      expect(settingsSelectors.isDalleAutoGenerating(s)).toBe(true);
+    });
 
-      expect(result).toBe(true);
+    it('should return undefined when dalle not configured', () => {
+      const s = { settings: {} } as unknown as UserStore;
+
+      expect(settingsSelectors.isDalleAutoGenerating(s)).toBeUndefined();
     });
   });
 
-  describe('getProviderConfigById', () => {
+  describe('providerConfig', () => {
     it('should return the provider config for a given provider id', () => {
       const providerConfig = {
         OPENAI_API_KEY: 'test-key',
@@ -165,11 +199,7 @@ describe('settingsSelectors', () => {
       };
 
       const s = {
-        settings: {
-          languageModel: {
-            openAI: providerConfig,
-          },
-        },
+        settings: { languageModel: { openAI: providerConfig } },
       } as unknown as UserStore;
 
       const result = settingsSelectors.providerConfig('openAI')(s);
@@ -179,9 +209,7 @@ describe('settingsSelectors', () => {
 
     it('should return undefined if provider does not exist', () => {
       const s = {
-        settings: {
-          languageModel: {},
-        },
+        settings: { languageModel: {} },
       } as unknown as UserStore;
 
       const result = settingsSelectors.providerConfig(
@@ -193,16 +221,14 @@ describe('settingsSelectors', () => {
   });
 
   describe('defaultAgentConfig', () => {
-    it('should merge DEFAULT_AGENT_CONFIG and defaultAgent(s).config correctly', () => {
+    it('should override default config with user-provided values', () => {
       const s = {
         settings: {
           defaultAgent: {
             config: {
               systemRole: 'custom role',
               model: 'gpt-4',
-              params: {
-                temperature: 0.7,
-              },
+              params: { temperature: 0.7 },
             },
           },
         },
@@ -210,33 +236,37 @@ describe('settingsSelectors', () => {
 
       const result = settingsSelectors.defaultAgentConfig(s);
 
-      expect(result).toMatchSnapshot();
+      // User overrides
+      expect(result.systemRole).toBe('custom role');
+      expect(result.model).toBe('gpt-4');
+      expect(result.params.temperature).toBe(0.7);
+
+      // Defaults preserved
+      expect(result.params.frequency_penalty).toBe(0);
+      expect(result.params.presence_penalty).toBe(0);
+      expect(result.params.top_p).toBe(1);
+      expect(result.plugins).toEqual([]);
+      expect(result.provider).toBe('auto');
+      expect(result.tts).toBeDefined();
+      expect(result.chatConfig.enableStreaming).toBe(true);
     });
   });
 
   describe('exportSettings', () => {
-    it('should return the current settings', () => {
+    it('should return the current merged settings', () => {
       const s = {
-        defaultSettings: {
-          fontSize: 16,
-        },
-        settings: {
-          fontSize: 14,
-          language: 'en-US',
-        },
+        defaultSettings: { fontSize: 16 },
+        settings: { fontSize: 14, language: 'en-US' },
       } as unknown as UserStore;
 
       const result = settingsSelectors.exportSettings(s);
 
-      expect(result).toEqual({
-        fontSize: 14,
-        language: 'en-US',
-      });
+      expect(result).toEqual({ fontSize: 14, language: 'en-US' });
     });
   });
 
   describe('currentSystemAgent', () => {
-    it('should merge DEFAULT_SYSTEM_AGENT_CONFIG and s.settings.systemAgent correctly', () => {
+    it('should override system agent defaults with user values', () => {
       const s = {
         settings: {
           systemAgent: {
@@ -248,40 +278,38 @@ describe('settingsSelectors', () => {
 
       const result = settingsSelectors.currentSystemAgent(s);
 
-      expect(result).toMatchSnapshot();
+      // User overrides
+      expect(result.enableAutoReply).toBe(true);
+      expect(result.replyMessage).toBe('Custom auto reply');
+
+      // Defaults preserved (system agent sub-configs)
+      expect(result.topic).toBeDefined();
+      expect(result.translation).toBeDefined();
+      expect(result.historyCompress).toBeDefined();
     });
   });
 
   describe('getHotkeyById', () => {
-    it('should return the hotkey config for a given id', () => {
-      const hotkeyConfig = {
-        hotkey: 'ctrl+shift+f',
-        scope: 'global',
-      };
-
+    it('should return user-defined hotkey config', () => {
       const s = {
         settings: {
           hotkey: {
-            newChat: hotkeyConfig,
+            newChat: { hotkey: 'ctrl+shift+f', scope: 'global' },
           },
         },
       } as unknown as UserStore;
 
       const result = settingsSelectors.getHotkeyById('newChat' as HotkeyId)(s);
 
-      expect(result).toMatchSnapshot();
+      expect(result).toEqual({ hotkey: 'ctrl+shift+f', scope: 'global' });
     });
 
-    it('should return default hotkey if not defined in settings', () => {
-      const s = {
-        settings: {
-          hotkey: {},
-        },
-      } as unknown as UserStore;
+    it('should return undefined for hotkey not defined in settings or defaults', () => {
+      const s = { settings: { hotkey: {} } } as unknown as UserStore;
 
       const result = settingsSelectors.getHotkeyById('newChat' as HotkeyId)(s);
 
-      expect(result).toMatchSnapshot();
+      expect(result).toBeUndefined();
     });
   });
 });

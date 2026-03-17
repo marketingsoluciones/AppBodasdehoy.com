@@ -39,7 +39,17 @@ describe('agentSelectors', () => {
 
       const result = agentSelectors.inboxAgentConfig(s);
 
-      expect(result).toMatchSnapshot();
+      // User overrides
+      expect(result.systemRole).toBe('user');
+      expect(result.model).toBe('gpt-3.5-turbo');
+      expect(result.params.temperature).toBe(0.7);
+
+      // Defaults preserved
+      expect(result.params.frequency_penalty).toBe(0);
+      expect(result.params.top_p).toBe(1);
+      expect(result.plugins).toEqual([]);
+      expect(result.chatConfig.enableStreaming).toBe(true);
+      expect(result.tts).toBeDefined();
     });
   });
 

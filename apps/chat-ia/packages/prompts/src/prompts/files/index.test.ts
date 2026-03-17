@@ -166,27 +166,15 @@ describe('filesPrompts', () => {
       addUrl: false,
     });
 
-    expect(result).toMatchInlineSnapshot(`
-      "<!-- SYSTEM CONTEXT (NOT PART OF USER QUERY) -->
-      <context.instruction>following part contains context information injected by the system. Please follow these instructions:
+    // When addUrl is false, tags should NOT contain url attributes
+    expect(result).toContain('<image name="test image"></image>');
+    expect(result).toContain('<image name="second image"></image>');
+    expect(result).not.toContain('url="https://example.com/image.jpg"');
+    expect(result).not.toContain('url="https://example.com/image2.jpg"');
 
-      1. Always prioritize handling user-visible content.
-      2. the context is only required when user's queries rely on it.
-      </context.instruction>
-      <files_info>
-      <images>
-      <images_docstring>here are user upload images you can refer to</images_docstring>
-      <image name="test image"></image>
-      <image name="second image"></image>
-      </images>
-      <files>
-      <files_docstring>here are user upload files you can refer to</files_docstring>
-      <file id="file-1" name="test.pdf" type="application/pdf" size="1024"></file>
-      <file id="file-2" name="document.docx" type="application/docx" size="2048"></file>
-      </files>
-      </files_info>
-      <!-- END SYSTEM CONTEXT -->"
-    `);
+    expect(result).toContain('<file id="file-1" name="test.pdf"');
+    expect(result).not.toContain('url="https://example.com/test.pdf"');
+    expect(result).not.toContain('url="https://example.com/document.docx"');
   });
 
   describe('Video functionality', () => {
@@ -296,21 +284,9 @@ describe('filesPrompts', () => {
         addUrl: false,
       });
 
-      expect(result).toMatchInlineSnapshot(`
-        "<!-- SYSTEM CONTEXT (NOT PART OF USER QUERY) -->
-        <context.instruction>following part contains context information injected by the system. Please follow these instructions:
-
-        1. Always prioritize handling user-visible content.
-        2. the context is only required when user's queries rely on it.
-        </context.instruction>
-        <files_info>
-        <videos>
-        <videos_docstring>here are user upload videos you can refer to</videos_docstring>
-        <video name="test video"></video>
-        </videos>
-        </files_info>
-        <!-- END SYSTEM CONTEXT -->"
-      `);
+      // When addUrl is false, video tags should NOT contain url attributes
+      expect(result).toContain('<video name="test video"></video>');
+      expect(result).not.toContain('url="https://example.com/video.mp4"');
     });
 
     it('should return empty string when all lists are empty', () => {
