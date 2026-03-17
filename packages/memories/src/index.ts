@@ -20,9 +20,12 @@ export type {
   AlbumInvitation,
   AlbumMedia,
   AlbumMember,
+  AlbumType,
   EventAlbumStructure,
   MemoriesConfig,
   MemoriesState,
+  ProfessionalProfile,
+  ProfessionalSpecialty,
 } from './initialState';
 
 export { initialMemoriesState } from './initialState';

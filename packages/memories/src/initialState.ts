@@ -2,6 +2,47 @@
  * @bodasdehoy/memories - State types and initial state
  */
 
+export type ProfessionalSpecialty =
+  | 'photographer'
+  | 'videographer'
+  | 'dj'
+  | 'florist'
+  | 'catering'
+  | 'venue'
+  | 'makeup'
+  | 'hairstylist'
+  | 'wedding_planner'
+  | 'musician'
+  | 'officiant'
+  | 'other';
+
+export interface ProfessionalProfile {
+  _id: string;
+  userId: string;
+  /** URL-friendly unique slug: /pro/[slug] */
+  slug: string;
+  name: string;
+  specialty: ProfessionalSpecialty;
+  bio?: string;
+  avatarUrl?: string;
+  coverUrl?: string;
+  location?: string;
+  website?: string;
+  instagram?: string;
+  whatsapp?: string;
+  email?: string;
+  /** IDs of albums to show in public portfolio */
+  portfolioAlbumIds: string[];
+  /** Text shown in watermark overlay (default: name) */
+  watermarkText?: string;
+  /** Who can print without watermark: owner only, or also album members */
+  printPermission: 'owner_only' | 'members';
+  /** Whether the public profile is visible */
+  isPublic: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type AlbumType =
   // Genéricos
   | 'general'
@@ -150,6 +191,10 @@ export interface MemoriesState {
 
   uploadProgress: number;
   uploadingFiles: string[];
+
+  professionalProfile: ProfessionalProfile | null;
+  professionalProfileLoading: boolean;
+  professionalProfileError: string | null;
 }
 
 export const initialMemoriesState: MemoriesState = {
@@ -187,4 +232,8 @@ export const initialMemoriesState: MemoriesState = {
 
   uploadProgress: 0,
   uploadingFiles: [],
+
+  professionalProfile: null,
+  professionalProfileLoading: false,
+  professionalProfileError: null,
 };
