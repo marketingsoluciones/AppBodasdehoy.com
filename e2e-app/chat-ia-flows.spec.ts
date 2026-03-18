@@ -28,10 +28,12 @@ import { test, expect, Page } from '@playwright/test';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import { TEST_CREDENTIALS, TEST_URLS } from './fixtures';
+import { TEST_CREDENTIALS } from './fixtures';
+import { getChatUrl } from './fixtures';
 
-const CHAT_URL = TEST_URLS.chat;
-const APP_URL  = process.env.BASE_URL  || TEST_URLS.app  || 'https://app-test.bodasdehoy.com';
+const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
+const CHAT_URL = getChatUrl(BASE_URL);
+const APP_URL  = BASE_URL;
 
 const EMAIL    = TEST_CREDENTIALS.email;
 const PASSWORD = TEST_CREDENTIALS.password;
@@ -61,6 +63,8 @@ async function loginChat(page: Page): Promise<boolean> {
   await page.locator('input[type="password"]').first().fill(PASSWORD);
   await page.locator('button[type="submit"]').first().click();
   await page.waitForURL((u) => !u.pathname.includes('/login'), { timeout: 30_000 }).catch(() => {});
+  // Wait for dev-user-config cookie to be set (FirebaseAuth sets it after redirect)
+  await page.waitForTimeout(2000);
   return !page.url().includes('/login');
 }
 

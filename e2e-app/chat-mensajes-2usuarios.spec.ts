@@ -31,10 +31,12 @@
  */
 
 import { test, expect, Browser, BrowserContext, Page } from '@playwright/test';
-import { TEST_CREDENTIALS, TEST_URLS } from './fixtures';
+import { TEST_CREDENTIALS } from './fixtures';
+import { getChatUrl } from './fixtures';
 
-const CHAT_URL = TEST_URLS.chat;
-const APP_URL  = process.env.BASE_URL  || TEST_URLS.app  || 'https://app-test.bodasdehoy.com';
+const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
+const CHAT_URL = getChatUrl(BASE_URL);
+const APP_URL  = BASE_URL;
 
 // ── Credenciales de los dos usuarios ──────────────────────────────────────────
 const U1_EMAIL    = process.env.TEST_USER_EMAIL     || TEST_CREDENTIALS.email     || 'bodasdehoy.com@gmail.com';

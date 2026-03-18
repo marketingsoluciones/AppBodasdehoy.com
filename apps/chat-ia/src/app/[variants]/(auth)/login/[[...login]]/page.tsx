@@ -148,7 +148,7 @@ function RightPanel() {
           localStorage.setItem('jwt_token', result.token);
           localStorage.setItem('api2_jwt_token', result.token);
         }
-        localStorage.setItem('dev-user-config', JSON.stringify({
+        const devUserConfig = {
           developer: result.development,
           development: result.development,
           timestamp: Date.now(),
@@ -156,7 +156,10 @@ function RightPanel() {
           userId: result.user_id,
           user_id: result.user_id,
           user_type: 'registered',
-        }));
+        };
+        localStorage.setItem('dev-user-config', JSON.stringify(devUserConfig));
+        // Also set as cookie so server-side route.ts can send Authorization header to api-ia
+        document.cookie = `dev-user-config=${encodeURIComponent(JSON.stringify(devUserConfig))}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
         await setExternalChatConfig(result.user_id, result.development, result.token || undefined, 'registered');
         fetchExternalChats().catch(() => {});
         // Redirigir a ?redirect= (cross-app SSO) o al chat por defecto
@@ -187,7 +190,7 @@ function RightPanel() {
           localStorage.setItem('jwt_token', result.token);
           localStorage.setItem('api2_jwt_token', result.token);
         }
-        localStorage.setItem('dev-user-config', JSON.stringify({
+        const devUserConfig2 = {
           developer: result.development,
           development: result.development,
           timestamp: Date.now(),
@@ -195,7 +198,10 @@ function RightPanel() {
           userId: result.user_id,
           user_id: result.user_id,
           user_type: 'registered',
-        }));
+        };
+        localStorage.setItem('dev-user-config', JSON.stringify(devUserConfig2));
+        // Also set as cookie so server-side route.ts can send Authorization header to api-ia
+        document.cookie = `dev-user-config=${encodeURIComponent(JSON.stringify(devUserConfig2))}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
         await setExternalChatConfig(result.user_id, result.development, result.token || undefined, 'registered');
         fetchExternalChats().catch(() => {});
         // Redirigir a ?redirect= (cross-app SSO) o al chat por defecto
