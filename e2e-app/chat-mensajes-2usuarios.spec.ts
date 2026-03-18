@@ -33,7 +33,7 @@
 import { test, expect, Browser, BrowserContext, Page } from '@playwright/test';
 import { TEST_CREDENTIALS, TEST_URLS } from './fixtures';
 
-const CHAT_URL = process.env.CHAT_URL || TEST_URLS.chat || 'https://chat-test.bodasdehoy.com';
+const CHAT_URL = TEST_URLS.chat;
 const APP_URL  = process.env.BASE_URL  || TEST_URLS.app  || 'https://app-test.bodasdehoy.com';
 
 // ── Credenciales de los dos usuarios ──────────────────────────────────────────

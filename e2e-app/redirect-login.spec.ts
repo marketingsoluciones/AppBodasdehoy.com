@@ -5,6 +5,7 @@
  */
 import { test, expect } from '@playwright/test';
 import { clearSession } from './helpers';
+import { getChatUrl } from './fixtures';
 
 // Misma base que playwright.config.ts (process.env.BASE_URL) para que el worker tenga isAppTest correcto
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
@@ -15,11 +16,7 @@ const isAppTest =
   /https?:\/\/app\.bodasdehoy\.com/.test(BASE_URL); // exact match para prod
 
 // Chat de destino según entorno
-const CHAT_TARGET = BASE_URL.includes('app-dev.bodasdehoy.com')
-  ? 'https://chat-dev.bodasdehoy.com'
-  : BASE_URL.includes('app-test.bodasdehoy.com')
-  ? 'https://chat-test.bodasdehoy.com'
-  : 'https://chat.bodasdehoy.com';
+const CHAT_TARGET = getChatUrl(BASE_URL);
 
 /** Si el chat destino no está disponible, los tests de redirect se omiten. */
 async function isChatTestReachable(): Promise<boolean> {
@@ -63,8 +60,7 @@ test.describe('Redirect login (app-test → chat-test)', () => {
     try {
       await page.waitForURL(
         (url) =>
-          url.hostname.includes('chat-test.bodasdehoy.com') ||
-          url.hostname.includes('chat.bodasdehoy.com') ||
+          (url.hostname.includes('chat') && url.hostname.includes('bodasdehoy.com')) ||
           // Si ya había sesión, chat redirige de vuelta a app (test o dev)
           (url.hostname.includes('app-test.bodasdehoy.com') && url.pathname !== '/login') ||
           (url.hostname.includes('app-dev.bodasdehoy.com') && url.pathname !== '/login'),
@@ -77,8 +73,7 @@ test.describe('Redirect login (app-test → chat-test)', () => {
     const finalUrl = page.url();
 
     const wentToChat =
-      finalUrl.includes('chat-test.bodasdehoy.com') ||
-      finalUrl.includes('chat.bodasdehoy.com');
+      finalUrl.includes('chat') && finalUrl.includes('bodasdehoy.com');
     const redirectedBackAuthenticated =
       (finalUrl.includes('app-test.bodasdehoy.com') || finalUrl.includes('app-dev.bodasdehoy.com')) &&
       !finalUrl.includes('/login');

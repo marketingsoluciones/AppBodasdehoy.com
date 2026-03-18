@@ -12,6 +12,7 @@
  */
 import { test, expect, Browser, BrowserContext } from '@playwright/test';
 import { clearSession, waitForAppReady } from './helpers';
+import { getChatUrl } from './fixtures';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isLocal = BASE_URL.includes('127.0.0.1') || BASE_URL.includes('localhost');
@@ -21,7 +22,7 @@ const isAppTest =
   BASE_URL.includes('app-test.bodasdehoy.com') ||
   BASE_URL.includes('app.bodasdehoy.com');
 
-const CHAT_URL = isAppTest ? 'https://chat-test.bodasdehoy.com' : 'http://127.0.0.1:3210';
+const CHAT_URL = getChatUrl(BASE_URL);
 
 const U1_EMAIL = process.env.TEST_USER_EMAIL || 'bodasdehoy.com@gmail.com';
 const U1_PASSWORD = process.env.TEST_USER_PASSWORD || '';
@@ -31,20 +32,15 @@ const U2_PASSWORD = process.env.TEST_USER2_PASSWORD || 'TestBodas2024!';
 const hasU1Creds = Boolean(U1_EMAIL && U1_PASSWORD);
 const hasU2Creds = Boolean(U2_EMAIL && U2_PASSWORD);
 
-/** Login directo en chat-test (LobeChat) */
+/** Login directo en chat (LobeChat) — navega a /login solo si no estamos ya ahí */
 async function loginInChat(page: any, email: string, password: string): Promise<boolean> {
   try {
-    await page.goto(`${CHAT_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
-    await page.waitForTimeout(2000);
-
-    // Buscar botón "Iniciar sesión" o ir directo al formulario
-    const loginBtn = page.locator('a, [role="button"], span').filter({ hasText: /^Iniciar sesión$/ }).first();
-    if (await loginBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await loginBtn.click();
-      await page.waitForTimeout(800);
+    if (!page.url().includes('/login')) {
+      await page.goto(`${CHAT_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+      await page.waitForTimeout(2000);
     }
 
-    await page.locator('input[type="email"]').first().fill(email);
+    await page.locator('input[type="email"]').first().fill(email, { timeout: 10_000 });
     await page.locator('input[type="password"]').first().fill(password);
     await page.locator('button[type="submit"]').first().click();
 
@@ -55,63 +51,77 @@ async function loginInChat(page: any, email: string, password: string): Promise<
   }
 }
 
-/** Login directo — soporta appEventos (localhost), chat-ia redirect (dev/test/prod) */
-async function loginInApp(page: any, email: string, password: string): Promise<boolean> {
-  try {
-    await page.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+/**
+ * Rellena y envía el formulario de login visible en la página actual.
+ * Soporta tanto chat-ia (Ant Design: input[type="email"]) como appEventos (Formik: textbox genérico).
+ */
+async function fillLoginForm(page: any, email: string, password: string): Promise<boolean> {
+  // Esperar a que el formulario esté visible
+  const emailTyped = page.locator('input[type="email"]').first();
+  const isChatForm = await emailTyped.isVisible({ timeout: 8_000 }).catch(() => false);
 
-    // Esperar a que la URL se estabilice (app-dev redirige a chat-dev/login via SSO)
-    await page.waitForTimeout(3000);
-    // Si hubo redirect SSO, esperar a que la nueva página cargue
-    const currentUrl = page.url();
-    if (!currentUrl.includes(BASE_URL.replace('https://', '').replace('http://', ''))) {
-      // Estamos en otro dominio (chat-dev, chat-test, etc.) — esperar carga
-      await page.waitForLoadState('domcontentloaded').catch(() => {});
-      await page.waitForTimeout(2000);
-    }
+  if (isChatForm) {
+    await emailTyped.click();
+    await emailTyped.fill(email);
+    await page.waitForTimeout(200);
+    const pwdInput = page.locator('input[type="password"]').first();
+    await pwdInput.click();
+    await pwdInput.fill(password);
+  } else {
+    const textboxes = page.getByRole('textbox');
+    const firstInput = textboxes.first();
+    if (!await firstInput.isVisible({ timeout: 8_000 }).catch(() => false)) return false;
 
-    // Intentar llenar con loginInChat si estamos en chat-*
-    if (page.url().includes('chat')) {
-      return await loginInChat(page, email, password).catch(() => false);
-    }
+    await firstInput.click();
+    await firstInput.fill(email);
+    await page.waitForTimeout(200);
 
-    // AppEventos form — inputs son textbox genéricos (sin type="email")
-    const emailTyped = page.locator('input[type="email"]').first();
-    const isChatForm = await emailTyped.isVisible({ timeout: 3_000 }).catch(() => false);
-
-    if (isChatForm) {
-      await emailTyped.click();
-      await emailTyped.fill(email);
-      await page.waitForTimeout(200);
-      const pwdInput = page.locator('input[type="password"]').first();
+    const pwdInput = page.locator('input[type="password"]').first();
+    const hasPwdType = await pwdInput.isVisible({ timeout: 2_000 }).catch(() => false);
+    if (hasPwdType) {
       await pwdInput.click();
       await pwdInput.fill(password);
     } else {
-      const textboxes = page.getByRole('textbox');
-      const firstInput = textboxes.first();
-      if (!await firstInput.isVisible({ timeout: 5_000 }).catch(() => false)) return false;
+      await textboxes.nth(1).click();
+      await textboxes.nth(1).fill(password);
+    }
+  }
 
-      await firstInput.click();
-      await firstInput.fill(email);
-      await page.waitForTimeout(200);
+  await page.waitForTimeout(300);
+  // Ant Design: button[type="submit"] o button con texto "Iniciar sesión"
+  const submitBtn = page.locator('button[type="submit"]').first();
+  if (await submitBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    await submitBtn.click();
+  } else {
+    await page.locator('button').filter({ hasText: /iniciar sesión/i }).first().click();
+  }
 
-      const pwdInput = page.locator('input[type="password"]').first();
-      const hasPwdType = await pwdInput.isVisible({ timeout: 2_000 }).catch(() => false);
-      if (hasPwdType) {
-        await pwdInput.click();
-        await pwdInput.fill(password);
-      } else {
-        await textboxes.nth(1).click();
-        await textboxes.nth(1).fill(password);
-      }
+  await page.waitForURL((url: URL) => !url.pathname.includes('/login'), { timeout: 30_000 }).catch(() => {});
+  return !page.url().includes('/login');
+}
+
+/** Login en app — para remoto usa loginInChat directamente, para localhost usa el form propio */
+async function loginInApp(page: any, email: string, password: string): Promise<boolean> {
+  try {
+    // En dominios remotos, login siempre es via chat (SSO)
+    if (!isLocal) {
+      const ok = await loginInChat(page, email, password);
+      if (!ok) return false;
+      // Volver a app-dev para que AuthContext active la sesión via cookie
+      await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 40_000 }).catch(() => {});
+      await waitForAppReady(page, 20_000);
+      return true;
     }
 
-    await page.waitForTimeout(300);
-    await page.locator('button').filter({ hasText: /iniciar sesión/i }).first().click();
+    // Localhost: login propio en appEventos
+    await page.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+    await page.waitForTimeout(2000);
 
-    await page.waitForURL((url: URL) => !url.pathname.includes('/login'), { timeout: 30_000 }).catch(() => {});
+    const ok = await fillLoginForm(page, email, password);
+    if (!ok) return false;
+
     await waitForAppReady(page, 15_000);
-    return !page.url().includes('/login');
+    return true;
   } catch {
     return false;
   }

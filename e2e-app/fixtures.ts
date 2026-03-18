@@ -49,10 +49,24 @@ export const KNOWN_EVENT_IDS: string[] = [
   // '507f1f77bcf86cd799439011', // ejemplo — actualizar con el ID real
 ];
 
+/**
+ * Resuelve la URL de chat-ia según el entorno detectado en BASE_URL.
+ * Prioridad: CHAT_URL env > detección por BASE_URL > localhost fallback.
+ */
+export function getChatUrl(baseUrl?: string): string {
+  if (process.env.CHAT_URL) return process.env.CHAT_URL;
+  const url = baseUrl || process.env.BASE_URL || '';
+  const isLocal = url.includes('127.0.0.1') || url.includes('localhost') || !url.startsWith('http');
+  if (isLocal) return 'http://127.0.0.1:3210';
+  if (url.includes('-dev.')) return 'https://chat-dev.bodasdehoy.com';
+  if (url.includes('-test.')) return 'https://chat-test.bodasdehoy.com';
+  return 'https://chat.bodasdehoy.com';
+}
+
 /** URL base de test (app y chat) */
 export const TEST_URLS = {
   app: process.env.BASE_URL || 'https://app-test.bodasdehoy.com',
-  chat: process.env.CHAT_URL || 'https://chat-test.bodasdehoy.com',
+  chat: getChatUrl(),
 };
 
 /** Usuario secundario (novia/pareja) — comparte evento con U1 */

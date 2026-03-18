@@ -76,8 +76,7 @@ test.describe('Usuario guest (sin sesión)', () => {
     try {
       await page.waitForURL(
         (url) =>
-          url.hostname.includes('chat-test.bodasdehoy.com') ||
-          url.hostname.includes('chat.bodasdehoy.com') ||
+          (url.hostname.includes('chat') && url.hostname.includes('bodasdehoy.com')) ||
           // Si el usuario ya tenía sesión, chat redirige de vuelta a app (cualquier entorno)
           (url.hostname.includes('bodasdehoy.com') &&
             !url.hostname.startsWith('app-test') &&
@@ -98,8 +97,7 @@ test.describe('Usuario guest (sin sesión)', () => {
     // 2. Redirigió a chat y volvió a app (usuario ya autenticado)
     // Falla solo si el redirect NO ocurrió y la URL sigue siendo app/login
     const redirectOccurred =
-      finalUrl.includes('chat-test.bodasdehoy.com') ||
-      finalUrl.includes('chat.bodasdehoy.com') ||
+      (finalUrl.includes('chat') && finalUrl.includes('bodasdehoy.com')) ||
       (finalUrl.includes('app-test.bodasdehoy.com') && !finalUrl.includes('/login')) ||
       (finalUrl.includes('app-dev.bodasdehoy.com') && !finalUrl.includes('/login'));
 

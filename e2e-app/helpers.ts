@@ -1,4 +1,5 @@
 import { BrowserContext, Page } from '@playwright/test';
+import { getChatUrl } from './fixtures';
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -48,14 +49,15 @@ export async function clearSession(context: BrowserContext, page: Page): Promise
   } catch { /* ignorar */ }
   await clearStorageAtOrigin(page);
 
-  // 2. Limpiar chat-test origin (Firebase puede tener sesión ahí)
+  // 2. Limpiar chat origin (Firebase puede tener sesión ahí)
   const BASE_URL = process.env.BASE_URL || '';
-  const isAppTest = BASE_URL.includes('app-test.') || BASE_URL.includes('.bodasdehoy.com');
-  if (isAppTest) {
+  const chatUrl = getChatUrl(BASE_URL);
+  const isRemote = BASE_URL.includes('.bodasdehoy.com');
+  if (isRemote) {
     try {
-      await page.goto('https://chat-test.bodasdehoy.com/', { waitUntil: 'domcontentloaded', timeout: 15_000 });
+      await page.goto(`${chatUrl}/`, { waitUntil: 'domcontentloaded', timeout: 15_000 });
       await clearStorageAtOrigin(page);
-    } catch { /* si chat-test no está disponible, ignorar */ }
+    } catch { /* si chat no está disponible, ignorar */ }
     // Volver al origen principal (usando URL absoluta para no quedar en chat-dev)
     const appBase = BASE_URL.startsWith('http') ? BASE_URL : '';
     if (appBase) {

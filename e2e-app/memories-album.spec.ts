@@ -19,7 +19,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import { TEST_CREDENTIALS, TEST_CREDENTIALS_U2, TEST_URLS } from './fixtures';
 
-const CHAT_URL = process.env.CHAT_URL || TEST_URLS.chat || 'https://chat-test.bodasdehoy.com';
+const CHAT_URL = TEST_URLS.chat;
 const EMAIL = TEST_CREDENTIALS.email;
 const PASSWORD = TEST_CREDENTIALS.password;
 const U2_EMAIL = TEST_CREDENTIALS_U2.email;

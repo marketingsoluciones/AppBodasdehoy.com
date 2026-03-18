@@ -25,12 +25,17 @@
  */
 import { test, expect, Page, BrowserContext } from '@playwright/test';
 import { clearSession, waitForAppReady } from './helpers';
+import { getChatUrl } from './fixtures';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
-  BASE_URL.includes('app-test.bodasdehoy.com') || BASE_URL.includes('app.bodasdehoy.com');
+  BASE_URL.includes('app-dev.bodasdehoy.com') ||
+  BASE_URL.includes('app-test.bodasdehoy.com') ||
+  BASE_URL.includes('app.bodasdehoy.com') ||
+  BASE_URL.includes('127.0.0.1') ||
+  BASE_URL.includes('localhost');
 
-const CHAT_URL = isAppTest ? 'https://chat-test.bodasdehoy.com' : 'http://127.0.0.1:3210';
+const CHAT_URL = getChatUrl(BASE_URL);
 
 // ── Segundo usuario de prueba ──────────────────────────────────────────────────
 const USER2_EMAIL = process.env.TEST_USER2_EMAIL || 'test-usuario2@bodasdehoy.com';

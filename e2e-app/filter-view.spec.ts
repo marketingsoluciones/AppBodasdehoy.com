@@ -228,22 +228,22 @@ test.describe('filter_view — interacción UI', () => {
 test.describe('filter_view — iframe smoke', () => {
   test.setTimeout(60_000);
 
-  test('chat-test.bodasdehoy.com accesible y carga sin crash', async ({ page }) => {
+  test('chat-ia accesible y carga sin crash', async ({ page }) => {
     try {
       const response = await page.goto(CHAT_URL, {
         waitUntil: 'domcontentloaded',
         timeout: 15_000,
       });
       if (!response || response.status() >= 500) {
-        console.log('⚠️ chat-test no disponible — skip');
+        console.log('⚠️ chat no disponible — skip');
         test.skip();
         return;
       }
       const text = (await page.locator('body').textContent()) ?? '';
       expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
-      console.log('✅ chat-test accesible');
+      console.log('✅ chat accesible');
     } catch {
-      console.log('⚠️ chat-test sin respuesta — skip');
+      console.log('⚠️ chat sin respuesta — skip');
       test.skip();
     }
   });
