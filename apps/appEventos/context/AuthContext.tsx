@@ -555,15 +555,10 @@ const AuthProvider = ({ children }) => {
 
   // ✅ Timeout de seguridad: si la verificación no termina en 4s, mostrar la app como guest
   // 4s da tiempo suficiente para el flujo SSO cross-domain (authStatus + signInWithCustomToken)
-  // IMPORTANTE: también setear un usuario guest para que home sea accesible (evita redirect a login)
+  // NOTA: El bucle de login está prevenido por login.js y vista-sin-cookie.js (hasSsoToken check),
+  // no por este timeout. Este timeout debe siempre completar la verificación.
   useEffect(() => {
     const safetyTimeout = setTimeout(() => {
-      // Si hay SSO en curso (idTokenV0.1.0 presente), no crear guest — el verificator aún trabaja
-      const hasSsoToken = typeof document !== 'undefined' && document.cookie.includes('idTokenV0.1.0')
-      if (hasSsoToken) {
-        console.warn('[Auth] Timeout de seguridad: SSO en curso, esperando más tiempo...');
-        return;
-      }
       setVerificationDone((prev) => {
         if (!prev) {
           console.warn('[Auth] Timeout de seguridad: mostrando app a los 4s como guest');
@@ -794,8 +789,6 @@ const AuthProvider = ({ children }) => {
   // Timeout de seguridad: si la verificación tarda > 5s, mostrar la app para no quedarse en carga infinita
   useEffect(() => {
     const t = setTimeout(() => {
-      const hasSsoToken = typeof document !== 'undefined' && document.cookie.includes('idTokenV0.1.0')
-      if (hasSsoToken) return // SSO en curso, no crear guest
       setVerificationDone((done) => {
         if (!done) {
           console.warn('[AuthContext] Timeout de carga (5s), mostrando app');
