@@ -266,7 +266,15 @@ function RightPanel() {
         )}
 
         {/* Social auth */}
-        <FirebaseAuth development={development} onError={(e) => setError(e.message)} />
+        <FirebaseAuth
+          development={development}
+          onError={(e) => setError(e.message)}
+          onSuccess={() => {
+            if (redirectAfterLogin && isSafeRedirect(redirectAfterLogin)) {
+              window.location.href = redirectAfterLogin;
+            }
+          }}
+        />
 
         <Divider style={{ margin: '20px 0' }}>o con email</Divider>
 
@@ -351,7 +359,15 @@ function RightPanel() {
         <Alert closable message={error} onClose={() => setError(null)} showIcon style={{ marginBottom: 16 }} type="error" />
       )}
 
-      <FirebaseAuth development={development} onError={(e) => setError(e.message)} />
+      <FirebaseAuth
+        development={development}
+        onError={(e) => setError(e.message)}
+        onSuccess={() => {
+          if (redirectAfterLogin && isSafeRedirect(redirectAfterLogin)) {
+            window.location.href = redirectAfterLogin;
+          }
+        }}
+      />
 
       <Divider style={{ margin: '20px 0' }}>o con email</Divider>
 
