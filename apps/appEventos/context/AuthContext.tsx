@@ -3,6 +3,14 @@ import { getAuth, onAuthStateChanged, signInWithCustomToken, getRedirectResult }
 import Cookies from 'js-cookie'
 import { nanoid, customAlphabet, } from 'nanoid'
 import { developments } from "../firebase";
+
+/** En localhost el navegador rechaza cookies con domain=.bodasdehoy.com */
+function safeCookieDomain(domain?: string): string | undefined {
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return undefined;
+  }
+  return domain;
+}
 import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
 import { initializeApp } from "firebase/app";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -323,8 +331,7 @@ const AuthProvider = ({ children }) => {
               const idToken = await result.user.getIdToken()
               const dateExpire = new Date(parseJwt(idToken).exp * 1000)
               
-              // Determinar el dominio correcto para la cookie idToken
-              const idTokenDomain = process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : process.env.NEXT_PUBLIC_DOMINIO || ".bodasdehoy.com"
+              const idTokenDomain = safeCookieDomain(process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : process.env.NEXT_PUBLIC_DOMINIO || ".bodasdehoy.com")
               
               console.log("[Auth] Estableciendo cookie idTokenV0.1.0:", {
                 domain: idTokenDomain,
@@ -370,7 +377,7 @@ const AuthProvider = ({ children }) => {
                   
                   // Determinar el dominio correcto para la cookie
                   // Para que funcione en todos los subdominios, usar .bodasdehoy.com
-                  let cookieDomain = config?.domain || ""
+                  let cookieDomain: string | undefined = config?.domain || ""
                   if (!cookieDomain) {
                     cookieDomain = process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : process.env.NEXT_PUBLIC_DOMINIO || ".bodasdehoy.com"
                   }
@@ -378,6 +385,8 @@ const AuthProvider = ({ children }) => {
                   if (cookieDomain && !cookieDomain.startsWith('.')) {
                     cookieDomain = `.${cookieDomain.replace(/^https?:\/\//, '').split('/')[0]}`
                   }
+                  // En localhost omitir domain para que el navegador no rechace la cookie
+                  cookieDomain = safeCookieDomain(cookieDomain)
                   
                   console.log("[Auth] Estableciendo cookie sessionBodas:", {
                     cookie: config?.cookie,
@@ -577,7 +586,7 @@ const AuthProvider = ({ children }) => {
       if (!idToken) {
         idToken = await getAuth().currentUser?.getIdToken(true)
         const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
+        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: safeCookieDomain(process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO), expires: dateExpire })
       }
       const userInfo = await fetchApiBodas({
         query: queries.getUser,
@@ -710,9 +719,8 @@ const AuthProvider = ({ children }) => {
               development: config?.development
             })
             if (ssoAuthResult?.sessionCookie) {
-              const cookieDomain = process.env.NEXT_PUBLIC_PRODUCTION
-                ? config?.domain
-                : (process.env.NEXT_PUBLIC_DOMINIO || ".bodasdehoy.com")
+              const isDevLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+              const cookieDomain = isDevLocal ? undefined : (process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : (process.env.NEXT_PUBLIC_DOMINIO || ".bodasdehoy.com"));
               Cookies.set(config?.cookie, ssoAuthResult.sessionCookie, {
                 domain: cookieDomain,
                 expires: 365,
@@ -736,7 +744,7 @@ const AuthProvider = ({ children }) => {
         if (!guestUid) {
           const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
           guestUid = nanoid(28)
-          Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: `${config?.domain}`, expires: dateExpire })
+          Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: safeCookieDomain(config?.domain), expires: dateExpire })
         }
         setUser({ uid: guestUid, displayName: "guest" })
         setVerificationDone(true)

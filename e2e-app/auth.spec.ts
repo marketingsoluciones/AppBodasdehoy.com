@@ -14,7 +14,10 @@ import { test, expect, Browser, BrowserContext } from '@playwright/test';
 import { clearSession, waitForAppReady } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
+const isLocal = BASE_URL.includes('127.0.0.1') || BASE_URL.includes('localhost');
 const isAppTest =
+  isLocal ||
+  BASE_URL.includes('app-dev.bodasdehoy.com') ||
   BASE_URL.includes('app-test.bodasdehoy.com') ||
   BASE_URL.includes('app.bodasdehoy.com');
 
@@ -52,18 +55,60 @@ async function loginInChat(page: any, email: string, password: string): Promise<
   }
 }
 
-/** Login directo en app-test (Next.js) */
+/** Login directo — soporta appEventos (localhost), chat-ia redirect (dev/test/prod) */
 async function loginInApp(page: any, email: string, password: string): Promise<boolean> {
   try {
     await page.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
-    await page.waitForTimeout(1000);
 
-    const emailInput = page.locator('input[type="email"]').first();
-    if (!await emailInput.isVisible({ timeout: 8_000 }).catch(() => false)) return false;
+    // Esperar a que la URL se estabilice (app-dev redirige a chat-dev/login via SSO)
+    await page.waitForTimeout(3000);
+    // Si hubo redirect SSO, esperar a que la nueva página cargue
+    const currentUrl = page.url();
+    if (!currentUrl.includes(BASE_URL.replace('https://', '').replace('http://', ''))) {
+      // Estamos en otro dominio (chat-dev, chat-test, etc.) — esperar carga
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
+      await page.waitForTimeout(2000);
+    }
 
-    await emailInput.fill(email);
-    await page.locator('input[type="password"]').first().fill(password);
-    await page.locator('button[type="submit"]').first().click();
+    // Intentar llenar con loginInChat si estamos en chat-*
+    if (page.url().includes('chat')) {
+      return await loginInChat(page, email, password).catch(() => false);
+    }
+
+    // AppEventos form — inputs son textbox genéricos (sin type="email")
+    const emailTyped = page.locator('input[type="email"]').first();
+    const isChatForm = await emailTyped.isVisible({ timeout: 3_000 }).catch(() => false);
+
+    if (isChatForm) {
+      await emailTyped.click();
+      await emailTyped.fill(email);
+      await page.waitForTimeout(200);
+      const pwdInput = page.locator('input[type="password"]').first();
+      await pwdInput.click();
+      await pwdInput.fill(password);
+    } else {
+      const textboxes = page.getByRole('textbox');
+      const firstInput = textboxes.first();
+      if (!await firstInput.isVisible({ timeout: 5_000 }).catch(() => false)) return false;
+
+      await firstInput.click();
+      await firstInput.fill(email);
+      await page.waitForTimeout(200);
+
+      const pwdInput = page.locator('input[type="password"]').first();
+      const hasPwdType = await pwdInput.isVisible({ timeout: 2_000 }).catch(() => false);
+      if (hasPwdType) {
+        await pwdInput.click();
+        await pwdInput.fill(password);
+      } else {
+        await textboxes.nth(1).click();
+        await textboxes.nth(1).fill(password);
+      }
+    }
+
+    await page.waitForTimeout(300);
+    await page.locator('button').filter({ hasText: /iniciar sesión/i }).first().click();
+
     await page.waitForURL((url: URL) => !url.pathname.includes('/login'), { timeout: 30_000 }).catch(() => {});
     await waitForAppReady(page, 15_000);
     return !page.url().includes('/login');
