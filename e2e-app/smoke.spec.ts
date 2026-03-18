@@ -8,33 +8,36 @@ const isLocal =
   baseURL.includes('localhost');
 
 /**
- * Smoke: comprueba que la app carga (localhost/127.0.0.1 responde y la página tiene contenido).
- * Si este test falla, el servidor no está listo o la página no pinta.
+ * Smoke: comprueba que la app carga sin errores.
+ * Este test es la PUERTA de entrada — si falla, bail:1 detiene todo el resto.
+ * Por eso detecta explícitamente errores de carga para no desperdiciar tiempo.
  */
 test.describe('Smoke — la app carga', () => {
   test.setTimeout(90_000);
 
-  test('la raíz / responde y muestra contenido', async ({ page }) => {
+  test('la raíz / responde y muestra contenido sin errores', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(() => {});
-
-    const text = await page.locator('body').textContent().catch(() => null) ?? '';
-    if (text === null || text.length < 20) {
-      console.log('ℹ️ Raíz no accesible o redirect cross-domain — pass sin crash');
-      return;
-    }
 
     const delayMs = parseInt(process.env.E2E_DELAY_BEFORE || '0', 10);
     if (delayMs > 0) await page.waitForTimeout(delayMs);
 
-    expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
-    const hasContent =
-      (await page.locator('main, [role="main"], #__next, .font-display').first().isVisible().catch(() => false)) ||
-      text.length > 100;
-    if (!hasContent) console.log('ℹ️ Contenido mínimo no detectado (puede estar cargando)');
+    const text = await page.locator('body').textContent().catch(() => null) ?? '';
+
+    // Si el servidor no responde o hay redirect cross-domain → skip (server not up, no es un fallo del código)
+    if (text === null || text.length < 20) {
+      console.log('ℹ️ Raíz no accesible o redirect cross-domain — skip');
+      test.skip();
+      return;
+    }
+
+    // Detectar cualquier estado de error en la app → FALLA (para que bail:1 detenga el resto)
+    const errorPatterns =
+      /Error Capturado por ErrorBoundary|Error al cargar|Internal Server Error|Something went wrong|Failed to load|No se pudo cargar|Ha ocurrido un error/i;
+    expect(text, `App muestra error en la raíz: ${text.slice(0, 300)}`).not.toMatch(errorPatterns);
   });
 
   test('el API de health responde ok', async ({ request }) => {
-    // En app-test/remoto puede no existir /api/health o devolver otro código; solo exigimos health en local.
+    // En app-test/remoto puede no existir /api/health — solo exigimos health en local.
     if (!isLocal) {
       test.skip();
       return;

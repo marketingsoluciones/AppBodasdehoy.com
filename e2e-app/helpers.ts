@@ -267,6 +267,28 @@ export async function shouldSkipAppUnreachable(page: Page): Promise<boolean> {
 }
 
 /**
+ * Comprueba si una URL está accesible Y sin errores visibles.
+ * Usar en test.beforeAll para saltar todo un describe si el servidor no responde.
+ *
+ * @returns 'ok' | 'unreachable' | 'error'
+ *  - 'ok': servidor accesible y sin errores
+ *  - 'unreachable': servidor no responde (timeout, 0 chars) → skip tests
+ *  - 'error': servidor accesible pero muestra error → falla tests
+ */
+export async function checkServerHealth(
+  page: Page,
+  url: string,
+): Promise<'ok' | 'unreachable' | 'error'> {
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15_000 }).catch(() => {});
+  const text = await page.locator('body').textContent().catch(() => null) ?? '';
+  if (text === null || text.length < 15) return 'unreachable';
+  const errorPatterns =
+    /Error Capturado por ErrorBoundary|Error al cargar|Internal Server Error|Something went wrong|Failed to load|No se pudo cargar|Ha ocurrido un error/i;
+  if (errorPatterns.test(text)) return 'error';
+  return 'ok';
+}
+
+/**
  * Copilot listo para escribir.
  *
  * Soporta DOS arquitecturas:
