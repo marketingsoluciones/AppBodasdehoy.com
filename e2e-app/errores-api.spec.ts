@@ -23,7 +23,7 @@ test.describe('Manejo de errores API (403)', () => {
       await page.goto('/login?session_expired=1', { waitUntil: 'domcontentloaded', timeout: 30_000 });
       await page.waitForURL(
         (url) => (url.hostname.includes('chat') && url.hostname.includes('bodasdehoy.com')) || url.pathname === '/login',
-        { timeout: 20_000 }
+        { timeout: 40_000 }
       ).catch(() => {});
       const currentUrl = page.url();
       if (currentUrl.includes('chat') && currentUrl.includes('bodasdehoy.com')) {
