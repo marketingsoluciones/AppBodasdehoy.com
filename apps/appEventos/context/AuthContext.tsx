@@ -558,6 +558,12 @@ const AuthProvider = ({ children }) => {
   // IMPORTANTE: también setear un usuario guest para que home sea accesible (evita redirect a login)
   useEffect(() => {
     const safetyTimeout = setTimeout(() => {
+      // Si hay SSO en curso (idTokenV0.1.0 presente), no crear guest — el verificator aún trabaja
+      const hasSsoToken = typeof document !== 'undefined' && document.cookie.includes('idTokenV0.1.0')
+      if (hasSsoToken) {
+        console.warn('[Auth] Timeout de seguridad: SSO en curso, esperando más tiempo...');
+        return;
+      }
       setVerificationDone((prev) => {
         if (!prev) {
           console.warn('[Auth] Timeout de seguridad: mostrando app a los 4s como guest');
@@ -565,8 +571,6 @@ const AuthProvider = ({ children }) => {
         }
         return prev;
       });
-      // Si el verificator tardó más de 1.5s y no hay usuario, crear guest por defecto
-      // para que VistaSinCookie no redirija al visitante desde home
       setUser((prevUser) => {
         if (!prevUser) {
           console.warn('[Auth] Timeout de seguridad: creando guest por defecto');
@@ -790,6 +794,8 @@ const AuthProvider = ({ children }) => {
   // Timeout de seguridad: si la verificación tarda > 5s, mostrar la app para no quedarse en carga infinita
   useEffect(() => {
     const t = setTimeout(() => {
+      const hasSsoToken = typeof document !== 'undefined' && document.cookie.includes('idTokenV0.1.0')
+      if (hasSsoToken) return // SSO en curso, no crear guest
       setVerificationDone((done) => {
         if (!done) {
           console.warn('[AuthContext] Timeout de carga (5s), mostrando app');

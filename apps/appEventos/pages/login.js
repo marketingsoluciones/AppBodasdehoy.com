@@ -65,6 +65,11 @@ const PageLogin = () => {
     const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
     if (hostname === 'localhost' || hostname === '127.0.0.1') return // dev local: login propio
 
+    // Si ya hay idTokenV0.1.0 el SSO de chat-ia ya ocurrió — esperar a que AuthContext lo procese,
+    // no redirigir de nuevo o causará bucle infinito
+    const hasSsoToken = typeof document !== 'undefined' && document.cookie.includes('idTokenV0.1.0')
+    if (hasSsoToken) return
+
     const isDev = hostname.includes('-dev.')
     const isTest = hostname.includes('-test.')
     const chatDomain = isDev ? 'https://chat-dev.bodasdehoy.com' : isTest ? 'https://chat-test.bodasdehoy.com' : 'https://chat.bodasdehoy.com'
