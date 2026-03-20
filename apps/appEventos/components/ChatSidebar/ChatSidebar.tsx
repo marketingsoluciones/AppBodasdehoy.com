@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { useChatSidebar } from '../../context/ChatSidebarContext';
 import { AuthContextProvider, EventContextProvider } from '../../context';
 import CopilotIframe from '../Copilot/CopilotIframe';
+import { getCopilotBaseUrl } from '../Copilot/getCopilotBaseUrl';
 import { IoClose, IoSparkles, IoExpand, IoChevronDown, IoOpenOutline } from 'react-icons/io5';
 
 const MIN_WIDTH = 360;
@@ -115,12 +116,9 @@ const ChatSidebar: FC = () => {
     setViewMode('full');
   }, []);
 
-  // Solo dominios. Abrir chat-test en nueva pestaña (túnel/VPN o desplegado).
+  // Abrir chat en nueva pestaña (usa util compartido para detectar entorno)
   const handleOpenInNewTab = useCallback(() => {
-    const baseUrl =
-      typeof window !== 'undefined' && window.location?.hostname?.includes('app-test')
-        ? 'https://chat-test.bodasdehoy.com'
-        : (process.env.NEXT_PUBLIC_CHAT || 'https://chat-test.bodasdehoy.com');
+    const baseUrl = getCopilotBaseUrl();
     const params = new URLSearchParams();
 
     // Pasar parámetros para continuar la conversación
@@ -168,11 +166,15 @@ const ChatSidebar: FC = () => {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed top-0 left-0 h-full w-[min(100%,400px)] max-w-full bg-white shadow-2xl flex flex-col z-50 md:hidden"
+              className="fixed top-0 left-0 h-full w-[min(85%,400px)] bg-white shadow-2xl flex flex-col z-50 md:hidden"
               aria-modal
               role="dialog"
               aria-label="Copilot"
             >
+              {/* Drag handle pill */}
+              <div className="flex justify-center pt-2 pb-1 flex-shrink-0">
+                <div className="w-10 h-1 rounded-full bg-gray-300" />
+              </div>
               <div className="h-10 px-3 flex items-center justify-between border-b border-gray-100 bg-white flex-shrink-0">
                 <div className="flex items-center gap-2">
                   <IoSparkles className="w-4 h-4 text-primary" />
@@ -198,10 +200,10 @@ const ChatSidebar: FC = () => {
                   <button
                     type="button"
                     onClick={closeSidebar}
-                    className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+                    className="p-2 hover:bg-pink-50 rounded-lg transition-colors"
                     title="Cerrar (minimizar)"
                   >
-                    <IoClose className="w-4 h-4 text-gray-400" />
+                    <IoClose className="w-5 h-5 text-gray-500" />
                   </button>
                 </div>
               </div>

@@ -10,28 +10,27 @@ import GuestWelcomeMessage from '@/features/GuestWelcomeMessage';
 
 const WelcomeChatItem = memo(() => {
   const isGroupSession = useSessionStore(sessionSelectors.isCurrentSessionGroupSession);
-  const { currentUserId, userType, externalChatsInit } = useChatStore((s) => ({
-    currentUserId: s.currentUserId,
-    externalChatsInit: s.externalChatsInit,
-    userType: s.userType,
-  }));
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const userType = useChatStore((s) => s.userType);
+  const externalChatsInit = useChatStore((s) => s.externalChatsInit);
 
   // ✅ CORRECCIÓN: Verificar si es visitante DESPUÉS de que la sesión se haya inicializado
   // Esto evita mostrar el mensaje de registro antes de cargar la sesión desde localStorage
-  const isGuest =
-    externalChatsInit && // Solo verificar después de que la sesión se inicialice
-    (!currentUserId ||
+  const isVisitorUser =
+    !currentUserId ||
     currentUserId === 'visitante@guest.local' ||
     currentUserId === 'guest' ||
     currentUserId === 'anonymous' ||
     currentUserId?.startsWith('visitor_') ||
     userType === 'guest' ||
-    userType === 'visitor');
+    userType === 'visitor';
 
   if (isGroupSession) return <GroupWelcome />;
 
-  // Mostrar mensaje especial para visitantes (solo si la sesión ya se inicializó)
-  if (isGuest) return <GuestWelcomeMessage />;
+  // Wait for session initialization to avoid AgentWelcome flash for guest users
+  if (!externalChatsInit && isVisitorUser) return null;
+
+  if (externalChatsInit && isVisitorUser) return <GuestWelcomeMessage />;
 
   return <AgentWelcome />;
 });

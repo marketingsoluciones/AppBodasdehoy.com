@@ -181,8 +181,13 @@ export const generateAIChat: StateCreator<
     if (!message && !hasFile) return;
 
     // Visitor/guest: 5 mensajes el primer día, 2 por día después. Solo mostrar modal al alcanzar el límite.
-    const { userType } = get();
-    if (userType === 'visitor' || userType === 'guest') {
+    const { userType, currentUserId } = get();
+    const isVisitor =
+      userType === 'visitor' ||
+      userType === 'guest' ||
+      currentUserId === 'visitante@guest.local' ||
+      (typeof currentUserId === 'string' && currentUserId.startsWith('visitor_'));
+    if (isVisitor) {
       if (!canVisitorSendMessage()) {
         set({ showLoginRequired: true }, false, n('visitor/limitReached'));
         return;
