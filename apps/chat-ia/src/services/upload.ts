@@ -79,78 +79,49 @@ interface UploadFileToS3Options {
 
 class UploadService {
   /**
-   * uniform upload method for both server and client
-   * 
-   * Si USE_STORAGE_R2 está habilitado, usa el sistema de Storage R2
-   * Si no, usa el sistema S3 tradicional
+   * Método principal de subida de archivos.
+   *
+   * Todos los uploads van a R2 via api-ia (whitelabel).
+   * Credenciales gestionadas por api2 — nunca por variables de entorno S3_*.
+   *
+   * Casos especiales:
+   * - Desktop (Electron, sin sync): usa almacenamiento local → uploadToDesktopS3
+   * - Si api-ia detecta usuario guest: retorna captación en lugar de subir
    */
   uploadFileToS3 = async (
     file: File,
     { onProgress, directory, skipCheckFileType, onNotSupported, pathname, eventId, onCaptation }: UploadFileToS3Options = {},
   ): Promise<{ captation?: CaptationUploadResponse; data: FileMetadata; success: boolean }> => {
-    // ✅ NUEVO: Verificar si se debe usar Storage R2
-    // En cliente, usar process.env si está disponible, sino verificar en runtime
-    const useStorageR2 = typeof window !== 'undefined'
-      ? (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_USE_STORAGE_R2 === 'true' || false
-      : process.env.NEXT_PUBLIC_USE_STORAGE_R2 === 'true';
+    // Desktop (Electron sin sync activo): usa sistema de archivos local
+    if (isDesktop) {
+      const { getElectronStoreState } = await import('@/store/electron');
+      const { electronSyncSelectors } = await import('@/store/electron/selectors');
+      const state = getElectronStoreState();
+      const isSyncActive = electronSyncSelectors.isSyncActive(state);
 
-    if (useStorageR2 && eventId) {
-      // Usar Storage R2 (Cloudflare R2 a través del backend Python)
-      try {
-        const result = await this.uploadToStorageR2(file, { eventId, onCaptation, onProgress });
-
-        // Verificar si es una respuesta de captación (usuario guest)
-        if (result.isCaptation && result.captationData) {
-          console.log('📢 Usuario guest detectado - mostrando captación');
-          return {
-            captation: result.captationData,
-            data: undefined as unknown as FileMetadata,
-            success: false,
-          };
-        }
-
-        return { data: result.metadata!, success: true };
-      } catch (error) {
-        console.error('❌ Error subiendo a Storage R2, fallback a S3:', error);
-        // Fallback a método tradicional - continuar con el flujo normal
+      if (!isSyncActive) {
+        onProgress?.('uploading', { progress: 0, restTime: 0, speed: 0 });
+        const data = await this.uploadToDesktopS3(file, { directory, pathname });
+        onProgress?.('success', { progress: 100, restTime: 0, speed: 0 });
+        return { data, success: true };
       }
     }
 
-    const { getElectronStoreState } = await import('@/store/electron');
-    const { electronSyncSelectors } = await import('@/store/electron/selectors');
-    // only if not enable sync
-    const state = getElectronStoreState();
-    const isSyncActive = electronSyncSelectors.isSyncActive(state);
+    // Todos los demás casos: R2 via api-ia (whitelabel)
+    // - eventId presente → guarda en {development}/events/{eventId}/...
+    // - eventId ausente  → guarda en {development}/users/{userId}/...
+    const result = await this.uploadToStorageR2(file, { eventId, onCaptation, onProgress });
 
-    // 桌面端上传逻辑（并且没开启 sync 同步）
-    if (isDesktop && !isSyncActive) {
-      const data = await this.uploadToDesktopS3(file, { directory, pathname });
-      return { data, success: true };
+    // Respuesta de captación: usuario guest detectado por api-ia
+    if (result.isCaptation && result.captationData) {
+      return {
+        captation: result.captationData,
+        data: undefined as unknown as FileMetadata,
+        success: false,
+      };
     }
 
-    // 服务端上传逻辑
-    if (isServerMode) {
-      // if is server mode, upload to server s3,
-
-      const data = await this.uploadToServerS3(file, { directory, onProgress, pathname });
-      return { data, success: true };
-    }
-
-    // upload to client s3
-    // 客户端上传逻辑
-    if (!skipCheckFileType && !file.type.startsWith('image') && !file.type.startsWith('video')) {
-      onNotSupported?.();
-      return { data: undefined as unknown as FileMetadata, success: false };
-    }
-
-    const fileArrayBuffer = await file.arrayBuffer();
-
-    // 1. check file hash
-    const hash = sha256(fileArrayBuffer);
-    // Upload to the indexeddb in the browser
-    const data = await this.uploadToClientS3(hash, file);
-
-    return { data, success: true };
+    return { data: result.metadata!, success: true };
   };
 
   uploadBase64ToS3 = async (
