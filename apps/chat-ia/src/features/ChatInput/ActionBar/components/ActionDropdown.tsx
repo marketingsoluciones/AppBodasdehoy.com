@@ -2,7 +2,7 @@
 
 import { Dropdown, DropdownProps } from '@lobehub/ui';
 import { createStyles } from 'antd-style';
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 
 import { useIsMobile } from '@/hooks/useIsMobile';
 
@@ -44,9 +44,11 @@ const ActionDropdown = memo<ActionDropdownProps>(
   }) => {
     const { cx, styles } = useStyles();
     const isMobile = useIsMobile();
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
 
-    const dropdownForceRender = prefetch ? true : forceRender;
-    const dropdownDestroyOnHidden = prefetch ? false : destroyOnHidden;
+    const dropdownForceRender = mounted && prefetch ? true : forceRender;
+    const dropdownDestroyOnHidden = mounted && prefetch ? false : destroyOnHidden;
 
     return (
       <Dropdown
