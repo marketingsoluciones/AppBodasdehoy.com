@@ -58,6 +58,10 @@ const VistaSinCookie = () => {
       return;
     }
 
+    // Si hay SSO en curso (idTokenV0.1.0 presente), no redirigir a login — esperar a que AuthContext complete
+    const hasSsoToken = typeof document !== 'undefined' && document.cookie.includes('idTokenV0.1.0')
+    if (hasSsoToken) return
+
     // Rutas protegidas sin sesión → redirigir a login con ?d= para volver tras autenticarse
     setRedirected(true);
     router?.push(`/login?d=${pathname}`)

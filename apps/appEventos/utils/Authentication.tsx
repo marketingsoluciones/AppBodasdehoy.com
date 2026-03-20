@@ -15,6 +15,14 @@ export { parseJwt }; // re-exportar para compatibilidad con imports existentes
 
 export const phoneUtil = PhoneNumberUtil.getInstance();
 
+/** En localhost el navegador rechaza cookies con domain=.bodasdehoy.com; omitir domain para que use el hostname actual */
+function getCookieDomain(configDomain?: string): string | undefined {
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return undefined;
+  }
+  return configDomain || (process.env.NEXT_PUBLIC_PRODUCTION ? configDomain : process.env.NEXT_PUBLIC_DOMINIO) || '.bodasdehoy.com';
+}
+
 export const useAuthentication = () => {
   const { setLoading } = LoadingContextProvider();
   const { config, setUser, geoInfo, SetWihtProvider } = AuthContextProvider();
@@ -58,8 +66,7 @@ export const useAuthentication = () => {
         // Setear en localStorage token JWT
         const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
         
-        // Determinar el dominio correcto para la cookie
-        const cookieDomain = config?.domain || (process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : process.env.NEXT_PUBLIC_DOMINIO) || ".bodasdehoy.com"
+        const cookieDomain = getCookieDomain(config?.domain)
         
         console.log("[Auth] Estableciendo cookie sessionBodas (popup):", {
           cookie: config?.cookie,
@@ -203,8 +210,7 @@ export const useAuthentication = () => {
           const idToken = await res?.user?.getIdToken()
           const dateExpire = new Date(parseJwt(idToken).exp * 1000)
           
-          // Determinar el dominio correcto para la cookie idToken
-          const idTokenDomain = process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : process.env.NEXT_PUBLIC_DOMINIO || ".bodasdehoy.com"
+          const idTokenDomain = getCookieDomain(config?.domain)
           
           console.log("[Auth] Estableciendo cookie idTokenV0.1.0 (popup):", {
             domain: idTokenDomain,

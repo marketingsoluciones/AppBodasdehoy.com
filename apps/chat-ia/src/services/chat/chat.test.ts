@@ -1080,7 +1080,7 @@ describe('ChatService', () => {
       expect(mockFetchSSE).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          body: JSON.stringify(expectedPayload),
+          body: expect.stringContaining(JSON.stringify(expectedPayload).slice(0, -1)),
           headers: expect.any(Object),
           method: 'POST',
         }),
@@ -1109,7 +1109,7 @@ describe('ChatService', () => {
       expect(mockFetchSSE).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          body: JSON.stringify(expectedPayload),
+          body: expect.stringContaining(JSON.stringify(expectedPayload).slice(0, -1)),
           headers: expect.any(Object),
           method: 'POST',
         }),

@@ -6,6 +6,13 @@ import { getAuth } from "firebase/auth";
 import { parseJwt } from "./utils/Authentication";
 import { varGlobalDomain, varGlobalDevelopment, varGlobalSubdomain } from "./context/AuthContext"
 
+/** En localhost el navegador rechaza cookies con domain=.bodasdehoy.com */
+const _isDevLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+function _cookieDomain() {
+  if (_isDevLocal) return undefined;
+  return process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO;
+}
+
 /* // llamada a wordpresss ref1001
 const wp = axios.create({
   baseURL: "https://bodasdehoy.com/wp-json",
@@ -29,7 +36,7 @@ function handleSessionExpired() {
   const pathname = window.location?.pathname || '';
   if (pathname === '/login' || pathname.startsWith('/login?')) return;
   try {
-    Cookies.remove('idTokenV0.1.0', { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO });
+    Cookies.remove('idTokenV0.1.0', { domain: _cookieDomain() });
     Cookies.remove('idTokenV0.1.0');
   } catch (_) {}
   const returnPath = pathname + (window.location.search || '');
@@ -57,7 +64,7 @@ export const api = {
         if (!idToken) {
           idToken = await getAuth().currentUser?.getIdToken(true)
           const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-          Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
+          Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: _cookieDomain(), expires: dateExpire })
         }
       }
     } catch (error) {
@@ -81,7 +88,7 @@ export const api = {
       if (!idToken) {
         idToken = await getAuth().currentUser?.getIdToken(true)
         const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
+        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: _cookieDomain(), expires: dateExpire })
       }
     }
     return await instance.post("/graphql", data, {
@@ -135,7 +142,7 @@ export const api = {
         if (!idToken) {
           idToken = await getAuth().currentUser?.getIdToken(true)
           const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-          Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO, expires: dateExpire })
+          Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: _cookieDomain(), expires: dateExpire })
         }
       }
     } catch (error) {
@@ -172,7 +179,7 @@ export const fetchApiViewConfig = async (params) => {
       idToken = await getAuth().currentUser?.getIdToken(true);
       const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000);
       Cookies.set("idTokenV0.1.0", idToken ?? "", {
-        domain: process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO,
+        domain: _cookieDomain(),
         expires: dateExpire
       });
     }

@@ -202,9 +202,9 @@ test.describe('Portal — acceso sin autenticación', () => {
     await page.waitForTimeout(2000);
 
     const finalUrl = page.url();
-    // No debe haber redirigido a /login ni a chat-test
+    // No debe haber redirigido a /login ni a chat
     expect(finalUrl).not.toMatch(/\/login/);
-    expect(finalUrl).not.toMatch(/chat-test\.bodasdehoy\.com/);
+    expect(finalUrl).not.toMatch(/chat(-dev|-test)?\.bodasdehoy\.com/);
     console.log(`URL tras /e/ sin auth: ${finalUrl}`);
 
     // Limpiar cookies y probar buscador de mesa
@@ -217,7 +217,7 @@ test.describe('Portal — acceso sin autenticación', () => {
 
     const finalUrl2 = page.url();
     expect(finalUrl2).not.toMatch(/\/login/);
-    expect(finalUrl2).not.toMatch(/chat-test\.bodasdehoy\.com/);
+    expect(finalUrl2).not.toMatch(/chat(-dev|-test)?\.bodasdehoy\.com/);
     console.log(`URL tras /buscador-mesa/ sin auth: ${finalUrl2}`);
   });
 });

@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@emotion/react':
+        specifier: ^11.14.0
+        version: 11.14.0(@types/react@18.3.28)(react@19.2.4)
       '@langchain/core':
         specifier: ^1.1.13
         version: 1.1.13
@@ -36788,7 +36791,7 @@ packages:
       react: '>=15'
     dependencies:
       react: 19.2.4
-      unlayer-types: 1.386.0
+      unlayer-types: 1.389.0
     dev: false
 
   /react-error-boundary@5.0.0(react@18.3.1):
@@ -42112,8 +42115,8 @@ packages:
     engines: {node: '>= 10.0.0'}
     dev: true
 
-  /unlayer-types@1.386.0:
-    resolution: {integrity: sha512-uO2zj3IfEqIKVJCA3kGm2bmOFZT7hD1Ga4PbFegspae25BP+ClWzhe0oK23/PGhFOIxI0Qbp1cpq/pcraoPeWQ==}
+  /unlayer-types@1.389.0:
+    resolution: {integrity: sha512-37fB8pduGWOqqCpCsEJbnCYiQlYYpYgSBBmDM4WvQapCfrqletgyzjDIIb6tV4iTjywLGlXw9Bq24HCpK+n8lQ==}
     dev: false
 
   /unpipe@1.0.0:

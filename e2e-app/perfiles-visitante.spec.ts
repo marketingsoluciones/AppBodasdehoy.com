@@ -13,6 +13,7 @@
  */
 import { test, expect } from '@playwright/test';
 import { clearSession, waitForAppReady } from './helpers';
+import { getChatUrl } from './fixtures';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
@@ -21,14 +22,7 @@ const isAppTest =
   /https?:\/\/app\.bodasdehoy\.com/.test(BASE_URL);
 
 // URL del chat-ia (standalone, no embebido) — sigue al entorno de BASE_URL
-const CHAT_URL = process.env.CHAT_URL ||
-  (BASE_URL.includes('app-dev.bodasdehoy.com')
-    ? 'https://chat-dev.bodasdehoy.com'
-    : BASE_URL.includes('app-test.bodasdehoy.com')
-    ? 'https://chat-test.bodasdehoy.com'
-    : BASE_URL.includes('app.bodasdehoy.com')
-    ? 'https://chat.bodasdehoy.com'
-    : 'http://127.0.0.1:3210');
+const CHAT_URL = getChatUrl(BASE_URL);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // VISITANTE EN app-test (appEventos)

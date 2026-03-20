@@ -1,137 +1,149 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const BACKEND_URL =
+  process.env.BACKEND_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  'https://api-ia.bodasdehoy.com';
+
+const PROXY_TIMEOUT_MS = 30_000;
+
 /**
- * API Route para subir archivos a Storage R2
- * 
- * Proxy al backend Python que maneja Cloudflare R2
- * 
  * POST /api/storage/upload
- * Body: FormData con:
- *   - file: File
- *   - event_id: string (opcional, si no se proporciona se usa "default")
- *   - access_level: "original" | "shared" | "public" (default: "shared")
+ *
+ * Proxy al backend api-ia que escribe en Cloudflare R2.
+ * Las credenciales R2 las gestiona api-ia vía whitelabel (api2). El front no
+ * necesita ninguna variable S3_* — solo pasar X-Development y X-User-ID.
+ *
+ * Routing según eventId:
+ *   - Con eventId → api-ia /api/storage/events/{eventId}/upload
+ *                   (guarda metadata en api2 MongoDB para listado/permisos)
+ *   - Sin eventId → api-ia /api/storage/r2/users/{userId}/upload
+ *                   (archivos de usuario sin contexto de evento)
+ *
+ * FormData:
+ *   - file         File      requerido
+ *   - event_id     string    opcional — ID del evento propietario
+ *   - access_level string    "original" | "shared" | "public" (default: shared)
  */
 export async function POST(request: NextRequest) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PROXY_TIMEOUT_MS);
+
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File;
-    
+    const file = formData.get('file') as File | null;
+
     if (!file) {
-      return NextResponse.json(
-        { error: 'No se proporcionó archivo', success: false },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'file requerido', success: false }, { status: 400 });
     }
 
-    // Obtener event_id del formData o usar default
-    const eventId = (formData.get('event_id') as string) || 'default';
+    const eventId = (formData.get('event_id') as string | null) || '';
     const accessLevel = (formData.get('access_level') as string) || 'shared';
 
-    // Obtener headers de usuario desde request
-    const userEmail = request.headers.get('X-User-Email');
-    const userId = request.headers.get('X-User-ID');
+    const userEmail = request.headers.get('X-User-Email') || '';
+    const userId = request.headers.get('X-User-ID') || '';
     const development = request.headers.get('X-Development') || 'bodasdehoy';
 
-    // Si no hay user_id en headers, intentar obtenerlo de cookies/localStorage del cliente
-    // Por ahora usamos el email o un ID temporal
-    const finalUserId = userId || userEmail || 'anonymous';
+    if (!userId && !userEmail) {
+      return NextResponse.json({ error: 'X-User-ID requerido', success: false }, { status: 400 });
+    }
 
-    // Backend URL (usar dominio público o localhost)
-    const backendUrl = process.env.BACKEND_URL || 
-                       process.env.NEXT_PUBLIC_BACKEND_URL || 
-                       'https://api-ia.bodasdehoy.com';
+    const finalUserId = userId || userEmail;
 
-    // Crear nuevo FormData para enviar al backend
+    // Construir FormData para reenviar
     const backendFormData = new FormData();
     backendFormData.append('file', file);
     backendFormData.append('access_level', accessLevel);
 
-    // Hacer proxy al backend Python
-    const response = await fetch(`${backendUrl}/api/storage/events/${eventId}/upload?access_level=${accessLevel}`, {
+    // Elegir endpoint según si hay eventId
+    const backendUrl = eventId
+      ? `${BACKEND_URL}/api/storage/events/${eventId}/upload?access_level=${accessLevel}`
+      : `${BACKEND_URL}/api/storage/r2/users/${finalUserId}/upload?access_level=${accessLevel}`;
+
+    const response = await fetch(backendUrl, {
       body: backendFormData,
       headers: {
         'X-Development': development,
-        'X-User-Email': userEmail || '',
+        'X-User-Email': userEmail,
         'X-User-ID': finalUserId,
-        // No incluir Content-Type, FormData lo maneja automáticamente
       },
       method: 'POST',
+      signal: controller.signal,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Error en backend storage:', response.status, errorText);
+      console.error('[storage/upload] backend error:', response.status, errorText);
       return NextResponse.json(
-        { 
-          details: errorText, 
-          error: `Error del servidor: ${response.status}`,
-          success: false 
-        },
-        { status: response.status }
+        { details: errorText, error: `Backend error: ${response.status}`, success: false },
+        { status: response.status },
       );
     }
 
     const data = await response.json();
-    return NextResponse.json({
-      success: true,
-      ...data,
-    });
-
+    return NextResponse.json({ success: true, ...data });
   } catch (error: any) {
-    console.error('❌ Error en upload route:', error);
+    if (error.name === 'AbortError') {
+      return NextResponse.json({ error: 'Timeout al subir archivo', success: false }, { status: 504 });
+    }
+    console.error('[storage/upload] error:', error);
     return NextResponse.json(
-      { 
-        details: error.message, 
-        error: 'Error procesando archivo',
-        success: false 
-      },
-      { status: 500 }
+      { details: error.message, error: 'Error procesando archivo', success: false },
+      { status: 500 },
     );
+  } finally {
+    clearTimeout(timer);
   }
 }
 
 /**
- * GET /api/storage/upload - Listar archivos de un evento
+ * GET /api/storage/upload?event_id=...&file_type=...
+ *
+ * Lista archivos de un evento (proxy a api-ia).
  */
 export async function GET(request: NextRequest) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PROXY_TIMEOUT_MS);
+
   try {
     const { searchParams } = new URL(request.url);
-    const eventId = searchParams.get('event_id') || 'default';
-    const fileType = searchParams.get('file_type'); // photos, documents, videos, audio
+    const eventId = searchParams.get('event_id') || '';
+    const fileType = searchParams.get('file_type');
 
     const development = request.headers.get('X-Development') || 'bodasdehoy';
-    const userId = request.headers.get('X-User-ID') || request.headers.get('X-User-Email') || 'anonymous';
+    const userId =
+      request.headers.get('X-User-ID') || request.headers.get('X-User-Email') || '';
 
-    const backendUrl = process.env.BACKEND_URL || 
-                       process.env.NEXT_PUBLIC_BACKEND_URL || 
-                       'https://api-ia.bodasdehoy.com';
+    if (!eventId) {
+      return NextResponse.json({ error: 'event_id requerido', success: false }, { status: 400 });
+    }
 
-    const url = `${backendUrl}/api/storage/events/${eventId}/files${fileType ? `?file_type=${fileType}` : ''}`;
+    const params = new URLSearchParams();
+    if (fileType) params.set('file_type', fileType);
+
+    const url = `${BACKEND_URL}/api/storage/events/${eventId}/files${params.size ? `?${params}` : ''}`;
 
     const response = await fetch(url, {
-      headers: {
-        'X-Development': development,
-        'X-User-ID': userId,
-      },
+      headers: { 'X-Development': development, 'X-User-ID': userId },
       method: 'GET',
+      signal: controller.signal,
     });
 
     if (!response.ok) {
       return NextResponse.json(
-        { error: `Error: ${response.status}`, success: false },
-        { status: response.status }
+        { error: `Backend error: ${response.status}`, success: false },
+        { status: response.status },
       );
     }
 
-    const data = await response.json();
-    return NextResponse.json(data);
-
+    return NextResponse.json(await response.json());
   } catch (error: any) {
-    console.error('❌ Error listando archivos:', error);
-    return NextResponse.json(
-      { error: error.message, success: false },
-      { status: 500 }
-    );
+    if (error.name === 'AbortError') {
+      return NextResponse.json({ error: 'Timeout listando archivos', success: false }, { status: 504 });
+    }
+    console.error('[storage/upload GET] error:', error);
+    return NextResponse.json({ error: error.message, success: false }, { status: 500 });
+  } finally {
+    clearTimeout(timer);
   }
 }
-
