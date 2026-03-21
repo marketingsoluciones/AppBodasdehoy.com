@@ -5,9 +5,12 @@ import { useEffect, useState } from "react";
 import { AuthContextProvider, LoadingContextProvider } from "../context";
 import { ArrowLeft } from "../components/icons";
 import { SplitLoginPage } from "@bodasdehoy/auth-ui";
+import { resolveChatOrigin } from "@bodasdehoy/shared/utils";
 
 const APP_EVENTOS_LEFT_PANEL = {
   brandName: 'Bodas de Hoy',
+  /** Un solo mensaje de marca: sin rotación (el default de auth-ui rota boda/comunión/bautizo…). */
+  eventTypesForRotation: [],
   headline: 'La plataforma todo-en-uno para organizar tu boda',
   description: 'Invitados, mesas, presupuesto e itinerario — todo en un solo lugar.',
   features: [
@@ -17,6 +20,8 @@ const APP_EVENTOS_LEFT_PANEL = {
     { icon: '📋', text: 'Itinerario y coordinación del día' },
     { icon: '✨', text: 'Asistente IA incluido' },
   ],
+  /** Oculta el bloque de cifras del default (evita otra “capa” de marketing). */
+  stats: [],
 };
 
 const PageLogin = () => {
@@ -52,8 +57,8 @@ const PageLogin = () => {
     }
   }, [preregister])
 
-  // Unified login: para bodasdehoy redirigir al login de chat-ia (chat-test en test, chat en prod)
-  // SSO: chat-ia setea cookie idTokenV0.1.0 con Domain=.bodasdehoy.com; appEventos la detecta al volver
+  // Login unificado bodasdehoy: redirige al login de la app de chat (chat-dev / chat-test / chat)
+  // SSO: la app de chat setea idTokenV0.1.0 (Domain=.bodasdehoy.com); AuthContext en appEventos lo consume al volver
   useEffect(() => {
     if (!config?.development) return
     if (config.development !== 'bodasdehoy') return
@@ -65,14 +70,12 @@ const PageLogin = () => {
     const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
     if (hostname === 'localhost' || hostname === '127.0.0.1') return // dev local: login propio
 
-    // Si ya hay idTokenV0.1.0 el SSO de chat-ia ya ocurrió — esperar a que AuthContext lo procese,
+    // Si ya hay idTokenV0.1.0 el SSO desde la app de chat ya ocurrió — esperar a que AuthContext lo procese,
     // no redirigir de nuevo o causará bucle infinito
     const hasSsoToken = typeof document !== 'undefined' && document.cookie.includes('idTokenV0.1.0')
     if (hasSsoToken) return
 
-    const isDev = hostname.includes('-dev.')
-    const isTest = hostname.includes('-test.')
-    const chatDomain = isDev ? 'https://chat-dev.bodasdehoy.com' : isTest ? 'https://chat-test.bodasdehoy.com' : 'https://chat.bodasdehoy.com'
+    const chatDomain = resolveChatOrigin(hostname)
     const rawPath = queryD?.trim()
     // Sólo aceptar rutas relativas puras (sin ://). Evita URL duplicada si queryD llega contaminado.
     const returnPath = (rawPath?.startsWith('/') && !rawPath.includes('://')) ? rawPath : '/'

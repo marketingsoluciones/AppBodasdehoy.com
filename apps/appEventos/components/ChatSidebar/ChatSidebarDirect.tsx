@@ -1,8 +1,6 @@
 /**
- * ChatSidebar Direct - Panel lateral del Copilot (monorepo: AppBodasdehoy + LobeChat)
- *
- * Usa @bodasdehoy/copilot-ui (CopilotDirect), que carga la app del copilot en iframe
- * desde la misma versión (chat-test con app-test). Ver docs/MONOREPO-INTEGRACION-COPILOT.md
+ * Panel lateral del Copilot: usa CopilotEmbed (nativo, sin iframe) para carga instantánea.
+ * El botón "Abrir completo" abre chat-ia completo en nueva pestaña (floor plan, venue visualizer, etc.)
  */
 
 import { FC, memo, useCallback, useRef, useEffect, useState, useMemo } from 'react';
@@ -10,9 +8,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { useChatSidebar } from '../../context/ChatSidebarContext';
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from '../../context';
-// Copilot completo via iframe (LobeChat full feature set)
-import CopilotIframe from '../Copilot/CopilotIframe';
-// import type { SendMessageParams, EmbedMessage } from '@bodasdehoy/copilot-ui';
+import { CopilotEmbed } from '../Copilot/CopilotEmbed';
+import { resolveChatOrigin } from '@bodasdehoy/shared/utils';
 import { IoClose, IoSparkles, IoOpenOutline } from 'react-icons/io5';
 
 const MOBILE_BREAKPOINT = 768;
@@ -120,10 +117,9 @@ const ChatSidebarDirect: FC = () => {
   // Solo dominios (app-test ↔ chat-test). No localhost ni IP locales; se trabaja con túnel/VPN o desplegado.
   const copilotUrl = useMemo(() => {
     if (typeof window === 'undefined') return '';
-    const host = window.location.hostname;
-    if (host?.includes('-dev.')) return 'https://chat-dev.bodasdehoy.com';
-    if (host?.includes('-test.')) return 'https://chat-test.bodasdehoy.com';
-    return process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com';
+    const envUrl = process.env.NEXT_PUBLIC_CHAT;
+    if (envUrl) return envUrl.replace(/\/$/, '');
+    return resolveChatOrigin(window.location.hostname);
   }, []);
 
   const handleOpenInNewTab = useCallback(() => {
@@ -248,15 +244,15 @@ const ChatSidebarDirect: FC = () => {
             </div>
           </div>
 
-          {/* Copilot integrado como componente (monorepo, sin iframe) */}
+          {/* Copilot integrado nativo: MessageList + InputEditor, SSE directo a api-ia */}
           <div className="flex-1 overflow-hidden min-h-0">
-            <CopilotIframe
+            <CopilotEmbed
               userId={userId}
+              sessionId={sessionId}
               development={development}
               eventId={eventId}
-              userData={user as any}
-              event={event as any}
-              isAnonymous={isGuest}
+              eventName={event?.nombre}
+              isGuest={isGuest}
               className="w-full h-full min-h-0"
             />
           </div>

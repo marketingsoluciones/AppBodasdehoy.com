@@ -1,8 +1,7 @@
 /**
- * CopilotIframe - Carga el LobeChat completo en un iframe
+ * CopilotIframe — iframe hacia la app de chat (LobeChat) en chat-dev / chat-test / chat.
  *
- * Usa el rewrite /copilot-chat/ para cargar el LobeChat completo
- * con todas sus funcionalidades (sesiones, temas, historial, etc.)
+ * En local puede usar rewrite /copilot-chat/; en despliegue, URL absoluta desde getCopilotBaseUrl().
  *
  * Comunicación con el iframe:
  * - Escucha LOBE_CHAT_READY del copilot
@@ -18,6 +17,7 @@ import { extractPageContext, PageContextData } from './pageContextExtractor';
 import { EventsGroupContextProvider } from '../../context';
 import { getDevelopmentConfig } from '@bodasdehoy/shared/types';
 import type { AuthConfigPayload } from '@bodasdehoy/shared/communication';
+import { getCopilotBaseUrl as getCopilotBaseUrlUtil } from './getCopilotBaseUrl';
 
 interface UserData {
   displayName?: string | null;
@@ -58,20 +58,16 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
     const timeoutRef = useRef<number | null>(null);
     const hasLoadedRef = useRef(false);
 
+    // Skeleton overlay: el usuario puede escribir mientras el iframe carga
+    const [iframeReady, setIframeReady] = useState(false);
+    const [pendingMessage, setPendingMessage] = useState('');
+    const [pendingSent, setPendingSent] = useState(false);
+
     // Obtener contexto de la página actual con datos reales
     const currentPath = router.pathname;
 
-    const getCopilotBaseUrl = useCallback(() => {
-      if (typeof window === 'undefined') return '/copilot-chat';
-      const envUrl = process.env.NEXT_PUBLIC_CHAT;
-      if (envUrl) return envUrl.replace(/\/$/, '');
-      // En local (localhost / 127.0.0.1) usar chat local para que Copilot funcione sin depender de chat-test
-      const host = window.location.hostname;
-      if (host === 'localhost' || host === '127.0.0.1') return 'http://127.0.0.1:3210';
-      if (host.includes('-dev.')) return 'https://chat-dev.bodasdehoy.com';
-      if (host.includes('-test.')) return 'https://chat-test.bodasdehoy.com';
-      return 'https://chat.bodasdehoy.com';
-    }, []);
+    // Usar util compartido para detección de URL (unificado con CopilotPrewarmer y ChatSidebar)
+    const getCopilotBaseUrl = useCallback(() => getCopilotBaseUrlUtil(), []);
 
     // Construir URL del LobeChat con parametros
     // IMPORTANTE: NO incluir eventId ni datos volátiles en la URL del iframe.
@@ -154,6 +150,8 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
       // setIsLoaded(false); // ❌ COMENTADO: Esto causaba que el iframe no se mostrara
       setError(null);
       setAuthSent(false);
+      setIframeReady(false);
+      setPendingSent(false);
       setBackendCheck('idle');
       setBackendError(null);
       setCopyStatus(null);
@@ -164,8 +162,8 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
         window.clearTimeout(timeoutRef.current);
       }
 
-      // ✅ AUMENTADO: 60 segundos para dar tiempo a LobeChat en modo dev de compilar
-      const timeoutMs = 60000;
+      // 30 segundos: suficiente en producción (<5s real), razonable en dev con Turbopack
+      const timeoutMs = 30_000;
       timeoutRef.current = window.setTimeout(() => {
         // Solo mostrar error si el iframe NO ha cargado aún
         if (!hasLoadedRef.current) {
@@ -195,10 +193,11 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
       }
 
       // Auto-retry si el iframe cargó un 404 (Turbopack aún compilando):
-      // Si en 12s no llega LOBE_CHAT_READY, reintentamos con cache-bust
+      // Backoff exponencial: [5s, 10s, 20s, 30s] — más agresivo al principio
       if (readyTimeoutRef.current) window.clearTimeout(readyTimeoutRef.current);
       if (retryCountRef.current < MAX_RETRIES) {
-        const retryDelay = 12_000 + retryCountRef.current * 5_000;
+        const RETRY_DELAYS = [5_000, 10_000, 20_000, 30_000];
+        const retryDelay = RETRY_DELAYS[retryCountRef.current] ?? 30_000;
         readyTimeoutRef.current = window.setTimeout(() => {
           retryCountRef.current += 1;
           const base = buildCopilotUrl();
@@ -341,13 +340,20 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
       // Extraer contexto de la página actual
       const pageContextData: PageContextData = extractPageContext(currentPath, event || null);
 
+      const anon = isAnonymous ?? !userData?.email;
+      const roleFromUser =
+        userData?.role && Array.isArray(userData.role) && userData.role.length > 0
+          ? String(userData.role[0])
+          : undefined;
+
       const payload: AuthConfigPayload = {
         userId,
         development,
         token: effectiveToken,
         eventId: eventId || event?._id || undefined,
         eventName: eventName || event?.nombre || undefined,
-        isAnonymous: isAnonymous ?? !userData?.email,
+        isAnonymous: anon,
+        userRole: roleFromUser ?? (anon ? 'guest' : undefined),
         userData: {
           displayName: userData?.displayName || null,
           email: userData?.email || null,
@@ -399,6 +405,8 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
             }
             retryCountRef.current = MAX_RETRIES; // no más retries
             sendAuthConfig();
+            // Marcar iframe como listo después de que AUTH_CONFIG se procese
+            setTimeout(() => setIframeReady(true), 200);
             break;
           case 'AUTH_REQUEST':
             // El copilot solicita autenticación
@@ -476,17 +484,11 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
       return () => window.removeEventListener('message', handleMessage);
     }, [sendAuthConfig, sendPageContext, currentPath, setCopilotFilter, refreshEventsGroup, router]);
 
-    // ✅ OPTIMIZACIÓN: Enviar AUTH_CONFIG inmediatamente cuando el iframe cargue
-    useEffect(() => {
-      if (isLoaded && userId && !authSent) {
-        // Enviar inmediatamente - el iframe ya está listo
-        // Delay mínimo para asegurar que el listener esté registrado
-        const timer = setTimeout(() => {
-          sendAuthConfig();
-        }, 50);
-        return () => clearTimeout(timer);
-      }
-    }, [isLoaded, userId, authSent, sendAuthConfig]);
+    // AUTH_CONFIG se envía SOLO cuando el iframe lo solicita:
+    // - LOBE_CHAT_READY: el copilot terminó de cargar y registró su listener
+    // - AUTH_REQUEST: el copilot solicita autenticación explícitamente
+    // NO enviar proactivamente con delay — causa race condition si el listener
+    // aún no está registrado y genera un retry innecesario.
 
     // Escuchar CustomEvent 'copilot:send-prompt' emitido desde cualquier página del parent
     // y reenviarlo como postMessage SEND_PROMPT al iframe del copilot.
@@ -507,6 +509,19 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
       return () => window.removeEventListener('copilot:send-prompt', handleSendPrompt as EventListener);
     }, []);
 
+    // Forward del mensaje pendiente cuando el iframe está listo
+    useEffect(() => {
+      if (iframeReady && pendingMessage.trim()) {
+        iframeRef.current?.contentWindow?.postMessage({
+          type: 'SEND_PROMPT',
+          source: 'copilot-parent',
+          timestamp: Date.now(),
+          payload: { message: pendingMessage.trim() },
+        }, '*');
+        setPendingMessage('');
+      }
+    }, [iframeReady, pendingMessage]);
+
     // Enviar PAGE_CONTEXT cuando cambie la pantalla; reenviar AUTH_CONFIG cuando cambie el evento
     // para que el iframe actualice current_event_id y las consultas vayan al evento correcto.
     useEffect(() => {
@@ -523,8 +538,91 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
       }
     }, [isLoaded, authSent, currentPath, event, sendAuthConfig, sendPageContext]);
 
+    // Handler para enviar mensaje desde el skeleton input
+    const handleSkeletonSubmit = useCallback((e?: React.FormEvent) => {
+      e?.preventDefault();
+      const msg = pendingMessage.trim();
+      if (!msg) return;
+      if (iframeReady) {
+        // Iframe ya listo: enviar directo
+        iframeRef.current?.contentWindow?.postMessage({
+          type: 'SEND_PROMPT',
+          source: 'copilot-parent',
+          timestamp: Date.now(),
+          payload: { message: msg },
+        }, '*');
+        setPendingMessage('');
+      } else {
+        // Iframe aún cargando: marcar como pendiente (se enviará en el useEffect)
+        setPendingSent(true);
+      }
+    }, [iframeReady, pendingMessage]);
+
     return (
       <div className={`relative h-full w-full flex flex-col bg-white overflow-hidden ${className || ''}`}>
+        {/* Skeleton overlay — visible mientras el iframe carga */}
+        <div
+          className={`absolute inset-0 z-30 flex flex-col bg-gray-50 transition-opacity duration-300 ${
+            iframeReady ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}
+        >
+          {/* Skeleton header */}
+          <div className="flex items-center gap-2 px-4 py-3 bg-white border-b border-gray-200">
+            <span className="text-lg">✨</span>
+            <span className="font-semibold text-gray-800 text-sm">Copilot IA</span>
+            <span className="ml-auto flex items-center gap-1.5 text-xs text-gray-400">
+              <span className={`inline-block w-2 h-2 rounded-full ${iframeReady ? 'bg-green-400' : 'bg-yellow-400 animate-pulse'}`} />
+              {iframeReady ? 'Listo' : 'Cargando...'}
+            </span>
+          </div>
+
+          {/* Skeleton chat area */}
+          <div className="flex-1 flex flex-col gap-4 p-4 overflow-hidden">
+            {/* Skeleton bubbles — left */}
+            <div className="flex justify-start">
+              <div className="bg-gray-200 animate-pulse rounded-2xl rounded-tl-sm h-10 w-48" />
+            </div>
+            {/* Skeleton bubble — right */}
+            <div className="flex justify-end">
+              <div className="bg-gray-200 animate-pulse rounded-2xl rounded-tr-sm h-8 w-32" />
+            </div>
+            {/* Skeleton bubble — left wider */}
+            <div className="flex justify-start">
+              <div className="bg-gray-200 animate-pulse rounded-2xl rounded-tl-sm h-12 w-56" />
+            </div>
+          </div>
+
+          {/* Skeleton input — REAL and functional */}
+          <div className="px-3 py-3 bg-white border-t border-gray-200">
+            {pendingSent && !iframeReady && (
+              <p className="text-xs text-gray-400 mb-1.5 px-1">Enviando cuando esté listo...</p>
+            )}
+            <form onSubmit={handleSkeletonSubmit} className="flex items-center gap-2">
+              <input
+                type="text"
+                value={pendingMessage}
+                onChange={(e) => setPendingMessage(e.target.value)}
+                placeholder={pendingSent ? 'Enviando cuando esté listo...' : 'Escribe tu pregunta...'}
+                disabled={pendingSent}
+                className={`flex-1 border border-gray-300 rounded-xl px-4 py-3 text-sm outline-none transition-colors ${
+                  pendingSent ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'focus:border-pink-400 focus:ring-1 focus:ring-pink-200'
+                }`}
+                autoFocus
+              />
+              <button
+                type="submit"
+                disabled={!pendingMessage.trim() || pendingSent}
+                className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-violet-500 text-white disabled:opacity-40 transition-opacity"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
+            </form>
+          </div>
+        </div>
+
         {/* Loading / Error state - Solo mostrar si hay error real, no bloquear si está cargando */}
         {!isLoaded && error && (
           <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
@@ -536,24 +634,25 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
         )}
 
         {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-white z-40">
             <div className="flex flex-col items-center gap-4 p-6 text-center max-w-md">
               <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
                 <span className="text-2xl">⚠️</span>
               </div>
               <p className="text-sm text-red-600">{error}</p>
               <a
-                href="https://chat-test.bodasdehoy.com"
+                href={getCopilotBaseUrl().startsWith('http') ? getCopilotBaseUrl() : 'https://chat.bodasdehoy.com'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-pink-600 hover:underline"
               >
-                Abrir chat-test en nueva pestaña
+                Abrir chat en nueva pestaña
               </a>
               <button
                 onClick={() => {
                   setIsLoaded(false);
                   setError(null);
+                  setIframeReady(false);
                   const url = buildCopilotUrl();
                   const sep = url.includes('?') ? '&' : '?';
                   setIframeSrc(`${url}${sep}_retry=${Date.now()}`);
@@ -588,7 +687,6 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
         )}
 
         {/* Backend IA error - Mostrar como banner no bloqueante en lugar de overlay completo */}
-        {/* ✅ CORRECCIÓN: Mostrar banner solo si hay error, pero NO bloquear el iframe. Mensaje seguro para no dar error al renderizar. */}
         {backendCheck === 'error' && backendError && !error && isLoaded && (
           <div className="absolute top-0 left-0 right-0 bg-yellow-50 border-b border-yellow-200 z-20 p-2 max-h-16 overflow-hidden">
             <div className="flex items-center justify-between max-w-full">
@@ -633,14 +731,12 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
           </div>
         )}
 
-        {/* LobeChat iframe */}
-        {/* ✅ CORRECCIÓN: Mostrar iframe SIEMPRE, incluso si isLoaded es false (forzar visibilidad) */}
+        {/* LobeChat iframe — siempre montado, se carga en background detrás del skeleton */}
         <iframe
           ref={iframeRef}
           src={iframeSrc}
           className="w-full h-full border-none opacity-100"
-          style={{ 
-            // ✅ CORRECCIÓN CRÍTICA: Forzar visibilidad del iframe siempre
+          style={{
             pointerEvents: 'auto',
             display: 'block',
             zIndex: 1,

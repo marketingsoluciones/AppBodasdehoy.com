@@ -8,3 +8,5 @@ export {
 } from './tableRenderer';
 
 export type { TableConfig, TableShape, ChairStyle, TableTotalSize } from './tableRenderer';
+
+export { resolveChatOrigin } from './resolveChatOrigin';
