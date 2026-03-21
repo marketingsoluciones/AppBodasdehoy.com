@@ -10,10 +10,47 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { useChatSidebar } from '../../context/ChatSidebarContext';
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from '../../context';
-// Copilot completo via iframe (LobeChat full feature set)
-import CopilotIframe from '../Copilot/CopilotIframe';
-// import type { SendMessageParams, EmbedMessage } from '@bodasdehoy/copilot-ui';
-import { IoClose, IoSparkles, IoOpenOutline } from 'react-icons/io5';
+import { CopilotEmbed } from '../Copilot/CopilotEmbed';
+import { resolveChatOrigin } from '@bodasdehoy/shared/utils';
+import { IoClose, IoSparkles, IoOpenOutline, IoChatbubbleOutline, IoAddOutline, IoTimeOutline } from 'react-icons/io5';
+
+// ── Session storage helpers ──────────────────────────────────────────────────
+
+interface StoredSession {
+  id: string;
+  label: string;   // primeras palabras del primer mensaje
+  createdAt: number;
+}
+
+const SESSIONS_KEY = 'copilot_sessions_v1';
+
+function loadSessions(userId: string): StoredSession[] {
+  try {
+    const raw = localStorage.getItem(`${SESSIONS_KEY}_${userId}`);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveSessions(userId: string, sessions: StoredSession[]) {
+  try {
+    // Máximo 20 sesiones
+    localStorage.setItem(`${SESSIONS_KEY}_${userId}`, JSON.stringify(sessions.slice(0, 20)));
+  } catch { /* quota exceeded, ignore */ }
+}
+
+function upsertSession(userId: string, id: string, label?: string) {
+  const sessions = loadSessions(userId);
+  const existing = sessions.findIndex(s => s.id === id);
+  if (existing >= 0) {
+    if (label) sessions[existing].label = label;
+    saveSessions(userId, sessions);
+  } else {
+    sessions.unshift({ id, label: label || 'Nueva conversación', createdAt: Date.now() });
+    saveSessions(userId, sessions);
+  }
+}
 
 const MOBILE_BREAKPOINT = 768;
 
@@ -43,9 +80,58 @@ const ChatSidebarDirect: FC = () => {
   const eventsGroup = eventsGroupContext?.eventsGroup;
 
   const isGuest = !user || user?.displayName === 'guest' || !user?.email;
-  // Paso 7: sesión estable por usuario autenticado (mismo historial en dispositivos si se persiste en backend)
-  const sessionId = user?.uid ? `user_${user.uid}` : guestSessionId;
-  const userId = user?.email || user?.uid || guestSessionId;
+  const stableUserId = user?.email || user?.uid || guestSessionId;
+  const defaultSessionId = user?.uid ? `user_${user.uid}` : guestSessionId;
+
+  // ── Session management ───────────────────────────────────────────────────
+  const [activeSessionId, setActiveSessionId] = useState(defaultSessionId);
+  const [sessions, setSessions] = useState<StoredSession[]>([]);
+  const [showSessionMenu, setShowSessionMenu] = useState(false);
+  const sessionMenuRef = useRef<HTMLDivElement>(null);
+
+  // Cargar sesiones de localStorage al montar
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const stored = loadSessions(stableUserId);
+    // Registrar sesión activa si no está
+    if (!stored.find(s => s.id === defaultSessionId)) {
+      upsertSession(stableUserId, defaultSessionId);
+    }
+    setSessions(loadSessions(stableUserId));
+  }, [stableUserId, defaultSessionId]);
+
+  // Cerrar menú al click fuera
+  useEffect(() => {
+    const handle = (e: MouseEvent) => {
+      if (sessionMenuRef.current && !sessionMenuRef.current.contains(e.target as Node)) {
+        setShowSessionMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, []);
+
+  const handleNewSession = useCallback(() => {
+    const newId = `session_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    upsertSession(stableUserId, newId, 'Nueva conversación');
+    setSessions(loadSessions(stableUserId));
+    setActiveSessionId(newId);
+    setShowSessionMenu(false);
+  }, [stableUserId]);
+
+  const handleSelectSession = useCallback((id: string) => {
+    setActiveSessionId(id);
+    setShowSessionMenu(false);
+  }, []);
+
+  const handleSessionLabelUpdate = useCallback((firstMsg: string) => {
+    const label = firstMsg.slice(0, 40) + (firstMsg.length > 40 ? '…' : '');
+    upsertSession(stableUserId, activeSessionId, label);
+    setSessions(loadSessions(stableUserId));
+  }, [stableUserId, activeSessionId]);
+
+  const sessionId = activeSessionId;
+  const userId = stableUserId;
   const development = config?.development || 'bodasdehoy';
   const eventId = event?._id;
   const router = useRouter();
@@ -220,12 +306,65 @@ const ChatSidebarDirect: FC = () => {
                   Copilot IA
                 </h2>
                 <p className="text-[10px] sm:text-xs font-medium text-gray-600 leading-tight truncate">
-                  Asistente inteligente
+                  {sessions.find(s => s.id === activeSessionId)?.label || 'Asistente inteligente'}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-1 shrink-0">
+              {/* Session selector */}
+              <div className="relative" ref={sessionMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowSessionMenu(v => !v)}
+                  className="p-1.5 hover:bg-pink-100 rounded-lg transition-colors"
+                  title="Conversaciones"
+                >
+                  <IoChatbubbleOutline className="text-gray-600 w-4 h-4" />
+                </button>
+
+                {showSessionMenu && (
+                  <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                    {/* Nueva conversación */}
+                    <button
+                      type="button"
+                      onClick={handleNewSession}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-pink-600 hover:bg-pink-50 transition-colors border-b border-gray-100"
+                    >
+                      <IoAddOutline className="w-4 h-4 shrink-0" />
+                      Nueva conversación
+                    </button>
+
+                    {/* Lista de sesiones */}
+                    <div className="max-h-56 overflow-y-auto">
+                      {sessions.length === 0 ? (
+                        <p className="px-3 py-3 text-xs text-gray-400 text-center">Sin conversaciones anteriores</p>
+                      ) : (
+                        sessions.map(s => (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => handleSelectSession(s.id)}
+                            className={`w-full flex items-start gap-2 px-3 py-2 text-left hover:bg-gray-50 transition-colors ${s.id === activeSessionId ? 'bg-pink-50' : ''}`}
+                          >
+                            <IoTimeOutline className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                            <div className="min-w-0">
+                              <p className={`text-xs truncate ${s.id === activeSessionId ? 'text-pink-600 font-medium' : 'text-gray-700'}`}>
+                                {s.label}
+                              </p>
+                              <p className="text-[10px] text-gray-400">
+                                {new Date(s.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                              </p>
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Abrir en pestaña completa */}
               {viewMode === 'minimal' && (
                 <button
                   type="button"
@@ -250,13 +389,14 @@ const ChatSidebarDirect: FC = () => {
 
           {/* Copilot integrado como componente (monorepo, sin iframe) */}
           <div className="flex-1 overflow-hidden min-h-0">
-            <CopilotIframe
+            <CopilotEmbed
               userId={userId}
+              sessionId={sessionId}
               development={development}
               eventId={eventId}
-              userData={user as any}
-              event={event as any}
-              isAnonymous={isGuest}
+              eventName={event?.nombre}
+              isGuest={isGuest}
+              onFirstMessage={handleSessionLabelUpdate}
               className="w-full h-full min-h-0"
             />
           </div>
