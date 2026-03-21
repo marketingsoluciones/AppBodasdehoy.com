@@ -10,22 +10,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { useChatSidebar } from '../../context/ChatSidebarContext';
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from '../../context';
-// CopilotEmbed usando componentes de @bodasdehoy/copilot-shared
-import { CopilotEmbed } from '../Copilot/CopilotEmbed';
-import { extractPageContext } from '../Copilot/pageContextExtractor';
+// Copilot completo via iframe (LobeChat full feature set)
+import CopilotIframe from '../Copilot/CopilotIframe';
 // import type { SendMessageParams, EmbedMessage } from '@bodasdehoy/copilot-ui';
-import { IoClose, IoSparkles, IoExpand, IoChevronDown, IoOpenOutline } from 'react-icons/io5';
+import { IoClose, IoSparkles, IoOpenOutline } from 'react-icons/io5';
 
-const MIN_WIDTH = 380;
-const MAX_WIDTH = 700;
 const MOBILE_BREAKPOINT = 768;
-const WIDE_BREAKPOINT = 1024; // Mismo que Container: Copilot 20% en pantallas anchas
-const LARGE_SCREEN_BREAKPOINT = 1280;
 
 const ChatSidebarDirect: FC = () => {
   const { isOpen, width, closeSidebar, setWidth } = useChatSidebar();
   const [isMobile, setIsMobile] = useState(false);
-  const [isWideScreen, setIsWideScreen] = useState(false);
   const [viewMode, setViewMode] = useState<'minimal' | 'full'>('minimal');
 
   const [guestSessionId] = useState(() => {
@@ -61,9 +55,7 @@ const ChatSidebarDirect: FC = () => {
 
     const check = () => {
       const mobile = window.innerWidth < MOBILE_BREAKPOINT;
-      const wide = window.innerWidth >= WIDE_BREAKPOINT;
       setIsMobile(mobile);
-      setIsWideScreen(wide);
       if (mobile && width !== window.innerWidth) {
         setWidth(window.innerWidth);
       }
@@ -73,14 +65,6 @@ const ChatSidebarDirect: FC = () => {
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, [width, setWidth]);
-
-  // En pantallas grandes: al abrir el Copilot, usar ancho que divida la pantalla en dos frames (contenido | Copilot)
-  useEffect(() => {
-    if (typeof window === 'undefined' || !isOpen || isMobile) return;
-    if (window.innerWidth >= LARGE_SCREEN_BREAKPOINT && width < 520) {
-      setWidth(520);
-    }
-  }, [isOpen, isMobile, width, setWidth]);
 
   const isResizingRef = useRef(false);
   const lastXRef = useRef(0);
@@ -187,85 +171,92 @@ const ChatSidebarDirect: FC = () => {
 
   if (!isOpen) return null;
 
-  // Mismo ancho que el marginLeft del contenido en Container para no superponer
-  const finalWidth = isMobile
-    ? '100%'
-    : isWideScreen
-    ? '20vw'
-    : `${Math.max(MIN_WIDTH, Math.min(width, MAX_WIDTH))}px`;
-
   // Desktop: en el flujo del layout (no fixed) para que no se superponga a AppBodas
-  // Móvil: fixed para que sea flotante
+  // Móvil: fixed overlay con 85% ancho para dejar 15% de backdrop visible (tap to dismiss)
   const isOverlay = isMobile;
 
   return (
     <AnimatePresence>
+      {/* Backdrop semitransparente solo en móvil */}
+      {isOverlay && (
+        <motion.div
+          key="backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/40 z-[45] md:hidden"
+          onClick={closeSidebar}
+          aria-hidden
+        />
+      )}
+
       <motion.div
+        key="panel"
         initial={isOverlay ? { x: '-100%' } : { opacity: 0 }}
         animate={isOverlay ? { x: 0 } : { opacity: 1 }}
         exit={isOverlay ? { x: '-100%' } : { opacity: 0 }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
         className={
           isOverlay
-            ? 'fixed top-0 left-0 h-screen bg-white shadow-2xl z-50 flex'
-            : 'h-full bg-white shadow-xl flex flex-shrink-0 z-40'
+            ? 'fixed top-0 left-0 h-screen bg-white shadow-2xl z-50 flex flex-col'
+            : 'h-full max-w-full bg-white shadow-xl flex flex-shrink-0 z-40 min-w-0'
         }
-        style={{ width: finalWidth }}
+        style={{ width: isOverlay ? 'min(85%, 400px)' : '100%' }}
       >
+        {/* Drag handle pill — solo en móvil */}
+        {isOverlay && (
+          <div className="flex justify-center pt-2 pb-1 flex-shrink-0">
+            <div className="w-10 h-1 rounded-full bg-gray-300" />
+          </div>
+        )}
 
-        <div className="flex-1 flex flex-col h-full">
+        <div className="flex-1 flex flex-col h-full min-h-0">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-pink-50 to-white">
-            <div className="flex items-center gap-3">
-              <IoSparkles className="text-pink-500 text-xl" />
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800">Copilot IA</h2>
-                <p className="text-xs text-gray-500">Asistente inteligente</p>
+          <div className="flex items-center justify-between px-2 py-2 sm:px-3 border-b border-gray-200 bg-white min-w-0 text-gray-900 [color-scheme:light] flex-shrink-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <IoSparkles className="text-pink-500 text-lg shrink-0" aria-hidden />
+              <div className="min-w-0">
+                <h2 className="text-sm sm:text-base font-semibold text-gray-900 leading-tight truncate">
+                  Copilot IA
+                </h2>
+                <p className="text-[10px] sm:text-xs font-medium text-gray-600 leading-tight truncate">
+                  Asistente inteligente
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 shrink-0">
               {viewMode === 'minimal' && (
                 <button
+                  type="button"
                   onClick={handleOpenInNewTab}
-                  className="p-2 hover:bg-pink-100 rounded-lg transition-colors"
+                  className="p-1.5 hover:bg-pink-100 rounded-lg transition-colors"
                   title="Ver completo - Abrir en nueva pestaña"
                 >
-                  <IoOpenOutline className="text-gray-600" />
+                  <IoOpenOutline className="text-gray-600 w-4 h-4" />
                 </button>
               )}
 
               <button
+                type="button"
                 onClick={closeSidebar}
-                className="p-2 hover:bg-pink-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-pink-50 rounded-lg transition-colors"
                 title="Cerrar"
               >
-                <IoClose className="text-gray-600" />
+                <IoClose className="text-gray-500 w-5 h-5" />
               </button>
             </div>
           </div>
 
           {/* Copilot integrado como componente (monorepo, sin iframe) */}
           <div className="flex-1 overflow-hidden min-h-0">
-            <CopilotEmbed
+            <CopilotIframe
               userId={userId}
-              sessionId={sessionId}
               development={development}
               eventId={eventId}
-              eventName={event?.nombre}
-              isGuest={isGuest}
-              loginPath={config?.pathLogin || '/login'}
-              pageContext={{
-                pageName: extractPageContext(router.pathname, event || null).pageName,
-                eventName: event?.nombre,
-                eventId: event?._id,
-                eventsList: eventsGroup?.map(e => ({
-                  name: e.nombre,
-                  type: e.tipo,
-                  date: e.fecha,
-                  id: e._id,
-                })),
-              }}
+              userData={user as any}
+              event={event as any}
+              isAnonymous={isGuest}
               className="w-full h-full min-h-0"
             />
           </div>

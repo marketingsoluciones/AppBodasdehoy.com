@@ -110,6 +110,13 @@ export const chatTopic: StateCreator<
   createTopic: async (sessionId, groupId) => {
     const { activeId, activeSessionType, internal_createTopic } = get();
 
+    // Visitors/guests have no active session — skip DB topic creation to avoid null session_id error
+    const resolvedSessionId = sessionId || activeId;
+    const resolvedGroupId = groupId || activeId;
+    if (!resolvedSessionId && !resolvedGroupId) {
+      return undefined;
+    }
+
     const messages = chatSelectors.activeBaseChats(get());
 
     set({ creatingTopic: true }, false, n('creatingTopic/start'));

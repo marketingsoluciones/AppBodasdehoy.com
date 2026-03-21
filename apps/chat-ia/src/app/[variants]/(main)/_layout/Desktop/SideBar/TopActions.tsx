@@ -7,6 +7,8 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
+import NotificationBell from './NotificationBell';
+
 import { useChatStore } from '@/store/chat';
 import { useGlobalStore } from '@/store/global';
 import { SidebarTabKey } from '@/store/global/initialState';
@@ -138,6 +140,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           />
         </Link>
       )}
+      {isServerMode && !isGuestUser && <NotificationBell />}
     </Flexbox>
   );
 });

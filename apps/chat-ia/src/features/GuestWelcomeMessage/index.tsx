@@ -2,6 +2,7 @@
 
 import { Button, Card, Form, Input, message } from 'antd';
 import { UserAddOutlined, PhoneOutlined } from '@ant-design/icons';
+import { createStyles } from 'antd-style';
 import { useRouter } from 'next/navigation';
 import { memo, useMemo, useEffect, useRef, useState } from 'react';
 import { getVisitorLimitState } from '@/utils/visitorLimit';
@@ -12,9 +13,29 @@ import { Center, Flexbox } from 'react-layout-kit';
 import { useLeads } from '@/hooks/useLeads';
 import { useVisitorData } from '@/hooks/useVisitorData';
 
+const useStyles = createStyles(({ css, token }) => ({
+  contactBox: css`
+    background: ${token.colorFillAlter};
+    border: 1px dashed ${token.colorBorder};
+    border-radius: 8px;
+    padding: 16px 20px;
+  `,
+  contactTitle: css`
+    color: ${token.colorText};
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  `,
+  disclaimer: css`
+    color: ${token.colorTextQuaternary};
+    font-size: 11px;
+    text-align: center;
+  `,
+}));
+
 // Extrae teléfono y email de un texto libre (mensajes de chat)
 function extractContactFromText(text: string): { email?: string; phone?: string } {
-  const emailMatch = text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
+  const emailMatch = text.match(/[\w%+.\-]+@[\d.A-Za-z\-]+\.[A-Za-z]{2,}/);
   // Soporta formatos: +34 666 123 456, 666123456, +34666123456, 666 123 456
   const phoneMatch = text.match(/(\+?\d[\d\s\-]{7,14}\d)/);
   return {
@@ -28,6 +49,7 @@ function extractContactFromText(text: string): { email?: string; phone?: string 
  * Incluye formulario de captura de contacto (lead capture) para CRM.
  */
 function GuestWelcomeMessage() {
+  const { styles } = useStyles();
   const router = useRouter();
   const { saveVisitorData } = useVisitorData();
   const { saveLead } = useLeads();
@@ -36,12 +58,10 @@ function GuestWelcomeMessage() {
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [form] = Form.useForm();
 
-  const { currentUserId, userType, development, activeExternalChatId } = useChatStore((s) => ({
-    activeExternalChatId: s.activeExternalChatId,
-    currentUserId: s.currentUserId,
-    development: s.development,
-    userType: s.userType,
-  }));
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const userType = useChatStore((s) => s.userType);
+  const development = useChatStore((s) => s.development);
+  const activeExternalChatId = useChatStore((s) => s.activeExternalChatId);
 
   // Mensajes del usuario en el chat activo
   const userMessages = useChatStore((s) =>
@@ -122,7 +142,7 @@ function GuestWelcomeMessage() {
     window.open(`${appBase}/login?q=register`, '_blank');
   };
 
-  const handleLeadSubmit = async (values: { nombre?: string; phone?: string; email?: string }) => {
+  const handleLeadSubmit = async (values: { email?: string, nombre?: string; phone?: string; }) => {
     const { nombre, phone, email } = values;
     if (!phone && !email) return;
 
@@ -230,15 +250,8 @@ Con tu cuenta **gratuita** tendrás acceso a:
               </span>
             </div>
           ) : (
-            <div
-              style={{
-                background: '#fafafa',
-                border: '1px dashed #d9d9d9',
-                borderRadius: 8,
-                padding: '16px 20px',
-              }}
-            >
-              <div style={{ color: '#262626', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+            <div className={styles.contactBox}>
+              <div className={styles.contactTitle}>
                 📞 ¿Quieres que te contactemos?
               </div>
               <Form form={form} layout="vertical" onFinish={handleLeadSubmit}>
@@ -279,14 +292,14 @@ Con tu cuenta **gratuita** tendrás acceso a:
               icon={<UserAddOutlined />}
               onClick={handleRegister}
               size="large"
-              style={{ flex: 1, fontWeight: 600 }}
+              style={{ flex: 1, fontWeight: 600, height: 'auto', minHeight: 40, whiteSpace: 'normal' }}
               type="primary"
             >
-              🎉 Crear cuenta gratis — empieza hoy
+              🎉 Crear cuenta gratis
             </Button>
           </Flexbox>
 
-          <div style={{ color: '#8c8c8c', fontSize: 11, textAlign: 'center' }}>
+          <div className={styles.disclaimer}>
             Tu información solo se usa para contactarte sobre tu evento. Sin spam.
           </div>
         </Flexbox>
