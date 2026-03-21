@@ -16,7 +16,7 @@ import Item from './Item';
 const useStyles = createStyles(({ css, token }) => {
   return {
     body: css`
-      height: 400px;
+      max-height: min(400px, 50vh);
       border-radius: 8px;
       background: ${lighten(0.05, token.colorBgLayout)};
     `,
@@ -29,10 +29,17 @@ const useStyles = createStyles(({ css, token }) => {
       overflow: hidden;
 
       width: 360px;
+      max-width: calc(100vw - 48px);
       border: 1px solid ${token.colorSplit};
       border-radius: 8px;
 
       box-shadow: ${token.boxShadow};
+
+      @media (max-width: 480px) {
+        inset-inline: 12px;
+        inset-inline-end: 12px;
+        width: auto;
+      }
     `,
     header: css`
       cursor: pointer;

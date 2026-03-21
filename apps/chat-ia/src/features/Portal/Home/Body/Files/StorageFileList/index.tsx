@@ -12,7 +12,7 @@ import {
   SortAscIcon,
   SortDescIcon,
 } from 'lucide-react';
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Center, Flexbox } from 'react-layout-kit';
 import { Input, Select, Button, Segmented, Tooltip, message, Alert } from 'antd';
@@ -82,14 +82,21 @@ const StorageFileList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, fileType]);
 
-  // Refrescar cuando se sube un archivo nuevo (evento disparado por uploadWithProgress)
+  // Refrescar cuando se sube un archivo nuevo (evento disparado por refreshFileList)
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => {
     const handler = () => {
-      const eventIdToUse = eventId || 'default';
-      loadFiles(eventIdToUse, false);
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = setTimeout(() => {
+        const eventIdToUse = eventId || 'default';
+        loadFiles(eventIdToUse, false);
+      }, 500);
     };
     window.addEventListener('storage-files-changed', handler);
-    return () => window.removeEventListener('storage-files-changed', handler);
+    return () => {
+      window.removeEventListener('storage-files-changed', handler);
+      clearTimeout(debounceTimerRef.current);
+    };
   }, [eventId, loadFiles]);
 
   // Filtrar y ordenar archivos

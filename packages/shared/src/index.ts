@@ -12,3 +12,6 @@ export * from './components';
 
 // Utils exports
 export * from './utils';
+
+// Upload exports
+export * from './upload';

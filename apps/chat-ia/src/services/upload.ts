@@ -10,6 +10,7 @@ import { API_ENDPOINTS } from '@/services/_url';
 import { clientS3Storage } from '@/services/file/ClientS3';
 import { FileMetadata, UploadBase64ToS3Result } from '@/types/files';
 import { FileUploadState, FileUploadStatus } from '@/types/files/upload';
+import { withRetry } from '@bodasdehoy/shared/upload';
 
 export const UPLOAD_NETWORK_ERROR = 'NetWorkError';
 export const UPLOAD_GUEST_CAPTATION = 'GuestCaptation';
@@ -318,33 +319,59 @@ class UploadService {
       throw new Error('No se pudo determinar la identidad del usuario para subir archivos. Verifica que has iniciado sesión.');
     }
 
-    onProgress?.('uploading', {
-      progress: 0,
-      restTime: 0,
-      speed: 0,
-    });
+    const result = await withRetry(() => new Promise<any>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      let startTime = Date.now();
 
-    const response = await fetch('/api/storage/upload', {
-      body: formData,
-      headers,
-      method: 'POST',
-    });
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const progress = Number(((event.loaded / event.total) * 100).toFixed(1));
+          const speedInByte = event.loaded / ((Date.now() - startTime) / 1000);
 
-    const result = await response.json();
+          onProgress?.('uploading', {
+            progress: progress === 100 ? 99.9 : progress,
+            restTime: (event.total - event.loaded) / speedInByte,
+            speed: speedInByte,
+          });
+        }
+      });
 
-    // ✅ DETECTAR RESPUESTA DE CAPTACIÓN (usuario guest)
-    if (result.is_guest === true && result.action_required === 'register') {
-      console.log('📢 Backend detectó usuario guest - respuesta de captación recibida');
+      xhr.open('POST', '/api/storage/upload');
+      // Set custom headers
+      for (const [key, value] of Object.entries(headers)) {
+        xhr.setRequestHeader(key, value);
+      }
 
+      xhr.addEventListener('load', () => {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          resolve({ data, status: xhr.status });
+        } catch {
+          reject(new Error(`Error ${xhr.status}: respuesta inválida`));
+        }
+      });
+      xhr.addEventListener('error', () => {
+        if (xhr.status === 0) reject(new Error(UPLOAD_NETWORK_ERROR));
+        else reject(new Error(xhr.statusText || `Error ${xhr.status}`));
+      });
+
+      onProgress?.('uploading', { progress: 0, restTime: 0, speed: 0 });
+      xhr.send(formData);
+    }));
+
+    const responseData = result.data;
+    const status = result.status;
+
+    // Detectar respuesta de captación (usuario guest)
+    if (responseData.is_guest === true && responseData.action_required === 'register') {
       const captationData: CaptationUploadResponse = {
-        action_required: result.action_required,
-        cta: result.cta,
+        action_required: responseData.action_required,
+        cta: responseData.cta,
         is_guest: true,
-        message: result.message,
+        message: responseData.message,
         success: false,
       };
 
-      // Llamar callback si está disponible
       if (onCaptation) {
         onCaptation(captationData);
       }
@@ -357,22 +384,22 @@ class UploadService {
     }
 
     // Verificar errores normales
-    if (!response.ok) {
-      throw new Error(result.error || `Error ${response.status}`);
+    if (status < 200 || status >= 300) {
+      throw new Error(responseData.error || `Error ${status}`);
     }
 
-    if (!result.success) {
-      throw new Error(result.error || 'Error subiendo archivo');
+    if (!responseData.success) {
+      throw new Error(responseData.error || 'Error subiendo archivo');
     }
 
     onProgress?.('success', {
       progress: 100,
       restTime: 0,
-      speed: file.size / 1000, // Estimación
+      speed: file.size / ((Date.now() / 1000) || 1),
     });
 
     // Convertir respuesta de Storage R2 a formato FileMetadata
-    const fileData = result.data || {};
+    const fileData = responseData.data || {};
     const publicUrl =
       fileData.public_urls?.original ||
       fileData.public_urls?.optimized_800w ||

@@ -1,12 +1,18 @@
 /**
  * Vista pública de álbum — /album/[shareToken]
  * Accessible via QR o enlace compartido. Sin auth.
- * Los invitados pueden ver fotos y subir las suyas con nombre.
  */
 import Head from 'next/head';
+import Image from 'next/image';
 import Link from 'next/link';
 import { GetServerSideProps } from 'next';
+import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react';
+import NameModal from '../../components/public-album/NameModal';
+import Toast from '../../components/shared/Toast';
+import { validateFile, convertHeicIfNeeded, PHOTO_VIDEO_TYPES, PHOTO_VIDEO_ACCEPT } from '@bodasdehoy/shared/upload';
+
+const Lightbox = dynamic(() => import('../../components/shared/Lightbox'));
 
 const API_BASE = process.env.NEXT_PUBLIC_MEMORIES_API_URL || 'https://api-ia.bodasdehoy.com';
 const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
@@ -34,144 +40,6 @@ interface PublicAlbum {
   };
 }
 
-// ─── Lightbox ──────────────────────────────────────────────────────────────────
-
-function Lightbox({
-  media,
-  initialIndex,
-  onClose,
-  watermarkText,
-}: {
-  media: PublicMedia[];
-  initialIndex: number;
-  onClose: () => void;
-  watermarkText?: string;
-}) {
-  const [current, setCurrent] = useState(initialIndex);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') setCurrent((c) => Math.max(0, c - 1));
-      if (e.key === 'ArrowRight') setCurrent((c) => Math.min(media.length - 1, c + 1));
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [media.length, onClose]);
-
-  const m = media[current];
-  return (
-    <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center" onClick={onClose}>
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 text-white/70 hover:text-white text-xl z-10 w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition"
-      >
-        ✕
-      </button>
-      {current > 0 && (
-        <button
-          onClick={(e) => { e.stopPropagation(); setCurrent((c) => c - 1); }}
-          className="absolute left-4 text-white/70 hover:text-white z-10 w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition"
-        >
-          ←
-        </button>
-      )}
-      <div className="relative" onClick={(e) => e.stopPropagation()}>
-        <img
-          src={m?.originalUrl}
-          alt={m?.caption || ''}
-          draggable={watermarkText ? false : undefined}
-          onContextMenu={watermarkText ? (e) => e.preventDefault() : undefined}
-          className="max-w-full max-h-[85vh] object-contain rounded-lg"
-        />
-        {watermarkText && (
-          <div
-            className="absolute inset-0 pointer-events-none select-none flex items-center justify-center"
-            style={{ userSelect: 'none' }}
-          >
-            <span
-              className="text-white/40 font-bold text-xl rotate-[-35deg] whitespace-nowrap"
-              style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
-            >
-              {watermarkText}
-            </span>
-          </div>
-        )}
-      </div>
-      {current < media.length - 1 && (
-        <button
-          onClick={(e) => { e.stopPropagation(); setCurrent((c) => c + 1); }}
-          className="absolute right-4 text-white/70 hover:text-white z-10 w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition"
-        >
-          →
-        </button>
-      )}
-      <p className="absolute bottom-4 text-white/50 text-sm">
-        {current + 1} / {media.length}
-        {m?.caption && <span className="ml-3 text-white/70">{m.caption}</span>}
-      </p>
-    </div>
-  );
-}
-
-// ─── Name modal ────────────────────────────────────────────────────────────────
-
-function NameModal({
-  onConfirm,
-  onClose,
-}: {
-  onConfirm: (name: string) => void;
-  onClose: () => void;
-}) {
-  const [name, setName] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setTimeout(() => inputRef.current?.focus(), 100);
-  }, []);
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4">
-      <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center">
-        <div className="text-4xl mb-3">📸</div>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">¿Cómo te llamas?</h2>
-        <p className="text-sm text-gray-500 mb-5">
-          Tu nombre aparecerá junto a las fotos que subas.
-        </p>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            const trimmed = name.trim();
-            if (trimmed.length >= 2) onConfirm(trimmed);
-          }}
-          className="space-y-3"
-        >
-          <input
-            ref={inputRef}
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Tu nombre"
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 transition"
-          />
-          <button
-            type="submit"
-            disabled={name.trim().length < 2}
-            className="w-full bg-rose-500 text-white py-3 rounded-2xl font-semibold text-sm hover:bg-rose-600 disabled:opacity-40 transition"
-          >
-            Subir foto →
-          </button>
-          <button type="button" onClick={onClose} className="text-xs text-gray-400 hover:text-gray-600 transition">
-            Cancelar
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// ─── Page ──────────────────────────────────────────────────────────────────────
-
 interface Props {
   shareToken: string;
 }
@@ -186,17 +54,15 @@ export default function PublicAlbumPage({ shareToken }: Props) {
   const [guestName, setGuestName] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [toast, setToast] = useState<{ msg: string; variant: 'success' | 'error' | 'info' } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Restore guest name from sessionStorage
   useEffect(() => {
     const stored = sessionStorage.getItem(`memories_guest_${shareToken}`);
     if (stored) setGuestName(stored);
   }, [shareToken]);
 
-  // Load album + media
   useEffect(() => {
-    // Dev demo mode — token "demo" returns mock data without hitting the API
     if (process.env.NODE_ENV === 'development' && shareToken === 'demo') {
       setAlbum({
         _id: 'demo-album',
@@ -260,15 +126,31 @@ export default function PublicAlbumPage({ shareToken }: Props) {
     setUploading(true);
     setUploadProgress(0);
 
+    let uploadedCount = 0;
+
     for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+      let file = files[i];
+
+      // Validate file
+      const validation = validateFile(file, { allowedTypes: [...PHOTO_VIDEO_TYPES] });
+      if (!validation.valid) {
+        setToast({ msg: `${file.name}: ${validation.error}`, variant: 'error' });
+        continue;
+      }
+
+      // Convert HEIC/HEIF to JPEG
+      try {
+        file = await convertHeicIfNeeded(file);
+      } catch {
+        // Continue with original file
+      }
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('shareToken', shareToken);
       formData.append('guestName', guestName);
       formData.append('development', DEVELOPMENT);
 
-      // Guest anonymous upload: guestId = anon_timestamp
       const guestId = sessionStorage.getItem(`memories_anon_${shareToken}`) || `anon_${Date.now()}`;
       sessionStorage.setItem(`memories_anon_${shareToken}`, guestId);
 
@@ -278,15 +160,22 @@ export default function PublicAlbumPage({ shareToken }: Props) {
         caption: guestName,
       });
 
-      await fetch(`${API_BASE}/api/memories/albums/${album._id}/upload?${params}`, {
-        method: 'POST',
-        body: formData,
-      }).catch(() => null);
+      try {
+        const res = await fetch(`${API_BASE}/api/memories/albums/${album._id}/upload?${params}`, {
+          method: 'POST',
+          body: formData,
+        });
+        if (!res.ok) throw new Error(`Error ${res.status}`);
+        uploadedCount++;
+      } catch (e: any) {
+        if (e.name !== 'AbortError') {
+          setToast({ msg: `Error subiendo ${file.name}`, variant: 'error' });
+        }
+      }
 
       setUploadProgress(Math.round(((i + 1) / files.length) * 100));
     }
 
-    // Reload media
     const params = new URLSearchParams({ development: DEVELOPMENT });
     fetch(`${API_BASE}/api/memories/albums/${album._id}/media?${params}`)
       .then((r) => (r.ok ? r.json() : null))
@@ -297,6 +186,9 @@ export default function PublicAlbumPage({ shareToken }: Props) {
       .finally(() => {
         setUploading(false);
         setUploadProgress(0);
+        if (uploadedCount > 0) {
+          setToast({ msg: `${uploadedCount} foto${uploadedCount !== 1 ? 's' : ''} subida${uploadedCount !== 1 ? 's' : ''}`, variant: 'success' });
+        }
       });
   };
 
@@ -311,7 +203,6 @@ export default function PublicAlbumPage({ shareToken }: Props) {
         )}
       </Head>
 
-      {/* Header */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-100">
         <div className="max-w-3xl mx-auto px-4 flex items-center justify-between h-14">
           <Link href="/" className="flex items-center gap-2">
@@ -330,12 +221,10 @@ export default function PublicAlbumPage({ shareToken }: Props) {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-6">
-        {/* Loading */}
         {loading && (
           <div className="text-center py-20 text-gray-400 animate-pulse">Cargando álbum…</div>
         )}
 
-        {/* Error */}
         {!loading && error && (
           <div className="text-center py-20">
             <div className="text-5xl mb-4">😕</div>
@@ -345,10 +234,8 @@ export default function PublicAlbumPage({ shareToken }: Props) {
           </div>
         )}
 
-        {/* Album */}
         {!loading && album && (
           <>
-            {/* Album header */}
             <div className="mb-6">
               <h1 className="text-2xl font-extrabold text-gray-900 mb-1">{album.name}</h1>
               {album.description && (
@@ -357,40 +244,36 @@ export default function PublicAlbumPage({ shareToken }: Props) {
               <p className="text-xs text-gray-400 mt-2">{media.length} foto{media.length !== 1 ? 's' : ''}</p>
             </div>
 
-            {/* Upload bar */}
             {uploading && (
               <div className="mb-5">
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-2 bg-rose-500 rounded-full transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
+                  <div className="h-2 bg-rose-500 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
                 </div>
                 <p className="text-xs text-gray-400 mt-1">Subiendo fotos… {uploadProgress}%</p>
               </div>
             )}
 
-            {/* Upload button */}
-            <div className="mb-6">
-              <button
-                onClick={handleUploadClick}
-                disabled={uploading}
-                className="w-full bg-rose-500 text-white py-3.5 rounded-2xl font-semibold text-sm hover:bg-rose-600 disabled:opacity-50 transition flex items-center justify-center gap-2"
-              >
-                <span className="text-lg">📷</span>
-                {uploading ? `Subiendo… ${uploadProgress}%` : 'Subir mis fotos'}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,video/*"
-                multiple
-                className="hidden"
-                onChange={(e) => e.target.files && handleFileChange(e.target.files)}
-              />
-            </div>
+            {album.settings?.allow_uploads !== false && (
+              <div className="mb-6">
+                <button
+                  onClick={handleUploadClick}
+                  disabled={uploading}
+                  className="w-full bg-rose-500 text-white py-3.5 rounded-2xl font-semibold text-sm hover:bg-rose-600 disabled:opacity-50 transition flex items-center justify-center gap-2"
+                >
+                  <span className="text-lg">📷</span>
+                  {uploading ? `Subiendo… ${uploadProgress}%` : 'Subir mis fotos'}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={PHOTO_VIDEO_ACCEPT}
+                  multiple
+                  className="hidden"
+                  onChange={(e) => e.target.files && handleFileChange(e.target.files)}
+                />
+              </div>
+            )}
 
-            {/* Empty state */}
             {media.length === 0 && (
               <div className="text-center py-16 border-2 border-dashed border-gray-200 rounded-3xl">
                 <div className="text-5xl mb-3">📷</div>
@@ -399,7 +282,6 @@ export default function PublicAlbumPage({ shareToken }: Props) {
               </div>
             )}
 
-            {/* Watermark notice */}
             {album.settings?.allow_watermark && (
               <div className="mb-4 flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
                 <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -409,7 +291,6 @@ export default function PublicAlbumPage({ shareToken }: Props) {
               </div>
             )}
 
-            {/* Photo grid */}
             {media.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                 {media.map((m, i) => (
@@ -418,23 +299,18 @@ export default function PublicAlbumPage({ shareToken }: Props) {
                     onClick={() => setLightboxIndex(i)}
                     className="relative aspect-square bg-gray-100 overflow-hidden rounded-xl group"
                   >
-                    <img
+                    <Image
                       src={m.thumbnailUrl || m.originalUrl}
                       alt={m.caption || `Foto ${i + 1}`}
+                      fill
+                      sizes="(max-width: 640px) 50vw, 33vw"
                       draggable={album.settings?.allow_watermark ? false : undefined}
                       onContextMenu={album.settings?.allow_watermark ? (e) => e.preventDefault() : undefined}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      className="object-cover group-hover:scale-105 transition duration-300"
                     />
-                    {/* Watermark overlay */}
                     {album.settings?.allow_watermark && (
-                      <div
-                        className="absolute inset-0 pointer-events-none select-none flex items-center justify-center"
-                        style={{ userSelect: 'none' }}
-                      >
-                        <span
-                          className="text-white/40 font-bold text-sm rotate-[-35deg] whitespace-nowrap"
-                          style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                        >
+                      <div className="absolute inset-0 pointer-events-none select-none flex items-center justify-center" style={{ userSelect: 'none' }}>
+                        <span className="text-white/40 font-bold text-sm rotate-[-35deg] whitespace-nowrap" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
                           {album.name}
                         </span>
                       </div>
@@ -458,7 +334,6 @@ export default function PublicAlbumPage({ shareToken }: Props) {
               </div>
             )}
 
-            {/* Footer branding */}
             <div className="mt-10 text-center">
               <Link href="/" className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-rose-500 transition">
                 <span>📸</span> Crea tu álbum gratis con <strong className="text-rose-400">Memories</strong>
@@ -468,12 +343,14 @@ export default function PublicAlbumPage({ shareToken }: Props) {
         )}
       </main>
 
-      {/* Name modal */}
+      {toast && (
+        <Toast message={toast.msg} variant={toast.variant} onClose={() => setToast(null)} />
+      )}
+
       {showNameModal && (
         <NameModal onConfirm={handleNameConfirm} onClose={() => setShowNameModal(false)} />
       )}
 
-      {/* Lightbox */}
       {lightboxIndex !== null && (
         <Lightbox
           media={media}

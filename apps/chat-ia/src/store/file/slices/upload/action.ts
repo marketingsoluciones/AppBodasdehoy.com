@@ -6,6 +6,7 @@ import { LOBE_CHAT_CLOUD } from '@/const/branding';
 import { uploadService } from '@/services/upload';
 import { UploadFileItem } from '@/types/files';
 import { getImageDimensions } from '@/utils/client/imageDimensions';
+import { validateFile, compressImage, convertHeicIfNeeded } from '@bodasdehoy/shared/upload';
 
 import { FileStore } from '../../store';
 
@@ -113,17 +114,29 @@ export const createFileUploadSlice: StateCreator<
       url: metadata.path,
     };
   },
-  uploadWithProgress: async ({ file, onStatusUpdate, skipCheckFileType }) => {
+  uploadWithProgress: async ({ file: rawFile, onStatusUpdate, skipCheckFileType }) => {
     try {
+      // 0. Validate file
+      const validation = validateFile(rawFile);
+      if (!validation.valid) {
+        message.error({ content: validation.error || 'Archivo no válido', duration: 5 });
+        onStatusUpdate?.({ id: rawFile.name, type: 'removeFile' });
+        return;
+      }
+
       // Feedback inmediato
       onStatusUpdate?.({
-        id: file.name,
+        id: rawFile.name,
         type: 'updateFile',
         value: {
           status: 'uploading',
           uploadState: { progress: 0, restTime: 0, speed: 0 },
         },
       });
+
+      // 0b. HEIC conversion + compression
+      let file = await convertHeicIfNeeded(rawFile);
+      file = await compressImage(file);
 
       // 1. Dimensiones de imagen si aplica
       const dimensions = await getImageDimensions(file);
@@ -184,21 +197,16 @@ export const createFileUploadSlice: StateCreator<
         },
       });
 
-      // Notificar al StorageFileList para que refresque
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('storage-files-changed'));
-      }
-
       return { dimensions, filename: file.name, id: syntheticId, url: data.path };
     } catch (error) {
-      console.error('[uploadWithProgress] fallo al subir', file.name, error);
+      console.error('[uploadWithProgress] fallo al subir', rawFile.name, error);
       const msg = error instanceof Error ? error.message : String(error);
       message.error({
         content: `Error subiendo archivo: ${msg}`,
         duration: 8,
       });
       onStatusUpdate?.({
-        id: file.name,
+        id: rawFile.name,
         type: 'updateFile',
         value: {
           status: 'error',

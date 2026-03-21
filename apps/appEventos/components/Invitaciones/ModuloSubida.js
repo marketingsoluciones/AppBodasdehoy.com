@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { PiCheckFatThin } from "react-icons/pi";
 import { LiaLinkSolid, LiaTrashSolid } from "react-icons/lia";
+import { convertHeicIfNeeded } from "@bodasdehoy/shared/upload";
 
 const resizeImage = (file) => {
   try {
@@ -18,7 +19,7 @@ const resizeImage = (file) => {
         1200,
         1200,
         "JPEG",
-        100,
+        80,
         0,
         (uri) => resolve(uri),
         "file"
@@ -122,6 +123,7 @@ const ModuloSubida = (props) => {
       if (!file) {
         return;
       }
+      file = await convertHeicIfNeeded(file);
       const fileNew = file?.size > 900000 ? await resizeImage(file) : file;
       let reader = new FileReader();
       reader.onloadend = () => {
@@ -148,7 +150,7 @@ const ModuloSubida = (props) => {
           id="file"
           type="file"
           name="file"
-          accept="image/*"
+          accept=".heic,.heif,image/*"
           onChange={handleChange}
           className="hidden"
           ref={fileInputRef}

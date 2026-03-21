@@ -128,12 +128,13 @@ export const createFileManageSlice: StateCreator<
           skipCheckFileType: true,
         });
 
-        await get().refreshFileList();
-
         return { file, fileId: result?.id, fileType: file.type };
       },
       { concurrency: MAX_UPLOAD_FILE_COUNT },
     );
+
+    // Single refresh after all uploads complete (instead of per-file)
+    await get().refreshFileList();
 
     // 4. auto-embed files that support chunking
     const fileIdsToEmbed = uploadResults
