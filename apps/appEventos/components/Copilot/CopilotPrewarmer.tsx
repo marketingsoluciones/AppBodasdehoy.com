@@ -43,14 +43,19 @@ export const CopilotPrewarmer: React.FC<CopilotPrewarmerProps> = ({ development 
         await Promise.allSettled(
           prewarmUrls.map(async (path) => {
             const url = `${cleanBase}${path}`;
+            const ac = new AbortController();
+            const tid = setTimeout(() => ac.abort(), 5_000);
             try {
               await fetch(url, {
                 method: 'GET',
                 mode: 'no-cors',
                 credentials: 'omit',
+                signal: ac.signal,
               });
             } catch {
-              // Silently ignore prewarm failures (red, CORS, 404 en otro origen)
+              // Silently ignore prewarm failures (red, CORS, 404 en otro origen, timeout)
+            } finally {
+              clearTimeout(tid);
             }
           })
         );
