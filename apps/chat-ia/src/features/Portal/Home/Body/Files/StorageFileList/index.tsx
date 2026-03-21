@@ -10,15 +10,16 @@ import {
   ListIcon,
   RefreshCwIcon,
   SortAscIcon,
-  SortDescIcon
+  SortDescIcon,
 } from 'lucide-react';
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Center, Flexbox } from 'react-layout-kit';
-import { Input, Select, Button, Segmented, Tooltip, message } from 'antd';
+import { Input, Select, Button, Segmented, Tooltip, message, Alert } from 'antd';
 import Balancer from 'react-wrap-balancer';
 
 import Loading from '@/components/Loading/CircleLoading';
+import { useWallet } from '@/hooks/useWallet';
 import { listEventFiles, getCurrentEventId, type StorageFile, deleteFile } from '@/services/storage-r2';
 import { formatSize } from '@/utils/format';
 
@@ -30,6 +31,9 @@ type ViewMode = 'grid' | 'list';
 const StorageFileList = () => {
   const { t } = useTranslation('portal');
   const theme = useTheme();
+  const { totalBalance, loading: walletLoading, setShowRechargeModal } = useWallet();
+  const hasBalance = walletLoading || totalBalance > 0;
+
   const [files, setFiles] = useState<StorageFile[]>([]);
   const [allFiles, setAllFiles] = useState<StorageFile[]>([]); // Todos los archivos sin filtrar
   const [loading, setLoading] = useState(true);
@@ -77,6 +81,16 @@ const StorageFileList = () => {
     loadFiles(eventIdToUse);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, fileType]);
+
+  // Refrescar cuando se sube un archivo nuevo (evento disparado por uploadWithProgress)
+  useEffect(() => {
+    const handler = () => {
+      const eventIdToUse = eventId || 'default';
+      loadFiles(eventIdToUse, false);
+    };
+    window.addEventListener('storage-files-changed', handler);
+    return () => window.removeEventListener('storage-files-changed', handler);
+  }, [eventId, loadFiles]);
 
   // Filtrar y ordenar archivos
   useEffect(() => {
@@ -237,6 +251,23 @@ const StorageFileList = () => {
           />
         </Tooltip>
       </Flexbox>
+
+      {/* Banner sin saldo */}
+      {!hasBalance && (
+        <div style={{ paddingInline: 12 }}>
+          <Alert
+            action={
+              <Button onClick={() => setShowRechargeModal(true)} size="small" type="primary">
+                Recargar
+              </Button>
+            }
+            description="Puedes ver tus archivos existentes, pero necesitas saldo para subir nuevos."
+            message="Saldo insuficiente para subir archivos"
+            showIcon
+            type="warning"
+          />
+        </div>
+      )}
 
       {/* Estadísticas */}
       {stats.total > 0 && (

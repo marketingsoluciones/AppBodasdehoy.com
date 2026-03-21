@@ -1,15 +1,13 @@
 'use client';
 
 import { Text } from '@lobehub/ui';
-import dynamic from 'next/dynamic';
 import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import FileList from './FileList';
+import StorageFileList from '@/features/Portal/Home/Body/Files/StorageFileList';
+
 import Header from './Header';
 import UploadDock from './UploadDock';
-
-const ChunkDrawer = dynamic(() => import('./ChunkDrawer'), { ssr: false });
 
 interface FileManagerProps {
   category?: string;
@@ -17,18 +15,22 @@ interface FileManagerProps {
   onOpenFile: (id: string) => void;
   title: string;
 }
-const FileManager = memo<FileManagerProps>(({ title, knowledgeBaseId, category, onOpenFile }) => {
+
+/**
+ * FileManager unificado — usa R2/api-ia como única fuente de verdad.
+ * Ya no depende de tRPC/Postgres para listar archivos.
+ */
+const FileManager = memo<FileManagerProps>(({ title, knowledgeBaseId }) => {
   return (
     <>
       <Header knowledgeBaseId={knowledgeBaseId} />
-      <Flexbox gap={12} height={'100%'}>
+      <Flexbox gap={12} height={'100%'} style={{ overflow: 'auto' }}>
         <Text strong style={{ fontSize: 16, marginBlock: 16, marginInline: 24 }}>
           {title}
         </Text>
-        <FileList category={category} knowledgeBaseId={knowledgeBaseId} onOpenFile={onOpenFile} />
+        <StorageFileList />
       </Flexbox>
       <UploadDock />
-      <ChunkDrawer />
     </>
   );
 });

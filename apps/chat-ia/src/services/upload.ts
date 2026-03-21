@@ -1,4 +1,4 @@
-import { isDesktop, isServerMode } from '@lobechat/const';
+import { isDesktop } from '@lobechat/const';
 import { parseDataUri } from '@lobechat/model-runtime';
 import { uuid } from '@lobechat/utils';
 import dayjs from 'dayjs';
@@ -67,14 +67,17 @@ const generateFilePathMetadata = (
 };
 
 interface UploadFileToS3Options {
+  development?: string;
   directory?: string;
   eventId?: string;
   filename?: string;
-  onCaptation?: (captationData: CaptationUploadResponse) => void; // Callback para mostrar modal de captación
+  onCaptation?: (captationData: CaptationUploadResponse) => void;
   onNotSupported?: () => void;
   onProgress?: (status: FileUploadStatus, state: FileUploadState) => void;
   pathname?: string;
   skipCheckFileType?: boolean;
+  userEmail?: string;
+  userId?: string;
 }
 
 class UploadService {
@@ -90,7 +93,7 @@ class UploadService {
    */
   uploadFileToS3 = async (
     file: File,
-    { onProgress, directory, skipCheckFileType, onNotSupported, pathname, eventId, onCaptation }: UploadFileToS3Options = {},
+    { onProgress, directory, pathname, eventId, onCaptation, userId, userEmail, development }: UploadFileToS3Options = {},
   ): Promise<{ captation?: CaptationUploadResponse; data: FileMetadata; success: boolean }> => {
     // Desktop (Electron sin sync activo): usa sistema de archivos local
     if (isDesktop) {
@@ -110,7 +113,7 @@ class UploadService {
     // Todos los demás casos: R2 via api-ia (whitelabel)
     // - eventId presente → guarda en {development}/events/{eventId}/...
     // - eventId ausente  → guarda en {development}/users/{userId}/...
-    const result = await this.uploadToStorageR2(file, { eventId, onCaptation, onProgress });
+    const result = await this.uploadToStorageR2(file, { development, eventId, onCaptation, onProgress, userEmail, userId });
 
     // Respuesta de captación: usuario guest detectado por api-ia
     if (result.isCaptation && result.captationData) {
@@ -262,12 +265,18 @@ class UploadService {
     file: File,
     {
       eventId,
+      userId,
+      userEmail,
+      development,
       onProgress,
       onCaptation,
     }: {
-      eventId: string;
+      development?: string;
+      eventId?: string;
       onCaptation?: (captationData: CaptationUploadResponse) => void;
       onProgress?: (status: FileUploadStatus, state: FileUploadState) => void;
+      userEmail?: string;
+      userId?: string;
     },
   ): Promise<{
     captationData?: CaptationUploadResponse;
@@ -276,29 +285,37 @@ class UploadService {
   }> => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('event_id', eventId);
+    if (eventId) formData.append('event_id', eventId);
     formData.append('access_level', 'shared');
 
-    // Obtener headers de usuario si están disponibles
-    // NO incluir Content-Type - FormData lo maneja automáticamente con boundary
+    // Obtener headers de usuario: params > localStorage > fallback
     const headers: Record<string, string> = {};
 
-    // Intentar obtener user_id y development desde localStorage o contexto
     if (typeof window !== 'undefined') {
       try {
         const devConfig = localStorage.getItem('dev-user-config');
         if (devConfig) {
           const config = JSON.parse(devConfig);
-          if (config.user_id) {
-            headers['X-User-ID'] = config.user_id;
-          }
-          if (config.development) {
-            headers['X-Development'] = config.development;
-          }
+          const lsUserId = config.user_id ?? config.userId;
+          const lsDev = config.development ?? config.developer;
+          const lsEmail = config.user_email ?? config.email;
+          if (lsUserId) headers['X-User-ID'] = lsUserId;
+          if (lsDev) headers['X-Development'] = lsDev;
+          if (lsEmail) headers['X-User-Email'] = lsEmail;
         }
       } catch (e) {
         console.warn('⚠️ No se pudo obtener configuración de usuario:', e);
       }
+    }
+
+    // Params explícitos sobreescriben localStorage
+    if (userId) headers['X-User-ID'] = userId;
+    if (userEmail) headers['X-User-Email'] = userEmail;
+    if (development) headers['X-Development'] = development;
+
+    // Sin identidad → el proxy devolverá 400, mejor fallar rápido
+    if (!headers['X-User-ID'] && !headers['X-User-Email']) {
+      throw new Error('No se pudo determinar la identidad del usuario para subir archivos. Verifica que has iniciado sesión.');
     }
 
     onProgress?.('uploading', {
@@ -366,7 +383,7 @@ class UploadService {
       isCaptation: false,
       metadata: {
         date: new Date().toISOString(),
-        dirname: `storage-r2/${eventId}`,
+        dirname: `storage-r2/${eventId || 'user'}`,
         filename: file.name,
         path: publicUrl,
       },
