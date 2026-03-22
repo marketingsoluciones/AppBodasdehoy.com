@@ -1,6 +1,6 @@
 'use client';
 
-import { Badge, Breadcrumb, Skeleton, Tag, Tooltip } from 'antd';
+import { Badge, Breadcrumb, Skeleton, Tag, Tooltip , Alert } from 'antd';
 import { createStyles } from 'antd-style';
 import { ArrowLeft, Check, Info, Sparkles, X } from 'lucide-react';
 import Link from 'next/link';
@@ -8,7 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import { memo, useEffect, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import { Alert } from 'antd';
+import PriceComparison from '@/components/credits/PriceComparison';
 import {
   SubscriptionPlan,
   UserSubscriptionInfo,
@@ -16,6 +16,7 @@ import {
   getSubscriptionPlans,
   subscribeToPlan,
 } from '@/services/api2/subscriptions';
+import { humanizeQuota } from '@bodasdehoy/shared/plans';
 
 const useStyles = createStyles(({ css, token }) => ({
   billingToggle: css`
@@ -121,26 +122,13 @@ const PLAN_COLORS: Record<string, string> = {
 // ============================================================
 
 function formatQuota(sku: string, quota: number): string {
-  const s = sku.toLowerCase();
   if (quota <= 0) return 'Sin acceso';
-
-  if (s.includes('storage')) {
-    if (quota >= 1000) return `${quota / 1000} TB`;
-    return `${quota} GB`;
-  }
-  if (s.includes('image') || s.includes('dalle') || s.includes('flux') || s.includes('sd')) {
-    if (quota >= 999_999) return 'Ilimitado';
-    return `${quota.toLocaleString()} imágenes/mes`;
-  }
-  if (s.includes('whatsapp') || s.includes('msg')) {
-    if (quota >= 999_999) return 'Ilimitado';
-    return `${quota.toLocaleString()} mensajes/mes`;
-  }
-  // AI tokens (default)
-  if (quota >= 1_000_000_000) return 'Ilimitado';
-  if (quota >= 1_000_000) return `${quota / 1_000_000}M tokens/mes`;
-  if (quota >= 1000) return `${quota / 1000}K tokens/mes`;
-  return `${quota} tokens/mes`;
+  // Use shared humanize for all SKUs
+  const humanized = humanizeQuota(sku, quota);
+  if (humanized !== `${quota}`) return humanized;
+  // Fallback for unknown SKUs
+  if (quota >= 999_999) return 'Ilimitado';
+  return `${quota.toLocaleString()}/mes`;
 }
 
 interface LimitRow {
@@ -167,25 +155,37 @@ function extractLimits(plan: SubscriptionPlan): LimitRow[] {
       s.includes('openai') ||
       s.includes('token')
     ) {
-      add('Tokens IA', formatQuota(l.sku, l.free_quota), 'ai');
+      add('Consultas IA', formatQuota(l.sku, l.free_quota), 'ai');
     } else if (
       s.includes('image') ||
       s.includes('dalle') ||
       s.includes('flux') ||
       s.includes('-sd')
     ) {
-      add('Imágenes', formatQuota(l.sku, l.free_quota), 'images');
-    } else if (s.includes('storage')) {
+      add('Imágenes IA', formatQuota(l.sku, l.free_quota), 'images');
+    } else if (s === 'storage-gb') {
       add('Almacenamiento', formatQuota(l.sku, l.free_quota), 'storage');
     } else if (s.includes('whatsapp') || s.includes('-wa')) {
       add('WhatsApp', formatQuota(l.sku, l.free_quota), 'whatsapp');
+    } else if (s === 'memories-albums') {
+      add('Álbumes Memories', formatQuota(l.sku, l.free_quota), 'albums');
+    } else if (s === 'memories-photos') {
+      add('Fotos Memories', formatQuota(l.sku, l.free_quota), 'photos');
+    } else if (s === 'events-count') {
+      add('Eventos', formatQuota(l.sku, l.free_quota), 'events');
+    } else if (s === 'guests-per-event') {
+      add('Invitados/evento', formatQuota(l.sku, l.free_quota), 'guests');
+    } else if (s === 'email-campaigns') {
+      add('Emails campaña', formatQuota(l.sku, l.free_quota), 'emails');
+    } else if (s === 'sms-invitations') {
+      add('SMS', formatQuota(l.sku, l.free_quota), 'sms');
     }
   }
 
   if (!seen.has('storage') && plan.feature_restrictions.max_storage_gb) {
     add(
       'Almacenamiento',
-      formatQuota('storage', plan.feature_restrictions.max_storage_gb),
+      formatQuota('storage-gb', plan.feature_restrictions.max_storage_gb),
       'storage'
     );
   }
@@ -355,7 +355,15 @@ const PlanCard = memo<{
             width: '100%',
           }}
         >
-          {selecting ? '...' : isCurrent ? 'Plan actual' : price === 0 ? 'Empezar gratis' : 'Elegir plan'}
+          {selecting
+            ? '...'
+            : isCurrent
+              ? 'Plan actual'
+              : price === 0
+                ? 'Empezar gratis'
+                : plan.pricing.trial_days
+                  ? `Probar ${plan.pricing.trial_days} días gratis`
+                  : 'Elegir plan'}
         </button>
 
         {/* Separador */}
@@ -494,6 +502,23 @@ const PlanesPage = memo(() => {
         />
       )}
 
+      {/* Trial banner */}
+      {mySubscription?.status === 'TRIAL' && mySubscription.trial_end && (() => {
+        const daysLeft = Math.max(0, Math.ceil((new Date(mySubscription.trial_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+        return (
+          <Alert
+            description={
+              daysLeft > 0
+                ? `Te quedan ${daysLeft} día${daysLeft !== 1 ? 's' : ''} de prueba. Tus datos se mantienen seguros.`
+                : 'Tu prueba ha terminado. Elige un plan para mantener las funciones.'
+            }
+            message={daysLeft > 0 ? `Prueba ${mySubscription.plan?.name ?? 'Pro'} activa` : 'Prueba finalizada'}
+            showIcon
+            type={daysLeft > 3 ? 'info' : daysLeft > 0 ? 'warning' : 'error'}
+          />
+        );
+      })()}
+
       {/* Header */}
       <Flexbox align="center" gap={12}>
         <Flexbox align="center" gap={8} horizontal>
@@ -611,6 +636,9 @@ const PlanesPage = memo(() => {
           determina el descuento que obtenés sobre el precio por uso.
         </p>
       </div>
+
+      {/* Comparativa completa de planes */}
+      <PriceComparison />
     </Flexbox>
   );
 });
