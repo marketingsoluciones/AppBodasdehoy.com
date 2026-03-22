@@ -307,11 +307,15 @@ test.describe('Canales — SSE fallback a polling', () => {
     }
 
     // Interceptar las requests al stream SSE y devolver error
+    // Registrar la ruta ANTES de navegar para evitar race condition con webkit
     await page.route('**/api/messages/stream**', (route) => {
       route.abort('connectionrefused');
-    });
+    }).catch(() => {}); // ignorar si la página ya fue cerrada
 
-    await page.goto(`${CHAT_URL}/messages`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.goto(`${CHAT_URL}/messages`, { waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(async () => {
+      // Webkit puede cerrar la página tras login — reintentar navegación directa
+      await page.goto(`${CHAT_URL}/messages`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    });
     await page.waitForTimeout(8_000); // dar tiempo a que el SSE intente conectar y falle
 
     const bodyText = (await page.locator('body').textContent()) ?? '';
@@ -386,7 +390,9 @@ test.describe('Canales — indicadores de estado', () => {
       await page.waitForURL((u) => !u.pathname.includes('/login'), { timeout: 30_000 }).catch(() => {});
     }
 
-    await page.goto(`${CHAT_URL}/messages`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.goto(`${CHAT_URL}/messages`, { waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(async () => {
+      await page.goto(`${CHAT_URL}/messages`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    });
     await page.waitForTimeout(4_000);
 
     // Canales no conectados deben tener texto "Conectar" o similar
