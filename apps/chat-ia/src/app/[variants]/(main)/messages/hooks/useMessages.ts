@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
+import { getWhatsAppMessagesGQL } from '@/services/api2/whatsapp';
 import { buildHeaders, parseWhatsAppConversationId } from '../utils/auth';
 import { useMessageStream } from './useMessageStream';
 import type { StreamMessage } from './useMessageStream';
@@ -77,6 +78,25 @@ export function useMessages(channel: string, conversationId: string) {
     if (isGuest || !conversationId) {
       setMessages([]);
       setLoading(false);
+      return;
+    }
+
+    // GraphQL native store path (api2) — used when external WA service is down
+    if (conversationId.startsWith('gql:')) {
+      const gqlId = conversationId.slice(4);
+      try {
+        setLoading(true);
+        const msgs = await getWhatsAppMessagesGQL(gqlId);
+        const serverMsgs = msgs.map((m) => normalizeMessage({ ...m, text: m.text, direction: m.direction }));
+        setMessages(serverMsgs);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Error al obtener mensajes'));
+        setMessages([]);
+      } finally {
+        setLoading(false);
+        initialLoadDone.current = true;
+      }
       return;
     }
 
