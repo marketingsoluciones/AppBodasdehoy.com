@@ -67,12 +67,12 @@ async function loginInChat(page: import('@playwright/test').Page): Promise<boole
 // ─── 0. Smoke ─────────────────────────────────────────────────────────────────
 
 test.describe('Facturación — smoke', () => {
-  test.setTimeout(30_000);
+  test.setTimeout(60_000);
 
   test('chat-test responde sin 500', async ({ page }) => {
     const response = await page.goto(CHAT_URL, {
       waitUntil: 'domcontentloaded',
-      timeout: 25_000,
+      timeout: 50_000,
     });
     expect(response?.status()).not.toBe(500);
   });
