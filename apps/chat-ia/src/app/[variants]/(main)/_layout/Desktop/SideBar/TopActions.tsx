@@ -1,7 +1,7 @@
 'use client';
 
 import { ActionIcon, ActionIconProps, Hotkey } from '@lobehub/ui';
-import { BookOpen, Compass, FolderOpen, Heart, ImagePlus, Images, MessageSquare } from 'lucide-react';
+import { BookOpen, CheckSquare, Compass, FolderOpen, Heart, ImagePlus, Images, Inbox, MessageSquare, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -47,6 +47,8 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
       lowerEmail.includes('@guest.')
     );
   });
+
+  const isAdmin = useChatStore((s) => s.userRole === 'admin');
 
   const isChatActive = tab === SidebarTabKey.Chat && !isPinned;
   const isMemoriesActive = tab === SidebarTabKey.Memories;
@@ -130,6 +132,28 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
         />
       </Link>
       {isServerMode && !isGuestUser && (
+        <Link aria-label="Bandeja de mensajes" href={'/messages'} suppressHydrationWarning>
+          <ActionIcon
+            active={tab === SidebarTabKey.Messages}
+            icon={Inbox}
+            size={ICON_SIZE}
+            title="Bandeja de mensajes"
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
+      {isServerMode && !isGuestUser && (
+        <Link aria-label="Tareas" href={'/tasks'} suppressHydrationWarning>
+          <ActionIcon
+            active={tab === ('tasks' as SidebarTabKey)}
+            icon={CheckSquare}
+            size={ICON_SIZE}
+            title="Tareas pendientes"
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
+      {isServerMode && !isGuestUser && (
         <Link aria-label="Archivos" href={'/files'} suppressHydrationWarning>
           <ActionIcon
             active={tab === SidebarTabKey.Files}
@@ -141,6 +165,17 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
         </Link>
       )}
       {isServerMode && !isGuestUser && <NotificationBell />}
+      {isServerMode && isAdmin && (
+        <Link aria-label="Admin" href={'/admin'} suppressHydrationWarning>
+          <ActionIcon
+            icon={ShieldCheck}
+            size={ICON_SIZE}
+            style={{ color: '#f59e0b' }}
+            title="Panel de administración"
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
     </Flexbox>
   );
 });
