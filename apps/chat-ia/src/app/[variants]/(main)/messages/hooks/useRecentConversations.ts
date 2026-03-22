@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { useChatStore } from '@/store/chat';
-import { getWhatsAppChannels } from '@/services/api2/whatsapp';
+import { getWhatsAppChannels, getWhatsAppConversationsGQL } from '@/services/api2/whatsapp';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { buildHeaders } from '../utils/auth';
@@ -73,13 +73,15 @@ export function useRecentConversations(max = 50) {
         }
 
         // Fetch WhatsApp conversations
+        // Primary: REST via Baileys (live sessions). Fallback: GraphQL api2 store (works even if external WA service is down).
         const waPromise = fetch(`/api/messages/whatsapp/conversations/${dev}`, {
           headers: buildHeaders(),
         })
           .then(async (res) => {
-            if (!res.ok) return [];
+            if (!res.ok) return null; // null = use fallback
             const data = await res.json();
             const rawList: any[] = Array.isArray(data) ? data : (data.conversations ?? []);
+            if (rawList.length === 0) return null; // empty = try fallback
             return rawList.map((c: any) => {
               const sessionKey = c.sessionKey || '';
               const matchedChannel = waChannels.find(
@@ -88,16 +90,32 @@ export function useRecentConversations(max = 50) {
               const channelParam = matchedChannel ? `wa-${matchedChannel.id}` : defaultWaParam;
               const channelLabel = matchedChannel ? channelLabelMap.get(matchedChannel.id) : undefined;
               return {
+                channelLabel,
                 channelParam,
-                kind: 'whatsapp' as const,
                 conversationId: c.conversationId || c.id || '',
-                name: c.displayName || c.phoneNumber || 'Desconocido',
+                kind: 'whatsapp' as const,
                 lastMessage: c.lastMessage || '',
                 lastMessageAt: c.lastMessageAt || c.updatedAt || '',
+                name: c.displayName || c.phoneNumber || 'Desconocido',
                 unreadCount: c.unreadCount || 0,
-                channelLabel,
               };
             });
+          })
+          .then(async (restConvs) => {
+            if (restConvs !== null) return restConvs;
+            // Fallback: api2 GraphQL native store (doesn't require external WA service)
+            const gqlConvs = await getWhatsAppConversationsGQL(dev).catch(() => []);
+            return gqlConvs.map((c) => ({
+              channelLabel: undefined,
+              channelParam: defaultWaParam,
+              // Prefix with 'gql:' so useMessages knows to use GraphQL fetch
+              conversationId: `gql:${c.id}`,
+              kind: 'whatsapp' as const,
+              lastMessage: '',
+              lastMessageAt: c.lastMessageAt || '',
+              name: c.contactName || c.phoneNumber || 'Desconocido',
+              unreadCount: 0,
+            }));
           })
           .catch(() => [] as RecentConversation[]);
 

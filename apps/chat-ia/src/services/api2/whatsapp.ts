@@ -172,3 +172,100 @@ export async function addWhatsAppChannelMember(
     return false;
   }
 }
+
+// ─── GraphQL conversations / messages (api2 native store) ─────────────────────
+
+export interface WaConversation {
+  id: string;
+  phoneNumber: string;
+  contactName?: string;
+  lastMessageAt: string;
+  messageCount: number;
+  status: string;
+}
+
+export interface WaMessage {
+  id: string;
+  conversationId: string;
+  direction: 'INBOUND' | 'OUTBOUND';
+  text?: string;
+  timestamp: string;
+  status: string;
+}
+
+const GET_WA_CONVERSATIONS = `
+  query GetWAConversations($developerId: String!, $pagination: CRM_PaginationInput) {
+    getWhatsAppConversations(developerId: $developerId, pagination: $pagination) {
+      total
+      conversations {
+        id
+        phoneNumber
+        contactInfo { name }
+        lastMessageAt
+        messageCount
+        status
+      }
+    }
+  }
+`;
+
+const GET_WA_MESSAGES = `
+  query GetWAMessages($conversationId: ID!, $pagination: CRM_PaginationInput) {
+    getWhatsAppMessages(conversationId: $conversationId, pagination: $pagination) {
+      total
+      messages {
+        id
+        conversationId
+        direction
+        content { text }
+        timestamp
+        status
+        createdAt
+      }
+    }
+  }
+`;
+
+/** Fetch conversations stored in api2 native WhatsApp store */
+export async function getWhatsAppConversationsGQL(
+  developerId: string,
+  limit = 50,
+): Promise<WaConversation[]> {
+  try {
+    const data = await api2Client.query<{
+      getWhatsAppConversations: { total: number; conversations: any[] };
+    }>(GET_WA_CONVERSATIONS, { developerId, pagination: { page: 1, limit } });
+    return (data.getWhatsAppConversations?.conversations ?? []).map((c: any) => ({
+      contactName: c.contactInfo?.name || undefined,
+      id: c.id,
+      lastMessageAt: c.lastMessageAt,
+      messageCount: c.messageCount ?? 0,
+      phoneNumber: c.phoneNumber,
+      status: c.status,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/** Fetch messages for a conversation from api2 native store */
+export async function getWhatsAppMessagesGQL(
+  conversationId: string,
+  limit = 50,
+): Promise<WaMessage[]> {
+  try {
+    const data = await api2Client.query<{
+      getWhatsAppMessages: { total: number; messages: any[] };
+    }>(GET_WA_MESSAGES, { conversationId, pagination: { page: 1, limit } });
+    return (data.getWhatsAppMessages?.messages ?? []).map((m: any) => ({
+      conversationId: m.conversationId,
+      direction: m.direction,
+      id: m.id,
+      status: m.status,
+      text: m.content?.text || '',
+      timestamp: m.timestamp || m.createdAt,
+    }));
+  } catch {
+    return [];
+  }
+}

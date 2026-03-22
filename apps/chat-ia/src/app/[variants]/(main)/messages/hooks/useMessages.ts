@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
 import { buildHeaders, parseWhatsAppConversationId } from '../utils/auth';
+import { getWhatsAppMessagesGQL } from '@/services/api2/whatsapp';
 import { useMessageStream } from './useMessageStream';
 import type { StreamMessage } from './useMessageStream';
 
@@ -32,14 +33,35 @@ function buildFetchUrl(channel: string, conversationId: string): string | null {
 }
 
 function normalizeMessage(msg: any): Message {
+  // Direction detection — covers: REST Baileys (fromMe bool), api2 GraphQL (emitUserUid),
+  // api-ia normalized (direction string), legacy (fromUser bool)
+  let fromUser: boolean;
+  if (msg.direction !== undefined) {
+    fromUser = msg.direction === 'INBOUND';
+  } else if (typeof msg.fromMe === 'boolean') {
+    // Baileys / api2 WhatsApp: fromMe=true means WE sent it
+    fromUser = !msg.fromMe;
+  } else {
+    fromUser = msg.fromUser !== false;
+  }
+
   return {
     attachments: msg.attachments,
-    // INBOUND = del contacto (fromUser=true), OUTBOUND = tuyo (fromUser=false)
-    fromUser: msg.direction === 'INBOUND' || (msg.direction === undefined && msg.fromUser !== false),
+    fromUser,
     id: msg.id || msg.messageId || msg._id || `msg_${Date.now()}_${Math.random()}`,
     status: msg.status || 'read',
-    text: msg.text || msg.content || '',
-    timestamp: msg.timestamp || msg.createdAt || new Date().toISOString(),
+    // Field variants: api-ia 'text', Baileys 'body', api2 graphql 'message', generic 'content'
+    text: msg.text || msg.body || msg.message || msg.content || '',
+    // Timestamp variants: ISO string, Unix seconds (Baileys), Float ms (api2 graphql)
+    timestamp: (() => {
+      const raw = msg.timestamp || msg.createdAt;
+      if (!raw) return new Date().toISOString();
+      if (typeof raw === 'number') {
+        // Baileys uses Unix seconds; api2 createdAt is Float ms
+        return new Date(raw < 1e12 ? raw * 1000 : raw).toISOString();
+      }
+      return raw;
+    })(),
   };
 }
 
@@ -56,6 +78,27 @@ export function useMessages(channel: string, conversationId: string) {
     if (isGuest || !conversationId) {
       setMessages([]);
       setLoading(false);
+      return;
+    }
+
+    // GraphQL path: conversationId prefixed with 'gql:' → use api2 native store
+    if (conversationId.startsWith('gql:')) {
+      const gqlId = conversationId.slice(4);
+      try {
+        setLoading(true);
+        const msgs = await getWhatsAppMessagesGQL(gqlId);
+        const serverMsgs = msgs.map((m) =>
+          normalizeMessage({ ...m, text: m.text, direction: m.direction }),
+        );
+        setMessages(serverMsgs);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Error al obtener mensajes'));
+        setMessages([]);
+      } finally {
+        setLoading(false);
+        initialLoadDone.current = true;
+      }
       return;
     }
 
