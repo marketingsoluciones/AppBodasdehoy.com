@@ -13,19 +13,23 @@ import {
 } from '@/services/api2/notifications';
 
 const TYPE_LABEL: Record<string, { icon: string; label: string }> = {
-  resource_shared: { icon: '📤', label: 'Recurso compartido' },
   access_revoked: { icon: '🔒', label: 'Acceso revocado' },
   permission_updated: { icon: '🔑', label: 'Permiso actualizado' },
   resource_access_revoked: { icon: '🚫', label: 'Acceso eliminado' },
+  resource_shared: { icon: '📤', label: 'Recurso compartido' },
   task_reminder: { icon: '📋', label: 'Tarea pendiente' },
   whatsapp_message: { icon: '💬', label: 'Mensaje WhatsApp' },
 };
 
 function getNotificationUrl(n: AppNotification): string | null {
-  if (n.type === 'whatsapp_message' || n.resourceType === 'WHATSAPP') return '/messages';
-  if (n.type === 'task_reminder' || n.resourceType === 'SERVICE') return '/tasks';
-  if (n.resourceType === 'CONVERSATION' && n.resourceId) return `/chat/${n.resourceId}`;
+  const focused = n.focused ?? '';
+  if (focused.startsWith('/messages') || focused.startsWith('/tasks') || focused.startsWith('/chat/') || focused.startsWith('/settings')) {
+    return focused.split('?')[0];
+  }
+  if (n.type === 'whatsapp_message') return '/messages';
+  if (n.type === 'task_reminder') return '/tasks';
   if (n.type === 'access_revoked' || n.type === 'permission_updated') return '/settings';
+  if (focused) return '/messages';
   return null;
 }
 
@@ -33,8 +37,9 @@ function getExternalUrl(_n: AppNotification): string | null {
   return null;
 }
 
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
+function timeAgo(createdAt: number | string): string {
+  const ts = typeof createdAt === 'number' ? createdAt : new Date(createdAt).getTime();
+  const diff = Date.now() - ts;
   const m = Math.floor(diff / 60_000);
   if (m < 1) return 'ahora';
   if (m < 60) return `hace ${m}min`;
@@ -42,11 +47,12 @@ function timeAgo(dateStr: string): string {
   if (h < 24) return `hace ${h}h`;
   const d = Math.floor(h / 24);
   if (d < 7) return `hace ${d}d`;
-  return new Date(dateStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  return new Date(ts).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 }
 
-function getDateGroup(dateStr: string): string {
-  const date = new Date(dateStr);
+function getDateGroup(createdAt: number | string): string {
+  const ts = typeof createdAt === 'number' ? createdAt : new Date(createdAt).getTime();
+  const date = new Date(ts);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffMs / 86_400_000);
@@ -107,9 +113,9 @@ export default function NotificationsPage() {
   }, [filter, load]);
 
   const handleClick = useCallback(async (n: AppNotification) => {
-    if (!n.read) {
-      await markNotificationAsRead(n.id);
-      setNotifications((prev) => prev.map((x) => x.id === n.id ? { ...x, read: true } : x));
+    if (!n.status) {
+      await markNotificationAsRead(n._id);
+      setNotifications((prev) => prev.map((x) => x._id === n._id ? { ...x, status: true } : x));
       setUnreadCount((prev) => Math.max(0, prev - 1));
     }
     const url = getNotificationUrl(n);
@@ -120,25 +126,25 @@ export default function NotificationsPage() {
 
   const handleMarkAllRead = useCallback(async () => {
     await markAllNotificationsAsRead();
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, status: true })));
     setUnreadCount(0);
   }, []);
 
   const handleSnooze = useCallback((id: string, minutes: number) => {
     snoozeNotification(id, minutes);
     setSnoozeMenuId(null);
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    setNotifications((prev) => prev.filter((n) => n._id !== id));
   }, []);
 
   // Filter by search, type, and snoozed
   const displayNotifications = useMemo(() => {
-    let result = notifications.filter((n) => !isSnoozed(n.id));
+    let result = notifications.filter((n) => !isSnoozed(n._id));
     if (typeFilter) {
       result = result.filter((n) => n.type === typeFilter);
     }
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
-      result = result.filter((n) => n.message.toLowerCase().includes(q) || (n.resourceName || '').toLowerCase().includes(q));
+      result = result.filter((n) => n.message.toLowerCase().includes(q));
     }
     return result;
   }, [notifications, searchTerm, typeFilter]);
@@ -176,8 +182,8 @@ export default function NotificationsPage() {
         <div className="flex items-center gap-3">
           {unreadCount > 0 && (
             <button
-              onClick={handleMarkAllRead}
               className="text-sm text-pink-600 hover:text-pink-700 font-medium"
+              onClick={handleMarkAllRead}
             >
               Marcar todas como leídas
             </button>
@@ -207,13 +213,13 @@ export default function NotificationsPage() {
       <div className="mb-4 flex gap-2 border-b border-gray-200">
         {(['all', 'unread'] as const).map((f) => (
           <button
-            key={f}
-            onClick={() => setFilter(f)}
             className={`pb-2 px-1 text-sm font-medium border-b-2 transition-colors ${
               filter === f
                 ? 'border-pink-500 text-pink-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
+            key={f}
+            onClick={() => setFilter(f)}
           >
             {f === 'all' ? 'Todas' : 'Sin leer'}
           </button>
@@ -236,10 +242,10 @@ export default function NotificationsPage() {
             const meta = TYPE_LABEL[t] || { icon: '🔔', label: t };
             return (
               <button
-                key={t}
                 className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                   typeFilter === t ? 'bg-pink-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
+                key={t}
                 onClick={() => setTypeFilter(typeFilter === t ? null : t)}
                 type="button"
               >
@@ -255,7 +261,7 @@ export default function NotificationsPage() {
         {loading && (
           <div className="space-y-2 py-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-16 animate-pulse rounded-xl bg-gray-100" />
+              <div className="h-16 animate-pulse rounded-xl bg-gray-100" key={i} />
             ))}
           </div>
         )}
@@ -288,10 +294,10 @@ export default function NotificationsPage() {
 
                 return (
                   <div
-                    key={n.id}
                     className={`relative flex items-start gap-3 rounded-xl px-4 py-3 transition-colors ${
-                      n.read ? 'bg-white hover:bg-gray-50' : 'bg-pink-50 hover:bg-pink-100'
+                      n.status ? 'bg-white hover:bg-gray-50' : 'bg-pink-50 hover:bg-pink-100'
                     } ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
+                    key={n._id}
                   >
                     {/* Main content - clickable */}
                     <div className="flex-1 flex items-start gap-3" onClick={() => handleClick(n)}>
@@ -303,13 +309,12 @@ export default function NotificationsPage() {
                           <div className="min-w-0">
                             <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
                               {meta.label}
-                              {n.resourceName && ` · ${n.resourceName}`}
                             </span>
                             <p className="mt-0.5 text-sm leading-snug text-gray-800">{n.message}</p>
                           </div>
                           <div className="flex shrink-0 flex-col items-end gap-1.5">
-                            <span className="text-xs text-gray-400 whitespace-nowrap">{timeAgo(n.createdAt)}</span>
-                            {!n.read && <span className="h-2 w-2 rounded-full bg-pink-500" />}
+                            <span className="text-xs text-gray-400 whitespace-nowrap">{timeAgo(n.createdAt ?? 0)}</span>
+                            {!n.status && <span className="h-2 w-2 rounded-full bg-pink-500" />}
                           </div>
                         </div>
                         {isClickable && (
@@ -328,13 +333,13 @@ export default function NotificationsPage() {
                     <div className="relative">
                       <button
                         className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                        onClick={(e) => { e.stopPropagation(); setSnoozeMenuId(snoozeMenuId === n.id ? null : n.id); }}
+                        onClick={(e) => { e.stopPropagation(); setSnoozeMenuId(snoozeMenuId === n._id ? null : n._id); }}
                         title="Posponer"
                         type="button"
                       >
                         ⏰
                       </button>
-                      {snoozeMenuId === n.id && (
+                      {snoozeMenuId === n._id && (
                         <div className="absolute right-0 top-8 z-20 w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
                           {[
                             { label: '30 minutos', minutes: 30 },
@@ -345,7 +350,7 @@ export default function NotificationsPage() {
                             <button
                               className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
                               key={opt.minutes}
-                              onClick={(e) => { e.stopPropagation(); handleSnooze(n.id, opt.minutes); }}
+                              onClick={(e) => { e.stopPropagation(); handleSnooze(n._id, opt.minutes); }}
                               type="button"
                             >
                               {opt.label}
@@ -366,6 +371,7 @@ export default function NotificationsPage() {
       {!loading && notifications.length < total && (
         <div className="mt-6 text-center">
           <button
+            className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             onClick={async () => {
               const nextPage = page + 1;
               setPage(nextPage);
@@ -373,7 +379,6 @@ export default function NotificationsPage() {
               setNotifications((prev) => [...prev, ...res.notifications]);
               setTotal(res.total);
             }}
-            className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             Cargar más ({total - notifications.length} restantes)
           </button>
