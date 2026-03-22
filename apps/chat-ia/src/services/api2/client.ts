@@ -24,7 +24,7 @@ const shouldResetToken = (errors?: GraphQLErrorShape[]) =>
 /** Decodifica el payload de un JWT sin verificar firma */
 const decodeJwtExp = (token: string): number | null => {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    const payload = JSON.parse(atob(token.split('.')[1].replaceAll('-', '+').replaceAll('_', '/')));
     return payload.exp ?? null;
   } catch {
     return null;
@@ -45,7 +45,7 @@ const readToken = () => {
   const cache = localStorage.getItem('jwt_token_cache');
   if (cache) {
     try {
-      const { token, expiry } = JSON.parse(cache) as { token: string; expiry: number };
+      const { token, expiry } = JSON.parse(cache) as { expiry: number, token: string; };
       if (token && expiry && Date.now() < expiry) return token;
     } catch { /* ignorar */ }
   }
@@ -125,6 +125,8 @@ export class API2Client {
       localStorage.removeItem('jwt_token');
       localStorage.removeItem('api2_jwt_token');
       localStorage.removeItem('jwt_token_cache');
+      // Notificar a la UI para que muestre un aviso de sesión expirada
+      window.dispatchEvent(new CustomEvent('api2:token-expired'));
     }
 
     return payload;

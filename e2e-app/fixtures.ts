@@ -63,10 +63,11 @@ export function getChatUrl(baseUrl?: string): string {
   return 'https://chat.bodasdehoy.com';
 }
 
-/** URL base de test (app y chat) */
+/** URL base de test (app, chat y memories-web) */
 export const TEST_URLS = {
   app: process.env.BASE_URL || 'https://app-test.bodasdehoy.com',
   chat: getChatUrl(),
+  memories: process.env.MEMORIES_URL || 'https://memories-test.bodasdehoy.com',
 };
 
 /** Usuario secundario (novia/pareja) — comparte evento con U1 */

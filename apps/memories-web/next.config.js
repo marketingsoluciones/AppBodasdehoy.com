@@ -6,11 +6,40 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@bodasdehoy/memories', '@bodasdehoy/shared'],
   i18n,
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'api-ia.bodasdehoy.com' },
+      { protocol: 'https', hostname: 'storage.googleapis.com' },
+      { protocol: 'https', hostname: 'api.qrserver.com' },
+      { protocol: 'https', hostname: 'picsum.photos' },
+    ],
+    formats: ['image/avif', 'image/webp'],
+  },
   allowedDevOrigins: [
     'memories-dev.bodasdehoy.com',
     'memories-test.bodasdehoy.com',
     '127.0.0.1',
     'localhost',
+  ],
+  headers: async () => [{
+    source: '/:path*',
+    headers: [
+      { key: 'X-Frame-Options', value: 'DENY' },
+      { key: 'X-Content-Type-Options', value: 'nosniff' },
+      { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+      { key: 'Permissions-Policy', value: 'camera=(), microphone=()' },
+    ],
+  }],
+  // Proxy para evitar CORS en desarrollo local
+  rewrites: async () => [
+    {
+      source: '/api/graphql',
+      destination: process.env.API2_GRAPHQL_URL || 'https://api2.eventosorganizador.com/graphql',
+    },
+    {
+      source: '/api/memories/:path*',
+      destination: `${process.env.API_IA_URL || 'https://api-ia.bodasdehoy.com'}/api/memories/:path*`,
+    },
   ],
   webpack: (config) => {
     // Deduplicate React — prevents "Invalid hook call" in monorepo when packages
