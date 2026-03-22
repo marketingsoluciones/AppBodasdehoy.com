@@ -1,16 +1,23 @@
 import { api2Client } from './client';
 
 export interface AppNotification {
-  _id: string;
-  createdAt: number;
-  focused?: string;
-  fromUid?: string;
+  _id?: string;
+  createdAt: string;
+  development?: string;
+  id: string;
   message: string;
-  state?: string;
-  status: boolean; // true = read, false = unread
+  metadata?: Record<string, unknown>;
+  read: boolean;
+  readAt?: string;
+  resourceId?: string;
+  resourceName?: string;
+  resourceType?: string;
   type?: string;
-  uid?: string;
-  updatedAt?: number;
+  updatedAt?: string;
+  userId?: string;
+  // Legacy compat — older code may reference these
+  focused?: string;  // derived from resourceType/resourceId
+  status?: boolean;  // alias for !read
 }
 
 export interface NotificationsResponse {
@@ -22,18 +29,21 @@ export interface NotificationsResponse {
 }
 
 const GET_NOTIFICATIONS = `
-  query GetNotifications($skip: Int, $limit: Int) {
-    getNotifications(skip: $skip, limit: $limit) {
+  query GetNotifications($filters: NotificationFilters, $pagination: CRM_PaginationInput) {
+    getNotifications(filters: $filters, pagination: $pagination) {
+      success
       total
-      results {
-        _id
-        uid
-        message
-        status
-        state
+      unreadCount
+      notifications {
+        id
         type
-        fromUid
-        focused
+        resourceType
+        resourceId
+        resourceName
+        message
+        read
+        readAt
+        development
         createdAt
         updatedAt
       }
@@ -41,20 +51,36 @@ const GET_NOTIFICATIONS = `
   }
 `;
 
-const UPDATE_NOTIFICATION = `
-  mutation UpdateNotification($args: inputNotification) {
-    updateNotifications(args: $args)
+const GET_UNREAD_COUNT = `
+  query { getUnreadNotificationsCount }
+`;
+
+const MARK_AS_READ = `
+  mutation MarkNotificationAsRead($notificationId: ID!) {
+    markNotificationAsRead(notificationId: $notificationId) {
+      success
+      errors { message }
+    }
   }
 `;
 
+const MARK_ALL_READ = `
+  mutation { markAllNotificationsAsRead { success count errors { message } } }
+`;
+
+function normalizeNotification(n: any): AppNotification {
+  return {
+    ...n,
+    _id: n.id,
+    focused: n.resourceId || undefined,
+    status: !n.read,
+  };
+}
+
 export async function getUnreadNotificationsCount(): Promise<number> {
   try {
-    const data = await api2Client.query<{ getNotifications: { total: number; results: AppNotification[] } }>(
-      GET_NOTIFICATIONS,
-      { skip: 0, limit: 50 },
-    );
-    const results = data.getNotifications?.results ?? [];
-    return results.filter((n) => !n.status).length;
+    const data = await api2Client.query<{ getUnreadNotificationsCount: number }>(GET_UNREAD_COUNT);
+    return data.getUnreadNotificationsCount ?? 0;
   } catch {
     return 0;
   }
@@ -62,48 +88,44 @@ export async function getUnreadNotificationsCount(): Promise<number> {
 
 export async function getNotifications(limit = 20, unreadOnly = false, page = 1): Promise<NotificationsResponse> {
   try {
-    const skip = (page - 1) * limit;
-    const data = await api2Client.query<{ getNotifications: { total: number; results: AppNotification[] } }>(
-      GET_NOTIFICATIONS,
-      { skip, limit },
-    );
+    const filters = unreadOnly ? { read: false } : undefined;
+    const data = await api2Client.query<{
+      getNotifications: {
+        success: boolean;
+        total: number;
+        unreadCount: number;
+        notifications: any[];
+      };
+    }>(GET_NOTIFICATIONS, {
+      filters,
+      pagination: { page, limit },
+    });
     const res = data.getNotifications;
-    const allNotifs = res?.results ?? [];
-    const notifications = unreadOnly ? allNotifs.filter((n) => !n.status) : allNotifs;
-    const unreadCount = allNotifs.filter((n) => !n.status).length;
+    const notifications = (res?.notifications ?? []).map(normalizeNotification);
     return {
       errors: [],
       notifications,
-      success: true,
+      success: res?.success ?? true,
       total: res?.total ?? 0,
-      unreadCount,
+      unreadCount: res?.unreadCount ?? 0,
     };
   } catch {
     return { errors: [], notifications: [], success: false, total: 0, unreadCount: 0 };
   }
 }
 
-export async function markAllNotificationsAsRead(): Promise<boolean> {
+export async function markNotificationAsRead(notificationId: string): Promise<boolean> {
   try {
-    const data = await api2Client.query<{ getNotifications: { results: AppNotification[] } }>(GET_NOTIFICATIONS, {
-      skip: 0,
-      limit: 100,
-    });
-    const unread = (data.getNotifications?.results ?? []).filter((n) => !n.status);
-    await Promise.all(
-      unread.map((n) =>
-        api2Client.query(UPDATE_NOTIFICATION, { args: { _id: n._id, status: true } }),
-      ),
-    );
+    await api2Client.query(MARK_AS_READ, { notificationId });
     return true;
   } catch {
     return false;
   }
 }
 
-export async function markNotificationAsRead(notificationId: string): Promise<boolean> {
+export async function markAllNotificationsAsRead(): Promise<boolean> {
   try {
-    await api2Client.query(UPDATE_NOTIFICATION, { args: { _id: notificationId, status: true } });
+    await api2Client.query(MARK_ALL_READ);
     return true;
   } catch {
     return false;

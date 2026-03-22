@@ -113,9 +113,9 @@ export default function NotificationsPage() {
   }, [filter, load]);
 
   const handleClick = useCallback(async (n: AppNotification) => {
-    if (!n.status) {
-      await markNotificationAsRead(n._id);
-      setNotifications((prev) => prev.map((x) => x._id === n._id ? { ...x, status: true } : x));
+    if (!n.read) {
+      await markNotificationAsRead(n.id || n._id!);
+      setNotifications((prev) => prev.map((x) => (x.id === n.id || x._id === n._id) ? { ...x, read: true, status: true } : x));
       setUnreadCount((prev) => Math.max(0, prev - 1));
     }
     const url = getNotificationUrl(n);
@@ -126,19 +126,19 @@ export default function NotificationsPage() {
 
   const handleMarkAllRead = useCallback(async () => {
     await markAllNotificationsAsRead();
-    setNotifications((prev) => prev.map((n) => ({ ...n, status: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true, status: true })));
     setUnreadCount(0);
   }, []);
 
   const handleSnooze = useCallback((id: string, minutes: number) => {
     snoozeNotification(id, minutes);
     setSnoozeMenuId(null);
-    setNotifications((prev) => prev.filter((n) => n._id !== id));
+    setNotifications((prev) => prev.filter((n) => n.id !== id && n._id !== id));
   }, []);
 
   // Filter by search, type, and snoozed
   const displayNotifications = useMemo(() => {
-    let result = notifications.filter((n) => !isSnoozed(n._id));
+    let result = notifications.filter((n) => !isSnoozed(n.id || n._id!));
     if (typeFilter) {
       result = result.filter((n) => n.type === typeFilter);
     }
@@ -295,9 +295,9 @@ export default function NotificationsPage() {
                 return (
                   <div
                     className={`relative flex items-start gap-3 rounded-xl px-4 py-3 transition-colors ${
-                      n.status ? 'bg-white hover:bg-gray-50' : 'bg-pink-50 hover:bg-pink-100'
+                      n.read ? 'bg-white hover:bg-gray-50' : 'bg-pink-50 hover:bg-pink-100'
                     } ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
-                    key={n._id}
+                    key={n.id || n._id}
                   >
                     {/* Main content - clickable */}
                     <div className="flex-1 flex items-start gap-3" onClick={() => handleClick(n)}>
@@ -314,7 +314,7 @@ export default function NotificationsPage() {
                           </div>
                           <div className="flex shrink-0 flex-col items-end gap-1.5">
                             <span className="text-xs text-gray-400 whitespace-nowrap">{timeAgo(n.createdAt ?? 0)}</span>
-                            {!n.status && <span className="h-2 w-2 rounded-full bg-pink-500" />}
+                            {!n.read && <span className="h-2 w-2 rounded-full bg-pink-500" />}
                           </div>
                         </div>
                         {isClickable && (
@@ -333,13 +333,13 @@ export default function NotificationsPage() {
                     <div className="relative">
                       <button
                         className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                        onClick={(e) => { e.stopPropagation(); setSnoozeMenuId(snoozeMenuId === n._id ? null : n._id); }}
+                        onClick={(e) => { e.stopPropagation(); setSnoozeMenuId(snoozeMenuId === (n.id || n._id!) ? null : (n.id || n._id!)); }}
                         title="Posponer"
                         type="button"
                       >
                         ⏰
                       </button>
-                      {snoozeMenuId === n._id && (
+                      {snoozeMenuId === (n.id || n._id) && (
                         <div className="absolute right-0 top-8 z-20 w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
                           {[
                             { label: '30 minutos', minutes: 30 },
@@ -350,7 +350,7 @@ export default function NotificationsPage() {
                             <button
                               className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
                               key={opt.minutes}
-                              onClick={(e) => { e.stopPropagation(); handleSnooze(n._id, opt.minutes); }}
+                              onClick={(e) => { e.stopPropagation(); handleSnooze(n.id || n._id!, opt.minutes); }}
                               type="button"
                             >
                               {opt.label}

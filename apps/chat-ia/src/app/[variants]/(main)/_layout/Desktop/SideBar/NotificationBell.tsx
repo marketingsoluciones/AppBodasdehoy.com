@@ -102,18 +102,18 @@ const NotificationBell = memo(() => {
 
   const handleMarkAllRead = useCallback(async () => {
     await markAllNotificationsAsRead();
-    setNotifications((prev) => prev.map((n) => ({ ...n, status: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true, status: true })));
     setUnread(0);
   }, []);
 
   const handleMarkRead = useCallback(async (id: string) => {
     await markNotificationAsRead(id);
-    setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, status: true } : n));
+    setNotifications((prev) => prev.map((n) => (n.id === id || n._id === id) ? { ...n, read: true, status: true } : n));
     setUnread((prev) => Math.max(0, prev - 1));
   }, []);
 
   const handleClickNotification = useCallback(async (n: AppNotification) => {
-    if (!n.status) await handleMarkRead(n._id);
+    if (!n.read) await handleMarkRead(n.id || n._id!);
     const url = getNotificationUrl(n);
     const ext = getExternalUrl(n);
     if (url) { setOpen(false); router.push(url); }
@@ -226,10 +226,10 @@ const NotificationBell = memo(() => {
               const isClickable = !!(url || ext);
               return (
                 <div
-                  key={n._id}
+                  key={n.id || n._id}
                   onClick={() => handleClickNotification(n)}
                   style={{
-                    background: n.status ? '#fff' : '#fef3f2',
+                    background: n.read ? '#fff' : '#fef3f2',
                     borderBottom: '1px solid #f5f5f5',
                     cursor: isClickable ? 'pointer' : 'default',
                     display: 'flex',
@@ -254,7 +254,7 @@ const NotificationBell = memo(() => {
                       )}
                     </div>
                   </div>
-                  {!n.status && (
+                  {!n.read && (
                     <span
                       style={{
                         background: '#ef4444',
