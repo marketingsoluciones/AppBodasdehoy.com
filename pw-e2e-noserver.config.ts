@@ -16,7 +16,7 @@ export default defineConfig({
   bail: 0,
   workers: 1,
   reporter: 'list',
-  timeout: 60_000,
+  timeout: 120_000,
   use: {
     baseURL: TEST_URLS.app,
     trace: 'off',

@@ -562,6 +562,23 @@ const PlanesPage = memo(() => {
           <Sparkles color="#667eea" size={28} />
           <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0 }}>Elige tu plan</h1>
         </Flexbox>
+        {/* Social proof */}
+        <div
+          style={{
+            alignItems: 'center',
+            background: 'linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%)',
+            border: '1px solid #e0e7ff',
+            borderRadius: 20,
+            display: 'flex',
+            fontSize: 13,
+            gap: 6,
+            padding: '4px 14px',
+          }}
+        >
+          <span style={{ fontSize: 16 }}>⭐</span>
+          <span style={{ color: '#4338ca', fontWeight: 600 }}>+1.200 organizadores</span>
+          <span style={{ color: 'var(--ant-color-text-secondary)' }}>ya organizan su boda con Bodas de Hoy</span>
+        </div>
         <p
           style={{
             color: 'var(--ant-color-text-secondary)',
