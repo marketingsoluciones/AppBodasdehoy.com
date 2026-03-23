@@ -70,6 +70,9 @@ const NavigationMobile = () => {
     },
   ]
 
+  const isGuest = user?.displayName === 'guest';
+  const visibleNavbar = isGuest ? Navbar.filter(item => item.title !== 'Itinerario') : Navbar;
+
   return (
     <div className="w-full flex justify-center relative">
       <ClickAwayListener onClickAway={() => setShow(false)}>
@@ -78,7 +81,7 @@ const NavigationMobile = () => {
             <div onClick={() => setShow(!show)} className="w-9 h-9 flex items-center justify-center absolute z-[90] top-0 -translate-y-1/2 rounded-full bg-white Shadow2 text-gray-600 text-primary" >
               <IoIosArrowDown className={`w-6 h-6 transition duration-500 ease-in-out ${!show ? "scale-y-[-1]" : "scale-y-[1]"}`} />
             </div>
-            {Navbar.slice(0, 6).map((item, idx) => (
+            {visibleNavbar.slice(0, 6).map((item, idx) => (
               <Link key={idx} href={item.route} className="">
                 <li
                   onClick={() => { item.condicion === "verdadero" ? setItemSelect(item.title) : toast("error", t("youmustcreateevent")) }}
@@ -89,7 +92,7 @@ const NavigationMobile = () => {
             ))}
           </div>
           <div className={`w-full grid grid-cols-2 pt-1 pb-5 place-items-center`}>
-            {Navbar.slice(6).map((item, idx) => (
+            {visibleNavbar.slice(6).map((item, idx) => (
               <Link key={idx} href={item.route}>
                 <li
                   onClick={() => { item.condicion === "verdadero" ? setItemSelect(item.title) : toast("error", t("youmustcreateevent")) }}

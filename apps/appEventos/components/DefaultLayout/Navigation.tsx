@@ -79,7 +79,8 @@ const Navigation: FC = () => {
       title: "Itinerario",
       icon: <BsCalendarHeartFill className="w-7 h-7" />,
       route: "/itinerario",
-      condicion: event?._id ? true : false
+      condicion: event?._id ? true : false,
+      hideForGuest: true,
     },
     {
       title: "Momentos",
@@ -108,7 +109,7 @@ const Navigation: FC = () => {
 
   return (
     <>
-      {shouldRenderChild && (
+      {shouldRenderChild && user?.displayName !== 'guest' && (
         <BlockNotification
           evento={event}
           state={isMounted}
@@ -150,7 +151,7 @@ const Navigation: FC = () => {
                 <Tooltip label={t("Primero debes crear un evento")} icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id} className="w-full h-full">
                 <div className="flex w-full h-full justify-center items-center">
                   <ul className="flex w-full h-max justify-between">
-                    {Navbar.map((item, idx) => (
+                    {Navbar.filter(item => !(item.hideForGuest && user?.displayName === 'guest')).map((item, idx) => (
                       <li
                         key={idx}
                         onClick={() => {

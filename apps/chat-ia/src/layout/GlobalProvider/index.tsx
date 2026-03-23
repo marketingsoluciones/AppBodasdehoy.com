@@ -124,7 +124,7 @@ const GlobalLayout = async ({
             <StoreInitialization />
             <Suspense fallback={null}>
               <ImportSettings />
-              <DevPanelWrapper />
+              {process.env.NODE_ENV === 'development' && <DevPanelWrapper />}
             </Suspense>
           </ServerConfigStoreProvider>
         </AppTheme>
