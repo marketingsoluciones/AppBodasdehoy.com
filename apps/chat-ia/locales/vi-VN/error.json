@@ -80,7 +80,7 @@
     "520": "Xin lỗi, máy chủ đã gặp phải một vấn đề bất ngờ, dẫn đến việc không thể hoàn thành yêu cầu của bạn. Vui lòng thử lại sau, chúng tôi đang nỗ lực khắc phục vấn đề này.",
     "522": "Xin lỗi, kết nối máy chủ đã hết thời gian chờ, không thể phản hồi yêu cầu của bạn kịp thời. Có thể do mạng không ổn định hoặc máy chủ tạm thời không thể truy cập. Vui lòng thử lại sau, chúng tôi đang nỗ lực phục hồi dịch vụ.",
     "524": "Xin lỗi, máy chủ đã hết thời gian chờ khi đang chờ phản hồi, có thể do phản hồi quá chậm, vui lòng thử lại sau.",
-    "AgentRuntimeError": "Lobe mô hình ngôn ngữ thực thi gặp lỗi, vui lòng kiểm tra và thử lại dựa trên thông tin dưới đây",
+    "AgentRuntimeError": "Mô hình ngôn ngữ AI thực thi gặp lỗi, vui lòng kiểm tra và thử lại dựa trên thông tin dưới đây",
     "ComfyUIBizError": "Đã xảy ra lỗi khi yêu cầu dịch vụ ComfyUI, vui lòng kiểm tra thông tin dưới đây hoặc thử lại",
     "ComfyUIEmptyResult": "ComfyUI không tạo ra bất kỳ hình ảnh nào, vui lòng kiểm tra cấu hình mô hình hoặc thử lại",
     "ComfyUIModelError": "Tải mô hình ComfyUI thất bại, vui lòng kiểm tra xem tệp mô hình có tồn tại không",

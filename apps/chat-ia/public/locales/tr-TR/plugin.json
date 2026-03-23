@@ -357,8 +357,8 @@
       "version": "Sürüm"
     },
     "official": {
-      "badge": "LobeHub Resmi Eklentisi",
-      "description": "Bu eklenti LobeHub tarafından resmi olarak geliştirilmiş ve bakımı yapılmaktadır, sıkı güvenlik denetiminden geçmiştir, güvenle kullanabilirsiniz.",
+      "badge": "Bodas de Hoy Resmi Eklentisi",
+      "description": "Bu eklenti Bodas de Hoy tarafından resmi olarak geliştirilmiş ve bakımı yapılmaktadır, sıkı güvenlik denetiminden geçmiştir, güvenle kullanabilirsiniz.",
       "loadingMessage": "Eklenti detayları alınıyor...",
       "loadingTitle": "Yükleniyor",
       "title": "Resmi Eklenti Yükle"
@@ -461,7 +461,7 @@
     "tabs": {
       "installed": "Yüklü",
       "mcp": "MCP Eklentileri",
-      "old": "LobeHub Eklentileri"
+      "old": "Bodas de Hoy Eklentileri"
     },
     "title": "Eklenti Mağazası"
   },

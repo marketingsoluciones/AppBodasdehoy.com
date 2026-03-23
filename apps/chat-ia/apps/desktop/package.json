@@ -2,13 +2,13 @@
   "name": "lobehub-desktop-dev",
   "version": "0.0.0",
   "private": true,
-  "description": "LobeHub Desktop Application",
+  "description": "Bodas de Hoy — aplicación de escritorio",
   "homepage": "https://lobehub.com",
   "repository": {
     "type": "git",
     "url": "https://github.com/lobehub/lobe-chat.git"
   },
-  "author": "LobeHub",
+  "author": "Bodas de Hoy",
   "main": "./dist/main/index.js",
   "scripts": {
     "build": "npm run typecheck && electron-vite build",
