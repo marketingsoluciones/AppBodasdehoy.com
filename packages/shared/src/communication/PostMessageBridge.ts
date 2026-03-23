@@ -61,6 +61,11 @@ export interface AuthConfigPayload {
   };
   /** true = usuario no logueado; aplicar restricciones anónimo (por navegador, sin consumo previo). */
   isAnonymous?: boolean;
+  /**
+   * Rol para cabecera `X-User-Role` hacia api-ia (p. ej. creator, organizer).
+   * Lo rellena el parent desde `user.role` o `guest` si es anónimo.
+   */
+  userRole?: string;
   eventId?: string;
   eventName?: string;
   pageContext?: PageContextPayload;

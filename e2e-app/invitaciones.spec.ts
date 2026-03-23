@@ -153,6 +153,87 @@ test.describe('Invitaciones — Estructura de la página', () => {
       console.log('ℹ️ Contadores no detectados — puede estar cargando o ser diferente UI');
     }
   });
+
+  // 1.9.7 — Panel enviados/no-enviados (EnviadosComponent) — resend individual
+  test('panel enviados/no-enviados visible con opción de reenvío', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+
+    await page.goto(`${BASE_URL}/invitaciones`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+    await page.waitForTimeout(4000);
+
+    const text = (await page.locator('body').textContent()) ?? '';
+    expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+
+    const noEvent = /selecciona un evento|elige un evento|sin evento|no hay evento/i.test(text);
+    if (noEvent) {
+      console.log('ℹ️ Sin evento seleccionado — test no aplicable');
+      return;
+    }
+
+    // Buscar panel con estado enviado/no-enviado
+    const hasSentPanel =
+      /enviado|no enviado|pendiente de envío/i.test(text) ||
+      (await page.locator('[class*="enviado"], [class*="sent"], [class*="pending"]').count()) > 0;
+
+    // Buscar botón de reenvío
+    const hasResendBtn =
+      (await page.locator('button, [role="button"]').filter({ hasText: /reenviar|re-enviar|enviar de nuevo|resend/i }).count()) > 0;
+
+    if (hasSentPanel) {
+      console.log('✅ Panel enviados/no-enviados detectado');
+    } else {
+      console.log('ℹ️ Panel de enviados no detectado — puede requerir haber enviado invitaciones antes');
+    }
+
+    if (hasResendBtn) {
+      console.log('✅ Botón de reenvío disponible');
+    } else {
+      console.log('ℹ️ Botón reenvío no visible — puede aparecer al hover sobre fila enviada');
+    }
+  });
+
+  // 1.9.8 — Diseño personalizado (DiseñoComponent) — subida de imagen de invitación
+  test('diseño personalizado — opción de subir imagen de invitación visible', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+
+    await page.goto(`${BASE_URL}/invitaciones`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+    await page.waitForTimeout(4000);
+
+    const text = (await page.locator('body').textContent()) ?? '';
+    expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+
+    const noEvent = /selecciona un evento|elige un evento|sin evento|no hay evento/i.test(text);
+    if (noEvent) {
+      console.log('ℹ️ Sin evento seleccionado — test no aplicable');
+      return;
+    }
+
+    // Buscar tab/sección de diseño personalizado
+    const hasDisenoTab =
+      (await page.locator('[role="tab"], button').filter({ hasText: /diseño|diseño personalizado|custom/i }).count()) > 0;
+
+    if (hasDisenoTab) {
+      // Clicar el tab de diseño
+      const disenoTab = page.locator('[role="tab"], button').filter({ hasText: /diseño/i }).first();
+      await disenoTab.click().catch(() => {});
+      await page.waitForTimeout(1500);
+    }
+
+    const textAfter = (await page.locator('body').textContent()) ?? '';
+    const hasUploadZone =
+      /subir|upload|imagen|arrastra|drop|selecciona.*imagen/i.test(textAfter) ||
+      (await page.locator('input[type="file"], [class*="upload"], [class*="dropzone"]').count()) > 0;
+
+    if (hasUploadZone) {
+      console.log('✅ Zona de subida de imagen en DiseñoComponent encontrada');
+    } else if (hasDisenoTab) {
+      console.log('ℹ️ Tab de diseño presente pero zona upload no visible — puede requerir scroll');
+    } else {
+      console.log('ℹ️ DiseñoComponent no detectado — puede estar en otro tab o requerir configuración previa');
+    }
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

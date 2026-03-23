@@ -51,11 +51,13 @@ const useStyles = createStyles(({ token, css, cx }) => ({
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    height: 100%;
+    justify-content: flex-start;
+    min-height: 0;
+    flex: 1;
     color: ${token.colorTextDescription};
     font-size: 14px;
-    padding: 48px 24px;
+    padding: 24px 16px 32px;
+    overflow-y: auto;
   `),
   loadingIndicator: cx(css`
     display: flex;
@@ -148,7 +150,11 @@ export const MessageList = memo<MessageListProps>(
     // Show empty state if no messages
     if (messages.length === 0 && !loading) {
       return (
-        <div className={cx(styles.container, className)} ref={containerRef} style={style}>
+        <div
+          className={cx(styles.container, className)}
+          ref={containerRef}
+          style={{ ...style, display: 'flex', flexDirection: 'column', minHeight: 0 }}
+        >
           {emptyState || (
             <div className={styles.emptyState}>
               <span>No messages yet</span>

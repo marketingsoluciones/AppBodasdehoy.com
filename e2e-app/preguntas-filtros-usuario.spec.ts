@@ -81,10 +81,17 @@ async function openCopilotAndSend(
   return (await lastMsg.textContent().catch(() => '')) ?? '';
 }
 
-/** Comprueba si en el body de la app (no iframe) aparece la barra de filtro Copilot */
+/**
+ * Comprueba si la barra de filtro Copilot es visible en el body de la app.
+ * CopilotFilterBar.tsx muestra: 🔍 Filtro: "query" · N tipo(s)  [botón ✕]
+ */
 async function hasFilterBar(page: import('@playwright/test').Page): Promise<boolean> {
+  // Intentar detectar el componente CopilotFilterBar directamente
+  const filterBar = page.locator('.bg-pink-100, [class*="pink"]').first();
+  if (await filterBar.isVisible({ timeout: 1_000 }).catch(() => false)) return true;
   const bodyText = (await page.locator('body').textContent()) ?? '';
-  return /Filtro:|filtró|copilot filtró|✕|×/i.test(bodyText);
+  // Texto del banner: "Filtro: ..." o "Filtro activo ·"
+  return /Filtro:|Filtro activo|🔍/i.test(bodyText);
 }
 
 // ─── 0. Smoke — spec y app cargan ────────────────────────────────────────────
@@ -269,8 +276,10 @@ test.describe('Filtros — preguntas que activan filter_view', () => {
     const reply = await openCopilotAndSend(
       page,
       'Quiero ver la mesa 1. Muéstramela en la app.',
-      40_000,
+      45_000,
     );
+    // Esperar a que CopilotEmbed procese la acción FILTER_VIEW y el estado React se actualice
+    await page.waitForTimeout(2000);
 
     const url = page.url();
     const hasBar = await hasFilterBar(page);
@@ -307,8 +316,9 @@ test.describe('Filtros — preguntas que activan filter_view', () => {
     const reply = await openCopilotAndSend(
       page,
       'Muéstrame solo los invitados confirmados en la app.',
-      40_000,
+      45_000,
     );
+    await page.waitForTimeout(2000);
 
     const hasBar = await hasFilterBar(page);
     console.log(`   Barra de filtro visible: ${hasBar}`);
@@ -341,8 +351,9 @@ test.describe('Filtros — preguntas que activan filter_view', () => {
     const reply = await openCopilotAndSend(
       page,
       'Lista las tareas del itinerario y muéstrame la primera en la app.',
-      38_000,
+      45_000,
     );
+    await page.waitForTimeout(2000);
 
     const hasBar = await hasFilterBar(page);
     const url = page.url();

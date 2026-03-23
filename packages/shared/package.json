@@ -11,7 +11,8 @@
     "./types": "./src/types/index.ts",
     "./components": "./src/components/index.ts",
     "./utils": "./src/utils/index.ts",
-    "./upload": "./src/upload/index.ts"
+    "./upload": "./src/upload/index.ts",
+    "./plans": "./src/plans/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

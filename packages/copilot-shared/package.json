@@ -12,13 +12,17 @@
     "react-dom": "^18.2.0",
     "antd": "^5.0.0",
     "@lobehub/ui": "^1.0.0",
+    "@lobehub/editor": "^1.20.2",
     "zustand": "^5.0.0",
+    "zustand-utils": "^1.0.0",
     "antd-style": "^3.0.0",
     "react-layout-kit": "^2.0.0",
     "lucide-react": "^0.514.0",
     "react-i18next": "^13.0.0",
     "dayjs": "^1.0.0",
-    "polished": "^4.0.0"
+    "polished": "^4.0.0",
+    "fast-deep-equal": "^3.0.0",
+    "use-merge-value": "^1.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

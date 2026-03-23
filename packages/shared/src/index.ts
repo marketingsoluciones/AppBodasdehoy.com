@@ -15,3 +15,6 @@ export * from './utils';
 
 // Upload exports
 export * from './upload';
+
+// Plans exports
+export * from './plans';

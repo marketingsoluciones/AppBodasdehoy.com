@@ -43,22 +43,32 @@ const BUDGET_DESC = `E2E Partida ${RUN_ID}`;
 const BUDGET_AMOUNT = '175';
 const TASK_DESC = `E2E Tarea ${RUN_ID}`;
 
-/** Login en chat-test */
-async function loginInChat(page: any): Promise<boolean> {
+/**
+ * Navega al chat y verifica que la sesión está activa.
+ * Estrategia: la SSO cookie (.bodasdehoy.com) establecida por loginAndSelectEvent
+ * debe ser recogida por chat-test automáticamente. Si no, hace login explícito.
+ */
+async function ensureChatReady(page: any): Promise<boolean> {
   try {
-    await page.goto(`${CHAT_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+    await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
     await page.waitForTimeout(2000);
 
-    const btn = page.locator('a, [role="button"], span').filter({ hasText: /^Iniciar sesión$/ }).first();
-    if (await btn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await btn.click();
-      await page.waitForTimeout(800);
+    // Si ya está en /chat con sesión, listo
+    if (page.url().includes('/chat') && !page.url().includes('/login')) {
+      return true;
     }
 
-    await page.locator('input[type="email"]').first().fill(TEST_EMAIL);
-    await page.locator('input[type="password"]').first().fill(TEST_PASSWORD);
-    await page.locator('button[type="submit"]').first().click();
-    await page.waitForURL((url: URL) => url.pathname === '/chat', { timeout: 30_000 }).catch(() => {});
+    // Si redirigió a login, hacer login explícito
+    if (page.url().includes('/login')) {
+      const emailInput = page.locator('input[type="email"]').first();
+      if (await emailInput.isVisible({ timeout: 8_000 }).catch(() => false)) {
+        await emailInput.fill(TEST_EMAIL);
+        await page.locator('input[type="password"]').first().fill(TEST_PASSWORD);
+        await page.locator('button[type="submit"]').first().click();
+        await page.waitForURL((url: URL) => url.pathname.includes('/chat'), { timeout: 30_000 }).catch(() => {});
+      }
+    }
+
     return page.url().includes('/chat');
   } catch {
     return false;
@@ -96,62 +106,51 @@ async function sendPromptAndWaitReply(page: any, prompt: string, timeoutMs = 45_
 
 test.describe.configure({ mode: 'serial' });
 
-let eventId: string | null = null;
-
 test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
   test.setTimeout(180_000);
 
-  test.beforeAll(async ({ browser }) => {
-    if (!isAppTest || !hasCredentials) return;
-
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
-    await context.close();
-  });
-
-  test.beforeEach(async ({ context, page }) => {
-    if (!isAppTest) return;
-    // Solo limpiar cookies sin destruir sesión existente (no clearSession completo)
-    // La sesión se mantiene de beforeAll
-  });
+  // Cada test sigue el patrón:
+  //   1. Login en appEventos + seleccionar evento (establece SSO cookie .bodasdehoy.com)
+  //   2. Navegar a chat-test — la SSO cookie es recogida automáticamente
+  //   3. Hacer CRUD via IA en chat-test
+  //   4. Navegar de vuelta a appEventos para verificar
+  //
+  // El evento seleccionado persiste en localStorage de la misma page/context,
+  // por lo que los steps 1 y 4 usan el mismo eventId.
 
   // ───────────────────────────────────────────────────────────────────────────
   // Crear invitado via IA → verificar en /invitados
   // ───────────────────────────────────────────────────────────────────────────
 
-  test(`crear invitado "${GUEST_NAME}" via IA → aparece en /invitados`, async ({ page }) => {
+  test(`crear invitado "${GUEST_NAME}" via IA → aparece en /invitados`, async ({ context, page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    const chatOk = await loginInChat(page);
-    if (!chatOk) { console.log('ℹ️ Login en chat fallido'); return; }
+    // Paso 1: Login en appEventos + seleccionar evento (establece SSO cookie)
+    await clearSession(context, page);
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) { console.log('ℹ️ No hay evento — skip'); return; }
 
-    // Contar invitados actuales en appEventos
-    let initialCount = 0;
-    {
-      const ctx2Page = page; // reutilizar misma página
-      await ctx2Page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
-      await waitForAppReady(ctx2Page, 20_000);
-      await ctx2Page.waitForTimeout(2000);
-      const rows = ctx2Page.locator('table tr, [class*="guest-row"], [class*="invitado"]');
-      initialCount = await rows.count();
-      console.log(`Invitados iniciales: ${initialCount}`);
-    }
+    // Paso 2: Contar invitados iniciales
+    await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+    await page.waitForTimeout(2000);
+    const rows = page.locator('table tr, [class*="guest-row"], [class*="invitado"]');
+    const initialCount = await rows.count();
+    console.log(`Invitados iniciales: ${initialCount}`);
 
-    // Volver al chat y crear invitado
-    await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
-    await page.waitForTimeout(3000);
+    // Paso 3: Ir al chat (SSO cookie activa) y crear invitado
+    const chatReady = await ensureChatReady(page);
+    if (!chatReady) { console.log('ℹ️ Chat no disponible — skip'); return; }
 
     const prompt = `Crea un invitado con nombre "${GUEST_NAME}" y email "${GUEST_EMAIL}". Confirma cuando esté creado.`;
     const reply = await sendPromptAndWaitReply(page, prompt, 60_000);
     console.log(`Respuesta IA crear invitado: ${reply.slice(0, 100)}`);
 
-    // Verificar en /invitados de appEventos
+    // Paso 4: Volver a appEventos y verificar
     await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
-    // Verificar que el nombre del invitado aparece en la tabla
     const guestRow = page.getByText(GUEST_NAME, { exact: false });
     const isVisible = await guestRow.first().isVisible({ timeout: 10_000 }).catch(() => false);
 
@@ -159,8 +158,6 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
       console.log(`✅ Invitado "${GUEST_NAME}" creado y visible en /invitados`);
       await expect(guestRow.first()).toBeVisible();
     } else {
-      // Verificar al menos que el conteo aumentó
-      const rows = page.locator('table tr, [class*="guest-row"]');
       const newCount = await rows.count();
       console.log(`ℹ️ Invitados después: ${newCount} (era ${initialCount})`);
       if (newCount > initialCount) {
@@ -175,14 +172,15 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
   // Crear tarea en itinerario via IA → verificar en /servicios (kanban)
   // ───────────────────────────────────────────────────────────────────────────
 
-  test(`crear tarea "${TASK_DESC}" via IA → visible en /servicios (kanban)`, async ({ page }) => {
+  test(`crear tarea "${TASK_DESC}" via IA → visible en /servicios (kanban)`, async ({ context, page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    const chatOk = await loginInChat(page);
-    if (!chatOk) { return; }
+    await clearSession(context, page);
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) { return; }
 
-    await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
-    await page.waitForTimeout(3000);
+    const chatReady = await ensureChatReady(page);
+    if (!chatReady) { return; }
 
     const prompt = `Crea una tarea con descripción "${TASK_DESC}" en el itinerario. La prioridad es alta. Confirma cuando esté creada.`;
     const reply = await sendPromptAndWaitReply(page, prompt, 60_000);
@@ -200,14 +198,13 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
       console.log(`✅ Tarea "${TASK_DESC}" visible en /servicios (kanban)`);
       await expect(taskEl.first()).toBeVisible();
     } else {
-      // También verificar en /itinerario (tabla de itinerario)
       await page.goto(`${BASE_URL}/itinerario`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
       await waitForAppReady(page, 15_000);
       await page.waitForTimeout(2000);
       const taskEl2 = page.getByText(TASK_DESC, { exact: false });
       const isVisible2 = await taskEl2.first().isVisible({ timeout: 8_000 }).catch(() => false);
       if (isVisible2) {
-        console.log(`✅ Tarea visible en /itinerario`);
+        console.log('✅ Tarea visible en /itinerario');
       } else {
         console.log('⚠️ Tarea no encontrada en /servicios ni /itinerario — puede que IA no la creó aún');
       }
@@ -218,29 +215,26 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
   // Asignar tarea a "novia" via IA → responsable visible
   // ───────────────────────────────────────────────────────────────────────────
 
-  test('asignar tarea existente a "novia" via IA → responsable visible en itinerario', async ({ page }) => {
+  test('asignar tarea existente a "novia" via IA → responsable visible en itinerario', async ({ context, page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    const chatOk = await loginInChat(page);
-    if (!chatOk) { return; }
+    await clearSession(context, page);
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) { return; }
 
-    await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
-    await page.waitForTimeout(3000);
+    const chatReady = await ensureChatReady(page);
+    if (!chatReady) { return; }
 
-    // Primero obtener una tarea existente o la que creamos
     const prompt = `Asigna la tarea "${TASK_DESC}" a la novia. Si no existe, crea primero una tarea con ese nombre y asígnala a la novia.`;
     const reply = await sendPromptAndWaitReply(page, prompt, 60_000);
     console.log(`Respuesta IA asignar tarea: ${reply.slice(0, 100)}`);
 
-    // Verificar en /servicios o /itinerario
     await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
     await waitForAppReady(page, 15_000);
     await page.waitForTimeout(3000);
 
     const text = (await page.locator('body').textContent()) ?? '';
-    const hasNovia = /novia/i.test(text);
-
-    if (hasNovia) {
+    if (/novia/i.test(text)) {
       console.log('✅ "novia" aparece como responsable en /servicios');
     } else {
       console.log('ℹ️ "novia" no encontrada como texto — puede estar en icono/avatar');
@@ -251,20 +245,20 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
   // Crear partida de presupuesto via IA → verificar en /presupuesto
   // ───────────────────────────────────────────────────────────────────────────
 
-  test(`crear partida "${BUDGET_DESC}" con importe ${BUDGET_AMOUNT}€ → visible en /presupuesto`, async ({ page }) => {
+  test(`crear partida "${BUDGET_DESC}" con importe ${BUDGET_AMOUNT}€ → visible en /presupuesto`, async ({ context, page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    const chatOk = await loginInChat(page);
-    if (!chatOk) { return; }
+    await clearSession(context, page);
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) { return; }
 
-    await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
-    await page.waitForTimeout(3000);
+    const chatReady = await ensureChatReady(page);
+    if (!chatReady) { return; }
 
     const prompt = `Crea una partida de presupuesto con descripción "${BUDGET_DESC}" e importe ${BUDGET_AMOUNT} euros. Confirma cuando esté creada.`;
     const reply = await sendPromptAndWaitReply(page, prompt, 60_000);
     console.log(`Respuesta IA crear presupuesto: ${reply.slice(0, 100)}`);
 
-    // Verificar en /presupuesto
     await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
@@ -276,7 +270,6 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
       console.log(`✅ Partida "${BUDGET_DESC}" visible en /presupuesto`);
       await expect(budgetEl.first()).toBeVisible();
     } else {
-      // Verificar que al menos aparece el importe
       const amountEl = page.getByText(`${BUDGET_AMOUNT}`, { exact: false });
       const hasAmount = await amountEl.first().isVisible({ timeout: 5_000 }).catch(() => false);
       console.log(hasAmount ? `✅ Importe ${BUDGET_AMOUNT} visible en presupuesto` : '⚠️ Partida no encontrada en /presupuesto');
@@ -287,14 +280,15 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
   // Marcar tarea como completada via IA → estado completada en kanban
   // ───────────────────────────────────────────────────────────────────────────
 
-  test('marcar tarea como completada via IA → aparece en columna "Completadas"', async ({ page }) => {
+  test('marcar tarea como completada via IA → aparece en columna "Completadas"', async ({ context, page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    const chatOk = await loginInChat(page);
-    if (!chatOk) { return; }
+    await clearSession(context, page);
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) { return; }
 
-    await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
-    await page.waitForTimeout(3000);
+    const chatReady = await ensureChatReady(page);
+    if (!chatReady) { return; }
 
     const prompt = `Marca como completada la tarea "${TASK_DESC}". Confirma cuando esté marcada.`;
     const reply = await sendPromptAndWaitReply(page, prompt, 60_000);

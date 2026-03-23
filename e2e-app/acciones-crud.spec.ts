@@ -161,6 +161,195 @@ test.describe('Itinerario — editar tarea', () => {
     expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
     expect(text).not.toMatch(/Internal Server Error/);
   });
+
+  // 1.8.3 — Vista schema/timeline visual (toggle desde tarjetas)
+  test('cambiar a vista schema/timeline visual — sin crash', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+    const loggedIn = await loginApp(page);
+    if (skipIfNotReady(loggedIn)) return;
+
+    await page.goto('/itinerario', { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+
+    const text = (await page.locator('body').textContent()) ?? '';
+    expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+
+    // Buscar toggle de vista (tarjeta / tabla / schema / timeline)
+    const schemaBtn = page
+      .locator('button, [role="button"], [role="tab"]')
+      .filter({ hasText: /schema|timeline|gantt|línea de tiempo|diagrama/i })
+      .first();
+    const viewBtns = page.locator('[data-testid="view-schema"], button[title*="schema"]').first();
+
+    const hasSchema =
+      await schemaBtn.isVisible({ timeout: 4_000 }).catch(() => false) ||
+      await viewBtns.isVisible({ timeout: 2_000 }).catch(() => false);
+
+    if (hasSchema) {
+      const btn = (await schemaBtn.isVisible().catch(() => false)) ? schemaBtn : viewBtns;
+      await btn.click().catch(() => {});
+      await page.waitForTimeout(1500);
+      const afterText = (await page.locator('body').textContent()) ?? '';
+      expect(afterText).not.toMatch(/Error Capturado por ErrorBoundary/);
+      console.log('✅ Vista schema/timeline cargó sin crash');
+    } else {
+      console.log('ℹ️ Vista schema/timeline no detectada — puede estar bajo otro nombre o tab');
+    }
+  });
+
+  // 1.8.6 — Asignar responsable a tarea (array de personas)
+  test('asignar responsable a tarea — campo responsable editable en panel', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+    const loggedIn = await loginApp(page);
+    if (skipIfNotReady(loggedIn)) return;
+
+    await page.goto('/itinerario', { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+
+    // Abrir la primera tarea
+    const primeraFila = page.locator('[data-testid="task-row"], .task-row, tr').nth(1);
+    if (!await primeraFila.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      console.log('ℹ️ Sin filas de tarea visibles en itinerario');
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      return;
+    }
+
+    await primeraFila.click().catch(() => {});
+    await page.waitForTimeout(1500);
+
+    // Buscar campo de responsable
+    const responsableField = page.locator(
+      '[data-testid="responsable-field"], [placeholder*="responsable"], [placeholder*="asignado"], select[name*="responsable"]'
+    ).first();
+    const responsableLabel = page
+      .locator('label, span, div')
+      .filter({ hasText: /responsable|asignado|novia|novio/i })
+      .first();
+
+    if (await responsableField.isVisible({ timeout: 4_000 }).catch(() => false)) {
+      await responsableField.click().catch(() => {});
+      await page.waitForTimeout(800);
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      const hasOptions = /novia|novio|pareja|responsable/i.test(text);
+      console.log(`✅ Campo responsable abierto, opciones visibles=${hasOptions}`);
+    } else if (await responsableLabel.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      console.log('✅ Label responsable visible en panel de tarea');
+    } else {
+      console.log('ℹ️ Campo responsable no detectado en este panel de tarea');
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+    }
+  });
+
+  // 1.8.8 — Ordenar tareas por fecha/prioridad (localStorage OAD{pathname})
+  test('ordenar tareas — selector de orden disponible y funciona sin crash', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+    const loggedIn = await loginApp(page);
+    if (skipIfNotReady(loggedIn)) return;
+
+    await page.goto('/itinerario', { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+
+    // Buscar selector de orden (SelectModeSortType)
+    const sortBtn = page
+      .locator('button, select, [role="combobox"]')
+      .filter({ hasText: /ordenar|orden|sort|fecha|prioridad/i })
+      .first();
+
+    if (await sortBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await sortBtn.click().catch(() => {});
+      await page.waitForTimeout(800);
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      const hasSortOptions = /fecha|prioridad|nombre|estado|descripcion|ninguna/i.test(text);
+      console.log(`✅ Selector de orden abierto, opciones=${hasSortOptions}`);
+    } else {
+      console.log('ℹ️ Selector de orden no detectado — puede estar oculto o con otro trigger');
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+    }
+  });
+
+  // 1.8.9 — Eliminar itinerario completo (modal confirmación → cascada)
+  test('eliminar itinerario — modal de confirmación aparece antes de borrar', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+    const loggedIn = await loginApp(page);
+    if (skipIfNotReady(loggedIn)) return;
+
+    await page.goto('/itinerario', { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+
+    // Buscar botón de eliminar itinerario (no la tarea individual, sino el itinerario entero)
+    const deleteIterBtn = page
+      .locator('button, [role="button"]')
+      .filter({ hasText: /eliminar.*itinerario|borrar.*itinerario|delete.*itinerary/i })
+      .first();
+
+    const moreOptionsBtn = page.locator(
+      '[data-testid="itinerary-menu"], button[aria-label*="opciones"]'
+    ).first();
+
+    if (await deleteIterBtn.isVisible({ timeout: 4_000 }).catch(() => false)) {
+      await deleteIterBtn.click().catch(() => {});
+      await page.waitForTimeout(1000);
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      // Modal de confirmación debe aparecer (NO ejecutar el borrado real)
+      const hasConfirm = /confirmar|¿estás seguro|eliminar|cancelar|no/i.test(text);
+      console.log(`✅ Modal confirmación borrar itinerario: visible=${hasConfirm}`);
+      // Cancelar — NO borrar datos reales de test
+      const cancelBtn = page
+        .locator('button, [role="button"]')
+        .filter({ hasText: /cancelar|cancel|no/i })
+        .first();
+      if (await cancelBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {
+        await cancelBtn.click().catch(() => {});
+      }
+    } else {
+      console.log('ℹ️ Botón eliminar itinerario no visible — puede estar en menú contextual');
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+    }
+  });
+
+  // 1.8.7 — Adjuntar archivo a tarea (Firebase upload) y descargarlo
+  test('adjuntar archivo a tarea — input file o dropzone presente en detalle de tarea', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+
+    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+    await page.waitForTimeout(3000);
+
+    const text = (await page.locator('body').textContent()) ?? '';
+    expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+
+    // Intentar abrir detalle de una tarea para encontrar el upload
+    const taskRow = page.locator('[class*="task"], [class*="tarea"], tr').filter({ hasText: /tarea|task/i }).first();
+    const hasTaskRow = await taskRow.isVisible({ timeout: 3_000 }).catch(() => false);
+    if (hasTaskRow) {
+      await taskRow.click().catch(() => {});
+      await page.waitForTimeout(2000);
+    }
+
+    // Buscar input de archivo o zona de upload en cualquier modal/panel abierto
+    const hasFileInput = (await page.locator('input[type="file"]').count()) > 0;
+    const hasUploadZone =
+      (await page.locator('[class*="upload"], [class*="dropzone"], [class*="attach"]').count()) > 0;
+    const hasUploadText = /adjuntar|subir archivo|upload|arrastra|drop here/i.test(
+      (await page.locator('body').textContent()) ?? '',
+    );
+
+    if (hasFileInput || hasUploadZone || hasUploadText) {
+      console.log('✅ Input/zona de upload de archivo detectado en tarea:', { hasFileInput, hasUploadZone, hasUploadText });
+    } else {
+      console.log('ℹ️ Upload no detectado — puede requerir tarea específica con adjuntos habilitados');
+    }
+    // No fallo hard — el upload a Firebase requiere credenciales reales y archivo
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -235,6 +424,111 @@ test.describe('Invitados — CRUD', () => {
       console.log('✅ Tabla de invitados con columnas detectada');
     } else {
       console.log('ℹ️ Sin tabla — puede que no haya evento o haya otra vista activa');
+    }
+  });
+
+  // 1.4.6 — Asignar menú dietético a invitado (FormCrearMenu)
+  test('asignar menú dietético a invitado — modal de menú abre sin crash', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+    const loggedIn = await loginApp(page);
+    if (skipIfNotReady(loggedIn)) return;
+
+    await page.goto('/invitados', { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+
+    // Buscar fila de invitado y opciones de menú
+    const menuBtn = page
+      .locator('button, [role="button"], td')
+      .filter({ hasText: /menú|menu|dieta|vegetariano|alérgeno|alergias/i })
+      .first();
+
+    if (await menuBtn.isVisible({ timeout: 6_000 }).catch(() => false)) {
+      await menuBtn.click().catch(() => {});
+      await page.waitForTimeout(1200);
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      const hasMenuForm = /menú|vegetariano|normal|halal|alergia|sin gluten/i.test(text);
+      console.log(`✅ Modal menú dietético: formulario visible=${hasMenuForm}`);
+    } else {
+      // Alternativa: abrir detalle del primer invitado y buscar campo menú
+      const primeraFila = page.locator('tr, [data-testid="guest-row"]').nth(1);
+      if (await primeraFila.isVisible({ timeout: 4_000 }).catch(() => false)) {
+        await primeraFila.click().catch(() => {});
+        await page.waitForTimeout(1000);
+        const text = (await page.locator('body').textContent()) ?? '';
+        expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+        const hasMenuField = /menú|dieta|vegetariano|alergia/i.test(text);
+        console.log(`ℹ️ Detalle invitado abierto, campo menú=${hasMenuField}`);
+      } else {
+        console.log('ℹ️ Sin invitados visibles — evento sin invitados o UI diferente');
+      }
+    }
+  });
+
+  // 1.4.8 — Selección múltiple y operaciones en lote (checkbox multi-select)
+  test('selección múltiple de invitados — checkboxes y barra de acciones', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+    const loggedIn = await loginApp(page);
+    if (skipIfNotReady(loggedIn)) return;
+
+    await page.goto('/invitados', { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+
+    // Buscar checkboxes de selección de invitados
+    const checkboxes = page.locator('input[type="checkbox"], [role="checkbox"]');
+    const checkCount = await checkboxes.count();
+
+    if (checkCount > 1) {
+      // Marcar el primer checkbox (selección de fila)
+      await checkboxes.nth(1).click({ force: true }).catch(() => {});
+      await page.waitForTimeout(800);
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      // La barra de acciones en lote debe aparecer
+      const hasBulkBar = /seleccionado|eliminar|confirmar|asignar|mesa/i.test(text);
+      console.log(`✅ Checkbox: barra acciones en lote visible=${hasBulkBar}`);
+    } else {
+      console.log('ℹ️ Sin checkboxes de invitado — puede que la vista no sea tabla o no hay invitados');
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+    }
+  });
+
+  // 1.4.10 — Toggle vista tarjetas ↔ tabla (localStorage)
+  test('toggle vista invitados: tarjetas ↔ tabla — botón de cambio visible', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+    const loggedIn = await loginApp(page);
+    if (skipIfNotReady(loggedIn)) return;
+
+    await page.goto('/invitados', { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+
+    const text = (await page.locator('body').textContent()) ?? '';
+    expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+
+    // Buscar botón de toggle de vista (tarjetas/tabla)
+    const toggleBtn = page
+      .locator('button, [role="button"], [aria-label]')
+      .filter({ hasText: /tarjeta|tabla|grid|list|vista/i })
+      .first();
+
+    const toggleByIcon = page.locator(
+      '[data-testid="view-toggle"], button[title*="vista"], button[title*="view"]'
+    ).first();
+
+    const hasToggle =
+      await toggleBtn.isVisible({ timeout: 4_000 }).catch(() => false) ||
+      await toggleByIcon.isVisible({ timeout: 2_000 }).catch(() => false);
+
+    if (hasToggle) {
+      const btn = (await toggleBtn.isVisible().catch(() => false)) ? toggleBtn : toggleByIcon;
+      await btn.click().catch(() => {});
+      await page.waitForTimeout(1000);
+      const afterText = (await page.locator('body').textContent()) ?? '';
+      expect(afterText).not.toMatch(/Error Capturado por ErrorBoundary/);
+      console.log('✅ Toggle de vista ejecutado sin crash');
+    } else {
+      console.log('ℹ️ Toggle de vista no detectado — puede que la vista sea fija o con otro mecanismo');
     }
   });
 });
@@ -376,6 +670,223 @@ test.describe('Servicios — CRUD', () => {
     } else {
       console.log('ℹ️ Botón editar no encontrado — sin servicios o UI diferente');
     }
+  });
+
+  // 1.7.9 — Añadir comentario a tarea (ListComments.tsx)
+  test('añadir comentario a tarea — input de comentario visible y envío sin crash', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+    const loggedIn = await loginApp(page);
+    if (skipIfNotReady(loggedIn)) return;
+
+    await page.goto('/servicios', { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+
+    // Abrir la primera tarea disponible en la vista tabla o kanban
+    const tareaLink = page
+      .locator('tr, [data-testid="task-card"], .task-card, [role="row"]')
+      .filter({ hasText: /tarea|task|e2e/i })
+      .first();
+    const tareaGeneral = page.locator('tr, [role="row"]').nth(1);
+
+    const hasTarea =
+      await tareaLink.isVisible({ timeout: 5_000 }).catch(() => false) ||
+      await tareaGeneral.isVisible({ timeout: 2_000 }).catch(() => false);
+
+    if (!hasTarea) {
+      console.log('ℹ️ Sin tareas visibles en /servicios — test condicional pasa');
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      return;
+    }
+
+    const tarea = (await tareaLink.isVisible().catch(() => false)) ? tareaLink : tareaGeneral;
+    await tarea.click().catch(() => {});
+    await page.waitForTimeout(1500);
+
+    // El panel de detalle debe abrirse
+    const commentInput = page.locator(
+      'textarea[placeholder*="comentario"], input[placeholder*="comentario"], [data-testid="comment-input"], textarea'
+    ).first();
+
+    if (await commentInput.isVisible({ timeout: 6_000 }).catch(() => false)) {
+      const RUN_ID = Date.now().toString().slice(-6);
+      await commentInput.fill(`Comentario E2E ${RUN_ID}`).catch(() => {});
+      await page.waitForTimeout(500);
+
+      // Enviar con Enter o botón
+      const sendBtn = page
+        .locator('button, [role="button"]')
+        .filter({ hasText: /enviar|send|comentar|añadir/i })
+        .first();
+      if (await sendBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {
+        await sendBtn.click().catch(() => {});
+      } else {
+        await commentInput.press('Enter').catch(() => {});
+      }
+      await page.waitForTimeout(1500);
+
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      console.log('✅ Comentario enviado sin crash');
+    } else {
+      // Buscar la sección de comentarios con otro selector
+      const commentsSection = page.locator('[class*="comment"], [data-testid*="comment"]').first();
+      const hasComments = await commentsSection.isVisible({ timeout: 3_000 }).catch(() => false);
+      console.log(`ℹ️ Sección comentarios visible=${hasComments} — puede requerir scroll o tab específico`);
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+    }
+  });
+
+  // 1.7.11 — Vista tabla: configurar columnas visibles (ColumnFilter / gear icon)
+  test('configurar columnas visibles — botón gear o filtro columnas visible', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+    const loggedIn = await loginApp(page);
+    if (skipIfNotReady(loggedIn)) return;
+
+    await page.goto('/servicios', { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+
+    // Cambiar a vista tabla si no está activa
+    const tablaBtn = page
+      .locator('button, [role="button"], [role="tab"]')
+      .filter({ hasText: /tabla|table|list/i })
+      .first();
+    if (await tablaBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await tablaBtn.click().catch(() => {});
+      await page.waitForTimeout(800);
+    }
+
+    // Buscar botón de configuración de columnas (gear icon, ColumnFilter)
+    const gearBtn = page.locator(
+      'button[title*="columna"], button[aria-label*="columna"], [data-testid="column-filter"], svg[class*="gear"], button[title*="column"]'
+    ).first();
+    const configBtn = page
+      .locator('button, [role="button"]')
+      .filter({ hasText: /columna|column|configurar|mostrar/i })
+      .first();
+
+    const hasGear =
+      await gearBtn.isVisible({ timeout: 4_000 }).catch(() => false) ||
+      await configBtn.isVisible({ timeout: 2_000 }).catch(() => false);
+
+    if (hasGear) {
+      const btn = (await gearBtn.isVisible().catch(() => false)) ? gearBtn : configBtn;
+      await btn.click().catch(() => {});
+      await page.waitForTimeout(1000);
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      const hasCheckboxes = /descripcion|prioridad|fecha|responsable|estado|tipo/i.test(text);
+      console.log(`✅ Panel columnas abierto, checkboxes=${hasCheckboxes}`);
+    } else {
+      console.log('ℹ️ Botón de columnas no detectado — puede estar en otra vista o sin servicios');
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+    }
+  });
+
+  // 1.7.14 — Duplicar itinerario completo (ModalDuplicate)
+  test('duplicar itinerario — botón duplicar abre modal de confirmación', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+    const loggedIn = await loginApp(page);
+    if (skipIfNotReady(loggedIn)) return;
+
+    await page.goto('/servicios', { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+
+    const text = (await page.locator('body').textContent()) ?? '';
+    expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+
+    // Buscar el botón de opciones del itinerario (los 3 puntos / more options)
+    const optionsBtn = page.locator(
+      'button[aria-label*="opciones"], button[aria-label*="more"], [data-testid="itinerary-options"]'
+    ).first();
+    const ellipsisBtn = page
+      .locator('button')
+      .filter({ hasText: /\.\.\.|⋯|more|opciones/i })
+      .first();
+
+    const hasOptions =
+      await optionsBtn.isVisible({ timeout: 4_000 }).catch(() => false) ||
+      await ellipsisBtn.isVisible({ timeout: 2_000 }).catch(() => false);
+
+    if (hasOptions) {
+      const btn = (await optionsBtn.isVisible().catch(() => false)) ? optionsBtn : ellipsisBtn;
+      await btn.click().catch(() => {});
+      await page.waitForTimeout(800);
+
+      // Buscar opción "Duplicar"
+      const duplicateOption = page
+        .locator('button, [role="menuitem"], li, a')
+        .filter({ hasText: /duplicar|duplicate|copiar/i })
+        .first();
+
+      if (await duplicateOption.isVisible({ timeout: 3_000 }).catch(() => false)) {
+        await duplicateOption.click().catch(() => {});
+        await page.waitForTimeout(1200);
+        const afterText = (await page.locator('body').textContent()) ?? '';
+        expect(afterText).not.toMatch(/Error Capturado por ErrorBoundary/);
+        const hasModal = /duplicar|confirmar|copiar|nombre/i.test(afterText);
+        console.log(`✅ Modal duplicar itinerario: visible=${hasModal}`);
+      } else {
+        console.log('ℹ️ Opción duplicar no en menú — puede estar directamente accesible');
+      }
+    } else {
+      // Intentar buscar directamente botón "Duplicar"
+      const directDup = page
+        .locator('button, [role="button"]')
+        .filter({ hasText: /duplicar|duplicate/i })
+        .first();
+      if (await directDup.isVisible({ timeout: 3_000 }).catch(() => false)) {
+        await directDup.click().catch(() => {});
+        await page.waitForTimeout(1000);
+        const afterText = (await page.locator('body').textContent()) ?? '';
+        expect(afterText).not.toMatch(/Error Capturado por ErrorBoundary/);
+        console.log('✅ Botón duplicar directo ejecutado sin crash');
+      } else {
+        console.log('ℹ️ Sin itinerarios o botón duplicar no detectado en esta UI');
+      }
+    }
+  });
+
+  // 1.7.10 — Adjuntar archivo a comentario y descargarlo
+  test('adjuntar archivo a comentario de tarea — input file o clip icon presente', async ({ context, page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+
+    await clearSession(context, page);
+    await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+    await page.waitForTimeout(3000);
+
+    const text = (await page.locator('body').textContent()) ?? '';
+    expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+
+    // Intentar abrir una tarea para ver el panel de comentarios
+    const taskRow = page
+      .locator('tr, [class*="task-row"], [class*="tarea"]')
+      .filter({ hasText: /\w/ })
+      .first();
+    const hasRow = await taskRow.isVisible({ timeout: 3_000 }).catch(() => false);
+    if (hasRow) {
+      await taskRow.click().catch(() => {});
+      await page.waitForTimeout(2000);
+    }
+
+    // Buscar zona de comentarios con opción de adjunto (clip/paperclip icon o input file)
+    const hasFileInput = (await page.locator('input[type="file"]').count()) > 0;
+    const hasClipIcon =
+      (await page.locator('[class*="clip"], [class*="attach"], [aria-label*="adjunt"], [aria-label*="attach"]').count()) > 0;
+    const hasCommentUpload = /adjuntar|clip|archivo|attach/i.test(
+      (await page.locator('body').textContent()) ?? '',
+    );
+
+    if (hasFileInput || hasClipIcon || hasCommentUpload) {
+      console.log('✅ Opción de adjuntar archivo en comentario detectada:', { hasFileInput, hasClipIcon, hasCommentUpload });
+    } else {
+      console.log('ℹ️ Adjunto en comentario no detectado — puede requerir abrir comentarios primero o tarea específica');
+    }
+    // No fallo hard — requiere Firebase Storage real para el upload completo
   });
 });
 

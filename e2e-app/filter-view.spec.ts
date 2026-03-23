@@ -26,24 +26,24 @@ const isAppTest = BASE_URL.includes('app-test.bodasdehoy.com') || BASE_URL.inclu
 
 // ─── helper ───────────────────────────────────────────────────────────────────
 
-/** Simula un postMessage de tipo FILTER_VIEW como si viniera del iframe de chat-ia */
-async function sendFilterViewMessage(page: import('@playwright/test').Page, payload: {
+/** Simula un postMessage de tipo FILTER_VIEW como si viniera del iframe de chat-ia.
+ *  Formato: { type, payload: { entity, ids, query } }
+ *  CopilotIframe.tsx y Container.tsx leen `payload` del mensaje (no campos planos).
+ */
+async function sendFilterViewMessage(page: import('@playwright/test').Page, data: {
   entity: string;
   ids?: string[];
   query?: string;
 }) {
-  await page.evaluate((data) => {
-    window.postMessage(
-      { type: 'FILTER_VIEW', source: 'chat-ia', ...data },
-      '*'
-    );
-  }, payload);
+  await page.evaluate((d) => {
+    window.postMessage({ type: 'FILTER_VIEW', payload: d }, '*');
+  }, data);
 }
 
 /** Simula CLEAR_FILTER */
 async function sendClearFilterMessage(page: import('@playwright/test').Page) {
   await page.evaluate(() => {
-    window.postMessage({ type: 'CLEAR_FILTER', source: 'chat-ia' }, '*');
+    window.postMessage({ type: 'CLEAR_FILTER', payload: {} }, '*');
   });
 }
 
@@ -95,16 +95,16 @@ test.describe('filter_view — postMessage simulated', () => {
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await waitForAppReady(page, 15_000);
 
-    // Simular filter_view con entidad 'events'
+    // Simular filter_view con entidad 'events' — ids con al menos 1 elemento para que el banner sea visible
     await sendFilterViewMessage(page, {
       entity: 'events',
-      ids: [],
+      ids: ['000000000000000000000001'],
       query: 'bodas 2024',
     });
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(1200);
 
     const bodyText = (await page.locator('body').textContent()) ?? '';
-    const hasBanner = /copilot filtró|filtró/i.test(bodyText) || /🤖/.test(bodyText);
+    const hasBanner = /Filtro:|filtró/i.test(bodyText) || /🔍/.test(bodyText);
 
     if (hasBanner) {
       console.log('✅ Banner de filtro Copilot detectado en home');
@@ -130,11 +130,11 @@ test.describe('filter_view — postMessage simulated', () => {
       ids: ['000000000000000000000001', '000000000000000000000002'],
       query: 'mesa 1',
     });
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(1200);
 
     const text = (await page.locator('body').textContent()) ?? '';
     expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
-    const hasBanner = /copilot filtró|filtró|🤖/i.test(text);
+    const hasBanner = /Filtro:|filtró|🔍/i.test(text);
     console.log(`${hasBanner ? '✅' : 'ℹ️'} Banner guests en /invitados: ${hasBanner}`);
   });
 
@@ -147,12 +147,12 @@ test.describe('filter_view — postMessage simulated', () => {
     await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
     await waitForAppReady(page, 20_000);
 
-    await sendFilterViewMessage(page, { entity: 'budget_items', ids: [], query: 'catering' });
-    await page.waitForTimeout(800);
+    await sendFilterViewMessage(page, { entity: 'budget_items', ids: ['000000000000000000000001'], query: 'catering' });
+    await page.waitForTimeout(1200);
 
     const text = (await page.locator('body').textContent()) ?? '';
     expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
-    console.log(`ℹ️ Banner budget_items: ${/copilot filtró|🤖/i.test(text)}`);
+    console.log(`ℹ️ Banner budget_items: ${/Filtro:|🔍/i.test(text)}`);
   });
 
   test('CLEAR_FILTER elimina el banner', async ({ page }) => {
@@ -164,18 +164,18 @@ test.describe('filter_view — postMessage simulated', () => {
     await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
     await waitForAppReady(page, 20_000);
 
-    // Activar filtro
-    await sendFilterViewMessage(page, { entity: 'guests', ids: [], query: 'prueba' });
-    await page.waitForTimeout(600);
+    // Activar filtro (ids no vacíos para que el banner sea visible)
+    await sendFilterViewMessage(page, { entity: 'guests', ids: ['000000000000000000000001'], query: 'prueba' });
+    await page.waitForTimeout(800);
 
     // Limpiar filtro
     await sendClearFilterMessage(page);
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(800);
 
     const text = (await page.locator('body').textContent()) ?? '';
     expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
-    // El banner debería desaparecer
-    const hasBanner = /copilot filtró.*prueba/i.test(text);
+    // El banner debería desaparecer — ya no hay texto "prueba" en el banner
+    const hasBanner = /Filtro:.*prueba/i.test(text);
     if (!hasBanner) console.log('✅ Banner limpiado correctamente');
     else console.log('ℹ️ Banner persiste — puede necesitar más tiempo o UI diferente');
   });
@@ -197,12 +197,12 @@ test.describe('filter_view — interacción UI', () => {
     await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
     await waitForAppReady(page, 20_000);
 
-    // Activar filtro
-    await sendFilterViewMessage(page, { entity: 'guests', ids: [], query: 'e2e prueba click' });
-    await page.waitForTimeout(800);
+    // Activar filtro (ids con valor para que el banner sea visible)
+    await sendFilterViewMessage(page, { entity: 'guests', ids: ['000000000000000000000001'], query: 'e2e prueba click' });
+    await page.waitForTimeout(1000);
 
-    // Buscar el botón ✕ del banner
-    const closeBtn = page.locator('button').filter({ hasText: /✕|×|clear|limpiar/i }).first();
+    // Buscar el botón ✕ del banner (aria-label="Quitar filtro" o texto ✕)
+    const closeBtn = page.locator('button[aria-label="Quitar filtro"], button').filter({ hasText: /✕|×/i }).first();
     const isVisible = await closeBtn.isVisible({ timeout: 3_000 }).catch(() => false);
 
     if (isVisible) {

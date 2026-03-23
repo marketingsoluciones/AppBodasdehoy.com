@@ -153,6 +153,80 @@ test.describe('Presupuesto — /presupuesto página principal', () => {
       console.log(`Botón + por clase/aria: ${hasPlusBtn}`);
     }
   });
+
+  // 1.6.10 — Exportar presupuesto a Excel (ExportExcelPresupuesto)
+  test('botón exportar presupuesto a Excel existe y abre sin crash', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+
+    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+    await page.waitForTimeout(2000);
+
+    const exportBtn = page
+      .locator('button, [role="button"], a')
+      .filter({ hasText: /exportar|export|excel|xlsx|descargar/i })
+      .first();
+
+    if (await exportBtn.isVisible({ timeout: 6_000 }).catch(() => false)) {
+      // Interceptar descarga para no abrir fichero externo
+      const [download] = await Promise.all([
+        page.waitForEvent('download', { timeout: 8_000 }).catch(() => null),
+        exportBtn.click().catch(() => {}),
+      ]);
+      await page.waitForTimeout(1500);
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      if (download) {
+        const filename = download.suggestedFilename();
+        console.log(`✅ Descarga Excel iniciada: ${filename}`);
+        expect(filename).toMatch(/\.(xlsx|csv|xls)$/i);
+      } else {
+        console.log('✅ Botón exportar clickado sin crash (descarga no capturada)');
+      }
+    } else {
+      console.log('ℹ️ Botón exportar no visible — puede estar en menú de opciones o sin partidas');
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+    }
+  });
+
+  // 1.6.11 — Duplicar presupuesto de evento anterior (DuplicatePresupuesto)
+  test('duplicar presupuesto de evento anterior — modal abre y muestra lista de eventos', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) { test.skip(); return; }
+
+    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    await waitForAppReady(page, 20_000);
+    await page.waitForTimeout(2000);
+
+    // Buscar botón de importar/duplicar presupuesto
+    const importBtn = page
+      .locator('button, [role="button"]')
+      .filter({ hasText: /importar|duplicar|copiar.*evento|desde.*evento|duplicate/i })
+      .first();
+
+    if (await importBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await importBtn.click().catch(() => {});
+      await page.waitForTimeout(1200);
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      const hasModal = /evento|duplicar|importar|selecciona|categoría/i.test(text);
+      console.log(`✅ Modal duplicar presupuesto: visible=${hasModal}`);
+      // Cerrar modal sin hacer cambios
+      const cancelBtn = page
+        .locator('button, [role="button"]')
+        .filter({ hasText: /cancelar|cancel|cerrar/i })
+        .first();
+      if (await cancelBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {
+        await cancelBtn.click().catch(() => {});
+      } else {
+        await page.keyboard.press('Escape');
+      }
+    } else {
+      console.log('ℹ️ Botón duplicar presupuesto no detectado — puede estar en menú contextual');
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+    }
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

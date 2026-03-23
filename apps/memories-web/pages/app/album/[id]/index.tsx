@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MemoriesProvider, useMemoriesStore } from '@bodasdehoy/memories';
 import type { AlbumMedia } from '@bodasdehoy/memories';
 import { useAuth } from '../../../../hooks/useAuth';
+import { usePlan } from '../../../../hooks/usePlan';
 import { PhotoGrid } from '../../../../components/album-detail/PhotoGrid';
 import Toast from '../../../../components/shared/Toast';
 import { convertHeicIfNeeded, PHOTO_VIDEO_ACCEPT } from '@bodasdehoy/shared/upload';
@@ -36,12 +37,15 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
     generateShareLink,
   } = useMemoriesStore();
 
+  const { canUploadPhoto, photoUsage, photoLimit } = usePlan();
+
   const isOwner = !!currentAlbum && currentAlbum.ownerId === userId;
   const watermarkEnabled = currentAlbum?.settings?.allow_watermark ?? false;
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showShare, setShowShare] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
+  const [showPhotoUpgradeModal, setShowPhotoUpgradeModal] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [coverSaved, setCoverSaved] = useState(false);
@@ -169,7 +173,13 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
             )}
             <button
               data-testid="btn-upload"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => {
+                if (canUploadPhoto(currentAlbumMedia.length)) {
+                  fileInputRef.current?.click();
+                } else {
+                  setShowPhotoUpgradeModal(true);
+                }
+              }}
               disabled={uploading}
               className="bg-rose-500 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-rose-600 disabled:opacity-50 transition flex items-center gap-1.5"
             >
@@ -200,6 +210,32 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
             <p className="text-sm text-violet-700">
               <strong>Protección activada.</strong> Los invitados ven las fotos con marca de agua. Tú las ves sin marca de agua.
             </p>
+          </div>
+        )}
+
+        {/* Photo usage bar */}
+        {!mediaLoading && photoLimit < 999_999 && (
+          <div className="mb-6 flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3">
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-gray-500">Fotos usadas</span>
+                <span className="text-xs font-semibold" style={{ color: photoUsage(currentAlbumMedia.length).color }}>
+                  {photoUsage(currentAlbumMedia.length).text}
+                </span>
+              </div>
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-2 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${photoUsage(currentAlbumMedia.length).percent}%`,
+                    backgroundColor: photoUsage(currentAlbumMedia.length).color,
+                  }}
+                />
+              </div>
+            </div>
+            <a href="/pro" className="text-xs text-rose-500 font-semibold hover:underline whitespace-nowrap">
+              Ampliar
+            </a>
           </div>
         )}
 
@@ -252,6 +288,35 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
 
       {showInvite && (
         <InviteModal albumId={albumId} initialShareUrl={shareUrl} onClose={() => setShowInvite(false)} />
+      )}
+
+      {/* Photo limit upgrade modal */}
+      {showPhotoUpgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowPhotoUpgradeModal(false)}>
+          <div className="bg-white rounded-3xl p-8 max-w-sm mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center">
+              <div className="text-4xl mb-4">📷</div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Has capturado {photoLimit} momentos</h2>
+              <p className="text-gray-500 text-sm mb-6">
+                Actualiza tu plan para seguir añadiendo recuerdos a este álbum.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <a
+                  href="/pro"
+                  className="bg-rose-500 text-white px-6 py-3 rounded-2xl font-semibold text-sm hover:bg-rose-600 transition no-underline"
+                >
+                  Ver planes
+                </a>
+                <button
+                  onClick={() => setShowPhotoUpgradeModal(false)}
+                  className="border border-gray-200 text-gray-600 px-6 py-3 rounded-2xl font-semibold text-sm hover:bg-gray-50 transition"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

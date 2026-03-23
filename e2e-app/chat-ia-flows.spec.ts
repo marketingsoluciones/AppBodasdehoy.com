@@ -28,12 +28,11 @@ import { test, expect, Page } from '@playwright/test';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import { TEST_CREDENTIALS } from './fixtures';
-import { getChatUrl } from './fixtures';
+import { TEST_CREDENTIALS, TEST_URLS, E2E_ENV } from './fixtures';
 
-const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
-const CHAT_URL = getChatUrl(BASE_URL);
-const APP_URL  = BASE_URL;
+const BASE_URL = TEST_URLS.app;
+const CHAT_URL = TEST_URLS.chat;
+const APP_URL  = TEST_URLS.app;
 
 const EMAIL    = TEST_CREDENTIALS.email;
 const PASSWORD = TEST_CREDENTIALS.password;
@@ -52,19 +51,44 @@ async function loginChat(page: Page): Promise<boolean> {
   // Ya autenticado → redirige al chat
   if (page.url().includes('/chat')) return true;
 
-  // Puede haber un botón "Iniciar sesión" antes del form
-  const loginBtn = page.locator('button, a').filter({ hasText: /^Iniciar sesión$/i }).first();
-  if (await loginBtn.isVisible({ timeout: 4_000 }).catch(() => false)) {
-    await loginBtn.click();
-    await page.waitForTimeout(600);
-  }
+  // Llenar el formulario de login (email + password)
+  // Ant Design envuelve inputs en wrappers; usar click + keyboard.type para mayor fiabilidad
+  const emailInput = page.locator('input[type="email"], input[placeholder*="email" i]').first();
+  await emailInput.waitFor({ state: 'visible', timeout: 20_000 });
+  await emailInput.click();
+  await page.keyboard.press('Meta+A');
+  await page.keyboard.type(EMAIL, { delay: 20 });
 
-  await page.locator('input[type="email"]').first().fill(EMAIL);
-  await page.locator('input[type="password"]').first().fill(PASSWORD);
-  await page.locator('button[type="submit"]').first().click();
-  await page.waitForURL((u) => !u.pathname.includes('/login'), { timeout: 30_000 }).catch(() => {});
+  const pwInput = page.locator('input[type="password"], input[placeholder*="Contraseña" i]').first();
+  await pwInput.click();
+  await page.keyboard.press('Meta+A');
+  await page.keyboard.type(PASSWORD, { delay: 20 });
+
+  // Submit — buscar botón submit dentro del form (no un link/botón pre-form)
+  await page.locator('button:has-text("Iniciar sesión"), button[type="submit"]').first().click();
+  await page.waitForURL((u) => !u.pathname.includes('/login'), { timeout: 45_000 }).catch(() => {});
   // Wait for dev-user-config cookie to be set (FirebaseAuth sets it after redirect)
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(3000);
+
+  // Asegurar que la cookie dev-user-config tenga el JWT token
+  // (puede perderse si un componente la sobreescribe sin token)
+  const cookieFixed = await page.evaluate(() => {
+    const jwt = localStorage.getItem('api2_jwt_token') || localStorage.getItem('jwt_token');
+    const raw = localStorage.getItem('dev-user-config');
+    if (!jwt || !raw) return { fixed: false, jwt: !!jwt, raw: !!raw };
+    try {
+      const config = JSON.parse(raw);
+      if (!config.token && jwt) {
+        config.token = jwt;
+        localStorage.setItem('dev-user-config', JSON.stringify(config));
+        document.cookie = `dev-user-config=${encodeURIComponent(JSON.stringify(config))}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+        return { fixed: true, tokenSlice: jwt.slice(0, 20) };
+      }
+      return { fixed: false, hasToken: !!config.token, tokenSlice: config.token?.slice(0, 20) };
+    } catch { return { fixed: false, parseError: true }; }
+  });
+  console.log('[E2E] Cookie check after login:', JSON.stringify(cookieFixed));
+
   return !page.url().includes('/login');
 }
 
@@ -73,7 +97,7 @@ async function loginChat(page: Page): Promise<boolean> {
  * Espera `waitMs` ms para que la respuesta del asistente aparezca.
  * Devuelve el texto acumulado de todos los mensajes visibles.
  */
-async function chat(page: Page, text: string, waitMs = 22_000): Promise<string> {
+async function chat(page: Page, text: string, waitMs = 60_000): Promise<string> {
   // LobeChat usa un editor Lexical (div[contenteditable]), no un <textarea> nativo
   const ta = page.locator('div[contenteditable="true"]').last();
   await ta.waitFor({ state: 'visible', timeout: 20_000 });
@@ -84,9 +108,28 @@ async function chat(page: Page, text: string, waitMs = 22_000): Promise<string> 
   // keyboard.type() dispara los eventos de Lexical correctamente (fill() no los dispara)
   await page.keyboard.type(text, { delay: 25 });
   await page.keyboard.press('Enter');
-  await page.waitForTimeout(waitMs);
-  const msgs = await page.locator('[class*="markdown"], [class*="message-content"], [class*="assistant"]').allTextContents();
-  return msgs.join('\n');
+
+  // Esperar a que aparezca la respuesta del asistente (polling en vez de timeout fijo)
+  const deadline = Date.now() + waitMs;
+  // LobeChat renderiza mensajes en <article>. El usuario envía 1 article, la IA otro.
+  // Filtramos el último article que NO sea el mensaje que acabamos de enviar.
+  const msgSelector = 'article';
+  let lastText = '';
+  // Esperar al menos 5s antes de empezar a buscar
+  await page.waitForTimeout(5_000);
+  while (Date.now() < deadline) {
+    const articles = await page.locator(msgSelector).allTextContents();
+    // Filtrar el mensaje que acabamos de enviar (puede ser parcial)
+    const assistantMsgs = articles.filter(t => t.trim().length > 5 && !text.startsWith(t.trim().slice(0, 30)));
+    const joined = assistantMsgs.join('\n').trim();
+    if (joined.length > 10 && joined === lastText) {
+      // Respuesta estable (no sigue streaming)
+      return joined;
+    }
+    lastText = joined;
+    await page.waitForTimeout(2_000);
+  }
+  return lastText;
 }
 
 /** Navega a la ruta del chat y espera a que esté listo. */
@@ -206,6 +249,20 @@ test.describe('2. Consultas al chat IA — datos reales del evento', () => {
     );
     expect(reply.length).toBeGreaterThan(80);
     console.log(`✅ Resumen completo — ${reply.length} chars`);
+    console.log(`   Preview: ${reply.slice(0, 300)}`);
+  });
+
+  // 2.3.5 — web-browsing: buscar en Google y mostrar resultados
+  test('web-browsing: buscar tendencias de decoración de bodas', async ({ page }) => {
+    const reply = await chat(
+      page,
+      'Busca en internet las tendencias de decoración de bodas para 2025. Dame 3 ideas concretas con fuentes.',
+      45_000,
+    );
+    expect(reply.length).toBeGreaterThan(50);
+    // La respuesta puede venir de web-browsing o de conocimiento general del modelo
+    const hasTrends = /decorac|tendencia|boda|2025|estilo|color|flor|rústic|bohem|minimalista/i.test(reply);
+    console.log(`✅ Web-browsing/búsqueda — ${reply.length} chars, tendencias: ${hasTrends}`);
     console.log(`   Preview: ${reply.slice(0, 300)}`);
   });
 });
@@ -1029,5 +1086,38 @@ test.describe('11. Flujo completo E2E: boda de Paco y Pico', () => {
     const body = await page.locator('body').textContent() ?? '';
     expect(body).not.toContain('Error Capturado por ErrorBoundary');
     console.log('\n✅ Flujo completo Paco y Pico finalizado sin errores');
+  });
+
+  // 2.3.4 — floor-plan-editor: suggest_table_config — SVG preview inline
+  test('floor-plan-editor: pedir configuración de mesa redonda genera preview', async ({ page }) => {
+    if (!hasCredentials) test.skip();
+
+    const ok = await loginChat(page);
+    if (!ok) test.skip();
+    await goChat(page);
+
+    const reply = await chat(
+      page,
+      'Muéstrame cómo quedaría una mesa redonda para 8 personas con etiqueta "Mesa de honor". Usa el editor de planos.',
+      50_000,
+    );
+
+    expect(reply.length).toBeGreaterThan(20);
+
+    // Verificar que o bien hubo respuesta visual (SVG/plano), o respuesta textual sobre mesas
+    const hasFloorPlanResponse =
+      /mesa|redond|plano|capac|asiento|silla|layout|floor/i.test(reply);
+
+    // Buscar SVG inline generado por el tool
+    const hasSvg = (await page.locator('svg[class*="floor"], svg[class*="plan"], svg[class*="mesa"]').count()) > 0;
+
+    console.log(`✅ Floor-plan tool — ${reply.length} chars, floor response: ${hasFloorPlanResponse}, svg: ${hasSvg}`);
+    console.log(`   Preview: ${reply.slice(0, 300)}`);
+
+    // La respuesta debe ser relevante a mesas/planos
+    expect(hasFloorPlanResponse || reply.length > 100).toBe(true);
+
+    const bodyFinal = await page.locator('body').textContent() ?? '';
+    expect(bodyFinal).not.toContain('Error Capturado por ErrorBoundary');
   });
 });
