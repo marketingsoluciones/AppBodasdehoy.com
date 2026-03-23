@@ -153,10 +153,8 @@ const ASSET_CATEGORIES = [
 
 const BrandingAdmin = () => {
   // Auto-detectar development del usuario
-  const { userDevelopment, userProfile } = useChatStore((s) => ({
-    userDevelopment: s.development,
-    userProfile: s.userProfile,
-  }));
+  const userDevelopment = useChatStore((s) => s.development);
+  const userProfile = useChatStore((s) => s.userProfile);
 
   const isAdmin = userProfile?.roles?.includes('admin') ||
                   userProfile?.roles?.includes('superadmin') ||

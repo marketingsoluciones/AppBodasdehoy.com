@@ -19,12 +19,10 @@ const LeadMonitor = () => {
   const lastProcessedCountRef = useRef(0);
   const accumulatedDataRef = useRef<ExtractedLeadData>({});
 
-  const { currentUserId, userType, development, activeExternalChatId } = useChatStore((s) => ({
-    activeExternalChatId: s.activeExternalChatId,
-    currentUserId: s.currentUserId,
-    development: s.development,
-    userType: s.userType,
-  }));
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const userType = useChatStore((s) => s.userType);
+  const development = useChatStore((s) => s.development);
+  const activeExternalChatId = useChatStore((s) => s.activeExternalChatId);
 
   // Get assistant messages from active chat
   const assistantMessages = useChatStore((s) =>

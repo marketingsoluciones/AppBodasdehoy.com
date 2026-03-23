@@ -21,6 +21,11 @@ const useStyles = createStyles(({ css, token }) => ({
     padding: 16px;
     margin-top: 12px;
   `,
+  hint: css`
+    font-size: 12px;
+    color: ${token.colorTextSecondary};
+    margin-top: 2px;
+  `,
   label: css`
     color: ${token.colorTextSecondary};
     font-size: 12px;
@@ -33,11 +38,6 @@ const useStyles = createStyles(({ css, token }) => ({
     display: flex;
     align-items: center;
     gap: 8px;
-  `,
-  hint: css`
-    font-size: 12px;
-    color: ${token.colorTextSecondary};
-    margin-top: 2px;
   `,
 }));
 
@@ -132,8 +132,8 @@ const AutoRechargeCard = memo<AutoRechargeCardProps>(
       if (result.success) {
         setSaveSuccess(true);
         setConfig((prev) => prev
-          ? { ...prev, enabled: true, threshold, amount }
-          : { enabled: true, threshold, amount }
+          ? { ...prev, amount, enabled: true, threshold }
+          : { amount, enabled: true, threshold }
         );
         onConfigChange?.();
         setTimeout(() => setSaveSuccess(false), 3000);

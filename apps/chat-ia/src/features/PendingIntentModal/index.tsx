@@ -24,9 +24,7 @@ function PendingIntentModal() {
     hasPendingIntent,
   } = usePendingIntent();
 
-  const { activeExternalChatId } = useChatStore((s) => ({
-    activeExternalChatId: s.activeExternalChatId,
-  }));
+  const activeExternalChatId = useChatStore((s) => s.activeExternalChatId);
 
   // Mostrar modal cuando hay intención pendiente después del login
   useEffect(() => {

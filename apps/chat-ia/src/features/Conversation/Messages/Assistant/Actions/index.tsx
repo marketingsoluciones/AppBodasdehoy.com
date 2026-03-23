@@ -24,9 +24,10 @@ interface AssistantActionsProps {
 }
 export const AssistantActionsBar = memo<AssistantActionsProps>(({ id, data, index }) => {
   const { error, tools } = data;
-  const [isThreadMode, hasThread] = useChatStore((s) => [
+  const [isThreadMode, hasThread, messageRating] = useChatStore((s) => [
     !!s.activeThreadId,
     threadSelectors.hasThreadBySourceMsgId(id)(s),
+    s.messageRatings[id],
   ]);
   const isGroupSession = useSessionStore(sessionSelectors.isCurrentSessionGroupSession);
   const [showShareModal, setShareModal] = useState(false);
@@ -43,9 +44,27 @@ export const AssistantActionsBar = memo<AssistantActionsProps>(({ id, data, inde
     share,
     tts,
     translate,
-    feedbackPositive,
-    feedbackNegative,
+    feedbackPositive: feedbackPositiveBase,
+    feedbackNegative: feedbackNegativeBase,
   } = useChatListActionsBar({ hasThread });
+
+  // Aplicar estado visual a los iconos de feedback según el rating
+  const feedbackPositive = useMemo(
+    () => ({
+      ...feedbackPositiveBase,
+      ...(messageRating === 'positive' ? { style: { color: '#52c41a' } } : {}),
+      label: messageRating === 'positive' ? '✓ Respuesta útil' : feedbackPositiveBase.label,
+    }),
+    [messageRating, feedbackPositiveBase],
+  );
+  const feedbackNegative = useMemo(
+    () => ({
+      ...feedbackNegativeBase,
+      ...(messageRating === 'negative' ? { style: { color: '#ff4d4f' } } : {}),
+      label: messageRating === 'negative' ? '✓ Respuesta no útil' : feedbackNegativeBase.label,
+    }),
+    [messageRating, feedbackNegativeBase],
+  );
 
   const hasTools = !!tools;
 
@@ -58,7 +77,7 @@ export const AssistantActionsBar = memo<AssistantActionsProps>(({ id, data, inde
     return [edit, copy, feedbackPositive, feedbackNegative, inThread || isGroupSession ? null : branching].filter(
       Boolean,
     ) as ActionIconGroupItemType[];
-  }, [inThread, hasTools, isGroupSession]);
+  }, [inThread, hasTools, isGroupSession, feedbackPositive, feedbackNegative]);
 
   const { t } = useTranslation('common');
   const searchParams = useSearchParams();
@@ -155,14 +174,30 @@ export const AssistantActionsBar = memo<AssistantActionsProps>(({ id, data, inde
         }
 
         case 'feedbackPositive': {
-          await sendFeedback({ messageId: id, rating: 'positive' });
-          message.success('¡Gracias por tu valoración!');
+          const posResult = await sendFeedback({
+            messageId: id,
+            rating: 'positive',
+            sessionId: data.sessionId,
+            traceId: data.traceId,
+          });
+          if (posResult.ok) {
+            useChatStore.getState().internal_setMessageRating(id, 'positive');
+            message.success('¡Gracias por tu valoración!');
+          }
           break;
         }
 
         case 'feedbackNegative': {
-          await sendFeedback({ messageId: id, rating: 'negative' });
-          message.success('Gracias, usaremos tu feedback para mejorar.');
+          const negResult = await sendFeedback({
+            messageId: id,
+            rating: 'negative',
+            sessionId: data.sessionId,
+            traceId: data.traceId,
+          });
+          if (negResult.ok) {
+            useChatStore.getState().internal_setMessageRating(id, 'negative');
+            message.success('Gracias, usaremos tu feedback para mejorar.');
+          }
           break;
         }
       }

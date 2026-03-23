@@ -155,7 +155,7 @@ export const AssistantMessageContent = memo<
           {tools.map((toolCall, index) => {
             // Silent builtin tools execute without showing UI in the chat bubble
             if (!toolCall.identifier || typeof toolCall.identifier !== 'string') return null;
-            if (['lobe-filter-app-view', 'lobe-venue-visualizer'].includes(toolCall.identifier)) return null;
+            if (['lobe-filter-app-view'].includes(toolCall.identifier)) return null;
             return (
               <Tool
                 apiName={toolCall.apiName}

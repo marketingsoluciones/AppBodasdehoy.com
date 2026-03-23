@@ -41,11 +41,9 @@ Si el usuario da su nombre, email o teléfono, inclúyelos como:
 const LeadQualificationContext = () => {
   const injectedRef = useRef(false);
 
-  const { currentUserId, userType, externalChatsInit } = useChatStore((s) => ({
-    currentUserId: s.currentUserId,
-    externalChatsInit: s.externalChatsInit,
-    userType: s.userType,
-  }));
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const userType = useChatStore((s) => s.userType);
+  const externalChatsInit = useChatStore((s) => s.externalChatsInit);
 
   const isGuest =
     externalChatsInit && (

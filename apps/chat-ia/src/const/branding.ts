@@ -1,18 +1,19 @@
 /**
- * Constantes de branding
- * Estos valores se usan como fallback cuando no hay branding específico del developer
+ * Constantes de branding (alineadas con packages/const para rutas @/const/*)
+ * Personalizar con variables NEXT_PUBLIC_* en el despliegue.
  */
 
-// Nombre por defecto de la aplicación
-export const BRANDING_NAME = process.env.NEXT_PUBLIC_BRANDING_NAME || 'Lobe Chat';
+const DEFAULT_APP_NAME = 'Bodas de Hoy';
 
-// URL del logo por defecto
-export const BRANDING_LOGO_URL = process.env.NEXT_PUBLIC_BRANDING_LOGO_URL || '/logo.png';
+export const BRANDING_NAME = process.env.NEXT_PUBLIC_BRANDING_NAME || DEFAULT_APP_NAME;
 
-// Nombre de la organización
-export const ORG_NAME = process.env.NEXT_PUBLIC_ORG_NAME || 'LobeHub';
+export const BRANDING_LOGO_URL =
+  process.env.NEXT_PUBLIC_BRANDING_LOGO_URL || '/logo.png';
 
-// URL oficial
-export const OFFICIAL_SITE = process.env.NEXT_PUBLIC_OFFICIAL_SITE || 'https://lobehub.com';
+export const ORG_NAME = process.env.NEXT_PUBLIC_ORG_NAME || DEFAULT_APP_NAME;
 
+export const LOBE_CHAT_CLOUD =
+  process.env.NEXT_PUBLIC_BRANDING_CLOUD_NAME || `${BRANDING_NAME} Cloud`;
 
+export const OFFICIAL_SITE =
+  process.env.NEXT_PUBLIC_OFFICIAL_SITE || 'https://bodasdehoy.com';
