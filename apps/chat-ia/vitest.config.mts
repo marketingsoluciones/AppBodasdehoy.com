@@ -32,6 +32,8 @@ export default defineConfig({
       '@/utils/performanceMonitor': resolve(__dirname, './src/utils/performanceMonitor'),
       '@/utils/visitorLimit': resolve(__dirname, './src/utils/visitorLimit'),
       '@/utils/authToken': resolve(__dirname, './src/utils/authToken'),
+      '@/utils/avatarInitials': resolve(__dirname, './src/utils/avatarInitials'),
+      '@/utils/brandingDisplay': resolve(__dirname, './src/utils/brandingDisplay'),
       '@/const/supportKeys': resolve(__dirname, './src/const/supportKeys'),
       '@/utils': resolve(__dirname, './packages/utils/src'),
       '@/types': resolve(__dirname, './packages/types/src'),
