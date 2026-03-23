@@ -50,7 +50,7 @@ const Redirect = memo<RedirectProps>(({ setLoadingStage }) => {
         '/knowledge',
         '/discover',
         '/settings',
-        '/dev-login',
+        '/login',
         '/onboard',
         '/chat', // ✅ También evitar redirigir si ya estamos en /chat
       ];
@@ -91,7 +91,7 @@ const Redirect = memo<RedirectProps>(({ setLoadingStage }) => {
         '/knowledge',
         '/discover',
         '/settings',
-        '/dev-login',
+        '/login',
         '/onboard',
         '/chat',
       ];

@@ -47,9 +47,9 @@ const Layout = () => {
             flexDirection: 'column',
             gap: 12,
             marginTop: 8,
+            maxWidth: 300,
             padding: '16px 20px',
             width: '100%',
-            maxWidth: 300,
           }}
         >
           {[
@@ -60,7 +60,7 @@ const Layout = () => {
           ].map(([icon, text]) => (
             <div
               key={text}
-              style={{ alignItems: 'center', display: 'flex', gap: 10, fontSize: 13, color: '#374151' }}
+              style={{ alignItems: 'center', color: '#374151', display: 'flex', fontSize: 13, gap: 10 }}
             >
               <span style={{ fontSize: 16 }}>{icon}</span>
               <span>{text}</span>

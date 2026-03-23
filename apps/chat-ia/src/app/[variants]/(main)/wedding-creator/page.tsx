@@ -107,7 +107,7 @@ function useRequireRegisteredUser() {
             throw new Error('Raw config is not valid JSON');
           }
           config = JSON.parse(rawConfig);
-        } catch (parseError) {
+        } catch {
           // Invalid JSON in dev-user-config
           config = null;
         }
@@ -177,7 +177,7 @@ function WeddingCreatorContent() {
         if (loadedEventId) {
           setEventId(loadedEventId);
         }
-      } catch (error) {
+      } catch {
         // Error loading eventId - non-critical
       }
     };
@@ -401,7 +401,7 @@ function WeddingCreatorContent() {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-    } catch (error: any) {
+    } catch {
       const errorMessage: Message = {
         content: 'Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta de nuevo.\n\n💡 **Tip:** Puedes intentar reformular tu solicitud o usar comandos más específicos como:\n• "Cambia el nombre a..."\n• "Actualiza la fecha a..."\n• "Habilita la sección de..."',
         id: `error-${Date.now()}`,

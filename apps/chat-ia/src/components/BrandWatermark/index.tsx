@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { memo } from 'react';
 import { Flexbox, FlexboxProps } from 'react-layout-kit';
 
-import { ORG_NAME } from '@/const/branding';
+import { BRANDING_NAME, ORG_NAME } from '@/const/branding';
 import { UTM_SOURCE } from '@/const/url';
 import { isCustomORG } from '@/const/version';
 import { useDeveloperBranding } from '@/hooks/useDeveloperBranding';
@@ -79,7 +79,7 @@ const BrandWatermark = memo<Omit<FlexboxProps, 'children'>>(({ style, ...rest })
     );
   }
 
-  // Fallback: mostrar LobeHub
+  // Fallback: marca por defecto o enlace upstream
   return (
     <Flexbox
       align={'center'}
@@ -96,7 +96,7 @@ const BrandWatermark = memo<Omit<FlexboxProps, 'children'>>(({ style, ...rest })
       ) : (
         <Link
           className={styles.logoLink}
-          href={`https://lobehub.com?utm_source=${UTM_SOURCE}&utm_content=brand_watermark`}
+          href={`https://bodasdehoy.com?utm_source=${UTM_SOURCE}&utm_content=brand_watermark`}
           target={'_blank'}
         >
           <LobeHub size={20} type={'text'} />

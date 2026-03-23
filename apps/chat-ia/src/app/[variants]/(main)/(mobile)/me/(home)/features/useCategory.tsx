@@ -16,6 +16,7 @@ import { enableAuth } from '@/const/auth';
 import { LOBE_CHAT_CLOUD } from '@/const/branding';
 import { DOCUMENTS, FEEDBACK, OFFICIAL_URL, UTM_SOURCE } from '@/const/url';
 import { isServerMode } from '@/const/version';
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
@@ -32,6 +33,9 @@ export const useCategory = () => {
     authSelectors.isLogin(s),
     authSelectors.isLoginWithAuth(s),
   ]);
+  const isDomainGuest = useDomainGuestUser();
+  /** Misma regla que escritorio (useMenu): cuenta completa, no invitado embed. */
+  const showAccountLogout = isLoginWithAuth && !isDomainGuest;
 
   const profile: CellProps[] = [
     {
@@ -120,13 +124,13 @@ export const useCategory = () => {
     {
       type: 'divider',
     },
-    ...(!enableAuth || (enableAuth && isLoginWithAuth) ? profile : []),
+    ...(!enableAuth || (enableAuth && showAccountLogout) ? profile : []),
     ...(enableAuth ? (isLoginWithAuth ? settings : []) : settingsWithoutAuth),
     /* ↓ cloud slot ↓ */
 
     /* ↑ cloud slot ↑ */
     ...(canInstall ? pwa : []),
-    ...(isLogin && !isServerMode ? data : []),
+    ...(isLogin && !isServerMode && !isDomainGuest ? data : []),
     ...(!hideDocs ? helps : []),
   ].filter(Boolean) as CellProps[];
 

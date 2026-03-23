@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { message } from 'antd';
+
 import { EventosAutoAuth } from '@/features/EventosAutoAuth';
 import { completeTask } from '@/services/api2/tasks';
 import { useChatStore } from '@/store/chat';
@@ -9,35 +11,35 @@ import { useChatStore } from '@/store/chat';
 interface PendingTask {
   _id: string;
   descripcion: string;
-  responsable?: string | string[];
   fecha?: string;
   hora?: string;
   icon?: string;
+  responsable?: string | string[];
   tags?: string[];
   tips?: string;
 }
 
 interface Service {
   id: string;
-  title: string;
   pendingTasks: PendingTask[];
+  title: string;
   totalTasks: number;
 }
 
 interface EventWithTasks {
+  fecha?: string;
   id: string;
   nombre: string;
-  fecha?: string;
-  tipo: string;
   services: Service[];
+  tipo: string;
 }
 
 const TYPE_ICON: Record<string, string> = {
-  boda: '💍',
-  cumpleanos: '🎂',
   bautizo: '👶',
+  boda: '💍',
   comunion: '⛪',
   corporativo: '🏢',
+  cumpleanos: '🎂',
   otro: '📅',
 };
 
@@ -79,42 +81,100 @@ export default function TasksPage() {
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [completing, setCompleting] = useState<Set<string>>(new Set());
-  const [completed, setCompleted] = useState<Set<string>>(new Set());
   const lastUserId = useRef<string | null>(null);
 
   const currentUserId = useChatStore((s) => s.currentUserId);
 
+  /** Lista solo pendientes: viene de `/api/events-tasks` (API2 filtra no completadas). */
+  const loadEvents = useCallback(
+    async (opts?: { silent?: boolean }) => {
+      const silent = opts?.silent === true;
+      if (
+        !currentUserId ||
+        currentUserId.startsWith('visitor_') ||
+        currentUserId === 'guest' ||
+        currentUserId.includes('@guest.')
+      ) {
+        if (!silent) setLoading(false);
+        return;
+      }
+      if (!currentUserId.includes('@')) {
+        if (!silent) setLoading(false);
+        return;
+      }
+
+      if (!silent) {
+        setLoading(true);
+        setError(null);
+      }
+
+      try {
+        const r = await fetch('/api/events-tasks', { headers: { 'X-User-ID': currentUserId } });
+        const data = await r.json();
+        if (data.error && !silent) setError(data.error);
+        const nextEvents: EventWithTasks[] = data.events || [];
+        setEvents(nextEvents);
+
+        if (!silent) {
+          const exp: Record<string, boolean> = {};
+          nextEvents.forEach((e) => {
+            exp[e.id] = true;
+          });
+          setExpanded(exp);
+        }
+      } catch (e: any) {
+        if (!silent) setError(e?.message || 'Error al cargar');
+        else message.error('No se pudo actualizar la lista de tareas');
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [currentUserId],
+  );
+
   useEffect(() => {
-    // Only fetch if we have a real authenticated user and userId changed
-    if (!currentUserId || currentUserId === lastUserId.current) return;
-    if (currentUserId.startsWith('visitor_') || currentUserId === 'guest' || currentUserId.includes('@guest.')) return;
+    if (!currentUserId) {
+      lastUserId.current = null;
+      setLoading(false);
+      setEvents([]);
+      return;
+    }
+    if (currentUserId === lastUserId.current) return;
+    if (
+      currentUserId.startsWith('visitor_') ||
+      currentUserId === 'guest' ||
+      currentUserId.includes('@guest.')
+    ) {
+      lastUserId.current = currentUserId;
+      setLoading(false);
+      setEvents([]);
+      return;
+    }
 
     lastUserId.current = currentUserId;
-    setLoading(true);
-    fetch('/api/events-tasks', { headers: { 'X-User-ID': currentUserId } })
-      .then((r) => r.json())
-      .then((data) => {
-        setEvents(data.events || []);
-        const exp: Record<string, boolean> = {};
-        (data.events || []).forEach((e: EventWithTasks) => { exp[e.id] = true; });
-        setExpanded(exp);
-      })
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [currentUserId]);
+    void loadEvents({ silent: false });
+  }, [currentUserId, loadEvents]);
 
-  const handleComplete = useCallback(async (eventId: string, serviceId: string, taskId: string) => {
-    setCompleting((prev) => new Set(prev).add(taskId));
-    try {
-      await completeTask(eventId, serviceId, taskId);
-      setCompleted((prev) => new Set(prev).add(taskId));
-      window.parent?.postMessage({ type: 'REFRESH_EVENTS', source: 'chat-ia' }, '*');
-    } catch {
-      // silently fail — user can retry
-    } finally {
-      setCompleting((prev) => { const s = new Set(prev); s.delete(taskId); return s; });
-    }
-  }, []);
+  const handleComplete = useCallback(
+    async (eventId: string, serviceId: string, taskId: string) => {
+      setCompleting((prev) => new Set(prev).add(taskId));
+      try {
+        await completeTask(eventId, serviceId, taskId);
+        message.success('Tarea marcada como completada');
+        window.parent?.postMessage({ source: 'chat-ia', type: 'REFRESH_EVENTS' }, '*');
+        await loadEvents({ silent: true });
+      } catch {
+        message.error('No se pudo completar la tarea. Inténtalo de nuevo.');
+      } finally {
+        setCompleting((prev) => {
+          const s = new Set(prev);
+          s.delete(taskId);
+          return s;
+        });
+      }
+    },
+    [loadEvents],
+  );
 
   const pending = totalPending(events);
 
@@ -144,11 +204,11 @@ export default function TasksPage() {
       {loading && (
         <div className="space-y-3">
           {[1, 2].map((i) => (
-            <div key={i} className="rounded-xl border border-gray-200 bg-white p-5">
+            <div className="rounded-xl border border-gray-200 bg-white p-5" key={i}>
               <div className="mb-3 h-5 w-48 animate-pulse rounded bg-gray-200" />
               <div className="space-y-2">
                 {[1, 2, 3].map((j) => (
-                  <div key={j} className="h-10 animate-pulse rounded-lg bg-gray-100" />
+                  <div className="h-10 animate-pulse rounded-lg bg-gray-100" key={j} />
                 ))}
               </div>
             </div>
@@ -163,10 +223,10 @@ export default function TasksPage() {
           <h3 className="mb-1 text-lg font-semibold text-gray-800">Todo al día</h3>
           <p className="text-sm text-gray-500">No tienes tareas pendientes en ningún evento.</p>
           <a
-            href={getAppUrl('/servicios')}
-            target="_blank"
-            rel="noreferrer"
             className="mt-4 inline-block rounded-lg bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600"
+            href={getAppUrl('/servicios')}
+            rel="noreferrer"
+            target="_blank"
           >
             Ver servicios en la app →
           </a>
@@ -180,11 +240,11 @@ export default function TasksPage() {
           const eventPending = event.services.reduce((s, sv) => s + sv.pendingTasks.length, 0);
 
           return (
-            <div key={event.id} className="rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div className="rounded-xl border border-gray-200 bg-white shadow-sm" key={event.id}>
               {/* Event header */}
               <button
-                onClick={() => setExpanded((prev) => ({ ...prev, [event.id]: !isExpanded }))}
                 className="flex w-full items-center justify-between px-5 py-4 text-left"
+                onClick={() => setExpanded((prev) => ({ ...prev, [event.id]: !isExpanded }))}
               >
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{TYPE_ICON[event.tipo] || '📅'}</span>
@@ -217,12 +277,12 @@ export default function TasksPage() {
                         </span>
                       </div>
                       <div className="space-y-1.5">
-                        {service.pendingTasks.filter((task) => !completed.has(task._id)).map((task) => {
+                        {service.pendingTasks.map((task) => {
                           const isCompleting = completing.has(task._id);
                           return (
                             <div
-                              key={task._id}
                               className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-100 px-3 py-2.5"
+                              key={task._id}
                             >
                               <button
                                 aria-label="Marcar como completada"
@@ -262,10 +322,10 @@ export default function TasksPage() {
 
                   {/* CTA to appEventos — event-specific */}
                   <a
-                    href={getAppUrl(`/servicios?event=${event.id}`)}
-                    target="_blank"
-                    rel="noreferrer"
                     className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                    href={getAppUrl(`/servicios?event=${event.id}`)}
+                    rel="noreferrer"
+                    target="_blank"
                   >
                     Gestionar en la app →
                   </a>

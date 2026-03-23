@@ -15,7 +15,7 @@ const ROUTES_TO_SKIP = [
   '/knowledge',
   '/discover',
   '/settings',
-  '/dev-login',
+  '/login',
   '/onboard',
   '/chat',
 ];

@@ -17,19 +17,25 @@ const ReloginBanner = memo(() => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    // Verificar estado de autenticación al montar
-    const authResult = checkAuth();
-    setShowBanner(authResult.needsRelogin);
-    setUserEmail(authResult.userEmail);
-
-    // También verificar periódicamente (cada 30 segundos)
-    const interval = setInterval(() => {
+    const recheck = () => {
       const result = checkAuth();
       setShowBanner(result.needsRelogin);
       setUserEmail(result.userEmail);
-    }, 30_000);
+    };
 
-    return () => clearInterval(interval);
+    // Verificar estado de autenticación al montar
+    recheck();
+
+    // Re-verificar cuando api2 detecta token expirado (client.ts lo dispara)
+    window.addEventListener('api2:token-expired', recheck);
+
+    // También verificar periódicamente (cada 30 segundos)
+    const interval = setInterval(recheck, 30_000);
+
+    return () => {
+      window.removeEventListener('api2:token-expired', recheck);
+      clearInterval(interval);
+    };
   }, [checkAuth]);
 
   const handleLoginClick = () => {

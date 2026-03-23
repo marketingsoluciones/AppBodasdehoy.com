@@ -143,9 +143,9 @@ const Content = memo<ContentProps>(({ loadingStage, setActiveStage }) => {
       '/knowledge',
       '/discover',
       '/settings',
-      '/dev-login',
+      '/login',
     ];
-    
+
     // Si estamos en una de estas rutas, NO mostrar loading screen
     if (routesToSkip.some(route => currentPath.includes(route))) {
       console.log('🚫 [Loading Content] Skip loading screen: Ya estamos en', currentPath);
