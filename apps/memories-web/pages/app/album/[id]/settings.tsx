@@ -1,7 +1,6 @@
 /**
  * Administración de miembros y permisos del álbum — /app/album/[id]/settings
  * Solo accesible para el owner del álbum.
- * Permite: gestionar roles, eliminar miembros, invitar, configurar watermark.
  */
 import Head from 'next/head';
 import Link from 'next/link';
@@ -9,11 +8,13 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { MemoriesProvider, useMemoriesStore } from '@bodasdehoy/memories';
 import type { AlbumMember } from '@bodasdehoy/memories';
-import { authBridge } from '@bodasdehoy/shared';
+import { useAuth } from '../../../../hooks/useAuth';
+import Toggle from '../../../../components/shared/Toggle';
+import ConfirmModal from '../../../../components/shared/ConfirmModal';
+import Toast from '../../../../components/shared/Toast';
 
 const API_BASE = process.env.NEXT_PUBLIC_MEMORIES_API_URL || 'https://api-ia.bodasdehoy.com';
 const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
-const USER_ID_KEY = 'memories_user_id';
 
 const ROLE_LABELS: Record<string, string> = {
   owner: 'Propietario',
@@ -29,21 +30,12 @@ const ROLE_DESC: Record<string, string> = {
   viewer: 'Solo puede ver las fotos',
 };
 
-// ─── Settings content ──────────────────────────────────────────────────────────
-
 function AlbumSettingsContent({ albumId, userId }: { albumId: string; userId: string }) {
   const {
-    currentAlbum,
-    currentAlbumLoading,
-    currentAlbumError,
-    currentAlbumMembers,
-    membersLoading,
-    fetchAlbum,
-    fetchAlbumMembers,
-    updateAlbum,
-    updateMemberRole,
-    removeMember,
-    inviteMember,
+    currentAlbum, currentAlbumLoading, currentAlbumError,
+    currentAlbumMembers, membersLoading,
+    fetchAlbum, fetchAlbumMembers, updateAlbum,
+    updateMemberRole, removeMember, inviteMember,
   } = useMemoriesStore();
 
   const [inviteEmail, setInviteEmail] = useState('');
@@ -54,6 +46,7 @@ function AlbumSettingsContent({ albumId, userId }: { albumId: string; userId: st
   const [changingRoleId, setChangingRoleId] = useState<string | null>(null);
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState<AlbumMember | null>(null);
 
   const isOwner = !!currentAlbum && currentAlbum.ownerId === userId;
   const watermarkEnabled = currentAlbum?.settings?.allow_watermark ?? false;
@@ -92,7 +85,6 @@ function AlbumSettingsContent({ albumId, userId }: { albumId: string; userId: st
     });
     setSavingSettings(false);
     setSettingsSaved(true);
-    setTimeout(() => setSettingsSaved(false), 2500);
   };
 
   const handleRoleChange = async (member: AlbumMember, newRole: string) => {
@@ -102,12 +94,12 @@ function AlbumSettingsContent({ albumId, userId }: { albumId: string; userId: st
     setChangingRoleId(null);
   };
 
-  const handleRemove = async (member: AlbumMember) => {
-    if (member.role === 'owner') return;
-    if (!confirm(`¿Eliminar a ${member.userEmail || member.userName || member.userId} del álbum?`)) return;
-    setRemovingId(member.userId);
-    await removeMember(albumId, member.userId);
+  const handleRemoveConfirmed = async () => {
+    if (!confirmRemove) return;
+    setRemovingId(confirmRemove.userId);
+    await removeMember(albumId, confirmRemove.userId);
     setRemovingId(null);
+    setConfirmRemove(null);
   };
 
   const handleInvite = async (e: React.FormEvent) => {
@@ -125,13 +117,11 @@ function AlbumSettingsContent({ albumId, userId }: { albumId: string; userId: st
     }
   };
 
-  // Separate owner from other members
   const ownerMember = currentAlbumMembers.find((m) => m.role === 'owner');
   const otherMembers = currentAlbumMembers.filter((m) => m.role !== 'owner');
 
   return (
     <>
-      {/* Header */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-100">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
@@ -145,15 +135,12 @@ function AlbumSettingsContent({ albumId, userId }: { albumId: string; userId: st
               <p className="text-xs text-gray-400">Miembros y permisos</p>
             </div>
           </div>
-          {settingsSaved && (
-            <span className="text-xs text-green-600 font-medium">✓ Guardado</span>
-          )}
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      {settingsSaved && <Toast message="Guardado" onClose={() => setSettingsSaved(false)} />}
 
-        {/* ── Sección: Invitar ─────────────────────────────────────── */}
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-8">
         <section className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
           <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-4">Invitar persona</h2>
           <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-3">
@@ -189,7 +176,6 @@ function AlbumSettingsContent({ albumId, userId }: { albumId: string; userId: st
           )}
         </section>
 
-        {/* ── Sección: Miembros ────────────────────────────────────── */}
         <section className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
           <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-4">
             Miembros del álbum
@@ -208,7 +194,6 @@ function AlbumSettingsContent({ albumId, userId }: { albumId: string; userId: st
             </p>
           ) : (
             <ul className="space-y-2">
-              {/* Owner row */}
               {ownerMember && (
                 <li className="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-3">
                   <div className="flex items-center gap-3">
@@ -229,7 +214,6 @@ function AlbumSettingsContent({ albumId, userId }: { albumId: string; userId: st
                 </li>
               )}
 
-              {/* Other members */}
               {otherMembers.map((member) => (
                 <li key={member.userId} className="flex items-center justify-between rounded-2xl border border-gray-100 px-4 py-3 hover:bg-gray-50 transition">
                   <div className="flex items-center gap-3">
@@ -255,7 +239,7 @@ function AlbumSettingsContent({ albumId, userId }: { albumId: string; userId: st
                       <option value="admin">Admin</option>
                     </select>
                     <button
-                      onClick={() => handleRemove(member)}
+                      onClick={() => setConfirmRemove(member)}
                       disabled={removingId === member.userId}
                       className="text-gray-300 hover:text-red-500 transition disabled:opacity-50 p-1 rounded-lg hover:bg-red-50"
                       title="Eliminar del álbum"
@@ -271,7 +255,6 @@ function AlbumSettingsContent({ albumId, userId }: { albumId: string; userId: st
           )}
         </section>
 
-        {/* ── Sección: Protección de fotos ─────────────────────────── */}
         <section className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
           <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-1">Protección de fotos</h2>
           <p className="text-xs text-gray-400 mb-5">
@@ -293,22 +276,15 @@ function AlbumSettingsContent({ albumId, userId }: { albumId: string; userId: st
                 </p>
               </div>
             </div>
-            {/* Toggle switch */}
-            <button
-              onClick={handleToggleWatermark}
+            <Toggle
+              enabled={watermarkEnabled}
+              onChange={handleToggleWatermark}
               disabled={savingSettings}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${watermarkEnabled ? 'bg-violet-500' : 'bg-gray-200'} disabled:opacity-50`}
-              role="switch"
-              aria-checked={watermarkEnabled}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${watermarkEnabled ? 'translate-x-6' : 'translate-x-1'}`}
-              />
-            </button>
+              label="Marca de agua"
+            />
           </div>
         </section>
 
-        {/* ── Sección: Roles explicados ─────────────────────────────── */}
         <section className="bg-gray-50 rounded-3xl p-5">
           <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Guía de roles</h2>
           <dl className="space-y-2">
@@ -321,32 +297,25 @@ function AlbumSettingsContent({ albumId, userId }: { albumId: string; userId: st
           </dl>
         </section>
       </main>
+
+      {confirmRemove && (
+        <ConfirmModal
+          title="Eliminar miembro"
+          message={`¿Eliminar a ${confirmRemove.userEmail || confirmRemove.userName || confirmRemove.userId} del álbum?`}
+          confirmLabel="Eliminar"
+          variant="danger"
+          onConfirm={handleRemoveConfirmed}
+          onCancel={() => setConfirmRemove(null)}
+        />
+      )}
     </>
   );
 }
 
-// ─── Page ──────────────────────────────────────────────────────────────────────
-
 export default function AlbumSettingsPage() {
   const router = useRouter();
-  const [userId, setUserId] = useState<string | null>(null);
-  const [hydrated, setHydrated] = useState(false);
-
+  const { userId, hydrated } = useAuth({ redirectTo: '/app' });
   const albumId = typeof router.query.id === 'string' ? router.query.id : null;
-
-  useEffect(() => {
-    const authState = authBridge.getSharedAuthState();
-    if (authState.isAuthenticated && authState.user) {
-      const bridgeId = authState.user.email || authState.user.uid;
-      localStorage.setItem(USER_ID_KEY, bridgeId);
-      setUserId(bridgeId);
-      setHydrated(true);
-      return;
-    }
-    const stored = localStorage.getItem(USER_ID_KEY);
-    setUserId(stored);
-    setHydrated(true);
-  }, []);
 
   if (!hydrated || !albumId) {
     return (
@@ -356,10 +325,7 @@ export default function AlbumSettingsPage() {
     );
   }
 
-  if (!userId) {
-    if (typeof window !== 'undefined') router.push('/app');
-    return null;
-  }
+  if (!userId) return null;
 
   return (
     <>

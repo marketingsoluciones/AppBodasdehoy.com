@@ -31,7 +31,7 @@
   "batchDelete": "Eliminar en lote",
   "blog": "Blog de productos",
   "branching": "Crear subtemas",
-  "branchingDisable": "La función de \"subtemas\" no está disponible en el modo actual. Para utilizar esta función, cambia al modo de base de datos Postgres/Pglite o utiliza LobeHub Cloud.",
+  "branchingDisable": "La función de \"subtemas\" no está disponible en el modo actual. Para utilizar esta función, cambia al modo de base de datos Postgres/Pglite o utiliza Bodas de Hoy Cloud.",
   "branchingRequiresSavedTopic": "El tema actual no está guardado, guárdalo para poder usar la función de subtemas",
   "cancel": "Cancelar",
   "changelog": "Registro de cambios",

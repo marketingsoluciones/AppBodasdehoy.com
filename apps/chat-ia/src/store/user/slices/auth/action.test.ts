@@ -31,7 +31,7 @@ vi.mock('@/const/auth', () => ({
 
 beforeEach(() => {
   // Prevent happy-dom navigation from destroying the DOM during tests.
-  // logout() and openLogin() do `window.location.href = '/dev-login'` as a fallback
+  // logout() and openLogin() do `window.location.href = '/login'` as a fallback
   // which would reset the window/document and make result.current null.
   vi.stubGlobal('location', { href: '', toString: () => 'http://localhost/' });
 });

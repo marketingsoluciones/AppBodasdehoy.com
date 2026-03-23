@@ -29,27 +29,6 @@ const useStyles = createStyles(({ css, responsive, token }) => ({
       align-items: flex-start;
     }
   `,
-  continueModalOverlay: css`
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(2px);
-  `,
-  continueModalCard: css`
-    width: 100%;
-    max-width: 400px;
-    margin: 16px;
-    border-radius: 16px;
-    background: ${token.colorBgContainer};
-    border: 1px solid ${token.colorBorderSecondary};
-    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-    padding: 28px 24px 20px;
-    text-align: center;
-  `,
   continueBtn: css`
     width: 100%;
     padding: 10px 20px;
@@ -63,6 +42,34 @@ const useStyles = createStyles(({ css, responsive, token }) => ({
     transition: opacity 0.15s;
     &:hover { opacity: 0.87; }
   `,
+  continueModalCard: css`
+    width: 100%;
+    max-width: 400px;
+    margin: 16px;
+    border-radius: 16px;
+    background: ${token.colorBgContainer};
+    border: 1px solid ${token.colorBorderSecondary};
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    padding: 28px 24px 20px;
+    text-align: center;
+  `,
+  continueModalOverlay: css`
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+  `,
+  desc: css`
+    font-size: 14px;
+    text-align: center;
+    ${responsive.mobile} {
+      text-align: start;
+    }
+  `,
   newChatBtn: css`
     width: 100%;
     padding: 10px 20px;
@@ -75,13 +82,6 @@ const useStyles = createStyles(({ css, responsive, token }) => ({
     cursor: pointer;
     transition: background 0.15s;
     &:hover { background: ${token.colorFillTertiary}; }
-  `,
-  desc: css`
-    font-size: 14px;
-    text-align: center;
-    ${responsive.mobile} {
-      text-align: start;
-    }
   `,
   title: css`
     margin-block: 0.2em 0;
@@ -169,10 +169,10 @@ const InboxWelcome = memo(() => {
         <div className={styles.continueModalOverlay}>
           <div className={styles.continueModalCard}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>💬</div>
-            <h3 style={{ margin: '0 0 6px', fontSize: 17, fontWeight: 700 }}>
+            <h3 style={{ fontSize: 17, fontWeight: 700, margin: '0 0 6px' }}>
               ¿Continuar donde lo dejaste?
             </h3>
-            <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--ant-color-text-secondary, #888)', lineHeight: 1.5 }}>
+            <p style={{ color: 'var(--ant-color-text-secondary, #888)', fontSize: 13, lineHeight: 1.5, margin: '0 0 20px' }}>
               Tienes una conversación reciente:{' '}
               <strong>{lastTopic!.title || 'Sin título'}</strong>
             </p>

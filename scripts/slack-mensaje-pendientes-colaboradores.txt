@@ -1,0 +1,28 @@
+*Coordinación Front → api-ia / colaboradores* (`#copilot-api-ia`)
+
+Para lectura humana y seguimiento (si tenéis integración que consuma el canal, incluid este mensaje).
+
+*Resumen por rol* — detalle en repo `apps/chat-ia/PENDIENTES-POR-COLABORADOR.md`
+
+*1) Front / Chat-IA (LobeChat)*
+• *Entregar:* en este canal la evidencia de re-test `POST /api/lobechat-kb/search` y `/embed` (request, response completa, `trace_id`, UTC). Comando: `pnpm evidencias:api-ia:lobechat-kb` (opcional `OUTPUT_FILE=./evidencia.txt`). Guía: `apps/chat-ia/CIERRE-LOBECHAT-KB-EVIDENCIA-API-IA.md`
+• *Hacer:* desplegar cambios recientes: servidor Next envía `X-Request-ID` a api-ia en RAG; errores incluyen `trace_id` si api-ia lo devuelve; `X-User-Role` vía `AUTH_CONFIG` desde app parent.
+
+*2) App Eventos (Copilot iframe)*
+• *Entregar:* si api-ia pide captura Network: `X-User-ID` + `X-User-Role` en `/webapi/chat/...`
+• *Hacer:* smoke tras deploy; confirmar que `user.role` llega al iframe o acordar fallback.
+
+*3) Equipo api-ia*
+• *Entregar:* tras evidencias: *CERRADO* o *EN CORRECCIÓN* (+ ETA) en flujo lobechat-kb.
+• *Hacer:* triage con `X-Request-ID` (cliente/Next) y `trace_id` del JSON de error.
+
+*4) Equipo API2*
+• *Entregar/mantener:* *OK sin bloqueos* o incidencia con 4 datos (endpoint, UTC, headers/dev, payload). Ref: `apps/chat-ia/REFERENCIA-CHECKLIST-API2-Y-NUESTRA-RESPUESTA.md`
+
+*5) QA*
+• *Entregar:* salida del script de evidencias con usuario real (`KB_USER_ID`).
+• *Hacer:* regresión corta Copilot (un mensaje) tras deploys.
+
+*Prioridad:* cerrar hilo lobechat-kb con evidencia pegada aquí + respuesta api-ia.
+
+— *Front Copilot / AppBodasdehoy* | monorepo actualizado

@@ -234,8 +234,8 @@ export const useAuthCheck = () => {
     localStorage.removeItem('api2_jwt_expires_at');
     localStorage.removeItem('jwt_token');
 
-    // Redirigir a dev-login
-    window.location.href = '/dev-login?reason=session_expired';
+    // Redirigir a login
+    window.location.href = '/login?reason=session_expired';
   }, []);
 
   return {

@@ -4,6 +4,8 @@ import { Edit, Plus, Save, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+
 interface PromptTemplate {
   category: string;
   content: string;
@@ -50,7 +52,7 @@ const PromptConfig = () => {
       if (filter.category) params.append('category', filter.category);
       if (filter.isActive !== undefined) params.append('isActive', String(filter.isActive));
 
-      const response = await fetch(`http://localhost:8030/api/prompts/?${params.toString()}`);
+      const response = await fetch(`${BACKEND_URL}/api/prompts/?${params.toString()}`);
       const data = await response.json();
       setPrompts(data);
     } catch (error) {
@@ -95,7 +97,7 @@ const PromptConfig = () => {
     try {
       if (isCreating) {
         // Create new prompt
-        await fetch('http://localhost:8030/api/prompts', {
+        await fetch(`${BACKEND_URL}/api/prompts`, {
           body: JSON.stringify({
             category: form.category,
             content: form.content,
@@ -110,7 +112,7 @@ const PromptConfig = () => {
         });
       } else if (selectedPrompt) {
         // Update existing prompt
-        await fetch(`http://localhost:8030/api/prompts/${selectedPrompt.id}`, {
+        await fetch(`${BACKEND_URL}/api/prompts/${selectedPrompt.id}`, {
           body: JSON.stringify({
             category: form.category,
             content: form.content,
@@ -138,7 +140,7 @@ const PromptConfig = () => {
       if (!confirm('¿Estás seguro de eliminar este prompt?')) return;
 
       try {
-        await fetch(`http://localhost:8030/api/prompts/${promptId}`, {
+        await fetch(`${BACKEND_URL}/api/prompts/${promptId}`, {
           method: 'DELETE',
         });
         await loadPrompts();

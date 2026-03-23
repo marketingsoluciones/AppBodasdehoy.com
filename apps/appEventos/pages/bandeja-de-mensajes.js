@@ -2,8 +2,7 @@ import { useEffect } from "react";
 import { SkeletonPage } from "../components/Utils/SkeletonPage";
 
 /**
- * Bandeja de mensajes — redirige a chat-ia /messages (inbox unificado).
- * La funcionalidad completa vive en chat.bodasdehoy.com/messages.
+ * Bandeja de mensajes — redirige a /messages en la app de chat (mismo tier: NEXT_PUBLIC_CHAT o chat en prod).
  */
 const BandejaDeMensajes = () => {
   useEffect(() => {

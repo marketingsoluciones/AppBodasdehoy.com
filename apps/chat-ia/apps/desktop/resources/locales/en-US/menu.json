@@ -38,7 +38,7 @@
   },
   "macOS": {
     "about": "About {{appName}}",
-    "devTools": "LobeHub Developer Tools",
+    "devTools": "Bodas de Hoy Developer Tools",
     "hide": "Hide {{appName}}",
     "hideOthers": "Hide Others",
     "preferences": "Preferences...",

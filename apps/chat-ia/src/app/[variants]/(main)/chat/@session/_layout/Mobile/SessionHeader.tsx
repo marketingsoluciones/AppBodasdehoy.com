@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import { ProductLogo } from '@/components/Branding';
+import { DeveloperSessionBrand } from '@/components/Branding';
 import { MOBILE_HEADER_ICON_SIZE } from '@/const/layoutTokens';
 import UserAvatar from '@/features/User/UserAvatar';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
@@ -22,9 +22,9 @@ const Header = memo(() => {
   return (
     <ChatHeader
       left={
-        <Flexbox align={'center'} gap={8} horizontal style={{ marginLeft: 8 }}>
+        <Flexbox align={'center'} gap={8} horizontal style={{ flex: 1, marginLeft: 8, minWidth: 0 }}>
           <UserAvatar onClick={() => router.push('/me')} size={32} />
-          <ProductLogo type={'text'} />
+          <DeveloperSessionBrand size={32} />
         </Flexbox>
       }
       right={

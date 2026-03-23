@@ -292,7 +292,7 @@ export const BoddyIter = () => {
 
     useEffect(() => {
         let arr = Array.isArray(event?.itinerarios_array) ? event.itinerarios_array : []
-        if (copilotFilter?.entity === 'moments' && copilotFilter.ids?.length) {
+        if ((copilotFilter?.entity === 'moments' || copilotFilter?.entity === 'services') && copilotFilter.ids?.length) {
             arr = arr.filter((elem) => elem?._id && copilotFilter.ids!.includes(elem._id))
         }
         const itinerarios = arr.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))

@@ -37,6 +37,10 @@ export interface ChatMessageState {
    */
   messageLoadingIds: string[];
   /**
+   * Feedback ratings por message id (positive/negative)
+   */
+  messageRatings: Record<string, 'positive' | 'negative'>;
+  /**
    * whether messages have fetched
    */
   messagesInit: boolean;
@@ -68,6 +72,7 @@ export const initialMessageState: ChatMessageState = {
   isCreatingMessage: false,
   messageEditingIds: [],
   messageLoadingIds: [],
+  messageRatings: {},
   messagesInit: false,
   messagesMap: {},
   supervisorDebounceTimers: {},

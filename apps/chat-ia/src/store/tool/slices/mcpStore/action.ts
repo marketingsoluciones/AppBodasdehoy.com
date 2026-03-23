@@ -7,6 +7,7 @@ import { gt, valid } from 'semver';
 import useSWR, { SWRResponse } from 'swr';
 import { StateCreator } from 'zustand/vanilla';
 
+import { BRANDING_NAME } from '@/const/branding';
 import { CURRENT_VERSION } from '@/const/version';
 import { MCPErrorData } from '@/libs/mcp/types';
 import { discoverService } from '@/services/discover';
@@ -132,7 +133,8 @@ export const createMCPPluginStoreSlice: StateCreator<
     let data: any;
     let result: CheckMcpInstallResult | undefined;
     let connection: any;
-    const userAgent = `LobeHub Desktop/${CURRENT_VERSION}`;
+    const uaBrand = BRANDING_NAME.replace(/\s+/g, '');
+    const userAgent = `${uaBrand}-Desktop/${CURRENT_VERSION}`;
 
     try {
       // 检查是否已被取消

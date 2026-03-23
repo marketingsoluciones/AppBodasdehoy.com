@@ -9,6 +9,7 @@ import { DataTableGroupContextProvider } from '../../../context/DataTableGroupCo
 import { ModalConfirmacionEnvio } from './ModalConfirmacionEnvio';
 import { ModalInterface } from '../../../utils/Interfaces';
 import { TemplateDesign } from '../../../utils/Interfaces';
+import { usePlanLimits } from '../../../hooks/usePlanLimits';
 
 type TransportType = 'email' | 'whatsapp';
 
@@ -39,6 +40,8 @@ export const SendButton: FC<SendButtonProps> = ({ isResend = false, optionSelect
   const buttonText = isResend ? t("reenviar") : t("enviar");
   const toast = useToast()
   const { dataTableGroup: { arrIDs } } = DataTableGroupContextProvider();
+  const { canSendWhatsApp, canSendSMS, whatsappLimit, upgradeMessage } = usePlanLimits();
+  const [showWhatsAppGate, setShowWhatsAppGate] = useState(false);
 
   // Estados para el modal de confirmación
   const [showModalConfirmacion, setShowModalConfirmacion] = useState<ModalInterface>({ state: false });
@@ -242,6 +245,12 @@ export const SendButton: FC<SendButtonProps> = ({ isResend = false, optionSelect
     const storedTransport = getStoredTransport();
     const fallbackTransport = getTransportFromOption(optionSelect);
     const initialTransport = storedTransport ?? transportSelected ?? fallbackTransport;
+
+    // Check WhatsApp plan limit
+    if (initialTransport === 'whatsapp' && !canSendWhatsApp) {
+      setShowWhatsAppGate(true);
+      return;
+    }
     setTransportSelected(initialTransport);
     setSelectedEmailTemplate(event?.templateEmailSelect || '');
     setSelectedWhatsappTemplate(event?.templateWhatsappSelect || '');
@@ -309,6 +318,39 @@ export const SendButton: FC<SendButtonProps> = ({ isResend = false, optionSelect
           {buttonText}
         </button>
       </div>
+
+      {/* Modal de gating de WhatsApp */}
+      {showWhatsAppGate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 flex flex-col items-center gap-4 text-center">
+            <div className="text-4xl">💬</div>
+            <h2 className="font-display text-lg font-semibold text-gray-800">
+              {t("WhatsApp no disponible en tu plan")}
+            </h2>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              {upgradeMessage('whatsapp-msg') || 'El envío por WhatsApp está disponible desde el plan Basic. Incluye 200 mensajes.'}
+            </p>
+            <div className="flex flex-col gap-2 w-full mt-2">
+              <a
+                href="/facturacion"
+                className="w-full py-3 rounded-full bg-primary text-white font-medium text-sm hover:opacity-80 transition text-center"
+              >
+                {t("Ver planes")}
+              </a>
+              <button
+                onClick={() => {
+                  setShowWhatsAppGate(false);
+                  // Switch to email transport
+                  handleTransportChange('email');
+                }}
+                className="w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition"
+              >
+                {t("Enviar por email")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de confirmación de envío */}
       {showModalConfirmacion.state && (

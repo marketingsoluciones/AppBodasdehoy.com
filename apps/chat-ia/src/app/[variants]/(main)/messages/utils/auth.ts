@@ -4,16 +4,16 @@ import { getAuthToken } from '@/utils/authToken';
  * Lee el contexto del usuario desde dev-user-config:
  * userId, development, role
  */
-function getUserContext(): { userId?: string; development?: string; role?: string } {
+function getUserContext(): { development?: string; role?: string, userId?: string; } {
   if (typeof window === 'undefined') return {};
   try {
     const config = localStorage.getItem('dev-user-config');
     if (config) {
       const parsed = JSON.parse(config);
       return {
-        userId: parsed?.userId,
         development: parsed?.development,
         role: parsed?.role,
+        userId: parsed?.userId,
       };
     }
   } catch {}

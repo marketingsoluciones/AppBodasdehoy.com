@@ -15,6 +15,8 @@ import { usePlatform } from '@/hooks/usePlatform';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { HotkeyScopeEnum } from '@/types/hotkey';
 
+import { resolveChatEmbedMode } from '@/utils/resolveChatEmbedMode';
+
 import DesktopLayoutContainer from './DesktopLayoutContainer';
 import RegisterHotkeys from './RegisterHotkeys';
 import SideBar from './SideBar';
@@ -23,23 +25,10 @@ const CloudBanner = dynamic(() => import('@/features/AlertBanner/CloudBanner'));
 
 const Layout = memo<PropsWithChildren>(({ children }) => {
   const searchParams = useSearchParams();
-  // Detectar modo embebido:
-  // - por query (?embed=1)
-  // - o por estar dentro de un iframe (más robusto, algunos routers limpian query params)
-  let isInIframe = false;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    isInIframe = typeof window !== 'undefined' && window.self !== window.top;
-  } catch {
-    // Si hay error de cross-origin, asumimos que está embebido
-    isInIframe = true;
-  }
-
-  const isEmbed =
-    isInIframe ||
-    searchParams?.get('embed') === '1' ||
-    searchParams?.get('embedded') === '1' ||
-    searchParams?.get('minimal') === '1';
+  const isEmbed = resolveChatEmbedMode(
+    searchParams,
+    typeof window !== 'undefined' ? window : undefined,
+  );
 
   const { isPWA } = usePlatform();
   const theme = useTheme();

@@ -357,8 +357,8 @@
       "version": "Versie"
     },
     "official": {
-      "badge": "LobeHub officiële plugin",
-      "description": "Deze plugin is ontwikkeld en onderhouden door LobeHub, grondig beveiligd en veilig in gebruik.",
+      "badge": "Bodas de Hoy officiële plugin",
+      "description": "Deze plugin is ontwikkeld en onderhouden door Bodas de Hoy, grondig beveiligd en veilig in gebruik.",
       "loadingMessage": "Plugin details ophalen...",
       "loadingTitle": "Bezig met laden",
       "title": "Officiële plugin installeren"
@@ -461,7 +461,7 @@
     "tabs": {
       "installed": "Geïnstalleerd",
       "mcp": "MCP-plugins",
-      "old": "LobeHub Plug-ins"
+      "old": "Bodas de Hoy Plug-ins"
     },
     "title": "Pluginwinkel"
   },

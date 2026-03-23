@@ -18,7 +18,6 @@ import type {
   BridgeMessage,
   AuthConfigPayload,
   EventContextPayload,
-  PageContextPayload,
 } from '@bodasdehoy/shared/communication';
 
 // Delays de reintento si el tRPC call es abortado durante la inicialización del iframe.
@@ -30,9 +29,9 @@ const RETRY_DELAYS_MS = [1500, 3000, 5000];
 // Reintenta automáticamente si el tRPC call es abortado durante la inicialización del iframe.
 async function injectContextIntoSystemPrompt(
   pageContext: {
-    pageName?: string;
-    eventName?: string;
     eventId?: string;
+    eventName?: string;
+    pageName?: string;
     screenData?: Record<string, any>;
   },
   attempt = 0,
@@ -64,7 +63,7 @@ async function injectContextIntoSystemPrompt(
 
     // Eliminar bloque de contexto anterior (evita acumulación)
     const cleanedSystemRole = currentSystemRole
-      .replace(/<!--\s*Contexto del evento[\s\S]*?<!--\s*fin contexto\s*-->\n*/g, '')
+      .replaceAll(/<!--\s*Contexto del evento[\S\s]*?<!--\s*fin contexto\s*-->\n*/g, '')
       .trimStart();
 
     const newSystemRole = cleanedSystemRole
@@ -74,8 +73,8 @@ async function injectContextIntoSystemPrompt(
     await agentStore.updateAgentConfig({ systemRole: newSystemRole });
 
     console.log('[CopilotBridge] ✅ Contexto inyectado en system prompt:', {
-      pageName: pageContext.pageName,
       eventName: pageContext.eventName,
+      pageName: pageContext.pageName,
       screenDataKeys: pageContext.screenData ? Object.keys(pageContext.screenData) : [],
     });
   } catch (err: any) {
@@ -146,13 +145,13 @@ export const useCopilotBridge = () => {
     if (!isInIframe.current || typeof window === 'undefined') return;
 
     // Dominios conocidos del app de eventos (producción y test)
-    const APP_DOMAINS = [
+    const APP_DOMAINS = new Set([
       'app.bodasdehoy.com',
       'organizador.bodasdehoy.com', // legacy masterv1
       'app-test.bodasdehoy.com',
       'app-dev.bodasdehoy.com',
       'organizador.eventosorganizador.com',
-    ];
+    ]);
 
     // Rutas del app que indican navegación interna
     const APP_PATHS = [
@@ -168,7 +167,7 @@ export const useCopilotBridge = () => {
 
       try {
         const url = new URL(target.href);
-        const isAppDomain = APP_DOMAINS.some(d => url.hostname === d);
+        const isAppDomain = APP_DOMAINS.has(url.hostname);
         const isAppPath = APP_PATHS.some(p => url.pathname.startsWith(p));
 
         if (isAppDomain || isAppPath) {
@@ -176,10 +175,10 @@ export const useCopilotBridge = () => {
           e.stopPropagation();
           const path = url.pathname + url.search;
           window.parent.postMessage({
-            type: 'COPILOT_NAVIGATE',
+            payload: { url: target.href },
             source: 'copilot-chat',
             timestamp: Date.now(),
-            payload: { url: target.href },
+            type: 'COPILOT_NAVIGATE',
           }, '*');
           console.log('[CopilotBridge] Interceptado link app, enviando COPILOT_NAVIGATE:', path);
         }
@@ -235,9 +234,9 @@ export const useCopilotBridge = () => {
           // tRPC call se aborta y se necesitan hasta 4 reintentos (~7s de espera).
           if (payload.pageContext) {
             const ctxToInject = {
-              pageName: payload.pageContext?.pageName,
-              eventName: payload.eventName || undefined,
               eventId: payload.eventId || undefined,
+              eventName: payload.eventName || undefined,
+              pageName: payload.pageContext?.pageName,
               screenData: payload.pageContext?.screenData,
             };
             setTimeout(() => injectContextIntoSystemPrompt(ctxToInject), 2500);
@@ -264,10 +263,10 @@ export const useCopilotBridge = () => {
 
         case 'PAGE_CONTEXT': {
           const payload = message.payload as {
-            path?: string;
-            pageName?: string;
-            pageDescription?: string;
             eventSummary?: any;
+            pageDescription?: string;
+            pageName?: string;
+            path?: string;
             screenData?: Record<string, any>;
           };
           console.log('[CopilotBridge] Recibido PAGE_CONTEXT:', {
@@ -280,16 +279,16 @@ export const useCopilotBridge = () => {
           const eventName = localStorage.getItem('current_event_name') || undefined;
 
           injectContextIntoSystemPrompt({
-            pageName: payload.pageName,
-            eventName,
             eventId,
+            eventName,
+            pageName: payload.pageName,
             screenData: payload.screenData,
           });
           break;
         }
 
         case 'SEND_PROMPT': {
-          const { message: promptMessage } = message.payload as { message: string; context?: Record<string, any> };
+          const { message: promptMessage } = message.payload as { context?: Record<string, any>, message: string; };
           if (!promptMessage) break;
           console.log('[CopilotBridge] Recibido SEND_PROMPT:', promptMessage.slice(0, 80));
           import('@/store/chat').then(({ useChatStore }) => {
@@ -344,11 +343,11 @@ export const useCopilotBridge = () => {
   }, [development, currentUserId, setExternalChatConfig, sendToParent]);
 
   return {
+    clearParentFilter,
     isInIframe: isInIframe.current,
+    sendFilterView,
     sendMCPNavigation,
     sendToParent,
-    sendFilterView,
-    clearParentFilter,
   };
 };
 

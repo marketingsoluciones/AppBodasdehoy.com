@@ -279,9 +279,10 @@ export const externalChatSlice: StateCreator<
       // No necesitamos hacer queries adicionales para obtener el source
       const chatsWithSource = chats.map((session: any) => ({
         // Mapear campos de la nueva estructura a la estructura esperada por el frontend
-        _id: session.id, // Mantener compatibilidad con código existente
-        id: session.id,
+        _id: session.id, 
         development: session.development || 'bodasdehoy',
+        // Mantener compatibilidad con código existente
+id: session.id,
         lastMessageAt: session.lastMessageAt,
         mensajes: (session.messages || []).map((msg: any) => ({
           _id: msg.id,
@@ -690,8 +691,11 @@ export const externalChatSlice: StateCreator<
     });
 
     // Guardar userProfile si viene userData
+    // ⚠️ Spread primero: si userData trae displayName: null, NO debe pisar el fallback
+    // (antes ...userData al final anulaba "guest" y el menú no detectaba invitado).
     const userProfile = userData
       ? {
+          ...userData,
           displayName:
             userData.displayName ||
             userData.nombre ||
@@ -699,7 +703,6 @@ export const externalChatSlice: StateCreator<
           email: userData.email || (userId.includes('@') ? userId : undefined),
           nombre: userData.nombre,
           telefono: userData.telefono || userData.phoneNumber,
-          ...userData,
         }
       : undefined;
 
@@ -783,9 +786,10 @@ export const externalChatSlice: StateCreator<
         timestamp: Date.now(),
         token: token,
         userId: userId,
-        // user_id (snake_case) es necesario para useAuthCheck en /messages
-        user_id: userId,
+        
         user_data: userData,
+        // user_id (snake_case) es necesario para useAuthCheck en /messages
+user_id: userId,
         user_type: userType,
       };
 
@@ -984,8 +988,9 @@ export const externalChatSlice: StateCreator<
 
         // Si GraphQL falla, obtener desde backend Python
         try {
+          const BACKEND_URL_FALLBACK = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
           const backendResponse = await fetch(
-            `http://localhost:8030/api/developers/${development}/config`,
+            `${BACKEND_URL_FALLBACK}/api/developers/${development}/config`,
           );
           if (backendResponse.ok) {
             const backendData = await backendResponse.json();

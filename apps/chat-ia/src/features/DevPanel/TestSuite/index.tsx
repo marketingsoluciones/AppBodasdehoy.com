@@ -8,6 +8,20 @@ import { EVENTOS_API_CONFIG } from '@/config/eventos-api';
 import { useChatStore } from '@/store/chat';
 import { buildAuthHeaders } from '@/utils/authToken';
 
+/**
+ * Construye la URL base para llamadas al backend de tests.
+ * En el navegador usa el proxy Next.js (/api/backend) para evitar CORS.
+ * En SSR usa la URL directa del backend.
+ */
+const getTestBackendURL = (): string => {
+  const configured = EVENTOS_API_CONFIG.BACKEND_URL;
+  // En el navegador BACKEND_URL es '' → usar proxy de Next.js
+  if (!configured || configured === '') {
+    return '/api/backend';
+  }
+  return configured;
+};
+
 interface TestQuestion {
   actualResponse?: string;
   category: string;
@@ -142,16 +156,10 @@ const TestSuite = () => {
 
     try {
       // ✅ FIX: Intentar cargar modelos de Ollama vía backend (no directamente desde navegador)
-      const backendURL = EVENTOS_API_CONFIG.BACKEND_URL || 'http://localhost:8030';
+      const backendURL = getTestBackendURL();
       let ollamaModels: Array<{costPer1kTokens?: number, name: string, provider: string, size?: string}> = [];
 
-      // Construir URL correctamente
-      let url: string;
-      if (backendURL.startsWith('/')) {
-        url = `${backendURL}/api/ollama/models`;
-      } else {
-        url = `${backendURL}/api/ollama/models`;
-      }
+      const url = `${backendURL}/api/ollama/models`;
 
       const response = await fetch(url, {
         method: 'GET',
@@ -185,24 +193,11 @@ const TestSuite = () => {
       if (filter.difficulty) params.append('difficulty', filter.difficulty);
       if (filter.search) params.append('search', filter.search);
 
-      const backendURL = EVENTOS_API_CONFIG.BACKEND_URL || 'http://localhost:8030';
+      const backendURL = getTestBackendURL();
+      const url = `${backendURL}/api/admin/tests/questions${params.toString() ? `?${params.toString()}` : ''}`;
 
-      // ✅ CORRECCIÓN: Construir URL correctamente
-      let url: URL;
-      if (backendURL.startsWith('/')) {
-        // Es una ruta relativa (proxy de Next.js: /api/backend)
-        url = new URL(`${backendURL}/api/admin/tests/questions`, window.location.origin);
-      } else {
-        // Es una URL absoluta (http://localhost:8030)
-        url = new URL('/api/admin/tests/questions', backendURL);
-      }
-
-      if (params.toString()) {
-        url.search = params.toString();
-      }
-
-      console.log('[TestSuite] 🔄 Cargando tests desde:', url.toString());
-      const response = await fetch(url.toString());
+      console.log('[TestSuite] 🔄 Cargando tests desde:', url);
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -220,17 +215,10 @@ const TestSuite = () => {
 
   const loadStats = useCallback(async () => {
     try {
-      const backendURL = EVENTOS_API_CONFIG.BACKEND_URL || 'http://localhost:8030';
+      const backendURL = getTestBackendURL();
+      const url = `${backendURL}/api/admin/tests/stats`;
 
-      // ✅ CORRECCIÓN: Construir URL correctamente
-      let url: URL;
-      if (backendURL.startsWith('/')) {
-        url = new URL(`${backendURL}/api/admin/tests/stats`, window.location.origin);
-      } else {
-        url = new URL('/api/admin/tests/stats', backendURL);
-      }
-
-      const response = await fetch(url.toString());
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -250,18 +238,8 @@ const TestSuite = () => {
 
   // ✅ CORRECCIÓN: useChatStore puede no estar disponible en admin o durante SSR
   // Usar el hook siempre (regla de React), pero con selector seguro
-  const chatStoreResult = useChatStore((s) => {
-    // Selector seguro: si el store no está inicializado, retornar undefined
-    if (!s) {
-      return { activeId: undefined, sendMessage: undefined };
-    }
-    return {
-      activeId: s.activeId,
-      sendMessage: s.sendMessage,
-    };
-  });
-  const sendMessage = chatStoreResult?.sendMessage;
-  const activeId = chatStoreResult?.activeId;
+  const activeId = useChatStore((s) => s.activeId);
+  const sendMessage = useChatStore((s) => s.sendMessage);
 
   const runSelectedTests = useCallback(async () => {
     if (selectedTests.length === 0) {
@@ -280,19 +258,8 @@ const TestSuite = () => {
       setResults([]);
 
       try {
-        const backendURL = 
-          process.env.NEXT_PUBLIC_BACKEND_URL || 
-          EVENTOS_API_CONFIG.BACKEND_URL || 
-          'http://localhost:8030';
-
-        let url: string;
-        if (backendURL.startsWith('/')) {
-          url = `${backendURL}/api/admin/tests/compare`;
-        } else if (backendURL.startsWith('http://') || backendURL.startsWith('https://')) {
-          url = `${backendURL}/api/admin/tests/compare`;
-        } else {
-          url = `http://${backendURL}/api/admin/tests/compare`;
-        }
+        const backendURL = getTestBackendURL();
+        const url = `${backendURL}/api/admin/tests/compare`;
 
         // Ejecutar comparación para el primer test seleccionado (o todos si quieres)
         const firstTestId = selectedTests[0];
@@ -341,19 +308,8 @@ const TestSuite = () => {
     setResults([]);
 
     try {
-      const backendURL = 
-        process.env.NEXT_PUBLIC_BACKEND_URL || 
-        EVENTOS_API_CONFIG.BACKEND_URL || 
-        'http://localhost:8030';
-
-      let url: string;
-      if (backendURL.startsWith('/')) {
-        url = `${backendURL}/api/admin/tests/run`;
-      } else if (backendURL.startsWith('http://') || backendURL.startsWith('https://')) {
-        url = `${backendURL}/api/admin/tests/run`;
-      } else {
-        url = `http://${backendURL}/api/admin/tests/run`;
-      }
+      const backendURL = getTestBackendURL();
+      const url = `${backendURL}/api/admin/tests/run`;
 
       // ✅ NUEVO: Enviar preguntas al chat ANTES de ejecutar tests
       const selectedTestQuestions = tests.filter((t) => selectedTests.includes(t.id));
@@ -410,24 +366,8 @@ const TestSuite = () => {
 
   const resetTests = useCallback(async () => {
     try {
-      // ✅ CORRECCIÓN: Usar NEXT_PUBLIC_BACKEND_URL o fallback
-      const backendURL = 
-        process.env.NEXT_PUBLIC_BACKEND_URL || 
-        EVENTOS_API_CONFIG.BACKEND_URL || 
-        'http://localhost:8030';
-
-      // ✅ CORRECCIÓN: Construir URL correctamente
-      let url: string;
-      if (backendURL.startsWith('/')) {
-        // Es una ruta relativa (proxy de Next.js)
-        url = `${backendURL}/api/admin/tests/reset`;
-      } else if (backendURL.startsWith('http://') || backendURL.startsWith('https://')) {
-        // Es una URL absoluta
-        url = `${backendURL}/api/admin/tests/reset`;
-      } else {
-        // Fallback: asumir que es una URL completa
-        url = `http://${backendURL}/api/admin/tests/reset`;
-      }
+      const backendURL = getTestBackendURL();
+      const url = `${backendURL}/api/admin/tests/reset`;
 
       const response = await fetch(url, { method: 'POST' });
       if (!response.ok) {
@@ -460,13 +400,8 @@ const TestSuite = () => {
 
   const handleAddQuestion = useCallback(async () => {
     try {
-      const backendURL = EVENTOS_API_CONFIG.BACKEND_URL || 'http://localhost:8030';
-      let url: string;
-      if (backendURL.startsWith('/')) {
-        url = `${backendURL}/api/admin/tests/questions`;
-      } else {
-        url = `${backendURL}/api/admin/tests/questions`;
-      }
+      const backendURL = getTestBackendURL();
+      const url = `${backendURL}/api/admin/tests/questions`;
 
       const keywords = keywordsInput.split(',').map(k => k.trim()).filter(Boolean);
 

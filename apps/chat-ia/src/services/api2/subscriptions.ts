@@ -197,6 +197,54 @@ export async function subscribeToPlan(
   }
 }
 
+export interface CancelSubscriptionResult {
+  _id?: string;
+  plan_id?: string;
+  status?: string;
+  success: boolean;
+}
+
+export async function cancelSubscription(): Promise<CancelSubscriptionResult> {
+  try {
+    // api2 real mutation name: cancelMySubscription → returns UserSubscription
+    const data = await api2Client.query<{ cancelMySubscription: { _id: string; status: string; plan_id: string } | null }>(
+      `mutation CancelMySubscription {
+        cancelMySubscription {
+          _id status plan_id
+        }
+      }`
+    );
+    const sub = data.cancelMySubscription;
+    return { _id: sub?._id, plan_id: sub?.plan_id, status: sub?.status, success: !!sub };
+  } catch (error) {
+    console.error('[subscriptions] cancelSubscription error:', error);
+    return { success: false };
+  }
+}
+
+export interface CustomerPortalResult {
+  portal_url?: string;
+  success: boolean;
+}
+
+export async function createCustomerPortalSession(returnUrl?: string): Promise<CustomerPortalResult> {
+  try {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const data = await api2Client.query<{ createCustomerPortalSession: CustomerPortalResult }>(
+      `mutation CreateCustomerPortalSession($return_url: String!) {
+        createCustomerPortalSession(return_url: $return_url) {
+          success portal_url
+        }
+      }`,
+      { return_url: returnUrl ?? `${origin}/settings/billing/planes` }
+    );
+    return data.createCustomerPortalSession ?? { success: false };
+  } catch (error) {
+    console.error('[subscriptions] createCustomerPortalSession error:', error);
+    return { success: false };
+  }
+}
+
 export async function getSubscriptionPlans(
   tier?: SubscriptionTier
 ): Promise<SubscriptionPlan[]> {

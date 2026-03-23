@@ -1,0 +1,17 @@
+# Skip indexing heavy directories
+node_modules/
+.pnpm-store/
+.next/
+dist/
+build/
+out/
+test-results/
+**/test-screenshots/
+.git/
+evidencia_fallo_chat/
+e2e-app/
+e2e-memories/
+playwright-report/
+coverage/
+.turbo/
+docs/

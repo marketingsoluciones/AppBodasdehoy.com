@@ -55,7 +55,7 @@ function SplitLoginPage({ children }: { children: React.ReactNode }) {
         </div>
         <h1 style={{ color: 'white', fontSize: 'clamp(22px, 2.8vw, 34px)', fontWeight: 800, lineHeight: 1.2, marginBottom: 16, minHeight: '1.2em' }}>
           Tu asistente IA para organizar tu{' '}
-          <span style={{ display: 'inline-block', transition: 'opacity 0.4s ease', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: 4 }}>
+          <span style={{ display: 'inline-block', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: 4, transition: 'opacity 0.4s ease' }}>
             {eventLabel}
           </span>
           {' '}ideal
@@ -67,7 +67,7 @@ function SplitLoginPage({ children }: { children: React.ReactNode }) {
           ))}
         </div>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.2)', display: 'flex', gap: 24, paddingTop: 24 }}>
-          {[{v:'+5.000',l:'bodas organizadas'},{v:'+200K',l:'fotos compartidas'},{v:'4.9★',l:'valoración media'}].map(s => (
+          {[{l:'bodas organizadas',v:'+5.000'},{l:'fotos compartidas',v:'+200K'},{l:'valoración media',v:'4.9★'}].map(s => (
             <div key={s.l}><div style={{ fontSize: 20, fontWeight: 800 }}>{s.v}</div><div style={{ fontSize: 12, opacity: 0.8 }}>{s.l}</div></div>
           ))}
         </div>
@@ -127,11 +127,15 @@ function RightPanel() {
   const development = searchParams.get('developer') || 'bodasdehoy';
   // ?redirect= para volver a la app de origen tras login (cross-app SSO)
   const redirectAfterLogin = searchParams.get('redirect') || null;
+  // ?reason=session_expired para mostrar mensaje de sesión expirada
+  const reason = searchParams.get('reason');
 
   // La ruta es /login → mostrar login por defecto. Registro es secundario.
   const [view, setView] = useState<'landing' | 'login'>('login');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    reason === 'session_expired' ? 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.' : null,
+  );
   const [messageApi, contextHolder] = message.useMessage();
   const { setExternalChatConfig, fetchExternalChats } = useChatStore();
 
@@ -263,7 +267,7 @@ function RightPanel() {
         <Title level={3} style={{ marginBottom: 6, textAlign: 'center' }}>
           Empieza a organizar tu evento
         </Title>
-        <Text type="secondary" style={{ display: 'block', fontSize: 14, marginBottom: 28, textAlign: 'center' }}>
+        <Text style={{ display: 'block', fontSize: 14, marginBottom: 28, textAlign: 'center' }} type="secondary">
           Crea tu cuenta gratuita en 30 segundos
         </Text>
 
@@ -286,10 +290,10 @@ function RightPanel() {
 
         {/* Formulario de registro rápido */}
         <Form layout="vertical" onFinish={handleRegister} size="large">
-          <Form.Item name="email" rules={[{ required: true, type: 'email', message: 'Email válido requerido' }]}>
+          <Form.Item name="email" rules={[{ message: 'Email válido requerido', required: true, type: 'email' }]}>
             <Input placeholder="tu@email.com" type="email" />
           </Form.Item>
-          <Form.Item name="password" rules={[{ required: true, min: 6, message: 'Mínimo 6 caracteres' }]}>
+          <Form.Item name="password" rules={[{ message: 'Mínimo 6 caracteres', min: 6, required: true }]}>
             <Input.Password placeholder="Elige una contraseña" />
           </Form.Item>
           <Button
@@ -311,7 +315,7 @@ function RightPanel() {
         </Form>
 
         <div style={{ marginTop: 16, textAlign: 'center' }}>
-          <Text type="secondary" style={{ fontSize: 13 }}>
+          <Text style={{ fontSize: 13 }} type="secondary">
             ¿Ya tienes cuenta?{' '}
             <button
               onClick={() => { setError(null); setView('login'); }}
@@ -325,7 +329,7 @@ function RightPanel() {
 
         {/* Modo visitante */}
         <div style={{ borderTop: '1px solid #f0f0f0', marginTop: 24, paddingTop: 20, textAlign: 'center' }}>
-          <Text type="secondary" style={{ fontSize: 12 }}>¿Solo quieres explorar?</Text>
+          <Text style={{ fontSize: 12 }} type="secondary">¿Solo quieres explorar?</Text>
           <br />
           <Button
             onClick={handleVisitor}
@@ -359,7 +363,7 @@ function RightPanel() {
         ← Volver
       </button>
       <Title level={3} style={{ marginBottom: 6 }}>Iniciar sesión</Title>
-      <Text type="secondary" style={{ display: 'block', fontSize: 14, marginBottom: 24 }}>Bienvenido de vuelta</Text>
+      <Text style={{ display: 'block', fontSize: 14, marginBottom: 24 }} type="secondary">Bienvenido de vuelta</Text>
 
       {error && (
         <Alert closable message={error} onClose={() => setError(null)} showIcon style={{ marginBottom: 16 }} type="error" />
@@ -378,10 +382,10 @@ function RightPanel() {
       <Divider style={{ margin: '20px 0' }}>o con email</Divider>
 
       <Form layout="vertical" onFinish={handleLogin} size="large">
-        <Form.Item name="email" rules={[{ required: true, type: 'email', message: 'Email válido requerido' }]}>
+        <Form.Item name="email" rules={[{ message: 'Email válido requerido', required: true, type: 'email' }]}>
           <Input placeholder="tu@email.com" type="email" />
         </Form.Item>
-        <Form.Item name="password" rules={[{ required: true, message: 'Contraseña requerida' }]}>
+        <Form.Item name="password" rules={[{ message: 'Contraseña requerida', required: true }]}>
           <Input.Password placeholder="Contraseña" />
         </Form.Item>
         <Button block htmlType="submit" loading={loading} size="large" style={{ height: 48 }} type="primary">
@@ -390,7 +394,7 @@ function RightPanel() {
       </Form>
 
       <div style={{ marginTop: 16, textAlign: 'center' }}>
-        <Text type="secondary" style={{ fontSize: 13 }}>
+        <Text style={{ fontSize: 13 }} type="secondary">
           ¿No tienes cuenta?{' '}
           <button
             onClick={() => { setError(null); setView('landing'); }}

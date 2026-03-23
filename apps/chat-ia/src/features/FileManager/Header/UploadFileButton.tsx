@@ -1,13 +1,14 @@
 'use client';
 
 import { Button, Dropdown, Icon, MenuProps } from '@lobehub/ui';
-import { Upload } from 'antd';
+import { Upload, Tooltip } from 'antd';
 import { css, cx } from 'antd-style';
-import { FileUp, FolderUp, UploadIcon } from 'lucide-react';
-import { useMemo } from 'react';
+import { FileUp, FolderUp, UploadIcon, Wallet } from 'lucide-react';
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import DragUpload from '@/components/DragUpload';
+import { useWallet } from '@/hooks/useWallet';
 import { useFileStore } from '@/store/file';
 
 const hotArea = css`
@@ -23,6 +24,21 @@ const UploadFileButton = ({ knowledgeBaseId }: { knowledgeBaseId?: string }) => 
   const { t } = useTranslation('file');
 
   const pushDockFileList = useFileStore((s) => s.pushDockFileList);
+  const { totalBalance, loading, setShowRechargeModal } = useWallet();
+
+  const hasBalance = loading || totalBalance > 0;
+
+  const handleUpload = useCallback(
+    async (files: File[]) => {
+      if (!hasBalance) {
+        setShowRechargeModal(true);
+        return;
+      }
+      await pushDockFileList(files, knowledgeBaseId);
+    },
+    [hasBalance, setShowRechargeModal, pushDockFileList, knowledgeBaseId],
+  );
+
   const items = useMemo<MenuProps['items']>(
     () => [
       {
@@ -31,8 +47,7 @@ const UploadFileButton = ({ knowledgeBaseId }: { knowledgeBaseId?: string }) => 
         label: (
           <Upload
             beforeUpload={async (file) => {
-              await pushDockFileList([file], knowledgeBaseId);
-
+              await handleUpload([file]);
               return false;
             }}
             multiple={true}
@@ -48,8 +63,7 @@ const UploadFileButton = ({ knowledgeBaseId }: { knowledgeBaseId?: string }) => 
         label: (
           <Upload
             beforeUpload={async (file) => {
-              await pushDockFileList([file], knowledgeBaseId);
-
+              await handleUpload([file]);
               return false;
             }}
             directory
@@ -61,8 +75,24 @@ const UploadFileButton = ({ knowledgeBaseId }: { knowledgeBaseId?: string }) => 
         ),
       },
     ],
-    [],
+    [handleUpload],
   );
+
+  // Sin saldo: mostrar botón de recarga en lugar de upload
+  if (!hasBalance) {
+    return (
+      <Tooltip title="Recarga tu wallet para subir archivos">
+        <Button
+          icon={Wallet}
+          onClick={() => setShowRechargeModal(true)}
+          type="primary"
+        >
+          Recargar para subir
+        </Button>
+      </Tooltip>
+    );
+  }
+
   return (
     <>
       <Dropdown menu={{ items }} placement="bottomRight">
@@ -70,7 +100,7 @@ const UploadFileButton = ({ knowledgeBaseId }: { knowledgeBaseId?: string }) => 
       </Dropdown>
       <DragUpload
         enabledFiles
-        onUploadFiles={(files) => pushDockFileList(files, knowledgeBaseId)}
+        onUploadFiles={(files) => handleUpload(files)}
       />
     </>
   );

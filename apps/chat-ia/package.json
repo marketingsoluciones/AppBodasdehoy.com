@@ -146,6 +146,7 @@
     "@bodasdehoy/memories": "workspace:*",
     "@bodasdehoy/shared": "workspace:*",
     "@bodasdehoy/wedding-creator": "workspace:*",
+    "heic2any": "^0.0.4",
     "@cfworker/json-schema": "^4.1.1",
     "@clerk/localizations": "^3.32.1",
     "@clerk/nextjs": "^6.36.5",

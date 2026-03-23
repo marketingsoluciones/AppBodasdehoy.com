@@ -69,7 +69,7 @@ export function CostByChannel({ period }: CostByChannelProps) {
       <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
         {/* SVG Donut */}
         <div className="relative flex-shrink-0">
-          <svg width="160" height="160" viewBox="0 0 160 160">
+          <svg height="160" viewBox="0 0 160 160" width="160">
             {(() => {
               const cx = 80, cy = 80, r = 60, strokeW = 24;
               const circ = 2 * Math.PI * r;
@@ -80,28 +80,28 @@ export function CostByChannel({ period }: CostByChannelProps) {
                 const gap = circ - dash;
                 const el = (
                   <circle
-                    key={ch.channel}
-                    cx={cx} cy={cy} r={r}
-                    fill="none"
+                    cx={cx}
+                    cy={cy} fill="none" key={ch.channel}
+                    onMouseEnter={() => setHoveredChannel(ch.channel)}
+                    onMouseLeave={() => setHoveredChannel(null)}
+                    r={r}
                     stroke={hoveredChannel === ch.channel ? ch.color : `${ch.color}cc`}
-                    strokeWidth={hoveredChannel === ch.channel ? strokeW + 4 : strokeW}
                     strokeDasharray={`${dash} ${gap}`}
                     strokeDashoffset={-offset}
                     strokeLinecap="butt"
-                    transform="rotate(-90 80 80)"
+                    strokeWidth={hoveredChannel === ch.channel ? strokeW + 4 : strokeW}
                     style={{ transition: 'stroke-width 0.2s, stroke 0.2s' }}
-                    onMouseEnter={() => setHoveredChannel(ch.channel)}
-                    onMouseLeave={() => setHoveredChannel(null)}
+                    transform="rotate(-90 80 80)"
                   />
                 );
                 offset += dash;
                 return el;
               });
             })()}
-            <text x="80" y="74" textAnchor="middle" fontSize="18" fontWeight="bold" fill="#111827">
+            <text fill="#111827" fontSize="18" fontWeight="bold" textAnchor="middle" x="80" y="74">
               ${totalCost.toFixed(0)}
             </text>
-            <text x="80" y="92" textAnchor="middle" fontSize="10" fill="#6b7280">
+            <text fill="#6b7280" fontSize="10" textAnchor="middle" x="80" y="92">
               total
             </text>
           </svg>
@@ -134,7 +134,7 @@ export function CostByChannel({ period }: CostByChannelProps) {
                 <div className="h-2 w-full rounded-full bg-gray-200">
                   <div
                     className="h-2 rounded-full transition-all"
-                    style={{ width: `${pct}%`, backgroundColor: channel.color }}
+                    style={{ backgroundColor: channel.color, width: `${pct}%` }}
                   />
                 </div>
                 <div className="text-xs text-gray-400">

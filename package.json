@@ -18,7 +18,11 @@
     "dev:proxy": "node scripts/levantar-para-proxy.mjs",
     "dev:levantar": "bash scripts/levantar-app-test-chat-test.sh",
     "verificar:entornos": "bash scripts/verificar-app-test-chat-test.sh",
+    "evidencias:api-ia:lobechat-kb": "bash scripts/evidencias-api-ia-lobechat-kb.sh",
+    "pendientes": "bash -lc 'cat scripts/PENDIENTES-NOSOTROS-VS-ELLOS.txt'",
     "test:sistema": "bash scripts/testing-sistema.sh",
+    "test:scenario": "node scripts/run-scenario.mjs",
+    "test:catalog": "node scripts/run-scenario.mjs --list",
     "dev:copilot": "pnpm --filter @bodasdehoy/chat-ia dev",
     "dev:copilot:local": "pnpm --filter @bodasdehoy/chat-ia run dev:local",
     "dev:local": "pnpm --parallel --filter @bodasdehoy/appEventos --filter @bodasdehoy/chat-ia run dev:local",
@@ -27,6 +31,9 @@
     "lint": "pnpm -r lint",
     "test:preguntas": "node scripts/trabajar-con-1000-preguntas.mjs test 10",
     "revisar:errores": "node scripts/revisar-errores-navegador.mjs",
+    "revisar:errores:local": "BASE_URL_APP=http://127.0.0.1:8080 BASE_URL_CHAT=http://127.0.0.1:3210 node scripts/revisar-errores-navegador.mjs",
+    "revisar:errores:chromium": "REVISAR_ERRORES_BROWSER=chromium node scripts/revisar-errores-navegador.mjs",
+    "playwright:install:consola": "pnpm exec playwright install chromium",
     "test:web": "pnpm --filter @bodasdehoy/appEventos test:run",
     "test:front": "pnpm --filter @bodasdehoy/appEventos exec jest --testPathPattern='components/.*\\.test\\.(ts|tsx)' --ci",
     "dev:memories": "pnpm --filter @bodasdehoy/memories-web dev",
@@ -124,5 +131,11 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@langchain/core": "^1.1.13"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "^18.0.0",
+      "@types/react-dom": "^18.0.0"
+    }
   }
 }

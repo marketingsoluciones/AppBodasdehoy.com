@@ -31,7 +31,7 @@
   "batchDelete": "Eliminar en lote",
   "blog": "Blog de productos",
   "branching": "Crear subtemas",
-  "branchingDisable": "La función de \"subtemas\" no está disponible en el modo actual. Para utilizar esta función, cambia al modo de base de datos Postgres/Pglite o utiliza LobeHub Cloud.",
+  "branchingDisable": "La función de \"subtemas\" no está disponible en el modo actual. Para utilizar esta función, cambia al modo de base de datos Postgres/Pglite o utiliza Bodas de Hoy Cloud.",
   "branchingRequiresSavedTopic": "El tema actual no está guardado, guárdalo para poder usar la función de subtemas",
   "cancel": "Cancelar",
   "changelog": "Registro de cambios",
@@ -174,7 +174,7 @@
     "brandingPrefix": "Hecho con ❤️ por ",
     "feedback": {
       "action": "Compartir retroalimentación",
-      "desc": "Cada idea y sugerencia que nos brindes es invaluable. ¡Estamos ansiosos por conocer tu opinión! Siéntete libre de contactarnos para proporcionar comentarios sobre las funciones del producto y la experiencia de uso, ¡ayúdanos a mejorar LobeChat!",
+      "desc": "Cada idea y sugerencia que nos brindes es invaluable. ¡Estamos ansiosos por conocer tu opinión! Siéntete libre de contactarnos para proporcionar comentarios sobre las funciones del producto y la experiencia de uso, ¡ayúdanos a mejorar Bodas de Hoy!",
       "title": "Comparte tu valiosa retroalimentación en GitHub"
     },
     "later": "Más tarde",
@@ -351,9 +351,9 @@
   "telemetry": {
     "allow": "Permitir",
     "deny": "Denegar",
-    "desc": "Queremos recopilar información sobre tu uso de forma anónima para ayudarnos a mejorar LobeChat y ofrecerte una mejor experiencia de producto. Puedes desactivarlo en 'Configuración' - 'Acerca de' en cualquier momento.",
+    "desc": "Queremos recopilar información sobre tu uso de forma anónima para ayudarnos a mejorar Bodas de Hoy y ofrecerte una mejor experiencia de producto. Puedes desactivarlo en 'Configuración' - 'Acerca de' en cualquier momento.",
     "learnMore": "Más información",
-    "title": "Ayuda a mejorar LobeChat"
+    "title": "Ayuda a mejorar Bodas de Hoy"
   },
   "temp": "Temporal",
   "terms": "Términos de servicio",

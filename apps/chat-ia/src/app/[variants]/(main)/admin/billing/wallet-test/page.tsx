@@ -55,14 +55,15 @@ async function runTest(name: string): Promise<{ data?: any; error?: string }> {
     case 'getSubscriptionPlans': {
       const data = await getSubscriptionPlans();
       if (data.length === 0) return { data: '[] (sin planes públicos)' };
-      return { data: data.map((p) => ({ name: p.name, tier: p.tier, id: p.plan_id })) };
+      return { data: data.map((p) => ({ id: p.plan_id, name: p.name, tier: p.tier })) };
     }
     case 'getMySubscription': {
       const data = await getMySubscription();
       return { data: data ?? { message: 'null (sin suscripción activa)' } };
     }
-    default:
+    default: {
       throw new Error(`Test desconocido: ${name}`);
+    }
   }
 }
 
@@ -91,14 +92,14 @@ export default function WalletTestPage() {
 
   const runSingle = useCallback(
     async (name: string) => {
-      updateTest(name, { status: 'running', data: undefined, error: undefined });
+      updateTest(name, { data: undefined, error: undefined, status: 'running' });
       const start = Date.now();
       try {
         const { data, error } = await runTest(name);
         if (error) throw new Error(error);
-        updateTest(name, { status: 'ok', data, duration: Date.now() - start });
+        updateTest(name, { data, duration: Date.now() - start, status: 'ok' });
       } catch (err: any) {
-        updateTest(name, { status: 'error', error: err.message, duration: Date.now() - start });
+        updateTest(name, { duration: Date.now() - start, error: err.message, status: 'error' });
       }
     },
     [updateTest],
@@ -138,7 +139,7 @@ export default function WalletTestPage() {
       </Text>
 
       {/* Run all */}
-      <Flexbox align="center" gap={12} horizontal style={{ marginTop: 20, marginBottom: 8 }}>
+      <Flexbox align="center" gap={12} horizontal style={{ marginBottom: 8, marginTop: 20 }}>
         <Button
           disabled={globalRunning}
           icon={<RefreshCw size={14} />}
@@ -281,7 +282,7 @@ export default function WalletTestPage() {
         }}
       >
         <Text style={{ color: '#374151', fontWeight: 600 }}>Accesos rápidos</Text>
-        <Flexbox gap={8} style={{ marginTop: 8 }} wrap="wrap" horizontal>
+        <Flexbox gap={8} horizontal style={{ marginTop: 8 }} wrap="wrap">
           <Link href="/settings/billing">
             <Button icon={<CreditCard size={14} />} size="small">
               Mi billing

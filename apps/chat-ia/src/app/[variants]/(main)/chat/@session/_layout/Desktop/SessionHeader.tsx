@@ -7,7 +7,7 @@ import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
-import { ProductLogo } from '@/components/Branding';
+import { DeveloperSessionBrand } from '@/components/Branding';
 import { ChatGroupWizard } from '@/components/ChatGroupWizard';
 import { useGroupTemplates } from '@/components/ChatGroupWizard/templates';
 import { DESKTOP_HEADER_ICON_SIZE } from '@/const/layoutTokens';
@@ -207,14 +207,17 @@ const Header = memo(() => {
       <Flexbox align={'flex-start'} horizontal justify={'space-between'}>
         <Flexbox
           align={'center'}
+          className={styles.logo}
           gap={4}
           horizontal
           style={{
+            flex: 1,
+            minWidth: 0,
             paddingInlineStart: 4,
             paddingTop: 2,
           }}
         >
-          <ProductLogo className={styles.logo} size={36} type={'text'} />
+          <DeveloperSessionBrand size={36} />
         </Flexbox>
         <Flexbox align={'center'} gap={4} horizontal>
           <TogglePanelButton />

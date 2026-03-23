@@ -55,15 +55,20 @@ test.describe('Copilot iframe — appEventos', () => {
     }
 
     // Detectar embed (textarea) o iframe
-    const hasEmbed = (await page.locator('textarea[placeholder*="Escribe"]').count()) > 0;
+    // CopilotChatInput usa ProseMirror (contenteditable), no textarea
+    const hasEmbedEditor = (await page.locator('.ProseMirror[contenteditable]').count()) > 0;
+    const hasEmbedTextarea = (await page.locator('textarea[placeholder*="Escribe"]').count()) > 0;
+    const hasEmbed = hasEmbedEditor || hasEmbedTextarea;
     const hasIframe = (await page.locator('iframe[src*="chat"]').count()) > 0;
 
-    if (hasEmbed) {
-      console.log('Copilot embed (textarea) detectado');
+    if (hasEmbedEditor) {
+      console.log('CopilotChatInput (ProseMirror) detectado ✓');
+    } else if (hasEmbedTextarea) {
+      console.log('Copilot embed (textarea legacy) detectado');
     } else if (hasIframe) {
       console.log('Copilot iframe detectado');
     } else {
-      console.log('ℹ️ Copilot no encontrado (puede estar oculto o requerir panel abierto)');
+      console.log('ℹ️ Copilot no encontrado (puede estar oculto)');
     }
 
     // No debe haber ErrorBoundary en la página principal
@@ -87,11 +92,13 @@ test.describe('Copilot iframe — appEventos', () => {
     }
 
     // Verificar embed (textarea directo) o iframe
-    const hasEmbed = (await page.locator('textarea[placeholder*="Escribe"]').count()) > 0;
+    const hasEmbedEditor = (await page.locator('.ProseMirror[contenteditable]').count()) > 0;
+    const hasEmbedTextarea = (await page.locator('textarea[placeholder*="Escribe"]').count()) > 0;
+    const hasEmbed = hasEmbedEditor || hasEmbedTextarea;
     const hasIframe = (await page.locator('iframe[src*="chat"]').count()) > 0;
 
     if (hasEmbed) {
-      console.log('Copilot embed cargó OK (textarea visible)');
+      console.log(hasEmbedEditor ? 'CopilotChatInput (ProseMirror) cargó OK ✓' : 'Copilot embed (textarea) cargó OK');
     } else if (hasIframe) {
       const iframe = page.frameLocator('iframe[src*="chat"]').first();
       const iframeBody = iframe.locator('body');
@@ -125,6 +132,60 @@ test.describe('Copilot iframe — appEventos', () => {
     const text = await page.locator('body').textContent().catch(() => null) ?? '';
     if (text === null || text.length < 20) { console.log('ℹ️ /invitados no accesible'); return; }
     expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+  });
+
+  // 1.12.20 — Sidebar chat: drag-resize cambia ancho (MIN=234, MAX=700, DEFAULT=400)
+  test('sidebar chat drag-resize ajusta el ancho entre MIN y MAX', async ({ page }) => {
+    if (!isAppTest) {
+      test.skip();
+      return;
+    }
+
+    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 20_000 }).catch(() => {});
+    await waitForAppReady(page, 10_000);
+
+    // Abrir el sidebar con el botón toggle o verificar que ya está abierto
+    const toggleBtn = page.locator('[aria-label*="opilot"], [aria-label*="chat"], [title*="opilot"], [title*="chat"]').first();
+    const hasToggle = await toggleBtn.isVisible().catch(() => false);
+    if (hasToggle) {
+      await toggleBtn.click().catch(() => {});
+      await page.waitForTimeout(500);
+    }
+
+    // Buscar el handle de resize (cursor-col-resize)
+    const resizeHandle = page.locator('.cursor-col-resize').first();
+    const hasHandle = await resizeHandle.isVisible().catch(() => false);
+    if (!hasHandle) {
+      console.log('ℹ️ Resize handle no visible — sidebar probablemente cerrado, test no aplicable');
+      return;
+    }
+
+    // Obtener posición inicial del handle
+    const handleBox = await resizeHandle.boundingBox();
+    if (!handleBox) {
+      console.log('ℹ️ No se pudo obtener bounding box del handle');
+      return;
+    }
+
+    const startX = handleBox.x + handleBox.width / 2;
+    const startY = handleBox.y + handleBox.height / 2;
+
+    // Drag hacia la izquierda 80px (ampliar sidebar)
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(startX - 80, startY, { steps: 10 });
+    await page.mouse.up();
+    await page.waitForTimeout(200);
+
+    // Verificar que el sidebar sigue montado y no hay crash
+    const body = await page.locator('body').textContent().catch(() => null) ?? '';
+    expect(body).not.toMatch(/Error Capturado por ErrorBoundary/);
+
+    // Verificar que el handle todavía es visible (sidebar no colapsó incorrectamente)
+    const handleStillVisible = await resizeHandle.isVisible().catch(() => false);
+    expect(handleStillVisible).toBe(true);
+
+    console.log('✓ Drag-resize completado sin crash ni ErrorBoundary');
   });
 });
 

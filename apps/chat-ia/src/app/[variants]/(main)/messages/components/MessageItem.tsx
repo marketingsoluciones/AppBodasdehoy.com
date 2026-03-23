@@ -8,8 +8,8 @@ import { sendFeedback, type FeedbackRating } from '@/services/feedback';
 import { Message } from '../hooks/useMessages';
 
 interface MessageItemProps {
-  message: Message;
   compact?: boolean;
+  message: Message;
 }
 
 const formatTime = (timestamp: string) => {
@@ -22,14 +22,18 @@ const formatTime = (timestamp: string) => {
 
 const getStatusIcon = (status?: string) => {
   switch (status) {
-    case 'sent':
+    case 'sent': {
       return '\u2713';
-    case 'delivered':
+    }
+    case 'delivered': {
       return '\u2713\u2713';
-    case 'read':
+    }
+    case 'read': {
       return <span className="text-blue-500">{'\u2713\u2713'}</span>;
-    default:
+    }
+    default: {
       return null;
+    }
   }
 };
 

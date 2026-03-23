@@ -11,25 +11,18 @@ import { EventosAutoAuth } from '@/features/EventosAutoAuth';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
 
+import { resolveChatEmbedMode } from '@/utils/resolveChatEmbedMode';
+
 import { LayoutProps } from '../type';
 import ChatHeader from './ChatHeader';
 import Portal from './Portal';
 
 const Layout = ({ children, conversation, portal }: LayoutProps) => {
   const searchParams = useSearchParams();
-  let isInIframe = false;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    isInIframe = typeof window !== 'undefined' && window.self !== window.top;
-  } catch {
-    isInIframe = true;
-  }
-
-  const isEmbed =
-    isInIframe ||
-    searchParams?.get('embed') === '1' ||
-    searchParams?.get('embedded') === '1' ||
-    searchParams?.get('minimal') === '1';
+  const isEmbed = resolveChatEmbedMode(
+    searchParams,
+    typeof window !== 'undefined' ? window : undefined,
+  );
 
   const isFullscreen = useGlobalStore(systemStatusSelectors.isFullscreen);
   const toggleFullscreen = useGlobalStore((s) => s.toggleFullscreen);

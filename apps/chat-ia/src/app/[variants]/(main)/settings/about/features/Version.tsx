@@ -6,11 +6,17 @@ import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
 import { ProductLogo } from '@/components/Branding';
-import { BRANDING_NAME } from '@/const/branding';
+import { useDeveloperBranding } from '@/hooks/useDeveloperBranding';
+import { useChatStore } from '@/store/chat';
 import { CHANGELOG_URL, MANUAL_UPGRADE_URL, OFFICIAL_SITE } from '@/const/url';
 import { CURRENT_VERSION } from '@/const/version';
 import { useNewVersion } from '@/features/User/UserPanel/useNewVersion';
 import { useGlobalStore } from '@/store/global';
+import { resolveDisplayBrandName } from '@/utils/brandingDisplay';
+import {
+  getCurrentDevelopmentConfig,
+  resolveActiveDeveloperForBranding,
+} from '@/utils/developmentDetector';
 
 const useStyles = createStyles(({ css, token }) => ({
   logo: css`
@@ -23,6 +29,11 @@ const Version = memo<{ mobile?: boolean }>(({ mobile }) => {
   const [latestVersion] = useGlobalStore((s) => [s.latestVersion]);
   const { t } = useTranslation('common');
   const { styles } = useStyles();
+  const { branding } = useDeveloperBranding();
+  const development = useChatStore((s) => s.development);
+  const slug = resolveActiveDeveloperForBranding(development);
+  const displayName = resolveDisplayBrandName(branding?.name, slug);
+  const devSite = getCurrentDevelopmentConfig().domain || OFFICIAL_SITE;
 
   return (
     <Flexbox
@@ -33,7 +44,7 @@ const Version = memo<{ mobile?: boolean }>(({ mobile }) => {
       width={'100%'}
     >
       <Flexbox align={'center'} flex={'none'} gap={16} horizontal>
-        <Link href={OFFICIAL_SITE} target={'_blank'}>
+        <Link href={devSite} target={'_blank'}>
           <Block
             align={'center'}
             className={styles.logo}
@@ -46,7 +57,7 @@ const Version = memo<{ mobile?: boolean }>(({ mobile }) => {
           </Block>
         </Link>
         <Flexbox align={'flex-start'} gap={6}>
-          <div style={{ fontSize: 18, fontWeight: 'bolder' }}>{BRANDING_NAME}</div>
+          <div style={{ fontSize: 18, fontWeight: 'bolder' }}>{displayName}</div>
           <Flexbox gap={6} horizontal={!mobile}>
             <Tag>v{CURRENT_VERSION}</Tag>
             {hasNewVersion && (

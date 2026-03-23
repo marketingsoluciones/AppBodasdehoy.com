@@ -1,8 +1,7 @@
 import { StorageMode, StorageModeEnum } from '@lobechat/electron-client-ipc';
 import { Button, Input } from '@lobehub/ui';
-import { LobeHub } from '@lobehub/ui/brand';
 import { createStyles } from 'antd-style';
-import { ComputerIcon, Server } from 'lucide-react';
+import { Cloud, Computer, Server } from 'lucide-react';
 import { memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Center, Flexbox } from 'react-layout-kit';
@@ -152,7 +151,7 @@ const ConnectionMode = memo<ConnectionModeProps>(({ setIsOpen, setWaiting }) => 
           </Flexbox>
           <Option
             description={t('sync.lobehubCloud.description')}
-            icon={LobeHub}
+            icon={Cloud}
             isSelected={selectedOption === 'cloud'}
             label={t('sync.lobehubCloud.title')}
             onClick={handleSelectOption}
@@ -194,7 +193,7 @@ const ConnectionMode = memo<ConnectionModeProps>(({ setIsOpen, setWaiting }) => 
           </div>
           <Option
             description={t('sync.local.description')}
-            icon={ComputerIcon}
+            icon={Computer}
             isSelected={selectedOption === StorageModeEnum.Local}
             label={t('sync.local.title')}
             onClick={handleSelectOption}

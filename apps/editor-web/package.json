@@ -4,9 +4,9 @@
   "private": true,
   "description": "Web independiente solo del Creador de webs (bodas/eventos). Enlaza a Copilot para el editor completo.",
   "scripts": {
-    "dev": "next dev -p 3081",
+    "dev": "next dev -p 3230",
     "build": "next build",
-    "start": "next start -p 3081",
+    "start": "next start -p 3230",
     "lint": "next lint",
     "test": "next build"
   },

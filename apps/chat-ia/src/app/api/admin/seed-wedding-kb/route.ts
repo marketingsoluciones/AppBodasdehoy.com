@@ -75,9 +75,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // ── Crear KB ────────────────────────────────────────────────────────
     const kb = await kbModel.create({
-      name: KB_NAME,
-      description: KB_DESCRIPTION,
       avatar: '💍',
+      description: KB_DESCRIPTION,
+      name: KB_NAME,
     });
 
     if (!kb?.id) {
@@ -92,11 +92,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const fileRecord = await fileModel.create({
       fileType: 'text/markdown',
-      name: fileName,
-      size: fileSize,
-      url: '', // archivo interno, sin URL pública
-      // El contenido se guarda en el campo de metadata para que el chunk service lo procese
-      metadata: { content: templateContent, source: 'system-seed' },
+      // archivo interno, sin URL pública
+// El contenido se guarda en el campo de metadata para que el chunk service lo procese
+metadata: { content: templateContent, source: 'system-seed' },
+      
+
+name: fileName,
+      
+
+size: fileSize, 
+      
+      url: '',
     });
 
     if (fileRecord?.id) {
@@ -106,8 +112,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({
       created: true,
-      kbId: kb.id,
       fileId: fileRecord?.id,
+      kbId: kb.id,
       message: `KB "${KB_NAME}" creada para el usuario ${userId}`,
     });
   } catch (err: any) {

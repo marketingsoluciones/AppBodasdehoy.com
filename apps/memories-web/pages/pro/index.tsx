@@ -55,7 +55,7 @@ export default function ProPage() {
   const [subscribing, setSubscribing] = useState<string | null>(null);
 
   const sortedPlans = allPlans
-    .filter((p) => p.is_active && p.is_public)
+    .filter((p) => p.is_active !== false)
     .sort((a, b) => a.pricing.monthly_fee - b.pricing.monthly_fee);
 
   const handleChoosePlan = async (planId: string) => {
@@ -125,6 +125,12 @@ export default function ProPage() {
               {[1, 2, 3].map((i) => (
                 <div key={i} className="bg-white rounded-3xl h-96 animate-pulse border border-gray-100" />
               ))}
+            </div>
+          ) : sortedPlans.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center text-gray-400 gap-3">
+              <span className="text-4xl">📋</span>
+              <p className="text-base font-medium">No hay planes disponibles en este momento.</p>
+              <p className="text-sm">Por favor, inténtalo de nuevo más tarde.</p>
             </div>
           ) : (
             <div className="grid md:grid-cols-3 gap-6 items-start">

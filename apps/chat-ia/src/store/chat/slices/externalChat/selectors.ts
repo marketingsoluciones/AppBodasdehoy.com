@@ -83,6 +83,56 @@ const currentUserId = (s: ChatStoreState): string | undefined => s.currentUserId
 // Development
 const development = (s: ChatStoreState): string | undefined => s.development;
 
+/**
+ * Invitado/visitante en dominio Bodas (embed, colaborador, etc.).
+ * `useUserStore.isSignedIn` puede ser true por sesión técnica (Firebase / dev-user-config);
+ * la UI debe mostrar "Iniciar sesión" y no tratarlo como cuenta completa.
+ *
+ * Nota: el parent (appEventos) marca invitados con `displayName === 'guest'` y a veces `userType`
+ * queda como `registered` por JWT/localStorage — priorizamos perfil y rol antes que `userType`.
+ */
+const isDomainGuestUser = (s: ChatStoreState): boolean => {
+  const raw = s.userProfile as Record<string, unknown> | undefined;
+  const profileName = (
+    s.userProfile?.displayName ||
+    s.userProfile?.nombre ||
+    (typeof raw?.display_name === 'string' ? raw.display_name : '') ||
+    ''
+  )
+    .toLowerCase()
+    .trim();
+  if (profileName === 'guest') return true;
+  if (s.userRole === 'guest') return true;
+
+  if (s.userType === 'guest' || s.userType === 'visitor') return true;
+  if (s.userType === 'registered') return false;
+
+  const id = s.currentUserId;
+  // Sin usuario en chat store (Lobe standalone, tests): no inferir invitado embed.
+  if (!id) return false;
+  if (id === 'visitante@guest.local') return true;
+  const lower = id.toLowerCase();
+  if (
+    lower === 'guest' ||
+    lower === 'anonymous' ||
+    lower.includes('@guest.') ||
+    lower.startsWith('visitor_')
+  ) {
+    return true;
+  }
+  const email = (s.userProfile?.email || '').toLowerCase();
+  if (
+    email &&
+    (email === 'guest' ||
+      email === 'anonymous' ||
+      email.includes('@guest.') ||
+      email.startsWith('visitor_'))
+  ) {
+    return true;
+  }
+  return false;
+};
+
 export const externalChatSelectors = {
   activeExternalChat,
   currentUserId,
@@ -92,6 +142,7 @@ export const externalChatSelectors = {
   getContactName,
   getExternalChatById,
   getLastMessage,
+  isDomainGuestUser,
   isExternalChatsInit,
   isExternalChatsLoading,
   sortedExternalChats,

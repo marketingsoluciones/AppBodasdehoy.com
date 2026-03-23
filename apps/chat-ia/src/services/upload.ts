@@ -1,4 +1,4 @@
-import { isDesktop, isServerMode } from '@lobechat/const';
+import { isDesktop } from '@lobechat/const';
 import { parseDataUri } from '@lobechat/model-runtime';
 import { uuid } from '@lobechat/utils';
 import dayjs from 'dayjs';
@@ -10,6 +10,7 @@ import { API_ENDPOINTS } from '@/services/_url';
 import { clientS3Storage } from '@/services/file/ClientS3';
 import { FileMetadata, UploadBase64ToS3Result } from '@/types/files';
 import { FileUploadState, FileUploadStatus } from '@/types/files/upload';
+import { withRetry } from '@bodasdehoy/shared/upload';
 
 export const UPLOAD_NETWORK_ERROR = 'NetWorkError';
 export const UPLOAD_GUEST_CAPTATION = 'GuestCaptation';
@@ -67,14 +68,17 @@ const generateFilePathMetadata = (
 };
 
 interface UploadFileToS3Options {
+  development?: string;
   directory?: string;
   eventId?: string;
   filename?: string;
-  onCaptation?: (captationData: CaptationUploadResponse) => void; // Callback para mostrar modal de captación
+  onCaptation?: (captationData: CaptationUploadResponse) => void;
   onNotSupported?: () => void;
   onProgress?: (status: FileUploadStatus, state: FileUploadState) => void;
   pathname?: string;
   skipCheckFileType?: boolean;
+  userEmail?: string;
+  userId?: string;
 }
 
 class UploadService {
@@ -90,7 +94,7 @@ class UploadService {
    */
   uploadFileToS3 = async (
     file: File,
-    { onProgress, directory, skipCheckFileType, onNotSupported, pathname, eventId, onCaptation }: UploadFileToS3Options = {},
+    { onProgress, directory, pathname, eventId, onCaptation, userId, userEmail, development }: UploadFileToS3Options = {},
   ): Promise<{ captation?: CaptationUploadResponse; data: FileMetadata; success: boolean }> => {
     // Desktop (Electron sin sync activo): usa sistema de archivos local
     if (isDesktop) {
@@ -110,7 +114,7 @@ class UploadService {
     // Todos los demás casos: R2 via api-ia (whitelabel)
     // - eventId presente → guarda en {development}/events/{eventId}/...
     // - eventId ausente  → guarda en {development}/users/{userId}/...
-    const result = await this.uploadToStorageR2(file, { eventId, onCaptation, onProgress });
+    const result = await this.uploadToStorageR2(file, { development, eventId, onCaptation, onProgress, userEmail, userId });
 
     // Respuesta de captación: usuario guest detectado por api-ia
     if (result.isCaptation && result.captationData) {
@@ -262,12 +266,18 @@ class UploadService {
     file: File,
     {
       eventId,
+      userId,
+      userEmail,
+      development,
       onProgress,
       onCaptation,
     }: {
-      eventId: string;
+      development?: string;
+      eventId?: string;
       onCaptation?: (captationData: CaptationUploadResponse) => void;
       onProgress?: (status: FileUploadStatus, state: FileUploadState) => void;
+      userEmail?: string;
+      userId?: string;
     },
   ): Promise<{
     captationData?: CaptationUploadResponse;
@@ -276,58 +286,92 @@ class UploadService {
   }> => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('event_id', eventId);
+    if (eventId) formData.append('event_id', eventId);
     formData.append('access_level', 'shared');
 
-    // Obtener headers de usuario si están disponibles
-    // NO incluir Content-Type - FormData lo maneja automáticamente con boundary
+    // Obtener headers de usuario: params > localStorage > fallback
     const headers: Record<string, string> = {};
 
-    // Intentar obtener user_id y development desde localStorage o contexto
     if (typeof window !== 'undefined') {
       try {
         const devConfig = localStorage.getItem('dev-user-config');
         if (devConfig) {
           const config = JSON.parse(devConfig);
-          if (config.user_id) {
-            headers['X-User-ID'] = config.user_id;
-          }
-          if (config.development) {
-            headers['X-Development'] = config.development;
-          }
+          const lsUserId = config.user_id ?? config.userId;
+          const lsDev = config.development ?? config.developer;
+          const lsEmail = config.user_email ?? config.email;
+          if (lsUserId) headers['X-User-ID'] = lsUserId;
+          if (lsDev) headers['X-Development'] = lsDev;
+          if (lsEmail) headers['X-User-Email'] = lsEmail;
         }
       } catch (e) {
         console.warn('⚠️ No se pudo obtener configuración de usuario:', e);
       }
     }
 
-    onProgress?.('uploading', {
-      progress: 0,
-      restTime: 0,
-      speed: 0,
-    });
+    // Params explícitos sobreescriben localStorage
+    if (userId) headers['X-User-ID'] = userId;
+    if (userEmail) headers['X-User-Email'] = userEmail;
+    if (development) headers['X-Development'] = development;
 
-    const response = await fetch('/api/storage/upload', {
-      body: formData,
-      headers,
-      method: 'POST',
-    });
+    // Sin identidad → el proxy devolverá 400, mejor fallar rápido
+    if (!headers['X-User-ID'] && !headers['X-User-Email']) {
+      throw new Error('No se pudo determinar la identidad del usuario para subir archivos. Verifica que has iniciado sesión.');
+    }
 
-    const result = await response.json();
+    const result = await withRetry(() => new Promise<any>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      let startTime = Date.now();
 
-    // ✅ DETECTAR RESPUESTA DE CAPTACIÓN (usuario guest)
-    if (result.is_guest === true && result.action_required === 'register') {
-      console.log('📢 Backend detectó usuario guest - respuesta de captación recibida');
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const progress = Number(((event.loaded / event.total) * 100).toFixed(1));
+          const speedInByte = event.loaded / ((Date.now() - startTime) / 1000);
 
+          onProgress?.('uploading', {
+            progress: progress === 100 ? 99.9 : progress,
+            restTime: (event.total - event.loaded) / speedInByte,
+            speed: speedInByte,
+          });
+        }
+      });
+
+      xhr.open('POST', '/api/storage/upload');
+      // Set custom headers
+      for (const [key, value] of Object.entries(headers)) {
+        xhr.setRequestHeader(key, value);
+      }
+
+      xhr.addEventListener('load', () => {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          resolve({ data, status: xhr.status });
+        } catch {
+          reject(new Error(`Error ${xhr.status}: respuesta inválida`));
+        }
+      });
+      xhr.addEventListener('error', () => {
+        if (xhr.status === 0) reject(new Error(UPLOAD_NETWORK_ERROR));
+        else reject(new Error(xhr.statusText || `Error ${xhr.status}`));
+      });
+
+      onProgress?.('uploading', { progress: 0, restTime: 0, speed: 0 });
+      xhr.send(formData);
+    }));
+
+    const responseData = result.data;
+    const status = result.status;
+
+    // Detectar respuesta de captación (usuario guest)
+    if (responseData.is_guest === true && responseData.action_required === 'register') {
       const captationData: CaptationUploadResponse = {
-        action_required: result.action_required,
-        cta: result.cta,
+        action_required: responseData.action_required,
+        cta: responseData.cta,
         is_guest: true,
-        message: result.message,
+        message: responseData.message,
         success: false,
       };
 
-      // Llamar callback si está disponible
       if (onCaptation) {
         onCaptation(captationData);
       }
@@ -340,22 +384,22 @@ class UploadService {
     }
 
     // Verificar errores normales
-    if (!response.ok) {
-      throw new Error(result.error || `Error ${response.status}`);
+    if (status < 200 || status >= 300) {
+      throw new Error(responseData.error || `Error ${status}`);
     }
 
-    if (!result.success) {
-      throw new Error(result.error || 'Error subiendo archivo');
+    if (!responseData.success) {
+      throw new Error(responseData.error || 'Error subiendo archivo');
     }
 
     onProgress?.('success', {
       progress: 100,
       restTime: 0,
-      speed: file.size / 1000, // Estimación
+      speed: file.size / ((Date.now() / 1000) || 1),
     });
 
     // Convertir respuesta de Storage R2 a formato FileMetadata
-    const fileData = result.data || {};
+    const fileData = responseData.data || {};
     const publicUrl =
       fileData.public_urls?.original ||
       fileData.public_urls?.optimized_800w ||
@@ -366,7 +410,7 @@ class UploadService {
       isCaptation: false,
       metadata: {
         date: new Date().toISOString(),
-        dirname: `storage-r2/${eventId}`,
+        dirname: `storage-r2/${eventId || 'user'}`,
         filename: file.name,
         path: publicUrl,
       },

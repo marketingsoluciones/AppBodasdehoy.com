@@ -11,42 +11,79 @@ const DOMAIN_TO_DEVELOPER: Record<string, string> = {
   // Localhost y IPs (default)
   '127.0.0.1': 'bodasdehoy',
   '[::1]': 'bodasdehoy',
-  'localhost': 'bodasdehoy',
-
   // Dominios principales (producción)
-  'annloevents.com': 'annloevents',
-  'bodasdehoy.com': 'bodasdehoy',
-  'champagne-events.com.mx': 'champagne-events',
-  'eventosorganizador.com': 'eventosorganizador',
-  'marcablanca.com': 'marcablanca',
-  'wildliberty.com': 'wildliberty',
+'annloevents.com': 'annloevents',
 
+  
   // bodasdehoy.com — producción
-  'app.bodasdehoy.com': 'bodasdehoy',
-  'chat.bodasdehoy.com': 'bodasdehoy',
-  'editor.bodasdehoy.com': 'bodasdehoy',
-  'memories.bodasdehoy.com': 'bodasdehoy',
-  'wedding-creator.bodasdehoy.com': 'bodasdehoy',
+'app.bodasdehoy.com': 'bodasdehoy',
+  
+'bodasdehoy.com': 'bodasdehoy',
+  
+// bodasdehoy.com — test (Vercel, rama test)
+'app-test.bodasdehoy.com': 'bodasdehoy',
+  
 
-  // bodasdehoy.com — test (Vercel, rama test)
-  'app-test.bodasdehoy.com': 'bodasdehoy',
-  'chat-test.bodasdehoy.com': 'bodasdehoy',
-  'editor-test.bodasdehoy.com': 'bodasdehoy',
-  'memories-test.bodasdehoy.com': 'bodasdehoy',
-  'test.bodasdehoy.com': 'bodasdehoy',
+'champagne-events.com.mx': 'champagne-events',
+  
 
-  // bodasdehoy.com — dev (local, Cloudflare Tunnel)
-  'app-dev.bodasdehoy.com': 'bodasdehoy',
-  'chat-dev.bodasdehoy.com': 'bodasdehoy',
-  'editor-dev.bodasdehoy.com': 'bodasdehoy',
-  'memories-dev.bodasdehoy.com': 'bodasdehoy',
+'chat-test.bodasdehoy.com': 'bodasdehoy',
+  
 
-  // bodasdehoy.com — legacy (masterv1)
-  'iachat.bodasdehoy.com': 'bodasdehoy',
+'chat.bodasdehoy.com': 'bodasdehoy',
 
-  // eventosorganizador.com — subdominios
-  'chat-test.eventosorganizador.com': 'eventosorganizador',
+  
+  
+'editor-test.bodasdehoy.com': 'bodasdehoy',
+  
+'editor.bodasdehoy.com': 'bodasdehoy',
+  
+// bodasdehoy.com — dev (local, Cloudflare Tunnel)
+'app-dev.bodasdehoy.com': 'bodasdehoy',
+  
+
+'localhost': 'bodasdehoy',
+  
+
+'chat-dev.bodasdehoy.com': 'bodasdehoy',
+
+  
+  
+'eventosorganizador.com': 'eventosorganizador',
+  
+'editor-dev.bodasdehoy.com': 'bodasdehoy',
+  
+'marcablanca.com': 'marcablanca',
+  
+// eventosorganizador.com — subdominios
+'chat-test.eventosorganizador.com': 'eventosorganizador',
+  
+
+'wildliberty.com': 'wildliberty',
+
+  
+  
+// bodasdehoy.com — legacy (masterv1)
+'iachat.bodasdehoy.com': 'bodasdehoy',
+  
+
+'memories-dev.bodasdehoy.com': 'bodasdehoy',
+  
+
+'memories.bodasdehoy.com': 'bodasdehoy',
+  
+
+
+'memories-test.bodasdehoy.com': 'bodasdehoy',
+
+  
+  
+
+'wedding-creator.bodasdehoy.com': 'bodasdehoy',
+
+  
   'staging.eventosorganizador.com': 'eventosorganizador',
+  'test.bodasdehoy.com': 'bodasdehoy',
 };
 
 /**

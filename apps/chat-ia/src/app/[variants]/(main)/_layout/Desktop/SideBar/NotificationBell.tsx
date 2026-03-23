@@ -15,10 +15,14 @@ import {
 } from '@/services/api2/notifications';
 
 function getNotificationUrl(n: AppNotification): string | null {
-  if (n.type === 'whatsapp_message' || n.resourceType === 'WHATSAPP') return '/messages';
-  if (n.type === 'task_reminder' || n.resourceType === 'SERVICE') return '/tasks';
-  if (n.resourceType === 'CONVERSATION' && n.resourceId) return `/chat/${n.resourceId}`;
+  const focused = n.focused ?? '';
+  if (focused.startsWith('/messages') || focused.startsWith('/tasks') || focused.startsWith('/chat/') || focused.startsWith('/settings')) {
+    return focused.split('?')[0]; // strip query params for chat-ia navigation
+  }
+  if (n.type === 'whatsapp_message') return '/messages';
+  if (n.type === 'task_reminder') return '/tasks';
   if (n.type === 'access_revoked' || n.type === 'permission_updated') return '/settings';
+  if (focused) return '/messages'; // appEventos link — redirect to bandeja
   return null;
 }
 
@@ -30,16 +34,17 @@ const ICON_SIZE = { blockSize: 40, size: 22, strokeWidth: 2 };
 const POLL_INTERVAL = 60_000; // 60s
 
 const TYPE_LABEL: Record<string, string> = {
-  resource_shared: '📤',
   access_revoked: '🔒',
   permission_updated: '🔑',
   resource_access_revoked: '🚫',
+  resource_shared: '📤',
   task_reminder: '📋',
   whatsapp_message: '💬',
 };
 
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
+function timeAgo(createdAt: number | string): string {
+  const ts = typeof createdAt === 'number' ? createdAt : new Date(createdAt).getTime();
+  const diff = Date.now() - ts;
   const m = Math.floor(diff / 60_000);
   if (m < 1) return 'ahora';
   if (m < 60) return `${m}min`;
@@ -97,18 +102,18 @@ const NotificationBell = memo(() => {
 
   const handleMarkAllRead = useCallback(async () => {
     await markAllNotificationsAsRead();
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true, status: true })));
     setUnread(0);
   }, []);
 
   const handleMarkRead = useCallback(async (id: string) => {
     await markNotificationAsRead(id);
-    setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
+    setNotifications((prev) => prev.map((n) => (n.id === id || n._id === id) ? { ...n, read: true, status: true } : n));
     setUnread((prev) => Math.max(0, prev - 1));
   }, []);
 
   const handleClickNotification = useCallback(async (n: AppNotification) => {
-    if (!n.read) await handleMarkRead(n.id);
+    if (!n.read) await handleMarkRead(n.id || n._id!);
     const url = getNotificationUrl(n);
     const ext = getExternalUrl(n);
     if (url) { setOpen(false); router.push(url); }
@@ -121,32 +126,32 @@ const NotificationBell = memo(() => {
     <div style={{ position: 'relative' }}>
       <ActionIcon
         icon={Bell}
+        onClick={() => setOpen((v) => !v)}
         size={ICON_SIZE}
+        style={{ position: 'relative' }}
         title="Notificaciones"
         tooltipProps={{ placement: 'right' }}
-        onClick={() => setOpen((v) => !v)}
-        style={{ position: 'relative' }}
       />
       {/* Unread badge */}
       {unread > 0 && (
         <span
           style={{
-            position: 'absolute',
-            top: 4,
-            right: 4,
             background: '#ef4444',
-            color: '#fff',
             borderRadius: '999px',
+            alignItems: 'center',
+            color: '#fff',
+            display: 'flex',
             fontSize: 10,
             fontWeight: 700,
-            minWidth: 16,
+            position: 'absolute',
             height: 16,
-            display: 'flex',
-            alignItems: 'center',
+            right: 4,
             justifyContent: 'center',
+            top: 4,
+            lineHeight: 1,
+            minWidth: 16,
             padding: '0 3px',
             pointerEvents: 'none',
-            lineHeight: 1,
           }}
         >
           {unread > 99 ? '99+' : unread}
@@ -158,44 +163,44 @@ const NotificationBell = memo(() => {
         <div
           ref={panelRef}
           style={{
+            background: '#fff',
+            border: '1px solid #e5e7eb',
+            borderRadius: 12,
+            bottom: 'auto',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+            left: 64,
+            overflow: 'hidden',
             position: 'fixed',
             top: 'auto',
-            left: 64,
-            bottom: 'auto',
-            zIndex: 9999,
             width: 320,
-            background: '#fff',
-            borderRadius: 12,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-            border: '1px solid #e5e7eb',
-            overflow: 'hidden',
+            zIndex: 9999,
           }}
         >
           {/* Header */}
           <div
             style={{
-              display: 'flex',
               alignItems: 'center',
+              background: '#fafafa',
+              borderBottom: '1px solid #f0f0f0',
+              display: 'flex',
               justifyContent: 'space-between',
               padding: '12px 16px',
-              borderBottom: '1px solid #f0f0f0',
-              background: '#fafafa',
             }}
           >
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>
+            <span style={{ color: '#111', fontSize: 14, fontWeight: 600 }}>
               Notificaciones {unread > 0 && <span style={{ color: '#ef4444' }}>({unread})</span>}
             </span>
             {unread > 0 && (
               <button
                 onClick={handleMarkAllRead}
                 style={{
-                  fontSize: 12,
-                  color: '#6b7280',
                   background: 'none',
                   border: 'none',
-                  cursor: 'pointer',
-                  padding: '2px 6px',
                   borderRadius: 4,
+                  color: '#6b7280',
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  padding: '2px 6px',
                 }}
               >
                 Marcar todas como leídas
@@ -206,12 +211,12 @@ const NotificationBell = memo(() => {
           {/* List */}
           <div style={{ maxHeight: 360, overflowY: 'auto' }}>
             {loading && (
-              <div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>
+              <div style={{ color: '#9ca3af', fontSize: 13, padding: '24px', textAlign: 'center' }}>
                 Cargando...
               </div>
             )}
             {!loading && notifications.length === 0 && (
-              <div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>
+              <div style={{ color: '#9ca3af', fontSize: 13, padding: '24px', textAlign: 'center' }}>
                 No tienes notificaciones
               </div>
             )}
@@ -221,29 +226,29 @@ const NotificationBell = memo(() => {
               const isClickable = !!(url || ext);
               return (
                 <div
-                  key={n.id}
+                  key={n.id || n._id}
                   onClick={() => handleClickNotification(n)}
                   style={{
+                    background: n.read ? '#fff' : '#fef3f2',
+                    borderBottom: '1px solid #f5f5f5',
+                    cursor: isClickable ? 'pointer' : 'default',
                     display: 'flex',
                     gap: 10,
                     padding: '10px 16px',
-                    borderBottom: '1px solid #f5f5f5',
-                    background: n.read ? '#fff' : '#fef3f2',
-                    cursor: isClickable ? 'pointer' : 'default',
                     transition: 'background 0.15s',
                   }}
                 >
-                  <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>
+                  <span style={{ flexShrink: 0, fontSize: 18, marginTop: 1 }}>
                     {TYPE_LABEL[n.type] || '🔔'}
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: 13, color: '#374151', lineHeight: 1.4 }}>
+                    <p style={{ color: '#374151', fontSize: 13, lineHeight: 1.4, margin: 0 }}>
                       {n.message}
                     </p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
-                      <span style={{ fontSize: 11, color: '#9ca3af' }}>{timeAgo(n.createdAt)}</span>
+                    <div style={{ alignItems: 'center', display: 'flex', gap: 6, marginTop: 3 }}>
+                      <span style={{ color: '#9ca3af', fontSize: 11 }}>{timeAgo(n.createdAt ?? 0)}</span>
                       {isClickable && (
-                        <span style={{ fontSize: 11, color: '#ec4899', fontWeight: 500 }}>
+                        <span style={{ color: '#ec4899', fontSize: 11, fontWeight: 500 }}>
                           {url === '/messages' ? '→ Bandeja' : url === '/tasks' ? '→ Tareas' : url === '/settings' ? '→ Config' : url?.startsWith('/chat/') ? '→ Conversación' : '→ Ver en app'}
                         </span>
                       )}
@@ -252,12 +257,12 @@ const NotificationBell = memo(() => {
                   {!n.read && (
                     <span
                       style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
                         background: '#ef4444',
+                        borderRadius: '50%',
                         flexShrink: 0,
+                        height: 8,
                         marginTop: 6,
+                        width: 8,
                       }}
                     />
                   )}
@@ -277,12 +282,12 @@ const NotificationBell = memo(() => {
             <button
               onClick={() => { setOpen(false); router.push('/notifications'); }}
               style={{
-                fontSize: 13,
-                color: '#ec4899',
-                fontWeight: 600,
                 background: 'none',
                 border: 'none',
+                color: '#ec4899',
                 cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: 600,
                 padding: 0,
               }}
             >
@@ -297,4 +302,4 @@ const NotificationBell = memo(() => {
 
 NotificationBell.displayName = 'NotificationBell';
 
-export { NotificationBell };
+export default NotificationBell;

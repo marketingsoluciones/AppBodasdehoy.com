@@ -1,4 +1,4 @@
-import { ProviderCombine, ProviderIcon } from '@lobehub/icons';
+import { ProviderIcon } from '@lobehub/icons';
 import { Avatar, Text } from '@lobehub/ui';
 import { Divider, Skeleton } from 'antd';
 import Link from 'next/link';
@@ -37,12 +37,15 @@ const ProviderCard = memo<ProviderCardProps>(
             <Flexbox gap={12} width={'100%'}>
               <Flexbox align={'center'} horizontal justify={'space-between'}>
                 {source === 'builtin' ? (
-                  <ProviderCombine
-                    provider={id}
-                    size={24}
-                    style={{ color: theme.colorText }}
-                    title={name}
-                  />
+                  <Flexbox align={'center'} gap={12} horizontal>
+                    <ProviderIcon
+                      provider={id}
+                      size={24}
+                      style={{ borderRadius: 6, color: theme.colorText }}
+                      type={'avatar'}
+                    />
+                    <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{name}</Text>
+                  </Flexbox>
                 ) : (
                   <Flexbox align={'center'} gap={12} horizontal>
                     {logo ? (
@@ -65,7 +68,7 @@ const ProviderCard = memo<ProviderCardProps>(
                   rows: 2,
                 }}
               >
-                {source === 'custom' ? description : t(`${id}.description`)}
+                {description || (source === 'custom' ? '' : t(`${id}.description`, { defaultValue: '' }))}
               </Text>
             </Flexbox>
           </Link>

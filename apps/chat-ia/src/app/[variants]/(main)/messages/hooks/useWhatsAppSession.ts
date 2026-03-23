@@ -15,6 +15,7 @@ export interface WhatsAppSessionState {
 }
 
 const POLL_INTERVAL_MS = 3000;
+const CONNECTING_TIMEOUT_MS = 25_000;
 
 export function useWhatsAppSession(development: string) {
   const [state, setState] = useState<WhatsAppSessionState>({
@@ -23,6 +24,7 @@ export function useWhatsAppSession(development: string) {
   });
   const [loading, setLoading] = useState(true);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const connectingSinceRef = useRef<number | null>(null);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -35,6 +37,26 @@ export function useWhatsAppSession(development: string) {
         // Si hay qrCode pero el status sigue en 'connecting', forzar 'qr_ready'
         const effectiveStatus: WhatsAppStatus =
           data.status === 'connecting' && data.qrCode ? 'qr_ready' : (data.status as WhatsAppStatus);
+
+        // Si ya tenemos QR o conexión, limpiar contador de timeout de conexión.
+        if (effectiveStatus === 'qr_ready' || effectiveStatus === 'connected') {
+          connectingSinceRef.current = null;
+        }
+
+        // Evita quedarnos "conectando" de forma indefinida cuando el backend no emite QR.
+        if (effectiveStatus === 'connecting') {
+          if (!connectingSinceRef.current) {
+            connectingSinceRef.current = Date.now();
+          } else if (Date.now() - connectingSinceRef.current > CONNECTING_TIMEOUT_MS) {
+            setState((prev) => ({
+              ...prev,
+              error: 'No se pudo generar el QR a tiempo. Pulsa "Reintentar QR".',
+              status: 'error',
+            }));
+            return;
+          }
+        }
+
         setState({
           connectedAt: data.connectedAt,
           error: null,
@@ -51,28 +73,36 @@ export function useWhatsAppSession(development: string) {
   }, [development]);
 
   const startSession = useCallback(async () => {
+    connectingSinceRef.current = Date.now();
     setState((prev) => ({ ...prev, error: null, status: 'connecting' }));
     try {
       const response = await fetch(`/api/messages/whatsapp/session/${development}/start`, {
-        method: 'POST',
-        headers: buildHeaders(),
         body: JSON.stringify({}),
+        headers: buildHeaders(),
+        method: 'POST',
       });
       const data = await response.json();
       if (!data.success) {
+        connectingSinceRef.current = null;
         setState((prev) => ({ ...prev, error: data.error || 'Error iniciando sesión', status: 'error' }));
+        return;
       }
+
+      // Primer refresh inmediato para intentar pintar QR cuanto antes.
+      await fetchStatus();
     } catch (err: any) {
+      connectingSinceRef.current = null;
       setState((prev) => ({ ...prev, error: err.message, status: 'error' }));
     }
-  }, [development]);
+  }, [development, fetchStatus]);
 
   const disconnectSession = useCallback(async () => {
     try {
       await fetch(`/api/messages/whatsapp/session/${development}`, {
-        method: 'DELETE',
         headers: buildHeaders(),
+        method: 'DELETE',
       });
+      connectingSinceRef.current = null;
       setState({ error: null, status: 'disconnected' });
     } catch (err) {
       console.warn('[WA] Error disconnecting:', err);
@@ -81,9 +111,9 @@ export function useWhatsAppSession(development: string) {
 
   const requestPairingCode = useCallback(async (phoneNumber: string): Promise<string> => {
     const response = await fetch(`/api/messages/whatsapp/session/${development}/pairing-code`, {
-      method: 'POST',
-      headers: buildHeaders(),
       body: JSON.stringify({ phoneNumber }),
+      headers: buildHeaders(),
+      method: 'POST',
     });
     const data = await response.json();
     if (!data.success) throw new Error(data.error || 'Error solicitando código');

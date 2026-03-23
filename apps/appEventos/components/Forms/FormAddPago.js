@@ -8,7 +8,7 @@ import { useToast } from "../../hooks/useToast";
 import { getCurrency } from "../../utils/Funciones";
 import { GoChevronDown } from "react-icons/go";
 import { useTranslation } from 'react-i18next';
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching";
 
 const validacion = (values) => {
   let errors = {}
@@ -64,7 +64,8 @@ const FormAddPago = ({ GastoID, cate, setGastoID }) => {
     medio_pago: "",
     concepto: "",
     file: "",
-    soporte: null
+    soporte: null,
+    soporte_file: null
   }
 
   const saveData = async (values) => {
@@ -99,6 +100,7 @@ const FormAddPago = ({ GastoID, cate, setGastoID }) => {
         return { ...old }
       })
     } catch (error) {
+      toast("error", t("erroroccurred") || "Error al guardar el pago")
     }
   }
 
@@ -109,33 +111,30 @@ const FormAddPago = ({ GastoID, cate, setGastoID }) => {
         try {
           if (!isSubmitting) {
             setIsSubmitting(true)
-            if (values.file !== initialValues.file) {
-              const formdata = new FormData();
-              formdata.append("image", values.file.split("base64,")[1]);
-              const requestOptions = {
-                method: "POST",
-                body: formdata,
-                redirect: "follow"
-              };
-              fetch("https://api.imgbb.com/1/upload?expiration=15552000&key=c6f787e40fd29dac790a3e42d38c5078", requestOptions)
-                .then((response) => response.text())
-                .then((result) => {
-                  const data = JSON.parse(result)?.data
-                  values.soporte = {
-                    image_url: data?.image?.url,
-                    medium_url: data?.medium?.url,
-                    thumb_url: data?.thumb?.url,
-                    delete_url: data?.delete_url
-                  }
-                  saveData(values)
+            if (values.soporte_file) {
+              try {
+                const result = await fetchApiBodas({
+                  query: queries.singleUpload,
+                  variables: { file: values.soporte_file, use: "payment" },
+                  type: "formData"
                 })
-                .catch((error) => console.error(error));
-              return
+                values.soporte = {
+                  image_url: result?.i640,
+                  medium_url: result?.i640,
+                  thumb_url: result?.i640,
+                }
+              } catch (uploadError) {
+                toast("error", "Error al subir la imagen")
+                setIsSubmitting(false)
+                return
+              }
             }
             saveData(values)
-             setGastoID("")
+            setGastoID("")
           }
         } catch (error) {
+          toast("error", t("erroroccurred") || "Error al procesar el pago")
+          setIsSubmitting(false)
         }
       }}
       validate={ischecked ? validacion : validacion2}
@@ -171,14 +170,13 @@ export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit
 
   const handleFileChange = (event) => {
     try {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        values.file = reader.result
-        setValues({ ...values })
-      };
-      reader.readAsDataURL(event.target.files[0]);
-      setSelectedFile(event.target.files[0]);
+      const file = event.target.files[0];
+      if (!file) return;
+      setSelectedFile(file);
+      values.soporte_file = file;
+      setValues({ ...values });
     } catch (error) {
+      toast("error", t("erroroccurred") || "Error al seleccionar archivo")
     }
   };
 

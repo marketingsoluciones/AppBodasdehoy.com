@@ -1,3 +1,4 @@
+import { ORG_NAME } from '@lobechat/const';
 import { LobeChatPluginManifest, LobeChatPluginMeta } from '@lobehub/chat-plugin-sdk';
 import { describe, expect, it } from 'vitest';
 
@@ -82,7 +83,7 @@ describe('toolSelectors', () => {
       expect(result).toEqual([
         {
           type: 'builtin',
-          author: 'LobeHub',
+          author: ORG_NAME,
           identifier: 'builtin-1',
           meta: { title: 'Builtin 1', description: 'Builtin 1 description' },
         },

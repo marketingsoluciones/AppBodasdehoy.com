@@ -50,3 +50,13 @@ export type { Translations, Locale } from './i18n';
 
 // Export utils
 // export * from './utils';
+
+// Export full LobeChat-compatible ChatInput for embedding in other apps
+export { default as CopilotChatInput } from './ChatInput/CopilotChatInput';
+export type { CopilotChatInputProps } from './ChatInput/CopilotChatInput';
+export { ChatInputProvider } from './ChatInput/ChatInputProvider';
+export { useChatInputStore } from './ChatInput/store';
+export { useChatInputEditor } from './ChatInput/hooks/useChatInputEditor';
+export { useCopilotInput, CopilotInputProvider } from './ChatInput/CopilotInputContext';
+export type { CopilotInputContextValue } from './ChatInput/CopilotInputContext';
+export type { ActionKeys, SendButtonHandler, SendButtonProps } from './ChatInput/store/initialState';

@@ -260,24 +260,34 @@ export const useBilling = (): UseBillingReturn => {
     error,
     invoiceDetail,
     invoiceDetailLoading,
-    invoices,
-    invoicesLoading,
-    invoicesPagination,
-    payments,
-    paymentsLoading,
+    // Actions
+downloadInvoicePDF,
+    
+invoices,
+    
+fetchInvoiceById,
+    
+invoicesLoading,
+    
+fetchInvoices,
+    
+invoicesPagination,
+    
+fetchPayments,
+    
+payments,
+    
+fetchSubscription,
+    
+paymentsLoading,
+    
+    fetchUsageStats,
     paymentsPagination,
+    refreshAll,
     subscription,
     subscriptionLoading,
     usageStats,
     usageStatsLoading,
-    // Actions
-    downloadInvoicePDF,
-    fetchInvoiceById,
-    fetchInvoices,
-    fetchPayments,
-    fetchSubscription,
-    fetchUsageStats,
-    refreshAll,
   };
 };
 

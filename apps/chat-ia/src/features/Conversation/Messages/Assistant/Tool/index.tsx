@@ -9,7 +9,7 @@ import Inspectors from './Inspector';
 import Render from './Render';
 
 // Builtin tools that execute silently — hide their UI from the chat bubble
-const SILENT_BUILTIN_TOOLS = ['lobe-filter-app-view', 'lobe-venue-visualizer'];
+const SILENT_BUILTIN_TOOLS = new Set(['lobe-filter-app-view']);
 
 export interface InspectorProps {
   apiName: string;
@@ -29,7 +29,7 @@ const Tool = memo<InspectorProps>(
     const [showDetail, setShowDetail] = useState(type !== 'mcp');
     const [showPluginRender, setShowPluginRender] = useState(false);
     const isLoading = useChatStore(chatSelectors.isInToolsCalling(messageId, index));
-    const isSilent = SILENT_BUILTIN_TOOLS.includes(identifier);
+    const isSilent = SILENT_BUILTIN_TOOLS.has(identifier);
 
     // useEffect must be called unconditionally (Rules of Hooks) — guard inside
     useEffect(() => {

@@ -7,6 +7,7 @@ import { image } from "../../utils/Interfaces";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { LoadingItem } from "../Loading";
 import { useTranslation } from 'react-i18next';
+import { convertHeicIfNeeded, validateFile } from "@bodasdehoy/shared/upload";
 
 export const PerfilFoto = () => {
     const { t } = useTranslation();
@@ -35,35 +36,39 @@ const ImageProfile: FC = () => {
     const handleChange = async (e: any) => {
         setLoading(true)
         try {
-            const file = e.target.files[0]
-            const reader = new FileReader();
-            reader.onloadend = async () => {
-                const result: Partial<image> = await fetchApiBodas(
-                    {
-                        query: queries.singleUpload,
-                        variables: { file, use: "profile" },
-                        type: "formData",
-                        development: config?.development
-                    }
-                )
+            let file = e.target.files[0]
+            if (!file) { setLoading(false); return; }
 
-                if (result?.i640 && auth?.currentUser) {
-                    await updateProfile(auth.currentUser, {
-                        photoURL: createURL(result.i640)
-                    })
-
-                    setUser(old => ({ ...old, photoURL: createURL(result.i640) }))
-                }
+            // Validate
+            const v = validateFile(file, { maxSize: 10 * 1024 * 1024 });
+            if (!v.valid) {
+                toast("error", v.error || "Archivo no válido")
+                setLoading(false)
+                return
             }
-            reader.readAsDataURL(file);
+
+            // HEIC conversion
+            file = await convertHeicIfNeeded(file);
+
+            const result: Partial<image> = await fetchApiBodas(
+                {
+                    query: queries.singleUpload,
+                    variables: { file, use: "profile" },
+                    type: "formData",
+                    development: config?.development
+                }
+            )
+
+            if (result?.i640 && auth?.currentUser) {
+                await updateProfile(auth.currentUser, {
+                    photoURL: createURL(result.i640)
+                })
+                setUser(old => ({ ...old, photoURL: createURL(result.i640) }))
+            }
             toast("success", t("imagesuccessfully"))
-            setTimeout(() => {
-                setLoading(false)
-            }, 500);
+            setLoading(false)
         } catch (error) {
-            setTimeout(() => {
-                setLoading(false)
-            }, 500);
+            setLoading(false)
             toast("error", t("errorloadingimage"))
         }
     }
@@ -78,7 +83,7 @@ const ImageProfile: FC = () => {
                     </div>
                 )}
             </label>
-            <input type="file" id="photo" name="photo" className="hidden" onChange={handleChange} />
+            <input type="file" id="photo" name="photo" accept=".heic,.heif,image/*" className="hidden" onChange={handleChange} />
         </div>
     );
 }

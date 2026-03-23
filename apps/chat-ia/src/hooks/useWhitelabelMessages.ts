@@ -98,9 +98,7 @@ const configCache = new Map<string, CachedConfig>();
  * ```
  */
 export const useWhitelabelMessages = (): UseWhitelabelResult => {
-  const { development } = useChatStore((s) => ({
-    development: s.development,
-  }));
+  const development = useChatStore((s) => s.development);
 
   const [messages, setMessages] = useState<WhitelabelMessages>(DEFAULT_MESSAGES);
   const [features, setFeatures] = useState<WhitelabelFeatures>(DEFAULT_FEATURES);

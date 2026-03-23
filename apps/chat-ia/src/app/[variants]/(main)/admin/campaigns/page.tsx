@@ -28,39 +28,39 @@ const CHANNEL_OPTIONS = [
 ];
 
 interface Template {
-  id: string;
-  name: string;
   channel: CampaignChannel;
-  subject?: string;
+  id: string;
   message: string;
+  name: string;
+  subject?: string;
 }
 
 const TEMPLATES: Template[] = [
   {
+    channel: 'EMAIL',
     id: 'welcome',
-    name: 'Bienvenida',
-    channel: 'EMAIL',
-    subject: 'Te damos la bienvenida a nuestro evento',
     message: 'Hola! Nos encanta que formes parte de nuestro evento. Aquí encontrarás toda la información que necesitas para prepararte. No dudes en escribirnos si tienes alguna pregunta.',
+    name: 'Bienvenida',
+    subject: 'Te damos la bienvenida a nuestro evento',
   },
   {
-    id: 'reminder',
-    name: 'Recordatorio',
     channel: 'WHATSAPP',
+    id: 'reminder',
     message: 'Hola! Te recordamos que nuestro evento se acerca. No olvides confirmar tu asistencia. Te esperamos con muchas ganas!',
+    name: 'Recordatorio',
   },
   {
-    id: 'thanks',
-    name: 'Agradecimiento',
     channel: 'EMAIL',
-    subject: 'Gracias por acompañarnos',
+    id: 'thanks',
     message: 'Queremos agradecerte por haber sido parte de nuestro evento. Fue un día muy especial y tu presencia lo hizo aún más memorable. Pronto compartiremos las fotos!',
+    name: 'Agradecimiento',
+    subject: 'Gracias por acompañarnos',
   },
   {
-    id: 'info',
-    name: 'Información',
     channel: 'SMS',
+    id: 'info',
     message: 'Info importante: El evento será el [FECHA] a las [HORA] en [LUGAR]. Confirma tu asistencia aquí: [LINK]',
+    name: 'Información',
   },
 ];
 
@@ -240,11 +240,8 @@ const CampaignsPage = memo(() => {
           <Card>
             <Tabs
               activeKey={activeTab}
-              onChange={setActiveTab}
               items={[
                 {
-                  key: 'form',
-                  label: 'Campaña',
                   children: (
                     <Form
                       form={form}
@@ -321,16 +318,16 @@ const CampaignsPage = memo(() => {
                       </Form.Item>
                     </Form>
                   ),
+                  key: 'form',
+                  label: 'Campaña',
                 },
                 {
-                  key: 'templates',
-                  label: 'Plantillas',
                   children: (
                     <div className="space-y-3">
                       {TEMPLATES.map((t) => (
                         <div
-                          key={t.id}
                           className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                          key={t.id}
                           onClick={() => applyTemplate(t)}
                         >
                           <div className="flex items-center justify-between mb-2">
@@ -347,15 +344,18 @@ const CampaignsPage = memo(() => {
                       ))}
                     </div>
                   ),
+                  key: 'templates',
+                  label: 'Plantillas',
                 },
               ]}
+              onChange={setActiveTab}
             />
           </Card>
         </div>
 
         {/* Right: Preview */}
         <div className="w-[320px] flex-shrink-0">
-          <Card title="Vista previa" size="small">
+          <Card size="small" title="Vista previa">
             <MessagePreview channel={channel} message={message} subject={subject} />
           </Card>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { DatePicker, Input, Modal, Select, Table, Tag } from 'antd';
+import { Input, Modal, Select, Table, Tag } from 'antd';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
@@ -18,7 +18,7 @@ type Period = 'day' | 'week' | 'month';
 
 // ─── Revenue trend (SVG chart) ───────────────────────────────────────────────
 
-function RevenueTrend({ stats, period }: { stats: WalletStats | null; period: Period }) {
+function RevenueTrend({ stats, period }: { period: Period, stats: WalletStats | null; }) {
   if (!stats) return null;
 
   // Generate mock daily data points based on period
@@ -97,21 +97,21 @@ function RevenueTrend({ stats, period }: { stats: WalletStats | null; period: Pe
           Margen: €{(totalRevenue - totalConsumption).toFixed(2)}
         </span>
       </div>
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ maxHeight: 180 }}>
+      <svg className="w-full" style={{ maxHeight: 180 }} viewBox={`0 0 ${width} ${height}`}>
         {/* Grid lines */}
         {[0.25, 0.5, 0.75, 1].map((pct) => {
           const y = height - padding - pct * (height - padding * 2);
           return (
             <g key={pct}>
-              <line x1={padding} y1={y} x2={width - padding} y2={y} stroke="#f3f4f6" strokeWidth={1} />
-              <text x={2} y={y + 4} fontSize={9} fill="#9ca3af">€{(maxVal * pct).toFixed(2)}</text>
+              <line stroke="#f3f4f6" strokeWidth={1} x1={padding} x2={width - padding} y1={y} y2={y} />
+              <text fill="#9ca3af" fontSize={9} x={2} y={y + 4}>€{(maxVal * pct).toFixed(2)}</text>
             </g>
           );
         })}
         {/* Revenue line */}
         <path d={toPath(revenueData)} fill="none" stroke="#22c55e" strokeWidth={2} />
         {/* Consumption line */}
-        <path d={toPath(consumptionData)} fill="none" stroke="#f87171" strokeWidth={2} strokeDasharray="4,3" />
+        <path d={toPath(consumptionData)} fill="none" stroke="#f87171" strokeDasharray="4,3" strokeWidth={2} />
       </svg>
     </div>
   );
@@ -119,7 +119,7 @@ function RevenueTrend({ stats, period }: { stats: WalletStats | null; period: Pe
 
 // ─── Stats overview ───────────────────────────────────────────────────────────
 
-function StatsOverview({ stats, loading }: { stats: WalletStats | null; loading: boolean }) {
+function StatsOverview({ stats, loading }: { loading: boolean, stats: WalletStats | null; }) {
   if (loading) {
     return (
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -132,10 +132,10 @@ function StatsOverview({ stats, loading }: { stats: WalletStats | null; loading:
   if (!stats) return <div className="rounded-lg bg-red-50 p-4 text-red-600">Error cargando estadísticas</div>;
 
   const cards = [
-    { label: 'Wallets Activos', value: `${stats.active_wallets} / ${stats.total_wallets}`, icon: '👛' },
-    { label: 'Saldo Circulante', value: `€${(stats.total_balance + stats.total_bonus_balance).toFixed(2)}`, icon: '💰' },
-    { label: 'Ingresos del Mes', value: `€${(stats.monthly_revenue ?? 0).toFixed(2)}`, icon: '📈' },
-    { label: 'Consumo del Mes', value: `€${(stats.monthly_consumption ?? 0).toFixed(2)}`, icon: '📊' },
+    { icon: '👛', label: 'Wallets Activos', value: `${stats.active_wallets} / ${stats.total_wallets}` },
+    { icon: '💰', label: 'Saldo Circulante', value: `€${(stats.total_balance + stats.total_bonus_balance).toFixed(2)}` },
+    { icon: '📈', label: 'Ingresos del Mes', value: `€${(stats.monthly_revenue ?? 0).toFixed(2)}` },
+    { icon: '📊', label: 'Consumo del Mes', value: `€${(stats.monthly_consumption ?? 0).toFixed(2)}` },
   ];
 
   return (
@@ -158,9 +158,9 @@ function LowBalanceList({
   loading,
   onCredit,
 }: {
-  wallets: LowBalanceWallet[];
   loading: boolean;
   onCredit: (userId: string, email?: string) => void;
+  wallets: LowBalanceWallet[];
 }) {
   if (loading) return <div className="h-32 animate-pulse rounded-lg bg-gray-200" />;
   if (wallets.length === 0)
@@ -169,18 +169,17 @@ function LowBalanceList({
   return (
     <Table
       columns={[
-        { dataIndex: 'email', title: 'Usuario', render: (email, r) => email || r.userId },
-        { dataIndex: 'development', title: 'Tenant', render: (v) => v || '—' },
+        { dataIndex: 'email', render: (email, r) => email || r.userId, title: 'Usuario' },
+        { dataIndex: 'development', render: (v) => v || '—', title: 'Tenant' },
         {
           dataIndex: 'total_balance',
-          title: 'Saldo',
           render: (v) => <span className="font-bold text-red-600">€{(v ?? 0).toFixed(2)}</span>,
+          title: 'Saldo',
           width: 100,
         },
-        { dataIndex: 'status', title: 'Estado', render: (v) => <Tag color={v === 'ACTIVE' ? 'green' : 'red'}>{v}</Tag>, width: 110 },
+        { dataIndex: 'status', render: (v) => <Tag color={v === 'ACTIVE' ? 'green' : 'red'}>{v}</Tag>, title: 'Estado', width: 110 },
         {
           key: 'action',
-          title: '',
           render: (_, r) => (
             <button
               className="rounded bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700"
@@ -189,6 +188,7 @@ function LowBalanceList({
               Dar crédito
             </button>
           ),
+          title: '',
           width: 110,
         },
       ]}
@@ -202,7 +202,7 @@ function LowBalanceList({
 
 // ─── Usage tracking table ─────────────────────────────────────────────────────
 
-function UsageTrackingTable({ period, onUserClick }: { period: Period; onUserClick?: (userId: string) => void }) {
+function UsageTrackingTable({ period, onUserClick }: { onUserClick?: (userId: string) => void, period: Period; }) {
   const [entries, setEntries] = useState<UsageTrackingEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -267,14 +267,14 @@ function UsageTrackingTable({ period, onUserClick }: { period: Period; onUserCli
       </div>
       <Table
         columns={[
-          { dataIndex: 'created_at', title: 'Fecha', render: (v) => dayjs(v).format('DD/MM/YY HH:mm'), width: 130 },
-          { dataIndex: 'userId', title: 'Usuario', ellipsis: true, render: (v: string) => onUserClick ? (
+          { dataIndex: 'created_at', render: (v) => dayjs(v).format('DD/MM/YY HH:mm'), title: 'Fecha', width: 130 },
+          { dataIndex: 'userId', ellipsis: true, render: (v: string) => onUserClick ? (
             <button className="text-blue-600 hover:underline text-left" onClick={() => onUserClick(v)}>{v}</button>
-          ) : v },
-          { dataIndex: 'development', title: 'Tenant', width: 120, render: (v) => v || '—' },
-          { dataIndex: 'action', title: 'Acción', render: (v) => <Tag>{v}</Tag>, width: 160 },
-          { dataIndex: 'quantity', title: 'Cantidad', width: 90, render: (v) => (v ?? 0).toLocaleString() },
-          { dataIndex: 'cost', title: 'Coste', width: 90, render: (v) => v != null ? `€${Number(v).toFixed(4)}` : '—' },
+          ) : v, title: 'Usuario' },
+          { dataIndex: 'development', render: (v) => v || '—', title: 'Tenant', width: 120 },
+          { dataIndex: 'action', render: (v) => <Tag>{v}</Tag>, title: 'Acción', width: 160 },
+          { dataIndex: 'quantity', render: (v) => (v ?? 0).toLocaleString(), title: 'Cantidad', width: 90 },
+          { dataIndex: 'cost', render: (v) => v != null ? `€${Number(v).toFixed(4)}` : '—', title: 'Coste', width: 90 },
         ]}
         dataSource={entries}
         loading={loading}
@@ -298,8 +298,8 @@ function UserDrilldownModal({
   userId,
   onClose,
 }: {
-  userId: string | null;
   onClose: () => void;
+  userId: string | null;
 }) {
   const [txns, setTxns] = useState<WalletTransaction[]>([]);
   const [loading, setLoading] = useState(false);
@@ -328,14 +328,14 @@ function UserDrilldownModal({
     >
       <Table
         columns={[
-          { dataIndex: 'created_at', title: 'Fecha', render: (v) => dayjs(v).format('DD/MM/YY HH:mm'), width: 130 },
-          { dataIndex: 'type', title: 'Tipo', render: (v) => <Tag color={typeColor[v]}>{v}</Tag>, width: 120 },
-          { dataIndex: 'description', title: 'Descripción', ellipsis: true },
-          { dataIndex: 'amount', title: 'Monto', width: 100, render: (v, r: WalletTransaction) => {
+          { dataIndex: 'created_at', render: (v) => dayjs(v).format('DD/MM/YY HH:mm'), title: 'Fecha', width: 130 },
+          { dataIndex: 'type', render: (v) => <Tag color={typeColor[v]}>{v}</Tag>, title: 'Tipo', width: 120 },
+          { dataIndex: 'description', ellipsis: true, title: 'Descripción' },
+          { dataIndex: 'amount', render: (v, r: WalletTransaction) => {
             const pos = r.type === 'RECHARGE' || r.type === 'BONUS' || r.type === 'REFUND';
             return <span style={{ color: pos ? '#10b981' : '#ef4444', fontWeight: 600 }}>{pos ? '+' : ''}€{(v ?? 0).toFixed(2)}</span>;
-          }},
-          { dataIndex: 'balance_after', title: 'Saldo tras', width: 110, render: (v) => `€${(v ?? 0).toFixed(2)}` },
+          }, title: 'Monto', width: 100},
+          { dataIndex: 'balance_after', render: (v) => `€${(v ?? 0).toFixed(2)}`, title: 'Saldo tras', width: 110 },
         ]}
         dataSource={txns}
         loading={loading}
@@ -354,9 +354,9 @@ function CreditModal({
   email,
   onClose,
 }: {
-  userId: string | null;
   email?: string;
   onClose: (refreshed?: boolean) => void;
+  userId: string | null;
 }) {
   const [type, setType] = useState<'recharge' | 'bonus'>('recharge');
   const [amount, setAmount] = useState('');
@@ -438,14 +438,14 @@ export default function BillingDashboard() {
   const [lowBalanceWallets, setLowBalanceWallets] = useState<LowBalanceWallet[]>([]);
   const [lowBalanceLoading, setLowBalanceLoading] = useState(true);
   const [drilldownUserId, setDrilldownUserId] = useState<string | null>(null);
-  const [creditModal, setCreditModal] = useState<{ userId: string; email?: string } | null>(null);
+  const [creditModal, setCreditModal] = useState<{ email?: string, userId: string; } | null>(null);
 
   const loadData = useCallback(() => {
     setStatsLoading(true);
     adminWalletService.getStats().then((s) => { setStats(s); setStatsLoading(false); });
 
     setLowBalanceLoading(true);
-    adminWalletService.getLowBalanceWallets(1.0).then((w) => { setLowBalanceWallets(w); setLowBalanceLoading(false); });
+    adminWalletService.getLowBalanceWallets(1).then((w) => { setLowBalanceWallets(w); setLowBalanceLoading(false); });
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -511,7 +511,7 @@ export default function BillingDashboard() {
         </h2>
         <LowBalanceList
           loading={lowBalanceLoading}
-          onCredit={(userId, email) => setCreditModal({ userId, email })}
+          onCredit={(userId, email) => setCreditModal({ email, userId })}
           wallets={lowBalanceWallets}
         />
       </div>

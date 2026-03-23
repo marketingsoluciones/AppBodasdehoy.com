@@ -64,14 +64,12 @@ const Render = memo<ArtifactProps>(({ identifier, title, type, language, childre
 
   const inThread = useContext(InPortalThreadContext);
   const { message } = App.useApp();
-  const [isGenerating, isArtifactTagClosed, openArtifact, closeArtifact] = useChatStore((s) => {
-    return [
-      chatSelectors.isMessageGenerating(id)(s),
-      chatPortalSelectors.isArtifactTagClosed(id)(s),
-      s.openArtifact,
-      s.closeArtifact,
-    ];
-  });
+  const isGenerating = useChatStore((s) => chatSelectors.isMessageGenerating(id)(s));
+  const isArtifactTagClosed = useChatStore((s) =>
+    chatPortalSelectors.isArtifactTagClosed(id)(s),
+  );
+  const openArtifact = useChatStore((s) => s.openArtifact);
+  const closeArtifact = useChatStore((s) => s.closeArtifact);
 
   const openArtifactUI = () => {
     openArtifact({ id, identifier, language, title, type });

@@ -69,10 +69,8 @@ const ALL_DEVELOPMENTS = [
 
 const KBAdmin = () => {
   // ✅ Auto-detectar development del usuario actual
-  const { userDevelopment, userProfile } = useChatStore((s) => ({
-    userDevelopment: s.development,
-    userProfile: s.userProfile,
-  }));
+  const userDevelopment = useChatStore((s) => s.development);
+  const userProfile = useChatStore((s) => s.userProfile);
 
   // ✅ Verificar si es admin (puede ver todos los developments)
   const isAdmin = userProfile?.roles?.includes('admin') ||

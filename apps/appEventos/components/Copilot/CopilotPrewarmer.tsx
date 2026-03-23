@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useRef } from 'react';
+import { getCopilotBaseUrl } from './getCopilotBaseUrl';
 
 interface CopilotPrewarmerProps {
   development?: string;
@@ -27,19 +28,15 @@ export const CopilotPrewarmer: React.FC<CopilotPrewarmerProps> = ({ development 
 
     const prewarmChat = async () => {
       try {
-        // Monorepo: app-test ↔ chat-test. Precalentar la URL que usará el Copilot (chat-test en app-test).
-        let baseUrl = process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com';
-        if (typeof window !== 'undefined' && window.location.hostname?.includes('app-test')) {
-          baseUrl = 'https://chat-test.bodasdehoy.com';
-        }
-        const cleanBase = baseUrl.replace(/\/$/, '');
+        // Usar util compartido (misma lógica que CopilotIframe y ChatSidebar)
+        const cleanBase = getCopilotBaseUrl();
 
         const prewarmUrls = [
           `/${development}/chat`, // Página principal del chat
           `/${development}`,       // Página base
         ];
 
-        // Pre-calentar todas las URLs en paralelo (404 en chat-ia es aceptable en dev si la ruta no existe aún)
+        // Pre-calentar en paralelo con timeout de 5s por URL
         await Promise.allSettled(
           prewarmUrls.map(async (path) => {
             const url = `${cleanBase}${path}`;
@@ -65,15 +62,20 @@ export const CopilotPrewarmer: React.FC<CopilotPrewarmerProps> = ({ development 
       }
     };
 
-    // Esperar a que la página principal cargue antes de pre-calentar
-    // Esto evita competir por recursos durante la carga inicial
+    // Pre-calentar usando requestIdleCallback para no competir con el render inicial
     if (typeof window !== 'undefined') {
-      if (document.readyState === 'complete') {
-        setTimeout(prewarmChat, 500);
+      const runPrewarm = () => {
+        if ('requestIdleCallback' in window) {
+          (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => void })
+            .requestIdleCallback(prewarmChat, { timeout: 3000 });
+        } else {
+          setTimeout(prewarmChat, 0);
+        }
+      };
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        runPrewarm();
       } else {
-        window.addEventListener('load', () => {
-          setTimeout(prewarmChat, 500);
-        }, { once: true });
+        window.addEventListener('load', runPrewarm, { once: true });
       }
     }
   }, [development]);

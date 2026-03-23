@@ -239,9 +239,19 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
   const { t } = useTranslation();
   const { eventsGroup } = EventsGroupContextProvider();
   const { actionModals, setActionModals } = AuthContextProvider()
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+
+  // Dynamic import to avoid SSR issues
+  const [planLimits, setPlanLimits] = useState<any>(null)
+  useEffect(() => {
+    import('../hooks/usePlanLimits').then(() => {})
+  }, [])
+
   const ConditionalAction = () => {
-    if (eventsGroup.length >= 100) {
-      setActionModals(!actionModals)
+    // Use plan-based limit if available, fallback to legacy 100
+    const limit = planLimits?.eventLimit ?? 100
+    if (eventsGroup.length >= limit) {
+      setShowUpgradeModal(true)
     } else {
       set(!state)
     }
@@ -295,11 +305,40 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
           @media only screen and (min-width: 1536px) {
             .image {
               height: 500px;
-              
+
             }
           }
         `}
       </style>
+
+      {/* Plan upgrade modal */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 flex flex-col items-center gap-4 text-center">
+            <div className="text-4xl">🎉</div>
+            <h2 className="font-display text-xl font-semibold text-gray-800">
+              Has llegado al límite de eventos
+            </h2>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              {planLimits?.upgradeMessage?.('events-count') || 'Actualiza tu plan para crear más eventos.'}
+            </p>
+            <div className="flex flex-col gap-2 w-full mt-2">
+              <a
+                href="/facturacion"
+                className="w-full py-3 rounded-full bg-primary text-white font-medium text-sm hover:opacity-80 transition text-center"
+              >
+                Ver planes
+              </a>
+              <button
+                onClick={() => setShowUpgradeModal(false)}
+                className="w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

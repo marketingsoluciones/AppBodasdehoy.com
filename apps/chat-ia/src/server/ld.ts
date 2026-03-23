@@ -2,7 +2,7 @@ import { isString } from 'lodash-es';
 import qs from 'query-string';
 import urlJoin from 'url-join';
 
-import { BRANDING_EMAIL, BRANDING_NAME, SOCIAL_URL } from '@/const/branding';
+import { BRANDING_EMAIL, BRANDING_NAME, ORG_NAME, SOCIAL_URL } from '@/const/branding';
 import { DEFAULT_LANG } from '@/const/locale';
 import { OFFICIAL_SITE, OFFICIAL_URL } from '@/const/url';
 import { Locales } from '@/locales/resources';
@@ -87,7 +87,7 @@ export class Ld {
     return {
       '@id': this.getId(OFFICIAL_URL, '#organization'),
       '@type': 'Organization',
-      'alternateName': 'LobeHub',
+      'alternateName': ORG_NAME,
       'contactPoint': {
         '@type': 'ContactPoint',
         'contactType': 'customer support',
@@ -104,8 +104,13 @@ export class Ld {
         'url': urlJoin(OFFICIAL_SITE, '/icon-512x512.png'),
         'width': 512,
       },
-      'name': 'LobeHub',
-      'sameAs': [SOCIAL_URL.x, SOCIAL_URL.github, SOCIAL_URL.medium, SOCIAL_URL.youtube],
+      'name': BRANDING_NAME,
+      'sameAs': [
+        SOCIAL_URL.x,
+        SOCIAL_URL.github,
+        SOCIAL_URL.medium,
+        SOCIAL_URL.youtube,
+      ].filter(Boolean),
       'url': OFFICIAL_SITE,
     };
   }

@@ -7,7 +7,7 @@ export const metadata = {
 export default function WidgetLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
-      <body style={{ margin: 0, padding: 0, overflow: 'hidden', height: '100vh' }}>
+      <body style={{ height: '100vh', margin: 0, overflow: 'hidden', padding: 0 }}>
         {children}
       </body>
     </html>

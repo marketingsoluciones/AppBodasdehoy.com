@@ -7,7 +7,7 @@ import InputField from "./InputField";
 import { useToast } from "../../hooks/useToast";
 import { getCurrency } from "../../utils/Funciones";
 import { useTranslation } from 'react-i18next';
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching";
 
 
 
@@ -62,7 +62,8 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
     pagado_por: pago?.pagado_por,
     medio_pago: pago?.medio_pago,
     concepto: pago?.concepto,
-    file: pago?.soporte
+    file: pago?.soporte,
+    soporte_file: null
   }
 
   const saveData = async (values) => {
@@ -94,6 +95,7 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
       setEvent({ ...event })
       set(!state)
     } catch (error) {
+      toast("error", t("erroroccurred") || "Error al guardar el pago")
     }
   }
 
@@ -106,29 +108,20 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
 
           if (!isSubmitting) {
             setIsSubmitting(true)
-            
-            // Verificar si hay un archivo nuevo (base64 string) para subir
-            if (values.file && typeof values.file === "string" && values.file.startsWith("data:")) {
-              const formdata = new FormData();
-              formdata.append("image", values.file.split("base64,")[1]);
-              const requestOptions = {
-                method: "POST",
-                body: formdata,
-                redirect: "follow"
-              };
-              
+
+            // Verificar si hay un archivo nuevo (File object o base64 string) para subir
+            if (values.soporte_file instanceof File) {
               try {
-                const response = await fetch("https://api.imgbb.com/1/upload?expiration=15552000&key=c6f787e40fd29dac790a3e42d38c5078", requestOptions);
-                const result = await response.text();
-                const data = JSON.parse(result)?.data;
-                
+                const result = await fetchApiBodas({
+                  query: queries.singleUpload,
+                  variables: { file: values.soporte_file, use: "payment" },
+                  type: "formData"
+                });
                 values.soporte = {
-                  image_url: data?.image?.url,
-                  medium_url: data?.medium?.url,
-                  thumb_url: data?.thumb?.url,
-                  delete_url: data?.delete_url
+                  image_url: result?.i640,
+                  medium_url: result?.i640,
+                  thumb_url: result?.i640,
                 };
-                
                 saveData(values);
               } catch (uploadError) {
                 console.error("Error uploading image:", uploadError);
@@ -140,19 +133,18 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
             } else {
               // Si no hay archivo nuevo, usar el archivo existente o null
               if (values.file === "") {
-                // Si se eliminó explícitamente el archivo
                 values.soporte = null;
               } else if (values.file && typeof values.file === "object") {
-                // Si es un archivo existente, usar sus datos
                 values.soporte = values.file;
               }
-              
+
               saveData(values);
             }
-            
+
             setIsLoadingImage(false);
           }
         } catch (error) {
+          toast("error", t("erroroccurred") || "Error al procesar")
           setIsLoadingImage(false);
           setIsSubmitting(false);
         }
@@ -183,6 +175,7 @@ export const BasicFormLogin = ({
   const { config } = AuthContextProvider()
   const [ischecked, setCheck] = useState(values.pagado)
   const { currency } = AuthContextProvider()
+  const toast = useToast()
   const [showProOptions, setShowProOptions] = useState(true)
   const Categoria = event?.presupuesto_objeto?.categorias_array?.find(item => item?._id == pago.idCategoria)?.nombre
   const idxCate = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item?._id == pago.idCategoria)
@@ -233,15 +226,12 @@ export const BasicFormLogin = ({
     try {
       const file = event.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        values.file = reader.result;
-        setValues({ ...values });
-        setPreviewUrl(reader.result);
-      };
-      reader.readAsDataURL(file);
       setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      values.soporte_file = file;
+      setValues({ ...values });
     } catch (error) {
+      toast("error", t("erroroccurred") || "Error al seleccionar archivo")
     }
   };
 

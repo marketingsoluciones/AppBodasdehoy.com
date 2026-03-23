@@ -45,12 +45,12 @@ function Breadcrumbs({ pathname }: { pathname: string }) {
     const isLast = i === segments.length - 1;
 
     return (
-      <span key={href} className="flex items-center gap-1">
+      <span className="flex items-center gap-1" key={href}>
         {i > 0 && <span className="text-gray-300 mx-1">/</span>}
         {isLast ? (
           <span className="text-gray-900 font-medium text-sm">{label}</span>
         ) : (
-          <Link href={href} className="text-gray-500 text-sm hover:text-blue-600">
+          <Link className="text-gray-500 text-sm hover:text-blue-600" href={href}>
             {label}
           </Link>
         )}
@@ -165,13 +165,13 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
             const active = isActive(pathname, item.href);
             return (
               <Link
-                key={item.href}
                 className={`block rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                   active
                     ? 'bg-blue-100 text-blue-700 border-l-3 border-blue-600'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
                 href={item.href}
+                key={item.href}
               >
                 {item.icon} {item.label}
               </Link>

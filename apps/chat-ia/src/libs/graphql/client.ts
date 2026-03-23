@@ -5,6 +5,7 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
 
+import { BRANDING_NAME } from '@lobechat/const';
 import { getSupportKey } from '@/const/supportKeys';
 import { getAPIOriginHeader, getCurrentDevelopment } from '@/utils/developmentDetector';
 
@@ -79,7 +80,7 @@ const authLink = new SetContextLink((prevContext) => {
       'SupportKey': supportKey,
 
       // ✅ Origin dinámico basado en development
-      'User-Agent': 'LobeChat-Client/1.0',
+      'User-Agent': `${BRANDING_NAME.replace(/\s+/g, '')}-Client/1.0`,
       'X-Development': currentDevelopment, // ✅ SupportKey para acceso sin login
       ...(token && { Authorization: `Bearer ${token}` }),
     },

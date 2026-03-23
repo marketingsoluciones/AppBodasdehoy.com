@@ -1,6 +1,6 @@
 'use client';
 
-import { Badge, Breadcrumb, Skeleton, Tag, Tooltip , Alert } from 'antd';
+import { Badge, Breadcrumb, Modal, Skeleton, Tag, Tooltip, Alert } from 'antd';
 import { createStyles } from 'antd-style';
 import { ArrowLeft, Check, Info, Sparkles, X } from 'lucide-react';
 import Link from 'next/link';
@@ -12,6 +12,8 @@ import PriceComparison from '@/components/credits/PriceComparison';
 import {
   SubscriptionPlan,
   UserSubscriptionInfo,
+  cancelSubscription,
+  createCustomerPortalSession,
   getMySubscription,
   getSubscriptionPlans,
   subscribeToPlan,
@@ -450,6 +452,9 @@ const PlanesPage = memo(() => {
   const [loading, setLoading] = useState(true);
   const [selectingPlanId, setSelectingPlanId] = useState<string | null>(null);
   const [selectError, setSelectError] = useState<string | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
 
   useEffect(() => {
     Promise.all([getSubscriptionPlans(), getMySubscription()]).then(([plansData, subData]) => {
@@ -468,6 +473,31 @@ const PlanesPage = memo(() => {
     } else {
       setSelectError('No se pudo iniciar el checkout. Inténtalo de nuevo.');
       setSelectingPlanId(null);
+    }
+  };
+
+  const handleOpenPortal = async () => {
+    setOpeningPortal(true);
+    const result = await createCustomerPortalSession();
+    if (result.success && result.portal_url) {
+      window.location.href = result.portal_url;
+    } else {
+      // Portal not available from api2 yet — show cancel modal as fallback
+      setShowCancelModal(true);
+    }
+    setOpeningPortal(false);
+  };
+
+  const handleCancelSubscription = async () => {
+    setCancelling(true);
+    const result = await cancelSubscription();
+    setCancelling(false);
+    setShowCancelModal(false);
+    if (result.success) {
+      setMySubscription(null);
+      window.location.reload();
+    } else {
+      setSelectError('No se pudo cancelar la suscripción. Por favor, contacta con soporte.');
     }
   };
 
@@ -532,6 +562,23 @@ const PlanesPage = memo(() => {
           <Sparkles color="#667eea" size={28} />
           <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0 }}>Elige tu plan</h1>
         </Flexbox>
+        {/* Social proof */}
+        <div
+          style={{
+            alignItems: 'center',
+            background: 'linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%)',
+            border: '1px solid #e0e7ff',
+            borderRadius: 20,
+            display: 'flex',
+            fontSize: 13,
+            gap: 6,
+            padding: '4px 14px',
+          }}
+        >
+          <span style={{ fontSize: 16 }}>⭐</span>
+          <span style={{ color: '#4338ca', fontWeight: 600 }}>+1.200 organizadores</span>
+          <span style={{ color: 'var(--ant-color-text-secondary)' }}>ya organizan su boda con Bodas de Hoy</span>
+        </div>
         <p
           style={{
             color: 'var(--ant-color-text-secondary)',
@@ -654,10 +701,51 @@ const PlanesPage = memo(() => {
       {/* Comparativa completa de planes */}
       <PriceComparison />
 
+      {/* Gestionar suscripción activa */}
+      {mySubscription?.status === 'ACTIVE' && (
+        <div style={{ textAlign: 'center' }}>
+          <button
+            disabled={openingPortal}
+            onClick={handleOpenPortal}
+            style={{
+              background: 'none',
+              border: '1px solid var(--ant-color-border)',
+              borderRadius: 8,
+              color: 'var(--ant-color-text-secondary)',
+              cursor: openingPortal ? 'not-allowed' : 'pointer',
+              fontSize: 13,
+              padding: '8px 20px',
+            }}
+          >
+            {openingPortal ? 'Abriendo portal...' : '⚙️ Gestionar suscripción / Cancelar'}
+          </button>
+        </div>
+      )}
+
       <p style={{ color: 'var(--ant-color-text-quaternary)', fontSize: 12, margin: 0, textAlign: 'center' }}>
         Todos los precios mostrados no incluyen IVA. El IVA aplicable se calculará en el checkout según tu país de facturación.
         Puedes cancelar tu suscripción en cualquier momento desde esta página.
       </p>
+
+      {/* Modal de confirmación de cancelación */}
+      <Modal
+        cancelText="No, mantener plan"
+        okButtonProps={{ danger: true, loading: cancelling }}
+        okText="Sí, cancelar suscripción"
+        onCancel={() => setShowCancelModal(false)}
+        onOk={handleCancelSubscription}
+        open={showCancelModal}
+        title="¿Cancelar suscripción?"
+      >
+        <p>
+          Tu plan seguirá activo hasta el final del período de facturación actual.
+          Después pasarás automáticamente al plan gratuito.
+        </p>
+        <p style={{ color: 'var(--ant-color-text-secondary)', fontSize: 13 }}>
+          Tus datos, eventos e invitados se conservan. Solo perderás acceso a las
+          funcionalidades del plan de pago.
+        </p>
+      </Modal>
     </Flexbox>
   );
 });

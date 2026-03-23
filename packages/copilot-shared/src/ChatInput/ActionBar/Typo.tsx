@@ -1,0 +1,24 @@
+'use client';
+
+import { TypeIcon } from 'lucide-react';
+import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { useChatInputStore } from '../store';
+import Action from './Action';
+
+const Typo = memo(() => {
+  const { t } = useTranslation('editor');
+  const [showTypoBar, setShowTypoBar] = useChatInputStore((s) => [s.showTypoBar, s.setShowTypoBar]);
+
+  return (
+    <Action
+      active={showTypoBar}
+      icon={TypeIcon}
+      onClick={() => setShowTypoBar(!showTypoBar)}
+      title={t(showTypoBar ? 'actions.typobar.off' : 'actions.typobar.on')}
+    />
+  );
+});
+
+export default Typo;

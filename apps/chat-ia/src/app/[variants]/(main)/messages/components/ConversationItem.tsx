@@ -85,15 +85,18 @@ export function ConversationItem({
   const handleMenuAction = (action: string) => {
     setContextMenu(null);
     switch (action) {
-      case 'archive':
+      case 'archive': {
         toggleArchive(conversation.id);
         break;
-      case 'mute':
+      }
+      case 'mute': {
         toggleMute(conversation.id);
         break;
-      case 'delete':
+      }
+      case 'delete': {
         deleteConversation(conversation.id);
         break;
+      }
     }
   };
 
@@ -182,10 +185,10 @@ export function ConversationItem({
       {/* Context menu */}
       {contextMenu && (
         <div
-          ref={menuRef}
           className="fixed z-50 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
-          style={{ top: contextMenu.y, left: contextMenu.x }}
           onMouseDown={(e) => e.stopPropagation()}
+          ref={menuRef}
+          style={{ left: contextMenu.x, top: contextMenu.y }}
         >
           <button
             aria-label="Archivar conversación"

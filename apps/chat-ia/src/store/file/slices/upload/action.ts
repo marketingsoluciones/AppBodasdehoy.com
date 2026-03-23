@@ -1,13 +1,12 @@
 import { t } from 'i18next';
-import { sha256 } from 'js-sha256';
 import { StateCreator } from 'zustand/vanilla';
 
 import { message } from '@/components/AntdStaticMethods';
 import { LOBE_CHAT_CLOUD } from '@/const/branding';
-import { fileService } from '@/services/file';
 import { uploadService } from '@/services/upload';
-import { FileMetadata, UploadFileItem } from '@/types/files';
+import { UploadFileItem } from '@/types/files';
 import { getImageDimensions } from '@/utils/client/imageDimensions';
+import { validateFile, compressImage, convertHeicIfNeeded } from '@bodasdehoy/shared/upload';
 
 import { FileStore } from '../../store';
 
@@ -59,6 +58,38 @@ export interface FileUploadAction {
   ) => Promise<UploadWithProgressResult | undefined>;
 }
 
+/**
+ * Leer identidad y evento del usuario desde localStorage.
+ * Se usa tanto en upload como en base64 upload.
+ */
+function getUserContext() {
+  let eventId: string | undefined;
+  let userId: string | undefined;
+  let userEmail: string | undefined;
+  let development: string | undefined;
+
+  if (typeof window !== 'undefined') {
+    try {
+      const devConfig = localStorage.getItem('dev-user-config');
+      if (devConfig) {
+        const config = JSON.parse(devConfig);
+        userId = config.user_id ?? config.userId;
+        userEmail = config.user_email ?? config.email;
+        development = config.development ?? config.developer;
+        if (config.current_event_id) {
+          eventId = config.current_event_id;
+        } else if (config.eventos && config.eventos.length > 0) {
+          eventId = config.eventos[0]._id || config.eventos[0].id;
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ No se pudo obtener contexto de usuario:', e);
+    }
+  }
+
+  return { development, eventId, userEmail, userId };
+}
+
 export const createFileUploadSlice: StateCreator<
   FileStore,
   [['zustand/devtools', never]],
@@ -66,66 +97,57 @@ export const createFileUploadSlice: StateCreator<
   FileUploadAction
 > = () => ({
   uploadBase64FileWithProgress: async (base64) => {
-    // Extract image dimensions from base64 data
     const dimensions = await getImageDimensions(base64);
+    const ctx = getUserContext();
 
-    const { metadata, fileType, size, hash } = await uploadService.uploadBase64ToS3(base64);
-
-    const res = await fileService.createFile({
-      fileType,
-      hash,
-      metadata,
-      name: metadata.filename,
-      size: size,
-      url: metadata.path,
+    const { metadata } = await uploadService.uploadBase64ToS3(base64, {
+      eventId: ctx.eventId,
     });
-    return { ...res, dimensions, filename: metadata.filename };
+
+    // ID sintético basado en path (R2 es la fuente de verdad, no Postgres)
+    const syntheticId = metadata.path || `r2_${Date.now()}`;
+
+    return {
+      dimensions,
+      filename: metadata.filename,
+      id: syntheticId,
+      url: metadata.path,
+    };
   },
-  uploadWithProgress: async ({ file, onStatusUpdate, knowledgeBaseId, skipCheckFileType }) => {
-    const fileArrayBuffer = await file.arrayBuffer();
-
-    // 1. extract image dimensions if applicable
-    const dimensions = await getImageDimensions(file);
-
-    // 2. check file hash
-    const hash = sha256(fileArrayBuffer);
-
-    const checkStatus = await fileService.checkFileHash(hash);
-    let metadata: FileMetadata;
-
-    // 3. if file exist, just skip upload
-    if (checkStatus.isExist) {
-      metadata = checkStatus.metadata as FileMetadata;
-      onStatusUpdate?.({
-        id: file.name,
-        type: 'updateFile',
-        value: { status: 'processing', uploadState: { progress: 100, restTime: 0, speed: 0 } },
-      });
-    }
-    // 3. if file don't exist, need upload files
-    else {
-      // ✅ Intentar obtener event_id desde contexto si está disponible
-      let eventId: string | undefined;
-      try {
-        // Intentar obtener desde localStorage o contexto de usuario
-        if (typeof window !== 'undefined') {
-          const devConfig = localStorage.getItem('dev-user-config');
-          if (devConfig) {
-            const config = JSON.parse(devConfig);
-            // Si hay eventos, usar el primero o el seleccionado
-            if (config.current_event_id) {
-              eventId = config.current_event_id;
-            } else if (config.eventos && config.eventos.length > 0) {
-              eventId = config.eventos[0]._id || config.eventos[0].id;
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('⚠️ No se pudo obtener event_id:', e);
+  uploadWithProgress: async ({ file: rawFile, onStatusUpdate, skipCheckFileType }) => {
+    try {
+      // 0. Validate file
+      const validation = validateFile(rawFile);
+      if (!validation.valid) {
+        message.error({ content: validation.error || 'Archivo no válido', duration: 5 });
+        onStatusUpdate?.({ id: rawFile.name, type: 'removeFile' });
+        return;
       }
 
+      // Feedback inmediato
+      onStatusUpdate?.({
+        id: rawFile.name,
+        type: 'updateFile',
+        value: {
+          status: 'uploading',
+          uploadState: { progress: 0, restTime: 0, speed: 0 },
+        },
+      });
+
+      // 0b. HEIC conversion + compression
+      let file = await convertHeicIfNeeded(rawFile);
+      file = await compressImage(file);
+
+      // 1. Dimensiones de imagen si aplica
+      const dimensions = await getImageDimensions(file);
+
+      // 2. Contexto de usuario (eventId, userId, etc.)
+      const ctx = getUserContext();
+
+      // 3. Subir directamente a R2 via api-ia — sin checkFileHash ni Postgres
       const { data, success } = await uploadService.uploadFileToS3(file, {
-        eventId,
+        development: ctx.development,
+        eventId: ctx.eventId,
         onNotSupported: () => {
           onStatusUpdate?.({ id: file.name, type: 'removeFile' });
           message.info({
@@ -144,47 +166,54 @@ export const createFileUploadSlice: StateCreator<
             value: { status: status === 'success' ? 'processing' : status, uploadState: upload },
           });
         },
-        skipCheckFileType, // ✅ Pasar eventId si está disponible
+        skipCheckFileType,
+        userEmail: ctx.userEmail,
+        userId: ctx.userId,
       });
-      if (!success) return;
 
-      metadata = data;
+      if (!success) {
+        onStatusUpdate?.({
+          id: file.name,
+          type: 'updateFile',
+          value: {
+            status: 'error',
+            uploadState: { progress: 0, restTime: 0, speed: 0 },
+          },
+        });
+        return;
+      }
+
+      // 4. ID sintético — R2/api-ia es la fuente de verdad
+      const syntheticId = data.path || `r2_${Date.now()}_${file.name}`;
+
+      onStatusUpdate?.({
+        id: file.name,
+        type: 'updateFile',
+        value: {
+          fileUrl: data.path,
+          id: syntheticId,
+          status: 'success',
+          uploadState: { progress: 100, restTime: 0, speed: 0 },
+        },
+      });
+
+      return { dimensions, filename: file.name, id: syntheticId, url: data.path };
+    } catch (error) {
+      console.error('[uploadWithProgress] fallo al subir', rawFile.name, error);
+      const msg = error instanceof Error ? error.message : String(error);
+      message.error({
+        content: `Error subiendo archivo: ${msg}`,
+        duration: 8,
+      });
+      onStatusUpdate?.({
+        id: rawFile.name,
+        type: 'updateFile',
+        value: {
+          status: 'error',
+          uploadState: { progress: 0, restTime: 0, speed: 0 },
+        },
+      });
+      return;
     }
-
-    // 4. use more powerful file type detector to get file type
-    let fileType = file.type;
-
-    if (!file.type) {
-      const { fileTypeFromBuffer } = await import('file-type');
-
-      const type = await fileTypeFromBuffer(fileArrayBuffer);
-      fileType = type?.mime || 'text/plain';
-    }
-
-    // 5. create file to db
-    const data = await fileService.createFile(
-      {
-        fileType,
-        hash,
-        metadata,
-        name: file.name,
-        size: file.size,
-        url: metadata.path || checkStatus.url,
-      },
-      knowledgeBaseId,
-    );
-
-    onStatusUpdate?.({
-      id: file.name,
-      type: 'updateFile',
-      value: {
-        fileUrl: data.url,
-        id: data.id,
-        status: 'success',
-        uploadState: { progress: 100, restTime: 0, speed: 0 },
-      },
-    });
-
-    return { ...data, dimensions, filename: file.name };
   },
 });

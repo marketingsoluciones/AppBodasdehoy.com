@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
-import { buildHeaders, parseWhatsAppConversationId } from '../utils/auth';
 import { getWhatsAppMessagesGQL } from '@/services/api2/whatsapp';
+import { buildHeaders, parseWhatsAppConversationId } from '../utils/auth';
 import { useMessageStream } from './useMessageStream';
 import type { StreamMessage } from './useMessageStream';
 
@@ -81,15 +81,13 @@ export function useMessages(channel: string, conversationId: string) {
       return;
     }
 
-    // GraphQL path: conversationId prefixed with 'gql:' → use api2 native store
+    // GraphQL native store path (api2) — used when external WA service is down
     if (conversationId.startsWith('gql:')) {
       const gqlId = conversationId.slice(4);
       try {
         setLoading(true);
         const msgs = await getWhatsAppMessagesGQL(gqlId);
-        const serverMsgs = msgs.map((m) =>
-          normalizeMessage({ ...m, text: m.text, direction: m.direction }),
-        );
+        const serverMsgs = msgs.map((m) => normalizeMessage({ ...m, text: m.text, direction: m.direction }));
         setMessages(serverMsgs);
         setError(null);
       } catch (err) {
@@ -159,12 +157,12 @@ export function useMessages(channel: string, conversationId: string) {
       if (msg.conversationId && msg.conversationId !== conversationId) return;
 
       const normalized: Message = {
-        id: msg.id,
-        text: msg.text,
-        fromUser: msg.fromUser,
-        timestamp: msg.timestamp,
-        status: msg.status,
         attachments: msg.attachments,
+        fromUser: msg.fromUser,
+        id: msg.id,
+        status: msg.status,
+        text: msg.text,
+        timestamp: msg.timestamp,
       };
 
       setMessages((prev) => {
@@ -184,8 +182,8 @@ export function useMessages(channel: string, conversationId: string) {
   );
 
   const { shouldFallbackToPolling, connected: sseConnected } = useMessageStream({
-    conversationId,
     channel,
+    conversationId,
     enabled: !isGuest && !!conversationId,
     onMessage: handleStreamMessage,
   });

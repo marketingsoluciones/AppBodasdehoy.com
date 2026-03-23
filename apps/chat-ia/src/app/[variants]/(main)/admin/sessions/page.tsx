@@ -39,11 +39,11 @@ const formatLastActivity = (timestamp: string) => {
 };
 
 function SortableHeader({ label, sortKey, currentSort, currentDir, onSort }: {
-  label: string;
-  sortKey: SortKey;
-  currentSort: SortKey;
   currentDir: SortDir;
+  currentSort: SortKey;
+  label: string;
   onSort: (key: SortKey) => void;
+  sortKey: SortKey;
 }) {
   const isActive = currentSort === sortKey;
   return (
@@ -137,11 +137,16 @@ export default function SessionsPage() {
     result = [...result].sort((a, b) => {
       let cmp = 0;
       switch (sortKey) {
-        case 'userName': cmp = a.userName.localeCompare(b.userName); break;
-        case 'model': cmp = a.model.localeCompare(b.model); break;
-        case 'messagesCount': cmp = a.messagesCount - b.messagesCount; break;
-        case 'duration': cmp = a.duration - b.duration; break;
-        case 'lastActivity': cmp = new Date(a.lastActivity).getTime() - new Date(b.lastActivity).getTime(); break;
+        case 'userName': { cmp = a.userName.localeCompare(b.userName); break;
+        }
+        case 'model': { cmp = a.model.localeCompare(b.model); break;
+        }
+        case 'messagesCount': { cmp = a.messagesCount - b.messagesCount; break;
+        }
+        case 'duration': { cmp = a.duration - b.duration; break;
+        }
+        case 'lastActivity': { cmp = new Date(a.lastActivity).getTime() - new Date(b.lastActivity).getTime(); break;
+        }
       }
       return sortDir === 'asc' ? cmp : -cmp;
     });
@@ -235,10 +240,10 @@ export default function SessionsPage() {
         />
         <div className="flex gap-2">
           {[
-            { value: '', label: `Todas (${sessions.length})` },
-            { value: 'active', label: `Activas (${activeSessions.length})` },
-            { value: 'idle', label: `Inactivas (${sessions.filter((s) => s.status === 'idle').length})` },
-            { value: 'closed', label: `Cerradas (${sessions.filter((s) => s.status === 'closed').length})` },
+            { label: `Todas (${sessions.length})`, value: '' },
+            { label: `Activas (${activeSessions.length})`, value: 'active' },
+            { label: `Inactivas (${sessions.filter((s) => s.status === 'idle').length})`, value: 'idle' },
+            { label: `Cerradas (${sessions.filter((s) => s.status === 'closed').length})`, value: 'closed' },
           ].map((f) => (
             <button
               className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
@@ -277,7 +282,7 @@ export default function SessionsPage() {
             </thead>
             <tbody>
               {Array.from({ length: 4 }).map((_, i) => (
-                <tr key={i} className="border-b">
+                <tr className="border-b" key={i}>
                   <td className="px-4 py-3"><div className="space-y-1"><div className="h-4 w-28 animate-pulse rounded bg-gray-200" /><div className="h-3 w-36 animate-pulse rounded bg-gray-100" /></div></td>
                   <td className="px-4 py-3"><div className="h-4 w-20 animate-pulse rounded bg-gray-200" /></td>
                   <td className="px-4 py-3 text-center"><div className="mx-auto h-4 w-6 animate-pulse rounded bg-gray-200" /></td>
@@ -296,11 +301,11 @@ export default function SessionsPage() {
             <thead className="bg-gray-50 text-xs uppercase text-gray-700">
               <tr>
                 <th className="px-4 py-3">ID Sesión</th>
-                <SortableHeader label="Usuario" sortKey="userName" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Modelo" sortKey="model" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Mensajes" sortKey="messagesCount" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Duración" sortKey="duration" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Última Actividad" sortKey="lastActivity" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader currentDir={sortDir} currentSort={sortKey} label="Usuario" onSort={handleSort} sortKey="userName" />
+                <SortableHeader currentDir={sortDir} currentSort={sortKey} label="Modelo" onSort={handleSort} sortKey="model" />
+                <SortableHeader currentDir={sortDir} currentSort={sortKey} label="Mensajes" onSort={handleSort} sortKey="messagesCount" />
+                <SortableHeader currentDir={sortDir} currentSort={sortKey} label="Duración" onSort={handleSort} sortKey="duration" />
+                <SortableHeader currentDir={sortDir} currentSort={sortKey} label="Última Actividad" onSort={handleSort} sortKey="lastActivity" />
                 <th className="px-4 py-3">Estado</th>
                 <th className="px-4 py-3 text-right">Acciones</th>
               </tr>

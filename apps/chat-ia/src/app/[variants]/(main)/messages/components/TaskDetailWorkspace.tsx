@@ -14,16 +14,16 @@ import type { Tarea, Itinerario } from '../hooks/useEventData';
 function findTask(
   data: any,
   taskId: string,
-): { tarea: Tarea; itinerarioTitle: string; itinerarioId: string; itinerario: Itinerario } | null {
+): { itinerario: Itinerario, itinerarioId: string; itinerarioTitle: string; tarea: Tarea; } | null {
   if (!data?.itinerarios_array) return null;
   for (const it of data.itinerarios_array) {
     for (const t of it.tasks ?? []) {
       if (t._id === taskId) {
         return {
-          tarea: t,
-          itinerarioTitle: it.title ?? 'Itinerario',
-          itinerarioId: it._id ?? '',
           itinerario: it,
+          itinerarioId: it._id ?? '',
+          itinerarioTitle: it.title ?? 'Itinerario',
+          tarea: t,
         };
       }
     }
@@ -59,7 +59,7 @@ function getDueDateColor(dateStr: string | undefined): string {
 
 // ─── inline input (stays here — chat-ia specific) ─────────────────────────────
 
-function TaskInput({ tarea, itinerarioTitle }: { tarea: Tarea; itinerarioTitle: string }) {
+function TaskInput({ tarea, itinerarioTitle }: { itinerarioTitle: string, tarea: Tarea; }) {
   const [text, setText] = useState('');
   const router = useRouter();
   const sendMessage = useChatStore((s) => s.sendMessage);
@@ -134,10 +134,10 @@ function RelatedTasks({
   eventId,
   itinerarioId,
 }: {
-  tasks: Tarea[];
   currentTaskId: string;
   eventId: string;
   itinerarioId: string;
+  tasks: Tarea[];
 }) {
   const router = useRouter();
   const others = tasks.filter((t) => t._id !== currentTaskId).slice(0, 5);
@@ -153,8 +153,8 @@ function RelatedTasks({
           const done = !!t.completada || t.estatus === true || t.estatus === 'true';
           return (
             <button
-              key={t._id}
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-zinc-800"
+              key={t._id}
               onClick={() => router.push(`/messages/ev-${eventId}-task/${t._id}`)}
               type="button"
             >
@@ -196,7 +196,7 @@ export function TaskDetailWorkspace({ eventId, taskId }: TaskDetailWorkspaceProp
     try {
       await completeTask(eventId, found.itinerarioId, taskId);
       // Notify appEventos to refresh
-      window.parent?.postMessage({ type: 'REFRESH_EVENTS', source: 'chat-ia' }, '*');
+      window.parent?.postMessage({ source: 'chat-ia', type: 'REFRESH_EVENTS' }, '*');
       refetch?.();
     } catch (err) {
       console.error('[TaskDetailWorkspace] completeTask error:', err);
@@ -289,8 +289,8 @@ export function TaskDetailWorkspace({ eventId, taskId }: TaskDetailWorkspaceProp
           <div className="flex flex-wrap gap-1.5">
             {tarea.tags.map((tag) => (
               <span
-                key={tag}
                 className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-[10px] font-medium text-zinc-400"
+                key={tag}
               >
                 {tag}
               </span>
@@ -305,8 +305,8 @@ export function TaskDetailWorkspace({ eventId, taskId }: TaskDetailWorkspaceProp
             <div className="flex flex-wrap gap-1">
               {tarea.responsable.map((r) => (
                 <span
-                  key={r}
                   className="rounded-full bg-violet-900/30 px-2.5 py-0.5 text-xs text-violet-300"
+                  key={r}
                 >
                   {r}
                 </span>
@@ -356,10 +356,10 @@ export function TaskDetailWorkspace({ eventId, taskId }: TaskDetailWorkspaceProp
 
         {/* Related tasks */}
         <RelatedTasks
-          tasks={itinerario.tasks ?? []}
           currentTaskId={taskId}
           eventId={eventId}
           itinerarioId={found.itinerarioId}
+          tasks={itinerario.tasks ?? []}
         />
       </div>
 

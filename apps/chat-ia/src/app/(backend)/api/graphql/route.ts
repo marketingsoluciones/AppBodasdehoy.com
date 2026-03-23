@@ -14,8 +14,8 @@ const getBackendUrl = (): string => {
 };
 
 /**
- * Proxy: POST /api/graphql → backend api-ia/graphql
- * Evita CORS cuando el Copilot (localhost:3210) llama desde el navegador.
+ * Proxy: POST /api/graphql → **API2** (/graphql). Mongo y dominio de negocio viven detrás de API2.
+ * Orquestación IA (tools, RAG, chat): **api-ia**; este route solo evita CORS desde el Copilot.
  */
 export async function POST(request: NextRequest) {
   try {

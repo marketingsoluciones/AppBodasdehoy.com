@@ -149,22 +149,24 @@ function LeftPanel({ config }: { config: Required<Omit<LeftPanelConfig, 'eventTy
         ))}
       </div>
 
-      {/* Stats */}
-      <div
-        style={{
-          borderTop: '1px solid rgba(255,255,255,0.2)',
-          display: 'flex',
-          gap: 24,
-          paddingTop: 24,
-        }}
-      >
-        {config.stats.map((s) => (
-          <div key={s.label}>
-            <div style={{ fontSize: 20, fontWeight: 800 }}>{s.value}</div>
-            <div style={{ fontSize: 12, opacity: 0.8 }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
+      {/* Stats (opcional; apps pueden pasar stats: [] para una sola pantalla más limpia) */}
+      {config.stats.length > 0 && (
+        <div
+          style={{
+            borderTop: '1px solid rgba(255,255,255,0.2)',
+            display: 'flex',
+            gap: 24,
+            paddingTop: 24,
+          }}
+        >
+          {config.stats.map((s) => (
+            <div key={s.label}>
+              <div style={{ fontSize: 20, fontWeight: 800 }}>{s.value}</div>
+              <div style={{ fontSize: 12, opacity: 0.8 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

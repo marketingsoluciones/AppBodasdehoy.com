@@ -7,7 +7,7 @@
  *
  *   Firebase Storage → Adjuntos de tareas / comentarios de appEventos
  *                      (acceso controlado por las reglas de Firebase Auth)
- *   Cloudflare R2    → Álbumes de fotos (memories), archivos del chat-ia
+ *   Cloudflare R2    → Álbumes de fotos (memories), archivos del Copilot / app de chat
  *                      (acceso gestionado por api-ia + whitelabel)
  *
  * Estructura de carpetas en Firebase:

@@ -16,7 +16,7 @@ declare module 'styled-components' {
 // styled-jsx: permite <style jsx> y <style jsx global> en JSX
 declare module 'react' {
   interface StyleHTMLAttributes<T> {
-    jsx?: boolean;
     global?: boolean;
+    jsx?: boolean;
   }
 }

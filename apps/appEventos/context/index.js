@@ -6,4 +6,11 @@ export { ChatContextProvider, ChatProvider } from './ChatContext'
 export { ToastContextProvider, ToastProvider } from './ToastContext'
 export { AlertContextProvider, AlertProvider } from './AlertContext'
 export { SocketContextProvider, SocketProvider } from './SocketContext'
-export { ChatSidebarContextProvider, ChatSidebarProvider, useChatSidebar } from './ChatSidebarContext'
+export {
+  ChatSidebarContextProvider,
+  ChatSidebarProvider,
+  useChatSidebar,
+  CHAT_SIDEBAR_MIN_WIDTH,
+  CHAT_SIDEBAR_MAX_WIDTH,
+  CHAT_SIDEBAR_DEFAULT_WIDTH,
+} from './ChatSidebarContext'

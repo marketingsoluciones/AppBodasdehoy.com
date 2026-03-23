@@ -8,6 +8,10 @@ export interface MainSendMessageOperation {
 }
 
 export interface ChatAIChatState {
+  /** detail (message) from api-ia 402/503 for UI */
+  apiErrorDetail?: string;
+  /** screen_type from api-ia 402/503 for UI */
+  apiErrorScreenType?: string;
   /**
    * is the AI message is generating
    */
@@ -27,13 +31,6 @@ export interface ChatAIChatState {
    */
   messageRAGLoadingIds: string[];
   /**
-   * Whether the chat is running in negative balance (debt) mode.
-   * When true, the user can continue chatting even with balance <= 0.
-   * A non-blocking warning banner is shown instead of a blocking modal.
-   */
-  negativeBalanceMode: boolean;
-  pluginApiLoadingIds: string[];
-  /**
    * is the AI message is reasoning
    */
   reasoningLoadingIds: string[];
@@ -43,10 +40,13 @@ export interface ChatAIChatState {
    * Triggered when the backend returns a 402 insufficient_balance error
    */
   showInsufficientBalance: boolean;
-  /** detail (message) from api-ia 402/503 for UI */
-  apiErrorDetail?: string;
-  /** screen_type from api-ia 402/503 for UI */
-  apiErrorScreenType?: string;
+  /**
+   * Whether the chat is running in negative balance (debt) mode.
+   * When true, the user can continue chatting even with balance <= 0.
+   * A non-blocking warning banner is shown instead of a blocking modal.
+   */
+  negativeBalanceMode: boolean;
+  pluginApiLoadingIds: string[];
   /**
    * Whether the login required modal should be shown
    * Triggered when api-ia returns 401 (community user without auth hitting the limit)
@@ -62,7 +62,9 @@ export interface ChatAIChatState {
 export const initialAiChatState: ChatAIChatState = {
   chatLoadingIds: [],
   inputFiles: [],
+  apiErrorDetail: undefined,
   inputMessage: '',
+  apiErrorScreenType: undefined,
   mainInputEditor: null,
   mainSendMessageOperations: {},
   messageInToolsCallingIds: [],
@@ -72,8 +74,6 @@ export const initialAiChatState: ChatAIChatState = {
   reasoningLoadingIds: [],
   searchWorkflowLoadingIds: [],
   showInsufficientBalance: false,
-  apiErrorDetail: undefined,
-  apiErrorScreenType: undefined,
   showLoginRequired: false,
   threadInputEditor: null,
   toolCallingStreamIds: {},

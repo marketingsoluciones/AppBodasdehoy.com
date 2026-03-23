@@ -41,6 +41,18 @@ export const chatMemory: StateCreator<
       historySummary,
       metadata: { model, provider },
     });
+
+    // Extraer y persistir memorias del summary (fire-and-forget)
+    if (historySummary) {
+      import('@/libs/trpc/client')
+        .then(({ lambdaClient }) =>
+          lambdaClient.memory.extractFromSummary.mutate({ summary: historySummary }),
+        )
+        .catch((err) => {
+          console.warn('[MemoryExtract] Error extrayendo memorias del summary:', err);
+        });
+    }
+
     await get().refreshTopic();
     await get().refreshMessages();
   },

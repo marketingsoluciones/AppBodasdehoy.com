@@ -76,7 +76,7 @@ function updatePackageJson() {
     // 根据 releaseType 修改其他字段
     switch (releaseType) {
       case 'stable': {
-        packageJson.productName = 'LobeHub';
+        packageJson.productName = 'Bodas de Hoy';
         packageJson.name = 'lobehub-desktop';
         console.log('🌟 Setting as Stable version.');
         break;
@@ -89,7 +89,7 @@ function updatePackageJson() {
         break;
       }
       case 'nightly': {
-        packageJson.productName = 'LobeHub-Nightly'; // Or 'LobeHub-Nightly'
+        packageJson.productName = 'Bodas de Hoy Nightly';
         packageJson.name = 'lobehub-desktop-nightly'; // Or 'lobehub-desktop-nightly'
         console.log('🌙 Setting as Nightly version.');
         updateAppIcon('nightly');

@@ -44,23 +44,23 @@ const UPDATE_NOTIFICATION_SCHEDULE = `
 `;
 
 interface NotificationSchedule {
-  digest_hour: number;
   digest_frequency: 'daily' | 'never';
-  task_reminder_hour: number;
+  digest_hour: number;
   task_reminder_enabled: boolean;
+  task_reminder_hour: number;
 }
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => ({
-  value: i,
   label: `${i.toString().padStart(2, '0')}:00`,
+  value: i,
 }));
 
 export default function NotificationSettingsPage() {
   const [schedule, setSchedule] = useState<NotificationSchedule>({
-    digest_hour: 10,
     digest_frequency: 'daily',
-    task_reminder_hour: 9,
+    digest_hour: 10,
     task_reminder_enabled: true,
+    task_reminder_hour: 9,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -77,10 +77,10 @@ export default function NotificationSettingsPage() {
         const s = wl?.notifications?.schedule;
         if (s) {
           setSchedule({
-            digest_hour: s.digest_hour ?? 10,
             digest_frequency: s.digest_frequency ?? 'daily',
-            task_reminder_hour: s.task_reminder_hour ?? 9,
+            digest_hour: s.digest_hour ?? 10,
             task_reminder_enabled: s.task_reminder_enabled ?? true,
+            task_reminder_hour: s.task_reminder_hour ?? 9,
           });
         }
       })
@@ -98,10 +98,10 @@ export default function NotificationSettingsPage() {
         input: {
           notifications: {
             schedule: {
-              digest_hour: schedule.digest_hour,
               digest_frequency: schedule.digest_frequency,
-              task_reminder_hour: schedule.task_reminder_hour,
+              digest_hour: schedule.digest_hour,
               task_reminder_enabled: schedule.task_reminder_enabled,
+              task_reminder_hour: schedule.task_reminder_hour,
             },
           },
         },
@@ -165,8 +165,8 @@ export default function NotificationSettingsPage() {
             </label>
             <select
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
-              value={schedule.digest_hour}
               onChange={(e) => setSchedule((s) => ({ ...s, digest_hour: Number(e.target.value) }))}
+              value={schedule.digest_hour}
             >
               {HOUR_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -179,10 +179,10 @@ export default function NotificationSettingsPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Frecuencia</label>
             <select
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
-              value={schedule.digest_frequency}
               onChange={(e) =>
                 setSchedule((s) => ({ ...s, digest_frequency: e.target.value as 'daily' | 'never' }))
               }
+              value={schedule.digest_frequency}
             >
               <option value="daily">Diario</option>
               <option value="never">Desactivado</option>
@@ -204,11 +204,11 @@ export default function NotificationSettingsPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Hora de envío</label>
             <select
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
-              value={schedule.task_reminder_hour}
               disabled={!schedule.task_reminder_enabled}
               onChange={(e) =>
                 setSchedule((s) => ({ ...s, task_reminder_hour: Number(e.target.value) }))
               }
+              value={schedule.task_reminder_hour}
             >
               {HOUR_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>

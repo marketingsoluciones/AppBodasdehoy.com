@@ -127,6 +127,7 @@ export interface ChatMessageAction {
   internal_deleteMessage: (id: string) => Promise<void>;
 
   internal_fetchMessages: () => Promise<void>;
+  internal_setMessageRating: (id: string, rating: 'positive' | 'negative') => void;
   internal_traceMessage: (id: string, payload: TraceEventPayloads) => Promise<void>;
 
   /**
@@ -443,6 +444,13 @@ export const chatMessage: StateCreator<
       { messagesInit: true, messagesMap: nextMap },
       false,
       n('internal_fetchMessages', { messages: normalizedMessages }),
+    );
+  },
+  internal_setMessageRating: (id, rating) => {
+    set(
+      { messageRatings: { ...get().messageRatings, [id]: rating } },
+      false,
+      n('internal_setMessageRating', { id, rating }),
     );
   },
   internal_createTmpMessage: (message) => {

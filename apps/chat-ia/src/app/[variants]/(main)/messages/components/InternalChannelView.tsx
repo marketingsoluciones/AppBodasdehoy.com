@@ -91,9 +91,9 @@ function TaskListRow({
   itinerarioTitle,
   tarea,
 }: {
-  tarea: Tarea;
-  itinerarioTitle: string;
   done?: boolean;
+  itinerarioTitle: string;
+  tarea: Tarea;
 }) {
   const fecha = tarea.fecha ? new Date(tarea.fecha).toLocaleDateString('es-ES') : null;
 
@@ -412,9 +412,9 @@ function EmptyState({
   icon,
   title,
 }: {
+  description: string;
   icon: string;
   title: string;
-  description: string;
 }) {
   return (
     <div className="flex flex-1 items-center justify-center bg-gray-50 p-4">

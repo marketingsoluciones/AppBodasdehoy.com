@@ -2,6 +2,7 @@ import { clientDB } from '@/database/client/db';
 import { FileModel } from '@/database/models/file';
 import { BaseClientService } from '@/services/baseClientService';
 import { clientS3Storage } from '@/services/file/ClientS3';
+import { FileListItem, QueryFileListParams } from '@/types/files';
 
 import { IFileService } from './type';
 
@@ -74,6 +75,52 @@ export class ClientService extends BaseClientService implements IFileService {
 
   checkFileHash: IFileService['checkFileHash'] = async (hash) => {
     return this.fileModel.checkHash(hash);
+  };
+
+  /** Listado para File Manager (modo PGLite); sin agregados de tareas async del servidor. */
+  getFiles = async (params: QueryFileListParams): Promise<FileListItem[]> => {
+    const rows = await this.fileModel.query(params);
+    return rows.map((item) => ({
+      chunkCount: null,
+      chunkingError: null,
+      chunkingStatus: null,
+      createdAt: item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt as any),
+      embeddingError: null,
+      embeddingStatus: null,
+      fileType: item.fileType,
+      finishEmbedding: false,
+      id: item.id,
+      name: item.name,
+      size: item.size,
+      updatedAt: item.updatedAt instanceof Date ? item.updatedAt : new Date(item.updatedAt as any),
+      url: item.url ?? '',
+    }));
+  };
+
+  getFileItem = async (id: string): Promise<FileListItem | undefined> => {
+    const item = await this.fileModel.findById(id);
+    if (!item) return undefined;
+
+    return {
+      chunkCount: null,
+      chunkingError: null,
+      chunkingStatus: null,
+      createdAt: item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt as any),
+      embeddingError: null,
+      embeddingStatus: null,
+      fileType: item.fileType,
+      finishEmbedding: false,
+      id: item.id,
+      name: item.name,
+      size: item.size,
+      updatedAt: item.updatedAt instanceof Date ? item.updatedAt : new Date(item.updatedAt as any),
+      url: item.url ?? '',
+    };
+  };
+
+  /** En cliente PGLite las tareas async pueden no existir; evitar llamar siempre a tRPC. */
+  removeFileAsyncTask = async (_id: string, _type: 'embedding' | 'chunk') => {
+    return;
   };
 
   private getBase64ByFileHash = async (hash: string) => {

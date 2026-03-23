@@ -11,7 +11,10 @@ export const isDesktop = process.env.NEXT_PUBLIC_IS_DESKTOP_APP === '1';
 
 export const isDeprecatedEdition = !isServerMode && !isUsePgliteDB;
 
+/** Upstream sin personalizar; cualquier otro valor (p. ej. Bodas de Hoy) activa white-label. */
+const UPSTREAM_DEFAULT_BRAND = 'LobeHub';
+
 // @ts-ignore
-export const isCustomBranding = BRANDING_NAME !== 'LobeHub';
+export const isCustomBranding = BRANDING_NAME !== UPSTREAM_DEFAULT_BRAND;
 // @ts-ignore
-export const isCustomORG = ORG_NAME !== 'LobeHub';
+export const isCustomORG = ORG_NAME !== UPSTREAM_DEFAULT_BRAND;

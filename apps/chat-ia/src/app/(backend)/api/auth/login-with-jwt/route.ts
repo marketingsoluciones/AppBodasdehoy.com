@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { BRANDING_NAME } from '@/const/branding';
+
+const SERVER_UA = `${BRANDING_NAME.replace(/\s+/g, '')}-Server/1.0`;
+
 // Forzar uso del runtime de Node.js para poder hacer peticiones HTTP
 export const runtime = 'nodejs';
 
@@ -170,7 +174,7 @@ async function _generateCRMToken(email: string, password: string, development?: 
         headers: {
           'Content-Type': 'application/json',
           'Origin': 'https://eventosorganizador.com',
-          'User-Agent': 'LobeChat-Server/1.0',
+          'User-Agent': SERVER_UA,
         },
         method: 'POST',
         signal: AbortSignal.timeout(10_000),
@@ -308,7 +312,7 @@ async function _getUserByEmailOrPhone(
           headers: {
             'Content-Type': 'application/json',
             'Origin': 'https://eventosorganizador.com',
-            'User-Agent': 'LobeChat-Server/1.0',
+            'User-Agent': SERVER_UA,
           },
           method: 'POST',
           signal: AbortSignal.timeout(10_000),

@@ -30,7 +30,7 @@ const Redirect = memo<RedirectProps>(({ setActiveStage }) => {
         '/knowledge',
         '/discover',
         '/settings',
-        '/dev-login',
+        '/login',
         '/onboard',
       ];
       
@@ -62,7 +62,7 @@ const Redirect = memo<RedirectProps>(({ setActiveStage }) => {
         '/knowledge',
         '/discover',
         '/settings',
-        '/dev-login',
+        '/login',
         '/onboard',
       ];
       

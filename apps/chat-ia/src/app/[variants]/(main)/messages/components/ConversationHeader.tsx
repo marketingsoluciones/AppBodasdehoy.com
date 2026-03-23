@@ -71,15 +71,18 @@ export function ConversationHeader({ channel, conversationId, onSearchFilter }: 
   const handleMenuAction = (action: string) => {
     setMenuOpen(false);
     switch (action) {
-      case 'archive':
+      case 'archive': {
         toggleArchive(conversationId);
         break;
-      case 'mute':
+      }
+      case 'mute': {
         toggleMute(conversationId);
         break;
-      case 'clear':
+      }
+      case 'clear': {
         clearChat(conversationId);
         break;
+      }
     }
   };
 
@@ -201,10 +204,10 @@ export function ConversationHeader({ channel, conversationId, onSearchFilter }: 
         <div className="flex items-center gap-2 border-t border-gray-100 px-4 py-2">
           <span className="text-gray-400 text-sm">🔍</span>
           <input
-            ref={searchInputRef}
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Buscar mensajes..."
+            ref={searchInputRef}
             type="text"
             value={searchTerm}
           />

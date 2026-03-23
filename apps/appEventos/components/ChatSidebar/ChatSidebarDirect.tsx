@@ -1,28 +1,33 @@
 /**
- * ChatSidebar Direct - Panel lateral del Copilot (monorepo: AppBodasdehoy + LobeChat)
+ * Panel lateral del Copilot — nativo (sin iframe).
  *
- * Usa @bodasdehoy/copilot-ui (CopilotDirect), que carga la app del copilot en iframe
- * desde la misma versión (chat-test con app-test). Ver docs/MONOREPO-INTEGRACION-COPILOT.md
+ * Layout de dos columnas:
+ *   [SessionsPanel 200px | CopilotEmbed flex-1]
+ *
+ * El botón "Abrir completo" abre chat-ia en nueva pestaña.
  */
 
-import { FC, memo, useCallback, useRef, useEffect, useState, useMemo } from 'react';
+import { FC, memo, useCallback, useRef, useEffect, useLayoutEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
 import { useChatSidebar } from '../../context/ChatSidebarContext';
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from '../../context';
 import { CopilotEmbed } from '../Copilot/CopilotEmbed';
+import SessionsPanel from '../Copilot/SessionsPanel';
+import type { StoredSession } from '../Copilot/SessionsPanel';
 import { resolveChatOrigin } from '@bodasdehoy/shared/utils';
-import { IoClose, IoSparkles, IoOpenOutline, IoChatbubbleOutline, IoAddOutline, IoTimeOutline } from 'react-icons/io5';
+import {
+  IoClose,
+  IoSparkles,
+  IoOpenOutline,
+  IoMenuOutline,
+} from 'react-icons/io5';
 
 // ── Session storage helpers ──────────────────────────────────────────────────
 
-interface StoredSession {
-  id: string;
-  label: string;   // primeras palabras del primer mensaje
-  createdAt: number;
-}
-
 const SESSIONS_KEY = 'copilot_sessions_v1';
+/** Solo desktop: recordar si el panel izquierdo de conversaciones estaba visible. */
+const SESSIONS_PANEL_COLLAPSED_KEY = 'copilot_sessions_panel_collapsed';
 
 function loadSessions(userId: string): StoredSession[] {
   try {
@@ -35,9 +40,8 @@ function loadSessions(userId: string): StoredSession[] {
 
 function saveSessions(userId: string, sessions: StoredSession[]) {
   try {
-    // Máximo 20 sesiones
     localStorage.setItem(`${SESSIONS_KEY}_${userId}`, JSON.stringify(sessions.slice(0, 20)));
-  } catch { /* quota exceeded, ignore */ }
+  } catch { /* quota exceeded */ }
 }
 
 function upsertSession(userId: string, id: string, label?: string) {
@@ -52,12 +56,39 @@ function upsertSession(userId: string, id: string, label?: string) {
   }
 }
 
+function deleteSession(userId: string, id: string) {
+  const sessions = loadSessions(userId).filter(s => s.id !== id);
+  saveSessions(userId, sessions);
+}
+
+function truncateSessionLabel(label: string, maxLength = 36) {
+  if (!label) return 'Nueva conversación';
+  return label.length > maxLength ? `${label.slice(0, maxLength - 1)}…` : label;
+}
+
+function readSessionsPanelCollapsedPreference(): boolean {
+  if (typeof window === 'undefined') return true;
+  try {
+    const v = localStorage.getItem(SESSIONS_PANEL_COLLAPSED_KEY);
+    if (v === '0') return false;
+  } catch { /* ignore */ }
+  return true;
+}
+
+function persistSessionsPanelCollapsedPreference(collapsed: boolean) {
+  try {
+    localStorage.setItem(SESSIONS_PANEL_COLLAPSED_KEY, collapsed ? '1' : '0');
+  } catch { /* ignore */ }
+}
+
+// ── Componente principal ────────────────────────────────────────────────────
+
 const MOBILE_BREAKPOINT = 768;
 
 const ChatSidebarDirect: FC = () => {
   const { isOpen, width, closeSidebar, setWidth } = useChatSidebar();
   const [isMobile, setIsMobile] = useState(false);
-  const [viewMode, setViewMode] = useState<'minimal' | 'full'>('minimal');
+  const [sessionsCollapsed, setSessionsCollapsed] = useState(readSessionsPanelCollapsedPreference);
 
   const [guestSessionId] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -72,57 +103,58 @@ const ChatSidebarDirect: FC = () => {
 
   const authContext = AuthContextProvider();
   const eventContext = EventContextProvider();
-  const eventsGroupContext = EventsGroupContextProvider();
 
   const user = authContext?.user;
   const config = authContext?.config;
   const event = eventContext?.event;
-  const eventsGroup = eventsGroupContext?.eventsGroup;
 
   const isGuest = !user || user?.displayName === 'guest' || !user?.email;
   const stableUserId = user?.email || user?.uid || guestSessionId;
   const defaultSessionId = user?.uid ? `user_${user.uid}` : guestSessionId;
 
-  // ── Session management ───────────────────────────────────────────────────
+  // ── Session management ──────────────────────────────────────────────────
   const [activeSessionId, setActiveSessionId] = useState(defaultSessionId);
   const [sessions, setSessions] = useState<StoredSession[]>([]);
-  const [showSessionMenu, setShowSessionMenu] = useState(false);
-  const sessionMenuRef = useRef<HTMLDivElement>(null);
 
-  // Cargar sesiones de localStorage al montar
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const stored = loadSessions(stableUserId);
-    // Registrar sesión activa si no está
+    let stored = loadSessions(stableUserId);
     if (!stored.find(s => s.id === defaultSessionId)) {
       upsertSession(stableUserId, defaultSessionId);
+      stored = loadSessions(stableUserId);
     }
-    setSessions(loadSessions(stableUserId));
+    setSessions(stored);
+    // Tras login/logout el id activo puede ser de otro usuario (p. ej. guest_…): alinear con sesiones actuales.
+    setActiveSessionId(prev => (stored.some(s => s.id === prev) ? prev : defaultSessionId));
   }, [stableUserId, defaultSessionId]);
-
-  // Cerrar menú al click fuera
-  useEffect(() => {
-    const handle = (e: MouseEvent) => {
-      if (sessionMenuRef.current && !sessionMenuRef.current.contains(e.target as Node)) {
-        setShowSessionMenu(false);
-      }
-    };
-    document.addEventListener('mousedown', handle);
-    return () => document.removeEventListener('mousedown', handle);
-  }, []);
 
   const handleNewSession = useCallback(() => {
     const newId = `session_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     upsertSession(stableUserId, newId, 'Nueva conversación');
     setSessions(loadSessions(stableUserId));
     setActiveSessionId(newId);
-    setShowSessionMenu(false);
   }, [stableUserId]);
 
   const handleSelectSession = useCallback((id: string) => {
     setActiveSessionId(id);
-    setShowSessionMenu(false);
   }, []);
+
+  const handleDeleteSession = useCallback((id: string) => {
+    deleteSession(stableUserId, id);
+    const remaining = loadSessions(stableUserId);
+    setSessions(remaining);
+    // Si borramos la activa, ir a la primera disponible o crear nueva
+    if (id === activeSessionId) {
+      if (remaining.length > 0) {
+        setActiveSessionId(remaining[0].id);
+      } else {
+        const newId = `session_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+        upsertSession(stableUserId, newId, 'Nueva conversación');
+        setSessions(loadSessions(stableUserId));
+        setActiveSessionId(newId);
+      }
+    }
+  }, [stableUserId, activeSessionId]);
 
   const handleSessionLabelUpdate = useCallback((firstMsg: string) => {
     const label = firstMsg.slice(0, 40) + (firstMsg.length > 40 ? '…' : '');
@@ -134,26 +166,43 @@ const ChatSidebarDirect: FC = () => {
   const userId = stableUserId;
   const development = config?.development || 'bodasdehoy';
   const eventId = event?._id;
-  const router = useRouter();
+
+  const sidebarWidthRef = useRef(width);
+  useEffect(() => {
+    sidebarWidthRef.current = width;
+  }, [width]);
+
+  // ── Mobile detection ────────────────────────────────────────────────────
+  const applyViewportMode = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const mobile = window.innerWidth < MOBILE_BREAKPOINT;
+    setIsMobile(mobile);
+    if (mobile) {
+      setSessionsCollapsed(true); // en móvil el panel siempre colapsado (no toca preferencia guardada en localStorage)
+      const vw = window.innerWidth;
+      if (sidebarWidthRef.current !== vw) setWidth(vw);
+    } else {
+      // Volver a desktop: restaurar preferencia del panel de conversaciones
+      setSessionsCollapsed(readSessionsPanelCollapsedPreference());
+    }
+  }, [setWidth]);
+
+  // Antes del primer pintado evita 1 frame con panel "desktop" dentro de columna 0px (grid móvil).
+  useLayoutEffect(() => {
+    applyViewportMode();
+  }, [applyViewportMode]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    window.addEventListener('resize', applyViewportMode);
+    return () => window.removeEventListener('resize', applyViewportMode);
+  }, [applyViewportMode]);
 
-    const check = () => {
-      const mobile = window.innerWidth < MOBILE_BREAKPOINT;
-      setIsMobile(mobile);
-      if (mobile && width !== window.innerWidth) {
-        setWidth(window.innerWidth);
-      }
-    };
-
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, [width, setWidth]);
-
+  // ── Resize handle ───────────────────────────────────────────────────────
   const isResizingRef = useRef(false);
   const lastXRef = useRef(0);
+  const rafRef = useRef<number>(0);
+  const currentWidthRef = useRef(width);
+  useEffect(() => { currentWidthRef.current = width; }, [width]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -166,11 +215,13 @@ const ChatSidebarDirect: FC = () => {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizingRef.current) return;
-      const deltaX = e.clientX - lastXRef.current;
-      lastXRef.current = e.clientX;
-      setWidth(width + deltaX);
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        const deltaX = e.clientX - lastXRef.current;
+        lastXRef.current = e.clientX;
+        setWidth(Math.max(320, currentWidthRef.current + deltaX));
+      });
     };
-
     const handleMouseUp = () => {
       if (isResizingRef.current) {
         isResizingRef.current = false;
@@ -178,99 +229,60 @@ const ChatSidebarDirect: FC = () => {
         document.body.style.cursor = '';
       }
     };
-
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [width, setWidth]);
+  }, [setWidth]);
 
+  // ── ESC para cerrar ─────────────────────────────────────────────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (viewMode === 'full') {
-          setViewMode('minimal');
-        } else {
-          closeSidebar();
-        }
-      }
+      if (e.key === 'Escape') closeSidebar();
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [viewMode, closeSidebar]);
+  }, [closeSidebar]);
 
-  // Solo dominios (app-test ↔ chat-test). No localhost ni IP locales; se trabaja con túnel/VPN o desplegado.
+  // ── Abrir en nueva pestaña ──────────────────────────────────────────────
   const copilotUrl = useMemo(() => {
     if (typeof window === 'undefined') return '';
-    const host = window.location.hostname;
-    if (host?.includes('-dev.')) return 'https://chat-dev.bodasdehoy.com';
-    if (host?.includes('-test.')) return 'https://chat-test.bodasdehoy.com';
-    return process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com';
+    const envUrl = process.env.NEXT_PUBLIC_CHAT;
+    if (envUrl) return envUrl.replace(/\/$/, '');
+    return resolveChatOrigin(window.location.hostname);
   }, []);
 
   const handleOpenInNewTab = useCallback(() => {
     const params = new URLSearchParams({
       sessionId: sessionId || guestSessionId,
-      userId: userId,
+      userId,
       development,
     });
-
-    if (user?.email) {
-      params.set('email', user.email);
-    }
-
-    if (eventId) {
-      params.set('eventId', eventId);
-    }
-
-    if (event?.nombre) {
-      params.set('eventName', event.nombre);
-    }
-
-    const fullUrl = `${copilotUrl}?${params.toString()}`;
-    window.open(fullUrl, '_blank', 'noopener,noreferrer');
+    if (user?.email) params.set('email', user.email);
+    if (eventId) params.set('eventId', eventId);
+    if (event?.nombre) params.set('eventName', event.nombre);
+    window.open(`${copilotUrl}?${params.toString()}`, '_blank', 'noopener,noreferrer');
   }, [sessionId, guestSessionId, userId, development, user?.email, eventId, event?.nombre, copilotUrl]);
 
-  const handleNavigate = useCallback((url: string) => {
-    let finalUrl = url;
-    const productionHosts = ['app.bodasdehoy.com', 'app-test.bodasdehoy.com', 'app-dev.bodasdehoy.com', 'organizador.bodasdehoy.com', 'bodasdehoy.com'];
-
-    try {
-      const parsed = new URL(url, window.location.origin);
-      if (productionHosts.some(h => parsed.hostname === h || parsed.hostname.endsWith('.' + h))) {
-        finalUrl = parsed.pathname + parsed.search + parsed.hash;
-      }
-    } catch {
-      // URL relativa, usar tal cual
-    }
-
-    router.push(finalUrl);
-  }, [router]);
-
-  const handleAction = useCallback((_action: string, _payload: any) => {
-    // Manejar acciones específicas del copilot
-  }, []);
+  // ── Nombre de sesión activa para el header ──────────────────────────────
+  const activeSessionLabel = sessions.find(s => s.id === activeSessionId)?.label;
 
   if (!isOpen) return null;
 
-  // Desktop: en el flujo del layout (no fixed) para que no se superponga a AppBodas
-  // Móvil: fixed overlay con 85% ancho para dejar 15% de backdrop visible (tap to dismiss)
   const isOverlay = isMobile;
 
   return (
     <AnimatePresence>
-      {/* Backdrop semitransparente solo en móvil */}
+      {/* Backdrop móvil */}
       {isOverlay && (
         <motion.div
           key="backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/40 z-[45] md:hidden"
+          className="fixed inset-0 bg-black/40 z-[45] md:hidden overscroll-none touch-none"
           onClick={closeSidebar}
           aria-hidden
         />
@@ -284,102 +296,99 @@ const ChatSidebarDirect: FC = () => {
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
         className={
           isOverlay
-            ? 'fixed top-0 left-0 h-screen bg-white shadow-2xl z-50 flex flex-col'
+            ? 'fixed top-0 left-0 h-screen max-h-[100dvh] bg-white shadow-2xl z-50 flex flex-col overscroll-y-contain [-webkit-tap-highlight-color:transparent] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]'
             : 'h-full max-w-full bg-white shadow-xl flex flex-shrink-0 z-40 min-w-0'
         }
-        style={{ width: isOverlay ? 'min(85%, 400px)' : '100%' }}
+        style={{
+          width: isOverlay ? 'min(85%, 480px)' : '100%',
+          // Chrome/Android modernos: 100dvh evita cortes con barra de URL; si no aplica, queda h-screen (100vh).
+          ...(isOverlay ? { height: '100dvh' } : {}),
+        }}
       >
-        {/* Drag handle pill — solo en móvil */}
+        {/* Drag pill móvil */}
         {isOverlay && (
           <div className="flex justify-center pt-2 pb-1 flex-shrink-0">
             <div className="w-10 h-1 rounded-full bg-gray-300" />
           </div>
         )}
 
-        <div className="flex-1 flex flex-col h-full min-h-0">
-          {/* Header */}
-          <div className="flex items-center justify-between px-2 py-2 sm:px-3 border-b border-gray-200 bg-white min-w-0 text-gray-900 [color-scheme:light] flex-shrink-0">
-            <div className="flex items-center gap-2 min-w-0">
+        <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden overscroll-y-contain">
+
+          {/* ── Header ─────────────────────────────────────────────────── */}
+          <div className="flex items-center justify-between px-2 py-2 sm:px-3 border-b border-gray-200 bg-white [color-scheme:light] flex-shrink-0 gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1 sm:flex-initial">
+              {/* Toggle panel sessions */}
+              {!isMobile && (
+                <button
+                  type="button"
+                  onClick={() => setSessionsCollapsed(v => !v)}
+                  className="p-1.5 hover:bg-pink-50 rounded-lg transition-colors flex-shrink-0"
+                  title={sessionsCollapsed ? 'Ver conversaciones' : 'Ocultar conversaciones'}
+                >
+                  <IoMenuOutline className="text-gray-500 w-4 h-4" />
+                </button>
+              )}
+
               <IoSparkles className="text-pink-500 text-lg shrink-0" aria-hidden />
+
               <div className="min-w-0">
                 <h2 className="text-sm sm:text-base font-semibold text-gray-900 leading-tight truncate">
                   Copilot IA
                 </h2>
-                <p className="text-[10px] sm:text-xs font-medium text-gray-600 leading-tight truncate">
-                  {sessions.find(s => s.id === activeSessionId)?.label || 'Asistente inteligente'}
-                </p>
+                {activeSessionLabel && activeSessionLabel !== 'Nueva conversación' && (
+                  <p className="text-[10px] text-gray-400 leading-tight truncate">
+                    {activeSessionLabel}
+                  </p>
+                )}
               </div>
             </div>
 
-            <div className="flex items-center gap-1 shrink-0">
-              {/* Session selector */}
-              <div className="relative" ref={sessionMenuRef}>
-                <button
-                  type="button"
-                  onClick={() => setShowSessionMenu(v => !v)}
-                  className="p-1.5 hover:bg-pink-100 rounded-lg transition-colors"
-                  title="Conversaciones"
-                >
-                  <IoChatbubbleOutline className="text-gray-600 w-4 h-4" />
-                </button>
-
-                {showSessionMenu && (
-                  <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
-                    {/* Nueva conversación */}
-                    <button
-                      type="button"
-                      onClick={handleNewSession}
-                      className="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-pink-600 hover:bg-pink-50 transition-colors border-b border-gray-100"
-                    >
-                      <IoAddOutline className="w-4 h-4 shrink-0" />
-                      Nueva conversación
-                    </button>
-
-                    {/* Lista de sesiones */}
-                    <div className="max-h-56 overflow-y-auto">
-                      {sessions.length === 0 ? (
-                        <p className="px-3 py-3 text-xs text-gray-400 text-center">Sin conversaciones anteriores</p>
-                      ) : (
-                        sessions.map(s => (
-                          <button
-                            key={s.id}
-                            type="button"
-                            onClick={() => handleSelectSession(s.id)}
-                            className={`w-full flex items-start gap-2 px-3 py-2 text-left hover:bg-gray-50 transition-colors ${s.id === activeSessionId ? 'bg-pink-50' : ''}`}
-                          >
-                            <IoTimeOutline className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
-                            <div className="min-w-0">
-                              <p className={`text-xs truncate ${s.id === activeSessionId ? 'text-pink-600 font-medium' : 'text-gray-700'}`}>
-                                {s.label}
-                              </p>
-                              <p className="text-[10px] text-gray-400">
-                                {new Date(s.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
-                              </p>
-                            </div>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </div>
+            {/* Selector rápido de conversación en header (desktop/tablet) */}
+            <div className="hidden sm:flex items-center gap-2 min-w-0 flex-1 max-w-[360px]">
+              <select
+                value={sessions.some(s => s.id === activeSessionId) ? activeSessionId : ''}
+                onChange={e => {
+                  const selectedSessionId = e.target.value;
+                  if (selectedSessionId) handleSelectSession(selectedSessionId);
+                }}
+                disabled={sessions.length === 0}
+                title="Cambiar de conversación"
+                aria-label="Cambiar de conversación"
+                className="w-full text-xs text-gray-700 border border-gray-200 rounded-md px-2 py-1.5 bg-white disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px] sm:min-h-0 touch-manipulation"
+              >
+                {sessions.length === 0 ? (
+                  <option value="">Sin conversaciones</option>
+                ) : (
+                  sessions.map(session => (
+                    <option key={session.id} value={session.id}>
+                      {truncateSessionLabel(session.label, 34)}
+                    </option>
+                  ))
                 )}
-              </div>
+              </select>
+            </div>
 
-              {/* Abrir en pestaña completa */}
-              {viewMode === 'minimal' && (
-                <button
-                  type="button"
-                  onClick={handleOpenInNewTab}
-                  className="p-1.5 hover:bg-pink-100 rounded-lg transition-colors"
-                  title="Ver completo - Abrir en nueva pestaña"
-                >
-                  <IoOpenOutline className="text-gray-600 w-4 h-4" />
-                </button>
-              )}
-
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={handleNewSession}
+                className="hidden sm:inline-flex px-2 py-1.5 text-xs font-semibold text-pink-600 border border-pink-100 rounded-lg hover:bg-pink-50 transition-colors touch-manipulation min-h-[44px] sm:min-h-0 items-center justify-center"
+                title="Nueva conversación"
+              >
+                Nueva
+              </button>
+              <button
+                type="button"
+                onClick={handleOpenInNewTab}
+                className="p-2 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 sm:p-1.5 hover:bg-pink-100 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center"
+                title="Abrir completo en nueva pestaña"
+              >
+                <IoOpenOutline className="text-gray-600 w-4 h-4" />
+              </button>
               <button
                 type="button"
                 onClick={closeSidebar}
-                className="p-2 hover:bg-pink-50 rounded-lg transition-colors"
+                className="p-2 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-pink-50 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center"
                 title="Cerrar"
               >
                 <IoClose className="text-gray-500 w-5 h-5" />
@@ -387,25 +396,75 @@ const ChatSidebarDirect: FC = () => {
             </div>
           </div>
 
-          {/* Copilot integrado como componente (monorepo, sin iframe) */}
-          <div className="flex-1 overflow-hidden min-h-0">
-            <CopilotEmbed
-              userId={userId}
-              sessionId={sessionId}
-              development={development}
-              eventId={eventId}
-              eventName={event?.nombre}
-              isGuest={isGuest}
-              onFirstMessage={handleSessionLabelUpdate}
-              className="w-full h-full min-h-0"
-            />
+          {/* Fila móvil: selector de conversación + nueva */}
+          <div className="sm:hidden px-2 pb-2 border-b border-gray-100 bg-white flex items-stretch gap-2">
+            <select
+              value={sessions.some(s => s.id === activeSessionId) ? activeSessionId : ''}
+              onChange={e => {
+                const selectedSessionId = e.target.value;
+                if (selectedSessionId) handleSelectSession(selectedSessionId);
+              }}
+              disabled={sessions.length === 0}
+              title="Cambiar de conversación"
+              aria-label="Cambiar de conversación"
+              className="flex-1 min-w-0 text-xs text-gray-700 border border-gray-200 rounded-md px-2 py-2 bg-white disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px] touch-manipulation"
+            >
+              {sessions.length === 0 ? (
+                <option value="">Sin conversaciones</option>
+              ) : (
+                sessions.map(session => (
+                  <option key={session.id} value={session.id}>
+                    {truncateSessionLabel(session.label, 28)}
+                  </option>
+                ))
+              )}
+            </select>
+
+            <button
+              type="button"
+              onClick={handleNewSession}
+              className="px-3 py-2 text-xs font-semibold text-pink-600 border border-pink-100 rounded-lg hover:bg-pink-50 transition-colors whitespace-nowrap min-h-[44px] min-w-[44px] touch-manipulation inline-flex items-center justify-center shrink-0"
+              title="Nueva conversación"
+            >
+              Nueva
+            </button>
+          </div>
+
+          {/* ── Cuerpo: sessions + chat ─────────────────────────────────── */}
+          <div className="flex-1 flex overflow-hidden min-h-0">
+
+            {/* Panel sesiones (colapsable) */}
+            {!sessionsCollapsed && !isMobile && (
+              <SessionsPanel
+                sessions={sessions}
+                activeSessionId={activeSessionId}
+                onSelect={handleSelectSession}
+                onNew={handleNewSession}
+                onDelete={handleDeleteSession}
+                onCollapse={() => setSessionsCollapsed(true)}
+              />
+            )}
+
+            {/* Chat embed nativo */}
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <CopilotEmbed
+                userId={userId}
+                sessionId={sessionId}
+                development={development}
+                eventId={eventId}
+                eventName={event?.nombre}
+                isGuest={isGuest}
+                className="w-full h-full"
+                onFirstMessage={handleSessionLabelUpdate}
+              />
+            </div>
           </div>
         </div>
 
-        {/* Resize Handle - DERECHA del sidebar (para sidebar en IZQUIERDA) */}
+        {/* Resize handle — solo desktop, a la DERECHA del panel */}
         {!isMobile && (
           <div
-            className="w-1 cursor-col-resize hover:bg-pink-500 active:bg-pink-600 transition-colors"
+            className="w-1 cursor-col-resize hover:bg-pink-400 active:bg-pink-600 transition-colors flex-shrink-0"
             onMouseDown={handleMouseDown}
           />
         )}
@@ -415,5 +474,4 @@ const ChatSidebarDirect: FC = () => {
 };
 
 ChatSidebarDirect.displayName = 'ChatSidebarDirect';
-
 export default memo(ChatSidebarDirect);

@@ -10,8 +10,8 @@ interface CostChartProps {
 function seededRandom(seed: number): () => number {
   let s = seed;
   return () => {
-    s = (s * 16807 + 0) % 2147483647;
-    return (s - 1) / 2147483646;
+    s = (s * 16_807 + 0) % 2_147_483_647;
+    return (s - 1) / 2_147_483_646;
   };
 }
 
@@ -86,8 +86,8 @@ export function CostChart({ period }: CostChartProps) {
       <div className="overflow-x-auto">
         <svg
           className="w-full"
-          viewBox={`0 0 ${svgW} ${svgH}`}
           preserveAspectRatio="xMidYMid meet"
+          viewBox={`0 0 ${svgW} ${svgH}`}
         >
           {/* Grid lines + Y labels */}
           {yTicks.map((tick) => {
@@ -95,13 +95,13 @@ export function CostChart({ period }: CostChartProps) {
             return (
               <g key={tick}>
                 <line
+                  stroke="#e5e7eb" strokeWidth="1"
                   x1={padL} x2={svgW - padR}
                   y1={y} y2={y}
-                  stroke="#e5e7eb" strokeWidth="1"
                 />
                 <text
-                  x={padL - 6} y={y + 3}
-                  textAnchor="end" fontSize="10" fill="#9ca3af"
+                  fill="#9ca3af" fontSize="10"
+                  textAnchor="end" x={padL - 6} y={y + 3}
                 >
                   ${tick.toFixed(0)}
                 </text>
@@ -128,49 +128,49 @@ export function CostChart({ period }: CostChartProps) {
                 {/* Hover background */}
                 {isHovered && (
                   <rect
+                    fill="#f3f4f6"
+                    height={chartH}
+                    rx="2"
+                    width={barGroupW}
                     x={padL + i * barGroupW}
                     y={padT}
-                    width={barGroupW}
-                    height={chartH}
-                    fill="#f3f4f6"
-                    rx="2"
                   />
                 )}
 
                 {/* Real bar */}
                 <rect
+                  fill={isHovered ? '#dc2626' : '#ef4444'}
+                  height={rH}
+                  rx="1"
+                  width={barW}
                   x={groupX}
                   y={baseY - rH}
-                  width={barW}
-                  height={rH}
-                  fill={isHovered ? '#dc2626' : '#ef4444'}
-                  rx="1"
                 />
                 {/* Billed bar */}
                 <rect
+                  fill={isHovered ? '#16a34a' : '#22c55e'}
+                  height={bH}
+                  rx="1"
+                  width={barW}
                   x={groupX + barW + gap}
                   y={baseY - bH}
-                  width={barW}
-                  height={bH}
-                  fill={isHovered ? '#16a34a' : '#22c55e'}
-                  rx="1"
                 />
                 {/* Margin bar */}
                 <rect
+                  fill={isHovered ? '#2563eb' : '#3b82f6'}
+                  height={mH}
+                  rx="1"
+                  width={barW}
                   x={groupX + (barW + gap) * 2}
                   y={baseY - mH}
-                  width={barW}
-                  height={mH}
-                  fill={isHovered ? '#2563eb' : '#3b82f6'}
-                  rx="1"
                 />
 
                 {/* X label */}
                 {i % labelStep === 0 && (
                   <text
-                    x={padL + i * barGroupW + barGroupW / 2}
-                    y={svgH - 4}
-                    textAnchor="middle" fontSize="9" fill="#9ca3af"
+                    fill="#9ca3af"
+                    fontSize="9"
+                    textAnchor="middle" x={padL + i * barGroupW + barGroupW / 2} y={svgH - 4}
                   >
                     {item.label}
                   </text>
@@ -180,18 +180,18 @@ export function CostChart({ period }: CostChartProps) {
                 {isHovered && (
                   <g>
                     <rect
-                      x={padL + i * barGroupW + barGroupW / 2 - 52}
-                      y={padT - 4}
-                      width={104} height={44}
-                      fill="#1f2937" rx="4"
+                      fill="#1f2937"
+                      height={44}
+                      rx="4" width={104}
+                      x={padL + i * barGroupW + barGroupW / 2 - 52} y={padT - 4}
                     />
-                    <text x={padL + i * barGroupW + barGroupW / 2} y={padT + 10} textAnchor="middle" fontSize="9" fill="#fca5a5">
+                    <text fill="#fca5a5" fontSize="9" textAnchor="middle" x={padL + i * barGroupW + barGroupW / 2} y={padT + 10}>
                       Real: ${item.real.toFixed(2)}
                     </text>
-                    <text x={padL + i * barGroupW + barGroupW / 2} y={padT + 21} textAnchor="middle" fontSize="9" fill="#86efac">
+                    <text fill="#86efac" fontSize="9" textAnchor="middle" x={padL + i * barGroupW + barGroupW / 2} y={padT + 21}>
                       Facturado: ${item.billed.toFixed(2)}
                     </text>
-                    <text x={padL + i * barGroupW + barGroupW / 2} y={padT + 32} textAnchor="middle" fontSize="9" fill="#93c5fd">
+                    <text fill="#93c5fd" fontSize="9" textAnchor="middle" x={padL + i * barGroupW + barGroupW / 2} y={padT + 32}>
                       Margen: ${item.margin.toFixed(2)}
                     </text>
                   </g>

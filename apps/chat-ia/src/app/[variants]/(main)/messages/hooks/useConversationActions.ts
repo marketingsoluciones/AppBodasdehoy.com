@@ -92,5 +92,5 @@ export function useConversationActions() {
     // For now it's a no-op that closes the menu.
   }, []);
 
-  return { isArchived, isMuted, toggleArchive, toggleMute, deleteConversation, clearChat };
+  return { clearChat, deleteConversation, isArchived, isMuted, toggleArchive, toggleMute };
 }

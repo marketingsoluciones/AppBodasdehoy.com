@@ -7,8 +7,9 @@ import { Badge, Tag } from 'antd';
 import { CheckCircleOutlined } from '@ant-design/icons';
 
 import PlanTag from '@/features/User/PlanTag';
-import { useUserStore } from '@/store/user';
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 import { useChatStore } from '@/store/chat';
+import { useUserStore } from '@/store/user';
 import { authSelectors, userProfileSelectors } from '@/store/user/selectors';
 
 import UserAvatar, { type UserAvatarProps } from './UserAvatar';
@@ -55,36 +56,19 @@ const UserInfo = memo<UserInfoProps>(({ avatarProps, onClick, ...rest }) => {
 
   // ✅ CORRECCIÓN CRÍTICA: Obtener información del usuario desde externalChat store
   // ESTE es el store que tiene los datos reales del usuario registrado
-  const { currentUserId, userProfile, userType, userRole } = useChatStore((s) => ({
-    currentUserId: s.currentUserId,
-    userProfile: s.userProfile,
-    userRole: s.userRole,
-    userType: s.userType,
-  }));
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const userProfile = useChatStore((s) => s.userProfile);
+  const userType = useChatStore((s) => s.userType);
+  const isDomainGuest = useDomainGuestUser();
 
-  // ✅ DEBUG: Logging para ver qué datos tiene el componente
-  if (typeof window !== 'undefined') {
-    console.log('🔍 UserInfo render:', {
-      currentUserId,
-      fromChatStore: '✅',
-      fromUserStore: { nickname, username },
-      hasUserProfile: !!userProfile,
-      nickname,
-      userProfileEmail: userProfile?.email,
-      userRole,
-      userType,
-      username
-    });
-  }
-
-  // ✅ CORRECCIÓN: Usar userType del store si está disponible, sino usar lógica de fallback
   const isRegistered =
-    userType === 'registered' ||
-    Boolean(
-      currentUserId &&
-        currentUserId !== 'visitante@guest.local' &&
-        (currentUserId.includes('@') || currentUserId.startsWith('+')),
-    );
+    !isDomainGuest &&
+    (userType === 'registered' ||
+      Boolean(
+        currentUserId &&
+          currentUserId !== 'visitante@guest.local' &&
+          (currentUserId.includes('@') || currentUserId.startsWith('+')),
+      ));
 
   // ✅ NUEVO: Verificar si la sesión está activa (JWT válido)
   const hasActiveSession = (() => {

@@ -3,19 +3,20 @@
  *
  * Conecta con api-ia vía SSE (copilotChat.ts).
  * Soporta:
- *  - Streaming de respuestas
+ *  - Streaming de respuestas con botón Stop
  *  - Eventos enriquecidos: ui_action, progress, tool_result, reasoning, tool_start
+ *  - Tool result cards inline (descarga, imagen, tabla, QR, código)
+ *  - Confirmaciones de acciones destructivas
  *  - Acciones por mensaje: Copiar, Regenerar (último assistant)
  *  - Display de razonamiento colapsable
  *  - Indicador de herramienta en ejecución
  *  - Empty state con preguntas sugeridas
- *  - Botón Enviar + hint de teclado
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useToast } from '../../hooks/useToast';
-import { MessageList, InputEditor } from '@bodasdehoy/copilot-shared';
+import { MessageList, CopilotChatInput } from '@bodasdehoy/copilot-shared';
 import type { MessageItem } from '@bodasdehoy/copilot-shared';
 import {
   sendChatMessage,
@@ -27,6 +28,8 @@ import {
   type UIActionEvent,
   type ProgressEvent,
   type ToolResultEvent,
+  type ConfirmRequiredEvent,
+  type CodeOutputEvent,
 } from '../../services/copilotChat';
 import { EventsGroupContextProvider } from '../../context';
 
@@ -67,11 +70,295 @@ export interface CopilotEmbedProps {
   className?: string;
   isGuest?: boolean;
   loginPath?: string;
-  /** Callback que se llama con el texto del primer mensaje del usuario (para actualizar label de sesión) */
   onFirstMessage?: (firstMsg: string) => void;
 }
 
-// ── Pequeños componentes de acciones ────────────────────────────────────────
+// ── Tool result card ─────────────────────────────────────────────────────────
+
+interface ToolResultCardProps {
+  tool: string;
+  result: ToolResultEvent['result'];
+}
+
+const ToolResultCard = ({ tool, result }: ToolResultCardProps) => {
+  const typeLabels: Record<string, string> = {
+    download: '📥',
+    image_preview: '🖼️',
+    data_table: '📊',
+    qr_code: '📷',
+    success: '✅',
+    error: '❌',
+  };
+  const icon = typeLabels[result.type] || '🔧';
+
+  if (result.type === 'error') {
+    return (
+      <div style={{
+        margin: '6px 0', padding: '8px 12px', background: '#fff5f5',
+        border: '1px solid #fecaca', borderRadius: 8, fontSize: 12, color: '#dc2626',
+      }}>
+        {icon} <strong>{tool}</strong>: {result.error || 'Error desconocido'}
+      </div>
+    );
+  }
+
+  if (result.type === 'download' && result.url) {
+    return (
+      <div style={{
+        margin: '6px 0', padding: '8px 12px', background: '#f0fdf4',
+        border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 12,
+        display: 'flex', alignItems: 'center', gap: 8,
+      }}>
+        <span>{icon}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 600, color: '#166534' }}>{result.filename || result.label || tool}</div>
+          {result.size && <div style={{ color: '#6b7280', fontSize: 11 }}>{result.size}</div>}
+        </div>
+        <a
+          href={result.url}
+          download={result.filename}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            padding: '4px 12px', background: '#16a34a', color: '#fff',
+            borderRadius: 6, textDecoration: 'none', fontSize: 11, fontWeight: 600,
+            flexShrink: 0,
+          }}
+        >
+          Descargar
+        </a>
+      </div>
+    );
+  }
+
+  if (result.type === 'image_preview' && result.imageUrl) {
+    return (
+      <div style={{ margin: '6px 0', borderRadius: 8, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+        <img
+          src={result.imageUrl}
+          alt={result.label || tool}
+          style={{ width: '100%', display: 'block', maxHeight: 240, objectFit: 'cover' }}
+        />
+        {result.label && (
+          <div style={{ padding: '6px 10px', fontSize: 11, color: '#6b7280', background: '#f9fafb' }}>
+            {icon} {result.label}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (result.type === 'qr_code' && result.imageUrl) {
+    return (
+      <div style={{
+        margin: '6px 0', padding: '12px', background: '#fff',
+        border: '1px solid #e5e7eb', borderRadius: 8, textAlign: 'center',
+      }}>
+        <img src={result.imageUrl} alt="QR Code" style={{ width: 160, height: 160, margin: '0 auto', display: 'block' }} />
+        {result.label && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 6 }}>{result.label}</div>}
+      </div>
+    );
+  }
+
+  if (result.type === 'success') {
+    return (
+      <div style={{
+        margin: '6px 0', padding: '8px 12px', background: '#f0fdf4',
+        border: '1px solid #bbf7d0', borderRadius: 8, fontSize: 12, color: '#166534',
+      }}>
+        {icon} {result.message || result.label || `${tool} completado`}
+      </div>
+    );
+  }
+
+  // Grilla de imágenes — venue visualizer, floor plans generados, etc.
+  if ((result as any).type === 'image_gallery') {
+    const images: Array<{ url: string; label?: string }> = (result as any).images || [];
+    return (
+      <div style={{ margin: '6px 0' }}>
+        {result.label && (
+          <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 6 }}>🖼️ {result.label}</div>
+        )}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 6 }}>
+          {images.map((img, i) => (
+            <div key={i} style={{ borderRadius: 6, overflow: 'hidden', border: '1px solid #e5e7eb', background: '#f9fafb' }}>
+              <img
+                src={img.url}
+                alt={img.label || `${tool} ${i + 1}`}
+                style={{ width: '100%', height: 90, objectFit: 'cover', display: 'block' }}
+              />
+              {img.label && (
+                <div style={{ padding: '3px 6px', fontSize: 10, color: '#6b7280', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {img.label}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        {(result as any).downloadUrl && (
+          <a href={(result as any).downloadUrl} target="_blank" rel="noopener noreferrer"
+            style={{ display: 'inline-block', marginTop: 6, fontSize: 11, color: '#6b7280', textDecoration: 'underline' }}>
+            📥 Descargar todas
+          </a>
+        )}
+      </div>
+    );
+  }
+
+  // data_table o cualquier otro
+  if (result.type === 'data_table' && result.data) {
+    const rows = Array.isArray(result.data) ? result.data : [];
+    const cols = rows.length > 0 ? Object.keys(rows[0]) : [];
+    return (
+      <div style={{ margin: '6px 0', overflowX: 'auto' }}>
+        <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 4 }}>{icon} {result.label || tool}</div>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+          <thead>
+            <tr style={{ background: '#f9fafb' }}>
+              {cols.map(col => (
+                <th key={col} style={{ padding: '4px 8px', borderBottom: '1px solid #e5e7eb', textAlign: 'left', color: '#374151', fontWeight: 600 }}>
+                  {col}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.slice(0, 20).map((row: any, i: number) => (
+              <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                {cols.map(col => (
+                  <td key={col} style={{ padding: '4px 8px', color: '#4b5563' }}>
+                    {String(row[col] ?? '')}
+                  </td>
+                ))}
+              </tr>
+            ))}
+            {rows.length > 20 && (
+              <tr>
+                <td colSpan={cols.length} style={{ padding: '4px 8px', color: '#9ca3af', fontSize: 10 }}>
+                  …y {rows.length - 20} más
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+// ── Code output ──────────────────────────────────────────────────────────────
+
+const CodeOutputCard = ({ event }: { event: CodeOutputEvent }) => {
+  const [showCode, setShowCode] = useState(false);
+  return (
+    <div style={{
+      margin: '6px 0', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', fontSize: 12,
+    }}>
+      <div style={{
+        padding: '6px 10px', background: '#1e293b', color: '#94a3b8',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <span>🐍 {event.language} · Código ejecutado</span>
+        <button
+          type="button"
+          onClick={() => setShowCode(v => !v)}
+          style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 11 }}
+        >
+          {showCode ? 'Ocultar' : 'Ver código'}
+        </button>
+      </div>
+      {showCode && (
+        <pre style={{
+          margin: 0, padding: '8px 10px', background: '#0f172a', color: '#e2e8f0',
+          overflowX: 'auto', fontSize: 11, lineHeight: 1.6,
+        }}>
+          {event.code}
+        </pre>
+      )}
+      {event.output && (
+        <pre style={{
+          margin: 0, padding: '8px 10px', background: '#f8fafc', color: '#334155',
+          overflowX: 'auto', fontSize: 11, lineHeight: 1.6, borderTop: '1px solid #e5e7eb',
+        }}>
+          {event.output}
+        </pre>
+      )}
+      {event.files && event.files.length > 0 && (
+        <div style={{ padding: '6px 10px', background: '#f0fdf4', borderTop: '1px solid #bbf7d0', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {event.files.map((f, i) => (
+            <a
+              key={i}
+              href={f.url}
+              download={f.name}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 11, color: '#16a34a', textDecoration: 'underline' }}
+            >
+              📥 {f.name} {f.size && `(${f.size})`}
+            </a>
+          ))}
+        </div>
+      )}
+      {event.error && (
+        <div style={{ padding: '6px 10px', background: '#fff5f5', borderTop: '1px solid #fecaca', color: '#dc2626', fontSize: 11 }}>
+          ❌ {event.error}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── Confirmación de acción destructiva ──────────────────────────────────────
+
+const ConfirmDialog = ({
+  event,
+  onConfirm,
+  onCancel,
+}: {
+  event: ConfirmRequiredEvent;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) => (
+  <div style={{
+    margin: '8px 0', padding: '12px 14px',
+    background: event.danger ? '#fff5f5' : '#fffbeb',
+    border: `1px solid ${event.danger ? '#fecaca' : '#fde68a'}`,
+    borderRadius: 10,
+  }}>
+    <p style={{ fontSize: 13, color: event.danger ? '#dc2626' : '#92400e', margin: '0 0 10px', fontWeight: 500 }}>
+      {event.danger ? '⚠️' : '❓'} {event.message}
+      {event.count && event.count > 1 && (
+        <span style={{ fontWeight: 700 }}> ({event.count} elementos)</span>
+      )}
+    </p>
+    <div style={{ display: 'flex', gap: 8 }}>
+      <button
+        type="button"
+        onClick={onConfirm}
+        style={{
+          padding: '5px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', borderRadius: 6, border: 'none',
+          background: event.danger ? '#dc2626' : '#f59e0b', color: '#fff',
+        }}
+      >
+        Confirmar
+      </button>
+      <button
+        type="button"
+        onClick={onCancel}
+        style={{
+          padding: '5px 14px', fontSize: 12, cursor: 'pointer', borderRadius: 6,
+          border: '1px solid #d1d5db', background: '#fff', color: '#374151',
+        }}
+      >
+        Cancelar
+      </button>
+    </div>
+  </div>
+);
+
+// ── Botón de acción simple ───────────────────────────────────────────────────
 
 const ActionBtn = ({
   onClick,
@@ -106,41 +393,23 @@ const ActionBtn = ({
   </button>
 );
 
-// ── Sección de razonamiento colapsable ──────────────────────────────────────
+// ── Razonamiento colapsable ──────────────────────────────────────────────────
 
 const ReasoningSection = ({ text, isStreaming }: { text: string; isStreaming: boolean }) => {
-  const [open, setOpen] = useState(isStreaming); // abierto mientras llega, cerrado al terminar
-
-  useEffect(() => {
-    if (!isStreaming) setOpen(false); // colapsar al terminar
-  }, [isStreaming]);
-
+  const [open, setOpen] = useState(isStreaming);
+  useEffect(() => { if (!isStreaming) setOpen(false); }, [isStreaming]);
   return (
-    <div
-      style={{
-        margin: '4px 0 8px',
-        border: '1px solid #e0e7ff',
-        borderRadius: 8,
-        overflow: 'hidden',
-        fontSize: 12,
-      }}
-    >
+    <div style={{
+      margin: '4px 0 8px', border: '1px solid #e0e7ff',
+      borderRadius: 8, overflow: 'hidden', fontSize: 12,
+    }}>
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
         style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '6px 10px',
-          background: '#eef2ff',
-          border: 'none',
-          cursor: 'pointer',
-          color: '#4338ca',
-          fontWeight: 500,
-          fontSize: 11,
-          textAlign: 'left',
+          width: '100%', display: 'flex', alignItems: 'center', gap: 6,
+          padding: '6px 10px', background: '#eef2ff', border: 'none',
+          cursor: 'pointer', color: '#4338ca', fontWeight: 500, fontSize: 11, textAlign: 'left',
         }}
       >
         <span style={{ fontSize: 13 }}>{isStreaming ? '🧠' : '💡'}</span>
@@ -148,17 +417,10 @@ const ReasoningSection = ({ text, isStreaming }: { text: string; isStreaming: bo
         <span style={{ marginLeft: 'auto', fontSize: 10 }}>{open ? '▲' : '▼'}</span>
       </button>
       {open && (
-        <div
-          style={{
-            padding: '8px 10px',
-            background: '#f5f3ff',
-            color: '#4b5563',
-            lineHeight: 1.5,
-            whiteSpace: 'pre-wrap',
-            maxHeight: 200,
-            overflowY: 'auto',
-          }}
-        >
+        <div style={{
+          padding: '8px 10px', background: '#f5f3ff', color: '#4b5563',
+          lineHeight: 1.5, whiteSpace: 'pre-wrap', maxHeight: 200, overflowY: 'auto',
+        }}>
           {text || '…'}
         </div>
       )}
@@ -166,35 +428,28 @@ const ReasoningSection = ({ text, isStreaming }: { text: string; isStreaming: bo
   );
 };
 
-// ── Indicador "ejecutando herramienta" ──────────────────────────────────────
+// ── Indicador herramienta corriendo ─────────────────────────────────────────
 
 const ToolRunning = ({ tool }: { tool: string }) => (
-  <div
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
-      padding: '6px 12px',
-      background: '#fffbeb',
-      borderTop: '1px solid #fde68a',
-      fontSize: 12,
-      color: '#92400e',
-      flexShrink: 0,
-    }}
-  >
-    <span
-      style={{
-        display: 'inline-block',
-        width: 8,
-        height: 8,
-        borderRadius: '50%',
-        background: '#f59e0b',
-        animation: 'pulse 1s infinite',
-      }}
-    />
+  <div style={{
+    display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px',
+    background: '#fffbeb', borderTop: '1px solid #fde68a',
+    fontSize: 12, color: '#92400e', flexShrink: 0,
+  }}>
+    <span style={{
+      display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
+      background: '#f59e0b', animation: 'pulse 1s infinite',
+    }} />
     Ejecutando <strong>{tool}</strong>…
   </div>
 );
+
+// ── Tipos extra para events inline ──────────────────────────────────────────
+
+interface InlineEvent {
+  type: 'tool_result' | 'code_output' | 'confirm';
+  data: any;
+}
 
 // ── Componente principal ─────────────────────────────────────────────────────
 
@@ -215,28 +470,31 @@ export const CopilotEmbed = ({
   const { setCopilotFilter, clearCopilotFilter, refreshEventsGroup } = EventsGroupContextProvider();
 
   const [messages, setMessages] = useState<MessageItem[]>([]);
-  const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const firstMessageSentRef = useRef(false);
+  const messagesRef = useRef<MessageItem[]>([]);
+  const currentAssistantIdRef = useRef<string>('');
 
   const [retryContent, setRetryContent] = useState<string | null>(null);
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [progress, setProgress] = useState<ProgressEvent | null>(null);
   const [showRecoverBanner, setShowRecoverBanner] = useState(false);
-
-  // Razonamiento en curso (texto acumulado + si está streaming)
   const [reasoningText, setReasoningText] = useState('');
   const [isReasoning, setIsReasoning] = useState(false);
-
-  // Herramienta corriendo actualmente
   const [runningTool, setRunningTool] = useState<string | null>(null);
+
+  // Eventos inline por messageId (tool results, code output, confirmaciones)
+  const [inlineEvents, setInlineEvents] = useState<Map<string, InlineEvent[]>>(new Map());
+  // Confirmación pendiente
+  const [pendingConfirm, setPendingConfirm] = useState<ConfirmRequiredEvent | null>(null);
+
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   // Reset al cambiar de sesión
   useEffect(() => {
     setMessages([]);
-    setInput('');
     setLoading(false);
     setRetryContent(null);
     setIsRateLimited(false);
@@ -245,15 +503,17 @@ export const CopilotEmbed = ({
     setReasoningText('');
     setIsReasoning(false);
     setRunningTool(null);
+    setInlineEvents(new Map());
+    setPendingConfirm(null);
     firstMessageSentRef.current = false;
   }, [sessionId]);
 
-  // Cargar historial al montar / cambiar sesión
+  // Cargar historial
   useEffect(() => {
     const load = async () => {
       try {
-        setLoadingHistory(true);
         const history = await getChatHistory(sessionId, development);
+        if (history.length > 0) setLoadingHistory(true);
         const formatted: MessageItem[] = history.map(msg => ({
           id: msg.id,
           role: msg.role,
@@ -269,7 +529,7 @@ export const CopilotEmbed = ({
         setMessages(formatted);
         if (formatted.length > 0) {
           setShowRecoverBanner(true);
-          firstMessageSentRef.current = true; // ya hay historial
+          firstMessageSentRef.current = true;
         }
       } catch (e) {
         console.error('[CopilotEmbed] history error:', e);
@@ -280,9 +540,20 @@ export const CopilotEmbed = ({
     load();
   }, [sessionId, development]);
 
+  // Asociar evento inline al mensaje assistant actual
+  const addInlineEvent = useCallback((msgId: string, event: InlineEvent) => {
+    setInlineEvents(prev => {
+      const next = new Map(prev);
+      const existing = next.get(msgId) || [];
+      next.set(msgId, [...existing, event]);
+      return next;
+    });
+  }, []);
+
   // Handle enriched events del SSE
   const handleEnrichedEvent = useCallback(
     (event: EnrichedEvent) => {
+      const assistantId = currentAssistantIdRef.current;
       switch (event.type) {
         case 'reasoning': {
           const chunk = typeof event.data === 'string' ? event.data : event.data?.text || '';
@@ -298,11 +569,19 @@ export const CopilotEmbed = ({
         case 'tool_result': {
           setRunningTool(null);
           const toolResult = event.data as ToolResultEvent;
-          if (toolResult.result?.type === 'download' && toolResult.result.url) {
-            toast('success', `Archivo listo: ${toolResult.result.filename || 'descarga'}`);
-          } else if (toolResult.result?.type === 'error' && toolResult.result.error) {
-            toast('error', toolResult.result.error);
+          if (assistantId) {
+            addInlineEvent(assistantId, { type: 'tool_result', data: toolResult });
           }
+          break;
+        }
+        case 'code_output': {
+          if (assistantId) {
+            addInlineEvent(assistantId, { type: 'code_output', data: event.data as CodeOutputEvent });
+          }
+          break;
+        }
+        case 'confirm_required': {
+          setPendingConfirm(event.data as ConfirmRequiredEvent);
           break;
         }
         case 'ui_action': {
@@ -322,20 +601,15 @@ export const CopilotEmbed = ({
               if (idsParam) searchIds = idsParam.split(',').filter(Boolean);
               searchQuery = url.searchParams.get('query') || undefined;
             } catch { /* path sin query params */ }
-
             const entity = action.entity || PATH_TO_ENTITY[pathname];
-            if (entity) {
-              setCopilotFilter({ entity, ids: action.ids || searchIds, query: action.query || searchQuery });
-            }
+            if (entity) setCopilotFilter({ entity, ids: action.ids || searchIds, query: action.query || searchQuery });
             router.push(action.path);
           } else if ((action.type as string) === 'filter') {
             const entity = action.entity;
             if (entity) {
               setCopilotFilter({ entity, ids: action.ids, query: action.query });
               const targetPath = ENTITY_TO_PATH[entity];
-              if (targetPath && !router.pathname.includes(targetPath)) {
-                router.push(targetPath);
-              }
+              if (targetPath && !router.pathname.includes(targetPath)) router.push(targetPath);
             }
           } else if ((action.type as string) === 'clear_filter') {
             clearCopilotFilter();
@@ -357,52 +631,35 @@ export const CopilotEmbed = ({
           break;
       }
     },
-    [router, toast, setCopilotFilter, clearCopilotFilter, refreshEventsGroup],
+    [router, toast, setCopilotFilter, clearCopilotFilter, refreshEventsGroup, addInlineEvent],
   );
 
-  // Construir acciones para un mensaje (copy + regenerar si es el último assistant)
+  // Construir acciones por mensaje
   const buildActions = useCallback(
     (msgId: string, role: 'user' | 'assistant', isLast: boolean, content: string) => {
       if (role !== 'assistant') return undefined;
-
       const handleCopy = () => {
         navigator.clipboard.writeText(content).then(
           () => toast('success', 'Copiado'),
           () => toast('error', 'No se pudo copiar'),
         );
       };
-
       const handleRegen = () => {
-        // Elimina el último par user+assistant y reenvía el mensaje del usuario
         setMessages(prev => {
           const lastUserIdx = [...prev].reverse().findIndex(m => m.role === 'user');
           if (lastUserIdx === -1) return prev;
           const userIdx = prev.length - 1 - lastUserIdx;
           const userMsg = prev[userIdx];
-          // Corta hasta ese mensaje (sin incluirlo)
           const trimmed = prev.slice(0, userIdx);
+          setTimeout(() => handleSend(userMsg.message as string), 0);
           return trimmed;
         });
-        // Recuperar el último mensaje del usuario para reenviar
-        setMessages(prev => {
-          const lastUser = [...prev].reverse().find(m => m.role === 'user');
-          if (lastUser) {
-            // Reenviar via setTimeout para dar tiempo al setMessages anterior
-            setTimeout(() => handleSend(lastUser.message as string), 0);
-          }
-          return prev;
-        });
       };
-
       return (
         <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-          <ActionBtn onClick={handleCopy} title="Copiar respuesta">
-            📋 Copiar
-          </ActionBtn>
+          <ActionBtn onClick={handleCopy} title="Copiar respuesta">📋 Copiar</ActionBtn>
           {isLast && !loading && (
-            <ActionBtn onClick={handleRegen} title="Regenerar respuesta">
-              🔄 Regenerar
-            </ActionBtn>
+            <ActionBtn onClick={handleRegen} title="Regenerar respuesta">🔄 Regenerar</ActionBtn>
           )}
         </div>
       );
@@ -411,34 +668,49 @@ export const CopilotEmbed = ({
     [loading, toast],
   );
 
-  // Rebuild messages with actions when messages or loading changes
-  const messagesWithActions = messages.map((msg, idx) => {
+  // Rebuild messages with actions + inline events
+  const messagesWithActions = useMemo(() => messages.map((msg, idx) => {
     const isLast = idx === messages.length - 1;
+    const events = inlineEvents.get(msg.id) || [];
+
+    // Construir belowMessage con tool results, code outputs
+    const belowMessage = events.length > 0 ? (
+      <div>
+        {events.map((e, i) => {
+          if (e.type === 'tool_result') {
+            const tr = e.data as ToolResultEvent;
+            return <ToolResultCard key={i} tool={tr.tool} result={tr.result} />;
+          }
+          if (e.type === 'code_output') {
+            return <CodeOutputCard key={i} event={e.data as CodeOutputEvent} />;
+          }
+          return null;
+        })}
+      </div>
+    ) : undefined;
+
     return {
       ...msg,
       actions: buildActions(msg.id, msg.role as 'user' | 'assistant', isLast, msg.message as string || ''),
-      // Incrustar sección de razonamiento encima del último mensaje assistant si está razonando
       aboveMessage:
         isLast && msg.role === 'assistant' && (isReasoning || reasoningText) ? (
           <ReasoningSection text={reasoningText} isStreaming={isReasoning} />
         ) : undefined,
+      belowMessage,
     };
-  });
+  }), [messages, buildActions, isReasoning, reasoningText, inlineEvents]);
 
   const handleSend = useCallback(
     async (content: string) => {
       if (!content.trim() || loading) return;
-
-      // Notificar primer mensaje para actualizar label de sesión
       if (!firstMessageSentRef.current) {
         firstMessageSentRef.current = true;
         onFirstMessage?.(content);
       }
-
-      // Limpiar reasoning anterior
       setReasoningText('');
       setIsReasoning(false);
       setRunningTool(null);
+      setPendingConfirm(null);
 
       const userMessageId = generateMessageId();
       const userMessage: MessageItem = {
@@ -448,13 +720,12 @@ export const CopilotEmbed = ({
         avatar: { title: 'Tú' },
         createdAt: new Date(),
       };
-
       setMessages(prev => [...prev, userMessage]);
-      setInput('');
       setLoading(true);
       setRetryContent(null);
 
       const assistantMessageId = generateMessageId();
+      currentAssistantIdRef.current = assistantMessageId;
       const assistantMessage: MessageItem = {
         id: assistantMessageId,
         role: 'assistant',
@@ -469,22 +740,14 @@ export const CopilotEmbed = ({
       abortControllerRef.current = controller;
 
       try {
-        const messageHistory = messages.map(m => ({
+        const messageHistory = messagesRef.current.map(m => ({
           role: m.role as 'user' | 'assistant' | 'system',
           content: m.message as string || '',
         }));
-
         const params: SendMessageParams = {
-          message: content,
-          sessionId,
-          userId,
-          development,
-          eventId,
-          eventName,
-          pageContext,
-          messageHistory,
+          message: content, sessionId, userId, development,
+          eventId, eventName, pageContext, messageHistory,
         };
-
         await sendChatMessage(
           params,
           chunk => {
@@ -504,34 +767,28 @@ export const CopilotEmbed = ({
           controller.signal,
           event => {
             handleEnrichedEvent(event);
-            // Cuando llega tool_result, marcar fin de reasoning si seguía activo
             if (event.type === 'tool_result') setIsReasoning(false);
           },
         );
-
-        // Fin de streaming: cerrar reasoning
         setIsReasoning(false);
         setRunningTool(null);
+        currentAssistantIdRef.current = '';
       } catch (error: any) {
         setIsReasoning(false);
         setRunningTool(null);
-        console.error('[CopilotEmbed] send error:', error);
-
+        currentAssistantIdRef.current = '';
         const isAbort = error.name === 'AbortError';
         const isAuthError = error.__errorCode === 'AUTH_ERROR';
         const isRateLimitError = error.__errorCode === 'RATE_LIMIT';
         if (!isAbort && !isAuthError && !isRateLimitError) setRetryContent(content);
         if (isRateLimitError) setIsRateLimited(true);
-
         setMessages(prev => {
           const updated = [...prev];
           const lastIdx = updated.length - 1;
           if (updated[lastIdx]?.id === assistantMessageId) {
             updated[lastIdx] = {
               ...updated[lastIdx],
-              message: isAbort
-                ? 'Solicitud cancelada.'
-                : error.message || 'Error al enviar el mensaje.',
+              message: isAbort ? 'Solicitud cancelada.' : error.message || 'Error al enviar el mensaje.',
               loading: false,
               error: { message: error.message || 'Ocurrió un error.' },
             };
@@ -543,11 +800,12 @@ export const CopilotEmbed = ({
         abortControllerRef.current = null;
       }
     },
-    [
-      sessionId, userId, development, eventId, eventName, pageContext,
-      loading, handleEnrichedEvent, messages, onFirstMessage,
-    ],
+    [sessionId, userId, development, eventId, eventName, pageContext, loading, handleEnrichedEvent, onFirstMessage],
   );
+
+  const handleStop = useCallback(() => {
+    abortControllerRef.current?.abort();
+  }, []);
 
   const handleRetry = useCallback(() => {
     if (!retryContent || loading) return;
@@ -597,53 +855,118 @@ export const CopilotEmbed = ({
     return () => container.removeEventListener('click', handleClick);
   }, [router, setCopilotFilter]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => { abortControllerRef.current?.abort(); };
-  }, []);
+  useEffect(() => { return () => { abortControllerRef.current?.abort(); }; }, []);
 
-  // Empty state con preguntas sugeridas
-  const emptyState = (
-    <div style={{ textAlign: 'center', padding: '32px 20px 16px', color: '#9ca3af' }}>
-      <div style={{ fontSize: 32, marginBottom: 12 }}>✨</div>
-      <p style={{ fontSize: 15, fontWeight: 600, color: '#374151', marginBottom: 4 }}>
-        Copilot IA
-      </p>
-      <p style={{ fontSize: 13, marginBottom: 20 }}>
-        {eventName ? `Asistente para "${eventName}"` : 'Tu asistente de bodas inteligente'}
-      </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch' }}>
-        {SUGGESTED_QUESTIONS.map(q => (
-          <button
-            key={q}
-            type="button"
-            onClick={() => handleSend(q)}
-            style={{
-              background: '#fff',
-              border: '1px solid #e5e7eb',
-              borderRadius: 10,
-              padding: '8px 14px',
-              fontSize: 12,
-              color: '#374151',
-              cursor: 'pointer',
-              textAlign: 'left',
-              transition: 'background 0.15s, border-color 0.15s',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = '#fdf2f8';
-              e.currentTarget.style.borderColor = '#f9a8d4';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = '#fff';
-              e.currentTarget.style.borderColor = '#e5e7eb';
-            }}
-          >
-            {q}
-          </button>
-        ))}
+  // Empty state — sin color heredado en el root (evita gris ilegible); contraste explícito
+  const emptyState = useMemo(() => (
+    <div
+      style={{
+        flex: 1,
+        minHeight: 0,
+        width: '100%',
+        maxWidth: 440,
+        margin: '0 auto',
+        padding: '20px 12px 24px',
+        overflowY: 'auto',
+        boxSizing: 'border-box',
+      }}
+    >
+      <div
+        style={{
+          textAlign: 'center',
+          padding: '28px 20px 22px',
+          borderRadius: 16,
+          background: 'linear-gradient(145deg, #fff5f9 0%, #ffffff 45%, #fdf2f8 100%)',
+          border: '1px solid #fce7f3',
+          boxShadow: '0 1px 3px rgba(236, 72, 153, 0.08), 0 8px 24px rgba(17, 24, 39, 0.06)',
+        }}
+      >
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 52,
+            height: 52,
+            marginBottom: 14,
+            borderRadius: 14,
+            background: 'linear-gradient(135deg, #fce7f3, #fff)',
+            border: '1px solid #fbcfe8',
+            fontSize: 26,
+            lineHeight: 1,
+          }}
+          aria-hidden
+        >
+          ✨
+        </div>
+        <h3
+          style={{
+            margin: '0 0 6px',
+            fontSize: 18,
+            fontWeight: 700,
+            letterSpacing: '-0.02em',
+            color: '#111827',
+            lineHeight: 1.25,
+          }}
+        >
+          Copilot IA
+        </h3>
+        <p style={{ margin: '0 0 6px', fontSize: 14, fontWeight: 500, color: '#4b5563', lineHeight: 1.45 }}>
+          {eventName ? `Evento: ${eventName}` : 'Tu asistente de bodas inteligente'}
+        </p>
+        <p style={{ margin: '0 0 18px', fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
+          Pregunta por invitados, presupuesto, mesas o servicios. También puedes escribir abajo.
+        </p>
+        <p
+          style={{
+            margin: '0 0 10px',
+            fontSize: 11,
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            color: '#9ca3af',
+          }}
+        >
+          Prueba con
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch' }}>
+          {SUGGESTED_QUESTIONS.map(q => (
+            <button
+              key={q}
+              type="button"
+              onClick={() => handleSend(q)}
+              style={{
+                background: '#ffffff',
+                border: '1px solid #e5e7eb',
+                borderRadius: 10,
+                padding: '10px 14px',
+                fontSize: 13,
+                fontWeight: 500,
+                color: '#1f2937',
+                cursor: 'pointer',
+                textAlign: 'left',
+                lineHeight: 1.4,
+                transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#fdf2f8';
+                e.currentTarget.style.borderColor = '#f472b6';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(236, 72, 153, 0.12)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.borderColor = '#e5e7eb';
+                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)';
+              }}
+            >
+              {q}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
-  );
+  ), [eventName, handleSend]);
 
   return (
     <div
@@ -695,6 +1018,23 @@ export const CopilotEmbed = ({
         />
       </div>
 
+      {/* Confirmación pendiente */}
+      {pendingConfirm && (
+        <div style={{ padding: '0 16px', flexShrink: 0 }}>
+          <ConfirmDialog
+            event={pendingConfirm}
+            onConfirm={() => {
+              // Enviar confirmación al backend (mensaje especial)
+              handleSend(`[CONFIRM:${pendingConfirm.id}]`);
+              setPendingConfirm(null);
+            }}
+            onCancel={() => {
+              setPendingConfirm(null);
+            }}
+          />
+        </div>
+      )}
+
       {/* Progreso multi-paso */}
       {progress && (
         <div style={{
@@ -718,7 +1058,7 @@ export const CopilotEmbed = ({
       {/* Herramienta corriendo */}
       {runningTool && <ToolRunning tool={runningTool} />}
 
-      {/* Rate limit banner */}
+      {/* Rate limit */}
       {isRateLimited && (
         <div style={{
           padding: '10px 16px', background: '#fff0f6', borderTop: '1px solid #ffadd2',
@@ -734,7 +1074,7 @@ export const CopilotEmbed = ({
         </div>
       )}
 
-      {/* Retry banner */}
+      {/* Retry */}
       {retryContent && !loading && !isRateLimited && (
         <div style={{
           padding: '8px 16px', background: '#fff7f0', borderTop: '1px solid #ffd0a8',
@@ -748,48 +1088,31 @@ export const CopilotEmbed = ({
         </div>
       )}
 
-      {/* Input area con botón enviar */}
-      <div style={{ borderTop: '1px solid #e8e8e8', padding: '12px 16px', background: '#fff', flexShrink: 0 }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-          <div style={{ flex: 1 }}>
-            <InputEditor
-              content={input}
-              placeholder="Escribe un mensaje… (Enter para enviar)"
-              loading={loading}
-              onChange={setInput}
-              onSend={handleSend}
-              minRows={1}
-              maxRows={5}
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => handleSend(input)}
-            disabled={loading || !input.trim()}
-            title="Enviar (Enter)"
-            style={{
-              flexShrink: 0,
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              border: 'none',
-              background: input.trim() && !loading ? '#ec4899' : '#e5e7eb',
-              color: input.trim() && !loading ? '#fff' : '#9ca3af',
-              cursor: input.trim() && !loading ? 'pointer' : 'not-allowed',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 16,
-              transition: 'background 0.15s',
-              marginBottom: 2,
-            }}
-          >
-            {loading ? '⏳' : '↑'}
-          </button>
-        </div>
-        <p style={{ fontSize: 10, color: '#d1d5db', margin: '4px 0 0', textAlign: 'right' }}>
-          Enter envía · Shift+Enter nueva línea
-        </p>
+      {/* Input area — full LobeChat editor (CopilotChatInput) */}
+      <div style={{ borderTop: '1px solid #e8e8e8', background: '#fff', flexShrink: 0 }}>
+        <CopilotChatInput
+          generating={loading}
+          chatKey={sessionId}
+          onSend={({ clearContent, getMarkdownContent }) => {
+            const content = getMarkdownContent();
+            if (content.trim()) {
+              handleSend(content);
+              clearContent();
+            }
+          }}
+          sendButtonProps={{
+            generating: loading,
+            onStop: ({ editor }) => handleStop(),
+          }}
+          onClear={() => {
+            setMessages([]);
+            clearCopilotFilter();
+          }}
+          onSearchToggle={(enabled) => {
+            // TODO: wire to pageContext search flag
+          }}
+          fileUploadEnabled={false}
+        />
       </div>
     </div>
   );

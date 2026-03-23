@@ -156,7 +156,7 @@ export default {
     ComfyUIWorkflowError: 'ComfyUI 工作流执行失败，请检查工作流配置',
     ComfyUIModelError: 'ComfyUI 模型加载失败，请检查模型文件是否存在',
 
-    AgentRuntimeError: 'Lobe AI Runtime 执行出错，请根据以下信息排查或重试',
+    AgentRuntimeError: 'AI 运行时执行出错，请根据以下信息排查或重试',
 
     // cloud
     FreePlanLimit: '当前为免费用户，无法使用该功能，请升级到付费计划后继续使用',

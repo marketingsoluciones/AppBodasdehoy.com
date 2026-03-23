@@ -132,7 +132,7 @@
     "ComfyUIUploadFailed": "ComfyUI 图片上传失败，请检查服务器连接或重试",
     "ComfyUIWorkflowError": "ComfyUI 工作流执行失败，请检查工作流配置",
     "ComfyUIModelError": "ComfyUI 模型加载失败，请检查模型文件是否存在",
-    "AgentRuntimeError": "Lobe AI Runtime 执行出错，请根据以下信息排查或重试",
+    "AgentRuntimeError": "AI runtime 执行出错，请根据以下信息排查或重试",
     "FreePlanLimit": "当前为免费用户，无法使用该功能，请升级到付费计划后继续使用",
     "SubscriptionPlanLimit": "您的订阅积分已用尽，无法使用该功能，请升级到更高计划，或配置自定义模型 API 后继续使用",
     "InvalidGithubToken": "Github PAT 不正确或为空，请检查 Github PAT 后重试",

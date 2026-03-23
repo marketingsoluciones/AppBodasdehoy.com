@@ -54,9 +54,7 @@ export interface VisitorData {
  * - Migrar datos a usuario registrado después del registro
  */
 export const useVisitorData = () => {
-  const { development } = useChatStore((s) => ({
-    development: s.development,
-  }));
+  const development = useChatStore((s) => s.development);
 
   const getBackendUrl = useCallback(() => {
     return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';

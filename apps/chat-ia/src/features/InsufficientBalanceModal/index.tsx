@@ -20,11 +20,11 @@ const InsufficientBalanceModal = memo(() => {
   const apiErrorDetail = useChatStore((s) => s.apiErrorDetail);
 
   const handleClose = useCallback(() => {
-    useChatStore.setState({ showInsufficientBalance: false, apiErrorDetail: undefined, apiErrorScreenType: undefined });
+    useChatStore.setState({ apiErrorDetail: undefined, apiErrorScreenType: undefined, showInsufficientBalance: false });
   }, []);
 
   const handleContinueInDebt = useCallback(() => {
-    useChatStore.setState({ showInsufficientBalance: false, negativeBalanceMode: true, apiErrorDetail: undefined, apiErrorScreenType: undefined });
+    useChatStore.setState({ apiErrorDetail: undefined, apiErrorScreenType: undefined, negativeBalanceMode: true, showInsufficientBalance: false });
   }, []);
 
   const handleRecharge = useCallback(async (amount: number) => {

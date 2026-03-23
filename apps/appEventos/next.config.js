@@ -13,7 +13,7 @@ const nextConfig = {
 
   // Transpile packages del monorepo y @lobehub/ui
   // Agregado 'debug' y 'supports-color' para solucionar error ESM con dependencies de @lobehub/editor
-  transpilePackages: ['@bodasdehoy/auth-ui', '@bodasdehoy/shared', '@bodasdehoy/memories', '@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'debug', 'supports-color'],
+  transpilePackages: ['@bodasdehoy/auth-ui', '@bodasdehoy/shared', '@bodasdehoy/memories', '@bodasdehoy/copilot-shared', '@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'zustand-utils', 'debug', 'supports-color'],
 
   // Redirects para URLs con caracteres especiales → ASCII equivalente
   async redirects() {
@@ -93,11 +93,6 @@ const nextConfig = {
       'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
     };
 
-    // Desactivar minificación en producción para debugging
-    if (!dev && !isServer) {
-      config.optimization.minimize = false;
-    }
-
     // Suprimir warnings de ESM packages conocidos que funcionan correctamente
     if (!isServer) {
       config.ignoreWarnings = [
@@ -119,9 +114,9 @@ const nextConfig = {
     'localhost',
   ],
 
-  // Rewrites para el proxy de Lobe-Chat. Este proyecto no usa localhost; siempre chat-test.
+  // Rewrites para el proxy de Lobe-Chat. Usa NEXT_PUBLIC_CHAT del .env (chat-dev en dev, chat en prod).
   async rewrites() {
-    const copilotBase = (process.env.NEXT_PUBLIC_CHAT || 'https://chat-test.bodasdehoy.com').replace(/\/$/, '');
+    const copilotBase = (process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com').replace(/\/$/, '');
     return [
       {
         source: '/_next/:path*',

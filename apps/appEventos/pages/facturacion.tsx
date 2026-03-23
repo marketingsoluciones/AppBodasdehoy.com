@@ -25,7 +25,13 @@ const PlanesAPI2 = () => {
         .filter((p) => p.is_active !== false)
         .sort((a, b) => a.pricing.monthly_fee - b.pricing.monthly_fee)
 
-    if (sortedPlans.length === 0) return null
+    if (sortedPlans.length === 0) return (
+        <div className="flex flex-col items-center justify-center h-[200px] text-center text-gray-400 gap-2">
+            <span className="text-2xl">💳</span>
+            <p className="text-sm">No hay planes disponibles en este momento.</p>
+            <p className="text-xs">Inténtalo de nuevo más tarde.</p>
+        </div>
+    )
 
     const RELEVANT_SKUS = ['events-count', 'guests-per-event', 'ai-tokens', 'whatsapp-msg', 'email-campaigns', 'sms-invitations']
 

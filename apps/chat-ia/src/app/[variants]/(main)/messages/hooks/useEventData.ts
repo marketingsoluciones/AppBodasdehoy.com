@@ -19,65 +19,65 @@ const GET_EVENTO_BY_ID = `
 
 export interface Tarea {
   _id: string;
+  completada?: boolean;
   descripcion: string;
   /** api2 uses estatus ('true'/'false' string or boolean) as task completion */
   estatus?: string | boolean;
-  completada?: boolean;
   fecha?: string;
-  responsable?: string[];
   icon?: string;
+  responsable?: string[];
   tags?: string[];
 }
 
 export interface Itinerario {
   _id: string;
-  title?: string;
-  tipo?: string;
-  tasks?: Tarea[];
   completion_percentage?: number;
+  tasks?: Tarea[];
+  tipo?: string;
+  title?: string;
 }
 
 export interface GastoPresupuesto {
   _id: string;
-  nombre: string;
   coste_estimado?: number;
   coste_final?: number;
+  nombre: string;
   pagado?: number;
 }
 
 export interface CategoriaPresupuesto {
   _id: string;
-  nombre: string;
   coste_estimado?: number;
   coste_final?: number;
   gastos_array?: GastoPresupuesto[];
+  nombre: string;
 }
 
 export interface Invitado {
   _id: string;
-  nombre: string;
   /** Campo real en api2: 'confirmado' | 'pendiente' | 'no' | 'si' */
   asistencia?: string;
-  tableNameRecepcion?: { title?: string };
-  nombre_mesa?: string;
   email?: string;
-  telefono?: string;
   grupo_relacion?: string;
+  nombre: string;
   nombre_menu?: string;
+  nombre_mesa?: string;
+  tableNameRecepcion?: { title?: string };
+  telefono?: string;
 }
 
 export interface EventoData {
   _id: string;
-  nombre?: string;
   fecha?: string;
+  invitados_array?: Invitado[];
   itinerarios_array?: Itinerario[];
+  nombre?: string;
   presupuesto_objeto?: {
     categorias_array?: CategoriaPresupuesto[];
     coste_estimado?: number;
     coste_final?: number;
     pagado?: number;
   };
-  invitados_array?: Invitado[];
 }
 
 interface EventoResponse {
@@ -110,5 +110,5 @@ export function useEventData(eventId: string | null) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
-  return { data, loading, error, refetch: fetchData };
+  return { data, error, loading, refetch: fetchData };
 }

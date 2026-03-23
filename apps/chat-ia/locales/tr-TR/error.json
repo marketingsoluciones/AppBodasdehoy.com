@@ -80,7 +80,7 @@
     "520": "Üzgünüz, sunucu beklenmedik bir sorunla karşılaştı ve isteğinizi tamamlayamadı. Lütfen daha sonra tekrar deneyin, bu sorunu çözmek için çalışıyoruz.",
     "522": "Üzgünüz, sunucu bağlantısı zaman aşımına uğradı ve isteğinize zamanında yanıt veremedi. Bu, ağın kararsız olmasından veya sunucunun geçici olarak erişilememesinden kaynaklanıyor olabilir. Lütfen daha sonra tekrar deneyin, hizmeti geri getirmek için çalışıyoruz.",
     "524": "Üzgünüz, sunucu yanıt beklerken zaman aşımına uğradı, bu muhtemelen yanıtın çok yavaş olmasından kaynaklanıyor. Lütfen daha sonra tekrar deneyin.",
-    "AgentRuntimeError": "Lobe dil modeli çalışma zamanı hatası, lütfen aşağıdaki bilgilere göre sorunu gidermeye çalışın veya tekrar deneyin",
+    "AgentRuntimeError": "Yapay zeka dil modeli çalışma zamanı hatası, lütfen aşağıdaki bilgilere göre sorunu gidermeye çalışın veya tekrar deneyin",
     "ComfyUIBizError": "ComfyUI hizmeti isteğinde hata oluştu, lütfen aşağıdaki bilgilere göre sorunu giderin veya tekrar deneyin",
     "ComfyUIEmptyResult": "ComfyUI herhangi bir görsel üretmedi, lütfen model yapılandırmasını kontrol edin veya tekrar deneyin",
     "ComfyUIModelError": "ComfyUI modeli yüklenemedi, lütfen model dosyasının mevcut olup olmadığını kontrol edin",

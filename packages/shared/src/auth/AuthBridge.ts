@@ -6,7 +6,9 @@
  */
 
 import Cookies from 'js-cookie';
+import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose';
 import { developments, DevelopmentConfig } from '../types/developments';
+import { clearCrossAppSession } from './SessionBridge';
 
 export interface SharedAuthUser {
   uid: string;
@@ -31,9 +33,41 @@ export interface AuthBridgeConfig {
   development?: string;
 }
 
+// Firebase JWKS for token signature validation
+const FIREBASE_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'eventosorganizador-55d58';
+const FIREBASE_ISSUER = `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`;
+const FIREBASE_JWKS_URL = 'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
+let _jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
+
+function getJWKS() {
+  if (!_jwks) {
+    _jwks = createRemoteJWKSet(new URL(FIREBASE_JWKS_URL));
+  }
+  return _jwks;
+}
+
 /**
- * Parsea un JWT sin validar la firma
- * Usado para extraer informacion del token de Firebase/Session
+ * Validates a Firebase ID token with full signature verification.
+ * Use in middleware/API routes for server-side validation.
+ */
+export async function validateFirebaseToken(token: string): Promise<JWTPayload | null> {
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, getJWKS(), {
+      issuer: FIREBASE_ISSUER,
+      algorithms: ['RS256'],
+    });
+    if (payload.exp && payload.exp < Date.now() / 1000) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Parsea un JWT y valida expiracion (sin verificar firma).
+ * Para lectura rapida de payload en cliente. La validacion completa
+ * debe hacerse con validateFirebaseToken() en servidor.
  */
 export const parseJwt = (token: string): any => {
   if (!token) return null;
@@ -47,7 +81,19 @@ export const parseJwt = (token: string): any => {
         .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
     );
-    return JSON.parse(jsonPayload);
+    const payload = JSON.parse(jsonPayload);
+
+    // Reject expired tokens
+    if (payload.exp && payload.exp < Date.now() / 1000) {
+      return null;
+    }
+
+    // Reject tokens with wrong issuer
+    if (payload.iss && !payload.iss.startsWith('https://securetoken.google.com/')) {
+      return null;
+    }
+
+    return payload;
   } catch {
     return null;
   }
@@ -193,12 +239,7 @@ class AuthBridge {
 
     localStorage.setItem('dev-user-config', JSON.stringify(configToSave));
 
-    // Guardar tokens individuales para compatibilidad
-    if (state.idToken) {
-      localStorage.setItem('jwt_token', state.idToken);
-      localStorage.setItem('api2_jwt_token', state.idToken);
-    }
-
+    // Store non-sensitive user info for display (NO tokens in localStorage)
     if (state.user.email) {
       localStorage.setItem('user_email', state.user.email);
     }
@@ -207,6 +248,9 @@ class AuthBridge {
     }
     if (state.user.displayName) {
       localStorage.setItem('user_display_name', state.user.displayName);
+    }
+    if (state.user.photoURL) {
+      localStorage.setItem('user_photo_url', state.user.photoURL);
     }
 
     console.log('[AuthBridge] Auth sincronizado a Lobe-Chat format');
@@ -276,12 +320,18 @@ class AuthBridge {
   clearAuth(): void {
     if (typeof window === 'undefined') return;
 
+    // Clean all auth-related localStorage entries
     localStorage.removeItem('dev-user-config');
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('api2_jwt_token');
     localStorage.removeItem('user_email');
     localStorage.removeItem('user_uid');
     localStorage.removeItem('user_display_name');
+    localStorage.removeItem('user_photo_url');
+    localStorage.removeItem('memories_user_id');
+
+    // Clear cross-subdomain SSO cookies
+    clearCrossAppSession();
 
     this.notifyStateChange(this.getEmptyState());
   }

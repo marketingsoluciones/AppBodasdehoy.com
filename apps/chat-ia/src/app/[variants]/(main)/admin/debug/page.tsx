@@ -61,8 +61,8 @@ function exportToCsv(requests: RequestDebugInfo[], filename: string) {
     req.success ? 'OK' : 'Error',
     req.channel || '',
     req.tools_used.join('; '),
-    `"${(req.message_sent || '').replace(/"/g, '""')}"`,
-    `"${(req.message_received || '').replace(/"/g, '""')}"`,
+    `"${(req.message_sent || '').replaceAll('"', '""')}"`,
+    `"${(req.message_received || '').replaceAll('"', '""')}"`,
   ]);
 
   const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
@@ -78,17 +78,17 @@ function exportToCsv(requests: RequestDebugInfo[], filename: string) {
 function ErrorRateChart({ requests }: { requests: RequestDebugInfo[] }) {
   // Group by provider and calculate error rates
   const providerStats = useMemo(() => {
-    const stats: Record<string, { total: number; errors: number }> = {};
+    const stats: Record<string, { errors: number, total: number; }> = {};
     for (const req of requests) {
-      if (!stats[req.provider]) stats[req.provider] = { total: 0, errors: 0 };
+      if (!stats[req.provider]) stats[req.provider] = { errors: 0, total: 0 };
       stats[req.provider].total++;
       if (!req.success) stats[req.provider].errors++;
     }
     return Object.entries(stats).map(([provider, s]) => ({
-      provider,
-      total: s.total,
       errors: s.errors,
+      provider,
       rate: s.total > 0 ? (s.errors / s.total) * 100 : 0,
+      total: s.total,
     }));
   }, [requests]);
 
@@ -97,7 +97,7 @@ function ErrorRateChart({ requests }: { requests: RequestDebugInfo[] }) {
   const maxRate = Math.max(...providerStats.map((p) => p.rate), 1);
 
   return (
-    <Card title="Error Rate por Provider" size="small">
+    <Card size="small" title="Error Rate por Provider">
       <div className="space-y-3">
         {providerStats.map(({ provider, total, errors, rate }) => (
           <div key={provider}>
@@ -334,9 +334,9 @@ export default function DebugPage() {
         </div>
         <Space>
           <Button
+            disabled={filteredRequests.length === 0}
             icon={<DownloadOutlined />}
             onClick={() => exportToCsv(filteredRequests, `debug-requests-${dayjs().format('YYYY-MM-DD')}.csv`)}
-            disabled={filteredRequests.length === 0}
           >
             Export CSV
           </Button>
@@ -415,12 +415,12 @@ export default function DebugPage() {
               value={searchText}
             />
             <RangePicker
-              size="large"
-              format="DD/MM/YYYY"
-              placeholder={['Desde', 'Hasta']}
-              onChange={(dates) => setDateRange(dates)}
-              value={dateRange}
               allowClear
+              format="DD/MM/YYYY"
+              onChange={(dates) => setDateRange(dates)}
+              placeholder={['Desde', 'Hasta']}
+              size="large"
+              value={dateRange}
             />
           </div>
           <Space wrap>

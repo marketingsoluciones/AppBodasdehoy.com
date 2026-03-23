@@ -31,10 +31,24 @@ const baseURL = isLocalhost ? '/api/proxy' : process.env.NEXT_PUBLIC_BASE_URL;
 const instance = axios.create({ baseURL });
 
 // Ante 403/401: limpiar sesión y redirigir a login con mensaje (evita "Request failed with status code 403" en pantalla).
+// NO redirigir si el SSO cross-domain está en curso (idTokenV0.1.0 presente pero sin sesión local):
+// la mutation `auth` puede devolver 403 transitoriamente y borrar la cookie causaría un bucle.
 function handleSessionExpired() {
   if (typeof window === 'undefined') return;
   const pathname = window.location?.pathname || '';
   if (pathname === '/login' || pathname.startsWith('/login?')) return;
+
+  // Si hay idTokenV0.1.0 pero NO hay usuario Firebase local, el SSO cross-domain
+  // está en curso (AuthContext aún no completó signInWithCustomToken).
+  // No borrar la cookie ni redirigir — dejar que AuthContext complete el flujo SSO.
+  const hasIdToken = Cookies.get('idTokenV0.1.0');
+  let hasFirebaseUser = false;
+  try { hasFirebaseUser = !!getAuth().currentUser; } catch (_) {}
+  if (hasIdToken && !hasFirebaseUser) {
+    console.warn('[handleSessionExpired] SSO en curso (idTokenV0.1.0 presente, sin Firebase user). No redirigir.');
+    return;
+  }
+
   try {
     Cookies.remove('idTokenV0.1.0', { domain: _cookieDomain() });
     Cookies.remove('idTokenV0.1.0');

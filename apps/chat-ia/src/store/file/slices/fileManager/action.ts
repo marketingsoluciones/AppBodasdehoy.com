@@ -1,11 +1,11 @@
 import pMap from 'p-map';
-import { SWRResponse, mutate } from 'swr';
+import { SWRResponse } from 'swr';
 import { StateCreator } from 'zustand/vanilla';
 
 import { FILE_UPLOAD_BLACKLIST, MAX_UPLOAD_FILE_COUNT } from '@/const/file';
 import { useClientDataSWR } from '@/libs/swr';
 import { fileService } from '@/services/file';
-import { ServerService } from '@/services/file/server';
+import { getFileManageService } from '@/services/file/getFileManageService';
 import { ragService } from '@/services/rag';
 import {
   UploadFileListDispatch,
@@ -17,8 +17,6 @@ import { unzipFile } from '@/utils/unzipFile';
 
 import { FileStore } from '../../store';
 import { fileManagerSelectors } from './selectors';
-
-const serverFileService = new ServerService();
 
 export interface FileManageAction {
   dispatchDockFileList: (payload: UploadFileListDispatch) => void;
@@ -125,15 +123,18 @@ export const createFileManageSlice: StateCreator<
         const result = await get().uploadWithProgress({
           file,
           knowledgeBaseId,
+          /** KB puede incluir .md, .pdf, etc.; sin esto, en modo cliente solo pasan imagen/vídeo y el dock puede quedarse colgado en "pending". */
           onStatusUpdate: dispatchDockFileList,
+          skipCheckFileType: true,
         });
-
-        await get().refreshFileList();
 
         return { file, fileId: result?.id, fileType: file.type };
       },
       { concurrency: MAX_UPLOAD_FILE_COUNT },
     );
+
+    // Single refresh after all uploads complete (instead of per-file)
+    await get().refreshFileList();
 
     // 4. auto-embed files that support chunking
     const fileIdsToEmbed = uploadResults
@@ -151,7 +152,7 @@ export const createFileManageSlice: StateCreator<
     // toggle file ids
     get().toggleEmbeddingIds([id]);
 
-    await serverFileService.removeFileAsyncTask(id, 'embedding');
+    await getFileManageService().removeFileAsyncTask(id, 'embedding');
 
     await get().refreshFileList();
 
@@ -172,7 +173,10 @@ export const createFileManageSlice: StateCreator<
     get().toggleParsingIds([id], false);
   },
   refreshFileList: async () => {
-    await mutate([FETCH_FILE_LIST_KEY, get().queryListParams]);
+    // Notificar a StorageFileList (R2) para que refresque
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage-files-changed'));
+    }
   },
   removeAllFiles: async () => {
     await fileService.removeAllFiles();
@@ -223,13 +227,13 @@ export const createFileManageSlice: StateCreator<
 
   useFetchFileItem: (id) =>
     useClientDataSWR<FileListItem | undefined>(!id ? null : ['useFetchFileItem', id], () =>
-      serverFileService.getFileItem(id!),
+      getFileManageService().getFileItem(id!),
     ),
 
   useFetchFileManage: (params) =>
     useClientDataSWR<FileListItem[]>(
       [FETCH_FILE_LIST_KEY, params],
-      () => serverFileService.getFiles(params),
+      () => getFileManageService().getFiles(params),
       {
         onSuccess: (data) => {
           set({ fileList: data, queryListParams: params });

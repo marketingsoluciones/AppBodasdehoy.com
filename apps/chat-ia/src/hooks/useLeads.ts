@@ -72,9 +72,7 @@ export interface LeadListFilters {
  * Los leads se guardan vía POST /api/leads/save al backend api-ia.
  */
 export const useLeads = () => {
-  const { development } = useChatStore((s) => ({
-    development: s.development,
-  }));
+  const development = useChatStore((s) => s.development);
 
   const getBackendUrl = useCallback(() => {
     return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';

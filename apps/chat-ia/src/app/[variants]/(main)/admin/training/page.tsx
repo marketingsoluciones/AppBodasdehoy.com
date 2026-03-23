@@ -185,9 +185,9 @@ export default function TrainingPage() {
   const handleDuplicate = useCallback((q: TrainingQuestion) => {
     const dup: TrainingQuestion = {
       ...q,
+      createdAt: new Date().toISOString(),
       id: `q_${Date.now()}`,
       question: `${q.question} (copia)`,
-      createdAt: new Date().toISOString(),
     };
     setQuestions((prev) => {
       const next = [...prev, dup];
@@ -220,7 +220,7 @@ export default function TrainingPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.addEventListener('load', (ev) => {
       try {
         const data = JSON.parse(ev.target?.result as string);
         if (!Array.isArray(data)) { alert('Formato inválido: se esperaba un array JSON'); return; }
@@ -232,8 +232,8 @@ export default function TrainingPage() {
           const existingIds = new Set(prev.map((q) => q.id));
           const newOnes = valid.map((q) => ({
             ...q,
-            id: existingIds.has(q.id) ? `q_${Date.now()}_${Math.random().toString(36).slice(2, 6)}` : q.id,
             createdAt: q.createdAt || new Date().toISOString(),
+            id: existingIds.has(q.id) ? `q_${Date.now()}_${Math.random().toString(36).slice(2, 6)}` : q.id,
             tags: q.tags || [],
           }));
           const next = [...prev, ...newOnes];
@@ -244,7 +244,7 @@ export default function TrainingPage() {
       } catch {
         alert('Error al parsear el archivo JSON');
       }
-    };
+    });
     reader.readAsText(file);
     e.target.value = '';
   }, []);

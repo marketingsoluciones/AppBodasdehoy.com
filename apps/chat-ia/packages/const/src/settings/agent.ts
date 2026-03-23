@@ -6,7 +6,10 @@ import {
 } from '@lobechat/types';
 
 import { DEFAULT_AGENT_META } from '../meta';
-import { DEFAULT_MODEL, DEFAULT_PROVIDER } from './llm';
+
+// Inline to avoid circular dependency: llm.ts → genUserLLMConfig → @/config/modelProviders → @lobechat/const → discover.ts → DEFAULT_AGENT_CONFIG (this file)
+const DEFAULT_MODEL = 'auto';
+const DEFAULT_PROVIDER = 'auto';
 
 export const DEFAUTT_AGENT_TTS_CONFIG: LobeAgentTTSConfig = {
   showAllLocaleVoice: false,

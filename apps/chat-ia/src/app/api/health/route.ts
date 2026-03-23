@@ -9,8 +9,8 @@ export const runtime = 'nodejs';
 
 export async function GET() {
   return NextResponse.json({
-    ok: true,
     app: 'chat-ia',
+    ok: true,
     time: new Date().toISOString(),
   });
 }

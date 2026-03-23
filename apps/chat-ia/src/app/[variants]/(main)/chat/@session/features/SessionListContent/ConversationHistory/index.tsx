@@ -18,20 +18,27 @@ const formatLastSync = (timestamp?: number) => {
 };
 
 const ConversationHistory = memo(() => {
-  const [development, userEmail, isGuestUser] = useChatStore((s) => {
-    const email =
-      s.userProfile?.email ||
-      (s.currentUserId && s.currentUserId.includes('@') ? s.currentUserId : undefined);
+  const developmentRaw = useChatStore((s) => s.development);
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const profileEmail = useChatStore((s) => s.userProfile?.email);
 
-    // Detectar si es usuario invitado (no tiene conversaciones en API2)
-    const isGuest = !email ||
-      email.includes('guest') ||
-      email.includes('visitante') ||
-      email.includes('anonymous') ||
-      email === 'dev-user@localhost';
-
-    return [s.development || 'bodasdehoy', email, isGuest] as const;
-  });
+  const development = developmentRaw || 'bodasdehoy';
+  const userEmail = useMemo(
+    () =>
+      profileEmail ||
+      (currentUserId && currentUserId.includes('@') ? currentUserId : undefined),
+    [profileEmail, currentUserId],
+  );
+  // Detectar si es usuario invitado (no tiene conversaciones en API2)
+  const isGuestUser = useMemo(
+    () =>
+      !userEmail ||
+      userEmail.includes('guest') ||
+      userEmail.includes('visitante') ||
+      userEmail.includes('anonymous') ||
+      userEmail === 'dev-user@localhost',
+    [userEmail],
+  );
   const [searchQuery, setSearchQuery] = useState('');
 
   const {

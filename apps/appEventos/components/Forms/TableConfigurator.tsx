@@ -18,7 +18,7 @@ import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { useToast } from '../../hooks/useToast';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PROPS del configurador puro (reutilizable desde chat-ia Render, etc.)
+// PROPS del configurador puro (reutilizable desde tools Render en la app de chat, etc.)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface TableConfiguratorProps {

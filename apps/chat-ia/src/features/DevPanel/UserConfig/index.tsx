@@ -12,15 +12,13 @@ const { Title, Text } = Typography;
  * Permite cambiar el usuario activo sin refrescar la página
  */
 const UserConfig = () => {
-  const { setExternalChatConfig, fetchExternalChats, currentUserId, development, userApiConfigs, userEvents, userProfile } = useChatStore((s) => ({
-    currentUserId: s.currentUserId,
-    development: s.development,
-    fetchExternalChats: s.fetchExternalChats,
-    setExternalChatConfig: s.setExternalChatConfig,
-    userApiConfigs: s.userApiConfigs,
-    userEvents: s.userEvents,
-    userProfile: s.userProfile,
-  }));
+  const setExternalChatConfig = useChatStore((s) => s.setExternalChatConfig);
+  const fetchExternalChats = useChatStore((s) => s.fetchExternalChats);
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const development = useChatStore((s) => s.development);
+  const userApiConfigs = useChatStore((s) => s.userApiConfigs);
+  const userEvents = useChatStore((s) => s.userEvents);
+  const userProfile = useChatStore((s) => s.userProfile);
 
   const [developer, setDeveloper] = useState(development || 'bodasdehoy');
   const [userId, setUserId] = useState(currentUserId || 'bodasdehoy.com@gmail.com');

@@ -163,13 +163,13 @@ export const createAuthSlice: StateCreator<
       console.warn('⚠️ Error limpiando cookies:', error);
     }
 
-    console.log('🔄 Logout completo. Redirigiendo a /dev-login...');
+    console.log('🔄 Logout completo. Redirigiendo a /login...');
 
     // Pequeño delay para asegurar que IndexedDB termine de limpiarse
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     // Redirigir a página de login (window.location.href fuerza recarga completa)
-    window.location.href = '/dev-login';
+    window.location.href = '/login';
   },
   openLogin: async () => {
     if (enableClerk) {
@@ -197,6 +197,6 @@ export const createAuthSlice: StateCreator<
 
     // ✅ FALLBACK: Redirigir a página de login personalizada cuando no hay Clerk/NextAuth
     console.log('🔑 Abriendo página de login personalizada...');
-    window.location.href = '/dev-login';
+    window.location.href = '/login';
   },
 });

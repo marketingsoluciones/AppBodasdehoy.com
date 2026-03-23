@@ -457,3 +457,28 @@ export async function gotoModule(
     }
   }
 }
+
+/**
+ * Obtiene el JWT de API2 del localStorage del navegador tras autenticarse.
+ * Prioridad: jwt_token_cache → jwt_token → api2_jwt_token
+ * Útil para adjuntar Authorization: Bearer <token> en llamadas directas a la API.
+ */
+export async function getAuthJwt(page: Page): Promise<string | null> {
+  return page.evaluate(() => {
+    // 1. jwt_token_cache (token HS256 de api2, válido ~7 días)
+    const cache = localStorage.getItem('jwt_token_cache');
+    if (cache) {
+      try {
+        const { token, expiry } = JSON.parse(cache) as { expiry: number; token: string };
+        if (token && expiry && Date.now() < expiry) return token;
+      } catch { /* ignorar */ }
+    }
+    // 2. jwt_token (login directo API2 o Firebase)
+    const direct = localStorage.getItem('jwt_token');
+    if (direct && direct !== 'null' && direct !== 'undefined') return direct;
+    // 3. api2_jwt_token (Firebase Auth)
+    const firebase = localStorage.getItem('api2_jwt_token');
+    if (firebase && firebase !== 'null' && firebase !== 'undefined') return firebase;
+    return null;
+  });
+}

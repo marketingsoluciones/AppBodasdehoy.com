@@ -5,36 +5,36 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { buildHeaders } from '../utils/auth';
 
 export interface StreamMessage {
-  id: string;
-  text: string;
-  fromUser: boolean;
-  timestamp: string;
-  conversationId?: string;
+  attachments?: Array<{ filename?: string, type: 'image' | 'file'; url: string; }>;
   channel?: string;
+  conversationId?: string;
+  fromUser: boolean;
+  id: string;
   status?: 'sent' | 'delivered' | 'read';
-  attachments?: Array<{ type: 'image' | 'file'; url: string; filename?: string }>;
+  text: string;
+  timestamp: string;
 }
 
 export type StreamEventType = 'new_message' | 'typing' | 'status_update';
 
 interface StreamEvent {
-  type: StreamEventType;
   data: StreamMessage;
+  type: StreamEventType;
 }
 
 interface UseMessageStreamOptions {
-  /** Conversation to filter events for (optional — receives all if omitted) */
-  conversationId?: string;
   /** Channel type (whatsapp, instagram, etc.) */
   channel?: string;
+  /** Conversation to filter events for (optional — receives all if omitted) */
+  conversationId?: string;
   /** Whether the stream is enabled */
   enabled?: boolean;
   /** Callback when a new message arrives */
   onMessage?: (msg: StreamMessage) => void;
-  /** Callback when typing indicator arrives */
-  onTyping?: (data: StreamMessage) => void;
   /** Callback when status update arrives */
   onStatusUpdate?: (data: StreamMessage) => void;
+  /** Callback when typing indicator arrives */
+  onTyping?: (data: StreamMessage) => void;
 }
 
 export function useMessageStream({
@@ -51,8 +51,8 @@ export function useMessageStream({
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptsRef = useRef(0);
 
-  const callbacksRef = useRef({ onMessage, onTyping, onStatusUpdate });
-  callbacksRef.current = { onMessage, onTyping, onStatusUpdate };
+  const callbacksRef = useRef({ onMessage, onStatusUpdate, onTyping });
+  callbacksRef.current = { onMessage, onStatusUpdate, onTyping };
 
   const connect = useCallback(() => {
     // Close existing connection
@@ -74,11 +74,11 @@ export function useMessageStream({
       const es = new EventSource(url);
       eventSourceRef.current = es;
 
-      es.onopen = () => {
+      es.addEventListener('open', () => {
         setConnected(true);
         setError(null);
         reconnectAttemptsRef.current = 0;
-      };
+      });
 
       es.addEventListener('new_message', (e) => {
         try {
@@ -153,10 +153,12 @@ export function useMessageStream({
 
   return {
     connected,
-    error,
-    /** Whether to fallback to polling (SSE failed after max retries) */
-    shouldFallbackToPolling: !connected && reconnectAttemptsRef.current >= 10,
-    reconnect: connect,
     disconnect,
+    
+    error,
+    
+reconnect: connect,
+    /** Whether to fallback to polling (SSE failed after max retries) */
+shouldFallbackToPolling: !connected && reconnectAttemptsRef.current >= 10,
   };
 }

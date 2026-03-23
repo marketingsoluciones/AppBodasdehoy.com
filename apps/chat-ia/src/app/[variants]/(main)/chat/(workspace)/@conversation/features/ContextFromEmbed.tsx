@@ -79,7 +79,7 @@ const ContextFromEmbed = () => {
 
         // Eliminar cualquier bloque de contexto anterior (evita acumulación)
         const cleanedSystemRole = currentSystemRole
-          .replace(/<!--\s*Contexto del evento[\s\S]*?<!--\s*fin contexto\s*-->\n*/g, '')
+          .replaceAll(/<!--\s*Contexto del evento[\S\s]*?<!--\s*fin contexto\s*-->\n*/g, '')
           .trimStart();
 
         // Anteponer el nuevo contexto al system role limpio

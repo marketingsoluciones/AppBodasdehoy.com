@@ -461,7 +461,7 @@ class ChatService {
     // (get_user_events, search_guests, etc.) tengan contexto aunque no venga en pageContext
     if (currentUserId || eventId || development) {
       (finalPayload as any).metadata = {
-        ...((finalPayload as any).metadata || {}),
+        ...(finalPayload as any).metadata,
         development: development || undefined,
         eventId: eventId || undefined,
         userId: currentUserId || undefined,

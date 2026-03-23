@@ -19,8 +19,8 @@ export async function completeTask(
     eventID: eventId,
     itinerarioID: itinerarioId,
     taskID: taskId,
-    variable: 'estatus',
     valor: 'true',
+    variable: 'estatus',
   });
 }
 
@@ -38,7 +38,7 @@ export async function updateTaskField(
     eventID: eventId,
     itinerarioID: itinerarioId,
     taskID: taskId,
-    variable: field,
     valor: value,
+    variable: field,
   });
 }

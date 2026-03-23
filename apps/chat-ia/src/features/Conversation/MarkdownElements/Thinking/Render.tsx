@@ -16,9 +16,9 @@ const isThinkingClosed = (input: string = '') => {
 };
 
 const Render = memo<MarkdownElementProps>(({ children, id }) => {
-  const [isGenerating] = useChatStore((s) => {
+  const isGenerating = useChatStore((s) => {
     const message = chatSelectors.getMessageById(id)(s);
-    return [!isThinkingClosed(message?.content)];
+    return !isThinkingClosed(message?.content);
   });
   const citations = useChatStore((s) => {
     const message = chatSelectors.getMessageById(id)(s);

@@ -8,8 +8,15 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
-import { BRANDING_EMAIL, BRANDING_NAME, SOCIAL_URL } from '@/const/branding';
+import { BRANDING_EMAIL, SOCIAL_URL } from '@/const/branding';
+import { useDeveloperBranding } from '@/hooks/useDeveloperBranding';
+import { useChatStore } from '@/store/chat';
 import { BLOG, OFFICIAL_SITE, PRIVACY_URL, TERMS_URL, mailTo } from '@/const/url';
+import { resolveDisplayBrandName } from '@/utils/brandingDisplay';
+import {
+  getCurrentDevelopmentConfig,
+  resolveActiveDeveloperForBranding,
+} from '@/utils/developmentDetector';
 
 import AboutList from './features/AboutList';
 import Analytics from './features/Analytics';
@@ -28,12 +35,17 @@ const useStyles = createStyles(({ css, token }) => ({
 const Page = memo<{ mobile?: boolean }>(({ mobile }) => {
   const { t } = useTranslation('common');
   const { styles } = useStyles();
+  const { branding } = useDeveloperBranding();
+  const development = useChatStore((s) => s.development);
+  const slug = resolveActiveDeveloperForBranding(development);
+  const displayName = resolveDisplayBrandName(branding?.name, slug);
+  const devSite = getCurrentDevelopmentConfig().domain || OFFICIAL_SITE;
 
   return (
     <>
       <Form.Group
         style={{ maxWidth: '1024px', width: '100%' }}
-        title={`${t('about')} ${BRANDING_NAME}`}
+        title={`${t('about')} ${displayName}`}
         variant={'borderless'}
       >
         <Flexbox gap={20} paddingBlock={20} width={'100%'}>
@@ -45,7 +57,7 @@ const Page = memo<{ mobile?: boolean }>(({ mobile }) => {
             ItemRender={ItemLink}
             items={[
               {
-                href: OFFICIAL_SITE,
+                href: devSite,
                 label: t('officialSite'),
                 value: 'officialSite',
               },

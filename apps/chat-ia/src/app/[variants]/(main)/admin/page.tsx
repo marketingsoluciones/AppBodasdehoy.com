@@ -22,30 +22,38 @@ interface SystemHealth {
 const getStatusColor = (status: string | undefined) => {
   switch (status) {
     case 'ok':
-    case 'healthy':
+    case 'healthy': {
       return 'text-green-600';
-    case 'degraded':
+    }
+    case 'degraded': {
       return 'text-yellow-600';
+    }
     case 'error':
-    case 'down':
+    case 'down': {
       return 'text-red-600';
-    default:
+    }
+    default: {
       return 'text-gray-600';
+    }
   }
 };
 
 const getStatusBg = (status: string | undefined) => {
   switch (status) {
     case 'ok':
-    case 'healthy':
+    case 'healthy': {
       return 'bg-green-50 border-green-200';
-    case 'degraded':
+    }
+    case 'degraded': {
       return 'bg-yellow-50 border-yellow-200';
+    }
     case 'error':
-    case 'down':
+    case 'down': {
       return 'bg-red-50 border-red-200';
-    default:
+    }
+    default: {
       return 'bg-gray-50 border-gray-200';
+    }
   }
 };
 
@@ -59,14 +67,14 @@ function UptimeRing({ status }: { status: string | undefined }) {
   return (
     <div className="relative flex items-center justify-center">
       <svg className="h-24 w-24 -rotate-90" viewBox="0 0 80 80">
-        <circle cx="40" cy="40" r="36" fill="none" stroke="#e5e7eb" strokeWidth="6" />
+        <circle cx="40" cy="40" fill="none" r="36" stroke="#e5e7eb" strokeWidth="6" />
         <circle
-          cx="40" cy="40" r="36" fill="none"
-          stroke={color} strokeWidth="6"
+          className="transition-all duration-1000" cx="40" cy="40" fill="none"
+          r="36" stroke={color}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          className="transition-all duration-1000"
+          strokeWidth="6"
         />
       </svg>
       <div className="absolute flex flex-col items-center">
@@ -106,15 +114,15 @@ export default function AdminDashboard() {
   }, [fetchSystemHealth]);
 
   const QUICK_LINKS = [
-    { href: '/admin/billing', icon: '💰', title: 'Facturación', desc: 'Costos y métricas' },
-    { href: '/admin/audit', icon: '🔍', title: 'Auditoría', desc: 'Verificar costos' },
-    { href: '/admin/tests', icon: '🧪', title: 'Tests de Calidad', desc: 'Validación IA' },
-    { href: '/admin/training', icon: '🎓', title: 'Entrenamiento', desc: 'Q&A para IA' },
-    { href: '/admin/mcps', icon: '🔧', title: 'MCPs', desc: 'Plugins sistema' },
-    { href: '/admin/campaigns', icon: '📣', title: 'Campañas', desc: 'CRM y marketing' },
-    { href: '/admin/users', icon: '👥', title: 'Usuarios', desc: 'Gestión usuarios' },
-    { href: '/admin/sessions', icon: '🔐', title: 'Sesiones', desc: 'Monitoreo activo' },
-    { href: '/admin/debug', icon: '🐛', title: 'Debug', desc: 'Peticiones API' },
+    { desc: 'Costos y métricas', href: '/admin/billing', icon: '💰', title: 'Facturación' },
+    { desc: 'Verificar costos', href: '/admin/audit', icon: '🔍', title: 'Auditoría' },
+    { desc: 'Validación IA', href: '/admin/tests', icon: '🧪', title: 'Tests de Calidad' },
+    { desc: 'Q&A para IA', href: '/admin/training', icon: '🎓', title: 'Entrenamiento' },
+    { desc: 'Plugins sistema', href: '/admin/mcps', icon: '🔧', title: 'MCPs' },
+    { desc: 'CRM y marketing', href: '/admin/campaigns', icon: '📣', title: 'Campañas' },
+    { desc: 'Gestión usuarios', href: '/admin/users', icon: '👥', title: 'Usuarios' },
+    { desc: 'Monitoreo activo', href: '/admin/sessions', icon: '🔐', title: 'Sesiones' },
+    { desc: 'Peticiones API', href: '/admin/debug', icon: '🐛', title: 'Debug' },
   ];
 
   return (
@@ -155,13 +163,13 @@ export default function AdminDashboard() {
 
         {/* Service Cards */}
         {[
-          { label: 'Redis', key: 'redis' as const },
-          { label: 'API2 GraphQL', key: 'api2_graphql' as const },
-          { label: 'Ollama', key: 'ollama' as const },
+          { key: 'redis' as const, label: 'Redis' },
+          { key: 'api2_graphql' as const, label: 'API2 GraphQL' },
+          { key: 'ollama' as const, label: 'Ollama' },
         ].map(({ label, key }) => (
           <div
-            key={key}
             className={`rounded-lg border p-4 ${getStatusBg(health?.services[key])}`}
+            key={key}
           >
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700">{label}</span>
@@ -241,9 +249,9 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
           {QUICK_LINKS.map((link) => (
             <Link
-              key={link.href}
               className="group flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-blue-200 hover:bg-blue-50 hover:shadow-sm"
               href={link.href}
+              key={link.href}
             >
               <span className="text-2xl">{link.icon}</span>
               <div>
