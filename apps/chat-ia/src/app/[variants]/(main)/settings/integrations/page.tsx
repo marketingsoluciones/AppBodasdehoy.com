@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { EventosAutoAuth } from '@/features/EventosAutoAuth';
@@ -367,7 +368,17 @@ function IntegrationsPageInner() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
+    <div className="mx-auto max-w-3xl px-4 py-6 md:py-8">
+      {/* Móvil: sin barra lateral del layout */}
+      <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-gray-600 md:hidden">
+        <Link className="font-medium text-pink-600 hover:underline" href="/settings">
+          ← Ajustes
+        </Link>
+        <span className="text-gray-300">|</span>
+        <Link className="hover:underline" href="/messages">
+          Mensajes
+        </Link>
+      </div>
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Integraciones</h1>
@@ -403,8 +414,18 @@ function IntegrationsPageInner() {
         )}
 
         {!loadingChannels && !isAuthenticated && (
-          <div className="rounded-xl border border-gray-200 bg-gray-50 p-6 text-center">
-            <p className="text-sm text-gray-500">Inicia sesión para gestionar tus integraciones</p>
+          <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-6 text-center">
+            <p className="mb-2 text-sm font-medium text-gray-800">Sesión requerida</p>
+            <p className="mb-4 text-sm text-gray-600">
+              Inicia sesión en el Copilot (o entra desde la app de eventos) para ver tus canales y
+              conectar WhatsApp.
+            </p>
+            <Link
+              className="inline-flex rounded-lg bg-pink-600 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-700"
+              href="/login"
+            >
+              Ir a iniciar sesión
+            </Link>
           </div>
         )}
 

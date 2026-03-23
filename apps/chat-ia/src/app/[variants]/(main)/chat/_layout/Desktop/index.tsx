@@ -13,6 +13,8 @@ import { CopilotBridgeListener } from '@/features/CopilotBridgeListener';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
 
+import { resolveChatEmbedMode } from '@/utils/resolveChatEmbedMode';
+
 import { LayoutProps } from '../type';
 import RegisterHotkeys from './RegisterHotkeys';
 import SessionPanel from './SessionPanel';
@@ -26,19 +28,10 @@ const NegativeBalanceBanner = lazy(() => import('@/components/Wallet/NegativeBal
 
 const Layout = ({ children, session }: LayoutProps) => {
   const searchParams = useSearchParams();
-  let isInIframe = false;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    isInIframe = typeof window !== 'undefined' && window.self !== window.top;
-  } catch {
-    isInIframe = true;
-  }
-
-  const isEmbed =
-    isInIframe ||
-    searchParams?.get('embed') === '1' ||
-    searchParams?.get('embedded') === '1' ||
-    searchParams?.get('minimal') === '1';
+  const isEmbed = resolveChatEmbedMode(
+    searchParams,
+    typeof window !== 'undefined' ? window : undefined,
+  );
 
   const isFullscreen = useGlobalStore(systemStatusSelectors.isFullscreen);
 

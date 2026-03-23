@@ -1,12 +1,13 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { memo } from 'react';
 
 import Menu from '@/components/Menu';
 import { withSuspense } from '@/components/withSuspense';
 import { SettingsTabs } from '@/store/global/initialState';
 
-import { useCategory } from '../hooks/useCategory';
+import { SETTINGS_MENU_KEY_INTEGRATIONS, useCategory } from '../hooks/useCategory';
 
 type CategoryContentProps = {
   activeTab: string | undefined;
@@ -14,6 +15,7 @@ type CategoryContentProps = {
 };
 
 const CategoryContent = memo((props: CategoryContentProps) => {
+  const router = useRouter();
   const cateItems = useCategory();
 
   const { onMenuSelect, activeTab } = props;
@@ -24,6 +26,10 @@ const CategoryContent = memo((props: CategoryContentProps) => {
       defaultSelectedKeys={[activeTab || SettingsTabs.Common]}
       items={cateItems}
       onClick={({ key }) => {
+        if (key === SETTINGS_MENU_KEY_INTEGRATIONS) {
+          router.push('/settings/integrations');
+          return;
+        }
         onMenuSelect(key as SettingsTabs);
       }}
       selectable

@@ -32,7 +32,7 @@ function getStorageInfo(): StorageInfo {
   return info;
 }
 
-function SettingCard({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+function SettingCard({ title, description, children }: { children: React.ReactNode, description: string; title: string; }) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-5">
       <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
@@ -131,11 +131,11 @@ export default function AdvancedSettingsPage() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
-    input.onchange = (e) => {
+    input.addEventListener('change', (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (ev) => {
+      reader.addEventListener('load', (ev) => {
         try {
           const data = JSON.parse(ev.target?.result as string);
           if (typeof data === 'object' && data !== null) {
@@ -145,22 +145,22 @@ export default function AdvancedSettingsPage() {
             setStorage(getStorageInfo());
           }
         } catch { /* invalid JSON */ }
-      };
+      });
       reader.readAsText(file);
-    };
+    });
     input.click();
   }, []);
 
   return (
-    <div style={{ padding: 24, maxWidth: 640 }}>
+    <div style={{ maxWidth: 640, padding: 24 }}>
       <h1 className="text-xl font-bold text-gray-900 mb-1">Configuración Avanzada</h1>
       <p className="text-sm text-gray-500 mb-6">Gestión de datos locales, depuración y herramientas avanzadas.</p>
 
       <div className="space-y-4">
         {/* Debug Mode */}
         <SettingCard
-          title="Modo Depuración"
           description="Muestra información adicional en consola para diagnóstico de problemas."
+          title="Modo Depuración"
         >
           <button
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
@@ -180,8 +180,8 @@ export default function AdvancedSettingsPage() {
 
         {/* Storage Info */}
         <SettingCard
-          title="Almacenamiento Local"
           description="Datos guardados en este navegador para mejorar tu experiencia."
+          title="Almacenamiento Local"
         >
           {storage ? (
             <div className="space-y-3">
@@ -198,11 +198,11 @@ export default function AdvancedSettingsPage() {
 
               <div className="space-y-2">
                 {[
-                  { key: 'drafts', label: 'Borradores de mensajes', count: storage.chatDrafts, onClear: clearDrafts },
-                  { key: 'actions', label: 'Acciones de conversación', count: storage.conversationActions, onClear: clearConversationActions },
-                  { key: 'emojis', label: 'Emojis recientes', count: storage.emojiRecents, onClear: clearEmojiRecents },
+                  { count: storage.chatDrafts, key: 'drafts', label: 'Borradores de mensajes', onClear: clearDrafts },
+                  { count: storage.conversationActions, key: 'actions', label: 'Acciones de conversación', onClear: clearConversationActions },
+                  { count: storage.emojiRecents, key: 'emojis', label: 'Emojis recientes', onClear: clearEmojiRecents },
                 ].map((item) => (
-                  <div key={item.key} className="flex items-center justify-between rounded-lg border border-gray-100 px-3 py-2">
+                  <div className="flex items-center justify-between rounded-lg border border-gray-100 px-3 py-2" key={item.key}>
                     <div className="text-sm text-gray-700">{item.label}</div>
                     {confirmClear === item.key ? (
                       <div className="flex items-center gap-2">
@@ -242,8 +242,8 @@ export default function AdvancedSettingsPage() {
 
         {/* Export/Import */}
         <SettingCard
-          title="Exportar / Importar Datos"
           description="Respalda o restaura tu configuración local."
+          title="Exportar / Importar Datos"
         >
           <div className="flex gap-3">
             <button
@@ -265,8 +265,8 @@ export default function AdvancedSettingsPage() {
 
         {/* Danger Zone */}
         <SettingCard
-          title="Zona de Peligro"
           description="Acciones que eliminan datos permanentemente."
+          title="Zona de Peligro"
         >
           {confirmClear === 'all' ? (
             <div className="flex items-center gap-3">

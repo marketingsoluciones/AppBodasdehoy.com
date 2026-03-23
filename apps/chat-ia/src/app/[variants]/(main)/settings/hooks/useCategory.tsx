@@ -8,6 +8,7 @@ import {
   Image as ImageIcon,
   Info,
   KeyboardIcon,
+  Link2,
   Mic2,
   Settings2,
   Sparkles,
@@ -19,6 +20,9 @@ import type { MenuProps } from '@/components/Menu';
 import { isDeprecatedEdition, isDesktop } from '@/const/version';
 import { SettingsTabs } from '@/store/global/initialState';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
+
+/** Item de menú que navega a /settings/integrations (ver CategoryContent) */
+export const SETTINGS_MENU_KEY_INTEGRATIONS = '__integrations';
 
 export const useCategory = () => {
   const { t } = useTranslation('setting');
@@ -93,6 +97,11 @@ export const useCategory = () => {
           // ✅ FIX: Asegurar que la etiqueta siempre sea visible (en español)
           // Si la traducción no existe o está vacía, usar 'Facturación'
           label: (t('tab.billing') && t('tab.billing') !== 'tab.billing') ? t('tab.billing') : 'Facturación',
+        },
+        {
+          icon: <Icon icon={Link2} />,
+          key: SETTINGS_MENU_KEY_INTEGRATIONS,
+          label: 'Integraciones',
         },
         !hideDocs && {
           icon: <Icon icon={Info} />,
