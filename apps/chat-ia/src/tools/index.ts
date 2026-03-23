@@ -4,11 +4,12 @@ import { isDesktop } from '@/const/version';
 
 import { ArtifactsManifest } from './artifacts';
 import { CodeInterpreterManifest } from './code-interpreter';
+import { CrmManifest } from './crm';
+import { CrmActionsManifest } from './crm-actions';
+import { CrmAnalyticsManifest } from './crm-analytics';
 import { DalleManifest } from './dalle';
 import { FilterAppViewManifest } from './filter-app-view';
-import { FloorPlanEditorManifest } from './floor-plan-editor';
 import { LocalSystemManifest } from './local-system';
-import { VenueVisualizerManifest } from './venue-visualizer';
 import { WebBrowsingManifest } from './web-browsing';
 
 export const builtinTools: LobeBuiltinTool[] = [
@@ -40,20 +41,24 @@ export const builtinTools: LobeBuiltinTool[] = [
     type: 'builtin',
   },
   {
-    identifier: VenueVisualizerManifest.identifier,
-    manifest: VenueVisualizerManifest,
+    identifier: CrmManifest.identifier,
+    manifest: CrmManifest,
+    type: 'builtin',
+  },
+  {
+    identifier: CrmActionsManifest.identifier,
+    manifest: CrmActionsManifest,
+    type: 'builtin',
+  },
+  {
+    identifier: CrmAnalyticsManifest.identifier,
+    manifest: CrmAnalyticsManifest,
     type: 'builtin',
   },
   {
     hidden: true,
     identifier: FilterAppViewManifest.identifier,
     manifest: FilterAppViewManifest,
-    type: 'builtin',
-  },
-  {
-    hidden: true,
-    identifier: FloorPlanEditorManifest.identifier,
-    manifest: FloorPlanEditorManifest,
     type: 'builtin',
   },
 ];
