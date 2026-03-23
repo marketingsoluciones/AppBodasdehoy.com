@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'BACKEND_INTERNAL_URL not configured' }, { status: 500 });
   }
 
-  let body: { user_id?: string; amount?: number; description?: string };
+  let body: { amount?: number; description?: string, user_id?: string; };
   try {
     body = await req.json();
   } catch {
@@ -40,16 +40,16 @@ export async function POST(req: NextRequest) {
 
   try {
     const response = await fetch(upstream, {
-      method: 'POST',
+      body: JSON.stringify({
+        amount,
+        description: description ?? '[DEV] Ajuste manual desde DevTools',
+        user_id,
+      }),
       headers: {
         'Content-Type': 'application/json',
         'X-Admin-Key': adminKey,
       },
-      body: JSON.stringify({
-        user_id,
-        amount,
-        description: description ?? '[DEV] Ajuste manual desde DevTools',
-      }),
+      method: 'POST',
     });
 
     const data = await response.json().catch(() => ({}));

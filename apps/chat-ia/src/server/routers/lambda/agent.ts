@@ -94,6 +94,11 @@ export const agentRouter = router({
 
           const res = await ctx.agentService.createInbox();
           pino.info({ res }, 'create inbox session');
+
+          // Seed domain agents en background al detectar inbox faltante
+          import('@/server/services/agent/seedDomainAgents')
+            .then(({ seedDomainAgents }) => seedDomainAgents(ctx.serverDB, ctx.userId))
+            .catch((err) => pino.warn({ err }, 'seedDomainAgents error'));
         }
       }
 

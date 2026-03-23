@@ -163,7 +163,16 @@ const regenerateFullConfig = async () => {
 export const getServerDefaultAgentConfig = () => {
   const { DEFAULT_AGENT_CONFIG } = getAppConfig();
 
-  return parseAgentConfig(DEFAULT_AGENT_CONFIG) || {};
+  const config: Record<string, any> = parseAgentConfig(DEFAULT_AGENT_CONFIG) || {};
+
+  // Inyectar system prompt por defecto si no hay uno definido
+  if (!config.systemRole) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { DEFAULT_COPILOT_SYSTEM_ROLE } = require('@/const/agents/defaultCopilotSystemRole');
+    config.systemRole = DEFAULT_COPILOT_SYSTEM_ROLE;
+  }
+
+  return config;
 };
 
 export const getServerDefaultFilesConfig = () => {

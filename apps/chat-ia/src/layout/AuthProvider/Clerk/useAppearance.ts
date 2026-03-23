@@ -100,10 +100,10 @@ export const useAppearance = () => {
     baseTheme: isDarkMode ? dark : undefined,
     elements: styles,
     layout: {
-      helpPageUrl: BRANDING_URL.help ?? 'https://lobehub.com/docs',
-      privacyPageUrl: BRANDING_URL.privacy ?? 'https://lobehub.com/privacy',
+      helpPageUrl: BRANDING_URL.help ?? 'https://bodasdehoy.com',
+      privacyPageUrl: BRANDING_URL.privacy ?? 'https://bodasdehoy.com/privacidad',
       socialButtonsVariant: 'blockButton',
-      termsPageUrl: BRANDING_URL.terms ?? 'https://lobehub.com/terms',
+      termsPageUrl: BRANDING_URL.terms ?? 'https://bodasdehoy.com/terminos',
     },
     variables: {
       borderRadius: `${theme.borderRadius}px`,

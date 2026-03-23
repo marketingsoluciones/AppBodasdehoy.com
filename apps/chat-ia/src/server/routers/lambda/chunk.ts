@@ -1,4 +1,3 @@
-import { DEFAULT_FILE_EMBEDDING_MODEL_ITEM } from '@lobechat/const';
 import { SemanticSearchSchema } from '@lobechat/types';
 import { TRPCError } from '@trpc/server';
 import { inArray } from 'drizzle-orm';
@@ -12,9 +11,12 @@ import { MessageModel } from '@/database/models/message';
 import { knowledgeBaseFiles } from '@/database/schemas';
 import { authedProcedure, router } from '@/libs/trpc/lambda';
 import { keyVaults, serverDatabase } from '@/libs/trpc/lambda/middleware';
-import { getServerDefaultFilesConfig } from '@/server/globalConfig';
-import { initModelRuntimeWithUserPayload } from '@/server/modules/ModelRuntime';
 import { ChunkService } from '@/server/services/chunk';
+
+/** RAG semántico: solo api-ia (/api/lobechat-kb). Sin vectores ni embeddings en Postgres. */
+const kbUnavailableMessage =
+  'Base de conocimiento no disponible: api-ia no responde en /api/lobechat-kb. ' +
+  'Revisa NEXT_PUBLIC_BACKEND_URL (servidor Next), USE_MIDDLEWARE_FOR_LOBECHAT_KB y el servicio de embeddings en api-ia.';
 
 const chunkProcedure = authedProcedure
   .use(serverDatabase)
@@ -108,71 +110,60 @@ export const chunkRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      // ✅ NUEVO: Verificar si usar middleware
       const {
         shouldUseMiddleware,
         searchViaMiddleware,
       } = await import('@/server/services/lobechatKBMiddlewareService');
-      
-      const useMiddleware = await shouldUseMiddleware();
 
-      if (useMiddleware) {
-        // ✅ USAR MIDDLEWARE (Ollama + ChromaDB)
-        console.log(`🔧 Usando middleware para búsqueda semántica (Ollama + ChromaDB)`);
-        
-        const results = await searchViaMiddleware(
+      const useMiddleware = await shouldUseMiddleware();
+      if (!useMiddleware) {
+        throw new TRPCError({ code: 'FAILED_PRECONDITION', message: kbUnavailableMessage });
+      }
+
+      console.log(`🔧 RAG vía lobechat-kb (api-ia) — sin Postgres vectores`);
+      let results: Awaited<ReturnType<typeof searchViaMiddleware>>;
+      try {
+        results = await searchViaMiddleware(
           input.query,
           ctx.userId,
           input.fileIds,
-          30 // limit
+          30, // limit
         );
-
-        // Convertir resultados del middleware al formato esperado
-        return results.map((r) => ({
-          fileId: r.metadata?.file_id?.split('_chunk_')[0] || '',
-          fileName: r.metadata?.file_name || '',
-          id: r.metadata?.chunk_id || r.id,
-          index: r.metadata?.chunk_index || 0,
-          metadata: r.metadata || {},
-          similarity: r.score,
-          text: r.text_content,
-          type: r.metadata?.chunk_type || null,
-        }));
-      } else {
-        // ✅ USAR POSTGRESQL (método original)
-        const { model, provider } =
-          getServerDefaultFilesConfig().embeddingModel || DEFAULT_FILE_EMBEDDING_MODEL_ITEM;
-        const agentRuntime = await initModelRuntimeWithUserPayload(provider, ctx.jwtPayload);
-
-        const embeddings = await agentRuntime.embeddings({
-          dimensions: 1024,
-          input: input.query,
-          model,
-        });
-        console.timeEnd('embedding');
-
-        return ctx.chunkModel.semanticSearch({
-          embedding: embeddings![0],
-          fileIds: input.fileIds,
-          query: input.query,
+      } catch (e) {
+        const detail = e instanceof Error ? e.message : String(e);
+        throw new TRPCError({
+          cause: e,
+          code: 'FAILED_PRECONDITION',
+          message: `KB (api-ia): ${detail}`,
         });
       }
+
+      return results.map((r) => ({
+        fileId: r.metadata?.file_id?.split('_chunk_')[0] || '',
+        fileName: r.metadata?.file_name || '',
+        id: r.metadata?.chunk_id || r.id,
+        index: r.metadata?.chunk_index || 0,
+        metadata: r.metadata || {},
+        similarity: r.score,
+        text: r.text_content,
+        type: r.metadata?.chunk_type || null,
+      }));
     }),
 
   semanticSearchForChat: chunkProcedure
     .input(SemanticSearchSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        // ✅ NUEVO: Verificar si usar middleware
         const {
           shouldUseMiddleware,
           searchViaMiddleware,
         } = await import('@/server/services/lobechatKBMiddlewareService');
-        
+
         const useMiddleware = await shouldUseMiddleware();
 
         let finalFileIds = input.fileIds ?? [];
 
+        // Resolución de archivos por knowledge base (metadato en BD LobeChat). Vectores siguen solo en api-ia.
         if (input.knowledgeIds && input.knowledgeIds.length > 0) {
           const knowledgeFiles = await ctx.serverDB.query.knowledgeBaseFiles.findMany({
             where: inArray(knowledgeBaseFiles.knowledgeBaseId, input.knowledgeIds),
@@ -181,98 +172,48 @@ export const chunkRouter = router({
           finalFileIds = knowledgeFiles.map((f) => f.fileId).concat(finalFileIds);
         }
 
-        if (useMiddleware) {
-          // ✅ USAR MIDDLEWARE (Ollama + ChromaDB)
-          console.log(`🔧 Usando middleware para búsqueda semántica en chat (Ollama + ChromaDB)`);
-          
-          // slice content to make sure in the context window limit
-          const query =
-            input.rewriteQuery.length > 8000
-              ? input.rewriteQuery.slice(0, 8000)
-              : input.rewriteQuery;
-
-          const results = await searchViaMiddleware(
-            query,
-            ctx.userId,
-            finalFileIds,
-            15 // limit
-          );
-
-          // Convertir resultados del middleware al formato esperado
-          const chunks = results.map((r) => ({
-            fileId: r.metadata?.file_id?.split('_chunk_')[0] || '',
-            fileName: r.metadata?.file_name || '',
-            id: r.metadata?.chunk_id || r.id,
-            index: r.metadata?.chunk_index || 0,
-            similarity: r.score,
-            text: r.text_content,
-          }));
-
-          // TODO: need to rerank the chunks
-          // Por ahora, usar un queryId temporal (el middleware no guarda queries)
-          const ragQueryId = `middleware_${Date.now()}`;
-
-          return { chunks, queryId: ragQueryId };
-        } else {
-          // ✅ USAR POSTGRESQL (método original)
-          const item = await ctx.messageModel.findMessageQueriesById(input.messageId);
-          const { model, provider } =
-            getServerDefaultFilesConfig().embeddingModel || DEFAULT_FILE_EMBEDDING_MODEL_ITEM;
-          let embedding: number[];
-          let ragQueryId: string;
-
-          // if there is no message rag or it's embeddings, then we need to create one
-          if (!item || !item.embeddings) {
-            // TODO: need to support customize
-            const agentRuntime = await initModelRuntimeWithUserPayload(provider, ctx.jwtPayload);
-
-            // slice content to make sure in the context window limit
-            const query =
-              input.rewriteQuery.length > 8000
-                ? input.rewriteQuery.slice(0, 8000)
-                : input.rewriteQuery;
-
-            const embeddings = await agentRuntime.embeddings({
-              dimensions: 1024,
-              input: query,
-              model,
-            });
-
-            embedding = embeddings![0];
-            const embeddingsId = await ctx.embeddingModel.create({
-              embeddings: embedding,
-              model,
-            });
-
-            const result = await ctx.messageModel.createMessageQuery({
-              embeddingsId,
-              messageId: input.messageId,
-              rewriteQuery: input.rewriteQuery,
-              userQuery: input.userQuery,
-            });
-
-            ragQueryId = result.id;
-          } else {
-            embedding = item.embeddings;
-            ragQueryId = item.id;
-          }
-
-          const chunks = await ctx.chunkModel.semanticSearchForChat({
-            embedding,
-            fileIds: finalFileIds,
-            query: input.rewriteQuery,
-          });
-
-          // TODO: need to rerank the chunks
-
-          return { chunks, queryId: ragQueryId };
+        if (!useMiddleware) {
+          throw new TRPCError({ code: 'FAILED_PRECONDITION', message: kbUnavailableMessage });
         }
+
+        console.log(`🔧 RAG chat vía lobechat-kb (api-ia) — sin Postgres vectores`);
+
+        const query =
+          input.rewriteQuery.length > 8000
+            ? input.rewriteQuery.slice(0, 8000)
+            : input.rewriteQuery;
+
+        let results: Awaited<ReturnType<typeof searchViaMiddleware>>;
+        try {
+          results = await searchViaMiddleware(query, ctx.userId, finalFileIds, 15);
+        } catch (e) {
+          const detail = e instanceof Error ? e.message : String(e);
+          throw new TRPCError({
+            cause: e,
+            code: 'FAILED_PRECONDITION',
+            message: `KB (api-ia): ${detail}`,
+          });
+        }
+
+        const chunks = results.map((r) => ({
+          fileId: r.metadata?.file_id?.split('_chunk_')[0] || '',
+          fileName: r.metadata?.file_name || '',
+          id: r.metadata?.chunk_id || r.id,
+          index: r.metadata?.chunk_index || 0,
+          similarity: r.score,
+          text: r.text_content,
+        }));
+
+        const ragQueryId = `middleware_${Date.now()}`;
+
+        return { chunks, queryId: ragQueryId };
       } catch (e) {
         console.error(e);
+        if (e instanceof TRPCError) throw e;
 
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: (e as any).errorType || JSON.stringify(e),
+          message: (e as any).errorType || (e instanceof Error ? e.message : JSON.stringify(e)),
         });
       }
     }),

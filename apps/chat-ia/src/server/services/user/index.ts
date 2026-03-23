@@ -54,6 +54,11 @@ export class UserService {
     const agentService = new AgentService(this.db, id);
     await agentService.createInbox();
 
+    // 4. Seed domain agents (Budget, Seating) — fire-and-forget
+    import('@/server/services/agent/seedDomainAgents')
+      .then(({ seedDomainAgents }) => seedDomainAgents(this.db, id))
+      .catch((err) => console.warn('[SeedAgents] Error en seed inicial:', err));
+
     /* ↓ cloud slot ↓ */
 
     /* ↑ cloud slot ↑ */

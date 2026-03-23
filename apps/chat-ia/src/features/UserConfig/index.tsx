@@ -13,12 +13,10 @@ const { Text } = Typography;
  * Permite cambiar el usuario activo sin refrescar la página
  */
 export const UserConfig = () => {
-  const { setExternalChatConfig, fetchExternalChats, currentUserId, development } = useChatStore((s) => ({
-    currentUserId: s.currentUserId,
-    development: s.development,
-    fetchExternalChats: s.fetchExternalChats,
-    setExternalChatConfig: s.setExternalChatConfig,
-  }));
+  const setExternalChatConfig = useChatStore((s) => s.setExternalChatConfig);
+  const fetchExternalChats = useChatStore((s) => s.fetchExternalChats);
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const development = useChatStore((s) => s.development);
 
   const [developer, setDeveloper] = useState(development || 'bodasdehoy');
   const [userId, setUserId] = useState(currentUserId || 'visitante@guest.local');
