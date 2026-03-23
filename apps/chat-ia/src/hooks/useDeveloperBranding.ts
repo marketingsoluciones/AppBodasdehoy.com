@@ -3,8 +3,12 @@
  * Consulta el endpoint /api/config/{developer} y cachea el resultado
  */
 
+import { BRANDING_NAME } from '@lobechat/const';
 import { useEffect, useState } from 'react';
+
 import { useChatStore } from '@/store/chat';
+import { resolveDisplayBrandName } from '@/utils/brandingDisplay';
+import { resolveActiveDeveloperForBranding } from '@/utils/developmentDetector';
 
 export interface DeveloperBrandingColors {
   accent: string;
@@ -69,16 +73,17 @@ const brandingCache = new Map<string, DeveloperBranding>();
  * ```
  */
 export const useDeveloperBranding = (): UseDeveloperBrandingResult => {
-  const { development } = useChatStore((s) => ({
-    development: s.development,
-  }));
+  // Importante: selector primitivo; un objeto `{ development }` nuevo en cada render
+  // hace que Zustand crea que el estado cambió siempre → bucle de re-renders / pantalla colgada.
+  const development = useChatStore((s) => s.development);
 
   const [branding, setBranding] = useState<DeveloperBranding | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchBranding = async () => {
-    const developer = development || 'bodasdehoy';
+    // Visitante: priorizar dominio/URL; logado: store suele coincidir
+    const developer = resolveActiveDeveloperForBranding(development);
 
     // Verificar cache
     if (brandingCache.has(developer)) {
@@ -148,7 +153,9 @@ export const useDeveloperBranding = (): UseDeveloperBrandingResult => {
  */
 export const useDeveloperName = (): string => {
   const { branding } = useDeveloperBranding();
-  return branding?.name || 'Lobe Chat';
+  const development = useChatStore((s) => s.development);
+  const slug = resolveActiveDeveloperForBranding(development);
+  return resolveDisplayBrandName(branding?.name, slug);
 };
 
 /**

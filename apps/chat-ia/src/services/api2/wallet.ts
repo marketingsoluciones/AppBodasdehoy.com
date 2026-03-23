@@ -406,7 +406,7 @@ export class WalletService {
       console.log('🔍 [walletService] Obteniendo transacciones...', { limit, page, type });
       const data = await api2Client.query<{ wallet_getTransactions: TransactionsResponse }>(
         GET_TRANSACTIONS_QUERY,
-        { limit, page, filter: type ? { type } : undefined }
+        { filter: type ? { type } : undefined, limit, page }
       );
       console.log('📊 [walletService] Respuesta de transacciones:', {
         count: data.wallet_getTransactions?.transactions?.length || 0,

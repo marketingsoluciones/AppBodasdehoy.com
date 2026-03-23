@@ -351,6 +351,20 @@ export const generateAIChat: StateCreator<
     let fileChunks: MessageSemanticSearchChunk[] | undefined;
     let ragQueryId;
 
+    // --- Memory Recall (paralelo al RAG) ---
+    // Lanza recall de memoria sin bloquear el RAG flow
+    const userQuery = messages.at(-1)?.content || params?.ragQuery || '';
+    const memoryRecallPromise = userQuery
+      ? import('@/libs/trpc/client')
+          .then(({ lambdaClient }) =>
+            lambdaClient.memory.recallForQuery.mutate({ query: userQuery.slice(0, 2000) }),
+          )
+          .catch((err) => {
+            console.warn('[MemoryRecall] Error en recall:', err);
+            return null;
+          })
+      : Promise.resolve(null);
+
     // go into RAG flow if there is ragQuery flag
     if (params?.ragQuery) {
       // 1. get the relative chunks from semantic search
@@ -380,6 +394,18 @@ export const generateAIChat: StateCreator<
       });
 
       fileChunks = chunks.map((c) => ({ id: c.id, similarity: c.similarity }));
+    }
+
+    // --- Inyectar memoria en system prompt si hay resultados ---
+    const memoryResult = await memoryRecallPromise;
+    if (memoryResult?.hasMemories && memoryResult.contextBlock && messages.length > 0) {
+      const systemMsg = messages[0];
+      if (systemMsg.role === 'system') {
+        messages[0] = {
+          ...systemMsg,
+          content: memoryResult.contextBlock + '\n\n' + systemMsg.content,
+        };
+      }
     }
 
     // 2. Add an empty message to place the AI response

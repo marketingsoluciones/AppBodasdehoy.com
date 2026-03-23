@@ -3,7 +3,9 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { EVENTOS_API_CONFIG } from '@/config/eventos-api';
+import { getSupportKey } from '@/const/supportKeys';
 import { buildAuthHeaders } from '@/utils/authToken';
+import { getAPIOriginHeader } from '@/utils/developmentDetector';
 
 type ConversationChannel = 'whatsapp' | 'instagram' | 'facebook' | 'telegram' | 'web';
 
@@ -157,7 +159,14 @@ const fetchConversationHistory = async ({
   url.searchParams.set('email', email);
 
   try {
-  const headers = buildAuthHeaders();
+  const headers: Record<string, string> = {
+    ...buildAuthHeaders(),
+    'Developer': development,
+    'Origin':
+      typeof window !== 'undefined' ? getAPIOriginHeader() : 'https://bodasdehoy.com',
+    'SupportKey': getSupportKey(development),
+    'X-Development': development,
+  };
 
   const response = await fetch(url.toString(), {
     credentials: 'include',
@@ -165,7 +174,9 @@ const fetchConversationHistory = async ({
   });
 
   if (response.status === 401 || response.status === 403) {
-    throw new Error('Sesión no válida. Inicia sesión nuevamente en dev-login.');
+    throw new Error(
+      'Historial: sesión rechazada por el servidor (token inválido o expirado). El chat puede seguir con otra cookie, pero este endpoint necesita JWT válido. Cierra sesión y vuelve a entrar desde /dev-login o /login, o en consola ejecuta: window.debugAuthState()',
+    );
   }
 
   if (!response.ok) {

@@ -183,9 +183,6 @@ export interface DailyUsage {
 export interface UsageStats {
   // Campos del schema real (camelCase)
   actionCounts?: UsageActionCount[];
-  dailyUsage?: DailyUsage[];
-  totalCost?: number;
-  totalTokens?: number;
   // Campos del schema antiguo (snake_case, opcionales para compatibilidad)
   ai_tokens?: {
     by_model?: { cost: number; model: string; tokens: number }[];
@@ -203,6 +200,7 @@ export interface UsageStats {
     whatsapp_received?: number;
     whatsapp_sent?: number;
   };
+  dailyUsage?: DailyUsage[];
   images?: {
     by_provider?: { cost: number; count: number; provider: string }[];
     total?: number;
@@ -214,6 +212,8 @@ export interface UsageStats {
     total_gb?: number;
     transfer_gb?: number;
   };
+  totalCost?: number;
+  totalTokens?: number;
   total_cost?: number;
 }
 
@@ -534,24 +534,35 @@ export class InvoicesService {
     endDate?: string
   ): Promise<UsageStatsResponse> {
     try {
-      console.log('🔍 [invoicesService] Obteniendo estadísticas de uso...', { period, startDate, endDate });
+      console.log('🔍 [invoicesService] Obteniendo estadísticas de uso...', { endDate, period, startDate });
       // Calcular fechas a partir del período
       const now = new Date();
       let filterStart: string | undefined = startDate;
       let filterEnd: string | undefined = endDate;
       if (!filterStart) {
         const d = new Date(now);
-        if (period === 'TODAY') { d.setHours(0, 0, 0, 0); }
-        else if (period === 'THIS_WEEK') { d.setDate(d.getDate() - d.getDay()); d.setHours(0, 0, 0, 0); }
-        else if (period === 'THIS_MONTH') { d.setDate(1); d.setHours(0, 0, 0, 0); }
-        else if (period === 'LAST_30_DAYS') { d.setDate(d.getDate() - 30); }
+        switch (period) {
+        case 'TODAY': { d.setHours(0, 0, 0, 0); 
+        break;
+        }
+        case 'THIS_WEEK': { d.setDate(d.getDate() - d.getDay()); d.setHours(0, 0, 0, 0); 
+        break;
+        }
+        case 'THIS_MONTH': { d.setDate(1); d.setHours(0, 0, 0, 0); 
+        break;
+        }
+        case 'LAST_30_DAYS': { d.setDate(d.getDate() - 30); 
+        break;
+        }
+        // No default
+        }
         filterStart = d.toISOString();
       }
       if (!filterEnd) { filterEnd = now.toISOString(); }
 
       const data = await api2Client.query<{ getUsageStats: UsageStatsResponse }>(
         GET_USAGE_STATS_QUERY,
-        { filters: { startDate: filterStart, endDate: filterEnd } }
+        { filters: { endDate: filterEnd, startDate: filterStart } }
       );
       console.log('📊 [invoicesService] Respuesta de estadísticas:', {
         hasStats: !!data.getUsageStats?.stats,

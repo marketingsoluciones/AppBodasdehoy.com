@@ -25,11 +25,9 @@ const MAX_AGE_MS = 30 * 60 * 1000; // 30 minutos máximo
 export function usePendingIntent() {
   const [pendingIntent, setPendingIntent] = useState<PendingIntent | null>(null);
   const [hasJwtToken, setHasJwtToken] = useState(false);
-  const { currentUserId, userType, development } = useChatStore((s) => ({
-    currentUserId: s.currentUserId,
-    development: s.development,
-    userType: s.userType,
-  }));
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const userType = useChatStore((s) => s.userType);
+  const development = useChatStore((s) => s.development);
 
   // ✅ MEJORADO: Verificar JWT token en localStorage (más confiable que solo el store)
   useEffect(() => {

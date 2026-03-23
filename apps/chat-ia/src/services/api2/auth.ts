@@ -131,7 +131,7 @@ export const loginWithDemoCredentials = async (): Promise<LoginAPI2Result> => {
     console.warn(
       '[auth] DEMO_LOGIN_EMAIL / DEMO_LOGIN_PASSWORD no configuradas. Omitiendo login automático.',
     );
-    return { success: false, errors: ['Credenciales demo no configuradas en variables de entorno'] };
+    return { errors: ['Credenciales demo no configuradas en variables de entorno'], success: false };
   }
   return loginAPI2({
     email: DEMO_CREDENTIALS.email,
