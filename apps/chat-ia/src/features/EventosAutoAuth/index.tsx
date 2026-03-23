@@ -126,8 +126,12 @@ function EventosAutoAuthComponent() {
             payload.development || 'bodasdehoy',
             payload.token || undefined,
             effectiveUserType,
-            undefined,
-            payload.userData
+            typeof payload.userRole === 'string' && payload.userRole
+              ? payload.userRole
+              : effectiveUserType === 'visitor'
+                ? 'guest'
+                : undefined,
+            payload.userData,
           );
 
           setReceivedAuthFromParent(true);
@@ -147,13 +151,15 @@ function EventosAutoAuthComponent() {
             development: payload.development,
             event_id: payload.eventId || null,
             event_name: payload.eventName || null,
+            role: typeof payload.userRole === 'string' ? payload.userRole : undefined,
             source: 'parent_iframe',
             timestamp: Date.now(),
             token: payload.token,
+            userId: effectiveUserId,
+            
             user_data: payload.userData,
             // user_id (snake_case) es necesario para useAuthCheck en /messages
-            user_id: effectiveUserId,
-            userId: effectiveUserId,
+user_id: effectiveUserId,
             user_type: effectiveUserType,
           }));
         }
@@ -186,7 +192,7 @@ function EventosAutoAuthComponent() {
     const processRedirectResult = async () => {
       try {
         // Solo procesar si no estamos en dev-login (allí se maneja manualmente)
-        if (typeof window !== 'undefined' && window.location.pathname === '/dev-login') {
+        if (typeof window !== 'undefined' && window.location.pathname === '/login') {
           return;
         }
 
@@ -282,7 +288,7 @@ function EventosAutoAuthComponent() {
 
   useEffect(() => {
     // No ejecutar en la página de dev-login (dejar que el usuario configure manualmente)
-    if (typeof window !== 'undefined' && window.location.pathname === '/dev-login') {
+    if (typeof window !== 'undefined' && window.location.pathname === '/login') {
       return;
     }
 
@@ -375,8 +381,8 @@ function EventosAutoAuthComponent() {
             'registered',
             sharedAuth.user.role?.[0] || 'user',
             {
-              email: sharedAuth.user.email,
               displayName: sharedAuth.user.displayName,
+              email: sharedAuth.user.email,
               photoURL: sharedAuth.user.photoURL,
             },
           );
@@ -698,8 +704,8 @@ function EventosAutoAuthComponent() {
                   role: jwtPayload.role || 'admin',
                   timestamp: Date.now(),
                   token: developerToken,
-                  user_type: 'registered',
                   userId: uid,
+                  user_type: 'registered',
                 }));
                 developerAutoIdentified = true;
                 devLog(`✅ Usuario developer identificado automáticamente desde JWT: ${uid}`);

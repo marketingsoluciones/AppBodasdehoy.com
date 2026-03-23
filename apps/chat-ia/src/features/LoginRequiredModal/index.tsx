@@ -9,22 +9,20 @@ import { Flexbox } from 'react-layout-kit';
 import { useChatStore } from '@/store/chat';
 
 const useStyles = createStyles(({ css, token }) => ({
+  featureItem: css`
+    color: ${token.colorTextSecondary};
+    font-size: 13px;
+  `,
+  features: css`
+    background: ${token.colorFillAlter};
+    border-radius: 10px;
+    padding: 14px 16px;
+    width: 100%;
+  `,
   icon: css`
     font-size: 52px;
     line-height: 1;
     margin-bottom: 8px;
-    text-align: center;
-  `,
-  title: css`
-    color: ${token.colorText};
-    font-size: 20px;
-    font-weight: 700;
-    text-align: center;
-  `,
-  subtitle: css`
-    color: ${token.colorTextSecondary};
-    font-size: 14px;
-    line-height: 1.6;
     text-align: center;
   `,
   primaryBtn: css`
@@ -53,15 +51,17 @@ const useStyles = createStyles(({ css, token }) => ({
     transition: background 0.2s;
     &:hover { background: ${token.colorFillAlter}; }
   `,
-  features: css`
-    background: ${token.colorFillAlter};
-    border-radius: 10px;
-    padding: 14px 16px;
-    width: 100%;
-  `,
-  featureItem: css`
+  subtitle: css`
     color: ${token.colorTextSecondary};
-    font-size: 13px;
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: center;
+  `,
+  title: css`
+    color: ${token.colorText};
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
   `,
 }));
 

@@ -12,6 +12,7 @@ import {
   FileClockIcon,
   HardDriveDownload,
   LifeBuoy,
+  Link2,
   LogIn,
   LogOut,
   Mail,
@@ -41,6 +42,7 @@ import { isDeprecatedEdition, isDesktop } from '@/const/version';
 import { useLoginModal } from '@/contexts/LoginModalContext';
 import DataImporter from '@/features/DataImporter';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { authSelectors } from '@/store/user/selectors';
@@ -79,6 +81,9 @@ export const useMenu = () => {
     authSelectors.isLogin(s),
     authSelectors.isLoginWithAuth(s),
   ]);
+  const isDomainGuest = useDomainGuestUser();
+  /** Sesión “real” de cuenta completa: no invitado embed. */
+  const showAccountLogout = isLoginWithAuth && !isDomainGuest;
 
   // ✅ FIX: Convertir perfil en submenú con todas las opciones de cuenta
   const profile: MenuProps['items'] = [
@@ -93,6 +98,11 @@ export const useMenu = () => {
           icon: <Icon icon={TrendingUp} />,
           key: 'profile-stats',
           label: <Link href={'/profile/stats'}>Estadísticas</Link>,
+        },
+        {
+          icon: <Icon icon={Link2} />,
+          key: 'integrations',
+          label: <Link href={'/settings/integrations'}>Integraciones</Link>,
         },
         {
           type: 'divider',
@@ -123,13 +133,6 @@ export const useMenu = () => {
       label: 'Mi Cuenta',
     },
   ];
-
-  // ✅ DEBUG: Log para verificar que el perfil se está generando
-  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-    console.log('🔍 [useMenu] Profile items:', profile);
-    console.log('🔍 [useMenu] isLogin:', isLogin);
-    console.log('🔍 [useMenu] isLoginWithAuth:', isLoginWithAuth);
-  }
 
   const settings: ItemType[] = [
     {
@@ -171,7 +174,7 @@ export const useMenu = () => {
     },
   ];
 
-  const data = !isLogin
+  const data = !isLogin || isDomainGuest
     ? []
     : ([
         {
@@ -251,7 +254,7 @@ export const useMenu = () => {
     {
       type: 'divider',
     },
-    ...(!enableAuth || (enableAuth && isLoginWithAuth) ? (profile || []) : []),
+    ...(!enableAuth || (enableAuth && showAccountLogout) ? (profile || []) : []),
     ...(isLogin ? (settings || []) : []),
     /* ↓ cloud slot ↓ */
 
@@ -261,8 +264,8 @@ export const useMenu = () => {
     ...(!hideDocs ? (helps || []) : []),
   ].filter(Boolean) as MenuProps['items'];
 
-  // Items de login - solo se muestran cuando NO está logueado
-  const loginItems: MenuProps['items'] = !isLoginWithAuth
+  // Login: sin sesión de cuenta completa (incl. invitado con Firebase técnico)
+  const loginItems: MenuProps['items'] = !showAccountLogout
     ? [
         {
           icon: <Icon icon={LogIn} />,
@@ -273,8 +276,7 @@ export const useMenu = () => {
       ]
     : [];
 
-  // Items de logout - solo se muestran cuando SÍ está logueado
-  const logoutItems: MenuProps['items'] = isLoginWithAuth
+  const logoutItems: MenuProps['items'] = showAccountLogout
     ? [
         {
           icon: <Icon icon={LogOut} />,
@@ -284,5 +286,5 @@ export const useMenu = () => {
       ]
     : [];
 
-  return { loginItems, logoutItems, mainItems };
+  return { isDomainGuest, loginItems, logoutItems, mainItems };
 };

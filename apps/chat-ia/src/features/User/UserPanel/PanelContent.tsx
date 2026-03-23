@@ -22,7 +22,6 @@ const PanelContent = memo<{ closePopover: () => void }>(({ closePopover }) => {
   const router = useRouter();
   const isLoginWithAuth = useUserStore(authSelectors.isLoginWithAuth);
   const [openSignIn, signOut] = useUserStore((s) => [s.openLogin, s.logout]);
-  const { mainItems, loginItems, logoutItems } = useMenu();
 
   const handleSignIn = () => {
     openSignIn();
@@ -38,15 +37,21 @@ const PanelContent = memo<{ closePopover: () => void }>(({ closePopover }) => {
   };
 
   // Obtener información del usuario para mostrar saludo
-  const { currentUserId, userProfile, development } = useChatStore((s) => ({
-    currentUserId: s.currentUserId,
-    development: s.development,
-    userProfile: s.userProfile,
-  }));
-  
-  const isRegistered = currentUserId &&
-    currentUserId !== 'visitante@guest.local' &&
-    (currentUserId.includes('@') || currentUserId.startsWith('+'));
+  const currentUserId = useChatStore((s) => s.currentUserId);
+  const userProfile = useChatStore((s) => s.userProfile);
+  const development = useChatStore((s) => s.development);
+  const userType = useChatStore((s) => s.userType);
+  const { isDomainGuest, mainItems, loginItems, logoutItems } = useMenu();
+  const showLogoutRow = isLoginWithAuth && !isDomainGuest;
+
+  const isRegistered =
+    !isDomainGuest &&
+    (userType === 'registered' ||
+      Boolean(
+        currentUserId &&
+          currentUserId !== 'visitante@guest.local' &&
+          (currentUserId.includes('@') || currentUserId.startsWith('+')),
+      ));
 
   const userName = userProfile?.displayName ||
                    userProfile?.nombre ||
@@ -146,8 +151,8 @@ const PanelContent = memo<{ closePopover: () => void }>(({ closePopover }) => {
                 <Flexbox align="flex-end" gap={0}>
                   <span style={{
                     color: isCreditExhausted ? '#ff4d4f' : isNegativeBalance ? '#f97316' : 'var(--ant-color-text,#333)',
-                    fontWeight: 600,
                     fontSize: 13,
+                    fontWeight: 600,
                   }}>
                     {typeof balance === 'number'
                       ? `€${(balance + bonusBalance).toFixed(2)}`
@@ -172,9 +177,9 @@ const PanelContent = memo<{ closePopover: () => void }>(({ closePopover }) => {
         align={'center'}
         horizontal
         justify={'space-between'}
-        style={isLoginWithAuth ? { paddingRight: 6 } : { padding: '6px 6px 6px 16px' }}
+        style={showLogoutRow ? { paddingRight: 6 } : { padding: '6px 6px 6px 16px' }}
       >
-        {isLoginWithAuth ? (
+        {showLogoutRow ? (
           <Menu items={logoutItems} onClick={handleSignOut} />
         ) : (
           <Menu items={loginItems} onClick={closePopover} />
