@@ -198,20 +198,24 @@ export async function subscribeToPlan(
 }
 
 export interface CancelSubscriptionResult {
-  message?: string;
+  _id?: string;
+  plan_id?: string;
+  status?: string;
   success: boolean;
 }
 
 export async function cancelSubscription(): Promise<CancelSubscriptionResult> {
   try {
-    const data = await api2Client.query<{ cancelSubscription: CancelSubscriptionResult }>(
-      `mutation CancelSubscription {
-        cancelSubscription {
-          success message
+    // api2 real mutation name: cancelMySubscription → returns UserSubscription
+    const data = await api2Client.query<{ cancelMySubscription: { _id: string; status: string; plan_id: string } | null }>(
+      `mutation CancelMySubscription {
+        cancelMySubscription {
+          _id status plan_id
         }
       }`
     );
-    return data.cancelSubscription ?? { success: false };
+    const sub = data.cancelMySubscription;
+    return { _id: sub?._id, plan_id: sub?.plan_id, status: sub?.status, success: !!sub };
   } catch (error) {
     console.error('[subscriptions] cancelSubscription error:', error);
     return { success: false };
