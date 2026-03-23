@@ -26,7 +26,9 @@ export interface BillingData {
   totalTokens: number;
 }
 
-export function useBillingData(period: 'day' | 'week' | 'month') {
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+
+export function useBillingData(period: 'day' | 'week' | 'month', development = 'bodasdehoy') {
   const [data, setData] = useState<BillingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -40,7 +42,7 @@ export function useBillingData(period: 'day' | 'week' | 'month') {
 
       // Fetch stats desde backend
       const response = await fetch(
-        `http://localhost:8030/api/usage/stats?development=bodasdehoy&days=${days}`
+        `${BACKEND_URL}/api/usage/stats?development=${development}&days=${days}`
       );
 
       if (!response.ok) {

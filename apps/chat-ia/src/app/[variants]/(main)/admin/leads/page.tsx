@@ -7,11 +7,11 @@ type SortKey = 'contact' | 'event_type' | 'status' | 'created_at';
 type SortDir = 'asc' | 'desc';
 
 const STATUS_CONFIG: Record<LeadStatus, { color: string; label: string }> = {
-  new: { color: 'bg-blue-100 text-blue-700', label: 'Nuevo' },
   contacted: { color: 'bg-yellow-100 text-yellow-700', label: 'Contactado' },
-  qualified: { color: 'bg-purple-100 text-purple-700', label: 'Cualificado' },
   converted: { color: 'bg-green-100 text-green-700', label: 'Convertido' },
   lost: { color: 'bg-red-100 text-red-700', label: 'Perdido' },
+  new: { color: 'bg-blue-100 text-blue-700', label: 'Nuevo' },
+  qualified: { color: 'bg-purple-100 text-purple-700', label: 'Cualificado' },
 };
 
 const ALL_STATUSES: LeadStatus[] = ['new', 'contacted', 'qualified', 'converted', 'lost'];
@@ -252,18 +252,22 @@ export default function LeadsPage() {
     return [...leads].sort((a, b) => {
       let cmp = 0;
       switch (sortKey) {
-        case 'contact':
+        case 'contact': {
           cmp = (a.contact?.name || a.contact?.email || '').localeCompare(b.contact?.name || b.contact?.email || '');
           break;
-        case 'event_type':
+        }
+        case 'event_type': {
           cmp = (a.qualifying_data?.event_type || '').localeCompare(b.qualifying_data?.event_type || '');
           break;
-        case 'status':
+        }
+        case 'status': {
           cmp = a.status.localeCompare(b.status);
           break;
-        case 'created_at':
+        }
+        case 'created_at': {
           cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
           break;
+        }
       }
       return sortDir === 'asc' ? cmp : -cmp;
     });
@@ -417,7 +421,7 @@ export default function LeadsPage() {
             </thead>
             <tbody>
               {Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className="border-b">
+                <tr className="border-b" key={i}>
                   <td className="px-4 py-3"><div className="space-y-1"><div className="h-4 w-32 animate-pulse rounded bg-gray-200" /><div className="h-3 w-40 animate-pulse rounded bg-gray-100" /></div></td>
                   <td className="px-4 py-3"><div className="h-4 w-16 animate-pulse rounded bg-gray-200" /></td>
                   <td className="px-4 py-3"><div className="h-4 w-20 animate-pulse rounded bg-gray-200" /></td>
@@ -435,12 +439,12 @@ export default function LeadsPage() {
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 text-xs uppercase text-gray-700">
               <tr>
-                <SortableHeader label="Contacto" sortKey="contact" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Tipo Evento" sortKey="event_type" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader currentDir={sortDir} currentSort={sortKey} label="Contacto" onSort={handleSort} sortKey="contact" />
+                <SortableHeader currentDir={sortDir} currentSort={sortKey} label="Tipo Evento" onSort={handleSort} sortKey="event_type" />
                 <th className="px-4 py-3">Fecha Evento</th>
                 <th className="px-4 py-3 text-center">Invitados</th>
-                <SortableHeader label="Estado" sortKey="status" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Creado" sortKey="created_at" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader currentDir={sortDir} currentSort={sortKey} label="Estado" onSort={handleSort} sortKey="status" />
+                <SortableHeader currentDir={sortDir} currentSort={sortKey} label="Creado" onSort={handleSort} sortKey="created_at" />
                 <th className="px-4 py-3 text-right">Acciones</th>
               </tr>
             </thead>

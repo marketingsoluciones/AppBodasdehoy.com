@@ -404,27 +404,27 @@ export default function AuditDashboard() {
 
       {/* Historial de Auditorías */}
       <Card
-        title="Historial de Auditorías"
         extra={
           <div className="flex items-center gap-3">
             <RangePicker
-              format="DD/MM/YYYY"
-              placeholder={['Desde', 'Hasta']}
-              onChange={(dates) => setHistoryDateRange(dates)}
-              value={historyDateRange}
               allowClear
+              format="DD/MM/YYYY"
+              onChange={(dates) => setHistoryDateRange(dates)}
+              placeholder={['Desde', 'Hasta']}
               size="small"
+              value={historyDateRange}
             />
             <Button
+              disabled={filteredHistory.length === 0}
               icon={<DownloadOutlined />}
               onClick={() => exportAuditCsv(filteredHistory, `audit-history-${dayjs().format('YYYY-MM-DD')}.csv`)}
-              disabled={filteredHistory.length === 0}
               size="small"
             >
               Export CSV
             </Button>
           </div>
         }
+        title="Historial de Auditorías"
       >
         <Table
           columns={historyColumns}

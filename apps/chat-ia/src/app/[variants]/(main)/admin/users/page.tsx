@@ -42,8 +42,8 @@ const formatLastAccess = (timestamp: string) => {
 };
 
 function SortableHeader({ label, sortKey, currentSort, currentDir, onSort, className }: {
-  label: string; sortKey: SortKey; currentSort: SortKey; currentDir: SortDir;
-  onSort: (key: SortKey) => void; className?: string;
+  className?: string; currentDir: SortDir; currentSort: SortKey; label: string;
+  onSort: (key: SortKey) => void; sortKey: SortKey;
 }) {
   const isActive = currentSort === sortKey;
   return (
@@ -115,11 +115,16 @@ export default function UsersPage() {
     result = [...result].sort((a, b) => {
       let cmp = 0;
       switch (sortKey) {
-        case 'name': cmp = a.name.localeCompare(b.name); break;
-        case 'role': cmp = a.role.localeCompare(b.role); break;
-        case 'eventsCount': cmp = a.eventsCount - b.eventsCount; break;
-        case 'lastAccess': cmp = new Date(a.lastAccess).getTime() - new Date(b.lastAccess).getTime(); break;
-        case 'status': cmp = a.status.localeCompare(b.status); break;
+        case 'name': { cmp = a.name.localeCompare(b.name); break;
+        }
+        case 'role': { cmp = a.role.localeCompare(b.role); break;
+        }
+        case 'eventsCount': { cmp = a.eventsCount - b.eventsCount; break;
+        }
+        case 'lastAccess': { cmp = new Date(a.lastAccess).getTime() - new Date(b.lastAccess).getTime(); break;
+        }
+        case 'status': { cmp = a.status.localeCompare(b.status); break;
+        }
       }
       return sortDir === 'asc' ? cmp : -cmp;
     });
@@ -310,7 +315,7 @@ export default function UsersPage() {
             </thead>
             <tbody>
               {Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className="border-b">
+                <tr className="border-b" key={i}>
                   <td className="px-4 py-3"><div className="h-4 w-4 animate-pulse rounded bg-gray-200" /></td>
                   <td className="px-4 py-3"><div className="space-y-1"><div className="h-4 w-32 animate-pulse rounded bg-gray-200" /><div className="h-3 w-40 animate-pulse rounded bg-gray-100" /></div></td>
                   <td className="px-4 py-3"><div className="h-5 w-16 animate-pulse rounded-full bg-gray-200" /></td>
@@ -335,11 +340,11 @@ export default function UsersPage() {
                     type="checkbox"
                   />
                 </th>
-                <SortableHeader label="Usuario" sortKey="name" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Rol" sortKey="role" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Eventos" sortKey="eventsCount" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} className="text-center" />
-                <SortableHeader label="Último Acceso" sortKey="lastAccess" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
-                <SortableHeader label="Estado" sortKey="status" currentSort={sortKey} currentDir={sortDir} onSort={handleSort} />
+                <SortableHeader currentDir={sortDir} currentSort={sortKey} label="Usuario" onSort={handleSort} sortKey="name" />
+                <SortableHeader currentDir={sortDir} currentSort={sortKey} label="Rol" onSort={handleSort} sortKey="role" />
+                <SortableHeader className="text-center" currentDir={sortDir} currentSort={sortKey} label="Eventos" onSort={handleSort} sortKey="eventsCount" />
+                <SortableHeader currentDir={sortDir} currentSort={sortKey} label="Último Acceso" onSort={handleSort} sortKey="lastAccess" />
+                <SortableHeader currentDir={sortDir} currentSort={sortKey} label="Estado" onSort={handleSort} sortKey="status" />
                 <th className="px-4 py-3 text-right">Acciones</th>
               </tr>
             </thead>
