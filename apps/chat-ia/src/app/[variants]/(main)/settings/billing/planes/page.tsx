@@ -639,6 +639,11 @@ const PlanesPage = memo(() => {
 
       {/* Comparativa completa de planes */}
       <PriceComparison />
+
+      <p style={{ color: 'var(--ant-color-text-quaternary)', fontSize: 12, margin: 0, textAlign: 'center' }}>
+        Todos los precios mostrados no incluyen IVA. El IVA aplicable se calculará en el checkout según tu país de facturación.
+        Puedes cancelar tu suscripción en cualquier momento desde esta página.
+      </p>
     </Flexbox>
   );
 });
