@@ -217,7 +217,7 @@ const BalanceChart = memo<{ currency: string; transactions: WalletTransaction[] 
                 <stop offset="95%" stopColor="#667eea" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+            <CartesianGrid stroke="rgba(0,0,0,0.06)" strokeDasharray="3 3" />
             <XAxis
               dataKey="date"
               interval="preserveStartEnd"

@@ -490,10 +490,10 @@ const BillingPage = memo(() => {
                 : null;
               return (
                 <Flexbox
-                  key={method.id}
                   align="center"
                   gap={12}
                   horizontal
+                  key={method.id}
                   style={{
                     background: 'var(--ant-color-fill-quaternary, #f5f5f5)',
                     borderRadius: 8,
@@ -1121,7 +1121,7 @@ const WalletDevTools = memo(() => {
   };
 
   const handleReset = () => {
-    useChatStore.setState({ showInsufficientBalance: false, negativeBalanceMode: false });
+    useChatStore.setState({ negativeBalanceMode: false, showInsufficientBalance: false });
     log('🔄 Estados UI reseteados');
   };
 
@@ -1139,13 +1139,13 @@ const WalletDevTools = memo(() => {
     try {
       const drainAmount = -totalBalance; // importe negativo para drenar
       const res = await fetch('/api/dev/wallet-drain', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: userId,
           amount: drainAmount,
           description: '[DEV] Drenar saldo a €0 para test de flujo de pago',
+          user_id: userId,
         }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
       });
       const data = await res.json();
       if (!res.ok) {
@@ -1166,8 +1166,8 @@ const WalletDevTools = memo(() => {
     borderRadius: 6,
     cursor: devLoading ? 'wait' : 'pointer',
     fontSize: 12,
-    padding: '6px 12px',
     opacity: devLoading ? 0.6 : 1,
+    padding: '6px 12px',
   };
 
   return (
