@@ -25,6 +25,7 @@ interface SubscriptionPlanData {
   plan_id: string;
   name: string;
   tier: SubscriptionTier;
+  is_active?: boolean;
   pricing: { monthly_fee: number; annual_fee?: number; trial_days?: number };
   product_limits: PlanLimit[];
   feature_restrictions: Record<string, any>;
