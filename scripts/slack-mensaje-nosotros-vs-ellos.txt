@@ -1,0 +1,11 @@
+*Front Copilot — pendientes: nosotros vs otros*
+
+*NOSOTROS (Front / deploy / smoke):* subir prod RAG+`X-Request-ID`, `AUTH_CONFIG`→`X-User-Role`; probar Copilot; cuando API2 confirme R2 → re-test upload / 4 datos si falla.
+
+*api-ia (ellos):* bugs ~24 feb providers/router/auto; Leads `/api/leads/*`; opcional embeddings HTTP200.
+
+*API2 (ellos):* R2 + `uploadCRMEntityFile` *Storage no configurado* `bodasdehoy` en prod.
+
+*Cerrado:* lobechat-kb evidencia/trace_id.
+
+Detalle: archivo `scripts/PENDIENTES-NOSOTROS-VS-ELLOS.txt` | en repo: `pnpm pendientes`

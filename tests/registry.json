@@ -1,0 +1,3109 @@
+{
+  "1": {
+    "name": "appEventos — Organizador de eventos",
+    "type": "group",
+    "children": [
+      "1.1",
+      "1.2",
+      "1.3",
+      "1.4",
+      "1.5",
+      "1.6",
+      "1.7",
+      "1.8",
+      "1.9",
+      "1.10",
+      "1.11",
+      "1.12",
+      "1.13",
+      "1.14"
+    ]
+  },
+  "2": {
+    "name": "chat-ia — Copilot & Chat IA",
+    "type": "group",
+    "children": [
+      "2.1",
+      "2.2",
+      "2.3",
+      "2.4",
+      "2.5",
+      "2.6",
+      "2.7",
+      "2.8",
+      "2.9",
+      "2.10"
+    ]
+  },
+  "3": {
+    "name": "Integraciones cross-app",
+    "type": "group",
+    "children": [
+      "3.1",
+      "3.2",
+      "3.3",
+      "3.4",
+      "3.5",
+      "3.6",
+      "3.7",
+      "3.8"
+    ]
+  },
+  "4": {
+    "name": "Edge cases & Resiliencia",
+    "type": "group",
+    "children": [
+      "4.1",
+      "4.2",
+      "4.3",
+      "4.4"
+    ]
+  },
+  "5": {
+    "name": "Unit tests — lógica y contratos de código",
+    "type": "group",
+    "children": [
+      "5.1",
+      "5.2",
+      "5.3"
+    ]
+  },
+  "6": {
+    "name": "Unit tests — Vitest (chat-ia)",
+    "type": "group",
+    "children": [
+      "6.1",
+      "6.2",
+      "6.3",
+      "6.4",
+      "6.5",
+      "6.6",
+      "6.7",
+      "6.8",
+      "6.9",
+      "6.10"
+    ]
+  },
+  "_meta": {
+    "version": "2.0",
+    "description": "Catálogo exhaustivo de escenarios de test — AppBodasdehoy monorepo.",
+    "status_values": {
+      "covered": "Test E2E existente con grep exacto",
+      "partial": "Test existente cubre parcialmente — falta detalle",
+      "todo": "No existe test — pendiente crear",
+      "unit": "Test unitario en Jest/Vitest"
+    },
+    "usage": "pnpm test:scenario <id>  |  pnpm test:catalog [prefijo]"
+  },
+  "1.1": {
+    "name": "Auth & Sesión",
+    "type": "group",
+    "children": [
+      "1.1.1",
+      "1.1.2",
+      "1.1.3",
+      "1.1.4",
+      "1.1.5"
+    ]
+  },
+  "1.1.1": {
+    "name": "Login con Google en app-test (flujo completo)",
+    "type": "e2e",
+    "file": "auth.spec.ts",
+    "grep": "Auth — Login en app-test",
+    "status": "covered"
+  },
+  "1.1.2": {
+    "name": "SSO cross-domain: login en chat-test activa sesión en app-test",
+    "type": "e2e",
+    "file": "auth.spec.ts",
+    "grep": "Auth — SSO cross-domain",
+    "status": "covered"
+  },
+  "1.1.3": {
+    "name": "Redirect automático /login → chat-test → app-test",
+    "type": "e2e",
+    "file": "redirect-login.spec.ts",
+    "grep": "Redirect login",
+    "status": "covered"
+  },
+  "1.1.4": {
+    "name": "Acceso como visitante (guest) — rutas protegidas muestran upsell",
+    "type": "e2e",
+    "file": "guest-y-logueado.spec.ts",
+    "grep": "Usuario guest",
+    "status": "covered"
+  },
+  "1.1.5": {
+    "name": "Logout desde appEventos — limpia sesión y redirige",
+    "type": "e2e",
+    "file": "registro-y-onboarding.spec.ts",
+    "grep": "Logout",
+    "status": "covered"
+  },
+  "1.2": {
+    "name": "Home & Lista de Eventos",
+    "type": "group",
+    "children": [
+      "1.2.1",
+      "1.2.2",
+      "1.2.3"
+    ]
+  },
+  "1.2.1": {
+    "name": "Ver lista de eventos del usuario logueado",
+    "type": "e2e",
+    "file": "modulos-organizador.spec.ts",
+    "grep": "Home — lista de eventos",
+    "status": "covered"
+  },
+  "1.2.2": {
+    "name": "Crear nuevo evento (formulario: tipo, nombre, fecha, lugar)",
+    "type": "e2e",
+    "file": "modulos-organizador.spec.ts",
+    "grep": "Crear evento — formulario",
+    "status": "covered"
+  },
+  "1.2.3": {
+    "name": "Seleccionar evento activo — cambia contexto de la app",
+    "type": "e2e",
+    "file": "modulos-organizador.spec.ts",
+    "grep": "Home — lista de eventos",
+    "status": "partial"
+  },
+  "1.3": {
+    "name": "Resumen del Evento",
+    "type": "group",
+    "children": [
+      "1.3.1",
+      "1.3.2"
+    ]
+  },
+  "1.3.1": {
+    "name": "Ver resumen: widgets de progreso (invitados, presupuesto, tareas)",
+    "type": "e2e",
+    "file": "modulos-organizador.spec.ts",
+    "grep": "Resumen del evento",
+    "status": "covered"
+  },
+  "1.3.2": {
+    "name": "Resumen: datos correctos (totalInvitados, mesasCreadas, itinerarios)",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Presupuesto — /resumen-evento",
+    "status": "partial"
+  },
+  "1.4": {
+    "name": "Invitados",
+    "type": "group",
+    "children": [
+      "1.4.1",
+      "1.4.2",
+      "1.4.3",
+      "1.4.4",
+      "1.4.5",
+      "1.4.6",
+      "1.4.7",
+      "1.4.8",
+      "1.4.9",
+      "1.4.10",
+      "1.4.11"
+    ]
+  },
+  "1.4.1": {
+    "name": "Ver lista de invitados — carga, estructura de columnas",
+    "type": "e2e",
+    "file": "modulos-organizador.spec.ts",
+    "grep": "Invitados \\(/invitados\\)",
+    "status": "covered"
+  },
+  "1.4.2": {
+    "name": "CRUD invitados — añadir, editar, eliminar via CRUD spec",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Invitados — CRUD",
+    "status": "covered"
+  },
+  "1.4.3": {
+    "name": "Confirmar asistencia de invitado (cambiar estado a 'confirmado')",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Invitados — CRUD",
+    "status": "partial"
+  },
+  "1.4.4": {
+    "name": "Crear grupo de invitados (FormCrearGrupo) y agrupar",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Invitados — CRUD",
+    "status": "partial",
+    "notes": "FormCrearGrupo modal — grupo, nombre_grupo"
+  },
+  "1.4.5": {
+    "name": "Añadir acompañante a invitado (FormAcompañante)",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Invitados — CRUD",
+    "status": "partial",
+    "notes": "padre → hijo vínculo, passesQuantity"
+  },
+  "1.4.6": {
+    "name": "Asignar menú dietético a invitado (FormCrearMenu)",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Invitados — CRUD",
+    "status": "partial"
+  },
+  "1.4.7": {
+    "name": "Filtrar invitados por grupo / estado de asistencia",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Invitados — CRUD",
+    "status": "partial"
+  },
+  "1.4.8": {
+    "name": "Selección múltiple y operaciones en lote",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Invitados — CRUD",
+    "status": "partial"
+  },
+  "1.4.9": {
+    "name": "Crear invitado y obtener link de acceso (copiar URL)",
+    "type": "e2e",
+    "file": "invitado-y-link.spec.ts",
+    "grep": "Invitado — crear y verificar link",
+    "status": "covered"
+  },
+  "1.4.10": {
+    "name": "Cambiar vista invitados: tarjetas ↔ tabla (localStorage toggle)",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Invitados — CRUD",
+    "status": "partial"
+  },
+  "1.4.11": {
+    "name": "Copilot filtra invitados → banner rosa en /invitados",
+    "type": "e2e",
+    "file": "copilot-invitados-evento.spec.ts",
+    "grep": "Copilot — consulta invitados con evento seleccionado",
+    "status": "covered"
+  },
+  "1.5": {
+    "name": "Mesas & Seating",
+    "type": "group",
+    "children": [
+      "1.5.1",
+      "1.5.2",
+      "1.5.3",
+      "1.5.4",
+      "1.5.5",
+      "1.5.6",
+      "1.5.7",
+      "1.5.8",
+      "1.5.9",
+      "1.5.10",
+      "1.5.11",
+      "1.5.12"
+    ]
+  },
+  "1.5.1": {
+    "name": "Ver plano de mesas — carga, estructura básica",
+    "type": "e2e",
+    "file": "mesas.spec.ts",
+    "grep": "Mesas — Carga y estructura básica",
+    "status": "covered"
+  },
+  "1.5.2": {
+    "name": "Crear mesa nueva (tipo, título, capacidad)",
+    "type": "e2e",
+    "file": "mesas.spec.ts",
+    "grep": "Mesas — Crear nueva mesa",
+    "status": "covered"
+  },
+  "1.5.3": {
+    "name": "Asignar invitado a mesa (panel izquierdo + drag)",
+    "type": "e2e",
+    "file": "mesas.spec.ts",
+    "grep": "Mesas — Asignar invitados",
+    "status": "covered"
+  },
+  "1.5.4": {
+    "name": "Múltiples planos: recepción + ceremonia",
+    "type": "e2e",
+    "file": "mesas.spec.ts",
+    "grep": "Mesas — Planos múltiples",
+    "status": "covered"
+  },
+  "1.5.5": {
+    "name": "Exportar plano a PDF/imagen",
+    "type": "e2e",
+    "file": "mesas.spec.ts",
+    "grep": "Mesas — Exportar plano",
+    "status": "covered"
+  },
+  "1.5.6": {
+    "name": "CRUD mesas via spec combinado (gestión: editar, mover, borrar)",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Mesas — gestión",
+    "status": "covered"
+  },
+  "1.5.7": {
+    "name": "Vista modo: mesas (lista) → invitados → mobiliario → zonas",
+    "type": "e2e",
+    "file": "mesas.spec.ts",
+    "grep": "Mesas — Carga y estructura básica",
+    "status": "partial",
+    "notes": "Tab switching: BlockPanelMesas, BlockInvitados, BlockPanelElements, BlockZonas"
+  },
+  "1.5.8": {
+    "name": "Añadir elemento decorativo (árbol, DJ, piano) al plano",
+    "type": "e2e",
+    "file": "mesas.spec.ts",
+    "grep": "Mesas — Carga y estructura básica",
+    "status": "partial",
+    "notes": "Drag elemento tipo='element' → FormCrearElement modal"
+  },
+  "1.5.9": {
+    "name": "Añadir texto al plano de mesas",
+    "type": "e2e",
+    "file": "mesas.spec.ts",
+    "grep": "Mesas — Carga y estructura básica",
+    "status": "partial",
+    "notes": "tipo='text' → FormCrearElement"
+  },
+  "1.5.10": {
+    "name": "Ver resumen de mesas — invitados sentados vs no-sentados",
+    "type": "e2e",
+    "file": "mesas.spec.ts",
+    "grep": "Mesas — Carga y estructura básica",
+    "status": "partial",
+    "notes": "BlockResumen con filterGuests.sentados count"
+  },
+  "1.5.11": {
+    "name": "Tipos de mesa: redonda, cuadrada, imperial, podio, militar, bancos",
+    "type": "e2e",
+    "file": "mesas.spec.ts",
+    "grep": "Mesas — Crear nueva mesa",
+    "status": "partial",
+    "notes": "floor-plan-editor: tableType enum"
+  },
+  "1.5.12": {
+    "name": "Copilot: visualizar venue (venue-visualizer tool con prompt)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "11. Flujo completo E2E",
+    "status": "partial",
+    "notes": "lobe-venue-visualizer: roomType × style = imagen generada"
+  },
+  "1.6": {
+    "name": "Presupuesto",
+    "type": "group",
+    "children": [
+      "1.6.1",
+      "1.6.2",
+      "1.6.3",
+      "1.6.4",
+      "1.6.5",
+      "1.6.6",
+      "1.6.7",
+      "1.6.8",
+      "1.6.9",
+      "1.6.10",
+      "1.6.11"
+    ]
+  },
+  "1.6.1": {
+    "name": "Ver resumen presupuesto — widgets totales en /resumen-evento",
+    "type": "e2e",
+    "file": "presupuesto-pagos.spec.ts",
+    "grep": "Presupuesto — /resumen-evento",
+    "status": "covered"
+  },
+  "1.6.2": {
+    "name": "Página principal presupuesto — vista resumen con gráfico (BlockListaCategorias)",
+    "type": "e2e",
+    "file": "presupuesto-pagos.spec.ts",
+    "grep": "Presupuesto — /presupuesto página principal",
+    "status": "covered"
+  },
+  "1.6.3": {
+    "name": "Crear categoría presupuesto nueva",
+    "type": "e2e",
+    "file": "presupuesto-pagos.spec.ts",
+    "grep": "Presupuesto — Crear categoría y gasto",
+    "status": "covered"
+  },
+  "1.6.4": {
+    "name": "Añadir item/gasto a categoría (nombre, coste, unidad, cantidad)",
+    "type": "e2e",
+    "file": "presupuesto-pagos.spec.ts",
+    "grep": "Presupuesto — Crear categoría y gasto",
+    "status": "covered"
+  },
+  "1.6.5": {
+    "name": "Registrar pago — marcar item como 'pagado'",
+    "type": "e2e",
+    "file": "presupuesto-pagos.spec.ts",
+    "grep": "Presupuesto — Registrar pago",
+    "status": "covered"
+  },
+  "1.6.6": {
+    "name": "CRUD presupuesto via spec combinado (crear, editar, borrar partida)",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Presupuesto — CRUD",
+    "status": "covered"
+  },
+  "1.6.7": {
+    "name": "Vista Excel — tabla editable con todas las columnas (coste_final, pagado, pendiente)",
+    "type": "e2e",
+    "file": "presupuesto-pagos.spec.ts",
+    "grep": "Presupuesto — /presupuesto página principal",
+    "status": "partial",
+    "notes": "Tab excelView — ExcelView component, editable cells"
+  },
+  "1.6.8": {
+    "name": "Vista Pagos — filtrar solo items en estado 'pagado'",
+    "type": "e2e",
+    "file": "presupuesto-pagos.spec.ts",
+    "grep": "Presupuesto — Registrar pago",
+    "status": "partial"
+  },
+  "1.6.9": {
+    "name": "Vista Pendiente — filtrar solo items con saldo pendiente",
+    "type": "e2e",
+    "file": "presupuesto-pagos.spec.ts",
+    "grep": "Presupuesto — Registrar pago",
+    "status": "partial"
+  },
+  "1.6.10": {
+    "name": "Exportar presupuesto a Excel (ExportExcelPresupuesto)",
+    "type": "e2e",
+    "file": "presupuesto-pagos.spec.ts",
+    "grep": "Presupuesto — /presupuesto página principal",
+    "status": "partial",
+    "notes": "Botón Exportar → genera XLSX con todas las categorías"
+  },
+  "1.6.11": {
+    "name": "Importar/duplicar presupuesto de evento anterior (DuplicatePresupuesto)",
+    "type": "e2e",
+    "file": "presupuesto-pagos.spec.ts",
+    "grep": "Presupuesto — /presupuesto página principal",
+    "status": "partial",
+    "notes": "Modal DuplicatePresupuesto — copia estructura de evento previo"
+  },
+  "1.7": {
+    "name": "Servicios / Kanban de Tareas",
+    "type": "group",
+    "children": [
+      "1.7.1",
+      "1.7.2",
+      "1.7.3",
+      "1.7.4",
+      "1.7.5",
+      "1.7.6",
+      "1.7.7",
+      "1.7.8",
+      "1.7.9",
+      "1.7.10",
+      "1.7.11",
+      "1.7.12",
+      "1.7.13",
+      "1.7.14"
+    ]
+  },
+  "1.7.1": {
+    "name": "Ver servicios — estructura y carga de página",
+    "type": "e2e",
+    "file": "modulos-organizador.spec.ts",
+    "grep": "Servicios \\(/servicios\\)",
+    "status": "covered"
+  },
+  "1.7.2": {
+    "name": "CRUD servicios via spec combinado (crear, editar, borrar)",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Servicios — CRUD",
+    "status": "covered"
+  },
+  "1.7.3": {
+    "name": "Kanban — estructura: columnas por estado (pending/in_progress/completed/blocked)",
+    "type": "e2e",
+    "file": "kanban-tareas.spec.ts",
+    "grep": "Kanban Tareas — Estructura /servicios",
+    "status": "covered"
+  },
+  "1.7.4": {
+    "name": "Kanban — crear tarea nueva desde columna",
+    "type": "e2e",
+    "file": "kanban-tareas.spec.ts",
+    "grep": "Kanban Tareas — Crear tarea",
+    "status": "covered"
+  },
+  "1.7.5": {
+    "name": "Kanban — abrir detalle de tarea y editar campos (titulo, fecha, estado, prioridad)",
+    "type": "e2e",
+    "file": "kanban-tareas.spec.ts",
+    "grep": "Kanban Tareas — Detalle y edición de tarea",
+    "status": "covered"
+  },
+  "1.7.6": {
+    "name": "Kanban — drag & drop entre columnas de estado",
+    "type": "e2e",
+    "file": "kanban-tareas.spec.ts",
+    "grep": "Kanban Tareas — Drag & Drop entre columnas",
+    "status": "covered"
+  },
+  "1.7.7": {
+    "name": "Kanban — completar tarea (estatus → completed)",
+    "type": "e2e",
+    "file": "kanban-tareas.spec.ts",
+    "grep": "Kanban Tareas — Completar tarea",
+    "status": "covered"
+  },
+  "1.7.8": {
+    "name": "Kanban — filtros por estado / prioridad / etiqueta",
+    "type": "e2e",
+    "file": "kanban-tareas.spec.ts",
+    "grep": "Kanban Tareas — Filtros",
+    "status": "covered"
+  },
+  "1.7.9": {
+    "name": "Añadir comentario a tarea (texto libre + attachments)",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Servicios — CRUD",
+    "status": "partial",
+    "notes": "ListComments.tsx — comentario con texto, descargar adjunto desde Firebase"
+  },
+  "1.7.10": {
+    "name": "Adjuntar archivo a comentario y descargarlo",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Servicios — CRUD",
+    "status": "partial",
+    "notes": "Firebase path: event-{id}//itinerary-{id}//task-{id}//comment-{id}//{filename}"
+  },
+  "1.7.11": {
+    "name": "Vista tabla — configurar columnas visibles (ColumnFilter gear icon)",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Servicios — CRUD",
+    "status": "partial",
+    "notes": "ExtraTableView column toggle — checkboxes por columna"
+  },
+  "1.7.12": {
+    "name": "Ordenar tareas por: fecha, descripción, prioridad, estado",
+    "type": "e2e",
+    "file": "kanban-tareas.spec.ts",
+    "grep": "Kanban Tareas — Filtros",
+    "status": "partial",
+    "notes": "SelectModeSortType.order: descripcion|fecha|estado|prioridad|nombre|personalizada|ninguna"
+  },
+  "1.7.13": {
+    "name": "Eliminar tarea con modal de confirmación (cascada: files→tarea)",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Servicios — CRUD",
+    "status": "partial"
+  },
+  "1.7.14": {
+    "name": "Duplicar itinerario completo (ModalDuplicate)",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Servicios — CRUD",
+    "status": "partial",
+    "notes": "Botón Duplicate en BoddyIter → copia toda estructura de itinerario"
+  },
+  "1.8": {
+    "name": "Itinerario / Timeline",
+    "type": "group",
+    "children": [
+      "1.8.1",
+      "1.8.2",
+      "1.8.3",
+      "1.8.4",
+      "1.8.5",
+      "1.8.6",
+      "1.8.7",
+      "1.8.8",
+      "1.8.9"
+    ]
+  },
+  "1.8.1": {
+    "name": "Ver itinerario — vista tarjetas (default)",
+    "type": "e2e",
+    "file": "modulos-organizador.spec.ts",
+    "grep": "Itinerario \\(/itinerario\\)",
+    "status": "covered"
+  },
+  "1.8.2": {
+    "name": "Cambiar a vista tabla — columnas (descripcion, fecha, duracion, responsables, tips)",
+    "type": "e2e",
+    "file": "modulos-organizador.spec.ts",
+    "grep": "Itinerario \\(/itinerario\\)",
+    "status": "partial",
+    "notes": "ItineraryColumns.tsx — 7 columnas con acciones por fila"
+  },
+  "1.8.3": {
+    "name": "Cambiar a vista schema/timeline visual",
+    "type": "e2e",
+    "file": "modulos-organizador.spec.ts",
+    "grep": "Itinerario \\(/itinerario\\)",
+    "status": "partial"
+  },
+  "1.8.4": {
+    "name": "Editar tarea del itinerario (CRUD spec — campos básicos)",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Itinerario — editar tarea",
+    "status": "covered"
+  },
+  "1.8.5": {
+    "name": "Crear tarea — campos completos: titulo, fecha, duracion, estado, prioridad",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Itinerario — editar tarea",
+    "status": "partial",
+    "notes": "ItineraryPanel form — todos los campos incluyendo responsable array y tags"
+  },
+  "1.8.6": {
+    "name": "Asignar responsable a tarea (array de personas)",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Itinerario — editar tarea",
+    "status": "partial"
+  },
+  "1.8.7": {
+    "name": "Adjuntar archivo a tarea (Firebase upload) y descargarlo",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Itinerario — editar tarea",
+    "status": "partial",
+    "notes": "ItineraryColumns.tsx — Download btn, Firebase ref: {task._id}//{filename}"
+  },
+  "1.8.8": {
+    "name": "Ordenar tareas por fecha/prioridad (localStorage OAD{pathname})",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Itinerario — editar tarea",
+    "status": "partial"
+  },
+  "1.8.9": {
+    "name": "Eliminar itinerario completo (cascada: tareas→archivos Firebase→BD)",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Itinerario — editar tarea",
+    "status": "partial",
+    "notes": "Modal confirmación → BoddyIter.handleDelete — cascada completa"
+  },
+  "1.9": {
+    "name": "Invitaciones",
+    "type": "group",
+    "children": [
+      "1.9.1",
+      "1.9.2",
+      "1.9.3",
+      "1.9.4",
+      "1.9.5",
+      "1.9.6",
+      "1.9.7",
+      "1.9.8"
+    ]
+  },
+  "1.9.1": {
+    "name": "Ver estructura de la página invitaciones — canales y estado",
+    "type": "e2e",
+    "file": "invitaciones.spec.ts",
+    "grep": "Invitaciones — Estructura de la página",
+    "status": "covered"
+  },
+  "1.9.2": {
+    "name": "Email — editar plantilla con variables, previsualizar HTML",
+    "type": "e2e",
+    "file": "invitaciones.spec.ts",
+    "grep": "Invitaciones — Email",
+    "status": "covered",
+    "notes": "EmailReactEditorComponent — templateEmailSelect, variablesTemplatesInvitaciones"
+  },
+  "1.9.3": {
+    "name": "Email — enviar invitación de test al usuario actual",
+    "type": "e2e",
+    "file": "invitaciones.spec.ts",
+    "grep": "Invitaciones — Email",
+    "status": "partial"
+  },
+  "1.9.4": {
+    "name": "WhatsApp — editar plantilla y previsualizar (scale 50%)",
+    "type": "e2e",
+    "file": "invitaciones.spec.ts",
+    "grep": "Invitaciones — WhatsApp",
+    "status": "covered",
+    "notes": "WhatsappBusinessEditorComponent — templateWhatsappSelect"
+  },
+  "1.9.5": {
+    "name": "WhatsApp — enviar mensaje de test",
+    "type": "e2e",
+    "file": "invitaciones.spec.ts",
+    "grep": "Invitaciones — WhatsApp",
+    "status": "partial"
+  },
+  "1.9.6": {
+    "name": "Portal RSVP — confirmación de asistencia pública",
+    "type": "e2e",
+    "file": "invitaciones.spec.ts",
+    "grep": "Invitaciones — Portal RSVP",
+    "status": "covered"
+  },
+  "1.9.7": {
+    "name": "Panel enviados/no-enviados (EnviadosComponent) — resend individual",
+    "type": "e2e",
+    "file": "invitaciones.spec.ts",
+    "grep": "Invitaciones — Estructura de la página",
+    "status": "partial",
+    "notes": "EnviadosComponent: invitacion=true|false, botón de reenvío"
+  },
+  "1.9.8": {
+    "name": "Diseño personalizado (DiseñoComponent) — subida de imagen de invitación",
+    "type": "e2e",
+    "file": "invitaciones.spec.ts",
+    "grep": "Invitaciones — Estructura de la página",
+    "status": "partial",
+    "notes": "Canal 'diseño' — ModuloSubida, imgInvitacion upload"
+  },
+  "1.10": {
+    "name": "Momentos / Álbumes de Fotos",
+    "type": "group",
+    "children": [
+      "1.10.1",
+      "1.10.2",
+      "1.10.3",
+      "1.10.4",
+      "1.10.5",
+      "1.10.6"
+    ]
+  },
+  "1.10.1": {
+    "name": "Ver álbumes del evento (grid 3 col, nombre, descripción, mediaCount)",
+    "type": "e2e",
+    "file": "memories-album.spec.ts",
+    "grep": "Memories — Album CRUD",
+    "status": "covered"
+  },
+  "1.10.2": {
+    "name": "Crear estructura de álbumes desde itinerario (spectatorView=true)",
+    "type": "e2e",
+    "file": "memories-album.spec.ts",
+    "grep": "Memories — Album CRUD",
+    "status": "partial",
+    "notes": "createEventAlbumStructure — filtra itinerarios por spectatorView"
+  },
+  "1.10.3": {
+    "name": "Compartir álbum — generar token 30 días, copiar URL",
+    "type": "e2e",
+    "file": "memories-album.spec.ts",
+    "grep": "Memories — Album CRUD",
+    "status": "covered",
+    "notes": "ShareAlbumButton — generateShareLink(albumId, 30) → /memories/shared/{token}"
+  },
+  "1.10.4": {
+    "name": "Generar QR del álbum (URL /e/{eventId}/m/{albumId})",
+    "type": "e2e",
+    "file": "memories-album.spec.ts",
+    "grep": "Memories — Album CRUD",
+    "status": "partial",
+    "notes": "AlbumQRButton — qrserver.com API"
+  },
+  "1.10.5": {
+    "name": "Ver portal del evento (/e/[eventId]) — link público QR",
+    "type": "e2e",
+    "file": "portal-invitado.spec.ts",
+    "grep": "Portal invitado — /e/\\[eventId\\]",
+    "status": "covered"
+  },
+  "1.10.6": {
+    "name": "Abrir álbumes en copilot (link → chat-ia /memories)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "10. Memories — álbum de fotos",
+    "status": "covered"
+  },
+  "1.11": {
+    "name": "Lista de Regalos",
+    "type": "group",
+    "children": [
+      "1.11.1"
+    ]
+  },
+  "1.11.1": {
+    "name": "Ver lista de regalos — items con nombre, URL, tipo",
+    "type": "e2e",
+    "file": "modulos-organizador.spec.ts",
+    "grep": "Navegación entre módulos",
+    "status": "partial",
+    "notes": "listIdentifiers[], tipos de regalo, links a tiendas"
+  },
+  "1.12": {
+    "name": "Copilot sidebar (embed en appEventos)",
+    "type": "group",
+    "children": [
+      "1.12.1",
+      "1.12.2",
+      "1.12.3",
+      "1.12.4",
+      "1.12.5",
+      "1.12.6",
+      "1.12.7",
+      "1.12.8",
+      "1.12.9",
+      "1.12.10",
+      "1.12.11",
+      "1.12.12",
+      "1.12.13",
+      "1.12.14",
+      "1.12.15",
+      "1.12.16",
+      "1.12.17",
+      "1.12.18",
+      "1.12.19",
+      "1.12.20"
+    ]
+  },
+  "1.12.1": {
+    "name": "Abrir/cerrar sidebar copilot (botón + Cmd+Shift+C)",
+    "type": "e2e",
+    "file": "copilot-chat.spec.ts",
+    "grep": "Copilot iframe — appEventos",
+    "status": "covered"
+  },
+  "1.12.2": {
+    "name": "filter_view → banner rosa aparece en módulo correcto",
+    "type": "e2e",
+    "file": "copilot-chat.spec.ts",
+    "grep": "filter_view — banner en app tras FILTER_VIEW",
+    "status": "covered"
+  },
+  "1.12.3": {
+    "name": "Preguntas generales — smoke (todas las preguntas sin crash)",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas y filtros — smoke",
+    "status": "covered"
+  },
+  "1.12.4": {
+    "name": "Pregunta: ¿Cuántos invitados tengo?",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "status": "covered"
+  },
+  "1.12.5": {
+    "name": "Pregunta: ¿Cuánto llevo gastado en el presupuesto?",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "status": "covered"
+  },
+  "1.12.6": {
+    "name": "Pregunta: ¿Qué tareas tengo pendientes para mi boda?",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "status": "covered"
+  },
+  "1.12.7": {
+    "name": "Pregunta: Dame ideas para el menú del banquete",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "status": "covered"
+  },
+  "1.12.8": {
+    "name": "Pregunta: ¿Cuál es la boda de Raúl? (nombre de evento)",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas al evento Raúl Isabel",
+    "status": "covered"
+  },
+  "1.12.9": {
+    "name": "Pregunta: Muéstrame la lista de todas las bodas",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "status": "covered"
+  },
+  "1.12.10": {
+    "name": "Filtro: invitados sin confirmar → filter_view entity=guests",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Filtros — preguntas que activan filter_view",
+    "status": "covered"
+  },
+  "1.12.11": {
+    "name": "Filtro: servicios por estado → filter_view entity=services",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Filtros — preguntas que activan filter_view",
+    "status": "covered"
+  },
+  "1.12.12": {
+    "name": "Filtro: partidas de presupuesto → filter_view entity=budget_items",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Filtros — preguntas que activan filter_view",
+    "status": "covered"
+  },
+  "1.12.13": {
+    "name": "Filtro: mesas específicas → filter_view entity=tables",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Filtros — preguntas que activan filter_view",
+    "status": "partial"
+  },
+  "1.12.14": {
+    "name": "CRUD via copilot: añadir invitado nuevo",
+    "type": "e2e",
+    "file": "crud-ia-verificado.spec.ts",
+    "grep": "CRUD via IA — Verificación cruzada",
+    "status": "covered"
+  },
+  "1.12.15": {
+    "name": "CRUD via copilot: crear tarea en itinerario",
+    "type": "e2e",
+    "file": "crud-ia-verificado.spec.ts",
+    "grep": "CRUD via IA — Verificación cruzada",
+    "status": "covered"
+  },
+  "1.12.16": {
+    "name": "CRUD via copilot: añadir partida al presupuesto",
+    "type": "e2e",
+    "file": "crud-ia-verificado.spec.ts",
+    "grep": "CRUD via IA — Verificación cruzada",
+    "status": "covered"
+  },
+  "1.12.17": {
+    "name": "CRUD via copilot: confirmar asistencia de invitado",
+    "type": "e2e",
+    "file": "crud-ia-verificado.spec.ts",
+    "grep": "CRUD via IA — Verificación cruzada",
+    "status": "partial"
+  },
+  "1.12.18": {
+    "name": "CRUD via copilot: marcar tarea como completada",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "5. Tareas: consulta y acciones",
+    "status": "covered"
+  },
+  "1.12.19": {
+    "name": "Navegación via copilot → router.push() al módulo (NAVIGATE event)",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "REFRESH_EVENTS — postMessage",
+    "status": "partial"
+  },
+  "1.12.20": {
+    "name": "Resistir sidebar drag y resize (Cmd+Shift+C, width 234–700px)",
+    "type": "e2e",
+    "file": "copilot-chat.spec.ts",
+    "grep": "Copilot iframe — appEventos",
+    "status": "partial",
+    "notes": "ChatSidebarContext: MIN=234, MAX=700, DEFAULT=400 — drag resize handle"
+  },
+  "1.13": {
+    "name": "Portal Público (Invitado)",
+    "type": "group",
+    "children": [
+      "1.13.1",
+      "1.13.2",
+      "1.13.3"
+    ]
+  },
+  "1.13.1": {
+    "name": "Ver portal del evento /e/[eventId] — sin autenticación",
+    "type": "e2e",
+    "file": "portal-invitado.spec.ts",
+    "grep": "Portal invitado — /e/\\[eventId\\]",
+    "status": "covered"
+  },
+  "1.13.2": {
+    "name": "Confirmar asistencia RSVP desde portal público",
+    "type": "e2e",
+    "file": "portal-invitado.spec.ts",
+    "grep": "Portal — acceso sin autenticación",
+    "status": "covered"
+  },
+  "1.13.3": {
+    "name": "Buscador de mesa asignada /buscador-mesa/[eventId]",
+    "type": "e2e",
+    "file": "portal-invitado.spec.ts",
+    "grep": "Buscador de mesa",
+    "status": "covered"
+  },
+  "1.14": {
+    "name": "Rendimiento & Estabilidad appEventos",
+    "type": "group",
+    "children": [
+      "1.14.1",
+      "1.14.2",
+      "1.14.3"
+    ]
+  },
+  "1.14.1": {
+    "name": "Tiempos de carga — todas las rutas < umbral (performance test)",
+    "type": "e2e",
+    "file": "invitado-y-link.spec.ts",
+    "grep": "Rendimiento — tiempos de carga",
+    "status": "covered"
+  },
+  "1.14.2": {
+    "name": "Navegación completa — todas las rutas sin crash",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Navegación completa — todas las rutas",
+    "status": "covered"
+  },
+  "1.14.3": {
+    "name": "Botones críticos — interacciones sin error JS",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "Botones críticos — sin crash",
+    "status": "covered"
+  },
+  "2.1": {
+    "name": "Auth chat-ia",
+    "type": "group",
+    "children": [
+      "2.1.1",
+      "2.1.2",
+      "2.1.3",
+      "2.1.4"
+    ]
+  },
+  "2.1.1": {
+    "name": "Login con credenciales reales en chat-test",
+    "type": "e2e",
+    "file": "registro-y-onboarding.spec.ts",
+    "grep": "Login con credenciales reales",
+    "status": "covered"
+  },
+  "2.1.2": {
+    "name": "SSO cross-domain: chat-test → app-test (cookie .bodasdehoy.com)",
+    "type": "e2e",
+    "file": "registro-y-onboarding.spec.ts",
+    "grep": "SSO cross-domain",
+    "status": "covered"
+  },
+  "2.1.3": {
+    "name": "Modo visitante — chat sin login (visitor ID, limite mensajes)",
+    "type": "e2e",
+    "file": "registro-y-onboarding.spec.ts",
+    "grep": "Modo visitante",
+    "status": "covered"
+  },
+  "2.1.4": {
+    "name": "Login completo flow chat-ia + selección de evento",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "1. Login en chat-test",
+    "status": "covered"
+  },
+  "2.2": {
+    "name": "Chat principal — consultas y respuestas",
+    "type": "group",
+    "children": [
+      "2.2.1",
+      "2.2.2",
+      "2.2.3",
+      "2.2.4",
+      "2.2.5",
+      "2.2.6",
+      "2.2.7",
+      "2.2.8",
+      "2.2.9"
+    ]
+  },
+  "2.2.1": {
+    "name": "Consultar datos reales del evento (invitados, tareas, presupuesto)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "2. Consultas al chat IA — datos reales",
+    "status": "covered"
+  },
+  "2.2.2": {
+    "name": "CRUD real: añadir invitado via chat IA (verificado en appEventos)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "3. Inserciones vía chat IA",
+    "status": "covered"
+  },
+  "2.2.3": {
+    "name": "CRUD real: crear tarea via chat IA",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "3. Inserciones vía chat IA",
+    "status": "covered"
+  },
+  "2.2.4": {
+    "name": "CRUD real: añadir partida de presupuesto via chat IA",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "3. Inserciones vía chat IA",
+    "status": "covered"
+  },
+  "2.2.5": {
+    "name": "Adjuntar imagen al chat — respuesta contextual",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "4. Modificación de imagen adjunta",
+    "status": "covered"
+  },
+  "2.2.6": {
+    "name": "Marcar tarea completada via chat (tareas: consulta + acción)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "5. Tareas: consulta y acciones",
+    "status": "covered"
+  },
+  "2.2.7": {
+    "name": "Chat standalone — enviar mensaje y recibir respuesta (chat-test)",
+    "type": "e2e",
+    "file": "copilot-chat.spec.ts",
+    "grep": "Chat-ia standalone",
+    "status": "covered"
+  },
+  "2.2.8": {
+    "name": "Flujo completo E2E boda de Paco y Pico (end-to-end)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "11. Flujo completo E2E",
+    "status": "covered"
+  },
+  "2.2.9": {
+    "name": "Copilot: preguntas sobre invitados con contexto de página",
+    "type": "e2e",
+    "file": "copilot-invitados-evento.spec.ts",
+    "grep": "Copilot — consulta invitados con evento seleccionado",
+    "status": "covered"
+  },
+  "2.3": {
+    "name": "Herramientas IA (builtin tools)",
+    "type": "group",
+    "children": [
+      "2.3.1",
+      "2.3.2",
+      "2.3.3",
+      "2.3.4",
+      "2.3.5",
+      "2.3.6",
+      "2.3.7"
+    ]
+  },
+  "2.3.1": {
+    "name": "filter_view: invocar desde chat → banner en appEventos",
+    "type": "e2e",
+    "file": "filter-view.spec.ts",
+    "grep": "filter_view — interacción UI",
+    "status": "covered",
+    "notes": "lobe-filter-app-view: entity=events|guests|tables|budget_items|services|moments"
+  },
+  "2.3.2": {
+    "name": "venue-visualizer: generar renders de sala (roomType × style)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "11. Flujo completo E2E",
+    "status": "partial",
+    "notes": "visualize_venue: roomType=(salon-banquetes|jardin|terraza|...) style=(romantico|rustico-boho|...)"
+  },
+  "2.3.3": {
+    "name": "floor-plan-editor: abrir editor de planos con sugerencia",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "11. Flujo completo E2E",
+    "status": "partial",
+    "notes": "open_floor_plan_editor: eventId, tableType=(redonda|cuadrada|imperial|podio|militar|bancos), seats, tableCount"
+  },
+  "2.3.4": {
+    "name": "floor-plan-editor: suggest_table_config — SVG preview inline",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "11. Flujo completo E2E",
+    "status": "partial",
+    "notes": "tableType=(round|rectangular|square|oval|semicircle), seats required, label optional"
+  },
+  "2.3.5": {
+    "name": "web-browsing: buscar en Google y mostrar resultados",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "2. Consultas al chat IA — datos reales",
+    "status": "partial",
+    "notes": "search: searchEngines, searchCategories, searchTimeRange"
+  },
+  "2.3.6": {
+    "name": "image-designer (DALL-E): generar imágenes de boda desde texto",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "4. Modificación de imagen adjunta",
+    "status": "partial",
+    "notes": "text2image: 1-4 prompts, size=(1792x1024|1024x1024|1024x1792), quality=(standard|hd)"
+  },
+  "2.3.7": {
+    "name": "IA reasoning filter_view por entidad (multi-developer)",
+    "type": "e2e",
+    "file": "multi-developer.spec.ts",
+    "grep": "IA reasoning — filter_view por entidad",
+    "status": "covered"
+  },
+  "2.4": {
+    "name": "Bandeja de mensajes /messages",
+    "type": "group",
+    "children": [
+      "2.4.1",
+      "2.4.2",
+      "2.4.3",
+      "2.4.4",
+      "2.4.5",
+      "2.4.6",
+      "2.4.7",
+      "2.4.8",
+      "2.4.9",
+      "2.4.10"
+    ]
+  },
+  "2.4.1": {
+    "name": "Smoke /messages — carga y estructura (InboxSidebar + panel)",
+    "type": "e2e",
+    "file": "bandeja-mensajes.spec.ts",
+    "grep": "Bandeja — smoke /messages",
+    "status": "covered"
+  },
+  "2.4.2": {
+    "name": "InboxSidebar: secciones (tareas pendientes, conversaciones WA, mis eventos)",
+    "type": "e2e",
+    "file": "bandeja-mensajes.spec.ts",
+    "grep": "InboxSidebar — estructura y secciones",
+    "status": "covered"
+  },
+  "2.4.3": {
+    "name": "Task detail workspace — ver tarea, completarla, REFRESH_EVENTS",
+    "type": "e2e",
+    "file": "bandeja-mensajes.spec.ts",
+    "grep": "Task detail workspace",
+    "status": "covered",
+    "notes": "TaskDetailWorkspace: TaskCard dark + completeTask mutation + REFRESH_EVENTS"
+  },
+  "2.4.4": {
+    "name": "Task channel empty state (/messages/ev-{id}-task)",
+    "type": "e2e",
+    "file": "bandeja-mensajes.spec.ts",
+    "grep": "Task channel empty state",
+    "status": "covered"
+  },
+  "2.4.5": {
+    "name": "WhatsApp setup — generar QR y conectar canal",
+    "type": "e2e",
+    "file": "bandeja-mensajes.spec.ts",
+    "grep": "WhatsApp setup",
+    "status": "covered",
+    "notes": "createWhatsAppChannel(name, type=QR_USER) → QR display, status: ACTIVE|CONNECTING|DISCONNECTED"
+  },
+  "2.4.6": {
+    "name": "Canal servicio interno — itinerary/services/guests/tasks",
+    "type": "e2e",
+    "file": "bandeja-mensajes.spec.ts",
+    "grep": "Navegación — rutas messages en chat-ia",
+    "status": "covered",
+    "notes": "InternalChannelView — canales ev-{eventId}-{itinerary|services|guests|tasks}"
+  },
+  "2.4.7": {
+    "name": "Enviar mensaje en canal interno (MessageInput + stream)",
+    "type": "e2e",
+    "file": "bandeja-mensajes.spec.ts",
+    "grep": "Task workspace — input al asistente",
+    "status": "covered"
+  },
+  "2.4.8": {
+    "name": "Canal Email setup",
+    "type": "e2e",
+    "file": "canales-setup.spec.ts",
+    "grep": "Canales — EmailSetup",
+    "status": "covered"
+  },
+  "2.4.9": {
+    "name": "Canal Telegram setup (token manual)",
+    "type": "e2e",
+    "file": "canales-setup.spec.ts",
+    "grep": "Canales — TelegramSetup",
+    "status": "covered"
+  },
+  "2.4.10": {
+    "name": "Canal WebChat setup (código embed)",
+    "type": "e2e",
+    "file": "canales-setup.spec.ts",
+    "grep": "Canales — WebChatSetup",
+    "status": "covered"
+  },
+  "2.5": {
+    "name": "Billing & Saldo",
+    "type": "group",
+    "children": [
+      "2.5.1",
+      "2.5.2",
+      "2.5.3",
+      "2.5.4",
+      "2.5.5",
+      "2.5.6",
+      "2.5.7"
+    ]
+  },
+  "2.5.1": {
+    "name": "Ver saldo actual en /settings/billing (balance, transacciones)",
+    "type": "e2e",
+    "file": "billing-saldo.spec.ts",
+    "grep": "Billing bodasdehoy — /settings/billing",
+    "status": "covered"
+  },
+  "2.5.2": {
+    "name": "Modal sin saldo — aparece cuando balance insuficiente (mock)",
+    "type": "e2e",
+    "file": "billing-saldo.spec.ts",
+    "grep": "Billing bodasdehoy — Modal sin saldo",
+    "status": "covered"
+  },
+  "2.5.3": {
+    "name": "Developer vivetuboda — saldo y modal diferenciados",
+    "type": "e2e",
+    "file": "billing-saldo.spec.ts",
+    "grep": "Billing vivetuboda",
+    "status": "covered"
+  },
+  "2.5.4": {
+    "name": "Chat — 402 balance insuficiente detiene streaming y muestra modal",
+    "type": "e2e",
+    "file": "copilot-chat.spec.ts",
+    "grep": "Chat — balance insuficiente",
+    "status": "covered"
+  },
+  "2.5.5": {
+    "name": "Ver transacciones — historial paginado",
+    "type": "e2e",
+    "file": "billing.spec.ts",
+    "grep": "Billing — /settings/billing/transactions",
+    "status": "covered"
+  },
+  "2.5.6": {
+    "name": "Ver planes — FREE/BASIC/PRO/MAX/ENTERPRISE con precios",
+    "type": "e2e",
+    "file": "billing.spec.ts",
+    "grep": "Billing — /settings/billing/planes",
+    "status": "covered"
+  },
+  "2.5.7": {
+    "name": "Facturación en appEventos (/facturacion) — redirige o muestra facturas",
+    "type": "e2e",
+    "file": "billing.spec.ts",
+    "grep": "Facturación — appEventos",
+    "status": "covered"
+  },
+  "2.6": {
+    "name": "Notificaciones chat-ia",
+    "type": "group",
+    "children": [
+      "2.6.1",
+      "2.6.2",
+      "2.6.3",
+      "2.6.4"
+    ]
+  },
+  "2.6.1": {
+    "name": "Notificaciones — carga y estructura (/notifications)",
+    "type": "e2e",
+    "file": "notificaciones.spec.ts",
+    "grep": "Notificaciones — Carga y estructura",
+    "status": "covered"
+  },
+  "2.6.2": {
+    "name": "Notificaciones — filtros (all/unread) y búsqueda",
+    "type": "e2e",
+    "file": "notificaciones.spec.ts",
+    "grep": "Notificaciones — Filtros y búsqueda",
+    "status": "covered"
+  },
+  "2.6.3": {
+    "name": "Notificaciones — acciones (leer, snooze, marcar todas como leídas)",
+    "type": "e2e",
+    "file": "notificaciones.spec.ts",
+    "grep": "Notificaciones — Acciones",
+    "status": "covered"
+  },
+  "2.6.4": {
+    "name": "NotificationBell — badge counter y dropdown en sidebar (poll 60s)",
+    "type": "e2e",
+    "file": "notificaciones.spec.ts",
+    "grep": "Notificaciones — Bell y badge en sidebar",
+    "status": "covered"
+  },
+  "2.7": {
+    "name": "Knowledge Base & RAG",
+    "type": "group",
+    "children": [
+      "2.7.1",
+      "2.7.2"
+    ]
+  },
+  "2.7.1": {
+    "name": "Insertar consejos en KB via admin training (/admin/training)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "7. Insertar consejos en la base de conocimiento",
+    "status": "covered",
+    "notes": "lobechatKBMiddlewareService — batch-embed, vector search"
+  },
+  "2.7.2": {
+    "name": "RAG — IA responde usando el conocimiento insertado (búsqueda vectorial)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "8. RAG — el sistema responde",
+    "status": "covered",
+    "notes": "searchViaMiddleware: query, userId, fileIds, limit=10"
+  },
+  "2.8": {
+    "name": "Wedding Creator",
+    "type": "group",
+    "children": [
+      "2.8.1"
+    ]
+  },
+  "2.8.1": {
+    "name": "Crear web simple de boda via chat IA (WeddingSiteRenderer)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "9. Wedding Creator",
+    "status": "covered"
+  },
+  "2.9": {
+    "name": "Memories en chat-ia",
+    "type": "group",
+    "children": [
+      "2.9.1",
+      "2.9.2"
+    ]
+  },
+  "2.9.1": {
+    "name": "Álbum de fotos via chat IA (Memories flow completo)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "10. Memories — álbum de fotos",
+    "status": "covered"
+  },
+  "2.9.2": {
+    "name": "Memories album CRUD + subida + compartir (memories-album spec)",
+    "type": "e2e",
+    "file": "memories-album.spec.ts",
+    "grep": "Memories — Album CRUD",
+    "status": "covered"
+  },
+  "2.10": {
+    "name": "Admin panel (chat-ia)",
+    "type": "group",
+    "children": [
+      "2.10.1",
+      "2.10.2",
+      "2.10.3",
+      "2.10.4",
+      "2.10.5"
+    ]
+  },
+  "2.10.1": {
+    "name": "Panel admin — acceso y layout (/admin)",
+    "type": "e2e",
+    "file": "admin-panel.spec.ts",
+    "grep": "Admin — Acceso y layout",
+    "status": "covered"
+  },
+  "2.10.2": {
+    "name": "Admin — gestión usuarios (lista, roles, estado)",
+    "type": "e2e",
+    "file": "admin-panel.spec.ts",
+    "grep": "Admin — Usuarios",
+    "status": "covered"
+  },
+  "2.10.3": {
+    "name": "Admin — billing (wallet test, dar crédito)",
+    "type": "e2e",
+    "file": "admin-panel.spec.ts",
+    "grep": "Admin — Billing",
+    "status": "covered"
+  },
+  "2.10.4": {
+    "name": "Admin — campañas de notificaciones push",
+    "type": "e2e",
+    "file": "admin-panel.spec.ts",
+    "grep": "Admin — Campañas",
+    "status": "covered"
+  },
+  "2.10.5": {
+    "name": "Admin — training IA (insertar KB, audit log)",
+    "type": "e2e",
+    "file": "admin-panel.spec.ts",
+    "grep": "Admin — Entrenamiento IA",
+    "status": "covered"
+  },
+  "3.1": {
+    "name": "SSO & Auth cross-domain",
+    "type": "group",
+    "children": [
+      "3.1.1",
+      "3.1.2",
+      "3.1.3"
+    ]
+  },
+  "3.1.1": {
+    "name": "Login en bodasdehoy activa sesión en chat-ia (cookie .bodasdehoy.com)",
+    "type": "e2e",
+    "file": "multi-developer.spec.ts",
+    "grep": "SSO cross-domain — login en bodasdehoy activa sesión",
+    "status": "covered"
+  },
+  "3.1.2": {
+    "name": "Redirect login: app-test → chat-test → vuelta a app-test",
+    "type": "e2e",
+    "file": "redirect-login.spec.ts",
+    "grep": "Redirect login",
+    "status": "covered"
+  },
+  "3.1.3": {
+    "name": "Sesiones múltiples aisladas — dos usuarios sin interferencia",
+    "type": "e2e",
+    "file": "auth.spec.ts",
+    "grep": "Auth — Sesiones múltiples aisladas",
+    "status": "covered"
+  },
+  "3.2": {
+    "name": "PostMessage Bridge (appEventos ↔ chat-ia)",
+    "type": "group",
+    "children": [
+      "3.2.1",
+      "3.2.2",
+      "3.2.3"
+    ]
+  },
+  "3.2.1": {
+    "name": "REFRESH_EVENTS: CRUD en chat-ia refresca datos en appEventos",
+    "type": "e2e",
+    "file": "acciones-crud.spec.ts",
+    "grep": "REFRESH_EVENTS — postMessage",
+    "status": "covered",
+    "notes": "PostMessageBridge.MessageType.REFRESH_EVENTS → refreshEventsGroup()"
+  },
+  "3.2.2": {
+    "name": "FILTER_VIEW simulado via postMessage — banner aparece",
+    "type": "e2e",
+    "file": "filter-view.spec.ts",
+    "grep": "filter_view — postMessage simulated",
+    "status": "covered"
+  },
+  "3.2.3": {
+    "name": "PAGE_CONTEXT: appEventos envía contexto de página activa al chat",
+    "type": "e2e",
+    "file": "filter-view.spec.ts",
+    "grep": "filter_view — iframe smoke",
+    "status": "partial",
+    "notes": "pageContextExtractor — invitados, presupuesto, mesas, itinerario, servicios"
+  },
+  "3.3": {
+    "name": "Multi-usuario (2 usuarios simultáneos)",
+    "type": "group",
+    "children": [
+      "3.3.1",
+      "3.3.2",
+      "3.3.3"
+    ]
+  },
+  "3.3.1": {
+    "name": "Login simultáneo — dos usuarios independientes sin interferencia",
+    "type": "e2e",
+    "file": "chat-mensajes-2usuarios.spec.ts",
+    "grep": "1. Login simultáneo — dos usuarios",
+    "status": "covered"
+  },
+  "3.3.2": {
+    "name": "U1 asigna tarea a U2 via chat IA, U2 recibe en bandeja",
+    "type": "e2e",
+    "file": "chat-mensajes-2usuarios.spec.ts",
+    "grep": "2. U1 asigna tarea a U2",
+    "status": "covered"
+  },
+  "3.3.3": {
+    "name": "Aislamiento de datos — cada usuario solo ve sus propios datos",
+    "type": "e2e",
+    "file": "chat-mensajes-2usuarios.spec.ts",
+    "grep": "8. Aislamiento de datos",
+    "status": "covered"
+  },
+  "3.4": {
+    "name": "Multi-developer / Whitelabel",
+    "type": "group",
+    "children": [
+      "3.4.1",
+      "3.4.2",
+      "3.4.3"
+    ]
+  },
+  "3.4.1": {
+    "name": "Smoke de todos los whitelabels (branding correcto por dominio)",
+    "type": "e2e",
+    "file": "multi-developer.spec.ts",
+    "grep": "Multi-developer — smoke de cada whitelabel",
+    "status": "covered"
+  },
+  "3.4.2": {
+    "name": "Developer vivetuboda — comportamiento y branding diferenciado",
+    "type": "e2e",
+    "file": "usuario-secundario-vivetuboda.spec.ts",
+    "grep": "Developer vivetuboda",
+    "status": "covered"
+  },
+  "3.4.3": {
+    "name": "Aislamiento de datos entre developers (bodasdehoy vs vivetuboda)",
+    "type": "e2e",
+    "file": "usuario-secundario-vivetuboda.spec.ts",
+    "grep": "Aislamiento de datos entre developers",
+    "status": "covered"
+  },
+  "3.5": {
+    "name": "Storage R2 & Archivos",
+    "type": "group",
+    "children": [
+      "3.5.1",
+      "3.5.2"
+    ]
+  },
+  "3.5.1": {
+    "name": "Subida de archivo vía API directa R2 (sin UI)",
+    "type": "e2e",
+    "file": "storage-r2.spec.ts",
+    "grep": "Storage R2 — API directa",
+    "status": "covered"
+  },
+  "3.5.2": {
+    "name": "Subida de archivo desde UI chat-ia (storage-r2 UI flow)",
+    "type": "e2e",
+    "file": "storage-r2.spec.ts",
+    "grep": "Storage R2 — UI",
+    "status": "covered"
+  },
+  "4.1": {
+    "name": "Errores HTTP",
+    "type": "group",
+    "children": [
+      "4.1.1",
+      "4.1.2",
+      "4.1.3",
+      "4.1.4"
+    ]
+  },
+  "4.1.1": {
+    "name": "404 — ruta inexistente muestra error graceful (no crash)",
+    "type": "e2e",
+    "file": "edge-cases.spec.ts",
+    "grep": "Rutas inexistentes — 404 graceful",
+    "status": "covered"
+  },
+  "4.1.2": {
+    "name": "403 — sesión expirada muestra banner y redirige al login",
+    "type": "e2e",
+    "file": "edge-cases.spec.ts",
+    "grep": "API 403",
+    "status": "covered"
+  },
+  "4.1.3": {
+    "name": "503 — API caída muestra error útil (no pantalla blanca)",
+    "type": "e2e",
+    "file": "edge-cases.spec.ts",
+    "grep": "API caída",
+    "status": "covered"
+  },
+  "4.1.4": {
+    "name": "Navegación rápida sin acumulación de errores",
+    "type": "e2e",
+    "file": "edge-cases.spec.ts",
+    "grep": "Navegación rápida",
+    "status": "covered"
+  },
+  "4.2": {
+    "name": "Visitante & Rate limiting",
+    "type": "group",
+    "children": [
+      "4.2.1",
+      "4.2.2",
+      "4.2.3",
+      "4.2.4"
+    ]
+  },
+  "4.2.1": {
+    "name": "Límite mensajes visitante — cookie vis_mc contador",
+    "type": "e2e",
+    "file": "visitor-limit.spec.ts",
+    "grep": "Cookie vis_mc — Contador de mensajes visitante",
+    "status": "covered"
+  },
+  "4.2.2": {
+    "name": "Visitor ID — persistencia entre sesiones (sin login)",
+    "type": "e2e",
+    "file": "visitor-limit.spec.ts",
+    "grep": "Visitor ID — Persistencia",
+    "status": "covered"
+  },
+  "4.2.3": {
+    "name": "Server-side visitor limit en /webapi/chat/{provider}",
+    "type": "e2e",
+    "file": "visitor-limit.spec.ts",
+    "grep": "Server-side visitor limit",
+    "status": "covered"
+  },
+  "4.2.4": {
+    "name": "Identidad visitante unificada — iframe + standalone misma cookie",
+    "type": "e2e",
+    "file": "visitor-limit.spec.ts",
+    "grep": "Identidad visitante unificada",
+    "status": "covered"
+  },
+  "4.3": {
+    "name": "Balance insuficiente",
+    "type": "group",
+    "children": [
+      "4.3.1",
+      "4.3.2"
+    ]
+  },
+  "4.3.1": {
+    "name": "Modal aparece tras 402 en chat (InsufficientBalanceModal)",
+    "type": "e2e",
+    "file": "copilot-chat.spec.ts",
+    "grep": "Chat — balance insuficiente",
+    "status": "covered",
+    "notes": "errorType='insufficient_balance' en route.ts → showInsufficientBalance: true"
+  },
+  "4.3.2": {
+    "name": "Errores API (403) manejo en appEventos",
+    "type": "e2e",
+    "file": "errores-api.spec.ts",
+    "grep": "Manejo de errores API",
+    "status": "covered"
+  },
+  "4.4": {
+    "name": "Widget embebido",
+    "type": "group",
+    "children": [
+      "4.4.1",
+      "4.4.2",
+      "4.4.3",
+      "4.4.4",
+      "4.4.5"
+    ]
+  },
+  "4.4.1": {
+    "name": "Widget chat — carga y estructura en /widget/[development]",
+    "type": "e2e",
+    "file": "widget-chat.spec.ts",
+    "grep": "Widget Chat — Carga y estructura",
+    "status": "covered"
+  },
+  "4.4.2": {
+    "name": "Widget — enviar mensaje y recibir respuesta del chat IA",
+    "type": "e2e",
+    "file": "widget-chat.spec.ts",
+    "grep": "Widget Chat — Enviar mensaje",
+    "status": "covered"
+  },
+  "4.4.3": {
+    "name": "Widget — modo dark/light correcto según parámetro",
+    "type": "e2e",
+    "file": "widget-chat.spec.ts",
+    "grep": "Widget Chat — Modo dark/light",
+    "status": "covered"
+  },
+  "4.4.4": {
+    "name": "Widget — cerrar y comunicación con parent window",
+    "type": "e2e",
+    "file": "widget-chat.spec.ts",
+    "grep": "Widget Chat — Cerrar y comunicación",
+    "status": "covered"
+  },
+  "4.4.5": {
+    "name": "Widget — visitor ID y contexto inyectado desde parent",
+    "type": "e2e",
+    "file": "widget-chat.spec.ts",
+    "grep": "Widget Chat — Visitor ID y contexto",
+    "status": "covered"
+  },
+  "5.1": {
+    "name": "API routes appEventos (Jest)",
+    "type": "group",
+    "children": [
+      "5.1.1",
+      "5.1.2",
+      "5.1.3"
+    ]
+  },
+  "5.1.1": {
+    "name": "POST /api/chat/messages — proxy SSE al copilot backend",
+    "type": "unit",
+    "runner": "jest",
+    "app": "appEventos",
+    "file": "__tests__/api/chat/messages.test.ts",
+    "status": "unit"
+  },
+  "5.1.2": {
+    "name": "GET /api/copilot/chat-history — historial paginado",
+    "type": "unit",
+    "runner": "jest",
+    "app": "appEventos",
+    "file": "__tests__/api/copilot/chat-history.test.ts",
+    "status": "unit"
+  },
+  "5.1.3": {
+    "name": "POST /api/copilot/chat — streaming y validación de auth",
+    "type": "unit",
+    "runner": "jest",
+    "app": "appEventos",
+    "file": "__tests__/api/copilot/chat.test.ts",
+    "status": "unit"
+  },
+  "5.2": {
+    "name": "Servicios y packages (Jest)",
+    "type": "group",
+    "children": [
+      "5.2.1",
+      "5.2.2"
+    ]
+  },
+  "5.2.1": {
+    "name": "copilotChat service — lógica de llamadas, headers, errores",
+    "type": "unit",
+    "runner": "jest",
+    "app": "appEventos",
+    "file": "services/__tests__/copilotChat.test.ts",
+    "status": "unit"
+  },
+  "5.2.2": {
+    "name": "copilot-shared — contrato exports (CopilotChatInput, hooks, providers)",
+    "type": "unit",
+    "runner": "jest",
+    "app": "appEventos",
+    "file": "utils/__tests__/copilotSharedIntegration.test.ts",
+    "status": "unit",
+    "notes": "CopilotChatInput(memo), ChatInputProvider, useChatInputStore, useCopilotInput, CopilotInputProvider"
+  },
+  "5.3": {
+    "name": "Smoke & Health",
+    "type": "group",
+    "children": [
+      "5.3.1",
+      "5.3.2"
+    ]
+  },
+  "5.3.1": {
+    "name": "Smoke — la app carga correctamente (health check básico)",
+    "type": "e2e",
+    "file": "smoke.spec.ts",
+    "grep": "Smoke — la app carga",
+    "status": "covered"
+  },
+  "5.3.2": {
+    "name": "Health check endpoint /api/health",
+    "type": "e2e",
+    "file": "edge-cases.spec.ts",
+    "grep": "Health check",
+    "status": "covered"
+  },
+  "6.1": {
+    "name": "Builtin tools — filter_view & venue_visualizer (store selectors + actions)",
+    "type": "group",
+    "children": [
+      "6.1.1",
+      "6.1.2",
+      "6.1.3",
+      "6.1.4"
+    ]
+  },
+  "6.1.1": {
+    "name": "tool selectors — getFilterViewById, getAllBuiltinTools",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/tool/selectors/tool.test.ts",
+    "status": "unit",
+    "notes": "filterAppView, venueVisualizer identificados; selectors de MCP + custom"
+  },
+  "6.1.2": {
+    "name": "builtin selectors — isBuiltinToolEnabled, getBuiltinToolManifest",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/tool/slices/builtin/selectors.test.ts",
+    "status": "unit"
+  },
+  "6.1.3": {
+    "name": "builtin actions — toggleBuiltinTool, enableFilterView, enableVenueVisualizer",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/tool/slices/builtin/action.test.ts",
+    "status": "unit",
+    "notes": "setFilterViewEnabled, setVenueVisualizerEnabled — persiste en settings"
+  },
+  "6.1.4": {
+    "name": "MCP store actions — addMcpServer, removeMcpServer, getMcpTools",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/tool/slices/mcpStore/action.test.ts",
+    "status": "unit"
+  },
+  "6.2": {
+    "name": "Auth custom (EventosAutoAuth + Firebase)",
+    "type": "group",
+    "children": [
+      "6.2.1",
+      "6.2.2",
+      "6.2.3"
+    ]
+  },
+  "6.2.1": {
+    "name": "auth action — signInWithCustomToken, EventosAutoAuth flow",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/user/slices/auth/action.test.ts",
+    "status": "unit",
+    "notes": "EventosAutoAuth.getAutoAuthToken → signInWithCustomToken → setUser"
+  },
+  "6.2.2": {
+    "name": "auth selectors — isSignedIn, currentUserId, currentUserEmail",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/user/slices/auth/selectors.test.ts",
+    "status": "unit"
+  },
+  "6.2.3": {
+    "name": "server ld — LaunchDarkly feature flags + detectDeveloper",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/server/ld.test.ts",
+    "status": "unit",
+    "notes": "getDeveloperFromRequest, isBillingEnabled, isGuestAccessEnabled per developer"
+  },
+  "6.3": {
+    "name": "File & Storage R2",
+    "type": "group",
+    "children": [
+      "6.3.1",
+      "6.3.2",
+      "6.3.3"
+    ]
+  },
+  "6.3.1": {
+    "name": "fileManager actions — uploadToR2, deleteFromR2, getFileUrl",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/file/slices/fileManager/action.test.ts",
+    "status": "unit",
+    "notes": "storage-r2.ts: upload multipart, signed URL, delete — usa whitelabel credentials"
+  },
+  "6.3.2": {
+    "name": "upload actions — addUploadTask, updateUploadProgress, finalizeUpload",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/file/slices/upload/action.test.ts",
+    "status": "unit"
+  },
+  "6.3.3": {
+    "name": "uploadFileList reducer — add, update status, remove upload item",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/file/reducers/uploadFileList.test.ts",
+    "status": "unit"
+  },
+  "6.4": {
+    "name": "External Chat (bandeja de mensajes)",
+    "type": "group",
+    "children": [
+      "6.4.1",
+      "6.4.2"
+    ]
+  },
+  "6.4.1": {
+    "name": "externalChat action — sendMessage, streamResponse, updateConversation",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/chat/slices/externalChat/action.test.ts",
+    "status": "unit",
+    "notes": "api2/whatsapp channels, MessageInput → SSE stream; ConversationList update"
+  },
+  "6.4.2": {
+    "name": "chat plugin action — invokePlugin, parseToolResult, applyFilterView",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/chat/slices/plugin/action.test.ts",
+    "status": "unit",
+    "notes": "filter-app-view plugin invoke → postMessage FILTER_VIEW → appEventos"
+  },
+  "6.5": {
+    "name": "API routes backend",
+    "type": "group",
+    "children": [
+      "6.5.1",
+      "6.5.2",
+      "6.5.3",
+      "6.5.4"
+    ]
+  },
+  "6.5.1": {
+    "name": "webapi/chat/[provider] — routing, balance check, SSE streaming",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/app/(backend)/webapi/chat/[provider]/route.test.ts",
+    "status": "unit",
+    "notes": "402 insufficient_balance, X-Development header, visitor-limit middleware"
+  },
+  "6.5.2": {
+    "name": "webapi/tokenizer — count tokens por modelo",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/app/(backend)/webapi/tokenizer/index.test.ts",
+    "status": "unit"
+  },
+  "6.5.3": {
+    "name": "webapi/plugin gateway — settings validation",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/app/(backend)/webapi/plugin/gateway/settings.test.ts",
+    "status": "unit"
+  },
+  "6.5.4": {
+    "name": "middleware auth — JWT verification, Firebase token validation",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/app/(backend)/middleware/auth/index.test.ts",
+    "status": "unit",
+    "notes": "verifyFirebaseToken, verifyJWT(API2_JWT_SECRET='bodasdehoy-secret-key')"
+  },
+  "6.6": {
+    "name": "Chat store (RAG, aiChat, messages)",
+    "type": "group",
+    "children": [
+      "6.6.1",
+      "6.6.2",
+      "6.6.3",
+      "6.6.4"
+    ]
+  },
+  "6.6.1": {
+    "name": "chat topic actions — createTopic, deleteTopic, renameTopic",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/chat/slices/topic/action.test.ts",
+    "status": "unit"
+  },
+  "6.6.2": {
+    "name": "chat topic selectors — currentTopicMessages, topicTitle",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/chat/slices/topic/selectors.test.ts",
+    "status": "unit"
+  },
+  "6.6.3": {
+    "name": "chat message reducers — add, update, delete, clearAll",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/chat/slices/topic/reducer.test.ts",
+    "status": "unit"
+  },
+  "6.6.4": {
+    "name": "chat translate action — translateMessage, setTargetLanguage",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/chat/slices/translate/action.test.ts",
+    "status": "unit"
+  },
+  "6.7": {
+    "name": "Global store & Feature flags",
+    "type": "group",
+    "children": [
+      "6.7.1",
+      "6.7.2",
+      "6.7.3",
+      "6.7.4"
+    ]
+  },
+  "6.7.1": {
+    "name": "global store actions — initApp, setTheme, updateSystemStatus",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/global/action.test.ts",
+    "status": "unit",
+    "notes": "isSyncing, isInitialized — bloqueo systemStatus fix aplicado"
+  },
+  "6.7.2": {
+    "name": "global selectors — systemStatus, currentTheme, isMobile",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/global/selectors/systemStatus.test.ts",
+    "status": "unit"
+  },
+  "6.7.3": {
+    "name": "featureFlags schema — zod validation de flags",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/config/featureFlags/schema.test.ts",
+    "status": "unit"
+  },
+  "6.7.4": {
+    "name": "featureFlags parser — parse LD response → flags object",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/config/featureFlags/utils/parser.test.ts",
+    "status": "unit"
+  },
+  "6.8": {
+    "name": "Memories UI tests",
+    "type": "group",
+    "children": [
+      "6.8.1",
+      "6.8.2",
+      "6.8.3",
+      "6.8.4",
+      "6.8.5"
+    ]
+  },
+  "6.8.1": {
+    "name": "CreateAlbum — modal render, form validation, submit",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/app/[variants]/(main)/memories/__tests__/CreateAlbum.test.tsx",
+    "status": "unit",
+    "notes": "useMemoriesStore.createAlbum() llamado con nombre+descripción+eventId"
+  },
+  "6.8.2": {
+    "name": "UploadMedia — drag & drop archivos, preview, progress, R2 upload",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/app/[variants]/(main)/memories/[albumId]/__tests__/UploadMedia.test.tsx",
+    "status": "unit"
+  },
+  "6.8.3": {
+    "name": "ShareAlbum — generar link, copiar URL, token 30 días",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/app/[variants]/(main)/memories/[albumId]/__tests__/ShareAlbum.test.tsx",
+    "status": "unit"
+  },
+  "6.8.4": {
+    "name": "SelectionMode — selección múltiple, acciones en lote (borrar, descargar)",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/app/[variants]/(main)/memories/[albumId]/__tests__/SelectionMode.test.tsx",
+    "status": "unit"
+  },
+  "6.8.5": {
+    "name": "InviteMember — añadir miembro, roles (viewer/editor), revocar",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/app/[variants]/(main)/memories/[albumId]/__tests__/InviteMember.test.tsx",
+    "status": "unit"
+  },
+  "6.9": {
+    "name": "Wedding Creator (WeddingSiteRenderer)",
+    "type": "group",
+    "children": [
+      "6.9.1"
+    ]
+  },
+  "6.9.1": {
+    "name": "WeddingSiteRenderer — render HTML/CSS de web de boda desde datos",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/app/[variants]/(main)/wedding-creator/__tests__/WeddingSiteRenderer.test.tsx",
+    "status": "unit",
+    "notes": "Requiere pnpm install en packages/wedding-creator (eliminar react de deps → peerDeps)"
+  },
+  "6.10": {
+    "name": "User model store — preferencias, modelos, billing",
+    "type": "group",
+    "children": [
+      "6.10.1",
+      "6.10.2",
+      "6.10.3",
+      "6.10.4"
+    ]
+  },
+  "6.10.1": {
+    "name": "user modelList selectors — keyVaults, modelConfig por proveedor",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/user/slices/modelList/selectors/keyVaults.test.ts",
+    "status": "unit",
+    "notes": "proveedores: anthropic, openai, higress (nuestro proxy API-IA)"
+  },
+  "6.10.2": {
+    "name": "user modelList reducers — addCustomModel, removeCustomModel",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/user/slices/modelList/reducers/customModelCard.test.ts",
+    "status": "unit"
+  },
+  "6.10.3": {
+    "name": "user preference actions — setTheme, setLanguage, setCompactMode",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/user/slices/preference/action.test.ts",
+    "status": "unit"
+  },
+  "6.10.4": {
+    "name": "serverConfig store — featureFlags, isServerConfigFetched",
+    "type": "unit",
+    "runner": "vitest",
+    "app": "chat-ia",
+    "file": "src/store/serverConfig/store.test.ts",
+    "status": "unit"
+  },
+  "Q": {
+    "name": "Preguntas al Copilot — catálogo completo de mensajes reales",
+    "type": "group",
+    "children": [
+      "Q.1",
+      "Q.2",
+      "Q.3",
+      "Q.4",
+      "Q.5",
+      "Q.6",
+      "Q.7",
+      "Q.8",
+      "Q.9",
+      "Q.10"
+    ]
+  },
+  "Q.1": {
+    "name": "Consultas básicas de resumen",
+    "type": "group",
+    "children": [
+      "Q.1.1",
+      "Q.1.2",
+      "Q.1.3",
+      "Q.1.4",
+      "Q.1.5",
+      "Q.1.6",
+      "Q.1.7",
+      "Q.1.8",
+      "Q.1.9",
+      "Q.1.10"
+    ]
+  },
+  "Q.1.1": {
+    "name": "Hola (greeting — respuesta de bienvenida contextual)",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "Hola",
+    "expects": "Respuesta de bienvenida, menciona el nombre del evento o del usuario",
+    "status": "partial"
+  },
+  "Q.1.2": {
+    "name": "¿Cuántos invitados tengo?",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "¿Cuántos invitados tengo?",
+    "expects": "Número exacto de invitados, desglose confirmados/pendientes/no asistencia",
+    "status": "covered"
+  },
+  "Q.1.3": {
+    "name": "¿Cuántos eventos o bodas tengo en mi cuenta?",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "Lista mis eventos de boda. ¿Cuántos tengo?",
+    "expects": "Lista numerada de eventos con nombre y fecha de cada uno",
+    "status": "covered"
+  },
+  "Q.1.4": {
+    "name": "¿Cómo se llama mi evento?",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "¿Cómo se llama mi evento?",
+    "expects": "Nombre exacto del evento activo seleccionado",
+    "status": "partial"
+  },
+  "Q.1.5": {
+    "name": "¿Cuántos días faltan para mi boda?",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "¿Cuántos días faltan para mi boda?",
+    "expects": "Número de días calculado desde la fecha del evento en BD",
+    "status": "partial"
+  },
+  "Q.1.6": {
+    "name": "Dame un resumen completo del evento",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "2. Consultas al chat IA — datos reales",
+    "question": "Dame un resumen completo de mi boda: fecha, lugar, número de invitados, presupuesto total y las 3 tareas más urgentes.",
+    "expects": "Fecha, lugar, nº invitados, total presupuesto, lista de 3 tareas prioritarias",
+    "status": "covered"
+  },
+  "Q.1.7": {
+    "name": "¿Cuántos invitados tengo confirmados? (con evento seleccionado)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "2. Consultas al chat IA — datos reales",
+    "question": "¿Cuántos invitados tengo confirmados en mi boda? Dame el número exacto.",
+    "expects": "Número concreto de invitados confirmados, diferenciado de pendientes",
+    "status": "covered"
+  },
+  "Q.1.8": {
+    "name": "¿Cuántas mesas tengo?",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas al evento Raúl Isabel",
+    "question": "Dame un resumen: cuántas mesas hay, cuántos invitados y el total del presupuesto.",
+    "expects": "Nº mesas, nº invitados totales, suma del presupuesto",
+    "status": "covered"
+  },
+  "Q.1.9": {
+    "name": "¿Qué eventos tengo para el próximo año?",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "¿Qué eventos tengo para el próximo año?",
+    "expects": "Filtrado de eventos por fecha futura, lista con fechas",
+    "status": "partial"
+  },
+  "Q.1.10": {
+    "name": "¿Cuál es el estado actual de organización? (5 puntos)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "11. Flujo completo E2E",
+    "question": "¿Cuál es el estado actual de organización de mi boda? Dame un resumen en 5 puntos.",
+    "expects": "Lista de 5 aspectos del estado actual: invitados, presupuesto, mesas, itinerario, servicios",
+    "status": "covered"
+  },
+  "Q.2": {
+    "name": "Consultas sobre invitados",
+    "type": "group",
+    "children": [
+      "Q.2.1",
+      "Q.2.2",
+      "Q.2.3",
+      "Q.2.4",
+      "Q.2.5",
+      "Q.2.6"
+    ]
+  },
+  "Q.2.1": {
+    "name": "Buscar invitado por nombre",
+    "type": "e2e",
+    "file": "copilot-invitados-evento.spec.ts",
+    "grep": "Copilot — consulta invitados con evento seleccionado",
+    "question": "invitados que se llama Raul",
+    "expects": "Lista de invitados cuyo nombre contiene 'Raul'",
+    "status": "covered"
+  },
+  "Q.2.2": {
+    "name": "Resume los invitados confirmados",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "Resume los invitados confirmados",
+    "expects": "Número y lista de invitados con asistencia=confirmado/si",
+    "status": "partial"
+  },
+  "Q.2.3": {
+    "name": "¿En qué fecha es la boda de María?",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "¿En qué fecha es la boda de María?",
+    "expects": "Fecha del evento cuyo nombre contiene 'María'",
+    "status": "partial"
+  },
+  "Q.2.4": {
+    "name": "¿Cuál es la boda de Raul?",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas al evento Raúl Isabel",
+    "question": "¿Cuál es la boda de Raul?",
+    "expects": "Nombre completo, fecha, lugar del evento asociado a Raul",
+    "status": "covered"
+  },
+  "Q.2.5": {
+    "name": "¿Quién es mi proveedor de flores?",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "¿Quién es mi proveedor de flores?",
+    "expects": "Nombre del proveedor en categoría flores del presupuesto/servicios",
+    "status": "partial"
+  },
+  "Q.2.6": {
+    "name": "Muéstrame la lista de todas las bodas",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "Muéstrame la lista de todas las bodas",
+    "expects": "Lista completa de todos los eventos del usuario",
+    "status": "covered"
+  },
+  "Q.3": {
+    "name": "Consultas sobre presupuesto",
+    "type": "group",
+    "children": [
+      "Q.3.1",
+      "Q.3.2",
+      "Q.3.3",
+      "Q.3.4"
+    ]
+  },
+  "Q.3.1": {
+    "name": "¿Cuánto llevo gastado en el presupuesto?",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "¿Cuánto llevo gastado en el presupuesto?",
+    "expects": "Importe coste_final total, desglose pagado vs pendiente",
+    "status": "covered"
+  },
+  "Q.3.2": {
+    "name": "Dame el total del presupuesto con todas las partidas",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "2. Consultas al chat IA — datos reales",
+    "question": "Dame el total del presupuesto de mi boda: la suma de todas las partidas y el presupuesto total configurado.",
+    "expects": "Suma de coste_final de todas las categorías + presupuesto_total configurado",
+    "status": "covered"
+  },
+  "Q.3.3": {
+    "name": "¿Cuánto llevo pagado del presupuesto?",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "¿Cuánto llevo pagado del presupuesto?",
+    "expects": "Suma del campo pagado de todas las partidas",
+    "status": "covered"
+  },
+  "Q.3.4": {
+    "name": "¿Cuánto dinero falta por pagar? Desglose por proveedor",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "8. RAG — el sistema responde",
+    "question": "¿Cuánto dinero total me falta por pagar a los proveedores? Dame el desglose.",
+    "expects": "Lista de proveedores con importe pendiente y suma total",
+    "status": "covered"
+  },
+  "Q.4": {
+    "name": "Consultas sobre tareas e itinerario",
+    "type": "group",
+    "children": [
+      "Q.4.1",
+      "Q.4.2",
+      "Q.4.3",
+      "Q.4.4"
+    ]
+  },
+  "Q.4.1": {
+    "name": "¿Qué tareas tengo pendientes para mi boda?",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "¿Qué tareas tengo pendientes para mi boda?",
+    "expects": "Lista de tareas con estado≠completada, ordenadas por prioridad/fecha",
+    "status": "covered"
+  },
+  "Q.4.2": {
+    "name": "Lista todas las tareas pendientes del itinerario (nombre exacto primera)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "5. Tareas: consulta y acciones",
+    "question": "Lista las tareas pendientes de mi itinerario. Dame el nombre exacto de la primera tarea.",
+    "expects": "Lista numerada, primera tarea con nombre literal extraído de la BD",
+    "status": "covered"
+  },
+  "Q.4.3": {
+    "name": "¿Cuál es la tarea más urgente?",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "6. Bandeja de mensajes",
+    "question": "¿Cuál es la tarea más urgente que tengo pendiente en mi itinerario de boda? Dame el título, la categoría y la fecha límite.",
+    "expects": "Tarea con prioridad=alta más próxima, con título, categoría y fecha",
+    "status": "covered"
+  },
+  "Q.4.4": {
+    "name": "Dame la lista de servicios o proveedores contratados",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "2. Consultas al chat IA — datos reales",
+    "question": "Dame la lista de servicios o proveedores que tengo contratados para mi boda.",
+    "expects": "Lista de proveedores con tipo, nombre y estado de pago",
+    "status": "covered"
+  },
+  "Q.5": {
+    "name": "Filtros que activan filter_view en la app",
+    "type": "group",
+    "children": [
+      "Q.5.1",
+      "Q.5.2",
+      "Q.5.3",
+      "Q.5.4",
+      "Q.5.5",
+      "Q.5.6"
+    ]
+  },
+  "Q.5.1": {
+    "name": "Muéstrame la lista de invitados en la app (filter_view entity=guests)",
+    "type": "e2e",
+    "file": "flujo-copilot-confirmacion-visual.spec.ts",
+    "grep": "Copilot — preguntas en app-test",
+    "question": "Muéstrame la lista de invitados en la app.",
+    "expects": "Banner rosa aparece en /invitados, filter_view con entity=guests",
+    "status": "covered"
+  },
+  "Q.5.2": {
+    "name": "Quiero ver la mesa 1 en la app (filter_view entity=tables)",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Filtros — preguntas que activan filter_view",
+    "question": "Quiero ver la mesa 1. Muéstramela en la app.",
+    "expects": "Banner rosa en /mesas con ID de mesa 1 en filter_view",
+    "status": "covered"
+  },
+  "Q.5.3": {
+    "name": "Muéstrame solo los invitados confirmados (filter entity=guests + ids filtrados)",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Filtros — preguntas que activan filter_view",
+    "question": "Muéstrame solo los invitados confirmados en la app.",
+    "expects": "Banner rosa en /invitados, filtrado a solo confirmados, IDs correctos",
+    "status": "covered"
+  },
+  "Q.5.4": {
+    "name": "Lista las tareas y muéstrame la primera en la app (filter entity=services)",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Filtros — preguntas que activan filter_view",
+    "question": "Lista las tareas del itinerario y muéstrame la primera en la app.",
+    "expects": "Banner rosa en /itinerario o /servicios con la primera tarea",
+    "status": "covered"
+  },
+  "Q.5.5": {
+    "name": "Quiero ver mis invitados (navega a /invitados)",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "Quiero ver mis invitados",
+    "expects": "NAVIGATE event o filter_view → app navega a /invitados",
+    "status": "partial"
+  },
+  "Q.5.6": {
+    "name": "Llévame al presupuesto (navega a /presupuesto)",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "Llévame al presupuesto",
+    "expects": "NAVIGATE event → app navega a /presupuesto",
+    "status": "partial"
+  },
+  "Q.6": {
+    "name": "CRUD via chat — crear entidades reales",
+    "type": "group",
+    "children": [
+      "Q.6.1",
+      "Q.6.2",
+      "Q.6.3",
+      "Q.6.4",
+      "Q.6.5",
+      "Q.6.6",
+      "Q.6.7",
+      "Q.6.8",
+      "Q.6.9"
+    ]
+  },
+  "Q.6.1": {
+    "name": "Añadir invitado con nombre + email + mesa + menú",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "3. Inserciones vía chat IA",
+    "question": "Añade este invitado a mi boda: Nombre: \"Ana García\", Email: \"ana@test.com\", Mesa: 1, Menú: vegetariano, Confirmado: sí.",
+    "expects": "Invitado creado en BD, confirmación en chat, REFRESH_EVENTS enviado",
+    "status": "covered"
+  },
+  "Q.6.2": {
+    "name": "Añadir 3 invitados a la vez (lista en un solo mensaje)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "11. Flujo completo E2E",
+    "question": "Añade estos 3 invitados especiales: 1. María García, email: maria@test.com, mesa 1, menú vegetariano; 2. Juan Pérez, email: juan@test.com, mesa 1; 3. Sofía Martín, email: sofia@test.com, mesa 2, alergia al gluten",
+    "expects": "3 registros creados, confirmación de cada uno, REFRESH_EVENTS",
+    "status": "covered"
+  },
+  "Q.6.3": {
+    "name": "Crear partida de presupuesto (concepto + categoría + importe)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "3. Inserciones vía chat IA",
+    "question": "Crea una partida de presupuesto nueva: Concepto: \"Catering principal\", Categoría: catering, Importe: 8000€, Pagado: no.",
+    "expects": "Item en presupuesto_objeto.categorias_array, confirmación en chat",
+    "status": "covered"
+  },
+  "Q.6.4": {
+    "name": "Crear 4 partidas de presupuesto con pagos parciales",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "11. Flujo completo E2E",
+    "question": "Crea estas partidas en el presupuesto: 1. Catering 7800€ pagado 2000€; 2. Fotografía 2500€ pagado 500€; 3. Local 3500€ pagado 3500€; 4. DJ 1200€ pagado 0€",
+    "expects": "4 partidas en BD, totales correctos, pendiente calculado",
+    "status": "covered"
+  },
+  "Q.6.5": {
+    "name": "Crear tarea en itinerario (con prioridad y fecha límite)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "3. Inserciones vía chat IA",
+    "question": "Crea una tarea en el itinerario: \"Confirmar menú con catering\". Prioridad: alta. Categoría: catering. Fecha límite: en 30 días.",
+    "expects": "Tarea creada en itinerario, prioridad=alta, fecha calculada, REFRESH_EVENTS",
+    "status": "covered"
+  },
+  "Q.6.6": {
+    "name": "Añadir servicio/proveedor (con teléfono y notas)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "3. Inserciones vía chat IA",
+    "question": "Añade un servicio a mi boda: Proveedor: \"La Huerta de Madrid\", Tipo: catering, Precio: 8000€, Teléfono: 910123456, Notas: menú vegetariano para 120 personas.",
+    "expects": "Servicio creado con todos los campos, confirmación, REFRESH_EVENTS",
+    "status": "covered"
+  },
+  "Q.6.7": {
+    "name": "Agrega dos invitados en un solo mensaje (estilo libre)",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "Agrega a Jose Garcia y Jose Morales como invitados a mi evento",
+    "expects": "2 invitados creados, confirmación de ambos en chat",
+    "status": "partial"
+  },
+  "Q.6.8": {
+    "name": "Actualizar nombre del evento y datos de los novios",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "3. Inserciones vía chat IA",
+    "question": "Actualiza el nombre de mi evento a \"Boda de Paco y Pico 2025\". Los novios son Francisco García y Pilar López.",
+    "expects": "event.nombre actualizado en BD, confirmación en chat",
+    "status": "covered"
+  },
+  "Q.6.9": {
+    "name": "Confirmar asistencia de invitado por email",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "3. Inserciones vía chat IA",
+    "question": "Confirma la asistencia del invitado con email \"test@test.com\" a mi boda.",
+    "expects": "invitado.asistencia='confirmado' en BD, confirmación en chat, REFRESH_EVENTS",
+    "status": "covered"
+  },
+  "Q.7": {
+    "name": "CRUD via chat — actualizar y completar",
+    "type": "group",
+    "children": [
+      "Q.7.1",
+      "Q.7.2",
+      "Q.7.3"
+    ]
+  },
+  "Q.7.1": {
+    "name": "Marcar tarea como completada (por nombre exacto)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "5. Tareas: consulta y acciones",
+    "question": "Marca como completada la primera tarea que me has listado. Confirma cuando esté hecho.",
+    "expects": "tarea.estatus=completed en BD, REFRESH_EVENTS, mensaje de confirmación",
+    "status": "covered"
+  },
+  "Q.7.2": {
+    "name": "Crear tarea y marcarla completada en el mismo flujo",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "5. Tareas: consulta y acciones",
+    "question": "Crea una tarea: \"Llamar al fotógrafo\", prioridad: baja. → Marca como completada esa tarea.",
+    "expects": "Tarea creada, luego estatus=completed, confirmación en ambos pasos",
+    "status": "covered"
+  },
+  "Q.7.3": {
+    "name": "Asignar tarea a la novia",
+    "type": "e2e",
+    "file": "crud-ia-verificado.spec.ts",
+    "grep": "CRUD via IA — Verificación cruzada",
+    "question": "Asigna la tarea 'Confirmar menú' a la novia. Si no existe, crea primero una tarea con ese nombre.",
+    "expects": "tarea.responsable incluye a la novia, REFRESH_EVENTS",
+    "status": "covered"
+  },
+  "Q.8": {
+    "name": "RAG — preguntas que usan conocimiento insertado",
+    "type": "group",
+    "children": [
+      "Q.8.1",
+      "Q.8.2",
+      "Q.8.3",
+      "Q.8.4",
+      "Q.8.5",
+      "Q.8.6",
+      "Q.8.7",
+      "Q.8.8"
+    ]
+  },
+  "Q.8.1": {
+    "name": "¿Qué tipo de menú tenemos?",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "8. RAG — el sistema responde",
+    "question": "¿Qué tipo de menú tenemos para la boda? ¿Es vegetariano, con carne o mixto?",
+    "expects": "Respuesta que menciona 'vegetariano' usando la KB insertada previamente",
+    "status": "covered"
+  },
+  "Q.8.2": {
+    "name": "¿Cómo se llama el fotógrafo y cuánto cuesta?",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "8. RAG — el sistema responde",
+    "question": "¿Cómo se llama el fotógrafo contratado para la boda y cuánto cuesta?",
+    "expects": "Nombre 'Carlos Ruiz Fotografía' + precio 2.500€ desde KB",
+    "status": "covered"
+  },
+  "Q.8.3": {
+    "name": "¿A qué hora es la ceremonia civil? ¿Y el aperitivo?",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "8. RAG — el sistema responde",
+    "question": "¿A qué hora es la ceremonia civil de la boda? ¿Y el aperitivo?",
+    "expects": "'13:30h' ceremonia y '14:30h' aperitivo extraídos del timeline en KB",
+    "status": "covered"
+  },
+  "Q.8.4": {
+    "name": "Consejos específicos para la recepción en la finca",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "8. RAG — el sistema responde",
+    "question": "Dame 3 consejos específicos para que la recepción en la Finca El Romeral salga perfecta, teniendo en cuenta menú vegetariano y 120 invitados.",
+    "expects": "3 consejos contextualizados que mencionan datos de KB (finca, menú, aforo)",
+    "status": "covered"
+  },
+  "Q.8.5": {
+    "name": "Dame ideas para el menú del banquete",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "Dame ideas para el menú del banquete",
+    "expects": "Sugerencias de platos coherentes con el tipo de boda/evento",
+    "status": "covered"
+  },
+  "Q.8.6": {
+    "name": "Dime 3 consejos para organizar una boda (genérico, sin KB)",
+    "type": "e2e",
+    "file": "preguntas-filtros-usuario.spec.ts",
+    "grep": "Preguntas a todos los eventos",
+    "question": "Dime 3 consejos para organizar una boda",
+    "expects": "3 consejos prácticos y concretos sobre organización de bodas",
+    "status": "partial"
+  },
+  "Q.8.7": {
+    "name": "Insertar KB: datos del catering (con precio, depósito, condiciones)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "7. Insertar consejos en la base de conocimiento",
+    "question": "Guarda esta información: Catering 'La Huerta de Madrid' (910 123 456), menú 100% vegetariano, 65€/persona (120=7.800€), depósito 2.000€ pagado, pendiente 5.800€.",
+    "expects": "Confirmación de guardado, embedding generado via lobechatKBMiddlewareService",
+    "status": "covered"
+  },
+  "Q.8.8": {
+    "name": "Insertar KB: timeline del día de la boda",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "7. Insertar consejos en la base de conocimiento",
+    "question": "Guarda el timeline del día: 10:00 maquillaje, 12:00 fotógrafo, 13:30 ceremonia, 14:30 aperitivo, 15:30 banquete, 18:00 baile, 19:00 fiesta DJ, 02:00 fin.",
+    "expects": "Timeline guardado en KB, batchGenerateEmbeddingsViaMiddleware invocado",
+    "status": "covered"
+  },
+  "Q.9": {
+    "name": "Imagen + descripción visual (multimodal)",
+    "type": "group",
+    "children": [
+      "Q.9.1",
+      "Q.9.2"
+    ]
+  },
+  "Q.9.1": {
+    "name": "Describe una imagen adjunta",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "4. Modificación de imagen adjunta al chat",
+    "question": "Describe esta imagen. ¿Qué ves? ¿Podría usarse en una web de bodas?",
+    "expects": "Descripción de contenido de imagen + valoración de uso en web de bodas",
+    "status": "covered"
+  },
+  "Q.9.2": {
+    "name": "Análisis estético de imagen para web de bodas",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "4. Modificación de imagen adjunta al chat",
+    "question": "¿Esta imagen tiene estética adecuada para el encabezado de una web de bodas con paleta romántica? Sugiere mejoras.",
+    "expects": "Valoración sí/no + lista de mejoras concretas (colores, encuadre, etc.)",
+    "status": "covered"
+  },
+  "Q.10": {
+    "name": "Wedding Creator + Memories (flujos completos)",
+    "type": "group",
+    "children": [
+      "Q.10.1",
+      "Q.10.2",
+      "Q.10.3",
+      "Q.10.4",
+      "Q.10.5",
+      "Q.10.6"
+    ]
+  },
+  "Q.10.1": {
+    "name": "Crear web de boda completa (hero, timeline, lugar, RSVP, galería)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "9. Wedding Creator",
+    "question": "Crea la página web de la boda de Paco y Pico: novios, fecha 20-sep-2025, lugar Finca El Romeral, ceremonia 13:30h, 120 invitados, paleta romántica melocotón y blanco.",
+    "expects": "WeddingSiteRenderer crea página, sección hero visible, datos correctos",
+    "status": "covered"
+  },
+  "Q.10.2": {
+    "name": "Activar RSVP en web de boda (formulario + fecha límite)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "9. Wedding Creator",
+    "question": "Activa el RSVP en la web de boda. Formulario: nombre, acompañantes, menú (vegetariano/normal), alergias. Fecha límite: 31 agosto 2025.",
+    "expects": "Sección RSVP activada con los campos correctos y fecha límite",
+    "status": "covered"
+  },
+  "Q.10.3": {
+    "name": "Añadir agenda del día a la web (desde timeline en KB)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "9. Wedding Creator",
+    "question": "Añade la sección de agenda del día a la web de boda usando el timeline que ya tengo guardado.",
+    "expects": "Sección agenda con horas extraídas de KB: ceremonia 13:30, aperitivo 14:30...",
+    "status": "covered"
+  },
+  "Q.10.4": {
+    "name": "Crear álbum de fotos en Memories (título + descripción + acceso)",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "10. Memories — álbum de fotos",
+    "question": "Crea un álbum de fotos en Memories: título 'Boda Paco y Pico 2025', descripción 'El amor hecho recuerdo', acceso abierto para invitados.",
+    "expects": "Álbum creado via useMemoriesStore, confirmación en chat",
+    "status": "covered"
+  },
+  "Q.10.5": {
+    "name": "Subir foto al álbum con título y descripción",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "10. Memories — álbum de fotos",
+    "question": "Sube esta foto al álbum de Memories. Ponle el título: 'Primer recuerdo' y la descripción: 'El día más especial'.",
+    "expects": "Foto subida a R2/storage, mediaCount del álbum +1, URL pública",
+    "status": "covered"
+  },
+  "Q.10.6": {
+    "name": "¿Qué falta por hacer para tener la boda 100% organizada?",
+    "type": "e2e",
+    "file": "chat-ia-flows.spec.ts",
+    "grep": "11. Flujo completo E2E",
+    "question": "¿Qué falta por hacer para tener la boda de Paco y Pico 100% organizada? Dame la lista de pendientes.",
+    "expects": "Lista de tareas pendientes, partidas sin pagar, confirmaciones faltantes",
+    "status": "covered"
+  },
+  "3.6": {
+    "name": "Canales de mensajería (conectividad)",
+    "type": "section",
+    "children": [
+      "3.6.1",
+      "3.6.2",
+      "3.6.3",
+      "3.6.4",
+      "3.6.5",
+      "3.6.6",
+      "3.6.7"
+    ]
+  },
+  "3.6.1": {
+    "id": "3.6.1",
+    "name": "Proxy WhatsApp session endpoint responde sin 500",
+    "status": "partial",
+    "spec": "e2e-app/canales-conectividad.spec.ts"
+  },
+  "3.6.2": {
+    "id": "3.6.2",
+    "name": "Proxy Telegram connect rechaza token inválido (no 500)",
+    "status": "partial",
+    "spec": "e2e-app/canales-conectividad.spec.ts"
+  },
+  "3.6.3": {
+    "id": "3.6.3",
+    "name": "Proxy Email connect rechaza SMTP inválido (no 500)",
+    "status": "partial",
+    "spec": "e2e-app/canales-conectividad.spec.ts"
+  },
+  "3.6.4": {
+    "id": "3.6.4",
+    "name": "Instagram oauth-url endpoint responde sin 500",
+    "status": "partial",
+    "spec": "e2e-app/canales-conectividad.spec.ts"
+  },
+  "3.6.5": {
+    "id": "3.6.5",
+    "name": "Facebook oauth-url endpoint responde sin 500",
+    "status": "partial",
+    "spec": "e2e-app/canales-conectividad.spec.ts"
+  },
+  "3.6.6": {
+    "id": "3.6.6",
+    "name": "SSE fallback a polling cuando stream falla",
+    "status": "partial",
+    "spec": "e2e-app/canales-conectividad.spec.ts"
+  },
+  "3.6.7": {
+    "id": "3.6.7",
+    "name": "UIs de setup de canales cargan sin crash",
+    "status": "partial",
+    "spec": "e2e-app/canales-conectividad.spec.ts"
+  },
+  "3.7": {
+    "name": "Proveedores IA y claves privadas",
+    "type": "section",
+    "children": [
+      "3.7.1",
+      "3.7.2",
+      "3.7.3",
+      "3.7.4",
+      "3.7.5"
+    ]
+  },
+  "3.7.1": {
+    "id": "3.7.1",
+    "name": "Grid de proveedores en settings carga sin crash",
+    "status": "partial",
+    "spec": "e2e-app/proveedores-ia.spec.ts"
+  },
+  "3.7.2": {
+    "id": "3.7.2",
+    "name": "Endpoint ai-credentials responde con estructura correcta",
+    "status": "partial",
+    "spec": "e2e-app/proveedores-ia.spec.ts"
+  },
+  "3.7.3": {
+    "id": "3.7.3",
+    "name": "Chat responde sin 401/402 con proveedor configurado",
+    "status": "partial",
+    "spec": "e2e-app/proveedores-ia.spec.ts"
+  },
+  "3.7.4": {
+    "id": "3.7.4",
+    "name": "Modal InsufficientBalance aparece cuando hay 402 (interceptado)",
+    "status": "partial",
+    "spec": "e2e-app/proveedores-ia.spec.ts"
+  },
+  "3.7.5": {
+    "id": "3.7.5",
+    "name": "API keys no visibles en texto plano en localStorage",
+    "status": "partial",
+    "spec": "e2e-app/proveedores-ia.spec.ts"
+  },
+  "3.8": {
+    "name": "Facturación y deducción de tokens",
+    "type": "section",
+    "children": [
+      "3.8.1",
+      "3.8.2",
+      "3.8.3",
+      "3.8.4",
+      "3.8.5",
+      "3.8.6",
+      "3.8.7"
+    ]
+  },
+  "3.8.1": {
+    "id": "3.8.1",
+    "name": "settings/billing muestra balance sin crash",
+    "status": "partial",
+    "spec": "e2e-app/facturacion-billing.spec.ts"
+  },
+  "3.8.2": {
+    "id": "3.8.2",
+    "name": "wallet/transactions endpoint devuelve estructura correcta",
+    "status": "partial",
+    "spec": "e2e-app/facturacion-billing.spec.ts"
+  },
+  "3.8.3": {
+    "id": "3.8.3",
+    "name": "InsufficientBalanceModal aparece tras 402 interceptado",
+    "status": "partial",
+    "spec": "e2e-app/facturacion-billing.spec.ts"
+  },
+  "3.8.4": {
+    "id": "3.8.4",
+    "name": "wallet/recharge-session genera URL de Stripe",
+    "status": "partial",
+    "spec": "e2e-app/facturacion-billing.spec.ts"
+  },
+  "3.8.5": {
+    "id": "3.8.5",
+    "name": "admin/billing dashboard carga sin crash",
+    "status": "partial",
+    "spec": "e2e-app/facturacion-billing.spec.ts"
+  },
+  "3.8.6": {
+    "id": "3.8.6",
+    "name": "wallet_checkBalance responde con estructura coherente",
+    "status": "partial",
+    "spec": "e2e-app/facturacion-billing.spec.ts"
+  },
+  "3.8.7": {
+    "id": "3.8.7",
+    "name": "SKU service-price responde con precio numérico",
+    "status": "partial",
+    "spec": "e2e-app/facturacion-billing.spec.ts"
+  }
+}

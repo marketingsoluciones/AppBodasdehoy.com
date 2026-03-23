@@ -1,0 +1,11 @@
+*Front Copilot — síntesis de pendientes* (`#copilot-api-ia`)
+
+*Cerrado:* `lobechat-kb` (evidencia + `trace_id`). Checklist headers/402·503 — front ya confirmó implementado.
+
+*Nuestro lado (Front):* deploy prod si falta: RAG con `X-Request-ID`, `X-User-Role` vía `AUTH_CONFIG`; smoke Copilot.
+
+*api-ia (pendiente suyo):* bugs *24 feb* (Anthropic slot, router vs credentials, `/webapi/chat/auto` NO_PROVIDERS, test falso positivo) · estado *Leads* `/api/leads/*` vs spec · *opcional* ticket embeddings para HTTP 200 en `lobechat-kb`.
+
+*API2 (pendiente suyo):* `uploadCRMEntityFile` / R2 — `Storage no configurado` para `bodasdehoy` en prod; verificar fallback whitelabel desplegado.
+
+Lista viva en repo: `scripts/PENDIENTES-POR-COLABORADOR.txt`
