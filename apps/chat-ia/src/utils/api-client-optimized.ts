@@ -1,3 +1,7 @@
+import { BRANDING_NAME } from '@lobechat/const';
+
+const CLIENT_UA = `${BRANDING_NAME.replace(/\s+/g, '')}-Client/1.0`;
+
 /**
  * Cliente API optimizado con cache de tokens, throttling y manejo de rate limits
  * 
@@ -248,7 +252,7 @@ export class OptimizedApiClient {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
       'Origin': typeof window !== 'undefined' ? window.location.origin : 'https://eventosorganizador.com',
-      'User-Agent': 'LobeChat-Client/1.0',
+      'User-Agent': CLIENT_UA,
     };
 
     if (token) {

@@ -323,6 +323,11 @@ describe('FileUploadAction', () => {
         expect(onStatusUpdate).toHaveBeenCalledWith({
           id: mockFile.name,
           type: 'updateFile',
+          value: { status: 'uploading', uploadState: { progress: 0, restTime: 0, speed: 0 } },
+        });
+        expect(onStatusUpdate).toHaveBeenCalledWith({
+          id: mockFile.name,
+          type: 'updateFile',
           value: { status: 'uploading', uploadState: { progress: 50, restTime: 5, speed: 1024 } },
         });
         expect(onStatusUpdate).toHaveBeenCalledWith({
@@ -354,6 +359,14 @@ describe('FileUploadAction', () => {
 
         expect(uploadResult).toBeUndefined();
         expect(createFileSpy).not.toHaveBeenCalled();
+        expect(onStatusUpdate).toHaveBeenCalledWith({
+          id: mockFile.name,
+          type: 'updateFile',
+          value: {
+            status: 'error',
+            uploadState: { progress: 0, restTime: 0, speed: 0 },
+          },
+        });
       });
 
       it('should call onNotSupported when file type is not supported', async () => {

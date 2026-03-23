@@ -91,7 +91,11 @@ async function exchangeFirebaseTokenForJWT(
   user?: User;
   user_id?: string;
 }> {
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+  // Usar proxy local (/api/auth/firebase-login) para evitar CORS en desarrollo.
+  // En producción, el proxy reenvía a BACKEND_URL server-side.
+  const LOGIN_URL = typeof window !== 'undefined'
+    ? '/api/auth/firebase-login'
+    : (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030') + '/api/auth/firebase-login';
 
   // Guardar info del usuario de Firebase primero (siempre disponible)
   if (user) {
@@ -118,7 +122,7 @@ async function exchangeFirebaseTokenForJWT(
       firebaseIdToken,
     };
 
-    const response = await fetch(`${BACKEND_URL}/api/auth/firebase-login`, {
+    const response = await fetch(LOGIN_URL, {
       body: JSON.stringify(requestBody),
       headers: {
         'Content-Type': 'application/json',
@@ -279,7 +283,7 @@ function safeSetSessionStorage(key: string, value: string): void {
   if (isSessionStorageAvailable()) {
     try {
       sessionStorage.setItem(key, value);
-    } catch (e) {
+    } catch {
       // Fallback a localStorage si sessionStorage falla
       // Fallback a localStorage si sessionStorage no está disponible
       localStorage.setItem(key, value);
@@ -297,7 +301,7 @@ function safeGetSessionStorage(key: string): string | null {
   if (isSessionStorageAvailable()) {
     try {
       return sessionStorage.getItem(key);
-    } catch (e) {
+    } catch {
       // Fallback a localStorage si sessionStorage falla
       return localStorage.getItem(key);
     }
@@ -553,6 +557,16 @@ export function initCrossAppTokenRefresh(): () => void {
       try {
         const freshToken = await user.getIdToken();
         setCrossAppIdToken(freshToken);
+
+        // Auto-refresh del JWT de API2: si existe un token previo, renovarlo
+        // para que las llamadas a API2 no fallen con 401 tras ~55 min.
+        const existingJwt = localStorage.getItem('api2_jwt_token');
+        if (existingJwt) {
+          const dev = localStorage.getItem('current_development') || 'bodasdehoy';
+          exchangeFirebaseTokenForJWT(freshToken, dev, user).catch(() => {
+            // Silencioso — el token anterior sigue siendo válido por un rato más
+          });
+        }
       } catch {
         // Silencioso — no interrumpir la app si falla el refresh del cookie
       }

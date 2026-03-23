@@ -19,11 +19,11 @@ function getTodayDateString(): string {
 }
 
 export interface VisitorLimitState {
-  limit: number;
-  used: number;
-  remaining: number;
-  isFirstDay: boolean;
   dateKey: string;
+  isFirstDay: boolean;
+  limit: number;
+  remaining: number;
+  used: number;
 }
 
 /**
@@ -56,7 +56,7 @@ export function getVisitorLimitState(): VisitorLimitState | null {
     const limit = isFirstDay ? LIMIT_FIRST_DAY : LIMIT_PER_DAY;
     const remaining = Math.max(0, limit - used);
 
-    return { limit, used, remaining, isFirstDay, dateKey };
+    return { dateKey, isFirstDay, limit, remaining, used };
   } catch {
     return null;
   }

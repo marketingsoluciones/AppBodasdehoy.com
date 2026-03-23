@@ -175,11 +175,11 @@ export class AiImageService {
                 else if (img.base64) imageUrl = `data:image/png;base64,${img.base64}`;
 
                 return {
+                  asset: imageUrl ? { originalUrl: imageUrl, type: 'image', url: imageUrl } : null,
                   asyncTaskId: null,
                   createdAt: now,
                   id: `gen-${Date.now()}-${idx}`,
                   task: { id: `task-${Date.now()}-${idx}`, status: 'success' as any },
-                  asset: imageUrl ? { type: 'image', originalUrl: imageUrl, url: imageUrl } : null,
                 };
               }),
               id: `batch-${Date.now()}`,

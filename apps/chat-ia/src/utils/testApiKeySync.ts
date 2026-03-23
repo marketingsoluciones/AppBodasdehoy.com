@@ -4,6 +4,8 @@
  * Ejecutar en consola del navegador
  */
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+
 export async function testApiKeySync() {
   console.log('🧪 Iniciando test de sincronización de API keys...');
   
@@ -46,7 +48,7 @@ export async function testApiKeySync() {
     
     try {
       const backendResponse = await fetch(
-        `http://localhost:8030/api/developers/${development}/config`,
+        `${BACKEND_URL}/api/developers/${development}/config`,
       );
       
       if (backendResponse.ok) {

@@ -44,11 +44,14 @@ function getAuthHeaders(): Record<string, string> {
       const devConfig = localStorage.getItem('dev-user-config');
       if (devConfig) {
         const config = JSON.parse(devConfig);
-        if (config.userId) {
-          headers['X-User-ID'] = config.userId;
+        // Misma convención que upload.ts (user_id) y otros sitios (userId)
+        const userId = config.user_id ?? config.userId;
+        if (userId) {
+          headers['X-User-ID'] = userId;
         }
-        if (config.development || config.developer) {
-          headers['X-Development'] = config.development || config.developer;
+        const development = config.development ?? config.developer;
+        if (development) {
+          headers['X-Development'] = development;
         }
       }
     } catch (e) {

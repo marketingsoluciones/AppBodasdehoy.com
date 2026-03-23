@@ -14,71 +14,71 @@ import type { WalletTransaction } from './wallet';
 // ========================================
 
 export interface WalletStats {
-  total_wallets: number;
   active_wallets: number;
+  currency: string;
+  monthly_consumption: number;
+  monthly_revenue: number;
   suspended_wallets: number;
   total_balance: number;
   total_bonus_balance: number;
-  monthly_revenue: number;
-  monthly_consumption: number;
-  currency: string;
+  total_wallets: number;
 }
 
 export interface AdminWalletUser {
-  userId: string;
-  email?: string;
-  development?: string;
   balance: number;
   bonus_balance: number;
-  total_balance: number;
-  currency: string;
-  status: 'ACTIVE' | 'SUSPENDED' | 'CLOSED';
   created_at: string;
+  currency: string;
+  development?: string;
+  email?: string;
+  status: 'ACTIVE' | 'SUSPENDED' | 'CLOSED';
+  total_balance: number;
   updated_at?: string;
+  userId: string;
 }
 
 export interface AdminTransactionsResponse {
-  success: boolean;
-  transactions: WalletTransaction[];
-  total: number;
   hasMore: boolean;
+  success: boolean;
+  total: number;
+  transactions: WalletTransaction[];
 }
 
 export interface LowBalanceWallet {
-  userId: string;
-  email?: string;
-  development?: string;
   balance: number;
   bonus_balance: number;
-  total_balance: number;
   currency: string;
+  development?: string;
+  email?: string;
   status: string;
+  total_balance: number;
+  userId: string;
 }
 
 export interface AdminActionResponse {
-  success: boolean;
   error_code?: string;
   error_message?: string;
   new_balance?: number;
+  success: boolean;
   transaction?: WalletTransaction;
 }
 
 export interface UsageTrackingEntry {
   _id: string;
-  userId: string;
-  development?: string;
   action: string;
-  quantity: number;
   cost?: number;
-  metadata?: Record<string, any>;
   created_at: string;
+  development?: string;
+  metadata?: Record<string, any>;
+  quantity: number;
+  userId: string;
 }
 
 export interface UsageTrackingResponse {
-  success: boolean;
   entries: UsageTrackingEntry[];
-  total: number;
   hasMore: boolean;
+  success: boolean;
+  total: number;
 }
 
 // ========================================
@@ -278,7 +278,7 @@ export class AdminWalletService {
     try {
       const data = await api2Client.query<{ wallet_getUserTransactions: AdminTransactionsResponse }>(
         GET_USER_TRANSACTIONS_QUERY,
-        { userId, page, limit }
+        { limit, page, userId }
       );
       return data.wallet_getUserTransactions;
     } catch (error) {
@@ -287,7 +287,7 @@ export class AdminWalletService {
     }
   }
 
-  async getLowBalanceWallets(threshold: number = 1.0): Promise<LowBalanceWallet[]> {
+  async getLowBalanceWallets(threshold: number = 1): Promise<LowBalanceWallet[]> {
     try {
       const data = await api2Client.query<{ wallet_getLowBalanceWallets: LowBalanceWallet[] }>(
         GET_LOW_BALANCE_WALLETS_QUERY,
@@ -301,13 +301,13 @@ export class AdminWalletService {
   }
 
   async getUsageTracking(params: {
-    page?: number;
-    limit?: number;
-    userId?: string;
     action?: string;
     development?: string;
-    startDate?: string;
     endDate?: string;
+    limit?: number;
+    page?: number;
+    startDate?: string;
+    userId?: string;
   }): Promise<UsageTrackingResponse> {
     try {
       const data = await api2Client.query<{ getUsageTracking: UsageTrackingResponse }>(

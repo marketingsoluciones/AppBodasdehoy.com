@@ -110,40 +110,72 @@ export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = {
 const DOMAIN_TO_DEVELOPMENT: Record<string, string> = {
   // Localhost y IPs
   '127.0.0.1': 'bodasdehoy',
-  'localhost': 'bodasdehoy',
-
   // Dominios principales
-  'annloevents.com': 'annloevents',
-  'bodasdehoy.com': 'bodasdehoy',
-  'champagneevents.com': 'champagneevents',
-  'eventosorganizador.com': 'eventosorganizador',
-  'www.annloevents.com': 'annloevents',
-  'www.bodasdehoy.com': 'bodasdehoy',
-  'www.champagneevents.com': 'champagneevents',
-  'www.eventosorganizador.com': 'eventosorganizador',
+'annloevents.com': 'annloevents',
 
+  
   // bodasdehoy.com — producción
-  'app.bodasdehoy.com': 'bodasdehoy',
-  'chat.bodasdehoy.com': 'bodasdehoy',
-  'editor.bodasdehoy.com': 'bodasdehoy',
-  'memories.bodasdehoy.com': 'bodasdehoy',
-  'wedding-creator.bodasdehoy.com': 'bodasdehoy',
+'app.bodasdehoy.com': 'bodasdehoy',
+  
+'bodasdehoy.com': 'bodasdehoy',
+  
+'champagneevents.com': 'champagneevents',
+  
+'chat.bodasdehoy.com': 'bodasdehoy',
+  
+// bodasdehoy.com — test
+'app-test.bodasdehoy.com': 'bodasdehoy',
+  
 
-  // bodasdehoy.com — test
-  'app-test.bodasdehoy.com': 'bodasdehoy',
-  'chat-test.bodasdehoy.com': 'bodasdehoy',
-  'editor-test.bodasdehoy.com': 'bodasdehoy',
-  'memories-test.bodasdehoy.com': 'bodasdehoy',
+'editor.bodasdehoy.com': 'bodasdehoy',
+  
 
-  // bodasdehoy.com — dev
-  'app-dev.bodasdehoy.com': 'bodasdehoy',
-  'chat-dev.bodasdehoy.com': 'bodasdehoy',
-  'editor-dev.bodasdehoy.com': 'bodasdehoy',
-  'memories-dev.bodasdehoy.com': 'bodasdehoy',
+'chat-test.bodasdehoy.com': 'bodasdehoy',
+  
 
-  // Legacy
-  'iachat.bodasdehoy.com': 'bodasdehoy',
+'eventosorganizador.com': 'eventosorganizador',
+
+  
+  
+// bodasdehoy.com — dev
+'app-dev.bodasdehoy.com': 'bodasdehoy',
+  
+
+'localhost': 'bodasdehoy',
+  
+
+'chat-dev.bodasdehoy.com': 'bodasdehoy',
+  
+
+'www.annloevents.com': 'annloevents',
+  
+
+'editor-dev.bodasdehoy.com': 'bodasdehoy',
+
+  
+  
+'www.bodasdehoy.com': 'bodasdehoy',
+  
+'editor-test.bodasdehoy.com': 'bodasdehoy',
+  
+'www.champagneevents.com': 'champagneevents',
+  
+// Legacy
+'iachat.bodasdehoy.com': 'bodasdehoy',
+
+  
+  
+'www.eventosorganizador.com': 'eventosorganizador',
+  
+'memories-dev.bodasdehoy.com': 'bodasdehoy',
+  
+'memories-test.bodasdehoy.com': 'bodasdehoy',
+  
+'memories.bodasdehoy.com': 'bodasdehoy',
+
+  
   'organizador.bodasdehoy.com': 'bodasdehoy',
+  'wedding-creator.bodasdehoy.com': 'bodasdehoy',
 };
 
 /**
@@ -204,6 +236,36 @@ export function detectDevelopmentFromURL(): string | null {
   }
 
   return null;
+}
+
+/**
+ * Developer efectivo para branding / visitante:
+ * 1) URL (query, dominio, path) — mismo criterio que un usuario sin sesión
+ * 2) Valor del store (tras EventosAutoAuth, etc.)
+ * 3) getCurrentDevelopment() (localStorage + default)
+ */
+export function resolveActiveDeveloperForBranding(storeDevelopment?: string | null): string {
+  const fromUrl = typeof window !== 'undefined' ? detectDevelopmentFromURL() : null;
+  if (fromUrl) return fromUrl.toLowerCase();
+
+  const sd = (storeDevelopment || '').toLowerCase();
+  if (sd && DEVELOPMENTS_CONFIG[sd]) return sd;
+
+  if (typeof window !== 'undefined') return getCurrentDevelopment();
+
+  return sd || 'bodasdehoy';
+}
+
+/** Nombre corto de marca (tabla local) o slug humanizado */
+export function getDeveloperDisplayName(developerKey: string): string {
+  const k = (developerKey || 'bodasdehoy').toLowerCase();
+  const cfg = DEVELOPMENTS_CONFIG[k];
+  if (cfg?.name) return cfg.name;
+  if (!developerKey) return DEVELOPMENTS_CONFIG.bodasdehoy.name;
+  return (
+    developerKey.charAt(0).toUpperCase() +
+    developerKey.slice(1).replace(/[-_]/g, ' ')
+  );
 }
 
 /**

@@ -1,6 +1,13 @@
 import { chainRewriteQuery } from '@lobechat/prompts';
 import { StateCreator } from 'zustand/vanilla';
 
+const SPANISH_REWRITE_QUERY_PROMPT =
+  'Dada la siguiente conversación y una pregunta de seguimiento, reformula la pregunta para que sea independiente (standalone), en el idioma original del usuario. ' +
+  'Mantén todos los detalles posibles de los mensajes anteriores. ' +
+  'Conserva nombres de entidades, cifras, fechas y cualquier dato específico. ' +
+  'Si la pregunta ya es independiente, devuélvela tal cual.';
+
+import { message } from '@/components/AntdStaticMethods';
 import { chatService } from '@/services/chat';
 import { ragService } from '@/services/rag';
 import { useAgentStore } from '@/store/agent';
@@ -86,10 +93,18 @@ export const chatRag: StateCreator<ChatStore, [['zustand/devtools', never]], [],
       get().internal_toggleMessageRAGLoading(false, id);
 
       return { chunks, queryId, rewriteQuery };
-    } catch {
+    } catch (e) {
       get().internal_toggleMessageRAGLoading(false, id);
-
-      return { chunks: [] };
+      console.error('[RAG] semanticSearchForChat', e);
+      const detail =
+        typeof e === 'object' && e !== null && 'message' in e && typeof (e as any).message === 'string'
+          ? (e as Error).message
+          : String(e);
+      message.error({
+        content: `No se pudo consultar la base de conocimiento (KB). ${detail}`,
+        duration: 12,
+      });
+      return { chunks: [], rewriteQuery };
     }
   },
   internal_rewriteQuery: async (id, content, messages) => {
@@ -104,7 +119,7 @@ export const chatRag: StateCreator<ChatStore, [['zustand/devtools', never]], [],
       ...chainRewriteQuery(
         content,
         messages,
-        !!queryRewriteConfig.customPrompt ? queryRewriteConfig.customPrompt : undefined,
+        queryRewriteConfig.customPrompt || SPANISH_REWRITE_QUERY_PROMPT,
       ),
     };
 

@@ -284,6 +284,7 @@ describe('FileManagerActions', () => {
         file: validFile,
         knowledgeBaseId: undefined,
         onStatusUpdate: expect.any(Function),
+        skipCheckFileType: true,
       });
       expect(refreshSpy).toHaveBeenCalled();
       // Should auto-parse text files
@@ -309,6 +310,7 @@ describe('FileManagerActions', () => {
         file,
         knowledgeBaseId: 'kb-123',
         onStatusUpdate: expect.any(Function),
+        skipCheckFileType: true,
       });
     });
 
