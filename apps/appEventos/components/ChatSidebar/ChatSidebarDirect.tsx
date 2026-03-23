@@ -9,7 +9,6 @@
 
 import { FC, memo, useCallback, useRef, useEffect, useLayoutEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/router';
 import { useChatSidebar } from '../../context/ChatSidebarContext';
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from '../../context';
 import { CopilotEmbed } from '../Copilot/CopilotEmbed';
@@ -168,6 +167,8 @@ const ChatSidebarDirect: FC = () => {
   const eventId = event?._id;
 
   const sidebarWidthRef = useRef(width);
+  /** Solo true tras haber estado en viewport móvil; evita resetear el panel en cada resize de escritorio. */
+  const wasMobileViewportRef = useRef(false);
   useEffect(() => {
     sidebarWidthRef.current = width;
   }, [width]);
@@ -178,11 +179,13 @@ const ChatSidebarDirect: FC = () => {
     const mobile = window.innerWidth < MOBILE_BREAKPOINT;
     setIsMobile(mobile);
     if (mobile) {
+      wasMobileViewportRef.current = true;
       setSessionsCollapsed(true); // en móvil el panel siempre colapsado (no toca preferencia guardada en localStorage)
       const vw = window.innerWidth;
       if (sidebarWidthRef.current !== vw) setWidth(vw);
-    } else {
-      // Volver a desktop: restaurar preferencia del panel de conversaciones
+    } else if (wasMobileViewportRef.current) {
+      // Solo al salir de móvil → desktop: restaurar preferencia (no en cada resize de escritorio)
+      wasMobileViewportRef.current = false;
       setSessionsCollapsed(readSessionsPanelCollapsedPreference());
     }
   }, [setWidth]);
@@ -237,14 +240,7 @@ const ChatSidebarDirect: FC = () => {
     };
   }, [setWidth]);
 
-  // ── ESC para cerrar ─────────────────────────────────────────────────────
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeSidebar();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [closeSidebar]);
+  // Escape para cerrar: ChatSidebarProvider (contexto global).
 
   // ── Abrir en nueva pestaña ──────────────────────────────────────────────
   const copilotUrl = useMemo(() => {
@@ -269,6 +265,31 @@ const ChatSidebarDirect: FC = () => {
   // ── Nombre de sesión activa para el header ──────────────────────────────
   const activeSessionLabel = sessions.find(s => s.id === activeSessionId)?.label;
 
+  const overlayPanelRef = useRef<HTMLDivElement>(null);
+
+  // Sin scroll detrás del drawer (Safari iOS a veces necesita html + body)
+  useEffect(() => {
+    if (typeof document === 'undefined' || !isOpen || !isMobile) return;
+    const { body, documentElement: html } = document;
+    const prevBody = body.style.overflow;
+    const prevHtml = html.style.overflow;
+    body.style.overflow = 'hidden';
+    html.style.overflow = 'hidden';
+    return () => {
+      body.style.overflow = prevBody;
+      html.style.overflow = prevHtml;
+    };
+  }, [isOpen, isMobile]);
+
+  // Foco en el panel al abrir en móvil (lectores de pantalla + teclado externo)
+  useEffect(() => {
+    if (!isOpen || !isMobile) return;
+    const id = requestAnimationFrame(() => {
+      overlayPanelRef.current?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [isOpen, isMobile]);
+
   if (!isOpen) return null;
 
   const isOverlay = isMobile;
@@ -290,13 +311,18 @@ const ChatSidebarDirect: FC = () => {
 
       <motion.div
         key="panel"
+        ref={overlayPanelRef}
+        role={isOverlay ? 'dialog' : undefined}
+        aria-modal={isOverlay ? true : undefined}
+        aria-labelledby={isOverlay ? 'copilot-sidebar-title' : undefined}
+        tabIndex={isOverlay ? -1 : undefined}
         initial={isOverlay ? { x: '-100%' } : { opacity: 0 }}
         animate={isOverlay ? { x: 0 } : { opacity: 1 }}
         exit={isOverlay ? { x: '-100%' } : { opacity: 0 }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
         className={
           isOverlay
-            ? 'fixed top-0 left-0 h-screen max-h-[100dvh] bg-white shadow-2xl z-50 flex flex-col overscroll-y-contain [-webkit-tap-highlight-color:transparent] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]'
+            ? 'fixed top-0 left-0 h-screen max-h-[100dvh] bg-white shadow-2xl z-50 flex flex-col overscroll-y-contain [-webkit-tap-highlight-color:transparent] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] outline-none'
             : 'h-full max-w-full bg-white shadow-xl flex flex-shrink-0 z-40 min-w-0'
         }
         style={{
@@ -321,7 +347,13 @@ const ChatSidebarDirect: FC = () => {
               {!isMobile && (
                 <button
                   type="button"
-                  onClick={() => setSessionsCollapsed(v => !v)}
+                  onClick={() => {
+                    setSessionsCollapsed(v => {
+                      const next = !v;
+                      if (!isMobile) persistSessionsPanelCollapsedPreference(next);
+                      return next;
+                    });
+                  }}
                   className="p-1.5 hover:bg-pink-50 rounded-lg transition-colors flex-shrink-0"
                   title={sessionsCollapsed ? 'Ver conversaciones' : 'Ocultar conversaciones'}
                 >
@@ -332,7 +364,7 @@ const ChatSidebarDirect: FC = () => {
               <IoSparkles className="text-pink-500 text-lg shrink-0" aria-hidden />
 
               <div className="min-w-0">
-                <h2 className="text-sm sm:text-base font-semibold text-gray-900 leading-tight truncate">
+                <h2 id="copilot-sidebar-title" className="text-sm sm:text-base font-semibold text-gray-900 leading-tight truncate">
                   Copilot IA
                 </h2>
                 {activeSessionLabel && activeSessionLabel !== 'Nueva conversación' && (
@@ -441,7 +473,10 @@ const ChatSidebarDirect: FC = () => {
                 onSelect={handleSelectSession}
                 onNew={handleNewSession}
                 onDelete={handleDeleteSession}
-                onCollapse={() => setSessionsCollapsed(true)}
+                onCollapse={() => {
+                  setSessionsCollapsed(true);
+                  if (!isMobile) persistSessionsPanelCollapsedPreference(true);
+                }}
               />
             )}
 

@@ -16,6 +16,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useToast } from '../../hooks/useToast';
+import { useVisualViewportKeyboardInset } from '../../hooks/useVisualViewportKeyboardInset';
 import { MessageList, CopilotChatInput } from '@bodasdehoy/copilot-shared';
 import type { MessageItem } from '@bodasdehoy/copilot-shared';
 import {
@@ -467,6 +468,7 @@ export const CopilotEmbed = ({
 }: CopilotEmbedProps) => {
   const router = useRouter();
   const toast = useToast();
+  const keyboardInsetBottom = useVisualViewportKeyboardInset();
   const { setCopilotFilter, clearCopilotFilter, refreshEventsGroup } = EventsGroupContextProvider();
 
   const [messages, setMessages] = useState<MessageItem[]>([]);
@@ -631,7 +633,7 @@ export const CopilotEmbed = ({
           break;
       }
     },
-    [router, toast, setCopilotFilter, clearCopilotFilter, refreshEventsGroup, addInlineEvent],
+    [router, setCopilotFilter, clearCopilotFilter, refreshEventsGroup, addInlineEvent],
   );
 
   // Construir acciones por mensaje
@@ -1088,8 +1090,15 @@ export const CopilotEmbed = ({
         </div>
       )}
 
-      {/* Input area — full LobeChat editor (CopilotChatInput) */}
-      <div style={{ borderTop: '1px solid #e8e8e8', background: '#fff', flexShrink: 0 }}>
+      {/* Input area — full LobeChat editor (CopilotChatInput); padding extra con teclado virtual móvil */}
+      <div
+        style={{
+          borderTop: '1px solid #e8e8e8',
+          background: '#fff',
+          flexShrink: 0,
+          paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + ${keyboardInsetBottom}px)`,
+        }}
+      >
         <CopilotChatInput
           generating={loading}
           chatKey={sessionId}
