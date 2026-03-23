@@ -476,6 +476,13 @@ const PlanesPage = memo(() => {
     return pct > max ? pct : max;
   }, 20);
 
+  const maxAnnualSavings = plans.reduce((max, p) => {
+    const monthly = p.pricing.monthly_fee;
+    const annual = p.pricing.annual_fee ?? Math.round(monthly * (1 - (p.pricing.annual_discount_percent ?? 20) / 100));
+    const savings = (monthly - annual) * 12;
+    return savings > max ? savings : max;
+  }, 0);
+
   return (
     <Flexbox gap={32} style={{ maxWidth: 1100, padding: 24, width: '100%' }}>
       <Breadcrumb
@@ -538,29 +545,36 @@ const PlanesPage = memo(() => {
         </p>
 
         {/* Toggle mensual / anual */}
-        <div className={styles.billingToggle}>
-          <button
-            className={
-              billing === 'monthly' ? styles.billingToggleActive : styles.billingToggleInactive
-            }
-            onClick={() => setBilling('monthly')}
-          >
-            Mensual
-          </button>
-          <button
-            className={
-              billing === 'yearly' ? styles.billingToggleActive : styles.billingToggleInactive
-            }
-            onClick={() => setBilling('yearly')}
-          >
-            Anual
-            <Badge
-              color="green"
-              count={`−${maxAnnualDiscount}%`}
-              style={{ fontSize: 10, marginLeft: 6 }}
-            />
-          </button>
-        </div>
+        <Flexbox align="center" gap={6}>
+          <div className={styles.billingToggle}>
+            <button
+              className={
+                billing === 'monthly' ? styles.billingToggleActive : styles.billingToggleInactive
+              }
+              onClick={() => setBilling('monthly')}
+            >
+              Mensual
+            </button>
+            <button
+              className={
+                billing === 'yearly' ? styles.billingToggleActive : styles.billingToggleInactive
+              }
+              onClick={() => setBilling('yearly')}
+            >
+              Anual
+              <Badge
+                color="green"
+                count={`−${maxAnnualDiscount}%`}
+                style={{ fontSize: 10, marginLeft: 6 }}
+              />
+            </button>
+          </div>
+          {billing === 'yearly' && maxAnnualSavings > 0 && (
+            <span style={{ color: '#10b981', fontSize: 12, fontWeight: 600 }}>
+              Ahorra hasta €{maxAnnualSavings}/año 🎉
+            </span>
+          )}
+        </Flexbox>
       </Flexbox>
 
       {/* Grid de planes */}

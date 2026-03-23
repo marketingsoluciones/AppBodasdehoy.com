@@ -152,6 +152,21 @@ const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck,
           </Flexbox>
         )}
 
+        {/* Social proof hint */}
+        <div
+          style={{
+            background: 'var(--lobe-color-fill-tertiary, #f5f5f5)',
+            borderRadius: 8,
+            color: 'var(--lobe-color-text-secondary)',
+            fontSize: 12,
+            marginBottom: 16,
+            padding: '8px 12px',
+            textAlign: 'center',
+          }}
+        >
+          💡 La mayoría de usuarios recargan <strong>€20</strong> · suficiente para ~200 conversaciones con IA
+        </div>
+
         {/* Amount Selection */}
         <Flexbox gap={12} style={{ marginBottom: 20 }}>
           <label style={{ color: 'var(--lobe-color-text-secondary)', fontSize: 14 }}>
