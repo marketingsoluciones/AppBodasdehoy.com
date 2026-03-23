@@ -188,6 +188,12 @@ async function exchangeFirebaseTokenForJWT(
     // También guardar jwt_token para compatibilidad con getAuthToken()
     localStorage.setItem('jwt_token', data.token);
 
+    // Cookie dedicada api2_jwt: el chat proxy la lee para Authorization header.
+    // A diferencia de dev-user-config, ningún componente React la sobreescribe.
+    if (typeof window !== 'undefined') {
+      document.cookie = `api2_jwt=${encodeURIComponent(data.token)}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+    }
+
     // Guardar dev-user-config para que EventosAutoAuth reconozca al usuario
     const devUserConfig = {
       developer: data.development || development,

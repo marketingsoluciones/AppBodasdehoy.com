@@ -70,22 +70,15 @@ async function loginChat(page: Page): Promise<boolean> {
   // Wait for dev-user-config cookie to be set (FirebaseAuth sets it after redirect)
   await page.waitForTimeout(3000);
 
-  // SIEMPRE sincronizar cookie dev-user-config con el JWT de localStorage.
-  // Componentes React sobreescriben la cookie con token=null (race condition).
-  const cookieFixed = await page.evaluate(() => {
+  // Setear cookie dedicada api2_jwt para el chat proxy.
+  // React sobreescribe dev-user-config.token con null, pero NO toca api2_jwt.
+  const cookieResult = await page.evaluate(() => {
     const jwt = localStorage.getItem('api2_jwt_token') || localStorage.getItem('jwt_token');
-    const raw = localStorage.getItem('dev-user-config');
-    if (!jwt || !raw) return { fixed: false, jwt: !!jwt, raw: !!raw };
-    try {
-      const config = JSON.parse(raw);
-      // SIEMPRE forzar el token en la cookie, incluso si config.token ya existe
-      config.token = jwt;
-      localStorage.setItem('dev-user-config', JSON.stringify(config));
-      document.cookie = `dev-user-config=${encodeURIComponent(JSON.stringify(config))}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
-      return { fixed: true, tokenSlice: jwt.slice(0, 20) };
-    } catch { return { fixed: false, parseError: true }; }
+    if (!jwt) return { ok: false, reason: 'no-jwt-in-localStorage' };
+    document.cookie = `api2_jwt=${encodeURIComponent(jwt)}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+    return { ok: true, tokenSlice: jwt.slice(0, 20) };
   });
-  console.log('[E2E] Cookie synced after login:', JSON.stringify(cookieFixed));
+  console.log('[E2E] JWT cookie set:', JSON.stringify(cookieResult));
 
   return !page.url().includes('/login');
 }

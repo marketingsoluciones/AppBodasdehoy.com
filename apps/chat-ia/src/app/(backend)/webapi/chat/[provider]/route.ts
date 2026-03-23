@@ -150,10 +150,23 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
     }
 
     // Extraer JWT de cookie si no hay Authorization
+    // Prioridad: 1) cookie api2_jwt (dedicada, no la sobreescriben componentes React)
+    //            2) cookie dev-user-config.token (legacy, puede ser null por race condition)
     if (!headers['Authorization'] && !headers['authorization']) {
       try {
-        const cookieHeader = req.headers.get('cookie');
-        if (cookieHeader) {
+        const cookieHeader = req.headers.get('cookie') || '';
+
+        // 1) Cookie dedicada api2_jwt
+        const jwtMatch = cookieHeader.match(/api2_jwt=([^;]+)/);
+        if (jwtMatch) {
+          const jwt = decodeURIComponent(jwtMatch[1]);
+          if (jwt && jwt.startsWith('eyJ')) {
+            headers['Authorization'] = `Bearer ${jwt}`;
+          }
+        }
+
+        // 2) Fallback: dev-user-config.token
+        if (!headers['Authorization']) {
           const match = cookieHeader.match(/dev-user-config=([^;]+)/);
           if (match) {
             const decoded = decodeURIComponent(match[1]);
@@ -171,8 +184,8 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
     }
 
     // DEBUG: verificar si Authorization se envía a api-ia
-    const authSnippet = headers['Authorization'] ? headers['Authorization'].slice(0, 40) + '...' : 'NONE';
-    console.log(`[chat-proxy] → ${provider} | Auth: ${authSnippet} | Support-Key: ${headers['X-Support-Key'] ? 'YES' : 'NO'} | Cookie-token: ${(() => { try { const c = req.headers.get('cookie') || ''; const m = c.match(/dev-user-config=([^;]+)/); if (m) { const d = JSON.parse(decodeURIComponent(m[1])); return d.token ? d.token.slice(0, 30) + '...' : 'token=null'; } return 'no-cookie'; } catch { return 'parse-err'; } })()}`);
+    const authSnippet = headers['Authorization'] ? 'Bearer ' + headers['Authorization'].slice(7, 27) + '...' : 'NONE';
+    console.log(`[chat-proxy] → ${provider} | Auth: ${authSnippet} | Support-Key: ${headers['X-Support-Key'] ? 'YES' : 'NO'}`);
 
     // Timeout de 60 segundos
     const controller = new AbortController();
