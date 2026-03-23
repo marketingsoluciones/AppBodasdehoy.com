@@ -1,5 +1,5 @@
 {
-  "framework": null,
+  "framework": "nextjs",
   "buildCommand": "cd apps/appEventos && pnpm build",
   "installCommand": "pnpm install",
   "outputDirectory": "apps/appEventos/.next",
