@@ -63,7 +63,15 @@ export const ItineraryColumns: FC<props> = ({ data = [], multiSeled = true, reen
         link.click()
         document.body.removeChild(link)
       })
-    } catch (error) {
+    } catch (error: any) {
+      const code = error?.code;
+      if (code === 'storage/object-not-found') {
+        toast("error", t("Archivo no encontrado"));
+      } else if (code === 'storage/unauthorized') {
+        toast("error", t("Sin permisos para descargar este archivo"));
+      } else {
+        toast("error", t("Error al descargar el archivo"));
+      }
     }
   }
 

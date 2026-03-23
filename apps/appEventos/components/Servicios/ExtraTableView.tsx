@@ -158,6 +158,7 @@ export const ExtraTableView: FC<props> = ({
 }) => {
     const storage = getStorage();
     const { t } = useTranslation();
+    const toast = useToast();
     const [arrEnviarInvitaciones, setArrEnviatInvitaciones] = useState([]);
     const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
     const tableRef = useRef<HTMLDivElement>(null);
@@ -919,7 +920,15 @@ export const ExtraTableView: FC<props> = ({
                   link.click();
                   document.body.removeChild(link);
                 });
-              } catch (error) {
+              } catch (error: any) {
+                const code = error?.code;
+                if (code === 'storage/object-not-found') {
+                  toast("error", t("Archivo no encontrado"));
+                } else if (code === 'storage/unauthorized') {
+                  toast("error", t("Sin permisos para descargar este archivo"));
+                } else {
+                  toast("error", t("Error al descargar el archivo"));
+                }
               }
             };
         

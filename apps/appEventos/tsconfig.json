@@ -20,7 +20,12 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "paths": {
+      "@lobehub/editor": ["./node_modules/@lobehub/editor"],
+      "@lobehub/editor/*": ["./node_modules/@lobehub/editor/*"],
+      "zustand-utils": ["../chat-ia/node_modules/zustand-utils"]
+    }
   },
   "include": [
     "next-env.d.ts",

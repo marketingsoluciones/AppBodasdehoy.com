@@ -706,17 +706,39 @@ const AuthProvider = ({ children }) => {
         }
       }
       // SSO cross-domain: si no hay sessionCookie ni usuario Firebase,
-      // pero hay idTokenV0.1.0 de otra app (ej. chat-ia), crear sesión automáticamente.
+      // pero hay idTokenV0.1.0 (p. ej. login en chat-dev/chat-test/chat), crear sesión automáticamente.
       if (!sessionCookie && !user?.uid) {
         const crossDomainIdToken = Cookies.get("idTokenV0.1.0")
         if (crossDomainIdToken) {
           console.log("[Verificator] 🔗 SSO cross-domain: idTokenV0.1.0 encontrado, creando sesión...")
           try {
-            const ssoAuthResult: any = await fetchApiBodas({
-              query: queries.auth,
-              variables: { idToken: crossDomainIdToken },
-              development: config?.development
-            })
+            // IMPORTANTE: Usar fetch directo (no fetchApiBodas) para evitar que
+            // handleSessionExpired borre idTokenV0.1.0 y cause un bucle de login.
+            // La mutation `auth` es una operación de LOGIN — no necesita interceptor de sesión.
+            const _isDevOrTest = typeof window !== 'undefined' && (
+              window.location.hostname === 'localhost' ||
+              window.location.hostname === '127.0.0.1' ||
+              window.location.hostname.includes('-test.') ||
+              window.location.hostname.includes('-dev.')
+            );
+            const ssoApiUrl = _isDevOrTest ? '/api/proxy-bodas/graphql' : 'https://api.bodasdehoy.com/graphql';
+
+            const ssoResp = await fetch(ssoApiUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Development': config?.development || 'bodasdehoy',
+              },
+              body: JSON.stringify({
+                query: queries.auth,
+                variables: { idToken: crossDomainIdToken },
+              }),
+            });
+
+            if (!ssoResp.ok) throw new Error(`SSO auth API returned ${ssoResp.status}`);
+            const ssoJson = await ssoResp.json();
+            const ssoAuthResult: any = ssoJson?.data?.auth;
+
             if (ssoAuthResult?.sessionCookie) {
               const isDevLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
               const cookieDomain = isDevLocal ? undefined : (process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : (process.env.NEXT_PUBLIC_DOMINIO || ".bodasdehoy.com"));

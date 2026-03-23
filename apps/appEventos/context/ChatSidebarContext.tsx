@@ -11,9 +11,14 @@ interface ChatSidebarContextType {
 
 const ChatSidebarContext = createContext<ChatSidebarContextType | null>(null);
 
-const MIN_WIDTH = 320;
-const MAX_WIDTH = 700; // Pantallas grandes: permitir panel más ancho para dividir bien la vista
-const DEFAULT_WIDTH = 420;
+/** Anchos del panel Copilot (px). Default ~400 para leer el chat; se puede estrechar hasta MIN. */
+export const CHAT_SIDEBAR_MIN_WIDTH = 234;
+export const CHAT_SIDEBAR_MAX_WIDTH = 700;
+export const CHAT_SIDEBAR_DEFAULT_WIDTH = 400;
+
+const MIN_WIDTH = CHAT_SIDEBAR_MIN_WIDTH;
+const MAX_WIDTH = CHAT_SIDEBAR_MAX_WIDTH;
+const DEFAULT_WIDTH = CHAT_SIDEBAR_DEFAULT_WIDTH;
 
 interface ChatSidebarProviderProps {
   children: ReactNode;

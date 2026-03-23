@@ -61,6 +61,8 @@ const ChatSidebar: FC = () => {
   const isResizingRef = useRef(false);
   const lastXRef = useRef(0);
   const rafRef = useRef<number>(0);
+  const currentWidthRef = useRef(width);
+  useEffect(() => { currentWidthRef.current = width; }, [width]);
 
   // Handler para resize
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -78,7 +80,7 @@ const ChatSidebar: FC = () => {
       rafRef.current = requestAnimationFrame(() => {
         const deltaX = e.clientX - lastXRef.current;
         lastXRef.current = e.clientX;
-        setWidth((prev) => Math.max(MIN_WIDTH, prev + deltaX));
+        setWidth(Math.max(MIN_WIDTH, currentWidthRef.current + deltaX));
       });
     };
 

@@ -16,6 +16,12 @@ const config: Config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^nanoid$': '<rootDir>/__mocks__/nanoid.js',
+    // @lobehub packages use ESM — mock them for tests that don't exercise UI rendering
+    '^@lobehub/ui(.*)$': '<rootDir>/__mocks__/@lobehub/ui.js',
+    '^@lobehub/editor(.*)$': '<rootDir>/__mocks__/@lobehub/editor.js',
+    // lodash-es is ESM — use lodash CJS instead
+    '^lodash-es$': 'lodash',
+    '^lodash-es/(.*)$': 'lodash/$1',
   },
 };
 

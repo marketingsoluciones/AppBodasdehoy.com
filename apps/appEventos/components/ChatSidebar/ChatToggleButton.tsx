@@ -26,7 +26,7 @@ const ChatToggleButton: FC<ChatToggleButtonProps> = ({ className = '' }) => {
         transition-all duration-200
         ${isOpen
           ? 'bg-primary text-white shadow-md'
-          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          : 'border border-gray-200 bg-gray-50 text-gray-900 hover:bg-gray-100'
         }
         ${className}
       `}

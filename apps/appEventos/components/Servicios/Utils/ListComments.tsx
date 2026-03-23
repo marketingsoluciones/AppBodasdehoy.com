@@ -77,7 +77,16 @@ export const ListComments: FC<props> = ({ itinerario, task, item, identifierDisa
                   {!elem?.loading && <div className="absolute z-20 right-3 top-2 text-gray-600 hover:text-gray-800 cursor-pointer"
                     onClick={() => {
                       downloadFile(storage, `event-${event._id}//itinerary-${itinerario._id}//task-${task._id}//comment-${item._id}//${elem?.name ?? elem?.file?.name}`)
-                        .catch((error) => toast("error", `${t("Ha ocurrido un error")}`))
+                        .catch((error: any) => {
+                          const code = error?.code;
+                          if (code === 'storage/object-not-found') {
+                            toast("error", t("Archivo no encontrado"));
+                          } else if (code === 'storage/unauthorized') {
+                            toast("error", t("Sin permisos para descargar este archivo"));
+                          } else {
+                            toast("error", t("Error al descargar el archivo"));
+                          }
+                        })
                     }} >
                     <CgSoftwareDownload className="w-6 h-6" />
                   </div>}

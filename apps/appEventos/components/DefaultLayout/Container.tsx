@@ -1,10 +1,12 @@
 import { useRouter, usePathname } from "next/navigation";
 import { AuthContextProvider, LoadingContextProvider, useChatSidebar } from "../../context";
+import { EventsGroupContextProvider } from "../../context";
 import NavigationMobile from "./NavigationMobile";
 import Navigation from "./Navigation";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { ChatSidebarDirect } from "../ChatSidebar";
+import { CHAT_SIDEBAR_MIN_WIDTH, CHAT_SIDEBAR_MAX_WIDTH, CHAT_SIDEBAR_DEFAULT_WIDTH } from "../../context/ChatSidebarContext";
 import CopilotFilterBar from "../Utils/CopilotFilterBar";
 
 /** Breakpoint: a partir de este ancho el Copilot usa 20% del espacio (20vw) */
@@ -22,6 +24,28 @@ const Container = (props) => {
 
   const [isWideScreen, setIsWideScreen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  const { setCopilotFilter, clearCopilotFilter } = EventsGroupContextProvider();
+
+  // Listener global FILTER_VIEW / CLEAR_FILTER.
+  // Procesa postMessages de chat-ia independientemente de si CopilotEmbed o CopilotIframe está montado.
+  // CopilotIframe tiene su propio listener pero solo cuando está en el DOM (rutas /asistente, /diseno-espacios).
+  // Para CopilotEmbed (sidebar nativo), este listener es el único punto de entrada para postMessage externo.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = (event: MessageEvent) => {
+      const { type, payload, source } = event.data || {};
+      if (source === "copilot-parent") return; // ignorar mensajes propios
+      if (type === "FILTER_VIEW") {
+        const { entity, ids, query } = payload || {};
+        if (entity) setCopilotFilter({ entity, ids, query });
+      } else if (type === "CLEAR_FILTER") {
+        clearCopilotFilter();
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, [setCopilotFilter, clearCopilotFilter]);
 
   // Quitar overlay "Un momento, por favor" al montar y en cada cambio de ruta.
   // El Sidebar y otras partes ponen setLoading(true) al navegar; si la página destino no llama setLoading(false), el overlay se quedaba fijo.
@@ -70,7 +94,12 @@ const Container = (props) => {
   // En desktop, cuando el Copilot está abierto, reservar su ancho en el layout para que el contenido
   // (tarjetas de eventos, etc.) ceda espacio y no quede tapado por superposición.
   const copilotOpenDesktop = shouldShowChatSidebar && !isMobile && chatSidebar?.isOpen;
-  const copilotSlotWidth = copilotOpenDesktop ? Math.max(320, Math.min(700, chatSidebar?.width ?? 420)) + 4 : 0; // +4 por el resizer
+  const copilotSlotWidth = copilotOpenDesktop
+    ? Math.max(
+        CHAT_SIDEBAR_MIN_WIDTH,
+        Math.min(CHAT_SIDEBAR_MAX_WIDTH, chatSidebar?.width ?? CHAT_SIDEBAR_DEFAULT_WIDTH),
+      ) + 4
+    : 0; // +4 px = asa de resize dentro del panel
 
   return (
     <>
@@ -100,10 +129,14 @@ const Container = (props) => {
         }}
       >
         {shouldShowChatSidebar && (
-          /* Columna Copilot: ancho fijo, contenido recortado si desborda. El banner central nunca queda tapado. */
+          /* Columna Copilot: mismo ancho que reserva el grid (sin hueco gris por 20vw vs slot). */
           <div
-            className="flex flex-row h-full overflow-hidden shrink-0"
-            style={{ minWidth: 0, maxWidth: copilotSlotWidth }}
+            className="flex flex-row h-full overflow-hidden shrink-0 bg-white text-gray-900 [color-scheme:light]"
+            style={{
+              minWidth: 0,
+              width: copilotSlotWidth,
+              maxWidth: copilotSlotWidth,
+            }}
           >
             <ChatSidebarDirect />
           </div>

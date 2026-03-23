@@ -20,10 +20,14 @@ const PREGUNTAS_EJEMPLO = [
 ];
 
 // Para que el agente/navegador de Cursor pueda abrir y hacer pruebas: si la web se abre en localhost, usar Copilot en localhost.
-const CHAT_TEST_BASE =
-  typeof window !== 'undefined' && window.location?.hostname === 'localhost'
-    ? `${window.location.protocol}//localhost:3210`
-    : (process.env.NEXT_PUBLIC_CHAT || 'https://chat-test.bodasdehoy.com').replace(/\/$/, '');
+const CHAT_TEST_BASE = (() => {
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname === 'localhost') return `${window.location.protocol}//localhost:3210`;
+    if (window.location.hostname.includes('-dev.')) return 'https://chat-dev.bodasdehoy.com';
+    if (window.location.hostname.includes('-test.')) return 'https://chat-test.bodasdehoy.com';
+  }
+  return (process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com').replace(/\/$/, '');
+})();
 const TEST_SUITE_PATH = '/bodasdehoy/admin/test-suite';
 
 export default function TestPreguntas() {

@@ -7,6 +7,9 @@
  * - Escucha LOBE_CHAT_READY del copilot
  * - Envía AUTH_CONFIG con la sesión del usuario
  * - Envía PAGE_CONTEXT cuando cambia la pantalla con los datos reales del evento
+ *
+ * Modo UI: por defecto `fullUi` añade `full_ui=1` para la experiencia LobeChat completa
+ * (panel de sesiones, cabecera, etc.). Con `fullUi={false}` se usa embed+minimal (solo hilo + input).
  */
 
 import { useState, useCallback, memo, useEffect, useRef } from 'react';
@@ -40,9 +43,25 @@ interface CopilotIframeProps {
   isAnonymous?: boolean;
   /** Plugin identifiers to auto-enable in the copilot when the iframe loads */
   enablePlugins?: string[];
+  /**
+   * Si es true (por defecto), el iframe pide `full_ui=1` y chat-ia muestra la UI completa
+   * aunque vaya en iframe. Si es false, modo mínimo (embed/minimal): solo conversación + input.
+   */
+  fullUi?: boolean;
 }
 
-const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName, className, userData, event, isAnonymous, enablePlugins }: CopilotIframeProps) => {
+const CopilotIframe = ({
+  userId,
+  development = 'bodasdehoy',
+  eventId,
+  eventName,
+  className,
+  userData,
+  event,
+  isAnonymous,
+  enablePlugins,
+  fullUi = true,
+}: CopilotIframeProps) => {
     const router = useRouter();
     const { setCopilotFilter, refreshEventsGroup } = EventsGroupContextProvider();
     // ✅ CORRECCIÓN: Iniciar isLoaded como true para que el iframe se muestre inmediatamente
@@ -76,11 +95,15 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
     const buildCopilotUrl = useCallback(() => {
       const params = new URLSearchParams();
 
-      // Modo embebido: oculta navegación lateral del copilot y deja solo conversación + input.
-      params.set('embed', '1');
-      // Redundancia para compatibilidad (algunas rutas/layouts leen estos flags)
-      params.set('embedded', '1');
-      params.set('minimal', '1');
+      if (fullUi) {
+        // Ver resolveChatEmbedMode en chat-ia: full_ui=1 desactiva el modo embed aunque el documento sea iframe.
+        params.set('full_ui', '1');
+      } else {
+        // Modo embebido: oculta navegación lateral del copilot y deja solo conversación + input.
+        params.set('embed', '1');
+        params.set('embedded', '1');
+        params.set('minimal', '1');
+      }
 
       if (development) {
         params.set('developer', development);
@@ -131,7 +154,7 @@ const CopilotIframe = ({ userId, development = 'bodasdehoy', eventId, eventName,
     // Solo userId, email y development determinan la URL base del iframe.
     // eventId se excluye para evitar recargas cuando el evento carga asíncronamente.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [userId, userData?.email, development, getCopilotBaseUrl]);
+    }, [userId, userData?.email, development, getCopilotBaseUrl, fullUi]);
 
     const [iframeSrc, setIframeSrc] = useState(buildCopilotUrl());
     const retryCountRef = useRef(0);

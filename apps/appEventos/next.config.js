@@ -13,7 +13,7 @@ const nextConfig = {
 
   // Transpile packages del monorepo y @lobehub/ui
   // Agregado 'debug' y 'supports-color' para solucionar error ESM con dependencies de @lobehub/editor
-  transpilePackages: ['@bodasdehoy/auth-ui', '@bodasdehoy/shared', '@bodasdehoy/memories', '@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'debug', 'supports-color'],
+  transpilePackages: ['@bodasdehoy/auth-ui', '@bodasdehoy/shared', '@bodasdehoy/memories', '@bodasdehoy/copilot-shared', '@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'zustand-utils', 'debug', 'supports-color'],
 
   // Redirects para URLs con caracteres especiales → ASCII equivalente
   async redirects() {
