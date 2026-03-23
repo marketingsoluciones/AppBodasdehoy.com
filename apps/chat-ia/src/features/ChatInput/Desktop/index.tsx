@@ -15,6 +15,7 @@ import { systemStatusSelectors } from '@/store/global/selectors';
 
 import ActionBar from '../ActionBar';
 import InputEditor from '../InputEditor';
+import QuotaBanner from '../QuotaBanner';
 import SendArea from '../SendArea';
 import TypoBar from '../TypoBar';
 import FilePreview from './FilePreview';
@@ -76,6 +77,7 @@ const DesktopChatInput = memo<{ showFootnote?: boolean }>(({ showFootnote }) => 
   return (
     <>
       {!expand && fileNode}
+      {!expand && <QuotaBanner />}
       <Flexbox
         className={cx(styles.container, expand && styles.fullscreen)}
         gap={8}
