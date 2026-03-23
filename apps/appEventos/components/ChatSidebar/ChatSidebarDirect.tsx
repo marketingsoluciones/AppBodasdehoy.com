@@ -184,6 +184,7 @@ const ChatSidebarDirect: FC = () => {
       const vw = window.innerWidth;
       if (sidebarWidthRef.current !== vw) setWidth(vw);
     } else if (wasMobileViewportRef.current) {
+      // Solo al salir de móvil → desktop: restaurar preferencia (no en cada resize de escritorio)
       wasMobileViewportRef.current = false;
       setSessionsCollapsed(readSessionsPanelCollapsedPreference());
     }
