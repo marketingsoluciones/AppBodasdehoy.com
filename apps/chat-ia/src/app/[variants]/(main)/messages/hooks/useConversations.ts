@@ -56,15 +56,15 @@ export function useConversations(channel: string | null) {
         const rawList = Array.isArray(data) ? data : data.conversations || [];
         const normalized: Conversation[] = rawList.map((c: any) => ({
           channel: (c.channel || c.platform || channel || 'whatsapp') as Conversation['channel'],
-          id: c.conversationId || c.id,
           contact: {
             name: c.displayName || c.phoneNumber || 'Desconocido',
             phone: c.phoneNumber,
           },
+          id: c.conversationId || c.id,
           lastMessage: {
+            fromUser: false,
             text: c.lastMessage || '',
             timestamp: c.lastMessageAt || c.updatedAt || new Date().toISOString(),
-            fromUser: false,
           },
           unreadCount: c.unreadCount || 0,
         }));

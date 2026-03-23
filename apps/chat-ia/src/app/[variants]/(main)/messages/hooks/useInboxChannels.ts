@@ -21,19 +21,20 @@ export type ChannelKind =
   | 'tasks';
 
 export interface InboxChannel {
-  id: string; // URL param: "whatsapp", "wa-channelId", "ev-eventId-itinerary"
-  label: string;
-  kind: ChannelKind;
-  unread: number;
-  status?: 'connected' | 'disconnected' | 'connecting';
+  eventId?: string; 
+  id: string;
   isPlaceholder?: boolean;
-  eventId?: string;
+  kind: ChannelKind;
+  // URL param: "whatsapp", "wa-channelId", "ev-eventId-itinerary"
+  label: string;
+  status?: 'connected' | 'disconnected' | 'connecting';
+  unread: number;
 }
 
 export interface EventGroup {
+  channels: InboxChannel[];
   eventId: string;
   eventName: string;
-  channels: InboxChannel[];
 }
 
 export function useInboxChannels() {
@@ -92,62 +93,62 @@ export function useInboxChannels() {
   const externalChannels: InboxChannel[] = [
     ...waChannels.map((ch) => ({
       id: `wa-${ch.id}`,
-      label: ch.displayName || ch.phoneNumber || ch.name,
       kind: 'whatsapp' as const,
-      unread: unreadByChannel.get(ch.sessionKey || ch.name || '') ?? 0,
+      label: ch.displayName || ch.phoneNumber || ch.name,
       status:
         ch.status === 'ACTIVE'
           ? ('connected' as const)
           : ch.status === 'CONNECTING'
             ? ('connecting' as const)
             : ('disconnected' as const),
+      unread: unreadByChannel.get(ch.sessionKey || ch.name || '') ?? 0,
     })),
     // If no WA channels configured yet, show a "connect" entry
     ...(waChannels.length === 0 && !loading
       ? [
           {
             id: 'whatsapp',
-            label: 'WhatsApp',
             kind: 'whatsapp' as const,
-            unread: 0,
+            label: 'WhatsApp',
             status: 'disconnected' as const,
+            unread: 0,
           },
         ]
       : []),
     {
       id: 'instagram',
-      label: 'Instagram',
-      kind: 'instagram' as const,
-      unread: 0,
       isPlaceholder: true,
+      kind: 'instagram' as const,
+      label: 'Instagram',
+      unread: 0,
     },
     {
       id: 'telegram',
-      label: 'Telegram',
-      kind: 'telegram' as const,
-      unread: 0,
       isPlaceholder: true,
+      kind: 'telegram' as const,
+      label: 'Telegram',
+      unread: 0,
     },
     {
       id: 'email',
-      label: 'Email',
-      kind: 'email' as const,
-      unread: 0,
       isPlaceholder: true,
+      kind: 'email' as const,
+      label: 'Email',
+      unread: 0,
     },
     {
       id: 'web',
-      label: 'Chat Web',
-      kind: 'web' as const,
-      unread: 0,
       isPlaceholder: true,
+      kind: 'web' as const,
+      label: 'Chat Web',
+      unread: 0,
     },
     {
       id: 'facebook',
-      label: 'Facebook',
-      kind: 'facebook' as const,
-      unread: 0,
       isPlaceholder: true,
+      kind: 'facebook' as const,
+      label: 'Facebook',
+      unread: 0,
     },
   ];
 
@@ -166,40 +167,40 @@ export function useInboxChannels() {
   const eventGroups: EventGroup[] = recentEvents.map((event: any) => {
     const eventId = event.id || event._id || '';
     return {
-      eventId,
-      eventName: event.name || event.nombre || 'Evento',
       channels: [
         {
+          eventId,
           id: `ev-${eventId}-itinerary`,
-          label: 'itinerario',
           kind: 'itinerary' as const,
+          label: 'itinerario',
           unread: 0,
-          eventId,
         },
         {
+          eventId,
           id: `ev-${eventId}-services`,
-          label: 'servicios',
           kind: 'services' as const,
+          label: 'servicios',
           unread: 0,
-          eventId,
         },
         {
+          eventId,
           id: `ev-${eventId}-guests`,
-          label: 'invitados',
           kind: 'guests' as const,
+          label: 'invitados',
           unread: 0,
-          eventId,
         },
         {
-          id: `ev-${eventId}-tasks`,
-          label: 'tareas',
-          kind: 'tasks' as const,
-          unread: 0,
           eventId,
+          id: `ev-${eventId}-tasks`,
+          kind: 'tasks' as const,
+          label: 'tareas',
+          unread: 0,
         },
       ],
+      eventId,
+      eventName: event.name || event.nombre || 'Evento',
     };
   });
 
-  return { externalChannels, eventGroups, loading, isGuest };
+  return { eventGroups, externalChannels, isGuest, loading };
 }

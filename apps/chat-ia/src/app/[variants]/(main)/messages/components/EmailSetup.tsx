@@ -32,9 +32,9 @@ export function EmailSetup({ development, onConnected }: EmailSetupProps) {
 
     try {
       const res = await fetch(`/api/messages/email/oauth-url`, {
-        method: 'POST',
-        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ development, provider: prov }),
+        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
+        method: 'POST',
       });
 
       if (!res.ok) {
@@ -74,14 +74,14 @@ export function EmailSetup({ development, onConnected }: EmailSetupProps) {
 
     try {
       const res = await fetch('/api/messages/email/connect', {
-        method: 'POST',
-        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({
           development,
-          provider: 'smtp',
-          smtp: { host: smtpHost, port: Number(smtpPort), user: smtpUser, pass: smtpPass },
           imap: { host: imapHost || smtpHost.replace('smtp', 'imap'), port: Number(imapPort) },
+          provider: 'smtp',
+          smtp: { host: smtpHost, pass: smtpPass, port: Number(smtpPort), user: smtpUser },
         }),
+        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
+        method: 'POST',
       });
 
       if (!res.ok) {
@@ -101,9 +101,9 @@ export function EmailSetup({ development, onConnected }: EmailSetupProps) {
   const handleDisconnect = async () => {
     try {
       await fetch('/api/messages/email/disconnect', {
-        method: 'POST',
-        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ development }),
+        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
+        method: 'POST',
       });
     } catch {
       // ignore

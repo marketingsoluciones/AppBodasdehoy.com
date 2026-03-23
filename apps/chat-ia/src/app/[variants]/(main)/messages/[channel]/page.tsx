@@ -28,15 +28,15 @@ function isTaskChannel(channel: string) {
 
 // Channels that show a full-width setup/config screen
 const SETUP_CHANNELS: Record<string, React.ComponentType<{ development: string }>> = {
-  whatsapp: WhatsAppSetup,
+  email: EmailSetup,
+  facebook: FacebookSetup,
   instagram: InstagramSetup,
   telegram: TelegramSetup,
-  email: EmailSetup,
   web: WebChatSetup,
-  facebook: FacebookSetup,
+  whatsapp: WhatsAppSetup,
 };
 
-function ChannelSetupPage({ development, channel }: { development: string; channel: string }) {
+function ChannelSetupPage({ development, channel }: { channel: string, development: string; }) {
   const SetupComponent = SETUP_CHANNELS[channel];
   if (!SetupComponent) return null;
   return (
@@ -70,7 +70,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
   const dev = development || 'bodasdehoy';
 
   if (channel in SETUP_CHANNELS) {
-    return <ChannelSetupPage development={dev} channel={channel} />;
+    return <ChannelSetupPage channel={channel} development={dev} />;
   }
 
   return (

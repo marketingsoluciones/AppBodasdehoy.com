@@ -1,10 +1,12 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useInboxChannels } from '../hooks/useInboxChannels';
-import type { InboxChannel, EventGroup } from '../hooks/useInboxChannels';
+import type { InboxChannel } from '../hooks/useInboxChannels';
+import { useChannelHealthMonitor } from '../hooks/useChannelHealthMonitor';
+import type { ChannelDownEvent } from '../hooks/useChannelHealthMonitor';
 import { usePendingTasksSidebar } from '../hooks/usePendingTasksSidebar';
 import type { PendingTaskItem } from '../hooks/usePendingTasksSidebar';
 import { useRecentConversations, CHANNEL_BADGE } from '../hooks/useRecentConversations';
@@ -14,16 +16,16 @@ import { getUnreadNotificationsCount } from '@/services/api2/notifications';
 // ─── icons ────────────────────────────────────────────────────────────────────
 
 const CHANNEL_ICON: Record<string, string> = {
-  whatsapp: '📱',
-  instagram: '📷',
-  facebook: '📘',
-  telegram: '✈️',
   email: '📧',
-  web: '🌐',
+  facebook: '📘',
+  guests: '👥',
+  instagram: '📷',
   itinerary: '📅',
   services: '🏢',
-  guests: '👥',
   tasks: '✅',
+  telegram: '✈️',
+  web: '🌐',
+  whatsapp: '📱',
 };
 
 const STATUS_DOT: Record<string, string> = {
@@ -48,7 +50,7 @@ function formatRelativeTime(date: Date | string): string {
 function SectionLabel({ label }: { label: string }) {
   return (
     <div className="px-3 pb-1 pt-4">
-      <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+      <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
         {label}
       </span>
     </div>
@@ -60,8 +62,8 @@ function TaskRow({
   isActive,
   onClick,
 }: {
-  item: PendingTaskItem;
   isActive: boolean;
+  item: PendingTaskItem;
   onClick: () => void;
 }) {
   const { tarea } = item;
@@ -169,9 +171,9 @@ function ChannelRow({
   compact = false,
 }: {
   channel: InboxChannel;
+  compact?: boolean;
   isActive: boolean;
   onClick: () => void;
-  compact?: boolean;
 }) {
   const icon = CHANNEL_ICON[channel.kind] ?? '💬';
   const dotClass = channel.status ? STATUS_DOT[channel.status] : undefined;
@@ -181,12 +183,9 @@ function ChannelRow({
       className={`group flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-left transition-colors ${
         isActive
           ? 'bg-blue-50 text-blue-700'
-          : channel.isPlaceholder
-            ? 'text-gray-500 hover:bg-gray-100 hover:text-gray-700 cursor-pointer'
-            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
       }`}
       onClick={onClick}
-      title={channel.isPlaceholder ? 'Configurar' : undefined}
       type="button"
     >
       <span className={`shrink-0 text-sm ${compact ? '' : 'text-base'}`}>
@@ -194,9 +193,6 @@ function ChannelRow({
       </span>
       <span className={`flex-1 truncate ${compact ? 'text-xs' : 'text-sm'}`}>
         {channel.label}
-        {channel.isPlaceholder && (
-          <span className="ml-1 text-[10px] text-orange-400">configurar</span>
-        )}
       </span>
       {channel.status === 'disconnected' && channel.kind === 'whatsapp' && !compact && (
         <span className="shrink-0 rounded bg-green-700/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-green-300">
@@ -215,59 +211,36 @@ function ChannelRow({
   );
 }
 
-function EventGroupSection({
-  group,
-  activeChannel,
-  onSelect,
-}: {
-  group: EventGroup;
-  activeChannel: string;
-  onSelect: (channelId: string) => void;
-}) {
-  const isAnyActive = group.channels.some((c) => c.id === activeChannel);
-  const [open, setOpen] = useState(isAnyActive);
-
-  return (
-    <div>
-      <button
-        className="flex w-full items-center gap-1.5 rounded-md px-3 py-1.5 text-left transition-colors hover:bg-gray-100"
-        onClick={() => setOpen((v) => !v)}
-        type="button"
-      >
-        <span className="text-[10px] text-gray-400">{open ? '▾' : '▸'}</span>
-        <span className="flex-1 truncate text-xs font-medium text-gray-700">
-          {group.eventName}
-        </span>
-        {isAnyActive && (
-          <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-        )}
-      </button>
-      {open && (
-        <div className="ml-2 mt-0.5 space-y-0.5">
-          {group.channels.map((ch) => (
-            <ChannelRow
-              channel={ch}
-              compact
-              isActive={ch.id === activeChannel}
-              key={ch.id}
-              onClick={() => onSelect(ch.id)}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── main sidebar ─────────────────────────────────────────────────────────────
 
 export function InboxSidebar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const { externalChannels, eventGroups, loading } = useInboxChannels();
+  const { externalChannels, loading } = useInboxChannels();
   const { tasks: pendingTasks, loading: tasksLoading } = usePendingTasksSidebar();
   const { conversations: recentConvs, loading: convsLoading } = useRecentConversations(12);
+
+  // ─── Canal health alerts ────────────────────────────────────────────────────
+  const [channelAlert, setChannelAlert] = useState<ChannelDownEvent | null>(null);
+
+  const handleChannelDown = useCallback((event: ChannelDownEvent) => {
+    setChannelAlert(event);
+    // Auto-ocultar tras 8 segundos
+    setTimeout(() => setChannelAlert((prev) => (prev?.channelId === event.channelId ? null : prev)), 8_000);
+  }, []);
+
+  const handleChannelRecovered = useCallback((event: ChannelDownEvent) => {
+    // Si la alerta era de ese canal, limpiarla
+    setChannelAlert((prev) => (prev?.channelId === event.channelId ? null : prev));
+  }, []);
+
+  useChannelHealthMonitor({
+    channels: externalChannels,
+    onChannelDown: handleChannelDown,
+    onChannelRecovered: handleChannelRecovered,
+    enabled: !loading,
+  });
 
   // Quick search
   const [sidebarSearch, setSidebarSearch] = useState('');
@@ -285,6 +258,18 @@ export function InboxSidebar() {
       (c) => c.name.toLowerCase().includes(q) || c.lastMessage?.toLowerCase().includes(q),
     );
   }, [recentConvs, sidebarSearch]);
+
+  // En "Mensajería" mostrar solo canales reales con historial o no leídos.
+  const activeMessagingChannels = useMemo(() => {
+    return externalChannels.filter((ch) => {
+      if (ch.isPlaceholder) return false;
+      const hasUnread = ch.unread > 0;
+      const hasConversation = recentConvs.some(
+        (conv) => conv.channelParam === ch.id || conv.kind === ch.kind,
+      );
+      return hasUnread || hasConversation;
+    });
+  }, [externalChannels, recentConvs]);
 
   // Unread notifications count (poll every 60s)
   const [unreadNotifs, setUnreadNotifs] = useState(0);
@@ -320,6 +305,24 @@ export function InboxSidebar() {
 
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col overflow-hidden bg-gray-50 border-r border-gray-200">
+      {/* ── channel health alert ────────────────────────────────────────────── */}
+      {channelAlert && (
+        <div className="flex items-center gap-2 bg-orange-100 border-b border-orange-200 px-3 py-2 text-xs text-orange-800">
+          <span>⚠️</span>
+          <span className="flex-1 truncate">
+            {channelAlert.label} desconectado
+          </span>
+          <button
+            aria-label="Cerrar alerta"
+            className="ml-1 text-orange-500 hover:text-orange-700"
+            onClick={() => setChannelAlert(null)}
+            type="button"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* ── header ─────────────────────────────────────────────────────────── */}
       <div className="border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between">
@@ -410,8 +413,12 @@ export function InboxSidebar() {
             <div className="space-y-0.5 px-2">
               {loading ? (
                 <div className="px-3 py-2 text-xs text-gray-400">Cargando...</div>
+              ) : activeMessagingChannels.length === 0 ? (
+                <div className="px-3 py-2 text-xs text-gray-400">
+                  No hay canales configurados con historial de mensajes.
+                </div>
               ) : (
-                externalChannels.map((ch) => (
+                activeMessagingChannels.map((ch) => (
                   <ChannelRow
                     channel={ch}
                     isActive={isOnMessages && ch.id === activeChannel}
@@ -445,22 +452,7 @@ export function InboxSidebar() {
           </button>
         </div>
 
-        {/* ── Mis eventos — cada evento tiene canales: itinerario, servicios, invitados, tareas ── */}
-        {eventGroups.length > 0 && (
-          <>
-            <SectionLabel label="Eventos · Canales" />
-            <div className="space-y-1 px-2">
-              {eventGroups.map((group) => (
-                <EventGroupSection
-                  activeChannel={activeChannel}
-                  group={group}
-                  key={group.eventId}
-                  onSelect={handleSelect}
-                />
-              ))}
-            </div>
-          </>
-        )}
+        {/* Bloque de eventos/canales internos oculto en sidebar de mensajería. */}
       </div>
 
       {/* ── footer ─────────────────────────────────────────────────────────── */}

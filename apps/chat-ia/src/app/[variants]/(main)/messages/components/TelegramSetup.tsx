@@ -22,9 +22,9 @@ export function TelegramSetup({ development, onConnected }: TelegramSetupProps) 
 
     try {
       const res = await fetch('/api/messages/telegram/connect', {
-        method: 'POST',
-        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ botToken: botToken.trim(), development }),
+        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
+        method: 'POST',
       });
 
       if (!res.ok) {
@@ -45,9 +45,9 @@ export function TelegramSetup({ development, onConnected }: TelegramSetupProps) 
   const handleDisconnect = async () => {
     try {
       await fetch('/api/messages/telegram/disconnect', {
-        method: 'POST',
-        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ development }),
+        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
+        method: 'POST',
       });
     } catch {
       // ignore

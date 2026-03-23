@@ -8,17 +8,17 @@ import { useEventData } from './useEventData';
 import type { Tarea } from './useEventData';
 
 export interface PendingTaskItem {
-  tarea: Tarea;
   eventId: string;
   eventName: string;
   itinerarioTitle: string;
+  tarea: Tarea;
 }
 
 export function usePendingTasksSidebar(maxTasks = 6): {
-  tasks: PendingTaskItem[];
-  loading: boolean;
   eventId: string | null;
   eventName: string;
+  loading: boolean;
+  tasks: PendingTaskItem[];
 } {
   const userEvents = (useChatStore((s) => s.userEvents) as any[] | undefined) ?? [];
 
@@ -49,10 +49,10 @@ export function usePendingTasksSidebar(maxTasks = 6): {
         const isDone = t.completada || t.estatus === true || t.estatus === 'true';
         if (!isDone) {
           result.push({
-            tarea: t,
             eventId,
             eventName,
             itinerarioTitle: it.title ?? 'Itinerario',
+            tarea: t,
           });
         }
       }
@@ -60,5 +60,5 @@ export function usePendingTasksSidebar(maxTasks = 6): {
     return result.slice(0, maxTasks);
   }, [data, eventId, eventName, maxTasks]);
 
-  return { tasks, loading, eventId, eventName };
+  return { eventId, eventName, loading, tasks };
 }

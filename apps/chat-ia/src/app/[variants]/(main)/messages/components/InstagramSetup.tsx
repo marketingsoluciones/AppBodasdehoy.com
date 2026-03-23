@@ -21,9 +21,9 @@ export function InstagramSetup({ development, onConnected }: InstagramSetupProps
     try {
       // Request OAuth URL from backend
       const res = await fetch('/api/messages/instagram/oauth-url', {
-        method: 'POST',
-        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ development }),
+        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
+        method: 'POST',
       });
 
       if (!res.ok) {
@@ -66,9 +66,9 @@ export function InstagramSetup({ development, onConnected }: InstagramSetupProps
   const handleDisconnect = async () => {
     try {
       await fetch('/api/messages/instagram/disconnect', {
-        method: 'POST',
-        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ development }),
+        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
+        method: 'POST',
       });
     } catch {
       // ignore

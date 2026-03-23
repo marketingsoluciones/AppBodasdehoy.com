@@ -198,8 +198,8 @@ export function WhatsAppSetup({ development }: WhatsAppSetupProps) {
 
   if (status === 'connecting') {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
+      <div className="flex h-full items-center justify-center p-8">
+        <div className="w-full max-w-sm rounded-2xl border border-green-200 bg-white p-6 text-center shadow-sm">
           <div className="mb-4 text-5xl">📱</div>
           <h3 className="mb-2 text-lg font-semibold text-gray-900">Iniciando sesión...</h3>
           <p className="mb-4 text-sm text-gray-500">Generando código QR, espera un momento</p>
@@ -211,6 +211,22 @@ export function WhatsAppSetup({ development }: WhatsAppSetupProps) {
                 style={{ animationDelay: `${i * 0.15}s` }}
               />
             ))}
+          </div>
+          <div className="mt-5 flex items-center justify-center gap-2">
+            <button
+              className="rounded-lg border border-green-300 px-3 py-1.5 text-xs text-green-700 hover:bg-green-50"
+              onClick={startSession}
+              type="button"
+            >
+              Reintentar QR
+            </button>
+            <button
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
+              onClick={() => setMode('phone')}
+              type="button"
+            >
+              Vincular por número
+            </button>
           </div>
         </div>
       </div>

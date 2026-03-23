@@ -19,13 +19,13 @@ import type { EventoData } from '../hooks/useEventData';
 // ─── types ────────────────────────────────────────────────────────────────────
 
 interface EventSummary {
-  id: string;
-  name: string;
   fecha?: string;
+  hasActivity: boolean;
+  id: string;
   invitadosCount: number;
+  name: string;
   tareasCount: number;
   tareasPendientes: number;
-  hasActivity: boolean;
   unreadCount: number;
 }
 
@@ -56,16 +56,16 @@ const GET_EVENTO_BY_ID = `
 `;
 
 const CHANNEL_ICON: Record<string, string> = {
-  whatsapp: '📱',
-  instagram: '📷',
-  facebook: '📘',
-  telegram: '✈️',
   email: '📧',
-  web: '🌐',
+  facebook: '📘',
+  guests: '👥',
+  instagram: '📷',
   itinerary: '📅',
   services: '🏢',
-  guests: '👥',
   tasks: '✅',
+  telegram: '✈️',
+  web: '🌐',
+  whatsapp: '📱',
 };
 
 const STATUS_DOT: Record<string, string> = {
@@ -103,9 +103,9 @@ function useEventSummaries() {
       })
       .slice(0, 5)
       .map((e: any) => ({
+        fecha: e.fecha || e.date,
         id: e.id || e._id || '',
         name: e.name || e.nombre || 'Evento',
-        fecha: e.fecha || e.date,
       }));
   }, [userEvents]);
 
@@ -136,24 +136,24 @@ function useEventSummaries() {
             }
           }
           return {
-            id: ev.id,
-            name: data?.nombre || ev.name,
             fecha: data?.fecha || ev.fecha,
+            hasActivity: tareasPendientes > 0 || invitados.length > 0,
+            id: ev.id,
             invitadosCount: invitados.length,
+            name: data?.nombre || ev.name,
             tareasCount,
             tareasPendientes,
-            hasActivity: tareasPendientes > 0 || invitados.length > 0,
             unreadCount: tareasPendientes,
           } as EventSummary;
         } catch {
           return {
-            id: ev.id,
-            name: ev.name,
             fecha: ev.fecha,
+            hasActivity: false,
+            id: ev.id,
             invitadosCount: 0,
+            name: ev.name,
             tareasCount: 0,
             tareasPendientes: 0,
-            hasActivity: false,
             unreadCount: 0,
           } as EventSummary;
         }
@@ -164,12 +164,12 @@ function useEventSummaries() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(eventIds)]);
 
-  return { summaries, loading };
+  return { loading, summaries };
 }
 
 // ─── section label ────────────────────────────────────────────────────────────
 
-function SectionLabel({ label, extra }: { label: string; extra?: React.ReactNode }) {
+function SectionLabel({ label, extra }: { extra?: React.ReactNode, label: string; }) {
   return (
     <div className="flex items-center justify-between px-3 pb-1 pt-4">
       <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
@@ -317,22 +317,12 @@ function ChannelRow({ channel, onClick }: { channel: InboxChannel; onClick: () =
 
   return (
     <button
-      className={`group flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-left transition-colors ${
-        channel.isPlaceholder
-          ? 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
-          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-      }`}
+      className="group flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-left text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
       onClick={onClick}
-      title={channel.isPlaceholder ? 'Configurar' : undefined}
       type="button"
     >
       <span className="shrink-0 text-sm">{icon}</span>
-      <span className="flex-1 truncate text-xs">
-        {channel.label}
-        {channel.isPlaceholder && (
-          <span className="ml-1 text-[10px] text-orange-400">configurar</span>
-        )}
-      </span>
+      <span className="flex-1 truncate text-xs">{channel.label}</span>
       {channel.status === 'disconnected' && channel.kind === 'whatsapp' && (
         <span className="shrink-0 rounded bg-green-700/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-green-300">
           Conectar
@@ -446,6 +436,19 @@ export function BandejaView() {
         t.itinerarioTitle.toLowerCase().includes(q),
     );
   }, [pendingTasks, search]);
+
+  // Mensajería lateral: mostrar solo canales reales (sin placeholders) que estén
+  // configurados y con historial de conversación (aunque todo esté leído).
+  const activeMessagingChannels = useMemo(() => {
+    return externalChannels.filter((ch) => {
+      if (ch.isPlaceholder) return false;
+      const hasUnread = ch.unread > 0;
+      const hasConversation = recentConvs.some(
+        (conv) => conv.channelParam === ch.id || conv.kind === ch.kind,
+      );
+      return hasUnread || hasConversation;
+    });
+  }, [externalChannels, recentConvs]);
 
   const totalUnread = recentConvs.reduce((n, c) => n + c.unreadCount, 0);
   const totalPending = pendingTasks.length;
@@ -613,8 +616,12 @@ export function BandejaView() {
                 <div className="space-y-0.5 px-2">
                   {channelsLoading ? (
                     <div className="px-3 py-2 text-xs text-gray-400">Cargando...</div>
+                  ) : activeMessagingChannels.length === 0 ? (
+                    <div className="px-3 py-2 text-xs text-gray-400">
+                      No hay canales configurados con historial de mensajes.
+                    </div>
                   ) : (
-                    externalChannels.map((ch) => (
+                    activeMessagingChannels.map((ch) => (
                       <ChannelRow
                         channel={ch}
                         key={ch.id}
@@ -645,21 +652,7 @@ export function BandejaView() {
             </div>
           )}
 
-          {/* ── Event groups (internal channels) ── */}
-          {eventGroups.length > 0 && channelFilter === 'all' && !search.trim() && (
-            <>
-              <SectionLabel label="Eventos · Canales" />
-              <div className="space-y-1 px-2">
-                {eventGroups.map((group) => (
-                  <EventGroupSection
-                    group={group}
-                    key={group.eventId}
-                    onSelect={handleChannelSelect}
-                  />
-                ))}
-              </div>
-            </>
-          )}
+          {/* Event groups oculto en sidebar de Mensajería: aquí mostramos solo inbox de canales. */}
         </div>
       )}
 

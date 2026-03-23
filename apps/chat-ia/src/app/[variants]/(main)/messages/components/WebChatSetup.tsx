@@ -12,7 +12,7 @@ export function WebChatSetup({ development, onConnected }: WebChatSetupProps) {
 
   const chatUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/widget/${development}`
-    : `https://chat-test.bodasdehoy.com/widget/${development}`;
+    : `https://chat.bodasdehoy.com/widget/${development}`;
 
   const embedCode = `<!-- Chat Widget - ${development} -->
 <script>

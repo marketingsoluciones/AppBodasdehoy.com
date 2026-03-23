@@ -204,11 +204,11 @@ function ChannelConversationList({
   if (!connected) {
     const setupProps = { development, onConnected: handleConnected };
     const setupMap: Record<string, React.ReactNode> = {
+      email: <EmailSetup {...setupProps} />,
+      facebook: <FacebookSetup {...setupProps} />,
       instagram: <InstagramSetup {...setupProps} />,
       telegram: <TelegramSetup {...setupProps} />,
-      email: <EmailSetup {...setupProps} />,
       web: <WebChatSetup {...setupProps} />,
-      facebook: <FacebookSetup {...setupProps} />,
     };
 
     return (
@@ -271,8 +271,8 @@ export function ConversationList({ channel, selectedId }: ConversationListProps)
   return (
     <ConversationListWithFallback
       channel={channel}
-      selectedId={selectedId}
       onSelectChannel={setRedirectChannel}
+      selectedId={selectedId}
     />
   );
 }

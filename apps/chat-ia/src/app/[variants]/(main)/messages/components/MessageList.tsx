@@ -20,7 +20,7 @@ function formatDateDivider(dateStr: string): string {
   if (diffDays === 0) return 'Hoy';
   if (diffDays === 1) return 'Ayer';
   if (diffDays < 7) {
-    return date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' });
+    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', weekday: 'long' });
   }
   return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 }
@@ -31,8 +31,8 @@ function getDateKey(timestamp: string): string {
 }
 
 type MessageGroup =
-  | { type: 'divider'; label: string; key: string }
-  | { type: 'message'; message: Message; isFirstInGroup: boolean; isLastInGroup: boolean };
+  | { key: string, label: string; type: 'divider'; }
+  | { isFirstInGroup: boolean; isLastInGroup: boolean, message: Message; type: 'message'; };
 
 function groupMessages(messages: Message[]): MessageGroup[] {
   const groups: MessageGroup[] = [];
@@ -43,7 +43,7 @@ function groupMessages(messages: Message[]): MessageGroup[] {
     const dateKey = getDateKey(msg.timestamp);
 
     if (dateKey !== lastDateKey) {
-      groups.push({ type: 'divider', label: formatDateDivider(msg.timestamp), key: `div-${dateKey}` });
+      groups.push({ key: `div-${dateKey}`, label: formatDateDivider(msg.timestamp), type: 'divider' });
       lastDateKey = dateKey;
     }
 
@@ -54,10 +54,10 @@ function groupMessages(messages: Message[]): MessageGroup[] {
     const sameAsNext = !!(nextMsg && nextMsg.fromUser === msg.fromUser && getDateKey(nextMsg.timestamp) === dateKey);
 
     groups.push({
-      type: 'message',
-      message: msg,
       isFirstInGroup: !sameAsPrev,
       isLastInGroup: !sameAsNext,
+      message: msg,
+      type: 'message',
     });
   }
 
@@ -165,7 +165,7 @@ export function MessageList({ channel, conversationId, searchFilter }: MessageLi
           {grouped.map((item) => {
             if (item.type === 'divider') {
               return (
-                <div key={item.key} className="flex items-center gap-3 py-3">
+                <div className="flex items-center gap-3 py-3" key={item.key}>
                   <div className="h-px flex-1 bg-gray-200" />
                   <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-gray-500 shadow-sm">
                     {item.label}
@@ -176,12 +176,12 @@ export function MessageList({ channel, conversationId, searchFilter }: MessageLi
             }
             return (
               <div
-                key={item.message.id}
                 className={item.isFirstInGroup ? 'mt-3' : 'mt-0.5'}
+                key={item.message.id}
               >
                 <MessageItem
-                  message={item.message}
                   compact={!item.isFirstInGroup}
+                  message={item.message}
                 />
               </div>
             );
