@@ -6,6 +6,7 @@ import {
 import { ChatErrorType } from '@lobechat/types';
 
 import { checkAuth } from '@/app/(backend)/middleware/auth';
+import { getSupportKey } from '@/const/supportKeys';
 import { createTraceOptions, initModelRuntimeWithUserPayload } from '@/server/modules/ModelRuntime';
 import { ChatStreamPayload } from '@/types/openai/chat';
 import { createErrorResponse } from '@/utils/errorResponse';
@@ -82,11 +83,11 @@ function checkVisitorLimit(req: Request): Response | null {
   if (msgCount >= VISITOR_MSG_LIMIT_CAP) {
     return new Response(
       JSON.stringify({
-        errorType: 'login_required',
         error: {
           message: 'Has alcanzado el límite de mensajes gratuitos. Crea una cuenta para continuar.',
           type: 'login_required',
         },
+        errorType: 'login_required',
       }),
       { headers: { 'Content-Type': 'application/json' }, status: 401 },
     );
@@ -142,6 +143,12 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
       }
     });
 
+    // Inyectar X-Support-Key para que api-ia pueda resolver la API key del developer vía api2
+    if (!headers['X-Support-Key'] && !headers['x-support-key']) {
+      const dev = req.headers.get('x-development') || 'bodasdehoy';
+      headers['X-Support-Key'] = getSupportKey(dev);
+    }
+
     // Extraer JWT de cookie si no hay Authorization
     if (!headers['Authorization'] && !headers['authorization']) {
       try {
@@ -162,6 +169,10 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
         // Continuar sin auth
       }
     }
+
+    // DEBUG: verificar si Authorization se envía a api-ia
+    const authSnippet = headers['Authorization'] ? headers['Authorization'].slice(0, 40) + '...' : 'NONE';
+    console.log(`[chat-proxy] → ${provider} | Auth: ${authSnippet} | Support-Key: ${headers['X-Support-Key'] ? 'YES' : 'NO'} | Cookie-token: ${(() => { try { const c = req.headers.get('cookie') || ''; const m = c.match(/dev-user-config=([^;]+)/); if (m) { const d = JSON.parse(decodeURIComponent(m[1])); return d.token ? d.token.slice(0, 30) + '...' : 'token=null'; } return 'no-cookie'; } catch { return 'parse-err'; } })()}`);
 
     // Timeout de 60 segundos
     const controller = new AbortController();
@@ -190,11 +201,11 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           // Esto ocurre cuando community users sin JWT intentan usar la IA
           return new Response(
             JSON.stringify({
-              errorType: 'login_required',
               error: {
                 message: 'Crea una cuenta gratuita para continuar usando el asistente IA.',
                 type: 'login_required',
               },
+              errorType: 'login_required',
             }),
             { headers: { 'Content-Type': 'application/json' }, status: 401 }
           );
@@ -228,8 +239,8 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           // Devolver en formato LobeChat ErrorResponse (errorType + body con detail/screen_type para la UI)
           return new Response(
             JSON.stringify({
+              body: { message, screen_type, type: 'insufficient_balance' },
               errorType: 'insufficient_balance',
-              body: { message, type: 'insufficient_balance', screen_type },
             }),
             { headers: { 'Content-Type': 'application/json' }, status: 402 }
           );
@@ -247,8 +258,8 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           } catch { /* usar mensaje por defecto */ }
           return new Response(
             JSON.stringify({
+              body: { message, screen_type, type: 'service_unavailable' },
               errorType: 'ServiceUnavailable',
-              body: { message, type: 'service_unavailable', screen_type },
             }),
             { headers: { 'Content-Type': 'application/json' }, status: 503 }
           );
@@ -329,7 +340,8 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
                   if (sseMode === 'custom' && currentEvent) {
                     // Formato A: backend propio con event: text / event: done
                     // Re-emitir como event: text para que fetchSSE lo procese correctamente
-                    if (currentEvent === 'text') {
+                    switch (currentEvent) {
+                    case 'text': {
                       let text: string = rawData;
                       try {
                         const parsed = JSON.parse(rawData);
@@ -349,19 +361,45 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
                         encoder.encode(`event: text\ndata: ${JSON.stringify(text)}\n\n`)
                       );
                       chunkIndex++;
-                    } else if (currentEvent === 'done') {
+                    
+                    break;
+                    }
+                    case 'done': {
                       // Stream terminado — cerrar sin emitir (fetchSSE detecta el close)
                       controller.close();
                       return;
-                    } else if (currentEvent === 'tool_calls') {
+                    }
+                    case 'tool_calls': {
                       // Translate api-ia function names to LobeChat builtin format.
                       // api-ia sends e.g. { function: { name: "filter_view" } } but LobeChat expects
                       // the full schema name "lobe-filter-app-view____filter_view____builtin".
                       // Without this translation, LobeChat treats it as a default plugin call,
                       // triggers a second AI request, and overwrites the text response with empty content.
                       const BUILTIN_TOOL_MAP: Record<string, string> = {
+                        // CRM Data
+                        'list_leads': 'lobe-crm____list_leads____builtin',
+                        'get_lead': 'lobe-crm____get_lead____builtin',
+                        'list_contacts': 'lobe-crm____list_contacts____builtin',
+                        'get_contact': 'lobe-crm____get_contact____builtin',
+                        'list_opportunities': 'lobe-crm____list_opportunities____builtin',
+                        'get_opportunity': 'lobe-crm____get_opportunity____builtin',
+                        'list_campaigns': 'lobe-crm____list_campaigns____builtin',
+                        'search_crm': 'lobe-crm____search_crm____builtin',
+                        // CRM Actions
+                        'create_lead': 'lobe-crm-actions____create_lead____builtin',
+                        'update_lead_status': 'lobe-crm-actions____update_lead_status____builtin',
+                        'add_note': 'lobe-crm-actions____add_note____builtin',
+                        'create_task': 'lobe-crm-actions____create_task____builtin',
+                        'update_opportunity_stage': 'lobe-crm-actions____update_opportunity_stage____builtin',
+                        'send_message': 'lobe-crm-actions____send_message____builtin',
+                        // CRM Analytics
+                        'get_pipeline_summary': 'lobe-crm-analytics____get_pipeline_summary____builtin',
+                        'get_revenue_report': 'lobe-crm-analytics____get_revenue_report____builtin',
+                        'get_lead_funnel': 'lobe-crm-analytics____get_lead_funnel____builtin',
+                        'get_kpis': 'lobe-crm-analytics____get_kpis____builtin',
+                        'get_campaign_performance': 'lobe-crm-analytics____get_campaign_performance____builtin',
+                        // Filter
                         'filter_view': 'lobe-filter-app-view____filter_view____builtin',
-                        'visualize_venue': 'lobe-venue-visualizer____visualize_venue____builtin',
                       };
                       let translatedData = rawData;
                       try {
@@ -380,7 +418,10 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
                       controller.enqueue(
                         encoder.encode(`event: tool_calls\ndata: ${translatedData}\n\n`)
                       );
-                    } else if (currentEvent === 'reasoning') {
+                    
+                    break;
+                    }
+                    case 'reasoning': {
                       // Reasoning/thinking progress — muestra el bloque de "pensando" en el chat
                       // api-ia envía {text: "..."} pero fetchSSE espera un string JSON.
                       // Extraer .text si es objeto para evitar "[object Object]" en el bloque de razonamiento.
@@ -396,11 +437,20 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
                       controller.enqueue(
                         encoder.encode(`event: reasoning\ndata: ${reasoningData}\n\n`)
                       );
-                    } else if (currentEvent === 'tool_start' || currentEvent === 'tool_result' || currentEvent === 'event_card') {
+                    
+                    break;
+                    }
+                    case 'tool_start': 
+                    case 'tool_result': 
+                    case 'event_card': {
                       // Enriquecer UI con resultados de tools (tarjetas, imágenes, tablas...)
                       controller.enqueue(
                         encoder.encode(`event: ${currentEvent}\ndata: ${rawData}\n\n`)
                       );
+                    
+                    break;
+                    }
+                    // No default
                     }
                     currentEvent = '';
                   } else if (sseMode === 'openai') {

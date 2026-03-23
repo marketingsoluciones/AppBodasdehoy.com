@@ -26,7 +26,7 @@ const EVENTS_WITH_TASKS_QUERY = `
   }
 `;
 
-function extractUserConfig(req: NextRequest): { userId: string | null; development: string } {
+function extractUserConfig(req: NextRequest): { development: string, userId: string | null; } {
   let userId: string | null = null;
   let development = 'bodasdehoy';
 
@@ -51,7 +51,7 @@ function extractUserConfig(req: NextRequest): { userId: string | null; developme
   const devHeader = req.headers.get('X-Development');
   if (devHeader) development = devHeader;
 
-  return { userId, development };
+  return { development, userId };
 }
 
 export async function GET(req: NextRequest) {
@@ -70,22 +70,22 @@ export async function GET(req: NextRequest) {
     const supportKey = SUPPORT_KEYS[development] || SUPPORT_KEYS.bodasdehoy;
 
     const res = await fetch(API2_URL, {
-      method: 'POST',
+      body: JSON.stringify({
+        query: EVENTS_WITH_TASKS_QUERY,
+        variables: { development, email: userId },
+      }),
       headers: {
         'Content-Type': 'application/json',
         'Origin': 'https://bodasdehoy.com',
         'X-Development': development,
         'X-Support-Key': supportKey,
       },
-      body: JSON.stringify({
-        query: EVENTS_WITH_TASKS_QUERY,
-        variables: { email: userId, development },
-      }),
+      method: 'POST',
       signal: AbortSignal.timeout(15_000),
     });
 
     if (!res.ok) {
-      return NextResponse.json({ events: [], error: `api2 error ${res.status}` }, { status: 502 });
+      return NextResponse.json({ error: `api2 error ${res.status}`, events: [] }, { status: 502 });
     }
 
     const data = await res.json();
@@ -96,24 +96,24 @@ export async function GET(req: NextRequest) {
       .map((event: any) => {
         const itinerarios: any[] = event.itinerarios_array || [];
         return {
+          fecha: event.fecha || null,
           id: event.id,
           nombre: event.nombre || 'Sin nombre',
-          fecha: event.fecha || null,
-          tipo: event.tipo || 'boda',
           services: itinerarios
             .map((s: any) => ({
               id: s._id || String(Math.random()),
-              title: s.title || 'Sin título',
               pendingTasks: (s.tasks || []).filter((t: any) => !t.estatus || t.estatus === 'false' || t.estatus === false),
+              title: s.title || 'Sin título',
               totalTasks: (s.tasks || []).length,
             }))
             .filter((s: any) => s.pendingTasks.length > 0),
+          tipo: event.tipo || 'boda',
         };
       })
       .filter((e: any) => e.services.length > 0);
 
     return NextResponse.json({ events });
   } catch (err: any) {
-    return NextResponse.json({ events: [], error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err.message, events: [] }, { status: 500 });
   }
 }

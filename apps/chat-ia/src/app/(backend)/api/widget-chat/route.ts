@@ -31,9 +31,9 @@ export async function POST(request: NextRequest) {
     try {
       const apiUrl = `${getApiIaUrl()}/api/messages/web/send`;
       const res = await fetch(apiUrl, {
-        method: 'POST',
+        body: JSON.stringify({ development, pageContext, text, visitorId }),
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ development, visitorId, text, pageContext }),
+        method: 'POST',
         signal: AbortSignal.timeout(10_000),
       });
 
@@ -50,9 +50,9 @@ export async function POST(request: NextRequest) {
     const reply = generarRespuestaDemo(text, pagina, development);
 
     return NextResponse.json({
+      messageId: `demo_${Date.now()}`,
       reply,
       source: 'local-demo',
-      messageId: `demo_${Date.now()}`,
     });
   } catch {
     return NextResponse.json(
