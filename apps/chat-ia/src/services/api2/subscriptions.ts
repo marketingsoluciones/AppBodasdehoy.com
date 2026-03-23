@@ -197,6 +197,50 @@ export async function subscribeToPlan(
   }
 }
 
+export interface CancelSubscriptionResult {
+  message?: string;
+  success: boolean;
+}
+
+export async function cancelSubscription(): Promise<CancelSubscriptionResult> {
+  try {
+    const data = await api2Client.query<{ cancelSubscription: CancelSubscriptionResult }>(
+      `mutation CancelSubscription {
+        cancelSubscription {
+          success message
+        }
+      }`
+    );
+    return data.cancelSubscription ?? { success: false };
+  } catch (error) {
+    console.error('[subscriptions] cancelSubscription error:', error);
+    return { success: false };
+  }
+}
+
+export interface CustomerPortalResult {
+  portal_url?: string;
+  success: boolean;
+}
+
+export async function createCustomerPortalSession(returnUrl?: string): Promise<CustomerPortalResult> {
+  try {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const data = await api2Client.query<{ createCustomerPortalSession: CustomerPortalResult }>(
+      `mutation CreateCustomerPortalSession($return_url: String!) {
+        createCustomerPortalSession(return_url: $return_url) {
+          success portal_url
+        }
+      }`,
+      { return_url: returnUrl ?? `${origin}/settings/billing/planes` }
+    );
+    return data.createCustomerPortalSession ?? { success: false };
+  } catch (error) {
+    console.error('[subscriptions] createCustomerPortalSession error:', error);
+    return { success: false };
+  }
+}
+
 export async function getSubscriptionPlans(
   tier?: SubscriptionTier
 ): Promise<SubscriptionPlan[]> {
