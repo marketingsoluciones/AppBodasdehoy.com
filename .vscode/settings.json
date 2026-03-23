@@ -5,7 +5,10 @@
     "**/dist/**": true,
     "**/.pnpm-store/**": true,
     "**/.turbo/**": true,
-    "**/coverage/**": true
+    "**/coverage/**": true,
+    "**/test-screenshots/**": true,
+    "**/playwright-report/**": true,
+    "**/test-results/**": true
   },
   "files.exclude": {
     "**/node_modules": true,
@@ -22,6 +25,9 @@
     "**/.pnpm-store": true,
     "**/.turbo": true,
     "**/coverage": true,
+    "**/test-screenshots": true,
+    "**/playwright-report": true,
+    "**/test-results": true,
     "**/.git": true
   },
   "search.useIgnoreFiles": true,

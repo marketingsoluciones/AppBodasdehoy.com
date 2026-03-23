@@ -30,7 +30,15 @@
       "Bash(pnpm --filter @bodasdehoy/chat-ia type-check)",
       "Bash(git -C /Users/juancarlosparra/Projects/AppBodasdehoy.com diff HEAD -- apps/appEventos/services/copilotChat.ts)",
       "Bash(git diff:*)",
-      "Bash(ls /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/\\\\\\(backend\\\\\\)/api/backend/)"
+      "Bash(ls /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/\\\\\\(backend\\\\\\)/api/backend/)",
+      "Bash(BASE_URL=https://app-test.bodasdehoy.com pnpm test:e2e:app:smoke)",
+      "mcp__claude_ai_Vercel__get_deployment_build_logs",
+      "Bash(cat apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/_layout/Desktop/index.tsx)",
+      "Bash(find /Users/juancarlosparra/Projects/AppBodasdehoy.com -type f \\\\\\(-name *.test.ts -o -name *.test.tsx -o -name *.spec.ts -o -name *.spec.tsx \\\\\\))",
+      "Bash(node -e \":*)",
+      "Bash(bunx tsc:*)",
+      "Bash(git add:*)",
+      "Bash(cat \"/Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\(main\\)/messages/hooks/useChannelHealthMonitor.ts\")"
     ],
     "additionalDirectories": [
       "/Users/juancarlosparra/.claude/projects/-Users-juancarlosparra-Projects-AppBodasdehoy-com/memory"
