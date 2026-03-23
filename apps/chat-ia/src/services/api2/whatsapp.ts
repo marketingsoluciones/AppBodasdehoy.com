@@ -28,21 +28,8 @@ export interface WhatsAppChannel {
   type: string;
 }
 
-// Real api2 GraphQL query — field names match WhatsAppSession type
-// NOTE: calls external WA microservice (api-whatsapp-v1.sistemasjaihom.com) — may be down
-const GET_WA_SESSIONS = `
-  query GetAllWASessions {
-    whatsappGetAllSessions {
-      id
-      development
-      userId
-      isConnected
-      phoneNumber
-      connectionTime
-      lastActivity
-    }
-  }
-`;
+// NOTE: whatsappGetAllSessions does not exist in the api2 schema (only whatsappGetSession).
+// getWhatsAppChannels goes directly to the REST fallback which is more reliable.
 
 const SEND_WA_MESSAGE = `
   mutation SendWAMessage($args: SendWhatsAppMessageArgs) {
@@ -89,23 +76,8 @@ function sessionToChannel(s: any, fallbackDev?: string): WhatsAppChannel {
   };
 }
 
-/**
- * Returns WhatsApp sessions as channels.
- * Tries GraphQL first (calls external WA microservice via api2).
- * Falls back to REST proxy which reads local api2 state (more reliable).
- */
+/** Returns WhatsApp sessions as channels via REST proxy (local api2 session state). */
 export async function getWhatsAppChannels(development?: string): Promise<WhatsAppChannel[]> {
-  // Try real GraphQL query
-  try {
-    const data = await api2Client.query<{ whatsappGetAllSessions: any[] }>(GET_WA_SESSIONS);
-    const sessions = data.whatsappGetAllSessions ?? [];
-    if (sessions.length > 0) {
-      return sessions.map((s) => sessionToChannel(s, development));
-    }
-  } catch {
-    // External WA service may be down — fall through to REST fallback
-  }
-
   // REST fallback: reads local api2 session state (doesn't call external WA service)
   try {
     const dev = development || 'bodasdehoy';

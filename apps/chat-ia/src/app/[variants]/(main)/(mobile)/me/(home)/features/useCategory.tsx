@@ -12,7 +12,6 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
 import { CellProps } from '@/components/Cell';
-import { enableAuth } from '@/const/auth';
 import { LOBE_CHAT_CLOUD } from '@/const/branding';
 import { DOCUMENTS, FEEDBACK, OFFICIAL_URL, UTM_SOURCE } from '@/const/url';
 import { isServerMode } from '@/const/version';
@@ -124,8 +123,8 @@ export const useCategory = () => {
     {
       type: 'divider',
     },
-    ...(!enableAuth || (enableAuth && showAccountLogout) ? profile : []),
-    ...(enableAuth ? (isLoginWithAuth ? settings : []) : settingsWithoutAuth),
+    ...(showAccountLogout ? profile : []),
+    ...(showAccountLogout ? settings : settingsWithoutAuth),
     /* ↓ cloud slot ↓ */
 
     /* ↑ cloud slot ↑ */

@@ -301,32 +301,39 @@ function CreateChannelModal({
   );
 }
 
-// ─── Integration Channel Card (clickable → goes to /messages/{channel}) ───────
+// ─── Canal card genérico (Instagram, Telegram, Email, Facebook, Web) ──────────
 
-function IntegrationCard({
+function SocialChannelCard({
   channelId,
-  color,
   description,
   icon,
   name,
+  accent,
 }: {
+  accent: string;
   channelId: string;
-  color: string;
   description: string;
   icon: string;
   name: string;
 }) {
   return (
-    <a
-      className={`flex items-center gap-3 rounded-xl border p-4 transition-all hover:shadow-md hover:scale-[1.02] cursor-pointer ${color}`}
-      href={`/messages/${channelId}`}
-    >
-      <div className="text-2xl">{icon}</div>
-      <div>
-        <p className="text-sm font-semibold text-gray-800">{name}</p>
-        <p className="text-xs text-gray-500">{description}</p>
+    <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="flex items-center gap-3">
+        <div className={`flex h-10 w-10 items-center justify-center rounded-full text-xl ${accent}`}>
+          {icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-gray-900">{name}</p>
+          <p className="text-xs text-gray-500">{description}</p>
+        </div>
       </div>
-    </a>
+      <a
+        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:border-gray-300 hover:bg-gray-50"
+        href={`/messages/${channelId}`}
+      >
+        Configurar →
+      </a>
+    </div>
   );
 }
 
@@ -367,126 +374,148 @@ function IntegrationsPageInner() {
     }
   };
 
+  const waConnectedCount = channels.filter((c) => c.status === 'ACTIVE').length;
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 md:py-8">
-      {/* Móvil: sin barra lateral del layout */}
-      <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-gray-600 md:hidden">
-        <Link className="font-medium text-pink-600 hover:underline" href="/settings">
-          ← Ajustes
+      {/* Móvil: breadcrumb */}
+      <div className="mb-5 flex items-center gap-3 text-sm text-gray-500 md:hidden">
+        <Link className="font-medium text-pink-600 hover:underline" href="/messages">
+          ← Mensajes
         </Link>
-        <span className="text-gray-300">|</span>
-        <Link className="hover:underline" href="/messages">
-          Mensajes
-        </Link>
+        <span>/</span>
+        <span>Integraciones</span>
       </div>
+
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Integraciones</h1>
+      <div className="mb-6">
+        <h1 className="text-xl font-bold text-gray-900">Canales de comunicación</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Conecta canales de comunicación para gestionar todos tus mensajes desde un solo lugar.
+          Conecta tus redes sociales y gestiona todos los mensajes desde un único lugar.
         </p>
       </div>
 
-      {/* WhatsApp Section */}
+      {/* Sesión requerida */}
+      {!isAuthenticated && (
+        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50/80 p-6 text-center">
+          <p className="mb-2 text-sm font-medium text-gray-800">Sesión requerida</p>
+          <p className="mb-4 text-sm text-gray-600">
+            Inicia sesión para conectar tus canales.
+          </p>
+          <Link
+            className="inline-flex rounded-lg bg-pink-600 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-700"
+            href="/login"
+          >
+            Iniciar sesión
+          </Link>
+        </div>
+      )}
+
+      {/* ── Grid unificado de todos los canales ── */}
       <section className="mb-8">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">📱</span>
-            <h2 className="text-base font-semibold text-gray-900">WhatsApp</h2>
-          </div>
-          {!apiError && isAuthenticated && (
-            <button
-              className="rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700 hover:bg-green-100"
-              onClick={() => setShowCreateModal(true)}
-              type="button"
-            >
-              + Añadir canal
-            </button>
-          )}
-        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
 
-        {loadingChannels && (
-          <div className="space-y-3">
-            {[1, 2].map((i) => (
-              <div className="h-20 animate-pulse rounded-xl bg-gray-100" key={i} />
-            ))}
-          </div>
-        )}
-
-        {!loadingChannels && !isAuthenticated && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-6 text-center">
-            <p className="mb-2 text-sm font-medium text-gray-800">Sesión requerida</p>
-            <p className="mb-4 text-sm text-gray-600">
-              Inicia sesión en el Copilot (o entra desde la app de eventos) para ver tus canales y
-              conectar WhatsApp.
-            </p>
-            <Link
-              className="inline-flex rounded-lg bg-pink-600 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-700"
-              href="/login"
-            >
-              Ir a iniciar sesión
-            </Link>
-          </div>
-        )}
-
-        {!loadingChannels && isAuthenticated && channels.length === 0 && !apiError && (
-          <div className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center">
-            <div className="mb-3 text-4xl">📱</div>
-            <p className="mb-1 text-sm font-medium text-gray-700">Sin canales WhatsApp</p>
-            <p className="mb-4 text-xs text-gray-500">
-              Conecta tu número de WhatsApp para recibir y enviar mensajes desde la bandeja de entrada
-            </p>
-            <button
-              className="rounded-xl bg-green-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-600"
-              onClick={() => setShowCreateModal(true)}
-              type="button"
-            >
-              Conectar WhatsApp
-            </button>
-          </div>
-        )}
-
-        {/* Fallback: api2 GraphQL no disponible aún → mostrar sesión directa */}
-        {!loadingChannels && isAuthenticated && apiError && (
-          <div className="rounded-xl border border-gray-200 bg-white p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-base font-medium text-gray-800">Sesión WhatsApp</span>
-                <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
-                  {development}
-                </span>
+          {/* WhatsApp — gestión completa inline */}
+          <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-xl">
+                📱
               </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900">WhatsApp</p>
+                <p className="text-xs text-gray-500">
+                  {loadingChannels
+                    ? 'Cargando...'
+                    : waConnectedCount > 0
+                      ? `${waConnectedCount} canal${waConnectedCount > 1 ? 'es' : ''} activo${waConnectedCount > 1 ? 's' : ''}`
+                      : 'Sin conectar'}
+                </p>
+              </div>
+              {waConnectedCount > 0 && (
+                <span className="h-2 w-2 shrink-0 rounded-full bg-green-500" />
+              )}
             </div>
-            <WhatsAppDirectSession development={development} />
+            {isAuthenticated && (
+              <button
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-green-200 bg-green-50 py-1.5 text-xs font-medium text-green-700 transition-colors hover:bg-green-100"
+                onClick={() => setShowCreateModal(true)}
+                type="button"
+              >
+                {waConnectedCount > 0 ? 'Gestionar canales' : '+ Conectar WhatsApp'}
+              </button>
+            )}
           </div>
-        )}
 
-        {!loadingChannels && isAuthenticated && channels.length > 0 && (
-          <div className="space-y-3">
-            {channels.map((ch) => (
-              <ChannelCard
-                channel={ch}
-                development={development}
-                key={ch.id}
-                onConnect={() => setQrTarget(ch)}
-                onDelete={() => !deleting && handleDelete(ch.id)}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Other channels */}
-      <section>
-        <h2 className="mb-4 text-base font-semibold text-gray-900">Otros canales</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <IntegrationCard channelId="instagram" color="border-pink-200 bg-pink-50" description="Conecta Instagram Business para DMs" icon="📷" name="Instagram" />
-          <IntegrationCard channelId="telegram" color="border-blue-200 bg-blue-50" description="Conecta un bot de Telegram" icon="✈️" name="Telegram" />
-          <IntegrationCard channelId="email" color="border-purple-200 bg-purple-50" description="Gmail, Outlook o SMTP/IMAP" icon="📧" name="Email" />
-          <IntegrationCard channelId="web" color="border-orange-200 bg-orange-50" description="Widget embebible para tu sitio web" icon="🌐" name="Chat Web" />
-          <IntegrationCard channelId="facebook" color="border-blue-200 bg-blue-50" description="Facebook Messenger para tu página" icon="📘" name="Facebook" />
+          {/* Otros canales */}
+          <SocialChannelCard accent="bg-gradient-to-br from-purple-100 to-pink-100" channelId="instagram" description="DMs de Instagram Business" icon="📷" name="Instagram" />
+          <SocialChannelCard accent="bg-blue-100" channelId="telegram" description="Bot de Telegram" icon="✈️" name="Telegram" />
+          <SocialChannelCard accent="bg-purple-100" channelId="email" description="Gmail, Outlook o SMTP/IMAP" icon="📧" name="Email" />
+          <SocialChannelCard accent="bg-blue-100" channelId="facebook" description="Messenger de tu página FB" icon="📘" name="Facebook" />
+          <SocialChannelCard accent="bg-orange-100" channelId="web" description="Widget embebible en tu web" icon="🌐" name="Chat Web" />
         </div>
       </section>
+
+      {/* ── Gestión detallada de canales WhatsApp ── */}
+      {isAuthenticated && (
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-gray-700">Canales WhatsApp</h2>
+            {!apiError && (
+              <button
+                className="rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100"
+                onClick={() => setShowCreateModal(true)}
+                type="button"
+              >
+                + Añadir número
+              </button>
+            )}
+          </div>
+
+          {loadingChannels && (
+            <div className="space-y-2">
+              {[1, 2].map((i) => (
+                <div className="h-16 animate-pulse rounded-xl bg-gray-100" key={i} />
+              ))}
+            </div>
+          )}
+
+          {!loadingChannels && channels.length === 0 && !apiError && (
+            <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
+              <p className="mb-1 text-sm font-medium text-gray-600">Sin canales WhatsApp</p>
+              <p className="mb-3 text-xs text-gray-400">
+                Conecta tu número para recibir mensajes en la bandeja
+              </p>
+              <button
+                className="rounded-xl bg-green-500 px-4 py-2 text-xs font-semibold text-white hover:bg-green-600"
+                onClick={() => setShowCreateModal(true)}
+                type="button"
+              >
+                Conectar WhatsApp
+              </button>
+            </div>
+          )}
+
+          {!loadingChannels && apiError && (
+            <div className="rounded-xl border border-gray-200 bg-white p-4">
+              <WhatsAppDirectSession development={development} />
+            </div>
+          )}
+
+          {!loadingChannels && channels.length > 0 && (
+            <div className="space-y-2">
+              {channels.map((ch) => (
+                <ChannelCard
+                  channel={ch}
+                  development={development}
+                  key={ch.id}
+                  onConnect={() => setQrTarget(ch)}
+                  onDelete={() => !deleting && handleDelete(ch.id)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* QR Modal */}
       {qrTarget !== undefined && qrTarget !== 'new' && (

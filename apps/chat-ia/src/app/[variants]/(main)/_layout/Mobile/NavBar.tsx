@@ -3,7 +3,7 @@
 import { Icon } from '@lobehub/ui';
 import { TabBar, type TabBarProps } from '@lobehub/ui/mobile';
 import { createStyles } from 'antd-style';
-import { Compass, MessageSquare, User } from 'lucide-react';
+import { Compass, Inbox, MessageSquare, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { rgba } from 'polished';
 import { memo, useMemo } from 'react';
@@ -11,8 +11,11 @@ import { useTranslation } from 'react-i18next';
 
 import { MOBILE_TABBAR_HEIGHT } from '@/const/layoutTokens';
 import { useActiveTabKey } from '@/hooks/useActiveTabKey';
+import { useInboxUnreadCount } from '@/hooks/useInboxUnreadCount';
 import { SidebarTabKey } from '@/store/global/initialState';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
+import { useUserStore } from '@/store/user';
+import { authSelectors } from '@/store/user/selectors';
 
 const useStyles = createStyles(({ css, token }) => ({
   active: css`
@@ -35,9 +38,10 @@ const NavBar = memo(() => {
   const router = useRouter();
 
   const { showMarket } = useServerConfigStore(featureFlagsSelectors);
+  const isLoggedIn = useUserStore(authSelectors.isLogin);
+  const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
+  const inboxUnread = useInboxUnreadCount();
 
-  // NOTA: Para la app de bodas, ocultamos "Discover" ya que no es relevante
-  // Solo mostramos Chat y Me (perfil)
   const items: TabBarProps['items'] = useMemo(
     () =>
       [
@@ -50,6 +54,42 @@ const NavBar = memo(() => {
             router.push('/chat');
           },
           title: t('tab.chat'),
+        },
+        // Bandeja de mensajes — solo usuarios registrados en server mode
+        isServerMode && isLoggedIn && {
+          icon: (active: boolean) => (
+            <div style={{ position: 'relative' }}>
+              <Icon className={active ? styles.active : undefined} icon={Inbox} />
+              {inboxUnread > 0 && (
+                <span
+                  style={{
+                    alignItems: 'center',
+                    background: '#ef4444',
+                    borderRadius: '50%',
+                    color: '#fff',
+                    display: 'flex',
+                    fontSize: 8,
+                    fontWeight: 700,
+                    height: 13,
+                    justifyContent: 'center',
+                    lineHeight: 1,
+                    minWidth: 13,
+                    paddingInline: 2,
+                    position: 'absolute',
+                    right: -4,
+                    top: -4,
+                  }}
+                >
+                  {inboxUnread > 99 ? '99+' : inboxUnread}
+                </span>
+              )}
+            </div>
+          ),
+          key: SidebarTabKey.Messages,
+          onClick: () => {
+            router.push('/messages');
+          },
+          title: 'Mensajes',
         },
         // Discover/Market - Marketplace de agentes y plugins
         showMarket && {
@@ -73,7 +113,7 @@ const NavBar = memo(() => {
           title: t('tab.me'),
         },
       ].filter(Boolean) as TabBarProps['items'],
-    [t, showMarket, router, styles.active],
+    [t, showMarket, isLoggedIn, isServerMode, inboxUnread, router, styles.active],
   );
 
   return (

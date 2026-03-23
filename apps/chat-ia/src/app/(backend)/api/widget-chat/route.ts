@@ -18,7 +18,7 @@ const getApiIaUrl = (): string =>
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { development, visitorId, text, pageContext } = body;
+    const { development, visitorId, text, pageContext, leadData } = body;
 
     if (!text || !development) {
       return NextResponse.json(
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     try {
       const apiUrl = `${getApiIaUrl()}/api/messages/web/send`;
       const res = await fetch(apiUrl, {
-        body: JSON.stringify({ development, pageContext, text, visitorId }),
+        body: JSON.stringify({ development, leadData, pageContext, text, visitorId }),
         headers: { 'Content-Type': 'application/json' },
         method: 'POST',
         signal: AbortSignal.timeout(10_000),
@@ -47,7 +47,8 @@ export async function POST(request: NextRequest) {
 
     // Respuesta temporal automática (demo mode)
     const pagina = pageContext?.title || pageContext?.url || '';
-    const reply = generarRespuestaDemo(text, pagina, development);
+    const visitorName = leadData?.name && leadData.name !== 'Visitante' ? leadData.name : '';
+    const reply = generarRespuestaDemo(text, pagina, development, visitorName);
 
     return NextResponse.json({
       messageId: `demo_${Date.now()}`,
@@ -62,24 +63,33 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function generarRespuestaDemo(texto: string, pagina: string, development: string): string {
+function generarRespuestaDemo(texto: string, pagina: string, development: string, nombre?: string): string {
   const lower = texto.toLowerCase();
+  const saludo = nombre ? `, ${nombre}` : '';
 
   if (lower.includes('hola') || lower.includes('buenos') || lower.includes('buenas')) {
-    return `Hola! Gracias por contactarnos${pagina ? ` desde "${pagina}"` : ''}. ¿En qué podemos ayudarte?`;
+    return `¡Hola${saludo}! 👋 Gracias por contactarnos${pagina ? ` desde "${pagina}"` : ''}. Estoy aquí para ayudarte a organizar el día perfecto. ¿En qué puedo ayudarte?`;
   }
 
-  if (lower.includes('precio') || lower.includes('costo') || lower.includes('cuánto')) {
-    return 'Para información sobre precios y paquetes, un asesor se pondrá en contacto contigo pronto. ¿Puedes dejarnos tu email o número de teléfono?';
+  if (lower.includes('precio') || lower.includes('costo') || lower.includes('cuánto') || lower.includes('tarifa')) {
+    return `¡Claro${saludo}! Tenemos diferentes paquetes adaptados a cada tipo de evento. Un asesor personalizado revisará tu consulta y te enviará un presupuesto detallado muy pronto. ¿Tienes ya una fecha aproximada en mente?`;
   }
 
-  if (lower.includes('horario') || lower.includes('hora') || lower.includes('disponib')) {
-    return 'Nuestro horario de atención es de lunes a viernes de 9:00 a 18:00, y sábados de 10:00 a 14:00.';
+  if (lower.includes('disponib') || lower.includes('fecha') || lower.includes('horario') || lower.includes('hora')) {
+    return `Para consultar disponibilidad${saludo ? ' ' + saludo : ''}, necesito que nos indiques la fecha aproximada de tu evento. Nuestro horario de atención es **lunes a viernes de 9:00 a 18:00** y **sábados de 10:00 a 14:00**.`;
+  }
+
+  if (lower.includes('foto') || lower.includes('espacio') || lower.includes('sala') || lower.includes('instalacion')) {
+    return `¡Tenemos espacios preciosos${saludo}! 📸 Puedes ver fotos y videos de todos nuestros salones en nuestra web. ¿Te gustaría concertar una visita presencial para conocer el espacio en persona?`;
+  }
+
+  if (lower.includes('boda') || lower.includes('matrimonio') || lower.includes('casam')) {
+    return `¡Felicidades${saludo}! 💒 Será un placer acompañarte en este día tan especial. Ofrecemos paquetes integrales para bodas de todos los estilos. ¿Cuántos invitados estás pensando?`;
   }
 
   if (lower.includes('gracias') || lower.includes('thanks')) {
-    return 'De nada! Si necesitas algo más, aquí estamos.';
+    return `¡De nada${saludo}! 😊 Si necesitas algo más, aquí estoy para ayudarte. ¡Que tengas un día maravilloso!`;
   }
 
-  return `Gracias por tu mensaje. Un asesor revisará tu consulta y te responderá pronto${pagina ? ` (vemos que escribes desde "${pagina}")` : ''}. ¿Hay algo más en lo que podamos ayudarte?`;
+  return `Gracias por tu mensaje${saludo}. 🌸 Un asesor especializado revisará tu consulta y te responderá a la mayor brevedad${pagina ? ` (te escribes desde "${pagina}")` : ''}. ¿Hay algo más en lo que pueda ayudarte mientras tanto?`;
 }

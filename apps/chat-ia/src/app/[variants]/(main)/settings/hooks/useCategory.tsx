@@ -20,6 +20,8 @@ import type { MenuProps } from '@/components/Menu';
 import { isDeprecatedEdition, isDesktop } from '@/const/version';
 import { SettingsTabs } from '@/store/global/initialState';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
+import { useUserStore } from '@/store/user';
+import { authSelectors } from '@/store/user/selectors';
 
 /** Item de menú que navega a /settings/integrations (ver CategoryContent) */
 export const SETTINGS_MENU_KEY_INTEGRATIONS = '__integrations';
@@ -28,6 +30,7 @@ export const useCategory = () => {
   const { t } = useTranslation('setting');
   const mobile = useServerConfigStore((s) => s.isMobile);
   const { showLLM, enableSTT, hideDocs } = useServerConfigStore(featureFlagsSelectors);
+  const isLoggedIn = useUserStore(authSelectors.isLogin);
 
   const cateItems: MenuProps['items'] = useMemo(
     () =>
@@ -86,19 +89,18 @@ export const useCategory = () => {
           key: SettingsTabs.Proxy,
           label: t('tab.proxy'),
         },
-        {
+        // Base de datos, Facturación e Integraciones: solo para usuarios registrados
+        isLoggedIn && {
           icon: <Icon icon={Database} />,
           key: SettingsTabs.Storage,
           label: t('tab.storage'),
         },
-        {
+        isLoggedIn && {
           icon: <Icon icon={CreditCard} />,
           key: SettingsTabs.Billing,
-          // ✅ FIX: Asegurar que la etiqueta siempre sea visible (en español)
-          // Si la traducción no existe o está vacía, usar 'Facturación'
           label: (t('tab.billing') && t('tab.billing') !== 'tab.billing') ? t('tab.billing') : 'Facturación',
         },
-        {
+        isLoggedIn && {
           icon: <Icon icon={Link2} />,
           key: SETTINGS_MENU_KEY_INTEGRATIONS,
           label: 'Integraciones',
@@ -109,7 +111,7 @@ export const useCategory = () => {
           label: t('tab.about'),
         },
       ].filter(Boolean) as MenuProps['items'],
-    [t, showLLM, enableSTT, hideDocs, mobile],
+    [t, showLLM, enableSTT, hideDocs, mobile, isLoggedIn],
   );
 
   return cateItems;
