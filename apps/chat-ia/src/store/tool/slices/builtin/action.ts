@@ -2,6 +2,7 @@ import { StateCreator } from 'zustand/vanilla';
 
 import { OpenAIImagePayload } from '@/types/openai/image';
 import { DallEImageItem } from '@/types/tool/dalle';
+import { VenueRoomType, VenueStyle, VenueVisualizerItem } from '@/types/tool/venueVisualizer';
 import { setNamespace } from '@/utils/storeDebug';
 
 import { ToolStore } from '../../store';
@@ -10,6 +11,17 @@ const n = setNamespace('builtinTool');
 
 interface Text2ImageParams extends Pick<OpenAIImagePayload, 'quality' | 'style' | 'size'> {
   prompts: string[];
+}
+
+interface VisualizeVenueItemParam {
+  imageUrl?: string;
+  prompt?: string;
+  roomType: VenueRoomType;
+  style: VenueStyle;
+}
+
+interface VisualizeVenueParams {
+  items: VisualizeVenueItemParam[];
 }
 
 interface FilterViewParams {
@@ -27,6 +39,8 @@ export interface BuiltinToolAction {
   text2image: (params: Text2ImageParams) => DallEImageItem[];
   toggleBuiltinToolLoading: (key: string, value: boolean) => void;
   transformApiArgumentsToAiState: (key: string, params: any) => Promise<string | undefined>;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  visualize_venue: (params: VisualizeVenueParams) => VenueVisualizerItem[];
 }
 
 export const createBuiltinToolSlice: StateCreator<
@@ -35,20 +49,13 @@ export const createBuiltinToolSlice: StateCreator<
   [],
   BuiltinToolAction
 > = (set, get) => ({
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-filter_view: ({ entity, ids, query }) => ({ entity, ids, query }),
-
-  
-  
-text2image: ({ prompts, size = '1024x1024' as const, quality = 'standard', style = 'vivid' }) =>
+  text2image: ({ prompts, size = '1024x1024' as const, quality = 'standard', style = 'vivid' }) =>
     prompts.map((p) => ({ prompt: p, quality, size, style })),
-  
 
-toggleBuiltinToolLoading: (key, value) => {
+  
+  toggleBuiltinToolLoading: (key, value) => {
     set({ builtinToolLoading: { [key]: value } }, false, n('toggleBuiltinToolLoading'));
   },
-
-  
   
 transformApiArgumentsToAiState: async (key, params) => {
     const { builtinToolLoading, toggleBuiltinToolLoading } = get();
@@ -73,4 +80,15 @@ transformApiArgumentsToAiState: async (key, params) => {
     }
   },
 
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  visualize_venue: ({ items }) =>
+    items.map(({ imageUrl, style, roomType, prompt }) => ({
+      originalUrl: imageUrl,
+      prompt,
+      roomType,
+      style,
+    })),
+
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  filter_view: ({ entity, ids, query }) => ({ entity, ids, query }),
 });

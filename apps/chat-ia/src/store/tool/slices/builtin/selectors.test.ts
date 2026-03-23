@@ -1,4 +1,3 @@
-import { ORG_NAME } from '@lobechat/const';
 import { describe, expect, it } from 'vitest';
 
 import { DalleManifest } from '@/tools/dalle';
@@ -18,7 +17,7 @@ describe('builtinToolSelectors', () => {
       } as ToolStoreState;
       const result = builtinToolSelectors.metaList(false)(state);
       expect(result).toEqual([
-        { author: ORG_NAME, identifier: 'tool-1', meta: { title: 'Tool 1' }, type: 'builtin' },
+        { author: 'LobeHub', identifier: 'tool-1', meta: { title: 'Tool 1' }, type: 'builtin' },
       ]);
     });
 
@@ -32,9 +31,9 @@ describe('builtinToolSelectors', () => {
       } as ToolStoreState;
       const result = builtinToolSelectors.metaList(true)(state);
       expect(result).toEqual([
-        { author: ORG_NAME, identifier: 'tool-1', meta: { title: 'Tool 1' }, type: 'builtin' },
+        { author: 'LobeHub', identifier: 'tool-1', meta: { title: 'Tool 1' }, type: 'builtin' },
         {
-          author: ORG_NAME,
+          author: 'LobeHub',
           identifier: DalleManifest.identifier,
           meta: { title: 'Dalle' },
           type: 'builtin',

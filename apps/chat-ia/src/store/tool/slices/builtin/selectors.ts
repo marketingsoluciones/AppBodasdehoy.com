@@ -1,4 +1,3 @@
-import { ORG_NAME } from '@lobechat/const';
 import { LobeToolMeta } from '@lobechat/types';
 
 import { shouldEnableTool } from '@/helpers/toolFilters';
@@ -23,7 +22,7 @@ const metaList =
         return true;
       })
       .map((t) => ({
-        author: ORG_NAME,
+        author: 'LobeHub',
         identifier: t.identifier,
         meta: t.manifest.meta,
         type: 'builtin',
