@@ -1,11 +1,8 @@
-import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 
-import Loading from '@/components/Loading/BrandTextLoading';
-
-import AuthErrorPage from './AuthErrorPage';
-
-export default () => (
-  <Suspense fallback={<Loading />}>
-    <AuthErrorPage />
-  </Suspense>
-);
+/**
+ * /next-auth/error consolidado → redirige a /login (único punto de entrada)
+ */
+export default function NextAuthErrorPage() {
+  redirect('/login');
+}

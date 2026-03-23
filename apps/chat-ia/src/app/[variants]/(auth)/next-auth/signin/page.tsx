@@ -1,11 +1,8 @@
-import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 
-import Loading from '@/components/Loading/BrandTextLoading';
-
-import AuthSignInBox from './AuthSignInBox';
-
-export default () => (
-  <Suspense fallback={<Loading />}>
-    <AuthSignInBox />
-  </Suspense>
-);
+/**
+ * /next-auth/signin consolidado → redirige a /login (único punto de entrada)
+ */
+export default function NextAuthSignInPage() {
+  redirect('/login');
+}
