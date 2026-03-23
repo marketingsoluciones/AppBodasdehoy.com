@@ -149,6 +149,16 @@ export function getChatUrl(baseUrl?: string): string {
   return 'https://chat.bodasdehoy.com';
 }
 
+/** URL de appEventos para el entorno actual. */
+export function getAppUrl(): string {
+  return process.env.APP_URL ?? TEST_URLS.app;
+}
+
+/** URL de memories-web para el entorno actual. */
+export function getMemoriesUrl(): string {
+  return process.env.MEMORIES_URL ?? TEST_URLS.memories;
+}
+
 // ─── Timestamp ─────────────────────────────────────────────────────────────────
 
 const TODAY = new Date().toISOString().slice(0, 10).replace(/-/g, '');
