@@ -442,8 +442,8 @@ export async function chatWithValidation(
   // ── Si respuesta vacía y hay error HTTP interceptado, inyectar info ──
   const httpErr = getLastHttpError();
   if (lastText.trim().length < 15 && httpErr) {
-    lastText = `[HTTP ${httpErr.status}] ${httpErr.errorType}: ${httpErr.url}`;
-    console.log(`[Circuit Breaker] Respuesta vacia + HTTP ${httpErr.status} → inyectando error como texto`);
+    lastText = `[HTTP ${httpErr.status}] ${httpErr.errorType}: ${httpErr.message}`;
+    console.log(`[Circuit Breaker] Respuesta vacia + HTTP ${httpErr.status} -> inyectando: ${httpErr.message}`);
   }
 
   // ── Detectar tools en DOM ──
@@ -469,7 +469,10 @@ export async function chatWithValidation(
       status: httpErr?.status ?? 0,
       category: errCategory,
       errorType: httpErr?.errorType ?? 'empty_response',
+      message: httpErr?.message ?? 'Sin respuesta del asistente',
       url: httpErr?.url ?? page.url(),
+      rechargeUrl: httpErr?.rechargeUrl,
+      plansUrl: httpErr?.plansUrl,
     });
   } else {
     recordSuccess();

@@ -1,5 +1,6 @@
 import https from 'https';
 import http from 'http';
+import { resetBreaker } from './circuit-breaker';
 
 /**
  * Global setup — corre ANTES de cualquier test.
@@ -48,6 +49,9 @@ function fetchStatus(url: string, timeoutMs = 10_000): Promise<{ status: number;
 }
 
 export default async function globalSetup() {
+  // Resetear circuit breaker al inicio de cada run
+  resetBreaker();
+
   const headed = process.env.E2E_HEADED === '1' || process.env.E2E_HEADED === 'true';
   const isCI = process.env.CI === 'true' || process.env.CI === '1';
   const delayMs = parseInt(process.env.E2E_DELAY_BEFORE || '0', 10) || (headed && !isCI ? 5000 : 0);
