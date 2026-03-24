@@ -20,8 +20,7 @@ import type { MenuProps } from '@/components/Menu';
 import { isDeprecatedEdition, isDesktop } from '@/const/version';
 import { SettingsTabs } from '@/store/global/initialState';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
-import { useUserStore } from '@/store/user';
-import { authSelectors } from '@/store/user/selectors';
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 
 /** Item de menú que navega a /settings/integrations (ver CategoryContent) */
 export const SETTINGS_MENU_KEY_INTEGRATIONS = '__integrations';
@@ -30,7 +29,7 @@ export const useCategory = () => {
   const { t } = useTranslation('setting');
   const mobile = useServerConfigStore((s) => s.isMobile);
   const { showLLM, enableSTT, hideDocs } = useServerConfigStore(featureFlagsSelectors);
-  const isLoggedIn = useUserStore(authSelectors.isLogin);
+  const isLoggedIn = !useDomainGuestUser();
 
   const cateItems: MenuProps['items'] = useMemo(
     () =>

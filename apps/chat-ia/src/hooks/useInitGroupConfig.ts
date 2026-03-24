@@ -6,7 +6,7 @@ import { authSelectors } from '@/store/user/selectors';
 export const useInitGroupConfig = () => {
   const [useFetchGroupDetail] = useChatGroupStore((s) => [s.useFetchGroupDetail]);
 
-  const isLogin = useUserStore(authSelectors.isLogin);
+  const isLogin = useUserStore(authSelectors.isLoginWithAuth);
 
   const [sessionId] = useSessionStore((s) => [s.activeId]);
 

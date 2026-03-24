@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect } from 'react';
 
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 import { useUserStore } from '@/store/user';
 import { authSelectors } from '@/store/user/selectors';
 
@@ -15,15 +16,15 @@ interface MessagesLayoutProps {
 export default function MessagesLayout({ children }: MessagesLayoutProps) {
   const router = useRouter();
   const isLoaded = useUserStore(authSelectors.isLoaded);
-  const isLoggedIn = useUserStore(authSelectors.isLogin);
+  const isGuest = useDomainGuestUser();
 
   useEffect(() => {
-    if (isLoaded && !isLoggedIn) {
+    if (isLoaded && isGuest) {
       router.replace('/login?redirect=/messages');
     }
-  }, [isLoaded, isLoggedIn, router]);
+  }, [isLoaded, isGuest, router]);
 
-  if (!isLoaded || !isLoggedIn) return null;
+  if (!isLoaded || isGuest) return null;
 
   return (
     <div className="flex h-full overflow-hidden bg-white">

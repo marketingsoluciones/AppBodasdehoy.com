@@ -14,7 +14,7 @@ export const useFetchAiImageConfig = () => {
   );
 
   const isAuthLoaded = useUserStore(authSelectors.isLoaded);
-  const isLogin = useUserStore(authSelectors.isLogin);
+  const isLogin = useUserStore(authSelectors.isLoginWithAuth);
   const isActualLogout = isAuthLoaded && isLogin === false;
 
   const isUserStateInit = useUserStore((s) => s.isUserStateInit);

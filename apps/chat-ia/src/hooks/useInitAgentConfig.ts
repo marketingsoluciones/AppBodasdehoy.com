@@ -11,7 +11,7 @@ import { LobeSessionType } from '@/types/session';
 export const useInitAgentConfig = (targetAgentId?: string) => {
   const [useFetchAgentConfig] = useAgentStore((s) => [s.useFetchAgentConfig]);
 
-  const isLogin = useUserStore(authSelectors.isLogin);
+  const isLogin = useUserStore(authSelectors.isLoginWithAuth);
 
   // If targetAgentId is provided, find the corresponding session ID
   // Otherwise, use the active session ID
