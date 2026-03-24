@@ -2,7 +2,6 @@
 
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { InboxSidebar } from '../../components/InboxSidebar';
 import { ConversationList } from '../../components/ConversationList';
 import { MessageList } from '../../components/MessageList';
 import { MessageInput } from '../../components/MessageInput';
@@ -31,11 +30,6 @@ export default function ConversationPage({ params }: ConversationPageProps) {
 
   return (
     <>
-      {/* InboxSidebar — hidden on mobile */}
-      <div className="hidden md:block">
-        <InboxSidebar />
-      </div>
-
       {taskEventId ? (
         <TaskDetailWorkspace eventId={taskEventId} taskId={conversation_id} />
       ) : (

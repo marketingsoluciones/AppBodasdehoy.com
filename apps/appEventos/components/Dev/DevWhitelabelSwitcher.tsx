@@ -15,7 +15,6 @@
 
 import { useState, useEffect } from 'react'
 import { developments } from '@bodasdehoy/shared/types'
-import { isTestSubdomain } from '../../utils/urlHelpers'
 
 const DEV_DOMAIN_KEY = '__dev_domain'
 
@@ -49,11 +48,10 @@ function getEffectiveWhitelabel(): { value: string; source: 'env' | 'localStorag
   return { value: 'bodasdehoy', source: 'hostname' }
 }
 
-function isNonProductionEnv(): boolean {
+function isLocalDevEnv(): boolean {
   if (typeof window === 'undefined') return false
   return window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1' ||
-    isTestSubdomain()
+    window.location.hostname === '127.0.0.1'
 }
 
 export default function DevWhitelabelSwitcher() {
@@ -62,7 +60,7 @@ export default function DevWhitelabelSwitcher() {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    if (!isNonProductionEnv()) return
+    if (!isLocalDevEnv()) return
     setVisible(true)
     setEffective(getEffectiveWhitelabel())
   }, [])

@@ -151,7 +151,7 @@ export default function NotificationsPage() {
 
   // Available types from current notifications
   const availableTypes = useMemo(() => {
-    const types = new Set(notifications.map((n) => n.type));
+    const types = new Set(notifications.map((n) => n.type).filter((t): t is string => !!t));
     return Array.from(types);
   }, [notifications]);
 
@@ -287,7 +287,7 @@ export default function NotificationsPage() {
                 </span>
               </div>
               {items.map((n) => {
-                const meta = TYPE_LABEL[n.type] || { icon: '🔔', label: n.type };
+                const meta = TYPE_LABEL[n.type ?? ''] || { icon: '🔔', label: n.type ?? '' };
                 const url = getNotificationUrl(n);
                 const ext = getExternalUrl(n);
                 const isClickable = !!(url || ext);

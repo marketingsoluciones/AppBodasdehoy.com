@@ -1,20 +1,23 @@
 'use client';
 
 import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
 
 import { useChatStore } from '@/store/chat';
 import { api2Client } from '@/services/api2/client';
 import { getUnreadNotificationsCount } from '@/services/api2/notifications';
 
 import { useInboxChannels } from '../hooks/useInboxChannels';
-import type { InboxChannel, EventGroup } from '../hooks/useInboxChannels';
+import type { InboxChannel } from '../hooks/useInboxChannels';
 import { usePendingTasksSidebar } from '../hooks/usePendingTasksSidebar';
 import type { PendingTaskItem } from '../hooks/usePendingTasksSidebar';
 import { useRecentConversations, CHANNEL_BADGE } from '../hooks/useRecentConversations';
 import type { RecentConversation, ChannelKind } from '../hooks/useRecentConversations';
+import { useChannelHealthMonitor } from '../hooks/useChannelHealthMonitor';
 import type { EventoData } from '../hooks/useEventData';
+
+import { ConnectChannelDrawer } from './ConnectChannelDrawer';
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -30,6 +33,11 @@ interface EventSummary {
 }
 
 type ChannelFilter = 'all' | ChannelKind;
+
+interface ChannelSidebarProps {
+  /** Compact mode: panel fijo de 320px en desktop layout. Full: pantalla completa mobile. */
+  compact?: boolean;
+}
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -169,12 +177,10 @@ function useEventSummaries() {
 
 // ─── section label ────────────────────────────────────────────────────────────
 
-function SectionLabel({ label, extra }: { extra?: React.ReactNode, label: string; }) {
+function SectionLabel({ label, extra }: { extra?: React.ReactNode; label: string }) {
   return (
     <div className="flex items-center justify-between px-3 pb-1 pt-4">
-      <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">
-        {label}
-      </span>
+      <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">{label}</span>
       {extra}
     </div>
   );
@@ -340,58 +346,34 @@ function ChannelRow({ channel, onClick }: { channel: InboxChannel; onClick: () =
   );
 }
 
-// ─── event group section ──────────────────────────────────────────────────────
-
-function EventGroupSection({
-  group,
-  onSelect,
-}: {
-  group: EventGroup;
-  onSelect: (channelId: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div>
-      <button
-        className="flex w-full items-center gap-1.5 rounded-md px-3 py-1.5 text-left transition-colors hover:bg-gray-100"
-        onClick={() => setOpen((v) => !v)}
-        type="button"
-      >
-        <span className="text-[10px] text-gray-400">{open ? '▾' : '▸'}</span>
-        <span className="flex-1 truncate text-xs font-medium text-gray-700">
-          {group.eventName}
-        </span>
-      </button>
-      {open && (
-        <div className="ml-2 mt-0.5 space-y-0.5">
-          {group.channels.map((ch) => (
-            <button
-              className="flex w-full items-center gap-2 rounded-md px-3 py-1 text-left text-gray-600 transition-colors hover:bg-gray-100"
-              key={ch.id}
-              onClick={() => onSelect(ch.id)}
-              type="button"
-            >
-              <span className="shrink-0 text-xs">#</span>
-              <span className="flex-1 truncate text-xs">{ch.label}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── main export ──────────────────────────────────────────────────────────────
 
-export function BandejaView() {
+export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
   const router = useRouter();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Data hooks
   const { summaries: events, loading: eventsLoading } = useEventSummaries();
   const { tasks: pendingTasks, loading: tasksLoading } = usePendingTasksSidebar();
   const { conversations: recentConvs, loading: convsLoading } = useRecentConversations(50);
-  const { externalChannels, eventGroups, loading: channelsLoading } = useInboxChannels();
+  const { externalChannels, loading: channelsLoading } = useInboxChannels();
+
+  // Channel health monitor
+  const [healthAlert, setHealthAlert] = useState<{ label: string; kind: string } | null>(null);
+  const handleChannelDown = useCallback(
+    (ev: { channelId: string; kind: string; label: string }) => {
+      setHealthAlert({ kind: ev.kind, label: ev.label });
+    },
+    [],
+  );
+  const handleChannelRecovered = useCallback(() => {
+    setHealthAlert(null);
+  }, []);
+  useChannelHealthMonitor({
+    channels: externalChannels,
+    onChannelDown: handleChannelDown,
+    onChannelRecovered: handleChannelRecovered,
+  });
 
   // Search & filter state
   const [search, setSearch] = useState('');
@@ -437,8 +419,7 @@ export function BandejaView() {
     );
   }, [pendingTasks, search]);
 
-  // Mensajería lateral: mostrar solo canales reales (sin placeholders) que estén
-  // configurados y con historial de conversación (aunque todo esté leído).
+  // Active messaging channels (configured + with history)
   const activeMessagingChannels = useMemo(() => {
     return externalChannels.filter((ch) => {
       if (ch.isPlaceholder) return false;
@@ -454,13 +435,13 @@ export function BandejaView() {
   const totalPending = pendingTasks.length;
   const isLoading = eventsLoading && tasksLoading && convsLoading;
 
-  // Available channel kinds (only show tabs that have conversations)
+  // Available channel filter tabs
   const availableKinds = useMemo(() => {
     const kinds = new Set(recentConvs.map((c) => c.kind));
     return FILTER_TABS.filter((t) => t.key === 'all' || kinds.has(t.key as ChannelKind));
   }, [recentConvs]);
 
-  // Navigation
+  // Navigation handlers
   const handleEventClick = (eventId: string) => {
     router.push(`/messages/ev-${eventId}-itinerary`);
   };
@@ -475,213 +456,264 @@ export function BandejaView() {
   };
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-white">
-      {/* ── Header ── */}
-      <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3">
-        <span className="text-sm font-semibold text-gray-900">Mensajes</span>
-        <div className="flex items-center gap-0.5">
-          <Link
-            className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
-            href="/messages/whatsapp"
-            title="Nueva conversación"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-            </svg>
-          </Link>
-          <Link
-            className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
-            href="/settings/integrations"
-            title="Gestionar canales"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-          </Link>
-        </div>
-      </div>
-
-      {/* ── Summary pill ── */}
-      {(totalPending > 0 || totalUnread > 0 || unreadNotifs > 0) && (
-        <div className="shrink-0 px-2 pt-2">
-          <div className="flex items-center gap-1.5 rounded-2xl bg-purple-600 px-3 py-1.5 text-[10px] font-medium text-white">
-            <span>📅</span>
-            <span>Hoy:</span>
-            {totalPending > 0 && (
-              <span>
-                {totalPending} {totalPending === 1 ? 'tarea' : 'tareas'}
-              </span>
-            )}
-            {totalPending > 0 && totalUnread > 0 && <span>·</span>}
-            {totalUnread > 0 && (
-              <span>
-                {totalUnread} msg{totalUnread !== 1 ? 's' : ''}
-              </span>
-            )}
-            {unreadNotifs > 0 && (
-              <>
-                <span>·</span>
-                <span>{unreadNotifs} notif</span>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── Search ── */}
-      <div className="shrink-0 px-2 pt-2">
-        <input
-          className="w-full rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs placeholder:text-gray-400 focus:border-blue-400 focus:bg-white focus:outline-none"
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar tareas, chats..."
-          type="text"
-          value={search}
-        />
-      </div>
-
-      {/* ── Channel filter tabs ── */}
-      {availableKinds.length > 2 && (
-        <div className="flex shrink-0 gap-1 overflow-x-auto px-2 pt-2 pb-1">
-          {availableKinds.map((tab) => (
+    <>
+      <div className="flex h-full w-full flex-col overflow-hidden bg-white">
+        {/* ── Channel health alert ── */}
+        {healthAlert && (
+          <div className="flex shrink-0 items-center gap-2 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            <span>⚠️</span>
+            <span className="flex-1">
+              {CHANNEL_ICON[healthAlert.kind] ?? '💬'} {healthAlert.label} desconectado
+            </span>
             <button
-              className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${
-                channelFilter === tab.key
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-              }`}
-              key={tab.key}
-              onClick={() => setChannelFilter(tab.key)}
+              className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 hover:bg-amber-100"
+              onClick={() => router.push('/settings/integrations')}
               type="button"
             >
-              {tab.label}
+              Reconectar
             </button>
-          ))}
+            <button
+              className="shrink-0 text-amber-500 hover:text-amber-700"
+              onClick={() => setHealthAlert(null)}
+              type="button"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* ── Header ── */}
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3">
+          <span className="text-sm font-semibold text-gray-900">Mensajes</span>
+          <div className="flex items-center gap-0.5">
+            <Link
+              className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+              href="/messages/whatsapp"
+              title="Nueva conversación"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+              </svg>
+            </Link>
+            {/* ⊕ Conectar canal — abre drawer inline en lugar de navegar a /settings/integrations */}
+            <button
+              className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+              onClick={() => setDrawerOpen(true)}
+              title="Conectar canal"
+              type="button"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </button>
+          </div>
         </div>
-      )}
 
-      {/* ── Loading ── */}
-      {isLoading && (
-        <div className="flex flex-1 items-center justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-purple-400 border-t-transparent" />
-        </div>
-      )}
-
-      {/* ── Scrollable body ── */}
-      {!isLoading && (
-        <div className="flex-1 overflow-y-auto pb-2">
-          {/* ── Pending tasks ── */}
-          {!tasksLoading && filteredTasks.length > 0 && channelFilter === 'all' && (
-            <>
-              <SectionLabel label="Tareas pendientes" />
-              <div className="space-y-1 px-2">
-                {filteredTasks.map((item) => (
-                  <TaskRow
-                    item={item}
-                    key={item.tarea._id}
-                    onClick={() => handleTaskClick(item)}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* ── Events (channels) ── */}
-          {events.length > 0 && channelFilter === 'all' && !search.trim() && (
-            <>
-              <SectionLabel label="Canales" />
-              <div className="space-y-0.5 px-2">
-                {events.map((ev) => (
-                  <EventCard event={ev} key={ev.id} onClick={() => handleEventClick(ev.id)} />
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* ── Conversations ── */}
-          {filteredConvs.length > 0 && (
-            <>
-              <SectionLabel
-                extra={
-                  <Link
-                    className="text-[9px] font-medium text-purple-500 hover:text-purple-700"
-                    href="/messages"
-                  >
-                    Ver todo
-                  </Link>
-                }
-                label={channelFilter === 'all' ? 'Mensajes' : FILTER_TABS.find((t) => t.key === channelFilter)?.label ?? 'Mensajes'}
-              />
-              <div className="space-y-0 px-2">
-                {filteredConvs.map((conv) => (
-                  <ConversationRow
-                    conv={conv}
-                    key={conv.conversationId}
-                    onClick={() => handleConvClick(conv)}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* ── Empty state for filtered ── */}
-          {filteredConvs.length === 0 && (channelFilter !== 'all' || search.trim()) && (
-            <div className="px-3 py-6 text-center text-xs text-gray-400">
-              Sin resultados
-              {search.trim() && <> para &ldquo;{search}&rdquo;</>}
+        {/* ── Summary pill ── */}
+        {(totalPending > 0 || totalUnread > 0 || unreadNotifs > 0) && (
+          <div className="shrink-0 px-2 pt-2">
+            <div className="flex items-center gap-1.5 rounded-2xl bg-purple-600 px-3 py-1.5 text-[10px] font-medium text-white">
+              <span>📅</span>
+              <span>Hoy:</span>
+              {totalPending > 0 && (
+                <span>
+                  {totalPending} {totalPending === 1 ? 'tarea' : 'tareas'}
+                </span>
+              )}
+              {totalPending > 0 && totalUnread > 0 && <span>·</span>}
+              {totalUnread > 0 && (
+                <span>
+                  {totalUnread} msg{totalUnread !== 1 ? 's' : ''}
+                </span>
+              )}
+              {unreadNotifs > 0 && (
+                <>
+                  <span>·</span>
+                  <span>{unreadNotifs} notif</span>
+                </>
+              )}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* ── Messaging channels (when no conversations yet) ── */}
-          {!convsLoading &&
-            recentConvs.length === 0 &&
-            channelFilter === 'all' &&
-            !search.trim() && (
+        {/* ── Search ── */}
+        <div className="shrink-0 px-2 pt-2">
+          <input
+            className="w-full rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs placeholder:text-gray-400 focus:border-blue-400 focus:bg-white focus:outline-none"
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar tareas, chats..."
+            type="text"
+            value={search}
+          />
+        </div>
+
+        {/* ── Channel filter tabs ── */}
+        {availableKinds.length > 2 && (
+          <div className="flex shrink-0 gap-1 overflow-x-auto px-2 pb-1 pt-2">
+            {availableKinds.map((tab) => (
+              <button
+                className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${
+                  channelFilter === tab.key
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+                key={tab.key}
+                onClick={() => setChannelFilter(tab.key)}
+                type="button"
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* ── Loading ── */}
+        {isLoading && (
+          <div className="flex flex-1 items-center justify-center py-12">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-purple-400 border-t-transparent" />
+          </div>
+        )}
+
+        {/* ── Scrollable body ── */}
+        {!isLoading && (
+          <div className="flex-1 overflow-y-auto pb-2">
+            {/* ── Pending tasks ── */}
+            {!tasksLoading && filteredTasks.length > 0 && channelFilter === 'all' && (
               <>
-                <SectionLabel label="Mensajería" />
-                <div className="space-y-0.5 px-2">
-                  {channelsLoading ? (
-                    <div className="px-3 py-2 text-xs text-gray-400">Cargando...</div>
-                  ) : activeMessagingChannels.length === 0 ? (
-                    <div className="px-3 py-2 text-xs text-gray-400">
-                      No hay canales configurados con historial de mensajes.
-                    </div>
-                  ) : (
-                    activeMessagingChannels.map((ch) => (
-                      <ChannelRow
-                        channel={ch}
-                        key={ch.id}
-                        onClick={() => handleChannelSelect(ch.id)}
-                      />
-                    ))
-                  )}
+                <SectionLabel label="Tareas pendientes" />
+                <div className="space-y-1 px-2">
+                  {filteredTasks.map((item) => (
+                    <TaskRow
+                      item={item}
+                      key={item.tarea._id}
+                      onClick={() => handleTaskClick(item)}
+                    />
+                  ))}
                 </div>
               </>
             )}
 
-          {/* ── Notifications ── */}
-          {channelFilter === 'all' && !search.trim() && (
-            <div className="px-2 pt-3 pb-1">
-              <button
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-gray-700 transition-colors hover:bg-gray-100"
-                onClick={() => router.push('/notifications')}
-                type="button"
-              >
-                <span className="shrink-0 text-sm">🔔</span>
-                <span className="flex-1 text-xs font-medium">Notificaciones</span>
-                {unreadNotifs > 0 && (
-                  <span className="shrink-0 rounded-full bg-pink-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
-                    {unreadNotifs}
-                  </span>
-                )}
-              </button>
-            </div>
-          )}
+            {/* ── Events (channels) ── */}
+            {events.length > 0 && channelFilter === 'all' && !search.trim() && (
+              <>
+                <SectionLabel label="Canales" />
+                <div className="space-y-0.5 px-2">
+                  {events.map((ev) => (
+                    <EventCard event={ev} key={ev.id} onClick={() => handleEventClick(ev.id)} />
+                  ))}
+                </div>
+              </>
+            )}
 
-          {/* Event groups oculto en sidebar de Mensajería: aquí mostramos solo inbox de canales. */}
-        </div>
-      )}
+            {/* ── Conversations ── */}
+            {filteredConvs.length > 0 && (
+              <>
+                <SectionLabel
+                  extra={
+                    <Link
+                      className="text-[9px] font-medium text-purple-500 hover:text-purple-700"
+                      href="/messages"
+                    >
+                      Ver todo
+                    </Link>
+                  }
+                  label={
+                    channelFilter === 'all'
+                      ? 'Mensajes'
+                      : (FILTER_TABS.find((t) => t.key === channelFilter)?.label ?? 'Mensajes')
+                  }
+                />
+                <div className="space-y-0 px-2">
+                  {filteredConvs.map((conv) => (
+                    <ConversationRow
+                      conv={conv}
+                      key={conv.conversationId}
+                      onClick={() => handleConvClick(conv)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
 
-    </div>
+            {/* ── Empty state for filtered ── */}
+            {filteredConvs.length === 0 && (channelFilter !== 'all' || search.trim()) && (
+              <div className="px-3 py-6 text-center text-xs text-gray-400">
+                Sin resultados
+                {search.trim() && <> para &ldquo;{search}&rdquo;</>}
+              </div>
+            )}
+
+            {/* ── Messaging channels (when no conversations yet) ── */}
+            {!convsLoading &&
+              recentConvs.length === 0 &&
+              channelFilter === 'all' &&
+              !search.trim() && (
+                <>
+                  <SectionLabel label="Mensajería" />
+                  <div className="space-y-0.5 px-2">
+                    {channelsLoading ? (
+                      <div className="px-3 py-2 text-xs text-gray-400">Cargando...</div>
+                    ) : activeMessagingChannels.length === 0 ? (
+                      <div className="px-3 py-2 text-xs text-gray-400">
+                        No hay canales configurados.{' '}
+                        <button
+                          className="text-purple-500 hover:underline"
+                          onClick={() => setDrawerOpen(true)}
+                          type="button"
+                        >
+                          Conectar canal →
+                        </button>
+                      </div>
+                    ) : (
+                      activeMessagingChannels.map((ch) => (
+                        <ChannelRow
+                          channel={ch}
+                          key={ch.id}
+                          onClick={() => handleChannelSelect(ch.id)}
+                        />
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
+
+            {/* ── Notifications ── */}
+            {channelFilter === 'all' && !search.trim() && (
+              <div className="px-2 pb-1 pt-3">
+                <button
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-gray-700 transition-colors hover:bg-gray-100"
+                  onClick={() => router.push('/notifications')}
+                  type="button"
+                >
+                  <span className="shrink-0 text-sm">🔔</span>
+                  <span className="flex-1 text-xs font-medium">Notificaciones</span>
+                  {unreadNotifs > 0 && (
+                    <span className="shrink-0 rounded-full bg-pink-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                      {unreadNotifs}
+                    </span>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── ConnectChannelDrawer ── */}
+      <ConnectChannelDrawer onClose={() => setDrawerOpen(false)} open={drawerOpen} />
+    </>
   );
 }

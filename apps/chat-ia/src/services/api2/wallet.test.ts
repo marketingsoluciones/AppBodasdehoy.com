@@ -204,7 +204,7 @@ describe('Wallet Service', () => {
 
       await wallet.createRechargeSession(5, 'https://ok', 'https://cancel');
 
-      const input = mockQuery.mock.calls[0][1]!.input;
+      const input = (mockQuery.mock.calls[0][1]! as any).input;
       expect(input.customer_email).toBeUndefined();
       expect(input.amount).toBe(5);
     });
@@ -299,7 +299,7 @@ describe('Wallet Service', () => {
         { session_id: 'sess-123' },
       );
 
-      const input = mockQuery.mock.calls[0][1]!.input;
+      const input = (mockQuery.mock.calls[0][1]! as any).input;
       expect(input.service_sku).toBe('SRV-AI-OPENAI-GPT4O');
       expect(input.quantity).toBe(2);
       expect(input.description).toBe('Group chat analysis');
@@ -407,7 +407,7 @@ describe('Wallet Service', () => {
       const result = await wallet.configureAutoRecharge(true, 2, 10, 'pm_1');
 
       expect(result.success).toBe(true);
-      const input = mockQuery.mock.calls[0][1]!.input;
+      const input = (mockQuery.mock.calls[0][1]! as any).input;
       expect(input.enabled).toBe(true);
       expect(input.threshold).toBe(2);
       expect(input.amount).toBe(10);
@@ -421,7 +421,7 @@ describe('Wallet Service', () => {
 
       await wallet.configureAutoRecharge(false);
 
-      const input = mockQuery.mock.calls[0][1]!.input;
+      const input = (mockQuery.mock.calls[0][1]! as any).input;
       expect(input.enabled).toBe(false);
       expect(input.threshold).toBeUndefined();
     });

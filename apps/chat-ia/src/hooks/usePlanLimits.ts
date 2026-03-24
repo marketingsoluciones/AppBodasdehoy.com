@@ -126,19 +126,23 @@ export const usePlanLimits = (): UsePlanLimitsReturn => {
   // SKU HELPERS
   // ========================================
 
+  // Cast ProductLimit → PlanLimit: structurally identical; overage_price is optional in API response
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const planForUtils = plan as any;
+
   const getLimit = useCallback(
     (sku: string): PlanLimit | null => {
-      return plan?.product_limits.find((l) => l.sku === sku) ?? null;
+      return (plan?.product_limits.find((l) => l.sku === sku) as PlanLimit | undefined) ?? null;
     },
     [plan],
   );
 
   const canUse = useCallback(
     (sku: string, currentUsage: number, quantity: number = 1): AccessCheck => {
-      if (!plan) return { allowed: true, remaining: Infinity, limit: Infinity, percentUsed: 0, overageAvailable: false };
-      return canAccess(sku, currentUsage + quantity - 1, plan);
+      if (!planForUtils) return { allowed: true, remaining: Infinity, limit: Infinity, percentUsed: 0, overageAvailable: false };
+      return canAccess(sku, currentUsage + quantity - 1, planForUtils);
     },
-    [plan],
+    [planForUtils],
   );
 
   const getUsage = useCallback(
@@ -168,18 +172,18 @@ export const usePlanLimits = (): UsePlanLimitsReturn => {
 
   const getUpgradeMsg = useCallback(
     (sku: string, currentUsage: number): string => {
-      if (!plan) return 'Actualiza tu plan.';
-      return getUpgradeMessage(sku, currentUsage, plan, allPlans);
+      if (!planForUtils) return 'Actualiza tu plan.';
+      return getUpgradeMessage(sku, currentUsage, planForUtils, allPlans as any);
     },
-    [plan, allPlans],
+    [planForUtils, allPlans],
   );
 
   const getConversionMsg = useCallback(
     (sku: string, percentUsed: number): string | null => {
-      if (!plan) return null;
-      return getConversionMessage(sku, percentUsed, plan, allPlans);
+      if (!planForUtils) return null;
+      return getConversionMessage(sku, percentUsed, planForUtils, allPlans as any);
     },
-    [plan, allPlans],
+    [planForUtils, allPlans],
   );
 
   // ========================================

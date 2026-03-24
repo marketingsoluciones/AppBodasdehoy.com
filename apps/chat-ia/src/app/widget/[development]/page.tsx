@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 interface Message {
   content: string;
   id: string;
@@ -19,7 +21,16 @@ interface PageContext {
   visitorId: string;
 }
 
-/** Minimal markdown to HTML: **bold**, *italic*, [link](url), `code`, and newlines */
+interface LeadData {
+  email: string;
+  name: string;
+  phone: string;
+}
+
+type Phase = 'form' | 'chat';
+
+// ─── Markdown renderer ────────────────────────────────────────────────────────
+
 function renderMarkdown(text: string): string {
   return text
     .replaceAll('&', '&amp;')
@@ -27,47 +38,397 @@ function renderMarkdown(text: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replaceAll(/\*(.+?)\*/g, '<em>$1</em>')
-    .replaceAll(/`(.+?)`/g, '<code style="background:#f3f4f6;padding:1px 4px;border-radius:3px;font-size:12px">$1</code>')
-    .replaceAll(/\[([^\]]+)]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline">$1</a>')
+    .replaceAll(
+      /`(.+?)`/g,
+      '<code style="background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:4px;font-size:12px">$1</code>',
+    )
+    .replaceAll(
+      /\[([^\]]+)]\((https?:\/\/[^)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener" style="color:#be185d;text-decoration:underline">$1</a>',
+    )
     .replaceAll('\n', '<br/>');
 }
 
-function TypingIndicator({ dark }: { dark?: boolean }) {
+// ─── Typing indicator ─────────────────────────────────────────────────────────
+
+function TypingIndicator() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 8 }}>
+    <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 10 }}>
       <div
         style={{
-          alignItems: 'center',
-          background: dark ? '#374151' : 'white',
-          borderRadius: '14px 14px 14px 4px',
-          boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
-          display: 'flex',
-          gap: 4,
-          padding: '10px 16px',
+          alignItems: 'center', background: 'white',
+          borderRadius: '16px 16px 16px 4px',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+          display: 'flex', gap: 5, padding: '10px 16px',
         }}
       >
         {[0, 1, 2].map((i) => (
           <span
             key={i}
             style={{
-              animation: `widgetBounce 1.4s ease-in-out ${i * 0.2}s infinite`, background: dark ? '#9ca3af' : '#6b7280', borderRadius: '50%',
-              display: 'inline-block',
-              height: 6,
-              width: 6,
+              animation: `bounce 1.4s ease-in-out ${i * 0.18}s infinite`,
+              background: 'linear-gradient(135deg,#f43f5e,#a855f7)',
+              borderRadius: '50%', display: 'inline-block', height: 7, width: 7,
             }}
           />
         ))}
-        <style>{`@keyframes widgetBounce { 0%,60%,100% { transform: translateY(0) } 30% { transform: translateY(-4px) } }`}</style>
+      </div>
+      <style>{`@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}`}</style>
+    </div>
+  );
+}
+
+// ─── Quick replies ─────────────────────────────────────────────────────────────
+
+const QUICK_REPLIES = [
+  { emoji: '💒', text: 'Ver opciones para mi boda' },
+  { emoji: '💰', text: 'Quiero saber los precios' },
+  { emoji: '📅', text: 'Consultar disponibilidad' },
+  { emoji: '📸', text: 'Ver fotos y espacios' },
+];
+
+// ─── Lead form ────────────────────────────────────────────────────────────────
+
+function LeadForm({ onSubmit }: { onSubmit: (data: LeadData) => void }) {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const nameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { nameRef.current?.focus(); }, []);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) { setError('Por favor, escribe tu nombre'); return; }
+    if (!phone.trim() && !email.trim()) { setError('Añade tu teléfono o email para poder contactarte'); return; }
+    setError('');
+    onSubmit({ email: email.trim(), name: name.trim(), phone: phone.trim() });
+  };
+
+  const inputBase: React.CSSProperties = {
+    background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 10,
+    boxSizing: 'border-box', color: '#1f2937', fontFamily: 'inherit',
+    fontSize: 14, outline: 'none', padding: '10px 14px',
+    transition: 'border-color 0.15s', width: '100%',
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', fontFamily: 'system-ui,-apple-system,sans-serif', height: '100vh' }}>
+
+      {/* Header */}
+      <div style={{ background: 'linear-gradient(140deg,#f43f5e 0%,#a855f7 100%)', flexShrink: 0, overflow: 'hidden', padding: '20px 20px 52px', position: 'relative' }}>
+        <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '50%', height: 160, pointerEvents: 'none', position: 'absolute', right: -40, top: -40, width: 160 }} />
+        <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '50%', bottom: 10, height: 100, left: 20, pointerEvents: 'none', position: 'absolute', width: 100 }} />
+        <div style={{ position: 'relative' }}>
+          <div style={{ alignItems: 'center', background: 'rgba(255,255,255,0.25)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: '50%', display: 'flex', fontSize: 26, height: 52, justifyContent: 'center', marginBottom: 10, width: 52 }}>
+            💒
+          </div>
+          <div style={{ color: 'white', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Asistente de bodas</div>
+          <div style={{ alignItems: 'center', display: 'flex', gap: 5 }}>
+            <span style={{ background: '#4ade80', borderRadius: '50%', boxShadow: '0 0 0 2px rgba(74,222,128,0.3)', display: 'inline-block', height: 7, width: 7 }} />
+            <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12 }}>En línea · responde enseguida</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Card */}
+      <div style={{ background: '#f8f7ff', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ background: 'white', borderRadius: 20, boxShadow: '0 4px 24px rgba(0,0,0,0.1)', margin: '-26px 16px 0', padding: '24px 20px', position: 'relative' }}>
+          <p style={{ color: '#1f2937', fontSize: 17, fontWeight: 700, lineHeight: 1.3, margin: '0 0 6px' }}>
+            ¡Hola! 👋 Encantados de ayudarte
+          </p>
+          <p style={{ color: '#6b7280', fontSize: 13, lineHeight: 1.5, margin: '0 0 20px' }}>
+            Cuéntanos un poco sobre ti para personalizar tu experiencia.
+          </p>
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[
+              { label: 'Tu nombre *', placeholder: 'María García', ref: nameRef, setter: setName, type: 'text', value: name },
+              { label: 'Teléfono', placeholder: '+34 600 000 000', ref: undefined, setter: setPhone, type: 'tel', value: phone },
+              { label: 'Email', placeholder: 'maria@ejemplo.com', ref: undefined, setter: setEmail, type: 'email', value: email },
+            ].map(({ label, placeholder, ref, setter, type, value }) => (
+              <div key={label}>
+                <label style={{ color: '#374151', display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 5 }}>
+                  {label}
+                </label>
+                <input
+                  ref={ref as any}
+                  type={type}
+                  placeholder={placeholder}
+                  value={value}
+                  onChange={(e) => setter(e.target.value)}
+                  style={inputBase}
+                  onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = '#a855f7'; }}
+                  onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'; }}
+                />
+              </div>
+            ))}
+
+            {error && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#ef4444', fontSize: 12, padding: '8px 12px' }}>
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              style={{
+                background: 'linear-gradient(140deg,#f43f5e 0%,#a855f7 100%)',
+                border: 'none', borderRadius: 12, boxShadow: '0 4px 16px rgba(168,85,247,0.35)',
+                color: 'white', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14,
+                fontWeight: 700, marginTop: 4, padding: '12px 20px', transition: 'opacity 0.2s',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget).style.opacity = '0.9'; }}
+              onMouseLeave={(e) => { (e.currentTarget).style.opacity = '1'; }}
+            >
+              Comenzar conversación ✨
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onSubmit({ email: '', name: 'Visitante', phone: '' })}
+              style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, padding: 4, textDecoration: 'underline' }}
+            >
+              Continuar sin registrarme
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ background: '#f8f7ff', flexShrink: 0, padding: '10px 20px', textAlign: 'center' }}>
+        <span style={{ fontSize: 11 }}>
+          <span style={{ color: '#9ca3af' }}>Powered by </span>
+          <span style={{ color: '#be185d', fontWeight: 700 }}>Bodas de Hoy</span>
+          <span style={{ color: '#9ca3af' }}> ❤️</span>
+        </span>
       </div>
     </div>
   );
 }
 
-const QUICK_REPLIES = [
-  'Quiero información sobre servicios',
-  'Necesito ayuda con mi evento',
-  'Ver precios',
-];
+// ─── Chat view ────────────────────────────────────────────────────────────────
+
+function ChatView({
+  development,
+  leadData,
+  pageContext,
+  visitorId,
+}: {
+  development: string;
+  leadData: LeadData;
+  pageContext: PageContext | null;
+  visitorId: string;
+}) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
+  const [showTyping, setShowTyping] = useState(false);
+  const [showQuickReplies, setShowQuickReplies] = useState(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const isGuest = leadData.name === 'Visitante';
+
+  // Welcome message
+  useEffect(() => {
+    const greeting = isGuest
+      ? '¡Hola! 👋 Soy tu asistente de bodas. ¿En qué puedo ayudarte hoy?'
+      : `¡Hola, **${leadData.name}**! 👋 Estoy aquí para ayudarte a organizar el día perfecto. ¿Por dónde empezamos?`;
+    setMessages([{ content: greeting, id: 'welcome', role: 'assistant', timestamp: new Date().toISOString() }]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-scroll
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, showTyping]);
+
+  const sendMessage = useCallback(async (text?: string) => {
+    const msgText = (text ?? input).trim();
+    if (!msgText || sending) return;
+
+    setMessages((prev) => [...prev, { content: msgText, id: `u_${Date.now()}`, role: 'user', timestamp: new Date().toISOString() }]);
+    setInput('');
+    setSending(true);
+    setShowQuickReplies(false);
+
+    const timer = setTimeout(() => setShowTyping(true), 380);
+
+    try {
+      const res = await fetch('/api/widget-chat', {
+        body: JSON.stringify({
+          development,
+          leadData: { email: leadData.email, name: leadData.name, phone: leadData.phone },
+          pageContext: pageContext ? { path: pageContext.path, title: pageContext.title, url: pageContext.url } : undefined,
+          text: msgText,
+          visitorId,
+        }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (data.reply) {
+        setMessages((prev) => [...prev, { content: data.reply, id: `a_${Date.now()}`, role: 'assistant', timestamp: new Date().toISOString() }]);
+        window.parent.postMessage({ count: 1, source: 'bodas-widget-iframe', type: 'WIDGET_UNREAD' }, '*');
+      }
+    } catch {
+      setMessages((prev) => [...prev, { content: 'Lo siento, ha habido un problema. Inténtalo de nuevo.', id: `err_${Date.now()}`, role: 'assistant', timestamp: new Date().toISOString() }]);
+    } finally {
+      clearTimeout(timer);
+      setShowTyping(false);
+      setSending(false);
+      inputRef.current?.focus();
+    }
+  }, [input, sending, development, visitorId, pageContext, leadData]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  };
+
+  const fmtTime = (iso: string) => {
+    try { return new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }); }
+    catch { return ''; }
+  };
+
+  const canSend = input.trim() && !sending;
+
+  return (
+    <div style={{ background: '#f8f7ff', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui,-apple-system,sans-serif', height: '100vh' }}>
+
+      {/* ── Header ── */}
+      <div style={{ alignItems: 'center', background: 'linear-gradient(140deg,#f43f5e 0%,#a855f7 100%)', display: 'flex', flexShrink: 0, gap: 12, overflow: 'hidden', padding: '14px 16px', position: 'relative' }}>
+        <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '50%', height: 100, pointerEvents: 'none', position: 'absolute', right: -20, top: -30, width: 100 }} />
+        <div style={{ alignItems: 'center', background: 'rgba(255,255,255,0.25)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: '50%', display: 'flex', flexShrink: 0, fontSize: 20, height: 40, justifyContent: 'center', width: 40 }}>
+          💒
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ color: 'white', fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>Asistente de bodas</div>
+          <div style={{ alignItems: 'center', display: 'flex', gap: 4, marginTop: 2 }}>
+            <span style={{ background: '#4ade80', borderRadius: '50%', display: 'inline-block', height: 6, width: 6 }} />
+            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>En línea</span>
+          </div>
+        </div>
+        <button
+          onClick={() => window.parent.postMessage({ source: 'bodas-widget-iframe', type: 'WIDGET_CLOSE' }, '*')}
+          style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, color: 'white', cursor: 'pointer', flexShrink: 0, fontSize: 14, padding: '5px 9px' }}
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* ── Lead pill ── */}
+      {!isGuest && leadData.name && (
+        <div style={{ background: 'white', borderBottom: '1px solid #f3f4f6', flexShrink: 0, padding: '7px 14px' }}>
+          <div style={{ alignItems: 'center', color: '#6b7280', display: 'flex', fontSize: 11, gap: 10 }}>
+            <span>👤 <strong style={{ color: '#374151' }}>{leadData.name}</strong></span>
+            {leadData.phone && <span>📱 {leadData.phone}</span>}
+            {leadData.email && <span>✉️ {leadData.email}</span>}
+          </div>
+        </div>
+      )}
+
+      {/* ── Messages ── */}
+      <div style={{ display: 'flex', flex: 1, flexDirection: 'column', gap: 4, overflowY: 'auto', padding: '16px 12px 8px' }}>
+        {messages.map((msg) => (
+          <div key={msg.id} style={{ alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start', display: 'flex', flexDirection: 'column', marginBottom: 4 }}>
+            <div
+              style={{
+                background: msg.role === 'user' ? 'linear-gradient(135deg,#f43f5e,#a855f7)' : 'white',
+                borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '4px 16px 16px 16px',
+                boxShadow: msg.role === 'user' ? '0 2px 8px rgba(168,85,247,0.3)' : '0 1px 4px rgba(0,0,0,0.08)',
+                color: msg.role === 'user' ? 'white' : '#1f2937',
+                fontSize: 13, lineHeight: 1.5, maxWidth: '82%',
+                padding: '10px 14px', wordBreak: 'break-word',
+              }}
+            >
+              {msg.role === 'assistant'
+                ? <span dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />
+                : msg.content}
+            </div>
+            <span style={{ color: '#9ca3af', fontSize: 10, marginTop: 3, paddingInline: 4 }}>
+              {fmtTime(msg.timestamp)}
+            </span>
+          </div>
+        ))}
+
+        {/* Quick replies */}
+        {showQuickReplies && messages.length <= 1 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8, marginTop: 4 }}>
+            {QUICK_REPLIES.map((qr) => (
+              <button
+                key={qr.text}
+                onClick={() => sendMessage(qr.text)}
+                style={{
+                  background: 'white', border: '1.5px solid #e9d5ff', borderRadius: 20,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)', color: '#7c3aed', cursor: 'pointer',
+                  fontFamily: 'inherit', fontSize: 12, fontWeight: 500, padding: '7px 13px', transition: 'all 0.15s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#faf5ff'; e.currentTarget.style.borderColor = '#a855f7'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e9d5ff'; }}
+              >
+                {qr.emoji} {qr.text}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {showTyping && <TypingIndicator />}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* ── Input ── */}
+      <div style={{ alignItems: 'flex-end', background: 'white', borderTop: '1px solid #f3f4f6', display: 'flex', flexShrink: 0, gap: 8, padding: '10px 12px' }}>
+        <textarea
+          ref={inputRef}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Escribe tu mensaje..."
+          rows={1}
+          style={{
+            background: '#fafafa', border: '1.5px solid #e5e7eb', borderRadius: 12, boxSizing: 'border-box',
+            color: '#1f2937', flex: 1, fontFamily: 'inherit', fontSize: 13, lineHeight: 1.5,
+            maxHeight: 80, outline: 'none', padding: '9px 14px', resize: 'none', transition: 'border-color 0.15s',
+          }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = '#a855f7'; }}
+          onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; }}
+        />
+        <button
+          disabled={!canSend}
+          onClick={() => sendMessage()}
+          style={{
+            alignItems: 'center', background: canSend ? 'linear-gradient(135deg,#f43f5e,#a855f7)' : '#e5e7eb',
+            border: 'none', borderRadius: 12, boxShadow: canSend ? '0 2px 8px rgba(168,85,247,0.35)' : 'none',
+            color: canSend ? 'white' : '#9ca3af', cursor: canSend ? 'pointer' : 'default',
+            display: 'flex', flexShrink: 0, height: 38, justifyContent: 'center', transition: 'all 0.2s', width: 38,
+          }}
+        >
+          {sending
+            ? <span style={{ animation: 'spin 0.8s linear infinite', border: '2px solid rgba(255,255,255,0.4)', borderRadius: '50%', borderTopColor: 'white', display: 'inline-block', height: 14, width: 14 }} />
+            : (
+              <svg fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeWidth="2.5" viewBox="0 0 24 24" width="16">
+                <path d="m22 2-11 11M22 2 15 22 11 13 2 9l20-7z" />
+              </svg>
+            )}
+        </button>
+      </div>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+
+      {/* ── Footer ── */}
+      <div style={{ background: 'white', borderTop: '1px solid #f3f4f6', flexShrink: 0, padding: '6px 12px', textAlign: 'center' }}>
+        <span style={{ color: '#9ca3af', fontSize: 10 }}>Powered by </span>
+        <span style={{ color: '#be185d', fontSize: 10, fontWeight: 700 }}>Bodas de Hoy</span>
+        <span style={{ color: '#9ca3af', fontSize: 10 }}> ❤️</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main page ─────────────────────────────────────────────────────────────────
+
+const LEAD_KEY_PFX = 'bodas_lead_';
+const PHASE_KEY_PFX = 'bodas_phase_';
 
 export default function WidgetPage() {
   const params = useParams();
@@ -75,242 +436,52 @@ export default function WidgetPage() {
   const development = (params.development as string) || 'bodasdehoy';
   const visitorId = searchParams.get('visitor') || 'anonymous';
 
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const [showTyping, setShowTyping] = useState(false);
-  const [pageContext, setPageContext] = useState<PageContext | null>(null);
-  const [dark, setDark] = useState(false);
-  const [showQuickReplies, setShowQuickReplies] = useState(true);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const leadKey = LEAD_KEY_PFX + visitorId;
+  const phaseKey = PHASE_KEY_PFX + visitorId;
 
-  // CSS custom properties for theming
-  const theme = dark
-    ? { '--accent': '#818cf8', '--accent-bg': '#4f46e5', '--bg': '#111827', '--bg-input': '#1f2937', '--bg-msg': '#1f2937', '--border': '#374151', '--text': '#f9fafb', '--text-secondary': '#9ca3af', '--user-bg': '#4f46e5' }
-    : { '--accent': '#6366f1', '--accent-bg': '#6366f1', '--bg': '#f9fafb', '--bg-input': 'white', '--bg-msg': 'white', '--border': '#e5e7eb', '--text': '#1f2937', '--text-secondary': '#6b7280', '--user-bg': '#6366f1' };
+  const [phase, setPhase] = useState<Phase>(() => {
+    try { return (localStorage.getItem(phaseKey) === 'chat') ? 'chat' : 'form'; }
+    catch { return 'form'; }
+  });
 
-  // Listen for page context from parent
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (!event.data || event.data.source !== 'bodas-widget') return;
-      if (event.data.type === 'WIDGET_PAGE_CONTEXT') {
-        setPageContext(event.data.payload);
-      }
-    };
-    window.addEventListener('message', handleMessage);
-    window.parent.postMessage({ source: 'bodas-widget-iframe', type: 'WIDGET_READY' }, '*');
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
-
-  // Auto-scroll
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  // Welcome message
-  useEffect(() => {
-    setMessages([{
-      content: 'Hola! En qué puedo ayudarte?', id: 'welcome',
-      role: 'assistant',
-      timestamp: new Date().toISOString(),
-    }]);
-  }, []);
-
-  const sendMessage = useCallback(async (text?: string) => {
-    const msgText = (text || input).trim();
-    if (!msgText || sending) return;
-
-    const userMsg: Message = {
-      content: msgText, id: `u_${Date.now()}`,
-      role: 'user', timestamp: new Date().toISOString(),
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
-    setInput('');
-    setSending(true);
-    setShowQuickReplies(false);
-
-    const typingTimer = setTimeout(() => setShowTyping(true), 400);
-
+  const [leadData, setLeadData] = useState<LeadData>(() => {
     try {
-      const res = await fetch('/api/widget-chat', {
-        body: JSON.stringify({
-          development, pageContext: pageContext ? { path: pageContext.path, title: pageContext.title, url: pageContext.url } : undefined, text: msgText,
-          visitorId,
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-      });
+      const saved = localStorage.getItem(leadKey);
+      return saved ? JSON.parse(saved) : { email: '', name: '', phone: '' };
+    } catch { return { email: '', name: '', phone: '' }; }
+  });
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (data.reply) {
-        setMessages((prev) => [...prev, {
-          content: data.reply, id: `a_${Date.now()}`,
-          role: 'assistant', timestamp: new Date().toISOString(),
-        }]);
-      }
-    } catch {
-      setMessages((prev) => [...prev, {
-        content: 'Lo siento, hubo un error. Intenta de nuevo.', id: `err_${Date.now()}`,
-        role: 'assistant',
-        timestamp: new Date().toISOString(),
-      }]);
-    } finally {
-      clearTimeout(typingTimer);
-      setShowTyping(false);
-      setSending(false);
-      inputRef.current?.focus();
-    }
-  }, [input, sending, development, visitorId, pageContext]);
+  const [pageContext, setPageContext] = useState<PageContext | null>(null);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (!event.data || event.data.source !== 'bodas-widget') return;
+      if (event.data.type === 'WIDGET_PAGE_CONTEXT') setPageContext(event.data.payload);
+    };
+    window.addEventListener('message', handler);
+    window.parent.postMessage({ source: 'bodas-widget-iframe', type: 'WIDGET_READY' }, '*');
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  const handleLeadSubmit = useCallback((data: LeadData) => {
+    setLeadData(data);
+    setPhase('chat');
+    try {
+      localStorage.setItem(leadKey, JSON.stringify(data));
+      localStorage.setItem(phaseKey, 'chat');
+    } catch { /* ignore */ }
+  }, [leadKey, phaseKey]);
+
+  if (phase === 'form') {
+    return <LeadForm onSubmit={handleLeadSubmit} />;
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, sans-serif', height: '100vh', ...theme as any }}>
-      {/* Header */}
-      <div
-        style={{
-          alignItems: 'center',
-          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-          color: 'white',
-          display: 'flex',
-          justifyContent: 'space-between',
-          padding: '12px 16px',
-        }}
-      >
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 600 }}>Asistente</div>
-          <div style={{ fontSize: 11, opacity: 0.8 }}>{pageContext?.title || 'En línea'}</div>
-        </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button
-            onClick={() => setDark((d) => !d)}
-            style={{
-              background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 6,
-              color: 'white', cursor: 'pointer', fontSize: 12, padding: '4px 8px',
-            }}
-            title={dark ? 'Modo claro' : 'Modo oscuro'}
-          >
-            {dark ? '☀️' : '🌙'}
-          </button>
-          <button
-            onClick={() => window.parent.postMessage({ source: 'bodas-widget-iframe', type: 'WIDGET_CLOSE' }, '*')}
-            style={{
-              background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 6,
-              color: 'white', cursor: 'pointer', fontSize: 14, padding: '4px 8px',
-            }}
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-
-      {/* Messages */}
-      <div style={{ background: 'var(--bg)', flex: 1, overflowY: 'auto', padding: '12px 12px 4px' }}>
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            style={{
-              display: 'flex',
-              justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-              marginBottom: 8,
-            }}
-          >
-            <div
-              style={{
-                background: msg.role === 'user' ? 'var(--user-bg)' : 'var(--bg-msg)',
-                borderRadius: msg.role === 'user' ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
-                color: msg.role === 'user' ? 'white' : 'var(--text)',
-                fontSize: 13,
-                lineHeight: 1.4, maxWidth: '80%',
-                padding: '8px 12px',
-                whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-              }}
-            >
-              {msg.role === 'assistant' ? (
-                <span dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />
-              ) : msg.content}
-            </div>
-          </div>
-        ))}
-
-        {/* Quick Replies */}
-        {showQuickReplies && messages.length <= 1 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8, marginTop: 4 }}>
-            {QUICK_REPLIES.map((qr) => (
-              <button
-                key={qr}
-                onClick={() => sendMessage(qr)}
-                style={{
-                  background: dark ? '#374151' : 'white',
-                  border: `1px solid ${dark ? '#4b5563' : '#d1d5db'}`,
-                  borderRadius: 16,
-                  color: 'var(--accent)',
-                  cursor: 'pointer',
-                  fontSize: 12, padding: '6px 12px',
-                  transition: 'background 0.2s',
-                }}
-              >
-                {qr}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {showTyping && <TypingIndicator dark={dark} />}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input */}
-      <div
-        style={{
-          alignItems: 'flex-end',
-          background: 'var(--bg-input)',
-          borderTop: `1px solid var(--border)`,
-          display: 'flex', gap: 8, padding: '8px 12px',
-        }}
-      >
-        <textarea
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Escribe un mensaje..."
-          ref={inputRef}
-          rows={1}
-          style={{
-            border: `1px solid var(--border)`,
-            background: dark ? '#1f2937' : 'white',
-            borderRadius: 10,
-            color: 'var(--text)',
-            flex: 1, fontFamily: 'inherit', fontSize: 13,
-            maxHeight: 80, outline: 'none',
-            padding: '8px 12px',
-            resize: 'none',
-          }}
-          value={input}
-        />
-        <button
-          disabled={!input.trim() || sending}
-          onClick={() => sendMessage()}
-          style={{
-            alignItems: 'center',
-            background: input.trim() ? 'var(--accent-bg)' : 'var(--border)', border: 'none',
-            borderRadius: 10, color: 'white',
-            cursor: input.trim() ? 'pointer' : 'default', display: 'flex', flexShrink: 0,
-            fontSize: 16, height: 36, justifyContent: 'center',
-            width: 36,
-          }}
-        >
-          ➤
-        </button>
-      </div>
-    </div>
+    <ChatView
+      development={development}
+      leadData={leadData}
+      pageContext={pageContext}
+      visitorId={visitorId}
+    />
   );
 }

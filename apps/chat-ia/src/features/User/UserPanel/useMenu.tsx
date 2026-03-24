@@ -254,8 +254,10 @@ export const useMenu = () => {
     {
       type: 'divider',
     },
-    ...(!enableAuth || (enableAuth && showAccountLogout) ? (profile || []) : []),
-    ...(isLogin ? (settings || []) : []),
+    // profile (cartera, facturación, integraciones…) solo para usuarios con cuenta real
+    ...(showAccountLogout ? (profile || []) : []),
+    // ajustes/advanced solo para usuarios con cuenta real (no visitantes/guests)
+    ...(showAccountLogout ? (settings || []) : []),
     /* ↓ cloud slot ↓ */
 
     /* ↑ cloud slot ↑ */

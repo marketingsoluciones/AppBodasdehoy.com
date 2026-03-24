@@ -78,8 +78,8 @@ test.describe('Copilot — preguntas en app-test, panel derecho para feedback', 
       test.skip(true, 'Faltan TEST_USER_EMAIL / TEST_USER_PASSWORD');
       return;
     }
-    if (!BASE_URL.includes('app-test.bodasdehoy.com')) {
-      test.skip(true, 'Este flujo usa app-test (subdominios). No local.');
+    if (!BASE_URL.includes('app-test.bodasdehoy.com') && !BASE_URL.includes('app-dev.bodasdehoy.com')) {
+      test.skip(true, 'Este flujo usa app-test o app-dev (subdominios). No local.');
       return;
     }
 

@@ -7,8 +7,9 @@ import { Flexbox } from 'react-layout-kit';
 
 import { GITHUB } from '@/const/url';
 import { WalletWidget } from '@/components/Wallet';
-import { useChatStore } from '@/store/chat';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
+import { useUserStore } from '@/store/user';
+import { authSelectors } from '@/store/user/selectors';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useBilling } from '@/hooks/useBilling';
 import { usagePercent, usageColor } from '@bodasdehoy/shared/plans';
@@ -116,8 +117,8 @@ QuotaMiniBar.displayName = 'QuotaMiniBar';
 const BottomActions = memo(() => {
   const { t } = useTranslation('common');
   const { hideGitHub } = useServerConfigStore(featureFlagsSelectors);
-  const currentUserId = useChatStore((s) => s.currentUserId);
-  const isGuest = !currentUserId || currentUserId === 'visitante@guest.local';
+  const isLoggedIn = useUserStore(authSelectors.isLogin);
+  const isGuest = !isLoggedIn;
   const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
 
   return (

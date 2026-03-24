@@ -100,7 +100,8 @@ export const chatRag: StateCreator<ChatStore, [['zustand/devtools', never]], [],
         typeof e === 'object' && e !== null && 'message' in e && typeof (e as any).message === 'string'
           ? (e as Error).message
           : String(e);
-      message.error({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (message as any)?.error?.({
         content: `No se pudo consultar la base de conocimiento (KB). ${detail}`,
         duration: 12,
       });

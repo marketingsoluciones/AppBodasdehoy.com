@@ -1,20 +1,19 @@
 'use client';
 
 import { ActionIcon, ActionIconProps, Hotkey } from '@lobehub/ui';
-import { BookOpen, CheckSquare, Compass, FolderOpen, Heart, ImagePlus, Images, Inbox, MessageSquare, ShieldCheck } from 'lucide-react';
+import { BookOpen, Compass, FolderOpen, Heart, ImagePlus, Images, Inbox, MessageSquare, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
-import NotificationBell from './NotificationBell';
-
+import { useInboxUnreadCount } from '@/hooks/useInboxUnreadCount';
 import { useChatStore } from '@/store/chat';
 import { useGlobalStore } from '@/store/global';
 import { SidebarTabKey } from '@/store/global/initialState';
 import { useSessionStore } from '@/store/session';
 import { useUserStore } from '@/store/user';
-import { settingsSelectors } from '@/store/user/selectors';
+import { authSelectors, settingsSelectors } from '@/store/user/selectors';
 import { HotkeyEnum } from '@/types/hotkey';
 
 const ICON_SIZE: ActionIconProps['size'] = {
@@ -36,22 +35,14 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
 
   const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
 
-  const isGuestUser = useChatStore((s) => {
-    const email = s.userProfile?.email || s.currentUserId;
-    if (!email) return false;
-    const lowerEmail = email.toLowerCase();
-    return (
-      lowerEmail === 'guest' ||
-      lowerEmail === 'anonymous' ||
-      lowerEmail === 'visitante@guest.local' ||
-      lowerEmail.includes('@guest.')
-    );
-  });
+  const isLoggedIn = useUserStore(authSelectors.isLogin);
 
   const isAdmin = useChatStore((s) => s.userRole === 'admin');
 
   const isChatActive = tab === SidebarTabKey.Chat && !isPinned;
   const isMemoriesActive = tab === SidebarTabKey.Memories;
+
+  const inboxUnread = useInboxUnreadCount();
 
   return (
     <Flexbox gap={8}>
@@ -92,7 +83,18 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           tooltipProps={{ placement: 'right' }}
         />
       </Link>
-      {isServerMode && (
+      {/* Generación de imágenes — visible para visitantes y registrados */}
+      <Link aria-label="Imágenes" href={'/image'} suppressHydrationWarning>
+        <ActionIcon
+          active={tab === SidebarTabKey.Image}
+          icon={ImagePlus}
+          size={ICON_SIZE}
+          title="Generación de imágenes"
+          tooltipProps={{ placement: 'right' }}
+        />
+      </Link>
+      {/* Resto de opciones — solo usuarios registrados */}
+      {isLoggedIn && isServerMode && (
         <Link aria-label={t('tab.weddingCreator' as any)} href={'/wedding-creator'} suppressHydrationWarning>
           <ActionIcon
             active={tab === SidebarTabKey.WeddingCreator}
@@ -103,57 +105,65 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           />
         </Link>
       )}
-      {/* Discover, Image, Knowledge, Files */}
-      <Link aria-label="Discover" href={'/discover'} suppressHydrationWarning>
-        <ActionIcon
-          active={tab === SidebarTabKey.Discover}
-          icon={Compass}
-          size={ICON_SIZE}
-          title="Discover"
-          tooltipProps={{ placement: 'right' }}
-        />
-      </Link>
-      <Link aria-label="Imágenes" href={'/image'} suppressHydrationWarning>
-        <ActionIcon
-          active={tab === SidebarTabKey.Image}
-          icon={ImagePlus}
-          size={ICON_SIZE}
-          title="Generación de imágenes"
-          tooltipProps={{ placement: 'right' }}
-        />
-      </Link>
-      <Link aria-label="Conocimiento" href={'/knowledge'} suppressHydrationWarning>
-        <ActionIcon
-          active={tab === SidebarTabKey.Knowledge}
-          icon={BookOpen}
-          size={ICON_SIZE}
-          title="Base de conocimiento"
-          tooltipProps={{ placement: 'right' }}
-        />
-      </Link>
-      {isServerMode && !isGuestUser && (
+      {isLoggedIn && (
+        <Link aria-label="Discover" href={'/discover'} suppressHydrationWarning>
+          <ActionIcon
+            active={tab === SidebarTabKey.Discover}
+            icon={Compass}
+            size={ICON_SIZE}
+            title="Discover"
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
+      {isLoggedIn && (
+        <Link aria-label="Conocimiento" href={'/knowledge'} suppressHydrationWarning>
+          <ActionIcon
+            active={tab === SidebarTabKey.Knowledge}
+            icon={BookOpen}
+            size={ICON_SIZE}
+            title="Base de conocimiento"
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
+      {isServerMode && isLoggedIn && (
         <Link aria-label="Bandeja de mensajes" href={'/messages'} suppressHydrationWarning>
-          <ActionIcon
-            active={tab === SidebarTabKey.Messages}
-            icon={Inbox}
-            size={ICON_SIZE}
-            title="Bandeja de mensajes"
-            tooltipProps={{ placement: 'right' }}
-          />
+          <div style={{ position: 'relative' }}>
+            <ActionIcon
+              active={tab === SidebarTabKey.Messages}
+              icon={Inbox}
+              size={ICON_SIZE}
+              title="Bandeja de mensajes"
+              tooltipProps={{ placement: 'right' }}
+            />
+            {inboxUnread > 0 && (
+              <span
+                style={{
+                  alignItems: 'center',
+                  background: '#ef4444',
+                  borderRadius: '50%',
+                  color: '#fff',
+                  display: 'flex',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  height: 14,
+                  justifyContent: 'center',
+                  lineHeight: 1,
+                  minWidth: 14,
+                  paddingInline: 2,
+                  position: 'absolute',
+                  right: 2,
+                  top: 2,
+                }}
+              >
+                {inboxUnread > 99 ? '99+' : inboxUnread}
+              </span>
+            )}
+          </div>
         </Link>
       )}
-      {isServerMode && !isGuestUser && (
-        <Link aria-label="Tareas" href={'/tasks'} suppressHydrationWarning>
-          <ActionIcon
-            active={tab === ('tasks' as SidebarTabKey)}
-            icon={CheckSquare}
-            size={ICON_SIZE}
-            title="Tareas pendientes"
-            tooltipProps={{ placement: 'right' }}
-          />
-        </Link>
-      )}
-      {isServerMode && !isGuestUser && (
+      {isServerMode && isLoggedIn && (
         <Link aria-label="Archivos" href={'/files'} suppressHydrationWarning>
           <ActionIcon
             active={tab === SidebarTabKey.Files}
@@ -164,7 +174,6 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           />
         </Link>
       )}
-      {isServerMode && !isGuestUser && <NotificationBell />}
       {isServerMode && isAdmin && (
         <Link aria-label="Admin" href={'/admin'} suppressHydrationWarning>
           <ActionIcon

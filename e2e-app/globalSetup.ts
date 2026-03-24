@@ -22,9 +22,9 @@ function fetchText(url: string, timeoutMs = 10_000): Promise<string> {
     const lib = url.startsWith('https') ? https : http;
     const req = lib.get(url, { timeout: timeoutMs }, (res) => {
       let body = '';
-      res.on('data', (chunk) => { body += chunk; if (body.length > 4000) req.destroy(); });
+      res.on('data', (chunk) => { body += chunk; if (body.length > 4000) { req.destroy(); resolve(body); } });
       res.on('end', () => resolve(body));
-      res.on('error', () => resolve(''));
+      res.on('error', () => resolve(body || ''));
     });
     req.on('error', () => resolve(''));
     req.on('timeout', () => { req.destroy(); resolve(''); });

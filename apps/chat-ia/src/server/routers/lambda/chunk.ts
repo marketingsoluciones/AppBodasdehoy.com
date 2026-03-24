@@ -117,7 +117,7 @@ export const chunkRouter = router({
 
       const useMiddleware = await shouldUseMiddleware();
       if (!useMiddleware) {
-        throw new TRPCError({ code: 'FAILED_PRECONDITION', message: kbUnavailableMessage });
+        throw new TRPCError({ code: 'PRECONDITION_FAILED', message: kbUnavailableMessage });
       }
 
       console.log(`🔧 RAG vía lobechat-kb (api-ia) — sin Postgres vectores`);
@@ -133,7 +133,7 @@ export const chunkRouter = router({
         const detail = e instanceof Error ? e.message : String(e);
         throw new TRPCError({
           cause: e,
-          code: 'FAILED_PRECONDITION',
+          code: 'PRECONDITION_FAILED',
           message: `KB (api-ia): ${detail}`,
         });
       }
@@ -173,7 +173,7 @@ export const chunkRouter = router({
         }
 
         if (!useMiddleware) {
-          throw new TRPCError({ code: 'FAILED_PRECONDITION', message: kbUnavailableMessage });
+          throw new TRPCError({ code: 'PRECONDITION_FAILED', message: kbUnavailableMessage });
         }
 
         console.log(`🔧 RAG chat vía lobechat-kb (api-ia) — sin Postgres vectores`);
@@ -190,7 +190,7 @@ export const chunkRouter = router({
           const detail = e instanceof Error ? e.message : String(e);
           throw new TRPCError({
             cause: e,
-            code: 'FAILED_PRECONDITION',
+            code: 'PRECONDITION_FAILED',
             message: `KB (api-ia): ${detail}`,
           });
         }
