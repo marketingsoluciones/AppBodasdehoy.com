@@ -8,12 +8,13 @@ import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
 import { useInboxUnreadCount } from '@/hooks/useInboxUnreadCount';
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 import { useChatStore } from '@/store/chat';
 import { useGlobalStore } from '@/store/global';
 import { SidebarTabKey } from '@/store/global/initialState';
 import { useSessionStore } from '@/store/session';
 import { useUserStore } from '@/store/user';
-import { authSelectors, settingsSelectors } from '@/store/user/selectors';
+import { settingsSelectors } from '@/store/user/selectors';
 import { HotkeyEnum } from '@/types/hotkey';
 
 const ICON_SIZE: ActionIconProps['size'] = {
@@ -35,7 +36,8 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
 
   const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
 
-  const isLoggedIn = useUserStore(authSelectors.isLogin);
+  const isGuest = useDomainGuestUser();
+  const isLoggedIn = !isGuest;
 
   const isAdmin = useChatStore((s) => s.userRole === 'admin');
 
