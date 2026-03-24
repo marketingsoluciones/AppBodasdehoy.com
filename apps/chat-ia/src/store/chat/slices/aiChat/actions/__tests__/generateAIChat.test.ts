@@ -21,6 +21,32 @@ import {
 // Keep zustand mock as it's needed globally
 vi.mock('zustand/traditional');
 
+// Mock tRPC lambda client to avoid real HTTP calls in unit tests
+vi.mock('@/libs/trpc/client', () => ({
+  lambdaClient: {
+    file: {
+      checkFileHash: { query: vi.fn() },
+      createFile: { mutate: vi.fn() },
+      removeAllFiles: { mutate: vi.fn() },
+      removeFile: { mutate: vi.fn() },
+      removeFileAsyncTask: { mutate: vi.fn() },
+    },
+    topic: {
+      createTopic: { mutate: vi.fn() },
+      getTopics: { query: vi.fn().mockResolvedValue([]) },
+    },
+    session: {
+      getSessions: { query: vi.fn().mockResolvedValue([]) },
+    },
+    message: {
+      getMessages: { query: vi.fn().mockResolvedValue([]) },
+    },
+    user: {
+      getUserState: { query: vi.fn().mockResolvedValue({}) },
+    },
+  },
+}));
+
 const realCoreProcessMessage = useChatStore.getState().internal_coreProcessMessage;
 
 beforeEach(() => {
