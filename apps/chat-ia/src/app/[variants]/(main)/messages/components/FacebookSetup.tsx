@@ -1,8 +1,11 @@
 'use client';
 
+import { Alert, Button, Result, Space, Typography } from 'antd';
 import { useState } from 'react';
 
 import { buildHeaders } from '../utils/auth';
+
+const { Text, Paragraph } = Typography;
 
 interface FacebookSetupProps {
   development: string;
@@ -17,27 +20,20 @@ export function FacebookSetup({ development, onConnected }: FacebookSetupProps) 
   const handleConnect = async () => {
     setStatus('connecting');
     setError(null);
-
     try {
       const res = await fetch('/api/messages/facebook/oauth-url', {
         body: JSON.stringify({ development }),
         headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
         method: 'POST',
       });
-
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Error ${res.status}`);
+        throw new Error(data.error || data.detail || `Error ${res.status}`);
       }
-
       const data = await res.json();
-
       if (data.oauthUrl) {
         const popup = window.open(data.oauthUrl, 'facebook-oauth', 'width=600,height=700');
-        if (!popup) {
-          throw new Error('No se pudo abrir la ventana de autorización. Desactiva el bloqueador de popups.');
-        }
-
+        if (!popup) throw new Error('No se pudo abrir la ventana de autorización. Desactiva el bloqueador de popups.');
         const handleMessage = (event: MessageEvent) => {
           if (event.data?.type === 'FACEBOOK_OAUTH_SUCCESS') {
             setPageName(event.data.pageName || 'Página conectada');
@@ -67,64 +63,60 @@ export function FacebookSetup({ development, onConnected }: FacebookSetupProps) 
         headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
         method: 'POST',
       });
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore */ }
     setStatus('idle');
     setPageName(null);
   };
 
+  const CENTER: React.CSSProperties = {
+    alignItems: 'center',
+    display: 'flex',
+    height: '100%',
+    justifyContent: 'center',
+    padding: 32,
+  };
+
   if (status === 'connected') {
     return (
-      <div className="flex h-full items-center justify-center p-8">
-        <div className="w-full max-w-sm rounded-2xl border border-blue-200 bg-blue-50 p-6 text-center shadow-sm">
-          <div className="mb-4 text-5xl">✅</div>
-          <h3 className="mb-1 text-lg font-semibold text-gray-900">Facebook Conectado</h3>
-          {pageName && (
-            <p className="mb-4 text-sm text-gray-600">
-              <span className="font-medium">Página:</span> {pageName}
-            </p>
-          )}
-          <button
-            className="rounded-lg border border-red-300 px-4 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
-            onClick={handleDisconnect}
-            type="button"
-          >
-            Desconectar
-          </button>
-        </div>
+      <div style={CENTER}>
+        <Result
+          extra={<Button danger onClick={handleDisconnect} size="small">Desconectar</Button>}
+          status="success"
+          subTitle={pageName ? <Text type="secondary">Página: <Text strong>{pageName}</Text></Text> : undefined}
+          title="Facebook Conectado"
+        />
       </div>
     );
   }
 
   return (
-    <div className="flex h-full items-center justify-center p-8">
-      <div className="w-full max-w-sm text-center">
-        <div className="mb-4 text-6xl">📘</div>
-        <h3 className="mb-2 text-xl font-semibold text-gray-900">Conectar Facebook Messenger</h3>
-        <p className="mb-6 text-sm text-gray-500">
-          Vincula tu página de Facebook para recibir y responder mensajes de Messenger
-        </p>
-
-        {error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-            {error}
-          </div>
-        )}
-
-        <button
-          className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-md transition-opacity hover:bg-blue-700 active:scale-95 disabled:opacity-50"
-          disabled={status === 'connecting'}
-          onClick={handleConnect}
-          type="button"
-        >
-          {status === 'connecting' ? 'Conectando...' : 'Conectar con Facebook'}
-        </button>
-
-        <p className="mt-4 text-xs text-gray-400">
-          Necesitas ser administrador de la página de Facebook que deseas conectar
-        </p>
-      </div>
+    <div style={CENTER}>
+      <Space direction="vertical" size="large" style={{ maxWidth: 380, textAlign: 'center', width: '100%' }}>
+        <div style={{ fontSize: 56 }}>📘</div>
+        <div>
+          <Text strong style={{ display: 'block', fontSize: 18, marginBottom: 8 }}>Conectar Facebook Messenger</Text>
+          <Paragraph style={{ margin: 0 }} type="secondary">
+            Vincula tu página de Facebook para recibir y responder mensajes de Messenger
+          </Paragraph>
+        </div>
+        {error && <Alert message={error} showIcon type="error" />}
+        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+          <Button
+            block
+            disabled={status === 'connecting'}
+            loading={status === 'connecting'}
+            onClick={handleConnect}
+            size="large"
+            style={{ background: '#1877f2', borderColor: '#1877f2' }}
+            type="primary"
+          >
+            Conectar con Facebook
+          </Button>
+          <Text style={{ fontSize: 12 }} type="secondary">
+            Necesitas ser administrador de la página de Facebook que deseas conectar
+          </Text>
+        </Space>
+      </Space>
     </div>
   );
 }

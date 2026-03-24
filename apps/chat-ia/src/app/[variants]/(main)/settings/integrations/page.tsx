@@ -1,5 +1,6 @@
 'use client';
 
+import { Alert, Badge, Button, Card, Form, Input, Modal, Skeleton, Space, Tag, Typography } from 'antd';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -13,7 +14,9 @@ import {
 import { useChatStore } from '@/store/chat';
 import { useWhatsAppSession } from '../../messages/hooks/useWhatsAppSession';
 
-// ─── QR Modal ────────────────────────────────────────────────────────────────
+const { Title, Text, Paragraph } = Typography;
+
+// ─── QR Modal (antd) ──────────────────────────────────────────────────────────
 
 function QRModal({
   channel,
@@ -29,127 +32,89 @@ function QRModal({
     useWhatsAppSession(sessionKey);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-          <h3 className="text-lg font-semibold text-gray-900">
-            {channel ? `Conectar: ${channel.name}` : 'Conectar WhatsApp'}
-          </h3>
-          <button
-            className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-            onClick={onClose}
-            type="button"
+    <Modal
+      footer={null}
+      onCancel={onClose}
+      open
+      title={channel ? `Conectar: ${channel.name}` : 'Conectar WhatsApp'}
+      width={440}
+    >
+      {loading && (
+        <div style={{ padding: '32px 0', textAlign: 'center' }}>
+          <Skeleton active paragraph={{ rows: 2 }} title={false} />
+          <Text type="secondary">Verificando sesión...</Text>
+        </div>
+      )}
+
+      {!loading && status === 'connected' && (
+        <Space direction="vertical" size="middle" style={{ textAlign: 'center', width: '100%' }}>
+          <div style={{ fontSize: 48 }}>✅</div>
+          <div>
+            <Text strong>WhatsApp Conectado</Text>
+            {phoneNumber && <div><Text type="secondary">+{phoneNumber}</Text></div>}
+            {connectedAt && (
+              <div><Text style={{ fontSize: 12 }} type="secondary">Desde {new Date(connectedAt).toLocaleString('es-ES')}</Text></div>
+            )}
+          </div>
+          <Space>
+            <Button onClick={onClose}>Cerrar</Button>
+            <Button danger onClick={async () => { await disconnectSession(); onClose(); }}>Desconectar</Button>
+          </Space>
+        </Space>
+      )}
+
+      {!loading && status === 'qr_ready' && qrCode && (
+        <Space direction="vertical" size="middle" style={{ textAlign: 'center', width: '100%' }}>
+          <Text type="secondary">Abre WhatsApp → Dispositivos vinculados → Vincular un dispositivo</Text>
+          <div style={{ border: '3px solid #25D366', borderRadius: 12, display: 'inline-block', padding: 8 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img alt="QR Code WhatsApp" src={qrCode} style={{ height: 208, width: 208 }} />
+          </div>
+          <Space size={6}>
+            <span style={{ background: '#52c41a', borderRadius: '50%', display: 'inline-block', height: 8, width: 8 }} />
+            <Text type="secondary">Esperando escaneo...</Text>
+          </Space>
+        </Space>
+      )}
+
+      {!loading && status === 'connecting' && (
+        <Space direction="vertical" size="middle" style={{ textAlign: 'center', width: '100%' }}>
+          <div style={{ fontSize: 40 }}>📱</div>
+          <Text strong>Iniciando...</Text>
+          <Skeleton active paragraph={{ rows: 1 }} title={false} />
+        </Space>
+      )}
+
+      {!loading && (status === 'disconnected' || status === 'error') && (
+        <Space direction="vertical" size="middle" style={{ textAlign: 'center', width: '100%' }}>
+          <div style={{ fontSize: 40 }}>📱</div>
+          <div>
+            <Text strong>Conectar WhatsApp</Text>
+            <div><Text type="secondary">Vincula tu número para gestionar mensajes desde la bandeja</Text></div>
+          </div>
+          {error && <Alert message={error} showIcon type="error" />}
+          <Button
+            block
+            onClick={startSession}
+            size="large"
+            style={{ background: '#25D366', borderColor: '#25D366' }}
+            type="primary"
           >
-            ✕
-          </button>
-        </div>
-
-        <div className="p-6">
-          {loading && (
-            <div className="py-8 text-center">
-              <div className="mb-2 text-4xl">⏳</div>
-              <p className="text-sm text-gray-500">Verificando sesión...</p>
-            </div>
-          )}
-
-          {!loading && status === 'connected' && (
-            <div className="text-center">
-              <div className="mb-3 text-5xl">✅</div>
-              <p className="mb-1 text-base font-semibold text-gray-900">WhatsApp Conectado</p>
-              {phoneNumber && <p className="text-sm text-gray-600">+{phoneNumber}</p>}
-              {connectedAt && (
-                <p className="mt-1 text-xs text-gray-400">
-                  Desde {new Date(connectedAt).toLocaleString('es-ES')}
-                </p>
-              )}
-              <div className="mt-6 flex gap-3">
-                <button
-                  className="flex-1 rounded-lg border border-gray-200 py-2 text-sm text-gray-600 hover:bg-gray-50"
-                  onClick={onClose}
-                  type="button"
-                >
-                  Cerrar
-                </button>
-                <button
-                  className="flex-1 rounded-lg border border-red-200 py-2 text-sm text-red-600 hover:bg-red-50"
-                  onClick={async () => {
-                    await disconnectSession();
-                    onClose();
-                  }}
-                  type="button"
-                >
-                  Desconectar
-                </button>
-              </div>
-            </div>
-          )}
-
-          {!loading && status === 'qr_ready' && qrCode && (
-            <div className="text-center">
-              <p className="mb-4 text-sm text-gray-500">
-                Abre WhatsApp → Dispositivos vinculados → Vincular un dispositivo
-              </p>
-              <div className="mb-4 inline-block rounded-2xl border-4 border-green-500 p-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img alt="QR Code WhatsApp" className="h-52 w-52" src={qrCode} />
-              </div>
-              <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
-                <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-green-400" />
-                Esperando escaneo...
-              </div>
-            </div>
-          )}
-
-          {!loading && status === 'connecting' && (
-            <div className="py-8 text-center">
-              <div className="mb-4 text-5xl">📱</div>
-              <p className="mb-1 text-base font-semibold text-gray-900">Iniciando...</p>
-              <div className="mt-3 flex justify-center gap-1">
-                {[0, 1, 2].map((i) => (
-                  <span
-                    className="inline-block h-2 w-2 animate-bounce rounded-full bg-green-400"
-                    key={i}
-                    style={{ animationDelay: `${i * 0.15}s` }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {!loading && (status === 'disconnected' || status === 'error') && (
-            <div className="text-center">
-              <div className="mb-4 text-5xl">📱</div>
-              <p className="mb-2 text-base font-semibold text-gray-900">Conectar WhatsApp</p>
-              <p className="mb-6 text-sm text-gray-500">
-                Vincula tu número para gestionar mensajes desde la bandeja de entrada
-              </p>
-              {error && (
-                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-                  {error}
-                </div>
-              )}
-              <button
-                className="w-full rounded-xl bg-green-500 py-3 font-semibold text-white hover:bg-green-600"
-                onClick={startSession}
-                type="button"
-              >
-                Generar código QR
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+            Generar código QR
+          </Button>
+        </Space>
+      )}
+    </Modal>
   );
 }
 
-// ─── Channel Card ─────────────────────────────────────────────────────────────
+// ─── WhatsApp Channel Card ─────────────────────────────────────────────────────
 
-const STATUS_BADGE: Record<string, { bg: string; dot: string; label: string }> = {
-  ACTIVE: { bg: 'bg-green-100 text-green-700', dot: 'bg-green-500', label: 'Conectado' },
-  CONNECTING: { bg: 'bg-yellow-100 text-yellow-700', dot: 'bg-yellow-500 animate-pulse', label: 'Conectando' },
-  DISCONNECTED: { bg: 'bg-gray-100 text-gray-600', dot: 'bg-gray-400', label: 'Desconectado' },
-  ERROR: { bg: 'bg-red-100 text-red-700', dot: 'bg-red-500', label: 'Error' },
+const STATUS_CONFIG: Record<string, { color: string; label: string; status: 'default' | 'success' | 'processing' | 'error' | 'warning' }> = {
+  ACTIVE: { color: 'success', label: 'Conectado', status: 'success' },
+  CONNECTING: { color: 'processing', label: 'Conectando', status: 'processing' },
+  DISCONNECTED: { color: 'default', label: 'Desconectado', status: 'default' },
+  ERROR: { color: 'error', label: 'Error', status: 'error' },
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -160,7 +125,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 function ChannelCard({
   channel,
-  development,
+  development: _development,
   onConnect,
   onDelete,
 }: {
@@ -169,52 +134,38 @@ function ChannelCard({
   onConnect: () => void;
   onDelete: () => void;
 }) {
-  const badge = STATUS_BADGE[channel.status] ?? STATUS_BADGE.disconnected;
+  const cfg = STATUS_CONFIG[channel.status] ?? STATUS_CONFIG.DISCONNECTED;
 
   return (
-    <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-xl">
-          📱
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-gray-900">{channel.name}</p>
-          <div className="mt-0.5 flex items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${badge.bg}`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${badge.dot}`} />
-              {badge.label}
-            </span>
-            <span className="text-xs text-gray-400">{TYPE_LABELS[channel.type] ?? channel.type}</span>
+    <Card size="small" styles={{ body: { padding: '12px 16px' } }}>
+      <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}>
+        <Space>
+          <div style={{ alignItems: 'center', background: '#f6ffed', borderRadius: '50%', display: 'flex', fontSize: 20, height: 40, justifyContent: 'center', width: 40 }}>
+            📱
           </div>
-          {channel.phoneNumber && (
-            <p className="mt-0.5 text-xs text-gray-500">+{channel.phoneNumber}</p>
+          <div>
+            <Text strong>{channel.name}</Text>
+            <div>
+              <Badge status={cfg.status} text={cfg.label} />
+              <Text style={{ fontSize: 12, marginLeft: 8 }} type="secondary">{TYPE_LABELS[channel.type] ?? channel.type}</Text>
+            </div>
+            {channel.phoneNumber && <div><Text style={{ fontSize: 12 }} type="secondary">+{channel.phoneNumber}</Text></div>}
+          </div>
+        </Space>
+        <Space>
+          {channel.type !== 'WAB' && (
+            <Button onClick={onConnect} size="small" style={{ borderColor: '#52c41a', color: '#52c41a' }}>
+              {channel.status === 'ACTIVE' ? 'Gestionar' : 'Conectar'}
+            </Button>
           )}
-        </div>
+          <Button danger onClick={onDelete} size="small">Eliminar</Button>
+        </Space>
       </div>
-
-      <div className="flex items-center gap-2">
-        {channel.type !== 'WAB' && (
-          <button
-            className="rounded-lg border border-green-200 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-50"
-            onClick={onConnect}
-            type="button"
-          >
-            {channel.status === 'ACTIVE' ? 'Gestionar' : 'Conectar'}
-          </button>
-        )}
-        <button
-          className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
-          onClick={onDelete}
-          type="button"
-        >
-          Eliminar
-        </button>
-      </div>
-    </div>
+    </Card>
   );
 }
 
-// ─── Create Channel Modal ─────────────────────────────────────────────────────
+// ─── Create Channel Modal ──────────────────────────────────────────────────────
 
 function CreateChannelModal({
   onClose,
@@ -223,15 +174,15 @@ function CreateChannelModal({
   onClose: () => void;
   onCreate: (ch: WhatsAppChannel) => void;
 }) {
-  const [name, setName] = useState('');
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleCreate = async () => {
-    if (!name.trim()) return;
-    setLoading(true);
-    setError(null);
     try {
+      const { name } = await form.validateFields();
+      setLoading(true);
+      setError(null);
       const ch = await createWhatsAppChannel(name.trim(), 'QR_USER');
       if (ch) {
         onCreate(ch);
@@ -240,6 +191,7 @@ function CreateChannelModal({
         setError('No se pudo crear el canal. Inténtalo de nuevo.');
       }
     } catch (err: any) {
+      if (err?.errorFields) return; // validation error, handled by form
       setError(err?.message ?? 'Error al crear canal');
     } finally {
       setLoading(false);
@@ -247,93 +199,123 @@ function CreateChannelModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-          <h3 className="text-lg font-semibold text-gray-900">Añadir canal WhatsApp</h3>
-          <button
-            className="rounded-lg p-1 text-gray-400 hover:bg-gray-100"
-            onClick={onClose}
-            type="button"
-          >
-            ✕
-          </button>
-        </div>
-        <div className="p-6">
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Nombre del canal
-          </label>
-          <input
-            autoFocus
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-green-500 focus:outline-none"
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-            placeholder="Ej: WhatsApp principal, Atención al cliente..."
-            type="text"
-            value={name}
-          />
-          {error && (
-            <p className="mt-2 text-xs text-red-600">{error}</p>
-          )}
-          <p className="mt-2 text-xs text-gray-500">
-            Se creará un canal de tipo QR Personal. Podrás vincular un número escaneando el código QR.
-          </p>
-          <div className="mt-6 flex gap-3">
-            <button
-              className="flex-1 rounded-lg border border-gray-200 py-2 text-sm text-gray-600 hover:bg-gray-50"
-              onClick={onClose}
-              type="button"
-            >
-              Cancelar
-            </button>
-            <button
-              className="flex-1 rounded-lg bg-green-500 py-2 text-sm font-semibold text-white hover:bg-green-600 disabled:opacity-50"
-              disabled={loading || !name.trim()}
-              onClick={handleCreate}
-              type="button"
-            >
-              {loading ? 'Creando...' : 'Crear canal'}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Modal
+      confirmLoading={loading}
+      okButtonProps={{ style: { background: '#25D366', borderColor: '#25D366' } }}
+      okText="Crear canal"
+      onCancel={onClose}
+      onOk={handleCreate}
+      open
+      title="Añadir canal WhatsApp"
+    >
+      {error && <Alert message={error} showIcon style={{ marginBottom: 16 }} type="error" />}
+      <Form form={form} layout="vertical">
+        <Form.Item
+          label="Nombre del canal"
+          name="name"
+          rules={[{ required: true, message: 'Introduce un nombre para el canal' }]}
+        >
+          <Input placeholder="Ej: WhatsApp principal, Atención al cliente..." />
+        </Form.Item>
+      </Form>
+      <Text type="secondary" style={{ fontSize: 12 }}>
+        Se creará un canal de tipo QR Personal. Podrás vincular un número escaneando el código QR.
+      </Text>
+    </Modal>
   );
 }
 
-// ─── Canal card genérico (Instagram, Telegram, Email, Facebook, Web) ──────────
+// ─── Social Channel Card (Instagram, Telegram, etc.) ─────────────────────────
 
 function SocialChannelCard({
   channelId,
   description,
   icon,
   name,
-  accent,
+  iconBg,
+  comingSoon,
 }: {
-  accent: string;
   channelId: string;
+  comingSoon?: boolean;
   description: string;
   icon: string;
+  iconBg: string;
   name: string;
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <div className="flex items-center gap-3">
-        <div className={`flex h-10 w-10 items-center justify-center rounded-full text-xl ${accent}`}>
-          {icon}
+    <Card size="small" styles={{ body: { padding: '16px' } }}>
+      <Space direction="vertical" size="small" style={{ width: '100%' }}>
+        <div style={{ alignItems: 'center', display: 'flex', gap: 10 }}>
+          <div style={{ alignItems: 'center', background: iconBg, borderRadius: '50%', display: 'flex', fontSize: 18, height: 40, justifyContent: 'center', width: 40 }}>
+            {icon}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <Space align="center" size={6}>
+              <Text strong>{name}</Text>
+              {comingSoon && <Tag color="orange" style={{ fontSize: 10, lineHeight: '16px', padding: '0 4px' }}>Próximamente</Tag>}
+            </Space>
+            <div><Text style={{ fontSize: 12 }} type="secondary">{description}</Text></div>
+          </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-gray-900">{name}</p>
-          <p className="text-xs text-gray-500">{description}</p>
-        </div>
+        <Link href={`/messages/${channelId}`} style={{ display: 'block' }}>
+          <Button block size="small" style={{ fontSize: 12 }}>
+            Configurar →
+          </Button>
+        </Link>
+      </Space>
+    </Card>
+  );
+}
+
+// ─── WhatsApp Direct Session (fallback) ───────────────────────────────────────
+
+function WhatsAppDirectSession({ development }: { development: string }) {
+  const { connectedAt, disconnectSession, error, loading, phoneNumber, qrCode, startSession, status } =
+    useWhatsAppSession(development);
+
+  if (loading) return <Skeleton active paragraph={{ rows: 2 }} title={false} />;
+
+  if (status === 'connected') {
+    return (
+      <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}>
+        <Space>
+          <Badge status="success" text="Conectado" />
+          {phoneNumber && <Text type="secondary">+{phoneNumber}</Text>}
+          {connectedAt && (
+            <Text style={{ fontSize: 12 }} type="secondary">
+              desde {new Date(connectedAt).toLocaleDateString('es-ES')}
+            </Text>
+          )}
+        </Space>
+        <Button danger onClick={disconnectSession} size="small">Desconectar</Button>
       </div>
-      <a
-        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:border-gray-300 hover:bg-gray-50"
-        href={`/messages/${channelId}`}
+    );
+  }
+
+  if (status === 'qr_ready' && qrCode) {
+    return (
+      <Space direction="vertical" size="middle" style={{ textAlign: 'center', width: '100%' }}>
+        <Text type="secondary">Escanea con WhatsApp → Dispositivos vinculados</Text>
+        <div style={{ border: '3px solid #25D366', borderRadius: 12, display: 'inline-block', padding: 8 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img alt="QR WhatsApp" src={qrCode} style={{ height: 192, width: 192 }} />
+        </div>
+      </Space>
+    );
+  }
+
+  return (
+    <Space direction="vertical" size="small" style={{ textAlign: 'center', width: '100%' }}>
+      {error && <Alert message={error} showIcon type="error" />}
+      <Button
+        onClick={startSession}
+        size="large"
+        style={{ background: '#25D366', borderColor: '#25D366' }}
+        type="primary"
       >
-        Configurar →
-      </a>
-    </div>
+        Conectar WhatsApp
+      </Button>
+    </Space>
   );
 }
 
@@ -348,7 +330,7 @@ function IntegrationsPageInner() {
   const [loadingChannels, setLoadingChannels] = useState(true);
   const [apiError, setApiError] = useState(false);
 
-  const [qrTarget, setQrTarget] = useState<WhatsAppChannel | 'new' | undefined>(undefined);
+  const [qrTarget, setQrTarget] = useState<WhatsAppChannel | undefined>(undefined);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
@@ -377,132 +359,128 @@ function IntegrationsPageInner() {
   const waConnectedCount = channels.filter((c) => c.status === 'ACTIVE').length;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 md:py-8">
+    <div style={{ margin: '0 auto', maxWidth: 768, padding: '24px 16px' }}>
       {/* Móvil: breadcrumb */}
-      <div className="mb-5 flex items-center gap-3 text-sm text-gray-500 md:hidden">
-        <Link className="font-medium text-pink-600 hover:underline" href="/messages">
-          ← Mensajes
+      <div className="md:hidden" style={{ marginBottom: 20 }}>
+        <Link href="/messages">
+          <Button size="small" type="link" style={{ paddingLeft: 0 }}>← Mensajes</Button>
         </Link>
-        <span>/</span>
-        <span>Integraciones</span>
+        <Text type="secondary"> / Integraciones</Text>
       </div>
 
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Canales de comunicación</h1>
-        <p className="mt-1 text-sm text-gray-500">
+      <div style={{ marginBottom: 24 }}>
+        <Title level={4} style={{ margin: '0 0 4px' }}>Canales de comunicación</Title>
+        <Paragraph style={{ margin: 0 }} type="secondary">
           Conecta tus redes sociales y gestiona todos los mensajes desde un único lugar.
-        </p>
+        </Paragraph>
       </div>
 
       {/* Sesión requerida */}
       {!isAuthenticated && (
-        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50/80 p-6 text-center">
-          <p className="mb-2 text-sm font-medium text-gray-800">Sesión requerida</p>
-          <p className="mb-4 text-sm text-gray-600">
-            Inicia sesión para conectar tus canales.
-          </p>
-          <Link
-            className="inline-flex rounded-lg bg-pink-600 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-700"
-            href="/login"
-          >
-            Iniciar sesión
-          </Link>
-        </div>
+        <Alert
+          action={
+            <Link href="/login">
+              <Button size="small" type="primary">Iniciar sesión</Button>
+            </Link>
+          }
+          message="Inicia sesión para conectar tus canales."
+          showIcon
+          style={{ marginBottom: 24 }}
+          type="warning"
+        />
       )}
 
       {/* ── Grid unificado de todos los canales ── */}
-      <section className="mb-8">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <section style={{ marginBottom: 32 }}>
+        <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
 
-          {/* WhatsApp — gestión completa inline */}
-          <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-xl">
-                📱
+          {/* WhatsApp — gestión completa */}
+          <Card size="small" styles={{ body: { padding: 16 } }}>
+            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+              <div style={{ alignItems: 'center', display: 'flex', gap: 10 }}>
+                <div style={{ alignItems: 'center', background: '#f6ffed', borderRadius: '50%', display: 'flex', fontSize: 18, height: 40, justifyContent: 'center', width: 40 }}>
+                  📱
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Text strong>WhatsApp</Text>
+                  <div>
+                    <Text style={{ fontSize: 12 }} type="secondary">
+                      {loadingChannels
+                        ? 'Cargando...'
+                        : waConnectedCount > 0
+                          ? `${waConnectedCount} canal${waConnectedCount > 1 ? 'es' : ''} activo${waConnectedCount > 1 ? 's' : ''}`
+                          : 'Sin conectar'}
+                    </Text>
+                    {waConnectedCount > 0 && (
+                      <Badge color="green" style={{ marginLeft: 6 }} />
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-gray-900">WhatsApp</p>
-                <p className="text-xs text-gray-500">
-                  {loadingChannels
-                    ? 'Cargando...'
-                    : waConnectedCount > 0
-                      ? `${waConnectedCount} canal${waConnectedCount > 1 ? 'es' : ''} activo${waConnectedCount > 1 ? 's' : ''}`
-                      : 'Sin conectar'}
-                </p>
-              </div>
-              {waConnectedCount > 0 && (
-                <span className="h-2 w-2 shrink-0 rounded-full bg-green-500" />
+              {isAuthenticated && (
+                <Button
+                  block
+                  onClick={() => setShowCreateModal(true)}
+                  size="small"
+                  style={waConnectedCount > 0 ? undefined : { borderColor: '#52c41a', color: '#52c41a' }}
+                >
+                  {waConnectedCount > 0 ? 'Gestionar canales' : '+ Conectar WhatsApp'}
+                </Button>
               )}
-            </div>
-            {isAuthenticated && (
-              <button
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-green-200 bg-green-50 py-1.5 text-xs font-medium text-green-700 transition-colors hover:bg-green-100"
-                onClick={() => setShowCreateModal(true)}
-                type="button"
-              >
-                {waConnectedCount > 0 ? 'Gestionar canales' : '+ Conectar WhatsApp'}
-              </button>
-            )}
-          </div>
+            </Space>
+          </Card>
 
-          {/* Otros canales */}
-          <SocialChannelCard accent="bg-gradient-to-br from-purple-100 to-pink-100" channelId="instagram" description="DMs de Instagram Business" icon="📷" name="Instagram" />
-          <SocialChannelCard accent="bg-blue-100" channelId="telegram" description="Bot de Telegram" icon="✈️" name="Telegram" />
-          <SocialChannelCard accent="bg-purple-100" channelId="email" description="Gmail, Outlook o SMTP/IMAP" icon="📧" name="Email" />
-          <SocialChannelCard accent="bg-blue-100" channelId="facebook" description="Messenger de tu página FB" icon="📘" name="Facebook" />
-          <SocialChannelCard accent="bg-orange-100" channelId="web" description="Widget embebible en tu web" icon="🌐" name="Chat Web" />
+          <SocialChannelCard channelId="instagram" description="DMs de Instagram Business" icon="📷" iconBg="linear-gradient(135deg, #f3e7ff, #ffe7f0)" name="Instagram" comingSoon />
+          <SocialChannelCard channelId="telegram" description="Bot de Telegram" icon="✈️" iconBg="#e6f4ff" name="Telegram" comingSoon />
+          <SocialChannelCard channelId="email" description="Gmail, Outlook o SMTP/IMAP" icon="📧" iconBg="#f9f0ff" name="Email" comingSoon />
+          <SocialChannelCard channelId="facebook" description="Messenger de tu página FB" icon="📘" iconBg="#e6f4ff" name="Facebook" comingSoon />
+          <SocialChannelCard channelId="web" description="Widget embebible en tu web" icon="🌐" iconBg="#fff7e6" name="Chat Web" />
         </div>
       </section>
 
       {/* ── Gestión detallada de canales WhatsApp ── */}
       {isAuthenticated && (
         <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-700">Canales WhatsApp</h2>
+          <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+            <Text strong>Canales WhatsApp</Text>
             {!apiError && (
-              <button
-                className="rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100"
-                onClick={() => setShowCreateModal(true)}
-                type="button"
-              >
+              <Button onClick={() => setShowCreateModal(true)} size="small" style={{ borderColor: '#52c41a', color: '#52c41a' }}>
                 + Añadir número
-              </button>
+              </Button>
             )}
           </div>
 
           {loadingChannels && (
-            <div className="space-y-2">
-              {[1, 2].map((i) => (
-                <div className="h-16 animate-pulse rounded-xl bg-gray-100" key={i} />
-              ))}
-            </div>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Skeleton active paragraph={{ rows: 1 }} />
+              <Skeleton active paragraph={{ rows: 1 }} />
+            </Space>
           )}
 
           {!loadingChannels && channels.length === 0 && !apiError && (
-            <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
-              <p className="mb-1 text-sm font-medium text-gray-600">Sin canales WhatsApp</p>
-              <p className="mb-3 text-xs text-gray-400">
-                Conecta tu número para recibir mensajes en la bandeja
-              </p>
-              <button
-                className="rounded-xl bg-green-500 px-4 py-2 text-xs font-semibold text-white hover:bg-green-600"
+            <Card styles={{ body: { padding: '24px', textAlign: 'center' } }} style={{ borderStyle: 'dashed' }}>
+              <Text strong>Sin canales WhatsApp</Text>
+              <div><Text type="secondary" style={{ fontSize: 13 }}>Conecta tu número para recibir mensajes en la bandeja</Text></div>
+              <Button
                 onClick={() => setShowCreateModal(true)}
-                type="button"
+                size="small"
+                style={{ background: '#25D366', borderColor: '#25D366', marginTop: 12 }}
+                type="primary"
               >
                 Conectar WhatsApp
-              </button>
-            </div>
+              </Button>
+            </Card>
           )}
 
           {!loadingChannels && apiError && (
-            <div className="rounded-xl border border-gray-200 bg-white p-4">
+            <Card>
               <WhatsAppDirectSession development={development} />
-            </div>
+            </Card>
           )}
 
           {!loadingChannels && channels.length > 0 && (
-            <div className="space-y-2">
+            <Space direction="vertical" size="small" style={{ width: '100%' }}>
               {channels.map((ch) => (
                 <ChannelCard
                   channel={ch}
@@ -512,86 +490,21 @@ function IntegrationsPageInner() {
                   onDelete={() => !deleting && handleDelete(ch.id)}
                 />
               ))}
-            </div>
+            </Space>
           )}
         </section>
       )}
 
-      {/* QR Modal */}
-      {qrTarget !== undefined && qrTarget !== 'new' && (
-        <QRModal
-          channel={qrTarget}
-          development={development}
-          onClose={() => setQrTarget(undefined)}
-        />
+      {qrTarget !== undefined && (
+        <QRModal channel={qrTarget} development={development} onClose={() => setQrTarget(undefined)} />
       )}
 
-      {/* Create Channel Modal */}
       {showCreateModal && (
         <CreateChannelModal
           onClose={() => setShowCreateModal(false)}
           onCreate={(ch) => setChannels((prev) => [...prev, ch])}
         />
       )}
-    </div>
-  );
-}
-
-// WhatsApp direct session (fallback when GraphQL not available)
-function WhatsAppDirectSession({ development }: { development: string }) {
-  const { connectedAt, disconnectSession, error, loading, phoneNumber, qrCode, startSession, status } =
-    useWhatsAppSession(development);
-
-  if (loading) return <p className="text-sm text-gray-400">Verificando...</p>;
-
-  if (status === 'connected') {
-    return (
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
-            <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-            Conectado
-          </span>
-          {phoneNumber && <span className="text-sm text-gray-600">+{phoneNumber}</span>}
-          {connectedAt && (
-            <span className="text-xs text-gray-400">
-              desde {new Date(connectedAt).toLocaleDateString('es-ES')}
-            </span>
-          )}
-        </div>
-        <button
-          className="rounded-lg border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50"
-          onClick={disconnectSession}
-          type="button"
-        >
-          Desconectar
-        </button>
-      </div>
-    );
-  }
-
-  if (status === 'qr_ready' && qrCode) {
-    return (
-      <div className="text-center">
-        <p className="mb-3 text-sm text-gray-500">Escanea con WhatsApp → Dispositivos vinculados</p>
-        <div className="inline-block rounded-xl border-4 border-green-500 p-1">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="QR WhatsApp" className="h-48 w-48" src={qrCode} />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="text-center">
-      {error && <p className="mb-3 text-xs text-red-500">{error}</p>}
-      <button
-        className="rounded-xl bg-green-500 px-6 py-2.5 font-semibold text-white hover:bg-green-600"
-        onClick={startSession}
-        type="button"
-      >
-        Conectar WhatsApp
-      </button>
     </div>
   );
 }
