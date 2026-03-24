@@ -9,6 +9,7 @@ import { LobeChatPluginManifest } from '@lobehub/chat-plugin-sdk';
 import { getToolStoreState } from '@/store/tool';
 import { pluginSelectors } from '@/store/tool/selectors';
 import { FilterAppViewManifest } from '@/tools/filter-app-view';
+import { FloorPlanEditorManifest } from '@/tools/floor-plan-editor';
 import { WebBrowsingManifest } from '@/tools/web-browsing';
 
 import { getSearchConfig } from '../getSearchConfig';
@@ -56,8 +57,12 @@ export const createToolsEngine = (config: ToolsEngineConfig = {}): ToolsEngine =
 
 export const createChatToolsEngine = (workingModel: WorkingModel) =>
   createToolsEngine({
-    // Add WebBrowsingManifest and FilterAppViewManifest as default tools
-    defaultToolIds: [WebBrowsingManifest.identifier, FilterAppViewManifest.identifier],
+    // Add default always-enabled tools
+    defaultToolIds: [
+      WebBrowsingManifest.identifier,
+      FilterAppViewManifest.identifier,
+      FloorPlanEditorManifest.identifier,
+    ],
     // Create search-aware enableChecker for this request
     enableChecker: ({ pluginId }) => {
       // Check platform-specific constraints (e.g., LocalSystem desktop-only)
