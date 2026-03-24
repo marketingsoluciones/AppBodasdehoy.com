@@ -32,6 +32,21 @@ function fetchText(url: string, timeoutMs = 10_000): Promise<string> {
   });
 }
 
+function fetchStatus(url: string, timeoutMs = 10_000): Promise<{ status: number; body: string }> {
+  return new Promise((resolve) => {
+    const lib = url.startsWith('https') ? https : http;
+    const req = lib.get(url, { timeout: timeoutMs }, (res) => {
+      let body = '';
+      res.on('data', (chunk) => { body += chunk; if (body.length > 2000) { req.destroy(); resolve({ status: res.statusCode ?? 0, body }); } });
+      res.on('end', () => resolve({ status: res.statusCode ?? 0, body }));
+      res.on('error', () => resolve({ status: 0, body: '' }));
+    });
+    req.on('error', () => resolve({ status: 0, body: '' }));
+    req.on('timeout', () => { req.destroy(); resolve({ status: 0, body: '' }); });
+    setTimeout(() => { req.destroy(); resolve({ status: 0, body: '' }); }, timeoutMs);
+  });
+}
+
 export default async function globalSetup() {
   const headed = process.env.E2E_HEADED === '1' || process.env.E2E_HEADED === 'true';
   const isCI = process.env.CI === 'true' || process.env.CI === '1';
@@ -65,5 +80,24 @@ export default async function globalSetup() {
     );
   }
 
-  console.log('[E2E] ✅ Servidor accesible y sin errores visibles\n');
+  console.log('[E2E] ✅ Servidor accesible y sin errores visibles');
+
+  // ── Backend probe: verificar que el proxy al chat backend responde ──
+  const chatURL = process.env.CHAT_URL || '';
+  if (chatURL) {
+    console.log(`[E2E] Backend probe → ${chatURL}/webapi/chat/auto`);
+    const probe = await fetchStatus(`${chatURL}/webapi/chat/auto`, 10_000);
+
+    if (probe.status === 0) {
+      console.log('[E2E] ⚠️  Chat backend no responde (timeout/unreachable) — tests de IA probablemente fallarán');
+    } else if (probe.status >= 500) {
+      console.log(`[E2E] ⚠️  Chat backend devuelve ${probe.status} — api-ia posiblemente caído`);
+      console.log(`[E2E]    Body: ${probe.body.slice(0, 200)}`);
+    } else {
+      // 401, 405, 400, etc. = backend UP (solo rechaza porque no hay auth/method)
+      console.log(`[E2E] ✅ Chat backend responde (HTTP ${probe.status}) — proxy OK`);
+    }
+  }
+
+  console.log('');
 }

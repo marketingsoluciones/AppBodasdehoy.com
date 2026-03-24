@@ -31,6 +31,7 @@ import * as os from 'os';
 import { TEST_CREDENTIALS, TEST_URLS, E2E_ENV } from './fixtures';
 import { chatValidated, chatWithValidation } from './response-validator';
 import { CONTEXT_TESTS } from './test-scenarios';
+import { shouldAbort, recordFailure, getSummary } from './circuit-breaker';
 
 const BASE_URL = TEST_URLS.app;
 const CHAT_URL = TEST_URLS.chat;
@@ -85,7 +86,11 @@ async function loginChat(page: Page): Promise<boolean> {
   });
   console.log('[E2E] JWT cookie set:', JSON.stringify(cookieResult));
 
-  return !page.url().includes('/login');
+  const loggedIn = !page.url().includes('/login');
+  if (!loggedIn) {
+    recordFailure({ status: 401, category: 'auth', errorType: 'login_failed', url: page.url() });
+  }
+  return loggedIn;
 }
 
 /**
@@ -116,7 +121,16 @@ async function chat(page: Page, text: string, waitMs = 60_000): Promise<string> 
   while (Date.now() < deadline) {
     const articles = await page.locator(msgSelector).allTextContents();
     // Filtrar el mensaje que acabamos de enviar (puede ser parcial)
-    const assistantMsgs = articles.filter(t => t.trim().length > 5 && !text.startsWith(t.trim().slice(0, 30)));
+    const assistantMsgs = articles.filter(t => {
+      const trimmed = t.trim();
+      if (trimmed.length <= 5) return false;
+      // Filtrar mensajes del propio usuario (bidireccional, case-insensitive)
+      const userPrefix = text.trim().slice(0, 40).toLowerCase();
+      const artPrefix = trimmed.slice(0, 40).toLowerCase();
+      if (artPrefix.startsWith(userPrefix.slice(0, 25))) return false;
+      if (userPrefix.startsWith(artPrefix.slice(0, 25))) return false;
+      return true;
+    });
     const joined = assistantMsgs.join('\n').trim();
     if (joined.length > 10 && joined === lastText) {
       // Respuesta estable (no sigue streaming)
@@ -184,6 +198,8 @@ test.describe('2. Consultas al chat IA — datos reales del evento', () => {
   test.setTimeout(120_000);
 
   test.beforeEach(async ({ page }) => {
+    const { abort, reason } = shouldAbort();
+    if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
     const ok = await loginChat(page);
     if (!ok) test.skip();
@@ -251,6 +267,8 @@ test.describe('3. Inserciones vía chat IA (CRUD real)', () => {
   test.setTimeout(150_000);
 
   test.beforeEach(async ({ page }) => {
+    const { abort, reason } = shouldAbort();
+    if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
     const ok = await loginChat(page);
     if (!ok) test.skip();
@@ -327,6 +345,8 @@ test.describe('4. Modificación de imagen adjunta al chat', () => {
   test.setTimeout(120_000);
 
   test.beforeEach(async ({ page }) => {
+    const { abort, reason } = shouldAbort();
+    if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
     const ok = await loginChat(page);
     if (!ok) test.skip();
@@ -411,6 +431,8 @@ test.describe('5. Tareas: consulta y acciones (marcar completada)', () => {
   test.setTimeout(150_000);
 
   test.beforeEach(async ({ page }) => {
+    const { abort, reason } = shouldAbort();
+    if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
     const ok = await loginChat(page);
     if (!ok) test.skip();
@@ -506,6 +528,8 @@ test.describe('6. Bandeja de mensajes: responder a mensaje de tarea', () => {
   test.setTimeout(120_000);
 
   test.beforeEach(async ({ page }) => {
+    const { abort, reason } = shouldAbort();
+    if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
     const ok = await loginChat(page);
     if (!ok) test.skip();
@@ -574,6 +598,8 @@ test.describe('7. Insertar consejos en la base de conocimiento', () => {
   test.setTimeout(150_000);
 
   test.beforeEach(async ({ page }) => {
+    const { abort, reason } = shouldAbort();
+    if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
     const ok = await loginChat(page);
     if (!ok) test.skip();
@@ -645,6 +671,8 @@ test.describe('8. RAG — el sistema responde usando el conocimiento insertado',
   test.setTimeout(150_000);
 
   test.beforeEach(async ({ page }) => {
+    const { abort, reason } = shouldAbort();
+    if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
     const ok = await loginChat(page);
     if (!ok) test.skip();
@@ -701,6 +729,8 @@ test.describe('9. Wedding Creator — crear web simple para Paco y Pico', () => 
   test.setTimeout(150_000);
 
   test.beforeEach(async ({ page }) => {
+    const { abort, reason } = shouldAbort();
+    if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
     const ok = await loginChat(page);
     if (!ok) test.skip();
@@ -765,6 +795,8 @@ test.describe('10. Memories — álbum de fotos para la boda de Paco y Pico', ()
   test.setTimeout(150_000);
 
   test.beforeEach(async ({ page }) => {
+    const { abort, reason } = shouldAbort();
+    if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
     const ok = await loginChat(page);
     if (!ok) test.skip();
@@ -902,6 +934,8 @@ test.describe('11. Flujo completo E2E: boda de Paco y Pico', () => {
   test.setTimeout(300_000); // 5 min — flujo largo con múltiples pasos IA
 
   test('E2E completo: consulta → inserta → web → álbum', async ({ page }) => {
+    const { abort, reason } = shouldAbort();
+    if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
 
     const ok = await loginChat(page);
@@ -989,6 +1023,8 @@ test.describe('11. Flujo completo E2E: boda de Paco y Pico', () => {
 
   // 2.3.4 — floor-plan-editor: suggest_table_config — SVG preview inline
   test('floor-plan-editor: pedir configuración de mesa redonda genera preview', async ({ page }) => {
+    const { abort, reason } = shouldAbort();
+    if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
 
     const ok = await loginChat(page);
@@ -1014,6 +1050,8 @@ test.describe('12. Tests de contexto — validación por estado de sesión', () 
   test.setTimeout(120_000);
 
   test('sin login → la IA pide autenticación, no datos', async ({ page }) => {
+    const { abort, reason } = shouldAbort();
+    if (abort) test.skip(true, reason);
     // Navegar al chat SIN login
     await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 60_000 * LOAD_MULTIPLIER });
     await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
@@ -1053,6 +1091,8 @@ test.describe('12. Tests de contexto — validación por estado de sesión', () 
   });
 
   test('login sin evento seleccionado → pide seleccionar evento', async ({ page }) => {
+    const { abort, reason } = shouldAbort();
+    if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
 
     // Login pero NO seleccionar evento
@@ -1080,6 +1120,8 @@ test.describe('12. Tests de contexto — validación por estado de sesión', () 
   });
 
   test('login + evento → ejecuta tools y da datos concretos', async ({ page }) => {
+    const { abort, reason } = shouldAbort();
+    if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
 
     const ok = await loginChat(page);
@@ -1114,4 +1156,10 @@ test.describe('12. Tests de contexto — validación por estado de sesión', () 
       ).toBe(true);
     }
   });
+});
+
+// ─── CIRCUIT BREAKER SUMMARY ──────────────────────────────────────────────────
+
+test.afterAll(() => {
+  console.log(`\n${getSummary()}\n`);
 });

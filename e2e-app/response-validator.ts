@@ -14,6 +14,14 @@
  */
 
 import { Page, expect } from '@playwright/test';
+import {
+  shouldAbort,
+  attachHttpInterceptor,
+  clearLastHttpError,
+  getLastHttpError,
+  recordFailure,
+  recordSuccess,
+} from './circuit-breaker';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -107,8 +115,11 @@ export function classifyResponse(
   // 1. empty
   if (text.trim().length < 15) return 'empty';
 
-  // 2. error — errores de app
+  // 2. error — errores de app o HTTP interceptados
   if (/Error 500|ErrorBoundary|TIMEOUT_ERROR|AUTO_ROUTING_ERROR|Internal Server Error/i.test(text)) {
+    return 'error';
+  }
+  if (/^\[HTTP \d{3}\]/.test(text)) {
     return 'error';
   }
 
@@ -350,7 +361,25 @@ export async function chatWithValidation(
   expectation: TestExpectation,
   waitMs = 60_000,
 ): Promise<ValidationResult> {
+  // ── Circuit breaker: abortar si ya tripeó ──
+  const { abort, reason } = shouldAbort();
+  if (abort) {
+    const abortResponse: ChatResponse = {
+      text: `[Circuit Breaker] ${reason}`,
+      category: 'error',
+      toolsDetected: [],
+      timing: { durationMs: 0 },
+    };
+    const abortResult = assertExpectation(abortResponse, expectation);
+    console.log(`⚡ CIRCUIT BREAKER — skipping chat: ${reason}`);
+    return abortResult;
+  }
+
   const startTime = Date.now();
+
+  // ── Preparar interceptor HTTP ──
+  clearLastHttpError();
+  attachHttpInterceptor(page);
 
   // ── Enviar mensaje (misma lógica que chat() en el spec) ──
   const ta = page.locator('div[contenteditable="true"]').last();
@@ -381,8 +410,11 @@ export async function chatWithValidation(
     const assistantMsgs = articles.filter((t) => {
       const trimmed = t.trim();
       if (trimmed.length <= 5) return false;
-      // Filtrar mensajes del propio usuario
-      if (text.startsWith(trimmed.slice(0, 30))) return false;
+      // Filtrar mensajes del propio usuario (bidireccional, case-insensitive)
+      const userPrefix = text.trim().slice(0, 40).toLowerCase();
+      const artPrefix = trimmed.slice(0, 40).toLowerCase();
+      if (artPrefix.startsWith(userPrefix.slice(0, 25))) return false;
+      if (userPrefix.startsWith(artPrefix.slice(0, 25))) return false;
       // Filtrar welcome message de LobeChat (no es respuesta real)
       if (WELCOME_PATTERNS.some((p) => p.test(trimmed)) && trimmed.length < 250) return false;
       return true;
@@ -407,6 +439,13 @@ export async function chatWithValidation(
 
   const durationMs = Date.now() - startTime;
 
+  // ── Si respuesta vacía y hay error HTTP interceptado, inyectar info ──
+  const httpErr = getLastHttpError();
+  if (lastText.trim().length < 15 && httpErr) {
+    lastText = `[HTTP ${httpErr.status}] ${httpErr.errorType}: ${httpErr.url}`;
+    console.log(`[Circuit Breaker] Respuesta vacia + HTTP ${httpErr.status} → inyectando error como texto`);
+  }
+
   // ── Detectar tools en DOM ──
   const toolsDetected = await detectToolsInDOM(page);
 
@@ -422,6 +461,19 @@ export async function chatWithValidation(
 
   // ── Validar ──
   const result = assertExpectation(chatResponse, expectation);
+
+  // ── Registrar en circuit breaker ──
+  if (category === 'error' || category === 'empty') {
+    const errCategory = httpErr?.category ?? 'network';
+    recordFailure({
+      status: httpErr?.status ?? 0,
+      category: errCategory,
+      errorType: httpErr?.errorType ?? 'empty_response',
+      url: httpErr?.url ?? page.url(),
+    });
+  } else {
+    recordSuccess();
+  }
 
   // ── Log ──
   console.log(result.message);
