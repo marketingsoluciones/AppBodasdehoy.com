@@ -2,7 +2,7 @@
 
 import { Avatar, type AvatarProps } from '@lobehub/ui';
 import { createStyles, useTheme } from 'antd-style';
-import { forwardRef, useEffect, useMemo, useState, type SyntheticEvent } from 'react';
+import { forwardRef, useEffect, useMemo, useState } from 'react';
 
 import { DEFAULT_USER_AVATAR_URL } from '@/const/meta';
 import { isDesktop } from '@/const/version';
@@ -113,9 +113,10 @@ const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
       imageLoadFailed ||
       isGenericPlaceholderAvatarUrl(avatarUrl, DEFAULT_USER_AVATAR_URL);
 
-    const handleAvatarImageError = (e: SyntheticEvent<HTMLImageElement, Event>) => {
+    const handleAvatarImageError = () => {
       setImageLoadFailed(true);
-      onError?.(e);
+      onError?.();
+      return false;
     };
 
     const primary = branding?.color_primary || theme.colorPrimary;

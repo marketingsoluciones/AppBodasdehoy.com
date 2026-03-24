@@ -232,7 +232,7 @@ describe('Invoices Service', () => {
 
       await service.getUsageStats('TODAY');
 
-      const filters = mockQuery.mock.calls[0][1]!.filters;
+      const filters = (mockQuery.mock.calls[0][1]! as any).filters;
       const start = new Date(filters.startDate);
       expect(start.getHours()).toBe(0);
       expect(start.getMinutes()).toBe(0);
@@ -243,7 +243,7 @@ describe('Invoices Service', () => {
 
       await service.getUsageStats('LAST_30_DAYS');
 
-      const filters = mockQuery.mock.calls[0][1]!.filters;
+      const filters = (mockQuery.mock.calls[0][1]! as any).filters;
       const start = new Date(filters.startDate);
       const now = new Date();
       const diffDays = Math.round((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
@@ -256,7 +256,7 @@ describe('Invoices Service', () => {
 
       await service.getUsageStats('CUSTOM', '2025-01-01', '2025-01-31');
 
-      const filters = mockQuery.mock.calls[0][1]!.filters;
+      const filters = (mockQuery.mock.calls[0][1]! as any).filters;
       expect(filters.startDate).toBe('2025-01-01');
       expect(filters.endDate).toBe('2025-01-31');
     });

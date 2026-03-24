@@ -67,7 +67,7 @@ describe('WhatsApp Service', () => {
         },
       });
 
-      const channel = await createWhatsAppChannel('Mi Canal');
+      const channel = await createWhatsAppChannel('Mi Canal') as any;
 
       expect(channel?.id).toBe('ch-new');
       expect(channel?.type).toBe('QR_USER');

@@ -239,7 +239,7 @@ const NotificationBell = memo(() => {
                   }}
                 >
                   <span style={{ flexShrink: 0, fontSize: 18, marginTop: 1 }}>
-                    {TYPE_LABEL[n.type] || '🔔'}
+                    {TYPE_LABEL[n.type ?? ''] || '🔔'}
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ color: '#374151', fontSize: 13, lineHeight: 1.4, margin: 0 }}>

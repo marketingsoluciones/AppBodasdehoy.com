@@ -150,10 +150,10 @@ export async function regenerateWhatsAppQR(sessionId: string): Promise<boolean> 
 }
 
 // Legacy stubs — kept to avoid breaking other imports
-export async function getWhatsAppChannelMembers(): Promise<WhatsAppChannelMember[]> { return []; }
-export async function createWhatsAppChannel(): Promise<null> { return null; }
-export async function deleteWhatsAppChannel(): Promise<boolean> { return false; }
-export async function addWhatsAppChannelMember(): Promise<boolean> { return false; }
+export async function getWhatsAppChannelMembers(..._args: unknown[]): Promise<WhatsAppChannelMember[]> { return []; }
+export async function createWhatsAppChannel(..._args: unknown[]): Promise<null> { return null; }
+export async function deleteWhatsAppChannel(..._args: unknown[]): Promise<boolean> { return false; }
+export async function addWhatsAppChannelMember(..._args: unknown[]): Promise<boolean> { return false; }
 
 // ─── GraphQL conversations / messages (api2 native store) ─────────────────────
 

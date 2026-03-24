@@ -48,7 +48,7 @@ describe('settingsSelectors', () => {
         },
       } as unknown as UserStore;
 
-      const result = settingsSelectors.currentSettings(s);
+      const result = settingsSelectors.currentSettings(s) as any;
 
       // User-provided values are preserved
       expect(result.avatar).toBe('avatar.jpg');
@@ -276,7 +276,7 @@ describe('settingsSelectors', () => {
         },
       } as unknown as UserStore;
 
-      const result = settingsSelectors.currentSystemAgent(s);
+      const result = settingsSelectors.currentSystemAgent(s) as any;
 
       // User overrides
       expect(result.enableAutoReply).toBe(true);
