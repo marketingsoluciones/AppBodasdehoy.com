@@ -600,29 +600,31 @@ describe('FileManagerActions', () => {
   });
 
   describe('refreshFileList', () => {
-    it('should call mutate with correct key', async () => {
+    it('should dispatch storage-files-changed event', async () => {
       const { result } = renderHook(() => useStore());
 
-      const params = { category: 'all' };
-      act(() => {
-        useStore.setState({ queryListParams: params });
-      });
+      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
 
       await act(async () => {
         await result.current.refreshFileList();
       });
 
-      expect(mutate).toHaveBeenCalledWith(['useFetchFileManage', params]);
+      expect(dispatchSpy).toHaveBeenCalledWith(expect.objectContaining({ type: 'storage-files-changed' }));
     });
 
-    it('should call mutate with undefined params', async () => {
+    it('should dispatch event regardless of queryListParams', async () => {
       const { result } = renderHook(() => useStore());
+
+      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+      act(() => {
+        useStore.setState({ queryListParams: { category: 'all' } as any });
+      });
 
       await act(async () => {
         await result.current.refreshFileList();
       });
 
-      expect(mutate).toHaveBeenCalledWith(['useFetchFileManage', undefined]);
+      expect(dispatchSpy).toHaveBeenCalled();
     });
   });
 
