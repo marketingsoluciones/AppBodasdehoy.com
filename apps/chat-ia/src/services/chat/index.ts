@@ -402,10 +402,17 @@ class ChatService {
     // Detectar tipo de identificador del usuario
     const isUUID = currentUserId && /^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i.test(currentUserId);
     const isEmail = currentUserId && currentUserId.includes('@') && !currentUserId.includes('guest.local');
-    const isPhone = currentUserId && !isUUID && !isEmail && currentUserId !== 'visitante@guest.local';
+    // Firebase UIDs pueden contener letras, números, guiones y otros chars no-alfanuméricos
+    // Solo tratar como teléfono si tiene formato de número de teléfono (solo dígitos y + o -)
+    const isPhone = currentUserId && !isUUID && !isEmail && /^[+\d][\d\s\-().]{5,}$/.test(currentUserId) && currentUserId !== 'visitante@guest.local';
     const isValidUser = currentUserId && currentUserId !== 'visitante@guest.local';
 
-    // ✅ SIEMPRE enviar X-User-ID si hay usuario válido (incluyendo UUID de Firebase)
+    // Email desde userProfile o localStorage (fallback cuando currentUserId es un UID de Firebase)
+    const userEmail: string | null =
+      (chatStoreState as any).userProfile?.email ||
+      (typeof window !== 'undefined' ? window.localStorage.getItem('user_email') : null);
+
+    // ✅ SIEMPRE enviar X-User-ID si hay usuario válido (incluyendo UID de Firebase)
     if (isValidUser) {
       userContextHeaders['X-User-ID'] = currentUserId;
 
@@ -415,7 +422,11 @@ class ChatService {
       } else if (isPhone) {
         userContextHeaders['X-User-Phone'] = currentUserId;
       } else if (isUUID) {
-        userContextHeaders['X-User-UID'] = currentUserId; // Firebase/Clerk UID
+        userContextHeaders['X-User-UID'] = currentUserId; // Standard UUID
+      }
+      // UID de Firebase (no UUID estándar, no email, no teléfono) → enviar email si lo tenemos
+      if (!isEmail && userEmail && userEmail !== 'visitante@guest.local' && !userContextHeaders['X-User-Email']) {
+        userContextHeaders['X-User-Email'] = userEmail;
       }
     }
     

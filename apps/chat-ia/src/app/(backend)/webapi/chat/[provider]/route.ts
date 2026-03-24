@@ -150,8 +150,9 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
     }
 
     // Extraer JWT de cookie si no hay Authorization
-    // Prioridad: 1) cookie api2_jwt (dedicada, no la sobreescriben componentes React)
-    //            2) cookie dev-user-config.token (legacy, puede ser null por race condition)
+    // Prioridad: 1) cookie api2_jwt (dedicada)
+    //            2) cookie idTokenV0.1.0 (SSO bodasdehoy, dominio .bodasdehoy.com)
+    //            3) cookie dev-user-config.token (legacy fallback)
     if (!headers['Authorization'] && !headers['authorization']) {
       try {
         const cookieHeader = req.headers.get('cookie') || '';
@@ -165,14 +166,25 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           }
         }
 
-        // 2) Fallback: dev-user-config.token
+        // 2) Cookie SSO idTokenV0.1.0 (Firebase ID token, domain=.bodasdehoy.com)
+        if (!headers['Authorization']) {
+          const ssoMatch = cookieHeader.match(/idTokenV0\.1\.0=([^;]+)/);
+          if (ssoMatch) {
+            const ssoToken = decodeURIComponent(ssoMatch[1]);
+            if (ssoToken && ssoToken.startsWith('eyJ')) {
+              headers['Authorization'] = `Bearer ${ssoToken}`;
+            }
+          }
+        }
+
+        // 3) Fallback: dev-user-config.token
         if (!headers['Authorization']) {
           const match = cookieHeader.match(/dev-user-config=([^;]+)/);
           if (match) {
             const decoded = decodeURIComponent(match[1]);
             if (decoded.startsWith('{')) {
               const config = JSON.parse(decoded);
-              if (config.token) {
+              if (config.token && (config.token as string).startsWith('eyJ')) {
                 headers['Authorization'] = `Bearer ${config.token}`;
               }
             }
