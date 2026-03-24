@@ -12,10 +12,9 @@ import { useTranslation } from 'react-i18next';
 import { MOBILE_TABBAR_HEIGHT } from '@/const/layoutTokens';
 import { useActiveTabKey } from '@/hooks/useActiveTabKey';
 import { useInboxUnreadCount } from '@/hooks/useInboxUnreadCount';
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 import { SidebarTabKey } from '@/store/global/initialState';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
-import { useUserStore } from '@/store/user';
-import { authSelectors } from '@/store/user/selectors';
 
 const useStyles = createStyles(({ css, token }) => ({
   active: css`
@@ -38,7 +37,8 @@ const NavBar = memo(() => {
   const router = useRouter();
 
   const { showMarket } = useServerConfigStore(featureFlagsSelectors);
-  const isLoggedIn = useUserStore(authSelectors.isLogin);
+  const isGuest = useDomainGuestUser();
+  const isLoggedIn = !isGuest;
   const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
   const inboxUnread = useInboxUnreadCount();
 
@@ -113,7 +113,7 @@ const NavBar = memo(() => {
           title: t('tab.me'),
         },
       ].filter(Boolean) as TabBarProps['items'],
-    [t, showMarket, isLoggedIn, isServerMode, inboxUnread, router, styles.active],
+    [t, showMarket, isGuest, isLoggedIn, isServerMode, inboxUnread, router, styles.active],
   );
 
   return (
