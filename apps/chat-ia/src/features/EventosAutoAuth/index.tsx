@@ -361,10 +361,13 @@ user_id: effectiveUserId,
           devLog('✅ [AuthBridge] Usuario autenticado via cookie compartida de la app:', sharedAuth.user.uid);
 
           // Guardar en localStorage para que api2/client.ts pueda leer el token
-          // Usar idToken (JWT de Firebase) no sessionCookie (token opaco de servidor)
-          const apiToken = sharedAuth.idToken || sharedAuth.sessionCookie;
-          localStorage.setItem('jwt_token', apiToken);
-          localStorage.setItem('api2_jwt_token', apiToken);
+          // SOLO usar idToken (JWT de Firebase) — sessionCookie es un token opaco de servidor,
+          // no un JWT válido y causa "Not enough segments" en api-ia al intentar decodificarlo.
+          const apiToken = sharedAuth.idToken;
+          if (apiToken) {
+            localStorage.setItem('jwt_token', apiToken);
+            localStorage.setItem('api2_jwt_token', apiToken);
+          }
 
           // Sincronizar a formato dev-user-config que usa LobeChat
           await authBridge.syncAuthToLobechat(sharedAuth);
