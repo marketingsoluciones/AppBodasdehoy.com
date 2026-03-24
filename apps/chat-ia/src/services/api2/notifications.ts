@@ -102,8 +102,11 @@ export async function getNotifications(limit = 20, unreadOnly = false, page = 1)
     });
     const res = data.getNotifications;
     const notifications = (res?.notifications ?? []).map(normalizeNotification);
+    const errors = ((res as any)?.errors ?? []).map((e: any) =>
+      typeof e === 'string' ? e : (e?.message ?? String(e)),
+    );
     return {
-      errors: [],
+      errors,
       notifications,
       success: res?.success ?? true,
       total: res?.total ?? 0,

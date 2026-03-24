@@ -29,7 +29,13 @@ export interface WhatsAppChannel {
 }
 
 // NOTE: whatsappGetAllSessions does not exist in the api2 schema (only whatsappGetSession).
-// getWhatsAppChannels goes directly to the REST fallback which is more reliable.
+// getWhatsAppChannels tries GraphQL (multi-channel) then falls back to REST session.
+
+const GET_WA_CHANNELS = `
+  query GetWhatsAppChannels {
+    getWhatsAppChannels { development id isConnected name phoneNumber status type }
+  }
+`;
 
 const SEND_WA_MESSAGE = `
   mutation SendWAMessage($args: SendWhatsAppMessageArgs) {
@@ -76,18 +82,24 @@ function sessionToChannel(s: any, fallbackDev?: string): WhatsAppChannel {
   };
 }
 
-/** Returns WhatsApp sessions as channels via REST proxy (local api2 session state). */
+/** Returns WhatsApp channels — tries GraphQL (multi-channel) then REST session fallback. */
 export async function getWhatsAppChannels(development?: string): Promise<WhatsAppChannel[]> {
-  // REST fallback: reads local api2 session state (doesn't call external WA service)
+  // GraphQL path: multi-channel support (api2 schema v2+)
+  try {
+    const data = await api2Client.query<{ getWhatsAppChannels: WhatsAppChannel[] }>(GET_WA_CHANNELS, {});
+    if (Array.isArray(data.getWhatsAppChannels)) return data.getWhatsAppChannels;
+  } catch { /* fall through to REST */ }
+
+  // REST fallback: reads local api2 session state
   try {
     const dev = development || 'bodasdehoy';
     const res = await fetch(`/api/messages/whatsapp/session/${dev}`, {
       headers: { 'Content-Type': 'application/json' },
     });
     if (!res.ok) return [];
-    const data = await res.json();
-    if (!data?.success) return [];
-    return [sessionToChannel({ ...data, id: data.sessionKey || dev }, dev)];
+    const sess = await res.json();
+    if (!sess?.success) return [];
+    return [sessionToChannel({ ...sess, id: sess.sessionKey || dev }, dev)];
   } catch {
     return [];
   }
@@ -149,11 +161,70 @@ export async function regenerateWhatsAppQR(sessionId: string): Promise<boolean> 
   }
 }
 
-// Legacy stubs — kept to avoid breaking other imports
-export async function getWhatsAppChannelMembers(..._args: unknown[]): Promise<WhatsAppChannelMember[]> { return []; }
-export async function createWhatsAppChannel(..._args: unknown[]): Promise<null> { return null; }
-export async function deleteWhatsAppChannel(..._args: unknown[]): Promise<boolean> { return false; }
-export async function addWhatsAppChannelMember(..._args: unknown[]): Promise<boolean> { return false; }
+// ─── Channel management GraphQL ───────────────────────────────────────────────
+
+const CREATE_WA_CHANNEL = `
+  mutation CreateWhatsAppChannel($input: CreateWhatsAppChannelInput!) {
+    createWhatsAppChannel(input: $input) {
+      channel { development id isConnected name phoneNumber status type }
+      success
+    }
+  }
+`;
+const DELETE_WA_CHANNEL = `
+  mutation DeleteWhatsAppChannel($channelId: ID!) {
+    deleteWhatsAppChannel(channelId: $channelId) { success }
+  }
+`;
+const GET_WA_MEMBERS = `
+  query GetWhatsAppChannelMembers($channelId: ID!) {
+    getWhatsAppChannelMembers(channelId: $channelId) { channelId grantedAt grantedBy id isActive role userId }
+  }
+`;
+const ADD_WA_MEMBER = `
+  mutation AddWhatsAppChannelMember($channelId: ID!, $userId: ID!, $role: String) {
+    addWhatsAppChannelMember(channelId: $channelId, userId: $userId, role: $role) {
+      member { userId role }
+      success
+    }
+  }
+`;
+
+export async function createWhatsAppChannel(name: string, type: string = 'QR_USER'): Promise<WhatsAppChannel | null> {
+  try {
+    const data = await api2Client.query<{ createWhatsAppChannel: { channel: WhatsAppChannel; success: boolean } }>(
+      CREATE_WA_CHANNEL, { input: { name, type } },
+    );
+    return data.createWhatsAppChannel?.success ? data.createWhatsAppChannel.channel : null;
+  } catch { return null; }
+}
+
+export async function deleteWhatsAppChannel(channelId: string): Promise<boolean> {
+  try {
+    const data = await api2Client.query<{ deleteWhatsAppChannel: { success: boolean } }>(
+      DELETE_WA_CHANNEL, { channelId },
+    );
+    return !!data.deleteWhatsAppChannel?.success;
+  } catch { return false; }
+}
+
+export async function getWhatsAppChannelMembers(channelId: string): Promise<WhatsAppChannelMember[]> {
+  try {
+    const data = await api2Client.query<{ getWhatsAppChannelMembers: WhatsAppChannelMember[] }>(
+      GET_WA_MEMBERS, { channelId },
+    );
+    return data.getWhatsAppChannelMembers || [];
+  } catch { return []; }
+}
+
+export async function addWhatsAppChannelMember(channelId: string, userId: string, role?: string): Promise<boolean> {
+  try {
+    const data = await api2Client.query<{ addWhatsAppChannelMember: { success: boolean } }>(
+      ADD_WA_MEMBER, { channelId, role, userId },
+    );
+    return !!data.addWhatsAppChannelMember?.success;
+  } catch { return false; }
+}
 
 // ─── GraphQL conversations / messages (api2 native store) ─────────────────────
 

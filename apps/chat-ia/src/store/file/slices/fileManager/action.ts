@@ -133,8 +133,8 @@ export const createFileManageSlice: StateCreator<
       { concurrency: MAX_UPLOAD_FILE_COUNT },
     );
 
-    // Single refresh after all uploads complete (instead of per-file)
-    await get().refreshFileList();
+    // Single refresh after all uploads complete (skip if no files were processed)
+    if (files.length > 0) await get().refreshFileList();
 
     // 4. auto-embed files that support chunking
     const fileIdsToEmbed = uploadResults

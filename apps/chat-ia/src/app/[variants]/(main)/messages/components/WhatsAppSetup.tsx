@@ -1,7 +1,11 @@
 'use client';
 
+import { Alert, Button, Input, Segmented, Space, Spin, Typography } from 'antd';
 import { useState } from 'react';
+
 import { useWhatsAppSession } from '../hooks/useWhatsAppSession';
+
+const { Title, Text, Paragraph } = Typography;
 
 interface WhatsAppSetupProps {
   development: string;
@@ -10,8 +14,17 @@ interface WhatsAppSetupProps {
 type LinkMode = 'qr' | 'phone';
 
 export function WhatsAppSetup({ development }: WhatsAppSetupProps) {
-  const { connectedAt, disconnectSession, error, loading, phoneNumber, qrCode, requestPairingCode, startSession, status } =
-    useWhatsAppSession(development);
+  const {
+    connectedAt,
+    disconnectSession,
+    error,
+    loading,
+    phoneNumber,
+    qrCode,
+    requestPairingCode,
+    startSession,
+    status,
+  } = useWhatsAppSession(development);
 
   const [mode, setMode] = useState<LinkMode>('qr');
   const [phone, setPhone] = useState('');
@@ -25,7 +38,6 @@ export function WhatsAppSetup({ development }: WhatsAppSetupProps) {
     setPairingError(null);
     setPairingCode(null);
     try {
-      // Ensure socket is running first
       if (status === 'disconnected' || status === 'error') await startSession();
       const code = await requestPairingCode(phone.trim());
       setPairingCode(code);
@@ -36,235 +48,175 @@ export function WhatsAppSetup({ development }: WhatsAppSetupProps) {
     }
   };
 
+  const CENTER: React.CSSProperties = {
+    alignItems: 'center',
+    display: 'flex',
+    height: '100%',
+    justifyContent: 'center',
+    padding: 32,
+  };
+
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <div className="mb-2 animate-spin text-4xl">⏳</div>
-          <p className="text-sm text-gray-500">Verificando sesión...</p>
-        </div>
+      <div style={CENTER}>
+        <Space direction="vertical" style={{ textAlign: 'center' }}>
+          <Spin size="large" />
+          <Text type="secondary">Verificando sesión...</Text>
+        </Space>
       </div>
     );
   }
 
   if (status === 'connected') {
     return (
-      <div className="flex h-full items-center justify-center p-8">
-        <div className="w-full max-w-sm rounded-2xl border border-green-200 bg-green-50 p-6 text-center shadow-sm">
-          <div className="mb-4 text-5xl">✅</div>
-          <h3 className="mb-1 text-lg font-semibold text-gray-900">WhatsApp Conectado</h3>
+      <div style={CENTER}>
+        <Space direction="vertical" size="middle" style={{ maxWidth: 360, textAlign: 'center', width: '100%' }}>
+          <div style={{ fontSize: 48 }}>✅</div>
+          <Title level={4} style={{ margin: 0 }}>WhatsApp Conectado</Title>
           {phoneNumber && (
-            <p className="mb-1 text-sm text-gray-600">
-              <span className="font-medium">Número:</span> +{phoneNumber}
-            </p>
+            <Text type="secondary">Número: <Text strong>+{phoneNumber}</Text></Text>
           )}
           {connectedAt && (
-            <p className="mb-6 text-xs text-gray-400">
+            <Text style={{ fontSize: 12 }} type="secondary">
               Conectado desde {new Date(connectedAt).toLocaleString('es-ES')}
-            </p>
+            </Text>
           )}
-          <button
-            className="rounded-lg border border-red-300 px-4 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
-            onClick={disconnectSession}
-            type="button"
-          >
-            Desconectar
-          </button>
-        </div>
+          <Button danger onClick={disconnectSession} size="small">Desconectar</Button>
+        </Space>
       </div>
     );
   }
 
-  // QR ready — show QR + phone alternative
   if (status === 'qr_ready' && qrCode && mode === 'qr') {
     return (
-      <div className="flex h-full items-center justify-center p-8">
-        <div className="w-full max-w-sm text-center">
-          <h3 className="mb-1 text-xl font-semibold text-gray-900">Añadir número de WhatsApp</h3>
-
-          {/* Mode toggle */}
-          <div className="mb-6 mt-3 inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-            <button
-              className="rounded-md bg-white px-4 py-1.5 text-xs font-medium text-gray-900 shadow-sm"
-              type="button"
-            >
-              Código QR
-            </button>
-            <button
-              className="px-4 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700"
-              onClick={() => setMode('phone')}
-              type="button"
-            >
-              Número de teléfono
-            </button>
-          </div>
-
-          <p className="mb-4 text-sm text-gray-500">
+      <div style={CENTER}>
+        <Space direction="vertical" size="middle" style={{ maxWidth: 360, textAlign: 'center', width: '100%' }}>
+          <Title level={4} style={{ margin: 0 }}>Añadir número de WhatsApp</Title>
+          <Segmented
+            onChange={(v) => setMode(v as LinkMode)}
+            options={[{ label: 'Código QR', value: 'qr' }, { label: 'Número de teléfono', value: 'phone' }]}
+            value={mode}
+          />
+          <Paragraph style={{ margin: 0 }} type="secondary">
             Abre WhatsApp → Dispositivos vinculados → Vincular un dispositivo
-          </p>
-
-          <div className="mb-6 inline-block rounded-2xl border-4 border-green-500 p-2 shadow-lg">
+          </Paragraph>
+          <div style={{ border: '3px solid #25D366', borderRadius: 12, display: 'inline-block', padding: 8 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img alt="QR Code WhatsApp" className="h-56 w-56" src={qrCode} />
+            <img alt="QR Code WhatsApp" src={qrCode} style={{ height: 224, width: 224 }} />
           </div>
-
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
-            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-green-400" />
-            Esperando que escanees el código...
-          </div>
-        </div>
+          <Space size={6}>
+            <span style={{ background: '#52c41a', borderRadius: '50%', display: 'inline-block', height: 8, width: 8 }} />
+            <Text style={{ fontSize: 13 }} type="secondary">Esperando que escanees el código...</Text>
+          </Space>
+        </Space>
       </div>
     );
   }
 
-  // Phone pairing mode (or qr_ready in phone mode)
   if (mode === 'phone') {
     return (
-      <div className="flex h-full items-center justify-center p-8">
-        <div className="w-full max-w-sm text-center">
-          <h3 className="mb-1 text-xl font-semibold text-gray-900">Añadir número de WhatsApp</h3>
-
-          {/* Mode toggle */}
-          <div className="mb-6 mt-3 inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-            <button
-              className="px-4 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700"
-              onClick={() => { setMode('qr'); setPairingCode(null); setPairingError(null); }}
-              type="button"
-            >
-              Código QR
-            </button>
-            <button
-              className="rounded-md bg-white px-4 py-1.5 text-xs font-medium text-gray-900 shadow-sm"
-              type="button"
-            >
-              Número de teléfono
-            </button>
-          </div>
-
+      <div style={CENTER}>
+        <Space direction="vertical" size="middle" style={{ maxWidth: 360, textAlign: 'center', width: '100%' }}>
+          <Title level={4} style={{ margin: 0 }}>Añadir número de WhatsApp</Title>
+          <Segmented
+            onChange={(v) => { setMode(v as LinkMode); setPairingCode(null); setPairingError(null); }}
+            options={[{ label: 'Código QR', value: 'qr' }, { label: 'Número de teléfono', value: 'phone' }]}
+            value={mode}
+          />
           {!pairingCode ? (
-            <>
-              <p className="mb-4 text-sm text-gray-500">
+            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+              <Paragraph style={{ margin: 0 }} type="secondary">
                 Introduce tu número con código de país. Recibirás un código en WhatsApp.
-              </p>
-              <div className="mb-3 flex gap-2">
-                <input
-                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-green-500 focus:outline-none"
-                  onChange={(e) => setPhone(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleRequestCode()}
-                  placeholder="+34 622 440 213"
-                  type="tel"
-                  value={phone}
-                />
-              </div>
-              {pairingError && (
-                <div className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-                  {pairingError}
-                </div>
-              )}
-              <button
-                className="w-full rounded-xl bg-green-500 py-3 font-semibold text-white transition-colors hover:bg-green-600 disabled:opacity-50"
+              </Paragraph>
+              {pairingError && <Alert message={pairingError} showIcon type="error" />}
+              <Input
+                onChange={(e) => setPhone(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleRequestCode()}
+                placeholder="+34 622 440 213"
+                size="large"
+                type="tel"
+                value={phone}
+              />
+              <Button
+                block
                 disabled={pairingLoading || !phone.trim()}
+                loading={pairingLoading}
                 onClick={handleRequestCode}
-                type="button"
+                size="large"
+                style={{ background: '#25D366', borderColor: '#25D366' }}
+                type="primary"
               >
-                {pairingLoading ? 'Solicitando código...' : 'Obtener código'}
-              </button>
-              <p className="mt-3 text-xs text-gray-400">
+                Obtener código
+              </Button>
+              <Text style={{ fontSize: 12 }} type="secondary">
                 Se enviará un código de 8 dígitos a tu WhatsApp
-              </p>
-            </>
+              </Text>
+            </Space>
           ) : (
-            <>
-              <p className="mb-4 text-sm text-gray-500">
+            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              <Paragraph style={{ margin: 0 }} type="secondary">
                 Abre WhatsApp → Dispositivos vinculados → Vincular con número → Introduce este código:
-              </p>
-              <div className="mb-6 rounded-2xl border-2 border-green-400 bg-green-50 px-6 py-5">
-                <p className="text-3xl font-bold tracking-[0.3em] text-green-700">{pairingCode}</p>
-                <p className="mt-1 text-xs text-green-600">Válido por ~60 segundos</p>
+              </Paragraph>
+              <div style={{ border: '2px solid #52c41a', borderRadius: 12, padding: '20px 24px' }}>
+                <div style={{ color: '#52c41a', fontSize: 28, fontWeight: 700, letterSpacing: '0.3em' }}>{pairingCode}</div>
+                <Text style={{ fontSize: 12 }} type="secondary">Válido por ~60 segundos</Text>
               </div>
-              <button
-                className="text-sm text-gray-500 underline hover:text-gray-700"
-                onClick={() => { setPairingCode(null); setPhone(''); }}
-                type="button"
-              >
+              <Button onClick={() => { setPairingCode(null); setPhone(''); }} type="link">
                 Solicitar nuevo código
-              </button>
-            </>
+              </Button>
+            </Space>
           )}
-        </div>
+        </Space>
       </div>
     );
   }
 
   if (status === 'connecting') {
     return (
-      <div className="flex h-full items-center justify-center p-8">
-        <div className="w-full max-w-sm rounded-2xl border border-green-200 bg-white p-6 text-center shadow-sm">
-          <div className="mb-4 text-5xl">📱</div>
-          <h3 className="mb-2 text-lg font-semibold text-gray-900">Iniciando sesión...</h3>
-          <p className="mb-4 text-sm text-gray-500">Generando código QR, espera un momento</p>
-          <div className="flex justify-center gap-1">
-            {[0, 1, 2].map((i) => (
-              <span
-                className="inline-block h-2 w-2 animate-bounce rounded-full bg-green-400"
-                key={i}
-                style={{ animationDelay: `${i * 0.15}s` }}
-              />
-            ))}
-          </div>
-          <div className="mt-5 flex items-center justify-center gap-2">
-            <button
-              className="rounded-lg border border-green-300 px-3 py-1.5 text-xs text-green-700 hover:bg-green-50"
-              onClick={startSession}
-              type="button"
-            >
+      <div style={CENTER}>
+        <Space direction="vertical" size="middle" style={{ maxWidth: 360, textAlign: 'center', width: '100%' }}>
+          <div style={{ fontSize: 48 }}>📱</div>
+          <Title level={4} style={{ margin: 0 }}>Iniciando sesión...</Title>
+          <Paragraph style={{ margin: 0 }} type="secondary">Generando código QR, espera un momento</Paragraph>
+          <Spin />
+          <Space>
+            <Button onClick={startSession} size="small" style={{ borderColor: '#25D366', color: '#25D366' }}>
               Reintentar QR
-            </button>
-            <button
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
-              onClick={() => setMode('phone')}
-              type="button"
-            >
-              Vincular por número
-            </button>
-          </div>
-        </div>
+            </Button>
+            <Button onClick={() => setMode('phone')} size="small">Vincular por número</Button>
+          </Space>
+        </Space>
       </div>
     );
   }
 
-  // disconnected or error — initial screen with both options
+  // disconnected / error
   return (
-    <div className="flex h-full items-center justify-center p-8">
-      <div className="w-full max-w-sm text-center">
-        <div className="mb-4 text-6xl">📱</div>
-        <h3 className="mb-2 text-xl font-semibold text-gray-900">Añadir número de WhatsApp</h3>
-        <p className="mb-6 text-sm text-gray-500">
-          Vincula tu número de WhatsApp para gestionar mensajes directamente desde aquí
-        </p>
-
-        {error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-            {error}
-          </div>
-        )}
-
-        <button
-          className="mb-3 w-full rounded-xl bg-green-500 px-6 py-3 font-semibold text-white shadow-md transition-colors hover:bg-green-600 active:scale-95"
-          onClick={startSession}
-          type="button"
-        >
-          Escanear código QR
-        </button>
-
-        <button
-          className="w-full rounded-xl border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-700 transition-colors hover:bg-gray-50 active:scale-95"
-          onClick={() => setMode('phone')}
-          type="button"
-        >
-          Vincular con número de teléfono
-        </button>
-      </div>
+    <div style={CENTER}>
+      <Space direction="vertical" size="large" style={{ maxWidth: 360, textAlign: 'center', width: '100%' }}>
+        <div style={{ fontSize: 56 }}>📱</div>
+        <div>
+          <Title level={4} style={{ margin: '0 0 8px' }}>Añadir número de WhatsApp</Title>
+          <Paragraph style={{ margin: 0 }} type="secondary">
+            Vincula tu número de WhatsApp para gestionar mensajes directamente desde aquí
+          </Paragraph>
+        </div>
+        {error && <Alert message={error} showIcon type="error" />}
+        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+          <Button
+            block
+            onClick={startSession}
+            size="large"
+            style={{ background: '#25D366', borderColor: '#25D366' }}
+            type="primary"
+          >
+            Escanear código QR
+          </Button>
+          <Button block onClick={() => setMode('phone')} size="large">
+            Vincular con número de teléfono
+          </Button>
+        </Space>
+      </Space>
     </div>
   );
 }

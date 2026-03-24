@@ -1,8 +1,11 @@
 'use client';
 
+import { Alert, Button, Result, Space, Typography } from 'antd';
 import { useState } from 'react';
 
 import { buildHeaders } from '../utils/auth';
+
+const { Text, Paragraph } = Typography;
 
 interface InstagramSetupProps {
   development: string;
@@ -17,30 +20,20 @@ export function InstagramSetup({ development, onConnected }: InstagramSetupProps
   const handleConnect = async () => {
     setStatus('connecting');
     setError(null);
-
     try {
-      // Request OAuth URL from backend
       const res = await fetch('/api/messages/instagram/oauth-url', {
         body: JSON.stringify({ development }),
         headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
         method: 'POST',
       });
-
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Error ${res.status}`);
+        throw new Error(data.error || data.detail || `Error ${res.status}`);
       }
-
       const data = await res.json();
-
       if (data.oauthUrl) {
-        // Open OAuth popup
         const popup = window.open(data.oauthUrl, 'instagram-oauth', 'width=600,height=700');
-        if (!popup) {
-          throw new Error('No se pudo abrir la ventana de autorización. Desactiva el bloqueador de popups.');
-        }
-
-        // Listen for OAuth callback
+        if (!popup) throw new Error('No se pudo abrir la ventana de autorización. Desactiva el bloqueador de popups.');
         const handleMessage = (event: MessageEvent) => {
           if (event.data?.type === 'INSTAGRAM_OAUTH_SUCCESS') {
             setAccountName(event.data.accountName || 'Cuenta conectada');
@@ -70,64 +63,66 @@ export function InstagramSetup({ development, onConnected }: InstagramSetupProps
         headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
         method: 'POST',
       });
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore */ }
     setStatus('idle');
     setAccountName(null);
   };
 
+  const CENTER: React.CSSProperties = {
+    alignItems: 'center',
+    display: 'flex',
+    height: '100%',
+    justifyContent: 'center',
+    padding: 32,
+  };
+
   if (status === 'connected') {
     return (
-      <div className="flex h-full items-center justify-center p-8">
-        <div className="w-full max-w-sm rounded-2xl border border-pink-200 bg-pink-50 p-6 text-center shadow-sm">
-          <div className="mb-4 text-5xl">✅</div>
-          <h3 className="mb-1 text-lg font-semibold text-gray-900">Instagram Conectado</h3>
-          {accountName && (
-            <p className="mb-4 text-sm text-gray-600">
-              <span className="font-medium">Cuenta:</span> @{accountName}
-            </p>
-          )}
-          <button
-            className="rounded-lg border border-red-300 px-4 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
-            onClick={handleDisconnect}
-            type="button"
-          >
-            Desconectar
-          </button>
-        </div>
+      <div style={CENTER}>
+        <Result
+          extra={<Button danger onClick={handleDisconnect} size="small">Desconectar</Button>}
+          status="success"
+          subTitle={accountName ? <Text type="secondary">Cuenta: <Text strong>@{accountName}</Text></Text> : undefined}
+          title="Instagram Conectado"
+        />
       </div>
     );
   }
 
   return (
-    <div className="flex h-full items-center justify-center p-8">
-      <div className="w-full max-w-sm text-center">
-        <div className="mb-4 text-6xl">📷</div>
-        <h3 className="mb-2 text-xl font-semibold text-gray-900">Conectar Instagram</h3>
-        <p className="mb-6 text-sm text-gray-500">
-          Vincula tu cuenta de Instagram Business para recibir y responder mensajes directos
-        </p>
-
+    <div style={CENTER}>
+      <Space direction="vertical" size="large" style={{ maxWidth: 380, textAlign: 'center', width: '100%' }}>
+        <div style={{ fontSize: 56 }}>📷</div>
+        <div>
+          <Text strong style={{ display: 'block', fontSize: 18, marginBottom: 8 }}>Conectar Instagram</Text>
+          <Paragraph style={{ margin: 0 }} type="secondary">
+            Vincula tu cuenta de Instagram Business para recibir y responder mensajes directos
+          </Paragraph>
+        </div>
         {error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-            {error}
-          </div>
+          <Alert
+            description="Asegúrate de tener una cuenta de Instagram Business vinculada a una página de Facebook."
+            message={error}
+            showIcon
+            type="error"
+          />
         )}
-
-        <button
-          className="w-full rounded-xl bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 px-6 py-3 font-semibold text-white shadow-md transition-opacity hover:opacity-90 active:scale-95 disabled:opacity-50"
-          disabled={status === 'connecting'}
-          onClick={handleConnect}
-          type="button"
-        >
-          {status === 'connecting' ? 'Conectando...' : 'Conectar con Instagram'}
-        </button>
-
-        <p className="mt-4 text-xs text-gray-400">
-          Necesitas una cuenta de Instagram Business vinculada a una página de Facebook
-        </p>
-      </div>
+        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+          <Button
+            block
+            disabled={status === 'connecting'}
+            loading={status === 'connecting'}
+            onClick={handleConnect}
+            size="large"
+            style={{ background: 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)', border: 'none', color: '#fff' }}
+          >
+            Conectar con Instagram
+          </Button>
+          <Text style={{ fontSize: 12 }} type="secondary">
+            Necesitas una cuenta de Instagram Business vinculada a una página de Facebook
+          </Text>
+        </Space>
+      </Space>
     </div>
   );
 }
