@@ -18,9 +18,11 @@ import {
   IoClose,
   IoSparkles,
   IoOpenOutline,
-  IoChevronDown,
+  IoTimeOutline,
+  IoChatbubbleOutline,
   IoTrashOutline,
   IoAddOutline,
+  IoCheckmarkOutline,
 } from 'react-icons/io5';
 
 // ── Session storage helpers ──────────────────────────────────────────────────
@@ -73,6 +75,9 @@ const ChatSidebarDirect: FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [editingLabel, setEditingLabel] = useState(false);
+  const [labelDraft, setLabelDraft] = useState('');
+  const labelInputRef = useRef<HTMLInputElement>(null);
 
   const [guestSessionId] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -146,6 +151,22 @@ const ChatSidebarDirect: FC = () => {
     upsertSession(stableUserId, activeSessionId, label);
     setSessions(loadSessions(stableUserId));
   }, [stableUserId, activeSessionId]);
+
+  const handleStartEditLabel = useCallback(() => {
+    const current = sessions.find(s => s.id === activeSessionId)?.label || 'Nueva conversación';
+    setLabelDraft(current === 'Nueva conversación' ? '' : current);
+    setEditingLabel(true);
+    setTimeout(() => labelInputRef.current?.select(), 30);
+  }, [sessions, activeSessionId]);
+
+  const handleConfirmLabel = useCallback(() => {
+    const trimmed = labelDraft.trim();
+    if (trimmed) {
+      upsertSession(stableUserId, activeSessionId, trimmed);
+      setSessions(loadSessions(stableUserId));
+    }
+    setEditingLabel(false);
+  }, [labelDraft, stableUserId, activeSessionId]);
 
   // Cerrar dropdown al hacer click fuera
   useEffect(() => {
@@ -315,33 +336,57 @@ const ChatSidebarDirect: FC = () => {
         <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden overscroll-y-contain">
 
           {/* ── Header ─────────────────────────────────────────────────── */}
-          <div className="flex items-center px-2 py-2 sm:px-3 border-b border-gray-200 bg-white [color-scheme:light] flex-shrink-0 gap-2">
+          <div className="flex items-center px-2 py-1.5 sm:px-3 border-b border-gray-200 bg-white [color-scheme:light] flex-shrink-0 gap-1">
 
-            {/* Icono sparkles */}
-            <IoSparkles className="text-pink-500 text-base shrink-0" aria-hidden />
+            {/* Sparkles */}
+            <IoSparkles className="text-pink-500 text-base shrink-0 mr-0.5" aria-hidden />
 
-            {/* Dropdown de conversación — ocupa el espacio restante */}
-            <div ref={dropdownRef} className="relative flex-1 min-w-0">
+            {/* Título editable — click para renombrar */}
+            <div className="flex-1 min-w-0">
+              {editingLabel ? (
+                <div className="flex items-center gap-1">
+                  <input
+                    ref={labelInputRef}
+                    type="text"
+                    value={labelDraft}
+                    onChange={e => setLabelDraft(e.target.value)}
+                    onBlur={handleConfirmLabel}
+                    onKeyDown={e => { if (e.key === 'Enter') handleConfirmLabel(); if (e.key === 'Escape') setEditingLabel(false); }}
+                    placeholder="Nombre de la conversación"
+                    className="flex-1 min-w-0 text-sm font-medium bg-gray-100 border-0 rounded px-2 py-0.5 outline-none focus:ring-1 focus:ring-pink-300 text-gray-800"
+                    autoFocus
+                    maxLength={50}
+                  />
+                  <button type="button" onMouseDown={handleConfirmLabel} className="p-1 text-pink-500 hover:text-pink-700">
+                    <IoCheckmarkOutline className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  id="copilot-sidebar-title"
+                  onClick={handleStartEditLabel}
+                  className="w-full text-left text-sm font-medium text-gray-800 truncate leading-snug hover:text-pink-600 transition-colors px-1 py-0.5 rounded hover:bg-gray-50"
+                  title="Clic para renombrar"
+                >
+                  {truncateLabel(activeSessionLabel)}
+                </button>
+              )}
+            </div>
+
+            {/* Historial — abre dropdown con conversaciones pasadas */}
+            <div ref={dropdownRef} className="relative shrink-0">
               <button
                 type="button"
                 onClick={() => setDropdownOpen(v => !v)}
-                className="flex items-center gap-1 w-full min-w-0 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors text-left group"
+                className={`p-1.5 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center ${dropdownOpen ? 'bg-pink-100 text-pink-600' : 'hover:bg-gray-100 text-gray-500'}`}
+                title="Historial de conversaciones"
                 aria-haspopup="listbox"
                 aria-expanded={dropdownOpen}
-                title="Cambiar conversación"
               >
-                <span
-                  id="copilot-sidebar-title"
-                  className="flex-1 min-w-0 text-sm font-medium text-gray-800 truncate leading-tight"
-                >
-                  {truncateLabel(activeSessionLabel, 28)}
-                </span>
-                <IoChevronDown
-                  className={`shrink-0 w-3.5 h-3.5 text-gray-400 transition-transform duration-150 ${dropdownOpen ? 'rotate-180' : ''}`}
-                />
+                <IoTimeOutline className="w-4 h-4" />
               </button>
 
-              {/* Dropdown list */}
               <AnimatePresence>
                 {dropdownOpen && (
                   <motion.div
@@ -349,22 +394,14 @@ const ChatSidebarDirect: FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: 0.12 }}
-                    className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden"
+                    className="absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden"
                     role="listbox"
                     aria-label="Conversaciones"
                   >
-                    {/* Botón nueva conversación en el top del dropdown */}
-                    <button
-                      type="button"
-                      onClick={handleNewSession}
-                      className="flex items-center gap-2 w-full px-3 py-2.5 text-sm font-medium text-pink-600 hover:bg-pink-50 transition-colors border-b border-gray-100"
-                    >
-                      <IoAddOutline className="w-4 h-4 shrink-0" />
-                      Nueva conversación
-                    </button>
-
-                    {/* Lista de conversaciones */}
-                    <div className="max-h-56 overflow-y-auto">
+                    <div className="px-3 py-2 border-b border-gray-100">
+                      <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Historial</span>
+                    </div>
+                    <div className="max-h-60 overflow-y-auto">
                       {sessions.map(session => {
                         const isActive = session.id === activeSessionId;
                         return (
@@ -372,21 +409,18 @@ const ChatSidebarDirect: FC = () => {
                             key={session.id}
                             role="option"
                             aria-selected={isActive}
-                            className={`flex items-center gap-1 px-3 py-2 cursor-pointer group/item transition-colors ${
-                              isActive ? 'bg-pink-50' : 'hover:bg-gray-50'
-                            }`}
+                            className={`flex items-center gap-1 px-3 py-2 cursor-pointer group/item transition-colors ${isActive ? 'bg-pink-50' : 'hover:bg-gray-50'}`}
                             onClick={() => handleSelectSession(session.id)}
                           >
                             <span className={`flex-1 min-w-0 text-xs truncate ${isActive ? 'text-pink-700 font-medium' : 'text-gray-700'}`}>
-                              {truncateLabel(session.label, 30)}
+                              {truncateLabel(session.label, 28)}
                             </span>
-                            {/* Borrar — solo visible en hover */}
                             {sessions.length > 1 && (
                               <button
                                 type="button"
                                 onClick={e => handleDeleteSession(e, session.id)}
                                 className="shrink-0 p-1 rounded opacity-0 group-hover/item:opacity-100 hover:bg-red-50 hover:text-red-500 text-gray-400 transition-all"
-                                title="Eliminar conversación"
+                                title="Eliminar"
                               >
                                 <IoTrashOutline className="w-3 h-3" />
                               </button>
@@ -400,25 +434,36 @@ const ChatSidebarDirect: FC = () => {
               </AnimatePresence>
             </div>
 
-            {/* Acciones derecha */}
-            <div className="flex items-center gap-1 shrink-0">
-              <button
-                type="button"
-                onClick={handleOpenInNewTab}
-                className="p-1.5 hover:bg-pink-100 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center"
-                title="Abrir completo en nueva pestaña"
-              >
-                <IoOpenOutline className="text-gray-500 w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={closeSidebar}
-                className="p-1.5 hover:bg-pink-50 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center"
-                title="Cerrar"
-              >
-                <IoClose className="text-gray-500 w-4 h-4" />
-              </button>
-            </div>
+            {/* Nueva conversación */}
+            <button
+              type="button"
+              onClick={handleNewSession}
+              className="relative p-1.5 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center shrink-0 text-gray-500"
+              title="Nueva conversación"
+            >
+              <IoChatbubbleOutline className="w-4 h-4" />
+              <IoAddOutline className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 text-pink-500 stroke-[3]" />
+            </button>
+
+            {/* Abrir en nueva pestaña */}
+            <button
+              type="button"
+              onClick={handleOpenInNewTab}
+              className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center shrink-0"
+              title="Abrir completo"
+            >
+              <IoOpenOutline className="text-gray-500 w-4 h-4" />
+            </button>
+
+            {/* Cerrar */}
+            <button
+              type="button"
+              onClick={closeSidebar}
+              className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center shrink-0"
+              title="Cerrar"
+            >
+              <IoClose className="text-gray-500 w-4 h-4" />
+            </button>
           </div>
 
           {/* ── Chat embed ──────────────────────────────────────────────── */}

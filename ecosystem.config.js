@@ -34,6 +34,22 @@ module.exports = {
       autorestart: true,
       watch: false,
       max_memory_restart: '3G'
+    },
+    {
+      name: 'memories-dev',
+      script: './apps/memories-web/dev.sh',
+      exec_mode: 'fork',
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '800M'
+    },
+    {
+      name: 'editor-dev',
+      script: './apps/editor-web/dev.sh',
+      exec_mode: 'fork',
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '800M'
     }
   ]
 };

@@ -1044,27 +1044,7 @@ export const CopilotEmbed = ({
         </div>
       )}
 
-      {/* Banner recuperar conversación */}
-      {showRecoverBanner && messages.length > 0 && (
-        <div style={{
-          padding: '10px 16px', background: '#f0f5ff', borderBottom: '1px solid #adc6ff',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap',
-        }}>
-          <span style={{ fontSize: 13, color: '#2f54eb', flex: '1 1 200px' }}>
-            Conversación anterior cargada. ¿Continuar o nueva?
-          </span>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-            <button type="button" onClick={() => setShowRecoverBanner(false)}
-              style={{ padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#2f54eb', background: '#fff', border: '1px solid #adc6ff', borderRadius: 6, cursor: 'pointer' }}>
-              Continuar
-            </button>
-            <button type="button" onClick={() => { setMessages([]); setShowRecoverBanner(false); clearCopilotFilter(); }}
-              style={{ padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#fff', background: '#2f54eb', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
-              Nueva
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Banner eliminado — el historial es accesible desde el icono reloj del header */}
 
       {/* Lista de mensajes */}
       <div ref={messageListRef} style={{ flex: 1, overflow: 'hidden' }}>

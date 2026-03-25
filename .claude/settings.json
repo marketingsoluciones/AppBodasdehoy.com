@@ -51,7 +51,11 @@
       "Bash(grep -n \"\\\\/tasks\\\\|→ Tareas\\\\|→ Ver tareas\" /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/notifications/page.tsx)",
       "Bash(pnpm run:*)",
       "Bash(pm2 save:*)",
-      "Bash(wc -l /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/messages/components/ChannelSidebar.tsx)"
+      "Bash(wc -l /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/messages/components/ChannelSidebar.tsx)",
+      "Bash(top -l 1 -n 0)",
+      "Bash(sysctl hw.memsize)",
+      "Read(//Users/juancarlosparra/Projects/AppBodasdehoy.com/{printf \"\"\"\"\"\"\"\"RAM total: %.0f GB\\\\n\"\"\"\"\"\"\"\", $2/**)",
+      "Bash(netstat -anp tcp)"
     ],
     "additionalDirectories": [
       "/Users/juancarlosparra/.claude/projects/-Users-juancarlosparra-Projects-AppBodasdehoy-com/memory"
