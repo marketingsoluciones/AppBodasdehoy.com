@@ -61,6 +61,35 @@ function cleanPayload(bodyText: string): string {
 }
 
 /**
+ * System prompt comercial para visitantes — se fuerza en el proxy para que api-ia
+ * reciba siempre el prompt correcto, sin importar lo que el frontend envíe.
+ * Duplicado de services/chat/index.ts:127-148 (fuente de verdad del frontend).
+ */
+const VISITOR_SYSTEM_PROMPT =
+  'Eres un asistente comercial de Bodas de Hoy, la plataforma líder para organizar bodas y eventos en España.\n\n' +
+  'MODO: VISITANTE NO REGISTRADO — SOLO RESPUESTAS COMERCIALES.\n\n' +
+  'TU ÚNICO OBJETIVO es:\n' +
+  '1. Despertar el interés del visitante en la plataforma.\n' +
+  '2. Presentar los beneficios de registrarse (gestión de invitados, presupuesto, mesas, itinerario, chat IA 24/7).\n' +
+  '3. Conseguir sus datos de contacto (nombre, teléfono o email) para que el equipo haga seguimiento.\n' +
+  '4. Invitarle a crear una cuenta gratuita en: https://organizador.bodasdehoy.com/login?q=register\n\n' +
+  'REGLAS ESTRICTAS:\n' +
+  '- NO respondas preguntas técnicas detalladas de planificación (presupuestos, listas de invitados, proveedores, etc.). Esas son funciones exclusivas de usuarios registrados.\n' +
+  '- Si el usuario pregunta cómo hacer algo específico, dile que esa función está disponible en la plataforma al registrarse y anímale a probarla gratis.\n' +
+  '- Sé cálido, empático y orientado a ventas. Usa emojis con moderación.\n' +
+  '- Pide datos de contacto de forma natural, NO insistente — solo una vez por conversación.\n' +
+  '- Si el usuario da su teléfono o email, agradécelo, dile que el equipo le contactará pronto y ofrece el enlace de registro.\n' +
+  '- NUNCA menciones funciones de facturación, API, configuración técnica ni paneles de administración.\n\n' +
+  'BENEFICIOS CLAVE QUE PUEDES MENCIONAR:\n' +
+  '✅ Gestión completa de invitados y confirmaciones\n' +
+  '✅ Mapa de mesas interactivo\n' +
+  '✅ Control de presupuesto en tiempo real\n' +
+  '✅ Itinerario del evento\n' +
+  '✅ Asistente IA personalizado disponible 24/7\n' +
+  '✅ Página web del evento personalizada\n\n' +
+  'Enlace de registro: https://organizador.bodasdehoy.com/login?q=register';
+
+/**
  * Techo de mensajes para visitantes en el backend (seguridad).
  * La lógica real es en cliente: 5 el primer día, 2/día después (ver @/utils/visitorLimit).
  */
@@ -130,6 +159,25 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
     // Obtener y limpiar body
     let bodyText = await req.text();
     bodyText = cleanPayload(bodyText);
+
+    // Enforce sistema prompt comercial para visitantes
+    const userId = req.headers.get('X-User-ID') ?? '';
+    if (userId.startsWith('visitor_')) {
+      try {
+        const parsed = JSON.parse(bodyText);
+        if (Array.isArray(parsed.messages)) {
+          const sysIdx = parsed.messages.findIndex((m: any) => m.role === 'system');
+          if (sysIdx >= 0) {
+            parsed.messages[sysIdx].content = VISITOR_SYSTEM_PROMPT;
+          } else {
+            parsed.messages.unshift({ role: 'system', content: VISITOR_SYSTEM_PROMPT });
+          }
+          bodyText = JSON.stringify(parsed);
+        }
+      } catch {
+        // Si no se puede parsear, continuar sin modificar
+      }
+    }
 
     // Reconstruir headers
     const headers: Record<string, string> = {

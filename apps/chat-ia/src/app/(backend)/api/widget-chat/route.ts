@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
+export const maxDuration = 300;
+
+const WIDGET_MSG_LIMIT = 10;
 
 const getApiIaUrl = (): string =>
   process.env.PYTHON_BACKEND_URL ||
@@ -17,6 +20,15 @@ const getApiIaUrl = (): string =>
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit via cookie
+    const widMc = parseInt(request.cookies.get('wid_mc')?.value || '0', 10);
+    if (widMc >= WIDGET_MSG_LIMIT) {
+      return NextResponse.json(
+        { error: 'Has alcanzado el límite de mensajes. Regístrate para continuar.', limitReached: true },
+        { status: 429 },
+      );
+    }
+
     const body = await request.json();
     const { development, visitorId, text, pageContext, leadData } = body;
 
@@ -34,12 +46,14 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({ development, leadData, pageContext, text, visitorId }),
         headers: { 'Content-Type': 'application/json' },
         method: 'POST',
-        signal: AbortSignal.timeout(10_000),
+        signal: AbortSignal.timeout(30_000),
       });
 
       if (res.ok) {
         const data = await res.json();
-        return NextResponse.json(data);
+        const resp = NextResponse.json(data);
+        resp.cookies.set('wid_mc', String(widMc + 1), { path: '/', maxAge: 86400, sameSite: 'lax' });
+        return resp;
       }
     } catch {
       // api-ia no disponible — usar respuesta temporal
@@ -50,11 +64,13 @@ export async function POST(request: NextRequest) {
     const visitorName = leadData?.name && leadData.name !== 'Visitante' ? leadData.name : '';
     const reply = generarRespuestaDemo(text, pagina, development, visitorName);
 
-    return NextResponse.json({
+    const demoResp = NextResponse.json({
       messageId: `demo_${Date.now()}`,
       reply,
       source: 'local-demo',
     });
+    demoResp.cookies.set('wid_mc', String(widMc + 1), { path: '/', maxAge: 86400, sameSite: 'lax' });
+    return demoResp;
   } catch {
     return NextResponse.json(
       { error: 'Error procesando mensaje' },
