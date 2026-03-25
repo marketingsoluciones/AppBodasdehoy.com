@@ -452,6 +452,41 @@ interface InlineEvent {
   data: any;
 }
 
+// ── LocalStorage message persistence (24h TTL) ───────────────────────────────
+
+const LS_MSGS_PREFIX = 'copilot_msgs_v1_';
+const LS_MSGS_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
+
+function lsSaveMsgs(sessionId: string, messages: MessageItem[]): void {
+  if (typeof window === 'undefined' || messages.length === 0) return;
+  try {
+    const toStore = messages.filter(m => !m.loading).map(m => ({
+      id: m.id, role: m.role, message: m.message, createdAt: m.createdAt,
+    }));
+    localStorage.setItem(LS_MSGS_PREFIX + sessionId, JSON.stringify({ ts: Date.now(), messages: toStore }));
+  } catch { /* quota exceeded */ }
+}
+
+function lsLoadMsgs(sessionId: string): MessageItem[] | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(LS_MSGS_PREFIX + sessionId);
+    if (!raw) return null;
+    const { ts, messages } = JSON.parse(raw);
+    if (Date.now() - ts > LS_MSGS_TTL_MS) {
+      localStorage.removeItem(LS_MSGS_PREFIX + sessionId);
+      return null;
+    }
+    return messages.map((m: any) => ({
+      ...m,
+      avatar: m.role === 'user' ? { title: 'Tú' } : { title: 'Copilot', backgroundColor: '#FF1493' },
+      loading: false,
+      // JSON serializa Date → string; restaurar como Date para que MessageList llame .getTime()
+      createdAt: m.createdAt ? new Date(m.createdAt) : undefined,
+    }));
+  } catch { return null; }
+}
+
 // ── Componente principal ─────────────────────────────────────────────────────
 
 export const CopilotEmbed = ({
@@ -510,13 +545,12 @@ export const CopilotEmbed = ({
     firstMessageSentRef.current = false;
   }, [sessionId]);
 
-  // Cargar historial
+  // Cargar historial (API → fallback localStorage 24h)
   useEffect(() => {
     const load = async () => {
       try {
         const history = await getChatHistory(sessionId, development);
-        if (history.length > 0) setLoadingHistory(true);
-        const formatted: MessageItem[] = history.map(msg => ({
+        let formatted: MessageItem[] = history.map(msg => ({
           id: msg.id,
           role: msg.role,
           message: msg.content,
@@ -528,6 +562,14 @@ export const CopilotEmbed = ({
           loading: false,
           error: msg.error ? { message: msg.error } : undefined,
         }));
+        // Si API devuelve vacío, intentar localStorage (24h TTL)
+        if (formatted.length === 0) {
+          const cached = lsLoadMsgs(sessionId);
+          if (cached && cached.length > 0) {
+            formatted = cached;
+          }
+        }
+        if (formatted.length > 0) setLoadingHistory(true);
         setMessages(formatted);
         if (formatted.length > 0) {
           setShowRecoverBanner(true);
@@ -535,12 +577,26 @@ export const CopilotEmbed = ({
         }
       } catch (e) {
         console.error('[CopilotEmbed] history error:', e);
+        // En error también intentar localStorage
+        const cached = lsLoadMsgs(sessionId);
+        if (cached && cached.length > 0) {
+          setMessages(cached);
+          setShowRecoverBanner(true);
+          firstMessageSentRef.current = true;
+        }
       } finally {
         setLoadingHistory(false);
       }
     };
     load();
   }, [sessionId, development]);
+
+  // Persistir mensajes en localStorage cuando cambian (debounced 1s)
+  useEffect(() => {
+    if (messages.length === 0) return;
+    const t = setTimeout(() => lsSaveMsgs(sessionId, messages), 1000);
+    return () => clearTimeout(t);
+  }, [sessionId, messages]);
 
   // Asociar evento inline al mensaje assistant actual
   const addInlineEvent = useCallback((msgId: string, event: InlineEvent) => {
