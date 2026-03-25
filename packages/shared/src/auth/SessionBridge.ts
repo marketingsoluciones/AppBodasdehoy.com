@@ -57,7 +57,7 @@ export function setCrossAppIdToken(idToken: string): void {
     `idTokenV0.1.0=${idToken}`,
     'path=/',
     `max-age=${maxAge}`,
-    'SameSite=Strict',
+    'SameSite=Lax',
   ];
 
   if (domain) {
@@ -88,7 +88,7 @@ export function clearCrossAppSession(): void {
     'idTokenV0.1.0=',
     'path=/',
     'max-age=0',
-    'SameSite=Strict',
+    'SameSite=Lax',
   ];
 
   if (domain) {

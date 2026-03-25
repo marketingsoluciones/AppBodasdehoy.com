@@ -635,9 +635,46 @@ const AuthProvider = ({ children }) => {
 
       if (!sessionCookieParsed?.user_id && user?.uid) {
         console.warn("[Verificator] ⚠️ Usuario autenticado en Firebase pero sin sessionCookie válida")
-        console.warn("[Verificator] Cargando datos del usuario igualmente para no bloquear la app")
-        // ✅ FIX: Cargar datos del usuario aunque no haya sessionCookie válida
-        // Esto evita que user quede undefined y que los eventos no se carguen
+        // FIX falsa sesión: intentar establecer sessionBodas desde el token Firebase antes de continuar
+        try {
+          const firebaseUser = getAuth().currentUser
+          if (firebaseUser) {
+            const freshIdToken = await firebaseUser.getIdToken()
+            const _isDevOrTest = typeof window !== 'undefined' && (
+              window.location.hostname === 'localhost' ||
+              window.location.hostname === '127.0.0.1' ||
+              window.location.hostname.includes('-test.') ||
+              window.location.hostname.includes('-dev.')
+            )
+            const sessionApiUrl = _isDevOrTest ? '/api/proxy-bodas/graphql' : 'https://api.bodasdehoy.com/graphql'
+            const sessionResp = await fetch(sessionApiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Development': config?.development || 'bodasdehoy' },
+              body: JSON.stringify({ query: queries.auth, variables: { idToken: freshIdToken } }),
+            })
+            if (sessionResp.ok) {
+              const sessionJson = await sessionResp.json()
+              const sessionResult: any = sessionJson?.data?.auth
+              if (sessionResult?.sessionCookie) {
+                const isDevLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                const cookieDomain = isDevLocal ? undefined : (process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : (process.env.NEXT_PUBLIC_DOMINIO || '.bodasdehoy.com'))
+                Cookies.set(config?.cookie, sessionResult.sessionCookie, {
+                  domain: safeCookieDomain(cookieDomain),
+                  expires: 365,
+                  path: '/',
+                  secure: window.location.protocol === 'https:',
+                  sameSite: 'lax',
+                })
+                console.log('[Verificator] ✅ sessionBodas restablecida desde Firebase token')
+                await verificator({ user, sessionCookie: sessionResult.sessionCookie })
+                return
+              }
+            }
+          }
+        } catch (sessionRestoreErr: any) {
+          console.warn('[Verificator] ⚠️ No se pudo restablecer sessionBodas:', sessionRestoreErr?.message)
+        }
+        // Fallback: continuar sin sessionBodas (acceso limitado)
         setUser(user)
         moreInfo(user) // ← setVerificationDone(true) se llama dentro de moreInfo
         return
