@@ -167,10 +167,10 @@ for (const device of DEVICES) {
       await snap(page, `chat-ia_${device.name}_06_notifications`);
     });
 
-    test('tareas /tasks', async ({ page }) => {
+    test('mensajes /messages (hub)', async ({ page }) => {
       await loginChatIA(page);
-      await gotoWithRetry(page, `${getChatUrl()}/tasks`, `${device.name}/tasks`);
-      await snap(page, `chat-ia_${device.name}_07_tasks`);
+      await gotoWithRetry(page, `${getChatUrl()}/messages`, `${device.name}/messages`);
+      await snap(page, `chat-ia_${device.name}_07_messages`);
     });
 
     test('settings generales /settings', async ({ page }) => {
