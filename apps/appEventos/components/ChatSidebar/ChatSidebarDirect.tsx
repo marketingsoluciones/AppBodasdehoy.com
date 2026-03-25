@@ -1,32 +1,31 @@
 /**
  * Panel lateral del Copilot — nativo (sin iframe).
  *
- * Layout de dos columnas:
- *   [SessionsPanel 200px | CopilotEmbed flex-1]
+ * Header con dropdown de conversaciones estilo Cursor:
+ *   [✨] [Conversación activa ▼]  |  [+ Nueva] [↗] [✕]
  *
- * El botón "Abrir completo" abre chat-ia en nueva pestaña.
+ * El dropdown despliega la lista de conversaciones recientes.
  */
 
 import { FC, memo, useCallback, useRef, useEffect, useLayoutEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useChatSidebar } from '../../context/ChatSidebarContext';
-import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from '../../context';
+import { AuthContextProvider, EventContextProvider } from '../../context';
 import { CopilotEmbed } from '../Copilot/CopilotEmbed';
-import SessionsPanel from '../Copilot/SessionsPanel';
 import type { StoredSession } from '../Copilot/SessionsPanel';
 import { resolveChatOrigin } from '@bodasdehoy/shared/utils';
 import {
   IoClose,
   IoSparkles,
   IoOpenOutline,
-  IoMenuOutline,
+  IoChevronDown,
+  IoTrashOutline,
+  IoAddOutline,
 } from 'react-icons/io5';
 
 // ── Session storage helpers ──────────────────────────────────────────────────
 
 const SESSIONS_KEY = 'copilot_sessions_v1';
-/** Solo desktop: recordar si el panel izquierdo de conversaciones estaba visible. */
-const SESSIONS_PANEL_COLLAPSED_KEY = 'copilot_sessions_panel_collapsed';
 
 function loadSessions(userId: string): StoredSession[] {
   try {
@@ -60,25 +59,9 @@ function deleteSession(userId: string, id: string) {
   saveSessions(userId, sessions);
 }
 
-function truncateSessionLabel(label: string, maxLength = 36) {
+function truncateLabel(label: string, max = 34) {
   if (!label) return 'Nueva conversación';
-  return label.length > maxLength ? `${label.slice(0, maxLength - 1)}…` : label;
-}
-
-function readSessionsPanelCollapsedPreference(): boolean {
-  if (typeof window === 'undefined') return false;
-  try {
-    const v = localStorage.getItem(SESSIONS_PANEL_COLLAPSED_KEY);
-    if (v === '1') return true;
-    if (v === '0') return false;
-  } catch { /* ignore */ }
-  return false; // open by default, like Cursor
-}
-
-function persistSessionsPanelCollapsedPreference(collapsed: boolean) {
-  try {
-    localStorage.setItem(SESSIONS_PANEL_COLLAPSED_KEY, collapsed ? '1' : '0');
-  } catch { /* ignore */ }
+  return label.length > max ? `${label.slice(0, max - 1)}…` : label;
 }
 
 // ── Componente principal ────────────────────────────────────────────────────
@@ -88,7 +71,8 @@ const MOBILE_BREAKPOINT = 768;
 const ChatSidebarDirect: FC = () => {
   const { isOpen, width, closeSidebar, setWidth } = useChatSidebar();
   const [isMobile, setIsMobile] = useState(false);
-  const [sessionsCollapsed, setSessionsCollapsed] = useState(readSessionsPanelCollapsedPreference);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [guestSessionId] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -124,7 +108,6 @@ const ChatSidebarDirect: FC = () => {
       stored = loadSessions(stableUserId);
     }
     setSessions(stored);
-    // Tras login/logout el id activo puede ser de otro usuario (p. ej. guest_…): alinear con sesiones actuales.
     setActiveSessionId(prev => (stored.some(s => s.id === prev) ? prev : defaultSessionId));
   }, [stableUserId, defaultSessionId]);
 
@@ -133,17 +116,19 @@ const ChatSidebarDirect: FC = () => {
     upsertSession(stableUserId, newId, 'Nueva conversación');
     setSessions(loadSessions(stableUserId));
     setActiveSessionId(newId);
+    setDropdownOpen(false);
   }, [stableUserId]);
 
   const handleSelectSession = useCallback((id: string) => {
     setActiveSessionId(id);
+    setDropdownOpen(false);
   }, []);
 
-  const handleDeleteSession = useCallback((id: string) => {
+  const handleDeleteSession = useCallback((e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
     deleteSession(stableUserId, id);
     const remaining = loadSessions(stableUserId);
     setSessions(remaining);
-    // Si borramos la activa, ir a la primera disponible o crear nueva
     if (id === activeSessionId) {
       if (remaining.length > 0) {
         setActiveSessionId(remaining[0].id);
@@ -162,17 +147,26 @@ const ChatSidebarDirect: FC = () => {
     setSessions(loadSessions(stableUserId));
   }, [stableUserId, activeSessionId]);
 
+  // Cerrar dropdown al hacer click fuera
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [dropdownOpen]);
+
   const sessionId = activeSessionId;
   const userId = stableUserId;
   const development = config?.development || 'bodasdehoy';
   const eventId = event?._id;
 
   const sidebarWidthRef = useRef(width);
-  /** Solo true tras haber estado en viewport móvil; evita resetear el panel en cada resize de escritorio. */
   const wasMobileViewportRef = useRef(false);
-  useEffect(() => {
-    sidebarWidthRef.current = width;
-  }, [width]);
+  useEffect(() => { sidebarWidthRef.current = width; }, [width]);
 
   // ── Mobile detection ────────────────────────────────────────────────────
   const applyViewportMode = useCallback(() => {
@@ -181,20 +175,14 @@ const ChatSidebarDirect: FC = () => {
     setIsMobile(mobile);
     if (mobile) {
       wasMobileViewportRef.current = true;
-      setSessionsCollapsed(true); // en móvil el panel siempre colapsado (no toca preferencia guardada en localStorage)
       const vw = window.innerWidth;
       if (sidebarWidthRef.current !== vw) setWidth(vw);
     } else if (wasMobileViewportRef.current) {
-      // Solo al salir de móvil → desktop: restaurar preferencia (no en cada resize de escritorio)
       wasMobileViewportRef.current = false;
-      setSessionsCollapsed(readSessionsPanelCollapsedPreference());
     }
   }, [setWidth]);
 
-  // Antes del primer pintado evita 1 frame con panel "desktop" dentro de columna 0px (grid móvil).
-  useLayoutEffect(() => {
-    applyViewportMode();
-  }, [applyViewportMode]);
+  useLayoutEffect(() => { applyViewportMode(); }, [applyViewportMode]);
 
   useEffect(() => {
     window.addEventListener('resize', applyViewportMode);
@@ -241,8 +229,6 @@ const ChatSidebarDirect: FC = () => {
     };
   }, [setWidth]);
 
-  // Escape para cerrar: ChatSidebarProvider (contexto global).
-
   // ── Abrir en nueva pestaña ──────────────────────────────────────────────
   const copilotUrl = useMemo(() => {
     if (typeof window === 'undefined') return '';
@@ -252,23 +238,17 @@ const ChatSidebarDirect: FC = () => {
   }, []);
 
   const handleOpenInNewTab = useCallback(() => {
-    const params = new URLSearchParams({
-      sessionId: sessionId || guestSessionId,
-      userId,
-      development,
-    });
+    const params = new URLSearchParams({ sessionId: sessionId || guestSessionId, userId, development });
     if (user?.email) params.set('email', user.email);
     if (eventId) params.set('eventId', eventId);
     if (event?.nombre) params.set('eventName', event.nombre);
     window.open(`${copilotUrl}?${params.toString()}`, '_blank', 'noopener,noreferrer');
   }, [sessionId, guestSessionId, userId, development, user?.email, eventId, event?.nombre, copilotUrl]);
 
-  // ── Nombre de sesión activa para el header ──────────────────────────────
-  const activeSessionLabel = sessions.find(s => s.id === activeSessionId)?.label;
+  const activeSessionLabel = sessions.find(s => s.id === activeSessionId)?.label || 'Nueva conversación';
 
   const overlayPanelRef = useRef<HTMLDivElement>(null);
 
-  // Sin scroll detrás del drawer (Safari iOS a veces necesita html + body)
   useEffect(() => {
     if (typeof document === 'undefined' || !isOpen || !isMobile) return;
     const { body, documentElement: html } = document;
@@ -276,18 +256,12 @@ const ChatSidebarDirect: FC = () => {
     const prevHtml = html.style.overflow;
     body.style.overflow = 'hidden';
     html.style.overflow = 'hidden';
-    return () => {
-      body.style.overflow = prevBody;
-      html.style.overflow = prevHtml;
-    };
+    return () => { body.style.overflow = prevBody; html.style.overflow = prevHtml; };
   }, [isOpen, isMobile]);
 
-  // Foco en el panel al abrir en móvil (lectores de pantalla + teclado externo)
   useEffect(() => {
     if (!isOpen || !isMobile) return;
-    const id = requestAnimationFrame(() => {
-      overlayPanelRef.current?.focus({ preventScroll: true });
-    });
+    const id = requestAnimationFrame(() => { overlayPanelRef.current?.focus({ preventScroll: true }); });
     return () => cancelAnimationFrame(id);
   }, [isOpen, isMobile]);
 
@@ -328,7 +302,6 @@ const ChatSidebarDirect: FC = () => {
         }
         style={{
           width: isOverlay ? 'min(85%, 480px)' : '100%',
-          // Chrome/Android modernos: 100dvh evita cortes con barra de URL; si no aplica, queda h-screen (100vh).
           ...(isOverlay ? { height: '100dvh' } : {}),
         }}
       >
@@ -342,122 +315,128 @@ const ChatSidebarDirect: FC = () => {
         <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden overscroll-y-contain">
 
           {/* ── Header ─────────────────────────────────────────────────── */}
-          <div className="flex items-center justify-between px-2 py-2 sm:px-3 border-b border-gray-200 bg-white [color-scheme:light] flex-shrink-0 gap-2">
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              {/* Toggle panel sessions */}
-              {!isMobile && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSessionsCollapsed(v => {
-                      const next = !v;
-                      if (!isMobile) persistSessionsPanelCollapsedPreference(next);
-                      return next;
-                    });
-                  }}
-                  className="p-1.5 hover:bg-pink-50 rounded-lg transition-colors flex-shrink-0"
-                  title={sessionsCollapsed ? 'Ver conversaciones' : 'Ocultar conversaciones'}
+          <div className="flex items-center px-2 py-2 sm:px-3 border-b border-gray-200 bg-white [color-scheme:light] flex-shrink-0 gap-2">
+
+            {/* Icono sparkles */}
+            <IoSparkles className="text-pink-500 text-base shrink-0" aria-hidden />
+
+            {/* Dropdown de conversación — ocupa el espacio restante */}
+            <div ref={dropdownRef} className="relative flex-1 min-w-0">
+              <button
+                type="button"
+                onClick={() => setDropdownOpen(v => !v)}
+                className="flex items-center gap-1 w-full min-w-0 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors text-left group"
+                aria-haspopup="listbox"
+                aria-expanded={dropdownOpen}
+                title="Cambiar conversación"
+              >
+                <span
+                  id="copilot-sidebar-title"
+                  className="flex-1 min-w-0 text-sm font-medium text-gray-800 truncate leading-tight"
                 >
-                  <IoMenuOutline className="text-gray-500 w-4 h-4" />
-                </button>
-              )}
+                  {truncateLabel(activeSessionLabel, 28)}
+                </span>
+                <IoChevronDown
+                  className={`shrink-0 w-3.5 h-3.5 text-gray-400 transition-transform duration-150 ${dropdownOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
 
-              <IoSparkles className="text-pink-500 text-lg shrink-0" aria-hidden />
+              {/* Dropdown list */}
+              <AnimatePresence>
+                {dropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.12 }}
+                    className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden"
+                    role="listbox"
+                    aria-label="Conversaciones"
+                  >
+                    {/* Botón nueva conversación en el top del dropdown */}
+                    <button
+                      type="button"
+                      onClick={handleNewSession}
+                      className="flex items-center gap-2 w-full px-3 py-2.5 text-sm font-medium text-pink-600 hover:bg-pink-50 transition-colors border-b border-gray-100"
+                    >
+                      <IoAddOutline className="w-4 h-4 shrink-0" />
+                      Nueva conversación
+                    </button>
 
-              <div className="min-w-0">
-                <h2 id="copilot-sidebar-title" className="text-sm sm:text-base font-semibold text-gray-900 leading-tight truncate">
-                  Copilot IA
-                </h2>
-                {activeSessionLabel && activeSessionLabel !== 'Nueva conversación' && (
-                  <p className="text-[10px] text-gray-400 leading-tight truncate">
-                    {activeSessionLabel}
-                  </p>
+                    {/* Lista de conversaciones */}
+                    <div className="max-h-56 overflow-y-auto">
+                      {sessions.map(session => {
+                        const isActive = session.id === activeSessionId;
+                        return (
+                          <div
+                            key={session.id}
+                            role="option"
+                            aria-selected={isActive}
+                            className={`flex items-center gap-1 px-3 py-2 cursor-pointer group/item transition-colors ${
+                              isActive ? 'bg-pink-50' : 'hover:bg-gray-50'
+                            }`}
+                            onClick={() => handleSelectSession(session.id)}
+                          >
+                            <span className={`flex-1 min-w-0 text-xs truncate ${isActive ? 'text-pink-700 font-medium' : 'text-gray-700'}`}>
+                              {truncateLabel(session.label, 30)}
+                            </span>
+                            {/* Borrar — solo visible en hover */}
+                            {sessions.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={e => handleDeleteSession(e, session.id)}
+                                className="shrink-0 p-1 rounded opacity-0 group-hover/item:opacity-100 hover:bg-red-50 hover:text-red-500 text-gray-400 transition-all"
+                                title="Eliminar conversación"
+                              >
+                                <IoTrashOutline className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
                 )}
-              </div>
+              </AnimatePresence>
             </div>
 
+            {/* Acciones derecha */}
             <div className="flex items-center gap-1 shrink-0">
               <button
                 type="button"
-                onClick={handleNewSession}
-                className="inline-flex px-2 py-1.5 text-xs font-semibold text-pink-600 border border-pink-100 rounded-lg hover:bg-pink-50 transition-colors touch-manipulation min-h-[44px] sm:min-h-0 items-center justify-center"
-                title="Nueva conversación"
-              >
-                <span className="hidden sm:inline">Nueva</span>
-                <span className="sm:hidden text-base leading-none">+</span>
-              </button>
-              <button
-                type="button"
                 onClick={handleOpenInNewTab}
-                className="p-2 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 sm:p-1.5 hover:bg-pink-100 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center"
+                className="p-1.5 hover:bg-pink-100 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center"
                 title="Abrir completo en nueva pestaña"
               >
-                <IoOpenOutline className="text-gray-600 w-4 h-4" />
+                <IoOpenOutline className="text-gray-500 w-4 h-4" />
               </button>
               <button
                 type="button"
                 onClick={closeSidebar}
-                className="p-2 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 hover:bg-pink-50 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center"
+                className="p-1.5 hover:bg-pink-50 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center"
                 title="Cerrar"
               >
-                <IoClose className="text-gray-500 w-5 h-5" />
+                <IoClose className="text-gray-500 w-4 h-4" />
               </button>
             </div>
           </div>
 
-          {/* Selector de conversación móvil — solo si hay más de 1 sesión */}
-          {isMobile && sessions.length > 1 && (
-            <div className="sm:hidden px-2 py-1.5 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-              <select
-                value={sessions.some(s => s.id === activeSessionId) ? activeSessionId : ''}
-                onChange={e => { const v = e.target.value; if (v) handleSelectSession(v); }}
-                aria-label="Cambiar de conversación"
-                className="flex-1 min-w-0 text-xs text-gray-600 border-0 bg-transparent py-1 focus:ring-0 touch-manipulation"
-              >
-                {sessions.map(session => (
-                  <option key={session.id} value={session.id}>
-                    {truncateSessionLabel(session.label, 30)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* ── Cuerpo: sessions + chat ─────────────────────────────────── */}
-          <div className="flex-1 flex overflow-hidden min-h-0">
-
-            {/* Panel sesiones (colapsable) */}
-            {!sessionsCollapsed && !isMobile && (
-              <SessionsPanel
-                sessions={sessions}
-                activeSessionId={activeSessionId}
-                onSelect={handleSelectSession}
-                onNew={handleNewSession}
-                onDelete={handleDeleteSession}
-                onCollapse={() => {
-                  setSessionsCollapsed(true);
-                  if (!isMobile) persistSessionsPanelCollapsedPreference(true);
-                }}
-              />
-            )}
-
-            {/* Chat embed nativo */}
-            <div className="flex-1 min-w-0 overflow-hidden">
-              <CopilotEmbed
-                userId={userId}
-                sessionId={sessionId}
-                development={development}
-                eventId={eventId}
-                eventName={event?.nombre}
-                isGuest={isGuest}
-                className="w-full h-full"
-                onFirstMessage={handleSessionLabelUpdate}
-              />
-            </div>
+          {/* ── Chat embed ──────────────────────────────────────────────── */}
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <CopilotEmbed
+              userId={userId}
+              sessionId={sessionId}
+              development={development}
+              eventId={eventId}
+              eventName={event?.nombre}
+              isGuest={isGuest}
+              className="w-full h-full"
+              onFirstMessage={handleSessionLabelUpdate}
+            />
           </div>
         </div>
 
-        {/* Resize handle — solo desktop, a la DERECHA del panel */}
+        {/* Resize handle — solo desktop */}
         {!isMobile && (
           <div
             className="w-1 cursor-col-resize hover:bg-pink-400 active:bg-pink-600 transition-colors flex-shrink-0"

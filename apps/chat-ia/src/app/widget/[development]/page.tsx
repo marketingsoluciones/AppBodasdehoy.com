@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 
+import { canVisitorSendMessage, incrementVisitorMessageCount } from '@/utils/visitorLimit';
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Message {
@@ -38,6 +40,7 @@ function renderMarkdown(text: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replaceAll(/\*(.+?)\*/g, '<em>$1</em>')
+    .replaceAll(/_(.+?)_/g, '<em>$1</em>')
     .replaceAll(
       /`(.+?)`/g,
       '<code style="background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:4px;font-size:12px">$1</code>',
@@ -46,6 +49,7 @@ function renderMarkdown(text: string): string {
       /\[([^\]]+)]\((https?:\/\/[^)]+)\)/g,
       '<a href="$2" target="_blank" rel="noopener" style="color:#be185d;text-decoration:underline">$1</a>',
     )
+    .replaceAll(/\n---\n/g, '<hr style="border:none;border-top:1px solid #e5e7eb;margin:8px 0"/>')
     .replaceAll('\n', '<br/>');
 }
 
@@ -213,30 +217,55 @@ function LeadForm({ onSubmit }: { onSubmit: (data: LeadData) => void }) {
 function ChatView({
   development,
   leadData,
+  msgsKey,
   pageContext,
   visitorId,
 }: {
   development: string;
   leadData: LeadData;
+  msgsKey: string;
   pageContext: PageContext | null;
   visitorId: string;
 }) {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const [showTyping, setShowTyping] = useState(false);
-  const [showQuickReplies, setShowQuickReplies] = useState(true);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
   const isGuest = leadData.name === 'Visitante';
 
-  // Welcome message
-  useEffect(() => {
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const saved = localStorage.getItem(msgsKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as Message[];
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch { /* ignore */ }
+    // No saved messages — start with welcome
     const greeting = isGuest
       ? '¡Hola! 👋 Soy tu asistente de bodas. ¿En qué puedo ayudarte hoy?'
       : `¡Hola, **${leadData.name}**! 👋 Estoy aquí para ayudarte a organizar el día perfecto. ¿Por dónde empezamos?`;
-    setMessages([{ content: greeting, id: 'welcome', role: 'assistant', timestamp: new Date().toISOString() }]);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    return [{ content: greeting, id: 'welcome', role: 'assistant', timestamp: new Date().toISOString() }];
+  });
+
+  const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
+  const [showTyping, setShowTyping] = useState(false);
+  const [showQuickReplies, setShowQuickReplies] = useState(() => {
+    try {
+      const saved = localStorage.getItem(msgsKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as Message[];
+        if (Array.isArray(parsed) && parsed.length > 1) return false;
+      }
+    } catch { /* ignore */ }
+    return true;
+  });
+  const [limitReached, setLimitReached] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Persist messages to localStorage
+  useEffect(() => {
+    try { localStorage.setItem(msgsKey, JSON.stringify(messages)); }
+    catch { /* ignore */ }
+  }, [messages, msgsKey]);
 
   // Auto-scroll
   useEffect(() => {
@@ -246,6 +275,12 @@ function ChatView({
   const sendMessage = useCallback(async (text?: string) => {
     const msgText = (text ?? input).trim();
     if (!msgText || sending) return;
+
+    // Client-side rate limit check
+    if (!canVisitorSendMessage()) {
+      setLimitReached(true);
+      return;
+    }
 
     setMessages((prev) => [...prev, { content: msgText, id: `u_${Date.now()}`, role: 'user', timestamp: new Date().toISOString() }]);
     setInput('');
@@ -266,11 +301,31 @@ function ChatView({
         headers: { 'Content-Type': 'application/json' },
         method: 'POST',
       });
+
+      // Handle server-side rate limit
+      if (res.status === 429) {
+        setLimitReached(true);
+        return;
+      }
+
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+
+      // Increment client-side counter on success
+      incrementVisitorMessageCount();
+
       if (data.reply) {
-        setMessages((prev) => [...prev, { content: data.reply, id: `a_${Date.now()}`, role: 'assistant', timestamp: new Date().toISOString() }]);
+        // Add demo disclaimer if response is from local fallback
+        const replyContent = data.source === 'local-demo'
+          ? data.reply + '\n\n---\n_Respuesta automática. Un asesor te contactará pronto._'
+          : data.reply;
+        setMessages((prev) => [...prev, { content: replyContent, id: `a_${Date.now()}`, role: 'assistant', timestamp: new Date().toISOString() }]);
         window.parent.postMessage({ count: 1, source: 'bodas-widget-iframe', type: 'WIDGET_UNREAD' }, '*');
+      }
+
+      // Check if limit reached after this message
+      if (!canVisitorSendMessage()) {
+        setLimitReached(true);
       }
     } catch {
       setMessages((prev) => [...prev, { content: 'Lo siento, ha habido un problema. Inténtalo de nuevo.', id: `err_${Date.now()}`, role: 'assistant', timestamp: new Date().toISOString() }]);
@@ -377,42 +432,62 @@ function ChatView({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* ── Input ── */}
-      <div style={{ alignItems: 'flex-end', background: 'white', borderTop: '1px solid #f3f4f6', display: 'flex', flexShrink: 0, gap: 8, padding: '10px 12px' }}>
-        <textarea
-          ref={inputRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Escribe tu mensaje..."
-          rows={1}
-          style={{
-            background: '#fafafa', border: '1.5px solid #e5e7eb', borderRadius: 12, boxSizing: 'border-box',
-            color: '#1f2937', flex: 1, fontFamily: 'inherit', fontSize: 13, lineHeight: 1.5,
-            maxHeight: 80, outline: 'none', padding: '9px 14px', resize: 'none', transition: 'border-color 0.15s',
-          }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = '#a855f7'; }}
-          onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; }}
-        />
-        <button
-          disabled={!canSend}
-          onClick={() => sendMessage()}
-          style={{
-            alignItems: 'center', background: canSend ? 'linear-gradient(135deg,#f43f5e,#a855f7)' : '#e5e7eb',
-            border: 'none', borderRadius: 12, boxShadow: canSend ? '0 2px 8px rgba(168,85,247,0.35)' : 'none',
-            color: canSend ? 'white' : '#9ca3af', cursor: canSend ? 'pointer' : 'default',
-            display: 'flex', flexShrink: 0, height: 38, justifyContent: 'center', transition: 'all 0.2s', width: 38,
-          }}
-        >
-          {sending
-            ? <span style={{ animation: 'spin 0.8s linear infinite', border: '2px solid rgba(255,255,255,0.4)', borderRadius: '50%', borderTopColor: 'white', display: 'inline-block', height: 14, width: 14 }} />
-            : (
-              <svg fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeWidth="2.5" viewBox="0 0 24 24" width="16">
-                <path d="m22 2-11 11M22 2 15 22 11 13 2 9l20-7z" />
-              </svg>
-            )}
-        </button>
-      </div>
+      {/* ── Input / Limit banner ── */}
+      {limitReached ? (
+        <div style={{ background: 'linear-gradient(135deg,#fef3c7,#fde68a)', borderTop: '1px solid #f3f4f6', flexShrink: 0, padding: '14px 16px', textAlign: 'center' }}>
+          <p style={{ color: '#92400e', fontSize: 13, fontWeight: 600, lineHeight: 1.4, margin: '0 0 8px' }}>
+            Has alcanzado el límite de mensajes gratuitos
+          </p>
+          <a
+            href="https://organizador.bodasdehoy.com/login?q=register"
+            target="_blank"
+            rel="noopener"
+            style={{
+              background: 'linear-gradient(135deg,#f43f5e,#a855f7)', border: 'none', borderRadius: 10,
+              color: 'white', display: 'inline-block', fontSize: 13, fontWeight: 700, padding: '10px 20px',
+              textDecoration: 'none', transition: 'opacity 0.2s',
+            }}
+          >
+            Crear cuenta gratis para continuar
+          </a>
+        </div>
+      ) : (
+        <div style={{ alignItems: 'flex-end', background: 'white', borderTop: '1px solid #f3f4f6', display: 'flex', flexShrink: 0, gap: 8, padding: '10px 12px' }}>
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Escribe tu mensaje..."
+            rows={1}
+            style={{
+              background: '#fafafa', border: '1.5px solid #e5e7eb', borderRadius: 12, boxSizing: 'border-box',
+              color: '#1f2937', flex: 1, fontFamily: 'inherit', fontSize: 13, lineHeight: 1.5,
+              maxHeight: 80, outline: 'none', padding: '9px 14px', resize: 'none', transition: 'border-color 0.15s',
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#a855f7'; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; }}
+          />
+          <button
+            disabled={!canSend}
+            onClick={() => sendMessage()}
+            style={{
+              alignItems: 'center', background: canSend ? 'linear-gradient(135deg,#f43f5e,#a855f7)' : '#e5e7eb',
+              border: 'none', borderRadius: 12, boxShadow: canSend ? '0 2px 8px rgba(168,85,247,0.35)' : 'none',
+              color: canSend ? 'white' : '#9ca3af', cursor: canSend ? 'pointer' : 'default',
+              display: 'flex', flexShrink: 0, height: 38, justifyContent: 'center', transition: 'all 0.2s', width: 38,
+            }}
+          >
+            {sending
+              ? <span style={{ animation: 'spin 0.8s linear infinite', border: '2px solid rgba(255,255,255,0.4)', borderRadius: '50%', borderTopColor: 'white', display: 'inline-block', height: 14, width: 14 }} />
+              : (
+                <svg fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeWidth="2.5" viewBox="0 0 24 24" width="16">
+                  <path d="m22 2-11 11M22 2 15 22 11 13 2 9l20-7z" />
+                </svg>
+              )}
+          </button>
+        </div>
+      )}
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       {/* ── Footer ── */}
@@ -429,6 +504,7 @@ function ChatView({
 
 const LEAD_KEY_PFX = 'bodas_lead_';
 const PHASE_KEY_PFX = 'bodas_phase_';
+const MSGS_KEY_PFX = 'bodas_msgs_';
 
 export default function WidgetPage() {
   const params = useParams();
@@ -438,6 +514,7 @@ export default function WidgetPage() {
 
   const leadKey = LEAD_KEY_PFX + visitorId;
   const phaseKey = PHASE_KEY_PFX + visitorId;
+  const msgsKey = MSGS_KEY_PFX + visitorId;
 
   const [phase, setPhase] = useState<Phase>(() => {
     try { return (localStorage.getItem(phaseKey) === 'chat') ? 'chat' : 'form'; }
@@ -480,6 +557,7 @@ export default function WidgetPage() {
     <ChatView
       development={development}
       leadData={leadData}
+      msgsKey={msgsKey}
       pageContext={pageContext}
       visitorId={visitorId}
     />
