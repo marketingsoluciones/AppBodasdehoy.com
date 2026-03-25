@@ -73,7 +73,10 @@ const PageLogin = () => {
     // Si ya hay idTokenV0.1.0 el SSO desde la app de chat ya ocurrió — esperar a que AuthContext lo procese,
     // no redirigir de nuevo o causará bucle infinito
     const hasSsoToken = typeof document !== 'undefined' && document.cookie.includes('idTokenV0.1.0')
-    if (hasSsoToken) return
+    // Anti-loop: si ya redirigimos a chat-ia en esta sesión de tab, no redirigir de nuevo
+    // (da tiempo al verificator de app para procesar el SSO token sin entrar en bucle)
+    const ssoRedirectPending = typeof window !== 'undefined' && sessionStorage.getItem('sso_redirect_pending') === '1'
+    if (hasSsoToken || ssoRedirectPending) return
 
     const chatDomain = resolveChatOrigin(hostname)
     const rawPath = queryD?.trim()
@@ -82,12 +85,15 @@ const PageLogin = () => {
     const returnUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}${returnPath}`
     const chatLoginUrl = `${chatDomain}/login?redirect=${encodeURIComponent(returnUrl)}`
 
+    sessionStorage.setItem('sso_redirect_pending', '1')
     window.location.href = chatLoginUrl
   }, [config?.development, user, verificationDone, linkMedia, preregister, queryD])
 
   // Auto-redirect tras login exitoso (700ms para dejar que el estado se estabilice)
   useEffect(() => {
     if (user && verificationDone && user?.displayName !== "guest") {
+      // SSO completado: limpiar el flag anti-loop para que futuros logins en esta tab funcionen
+      if (typeof window !== 'undefined') sessionStorage.removeItem('sso_redirect_pending')
       const redirectPath = queryD?.trim()?.startsWith("/") ? queryD.trim() : "/"
       const timer = setTimeout(() => router.replace(redirectPath), 700)
       return () => clearTimeout(timer)
