@@ -87,61 +87,6 @@ const SessionsPanel: FC<SessionsPanelProps> = ({
         </button>
       </div>
 
-      {/* Cambiar conversación rápido (lista compacta) */}
-      <div style={{ padding: '6px 8px 0', flexShrink: 0 }}>
-        <label
-          htmlFor="copilot-session-select"
-          style={{
-            display: 'block',
-            fontSize: 10,
-            fontWeight: 700,
-            color: '#9ca3af',
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            marginBottom: 4,
-          }}
-        >
-          Conversación activa
-        </label>
-        <select
-          id="copilot-session-select"
-          value={sessions.some(s => s.id === activeSessionId) ? activeSessionId : ''}
-          onChange={e => {
-            const v = e.target.value;
-            if (v) onSelect(v);
-          }}
-          disabled={sessions.length === 0}
-          title="Cambiar de conversación"
-          style={{
-            width: '100%',
-            padding: '8px 28px 8px 10px',
-            fontSize: 12,
-            fontWeight: 600,
-            color: '#374151',
-            backgroundColor: '#fff',
-            border: '1px solid #e5e7eb',
-            borderRadius: 8,
-            cursor: sessions.length === 0 ? 'not-allowed' : 'pointer',
-            outline: 'none',
-            appearance: 'none',
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`,
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 8px center',
-            backgroundSize: 14,
-          }}
-        >
-          {sessions.length === 0 ? (
-            <option value="">Sin conversaciones — pulsa Nueva</option>
-          ) : (
-            sessions.map(s => (
-              <option key={s.id} value={s.id}>
-                {s.label}
-              </option>
-            ))
-          )}
-        </select>
-      </div>
-
       {/* Nueva conversación */}
       <div style={{ padding: '8px 8px 4px' }}>
         <button

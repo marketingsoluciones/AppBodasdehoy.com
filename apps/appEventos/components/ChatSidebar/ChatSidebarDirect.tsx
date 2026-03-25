@@ -66,12 +66,13 @@ function truncateSessionLabel(label: string, maxLength = 36) {
 }
 
 function readSessionsPanelCollapsedPreference(): boolean {
-  if (typeof window === 'undefined') return true;
+  if (typeof window === 'undefined') return false;
   try {
     const v = localStorage.getItem(SESSIONS_PANEL_COLLAPSED_KEY);
+    if (v === '1') return true;
     if (v === '0') return false;
   } catch { /* ignore */ }
-  return true;
+  return false; // open by default, like Cursor
 }
 
 function persistSessionsPanelCollapsedPreference(collapsed: boolean) {
@@ -342,7 +343,7 @@ const ChatSidebarDirect: FC = () => {
 
           {/* ── Header ─────────────────────────────────────────────────── */}
           <div className="flex items-center justify-between px-2 py-2 sm:px-3 border-b border-gray-200 bg-white [color-scheme:light] flex-shrink-0 gap-2">
-            <div className="flex items-center gap-2 min-w-0 flex-1 sm:flex-initial">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               {/* Toggle panel sessions */}
               {!isMobile && (
                 <button
@@ -375,39 +376,15 @@ const ChatSidebarDirect: FC = () => {
               </div>
             </div>
 
-            {/* Selector rápido de conversación en header (desktop/tablet) */}
-            <div className="hidden sm:flex items-center gap-2 min-w-0 flex-1 max-w-[360px]">
-              <select
-                value={sessions.some(s => s.id === activeSessionId) ? activeSessionId : ''}
-                onChange={e => {
-                  const selectedSessionId = e.target.value;
-                  if (selectedSessionId) handleSelectSession(selectedSessionId);
-                }}
-                disabled={sessions.length === 0}
-                title="Cambiar de conversación"
-                aria-label="Cambiar de conversación"
-                className="w-full text-xs text-gray-700 border border-gray-200 rounded-md px-2 py-1.5 bg-white disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px] sm:min-h-0 touch-manipulation"
-              >
-                {sessions.length === 0 ? (
-                  <option value="">Sin conversaciones</option>
-                ) : (
-                  sessions.map(session => (
-                    <option key={session.id} value={session.id}>
-                      {truncateSessionLabel(session.label, 34)}
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
-
             <div className="flex items-center gap-1 shrink-0">
               <button
                 type="button"
                 onClick={handleNewSession}
-                className="hidden sm:inline-flex px-2 py-1.5 text-xs font-semibold text-pink-600 border border-pink-100 rounded-lg hover:bg-pink-50 transition-colors touch-manipulation min-h-[44px] sm:min-h-0 items-center justify-center"
+                className="inline-flex px-2 py-1.5 text-xs font-semibold text-pink-600 border border-pink-100 rounded-lg hover:bg-pink-50 transition-colors touch-manipulation min-h-[44px] sm:min-h-0 items-center justify-center"
                 title="Nueva conversación"
               >
-                Nueva
+                <span className="hidden sm:inline">Nueva</span>
+                <span className="sm:hidden text-base leading-none">+</span>
               </button>
               <button
                 type="button"
@@ -428,39 +405,23 @@ const ChatSidebarDirect: FC = () => {
             </div>
           </div>
 
-          {/* Fila móvil: selector de conversación + nueva */}
-          <div className="sm:hidden px-2 pb-2 border-b border-gray-100 bg-white flex items-stretch gap-2">
-            <select
-              value={sessions.some(s => s.id === activeSessionId) ? activeSessionId : ''}
-              onChange={e => {
-                const selectedSessionId = e.target.value;
-                if (selectedSessionId) handleSelectSession(selectedSessionId);
-              }}
-              disabled={sessions.length === 0}
-              title="Cambiar de conversación"
-              aria-label="Cambiar de conversación"
-              className="flex-1 min-w-0 text-xs text-gray-700 border border-gray-200 rounded-md px-2 py-2 bg-white disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px] touch-manipulation"
-            >
-              {sessions.length === 0 ? (
-                <option value="">Sin conversaciones</option>
-              ) : (
-                sessions.map(session => (
+          {/* Selector de conversación móvil — solo si hay más de 1 sesión */}
+          {isMobile && sessions.length > 1 && (
+            <div className="sm:hidden px-2 py-1.5 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+              <select
+                value={sessions.some(s => s.id === activeSessionId) ? activeSessionId : ''}
+                onChange={e => { const v = e.target.value; if (v) handleSelectSession(v); }}
+                aria-label="Cambiar de conversación"
+                className="flex-1 min-w-0 text-xs text-gray-600 border-0 bg-transparent py-1 focus:ring-0 touch-manipulation"
+              >
+                {sessions.map(session => (
                   <option key={session.id} value={session.id}>
-                    {truncateSessionLabel(session.label, 28)}
+                    {truncateSessionLabel(session.label, 30)}
                   </option>
-                ))
-              )}
-            </select>
-
-            <button
-              type="button"
-              onClick={handleNewSession}
-              className="px-3 py-2 text-xs font-semibold text-pink-600 border border-pink-100 rounded-lg hover:bg-pink-50 transition-colors whitespace-nowrap min-h-[44px] min-w-[44px] touch-manipulation inline-flex items-center justify-center shrink-0"
-              title="Nueva conversación"
-            >
-              Nueva
-            </button>
-          </div>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* ── Cuerpo: sessions + chat ─────────────────────────────────── */}
           <div className="flex-1 flex overflow-hidden min-h-0">
