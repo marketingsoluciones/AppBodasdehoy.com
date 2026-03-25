@@ -438,16 +438,17 @@ test.describe('5. Tareas: consulta y acciones (marcar completada)', () => {
     if (!ok) test.skip();
   });
 
-  test('navega a /tasks y lista tareas pendientes reales', async ({ page }) => {
+  test('navega a /tasks (redirige a /messages) y lista tareas pendientes', async ({ page }) => {
+    // /tasks redirige a /messages — Playwright sigue el redirect automáticamente
     await page.goto(`${CHAT_URL}/tasks`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(3000);
 
     const body = await page.locator('body').textContent() ?? '';
     expect(body).not.toContain('Error Capturado por ErrorBoundary');
 
-    // Debe haber texto de tarea o "sin tareas"
-    const hasTasks = /tarea|pendiente|completar|task|itinerario|categoría|sin tareas/i.test(body);
-    console.log(`${hasTasks ? '✅' : 'ℹ️'} /tasks — contenido: ${body.slice(0, 300)}`);
+    // Debe haber texto de tarea o "sin tareas" (ChannelSidebar)
+    const hasTasks = /tarea|pendiente|completar|task|itinerario|categoría|sin tareas|Mensajes/i.test(body);
+    console.log(`${hasTasks ? '✅' : 'ℹ️'} /tasks→/messages — contenido: ${body.slice(0, 300)}`);
   });
 
   test('via IA: marca como completada la primera tarea del itinerario', async ({ page }) => {

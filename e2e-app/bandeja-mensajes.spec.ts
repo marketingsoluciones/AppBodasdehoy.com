@@ -3,7 +3,7 @@
  *
  * Tests E2E de la Bandeja / tab Messages en chat-ia (chat-test):
  *   - /messages carga sin crash
- *   - InboxSidebar muestra "Bandeja" y secciones (Tareas, Conversaciones)
+ *   - ChannelSidebar muestra "Mensajes" + filtros de canal
  *   - TAREAS PENDIENTES aparece cuando hay sesión con eventos
  *   - Clic en tarea navega a workspace de detalle (ev-*-task/taskId)
  *   - TaskDetailWorkspace muestra tarjeta de tarea (sin crash)
