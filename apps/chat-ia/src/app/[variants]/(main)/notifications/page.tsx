@@ -23,11 +23,12 @@ const TYPE_LABEL: Record<string, { icon: string; label: string }> = {
 
 function getNotificationUrl(n: AppNotification): string | null {
   const focused = n.focused ?? '';
-  if (focused.startsWith('/messages') || focused.startsWith('/tasks') || focused.startsWith('/chat/') || focused.startsWith('/settings')) {
+  if (focused.startsWith('/messages') || focused.startsWith('/chat/') || focused.startsWith('/settings')) {
     return focused.split('?')[0];
   }
+  if (focused.startsWith('/tasks')) return '/messages'; // /tasks redirige a /messages
   if (n.type === 'whatsapp_message') return '/messages';
-  if (n.type === 'task_reminder') return '/tasks';
+  if (n.type === 'task_reminder') return '/messages';
   if (n.type === 'access_revoked' || n.type === 'permission_updated') return '/settings';
   if (focused) return '/messages';
   return null;
@@ -320,7 +321,6 @@ export default function NotificationsPage() {
                         {isClickable && (
                           <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-white border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-600">
                             {url === '/messages' && '→ Ir a bandeja de mensajes'}
-                            {url === '/tasks' && '→ Ver tareas pendientes'}
                             {url === '/settings' && '→ Ver configuración'}
                             {url?.startsWith('/chat/') && '→ Abrir conversación'}
                             {ext && '→ Ver en la app'}

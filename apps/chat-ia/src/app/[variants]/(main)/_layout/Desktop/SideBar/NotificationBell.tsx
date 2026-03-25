@@ -16,11 +16,12 @@ import {
 
 function getNotificationUrl(n: AppNotification): string | null {
   const focused = n.focused ?? '';
-  if (focused.startsWith('/messages') || focused.startsWith('/tasks') || focused.startsWith('/chat/') || focused.startsWith('/settings')) {
+  if (focused.startsWith('/messages') || focused.startsWith('/chat/') || focused.startsWith('/settings')) {
     return focused.split('?')[0]; // strip query params for chat-ia navigation
   }
+  if (focused.startsWith('/tasks')) return '/messages'; // /tasks redirige a /messages
   if (n.type === 'whatsapp_message') return '/messages';
-  if (n.type === 'task_reminder') return '/tasks';
+  if (n.type === 'task_reminder') return '/messages';
   if (n.type === 'access_revoked' || n.type === 'permission_updated') return '/settings';
   if (focused) return '/messages'; // appEventos link — redirect to bandeja
   return null;
@@ -249,7 +250,7 @@ const NotificationBell = memo(() => {
                       <span style={{ color: '#9ca3af', fontSize: 11 }}>{timeAgo(n.createdAt ?? 0)}</span>
                       {isClickable && (
                         <span style={{ color: '#ec4899', fontSize: 11, fontWeight: 500 }}>
-                          {url === '/messages' ? '→ Bandeja' : url === '/tasks' ? '→ Tareas' : url === '/settings' ? '→ Config' : url?.startsWith('/chat/') ? '→ Conversación' : '→ Ver en app'}
+                          {url === '/messages' ? '→ Bandeja' : url === '/settings' ? '→ Config' : url?.startsWith('/chat/') ? '→ Conversación' : '→ Ver en app'}
                         </span>
                       )}
                     </div>
