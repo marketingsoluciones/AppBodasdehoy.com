@@ -38,7 +38,20 @@
       "Bash(node -e \":*)",
       "Bash(bunx tsc:*)",
       "Bash(git add:*)",
-      "Bash(cat \"/Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\(main\\)/messages/hooks/useChannelHealthMonitor.ts\")"
+      "Bash(cat \"/Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\(main\\)/messages/hooks/useChannelHealthMonitor.ts\")",
+      "Bash(ls -la /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/messages/)",
+      "Bash(ls -la \"/Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/\\\\[variants\\\\]/\\(main\\)/tasks/\")",
+      "Bash(CI=1 E2E_WAIT_FOR_VISUAL_CONFIRMATION=0 BASE_URL=https://app-dev.bodasdehoy.com PLAYWRIGHT_BROWSER=webkit pnpm exec playwright test --config=playwright.config.ts e2e-app/flujo-copilot-confirmacion-visual.spec.ts --reporter=list)",
+      "Bash(CI=1 E2E_WAIT_FOR_VISUAL_CONFIRMATION=0 BASE_URL=https://app-dev.bodasdehoy.com PLAYWRIGHT_BROWSER=webkit pnpm exec playwright test --config=playwright.config.ts e2e-app/flujo-copilot-confirmacion-visual.spec.ts --reporter=line)",
+      "Bash(grep -n 'task_reminder\\\\|\\\\/tasks\\\\|\\\\/messages' /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/_layout/Desktop/SideBar/NotificationBell.tsx)",
+      "Bash(grep -n 'task_reminder\\\\|\\\\/tasks\\\\|\\\\/messages' /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/notifications/page.tsx)",
+      "Bash(pnpm --filter @bodasdehoy/chat-ia exec vitest run --silent='passed-only' 'src/store')",
+      "Bash(pnpm --filter @bodasdehoy/chat-ia exec vitest run --reporter=verbose 'src/store/file')",
+      "Bash(grep -n \"\\\\/tasks\\\\|→ Tareas\\\\|task_reminder\" /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/_layout/Desktop/SideBar/NotificationBell.tsx)",
+      "Bash(grep -n \"\\\\/tasks\\\\|→ Tareas\\\\|→ Ver tareas\" /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/notifications/page.tsx)",
+      "Bash(pnpm run:*)",
+      "Bash(pm2 save:*)",
+      "Bash(wc -l /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\\\\\(main\\\\\\)/messages/components/ChannelSidebar.tsx)"
     ],
     "additionalDirectories": [
       "/Users/juancarlosparra/.claude/projects/-Users-juancarlosparra-Projects-AppBodasdehoy-com/memory"
