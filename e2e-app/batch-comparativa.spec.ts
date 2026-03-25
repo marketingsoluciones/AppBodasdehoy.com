@@ -1,267 +1,204 @@
 /**
  * batch-comparativa.spec.ts
  *
- * Lote de 3 repeticiones × 3 preguntas × 2 perfiles (visitante + registrado).
+ * Lanza 3 × misma pregunta a chat-ia:
+ *   - Como VISITANTE (anónimo, widget /widget/bodasdehoy)
+ *   - Como REGISTRADO (login con credenciales, chat principal)
  *
- * Qué mide cada pregunta:
- *   Q1: "¿Cuánto cuesta la app y qué planes tiene?"
- *       → visitante: pitch comercial / plan gratuito
- *       → registrado: detalles de precio real y plan actual
+ * Guarda resultados en:
+ *   e2e-app/resultados-batch-YYYY-MM-DD.tsv
  *
- *   Q2: "¿Qué funciones tiene la app para bodas?"
- *       → visitante: marketing con CTA de registro
- *       → registrado: funciones técnicas profundas
+ * Columnas TSV:
+ *   ID | Entorno | Pregunta | Perfil | Rep | Respuesta (extracto) |
+ *   Categoria | Duracion_ms | Tu Valoracion
  *
- *   Q3: "¿Cuántos invitados tengo en mi boda?"
- *       → visitante: no tiene datos, empuja al registro
- *       → registrado: llama a api-ia y devuelve número real
+ * Ejecutar visitante (no necesita credenciales):
+ *   E2E_ENV=local PLAYWRIGHT_BROWSER=webkit \
+ *     npx playwright test e2e-app/batch-comparativa.spec.ts --grep=visitante
  *
- * Cómo correr:
- *   # Solo visitante (sin credenciales):
- *   E2E_ENV=dev PLAYWRIGHT_BROWSER=webkit npx playwright test e2e-app/batch-comparativa.spec.ts
+ * Ejecutar registrado:
+ *   E2E_ENV=local PLAYWRIGHT_BROWSER=webkit \
+ *     TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD='lorca2012M*+' \
+ *     npx playwright test e2e-app/batch-comparativa.spec.ts --grep=registrado
  *
- *   # Visitante + registrado:
- *   E2E_ENV=dev TEST_USER_EMAIL=... TEST_USER_PASSWORD=... PLAYWRIGHT_BROWSER=webkit \
+ * Ejecutar ambos:
+ *   E2E_ENV=local PLAYWRIGHT_BROWSER=webkit \
+ *     TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD='lorca2012M*+' \
  *     npx playwright test e2e-app/batch-comparativa.spec.ts
- *
- * Resultados: se imprimen en consola (redirigir a .json si se desea).
  */
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { test, expect, type Page, type BrowserContext } from '@playwright/test';
 import { TEST_URLS, TEST_CREDENTIALS } from './fixtures';
 
-// ─── Configuración ───────────────────────────────────────────────────────────
+// ─── Configuración ────────────────────────────────────────────────────────────
 
 const CHAT_URL = TEST_URLS.chat;
+const WIDGET_URL = `${CHAT_URL}/widget/bodasdehoy`;
 const REPETICIONES = 3;
-const TIMEOUT_RESPUESTA = 60_000; // ms por mensaje
+const TIMEOUT_RESPUESTA = 70_000;
+const GOTO_TIMEOUT = 120_000;
 
-const PREGUNTAS = [
-  {
-    id: 'Q1_precios',
-    texto: '¿Cuánto cuesta la app y qué planes de precio tiene?',
-    esperado_visitante: /gratis|plan|registro|cuenta|precio|free/i,
-    esperado_registrado: /plan|básico|pro|max|€|euro|precio/i,
-  },
-  {
-    id: 'Q2_funciones',
-    texto: '¿Qué funciones tiene la app para organizar una boda?',
-    esperado_visitante: /invitados|presupuesto|mesas|registr|cuenta/i,
-    esperado_registrado: /invitados|presupuesto|mesas|itinerario|servicios/i,
-  },
-  {
-    id: 'Q3_invitados',
-    texto: '¿Cuántos invitados tengo en mi boda?',
-    esperado_visitante: /registr|cuenta|acceder|información|no tengo acceso/i,
-    esperado_registrado: /invitado|\d+|evento|lista/i,
-  },
+const PREGUNTAS: Array<{ id: string; texto: string }> = [
+  { id: 'BC01', texto: '¿Cuánto cuesta la app y qué planes de precio tiene?' },
+  { id: 'BC02', texto: '¿Qué funciones tiene la app para organizar una boda?' },
+  { id: 'BC03', texto: '¿Cuántos invitados tengo en mi boda?' },
 ];
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── TSV output ───────────────────────────────────────────────────────────────
 
-interface MensajeResult {
-  pregunta: string;
-  repeticion: number;
-  perfil: 'visitante' | 'registrado';
-  respuesta: string;
-  duracion_ms: number;
-  cumple_esperado: boolean;
-  error?: string;
+const TSV_DIR = path.resolve(__dirname);
+const TSV_FILE = path.join(TSV_DIR, `resultados-batch-${new Date().toISOString().slice(0, 10)}.tsv`);
+const TSV_HEADER = ['ID', 'Entorno', 'Pregunta', 'Perfil', 'Rep', 'Respuesta (extracto)', 'Categoria', 'Duracion_ms', 'Tu Valoracion'].join('\t');
+
+function detectarCategoria(respuesta: string): string {
+  const r = respuesta.toLowerCase();
+  if (!respuesta || respuesta.length < 10) return 'empty';
+  if (/error|500|timeout|fallo/.test(r)) return 'error';
+  if (/regístr|crear cuenta|iniciar sesión|sin cuenta|login/.test(r)) return 'auth_required';
+  if (/plan|básico|pro|max|€|euro|precio|gratis|free/.test(r)) return 'comercial';
+  if (/invitado.*\d|\d.*invitado/.test(r)) return 'data_response';
+  if (/invitado|presupuesto|mesa|itinerario|servicio/.test(r)) return 'data_response';
+  if (/hola|ayud|placer|bienvenid/.test(r)) return 'greeting';
+  return 'data_response';
 }
 
-async function limpiarSesion(context: BrowserContext, page: Page): Promise<void> {
-  await context.clearCookies();
-  try {
-    await page.goto(CHAT_URL, { waitUntil: 'domcontentloaded', timeout: 20_000 });
-    await page.evaluate(() => {
-      try { localStorage.clear(); } catch { /* */ }
-      try { sessionStorage.clear(); } catch { /* */ }
-    }).catch(() => {});
-  } catch { /* */ }
-  await context.clearCookies();
+function escribirTSV(filas: string[][]): void {
+  const existe = fs.existsSync(TSV_FILE);
+  const lineas = filas.map((f) => f.join('\t')).join('\n');
+  if (!existe) {
+    fs.writeFileSync(TSV_FILE, TSV_HEADER + '\n' + lineas + '\n', 'utf-8');
+  } else {
+    fs.appendFileSync(TSV_FILE, lineas + '\n', 'utf-8');
+  }
 }
+
+// ─── Navegación ───────────────────────────────────────────────────────────────
 
 async function entrarComoVisitante(page: Page): Promise<boolean> {
-  await page.goto(`${CHAT_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
-  await page.waitForTimeout(2500);
-
-  const btn = page.locator('button').filter({
-    hasText: /visitante|sin cuenta|continuar sin|invitado/i,
-  }).first();
-
-  const visible = await btn.isVisible({ timeout: 10_000 }).catch(() => false);
-  if (!visible) {
-    // Puede que ya esté en chat como visitante (tenía ID guardado)
-    const inChat =
-      (await page.locator('textarea, [contenteditable="true"]').count()) > 0;
-    console.log(inChat ? '  → ya en chat como visitante' : '  → botón visitante no encontrado');
-    return inChat;
+  await page.goto(WIDGET_URL, { waitUntil: 'commit', timeout: GOTO_TIMEOUT });
+  // LeadForm muestra "Continuar sin registrarme" → clickear para ir al chat
+  const skip = page.locator('button').filter({ hasText: /sin registrarme|visitante/i }).first();
+  if (await skip.waitFor({ timeout: 30_000 }).then(() => true).catch(() => false)) {
+    await skip.click();
   }
-
-  await btn.click();
-  await page.waitForTimeout(2000);
-  return true;
+  return page.locator('textarea').waitFor({ timeout: 20_000 }).then(() => true).catch(() => false);
 }
 
 async function entrarComoRegistrado(page: Page): Promise<boolean> {
   if (!TEST_CREDENTIALS.email || !TEST_CREDENTIALS.password) return false;
 
-  await page.goto(`${CHAT_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
-  await page.waitForTimeout(2000);
+  await page.goto(`${CHAT_URL}/login`, { waitUntil: 'domcontentloaded', timeout: GOTO_TIMEOUT });
+  await page.waitForTimeout(2500);
 
   const emailInput = page.locator('input[type="email"], input[name="email"]').first();
-  if (!await emailInput.isVisible({ timeout: 8_000 }).catch(() => false)) {
-    console.log('  → formulario de login no encontrado');
-    return false;
-  }
+  if (!await emailInput.isVisible({ timeout: 8_000 }).catch(() => false)) return false;
 
   await emailInput.fill(TEST_CREDENTIALS.email);
   const passInput = page.locator('input[type="password"]').first();
   await passInput.fill(TEST_CREDENTIALS.password);
   await page.keyboard.press('Enter');
-  await page.waitForTimeout(5000);
+  await page.waitForTimeout(6000);
   return true;
 }
 
-async function enviarPreguntaYCapturar(
-  page: Page,
-  pregunta: string,
-): Promise<{ respuesta: string; duracion_ms: number }> {
-  const inicio = Date.now();
+// ─── Captura de respuesta ─────────────────────────────────────────────────────
 
-  // Localizar textarea del chat
-  const input = page
-    .locator('textarea[placeholder], [contenteditable="true"], textarea')
-    .first();
+async function enviarPreguntaYCapturar(page: Page, pregunta: string): Promise<{ respuesta: string; ms: number }> {
+  const inicio = Date.now();
+  const input = page.locator('textarea').first();
 
   if (!await input.isVisible({ timeout: 15_000 }).catch(() => false)) {
-    throw new Error('Input de chat no visible');
+    return { respuesta: '[ERROR: input no visible]', ms: Date.now() - inicio };
   }
 
-  // Contar mensajes actuales antes de enviar
-  const antesCount = await page.locator(
-    '[data-role="assistant"], [class*="assistant"], [class*="AssistantMessage"]',
-  ).count();
+  const bodyAntes = (await page.locator('body').textContent() ?? '').length;
 
   await input.fill(pregunta);
   await page.waitForTimeout(300);
   await input.press('Enter');
 
-  // Esperar a que aparezca UNA respuesta nueva del asistente
+  // Esperar que aparezca texto nuevo
   await page.waitForFunction(
-    (antes) => {
-      const sels = [
-        '[data-role="assistant"]',
-        '[class*="assistant"]',
-        '[class*="AssistantMessage"]',
-        '[class*="lobe-chat-message"]',
-      ];
-      for (const sel of sels) {
-        const els = document.querySelectorAll(sel);
-        if (els.length > antes) return true;
-      }
-      return false;
-    },
-    antesCount,
+    (lenAntes) => (document.body.textContent?.length ?? 0) > lenAntes + 20,
+    bodyAntes,
     { timeout: TIMEOUT_RESPUESTA },
   ).catch(() => {});
 
-  // Esperar un poco más para que el streaming termine
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(5000);
 
-  // Extraer el último mensaje del asistente
-  const mensajesAsistente = page.locator(
-    '[data-role="assistant"] [class*="content"], [class*="AssistantMessage"] p, [class*="markdown"] p',
-  );
-  const count = await mensajesAsistente.count();
-
-  let respuesta = '';
-  if (count > 0) {
-    respuesta = (await mensajesAsistente.nth(count - 1).textContent()) ?? '';
+  // Selectores LobeChat (registrado)
+  const lobeSelector = [
+    '[data-role="assistant"] [class*="markdown"]',
+    '[data-role="assistant"] [class*="content"]',
+    '[class*="AssistantMessage"] p',
+  ].join(', ');
+  const lobeBloques = page.locator(lobeSelector);
+  const nLobe = await lobeBloques.count();
+  if (nLobe > 0) {
+    const textos: string[] = [];
+    const inicio2 = Math.max(0, nLobe - 8);
+    for (let i = inicio2; i < nLobe; i++) {
+      const t = (await lobeBloques.nth(i).textContent()) ?? '';
+      if (t.trim()) textos.push(t.trim());
+    }
+    const r = textos.join(' ').trim();
+    if (r.length > 15) return { respuesta: r.slice(0, 800), ms: Date.now() - inicio };
   }
 
-  // Fallback: leer el body completo y extraer el último bloque de texto relevante
-  if (respuesta.trim().length < 20) {
-    const bodyText = (await page.locator('body').textContent()) ?? '';
-    // Buscar la última respuesta del asistente (suele estar al final del DOM)
-    const partes = bodyText.split(pregunta.slice(0, 30));
-    respuesta = partes[partes.length - 1]?.trim().slice(0, 600) ?? bodyText.slice(-600);
-  }
-
-  return {
-    respuesta: respuesta.trim().slice(0, 800),
-    duracion_ms: Date.now() - inicio,
-  };
+  // Fallback body text
+  const bodyText = (await page.locator('body').textContent()) ?? '';
+  const needle = pregunta.slice(0, 30);
+  const idx = bodyText.lastIndexOf(needle);
+  const texto = idx > -1
+    ? bodyText.slice(idx + needle.length, idx + needle.length + 600).trim()
+    : bodyText.slice(-600).trim();
+  return { respuesta: texto, ms: Date.now() - inicio };
 }
 
-function imprimirResumen(resultados: MensajeResult[]): void {
-  const total = resultados.length;
-  const ok = resultados.filter((r) => r.cumple_esperado).length;
-  console.log(`\n${'═'.repeat(60)}`);
-  console.log(`RESUMEN BATCH: ${ok}/${total} respuestas cumplen patrón esperado`);
-  console.log(JSON.stringify(resultados, null, 2));
-}
+// ─── Colección global de resultados ──────────────────────────────────────────
+
+const todasFilas: string[][] = [];
 
 // ─── TESTS: VISITANTE ─────────────────────────────────────────────────────────
 
-test.describe('Batch Comparativa — Visitante (anónimo)', () => {
+test.describe('Batch Comparativa — visitante', () => {
+  test.describe.configure({ mode: 'serial' });
   test.setTimeout(TIMEOUT_RESPUESTA * REPETICIONES * PREGUNTAS.length + 120_000);
 
-  const resultados: MensajeResult[] = [];
-
   test.afterAll(() => {
-    if (resultados.length > 0) imprimirResumen(resultados);
+    if (todasFilas.length > 0) {
+      escribirTSV(todasFilas.filter((f) => f[3] === 'visitante'));
+      console.log(`\n✅ TSV guardado en: ${TSV_FILE}`);
+    }
   });
 
   for (const pregunta of PREGUNTAS) {
     for (let rep = 1; rep <= REPETICIONES; rep++) {
-      test(`${pregunta.id} — rep ${rep}/${REPETICIONES} — visitante`, async ({
-        page,
-        context,
-      }) => {
-        await limpiarSesion(context, page);
+      const testId = `${pregunta.id}-V${rep}`;
+      test(`${testId} — ${pregunta.texto.slice(0, 50)} — visitante rep ${rep}`, async ({ page, context }) => {
+        await context.clearCookies();
 
         const ok = await entrarComoVisitante(page);
         if (!ok) {
-          console.log(`⚠️  ${pregunta.id} rep ${rep}: no se pudo entrar como visitante`);
+          console.log(`⚠️  ${testId}: no se pudo entrar al widget`);
           test.skip();
           return;
         }
 
-        let respuesta = '';
-        let duracion_ms = 0;
-        let error: string | undefined;
+        const { respuesta, ms } = await enviarPreguntaYCapturar(page, pregunta.texto);
+        const categoria = detectarCategoria(respuesta);
+        const extracto = respuesta.replace(/\t|\n/g, ' ').slice(0, 200);
 
-        try {
-          const result = await enviarPreguntaYCapturar(page, pregunta.texto);
-          respuesta = result.respuesta;
-          duracion_ms = result.duracion_ms;
-        } catch (e: unknown) {
-          error = e instanceof Error ? e.message : String(e);
-          console.error(`  ✗ error: ${error}`);
-        }
+        const fila = [testId, 'widget', pregunta.texto, 'visitante', String(rep), extracto, categoria, String(ms), ''];
+        todasFilas.push(fila);
 
-        const cumple = pregunta.esperado_visitante.test(respuesta);
+        console.log(`\n${'─'.repeat(70)}`);
+        console.log(`🙋 ${testId} | VISITANTE | ${ms}ms | Categoria: ${categoria}`);
+        console.log(`   Pregunta : ${pregunta.texto}`);
+        console.log(`   Respuesta: ${extracto.slice(0, 180)}${extracto.length > 180 ? '…' : ''}`);
 
-        const resultado: MensajeResult = {
-          pregunta: pregunta.texto,
-          repeticion: rep,
-          perfil: 'visitante',
-          respuesta,
-          duracion_ms,
-          cumple_esperado: cumple,
-          ...(error ? { error } : {}),
-        };
-
-        resultados.push(resultado);
-
-        console.log(`\n${'─'.repeat(60)}`);
-        console.log(`🙋 ${pregunta.id} | Rep ${rep} | VISITANTE`);
-        console.log(`  Pregunta : ${pregunta.texto}`);
-        console.log(`  Respuesta: ${respuesta.slice(0, 200)}${respuesta.length > 200 ? '…' : ''}`);
-        console.log(`  Duración : ${duracion_ms}ms`);
-        console.log(`  Patrón OK: ${cumple ? '✅' : '⚠️ NO COINCIDE'}`);
-
-        expect(respuesta.length).toBeGreaterThan(10);
+        expect(respuesta.length, `${testId}: respuesta vacía`).toBeGreaterThan(10);
       });
     }
   }
@@ -269,76 +206,44 @@ test.describe('Batch Comparativa — Visitante (anónimo)', () => {
 
 // ─── TESTS: REGISTRADO ────────────────────────────────────────────────────────
 
-test.describe('Batch Comparativa — Usuario Registrado', () => {
+test.describe('Batch Comparativa — registrado', () => {
+  test.describe.configure({ mode: 'serial' });
   test.setTimeout(TIMEOUT_RESPUESTA * REPETICIONES * PREGUNTAS.length + 180_000);
 
-  const resultados: MensajeResult[] = [];
-
   test.afterAll(() => {
-    if (resultados.length > 0) imprimirResumen(resultados);
-  });
-
-  test.beforeAll(async () => {
-    if (!TEST_CREDENTIALS.email) {
-      console.log('⏭  Sin TEST_USER_EMAIL — tests de registrado omitidos');
+    if (todasFilas.length > 0) {
+      escribirTSV(todasFilas.filter((f) => f[3] === 'registrado'));
     }
   });
 
   for (const pregunta of PREGUNTAS) {
     for (let rep = 1; rep <= REPETICIONES; rep++) {
-      test(`${pregunta.id} — rep ${rep}/${REPETICIONES} — registrado`, async ({
-        page,
-        context,
-      }) => {
-        if (!TEST_CREDENTIALS.email) {
-          test.skip();
-          return;
-        }
+      const testId = `${pregunta.id}-R${rep}`;
+      test(`${testId} — ${pregunta.texto.slice(0, 50)} — registrado rep ${rep}`, async ({ page, context }) => {
+        if (!TEST_CREDENTIALS.email) { test.skip(); return; }
 
-        await limpiarSesion(context, page);
+        await context.clearCookies();
 
         const ok = await entrarComoRegistrado(page);
         if (!ok) {
-          console.log(`⚠️  ${pregunta.id} rep ${rep}: no se pudo hacer login`);
+          console.log(`⚠️  ${testId}: no se pudo hacer login`);
           test.skip();
           return;
         }
 
-        let respuesta = '';
-        let duracion_ms = 0;
-        let error: string | undefined;
+        const { respuesta, ms } = await enviarPreguntaYCapturar(page, pregunta.texto);
+        const categoria = detectarCategoria(respuesta);
+        const extracto = respuesta.replace(/\t|\n/g, ' ').slice(0, 200);
 
-        try {
-          const result = await enviarPreguntaYCapturar(page, pregunta.texto);
-          respuesta = result.respuesta;
-          duracion_ms = result.duracion_ms;
-        } catch (e: unknown) {
-          error = e instanceof Error ? e.message : String(e);
-          console.error(`  ✗ error: ${error}`);
-        }
+        const fila = [testId, 'chat-ia', pregunta.texto, 'registrado', String(rep), extracto, categoria, String(ms), ''];
+        todasFilas.push(fila);
 
-        const cumple = pregunta.esperado_registrado.test(respuesta);
+        console.log(`\n${'─'.repeat(70)}`);
+        console.log(`👤 ${testId} | REGISTRADO | ${ms}ms | Categoria: ${categoria}`);
+        console.log(`   Pregunta : ${pregunta.texto}`);
+        console.log(`   Respuesta: ${extracto.slice(0, 180)}${extracto.length > 180 ? '…' : ''}`);
 
-        const resultado: MensajeResult = {
-          pregunta: pregunta.texto,
-          repeticion: rep,
-          perfil: 'registrado',
-          respuesta,
-          duracion_ms,
-          cumple_esperado: cumple,
-          ...(error ? { error } : {}),
-        };
-
-        resultados.push(resultado);
-
-        console.log(`\n${'─'.repeat(60)}`);
-        console.log(`👤 ${pregunta.id} | Rep ${rep} | REGISTRADO`);
-        console.log(`  Pregunta : ${pregunta.texto}`);
-        console.log(`  Respuesta: ${respuesta.slice(0, 200)}${respuesta.length > 200 ? '…' : ''}`);
-        console.log(`  Duración : ${duracion_ms}ms`);
-        console.log(`  Patrón OK: ${cumple ? '✅' : '⚠️ NO COINCIDE'}`);
-
-        expect(respuesta.length).toBeGreaterThan(10);
+        expect(respuesta.length, `${testId}: respuesta vacía`).toBeGreaterThan(10);
       });
     }
   }

@@ -1,5 +1,6 @@
 module.exports = {
   apps: [
+    // ── Entorno TEST (producción local, next start) ──────────────────────────
     {
       name: 'app-test',
       script: './apps/appEventos/start.sh',
@@ -15,6 +16,40 @@ module.exports = {
       autorestart: true,
       watch: false,
       max_memory_restart: '2G'
+    },
+
+    // ── Entorno DEV (next dev, hot reload) ──────────────────────────────────
+    {
+      name: 'app-dev',
+      script: './apps/appEventos/dev.sh',
+      exec_mode: 'fork',
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '1G'
+    },
+    {
+      name: 'chat-dev',
+      script: './apps/chat-ia/dev.sh',
+      exec_mode: 'fork',
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '3G'
+    },
+    {
+      name: 'memories-dev',
+      script: './apps/memories-web/dev.sh',
+      exec_mode: 'fork',
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '800M'
+    },
+    {
+      name: 'editor-dev',
+      script: './apps/editor-web/dev.sh',
+      exec_mode: 'fork',
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '800M'
     }
   ]
 };
