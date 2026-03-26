@@ -1,108 +1,50 @@
 'use client';
 
-import { Alert, Button, Divider, Form, Input, message, Typography } from 'antd';
+import { message } from 'antd';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense } from 'react';
 
-import { FirebaseAuth } from '@/features/FirebaseAuth';
+import { LoginForm, SplitLoginPage } from '@bodasdehoy/auth-ui';
 import { useChatStore } from '@/store/chat';
-import { loginWithEmailPassword, registerWithEmailPassword } from '@/services/firebase-auth';
+import { loginWithEmailPassword, loginWithFacebook, loginWithGoogle } from '@/services/firebase-auth';
 import { optimizedApiClient } from '@/utils/api-client-optimized';
 
-const { Title, Text } = Typography;
+// ─── Config panel izquierdo (branding de chat-ia) ────────────────────────────
+const CHAT_IA_LEFT_PANEL = {
+  brandName: 'Bodas de Hoy · Copilot IA',
+  description:
+    'Planifica cada detalle con inteligencia artificial. Invitados, presupuesto, itinerario y mucho más — en un solo lugar.',
+  features: [
+    { icon: '✨', text: 'Asistente IA para bodas y todo tipo de eventos' },
+    { icon: '👥', text: 'Gestión inteligente de invitados' },
+    { icon: '💰', text: 'Control de presupuesto en tiempo real' },
+    { icon: '📋', text: 'Itinerario y coordinación todo en uno' },
+    { icon: '🎨', text: 'Creador de webs de evento personalizado' },
+  ],
+  stats: [
+    { label: 'bodas organizadas', value: '+5.000' },
+    { label: 'fotos compartidas', value: '+200K' },
+    { label: 'valoración media', value: '4.9★' },
+  ],
+};
 
-// Tipos de evento para el titular dinámico (rotación cada 2.5s)
-const EVENT_TYPES = [
-  'boda',
-  'comunión',
-  'bautizo',
-  'fiesta de 16',
-  'cumpleaños',
-  'despedida de soltero',
-  'aniversario',
-  'baby shower',
-  'graduación',
-  'fiesta de empresa',
-  'evento corporativo',
-  'confirmación',
-  'inauguración',
-  'cena de gala',
-  'fiesta temática',
-];
-
-// SplitLoginPage inline — emotion compiler de chat-ia impide importar desde @bodasdehoy/auth-ui
-// Ver packages/auth-ui/src/SplitLoginPage.tsx para la versión compartida (usada en appEventos)
-function SplitLoginPage({ children }: { children: React.ReactNode }) {
-  const [eventIndex, setEventIndex] = useState(0);
-
-  useEffect(() => {
-    const t = setInterval(() => {
-      setEventIndex((i) => (i + 1) % EVENT_TYPES.length);
-    }, 2500);
-    return () => clearInterval(t);
-  }, []);
-
-  const eventLabel = EVENT_TYPES[eventIndex];
-
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'clamp(260px, 42%, 460px) 1fr', minHeight: '100vh' }}>
-      <div className="auth-ui-left-panel" style={{ background: 'linear-gradient(150deg, #ec4899 0%, #a855f7 60%, #6366f1 100%)', color: 'white', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100%', overflow: 'hidden', padding: '48px 40px', position: 'relative' }}>
-        <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '50%', height: 300, left: -80, position: 'absolute', top: -80, width: 300 }} />
-        <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '50%', bottom: -60, height: 200, position: 'absolute', right: -40, width: 200 }} />
-        <div style={{ marginBottom: 32, position: 'relative' }}>
-          <div style={{ fontSize: 40, marginBottom: 4 }}>💒</div>
-          <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: 2, opacity: 0.9, textTransform: 'uppercase' }}>Bodas de Hoy · Copilot IA</div>
-        </div>
-        <h1 style={{ color: 'white', fontSize: 'clamp(22px, 2.8vw, 34px)', fontWeight: 800, lineHeight: 1.2, marginBottom: 16, minHeight: '1.2em' }}>
-          Tu asistente IA para organizar tu{' '}
-          <span style={{ display: 'inline-block', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: 4, transition: 'opacity 0.4s ease' }}>
-            {eventLabel}
-          </span>
-          {' '}ideal
-        </h1>
-        <p style={{ fontSize: 15, lineHeight: 1.6, marginBottom: 32, opacity: 0.9 }}>Planifica cada detalle con inteligencia artificial. Invitados, presupuesto, itinerario y mucho más — en un solo lugar.</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 40 }}>
-          {[['✨','Asistente IA para bodas y todo tipo de eventos'],['👥','Gestión inteligente de invitados'],['💰','Control de presupuesto en tiempo real'],['📋','Itinerario y coordinación todo en uno'],['🎨','Creador de webs de evento personalizado']].map(([icon, text]) => (
-            <div key={text} style={{ alignItems: 'center', display: 'flex', gap: 10 }}><span style={{ fontSize: 18 }}>{icon}</span><span style={{ fontSize: 14, opacity: 0.95 }}>{text}</span></div>
-          ))}
-        </div>
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.2)', display: 'flex', gap: 24, paddingTop: 24 }}>
-          {[{l:'bodas organizadas',v:'+5.000'},{l:'fotos compartidas',v:'+200K'},{l:'valoración media',v:'4.9★'}].map(s => (
-            <div key={s.l}><div style={{ fontSize: 20, fontWeight: 800 }}>{s.v}</div><div style={{ fontSize: 12, opacity: 0.8 }}>{s.l}</div></div>
-          ))}
-        </div>
-      </div>
-      <div style={{ background: '#ffffff', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100vh', overflowY: 'auto' }}>
-        {children}
-      </div>
-      <style>{`@media (max-width: 768px) { .auth-ui-left-panel { display: none !important; } }`}</style>
-    </div>
-  );
-}
-
-
-// Dominios permitidos para redirect cross-app (seguridad: evitar open redirect)
+// ─── Dominios permitidos para redirect (evitar open redirect) ─────────────────
 const ALLOWED_REDIRECT_HOSTS = [
-  // Producción
   'app.bodasdehoy.com',
   'chat.bodasdehoy.com',
   'memories.bodasdehoy.com',
   'editor.bodasdehoy.com',
   'wedding-creator.bodasdehoy.com',
-  // Test (Vercel, rama test)
   'app-test.bodasdehoy.com',
   'chat-test.bodasdehoy.com',
   'memories-test.bodasdehoy.com',
   'editor-test.bodasdehoy.com',
-  // Dev (local, Cloudflare Tunnel)
   'app-dev.bodasdehoy.com',
   'chat-dev.bodasdehoy.com',
   'memories-dev.bodasdehoy.com',
   'editor-dev.bodasdehoy.com',
-  // Legacy (masterv1)
   'organizador.bodasdehoy.com',
   'iachat.bodasdehoy.com',
-  // Otros
   'organizador.eventosorganizador.com',
   'vivetuboda.com',
   'localhost',
@@ -111,123 +53,93 @@ const ALLOWED_REDIRECT_HOSTS = [
 function isSafeRedirect(url: string): boolean {
   try {
     const parsed = new URL(url);
-    return ALLOWED_REDIRECT_HOSTS.some(host =>
-      parsed.hostname === host || parsed.hostname.endsWith(`.${host}`)
+    return ALLOWED_REDIRECT_HOSTS.some(
+      (host) => parsed.hostname === host || parsed.hostname.endsWith(`.${host}`),
     );
   } catch {
-    // URL relativa — siempre segura
     return url.startsWith('/');
   }
 }
 
-// ─── Panel derecho — formulario ───────────────────────────────────────────────
+// ─── Panel derecho ────────────────────────────────────────────────────────────
 function RightPanel() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const development = searchParams.get('developer') || 'bodasdehoy';
-  // ?redirect= para volver a la app de origen tras login (cross-app SSO)
   const redirectAfterLogin = searchParams.get('redirect') || null;
-  // ?reason=session_expired para mostrar mensaje de sesión expirada
   const reason = searchParams.get('reason');
 
-  // La ruta es /login → mostrar login por defecto. Registro es secundario.
-  const [view, setView] = useState<'landing' | 'login'>('login');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(
-    reason === 'session_expired' ? 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.' : null,
-  );
   const [messageApi, contextHolder] = message.useMessage();
   const { setExternalChatConfig, fetchExternalChats } = useChatStore();
 
-  // ── Login ──
-  const handleLogin = async (values: { email: string; password: string }) => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Usar Firebase client SDK directamente (correcto SSO + no depende de endpoint custom)
-      const result = await loginWithEmailPassword(values.email, values.password, development);
-      if (result.success && result.user_id) {
-        if (result.token) {
-          optimizedApiClient.setToken(result.token, result.user_id, result.development);
-          localStorage.setItem('jwt_token', result.token);
-          localStorage.setItem('api2_jwt_token', result.token);
-        }
-        const devUserConfig = {
-          developer: result.development,
-          development: result.development,
-          email: values.email,
-          timestamp: Date.now(),
-          token: result.token || null,
-          userId: result.user_id,
-          user_id: result.user_id,
-          user_type: 'registered',
-        };
-        localStorage.setItem('dev-user-config', JSON.stringify(devUserConfig));
-        // Also set as cookie so server-side route.ts can send Authorization header to api-ia
-        document.cookie = `dev-user-config=${encodeURIComponent(JSON.stringify(devUserConfig))}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
-        await setExternalChatConfig(result.user_id, result.development, result.token || undefined, 'registered');
-        fetchExternalChats().catch(() => {});
-        // Redirigir a ?redirect= (cross-app SSO) o al chat por defecto
-        if (redirectAfterLogin && isSafeRedirect(redirectAfterLogin)) {
-          window.location.href = redirectAfterLogin;
-        } else {
-          router.replace('/chat');
-        }
-      } else {
-        setError(result.errors?.[0] || 'Credenciales incorrectas.');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Error al iniciar sesión.');
-    } finally {
-      setLoading(false);
+  // Redirigir tras login exitoso: a ?redirect= si es seguro, o al chat
+  const afterLogin = () => {
+    if (redirectAfterLogin && isSafeRedirect(redirectAfterLogin)) {
+      window.location.href = redirectAfterLogin;
+    } else {
+      router.replace('/chat');
     }
   };
 
-  // ── Registro ──
-  const handleRegister = async (values: { email: string; password: string }) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await registerWithEmailPassword(values.email, values.password, development);
-      if (result.success && result.user_id) {
-        if (result.token) {
-          optimizedApiClient.setToken(result.token, result.user_id, result.development);
-          localStorage.setItem('jwt_token', result.token);
-          localStorage.setItem('api2_jwt_token', result.token);
-        }
-        const devUserConfig2 = {
-          developer: result.development,
-          development: result.development,
-          timestamp: Date.now(),
-          token: result.token || null,
-          userId: result.user_id,
-          user_id: result.user_id,
-          user_type: 'registered',
-        };
-        localStorage.setItem('dev-user-config', JSON.stringify(devUserConfig2));
-        // Also set as cookie so server-side route.ts can send Authorization header to api-ia
-        document.cookie = `dev-user-config=${encodeURIComponent(JSON.stringify(devUserConfig2))}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
-        await setExternalChatConfig(result.user_id, result.development, result.token || undefined, 'registered');
-        fetchExternalChats().catch(() => {});
-        // Redirigir a ?redirect= (cross-app SSO) o al chat por defecto
-        if (redirectAfterLogin && isSafeRedirect(redirectAfterLogin)) {
-          window.location.href = redirectAfterLogin;
-        } else {
-          router.replace('/chat');
-        }
-      } else {
-        setError((result as any).message || result.errors?.[0] || 'Error en el registro.');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Error al registrarse.');
-    } finally {
-      setLoading(false);
+  // Guardar sesión en localStorage/cookie
+  const saveSession = (userId: string, dev: string, token: string | null, email?: string) => {
+    const config = {
+      developer: dev,
+      development: dev,
+      email,
+      timestamp: Date.now(),
+      token,
+      userId,
+      user_id: userId,
+      user_type: 'registered',
+    };
+    localStorage.setItem('dev-user-config', JSON.stringify(config));
+    document.cookie = `dev-user-config=${encodeURIComponent(JSON.stringify(config))}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+    if (token) {
+      optimizedApiClient.setToken(token, userId, dev);
+      localStorage.setItem('jwt_token', token);
+      localStorage.setItem('api2_jwt_token', token);
     }
   };
 
-  // ── Modo visitante ──
+  // ── Email/password ──
+  const handleEmailLogin = async (email: string, password: string) => {
+    const result = await loginWithEmailPassword(email, password, development);
+    if (!result.success) throw new Error(result.errors?.[0] || 'Credenciales incorrectas.');
+    saveSession(result.user_id!, result.development, result.token || null, email);
+    await setExternalChatConfig(result.user_id!, result.development, result.token || undefined, 'registered');
+    fetchExternalChats().catch(() => {});
+    afterLogin();
+  };
+
+  // ── Google ──
+  const handleGoogleLogin = async () => {
+    const result = await loginWithGoogle(development);
+    if (!result) return; // signInWithRedirect en progreso
+    if (!result.success) throw new Error(result.errors?.join(', ') || 'Error con Google.');
+    const email = result.user?.email || '';
+    const token = localStorage.getItem('api2_jwt_token') || null;
+    saveSession(email, result.development, token, email);
+    await setExternalChatConfig(email, result.development, token || undefined, 'registered');
+    fetchExternalChats().catch(() => {});
+    afterLogin();
+  };
+
+  // ── Facebook ──
+  const handleFacebookLogin = async () => {
+    const result = await loginWithFacebook(development);
+    if (!result) return;
+    if (!result.success) throw new Error(result.errors?.join(', ') || 'Error con Facebook.');
+    const email = result.user?.email || '';
+    const token = localStorage.getItem('api2_jwt_token') || null;
+    saveSession(email, result.development, token, email);
+    await setExternalChatConfig(email, result.development, token || undefined, 'registered');
+    fetchExternalChats().catch(() => {});
+    afterLogin();
+  };
+
+  // ── Visitante ──
   const handleVisitor = async () => {
-    // Reusar visitor ID existente para mantener historial de conversación y límite de mensajes
     const existingId = (() => {
       try {
         const saved = localStorage.getItem('dev-user-config');
@@ -250,173 +162,29 @@ function RightPanel() {
       await setExternalChatConfig(visitorId, development, undefined, 'visitor');
     } catch { /* continuar sin config */ }
     messageApi.info('Modo visitante activado. Algunas funciones requieren cuenta.');
-    // Visitantes siempre van al chat (no redirigir a app externa)
     setTimeout(() => router.replace('/chat'), 800);
   };
 
-  // ── Vista: registro (landing) ──
-  if (view === 'landing') {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center', padding: '40px 36px' }}>
-        {contextHolder}
-
-        <div style={{ marginBottom: 8, textAlign: 'center' }}>
-          <span style={{ background: '#fdf2f8', borderRadius: 20, color: '#ec4899', fontSize: 12, fontWeight: 600, padding: '4px 12px' }}>
-            🆓 Gratis para empezar
-          </span>
-        </div>
-        <Title level={3} style={{ marginBottom: 6, textAlign: 'center' }}>
-          Empieza a organizar tu evento
-        </Title>
-        <Text style={{ display: 'block', fontSize: 14, marginBottom: 28, textAlign: 'center' }} type="secondary">
-          Crea tu cuenta gratuita en 30 segundos
-        </Text>
-
-        {error && (
-          <Alert closable message={error} onClose={() => setError(null)} showIcon style={{ marginBottom: 16 }} type="error" />
-        )}
-
-        {/* Social auth */}
-        <FirebaseAuth
-          development={development}
-          onError={(e) => setError(e.message)}
-          onSuccess={() => {
-            if (redirectAfterLogin && isSafeRedirect(redirectAfterLogin)) {
-              window.location.href = redirectAfterLogin;
-            }
-          }}
-        />
-
-        <Divider style={{ margin: '20px 0' }}>o con email</Divider>
-
-        {/* Formulario de registro rápido */}
-        <Form layout="vertical" onFinish={handleRegister} size="large">
-          <Form.Item name="email" rules={[{ message: 'Email válido requerido', required: true, type: 'email' }]}>
-            <Input placeholder="tu@email.com" type="email" />
-          </Form.Item>
-          <Form.Item name="password" rules={[{ message: 'Mínimo 6 caracteres', min: 6, required: true }]}>
-            <Input.Password placeholder="Elige una contraseña" />
-          </Form.Item>
-          <Button
-            block
-            htmlType="submit"
-            loading={loading}
-            size="large"
-            style={{
-              background: 'linear-gradient(90deg, #ec4899, #a855f7)',
-              border: 'none',
-              borderRadius: 8,
-              fontWeight: 700,
-              height: 48,
-            }}
-            type="primary"
-          >
-            Crear cuenta gratis →
-          </Button>
-        </Form>
-
-        <div style={{ marginTop: 16, textAlign: 'center' }}>
-          <Text style={{ fontSize: 13 }} type="secondary">
-            ¿Ya tienes cuenta?{' '}
-            <button
-              onClick={() => { setError(null); setView('login'); }}
-              style={{ background: 'none', border: 'none', color: '#ec4899', cursor: 'pointer', font: 'inherit', fontSize: 13, fontWeight: 600, padding: 0 }}
-              type="button"
-            >
-              Iniciar sesión
-            </button>
-          </Text>
-        </div>
-
-        {/* Modo visitante */}
-        <div style={{ borderTop: '1px solid #f0f0f0', marginTop: 24, paddingTop: 20, textAlign: 'center' }}>
-          <Text style={{ fontSize: 12 }} type="secondary">¿Solo quieres explorar?</Text>
-          <br />
-          <Button
-            onClick={handleVisitor}
-            size="small"
-            style={{ color: '#8c8c8c', fontSize: 12, marginTop: 4 }}
-            type="link"
-          >
-            Continuar como visitante (funciones limitadas)
-          </Button>
-        </div>
-
-        <div style={{ color: '#bfbfbf', fontSize: 11, marginTop: 16, textAlign: 'center' }}>
-          Al continuar aceptas nuestros{' '}
-          <a href="https://bodasdehoy.com/terminos" rel="noreferrer" style={{ color: '#bfbfbf' }} target="_blank">términos de uso</a>
-          {' '}y{' '}
-          <a href="https://bodasdehoy.com/privacidad" rel="noreferrer" style={{ color: '#bfbfbf' }} target="_blank">política de privacidad</a>.
-        </div>
-      </div>
-    );
-  }
-
-  // ── Vista: login ──
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center', padding: '40px 36px' }}>
       {contextHolder}
-      <button
-        onClick={() => { setError(null); setView('landing'); }}
-        style={{ background: 'none', border: 'none', color: '#8c8c8c', cursor: 'pointer', fontSize: 13, marginBottom: 20, padding: 0, textAlign: 'left' }}
-        type="button"
-      >
-        ← Volver
-      </button>
-      <Title level={3} style={{ marginBottom: 6 }}>Iniciar sesión</Title>
-      <Text style={{ display: 'block', fontSize: 14, marginBottom: 24 }} type="secondary">Bienvenido de vuelta</Text>
-
-      {error && (
-        <Alert closable message={error} onClose={() => setError(null)} showIcon style={{ marginBottom: 16 }} type="error" />
-      )}
-
-      <FirebaseAuth
-        development={development}
-        onError={(e) => setError(e.message)}
-        onSuccess={() => {
-          if (redirectAfterLogin && isSafeRedirect(redirectAfterLogin)) {
-            window.location.href = redirectAfterLogin;
-          }
-        }}
+      <LoginForm
+        onEmailLogin={handleEmailLogin}
+        onFacebookLogin={handleFacebookLogin}
+        onGoogleLogin={handleGoogleLogin}
+        onVisitor={handleVisitor}
+        sessionExpiredMessage={
+          reason === 'session_expired' ? 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.' : null
+        }
       />
-
-      <Divider style={{ margin: '20px 0' }}>o con email</Divider>
-
-      <Form layout="vertical" onFinish={handleLogin} size="large">
-        <Form.Item name="email" rules={[{ message: 'Email válido requerido', required: true, type: 'email' }]}>
-          <Input placeholder="tu@email.com" type="email" />
-        </Form.Item>
-        <Form.Item name="password" rules={[{ message: 'Contraseña requerida', required: true }]}>
-          <Input.Password placeholder="Contraseña" />
-        </Form.Item>
-        <Button block htmlType="submit" loading={loading} size="large" style={{ height: 48 }} type="primary">
-          Iniciar sesión
-        </Button>
-      </Form>
-
-      <div style={{ marginTop: 16, textAlign: 'center' }}>
-        <Text style={{ fontSize: 13 }} type="secondary">
-          ¿No tienes cuenta?{' '}
-          <button
-            onClick={() => { setError(null); setView('landing'); }}
-            style={{ background: 'none', border: 'none', color: '#ec4899', cursor: 'pointer', font: 'inherit', fontSize: 13, fontWeight: 600, padding: 0 }}
-            type="button"
-          >
-            Crear cuenta gratis
-          </button>
-        </Text>
-      </div>
-      <div style={{ color: '#bfbfbf', fontSize: 11, marginTop: 16, textAlign: 'center' }}>
-        Al continuar aceptas nuestros términos de uso y política de privacidad.
-      </div>
     </div>
   );
 }
 
-// ─── Layout principal split-screen ───────────────────────────────────────────
+// ─── Layout ───────────────────────────────────────────────────────────────────
 function LoginContent() {
   return (
-    <SplitLoginPage>
+    <SplitLoginPage leftPanel={CHAT_IA_LEFT_PANEL}>
       <Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Cargando...</div>}>
         <RightPanel />
       </Suspense>
