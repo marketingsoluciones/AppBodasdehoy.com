@@ -106,54 +106,74 @@ async function entrarComoRegistrado(page: Page): Promise<boolean> {
 
 async function enviarPreguntaYCapturar(page: Page, pregunta: string): Promise<{ respuesta: string; ms: number }> {
   const inicio = Date.now();
-  const input = page.locator('textarea').first();
 
-  if (!await input.isVisible({ timeout: 15_000 }).catch(() => false)) {
+  // LobeChat usa contenteditable; el widget puede usar textarea — probar ambos
+  const inputLobe = page.locator('[contenteditable="true"]').first();
+  const inputTextarea = page.locator('textarea').first();
+  const isLobe = await inputLobe.isVisible({ timeout: 8_000 }).catch(() => false);
+  const isTextarea = !isLobe && await inputTextarea.isVisible({ timeout: 5_000 }).catch(() => false);
+
+  if (!isLobe && !isTextarea) {
     return { respuesta: '[ERROR: input no visible]', ms: Date.now() - inicio };
   }
 
-  const bodyAntes = (await page.locator('body').textContent() ?? '').length;
+  try {
+    const bodyAntes = (await page.locator('body').textContent() ?? '').length;
 
-  await input.fill(pregunta);
-  await page.waitForTimeout(300);
-  await input.press('Enter');
-
-  // Esperar que aparezca texto nuevo
-  await page.waitForFunction(
-    (lenAntes) => (document.body.textContent?.length ?? 0) > lenAntes + 20,
-    bodyAntes,
-    { timeout: TIMEOUT_RESPUESTA },
-  ).catch(() => {});
-
-  await page.waitForTimeout(5000);
-
-  // Selectores LobeChat (registrado)
-  const lobeSelector = [
-    '[data-role="assistant"] [class*="markdown"]',
-    '[data-role="assistant"] [class*="content"]',
-    '[class*="AssistantMessage"] p',
-  ].join(', ');
-  const lobeBloques = page.locator(lobeSelector);
-  const nLobe = await lobeBloques.count();
-  if (nLobe > 0) {
-    const textos: string[] = [];
-    const inicio2 = Math.max(0, nLobe - 8);
-    for (let i = inicio2; i < nLobe; i++) {
-      const t = (await lobeBloques.nth(i).textContent()) ?? '';
-      if (t.trim()) textos.push(t.trim());
+    if (isLobe) {
+      await inputLobe.click();
+      await inputLobe.pressSequentially(pregunta, { delay: 20 });
+      await page.keyboard.press('Enter');
+    } else {
+      await inputTextarea.fill(pregunta);
+      await page.waitForTimeout(300);
+      await inputTextarea.press('Enter');
     }
-    const r = textos.join(' ').trim();
-    if (r.length > 15) return { respuesta: r.slice(0, 800), ms: Date.now() - inicio };
-  }
 
-  // Fallback body text
-  const bodyText = (await page.locator('body').textContent()) ?? '';
-  const needle = pregunta.slice(0, 30);
-  const idx = bodyText.lastIndexOf(needle);
-  const texto = idx > -1
-    ? bodyText.slice(idx + needle.length, idx + needle.length + 600).trim()
-    : bodyText.slice(-600).trim();
-  return { respuesta: texto, ms: Date.now() - inicio };
+    // Esperar que aparezca texto nuevo
+    await page.waitForFunction(
+      (lenAntes) => (document.body.textContent?.length ?? 0) > lenAntes + 20,
+      bodyAntes,
+      { timeout: TIMEOUT_RESPUESTA },
+    ).catch(() => {});
+
+    await page.waitForTimeout(5000);
+
+    // Selectores LobeChat
+    const lobeSelector = [
+      '[data-role="assistant"] [class*="markdown"]',
+      '[data-role="assistant"] [class*="content"]',
+      '[class*="AssistantMessage"] p',
+    ].join(', ');
+    const lobeBloques = page.locator(lobeSelector);
+    const nLobe = await lobeBloques.count().catch(() => 0);
+    if (nLobe > 0) {
+      const textos: string[] = [];
+      const inicio2 = Math.max(0, nLobe - 8);
+      for (let i = inicio2; i < nLobe; i++) {
+        const t = await lobeBloques.nth(i).textContent().catch(() => '');
+        if (t?.trim()) textos.push(t.trim());
+      }
+      const r = textos.join(' ').trim();
+      if (r.length > 15) return { respuesta: r.slice(0, 800), ms: Date.now() - inicio };
+    }
+
+    // Fallback body text
+    const bodyText = await page.locator('body').textContent().catch(() => '');
+    const needle = pregunta.slice(0, 30);
+    const idx = (bodyText ?? '').lastIndexOf(needle);
+    const texto = idx > -1
+      ? (bodyText ?? '').slice(idx + needle.length, idx + needle.length + 600).trim()
+      : (bodyText ?? '').slice(-600).trim();
+    return { respuesta: texto, ms: Date.now() - inicio };
+  } catch (e) {
+    // La página puede cerrarse (widget timeout, crash del proceso webkit)
+    const msg = e instanceof Error ? e.message : String(e);
+    if (/closed|destroyed|detached/i.test(msg)) {
+      return { respuesta: '[ERROR: página cerrada mid-test]', ms: Date.now() - inicio };
+    }
+    throw e;
+  }
 }
 
 // ─── Colección global de resultados ──────────────────────────────────────────
