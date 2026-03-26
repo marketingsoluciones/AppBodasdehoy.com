@@ -155,6 +155,7 @@ function RightPanel() {
         const devUserConfig = {
           developer: result.development,
           development: result.development,
+          email: values.email,
           timestamp: Date.now(),
           token: result.token || null,
           userId: result.user_id,

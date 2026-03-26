@@ -49,10 +49,13 @@ export const FirebaseAuth: React.FC<FirebaseAuthProps> = ({
 
         const configToSave = {
           developer: currentDevelopment,
+          development: currentDevelopment,
+          email: userEmail || undefined,
           role: 'user',
           timestamp: Date.now(),
           token: jwtToken || null,
           userId: userEmail,
+          user_id: userEmail,
           user_data: {
             displayName: result.user.displayName || '',
             photoURL: result.user.photoURL || '',
@@ -121,10 +124,13 @@ export const FirebaseAuth: React.FC<FirebaseAuthProps> = ({
 
         const configToSave = {
           developer: currentDevelopment,
+          development: currentDevelopment,
+          email: userEmail || undefined,
           role: 'user',
           timestamp: Date.now(),
           token: jwtToken || null,
           userId: userEmail,
+          user_id: userEmail,
           user_data: {
             displayName: result.user.displayName || '',
             photoURL: result.user.photoURL || '',

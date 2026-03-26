@@ -164,9 +164,12 @@ async function exchangeFirebaseTokenForJWT(
       // ✅ Aún así guardar dev-user-config para que el usuario no vea el prompt de registro
       const devUserConfig = {
         developer: development,
+        development,
+        email: user?.email || undefined,
         timestamp: Date.now(),
         token: null,
         userId: user?.email || user?.uid,
+        user_id: user?.email || user?.uid,
         user_type: 'registered',
       };
       localStorage.setItem('dev-user-config', JSON.stringify(devUserConfig));
@@ -182,7 +185,11 @@ async function exchangeFirebaseTokenForJWT(
 
     // Guardar JWT en localStorage
     localStorage.setItem('api2_jwt_token', data.token);
-    localStorage.setItem('api2_jwt_expires_at', data.expiresAt || '');
+    if (data.expiresAt) {
+      localStorage.setItem('api2_jwt_expires_at', data.expiresAt);
+    } else {
+      localStorage.removeItem('api2_jwt_expires_at');
+    }
     localStorage.setItem('current_development', data.development || development);
 
     // También guardar jwt_token para compatibilidad con getAuthToken()
@@ -197,9 +204,12 @@ async function exchangeFirebaseTokenForJWT(
     // Guardar dev-user-config para que EventosAutoAuth reconozca al usuario
     const devUserConfig = {
       developer: data.development || development,
+      development: data.development || development,
+      email: user?.email || undefined,
       timestamp: Date.now(),
       token: data.token,
       userId: user?.email || user?.uid,
+      user_id: user?.email || user?.uid,
       user_type: 'registered',
     };
     localStorage.setItem('dev-user-config', JSON.stringify(devUserConfig));
@@ -219,9 +229,12 @@ async function exchangeFirebaseTokenForJWT(
     // ✅ Aún así guardar dev-user-config para que el usuario no vea el prompt de registro
     const devUserConfig = {
       developer: development,
+      development,
+      email: user?.email || undefined,
       timestamp: Date.now(),
       token: null,
       userId: user?.email || user?.uid,
+      user_id: user?.email || user?.uid,
       user_type: 'registered',
     };
     localStorage.setItem('dev-user-config', JSON.stringify(devUserConfig));
