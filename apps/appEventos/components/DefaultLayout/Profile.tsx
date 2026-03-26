@@ -25,6 +25,7 @@ import { IoIosArrowDown } from "react-icons/io";
 import { GoTasklist } from "react-icons/go";
 import { ImageAvatar } from "../Utils/ImageAvatar";
 import { adaptUrlForTestEnv } from "../../utils/urlHelpers";
+import { authBridge } from '@bodasdehoy/shared/auth';
 
 interface Flag {
   value: string
@@ -237,13 +238,14 @@ const Profile = ({ user, state, set, ...rest }) => {
         setLoading(true)
         updateActivity("logoutd")
         updateActivityLink("logoutd")
+        authBridge.clearAuth()
         Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
         Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
         signOut(getAuth()).then(() => {
+          setUser(null)
           toast("success", t("loggedoutsuccessfully"))
           router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")
         })
-        setUser(null)
       },
       development: ["bodasdehoy", "all"],
       rol: ["novio", "novia", "otro", "empresa"],

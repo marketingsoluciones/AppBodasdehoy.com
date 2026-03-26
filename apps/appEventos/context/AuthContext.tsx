@@ -592,6 +592,8 @@ const AuthProvider = ({ children }) => {
         variables: { uid: user?.uid },
         development: config?.development
       });
+      // Guard: if user logged out while this async call was in flight, do not overwrite null
+      if (!getAuth().currentUser) return;
       setUser({ ...user, ...userInfo });
       updateActivity("accessed")
       // Sincronizar sesión con apps/copilot via AuthBridge (escribe dev-user-config en localStorage)
@@ -603,7 +605,7 @@ const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("[moreInfo] ❌ Error obteniendo info del usuario:", error?.message || error)
       // Fallback: usar datos básicos de Firebase para no bloquear la app
-      setUser(user)
+      if (getAuth().currentUser) setUser(user)
     } finally {
       setVerificationDone(true)
     }
