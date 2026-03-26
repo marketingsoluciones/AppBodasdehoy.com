@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import ModalLeft from "../components/Utils/ModalLeft";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
-import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
+import GuestDemoWrapper from "../components/Utils/GuestDemoWrapper";
 import { SkeletonTable } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import { ModuleErrorBoundary } from "../components/ErrorBoundary";
@@ -73,17 +73,13 @@ const Invitados: FC = () => {
   if (verificationDone) {
     if (user?.displayName === 'guest') {
       return (
-        <GuestUpsellPage
+        <GuestDemoWrapper
           section="Lista de invitados"
           icon="👥"
-          description="Gestiona todos tus invitados, grupos, mesas y confirmaciones de asistencia en un solo lugar."
-          benefits={[
-            'Añade invitados ilimitados con datos personalizados',
-            'Organiza por grupos y mesas automáticamente',
-            'Envía confirmaciones de asistencia por WhatsApp y email',
-            'Estadísticas de confirmación en tiempo real',
-          ]}
-        />
+          description="Gestiona todos tus invitados, confirmaciones y organización de mesas."
+        >
+          <BlockListaInvitados />
+        </GuestDemoWrapper>
       )
     }
     if (!user) {

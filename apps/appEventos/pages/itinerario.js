@@ -3,7 +3,7 @@ import { AuthContextProvider, EventContextProvider } from "../context"
 import CopilotFilterBar from "../components/Utils/CopilotFilterBar"
 import { BlockTitle } from "../components/Utils/BlockTitle"
 import VistaSinCookie from "./vista-sin-cookie"
-import GuestUpsellPage from "../components/Utils/GuestUpsellPage"
+import GuestDemoWrapper from "../components/Utils/GuestDemoWrapper"
 import { SkeletonTimeline } from "../components/Utils/SkeletonPage"
 import { motion } from "framer-motion"
 
@@ -16,17 +16,13 @@ const Itinerario = () => {
     }
     if (user?.displayName === 'guest') {
         return (
-            <GuestUpsellPage
+            <GuestDemoWrapper
                 section="Itinerario del día"
                 icon="📋"
-                description="Organiza cada momento de tu boda con minuto a minuto. Comparte el itinerario con tu equipo y proveedores."
-                benefits={[
-                    'Planificación hora a hora de tu celebración',
-                    'Secciones para ceremonia, cóctel y banquete',
-                    'Compartir con fotógrafo, catering y equipo',
-                    'El copilot IA crea el itinerario automáticamente',
-                ]}
-            />
+                description="Planifica cada momento de tu boda al minuto y compártelo con tu equipo."
+            >
+                <BoddyIter />
+            </GuestDemoWrapper>
         )
     }
     if (!user) {
