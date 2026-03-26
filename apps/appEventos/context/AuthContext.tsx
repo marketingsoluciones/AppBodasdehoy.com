@@ -747,20 +747,25 @@ const AuthProvider = ({ children }) => {
       // SSO cross-domain: si no hay sessionCookie ni usuario Firebase,
       // pero hay idTokenV0.1.0 (p. ej. login en chat-dev/chat-test/chat), crear sesión automáticamente.
       if (!sessionCookie && !user?.uid) {
-        const crossDomainIdToken = Cookies.get("idTokenV0.1.0")
+        // Race condition fix: tras redirect cross-domain (chat-test → app-test), el cookie
+        // idTokenV0.1.0 puede llegar ligeramente después de que React hidrate. Esperar 800ms.
+        let crossDomainIdToken = Cookies.get("idTokenV0.1.0")
+        if (!crossDomainIdToken && typeof window !== 'undefined') {
+          await new Promise(resolve => setTimeout(resolve, 800))
+          crossDomainIdToken = Cookies.get("idTokenV0.1.0")
+        }
         if (crossDomainIdToken) {
           console.log("[Verificator] 🔗 SSO cross-domain: idTokenV0.1.0 encontrado, creando sesión...")
           try {
-            // IMPORTANTE: Usar fetch directo (no fetchApiBodas) para evitar que
-            // handleSessionExpired borre idTokenV0.1.0 y cause un bucle de login.
-            // La mutation `auth` es una operación de LOGIN — no necesita interceptor de sesión.
-            const _isDevOrTest = typeof window !== 'undefined' && (
+            // IMPORTANTE: Usar fetch directo desde el NAVEGADOR (no proxy servidor) para que
+            // Cloudflare no bloquee la petición.
+            // En localhost: usar proxy (evita CORS desde http://localhost).
+            // En test/prod: llamada directa — CF permite tráfico de navegadores reales.
+            const _isLocalhost = typeof window !== 'undefined' && (
               window.location.hostname === 'localhost' ||
-              window.location.hostname === '127.0.0.1' ||
-              window.location.hostname.includes('-test.') ||
-              window.location.hostname.includes('-dev.')
+              window.location.hostname === '127.0.0.1'
             );
-            const ssoApiUrl = _isDevOrTest ? '/api/proxy-bodas/graphql' : 'https://api.bodasdehoy.com/graphql';
+            const ssoApiUrl = _isLocalhost ? '/api/proxy-bodas/graphql' : 'https://api.bodasdehoy.com/graphql';
 
             const ssoResp = await fetch(ssoApiUrl, {
               method: 'POST',
