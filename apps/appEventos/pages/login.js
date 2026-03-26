@@ -57,37 +57,47 @@ const PageLogin = () => {
     }
   }, [preregister])
 
-  // Login unificado bodasdehoy: redirige al login de la app de chat (chat-dev / chat-test / chat)
-  // SSO: la app de chat setea idTokenV0.1.0 (Domain=.bodasdehoy.com); AuthContext en appEventos lo consume al volver
+  // SSO bodasdehoy: redirige al login de chat-ia SOLO cuando:
+  //   1. La verificación terminó y el usuario es definitivamente un guest (no estado de carga)
+  //   2. Y hay intención explícita de login: viene de ruta protegida (?d=) o sesión expirada
+  // Sin estas condiciones, visitantes fríos ven el formulario sin ser redirigidos (evita el bucle)
   useEffect(() => {
     if (!config?.development) return
     if (config.development !== 'bodasdehoy') return
-    if (user && verificationDone && user?.displayName !== "guest") return // ya autenticado (no guest)
-    if (linkMedia || preregister) return // flujos especiales que necesitan appEventos login
+    if (user && verificationDone && user?.displayName !== "guest") return // ya autenticado
+    if (linkMedia || preregister) return // flujos especiales
     const localLogin = router.query['local-login'] === '1'
     if (localLogin) return
 
     const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
-    if (hostname === 'localhost' || hostname === '127.0.0.1') return // dev local: login propio
+    if (hostname === 'localhost' || hostname === '127.0.0.1') return // dev local
 
-    // Si ya hay idTokenV0.1.0 el SSO desde la app de chat ya ocurrió — esperar a que AuthContext lo procese,
-    // no redirigir de nuevo o causará bucle infinito
+    // Condición clave: solo redirigir cuando la verificación ha terminado
+    // (evita redirects en el estado de carga inicial donde user/verificationDone aún no tienen valor)
+    if (!verificationDone) return
+
+    // Si ya hay idTokenV0.1.0 el SSO desde chat-ia ya ocurrió — AuthContext lo procesará
     const hasSsoToken = typeof document !== 'undefined' && document.cookie.includes('idTokenV0.1.0')
-    // Anti-loop: si ya redirigimos a chat-ia en esta sesión de tab, no redirigir de nuevo
-    // (da tiempo al verificator de app para procesar el SSO token sin entrar en bucle)
+    if (hasSsoToken) return
+
+    // Anti-loop: si ya redirigimos en esta sesión de tab, no redirigir de nuevo
     const ssoRedirectPending = typeof window !== 'undefined' && sessionStorage.getItem('sso_redirect_pending') === '1'
-    if (hasSsoToken || ssoRedirectPending) return
+    if (ssoRedirectPending) return
+
+    // INTENCIÓN DE LOGIN: solo redirigir si el usuario viene de ruta protegida o sesión expirada.
+    // Visitantes que navegan directamente a /login ven el formulario sin redirect automático.
+    const hasLoginIntent = !!queryD || sessionExpired
+    if (!hasLoginIntent) return
 
     const chatDomain = resolveChatOrigin(hostname)
     const rawPath = queryD?.trim()
-    // Sólo aceptar rutas relativas puras (sin ://). Evita URL duplicada si queryD llega contaminado.
     const returnPath = (rawPath?.startsWith('/') && !rawPath.includes('://')) ? rawPath : '/'
     const returnUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}${returnPath}`
     const chatLoginUrl = `${chatDomain}/login?redirect=${encodeURIComponent(returnUrl)}`
 
     sessionStorage.setItem('sso_redirect_pending', '1')
     window.location.href = chatLoginUrl
-  }, [config?.development, user, verificationDone, linkMedia, preregister, queryD])
+  }, [config?.development, user, verificationDone, linkMedia, preregister, queryD, sessionExpired])
 
   // Auto-redirect tras login exitoso (700ms para dejar que el estado se estabilice)
   useEffect(() => {
