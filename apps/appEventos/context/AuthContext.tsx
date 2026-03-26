@@ -793,10 +793,6 @@ const AuthProvider = ({ children }) => {
           } catch (ssoErr: any) {
             console.warn("[Verificator] ⚠️ SSO cross-domain: error creando sesión:", ssoErr?.message)
           }
-          // Fix double-login bug: si el SSO cross-domain falló (catch o sessionCookie vacío),
-          // limpiar sso_redirect_pending para que login.js pueda re-intentar el SSO redirect.
-          // Sin este cleanup, el usuario queda atascado en app-test/login con "Sesión no autorizada".
-          if (typeof window !== 'undefined') sessionStorage.removeItem('sso_redirect_pending')
         }
       }
 
