@@ -774,7 +774,10 @@ const AuthProvider = ({ children }) => {
               }),
             });
 
-            if (!ssoResp.ok) throw new Error(`SSO auth API returned ${ssoResp.status}`);
+            if (!ssoResp.ok) {
+              const errText = await ssoResp.text().catch(() => '')
+              throw new Error(`SSO auth API returned ${ssoResp.status}: ${errText.substring(0, 300)}`)
+            }
             const ssoJson = await ssoResp.json();
             const ssoAuthResult: any = ssoJson?.data?.auth;
 
@@ -790,8 +793,22 @@ const AuthProvider = ({ children }) => {
               await verificator({ user: null, sessionCookie: ssoAuthResult.sessionCookie })
               return
             }
+            // auth mutation returned OK but no sessionCookie — log and fall to Firebase fallback below
+            console.warn("[Verificator] ⚠️ SSO cross-domain: auth mutation no devolvió sessionCookie. ssoJson:", JSON.stringify(ssoJson).substring(0, 300))
           } catch (ssoErr: any) {
             console.warn("[Verificator] ⚠️ SSO cross-domain: error creando sesión:", ssoErr?.message)
+          }
+
+          // Fallback: auth mutation falló o no devolvió sessionCookie.
+          // Decodificar el idTokenV0.1.0 directamente (es un JWT Firebase válido).
+          // Permite acceder a la app sin sessionBodas usando Bearer token para las APIs.
+          // Evita que el usuario quede como "guest" cuando el SSO cross-domain falla.
+          const fbPayload = parseJwt(crossDomainIdToken)
+          if (fbPayload?.sub) {
+            console.log("[Verificator] 🔄 SSO fallback: auth mutation sin resultado, autenticando con Firebase token directo (uid:", fbPayload.sub, ")")
+            setUser({ uid: fbPayload.sub, email: fbPayload.email || '', displayName: fbPayload.name || '' })
+            setVerificationDone(true)
+            return
           }
         }
       }
