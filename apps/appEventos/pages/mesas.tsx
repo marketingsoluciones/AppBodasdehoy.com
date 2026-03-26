@@ -10,7 +10,7 @@ import { useDelayUnmount } from "../utils/Funciones";
 import ModalLeft from "../components/Utils/ModalLeft";
 import FormInvitado from "../components/Forms/FormInvitado";
 import VistaSinCookie from "./vista-sin-cookie";
-import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
+import GuestDemoWrapper from "../components/Utils/GuestDemoWrapper";
 import { SkeletonMesas } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import SwiperCore, { Pagination } from 'swiper';
@@ -178,17 +178,13 @@ const Mesas: FC = () => {
   if (verificationDone) {
     if (user?.displayName === 'guest') {
       return (
-        <GuestUpsellPage
+        <GuestDemoWrapper
           section="Plano de mesas"
           icon="🪑"
-          description="Organiza el seating de tu boda de forma visual. Asigna invitados a mesas y genera el plano de sala."
-          benefits={[
-            'Plano interactivo drag & drop de mesas',
-            'Asignación automática de invitados',
-            'Vista por zonas: ceremonia, cóctel y banquete',
-            'El copilot IA te sugiere distribuciones óptimas',
-          ]}
-        />
+          description="Diseña el plano de tu evento y sienta a tus invitados con drag & drop."
+        >
+          <BlockPanelMesas />
+        </GuestDemoWrapper>
       )
     }
     if (!user) {

@@ -4,7 +4,7 @@ import { createStyles } from 'antd-style';
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { BandejaView } from '@/app/[variants]/(main)/messages/components/BandejaView';
+import { ChannelSidebar } from '@/app/[variants]/(main)/messages/components/ChannelSidebar';
 import ConversationHistory from '../ConversationHistory';
 import DefaultMode from '../DefaultMode';
 
@@ -109,7 +109,7 @@ const SubTabs = memo(() => {
       {/* Contenido: Bandeja = canales + mensajes directos; Historial = conversaciones API2 */}
       <div className={styles.content}>
         {activeTab === 'conversaciones' && <DefaultMode />}
-        {activeTab === 'bandeja' && <BandejaView />}
+        {activeTab === 'bandeja' && <ChannelSidebar compact />}
         {activeTab === 'historial' && <ConversationHistory />}
       </div>
     </div>

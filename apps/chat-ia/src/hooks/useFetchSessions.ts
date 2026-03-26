@@ -6,7 +6,7 @@ import { authSelectors } from '@/store/user/slices/auth/selectors';
 
 export const useFetchSessions = () => {
   const isDBInited = useGlobalStore(systemStatusSelectors.isDBInited);
-  const isLogin = useUserStore(authSelectors.isLogin);
+  const isLogin = useUserStore(authSelectors.isLoginWithAuth);
   const useFetchSessions = useSessionStore((s) => s.useFetchSessions);
 
   useFetchSessions(isDBInited, isLogin);

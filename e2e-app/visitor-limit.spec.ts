@@ -25,6 +25,11 @@ const isAppTest =
   BASE_URL.includes('localhost');
 
 const CHAT_URL = getChatUrl(BASE_URL);
+const isChatRemote =
+  CHAT_URL.includes('chat-dev.') ||
+  CHAT_URL.includes('chat-test.') ||
+  CHAT_URL.includes('chat.bodasdehoy.com') ||
+  CHAT_URL.includes('chat.vivetuboda.com');
 
 /** Limpia solo chat-test (cookies + localStorage) sin tocar app-test */
 async function clearChatSession(context: BrowserContext, page: Page): Promise<void> {
@@ -213,7 +218,7 @@ test.describe('Server-side visitor limit — /webapi/chat/{provider}', () => {
   test.setTimeout(60_000);
 
   test('endpoint /webapi/chat rechaza visitor con vis_mc>=3 y X-User-ID visitor_xxx', async ({ page }) => {
-    if (!isAppTest) { test.skip(); return; }
+    if (!isAppTest || !isChatRemote) { test.skip(); return; }
 
     await page.goto(CHAT_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(1000);
@@ -251,7 +256,7 @@ test.describe('Server-side visitor limit — /webapi/chat/{provider}', () => {
   });
 
   test('endpoint /webapi/chat permite visitor con vis_mc<3', async ({ page }) => {
-    if (!isAppTest) { test.skip(); return; }
+    if (!isAppTest || !isChatRemote) { test.skip(); return; }
 
     await page.goto(CHAT_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(1000);

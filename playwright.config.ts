@@ -36,7 +36,7 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 0,
-  bail: 1,
+  bail: process.env.E2E_BAIL === '1' ? 1 : 0,
   workers: 1,
   reporter: 'list',
   timeout: fast ? 30_000 : 90_000,

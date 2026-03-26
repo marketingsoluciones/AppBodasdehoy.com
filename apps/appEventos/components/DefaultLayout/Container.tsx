@@ -144,7 +144,7 @@ const Container = (props) => {
 
         {/* Columna del contenido (banner "Organiza tus eventos", tarjetas, etc.): siempre a la derecha del Copilot */}
         <div
-          className="min-w-0 overflow-auto overflow-y-scroll transition-all duration-300 relative z-0 flex flex-col"
+          className="min-w-0 overflow-auto overflow-y-scroll transition-all duration-300 relative z-[45] flex flex-col"
           style={{ isolation: "isolate" }}
         >
           {/* Barra de filtro global: visible cuando el Copilot aplicó un filtro (mesa X, tarea X, etc.) */}

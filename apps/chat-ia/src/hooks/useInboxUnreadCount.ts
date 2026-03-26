@@ -11,7 +11,7 @@ const POLL_INTERVAL_MS = 60_000;
 /** Returns total unread count (notifications + future: WA messages).
  *  Polls every 60s. Returns 0 when user is not logged in. */
 export function useInboxUnreadCount(): number {
-  const isLoggedIn = useUserStore(authSelectors.isLogin);
+  const isLoggedIn = useUserStore(authSelectors.isLoginWithAuth);
   const [count, setCount] = useState(0);
 
   useEffect(() => {

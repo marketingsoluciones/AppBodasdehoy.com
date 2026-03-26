@@ -28,8 +28,36 @@ function QRModal({
   onClose: () => void;
 }) {
   const sessionKey = channel?.id ?? development;
-  const { connectedAt, disconnectSession, error, loading, phoneNumber, qrCode, startSession, status } =
+  const { connectedAt, disconnectSession, error, loading, phoneNumber, qrCode, requestPairingCode, startSession, status } =
     useWhatsAppSession(sessionKey);
+
+  const [mode, setMode] = useState<'qr' | 'code'>('qr');
+  const [pairingPhone, setPairingPhone] = useState('');
+  const [pairingCode, setPairingCode] = useState<string | null>(null);
+  const [pairingLoading, setPairingLoading] = useState(false);
+  const [pairingError, setPairingError] = useState<string | null>(null);
+
+  const handleRequestCode = async () => {
+    const phone = pairingPhone.replaceAll(/\D/g, '');
+    if (phone.length < 9) {
+      setPairingError('Introduce un número de teléfono válido con código de país (ej: 34612345678)');
+      return;
+    }
+    setPairingLoading(true);
+    setPairingError(null);
+    try {
+      // La sesión debe estar iniciada antes de pedir el código
+      if (status === 'disconnected' || status === 'error') {
+        await startSession();
+      }
+      const code = await requestPairingCode(phone);
+      setPairingCode(code);
+    } catch (err: any) {
+      setPairingError(err?.message ?? 'Error solicitando código. Inténtalo de nuevo.');
+    } finally {
+      setPairingLoading(false);
+    }
+  };
 
   return (
     <Modal
@@ -63,7 +91,7 @@ function QRModal({
         </Space>
       )}
 
-      {!loading && status === 'qr_ready' && qrCode && (
+      {!loading && status === 'qr_ready' && qrCode && mode === 'qr' && (
         <Space direction="vertical" size="middle" style={{ textAlign: 'center', width: '100%' }}>
           <Text type="secondary">Abre WhatsApp → Dispositivos vinculados → Vincular un dispositivo</Text>
           <div style={{ border: '3px solid #25D366', borderRadius: 12, display: 'inline-block', padding: 8 }}>
@@ -73,6 +101,10 @@ function QRModal({
           <Space size={6}>
             <span style={{ background: '#52c41a', borderRadius: '50%', display: 'inline-block', height: 8, width: 8 }} />
             <Text type="secondary">Esperando escaneo...</Text>
+          </Space>
+          <Space>
+            <Button onClick={startSession} size="small">Regenerar QR</Button>
+            <Button onClick={() => setMode('code')} size="small" type="link">Usar código en su lugar →</Button>
           </Space>
         </Space>
       )}
@@ -85,7 +117,7 @@ function QRModal({
         </Space>
       )}
 
-      {!loading && (status === 'disconnected' || status === 'error') && (
+      {!loading && (status === 'disconnected' || status === 'error') && mode === 'qr' && (
         <Space direction="vertical" size="middle" style={{ textAlign: 'center', width: '100%' }}>
           <div style={{ fontSize: 40 }}>📱</div>
           <div>
@@ -101,6 +133,54 @@ function QRModal({
             type="primary"
           >
             Generar código QR
+          </Button>
+          <Button onClick={() => setMode('code')} size="small" type="link">
+            Conectar con número de teléfono →
+          </Button>
+        </Space>
+      )}
+
+      {/* Modo código de vinculación (pairing code) */}
+      {!loading && mode === 'code' && status !== 'connected' && (
+        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+          <div>
+            <Text strong>Vincular por número de teléfono</Text>
+            <div><Text style={{ fontSize: 13 }} type="secondary">
+              Introduce tu número con código de país. Recibirás un código de 8 dígitos para introducir en WhatsApp → Dispositivos vinculados → Vincular con número de teléfono.
+            </Text></div>
+          </div>
+
+          {pairingError && <Alert message={pairingError} showIcon type="error" />}
+
+          {pairingCode ? (
+            <div style={{ background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 8, padding: '16px', textAlign: 'center' }}>
+              <Text type="secondary" style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>Tu código de vinculación</Text>
+              <Text strong style={{ fontSize: 28, letterSpacing: 6 }}>{pairingCode}</Text>
+              <div style={{ marginTop: 8 }}>
+                <Text type="secondary" style={{ fontSize: 12 }}>Introdúcelo en WhatsApp antes de que expire (~60s)</Text>
+              </div>
+            </div>
+          ) : (
+            <Space.Compact style={{ width: '100%' }}>
+              <Input
+                onChange={(e) => setPairingPhone(e.target.value)}
+                placeholder="34612345678 (con código de país, sin +)"
+                value={pairingPhone}
+                onPressEnter={handleRequestCode}
+              />
+              <Button
+                loading={pairingLoading}
+                onClick={handleRequestCode}
+                style={{ background: '#25D366', borderColor: '#25D366' }}
+                type="primary"
+              >
+                Obtener código
+              </Button>
+            </Space.Compact>
+          )}
+
+          <Button onClick={() => { setMode('qr'); setPairingCode(null); setPairingError(null); }} size="small" type="link">
+            ← Volver al QR
           </Button>
         </Space>
       )}

@@ -3,7 +3,7 @@
  *
  * Tests E2E de la Bandeja / tab Messages en chat-ia (chat-test):
  *   - /messages carga sin crash
- *   - InboxSidebar muestra "Bandeja" y secciones (Tareas, Conversaciones)
+ *   - ChannelSidebar muestra "Mensajes" + filtros de canal
  *   - TAREAS PENDIENTES aparece cuando hay sesión con eventos
  *   - Clic en tarea navega a workspace de detalle (ev-*-task/taskId)
  *   - TaskDetailWorkspace muestra tarjeta de tarea (sin crash)
@@ -117,10 +117,10 @@ test.describe('Bandeja — smoke /messages', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. InboxSidebar — estructura y secciones
+// 2. ChannelSidebar — estructura y secciones
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('InboxSidebar — estructura y secciones', () => {
+test.describe('ChannelSidebar — estructura y secciones', () => {
   test.setTimeout(120_000);
 
   test.beforeEach(async ({ context, page }) => {
@@ -128,7 +128,7 @@ test.describe('InboxSidebar — estructura y secciones', () => {
     await clearSession(context, page);
   });
 
-  test('muestra encabezado "Bandeja" en el sidebar', async ({ page }) => {
+  test('muestra encabezado "Mensajes" en el sidebar', async ({ page }) => {
     if (!isAppTest) {
       test.skip();
       return;
@@ -141,8 +141,8 @@ test.describe('InboxSidebar — estructura y secciones', () => {
     }
     const text = await page.locator('body').textContent().catch(() => null) ?? '';
     if (text === null) return;
-    // Debe aparecer "Bandeja" o "Mensajes" como título del sidebar, o Login
-    const hasSidebar = /Bandeja|Mensajes|Iniciar sesión|login/i.test(text);
+    // ChannelSidebar muestra "Mensajes" como título del panel izquierdo
+    const hasSidebar = /Mensajes|Iniciar sesión|login/i.test(text);
     if (!hasSidebar) {
       console.log(`ℹ️ Sidebar: texto inesperado (puede estar cargando). Texto: ${text.slice(0, 150)}`);
     }
@@ -190,7 +190,72 @@ test.describe('InboxSidebar — estructura y secciones', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. /messages/whatsapp — setup de WhatsApp
+// 3. ChannelSidebar — ConnectChannelDrawer y filtros de canal
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('ChannelSidebar — ConnectChannelDrawer y filtros', () => {
+  test.setTimeout(90_000);
+
+  test('botón "Conectar canal" abre drawer sin crash', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) {
+      test.skip();
+      return;
+    }
+    await loginChat(page);
+    await goChatRoute(page, '/messages');
+
+    if (!await isChatUp(page)) {
+      console.log('ℹ️ chat-dev no accesible — pass sin crash');
+      return;
+    }
+
+    // Clic en el botón de configuración (ChannelSidebar header settings icon)
+    const settingsBtn = page.locator('button[title="Conectar canal"]').first();
+    if (await settingsBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await settingsBtn.click();
+      await page.waitForTimeout(500);
+
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      // Drawer debe mostrar lista de canales para conectar
+      const hasDrawer = /Conectar canal|WhatsApp|Instagram|Telegram|Facebook/i.test(text);
+      expect(hasDrawer).toBe(true);
+
+      // Cerrar con Escape
+      await page.keyboard.press('Escape');
+    } else {
+      console.log('ℹ️ Botón Conectar canal no visible (puede estar redirigiendo a login)');
+    }
+  });
+
+  test('filtros de canal (WA/IG/TG) filtran la lista', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) {
+      test.skip();
+      return;
+    }
+    await loginChat(page);
+    await goChatRoute(page, '/messages');
+
+    if (!await isChatUp(page)) {
+      console.log('ℹ️ chat-dev no accesible — pass sin crash');
+      return;
+    }
+
+    // Clic en filtro WA — no debe crashear
+    const waBtn = page.locator('button').filter({ hasText: /^WA$/ }).first();
+    if (await waBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await waBtn.click();
+      await page.waitForTimeout(300);
+      const text = (await page.locator('body').textContent()) ?? '';
+      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+    } else {
+      console.log('ℹ️ Filtro WA no visible (sin canales conectados o cargando)');
+    }
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. /messages/whatsapp — setup de WhatsApp (pairing QR + código)
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('WhatsApp setup — /messages/whatsapp', () => {
@@ -235,10 +300,45 @@ test.describe('WhatsApp setup — /messages/whatsapp', () => {
       /WhatsApp|QR|código|conectar|escanea|teléfono|Conectado|Conectar/i.test(text);
     expect(hasSetup).toBe(true);
   });
+
+  test('con sesión: link "Usar código en su lugar" alterna al modo código', async ({ page }) => {
+    if (!isAppTest || !hasCredentials) {
+      test.skip();
+      return;
+    }
+    await loginChat(page);
+    await goChatRoute(page, '/messages/whatsapp');
+
+    const text = (await page.locator('body').textContent()) ?? '';
+    expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+
+    // Si ya está conectado no hay modo de vinculación — skip silencioso
+    if (/Conectado/i.test(text)) {
+      console.log('ℹ️ WhatsApp ya conectado — skip test de modo código');
+      return;
+    }
+
+    // Esperar a que aparezca el botón de alternar modo
+    const switchBtn = page.locator('button, a').filter({ hasText: /código|number|phone/i }).first();
+    if (await switchBtn.isVisible({ timeout: 8_000 }).catch(() => false)) {
+      await switchBtn.click();
+      await page.waitForTimeout(500);
+      const after = (await page.locator('body').textContent()) ?? '';
+      expect(after).not.toMatch(/Error Capturado por ErrorBoundary/);
+      // Modo código muestra campo de teléfono
+      const hasPhoneField = await page.locator('input[type="tel"], input[placeholder*="teléfono" i], input[placeholder*="phone" i]').isVisible({ timeout: 3_000 }).catch(() => false);
+      if (!hasPhoneField) {
+        // Puede que el QR no esté listo todavía — no es error crítico
+        console.log('ℹ️ Campo teléfono no visible (QR puede no estar listo)');
+      }
+    } else {
+      console.log('ℹ️ Botón de modo código no visible (QR puede no estar listo)');
+    }
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. /messages/ev-*-task — empty state selección de tarea
+// 5. /messages/ev-*-task — empty state selección de tarea
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Task channel empty state — /messages/ev-{id}-task', () => {
@@ -270,7 +370,7 @@ test.describe('Task channel empty state — /messages/ev-{id}-task', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. Task detail workspace — /messages/ev-*-task/{taskId}
+// 6. Task detail workspace — /messages/ev-*-task/{taskId}
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Task detail workspace', () => {
@@ -354,7 +454,7 @@ test.describe('Task detail workspace', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 6. Navegación entre rutas de mensajes
+// 7. Navegación entre rutas de mensajes
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Navegación — rutas messages en chat-ia', () => {
@@ -395,7 +495,7 @@ test.describe('Navegación — rutas messages en chat-ia', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 7. Input de tarea — visible en workspace
+// 8. Input de tarea — visible en workspace
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Task workspace — input al asistente', () => {

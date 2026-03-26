@@ -57,70 +57,97 @@ vi.mock('js-sha256', () => ({
   sha256: vi.fn((data) => 'mock-hash-' + data.byteLength),
 }));
 
+// Helper: mock R2 upload response
+const MOCK_R2_METADATA = {
+  date: '1',
+  dirname: 'bodasdehoy/events/event-123',
+  filename: 'test.png',
+  path: 'bodasdehoy/events/event-123/test.png',
+};
+
 describe('UploadService', () => {
   const mockFile = new File(['test'], 'test.png', { type: 'image/png' });
   const mockPreSignUrl = 'https://example.com/presign';
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Mock Date.now
-    vi.spyOn(Date, 'now').mockImplementation(() => 3600000); // 1 hour in milliseconds
+    vi.spyOn(Date, 'now').mockImplementation(() => 3600000);
+    // Seed localStorage so user identity check passes
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: vi.fn((key: string) => {
+          if (key === 'dev-user-config') {
+            return JSON.stringify({
+              development: 'bodasdehoy',
+              eventos: [{ _id: 'event-123' }],
+              user_email: 'test@bodasdehoy.com',
+              user_id: 'user-abc',
+            });
+          }
+          return null;
+        }),
+        removeItem: vi.fn(),
+        setItem: vi.fn(),
+      },
+      writable: true,
+    });
   });
 
   describe('uploadFileToS3', () => {
-    it('should upload to client S3 for non-server mode with image file', async () => {
-      const { sha256 } = await import('js-sha256');
-      vi.mocked(sha256).mockReturnValue('test-hash');
-      vi.mocked(clientS3Storage.putObject).mockResolvedValue(undefined);
+    it('should call uploadToStorageR2 with correct args for image file', async () => {
+      const r2Spy = vi
+        .spyOn(uploadService, 'uploadToStorageR2')
+        .mockResolvedValue({ isCaptation: false, metadata: MOCK_R2_METADATA });
 
-      const result = await uploadService.uploadFileToS3(mockFile, {});
+      const result = await uploadService.uploadFileToS3(mockFile, { userId: 'user-abc' });
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual({
-        date: '1',
-        dirname: '',
-        filename: mockFile.name,
-        path: 'client-s3://test-hash',
-      });
-      expect(clientS3Storage.putObject).toHaveBeenCalledWith('test-hash', mockFile);
+      expect(result.data).toEqual(MOCK_R2_METADATA);
+      expect(r2Spy).toHaveBeenCalledWith(
+        mockFile,
+        expect.objectContaining({ userId: 'user-abc' }),
+      );
     });
 
-    it('should call onNotSupported for non-image/video files', async () => {
+    it('should upload any file type (type validation is done at the action layer)', async () => {
       const nonImageFile = new File(['test'], 'test.txt', { type: 'text/plain' });
-      const onNotSupported = vi.fn();
-
-      const result = await uploadService.uploadFileToS3(nonImageFile, {
-        onNotSupported,
+      vi.spyOn(uploadService, 'uploadToStorageR2').mockResolvedValue({
+        isCaptation: false,
+        metadata: { ...MOCK_R2_METADATA, filename: 'test.txt' },
       });
 
-      expect(result.success).toBe(false);
-      expect(onNotSupported).toHaveBeenCalled();
+      const result = await uploadService.uploadFileToS3(nonImageFile, { userId: 'user-abc' });
+
+      expect(result.success).toBe(true);
     });
 
     it('should skip file type check when skipCheckFileType is true', async () => {
       const nonImageFile = new File(['test'], 'test.txt', { type: 'text/plain' });
-      const { sha256 } = await import('js-sha256');
-      vi.mocked(sha256).mockReturnValue('test-hash');
-      vi.mocked(clientS3Storage.putObject).mockResolvedValue(undefined);
+      vi.spyOn(uploadService, 'uploadToStorageR2').mockResolvedValue({
+        isCaptation: false,
+        metadata: { ...MOCK_R2_METADATA, filename: 'test.txt' },
+      });
 
       const result = await uploadService.uploadFileToS3(nonImageFile, {
         skipCheckFileType: true,
+        userId: 'user-abc',
       });
 
       expect(result.success).toBe(true);
-      expect(clientS3Storage.putObject).toHaveBeenCalled();
     });
 
     it('should upload video files', async () => {
       const videoFile = new File(['test'], 'test.mp4', { type: 'video/mp4' });
-      const { sha256 } = await import('js-sha256');
-      vi.mocked(sha256).mockReturnValue('video-hash');
-      vi.mocked(clientS3Storage.putObject).mockResolvedValue(undefined);
+      const r2Spy = vi.spyOn(uploadService, 'uploadToStorageR2').mockResolvedValue({
+        isCaptation: false,
+        metadata: { ...MOCK_R2_METADATA, filename: 'test.mp4' },
+      });
 
-      const result = await uploadService.uploadFileToS3(videoFile, {});
+      const result = await uploadService.uploadFileToS3(videoFile, { userId: 'user-abc' });
 
       expect(result.success).toBe(true);
-      expect(clientS3Storage.putObject).toHaveBeenCalledWith('video-hash', videoFile);
+      expect(r2Spy).toHaveBeenCalled();
     });
   });
 
@@ -132,20 +159,18 @@ describe('UploadService', () => {
         mimeType: 'image/png',
         type: 'base64',
       });
-
-      const { sha256 } = await import('js-sha256');
-      vi.mocked(sha256).mockReturnValue('base64-hash');
-      vi.mocked(clientS3Storage.putObject).mockResolvedValue(undefined);
+      vi.spyOn(uploadService, 'uploadToStorageR2').mockResolvedValue({
+        isCaptation: false,
+        metadata: MOCK_R2_METADATA,
+      });
 
       const base64Data = 'data:image/png;base64,dGVzdA==';
-      const result = await uploadService.uploadBase64ToS3(base64Data);
+      const result = await uploadService.uploadBase64ToS3(base64Data, { userId: 'user-abc' });
 
       expect(result).toMatchObject({
         fileType: 'image/png',
         hash: expect.any(String),
-        metadata: expect.objectContaining({
-          path: expect.stringContaining('client-s3://'),
-        }),
+        metadata: expect.objectContaining({ path: MOCK_R2_METADATA.path }),
         size: expect.any(Number),
       });
     });
@@ -172,14 +197,15 @@ describe('UploadService', () => {
         mimeType: 'image/png',
         type: 'base64',
       });
-
-      const { sha256 } = await import('js-sha256');
-      vi.mocked(sha256).mockReturnValue('custom-hash');
-      vi.mocked(clientS3Storage.putObject).mockResolvedValue(undefined);
+      vi.spyOn(uploadService, 'uploadToStorageR2').mockResolvedValue({
+        isCaptation: false,
+        metadata: { ...MOCK_R2_METADATA, filename: 'custom-image.png' },
+      });
 
       const base64Data = 'data:image/png;base64,dGVzdA==';
       const result = await uploadService.uploadBase64ToS3(base64Data, {
         filename: 'custom-image',
+        userId: 'user-abc',
       });
 
       expect(result.metadata.filename).toContain('custom-image');
@@ -188,29 +214,31 @@ describe('UploadService', () => {
 
   describe('uploadDataToS3', () => {
     it('should upload JSON data successfully', async () => {
-      const { sha256 } = await import('js-sha256');
-      vi.mocked(sha256).mockReturnValue('json-hash');
-      vi.mocked(clientS3Storage.putObject).mockResolvedValue(undefined);
+      vi.spyOn(uploadService, 'uploadToStorageR2').mockResolvedValue({
+        isCaptation: false,
+        metadata: { ...MOCK_R2_METADATA, filename: 'data.json' },
+      });
 
       const data = { key: 'value', number: 123 };
-      // uploadDataToS3 internally calls uploadFileToS3, which needs skipCheckFileType for JSON
       const result = await uploadService.uploadDataToS3(data, {
         skipCheckFileType: true,
+        userId: 'user-abc',
       });
 
       expect(result.success).toBe(true);
-      expect(clientS3Storage.putObject).toHaveBeenCalled();
     });
 
     it('should use custom filename when provided', async () => {
-      const { sha256 } = await import('js-sha256');
-      vi.mocked(sha256).mockReturnValue('custom-json-hash');
-      vi.mocked(clientS3Storage.putObject).mockResolvedValue(undefined);
+      vi.spyOn(uploadService, 'uploadToStorageR2').mockResolvedValue({
+        isCaptation: false,
+        metadata: { ...MOCK_R2_METADATA, filename: 'custom.json' },
+      });
 
       const data = { test: true };
       const result = await uploadService.uploadDataToS3(data, {
         filename: 'custom.json',
         skipCheckFileType: true,
+        userId: 'user-abc',
       });
 
       expect(result.success).toBe(true);

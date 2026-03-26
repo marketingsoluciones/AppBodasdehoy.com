@@ -116,7 +116,7 @@ const Navigation: FC = () => {
           set={(accion) => setIsMounted(accion)}
         />
       )}
-      <header className="f-top relative w-full bg-white overflow-x-hidden">
+      <header className="f-top relative w-full bg-white">
         <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0  ">
           <span
             onClick={() => {

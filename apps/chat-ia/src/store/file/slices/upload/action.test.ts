@@ -220,7 +220,7 @@ describe('FileUploadAction', () => {
         const { result } = renderHook(() => useStore());
 
         const mockFile = new File(['test content'], 'progress.png', { type: 'image/png' });
-        const mockData = { path: '/uploads/progress.png' };
+        const mockData = { date: '12345', dirname: '/uploads', filename: 'progress.png', path: '/uploads/progress.png' };
         const mockUploadResult = { data: mockData, success: true };
         const onStatusUpdate = vi.fn();
 
@@ -321,7 +321,7 @@ describe('FileUploadAction', () => {
         const mockFile = new File(['test content'], 'skip.bin', {
           type: 'application/octet-stream',
         });
-        const mockUploadResult = { data: { path: '/uploads/skip.bin' }, success: true };
+        const mockUploadResult = { data: { date: '12345', dirname: '/uploads', filename: 'skip.bin', path: '/uploads/skip.bin' }, success: true };
 
         vi.mocked(getImageDimensions).mockResolvedValue(undefined);
         vi.spyOn(uploadService, 'uploadFileToS3').mockResolvedValue(mockUploadResult);
@@ -348,7 +348,7 @@ describe('FileUploadAction', () => {
 
         const mockFile = new File(['image data'], 'image.jpg', { type: 'image/jpeg' });
         const mockDimensions = { height: 300, width: 400 };
-        const mockUploadResult = { data: { path: '/images/image.jpg' }, success: true };
+        const mockUploadResult = { data: { date: '12345', dirname: '/images', filename: 'image.jpg', path: '/images/image.jpg' }, success: true };
 
         vi.mocked(getImageDimensions).mockResolvedValue(mockDimensions);
         vi.spyOn(uploadService, 'uploadFileToS3').mockResolvedValue(mockUploadResult);
@@ -367,7 +367,7 @@ describe('FileUploadAction', () => {
         const { result } = renderHook(() => useStore());
 
         const mockFile = new File(['text data'], 'document.txt', { type: 'text/plain' });
-        const mockUploadResult = { data: { path: '/docs/document.txt' }, success: true };
+        const mockUploadResult = { data: { date: '12345', dirname: '/docs', filename: 'document.txt', path: '/docs/document.txt' }, success: true };
 
         vi.mocked(getImageDimensions).mockResolvedValue(undefined);
         vi.spyOn(uploadService, 'uploadFileToS3').mockResolvedValue(mockUploadResult);

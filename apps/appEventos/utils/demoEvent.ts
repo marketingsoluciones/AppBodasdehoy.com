@@ -1,0 +1,138 @@
+/**
+ * demoEvent — Evento ficticio para la vista demo del visitante sin cuenta.
+ * Se usa en GuestDemoPage para renderizar los componentes reales con datos de muestra.
+ * NO contiene datos reales. NO hace llamadas a la API.
+ */
+import { Event } from './Interfaces'
+
+export const DEMO_EVENT: Event = {
+  _id: 'demo-event-id',
+  fecha_creacion: '2024-01-01',
+  estatus: 'activo',
+  fecha_actualizacion: '2024-01-01',
+  updatedAt: new Date('2024-01-01'),
+  tipo: 'boda',
+  temporada: 'verano',
+  estilo: 'clasico',
+  tematica: 'romantico',
+  nombre: 'Isabel & Raúl',
+  usuario_id: 'demo-user',
+  detalles_usuario_id: { uid: 'demo-user', email: '', displayName: 'Demo', photoURL: '', onLine: { status: false, dateConection: 0 }, planSpaceSelect: '' },
+  usuario_nombre: 'Demo',
+  compartido_array: [],
+  detalles_compartidos_array: [],
+  nonce: '',
+  fecha: String(new Date('2025-06-15').getTime()),
+  timeZone: 'Europe/Madrid',
+  poblacion: 'Sevilla',
+  pais: 'España',
+  lugar: { _id: 'demo-lugar', title: 'Hacienda El Álamo', slug: 'hacienda-el-alamo' },
+  cant_invitados: 142,
+  menus_array: [
+    { nombre_menu: 'Estándar', tipo: 'adulto' },
+    { nombre_menu: 'Vegetariano', tipo: 'adulto' },
+    { nombre_menu: 'Infantil', tipo: 'niño' },
+  ],
+  planSpaceSelect: 'demo-plan',
+  galerySvgs: [],
+  galerySvgVersion: '1',
+  planSpace: [
+    {
+      _id: 'demo-plan',
+      title: 'Salón principal',
+      size: { width: 1200, height: 800 },
+      spaceChairs: 120,
+      template: false,
+      sections: [],
+      elements: [],
+      tables: [
+        { _id: 'mesa-honor', title: 'Mesa de honor', tipo: 'rectangular', rotation: 0, position: { x: 500, y: 80 }, size: { width: 320, height: 80 }, numberChair: 8, guests: [{ _id: 'g1', chair: 0, order: new Date() }, { _id: 'g2', chair: 1, order: new Date() }, { _id: 'g3', chair: 2, order: new Date() }, { _id: 'g4', chair: 3, order: new Date() }, { _id: 'g5', chair: 4, order: new Date() }, { _id: 'g6', chair: 5, order: new Date() }, { _id: 'g7', chair: 6, order: new Date() }, { _id: 'g8', chair: 7, order: new Date() }] },
+        { _id: 'mesa-1', title: 'Mesa 1', tipo: 'circular', rotation: 0, position: { x: 100, y: 260 }, size: { width: 120, height: 120 }, numberChair: 10, guests: [{ _id: 'g9', chair: 0, order: new Date() }, { _id: 'g10', chair: 1, order: new Date() }, { _id: 'g11', chair: 2, order: new Date() }, { _id: 'g12', chair: 3, order: new Date() }, { _id: 'g13', chair: 4, order: new Date() }, { _id: 'g14', chair: 5, order: new Date() }, { _id: 'g15', chair: 6, order: new Date() }, { _id: 'g16', chair: 7, order: new Date() }] },
+        { _id: 'mesa-2', title: 'Mesa 2', tipo: 'circular', rotation: 0, position: { x: 300, y: 260 }, size: { width: 120, height: 120 }, numberChair: 10, guests: [{ _id: 'g17', chair: 0, order: new Date() }, { _id: 'g18', chair: 1, order: new Date() }, { _id: 'g19', chair: 2, order: new Date() }, { _id: 'g20', chair: 3, order: new Date() }, { _id: 'g21', chair: 4, order: new Date() }, { _id: 'g22', chair: 5, order: new Date() }] },
+        { _id: 'mesa-3', title: 'Mesa 3', tipo: 'circular', rotation: 0, position: { x: 500, y: 260 }, size: { width: 120, height: 120 }, numberChair: 10, guests: [{ _id: 'g23', chair: 0, order: new Date() }] },
+        { _id: 'mesa-4', title: 'Mesa 4', tipo: 'circular', rotation: 0, position: { x: 700, y: 260 }, size: { width: 120, height: 120 }, numberChair: 10, guests: [{ _id: 'g24', chair: 0, order: new Date() }, { _id: 'g25', chair: 1, order: new Date() }, { _id: 'g26', chair: 2, order: new Date() }, { _id: 'g27', chair: 3, order: new Date() }, { _id: 'g28', chair: 4, order: new Date() }, { _id: 'g29', chair: 5, order: new Date() }, { _id: 'g30', chair: 6, order: new Date() }] },
+      ],
+    },
+  ],
+  mesas_array: [],
+  grupos_array: ['Familia novia', 'Familia novio', 'Amigos novia', 'Amigos novio', 'Compañeros trabajo'],
+  notificaciones_array: [],
+  imgEvento: null,
+  imgInvitacion: null,
+  templateEmailSelect: '',
+  templateWhatsappSelect: '',
+  listaRegalos: '',
+  listIdentifiers: [],
+  permissions: [],
+  valirRemote: false,
+  showChildrenGuest: 'false',
+  tarta: '',
+  color: ['#ec4899', '#f472b6'],
+  presupuesto_objeto: {
+    presupuesto_total: 18500,
+    viewEstimates: true,
+    coste_estimado: 18500,
+    coste_final: 18200,
+    pagado: 12400,
+    currency: '€',
+    visibleColumns: [],
+    totalStimatedGuests: { children: 12, adults: 130 },
+    weddingPlannerIngresos: [],
+    categorias_array: [
+      {
+        _id: 'cat-1', nombre: 'Ceremonia y recepción', coste_proporcion: 0, coste_estimado: 13000, coste_final: 12700, pagado: 9200,
+        gastos_array: [
+          { _id: 'g-1', nombre: 'Catering', coste_proporcion: 0, coste_estimado: 8500, coste_final: 8500, pagado: 5000, linkTask: [], estatus: true, pagos_array: [], items_array: [] },
+          { _id: 'g-2', nombre: 'Finca / Espacio', coste_proporcion: 0, coste_estimado: 4200, coste_final: 4200, pagado: 4200, linkTask: [], estatus: true, pagos_array: [], items_array: [] },
+        ],
+      },
+      {
+        _id: 'cat-2', nombre: 'Fotografía y video', coste_proporcion: 0, coste_estimado: 4600, coste_final: 4600, pagado: 3200,
+        gastos_array: [
+          { _id: 'g-3', nombre: 'Fotógrafo', coste_proporcion: 0, coste_estimado: 2800, coste_final: 2800, pagado: 1400, linkTask: [], estatus: true, pagos_array: [], items_array: [] },
+          { _id: 'g-4', nombre: 'Video cinematográfico', coste_proporcion: 0, coste_estimado: 1800, coste_final: 1800, pagado: 1800, linkTask: [], estatus: true, pagos_array: [], items_array: [] },
+        ],
+      },
+      {
+        _id: 'cat-3', nombre: 'Decoración y flores', coste_proporcion: 0, coste_estimado: 1200, coste_final: 900, pagado: 0,
+        gastos_array: [
+          { _id: 'g-5', nombre: 'Floristería', coste_proporcion: 0, coste_estimado: 1200, coste_final: 900, pagado: 0, linkTask: [], estatus: true, pagos_array: [], items_array: [] },
+        ],
+      },
+    ],
+  },
+  invitados_array: [
+    { _id: 'g1', invitacion: true, fecha_invitacion: '', estatus: 'activo', nombre: 'María López', rol: '', sexo: 'mujer', grupo_edad: 'adulto', correo: '', telefono: '', chairs: null, nombre_mesa: 'Mesa 1', puesto: '1', asistencia: 'confirmado', nombre_menu: 'Estándar', grupo_relacion: 'Familia novia', father: null, passesQuantity: 0, tableNameRecepcion: {}, tableNameCeremonia: {}, comunicaciones_array: [], orden_puesto: '', alergenos: [], movil: '', direccion: '', poblacion: '', pais: '', chats_array: [] },
+    { _id: 'g2', invitacion: true, fecha_invitacion: '', estatus: 'activo', nombre: 'Carlos García', rol: '', sexo: 'hombre', grupo_edad: 'adulto', correo: '', telefono: '', chairs: null, nombre_mesa: 'Mesa 3', puesto: '1', asistencia: 'confirmado', nombre_menu: 'Estándar', grupo_relacion: 'Amigos novio', father: null, passesQuantity: 0, tableNameRecepcion: {}, tableNameCeremonia: {}, comunicaciones_array: [], orden_puesto: '', alergenos: [], movil: '', direccion: '', poblacion: '', pais: '', chats_array: [] },
+    { _id: 'g3', invitacion: false, fecha_invitacion: '', estatus: 'activo', nombre: 'Ana Rodríguez', rol: '', sexo: 'mujer', grupo_edad: 'adulto', correo: '', telefono: '', chairs: null, nombre_mesa: 'no asignado', puesto: '', asistencia: 'pendiente', nombre_menu: 'Vegetariano', grupo_relacion: 'Compañeros trabajo', father: null, passesQuantity: 0, tableNameRecepcion: {}, tableNameCeremonia: {}, comunicaciones_array: [], orden_puesto: '', alergenos: [], movil: '', direccion: '', poblacion: '', pais: '', chats_array: [] },
+    { _id: 'g4', invitacion: true, fecha_invitacion: '', estatus: 'activo', nombre: 'Javier Martínez', rol: '', sexo: 'hombre', grupo_edad: 'adulto', correo: '', telefono: '', chairs: null, nombre_mesa: 'Mesa 2', puesto: '2', asistencia: 'pendiente', nombre_menu: 'Estándar', grupo_relacion: 'Familia novio', father: null, passesQuantity: 0, tableNameRecepcion: {}, tableNameCeremonia: {}, comunicaciones_array: [], orden_puesto: '', alergenos: [], movil: '', direccion: '', poblacion: '', pais: '', chats_array: [] },
+    { _id: 'g5', invitacion: true, fecha_invitacion: '', estatus: 'activo', nombre: 'Laura Fernández', rol: '', sexo: 'mujer', grupo_edad: 'adulto', correo: '', telefono: '', chairs: null, nombre_mesa: 'Mesa 1', puesto: '2', asistencia: 'cancelado', nombre_menu: 'Estándar', grupo_relacion: 'Familia novia', father: null, passesQuantity: 0, tableNameRecepcion: {}, tableNameCeremonia: {}, comunicaciones_array: [], orden_puesto: '', alergenos: [], movil: '', direccion: '', poblacion: '', pais: '', chats_array: [] },
+    { _id: 'g6', invitacion: true, fecha_invitacion: '', estatus: 'activo', nombre: 'Pedro Sánchez', rol: '', sexo: 'hombre', grupo_edad: 'adulto', correo: '', telefono: '', chairs: null, nombre_mesa: 'Mesa 4', puesto: '1', asistencia: 'confirmado', nombre_menu: 'Estándar', grupo_relacion: 'Amigos novia', father: null, passesQuantity: 0, tableNameRecepcion: {}, tableNameCeremonia: {}, comunicaciones_array: [], orden_puesto: '', alergenos: [], movil: '', direccion: '', poblacion: '', pais: '', chats_array: [] },
+    { _id: 'g7', invitacion: true, fecha_invitacion: '', estatus: 'activo', nombre: 'Elena Díaz', rol: '', sexo: 'mujer', grupo_edad: 'adulto', correo: '', telefono: '', chairs: null, nombre_mesa: 'Mesa 2', puesto: '3', asistencia: 'confirmado', nombre_menu: 'Vegetariano', grupo_relacion: 'Amigos novia', father: null, passesQuantity: 0, tableNameRecepcion: {}, tableNameCeremonia: {}, comunicaciones_array: [], orden_puesto: '', alergenos: [], movil: '', direccion: '', poblacion: '', pais: '', chats_array: [] },
+    { _id: 'g8', invitacion: false, fecha_invitacion: '', estatus: 'activo', nombre: 'Roberto Jiménez', rol: '', sexo: 'hombre', grupo_edad: 'adulto', correo: '', telefono: '', chairs: null, nombre_mesa: 'no asignado', puesto: '', asistencia: 'pendiente', nombre_menu: 'Estándar', grupo_relacion: 'Compañeros trabajo', father: null, passesQuantity: 0, tableNameRecepcion: {}, tableNameCeremonia: {}, comunicaciones_array: [], orden_puesto: '', alergenos: [], movil: '', direccion: '', poblacion: '', pais: '', chats_array: [] },
+  ],
+  itinerarios_array: [
+    {
+      _id: 'itin-1',
+      title: 'Itinerario general',
+      tipo: 'general',
+      estatus: true,
+      fecha_creacion: Date.now(),
+      next_id: '',
+      viewers: [],
+      columnsOrder: [
+        { columnId: 'todo', order: 0 },
+        { columnId: 'in-progress', order: 1 },
+        { columnId: 'done', order: 2 },
+      ],
+      tasks: [
+        { _id: 't1', fecha: new Date('2025-06-15T10:00:00'), hora: '10:00', horaActiva: true, icon: '💄', descripcion: 'Llegada y preparativos novia', responsable: [], duracion: 120, tags: [], tips: '', attachments: [], spectatorView: true, comments: [], commentsViewers: [], estado: 'todo', prioridad: 'alta', estatus: true, columnId: 'done' },
+        { _id: 't2', fecha: new Date('2025-06-15T12:30:00'), hora: '12:30', horaActiva: true, icon: '💍', descripcion: 'Ceremonia civil', responsable: [], duracion: 60, tags: [], tips: '', attachments: [], spectatorView: true, comments: [], commentsViewers: [], estado: 'todo', prioridad: 'alta', estatus: false, columnId: 'todo' },
+        { _id: 't3', fecha: new Date('2025-06-15T14:00:00'), hora: '14:00', horaActiva: true, icon: '🥂', descripcion: 'Cóctel de bienvenida', responsable: [], duracion: 90, tags: [], tips: '', attachments: [], spectatorView: true, comments: [], commentsViewers: [], estado: 'todo', prioridad: 'media', estatus: false, columnId: 'todo' },
+        { _id: 't4', fecha: new Date('2025-06-15T15:30:00'), hora: '15:30', horaActiva: true, icon: '🍽️', descripcion: 'Banquete nupcial', responsable: [], duracion: 180, tags: [], tips: '', attachments: [], spectatorView: true, comments: [], commentsViewers: [], estado: 'todo', prioridad: 'alta', estatus: false, columnId: 'todo' },
+        { _id: 't5', fecha: new Date('2025-06-15T19:00:00'), hora: '19:00', horaActiva: true, icon: '🎂', descripcion: 'Corte de tarta y primer baile', responsable: [], duracion: 30, tags: [], tips: '', attachments: [], spectatorView: true, comments: [], commentsViewers: [], estado: 'todo', prioridad: 'media', estatus: false, columnId: 'todo' },
+        { _id: 't6', fecha: new Date('2025-06-15T19:30:00'), hora: '19:30', horaActiva: true, icon: '🎵', descripcion: 'Fiesta y baile', responsable: [], duracion: 300, tags: [], tips: '', attachments: [], spectatorView: true, comments: [], commentsViewers: [], estado: 'todo', prioridad: 'media', estatus: false, columnId: 'todo' },
+      ],
+    },
+  ],
+}

@@ -29,6 +29,11 @@ const mockQuery = vi.mocked(api2Client.query);
 beforeEach(() => {
   mockQuery.mockReset();
   vi.spyOn(console, 'warn').mockImplementation(() => {});
+  // Mock global fetch so the REST fallback in getWhatsAppChannels doesn't make real HTTP calls
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    json: vi.fn().mockResolvedValue({ success: false }),
+    ok: false,
+  }));
 });
 
 describe('WhatsApp Service', () => {
