@@ -15,7 +15,9 @@ module.exports = {
       exec_mode: 'fork',
       autorestart: true,
       watch: false,
-      max_memory_restart: '2G'
+      max_memory_restart: '4G',  // next start (prod) necesita más de 2G con el bundle de LobeChat
+      restart_delay: 30000,       // 30s entre reinicios para evitar loops
+      max_restarts: 5,            // parar tras 5 fallos (no loop infinito)
     },
 
     // ── Entorno DEV (next dev, hot reload) ──────────────────────────────────
@@ -33,7 +35,9 @@ module.exports = {
       exec_mode: 'fork',
       autorestart: true,
       watch: false,
-      max_memory_restart: '3G'
+      max_memory_restart: '6G',  // Turbopack primera compilación usa 4-5G — con 3G entraba en bucle
+      restart_delay: 60000,       // 60s entre reinicios (compilación tarda varios min)
+      max_restarts: 10,           // parar tras 10 fallos para diagnóstico
     },
     {
       name: 'memories-dev',
