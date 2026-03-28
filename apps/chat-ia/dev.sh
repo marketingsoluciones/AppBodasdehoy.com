@@ -2,7 +2,7 @@
 export PATH="/opt/homebrew/opt/node@20/bin:/opt/homebrew/bin:$PATH"
 cd /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia
 # Puerto 3210 — CF tunnel: chat-dev.bodasdehoy.com → 192.168.1.48:3210
-pnpm next dev -p 3210 &
+pnpm run dev &
 NEXT_PID=$!
 
 # Pre-warm: esperar arranque y compilar rutas frecuentes en background

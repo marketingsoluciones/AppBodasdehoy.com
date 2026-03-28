@@ -22,7 +22,10 @@ import { test, expect, type Page } from '@playwright/test';
 import { TEST_URLS, TEST_CREDENTIALS } from './fixtures';
 
 const CHAT_URL = TEST_URLS.chat;
-const TIMEOUT_NAV = 30_000;
+// Turbopack compila rutas de forma lazy — primera petición puede tardar >60s en local.
+// Ajustar según entorno: local = 90s, remoto (ya compilado) = 30s.
+const isLocalDev = !CHAT_URL.includes('.bodasdehoy.com');
+const TIMEOUT_NAV = isLocalDev ? 90_000 : 30_000;
 const TIMEOUT_UI = 15_000;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

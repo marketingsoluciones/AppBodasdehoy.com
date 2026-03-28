@@ -14,7 +14,9 @@ import { TEST_URLS, E2E_ENV } from './e2e-app/fixtures';
  */
 const baseURL = TEST_URLS.app;
 const isLocal = E2E_ENV === 'local';
-const healthURL = `${TEST_URLS.chat}/api/health`;
+// Usar appEventos (baseURL) como health check — devuelve 200 de forma fiable
+// chat-ia /api/health devuelve 500 → Playwright no lo considera "running" con reuseExistingServer
+const healthURL = `${TEST_URLS.app}`;
 
 const fast = process.env.E2E_FAST === '1';
 const slowMo = process.env.E2E_SLOW === '1';
