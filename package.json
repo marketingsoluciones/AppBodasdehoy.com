@@ -11,7 +11,7 @@
     "browser:screenshot": "npx ts-node --project scripts/tsconfig.json scripts/browser-control.ts screenshot",
     "build": "pnpm -r build",
     "build:copilot": "pnpm --filter @bodasdehoy/chat-ia build",
-    "rebuild:chat": "pnpm --filter @bodasdehoy/chat-ia build && pm2 restart chat-dev",
+    "rebuild:chat": "pnpm --filter @bodasdehoy/chat-ia build:fast && pm2 restart chat-dev",
     "build:web": "pnpm --filter @bodasdehoy/appEventos build",
     "clean": "pnpm -r exec rm -rf node_modules .next dist",
     "clean:next": "rm -rf apps/appEventos/.next apps/chat-ia/.next",

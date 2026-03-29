@@ -13,8 +13,8 @@ cd /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia
 
 # Solo rebuildar si no existe .next o si hay cambios en src desde el último build
 if [ ! -f ".next/BUILD_ID" ] || [ -n "$(find src packages -newer .next/BUILD_ID -name '*.ts' -o -name '*.tsx' 2>/dev/null | head -1)" ]; then
-  echo "[dev.sh] Compilando chat-ia... (primera vez tarda 10-15 min)"
-  pnpm run build
+  echo "[dev.sh] Compilando chat-ia... (primera vez tarda 10-15 min, build:fast salta lint)"
+  pnpm run build:fast
   if [ $? -ne 0 ]; then
     echo "[dev.sh] ERROR: build fallido. Revisad los errores arriba."
     exit 1
