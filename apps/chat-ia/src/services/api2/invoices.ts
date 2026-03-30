@@ -259,7 +259,11 @@ const GET_INVOICES_QUERY = `
         total
         totalPages
       }
-      errors
+      errors {
+        code
+        field
+        message
+      }
     }
   }
 `;
@@ -290,7 +294,11 @@ const GET_INVOICE_BY_ID_QUERY = `
         payment_date
         created_at
       }
-      errors
+      errors {
+        code
+        field
+        message
+      }
     }
   }
 `;
@@ -329,7 +337,11 @@ const GET_PAYMENT_HISTORY_QUERY = `
         total
         totalPages
       }
-      errors
+      errors {
+        code
+        field
+        message
+      }
     }
   }
 `;
@@ -355,7 +367,11 @@ const GET_USAGE_STATS_QUERY = `
   query GetUsageStats($filters: UsageFilters) {
     getUsageStats(filters: $filters) {
       success
-      errors
+      errors {
+        code
+        field
+        message
+      }
       stats {
         totalTokens
         totalCost
