@@ -61,14 +61,20 @@ async function enterAsVisitor(page: Page): Promise<boolean> {
   if (visible) {
     await btn.scrollIntoViewIfNeeded().catch(() => {});
     await btn.click();
-    await page.waitForURL((u) => u.href.includes('/chat'), { timeout: 20_000 }).catch(() => {});
+    // handleVisitor sets localStorage/cookies then calls router.replace('/chat') after ~800ms+APIs.
+    // SPA navigation may not trigger waitForURL reliably in webkit — wait briefly then hard-navigate.
+    await page.waitForURL((u) => u.href.includes('/chat'), { timeout: 5_000 }).catch(() => {});
+    if (!page.url().includes('/chat')) {
+      // State already set (dev-user-config cookie + localStorage) — force hard navigation
+      await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    }
     await page.waitForTimeout(2000);
   } else {
     // Fallback: navegación directa como visitante sin sesión (sin cookie de auth)
     await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(2000);
   }
-  return page.url().includes('/chat') || page.url().includes('/login');
+  return page.url().includes('/chat');
 }
 
 /** Espera a que el editor del chat sea visible */
