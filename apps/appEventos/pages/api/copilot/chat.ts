@@ -585,8 +585,32 @@ async function proxyToPythonBackend(
     // api-ia debe tener o escoger un modelo lo más razonador posible cuando este header es true
     if (PREFER_REASONING_MODEL) headers['X-Prefer-Reasoning-Model'] = 'true';
 
-    const authHeader = req.headers['authorization'];
-    if (authHeader) headers['Authorization'] = authHeader as string;
+    // Auth: use client-sent header if it carries a real token (not empty Bearer)
+    // Fallback: extract from cookies (idTokenV0.1.0 SSO, api2_jwt, dev-user-config)
+    const rawAuthHeader = req.headers['authorization'] as string | undefined;
+    const clientToken = rawAuthHeader?.replace(/^Bearer\s+/i, '').trim();
+    if (clientToken && clientToken.startsWith('eyJ')) {
+      headers['Authorization'] = rawAuthHeader as string;
+    } else {
+      const cookieHeader = req.headers['cookie'] || '';
+      // 1) api2_jwt (dedicated)
+      const jwtMatch = cookieHeader.match(/api2_jwt=([^;]+)/);
+      const jwtToken = jwtMatch ? decodeURIComponent(jwtMatch[1]) : '';
+      // 2) SSO idTokenV0.1.0 (Firebase, domain=.bodasdehoy.com)
+      const ssoMatch = cookieHeader.match(/idTokenV0\.1\.0=([^;]+)/);
+      const ssoToken = ssoMatch ? decodeURIComponent(ssoMatch[1]) : '';
+      // 3) dev-user-config legacy
+      let legacyToken = '';
+      const devMatch = cookieHeader.match(/dev-user-config=([^;]+)/);
+      if (devMatch) {
+        try {
+          const cfg = JSON.parse(decodeURIComponent(devMatch[1]));
+          if (typeof cfg?.token === 'string' && cfg.token.startsWith('eyJ')) legacyToken = cfg.token;
+        } catch { /* ignore */ }
+      }
+      const resolvedToken = [jwtToken, ssoToken, legacyToken].find(t => t.startsWith('eyJ'));
+      if (resolvedToken) headers['Authorization'] = `Bearer ${resolvedToken}`;
+    }
     if (metadata?.userId) headers['X-User-Id'] = metadata.userId;
     if (metadata?.eventId) headers['X-Event-Id'] = metadata.eventId;
     if (metadata?.pageContext?.pageName) headers['X-Page-Name'] = metadata.pageContext.pageName;

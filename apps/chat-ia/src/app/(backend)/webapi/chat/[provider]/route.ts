@@ -92,8 +92,9 @@ const VISITOR_SYSTEM_PROMPT =
 /**
  * Techo de mensajes para visitantes en el backend (seguridad).
  * La lógica real es en cliente: 5 el primer día, 2/día después (ver @/utils/visitorLimit).
+ * Configurable via VISITOR_MSG_LIMIT_CAP env var (útil para dev/test).
  */
-const VISITOR_MSG_LIMIT_CAP = 10;
+const VISITOR_MSG_LIMIT_CAP = parseInt(process.env.VISITOR_MSG_LIMIT_CAP || '10', 10);
 
 /**
  * Verifica si la request viene de un visitante anónimo y si superó el techo.
@@ -170,7 +171,7 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           if (sysIdx >= 0) {
             parsed.messages[sysIdx].content = VISITOR_SYSTEM_PROMPT;
           } else {
-            parsed.messages.unshift({ role: 'system', content: VISITOR_SYSTEM_PROMPT });
+            parsed.messages.unshift({ content: VISITOR_SYSTEM_PROMPT, role: 'system' });
           }
           bodyText = JSON.stringify(parsed);
         }
@@ -449,30 +450,81 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
                       // Without this translation, LobeChat treats it as a default plugin call,
                       // triggers a second AI request, and overwrites the text response with empty content.
                       const BUILTIN_TOOL_MAP: Record<string, string> = {
-                        // CRM Data
-                        'list_leads': 'lobe-crm____list_leads____builtin',
-                        'get_lead': 'lobe-crm____get_lead____builtin',
-                        'list_contacts': 'lobe-crm____list_contacts____builtin',
-                        'get_contact': 'lobe-crm____get_contact____builtin',
-                        'list_opportunities': 'lobe-crm____list_opportunities____builtin',
-                        'get_opportunity': 'lobe-crm____get_opportunity____builtin',
-                        'list_campaigns': 'lobe-crm____list_campaigns____builtin',
-                        'search_crm': 'lobe-crm____search_crm____builtin',
-                        // CRM Actions
-                        'create_lead': 'lobe-crm-actions____create_lead____builtin',
-                        'update_lead_status': 'lobe-crm-actions____update_lead_status____builtin',
-                        'add_note': 'lobe-crm-actions____add_note____builtin',
-                        'create_task': 'lobe-crm-actions____create_task____builtin',
+                        
+                        
+'add_note': 'lobe-crm-actions____add_note____builtin',
+                        
+
+// CRM Actions
+'create_lead': 'lobe-crm-actions____create_lead____builtin',
+                        
+
+'create_task': 'lobe-crm-actions____create_task____builtin',
+                        
+
+// Filter
+'filter_view': 'lobe-filter-app-view____filter_view____builtin',
+                        
+
+
+'get_campaign_performance': 'lobe-crm-analytics____get_campaign_performance____builtin',
+                        
+
+
+'get_contact': 'lobe-crm____get_contact____builtin',
+                        
+
+
+
+'get_kpis': 'lobe-crm-analytics____get_kpis____builtin',
+                        
+
+
+
+
+'get_lead': 'lobe-crm____get_lead____builtin',
+                        
+                        
+
+
+
+'get_lead_funnel': 'lobe-crm-analytics____get_lead_funnel____builtin',
+                        
+
+
+
+'get_opportunity': 'lobe-crm____get_opportunity____builtin',
+                        
+
+
+// CRM Analytics
+'get_pipeline_summary': 'lobe-crm-analytics____get_pipeline_summary____builtin',
+                        
+
+
+'get_revenue_report': 'lobe-crm-analytics____get_revenue_report____builtin',
+                        
+
+
+'list_campaigns': 'lobe-crm____list_campaigns____builtin',
+                        
+
+
+'list_contacts': 'lobe-crm____list_contacts____builtin',
+                        
+                        
+// CRM Data
+'list_leads': 'lobe-crm____list_leads____builtin',
+                        
+'list_opportunities': 'lobe-crm____list_opportunities____builtin',
+                        
+'search_crm': 'lobe-crm____search_crm____builtin',
+                        
+'send_message': 'lobe-crm-actions____send_message____builtin',
+                        
+'update_lead_status': 'lobe-crm-actions____update_lead_status____builtin',
+                        
                         'update_opportunity_stage': 'lobe-crm-actions____update_opportunity_stage____builtin',
-                        'send_message': 'lobe-crm-actions____send_message____builtin',
-                        // CRM Analytics
-                        'get_pipeline_summary': 'lobe-crm-analytics____get_pipeline_summary____builtin',
-                        'get_revenue_report': 'lobe-crm-analytics____get_revenue_report____builtin',
-                        'get_lead_funnel': 'lobe-crm-analytics____get_lead_funnel____builtin',
-                        'get_kpis': 'lobe-crm-analytics____get_kpis____builtin',
-                        'get_campaign_performance': 'lobe-crm-analytics____get_campaign_performance____builtin',
-                        // Filter
-                        'filter_view': 'lobe-filter-app-view____filter_view____builtin',
                       };
                       let translatedData = rawData;
                       try {
