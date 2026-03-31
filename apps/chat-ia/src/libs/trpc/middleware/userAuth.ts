@@ -14,10 +14,6 @@ export const userAuth = trpc.middleware(async (opts) => {
   if (!enableClerk) {
     // Si ya hay userId en el contexto (de dev-user-config cookie o x-user-id header), usarlo
     if (ctx.userId) {
-      // Bloquear usuarios visitantes (visitor_*) — no tienen registro en la DB
-      if (ctx.userId.startsWith('visitor_')) {
-        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Visitor users cannot perform this operation' });
-      }
       return opts.next({
         ctx: { userId: ctx.userId },
       });

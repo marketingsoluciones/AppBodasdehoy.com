@@ -196,8 +196,8 @@ export const generateAIChat: StateCreator<
       syncVisitorCookie();
     }
 
-    // router to server mode send message
-    if (isServerMode)
+    // router to server mode send message (visitors use local path — no DB writes)
+    if (isServerMode && !isVisitor)
       return sendMessageInServer({ message, files, onlyAddUserMessage, isWelcomeQuestion });
 
     set({ isCreatingMessage: true }, false, n('creatingMessage/start'));
