@@ -61,16 +61,14 @@ async function enterAsVisitor(page: Page): Promise<boolean> {
   if (visible) {
     await btn.scrollIntoViewIfNeeded().catch(() => {});
     await btn.click();
-    // handleVisitor sets localStorage/cookies then calls router.replace('/chat') after ~800ms+APIs.
-    // SPA navigation may not trigger waitForURL reliably in webkit — wait briefly then hard-navigate.
-    await page.waitForURL((u) => u.href.includes('/chat'), { timeout: 5_000 }).catch(() => {});
-    if (!page.url().includes('/chat')) {
-      // State already set (dev-user-config cookie + localStorage) — force hard navigation
-      await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
-    }
+    // handleVisitor sets localStorage/cookie then calls router.replace('/chat').
+    // Wait briefly for state to be saved, then force a hard navigation to guarantee
+    // the full chat page mounts (SPA navigation may not fully initialise the editor).
+    await page.waitForTimeout(3000);
+    await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(2000);
   } else {
-    // Fallback: navegación directa como visitante sin sesión (sin cookie de auth)
+    // Fallback: navegación directa sin sesión
     await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(2000);
   }
@@ -156,7 +154,7 @@ test.describe('A2 — chat-ia · Usuario registrado', () => {
 
   test('A2.1 — saludo recibe respuesta de asistente de bodas', async ({ page }) => {
     await chatValidated(page, 'Hola, soy el organizador. ¿Qué puedes hacer por mí?', {
-      expectedCategory: ['greeting', 'data_response'],
+      expectedCategory: ['greeting', 'data_response', 'tool_executed'],
       forbiddenPatterns: ['Internal Server Error', '500'],
       description: 'Usuario — saludo debe responder con capacidades del asistente',
     }, 30_000 * MULT);

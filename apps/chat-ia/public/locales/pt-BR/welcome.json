@@ -199,9 +199,7 @@
           {
             "avatar": "📊",
             "backgroundColor": "#E8F8F5",
-            "plugins": [
-              "steam"
-            ],
+            "plugins": ["steam"],
             "systemRole": "Você é especialista em lidar com dados e interpretá-los, revelando padrões e tendências por meio de gráficos e análises estatísticas.",
             "title": "Analista de Dados"
           },
@@ -253,12 +251,7 @@
       "game": {
         "description": "Divirta-se com vários jogos de texto multiplayer, como Mafia e Quem é o Traidor",
         "members": [
-          {
-            "avatar": "🧠",
-            "backgroundColor": "#E8F5FF",
-            "systemRole": "Você é um apresentador habilidoso em organizar vários jogos de texto multiplayer e pode guiar os jogadores durante o jogo.",
-            "title": "Apresentador do jogo"
-          },
+          null,
           {
             "avatar": "🧑‍🔬",
             "backgroundColor": "#FFF7E8",

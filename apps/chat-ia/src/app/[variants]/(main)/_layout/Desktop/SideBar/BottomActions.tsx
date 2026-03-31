@@ -77,33 +77,33 @@ const QuotaMiniBar = memo(() => {
       <Flexbox
         gap={2}
         style={{
+          borderRadius: 8,
           cursor: 'pointer',
           padding: '4px 6px',
-          borderRadius: 8,
           transition: 'background 0.2s',
         }}
         title={`${percent}% IA usado — Click para ver detalles`}
       >
         <div
           style={{
-            width: '100%',
-            height: 3,
             backgroundColor: 'rgba(128,128,128,0.2)',
             borderRadius: 2,
+            height: 3,
             overflow: 'hidden',
+            width: '100%',
           }}
         >
           <div
             style={{
-              width: `${percent}%`,
-              height: '100%',
               backgroundColor: color,
               borderRadius: 2,
+              height: '100%',
               transition: 'width 0.3s ease',
+              width: `${percent}%`,
             }}
           />
         </div>
-        <span style={{ fontSize: 9, color, fontWeight: 500, textAlign: 'center' }}>
+        <span style={{ color, fontSize: 9, fontWeight: 500, textAlign: 'center' }}>
           {percent}% IA
         </span>
       </Flexbox>
@@ -123,7 +123,7 @@ const BottomActions = memo(() => {
     <Flexbox gap={8}>
       {/* Wallet + Quota + Plan badge for authenticated users */}
       {isServerMode && !isGuest && (
-        <Flexbox gap={4} align="center">
+        <Flexbox align="center" gap={4}>
           <WalletWidget size="small" />
           <QuotaMiniBar />
           <PlanBadge />

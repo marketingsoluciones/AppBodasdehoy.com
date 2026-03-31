@@ -7,16 +7,16 @@ import { ChatStore } from '@/store/chat/store';
 
 interface OpenFloorPlanData {
   eventId?: string;
-  tableType?: string;
+  label?: string;
   seats?: number;
   tableCount?: number;
-  label?: string;
+  tableType?: string;
 }
 
 interface SuggestTableConfigData {
-  tableType: string;
-  seats: number;
   label?: string;
+  seats: number;
+  tableType: string;
 }
 
 export interface ChatFloorPlanEditorAction {
@@ -41,10 +41,10 @@ export const floorPlanEditorSlice: StateCreator<
         payload: {
           eventId: data.eventId,
           suggestedConfig: {
-            tableType: data.tableType,
+            label: data.label,
             seats: data.seats,
             tableCount: data.tableCount,
-            label: data.label,
+            tableType: data.tableType,
           },
         },
         source: 'copilot-chat',
@@ -61,11 +61,11 @@ export const floorPlanEditorSlice: StateCreator<
 
     try {
       const config: TableConfig = {
-        shape: (data.tableType as TableShape) ?? 'round',
         seats: data.seats,
-        tableName: data.label,
-        showNumber: true,
+        shape: (data.tableType as TableShape) ?? 'round',
         showName: !!data.label,
+        showNumber: true,
+        tableName: data.label,
       };
 
       const svgString = generateTableSVG(config);
@@ -73,10 +73,10 @@ export const floorPlanEditorSlice: StateCreator<
 
       const preview = [
         {
+          label: data.label,
+          seats: data.seats,
           svgDataUrl,
           tableType: data.tableType,
-          seats: data.seats,
-          label: data.label,
         },
       ];
 

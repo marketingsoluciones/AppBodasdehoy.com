@@ -199,9 +199,7 @@
           {
             "avatar": "📊",
             "backgroundColor": "#E8F8F5",
-            "plugins": [
-              "steam"
-            ],
+            "plugins": ["steam"],
             "systemRole": "Bạn giỏi xử lý và phân tích dữ liệu, khám phá các quy luật và xu hướng ẩn sau dữ liệu thông qua biểu đồ và phân tích thống kê.",
             "title": "Nhà phân tích dữ liệu"
           },
@@ -253,12 +251,7 @@
       "game": {
         "description": "Chơi các trò chơi chữ nhiều người như Ma sói và Ai là gián điệp",
         "members": [
-          {
-            "avatar": "🧠",
-            "backgroundColor": "#E8F5FF",
-            "systemRole": "Bạn là người dẫn chương trình thành thạo trong việc tổ chức các trò chơi văn bản nhiều người chơi và có thể hướng dẫn người chơi trong suốt trò chơi.",
-            "title": "Người dẫn chương trình"
-          },
+          null,
           {
             "avatar": "🧑‍🔬",
             "backgroundColor": "#FFF7E8",

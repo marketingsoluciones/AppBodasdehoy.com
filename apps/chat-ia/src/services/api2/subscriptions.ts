@@ -207,7 +207,7 @@ export interface CancelSubscriptionResult {
 export async function cancelSubscription(): Promise<CancelSubscriptionResult> {
   try {
     // api2 real mutation name: cancelMySubscription → returns UserSubscription
-    const data = await api2Client.query<{ cancelMySubscription: { _id: string; status: string; plan_id: string } | null }>(
+    const data = await api2Client.query<{ cancelMySubscription: { _id: string; plan_id: string, status: string; } | null }>(
       `mutation CancelMySubscription {
         cancelMySubscription {
           _id status plan_id

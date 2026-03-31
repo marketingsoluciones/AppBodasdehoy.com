@@ -4,6 +4,8 @@ export interface AppNotification {
   _id?: string;
   createdAt: string;
   development?: string;
+  // Legacy compat — older code may reference these
+  focused?: string;
   id: string;
   message: string;
   metadata?: Record<string, unknown>;
@@ -12,12 +14,11 @@ export interface AppNotification {
   resourceId?: string;
   resourceName?: string;
   resourceType?: string;
+  // derived from resourceType/resourceId
+  status?: boolean;
   type?: string;
-  updatedAt?: string;
-  userId?: string;
-  // Legacy compat — older code may reference these
-  focused?: string;  // derived from resourceType/resourceId
-  status?: boolean;  // alias for !read
+  updatedAt?: string;  
+  userId?: string;  // alias for !read
 }
 
 export interface NotificationsResponse {
@@ -91,14 +92,14 @@ export async function getNotifications(limit = 20, unreadOnly = false, page = 1)
     const filters = unreadOnly ? { read: false } : undefined;
     const data = await api2Client.query<{
       getNotifications: {
+        notifications: any[];
         success: boolean;
         total: number;
         unreadCount: number;
-        notifications: any[];
       };
     }>(GET_NOTIFICATIONS, {
       filters,
-      pagination: { page, limit },
+      pagination: { limit, page },
     });
     const res = data.getNotifications;
     const notifications = (res?.notifications ?? []).map(normalizeNotification);

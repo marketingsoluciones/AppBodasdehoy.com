@@ -169,19 +169,39 @@ function extractLimits(plan: SubscriptionPlan): LimitRow[] {
       add('Almacenamiento', formatQuota(l.sku, l.free_quota), 'storage');
     } else if (s.includes('whatsapp') || s.includes('-wa')) {
       add('WhatsApp', formatQuota(l.sku, l.free_quota), 'whatsapp');
-    } else if (s === 'memories-albums') {
+    } else switch (s) {
+ case 'memories-albums': {
       add('Álbumes Memories', formatQuota(l.sku, l.free_quota), 'albums');
-    } else if (s === 'memories-photos') {
+    
+ break;
+ }
+ case 'memories-photos': {
       add('Fotos Memories', formatQuota(l.sku, l.free_quota), 'photos');
-    } else if (s === 'events-count') {
+    
+ break;
+ }
+ case 'events-count': {
       add('Eventos', formatQuota(l.sku, l.free_quota), 'events');
-    } else if (s === 'guests-per-event') {
+    
+ break;
+ }
+ case 'guests-per-event': {
       add('Invitados/evento', formatQuota(l.sku, l.free_quota), 'guests');
-    } else if (s === 'email-campaigns') {
+    
+ break;
+ }
+ case 'email-campaigns': {
       add('Emails campaña', formatQuota(l.sku, l.free_quota), 'emails');
-    } else if (s === 'sms-invitations') {
+    
+ break;
+ }
+ case 'sms-invitations': {
       add('SMS', formatQuota(l.sku, l.free_quota), 'sms');
-    }
+    
+ break;
+ }
+ // No default
+ }
   }
 
   if (!seen.has('storage') && plan.feature_restrictions.max_storage_gb) {

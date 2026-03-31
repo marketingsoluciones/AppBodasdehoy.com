@@ -142,9 +142,9 @@ const VenueItem = memo<VenueVisualizerItem & { messageId: string }>(
 
         if (!targetAlbum) {
           targetAlbum = await createAlbum({
+            description: 'Visualizaciones de decoración generadas con IA',
             eventId,
             name: 'Diseño de Espacios',
-            description: 'Visualizaciones de decoración generadas con IA',
           });
         }
 

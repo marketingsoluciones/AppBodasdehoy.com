@@ -68,13 +68,13 @@ export async function seedDomainAgents(
 
       await sessionModel.create({
         config: {
-          systemRole: def.config.systemRole,
           plugins: def.config.plugins,
+          systemRole: def.config.systemRole,
           tags: def.config.tags,
         } as any,
         session: {
-          title: def.config.title,
           description: def.config.description,
+          title: def.config.title,
         } as any,
         slug: def.slug,
         type: 'agent',

@@ -199,9 +199,7 @@
           {
             "avatar": "📊",
             "backgroundColor": "#E8F8F5",
-            "plugins": [
-              "steam"
-            ],
+            "plugins": ["steam"],
             "systemRole": "Du bist spezialisiert auf die Verarbeitung und Interpretation von Daten und deckst durch Diagramme und statistische Analysen Muster und Trends hinter den Daten auf.",
             "title": "Datenanalyst"
           },
@@ -253,12 +251,7 @@
       "game": {
         "description": "Spiele verschiedene Mehrspieler-Textspiele wie Werwolf und Wer ist der Maulwurf",
         "members": [
-          {
-            "avatar": "🧠",
-            "backgroundColor": "#E8F5FF",
-            "systemRole": "Du bist ein Moderator, der verschiedene Mehrspieler-Textspiele organisiert und die Spieler durch das Spiel führt.",
-            "title": "Spielleiter"
-          },
+          null,
           {
             "avatar": "🧑‍🔬",
             "backgroundColor": "#FFF7E8",

@@ -7,10 +7,8 @@
 export const SALES_CALL_AGENT_SLUG = 'sales-call-expert';
 
 export const SALES_CALL_AGENT_CONFIG = {
-  title: 'Experto en Llamadas Comerciales',
   description: 'Prepara llamadas de venta, scripts, seguimiento y cierre de oportunidades.',
-  tags: ['ventas', 'llamadas', 'cierre', 'seguimiento'],
-
+  plugins: ['lobe-crm', 'lobe-crm-actions', 'lobe-filter-app-view'],
   systemRole: `Eres un experto en ventas y llamadas comerciales dentro de un sistema CRM/ERP.
 
 ## Tu rol
@@ -36,5 +34,7 @@ export const SALES_CALL_AGENT_CONFIG = {
 - Responde en español, con tono comercial, empático y orientado a resultados.
 `,
 
-  plugins: ['lobe-crm', 'lobe-crm-actions', 'lobe-filter-app-view'],
+  tags: ['ventas', 'llamadas', 'cierre', 'seguimiento'],
+
+  title: 'Experto en Llamadas Comerciales',
 };

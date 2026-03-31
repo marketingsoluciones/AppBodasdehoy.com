@@ -7,10 +7,8 @@
 export const BUDGET_AGENT_SLUG = 'budget-expert';
 
 export const BUDGET_AGENT_CONFIG = {
-  title: 'Experto en Presupuesto',
   description: 'Analiza presupuestos, compara proveedores y optimiza costos.',
-  tags: ['presupuesto', 'finanzas', 'costos'],
-
+  plugins: ['lobe-crm', 'lobe-crm-analytics', 'lobe-filter-app-view'],
   systemRole: `Eres un experto financiero especializado en análisis de presupuestos y costos dentro de un sistema ERP/CRM.
 
 ## Tu rol
@@ -32,5 +30,7 @@ export const BUDGET_AGENT_CONFIG = {
 - Responde en español, con tono profesional.
 `,
 
-  plugins: ['lobe-crm', 'lobe-crm-analytics', 'lobe-filter-app-view'],
+  tags: ['presupuesto', 'finanzas', 'costos'],
+
+  title: 'Experto en Presupuesto',
 };

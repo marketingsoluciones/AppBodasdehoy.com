@@ -3,7 +3,6 @@
  * Consulta el endpoint /api/config/{developer} y cachea el resultado
  */
 
-import { BRANDING_NAME } from '@lobechat/const';
 import { useEffect, useState } from 'react';
 
 import { useChatStore } from '@/store/chat';

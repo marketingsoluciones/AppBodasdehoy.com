@@ -154,19 +154,19 @@ function QRModal({
 
           {pairingCode ? (
             <div style={{ background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 8, padding: '16px', textAlign: 'center' }}>
-              <Text type="secondary" style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>Tu código de vinculación</Text>
+              <Text style={{ display: 'block', fontSize: 12, marginBottom: 4 }} type="secondary">Tu código de vinculación</Text>
               <Text strong style={{ fontSize: 28, letterSpacing: 6 }}>{pairingCode}</Text>
               <div style={{ marginTop: 8 }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>Introdúcelo en WhatsApp antes de que expire (~60s)</Text>
+                <Text style={{ fontSize: 12 }} type="secondary">Introdúcelo en WhatsApp antes de que expire (~60s)</Text>
               </div>
             </div>
           ) : (
             <Space.Compact style={{ width: '100%' }}>
               <Input
                 onChange={(e) => setPairingPhone(e.target.value)}
+                onPressEnter={handleRequestCode}
                 placeholder="34612345678 (con código de país, sin +)"
                 value={pairingPhone}
-                onPressEnter={handleRequestCode}
               />
               <Button
                 loading={pairingLoading}
@@ -293,12 +293,12 @@ function CreateChannelModal({
         <Form.Item
           label="Nombre del canal"
           name="name"
-          rules={[{ required: true, message: 'Introduce un nombre para el canal' }]}
+          rules={[{ message: 'Introduce un nombre para el canal', required: true }]}
         >
           <Input placeholder="Ej: WhatsApp principal, Atención al cliente..." />
         </Form.Item>
       </Form>
-      <Text type="secondary" style={{ fontSize: 12 }}>
+      <Text style={{ fontSize: 12 }} type="secondary">
         Se creará un canal de tipo QR Personal. Podrás vincular un número escaneando el código QR.
       </Text>
     </Modal>
@@ -443,7 +443,7 @@ function IntegrationsPageInner() {
       {/* Móvil: breadcrumb */}
       <div className="md:hidden" style={{ marginBottom: 20 }}>
         <Link href="/messages">
-          <Button size="small" type="link" style={{ paddingLeft: 0 }}>← Mensajes</Button>
+          <Button size="small" style={{ paddingLeft: 0 }} type="link">← Mensajes</Button>
         </Link>
         <Text type="secondary"> / Integraciones</Text>
       </div>
@@ -511,10 +511,10 @@ function IntegrationsPageInner() {
             </Space>
           </Card>
 
-          <SocialChannelCard channelId="instagram" description="DMs de Instagram Business" icon="📷" iconBg="linear-gradient(135deg, #f3e7ff, #ffe7f0)" name="Instagram" comingSoon />
-          <SocialChannelCard channelId="telegram" description="Bot de Telegram" icon="✈️" iconBg="#e6f4ff" name="Telegram" comingSoon />
-          <SocialChannelCard channelId="email" description="Gmail, Outlook o SMTP/IMAP" icon="📧" iconBg="#f9f0ff" name="Email" comingSoon />
-          <SocialChannelCard channelId="facebook" description="Messenger de tu página FB" icon="📘" iconBg="#e6f4ff" name="Facebook" comingSoon />
+          <SocialChannelCard channelId="instagram" comingSoon description="DMs de Instagram Business" icon="📷" iconBg="linear-gradient(135deg, #f3e7ff, #ffe7f0)" name="Instagram" />
+          <SocialChannelCard channelId="telegram" comingSoon description="Bot de Telegram" icon="✈️" iconBg="#e6f4ff" name="Telegram" />
+          <SocialChannelCard channelId="email" comingSoon description="Gmail, Outlook o SMTP/IMAP" icon="📧" iconBg="#f9f0ff" name="Email" />
+          <SocialChannelCard channelId="facebook" comingSoon description="Messenger de tu página FB" icon="📘" iconBg="#e6f4ff" name="Facebook" />
           <SocialChannelCard channelId="web" description="Widget embebible en tu web" icon="🌐" iconBg="#fff7e6" name="Chat Web" />
         </div>
       </section>
@@ -539,9 +539,9 @@ function IntegrationsPageInner() {
           )}
 
           {!loadingChannels && channels.length === 0 && !apiError && (
-            <Card styles={{ body: { padding: '24px', textAlign: 'center' } }} style={{ borderStyle: 'dashed' }}>
+            <Card style={{ borderStyle: 'dashed' }} styles={{ body: { padding: '24px', textAlign: 'center' } }}>
               <Text strong>Sin canales WhatsApp</Text>
-              <div><Text type="secondary" style={{ fontSize: 13 }}>Conecta tu número para recibir mensajes en la bandeja</Text></div>
+              <div><Text style={{ fontSize: 13 }} type="secondary">Conecta tu número para recibir mensajes en la bandeja</Text></div>
               <Button
                 onClick={() => setShowCreateModal(true)}
                 size="small"

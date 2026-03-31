@@ -7,10 +7,8 @@
 export const FINANCE_AGENT_SLUG = 'finance-expert';
 
 export const FINANCE_AGENT_CONFIG = {
-  title: 'Experto Financiero',
   description: 'Análisis financiero, proyecciones, rentabilidad y estrategia de precios.',
-  tags: ['finanzas', 'rentabilidad', 'proyecciones', 'pricing'],
-
+  plugins: ['lobe-crm', 'lobe-crm-analytics', 'lobe-filter-app-view'],
   systemRole: `Eres un experto en análisis financiero y estrategia de negocio dentro de un sistema ERP/CRM.
 
 ## Tu rol
@@ -36,5 +34,7 @@ export const FINANCE_AGENT_CONFIG = {
 - Responde en español, con tono analítico y orientado a decisiones.
 `,
 
-  plugins: ['lobe-crm', 'lobe-crm-analytics', 'lobe-filter-app-view'],
+  tags: ['finanzas', 'rentabilidad', 'proyecciones', 'pricing'],
+
+  title: 'Experto Financiero',
 };

@@ -80,7 +80,7 @@ const authLink = new SetContextLink((prevContext) => {
       'SupportKey': supportKey,
 
       // ✅ Origin dinámico basado en development
-      'User-Agent': `${BRANDING_NAME.replace(/\s+/g, '')}-Client/1.0`,
+      'User-Agent': `${BRANDING_NAME.replaceAll(/\s+/g, '')}-Client/1.0`,
       'X-Development': currentDevelopment, // ✅ SupportKey para acceso sin login
       ...(token && { Authorization: `Bearer ${token}` }),
     },

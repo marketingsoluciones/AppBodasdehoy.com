@@ -1,13 +1,6 @@
 import { chainRewriteQuery } from '@lobechat/prompts';
 import { StateCreator } from 'zustand/vanilla';
 
-const SPANISH_REWRITE_QUERY_PROMPT =
-  'Dada la siguiente conversación y una pregunta de seguimiento, reformula la pregunta para que sea independiente (standalone), en el idioma original del usuario. ' +
-  'Mantén todos los detalles posibles de los mensajes anteriores. ' +
-  'Conserva nombres de entidades, cifras, fechas y cualquier dato específico. ' +
-  'Si la pregunta ya es independiente, devuélvela tal cual.';
-
-import { message } from '@/components/AntdStaticMethods';
 import { chatService } from '@/services/chat';
 import { ragService } from '@/services/rag';
 import { useAgentStore } from '@/store/agent';
@@ -18,6 +11,12 @@ import { toggleBooleanList } from '@/store/chat/utils';
 import { useUserStore } from '@/store/user';
 import { systemAgentSelectors } from '@/store/user/selectors';
 import { ChatSemanticSearchChunk } from '@/types/chunk';
+
+const SPANISH_REWRITE_QUERY_PROMPT =
+  'Dada la siguiente conversación y una pregunta de seguimiento, reformula la pregunta para que sea independiente (standalone), en el idioma original del usuario. ' +
+  'Mantén todos los detalles posibles de los mensajes anteriores. ' +
+  'Conserva nombres de entidades, cifras, fechas y cualquier dato específico. ' +
+  'Si la pregunta ya es independiente, devuélvela tal cual.';
 
 export interface ChatRAGAction {
   deleteUserMessageRagQuery: (id: string) => Promise<void>;

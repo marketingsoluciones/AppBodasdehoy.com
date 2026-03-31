@@ -199,9 +199,7 @@
           {
             "avatar": "📊",
             "backgroundColor": "#E8F8F5",
-            "plugins": [
-              "steam"
-            ],
+            "plugins": ["steam"],
             "systemRole": "Vous excellez dans le traitement et l’interprétation des données, révélant les schémas et tendances sous-jacents à travers des graphiques et des analyses statistiques.",
             "title": "Analyste de données"
           },
@@ -253,12 +251,7 @@
       "game": {
         "description": "Jouez à divers jeux de mots multijoueurs, tels que le Loup-Garou et Qui est l'Imposteur",
         "members": [
-          {
-            "avatar": "🧠",
-            "backgroundColor": "#E8F5FF",
-            "systemRole": "Vous êtes un animateur habile dans l'organisation de divers jeux de texte multijoueurs et pouvez guider les joueurs tout au long du jeu.",
-            "title": "Animateur de jeu"
-          },
+          null,
           {
             "avatar": "🧑‍🔬",
             "backgroundColor": "#FFF7E8",

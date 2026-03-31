@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { memo } from 'react';
 import { Flexbox, FlexboxProps } from 'react-layout-kit';
 
-import { BRANDING_NAME, ORG_NAME } from '@/const/branding';
+import { ORG_NAME } from '@/const/branding';
 import { UTM_SOURCE } from '@/const/url';
 import { isCustomORG } from '@/const/version';
 import { useDeveloperBranding } from '@/hooks/useDeveloperBranding';

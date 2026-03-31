@@ -35,7 +35,7 @@ const DEFAULT_PREVIEW_EXPIRE = 7200; // 2 horas
 
 export class S3 {
   /** Cache de clientes S3 por development, invalidados cada 15 min */
-  private clientCache = new Map<string, { client: S3Client; bucket: string; publicDomain: string | null; setAcl: boolean; expiresAt: number }>();
+  private clientCache = new Map<string, { bucket: string; client: S3Client; expiresAt: number, publicDomain: string | null; setAcl: boolean; }>();
 
   /**
    * Obtiene (o crea) un cliente S3 autenticado para el development dado.

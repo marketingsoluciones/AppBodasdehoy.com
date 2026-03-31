@@ -49,7 +49,7 @@ function renderMarkdown(text: string): string {
       /\[([^\]]+)]\((https?:\/\/[^)]+)\)/g,
       '<a href="$2" target="_blank" rel="noopener" style="color:#be185d;text-decoration:underline">$1</a>',
     )
-    .replaceAll(/\n---\n/g, '<hr style="border:none;border-top:1px solid #e5e7eb;margin:8px 0"/>')
+    .replaceAll('\n---\n', '<hr style="border:none;border-top:1px solid #e5e7eb;margin:8px 0"/>')
     .replaceAll('\n', '<br/>');
 }
 
@@ -137,7 +137,7 @@ function LeadForm({ onSubmit }: { onSubmit: (data: LeadData) => void }) {
       </div>
 
       {/* Card */}
-      <div style={{ background: '#f8f7ff', flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: '#f8f7ff', display: 'flex', flex: 1, flexDirection: 'column' }}>
         <div style={{ background: 'white', borderRadius: 20, boxShadow: '0 4px 24px rgba(0,0,0,0.1)', margin: '-26px 16px 0', padding: '24px 20px', position: 'relative' }}>
           <p style={{ color: '#1f2937', fontSize: 17, fontWeight: 700, lineHeight: 1.3, margin: '0 0 6px' }}>
             ¡Hola! 👋 Encantados de ayudarte
@@ -157,14 +157,14 @@ function LeadForm({ onSubmit }: { onSubmit: (data: LeadData) => void }) {
                   {label}
                 </label>
                 <input
-                  ref={ref as any}
-                  type={type}
-                  placeholder={placeholder}
-                  value={value}
-                  onChange={(e) => setter(e.target.value)}
-                  style={inputBase}
-                  onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = '#a855f7'; }}
                   onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'; }}
+                  onChange={(e) => setter(e.target.value)}
+                  onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = '#a855f7'; }}
+                  placeholder={placeholder}
+                  ref={ref as any}
+                  style={inputBase}
+                  type={type}
+                  value={value}
                 />
               </div>
             ))}
@@ -176,23 +176,23 @@ function LeadForm({ onSubmit }: { onSubmit: (data: LeadData) => void }) {
             )}
 
             <button
-              type="submit"
+              onMouseEnter={(e) => { (e.currentTarget).style.opacity = '0.9'; }}
+              onMouseLeave={(e) => { (e.currentTarget).style.opacity = '1'; }}
               style={{
                 background: 'linear-gradient(140deg,#f43f5e 0%,#a855f7 100%)',
                 border: 'none', borderRadius: 12, boxShadow: '0 4px 16px rgba(168,85,247,0.35)',
                 color: 'white', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14,
                 fontWeight: 700, marginTop: 4, padding: '12px 20px', transition: 'opacity 0.2s',
               }}
-              onMouseEnter={(e) => { (e.currentTarget).style.opacity = '0.9'; }}
-              onMouseLeave={(e) => { (e.currentTarget).style.opacity = '1'; }}
+              type="submit"
             >
               Comenzar conversación ✨
             </button>
 
             <button
-              type="button"
               onClick={() => onSubmit({ email: '', name: 'Visitante', phone: '' })}
               style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, padding: 4, textDecoration: 'underline' }}
+              type="button"
             >
               Continuar sin registrarme
             </button>
@@ -414,13 +414,13 @@ function ChatView({
               <button
                 key={qr.text}
                 onClick={() => sendMessage(qr.text)}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#faf5ff'; e.currentTarget.style.borderColor = '#a855f7'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e9d5ff'; }}
                 style={{
                   background: 'white', border: '1.5px solid #e9d5ff', borderRadius: 20,
                   boxShadow: '0 1px 3px rgba(0,0,0,0.06)', color: '#7c3aed', cursor: 'pointer',
                   fontFamily: 'inherit', fontSize: 12, fontWeight: 500, padding: '7px 13px', transition: 'all 0.15s',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#faf5ff'; e.currentTarget.style.borderColor = '#a855f7'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e9d5ff'; }}
               >
                 {qr.emoji} {qr.text}
               </button>
@@ -440,13 +440,13 @@ function ChatView({
           </p>
           <a
             href="https://organizador.bodasdehoy.com/login?q=register"
-            target="_blank"
-            rel="noopener"
+            rel="noopener noreferrer"
             style={{
               background: 'linear-gradient(135deg,#f43f5e,#a855f7)', border: 'none', borderRadius: 10,
               color: 'white', display: 'inline-block', fontSize: 13, fontWeight: 700, padding: '10px 20px',
               textDecoration: 'none', transition: 'opacity 0.2s',
             }}
+            target="_blank"
           >
             Crear cuenta gratis para continuar
           </a>
@@ -454,19 +454,19 @@ function ChatView({
       ) : (
         <div style={{ alignItems: 'flex-end', background: 'white', borderTop: '1px solid #f3f4f6', display: 'flex', flexShrink: 0, gap: 8, padding: '10px 12px' }}>
           <textarea
-            ref={inputRef}
-            value={input}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; }}
             onChange={(e) => setInput(e.target.value)}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#a855f7'; }}
             onKeyDown={handleKeyDown}
             placeholder="Escribe tu mensaje..."
+            ref={inputRef}
             rows={1}
             style={{
               background: '#fafafa', border: '1.5px solid #e5e7eb', borderRadius: 12, boxSizing: 'border-box',
               color: '#1f2937', flex: 1, fontFamily: 'inherit', fontSize: 13, lineHeight: 1.5,
               maxHeight: 80, outline: 'none', padding: '9px 14px', resize: 'none', transition: 'border-color 0.15s',
             }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = '#a855f7'; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; }}
+            value={input}
           />
           <button
             disabled={!canSend}

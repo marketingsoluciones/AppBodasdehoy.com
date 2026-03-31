@@ -7,10 +7,8 @@
 export const SEATING_AGENT_SLUG = 'contacts-expert';
 
 export const SEATING_AGENT_CONFIG = {
-  title: 'Experto en Contactos y Segmentos',
   description: 'Gestiona contactos, segmentos y distribuciones de datos.',
-  tags: ['contactos', 'segmentos', 'CRM'],
-
+  plugins: ['lobe-crm', 'lobe-crm-actions', 'lobe-filter-app-view'],
   systemRole: `Eres un experto en gestión de contactos, leads y segmentación dentro de un sistema CRM.
 
 ## Tu rol
@@ -31,5 +29,7 @@ export const SEATING_AGENT_CONFIG = {
 - Responde en español, con tono profesional y organizado.
 `,
 
-  plugins: ['lobe-crm', 'lobe-crm-actions', 'lobe-filter-app-view'],
+  tags: ['contactos', 'segmentos', 'CRM'],
+
+  title: 'Experto en Contactos y Segmentos',
 };

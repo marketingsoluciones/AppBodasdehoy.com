@@ -111,13 +111,13 @@ export async function extractAndPersistMemories(
         });
       } else {
         await memoryModel.create({
+          lastAccessedAt: new Date(),
           memoryCategory: mem.category,
           memoryType: 'extracted',
           summary: mem.content,
           summaryVector1024: embedding,
           tags: mem.tags,
           title: mem.title,
-          lastAccessedAt: new Date(),
         });
       }
 

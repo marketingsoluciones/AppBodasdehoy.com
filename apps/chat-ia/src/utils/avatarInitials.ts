@@ -13,12 +13,12 @@ export function getAvatarInitials(label: string): string {
     const parts = base.split(/\s+/).filter(Boolean);
     if (parts.length >= 2) {
       const a = parts[0].charAt(0);
-      const b = parts[parts.length - 1].charAt(0);
+      const b = parts.at(-1).charAt(0);
       return (a + b).toUpperCase();
     }
   }
 
-  const cleaned = base.replace(/[^a-zA-ZÀ-ÿ0-9]/g, '');
+  const cleaned = base.replaceAll(/[^\dA-Za-zÀ-ÿ]/g, '');
   if (cleaned.length >= 2) return cleaned.slice(0, 2).toUpperCase();
   return base.slice(0, 2).toUpperCase() || '?';
 }

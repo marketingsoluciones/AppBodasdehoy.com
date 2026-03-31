@@ -87,7 +87,7 @@ export function useMessages(channel: string, conversationId: string) {
       try {
         setLoading(true);
         const msgs = await getWhatsAppMessagesGQL(gqlId);
-        const serverMsgs = msgs.map((m) => normalizeMessage({ ...m, text: m.text, direction: m.direction }));
+        const serverMsgs = msgs.map((m) => normalizeMessage({ ...m, direction: m.direction, text: m.text }));
         setMessages(serverMsgs);
         setError(null);
       } catch (err) {

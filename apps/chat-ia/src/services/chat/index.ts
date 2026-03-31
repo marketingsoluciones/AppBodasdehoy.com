@@ -404,7 +404,7 @@ class ChatService {
     const isEmail = currentUserId && currentUserId.includes('@') && !currentUserId.includes('guest.local');
     // Firebase UIDs pueden contener letras, números, guiones y otros chars no-alfanuméricos
     // Solo tratar como teléfono si tiene formato de número de teléfono (solo dígitos y + o -)
-    const isPhone = currentUserId && !isUUID && !isEmail && /^[+\d][\d\s\-().]{5,}$/.test(currentUserId) && currentUserId !== 'visitante@guest.local';
+    const isPhone = currentUserId && !isUUID && !isEmail && /^[\d+][\d\s().\-]{5,}$/.test(currentUserId) && currentUserId !== 'visitante@guest.local';
     const isValidUser = currentUserId && currentUserId !== 'visitante@guest.local';
 
     // Email desde userProfile o localStorage (fallback cuando currentUserId es un UID de Firebase)

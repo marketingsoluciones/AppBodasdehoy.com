@@ -42,12 +42,12 @@ const QuotaBanner = memo(() => {
         gap={8}
         horizontal
         style={{
-          padding: '8px 12px',
           background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-          borderRadius: 8,
           border: '1px solid #fecaca',
-          marginBottom: 6,
+          borderRadius: 8,
           fontSize: 13,
+          marginBottom: 6,
+          padding: '8px 12px',
         }}
       >
         <Lock size={16} style={{ color: '#dc2626', flexShrink: 0 }} />
@@ -58,12 +58,12 @@ const QuotaBanner = memo(() => {
           <Link
             href="/settings/billing/packages"
             style={{
-              padding: '4px 12px',
               background: '#667eea',
-              color: 'white',
               borderRadius: 6,
+              color: 'white',
               fontSize: 12,
               fontWeight: 600,
+              padding: '4px 12px',
               textDecoration: 'none',
               whiteSpace: 'nowrap',
             }}
@@ -73,12 +73,12 @@ const QuotaBanner = memo(() => {
           <Link
             href="/settings/billing/planes"
             style={{
-              padding: '4px 12px',
               border: '1px solid #667eea',
-              color: '#667eea',
               borderRadius: 6,
+              color: '#667eea',
               fontSize: 12,
               fontWeight: 600,
+              padding: '4px 12px',
               textDecoration: 'none',
               whiteSpace: 'nowrap',
             }}
@@ -97,12 +97,12 @@ const QuotaBanner = memo(() => {
       gap={8}
       horizontal
       style={{
-        padding: '6px 12px',
         background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
-        borderRadius: 8,
         border: '1px solid #fde68a',
-        marginBottom: 6,
+        borderRadius: 8,
         fontSize: 13,
+        marginBottom: 6,
+        padding: '6px 12px',
       }}
     >
       <AlertTriangle size={14} style={{ color: '#d97706', flexShrink: 0 }} />
@@ -112,15 +112,15 @@ const QuotaBanner = memo(() => {
       <Link
         href="/settings/billing/planes"
         style={{
-          display: 'flex',
           alignItems: 'center',
-          gap: 4,
-          padding: '3px 10px',
           background: '#f59e0b',
-          color: 'white',
           borderRadius: 6,
+          color: 'white',
+          display: 'flex',
           fontSize: 12,
           fontWeight: 600,
+          gap: 4,
+          padding: '3px 10px',
           textDecoration: 'none',
           whiteSpace: 'nowrap',
         }}

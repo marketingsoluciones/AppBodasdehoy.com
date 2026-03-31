@@ -359,7 +359,7 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
   const { externalChannels, loading: channelsLoading } = useInboxChannels();
 
   // Channel health monitor
-  const [healthAlert, setHealthAlert] = useState<{ label: string; kind: string } | null>(null);
+  const [healthAlert, setHealthAlert] = useState<{ kind: string, label: string; } | null>(null);
   const handleChannelDown = useCallback(
     (ev: { channelId: string; kind: string; label: string }) => {
       setHealthAlert({ kind: ev.kind, label: ev.label });

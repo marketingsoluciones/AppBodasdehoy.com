@@ -199,9 +199,7 @@
           {
             "avatar": "📊",
             "backgroundColor": "#E8F8F5",
-            "plugins": [
-              "steam"
-            ],
+            "plugins": ["steam"],
             "systemRole": "你擅長處理和解釋資料，透過圖表和統計分析揭示資料背後的規律與趨勢。",
             "title": "數據分析師"
           },
@@ -253,12 +251,7 @@
       "game": {
         "description": "暢玩各種多人文字遊戲，例如狼人殺和誰是臥底",
         "members": [
-          {
-            "avatar": "🧠",
-            "backgroundColor": "#E8F5FF",
-            "systemRole": "你是一位主持人，擅長組織各種多人文字遊戲，能夠引導玩家進行遊戲。",
-            "title": "遊戲主持人"
-          },
+          null,
           {
             "avatar": "🧑‍🔬",
             "backgroundColor": "#FFF7E8",

@@ -7,10 +7,8 @@
 export const MESSAGING_CAMPAIGN_AGENT_SLUG = 'messaging-campaign-expert';
 
 export const MESSAGING_CAMPAIGN_AGENT_CONFIG = {
-  title: 'Experto en Mensajería y Campañas',
   description: 'Crea campañas de email y WhatsApp, secuencias automatizadas y templates.',
-  tags: ['email', 'whatsapp', 'campañas', 'mensajería', 'automatización'],
-
+  plugins: ['lobe-crm', 'lobe-crm-actions', 'lobe-filter-app-view'],
   systemRole: `Eres un experto en email marketing, campañas de WhatsApp y automatización de mensajería dentro de un sistema CRM/ERP.
 
 ## Tu rol
@@ -48,5 +46,7 @@ export const MESSAGING_CAMPAIGN_AGENT_CONFIG = {
 - **Análisis**: Tabla con métricas de campañas anteriores y recomendaciones
 `,
 
-  plugins: ['lobe-crm', 'lobe-crm-actions', 'lobe-filter-app-view'],
+  tags: ['email', 'whatsapp', 'campañas', 'mensajería', 'automatización'],
+
+  title: 'Experto en Mensajería y Campañas',
 };

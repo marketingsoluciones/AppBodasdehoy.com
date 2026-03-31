@@ -15,75 +15,98 @@ const DOMAIN_TO_DEVELOPER: Record<string, string> = {
 'annloevents.com': 'annloevents',
 
   
-  // bodasdehoy.com — producción
-'app.bodasdehoy.com': 'bodasdehoy',
-  
-'bodasdehoy.com': 'bodasdehoy',
-  
-// bodasdehoy.com — test (Vercel, rama test)
-'app-test.bodasdehoy.com': 'bodasdehoy',
   
 
-'champagne-events.com.mx': 'champagne-events',
-  
-
-'chat-test.bodasdehoy.com': 'bodasdehoy',
-  
-
-'chat.bodasdehoy.com': 'bodasdehoy',
-
-  
-  
-'editor-test.bodasdehoy.com': 'bodasdehoy',
-  
-'editor.bodasdehoy.com': 'bodasdehoy',
-  
 // bodasdehoy.com — dev (local, Cloudflare Tunnel)
 'app-dev.bodasdehoy.com': 'bodasdehoy',
   
 
-'localhost': 'bodasdehoy',
+
+
+// bodasdehoy.com — test (Vercel, rama test)
+'app-test.bodasdehoy.com': 'bodasdehoy',
   
+
+
+// bodasdehoy.com — producción
+'app.bodasdehoy.com': 'bodasdehoy',
+  
+
+
+'bodasdehoy.com': 'bodasdehoy',
+  
+
+
+'champagne-events.com.mx': 'champagne-events',
+  
+
 
 'chat-dev.bodasdehoy.com': 'bodasdehoy',
 
   
   
-'eventosorganizador.com': 'eventosorganizador',
+
+'chat-test.bodasdehoy.com': 'bodasdehoy',
   
-'editor-dev.bodasdehoy.com': 'bodasdehoy',
-  
-'marcablanca.com': 'marcablanca',
-  
+
 // eventosorganizador.com — subdominios
 'chat-test.eventosorganizador.com': 'eventosorganizador',
   
 
-'wildliberty.com': 'wildliberty',
+
+'chat.bodasdehoy.com': 'bodasdehoy',
+  
+
+
+'editor-dev.bodasdehoy.com': 'bodasdehoy',
+  
+
+
+'editor-test.bodasdehoy.com': 'bodasdehoy',
 
   
   
+
+'editor.bodasdehoy.com': 'bodasdehoy',
+  
+
+'eventosorganizador.com': 'eventosorganizador',
+  
+
 // bodasdehoy.com — legacy (masterv1)
 'iachat.bodasdehoy.com': 'bodasdehoy',
   
 
+
+'localhost': 'bodasdehoy',
+  
+
+
+'marcablanca.com': 'marcablanca',
+
+  
+  
+
 'memories-dev.bodasdehoy.com': 'bodasdehoy',
+  
+
+'memories-test.bodasdehoy.com': 'bodasdehoy',
   
 
 'memories.bodasdehoy.com': 'bodasdehoy',
   
 
 
-'memories-test.bodasdehoy.com': 'bodasdehoy',
+'staging.eventosorganizador.com': 'eventosorganizador',
 
   
   
 
-'wedding-creator.bodasdehoy.com': 'bodasdehoy',
+'test.bodasdehoy.com': 'bodasdehoy',
 
   
-  'staging.eventosorganizador.com': 'eventosorganizador',
-  'test.bodasdehoy.com': 'bodasdehoy',
+  'wedding-creator.bodasdehoy.com': 'bodasdehoy',
+  'wildliberty.com': 'wildliberty',
 };
 
 /**

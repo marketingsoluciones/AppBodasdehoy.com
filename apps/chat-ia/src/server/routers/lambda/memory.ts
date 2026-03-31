@@ -12,32 +12,11 @@ import { serverDatabase } from '@/libs/trpc/lambda/middleware';
 const memoryProcedure = authedProcedure.use(serverDatabase);
 
 export const memoryRouter = router({
-  /**
-   * Busca memorias relevantes para una query dada.
-   * Se usa en el cliente para preview/debug de memory recall.
-   */
-  recallForQuery: memoryProcedure
-    .input(
-      z.object({
-        query: z.string().min(1).max(8000),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { recallMemories } = await import('@/server/services/memoryRecall');
-
-      const result = await recallMemories(ctx.serverDB, ctx.userId, input.query);
-
-      return {
-        contextBlock: result.contextBlock,
-        hasMemories: result.hasMemories,
-        memoriesCount: result.memoriesCount,
-      };
-    }),
-
+  
   /**
    * Trigger manual de extracción de memorias desde un summary.
    */
-  extractFromSummary: memoryProcedure
+extractFromSummary: memoryProcedure
     .input(
       z.object({
         summary: z.string().min(1).max(50_000),
@@ -55,5 +34,28 @@ export const memoryRouter = router({
       );
 
       return { extracted: count };
+    }),
+
+  
+  /**
+   * Busca memorias relevantes para una query dada.
+   * Se usa en el cliente para preview/debug de memory recall.
+   */
+recallForQuery: memoryProcedure
+    .input(
+      z.object({
+        query: z.string().min(1).max(8000),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { recallMemories } = await import('@/server/services/memoryRecall');
+
+      const result = await recallMemories(ctx.serverDB, ctx.userId, input.query);
+
+      return {
+        contextBlock: result.contextBlock,
+        hasMemories: result.hasMemories,
+        memoriesCount: result.memoriesCount,
+      };
     }),
 });

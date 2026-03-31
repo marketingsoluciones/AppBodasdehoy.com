@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { BRANDING_NAME } from '@/const/branding';
 
-const SERVER_UA = `${BRANDING_NAME.replace(/\s+/g, '')}-Server/1.0`;
+const SERVER_UA = `${BRANDING_NAME.replaceAll(/\s+/g, '')}-Server/1.0`;
 
 // Forzar uso del runtime de Node.js para poder hacer peticiones HTTP
 export const runtime = 'nodejs';
