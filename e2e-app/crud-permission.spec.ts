@@ -45,7 +45,11 @@ function isAtChat(url: string): boolean {
 async function loginChat(page: Page, email: string, password: string): Promise<boolean> {
   await page.goto(`${CHAT_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 40_000 * MULT });
   await page.waitForTimeout(2000);
-  if (isAtChat(page.url())) return true;
+  if (isAtChat(page.url())) {
+    // Ya estamos en chat — verificar que la sesión no esté expirada
+    const expired = await page.locator('text=Sesión expirada, text=session_expired').isVisible({ timeout: 2000 }).catch(() => false);
+    if (!expired) return true;
+  }
 
   const emailInput = page.locator('input[type="email"], input[placeholder="tu@email.com"]').first();
   await emailInput.waitFor({ state: 'visible', timeout: 15_000 });
@@ -55,8 +59,19 @@ async function loginChat(page: Page, email: string, password: string): Promise<b
   await pwInput.fill(password);
 
   await page.locator('button:has-text("Iniciar sesión"), button[type="submit"]').first().click();
+
   // Esperar a que Firebase complete auth + router.replace('/chat')
-  await page.waitForTimeout(10_000);
+  // En entornos remotos (Vercel) el redirect puede tardar hasta 15s
+  const waitMs = E2E_ENV === 'local' ? 10_000 : 18_000;
+  await page.waitForTimeout(waitMs);
+
+  // Verificar que no haya banner de sesión expirada (indica auth incompleto)
+  const expiredBanner = await page.locator('text=Sesión expirada').isVisible({ timeout: 2000 }).catch(() => false);
+  if (expiredBanner) {
+    console.log('⚠️ loginChat — banner "Sesión expirada" visible, esperando más...');
+    await page.waitForTimeout(5_000);
+  }
+
   const ok = isAtChat(page.url());
   console.log(`loginChat → URL: ${page.url()} | ok: ${ok}`);
   return ok;
@@ -79,16 +94,32 @@ async function enterAsVisitor(page: Page): Promise<boolean> {
   return page.url().includes('/chat');
 }
 
-/** Envía un mensaje y espera respuesta estable (máx waitMs ms) */
-async function sendAndWait(page: Page, message: string, waitMs = 45_000): Promise<string> {
-  // Si no estamos en /chat, navegar antes de buscar el editor
+// Estados intermedios del streaming — NO son respuestas finales, seguir esperando
+const LOADING_STATES = [
+  /^Analizando tu solicitud/i,
+  /^Buscando información/i,
+  /^Consultando/i,
+  /^Procesando/i,
+  /^Pensando/i,
+];
+
+/**
+ * Envía un mensaje y espera respuesta estable.
+ * afterArticleCount: ignorar artículos anteriores a este índice (para sesiones multi-pregunta).
+ * Devuelve la respuesta y el nuevo total de artículos (para el siguiente sendAndWaitInSession).
+ */
+async function sendAndWaitInSession(
+  page: Page,
+  message: string,
+  waitMs: number,
+  afterArticleCount: number,
+): Promise<{ response: string; newCount: number }> {
   if (!isAtChat(page.url())) {
     await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(3_000);
   }
 
   const ta = page.locator('div[contenteditable="true"]').last();
-  // Espera generosa — el editor tarda en montar tras login+redirect
   await ta.waitFor({ state: 'visible', timeout: 35_000 });
   await ta.click();
   await page.keyboard.press('Meta+A');
@@ -96,27 +127,47 @@ async function sendAndWait(page: Page, message: string, waitMs = 45_000): Promis
   await page.keyboard.type(message, { delay: 20 });
   await page.keyboard.press('Enter');
 
-  // Espera inicial para que el modelo empiece a responder
-  await page.waitForTimeout(5_000);
+  // Espera inicial: hasta que el mensaje del usuario aparezca en el DOM (señal de que se envió)
+  // o hasta 30s. En LobeChat, el mensaje usuario aparece inmediatamente, la respuesta IA tarda más.
+  let sendConfirmed = false;
+  const sendDeadline = Date.now() + 30_000;
+  while (Date.now() < sendDeadline && !sendConfirmed) {
+    const count = await page.locator('[data-index]').count();
+    if (count > afterArticleCount) sendConfirmed = true;
+    else await page.waitForTimeout(1_000);
+  }
+  // Espera adicional para que la IA empiece a generar (BubblesLoading → loading states text)
+  await page.waitForTimeout(8_000);
 
   const deadline = Date.now() + waitMs;
   let lastText = '';
   let stableCount = 0;
+  let currentCount = afterArticleCount;
 
   while (Date.now() < deadline) {
-    const articles = await page.locator('article').allTextContents();
+    // LobeChat renderiza cada mensaje como <div data-index={n}> (NO <article>)
+    const articles = await page.locator('[data-index]').allTextContents();
+    currentCount = articles.length;
+
+    // Solo mirar los artículos NUEVOS desde afterArticleCount
+    const newArticles = articles.slice(afterArticleCount);
     const userPrefix = message.trim().slice(0, 30).toLowerCase();
-    const aiMsgs = articles.filter((t) => {
+    const aiMsgs = newArticles.filter((t) => {
       const trimmed = t.trim();
       if (trimmed.length <= 5) return false;
+      // Filtrar el mensaje del propio usuario
       if (trimmed.slice(0, 30).toLowerCase().startsWith(userPrefix.slice(0, 20))) return false;
       return true;
     });
+
     const joined = aiMsgs.join('\n').trim();
-    if (joined.length > 10) {
+    const lastLine = joined.split('\n').filter((l) => l.trim().length > 3).pop() ?? '';
+    const isLoadingState = LOADING_STATES.some((p) => p.test(lastLine));
+
+    if (joined.length > 10 && !isLoadingState) {
       if (joined === lastText) {
         stableCount++;
-        if (stableCount >= 2) break; // Estable 2 ciclos consecutivos
+        if (stableCount >= 2) break;
       } else {
         stableCount = 0;
         lastText = joined;
@@ -124,18 +175,21 @@ async function sendAndWait(page: Page, message: string, waitMs = 45_000): Promis
     }
     await page.waitForTimeout(1_500);
   }
-  return lastText;
+
+  return { response: lastText, newCount: currentCount };
 }
 
-/** Clasifica si la respuesta es un error de backend (no del AI) */
+/** Envía un mensaje y espera respuesta estable (máx waitMs ms) — sesión limpia (1 pregunta) */
+async function sendAndWait(page: Page, message: string, waitMs = 45_000): Promise<string> {
+  const { response } = await sendAndWaitInSession(page, message, waitMs, 0);
+  return response;
+}
+
+/** Clasifica si la respuesta es un error de infraestructura (no un fallo de calidad del AI) */
 function isBackendError(response: string): boolean {
-  return /Servicio IA no disponible|TIMEOUT_ERROR|backend.*IA.*no disponible|intenta.*más tarde/i.test(response);
+  return /Servicio IA no disponible|TIMEOUT_ERROR|backend.*IA.*no disponible|intenta.*más tarde|server has rejected|permission to access|403|quota.*exceeded|límite.*mensual|quedan.*0 consultas/i.test(response);
 }
 
-/** Clasifica si la respuesta es un fallo de herramienta (AI intentó pero no pudo) */
-function isToolFailed(response: string): boolean {
-  return /no pude obtener|error al intentar|no he podido acceder|hubo un error|no pud.*recuperar/i.test(response);
-}
 
 // ─── BATCH 0: SMOKE GATE ──────────────────────────────────────────────────────
 
@@ -149,153 +203,89 @@ test.describe('BATCH 0 — Smoke Gate', () => {
       timeout: 10_000,
     });
     const ms = Date.now() - t0;
+    const msLimit = E2E_ENV === 'local' ? 5_000 : 12_000;
     expect(resp?.status(), `Servidor devolvió ${resp?.status()}`).toBeLessThan(400);
-    expect(ms, `Tardó ${ms}ms — supera 5s`).toBeLessThan(5_000);
+    expect(ms, `Tardó ${ms}ms — supera ${msLimit / 1000}s`).toBeLessThan(msLimit);
     smokeGatePassed = true;
     console.log(`✅ S01 — servidor OK en ${ms}ms`);
   });
 });
 
 // ─── BATCH 1: CRUD via IA ─────────────────────────────────────────────────────
-// Las 5 preguntas sobre Boda Isabel & Raúl tienen respuestas exactas de la DB.
-// Si el servidor falla (backend error) en cualquier pregunta → se para el batch.
+// Las 5 preguntas sobre Boda Isabel & Raúl se hacen en UNA SOLA SESIÓN.
+// Beneficios:
+//   - 1 login → el contexto del evento se carga una vez
+//   - Preguntas siguientes reutilizan el contexto → no hay "límite de operaciones"
+//   - Un tercio de las llamadas a api-ia vs 5 logins separados
 
 test.describe('BATCH 1 — CRUD via IA (Boda Isabel & Raúl)', () => {
-  test.setTimeout(90_000 * MULT);
+  // C01 requiere tool calls (get_user_events + filter) que pueden tardar 3-5 min la primera vez.
+  // C02-C05 reutilizan el contexto cargado → mucho más rápidos (30-60s cada uno).
+  // Total: 300s C01 + 4×90s C02-C05 + 60s login = 720s máx
+  test.setTimeout(720_000 * MULT);
 
-  let loggedIn = false;
+  test('C01-C05 — sesión única (5 preguntas, 1 login)', async ({ page }) => {
+    if (!smokeGatePassed) test.skip(true, 'Smoke gate no pasó — servidor no disponible');
 
-  test.beforeAll(async ({ browser }) => {
-    if (!smokeGatePassed) return;
-    const page = await browser.newPage();
-    loggedIn = await loginChat(page, TEST_USERS.organizador.email, TEST_CREDENTIALS.password);
-    await page.close();
-  });
-
-  test('BATCH-1 gate — login como organizador', async ({ page }) => {
-    if (!smokeGatePassed) {
-      test.skip(true, 'Smoke gate no pasó — servidor no disponible');
-    }
     const ok = await loginChat(page, TEST_USERS.organizador.email, TEST_CREDENTIALS.password);
-    expect(ok, 'Login fallido — no se puede probar CRUD').toBe(true);
-    loggedIn = ok;
-  });
-
-  // ── C01 — Total invitados ──────────────────────────────────────────────────
-
-  test(`C01 — total invitados = ${ISABEL_RAUL_EVENT.invitados.total}`, async ({ page }) => {
-    if (!smokeGatePassed || !loggedIn) test.skip();
-
-    await loginChat(page, TEST_USERS.organizador.email, TEST_CREDENTIALS.password);
-    const response = await sendAndWait(page, CRUD_QUESTIONS[0].pregunta, 45_000 * MULT);
-
-    console.log(`C01 respuesta: "${response.slice(0, 200)}"`);
-
-    if (isBackendError(response)) {
-      test.fail(true, `❌ Backend error — no gastar más tokens en este batch: "${response.slice(0, 150)}"`);
+    if (!ok) {
+      test.fail(true, 'Login fallido — no se puede probar CRUD');
       return;
     }
 
-    expect(
-      CRUD_QUESTIONS[0].expectedPattern.test(response),
-      `Esperaba "${CRUD_QUESTIONS[0].description}" en: "${response.slice(0, 300)}"`,
-    ).toBe(true);
+    // Resultados por pregunta — soft assertions para ver todos los fallos de una vez
+    let articleCount = 0;
+    let batchAborted = false;
 
-    expect(
-      CRUD_QUESTIONS[0].failPattern.test(response),
-      `La IA dijo que no encontró datos (tool falló): "${response.slice(0, 200)}"`,
-    ).toBe(false);
-  });
+    for (const q of CRUD_QUESTIONS) {
+      if (batchAborted) {
+        // Anotar las preguntas saltadas por abort
+        test.info().annotations.push({ type: 'skip', description: `${q.id} saltado (batch abortado)` });
+        continue;
+      }
 
-  // ── C02 — Confirmados ─────────────────────────────────────────────────────
+      // C01 (primer mensaje de sesión) puede tardar 3-5 min (tool calls + eventos sin caché)
+      // C02-C05 reutilizan contexto → timeout menor
+      const perQuestionMs = articleCount === 0 ? 300_000 * MULT : 90_000 * MULT;
+      const { response, newCount } = await sendAndWaitInSession(
+        page,
+        q.pregunta,
+        perQuestionMs,
+        articleCount,
+      );
+      articleCount = newCount;
 
-  test(`C02 — confirmados = ${ISABEL_RAUL_EVENT.invitados.confirmados}`, async ({ page }) => {
-    if (!smokeGatePassed || !loggedIn) test.skip();
+      console.log(`${q.id} respuesta (${response.length} chars): "${response.slice(0, 200)}"`);
 
-    await loginChat(page, TEST_USERS.organizador.email, TEST_CREDENTIALS.password);
-    const response = await sendAndWait(page, CRUD_QUESTIONS[1].pregunta, 45_000 * MULT);
+      if (isBackendError(response)) {
+        // Backend caído → no gastar más tokens
+        test.info().annotations.push({
+          type: 'error',
+          description: `${q.id} backend error: "${response.slice(0, 150)}"`,
+        });
+        batchAborted = true;
+        // Reportar como fallo duro — la IA no está disponible, no es un fallo de calidad
+        expect(false, `❌ ${q.id} — Backend error, batch abortado: "${response.slice(0, 150)}"`).toBe(true);
+        return;
+      }
 
-    console.log(`C02 respuesta: "${response.slice(0, 200)}"`);
+      // Verificar que el patrón esperado aparece en la respuesta
+      expect.soft(
+        q.expectedPattern.test(response),
+        `${q.id} (${q.description}): expectedPattern no encontrado\n  Respuesta: "${response.slice(0, 300)}"`,
+      ).toBe(true);
 
-    if (isBackendError(response)) {
-      test.fail(true, `❌ Backend error en C02: "${response.slice(0, 150)}"`);
-      return;
+      // Verificar que el patrón de fallo NO aparece
+      expect.soft(
+        q.failPattern.test(response),
+        `${q.id} (${q.description}): failPattern detectado (IA dice que no encontró datos)\n  Respuesta: "${response.slice(0, 200)}"`,
+      ).toBe(false);
+
+      test.info().annotations.push({
+        type: 'result',
+        description: `${q.id} — ${q.description}: ${q.expectedPattern.test(response) ? '✅' : '❌'}`,
+      });
     }
-
-    expect(
-      CRUD_QUESTIONS[1].expectedPattern.test(response),
-      `Esperaba "${CRUD_QUESTIONS[1].description}" en: "${response.slice(0, 300)}"`,
-    ).toBe(true);
-  });
-
-  // ── C03 — Celíacos ────────────────────────────────────────────────────────
-
-  test(`C03 — celíacos = ${ISABEL_RAUL_EVENT.dietas.celiacos}`, async ({ page }) => {
-    if (!smokeGatePassed || !loggedIn) test.skip();
-
-    await loginChat(page, TEST_USERS.organizador.email, TEST_CREDENTIALS.password);
-    const response = await sendAndWait(page, CRUD_QUESTIONS[2].pregunta, 45_000 * MULT);
-
-    console.log(`C03 respuesta: "${response.slice(0, 200)}"`);
-
-    if (isBackendError(response)) {
-      test.fail(true, `❌ Backend error en C03: "${response.slice(0, 150)}"`);
-      return;
-    }
-
-    expect(
-      CRUD_QUESTIONS[2].expectedPattern.test(response),
-      `Esperaba "${CRUD_QUESTIONS[2].description}" en: "${response.slice(0, 300)}"`,
-    ).toBe(true);
-  });
-
-  // ── C04 — Confirmación de Juancarlos ─────────────────────────────────────
-
-  test('C04 — Juancarlos test NO ha confirmado (pendiente)', async ({ page }) => {
-    if (!smokeGatePassed || !loggedIn) test.skip();
-
-    await loginChat(page, TEST_USERS.organizador.email, TEST_CREDENTIALS.password);
-    const response = await sendAndWait(page, CRUD_QUESTIONS[3].pregunta, 45_000 * MULT);
-
-    console.log(`C04 respuesta: "${response.slice(0, 200)}"`);
-
-    if (isBackendError(response)) {
-      test.fail(true, `❌ Backend error en C04: "${response.slice(0, 150)}"`);
-      return;
-    }
-
-    // No debe decir que SÍ confirmó
-    expect(
-      CRUD_QUESTIONS[3].failPattern.test(response),
-      `❌ La IA dice que Juancarlos SÍ confirmó — dato incorrecto: "${response.slice(0, 200)}"`,
-    ).toBe(false);
-
-    // Debe indicar que está pendiente
-    expect(
-      CRUD_QUESTIONS[3].expectedPattern.test(response),
-      `Esperaba "pendiente/no confirmado" en: "${response.slice(0, 300)}"`,
-    ).toBe(true);
-  });
-
-  // ── C05 — Fecha de la boda ────────────────────────────────────────────────
-
-  test(`C05 — fecha boda = ${ISABEL_RAUL_EVENT.fecha}`, async ({ page }) => {
-    if (!smokeGatePassed || !loggedIn) test.skip();
-
-    await loginChat(page, TEST_USERS.organizador.email, TEST_CREDENTIALS.password);
-    const response = await sendAndWait(page, CRUD_QUESTIONS[4].pregunta, 45_000 * MULT);
-
-    console.log(`C05 respuesta: "${response.slice(0, 200)}"`);
-
-    if (isBackendError(response)) {
-      test.fail(true, `❌ Backend error en C05: "${response.slice(0, 150)}"`);
-      return;
-    }
-
-    expect(
-      CRUD_QUESTIONS[4].expectedPattern.test(response),
-      `Esperaba fecha 30/12/2025 en: "${response.slice(0, 300)}"`,
-    ).toBe(true);
   });
 });
 
