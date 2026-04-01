@@ -122,6 +122,18 @@ export function classifyResponse(
   if (/^\[HTTP \d{3}\]/.test(text)) {
     return 'error';
   }
+  // Errores de backend IA — siempre son fallos del sistema, no respuestas válidas
+  if (/Servicio IA no disponible|backend\s+IA.*no disponible|api.ia.*error|no disponible.*intenta más tarde|service.*unavailable/i.test(text)) {
+    return 'error';
+  }
+  // "Lo siento, no puedo" sin tools = IA bloqueada o mal configurada — es un fallo del sistema
+  // Si la IA dice que no puede hacer algo que SÍ debería poder, es error (no greeting)
+  if (
+    /lo siento.*no puedo|lo siento.*no tengo.*capacidad|lo siento.*no es posible|I'm sorry.*cannot|perdona.*no puedo/i.test(text) &&
+    text.length < 400
+  ) {
+    return 'error';
+  }
 
   // 3. auth_required — usa los mismos patrones que MessageContent.tsx
   if (AUTH_PATTERNS.some((p) => p.test(text))) {

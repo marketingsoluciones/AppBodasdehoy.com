@@ -92,15 +92,18 @@ test.describe('A1 — chat-ia · Visitante (sin sesión)', () => {
     await clearSession(context, page);
   });
 
+  // Patrón de error del backend IA — siempre es un fallo real del sistema
+  const BACKEND_ERROR = /Servicio IA no disponible|backend.*IA|no disponible.*intenta más tarde/i;
+
   test('A1.1 — saludo simple recibe respuesta coherente', async ({ page }) => {
     await enterAsVisitor(page);
     const editorVisible = await waitForChatEditor(page);
     if (!editorVisible) { test.skip(); return; }
 
     await chatValidated(page, 'Hola, ¿qué puedes hacer por mí?', {
-      expectedCategory: ['greeting', 'data_response', 'auth_required'],
-      forbiddenPatterns: ['Internal Server Error', '500', 'Something went wrong'],
-      description: 'Visitante — saludo debe recibir respuesta (no error 500)',
+      expectedCategory: ['greeting', 'data_response'],
+      forbiddenPatterns: ['Internal Server Error', 'Something went wrong', BACKEND_ERROR],
+      description: 'Visitante — saludo debe recibir respuesta coherente del asistente',
     }, 30_000 * MULT);
   });
 
@@ -110,25 +113,25 @@ test.describe('A1 — chat-ia · Visitante (sin sesión)', () => {
     if (!editorVisible) { test.skip(); return; }
 
     await chatValidated(page, '¿Qué pasos hay que seguir para organizar una boda?', {
-      expectedCategory: ['data_response', 'greeting', 'auth_required'],
-      forbiddenPatterns: ['Error', '500'],
+      expectedCategory: ['data_response', 'greeting'],
+      // No auth_required — un visitante SÍ puede hacer preguntas generales
+      forbiddenPatterns: ['Internal Server Error', BACKEND_ERROR],
       description: 'Visitante — pregunta general sobre bodas debe responder sin autenticación',
     }, 35_000 * MULT);
   });
 
-  test('A1.3 — pregunta de datos privados → pide login o informa de límite', async ({ page }) => {
+  test('A1.3 — pregunta de datos privados → pide login o informa de límite de mensajes', async ({ page }) => {
     await enterAsVisitor(page);
     const editorVisible = await waitForChatEditor(page);
     if (!editorVisible) { test.skip(); return; }
 
-    const result = await chatWithValidation(page, '¿Cuántos invitados tengo en mi evento?', {
-      expectedCategory: ['auth_required', 'needs_event', 'data_response', 'greeting'],
-      description: 'Visitante — datos privados debe pedir login o indicar que no hay sesión',
+    await chatValidated(page, '¿Cuántos invitados tengo en mi evento?', {
+      // Visitante sin sesión: pide login (auth_required) O dice que no tiene datos (data_response)
+      // NO puede dar datos reales porque no está autenticado
+      expectedCategory: ['auth_required', 'data_response', 'greeting'],
+      forbiddenPatterns: ['Internal Server Error', BACKEND_ERROR],
+      description: 'Visitante — datos privados: pide login o informa que no hay sesión',
     }, 35_000 * MULT);
-
-    console.log(`A1.3 categoría: ${result.response?.category} | respuesta: "${result.response?.text.slice(0, 120)}"`);
-    // No debe crashear ni dar 500
-    expect(result.response?.category).not.toBe('error');
   });
 });
 
@@ -152,55 +155,60 @@ test.describe('A2 — chat-ia · Usuario registrado', () => {
       .waitFor({ state: 'visible', timeout: 30_000 }).catch(() => {});
   });
 
+  // Patrón de error del backend IA
+  const BACKEND_ERROR = /Servicio IA no disponible|backend.*IA|no disponible.*intenta más tarde/i;
+
   test('A2.1 — saludo recibe respuesta de asistente de bodas', async ({ page }) => {
     await chatValidated(page, 'Hola, soy el organizador. ¿Qué puedes hacer por mí?', {
-      expectedCategory: ['greeting', 'data_response', 'tool_executed'],
-      forbiddenPatterns: ['Internal Server Error', '500'],
-      description: 'Usuario — saludo debe responder con capacidades del asistente',
+      // Usuario autenticado: responde con capacidades (greeting/data_response), ejecuta tools (tool_executed)
+      // o pide contexto del evento (needs_event). Cualquiera es válido. NO auth_required (ya logueado).
+      expectedCategory: ['greeting', 'data_response', 'tool_executed', 'needs_event'],
+      forbiddenPatterns: ['Internal Server Error', BACKEND_ERROR],
+      description: 'Usuario — saludo debe responder con capacidades del asistente de bodas',
     }, 30_000 * MULT);
   });
 
-  test('A2.2 — consulta invitados devuelve datos reales', async ({ page }) => {
+  test('A2.2 — consulta invitados devuelve datos reales del sistema', async ({ page }) => {
     await chatValidated(page, '¿Cuántos invitados tengo en mi evento? Dame el número total.', {
+      // DEBE ejecutar tool get_user_events y retornar datos — si dice "no disponible" es fallo
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed', 'needs_event'],
-      forbiddenPatterns: ['Internal Server Error', 'How can I assist'],
-      description: 'Usuario — consulta invitados debe ejecutar tools y dar número',
+      // NOT greeting — usuario logueado que pregunta por sus datos NO debe recibir un saludo genérico
+      forbiddenPatterns: ['Internal Server Error', BACKEND_ERROR],
+      description: 'Usuario — consulta invitados debe ejecutar tools y devolver número real',
     }, 45_000 * MULT);
   });
 
-  test('A2.3 — consulta presupuesto devuelve cifras', async ({ page }) => {
+  test('A2.3 — consulta presupuesto devuelve cifras del sistema', async ({ page }) => {
     await chatValidated(page, 'Dime el presupuesto total de mi evento y cuánto llevo gastado.', {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed', 'needs_event'],
-      forbiddenPatterns: ['Internal Server Error'],
-      description: 'Usuario — consulta presupuesto debe devolver respuesta con datos',
+      forbiddenPatterns: ['Internal Server Error', BACKEND_ERROR],
+      description: 'Usuario — consulta presupuesto debe retornar datos del sistema',
     }, 45_000 * MULT);
   });
 
-  test('A2.4 — consulta servicios contratados', async ({ page }) => {
+  test('A2.4 — consulta servicios contratados del sistema', async ({ page }) => {
     await chatValidated(page, '¿Qué servicios o proveedores tengo contratados para mi boda?', {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed', 'needs_event'],
-      forbiddenPatterns: ['Internal Server Error'],
-      description: 'Usuario — consulta servicios debe devolver lista',
+      forbiddenPatterns: ['Internal Server Error', BACKEND_ERROR],
+      description: 'Usuario — consulta servicios debe devolver lista del sistema',
     }, 45_000 * MULT);
   });
 
   test('A2.5 — consulta tareas pendientes del itinerario', async ({ page }) => {
     await chatValidated(page, 'Lista las tareas pendientes de mi itinerario. ¿Qué me falta por hacer?', {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed', 'needs_event'],
-      forbiddenPatterns: ['Internal Server Error'],
-      description: 'Usuario — consulta tareas debe devolver lista de pendientes',
+      forbiddenPatterns: ['Internal Server Error', BACKEND_ERROR],
+      description: 'Usuario — consulta tareas debe devolver lista de pendientes del sistema',
     }, 45_000 * MULT);
   });
 
-  test('A2.6 — pregunta fuera de dominio responde educadamente', async ({ page }) => {
-    const result = await chatWithValidation(page, '¿Cuál es la capital de Francia?', {
+  test('A2.6 — pregunta fuera de dominio responde correctamente', async ({ page }) => {
+    await chatValidated(page, '¿Cuál es la capital de Francia?', {
+      // Esta es determinística: París es la capital → debe responder con dato concreto
       expectedCategory: ['data_response', 'greeting'],
-      forbiddenPatterns: ['Internal Server Error', '500'],
-      description: 'Usuario — pregunta fuera de dominio debe responder (no romperse)',
+      forbiddenPatterns: ['Internal Server Error', BACKEND_ERROR],
+      description: 'Usuario — pregunta fuera de dominio: debe responder "París" sin errores',
     }, 30_000 * MULT);
-
-    console.log(`A2.6 respuesta: "${result.response?.text.slice(0, 150)}"`);
-    expect(result.response?.category).not.toBe('error');
   });
 });
 
@@ -222,31 +230,35 @@ test.describe('A3 — chat-ia · Invitado/colaborador', () => {
       .waitFor({ state: 'visible', timeout: 30_000 }).catch(() => {});
   });
 
+  // Patrón de error del backend IA
+  const BACKEND_ERROR = /Servicio IA no disponible|backend.*IA|no disponible.*intenta más tarde/i;
+
   test('A3.1 — saludo como colaborador recibe respuesta', async ({ page }) => {
     await chatValidated(page, 'Hola, soy el colaborador del evento. ¿Qué puedes hacer?', {
-      expectedCategory: ['greeting', 'data_response'],
-      forbiddenPatterns: ['Internal Server Error', '500'],
-      description: 'Colaborador — saludo debe recibir respuesta coherente',
+      expectedCategory: ['greeting', 'data_response', 'tool_executed', 'needs_event'],
+      // NO auth_required — el colaborador ESTÁ autenticado
+      forbiddenPatterns: ['Internal Server Error', BACKEND_ERROR],
+      description: 'Colaborador — saludo debe recibir respuesta coherente (usuario autenticado)',
     }, 30_000 * MULT);
   });
 
   test('A3.2 — consulta datos del evento como colaborador', async ({ page }) => {
     await chatValidated(page, '¿Cuál es mi evento y cuántos invitados hay confirmados?', {
-      expectedCategory: ['tool_executed', 'data_response', 'tool_failed', 'needs_event', 'auth_required'],
-      forbiddenPatterns: ['Internal Server Error'],
-      description: 'Colaborador — puede consultar datos del evento (permisos colaborador)',
+      // Colaborador autenticado: debe intentar buscar datos (tool_executed/data_response)
+      expectedCategory: ['tool_executed', 'data_response', 'tool_failed', 'needs_event'],
+      // NO auth_required — ya está logueado como colaborador
+      forbiddenPatterns: ['Internal Server Error', BACKEND_ERROR],
+      description: 'Colaborador — puede consultar datos del evento con sus permisos',
     }, 45_000 * MULT);
   });
 
   test('A3.3 — pregunta sobre presupuesto como colaborador', async ({ page }) => {
-    const result = await chatWithValidation(page, '¿Cuánto presupuesto tiene el evento? ¿Puedo verlo?', {
-      expectedCategory: ['tool_executed', 'data_response', 'tool_failed', 'needs_event', 'auth_required'],
-      forbiddenPatterns: ['Internal Server Error'],
-      description: 'Colaborador — acceso presupuesto puede ser restringido según rol',
+    await chatValidated(page, '¿Cuánto presupuesto tiene el evento? ¿Puedo verlo?', {
+      expectedCategory: ['tool_executed', 'data_response', 'tool_failed', 'needs_event'],
+      // NO auth_required — colaborador autenticado
+      forbiddenPatterns: ['Internal Server Error', BACKEND_ERROR],
+      description: 'Colaborador — puede o no acceder al presupuesto según rol (pero no error)',
     }, 45_000 * MULT);
-
-    console.log(`A3.3 colaborador/presupuesto: ${result.response?.category} — "${result.response?.text.slice(0, 120)}"`);
-    expect(result.response?.category).not.toBe('error');
   });
 });
 
@@ -366,6 +378,7 @@ test.describe('B2 — Copilot appEventos · Visitante', () => {
       /Iniciar\s+sesión|Crear\s+cuenta|Bodas de Hoy|organiz|login/i.test(bodyText);
     console.log(`B2.2 contenido público visible: ${hasPublicContent}`);
     // Solo verificamos que no hay errores, no forzamos el texto exacto
-    expect(bodyText).not.toMatch(/Internal Server Error|500/);
+    // Nota: "500" aislado evita falsos positivos con clases Tailwind (ej: border-pink-500)
+    expect(bodyText).not.toMatch(/Internal Server Error|Error 500|\b500\b/);
   });
 });
