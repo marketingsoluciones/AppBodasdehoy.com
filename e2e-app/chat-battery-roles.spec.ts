@@ -224,11 +224,15 @@ test.describe('A2 — chat-ia · Usuario registrado', () => {
 
   test('A2.6 — pregunta fuera de dominio responde correctamente', async ({ page }) => {
     await chatValidated(page, '¿Cuál es la capital de Francia?', {
-      // Esta es determinística: París es la capital → debe responder con dato concreto
-      expectedCategory: ['data_response', 'greeting'],
+      // Acepta tool_executed: el AI puede usar herramienta de razonamiento y aún responder bien
+      expectedCategory: ['data_response', 'greeting', 'tool_executed'],
       forbiddenPatterns: ['Internal Server Error', BACKEND_ERROR],
       description: 'Usuario — pregunta fuera de dominio: debe responder "París" sin errores',
     }, 30_000 * MULT);
+    // Esperar a que el tool result renderice (puede llegar tras la captura de chatValidated)
+    await page.waitForTimeout(3_000);
+    const bodyText = (await page.locator('body').textContent()) ?? '';
+    expect(/par[ií]s/i.test(bodyText), `Respuesta debe mencionar París en el body: ${bodyText.slice(0, 400)}`).toBe(true);
   });
 });
 
