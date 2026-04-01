@@ -31,10 +31,21 @@ let smokeGatePassed = false;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+/** Comprueba si la URL actual es la página de chat (no login con ?redirect=/chat) */
+function isAtChat(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    // /chat o /en-US__0__light/chat etc. — pero NO /login?redirect=/chat
+    return !parsed.pathname.includes('/login') && parsed.pathname.includes('/chat');
+  } catch {
+    return url.includes('/chat') && !url.includes('/login');
+  }
+}
+
 async function loginChat(page: Page, email: string, password: string): Promise<boolean> {
   await page.goto(`${CHAT_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 40_000 * MULT });
   await page.waitForTimeout(2000);
-  if (page.url().includes('/chat')) return true;
+  if (isAtChat(page.url())) return true;
 
   const emailInput = page.locator('input[type="email"], input[placeholder="tu@email.com"]').first();
   await emailInput.waitFor({ state: 'visible', timeout: 15_000 });
@@ -44,8 +55,11 @@ async function loginChat(page: Page, email: string, password: string): Promise<b
   await pwInput.fill(password);
 
   await page.locator('button:has-text("Iniciar sesión"), button[type="submit"]').first().click();
-  await page.waitForTimeout(8000);
-  return page.url().includes('/chat');
+  // Esperar a que Firebase complete auth + router.replace('/chat')
+  await page.waitForTimeout(10_000);
+  const ok = isAtChat(page.url());
+  console.log(`loginChat → URL: ${page.url()} | ok: ${ok}`);
+  return ok;
 }
 
 async function enterAsVisitor(page: Page): Promise<boolean> {
@@ -67,8 +81,15 @@ async function enterAsVisitor(page: Page): Promise<boolean> {
 
 /** Envía un mensaje y espera respuesta estable (máx waitMs ms) */
 async function sendAndWait(page: Page, message: string, waitMs = 45_000): Promise<string> {
+  // Si no estamos en /chat, navegar antes de buscar el editor
+  if (!isAtChat(page.url())) {
+    await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.waitForTimeout(3_000);
+  }
+
   const ta = page.locator('div[contenteditable="true"]').last();
-  await ta.waitFor({ state: 'visible', timeout: 20_000 });
+  // Espera generosa — el editor tarda en montar tras login+redirect
+  await ta.waitFor({ state: 'visible', timeout: 35_000 });
   await ta.click();
   await page.keyboard.press('Meta+A');
   await page.keyboard.press('Backspace');
