@@ -161,9 +161,15 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
     let bodyText = await req.text();
     bodyText = cleanPayload(bodyText);
 
-    // Enforce sistema prompt comercial para visitantes
+    // Enforce sistema prompt comercial para visitantes y roles sin acceso a datos
     const userId = req.headers.get('X-User-ID') ?? '';
-    if (userId.startsWith('visitor_')) {
+    const userRole = req.headers.get('X-User-Role') ?? '';
+    const isRestrictedAccess =
+      userId.startsWith('visitor_') ||
+      userRole === 'guest' ||
+      userRole === 'invited' ||
+      userRole === 'invitado';
+    if (isRestrictedAccess) {
       try {
         const parsed = JSON.parse(bodyText);
         if (Array.isArray(parsed.messages)) {

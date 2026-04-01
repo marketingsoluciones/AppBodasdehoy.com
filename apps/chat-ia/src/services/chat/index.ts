@@ -116,7 +116,11 @@ class ChatService {
       _chatState.currentUserId === 'visitante@guest.local' ||
       _chatState.userType === 'guest' ||
       _chatState.userType === 'visitor' ||
-      _chatState.currentUserId?.startsWith('visitor_');
+      _chatState.currentUserId?.startsWith('visitor_') ||
+      // Roles de invitado/guest en eventos — NO deben acceder a datos del organizador
+      (_chatState as any).userRole === 'guest' ||
+      (_chatState as any).userRole === 'invited' ||
+      (_chatState as any).userRole === 'invitado';
 
     let effectiveSystemRole = agentConfig.systemRole || '';
     if (_isGuest) {
@@ -412,8 +416,12 @@ class ChatService {
       (chatStoreState as any).userProfile?.email ||
       (typeof window !== 'undefined' ? window.localStorage.getItem('user_email') : null);
 
-    // ✅ SIEMPRE enviar X-User-ID si hay usuario válido (incluyendo UID de Firebase)
-    if (isValidUser) {
+    // ✅ Enviar X-User-ID solo si el usuario tiene acceso real a datos
+    // SEGURIDAD: roles guest/invited NO deben propagar el userId del organizador a api-ia
+    // — de lo contrario, un invitado vería TODOS los eventos del organizador (data leak)
+    const isRestrictedRole =
+      userRole === 'guest' || userRole === 'invited' || userRole === 'invitado';
+    if (isValidUser && !isRestrictedRole) {
       userContextHeaders['X-User-ID'] = currentUserId;
 
       // También enviar header específico según el tipo
