@@ -404,7 +404,8 @@ export async function chatWithValidation(
 
   // ── Esperar respuesta (polling) ──
   const deadline = Date.now() + waitMs;
-  const msgSelector = 'article';
+  // LobeChat renderiza mensajes como <div data-index={n}> (NO <article>)
+  const msgSelector = '[data-index]';
   let lastText = '';
 
   await page.waitForTimeout(5_000);
@@ -441,7 +442,7 @@ export async function chatWithValidation(
 
   // Si no captamos nada después de filtrar welcome, verificar si solo había welcome message
   if (lastText.length <= 10) {
-    const allArticles = await page.locator(msgSelector).allTextContents();
+    const allArticles = await page.locator('[data-index]').allTextContents();
     const welcomeOnly = allArticles.some((t) => WELCOME_PATTERNS.some((p) => p.test(t)));
     if (welcomeOnly) {
       // La IA solo devolvió welcome message → marcar como greeting para diagnóstico
