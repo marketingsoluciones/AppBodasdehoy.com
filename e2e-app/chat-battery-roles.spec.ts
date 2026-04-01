@@ -378,7 +378,7 @@ test.describe('B2 — Copilot appEventos · Visitante', () => {
       /Iniciar\s+sesión|Crear\s+cuenta|Bodas de Hoy|organiz|login/i.test(bodyText);
     console.log(`B2.2 contenido público visible: ${hasPublicContent}`);
     // Solo verificamos que no hay errores, no forzamos el texto exacto
-    // Nota: "500" aislado evita falsos positivos con clases Tailwind (ej: border-pink-500)
-    expect(bodyText).not.toMatch(/Internal Server Error|Error 500|\b500\b/);
+    // Evitar \b500\b — falso positivo con "+5.000 bodas" y clases Tailwind (border-pink-500)
+    expect(bodyText).not.toMatch(/Internal Server Error|Error\s*500|HTTP\s*500/);
   });
 });
