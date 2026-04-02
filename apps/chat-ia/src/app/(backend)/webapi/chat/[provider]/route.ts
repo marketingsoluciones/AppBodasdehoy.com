@@ -301,6 +301,27 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           );
         }
 
+        if (backendResponse.status === 429) {
+          // Límite de mensajes alcanzado (guest o usuario free)
+          // api-ia devuelve: {"error": "GUEST_DAILY_LIMIT_REACHED", "message": "..."}
+          let message = 'Has alcanzado el límite diario de mensajes. Regístrate gratis para continuar sin límites.';
+          let errorCode = 'rate_limit';
+          try {
+            // El body puede venir como SSE: "data: {...}\n\ndata: [DONE]" o JSON plano
+            const cleanText = errorText.replace(/^data:\s*/gm, '').replace(/\[DONE\]/g, '').trim();
+            const parsed = JSON.parse(cleanText.split('\n')[0] || cleanText);
+            if (parsed?.message) message = String(parsed.message);
+            if (parsed?.error) errorCode = String(parsed.error).toLowerCase();
+          } catch { /* usar mensaje por defecto */ }
+          return new Response(
+            JSON.stringify({
+              body: { message, type: errorCode },
+              errorType: 'rate_limit',
+            }),
+            { headers: { 'Content-Type': 'application/json' }, status: 429 }
+          );
+        }
+
         if (backendResponse.status === 402) {
           const allowNegative = process.env.ALLOW_NEGATIVE_BALANCE === 'true';
           if (allowNegative) {
