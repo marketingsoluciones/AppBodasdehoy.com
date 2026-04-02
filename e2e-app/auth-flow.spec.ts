@@ -75,6 +75,20 @@ function isErrorPage(body: string, url: string): boolean {
 test.describe('Auth Flow — chat-ia', () => {
   test.setTimeout(180_000);
 
+  // Limpiar cookies antes de cada test
+  test.beforeEach(async ({ page, context }) => {
+    await context.clearCookies();
+    // Inyectar script que limpia localStorage en la primera carga de página del test.
+    // Usamos una flag en sessionStorage para ejecutarlo solo una vez por test
+    // (no en navegaciones posteriores dentro del mismo test, como la redirección post-login).
+    await page.addInitScript(() => {
+      if (!sessionStorage.getItem('__e2e_cleaned')) {
+        sessionStorage.setItem('__e2e_cleaned', '1');
+        try { localStorage.clear(); } catch { /* ignore */ }
+      }
+    });
+  });
+
   // ── AF01 ─────────────────────────────────────────────────────────────────────
   test('AF01 — acceso sin login redirige a /login, no a página rota', async ({ page }) => {
     await page.context().clearCookies();
@@ -151,8 +165,8 @@ test.describe('Auth Flow — chat-ia', () => {
     await goToLogin(page);
 
     await fillLoginForm(page, TEST_CREDENTIALS.email, TEST_CREDENTIALS.password);
-    // Esperar redirección al chat (Firebase + router.replace)
-    await page.waitForTimeout(8000);
+    // Esperar redirección al chat (Firebase + router.replace). waitForURL es más fiable que timeout fijo.
+    await page.waitForURL((u) => !u.pathname.includes('/login'), { timeout: 25_000 }).catch(() => {});
 
     const finalUrl = page.url();
     const body = (await page.locator('body').textContent()) ?? '';
