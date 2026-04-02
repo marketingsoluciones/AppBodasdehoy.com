@@ -250,6 +250,16 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
       }
     }
 
+    // SEGURIDAD CRÍTICA: Si el acceso es restringido (visitor/guest/invited),
+    // eliminar CUALQUIER Authorization header antes de reenviar a api-ia.
+    // El visitante puede tener una cookie SSO activa de sesión previa en .bodasdehoy.com,
+    // lo cual haría que api-ia lo autentique y devuelva datos reales de usuarios registrados.
+    if (isRestrictedAccess) {
+      delete headers['Authorization'];
+      delete headers['authorization'];
+      console.warn(`[chat-proxy] ⚠️ Acceso restringido (userId="${userId}" role="${userRole}") — Authorization ELIMINADO para api-ia`);
+    }
+
     // DEBUG: verificar si Authorization se envía a api-ia
     const authSnippet = headers['Authorization'] ? 'Bearer ' + headers['Authorization'].slice(7, 27) + '...' : 'NONE';
     console.log(`[chat-proxy] → ${provider} | Auth: ${authSnippet} | Support-Key: ${headers['X-Support-Key'] ? 'YES' : 'NO'}`);
