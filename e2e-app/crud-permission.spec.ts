@@ -185,22 +185,38 @@ async function sendAndWait(page: Page, message: string, waitMs = 45_000): Promis
   return response;
 }
 
-/** Clasifica si la respuesta es un error de infraestructura (no un fallo de calidad del AI) */
+/** Clasifica si la respuesta es un error de infraestructura */
 function isBackendError(response: string): boolean {
   return /Servicio IA no disponible|TIMEOUT_ERROR|backend.*IA.*no disponible|intenta.*más tarde|server has rejected|permission to access|403|quota.*exceeded|límite.*mensual|quedan.*0 consultas/i.test(response);
 }
 
+/**
+ * Falla el test duro con un mensaje claro de infraestructura.
+ * Usado en lugar de test.skip() para que el CI sea rojo cuando api-ia no responde.
+ * Un test verde con infraestructura rota no tiene ningún valor.
+ */
+function failInfra(context: string, response: string): never {
+  const empty = response.trim().length === 0;
+  const msg = empty
+    ? `❌ INFRA: api-ia no devolvió respuesta (vacío). Posibles causas: quota agotada, api-ia caído, timeout. Contexto: ${context}`
+    : `❌ INFRA: api-ia devolvió error. Contexto: ${context}\n   Respuesta: "${response.slice(0, 200)}"`;
+  expect(false, msg).toBe(true);
+  throw new Error(msg); // para que TypeScript entienda que esta función no retorna
+}
+
 
 // ─── BATCH 0: SMOKE GATE ──────────────────────────────────────────────────────
+// S01: servidor HTTP responde
+// S02: api-ia responde (gate real para CRUD) — falla duro si api-ia está caído/quota agotada
 
 test.describe('BATCH 0 — Smoke Gate', () => {
-  test.setTimeout(30_000);
+  test.setTimeout(120_000);
 
-  test('S01 — servidor responde en <5s', async ({ page }) => {
+  test('S01 — servidor HTTP responde en <12s', async ({ page }) => {
     const t0 = Date.now();
     const resp = await page.goto(`${CHAT_URL}/login`, {
       waitUntil: 'domcontentloaded',
-      timeout: 10_000,
+      timeout: 15_000,
     });
     const ms = Date.now() - t0;
     const msLimit = E2E_ENV === 'local' ? 5_000 : 12_000;
@@ -208,6 +224,39 @@ test.describe('BATCH 0 — Smoke Gate', () => {
     expect(ms, `Tardó ${ms}ms — supera ${msLimit / 1000}s`).toBeLessThan(msLimit);
     smokeGatePassed = true;
     console.log(`✅ S01 — servidor OK en ${ms}ms`);
+  });
+
+  test('S02 — api-ia responde (gate para CRUD)', async ({ context, page }) => {
+    // Este test verifica que la IA puede responder preguntas reales.
+    // Si falla: quota agotada, api-ia caído, o red bloqueada.
+    // FALLA DURO (no skip) porque sin api-ia los CRUD tests no tienen ningún valor.
+    await clearSession(context, page);
+    const ok = await loginChat(page, TEST_USERS.organizador.email, TEST_CREDENTIALS.password);
+    expect(ok, 'Login fallido — no se puede llegar a api-ia').toBe(true);
+
+    await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.waitForTimeout(3_000);
+
+    const { response } = await sendAndWaitInSession(
+      page,
+      'Responde solo con "OK" — verificación de sistema',
+      45_000 * MULT,
+      0,
+    );
+
+    console.log(`S02 api-ia smoke response: "${response.slice(0, 200)}"`);
+
+    // Respuesta vacía o error de backend = fallo duro
+    if (response.trim().length === 0) {
+      failInfra('S02', response);
+    }
+    if (isBackendError(response)) {
+      failInfra('S02', response);
+    }
+
+    // Si llegamos aquí, api-ia está vivo
+    smokeGatePassed = true;
+    console.log('✅ S02 — api-ia responde correctamente');
   });
 });
 
