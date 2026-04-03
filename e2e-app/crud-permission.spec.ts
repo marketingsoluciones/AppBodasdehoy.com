@@ -212,7 +212,7 @@ function failInfra(context: string, response: string): never {
 test.describe('BATCH 0 — Smoke Gate', () => {
   test.setTimeout(120_000);
 
-  test('S01 — servidor HTTP responde en <12s', async ({ page }) => {
+  test('[S01] servidor HTTP responde en <12s', async ({ page }) => {
     const t0 = Date.now();
     const resp = await page.goto(`${CHAT_URL}/login`, {
       waitUntil: 'domcontentloaded',
@@ -226,7 +226,7 @@ test.describe('BATCH 0 — Smoke Gate', () => {
     console.log(`✅ S01 — servidor OK en ${ms}ms`);
   });
 
-  test('S02 — api-ia responde (gate para CRUD)', async ({ context, page }) => {
+  test('[S02] api-ia responde (gate para CRUD)', async ({ context, page }) => {
     // Este test verifica que la IA puede responder preguntas reales.
     // Si falla: quota agotada, api-ia caído, o red bloqueada.
     // FALLA DURO (no skip) porque sin api-ia los CRUD tests no tienen ningún valor.
@@ -273,7 +273,7 @@ test.describe('BATCH 1 — CRUD via IA (Boda Isabel & Raúl)', () => {
   // Total: 300s C01 + 4×90s C02-C05 + 60s login = 720s máx
   test.setTimeout(720_000 * MULT);
 
-  test('C01-C05 — sesión única (5 preguntas, 1 login)', async ({ page }) => {
+  test('[C01] sesión única CRUD (5 preguntas, 1 login)', async ({ page }) => {
     if (!smokeGatePassed) test.skip(true, 'Smoke gate no pasó — servidor no disponible');
 
     const ok = await loginChat(page, TEST_USERS.organizador.email, TEST_CREDENTIALS.password);
@@ -347,7 +347,7 @@ test.describe('BATCH 2 — Permisos (guest e invitado no ven datos privados)', (
 
   // ── P01 — Guest (visitante) NO ve datos del organizador ───────────────────
 
-  test('P01 — guest/visitante NO recibe datos privados de Isabel & Raúl', async ({ context, page }) => {
+  test('[P01] guest/visitante NO recibe datos privados de Isabel & Raúl', async ({ context, page }) => {
     if (!smokeGatePassed) test.skip(true, 'Smoke gate no pasó');
 
     await clearSession(context, page);
@@ -389,7 +389,7 @@ test.describe('BATCH 2 — Permisos (guest e invitado no ven datos privados)', (
 
   // ── P02 — Invitado (jcc@bodasdehoy.com) solo ve su evento ────────────────
 
-  test('P02 — invitado solo ve su evento "Email pruebas", no los 43 del organizador', async ({ page }) => {
+  test('[P02] invitado solo ve su evento "Email pruebas", no los 43 del organizador', async ({ page }) => {
     if (!smokeGatePassed) test.skip(true, 'Smoke gate no pasó');
 
     const ok = await loginChat(page, TEST_USERS.colaborador2.email, TEST_CREDENTIALS.password);
