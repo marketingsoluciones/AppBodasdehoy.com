@@ -539,6 +539,22 @@ const AuthProvider = ({ children }) => {
       onAuthStateChanged(getAuth(), async () => {
         setTriggerAuthStateChanged(new Date().getTime())
       });
+
+      // Al volver a la pestaña: forzar refresco del token Firebase.
+      // Esto dispara onAuthStateChanged → verificator vuelve a validar sessionBodas.
+      // Evita el estado intermedio donde Firebase sigue válido pero sessionBodas expiró.
+      const onVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          const currentUser = getAuth().currentUser;
+          if (currentUser) {
+            currentUser.getIdToken(true).catch(() => {
+              // Token revocado o sin red → onAuthStateChanged disparará con user=null
+            });
+          }
+        }
+      };
+      document.addEventListener('visibilitychange', onVisibilityChange);
+      return () => document.removeEventListener('visibilitychange', onVisibilityChange);
     }
   }, [config]);
 
