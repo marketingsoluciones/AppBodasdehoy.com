@@ -195,7 +195,7 @@ test.describe('Navegación rápida — sin acumulación de errores', () => {
 test.describe('Sesión expirada mid-session', () => {
   test.setTimeout(90_000);
 
-  test('eliminar cookie sessionBodas y navegar → banner o redirect a login', async ({
+  test('[EC06] eliminar cookie sessionBodas y navegar → banner o redirect a login', async ({
     page,
     context,
   }) => {
@@ -239,7 +239,7 @@ test.describe('Sesión expirada mid-session', () => {
 test.describe('Health check', () => {
   test.setTimeout(30_000);
 
-  test('/api/health responde 200', async ({ page }) => {
+  test('[EC07] /api/health responde 200', async ({ page }) => {
     let response: Awaited<ReturnType<typeof page.goto>> | null = null;
     try {
       response = await page.goto('/api/health', {

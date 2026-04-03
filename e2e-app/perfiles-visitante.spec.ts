@@ -38,7 +38,7 @@ test.describe('Visitante — appEventos (app-test)', () => {
     await waitForAppReady(page, 20_000);
   });
 
-  test('home carga sin errores y muestra acceso a login', async ({ page }) => {
+  test('[PV01] home carga sin errores y muestra acceso a login', async ({ page }) => {
     const body = page.locator('body');
     await expect(body).toBeVisible({ timeout: 15_000 });
     const text = (await body.textContent()) ?? '';
@@ -52,7 +52,7 @@ test.describe('Visitante — appEventos (app-test)', () => {
     expect(hasLoginOption).toBe(true);
   });
 
-  test('visitante no ve datos privados de eventos de otro usuario', async ({ page }) => {
+  test('[PV02] visitante no ve datos privados de eventos de otro usuario', async ({ page }) => {
     const body = page.locator('body');
     const text = (await body.textContent()) ?? '';
 
@@ -66,7 +66,7 @@ test.describe('Visitante — appEventos (app-test)', () => {
     expect(hasPrivateData).toBe(false);
   });
 
-  test('ruta /presupuesto con visitante no explota (redirige o muestra login)', async ({
+  test('[PV03] ruta /presupuesto con visitante no explota (redirige o muestra login)', async ({
     page,
   }) => {
     await page.goto('/presupuesto', { waitUntil: 'domcontentloaded', timeout: 30_000 });
@@ -83,7 +83,7 @@ test.describe('Visitante — appEventos (app-test)', () => {
     expect(ok).toBe(true);
   });
 
-  test('ruta /invitados con visitante no explota', async ({ page }) => {
+  test('[PV04] ruta /invitados con visitante no explota', async ({ page }) => {
     await page.goto('/invitados', { waitUntil: 'domcontentloaded', timeout: 60_000 }).catch(() => {});
     await page.waitForLoadState('load').catch(() => {});
 
@@ -94,7 +94,7 @@ test.describe('Visitante — appEventos (app-test)', () => {
     expect(text.length).toBeGreaterThan(50);
   });
 
-  test('menú de perfil muestra "Iniciar sesión" para visitante', async ({ page }) => {
+  test('[PV05] menú de perfil muestra "Iniciar sesión" para visitante', async ({ page }) => {
     const trigger = page.getByTestId('profile-menu-trigger');
     const triggerVisible = await trigger.isVisible({ timeout: 35_000 }).catch(() => false);
     if (!triggerVisible) {
@@ -130,7 +130,7 @@ test.describe('Visitante — chat-ia (chat-test)', () => {
     await clearSession(context, page);
   });
 
-  test('chat-ia carga sin pantalla en blanco ni error 500', async ({ page }) => {
+  test('[PV06] chat-ia carga sin pantalla en blanco ni error 500', async ({ page }) => {
     // Si la ruta raíz devuelve 500 (ej: variant route rota en dev), skip — es infra, no test
     const response = await page.goto(CHAT_URL, { waitUntil: 'domcontentloaded', timeout: 45_000 });
     if (response && response.status() === 500) {
@@ -149,7 +149,7 @@ test.describe('Visitante — chat-ia (chat-test)', () => {
     expect(text).not.toMatch(/Internal Server Error|Error 500|HTTP\/\d\.\d 500|Error Capturado/i);
   });
 
-  test('visitante ve mensaje de bienvenida comercial (sin funciones de planificación)', async ({
+  test('[PV07] visitante ve mensaje de bienvenida comercial (sin funciones de planificación)', async ({
     page,
   }) => {
     // Solo verificar en entornos test/prod donde el chat tiene contenido comercial configurado
@@ -174,7 +174,7 @@ test.describe('Visitante — chat-ia (chat-test)', () => {
     expect(hasWelcome).toBe(true);
   });
 
-  test('límite de mensajes visitante: al 6° mensaje (primer día) se bloquea y aparece modal de registro', async ({
+  test('[PV08] límite de mensajes visitante: al 6° mensaje (primer día) se bloquea y aparece modal de registro', async ({
     page,
   }) => {
     if (!isAppTest) {
@@ -256,7 +256,7 @@ test.describe('Visitante — copilot embebido en appEventos', () => {
     await waitForAppReady(page, 20_000);
   });
 
-  test('página principal carga con copilot sin errores visibles', async ({ page }) => {
+  test('[PV09] página principal carga con copilot sin errores visibles', async ({ page }) => {
     // El copilot es un iframe — verificamos que la página principal carga OK
     const body = page.locator('body');
     await expect(body).toBeVisible({ timeout: 15_000 });
@@ -266,7 +266,7 @@ test.describe('Visitante — copilot embebido en appEventos', () => {
     expect(text.length).toBeGreaterThan(80);
   });
 
-  test('copilot está presente en el DOM para visitante', async ({ page }) => {
+  test('[PV10] copilot está presente en el DOM para visitante', async ({ page }) => {
     if (!isAppTest) {
       test.skip();
       return;

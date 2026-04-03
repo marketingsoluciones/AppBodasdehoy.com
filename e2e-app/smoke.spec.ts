@@ -15,7 +15,7 @@ const isLocal =
 test.describe('Smoke — la app carga', () => {
   test.setTimeout(90_000);
 
-  test('la raíz / responde y muestra contenido sin errores', async ({ page }) => {
+  test('[SM01] la raíz / responde y muestra contenido sin errores', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(() => {});
 
     const delayMs = parseInt(process.env.E2E_DELAY_BEFORE || '0', 10);
@@ -36,7 +36,7 @@ test.describe('Smoke — la app carga', () => {
     expect(text, `App muestra error en la raíz: ${text.slice(0, 300)}`).not.toMatch(errorPatterns);
   });
 
-  test('el API de health responde ok', async ({ request }) => {
+  test('[SM02] el API de health responde ok', async ({ request }) => {
     // En app-test/remoto puede no existir /api/health — solo exigimos health en local.
     if (!isLocal) {
       test.skip();
