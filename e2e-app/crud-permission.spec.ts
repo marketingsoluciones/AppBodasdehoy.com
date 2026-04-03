@@ -20,7 +20,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { TEST_CREDENTIALS, TEST_URLS, E2E_ENV } from './fixtures';
 import { clearSession } from './helpers';
-import { ISABEL_RAUL_EVENT, TEST_USERS, CRUD_QUESTIONS, PERMISSION_QUESTIONS } from './fixtures/isabel-raul-event';
+import { TEST_USERS, CRUD_QUESTIONS, PERMISSION_QUESTIONS } from './fixtures/isabel-raul-event';
 
 const CHAT_URL = TEST_URLS.chat;
 const MULT = E2E_ENV === 'local' ? 1 : 1.5;
@@ -94,14 +94,43 @@ async function enterAsVisitor(page: Page): Promise<boolean> {
   return page.url().includes('/chat');
 }
 
-// Estados intermedios del streaming — NO son respuestas finales, seguir esperando
-const LOADING_STATES = [
-  /^Analizando tu solicitud/i,
-  /^Buscando información/i,
-  /^Consultando/i,
-  /^Procesando/i,
-  /^Pensando/i,
-];
+/**
+ * Elimina el texto boilerplate que LobeChat inyecta en los artículos del chat
+ * (timestamps HH:MM:SS, estados de loading, indicador "auto") para quedarnos
+ * solo con el contenido real de la respuesta de la IA.
+ *
+ * Ejemplo de artículo bruto:
+ *   "09:49:34Analizando tu solicitud...Formulando tu respuesta...auto"
+ * Después de strip: ""  (vacío → no es respuesta real, seguir esperando)
+ *
+ * Ejemplo con respuesta real:
+ *   "09:49:34...Formulando tu respuesta...La boda de Isabel y Raúl tiene 43..."
+ * Después de strip: "La boda de Isabel y Raúl tiene 43..."
+ */
+function stripLoadingBoilerplate(text: string): string {
+  // IMPORTANTE: usar \.{2,} (2+ puntos) en vez de [.…]* para NO eliminar el punto final
+  // de una frase real. El estado de carga de LobeChat siempre termina en "..." (3 puntos),
+  // nunca en un único "." (que sería el final de una oración real de la IA).
+  //
+  // Ejemplo problemático SIN este constraint:
+  //   "Consultando tus eventos, la boda tiene 43 invitados."
+  //   → [^.\n]* consume toda la frase, [.…]* consume el "." → queda vacío ❌
+  //
+  // Con \.{2,}:
+  //   "Consultando tus eventos..."  → 3 dots → eliminado ✅
+  //   "Consultando..., la boda tiene 43 invitados." → solo elimina "Consultando..." ✅
+  return text
+    .replace(/\d{2}:\d{2}:\d{2}/g, '')                      // timestamps HH:MM:SS
+    .replace(/Analizando tu solicitud\.{2,}/gi, '')
+    .replace(/Buscando información\.{2,}/gi, '')
+    .replace(/Consultando[^.]{0,40}\.{2,}/gi, '')           // max 40 chars antes de los "..."
+    .replace(/Formulando tu respuesta\.{2,}/gi, '')
+    .replace(/Procesando\.{2,}/gi, '')
+    .replace(/Pensando\.{2,}/gi, '')
+    .replace(/(?<![a-zA-Z0-9])auto(?![a-zA-Z0-9])/g, '')   // "auto" suelto (indicador LobeChat)
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 /**
  * Envía un mensaje y espera respuesta estable.
@@ -151,26 +180,33 @@ async function sendAndWaitInSession(
 
     // Solo mirar los artículos NUEVOS desde afterArticleCount
     const newArticles = articles.slice(afterArticleCount);
-    const userPrefix = message.trim().slice(0, 30).toLowerCase();
+    const userPrefix = message.trim().slice(0, 25).toLowerCase();
     const aiMsgs = newArticles.filter((t) => {
       const trimmed = t.trim();
       if (trimmed.length <= 5) return false;
-      // Filtrar el mensaje del propio usuario
-      if (trimmed.slice(0, 30).toLowerCase().startsWith(userPrefix.slice(0, 20))) return false;
+      // Filtrar el mensaje del propio usuario.
+      // LobeChat añade timestamp antes del texto ("08:31:17¿Cuántos...") por lo que
+      // startsWith no funciona — usamos includes para detectar el echo aunque lleve timestamp.
+      if (trimmed.toLowerCase().includes(userPrefix)) return false;
+      // Filtrar artículos que son SOLO timestamps de LobeChat (indicador de carga antes de streaming).
+      // Ejemplo: "08:44:52\n08:44:52" — son ticks de tiempo, no respuesta real.
+      if (/^(\d{2}:\d{2}:\d{2}\s*\n?\s*)+$/.test(trimmed)) return false;
       return true;
     });
 
     const joined = aiMsgs.join('\n').trim();
-    const lastLine = joined.split('\n').filter((l) => l.trim().length > 3).pop() ?? '';
-    const isLoadingState = LOADING_STATES.some((p) => p.test(lastLine));
+    // Eliminar timestamps y estados de carga de LobeChat antes de la detección de estabilidad.
+    // Sin esto, "...Formulando tu respuesta...auto" se considera respuesta estable prematuramente.
+    const stripped = stripLoadingBoilerplate(joined);
 
-    if (joined.length > 10 && !isLoadingState) {
-      if (joined === lastText) {
+    // > 5 excluye el indicador "auto" suelto (4 chars) pero acepta respuestas cortas como "OKauto" (S02)
+    if (stripped.length > 5) {
+      if (stripped === lastText) {
         stableCount++;
         if (stableCount >= 2) break;
       } else {
         stableCount = 0;
-        lastText = joined;
+        lastText = stripped;
       }
     }
     await page.waitForTimeout(1_500);
@@ -293,6 +329,15 @@ test.describe('BATCH 1 — CRUD via IA (Boda Isabel & Raúl)', () => {
         continue;
       }
 
+      // Cooldown entre preguntas: da tiempo a LobeChat para terminar de renderizar la respuesta
+      // anterior antes de enviar la siguiente, evitando race conditions en el tracking de artículos.
+      if (articleCount > 0) await page.waitForTimeout(4_000);
+
+      // Releer el count actual de artículos antes de cada pregunta para evitar desync.
+      // No reutilizar newCount de la pregunta anterior porque puede estar desactualizado
+      // si el streaming tardó en terminar después de que stableCount >= 2 se alcanzó.
+      articleCount = await page.locator('[data-index]').count();
+
       // C01 (primer mensaje de sesión) puede tardar 3-5 min (tool calls + eventos sin caché)
       // C02-C05 reutilizan contexto, pero el fallback Groq→Gemini puede tardar ~2-3 min
       const perQuestionMs = articleCount === 0 ? 300_000 * MULT : 180_000 * MULT;
@@ -390,6 +435,8 @@ test.describe('BATCH 2 — Permisos (guest e invitado no ven datos privados)', (
   // ── P02 — Invitado (jcc@bodasdehoy.com) solo ve su evento ────────────────
 
   test('[P02] invitado solo ve su evento "Email pruebas", no los 43 del organizador', async ({ page }) => {
+    // P02 necesita login completo + respuesta IA → más tiempo que el timeout de BATCH 2
+    test.setTimeout(180_000 * MULT);
     if (!smokeGatePassed) test.skip(true, 'Smoke gate no pasó');
 
     const ok = await loginChat(page, TEST_USERS.colaborador2.email, TEST_CREDENTIALS.password);
