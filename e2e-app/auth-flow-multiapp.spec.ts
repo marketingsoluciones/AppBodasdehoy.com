@@ -260,7 +260,7 @@ test.describe('CA — chat-ia auth', () => {
 test.describe('AE — appEventos auth', () => {
   test.setTimeout(120_000);
 
-  test('AE01 — acceso sin login → redirige a chat-ia/login (SSO) o login propio', async ({ page, context }) => {
+  test('[AE01] acceso sin login → redirige a chat-ia/login (SSO) o login propio', async ({ page, context }) => {
     await context.clearCookies();
 
     await page.goto(`${APP}/`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
@@ -285,7 +285,7 @@ test.describe('AE — appEventos auth', () => {
     expect(enBlanco, 'AE01: página en blanco sin login').toBe(false);
   });
 
-  test('AE02 — sin login: no muestra error ni página rota', async ({ page, context }) => {
+  test('[AE02] sin login: no muestra error ni página rota', async ({ page, context }) => {
     await context.clearCookies();
 
     // Probar rutas protegidas típicas
@@ -317,7 +317,7 @@ test.describe('AE — appEventos auth', () => {
     expect(fallos.length, `AE02: ${fallos.length} rutas con error/blank`).toBe(0);
   });
 
-  test('AE03 — login correcto vía SSO → accede a appEventos autenticado', async ({ page, context }) => {
+  test('[AE03] login correcto vía SSO → accede a appEventos autenticado', async ({ page, context }) => {
     if (!TEST_CREDENTIALS.email) { test.skip(); return; }
     await context.clearCookies();
 
@@ -363,7 +363,7 @@ test.describe('AE — appEventos auth', () => {
     if (enLogin) console.log(`⚠️  AE03 BUG: SSO login no completó el redirect de vuelta a appEventos`);
   });
 
-  test('AE04 — logout desde appEventos → no muestra error ni blanco', async ({ page, context }) => {
+  test('[AE04] logout desde appEventos → no muestra error ni blanco', async ({ page, context }) => {
     if (!TEST_CREDENTIALS.email) { test.skip(); return; }
     await context.clearCookies();
 
@@ -426,7 +426,7 @@ test.describe('AE — appEventos auth', () => {
 test.describe('MW — memories-web auth', () => {
   test.setTimeout(120_000);
 
-  test('MW01 — /app sin login → LoginForm inline visible (no redirige)', async ({ page, context }) => {
+  test('[MW01] /app sin login → LoginForm inline visible (no redirige)', async ({ page, context }) => {
     await context.clearCookies();
 
     await page.goto(`${MEM}/app`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
@@ -449,7 +449,7 @@ test.describe('MW — memories-web auth', () => {
     expect(enBlanco, 'MW01: página en blanco en /app sin login').toBe(false);
   });
 
-  test('MW02 — /app sin login: no rota, no 404', async ({ page, context }) => {
+  test('[MW02] /app sin login: no rota, no 404', async ({ page, context }) => {
     await context.clearCookies();
 
     await page.goto(`${MEM}/app`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
@@ -466,7 +466,7 @@ test.describe('MW — memories-web auth', () => {
     expect(enBlanco, 'MW02: página en blanco en memories /app').toBe(false);
   });
 
-  test('MW03 — login en memories-web → accede autenticado', async ({ page, context }) => {
+  test('[MW03] login en memories-web → accede autenticado', async ({ page, context }) => {
     if (!TEST_CREDENTIALS.email) { test.skip(); return; }
     await context.clearCookies();
 
@@ -507,7 +507,7 @@ test.describe('MW — memories-web auth', () => {
     expect(esError, 'MW03: error tras login en memories-web').toBe(false);
   });
 
-  test('MW04 — logout desde memories-web → vuelve a estado no autenticado', async ({ page, context }) => {
+  test('[MW04] logout desde memories-web → vuelve a estado no autenticado', async ({ page, context }) => {
     await context.clearCookies();
 
     await page.goto(`${MEM}/app`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
@@ -547,7 +547,7 @@ test.describe('MW — memories-web auth', () => {
 test.describe('SSO — cross-app', () => {
   test.setTimeout(150_000);
 
-  test('SSO01 — login en chat-ia → cookie SSO → acceso a appEventos sin re-login', async ({ page, context }) => {
+  test('[SSO01] login en chat-ia → cookie SSO → acceso a appEventos sin re-login', async ({ page, context }) => {
     if (!TEST_CREDENTIALS.email) { test.skip(); return; }
     await context.clearCookies();
 
