@@ -90,7 +90,7 @@ test.describe('Auth Flow — chat-ia', () => {
   });
 
   // ── AF01 ─────────────────────────────────────────────────────────────────────
-  test('AF01 — acceso sin login redirige a /login, no a página rota', async ({ page }) => {
+  test('[AF01] acceso sin login redirige a /login, no a página rota', async ({ page }) => {
     await page.context().clearCookies();
 
     // Intentar acceder al chat directamente sin sesión
@@ -129,7 +129,7 @@ test.describe('Auth Flow — chat-ia', () => {
   });
 
   // ── AF02 ─────────────────────────────────────────────────────────────────────
-  test('AF02 — credenciales incorrectas muestran error sin redirigir', async ({ page }) => {
+  test('[AF02] credenciales incorrectas muestran error sin redirigir', async ({ page }) => {
     await page.context().clearCookies();
     await goToLogin(page);
 
@@ -158,7 +158,7 @@ test.describe('Auth Flow — chat-ia', () => {
   });
 
   // ── AF03 ─────────────────────────────────────────────────────────────────────
-  test('AF03 — login correcto → accede al chat con textarea visible', async ({ page }) => {
+  test('[AF03] login correcto → accede al chat con textarea visible', async ({ page }) => {
     if (!TEST_CREDENTIALS.email) { test.skip(); return; }
 
     await page.context().clearCookies();
@@ -200,7 +200,7 @@ test.describe('Auth Flow — chat-ia', () => {
   });
 
   // ── AF04 ─────────────────────────────────────────────────────────────────────
-  test('AF04 — cerrar sesión redirige a /login (no a página rota)', async ({ page }) => {
+  test('[AF04] cerrar sesión redirige a /login (no a página rota)', async ({ page }) => {
     if (!TEST_CREDENTIALS.email) { test.skip(); return; }
 
     await page.context().clearCookies();
@@ -268,7 +268,7 @@ test.describe('Auth Flow — chat-ia', () => {
   });
 
   // ── AF05 ─────────────────────────────────────────────────────────────────────
-  test('AF05 — sesión expirada: /login?reason=session_expired muestra mensaje correcto', async ({ page }) => {
+  test('[AF05] sesión expirada: /login?reason=session_expired muestra mensaje correcto', async ({ page }) => {
     await page.context().clearCookies();
 
     // Simular lo que hace forceRelogin() en useAuthCheck.ts
@@ -313,7 +313,7 @@ test.describe('Auth Flow — chat-ia', () => {
   });
 
   // ── AF06 ─────────────────────────────────────────────────────────────────────
-  test('AF06 — visitante desde login: botón visible y accede al chat', async ({ page }) => {
+  test('[AF06] visitante desde login: botón visible y accede al chat', async ({ page }) => {
     await page.context().clearCookies();
 
     // El botón visitante está en la vista "landing" (view=landing), no en login por defecto
