@@ -44,7 +44,7 @@ const VISITOR_ID = `test-visitor-${Date.now()}`;
 test.describe('Widget Chat — Carga y estructura', () => {
   test.setTimeout(90_000);
 
-  test('carga /widget/bodasdehoy sin crash — welcome message visible', async ({ page }) => {
+  test('[WC01] carga /widget/bodasdehoy sin crash — welcome message visible', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${WIDGET_URL}?visitor=${VISITOR_ID}`, {
@@ -66,7 +66,7 @@ test.describe('Widget Chat — Carga y estructura', () => {
     console.log('✅ Widget carga con mensaje de bienvenida');
   });
 
-  test('quick replies visibles al cargar', async ({ page }) => {
+  test('[WC02] quick replies visibles al cargar', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${WIDGET_URL}?visitor=${VISITOR_ID}`, {
@@ -89,7 +89,7 @@ test.describe('Widget Chat — Carga y estructura', () => {
     }
   });
 
-  test('input de texto y botón enviar visible', async ({ page }) => {
+  test('[WC03] input de texto y botón enviar visible', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${WIDGET_URL}?visitor=${VISITOR_ID}`, {
@@ -122,7 +122,7 @@ test.describe('Widget Chat — Carga y estructura', () => {
     console.log(`Botón enviar: ${hasSubmit}`);
   });
 
-  test('sin texto → botón enviar deshabilitado', async ({ page }) => {
+  test('[WC04] sin texto → botón enviar deshabilitado', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${WIDGET_URL}?visitor=${VISITOR_ID}`, {
@@ -154,7 +154,7 @@ test.describe('Widget Chat — Carga y estructura', () => {
 test.describe('Widget Chat — Enviar mensaje y respuesta', () => {
   test.setTimeout(120_000);
 
-  test('escribir mensaje → Enter → typing indicator → respuesta aparece', async ({ page }) => {
+  test('[WC05] escribir mensaje → Enter → typing indicator → respuesta aparece', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${WIDGET_URL}?visitor=${VISITOR_ID}`, {
