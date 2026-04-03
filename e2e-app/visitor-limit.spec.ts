@@ -57,7 +57,7 @@ test.describe('Visitor ID — Persistencia y reutilización', () => {
     await clearChatSession(context, page);
   });
 
-  test('visitor ID se persiste en localStorage tras "Continuar como visitante"', async ({ page }) => {
+  test('[VL01] visitor ID se persiste en localStorage tras "Continuar como visitante"', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${CHAT_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
@@ -92,7 +92,7 @@ test.describe('Visitor ID — Persistencia y reutilización', () => {
     console.log('Visitor ID guardado:', storedConfig.userId);
   });
 
-  test('visitor ID se reutiliza en segunda visita a login (no genera uno nuevo)', async ({ page }) => {
+  test('[VL02] visitor ID se reutiliza en segunda visita a login (no genera uno nuevo)', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     // Simular que ya hay un visitor ID en localStorage
@@ -161,7 +161,7 @@ test.describe('Cookie vis_mc — Contador de mensajes visitante', () => {
     await clearChatSession(context, page);
   });
 
-  test('cookie vis_mc se incrementa al enviar mensajes como visitante', async ({ page }) => {
+  test('[VL03] cookie vis_mc se incrementa al enviar mensajes como visitante', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${CHAT_URL}/`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
@@ -185,7 +185,7 @@ test.describe('Cookie vis_mc — Contador de mensajes visitante', () => {
     console.log('Cookie vis_mc correctamente seteada a 1');
   });
 
-  test('cookie vis_mc persiste entre recargas de página', async ({ page }) => {
+  test('[VL04] cookie vis_mc persiste entre recargas de página', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${CHAT_URL}/`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
@@ -217,7 +217,7 @@ test.describe('Cookie vis_mc — Contador de mensajes visitante', () => {
 test.describe('Server-side visitor limit — /webapi/chat/{provider}', () => {
   test.setTimeout(60_000);
 
-  test('endpoint /webapi/chat rechaza visitor con vis_mc>=3 y X-User-ID visitor_xxx', async ({ page }) => {
+  test('[VL05] endpoint /webapi/chat rechaza visitor con vis_mc>=3 y X-User-ID visitor_xxx', async ({ page }) => {
     if (!isAppTest || !isChatRemote) { test.skip(); return; }
 
     await page.goto(CHAT_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
@@ -255,7 +255,7 @@ test.describe('Server-side visitor limit — /webapi/chat/{provider}', () => {
     console.log('Server-side limit correctamente aplicado:', result.status, result.body?.errorType);
   });
 
-  test('endpoint /webapi/chat permite visitor con vis_mc<3', async ({ page }) => {
+  test('[VL06] endpoint /webapi/chat permite visitor con vis_mc<3', async ({ page }) => {
     if (!isAppTest || !isChatRemote) { test.skip(); return; }
 
     await page.goto(CHAT_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
@@ -317,7 +317,7 @@ test.describe('Identidad visitante unificada — iframe + standalone', () => {
     await clearSession(context, page);
   });
 
-  test('visitor ID guardado en iframe está disponible en standalone chat-ia', async ({ page }) => {
+  test('[VL07] visitor ID guardado en iframe está disponible en standalone chat-ia', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     // 1. Ir a app-test (donde está el iframe del copilot)
@@ -376,7 +376,7 @@ test.describe('Identidad visitante unificada — iframe + standalone', () => {
     console.log('Identidad unificada confirmada — mismo ID en iframe y standalone:', finalId);
   });
 
-  test('cookie vis_mc es compartida entre iframe (chat-test) y standalone (chat-test)', async ({ page }) => {
+  test('[VL08] cookie vis_mc es compartida entre iframe (chat-test) y standalone (chat-test)', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     // Ambos (iframe y standalone) corren en chat-test.bodasdehoy.com
