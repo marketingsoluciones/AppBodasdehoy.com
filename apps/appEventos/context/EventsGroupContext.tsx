@@ -21,8 +21,10 @@ type Context = {
   setPsTemplates: Dispatch<SetStateAction<any>>
   eventsGroupDone: boolean,
   eventsGroupError: boolean,
-  /** Mensaje amigable cuando falla la carga (403, 502, etc.). Si null, error genérico. */
+  /** Mensaje amigable cuando falla la carga (502, etc.). Si null, error genérico. */
   eventsGroupErrorMessage: string | null,
+  /** true cuando la API devuelve 401/403 — sesión expirada, no error de servidor */
+  eventsGroupSessionExpired: boolean,
   copilotFilter: CopilotFilter | null,
   setCopilotFilter: (filter: CopilotFilter | null) => void,
   clearCopilotFilter: () => void,
@@ -36,6 +38,7 @@ const EventsGroupContext = createContext<Context>({
   eventsGroupDone: false,
   eventsGroupError: false,
   eventsGroupErrorMessage: null,
+  eventsGroupSessionExpired: false,
   copilotFilter: null,
   setCopilotFilter: () => { },
   clearCopilotFilter: () => { },
@@ -91,6 +94,7 @@ const EventsGroupProvider = ({ children }) => {
   const [eventsGroupDone, setEventsGroupDone] = useState(false)
   const [eventsGroupError, setEventsGroupError] = useState(false)
   const [eventsGroupErrorMessage, setEventsGroupErrorMessage] = useState<string | null>(null)
+  const [eventsGroupSessionExpired, setEventsGroupSessionExpired] = useState(false)
   const [copilotFilter, setCopilotFilterState] = useState<CopilotFilter | null>(null)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const setCopilotFilter = useCallback((filter: CopilotFilter | null) => setCopilotFilterState(filter), [])
@@ -116,6 +120,7 @@ const EventsGroupProvider = ({ children }) => {
             setEventsGroup({ type: "INITIAL_STATE", payload: [] })
             setEventsGroupError(false)
             setEventsGroupErrorMessage(null)
+            setEventsGroupSessionExpired(false)
             try {
               const key = `guest_events_${user.uid}`
               const stored = typeof window !== 'undefined' ? localStorage.getItem(key) : null
@@ -226,11 +231,16 @@ const EventsGroupProvider = ({ children }) => {
               const errorTime = performance.now() - startTime
               const status = error?.response?.status
               console.error(`[EventsGroup] ❌ Error después de ${errorTime.toFixed(0)}ms (status ${status}):`, error)
-              if (status === 403) {
-                console.warn('[EventsGroup] 403 Forbidden: sesión no autorizada o expirada (no es error de conexión)')
+              if (status === 401 || status === 403) {
+                console.warn('[EventsGroup] 401/403: sesión expirada o no autorizada')
+                setEventsGroupSessionExpired(true)
+                setEventsGroupError(true)
+                setEventsGroupDone(true)
+                return
               }
               const friendlyMessage = getApiErrorMessage(error)
               setEventsGroupErrorMessage(friendlyMessage || null)
+              setEventsGroupSessionExpired(false)
               setEventsGroupError(true)
               setEventsGroupDone(true)
             });
@@ -250,7 +260,7 @@ const EventsGroupProvider = ({ children }) => {
   }, [user, config?.development, refreshTrigger]);
 
   return (
-    <EventsGroupContext.Provider value={{ eventsGroup, setEventsGroup, psTemplates, setPsTemplates, eventsGroupDone, eventsGroupError, eventsGroupErrorMessage, copilotFilter, setCopilotFilter, clearCopilotFilter, refreshEventsGroup }}>
+    <EventsGroupContext.Provider value={{ eventsGroup, setEventsGroup, psTemplates, setPsTemplates, eventsGroupDone, eventsGroupError, eventsGroupErrorMessage, eventsGroupSessionExpired, copilotFilter, setCopilotFilter, clearCopilotFilter, refreshEventsGroup }}>
       {children}
     </EventsGroupContext.Provider>
   );
