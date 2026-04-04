@@ -196,6 +196,17 @@ export const generateAIChat: StateCreator<
       syncVisitorCookie();
     }
 
+    // Sesión expirada: usuario identificado pero JWT caducado → bloquear ANTES de hacer request.
+    // El banner ya se muestra vía el evento api2:token-expired; aquí evitamos el round-trip a api-ia.
+    if (!isVisitor && typeof window !== 'undefined') {
+      const expiresAt = localStorage.getItem('api2_jwt_expires_at');
+      if (expiresAt && new Date(expiresAt) <= new Date()) {
+        console.warn('⚠️ [generateAIChat] Sesión expirada — mensaje bloqueado client-side');
+        window.dispatchEvent(new CustomEvent('api2:token-expired'));
+        return;
+      }
+    }
+
     // router to server mode send message (visitors use local path — no DB writes)
     if (isServerMode && !isVisitor)
       return sendMessageInServer({ message, files, onlyAddUserMessage, isWelcomeQuestion });
@@ -671,6 +682,13 @@ export const generateAIChat: StateCreator<
         // → mostrar modal de registro en lugar de "unauthorized"
         if ((error as any)?.type === 'login_required') {
           set({ showLoginRequired: true });
+        }
+        // Si el backend devuelve 401 session_expired (sesión caducada detectada en route.ts)
+        // → disparar evento para que ReloginBanner se muestre
+        if ((error as any)?.type === 'session_expired') {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('api2:token-expired'));
+          }
         }
         await messageService.updateMessageError(messageId, error);
         await refreshMessages();

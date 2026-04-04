@@ -8,6 +8,7 @@ import { Flexbox } from 'react-layout-kit';
 import { GITHUB } from '@/const/url';
 import { WalletWidget } from '@/components/Wallet';
 import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useBilling } from '@/hooks/useBilling';
@@ -117,19 +118,23 @@ const BottomActions = memo(() => {
   const { t } = useTranslation('common');
   const { hideGitHub } = useServerConfigStore(featureFlagsSelectors);
   const isGuest = useDomainGuestUser();
+  const { needsRelogin } = useAuthCheck();
   const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
+
+  // Sesión expirada: tratamos igual que guest — sin billing/plan hasta re-login
+  const isGuestOrExpired = isGuest || needsRelogin;
 
   return (
     <Flexbox gap={8}>
-      {/* Wallet + Quota + Plan badge for authenticated users */}
-      {isServerMode && !isGuest && (
+      {/* Wallet + Quota + Plan badge solo para usuarios con sesión activa válida */}
+      {isServerMode && !isGuestOrExpired && (
         <Flexbox align="center" gap={4}>
           <WalletWidget size="small" />
           <QuotaMiniBar />
           <PlanBadge />
         </Flexbox>
       )}
-      {isGuest && (
+      {isGuestOrExpired && (
         <Link aria-label="Iniciar sesión" href="/login">
           <ActionIcon
             icon={LogIn}

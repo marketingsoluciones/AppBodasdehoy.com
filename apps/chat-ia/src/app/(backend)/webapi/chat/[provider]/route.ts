@@ -127,6 +127,31 @@ function checkVisitorLimit(req: Request): Response | null {
 }
 
 /**
+ * Bloquea requests cuando el cliente indica sesión expirada (X-Session-Expired: 1).
+ * Devuelve 401 session_expired para que el frontend muestre el banner de re-login.
+ * La cookie JWT puede seguir activa en el servidor aunque el cliente la haya marcado
+ * como expirada — este check evita el data leak.
+ */
+function checkSessionExpired(req: Request): Response | null {
+  const sessionExpired = req.headers.get('X-Session-Expired');
+  if (sessionExpired !== '1') return null;
+
+  const userId = req.headers.get('X-User-ID') ?? '';
+  console.warn(`[chat-proxy] ⛔ Sesión expirada (userId="${userId}") — request bloqueado antes de llegar a api-ia`);
+
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: 'Tu sesión ha expirado. Inicia sesión para continuar gestionando tu evento.',
+        type: 'session_expired',
+      },
+      errorType: 'session_expired',
+    }),
+    { headers: { 'Content-Type': 'application/json' }, status: 401 },
+  );
+}
+
+/**
  * Handler que hace proxy directo al backend Python
  */
 async function proxyToPythonBackend(req: Request, provider: string): Promise<Response | null> {
@@ -719,6 +744,10 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
 export const POST = async (req: Request, { params }: { params: Promise<{ provider: string }> }) => {
   try {
     const { provider } = await params;
+
+    // Short-circuit: sesión expirada señalada por el cliente → bloquear antes de api-ia
+    const sessionExpiredResponse = checkSessionExpired(req);
+    if (sessionExpiredResponse) return sessionExpiredResponse;
 
     // Short-circuit: rechazar visitantes que superaron el límite sin llamar a api-ia
     const visitorLimitResponse = checkVisitorLimit(req);
