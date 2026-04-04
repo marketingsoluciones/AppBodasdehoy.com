@@ -199,9 +199,7 @@
           {
             "avatar": "📊",
             "backgroundColor": "#E8F8F5",
-            "plugins": [
-              "steam"
-            ],
+            "plugins": ["steam"],
             "systemRole": "You excel at processing and interpreting data, uncovering patterns and trends through charts and statistical analysis.",
             "title": "Data Analyst"
           },
@@ -253,12 +251,7 @@
       "game": {
         "description": "Enjoy various multiplayer text games, such as Werewolf and Undercover",
         "members": [
-          {
-            "avatar": "🧠",
-            "backgroundColor": "#E8F5FF",
-            "systemRole": "You are a host skilled at organizing various multiplayer text games and can guide players through the game.",
-            "title": "Game Host"
-          },
+          null,
           {
             "avatar": "🧑‍🔬",
             "backgroundColor": "#FFF7E8",

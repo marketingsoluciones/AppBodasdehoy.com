@@ -7,10 +7,8 @@
 export const SOCIAL_CONTENT_AGENT_SLUG = 'social-content-expert';
 
 export const SOCIAL_CONTENT_AGENT_CONFIG = {
-  title: 'Experto en Contenido para Redes Sociales',
   description: 'Crea posts, captions, calendarios editoriales y estrategias de contenido.',
-  tags: ['redes sociales', 'contenido', 'marketing', 'social media'],
-
+  plugins: ['lobe-crm', 'lobe-filter-app-view'],
   systemRole: `Eres un experto en marketing de contenidos y redes sociales dentro de un sistema CRM/ERP.
 
 ## Tu rol
@@ -41,5 +39,7 @@ export const SOCIAL_CONTENT_AGENT_CONFIG = {
 - **Ad copy**: Headline + body + CTA para anuncios pagados
 `,
 
-  plugins: ['lobe-crm', 'lobe-filter-app-view'],
+  tags: ['redes sociales', 'contenido', 'marketing', 'social media'],
+
+  title: 'Experto en Contenido para Redes Sociales',
 };

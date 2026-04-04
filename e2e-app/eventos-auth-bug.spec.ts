@@ -49,7 +49,8 @@ async function ask(page: Page, text: string, waitMs = 90_000): Promise<string> {
   const deadline = Date.now() + waitMs; let last = ''; await page.waitForTimeout(5_000);
   const WEL = [/I am your.*assistant/i, /How can I assist/i, /Soy tu asistente/i];
   while (Date.now() < deadline) {
-    const arts = await page.locator('article').allTextContents();
+    // LobeChat usa <div data-index={n}> (NO <article>)
+    const arts = await page.locator('[data-index]').allTextContents();
     const msgs = arts.filter(t => { const s=t.trim(); return s.length>5 && !text.startsWith(s.slice(0,30)) && !(WEL.some(p=>p.test(s))&&s.length<250); });
     const j = msgs.join('\n').trim();
     if (j.length > 10 && j === last) break; last = j; await page.waitForTimeout(2_000);

@@ -210,13 +210,20 @@ export const useCopilotBridge = () => {
           console.log('[CopilotBridge] Recibido AUTH_CONFIG:', payload);
 
           // Actualizar store con la configuracion de auth del parent
+          // SEGURIDAD: respetar el userRole/isAnonymous del parent — si marca 'guest', tratar como guest.
+          // Antes estaba hardcodeado a 'registered', lo que hacía que un invitado con SSO cookie
+          // pasara como usuario registrado y recibiera datos privados del organizador.
           if (payload.userId && setExternalChatConfig) {
+            const isGuestFromParent = payload.isAnonymous || payload.userRole === 'guest';
+            const resolvedUserType: 'registered' | 'guest' | 'visitor' = isGuestFromParent
+              ? 'guest'
+              : 'registered';
             setExternalChatConfig(
               payload.userId,
               payload.development,
-              payload.token || undefined, // Convertir null a undefined
-              'registered',
-              undefined,
+              isGuestFromParent ? undefined : (payload.token || undefined), // sin token para guests
+              resolvedUserType,
+              payload.userRole,   // pasar el rol real (guest, organizer, collaborator, etc.)
               payload.userData
             );
           }

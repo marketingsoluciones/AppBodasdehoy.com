@@ -61,6 +61,7 @@ export const FirebaseAuth: React.FC<FirebaseAuthProps> = ({
             photoURL: result.user.photoURL || '',
             uid: result.user.uid,
           },
+          user_id: userEmail,
           user_type: 'registered'
         };
         localStorage.setItem('dev-user-config', JSON.stringify(configToSave));
@@ -136,6 +137,7 @@ export const FirebaseAuth: React.FC<FirebaseAuthProps> = ({
             photoURL: result.user.photoURL || '',
             uid: result.user.uid,
           },
+          user_id: userEmail,
           user_type: 'registered'
         };
         localStorage.setItem('dev-user-config', JSON.stringify(configToSave));

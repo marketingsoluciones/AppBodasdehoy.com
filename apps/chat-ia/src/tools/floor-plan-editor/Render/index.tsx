@@ -4,10 +4,10 @@ import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
 export interface FloorPlanPreview {
+  label?: string;
+  seats: number;
   svgDataUrl: string;
   tableType: string;
-  seats: number;
-  label?: string;
 }
 
 const FloorPlanEditorRender = memo<BuiltinRenderProps<FloorPlanPreview[]>>(({ content }) => {
@@ -19,9 +19,9 @@ const FloorPlanEditorRender = memo<BuiltinRenderProps<FloorPlanPreview[]>>(({ co
       {
         payload: {
           suggestedConfig: {
-            tableType: item.tableType,
-            seats: item.seats,
             label: item.label,
+            seats: item.seats,
+            tableType: item.tableType,
           },
         },
         source: 'copilot-chat',
@@ -35,34 +35,34 @@ const FloorPlanEditorRender = memo<BuiltinRenderProps<FloorPlanPreview[]>>(({ co
   return (
     <Flexbox gap={16}>
       {content.map((item, i) => (
-        <Flexbox key={i} gap={8} style={{ alignItems: 'flex-start' }}>
+        <Flexbox gap={8} key={i} style={{ alignItems: 'flex-start' }}>
           <div
             style={{
-              background: '#F8F7F4',
-              borderRadius: 12,
-              border: '1px solid #E8E4DC',
-              padding: 16,
-              display: 'flex',
               alignItems: 'center',
+              background: '#F8F7F4',
+              border: '1px solid #E8E4DC',
+              borderRadius: 12,
+              display: 'flex',
               justifyContent: 'center',
               maxWidth: 320,
+              padding: 16,
             }}
           >
             <img
-              src={item.svgDataUrl}
               alt={item.label ?? `Mesa ${item.tableType}`}
-              style={{ maxWidth: 280, maxHeight: 280, objectFit: 'contain' }}
+              src={item.svgDataUrl}
+              style={{ maxHeight: 280, maxWidth: 280, objectFit: 'contain' }}
             />
           </div>
-          <div style={{ fontSize: 12, color: '#666' }}>
+          <div style={{ color: '#666', fontSize: 12 }}>
             {item.label && <strong>{item.label} · </strong>}
             {item.seats} personas · {item.tableType}
           </div>
           <Button
-            size="small"
-            type="primary"
-            style={{ background: '#8B6914', borderColor: '#8B6914' }}
             onClick={() => handleOpenEditor(item)}
+            size="small"
+            style={{ background: '#8B6914', borderColor: '#8B6914' }}
+            type="primary"
           >
             ✦ Abrir editor de mesas
           </Button>

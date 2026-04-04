@@ -16,6 +16,25 @@ import { reportCopilotMessageSent } from '../utils/copilotMetrics';
 
 const CHAT_API_BASE = '';
 
+/**
+ * Obtiene el token JWT del usuario para autenticar requests a api-ia.
+ * Prioridad: cookie idTokenV0.1.0 (SSO chat-ia) → cookie api2_jwt → localStorage dev-user-config (AuthBridge)
+ * Necesario porque AuthBridge guarda el Firebase token en localStorage, no en cookies.
+ */
+function getAuthToken(): string {
+  const ssoToken = Cookies.get('idTokenV0.1.0') || '';
+  if (ssoToken.startsWith('eyJ')) return ssoToken;
+  const api2Token = Cookies.get('api2_jwt') || '';
+  if (api2Token.startsWith('eyJ')) return api2Token;
+  if (typeof window !== 'undefined') {
+    try {
+      const devConfig = JSON.parse(localStorage.getItem('dev-user-config') || '{}');
+      if (typeof devConfig?.token === 'string' && devConfig.token.startsWith('eyJ')) return devConfig.token;
+    } catch { /* ignore */ }
+  }
+  return '';
+}
+
 const createRequestId = (): string => {
   try {
     if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
@@ -225,7 +244,7 @@ export const sendChatMessage = async (
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Cookies.get('idTokenV0.1.0') || ''}`,
+        'Authorization': `Bearer ${getAuthToken()}`,
         'X-Development': development || 'bodasdehoy',
         'X-Request-Id': requestId,
       },
@@ -514,7 +533,7 @@ export const getChatHistory = async (
       `${CHAT_API_BASE}/api/copilot/chat-history?sessionId=${encodeURIComponent(sessionId)}&limit=${limit}`,
       {
         headers: {
-          'Authorization': `Bearer ${Cookies.get('idTokenV0.1.0') || ''}`,
+          'Authorization': `Bearer ${getAuthToken()}`,
           'X-Development': development || 'bodasdehoy',
         },
       }

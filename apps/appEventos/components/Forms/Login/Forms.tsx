@@ -1,9 +1,10 @@
 import { FC, useEffect, useState } from "react";
-import { Providers, RegisterQuestion } from "./Components";
-import FormLogin from "./Forms/FormLogin";
-import FormResetPassword from "./Forms/FormResetPassword";
 import { FirstStep, SecondStep } from "./Forms/Register/Steps";
+import FormResetPassword from "./Forms/FormResetPassword";
 import { AuthContextProvider } from "../../../context";
+import { useAuthentication } from "../../../utils/Authentication";
+import { LoginForm } from "@bodasdehoy/auth-ui";
+import { GoogleProvider, FacebookProvider } from "../../../firebase";
 import PageLogin from "../../../pages/login";
 import { useTranslation } from 'react-i18next';
 import { getAuth, signOut } from "firebase/auth";
@@ -18,25 +19,29 @@ interface propsLogin {
 }
 
 export const Login: FC<propsLogin> = ({ setStage, whoYouAre }) => {
-  const { t } = useTranslation();
-  const { SetWihtProvider } = AuthContextProvider()
+  const { SetWihtProvider, setIsStartingRegisterOrLogin } = AuthContextProvider();
+  const { signIn } = useAuthentication();
+
+  const handleEmailLogin = async (email: string, password: string) => {
+    await signIn({ type: 'credentials', payload: { identifier: email, password }, setStage, setIsStartingRegisterOrLogin });
+  };
+
+  const handleGoogleLogin = async () => {
+    await signIn({ type: 'provider', payload: GoogleProvider(), setStage, whoYouAre, setIsStartingRegisterOrLogin });
+  };
+
+  const handleFacebookLogin = async () => {
+    await signIn({ type: 'provider', payload: FacebookProvider, setStage, whoYouAre, setIsStartingRegisterOrLogin });
+  };
+
   return (
-    <>
-      <h2 className={`font-light text-gray-500 justify-center flex text-md mt-12`}>
-        {t("toyouraccount")}
-      </h2>
-      <Providers setStage={setStage} whoYouAre={whoYouAre} />
-      <h2 className={`font-light text-gray-500 justify-center flex gap-2 text-md `}>
-        {t("withyouremail")}
-      </h2>
-      <FormLogin setStage={setStage} />
-      <RegisterQuestion onClick={() => {
-        setStage("register")
-        SetWihtProvider(false)
-        signOut(getAuth())
-      }} />
-      {/* <BusinessAccess /> */} {/* componente que no esta terminado */}
-    </>
+    <LoginForm
+      onEmailLogin={handleEmailLogin}
+      onFacebookLogin={handleFacebookLogin}
+      onForgotPassword={() => setStage('resetPassword')}
+      onGoogleLogin={handleGoogleLogin}
+      onRegister={() => { setStage('register'); SetWihtProvider(false); signOut(getAuth()); }}
+    />
   );
 };
 

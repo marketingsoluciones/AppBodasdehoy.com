@@ -92,7 +92,7 @@ const AUTH_PATTERNS: RegExp[] = [
   /debes?\s+(registrarte|iniciar\s+sesi[oó]n)/i,
   /tienes\s+que\s+(registrarte|iniciar\s+sesi[oó]n)/i,
   /bot[oó]n\s+de\s+["']?(iniciar\s+sesi[oó]n|registr)/i,
-  /["']?registrarse\s+(gratis|ahora)["']?/i,
+  // NOTA: "Regístrate gratis" (CTA promocional) NO es auth_required — solo bloqueadores duros
   /registr(arte|es)\s+(primero|para\s+continuar)/i,
   /inicia\s+sesi[oó]n\s+(primero|para\s+continuar)/i,
   /para\s+(crear|guardar|continuar)\s+.*(necesitas|registr)/i,
@@ -120,6 +120,18 @@ export function classifyResponse(
     return 'error';
   }
   if (/^\[HTTP \d{3}\]/.test(text)) {
+    return 'error';
+  }
+  // Errores de backend IA — siempre son fallos del sistema, no respuestas válidas
+  if (/Servicio IA no disponible|backend\s+IA.*no disponible|api.ia.*error|no disponible.*intenta más tarde|service.*unavailable/i.test(text)) {
+    return 'error';
+  }
+  // "Lo siento, no puedo" sin tools = IA bloqueada o mal configurada — es un fallo del sistema
+  // Si la IA dice que no puede hacer algo que SÍ debería poder, es error (no greeting)
+  if (
+    /lo siento.*no puedo|lo siento.*no tengo.*capacidad|lo siento.*no es posible|I'm sorry.*cannot|perdona.*no puedo/i.test(text) &&
+    text.length < 400
+  ) {
     return 'error';
   }
 
@@ -152,10 +164,10 @@ export function classifyResponse(
     return 'data_response';
   }
 
-  // 8. greeting — saludo genérico + texto corto
+  // 8. greeting — saludo genérico (el mensaje de bienvenida del visitante puede ser largo con CTAs)
   if (
     /I am your.*assistant|How can I assist|ayudarte|bienvenid|en qu[eé] puedo|c[oó]mo puedo ayudar/i.test(text) &&
-    text.length < 300
+    text.length < 800
   ) {
     return 'greeting';
   }
@@ -392,7 +404,8 @@ export async function chatWithValidation(
 
   // ── Esperar respuesta (polling) ──
   const deadline = Date.now() + waitMs;
-  const msgSelector = 'article';
+  // LobeChat renderiza mensajes como <div data-index={n}> (NO <article>)
+  const msgSelector = '[data-index]';
   let lastText = '';
 
   await page.waitForTimeout(5_000);
@@ -427,13 +440,32 @@ export async function chatWithValidation(
     await page.waitForTimeout(2_000);
   }
 
-  // Si no captamos nada después de filtrar welcome, verificar si solo había welcome message
+  // Si no captamos nada después de filtrar welcome, ampliar la búsqueda
   if (lastText.length <= 10) {
-    const allArticles = await page.locator(msgSelector).allTextContents();
-    const welcomeOnly = allArticles.some((t) => WELCOME_PATTERNS.some((p) => p.test(t)));
-    if (welcomeOnly) {
-      // La IA solo devolvió welcome message → marcar como greeting para diagnóstico
-      lastText = allArticles.filter((t) => t.trim().length > 5).join('\n').trim();
+    // 1. Intentar con todos los [data-index] incluyendo bienvenida de Bodas de Hoy
+    const allArticles = await page.locator('[data-index]').allTextContents();
+    const VISITOR_WELCOME = /bienvenido|bodas de hoy|mensajes de prueba|asistente.*limit/i;
+    const hasWelcome = allArticles.some((t) => WELCOME_PATTERNS.some((p) => p.test(t)) || VISITOR_WELCOME.test(t));
+    if (hasWelcome || allArticles.length > 0) {
+      // Capturar todo: filtramos solo el mensaje del usuario
+      const userPrefix = text.trim().slice(0, 25).toLowerCase();
+      lastText = allArticles
+        .filter((t) => {
+          const trimmed = t.trim();
+          return trimmed.length > 5 && !trimmed.toLowerCase().startsWith(userPrefix);
+        })
+        .join('\n')
+        .trim();
+    }
+    // 2. Fallback final: leer desde el contenedor principal del chat
+    if (lastText.length <= 10) {
+      const chatContainer = await page.locator('[class*="MessageList"], [class*="messageList"], .ant-list').first().textContent({ timeout: 3_000 }).catch(() => null);
+      if (chatContainer && chatContainer.trim().length > 15) {
+        const userPfx = text.trim().slice(0, 25).toLowerCase();
+        if (!chatContainer.toLowerCase().startsWith(userPfx)) {
+          lastText = chatContainer.trim().slice(0, 2000);
+        }
+      }
     }
   }
 

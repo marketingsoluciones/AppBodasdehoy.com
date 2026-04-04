@@ -21,7 +21,7 @@ const isAppTest =
 // 1. Rutas inexistentes — 404 graceful
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('Rutas inexistentes — 404 graceful', () => {
+test.describe('[EC01] Rutas inexistentes — 404 graceful', () => {
   test.setTimeout(90_000);
 
   const BAD_ROUTES = [
@@ -77,7 +77,7 @@ test.describe('Rutas inexistentes — 404 graceful', () => {
 test.describe('API 403 → banner sesión expirada', () => {
   test.setTimeout(90_000);
 
-  test('403 de /api/events → banner "sesión expirada" visible (no crash genérico)', async ({
+  test('[EC02] 403 de /api/events → banner "sesión expirada" visible (no crash genérico)', async ({
     page,
   }) => {
     // Interceptar llamadas a la API de eventos para devolver 403
@@ -114,7 +114,7 @@ test.describe('API 403 → banner sesión expirada', () => {
 test.describe('API caída (503) — error útil', () => {
   test.setTimeout(90_000);
 
-  test('503 de API de eventos → app muestra error claro, no crash', async ({ page }) => {
+  test('[EC03] 503 de API de eventos → app muestra error claro, no crash', async ({ page }) => {
     await page.route('**/api/events**', async (route) => {
       await route.fulfill({
         status: 503,
@@ -151,7 +151,7 @@ test.describe('API caída (503) — error útil', () => {
 test.describe('Navegación rápida — sin acumulación de errores', () => {
   test.setTimeout(120_000);
 
-  test('navegar entre 5 rutas rápidamente no produce ErrorBoundary', async ({ page }) => {
+  test('[EC04] navegar entre 5 rutas rápidamente no produce ErrorBoundary', async ({ page }) => {
     const routes = ['/', '/invitados', '/presupuesto', '/mesas', '/itinerario'];
 
     for (const route of routes) {
@@ -173,7 +173,7 @@ test.describe('Navegación rápida — sin acumulación de errores', () => {
     console.log('Navegación rápida completada sin errores');
   });
 
-  test('reload de la app no produce ErrorBoundary', async ({ page }) => {
+  test('[EC05] reload de la app no produce ErrorBoundary', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 20_000 }).catch(() => {});
     await waitForAppReady(page, 15_000);
 
@@ -195,7 +195,7 @@ test.describe('Navegación rápida — sin acumulación de errores', () => {
 test.describe('Sesión expirada mid-session', () => {
   test.setTimeout(90_000);
 
-  test('eliminar cookie sessionBodas y navegar → banner o redirect a login', async ({
+  test('[EC06] eliminar cookie sessionBodas y navegar → banner o redirect a login', async ({
     page,
     context,
   }) => {
@@ -239,7 +239,7 @@ test.describe('Sesión expirada mid-session', () => {
 test.describe('Health check', () => {
   test.setTimeout(30_000);
 
-  test('/api/health responde 200', async ({ page }) => {
+  test('[EC07] /api/health responde 200', async ({ page }) => {
     let response: Awaited<ReturnType<typeof page.goto>> | null = null;
     try {
       response = await page.goto('/api/health', {

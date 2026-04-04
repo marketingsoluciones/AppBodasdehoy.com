@@ -28,38 +28,38 @@ import {
 // ========================================
 
 export interface SkuUsage {
-  used: number;
-  limit: number;
-  percent: number;
   color: string;
   humanized: string;
+  limit: number;
+  percent: number;
+  used: number;
 }
 
 export interface UsePlanLimitsReturn {
-  // Plan info
-  subscription: UserSubscriptionInfo | null;
-  plan: SubscriptionPlan | null;
   allPlans: SubscriptionPlan[];
-  tier: SubscriptionTier;
+  canUse: (sku: string, currentUsage: number, quantity?: number) => AccessCheck;
+  error: string | null;
+  getConversionMsg: (sku: string, percentUsed: number) => string | null;
+  // SKU operations
+  getLimit: (sku: string) => PlanLimit | null;
+  getUpgradeMsg: (sku: string, currentUsage: number) => string;
+  getUsage: (sku: string, currentUsage: number) => SkuUsage;
+  humanQuota: (sku: string) => string;
+
   isFreePlan: boolean;
   isTrial: boolean;
-  trialDaysLeft: number;
-  upgradeTier: SubscriptionTier | null;
 
   // Loading
   loading: boolean;
-  error: string | null;
-
-  // SKU operations
-  getLimit: (sku: string) => PlanLimit | null;
-  canUse: (sku: string, currentUsage: number, quantity?: number) => AccessCheck;
-  getUsage: (sku: string, currentUsage: number) => SkuUsage;
-  humanQuota: (sku: string) => string;
-  getUpgradeMsg: (sku: string, currentUsage: number) => string;
-  getConversionMsg: (sku: string, percentUsed: number) => string | null;
-
+  plan: SubscriptionPlan | null;
   // Refetch
   refetch: () => Promise<void>;
+  // Plan info
+  subscription: UserSubscriptionInfo | null;
+  tier: SubscriptionTier;
+  trialDaysLeft: number;
+
+  upgradeTier: SubscriptionTier | null;
 }
 
 // ========================================
@@ -139,7 +139,7 @@ export const usePlanLimits = (): UsePlanLimitsReturn => {
 
   const canUse = useCallback(
     (sku: string, currentUsage: number, quantity: number = 1): AccessCheck => {
-      if (!planForUtils) return { allowed: true, remaining: Infinity, limit: Infinity, percentUsed: 0, overageAvailable: false };
+      if (!planForUtils) return { allowed: true, limit: Infinity, overageAvailable: false, percentUsed: 0, remaining: Infinity };
       return canAccess(sku, currentUsage + quantity - 1, planForUtils);
     },
     [planForUtils],
@@ -151,11 +151,11 @@ export const usePlanLimits = (): UsePlanLimitsReturn => {
       const limitValue = limit?.free_quota ?? Infinity;
       const percent = usagePercent(currentUsage, limitValue);
       return {
-        used: currentUsage,
-        limit: limitValue,
-        percent,
         color: usageColor(percent),
         humanized: humanizeUsage(sku, currentUsage, limitValue),
+        limit: limitValue,
+        percent,
+        used: currentUsage,
       };
     },
     [plan],
@@ -191,23 +191,23 @@ export const usePlanLimits = (): UsePlanLimitsReturn => {
   // ========================================
 
   return {
-    subscription,
-    plan,
     allPlans,
-    tier,
-    isFreePlan,
-    isTrial,
-    trialDaysLeft,
-    upgradeTier,
-    loading,
-    error,
-    getLimit,
     canUse,
+    error,
+    getConversionMsg,
+    getLimit,
+    getUpgradeMsg,
     getUsage,
     humanQuota,
-    getUpgradeMsg,
-    getConversionMsg,
+    isFreePlan,
+    isTrial,
+    loading,
+    plan,
     refetch,
+    subscription,
+    tier,
+    trialDaysLeft,
+    upgradeTier,
   };
 };
 

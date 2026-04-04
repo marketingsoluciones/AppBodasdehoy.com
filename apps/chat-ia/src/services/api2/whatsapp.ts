@@ -286,8 +286,8 @@ export async function getWhatsAppConversationsGQL(
 ): Promise<WaConversation[]> {
   try {
     const data = await api2Client.query<{
-      getWhatsAppConversations: { total: number; conversations: any[] };
-    }>(GET_WA_CONVERSATIONS, { developerId, pagination: { page: 1, limit } });
+      getWhatsAppConversations: { conversations: any[], total: number; };
+    }>(GET_WA_CONVERSATIONS, { developerId, pagination: { limit, page: 1 } });
     return (data.getWhatsAppConversations?.conversations ?? []).map((c: any) => ({
       contactName: c.contactInfo?.name || undefined,
       id: c.id,
@@ -308,8 +308,8 @@ export async function getWhatsAppMessagesGQL(
 ): Promise<WaMessage[]> {
   try {
     const data = await api2Client.query<{
-      getWhatsAppMessages: { total: number; messages: any[] };
-    }>(GET_WA_MESSAGES, { conversationId, pagination: { page: 1, limit } });
+      getWhatsAppMessages: { messages: any[], total: number; };
+    }>(GET_WA_MESSAGES, { conversationId, pagination: { limit, page: 1 } });
     return (data.getWhatsAppMessages?.messages ?? []).map((m: any) => ({
       conversationId: m.conversationId,
       direction: m.direction,

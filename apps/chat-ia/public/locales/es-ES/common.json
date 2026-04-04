@@ -174,7 +174,7 @@
     "brandingPrefix": "Hecho con ❤️ por ",
     "feedback": {
       "action": "Compartir retroalimentación",
-      "desc": "Cada idea y sugerencia que nos brindes es invaluable. ¡Estamos ansiosos por conocer tu opinión! Siéntete libre de contactarnos para proporcionar comentarios sobre las funciones del producto y la experiencia de uso, ¡ayúdanos a mejorar Bodas de Hoy!",
+      "desc": "Cada idea y sugerencia que nos brindes es invaluable. ¡Estamos ansiosos por conocer tu opinión! Siéntete libre de contactarnos para proporcionar comentarios sobre las funciones del producto y la experiencia de uso, ¡ayúdanos a mejorar Copilot BodasdeHoy!",
       "title": "Comparte tu valiosa retroalimentación en GitHub"
     },
     "later": "Más tarde",
@@ -351,9 +351,9 @@
   "telemetry": {
     "allow": "Permitir",
     "deny": "Denegar",
-    "desc": "Queremos recopilar información sobre tu uso de forma anónima para ayudarnos a mejorar Bodas de Hoy y ofrecerte una mejor experiencia de producto. Puedes desactivarlo en 'Configuración' - 'Acerca de' en cualquier momento.",
+    "desc": "Queremos recopilar información sobre tu uso de forma anónima para ayudarnos a mejorar Copilot BodasdeHoy y ofrecerte una mejor experiencia de producto. Puedes desactivarlo en 'Configuración' - 'Acerca de' en cualquier momento.",
     "learnMore": "Más información",
-    "title": "Ayuda a mejorar Bodas de Hoy"
+    "title": "Ayuda a mejorar Copilot BodasdeHoy"
   },
   "temp": "Temporal",
   "terms": "Términos de servicio",

@@ -137,22 +137,22 @@ const NotificationBell = memo(() => {
       {unread > 0 && (
         <span
           style={{
+            alignItems: 'center',
             background: '#ef4444',
             borderRadius: '999px',
-            alignItems: 'center',
             color: '#fff',
             display: 'flex',
             fontSize: 10,
             fontWeight: 700,
-            position: 'absolute',
             height: 16,
-            right: 4,
             justifyContent: 'center',
-            top: 4,
             lineHeight: 1,
             minWidth: 16,
             padding: '0 3px',
             pointerEvents: 'none',
+            position: 'absolute',
+            right: 4,
+            top: 4,
           }}
         >
           {unread > 99 ? '99+' : unread}

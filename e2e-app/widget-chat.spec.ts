@@ -44,7 +44,7 @@ const VISITOR_ID = `test-visitor-${Date.now()}`;
 test.describe('Widget Chat — Carga y estructura', () => {
   test.setTimeout(90_000);
 
-  test('carga /widget/bodasdehoy sin crash — welcome message visible', async ({ page }) => {
+  test('[WC01] carga /widget/bodasdehoy sin crash — welcome message visible', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${WIDGET_URL}?visitor=${VISITOR_ID}`, {
@@ -66,7 +66,7 @@ test.describe('Widget Chat — Carga y estructura', () => {
     console.log('✅ Widget carga con mensaje de bienvenida');
   });
 
-  test('quick replies visibles al cargar', async ({ page }) => {
+  test('[WC02] quick replies visibles al cargar', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${WIDGET_URL}?visitor=${VISITOR_ID}`, {
@@ -89,7 +89,7 @@ test.describe('Widget Chat — Carga y estructura', () => {
     }
   });
 
-  test('input de texto y botón enviar visible', async ({ page }) => {
+  test('[WC03] input de texto y botón enviar visible', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${WIDGET_URL}?visitor=${VISITOR_ID}`, {
@@ -122,7 +122,7 @@ test.describe('Widget Chat — Carga y estructura', () => {
     console.log(`Botón enviar: ${hasSubmit}`);
   });
 
-  test('sin texto → botón enviar deshabilitado', async ({ page }) => {
+  test('[WC04] sin texto → botón enviar deshabilitado', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${WIDGET_URL}?visitor=${VISITOR_ID}`, {
@@ -154,7 +154,7 @@ test.describe('Widget Chat — Carga y estructura', () => {
 test.describe('Widget Chat — Enviar mensaje y respuesta', () => {
   test.setTimeout(120_000);
 
-  test('escribir mensaje → Enter → typing indicator → respuesta aparece', async ({ page }) => {
+  test('[WC05] escribir mensaje → Enter → typing indicator → respuesta aparece', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${WIDGET_URL}?visitor=${VISITOR_ID}`, {
@@ -201,7 +201,7 @@ test.describe('Widget Chat — Enviar mensaje y respuesta', () => {
     console.log(hasReply ? '✅ Respuesta IA recibida en widget' : 'ℹ️ Respuesta no detectada aún');
   });
 
-  test('quick reply click → texto enviado automáticamente', async ({ page }) => {
+  test('[WC06] quick reply click → texto enviado automáticamente', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${WIDGET_URL}?visitor=${VISITOR_ID}`, {
@@ -239,7 +239,7 @@ test.describe('Widget Chat — Enviar mensaje y respuesta', () => {
     console.log(`Quick replies tras envío: ${quickBtnsAfter} (esperado: 0)`);
   });
 
-  test('markdown en respuesta renderiza: bold y code', async ({ page }) => {
+  test('[WC07] markdown en respuesta renderiza: bold y code', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${WIDGET_URL}?visitor=${VISITOR_ID}`, {
@@ -275,7 +275,7 @@ test.describe('Widget Chat — Enviar mensaje y respuesta', () => {
 test.describe('Widget Chat — Modo dark/light', () => {
   test.setTimeout(60_000);
 
-  test('toggle dark/light mode cambia visual del widget', async ({ page }) => {
+  test('[WC08] toggle dark/light mode cambia visual del widget', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${WIDGET_URL}?visitor=${VISITOR_ID}`, {
@@ -322,7 +322,7 @@ test.describe('Widget Chat — Modo dark/light', () => {
 test.describe('Widget Chat — Cerrar y comunicación con parent', () => {
   test.setTimeout(60_000);
 
-  test('botón cerrar (✕) visible en widget', async ({ page }) => {
+  test('[WC09] botón cerrar (✕) visible en widget', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${WIDGET_URL}?visitor=${VISITOR_ID}`, {
@@ -347,7 +347,7 @@ test.describe('Widget Chat — Cerrar y comunicación con parent', () => {
     }
   });
 
-  test('widget intercepta /api/widget-chat y responde', async ({ page }) => {
+  test('[WC10] widget intercepta /api/widget-chat y responde', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     const requests: string[] = [];
@@ -377,7 +377,7 @@ test.describe('Widget Chat — Cerrar y comunicación con parent', () => {
     console.log(`Requests al widget: ${requests.length}, widget-chat llamado: ${widgetChatCalled}`);
   });
 
-  test('widget development inválido → sin crash', async ({ page }) => {
+  test('[WC11] widget development inválido → sin crash', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${CHAT_URL}/widget/development-invalido-99999`, {
@@ -401,7 +401,7 @@ test.describe('Widget Chat — Cerrar y comunicación con parent', () => {
 test.describe('Widget Chat — Visitor ID y contexto', () => {
   test.setTimeout(60_000);
 
-  test('visitor ID en query param incluido en contexto del widget', async ({ page }) => {
+  test('[WC12] visitor ID en query param incluido en contexto del widget', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     const testVisitorId = `e2e-visitor-${Date.now()}`;
@@ -419,7 +419,7 @@ test.describe('Widget Chat — Visitor ID y contexto', () => {
     console.log(`✅ Visitor ID "${testVisitorId}" presente en URL`);
   });
 
-  test('widget carga para diferentes developers (vivetuboda)', async ({ page }) => {
+  test('[WC13] widget carga para diferentes developers (vivetuboda)', async ({ page }) => {
     if (!isAppTest) { test.skip(); return; }
 
     await page.goto(`${CHAT_URL}/widget/vivetuboda?visitor=${VISITOR_ID}`, {

@@ -133,7 +133,7 @@ export const createMCPPluginStoreSlice: StateCreator<
     let data: any;
     let result: CheckMcpInstallResult | undefined;
     let connection: any;
-    const uaBrand = BRANDING_NAME.replace(/\s+/g, '');
+    const uaBrand = BRANDING_NAME.replaceAll(/\s+/g, '');
     const userAgent = `${uaBrand}-Desktop/${CURRENT_VERSION}`;
 
     try {

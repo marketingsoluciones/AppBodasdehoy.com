@@ -256,32 +256,36 @@ export const useBilling = (): UseBillingReturn => {
   // ========================================
 
   return {
-    // State
-    error,
-    invoiceDetail,
-    invoiceDetailLoading,
+    
     // Actions
 downloadInvoicePDF,
     
-invoices,
+// State
+error,
     
 fetchInvoiceById,
     
-invoicesLoading,
-    
 fetchInvoices,
-    
-invoicesPagination,
     
 fetchPayments,
     
-payments,
-    
 fetchSubscription,
     
-paymentsLoading,
+fetchUsageStats,
     
-    fetchUsageStats,
+invoiceDetail,
+    
+invoiceDetailLoading,
+    
+invoices,
+    
+invoicesLoading,
+    
+invoicesPagination,
+    
+payments,
+    
+    paymentsLoading,
     paymentsPagination,
     refreshAll,
     subscription,

@@ -199,9 +199,7 @@
           {
             "avatar": "📊",
             "backgroundColor": "#E8F8F5",
-            "plugins": [
-              "steam"
-            ],
+            "plugins": ["steam"],
             "systemRole": "Verileri işleme ve yorumlama konusunda uzmansınız; grafikler ve istatistiksel analizler yoluyla verilerin ardındaki kalıpları ve eğilimleri ortaya çıkarırsınız.",
             "title": "Veri Analisti"
           },
@@ -253,12 +251,7 @@
       "game": {
         "description": "Çeşitli çok oyunculu metin oyunlarının keyfini çıkar, örneğin Kurt Adam ve Kim Casus",
         "members": [
-          {
-            "avatar": "🧠",
-            "backgroundColor": "#E8F5FF",
-            "systemRole": "Çeşitli çok oyunculu metin oyunları düzenleme konusunda yetenekli bir sunucusunuz ve oyuncuları oyun boyunca yönlendirebilirsiniz.",
-            "title": "Oyun Sunucusu"
-          },
+          null,
           {
             "avatar": "🧑‍🔬",
             "backgroundColor": "#FFF7E8",

@@ -17,6 +17,27 @@ async function clearStorageAtOrigin(page: Page): Promise<void> {
         try { window.sessionStorage.clear(); } catch { /* ignorar */ }
         resolve();
       }),
+      // Unregister service workers + clear SW caches to avoid ChunkLoadError from stale chunks
+      new Promise<void>((resolve) => {
+        try {
+          const tasks: Promise<any>[] = [];
+          if ('serviceWorker' in navigator) {
+            tasks.push(
+              navigator.serviceWorker.getRegistrations()
+                .then((regs) => Promise.all(regs.map((r) => r.unregister())))
+                .catch(() => {})
+            );
+          }
+          if ('caches' in window) {
+            tasks.push(
+              (window as any).caches.keys()
+                .then((keys: string[]) => Promise.all(keys.map((k: string) => (window as any).caches.delete(k))))
+                .catch(() => {})
+            );
+          }
+          Promise.all(tasks).then(() => resolve()).catch(() => resolve());
+        } catch { resolve(); }
+      }),
       ...dbs.map(
         (db) =>
           new Promise<void>((resolve) => {

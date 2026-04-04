@@ -114,68 +114,87 @@ const DOMAIN_TO_DEVELOPMENT: Record<string, string> = {
 'annloevents.com': 'annloevents',
 
   
-  // bodasdehoy.com — producción
-'app.bodasdehoy.com': 'bodasdehoy',
   
-'bodasdehoy.com': 'bodasdehoy',
+
+// bodasdehoy.com — dev
+'app-dev.bodasdehoy.com': 'bodasdehoy',
   
-'champagneevents.com': 'champagneevents',
-  
-'chat.bodasdehoy.com': 'bodasdehoy',
-  
+
+
+
 // bodasdehoy.com — test
 'app-test.bodasdehoy.com': 'bodasdehoy',
+  
+
+
+// bodasdehoy.com — producción
+'app.bodasdehoy.com': 'bodasdehoy',
+  
+
+
+'bodasdehoy.com': 'bodasdehoy',
+  
+
+
+'champagneevents.com': 'champagneevents',
+  
+
+
+'chat-dev.bodasdehoy.com': 'bodasdehoy',
+  
+
+
+'chat-test.bodasdehoy.com': 'bodasdehoy',
+  
+
+
+'chat.bodasdehoy.com': 'bodasdehoy',
+
+  
+  
+
+'editor-dev.bodasdehoy.com': 'bodasdehoy',
+  
+
+'editor-test.bodasdehoy.com': 'bodasdehoy',
   
 
 'editor.bodasdehoy.com': 'bodasdehoy',
   
 
-'chat-test.bodasdehoy.com': 'bodasdehoy',
-  
-
 'eventosorganizador.com': 'eventosorganizador',
-
-  
-  
-// bodasdehoy.com — dev
-'app-dev.bodasdehoy.com': 'bodasdehoy',
   
 
-'localhost': 'bodasdehoy',
-  
-
-'chat-dev.bodasdehoy.com': 'bodasdehoy',
-  
-
-'www.annloevents.com': 'annloevents',
-  
-
-'editor-dev.bodasdehoy.com': 'bodasdehoy',
-
-  
-  
-'www.bodasdehoy.com': 'bodasdehoy',
-  
-'editor-test.bodasdehoy.com': 'bodasdehoy',
-  
-'www.champagneevents.com': 'champagneevents',
-  
 // Legacy
 'iachat.bodasdehoy.com': 'bodasdehoy',
 
   
   
-'www.eventosorganizador.com': 'eventosorganizador',
+
+'localhost': 'bodasdehoy',
   
+
 'memories-dev.bodasdehoy.com': 'bodasdehoy',
   
+
 'memories-test.bodasdehoy.com': 'bodasdehoy',
   
+
 'memories.bodasdehoy.com': 'bodasdehoy',
 
   
-  'organizador.bodasdehoy.com': 'bodasdehoy',
-  'wedding-creator.bodasdehoy.com': 'bodasdehoy',
+  
+'organizador.bodasdehoy.com': 'bodasdehoy',
+  
+'wedding-creator.bodasdehoy.com': 'bodasdehoy',
+  
+'www.annloevents.com': 'annloevents',
+  
+'www.bodasdehoy.com': 'bodasdehoy',
+
+  
+  'www.champagneevents.com': 'champagneevents',
+  'www.eventosorganizador.com': 'eventosorganizador',
 };
 
 /**
@@ -264,7 +283,7 @@ export function getDeveloperDisplayName(developerKey: string): string {
   if (!developerKey) return DEVELOPMENTS_CONFIG.bodasdehoy.name;
   return (
     developerKey.charAt(0).toUpperCase() +
-    developerKey.slice(1).replace(/[-_]/g, ' ')
+    developerKey.slice(1).replaceAll(/[_-]/g, ' ')
   );
 }
 

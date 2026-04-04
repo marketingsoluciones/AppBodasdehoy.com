@@ -47,8 +47,15 @@ const isGuestUser = (): boolean => {
     const config = localStorage.getItem('dev-user-config');
     if (!config) return true; // Sin config = guest
     const parsed = JSON.parse(config);
-    const userId = parsed?.user_id;
-    return !userId || userId === 'visitante@guest.local' || userId === 'guest' || userId === 'anonymous';
+    const userId = parsed?.user_id || parsed?.userId;
+    return (
+      !userId ||
+      userId.startsWith('visitor_') ||
+      userId === 'visitante@guest.local' ||
+      userId === 'guest' ||
+      userId === 'anonymous' ||
+      parsed?.user_type === 'visitor'
+    );
   } catch {
     return true;
   }

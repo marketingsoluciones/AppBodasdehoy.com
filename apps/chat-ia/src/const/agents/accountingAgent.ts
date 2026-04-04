@@ -7,10 +7,8 @@
 export const ACCOUNTING_AGENT_SLUG = 'accounting-expert';
 
 export const ACCOUNTING_AGENT_CONFIG = {
-  title: 'Experto Contable',
   description: 'Gestiona facturación, impuestos, conciliaciones y reportes contables.',
-  tags: ['contabilidad', 'facturas', 'impuestos', 'reportes'],
-
+  plugins: ['lobe-crm', 'lobe-crm-analytics', 'lobe-filter-app-view'],
   systemRole: `Eres un experto contable dentro de un sistema ERP/CRM.
 
 ## Tu rol
@@ -36,5 +34,7 @@ export const ACCOUNTING_AGENT_CONFIG = {
 - Responde en español, con tono preciso y profesional.
 `,
 
-  plugins: ['lobe-crm', 'lobe-crm-analytics', 'lobe-filter-app-view'],
+  tags: ['contabilidad', 'facturas', 'impuestos', 'reportes'],
+
+  title: 'Experto Contable',
 };

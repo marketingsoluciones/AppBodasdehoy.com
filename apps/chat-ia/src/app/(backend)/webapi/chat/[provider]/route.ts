@@ -92,8 +92,9 @@ const VISITOR_SYSTEM_PROMPT =
 /**
  * Techo de mensajes para visitantes en el backend (seguridad).
  * La lógica real es en cliente: 5 el primer día, 2/día después (ver @/utils/visitorLimit).
+ * Configurable via VISITOR_MSG_LIMIT_CAP env var (útil para dev/test).
  */
-const VISITOR_MSG_LIMIT_CAP = 10;
+const VISITOR_MSG_LIMIT_CAP = parseInt(process.env.VISITOR_MSG_LIMIT_CAP || '10', 10);
 
 /**
  * Verifica si la request viene de un visitante anónimo y si superó el techo.
@@ -185,9 +186,15 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
     let bodyText = await req.text();
     bodyText = cleanPayload(bodyText);
 
-    // Enforce sistema prompt comercial para visitantes
+    // Enforce sistema prompt comercial para visitantes y roles sin acceso a datos
     const userId = req.headers.get('X-User-ID') ?? '';
-    if (userId.startsWith('visitor_')) {
+    const userRole = req.headers.get('X-User-Role') ?? '';
+    const isRestrictedAccess =
+      userId.startsWith('visitor_') ||
+      userRole === 'guest' ||
+      userRole === 'invited' ||
+      userRole === 'invitado';
+    if (isRestrictedAccess) {
       try {
         const parsed = JSON.parse(bodyText);
         if (Array.isArray(parsed.messages)) {
@@ -195,7 +202,7 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           if (sysIdx >= 0) {
             parsed.messages[sysIdx].content = VISITOR_SYSTEM_PROMPT;
           } else {
-            parsed.messages.unshift({ role: 'system', content: VISITOR_SYSTEM_PROMPT });
+            parsed.messages.unshift({ content: VISITOR_SYSTEM_PROMPT, role: 'system' });
           }
           bodyText = JSON.stringify(parsed);
         }
@@ -268,6 +275,16 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
       }
     }
 
+    // SEGURIDAD CRÍTICA: Si el acceso es restringido (visitor/guest/invited),
+    // eliminar CUALQUIER Authorization header antes de reenviar a api-ia.
+    // El visitante puede tener una cookie SSO activa de sesión previa en .bodasdehoy.com,
+    // lo cual haría que api-ia lo autentique y devuelva datos reales de usuarios registrados.
+    if (isRestrictedAccess) {
+      delete headers['Authorization'];
+      delete headers['authorization'];
+      console.warn(`[chat-proxy] ⚠️ Acceso restringido (userId="${userId}" role="${userRole}") — Authorization ELIMINADO para api-ia`);
+    }
+
     // DEBUG: verificar si Authorization se envía a api-ia
     const authSnippet = headers['Authorization'] ? 'Bearer ' + headers['Authorization'].slice(7, 27) + '...' : 'NONE';
     console.log(`[chat-proxy] → ${provider} | Auth: ${authSnippet} | Support-Key: ${headers['X-Support-Key'] ? 'YES' : 'NO'}`);
@@ -306,6 +323,27 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
               errorType: 'login_required',
             }),
             { headers: { 'Content-Type': 'application/json' }, status: 401 }
+          );
+        }
+
+        if (backendResponse.status === 429) {
+          // Límite de mensajes alcanzado (guest o usuario free)
+          // api-ia devuelve: {"error": "GUEST_DAILY_LIMIT_REACHED", "message": "..."}
+          let message = 'Has alcanzado el límite diario de mensajes. Regístrate gratis para continuar sin límites.';
+          let errorCode = 'rate_limit';
+          try {
+            // El body puede venir como SSE: "data: {...}\n\ndata: [DONE]" o JSON plano
+            const cleanText = errorText.replace(/^data:\s*/gm, '').replace(/\[DONE\]/g, '').trim();
+            const parsed = JSON.parse(cleanText.split('\n')[0] || cleanText);
+            if (parsed?.message) message = String(parsed.message);
+            if (parsed?.error) errorCode = String(parsed.error).toLowerCase();
+          } catch { /* usar mensaje por defecto */ }
+          return new Response(
+            JSON.stringify({
+              body: { message, type: errorCode },
+              errorType: 'rate_limit',
+            }),
+            { headers: { 'Content-Type': 'application/json' }, status: 429 }
           );
         }
 
@@ -474,30 +512,81 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
                       // Without this translation, LobeChat treats it as a default plugin call,
                       // triggers a second AI request, and overwrites the text response with empty content.
                       const BUILTIN_TOOL_MAP: Record<string, string> = {
-                        // CRM Data
-                        'list_leads': 'lobe-crm____list_leads____builtin',
-                        'get_lead': 'lobe-crm____get_lead____builtin',
-                        'list_contacts': 'lobe-crm____list_contacts____builtin',
-                        'get_contact': 'lobe-crm____get_contact____builtin',
-                        'list_opportunities': 'lobe-crm____list_opportunities____builtin',
-                        'get_opportunity': 'lobe-crm____get_opportunity____builtin',
-                        'list_campaigns': 'lobe-crm____list_campaigns____builtin',
-                        'search_crm': 'lobe-crm____search_crm____builtin',
-                        // CRM Actions
-                        'create_lead': 'lobe-crm-actions____create_lead____builtin',
-                        'update_lead_status': 'lobe-crm-actions____update_lead_status____builtin',
-                        'add_note': 'lobe-crm-actions____add_note____builtin',
-                        'create_task': 'lobe-crm-actions____create_task____builtin',
+                        
+                        
+'add_note': 'lobe-crm-actions____add_note____builtin',
+                        
+
+// CRM Actions
+'create_lead': 'lobe-crm-actions____create_lead____builtin',
+                        
+
+'create_task': 'lobe-crm-actions____create_task____builtin',
+                        
+
+// Filter
+'filter_view': 'lobe-filter-app-view____filter_view____builtin',
+                        
+
+
+'get_campaign_performance': 'lobe-crm-analytics____get_campaign_performance____builtin',
+                        
+
+
+'get_contact': 'lobe-crm____get_contact____builtin',
+                        
+
+
+
+'get_kpis': 'lobe-crm-analytics____get_kpis____builtin',
+                        
+
+
+
+
+'get_lead': 'lobe-crm____get_lead____builtin',
+                        
+                        
+
+
+
+'get_lead_funnel': 'lobe-crm-analytics____get_lead_funnel____builtin',
+                        
+
+
+
+'get_opportunity': 'lobe-crm____get_opportunity____builtin',
+                        
+
+
+// CRM Analytics
+'get_pipeline_summary': 'lobe-crm-analytics____get_pipeline_summary____builtin',
+                        
+
+
+'get_revenue_report': 'lobe-crm-analytics____get_revenue_report____builtin',
+                        
+
+
+'list_campaigns': 'lobe-crm____list_campaigns____builtin',
+                        
+
+
+'list_contacts': 'lobe-crm____list_contacts____builtin',
+                        
+                        
+// CRM Data
+'list_leads': 'lobe-crm____list_leads____builtin',
+                        
+'list_opportunities': 'lobe-crm____list_opportunities____builtin',
+                        
+'search_crm': 'lobe-crm____search_crm____builtin',
+                        
+'send_message': 'lobe-crm-actions____send_message____builtin',
+                        
+'update_lead_status': 'lobe-crm-actions____update_lead_status____builtin',
+                        
                         'update_opportunity_stage': 'lobe-crm-actions____update_opportunity_stage____builtin',
-                        'send_message': 'lobe-crm-actions____send_message____builtin',
-                        // CRM Analytics
-                        'get_pipeline_summary': 'lobe-crm-analytics____get_pipeline_summary____builtin',
-                        'get_revenue_report': 'lobe-crm-analytics____get_revenue_report____builtin',
-                        'get_lead_funnel': 'lobe-crm-analytics____get_lead_funnel____builtin',
-                        'get_kpis': 'lobe-crm-analytics____get_kpis____builtin',
-                        'get_campaign_performance': 'lobe-crm-analytics____get_campaign_performance____builtin',
-                        // Filter
-                        'filter_view': 'lobe-filter-app-view____filter_view____builtin',
                       };
                       let translatedData = rawData;
                       try {

@@ -15,19 +15,19 @@ const useStyles = createStyles(({ css }) => ({
     flex: 1;
     max-width: 100%;
   `,
-  title: css`
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.15;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  `,
   subtitle: css`
     font-size: 10px;
     font-weight: 500;
     line-height: 1.15;
     opacity: 0.7;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  `,
+  title: css`
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.15;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

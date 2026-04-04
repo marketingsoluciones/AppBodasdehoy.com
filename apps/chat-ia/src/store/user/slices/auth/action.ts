@@ -41,6 +41,17 @@ export const createAuthSlice: StateCreator<
     // ✅ CUSTOM LOGOUT: Limpiar TODOS los datos del usuario y redirigir
     console.log('🚪 Cerrando sesión personalizada - limpieza completa...');
 
+    // 0. Cerrar sesión de Firebase (crítico — si no, onAuthStateChanged sigue activo
+    //    y useTokenRefresh restaura dev-user-config desde la sesión Firebase activa)
+    try {
+      const { getAuth, signOut: firebaseSignOut } = await import('firebase/auth');
+      const auth = getAuth();
+      await firebaseSignOut(auth);
+      console.log('✅ Firebase signOut completado');
+    } catch (error) {
+      console.warn('⚠️ Error cerrando sesión Firebase:', error);
+    }
+
     // 1. Limpiar todas las sesiones/conversaciones del usuario anterior
     try {
       const { useSessionStore } = await import('@/store/session');
@@ -127,15 +138,10 @@ export const createAuthSlice: StateCreator<
       console.warn('⚠️ Error limpiando estado:', error);
     }
 
-    // 8. Limpiar estado de chat (conversaciones externas, etc.)
+    // 8. Limpiar estado de chat en memoria (conversaciones externas, etc.)
+    // No llamar a setExternalChatConfig aquí — escribe dev-user-config en localStorage
+    // y lo haríamos al revés de la limpieza del paso 5. La página redirige a /login inmediatamente.
     try {
-      const { useChatStore } = await import('@/store/chat');
-      const chatStore = useChatStore.getState();
-
-      // Limpiar datos del usuario en chat store
-      chatStore.setExternalChatConfig?.('visitante@guest.local', 'bodasdehoy');
-
-      // Limpiar conversaciones externas
       set({
         currentUserId: undefined,
         externalChats: [],
@@ -161,6 +167,22 @@ export const createAuthSlice: StateCreator<
       console.log('✅ Cookies limpiadas');
     } catch (error) {
       console.warn('⚠️ Error limpiando cookies:', error);
+    }
+
+    // 10. Limpiar dev-user-config DESPUÉS de setExternalChatConfig (paso 8 lo re-escribe)
+    try {
+      localStorage.removeItem('dev-user-config');
+      localStorage.removeItem('api2_jwt_token');
+      localStorage.removeItem('api2_jwt_expires_at');
+      localStorage.removeItem('user_uid');
+      localStorage.removeItem('user_email');
+      localStorage.removeItem('user_display_name');
+      localStorage.removeItem('user_photo_url');
+      document.cookie = 'dev-user-config=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax';
+      document.cookie = 'idTokenV0.1.0=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.bodasdehoy.com; SameSite=Lax';
+      console.log('✅ dev-user-config y tokens de usuario eliminados');
+    } catch (error) {
+      console.warn('⚠️ Error en limpieza final:', error);
     }
 
     console.log('🔄 Logout completo. Redirigiendo a /login...');

@@ -49,13 +49,20 @@ export const createBuiltinToolSlice: StateCreator<
   [],
   BuiltinToolAction
 > = (set, get) => ({
-  text2image: ({ prompts, size = '1024x1024' as const, quality = 'standard', style = 'vivid' }) =>
-    prompts.map((p) => ({ prompt: p, quality, size, style })),
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+filter_view: ({ entity, ids, query }) => ({ entity, ids, query }),
 
   
-  toggleBuiltinToolLoading: (key, value) => {
+  
+text2image: ({ prompts, size = '1024x1024' as const, quality = 'standard', style = 'vivid' }) =>
+    prompts.map((p) => ({ prompt: p, quality, size, style })),
+  
+
+toggleBuiltinToolLoading: (key, value) => {
     set({ builtinToolLoading: { [key]: value } }, false, n('toggleBuiltinToolLoading'));
   },
+
+  
   
 transformApiArgumentsToAiState: async (key, params) => {
     const { builtinToolLoading, toggleBuiltinToolLoading } = get();
@@ -80,15 +87,13 @@ transformApiArgumentsToAiState: async (key, params) => {
     }
   },
 
+  
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  visualize_venue: ({ items }) =>
+visualize_venue: ({ items }) =>
     items.map(({ imageUrl, style, roomType, prompt }) => ({
       originalUrl: imageUrl,
       prompt,
       roomType,
       style,
     })),
-
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  filter_view: ({ entity, ids, query }) => ({ entity, ids, query }),
 });

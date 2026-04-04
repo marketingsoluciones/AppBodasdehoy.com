@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       if (res.ok) {
         const data = await res.json();
         const resp = NextResponse.json(data);
-        resp.cookies.set('wid_mc', String(widMc + 1), { path: '/', maxAge: 86400, sameSite: 'lax' });
+        resp.cookies.set('wid_mc', String(widMc + 1), { maxAge: 86_400, path: '/', sameSite: 'lax' });
         return resp;
       }
     } catch {
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       reply,
       source: 'local-demo',
     });
-    demoResp.cookies.set('wid_mc', String(widMc + 1), { path: '/', maxAge: 86400, sameSite: 'lax' });
+    demoResp.cookies.set('wid_mc', String(widMc + 1), { maxAge: 86_400, path: '/', sameSite: 'lax' });
     return demoResp;
   } catch {
     return NextResponse.json(

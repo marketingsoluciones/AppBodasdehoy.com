@@ -112,9 +112,9 @@ async function chat(page: Page, text: string, waitMs = 60_000): Promise<string> 
 
   // Esperar a que aparezca la respuesta del asistente (polling en vez de timeout fijo)
   const deadline = Date.now() + waitMs;
-  // LobeChat renderiza mensajes en <article>. El usuario envía 1 article, la IA otro.
-  // Filtramos el último article que NO sea el mensaje que acabamos de enviar.
-  const msgSelector = 'article';
+  // LobeChat renderiza mensajes como <div data-index={n}> (NO <article>).
+  // Filtramos los [data-index] que NO sean el mensaje que acabamos de enviar.
+  const msgSelector = '[data-index]';
   let lastText = '';
   // Esperar al menos 5s antes de empezar a buscar
   await page.waitForTimeout(5_000);

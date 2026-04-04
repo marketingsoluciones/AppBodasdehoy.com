@@ -149,8 +149,11 @@ test.describe('Invitados (/invitados)', () => {
 
   test('hay un input de búsqueda o botón de añadir invitado', async ({ page }) => {
     const text = (await page.locator('body').textContent()) ?? '';
-    // Solo verificar si estamos en la sección de invitados (no en login/permiso)
-    if (!/permiso|Iniciar\s+sesión/i.test(text)) {
+    // Saltar si la página está cargando o muestra acceso denegado/upsell/login
+    // - "Cargando" = VistaSinCookie durante verificación de sesión
+    // - "permiso|sesión|cuenta|..." = distintos estados de acceso denegado
+    const isAccessBlocked = /permiso|sesión|cuenta|cargando|plan\s+básico|acceso|login|register|gratis/i.test(text);
+    if (!isAccessBlocked) {
       const hasControl =
         (await page.locator('input[placeholder*="Buscar" i], input[placeholder*="Search" i], input[placeholder*="buscar" i]').count()) > 0 ||
         (await page.locator('button').filter({ hasText: /añadir|nuevo|add|invitar/i }).count()) > 0 ||

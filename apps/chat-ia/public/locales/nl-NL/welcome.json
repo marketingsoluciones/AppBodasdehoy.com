@@ -199,9 +199,7 @@
           {
             "avatar": "📊",
             "backgroundColor": "#E8F8F5",
-            "plugins": [
-              "steam"
-            ],
+            "plugins": ["steam"],
             "systemRole": "Je bent bedreven in het verwerken en interpreteren van gegevens, en onthult patronen en trends achter de data via grafieken en statistische analyses.",
             "title": "Data-analist"
           },
@@ -253,12 +251,7 @@
       "game": {
         "description": "Speel diverse multiplayer tekstspellen, zoals Weerwolven en Wie is de Mol",
         "members": [
-          {
-            "avatar": "🧠",
-            "backgroundColor": "#E8F5FF",
-            "systemRole": "U bent een gastheer die bedreven is in het organiseren van verschillende multiplayer tekstspellen en spelers door het spel kan begeleiden.",
-            "title": "Spelleider"
-          },
+          null,
           {
             "avatar": "🧑‍🔬",
             "backgroundColor": "#FFF7E8",

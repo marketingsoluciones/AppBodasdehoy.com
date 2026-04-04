@@ -178,9 +178,9 @@ export function EmailSetup({ development, onConnected }: EmailSetupProps) {
         {error && <Alert message={error} showIcon type="error" />}
         <Space direction="vertical" size="small" style={{ textAlign: 'left', width: '100%' }}>
           {[
-            { icon: '📨', label: 'Gmail', sub: 'Conectar con Google OAuth', onClick: () => handleOAuth('gmail'), loading: provider === 'gmail' && status === 'connecting' },
-            { icon: '📬', label: 'Outlook / Office 365', sub: 'Conectar con Microsoft OAuth', onClick: () => handleOAuth('outlook'), loading: provider === 'outlook' && status === 'connecting' },
-            { icon: '⚙️', label: 'SMTP / IMAP', sub: 'Configurar servidor manualmente', onClick: () => setProvider('smtp'), loading: false },
+            { icon: '📨', label: 'Gmail', loading: provider === 'gmail' && status === 'connecting', onClick: () => handleOAuth('gmail'), sub: 'Conectar con Google OAuth' },
+            { icon: '📬', label: 'Outlook / Office 365', loading: provider === 'outlook' && status === 'connecting', onClick: () => handleOAuth('outlook'), sub: 'Conectar con Microsoft OAuth' },
+            { icon: '⚙️', label: 'SMTP / IMAP', loading: false, onClick: () => setProvider('smtp'), sub: 'Configurar servidor manualmente' },
           ].map((opt) => (
             <Button
               block

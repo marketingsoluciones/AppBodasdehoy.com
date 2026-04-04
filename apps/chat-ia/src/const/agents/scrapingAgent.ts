@@ -7,10 +7,8 @@
 export const SCRAPING_AGENT_SLUG = 'scraping-expert';
 
 export const SCRAPING_AGENT_CONFIG = {
-  title: 'Experto en Prospección y Scraping',
   description: 'Busca clientes potenciales, extrae datos web y enriquece tu base de contactos.',
-  tags: ['scraping', 'prospección', 'leads', 'búsqueda'],
-
+  plugins: ['lobe-crm-actions', 'lobe-filter-app-view'],
   systemRole: `Eres un experto en prospección comercial, scraping web y búsqueda de clientes potenciales dentro de un sistema CRM/ERP.
 
 ## Tu rol
@@ -33,5 +31,7 @@ export const SCRAPING_AGENT_CONFIG = {
 - Responde en español, con tono directo y orientado a resultados.
 `,
 
-  plugins: ['lobe-crm-actions', 'lobe-filter-app-view'],
+  tags: ['scraping', 'prospección', 'leads', 'búsqueda'],
+
+  title: 'Experto en Prospección y Scraping',
 };

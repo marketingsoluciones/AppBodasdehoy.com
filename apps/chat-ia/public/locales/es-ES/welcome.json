@@ -199,9 +199,7 @@
           {
             "avatar": "📊",
             "backgroundColor": "#E8F8F5",
-            "plugins": [
-              "steam"
-            ],
+            "plugins": ["steam"],
             "systemRole": "Eres experto en manejar e interpretar datos, revelando patrones y tendencias ocultas a través de gráficos y análisis estadísticos.",
             "title": "Analista de datos"
           },
@@ -253,12 +251,7 @@
       "game": {
         "description": "Disfruta de varios juegos de texto multijugador, como Hombre Lobo y Quién es el impostor",
         "members": [
-          {
-            "avatar": "🧠",
-            "backgroundColor": "#E8F5FF",
-            "systemRole": "Eres un moderador experto en organizar varios juegos de texto multijugador y puedes guiar a los jugadores durante el juego.",
-            "title": "Moderador de juegos"
-          },
+          null,
           {
             "avatar": "🧑‍🔬",
             "backgroundColor": "#FFF7E8",

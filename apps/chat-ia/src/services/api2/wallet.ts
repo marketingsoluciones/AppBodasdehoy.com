@@ -147,7 +147,11 @@ const GET_BALANCE_QUERY = `
       total_balance
       currency
       status
-      errors
+      errors {
+        code
+        field
+        message
+      }
     }
   }
 `;
@@ -273,7 +277,11 @@ const CONFIGURE_AUTO_RECHARGE_MUTATION = `
   mutation ConfigureAutoRecharge($input: WalletAutoRechargeInput!) {
     wallet_configureAutoRecharge(input: $input) {
       success
-      errors
+      errors {
+        code
+        field
+        message
+      }
     }
   }
 `;
