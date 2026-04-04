@@ -6,6 +6,8 @@ import { Flexbox } from 'react-layout-kit';
 
 import { usePinnedAgentState } from '@/hooks/usePinnedAgentState';
 import { useSwitchSession } from '@/hooks/useSwitchSession';
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useSessionStore } from '@/store/session';
 import { sessionHelpers } from '@/store/session/helpers';
 import { sessionSelectors } from '@/store/session/selectors';
@@ -72,6 +74,12 @@ const PinList = () => {
   const hotkey = useUserStore(settingsSelectors.getHotkeyById(HotkeyEnum.SwitchAgent));
   const hasList = list.length > 0;
   const [isPinned, { pinAgent }] = usePinnedAgentState();
+  const isGuest = useDomainGuestUser();
+  const { needsRelogin } = useAuthCheck();
+
+  // Visitantes y sesiones expiradas no ven agentes especializados —
+  // requieren contexto de cuenta (eventos, presupuesto, invitados…)
+  if (isGuest || needsRelogin) return null;
 
   const switchAgent = (id: string) => {
     switchSession(id);

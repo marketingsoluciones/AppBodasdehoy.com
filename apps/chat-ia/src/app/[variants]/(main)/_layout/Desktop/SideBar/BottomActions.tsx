@@ -8,6 +8,7 @@ import { Flexbox } from 'react-layout-kit';
 import { GITHUB } from '@/const/url';
 import { WalletWidget } from '@/components/Wallet';
 import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useBilling } from '@/hooks/useBilling';
@@ -77,33 +78,33 @@ const QuotaMiniBar = memo(() => {
       <Flexbox
         gap={2}
         style={{
+          borderRadius: 8,
           cursor: 'pointer',
           padding: '4px 6px',
-          borderRadius: 8,
           transition: 'background 0.2s',
         }}
         title={`${percent}% IA usado — Click para ver detalles`}
       >
         <div
           style={{
-            width: '100%',
-            height: 3,
             backgroundColor: 'rgba(128,128,128,0.2)',
             borderRadius: 2,
+            height: 3,
             overflow: 'hidden',
+            width: '100%',
           }}
         >
           <div
             style={{
-              width: `${percent}%`,
-              height: '100%',
               backgroundColor: color,
               borderRadius: 2,
+              height: '100%',
               transition: 'width 0.3s ease',
+              width: `${percent}%`,
             }}
           />
         </div>
-        <span style={{ fontSize: 9, color, fontWeight: 500, textAlign: 'center' }}>
+        <span style={{ color, fontSize: 9, fontWeight: 500, textAlign: 'center' }}>
           {percent}% IA
         </span>
       </Flexbox>
@@ -117,19 +118,23 @@ const BottomActions = memo(() => {
   const { t } = useTranslation('common');
   const { hideGitHub } = useServerConfigStore(featureFlagsSelectors);
   const isGuest = useDomainGuestUser();
+  const { needsRelogin } = useAuthCheck();
   const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
+
+  // Sesión expirada: tratamos igual que guest — sin billing/plan hasta re-login
+  const isGuestOrExpired = isGuest || needsRelogin;
 
   return (
     <Flexbox gap={8}>
-      {/* Wallet + Quota + Plan badge for authenticated users */}
-      {isServerMode && !isGuest && (
-        <Flexbox gap={4} align="center">
+      {/* Wallet + Quota + Plan badge solo para usuarios con sesión activa válida */}
+      {isServerMode && !isGuestOrExpired && (
+        <Flexbox align="center" gap={4}>
           <WalletWidget size="small" />
           <QuotaMiniBar />
           <PlanBadge />
         </Flexbox>
       )}
-      {isGuest && (
+      {isGuestOrExpired && (
         <Link aria-label="Iniciar sesión" href="/login">
           <ActionIcon
             icon={LogIn}

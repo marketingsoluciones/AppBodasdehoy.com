@@ -197,28 +197,44 @@ export const createHeaderWithAuth = async (params?: AuthParams): Promise<Headers
   // Esto permite que el backend Python identifique al usuario
   const headers: HeadersInit = { ...params?.headers, [LOBE_CHAT_AUTH_HEADER]: token };
 
-  // Obtener JWT de localStorage si está disponible
+  // Obtener JWT de localStorage si está disponible y NO está expirado
   if (typeof window !== 'undefined') {
-    const jwtToken =
-      localStorage.getItem('jwt_token') ||
-      localStorage.getItem('api2_jwt_token');
+    // Verificar expiración antes de incluir el JWT
+    const isJwtExpired = (): boolean => {
+      const expiresAt = localStorage.getItem('api2_jwt_expires_at');
+      if (!expiresAt) return false;
+      return new Date(expiresAt) <= new Date();
+    };
 
-    if (jwtToken && jwtToken !== 'null' && jwtToken !== 'undefined') {
-      (headers as Record<string, string>)['Authorization'] = `Bearer ${jwtToken}`;
-      console.log('🔑 [createHeaderWithAuth] JWT token incluido en headers');
+    if (isJwtExpired()) {
+      // Sesión expirada: no incluir JWT para evitar que api-ia devuelva datos privados
+      // con un token caducado que el servidor aún no ha invalidado.
+      console.warn('⚠️ [createHeaderWithAuth] JWT expirado — Authorization header OMITIDO. Disparando evento session-expired.');
+      window.dispatchEvent(new CustomEvent('api2:token-expired'));
+      // Añadir header para que route.ts lo detecte y bloquee antes de llegar a api-ia
+      (headers as Record<string, string>)['X-Session-Expired'] = '1';
     } else {
-      // Intentar desde dev-user-config
-      try {
-        const devConfig = localStorage.getItem('dev-user-config');
-        if (devConfig) {
-          const parsed = JSON.parse(devConfig);
-          if (parsed.token) {
-            (headers as Record<string, string>)['Authorization'] = `Bearer ${parsed.token}`;
-            console.log('🔑 [createHeaderWithAuth] JWT token de dev-user-config incluido');
+      const jwtToken =
+        localStorage.getItem('jwt_token') ||
+        localStorage.getItem('api2_jwt_token');
+
+      if (jwtToken && jwtToken !== 'null' && jwtToken !== 'undefined') {
+        (headers as Record<string, string>)['Authorization'] = `Bearer ${jwtToken}`;
+        console.log('🔑 [createHeaderWithAuth] JWT token incluido en headers');
+      } else {
+        // Intentar desde dev-user-config
+        try {
+          const devConfig = localStorage.getItem('dev-user-config');
+          if (devConfig) {
+            const parsed = JSON.parse(devConfig);
+            if (parsed.token) {
+              (headers as Record<string, string>)['Authorization'] = `Bearer ${parsed.token}`;
+              console.log('🔑 [createHeaderWithAuth] JWT token de dev-user-config incluido');
+            }
           }
+        } catch {
+          // Ignorar errores de parsing
         }
-      } catch {
-        // Ignorar errores de parsing
       }
     }
   }
