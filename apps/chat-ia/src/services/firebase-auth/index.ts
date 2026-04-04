@@ -358,73 +358,66 @@ export const loginWithGoogle = async (development: string = DEFAULT_DEVELOPMENT)
     prompt: 'select_account', // Siempre mostrar selector de cuenta
   });
 
-  // ✅ ESTRATEGIA: Intentar popup primero (mejor UX), si falla usar redirect
+  // Detectar Safari/WebKit: ITP bloquea popups de terceros → usar redirect directamente.
+  // Chrome/Firefox: intentar popup primero (mejor UX), con redirect como fallback.
+  const isWebKit =
+    typeof window !== 'undefined' &&
+    /Safari/i.test(navigator.userAgent) &&
+    !/Chrome|Chromium|Edg/i.test(navigator.userAgent);
+
+  const startRedirect = async () => {
+    safeSetSessionStorage('google_login_development', development);
+    if (typeof window !== 'undefined') {
+      safeSetSessionStorage('google_login_redirect_url', window.location.href);
+    }
+    await signInWithRedirect(auth, provider);
+    return undefined; // signInWithRedirect redirige la página — no retorna
+  };
+
+  // Safari/WebKit: ir directo a redirect, sin popup (siempre fallaría con popup-blocked)
+  if (isWebKit) {
+    console.log('[FirebaseAuth] WebKit detectado — usando redirect directo para Google login');
+    return startRedirect();
+  }
+
+  // Chrome/Firefox: popup primero, redirect como fallback
   try {
     const result = await signInWithPopup(auth, provider);
-
-    // Obtener Firebase ID Token
     const firebaseIdToken = await result.user.getIdToken();
-
-    // Intercambiar por JWT de API2
     return await exchangeFirebaseTokenForJWT(firebaseIdToken, development, result.user);
   } catch (popupError: any) {
-    // Si el popup fue bloqueado o cerrado, intentar con redirect
+    // Loguear el código real para diagnóstico (visible en DevTools)
+    console.warn('[FirebaseAuth] popup error code:', popupError.code, popupError.message);
+
+    // Solo reintentar con redirect si el popup fue bloqueado o cancelado —
+    // NO incluir auth/unauthorized-domain (significa config de Firebase incorrecta,
+    // no un problema de popup, y el redirect tampoco funcionaría)
     const shouldTryRedirect = [
       'auth/popup-blocked',
-      'auth/popup-closed-by-user',
       'auth/cancelled-popup-request',
-      'auth/unauthorized-domain',
     ].includes(popupError.code);
 
     if (shouldTryRedirect) {
       try {
-        // Guardar development para después del redirect
-        safeSetSessionStorage('google_login_development', development);
-        
-        // Guardar URL actual para redirigir después del login
-        if (typeof window !== 'undefined') {
-          safeSetSessionStorage('google_login_redirect_url', window.location.href);
-        }
-
-        // Usar redirect (esto redirige la página, no retorna)
-        await signInWithRedirect(auth, provider);
-        
-        // No retornamos aquí porque signInWithRedirect redirige la página
-        // El resultado se procesará con processGoogleRedirectResult después del redirect
-        return undefined;
+        return await startRedirect();
       } catch (redirectError: any) {
-        console.error('Google redirect fallback error:', redirectError);
-        
-        // Limpiar sessionStorage
+        console.error('[FirebaseAuth] redirect fallback error:', redirectError);
         safeRemoveSessionStorage('google_login_development');
         safeRemoveSessionStorage('google_login_redirect_url');
-
-        // Manejo de errores específicos
-        if (redirectError.code === 'auth/unauthorized-domain') {
-          const hostname = typeof window !== 'undefined' ? window.location.hostname : 'desconocido';
-          throw new Error(`⚠️ El dominio "${hostname}" no está autorizado en Firebase. Contacta al administrador para agregarlo.`);
-        }
-
         throw new Error(redirectError.message || 'Error al iniciar sesión con Google (redirect falló)');
       }
     }
-
-    // Otros errores de popup - no reintentar con redirect
-    console.error('Google popup login error:', popupError);
 
     switch (popupError.code) {
     case 'auth/popup-closed-by-user': {
       throw new Error('Has cerrado la ventana de login');
     }
     case 'auth/popup-blocked': {
-      throw new Error('El navegador bloqueó la ventana emergente. Por favor, habilita popups para este sitio o intenta nuevamente.');
-    }
-    case 'auth/cancelled-popup-request': {
-      throw new Error('Login cancelado');
+      throw new Error('El navegador bloqueó la ventana emergente. Habilita popups para este sitio o usa otro navegador.');
     }
     case 'auth/unauthorized-domain': {
       const hostname = typeof window !== 'undefined' ? window.location.hostname : 'desconocido';
-      throw new Error(`⚠️ El dominio "${hostname}" no está autorizado en Firebase. Contacta al administrador.`);
+      throw new Error(`El dominio "${hostname}" no está autorizado en Firebase. Contacta al administrador.`);
     }
     // No default
     }
