@@ -18,17 +18,14 @@
  */
 import { test, expect } from '@playwright/test';
 import { clearSession, waitForAppReady } from './helpers';
-import { getChatUrl } from './fixtures';
+import { TEST_URLS, E2E_ENV } from './fixtures';
 
-const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
-const isAppTest =
-  BASE_URL.includes('app-dev.bodasdehoy.com') ||
-  BASE_URL.includes('app-test.bodasdehoy.com') ||
-  BASE_URL.includes('app.bodasdehoy.com') ||
-  BASE_URL.includes('127.0.0.1') ||
-  BASE_URL.includes('localhost');
+// Usar URLs centralizadas (respetan E2E_ENV=local|dev|test|prod)
+const CHAT_URL = TEST_URLS.chat;
+const APP_URL = TEST_URLS.app;
 
-const CHAT_URL = getChatUrl(BASE_URL);
+// Tests que requieren infra real (cualquier entorno que no sea "nada")
+const isAppTest = true; // TEST_URLS siempre resuelve al entorno configurado
 
 const TEST_EMAIL = process.env.TEST_USER_EMAIL || '';
 const TEST_PASSWORD = process.env.TEST_USER_PASSWORD || '';
@@ -325,12 +322,13 @@ test.describe('SSO cross-domain (chat-test → app-test)', () => {
   test('[RO08] tras login en chat-test con ?redirect=app-test, vuelve a app-test autenticado', async ({
     page,
   }) => {
-    if (!isAppTest || !hasCredentials) {
+    // Cross-domain SSO requiere dominios reales (.bodasdehoy.com) — no funciona en local
+    if (!hasCredentials || E2E_ENV === 'local') {
       test.skip();
       return;
     }
 
-    const returnUrl = encodeURIComponent(BASE_URL + '/');
+    const returnUrl = encodeURIComponent(APP_URL + '/');
     const loginWithRedirect = `${CHAT_URL}/login?redirect=${returnUrl}`;
 
     await page.goto(loginWithRedirect, { waitUntil: 'domcontentloaded', timeout: 45_000 });
@@ -348,12 +346,13 @@ test.describe('SSO cross-domain (chat-test → app-test)', () => {
     await page.locator('button[type="submit"]').first().click();
 
     // Debe redirigir a app-test tras el login (por el ?redirect=)
+    const appHost = new URL(APP_URL).hostname;
     await page
-      .waitForURL((url) => url.hostname.includes('app-test.bodasdehoy.com'), { timeout: 40_000 })
+      .waitForURL((url) => url.hostname === appHost, { timeout: 40_000 })
       .catch(() => {});
 
     const finalUrl = page.url();
-    expect(finalUrl).toMatch(/app-test\.bodasdehoy\.com/);
+    expect(finalUrl).toContain(appHost);
 
     // La app debe cargar autenticada (sin ErrorBoundary)
     await waitForAppReady(page, 25_000);
@@ -492,14 +491,16 @@ test.describe('Logout (app-test)', () => {
     page,
     context,
   }) => {
-    if (!isAppTest || !hasCredentials) {
+    // Cross-domain SSO requiere dominios reales
+    if (!hasCredentials || E2E_ENV === 'local') {
       test.skip();
       return;
     }
 
     // 1. Login primero en chat-test con redirect a app-test
     await clearSession(context, page);
-    const returnUrl = encodeURIComponent(BASE_URL + '/');
+    const appHost = new URL(APP_URL).hostname;
+    const returnUrl = encodeURIComponent(APP_URL + '/');
     await page.goto(`${CHAT_URL}/login?redirect=${returnUrl}`, {
       waitUntil: 'domcontentloaded',
       timeout: 45_000,
@@ -517,7 +518,7 @@ test.describe('Logout (app-test)', () => {
     await page.locator('button[type="submit"]').first().click();
 
     await page
-      .waitForURL((url) => url.hostname.includes('app-test.bodasdehoy.com'), { timeout: 40_000 })
+      .waitForURL((url) => url.hostname === appHost, { timeout: 40_000 })
       .catch(() => {});
     await waitForAppReady(page, 25_000);
 

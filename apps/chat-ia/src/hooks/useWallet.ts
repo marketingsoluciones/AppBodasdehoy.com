@@ -89,7 +89,9 @@ export const useWallet = (): UseWalletReturn => {
 
   // Computed
   const isNegativeBalance = balance < 0;
-  const isCreditExhausted = totalBalance <= 0;
+  // Credit is exhausted only when ALL funds (balance + bonus + credit limit) are gone
+  // e.g. balance=-0.90, creditLimit=50 → still has 49.10 available → NOT exhausted
+  const isCreditExhausted = totalBalance + creditLimit <= 0;
   const isLowBalance = totalBalance <= lowBalanceThreshold && !isCreditExhausted;
 
   // ========================================

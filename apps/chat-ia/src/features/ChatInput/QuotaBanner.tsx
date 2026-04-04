@@ -7,6 +7,7 @@ import { Flexbox } from 'react-layout-kit';
 
 import { useBilling } from '@/hooks/useBilling';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
+import { useWallet } from '@/hooks/useWallet';
 import { useChatStore } from '@/store/chat';
 import { usagePercent } from '@bodasdehoy/shared/plans';
 
@@ -20,6 +21,7 @@ const QuotaBanner = memo(() => {
   const isGuest = !currentUserId || currentUserId === 'visitante@guest.local';
   const { plan, loading: planLoading } = usePlanLimits();
   const { usageStats, usageStatsLoading } = useBilling();
+  const { isCreditExhausted } = useWallet();
 
   if (isGuest || planLoading || usageStatsLoading || !plan) return null;
 
@@ -32,7 +34,10 @@ const QuotaBanner = memo(() => {
   // Only show when usage is high
   if (percent < 80) return null;
 
-  const isBlocked = percent >= 100 && !aiLimit.overage_enabled;
+  // Block only if: over quota, no plan overage, AND wallet credit is truly exhausted.
+  // If wallet still has credit (even negative balance within limit), let them chat —
+  // the backend will charge via wallet overage.
+  const isBlocked = percent >= 100 && !aiLimit.overage_enabled && isCreditExhausted;
   const remaining = Math.max(0, Math.round((aiLimit.free_quota - currentTokens) / 500));
 
   if (isBlocked) {
