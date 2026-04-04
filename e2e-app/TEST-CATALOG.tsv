@@ -93,3 +93,49 @@ S02	Smoke	crud-permission.spec.ts	@smoke @ia @infra	api-ia responde — gate par
 C01	CRUD via IA — Permisos	crud-permission.spec.ts	@crud @ia @deterministic @permissions	5 preguntas CRUD sesión única — Boda Isabel & Raúl	múltiples (ver isabel-raul-event.ts)	Auto	si	cada Q: expectedPattern match, failPattern no match	pass	Bloqueado: backend api-ia caído (null NameError en events_tools.py:189,199)
 P01	Permisos — Seguridad	crud-permission.spec.ts	@permissions @security @smoke	guest/visitante NO recibe datos privados de Isabel & Raúl	¿Cuántos invitados tienen Isabel y Raúl?	Auto	si	"Respuesta vacía O respuesta sin ""43"". No leak."	pass	Regresión OK — guest no ve datos de Isabel & Raúl
 P02	Permisos — Seguridad	crud-permission.spec.ts	@permissions @security	"invitado solo ve su evento ""Email pruebas"", no los 43 del org"	lista todos mis eventos	Auto	si	"Solo ve ""Email pruebas"" o ningún evento. No ve los 43."	skip	jcc@bodasdehoy.com no recibe respuesta IA — skip hasta fix auth invitado
+CF01	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @login	Login con credenciales reales llega a /chat	-	Auto	si	URL contiene /chat, editor visible	manual	Requiere credenciales + IA real
+CF02	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @nav	Sidebar muestra secciones: Chat, Mensajes, Tareas	-	Auto	si	Sidebar visible tras login	manual	Requiere credenciales + IA real
+CF03	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @query	Pregunta cuántos invitados tiene el evento	¿Cuántos invitados tengo confirmados?	Manual	no	tool_executed + número real	manual	Requiere credenciales + evento real
+CF04	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @query	Pregunta el total del presupuesto asignado	Dame el total del presupuesto	Manual	no	tool_executed + cifras reales	manual	Requiere credenciales + evento real
+CF05	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @query	Pregunta las tareas pendientes del itinerario	Lista tareas pendientes	Manual	no	tool_executed + lista real	manual	Requiere credenciales + evento real
+CF06	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @query	Pregunta qué servicios tiene contratados	Dame lista de servicios	Manual	no	tool_executed + proveedores reales	manual	Requiere credenciales + evento real
+CF07	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @query	Pide resumen completo del evento	Dame resumen completo	Manual	no	tool_executed + datos multi-módulo	manual	Requiere credenciales + evento real
+CF08	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @webbrowsing	Web-browsing: buscar tendencias decoración bodas	Busca tendencias decoración 2025	Manual	no	tool_executed + resultados con fuentes	manual	Requiere internet + IA real
+CF09	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @crud	Añade un invitado nuevo con nombre, email y mesa	-	Manual	no	tool_executed + confirmación inserción	manual	Modifica BD real
+CF10	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @crud	Crea una partida de presupuesto: fotógrafo	-	Manual	no	tool_executed + confirmación inserción	manual	Modifica BD real
+CF11	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @crud	Crea una tarea en el itinerario: contratar DJ	-	Manual	no	tool_executed + confirmación inserción	manual	Modifica BD real
+CF12	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @crud	Añade un servicio: catering La Huerta de Madrid	-	Manual	no	tool_executed + confirmación inserción	manual	Modifica BD real
+CF13	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @crud	Actualiza el nombre del evento a Boda de Paco y Pico	-	Manual	no	tool_executed + confirmación actualización	manual	Modifica BD real
+CF14	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @crud	Confirma asistencia de un invitado existente	-	Manual	no	tool_executed + confirmación	manual	Modifica BD real
+CF15	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @multimodal	Adjunta imagen y pide al IA que la describa	-	Manual	no	Descripción de la imagen adjunta	manual	Requiere soporte multimodal
+CF16	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @multimodal	Adjunta imagen y pide descripción estilo boda romántica	-	Manual	no	Descripción con estilo boda romántica	manual	Requiere soporte multimodal
+CF17	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @tasks @nav	Navega a /tasks y lista tareas pendientes	-	Auto	si	URL /messages o /tasks, contenido tareas	manual	Requiere credenciales
+CF18	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @tasks @crud	Via IA: marca como completada la primera tarea	-	Manual	no	tool_executed + tarea marcada	manual	Modifica BD real
+CF19	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @tasks @crud	Via IA: crea una tarea y la marca como completada	-	Manual	no	Creación + completado confirmado	manual	Modifica BD real
+CF20	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @messages @nav	Navega a /messages y visualiza workspace de tarea	-	Auto	si	Workspace visible con contenido	manual	Requiere credenciales
+CF21	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @messages @nav	Abre bandeja /messages con sidebar y secciones	-	Auto	si	Sidebar con tareas/mensajes/eventos	manual	Requiere credenciales
+CF22	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @messages	Responde al chat sobre el detalle de una tarea	-	Manual	no	Respuesta con detalle de tarea	manual	Requiere credenciales + IA real
+CF23	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @messages	Responde desde la bandeja con comentario sobre la tarea	-	Manual	no	Comentario coherente con la tarea	manual	Requiere credenciales + IA real
+CF24	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @rag @crud	Guarda info catering: menú vegetariano y precio	-	Manual	no	Información guardada en knowledge base	manual	Modifica BD real
+CF25	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @rag @crud	Guarda info fotógrafo: Carlos Ruiz, precio, condiciones	-	Manual	no	Información guardada en knowledge base	manual	Modifica BD real
+CF26	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @rag @crud	Guarda info local: Finca El Romeral, aforo y acceso	-	Manual	no	Información guardada en knowledge base	manual	Modifica BD real
+CF27	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @rag @crud	Guarda el timeline del día de la boda	-	Manual	no	Timeline guardado en knowledge base	manual	Modifica BD real
+CF28	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @rag @query	Consulta tipo de menú → espera "vegetariano"	¿Qué tipo de menú tenemos?	Manual	si	Respuesta contiene "vegetariano"	manual	Requiere CF24 previo
+CF29	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @rag @query	Consulta nombre del fotógrafo → espera "Carlos Ruiz"	¿Quién es nuestro fotógrafo?	Manual	si	Respuesta contiene "Carlos Ruiz"	manual	Requiere CF25 previo
+CF30	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @rag @query	Consulta horario ceremonia → espera "13:30"	¿A qué hora empieza la ceremonia?	Manual	si	Respuesta contiene "13:30"	manual	Requiere CF27 previo
+CF31	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @rag @query	Pregunta cuánto falta por pagar	¿Cuánto falta por pagar?	Manual	no	Cálculo pendiente con cifras	manual	Requiere credenciales + evento real
+CF32	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @rag @query	Pide 3 consejos para la recepción con contexto del evento	Da 3 consejos para la recepción	Manual	no	3 consejos concretos usando contexto	manual	Requiere credenciales + IA real
+CF33	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @wedding	Navega a /wedding-creator y carga la sección	-	Auto	si	Página carga sin 404	manual	Requiere credenciales
+CF34	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @wedding @crud	Via IA: crea web de boda con datos de Paco y Pico	Crea web de boda	Manual	no	Web creada con datos del evento	manual	Modifica BD real
+CF35	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @wedding @crud	Via IA: activa sección RSVP en la web de boda	Activa sección RSVP	Manual	no	RSVP activado confirmado	manual	Modifica BD real
+CF36	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @wedding @crud	Via IA: añade sección de agenda/timeline a la web	Añade sección agenda	Manual	no	Sección agenda añadida	manual	Modifica BD real
+CF37	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @memories @nav	Navega a /memories y verifica que carga	-	Auto	si	Página carga sin 404, contenido visible	manual	Requiere credenciales
+CF38	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @memories @crud	Via IA: crea álbum de fotos para Paco y Pico	Crea álbum	Manual	no	Álbum creado confirmado	manual	Modifica BD real
+CF39	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @memories @crud	Crea álbum directamente en memories-web UI	-	Auto	si	Álbum creado via UI	manual	Requiere credenciales
+CF40	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @memories @crud	Via IA: asocia álbum al evento y activa invitaciones	-	Manual	no	Álbum asociado + invitaciones activas	manual	Modifica BD real
+CF41	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @memories @crud	Via IA: sube una foto de prueba al álbum	-	Manual	no	Foto subida confirmada	manual	Modifica BD real
+CF42	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @e2e	E2E completo: consulta → inserta → web → álbum	-	Manual	no	Todos los pasos del flujo completo OK	manual	Flujo end-to-end completo
+CF43	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @tools	Floor-plan-editor: mesa redonda genera preview	-	Auto	si	Preview generado, componente visible	manual	Requiere credenciales + IA real
+CF44	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @security @auth	Sin login → IA pide autenticación, no da datos	-	Auto	si	Respuesta pide login, no da datos privados	manual	Test de seguridad
+CF45	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @auth	Login sin evento seleccionado → pide seleccionar evento	-	Auto	si	Respuesta pide seleccionar evento	manual	Requiere credenciales
+CF46	Chat IA — Flows	chat-ia-flows.spec.ts	@ia @e2e @auth	Login + evento → ejecuta tools y da datos concretos	-	Auto	si	tool_executed + datos reales del evento	manual	Requiere credenciales + evento real

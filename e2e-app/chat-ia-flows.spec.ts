@@ -166,7 +166,7 @@ function createTestImage(name = `e2e-img-${TODAY}.png`): string {
 test.describe('1. Login en chat-test', () => {
   test.setTimeout(90_000);
 
-  test('login con credenciales reales → llega a /chat', async ({ page }) => {
+  test('[CF01] login con credenciales reales → llega a /chat', async ({ page }) => {
     if (!hasCredentials) test.skip();
 
     const ok = await loginChat(page);
@@ -178,7 +178,7 @@ test.describe('1. Login en chat-test', () => {
     console.log('✅ Login OK →', page.url());
   });
 
-  test('el sidebar muestra secciones: Chat, Mensajes, Tareas', async ({ page }) => {
+  test('[CF02] el sidebar muestra secciones: Chat, Mensajes, Tareas', async ({ page }) => {
     if (!hasCredentials) test.skip();
     await loginChat(page);
     await page.waitForTimeout(2000);
@@ -206,7 +206,7 @@ test.describe('2. Consultas al chat IA — datos reales del evento', () => {
     await goChat(page);
   });
 
-  test('pregunta cuántos invitados tiene el evento', async ({ page }) => {
+  test('[CF03] pregunta cuántos invitados tiene el evento', async ({ page }) => {
     await chatValidated(page, '¿Cuántos invitados tengo confirmados en mi boda? Dame el número exacto.', {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed'],
       forbiddenPatterns: ['How can I assist'],
@@ -214,7 +214,7 @@ test.describe('2. Consultas al chat IA — datos reales del evento', () => {
     }, 25_000);
   });
 
-  test('pregunta el total del presupuesto asignado', async ({ page }) => {
+  test('[CF04] pregunta el total del presupuesto asignado', async ({ page }) => {
     await chatValidated(page, 'Dame el total del presupuesto de mi boda: la suma de todas las partidas y el presupuesto total configurado.', {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed'],
       requiredKeywords: ['presupuesto'],
@@ -224,7 +224,7 @@ test.describe('2. Consultas al chat IA — datos reales del evento', () => {
     }, 25_000);
   });
 
-  test('pregunta las tareas pendientes del itinerario', async ({ page }) => {
+  test('[CF05] pregunta las tareas pendientes del itinerario', async ({ page }) => {
     await chatValidated(page, 'Lista todas las tareas pendientes de mi itinerario de boda. Necesito saber qué me falta por hacer.', {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed'],
       forbiddenPatterns: ['How can I assist'],
@@ -233,7 +233,7 @@ test.describe('2. Consultas al chat IA — datos reales del evento', () => {
     }, 28_000);
   });
 
-  test('pregunta qué servicios tiene contratados', async ({ page }) => {
+  test('[CF06] pregunta qué servicios tiene contratados', async ({ page }) => {
     await chatValidated(page, 'Dame la lista de servicios o proveedores que tengo contratados para mi boda.', {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed'],
       forbiddenPatterns: ['How can I assist'],
@@ -242,7 +242,7 @@ test.describe('2. Consultas al chat IA — datos reales del evento', () => {
     }, 25_000);
   });
 
-  test('pide el resumen completo del evento', async ({ page }) => {
+  test('[CF07] pide el resumen completo del evento', async ({ page }) => {
     await chatValidated(page, 'Dame un resumen completo de mi boda: fecha, lugar, número de invitados, presupuesto total y las 3 tareas más urgentes.', {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed'],
       forbiddenPatterns: ['How can I assist', 'herramienta', 'ejecutar', 'función'],
@@ -252,7 +252,7 @@ test.describe('2. Consultas al chat IA — datos reales del evento', () => {
   });
 
   // 2.3.5 — web-browsing: buscar en Google y mostrar resultados
-  test('web-browsing: buscar tendencias de decoración de bodas', async ({ page }) => {
+  test('[CF08] web-browsing: buscar tendencias de decoración de bodas', async ({ page }) => {
     await chatValidated(page, 'Busca en internet las tendencias de decoración de bodas para 2025. Dame 3 ideas concretas con fuentes.', {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed'],
       forbiddenPatterns: ['How can I assist'],
@@ -275,7 +275,7 @@ test.describe('3. Inserciones vía chat IA (CRUD real)', () => {
     await goChat(page);
   });
 
-  test('añade un invitado nuevo con nombre, email y mesa', async ({ page }) => {
+  test('[CF09] añade un invitado nuevo con nombre, email y mesa', async ({ page }) => {
     const nombre = `Paco García E2E ${TODAY}`;
     const email  = `paco.garcia.e2e.${TODAY}@test.com`;
 
@@ -288,7 +288,7 @@ test.describe('3. Inserciones vía chat IA (CRUD real)', () => {
     }, 30_000);
   });
 
-  test('crea una partida de presupuesto: fotógrafo', async ({ page }) => {
+  test('[CF10] crea una partida de presupuesto: fotógrafo', async ({ page }) => {
     const descripcion = `Fotógrafo Carlos Ruiz E2E ${TODAY}`;
     const importe = '2500';
 
@@ -300,7 +300,7 @@ test.describe('3. Inserciones vía chat IA (CRUD real)', () => {
     }, 30_000);
   });
 
-  test('crea una tarea en el itinerario: contratar DJ', async ({ page }) => {
+  test('[CF11] crea una tarea en el itinerario: contratar DJ', async ({ page }) => {
     const tarea = `Contratar DJ para boda E2E ${TODAY}`;
 
     await chatValidated(page, `Crea una tarea en el itinerario: "${tarea}". Prioridad: alta. Categoría: música. Fecha límite: en 30 días.`, {
@@ -311,7 +311,7 @@ test.describe('3. Inserciones vía chat IA (CRUD real)', () => {
     }, 30_000);
   });
 
-  test('añade un servicio: catering La Huerta de Madrid', async ({ page }) => {
+  test('[CF12] añade un servicio: catering La Huerta de Madrid', async ({ page }) => {
     await chatValidated(page, `Añade un servicio a mi boda: Proveedor: "La Huerta de Madrid", Tipo: catering, Precio: 8000€, Teléfono: 910123456, Notas: menú vegetariano para 120 personas.`, {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed'],
       forbiddenPatterns: ['How can I assist'],
@@ -320,7 +320,7 @@ test.describe('3. Inserciones vía chat IA (CRUD real)', () => {
     }, 30_000);
   });
 
-  test('actualiza el nombre del evento a "Boda de Paco y Pico"', async ({ page }) => {
+  test('[CF13] actualiza el nombre del evento a "Boda de Paco y Pico"', async ({ page }) => {
     await chatValidated(page, `Actualiza el nombre de mi evento a "Boda de Paco y Pico 2025". Los novios son Francisco García y Pilar López.`, {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed'],
       forbiddenPatterns: ['How can I assist'],
@@ -329,7 +329,7 @@ test.describe('3. Inserciones vía chat IA (CRUD real)', () => {
     }, 30_000);
   });
 
-  test('confirma asistencia de un invitado existente', async ({ page }) => {
+  test('[CF14] confirma asistencia de un invitado existente', async ({ page }) => {
     await chatValidated(page, `Confirma la asistencia del invitado con email "paco.garcia.e2e.${TODAY}@test.com" a mi boda.`, {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed'],
       forbiddenPatterns: ['How can I assist'],
@@ -353,7 +353,7 @@ test.describe('4. Modificación de imagen adjunta al chat', () => {
     await goChat(page);
   });
 
-  test('adjunta una imagen y pide al IA que la describa', async ({ page }) => {
+  test('[CF15] adjunta una imagen y pide al IA que la describa', async ({ page }) => {
     const imgPath = createTestImage(`test-boda-${TODAY}.png`);
 
     // Buscar el botón de adjuntar archivo (clip, attach, upload)
@@ -397,7 +397,7 @@ test.describe('4. Modificación de imagen adjunta al chat', () => {
     fs.unlinkSync(imgPath);
   });
 
-  test('adjunta imagen y pide descripción en estilo boda romántica', async ({ page }) => {
+  test('[CF16] adjunta imagen y pide descripción en estilo boda romántica', async ({ page }) => {
     const imgPath = createTestImage(`test-romantica-${TODAY}.png`);
 
     // Intentar set file input directamente (más robusto en Playwright)
@@ -438,7 +438,7 @@ test.describe('5. Tareas: consulta y acciones (marcar completada)', () => {
     if (!ok) test.skip();
   });
 
-  test('navega a /tasks (redirige a /messages) y lista tareas pendientes', async ({ page }) => {
+  test('[CF17] navega a /tasks (redirige a /messages) y lista tareas pendientes', async ({ page }) => {
     // /tasks redirige a /messages — Playwright sigue el redirect automáticamente
     await page.goto(`${CHAT_URL}/tasks`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(3000);
@@ -451,7 +451,7 @@ test.describe('5. Tareas: consulta y acciones (marcar completada)', () => {
     console.log(`${hasTasks ? '✅' : 'ℹ️'} /tasks→/messages — contenido: ${body.slice(0, 300)}`);
   });
 
-  test('via IA: marca como completada la primera tarea del itinerario', async ({ page }) => {
+  test('[CF18] via IA: marca como completada la primera tarea del itinerario', async ({ page }) => {
     await goChat(page);
 
     // Primero consultar cuáles hay
@@ -470,7 +470,7 @@ test.describe('5. Tareas: consulta y acciones (marcar completada)', () => {
     }, 30_000);
   });
 
-  test('via IA: crea una tarea y luego la marca como completada', async ({ page }) => {
+  test('[CF19] via IA: crea una tarea y luego la marca como completada', async ({ page }) => {
     await goChat(page);
 
     const taskName = `Test completar tarea ${TODAY}`;
@@ -490,7 +490,7 @@ test.describe('5. Tareas: consulta y acciones (marcar completada)', () => {
     }, 30_000);
   });
 
-  test('navega a /messages y visualiza el workspace de una tarea', async ({ page }) => {
+  test('[CF20] navega a /messages y visualiza el workspace de una tarea', async ({ page }) => {
     await page.goto(`${CHAT_URL}/messages`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(3000);
 
@@ -536,7 +536,7 @@ test.describe('6. Bandeja de mensajes: responder a mensaje de tarea', () => {
     if (!ok) test.skip();
   });
 
-  test('abre la bandeja /messages y muestra sidebar con secciones', async ({ page }) => {
+  test('[CF21] abre la bandeja /messages y muestra sidebar con secciones', async ({ page }) => {
     await page.goto(`${CHAT_URL}/messages`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(2500);
 
@@ -549,7 +549,7 @@ test.describe('6. Bandeja de mensajes: responder a mensaje de tarea', () => {
     console.log(`   Contenido: ${body.slice(0, 400)}`);
   });
 
-  test('responde al chat sobre el detalle de una tarea pendiente', async ({ page }) => {
+  test('[CF22] responde al chat sobre el detalle de una tarea pendiente', async ({ page }) => {
     await goChat(page);
 
     await chatValidated(page, '¿Cuál es la tarea más urgente que tengo pendiente en mi itinerario de boda? Dame el título, la categoría y la fecha límite.', {
@@ -560,7 +560,7 @@ test.describe('6. Bandeja de mensajes: responder a mensaje de tarea', () => {
     }, 28_000);
   });
 
-  test('responde desde la bandeja con un comentario sobre la tarea', async ({ page }) => {
+  test('[CF23] responde desde la bandeja con un comentario sobre la tarea', async ({ page }) => {
     await page.goto(`${CHAT_URL}/messages`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(2500);
 
@@ -607,7 +607,7 @@ test.describe('7. Insertar consejos en la base de conocimiento', () => {
     await goChat(page);
   });
 
-  test('guarda información del catering: menú vegetariano y precio', async ({ page }) => {
+  test('[CF24] guarda información del catering: menú vegetariano y precio', async ({ page }) => {
     await chatValidated(page, `Guarda esta información para consultas futuras sobre mi boda:
       - Catering: "La Huerta de Madrid" (teléfono: 910 123 456)
       - Menú: 100% vegetariano, 3 platos + postre
@@ -620,7 +620,7 @@ test.describe('7. Insertar consejos en la base de conocimiento', () => {
     }, 30_000);
   });
 
-  test('guarda información del fotógrafo: Carlos Ruiz, precio, condiciones', async ({ page }) => {
+  test('[CF25] guarda información del fotógrafo: Carlos Ruiz, precio, condiciones', async ({ page }) => {
     await chatValidated(page, `Añade a mis notas del evento:
       FOTÓGRAFO CONFIRMADO:
       - Nombre: Carlos Ruiz Fotografía
@@ -634,7 +634,7 @@ test.describe('7. Insertar consejos en la base de conocimiento', () => {
     }, 30_000);
   });
 
-  test('guarda información del local: Finca El Romeral, aforo y acceso', async ({ page }) => {
+  test('[CF26] guarda información del local: Finca El Romeral, aforo y acceso', async ({ page }) => {
     await chatValidated(page, `Guarda estos datos del espacio de celebración:
       LOCAL: Finca El Romeral (Madrid - Pozuelo de Alarcón)
       - Aforo: 150 personas en interior, 200 en jardín
@@ -649,7 +649,7 @@ test.describe('7. Insertar consejos en la base de conocimiento', () => {
     }, 30_000);
   });
 
-  test('guarda el timeline del día de la boda', async ({ page }) => {
+  test('[CF27] guarda el timeline del día de la boda', async ({ page }) => {
     await chatValidated(page, `Guarda el timeline del día de la boda de Paco y Pico:
       10:00 - Maquillaje y peluquería novia (en casa)
       12:00 - Llegada fotógrafo a casa de la novia
@@ -680,7 +680,7 @@ test.describe('8. RAG — el sistema responde usando el conocimiento insertado',
     await goChat(page);
   });
 
-  test('consulta el tipo de menú de la boda → espera "vegetariano"', async ({ page }) => {
+  test('[CF28] consulta el tipo de menú de la boda → espera "vegetariano"', async ({ page }) => {
     await chatValidated(page, '¿Qué tipo de menú tenemos para la boda? ¿Es vegetariano, con carne o mixto?', {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed'],
       requiredKeywords: ['vegetariano'],
@@ -689,7 +689,7 @@ test.describe('8. RAG — el sistema responde usando el conocimiento insertado',
     }, 28_000);
   });
 
-  test('consulta el nombre del fotógrafo → espera "Carlos Ruiz"', async ({ page }) => {
+  test('[CF29] consulta el nombre del fotógrafo → espera "Carlos Ruiz"', async ({ page }) => {
     await chatValidated(page, '¿Cómo se llama el fotógrafo contratado para la boda y cuánto cuesta?', {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed'],
       requiredKeywords: ['carlos'],
@@ -698,7 +698,7 @@ test.describe('8. RAG — el sistema responde usando el conocimiento insertado',
     }, 28_000);
   });
 
-  test('consulta el horario de la ceremonia → espera "13:30"', async ({ page }) => {
+  test('[CF30] consulta el horario de la ceremonia → espera "13:30"', async ({ page }) => {
     await chatValidated(page, '¿A qué hora es la ceremonia civil de la boda? ¿Y el aperitivo?', {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed'],
       requiredKeywords: ['13:30'],
@@ -707,7 +707,7 @@ test.describe('8. RAG — el sistema responde usando el conocimiento insertado',
     }, 28_000);
   });
 
-  test('pregunta cuánto falta por pagar → calcula pendiente total', async ({ page }) => {
+  test('[CF31] pregunta cuánto falta por pagar → calcula pendiente total', async ({ page }) => {
     await chatValidated(page, '¿Cuánto dinero total me falta por pagar a los proveedores? Dame el desglose.', {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed'],
       forbiddenPatterns: ['How can I assist'],
@@ -715,7 +715,7 @@ test.describe('8. RAG — el sistema responde usando el conocimiento insertado',
     }, 30_000);
   });
 
-  test('pide 3 consejos para la recepción usando el contexto del evento', async ({ page }) => {
+  test('[CF32] pide 3 consejos para la recepción usando el contexto del evento', async ({ page }) => {
     await chatValidated(page, 'Dame 3 consejos específicos para que la recepción en la Finca El Romeral salga perfecta, teniendo en cuenta que tenemos menú vegetariano y 120 invitados.', {
       expectedCategory: ['tool_executed', 'data_response', 'tool_failed'],
       forbiddenPatterns: ['How can I assist'],
@@ -737,7 +737,7 @@ test.describe('9. Wedding Creator — crear web simple para Paco y Pico', () => 
     if (!ok) test.skip();
   });
 
-  test('navega a /wedding-creator y carga la sección', async ({ page }) => {
+  test('[CF33] navega a /wedding-creator y carga la sección', async ({ page }) => {
     await page.goto(`${CHAT_URL}/wedding-creator`, { waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(() => {});
     await page.waitForTimeout(2500);
 
@@ -748,7 +748,7 @@ test.describe('9. Wedding Creator — crear web simple para Paco y Pico', () => 
     console.log(`   Contenido: ${body.slice(0, 200)}`);
   });
 
-  test('vía IA: crea web de boda con datos de Paco y Pico', async ({ page }) => {
+  test('[CF34] vía IA: crea web de boda con datos de Paco y Pico', async ({ page }) => {
     await goChat(page);
 
     await chatValidated(page, `Crea la página web de la boda de Paco y Pico con estos datos:
@@ -766,7 +766,7 @@ test.describe('9. Wedding Creator — crear web simple para Paco y Pico', () => 
     }, 45_000);
   });
 
-  test('vía IA: activa sección RSVP en la web de boda', async ({ page }) => {
+  test('[CF35] vía IA: activa sección RSVP en la web de boda', async ({ page }) => {
     await goChat(page);
 
     await chatValidated(page, `Activa la sección de confirmación de asistencia (RSVP) en la web de boda de Paco y Pico.
@@ -778,7 +778,7 @@ test.describe('9. Wedding Creator — crear web simple para Paco y Pico', () => 
     }, 35_000);
   });
 
-  test('vía IA: añade sección de agenda/timeline a la web', async ({ page }) => {
+  test('[CF36] vía IA: añade sección de agenda/timeline a la web', async ({ page }) => {
     await goChat(page);
 
     await chatValidated(page, `Añade la sección de agenda del día a la web de boda de Paco y Pico con el timeline que ya tengo guardado.
@@ -803,7 +803,7 @@ test.describe('10. Memories — álbum de fotos para la boda de Paco y Pico', ()
     if (!ok) test.skip();
   });
 
-  test('navega a /memories y verifica que carga', async ({ page }) => {
+  test('[CF37] navega a /memories y verifica que carga', async ({ page }) => {
     await page.goto(`${CHAT_URL}/memories`, { waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(() => {});
     await page.waitForTimeout(2500);
 
@@ -813,7 +813,7 @@ test.describe('10. Memories — álbum de fotos para la boda de Paco y Pico', ()
     console.log(`${hasContent ? '✅' : 'ℹ️'} /memories: ${hasContent ? 'sección encontrada' : 'ruta no disponible'}`);
   });
 
-  test('vía IA: crea álbum de fotos para Paco y Pico', async ({ page }) => {
+  test('[CF38] vía IA: crea álbum de fotos para Paco y Pico', async ({ page }) => {
     await goChat(page);
 
     const albumTitle = `Nuestra Boda - Paco y Pico 20/09/2025`;
@@ -831,7 +831,7 @@ test.describe('10. Memories — álbum de fotos para la boda de Paco y Pico', ()
     }, 35_000);
   });
 
-  test('crea el álbum directamente en memories-web UI', async ({ page }) => {
+  test('[CF39] crea el álbum directamente en memories-web UI', async ({ page }) => {
     const memoriesUrl = 'https://memories-test.bodasdehoy.com';
     const albumName = `Boda Paco y Pico ${TODAY}`;
 
@@ -889,7 +889,7 @@ test.describe('10. Memories — álbum de fotos para la boda de Paco y Pico', ()
     }
   });
 
-  test('vía IA: asocia el álbum al evento y activa invitaciones', async ({ page }) => {
+  test('[CF40] vía IA: asocia el álbum al evento y activa invitaciones', async ({ page }) => {
     await goChat(page);
 
     await chatValidated(page, `El álbum de Memories de la boda de Paco y Pico ya está creado.
@@ -901,7 +901,7 @@ test.describe('10. Memories — álbum de fotos para la boda de Paco y Pico', ()
     }, 35_000);
   });
 
-  test('vía IA: sube una foto de prueba al álbum', async ({ page }) => {
+  test('[CF41] vía IA: sube una foto de prueba al álbum', async ({ page }) => {
     await goChat(page);
 
     // Crear imagen de prueba
@@ -934,7 +934,7 @@ test.describe('10. Memories — álbum de fotos para la boda de Paco y Pico', ()
 test.describe('11. Flujo completo E2E: boda de Paco y Pico', () => {
   test.setTimeout(300_000); // 5 min — flujo largo con múltiples pasos IA
 
-  test('E2E completo: consulta → inserta → web → álbum', async ({ page }) => {
+  test('[CF42] E2E completo: consulta → inserta → web → álbum', async ({ page }) => {
     const { abort, reason } = shouldAbort();
     if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
@@ -1023,7 +1023,7 @@ test.describe('11. Flujo completo E2E: boda de Paco y Pico', () => {
   });
 
   // 2.3.4 — floor-plan-editor: suggest_table_config — SVG preview inline
-  test('floor-plan-editor: pedir configuración de mesa redonda genera preview', async ({ page }) => {
+  test('[CF43] floor-plan-editor: pedir configuración de mesa redonda genera preview', async ({ page }) => {
     const { abort, reason } = shouldAbort();
     if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
@@ -1050,7 +1050,7 @@ test.describe('11. Flujo completo E2E: boda de Paco y Pico', () => {
 test.describe('12. Tests de contexto — validación por estado de sesión', () => {
   test.setTimeout(120_000);
 
-  test('sin login → la IA pide autenticación, no datos', async ({ page }) => {
+  test('[CF44] sin login → la IA pide autenticación, no datos', async ({ page }) => {
     const { abort, reason } = shouldAbort();
     if (abort) test.skip(true, reason);
     // Navegar al chat SIN login
@@ -1091,7 +1091,7 @@ test.describe('12. Tests de contexto — validación por estado de sesión', () 
     ).toBe(true);
   });
 
-  test('login sin evento seleccionado → pide seleccionar evento', async ({ page }) => {
+  test('[CF45] login sin evento seleccionado → pide seleccionar evento', async ({ page }) => {
     const { abort, reason } = shouldAbort();
     if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
@@ -1120,7 +1120,7 @@ test.describe('12. Tests de contexto — validación por estado de sesión', () 
     ).toBe(true);
   });
 
-  test('login + evento → ejecuta tools y da datos concretos', async ({ page }) => {
+  test('[CF46] login + evento → ejecuta tools y da datos concretos', async ({ page }) => {
     const { abort, reason } = shouldAbort();
     if (abort) test.skip(true, reason);
     if (!hasCredentials) test.skip();
