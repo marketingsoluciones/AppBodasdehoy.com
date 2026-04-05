@@ -30,6 +30,7 @@ export interface PlanLimit {
   sku: string;
   service_name: string;
   free_quota: number;
+  daily_quota?: number;
   overage_enabled: boolean;
   overage_price: number;
 }

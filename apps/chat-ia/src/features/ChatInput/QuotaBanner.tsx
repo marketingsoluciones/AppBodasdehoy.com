@@ -2,41 +2,100 @@
 
 import { AlertTriangle, Lock, Zap } from 'lucide-react';
 import Link from 'next/link';
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
 import { useBilling } from '@/hooks/useBilling';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useWallet } from '@/hooks/useWallet';
 import { useChatStore } from '@/store/chat';
-import { usagePercent } from '@bodasdehoy/shared/plans';
+import { canAccessDaily, usagePercent } from '@bodasdehoy/shared/plans';
+import type { UsageStats } from '@/services/api2/invoices';
 
 /**
  * Banner above chat input showing quota warnings.
- * - 80-99%: Yellow warning with remaining queries
- * - 100%: Red block with CTA to recharge/upgrade
+ * - Daily limit reached: Red block (resets tomorrow)
+ * - 80-99% monthly: Yellow warning with remaining queries
+ * - 100% monthly: Red block with CTA to recharge/upgrade
  */
 const QuotaBanner = memo(() => {
   const currentUserId = useChatStore((s) => s.currentUserId);
   const isGuest = !currentUserId || currentUserId === 'visitante@guest.local';
   const { plan, loading: planLoading } = usePlanLimits();
-  const { usageStats, usageStatsLoading } = useBilling();
+  const { usageStats, usageStatsLoading, fetchUsageStats } = useBilling();
   const { isCreditExhausted } = useWallet();
+  const [todayStats, setTodayStats] = useState<UsageStats | null>(null);
+
+  useEffect(() => {
+    if (!isGuest) {
+      fetchUsageStats('TODAY').then(() => {}).catch(() => {});
+    }
+  }, [isGuest, fetchUsageStats]);
+
+  // Fetch today stats separately
+  useEffect(() => {
+    if (isGuest) return;
+    import('@/services/api2/invoices').then(({ invoicesService }) => {
+      invoicesService.getUsageStats('TODAY').then((res) => {
+        if (res.success && res.stats) setTodayStats(res.stats);
+      }).catch(() => {});
+    });
+  }, [isGuest]);
 
   if (isGuest || planLoading || usageStatsLoading || !plan) return null;
 
   const aiLimit = plan.product_limits.find((l) => l.sku === 'ai-tokens');
   if (!aiLimit || aiLimit.free_quota >= 999_999) return null;
 
+  // --- Límite diario ---
+  if (aiLimit.daily_quota) {
+    const todayTokens = todayStats?.totalTokens ?? 0;
+    const dailyCheck = canAccessDaily('ai-tokens', todayTokens, plan);
+    if (dailyCheck && !dailyCheck.allowed) {
+      return (
+        <Flexbox
+          align="center"
+          gap={8}
+          horizontal
+          style={{
+            background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+            border: '1px solid #fecaca',
+            borderRadius: 8,
+            fontSize: 13,
+            marginBottom: 6,
+            padding: '8px 12px',
+          }}
+        >
+          <Lock size={16} style={{ color: '#dc2626', flexShrink: 0 }} />
+          <span style={{ color: '#991b1b', flex: 1 }}>
+            Has alcanzado el límite diario de consultas. Vuelve mañana o actualiza tu plan.
+          </span>
+          <Link
+            href="/settings/billing/planes"
+            style={{
+              background: '#667eea',
+              borderRadius: 6,
+              color: 'white',
+              fontSize: 12,
+              fontWeight: 600,
+              padding: '4px 12px',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Ver planes
+          </Link>
+        </Flexbox>
+      );
+    }
+  }
+
+  // --- Límite mensual ---
   const currentTokens = usageStats?.totalTokens ?? 0;
   const percent = usagePercent(currentTokens, aiLimit.free_quota);
 
-  // Only show when usage is high
   if (percent < 80) return null;
 
-  // Block only if: over quota, no plan overage, AND wallet credit is truly exhausted.
-  // If wallet still has credit (even negative balance within limit), let them chat —
-  // the backend will charge via wallet overage.
   const isBlocked = percent >= 100 && !aiLimit.overage_enabled && isCreditExhausted;
   const remaining = Math.max(0, Math.round((aiLimit.free_quota - currentTokens) / 500));
 

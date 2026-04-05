@@ -46,6 +46,32 @@ export function canAccess(
 }
 
 /**
+ * Verifica si el usuario puede usar un SKU dado su uso DEL DÍA.
+ * Solo aplica si el plan tiene daily_quota definido para ese SKU.
+ */
+export function canAccessDaily(
+  sku: string,
+  todayUsage: number,
+  plan: { product_limits: PlanLimit[] }
+): AccessCheck | null {
+  const limit = plan.product_limits.find((l) => l.sku === sku);
+
+  if (!limit?.daily_quota) return null; // Sin límite diario → no aplica
+
+  const remaining = Math.max(0, limit.daily_quota - todayUsage);
+  const percentUsed = Math.min(100, Math.round((todayUsage / limit.daily_quota) * 100));
+  const allowed = todayUsage < limit.daily_quota;
+
+  return {
+    allowed,
+    remaining,
+    limit: limit.daily_quota,
+    percentUsed,
+    overageAvailable: false,
+  };
+}
+
+/**
  * Obtiene el siguiente tier recomendado para upgrade.
  */
 export function getNextTier(currentTier: SubscriptionTier): SubscriptionTier | null {
