@@ -70,9 +70,7 @@ export function PlanCard({
     ? 'Plan actual'
     : isFree
       ? 'Empezar gratis'
-      : plan.pricing.trial_days
-        ? `Probar ${plan.pricing.trial_days} días gratis`
-        : `Elegir ${plan.name}`;
+      : `Elegir ${plan.name}`;
 
   return (
     <div

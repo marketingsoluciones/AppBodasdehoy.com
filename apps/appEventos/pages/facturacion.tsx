@@ -110,7 +110,7 @@ const PlanesAPI2 = () => {
                                             : 'bg-pink-500 text-white hover:bg-pink-600'
                                     }`}
                                 >
-                                    {plan.pricing.trial_days ? `Probar ${plan.pricing.trial_days} días gratis` : `Elegir ${plan.name}`}
+                                    {`Elegir ${plan.name}`}
                                 </button>
                             )}
                         </div>

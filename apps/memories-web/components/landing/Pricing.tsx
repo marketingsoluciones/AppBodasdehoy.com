@@ -171,9 +171,7 @@ export default function Pricing() {
                 >
                   {isFree
                     ? 'Empezar gratis'
-                    : plan.pricing.trial_days
-                      ? `Probar ${plan.pricing.trial_days} días gratis`
-                      : `Elegir ${plan.name}`}
+                    : `Elegir ${plan.name}`}
                 </Link>
                 <ul className="mt-6 space-y-3">
                   {features.map((f, j) => (

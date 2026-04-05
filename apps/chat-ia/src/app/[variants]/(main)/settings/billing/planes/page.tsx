@@ -383,9 +383,7 @@ const PlanCard = memo<{
               ? 'Plan actual'
               : price === 0
                 ? 'Empezar gratis'
-                : plan.pricing.trial_days
-                  ? `Probar ${plan.pricing.trial_days} días gratis`
-                  : 'Elegir plan'}
+                : 'Elegir plan'}
         </button>
 
         {/* Separador */}
