@@ -29,6 +29,7 @@ export {
 // Gates utilities
 export {
   canAccess,
+  canAccessDaily,
   getNextTier,
   getUpgradeMessage,
   getConversionMessage,

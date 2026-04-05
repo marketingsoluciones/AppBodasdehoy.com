@@ -678,6 +678,15 @@ export const generateAIChat: StateCreator<
           const errBody = (error as any)?.body;
           set({ apiErrorDetail: errBody?.message, apiErrorScreenType: errBody?.screen_type });
         }
+        // Si el backend devuelve 429 por límite diario de consultas
+        if ((error as any)?.type === 'rate_limit') {
+          const errBody = (error as any)?.body;
+          set({
+            showInsufficientBalance: true,
+            apiErrorDetail: errBody?.message ?? 'Has alcanzado el límite diario de consultas. Vuelve mañana o actualiza tu plan.',
+            apiErrorScreenType: 'daily_limit',
+          });
+        }
         // Si el backend devuelve 401 (community user sin auth)
         // → mostrar modal de registro en lugar de "unauthorized"
         if ((error as any)?.type === 'login_required') {
