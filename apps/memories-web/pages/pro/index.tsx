@@ -214,9 +214,7 @@ export default function ProPage() {
                       >
                         {subscribing === plan.plan_id
                           ? 'Procesando...'
-                          : plan.pricing.trial_days
-                            ? `Probar ${plan.pricing.trial_days} días gratis`
-                            : `Elegir ${plan.name}`}
+                          : `Elegir ${plan.name}`}
                       </button>
                     )}
 
