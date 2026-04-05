@@ -12,15 +12,17 @@ tunnel: 30fdf520-9577-470f-a224-4cda1e5eb3f0
 credentials-file: ~/.cloudflared/30fdf520-9577-470f-a224-4cda1e5eb3f0.json
 
 ingress:
-  # DEV local (hot reload) — puertos: appEventos:8080, chat-ia:3210, memories:3080, editor:3000
+  # DEV local — puertos reales del monorepo (CLAUDE.md):
+  #   appEventos:3220, chat-ia:3210, memories-web:3240, editor-web:3230
+  # NOTA: chat-dev usa 192.168.1.48 (no 127.0.0.1) porque Cursor ocupa localhost:3210
   - hostname: app-dev.bodasdehoy.com
-    service: http://127.0.0.1:8080
+    service: http://127.0.0.1:3220
   - hostname: chat-dev.bodasdehoy.com
-    service: http://127.0.0.1:3210
+    service: http://192.168.1.48:3210
   - hostname: memories-dev.bodasdehoy.com
-    service: http://127.0.0.1:3080
+    service: http://127.0.0.1:3240
   - hostname: editor-dev.bodasdehoy.com
-    service: http://127.0.0.1:3000
+    service: http://127.0.0.1:3230
   # Otros servicios del túnel (backends)
   - hostname: auth-test.bodasdehoy.com
     service: http://localhost:8000
