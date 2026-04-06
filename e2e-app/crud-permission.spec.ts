@@ -60,16 +60,21 @@ async function loginChat(page: Page, email: string, password: string): Promise<b
 
   await page.locator('button:has-text("Iniciar sesión"), button[type="submit"]').first().click();
 
-  // Esperar a que Firebase complete auth + router.replace('/chat')
-  // En entornos remotos (Vercel) el redirect puede tardar hasta 15s
-  const waitMs = E2E_ENV === 'local' ? 10_000 : 18_000;
-  await page.waitForTimeout(waitMs);
+  // Esperar a que Firebase complete auth + router.replace('/chat').
+  // Usamos waitForURL en vez de un timeout fijo — se resuelve en cuanto llega la redirección,
+  // sin importar cuánto tarde Firebase (puede ser 5s en local, 30-40s en Vercel frío).
+  const urlTimeout = E2E_ENV === 'local' ? 20_000 : 50_000;
+  const redirected = await page.waitForURL(
+    (url) => !url.pathname.includes('/login') && url.pathname.includes('/chat'),
+    { timeout: urlTimeout },
+  ).then(() => true).catch(() => false);
 
-  // Verificar que no haya banner de sesión expirada (indica auth incompleto)
-  const expiredBanner = await page.locator('text=Sesión expirada').isVisible({ timeout: 2000 }).catch(() => false);
-  if (expiredBanner) {
-    console.log('⚠️ loginChat — banner "Sesión expirada" visible, esperando más...');
-    await page.waitForTimeout(5_000);
+  if (!redirected) {
+    // Verificar si hay banner de sesión expirada (indica auth incompleto)
+    const expiredBanner = await page.locator('text=Sesión expirada').isVisible({ timeout: 2000 }).catch(() => false);
+    if (expiredBanner) {
+      console.log('⚠️ loginChat — banner "Sesión expirada" visible');
+    }
   }
 
   const ok = isAtChat(page.url());
@@ -135,6 +140,10 @@ function stripLoadingBoilerplate(text: string): string {
 /**
  * Envía un mensaje y espera respuesta estable.
  * afterArticleCount: ignorar artículos anteriores a este índice (para sesiones multi-pregunta).
+ * failPattern: si el texto estable coincide con este patrón, reintentar una vez más.
+ *   Cuando la IA da una respuesta negativa intermedia, envía un nudge para que reintente
+ *   filtrando por nombre de evento — necesario porque api-ia solo muestra los primeros 20
+ *   eventos y "Boda Isabel & Raúl" (pasada) puede quedar fuera sin filtro explícito.
  * Devuelve la respuesta y el nuevo total de artículos (para el siguiente sendAndWaitInSession).
  */
 async function sendAndWaitInSession(
@@ -142,6 +151,7 @@ async function sendAndWaitInSession(
   message: string,
   waitMs: number,
   afterArticleCount: number,
+  failPattern?: RegExp,
 ): Promise<{ response: string; newCount: number }> {
   if (!isAtChat(page.url())) {
     await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
@@ -172,6 +182,8 @@ async function sendAndWaitInSession(
   let lastText = '';
   let stableCount = 0;
   let currentCount = afterArticleCount;
+  // Si la respuesta estable es un falso negativo, esperamos una vez más a que la IA reintente.
+  let failRetryUsed = false;
 
   while (Date.now() < deadline) {
     // LobeChat renderiza cada mensaje como <div data-index={n}> (NO <article>)
@@ -203,7 +215,45 @@ async function sendAndWaitInSession(
     if (stripped.length > 5) {
       if (stripped === lastText) {
         stableCount++;
-        if (stableCount >= 2) break;
+        if (stableCount >= 2) {
+          // Si el texto estable coincide con failPattern, la IA puede estar dando un
+          // falso negativo o respuesta sobre evento incorrecto.
+          // Enviar un nudge explícito para que reintente filtrando por nombre de evento.
+          if (failPattern && failPattern.test(stripped) && !failRetryUsed) {
+            failRetryUsed = true;
+            stableCount = 0;
+            lastText = '';
+            // Nudge: decirle a la IA que busque el evento por nombre.
+            // Esto fuerza un nuevo tool call con filter_by_name en vez de esperar que
+            // autocorrija (lo que solo funciona si la IA sigue generando).
+            const nudge = page.locator('div[contenteditable="true"]').last();
+            const nudgeVisible = await nudge.isVisible({ timeout: 3_000 }).catch(() => false);
+            if (nudgeVisible) {
+              const countBeforeNudge = await page.locator('[data-index]').count();
+              await nudge.click();
+              await page.keyboard.press('Meta+A');
+              await page.keyboard.press('Backspace');
+              await page.keyboard.type(
+                'Busca el evento "Boda de Isabel y Raúl" usando filter_by_name y responde la pregunta anterior.',
+                { delay: 15 },
+              );
+              await page.keyboard.press('Enter');
+              // Esperar a que el mensaje del nudge aparezca en el DOM
+              const nudgeMsgDeadline = Date.now() + 10_000;
+              while (Date.now() < nudgeMsgDeadline) {
+                const cnt = await page.locator('[data-index]').count();
+                if (cnt > countBeforeNudge) break;
+                await page.waitForTimeout(500);
+              }
+              // Saltar: original_user + wrong_AI + nudge_user. Capturar: AI response al nudge.
+              // countBeforeNudge = índice antes del nudge user msg. +1 lo salta.
+              afterArticleCount = countBeforeNudge + 1;
+              await page.waitForTimeout(6_000); // dar tiempo para que la IA empiece a generar
+            }
+          } else {
+            break;
+          }
+        }
       } else {
         stableCount = 0;
         lastText = stripped;
@@ -346,6 +396,7 @@ test.describe('BATCH 1 — CRUD via IA (Boda Isabel & Raúl)', () => {
         q.pregunta,
         perQuestionMs,
         articleCount,
+        q.failPattern,
       );
       articleCount = newCount;
 

@@ -9,34 +9,33 @@
  * Solución:
  *   1. chat-ia llama setCrossAppIdToken(idToken) después de login → cookie idTokenV0.1.0 cross-domain
  *   2. appEventos AuthContext detecta la cookie → llama queries.auth(idToken) → sessionBodas
- *   → SSO bidireccional dentro de *.bodasdehoy.com
+ *   → SSO bidireccional dentro de *.{tenant}.com — funciona para cualquier white-label sin cambios
  */
 
 /**
- * Obtiene el dominio cross-subdomain correcto según el entorno.
+ * Obtiene el dominio cross-subdomain correcto según el hostname actual.
+ * Derivado dinámicamente — funciona para cualquier tenant sin whitelist.
+ *
  * Ejemplos:
- *   chat-test.bodasdehoy.com → .bodasdehoy.com
- *   app.vivetuboda.com       → .vivetuboda.com
+ *   chat-dev.bodasdehoy.com  → .bodasdehoy.com
+ *   chat.vivetuboda.com      → .vivetuboda.com
+ *   chat.nuevocliente.es     → .nuevocliente.es
  *   localhost                → "" (sin Domain, solo aplica a localhost)
  */
-// Whitelist of known root domains for cross-subdomain cookies
-const KNOWN_DOMAINS = ['.bodasdehoy.com', '.vivetuboda.com', '.eventosorganizador.com'];
-
 function getCrossAppDomain(): string {
   if (typeof window === 'undefined') return '';
 
   const hostname = window.location.hostname;
 
-  // localhost — no usar Domain (causaría que la cookie no se establezca)
-  if (hostname === 'localhost' || hostname === '127.0.0.1') return '';
+  // localhost / IP — no usar Domain
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) return '';
 
-  // Only set cross-domain cookies for whitelisted domains
-  for (const domain of KNOWN_DOMAINS) {
-    if (hostname.endsWith(domain.slice(1))) return domain;
-  }
+  const parts = hostname.split('.');
+  // Necesita al menos subdominio.dominio.tld
+  if (parts.length < 2) return '';
 
-  // Unknown domain — don't share cookies
-  return '';
+  // Derivar root domain: últimos 2 segmentos → .dominio.tld
+  return '.' + parts.slice(-2).join('.');
 }
 
 /**

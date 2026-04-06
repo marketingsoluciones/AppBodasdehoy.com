@@ -55,10 +55,41 @@
       "Bash(top -l 1 -n 0)",
       "Bash(sysctl hw.memsize)",
       "Read(//Users/juancarlosparra/Projects/AppBodasdehoy.com/{printf \"\"\"\"\"\"\"\"RAM total: %.0f GB\\\\n\"\"\"\"\"\"\"\", $2/**)",
-      "Bash(netstat -anp tcp)"
+      "Bash(netstat -anp tcp)",
+      "Bash(E2E_ENV=dev npx playwright test e2e-app/crud-permission.spec.ts --project=webkit --grep \"BATCH 2|P01|P02|S01|S02\" --reporter=list)",
+      "Bash(git fetch:*)",
+      "Bash(E2E_ENV=test npx playwright test e2e-app/auth-flow.spec.ts e2e-app/crud-permission.spec.ts --reporter=list)",
+      "Bash(E2E_ENV=dev TEST_USER_EMAIL='bodasdehoy.com@gmail.com' TEST_USER_PASSWORD='lorca2012M*+' npx playwright test e2e-app/auth-flow-multiapp.spec.ts --project=webkit --reporter=list)",
+      "Bash(E2E_ENV=dev TEST_USER_EMAIL='bodasdehoy.com@gmail.com' TEST_USER_PASSWORD='lorca2012M*+' node -e \":*)",
+      "Bash(E2E_ENV=dev node -e \":*)",
+      "Bash(pnpm --filter @bodasdehoy/shared build)",
+      "Bash(CF_TOKEN=\"cfut_yPH50OHtc4cWLXLK61bMGKHHNXZghDyQORmbdKVz5e254533\" ZONE_ID=\"6bacb16b68d4230b4214bc012ab64836\" __NEW_LINE_6f6a589e6263a9ea__ echo \"=== Firewall Rules ===\" curl -s \"https://api.cloudflare.com/client/v4/zones/$ZONE_ID/firewall/rules?per_page=50\" -H \"Authorization: Bearer $CF_TOKEN\")",
+      "Bash(/dev/null __NEW_LINE_6f6a589e6263a9ea__ echo echo '=== Rulesets ===' curl -s https://api.cloudflare.com/client/v4/zones/$ZONE_ID/rulesets -H 'Authorization: Bearer $CF_TOKEN')",
+      "Bash(CF_TOKEN=\"cfut_yPH50OHtc4cWLXLK61bMGKHHNXZghDyQORmbdKVz5e254533\" ZONE_ID=\"6bacb16b68d4230b4214bc012ab64836\" __NEW_LINE_fd7ecc734f6d29be__ echo \"=== WAF Custom Rules ===\" curl -s \"https://api.cloudflare.com/client/v4/zones/$ZONE_ID/rulesets/phases/http_request_firewall_custom/entrypoint\" -H \"Authorization: Bearer $CF_TOKEN\")",
+      "Bash(TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD='lorca2012M*+' E2E_ENV=dev PLAYWRIGHT_BROWSER=webkit npx playwright test e2e-app/auth-flow-multiapp.spec.ts --grep \"SSO0[12]\" --reporter=line)",
+      "Bash(CF_TOKEN=\"cfut_yPH50OHtc4cWLXLK61bMGKHHNXZghDyQORmbdKVz5e254533\" ACCOUNT_ID=\"c1c90374a067dae7ef1681702ba29fd6\" __NEW_LINE_1c52b74191b274ee__ echo \"=== Zero Trust Access Applications ===\" curl -s \"https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/access/apps?per_page=50\" -H \"Authorization: Bearer $CF_TOKEN\")",
+      "Bash(CF_TOKEN=\"cfut_yPH50OHtc4cWLXLK61bMGKHHNXZghDyQORmbdKVz5e254533\" ZONE_BDH=\"6bacb16b68d4230b4214bc012ab64836\" __NEW_LINE_c70dd07f1ad037d7__ curl -s \"https://api.cloudflare.com/client/v4/zones/$ZONE_BDH/dns_records?per_page=100\" -H \"Authorization: Bearer $CF_TOKEN\")",
+      "Bash(TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD='lorca2012M*+' E2E_ENV=dev PLAYWRIGHT_BROWSER=webkit npx playwright test e2e-app/auth-flow-multiapp.spec.ts --grep \"SSO02\" --reporter=line)",
+      "Bash(vercel env:*)",
+      "Bash(vercel --prod=false --yes)",
+      "Bash(vercel --yes)",
+      "Bash(vercel ls:*)",
+      "Bash(ls -la \"/Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/\\(auth\\)/login/[[...login]]/page.tsx\")",
+      "Bash(vercel redeploy:*)",
+      "Bash(CF_TOKEN=\"cfut_yPH50OHtc4cWLXLK61bMGKHHNXZghDyQORmbdKVz5e254533\" ZONE_ID=\"6bacb16b68d4230b4214bc012ab64836\")",
+      "Bash(do sleep:*)",
+      "Bash(E2E_ENV=test npx playwright test --config=playwright.config.ts e2e-app/crud-permission.spec.ts --project=webkit --reporter=list)",
+      "Bash(vercel logs:*)",
+      "Bash(TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD='lorca2012M*+' E2E_ENV=dev PLAYWRIGHT_BROWSER=webkit npx playwright test e2e-app/auth-flow-multiapp.spec.ts --grep \"SSO02|SSO03\" --reporter=line)",
+      "Bash(E2E_ENV=test npx playwright test --config=playwright.config.ts e2e-app/crud-permission.spec.ts --project=webkit --reporter=list -g \"S02\")",
+      "Bash(ls /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/.next/static/chunks/app/[variants]/\\\\\\(auth\\\\\\)/login/[[...login]]/)",
+      "Bash(bash scripts/slack-read.sh 5)",
+      "Bash(ls apps/chat-ia/src/app/\\\\\\(backend\\\\\\)/api/auth/sso-auto/)",
+      "Bash(wc -l \"apps/chat-ia/src/app/[variants]/\\(auth\\)/login/[[...login]]/_page-client.tsx\")"
     ],
     "additionalDirectories": [
-      "/Users/juancarlosparra/.claude/projects/-Users-juancarlosparra-Projects-AppBodasdehoy-com/memory"
+      "/Users/juancarlosparra/.claude/projects/-Users-juancarlosparra-Projects-AppBodasdehoy-com/memory",
+      "/Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/(auth)/login/[[...login]]"
     ]
   }
 }

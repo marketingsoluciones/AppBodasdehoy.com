@@ -1,6 +1,7 @@
 import { StateCreator } from 'zustand/vanilla';
 
 import { enableAuth, enableClerk, enableNextAuth } from '@/const/auth';
+import { developments } from '@bodasdehoy/shared/types';
 
 import type { UserStore } from '../../store';
 
@@ -180,7 +181,20 @@ export const createAuthSlice: StateCreator<
       localStorage.removeItem('user_photo_url');
       document.cookie = 'dev-user-config=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax';
       document.cookie = 'idTokenV0.1.0=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.bodasdehoy.com; SameSite=Lax';
-      console.log('✅ dev-user-config y tokens de usuario eliminados');
+
+      // SSO03: limpiar también las cookies de sesión de appEventos (cross-subdomain)
+      // sessionBodas, guestbodas, etc. son httpOnly:false con domain=.bodasdehoy.com → accesibles desde chat-ia
+      for (const dev of developments) {
+        const expiry = 'expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax';
+        if (dev.cookie) {
+          document.cookie = `${dev.cookie}=; ${expiry}; domain=${dev.domain}`;
+        }
+        if (dev.cookieGuest) {
+          document.cookie = `${dev.cookieGuest}=; ${expiry}; domain=${dev.domain}`;
+        }
+      }
+
+      console.log('✅ dev-user-config, tokens y cookies de sesión cross-app eliminados');
     } catch (error) {
       console.warn('⚠️ Error en limpieza final:', error);
     }
