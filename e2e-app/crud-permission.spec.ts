@@ -187,6 +187,8 @@ async function sendAndWaitInSession(
   let currentCount = afterArticleCount;
   // Si la respuesta estable es un falso negativo, esperamos una vez más a que la IA reintente.
   let failRetryUsed = false;
+  // Prefijo del nudge — se filtra igual que el echo del usuario para que no contamine la respuesta.
+  const NUDGE_PREFIX = 'busca el evento "boda de isabel y raúl"';
 
   while (Date.now() < deadline) {
     // LobeChat renderiza cada mensaje como <div data-index={n}> (NO <article>)
@@ -203,6 +205,8 @@ async function sendAndWaitInSession(
       // LobeChat añade timestamp antes del texto ("08:31:17¿Cuántos...") por lo que
       // startsWith no funciona — usamos includes para detectar el echo aunque lleve timestamp.
       if (trimmed.toLowerCase().includes(userPrefix)) return false;
+      // Filtrar el mensaje del nudge (reenviado por el test para guiar a la IA).
+      if (trimmed.toLowerCase().startsWith(NUDGE_PREFIX)) return false;
       // Filtrar artículos que son SOLO timestamps de LobeChat (indicador de carga antes de streaming).
       // Ejemplo: "08:44:52\n08:44:52" — son ticks de tiempo, no respuesta real.
       if (/^(\d{2}:\d{2}:\d{2}\s*\n?\s*)+$/.test(trimmed)) return false;
