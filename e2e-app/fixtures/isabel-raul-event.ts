@@ -97,7 +97,9 @@ export const CRUD_QUESTIONS = [
     // aunque el DB tiene ~16. Solo verificamos que la IA devuelva ALGÚN número + "celíaco/invitado".
     expectedValue: 'any positive count',
     expectedPattern: /\d+[^.]*cel[ií]ac/i,
-    failPattern: /no\s*(encontr|pud|tengo)/i,
+    // failPattern extendido: captura tanto "no encontré" como "no hay invitados registrados"
+    // (boilerplate que api-ia devuelve cuando consulta el evento incorrecto o uno vacío)
+    failPattern: /no\s*(encontr|pud|tengo)|no hay invitados registrados/i,
     description: 'Celíacos — respuesta contiene número + "celíac" (conteo exacto no determinístico)',
   },
   {
