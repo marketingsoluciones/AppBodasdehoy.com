@@ -617,6 +617,23 @@ async function proxyToPythonBackend(
     // Backend puede usar esto para permitir chat anónimo con límites (rate limit por sesión)
     if (metadata?.isAnonymous === true) headers['X-Is-Anonymous'] = 'true';
 
+    // X-User-Email: api-ia lo usa como prioridad máxima para identificar al usuario.
+    // Sin este header, api-ia puede tratar la request como guest → 429 GUEST_DAILY_LIMIT.
+    // Solo para usuarios autenticados — anónimos no tienen email propio y podría
+    // filtrarse el email de una sesión previa en la cookie.
+    if (metadata?.isAnonymous !== true) {
+      try {
+        const authToken = (headers['Authorization'] as string | undefined)?.replace(/^Bearer\s+/i, '').trim();
+        if (authToken?.startsWith('eyJ')) {
+          const payload = JSON.parse(Buffer.from(authToken.split('.')[1], 'base64url').toString());
+          const email = payload?.email || payload?.sub;
+          if (email && typeof email === 'string' && email.includes('@')) {
+            headers['X-User-Email'] = email;
+          }
+        }
+      } catch { /* ignorar — el JWT puede no tener email */ }
+    }
+
     console.log('[Copilot API] Request:', {
       model: payload.model || '(auto)',
       messagesCount: payload.messages.length,
@@ -653,6 +670,11 @@ async function proxyToPythonBackend(
       let extractedErrorCode: string | undefined;
       let extractedPaymentUrl: string | undefined;
       let extractedPlans: any;
+      // Campos específicos de 429 (quota/rate limit)
+      let extractedErrorType: string | undefined;  // ej: GUEST_DAILY_LIMIT_REACHED
+      let extractedUsed: number | undefined;
+      let extractedLimit: number | undefined;
+      let extractedResetAt: string | undefined;
 
       try {
         const bodyText = await backendResponse.text();
@@ -678,6 +700,18 @@ async function proxyToPythonBackend(
           if (backendResponse.status === 402) {
             extractedPaymentUrl = parsed?.payment_url || parsed?.upgrade_url || undefined;
             extractedPlans = parsed?.plans || undefined;
+          }
+
+          // Capturar campos específicos de 429 (quota info para mostrar mensaje rico)
+          if (backendResponse.status === 429) {
+            // error identifier (ej: GUEST_DAILY_LIMIT_REACHED vs genérico)
+            if (typeof parsed?.error === 'string' && parsed.error) extractedErrorType = parsed.error;
+            const u = parsed?.used ?? parsed?.requests_used ?? parsed?.messages_used;
+            const l = parsed?.limit ?? parsed?.daily_limit ?? parsed?.quota;
+            const r = parsed?.reset_at ?? parsed?.quota_reset ?? parsed?.reset_time;
+            if (typeof u === 'number') extractedUsed = u;
+            if (typeof l === 'number') extractedLimit = l;
+            if (typeof r === 'string') extractedResetAt = r;
           }
         } catch {
           const traceMatch = bodyText.match(/"trace_id"\s*:\s*"([^"]+)"/);
@@ -734,16 +768,21 @@ async function proxyToPythonBackend(
 
       // 429: rate limit — propagar al cliente sin fallback (no tiene sentido reintentar en otro proveedor)
       if (backendResponse.status === 429) {
-        const msg = extractedMessage || 'Demasiadas peticiones. Por favor, espera unos segundos e inténtalo de nuevo.';
         res.setHeader('X-Backend-Error-Code', 'UPSTREAM_RATE_LIMIT');
         const retryAfter = backendResponse.headers.get('retry-after');
         if (retryAfter) res.setHeader('Retry-After', retryAfter);
-        console.warn('[Copilot API] 429 rate limit recibido de api-ia', { requestId, retryAfter });
+        console.warn('[Copilot API] 429 rate limit recibido de api-ia', { requestId, retryAfter, errorType: extractedErrorType, used: extractedUsed, limit: extractedLimit });
+        // message raw de api-ia — copilotChat.ts lo usará solo como fallback (construye uno más rico)
+        const msg = extractedMessage || '';
         res.status(429).json({
           error: 'UPSTREAM_RATE_LIMIT',
-          message: msg,
+          ...(msg && { message: msg }),
+          ...(extractedErrorType && { error_type: extractedErrorType }),
           requestId,
           ...(retryAfter && { retry_after: retryAfter }),
+          ...(extractedUsed !== undefined && { used: extractedUsed }),
+          ...(extractedLimit !== undefined && { limit: extractedLimit }),
+          ...(extractedResetAt && { reset_at: extractedResetAt }),
           ...(extractedTraceId && { trace_id: extractedTraceId }),
         });
         return true;

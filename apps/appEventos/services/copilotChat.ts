@@ -274,13 +274,60 @@ export const sendChatMessage = async (
       return { content: contentWithLink, toolCalls: [], navigationUrl: recargaUrl || undefined, enrichedEvents: [] };
     }
 
-    // 429: rate limit — devolver mensaje amigable sin lanzar excepción
+    // 429: hay dos casos muy distintos — cuota diaria agotada vs saturación técnica temporal
     if (response.status === 429) {
       let errorData: any = {};
       try { errorData = await response.json(); } catch {}
-      const retryAfter = response.headers.get('retry-after') || errorData?.retry_after;
-      const baseMsg = errorData?.message || 'Demasiadas peticiones al asistente. Por favor, espera unos segundos e inténtalo de nuevo.';
-      const msg = retryAfter ? `${baseMsg} (Retry-After: ${retryAfter}s)` : baseMsg;
+
+      const retryAfterRaw = response.headers.get('retry-after') || errorData?.retry_after;
+      const retryAfterSecs = retryAfterRaw ? parseInt(String(retryAfterRaw), 10) : undefined;
+      const errorType: string = errorData?.error_type || errorData?.error || '';
+      const used: number | undefined = typeof errorData?.used === 'number' ? errorData.used : undefined;
+      const limit: number | undefined = typeof errorData?.limit === 'number' ? errorData.limit : undefined;
+      const resetAt: string | undefined = typeof errorData?.reset_at === 'string' ? errorData.reset_at : undefined;
+
+      // Helper: formatea cuándo se puede volver a usar
+      const formatWhen = (): string => {
+        if (retryAfterSecs !== undefined && !isNaN(retryAfterSecs)) {
+          if (retryAfterSecs < 60) return `en ${retryAfterSecs} segundo${retryAfterSecs !== 1 ? 's' : ''}`;
+          if (retryAfterSecs < 3600) {
+            const mins = Math.ceil(retryAfterSecs / 60);
+            return `en ${mins} minuto${mins !== 1 ? 's' : ''}`;
+          }
+          const hours = Math.ceil(retryAfterSecs / 3600);
+          return `en ${hours} hora${hours !== 1 ? 's' : ''}`;
+        }
+        if (resetAt) {
+          try {
+            const resetDate = new Date(resetAt);
+            const now = new Date();
+            const isToday = resetDate.toDateString() === now.toDateString();
+            const timeStr = resetDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            return isToday ? `hoy a las ${timeStr}` : `mañana a las ${timeStr}`;
+          } catch { /* ignore */ }
+        }
+        return '';
+      };
+
+      const when = formatWhen();
+      const isQuotaLimit = /DAILY_LIMIT|QUOTA|LIMIT_REACHED/i.test(errorType);
+      let msg = '';
+
+      if (isQuotaLimit) {
+        // Caso A: cuota diaria agotada — el usuario ha llegado a su límite de plan
+        if (used !== undefined && limit !== undefined) {
+          msg = `Has usado todas tus consultas de hoy (${used}/${limit}).`;
+        } else {
+          msg = 'Has agotado tu cuota de consultas de hoy.';
+        }
+        msg += when ? ` Se renuevan ${when}.` : ' Se renuevan mañana.';
+        msg += ' Actualiza tu plan para tener más consultas diarias.';
+      } else {
+        // Caso B: saturación técnica temporal (Groq, OpenRouter, etc.) — no es culpa del usuario
+        msg = 'El asistente está recibiendo demasiadas peticiones en este momento.';
+        msg += when ? ` Inténtalo de nuevo ${when}.` : ' Inténtalo de nuevo en unos minutos.';
+      }
+
       onChunk?.(msg);
       return { content: msg, toolCalls: [] };
     }

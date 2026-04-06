@@ -2,7 +2,7 @@
 
 import { message } from 'antd';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 
 import { LoginForm, SplitLoginPage } from '@bodasdehoy/auth-ui';
 import { useChatStore } from '@/store/chat';
@@ -137,6 +137,38 @@ function RightPanel() {
     fetchExternalChats().catch(() => {});
     afterLogin();
   };
+
+  // ── Auto-SSO: si hay idTokenV0.1.0 de appEventos, autenticar sin mostrar formulario ──
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const ssoToken = document.cookie
+      .split('; ')
+      .find((c) => c.startsWith('idTokenV0.1.0='))
+      ?.split('=')[1];
+    if (!ssoToken) return;
+
+    fetch('/api/auth/firebase-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        development,
+        device: navigator.userAgent,
+        fingerprint: 'sso-cookie',
+        firebaseIdToken: ssoToken,
+      }),
+    })
+      .then((r) => r.json())
+      .then((result) => {
+        if (!result.success) return;
+        const userId = result.user_id || result.email;
+        const token = result.token || result.jwt_token || null;
+        saveSession(userId, development, token, result.email);
+        setExternalChatConfig(userId, development, token || undefined, 'registered')
+          .catch(() => {})
+          .finally(() => afterLogin());
+      })
+      .catch(() => {}); // Si falla → formulario normal
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Visitante ──
   const handleVisitor = async () => {
