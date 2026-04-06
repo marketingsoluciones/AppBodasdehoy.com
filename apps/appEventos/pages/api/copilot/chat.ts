@@ -619,17 +619,20 @@ async function proxyToPythonBackend(
 
     // X-User-Email: api-ia lo usa como prioridad máxima para identificar al usuario.
     // Sin este header, api-ia puede tratar la request como guest → 429 GUEST_DAILY_LIMIT.
-    // Extraer del JWT resuelto (el mismo que va en Authorization).
-    try {
-      const authToken = (headers['Authorization'] as string | undefined)?.replace(/^Bearer\s+/i, '').trim();
-      if (authToken?.startsWith('eyJ')) {
-        const payload = JSON.parse(Buffer.from(authToken.split('.')[1], 'base64url').toString());
-        const email = payload?.email || payload?.sub;
-        if (email && typeof email === 'string' && email.includes('@')) {
-          headers['X-User-Email'] = email;
+    // Solo para usuarios autenticados — anónimos no tienen email propio y podría
+    // filtrarse el email de una sesión previa en la cookie.
+    if (metadata?.isAnonymous !== true) {
+      try {
+        const authToken = (headers['Authorization'] as string | undefined)?.replace(/^Bearer\s+/i, '').trim();
+        if (authToken?.startsWith('eyJ')) {
+          const payload = JSON.parse(Buffer.from(authToken.split('.')[1], 'base64url').toString());
+          const email = payload?.email || payload?.sub;
+          if (email && typeof email === 'string' && email.includes('@')) {
+            headers['X-User-Email'] = email;
+          }
         }
-      }
-    } catch { /* ignorar — el JWT puede no tener email */ }
+      } catch { /* ignorar — el JWT puede no tener email */ }
+    }
 
     console.log('[Copilot API] Request:', {
       model: payload.model || '(auto)',
