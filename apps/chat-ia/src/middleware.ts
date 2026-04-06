@@ -110,6 +110,19 @@ const defaultMiddleware = (request: NextRequest) => {
   try {
     logDefault('Processing request: %s %s', request.method, request.url);
 
+    // ✅ SSO02: Si el usuario llega a /login con idTokenV0.1.0 de otra app, redirigir al handler SSO
+    // para autenticarse automáticamente sin necesidad de React/useEffect/hydration.
+    if ((url.pathname === '/login' || url.pathname.startsWith('/login/')) &&
+        request.cookies.has('idTokenV0.1.0')) {
+      const ssoUrl = new URL('/api/auth/sso-auto', request.url);
+      const redirectParam = url.searchParams.get('redirect');
+      if (redirectParam) ssoUrl.searchParams.set('redirect', redirectParam);
+      const devParam = url.searchParams.get('developer');
+      if (devParam) ssoUrl.searchParams.set('developer', devParam);
+      logDefault('SSO auto-login: idTokenV0.1.0 presente → redirigiendo a /api/auth/sso-auto');
+      return NextResponse.redirect(ssoUrl, { status: 307 });
+    }
+
     // ✅ FIX: Redirigir /onboard a /chat (onboarding deshabilitado)
     if (url.pathname === '/onboard' || url.pathname.startsWith('/onboard/')) {
       logDefault('Redirecting /onboard to /chat');

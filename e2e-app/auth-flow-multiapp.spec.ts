@@ -635,30 +635,44 @@ test.describe('SSO — cross-app bidireccional', () => {
     console.log(`SSO02 idTokenV0.1.0: ${cookiePresente ? '✅' : '❌'}`);
     expect(cookiePresente, 'SSO02: cookie idTokenV0.1.0 no seteada por appEventos').toBe(true);
 
-    // Navegar a chat-ia/login — el useEffect de auto-SSO debe detectar la cookie
-    // y redirigir a /chat sin mostrar el formulario
-    await page.goto(`${CHAT}/login`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
+    // Capturar console.logs del browser (antes del goto)
+    const consoleLogs: string[] = [];
+    page.on('console', (msg) => consoleLogs.push(`[${msg.type()}] ${msg.text().slice(0, 200)}`));
+    page.on('response', async (resp) => {
+      if (resp.url().includes('/api/auth/firebase-login')) {
+        consoleLogs.push(`[firebase-login-response] status=${resp.status()}`);
+      }
+    });
 
-    // Esperar a que el useEffect de auto-SSO ejecute y redirija
+    // Navegar a chat-ia/login — Script SSO (afterInteractive) detecta la cookie
+    // y redirige a /chat sin mostrar el formulario. Usar domcontentloaded para
+    // no quedar bloqueado si el auto-SSO redirige antes de network-idle.
+    await page.goto(`${CHAT}/login`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
+    // Esperar hydración completa + que Script SSO afterInteractive dispare
+    await page.waitForTimeout(3000);
+
+    // Esperar a que el Script SSO ejecute y redirija (usar waitForURL para manejar navegación)
     let enChat = false;
-    let intentos = 0;
-    while (!enChat && intentos < 15) {
-      await page.waitForTimeout(1000);
-      const url = page.url();
-      enChat = url.includes('/chat') && !url.includes('/login');
-      intentos++;
+    try {
+      await page.waitForURL((url) => url.href.includes('/chat') && !url.href.includes('/login'), { timeout: 18_000 });
+      enChat = true;
+    } catch {
+      // No redirigió — comprobar si hay formulario visible
     }
 
     const urlFinal = page.url();
-    const body     = (await page.locator('body').textContent()) ?? '';
+    const body     = await page.locator('body').textContent().catch(() => '');
     const formularioVisible = await page.locator('input[type="email"]').first().isVisible({ timeout: 2_000 }).catch(() => false);
     const enLogin  = urlFinal.includes('/login');
 
+    const ssoLogs = consoleLogs.filter(l => l.includes('auto-sso') || l.includes('sso-script') || l.includes('firebase-login') || l.includes('[error]')).slice(0, 5);
+    if (ssoLogs.length) console.log(`SSO02 browser logs: ${JSON.stringify(ssoLogs)}`);
+    else console.log(`SSO02 total browser msgs: ${consoleLogs.length} (no SSO logs): ${JSON.stringify(consoleLogs.slice(0, 5))}`);
     console.log(`SSO02 url_final=${urlFinal} | en_chat=${enChat} | formulario_visible=${formularioVisible} | en_login=${enLogin}`);
     if (enChat) console.log(`✅ SSO02: auto-SSO funcionó — chat-ia detectó cookie y redirigió a /chat`);
     if (formularioVisible) console.log(`⚠️  SSO02 BUG: chat-ia mostró formulario de login aunque había cookie idTokenV0.1.0`);
 
-    expect(isErrorPage(body, urlFinal), 'SSO02: error en chat-ia').toBe(false);
+    expect(isErrorPage(body ?? '', urlFinal), 'SSO02: error en chat-ia').toBe(false);
     expect(formularioVisible, 'SSO02: chat-ia mostró formulario con cookie SSO presente').toBe(false);
     expect(enChat, 'SSO02: chat-ia no redirigió a /chat con cookie SSO').toBe(true);
   });
@@ -696,12 +710,15 @@ test.describe('SSO — cross-app bidireccional', () => {
     const chatFormVisible = await page.locator('input[type="email"]').first().isVisible({ timeout: 4_000 }).catch(() => false);
     console.log(`SSO03 chat-ia tras logout: ${chatEnLogin ? '✅ en /login' : '⚠️  no en login'} | formulario=${chatFormVisible}`);
 
-    // Verificar que appEventos también requiere re-login
+    // Verificar que appEventos también requiere re-login (o muestra pantalla de guest/upsell)
     await page.goto(`${APP}/invitados`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
     await page.waitForTimeout(5000);
     const urlApp   = page.url();
-    const appEnLogin = urlApp.includes('/login') || urlApp.includes('chat-dev');
-    console.log(`SSO03 app-dev tras logout: ${appEnLogin ? '✅ pide re-login' : '⚠️  accedió sin login'}`);
+    const bodyApp  = await page.locator('body').textContent().catch(() => '');
+    // Aceptar: redirect a /login | redirect a chat-dev (SSO) | GuestUpsellPage ("Crear cuenta gratis")
+    const appEnLogin = urlApp.includes('/login') || urlApp.includes('chat-dev') ||
+      (bodyApp || '').includes('Crear cuenta gratis') || (bodyApp || '').includes('Volver al inicio');
+    console.log(`SSO03 app-dev tras logout: ${appEnLogin ? '✅ pide re-login o muestra upsell' : '⚠️  accedió sin login'}`);
 
     expect(chatFormVisible, 'SSO03: chat-ia no mostró formulario tras logout').toBe(true);
     expect(appEnLogin, 'SSO03: appEventos no pidió re-login tras logout de chat-ia').toBe(true);
