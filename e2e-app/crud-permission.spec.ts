@@ -188,9 +188,8 @@ async function sendAndWaitInSession(
   // Si la respuesta estable es un falso negativo, esperamos una vez más a que la IA reintente.
   let failRetryUsed = false;
   // Substring del nudge — se filtra para que no contamine la respuesta capturada.
-  // Usamos 'filter_by_name y responde' en lugar del prefijo con comillas para evitar
-  // problemas de normalización de caracteres (LobeChat puede transformar " en smart quotes).
-  const NUDGE_SUBSTR = 'filter_by_name y responde la pregunta';
+  // El texto del nudge siempre contiene "filter_by_name y responde:" — sin comillas problemáticas.
+  const NUDGE_SUBSTR = 'filter_by_name y responde:';
 
   while (Date.now() < deadline) {
     // LobeChat renderiza cada mensaje como <div data-index={n}> (NO <article>)
@@ -247,10 +246,11 @@ async function sendAndWaitInSession(
               await nudge.click();
               await page.keyboard.press('Meta+A');
               await page.keyboard.press('Backspace');
-              await page.keyboard.type(
-                'Busca el evento "Boda de Isabel y Raúl" usando filter_by_name y responde la pregunta anterior.',
-                { delay: 15 },
-              );
+              // Incluir la pregunta original para que la IA sepa qué dato específico buscar.
+              // "responde la pregunta anterior" es ambiguo — la IA puede dar un resumen del evento.
+              // Con la pregunta explícita, el LLM sabe que necesita el dato concreto (ej: celíacos).
+              const nudgeText = `Busca el evento "Boda de Isabel y Raúl" usando filter_by_name y responde: ${message.trim()}`;
+              await page.keyboard.type(nudgeText, { delay: 15 });
               await page.keyboard.press('Enter');
               // Esperar a que el mensaje del nudge aparezca en el DOM
               const nudgeMsgDeadline = Date.now() + 10_000;
