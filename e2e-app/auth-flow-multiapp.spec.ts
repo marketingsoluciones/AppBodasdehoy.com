@@ -1,20 +1,14 @@
 /**
  * auth-flow-multiapp.spec.ts
  *
- * Valida el flujo de autenticación SSO compartido entre las 4 apps:
+ * Valida el flujo de autenticación SSO compartido entre las apps:
  *
- *   chat-ia   → https://chat-dev.bodasdehoy.com   (puerto 3210)
+ *   chat-ia    → https://chat-dev.bodasdehoy.com   (puerto 3210)
  *   appEventos → https://app-dev.bodasdehoy.com    (puerto 3220)
  *   memories   → https://memories-dev.bodasdehoy.com (puerto 3240)
- *   editor-web → https://editor-dev.bodasdehoy.com  (puerto 3230, sin auth)
  *
- * Cómo funciona el SSO:
- *   1. Usuario entra a appEventos → detecta tenant bodasdehoy → redirige a chat-ia/login
- *   2. chat-ia autentica → graba cookie idTokenV0.1.0 en .bodasdehoy.com
- *   3. appEventos lee esa cookie → AuthContext crea sessionBodas → usuario autenticado
- *   4. memories-web usa authBridge (shared package) → lee sessionBodas o localStorage
+ * Cookie puente: idTokenV0.1.0 en dominio .bodasdehoy.com
  *
- * Tests:
  *   -- chat-ia --
  *   CA01  Acceso sin login a /chat → visitante automático (no rota)
  *   CA02  Login incorrecto → error visible, sigue en /login
@@ -35,8 +29,11 @@
  *   MW03  Login correcto en memories-web → accede a /app autenticado
  *   MW04  Logout desde memories-web → vuelve al estado no autenticado (LoginForm visible)
  *
- *   -- SSO cross-app --
- *   SSO01 Login en chat-ia → cookie .bodasdehoy.com → acceso a appEventos sin re-login
+ *   -- SSO cross-app (bidireccional) --
+ *   SSO01 Login chat-ia → cookie SSO → appEventos accesible sin re-login
+ *   SSO02 Login appEventos → cookie SSO → chat-ia auto-login sin mostrar formulario
+ *   SSO03 Logout en chat-ia → cookie eliminada → ambas apps requieren re-login
+ *   SSO04 Re-login tras logout → autenticado en chat-ia + appEventos + memories sin re-login
  *
  * Ejecutar:
  *   E2E_ENV=dev PLAYWRIGHT_BROWSER=webkit \
@@ -52,20 +49,69 @@ const CHAT  = 'https://chat-dev.bodasdehoy.com';
 const APP   = 'https://app-dev.bodasdehoy.com';
 const MEM   = 'https://memories-dev.bodasdehoy.com';
 
-const TIMEOUT_NAV = 30_000;
-const TIMEOUT_UI  = 12_000;
+const TIMEOUT_NAV = 45_000;
+const TIMEOUT_UI  = 15_000;
+const TIMEOUT_SSO = 8_000;   // tiempo máx para que AuthContext procese idTokenV0.1.0
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 async function clearAllSession(context: BrowserContext, page: Page) {
   await context.clearCookies();
-  // Limpiar localStorage de cada dominio que sea necesario
   for (const origin of [CHAT, APP, MEM]) {
     try {
       await page.goto(origin, { waitUntil: 'commit', timeout: 15_000 });
-      await page.evaluate(() => { try { localStorage.clear(); } catch { /* */ } });
+      await page.evaluate(() => { try { localStorage.clear(); sessionStorage.clear(); } catch { /* */ } });
     } catch { /* ignorar si el dominio no carga */ }
   }
+}
+
+/** Verifica si la cookie idTokenV0.1.0 está presente en el contexto */
+async function hasSsoCookie(context: BrowserContext): Promise<boolean> {
+  const cookies = await context.cookies();
+  return cookies.some((c) => c.name === 'idTokenV0.1.0');
+}
+
+/** Login en appEventos vía formulario local (local-login=1 para saltarse redirect a chat-ia) */
+async function loginInAppEventos(page: Page, email: string, password: string) {
+  await page.goto(`${APP}/login?local-login=1`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
+  await page.waitForTimeout(2000);
+  const emailInput = page.locator('input[type="email"], input[name="email"]').first();
+  await emailInput.waitFor({ timeout: TIMEOUT_UI });
+  await emailInput.fill(email);
+  await page.locator('input[type="password"]').first().fill(password);
+  await page.locator('button[type="submit"], button').filter({ hasText: /iniciar|entrar|login/i }).first().click();
+  await page.waitForTimeout(8000);
+}
+
+/** Hace logout en chat-ia (limpia cookie + localStorage) */
+async function logoutFromChatIa(page: Page, context: BrowserContext) {
+  await page.goto(`${CHAT}/chat`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
+  await page.waitForTimeout(2000);
+
+  // Intentar botón logout UI (avatar → Sign out)
+  const avatar = page.locator('[data-testid="user-avatar"], [aria-label*="user"], [class*="UserAvatar"], [class*="avatar"]').first();
+  if (await avatar.isVisible({ timeout: 4_000 }).catch(() => false)) {
+    await avatar.click();
+    await page.waitForTimeout(600);
+  }
+  const logoutBtn = page.locator('li, [role="menuitem"], button').filter({ hasText: /cerrar sesión|sign out|logout|salir/i }).first();
+  if (await logoutBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+    await logoutBtn.click();
+    await page.waitForTimeout(3000);
+    return;
+  }
+  // Fallback: limpiar sesión manualmente
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    document.cookie.split(';').forEach((c) => {
+      const key = c.split('=')[0].trim();
+      document.cookie = `${key}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.bodasdehoy.com`;
+      document.cookie = `${key}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+    });
+  });
+  await context.clearCookies();
+  await page.waitForTimeout(1000);
 }
 
 /** Detecta si la página actual es una página de error real */
@@ -544,48 +590,173 @@ test.describe('MW — memories-web auth', () => {
 
 // ─── SSO CROSS-APP ────────────────────────────────────────────────────────────
 
-test.describe('SSO — cross-app', () => {
-  test.setTimeout(150_000);
+test.describe('SSO — cross-app bidireccional', () => {
+  test.setTimeout(180_000);
 
-  test('[SSO01] login en chat-ia → cookie SSO → acceso a appEventos sin re-login', async ({ page, context }) => {
+  // ── SSO01: chat-ia → appEventos ──────────────────────────────────────────────
+  test('[SSO01] login chat-ia → cookie SSO → appEventos accesible sin re-login', async ({ page, context }) => {
     if (!TEST_CREDENTIALS.email) { test.skip(); return; }
-    await context.clearCookies();
+    await clearAllSession(context, page);
 
-    // Paso 1: login en chat-ia
     await loginInChatIa(page, TEST_CREDENTIALS.email, TEST_CREDENTIALS.password);
-    const urlTrasLogin = page.url();
-    console.log(`\nSSO01 tras login chat-ia: ${urlTrasLogin}`);
+    console.log(`\nSSO01 tras login chat-ia: ${page.url()}`);
 
-    // Verificar que la cookie idTokenV0.1.0 existe en el dominio .bodasdehoy.com
-    const cookies = await context.cookies();
-    const ssoToken = cookies.find((c) => c.name === 'idTokenV0.1.0');
-    const devConfig = cookies.find((c) => c.name === 'dev-user-config');
-    console.log(`SSO01 cookie idTokenV0.1.0: ${ssoToken ? '✅ presente' : '❌ ausente'}`);
-    console.log(`SSO01 cookie dev-user-config: ${devConfig ? '✅ presente' : '❌ ausente'}`);
+    const cookiePresente = await hasSsoCookie(context);
+    console.log(`SSO01 idTokenV0.1.0: ${cookiePresente ? '✅' : '❌'}`);
+    expect(cookiePresente, 'SSO01: cookie idTokenV0.1.0 no seteada por chat-ia').toBe(true);
 
-    // Paso 2: navegar a appEventos sin hacer login explícito
+    // Navegar a appEventos — AuthContext debe procesar la cookie automáticamente
     await page.goto(`${APP}/`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(TIMEOUT_SSO);
 
-    const urlEnApp  = page.url();
-    const body      = (await page.locator('body').textContent()) ?? '';
-    const esError   = isErrorPage(body, urlEnApp);
-    const redirigioLogin = urlEnApp.includes('/login');
-    const enApp     = urlEnApp.includes('app-dev.bodasdehoy.com') && !urlEnApp.includes('/login');
-    const tieneContenido = body.length > 200 && !body.toLowerCase().includes('iniciar sesión de nuevo');
+    const url  = page.url();
+    const body = (await page.locator('body').textContent()) ?? '';
+    const enApp   = url.includes('app-dev') && !url.includes('/login');
+    const enLogin = url.includes('/login');
 
-    console.log(`SSO01 url_app=${urlEnApp} | en_app=${enApp} | redirigió_login=${redirigioLogin} | tiene_contenido=${tieneContenido} | error=${esError}`);
+    console.log(`SSO01 url_app=${url} | en_app=${enApp} | pide_login=${enLogin}`);
+    if (enApp) console.log(`✅ SSO01: acceso directo a appEventos sin re-login`);
+    if (enLogin) console.log(`⚠️  SSO01 BUG: appEventos pidió login aunque tenía cookie SSO`);
 
-    if (redirigioLogin) {
-      console.log(`⚠️  SSO01 BUG: login en chat-ia no propagó la cookie SSO a appEventos. URL: ${urlEnApp}`);
-      console.log(`   Cookies presentes: ${cookies.map((c) => `${c.name}@${c.domain}`).join(', ')}`);
-    } else if (enApp && tieneContenido) {
-      console.log(`✅ SSO01: SSO correcto — login en chat-ia, acceso a appEventos sin re-login`);
+    expect(isErrorPage(body, url), 'SSO01: error en appEventos').toBe(false);
+    expect(enLogin, 'SSO01: appEventos pidió re-login con cookie SSO presente').toBe(false);
+  });
+
+  // ── SSO02: appEventos → chat-ia (FIX DE HOY) ─────────────────────────────────
+  test('[SSO02] login appEventos → cookie SSO → chat-ia auto-login sin mostrar formulario', async ({ page, context }) => {
+    if (!TEST_CREDENTIALS.email) { test.skip(); return; }
+    await clearAllSession(context, page);
+
+    // Login en appEventos
+    await loginInAppEventos(page, TEST_CREDENTIALS.email, TEST_CREDENTIALS.password);
+    console.log(`\nSSO02 tras login app-dev: ${page.url()}`);
+
+    const cookiePresente = await hasSsoCookie(context);
+    console.log(`SSO02 idTokenV0.1.0: ${cookiePresente ? '✅' : '❌'}`);
+    expect(cookiePresente, 'SSO02: cookie idTokenV0.1.0 no seteada por appEventos').toBe(true);
+
+    // Navegar a chat-ia/login — el useEffect de auto-SSO debe detectar la cookie
+    // y redirigir a /chat sin mostrar el formulario
+    await page.goto(`${CHAT}/login`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
+
+    // Esperar a que el useEffect de auto-SSO ejecute y redirija
+    let enChat = false;
+    let intentos = 0;
+    while (!enChat && intentos < 15) {
+      await page.waitForTimeout(1000);
+      const url = page.url();
+      enChat = url.includes('/chat') && !url.includes('/login');
+      intentos++;
     }
 
-    expect(esError, 'SSO01: error en appEventos tras SSO').toBe(false);
-    // No forzar fallo en SSO — puede haber configuración de dominio distinta en local
-    // El test documenta el comportamiento actual
-    console.log(`SSO01 resumen: cookie_sso=${!!ssoToken} | acceso_directo=${enApp} | necesitó_relogin=${redirigioLogin}`);
+    const urlFinal = page.url();
+    const body     = (await page.locator('body').textContent()) ?? '';
+    const formularioVisible = await page.locator('input[type="email"]').first().isVisible({ timeout: 2_000 }).catch(() => false);
+    const enLogin  = urlFinal.includes('/login');
+
+    console.log(`SSO02 url_final=${urlFinal} | en_chat=${enChat} | formulario_visible=${formularioVisible} | en_login=${enLogin}`);
+    if (enChat) console.log(`✅ SSO02: auto-SSO funcionó — chat-ia detectó cookie y redirigió a /chat`);
+    if (formularioVisible) console.log(`⚠️  SSO02 BUG: chat-ia mostró formulario de login aunque había cookie idTokenV0.1.0`);
+
+    expect(isErrorPage(body, urlFinal), 'SSO02: error en chat-ia').toBe(false);
+    expect(formularioVisible, 'SSO02: chat-ia mostró formulario con cookie SSO presente').toBe(false);
+    expect(enChat, 'SSO02: chat-ia no redirigió a /chat con cookie SSO').toBe(true);
+  });
+
+  // ── SSO03: Logout → sesión cerrada en ambas apps ──────────────────────────────
+  test('[SSO03] logout en chat-ia → cookie SSO eliminada → ambas apps piden re-login', async ({ page, context }) => {
+    if (!TEST_CREDENTIALS.email) { test.skip(); return; }
+    await clearAllSession(context, page);
+
+    // Login en chat-ia
+    await loginInChatIa(page, TEST_CREDENTIALS.email, TEST_CREDENTIALS.password);
+    expect(await hasSsoCookie(context), 'SSO03: sin cookie tras login').toBe(true);
+    console.log(`\nSSO03 login chat-ia OK, cookie presente`);
+
+    // Verificar que appEventos es accesible (pre-condición)
+    await page.goto(`${APP}/`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
+    await page.waitForTimeout(TIMEOUT_SSO);
+    const urlPreLogout = page.url();
+    const appAccesible = urlPreLogout.includes('app-dev') && !urlPreLogout.includes('/login');
+    console.log(`SSO03 app-dev antes del logout: ${appAccesible ? '✅ accesible' : '⚠️  pide login'}`);
+
+    // Logout desde chat-ia
+    await logoutFromChatIa(page, context);
+    console.log(`SSO03 logout ejecutado`);
+
+    // Verificar que la cookie desapareció
+    const cookieTrasLogout = await hasSsoCookie(context);
+    console.log(`SSO03 idTokenV0.1.0 tras logout: ${cookieTrasLogout ? '⚠️  AÚN PRESENTE' : '✅ eliminada'}`);
+
+    // Verificar que chat-ia pide re-login
+    await page.goto(`${CHAT}/login`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
+    await page.waitForTimeout(3000);
+    const urlChat  = page.url();
+    const chatEnLogin  = urlChat.includes('/login');
+    const chatFormVisible = await page.locator('input[type="email"]').first().isVisible({ timeout: 4_000 }).catch(() => false);
+    console.log(`SSO03 chat-ia tras logout: ${chatEnLogin ? '✅ en /login' : '⚠️  no en login'} | formulario=${chatFormVisible}`);
+
+    // Verificar que appEventos también requiere re-login
+    await page.goto(`${APP}/invitados`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
+    await page.waitForTimeout(5000);
+    const urlApp   = page.url();
+    const appEnLogin = urlApp.includes('/login') || urlApp.includes('chat-dev');
+    console.log(`SSO03 app-dev tras logout: ${appEnLogin ? '✅ pide re-login' : '⚠️  accedió sin login'}`);
+
+    expect(chatFormVisible, 'SSO03: chat-ia no mostró formulario tras logout').toBe(true);
+    expect(appEnLogin, 'SSO03: appEventos no pidió re-login tras logout de chat-ia').toBe(true);
+  });
+
+  // ── SSO04: Re-login → autenticado en las 3 apps ───────────────────────────────
+  test('[SSO04] re-login en chat-ia → autenticado en chat-ia + appEventos + memories sin re-login', async ({ page, context }) => {
+    if (!TEST_CREDENTIALS.email) { test.skip(); return; }
+    await clearAllSession(context, page);
+
+    // Login único en chat-ia
+    await loginInChatIa(page, TEST_CREDENTIALS.email, TEST_CREDENTIALS.password);
+    const cookiePresente = await hasSsoCookie(context);
+    console.log(`\nSSO04 login chat-ia OK | cookie=${cookiePresente ? '✅' : '❌'}`);
+    expect(cookiePresente, 'SSO04: cookie no seteada tras login').toBe(true);
+
+    const resultados: Array<{ app: string; ok: boolean; url: string }> = [];
+
+    // Verificar chat-ia (ya logueado)
+    const urlChat = page.url();
+    const chatOk  = urlChat.includes('/chat') && !urlChat.includes('/login');
+    resultados.push({ app: 'chat-ia', ok: chatOk, url: urlChat });
+    console.log(`SSO04 chat-ia: ${chatOk ? '✅' : '❌'} (${urlChat})`);
+
+    // Verificar appEventos — debe auto-autenticar via cookie
+    await page.goto(`${APP}/`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
+    await page.waitForTimeout(TIMEOUT_SSO);
+    const urlApp   = page.url();
+    const appOk    = urlApp.includes('app-dev') && !urlApp.includes('/login');
+    resultados.push({ app: 'appEventos', ok: appOk, url: urlApp });
+    console.log(`SSO04 appEventos: ${appOk ? '✅' : '❌'} (${urlApp})`);
+
+    // Verificar memories-web — debe auto-autenticar via idTokenV0.1.0 (AuthBridge fix)
+    await page.goto(`${MEM}/app`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
+    await page.waitForTimeout(5000);
+    const urlMem   = page.url();
+    const memBody  = (await page.locator('body').textContent()) ?? '';
+    // Con el fix de AuthBridge: idTokenV0.1.0 → isAuthenticated=true → muestra dashboard
+    const memMuestraLogin = memBody.toLowerCase().includes('introduce tu email') || await page.locator('input[type="email"]').first().isVisible({ timeout: 2_000 }).catch(() => false);
+    const memMuestraApp   = memBody.includes('álbum') || memBody.includes('Nuevo álbum') || memBody.includes('Mis álbumes');
+    const memOk    = !isErrorPage(memBody, urlMem) && !memMuestraLogin;
+    resultados.push({ app: 'memories', ok: memOk, url: urlMem });
+    console.log(`SSO04 memories: ${memOk ? '✅' : '❌'} | muestraLogin=${memMuestraLogin} | muestraApp=${memMuestraApp} (${urlMem})`);
+    if (memMuestraLogin) console.log(`⚠️  SSO04 BUG memories: muestra formulario de login aunque idTokenV0.1.0 presente (AuthBridge no propagó SSO)`);
+
+    const fallos = resultados.filter((r) => !r.ok);
+    if (fallos.length === 0) {
+      console.log(`✅ SSO04: un solo login → autenticado en las ${resultados.length} apps`);
+    } else {
+      console.log(`⚠️  SSO04 fallos: ${fallos.map((f) => f.app).join(', ')}`);
+    }
+
+    expect(chatOk,  'SSO04: chat-ia no quedó autenticado').toBe(true);
+    expect(appOk,   'SSO04: appEventos requirió re-login (SSO no propagado)').toBe(true);
+    expect(isErrorPage(memBody, urlMem), 'SSO04: memories-web devuelve error').toBe(false);
+    expect(memMuestraLogin, 'SSO04: memories-web mostró form de login con idTokenV0.1.0 presente (AuthBridge SSO roto)').toBe(false);
   });
 });

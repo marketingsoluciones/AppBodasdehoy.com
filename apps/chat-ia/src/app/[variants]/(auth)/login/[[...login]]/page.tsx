@@ -158,16 +158,18 @@ function RightPanel() {
       }),
     })
       .then((r) => r.json())
-      .then((result) => {
+      .then(async (result) => {
         if (!result.success) return;
         const userId = result.user_id || result.email;
         const token = result.token || result.jwt_token || null;
         saveSession(userId, development, token, result.email);
-        setExternalChatConfig(userId, development, token || undefined, 'registered')
-          .catch(() => {})
-          .finally(() => afterLogin());
+        // setExternalChatConfig puede no retornar Promise — no encadenar .catch/.finally
+        try {
+          await setExternalChatConfig(userId, development, token || undefined, 'registered');
+        } catch { /* continuar aunque falle */ }
+        afterLogin();
       })
-      .catch(() => {}); // Si falla → formulario normal
+      .catch(() => {}); // Si falla el fetch → formulario normal
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Visitante ──

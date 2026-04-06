@@ -186,10 +186,15 @@ class AuthBridge {
     // Obtener datos adicionales de localStorage (guardados por Lobe-Chat)
     const devUserConfig = this.getDevUserConfig();
 
-    // isAuthenticated SOLO via tokens de Firebase reales (NO via devUserConfig que puede ser developer JWT)
-    // Se requiere que exista la cookie Y que sea parseable con user_id
-    const userId = sessionPayload?.user_id || idTokenPayload?.user_id;
-    const isAuthenticated = !!(sessionCookie && userId);
+    // isAuthenticated via sessionBodas (appEventos path) O via idTokenV0.1.0 solo (chat-ia SSO path)
+    // sessionPayload es un JWT custom (api2) con user_id; idTokenPayload es un Firebase ID token con sub/email
+    const sessionUserId = sessionPayload?.user_id;
+    const idTokenUserId = idTokenPayload?.sub || idTokenPayload?.email || idTokenPayload?.user_id;
+    const userId = sessionUserId || idTokenUserId;
+    const isAuthenticated = !!(
+      (sessionCookie && sessionUserId) || // path normal: sessionBodas de appEventos
+      (idToken && idTokenUserId)          // path SSO: idTokenV0.1.0 de chat-ia sin sessionBodas
+    );
 
     return {
       user: isAuthenticated ? {
