@@ -79,7 +79,8 @@ export const CRUD_QUESTIONS = [
     pregunta: '¿Cuántos invitados hay en la boda de Isabel y Raúl?',
     expectedValue: 43,
     expectedPattern: /43\s*(invitados?|total|en total)/i,
-    failPattern: /no\s*(encontr|pud|tengo)/i,
+    // "tienes" captura "No tienes eventos registrados" (api-ia sin filter_by_name)
+    failPattern: /no\s*(encontr|pud|tengo|tienes)/i,
     description: 'Total invitados = 43',
   },
   {
@@ -87,19 +88,17 @@ export const CRUD_QUESTIONS = [
     pregunta: '¿Cuántos invitados han confirmado en la boda de Isabel y Raúl?',
     expectedValue: 39,
     expectedPattern: /39[^.]*confirmad|confirmad[^.]*39/i,
-    failPattern: /no\s*(encontr|pud|tengo)/i,
+    failPattern: /no\s*(encontr|pud|tengo|tienes)/i,
     description: 'Confirmados = 39',
   },
   {
     id: 'C03',
     pregunta: '¿Cuántos invitados celíacos hay en la boda de Isabel y Raúl?',
-    // ⚠️  api-ia tiene un bug de conteo — devuelve valores distintos (9, 10...) en cada llamada
-    // aunque el DB tiene ~16. Solo verificamos que la IA devuelva ALGÚN número + "celíaco/invitado".
+    // ⚠️  api-ia tiene un bug de conteo — devuelve valores distintos (4, 9, 16...) en cada llamada.
+    // Solo verificamos que la IA devuelva ALGÚN número + "celíaco/invitado".
     expectedValue: 'any positive count',
     expectedPattern: /\d+[^.]*cel[ií]ac/i,
-    // failPattern extendido: captura tanto "no encontré" como "no hay invitados registrados"
-    // (boilerplate que api-ia devuelve cuando consulta el evento incorrecto o uno vacío)
-    failPattern: /no\s*(encontr|pud|tengo)|no hay invitados registrados/i,
+    failPattern: /no\s*(encontr|pud|tengo|tienes)|no hay invitados registrados/i,
     description: 'Celíacos — respuesta contiene número + "celíac" (conteo exacto no determinístico)',
   },
   {
@@ -107,7 +106,9 @@ export const CRUD_QUESTIONS = [
     pregunta: '¿Ha confirmado Juancarlos en la boda de Isabel y Raúl?',
     expectedValue: 'no confirmado / pendiente',
     expectedPattern: /no\s*ha\s*confirmado|pendiente|sin\s*confirmaci/i,
-    failPattern: /sí\s*ha\s*confirmado|ya\s*confirmó/i,
+    // "no tienes eventos" = IA no encuentra el evento → nudge
+    // "sí ha confirmado" = falso positivo (Juancarlos no confirmó) → test falla
+    failPattern: /sí\s*ha\s*confirmado|ya\s*confirmó|no\s*(encontr|pud|tengo|tienes)/i,
     description: 'Juancarlos test → pendiente (no confirmado)',
   },
   {
@@ -115,7 +116,7 @@ export const CRUD_QUESTIONS = [
     pregunta: '¿Cuándo es la boda de Isabel y Raúl?',
     expectedValue: '30 diciembre 2025 / 2025-12-30',
     expectedPattern: /30.*(diciembre|december|2025)|2025-12-30|diciembre.*2025/i,
-    failPattern: /no\s*(encontr|sé la fecha)/i,
+    failPattern: /no\s*(encontr|sé la fecha|tienes)/i,
     description: 'Fecha = 30 diciembre 2025',
   },
 ] as const;
