@@ -140,10 +140,12 @@ function stripLoadingBoilerplate(text: string): string {
 /**
  * Envía un mensaje y espera respuesta estable.
  * afterArticleCount: ignorar artículos anteriores a este índice (para sesiones multi-pregunta).
- * failPattern: si el texto estable coincide con este patrón, reintentar una vez más.
- *   Cuando la IA da una respuesta negativa intermedia, envía un nudge para que reintente
- *   filtrando por nombre de evento — necesario porque api-ia solo muestra los primeros 20
- *   eventos y "Boda Isabel & Raúl" (pasada) puede quedar fuera sin filtro explícito.
+ * failPattern: si el texto estable coincide con este patrón → nudge.
+ * requirePattern: si el texto estable NO coincide con este patrón → nudge.
+ *   Usar requirePattern = expectedPattern es más robusto que enumerar todos los posibles
+ *   mensajes de "no encontrado" del modelo (varía: "No tienes", "No existe", "No he encontrado"...).
+ *   Necesario porque api-ia solo muestra los primeros 20 eventos y "Boda Isabel & Raúl"
+ *   (pasada) puede quedar fuera sin filter_by_name explícito.
  * Devuelve la respuesta y el nuevo total de artículos (para el siguiente sendAndWaitInSession).
  */
 async function sendAndWaitInSession(
@@ -152,6 +154,7 @@ async function sendAndWaitInSession(
   waitMs: number,
   afterArticleCount: number,
   failPattern?: RegExp,
+  requirePattern?: RegExp,
 ): Promise<{ response: string; newCount: number }> {
   if (!isAtChat(page.url())) {
     await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
@@ -216,10 +219,15 @@ async function sendAndWaitInSession(
       if (stripped === lastText) {
         stableCount++;
         if (stableCount >= 2) {
-          // Si el texto estable coincide con failPattern, la IA puede estar dando un
-          // falso negativo o respuesta sobre evento incorrecto.
-          // Enviar un nudge explícito para que reintente filtrando por nombre de evento.
-          if (failPattern && failPattern.test(stripped) && !failRetryUsed) {
+          // Disparar nudge si:
+          //  a) failPattern coincide (respuesta negativa explícita), o
+          //  b) requirePattern NO coincide (respuesta estable pero incorrecta, independientemente
+          //     de cómo la IA exprese que no encontró el evento).
+          const shouldNudge = !failRetryUsed && (
+            (failPattern && failPattern.test(stripped)) ||
+            (requirePattern && !requirePattern.test(stripped) && stripped.length > 10)
+          );
+          if (shouldNudge) {
             failRetryUsed = true;
             stableCount = 0;
             lastText = '';
@@ -397,6 +405,7 @@ test.describe('BATCH 1 — CRUD via IA (Boda Isabel & Raúl)', () => {
         perQuestionMs,
         articleCount,
         q.failPattern,
+        q.expectedPattern,  // nudge si la respuesta estable no coincide con lo esperado
       );
       articleCount = newCount;
 
