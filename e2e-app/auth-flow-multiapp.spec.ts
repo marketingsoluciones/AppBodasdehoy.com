@@ -734,15 +734,18 @@ test.describe('SSO — cross-app bidireccional', () => {
     resultados.push({ app: 'appEventos', ok: appOk, url: urlApp });
     console.log(`SSO04 appEventos: ${appOk ? '✅' : '❌'} (${urlApp})`);
 
-    // Verificar memories-web — debe auto-autenticar via cookie
+    // Verificar memories-web — debe auto-autenticar via idTokenV0.1.0 (AuthBridge fix)
     await page.goto(`${MEM}/app`, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_NAV });
     await page.waitForTimeout(5000);
     const urlMem   = page.url();
     const memBody  = (await page.locator('body').textContent()) ?? '';
-    // memories muestra login inline (no redirige) — comprobamos que no hay error
-    const memOk    = !isErrorPage(memBody, urlMem) && memBody.trim().length > 50;
+    // Con el fix de AuthBridge: idTokenV0.1.0 → isAuthenticated=true → muestra dashboard
+    const memMuestraLogin = memBody.toLowerCase().includes('introduce tu email') || await page.locator('input[type="email"]').first().isVisible({ timeout: 2_000 }).catch(() => false);
+    const memMuestraApp   = memBody.includes('álbum') || memBody.includes('Nuevo álbum') || memBody.includes('Mis álbumes');
+    const memOk    = !isErrorPage(memBody, urlMem) && !memMuestraLogin;
     resultados.push({ app: 'memories', ok: memOk, url: urlMem });
-    console.log(`SSO04 memories: ${memOk ? '✅' : '❌'} (${urlMem})`);
+    console.log(`SSO04 memories: ${memOk ? '✅' : '❌'} | muestraLogin=${memMuestraLogin} | muestraApp=${memMuestraApp} (${urlMem})`);
+    if (memMuestraLogin) console.log(`⚠️  SSO04 BUG memories: muestra formulario de login aunque idTokenV0.1.0 presente (AuthBridge no propagó SSO)`);
 
     const fallos = resultados.filter((r) => !r.ok);
     if (fallos.length === 0) {
@@ -754,5 +757,6 @@ test.describe('SSO — cross-app bidireccional', () => {
     expect(chatOk,  'SSO04: chat-ia no quedó autenticado').toBe(true);
     expect(appOk,   'SSO04: appEventos requirió re-login (SSO no propagado)').toBe(true);
     expect(isErrorPage(memBody, urlMem), 'SSO04: memories-web devuelve error').toBe(false);
+    expect(memMuestraLogin, 'SSO04: memories-web mostró form de login con idTokenV0.1.0 presente (AuthBridge SSO roto)').toBe(false);
   });
 });
