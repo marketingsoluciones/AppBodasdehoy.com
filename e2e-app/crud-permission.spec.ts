@@ -185,8 +185,11 @@ async function sendAndWaitInSession(
   let lastText = '';
   let stableCount = 0;
   let currentCount = afterArticleCount;
-  // Si la respuesta estable es un falso negativo, esperamos una vez más a que la IA reintente.
-  let failRetryUsed = false;
+  // Número de nudges enviados para esta pregunta. Permitimos hasta MAX_NUDGE_RETRIES.
+  // api-ia a veces necesita 2 intentos con filter_by_name para "descubrir" el evento
+  // (el primero puede devolver "no tienes eventos", el segundo ya encuentra el evento).
+  let nudgesSent = 0;
+  const MAX_NUDGE_RETRIES = 2;
   // Substring del nudge — se filtra para que no contamine la respuesta capturada.
   // El texto del nudge siempre contiene "filter_by_name y responde:" — sin comillas problemáticas.
   const NUDGE_SUBSTR = 'filter_by_name y responde:';
@@ -228,12 +231,12 @@ async function sendAndWaitInSession(
           //  a) failPattern coincide (respuesta negativa explícita), o
           //  b) requirePattern NO coincide (respuesta estable pero incorrecta, independientemente
           //     de cómo la IA exprese que no encontró el evento).
-          const shouldNudge = !failRetryUsed && (
+          const shouldNudge = nudgesSent < MAX_NUDGE_RETRIES && (
             (failPattern && failPattern.test(stripped)) ||
             (requirePattern && !requirePattern.test(stripped) && stripped.length > 10)
           );
           if (shouldNudge) {
-            failRetryUsed = true;
+            nudgesSent++;
             stableCount = 0;
             lastText = '';
             // Nudge: decirle a la IA que busque el evento por nombre.
@@ -246,10 +249,10 @@ async function sendAndWaitInSession(
               await nudge.click();
               await page.keyboard.press('Meta+A');
               await page.keyboard.press('Backspace');
-              // Incluir la pregunta original para que la IA sepa qué dato específico buscar.
-              // "responde la pregunta anterior" es ambiguo — la IA puede dar un resumen del evento.
-              // Con la pregunta explícita, el LLM sabe que necesita el dato concreto (ej: celíacos).
-              const nudgeText = `Busca el evento "Boda de Isabel y Raúl" usando filter_by_name y responde: ${message.trim()}`;
+              // Incluir ID del evento + pregunta original para máxima especificidad.
+              // El ID permite a api-ia hacer lookup directo sin depender del sort.
+              // La pregunta explícita evita que la IA devuelva un resumen genérico.
+              const nudgeText = `Busca el evento "Boda de Isabel y Raúl" (ID: 66a9042dec5c58aa734bca44) usando filter_by_name y responde: ${message.trim()}`;
               await page.keyboard.type(nudgeText, { delay: 15 });
               await page.keyboard.press('Enter');
               // Esperar a que el mensaje del nudge aparezca en el DOM
@@ -368,10 +371,10 @@ test.describe('BATCH 0 — Smoke Gate', () => {
 //   - Un tercio de las llamadas a api-ia vs 5 logins separados
 
 test.describe('BATCH 1 — CRUD via IA (Boda Isabel & Raúl)', () => {
-  // C01 requiere tool calls (get_user_events + filter) que pueden tardar 3-5 min la primera vez.
-  // C02-C05 reutilizan el contexto cargado → mucho más rápidos (30-60s cada uno).
-  // Total: 300s C01 + 4×90s C02-C05 + 60s login = 720s máx
-  test.setTimeout(720_000 * MULT);
+  // Warmup: 150s para cargar el evento en contexto (hasta 3 intentos).
+  // C01-C05: 180s cada una (contexto ya cargado por warmup).
+  // Total: 150s warmup + 5×180s preguntas + 60s login = 1110s máx
+  test.setTimeout(1110_000 * MULT);
 
   test('[C01] sesión única CRUD (5 preguntas, 1 login)', async ({ page }) => {
     if (!smokeGatePassed) test.skip(true, 'Smoke gate no pasó — servidor no disponible');
@@ -382,8 +385,35 @@ test.describe('BATCH 1 — CRUD via IA (Boda Isabel & Raúl)', () => {
       return;
     }
 
-    // Resultados por pregunta — soft assertions para ver todos los fallos de una vez
+    // ─── Warmup: cargar evento en contexto antes de las preguntas CRUD ──────────
+    // api-ia solo muestra los primeros 20 eventos (sort: próximos primero).
+    // "Boda de Isabel & Raúl" es pasada (2025-12-30) → puede quedar fuera del top-20.
+    // El warmup fuerza filter_by_name para que el evento entre en el contexto
+    // de la conversación. Las preguntas CRUD posteriores se benefician de ese contexto.
     let articleCount = 0;
+    {
+      const warmupPattern = /boda.*isabel|isabel.*ra[uú]l|invitados|43|diciembre|2025/i;
+      let warmupOk = false;
+      for (let attempt = 1; attempt <= 3 && !warmupOk; attempt++) {
+        await page.waitForTimeout(attempt > 1 ? 5_000 : 0);
+        articleCount = await page.locator('[data-index]').count();
+        const { response: wr } = await sendAndWaitInSession(
+          page,
+          'Busca el evento "Boda de Isabel y Raúl" (ID: 66a9042dec5c58aa734bca44) usando filter_by_name y dime cuántos invitados tiene.',
+          150_000 * MULT,
+          articleCount,
+          undefined,
+          warmupPattern,
+        );
+        warmupOk = warmupPattern.test(wr);
+        console.log(`Warmup attempt ${attempt}: "${wr.slice(0, 120)}" — ok: ${warmupOk}`);
+      }
+      if (!warmupOk) {
+        console.log('⚠️ Warmup fallido — las preguntas CRUD continuarán con sus propios nudges');
+      }
+    }
+
+    // Resultados por pregunta — soft assertions para ver todos los fallos de una vez
     let batchAborted = false;
 
     for (const q of CRUD_QUESTIONS) {
@@ -402,9 +432,9 @@ test.describe('BATCH 1 — CRUD via IA (Boda Isabel & Raúl)', () => {
       // si el streaming tardó en terminar después de que stableCount >= 2 se alcanzó.
       articleCount = await page.locator('[data-index]').count();
 
-      // C01 (primer mensaje de sesión) puede tardar 3-5 min (tool calls + eventos sin caché)
-      // C02-C05 reutilizan contexto, pero el fallback Groq→Gemini puede tardar ~2-3 min
-      const perQuestionMs = articleCount === 0 ? 300_000 * MULT : 180_000 * MULT;
+      // Todas las CRUD questions reutilizan contexto (warmup ya lo cargó).
+      // Dar 180s por pregunta (Groq→Gemini fallback puede tardar ~2-3 min).
+      const perQuestionMs = 180_000 * MULT;
       const { response, newCount } = await sendAndWaitInSession(
         page,
         q.pregunta,
