@@ -3,12 +3,12 @@
 import { Badge, Breadcrumb, Modal, Skeleton, Tag, Tooltip, Alert } from 'antd';
 import { createStyles } from 'antd-style';
 import { ArrowLeft, Check, Info, Sparkles, X } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { memo, useEffect, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import PriceComparison from '@/components/credits/PriceComparison';
 import {
   SubscriptionPlan,
   UserSubscriptionInfo,
@@ -19,6 +19,11 @@ import {
   subscribeToPlan,
 } from '@/services/api2/subscriptions';
 import { humanizeQuota } from '@bodasdehoy/shared/plans';
+
+const PriceComparison = dynamic(() => import('@/components/credits/PriceComparison'), {
+  loading: () => <Skeleton active paragraph={{ rows: 8 }} />,
+  ssr: false,
+});
 
 const useStyles = createStyles(({ css, token }) => ({
   billingToggle: css`
@@ -111,12 +116,12 @@ const useStyles = createStyles(({ css, token }) => ({
 // ============================================================
 
 const PLAN_COLORS: Record<string, string> = {
-  BASIC: '#3b82f6',
+  BASIC: '#2563eb',
   CUSTOM: '#8b5cf6',
-  ENTERPRISE: '#10b981',
-  FREE: '#6b7280',
-  MAX: '#f59e0b',
-  PRO: '#667eea',
+  ENTERPRISE: '#059669',
+  FREE: '#374151',
+  MAX: '#d97706',
+  PRO: '#7c3aed',
 };
 
 // ============================================================
@@ -674,26 +679,90 @@ const PlanesPage = memo(() => {
           No se pudieron cargar los planes. Por favor, inténtalo de nuevo.
         </div>
       ) : (
-        <Flexbox gap={16} horizontal style={{ alignItems: 'stretch', flexWrap: 'wrap' }}>
-          {selectError && (
-            <div style={{ color: '#ef4444', fontSize: 13, width: '100%' }}>{selectError}</div>
-          )}
-          {plans.map((plan) => (
-            <PlanCard
-              billing={billing}
-              isCurrent={
-                mySubscription?.status === 'ACTIVE' &&
-                (mySubscription.plan_id === plan._id ||
-                  mySubscription.plan_id === plan.plan_id ||
-                  mySubscription.plan?.tier === plan.tier)
-              }
-              key={plan._id}
-              onSelect={handleSelectPlan}
-              plan={plan}
-              selecting={selectingPlanId === plan.plan_id}
-            />
-          ))}
-        </Flexbox>
+        <>
+          <Flexbox gap={16} horizontal style={{ alignItems: 'stretch', flexWrap: 'wrap' }}>
+            {selectError && (
+              <div style={{ color: '#ef4444', fontSize: 13, width: '100%' }}>{selectError}</div>
+            )}
+            {plans.filter((p) => p.tier !== 'ENTERPRISE' && p.tier !== 'CUSTOM').map((plan) => (
+              <PlanCard
+                billing={billing}
+                isCurrent={
+                  mySubscription?.status === 'ACTIVE' &&
+                  (mySubscription.plan_id === plan._id ||
+                    mySubscription.plan_id === plan.plan_id ||
+                    mySubscription.plan?.tier === plan.tier)
+                }
+                key={plan._id}
+                onSelect={handleSelectPlan}
+                plan={plan}
+                selecting={selectingPlanId === plan.plan_id}
+              />
+            ))}
+          </Flexbox>
+
+          {/* Sección Whitelabel */}
+          {plans.filter((p) => p.tier === 'ENTERPRISE').map((wl) => {
+            const isCurrentWL = mySubscription?.status === 'ACTIVE' && mySubscription.plan?.tier === 'ENTERPRISE';
+            return (
+              <div
+                key={wl._id}
+                style={{
+                  background: 'linear-gradient(135deg,#f0fdf4,#ecfdf5)',
+                  border: '1px solid #a7f3d0',
+                  borderRadius: 16,
+                  padding: '24px 28px',
+                }}
+              >
+                <Flexbox align="flex-start" gap={20} horizontal style={{ flexWrap: 'wrap' }}>
+                  <Flexbox gap={8} style={{ flex: 1, minWidth: 260 }}>
+                    <div style={{ color: '#065f46', fontSize: 20, fontWeight: 700 }}>Whitelabel</div>
+                    <p style={{ color: '#374151', fontSize: 13, lineHeight: 1.6, margin: 0 }}>
+                      Para empresas que quieren desplegar su propia marca blanca. Incluye instancia dedicada, Firebase propio, branding personalizado y soporte prioritario.
+                    </p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 24px', marginTop: 8 }}>
+                      {['Instancia dedicada', 'Firebase propio', 'Branding personalizado', 'Copiloto IA', 'Wallet prepago', 'Soporte prioritario', 'API acceso completo', 'Gestor de cuenta dedicado'].map((f) => (
+                        <div key={f} style={{ alignItems: 'center', color: '#374151', display: 'flex', fontSize: 13, gap: 6 }}>
+                          <Check color="#059669" size={14} />
+                          {f}
+                        </div>
+                      ))}
+                    </div>
+                  </Flexbox>
+                  <Flexbox align="flex-end" gap={12} style={{ flexShrink: 0 }}>
+                    <Flexbox align="baseline" gap={4} horizontal>
+                      <span style={{ fontSize: 32, fontWeight: 800 }}>€149</span>
+                      <span style={{ color: '#6b7280', fontSize: 13 }}>/mes</span>
+                    </Flexbox>
+                    {isCurrentWL ? (
+                      <div style={{ border: '1px solid #d1d5db', borderRadius: 8, color: '#9ca3af', fontSize: 13, fontWeight: 600, padding: '8px 20px', textAlign: 'center' }}>
+                        Plan actual
+                      </div>
+                    ) : (
+                      <button
+                        disabled={selectingPlanId === wl.plan_id}
+                        onClick={() => handleSelectPlan(wl.plan_id)}
+                        style={{
+                          background: '#059669',
+                          border: 'none',
+                          borderRadius: 10,
+                          color: 'white',
+                          cursor: selectingPlanId === wl.plan_id ? 'not-allowed' : 'pointer',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          opacity: selectingPlanId === wl.plan_id ? 0.6 : 1,
+                          padding: '10px 22px',
+                        }}
+                      >
+                        {selectingPlanId === wl.plan_id ? '...' : 'Probar 14 días gratis'}
+                      </button>
+                    )}
+                  </Flexbox>
+                </Flexbox>
+              </div>
+            );
+          })}
+        </>
       )}
 
       {/* Nota explicativa */}
@@ -717,7 +786,7 @@ const PlanesPage = memo(() => {
       </div>
 
       {/* Comparativa completa de planes */}
-      <PriceComparison />
+      {plans.length > 0 && <PriceComparison plans={plans} />}
 
       {/* Gestionar suscripción activa */}
       {mySubscription?.status === 'ACTIVE' && (

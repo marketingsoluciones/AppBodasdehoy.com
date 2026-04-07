@@ -62,7 +62,11 @@ describe('AgentService', () => {
 
       expect(SessionModel).toHaveBeenCalledWith(mockDb, mockUserId);
       expect(parseAgentConfig).toHaveBeenCalledWith('model=gpt-4;temperature=0.7');
-      expect(mockSessionModel.createInbox).toHaveBeenCalledWith({});
+      expect(mockSessionModel.createInbox).toHaveBeenCalledWith({
+        openingMessage: 'mock-opening-message',
+        openingQuestions: [],
+        systemRole: 'mock-system-role',
+      });
     });
   });
 });

@@ -28,6 +28,7 @@ export interface PlanPricing {
 }
 
 export interface ProductLimit {
+  daily_quota?: number;
   free_quota: number;
   overage_enabled: boolean;
   overage_price?: number;

@@ -12,8 +12,7 @@ const nextConfig = {
   devIndicators: false,
 
   // Transpile packages del monorepo y @lobehub/ui
-  // Agregado 'debug' y 'supports-color' para solucionar error ESM con dependencies de @lobehub/editor
-  transpilePackages: ['@bodasdehoy/auth-ui', '@bodasdehoy/shared', '@bodasdehoy/memories', '@bodasdehoy/copilot-shared', '@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'zustand-utils', 'debug', 'supports-color'],
+  transpilePackages: ['@bodasdehoy/auth-ui', '@bodasdehoy/shared', '@bodasdehoy/memories', '@bodasdehoy/copilot-shared', '@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'zustand-utils'],
 
   // Redirects para URLs con caracteres especiales → ASCII equivalente
   async redirects() {
@@ -68,7 +67,18 @@ const nextConfig = {
   // Configuración experimental para compatibilidad
   experimental: {
     // Optimizar imports de paquetes grandes
-    optimizePackageImports: ['react-icons', 'lucide-react', 'framer-motion', '@lobehub/ui'],
+    optimizePackageImports: ['react-icons', 'lucide-react', 'framer-motion', '@lobehub/ui', 'antd', '@ant-design/icons', 'date-fns'],
+  },
+
+  // Turbopack: equivalentes de los aliases webpack críticos
+  // Evita instancias duplicadas de React (resolveDispatcher is null)
+  // y hace funcionar next/navigation en Pages Router
+  turbopack: {
+    resolveAlias: {
+      'next/navigation': './hooks/useCompatRouter.ts',
+      'react': './node_modules/react',
+      'react-dom': './node_modules/react-dom',
+    },
   },
 
   // Webpack config para resolver módulos ESM de @lobehub/ui

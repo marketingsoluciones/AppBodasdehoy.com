@@ -11,8 +11,13 @@ import { FC, memo, useCallback, useRef, useEffect, useLayoutEffect, useState, us
 import { motion, AnimatePresence } from 'framer-motion';
 import { useChatSidebar } from '../../context/ChatSidebarContext';
 import { AuthContextProvider, EventContextProvider } from '../../context';
-import { CopilotEmbed } from '../Copilot/CopilotEmbed';
+import dynamic from 'next/dynamic';
 import type { StoredSession } from '../Copilot/SessionsPanel';
+
+const CopilotEmbed = dynamic(
+  () => import('../Copilot/CopilotEmbed').then((m) => m.CopilotEmbed),
+  { ssr: false },
+);
 import { resolveChatOrigin } from '@bodasdehoy/shared/utils';
 import {
   IoClose,

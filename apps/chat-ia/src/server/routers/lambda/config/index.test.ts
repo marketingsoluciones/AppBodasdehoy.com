@@ -160,6 +160,7 @@ describe('configRouter', () => {
         model: 'gemini-pro',
         plugins: ['search-engine', 'lobe-image-designer'],
         provider: 'google',
+        systemRole: 'mock-system-role',
       });
 
       process.env.DEFAULT_AGENT_CONFIG = '';
@@ -176,6 +177,7 @@ describe('configRouter', () => {
         model: 'meta-11ama/11ama-3-70b-instruct:nitro',
         params: { max_tokens: 700 },
         provider: 'openrouter',
+        systemRole: 'mock-system-role',
       });
 
       process.env.DEFAULT_AGENT_CONFIG = '';

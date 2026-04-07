@@ -402,16 +402,8 @@ export const chatMessage: StateCreator<
 
     try {
       // Guest/visitor mode: skip DB persistence to avoid FK violations (user not in DB)
-      const isGuest = (() => {
-        if (typeof window === 'undefined') return false;
-        try {
-          const cfg = localStorage.getItem('dev-user-config');
-          if (!cfg) return true;
-          const p = JSON.parse(cfg);
-          const uid = p?.user_id || p?.userId;
-          return !uid || uid.startsWith('visitor_') || p?.user_type === 'visitor';
-        } catch { return true; }
-      })();
+      const currentUserId = get().currentUserId;
+      const isGuest = !currentUserId || currentUserId === 'visitante@guest.local' || currentUserId.startsWith('visitor_');
 
       const id = isGuest ? tempId! : await messageService.createMessage(message);
       if (!context?.skipRefresh && !isGuest) {

@@ -1,23 +1,53 @@
 /**
- * /pro — Página de planes de Memories.
- * Muestra los planes de API2 con CTAs para suscribirse vía Stripe.
+ * /pro — Página de planes de Memories (Gratis / Boda / Boda Plus).
+ * Boda y Boda Plus son pagos únicos (plan_type: 'module').
  */
 import Head from 'next/head';
 import Link from 'next/link';
 import { useState } from 'react';
 import { usePlan } from '../../hooks/usePlan';
-import { humanizeQuota, TIER_COLORS } from '@bodasdehoy/shared/plans';
-
-const MEMORIES_SKUS = ['memories-albums', 'memories-photos', 'storage-gb'];
+import { TIER_COLORS } from '@bodasdehoy/shared/plans';
+import WeddingDetailsModal, { type WeddingDetails } from '../../components/checkout/WeddingDetailsModal';
 
 const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
-const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
+const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'memories';
 
-async function handleSubscribe(planId: string, billingPeriod: 'monthly' | 'yearly' = 'monthly') {
+// Static feature map (matches DB plan_ids)
+const PLAN_FEATURES: Record<string, Array<{ text: string; highlight?: boolean }>> = {
+  'memories-free': [
+    { text: '1 evento' },
+    { text: '50 fotos' },
+    { text: '7 días de acceso' },
+    { text: 'QR compartible' },
+    { text: 'Descarga individual' },
+  ],
+  'memories-boda': [
+    { text: '300 fotos', highlight: true },
+    { text: '6 meses de acceso' },
+    { text: 'QR compartible' },
+    { text: 'Descarga ZIP' },
+    { text: 'Álbumes por momentos' },
+    { text: 'Slideshow en directo' },
+  ],
+  'memories-boda-plus': [
+    { text: 'Fotos ilimitadas', highlight: true },
+    { text: '6 meses de acceso' },
+    { text: 'QR compartible' },
+    { text: 'Descarga ZIP' },
+    { text: 'Álbumes por momentos' },
+    { text: 'Slideshow en directo' },
+    { text: 'Personalización (colores, nombres)', highlight: true },
+    { text: 'Moderación IA', highlight: true },
+    { text: 'Destacar fotos favoritas', highlight: true },
+    { text: 'Experiencia más premium', highlight: true },
+  ],
+};
+
+async function handlePurchase(planId: string, details?: WeddingDetails) {
   const authState = (await import('@bodasdehoy/shared')).authBridge.getSharedAuthState();
   if (!authState.idToken) {
-    window.location.href = '/app'; // Will redirect to login
-    return;
+    window.location.href = '/app';
+    return null;
   }
 
   const res = await fetch(API2_URL, {
@@ -28,16 +58,25 @@ async function handleSubscribe(planId: string, billingPeriod: 'monthly' | 'yearl
       'X-Development': DEVELOPMENT,
     },
     body: JSON.stringify({
-      query: `mutation SubscribeToPlan($plan_id: String!, $billing_period: String, $success_url: String!, $cancel_url: String!) {
-        subscribeToPlan(plan_id: $plan_id, billing_period: $billing_period, success_url: $success_url, cancel_url: $cancel_url) {
-          success checkout_url session_id plan_name
+      query: `mutation SubscribeToPlan($plan_id: String!, $billing_period: String, $success_url: String!, $cancel_url: String!, $metadata: JSON) {
+        subscribeToPlan(plan_id: $plan_id, billing_period: $billing_period, success_url: $success_url, cancel_url: $cancel_url, metadata: $metadata) {
+          success checkout_url session_id plan_name errors { message }
         }
       }`,
       variables: {
         plan_id: planId,
-        billing_period: billingPeriod,
+        billing_period: 'monthly',
         success_url: `${window.location.origin}/app?upgraded=1`,
         cancel_url: `${window.location.origin}/pro?cancelled=1`,
+        metadata: details
+          ? {
+              customer_email: details.email,
+              customer_name: details.nombre,
+              wedding_date: details.fechaBoda,
+              wedding_location: details.ubicacion,
+              customer_phone: details.telefono,
+            }
+          : undefined,
       },
     }),
   });
@@ -47,23 +86,42 @@ async function handleSubscribe(planId: string, billingPeriod: 'monthly' | 'yearl
   if (result?.checkout_url) {
     window.location.href = result.checkout_url;
   }
+  return result;
 }
 
 export default function ProPage() {
   const { allPlans, tier, loading } = usePlan();
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
-  const [subscribing, setSubscribing] = useState<string | null>(null);
+  const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [modalPlanId, setModalPlanId] = useState<string | null>(null);
 
-  const sortedPlans = allPlans
+  // Sort by price ascending
+  const plans = allPlans
     .filter((p) => p.is_active !== false)
     .sort((a, b) => a.pricing.monthly_fee - b.pricing.monthly_fee);
 
-  const handleChoosePlan = async (planId: string) => {
-    setSubscribing(planId);
+  const selectedPlan = plans.find((p) => p.plan_id === modalPlanId);
+
+  const handleChoosePlan = (planId: string) => {
+    setError(null);
+    // Show wedding details form before checkout
+    setModalPlanId(planId);
+  };
+
+  const handleConfirmDetails = async (details: WeddingDetails) => {
+    if (!modalPlanId) return;
+    setPurchasing(modalPlanId);
     try {
-      await handleSubscribe(planId, billingPeriod);
+      const result = await handlePurchase(modalPlanId, details);
+      if (result && !result.success) {
+        setError(result.errors?.[0]?.message ?? 'Error al procesar el pago. Inténtalo de nuevo.');
+        setModalPlanId(null);
+      }
+    } catch {
+      setError('Error de conexión. Inténtalo de nuevo.');
+      setModalPlanId(null);
     } finally {
-      setSubscribing(null);
+      setPurchasing(null);
     }
   };
 
@@ -93,31 +151,20 @@ export default function ProPage() {
           <div className="text-center mb-12">
             <p className="text-xs font-semibold text-rose-500 uppercase tracking-widest mb-3">Planes</p>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
-              Elige el plan perfecto para tus recuerdos
+              Elige el plan perfecto para tu boda
             </h1>
             <p className="text-gray-500 max-w-xl mx-auto">
-              Desde gratis hasta profesional. Todos los planes incluyen subida de fotos, QR para compartir, y protección con marca de agua.
+              Sin suscripciones. Pago único para tu evento.
+              Todos los planes incluyen subida colaborativa de fotos y QR para compartir.
             </p>
           </div>
 
-          {/* Billing toggle */}
-          <div className="flex justify-center mb-10">
-            <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
-              <button
-                onClick={() => setBillingPeriod('monthly')}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${billingPeriod === 'monthly' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                Mensual
-              </button>
-              <button
-                onClick={() => setBillingPeriod('yearly')}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${billingPeriod === 'yearly' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                Anual
-                <span className="ml-1 text-xs text-rose-500 font-bold">-20%</span>
-              </button>
+          {/* Error */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 rounded-2xl px-4 py-3 mb-8 text-sm text-center">
+              {error}
             </div>
-          </div>
+          )}
 
           {/* Plans grid */}
           {loading ? (
@@ -126,113 +173,106 @@ export default function ProPage() {
                 <div key={i} className="bg-white rounded-3xl h-96 animate-pulse border border-gray-100" />
               ))}
             </div>
-          ) : sortedPlans.length === 0 ? (
+          ) : plans.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center text-gray-400 gap-3">
               <span className="text-4xl">📋</span>
-              <p className="text-base font-medium">No hay planes disponibles en este momento.</p>
-              <p className="text-sm">Por favor, inténtalo de nuevo más tarde.</p>
+              <p className="text-base font-medium">No hay planes disponibles.</p>
             </div>
           ) : (
             <div className="grid md:grid-cols-3 gap-6 items-start">
-              {sortedPlans.map((plan) => {
-                const isPro = plan.tier === 'PRO';
+              {plans.map((plan) => {
+                const isHighlighted = plan.plan_id === 'memories-boda-plus';
                 const isCurrent = plan.tier === tier;
-                const isFree = plan.tier === 'FREE';
-                const price = billingPeriod === 'yearly' && plan.pricing.annual_fee
-                  ? (plan.pricing.annual_fee / 12)
-                  : plan.pricing.monthly_fee;
+                const isFree = plan.pricing.monthly_fee === 0;
+                const isOneTime = (plan as any).plan_type === 'module';
+                const features = PLAN_FEATURES[plan.plan_id] ?? [];
                 const tierColor = TIER_COLORS[plan.tier] ?? '#6b7280';
-
-                const memoriesFeatures = plan.product_limits
-                  .filter((l) => MEMORIES_SKUS.includes(l.sku))
-                  .map((l) => ({
-                    label: l.service_name,
-                    value: humanizeQuota(l.sku, l.free_quota),
-                  }));
 
                 return (
                   <div
                     key={plan.plan_id}
                     className={`rounded-3xl p-8 border transition ${
-                      isPro
-                        ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-indigo-500 shadow-xl shadow-indigo-200 scale-105'
+                      isHighlighted
+                        ? 'bg-gradient-to-br from-rose-500 to-pink-600 text-white border-rose-500 shadow-xl shadow-rose-200 scale-105'
                         : 'bg-white border-gray-100 shadow-sm hover:shadow-md'
                     }`}
                   >
-                    {/* Plan name */}
+                    {/* Popular badge */}
+                    {isHighlighted && (
+                      <div className="text-center mb-4">
+                        <span className="bg-white text-rose-500 text-xs font-bold px-3 py-1 rounded-full">
+                          ✨ Más popular
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Plan name + dot */}
                     <div className="flex items-center gap-2 mb-1">
                       <span
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: isPro ? 'white' : tierColor }}
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: isHighlighted ? 'white' : tierColor }}
                       />
-                      <h3 className={`text-lg font-bold ${isPro ? 'text-white' : 'text-gray-900'}`}>
+                      <h3 className={`text-lg font-bold ${isHighlighted ? 'text-white' : 'text-gray-900'}`}>
                         {plan.name}
                       </h3>
                     </div>
 
                     {/* Price */}
-                    <div className="flex items-end gap-1 mb-2">
-                      <span className={`text-4xl font-extrabold ${isPro ? 'text-white' : 'text-gray-900'}`}>
-                        {isFree ? 'Gratis' : `${price.toFixed(2)}\u20AC`}
+                    <div className="flex items-end gap-1 mb-1">
+                      <span className={`text-4xl font-extrabold ${isHighlighted ? 'text-white' : 'text-gray-900'}`}>
+                        {isFree ? 'Gratis' : `€${plan.pricing.monthly_fee}`}
                       </span>
-                      {!isFree && (
-                        <span className={`text-sm mb-1.5 ${isPro ? 'text-indigo-200' : 'text-gray-400'}`}>
-                          /mes
-                        </span>
-                      )}
                     </div>
-
-                    {plan.description && (
-                      <p className={`text-sm mb-6 ${isPro ? 'text-indigo-200' : 'text-gray-500'}`}>
-                        {plan.description}
-                      </p>
-                    )}
+                    <p className={`text-sm font-semibold mb-6 ${isHighlighted ? 'text-rose-100' : 'text-gray-400'}`}>
+                      {isFree ? 'siempre gratis' : 'pago único'}
+                    </p>
 
                     {/* CTA */}
                     {isCurrent ? (
-                      <div className={`text-center py-3 rounded-2xl font-bold text-sm border-2 ${
-                        isPro ? 'border-white/50 text-white' : 'border-gray-200 text-gray-500'
-                      }`}>
+                      <div
+                        className={`text-center py-3 rounded-2xl font-bold text-sm border-2 mb-6 ${
+                          isHighlighted ? 'border-white/50 text-white' : 'border-gray-200 text-gray-500'
+                        }`}
+                      >
                         Plan actual
                       </div>
                     ) : isFree ? (
                       <Link
                         href="/app"
-                        className="block text-center w-full py-3 rounded-2xl font-bold text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                        className="block text-center w-full py-3 rounded-2xl font-bold text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition mb-6"
                       >
                         Empezar gratis
                       </Link>
                     ) : (
                       <button
                         onClick={() => handleChoosePlan(plan.plan_id)}
-                        disabled={subscribing === plan.plan_id}
-                        className={`w-full py-3 rounded-2xl font-bold text-sm transition disabled:opacity-50 ${
-                          isPro
-                            ? 'bg-white text-indigo-600 hover:bg-indigo-50'
+                        disabled={purchasing === plan.plan_id}
+                        className={`w-full py-3 rounded-2xl font-bold text-sm transition disabled:opacity-50 mb-6 ${
+                          isHighlighted
+                            ? 'bg-white text-rose-500 hover:bg-rose-50'
                             : 'bg-rose-500 text-white hover:bg-rose-600'
                         }`}
                       >
-                        {subscribing === plan.plan_id
+                        {purchasing === plan.plan_id
                           ? 'Procesando...'
-                          : `Elegir ${plan.name}`}
+                          : `Elegir ${plan.name} — €${plan.pricing.monthly_fee}`}
                       </button>
                     )}
 
                     {/* Features */}
-                    <ul className="mt-6 space-y-3">
-                      {memoriesFeatures.map((f) => (
+                    <ul className="space-y-2.5">
+                      {features.map((f, i) => (
                         <li
-                          key={f.label}
-                          className={`flex items-center justify-between text-sm ${
-                            isPro ? 'text-indigo-100' : 'text-gray-600'
+                          key={i}
+                          className={`flex items-start gap-2 text-sm ${
+                            isHighlighted ? 'text-rose-50' : 'text-gray-600'
                           }`}
                         >
-                          <span className="flex items-center gap-2">
-                            <span className={isPro ? 'text-white' : 'text-rose-500'}>&#10003;</span>
-                            {f.label}
+                          <span className={`mt-0.5 flex-shrink-0 font-bold ${isHighlighted ? 'text-white' : 'text-rose-500'}`}>
+                            ✓
                           </span>
-                          <span className={`font-semibold ${isPro ? 'text-white' : 'text-gray-900'}`}>
-                            {f.value}
+                          <span className={f.highlight && !isHighlighted ? 'font-semibold text-gray-800' : ''}>
+                            {f.text}
                           </span>
                         </li>
                       ))}
@@ -243,12 +283,34 @@ export default function ProPage() {
             </div>
           )}
 
-          {/* Disclaimer */}
+          {/* Referral callout */}
+          <div className="mt-12 bg-rose-50 border border-rose-200 rounded-3xl p-6 text-center">
+            <p className="text-rose-700 font-semibold text-base mb-1">
+              🎁 ¿Conoces a otros novios?
+            </p>
+            <p className="text-rose-500 text-sm">
+              Invita a 5 parejas y consigue <strong>1 evento Boda gratis</strong>.{' '}
+              <Link href="/app/referral" className="underline font-semibold hover:text-rose-700">
+                Ver mi contador →
+              </Link>
+            </p>
+          </div>
+
           <p className="text-center text-xs text-gray-400 mt-8">
-            Todos los precios incluyen IVA. Puedes cancelar en cualquier momento.
+            Precios sin IVA. Pago único sin renovación automática.
           </p>
         </main>
       </div>
+
+      {modalPlanId && selectedPlan && (
+        <WeddingDetailsModal
+          planName={selectedPlan.name}
+          planPrice={selectedPlan.pricing.monthly_fee}
+          onConfirm={handleConfirmDetails}
+          onClose={() => setModalPlanId(null)}
+          loading={purchasing === modalPlanId}
+        />
+      )}
     </>
   );
 }

@@ -85,6 +85,9 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
             >
               + Nuevo álbum
             </button>
+            <Link href="/app/referral" className="text-sm text-rose-500 font-semibold hover:text-rose-700 transition hidden sm:block">
+              🎁 Invita amigos
+            </Link>
             <button onClick={onLogout} className="text-sm text-gray-400 hover:text-gray-700 transition">
               Salir
             </button>

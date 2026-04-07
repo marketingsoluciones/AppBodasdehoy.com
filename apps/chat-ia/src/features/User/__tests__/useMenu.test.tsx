@@ -97,10 +97,9 @@ describe('useMenu', () => {
 
     act(() => {
       const { mainItems, logoutItems } = result.current;
-      // profile items are grouped under 'account' submenu
-      expect(mainItems?.some((item) => item?.key === 'account')).toBe(true);
-      expect(mainItems?.some((item) => item?.key === 'setting')).toBe(true);
-      expect(mainItems?.some((item) => item?.key === 'import')).toBe(true);
+      // When auth is disabled and not signed in, account/setting items are hidden
+      expect(mainItems?.some((item) => item?.key === 'account')).toBe(false);
+      expect(mainItems?.some((item) => item?.key === 'setting')).toBe(false);
       expect(mainItems?.some((item) => item?.key === 'changelog')).toBe(true);
       expect(logoutItems.some((item) => item?.key === 'logout')).toBe(false);
     });

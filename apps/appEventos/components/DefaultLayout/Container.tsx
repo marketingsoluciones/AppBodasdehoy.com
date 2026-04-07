@@ -5,8 +5,15 @@ import NavigationMobile from "./NavigationMobile";
 import Navigation from "./Navigation";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { ChatSidebarDirect } from "../ChatSidebar";
+import dynamic from "next/dynamic";
 import { CHAT_SIDEBAR_MIN_WIDTH, CHAT_SIDEBAR_MAX_WIDTH, CHAT_SIDEBAR_DEFAULT_WIDTH } from "../../context/ChatSidebarContext";
+
+// Dynamic import: rompe la cadena copilot-shared → @lobehub/editor (77MB+)
+// del bundle principal. Solo se compila cuando el usuario abre el copilot.
+const ChatSidebarDirect = dynamic(
+  () => import("../ChatSidebar").then((m) => m.ChatSidebarDirect),
+  { ssr: false, loading: () => null },
+);
 import CopilotFilterBar from "../Utils/CopilotFilterBar";
 
 /** Breakpoint: a partir de este ancho el Copilot usa 20% del espacio (20vw) */

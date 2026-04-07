@@ -1,3 +1,5 @@
+/* eslint-disable no-var */
+declare var process: { env: Record<string, string | undefined> };
 /**
  * SessionBridge — SSO cross-domain entre apps del monorepo
  *

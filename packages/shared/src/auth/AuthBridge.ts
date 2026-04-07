@@ -1,3 +1,5 @@
+/* eslint-disable no-var */
+declare var process: { env: Record<string, string | undefined> };
 /**
  * AuthBridge - Puente de autenticacion entre AppBodasdeHoy y Lobe-Chat
  *
