@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
 const nextConfig = {
   // Habilitar React Strict Mode para mejor desarrollo
   reactStrictMode: true,
@@ -75,9 +76,8 @@ const nextConfig = {
   // y hace funcionar next/navigation en Pages Router
   turbopack: {
     resolveAlias: {
+      // next/navigation: compatibilidad con Pages Router (relativo a este next.config.js)
       'next/navigation': './hooks/useCompatRouter.ts',
-      'react': './node_modules/react',
-      'react-dom': './node_modules/react-dom',
     },
   },
 

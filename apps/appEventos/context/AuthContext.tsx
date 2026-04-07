@@ -813,6 +813,8 @@ const AuthProvider = ({ children }) => {
             }
           } catch (ssoErr: any) {
             console.warn("[Verificator] ⚠️ SSO cross-domain: error creando sesión:", ssoErr?.message)
+            // Limpiar el flag anti-loop para que login.js pueda redirigir a chat-test de nuevo
+            if (typeof window !== 'undefined') sessionStorage.removeItem('sso_redirect_pending')
           }
         }
       }
