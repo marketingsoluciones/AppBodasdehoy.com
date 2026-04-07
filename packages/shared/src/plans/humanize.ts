@@ -3,9 +3,21 @@
  * Ejemplo: ai-tokens 50000 → "~100 consultas IA"
  */
 
+// Threshold por SKU: ai-tokens necesita uno más alto porque los planes tienen millones de tokens reales.
+// Otros SKUs (events-count, guests-per-event, memories-photos…) usan 999_999 como convención "ilimitado".
 const UNLIMITED_THRESHOLD = 999_999;
+const AI_UNLIMITED_THRESHOLD = 999_999_999; // Solo ENTERPRISE tiene tokens verdaderamente ilimitados
 const TOKENS_PER_QUERY = 500;
 const GB_PER_PHOTO = 0.002;
+
+/**
+ * Devuelve true si la cuota de un SKU debe tratarse como ilimitada.
+ * ai-tokens usa un threshold más alto para distinguir planes grandes (2M, 10M) de ilimitado (999M).
+ */
+export function isUnlimited(sku: string, quota: number): boolean {
+  if (sku === 'ai-tokens') return quota >= AI_UNLIMITED_THRESHOLD;
+  return quota >= UNLIMITED_THRESHOLD;
+}
 
 // ========================================
 // SKU → nombre legible
@@ -55,7 +67,7 @@ export function humanizeSku(sku: string): string {
  * @example humanizeQuota('memories-photos', 999999) → "Ilimitado"
  */
 export function humanizeQuota(sku: string, quota: number): string {
-  if (quota >= UNLIMITED_THRESHOLD) return 'Ilimitado';
+  if (isUnlimited(sku, quota)) return 'Ilimitado';
   if (quota === 0) return 'No incluido';
 
   const units = SKU_UNITS[sku];
@@ -77,7 +89,7 @@ export function humanizeQuota(sku: string, quota: number): string {
  * Para ai-tokens retorna el número de consultas equivalentes.
  */
 export function humanizeQuotaValue(sku: string, quota: number): number {
-  if (quota >= UNLIMITED_THRESHOLD) return Infinity;
+  if (isUnlimited(sku, quota)) return Infinity;
   if (sku === 'ai-tokens') return Math.round(quota / TOKENS_PER_QUERY);
   return quota;
 }
@@ -86,7 +98,7 @@ export function humanizeQuotaValue(sku: string, quota: number): number {
  * Genera texto de uso: "42/50 fotos" o "78% usado"
  */
 export function humanizeUsage(sku: string, used: number, limit: number): string {
-  if (limit >= UNLIMITED_THRESHOLD) {
+  if (isUnlimited(sku, limit)) {
     const units = SKU_UNITS[sku];
     const displayUsed = sku === 'ai-tokens' ? Math.round(used / TOKENS_PER_QUERY) : used;
     const unit = units ? (displayUsed === 1 ? units[0] : units[1]) : '';
@@ -104,8 +116,8 @@ export function humanizeUsage(sku: string, used: number, limit: number): string 
 /**
  * Calcula el porcentaje de uso.
  */
-export function usagePercent(used: number, limit: number): number {
-  if (limit >= UNLIMITED_THRESHOLD || limit <= 0) return 0;
+export function usagePercent(used: number, limit: number, sku = ''): number {
+  if (isUnlimited(sku, limit) || limit <= 0) return 0;
   return Math.min(100, Math.round((used / limit) * 100));
 }
 

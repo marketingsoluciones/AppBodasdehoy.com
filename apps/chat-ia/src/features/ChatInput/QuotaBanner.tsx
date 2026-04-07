@@ -9,7 +9,7 @@ import { useBilling } from '@/hooks/useBilling';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useWallet } from '@/hooks/useWallet';
 import { useChatStore } from '@/store/chat';
-import { canAccessDaily, usagePercent } from '@bodasdehoy/shared/plans';
+import { canAccessDaily, isUnlimited, usagePercent } from '@bodasdehoy/shared/plans';
 import type { UsageStats } from '@/services/api2/invoices';
 
 /**
@@ -45,7 +45,7 @@ const QuotaBanner = memo(() => {
   if (isGuest || planLoading || usageStatsLoading || !plan) return null;
 
   const aiLimit = plan.product_limits.find((l) => l.sku === 'ai-tokens');
-  if (!aiLimit || aiLimit.free_quota >= 999_999) return null;
+  if (!aiLimit || isUnlimited('ai-tokens', aiLimit.free_quota)) return null;
 
   // --- Límite diario ---
   if (aiLimit.daily_quota) {
@@ -92,7 +92,7 @@ const QuotaBanner = memo(() => {
 
   // --- Límite mensual ---
   const currentTokens = usageStats?.totalTokens ?? 0;
-  const percent = usagePercent(currentTokens, aiLimit.free_quota);
+  const percent = usagePercent(currentTokens, aiLimit.free_quota, 'ai-tokens');
 
   if (percent < 80) return null;
 
