@@ -622,6 +622,11 @@ async function proxyToPythonBackend(
     if (metadata?.userId) headers['X-User-Id'] = metadata.userId;
     if (metadata?.eventId) headers['X-Event-Id'] = metadata.eventId;
     if (metadata?.pageContext?.pageName) headers['X-Page-Name'] = metadata.pageContext.pageName;
+    // Rol del usuario para que api-ia ajuste el acceso a datos (owner/collaborator/registered/guest)
+    if (metadata?.pageContext?.userRole) headers['X-User-Role'] = metadata.pageContext.userRole;
+    if (metadata?.pageContext?.permissions?.length) {
+      headers['X-User-Permissions'] = metadata.pageContext.permissions.join(',');
+    }
 
     // X-User-Email: api-ia lo usa como prioridad máxima para identificar al usuario.
     // Sin este header, api-ia puede tratar la request como guest → 429 GUEST_DAILY_LIMIT.

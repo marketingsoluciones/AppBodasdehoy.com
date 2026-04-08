@@ -103,6 +103,30 @@ const ChatSidebarDirect: FC = () => {
   const event = eventContext?.event;
 
   const isGuest = !user || user?.displayName === 'guest' || !user?.email;
+
+  // Rol del usuario respecto al evento actual
+  // owner: es el creador del evento
+  // collaborator: está en compartido_array con permisos específicos
+  // registered: está logueado pero sin relación con este evento
+  // guest: visitante sin cuenta
+  const userEventRole: 'owner' | 'collaborator' | 'registered' | 'guest' = (() => {
+    if (isGuest) return 'guest';
+    if (!event) return 'registered';
+    if (user?.uid && event?.usuario_id && user.uid === event.usuario_id) return 'owner';
+    const isCollaborator = event?.compartido_array?.includes(user?.uid ?? '');
+    if (isCollaborator) return 'collaborator';
+    return 'registered';
+  })();
+
+  // Permisos del colaborador para este evento (solo si role === 'collaborator')
+  const collaboratorPermissions: string[] = (() => {
+    if (userEventRole !== 'collaborator') return [];
+    const myDetail = event?.detalles_compartidos_array?.find(
+      (d: any) => d.uid === user?.uid
+    );
+    return myDetail?.permissions ?? [];
+  })();
+
   const stableUserId = user?.email || user?.uid || guestSessionId;
   const defaultSessionId = user?.uid ? `user_${user.uid}` : guestSessionId;
 
@@ -480,6 +504,10 @@ const ChatSidebarDirect: FC = () => {
               eventId={eventId}
               eventName={event?.nombre}
               isGuest={isGuest}
+              pageContext={{
+                userRole: userEventRole,
+                ...(collaboratorPermissions.length > 0 && { permissions: collaboratorPermissions }),
+              }}
               className="w-full h-full"
               onFirstMessage={handleSessionLabelUpdate}
             />

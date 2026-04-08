@@ -147,6 +147,10 @@ export interface PageContext {
   eventId?: string;
   screenData?: Record<string, any>;
   eventsList?: Array<{ name?: string; type?: string; date?: string; id?: string }>;
+  /** Rol del usuario respecto al evento: owner | collaborator | registered | guest */
+  userRole?: 'owner' | 'collaborator' | 'registered' | 'guest';
+  /** Permisos del colaborador (solo si userRole === 'collaborator') */
+  permissions?: string[];
 }
 
 /** Un mensaje para el historial (role + content) enviado al backend para mantener contexto. */
