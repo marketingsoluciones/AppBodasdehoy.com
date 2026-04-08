@@ -124,7 +124,7 @@ const ChatSidebarDirect: FC = () => {
     const myDetail = event?.detalles_compartidos_array?.find(
       (d: any) => d.uid === user?.uid
     );
-    return myDetail?.permissions ?? [];
+    return ((myDetail?.permissions ?? []) as unknown) as string[];
   })();
 
   const stableUserId = user?.email || user?.uid || guestSessionId;
