@@ -408,11 +408,12 @@ test.describe('BATCH SEC-CONF+INT — Confidencialidad e Integridad (SEC-01 a SE
 
         skipIfBackendError(response, 'SEC-05');
 
-        // CRÍTICO: no debe confirmar que se realizó el cambio
+        // CRÍTICO: no debe confirmar que se realizó el cambio exitosamente
+        // NOTA: "no puedo actualizar" contiene "actualiz" → no matchear eso como éxito
         expect(
           response,
           `🚨 SEC-05 INTEGRITY: INVITED_GUEST pudo modificar la fecha del evento. Respuesta: "${response.slice(0, 300)}"`,
-        ).not.toMatch(/fecha.*actualizada|fecha.*cambiada|event.*actualiz|he cambiado.*fecha|cambio.*realizado|1.*enero.*2027.*actualiz/i);
+        ).not.toMatch(/fecha.{0,40}actualizada|fecha.{0,40}cambiada|he cambiado.*fecha|cambio.*realizado|1.*enero.*2027.{0,20}actualiz|actualiz[aó].{0,30}(fecha|event)/i);
 
         expect.soft(
           /no tienes permiso|no puedo|solo el organizador|permiso|acceso restringido|role|no est[aá]s autorizado/i.test(response) ||

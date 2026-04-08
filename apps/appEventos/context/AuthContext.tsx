@@ -760,9 +760,11 @@ const AuthProvider = ({ children }) => {
           setVerificationDone(true)
         }
       }
-      // SSO cross-domain: si no hay sessionCookie ni usuario Firebase,
+      // SSO cross-domain: si no hay sessionCookie y no hay usuario real (o es anónimo),
       // pero hay idTokenV0.1.0 (p. ej. login en chat-dev/chat-test/chat), crear sesión automáticamente.
-      if (!sessionCookie && !user?.uid) {
+      // NOTA: Firebase crea sesión anónima automáticamente → !user?.uid no es suficiente.
+      // Incluir user?.isAnonymous para que el SSO se intente también cuando Firebase resolvió como anónimo.
+      if (!sessionCookie && (!user?.uid || user?.isAnonymous)) {
         // Race condition fix: tras redirect cross-domain (chat-test → app-test), el cookie
         // idTokenV0.1.0 puede llegar ligeramente después de que React hidrate. Esperar 800ms.
         let crossDomainIdToken = Cookies.get("idTokenV0.1.0")
