@@ -213,6 +213,34 @@ export const TEST_INVITATION_RECIPIENT = {
   name: 'Carlos',
 };
 
+/**
+ * Familia carlos.carrillo@* — aliases de dominio, todos van al mismo inbox.
+ * Password compartida: madrid2012M*+
+ * Inbox principal: carlos.carrillo@recargaexpress.com
+ *
+ * Verificado 2026-04-08 vía api2 getAllUserRelatedEventsByEmail:
+ *   carlos.carrillo@recargaexpress.com → 2 eventos:
+ *     - "Juan Carlos"  (673bb4d879a9e6767609ea51) PENDIENTE  — fecha corrupta
+ *     - "Jhj"          (65e1a4c6f9d4cf50e203bcb9) ARCHIVADO  — 2024-03-31
+ *   carlos.carrillo@bodasdehoy.com      → 0 eventos (no registrado en Firebase)
+ *   carlos.carrillo@eventosorganizador.com → 0 eventos (no registrado)
+ *
+ * Usar esta cuenta como CREATOR minimal (2 eventos propios, ~0 cuota gastada)
+ * en lugar de bodasdehoy.com@gmail.com (43 eventos, cuota cara).
+ */
+export const TEST_CREDENTIALS_CC = {
+  password: process.env.TEST_CC_PASSWORD || 'madrid2012M*+',
+  email: 'carlos.carrillo@recargaexpress.com',
+  // Eventos propios (verificados 2026-04-08)
+  eventos: {
+    juanCarlosId: '673bb4d879a9e6767609ea51',
+    jhjId:        '65e1a4c6f9d4cf50e203bcb9',
+  },
+  // Aliases disponibles pero sin cuenta Firebase registrada aún
+  aliasBodasdehoy:  'carlos.carrillo@bodasdehoy.com',
+  aliasEventos:     'carlos.carrillo@eventosorganizador.com',
+} as const;
+
 export const LOGIN_TIMEOUT = 45_000;
 export const APP_READY_TIMEOUT = 20_000;
 export const CRUD_DEBOUNCE = 1_500;

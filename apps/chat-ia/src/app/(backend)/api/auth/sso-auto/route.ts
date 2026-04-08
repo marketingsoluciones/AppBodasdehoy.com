@@ -9,7 +9,7 @@ const ALLOWED_REDIRECT_HOSTS = [
   'app.bodasdehoy.com', 'chat.bodasdehoy.com', 'memories.bodasdehoy.com',
   'editor.bodasdehoy.com', 'app-test.bodasdehoy.com', 'chat-test.bodasdehoy.com',
   'memories-test.bodasdehoy.com', 'app-dev.bodasdehoy.com', 'chat-dev.bodasdehoy.com',
-  'memories-dev.bodasdehoy.com', 'iachat.bodasdehoy.com', 'localhost',
+  'memories-dev.bodasdehoy.com', 'localhost',
 ];
 
 function isSafeRedirect(urlStr: string): boolean {
