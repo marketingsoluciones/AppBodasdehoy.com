@@ -55,15 +55,18 @@ export const TEST_USERS = {
     canSeeIsabelRaul: false,        // no tiene acceso a Isabel & Raúl
   },
 
-  // Colaborador 2 / Invitado — invitado al evento "Email pruebas"
+  // Colaborador 2 — propietario de "Email pruebas", INVITED_GUEST en eventos ajenos
+  // Verificado 2026-04-08: getAllUserRelatedEventsByEmail('jcc@bodasdehoy.com') → 1 evento ("Email pruebas")
+  // Al acceder a "Boda Isabel & Raúl" → role_detector FIX: guest→invited_guest (email válido + no owner)
   colaborador2: {
     email: 'jcc@bodasdehoy.com',
     password: 'lorca2012M*+',
-    role: 'invited',                // invitado en "Email pruebas"
-    eventoAcceso: 'Email pruebas',
-    eventoAccesoId: '69838b14e3550784e116b682',
-    canSeeIsabelRaul: false,        // no tiene acceso a Isabel & Raúl
-    canModify: false,               // solo lectura
+    role: 'creator',                // CREATOR de su propio evento "Email pruebas"
+    propioEvento: 'Email pruebas',
+    propioEventoId: '69838b14e3550784e116b682',
+    rolEnEventoAjeno: 'invited_guest', // rol cuando accede a "Boda Isabel & Raúl"
+    canSeeIsabelRaul: false,        // no como CREATOR; accede como INVITED_GUEST (datos filtrados)
+    canModify: false,               // NO puede modificar eventos ajenos (INVITED_GUEST)
   },
 } as const;
 

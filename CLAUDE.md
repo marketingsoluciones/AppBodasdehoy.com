@@ -194,7 +194,7 @@ El login unificado está en **chat-ia** (`apps/chat-ia/src/app/[variants]/(auth)
 |---------|------------|---------|
 | **Local** | `http://localhost:8080` | `http://localhost:3210` |
 | **Test** | `https://app-test.bodasdehoy.com` | `https://chat-test.bodasdehoy.com` |
-| **Producción** | `https://organizador.bodasdehoy.com` | `https://iachat.bodasdehoy.com` |
+| **Producción** | `https://organizador.bodasdehoy.com` | `https://chat.bodasdehoy.com` |
 
 ---
 

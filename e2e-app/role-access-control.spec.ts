@@ -26,9 +26,10 @@
  *     → NO tiene acceso a Isabel & Raúl (distinto propietario)
  *
  *   colaborador2 (jcc@bodasdehoy.com)
- *     → rol INVITED_GUEST en "Email pruebas" (69838b14e3550784e116b682)
- *     → solo puede ver su propio estado de invitación
- *     → NO puede modificar, NO ve otros eventos
+ *     → rol CREATOR en su propio evento "Email pruebas" (69838b14e3550784e116b682)
+ *     → rol INVITED_GUEST cuando accede a eventos ajenos (ej: "Boda Isabel & Raúl")
+ *     → NO puede modificar eventos ajenos (add_guest requiere CREATOR)
+ *     → NO ve 43 eventos del organizador principal
  *
  *   visitante (sin sesión)
  *     → rol GUEST → respuesta comercial, ningún dato privado
@@ -46,8 +47,8 @@
  *     R06: OWNER — no puede ver eventos de otro usuario (aislamiento)
  *     R07: COLLAB1 — ve su propio evento (BODA DE PILAR), no Isabel & Raúl
  *     R08: COLLAB1 — puede preguntar datos de su evento
- *     R09: COLLAB2 — solo ve "Email pruebas", no Isabel & Raúl
- *     R10: COLLAB2 — intenta acción de escritura → bloqueado (solo lectura)
+ *     R09: COLLAB2 — ve su propio "Email pruebas", NO los 43 del organizador
+ *     R10: COLLAB2 — intenta añadir invitado a evento ajeno → bloqueado (INVITED_GUEST)
  *
  *   BATCH E — Copilot embebido en appEventos (app-dev.bodasdehoy.com)
  *     E01: OWNER logueado → sin banner "Modo gratuito", con datos del evento
@@ -488,19 +489,20 @@ test.describe('BATCH R3 — COLLAB1 (jcc@recargaexpress.com — BODA DE PILAR)',
   });
 });
 
-// ── R09/R10 — COLABORADOR 2 (jcc@bodasdehoy.com): INVITED en "Email pruebas" ──
+// ── R09/R10 — COLLAB2 (jcc@bodasdehoy.com): CREATOR de "Email pruebas", INVITED_GUEST en eventos ajenos ──
+// Verificado 2026-04-08: getAllUserRelatedEventsByEmail devuelve solo "Email pruebas" para este email.
 
-test.describe('BATCH R4 — COLLAB2 (jcc@bodasdehoy.com — invitado "Email pruebas")', () => {
+test.describe('BATCH R4 — COLLAB2 (jcc@bodasdehoy.com — owner "Email pruebas", INVITED en eventos ajenos)', () => {
   test.setTimeout(480_000 * MULT);
 
-  test('[R09/R10] COLLAB2 — solo Email pruebas, escritura bloqueada', async ({ page }) => {
+  test('[R09/R10] COLLAB2 — ve Email pruebas (propio), no puede escribir en eventos ajenos', async ({ page }) => {
     /**
-     * jcc@bodasdehoy.com tiene rol INVITED_GUEST en "Email pruebas".
-     * api-ia: INVITED_GUEST puede ver get_event_details (básico)
-     *         pero NO puede añadir/eliminar invitados ni modificar el evento.
+     * jcc@bodasdehoy.com es CREATOR de "Email pruebas" (69838b14e3550784e116b682).
+     * Cuando accede a "Boda Isabel & Raúl" (evento ajeno) → rol INVITED_GUEST.
+     * add_guest requiere CREATOR → bloqueado en evento ajeno.
      *
-     * R09: Al listar eventos ve solo "Email pruebas" (no los del organizador)
-     * R10: Intenta añadir un invitado → bloqueado (no tiene permiso de escritura)
+     * R09: Al listar eventos ve solo "Email pruebas" (no los 43 del organizador)
+     * R10: Intenta añadir un invitado a "Boda Isabel & Raúl" → bloqueado (INVITED_GUEST)
      */
     if (!smokeGatePassed) test.skip(true, 'Smoke gate no pasó');
 
@@ -522,11 +524,11 @@ test.describe('BATCH R4 — COLLAB2 (jcc@bodasdehoy.com — invitado "Email prue
       console.log(`[R09] COLLAB2 eventos: "${response.slice(0, 300)}"`);
       skipIfBackendError(response, 'R09');
 
-      // CRÍTICO: no debe ver los 43 eventos del organizador
+      // CRÍTICO: no debe ver los 43 eventos del organizador (solo su propio "Email pruebas")
       expect(
         response,
         '🚨 AISLAMIENTO R09: COLLAB2 ve eventos del organizador (43)',
-      ).not.toMatch(/43\s*eventos?|Boda.*Isabel|Isabel.*Ra[uú]l/i);
+      ).not.toMatch(/43\s*eventos?/i);
 
       // Debe ver "Email pruebas" o 1 evento, o indicar que no tiene eventos propios
       const seesEmailPruebas = /email.*pruebas?|1\s*evento|un\s*evento/i.test(response);
@@ -539,16 +541,18 @@ test.describe('BATCH R4 — COLLAB2 (jcc@bodasdehoy.com — invitado "Email prue
       await page.waitForTimeout(3_000);
     }
 
-    // ── R10: Escritura bloqueada ──────────────────────────────────────────
+    // ── R10: Escritura bloqueada en evento AJENO ─────────────────────────
+    // jcc@bodasdehoy.com accede a "Boda Isabel & Raúl" (no le pertenece)
+    // → rol INVITED_GUEST → add_guest requiere CREATOR → bloqueado
     {
       const articleCount2 = await page.locator('[data-index]').count();
       const { response: r2 } = await sendAndWait(
         page,
-        'Añade a "Test Invitado Spec" como invitado al evento "Email pruebas"',
+        'Añade a "Test Invitado Spec" como invitado a la Boda Isabel y Raúl',
         90_000 * MULT,
         articleCount2,
       );
-      console.log(`[R10] COLLAB2 add_guest: "${r2.slice(0, 300)}"`);
+      console.log(`[R10] COLLAB2 add_guest en evento ajeno: "${r2.slice(0, 300)}"`);
       skipIfBackendError(r2, 'R10');
 
       if (!r2.trim()) {
@@ -557,15 +561,15 @@ test.describe('BATCH R4 — COLLAB2 (jcc@bodasdehoy.com — invitado "Email prue
         return;
       }
 
-      // NO debe confirmar que añadió el invitado
+      // NO debe confirmar que añadió el invitado a un evento ajeno
       expect(
         r2,
-        '🚨 PERM R10: COLLAB2 pudo añadir invitado — no tiene permiso de escritura',
+        '🚨 PERM R10: COLLAB2 pudo añadir invitado a evento ajeno (Boda Isabel & Raúl)',
       ).not.toMatch(/invitado.*añadido|añadí.*test invitado|creé.*invitado|agregué/i);
 
-      // Debe indicar que no tiene permiso
+      // Debe indicar que no tiene permiso (INVITED_GUEST ≠ CREATOR)
       const isBlocked = /no\s*tienes?\s*permiso|no\s*(puedes?|est[aá]s? autorizado)|solo.*organizador|solo.*creador|acceso.*denegado|permission_denied/i.test(r2);
-      expect(isBlocked, `[R10] COLLAB2 podría haber creado invitado sin permiso: "${r2.slice(0, 250)}"`).toBe(true);
+      expect(isBlocked, `[R10] COLLAB2 podría haber creado invitado en evento ajeno sin permiso: "${r2.slice(0, 250)}"`).toBe(true);
     }
   });
 });

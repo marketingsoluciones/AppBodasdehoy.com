@@ -328,7 +328,7 @@ El sistema se considera **seguro para producción** en relación al rol INVITED_
 |---------|------|-----|
 | Dev | https://chat-dev.bodasdehoy.com | https://app-dev.bodasdehoy.com |
 | Test | https://chat-test.bodasdehoy.com | https://app-test.bodasdehoy.com |
-| Prod | https://iachat.bodasdehoy.com | https://organizador.bodasdehoy.com |
+| Prod | https://chat.bodasdehoy.com | https://organizador.bodasdehoy.com |
 
 ---
 
