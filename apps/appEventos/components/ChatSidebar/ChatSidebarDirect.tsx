@@ -100,9 +100,13 @@ const ChatSidebarDirect: FC = () => {
 
   const user = authContext?.user;
   const config = authContext?.config;
+  const verificationDone = authContext?.verificationDone;
   const event = eventContext?.event;
 
-  const isGuest = !user || user?.displayName === 'guest' || !user?.email;
+  // isGuest: true solo si no hay UID de Firebase (usuario no autenticado).
+  // No usar user?.email — puede ser null en ciertos flujos de auth y causaría que
+  // un usuario registrado aparezca como visitante incorrectamente.
+  const isGuest = !verificationDone ? false : (!user?.uid || !!user?.isAnonymous || user?.displayName === 'guest');
 
   // Rol del usuario respecto al evento actual
   // owner: es el creador del evento
@@ -497,6 +501,14 @@ const ChatSidebarDirect: FC = () => {
 
           {/* ── Chat embed ──────────────────────────────────────────────── */}
           <div className="flex-1 min-w-0 overflow-hidden">
+            {/* Esperar a que auth resuelva antes de montar el embed.
+                Esto evita que el copilot se inicialice como "visitante" si Firebase
+                todavía no ha confirmado el estado de autenticación. */}
+            {!verificationDone ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#bbb', fontSize: 13 }}>
+                Cargando...
+              </div>
+            ) : (
             <CopilotEmbed
               userId={userId}
               sessionId={sessionId}
@@ -511,6 +523,7 @@ const ChatSidebarDirect: FC = () => {
               className="w-full h-full"
               onFirstMessage={handleSessionLabelUpdate}
             />
+            )}
           </div>
         </div>
 
