@@ -23,7 +23,7 @@ const QuotaBanner = memo(() => {
   const isGuest = !currentUserId || currentUserId === 'visitante@guest.local';
   const { plan, loading: planLoading } = usePlanLimits();
   const { usageStats, usageStatsLoading, fetchUsageStats } = useBilling();
-  const { isCreditExhausted } = useWallet();
+  const { isCreditExhausted, totalBalance } = useWallet();
   const [todayStats, setTodayStats] = useState<UsageStats | null>(null);
 
   useEffect(() => {
@@ -97,6 +97,8 @@ const QuotaBanner = memo(() => {
   if (percent < 80) return null;
 
   const isBlocked = percent >= 100 && !aiLimit.overage_enabled && isCreditExhausted;
+  // Plan exhausted but user has wallet credit → pay-per-use mode
+  const isPayPerUse = percent >= 100 && !isCreditExhausted && totalBalance > 0;
   const remaining = Math.max(0, Math.round((aiLimit.free_quota - currentTokens) / 500));
 
   if (isBlocked) {
@@ -150,6 +152,45 @@ const QuotaBanner = memo(() => {
             Ver planes
           </Link>
         </Flexbox>
+      </Flexbox>
+    );
+  }
+
+  // Plan exhausted, wallet covers the rest
+  if (isPayPerUse) {
+    return (
+      <Flexbox
+        align="center"
+        gap={8}
+        horizontal
+        style={{
+          background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+          border: '1px solid #86efac',
+          borderRadius: 8,
+          fontSize: 13,
+          marginBottom: 6,
+          padding: '6px 12px',
+        }}
+      >
+        <Zap size={14} style={{ color: '#16a34a', flexShrink: 0 }} />
+        <span style={{ color: '#15803d', flex: 1 }}>
+          Plan agotado · Usando saldo wallet (€{totalBalance.toFixed(2)})
+        </span>
+        <Link
+          href="/settings/billing/planes"
+          style={{
+            border: '1px solid #16a34a',
+            borderRadius: 6,
+            color: '#16a34a',
+            fontSize: 12,
+            fontWeight: 600,
+            padding: '3px 10px',
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Ampliar plan
+        </Link>
       </Flexbox>
     );
   }
