@@ -46,14 +46,17 @@ const MULT = E2E_ENV === 'local' ? 1 : 1.5;
 
 // ─── Constantes del usuario INVITED_GUEST ─────────────────────────────────────
 
-// Datos verificados contra api2 (2026-04-08):
-// jcc@bodasdehoy.com OWNS "Email pruebas" → sería CREATOR si se usara ese evento.
-// Para obtener rol INVITED_GUEST, este usuario accede a "Boda Isabel & Raúl"
-// (owned by bodasdehoy.com@gmail.com). Al no aparecer en getAllUserRelatedEventsByEmail,
-// role_detector.py aplica FIX guest→invited_guest por tener email válido.
+// IMPORTANTE: jcc@bodasdehoy.com comparte Firebase UID con bodasdehoy.com@gmail.com
+// (UID: upSETrmXc7ZnsIhrjDjbHd7u2up1) → el role_detector lo trata como CREATOR/owner
+// de "Boda Isabel & Raúl". NO es válido para tests de INVITED_GUEST.
+//
+// Cuenta correcta: carlos.carrillo@marketingsoluciones.com
+//   UID: XVPdnN2mYhfX2fl86k7qFQ2Uj963 (UID DISTINTO del owner)
+//   Añadida como invitada real en "Boda Isabel & Raúl" vía agregarInvitado (2026-04-08)
+//   → role_detector la detecta como INVITED_GUEST (no owner, aparece en lista de invitados)
 const INVITED_GUEST = {
-  email: 'jcc@bodasdehoy.com',
-  password: TEST_CREDENTIALS.password,
+  email: TEST_USERS.carlosCarrilloInvitado.email,
+  password: TEST_USERS.carlosCarrilloInvitado.password,
   evento: 'Boda Isabel & Raúl',
   eventoId: '66a9042dec5c58aa734bca44',
 } as const;
