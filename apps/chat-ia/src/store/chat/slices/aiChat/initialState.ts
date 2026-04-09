@@ -12,6 +12,8 @@ export interface ChatAIChatState {
   apiErrorDetail?: string;
   /** screen_type from api-ia 402/503 for UI */
   apiErrorScreenType?: string;
+  /** ISO timestamp from 429 velocity_throttle — when the throttle resets */
+  throttleResetAt?: string;
   /**
    * is the AI message is generating
    */
@@ -62,6 +64,7 @@ export interface ChatAIChatState {
 export const initialAiChatState: ChatAIChatState = {
   apiErrorDetail: undefined,
   apiErrorScreenType: undefined,
+  throttleResetAt: undefined,
   chatLoadingIds: [],
   inputFiles: [],
   inputMessage: '',

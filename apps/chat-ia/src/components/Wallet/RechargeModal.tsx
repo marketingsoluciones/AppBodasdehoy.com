@@ -15,11 +15,13 @@ export interface RechargeModalProps {
   onClose: () => void;
   onContinueInDebt?: () => void;
   onRecharge: (amount: number) => Promise<{ error?: string; success: boolean }>;
+  /** URL a la página de planes — si se provee, muestra botón "Ver planes" (ej: both_exhausted, plan_upgrade) */
+  plansUrl?: string;
 }
 
 const RECHARGE_AMOUNTS = [5, 10, 20, 50, 100];
 
-const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck, detailMessage, onRecharge, allowDebtMode, onContinueInDebt }) => {
+const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck, detailMessage, onRecharge, allowDebtMode, onContinueInDebt, plansUrl }) => {
   const suggestedAmount = balanceCheck ? Math.max(5, Math.ceil(balanceCheck.shortfall)) : 20;
 
   const [selectedAmount, setSelectedAmount] = useState(suggestedAmount);
@@ -300,6 +302,27 @@ const RechargeModal = memo<RechargeModalProps>(({ isOpen, onClose, balanceCheck,
             )}
           </button>
         </Flexbox>
+
+        {/* Ver planes — solo si se provee plansUrl (ej: both_exhausted, plan_upgrade) */}
+        {plansUrl && (
+          <button
+            onClick={() => { window.location.href = plansUrl; }}
+            style={{
+              background: 'none',
+              border: '1px solid #7c3aed',
+              borderRadius: 8,
+              color: '#7c3aed',
+              cursor: 'pointer',
+              fontSize: 13,
+              fontWeight: 500,
+              marginTop: 8,
+              padding: '10px 16px',
+              width: '100%',
+            }}
+          >
+            Ver planes disponibles →
+          </button>
+        )}
 
         {/* Modo crédito (saldo negativo) — solo si está habilitado */}
         {allowDebtMode && onContinueInDebt && (

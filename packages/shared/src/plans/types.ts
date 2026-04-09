@@ -31,6 +31,8 @@ export interface PlanLimit {
   service_name: string;
   free_quota: number;
   daily_quota?: number;
+  /** Max requests/hora para este SKU — configurable por plan en api2, sin hardcodear en código */
+  hourly_velocity_limit?: number;
   overage_enabled: boolean;
   overage_price?: number;
 }

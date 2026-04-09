@@ -678,13 +678,14 @@ export const generateAIChat: StateCreator<
           const errBody = (error as any)?.body;
           set({ apiErrorDetail: errBody?.message, apiErrorScreenType: errBody?.screen_type });
         }
-        // Si el backend devuelve 429 por límite diario de consultas
+        // Si el backend devuelve 429 por límite diario o velocity throttle
         if ((error as any)?.type === 'rate_limit') {
           const errBody = (error as any)?.body;
           set({
             showInsufficientBalance: true,
-            apiErrorDetail: errBody?.message ?? 'Has alcanzado el límite diario de consultas. Vuelve mañana o actualiza tu plan.',
-            apiErrorScreenType: 'daily_limit',
+            apiErrorDetail: errBody?.message ?? 'Has alcanzado el límite de consultas. Vuelve mañana o actualiza tu plan.',
+            apiErrorScreenType: errBody?.screen_type ?? 'daily_limit',
+            throttleResetAt: errBody?.reset_at,
           });
         }
         // Si el backend devuelve 401 (community user sin auth)
