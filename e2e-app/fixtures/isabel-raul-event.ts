@@ -28,6 +28,19 @@ export const ISABEL_RAUL_EVENT = {
   dietas: {
     celiacos: 9,
   },
+
+  // Presupuesto — usar como referencia en BATCH PRE-*
+  // Los tests usan baseline dinámico (preguntan antes de mutar), no dependen de valores exactos.
+  // ⚠️ partida1: verificar que "Catering" existe en la BD antes de ejecutar PRE-PAGOS.
+  presupuesto: {
+    partida1: 'Catering',
+  },
+
+  // Itinerario — ⚠️ TODO: actualizar `total` con valor real.
+  // Para obtenerlo: login como owner → "¿cuántos items tiene el itinerario de Boda Isabel & Raúl?"
+  itinerario: {
+    total: 5,
+  },
 } as const;
 
 /**

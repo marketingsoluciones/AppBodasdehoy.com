@@ -54,7 +54,22 @@ async function loginChat(page: Page, email: string, password: string): Promise<b
     .then(() => true).catch(() => false);
 }
 
-async function sendAndWait(page: Page, msg: string, waitMs = 90_000): Promise<string> {
+function stripBoilerplate(text: string): string {
+  return text
+    .replace(/\d{2}:\d{2}:\d{2}/g, '')
+    .replace(/Analizando tu solicitud\.{2,}/gi, '')
+    .replace(/Buscando información\.{2,}/gi, '')
+    .replace(/Consultando[^.]{0,40}\.{2,}/gi, '')
+    .replace(/Formulando tu respuesta\.{2,}/gi, '')
+    .replace(/Procesando\.{2,}/gi, '')
+    .replace(/Pensando\.{2,}/gi, '')
+    .replace(/(?<![a-zA-Z0-9])auto(?![a-zA-Z0-9])/g, '')
+    .replace(/Synced/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function sendAndWait(page: Page, msg: string, waitMs = 90_000, afterCount = 0): Promise<string> {
   const ta = page.locator('div[contenteditable="true"]').last();
   await ta.waitFor({ state: 'visible', timeout: 20_000 });
   await ta.click();
@@ -63,18 +78,34 @@ async function sendAndWait(page: Page, msg: string, waitMs = 90_000): Promise<st
   await page.keyboard.type(msg, { delay: 20 });
   await page.keyboard.press('Enter');
 
-  await page.waitForTimeout(8_000);
+  // Esperar a que aparezca al menos un nuevo artículo
+  const sendDeadline = Date.now() + 25_000;
+  while (Date.now() < sendDeadline) {
+    if (await page.locator('[data-index]').count() > afterCount) break;
+    await page.waitForTimeout(800);
+  }
+  await page.waitForTimeout(7_000);
+
   const deadline = Date.now() + waitMs;
   let last = ''; let stable = 0;
+  const prefix = msg.trim().slice(0, 25).toLowerCase();
 
   while (Date.now() < deadline) {
-    const texts = await page.locator('[data-index]').allTextContents();
-    const ai = texts.filter((t) =>
-      t.trim().length > 10 && !t.toLowerCase().includes(msg.slice(0, 20).toLowerCase()),
-    ).join('\n').replace(/\d{2}:\d{2}:\d{2}/g, '').replace(/\s+/g, ' ').trim();
+    const articles = await page.locator('[data-index]').allTextContents();
+    const newOnes = articles.slice(afterCount);
+    const aiMsgs = newOnes.filter((t) => {
+      const s = t.trim();
+      if (s.length <= 5) return false;
+      if (s.toLowerCase().includes(prefix)) return false;
+      if (/^(\d{2}:\d{2}:\d{2}\s*\n?\s*)+$/.test(s)) return false;
+      return true;
+    });
 
-    if (ai && ai === last) { stable++; if (stable >= 2) break; }
-    else { stable = 0; last = ai; }
+    const stripped = stripBoilerplate(aiMsgs.join('\n').trim());
+    if (stripped.length > 5) {
+      if (stripped === last) { stable++; if (stable >= 2) break; }
+      else { stable = 0; last = stripped; }
+    }
     await page.waitForTimeout(1_500);
   }
   return last;
@@ -155,9 +186,12 @@ test.describe('BATCH 2 — INVITED_GUEST (carlos.carrillo@marketingsoluciones.co
     await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(3_000);
 
+    let count = await page.locator('[data-index]').count();
+
     // RSV-03: Puede ver datos básicos del evento al que está invitado
     {
-      const r = await sendAndWait(page, '¿Cuándo es la boda de Isabel y Raúl?');
+      const r = await sendAndWait(page, '¿Cuándo es la boda de Isabel y Raúl?', 90_000, count);
+      count = await page.locator('[data-index]').count();
       console.log(`[RSV-03] "${r.slice(0, 200)}"`);
 
       const hasFecha = /diciembre|december|2025|30/i.test(r);
@@ -172,7 +206,8 @@ test.describe('BATCH 2 — INVITED_GUEST (carlos.carrillo@marketingsoluciones.co
 
     // RSV-04: NO puede ver la lista completa de invitados (DATA_FILTER: self_only)
     {
-      const r = await sendAndWait(page, '¿Cuántos invitados hay en la boda de Isabel y Raúl?');
+      const r = await sendAndWait(page, '¿Cuántos invitados hay en la boda de Isabel y Raúl?', 90_000, count);
+      count = await page.locator('[data-index]').count();
       console.log(`[RSV-04] "${r.slice(0, 200)}"`);
 
       // No debe ver el total de 44 (ahora 44 tras añadir Carlos Carrillo)
@@ -182,7 +217,7 @@ test.describe('BATCH 2 — INVITED_GUEST (carlos.carrillo@marketingsoluciones.co
 
     // RSV-05: NO puede modificar el evento
     {
-      const r = await sendAndWait(page, 'Cambia la fecha de la boda de Isabel y Raúl a marzo de 2026');
+      const r = await sendAndWait(page, 'Cambia la fecha de la boda de Isabel y Raúl a marzo de 2026', 90_000, count);
       console.log(`[RSV-05] "${r.slice(0, 200)}"`);
 
       const blocked = /no\s*(puedo|tienes?\s*permiso|puedo\s*modificar)|solo.*organizador|no\s*est[aá]s?\s*autorizado|no\s*tengo\s*acceso/i.test(r);
