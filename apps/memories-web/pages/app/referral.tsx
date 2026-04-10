@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useReferral, REFERRALS_PER_REWARD } from '../../hooks/useReferral';
 import { useAuth } from '../../hooks/useAuth';
+import { trackReferralLinkShared } from '@bodasdehoy/shared';
 
 function StatCard({ value, label, icon }: { value: number | string; label: string; icon: string }) {
   return (
@@ -69,11 +70,13 @@ export default function ReferralPage() {
     navigator.clipboard.writeText(referralLink).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      trackReferralLinkShared('copy');
     });
   };
 
   const handleShareWhatsApp = () => {
     if (!referralLink) return;
+    trackReferralLinkShared('whatsapp');
     const text = encodeURIComponent(
       `¡Guarda los recuerdos de tu boda con Memories! 📸 Regístrate gratis aquí: ${referralLink}`
     );
@@ -82,6 +85,7 @@ export default function ReferralPage() {
 
   const handleShareEmail = () => {
     if (!referralLink) return;
+    trackReferralLinkShared('email');
     const subject = encodeURIComponent('Te invito a usar Memories para tu boda');
     const body = encodeURIComponent(
       `Hola,\n\nTe recomiendo Memories, la app para álbumes colaborativos de bodas. ¡Perfecta para guardar todos los recuerdos de tu día especial!\n\nRegístrate gratis con mi enlace: ${referralLink}\n\n¡Espero que lo disfrutes!`

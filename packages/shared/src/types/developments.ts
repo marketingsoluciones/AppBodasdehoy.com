@@ -41,8 +41,10 @@ export interface DevelopmentConfig {
   favicon?: string;
   /** Colores del tema */
   theme?: DevelopmentTheme;
-  /** ID de Meta Pixel para analytics */
+  /** ID de Meta Pixel (Facebook/Instagram Ads) — propio de cada white-label */
   metaPixel_id?: string;
+  /** ID de Google Tag Manager — propio de cada white-label (ej: GTM-XXXXXXX) */
+  gtm_id?: string;
   /** Zona horaria principal de la empresa */
   timeZone?: string;
 }
@@ -67,6 +69,8 @@ export const developments: DevelopmentConfig[] = [
       baseColor: '#F2F2F2',
       colorScroll: '#ffc0cb',
     },
+    metaPixel_id: '1678005076053299',
+    gtm_id: 'GTM-P6R3S584',
     timeZone: 'Europe/Madrid',
   },
   {

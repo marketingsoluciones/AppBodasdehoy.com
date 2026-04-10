@@ -4,9 +4,10 @@
  */
 import Head from 'next/head';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePlan } from '../../hooks/usePlan';
 import { TIER_COLORS } from '@bodasdehoy/shared/plans';
+import { trackPlanView, trackSubscriptionStarted } from '@bodasdehoy/shared';
 import WeddingDetailsModal, { type WeddingDetails } from '../../components/checkout/WeddingDetailsModal';
 
 const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
@@ -95,6 +96,10 @@ export default function ProPage() {
   const [error, setError] = useState<string | null>(null);
   const [modalPlanId, setModalPlanId] = useState<string | null>(null);
 
+  useEffect(() => {
+    trackPlanView('memories-plans');
+  }, []);
+
   // Sort by price ascending
   const plans = allPlans
     .filter((p) => p.is_active !== false)
@@ -110,6 +115,13 @@ export default function ProPage() {
 
   const handleConfirmDetails = async (details: WeddingDetails) => {
     if (!modalPlanId) return;
+    const plan = plans.find((p) => p.plan_id === modalPlanId);
+    const planPrice = plan?.pricing.monthly_fee ?? 0;
+    trackSubscriptionStarted(modalPlanId, planPrice);
+    // Store for trackSubscriptionComplete after Stripe redirect
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('pending_purchase', JSON.stringify({ planId: modalPlanId, price: planPrice }));
+    }
     setPurchasing(modalPlanId);
     try {
       const result = await handlePurchase(modalPlanId, details);
