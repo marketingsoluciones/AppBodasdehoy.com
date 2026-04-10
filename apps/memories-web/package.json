@@ -13,6 +13,7 @@
   "dependencies": {
     "@bodasdehoy/memories": "workspace:*",
     "@bodasdehoy/shared": "workspace:*",
+    "@sentry/nextjs": "^10.47.0",
     "heic2any": "^0.0.4",
     "i18next": "^23.16.8",
     "next": "^15.1.0",

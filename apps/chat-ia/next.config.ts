@@ -497,4 +497,20 @@ const withPWA =
       })
     : noWrapper;
 
-export default withBundleAnalyzer(withPWA(nextConfig as NextConfig));
+// Sentry — solo activo cuando hay DSN configurado (evita overhead en dev local sin DSN)
+import { withSentryConfig } from '@sentry/nextjs';
+const sentryOptions = {
+  silent: true,
+  org: 'itel-0n',
+  project: 'chat-ia',
+  widenClientFileUpload: true,
+  hideSourceMaps: true,
+  disableLogger: true,
+  // Turbopack-compatible: no webpack plugin en dev
+  disableClientWebpackPlugin: !isProd,
+  disableServerWebpackPlugin: !isProd,
+};
+const withSentry = (cfg: NextConfig) =>
+  process.env.NEXT_PUBLIC_SENTRY_DSN ? withSentryConfig(cfg, sentryOptions) : cfg;
+
+export default withBundleAnalyzer(withPWA(withSentry(nextConfig) as NextConfig));
