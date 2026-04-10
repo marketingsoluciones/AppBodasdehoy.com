@@ -23,7 +23,7 @@ const QuotaBanner = memo(() => {
   const isGuest = !currentUserId || currentUserId === 'visitante@guest.local';
   const { plan, loading: planLoading } = usePlanLimits();
   const { usageStats, usageStatsLoading, fetchUsageStats } = useBilling();
-  const { isCreditExhausted, totalBalance } = useWallet();
+  const { isCreditExhausted, totalBalance, creditLimit } = useWallet();
   const [todayStats, setTodayStats] = useState<UsageStats | null>(null);
 
   useEffect(() => {
@@ -98,7 +98,10 @@ const QuotaBanner = memo(() => {
 
   const isBlocked = percent >= 100 && !aiLimit.overage_enabled && isCreditExhausted;
   // Plan exhausted but user has wallet credit → pay-per-use mode
-  const isPayPerUse = percent >= 100 && !isCreditExhausted && totalBalance > 0;
+  // Note: totalBalance can be negative when using credit limit, so check isCreditExhausted instead
+  const isPayPerUse = percent >= 100 && !isCreditExhausted;
+  // Available funds: positive balance OR remaining credit limit
+  const availableFunds = totalBalance >= 0 ? totalBalance : Math.max(0, creditLimit + totalBalance);
   const remaining = Math.max(0, Math.round((aiLimit.free_quota - currentTokens) / 500));
 
   if (isBlocked) {
@@ -174,7 +177,7 @@ const QuotaBanner = memo(() => {
       >
         <Zap size={14} style={{ color: '#16a34a', flexShrink: 0 }} />
         <span style={{ color: '#15803d', flex: 1 }}>
-          Plan agotado · Usando saldo wallet (€{totalBalance.toFixed(2)})
+          Plan agotado · Crédito disponible: €{availableFunds.toFixed(2)}
         </span>
         <Link
           href="/settings/billing/planes"
