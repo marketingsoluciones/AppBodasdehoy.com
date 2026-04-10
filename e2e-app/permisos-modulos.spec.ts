@@ -105,8 +105,12 @@ async function visitorText(page: Page, response: string): Promise<string> {
  *
  * Uso: `if (guestQuotaOrDenied(response)) return;`
  */
-/** Detecta cuando el backend de la IA no está disponible o con errores transitorios. */
-const SERVICE_UNAVAILABLE_PATTERN = /service_unavailable|Servicio no disponible|error en la conexión con la API|no puedo proporcionar.*error|requirió demasiados pasos|problema técnico al intentar|dificultades para obtener la información|unknown request error|server communication error|API Key is incorrect|please check your API Key/i;
+/** Detecta cuando el backend de la IA no está disponible o con errores transitorios.
+ * NOTA: LobeChat muestra errores del backend en un componente colapsado. El DOM expone
+ * "response.ServiceUnavailable" (PascalCase) en el texto visible, pero el JSON interno
+ * {"type":"service_unavailable"} queda oculto tras "Show Details" → allTextContents()
+ * no lo captura. Por eso incluimos AMBAS formas: snake_case y PascalCase. */
+const SERVICE_UNAVAILABLE_PATTERN = /service_unavailable|ServiceUnavailable|Servicio no disponible|error en la conexión con la API|no puedo proporcionar.*error|requirió demasiados pasos|problema técnico al intentar|dificultades para obtener la información|unknown request error|server communication error|API Key is incorrect|please check your API Key/i;
 
 function guestQuotaOrDenied(response: string): boolean {
   if (response.length === 0) return true; // cuota agotada = sin respuesta = sin datos
