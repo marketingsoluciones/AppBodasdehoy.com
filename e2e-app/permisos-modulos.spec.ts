@@ -34,6 +34,9 @@ import { test, expect, Page } from '@playwright/test';
 import { TEST_URLS, E2E_ENV } from './fixtures';
 import { TEST_USERS, ISABEL_RAUL_EVENT } from './fixtures/isabel-raul-event';
 
+/** Sufijo para api-ia (misma idea que el nudge de ask()); al final del mensaje evita interferencia con userPrefix en ask(). */
+const EVENT_FILTER_SUFFIX = ` Usa filter_by_name="${ISABEL_RAUL_EVENT.nombre}".`;
+
 const CHAT_URL = TEST_URLS.chat;
 const MULT = E2E_ENV === 'local' ? 1 : 1.5;
 
@@ -41,9 +44,6 @@ const MULT = E2E_ENV === 'local' ? 1 : 1.5;
 const TEST_GUEST_NAME = 'PM-Test-Auto';
 const TEST_BUDGET_NAME = 'PM-Partida-Test';
 const TEST_TASK_NAME = 'PM-Tarea-Test';
-
-// ─── Estado global del smoke gate ─────────────────────────────────────────────
-let smokeOk = false;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -114,9 +114,12 @@ async function ask(
     waitMs?: number;
     requirePattern?: RegExp;
     failPattern?: RegExp;
+    /** Omitir EVENT_FILTER_SUFFIX (para tests COLLAB que usan evento distinto) */
+    noEventHint?: boolean;
   } = {},
 ): Promise<{ response: string; newCount: number }> {
   const waitMs = opts.waitMs ?? 90_000 * MULT;
+  const fullMessage = opts.noEventHint ? message : `${message}${EVENT_FILTER_SUFFIX}`;
 
   if (!isAtChat(page.url())) {
     await page.goto(`${CHAT_URL}/chat`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
@@ -128,7 +131,7 @@ async function ask(
   await editor.click();
   await page.keyboard.press('Meta+A');
   await page.keyboard.press('Backspace');
-  await page.keyboard.type(message, { delay: 20 });
+  await page.keyboard.type(fullMessage, { delay: 20 });
   await page.keyboard.press('Enter');
 
   // Esperar a que aparezca el mensaje del usuario
@@ -145,7 +148,7 @@ async function ask(
   let stableCount = 0;
   let currentCount = afterCount;
   let nudgesSent = 0;
-  const userPrefix = message.trim().slice(0, 25).toLowerCase();
+  const userPrefix = message.trim().slice(0, 12).toLowerCase();
 
   while (Date.now() < deadline) {
     const articles = await page.locator('[data-index]').allTextContents();
@@ -158,6 +161,8 @@ async function ask(
       if (trimmed.toLowerCase().includes(userPrefix)) return false;
       if (trimmed.toLowerCase().includes('filter_by_name y responde:')) return false;
       if (/^(\d{2}:\d{2}:\d{2}\s*\n?\s*)+$/.test(trimmed)) return false;
+      // Chips de selector de modelo (LobeChat) — no son respuesta de la IA
+      if (/^([\s\n]*openai\s*)?gpt-\d+[-\w]*([\s\n]+(openai\s*)?gpt-\d+[-\w]*)*[\s\n]*$/i.test(trimmed)) return false;
       return true;
     });
 
@@ -176,7 +181,9 @@ async function ask(
             nudgesSent++;
             stableCount = 0;
             lastText = '';
-            const nudge = `Usa filter_by_name="${ISABEL_RAUL_EVENT.nombre}" y responde: ${message}`;
+            const nudge = opts.noEventHint
+              ? `Responde de nuevo: ${message}`
+              : `Usa filter_by_name="${ISABEL_RAUL_EVENT.nombre}" y responde: ${message}`;
             const ed = page.locator('div[contenteditable="true"]').last();
             await ed.click();
             await page.keyboard.press('Meta+A');
@@ -199,22 +206,36 @@ async function ask(
   return { response: lastText, newCount: currentCount };
 }
 
+// ─── smokeGate — ping self-contained por describe ─────────────────────────────
+/**
+ * Llama a smokeGate() dentro de cada test.describe para que el batch pueda
+ * ejecutarse con --grep sin depender de que PM-S01 haya corrido antes.
+ * Cada describe hace su propio ping a /login en beforeAll.
+ */
+function smokeGate(): void {
+  let ok = false;
+  test.beforeAll(async ({ request }) => {
+    const res = await request.get(`${CHAT_URL}/login`).catch(() => null);
+    ok = (res?.status() ?? 0) === 200;
+  });
+  test.beforeEach(() => {
+    test.skip(!ok, 'chat-ia no disponible (smoke gate)');
+  });
+}
+
 // ─── BATCH 0: SMOKE GATE ──────────────────────────────────────────────────────
 
 test.describe('BATCH 0 — Smoke gate', () => {
   test('PM-S01 — chat-ia responde (gate global)', async ({ page }) => {
     const res = await page.request.get(`${CHAT_URL}/login`);
     expect(res.status(), 'chat-ia debe devolver 200 en /login').toBe(200);
-    smokeOk = true;
   });
 });
 
 // ─── BATCH INV: Módulo Invitados ──────────────────────────────────────────────
 
 test.describe('BATCH INV — Invitados × Roles', () => {
-  test.beforeEach(() => {
-    test.skip(!smokeOk, 'Smoke gate no pasó — servidor no disponible');
-  });
+  smokeGate();
 
   // ── OWNER: leer lista ──────────────────────────────────────────────────────
   test('PM-INV-01 [owner] lista de invitados devuelve el total real', async ({ page }) => {
@@ -422,9 +443,7 @@ test.describe('BATCH INV — Invitados × Roles', () => {
 // ─── BATCH PRE: Módulo Presupuesto ────────────────────────────────────────────
 
 test.describe('BATCH PRE — Presupuesto × Roles', () => {
-  test.beforeEach(() => {
-    test.skip(!smokeOk, 'Smoke gate no pasó');
-  });
+  smokeGate();
 
   // ── OWNER: ver presupuesto ─────────────────────────────────────────────────
   test('PM-PRE-01 [owner] ver resumen del presupuesto con cifras reales', async ({ page }) => {
@@ -512,9 +531,7 @@ test.describe('BATCH PRE — Presupuesto × Roles', () => {
 // ─── BATCH TAR: Módulo Tareas/Itinerario ──────────────────────────────────────
 
 test.describe('BATCH TAR — Tareas × Roles', () => {
-  test.beforeEach(() => {
-    test.skip(!smokeOk, 'Smoke gate no pasó');
-  });
+  smokeGate();
 
   // ── OWNER: crear tarea → verificar ────────────────────────────────────────
   test('PM-TAR-01 [owner] crear tarea en itinerario → aparece en BD', async ({ page }) => {
@@ -583,9 +600,7 @@ test.describe('BATCH TAR — Tareas × Roles', () => {
 // ─── BATCH EVT: Módulo Evento ──────────────────────────────────────────────────
 
 test.describe('BATCH EVT — Evento × Roles', () => {
-  test.beforeEach(() => {
-    test.skip(!smokeOk, 'Smoke gate no pasó');
-  });
+  smokeGate();
 
   // ── OWNER: ver resumen completo ───────────────────────────────────────────
   test('PM-EVT-01 [owner] ver resumen completo del evento con datos reales', async ({ page }) => {
@@ -683,9 +698,7 @@ test.describe('BATCH EVT — Evento × Roles', () => {
 // ─── BATCH MES: Módulo Mesas ──────────────────────────────────────────────────
 
 test.describe('BATCH MES — Mesas × Roles', () => {
-  test.beforeEach(() => {
-    test.skip(!smokeOk, 'Smoke gate no pasó');
-  });
+  smokeGate();
 
   // ── OWNER: ver plano de mesas ─────────────────────────────────────────────
   test('PM-MES-01 [owner] ver distribución de mesas del evento', async ({ page }) => {
@@ -848,9 +861,7 @@ const TEST_ITR_NAME = 'ITR-Test-Auto';
 // ─── BATCH INV-EMAIL: Módulo Invitaciones ─────────────────────────────────────
 
 test.describe('BATCH INV-EMAIL — Invitaciones × Roles', () => {
-  test.beforeEach(() => {
-    test.skip(!smokeOk, 'Smoke gate no pasó');
-  });
+  smokeGate();
 
   // ── OWNER: ver estado de envíos ───────────────────────────────────────────
   test('PM-INVT-01 [owner] ver estado de envíos de invitaciones', async ({ page }) => {
@@ -977,9 +988,7 @@ test.describe('BATCH INV-EMAIL — Invitaciones × Roles', () => {
  *    Verificar que ISABEL_RAUL_EVENT.presupuesto.partida1 existe en BD antes de ejecutar.
  */
 test.describe('BATCH PRE-PAGOS — Pagos de presupuesto × Roles', () => {
-  test.beforeEach(() => {
-    test.skip(!smokeOk, 'Smoke gate no pasó — servidor no disponible');
-  });
+  smokeGate();
 
   // ── OWNER: registrar pago → total pagado sube ──────────────────────────────
   test('PRE-PAGOS-01 [owner] registrar pago en partida → total pagado sube', async ({ page }) => {
@@ -1176,9 +1185,7 @@ test.describe('BATCH PRE-PAGOS — Pagos de presupuesto × Roles', () => {
  * CLEANUP: PRE-ITEMS-03 elimina la partida creada en PRE-ITEMS-01/02.
  */
 test.describe('BATCH PRE-ITEMS — Partidas de presupuesto', () => {
-  test.beforeEach(() => {
-    test.skip(!smokeOk, 'Smoke gate no pasó');
-  });
+  smokeGate();
 
   const TEST_ITEM_NAME = 'PRE-Items-Test';
   const TEST_ITEM_QTY = 3;
@@ -1331,9 +1338,7 @@ test.describe('BATCH PRE-ITEMS — Partidas de presupuesto', () => {
  *   - invited_guest/visitor: respuesta incluye importes reales.
  */
 test.describe('BATCH PRE-DASH — Dashboard financiero × Roles', () => {
-  test.beforeEach(() => {
-    test.skip(!smokeOk, 'Smoke gate no pasó');
-  });
+  smokeGate();
 
   // ── OWNER: resumen financiero completo ────────────────────────────────────
   test('PRE-DASH-01 [owner] solicitar resumen financiero completo del evento', async ({ page }) => {
@@ -1433,9 +1438,7 @@ test.describe('BATCH PRE-DASH — Dashboard financiero × Roles', () => {
  * SRV-08 requiere COLLAB_ACCEPTED=true + permiso servicios=edit configurado en appEventos.
  */
 test.describe('BATCH SRV — Servicios/Kanban × Roles', () => {
-  test.beforeEach(() => {
-    test.skip(!smokeOk, 'Smoke gate no pasó');
-  });
+  smokeGate();
 
   // ── OWNER: crear servicio → aparece en pendientes ──────────────────────────
   test('SRV-01 [owner] crear servicio → aparece en columna "Pendiente"', async ({ page }) => {
@@ -1694,9 +1697,7 @@ test.describe('BATCH SRV — Servicios/Kanban × Roles', () => {
  * CLEANUP: ITR-05 elimina el item creado en ITR-02. ITR-06/07 limpian en el mismo test.
  */
 test.describe('BATCH ITR — Itinerario × Roles', () => {
-  test.beforeEach(() => {
-    test.skip(!smokeOk, 'Smoke gate no pasó');
-  });
+  smokeGate();
 
   // ── OWNER: listar items del itinerario ────────────────────────────────────
   test('ITR-01 [owner] listar items del itinerario → devuelve items', async ({ page }) => {
@@ -1980,9 +1981,7 @@ test.describe('BATCH ITR — Itinerario × Roles', () => {
  *   3. Ejecutar con: COLLAB_ACCEPTED=true E2E_ENV=dev npx playwright test --grep "COLLAB"
  */
 test.describe('BATCH COLLAB — Colaborador con permisos por módulo', () => {
-  test.beforeEach(() => {
-    test.skip(!smokeOk, 'Smoke gate no pasó');
-  });
+  smokeGate();
 
   const COLLAB_EVENT = TEST_USERS.jccColaborador.eventoCompartido; // "Juan Carlos"
 
@@ -2002,6 +2001,7 @@ test.describe('BATCH COLLAB — Colaborador con permisos por módulo', () => {
       page,
       `¿Cuántos invitados hay en "${COLLAB_EVENT}"?`,
       count,
+      { noEventHint: true },
     );
     console.log('[COLLAB-01] collab guests:', response.slice(0, 200));
 
@@ -2024,6 +2024,7 @@ test.describe('BATCH COLLAB — Colaborador con permisos por módulo', () => {
       page,
       `¿Cuál es el presupuesto total de "${COLLAB_EVENT}"?`,
       count,
+      { noEventHint: true },
     );
     console.log('[COLLAB-02] collab budget:', response.slice(0, 200));
 
@@ -2047,7 +2048,7 @@ test.describe('BATCH COLLAB — Colaborador con permisos por módulo', () => {
       page,
       `¿Qué servicios tiene el evento "${COLLAB_EVENT}"?`,
       count,
-      { requirePattern: /servicio|no\s*hay|pendiente|completado/i },
+      { requirePattern: /servicio|no\s*hay|pendiente|completado/i, noEventHint: true },
     );
     console.log('[COLLAB-03] collab view services:', response.slice(0, 200));
 
@@ -2071,6 +2072,7 @@ test.describe('BATCH COLLAB — Colaborador con permisos por módulo', () => {
       page,
       `Marca como completado el primer servicio del evento "${COLLAB_EVENT}"`,
       count,
+      { noEventHint: true },
     );
     console.log('[COLLAB-04] collab edit service:', response.slice(0, 200));
 
@@ -2096,7 +2098,7 @@ test.describe('BATCH COLLAB — Colaborador con permisos por módulo', () => {
       page,
       `Marca como "en progreso" el primer servicio pendiente del evento "${COLLAB_EVENT}"`,
       count,
-      { requirePattern: /actualizado|cambiado|progreso|estado/i },
+      { requirePattern: /actualizado|cambiado|progreso|estado/i, noEventHint: true },
     );
     console.log('[COLLAB-05] collab edit with perm:', editResp.slice(0, 150));
 
@@ -2120,7 +2122,7 @@ test.describe('BATCH COLLAB — Colaborador con permisos por módulo', () => {
       page,
       `¿Qué hay en el itinerario del evento "${COLLAB_EVENT}"?`,
       count,
-      { requirePattern: /item|hora|actividad|no\s*hay|itinerario/i },
+      { requirePattern: /item|hora|actividad|no\s*hay|itinerario/i, noEventHint: true },
     );
     console.log('[COLLAB-06] collab view itinerary:', response.slice(0, 200));
 
@@ -2144,6 +2146,7 @@ test.describe('BATCH COLLAB — Colaborador con permisos por módulo', () => {
       page,
       `Añade al itinerario de "${COLLAB_EVENT}" un item "Collab-Hack" a las 08:00`,
       count,
+      { noEventHint: true },
     );
     console.log('[COLLAB-07] collab create itr item:', response.slice(0, 200));
 
@@ -2167,7 +2170,7 @@ test.describe('BATCH COLLAB — Colaborador con permisos por módulo', () => {
       page,
       `¿Qué evento tengo compartido? Dame su nombre y fecha`,
       count,
-      { requirePattern: /juan\s*carlos|evento/i },
+      { requirePattern: /juan\s*carlos|evento/i, noEventHint: true },
     );
     console.log('[COLLAB-08] collab basic event data:', response.slice(0, 200));
 
@@ -2192,9 +2195,7 @@ test.describe('BATCH COLLAB — Colaborador con permisos por módulo', () => {
  *   - owner recibe "sin acceso" (regresión).
  */
 test.describe('BATCH CROSS — Aislamiento cross-rol', () => {
-  test.beforeEach(() => {
-    test.skip(!smokeOk, 'Smoke gate no pasó');
-  });
+  smokeGate();
 
   // ── Pregunta: ¿cuántos invitados hay? ─────────────────────────────────────
   test('CROSS-01 [owner] ¿cuántos invitados? → devuelve total real', async ({ page }) => {

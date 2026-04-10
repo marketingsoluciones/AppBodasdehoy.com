@@ -18,6 +18,7 @@ import { useActivity } from "../hooks/useActivity";
 import { isTestSubdomain, normalizeRedirectAfterLogin } from "../utils/urlHelpers";
 import { authBridge, parseJwt } from '@bodasdehoy/shared/auth';
 import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
+import { registerReferralIfPending, trackRegistrationComplete, sendAttributionToApi } from '@bodasdehoy/shared';
 
 const initialContext = {
   user: undefined,
@@ -434,6 +435,16 @@ const AuthProvider = ({ children }) => {
                     console.error("[Auth] ❌ Error: Cookie sessionBodas NO se estableció")
                   }
                 }
+
+                // Tracking: referral + analytics
+                registerReferralIfPending(idToken, config?.development || 'bodasdehoy').catch(() => undefined);
+                sendAttributionToApi(idToken, config?.development || 'bodasdehoy').catch(() => undefined);
+                trackRegistrationComplete(
+                  result.user.providerData?.[0]?.providerId?.includes('google') ? 'google'
+                    : result.user.providerData?.[0]?.providerId?.includes('facebook') ? 'facebook'
+                    : 'email',
+                  config?.development || 'bodasdehoy',
+                );
 
                 // Actualizar estado con los datos completos
                 setUser({ ...result.user, ...moreInfo })

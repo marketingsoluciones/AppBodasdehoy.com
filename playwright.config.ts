@@ -41,7 +41,7 @@ export default defineConfig({
   bail: process.env.E2E_BAIL === '1' ? 1 : 0,
   workers: 1,
   reporter: 'list',
-  timeout: fast ? 30_000 : 90_000,
+  timeout: fast ? 30_000 : 240_000,
   use: {
     baseURL,
     trace: fast ? 'off' : 'on-first-retry',

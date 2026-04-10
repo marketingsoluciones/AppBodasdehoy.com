@@ -26,6 +26,7 @@ import DevWhitelabelSwitcher from '../components/Dev/DevWhitelabelSwitcher';
 import { verifyDomain, logUrlVerification, type UrlCheckResult } from '../utils/verifyUrls';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { CopilotPrewarmer } from '../components/Copilot/CopilotPrewarmer';
+import { captureTrackingParams } from '@bodasdehoy/shared';
 
 const MyApp = ({ Component, pageProps, openGraphData }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
@@ -42,6 +43,11 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
       })
     }
   }, [valirBlock])
+
+  // Capturar UTMs y ?ref= al aterrizar (tracking / referidos)
+  useEffect(() => {
+    captureTrackingParams();
+  }, []);
 
   // Verificar dominio y URLs al cargar (solo en cliente y producción)
   useEffect(() => {
