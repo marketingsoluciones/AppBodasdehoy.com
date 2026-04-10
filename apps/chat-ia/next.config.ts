@@ -370,6 +370,11 @@ const nextConfig: NextConfig = {
           destination: `${backendUrl}/api/:path*`,
           source: '/api/:path*',
         },
+        // Proxy para edición de imágenes (/webapi/image/edit/{operation} → api-ia)
+        {
+          destination: `${backendUrl}/webapi/image/edit/:operation`,
+          source: '/webapi/image/edit/:operation',
+        },
       ],
     };
   },

@@ -427,7 +427,9 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
       const hasConversation = recentConvs.some(
         (conv) => conv.channelParam === ch.id || conv.kind === ch.kind,
       );
-      return hasUnread || hasConversation;
+      // Also show channels that are actively connected, even with no conversations yet
+      const isConnected = ch.status === 'connected';
+      return hasUnread || hasConversation || isConnected;
     });
   }, [externalChannels, recentConvs]);
 
