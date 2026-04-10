@@ -1732,7 +1732,9 @@ test.describe('BATCH SRV — Servicios/Kanban × Roles', () => {
 
     if (guestQuotaOrDenied(response)) return;
     expect(response).toMatch(/no\s*(tienes?|tengo|pued|permiso)|denegado|acceso/i);
-    expect(response).not.toMatch(/completado|marcado|actualizado/i);
+    // Solo falla si la acción SE REALIZÓ — no si "completado" aparece en el mensaje de denegación
+    // "No puedo marcar como completado" → la palabra aparece en contexto negativo → debe pasar
+    expect(response).not.toMatch(/he\s*(marcado|completado|actualizado)|ha\s*sido\s*(marcad|actualiz)|se\s*ha\s*(marcad|actualiz)|queda\s*(completado|actualizado)/i);
   });
 
   // ── VISITOR: NO puede ver la lista de servicios ───────────────────────────
