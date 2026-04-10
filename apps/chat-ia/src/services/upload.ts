@@ -429,6 +429,27 @@ class UploadService {
   };
 
   /**
+   * Convierte una URL de api-ia en una URL proxiada por chat-ia.
+   * El browser no puede añadir X-User-ID a etiquetas <img>, así que este helper
+   * redirige la carga de imagen a través de /api/storage/proxy-image.
+   *
+   * Solo actúa sobre URLs de api-ia; el resto se devuelven sin modificar.
+   */
+  toProxiedImageUrl = (url: string): string => {
+    if (!url) return url;
+    try {
+      const parsed = new URL(url);
+      const apiIaHostnames = ['api-ia.bodasdehoy.com', 'r2.bodasdehoy.com'];
+      if (apiIaHostnames.some((h) => parsed.hostname === h || parsed.hostname.endsWith(`.${h}`))) {
+        return `/api/storage/proxy-image?url=${encodeURIComponent(url)}`;
+      }
+    } catch {
+      // URL inválida → devolver tal cual
+    }
+    return url;
+  };
+
+  /**
    * get image File item with cors image URL
    * @param url
    * @param filename

@@ -4,10 +4,12 @@ import { CodeInterpreterManifest } from './code-interpreter';
 import CodeInterpreterRender from './code-interpreter/Render';
 import { DalleManifest } from './dalle';
 import DalleRender from './dalle/Render';
-import { LocalSystemManifest } from './local-system';
-import LocalFilesRender from './local-system/Render';
+import { FilterAppViewManifest } from './filter-app-view';
+import FilterAppViewRender from './filter-app-view/Render';
 import { FloorPlanEditorManifest } from './floor-plan-editor';
 import FloorPlanEditorRender from './floor-plan-editor/Render';
+import { LocalSystemManifest } from './local-system';
+import LocalFilesRender from './local-system/Render';
 import { VenueVisualizerManifest } from './venue-visualizer';
 import VenueVisualizerRender from './venue-visualizer/Render';
 import { WebBrowsingManifest } from './web-browsing';
@@ -20,4 +22,5 @@ export const BuiltinToolsRenders: Record<string, BuiltinRender> = {
   [CodeInterpreterManifest.identifier]: CodeInterpreterRender as BuiltinRender,
   [VenueVisualizerManifest.identifier]: VenueVisualizerRender as BuiltinRender,
   [FloorPlanEditorManifest.identifier]: FloorPlanEditorRender as BuiltinRender,
+  [FilterAppViewManifest.identifier]: FilterAppViewRender as BuiltinRender,
 };

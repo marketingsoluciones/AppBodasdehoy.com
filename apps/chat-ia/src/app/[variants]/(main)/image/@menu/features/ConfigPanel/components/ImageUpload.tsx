@@ -376,6 +376,7 @@ const SuccessDisplay: FC<SuccessDisplayProps> = memo(
     const { styles } = useStyles();
     const { styles: configStyles } = useConfigPanelStyles();
     const { t } = useTranslation('components');
+    const [imgError, setImgError] = React.useState(false);
 
     const handleDelete = (event: React.MouseEvent) => {
       event.stopPropagation();
@@ -392,13 +393,21 @@ const SuccessDisplay: FC<SuccessDisplayProps> = memo(
         className={`${styles.successDisplay} ${configStyles.dragTransition} ${isDragOver ? configStyles.dragOver : ''}`}
         onClick={onChangeImage}
       >
-        <Image
-          alt="Uploaded image"
-          fill
-          src={imageUrl}
-          style={{ objectFit: 'cover' }}
-          unoptimized
-        />
+        {imgError ? (
+          <Center style={{ height: '100%', gap: 8, flexDirection: 'column' }}>
+            <ImageIcon size={32} style={{ opacity: 0.4 }} />
+            <div style={{ fontSize: 12, opacity: 0.6 }}>No se pudo cargar la imagen</div>
+          </Center>
+        ) : (
+          <Image
+            alt="Uploaded image"
+            fill
+            onError={() => setImgError(true)}
+            src={imageUrl}
+            style={{ objectFit: 'cover' }}
+            unoptimized
+          />
+        )}
 
         {/* Delete button */}
         <div className={`${styles.deleteIcon} delete-icon`} onClick={handleDelete}>
@@ -492,20 +501,16 @@ const ImageUpload: FC<ImageUploadProps> = memo(
             ? { dimensions: result.dimensions, url: result.url }
             : result.url;
           onChange?.(callbackData);
-          // Limpiar estado para que se muestre la imagen desde value de inmediato
-          setUploadState(null);
+        } else if (result) {
+          // upload returned but no URL — show error toast
+          message.error('No se obtuvo URL del archivo subido');
         }
+        // Always clear upload state so component doesn't stay stuck
+        setUploadState(null);
       } catch {
         // Upload failed
-        setUploadState((prev) =>
-          prev
-            ? {
-                ...prev,
-                error: 'Upload failed',
-                status: 'error',
-              }
-            : null,
-        );
+        setUploadState(null);
+        message.error('Error al subir el archivo');
       } finally {
         // Cleanup blob para evitar fugas de memoria
         if (isLocalBlobUrl(previewUrl)) {
@@ -572,19 +577,15 @@ const ImageUpload: FC<ImageUploadProps> = memo(
             ? { dimensions: result.dimensions, url: result.url }
             : result.url;
           onChange?.(callbackData);
-          setUploadState(null);
+        } else if (result) {
+          message.error('No se obtuvo URL del archivo subido');
         }
+        // Always clear upload state so component doesn't stay stuck
+        setUploadState(null);
       } catch {
         // Upload failed
-        setUploadState((prev) =>
-          prev
-            ? {
-                ...prev,
-                error: 'Upload failed',
-                status: 'error',
-              }
-            : null,
-        );
+        setUploadState(null);
+        message.error('Error al subir el archivo');
       } finally {
         if (isLocalBlobUrl(previewUrl)) {
           URL.revokeObjectURL(previewUrl);

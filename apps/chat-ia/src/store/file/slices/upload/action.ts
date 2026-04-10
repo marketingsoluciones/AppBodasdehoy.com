@@ -197,7 +197,10 @@ export const createFileUploadSlice: StateCreator<
         },
       });
 
-      return { dimensions, filename: file.name, id: syntheticId, url: data.path };
+      // Convertir URL de api-ia a proxy para que el browser pueda cargarla con auth
+      const displayUrl = uploadService.toProxiedImageUrl(data.path);
+
+      return { dimensions, filename: file.name, id: syntheticId, url: displayUrl };
     } catch (error) {
       console.error('[uploadWithProgress] fallo al subir', rawFile.name, error);
       const msg = error instanceof Error ? error.message : String(error);
