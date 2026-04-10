@@ -99,11 +99,10 @@ const QuotaBanner = memo(() => {
   // remaining: queries left (each ~500 tokens). 0 means effectively exhausted even if percent is 99.x%
   const remaining = Math.max(0, Math.round((aiLimit.free_quota - currentTokens) / 500));
   const isEffectivelyExhausted = percent >= 100 || remaining === 0;
-  // isBlocked: no credit, no overage, truly stuck
-  const isBlocked = isEffectivelyExhausted && !aiLimit.overage_enabled && isCreditExhausted;
-  // isPayPerUse: plan exhausted/empty but wallet credit covers the rest
-  // Note: totalBalance can be negative when using credit limit, so check isCreditExhausted not totalBalance > 0
-  const isPayPerUse = isEffectivelyExhausted && !isCreditExhausted;
+  // isPayPerUse: plan exhausted AND overage enabled AND wallet has credit → user pays per query
+  const isPayPerUse = isEffectivelyExhausted && aiLimit.overage_enabled && !isCreditExhausted;
+  // isBlocked: exhausted and cannot continue (no overage, or overage but no credit)
+  const isBlocked = isEffectivelyExhausted && !isPayPerUse;
   // Available funds: positive balance OR remaining credit limit
   const availableFunds = totalBalance >= 0 ? totalBalance : Math.max(0, creditLimit + totalBalance);
 

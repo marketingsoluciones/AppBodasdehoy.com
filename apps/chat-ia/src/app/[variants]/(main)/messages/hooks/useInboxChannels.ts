@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useChatStore } from '@/store/chat';
+import { getSocialAccounts } from '@/services/api2/smm';
+import type { SMMSocialAccount } from '@/services/api2/smm';
 import { getWhatsAppChannels } from '@/services/api2/whatsapp';
 import type { WhatsAppChannel } from '@/services/api2/whatsapp';
 import { buildHeaders } from '../utils/auth';
@@ -39,6 +41,7 @@ export interface EventGroup {
 
 export function useInboxChannels() {
   const [waChannels, setWaChannels] = useState<WhatsAppChannel[]>([]);
+  const [socialAccounts, setSocialAccounts] = useState<SMMSocialAccount[]>([]);
   const [loading, setLoading] = useState(true);
   // Map<channelId, totalUnread> — keyed by WhatsApp channel id
   const [unreadByChannel, setUnreadByChannel] = useState<Map<string, number>>(new Map());
@@ -55,11 +58,14 @@ export function useInboxChannels() {
       setLoading(false);
       return;
     }
-    getWhatsAppChannels()
-      .then(setWaChannels)
-      .catch(() => setWaChannels([]))
-      .finally(() => setLoading(false));
-  }, [isGuest]);
+    Promise.all([
+      getWhatsAppChannels().catch(() => [] as WhatsAppChannel[]),
+      getSocialAccounts(development ?? 'bodasdehoy').catch(() => [] as SMMSocialAccount[]),
+    ]).then(([wa, social]) => {
+      setWaChannels(wa);
+      setSocialAccounts(social);
+    }).finally(() => setLoading(false));
+  }, [isGuest, development]);
 
   // Fetch unread counts from conversations (refresh every 60s)
   useEffect(() => {
@@ -115,13 +121,17 @@ export function useInboxChannels() {
           },
         ]
       : []),
-    {
-      id: 'instagram',
-      isPlaceholder: true,
-      kind: 'instagram' as const,
-      label: 'Instagram',
-      unread: 0,
-    },
+    (() => {
+      const ig = socialAccounts.find((a) => a.platform === 'INSTAGRAM');
+      return {
+        id: ig ? `ig-${ig._id}` : 'instagram',
+        isPlaceholder: !ig,
+        kind: 'instagram' as const,
+        label: ig ? `@${ig.username}` : 'Instagram',
+        status: ig ? ('connected' as const) : undefined,
+        unread: 0,
+      };
+    })(),
     {
       id: 'telegram',
       isPlaceholder: true,
@@ -143,13 +153,17 @@ export function useInboxChannels() {
       label: 'Chat Web',
       unread: 0,
     },
-    {
-      id: 'facebook',
-      isPlaceholder: true,
-      kind: 'facebook' as const,
-      label: 'Facebook',
-      unread: 0,
-    },
+    (() => {
+      const fb = socialAccounts.find((a) => a.platform === 'FACEBOOK');
+      return {
+        id: fb ? `fb-${fb._id}` : 'facebook',
+        isPlaceholder: !fb,
+        kind: 'facebook' as const,
+        label: fb ? `@${fb.username}` : 'Facebook',
+        status: fb ? ('connected' as const) : undefined,
+        unread: 0,
+      };
+    })(),
   ];
 
   // Internal channels — limit to 5 most recent/upcoming events to avoid overwhelming the sidebar

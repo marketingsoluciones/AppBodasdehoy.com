@@ -69,7 +69,7 @@ export const developments: DevelopmentConfig[] = [
       baseColor: '#F2F2F2',
       colorScroll: '#ffc0cb',
     },
-    metaPixel_id: '1678005076053299',
+    metaPixel_id: '1019487254775689',
     gtm_id: 'GTM-P6R3S584',
     timeZone: 'Europe/Madrid',
   },

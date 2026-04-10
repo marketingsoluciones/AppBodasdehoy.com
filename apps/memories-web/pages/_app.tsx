@@ -6,7 +6,7 @@ import { captureTrackingParams, registerReferralIfPending, sendAttributionToApi,
 import '../styles/globals.css';
 
 const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
-const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'memories';
+const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
 
 // Los IDs de GTM y Meta Pixel vienen del config del white-label, no de env vars
 const devConfig = getDevelopmentConfig(DEVELOPMENT);

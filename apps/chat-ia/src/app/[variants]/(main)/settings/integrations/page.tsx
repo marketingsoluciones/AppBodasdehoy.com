@@ -6,6 +6,12 @@ import { useEffect, useState } from 'react';
 
 import { EventosAutoAuth } from '@/features/EventosAutoAuth';
 import {
+  disconnectSocialAccount,
+  getSocialAccounts,
+  initSocialConnect,
+  type SMMSocialAccount,
+} from '@/services/api2/smm';
+import {
   createWhatsAppChannel,
   deleteWhatsAppChannel,
   getWhatsAppChannels,
@@ -314,14 +320,24 @@ function SocialChannelCard({
   name,
   iconBg,
   comingSoon,
+  connectedAccount,
+  onConnect,
+  onDisconnect,
+  connectLoading,
 }: {
   channelId: string;
   comingSoon?: boolean;
+  connectLoading?: boolean;
+  connectedAccount?: SMMSocialAccount;
   description: string;
   icon: string;
   iconBg: string;
   name: string;
+  onConnect?: () => void;
+  onDisconnect?: () => void;
 }) {
+  const isConnected = !!connectedAccount;
+
   return (
     <Card size="small" styles={{ body: { padding: '16px' } }}>
       <Space direction="vertical" size="small" style={{ width: '100%' }}>
@@ -332,16 +348,34 @@ function SocialChannelCard({
           <div style={{ flex: 1, minWidth: 0 }}>
             <Space align="center" size={6}>
               <Text strong>{name}</Text>
-              {comingSoon && <Tag color="orange" style={{ fontSize: 10, lineHeight: '16px', padding: '0 4px' }}>Próximamente</Tag>}
+              {comingSoon && !onConnect && <Tag color="orange" style={{ fontSize: 10, lineHeight: '16px', padding: '0 4px' }}>Próximamente</Tag>}
+              {isConnected && <Badge color="green" />}
             </Space>
-            <div><Text style={{ fontSize: 12 }} type="secondary">{description}</Text></div>
+            <div>
+              {isConnected
+                ? <Text style={{ fontSize: 12 }} type="secondary">@{connectedAccount.username}</Text>
+                : <Text style={{ fontSize: 12 }} type="secondary">{description}</Text>
+              }
+            </div>
           </div>
         </div>
-        <Link href={`/messages/${channelId}`} style={{ display: 'block' }}>
-          <Button block size="small" style={{ fontSize: 12 }}>
-            Configurar →
+        {onConnect && !isConnected && (
+          <Button block loading={connectLoading} onClick={onConnect} size="small" style={{ fontSize: 12 }}>
+            Conectar {name} →
           </Button>
-        </Link>
+        )}
+        {isConnected && (
+          <Button block danger onClick={onDisconnect} size="small" style={{ fontSize: 12 }}>
+            Desconectar
+          </Button>
+        )}
+        {comingSoon && !onConnect && (
+          <Link href={`/messages/${channelId}`} style={{ display: 'block' }}>
+            <Button block size="small" style={{ fontSize: 12 }}>
+              Configurar →
+            </Button>
+          </Link>
+        )}
       </Space>
     </Card>
   );
@@ -414,6 +448,12 @@ function IntegrationsPageInner() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
+  // Social accounts (Instagram / Facebook OAuth)
+  const [socialAccounts, setSocialAccounts] = useState<SMMSocialAccount[]>([]);
+  const [connectingPlatform, setConnectingPlatform] = useState<string | null>(null);
+  const [smmAlert, setSmmAlert] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+
   useEffect(() => {
     if (!isAuthenticated) {
       setLoadingChannels(false);
@@ -424,6 +464,82 @@ function IntegrationsPageInner() {
       .catch(() => setApiError(true))
       .finally(() => setLoadingChannels(false));
   }, [development, isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    getSocialAccounts(development).then(setSocialAccounts).catch(() => {});
+  }, [development, isAuthenticated]);
+
+  const handleSmmConnect = async (platform: 'INSTAGRAM' | 'FACEBOOK') => {
+    setConnectingPlatform(platform);
+    // The OAuth callback is handled by api2 directly — it completes token exchange
+    // and sends postMessage back to this window before closing the popup.
+    const API2_OAUTH_CALLBACK = 'https://api2.eventosorganizador.com/api/smm/oauth/callback';
+
+    try {
+      const result = await initSocialConnect(platform, development, API2_OAUTH_CALLBACK);
+      if (!result?.authorization_url) {
+        setSmmAlert({ message: 'No se pudo iniciar la conexión. Verifica las credenciales de la app Meta.', type: 'error' });
+        setConnectingPlatform(null);
+        return;
+      }
+
+      // Open OAuth in a popup — api2 callback will postMessage the result back
+      const popup = window.open(
+        result.authorization_url,
+        'smm_oauth',
+        'width=600,height=700,left=200,top=100,resizable=yes,scrollbars=yes',
+      );
+
+      const onMessage = (event: MessageEvent) => {
+        // api2 sends postMessage from any origin (*) — validate type
+        if (!event.data || typeof event.data !== 'object') return;
+        const { type, platform: plt, username } = event.data as {
+          type: string;
+          platform?: string;
+          username?: string;
+        };
+
+        if (type === 'SMM_OAUTH_SUCCESS') {
+          window.removeEventListener('message', onMessage);
+          popup?.close();
+          setSmmAlert({ message: `✅ ${plt ?? platform} conectado: @${username}`, type: 'success' });
+          // Reload social accounts to reflect new connection
+          getSocialAccounts(development).then(setSocialAccounts).catch(() => {});
+          setConnectingPlatform(null);
+        } else if (type === 'SMM_OAUTH_ERROR') {
+          window.removeEventListener('message', onMessage);
+          const errMsg = (event.data as { error?: string }).error ?? 'oauth_error';
+          if (errMsg !== 'cancelled') {
+            setSmmAlert({ message: `Error al conectar ${platform}: ${errMsg}`, type: 'error' });
+          }
+          setConnectingPlatform(null);
+        }
+      };
+
+      window.addEventListener('message', onMessage);
+
+      // Fallback: poll for popup close without receiving a message
+      const pollClose = setInterval(() => {
+        if (popup?.closed) {
+          clearInterval(pollClose);
+          window.removeEventListener('message', onMessage);
+          setConnectingPlatform(null);
+        }
+      }, 500);
+    } catch {
+      setSmmAlert({ message: 'Error iniciando OAuth. Inténtalo de nuevo.', type: 'error' });
+      setConnectingPlatform(null);
+    }
+  };
+
+  const handleSmmDisconnect = async (accountId: string) => {
+    if (!confirm('¿Desconectar esta cuenta? Perderás acceso a los mensajes de esa cuenta.')) return;
+    const ok = await disconnectSocialAccount(accountId);
+    if (ok) {
+      setSocialAccounts((prev) => prev.filter((a) => a._id !== accountId));
+    }
+  };
 
   const handleDelete = async (channelId: string) => {
     if (!confirm('¿Eliminar este canal? Las conversaciones asociadas se mantendrán en el historial.')) return;
@@ -471,6 +587,18 @@ function IntegrationsPageInner() {
         />
       )}
 
+      {/* SMM OAuth feedback */}
+      {smmAlert && (
+        <Alert
+          closable
+          message={smmAlert.message}
+          onClose={() => setSmmAlert(null)}
+          showIcon
+          style={{ marginBottom: 16 }}
+          type={smmAlert.type}
+        />
+      )}
+
       {/* ── Grid unificado de todos los canales ── */}
       <section style={{ marginBottom: 32 }}>
         <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
@@ -511,10 +639,34 @@ function IntegrationsPageInner() {
             </Space>
           </Card>
 
-          <SocialChannelCard channelId="instagram" comingSoon description="DMs de Instagram Business" icon="📷" iconBg="linear-gradient(135deg, #f3e7ff, #ffe7f0)" name="Instagram" />
+          <SocialChannelCard
+            channelId="instagram"
+            connectLoading={connectingPlatform === 'INSTAGRAM'}
+            connectedAccount={socialAccounts.find((a) => a.platform === 'INSTAGRAM')}
+            description="DMs de Instagram Business"
+            icon="📷"
+            iconBg="linear-gradient(135deg, #f3e7ff, #ffe7f0)"
+            name="Instagram"
+            onConnect={isAuthenticated ? () => handleSmmConnect('INSTAGRAM') : undefined}
+            onDisconnect={socialAccounts.find((a) => a.platform === 'INSTAGRAM')
+              ? () => handleSmmDisconnect(socialAccounts.find((a) => a.platform === 'INSTAGRAM')!._id)
+              : undefined}
+          />
           <SocialChannelCard channelId="telegram" comingSoon description="Bot de Telegram" icon="✈️" iconBg="#e6f4ff" name="Telegram" />
           <SocialChannelCard channelId="email" comingSoon description="Gmail, Outlook o SMTP/IMAP" icon="📧" iconBg="#f9f0ff" name="Email" />
-          <SocialChannelCard channelId="facebook" comingSoon description="Messenger de tu página FB" icon="📘" iconBg="#e6f4ff" name="Facebook" />
+          <SocialChannelCard
+            channelId="facebook"
+            connectLoading={connectingPlatform === 'FACEBOOK'}
+            connectedAccount={socialAccounts.find((a) => a.platform === 'FACEBOOK')}
+            description="Messenger de tu página FB"
+            icon="📘"
+            iconBg="#e6f4ff"
+            name="Facebook"
+            onConnect={isAuthenticated ? () => handleSmmConnect('FACEBOOK') : undefined}
+            onDisconnect={socialAccounts.find((a) => a.platform === 'FACEBOOK')
+              ? () => handleSmmDisconnect(socialAccounts.find((a) => a.platform === 'FACEBOOK')!._id)
+              : undefined}
+          />
           <SocialChannelCard channelId="web" description="Widget embebible en tu web" icon="🌐" iconBg="#fff7e6" name="Chat Web" />
         </div>
       </section>
