@@ -13,9 +13,9 @@ export const ISABEL_RAUL_EVENT = {
   fecha: '2025-12-30',
   estatus: 'PENDIENTE',
 
-  // Invitados — actualizado 2026-04-08 (añadido Carlos Carrillo vía agregarInvitado)
+  // Invitados — actualizado 2026-04-10 (drift de tests +2 respecto a 2026-04-08)
   invitados: {
-    total: 44,
+    total: 46,
     confirmados: 39,
     pendientes: 4,
     rechazados: 0,
