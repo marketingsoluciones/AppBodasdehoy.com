@@ -662,12 +662,13 @@ const AuthProvider = ({ children }) => {
         matches: sessionCookieParsed?.user_id === user?.uid
       })
 
-      if (!sessionCookieParsed?.user_id && user?.uid) {
+      if (!sessionCookieParsed?.user_id && user?.uid && !user?.isAnonymous) {
         console.warn("[Verificator] ⚠️ Usuario autenticado en Firebase pero sin sessionCookie válida")
         // FIX falsa sesión: intentar establecer sessionBodas desde el token Firebase antes de continuar
+        // Solo para usuarios reales — los anónimos deben pasar por el SSO cross-domain más abajo
         try {
           const firebaseUser = getAuth().currentUser
-          if (firebaseUser) {
+          if (firebaseUser && !firebaseUser.isAnonymous) {
             const freshIdToken = await firebaseUser.getIdToken()
             const _isDevOrTest = typeof window !== 'undefined' && (
               window.location.hostname === 'localhost' ||
@@ -788,13 +789,15 @@ const AuthProvider = ({ children }) => {
           try {
             // IMPORTANTE: Usar fetch directo desde el NAVEGADOR (no proxy servidor) para que
             // Cloudflare no bloquee la petición.
-            // En localhost: usar proxy (evita CORS desde http://localhost).
-            // En test/prod: llamada directa — CF permite tráfico de navegadores reales.
-            const _isLocalhost = typeof window !== 'undefined' && (
+            // En localhost/dev/test: usar proxy (evita CORS).
+            // En prod: llamada directa — CF permite tráfico de navegadores reales.
+            const _isDevOrTestSSO = typeof window !== 'undefined' && (
               window.location.hostname === 'localhost' ||
-              window.location.hostname === '127.0.0.1'
+              window.location.hostname === '127.0.0.1' ||
+              window.location.hostname.includes('-test.') ||
+              window.location.hostname.includes('-dev.')
             );
-            const ssoApiUrl = _isLocalhost ? '/api/proxy-bodas/graphql' : 'https://api.bodasdehoy.com/graphql';
+            const ssoApiUrl = _isDevOrTestSSO ? '/api/proxy-bodas/graphql' : 'https://api.bodasdehoy.com/graphql';
 
             const ssoResp = await fetch(ssoApiUrl, {
               method: 'POST',
