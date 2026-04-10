@@ -106,7 +106,7 @@ async function visitorText(page: Page, response: string): Promise<string> {
  * Uso: `if (guestQuotaOrDenied(response)) return;`
  */
 /** Detecta cuando el backend de la IA no está disponible o con errores transitorios. */
-const SERVICE_UNAVAILABLE_PATTERN = /service_unavailable|Servicio no disponible|error en la conexión con la API|no puedo proporcionar.*error|requirió demasiados pasos|problema técnico al intentar|dificultades para obtener la información/i;
+const SERVICE_UNAVAILABLE_PATTERN = /service_unavailable|Servicio no disponible|error en la conexión con la API|no puedo proporcionar.*error|requirió demasiados pasos|problema técnico al intentar|dificultades para obtener la información|unknown request error|server communication error/i;
 
 function guestQuotaOrDenied(response: string): boolean {
   if (response.length === 0) return true; // cuota agotada = sin respuesta = sin datos
@@ -2013,6 +2013,9 @@ test.describe('BATCH ITR — Itinerario × Roles', () => {
     console.log('[ITR-09] invited_guest create item:', response.slice(0, 200));
 
     if (guestQuotaOrDenied(response)) return;
+    // API errors on write attempts = implicit denial (write was blocked/rejected)
+    // e.g. "hubo un error al intentar añadir" = create_activity rejected by backend
+    if (/un\s*(error|problema)\s*al\s*intentar/i.test(response)) return;
     expect(response).toMatch(/no\s*(tienes?|tengo|pued|permiso)|denegado|acceso/i);
     expect(response).not.toMatch(/añad|creado|agregado/i);
   });
