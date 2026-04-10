@@ -106,7 +106,7 @@ async function visitorText(page: Page, response: string): Promise<string> {
  * Uso: `if (guestQuotaOrDenied(response)) return;`
  */
 /** Detecta cuando el backend de la IA no está disponible o con errores transitorios. */
-const SERVICE_UNAVAILABLE_PATTERN = /service_unavailable|Servicio no disponible|error en la conexión con la API|no puedo proporcionar.*error|requirió demasiados pasos/i;
+const SERVICE_UNAVAILABLE_PATTERN = /service_unavailable|Servicio no disponible|error en la conexión con la API|no puedo proporcionar.*error|requirió demasiados pasos|problema técnico al intentar|dificultades para obtener la información/i;
 
 function guestQuotaOrDenied(response: string): boolean {
   if (response.length === 0) return true; // cuota agotada = sin respuesta = sin datos
