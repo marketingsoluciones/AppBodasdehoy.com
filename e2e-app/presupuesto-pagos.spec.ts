@@ -17,6 +17,7 @@ import { clearSession, loginAndSelectEvent, waitForAppReady } from './helpers';
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
   BASE_URL.includes('app-test.bodasdehoy.com') ||
+  BASE_URL.includes('app-dev.bodasdehoy.com') ||
   BASE_URL.includes('app.bodasdehoy.com');
 
 const TEST_EMAIL = process.env.TEST_USER_EMAIL || 'bodasdehoy.com@gmail.com';
@@ -242,7 +243,7 @@ test.describe('Presupuesto — Crear categoría y gasto', () => {
     if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
   });
 
-  test(`crear categoría "${CAT_NAME}" → visible en la lista`, async ({ page }) => {
+  test('crear categoría E2E → visible en la lista', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
     await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
@@ -297,7 +298,7 @@ test.describe('Presupuesto — Crear categoría y gasto', () => {
     }
   });
 
-  test(`crear gasto "${GASTO_DESC}" con importe ${GASTO_AMOUNT}€ → visible en tabla`, async ({ page }) => {
+  test('crear gasto E2E con importe → visible en tabla', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
     await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });

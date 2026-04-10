@@ -123,7 +123,8 @@ export async function loginAndSelectEvent(
   password: string,
   baseUrl: string,
 ): Promise<string | null> {
-  const loginUrl = baseUrl.includes('app-test') ? `${baseUrl}/login?local-login=1` : `${baseUrl}/login`;
+  const isRemoteEnv = baseUrl.includes('app-test') || baseUrl.includes('app-dev');
+  const loginUrl = isRemoteEnv ? `${baseUrl}/login?local-login=1` : `${baseUrl}/login`;
   await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 45_000 });
   await page.waitForLoadState('domcontentloaded').catch(() => {});
   await page.waitForTimeout(2000);
@@ -194,7 +195,7 @@ export async function loginAndSelectEventByName(
   baseUrl: string,
   eventName: string,
 ): Promise<string | null> {
-  const loginUrl = baseUrl.includes('app-test') ? `${baseUrl}/login?local-login=1` : `${baseUrl}/login`;
+  const loginUrl = (baseUrl.includes('app-test') || baseUrl.includes('app-dev')) ? `${baseUrl}/login?local-login=1` : `${baseUrl}/login`;
   try {
     await page.goto(loginUrl, { waitUntil: 'commit', timeout: 45_000 });
   } catch (e) {

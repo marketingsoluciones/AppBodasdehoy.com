@@ -18,6 +18,7 @@ import { clearSession, loginAndSelectEvent, waitForAppReady } from './helpers';
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
   BASE_URL.includes('app-test.bodasdehoy.com') ||
+  BASE_URL.includes('app-dev.bodasdehoy.com') ||
   BASE_URL.includes('app.bodasdehoy.com');
 
 const TEST_EMAIL = process.env.TEST_USER_EMAIL || 'bodasdehoy.com@gmail.com';
@@ -198,7 +199,7 @@ test.describe('Mesas — Crear nueva mesa', () => {
     if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
   });
 
-  test(`crear mesa "${MESA_NAME}" con capacidad ${MESA_CAPACITY} → visible en lista`, async ({ page }) => {
+  test('crear mesa E2E con capacidad → visible en lista', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
     await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
@@ -331,7 +332,7 @@ test.describe('Mesas — Planos múltiples', () => {
     }
   });
 
-  test(`crear nuevo plano "${PLANO_NAME}"`, async ({ page }) => {
+  test('crear nuevo plano E2E', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
     await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
