@@ -2,8 +2,11 @@ import type { AppProps } from 'next/app';
 import { useEffect } from 'react';
 import Script from 'next/script';
 import { appWithTranslation } from 'next-i18next';
-import { captureTrackingParams, registerReferralIfPending, sendAttributionToApi, getDevelopmentConfig, authBridge } from '@bodasdehoy/shared';
+import posthog from 'posthog-js';
+import { captureTrackingParams, registerReferralIfPending, sendAttributionToApi, getDevelopmentConfig, authBridge, getAttributionData } from '@bodasdehoy/shared';
 import '../styles/globals.css';
+
+const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
 const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
 const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
@@ -19,7 +22,27 @@ function App({ Component, pageProps }: AppProps) {
     captureTrackingParams();
   }, []);
 
-  // 2. Registrar referido y atribución cuando el usuario está autenticado
+  // 2. PostHog init + identify
+  useEffect(() => {
+    if (!POSTHOG_KEY) return;
+    posthog.init(POSTHOG_KEY, {
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
+      capture_pageview: true,
+    });
+    const authState = authBridge.getSharedAuthState();
+    if (authState.isAuthenticated && authState.user?.uid) {
+      const attribution = getAttributionData();
+      posthog.identify(authState.user.uid, {
+        development: DEVELOPMENT,
+        email: authState.user.email ?? undefined,
+        utm_source: attribution?.utm_source,
+        utm_medium: attribution?.utm_medium,
+        utm_campaign: attribution?.utm_campaign,
+      });
+    }
+  }, []);
+
+  // 3. Registrar referido y atribución cuando el usuario está autenticado
   useEffect(() => {
     const authState = authBridge.getSharedAuthState();
     if (authState.isAuthenticated && authState.idToken) {

@@ -163,6 +163,10 @@ function extractLimits(plan: SubscriptionPlan): LimitRow[] {
       s.includes('token')
     ) {
       add('Consultas IA', formatQuota(l.sku, l.free_quota), 'ai');
+      if (l.daily_quota) {
+        const dailyQueries = Math.round(l.daily_quota / 500);
+        add('Límite diario IA', `~${dailyQueries} consultas/día`, 'ai-daily');
+      }
     } else if (
       s.includes('image') ||
       s.includes('dalle') ||

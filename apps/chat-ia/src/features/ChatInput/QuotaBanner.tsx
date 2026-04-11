@@ -88,6 +88,49 @@ const QuotaBanner = memo(() => {
         </Flexbox>
       );
     }
+    // Daily warning: 80-99% of daily quota
+    if (dailyCheck && dailyCheck.allowed && dailyCheck.percentUsed >= 80) {
+      const dailyRemaining = Math.max(0, Math.round(dailyCheck.remaining / 500));
+      return (
+        <Flexbox
+          align="center"
+          gap={8}
+          horizontal
+          style={{
+            background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+            border: '1px solid #fde68a',
+            borderRadius: 8,
+            fontSize: 13,
+            marginBottom: 6,
+            padding: '6px 12px',
+          }}
+        >
+          <AlertTriangle size={14} style={{ color: '#d97706', flexShrink: 0 }} />
+          <span style={{ color: '#92400e', flex: 1 }}>
+            Te quedan ~{dailyRemaining} consultas hoy.
+          </span>
+          <Link
+            href="/settings/billing/planes"
+            style={{
+              alignItems: 'center',
+              background: '#f59e0b',
+              borderRadius: 6,
+              color: 'white',
+              display: 'flex',
+              fontSize: 12,
+              fontWeight: 600,
+              gap: 4,
+              padding: '3px 10px',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <Zap size={12} />
+            Actualizar
+          </Link>
+        </Flexbox>
+      );
+    }
   }
 
   // --- Límite mensual ---
