@@ -1499,7 +1499,8 @@ test.describe('BATCH PRE-DASH — Dashboard financiero × Roles', () => {
     }
 
     // Debe contener información financiera del evento (con o sin datos)
-    expect(response).toMatch(/presupuest/i);
+    // api-ia puede usar "presupuest" o "resumen financiero" / "Total estimado" / "financiero"
+    expect(response).toMatch(/presupuest|financiero|estimado|resumen/i);
     // "pagado" O "pago" OR "no hay pagos" OR "0€" → la IA conoce el módulo
     expect(response).toMatch(/pag|pendiente|\d/i);
     expect(response).not.toMatch(/no\s*(tienes|pued|permiso)/i);
