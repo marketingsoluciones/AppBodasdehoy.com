@@ -156,9 +156,6 @@ importers:
       graphql:
         specifier: ^16.9.0
         version: 16.12.0
-      graphql-ws:
-        specifier: ^5.16.0
-        version: 5.16.2(graphql@16.12.0)
       heic2any:
         specifier: ^0.0.4
         version: 0.0.4
@@ -16442,7 +16439,7 @@ packages:
       webpack: '>=5.0.0'
     dependencies:
       '@sentry/bundler-plugin-core': 5.2.0
-      webpack: 5.106.0
+      webpack: 5.106.0(esbuild@0.25.12)
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -27031,15 +27028,6 @@ packages:
       tslib: 2.8.1
     dev: false
 
-  /graphql-ws@5.16.2(graphql@16.12.0):
-    resolution: {integrity: sha512-E1uccsZxt/96jH/OwmLPuXMACILs76pKF2i3W861LpKBCYtGIyPQGtWLuBLkND4ox1KHns70e83PS4te50nvPQ==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      graphql: '>=0.11 <=16'
-    dependencies:
-      graphql: 16.12.0
-    dev: false
-
   /graphql-ws@6.0.6(graphql@16.12.0)(ws@8.19.0):
     resolution: {integrity: sha512-zgfER9s+ftkGKUZgc0xbx8T7/HMO4AV5/YuYiFc+AtgcO5T0v8AxYYNQ+ltzuzDZgNkYJaFspm5MMYLjQzrkmw==}
     engines: {node: '>=20'}
@@ -35636,7 +35624,7 @@ packages:
       react: 19.2.4
     dependencies:
       react: 19.2.4
-      unlayer-types: 1.398.0
+      unlayer-types: 1.399.0
     dev: false
 
   /react-error-boundary@5.0.0(react@19.2.4):
@@ -39831,29 +39819,6 @@ packages:
       webpack: 5.106.0(esbuild@0.25.12)
     dev: false
 
-  /terser-webpack-plugin@5.4.0(webpack@5.106.0):
-    resolution: {integrity: sha512-Bn5vxm48flOIfkdl5CaD2+1CiUVbonWQ3KQPyP7/EuIl9Gbzq/gQFOzaMFUEgVjB1396tcK0SG8XcNJ/2kDH8g==}
-    engines: {node: '>= 10.13.0'}
-    peerDependencies:
-      '@swc/core': '*'
-      esbuild: '*'
-      uglify-js: '*'
-      webpack: ^5.1.0
-    peerDependenciesMeta:
-      '@swc/core':
-        optional: true
-      esbuild:
-        optional: true
-      uglify-js:
-        optional: true
-    dependencies:
-      '@jridgewell/trace-mapping': 0.3.31
-      jest-worker: 27.5.1
-      schema-utils: 4.3.3
-      terser: 5.46.1
-      webpack: 5.106.0
-    dev: false
-
   /terser@5.46.1:
     resolution: {integrity: sha512-vzCjQO/rgUuK9sf8VJZvjqiqiHFaZLnOiimmUuOKODxWL8mm/xua7viT7aqX7dgPY60otQjUotzFMmCB4VdmqQ==}
     engines: {node: '>=10'}
@@ -40931,8 +40896,8 @@ packages:
     engines: {node: '>= 10.0.0'}
     dev: true
 
-  /unlayer-types@1.398.0:
-    resolution: {integrity: sha512-bqSs038ZPxhlXlnetanpaeUHlt7HfzqYphF8GL7ofwyRwaBAUwxqDsPwff6rfd2ASpIMmqoEPk9lOvkfVU66sQ==}
+  /unlayer-types@1.399.0:
+    resolution: {integrity: sha512-VbqOnzfc2iOlgW9kmZsK93/f9IqH8jq5UgTemvSbAFrrxVSQgnqH87cThEHxO1GeMoAv5PyH4VIrh2ULlK5o7Q==}
     dev: false
 
   /unpipe@1.0.0:
@@ -41622,47 +41587,6 @@ packages:
     requiresBuild: true
     dev: false
     optional: true
-
-  /webpack@5.106.0:
-    resolution: {integrity: sha512-Pkx5joZ9RrdgO5LBkyX1L2ZAJeK/Taz3vqZ9CbcP0wS5LEMx5QkKsEwLl29QJfihZ+DKRBFldzy1O30pJ1MDpA==}
-    engines: {node: '>=10.13.0'}
-    hasBin: true
-    peerDependencies:
-      webpack-cli: '*'
-    peerDependenciesMeta:
-      webpack-cli:
-        optional: true
-    dependencies:
-      '@types/eslint-scope': 3.7.7
-      '@types/estree': 1.0.8
-      '@types/json-schema': 7.0.15
-      '@webassemblyjs/ast': 1.14.1
-      '@webassemblyjs/wasm-edit': 1.14.1
-      '@webassemblyjs/wasm-parser': 1.14.1
-      acorn: 8.16.0
-      acorn-import-phases: 1.0.4(acorn@8.16.0)
-      browserslist: 4.28.1
-      chrome-trace-event: 1.0.4
-      enhanced-resolve: 5.20.1
-      es-module-lexer: 2.0.0
-      eslint-scope: 5.1.1
-      events: 3.3.0
-      glob-to-regexp: 0.4.1
-      graceful-fs: 4.2.11
-      json-parse-even-better-errors: 2.3.1
-      loader-runner: 4.3.1
-      mime-types: 2.1.35
-      neo-async: 2.6.2
-      schema-utils: 4.3.3
-      tapable: 2.3.0
-      terser-webpack-plugin: 5.4.0(webpack@5.106.0)
-      watchpack: 2.5.1
-      webpack-sources: 3.3.4
-    transitivePeerDependencies:
-      - '@swc/core'
-      - esbuild
-      - uglify-js
-    dev: false
 
   /webpack@5.106.0(esbuild@0.25.12):
     resolution: {integrity: sha512-Pkx5joZ9RrdgO5LBkyX1L2ZAJeK/Taz3vqZ9CbcP0wS5LEMx5QkKsEwLl29QJfihZ+DKRBFldzy1O30pJ1MDpA==}

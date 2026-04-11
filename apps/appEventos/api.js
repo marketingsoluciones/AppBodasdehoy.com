@@ -1,6 +1,5 @@
 import axios from "axios";
 import Cookies from "js-cookie"
-import { createClient } from "graphql-ws";
 import { Manager } from "socket.io-client";
 import { getAuth } from "firebase/auth";
 import { parseJwt } from "./utils/Authentication";
@@ -17,8 +16,6 @@ function _cookieDomain() {
 const wp = axios.create({
   baseURL: "https://bodasdehoy.com/wp-json",
 });*/
-
-const WebSocket = process.env.NEXT_PUBLIC_URL_API_SOCKET
 
 //api app
 // En desarrollo (localhost, dominios -dev o -test), usar proxy para evitar CORS
@@ -128,25 +125,6 @@ export const api = {
       }
     })
     return socket
-  },
-
-  Suscripcion: async () => {
-    const token = Cookies.get("idTokenV0.1.0")
-    const GRAPHQL_ENDPOINT = WebSocket;
-    const client = createClient({
-      url: GRAPHQL_ENDPOINT ?? "",
-      lazy: true,
-      retryAttempts: 5,
-      connectionParams: () => ({
-        headers: { Authorization: `Bearer ${token}` },
-      }),
-      on: {
-        error: (error) => {
-          console.error("GraphQL WS Error:", error);
-        },
-      },
-    });
-    return client
   },
 
   ApiBodas: async ({ data, development, token }) => {
