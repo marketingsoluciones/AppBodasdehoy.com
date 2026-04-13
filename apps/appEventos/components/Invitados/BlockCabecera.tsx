@@ -14,7 +14,7 @@ const BlockCabecera = () => {
   const [isAllowed, ht] = useAllowed()
 
   const totalSegun = (prop, param) => {
-    return event?.invitados_array?.filter((item) => item[prop] == param);
+    return event?.invitados_array?.filter((item) => item?.[prop] == param);
   };
 
   const ObjInvitado = {
