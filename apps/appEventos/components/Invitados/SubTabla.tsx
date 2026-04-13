@@ -35,9 +35,9 @@ export const SubTabla: FC<propsSubTabla> = ({ row, getId, handleClick, setSelect
         for (let i = 0; i < event?.grupos_array?.length; i++) {
             asd = { ...asd, [event?.grupos_array[i]]: { titulo: event?.grupos_array[i], data: [] } }
         }
-        const tablesRecepcion = event?.planSpace.find(elem => elem?.title === "recepción")?.tables
-        const tablesCeremonia = event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables
-        const Data = GuestsByFather.reduce((acc, item: guestsExt) => {
+        const tablesRecepcion = event?.planSpace?.find(elem => elem?.title === "recepción")?.tables
+        const tablesCeremonia = event?.planSpace?.find(elem => elem?.title === "ceremonia")?.tables
+        const Data = (GuestsByFather ?? []).reduce((acc, item: guestsExt) => {
             const guestRecepcion = allFilterGuests[0]?.sentados.find(elem => elem._id === item._id)
             const guestCeremonia = allFilterGuests[1]?.sentados.find(elem => elem._id === item._id)
             const tableRecepcion = tablesRecepcion?.find(elem => elem._id === guestRecepcion?.tableID)
