@@ -114,7 +114,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   }, [acompañanteID.id])
 
   useEffect(() => {
-    setInvitadoCero(event?.invitados_array?.filter(elem => elem?.rol === event?.grupos_array[0])[0]?.nombre)
+    setInvitadoCero(event?.invitados_array?.filter(elem => elem?.rol === event?.grupos_array?.[0])[0]?.nombre)
   }, [event?.invitados_array, event?.grupos_array, event])
 
   useEffect(() => {
@@ -798,7 +798,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
               key={idx}
               data={item.data}
               renderRowSubComponent={renderRowSubComponent}
-              columns={CrearColumna(!item.titulo.match("(nombre)") ? item.titulo : item.titulo.replace("(nombre)", invitadoCero ? invitadoCero : event?.grupos_array[0]))}
+              columns={CrearColumna(!item.titulo.match("(nombre)") ? item.titulo : item.titulo.replace("(nombre)", invitadoCero ? invitadoCero : event?.grupos_array?.[0]))}
             />
           )
         })}

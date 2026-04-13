@@ -217,7 +217,7 @@ const SelectWithSearchField: FC<propsSelectField> = ({ label, children, options,
                             filteredOptions.map((option: string | { _id: string, title: string }, idx: number) => {
                                 const label = typeof option === "string" ? option : option?.title
                                 const value = typeof option === "string" ? option : option?._id
-                                const displayValue = value && `${!value?.match("(nombre)") ? value : value?.replace("(nombre)", (invitadoCero ? invitadoCero : event?.grupos_array[0]))}`
+                                const displayValue = value && `${!value?.match("(nombre)") ? value : value?.replace("(nombre)", (invitadoCero ? invitadoCero : event?.grupos_array?.[0]))}`
 
                                 return (
                                     <div
