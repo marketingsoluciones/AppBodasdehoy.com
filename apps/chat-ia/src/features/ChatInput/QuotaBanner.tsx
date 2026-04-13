@@ -23,7 +23,7 @@ const QuotaBanner = memo(() => {
   const isGuest = !currentUserId || currentUserId === 'visitante@guest.local';
   const { plan, loading: planLoading } = usePlanLimits();
   const { usageStats, usageStatsLoading, fetchUsageStats } = useBilling();
-  const { isCreditExhausted, totalBalance, creditLimit } = useWallet();
+  const { isCreditExhausted, totalBalance, creditLimit, loading: walletLoading } = useWallet();
   const [todayStats, setTodayStats] = useState<UsageStats | null>(null);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ const QuotaBanner = memo(() => {
     });
   }, [isGuest]);
 
-  if (isGuest || planLoading || usageStatsLoading || !plan) return null;
+  if (isGuest || planLoading || usageStatsLoading || walletLoading || !plan) return null;
 
   const aiLimit = plan.product_limits.find((l) => l.sku === 'ai-tokens');
   if (!aiLimit || isUnlimited('ai-tokens', aiLimit.free_quota)) return null;

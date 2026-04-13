@@ -762,7 +762,22 @@ export const POST = async (req: Request, { params }: { params: Promise<{ provide
       return proxyResponse;
     }
 
-    // Fallback: usar lógica original con checkAuth
+    // Si USE_PYTHON_BACKEND está activo (no 'false'), el proxy DEBERÍA haber respondido.
+    // Si retornó null inesperadamente (error en SSE, catch interno, etc.), NO hacer fallback
+    // al ModelRuntime de LobeChat — eso requiere OPENAI_API_KEY y muestra "auto API Key is incorrect".
+    // En su lugar, devolver un error descriptivo para que el usuario sepa qué pasó.
+    if (process.env.USE_PYTHON_BACKEND !== 'false') {
+      console.error(`[chat-proxy] ❌ proxyToPythonBackend retornó null inesperadamente (provider="${provider}"). El backend Python está activo pero el proxy falló sin respuesta.`);
+      return new Response(
+        JSON.stringify({
+          body: { message: 'El asistente IA no está disponible en este momento. Intenta de nuevo en unos segundos.', type: 'service_unavailable' },
+          errorType: 'ServiceUnavailable',
+        }),
+        { headers: { 'Content-Type': 'application/json' }, status: 503 },
+      );
+    }
+
+    // Fallback: usar lógica original con checkAuth (solo cuando USE_PYTHON_BACKEND=false explícito)
     return checkAuth(async (authReq: Request, { jwtPayload, createRuntime }) => {
       const bodyText = await authReq.text();
 
