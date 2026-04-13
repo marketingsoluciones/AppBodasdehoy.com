@@ -16,6 +16,7 @@ export { TIER_ORDER, TIER_LABELS, TIER_COLORS } from './types';
 
 // Humanize utilities
 export {
+  isUnlimited,
   humanizeSku,
   humanizeQuota,
   humanizeQuotaValue,

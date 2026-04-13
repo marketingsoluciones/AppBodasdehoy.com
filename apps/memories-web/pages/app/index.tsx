@@ -6,10 +6,12 @@ import Head from 'next/head';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import { MemoriesProvider, useMemoriesStore } from '@bodasdehoy/memories';
 import type { Album } from '@bodasdehoy/memories';
 import { useAuth } from '../../hooks/useAuth';
 import { usePlan } from '../../hooks/usePlan';
+import { trackSubscriptionComplete } from '@bodasdehoy/shared';
 import LoginForm from '../../components/auth/LoginForm';
 import { AlbumCard } from '../../components/albums/AlbumCard';
 import { EventGroup } from '../../components/albums/EventGroup';
@@ -85,6 +87,9 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
             >
               + Nuevo álbum
             </button>
+            <Link href="/app/referral" className="text-sm text-rose-500 font-semibold hover:text-rose-700 transition hidden sm:block">
+              🎁 Invita amigos
+            </Link>
             <button onClick={onLogout} className="text-sm text-gray-400 hover:text-gray-700 transition">
               Salir
             </button>
@@ -211,6 +216,21 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
 
 export default function AppPage() {
   const { userId, hydrated, handleLogin, handleLogout } = useAuth();
+  const router = useRouter();
+  const [showUpgradedBanner, setShowUpgradedBanner] = useState(false);
+
+  useEffect(() => {
+    if (router.query.upgraded === '1') {
+      setShowUpgradedBanner(true);
+      const pending = (() => {
+        try { return JSON.parse(localStorage.getItem('pending_purchase') || '{}'); } catch { return {}; }
+      })();
+      trackSubscriptionComplete(pending.planId || 'memories-plan', pending.price || 0);
+      localStorage.removeItem('pending_purchase');
+      // Limpiar el query param de la URL sin recargar
+      router.replace('/app', undefined, { shallow: true });
+    }
+  }, [router.query.upgraded]);
 
   if (!hydrated) {
     return (
@@ -226,6 +246,15 @@ export default function AppPage() {
         <title>Mis álbumes — Memories</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
+
+      {/* Banner de pago exitoso */}
+      {showUpgradedBanner && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-2xl shadow-lg flex items-center gap-3 text-sm font-semibold animate-fade-in">
+          <span>🎉</span>
+          <span>¡Plan activado! Ya puedes crear más álbumes.</span>
+          <button onClick={() => setShowUpgradedBanner(false)} className="ml-2 opacity-70 hover:opacity-100">✕</button>
+        </div>
+      )}
 
       {!userId ? (
         <LoginForm onLogin={handleLogin} />

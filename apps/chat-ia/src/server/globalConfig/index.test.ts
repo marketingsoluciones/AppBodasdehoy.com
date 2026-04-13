@@ -26,9 +26,13 @@ vi.mock('./parseFilesConfig', () => ({
   parseFilesConfig: vi.fn(),
 }));
 
+vi.mock('@/const/agents/defaultCopilotSystemRole', () => ({
+  DEFAULT_COPILOT_SYSTEM_ROLE: 'mock-system-role',
+}));
+
 describe('getServerDefaultAgentConfig', () => {
   it('should return parsed agent config', () => {
-    const mockConfig = { key: 'value' };
+    const mockConfig = { key: 'value', systemRole: 'custom-role' };
     vi.mocked(getAppConfig).mockReturnValue({
       DEFAULT_AGENT_CONFIG: 'test_agent_config',
     } as any);
@@ -48,7 +52,7 @@ describe('getServerDefaultAgentConfig', () => {
 
     const result = getServerDefaultAgentConfig();
 
-    expect(result).toEqual({});
+    expect(result).toEqual({ systemRole: 'mock-system-role' });
   });
 });
 

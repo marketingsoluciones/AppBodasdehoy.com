@@ -130,7 +130,7 @@ pnpm build
 |---------|---------|---------|
 | **Desarrollo Local** | http://localhost:8080 | http://localhost:3210 |
 | **Test** | https://app-test.bodasdehoy.com | https://chat-test.bodasdehoy.com |
-| **Producción** | https://organizador.bodasdehoy.com | https://iachat.bodasdehoy.com |
+| **Producción** | https://organizador.bodasdehoy.com | https://chat.bodasdehoy.com |
 
 ## 📦 Apps Principales
 
@@ -180,7 +180,7 @@ NEXT_PUBLIC_BASE_URL=https://apiapp.bodasdehoy.com
 
 #### apps/copilot/.env
 ```env
-APP_URL=https://iachat.bodasdehoy.com
+APP_URL=https://chat.bodasdehoy.com
 DATABASE_URL=postgresql://...
 S3_ENDPOINT=https://...
 ```

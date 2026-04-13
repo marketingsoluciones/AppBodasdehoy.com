@@ -8,6 +8,7 @@ import { ReactNode } from 'react';
 import { isRtlLang } from 'rtl-detect';
 
 import Analytics from '@/components/Analytics';
+import TrackingCapture from '@/components/TrackingCapture';
 import DeveloperTheme from '@/components/DeveloperTheme';
 import DynamicFavicon from '@/components/DynamicFavicon';
 import LoginModal from '@/components/LoginModal';
@@ -85,6 +86,7 @@ const RootLayout = async ({ children, params, modal }: RootLayoutProps) => {
             <PWAInstall />
           </GlobalProvider>
         </NuqsAdapter>
+      <TrackingCapture />
       <Analytics />
       {inVercel && <SpeedInsights />}
     </div>

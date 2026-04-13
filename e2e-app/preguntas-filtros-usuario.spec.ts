@@ -29,6 +29,7 @@ import { TEST_CREDENTIALS, TEST_URLS } from './fixtures';
 const BASE_URL = TEST_URLS.app;
 const isAppTest =
   BASE_URL.includes('app-test.bodasdehoy.com') ||
+  BASE_URL.includes('app-dev.bodasdehoy.com') ||
   BASE_URL.includes('app.bodasdehoy.com') ||
   BASE_URL.includes('127.0.0.1');
 

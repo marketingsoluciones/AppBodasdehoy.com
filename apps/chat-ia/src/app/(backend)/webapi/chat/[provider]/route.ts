@@ -317,20 +317,27 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
         }
 
         if (backendResponse.status === 429) {
-          // Límite de mensajes alcanzado (guest o usuario free)
-          // api-ia devuelve: {"error": "GUEST_DAILY_LIMIT_REACHED", "message": "..."}
+          // Límite de mensajes alcanzado (guest, daily cap o velocity throttle)
+          // api-ia devuelve: {"error": "...", "message": "...", "screen_type": "...", "reset_at": "ISO"}
           let message = 'Has alcanzado el límite diario de mensajes. Regístrate gratis para continuar sin límites.';
-          let errorCode = 'rate_limit';
+          let screen_type: string | undefined;
+          let reset_at: string | undefined;
           try {
             // El body puede venir como SSE: "data: {...}\n\ndata: [DONE]" o JSON plano
             const cleanText = errorText.replace(/^data:\s*/gm, '').replace(/\[DONE\]/g, '').trim();
             const parsed = JSON.parse(cleanText.split('\n')[0] || cleanText);
-            if (parsed?.message) message = String(parsed.message);
-            if (parsed?.error) errorCode = String(parsed.error).toLowerCase();
+            const detail = parsed?.detail;
+            // Aceptar campos en top-level o anidados en detail (FastAPI HTTPException)
+            if (detail?.message) message = String(detail.message);
+            else if (parsed?.message) message = String(parsed.message);
+            screen_type = typeof detail?.screen_type === 'string' ? detail.screen_type
+              : typeof parsed?.screen_type === 'string' ? parsed.screen_type : undefined;
+            reset_at = typeof detail?.reset_at === 'string' ? detail.reset_at
+              : typeof parsed?.reset_at === 'string' ? parsed.reset_at : undefined;
           } catch { /* usar mensaje por defecto */ }
           return new Response(
             JSON.stringify({
-              body: { message, type: errorCode },
+              body: { message, reset_at, screen_type, type: 'rate_limit' },
               errorType: 'rate_limit',
             }),
             { headers: { 'Content-Type': 'application/json' }, status: 429 }
@@ -349,23 +356,29 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           // Modo estricto (por defecto): NO hacer fallback al runtime nativo
           let message = 'Saldo insuficiente. Recarga tu cuenta para continuar usando el asistente.';
           let screen_type: string | undefined;
+          let recharge_url: string | undefined;
+          let plans_url: string | undefined;
           try {
             const parsed = JSON.parse(errorText);
             const detail = parsed?.detail;
-            screen_type = typeof parsed?.screen_type === 'string' ? parsed.screen_type : undefined;
-            // FastAPI HTTPException devuelve detail como objeto o string
+            // FastAPI HTTPException anida el detalle en "detail"; aceptar también top-level
             if (typeof detail === 'string') {
               message = detail;
-            } else if (typeof detail === 'object' && detail?.error) {
-              message = String(detail.error);
-            } else if (typeof detail === 'object' && detail?.message) {
-              message = String(detail.message);
+            } else if (typeof detail === 'object') {
+              if (detail?.message) message = String(detail.message);
+              else if (detail?.error) message = String(detail.error);
+              // screen_type, recharge_url y plans_url vienen dentro del objeto detail
+              if (typeof detail.screen_type === 'string') screen_type = detail.screen_type;
+              if (typeof detail.recharge_url === 'string') recharge_url = detail.recharge_url;
+              if (typeof detail.plans_url === 'string') plans_url = detail.plans_url;
             }
+            // Fallback: campos a nivel raíz (algunos handlers de api-ia devuelven así)
+            if (!screen_type && typeof parsed?.screen_type === 'string') screen_type = parsed.screen_type;
           } catch { /* usar mensaje por defecto */ }
           // Devolver en formato LobeChat ErrorResponse (errorType + body con detail/screen_type para la UI)
           return new Response(
             JSON.stringify({
-              body: { message, screen_type, type: 'insufficient_balance' },
+              body: { message, plans_url, recharge_url, screen_type, type: 'insufficient_balance' },
               errorType: 'insufficient_balance',
             }),
             { headers: { 'Content-Type': 'application/json' }, status: 402 }
@@ -749,7 +762,22 @@ export const POST = async (req: Request, { params }: { params: Promise<{ provide
       return proxyResponse;
     }
 
-    // Fallback: usar lógica original con checkAuth
+    // Si USE_PYTHON_BACKEND está activo (no 'false'), el proxy DEBERÍA haber respondido.
+    // Si retornó null inesperadamente (error en SSE, catch interno, etc.), NO hacer fallback
+    // al ModelRuntime de LobeChat — eso requiere OPENAI_API_KEY y muestra "auto API Key is incorrect".
+    // En su lugar, devolver un error descriptivo para que el usuario sepa qué pasó.
+    if (process.env.USE_PYTHON_BACKEND !== 'false') {
+      console.error(`[chat-proxy] ❌ proxyToPythonBackend retornó null inesperadamente (provider="${provider}"). El backend Python está activo pero el proxy falló sin respuesta.`);
+      return new Response(
+        JSON.stringify({
+          body: { message: 'El asistente IA no está disponible en este momento. Intenta de nuevo en unos segundos.', type: 'service_unavailable' },
+          errorType: 'ServiceUnavailable',
+        }),
+        { headers: { 'Content-Type': 'application/json' }, status: 503 },
+      );
+    }
+
+    // Fallback: usar lógica original con checkAuth (solo cuando USE_PYTHON_BACKEND=false explícito)
     return checkAuth(async (authReq: Request, { jwtPayload, createRuntime }) => {
       const bodyText = await authReq.text();
 

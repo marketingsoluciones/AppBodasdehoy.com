@@ -3,12 +3,13 @@
 import Script from 'next/script';
 import { message } from 'antd';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 
 import { LoginForm, SplitLoginPage } from '@bodasdehoy/auth-ui';
 import { useChatStore } from '@/store/chat';
 import { loginWithEmailPassword, loginWithFacebook, loginWithGoogle } from '@/services/firebase-auth';
 import { optimizedApiClient } from '@/utils/api-client-optimized';
+import { registerReferralIfPending, sendAttributionToApi } from '@bodasdehoy/shared';
 
 // ─── Config panel izquierdo (branding de chat-ia) ────────────────────────────
 const CHAT_IA_LEFT_PANEL = {
@@ -62,6 +63,9 @@ function isSafeRedirect(url: string): boolean {
   }
 }
 
+// ─── WhatsApp OTP flow — tipos ────────────────────────────────────────────────
+type WaStep = 'idle' | 'phone' | 'otp';
+
 // ─── Panel derecho ────────────────────────────────────────────────────────────
 function RightPanel() {
   const router = useRouter();
@@ -72,6 +76,13 @@ function RightPanel() {
 
   const [messageApi, contextHolder] = message.useMessage();
   const { setExternalChatConfig, fetchExternalChats } = useChatStore();
+
+  // ── WhatsApp OTP state ──
+  const [waStep, setWaStep] = useState<WaStep>('idle');
+  const [waPhone, setWaPhone] = useState('');
+  const [waCode, setWaCode] = useState('');
+  const [waLoading, setWaLoading] = useState(false);
+  const [waError, setWaError] = useState<string | null>(null);
 
   // Redirigir tras login exitoso: a ?redirect= si es seguro, o al chat
   const afterLogin = () => {
@@ -103,6 +114,8 @@ function RightPanel() {
     }
   };
 
+  const api2Url = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+
   // ── Email/password ──
   const handleEmailLogin = async (email: string, password: string) => {
     const result = await loginWithEmailPassword(email, password, development);
@@ -110,6 +123,10 @@ function RightPanel() {
     saveSession(result.user_id!, result.development, result.token || null, email);
     await setExternalChatConfig(result.user_id!, result.development, result.token || undefined, 'registered');
     fetchExternalChats().catch(() => {});
+    if (result.token) {
+      registerReferralIfPending(result.token, result.development, api2Url).catch(() => {});
+      sendAttributionToApi(result.token, result.development, api2Url).catch(() => {});
+    }
     afterLogin();
   };
 
@@ -123,6 +140,10 @@ function RightPanel() {
     saveSession(email, result.development, token, email);
     await setExternalChatConfig(email, result.development, token || undefined, 'registered');
     fetchExternalChats().catch(() => {});
+    if (token) {
+      registerReferralIfPending(token, result.development, api2Url).catch(() => {});
+      sendAttributionToApi(token, result.development, api2Url).catch(() => {});
+    }
     afterLogin();
   };
 
@@ -136,7 +157,58 @@ function RightPanel() {
     saveSession(email, result.development, token, email);
     await setExternalChatConfig(email, result.development, token || undefined, 'registered');
     fetchExternalChats().catch(() => {});
+    if (token) {
+      registerReferralIfPending(token, result.development, api2Url).catch(() => {});
+      sendAttributionToApi(token, result.development, api2Url).catch(() => {});
+    }
     afterLogin();
+  };
+
+  // ── WhatsApp OTP: enviar código ──
+  const handleWaSendCode = async () => {
+    setWaError(null);
+    setWaLoading(true);
+    try {
+      const res = await fetch('/api/auth/whatsapp-otp-send', {
+        body: JSON.stringify({ development, phone: waPhone }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Error al enviar el código.');
+      setWaStep('otp');
+    } catch (err: any) {
+      setWaError(err?.message || 'Error al enviar el código.');
+    } finally {
+      setWaLoading(false);
+    }
+  };
+
+  // ── WhatsApp OTP: verificar código ──
+  const handleWaVerify = async () => {
+    setWaError(null);
+    setWaLoading(true);
+    try {
+      const res = await fetch('/api/auth/whatsapp-otp-verify', {
+        body: JSON.stringify({ code: waCode, development, phone: waPhone }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) throw new Error(result.detail || 'Código incorrecto.');
+      saveSession(result.user_id, development, result.token, result.email ?? undefined);
+      await setExternalChatConfig(result.user_id, development, result.token || undefined, 'registered');
+      fetchExternalChats().catch(() => {});
+      if (result.token) {
+        registerReferralIfPending(result.token, development, api2Url).catch(() => {});
+        sendAttributionToApi(result.token, development, api2Url).catch(() => {});
+      }
+      afterLogin();
+    } catch (err: any) {
+      setWaError(err?.message || 'Código incorrecto o expirado.');
+    } finally {
+      setWaLoading(false);
+    }
   };
 
   // ── Visitante ──
@@ -166,6 +238,114 @@ function RightPanel() {
     setTimeout(() => router.replace('/chat'), 800);
   };
 
+  // ── Render WhatsApp OTP inline ───────────────────────────────────────────────
+  if (waStep !== 'idle') {
+    const inputStyle: React.CSSProperties = {
+      background: '#fafafa',
+      border: '1px solid #d9d9d9',
+      borderRadius: 8,
+      boxSizing: 'border-box',
+      fontSize: 14,
+      height: 44,
+      outline: 'none',
+      padding: '0 12px',
+      width: '100%',
+    };
+    const btnStyle: React.CSSProperties = {
+      background: waLoading ? '#f0f0f0' : 'linear-gradient(90deg, #25d366, #128c7e)',
+      border: 'none',
+      borderRadius: 8,
+      color: waLoading ? '#8c8c8c' : 'white',
+      cursor: waLoading ? 'not-allowed' : 'pointer',
+      fontSize: 15,
+      fontWeight: 700,
+      height: 48,
+      opacity: waLoading ? 0.7 : 1,
+      width: '100%',
+    };
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%', justifyContent: 'center', padding: '40px 36px' }}>
+        {contextHolder}
+        <button
+          onClick={() => { setWaStep('idle'); setWaError(null); setWaCode(''); }}
+          style={{ background: 'none', border: 'none', color: '#8c8c8c', cursor: 'pointer', fontSize: 13, padding: 0, textAlign: 'left' }}
+          type="button"
+        >
+          ← Volver al inicio de sesión
+        </button>
+
+        <div>
+          <h2 style={{ color: '#262626', fontSize: 20, fontWeight: 700, margin: '0 0 4px' }}>
+            {waStep === 'phone' ? 'Introduce tu teléfono' : 'Introduce el código'}
+          </h2>
+          <p style={{ color: '#8c8c8c', fontSize: 14, margin: 0 }}>
+            {waStep === 'phone'
+              ? 'Te enviaremos un código por WhatsApp.'
+              : `Código enviado a ${waPhone}. Válido 10 minutos.`}
+          </p>
+        </div>
+
+        {waError && (
+          <div style={{ background: '#fff2f0', border: '1px solid #ffccc7', borderRadius: 8, color: '#cf1322', fontSize: 13, padding: '10px 14px' }}>
+            {waError}
+          </div>
+        )}
+
+        {waStep === 'phone' && (
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <label style={{ color: '#595959', fontSize: 13, fontWeight: 500 }}>
+                Teléfono (formato internacional)
+              </label>
+              <input
+                autoComplete="tel"
+                disabled={waLoading}
+                onChange={(e) => setWaPhone(e.target.value)}
+                placeholder="+34612345678"
+                style={inputStyle}
+                type="tel"
+                value={waPhone}
+              />
+            </div>
+            <button disabled={waLoading} onClick={handleWaSendCode} style={btnStyle} type="button">
+              {waLoading ? 'Enviando...' : 'Enviar código por WhatsApp'}
+            </button>
+          </>
+        )}
+
+        {waStep === 'otp' && (
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <label style={{ color: '#595959', fontSize: 13, fontWeight: 500 }}>Código de verificación</label>
+              <input
+                autoComplete="one-time-code"
+                disabled={waLoading}
+                inputMode="numeric"
+                maxLength={8}
+                onChange={(e) => setWaCode(e.target.value.replace(/\D/g, ''))}
+                placeholder="123456"
+                style={{ ...inputStyle, fontSize: 20, letterSpacing: 6, textAlign: 'center' }}
+                type="text"
+                value={waCode}
+              />
+            </div>
+            <button disabled={waLoading} onClick={handleWaVerify} style={btnStyle} type="button">
+              {waLoading ? 'Verificando...' : 'Verificar código'}
+            </button>
+            <button
+              onClick={handleWaSendCode}
+              style={{ background: 'none', border: 'none', color: '#25d366', cursor: 'pointer', fontSize: 13, padding: 0, textAlign: 'center' }}
+              type="button"
+            >
+              Reenviar código
+            </button>
+          </>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center', padding: '40px 36px' }}>
       {contextHolder}
@@ -174,6 +354,7 @@ function RightPanel() {
         onFacebookLogin={handleFacebookLogin}
         onGoogleLogin={handleGoogleLogin}
         onVisitor={handleVisitor}
+        onWhatsAppLogin={() => { setWaStep('phone'); setWaError(null); }}
         sessionExpiredMessage={
           reason === 'session_expired' ? 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.' : null
         }

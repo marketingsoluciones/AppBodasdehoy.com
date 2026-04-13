@@ -82,6 +82,11 @@ const PageLogin = () => {
 
     // Anti-loop: si ya redirigimos en esta sesión de tab, no redirigir de nuevo
     const ssoRedirectPending = typeof window !== 'undefined' && sessionStorage.getItem('sso_redirect_pending') === '1'
+    // Si el SSO falló (session_expired=1), limpiar el flag para permitir reintento
+    if (ssoRedirectPending && sessionExpired) {
+      if (typeof window !== 'undefined') sessionStorage.removeItem('sso_redirect_pending')
+      return
+    }
     if (ssoRedirectPending) return
 
     // INTENCIÓN DE LOGIN: solo redirigir si el usuario viene de ruta protegida o sesión expirada.

@@ -585,37 +585,48 @@ async function proxyToPythonBackend(
     // api-ia debe tener o escoger un modelo lo más razonador posible cuando este header es true
     if (PREFER_REASONING_MODEL) headers['X-Prefer-Reasoning-Model'] = 'true';
 
-    // Auth: use client-sent header if it carries a real token (not empty Bearer)
-    // Fallback: extract from cookies (idTokenV0.1.0 SSO, api2_jwt, dev-user-config)
-    const rawAuthHeader = req.headers['authorization'] as string | undefined;
-    const clientToken = rawAuthHeader?.replace(/^Bearer\s+/i, '').trim();
-    if (clientToken && clientToken.startsWith('eyJ')) {
-      headers['Authorization'] = rawAuthHeader as string;
+    // SEGURIDAD: si el usuario es anónimo/visitante, NO usar ningún token de auth.
+    // El cookie idTokenV0.1.0 es compartido en .bodasdehoy.com — puede pertenecer a
+    // un usuario distinto logueado en chat-ia, lo que causaría fuga de datos privados.
+    if (metadata?.isAnonymous === true) {
+      headers['X-Is-Anonymous'] = 'true';
+      // NO se añade Authorization — api-ia tratará la request como visitante anónimo
     } else {
-      const cookieHeader = req.headers['cookie'] || '';
-      // 1) api2_jwt (dedicated)
-      const jwtMatch = cookieHeader.match(/api2_jwt=([^;]+)/);
-      const jwtToken = jwtMatch ? decodeURIComponent(jwtMatch[1]) : '';
-      // 2) SSO idTokenV0.1.0 (Firebase, domain=.bodasdehoy.com)
-      const ssoMatch = cookieHeader.match(/idTokenV0\.1\.0=([^;]+)/);
-      const ssoToken = ssoMatch ? decodeURIComponent(ssoMatch[1]) : '';
-      // 3) dev-user-config legacy
-      let legacyToken = '';
-      const devMatch = cookieHeader.match(/dev-user-config=([^;]+)/);
-      if (devMatch) {
-        try {
-          const cfg = JSON.parse(decodeURIComponent(devMatch[1]));
-          if (typeof cfg?.token === 'string' && cfg.token.startsWith('eyJ')) legacyToken = cfg.token;
-        } catch { /* ignore */ }
+      // Auth: use client-sent header if it carries a real token (not empty Bearer)
+      // Fallback: extract from cookies (idTokenV0.1.0 SSO, api2_jwt, dev-user-config)
+      const rawAuthHeader = req.headers['authorization'] as string | undefined;
+      const clientToken = rawAuthHeader?.replace(/^Bearer\s+/i, '').trim();
+      if (clientToken && clientToken.startsWith('eyJ')) {
+        headers['Authorization'] = rawAuthHeader as string;
+      } else {
+        const cookieHeader = req.headers['cookie'] || '';
+        // 1) api2_jwt (dedicated)
+        const jwtMatch = cookieHeader.match(/api2_jwt=([^;]+)/);
+        const jwtToken = jwtMatch ? decodeURIComponent(jwtMatch[1]) : '';
+        // 2) SSO idTokenV0.1.0 (Firebase, domain=.bodasdehoy.com)
+        const ssoMatch = cookieHeader.match(/idTokenV0\.1\.0=([^;]+)/);
+        const ssoToken = ssoMatch ? decodeURIComponent(ssoMatch[1]) : '';
+        // 3) dev-user-config legacy
+        let legacyToken = '';
+        const devMatch = cookieHeader.match(/dev-user-config=([^;]+)/);
+        if (devMatch) {
+          try {
+            const cfg = JSON.parse(decodeURIComponent(devMatch[1]));
+            if (typeof cfg?.token === 'string' && cfg.token.startsWith('eyJ')) legacyToken = cfg.token;
+          } catch { /* ignore */ }
+        }
+        const resolvedToken = [jwtToken, ssoToken, legacyToken].find(t => t.startsWith('eyJ'));
+        if (resolvedToken) headers['Authorization'] = `Bearer ${resolvedToken}`;
       }
-      const resolvedToken = [jwtToken, ssoToken, legacyToken].find(t => t.startsWith('eyJ'));
-      if (resolvedToken) headers['Authorization'] = `Bearer ${resolvedToken}`;
     }
     if (metadata?.userId) headers['X-User-Id'] = metadata.userId;
     if (metadata?.eventId) headers['X-Event-Id'] = metadata.eventId;
     if (metadata?.pageContext?.pageName) headers['X-Page-Name'] = metadata.pageContext.pageName;
-    // Backend puede usar esto para permitir chat anónimo con límites (rate limit por sesión)
-    if (metadata?.isAnonymous === true) headers['X-Is-Anonymous'] = 'true';
+    // Rol del usuario para que api-ia ajuste el acceso a datos (owner/collaborator/registered/guest)
+    if (metadata?.pageContext?.userRole) headers['X-User-Role'] = metadata.pageContext.userRole;
+    if (metadata?.pageContext?.permissions?.length) {
+      headers['X-User-Permissions'] = metadata.pageContext.permissions.join(',');
+    }
 
     // X-User-Email: api-ia lo usa como prioridad máxima para identificar al usuario.
     // Sin este header, api-ia puede tratar la request como guest → 429 GUEST_DAILY_LIMIT.

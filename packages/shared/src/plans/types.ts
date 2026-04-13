@@ -31,8 +31,10 @@ export interface PlanLimit {
   service_name: string;
   free_quota: number;
   daily_quota?: number;
+  /** Max requests/hora para este SKU — configurable por plan en api2, sin hardcodear en código */
+  hourly_velocity_limit?: number;
   overage_enabled: boolean;
-  overage_price: number;
+  overage_price?: number;
 }
 
 // ========================================
@@ -122,20 +124,20 @@ export const TIER_ORDER: Record<SubscriptionTier, number> = {
 };
 
 export const TIER_LABELS: Record<SubscriptionTier, string> = {
-  FREE: 'Gratuito',
+  FREE: 'Gratis',
   BASIC: 'Básico',
-  PRO: 'Profesional',
+  PRO: 'Pro',
   MAX: 'Máximo',
-  ENTERPRISE: 'Empresa',
+  ENTERPRISE: 'Whitelabel',
   CUSTOM: 'Personalizado',
 };
 
 export const TIER_COLORS: Record<SubscriptionTier, string> = {
-  FREE: '#6b7280',
-  BASIC: '#3b82f6',
-  PRO: '#667eea',
-  MAX: '#f59e0b',
-  ENTERPRISE: '#10b981',
+  FREE: '#374151',
+  BASIC: '#2563eb',
+  PRO: '#7c3aed',
+  MAX: '#d97706',
+  ENTERPRISE: '#059669',
   CUSTOM: '#8b5cf6',
 };
 

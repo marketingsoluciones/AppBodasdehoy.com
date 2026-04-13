@@ -23,6 +23,7 @@ import { clearSession, loginAndSelectEvent, waitForAppReady } from './helpers';
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
   BASE_URL.includes('app-test.bodasdehoy.com') ||
+  BASE_URL.includes('app-dev.bodasdehoy.com') ||
   BASE_URL.includes('app.bodasdehoy.com');
 
 const TEST_EMAIL = process.env.TEST_USER_EMAIL || 'bodasdehoy.com@gmail.com';
@@ -136,7 +137,7 @@ test.describe('Kanban Tareas — Crear tarea', () => {
     if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
   });
 
-  test(`crear tarea "${TASK_DESC}" en columna Pendiente → visible en kanban`, async ({ page }) => {
+  test('crear tarea E2E en columna Pendiente → visible en kanban', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
     await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });

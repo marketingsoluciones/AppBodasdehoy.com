@@ -9,7 +9,7 @@ import { useBilling } from '@/hooks/useBilling';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useWallet } from '@/hooks/useWallet';
 import { useChatStore } from '@/store/chat';
-import { canAccessDaily, usagePercent } from '@bodasdehoy/shared/plans';
+import { canAccessDaily, isUnlimited, usagePercent } from '@bodasdehoy/shared/plans';
 import type { UsageStats } from '@/services/api2/invoices';
 
 /**
@@ -23,7 +23,7 @@ const QuotaBanner = memo(() => {
   const isGuest = !currentUserId || currentUserId === 'visitante@guest.local';
   const { plan, loading: planLoading } = usePlanLimits();
   const { usageStats, usageStatsLoading, fetchUsageStats } = useBilling();
-  const { isCreditExhausted } = useWallet();
+  const { isCreditExhausted, totalBalance, creditLimit, loading: walletLoading } = useWallet();
   const [todayStats, setTodayStats] = useState<UsageStats | null>(null);
 
   useEffect(() => {
@@ -42,10 +42,10 @@ const QuotaBanner = memo(() => {
     });
   }, [isGuest]);
 
-  if (isGuest || planLoading || usageStatsLoading || !plan) return null;
+  if (isGuest || planLoading || usageStatsLoading || walletLoading || !plan) return null;
 
   const aiLimit = plan.product_limits.find((l) => l.sku === 'ai-tokens');
-  if (!aiLimit || aiLimit.free_quota >= 999_999) return null;
+  if (!aiLimit || isUnlimited('ai-tokens', aiLimit.free_quota)) return null;
 
   // --- Límite diario ---
   if (aiLimit.daily_quota) {
@@ -88,16 +88,67 @@ const QuotaBanner = memo(() => {
         </Flexbox>
       );
     }
+    // Daily warning: 80-99% of daily quota (only show when there's at least 1 query left)
+    if (dailyCheck && dailyCheck.allowed && dailyCheck.percentUsed >= 80) {
+      const dailyRemaining = Math.max(0, Math.round(dailyCheck.remaining / 500));
+      if (dailyRemaining === 0) return null;
+      return (
+        <Flexbox
+          align="center"
+          gap={8}
+          horizontal
+          style={{
+            background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+            border: '1px solid #fde68a',
+            borderRadius: 8,
+            fontSize: 13,
+            marginBottom: 6,
+            padding: '6px 12px',
+          }}
+        >
+          <AlertTriangle size={14} style={{ color: '#d97706', flexShrink: 0 }} />
+          <span style={{ color: '#92400e', flex: 1 }}>
+            Te quedan ~{dailyRemaining} consultas hoy.
+          </span>
+          <Link
+            href="/settings/billing/planes"
+            style={{
+              alignItems: 'center',
+              background: '#f59e0b',
+              borderRadius: 6,
+              color: 'white',
+              display: 'flex',
+              fontSize: 12,
+              fontWeight: 600,
+              gap: 4,
+              padding: '3px 10px',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <Zap size={12} />
+            Actualizar
+          </Link>
+        </Flexbox>
+      );
+    }
   }
 
   // --- Límite mensual ---
   const currentTokens = usageStats?.totalTokens ?? 0;
-  const percent = usagePercent(currentTokens, aiLimit.free_quota);
+  const percent = usagePercent(currentTokens, aiLimit.free_quota, 'ai-tokens');
 
   if (percent < 80) return null;
 
-  const isBlocked = percent >= 100 && !aiLimit.overage_enabled && isCreditExhausted;
+  // remaining: queries left (each ~500 tokens). 0 means effectively exhausted even if percent is 99.x%
   const remaining = Math.max(0, Math.round((aiLimit.free_quota - currentTokens) / 500));
+  const isEffectivelyExhausted = percent >= 100 || remaining === 0;
+  // isPayPerUse: plan exhausted AND overage enabled AND wallet has credit → user pays per query
+  const isPayPerUse = isEffectivelyExhausted && aiLimit.overage_enabled && !isCreditExhausted;
+  // isBlocked: exhausted and cannot continue (no overage, or overage but no credit)
+  const isBlocked = isEffectivelyExhausted && !isPayPerUse;
+  // Available funds: positive balance OR remaining credit limit
+  const availableFunds = totalBalance >= 0 ? totalBalance : Math.max(0, creditLimit + totalBalance);
 
   if (isBlocked) {
     return (
@@ -154,7 +205,47 @@ const QuotaBanner = memo(() => {
     );
   }
 
-  // Warning: 80-99%
+  // Plan exhausted, wallet covers the rest
+  if (isPayPerUse) {
+    return (
+      <Flexbox
+        align="center"
+        gap={8}
+        horizontal
+        style={{
+          background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+          border: '1px solid #86efac',
+          borderRadius: 8,
+          fontSize: 13,
+          marginBottom: 6,
+          padding: '6px 12px',
+        }}
+      >
+        <Zap size={14} style={{ color: '#16a34a', flexShrink: 0 }} />
+        <span style={{ color: '#15803d', flex: 1 }}>
+          Plan agotado · Crédito disponible: €{availableFunds.toFixed(2)}
+        </span>
+        <Link
+          href="/settings/billing/planes"
+          style={{
+            border: '1px solid #16a34a',
+            borderRadius: 6,
+            color: '#16a34a',
+            fontSize: 12,
+            fontWeight: 600,
+            padding: '3px 10px',
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Ampliar plan
+        </Link>
+      </Flexbox>
+    );
+  }
+
+  // Warning: 80-99% (only show when there's at least 1 query left to avoid "~0" confusion)
+  if (remaining === 0) return null;
   return (
     <Flexbox
       align="center"

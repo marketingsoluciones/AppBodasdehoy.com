@@ -47,6 +47,9 @@ export function useAuth({ redirectTo }: { redirectTo?: string } = {}): UseAuthRe
   const handleLogout = () => {
     localStorage.removeItem(USER_ID_KEY);
     setUserId(null);
+    // Limpiar cookie compartida idTokenV0.1.0 para que el logout sea global
+    // (chat-ia y appEventos también perderán la sesión al recargar)
+    authBridge.clearAuth();
   };
 
   return { userId, hydrated, handleLogin, handleLogout };

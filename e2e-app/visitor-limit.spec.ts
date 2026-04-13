@@ -20,6 +20,7 @@ const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
   BASE_URL.includes('app-dev.bodasdehoy.com') ||
   BASE_URL.includes('app-test.bodasdehoy.com') ||
+  BASE_URL.includes('app-dev.bodasdehoy.com') ||
   BASE_URL.includes('app.bodasdehoy.com') ||
   BASE_URL.includes('127.0.0.1') ||
   BASE_URL.includes('localhost');
@@ -285,8 +286,9 @@ test.describe('Server-side visitor limit — /webapi/chat/{provider}', () => {
       localStorage.removeItem('api2_jwt_token');
       localStorage.removeItem('api2_jwt_expires_at');
       localStorage.removeItem('jwt_token');
-      // Setear SOLO vis_mc — sin cookies de auth
-      document.cookie = `vis_mc=3; path=/; max-age=86400; SameSite=Lax`;
+      // Setear vis_mc por encima del VISITOR_MSG_LIMIT_CAP del servidor (default: 10).
+      // vis_mc=3 estaba por debajo del cap → el servidor no bloqueaba → llegaba al backend → 502.
+      document.cookie = `vis_mc=11; path=/; max-age=86400; SameSite=Lax`;
     });
 
     const result = await page.evaluate(async () => {
@@ -620,7 +622,9 @@ test.describe('Modal de límite — Visitante (LoginRequiredModal)', () => {
   test.setTimeout(120_000);
 
   test('VL-LIM01 — Primer día al límite (5 msgs) → LoginRequiredModal aparece', async ({ page, context }) => {
-    await context.clearCookies();
+    // Limpiar también IndexedDB de Firebase para evitar auth recovery que redirige
+    // antes de que aparezca el botón "Continuar como visitante"
+    await clearChatSession(context, page);
     await navegarComoVisitante(page);
 
     // Simular 5 mensajes usados hoy (= límite del primer día)
@@ -638,7 +642,7 @@ test.describe('Modal de límite — Visitante (LoginRequiredModal)', () => {
   });
 
   test('VL-LIM02 — Días posteriores al límite (2 msgs) → LoginRequiredModal aparece', async ({ page, context }) => {
-    await context.clearCookies();
+    await clearChatSession(context, page);
     await navegarComoVisitante(page);
 
     // Simular 2 mensajes usados en día posterior (= límite desde el día 2)

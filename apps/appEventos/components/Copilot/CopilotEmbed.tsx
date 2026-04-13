@@ -805,6 +805,10 @@ export const CopilotEmbed = ({
         const params: SendMessageParams = {
           message: content, sessionId, userId, development,
           eventId, eventName, pageContext, messageHistory,
+          // SEGURIDAD: si el usuario es visitante en appEventos, no enviar token de auth.
+          // El token idTokenV0.1.0 puede pertenecer a otro usuario logueado en chat-ia
+          // y causaría que el copilot devuelva datos privados de ese otro usuario.
+          isAnonymous: isGuest ?? false,
         };
         await sendChatMessage(
           params,

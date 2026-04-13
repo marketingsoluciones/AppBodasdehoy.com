@@ -28,7 +28,10 @@ export interface PlanPricing {
 }
 
 export interface ProductLimit {
+  daily_quota?: number;
   free_quota: number;
+  /** Max requests/hora — configurable por plan en api2, leído por api-ia para velocity throttle */
+  hourly_velocity_limit?: number;
   overage_enabled: boolean;
   overage_price?: number;
   service_name: string;
@@ -123,6 +126,8 @@ const GET_SUBSCRIPTION_PLANS_QUERY = `
         sku
         service_name
         free_quota
+        daily_quota
+        hourly_velocity_limit
         overage_price
         overage_enabled
       }

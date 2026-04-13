@@ -147,6 +147,10 @@ export interface PageContext {
   eventId?: string;
   screenData?: Record<string, any>;
   eventsList?: Array<{ name?: string; type?: string; date?: string; id?: string }>;
+  /** Rol del usuario respecto al evento: owner | collaborator | registered | guest */
+  userRole?: 'owner' | 'collaborator' | 'registered' | 'guest';
+  /** Permisos del colaborador (solo si userRole === 'collaborator') */
+  permissions?: string[];
 }
 
 /** Un mensaje para el historial (role + content) enviado al backend para mantener contexto. */
@@ -240,11 +244,15 @@ export const sendChatMessage = async (
     };
     if (model) payload.model = model;
 
+    // SEGURIDAD: si el usuario es anónimo/visitante, no enviar token de auth.
+    // El cookie idTokenV0.1.0 puede pertenecer a otro usuario logueado en chat-ia,
+    // lo que causaría fuga de datos privados de ese usuario al visitante.
+    const authToken = isAnonymous ? '' : getAuthToken();
     const response = await fetch(`${CHAT_API_BASE}/api/copilot/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getAuthToken()}`,
+        ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {}),
         'X-Development': development || 'bodasdehoy',
         'X-Request-Id': requestId,
       },

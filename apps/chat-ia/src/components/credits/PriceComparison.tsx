@@ -1,10 +1,12 @@
 'use client';
 
-import { Table, Tag } from 'antd';
+import { Table } from 'antd';
 import { createStyles } from 'antd-style';
 import { Check, X } from 'lucide-react';
 import { memo } from 'react';
-import { Flexbox } from 'react-layout-kit';
+
+import type { SubscriptionPlan } from '@/services/api2/subscriptions';
+import { humanizeQuota } from '@bodasdehoy/shared/plans';
 
 const useStyles = createStyles(({ css, token }) => ({
   card: css`
@@ -13,10 +15,6 @@ const useStyles = createStyles(({ css, token }) => ({
     border-radius: 12px;
     padding: 24px;
   `,
-  highlightRow: css`
-    background: ${token.colorPrimaryBg};
-    border: 2px solid ${token.colorPrimary};
-  `,
   sectionTitle: css`
     font-size: 18px;
     font-weight: 600;
@@ -24,169 +22,123 @@ const useStyles = createStyles(({ css, token }) => ({
   `,
 }));
 
-interface PlanFeature {
-  basic: string | boolean;
-  enterprise: string | boolean;
-  free: string | boolean;
-  max: string | boolean;
-  name: string;
-  pro: string | boolean;
-}
+const PLAN_COLORS: Record<string, string> = {
+  BASIC: '#2563eb',
+  ENTERPRISE: '#059669',
+  FREE: '#374151',
+  MAX: '#d97706',
+  PRO: '#7c3aed',
+};
 
-const PLANS_DATA: PlanFeature[] = [
-  {
-    basic: '€29',
-    enterprise: 'Personalizado',
-    free: 'Gratis',
-    max: '€299',
-    name: 'Precio Mensual',
-    pro: '€99',
-  },
-  {
-    basic: '100K',
-    enterprise: 'Ilimitado',
-    free: '10K',
-    max: '2M',
-    name: 'Tokens IA / Mes',
-    pro: '500K',
-  },
-  {
-    basic: '500',
-    enterprise: 'Ilimitado',
-    free: '50',
-    max: '10,000',
-    name: 'Imágenes / Mes',
-    pro: '2,500',
-  },
-  {
-    basic: '1,000',
-    enterprise: 'Ilimitado',
-    free: '100',
-    max: '20,000',
-    name: 'Mensajes WhatsApp',
-    pro: '5,000',
-  },
-  {
-    basic: '5,000',
-    enterprise: 'Ilimitado',
-    free: '500',
-    max: '100,000',
-    name: 'Emails / Mes',
-    pro: '25,000',
-  },
-  {
-    basic: '10 GB',
-    enterprise: 'Ilimitado',
-    free: '1 GB',
-    max: '200 GB',
-    name: 'Almacenamiento',
-    pro: '50 GB',
-  },
-  {
-    basic: false,
-    enterprise: true,
-    free: false,
-    max: true,
-    name: 'Acceso API',
-    pro: true,
-  },
-  {
-    basic: false,
-    enterprise: true,
-    free: false,
-    max: true,
-    name: 'Soporte Prioritario',
-    pro: true,
-  },
-  {
-    basic: false,
-    enterprise: true,
-    free: false,
-    max: true,
-    name: 'Branding Personalizado',
-    pro: false,
-  },
-  {
-    basic: false,
-    enterprise: true,
-    free: false,
-    max: true,
-    name: 'Analytics Avanzados',
-    pro: false,
-  },
+// SKUs shown as rows in the comparison table
+const QUOTA_ROWS: { key: string; label: string; skuMatch: (sku: string) => boolean }[] = [
+  { key: 'ai', label: 'Consultas IA / mes', skuMatch: (s) => s.includes('ai') || s.includes('token') || s.includes('anthropic') || s.includes('openai') },
+  { key: 'images', label: 'Imágenes IA / mes', skuMatch: (s) => s.includes('image') || s.includes('dalle') || s.includes('flux') },
+  { key: 'whatsapp', label: 'WhatsApp', skuMatch: (s) => s.includes('whatsapp') || s.includes('-wa') },
+  { key: 'sms', label: 'SMS', skuMatch: (s) => s === 'sms-invitations' },
+  { key: 'storage', label: 'Almacenamiento', skuMatch: (s) => s === 'storage-gb' },
+  { key: 'events', label: 'Eventos activos', skuMatch: (s) => s === 'events-count' },
+  { key: 'guests', label: 'Invitados / evento', skuMatch: (s) => s === 'guests-per-event' },
 ];
 
-const PriceComparison = memo(() => {
+function getQuotaValue(plan: SubscriptionPlan, skuMatch: (s: string) => boolean): string {
+  const limit = plan.product_limits.find((l) => skuMatch(l.sku.toLowerCase()));
+  if (!limit) return '—';
+  if (limit.free_quota <= 0) return '—';
+  return humanizeQuota(limit.sku, limit.free_quota);
+}
+
+interface Props {
+  plans: SubscriptionPlan[];
+}
+
+const PriceComparison = memo<Props>(({ plans }) => {
   const { styles } = useStyles();
 
-  const renderValue = (value: string | boolean) => {
-    if (typeof value === 'boolean') {
-      return value ? (
-        <Check color="#10b981" size={20} style={{ margin: '0 auto' }} />
-      ) : (
-        <X color="#ef4444" size={20} style={{ margin: '0 auto' }} />
-      );
-    }
-    return <span>{value}</span>;
-  };
+  const mainPlans = plans
+    .filter((p) => p.tier !== 'ENTERPRISE' && p.tier !== 'CUSTOM')
+    .sort((a, b) => a.pricing.monthly_fee - b.pricing.monthly_fee);
 
+  if (mainPlans.length === 0) return null;
+
+  const renderBool = (v: boolean) =>
+    v ? <Check color="#10b981" size={18} style={{ margin: '0 auto' }} /> : <X color="#d1d5db" size={18} style={{ margin: '0 auto' }} />;
+
+  // Build columns
   const columns = [
+    { dataIndex: 'label', key: 'label', title: 'Característica', width: 200 },
+    ...mainPlans.map((p) => ({
+      dataIndex: p.tier,
+      key: p.tier,
+      onHeaderCell: () => ({ style: { color: PLAN_COLORS[p.tier] ?? '#374151', fontWeight: 700 } }),
+      render: (v: string | boolean) =>
+        typeof v === 'boolean' ? renderBool(v) : <span style={{ textAlign: 'center', display: 'block' }}>{v}</span>,
+      title: p.name,
+      width: 110,
+    })),
+  ];
+
+  // Build rows — quota rows
+  const quotaRows = QUOTA_ROWS.map(({ key, label, skuMatch }) => {
+    const row: Record<string, string | boolean> = { key, label };
+    for (const p of mainPlans) {
+      row[p.tier] = getQuotaValue(p, skuMatch);
+    }
+    return row;
+  });
+
+  // Feature rows from feature_restrictions
+  const featureRows = [
     {
-      dataIndex: 'name',
-      key: 'name',
-      title: 'Característica',
-      width: 200,
+      key: 'discount',
+      label: 'Descuento en servicios',
+      ...Object.fromEntries(mainPlans.map((p) => [p.tier, p.global_discount?.value ? `${p.global_discount.value}%` : false])),
     },
     {
-      dataIndex: 'free',
-      key: 'free',
-      render: renderValue,
-      title: 'Free',
-      width: 120,
+      key: 'support',
+      label: 'Soporte',
+      ...Object.fromEntries(mainPlans.map((p) => [
+        p.tier,
+        p.feature_restrictions.white_label ? 'Dedicado' : p.feature_restrictions.priority_support ? 'Prioritario' : 'Comunidad',
+      ])),
     },
     {
-      dataIndex: 'basic',
-      key: 'basic',
-      render: renderValue,
-      title: 'Basic',
-      width: 120,
+      key: 'wallet',
+      label: 'Wallet prepago',
+      ...Object.fromEntries(mainPlans.map((p) => [p.tier, true])),
     },
     {
-      dataIndex: 'pro',
-      key: 'pro',
-      render: renderValue,
-      title: 'Pro',
-      width: 120,
+      key: 'api',
+      label: 'API acceso completo',
+      ...Object.fromEntries(mainPlans.map((p) => [p.tier, p.feature_restrictions.api_access])),
     },
     {
-      dataIndex: 'max',
-      key: 'max',
-      render: renderValue,
-      title: 'Max',
-      width: 120,
+      key: 'manager',
+      label: 'Gestor de cuenta dedicado',
+      ...Object.fromEntries(mainPlans.map((p) => [p.tier, p.feature_restrictions.white_label])),
     },
-    {
-      dataIndex: 'enterprise',
-      key: 'enterprise',
-      render: renderValue,
-      title: 'Enterprise',
-      width: 120,
-    },
+  ];
+
+  const allRows = [
+    { key: '__price', label: 'Precio mensual', ...Object.fromEntries(mainPlans.map((p) => [p.tier, p.pricing.monthly_fee === 0 ? 'Gratis' : `€${p.pricing.monthly_fee}`])) },
+    ...quotaRows,
+    ...featureRows,
   ];
 
   return (
     <div className={styles.card}>
-      <div className={styles.sectionTitle}>Comparación de Planes</div>
+      <div className={styles.sectionTitle}>Comparación de planes</div>
       <Table
         columns={columns}
-        dataSource={PLANS_DATA}
+        dataSource={allRows}
         pagination={false}
-        rowKey="name"
+        rowKey="key"
+        scroll={{ x: true }}
         size="middle"
       />
-      <Flexbox gap={8} style={{ marginTop: 16 }}>
-        <Tag color="blue">💡 Recomendación: El plan Pro ofrece el mejor valor para la mayoría de usuarios</Tag>
-      </Flexbox>
+      <p style={{ color: 'var(--ant-color-text-quaternary)', fontSize: 12, marginTop: 12 }}>
+        Todos los precios no incluyen IVA. El plan Pro es el más popular entre organizadores de bodas.
+      </p>
     </div>
   );
 });

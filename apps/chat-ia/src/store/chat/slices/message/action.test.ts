@@ -42,6 +42,7 @@ const realRefreshMessages = useChatStore.getState().refreshMessages;
 const mockState = {
   activeId: 'session-id',
   activeTopicId: 'topic-id',
+  currentUserId: 'user@bodasdehoy.com',
   messages: [],
   refreshMessages: vi.fn(),
   refreshTopic: vi.fn(),
@@ -56,7 +57,6 @@ beforeEach(() => {
 
 afterEach(() => {
   process.env.NEXT_PUBLIC_BASE_PATH = undefined;
-
   vi.restoreAllMocks();
 });
 

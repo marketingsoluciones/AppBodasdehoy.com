@@ -13,6 +13,7 @@ import { Center, Flexbox } from 'react-layout-kit';
 import { type Album, useMemoriesStore } from '@bodasdehoy/memories';
 import { useUserStore } from '@/store/user';
 import { useChatStore } from '@/store/chat';
+import { uploadService } from '@/services/upload';
 import { useDevelopment } from '@/utils/developmentDetector';
 
 /**
@@ -259,6 +260,7 @@ loginFeature: css`
 
 const AlbumCard = memo<{ album: Album; onClick: (album: Album) => void }>(({ album, onClick }) => {
   const { styles } = useStyles();
+  const [coverError, setCoverError] = useState(false);
 
   const visibilityLabels = {
     members: 'Colaboradores',
@@ -269,8 +271,13 @@ const AlbumCard = memo<{ album: Album; onClick: (album: Album) => void }>(({ alb
   return (
     <div className={styles.albumCard} onClick={() => onClick(album)}>
       <div className={styles.albumCover}>
-        {album.coverImageUrl ? (
-          <img alt={album.name} className={styles.albumCoverImage} src={album.coverImageUrl} />
+        {album.coverImageUrl && !coverError ? (
+          <img
+            alt={album.name}
+            className={styles.albumCoverImage}
+            onError={() => setCoverError(true)}
+            src={uploadService.toProxiedImageUrl(album.coverImageUrl)}
+          />
         ) : (
           <Images size={48} strokeWidth={1.5} style={{ opacity: 0.4 }} />
         )}

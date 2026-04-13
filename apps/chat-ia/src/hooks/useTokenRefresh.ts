@@ -159,8 +159,11 @@ export const useTokenRefresh = () => {
       // Guardar nuevo token
       localStorage.setItem('api2_jwt_token', data.token);
       localStorage.setItem('api2_jwt_expires_at', data.expiresAt);
-      
+
       console.log('✅ JWT renovado exitosamente. Expira:', data.expiresAt);
+
+      // Notificar al ReloginBanner para que se oculte
+      window.dispatchEvent(new CustomEvent('api2:token-refreshed'));
 
       if (!silent) {
         message.success({ content: 'Sesión renovada correctamente', key: 'token-refresh' });
@@ -383,6 +386,9 @@ export async function refreshJWTStandalone(silent: boolean = true): Promise<bool
 
     // También actualizar jwt_token para compatibilidad
     localStorage.setItem('jwt_token', data.token);
+
+    // Notificar al ReloginBanner para que se oculte
+    window.dispatchEvent(new CustomEvent('api2:token-refreshed'));
 
     // ✅ Actualizar token en dev-user-config si existe
     try {

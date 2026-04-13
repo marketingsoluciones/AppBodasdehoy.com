@@ -13,7 +13,7 @@ export function getAvatarInitials(label: string): string {
     const parts = base.split(/\s+/).filter(Boolean);
     if (parts.length >= 2) {
       const a = parts[0].charAt(0);
-      const b = parts.at(-1).charAt(0);
+      const b = parts.at(-1)!.charAt(0);
       return (a + b).toUpperCase();
     }
   }

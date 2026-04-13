@@ -13,6 +13,8 @@ import {
 
 import { auth } from '@/libs/firebase';
 import { setCrossAppIdToken, clearCrossAppSession } from '@bodasdehoy/shared/auth';
+import { registerReferralIfPending, trackRegistrationComplete, getAttributionData, sendAttributionToApi } from '@bodasdehoy/shared';
+import posthog from 'posthog-js';
 
 /**
  * Obtener la URL actual para usar como redirect URL
@@ -213,6 +215,29 @@ async function exchangeFirebaseTokenForJWT(
       user_type: 'registered',
     };
     localStorage.setItem('dev-user-config', JSON.stringify(devUserConfig));
+
+    // ── Tracking: referral + attribution + analytics ─────────────────────────
+    registerReferralIfPending(data.token, development).catch(() => undefined);
+    sendAttributionToApi(data.token, development).catch(() => undefined);
+    trackRegistrationComplete(
+      user?.providerData?.[0]?.providerId?.includes('google') ? 'google'
+        : user?.providerData?.[0]?.providerId?.includes('facebook') ? 'facebook'
+        : 'email',
+      development,
+    );
+
+    // PostHog identify — vincula eventos futuros con el usuario real
+    if (user?.uid) {
+      const lastTouch = getAttributionData();
+      posthog.identify(user.uid, {
+        email: user.email ?? undefined,
+        development,
+        utm_source: lastTouch?.utm_source,
+        utm_medium: lastTouch?.utm_medium,
+        utm_campaign: lastTouch?.utm_campaign,
+        ref: lastTouch?.ref,
+      });
+    }
 
     return {
       development: data.development,

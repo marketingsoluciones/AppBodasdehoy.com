@@ -1,3 +1,4 @@
+import { DEFAULT_COPILOT_SYSTEM_ROLE } from '@/const/agents/defaultCopilotSystemRole';
 import { enableNextAuth } from '@/const/auth';
 import { isDesktop } from '@/const/version';
 import { appEnv, getAppConfig } from '@/envs/app';
@@ -167,8 +168,6 @@ export const getServerDefaultAgentConfig = () => {
 
   // Inyectar system prompt por defecto si no hay uno definido
   if (!config.systemRole) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { DEFAULT_COPILOT_SYSTEM_ROLE } = require('@/const/agents/defaultCopilotSystemRole');
     config.systemRole = DEFAULT_COPILOT_SYSTEM_ROLE;
   }
 

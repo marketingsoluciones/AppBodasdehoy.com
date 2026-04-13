@@ -43,7 +43,7 @@ const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, 
                             const label = typeof option === "string" ? t(option) : t(option?.title)
                             const value = typeof option === "string" ? option : option?._id
                             return (
-                                <option key={idx} label={label} value={value?.toLowerCase()} >{value && `${!value?.match("(nombre)") ? value : value?.replace("(nombre)", (invitadoCero ? invitadoCero : event?.grupos_array[0]))}`}</option>
+                                <option key={idx} label={label} value={value?.toLowerCase()} >{value && `${!value?.match("(nombre)") ? value : value?.replace("(nombre)", (invitadoCero ? invitadoCero : event?.grupos_array?.[0]))}`}</option>
                             )
                         })}
                     </select>

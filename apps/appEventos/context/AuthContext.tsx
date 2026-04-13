@@ -18,6 +18,7 @@ import { useActivity } from "../hooks/useActivity";
 import { isTestSubdomain, normalizeRedirectAfterLogin } from "../utils/urlHelpers";
 import { authBridge, parseJwt } from '@bodasdehoy/shared/auth';
 import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
+import { registerReferralIfPending, trackRegistrationComplete, sendAttributionToApi } from '@bodasdehoy/shared';
 
 const initialContext = {
   user: undefined,
@@ -435,6 +436,16 @@ const AuthProvider = ({ children }) => {
                   }
                 }
 
+                // Tracking: referral + analytics
+                registerReferralIfPending(idToken, config?.development || 'bodasdehoy').catch(() => undefined);
+                sendAttributionToApi(idToken, config?.development || 'bodasdehoy').catch(() => undefined);
+                trackRegistrationComplete(
+                  result.user.providerData?.[0]?.providerId?.includes('google') ? 'google'
+                    : result.user.providerData?.[0]?.providerId?.includes('facebook') ? 'facebook'
+                    : 'email',
+                  config?.development || 'bodasdehoy',
+                );
+
                 // Actualizar estado con los datos completos
                 setUser({ ...result.user, ...moreInfo })
                 setVerificationDone(true)
@@ -651,12 +662,13 @@ const AuthProvider = ({ children }) => {
         matches: sessionCookieParsed?.user_id === user?.uid
       })
 
-      if (!sessionCookieParsed?.user_id && user?.uid) {
+      if (!sessionCookieParsed?.user_id && user?.uid && !user?.isAnonymous) {
         console.warn("[Verificator] ⚠️ Usuario autenticado en Firebase pero sin sessionCookie válida")
         // FIX falsa sesión: intentar establecer sessionBodas desde el token Firebase antes de continuar
+        // Solo para usuarios reales — los anónimos deben pasar por el SSO cross-domain más abajo
         try {
           const firebaseUser = getAuth().currentUser
-          if (firebaseUser) {
+          if (firebaseUser && !firebaseUser.isAnonymous) {
             const freshIdToken = await firebaseUser.getIdToken()
             const _isDevOrTest = typeof window !== 'undefined' && (
               window.location.hostname === 'localhost' ||
@@ -760,9 +772,11 @@ const AuthProvider = ({ children }) => {
           setVerificationDone(true)
         }
       }
-      // SSO cross-domain: si no hay sessionCookie ni usuario Firebase,
+      // SSO cross-domain: si no hay sessionCookie y no hay usuario real (o es anónimo),
       // pero hay idTokenV0.1.0 (p. ej. login en chat-dev/chat-test/chat), crear sesión automáticamente.
-      if (!sessionCookie && !user?.uid) {
+      // NOTA: Firebase crea sesión anónima automáticamente → !user?.uid no es suficiente.
+      // Incluir user?.isAnonymous para que el SSO se intente también cuando Firebase resolvió como anónimo.
+      if (!sessionCookie && (!user?.uid || user?.isAnonymous)) {
         // Race condition fix: tras redirect cross-domain (chat-test → app-test), el cookie
         // idTokenV0.1.0 puede llegar ligeramente después de que React hidrate. Esperar 800ms.
         let crossDomainIdToken = Cookies.get("idTokenV0.1.0")
@@ -775,13 +789,15 @@ const AuthProvider = ({ children }) => {
           try {
             // IMPORTANTE: Usar fetch directo desde el NAVEGADOR (no proxy servidor) para que
             // Cloudflare no bloquee la petición.
-            // En localhost: usar proxy (evita CORS desde http://localhost).
-            // En test/prod: llamada directa — CF permite tráfico de navegadores reales.
-            const _isLocalhost = typeof window !== 'undefined' && (
+            // En localhost/dev/test: usar proxy (evita CORS).
+            // En prod: llamada directa — CF permite tráfico de navegadores reales.
+            const _isDevOrTestSSO = typeof window !== 'undefined' && (
               window.location.hostname === 'localhost' ||
-              window.location.hostname === '127.0.0.1'
+              window.location.hostname === '127.0.0.1' ||
+              window.location.hostname.includes('-test.') ||
+              window.location.hostname.includes('-dev.')
             );
-            const ssoApiUrl = _isLocalhost ? '/api/proxy-bodas/graphql' : 'https://api.bodasdehoy.com/graphql';
+            const ssoApiUrl = _isDevOrTestSSO ? '/api/proxy-bodas/graphql' : 'https://api.bodasdehoy.com/graphql';
 
             const ssoResp = await fetch(ssoApiUrl, {
               method: 'POST',
@@ -818,6 +834,8 @@ const AuthProvider = ({ children }) => {
             console.warn("[Verificator] ⚠️ SSO cross-domain: auth mutation no devolvió sessionCookie. ssoJson:", JSON.stringify(ssoJson).substring(0, 300))
           } catch (ssoErr: any) {
             console.warn("[Verificator] ⚠️ SSO cross-domain: error creando sesión:", ssoErr?.message)
+            // Limpiar el flag anti-loop para que login.js pueda redirigir a chat-test de nuevo
+            if (typeof window !== 'undefined') sessionStorage.removeItem('sso_redirect_pending')
           }
 
           // Fallback: auth mutation falló o no devolvió sessionCookie.

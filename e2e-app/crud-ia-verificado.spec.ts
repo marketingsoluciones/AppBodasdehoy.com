@@ -23,6 +23,7 @@ const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
   BASE_URL.includes('app-dev.bodasdehoy.com') ||
   BASE_URL.includes('app-test.bodasdehoy.com') ||
+  BASE_URL.includes('app-dev.bodasdehoy.com') ||
   BASE_URL.includes('app.bodasdehoy.com') ||
   BASE_URL.includes('127.0.0.1') ||
   BASE_URL.includes('localhost');
@@ -122,7 +123,7 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
   // Crear invitado via IA → verificar en /invitados
   // ───────────────────────────────────────────────────────────────────────────
 
-  test(`crear invitado "${GUEST_NAME}" via IA → aparece en /invitados`, async ({ context, page }) => {
+  test('crear invitado via IA → aparece en /invitados', async ({ context, page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
     // Paso 1: Login en appEventos + seleccionar evento (establece SSO cookie)
@@ -172,7 +173,7 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
   // Crear tarea en itinerario via IA → verificar en /servicios (kanban)
   // ───────────────────────────────────────────────────────────────────────────
 
-  test(`crear tarea "${TASK_DESC}" via IA → visible en /servicios (kanban)`, async ({ context, page }) => {
+  test('crear tarea via IA → visible en /servicios (kanban)', async ({ context, page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
     await clearSession(context, page);
@@ -245,7 +246,7 @@ test.describe('CRUD via IA — Verificación cruzada en appEventos', () => {
   // Crear partida de presupuesto via IA → verificar en /presupuesto
   // ───────────────────────────────────────────────────────────────────────────
 
-  test(`crear partida "${BUDGET_DESC}" con importe ${BUDGET_AMOUNT}€ → visible en /presupuesto`, async ({ context, page }) => {
+  test('crear partida E2E via IA → visible en /presupuesto', async ({ context, page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
     await clearSession(context, page);

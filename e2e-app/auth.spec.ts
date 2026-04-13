@@ -20,6 +20,7 @@ const isAppTest =
   isLocal ||
   BASE_URL.includes('app-dev.bodasdehoy.com') ||
   BASE_URL.includes('app-test.bodasdehoy.com') ||
+  BASE_URL.includes('app-dev.bodasdehoy.com') ||
   BASE_URL.includes('app.bodasdehoy.com');
 
 const CHAT_URL = getChatUrl(BASE_URL);

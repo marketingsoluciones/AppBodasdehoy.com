@@ -7,6 +7,13 @@ import 'fake-indexeddb/auto';
 import React from 'react';
 import { vi } from 'vitest';
 
+// Global mock for @/const/agents to avoid loading the full system role string in tests
+vi.mock('@/const/agents/defaultCopilotSystemRole', () => ({
+  DEFAULT_COPILOT_SYSTEM_ROLE: 'mock-system-role',
+  DEFAULT_OPENING_MESSAGE: 'mock-opening-message',
+  DEFAULT_OPENING_QUESTIONS: [],
+}));
+
 // Global mock for @lobehub/analytics/react to avoid AnalyticsProvider dependency
 // This prevents tests from failing when components use useAnalytics hook
 vi.mock('@lobehub/analytics/react', () => ({

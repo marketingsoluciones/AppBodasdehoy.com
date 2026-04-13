@@ -70,10 +70,12 @@ const ReloginBanner = memo(() => {
 
     recheck();
     window.addEventListener('api2:token-expired', recheck);
+    window.addEventListener('api2:token-refreshed', recheck);
     document.addEventListener('visibilitychange', onVisibilityChange);
     const interval = setInterval(recheck, 30_000);
     return () => {
       window.removeEventListener('api2:token-expired', recheck);
+      window.removeEventListener('api2:token-refreshed', recheck);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       clearInterval(interval);
     };

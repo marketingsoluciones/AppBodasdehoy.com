@@ -120,6 +120,44 @@ export function useWhatsAppSession(development: string) {
     return data.code as string;
   }, [development]);
 
+  /**
+   * Método atómico para vincular por número de teléfono.
+   * Desconecta la sesión existente, inicia una nueva y solicita el código
+   * de emparejamiento ANTES de que api2 genere el QR (Baileys no permite
+   * pairing-code una vez que el modo QR está activo).
+   */
+  const startAndRequestPairingCode = useCallback(async (phoneNumber: string): Promise<string> => {
+    // 1. Desconectar sesión existente (si la hay)
+    await fetch(`/api/messages/whatsapp/session/${development}`, {
+      headers: buildHeaders(),
+      method: 'DELETE',
+    }).catch(() => {});
+
+    connectingSinceRef.current = null;
+    setState({ error: null, status: 'connecting' });
+
+    // 2. Iniciar nueva sesión
+    const startRes = await fetch(`/api/messages/whatsapp/session/${development}/start`, {
+      body: JSON.stringify({}),
+      headers: buildHeaders(),
+      method: 'POST',
+    });
+    const startData = await startRes.json();
+    if (!startData.success) {
+      throw new Error(startData.error || 'Error iniciando sesión');
+    }
+
+    // 3. Solicitar código de emparejamiento inmediatamente, antes de que api2 genere el QR
+    const pairRes = await fetch(`/api/messages/whatsapp/session/${development}/pairing-code`, {
+      body: JSON.stringify({ phoneNumber }),
+      headers: buildHeaders(),
+      method: 'POST',
+    });
+    const pairData = await pairRes.json();
+    if (!pairData.success) throw new Error(pairData.error || 'Error solicitando código');
+    return pairData.code as string;
+  }, [development]);
+
   // Poll status: 3s while connecting, 30s when connected
   useEffect(() => {
     fetchStatus();
@@ -139,6 +177,7 @@ export function useWhatsAppSession(development: string) {
     loading,
     refetch: fetchStatus,
     requestPairingCode,
+    startAndRequestPairingCode,
     startSession,
   };
 }

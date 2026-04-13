@@ -35,6 +35,7 @@ export default defineConfig({
       '@/utils/avatarInitials': resolve(__dirname, './src/utils/avatarInitials'),
       '@/utils/brandingDisplay': resolve(__dirname, './src/utils/brandingDisplay'),
       '@/const/supportKeys': resolve(__dirname, './src/const/supportKeys'),
+      '@/const/agents': resolve(__dirname, './src/const/agents'),
       '@/utils': resolve(__dirname, './packages/utils/src'),
       '@/types': resolve(__dirname, './packages/types/src'),
       '@/const': resolve(__dirname, './packages/const/src'),
