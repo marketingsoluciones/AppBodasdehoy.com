@@ -21,7 +21,7 @@ export function WhatsAppSetup({ development }: WhatsAppSetupProps) {
     loading,
     phoneNumber,
     qrCode,
-    requestPairingCode,
+    startAndRequestPairingCode,
     startSession,
     status,
   } = useWhatsAppSession(development);
@@ -38,8 +38,8 @@ export function WhatsAppSetup({ development }: WhatsAppSetupProps) {
     setPairingError(null);
     setPairingCode(null);
     try {
-      if (status === 'disconnected' || status === 'error') await startSession();
-      const code = await requestPairingCode(phone.trim());
+      // Usar el método atómico: desconecta, inicia y pide código antes de que api2 genere QR
+      const code = await startAndRequestPairingCode(phone.trim());
       setPairingCode(code);
     } catch (err: any) {
       setPairingError(err?.message ?? 'Error solicitando código');

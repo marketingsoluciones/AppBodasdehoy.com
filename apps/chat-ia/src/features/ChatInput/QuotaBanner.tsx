@@ -88,9 +88,10 @@ const QuotaBanner = memo(() => {
         </Flexbox>
       );
     }
-    // Daily warning: 80-99% of daily quota
+    // Daily warning: 80-99% of daily quota (only show when there's at least 1 query left)
     if (dailyCheck && dailyCheck.allowed && dailyCheck.percentUsed >= 80) {
       const dailyRemaining = Math.max(0, Math.round(dailyCheck.remaining / 500));
+      if (dailyRemaining === 0) return null;
       return (
         <Flexbox
           align="center"
@@ -243,7 +244,8 @@ const QuotaBanner = memo(() => {
     );
   }
 
-  // Warning: 80-99%
+  // Warning: 80-99% (only show when there's at least 1 query left to avoid "~0" confusion)
+  if (remaining === 0) return null;
   return (
     <Flexbox
       align="center"
