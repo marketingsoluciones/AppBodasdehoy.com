@@ -102,7 +102,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   const toast = useToast()
   const { event, setEvent, invitadoCero, setInvitadoCero, allFilterGuests, planSpaceActive, setPlanSpaceActive, filterGuests } = EventContextProvider();
   const { copilotFilter } = EventsGroupContextProvider();
-  const GuestsFathers = event?.invitados_array?.filter((invitado) => !invitado?.father)
+  const GuestsFathers = event?.invitados_array?.filter((invitado) => invitado && !invitado?.father)
   const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
   const [isAllowed] = useAllowed()
   const [acompañanteID, setAcompañanteID] = useState({ id: "", crear: true })
