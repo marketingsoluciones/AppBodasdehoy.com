@@ -81,7 +81,8 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
     }),
     rol: yup.string().required("Rol requerido").notOneOf(['Seleccionar'], "Seleccione un Rol valido"),
     correo: yup.string().email("El formato del correo no es valido")/* .required("Correo requerido") */.test("Unico", `Correo asignado a otro invitado`, (value) => {
-      return !event.invitados_array.map(item => item?.correo).includes(value)
+      if (!value) return true
+      return !(event?.invitados_array ?? []).filter(Boolean).map(item => item?.correo).includes(value)
     }).email("Formato invalido")
 
   });
