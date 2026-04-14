@@ -16,7 +16,7 @@ export default function UseCases() {
           <p className="text-xs font-semibold text-rose-500 uppercase tracking-widest mb-3">{t('useCases.label')}</p>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">{t('useCases.title')}</h2>
         </div>
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
           {cases.map((c, i) => (
             <div key={i} className="bg-white rounded-3xl p-6 shadow-sm border border-white hover:shadow-md hover:border-rose-200 transition text-center group">
               <div className="text-4xl mb-3 group-hover:scale-110 transition">{c.emoji}</div>
