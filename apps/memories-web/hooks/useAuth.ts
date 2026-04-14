@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { authBridge } from '@bodasdehoy/shared';
+import { MEMORIES_TOKEN_KEY } from '../components/auth/LoginForm';
 
 const USER_ID_KEY = 'memories_user_id';
 
@@ -46,6 +47,7 @@ export function useAuth({ redirectTo }: { redirectTo?: string } = {}): UseAuthRe
 
   const handleLogout = () => {
     localStorage.removeItem(USER_ID_KEY);
+    localStorage.removeItem(MEMORIES_TOKEN_KEY);
     setUserId(null);
     // Limpiar cookie compartida idTokenV0.1.0 para que el logout sea global
     // (chat-ia y appEventos también perderán la sesión al recargar)
