@@ -187,7 +187,7 @@ export const GuestTableAll: FC<Props> = ({ multiSeled = false, stateConfi = fals
     <div className={`flex w-full ${stateConfi ? "h-[calc(100vh-650px)]" : "h-[calc(100vh-300px)]"} bg-white rounded-lg shadow-sm overflow-hidden`}>
       <DataTableInvitaciones
         columns={columns}
-        data={event?.invitados_array || []}
+        data={event?.invitados_array?.filter(Boolean) || []}
         multiSeled={multiSeled}
         arrEnviarInvitaciones={arrEnviarInvitaciones}
         eventId={event?._id}

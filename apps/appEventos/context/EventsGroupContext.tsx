@@ -138,7 +138,7 @@ const EventsGroupProvider = ({ children }) => {
           if (!config?.development) return;
           // BYPASS: Verificar si hay eventos del bypass en sessionStorage
           const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
-          const isTestEnv = hostname.includes('chat-test') || hostname.includes('app-test') || hostname.includes('test.') || hostname.includes('localhost') || hostname.includes('127.0.0.1')
+          const isTestEnv = hostname.includes('chat-test') || hostname.includes('app-test') || hostname.includes('test.') || hostname.includes('localhost') || hostname.includes('127.0.0.1') || hostname.includes('app-dev')
           const devBypass = typeof window !== 'undefined' && sessionStorage.getItem('dev_bypass') === 'true'
           const bypassEventos = typeof window !== 'undefined' ? sessionStorage.getItem('dev_bypass_eventos') : null
 

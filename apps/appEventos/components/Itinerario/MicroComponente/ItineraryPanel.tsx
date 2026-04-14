@@ -626,10 +626,10 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   );
 
   useEffect(() => {
-    if (swrEvent && swrEvent._id && swrEvent._id !== event._id) {
+    if (swrEvent && swrEvent._id && swrEvent._id !== event?._id) {
       setEvent(swrEvent as EventInterface);
     }
-  }, [swrEvent, event._id]);
+  }, [swrEvent, event?._id]);
 
   useEffect(() => {
     if (selectTask) {

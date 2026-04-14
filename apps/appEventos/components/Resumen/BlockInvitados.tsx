@@ -18,7 +18,7 @@ const BlockInvitados: FC = () => {
   const { t } = useTranslation();
 
   const invitados = (() => {
-    const list = event?.invitados_array ?? [];
+    const list = (event?.invitados_array ?? []).filter(Boolean);
     if (copilotFilter?.entity === 'guests' && copilotFilter.ids?.length) {
       return list.filter((inv) => copilotFilter.ids!.includes(inv._id));
     }
