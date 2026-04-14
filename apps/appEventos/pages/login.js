@@ -126,6 +126,18 @@ const PageLogin = () => {
     setTimeout(() => router.push(queryD || "/"), 100)
   }
 
+  // BUG-015: no mostrar el formulario mientras el redirect-timer está activo
+  const isRedirectingAway = user && verificationDone && user?.displayName !== "guest" && !user?._isSafetyGuest
+
+  if (isRedirectingAway) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'linear-gradient(135deg, #fff1f2, #fce7f3)' }}>
+        <div style={{ width: 32, height: 32, border: '3px solid #f43f5e', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      </div>
+    )
+  }
+
   return (
     <SplitLoginPage leftPanel={APP_EVENTOS_LEFT_PANEL}>
       <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', minHeight: '100vh', width: '100%' }}>

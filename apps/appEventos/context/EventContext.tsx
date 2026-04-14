@@ -120,9 +120,12 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
           setEvent({ ...eventSelected });
         }
         eventsGroup[0] && setValir(true)
+      } else if (user?.eventSelected && (!event?._id || user.eventSelected !== event?._id)) {
+        // user.eventSelected llegó tarde (API async) o cambió en otra pestaña → re-seleccionar
+        setValir(false);
       }
     }
-  }, [eventsGroup, valir]);
+  }, [eventsGroup, valir, user?.eventSelected]);
 
   useEffect(() => {
     setPlanSpaceActive(event?.planSpace?.find(elem => elem?._id === planSpaceSelect))
