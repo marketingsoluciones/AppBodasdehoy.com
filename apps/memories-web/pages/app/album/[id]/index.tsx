@@ -136,7 +136,7 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
               <p className="text-xs text-gray-400">{currentAlbumMedia.length} foto{currentAlbumMedia.length !== 1 ? 's' : ''}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex flex-wrap items-center gap-2">
             {isOwner && (
               <Link
                 href={`/app/album/${albumId}/settings`}
@@ -183,25 +183,29 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
                 <span className="hidden sm:inline">{watermarkEnabled ? 'Protegido' : 'Proteger'}</span>
               </button>
             )}
-            <button
-              data-testid="btn-upload"
-              onClick={() => {
-                if (canUploadPhoto(currentAlbumMedia.length)) {
-                  fileInputRef.current?.click();
-                } else {
-                  setShowPhotoUpgradeModal(true);
-                }
-              }}
-              disabled={uploading}
-              className="bg-rose-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:bg-rose-600 disabled:opacity-50 transition flex items-center gap-1.5"
-            >
-              📷 {uploading ? `Subiendo ${uploadProgress}%` : 'Subir fotos'}
-            </button>
+            <div className="flex flex-col items-end gap-0.5">
+              <button
+                data-testid="btn-upload"
+                onClick={() => {
+                  if (canUploadPhoto(currentAlbumMedia.length)) {
+                    fileInputRef.current?.click();
+                  } else {
+                    setShowPhotoUpgradeModal(true);
+                  }
+                }}
+                disabled={uploading}
+                className="bg-rose-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:bg-rose-600 disabled:opacity-50 transition flex items-center gap-1.5"
+              >
+                📷 {uploading ? `Subiendo ${uploadProgress}%` : 'Subir fotos'}
+              </button>
+              <span className="text-xs text-gray-400 pr-1">Máx. 50 MB</span>
+            </div>
             <input
               ref={fileInputRef}
               type="file"
               accept={PHOTO_VIDEO_ACCEPT}
               multiple
+              data-max-size="52428800"
               className="hidden"
               onChange={(e) => e.target.files && handleUpload(e.target.files)}
             />

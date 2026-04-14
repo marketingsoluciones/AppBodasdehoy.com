@@ -11,7 +11,8 @@ export default function LoginForm({ onLogin }: { onLogin: (userId: string) => vo
     setLoading(true);
     try {
       await onLogin(email.trim());
-    } finally {
+      // No resetear loading — el componente se desmontará cuando el parent detecte userId
+    } catch {
       setLoading(false);
     }
   };

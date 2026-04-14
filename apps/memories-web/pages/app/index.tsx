@@ -29,6 +29,7 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
   const [showCreate, setShowCreate] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => { fetchAlbums(); }, [fetchAlbums]);
 
@@ -56,7 +57,8 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
             <span className="text-xl">📸</span>
             <span className="text-lg font-bold text-rose-500">Memories</span>
           </Link>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2">
+            {/* Desktop actions */}
             {hasEvents && (
               <div className="hidden sm:flex bg-gray-100 rounded-xl p-1 gap-1">
                 <button
@@ -86,16 +88,50 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
               className="bg-rose-500 text-white px-3 sm:px-4 py-2.5 rounded-full text-sm font-semibold hover:bg-rose-600 transition min-h-[44px] flex items-center"
             >
               <span className="hidden sm:inline">+ Nuevo álbum</span>
-              <span className="inline sm:hidden">+ Álbum</span>
+              <span className="inline sm:hidden">+</span>
             </button>
             <Link href="/app/referral" className="text-sm text-rose-500 font-semibold hover:text-rose-700 transition hidden sm:flex items-center min-h-[44px]">
               🎁 Invita amigos
             </Link>
-            <button onClick={onLogout} className="text-sm text-gray-400 hover:text-gray-700 transition px-2 py-2 rounded-lg min-h-[44px] flex items-center">
+            <button onClick={onLogout} className="text-sm text-gray-400 hover:text-gray-700 transition hidden sm:flex items-center min-h-[44px] px-2">
               Salir
+            </button>
+            {/* Hamburger — visible only on mobile */}
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className="sm:hidden flex items-center justify-center min-h-[44px] min-w-[44px] text-gray-500 hover:text-gray-800 transition"
+              aria-label="Menú"
+            >
+              {menuOpen ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
             </button>
           </div>
         </div>
+        {/* Mobile dropdown menu */}
+        {menuOpen && (
+          <div className="sm:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1">
+            <Link
+              href="/app/referral"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2 text-sm text-rose-500 font-semibold py-2.5 min-h-[44px]"
+            >
+              🎁 Invita amigos
+            </Link>
+            <button
+              onClick={() => { setMenuOpen(false); onLogout(); }}
+              className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-700 transition py-2.5 min-h-[44px] w-full text-left"
+            >
+              Salir
+            </button>
+          </div>
+        )}
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
