@@ -35,7 +35,7 @@ const CHANNEL_BADGE: Record<ChannelKind, { bg: string; label: string; text: stri
 
 export { CHANNEL_BADGE };
 
-export function useRecentConversations(max = 50) {
+export function useRecentConversations(max = 50, refreshKey = 0) {
   const [conversations, setConversations] = useState<RecentConversation[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -163,7 +163,7 @@ export function useRecentConversations(max = 50) {
     }
 
     fetchAll();
-  }, [isGuestUser, development, max]);
+  }, [isGuestUser, development, max, refreshKey]);
 
   return { conversations, loading };
 }
