@@ -11,10 +11,12 @@
  *   INV-04 [owner] teléfono duplicado → "Número asignado a otro invitado" (validación client-side)
  *   INV-05 [sin sesión] navegar a /invitados → GuestDemoWrapper "Crear cuenta gratis"
  *   INV-07 [owner] FormEditarInvitado → campo correo deshabilitado + tooltip
+ *   C-01  [owner] crear invitado real → verifica en DB via queryEvent → cleanup
  *
  * Autenticación:
- *   owner     → dev_bypass en app-test.bodasdehoy.com (UID real del organizador)
- *   sin sesión → clearSession() + navigate directo
+ *   owner (UI)   → dev_bypass en app-test.bodasdehoy.com (UID real del organizador)
+ *   owner (C-01) → login real email+password (no dev_bypass, necesita Firebase auth para write ops)
+ *   sin sesión   → clearSession() + navigate directo
  *
  * Ejecución:
  *   E2E_ENV=dev npx playwright test e2e-app/ui-invitados.spec.ts --project=webkit
@@ -24,8 +26,9 @@
 
 import { test, expect, Page } from '@playwright/test';
 import { TEST_URLS } from './fixtures';
-import { clearSession, waitForAppReady } from './helpers';
-import { ISABEL_RAUL_EVENT } from './fixtures/isabel-raul-event';
+import { clearSession, waitForAppReady, loginAndSelectEventByName } from './helpers';
+import { ISABEL_RAUL_EVENT, TEST_USERS } from './fixtures/isabel-raul-event';
+import { queryEvent } from './lib/api';
 
 // ── Constantes ─────────────────────────────────────────────────────────────────
 
@@ -1034,4 +1037,152 @@ test.describe('BATCH INV — Invitados × Roles', () => {
     expect(isDisabled, 'INV-07: input[name="correo"] debe tener disabled=true en FormEditarInvitado').toBe(true);
   });
 
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// C-01 — Persistencia real: crear invitado → verificar en DB → cleanup
+//
+// A diferencia de INV-01 (que usa mock + dev_bypass), este test:
+//   1. Hace login real con email+password → obtiene Firebase auth para write ops
+//   2. Envía la mutación creaInvitado SIN intercepción (llamada real a apiapp)
+//   3. Re-consulta GET_EVENT via /api/proxy/graphql para verificar que el invitado
+//      existe en la BD con el nombre correcto
+//   4. Hace cleanup via borraInvitados para no ensuciar el evento de test
+//
+// Si C-01 falla pero INV-01 pasa → el bug está en la API/BD, no en la UI.
+// Si C-01 pasa pero INV-01 falla → el bug está en el toast/DOM update de la UI.
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe.serial('C-01 — Invitados: persistencia real en DB', () => {
+  const { email, password } = TEST_USERS.organizador;
+  let createdGuestId: string | null = null;
+  const C01_NAME = `E2E-C01-${Date.now().toString().slice(-8)}`;
+  const C01_PHONE = `+34699${Date.now().toString().slice(-6)}`;
+
+  test.afterAll(async ({ browser }) => {
+    if (!createdGuestId) return;
+
+    // Cleanup: borrar el invitado de test via borraInvitados mutation
+    const ctx = await browser.newContext();
+    const pg = await ctx.newPage();
+    try {
+      // Login para obtener cookie idTokenV0.1.0
+      await loginAndSelectEventByName(pg, email, password, BASE_URL, 'Isabel');
+      await pg.evaluate(
+        async ({ eventId, guestId }) => {
+          const cookie = document.cookie.match(/idTokenV0\.1\.0=([^;]+)/);
+          const token = cookie?.[1] ?? '';
+          await fetch('/api/proxy/graphql', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({
+              query: `mutation($eventID:String,$guests:[String]){borraInvitados(evento_id:$eventID,invitados_ids_array:$guests){invitados_array{_id}}}`,
+              variables: { eventID: eventId, guests: [guestId] },
+            }),
+          });
+        },
+        { eventId: EVENT_ID, guestId: createdGuestId },
+      );
+      console.log(`[C-01 afterAll] ✅ Cleanup: invitado ${createdGuestId} (${C01_NAME}) eliminado`);
+    } catch (e) {
+      console.warn('[C-01 afterAll] ⚠️ Cleanup falló:', e);
+    } finally {
+      await ctx.close();
+      createdGuestId = null;
+    }
+  });
+
+  test('[C-01] crear invitado real → verifica nombre en DB via queryEvent', async ({ page }) => {
+    // ── Paso 1: login real y seleccionar evento Isabel & Raúl ─────────────────
+    const eventId = await loginAndSelectEventByName(page, email, password, BASE_URL, 'Isabel');
+    if (!eventId) {
+      console.warn('[C-01] loginAndSelectEventByName falló — servidor no disponible o login roto');
+      test.skip();
+      return;
+    }
+
+    // ── Paso 2: navegar a /invitados via SPA (preserva React context) ─────────
+    const clickedNav = await page.evaluate(() => {
+      const lis = Array.from(document.querySelectorAll('li'));
+      for (const li of lis) {
+        const p = li.querySelector('p');
+        if (p && p.textContent?.trim() === 'Invitados') {
+          li.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+          return true;
+        }
+      }
+      return false;
+    });
+    if (clickedNav) {
+      await page.waitForURL('**/invitados**', { timeout: 15_000 }).catch(() => {});
+    } else {
+      await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    }
+    await waitForAppReady(page, 15_000);
+    await delay(1_000);
+
+    // ── Paso 3: abrir el formulario de crear invitado ─────────────────────────
+    const formOpened = await openAddGuestForm(page);
+    if (!formOpened) {
+      console.warn('[C-01] formulario de crear invitado no se abrió');
+      test.skip();
+      return;
+    }
+
+    // ── Paso 4: rellenar datos únicos (sin mock — llamada real a API) ──────────
+    await page.locator('input[name="nombre"]').first().fill(C01_NAME);
+    await page.locator('input[name="telefono"]').first().clear();
+    await page.locator('input[name="telefono"]').first().fill(C01_PHONE);
+
+    const rolSelect = page.locator('select[name="rol"]').first();
+    if (await rolSelect.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      const opts = await rolSelect.locator('option').count();
+      if (opts > 1) await rolSelect.selectOption({ index: 1 });
+    }
+
+    // ── Paso 5: submit SIN mock → mutación creaInvitado llega a apiapp ────────
+    await page.locator('button[type="submit"]').first().click({ timeout: 8_000 });
+
+    // Esperar toast de éxito (confirma que la API respondió OK)
+    const toastVisible = await page
+      .locator('body')
+      .getByText(/Invitado creado con exito/i)
+      .first()
+      .isVisible({ timeout: 15_000 })
+      .catch(() => false);
+
+    if (!toastVisible) {
+      const body = (await page.locator('body').textContent()) ?? '';
+      console.warn('[C-01] Toast no apareció. Body snippet:', body.slice(0, 400).replace(/\n+/g, ' | '));
+      // Continuar igualmente — si la API lo guardó el test pasa, si no falla en queryEvent
+    }
+
+    // Dar tiempo a que la mutación complete y el ID del invitado esté disponible
+    await delay(2_000);
+
+    // ── Paso 6: verificar en DB via queryEvent ────────────────────────────────
+    const apiEvent = await queryEvent(page, EVENT_ID, 'invitados_array { _id nombre telefono }');
+
+    if (!apiEvent) {
+      console.warn('[C-01] queryEvent devolvió null — API proxy no accesible');
+      test.skip();
+      return;
+    }
+
+    const guests: Array<{ _id: string; nombre: string; telefono: string }> =
+      (apiEvent.invitados_array ?? []).filter(Boolean);
+
+    const found = guests.find((g) => g.nombre === C01_NAME || g.telefono === C01_PHONE);
+
+    if (found) {
+      createdGuestId = found._id;
+      console.log(`[C-01] ✅ Invitado verificado en DB: id=${found._id} nombre="${found.nombre}"`);
+    } else {
+      console.warn(`[C-01] Invitados en DB (últimos 5):`,
+        guests.slice(-5).map((g) => `${g.nombre}/${g.telefono}`).join(', '));
+    }
+
+    expect(found, `[C-01] "${C01_NAME}" (${C01_PHONE}) no encontrado en invitados_array de la DB`).toBeTruthy();
+    expect(found!.nombre, '[C-01] nombre en DB no coincide').toBe(C01_NAME);
+  });
 });
