@@ -135,7 +135,7 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
               <Link
                 href={`/app/album/${albumId}/settings`}
                 data-testid="btn-settings"
-                className="flex items-center gap-1.5 border border-gray-200 text-gray-400 hover:border-gray-400 hover:text-gray-700 px-3 py-2 rounded-xl text-sm font-medium transition"
+                className="flex items-center gap-1.5 border border-gray-200 text-gray-400 hover:border-gray-400 hover:text-gray-700 px-3 py-3 rounded-xl text-sm font-medium transition"
                 title="Administrar miembros y permisos"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,7 +147,7 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
             <button
               data-testid="btn-invite"
               onClick={() => setShowInvite(true)}
-              className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:border-violet-300 hover:text-violet-500 px-3 py-2 rounded-xl text-sm font-medium transition"
+              className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:border-violet-300 hover:text-violet-500 px-3 py-3 rounded-xl text-sm font-medium transition"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -157,7 +157,7 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
             <button
               data-testid="btn-share"
               onClick={handleOpenShare}
-              className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:border-rose-300 hover:text-rose-500 px-3 py-2 rounded-xl text-sm font-medium transition"
+              className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:border-rose-300 hover:text-rose-500 px-3 py-3 rounded-xl text-sm font-medium transition"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -169,7 +169,7 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
                 data-testid="btn-watermark-toggle"
                 onClick={handleToggleWatermark}
                 title={watermarkEnabled ? 'Desactivar marca de agua' : 'Activar protección con marca de agua'}
-                className={`flex items-center gap-1.5 border px-3 py-2 rounded-xl text-sm font-medium transition ${watermarkEnabled ? 'border-violet-300 text-violet-600 bg-violet-50 hover:bg-violet-100' : 'border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600'}`}
+                className={`flex items-center gap-1.5 border px-3 py-3 rounded-xl text-sm font-medium transition ${watermarkEnabled ? 'border-violet-300 text-violet-600 bg-violet-50 hover:bg-violet-100' : 'border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600'}`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -187,7 +187,7 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
                 }
               }}
               disabled={uploading}
-              className="bg-rose-500 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-rose-600 disabled:opacity-50 transition flex items-center gap-1.5"
+              className="bg-rose-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:bg-rose-600 disabled:opacity-50 transition flex items-center gap-1.5"
             >
               📷 {uploading ? `Subiendo ${uploadProgress}%` : 'Subir fotos'}
             </button>
@@ -240,7 +240,7 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
               </div>
             </div>
             <a href="/pro" className="text-xs text-rose-500 font-semibold hover:underline whitespace-nowrap">
-              Ampliar
+              Cambiar plan
             </a>
           </div>
         )}

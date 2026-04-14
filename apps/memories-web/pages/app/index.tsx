@@ -58,7 +58,7 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
           </Link>
           <div className="flex items-center gap-3">
             {hasEvents && (
-              <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
+              <div className="hidden sm:flex bg-gray-100 rounded-xl p-1 gap-1">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${viewMode === 'grid' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
@@ -90,7 +90,7 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
             <Link href="/app/referral" className="text-sm text-rose-500 font-semibold hover:text-rose-700 transition hidden sm:block">
               🎁 Invita amigos
             </Link>
-            <button onClick={onLogout} className="text-sm text-gray-400 hover:text-gray-700 transition">
+            <button onClick={onLogout} className="text-sm text-gray-400 hover:text-gray-700 transition px-2 py-2 rounded-lg min-h-[44px]">
               Salir
             </button>
           </div>
@@ -134,7 +134,7 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
         )}
 
         {albumsLoading && (
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="bg-gray-100 rounded-3xl h-56 animate-pulse" />
             ))}
@@ -165,7 +165,7 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
                 {Object.keys(eventGroups).length > 0 && (
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mt-8 mb-3">Sin evento asignado</p>
                 )}
-                <div className="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
                   {standalone.map((album) => <AlbumCard key={album._id} album={album} />)}
                 </div>
               </>
@@ -174,7 +174,7 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
         )}
 
         {!albumsLoading && albums.length > 0 && viewMode === 'grid' && (
-          <div data-testid="albums-grid" className="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div data-testid="albums-grid" className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
             {albums.map((album) => <AlbumCard key={album._id} album={album} />)}
           </div>
         )}
