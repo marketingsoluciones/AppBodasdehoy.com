@@ -72,8 +72,43 @@ test.beforeAll(async ({ browser }) => {
       { timeout: 15_000 },
     ).catch(() => {});
 
-    // sessionStorage persiste en goto() al mismo origen → dev_bypass activo
-    await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    // En app-dev (local) goto() a /invitados redirige al home (auth server-side).
+    // Navegamos via SPA: click en tarjeta Isabel → /resumen-evento → click nav Invitados.
+    // En app-test (Vercel) sessionStorage persiste en goto() → ambos caminos OK.
+    await page.waitForFunction(
+      () => !/Cargando eventos/i.test(document.body.innerText ?? ''),
+      { timeout: 15_000 },
+    ).catch(() => {});
+
+    // Click en tarjeta Isabel para cargar el evento en contexto React
+    const isabelCard = page.locator('[class*="rounded"], [class*="card"]').filter({
+      hasText: /isabel/i,
+    }).first();
+    const hasIsabel = await isabelCard.isVisible({ timeout: 5_000 }).catch(() => false);
+    if (hasIsabel) {
+      await isabelCard.click();
+      await page.waitForURL('**/resumen-evento**', { timeout: 20_000 }).catch(() => {});
+    }
+
+    // Navegar a /invitados via SPA (preserva contexto React con evento cargado)
+    if (!page.url().includes('/invitados')) {
+      const clicked = await page.evaluate(() => {
+        const lis = Array.from(document.querySelectorAll('li'));
+        for (const li of lis) {
+          const p = li.querySelector('p');
+          if (p && p.textContent?.trim() === 'Invitados') {
+            li.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            return true;
+          }
+        }
+        return false;
+      });
+      if (!clicked) {
+        // Fallback: goto directo (funciona en app-test)
+        await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 30_000 }).catch(() => {});
+      }
+      await page.waitForURL('**/invitados**', { timeout: 10_000 }).catch(() => {});
+    }
 
     await page.waitForFunction(
       () => {
