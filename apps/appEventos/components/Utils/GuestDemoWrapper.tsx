@@ -13,6 +13,7 @@ import { FC, ReactNode, useEffect } from 'react'
 import Link from 'next/link'
 import { EventContextProvider, AuthContextProvider } from '../../context'
 import { DEMO_EVENT } from '../../utils/demoEvent'
+import { SkeletonTable } from './SkeletonPage'
 
 interface Props {
   children: ReactNode
@@ -23,7 +24,13 @@ interface Props {
 
 const GuestDemoWrapper: FC<Props> = ({ children, section, icon = '✨', description }) => {
   const { setEvent } = EventContextProvider()
-  const { config } = AuthContextProvider()
+  const { config, user } = AuthContextProvider()
+
+  // Safety-timeout guest: auth aún no completó — mostrar skeleton en vez de demo
+  // Evita mostrar modo demo cuando el usuario real tiene auth lenta (SSO, conexión lenta)
+  if ((user as any)?._isSafetyGuest) {
+    return <SkeletonTable rows={8} />
+  }
 
   const loginUrl = config?.pathLogin ? `${config.pathLogin}?q=register` : '/login?q=register'
 
