@@ -103,6 +103,51 @@ export async function queryEvent(
   return events ?? null;
 }
 
+// ─── Helper de mutación ──────────────────────────────────────────────────────
+
+/**
+ * Ejecuta una mutación en la API real (apiapp.bodasdehoy.com vía proxy).
+ *
+ * @param page        Página Playwright con sesión activa
+ * @param mutation    String GraphQL de la mutación (sin los backticks del template)
+ * @param variables   Variables para la mutación
+ * @param development Tenant/development (default: "bodasdehoy")
+ * @returns           El objeto `data` de la respuesta, o null si falla
+ */
+export async function mutateEvent(
+  page: Page,
+  mutation: string,
+  variables: Record<string, unknown>,
+  development: string = 'bodasdehoy',
+): Promise<any | null> {
+  const result = await page.evaluate(
+    async ({ mutation, variables, development }) => {
+      const cookieMatch = document.cookie.match(/idTokenV0\.1\.0=([^;]+)/);
+      const idToken = cookieMatch ? cookieMatch[1] : null;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+
+      try {
+        const res = await fetch('/api/proxy/graphql', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ query: mutation, variables: { ...variables, development } }),
+        });
+        if (!res.ok) return null;
+        return res.json();
+      } catch { return null; }
+    },
+    { mutation, variables, development },
+  );
+
+  if (!result) return null;
+  if (result.errors) {
+    console.error('[mutateEvent] GraphQL errors:', JSON.stringify(result.errors));
+    return null;
+  }
+  return result.data ?? null;
+}
+
 // ─── Query completa (todos los campos necesarios para capa B) ────────────────
 
 export const B_LAYER_FIELDS = `
