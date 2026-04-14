@@ -300,7 +300,7 @@ export const albumsSlice: StateCreator<MemoriesState, [], [], AlbumsAction> = (s
         const shareUrl = rawUrl && typeof window !== 'undefined'
           ? rawUrl.replace(/^https?:\/\/[^/]+/, window.location.origin)
           : rawUrl || null;
-        return { shareToken: result.share_token, shareUrl };
+        return { shareToken: result.share_token, shareUrl: shareUrl ?? '' };
       }
       return null;
     } catch (e) {
