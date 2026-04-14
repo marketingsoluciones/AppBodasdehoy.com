@@ -13,7 +13,7 @@ NC='\033[0m'
 echo "🧹 Limpieza de caché de Cursor (ganar velocidad)"
 echo ""
 
-if pgrep -x "Cursor" > /dev/null 2>&1; then
+if pgrep -f "/Applications/Cursor.app/Contents/MacOS/Cursor" > /dev/null 2>&1 || pgrep -x "Cursor" > /dev/null 2>&1; then
     echo -e "${RED}⚠️  Cursor está abierto. Ciérralo por completo y vuelve a ejecutar este script.${NC}"
     echo "   (Cursor → Salir, o Cmd+Q)"
     exit 1
