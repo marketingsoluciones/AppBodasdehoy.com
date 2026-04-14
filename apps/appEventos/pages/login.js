@@ -105,8 +105,9 @@ const PageLogin = () => {
   }, [config?.development, user, verificationDone, linkMedia, preregister, queryD, sessionExpired])
 
   // Auto-redirect tras login exitoso (700ms para dejar que el estado se estabilice)
+  // _isSafetyGuest: true → creado por timeout de seguridad, NO es un usuario real verificado
   useEffect(() => {
-    if (user && verificationDone && user?.displayName !== "guest") {
+    if (user && verificationDone && user?.displayName !== "guest" && !user?._isSafetyGuest) {
       // SSO completado: limpiar el flag anti-loop para que futuros logins en esta tab funcionen
       if (typeof window !== 'undefined') sessionStorage.removeItem('sso_redirect_pending')
       const redirectPath = queryD?.trim()?.startsWith("/") ? queryD.trim() : "/"

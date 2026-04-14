@@ -2,6 +2,7 @@ import { useMemo, useEffect, useState, FC, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { AuthContextProvider, EventContextProvider, ChatSidebarContextProvider } from "../../context";
 import { Banner, IconLightBulb16, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
+import { useToast } from "../../hooks/useToast";
 import { useDelayUnmount } from "../../utils/Funciones";
 import Profile from "./Profile";
 import BlockNotification from "./BlockNotification";
@@ -17,6 +18,7 @@ const Navigation: FC = () => {
   const { t } = useTranslation();
   const { event } = EventContextProvider();
   const { user, config, setIsActiveStateSwiper } = AuthContextProvider();
+  const toast = useToast();
   const router = useRouter();
   const pathname = usePathname();
   const [showSidebar, setShowSidebar] = useState(false);
@@ -157,6 +159,8 @@ const Navigation: FC = () => {
                         onClick={() => {
                           if (item.condicion) {
                             !isAllowedRouter(item.route) ? ht() : [router.push(item.route), setRoute(item.route)]
+                          } else {
+                            toast("error", t("youmustcreateevent"))
                           }
                         }}
                         className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition cursor-pointer
