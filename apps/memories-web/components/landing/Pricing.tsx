@@ -89,7 +89,7 @@ export default function Pricing() {
           <p className="text-gray-500 mt-4">Empieza gratis. Paga solo si quieres más.</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 items-start">
+        <div className="grid md:grid-cols-3 xl:grid-cols-5 gap-6 items-start">
           {plans.map((plan) => {
             const isHighlighted = plan.plan_id === HIGHLIGHTED_ID;
             const isFree = plan.pricing.monthly_fee === 0;

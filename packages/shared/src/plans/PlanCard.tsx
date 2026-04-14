@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * <PlanCard> — Componente compartido para mostrar un plan de suscripción.
  *

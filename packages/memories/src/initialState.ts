@@ -43,6 +43,7 @@ export type AlbumType =
 
 export interface Album {
   _id: string;
+  album_id?: string;       // slug format `alb_*` — needed for write API operations
   albumType?: AlbumType;
   coverImageUrl?: string;
   createdAt: string;

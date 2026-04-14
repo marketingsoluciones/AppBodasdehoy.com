@@ -282,7 +282,7 @@ const AuthProvider = ({ children }) => {
     if (isMounted && config) {
       // BYPASS: Para subdominios de test SOLAMENTE (no localhost)
       // localhost ahora usa autenticación real de Firebase
-      const isTestEnv = window.location.hostname.includes('chat-test') || window.location.hostname.includes('app-test') || window.location.hostname.includes('test.')
+      const isTestEnv = window.location.hostname.includes('chat-test') || window.location.hostname.includes('app-test') || window.location.hostname.includes('test.') || window.location.hostname.includes('app-dev')
       const devBypass = sessionStorage.getItem('dev_bypass') === 'true'
 
       if (isTestEnv && devBypass) {
@@ -597,11 +597,11 @@ const AuthProvider = ({ children }) => {
         if (!prevUser) {
           console.warn('[Auth] Timeout de seguridad: creando guest por defecto');
           const guestUid = nanoid(28);
-          return { uid: guestUid, displayName: 'guest' };
+          return { uid: guestUid, displayName: 'guest', _isSafetyGuest: true };
         }
         return prevUser;
       });
-    }, 4000);
+    }, 10000);
 
     return () => clearTimeout(safetyTimeout);
   }, [])

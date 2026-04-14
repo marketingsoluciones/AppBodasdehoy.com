@@ -18,7 +18,7 @@ const BlockCabecera = () => {
   };
 
   const ObjInvitado = {
-    total: event?.invitados_array?.length,
+    total: event?.invitados_array?.filter(Boolean)?.length,
   };
 
   const TotalList = [

@@ -1,7 +1,7 @@
 import { StateCreator } from 'zustand/vanilla';
 import type { MemoriesState } from '../initialState';
 import { dedup } from '../dedup';
-import { getConfig, getController } from './shared';
+import { getConfig, getController, resolveWriteId } from './shared';
 
 export interface MembersAction {
   fetchAlbumMembers: (albumId: string) => Promise<void>;
@@ -39,9 +39,10 @@ export const membersSlice: StateCreator<MemoriesState, [], [], MembersAction> = 
 
   inviteMember: async (albumId, email, role) => {
     const { baseUrl, userId, development } = getConfig(get);
+    const writeId = resolveWriteId(albumId, get);
     try {
       const res = await fetch(
-        `${baseUrl}/api/memories/albums/${albumId}/invite?user_id=${userId}&development=${development}`,
+        `${baseUrl}/api/memories/albums/${writeId}/invite?user_id=${userId}&development=${development}`,
         { body: JSON.stringify({ email, role }), headers: { 'Content-Type': 'application/json' }, method: 'POST' },
       );
       const result = await res.json();
@@ -54,9 +55,10 @@ export const membersSlice: StateCreator<MemoriesState, [], [], MembersAction> = 
 
   removeMember: async (albumId, targetUserId) => {
     const { baseUrl, userId, development } = getConfig(get);
+    const writeId = resolveWriteId(albumId, get);
     try {
       const res = await fetch(
-        `${baseUrl}/api/memories/albums/${albumId}/members/${targetUserId}?user_id=${userId}&development=${development}`,
+        `${baseUrl}/api/memories/albums/${writeId}/members/${targetUserId}?user_id=${userId}&development=${development}`,
         { method: 'DELETE' },
       );
       const result = await res.json();
@@ -70,9 +72,10 @@ export const membersSlice: StateCreator<MemoriesState, [], [], MembersAction> = 
 
   updateMemberRole: async (albumId, targetUserId, role) => {
     const { baseUrl, userId, development } = getConfig(get);
+    const writeId = resolveWriteId(albumId, get);
     try {
       const res = await fetch(
-        `${baseUrl}/api/memories/albums/${albumId}/members/${targetUserId}/role?user_id=${userId}&development=${development}`,
+        `${baseUrl}/api/memories/albums/${writeId}/members/${targetUserId}/role?user_id=${userId}&development=${development}`,
         { body: JSON.stringify({ role }), headers: { 'Content-Type': 'application/json' }, method: 'PUT' },
       );
       const result = await res.json();
@@ -102,9 +105,10 @@ export const membersSlice: StateCreator<MemoriesState, [], [], MembersAction> = 
 
   sendQrToGuests: async (albumId, guestIds, method) => {
     const { baseUrl, userId, development } = getConfig(get);
+    const writeId = resolveWriteId(albumId, get);
     try {
       const res = await fetch(
-        `${baseUrl}/api/memories/albums/${albumId}/send-qr?user_id=${userId}&development=${development}`,
+        `${baseUrl}/api/memories/albums/${writeId}/send-qr?user_id=${userId}&development=${development}`,
         { body: JSON.stringify({ guest_ids: guestIds, method }), headers: { 'Content-Type': 'application/json' }, method: 'POST' },
       );
       const result = await res.json();

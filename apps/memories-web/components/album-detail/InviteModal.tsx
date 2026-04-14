@@ -62,13 +62,13 @@ export default function InviteModal({
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">
           <button
             onClick={() => setTab('email')}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${tab === 'email' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`flex-1 py-3 rounded-lg text-sm font-semibold transition ${tab === 'email' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
           >
             ✉️ Por email
           </button>
           <button
             onClick={() => setTab('whatsapp')}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${tab === 'whatsapp' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`flex-1 py-3 rounded-lg text-sm font-semibold transition ${tab === 'whatsapp' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
           >
             💬 WhatsApp
           </button>
@@ -183,7 +183,7 @@ export default function InviteModal({
           </div>
         )}
 
-        <button onClick={onClose} className="mt-5 text-sm text-gray-400 hover:text-gray-700 transition w-full text-center">
+        <button onClick={onClose} className="mt-5 text-sm text-gray-400 hover:text-gray-700 transition w-full text-center py-3 rounded-xl min-h-[44px]">
           Cerrar
         </button>
       </div>

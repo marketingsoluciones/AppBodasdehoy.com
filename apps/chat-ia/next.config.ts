@@ -60,7 +60,6 @@ const nextConfig: NextConfig = {
       'date-fns',
       // ✅ Agregar más paquetes grandes para optimizar
       '@apollo/client',
-      'graphql',
       'framer-motion',
       '@tanstack/react-query',
       'zustand',

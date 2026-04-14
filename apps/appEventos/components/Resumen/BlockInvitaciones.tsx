@@ -10,7 +10,7 @@ const BlockInvitaciones = () => {
   const router = useRouter()
   const [isAllowed, ht] = useAllowed()
 
-  const Invitaciones: { enviadas: number, pendientes: number, total: number } = event?.invitados_array?.reduce(
+  const Invitaciones: { enviadas: number, pendientes: number, total: number } = event?.invitados_array?.filter(Boolean)?.reduce(
     (acc, invitado) => {
       if (invitado.invitacion) {
         acc.enviadas++;

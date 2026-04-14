@@ -49,7 +49,7 @@ export const EventGroup = React.memo(function EventGroup({ eventId, albums }: { 
       {rest.length > 0 && (
         <div className="p-4">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Álbumes del evento</p>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
             {rest.map((a) => (
               <AlbumCard key={a._id} album={a} compact />
             ))}

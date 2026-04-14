@@ -10,7 +10,9 @@ export default function ShareModal({ albumId, onClose }: { albumId: string; onCl
   const [shareError, setShareError] = useState(false);
   const [qrFailed, setQrFailed] = useState(false);
 
-  useEffect(() => {
+  const loadShareLink = () => {
+    setLoading(true);
+    setShareError(false);
     generateShareLink(albumId, 30)
       .then((result) => {
         if (result?.shareUrl) setShareUrl(result.shareUrl);
@@ -18,7 +20,9 @@ export default function ShareModal({ albumId, onClose }: { albumId: string; onCl
       })
       .catch(() => setShareError(true))
       .finally(() => setLoading(false));
-  }, [albumId, generateShareLink]);
+  };
+
+  useEffect(() => { loadShareLink(); }, [albumId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const copyToClipboard = () => {
     if (shareUrl) {
@@ -43,6 +47,12 @@ export default function ShareModal({ albumId, onClose }: { albumId: string; onCl
           <div data-testid="share-error" className="h-48 flex flex-col items-center justify-center gap-3">
             <p className="text-red-500 text-sm font-medium">No se pudo generar el enlace</p>
             <p className="text-gray-400 text-xs">Comprueba tu conexión e inténtalo de nuevo.</p>
+            <button
+              onClick={loadShareLink}
+              className="text-xs text-rose-500 underline hover:text-rose-600 py-2 px-3"
+            >
+              Reintentar
+            </button>
           </div>
         ) : (
           <>
@@ -89,7 +99,7 @@ export default function ShareModal({ albumId, onClose }: { albumId: string; onCl
           </>
         )}
 
-        <button onClick={onClose} className="mt-6 text-sm text-gray-400 hover:text-gray-700 transition">Cerrar</button>
+        <button onClick={onClose} className="mt-6 text-sm text-gray-400 hover:text-gray-700 transition py-2 px-4 rounded-xl min-h-[44px] w-full">Cerrar</button>
       </div>
     </div>
   );

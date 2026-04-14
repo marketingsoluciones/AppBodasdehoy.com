@@ -105,8 +105,9 @@ const PageLogin = () => {
   }, [config?.development, user, verificationDone, linkMedia, preregister, queryD, sessionExpired])
 
   // Auto-redirect tras login exitoso (700ms para dejar que el estado se estabilice)
+  // _isSafetyGuest: true → creado por timeout de seguridad, NO es un usuario real verificado
   useEffect(() => {
-    if (user && verificationDone && user?.displayName !== "guest") {
+    if (user && verificationDone && user?.displayName !== "guest" && !user?._isSafetyGuest) {
       // SSO completado: limpiar el flag anti-loop para que futuros logins en esta tab funcionen
       if (typeof window !== 'undefined') sessionStorage.removeItem('sso_redirect_pending')
       const redirectPath = queryD?.trim()?.startsWith("/") ? queryD.trim() : "/"
@@ -123,6 +124,18 @@ const PageLogin = () => {
 
   const handleClose = () => {
     setTimeout(() => router.push(queryD || "/"), 100)
+  }
+
+  // BUG-015: no mostrar el formulario mientras el redirect-timer está activo
+  const isRedirectingAway = user && verificationDone && user?.displayName !== "guest" && !user?._isSafetyGuest
+
+  if (isRedirectingAway) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'linear-gradient(135deg, #fff1f2, #fce7f3)' }}>
+        <div style={{ width: 32, height: 32, border: '3px solid #f43f5e', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      </div>
+    )
   }
 
   return (

@@ -65,18 +65,30 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
   };
 
   useEffect(() => {
-    fetchAlbum(albumId);
-    fetchAlbumMedia(albumId);
-    generateShareLink(albumId, 30)
-      .then((r) => { if (r?.shareUrl) setShareUrl(r.shareUrl); })
-      .catch(() => {});
-  }, [albumId, fetchAlbum, fetchAlbumMedia, generateShareLink]);
+    // fetchAlbum primero para que resolveWriteId tenga el slug cuando fetchAlbumMedia lo necesite
+    fetchAlbum(albumId).then(() => fetchAlbumMedia(albumId));
+  }, [albumId, fetchAlbum, fetchAlbumMedia]);
+
+  // Genera el share link solo cuando el owner abre el modal (no en mount para todos los roles)
+  const handleOpenShare = async () => {
+    if (!shareUrl && isOwner) {
+      const r = await generateShareLink(albumId, 30).catch(() => null);
+      if (r?.shareUrl) setShareUrl(r.shareUrl);
+    }
+    setShowShare(true);
+  };
+
+  const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 
   const handleUpload = async (files: FileList) => {
     if (!files.length) return;
     setUploading(true);
     let uploadedCount = 0;
     for (const rawFile of Array.from(files)) {
+      if (rawFile.size > MAX_FILE_SIZE_BYTES) {
+        setToastMsg({ text: `${rawFile.name} supera el límite de 50 MB`, variant: 'error' });
+        continue;
+      }
       try {
         const file = await convertHeicIfNeeded(rawFile);
         await uploadMedia(albumId, file);
@@ -112,24 +124,24 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
   return (
     <>
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <Link href="/app" className="text-gray-400 hover:text-gray-700 transition">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2 flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <Link href="/app" className="text-gray-400 hover:text-gray-700 transition flex items-center min-h-[44px] min-w-[44px] justify-center flex-shrink-0">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
-            <div data-testid="album-detail">
-              <h1 data-testid="album-detail-title" className="text-base font-bold text-gray-900 leading-tight">{currentAlbum.name}</h1>
+            <div data-testid="album-detail" className="min-w-0">
+              <h1 data-testid="album-detail-title" className="text-base font-bold text-gray-900 leading-tight truncate">{currentAlbum.name}</h1>
               <p className="text-xs text-gray-400">{currentAlbumMedia.length} foto{currentAlbumMedia.length !== 1 ? 's' : ''}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isOwner && (
               <Link
                 href={`/app/album/${albumId}/settings`}
                 data-testid="btn-settings"
-                className="flex items-center gap-1.5 border border-gray-200 text-gray-400 hover:border-gray-400 hover:text-gray-700 px-3 py-2 rounded-xl text-sm font-medium transition"
+                className="flex items-center gap-1.5 border border-gray-200 text-gray-400 hover:border-gray-400 hover:text-gray-700 px-3 py-3 rounded-xl text-sm font-medium transition"
                 title="Administrar miembros y permisos"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,7 +153,7 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
             <button
               data-testid="btn-invite"
               onClick={() => setShowInvite(true)}
-              className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:border-violet-300 hover:text-violet-500 px-3 py-2 rounded-xl text-sm font-medium transition"
+              className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:border-violet-300 hover:text-violet-500 px-3 py-3 rounded-xl text-sm font-medium transition"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -150,8 +162,8 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
             </button>
             <button
               data-testid="btn-share"
-              onClick={() => setShowShare(true)}
-              className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:border-rose-300 hover:text-rose-500 px-3 py-2 rounded-xl text-sm font-medium transition"
+              onClick={handleOpenShare}
+              className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:border-rose-300 hover:text-rose-500 px-3 py-3 rounded-xl text-sm font-medium transition"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -163,7 +175,7 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
                 data-testid="btn-watermark-toggle"
                 onClick={handleToggleWatermark}
                 title={watermarkEnabled ? 'Desactivar marca de agua' : 'Activar protección con marca de agua'}
-                className={`flex items-center gap-1.5 border px-3 py-2 rounded-xl text-sm font-medium transition ${watermarkEnabled ? 'border-violet-300 text-violet-600 bg-violet-50 hover:bg-violet-100' : 'border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600'}`}
+                className={`flex items-center gap-1.5 border px-3 py-3 rounded-xl text-sm font-medium transition ${watermarkEnabled ? 'border-violet-300 text-violet-600 bg-violet-50 hover:bg-violet-100' : 'border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600'}`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -171,25 +183,29 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
                 <span className="hidden sm:inline">{watermarkEnabled ? 'Protegido' : 'Proteger'}</span>
               </button>
             )}
-            <button
-              data-testid="btn-upload"
-              onClick={() => {
-                if (canUploadPhoto(currentAlbumMedia.length)) {
-                  fileInputRef.current?.click();
-                } else {
-                  setShowPhotoUpgradeModal(true);
-                }
-              }}
-              disabled={uploading}
-              className="bg-rose-500 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-rose-600 disabled:opacity-50 transition flex items-center gap-1.5"
-            >
-              📷 {uploading ? `Subiendo ${uploadProgress}%` : 'Subir fotos'}
-            </button>
+            <div className="flex flex-col items-end gap-0.5">
+              <button
+                data-testid="btn-upload"
+                onClick={() => {
+                  if (canUploadPhoto(currentAlbumMedia.length)) {
+                    fileInputRef.current?.click();
+                  } else {
+                    setShowPhotoUpgradeModal(true);
+                  }
+                }}
+                disabled={uploading}
+                className="bg-rose-500 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:bg-rose-600 disabled:opacity-50 transition flex items-center gap-1.5"
+              >
+                📷 {uploading ? `Subiendo ${uploadProgress}%` : 'Subir fotos'}
+              </button>
+              <span className="text-xs text-gray-400 pr-1">Máx. 50 MB</span>
+            </div>
             <input
               ref={fileInputRef}
               type="file"
               accept={PHOTO_VIDEO_ACCEPT}
               multiple
+              data-max-size="52428800"
               className="hidden"
               onChange={(e) => e.target.files && handleUpload(e.target.files)}
             />
@@ -234,7 +250,7 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
               </div>
             </div>
             <a href="/pro" className="text-xs text-rose-500 font-semibold hover:underline whitespace-nowrap">
-              Ampliar
+              Cambiar plan
             </a>
           </div>
         )}
@@ -257,7 +273,7 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
               <button onClick={() => fileInputRef.current?.click()} className="bg-rose-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-rose-600 transition">
                 Subir fotos
               </button>
-              <button onClick={() => setShowShare(true)} className="border border-gray-200 text-gray-600 px-6 py-3 rounded-full font-semibold hover:border-rose-300 hover:text-rose-500 transition">
+              <button onClick={handleOpenShare} className="border border-gray-200 text-gray-600 px-6 py-3 rounded-full font-semibold hover:border-rose-300 hover:text-rose-500 transition">
                 Compartir QR
               </button>
             </div>

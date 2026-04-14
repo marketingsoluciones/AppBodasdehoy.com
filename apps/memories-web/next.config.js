@@ -8,8 +8,8 @@ const nextConfig = {
   i18n,
   images: {
     remotePatterns: [
-      { protocol: 'https', hostname: 'api-ia.bodasdehoy.com' },
-      { protocol: 'https', hostname: 'media.eventosorganizador.com' },
+      { protocol: 'https', hostname: '*.bodasdehoy.com' },
+      { protocol: 'https', hostname: '*.eventosorganizador.com' },
       { protocol: 'https', hostname: '*.r2.cloudflarestorage.com' },
       { protocol: 'https', hostname: 'storage.googleapis.com' },
       { protocol: 'https', hostname: 'api.qrserver.com' },

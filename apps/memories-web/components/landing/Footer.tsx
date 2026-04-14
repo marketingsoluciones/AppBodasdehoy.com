@@ -26,17 +26,17 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4 text-sm">{t('footer.legal')}</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-white transition">{t('footer.privacy')}</a></li>
-              <li><a href="#" className="hover:text-white transition">{t('footer.terms')}</a></li>
-              <li><a href="#" className="hover:text-white transition">{t('footer.contact')}</a></li>
+              <li><Link href="/privacidad" className="hover:text-white transition">{t('footer.privacy')}</Link></li>
+              <li><Link href="/terminos" className="hover:text-white transition">{t('footer.terms')}</Link></li>
+              <li><a href="mailto:hola@bodasdehoy.com" className="hover:text-white transition">{t('footer.contact')}</a></li>
             </ul>
           </div>
         </div>
         <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
           <p>{t('footer.copyright', { year: new Date().getFullYear() })}</p>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-white transition">{t('footer.instagram')}</a>
-            <a href="#" className="hover:text-white transition">{t('footer.twitter')}</a>
+            <a href="https://www.instagram.com/bodasdehoy/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">{t('footer.instagram')}</a>
+            <a href="https://twitter.com/bodasdehoy" target="_blank" rel="noopener noreferrer" className="hover:text-white transition">{t('footer.twitter')}</a>
           </div>
         </div>
       </div>

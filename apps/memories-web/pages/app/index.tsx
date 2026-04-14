@@ -29,6 +29,7 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
   const [showCreate, setShowCreate] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => { fetchAlbums(); }, [fetchAlbums]);
 
@@ -51,14 +52,15 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
   return (
     <>
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between min-h-[56px] py-2">
+          <Link href="/" className="flex items-center gap-2 min-h-[44px]">
             <span className="text-xl">📸</span>
             <span className="text-lg font-bold text-rose-500">Memories</span>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Desktop actions */}
             {hasEvents && (
-              <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
+              <div className="hidden sm:flex bg-gray-100 rounded-xl p-1 gap-1">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${viewMode === 'grid' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
@@ -83,18 +85,53 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
                   setShowUpgradeModal(true);
                 }
               }}
-              className="bg-rose-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-rose-600 transition"
+              className="bg-rose-500 text-white px-3 sm:px-4 py-2.5 rounded-full text-sm font-semibold hover:bg-rose-600 transition min-h-[44px] flex items-center"
             >
-              + Nuevo álbum
+              <span className="hidden sm:inline">+ Nuevo álbum</span>
+              <span className="inline sm:hidden">+</span>
             </button>
-            <Link href="/app/referral" className="text-sm text-rose-500 font-semibold hover:text-rose-700 transition hidden sm:block">
+            <Link href="/app/referral" className="text-sm text-rose-500 font-semibold hover:text-rose-700 transition hidden sm:flex items-center min-h-[44px]">
               🎁 Invita amigos
             </Link>
-            <button onClick={onLogout} className="text-sm text-gray-400 hover:text-gray-700 transition">
+            <button onClick={onLogout} className="text-sm text-gray-400 hover:text-gray-700 transition hidden sm:flex items-center min-h-[44px] px-2">
               Salir
+            </button>
+            {/* Hamburger — visible only on mobile */}
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className="sm:hidden flex items-center justify-center min-h-[44px] min-w-[44px] text-gray-500 hover:text-gray-800 transition"
+              aria-label="Menú"
+            >
+              {menuOpen ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
             </button>
           </div>
         </div>
+        {/* Mobile dropdown menu */}
+        {menuOpen && (
+          <div className="sm:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1">
+            <Link
+              href="/app/referral"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2 text-sm text-rose-500 font-semibold py-2.5 min-h-[44px]"
+            >
+              🎁 Invita amigos
+            </Link>
+            <button
+              onClick={() => { setMenuOpen(false); onLogout(); }}
+              className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-700 transition py-2.5 min-h-[44px] w-full text-left"
+            >
+              Salir
+            </button>
+          </div>
+        )}
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
@@ -107,19 +144,21 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
               </p>
             </div>
             {!albumsLoading && albumLimit < 999_999 && (
-              <Link href="/pro" className="flex items-center gap-2 text-sm no-underline">
+              <Link href="/pro" className="flex items-center gap-2 text-sm no-underline min-h-[44px]">
                 <div className="flex items-center gap-2">
                   <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
                       className="h-2 rounded-full transition-all"
                       style={{
-                        width: `${albumUsage(albums.length).percent}%`,
+                        width: `${Math.min(albumUsage(albums.length).percent, 100)}%`,
                         backgroundColor: albumUsage(albums.length).color,
                       }}
                     />
                   </div>
                   <span style={{ color: albumUsage(albums.length).color, fontWeight: 600 }}>
-                    {albumUsage(albums.length).text}
+                    {albums.length > albumLimit
+                      ? `${albums.length} álbumes (límite: ${albumLimit})`
+                      : albumUsage(albums.length).text}
                   </span>
                 </div>
               </Link>
@@ -134,7 +173,7 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
         )}
 
         {albumsLoading && (
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="bg-gray-100 rounded-3xl h-56 animate-pulse" />
             ))}
@@ -165,7 +204,7 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
                 {Object.keys(eventGroups).length > 0 && (
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mt-8 mb-3">Sin evento asignado</p>
                 )}
-                <div className="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
                   {standalone.map((album) => <AlbumCard key={album._id} album={album} />)}
                 </div>
               </>
@@ -174,7 +213,7 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
         )}
 
         {!albumsLoading && albums.length > 0 && viewMode === 'grid' && (
-          <div data-testid="albums-grid" className="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div data-testid="albums-grid" className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
             {albums.map((album) => <AlbumCard key={album._id} album={album} />)}
           </div>
         )}

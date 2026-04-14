@@ -32,7 +32,8 @@ const getApi2Url = (): string =>
  */
 async function proxyRequest(request: NextRequest, path: string[]): Promise<NextResponse> {
   const subpath = path.join('/');
-  const { search } = new URL(request.url);
+  const reqUrl = new URL(request.url);
+  const { search } = reqUrl;
 
   let targetUrl: string;
   if (subpath.startsWith('whatsapp/')) {
@@ -40,18 +41,20 @@ async function proxyRequest(request: NextRequest, path: string[]): Promise<NextR
     const api2Path = subpath.replace(/^whatsapp\//, '');
     targetUrl = `${getApi2Url()}/api/whatsapp/${api2Path}${search}`;
   } else {
-    targetUrl = `${getApiIaUrl()}/api/messages/${subpath}${search}`;
+    // api-ia expone conversations/{id} sin el sufijo /messages — normalizar el path
+    const normalizedSubpath = subpath.replace(/^(conversations\/[^/]+)\/messages$/, '$1');
+    targetUrl = `${getApiIaUrl()}/api/messages/${normalizedSubpath}${search}`;
   }
 
   // Propagar headers de autenticación y contexto completos
   const headers: Record<string, string> = {};
 
-  const auth = request.headers.get('authorization');
+  // EventSource no puede enviar headers custom → admitir token como query param
+  const tokenFromQuery = reqUrl.searchParams.get('token');
+  const auth = request.headers.get('authorization') || (tokenFromQuery ? `Bearer ${tokenFromQuery}` : null);
   if (auth) headers['Authorization'] = auth;
 
-  // X-Development y X-User-ID permiten a api2/api-ia aplicar
-  // visibilidad por rol (admin ve todo, user ve solo lo suyo)
-  const xDev = request.headers.get('x-development');
+  const xDev = request.headers.get('x-development') || reqUrl.searchParams.get('development');
   if (xDev) headers['X-Development'] = xDev;
 
   const xUserId = request.headers.get('x-user-id');
@@ -61,11 +64,14 @@ async function proxyRequest(request: NextRequest, path: string[]): Promise<NextR
   if (xRole) headers['X-Role'] = xRole;
 
   const contentType = request.headers.get('content-type');
+  const acceptHeader = request.headers.get('accept') || '';
+  const isSSE = subpath === 'stream' || acceptHeader.includes('text/event-stream');
 
   try {
     if (contentType && !contentType.includes('multipart/form-data')) {
       headers['Content-Type'] = contentType.split(';')[0].trim();
     }
+    if (isSSE) headers['Accept'] = 'text/event-stream';
 
     const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
     let bodyToSend: BodyInit | undefined;
@@ -77,11 +83,25 @@ async function proxyRequest(request: NextRequest, path: string[]): Promise<NextR
       body: bodyToSend,
       headers,
       method: request.method,
-      signal: AbortSignal.timeout(30_000),
+      // Sin timeout para SSE — la conexión puede durar indefinidamente
+      signal: isSSE ? undefined : AbortSignal.timeout(30_000),
     });
 
     const responseContentType = response.headers.get('content-type') || '';
     const responseStatus = response.status;
+
+    // SSE: hacer streaming transparente al cliente
+    if (isSSE && responseContentType.includes('text/event-stream') && response.body) {
+      return new NextResponse(response.body, {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'Content-Type': 'text/event-stream',
+          'X-Accel-Buffering': 'no',
+        },
+        status: responseStatus,
+      });
+    }
 
     if (responseContentType.includes('application/json')) {
       const data = await response.json().catch(() => ({}));

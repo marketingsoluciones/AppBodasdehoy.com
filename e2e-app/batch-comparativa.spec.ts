@@ -99,6 +99,13 @@ async function entrarComoRegistrado(page: Page): Promise<boolean> {
   await passInput.fill(TEST_CREDENTIALS.password);
   await page.keyboard.press('Enter');
   await page.waitForTimeout(6000);
+
+  // Si el redirect fue a /messages (bandeja) o a /login, navegar al chat principal
+  const urlDespues = page.url();
+  if (urlDespues.includes('/login') || urlDespues.includes('/messages')) {
+    await page.goto(CHAT_URL, { waitUntil: 'domcontentloaded', timeout: GOTO_TIMEOUT }).catch(() => {});
+    await page.waitForTimeout(3000);
+  }
   return true;
 }
 

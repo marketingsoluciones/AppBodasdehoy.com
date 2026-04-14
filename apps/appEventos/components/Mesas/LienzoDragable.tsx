@@ -180,9 +180,10 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
     listeners: {
       start(e) {
 
-        sizeElement = { w: e.rect.width / scale, h: e.rect.height / scale }
+        const safeScale = scale || 1
+        sizeElement = { w: e.rect.width / safeScale, h: e.rect.height / safeScale }
         sizeElement = { ...sizeElement }
-        lienzoLimit = { x: lienzo.width - sizeElement.w, y: lienzo.height - sizeElement.h }
+        lienzoLimit = { x: (lienzo?.width ?? 0) - sizeElement.w, y: (lienzo?.height ?? 0) - sizeElement.h }
         lienzoLimit = { ...lienzoLimit }
         i.x = parseInt(e.target.getAttribute('data-x'), 10) || 0
         i.y = parseInt(e.target.getAttribute('data-y'), 10) || 0
