@@ -50,6 +50,7 @@ function PhotoCell({
           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
           className="object-cover group-hover:scale-105 transition duration-300"
           onError={() => setImgError(true)}
+          unoptimized
         />
       )}
       {m.mediaType === 'video' && (

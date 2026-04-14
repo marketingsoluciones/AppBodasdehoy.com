@@ -43,7 +43,7 @@ export default function InviteModal({
     if (token) {
       setSent(true);
       setEmail('');
-      setTimeout(() => setSent(false), 3000);
+      setTimeout(() => setSent(false), 4000);
     } else {
       setError('No se pudo enviar la invitación. Comprueba el email e inténtalo de nuevo.');
     }
@@ -101,7 +101,14 @@ export default function InviteModal({
               </select>
             </div>
             {error && <p className="text-red-500 text-xs">{error}</p>}
-            {sent && <p className="text-green-600 text-xs font-medium">✓ Invitación enviada correctamente</p>}
+            {sent && (
+              <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm font-medium">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Invitación enviada correctamente
+              </div>
+            )}
             <button
               type="submit"
               disabled={!email.trim() || sending}
