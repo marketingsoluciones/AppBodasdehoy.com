@@ -172,6 +172,7 @@ const EventsGroupProvider = ({ children }) => {
           console.log("[EventsGroup] Buscando eventos para usuario_id:", userIdToUse)
           setEventsGroupError(false)
           setEventsGroupErrorMessage(null)
+          setEventsGroupDone(false)  // Reset para que EventLoadingOrError muestre skeleton durante re-fetch
           const startTime = performance.now()
 
           // Usar fetchApiEventos que llama a apiapp.bodasdehoy.com (API de eventos)

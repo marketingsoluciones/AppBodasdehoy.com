@@ -104,8 +104,9 @@ input[type="text"]:focus {
   overflow: auto;
 }
 
-/* Override Next.js dev overlay portal position */
+/* Override Next.js dev overlay portal — prevent transparent overlay from intercepting clicks */
 nextjs-portal {
   left: unset;
   top: unset;
+  pointer-events: none;
 }
