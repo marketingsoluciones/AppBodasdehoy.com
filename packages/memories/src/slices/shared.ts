@@ -19,3 +19,18 @@ export function getConfig(get: () => MemoriesState) {
     development: s.development || 'bodasdehoy',
   };
 }
+
+/**
+ * La API requiere el slug `album_id` (formato `alb_*`) para todas las operaciones
+ * de escritura (upload, delete, update, share-link). Los callers suelen pasar el
+ * `_id` de MongoDB (que viene de la URL). Este helper resuelve el slug desde el
+ * estado del store cuando está disponible, y cae al `albumId` original si no.
+ */
+export function resolveWriteId(albumId: string, get: () => MemoriesState): string {
+  const s = get();
+  const album =
+    s.currentAlbum?._id === albumId
+      ? s.currentAlbum
+      : s.albums.find((a) => a._id === albumId);
+  return album?.album_id ?? albumId;
+}

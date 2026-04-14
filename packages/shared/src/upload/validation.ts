@@ -19,8 +19,9 @@ export const VIDEO_TYPES = [
 
 export const PHOTO_VIDEO_TYPES = [...PHOTO_TYPES, ...VIDEO_TYPES] as const;
 
-/** MIME types that are valid for upload (photo + video) */
-export const PHOTO_VIDEO_ACCEPT = '.heic,.heif,.mov,image/*,video/*';
+/** Explicit accept attribute for file inputs — no SVG (XSS risk via embedded JS) */
+export const PHOTO_VIDEO_ACCEPT =
+  '.heic,.heif,image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,image/avif,video/mp4,video/quicktime,video/webm';
 
 export const DEFAULT_MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 

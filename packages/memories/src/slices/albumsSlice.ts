@@ -2,7 +2,7 @@ import { StateCreator } from 'zustand/vanilla';
 import type { Album, MemoriesState } from '../initialState';
 import { getCached, setCache, invalidateCache } from '../cache';
 import { dedup } from '../dedup';
-import { getConfig, getController } from './shared';
+import { getConfig, getController, resolveWriteId } from './shared';
 
 export interface AlbumsAction {
   fetchAlbums: () => Promise<void>;
@@ -167,6 +167,7 @@ export const albumsSlice: StateCreator<MemoriesState, [], [], AlbumsAction> = (s
 
   deleteAlbum: async (albumId) => {
     const { baseUrl, userId, development } = getConfig(get);
+    const writeId = resolveWriteId(albumId, get);
     const albums = get().albums;
     const index = albums.findIndex((a) => a._id === albumId);
     const albumToDelete = index >= 0 ? albums[index] : null;
@@ -177,7 +178,7 @@ export const albumsSlice: StateCreator<MemoriesState, [], [], AlbumsAction> = (s
     }));
     try {
       const res = await fetch(
-        `${baseUrl}/api/memories/albums/${albumId}?user_id=${userId}&development=${development}`,
+        `${baseUrl}/api/memories/albums/${writeId}?user_id=${userId}&development=${development}`,
         { method: 'DELETE' },
       );
       const result = await res.json();
@@ -197,6 +198,7 @@ export const albumsSlice: StateCreator<MemoriesState, [], [], AlbumsAction> = (s
 
   updateAlbum: async (albumId, data) => {
     const { baseUrl, userId, development } = getConfig(get);
+    const writeId = resolveWriteId(albumId, get);
     const prevAlbum = get().currentAlbum;
     const prevAlbumInList = get().albums.find((a) => a._id === albumId);
 
@@ -206,7 +208,7 @@ export const albumsSlice: StateCreator<MemoriesState, [], [], AlbumsAction> = (s
     }));
     try {
       const res = await fetch(
-        `${baseUrl}/api/memories/albums/${albumId}?user_id=${userId}&development=${development}`,
+        `${baseUrl}/api/memories/albums/${writeId}?user_id=${userId}&development=${development}`,
         { body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' }, method: 'PUT' },
       );
       const result = await res.json();
@@ -285,19 +287,25 @@ export const albumsSlice: StateCreator<MemoriesState, [], [], AlbumsAction> = (s
 
   generateShareLink: async (albumId, expiresInDays = 30) => {
     const { baseUrl, userId, development } = getConfig(get);
+    const writeId = resolveWriteId(albumId, get);
     try {
       const res = await fetch(
-        `${baseUrl}/api/memories/albums/${albumId}/share-link?user_id=${userId}&development=${development}`,
+        `${baseUrl}/api/memories/albums/${writeId}/share-link?user_id=${userId}&development=${development}`,
         { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ expires_in_days: expiresInDays, permissions: 'view' }) },
       );
       const result = await res.json().catch(() => ({}));
-      if (result?.success) return { shareToken: result.share_token, shareUrl: result.share_url };
-      if (!res.ok) throw new Error(result?.detail || result?.error || result?.message || `Error ${res.status}`);
+      if (result?.success && result.share_token) {
+        // Override origin so share links point to the current env (dev/test/prod), not hardcoded production
+        const rawUrl: string = result.share_url ?? '';
+        const shareUrl = rawUrl && typeof window !== 'undefined'
+          ? rawUrl.replace(/^https?:\/\/[^/]+/, window.location.origin)
+          : rawUrl || null;
+        return { shareToken: result.share_token, shareUrl };
+      }
       return null;
     } catch (e) {
       console.error('[Memories] generateShareLink:', e);
-      if (e instanceof Error) throw e;
-      throw new Error('Error al generar el enlace de compartir');
+      return null; // never propagate — callers check for null
     }
   },
 

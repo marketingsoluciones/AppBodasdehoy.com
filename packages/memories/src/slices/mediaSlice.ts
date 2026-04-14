@@ -2,7 +2,7 @@ import { StateCreator } from 'zustand/vanilla';
 import type { AlbumMedia, MemoriesState } from '../initialState';
 import { getCached, setCache, invalidateCache } from '../cache';
 import { dedup } from '../dedup';
-import { getConfig, getController } from './shared';
+import { getConfig, getController, resolveWriteId } from './shared';
 import { compressImage, convertHeicIfNeeded, validateFile, withRetry } from '@bodasdehoy/shared/upload';
 
 export interface MediaAction {
@@ -14,6 +14,7 @@ export interface MediaAction {
 export const mediaSlice: StateCreator<MemoriesState, [], [], MediaAction> = (set, get) => ({
   fetchAlbumMedia: async (albumId) => {
     const { baseUrl, userId, development } = getConfig(get);
+    const readId = resolveWriteId(albumId, get);
     const cacheKey = `media_${albumId}_${userId}_${development}`;
 
     return dedup(cacheKey, async () => {
@@ -22,7 +23,7 @@ export const mediaSlice: StateCreator<MemoriesState, [], [], MediaAction> = (set
         set({ currentAlbumMedia: cached, mediaLoading: false });
         const controller = getController(`fetchMedia_${albumId}`);
         fetch(
-          `${baseUrl}/api/memories/albums/${albumId}/media?user_id=${userId}&development=${development}`,
+          `${baseUrl}/api/memories/albums/${readId}/media?user_id=${userId}&development=${development}`,
           { signal: controller.signal },
         )
           .then((r) => r.json())
@@ -42,7 +43,7 @@ export const mediaSlice: StateCreator<MemoriesState, [], [], MediaAction> = (set
       try {
         const controller = getController(`fetchMedia_${albumId}`);
         const res = await fetch(
-          `${baseUrl}/api/memories/albums/${albumId}/media?user_id=${userId}&development=${development}`,
+          `${baseUrl}/api/memories/albums/${readId}/media?user_id=${userId}&development=${development}`,
           { signal: controller.signal },
         );
         const data = await res.json();
@@ -63,6 +64,7 @@ export const mediaSlice: StateCreator<MemoriesState, [], [], MediaAction> = (set
 
   uploadMedia: async (albumId, rawFile, caption) => {
     const { baseUrl, userId, development } = getConfig(get);
+    const writeId = resolveWriteId(albumId, get);
 
     // Validate
     const validation = validateFile(rawFile);
@@ -93,7 +95,7 @@ export const mediaSlice: StateCreator<MemoriesState, [], [], MediaAction> = (set
       formData.append('file', file);
       const params = new URLSearchParams({ development, user_id: userId });
       if (caption) params.append('caption', caption);
-      const url = `${baseUrl}/api/memories/albums/${albumId}/upload?${params.toString()}`;
+      const url = `${baseUrl}/api/memories/albums/${writeId}/upload?${params.toString()}`;
 
       const result = await withRetry(() => new Promise<any>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
@@ -137,9 +139,10 @@ export const mediaSlice: StateCreator<MemoriesState, [], [], MediaAction> = (set
 
   deleteMedia: async (albumId, mediaId) => {
     const { baseUrl, userId, development } = getConfig(get);
+    const writeId = resolveWriteId(albumId, get);
     try {
       const res = await fetch(
-        `${baseUrl}/api/memories/albums/${albumId}/media/${mediaId}?user_id=${userId}&development=${development}`,
+        `${baseUrl}/api/memories/albums/${writeId}/media/${mediaId}?user_id=${userId}&development=${development}`,
         { method: 'DELETE' },
       );
       const result = await res.json();

@@ -65,12 +65,18 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
   };
 
   useEffect(() => {
-    fetchAlbum(albumId);
-    fetchAlbumMedia(albumId);
-    generateShareLink(albumId, 30)
-      .then((r) => { if (r?.shareUrl) setShareUrl(r.shareUrl); })
-      .catch(() => {});
-  }, [albumId, fetchAlbum, fetchAlbumMedia, generateShareLink]);
+    // fetchAlbum primero para que resolveWriteId tenga el slug cuando fetchAlbumMedia lo necesite
+    fetchAlbum(albumId).then(() => fetchAlbumMedia(albumId));
+  }, [albumId, fetchAlbum, fetchAlbumMedia]);
+
+  // Genera el share link solo cuando el owner abre el modal (no en mount para todos los roles)
+  const handleOpenShare = async () => {
+    if (!shareUrl && isOwner) {
+      const r = await generateShareLink(albumId, 30).catch(() => null);
+      if (r?.shareUrl) setShareUrl(r.shareUrl);
+    }
+    setShowShare(true);
+  };
 
   const handleUpload = async (files: FileList) => {
     if (!files.length) return;
@@ -150,7 +156,7 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
             </button>
             <button
               data-testid="btn-share"
-              onClick={() => setShowShare(true)}
+              onClick={handleOpenShare}
               className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:border-rose-300 hover:text-rose-500 px-3 py-2 rounded-xl text-sm font-medium transition"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -257,7 +263,7 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
               <button onClick={() => fileInputRef.current?.click()} className="bg-rose-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-rose-600 transition">
                 Subir fotos
               </button>
-              <button onClick={() => setShowShare(true)} className="border border-gray-200 text-gray-600 px-6 py-3 rounded-full font-semibold hover:border-rose-300 hover:text-rose-500 transition">
+              <button onClick={handleOpenShare} className="border border-gray-200 text-gray-600 px-6 py-3 rounded-full font-semibold hover:border-rose-300 hover:text-rose-500 transition">
                 Compartir QR
               </button>
             </div>
