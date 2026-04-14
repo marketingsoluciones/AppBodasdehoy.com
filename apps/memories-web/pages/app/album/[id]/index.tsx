@@ -78,11 +78,17 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
     setShowShare(true);
   };
 
+  const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+
   const handleUpload = async (files: FileList) => {
     if (!files.length) return;
     setUploading(true);
     let uploadedCount = 0;
     for (const rawFile of Array.from(files)) {
+      if (rawFile.size > MAX_FILE_SIZE_BYTES) {
+        setToastMsg({ text: `${rawFile.name} supera el límite de 50 MB`, variant: 'error' });
+        continue;
+      }
       try {
         const file = await convertHeicIfNeeded(rawFile);
         await uploadMedia(albumId, file);
@@ -118,19 +124,19 @@ function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: stri
   return (
     <>
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <Link href="/app" className="text-gray-400 hover:text-gray-700 transition">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2 flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <Link href="/app" className="text-gray-400 hover:text-gray-700 transition flex items-center min-h-[44px] min-w-[44px] justify-center flex-shrink-0">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
-            <div data-testid="album-detail">
-              <h1 data-testid="album-detail-title" className="text-base font-bold text-gray-900 leading-tight">{currentAlbum.name}</h1>
+            <div data-testid="album-detail" className="min-w-0">
+              <h1 data-testid="album-detail-title" className="text-base font-bold text-gray-900 leading-tight truncate">{currentAlbum.name}</h1>
               <p className="text-xs text-gray-400">{currentAlbumMedia.length} foto{currentAlbumMedia.length !== 1 ? 's' : ''}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {isOwner && (
               <Link
                 href={`/app/album/${albumId}/settings`}

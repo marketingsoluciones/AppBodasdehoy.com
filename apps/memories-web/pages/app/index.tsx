@@ -51,12 +51,12 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
   return (
     <>
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between min-h-[56px] py-2">
+          <Link href="/" className="flex items-center gap-2 min-h-[44px]">
             <span className="text-xl">📸</span>
             <span className="text-lg font-bold text-rose-500">Memories</span>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {hasEvents && (
               <div className="hidden sm:flex bg-gray-100 rounded-xl p-1 gap-1">
                 <button
@@ -83,14 +83,15 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
                   setShowUpgradeModal(true);
                 }
               }}
-              className="bg-rose-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-rose-600 transition"
+              className="bg-rose-500 text-white px-3 sm:px-4 py-2.5 rounded-full text-sm font-semibold hover:bg-rose-600 transition min-h-[44px] flex items-center"
             >
-              + Nuevo álbum
+              <span className="hidden sm:inline">+ Nuevo álbum</span>
+              <span className="inline sm:hidden">+ Álbum</span>
             </button>
-            <Link href="/app/referral" className="text-sm text-rose-500 font-semibold hover:text-rose-700 transition hidden sm:block">
+            <Link href="/app/referral" className="text-sm text-rose-500 font-semibold hover:text-rose-700 transition hidden sm:flex items-center min-h-[44px]">
               🎁 Invita amigos
             </Link>
-            <button onClick={onLogout} className="text-sm text-gray-400 hover:text-gray-700 transition px-2 py-2 rounded-lg min-h-[44px]">
+            <button onClick={onLogout} className="text-sm text-gray-400 hover:text-gray-700 transition px-2 py-2 rounded-lg min-h-[44px] flex items-center">
               Salir
             </button>
           </div>
@@ -107,19 +108,21 @@ function AlbumsDashboard({ onLogout }: { onLogout: () => void }) {
               </p>
             </div>
             {!albumsLoading && albumLimit < 999_999 && (
-              <Link href="/pro" className="flex items-center gap-2 text-sm no-underline">
+              <Link href="/pro" className="flex items-center gap-2 text-sm no-underline min-h-[44px]">
                 <div className="flex items-center gap-2">
                   <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
                       className="h-2 rounded-full transition-all"
                       style={{
-                        width: `${albumUsage(albums.length).percent}%`,
+                        width: `${Math.min(albumUsage(albums.length).percent, 100)}%`,
                         backgroundColor: albumUsage(albums.length).color,
                       }}
                     />
                   </div>
                   <span style={{ color: albumUsage(albums.length).color, fontWeight: 600 }}>
-                    {albumUsage(albums.length).text}
+                    {albums.length > albumLimit
+                      ? `${albums.length} álbumes (límite: ${albumLimit})`
+                      : albumUsage(albums.length).text}
                   </span>
                 </div>
               </Link>
