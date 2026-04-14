@@ -86,6 +86,7 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (eventsGroup && eventsGroup.length === 0) {
       setEvent(null);
+      setValir(false); // Permitir re-selección cuando eventsGroup vuelva a cargar
     }
     if (eventsGroup?.length > 0) {
       if (!valir) {
