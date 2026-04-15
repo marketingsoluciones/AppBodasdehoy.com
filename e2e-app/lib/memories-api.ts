@@ -103,9 +103,10 @@ export function buildMemoriesApi(
   const authParams = `user_id=${encodeURIComponent(userId)}&development=${development}`;
   const devParam = `development=${development}`;
 
-  // Adds Bearer token to headers when idToken is available (required for write operations)
-  const withAuth = (headers: Record<string, string> = {}): Record<string, string> =>
-    idToken ? { ...headers, Authorization: `Bearer ${idToken}` } : headers;
+  // api-ia memories endpoints authenticate via user_id query param, not Bearer token.
+  // Firebase ID tokens are NOT accepted as Bearer — api-ia uses its own JWT format.
+  // We keep idToken param for future use but don't send it as Authorization header.
+  const withAuth = (headers: Record<string, string> = {}): Record<string, string> => headers;
 
   return {
     /** Lista todos los álbumes del usuario. */

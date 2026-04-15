@@ -5,6 +5,10 @@
  * Crea agentes virtuales especializados al primer acceso del usuario
  * si aún no existen.
  *
+ * Los agentes se filtran por developer/sector:
+ * - Bodas de Hoy: solo presupuesto y distribución de mesas
+ * - OBCRM / genérico: todos los agentes CRM
+ *
  * Patron: sigue src/server/services/agent/index.ts → createInbox()
  */
 
@@ -37,7 +41,16 @@ interface DomainAgentDef {
   slug: string;
 }
 
-const DOMAIN_AGENTS: DomainAgentDef[] = [
+// ─── Agentes por sector ──────────────────────────────────────────────────────
+
+/** Agentes relevantes para organización de bodas/eventos */
+const BODAS_AGENTS: DomainAgentDef[] = [
+  { config: BUDGET_AGENT_CONFIG, slug: BUDGET_AGENT_SLUG },
+  { config: SEATING_AGENT_CONFIG, slug: SEATING_AGENT_SLUG },
+];
+
+/** Todos los agentes CRM (OBCRM, genérico) */
+const CRM_AGENTS: DomainAgentDef[] = [
   { config: BUDGET_AGENT_CONFIG, slug: BUDGET_AGENT_SLUG },
   { config: SEATING_AGENT_CONFIG, slug: SEATING_AGENT_SLUG },
   { config: SCRAPING_AGENT_CONFIG, slug: SCRAPING_AGENT_SLUG },
@@ -48,8 +61,16 @@ const DOMAIN_AGENTS: DomainAgentDef[] = [
   { config: MESSAGING_CAMPAIGN_AGENT_CONFIG, slug: MESSAGING_CAMPAIGN_AGENT_SLUG },
 ];
 
+const BODAS_DEVELOPERS = new Set(['bodasdehoy', 'vivetuboda', 'organizador']);
+
+function getAgentsForDevelopment(dev?: string): DomainAgentDef[] {
+  return BODAS_DEVELOPERS.has(dev ?? '') ? BODAS_AGENTS : CRM_AGENTS;
+}
+
 /**
  * Crea los agentes de dominio si no existen para el usuario dado.
+ * Filtra por developer (NEXT_PUBLIC_DEVELOPMENT) para no mostrar
+ * agentes CRM en plataformas de bodas y viceversa.
  * Retorna el numero de agentes creados.
  */
 export async function seedDomainAgents(
@@ -57,10 +78,11 @@ export async function seedDomainAgents(
   userId: string,
 ): Promise<number> {
   const sessionModel = new SessionModel(db, userId);
+  const agents = getAgentsForDevelopment(process.env.NEXT_PUBLIC_DEVELOPMENT);
 
   let created = 0;
 
-  for (const def of DOMAIN_AGENTS) {
+  for (const def of agents) {
     try {
       // Verificar si ya existe por slug
       const existing = await sessionModel.findByIdOrSlug(def.slug);

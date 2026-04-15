@@ -102,6 +102,7 @@ const Invitaciones = () => {
   }, []);
   useEffect(() => {
     const reduce = event?.invitados_array?.reduce((acc: any, item: any) => {
+      if (!item) return acc;
       const asd = {
         _id: item._id,
         nombre: item.nombre,

@@ -1,4 +1,4 @@
-import { DEFAULT_COPILOT_SYSTEM_ROLE } from '@/const/agents/defaultCopilotSystemRole';
+import { DEFAULT_COPILOT_SYSTEM_ROLE, getSystemRoleForDevelopment } from '@/const/agents/defaultCopilotSystemRole';
 import { enableNextAuth } from '@/const/auth';
 import { isDesktop } from '@/const/version';
 import { appEnv, getAppConfig } from '@/envs/app';
@@ -167,8 +167,9 @@ export const getServerDefaultAgentConfig = () => {
   const config: Record<string, any> = parseAgentConfig(DEFAULT_AGENT_CONFIG) || {};
 
   // Inyectar system prompt por defecto si no hay uno definido
+  // Usa variante por developer (bodas vs CRM genérico)
   if (!config.systemRole) {
-    config.systemRole = DEFAULT_COPILOT_SYSTEM_ROLE;
+    config.systemRole = getSystemRoleForDevelopment(process.env.NEXT_PUBLIC_DEVELOPMENT);
   }
 
   return config;
