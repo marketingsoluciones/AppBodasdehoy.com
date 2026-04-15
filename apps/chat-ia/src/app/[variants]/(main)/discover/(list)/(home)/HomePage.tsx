@@ -25,19 +25,19 @@ const HomePage = memo<{ mobile?: boolean }>(() => {
     pageSize: 12,
   });
 
-  if (assistantLoading || pluginLoading || !assistantList || !mcpList) return <Loading />;
+  if (assistantLoading || pluginLoading) return <Loading />;
 
   return (
     <>
       <Title more={t('home.more')} moreLink={'/assistant'}>
         {t('home.featuredAssistants')}
       </Title>
-      <AssistantList data={assistantList.items} rows={4} />
+      <AssistantList data={assistantList?.items ?? []} rows={4} />
       <div />
       <Title more={t('home.more')} moreLink={'/mcp'}>
         {t('home.featuredTools')}
       </Title>
-      <McpList data={mcpList.items} rows={4} />
+      <McpList data={mcpList?.items ?? []} rows={4} />
     </>
   );
 });
