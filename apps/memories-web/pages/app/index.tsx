@@ -19,7 +19,7 @@ import { EventGroup } from '../../components/albums/EventGroup';
 const CreateAlbumModal = dynamic(() => import('../../components/albums/CreateAlbumModal'));
 
 const API_BASE = process.env.NEXT_PUBLIC_MEMORIES_API_URL || 'https://api-ia.bodasdehoy.com';
-const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
+const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy').trim();
 
 type ViewMode = 'grid' | 'event';
 

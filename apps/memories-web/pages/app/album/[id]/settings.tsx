@@ -14,7 +14,7 @@ import ConfirmModal from '../../../../components/shared/ConfirmModal';
 import Toast from '../../../../components/shared/Toast';
 
 const API_BASE = process.env.NEXT_PUBLIC_MEMORIES_API_URL || 'https://api-ia.bodasdehoy.com';
-const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
+const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy').trim();
 
 const ROLE_LABELS: Record<string, string> = {
   owner: 'Propietario',

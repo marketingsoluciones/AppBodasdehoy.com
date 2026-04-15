@@ -59,7 +59,7 @@ export interface UsePlanReturn {
 // ========================================
 
 const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
-const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
+const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy').trim();
 
 async function graphqlQuery<T>(query: string, variables?: Record<string, unknown>, token?: string | null): Promise<T> {
   const headers: Record<string, string> = {

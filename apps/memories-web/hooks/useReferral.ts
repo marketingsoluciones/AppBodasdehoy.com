@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
 import { authBridge } from '@bodasdehoy/shared';
 
 const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
-const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'memories';
+const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'memories').trim();
 const MEMORIES_BASE =
   typeof window !== 'undefined'
     ? window.location.origin

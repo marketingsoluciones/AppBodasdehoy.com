@@ -15,7 +15,7 @@ import { validateFile, convertHeicIfNeeded, PHOTO_VIDEO_TYPES, PHOTO_VIDEO_ACCEP
 const Lightbox = dynamic(() => import('../../components/shared/Lightbox'));
 
 const API_BASE = process.env.NEXT_PUBLIC_MEMORIES_API_URL || 'https://api-ia.bodasdehoy.com';
-const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
+const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy').trim();
 
 interface PublicMedia {
   _id: string;

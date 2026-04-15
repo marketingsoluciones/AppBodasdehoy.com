@@ -102,6 +102,7 @@ const Invitaciones = () => {
   }, []);
   useEffect(() => {
     const reduce = event?.invitados_array?.reduce((acc: any, item: any) => {
+      if (!item) return acc;
       const asd = {
         _id: item._id,
         nombre: item.nombre,
@@ -147,7 +148,9 @@ const Invitaciones = () => {
           evento_id: event?._id
         },
       }).then((res: any) => {
-        const template = res.find((elem: any) => elem._id === event?.templateWhatsappSelect)
+        const template = Array.isArray(res)
+          ? res.find((elem: any) => elem._id === event?.templateWhatsappSelect)
+          : undefined;
         setPreviewWhatsappTemplate(template?.data as TemplateWathsappBusinessValues)
       })
     }

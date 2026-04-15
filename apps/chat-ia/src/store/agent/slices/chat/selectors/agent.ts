@@ -9,6 +9,7 @@ import { KnowledgeItem, KnowledgeType, LobeAgentConfig, LobeAgentTTSConfig } fro
 import { VoiceList } from '@lobehub/tts';
 
 import { DEFAULT_OPENING_QUESTIONS } from '@/features/AgentSetting/store/selectors';
+import { getOpeningQuestionsForDevelopment } from '@/const/agents/defaultCopilotSystemRole';
 import { filterToolIds } from '@/helpers/toolFilters';
 import { AgentStoreState } from '@/store/agent/initialState';
 import { merge } from '@/utils/merge';
@@ -182,7 +183,9 @@ const currentKnowledgeIds = (s: AgentStoreState) => {
 const isAgentConfigLoading = (s: AgentStoreState) => !s.agentConfigInitMap[s.activeId];
 
 const openingQuestions = (s: AgentStoreState) =>
-  currentAgentConfig(s).openingQuestions || DEFAULT_OPENING_QUESTIONS;
+  currentAgentConfig(s).openingQuestions ||
+  getOpeningQuestionsForDevelopment(process.env.NEXT_PUBLIC_DEVELOPMENT) ||
+  DEFAULT_OPENING_QUESTIONS;
 const openingMessage = (s: AgentStoreState) => currentAgentConfig(s).openingMessage || '';
 
 export const agentSelectors = {

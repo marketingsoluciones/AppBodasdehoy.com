@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { TIER_COLORS } from '@bodasdehoy/shared/plans';
 
 const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
-const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'memories';
+const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'memories').trim();
 
 // Features per plan_id (static — must match what's in DB)
 const PLAN_FEATURES: Record<string, string[]> = {
@@ -14,7 +14,7 @@ const PLAN_FEATURES: Record<string, string[]> = {
     'QR compartible',
     'Descarga individual',
   ],
-  'memories-boda': [
+  'memories-evento': [
     '300 fotos',
     '6 meses de acceso',
     'QR compartible',
@@ -22,7 +22,7 @@ const PLAN_FEATURES: Record<string, string[]> = {
     'Álbumes por momentos',
     'Slideshow en directo',
   ],
-  'memories-boda-plus': [
+  'memories-pro': [
     'Fotos ilimitadas',
     '6 meses de acceso',
     'QR compartible',
@@ -38,12 +38,12 @@ const PLAN_FEATURES: Record<string, string[]> = {
 
 const PLAN_DESCRIPTIONS: Record<string, string> = {
   'memories-free': 'Prueba la experiencia con tus invitados',
-  'memories-boda': 'Tu boda organizada y compartida sin caos',
-  'memories-boda-plus': 'Convierte tu boda en una experiencia inolvidable',
+  'memories-evento': 'Tu evento organizado y compartido sin caos',
+  'memories-pro': 'Convierte tu evento en una experiencia inolvidable',
 };
 
 // Highlighted plan
-const HIGHLIGHTED_ID = 'memories-boda-plus';
+const HIGHLIGHTED_ID = 'memories-pro';
 
 interface PlanData {
   plan_id: string;
@@ -187,7 +187,7 @@ export default function Pricing() {
 
 // Static fallback (shown while API loads or if API fails)
 const STATIC_PLANS: PlanData[] = [
-  { plan_id: 'memories-free',      name: 'Gratis',     tier: 'FREE',  plan_type: 'user',   pricing: { monthly_fee: 0 } },
-  { plan_id: 'memories-boda',      name: 'Boda',       tier: 'BASIC', plan_type: 'module', pricing: { monthly_fee: 19 } },
-  { plan_id: 'memories-boda-plus', name: 'Boda Plus',  tier: 'PRO',   plan_type: 'module', pricing: { monthly_fee: 39 } },
+  { plan_id: 'memories-free',    name: 'Gratis',  tier: 'FREE',  plan_type: 'user',   pricing: { monthly_fee: 0 } },
+  { plan_id: 'memories-evento',  name: 'Evento',  tier: 'BASIC', plan_type: 'module', pricing: { monthly_fee: 19 } },
+  { plan_id: 'memories-pro',     name: 'Pro',     tier: 'PRO',   plan_type: 'module', pricing: { monthly_fee: 39 } },
 ];
