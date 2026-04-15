@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface ConnectChannelDrawerProps {
   onClose: () => void;
@@ -54,6 +55,12 @@ const CHANNELS = [
 ];
 
 export function ConnectChannelDrawer({ onClose, open }: ConnectChannelDrawerProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Close on Escape
   useEffect(() => {
     if (!open) return;
@@ -64,18 +71,19 @@ export function ConnectChannelDrawer({ onClose, open }: ConnectChannelDrawerProp
     return () => window.removeEventListener('keydown', handler);
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  // Render via portal to escape any overflow:hidden / stacking-context ancestor
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
+        className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Drawer panel */}
-      <div className="fixed inset-y-0 right-0 z-50 flex w-80 flex-col bg-white shadow-2xl">
+      <div className="fixed inset-y-0 right-0 z-[9999] flex w-80 flex-col bg-white shadow-2xl">
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3">
           <span className="text-sm font-semibold text-gray-900">Conectar canal</span>
@@ -133,6 +141,7 @@ export function ConnectChannelDrawer({ onClose, open }: ConnectChannelDrawerProp
           </Link>
         </div>
       </div>
-    </>
+    </>,
+    document.body,
   );
 }

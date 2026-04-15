@@ -44,6 +44,6 @@ export const useQueryRoute = () => {
         return router.replace(genHref({ prevQuery, url, ...options }));
       },
     }),
-    [],
+    [router],
   );
 };

@@ -44,10 +44,16 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json().catch(() => ({}));
 
-    // Log 400/500 errors with operation name for diagnostics
+    // Log 400/500 errors with operation name + query for diagnostics
     if (response.status >= 400) {
       const operationName = body?.operationName ?? '(unknown)';
-      console.error(`❌ api2 GraphQL ${response.status} [${operationName}]:`, JSON.stringify(data).slice(0, 500));
+      const querySnippet = typeof body?.query === 'string' ? body.query.slice(0, 300) : '(no query)';
+      console.error(
+        `❌ api2 GraphQL ${response.status} [${operationName}]:\n` +
+        `  Query: ${querySnippet}\n` +
+        `  Variables: ${JSON.stringify(body?.variables ?? {}).slice(0, 200)}\n` +
+        `  Response: ${JSON.stringify(data).slice(0, 500)}`
+      );
     }
 
     return NextResponse.json(data, { status: response.status });
