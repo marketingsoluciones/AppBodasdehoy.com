@@ -24,7 +24,15 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
     }
   }, [isLoaded, isGuest, router]);
 
-  if (!isLoaded || isGuest) return null;
+  if (!isLoaded) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-purple-500" />
+      </div>
+    );
+  }
+
+  if (isGuest) return null;
 
   return (
     <div className="flex h-full overflow-hidden bg-white">
