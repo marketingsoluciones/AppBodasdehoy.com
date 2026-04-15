@@ -77,8 +77,11 @@ const StorageFileList = () => {
   }, [fileType]);
 
   useEffect(() => {
-    const eventIdToUse = eventId || 'default';
-    loadFiles(eventIdToUse);
+    if (!eventId) {
+      setLoading(false);
+      return;
+    }
+    loadFiles(eventId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, fileType]);
 
@@ -88,8 +91,7 @@ const StorageFileList = () => {
     const handler = () => {
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = setTimeout(() => {
-        const eventIdToUse = eventId || 'default';
-        loadFiles(eventIdToUse, false);
+        if (eventId) loadFiles(eventId, false);
       }, 500);
     };
     window.addEventListener('storage-files-changed', handler);
@@ -142,8 +144,7 @@ const StorageFileList = () => {
   }, [allFiles, searchQuery, sortBy]);
 
   const handleRefresh = useCallback(() => {
-    const eventIdToUse = eventId || 'default';
-    loadFiles(eventIdToUse, false);
+    if (eventId) loadFiles(eventId, false);
   }, [eventId, loadFiles]);
 
   const handleDelete = useCallback(async (fileId: string) => {
@@ -176,6 +177,23 @@ const StorageFileList = () => {
       <Flexbox gap={12} paddingInline={12}>
         <Loading />
       </Flexbox>
+    );
+  }
+
+  if (!eventId) {
+    return (
+      <Center
+        gap={8}
+        paddingBlock={24}
+        style={{ border: `1px dashed ${theme.colorSplit}`, borderRadius: 8, marginInline: 12 }}
+      >
+        <Avatar avatar={<Icon icon={InboxIcon} size={'large'} />} background={theme.colorFillTertiary} size={48} />
+        <Balancer>
+          <Text type={'secondary'}>
+            Selecciona un evento para ver sus archivos
+          </Text>
+        </Balancer>
+      </Center>
     );
   }
 

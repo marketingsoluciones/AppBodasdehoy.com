@@ -9,6 +9,14 @@ import { Flexbox } from 'react-layout-kit';
 import { useWallet } from '@/hooks/useWallet';
 import { useChatStore } from '@/store/chat';
 
+const getAppLoginUrl = () => {
+  if (typeof window === 'undefined') return 'https://app.bodasdehoy.com/login';
+  const h = window.location.hostname;
+  if (h.includes('-dev.')) return 'https://app-dev.bodasdehoy.com/login';
+  if (h.includes('-test.')) return 'https://app-test.bodasdehoy.com/login';
+  return 'https://app.bodasdehoy.com/login';
+};
+
 const useStyles = createStyles(({ css, token }) => ({
   container: css`
     align-items: center;
@@ -146,7 +154,7 @@ const FeatureGate = memo<FeatureGateProps>(({
         </div>
         <Flexbox gap={10} horizontal style={{ flexWrap: 'wrap', justifyContent: 'center', marginTop: 8 }}>
           <Button
-            href="https://organizador.bodasdehoy.com/login"
+            href={getAppLoginUrl()}
             icon={<Sparkles size={15} />}
             size="large"
             style={{ fontWeight: 600 }}
@@ -155,7 +163,7 @@ const FeatureGate = memo<FeatureGateProps>(({
           >
             Crear cuenta gratis
           </Button>
-          <Button href="https://organizador.bodasdehoy.com/login" size="large" target="_parent">
+          <Button href={getAppLoginUrl()} size="large" target="_parent">
             Iniciar sesión
           </Button>
         </Flexbox>
