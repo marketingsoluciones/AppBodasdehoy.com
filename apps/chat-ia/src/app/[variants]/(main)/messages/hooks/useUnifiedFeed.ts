@@ -122,50 +122,77 @@ export function useUnifiedFeed(maxItems = 60): {
   }, [isGuestUser, development, refreshTick]);
 
   // SSE — GET /api/messages/stream (api-ia, desplegado 2026-04-13)
-  // Reconecta automáticamente con backoff exponencial.
+  // Usa fetch+ReadableStream en lugar de EventSource para enviar el JWT en el
+  // header Authorization y evitar exponerlo en la URL (logs de servidor, historial).
   const sseRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const sseRef = useRef<EventSource | null>(null);
+  const sseAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (isGuestUser || typeof window === 'undefined') return;
 
     const dev = development || 'bodasdehoy';
     let retryDelay = 3_000;
+    let cancelled = false;
 
-    function connect() {
-      const headers = buildHeaders();
-      const token = headers['Authorization']?.replace('Bearer ', '') ?? '';
-      const url = `/api/messages/stream?development=${dev}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
+    async function connect() {
+      if (cancelled) return;
 
-      const es = new EventSource(url);
-      sseRef.current = es;
+      sseAbortRef.current?.abort();
+      const controller = new AbortController();
+      sseAbortRef.current = controller;
 
-      es.addEventListener('message', () => {
-        // Nuevo mensaje → refrescar el feed inmediatamente
-        refresh();
-        retryDelay = 3_000; // reset backoff on success
-      });
+      const authHeaders = buildHeaders();
 
-      es.addEventListener('ping', () => {
-        retryDelay = 3_000;
-      });
+      try {
+        const response = await fetch(`/api/messages/stream?development=${dev}`, {
+          headers: {
+            Accept: 'text/event-stream',
+            ...(authHeaders['Authorization'] ? { Authorization: authHeaders['Authorization'] } : {}),
+            ...(authHeaders['X-Development'] ? { 'X-Development': authHeaders['X-Development'] } : {}),
+            ...(authHeaders['X-User-ID'] ? { 'X-User-ID': authHeaders['X-User-ID'] } : {}),
+          },
+          signal: controller.signal,
+        });
 
-      es.onerror = () => {
-        es.close();
-        sseRef.current = null;
-        // Reconectar con backoff (máx 60s)
+        if (!response.ok || !response.body) throw new Error(`SSE ${response.status}`);
+
+        retryDelay = 3_000; // reset backoff on successful connection
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done || cancelled) break;
+
+          buf += decoder.decode(value, { stream: true });
+          const blocks = buf.split('\n\n');
+          buf = blocks.pop() ?? '';
+
+          for (const block of blocks) {
+            if (block.includes('event: message') || block.startsWith('data:')) {
+              refresh();
+            }
+            // any event resets the backoff
+            retryDelay = 3_000;
+          }
+        }
+      } catch (e: any) {
+        if (e?.name === 'AbortError' || cancelled) return;
+        // Reconectar con backoff exponencial (máx 60s)
         sseRetryRef.current = setTimeout(() => {
           retryDelay = Math.min(retryDelay * 2, 60_000);
           connect();
         }, retryDelay);
-      };
+      }
     }
 
     connect();
 
     return () => {
-      sseRef.current?.close();
-      sseRef.current = null;
+      cancelled = true;
+      sseAbortRef.current?.abort();
+      sseAbortRef.current = null;
       if (sseRetryRef.current) clearTimeout(sseRetryRef.current);
     };
   }, [isGuestUser, development]);
