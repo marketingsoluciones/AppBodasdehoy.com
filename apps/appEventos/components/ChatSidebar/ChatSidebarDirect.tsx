@@ -123,13 +123,18 @@ const ChatSidebarDirect: FC = () => {
   })();
 
   // Permisos del colaborador para este evento (solo si role === 'collaborator')
-  const collaboratorPermissions: string[] = (() => {
+  const collaboratorPermissions: string[] = useMemo(() => {
     if (userEventRole !== 'collaborator') return [];
     const myDetail = event?.detalles_compartidos_array?.find(
       (d: any) => d.uid === user?.uid
     );
     return ((myDetail?.permissions ?? []) as unknown) as string[];
-  })();
+  }, [userEventRole, event?.detalles_compartidos_array, user?.uid]);
+
+  const pageContext = useMemo(() => ({
+    userRole: userEventRole,
+    ...(collaboratorPermissions.length > 0 && { permissions: collaboratorPermissions }),
+  }), [userEventRole, collaboratorPermissions]);
 
   const stableUserId = user?.email || user?.uid || guestSessionId;
   const defaultSessionId = user?.uid ? `user_${user.uid}` : guestSessionId;
@@ -518,10 +523,7 @@ const ChatSidebarDirect: FC = () => {
               eventId={eventId}
               eventName={event?.nombre}
               isGuest={isGuest}
-              pageContext={{
-                userRole: userEventRole,
-                ...(collaboratorPermissions.length > 0 && { permissions: collaboratorPermissions }),
-              }}
+              pageContext={pageContext}
               className="w-full h-full"
               onFirstMessage={handleSessionLabelUpdate}
             />
