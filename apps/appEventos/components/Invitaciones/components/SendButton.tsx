@@ -273,6 +273,10 @@ export const SendButton: FC<SendButtonProps> = ({ isResend = false, optionSelect
     setLoading(true);
     try {
 
+      const templateId = transportSelected === 'email'
+        ? (selectedEmailTemplate || event?.templateEmailSelect)
+        : (selectedWhatsappTemplate || event?.templateWhatsappSelect);
+
       await fetchApiEventos({
         query: queries.sendComunications,
         variables: {
@@ -280,7 +284,8 @@ export const SendButton: FC<SendButtonProps> = ({ isResend = false, optionSelect
           invitados_ids_array: arrIDs,
           dominio: auth.config?.dominio,
           transport: transportSelected,
-          lang: i18next.language
+          lang: i18next.language,
+          template_id: templateId,
         }
       });
 

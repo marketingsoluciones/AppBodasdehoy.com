@@ -147,7 +147,9 @@ const Invitaciones = () => {
           evento_id: event?._id
         },
       }).then((res: any) => {
-        const template = res.find((elem: any) => elem._id === event?.templateWhatsappSelect)
+        const template = Array.isArray(res)
+          ? res.find((elem: any) => elem._id === event?.templateWhatsappSelect)
+          : undefined;
         setPreviewWhatsappTemplate(template?.data as TemplateWathsappBusinessValues)
       })
     }
