@@ -20,7 +20,7 @@ const ShareModal = dynamic(() => import('../../../../components/album-detail/Sha
 const InviteModal = dynamic(() => import('../../../../components/album-detail/InviteModal'));
 
 const API_BASE = process.env.NEXT_PUBLIC_MEMORIES_API_URL || 'https://api-ia.bodasdehoy.com';
-const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
+const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy').trim();
 
 function AlbumDetailContent({ albumId, userId }: { albumId: string; userId: string }) {
   const {
