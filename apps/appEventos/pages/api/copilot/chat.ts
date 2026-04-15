@@ -158,6 +158,13 @@ Cuando menciones cualquier sección de la aplicación, SIEMPRE incluye un link c
 function buildSystemPrompt(metadata?: { eventName?: string; eventId?: string; pageContext?: any }): string {
   let prompt = BASE_SYSTEM_PROMPT;
 
+  // Fecha actual para razonamiento temporal (detección de anomalías, "próximo evento", etc.)
+  const now = new Date();
+  prompt += `\n\n## Fecha actual\nHoy es ${now.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.`;
+  prompt += `\n\n## Detección de anomalías\n- Si un evento tiene fecha muy lejana (>5 años) o en el pasado, señálalo proactivamente al usuario como posible error de datos.`;
+  prompt += `\n- Al listar "próximo evento", verifica que la fecha sea futura. No muestres eventos pasados como próximos.`;
+  prompt += `\n- Si el presupuesto es 0 y hay invitados, menciona que los números podrían necesitar actualización.`;
+
   if (metadata?.eventName || metadata?.eventId) {
     prompt += `\n\n## Contexto del Evento Actual`;
     if (metadata.eventName) prompt += `\nEl usuario está trabajando en el evento: "${metadata.eventName}"`;
