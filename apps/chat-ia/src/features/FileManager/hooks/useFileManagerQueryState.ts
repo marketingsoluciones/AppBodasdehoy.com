@@ -1,64 +1,43 @@
-import { useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
 
 import { SortType } from '@/types/files';
 
 /**
- * Hook to manage FileManager query state using react-router-dom
- * Compatible with MemoryRouter used in KnowledgeRouter
+ * Hook to manage FileManager query/sort state.
  *
- * Returns query, sorter, and sortType state with setters
+ * Uses local React state instead of router-specific hooks so it works in both:
+ * - Next.js App Router pages (/files)
+ * - react-router-dom MemoryRouter (/knowledge)
+ *
+ * Initializes from the current URL search params on mount.
  */
 export const useFileManagerQueryState = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [query, setQueryState] = useState<string | null>(null);
+  const [sorter, setSorterState] = useState('createdAt');
+  const [sortType, setSortTypeState] = useState<SortType>(SortType.Desc);
 
-  const query = searchParams.get('q') || null;
-  const sorter = searchParams.get('sorter') || 'createdAt';
-  const sortType = (searchParams.get('sortType') as SortType) || SortType.Desc;
+  // Initialize from URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('q');
+    const s = params.get('sorter');
+    const st = params.get('sortType') as SortType | null;
+    if (q) setQueryState(q);
+    if (s) setSorterState(s);
+    if (st) setSortTypeState(st);
+  }, []);
 
-  const setQuery = (value: string | null) => {
-    setSearchParams(
-      (prev) => {
-        const newParams = new URLSearchParams(prev);
-        if (!value) {
-          newParams.delete('q');
-        } else {
-          newParams.set('q', value);
-        }
-        return newParams;
-      },
-      { replace: true },
-    );
-  };
+  const setQuery = useCallback((value: string | null) => {
+    setQueryState(value);
+  }, []);
 
-  const setSorter = (value: string) => {
-    setSearchParams(
-      (prev) => {
-        const newParams = new URLSearchParams(prev);
-        if (value === 'createdAt') {
-          newParams.delete('sorter');
-        } else {
-          newParams.set('sorter', value);
-        }
-        return newParams;
-      },
-      { replace: true },
-    );
-  };
+  const setSorter = useCallback((value: string) => {
+    setSorterState(value);
+  }, []);
 
-  const setSortType = (value: SortType) => {
-    setSearchParams(
-      (prev) => {
-        const newParams = new URLSearchParams(prev);
-        if (value === SortType.Desc) {
-          newParams.delete('sortType');
-        } else {
-          newParams.set('sortType', value);
-        }
-        return newParams;
-      },
-      { replace: true },
-    );
-  };
+  const setSortType = useCallback((value: SortType) => {
+    setSortTypeState(value);
+  }, []);
 
   return {
     query,

@@ -3,7 +3,7 @@
 import { Button, Skeleton } from 'antd';
 import { createStyles } from 'antd-style';
 import { Lock, Sparkles, Wallet } from 'lucide-react';
-import { memo, type ReactNode } from 'react';
+import { memo, type ReactNode, useEffect, useRef, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
 import { useWallet } from '@/hooks/useWallet';
@@ -110,8 +110,21 @@ const FeatureGate = memo<FeatureGateProps>(({
 
   const { loading, totalBalance, setShowRechargeModal } = useWallet();
 
+  // Timeout de escape: si el wallet no resuelve en 5s, renderizar igualmente.
+  // Evita skeleton infinito cuando currentUserId llega tarde al store Zustand.
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!isGuest && loading) {
+      timerRef.current = setTimeout(() => setLoadingTimedOut(true), 5000);
+    } else {
+      setLoadingTimedOut(false);
+    }
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [isGuest, loading]);
+
   // Mientras carga el balance (solo para usuarios autenticados — guests no esperan)
-  if (!isGuest && loading) {
+  if (!isGuest && loading && !loadingTimedOut) {
     return (
       <Flexbox className={styles.container}>
         <Skeleton active paragraph={{ rows: 4 }} style={{ maxWidth: 400 }} title />

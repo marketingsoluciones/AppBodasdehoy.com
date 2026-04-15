@@ -54,13 +54,14 @@ export async function GET(
 
     console.log(`🔄 Fetching branding config from: ${url}`);
 
-    // Hacer fetch al backend Python
+    // Hacer fetch al backend Python (timeout 8s para evitar cuelgues indefinidos)
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
       },
       // Cache durante 1 hora en producción
       next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(8_000),
     });
 
     if (!response.ok) {

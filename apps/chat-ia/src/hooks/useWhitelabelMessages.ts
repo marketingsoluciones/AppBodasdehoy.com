@@ -77,6 +77,10 @@ interface CachedConfig {
 
 const configCache = new Map<string, CachedConfig>();
 
+// Deduplicación de requests en vuelo: componentes que montan simultáneamente
+// comparten la misma Promise en lugar de disparar peticiones HTTP duplicadas.
+const pendingConfigFetches = new Map<string, Promise<CachedConfig>>();
+
 // ========================================
 // HOOK PRINCIPAL
 // ========================================
@@ -117,46 +121,48 @@ export const useWhitelabelMessages = (): UseWhitelabelResult => {
       return;
     }
 
-    try {
-      setLoading(true);
-      setError(null);
-
+    // Reutilizar fetch en vuelo si ya existe uno para este developer
+    let promise = pendingConfigFetches.get(developer);
+    if (!promise) {
       // En el navegador usar same-origin para evitar CORS con api-ia
       const backendUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_BACKEND_URL || '');
       const url = backendUrl ? `${backendUrl}/api/config/${developer}` : `/api/config/${developer}`;
 
-      const response = await fetch(url);
+      promise = fetch(url)
+        .then((res) => {
+          if (!res.ok) throw new Error(`Error fetching config: ${res.statusText}`);
+          return res.json();
+        })
+        .then((data): CachedConfig => {
+          const newMessages: WhitelabelMessages = {
+            assistant_name: data.messages?.assistant_name || DEFAULT_MESSAGES.assistant_name,
+            chat_initial: data.messages?.chat_initial || DEFAULT_MESSAGES.chat_initial,
+            empty_state: data.messages?.empty_state || DEFAULT_MESSAGES.empty_state,
+            input_placeholder: data.messages?.input_placeholder || DEFAULT_MESSAGES.input_placeholder,
+            welcome_subtitle: data.messages?.welcome_subtitle || DEFAULT_MESSAGES.welcome_subtitle,
+            welcome_title: data.messages?.welcome_title || DEFAULT_MESSAGES.welcome_title,
+          };
+          const newFeatures: WhitelabelFeatures = {
+            ai_suggestions: data.features?.ai_suggestions ?? DEFAULT_FEATURES.ai_suggestions,
+            budget_module: data.features?.budget_module ?? DEFAULT_FEATURES.budget_module,
+            calendar_sync: data.features?.calendar_sync ?? DEFAULT_FEATURES.calendar_sync,
+            guest_management: data.features?.guest_management ?? DEFAULT_FEATURES.guest_management,
+            photo_gallery: data.features?.photo_gallery ?? DEFAULT_FEATURES.photo_gallery,
+            voice_messages: data.features?.voice_messages ?? DEFAULT_FEATURES.voice_messages,
+            whatsapp_integration: data.features?.whatsapp_integration ?? DEFAULT_FEATURES.whatsapp_integration,
+          };
+          const result: CachedConfig = { features: newFeatures, messages: newMessages };
+          configCache.set(developer, result);
+          return result;
+        })
+        .finally(() => pendingConfigFetches.delete(developer));
+      pendingConfigFetches.set(developer, promise);
+    }
 
-      if (!response.ok) {
-        throw new Error(`Error fetching config: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      // Extraer messages y features con defaults
-      const newMessages: WhitelabelMessages = {
-        assistant_name: data.messages?.assistant_name || DEFAULT_MESSAGES.assistant_name,
-        chat_initial: data.messages?.chat_initial || DEFAULT_MESSAGES.chat_initial,
-        empty_state: data.messages?.empty_state || DEFAULT_MESSAGES.empty_state,
-        input_placeholder: data.messages?.input_placeholder || DEFAULT_MESSAGES.input_placeholder,
-        welcome_subtitle: data.messages?.welcome_subtitle || DEFAULT_MESSAGES.welcome_subtitle,
-        welcome_title: data.messages?.welcome_title || DEFAULT_MESSAGES.welcome_title,
-      };
-
-      const newFeatures: WhitelabelFeatures = {
-        ai_suggestions: data.features?.ai_suggestions ?? DEFAULT_FEATURES.ai_suggestions,
-        budget_module: data.features?.budget_module ?? DEFAULT_FEATURES.budget_module,
-        calendar_sync: data.features?.calendar_sync ?? DEFAULT_FEATURES.calendar_sync,
-        guest_management: data.features?.guest_management ?? DEFAULT_FEATURES.guest_management,
-        photo_gallery: data.features?.photo_gallery ?? DEFAULT_FEATURES.photo_gallery,
-        voice_messages: data.features?.voice_messages ?? DEFAULT_FEATURES.voice_messages,
-        whatsapp_integration:
-          data.features?.whatsapp_integration ?? DEFAULT_FEATURES.whatsapp_integration,
-      };
-
-      // Guardar en cache
-      configCache.set(developer, { features: newFeatures, messages: newMessages });
-
+    try {
+      setLoading(true);
+      setError(null);
+      const { messages: newMessages, features: newFeatures } = await promise;
       setMessages(newMessages);
       setFeatures(newFeatures);
     } catch (err) {

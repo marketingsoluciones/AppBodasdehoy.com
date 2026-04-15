@@ -54,6 +54,11 @@ interface UseDeveloperBrandingResult {
 // Cache global para evitar múltiples llamadas
 const brandingCache = new Map<string, DeveloperBranding>();
 
+// Deduplicación de requests en vuelo: si ya hay un fetch activo para el mismo
+// developer, los siguientes llamadores comparten la misma Promise en lugar de
+// disparar una nueva petición HTTP.
+const pendingBrandingFetches = new Map<string, Promise<DeveloperBranding>>();
+
 /**
  * Hook para obtener branding del developer
  * 
@@ -91,21 +96,26 @@ export const useDeveloperBranding = (): UseDeveloperBrandingResult => {
       return;
     }
 
+    // Reutilizar fetch en vuelo si ya existe uno para este developer
+    let promise = pendingBrandingFetches.get(developer);
+    if (!promise) {
+      promise = fetch(`/api/config/${developer}`)
+        .then((res) => {
+          if (!res.ok) throw new Error(`Error fetching branding: ${res.statusText}`);
+          return res.json() as Promise<DeveloperBranding>;
+        })
+        .then((data) => {
+          brandingCache.set(developer, data);
+          return data;
+        })
+        .finally(() => pendingBrandingFetches.delete(developer));
+      pendingBrandingFetches.set(developer, promise);
+    }
+
     try {
       setLoading(true);
       setError(null);
-
-      const response = await fetch(`/api/config/${developer}`);
-
-      if (!response.ok) {
-        throw new Error(`Error fetching branding: ${response.statusText}`);
-      }
-
-      const data: DeveloperBranding = await response.json();
-
-      // Guardar en cache
-      brandingCache.set(developer, data);
-
+      const data = await promise;
       setBranding(data);
     } catch (err) {
       console.error('Error fetching developer branding:', err);

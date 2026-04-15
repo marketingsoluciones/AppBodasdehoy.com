@@ -31,6 +31,8 @@ export async function POST(request: NextRequest) {
     if (supportKey) headers['SupportKey'] = supportKey;
     const origin = request.headers.get('origin');
     if (origin) headers['Origin'] = origin;
+    const xDevelopment = request.headers.get('x-development');
+    if (xDevelopment) headers['X-Development'] = xDevelopment;
 
     const backendUrl = getBackendUrl();
     const response = await fetch(`${backendUrl}/graphql`, {
@@ -41,6 +43,19 @@ export async function POST(request: NextRequest) {
     });
 
     const data = await response.json().catch(() => ({}));
+
+    // Log 400/500 errors with operation name + query for diagnostics
+    if (response.status >= 400) {
+      const operationName = body?.operationName ?? '(unknown)';
+      const querySnippet = typeof body?.query === 'string' ? body.query.slice(0, 300) : '(no query)';
+      console.error(
+        `❌ api2 GraphQL ${response.status} [${operationName}]:\n` +
+        `  Query: ${querySnippet}\n` +
+        `  Variables: ${JSON.stringify(body?.variables ?? {}).slice(0, 200)}\n` +
+        `  Response: ${JSON.stringify(data).slice(0, 500)}`
+      );
+    }
+
     return NextResponse.json(data, { status: response.status });
   } catch (error: any) {
     console.error('❌ Error en /api/graphql proxy:', error?.message || error);

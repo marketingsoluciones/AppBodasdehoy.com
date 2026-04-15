@@ -11,6 +11,24 @@ export interface MediaAction {
   deleteMedia: (albumId: string, mediaId: string) => Promise<void>;
 }
 
+/** API devuelve snake_case; nuestro tipo usa camelCase. */
+function toAlbumMedia(raw: any): AlbumMedia {
+  return {
+    _id: raw._id,
+    albumId: raw.albumId ?? raw.album_id,
+    caption: raw.caption,
+    createdAt: raw.createdAt ?? raw.created_at,
+    fileId: raw.fileId ?? raw.file_id,
+    location: raw.location,
+    mediaType: raw.mediaType ?? raw.media_type,
+    originalUrl: raw.originalUrl ?? raw.original_url,
+    sortOrder: raw.sortOrder ?? raw.sort_order,
+    takenAt: raw.takenAt ?? raw.taken_at,
+    thumbnailUrl: raw.thumbnailUrl ?? raw.thumbnail_url,
+    userId: raw.userId ?? raw.user_id,
+  };
+}
+
 export const mediaSlice: StateCreator<MemoriesState, [], [], MediaAction> = (set, get) => ({
   fetchAlbumMedia: async (albumId) => {
     const { baseUrl, userId, development } = getConfig(get);
@@ -29,8 +47,9 @@ export const mediaSlice: StateCreator<MemoriesState, [], [], MediaAction> = (set
           .then((r) => r.json())
           .then((data) => {
             if (data?.success && data.media) {
-              setCache(cacheKey, data.media);
-              set({ currentAlbumMedia: data.media });
+              const media = data.media.map(toAlbumMedia);
+              setCache(cacheKey, media);
+              set({ currentAlbumMedia: media });
             }
           })
           .catch((e) => {
@@ -48,7 +67,7 @@ export const mediaSlice: StateCreator<MemoriesState, [], [], MediaAction> = (set
         );
         const data = await res.json();
         if (data?.success) {
-          const media = data.media || [];
+          const media = (data.media || []).map(toAlbumMedia);
           setCache(cacheKey, media);
           set({ currentAlbumMedia: media, mediaLoading: false });
         } else {
@@ -115,19 +134,21 @@ export const mediaSlice: StateCreator<MemoriesState, [], [], MediaAction> = (set
       set({ uploadProgress: 100 });
 
       if (result?.success && result.media) {
+        const savedMedia = toAlbumMedia(result.media);
         set((s) => ({
-          currentAlbumMedia: s.currentAlbumMedia.map((m) => (m._id === tempId ? result.media : m)),
+          currentAlbumMedia: s.currentAlbumMedia.map((m) => (m._id === tempId ? savedMedia : m)),
           uploadProgress: 0,
         }));
         invalidateCache(`media_${albumId}`);
         URL.revokeObjectURL(tempUrl);
-        return result.media;
+        return savedMedia;
       }
 
       set((s) => ({ currentAlbumMedia: s.currentAlbumMedia.filter((m) => m._id !== tempId), uploadProgress: 0 }));
       URL.revokeObjectURL(tempUrl);
       const errMsg = result?.error || result?.detail || (typeof result?.message === 'string' ? result.message : null);
       if (errMsg) throw new Error(errMsg);
+      return null;
     } catch (e) {
       set((s) => ({ currentAlbumMedia: s.currentAlbumMedia.filter((m) => m._id !== tempId), uploadProgress: 0 }));
       URL.revokeObjectURL(tempUrl);
