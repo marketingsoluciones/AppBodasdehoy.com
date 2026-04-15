@@ -296,6 +296,8 @@ const ChatSidebarDirect: FC = () => {
     if (user?.email) params.set('email', user.email);
     if (eventId) params.set('eventId', eventId);
     if (event?.nombre) params.set('eventName', event.nombre);
+    // Preservar locale español al abrir en nueva pestaña (el middleware usa ?hl como máxima prioridad)
+    params.set('hl', 'es-ES');
     window.open(`${copilotUrl}?${params.toString()}`, '_blank', 'noopener,noreferrer');
   }, [sessionId, guestSessionId, userId, development, user?.email, eventId, event?.nombre, copilotUrl]);
 

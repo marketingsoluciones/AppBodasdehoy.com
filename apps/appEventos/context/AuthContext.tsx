@@ -715,15 +715,11 @@ const AuthProvider = ({ children }) => {
           console.error("[Verificator] Firebase UID:", user?.uid)
           console.error("[Verificator] SessionCookie UID:", sessionCookieParsed?.user_id)
 
-          // TEMPORAL: No hacer signOut para debug
-          // getAuth().signOut().then(() => {
-          //   setVerificationDone(true)
-          // })
-          //   .catch((error) => {
-          //     console.log(error);
-          //     setVerificationDone(true)
-          //   });
-          setVerificationDone(true)
+          // La sessionCookie pertenece a otro usuario (p.ej. cookie caducada o SSO de otro tenant).
+          // Usamos el usuario Firebase autenticado como fuente de verdad para no bloquear la UI
+          // con un falso "modo gratuito" cuando el usuario sí está logueado en Firebase.
+          setUser(user)
+          moreInfo(user)
           return
         }
         if (sessionCookieParsed?.user_id === user?.uid) {
