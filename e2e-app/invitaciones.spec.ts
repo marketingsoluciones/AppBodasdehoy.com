@@ -16,12 +16,10 @@
  */
 import { test, expect } from '@playwright/test';
 import { clearSession, loginAndSelectEvent, waitForAppReady } from './helpers';
+import { TEST_URLS, E2E_ENV } from './fixtures';
 
-const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
-const isAppTest =
-  BASE_URL.includes('app-test.bodasdehoy.com') ||
-  BASE_URL.includes('app-dev.bodasdehoy.com') ||
-  BASE_URL.includes('app.bodasdehoy.com');
+const BASE_URL = TEST_URLS.app;
+const isAppTest = E2E_ENV !== 'local';
 
 const TEST_EMAIL = process.env.TEST_USER_EMAIL || 'bodasdehoy.com@gmail.com';
 const TEST_PASSWORD = process.env.TEST_USER_PASSWORD || '';
