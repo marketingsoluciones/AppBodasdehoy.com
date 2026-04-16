@@ -175,12 +175,25 @@ const EventsGroupProvider = ({ children }) => {
           setEventsGroupDone(false)  // Reset para que EventLoadingOrError muestre skeleton durante re-fetch
           const startTime = performance.now()
 
-          // Usar fetchApiEventos que llama a apiapp.bodasdehoy.com (API de eventos)
-          fetchApiEventos({
-            query: queries.getEventsByID,
-            variables: { variable: "usuario_id", valor: userIdToUse, development: config?.development },
-          })
-            .then((events: Event[]) => {
+          // BUG-013: Buscar eventos propios Y compartidos en paralelo
+          Promise.all([
+            fetchApiEventos({
+              query: queries.getEventsByID,
+              variables: { variable: "usuario_id", valor: userIdToUse, development: config?.development },
+            }).catch(() => [] as Event[]),
+            fetchApiEventos({
+              query: queries.getEventsByID,
+              variables: { variable: "compartido_array", valor: userIdToUse, development: config?.development },
+            }).catch(() => [] as Event[]),
+          ]).then(([owned, shared]) => {
+            // Merge sin duplicados (por _id)
+            const seen = new Set<string>();
+            const events: Event[] = [];
+            for (const e of [...(Array.isArray(owned) ? owned : []), ...(Array.isArray(shared) ? shared : [])]) {
+              if (e?._id && !seen.has(e._id)) { seen.add(e._id); events.push(e); }
+            }
+            return events;
+          }).then((events: Event[]) => {
               const fetchTime = performance.now() - startTime
               console.log(`[EventsGroup] ✅ Eventos obtenidos en ${fetchTime.toFixed(0)}ms, total: ${events?.length || 0}`)
               const noRedirectPaths = ["RelacionesPublicas", "facturacion", "event", "public-card", "public-itinerary", "login", "confirmar-asistencia", "info-app", ""];
