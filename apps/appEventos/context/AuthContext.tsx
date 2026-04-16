@@ -885,12 +885,8 @@ const AuthProvider = ({ children }) => {
   }
 
   useEffect(() => {
-    // getGeoInfo está en api.bodasdehoy.com, no en api2.eventosorganizador.com
-    fetchApiBodas({
-      query: queries.getGeoInfo,
-      variables: {},
-      development: config?.development || "bodasdehoy"
-    }).then(geoInfo => setGeoInfo(geoInfo)).catch(err => console.log("[GeoInfo]", err))
+    // GeoInfo via /api/geo (Cloudflare/Vercel headers) — sin dependencia de api.bodasdehoy.com
+    fetch('/api/geo').then(r => r.json()).then(setGeoInfo).catch(err => console.log("[GeoInfo]", err))
   }, [config?.development])
 
   // Mostrar botón "Continuar como invitado" tras 2s por si la verificación se cuelga
