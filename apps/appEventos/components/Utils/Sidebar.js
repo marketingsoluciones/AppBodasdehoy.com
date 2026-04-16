@@ -1,5 +1,5 @@
 import { AuthContextProvider, EventsGroupContextProvider, LoadingContextProvider } from "../../context"
-import { ArrowLeft, CompanyIcon, CorazonPaddinIcon, UserIcon, TarjetaIcon } from "../icons"
+import { ArrowLeft, CorazonPaddinIcon, UserIcon, TarjetaIcon } from "../icons"
 import { useToast } from "../../hooks/useToast"
 import { capitalize } from "../../utils/Capitalize"
 import { useRouter, usePathname } from "next/navigation";
@@ -64,28 +64,9 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
             user: config?.pathDirectory ? "all" : null
         },
         {
-            title: "",
-            icon: <div className="flex flex-col justify-start items-start">
-                <div className="bg-primary h-[1px] w-[240px] flex" />
-                <span className="mt-2 -mb-2">Nuestras Webs</span>
-            </div>,
-            development: ["bodasdehoy"],
-            user: eventsGroup?.length > 0 ? "all" : null
-        },
-        {
             title: "Ir a Bodasdehoy.com",
             icon: <CorazonPaddinIcon className="w-6 h-6 text-primary" />,
             onClick: async () => { router.push(config?.pathDirectory) },
-            development: ["bodasdehoy"],
-            user: config?.pathDirectory ? "all" : null
-        },
-        {
-            title: "Ir a cms.Bodasdehoy.com",
-            icon: <CompanyIcon className="w-6 h-6" />,
-            onClick: async () => {
-                const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-                router.push((user?.role?.includes("empresa")) ? path ?? "" : config?.pathLogin ? `${config?.pathDirectory}/info-empresa?d=app` : `/login?d=${pathname}`)
-            },
             development: ["bodasdehoy"],
             user: config?.pathDirectory ? "all" : null
         },

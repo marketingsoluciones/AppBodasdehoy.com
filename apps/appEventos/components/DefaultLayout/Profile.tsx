@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
-import { ArrowDownBodasIcon, Catering, CompanyIcon, CorazonPaddinIcon, Eventos, FotografoMenu, LivingRoomIcon, LugaresBodas, Posts, TarjetaIcon, UserIcon, WeddingPage, WeddingPlanner } from "../icons";
+import { ArrowDownBodasIcon, CompanyIcon, LivingRoomIcon, TarjetaIcon, UserIcon } from "../icons";
 import { useRouter, usePathname } from "next/navigation";
 import { getAuth, signOut } from "firebase/auth";
 import { AuthContextProvider, EventContextProvider, LoadingContextProvider } from "../../context";
@@ -10,7 +10,7 @@ import { RiLoginBoxLine } from "react-icons/ri";
 import { PiUserPlusLight } from "react-icons/pi";
 import { MdLogout } from "react-icons/md";
 import { TbWorldWww } from "react-icons/tb";
-import { BsImages } from "react-icons/bs";
+import { BsImages, BsChatDots } from "react-icons/bs";
 import { useToast } from "../../hooks/useToast";
 import { Notifications } from "../Notifications";
 import { Modal } from "../Utils/Modal";
@@ -24,7 +24,6 @@ import { flags } from "../../utils/flags.js"
 import { IoIosArrowDown } from "react-icons/io";
 import { GoTasklist } from "react-icons/go";
 import { ImageAvatar } from "../Utils/ImageAvatar";
-import { adaptUrlForTestEnv } from "../../utils/urlHelpers";
 import { authBridge } from '@bodasdehoy/shared/auth';
 
 interface Flag {
@@ -100,119 +99,38 @@ const Profile = ({ user, state, set, ...rest }) => {
       development: ["bodasdehoy", "all"],
       rol: undefined,
     },
-    {
-      title: "Mis empresas",
-      onClick: async () => {
-        const path = adaptUrlForTestEnv(process.env.NEXT_PUBLIC_CMS ?? "")
-        router.push((user?.role?.includes("empresa")) ? path ?? "" : config?.pathLogin ? `/info-empresa?d=app` : `/login?d=${pathname}`)
-      },
-      icon: <CompanyIcon />,
-      development: ["bodasdehoy"],
-      rol: ["all"],
-    },
-    /* {
-      title: "Mis notificaciones",
-      onClick: async () => { setModal(!modal) },
-      icon: <BiBell />,
-      development: ["bodasdehoy", "all"],
-      rol: ["novio", "novia", "otro", "empresa", "all"],
-    }, */
-    {
-      title: "Mis publicaciones",
-      onClick: async () => {
-        const path = adaptUrlForTestEnv(process.env.NEXT_PUBLIC_CMS ?? "")
-        const pathEnd = `${path}/InfoPage/publicaciones`
-        router.push((user?.displayName !== "guest") ? `${path}/InfoPage/publicaciones` : config?.pathLogin ? `${config?.pathLogin}?d=app&end=${pathEnd}` : `/login?d=${pathname}`)
-      },
-      icon: <Posts />,
-      development: ["bodasdehoy"],
-      rol: ["all"],
-    },
-    {
-      title: "Mi wedding page",
-      onClick: async () => {
-        router.push(adaptUrlForTestEnv(process.env.NEXT_PUBLIC_CUSTOMWEB ?? ""))
-      },
-      icon: <WeddingPage />,
-      development: ["bodasdehoy"],
-      rol: ["novio", "novia", "otro", "empresa"],
-    },
-    {
-      title: "Mis eventos",
-      onClick: async () => {
-        router.push(cookieContent?.eventCreated || user?.uid ? adaptUrlForTestEnv(process.env.NEXT_PUBLIC_EVENTSAPP ?? "") : "/welcome-app")
-      },
-      icon: <Eventos />,
-      development: ["bodasdehoy"],
-      rol: ["novio", "novia", "otro", "empresa"],
-    },
-    {
-      title: "Mis proveedores",
-      onClick: async () => { router.push('/') },
-      icon: <CorazonPaddinIcon />,
-      development: ["bodasdehoy"],
-      rol: ["all"],
-    },
   ];
 
   const optionsCenter: Option[] = [
     {
-      title: "Lugares para bodas",
-      onClick: async () => {
-        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-        router.push(`${path}/lugaresBodas`)
-      },
-      icon: <LugaresBodas />,
-      development: ["bodasdehoy"],
-      rol: ["novio", "novia", "otro", "empresa"],
-    },
-    {
-      title: "Catering de bodas",
-      onClick: async () => {
-        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-        router.push(`${path}/cateringBodas`)
-      },
-      icon: <Catering />,
-      development: ["bodasdehoy"],
-      rol: ["novio", "novia", "otro", "empresa"],
-    },
-    {
-      title: "Wedding Planner",
-      onClick: async () => {
-        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-        router.push(`${path}/weddingPlanner`)
-      },
-      icon: <WeddingPlanner />,
-      development: ["bodasdehoy"],
-      rol: ["novio", "novia", "otro", "empresa"],
-    },
-    {
-      title: "Fotografos",
-      icon: <FotografoMenu />,
-      onClick: async () => {
-        const path = `${window.origin.includes("://test") ? process.env.NEXT_PUBLIC_CMS?.replace("//", "//test") : process.env.NEXT_PUBLIC_CMS}`
-        router.push(`${path}/fotografo`)
-      },
-      development: ["bodasdehoy"],
-      rol: ["novio", "novia", "otro", "empresa"],
-    },
-    {
       title: "Momentos",
       icon: <BsImages />,
-      onClick: async () => {
-        router.push("/momentos")
-      },
+      onClick: async () => { router.push("/momentos") },
       development: ["all"],
       rol: ["novio", "novia", "otro", "empresa"],
     },
     {
       title: "Mi Web Creador",
       icon: <TbWorldWww />,
-      onClick: async () => {
-        router.push("/mi-web-creador")
-      },
+      onClick: async () => { router.push("/mi-web-creador") },
       development: ["all"],
       rol: ["novio", "novia", "otro", "empresa"],
+    },
+    {
+      title: "Copilot IA",
+      icon: <BsChatDots />,
+      onClick: async () => { window.location.href = process.env.NEXT_PUBLIC_CHAT ?? "" },
+      development: ["all"],
+      rol: ["novio", "novia", "otro", "empresa"],
+    },
+    {
+      title: "Suite",
+      icon: <CompanyIcon />,
+      onClick: async () => {
+        router.push(user?.role?.includes("empresa") ? process.env.NEXT_PUBLIC_SUITE ?? "" : "/info-empresa")
+      },
+      development: ["bodasdehoy"],
+      rol: ["empresa"],
     },
   ]
 
