@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next/
+dist/
+build/
+out/
+
+# Test artifacts
+test-results/
+**/test-screenshots/
+e2e-app/
+e2e-memories/
+evidencia_fallo_chat/
+playwright-report/
+coverage/
+.turbo/
+
+# Git
+.git/
+
+# Large/generated files
+*.log
+*.tsbuildinfo
+
+# OS
+.DS_Store
+
+# Docs (too many MD files in root)
+*.md
+!README.md
+!CONTRIBUTING.md
+docs/

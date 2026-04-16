@@ -1,0 +1,42 @@
+Spec endpoints Leads (para api-ia) — método, path, body, qué enviamos y qué esperamos:
+
+---
+API Leads — Especificación para api-ia (Python/FastAPI)
+Fecha: Marzo 2026. Contexto: capturar y gestionar leads permanentes de visitantes no registrados que interactúan con el chatbot.
+
+Modelo de datos (MongoDB collection: leads):
+- _id, development, session_id, status ("new"|...), source ("chatbot"), contact (name, email, phone), qualifying_data (event_type, event_date, guest_count, budget, location, services_needed), notes[], created_at, updated_at.
+- Los leads NO tienen TTL; son permanentes.
+
+Endpoints:
+
+1) POST /api/leads/save — Upsert lead
+   Upsert por: session_id + development.
+   Headers: Content-Type: application/json, X-Development: bodasdehoy
+   Body: { session_id, development?, source?, contact?: { name, email, phone }, qualifying_data?: { event_type, event_date, guest_count, budget, location, services_needed } }
+   Si no existe: crear con status "new". Si existe: mergear contact y qualifying_data (no sobrescribir con vacíos). Actualizar updated_at.
+   Response: { success: true, lead: {...}, message: "Lead guardado" }
+
+2) GET /api/leads/list — Lista paginada
+   Query: development (required), status? (new|contacted|qualified|converted|lost), search?, page? (default 1), limit? (default 20)
+   Response: { success: true, leads: [...], total, page, total_pages }
+
+3) GET /api/leads/{lead_id} — Detalle
+   Response: { success: true, lead: {...} }
+
+4) PUT /api/leads/{lead_id}/notes — Agregar nota
+   Body: { text, author }
+   Comportamiento: push a array notes con created_at auto.
+
+5) PUT /api/leads/{lead_id}/status — Cambiar status
+   Body: { status } — uno de: new, contacted, qualified, converted, lost
+
+6) DELETE /api/leads/{lead_id} — Eliminar lead
+   Response: { success: true, message: "Lead eliminado" }
+
+Patrón: igual que /api/visitor-data/ (MongoDB, mismo router style). POST /save sin auth (lo llama el front para visitantes). Listado/admin pueden requerir Authorization.
+
+Doc completo en repo: docs/api-leads-spec.md (incluye ejemplo Python de referencia).
+
+—
+Con la spec de Leads queda cerrado también el punto 4. Cualquier duda, por aquí.

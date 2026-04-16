@@ -1,0 +1,65 @@
+================================================================================
+  QUÉ PENDE DE NOSOTROS (Front / App Bodasdehoy / Chat-IA / repo este)
+================================================================================
+
+  [ ] DEPLOY A PRODUCCIÓN (si aún no está subido lo último del repo):
+      • chat-ia: RAG llama a api-ia con cabecera X-Request-ID; errores muestran
+        trace_id cuando api-ia lo devuelve (lobechatKBMiddlewareService).
+      • appEventos + chat-ia: AUTH_CONFIG del iframe incluye userRole → el
+        Copilot envía X-User-Role en el chat cuando hay usuario.
+
+  [ ] DESPUÉS DEL DEPLOY — PRUEBA RÁPIDA (smoke):
+      • Abrir Copilot (iframe o chat-test), usuario logueado, enviar 1 mensaje.
+      • Opcional: DevTools → Network → petición a /webapi/chat/... y comprobar
+        X-User-ID y X-User-Role si queréis evidencia.
+
+  [ ] CUANDO API2 RESPONDA SOBRE R2:
+      • Volver a probar subida CRM / fotos que usen uploadCRMEntityFile.
+      • Si sigue fallando: mandar incidencia con los 4 datos (endpoint, UTC,
+        headers/development, payload completo).
+
+  NO es nuestro trabajo arreglar: Ollama en servidores de api-ia, keys rotas en
+  su backend, ni la config R2 en servidores de API2.
+
+--------------------------------------------------------------------------------
+  YA LO CERRAMOS NOSOTROS (no es pendiente)
+--------------------------------------------------------------------------------
+
+  • Evidencia re-test lobechat-kb (request/response/trace_id/UTC) → enviada;
+    api-ia dio por cerrado el ciclo de coordinación de ese caso.
+  • Implementación X-User-ID, X-User-Role, UI con detail/screen_type en 402/503
+    → ya la disteis por hecha en Slack.
+
+
+================================================================================
+  QUÉ PENDE DE OTROS (no lo podéis cerrar solo desde este repo)
+================================================================================
+
+  EQUIPO api-ia (backend Python api-ia.bodasdehoy.com)
+  -----------------------------------------------------
+  [ ] Bugs reportados ~24 feb: clave Anthropic mal asignada en credenciales,
+      router/orchestrator alineado con ese store, /webapi/chat/auto sin
+      NO_PROVIDERS cuando sí hay providers, endpoint de test que da OK falso.
+  [ ] Leads: confirmar si existen y documentar en prod los endpoints /api/leads/*
+      según vuestra spec en docs/api-leads-spec.md.
+  [ ] Si queréis RAG con HTTP 200 en lobechat-kb: su infra de embeddings
+      (p. ej. Ollama) — ticket aparte con ETA.
+
+  EQUIPO API2 (GraphQL api2.eventosorganizador.com, Mongo, R2, etc.)
+  -------------------------------------------------------------------
+  [ ] R2 / storage: error tipo "Storage no configurado para este development"
+      con bodasdehoy en uploadCRMEntityFile (u operaciones similares).
+      Hay que verificar en PROD que el fallback whitelabel / R2 esté desplegado.
+
+  Otros temas de API2 (GraphQL, eventos, etc.) solo si tenéis un fallo
+  concreto → incidencia con 4 datos; no hay lista extra obligatoria aquí.
+
+
+================================================================================
+  Una frase
+================================================================================
+
+  NOSOTROS = desplegar lo del repo + probar + re-probar cuando API2 conteste.
+  ELLOS  = api-ia (IA/providers/Leads/embeddings) y API2 (R2/storage/GraphQL).
+
+  Lista detallada historial: scripts/PENDIENTES-POR-COLABORADOR.txt

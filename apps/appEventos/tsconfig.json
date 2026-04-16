@@ -1,0 +1,49 @@
+{
+  "compilerOptions": {
+    "target": "es2015",
+    "types": [
+      "./node_modules/user-agent-data-types"
+    ],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "incremental": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "paths": {
+      "@lobehub/editor": ["./node_modules/@lobehub/editor"],
+      "@lobehub/editor/*": ["./node_modules/@lobehub/editor/*"],
+      "zustand-utils": ["../chat-ia/node_modules/zustand-utils"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "pages/iteratable.js",
+    "pages/login.js",
+    "components/Forms/FormAddUserToEvent.js",
+    "pages/RelacionesPublicas/[...slug].tsx",
+    "components/Servicios/Utils/QuillText.tsx",
+    "hooks/useNotificationts",
+  ],
+  "exclude": [
+    "node_modules",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ]
+}

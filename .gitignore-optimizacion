@@ -1,0 +1,11 @@
+# Archivos de optimización y reportes
+REPORTE_OPTIMIZACION_*.md
+*.optimizacion.md
+
+# Mantener los archivos de documentación principales
+!README_OPTIMIZACION.md
+!ANALISIS_OPTIMIZACION.md
+!RESUMEN_OPTIMIZACION.md
+!RESULTADO_FINAL_OPTIMIZACION.md
+!OPTIMIZACION_COMPLETA.md
+!RESUMEN_FINAL_COMPLETO.md

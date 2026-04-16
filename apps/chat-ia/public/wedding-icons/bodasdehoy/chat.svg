@@ -1,0 +1,11 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M4 6.8C4 5.2536 5.2536 4 6.8 4H17.2C18.7464 4 20 5.2536 20 6.8V12.2C20 13.7464 18.7464 15 17.2 15H12.6L9.1 17.8C8.54546 18.2475 7.7 17.8527 7.7 17.1323V15H6.8C5.2536 15 4 13.7464 4 12.2V6.8Z" fill="#FFE4F1" stroke="#FF1493" stroke-width="1.6" stroke-linejoin="round"/>
+  <circle cx="11.2" cy="8.6" r="1.2" fill="#FF69B4"/>
+  <circle cx="14.8" cy="8.6" r="1.2" fill="#FF69B4"/>
+  <path d="M9.2 11.4H16.8" stroke="#FF69B4" stroke-width="1.4" stroke-linecap="round"/>
+  <circle cx="9.4" cy="13.6" r="3" stroke="#FF69B4" stroke-width="1.2" fill="#FFFFFF"/>
+  <circle cx="14.2" cy="13.6" r="3" stroke="#FF69B4" stroke-width="1.2" fill="#FFFFFF"/>
+  <path d="M11.8 12.6L13 11.4" stroke="#FF1493" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M12.4 15L10.8 16.6" stroke="#FF1493" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M12 18.8C12 18.3582 12.3582 18 12.8 18H13.6C14.3732 18 15 18.6268 15 19.4V19.6C15 20.3732 14.3732 21 13.6 21H10.4C9.6268 21 9 20.3732 9 19.6V19.4C9 18.6268 9.6268 18 10.4 18H11.2C11.6418 18 12 18.3582 12 18.8Z" fill="#FF69B4" fill-opacity="0.85"/>
+</svg>

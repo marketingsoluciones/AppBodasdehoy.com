@@ -1,0 +1,176 @@
+import { useRouter } from "next/router";
+import { ButtonClose } from "../components/Forms/ButtonClose";
+import { Login, Register, ResetPass } from "../components/Forms/Login/Forms";
+import { useEffect, useState } from "react";
+import { AuthContextProvider, LoadingContextProvider } from "../context";
+import { ArrowLeft } from "../components/icons";
+import { SplitLoginPage } from "@bodasdehoy/auth-ui";
+import { resolveChatOrigin } from "@bodasdehoy/shared/utils";
+
+const APP_EVENTOS_LEFT_PANEL = {
+  brandName: 'Bodas de Hoy',
+  /** Un solo mensaje de marca: sin rotación (el default de auth-ui rota boda/comunión/bautizo…). */
+  eventTypesForRotation: [],
+  headline: 'La plataforma todo-en-uno para organizar tu boda',
+  description: 'Invitados, mesas, presupuesto e itinerario — todo en un solo lugar.',
+  features: [
+    { icon: '👥', text: 'Gestión de invitados y confirmaciones' },
+    { icon: '🪑', text: 'Plano de mesas interactivo' },
+    { icon: '💰', text: 'Control de presupuesto en tiempo real' },
+    { icon: '📋', text: 'Itinerario y coordinación del día' },
+    { icon: '✨', text: 'Asistente IA incluido' },
+  ],
+  /** Oculta el bloque de cifras del default (evita otra “capa” de marketing). */
+  stats: [],
+};
+
+const PageLogin = () => {
+  const { config, user, verificationDone, linkMedia, preregister } = AuthContextProvider()
+  const { setLoading } = LoadingContextProvider()
+  const router = useRouter()
+
+  const queryQ = typeof router.query.q === 'string' ? router.query.q : null
+  const queryD = typeof router.query.d === 'string' ? router.query.d : null
+  const sessionExpired = router.query.session_expired === '1'
+
+  const [stage, setStage] = useState((linkMedia != null ? "register" : null) ?? queryQ ?? "login");
+  const [stageRegister, setStageRegister] = useState(0)
+  const [whoYouAre, setWhoYouAre] = useState("");
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    if (!isMounted) {
+      setIsMounted(true)
+      if (typeof setLoading === "function") {
+        setTimeout(() => setLoading(false), 500)
+      }
+    }
+    return () => {
+      if (isMounted) setIsMounted(false)
+    }
+  }, [isMounted, setLoading])
+
+  useEffect(() => {
+    if (preregister) {
+      setStage("register")
+      setStageRegister(1)
+    }
+  }, [preregister])
+
+  // SSO bodasdehoy: redirige al login de chat-ia SOLO cuando:
+  //   1. La verificación terminó y el usuario es definitivamente un guest (no estado de carga)
+  //   2. Y hay intención explícita de login: viene de ruta protegida (?d=) o sesión expirada
+  // Sin estas condiciones, visitantes fríos ven el formulario sin ser redirigidos (evita el bucle)
+  useEffect(() => {
+    if (!config?.development) return
+    if (config.development !== 'bodasdehoy') return
+    if (user && verificationDone && user?.displayName !== "guest") return // ya autenticado
+    if (linkMedia || preregister) return // flujos especiales
+    const localLogin = router.query['local-login'] === '1'
+    if (localLogin) return
+
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
+    if (hostname === 'localhost' || hostname === '127.0.0.1') return // dev local
+
+    // Condición clave: solo redirigir cuando la verificación ha terminado
+    // (evita redirects en el estado de carga inicial donde user/verificationDone aún no tienen valor)
+    if (!verificationDone) return
+
+    // Si ya hay idTokenV0.1.0 el SSO desde chat-ia ya ocurrió — AuthContext lo procesará
+    const hasSsoToken = typeof document !== 'undefined' && document.cookie.includes('idTokenV0.1.0')
+    if (hasSsoToken) return
+
+    // Anti-loop: si ya redirigimos en esta sesión de tab, no redirigir de nuevo
+    const ssoRedirectPending = typeof window !== 'undefined' && sessionStorage.getItem('sso_redirect_pending') === '1'
+    // Si el SSO falló (session_expired=1), limpiar el flag para permitir reintento
+    if (ssoRedirectPending && sessionExpired) {
+      if (typeof window !== 'undefined') sessionStorage.removeItem('sso_redirect_pending')
+      return
+    }
+    if (ssoRedirectPending) return
+
+    // INTENCIÓN DE LOGIN: solo redirigir si el usuario viene de ruta protegida o sesión expirada.
+    // Visitantes que navegan directamente a /login ven el formulario sin redirect automático.
+    const hasLoginIntent = !!queryD || sessionExpired
+    if (!hasLoginIntent) return
+
+    const chatDomain = resolveChatOrigin(hostname)
+    const rawPath = queryD?.trim()
+    const returnPath = (rawPath?.startsWith('/') && !rawPath.includes('://')) ? rawPath : '/'
+    const returnUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}${returnPath}`
+    const chatLoginUrl = `${chatDomain}/login?redirect=${encodeURIComponent(returnUrl)}`
+
+    sessionStorage.setItem('sso_redirect_pending', '1')
+    window.location.href = chatLoginUrl
+  }, [config?.development, user, verificationDone, linkMedia, preregister, queryD, sessionExpired])
+
+  // Auto-redirect tras login exitoso (700ms para dejar que el estado se estabilice)
+  // _isSafetyGuest: true → creado por timeout de seguridad, NO es un usuario real verificado
+  useEffect(() => {
+    if (user && verificationDone && user?.displayName !== "guest" && !user?._isSafetyGuest) {
+      // SSO completado: limpiar el flag anti-loop para que futuros logins en esta tab funcionen
+      if (typeof window !== 'undefined') sessionStorage.removeItem('sso_redirect_pending')
+      const redirectPath = queryD?.trim()?.startsWith("/") ? queryD.trim() : "/"
+      const timer = setTimeout(() => router.replace(redirectPath), 700)
+      return () => clearTimeout(timer)
+    }
+  }, [user, verificationDone, queryD, router])
+
+  const Stages = {
+    login: <Login setStage={setStage} whoYouAre={whoYouAre} setWhoYouAre={setWhoYouAre} />,
+    register: <Register setStage={setStage} stageRegister={stageRegister} setStageRegister={setStageRegister} whoYouAre={whoYouAre} setWhoYouAre={setWhoYouAre} />,
+    resetPassword: <ResetPass setStage={setStage} whoYouAre={whoYouAre} />,
+  };
+
+  const handleClose = () => {
+    setTimeout(() => router.push(queryD || "/"), 100)
+  }
+
+  // BUG-015: no mostrar el formulario mientras el redirect-timer está activo
+  const isRedirectingAway = user && verificationDone && user?.displayName !== "guest" && !user?._isSafetyGuest
+
+  if (isRedirectingAway) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'linear-gradient(135deg, #fff1f2, #fce7f3)' }}>
+        <div style={{ width: 32, height: 32, border: '3px solid #f43f5e', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      </div>
+    )
+  }
+
+  return (
+    <SplitLoginPage leftPanel={APP_EVENTOS_LEFT_PANEL}>
+      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', minHeight: '100vh', width: '100%' }}>
+        <ArrowLeft
+          className={`${(!["bodasdehoy"].includes(config?.development) && (stage === "login" || (stage === "register" && stageRegister === 0) || preregister)) && "hidden"} absolute w-6 h-6 text-gray-500 cursor-pointer`}
+          style={{ top: 20, left: 20 }}
+          onClick={() => {
+            if (stage === "resetPassword") { setStage("login"); return }
+            if (stageRegister > 0) { setStageRegister(stageRegister - 1); return }
+            handleClose()
+          }}
+        />
+        {["bodasdehoy"].includes(config?.development) && (
+          <div style={{ position: 'absolute', top: 16, right: 16 }}>
+            <ButtonClose onClick={handleClose} />
+          </div>
+        )}
+        <div className="flex w-full md:w-2/3 max-w-sm flex-col items-center font-display">
+          <div className="flex flex-col items-center justify-center transform w-full max-h-[124px] px-4 mb-4">
+            {config?.logoDirectory}
+          </div>
+          {sessionExpired && (
+            <p className="mb-4 px-4 py-2 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-sm text-center max-w-sm">
+              Sesión no autorizada o expirada. Inicia sesión de nuevo.
+            </p>
+          )}
+          <div className="flex flex-col items-center justify-center w-full">
+            {Stages[stage]}
+          </div>
+        </div>
+      </div>
+    </SplitLoginPage>
+  )
+}
+
+export default PageLogin

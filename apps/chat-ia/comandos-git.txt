@@ -1,0 +1,5 @@
+cd C:\Users\Edo\TMK\Front-IA-Chat
+git init
+git status
+git add .
+git commit -m "Initial commit"

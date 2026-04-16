@@ -1,0 +1,36 @@
+{
+  "name": "@bodasdehoy/memories-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Web independiente solo de Memories. Usa @bodasdehoy/memories.",
+  "scripts": {
+    "dev": "next dev -p 3240",
+    "build": "next build",
+    "start": "next start -p 3240",
+    "lint": "next lint",
+    "test": "next build"
+  },
+  "dependencies": {
+    "@bodasdehoy/memories": "workspace:*",
+    "@bodasdehoy/shared": "workspace:*",
+    "@sentry/nextjs": "^10.47.0",
+    "heic2any": "^0.0.4",
+    "i18next": "^23.16.8",
+    "next": "^15.1.0",
+    "next-i18next": "^15.3.1",
+    "posthog-js": "~1.278.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-i18next": "^14.1.3",
+    "react-window": "^2.2.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-window": "^2.0.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.0"
+  }
+}

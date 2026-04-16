@@ -1,0 +1,25 @@
+*Ejemplos concretos para triar 503 (1/2 – AUTH_ERROR)*
+
+Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto
+Headers: Content-Type: application/json, X-Development: bodasdehoy, X-Request-Id: ej_auth_<timestamp>
+Body: {"messages":[{"role":"user","content":"Hola"}],"stream":false}
+
+Response: HTTP 503
+Body: {"success":false,"error":"Error de autenticación con el proveedor de IA. La API key configurada no es válida.","error_code":"AUTH_ERROR","trace_id":"e3d22bf1","provider":"openai","model":"deepseek-chat","upstream_status":401,"timestamp":"2026-02-16T19:31:04.089094","suggestion":"Por favor, intenta de nuevo o verifica la configuración de providers.","metadata":{}}
+
+Tipo: AUTH_ERROR | trace_id: e3d22bf1
+
+---
+
+*Ejemplos concretos para triar 503 (2/2 – AUTH_ERROR)*
+
+Request: POST https://api-ia.bodasdehoy.com/webapi/chat/auto
+Headers: Content-Type: application/json, X-Development: bodasdehoy, X-Request-Id: ej_empty_<timestamp>
+Body: {"messages":[{"role":"user","content":"¿Cuántos invitados tengo?"}],"stream":false}
+
+Response: HTTP 503
+Body: {"success":false,"error":"Error de autenticación con el proveedor de IA. La API key configurada no es válida.","error_code":"AUTH_ERROR","trace_id":"b14615d1","provider":"openai","model":"llama-3.3-70b-versatile","upstream_status":401,"timestamp":"2026-02-16T19:31:18.201570","suggestion":"Por favor, intenta de nuevo o verifica la configuración de providers.","metadata":{}}
+
+Tipo: AUTH_ERROR | trace_id: b14615d1
+
+(En otras ejecuciones el mismo body devuelve EMPTY_RESPONSE; esta vez ambos han sido AUTH_ERROR con upstream_status 401.)

@@ -1,0 +1,11 @@
+📋 *Petición de mejora para api-ia / Copilot*
+
+Para que *app-test* y *chat-test* funcionen bien en producción y en pruebas E2E, sería útil que api-ia/equipo revisen:
+
+1. *chat-test.bodasdehoy.com* — Ahora mismo da ERR/timeout desde fuera. app-test responde 200. ¿Pueden revisar en Cloudflare que el Public Hostname del túnel para *chat-test* apunte a localhost:3210 y que el servicio en 3210 esté accesible desde el túnel?
+
+2. *503 en api-ia* — Cuando el chat carga pero api-ia devuelve 503 ("API key no válida"), suele ser por X-Support-Key o por la config whitelabel en API2. ¿Pueden confirmar que la API key de Anthropic/OpenAI para bodasdehoy está bien configurada en API2 y que api-ia envía el header X-Support-Key correcto?
+
+3. *Documentación* — En el repo tenemos docs que resumen causas y próximos pasos: `docs/POR-QUE-CHAT-TEST-Y-APP-TEST-DAN-ERROR.md`, `docs/X-DEVELOPMENT-VS-X-SUPPORT-KEY.md`. Por si les ayuda para diagnóstico.
+
+Gracias. (Front Copilot LobeChat · Bodasdehoy)

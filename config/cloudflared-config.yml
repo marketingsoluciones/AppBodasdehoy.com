@@ -1,0 +1,42 @@
+# Config del túnel Cloudflare (lobe-chat-harbor)
+# Uso: ./scripts/iniciar-tunnel.sh (usa este archivo si existe).
+#
+# Credenciales: deben estar en ~/.cloudflared/30fdf520-9577-470f-a224-4cda1e5eb3f0.json
+# (obtenerlas desde Cloudflare Zero Trust → Tunnels → lobe-chat-harbor).
+#
+# Dominios -dev → tunnel (dev local, hot reload)
+# Dominios -test → Vercel rama test (DNS CNAME a cname.vercel-dns.com, NO al tunnel)
+# Producción → Vercel rama master
+
+tunnel: 30fdf520-9577-470f-a224-4cda1e5eb3f0
+credentials-file: ~/.cloudflared/30fdf520-9577-470f-a224-4cda1e5eb3f0.json
+
+ingress:
+  # DEV local — puertos reales del monorepo (CLAUDE.md):
+  #   appEventos:3220, chat-ia:3210, memories-web:3240, editor-web:3230
+  # NOTA: chat-dev usa 192.168.1.48 (no 127.0.0.1) porque Cursor ocupa localhost:3210
+  - hostname: app-dev.bodasdehoy.com
+    service: http://127.0.0.1:3220
+  - hostname: chat-dev.bodasdehoy.com
+    service: http://192.168.1.48:3210
+  - hostname: memories-dev.bodasdehoy.com
+    service: http://127.0.0.1:3240
+  - hostname: editor-dev.bodasdehoy.com
+    service: http://127.0.0.1:3230
+  # Otros servicios del túnel (backends)
+  - hostname: auth-test.bodasdehoy.com
+    service: http://localhost:8000
+  - hostname: api-ia.bodasdehoy.com
+    service: http://164.92.81.153:8030
+  - hostname: api-ia.eventosorganizador.com
+    service: http://164.92.81.153:8030
+  - hostname: backend-chat-test.bodasdehoy.com
+    service: http://164.92.81.153:8030
+  - hostname: backend-chat-test.eventosorganizador.com
+    service: http://164.92.81.153:8030
+  - hostname: crm-leads.eventosorganizador.com
+    service: http://localhost:3002
+  - hostname: python-api.eventosorganizador.com
+    service: http://localhost:8000
+  # Regla por defecto (obligatoria)
+  - service: http_status:404

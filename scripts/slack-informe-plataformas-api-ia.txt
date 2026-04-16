@@ -1,0 +1,9 @@
+Hola equipo api-ia,
+
+Os pasamos un informe detallado que hemos preparado desde front: análisis de plataformas open source para mensajería unificada (Chatwoot, Rocket.Chat, Chaskiq, Evolution API, Typebot, n8n, etc.) con canales (WhatsApp, Telegram, Instagram, Facebook), tablas comparativas y recomendaciones de stack.
+
+**Objetivo:** Que podáis hacer vuestra investigación, completar el informe con vuestra parte (backend, datos, integraciones) y complementar el proyecto. Nosotros somos solo front e implementamos según lo que nos propongáis; la dirección de datos y backend es vuestra.
+
+**Documento en el repo:** docs/INFORME-PLATAFORMAS-OPEN-SOURCE-MENSAJERIA-PARA-API-IA.md
+
+Cuando lo tengáis completado o con decisiones (con qué repos integraros, qué exponer al front), compartid para alinear. Gracias.

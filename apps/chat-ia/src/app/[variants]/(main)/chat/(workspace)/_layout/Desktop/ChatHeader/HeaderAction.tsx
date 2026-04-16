@@ -1,0 +1,59 @@
+'use client';
+
+import { ActionIcon } from '@lobehub/ui';
+import {
+  Maximize2,
+  Minimize2,
+  PanelLeftRightDashedIcon,
+  SquareChartGanttIcon,
+} from 'lucide-react';
+import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Flexbox } from 'react-layout-kit';
+
+import { DESKTOP_HEADER_ICON_SIZE } from '@/const/layoutTokens';
+import { useGlobalStore } from '@/store/global';
+import { systemStatusSelectors } from '@/store/global/selectors';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
+
+import SettingButton from '../../../features/SettingButton';
+import ShareButton from '../../../features/ShareButton';
+
+const HeaderAction = memo<{ className?: string }>(({ className }) => {
+  const { t } = useTranslation('chat');
+  const [wideScreen, isFullscreen, toggleWideScreen, toggleFullscreen] = useGlobalStore((s) => [
+    systemStatusSelectors.wideScreen(s),
+    systemStatusSelectors.isFullscreen(s),
+    s.toggleWideScreen,
+    s.toggleFullscreen,
+  ]);
+
+  const { isAgentEditable } = useServerConfigStore(featureFlagsSelectors);
+
+  return (
+    <Flexbox className={className} gap={4} horizontal>
+      <ActionIcon
+        icon={wideScreen ? SquareChartGanttIcon : PanelLeftRightDashedIcon}
+        onClick={() => toggleWideScreen()}
+        size={DESKTOP_HEADER_ICON_SIZE}
+        title={t(wideScreen ? 'toggleWideScreen.off' : 'toggleWideScreen.on')}
+        tooltipProps={{
+          placement: 'bottom',
+        }}
+      />
+      <ShareButton />
+      <ActionIcon
+        icon={isFullscreen ? Minimize2 : Maximize2}
+        onClick={() => toggleFullscreen()}
+        size={DESKTOP_HEADER_ICON_SIZE}
+        title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+        tooltipProps={{
+          placement: 'bottom',
+        }}
+      />
+      {isAgentEditable && <SettingButton />}
+    </Flexbox>
+  );
+});
+
+export default HeaderAction;

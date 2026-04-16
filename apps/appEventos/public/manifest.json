@@ -1,0 +1,34 @@
+{
+  "name": "Bodas de Hoy",
+  "short_name": "Bodas de Hoy",
+  "description": "Gestiona tu evento y comparte momentos con tus invitados",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": "/",
+  "scope": "/",
+  "theme_color": "#f43f5e",
+  "background_color": "#ffffff",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mis eventos",
+      "short_name": "Eventos",
+      "url": "/",
+      "icons": [{ "src": "/logo.png", "sizes": "any" }]
+    }
+  ],
+  "categories": ["lifestyle", "social", "photography"]
+}

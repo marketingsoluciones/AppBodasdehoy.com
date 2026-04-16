@@ -1,0 +1,523 @@
+# Ejemplos Prácticos: Prueba de Login y Sincronización con Chat
+
+Este documento proporciona ejemplos prácticos paso a paso para probar el sistema de login y verificar que se sincroniza correctamente con el chat/copilot.
+
+## Requisitos Previos
+
+1. **Herramientas MCP del navegador de Cursor** deben estar disponibles
+2. **Proyecto en ejecución**:
+   - Desarrollo: `http://localhost:8000`
+   - Producción: `https://www.bodasdehoy.com` o subdominio correspondiente
+3. **Credenciales de prueba** (para pruebas de email/contraseña):
+   - Email de prueba
+   - Password de prueba
+
+## Ejemplo 1: Prueba de Login con Google
+
+Este ejemplo muestra cómo probar el login con Google y verificar que el usuario está logueado en el chat.
+
+### Paso a Paso
+
+```typescript
+// 1. Navegar a la página principal
+await browser_navigate({ url: 'https://www.bodasdehoy.com' });
+
+// 2. Esperar a que la página cargue
+await browser_wait_for({ time: 2000 });
+
+// 3. Abrir modal de login usando la función global
+await browser_execute_script({
+  script: 'window.openLoginModal && window.openLoginModal();'
+});
+
+// 4. Esperar a que el modal sea visible
+await browser_wait_for({ text: 'Continuar con Google' });
+
+// 5. Hacer clic en el botón de Google
+await browser_click({
+  element: 'Botón Continuar con Google',
+  ref: '[data-testid="google-login-button"]'
+});
+
+// 6. ⚠️ INTERACCIÓN MANUAL REQUERIDA
+// En este punto se abrirá el popup de Google OAuth
+// Debes:
+// - Seleccionar tu cuenta de Google
+// - Autorizar el acceso
+// - Esperar a que se cierre el popup
+
+// 7. Esperar a que se complete el login (después de la interacción manual)
+await browser_wait_for({ time: 5000 });
+
+// 8. Verificar que el usuario está logueado en el chat
+const verificationScript = `
+  (function() {
+    const api2Token = localStorage.getItem('api2_jwt_token');
+    const devUserConfig = localStorage.getItem('dev-user-config');
+    let config = null;
+    if (devUserConfig) {
+      try {
+        config = JSON.parse(devUserConfig);
+      } catch (e) {}
+    }
+    return {
+      hasToken: !!api2Token,
+      hasConfig: !!devUserConfig,
+      userId: config?.userId || config?.user_id || null,
+      userEmail: config?.email || (config?.userId && config.userId.includes('@') ? config.userId : null),
+    };
+  })();
+`;
+
+const verification = await browser_execute_script({ script: verificationScript });
+const result = JSON.parse(verification);
+
+if (result.hasToken && result.hasConfig && result.userId) {
+  console.log('✅ Login exitoso!');
+  console.log('   Usuario:', result.userId);
+  console.log('   Email:', result.userEmail);
+} else {
+  console.error('❌ Login falló o no se sincronizó con el chat');
+}
+```
+
+### Resultado Esperado
+
+- ✅ Modal de login se abre correctamente
+- ✅ Popup de Google se abre (requiere interacción manual)
+- ✅ Después del login, `api2_jwt_token` está en localStorage
+- ✅ Después del login, `dev-user-config` está en localStorage
+- ✅ Usuario aparece logueado en el chat automáticamente
+
+---
+
+## Ejemplo 2: Prueba de Registro con Email/Contraseña
+
+Este ejemplo muestra cómo probar el registro de un nuevo usuario con email/contraseña.
+
+### Paso a Paso
+
+```typescript
+// Configuración
+const testEmail = 'test@example.com';
+const testPassword = 'TestPassword123!';
+
+// 1. Navegar a la página principal
+await browser_navigate({ url: 'https://www.bodasdehoy.com' });
+
+// 2. Esperar a que la página cargue
+await browser_wait_for({ time: 2000 });
+
+// 3. Abrir modal de login
+await browser_execute_script({
+  script: 'window.openLoginModal && window.openLoginModal();'
+});
+
+// 4. Esperar a que el modal sea visible
+await browser_wait_for({ text: 'Registrarse' });
+
+// 5. Cambiar a tab "Registrarse"
+// Nota: Necesitas hacer clic en el tab "Registrarse"
+await browser_click({
+  element: 'Tab Registrarse',
+  ref: '[data-testid="login-tabs"] .ant-tabs-tab[data-node-key="register"]'
+});
+
+// 6. Esperar a que el tab cambie
+await browser_wait_for({ time: 500 });
+
+// 7. Llenar campo de email
+await browser_type({
+  element: 'Campo de email',
+  ref: '[data-testid="email-input"]',
+  text: testEmail
+});
+
+// 8. Llenar campo de password
+await browser_type({
+  element: 'Campo de password',
+  ref: '[data-testid="password-input"]',
+  text: testPassword
+});
+
+// 9. Hacer clic en botón "Crear cuenta"
+await browser_click({
+  element: 'Botón Crear cuenta',
+  ref: '[data-testid="submit-button"]'
+});
+
+// 10. Esperar a que se complete el registro
+await browser_wait_for({ time: 5000 });
+
+// 11. Verificar que el usuario está registrado y logueado
+const verificationScript = `
+  (function() {
+    const api2Token = localStorage.getItem('api2_jwt_token');
+    const devUserConfig = localStorage.getItem('dev-user-config');
+    let config = null;
+    if (devUserConfig) {
+      try {
+        config = JSON.parse(devUserConfig);
+      } catch (e) {}
+    }
+    return {
+      hasToken: !!api2Token,
+      hasConfig: !!devUserConfig,
+      userId: config?.userId || config?.user_id || null,
+      matchesEmail: (config?.userId || config?.user_id) === '${testEmail}',
+    };
+  })();
+`;
+
+const verification = await browser_execute_script({ script: verificationScript });
+const result = JSON.parse(verification);
+
+if (result.hasToken && result.hasConfig && result.matchesEmail) {
+  console.log('✅ Registro exitoso!');
+  console.log('   Usuario registrado:', result.userId);
+  console.log('   Usuario logueado en chat:', result.hasConfig);
+} else {
+  console.error('❌ Registro falló o no se sincronizó con el chat');
+}
+```
+
+### Resultado Esperado
+
+- ✅ Modal de login se abre correctamente
+- ✅ Tab "Registrarse" se selecciona correctamente
+- ✅ Campos de email y password se llenan correctamente
+- ✅ Registro se completa exitosamente
+- ✅ Usuario está automáticamente logueado en el chat
+
+---
+
+## Ejemplo 3: Prueba de Login con Email/Contraseña (Usuario Existente)
+
+Este ejemplo muestra cómo probar el login de un usuario existente con email/contraseña.
+
+### Paso a Paso
+
+```typescript
+// Configuración
+const testEmail = 'test@example.com'; // Usuario que ya existe
+const testPassword = 'TestPassword123!';
+
+// 1. Navegar a la página principal
+await browser_navigate({ url: 'https://www.bodasdehoy.com' });
+
+// 2. Esperar a que la página cargue
+await browser_wait_for({ time: 2000 });
+
+// 3. Abrir modal de login
+await browser_execute_script({
+  script: 'window.openLoginModal && window.openLoginModal();'
+});
+
+// 4. Esperar a que el modal sea visible
+await browser_wait_for({ text: 'Iniciar sesión' });
+
+// 5. Asegurar que está en tab "Iniciar sesión" (debería estar por defecto)
+// Si no está, hacer clic en el tab
+await browser_click({
+  element: 'Tab Iniciar sesión',
+  ref: '[data-testid="login-tabs"] .ant-tabs-tab[data-node-key="login"]'
+});
+
+// 6. Esperar a que el tab esté activo
+await browser_wait_for({ time: 500 });
+
+// 7. Llenar campo de email
+await browser_type({
+  element: 'Campo de email',
+  ref: '[data-testid="email-input"]',
+  text: testEmail
+});
+
+// 8. Llenar campo de password
+await browser_type({
+  element: 'Campo de password',
+  ref: '[data-testid="password-input"]',
+  text: testPassword
+});
+
+// 9. Hacer clic en botón "Iniciar sesión"
+await browser_click({
+  element: 'Botón Iniciar sesión',
+  ref: '[data-testid="submit-button"]'
+});
+
+// 10. Esperar a que se complete el login
+await browser_wait_for({ time: 5000 });
+
+// 11. Verificar que el usuario está logueado
+const verificationScript = `
+  (function() {
+    const api2Token = localStorage.getItem('api2_jwt_token');
+    const devUserConfig = localStorage.getItem('dev-user-config');
+    let config = null;
+    if (devUserConfig) {
+      try {
+        config = JSON.parse(devUserConfig);
+      } catch (e) {}
+    }
+    return {
+      hasToken: !!api2Token,
+      hasConfig: !!devUserConfig,
+      userId: config?.userId || config?.user_id || null,
+      matchesEmail: (config?.userId || config?.user_id) === '${testEmail}',
+    };
+  })();
+`;
+
+const verification = await browser_execute_script({ script: verificationScript });
+const result = JSON.parse(verification);
+
+if (result.hasToken && result.hasConfig && result.matchesEmail) {
+  console.log('✅ Login exitoso!');
+  console.log('   Usuario logueado:', result.userId);
+  console.log('   Sincronizado con chat:', result.hasConfig);
+} else {
+  console.error('❌ Login falló o no se sincronizó con el chat');
+}
+```
+
+### Resultado Esperado
+
+- ✅ Modal de login se abre correctamente
+- ✅ Tab "Iniciar sesión" está activo
+- ✅ Campos de email y password se llenan correctamente
+- ✅ Login se completa exitosamente
+- ✅ Usuario está automáticamente logueado en el chat
+
+---
+
+## Ejemplo 4: Verificación de Sesión Compartida entre Subdominios
+
+Este ejemplo muestra cómo verificar que la sesión se comparte correctamente entre subdominios.
+
+### Paso a Paso
+
+```typescript
+// 1. Hacer login en el dominio principal (ver Ejemplo 1 o 3)
+// ... (código de login aquí) ...
+
+// 2. Verificar login en dominio principal
+const baseVerificationScript = `
+  (function() {
+    const api2Token = localStorage.getItem('api2_jwt_token');
+    const devUserConfig = localStorage.getItem('dev-user-config');
+    let config = null;
+    if (devUserConfig) {
+      try {
+        config = JSON.parse(devUserConfig);
+      } catch (e) {}
+    }
+    return {
+      hasToken: !!api2Token,
+      hasConfig: !!devUserConfig,
+      userId: config?.userId || config?.user_id || null,
+    };
+  })();
+`;
+
+const baseVerification = await browser_execute_script({ script: baseVerificationScript });
+const baseResult = JSON.parse(baseVerification);
+
+if (!baseResult.hasToken || !baseResult.hasConfig) {
+  throw new Error('Usuario no está logueado en el dominio principal');
+}
+
+console.log('✅ Usuario logueado en dominio principal:', baseResult.userId);
+
+// 3. Navegar a subdominio (ej: chat-test.bodasdehoy.com)
+await browser_navigate({ url: 'https://chat-test.bodasdehoy.com' });
+
+// 4. Esperar a que la página cargue
+await browser_wait_for({ time: 2000 });
+
+// 5. Verificar que la sesión persiste en el subdominio
+const subdomainVerificationScript = `
+  (function() {
+    const api2Token = localStorage.getItem('api2_jwt_token');
+    const devUserConfig = localStorage.getItem('dev-user-config');
+    let config = null;
+    if (devUserConfig) {
+      try {
+        config = JSON.parse(devUserConfig);
+      } catch (e) {}
+    }
+    
+    // Verificar cookies
+    const cookies = document.cookie.split(';').map(c => c.trim());
+    const hasDevUserConfigCookie = cookies.some(c => c.startsWith('dev-user-config='));
+    
+    return {
+      hasToken: !!api2Token,
+      hasConfig: !!devUserConfig,
+      hasCookie: hasDevUserConfigCookie,
+      userId: config?.userId || config?.user_id || null,
+      matchesBase: (config?.userId || config?.user_id) === '${baseResult.userId}',
+    };
+  })();
+`;
+
+const subdomainVerification = await browser_execute_script({ script: subdomainVerificationScript });
+const subdomainResult = JSON.parse(subdomainVerification);
+
+if (subdomainResult.hasToken && subdomainResult.hasConfig && subdomainResult.matchesBase) {
+  console.log('✅ Sesión compartida correctamente!');
+  console.log('   Usuario en subdominio:', subdomainResult.userId);
+  console.log('   Cookie compartida:', subdomainResult.hasCookie);
+  console.log('   No requiere re-login:', true);
+} else {
+  console.error('❌ Sesión no se compartió correctamente');
+  console.error('   Token presente:', subdomainResult.hasToken);
+  console.error('   Config presente:', subdomainResult.hasConfig);
+  console.error('   Usuario coincide:', subdomainResult.matchesBase);
+}
+```
+
+### Resultado Esperado
+
+- ✅ Usuario está logueado en el dominio principal
+- ✅ Al navegar al subdominio, la sesión persiste
+- ✅ `dev-user-config` está presente en localStorage del subdominio
+- ✅ Cookie `dev-user-config` está presente (compartida con dominio base)
+- ✅ Usuario no requiere re-login en el subdominio
+- ✅ Usuario aparece logueado en el chat del subdominio
+
+---
+
+## Ejemplo 5: Verificación Completa de Sincronización con Chat
+
+Este ejemplo muestra cómo verificar que el usuario está completamente sincronizado con el chat después del login.
+
+### Paso a Paso
+
+```typescript
+// 1. Hacer login (ver Ejemplo 1, 2 o 3)
+// ... (código de login aquí) ...
+
+// 2. Esperar a que se complete el login
+await browser_wait_for({ time: 3000 });
+
+// 3. Navegar a la página del chat (si no estás ya ahí)
+await browser_navigate({ url: 'https://www.bodasdehoy.com/chat' });
+
+// 4. Esperar a que la página del chat cargue
+await browser_wait_for({ time: 3000 });
+
+// 5. Verificar estado completo del chat
+const completeVerificationScript = `
+  (function() {
+    // Verificar localStorage
+    const api2Token = localStorage.getItem('api2_jwt_token');
+    const devUserConfig = localStorage.getItem('dev-user-config');
+    let config = null;
+    if (devUserConfig) {
+      try {
+        config = JSON.parse(devUserConfig);
+      } catch (e) {}
+    }
+    
+    // Verificar cookies
+    const cookies = document.cookie.split(';').map(c => c.trim());
+    const hasDevUserConfigCookie = cookies.some(c => c.startsWith('dev-user-config='));
+    
+    // Verificar UI del chat (buscar elementos que indiquen usuario logueado)
+    const userInfoElements = document.querySelectorAll('[class*="user-info"], [class*="UserInfo"]');
+    const userAvatars = document.querySelectorAll('[class*="avatar"], [class*="Avatar"]');
+    const logoutButtons = document.querySelectorAll('button:has-text("Cerrar sesión"), a:has-text("Cerrar sesión")');
+    
+    return {
+      localStorage: {
+        hasApi2Token: !!api2Token,
+        hasDevUserConfig: !!devUserConfig,
+        userId: config?.userId || config?.user_id || null,
+        userEmail: config?.email || (config?.userId && config.userId.includes('@') ? config.userId : null),
+        development: config?.developer || config?.development || null,
+        userType: config?.user_type || null,
+      },
+      cookies: {
+        hasDevUserConfigCookie: hasDevUserConfigCookie,
+      },
+      ui: {
+        hasUserInfo: userInfoElements.length > 0,
+        hasUserAvatar: userAvatars.length > 0,
+        hasLogoutButton: logoutButtons.length > 0,
+        userInfoCount: userInfoElements.length,
+        avatarCount: userAvatars.length,
+      },
+      isFullyLoggedIn: !!(
+        api2Token &&
+        devUserConfig &&
+        (config?.userId || config?.user_id) &&
+        (userInfoElements.length > 0 || userAvatars.length > 0)
+      ),
+    };
+  })();
+`;
+
+const completeVerification = await browser_execute_script({ script: completeVerificationScript });
+const completeResult = JSON.parse(completeVerification);
+
+if (completeResult.isFullyLoggedIn) {
+  console.log('✅ Usuario completamente sincronizado con el chat!');
+  console.log('   Usuario:', completeResult.localStorage.userId);
+  console.log('   Email:', completeResult.localStorage.userEmail);
+  console.log('   Development:', completeResult.localStorage.development);
+  console.log('   Tipo de usuario:', completeResult.localStorage.userType);
+  console.log('   Token presente:', completeResult.localStorage.hasApi2Token);
+  console.log('   Cookie presente:', completeResult.cookies.hasDevUserConfigCookie);
+  console.log('   UI muestra usuario:', completeResult.ui.hasUserInfo || completeResult.ui.hasUserAvatar);
+} else {
+  console.error('❌ Usuario no está completamente sincronizado con el chat');
+  console.error('   Detalles:', JSON.stringify(completeResult, null, 2));
+}
+```
+
+### Resultado Esperado
+
+- ✅ `api2_jwt_token` está en localStorage
+- ✅ `dev-user-config` está en localStorage
+- ✅ Cookie `dev-user-config` está presente
+- ✅ Usuario aparece en la UI del chat (avatar, nombre, etc.)
+- ✅ Botón de "Cerrar sesión" está visible (si aplica)
+- ✅ Usuario puede usar todas las funciones del chat
+
+---
+
+## Notas Importantes
+
+1. **Popup de Google OAuth**: Requiere interacción manual. El script solo automatiza hasta abrir el popup.
+
+2. **Tiempos de espera**: Ajusta los tiempos de espera según la velocidad de tu conexión y el rendimiento del servidor.
+
+3. **Credenciales de prueba**: Usa credenciales de prueba que no sean de producción.
+
+4. **Subdominios**: Asegúrate de que los subdominios estén configurados correctamente y que las cookies se compartan con el dominio base.
+
+5. **Verificación de estado**: Siempre verifica el estado después de cada acción importante para asegurar que todo funciona correctamente.
+
+---
+
+## Troubleshooting
+
+### El modal no se abre
+- Verifica que `window.openLoginModal` está disponible
+- Verifica que la página está completamente cargada antes de intentar abrir el modal
+
+### El login no se sincroniza con el chat
+- Verifica que `api2_jwt_token` está en localStorage
+- Verifica que `dev-user-config` está en localStorage
+- Verifica que la cookie `dev-user-config` está presente
+- Verifica que el store de Zustand se actualiza correctamente
+
+### La sesión no se comparte entre subdominios
+- Verifica que las cookies están configuradas con el dominio base (ej: `.bodasdehoy.com`)
+- Verifica que estás navegando entre subdominios del mismo dominio base
+- Verifica que `localStorage` se comparte (puede variar según el navegador)
+
+---
+
+**Última actualización:** Diciembre 2024

@@ -1,0 +1,12 @@
+*Contenido esencial (por si no tenéis repo):*
+
+*20 preguntas (orden):*
+1. Hola | 2. ¿Cuántos invitados tengo? | 3. ¿Cuánto llevo pagado del presupuesto? | 4. Quiero ver mis invitados | 5. Llévame al presupuesto | 6. ¿Cómo se llama mi evento? | 7. ¿Cuántas mesas tengo? | 8. Dime 3 consejos para organizar una boda | 9. Dame un resumen completo de mi evento | 10. Agrega a Jose Garcia y Jose Morales como invitados a mi evento | 11. ¿Cuántos días faltan para mi boda? | 12. ¿Cuál es la boda de Raul? | 13. Muéstrame la lista de todas las bodas | 14. ¿Qué tareas tengo pendientes para mi boda? | 15. Dame ideas para el menú del banquete | 16. ¿Cuánto llevo gastado en el presupuesto? | 17. ¿Qué eventos tengo para el próximo año? | 18. ¿Quién es mi proveedor de flores? | 19. Resume los invitados confirmados | 20. ¿En qué fecha es la boda de María?
+
+*Request por pregunta:* POST https://api-ia.bodasdehoy.com/webapi/chat/auto | Headers: Content-Type application/json, X-Development bodasdehoy | Body: {"messages":[{"role":"user","content":"<PREGUNTA>"}],"stream":false} | Opcional: Authorization Bearer <JWT>
+
+*Token usuario (Firebase):* POST https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDVMoVLWWvolofYOcTYA0JZ0QHyng72LAM | Body: {"email":"<EMAIL>","password":"<PASSWORD>","returnSecureToken":true} → respuesta.idToken
+
+*Proveedores:* GET /api/providers/bodasdehoy (X-Development bodasdehoy) | Luego POST /webapi/chat/{anthropic|groq|openai|auto} mismo body con model (o sin model para auto). Criterio OK: 200 + success true + mensaje no vacío.
+
+*Comunicación:* Este canal. Si necesitáis que el Frontend revise Slack cada 1 min mientras resolvéis: lo indicáis y configuramos cron con slack-read.sh.

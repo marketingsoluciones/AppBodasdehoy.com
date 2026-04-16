@@ -1,0 +1,13 @@
+# Checklist 502 – app-test y chat-test = reverse proxy (apuntar al puerto adecuado)
+
+Cuando app-test o chat-test dan 502:
+
+1. **Reverse proxy (Cloudflare):** Que app-test.bodasdehoy.com apunte al **puerto** donde corre la app de eventos (p. ej. 3000) y chat-test.bodasdehoy.com al **puerto** donde corre chat-ia (p. ej. 3001). Origin = http://servidor:PUERTO.
+2. **Servidor:** Que en esos puertos haya un proceso escuchando (arrancar/reiniciar si hace falta). Si chat-test da 500, revisar logs y env.
+
+Comprobar si ya funciona:
+- https://app-test.bodasdehoy.com/api/health → {"ok":true,"app":"web",...}
+- https://chat-test.bodasdehoy.com/api/health → {"ok":true,"app":"chat-ia",...}
+- Páginas principales → HTTP 200
+
+Guía detallada: docs/COMO-DEJAR-FUNCIONANDO-APP-TEST-CHAT-TEST.md

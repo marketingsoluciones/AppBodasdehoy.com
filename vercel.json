@@ -1,0 +1,8 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "cd apps/appEventos && pnpm build",
+  "installCommand": "pnpm install",
+  "outputDirectory": "apps/appEventos/.next",
+  "ignoreCommand": "if [ \"$VERCEL_GIT_COMMIT_REF\" != \"master\" ] && [ \"$VERCEL_GIT_COMMIT_REF\" != \"masterv1\" ] && [ \"$VERCEL_GIT_COMMIT_REF\" != \"test\" ]; then exit 0; fi; exit 1",
+  "regions": ["iad1"]
+}

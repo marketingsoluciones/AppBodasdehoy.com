@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "./node_modules/user-agent-data-types",
+      "jest"
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "pages/iteratable.js",
+    "pages/login.js",
+    "components/Forms/FormAddUserToEvent.js",
+    "pages/RelacionesPublicas/[...slug].tsx",
+    "components/Servicios/Utils/QuillText.tsx",
+    "hooks/useNotificationts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

@@ -1,0 +1,43 @@
+import React, { FC } from "react";
+import { useRouter } from "next/navigation";
+import { useAllowed } from "../../hooks/useAllowed";
+import { useTranslation } from 'react-i18next';
+
+const BlockListaRegalos: FC = () => {
+  const router = useRouter()
+  const { t } = useTranslation();
+  const ListaBlockRegalos: { amount: number, subtitle: string }[] = [
+    { amount: 1000, subtitle: t("raised") },
+    { amount: 10, subtitle: t("participants") },
+  ]
+  const [isAllowed, ht] = useAllowed()
+
+
+  return (
+    <div className="w-full md:w-2/5 box-border">
+      <h2 className="font-display text-xl font-semibold text-gray-500 pb-2 text-left first-letter:capitalize">
+        {t("gift-list")}
+      </h2>
+      <div className="w-full shadow rounded-xl bg-white py-4 flex flex-col items-center gap-2 justify-center">
+        <div className="md:flex-col gap-3 flex">
+          {ListaBlockRegalos.map((item, idx) => (
+            <span key={idx} className="grid grid-cols-2 items-center gap-2 w-max">
+              <p className="font-display font-semibold justify-end text-xl text-gray-700 flex ">
+                {item?.amount} {item?.subtitle?.toLowerCase() == "recaudados" ? <span>€</span> : null}
+              </p>
+              <p className="font-display font-base text-xs mx-auto left-0 text-gray-500 w-full">
+                {item?.subtitle}
+              </p>
+            </span>
+          ))}
+        </div>
+
+        <button onClick={() => !isAllowed("lista") ? ht() : router.push("/lista-regalos")} className="bg-tertiary w-2/3 rounded-lg font-display text-gray-700 text-sm py-1 hover:bg-gray-300 hover:text-white transition focus:outline-none">
+          {t("activatelist")}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default BlockListaRegalos;
