@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-const BODAS_API_URL = 'https://api.bodasdehoy.com';
+const BODAS_API_URL = process.env.API_BODAS_URL || 'https://api2.eventosorganizador.com';
 
 export default async function handler(
   req: NextApiRequest,

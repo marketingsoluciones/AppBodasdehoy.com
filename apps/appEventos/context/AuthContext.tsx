@@ -676,7 +676,7 @@ const AuthProvider = ({ children }) => {
               window.location.hostname.includes('-test.') ||
               window.location.hostname.includes('-dev.')
             )
-            const sessionApiUrl = _isDevOrTest ? '/api/proxy-bodas/graphql' : 'https://api.bodasdehoy.com/graphql'
+            const sessionApiUrl = _isDevOrTest ? '/api/proxy-bodas/graphql' : (process.env.NEXT_PUBLIC_API_BODAS_URL || 'https://api2.eventosorganizador.com/graphql')
             const sessionResp = await fetch(sessionApiUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'Development': config?.development || 'bodasdehoy' },
@@ -793,7 +793,7 @@ const AuthProvider = ({ children }) => {
               window.location.hostname.includes('-test.') ||
               window.location.hostname.includes('-dev.')
             );
-            const ssoApiUrl = _isDevOrTestSSO ? '/api/proxy-bodas/graphql' : 'https://api.bodasdehoy.com/graphql';
+            const ssoApiUrl = _isDevOrTestSSO ? '/api/proxy-bodas/graphql' : (process.env.NEXT_PUBLIC_API_BODAS_URL || 'https://api2.eventosorganizador.com/graphql');
 
             const ssoResp = await fetch(ssoApiUrl, {
               method: 'POST',

@@ -21,7 +21,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import Cookies from 'cookies'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'https://api-ia.bodasdehoy.com'
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.bodasdehoy.com/graphql'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api2.eventosorganizador.com/graphql'
 
 // Identificar usuario por email usando el backend
 async function identifyUserByEmail(email: string, development: string = 'bodasdehoy') {

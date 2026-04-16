@@ -11,7 +11,7 @@ export default async function handler(
   }
 
   try {
-    const baseURL = 'https://api.bodasdehoy.com';
+    const baseURL = process.env.API_BODAS_URL || 'https://api2.eventosorganizador.com';
 
     // Extraer headers necesarios del request original
     const headers: any = {

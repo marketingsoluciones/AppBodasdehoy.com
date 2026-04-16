@@ -141,7 +141,7 @@ export const api = {
       console.log("error no firebase")
     }
 
-    const bodasApiUrl = isLocalhost ? '/api/proxy-bodas/graphql' : 'https://api.bodasdehoy.com/graphql';
+    const bodasApiUrl = isLocalhost ? '/api/proxy-bodas/graphql' : (process.env.NEXT_PUBLIC_API_BODAS_URL || 'https://api2.eventosorganizador.com/graphql');
     const headers = {
       Development: development,
       IsProduction: (process?.env?.NEXT_PUBLIC_PRODUCTION && !["testticket", "testinvitado"].includes(varGlobalSubdomain)) ?? false,
