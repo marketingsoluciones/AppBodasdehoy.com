@@ -72,7 +72,7 @@ const VISITOR_SYSTEM_PROMPT =
   '1. Despertar el interés del visitante en la plataforma.\n' +
   '2. Presentar los beneficios de registrarse (gestión de invitados, presupuesto, mesas, itinerario, chat IA 24/7).\n' +
   '3. Conseguir sus datos de contacto (nombre, teléfono o email) para que el equipo haga seguimiento.\n' +
-  '4. Invitarle a crear una cuenta gratuita en: https://organizador.bodasdehoy.com/login?q=register\n\n' +
+  '4. Invitarle a crear una cuenta gratuita en: https://app.bodasdehoy.com/login?q=register\n\n' +
   'REGLAS ESTRICTAS:\n' +
   '- NO respondas preguntas técnicas detalladas de planificación (presupuestos, listas de invitados, proveedores, etc.). Esas son funciones exclusivas de usuarios registrados.\n' +
   '- Si el usuario pregunta cómo hacer algo específico, dile que esa función está disponible en la plataforma al registrarse y anímale a probarla gratis.\n' +
@@ -87,7 +87,7 @@ const VISITOR_SYSTEM_PROMPT =
   '✅ Itinerario del evento\n' +
   '✅ Asistente IA personalizado disponible 24/7\n' +
   '✅ Página web del evento personalizada\n\n' +
-  'Enlace de registro: https://organizador.bodasdehoy.com/login?q=register';
+  'Enlace de registro: https://app.bodasdehoy.com/login?q=register';
 
 /**
  * Techo de mensajes para visitantes en el backend (seguridad).
@@ -524,7 +524,8 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
 'create_lead': 'lobe-crm-actions____create_lead____builtin',
                         
 
-'create_task': 'lobe-crm-actions____create_task____builtin',
+'complete_task': 'lobe-crm-actions____complete_task____builtin',
+                        'create_task': 'lobe-crm-actions____create_task____builtin',
                         
 
 // Filter
@@ -588,8 +589,10 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
 'send_message': 'lobe-crm-actions____send_message____builtin',
                         
 'update_lead_status': 'lobe-crm-actions____update_lead_status____builtin',
-                        
+
                         'update_opportunity_stage': 'lobe-crm-actions____update_opportunity_stage____builtin',
+                        'update_task': 'lobe-crm-actions____update_task____builtin',
+                        'get_tasks': 'lobe-crm-actions____get_tasks____builtin',
                       };
                       let translatedData = rawData;
                       try {

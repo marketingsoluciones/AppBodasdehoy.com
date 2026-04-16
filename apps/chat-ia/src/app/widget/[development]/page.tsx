@@ -439,7 +439,7 @@ function ChatView({
             Has alcanzado el límite de mensajes gratuitos
           </p>
           <a
-            href="https://organizador.bodasdehoy.com/login?q=register"
+            href="https://app.bodasdehoy.com/login?q=register"
             rel="noopener noreferrer"
             style={{
               background: 'linear-gradient(135deg,#f43f5e,#a855f7)', border: 'none', borderRadius: 10,

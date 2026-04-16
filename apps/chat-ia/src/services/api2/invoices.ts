@@ -357,8 +357,6 @@ const GET_SUBSCRIPTION_QUERY = `
       current_period_end
       trial_end
       cancelled_at
-      created_at
-      updated_at
     }
   }
 `;

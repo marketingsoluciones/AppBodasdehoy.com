@@ -837,9 +837,9 @@ user_id: userId,
 
         // ✅ Diferir guardado en API
         if ('requestIdleCallback' in window) {
-          requestIdleCallback(saveConfigInBackground, { timeout: 1000 });
+          requestIdleCallback(saveConfigInBackground, { timeout: 10_000 });
         } else {
-          setTimeout(saveConfigInBackground, 500);
+          setTimeout(saveConfigInBackground, 1000);
         }
       }
     } catch (error) {
@@ -887,9 +887,9 @@ user_id: userId,
 
       // ✅ Diferir sincronización
       if ('requestIdleCallback' in window) {
-        requestIdleCallback(() => syncIdentityInBackground(), { timeout: 3000 });
+        requestIdleCallback(() => syncIdentityInBackground(), { timeout: 15_000 });
       } else {
-        setTimeout(syncIdentityInBackground, 2000);
+        setTimeout(syncIdentityInBackground, 3000);
       }
     }
 
@@ -932,10 +932,9 @@ user_id: userId,
       // Prioridad: UI primero, datos después
       if ('requestIdleCallback' in window) {
         // Esperar a que el navegador esté inactivo (UI ya renderizada)
-        requestIdleCallback(loadDataInBackground, { timeout: 3000 });
+        requestIdleCallback(loadDataInBackground, { timeout: 15_000 });
       } else {
-        // Fallback: delay más largo para asegurar que la UI se renderice primero
-        setTimeout(loadDataInBackground, 2000);
+        setTimeout(loadDataInBackground, 3000);
       }
     }
   },

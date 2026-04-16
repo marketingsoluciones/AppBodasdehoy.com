@@ -46,7 +46,6 @@ const GET_NOTIFICATIONS = `
         readAt
         development
         createdAt
-        updatedAt
       }
     }
   }
