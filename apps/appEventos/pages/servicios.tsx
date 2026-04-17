@@ -3,7 +3,7 @@ import { BoddyIter } from "../components/Itinerario"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, } from "../context"
 import { BlockTitle } from "../components/Utils/BlockTitle"
 import VistaSinCookie from "./vista-sin-cookie"
-import GuestDemoWrapper from "../components/Utils/GuestDemoWrapper"
+import GuestUpsellPage from "../components/Utils/GuestUpsellPage"
 import { SkeletonTimeline } from "../components/Utils/SkeletonPage"
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError"
 import { motion } from "framer-motion"
@@ -37,14 +37,17 @@ const Itinerario: FC<any> = (props) => {
     if (verificationDone) {
         if (user?.displayName === "guest") {
             return (
-                <GuestDemoWrapper
+                <GuestUpsellPage
                     section="Servicios y proveedores"
                     icon="🤝"
-                    description="Gestiona todos los proveedores de tu boda: catering, flores, fotografía, música y más."
-                >
-                    <BoddyIter />
-                </GuestDemoWrapper>
-            )
+                    description="Crea una cuenta para llevar el seguimiento real de proveedores (catering, fotografía, música, etc.) en cada evento."
+                    benefits={[
+                        "Tareas y recordatorios por proveedor",
+                        "Vista unificada del avance del evento",
+                        "Enlace con el resto de módulos (presupuesto, itinerario)",
+                    ]}
+                />
+            );
         }
         if (!user) {
             return <VistaSinCookie />

@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 /**
  * GET /api/geo — Devuelve país del usuario via headers de Cloudflare/Vercel.
- * Reemplaza la query getGeoInfo de api.bodasdehoy.com que ya no se usa.
+ * Reemplaza la query getGeoInfo del backend legacy (api.bodasdehoy.com, cerrado) que ya no se usa.
  * No requiere auth ni llamada a backend externo.
  */
 export default function handler(req: NextApiRequest, res: NextApiResponse) {

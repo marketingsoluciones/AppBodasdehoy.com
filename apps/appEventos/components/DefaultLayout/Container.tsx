@@ -13,16 +13,9 @@ import CopilotFilterBar from "../Utils/CopilotFilterBar";
 const COPILOT_WIDE_BREAKPOINT = 1024;
 /** Por debajo de este ancho se considera móvil: Copilot flotante, contenido sin margen */
 const MOBILE_BREAKPOINT = 768;
-const DISABLE_COPILOT_IN_DEV =
-  process.env.NODE_ENV === "development" &&
-  process.env.NEXT_PUBLIC_DEV_DISABLE_COPILOT !== "0";
-
-// En dev el sidebar se desactiva por defecto para evitar compiles muy pesados.
-// Si se quiere probar en local, usar NEXT_PUBLIC_DEV_DISABLE_COPILOT=0.
-const ChatSidebarDirect =
-  DISABLE_COPILOT_IN_DEV
-    ? (() => null)
-    : require("../ChatSidebar/ChatSidebarDirect").default;
+// Desactivado temporalmente: evita compilar cadena Copilot/@lobehub en local.
+const DISABLE_COPILOT_IN_DEV = true;
+const ChatSidebarDirect = () => null;
 
 const Container = (props) => {
   const { children } = props;

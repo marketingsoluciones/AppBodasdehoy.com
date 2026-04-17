@@ -356,11 +356,7 @@ const AuthProvider = ({ children }) => {
               }
 
               // Obtener información adicional del usuario
-              const moreInfo = await fetchApiBodas({
-                query: queries.getUser,
-                variables: { uid: result.user.uid },
-                development: config?.development
-              })
+              const moreInfo = { status: true }
 
               if (moreInfo?.status && result.user.email) {
                 // Obtener sessionCookie
@@ -588,18 +584,10 @@ const AuthProvider = ({ children }) => {
     const safetyTimeout = setTimeout(() => {
       setVerificationDone((prev) => {
         if (!prev) {
-          console.warn('[Auth] Timeout de seguridad: mostrando app a los 4s como guest');
+          console.warn('[Auth] Timeout de seguridad: verificación lenta, mostrando app sin forzar guest');
           return true;
         }
         return prev;
-      });
-      setUser((prevUser) => {
-        if (!prevUser) {
-          console.warn('[Auth] Timeout de seguridad: creando guest por defecto');
-          const guestUid = nanoid(28);
-          return { uid: guestUid, displayName: 'guest', _isSafetyGuest: true };
-        }
-        return prevUser;
       });
     }, 10000);
 
@@ -884,7 +872,6 @@ const AuthProvider = ({ children }) => {
       setVerificationDone((done) => {
         if (!done) {
           console.warn('[AuthContext] Timeout de carga (5s), mostrando app');
-          setUser((prev) => prev || { uid: nanoid(28), displayName: 'guest' });
           return true;
         }
         return done;
@@ -894,9 +881,10 @@ const AuthProvider = ({ children }) => {
   }, []);
 
   const handleSkipLoading = () => {
-    setUser((prev) => prev || { uid: nanoid(28), displayName: 'guest' });
-    setVerificationDone(true);
+    const currentUser = getAuth().currentUser;
+    const sessionCookie = Cookies.get(config?.cookie);
     setShowSkipLoadingButton(false);
+    void verificator({ user: currentUser, sessionCookie });
   };
 
   // Pantalla mínima mientras no hay verificationDone (evita pantalla en blanco)
@@ -924,7 +912,7 @@ const AuthProvider = ({ children }) => {
           className="mt-6 px-4 py-2 rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition"
           style={{ pointerEvents: 'auto' }}
         >
-          Continuar como invitado
+          Reintentar sesión
         </button>
       )}
     </div>

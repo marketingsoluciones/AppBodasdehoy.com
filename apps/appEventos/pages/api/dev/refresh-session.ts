@@ -76,13 +76,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Solo permitir en desarrollo o subdominios de test
   const host = req.headers.host || ''
-  const isDevOrTest = host.includes('localhost') || host.includes('chat-test') || host.includes('app-test') || host.includes('test')
+  const isLocalHost = host.includes('localhost') || host.includes('127.0.0.1')
+  const isDevOrTest = isLocalHost || host.includes('chat-test') || host.includes('app-test') || host.includes('test')
 
   // Detectar si estamos detrás de un proxy (Cloudflare Tunnel)
   // En ese caso, la conexión interna es HTTP aunque el cliente use HTTPS
   const isBehindProxy = req.headers['x-forwarded-proto'] === 'https' || req.headers['cf-visitor']
   // Para dev/test, desactivar secure cookies cuando estamos detrás de proxy local
-  const useSecureCookies = !host.includes('localhost') && !isBehindProxy
+  const useSecureCookies = !isLocalHost && !isBehindProxy
 
   if (!isDevOrTest && process.env.NODE_ENV === 'production') {
     return res.status(403).json({ error: 'This endpoint is only available in development/test environments' })
@@ -115,7 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         })).toString('base64')
 
         cookies.set('sessionBodas', devSessionToken, {
-          domain: host.includes('localhost') ? undefined : '.bodasdehoy.com',
+          domain: isLocalHost ? undefined : '.bodasdehoy.com',
           path: '/',
           expires,
           httpOnly: false,
@@ -146,7 +147,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         })).toString('base64')
 
         cookies.set('sessionBodas', devSessionToken, {
-          domain: host.includes('localhost') ? undefined : '.bodasdehoy.com',
+          domain: isLocalHost ? undefined : '.bodasdehoy.com',
           path: '/',
           expires,
           httpOnly: false,
@@ -189,7 +190,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Establecer sessionBodas con expiración de 365 días
       cookies.set('sessionBodas', sessionCookie, {
-        domain: host.includes('localhost') ? undefined : '.bodasdehoy.com',
+        domain: isLocalHost ? undefined : '.bodasdehoy.com',
         path: '/',
         expires,
         httpOnly: false,
@@ -200,7 +201,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // También actualizar la expiración del idToken si es necesario
       // El idToken ya está establecido, solo asegurarnos de que tenga la expiración correcta
       cookies.set('idTokenV0.1.0', idToken, {
-        domain: host.includes('localhost') ? undefined : '.bodasdehoy.com',
+        domain: isLocalHost ? undefined : '.bodasdehoy.com',
         path: '/',
         expires: new Date(Date.now() + 60 * 60 * 1000), // 1 hora para idToken
         httpOnly: false,

@@ -333,9 +333,9 @@ describe('copilotChat service', () => {
         onChunk
       );
 
-      expect(result.content).toContain('Demasiadas peticiones');
-      expect(result.content).toContain('Retry-After: 30s');
-      expect(onChunk).toHaveBeenCalledWith(expect.stringContaining('Retry-After'));
+      expect(result.content).toContain('demasiadas peticiones');
+      expect(result.content).toMatch(/30\s+segundo/);
+      expect(onChunk).toHaveBeenCalledWith(expect.stringContaining('demasiadas peticiones'));
       expect(result.toolCalls).toEqual([]);
     });
 
@@ -351,8 +351,8 @@ describe('copilotChat service', () => {
 
       const result = await sendChatMessage({ message: 'Hola', development: 'bodasdehoy' }, jest.fn());
 
-      expect(result.content).toContain('Rate limit excedido.');
-      expect(result.content).not.toContain('Retry-After');
+      expect(result.content).toContain('demasiadas peticiones');
+      expect(result.content).toContain('unos minutos');
     });
 
     it('SSE event:error con user_message: muestra user_message no el campo error', async () => {

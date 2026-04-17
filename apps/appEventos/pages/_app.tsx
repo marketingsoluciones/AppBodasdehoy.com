@@ -34,16 +34,9 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
 
   useEffect(() => {
     if (valirBlock !== undefined) {
-      fetchApiBodas({
-        query: queries.getDevelopment,
-        variables: {},
-        development: varGlobalDevelopment
-      }).then(res => {
-        setMessage(res?.message?.message)
-      }).catch((error) => {
-        console.warn("[_app] getDevelopment no disponible:", error?.message || error)
-        setMessage(undefined)
-      })
+      // Query getDevelopment puede no existir en algunos backends/proxies.
+      // Evitar ruido 400 en runtime y mantener la app funcional.
+      setMessage(undefined)
     }
   }, [valirBlock])
 

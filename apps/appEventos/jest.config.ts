@@ -4,7 +4,9 @@ import nextJest from 'next/jest.js';
 const createJestConfig = nextJest({ dir: './', tsconfig: './tsconfig.test.json' } as any);
 
 const config: Config = {
-  testEnvironment: 'jsdom',
+  // `jsdom` fuerza la carga del módulo nativo `canvas` (falla en muchos entornos).
+  // Estos tests son API/servicios o smoke de exports; no necesitan DOM.
+  testEnvironment: 'node',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   testMatch: [
     '**/services/__tests__/**/*.test.ts',

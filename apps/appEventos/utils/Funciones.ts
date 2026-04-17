@@ -81,6 +81,7 @@ export const getAllFilterGuest = (event: Event) => {
       const guestsSentados = [...guestsSections, ...guestsTables]
       const guestsSentadosIds = guestsSentados.map(elem => elem.guestID)
       const filterGuest = event?.invitados_array?.reduce((acc, item) => {
+        if (item == null) return acc
         if (guestsSentadosIds?.includes(item?._id)) {
           const guest = guestsSentados.find(elem => elem.guestID === item._id)
           acc.sentados.push({

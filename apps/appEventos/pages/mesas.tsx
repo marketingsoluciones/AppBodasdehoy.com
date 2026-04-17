@@ -10,7 +10,7 @@ import { useDelayUnmount } from "../utils/Funciones";
 import ModalLeft from "../components/Utils/ModalLeft";
 import FormInvitado from "../components/Forms/FormInvitado";
 import VistaSinCookie from "./vista-sin-cookie";
-import GuestDemoWrapper from "../components/Utils/GuestDemoWrapper";
+import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
 import { SkeletonMesas } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import SwiperCore, { Pagination } from 'swiper';
@@ -178,14 +178,17 @@ const Mesas: FC = () => {
   if (verificationDone) {
     if (user?.displayName === 'guest') {
       return (
-        <GuestDemoWrapper
+        <GuestUpsellPage
           section="Plano de mesas"
           icon="🪑"
-          description="Diseña el plano de tu evento y sienta a tus invitados con drag & drop."
-        >
-          <BlockPanelMesas />
-        </GuestDemoWrapper>
-      )
+          description="Regístrate gratis para crear el plano real de tu evento y asignar invitados a mesas con herramientas de organización."
+          benefits={[
+            "Editor visual de mesas y salas",
+            "Asignación de invitados y control de capacidad",
+            "Enlaces para proveedores y seating público",
+          ]}
+        />
+      );
     }
     if (!user) {
       return (

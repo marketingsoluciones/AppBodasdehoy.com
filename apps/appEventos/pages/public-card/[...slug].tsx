@@ -1,6 +1,7 @@
 
 import { FC, useEffect, useState } from "react";
 import { fetchApiEventosServer, fetchApiBodasServer, queries } from "../../utils/Fetching";
+import { developmentFromRequestHost } from "../../utils/ssrDevelopment";
 import { Event } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
 import { defaultImagenes } from "../../components/Home/Card";
@@ -158,6 +159,7 @@ const ServicesVew = (props) => {
 
 export async function getServerSideProps(context) {
   const { params, query, req } = context
+  const development = developmentFromRequestHost(req?.headers?.host)
   let error_2 = null
   try {
     const p = params?.slug[0]?.split("-")
@@ -171,7 +173,8 @@ export async function getServerSideProps(context) {
         variables: {
           evento_id,
           itinerario_id
-        }
+        },
+        development,
       });
       evento = data.getItinerario;
     } catch (error) {
@@ -181,7 +184,8 @@ export async function getServerSideProps(context) {
           variables: {
             evento_id,
             itinerario_id
-          }
+          },
+          development,
         }) as any;
       } catch (error2) {
         throw error2;
@@ -190,7 +194,6 @@ export async function getServerSideProps(context) {
 
     const itinerary = evento.itinerarios_array.find(elem => elem._id === query.itinerary)
     const task = itinerary?.tasks?.find(elem => elem._id === query.task)
-    const development = getDevelopment(req.headers.host)
 
     let users = [];
     if (task?.comments?.length > 0) {
@@ -198,7 +201,7 @@ export async function getServerSideProps(context) {
         const data = await fetchApiBodasServer({
           query: queries?.getUsers,
           variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
-          development: !/^\d+$/.test(development) ? development : "champagne-events"
+          development,
         });
         users = data.getUsers || [];
       } catch (error) {
@@ -207,7 +210,7 @@ export async function getServerSideProps(context) {
           users = await fetchApiBodasServer({
             query: queries?.getUsers,
             variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
-            development: !/^\d+$/.test(development) ? development : "champagne-events"
+            development,
           });
         } catch (error2) {
           error_2 = error2
@@ -248,31 +251,11 @@ export async function getServerSideProps(context) {
       evento: null,
       users: null,
       error: error instanceof Error ? { message: error.message, name: error.name } : String(error),
-      development: getDevelopment(req.headers.host)
+      development,
     };
     if (error_2 !== null) {
       props.error_2 = error_2 instanceof Error ? { message: error_2.message, name: error_2.name } : String(error_2);
     }
     return { props };
   }
-}
-
-const getDevelopment = (host) => {
-  let domain = '';
-  if (host) {
-    // Eliminar el puerto si existe (ej: localhost:3000)
-    const hostWithoutPort = host.split(':')[0];
-    const parts = hostWithoutPort.split('.');
-    const numParts = parts.length;
-    if (numParts >= 2) {
-      domain = parts.slice(-2).join('.');
-      // Caso especial para dominios como co.uk, com.ar, etc.
-      if (numParts > 2 && ['.co', '.com', '.net', '.org'].some(tld => domain.startsWith(tld))) {
-        domain = parts.slice(-3).join('.');
-      }
-    } else {
-      domain = hostWithoutPort; // Si no hay puntos, asumimos que es el dominio
-    }
-  }
-  return domain.split(".")[0]
 }

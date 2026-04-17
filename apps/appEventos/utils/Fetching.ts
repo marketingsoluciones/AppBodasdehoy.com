@@ -844,7 +844,7 @@ export const queries = {
       ipcountry
     }
   }`,
-  auth: `mutation ($idToken : String){
+  auth: `mutation ($idToken : String!){
     auth(idToken: $idToken){
       sessionCookie
     }
@@ -2467,7 +2467,7 @@ export const queries = {
     }
   }`,
   getDevelopment: `query {
-    getDevelopment{
+    getMyDevelopment{
       _id
       development
       domain

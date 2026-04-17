@@ -59,6 +59,10 @@ type action = {
 };
 
 const reducerAction: Reducer<Event[], action> = (state: Event[], action: action) => {
+  if (!action || typeof (action as action).type !== "string") {
+    console.warn("[EventsGroup] dispatch ignorado: acción inválida (esperado { type, payload })", action);
+    return state;
+  }
   switch (action.type) {
     case "EDIT_EVENT":
       return state.reduce((acc: Event[], item: Event) => {
@@ -242,33 +246,11 @@ const EventsGroupProvider = ({ children }) => {
                 return normalizedEvents
               }
 
-              return withTimeout(fetchApiBodas({
-                query: queries?.getUsers,
-                variables: { uids: allUids },
-                development: config?.development
-              }), 8000, "getUsers(batch)")
-                .then((results) => {
-                  const usersByUid = new Map<string, detalle_compartidos_array>()
-                  ;(Array.isArray(results) ? results : []).forEach((result: detalle_compartidos_array) => {
-                    if (result?.uid) usersByUid.set(result.uid, result)
-                  })
+              // Backend legacy/proxy puede exponer un esquema getUsers incompatible.
+              // Para no bloquear flujo principal (seleccionar evento / invitados),
+              // degradamos en modo resiliente y omitimos enriquecimiento de usuarios.
+              return normalizedEvents
 
-                  normalizedEvents.forEach((event) => {
-                    event.detalles_compartidos_array = (event.detalles_compartidos_array || []).map((detail) => {
-                      const merged = usersByUid.get(detail?.uid)
-                      return merged ? { ...detail, ...merged } : detail
-                    })
-                    const owner = usersByUid.get(event?.usuario_id)
-                    if (owner) {
-                      event.detalles_usuario_id = owner
-                    }
-                  })
-                  return normalizedEvents
-                })
-                .catch((e) => {
-                  console.warn(`[EventsGroup] getUsers batch omitido:`, (e as any)?.message)
-                  return normalizedEvents
-                })
             }).then((values) => {
                 const totalTime = performance.now() - startTime
                 const detailsTime = performance.now() - detailsStartTime
