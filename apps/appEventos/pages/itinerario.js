@@ -1,5 +1,6 @@
+import { useEffect } from "react"
 import { BoddyIter } from "../components/Itinerario"
-import { AuthContextProvider, EventContextProvider } from "../context"
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../context"
 import CopilotFilterBar from "../components/Utils/CopilotFilterBar"
 import { BlockTitle } from "../components/Utils/BlockTitle"
 import VistaSinCookie from "./vista-sin-cookie"
@@ -7,10 +8,28 @@ import GuestUpsellPage from "../components/Utils/GuestUpsellPage"
 import { SkeletonTimeline } from "../components/Utils/SkeletonPage"
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError"
 import { motion } from "framer-motion"
+import { useSearchParams } from "next/navigation"
+import { useMounted } from "../hooks/useMounted"
 
 const Itinerario = () => {
-    const { event } = EventContextProvider()
-    const { user, verificationDone, forCms } = AuthContextProvider()
+    const { eventsGroup } = EventsGroupContextProvider()
+    const { event, setEvent } = EventContextProvider()
+    const { user, setUser, verificationDone, forCms } = AuthContextProvider()
+    const searchParams = useSearchParams()
+
+    useMounted()
+
+    const queryEvent = searchParams.get("event")
+
+    useEffect(() => {
+        if (!queryEvent || queryEvent === event?._id || !eventsGroup?.length) return
+        const eventFound = eventsGroup.find((elem) => elem._id === queryEvent)
+        if (eventFound) {
+            setEvent({ ...eventFound })
+            user.eventSelected = queryEvent
+            setUser({ ...user })
+        }
+    }, [queryEvent, eventsGroup, event?._id])
 
     if (!verificationDone) {
         return null
