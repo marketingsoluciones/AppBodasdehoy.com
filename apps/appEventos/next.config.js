@@ -68,7 +68,7 @@ const nextConfig = {
   // Configuración experimental para compatibilidad
   experimental: process.env.NODE_ENV === 'production'
     ? {
-        optimizePackageImports: ['react-icons', 'lucide-react', 'framer-motion', '@lobehub/ui', 'antd', '@ant-design/icons', 'date-fns'],
+        optimizePackageImports: ['react-icons', 'lucide-react', 'framer-motion', '@lobehub/ui', 'antd', '@ant-design/icons', 'date-fns', 'swiper'],
       }
     : {},
 

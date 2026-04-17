@@ -2,8 +2,8 @@ import '../styles/globals.css'
 import '../utils/react-polyfill' // Polyfill para findDOMNode en React 19
 import '../utils/next-navigation-polyfill' // Polyfill para next/navigation en Pages Router
 import DefaultLayout from '../layouts/DefaultLayout'
-import 'swiper/css';
-import "swiper/css/bundle"
+/** Un solo CSS de Swiper: `bundle` ya incluye estilos base + módulos (evita duplicar con `swiper/css`). */
+import 'swiper/css/bundle'
 import "@fontsource/italiana";
 import "@fontsource/montserrat";
 import "@fontsource/poppins";
