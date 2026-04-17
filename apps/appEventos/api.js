@@ -141,7 +141,12 @@ export const api = {
       console.log("error no firebase")
     }
 
-    const bodasApiUrl = isLocalhost ? '/api/proxy-bodas/graphql' : 'https://api.bodasdehoy.com/graphql';
+    const bodasApiUrl = isLocalhost
+      ? '/api/proxy-bodas/graphql'
+      : (process.env.NEXT_PUBLIC_API_BODAS_URL || 'https://api2.eventosorganizador.com/graphql');
+    const bodasApiFallbackUrl = !isLocalhost
+      ? process.env.NEXT_PUBLIC_API_BODAS_URL_FALLBACK
+      : undefined;
     const headers = {
       Development: development,
       IsProduction: (process?.env?.NEXT_PUBLIC_PRODUCTION && !["testticket", "testinvitado"].includes(varGlobalSubdomain)) ?? false,
@@ -151,12 +156,19 @@ export const api = {
       headers.Authorization = `Bearer ${idToken}`;
     }
 
-    return axios.post(bodasApiUrl, data, { headers }).catch((err) => {
+    try {
+      return await axios.post(bodasApiUrl, data, { headers });
+    } catch (err) {
+      const isNetworkError = !err?.response;
+      if (isNetworkError && bodasApiFallbackUrl && bodasApiFallbackUrl !== bodasApiUrl) {
+        console.warn('[api.ApiBodas] Host primario falló, reintentando fallback');
+        return await axios.post(bodasApiFallbackUrl, data, { headers });
+      }
       if (err?.response?.status === 403 || err?.response?.status === 401) {
         handleSessionExpired();
       }
       throw err;
-    });
+    }
   }
 };
 

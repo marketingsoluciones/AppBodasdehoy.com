@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useState, FC, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { AuthContextProvider, EventContextProvider, ChatSidebarContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, ChatSidebarContextProvider } from "../../context";
 import { Banner, IconLightBulb16, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
 import { useToast } from "../../hooks/useToast";
 import { useDelayUnmount } from "../../utils/Funciones";
@@ -17,6 +17,7 @@ const Navigation: FC = () => {
   const refBanner = useRef(null)
   const { t } = useTranslation();
   const { event } = EventContextProvider();
+  const { eventsGroup, eventsGroupDone } = EventsGroupContextProvider();
   const { user, config, setIsActiveStateSwiper } = AuthContextProvider();
   const toast = useToast();
   const router = useRouter();
@@ -39,7 +40,7 @@ const Navigation: FC = () => {
       title: "Mis eventos",
       icon: <MisEventosIcon />,
       route: "/",
-      condicion: event?._id ? true : false
+      condicion: true,
     },
     {
       title: "Resumen",
@@ -91,6 +92,9 @@ const Navigation: FC = () => {
       condicion: event?._id ? true : false
     },
   ], [event]);
+
+  const hasEventsForNav =
+    eventsGroupDone && Array.isArray(eventsGroup) && eventsGroup.length > 0;
 
   const urls = ["/info-app", "/confirmar-asistencia", "/services/[...slug]", "/login", "/registro"]
 
@@ -150,7 +154,12 @@ const Navigation: FC = () => {
         <div className={`${(!user || urls.includes(url)) ? "hidden" : "block"}`}>
           <div className={`w-full h-20 hidden md:flex bg-base justify-center items-start`}>
               <div style={{ width, height }} className={`absolute top-16 z-50 px-16 flex justify-center transition-opacity duration-200 ${width > 0 ? 'opacity-100' : 'opacity-0'}`}>
-                <Tooltip label={t("Primero debes crear un evento")} icon={<IconLightBulb16 className="w-6 h-6" />} disabled={!!event?._id} className="w-full h-full">
+                <Tooltip
+                  label={event?._id ? "" : hasEventsForNav ? t("selectEventFromHomeToast") : t("Primero debes crear un evento")}
+                  icon={<IconLightBulb16 className="w-6 h-6" />}
+                  disabled={!!event?._id}
+                  className="w-full h-full"
+                >
                 <div className="flex w-full h-full justify-center items-center">
                   <ul className="flex w-full h-max justify-between">
                     {Navbar.filter(item => !(item.hideForGuest && user?.displayName === 'guest')).map((item, idx) => (
@@ -160,7 +169,10 @@ const Navigation: FC = () => {
                           if (item.condicion) {
                             !isAllowedRouter(item.route) ? ht() : [router.push(item.route), setRoute(item.route)]
                           } else {
-                            toast("error", t("youmustcreateevent"))
+                            toast(
+                              "error",
+                              t(hasEventsForNav ? "selectEventFromHomeToast" : "youmustcreateevent")
+                            )
                           }
                         }}
                         className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition cursor-pointer

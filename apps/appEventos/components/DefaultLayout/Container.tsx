@@ -5,21 +5,24 @@ import NavigationMobile from "./NavigationMobile";
 import Navigation from "./Navigation";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
 import { CHAT_SIDEBAR_MIN_WIDTH, CHAT_SIDEBAR_MAX_WIDTH, CHAT_SIDEBAR_DEFAULT_WIDTH } from "../../context/ChatSidebarContext";
 
-// Dynamic import: rompe la cadena copilot-shared → @lobehub/editor (77MB+)
-// del bundle principal. Solo se compila cuando el usuario abre el copilot.
-const ChatSidebarDirect = dynamic(
-  () => import("../ChatSidebar").then((m) => m.ChatSidebarDirect),
-  { ssr: false, loading: () => null },
-);
 import CopilotFilterBar from "../Utils/CopilotFilterBar";
 
 /** Breakpoint: a partir de este ancho el Copilot usa 20% del espacio (20vw) */
 const COPILOT_WIDE_BREAKPOINT = 1024;
 /** Por debajo de este ancho se considera móvil: Copilot flotante, contenido sin margen */
 const MOBILE_BREAKPOINT = 768;
+const DISABLE_COPILOT_IN_DEV =
+  process.env.NODE_ENV === "development" &&
+  process.env.NEXT_PUBLIC_DEV_DISABLE_COPILOT !== "0";
+
+// En dev el sidebar se desactiva por defecto para evitar compiles muy pesados.
+// Si se quiere probar en local, usar NEXT_PUBLIC_DEV_DISABLE_COPILOT=0.
+const ChatSidebarDirect =
+  DISABLE_COPILOT_IN_DEV
+    ? (() => null)
+    : require("../ChatSidebar/ChatSidebarDirect").default;
 
 const Container = (props) => {
   const { children } = props;
@@ -93,14 +96,18 @@ const Container = (props) => {
   const fullHeightRoutes = ["diseno-espacios", "asistente"];
   const isFullHeight = fullHeightRoutes.some((r) => pathname?.includes(r));
 
-  const shouldShowChatSidebar = chatSidebar && !excludeChatSidebar.includes(pathname?.split("/")[1] || "");
+  const shouldShowChatSidebar =
+    !DISABLE_COPILOT_IN_DEV &&
+    chatSidebar &&
+    !excludeChatSidebar.includes(pathname?.split("/")[1] || "");
+  const shouldMountChatSidebar = shouldShowChatSidebar && !!chatSidebar?.isOpen;
   const showNavigation = !["RelacionesPublicas", "event", "public-card", "public-itinerary", "asistente"].includes(pathname?.split("/")[1]);
   // Mobile bottom nav oculto en login/registro (el top nav con logo sí se muestra)
   const showMobileNav = showNavigation && !["login", "registro"].includes(pathname?.split("/")[1] || "");
 
   // En desktop, cuando el Copilot está abierto, reservar su ancho en el layout para que el contenido
   // (tarjetas de eventos, etc.) ceda espacio y no quede tapado por superposición.
-  const copilotOpenDesktop = shouldShowChatSidebar && !isMobile && chatSidebar?.isOpen;
+  const copilotOpenDesktop = shouldMountChatSidebar && !isMobile && chatSidebar?.isOpen;
   const copilotSlotWidth = copilotOpenDesktop
     ? Math.max(
         CHAT_SIDEBAR_MIN_WIDTH,
@@ -131,11 +138,11 @@ const Container = (props) => {
           maxWidth: "100%",
           boxSizing: "border-box",
           // Dos columnas cuando hay Copilot: primera reserva espacio (0px si cerrado), segunda 1fr = resto para banner/contenido
-          gridTemplateColumns: shouldShowChatSidebar ? `${copilotSlotWidth}px minmax(0, 1fr)` : "1fr",
+          gridTemplateColumns: shouldMountChatSidebar ? `${copilotSlotWidth}px minmax(0, 1fr)` : "1fr",
           transition: "grid-template-columns 0.2s ease",
         }}
       >
-        {shouldShowChatSidebar && (
+        {shouldMountChatSidebar && (
           /* Columna Copilot: mismo ancho que reserva el grid (sin hueco gris por 20vw vs slot). */
           <div
             className="flex flex-row h-full overflow-hidden shrink-0 bg-white text-gray-900 [color-scheme:light]"

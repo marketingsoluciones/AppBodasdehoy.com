@@ -94,7 +94,7 @@ export async function verifyAllUrls(): Promise<UrlCheckResult[]> {
     if (hostname.includes('bodasdehoy.com') && !isTestDomain) {
       // Solo verificar APIs externas en producción (evitar CORS en test)
       urlsToCheck.push('https://bodasdehoy.com');
-      urlsToCheck.push('https://api.bodasdehoy.com');
+      urlsToCheck.push('https://api2.eventosorganizador.com');
       urlsToCheck.push('https://apiapp.bodasdehoy.com');
       urlsToCheck.push('https://chat.bodasdehoy.com');
       // Backend IA

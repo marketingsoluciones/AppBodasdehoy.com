@@ -100,6 +100,12 @@ const EventsGroupProvider = ({ children }) => {
   const setCopilotFilter = useCallback((filter: CopilotFilter | null) => setCopilotFilterState(filter), [])
   const clearCopilotFilter = useCallback(() => setCopilotFilterState(null), [])
   const refreshEventsGroup = useCallback(() => setRefreshTrigger(t => t + 1), [])
+  const withTimeout = useCallback(<T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
+    return Promise.race([
+      promise,
+      new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`${label} timeout (${ms}ms)`)), ms))
+    ])
+  }, [])
 
   useEffect(() => {
     if (!isMounted) {
@@ -111,7 +117,8 @@ const EventsGroupProvider = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    if (!["servicios", "credic-card", "public-card"].includes(pathname.split("/")[1]) || (user?.displayName !== "anonymous" && user?.displayName !== "guest")) {
+    // public-itinerary: igual que public-card — no vaciar eventsGroup para guest (EventContext haría setEvent(null) y la vista pública pasaría a 404 tras el timeout de auth ~5s)
+    if (!["servicios", "credic-card", "public-card", "public-itinerary"].includes(pathname.split("/")[1]) || (user?.displayName !== "anonymous" && user?.displayName !== "guest")) {
       if (verificationDone) {
         if (user) {
           // Usuario guest: restaurar eventos de localStorage (no hay API para guests)
@@ -166,6 +173,7 @@ const EventsGroupProvider = ({ children }) => {
           
           if (!userIdToUse) {
             console.warn("[EventsGroup] No hay user.uid disponible para buscar eventos")
+            setEventsGroupDone(true)
             return
           }
 
@@ -174,17 +182,18 @@ const EventsGroupProvider = ({ children }) => {
           setEventsGroupErrorMessage(null)
           setEventsGroupDone(false)  // Reset para que EventLoadingOrError muestre skeleton durante re-fetch
           const startTime = performance.now()
+          let detailsStartTime = startTime
 
           // BUG-013: Buscar eventos propios Y compartidos en paralelo
           Promise.all([
-            fetchApiEventos({
+            withTimeout(fetchApiEventos({
               query: queries.getEventsByID,
               variables: { variable: "usuario_id", valor: userIdToUse, development: config?.development },
-            }).catch(() => [] as Event[]),
-            fetchApiEventos({
+            }), 8000, "getEventsByID(usuario_id)").catch(() => [] as Event[]),
+            withTimeout(fetchApiEventos({
               query: queries.getEventsByID,
               variables: { variable: "compartido_array", valor: userIdToUse, development: config?.development },
-            }).catch(() => [] as Event[]),
+            }), 8000, "getEventsByID(compartido_array)").catch(() => [] as Event[]),
           ]).then(([owned, shared]) => {
             // Merge sin duplicados (por _id)
             const seen = new Set<string>();
@@ -203,36 +212,64 @@ const EventsGroupProvider = ({ children }) => {
                 }, 100);
               }
               console.log(`[EventsGroup] Cargando detalles de usuarios para ${events.length} eventos...`)
-              const detailsStartTime = performance.now()
+              detailsStartTime = performance.now()
 
-              Promise.all(
-                events.map(async (event, index) => {
-                  if (event?.compartido_array?.length) {
-                    console.log(`[EventsGroup] Procesando evento ${index + 1}/${events.length}: ${event.nombre || event._id}`)
-                    const fMyUid = event?.compartido_array?.findIndex(elem => elem === user?.uid)
-                    if (fMyUid > -1) {
-                      event.permissions = [...event.detalles_compartidos_array[fMyUid].permissions]
-                      event.compartido_array.splice(fMyUid, 1)
-                      event.detalles_compartidos_array?.splice(fMyUid, 1)
-                    }
-                    const results = await fetchApiBodas({
-                      query: queries?.getUsers,
-                      variables: { uids: user?.uid === event?.usuario_id ? event?.compartido_array : [...event?.compartido_array, event?.usuario_id] },
-                      development: config?.development
-                    });
-                    (Array.isArray(results) ? results : []).forEach((result: detalle_compartidos_array) => {
-                      const f1 = event.detalles_compartidos_array?.findIndex(elem => elem.uid === result.uid);
-                      if (f1 > -1) {
-                        event.detalles_compartidos_array?.splice(f1, 1, { ...event.detalles_compartidos_array[f1], ...result });
-                      }
-                      if (result.uid === event?.usuario_id) {
-                        event.detalles_usuario_id = result
-                      }
-                    })
+              const normalizedEvents = events.map((event, index) => {
+                if (event?.compartido_array?.length) {
+                  console.log(`[EventsGroup] Procesando evento ${index + 1}/${events.length}: ${event.nombre || event._id}`)
+                  const fMyUid = event?.compartido_array?.findIndex(elem => elem === user?.uid)
+                  if (fMyUid > -1) {
+                    event.permissions = [...event.detalles_compartidos_array[fMyUid].permissions]
+                    event.compartido_array.splice(fMyUid, 1)
+                    event.detalles_compartidos_array?.splice(fMyUid, 1)
                   }
-                  return event
+                }
+                return event
+              })
+
+              const allUidsSet = new Set<string>()
+              normalizedEvents.forEach((event) => {
+                if (Array.isArray(event?.compartido_array)) {
+                  event.compartido_array.forEach((uid) => uid && allUidsSet.add(uid))
+                }
+                if (event?.usuario_id && user?.uid !== event?.usuario_id) {
+                  allUidsSet.add(event.usuario_id)
+                }
+              })
+              const allUids = Array.from(allUidsSet)
+
+              if (allUids.length === 0) {
+                return normalizedEvents
+              }
+
+              return withTimeout(fetchApiBodas({
+                query: queries?.getUsers,
+                variables: { uids: allUids },
+                development: config?.development
+              }), 8000, "getUsers(batch)")
+                .then((results) => {
+                  const usersByUid = new Map<string, detalle_compartidos_array>()
+                  ;(Array.isArray(results) ? results : []).forEach((result: detalle_compartidos_array) => {
+                    if (result?.uid) usersByUid.set(result.uid, result)
+                  })
+
+                  normalizedEvents.forEach((event) => {
+                    event.detalles_compartidos_array = (event.detalles_compartidos_array || []).map((detail) => {
+                      const merged = usersByUid.get(detail?.uid)
+                      return merged ? { ...detail, ...merged } : detail
+                    })
+                    const owner = usersByUid.get(event?.usuario_id)
+                    if (owner) {
+                      event.detalles_usuario_id = owner
+                    }
+                  })
+                  return normalizedEvents
                 })
-              ).then((values) => {
+                .catch((e) => {
+                  console.warn(`[EventsGroup] getUsers batch omitido:`, (e as any)?.message)
+                  return normalizedEvents
+                })
+            }).then((values) => {
                 const totalTime = performance.now() - startTime
                 const detailsTime = performance.now() - detailsStartTime
                 console.log(`[EventsGroup] ✅ Detalles cargados en ${detailsTime.toFixed(0)}ms`)
@@ -240,7 +277,6 @@ const EventsGroupProvider = ({ children }) => {
                 setEventsGroup({ type: "INITIAL_STATE", payload: values })
                 setEventsGroupDone(true)
               })
-            })
             .catch((error) => {
               const errorTime = performance.now() - startTime
               const status = error?.response?.status
@@ -271,7 +307,7 @@ const EventsGroupProvider = ({ children }) => {
         }
       }
     }
-  }, [user, config?.development, refreshTrigger]);
+  }, [user, config?.development, refreshTrigger, verificationDone, pathname]);
 
   return (
     <EventsGroupContext.Provider value={{ eventsGroup, setEventsGroup, psTemplates, setPsTemplates, eventsGroupDone, eventsGroupError, eventsGroupErrorMessage, eventsGroupSessionExpired, copilotFilter, setCopilotFilter, clearCopilotFilter, refreshEventsGroup }}>

@@ -868,7 +868,7 @@ const AuthProvider = ({ children }) => {
   }
 
   useEffect(() => {
-    // GeoInfo via /api/geo (Cloudflare/Vercel headers) — sin dependencia de api.bodasdehoy.com
+    // GeoInfo via /api/geo (Cloudflare/Vercel headers) — sin dependencia del GraphQL legacy
     fetch('/api/geo').then(r => r.json()).then(setGeoInfo).catch(err => console.log("[GeoInfo]", err))
   }, [config?.development])
 

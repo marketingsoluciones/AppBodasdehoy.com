@@ -64,6 +64,7 @@ const Profile = ({ user, state, set, ...rest }) => {
   );
   const [showFlags, setShowFlags] = useState(false)
   const [optionSelect, setOptionSelect] = useState<Flag>(config.development === "champagne-events" ? idiomaArray[0] : idiomaArray[1])
+  const isAuthenticatedUser = !!user?.uid && !["guest", "anonymous"].includes(user?.displayName) && !user?._isSafetyGuest
 
   const cookieContent = JSON.parse(Cookies.get("guestbodas") ?? "{}")
 
@@ -199,7 +200,7 @@ const Profile = ({ user, state, set, ...rest }) => {
   return (
     <>
       <div className="text-gray-100 flex space-x-4 relative" {...rest} >
-        {user &&
+        {isAuthenticatedUser &&
           <div className="items-center hidden md:flex gap-1 relative cursor-default">
             <div onClick={() => {
               !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/servicios") ? ht() : router.push("/servicios")
@@ -208,7 +209,7 @@ const Profile = ({ user, state, set, ...rest }) => {
             </div>
           </div>
         }
-        {user &&
+        {isAuthenticatedUser &&
           <Notifications />
         }
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>
@@ -220,17 +221,17 @@ const Profile = ({ user, state, set, ...rest }) => {
               <div data-testid="profile-menu-dropdown" className="bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 absolute top-0 right-0 translate-y-[46px] translate-x-[20px] md:-translate-x-[0px]  overflow-hidden z-[60] title-display">
                 <div className="w-full border-b border-gray-100 pb-2">
                   <p className="text-gray-500 font-extralight uppercase tracking-wider	text-xs text-center  cursor-default">
-                    {(user?.role && user?.role?.length > 0) && t(user?.role[0])}
+                    {isAuthenticatedUser && (user?.role && user?.role?.length > 0) && t(user?.role[0])}
                   </p>
                   <h3 data-testid="profile-menu-display-name" className="text-primary font-medium w-full text-center cursor-default ">
-                    {user?.displayName}
+                    {isAuthenticatedUser ? user?.displayName : "Invitado"}
                   </h3>
                 </div>
                 <ul className="grid grid-cols-2 gap-2 text-xs place-items-left p-2 ">
                   {optionsReduceStart.map((item: Option, idx) => (
                     <ListItemProfile key={idx} {...item} />
                   ))}
-                  {(user?.displayName !== "guest" && optionsReduceCenter.length > 0) &&
+                  {(isAuthenticatedUser && optionsReduceCenter.length > 0) &&
                     <>
                       <hr className="col-span-2" />
                       <span className="col-span-2 text-gray-700 font-semibold">Módulos:</span>
@@ -244,7 +245,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                     <ListItemProfile key={idx} {...item} />
                   ))}
                   {/* Botón activar notificaciones push */}
-                  {user && user.displayName !== "guest" && pushPermission !== 'granted' && (
+                  {isAuthenticatedUser && pushPermission !== 'granted' && (
                     <button
                       onClick={async () => { await requestPushPermission(); setDropwdon(false); }}
                       className="col-span-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 transition text-left w-full"
@@ -253,7 +254,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                       <span>Activar notificaciones push</span>
                     </button>
                   )}
-                  {user && user.displayName !== "guest" && pushPermission === 'granted' && (
+                  {isAuthenticatedUser && pushPermission === 'granted' && (
                     <div className="col-span-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-green-700 bg-green-50">
                       <span className="text-base">🔔</span>
                       <span>Notificaciones push activadas</span>
@@ -270,7 +271,13 @@ const Profile = ({ user, state, set, ...rest }) => {
               </div >
             )}
             <div className="w-10 h-10">
-              <ImageAvatar user={user} disabledTooltip />
+              {isAuthenticatedUser ? (
+                <ImageAvatar user={user} disabledTooltip />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
+                  <UserIcon className="w-5 h-5 text-gray-500" />
+                </div>
+              )}
             </div>
             <ArrowDownBodasIcon className="w-5 h-5 rotate-90 transform text-black" />
           </div>
