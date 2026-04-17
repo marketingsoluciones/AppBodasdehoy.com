@@ -27,6 +27,7 @@ import { verifyDomain, logUrlVerification, type UrlCheckResult } from '../utils/
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { CopilotPrewarmer } from '../components/Copilot/CopilotPrewarmer';
 import { captureTrackingParams } from '@bodasdehoy/shared';
+import App from 'next/app';
 
 const MyApp = ({ Component, pageProps, openGraphData }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
@@ -120,26 +121,28 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
 }
 
 export let openGraphData = {} as any
-// Esta función se ejecuta en el servidor en cada petición
-MyApp.getInitialProps = async ({ Component, ctx }) => {
-  const { req, pathname } = ctx;
-  let pageProps = {};
+/**
+ * Importante: si solo se llama a `Component.getInitialProps`, las páginas que usan
+ * `getServerSideProps` / `getStaticProps` llegan al cliente con `pageProps` vacío
+ * (el itinerario público “desaparece” tras la hidratación y muestra el falso 404).
+ * Hay que delegar en `App.getInitialProps` de next/app para fusionar esas props.
+ */
+MyApp.getInitialProps = async (appContext) => {
+  const appProps = await App.getInitialProps(appContext)
+  const { ctx } = appContext
+  const { req, pathname } = ctx
 
-  // Remover puerto del host si existe (ej: app-test.bodasdehoy.com:8080 → app-test.bodasdehoy.com)
-  const hostWithPort = req ? req.headers.host : window.location.hostname;
-  const host = hostWithPort?.split(':')[0];
+  const hostWithPort = req ? req.headers.host : typeof window !== 'undefined' ? window.location.hostname : ''
+  const host = hostWithPort?.split(':')[0]
 
-  const arr = host?.split(".")
-  const f1 = arr?.findIndex(elem => ["com", "mx"].includes(elem))
-  const nameDomain = arr[f1 - 1]
-  const development = developments.find(elem => elem.name === nameDomain)
-  const path = "/" + pathname.split("/")[1]
-  openGraphData = dataMetaData.find(elem => elem.ruta === path)?.metaData(development) ?? {}
+  const arr = host?.split('.')
+  const f1 = arr?.findIndex((elem) => ['com', 'mx'].includes(elem))
+  const nameDomain = f1 > 0 ? arr[f1 - 1] : undefined
+  const development = developments.find((elem) => elem.name === nameDomain)
+  const path = '/' + pathname.split('/')[1]
+  openGraphData = dataMetaData.find((elem) => elem.ruta === path)?.metaData(development) ?? {}
 
-  if (Component.getInitialProps) {
-    pageProps = await Component.getInitialProps(ctx);
-  }
-  return { pageProps, openGraphData };
+  return { ...appProps, openGraphData }
 };
 
 export default MyApp
