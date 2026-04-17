@@ -96,6 +96,15 @@ const Navigation: FC = () => {
   const hasEventsForNav =
     eventsGroupDone && Array.isArray(eventsGroup) && eventsGroup.length > 0;
 
+  /** Tooltip / toasts: sin confundir "lista aún cargando" con "no tienes ningún evento". */
+  const navNoEventHint = !event?._id
+    ? !eventsGroupDone
+      ? t("waitEventsListToast")
+      : hasEventsForNav
+        ? t("selectEventFromHomeToast")
+        : t("Primero debes crear un evento")
+    : "";
+
   const urls = ["/info-app", "/confirmar-asistencia", "/services/[...slug]", "/login", "/registro"]
 
   useEffect(() => {
@@ -155,7 +164,7 @@ const Navigation: FC = () => {
           <div className={`w-full h-20 hidden md:flex bg-base justify-center items-start`}>
               <div style={{ width, height }} className={`absolute top-16 z-50 px-16 flex justify-center transition-opacity duration-200 ${width > 0 ? 'opacity-100' : 'opacity-0'}`}>
                 <Tooltip
-                  label={event?._id ? "" : hasEventsForNav ? t("selectEventFromHomeToast") : t("Primero debes crear un evento")}
+                  label={navNoEventHint}
                   icon={<IconLightBulb16 className="w-6 h-6" />}
                   disabled={!!event?._id}
                   className="w-full h-full"
@@ -169,10 +178,16 @@ const Navigation: FC = () => {
                           if (item.condicion) {
                             !isAllowedRouter(item.route) ? ht() : [router.push(item.route), setRoute(item.route)]
                           } else {
-                            toast(
-                              "error",
-                              t(hasEventsForNav ? "selectEventFromHomeToast" : "youmustcreateevent")
-                            )
+                            if (!eventsGroupDone) {
+                              toast("warning", t("waitEventsListToast"))
+                            } else {
+                              const hasEvents = Array.isArray(eventsGroup) && eventsGroup.length > 0
+                              toast(
+                                "error",
+                                t(hasEvents ? "selectEventFromHomeToast" : "youmustcreateevent")
+                              )
+                            }
+                            router.push("/")
                           }
                         }}
                         className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition cursor-pointer

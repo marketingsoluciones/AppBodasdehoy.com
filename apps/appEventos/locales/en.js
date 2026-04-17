@@ -610,6 +610,7 @@ export const en = {
     'youdontshareyourself': "You can't share it with yourself",
     'youhavenotyetregistered': "You have not yet registered any form of payment. You can save one when you complete your first payment.",
     'youmustcreateevent': "You must create an event",
+    'waitEventsListToast': "Loading your events… You’ll be able to pick one from home in a moment.",
     'selectEventFromHomeToast': "Pick an event from the home screen.",
     'selectEventFromHomeTitle': "Choose an active event",
     'selectEventFromHomeBody': "You already have events; open one from home to use this section.",

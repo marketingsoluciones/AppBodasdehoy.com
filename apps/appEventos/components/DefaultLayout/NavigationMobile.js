@@ -26,9 +26,14 @@ const NavigationMobile = () => {
       router.push(item.route)
       return
     }
-    const hasEvents =
-      eventsGroupDone && Array.isArray(eventsGroup) && eventsGroup.length > 0
+    if (!eventsGroupDone) {
+      toast("warning", t("waitEventsListToast"))
+      router.push("/")
+      return
+    }
+    const hasEvents = Array.isArray(eventsGroup) && eventsGroup.length > 0
     toast("error", t(hasEvents ? "selectEventFromHomeToast" : "youmustcreateevent"))
+    router.push("/")
   }
 
   const Navbar = [

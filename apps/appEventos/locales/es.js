@@ -611,6 +611,7 @@ export const es = {
     'youdontshareyourself': 'No puedes compartirlo contigo mismo',
     'youhavenotyetregistered': 'Aun no tines registrado ninguna forma de pago. Puede guardar una cuando complete su primer pago.',
     'youmustcreateevent': 'Debes crear un evento',
+    'waitEventsListToast': 'Cargando tus eventos… En un momento podrás elegir uno en inicio.',
     'selectEventFromHomeToast': 'Elige un evento en la pantalla de inicio.',
     'selectEventFromHomeTitle': 'Elige un evento activo',
     'selectEventFromHomeBody': 'Tienes eventos guardados, pero necesitas abrir uno desde inicio para usar esta sección.',
