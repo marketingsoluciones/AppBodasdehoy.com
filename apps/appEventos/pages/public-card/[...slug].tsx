@@ -248,22 +248,24 @@ export async function getServerSideProps(context) {
           variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
           development,
         });
-        users = data.getUsers || [];
+        users = Array.isArray(data?.getUsers) ? data.getUsers : [];
       } catch (error) {
         try {
           error_2 = error
-          users = await fetchApiBodasServer({
+          const dataRetry = await fetchApiBodasServer({
             query: queries?.getUsers,
             variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
             development,
           });
+          users = Array.isArray(dataRetry?.getUsers) ? dataRetry.getUsers : [];
         } catch (error2) {
           error_2 = error2
           users = [];
         }
       }
     }
-    const usersMap = users?.map(elem => {
+    const usersList = Array.isArray(users) ? users : []
+    const usersMap = usersList.map((elem) => {
       return {
         uid: elem.uid,
         displayName: elem?.displayName,
@@ -275,7 +277,7 @@ export async function getServerSideProps(context) {
       itinerary.tasks = [task]
       evento.itinerarios_array = [itinerary]
     }
-    evento.detalles_compartidos_array = users
+    evento.detalles_compartidos_array = usersList
     evento.fecha_actualizacion = new Date().toLocaleString()
     const firstTask = evento.itinerarios_array?.[0]?.tasks?.[0]
     if (firstTask?.descripcion) {
