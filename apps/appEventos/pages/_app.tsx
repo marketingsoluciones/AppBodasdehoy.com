@@ -4,9 +4,7 @@ import '../utils/next-navigation-polyfill' // Polyfill para next/navigation en P
 import DefaultLayout from '../layouts/DefaultLayout'
 /** Un solo CSS de Swiper: `bundle` ya incluye estilos base + módulos (evita duplicar con `swiper/css`). */
 import 'swiper/css/bundle'
-import "@fontsource/italiana";
-import "@fontsource/montserrat";
-import "@fontsource/poppins";
+import "../styles/fonts-app";
 import { AuthContextProvider, EventContextProvider } from '../context';
 import { useEffect, useState } from 'react';
 import { I18nextProvider } from 'react-i18next';
