@@ -11,34 +11,53 @@ import { AuthContextProvider } from "../../context/AuthContext";
 import { EventContextProvider } from "../../context";
 import { TempPastedAndDropFile } from "../../components/Itinerario/MicroComponente/ItineraryPanel";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 interface props {
-  evento: Event
+  evento: Event | null
   users: any
   slug?: any
   query?: any
-  error?: any
+  error?: string | null
   development?: string
 }
 
+const PublicCardMessage = ({ title, body }: { title: string; body: string }) => (
+  <div className="min-h-[60vh] w-full flex flex-col items-center justify-center px-6 py-16 text-center bg-base">
+    <h1 className="text-xl font-semibold text-gray-800 mb-3">{title}</h1>
+    <p className="text-sm text-gray-600 max-w-md leading-relaxed">{body}</p>
+  </div>
+)
+
 const Slug: FC<props> = (props) => {
-  // Manejar error de getServerSideProps
+  const { t } = useTranslation()
+
   if (props?.error) {
+    const isSlug = props.error === "invalid-slug"
+    const detail =
+      typeof props.error === "string" && !isSlug ? props.error : null
     return (
-      <div className="bg-[#ffbfbf] text-red-700 w-full h-full text-center mt-20">
-        <h1 className="text-xl font-bold mb-4">Error al cargar la tarjeta</h1>
-        <p className="text-sm">Error: {props.error?.message || props.error}</p>
-        <p className="text-sm mt-2">Por favor, intenta de nuevo más tarde.</p>
-      </div>
+      <PublicCardMessage
+        title={isSlug ? t("publicCardInvalidLinkTitle") : t("publicCardLoadErrorTitle")}
+        body={
+          isSlug
+            ? t("publicCardInvalidLinkBody")
+            : detail
+              ? `${t("publicCardLoadErrorBody")} (${detail})`
+              : t("publicCardLoadErrorBody")
+        }
+      />
     )
   }
 
-  if (!props?.evento?.itinerarios_array?.length)
+  if (!props?.evento?.itinerarios_array?.length) {
     return (
-      <div className="bg-[#ffbfbf] text-blue-700 w-full h-full text-center mt-20">
-        Page not found error 404
-      </div>
+      <PublicCardMessage
+        title={t("publicCardUnavailableTitle")}
+        body={t("publicCardUnavailableBody")}
+      />
     )
+  }
   return (
     <ServicesVew evento={props.evento} />
   )
@@ -162,9 +181,23 @@ export async function getServerSideProps(context) {
   const development = developmentFromRequestHost(req?.headers?.host)
   let error_2 = null
   try {
-    const p = params?.slug[0]?.split("-")
-    const evento_id = p?.[1] || query?.event;
-    const itinerario_id = p?.[2] || query?.itinerary;
+    const slug0 = params?.slug?.[0]
+    const p = slug0?.split("-")
+    const evento_id = p?.[1] || query?.event
+    const itinerario_id = p?.[2] || query?.itinerary
+
+    if (!evento_id || !itinerario_id) {
+      return {
+        props: {
+          evento: null,
+          users: [],
+          query: query || {},
+          slug: params?.slug ?? null,
+          error: "invalid-slug",
+          development,
+        },
+      }
+    }
 
     let evento: Event | null = null;
     try {
@@ -192,8 +225,20 @@ export async function getServerSideProps(context) {
       }
     }
 
-    const itinerary = evento.itinerarios_array.find(elem => elem._id === query.itinerary)
-    const task = itinerary?.tasks?.find(elem => elem._id === query.task)
+    if (!evento || !Array.isArray(evento.itinerarios_array) || !evento.itinerarios_array.length) {
+      return {
+        props: {
+          evento: null,
+          users: [],
+          query: query || {},
+          slug: params?.slug ?? null,
+          development,
+        },
+      }
+    }
+
+    const itinerary = evento.itinerarios_array.find((elem) => elem._id === query?.itinerary)
+    const task = itinerary?.tasks?.find((elem) => elem._id === query?.task)
 
     let users = [];
     if (task?.comments?.length > 0) {
@@ -232,29 +277,34 @@ export async function getServerSideProps(context) {
     }
     evento.detalles_compartidos_array = users
     evento.fecha_actualizacion = new Date().toLocaleString()
-    if (evento) {
-      openGraphData.openGraph.title = `${evento.itinerarios_array[0].tasks[0].descripcion}`
+    const firstTask = evento.itinerarios_array?.[0]?.tasks?.[0]
+    if (firstTask?.descripcion) {
+      openGraphData.openGraph.title = `${firstTask.descripcion}`
       openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion?.toString() || '0'))?.toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
-`    }
+`
+    }
 
-    // Solo incluir error_2 en props si no es null
-    const props: any = { ...params, query, evento, users: usersMap, development };
+    const props: any = { query: query || {}, evento, users: usersMap, development, slug: params?.slug ?? null };
     if (error_2 !== null) {
-      props.error_2 = error_2 instanceof Error ? { message: error_2.message, name: error_2.name } : String(error_2);
+      props.error_2 =
+        error_2 instanceof Error ? error_2.message : typeof error_2 === "string" ? error_2 : String(error_2)
     }
 
     return { props };
-  } catch (error) {
-    const props = {
-      ...params,
-      query,
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : typeof error === "string" ? error : "unknown-error"
+    const props: any = {
+      query: query || {},
       evento: null,
       users: null,
-      error: error instanceof Error ? { message: error.message, name: error.name } : String(error),
+      error: message,
       development,
-    };
+      slug: params?.slug ?? null,
+    }
     if (error_2 !== null) {
-      props.error_2 = error_2 instanceof Error ? { message: error_2.message, name: error_2.name } : String(error_2);
+      props.error_2 =
+        error_2 instanceof Error ? error_2.message : typeof error_2 === "string" ? error_2 : String(error_2)
     }
     return { props };
   }
