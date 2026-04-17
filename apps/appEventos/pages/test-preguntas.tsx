@@ -28,7 +28,8 @@ const CHAT_TEST_BASE = (() => {
   }
   return (process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com').replace(/\/$/, '');
 })();
-const TEST_SUITE_PATH = '/bodasdehoy/admin/test-suite';
+/** Ruta real del panel Test Suite en chat-ia (`admin/tests/page.tsx`). */
+const TEST_SUITE_PATH = '/bodasdehoy/admin/tests';
 
 export default function TestPreguntas() {
   const { user, verificationDone, config } = AuthContextProvider();

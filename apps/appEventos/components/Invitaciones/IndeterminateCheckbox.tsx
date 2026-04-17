@@ -10,7 +10,7 @@ export const IndeterminateCheckbox = forwardRef<HTMLInputElement, Props>(
     const internalRef = useRef<HTMLInputElement | null>(null);
     const resolvedRef = (ref as React.RefObject<HTMLInputElement>) ?? internalRef;
     const combinedClassName = useMemo(() => {
-      const baseClasses = "rounded-full text-primary border-gray-300 focus:outline-none focus:ring-0 focus:ring-offset-0";
+      const baseClasses = "rounded text-primary border-gray-300 focus:outline-none focus:ring-0 focus:ring-offset-0";
       return className ? `${baseClasses} ${className}` : baseClasses;
     }, [className]);
 

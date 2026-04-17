@@ -57,7 +57,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             const f1 = eventsGroup.findIndex(elem => elem._id === event._id)
             eventsGroup[f1].detalles_compartidos_array?.push(...results.detalles_compartidos_array)
             eventsGroup[f1].compartido_array.push(...results.compartido_array)
-            setEventsGroup([...eventsGroup])
+            setEventsGroup({ type: "INITIAL_STATE", payload: eventsGroup.map((e, i) => (i === f1 ? { ...e } : e)) })
             setEvent({ ...eventsGroup[f1] })
             setSaving(false)
             // falta setear evento

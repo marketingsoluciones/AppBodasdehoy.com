@@ -14,6 +14,7 @@ import { moveGuest } from '../Mesas/FuntionsDragable';
 import { BsBoxArrowInDown, BsBoxArrowUp } from 'react-icons/bs'
 import { dicc } from './FormCrearMesa';
 import { useTranslation } from 'react-i18next';
+import { useAllowed } from '../../hooks/useAllowed';
 
 interface propsFormEditarMesa {
   set: Dispatch<SetStateAction<boolean>>
@@ -29,6 +30,7 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
   const { t } = useTranslation();
   const { user } = AuthContextProvider()
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, setEditDefault, filterGuests, planSpaceSelect } = EventContextProvider();
+  const [isAllowed, ht] = useAllowed();
   const [selectInvitado, setSelectedInvitado] = useState(false);
   const [sentadosTable, setSentadosTable] = useState([]);
   const [showGuest, setShowGuest] = useState([]);
@@ -51,6 +53,11 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
     try {
+      if (!isAllowed('mesas')) {
+        ht();
+        actions.setSubmitting(false);
+        return;
+      }
       let table = state.table
       if (values.nombre_mesa !== state.table.title) {
         table = await fetchApiEventos({
@@ -137,6 +144,10 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
 
   const handleMoveGuest = (item) => {
     try {
+      if (!isAllowed('mesas')) {
+        ht();
+        return;
+      }
       if (active) {
         moveGuest({ event, chair: NaN, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo: "dragS", planSpaceSelect })
         toast("success", t("El invitado fue levantado de la mesa"))
@@ -207,10 +218,25 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                           return (
                             <div
                               onClick={() => {
+                                if (!isAllowed('mesas')) {
+                                  ht();
+                                  return;
+                                }
                                 for (let i = 0; i < state?.table?.numberChair; i++) {
-                                  if (!state?.table?.guest?.find((elem: guest) => elem?.chair == 0)) {
-                                    moveGuest({ event, chair: i, invitadoID: item._id, tableID: state?.table?._id, setEvent, planSpaceActive, setPlanSpaceActive, planSpaceSelect })
-                                    break
+                                  const ocupada = state?.table?.guests?.some((elem) => elem.chair === i);
+                                  if (!ocupada) {
+                                    moveGuest({
+                                      event,
+                                      chair: i,
+                                      invitadoID: item._id,
+                                      tableID: state?.table?._id,
+                                      setEvent,
+                                      planSpaceActive,
+                                      setPlanSpaceActive,
+                                      planSpaceSelect,
+                                    });
+                                    toast('success', t('El invitado fue sentado en la mesa'));
+                                    break;
                                   }
                                 }
                               }}
@@ -248,8 +274,17 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                                   src={ImageProfile[item.sexo].image}
                                   alt={ImageProfile[item.sexo].alt}
                                 />
-                                <p className='font-body text-sm leading-3'>
-                                  {item.nombre}
+                                <p className='font-body text-sm leading-3 flex flex-wrap items-center gap-x-2 gap-y-0.5'>
+                                  {active && typeof item.chair === 'number' ? (
+                                    <>
+                                      <span className="inline-flex shrink-0 items-center rounded-md bg-primary/10 px-1.5 py-0.5 text-xs font-semibold tabular-nums text-primary">
+                                        {t('puesto')} {item.chair + 1}
+                                      </span>
+                                      <span>{item.nombre}</span>
+                                    </>
+                                  ) : (
+                                    <span>{item.nombre}</span>
+                                  )}
                                 </p>
                               </div>
                               <div className='hover:bg-gray-200 rounded-lg pr-2 items-center'>
@@ -268,7 +303,9 @@ const FormEditarMesa: FC<propsFormEditarMesa> = ({ set, state }) => {
                 <div className="w-full grid grid-cols-2 gap-4 px-4 pt-1">
                   <button
                     type="submit"
-                    className=" bg-primary w-full text-white  mx-auto inset-x-0 rounded-xl py-1 font-body focus:outline-none"
+                    disabled={!isAllowed('mesas')}
+                    title={!isAllowed('mesas') ? t('No tienes permiso para editar') : undefined}
+                    className=" bg-primary w-full text-white  mx-auto inset-x-0 rounded-xl py-1 font-body focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {t("save")}
                   </button>

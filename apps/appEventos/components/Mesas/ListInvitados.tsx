@@ -16,7 +16,7 @@ const ListInvitados: FC<propsListInvitados> = ({ editInv, setEditInv, setSelecte
   const sortedGuests = useMemo(() => {
     if (!filterGuests?.noSentados) return [];
     
-    const guests = [...filterGuests.noSentados];
+    const guests = filterGuests.noSentados.filter((g) => g != null) as guests[];
     const result: any[] = [];
     const processed = new Set();
     

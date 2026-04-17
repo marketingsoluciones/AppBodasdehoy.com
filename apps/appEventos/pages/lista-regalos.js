@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { AmazonIcon, CochinoIcon, CompartirIcon, DineroIcon, ListaOne, ListaTwo } from "../components/icons";
+import { CompartirIcon, ListaOne, ListaTwo } from "../components/icons";
 import ModalGuardarRegalo from "../components/ListaDeRegalos/ModalGuardarRegalo";
 import BlockTitle from "../components/Utils/BlockTitle";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
-import GuestDemoWrapper from "../components/Utils/GuestDemoWrapper";
+import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
 import { SkeletonPage } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import FormGuardarRegalos from "../components/Forms/FormGuardarRegalos"
@@ -25,52 +25,17 @@ const ListaRegalos = () => {
   if (verificationDone) {
     if (user?.displayName === 'guest') {
       return (
-        <GuestDemoWrapper
+        <GuestUpsellPage
           section="Lista de regalos"
           icon="🎁"
-          description="Crea tu lista de bodas y compártela con tus invitados para que elijan el regalo perfecto."
-        >
-          <section className="w-full bg-base pt-2 md:py-0">
-            <div className="max-w-screen-lg mx-auto inset-x-0 flex-col gap-6 flex pb-28 md:pb-10 px-2 md:px-0">
-              <BlockTitle title={"Lista de regalos"} />
-              <div className="w-full flex flex-col md:flex-row justify-center items-center gap-6">
-                <div className="w-full md:w-1/2 bg-white shadow-lg flex gap-8 items-center justify-center p-6 rounded-xl">
-                  <DineroIcon className="w-12 h-12 text-gray-500" />
-                  <div className="font-display flex flex-col items-center">
-                    <h3 className="text-lg text-primary font-medium">{t("totalvalue")}</h3>
-                    <p className="text-2xl text-gray-500 font-semibold">1.240,00 €</p>
-                  </div>
-                  <div className="font-display flex flex-col justify-center text-sm text-gray-500">
-                    <p>{t("achieved")}</p>
-                    <p>{t("contributions")}</p>
-                    <p>{t("slope")}</p>
-                  </div>
-                </div>
-                <div className="w-full md:w-1/2 bg-white shadow-lg flex gap-4 items-center justify-center p-6 rounded-xl">
-                  <CochinoIcon className="w-12 h-12 text-gray-500" />
-                  <div className="font-display flex flex-col items-start">
-                    <h3 className="text-lg text-primary font-medium">{t("transferablebalance")}</h3>
-                    <p className="text-2xl text-gray-500 font-semibold">640,00 €</p>
-                  </div>
-                </div>
-              </div>
-              <div className="w-full bg-white shadow-lg flex gap-4 items-center justify-center p-6 rounded-xl">
-                <AmazonIcon className="w-28 h-28 text-primary" />
-                <div className="font-display flex flex-col items-start">
-                  <h3 className="text-lg text-gray-400 font-medium leading-5">
-                    {t("buildyourgiftlist")}<br />
-                    <span className="text-sm">{t("withmillionsoptionschoosefrom")}</span>
-                  </h3>
-                  <div className="flex gap-4 mt-2">
-                    <span className="button-secondary uppercase text-sm opacity-60 cursor-default">Amazon</span>
-                    <span className="button-secondary uppercase text-sm opacity-60 cursor-default">El Corte Inglés</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        </GuestDemoWrapper>
-      )
+          description="Crea una cuenta para publicar tu lista real de regalos y compartirla con invitados."
+          benefits={[
+            "Enlaces públicos y seguimiento de reservas",
+            "Integración con tiendas habituales",
+            "Control de saldo y aportaciones",
+          ]}
+        />
+      );
     }
     if (!user) {
       return (

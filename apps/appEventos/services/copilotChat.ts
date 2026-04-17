@@ -541,7 +541,9 @@ export const sendChatMessage = async (
     reportCopilotMessageSent({ elapsedMs: elapsed, stream: false });
     return { content, toolCalls, navigationUrl, enrichedEvents };
   } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
+    // DOMException('abort','AbortError') en Node no siempre cumple `instanceof Error`.
+    const errName = error && typeof error === 'object' && 'name' in error ? String((error as { name: string }).name) : '';
+    if (errName === 'AbortError') {
       return {
         content: 'La solicitud tardó demasiado y se canceló. Por favor, intenta de nuevo.',
         toolCalls: [],

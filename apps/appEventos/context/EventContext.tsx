@@ -92,9 +92,20 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
       if (!valir) {
         if (eventsGroup?.length > 1) {
           const eventsPendientes = eventsGroup.filter(item => item.estatus === "pendiente")
-          const eventsGroupSort = eventsPendientes?.sort((a: any, b: any) => { return b.fecha_creacion - a.fecha_creacion })
+          const eventsGroupSort = [...eventsPendientes].sort((a: any, b: any) => {
+            return b.fecha_creacion - a.fecha_creacion
+          })
           let eventSelected = eventsGroupSort?.find(elem => elem._id === user?.eventSelected)
-          if (!!eventSelected) {
+          if (!eventSelected && user?.eventSelected) {
+            eventSelected = eventsGroup.find(elem => elem._id === user?.eventSelected)
+          }
+          if (!eventSelected && eventsGroupSort?.length) {
+            eventSelected = eventsGroupSort[0]
+          }
+          if (!eventSelected) {
+            eventSelected = eventsGroup[0]
+          }
+          if (eventSelected) {
             if (!eventSelected?.timeZone) {
               const defaultTimeZone = config?.timeZone || "UTC";
               eventSelected.timeZone = defaultTimeZone;
@@ -104,8 +115,8 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
                 token: null
               })
             }
+            setEvent({ ...eventSelected });
           }
-          setEvent({ ...eventSelected });
         } else {
           let eventSelected = eventsGroup[0]
           if (!eventSelected?.timeZone) {

@@ -34,13 +34,9 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
 
   useEffect(() => {
     if (valirBlock !== undefined) {
-      fetchApiBodas({
-        query: queries.getDevelopment,
-        variables: {},
-        development: varGlobalDevelopment
-      }).then(res => {
-        setMessage(res?.message?.message)
-      })
+      // Query getDevelopment puede no existir en algunos backends/proxies.
+      // Evitar ruido 400 en runtime y mantener la app funcional.
+      setMessage(undefined)
     }
   }, [valirBlock])
 
@@ -106,8 +102,8 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
       />
       <I18nextProvider i18n={i18n}>
         <DefaultLayout>
-          {/* Pre-calentar el chat de LobeChat en segundo plano */}
-          <CopilotPrewarmer />
+          {/* En desarrollo evita prewarm para no penalizar el primer compile */}
+          {process.env.NODE_ENV === "production" && <CopilotPrewarmer />}
           {!!message && <div className='bg-yellow-400 absolute top-[7.5rem] left-0 w-full bg-red-500 z-50 flex items-center justify-center'>
             <span className='text-center px-10 py-0.5'>{message}</span>
           </div>}

@@ -6,9 +6,10 @@ import BlockListaInvitados from "../components/Invitados/BlockListaInvitados";
 import { useDelayUnmount } from "../utils/Funciones";
 import { motion } from "framer-motion";
 import ModalLeft from "../components/Utils/ModalLeft";
-import { AuthContextProvider, EventContextProvider } from "../context";
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../context";
+import { useSearchParams } from "next/navigation";
 import VistaSinCookie from "./vista-sin-cookie";
-import GuestDemoWrapper from "../components/Utils/GuestDemoWrapper";
+import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
 import { SkeletonTable } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import { ModuleErrorBoundary } from "../components/ErrorBoundary";
@@ -25,14 +26,27 @@ const Invitados: FC = () => {
   const [formShow, setFormShow] = useState<string | null>(null)
   const [formShowAcompañante, setFormShowAcompañante] = useState<string | null>(null)
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
-  const { event } = EventContextProvider();
+  const { event, setEvent } = EventContextProvider();
+  const { eventsGroup } = EventsGroupContextProvider();
+  const searchParams = useSearchParams();
+  const queryEvent = searchParams.get("event");
   const { actionModals, setActionModals } = AuthContextProvider()
   const [viewPreferUser, setViewPreferUser] = useState<ViewItinerary>(typeof window !== 'undefined' && window.innerWidth < 700 ? "cards" : "table")
   const [view, setView] = useState<ViewItinerary>()
   const [triggerResize, setTriggerResize] = useState<number>(new Date().getTime())
-  const { user, verificationDone, forCms } = AuthContextProvider()
+  const { user, setUser, verificationDone, forCms } = AuthContextProvider()
 
   useMounted()
+
+  useEffect(() => {
+    if (!queryEvent || queryEvent === event?._id || !eventsGroup?.length) return;
+    const eventFound = eventsGroup.find((elem) => elem._id === queryEvent);
+    if (eventFound) {
+      setEvent({ ...eventFound });
+      user.eventSelected = queryEvent;
+      setUser({ ...user });
+    }
+  }, [queryEvent, eventsGroup, event?._id]);
 
   const handleResize = () => {
     setTriggerResize(new Date().getTime())
@@ -63,7 +77,7 @@ const Invitados: FC = () => {
 };
 
   const ConditionalAction = ({ e }) => {
-    if (event.invitados_array.length >= 200) {
+    if ((event?.invitados_array?.length ?? 0) >= 200) {
       setActionModals(!actionModals)
     } else {
       handleClick(e, "invitado")
@@ -73,14 +87,17 @@ const Invitados: FC = () => {
   if (verificationDone) {
     if (user?.displayName === 'guest') {
       return (
-        <GuestDemoWrapper
+        <GuestUpsellPage
           section="Lista de invitados"
           icon="👥"
-          description="Gestiona todos tus invitados, confirmaciones y organización de mesas."
-        >
-          <BlockListaInvitados />
-        </GuestDemoWrapper>
-      )
+          description="Crea una cuenta gratuita para gestionar invitados reales, confirmaciones de asistencia y organización por mesas en tus eventos."
+          benefits={[
+            "Lista centralizada con estados de confirmación",
+            "Enlaces públicos de RSVP y control de acompañantes",
+            "Exportación e importación para coordinar con proveedores",
+          ]}
+        />
+      );
     }
     if (!user) {
       return (

@@ -20,10 +20,11 @@ interface GuestUpsellPageProps {
 
 const GuestUpsellPage: FC<GuestUpsellPageProps> = ({ section, description, icon = '✨', benefits = [] }) => {
   const { config } = AuthContextProvider();
-  const loginUrl = config?.pathLogin ? `${config.pathLogin}?q=register` : '/login?q=register';
+  const pathLogin = config?.pathLogin || "/login";
+  const registerHref = pathLogin.includes("?") ? `${pathLogin}&q=register` : `${pathLogin}?q=register`;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center">
+    <div className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center bg-base">
       <div className="max-w-md w-full flex flex-col items-center gap-5">
         <div className="text-5xl">{icon}</div>
         <h1 className="font-display text-2xl font-semibold text-gray-800">
@@ -46,15 +47,18 @@ const GuestUpsellPage: FC<GuestUpsellPageProps> = ({ section, description, icon 
 
         <div className="flex flex-col gap-3 w-full mt-2">
           <Link
-            href={loginUrl}
+            href={registerHref}
             className="w-full py-3 rounded-full bg-primary text-white font-medium text-sm hover:opacity-80 transition text-center"
           >
             Crear cuenta gratis
           </Link>
           <Link
-            href="/"
-            className="text-sm text-gray-400 hover:text-gray-600 transition"
+            href={pathLogin}
+            className="text-sm text-gray-600 hover:text-primary transition"
           >
+            Ya tengo cuenta — Iniciar sesión
+          </Link>
+          <Link href="/" className="text-sm text-gray-400 hover:text-gray-600 transition">
             Volver al inicio
           </Link>
         </div>
