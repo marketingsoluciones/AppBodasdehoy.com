@@ -855,10 +855,11 @@ const AuthProvider = ({ children }) => {
     }
   }
 
+  // Geo después de verificar sesión: no compite con auth + primer fetch de eventos en el arranque.
   useEffect(() => {
-    // GeoInfo via /api/geo (Cloudflare/Vercel headers) — sin dependencia del GraphQL legacy
+    if (!verificationDone) return
     fetch('/api/geo').then(r => r.json()).then(setGeoInfo).catch(err => console.log("[GeoInfo]", err))
-  }, [config?.development])
+  }, [verificationDone, config?.development])
 
   // Mostrar botón "Continuar como invitado" tras 2s por si la verificación se cuelga
   useEffect(() => {
@@ -866,17 +867,17 @@ const AuthProvider = ({ children }) => {
     return () => clearTimeout(t);
   }, []);
 
-  // Timeout de seguridad: si la verificación tarda > 5s, mostrar la app para no quedarse en carga infinita
+  // Timeout de seguridad: desbloquear UI si la verificación se cuelga (antes 5s; algo más corto mejora sensación de carga).
   useEffect(() => {
     const t = setTimeout(() => {
       setVerificationDone((done) => {
         if (!done) {
-          console.warn('[AuthContext] Timeout de carga (5s), mostrando app');
+          console.warn('[AuthContext] Timeout de carga (~3,5s), mostrando app');
           return true;
         }
         return done;
       });
-    }, 5000);
+    }, 3500);
     return () => clearTimeout(t);
   }, []);
 
@@ -903,7 +904,7 @@ const AuthProvider = ({ children }) => {
       <div style={{ pointerEvents: 'none' }}>
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-pink-500 mx-auto" />
         <p className="mt-4 text-gray-700 font-medium">Cargando...</p>
-        <p className="mt-1 text-sm text-gray-400">Si ves esto, la app está respondiendo (máx. 4 s)</p>
+        <p className="mt-1 text-sm text-gray-400">Si tarda, la app se mostrará en unos segundos aunque la red vaya despacio.</p>
       </div>
       {showSkipLoadingButton && (
         <button

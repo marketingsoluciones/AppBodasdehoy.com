@@ -193,11 +193,11 @@ const EventsGroupProvider = ({ children }) => {
             withTimeout(fetchApiEventos({
               query: queries.getEventsByID,
               variables: { variable: "usuario_id", valor: userIdToUse, development: config?.development },
-            }), 8000, "getEventsByID(usuario_id)").catch(() => [] as Event[]),
+            }), 6500, "getEventsByID(usuario_id)").catch(() => [] as Event[]),
             withTimeout(fetchApiEventos({
               query: queries.getEventsByID,
               variables: { variable: "compartido_array", valor: userIdToUse, development: config?.development },
-            }), 8000, "getEventsByID(compartido_array)").catch(() => [] as Event[]),
+            }), 6500, "getEventsByID(compartido_array)").catch(() => [] as Event[]),
           ]).then(([owned, shared]) => {
             // Merge sin duplicados (por _id)
             const seen = new Set<string>();
