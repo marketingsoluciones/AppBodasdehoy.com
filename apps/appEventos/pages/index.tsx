@@ -11,6 +11,7 @@ import { NextPage } from "next";
 import { Event, SelectModeSortType } from "../utils/Interfaces";
 import VistaSinCookie from "../pages/vista-sin-cookie"
 import { useRouter } from "next/router";
+import Link from "next/link";
 import { useToast } from "../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { TbTableShare } from "react-icons/tb";
@@ -20,7 +21,7 @@ import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
 
 const Home: NextPage = () => {
   const { user, verificationDone, config, setUser } = AuthContextProvider()
-  const { eventsGroup, eventsGroupDone, eventsGroupError, eventsGroupErrorMessage } = EventsGroupContextProvider()
+  const { eventsGroup, eventsGroupDone, eventsGroupError, eventsGroupErrorMessage, eventsGroupSessionExpired, refreshEventsGroup } = EventsGroupContextProvider()
   const { setEvent } = EventContextProvider()
   const loadingContext = LoadingContextProvider()
   const setLoading = loadingContext?.setLoading || (() => {}) // Safe fallback
@@ -34,6 +35,8 @@ const Home: NextPage = () => {
   const { t } = useTranslation()
   const processedRef = useRef<string | null>(null)
   const [eventNotFound, setEventNotFound] = useState<boolean>(false)
+  const eventsLoadStartRef = useRef<number | null>(null)
+  const [eventsLoadSeconds, setEventsLoadSeconds] = useState(0)
 
   // Query params usando router.query (Pages Router)
   const pAccShas = typeof router.query.pAccShas === 'string' ? router.query.pAccShas : null
@@ -45,6 +48,21 @@ const Home: NextPage = () => {
       setLoading(false)
     }
   }, [verificationDone, eventsGroupDone, user, pAccShas, setLoading])
+
+  // Cronómetro mientras se esperan eventos (esta vista no monta el banner hasta pasar esta fase).
+  const waitingEventsList = verificationDone && !eventsGroupDone
+  useEffect(() => {
+    if (!waitingEventsList) {
+      eventsLoadStartRef.current = null
+      setEventsLoadSeconds(0)
+      return
+    }
+    if (eventsLoadStartRef.current === null) eventsLoadStartRef.current = Date.now()
+    const id = window.setInterval(() => {
+      setEventsLoadSeconds(Math.floor((Date.now() - (eventsLoadStartRef.current ?? Date.now())) / 1000))
+    }, 400)
+    return () => clearInterval(id)
+  }, [waitingEventsList])
 
   // Mostrar error si la API de eventos falla (403 = sesión; 502/503 = servidor; otro = genérico).
   // No mostrar si no hay usuario logueado (usuario libre/guest): no se cargan eventos, no tiene sentido el mensaje.
@@ -93,9 +111,8 @@ const Home: NextPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [verificationDone, eventsGroupDone, pAccShas, user, eventsGroup, router])
 
-  // ✅ OPTIMIZACIÓN CRÍTICA: Si verificationDone es true y no hay usuario, mostrar VistaSinCookie inmediatamente
-  // No esperar a eventsGroupDone si no hay usuario (no tiene sentido cargar eventos si no hay usuario)
-  if (verificationDone && !user) {
+  // Sin usuario: rutas protegidas → VistaSinCookie. En "/" la portada visitante no debe quedar en spinner infinito.
+  if (verificationDone && !user && router.pathname !== "/") {
     return <VistaSinCookie />;
   }
   
@@ -105,10 +122,14 @@ const Home: NextPage = () => {
     // Si hay usuario, mostrar loading (está cargando eventos)
     // Si no hay usuario, ya se maneja arriba con VistaSinCookie
     return (
-      <div className="flex items-center justify-center h-screen w-full bg-white">
-        <div className="flex flex-col items-center gap-4">
+      <div className="flex items-center justify-center h-screen w-full bg-white px-4">
+        <div className="flex flex-col items-center gap-3 text-center max-w-sm">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
-          <p className="text-sm text-gray-500">Cargando eventos...</p>
+          <p className="text-sm font-medium text-gray-700">Cargando tus eventos…</p>
+          <p className="text-2xl font-semibold tabular-nums text-primary">{eventsLoadSeconds}s</p>
+          <p className="text-xs text-gray-400">
+            Aquí se consulta el servidor de datos; la imagen del banner aún no entra en juego.
+          </p>
         </div>
       </div>
     );
@@ -151,10 +172,17 @@ const Home: NextPage = () => {
       )
     }
     if (!user) {
-      // ✅ CORRECCIÓN: Asegurar que VistaSinCookie siempre retorne contenido válido
-      return (
-        <VistaSinCookie />
-      )
+      if (router.pathname === "/") {
+        return (
+          <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-white px-4">
+            <p className="text-center text-sm text-gray-600">Inicia sesión para ver y gestionar tus eventos.</p>
+            <Link href={config?.pathLogin || "/login"} className="text-sm font-medium text-primary hover:underline">
+              Ir a login
+            </Link>
+          </div>
+        );
+      }
+      return <VistaSinCookie />;
     }
     // NOTA: setLoading se movió a useEffect para evitar setState durante render
     return (
@@ -199,7 +227,14 @@ const Home: NextPage = () => {
 
         <section id="rootsection" className="section relative w-full flex flex-col">
           <Banner state={valirQuery} set={setValirQuery} />
-          <GridCards state={valirQuery} set={setValirQuery} />
+          <GridCards
+            state={valirQuery}
+            set={setValirQuery}
+            eventsGroupError={eventsGroupError}
+            eventsGroupErrorMessage={eventsGroupErrorMessage}
+            eventsGroupSessionExpired={eventsGroupSessionExpired}
+            refreshEventsGroup={refreshEventsGroup}
+          />
         </section>
         <style jsx>
           {`
@@ -215,10 +250,14 @@ const Home: NextPage = () => {
   // ✅ CORRECCIÓN CRÍTICA: SIEMPRE retornar contenido válido para evitar 404
   // Mientras se cargan los datos, mostrar loading con contenido HTML válido
   return (
-    <div className="flex items-center justify-center h-screen w-full bg-white">
-      <div className="flex flex-col items-center gap-4">
+    <div className="flex items-center justify-center h-screen w-full bg-white px-4">
+      <div className="flex flex-col items-center gap-3 text-center max-w-sm">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
-        <p className="text-sm text-gray-500">Cargando eventos...</p>
+        <p className="text-sm font-medium text-gray-700">Cargando tus eventos…</p>
+        <p className="text-2xl font-semibold tabular-nums text-primary">{eventsLoadSeconds}s</p>
+        <p className="text-xs text-gray-400">
+          Consultando el servidor; el banner de portada se pinta en el siguiente paso.
+        </p>
       </div>
     </div>
   );
@@ -227,9 +266,6 @@ const Home: NextPage = () => {
 export default Home;
 
 
-export async function getServerSideProps({ req, res }) {
-  return { props: {} };
-}
 
 interface propsBanner {
   state: boolean;
@@ -288,6 +324,11 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
           <img
             className="z-20 image mx-auto inset-x-0 relative top-16"
             src="/IndexImg2.png"
+            alt=""
+            width={520}
+            height={500}
+            decoding="async"
+            fetchPriority="low"
           />
         </motion.div>
       </div>
@@ -323,12 +364,12 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
               {planLimits?.upgradeMessage?.('events-count') || 'Actualiza tu plan para crear más eventos.'}
             </p>
             <div className="flex flex-col gap-2 w-full mt-2">
-              <a
+              <Link
                 href="/facturacion"
                 className="w-full py-3 rounded-full bg-primary text-white font-medium text-sm hover:opacity-80 transition text-center"
               >
                 Ver planes
-              </a>
+              </Link>
               <button
                 onClick={() => setShowUpgradeModal(false)}
                 className="w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition"
@@ -346,6 +387,10 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
 interface propsGridCards {
   state: boolean
   set: Dispatch<SetStateAction<boolean>>
+  eventsGroupError: boolean
+  eventsGroupErrorMessage: string | null
+  eventsGroupSessionExpired: boolean
+  refreshEventsGroup: () => void
 }
 
 type dataTab = {
@@ -360,7 +405,14 @@ export const Lista = [
   { nombre: "Realizados", value: "realizado", color: "secondary" },
 ];
 
-const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
+const GridCards: FC<propsGridCards> = ({
+  state,
+  set: setNewEvent,
+  eventsGroupError,
+  eventsGroupErrorMessage,
+  eventsGroupSessionExpired,
+  refreshEventsGroup,
+}) => {
   const { t } = useTranslation();
   const { eventsGroup, copilotFilter } = EventsGroupContextProvider();
   const { idxGroupEvent, setIdxGroupEvent } = EventContextProvider()
@@ -381,7 +433,12 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
   useEffect(() => {
     if (eventsGroup) {
       const arrNuevo = eventsGroup?.reduce((acc, event) => {
-        acc[event?.estatus?.toLowerCase()]?.push(event)
+        const raw = event?.estatus != null && String(event.estatus).trim() !== ''
+          ? String(event.estatus).toLowerCase().trim()
+          : '';
+        const bucket =
+          raw === 'archivado' || raw === 'realizado' || raw === 'pendiente' ? raw : 'pendiente';
+        acc[bucket]?.push(event);
         return acc;
       },
         { pendiente: [], archivado: [], realizado: [] }
@@ -414,7 +471,9 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
   }, [eventsGroup, idxGroupEvent]);
 
   useEffect(() => {
-    setIdxNew(tabsGroup[isActiveStateSwiper]?.data.findIndex(elem => elem._id == idxGroupEvent.event_id))
+    setIdxNew(
+      tabsGroup[isActiveStateSwiper]?.data?.findIndex((elem) => elem != null && elem._id == idxGroupEvent.event_id) ?? -1,
+    )
   }, [tabsGroup])
 
   useEffect(() => {
@@ -442,6 +501,26 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
 
   return (
     <div className="flex flex-col max-h-[calc(52%-4px)]">
+      {eventsGroupError && !eventsGroupSessionExpired && (
+        <div
+          role="alert"
+          className="mx-4 mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-900 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div>
+            <p className="font-semibold">{t("home_eventsLoadFailedTitle")}</p>
+            <p className="text-xs text-red-800/90 mt-0.5">
+              {eventsGroupErrorMessage || t("home_eventsLoadFailedBody")}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => refreshEventsGroup()}
+            className="shrink-0 rounded-lg bg-primary px-4 py-2 text-xs font-medium text-white hover:opacity-90 transition"
+          >
+            {t("home_eventsLoadFailedRetry")}
+          </button>
+        </div>
+      )}
       <CopilotFilterBar entity="events" className="mx-4" />
       <div className="w-full h-10 flex">
         <div className="flex-1" />
