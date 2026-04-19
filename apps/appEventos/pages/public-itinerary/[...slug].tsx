@@ -14,9 +14,10 @@ import { useTranslation } from "react-i18next";
 import { BsCalendarPlus } from "react-icons/bs";
 
 interface props {
-  evento: Event
-  slug?: any
-  error?: string
+  evento: Event | null
+  slug?: string[] | null
+  /** Código o mensaje serializable desde getServerSideProps */
+  error?: string | null
 }
 
 interface TaskReduce {
@@ -26,12 +27,34 @@ interface TaskReduce {
 
 const apiAppImgBase = (process.env.NEXT_PUBLIC_BASE_URL || "https://apiapp.bodasdehoy.com").replace(/\/$/, "");
 
+const PublicItineraryUnavailable = ({ title, body }: { title: string; body: string }) => (
+  <div className="min-h-[60vh] w-full flex flex-col items-center justify-center px-6 py-16 text-center bg-base">
+    <h1 className="text-xl font-semibold text-gray-800 mb-3">{title}</h1>
+    <p className="text-sm text-gray-600 max-w-md leading-relaxed">{body}</p>
+    <p className="mt-6 text-xs text-gray-400">Si el enlace lo compartió el organizador, pídele que lo vuelva a enviar.</p>
+  </div>
+)
+
 const Slug: FC<props> = (props) => {
   const { event, setEvent } = EventContextProvider()
   const { config } = AuthContextProvider()
   const [end, setEnd] = useState(false)
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
   const { t } = useTranslation()
+
+  if (props?.error) {
+    const isSlug = props.error === "invalid-slug"
+    return (
+      <PublicItineraryUnavailable
+        title={isSlug ? "Enlace no válido" : "No se pudo cargar el itinerario"}
+        body={
+          isSlug
+            ? "La dirección del itinerario está incompleta o mal formada. Comprueba que hayas abierto el enlace completo."
+            : "Hubo un problema al obtener los datos. Puede ser temporal: prueba de nuevo en unos minutos."
+        }
+      />
+    )
+  }
 
   /** Si eventsGroup está vacío (invitado en ruta pública), EventContext hace setEvent(null) al cambiar user; no perder el SSR. */
   const effectiveEvent = useMemo(() => {
@@ -87,9 +110,10 @@ const Slug: FC<props> = (props) => {
 
   if (!props?.evento?.itinerarios_array?.length) {
     return (
-      <div className="bg-[#ffbfbf] text-blue-700 w-full h-full text-center mt-20">
-        Page not found error 404
-      </div>
+      <PublicItineraryUnavailable
+        title="Itinerario no disponible"
+        body="No encontramos un itinerario público con este enlace. Puede haberse despublicado, el evento haber cambiado o el enlace ser antiguo."
+      />
     )
   }
 
@@ -225,12 +249,14 @@ export async function getServerSideProps({ params, req }) {
         slug: params.slug || null,
       },
     };
-  } catch (error) {
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : typeof error === "string" ? error : "unknown-error"
     return {
       props: {
         evento: null,
         slug: params.slug || null,
-        error: error
+        error: message,
       },
     };
   }

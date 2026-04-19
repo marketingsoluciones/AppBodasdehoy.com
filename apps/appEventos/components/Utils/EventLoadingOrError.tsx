@@ -37,7 +37,7 @@ const EventLoadingOrError: FC<EventLoadingOrErrorProps> = ({
       setStuckLoading(false);
       return;
     }
-    const timeoutId = setTimeout(() => setStuckLoading(true), 12000);
+    const timeoutId = setTimeout(() => setStuckLoading(true), 10000);
     return () => clearTimeout(timeoutId);
   }, [eventsGroupDone]);
 
