@@ -173,16 +173,7 @@ const Home: NextPage = () => {
     }
     if (!user) {
       if (router.pathname === "/") {
-        return (
-          <>
-            {shouldRenderChild && (
-              <ModalLeft state={valirQuery} set={setValirQuery}>
-                <FormCrearEvento state={valirQuery} set={setValirQuery} />
-              </ModalLeft>
-            )}
-            <LandingVisitante onCreateEvent={() => setValirQuery(true)} />
-          </>
-        );
+        return <LandingVisitante />;
       }
       return <VistaSinCookie />;
     }
@@ -607,7 +598,7 @@ const GridCards: FC<propsGridCards> = ({
 };
 
 /** Landing comercial multimarca para visitantes no logueados */
-const LandingVisitante: FC<{ onCreateEvent: () => void }> = ({ onCreateEvent }) => {
+const LandingVisitante: FC = () => {
   const { config } = AuthContextProvider();
   const { t } = useTranslation();
   const pathLogin = config?.pathLogin || '/login';
@@ -636,22 +627,19 @@ const LandingVisitante: FC<{ onCreateEvent: () => void }> = ({ onCreateEvent }) 
           {t('landing.subtitle', { defaultValue: 'Todo lo que necesitas para planificar tu celebración perfecta, en un solo lugar.' })}
         </p>
         <div className="flex flex-col sm:flex-row gap-3 mt-2">
-          <button
-            onClick={onCreateEvent}
-            className="px-8 py-3 rounded-full bg-primary text-white font-medium text-sm hover:opacity-80 transition"
-          >
-            {t('landing.cta.try', { defaultValue: 'Probar gratis — crear evento de prueba' })}
-          </button>
           <Link
             href={registerHref}
+            className="px-8 py-3 rounded-full bg-primary text-white font-medium text-sm hover:opacity-80 transition text-center"
+          >
+            {t('landing.cta.register', { defaultValue: 'Empezar gratis' })}
+          </Link>
+          <Link
+            href={pathLogin}
             className="px-8 py-3 rounded-full border border-primary text-primary font-medium text-sm hover:bg-primary hover:text-white transition text-center"
           >
-            {t('landing.cta.register', { defaultValue: 'Crear cuenta' })}
+            {t('landing.cta.login', { defaultValue: 'Ya tengo cuenta' })}
           </Link>
         </div>
-        <Link href={pathLogin} className="text-xs text-gray-400 hover:text-primary transition">
-          {t('landing.cta.login', { defaultValue: 'Ya tengo cuenta — Iniciar sesión' })}
-        </Link>
       </div>
 
       {/* Features grid */}
