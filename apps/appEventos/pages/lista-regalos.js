@@ -54,7 +54,7 @@ const ListaRegalos = () => {
             <BlockTitle title={"Lista de regalos"} />
             <div className="w-full flex flex-col md:flex-row justify-center items-center gap-6 ">
               <div className="w-full md:w-1/2 bg-white shadow-lg flex gap-8 items-center justify-center p-6 rounded-xl">
-                <DineroIcon className="w-12 h-12 text-gray-500" />
+                <span className="w-12 h-12 text-gray-500 flex items-center justify-center text-3xl">💰</span>
                 <div className="font-display flex flex-col items-center">
                   <h3 className="text-lg text-primary font-medium">
                     {t("totalvalue")}
