@@ -160,7 +160,7 @@ const Navigation: FC = () => {
         </div>
 
         {/* segundo menu superior con las redirecciones funcionales de la app */}
-        <div className={`${(!user || urls.includes(url)) ? "hidden" : "block"}`}>
+        <div className={`${(urls.includes(url)) ? "hidden" : "block"}`}>
           <div className={`w-full h-20 hidden md:flex bg-base justify-center items-start`}>
               <div style={{ width, height }} className={`absolute top-16 z-50 px-16 flex justify-center transition-opacity duration-200 ${width > 0 ? 'opacity-100' : 'opacity-0'}`}>
                 <Tooltip

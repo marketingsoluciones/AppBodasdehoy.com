@@ -361,11 +361,16 @@ const AuthProvider = ({ children }) => {
               if (moreInfo?.status && result.user.email) {
                 // Obtener sessionCookie
                 const token = (await result.user.getIdTokenResult())?.token
-                const authResult: any = await fetchApiBodas({
-                  query: queries.auth,
-                  variables: { idToken: token },
-                  development: config?.development
-                })
+                let authResult: any = null
+                try {
+                  authResult = await fetchApiBodas({
+                    query: queries.auth,
+                    variables: { idToken: token },
+                    development: config?.development
+                  })
+                } catch (authErr: any) {
+                  console.warn("[Auth] ⚠️ auth mutation falló:", authErr?.message)
+                }
 
                 if (authResult?.sessionCookie) {
                   const { sessionCookie } = authResult

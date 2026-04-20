@@ -173,14 +173,7 @@ const Home: NextPage = () => {
     }
     if (!user) {
       if (router.pathname === "/") {
-        return (
-          <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-white px-4">
-            <p className="text-center text-sm text-gray-600">Inicia sesión para ver y gestionar tus eventos.</p>
-            <Link href={config?.pathLogin || "/login"} className="text-sm font-medium text-primary hover:underline">
-              Ir a login
-            </Link>
-          </div>
-        );
+        return <LandingVisitante />;
       }
       return <VistaSinCookie />;
     }
@@ -604,3 +597,61 @@ const GridCards: FC<propsGridCards> = ({
   );
 };
 
+/** Landing comercial multimarca para visitantes no logueados */
+const LandingVisitante: FC = () => {
+  const { config } = AuthContextProvider();
+  const { t } = useTranslation();
+  const pathLogin = config?.pathLogin || '/login';
+  const registerHref = pathLogin.includes('?') ? `${pathLogin}&q=register` : `${pathLogin}?q=register`;
+
+  const features = [
+    { icon: '👥', title: t('landing.feat.guests', { defaultValue: 'Gestión de invitados' }), desc: t('landing.feat.guestsDesc', { defaultValue: 'Lista completa, confirmaciones RSVP, acompañantes y control de asistencia' }) },
+    { icon: '🪑', title: t('landing.feat.tables', { defaultValue: 'Editor de mesas' }), desc: t('landing.feat.tablesDesc', { defaultValue: 'Organiza mesas visualmente con drag & drop y asignación automática' }) },
+    { icon: '💰', title: t('landing.feat.budget', { defaultValue: 'Control de presupuesto' }), desc: t('landing.feat.budgetDesc', { defaultValue: 'Partidas, pagos, proveedores y gráficos en tiempo real' }) },
+    { icon: '✉️', title: t('landing.feat.invitations', { defaultValue: 'Invitaciones digitales' }), desc: t('landing.feat.invitationsDesc', { defaultValue: 'Diseña, personaliza y envía por email o WhatsApp' }) },
+    { icon: '🎯', title: t('landing.feat.ai', { defaultValue: 'Asistente IA' }), desc: t('landing.feat.aiDesc', { defaultValue: 'Copilot integrado que te ayuda a planificar cada detalle' }) },
+    { icon: '🎁', title: t('landing.feat.gifts', { defaultValue: 'Lista de regalos' }), desc: t('landing.feat.giftsDesc', { defaultValue: 'Comparte tu lista con invitados y lleva el control' }) },
+  ];
+
+  return (
+    <div className="flex flex-col items-center w-full bg-base min-h-[calc(100vh-144px)] overflow-y-auto">
+      {/* Hero */}
+      <div className="w-full max-w-3xl px-6 pt-12 pb-8 flex flex-col items-center text-center gap-5">
+        <div className="w-40 h-16 flex items-center justify-center">
+          {config?.logoDirectory}
+        </div>
+        <h1 className="font-display text-3xl md:text-4xl font-semibold text-gray-800 tracking-tight">
+          {t('landing.title', { defaultValue: 'Organiza tus eventos sin estrés' })}
+        </h1>
+        <p className="text-gray-500 text-base md:text-lg max-w-lg leading-relaxed">
+          {t('landing.subtitle', { defaultValue: 'Todo lo que necesitas para planificar tu celebración perfecta, en un solo lugar.' })}
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 mt-2">
+          <Link
+            href={registerHref}
+            className="px-8 py-3 rounded-full bg-primary text-white font-medium text-sm hover:opacity-80 transition text-center"
+          >
+            {t('landing.cta.register', { defaultValue: 'Empezar gratis' })}
+          </Link>
+          <Link
+            href={pathLogin}
+            className="px-8 py-3 rounded-full border border-primary text-primary font-medium text-sm hover:bg-primary hover:text-white transition text-center"
+          >
+            {t('landing.cta.login', { defaultValue: 'Ya tengo cuenta' })}
+          </Link>
+        </div>
+      </div>
+
+      {/* Features grid */}
+      <div className="w-full max-w-4xl px-6 pb-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {features.map((f, i) => (
+          <div key={i} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex flex-col gap-2">
+            <span className="text-2xl">{f.icon}</span>
+            <h3 className="font-display font-semibold text-gray-800 text-sm">{f.title}</h3>
+            <p className="text-xs text-gray-500 leading-relaxed">{f.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
