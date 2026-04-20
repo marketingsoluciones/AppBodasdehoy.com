@@ -6,7 +6,6 @@ import BlockTitle from "../components/Utils/BlockTitle";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
 import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
-import GuestTrialBanner from "../components/Utils/GuestTrialBanner";
 import { SkeletonPage } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import FormGuardarRegalos from "../components/Forms/FormGuardarRegalos"
@@ -24,6 +23,20 @@ const ListaRegalos = () => {
   useMounted()
 
   if (verificationDone) {
+    if (user?.displayName === 'guest') {
+      return (
+        <GuestUpsellPage
+          section="Lista de regalos"
+          icon="🎁"
+          description="Crea una cuenta para publicar tu lista real de regalos y compartirla con invitados."
+          benefits={[
+            "Enlaces públicos y seguimiento de reservas",
+            "Integración con tiendas habituales",
+            "Control de saldo y aportaciones",
+          ]}
+        />
+      );
+    }
     if (!user) {
       return (
         <VistaSinCookie />
@@ -32,7 +45,6 @@ const ListaRegalos = () => {
     if (!event) return <EventLoadingOrError skeletonRows={4} />
     return (
       <>
-        {user?.displayName === 'guest' && <GuestTrialBanner />}
         {showForm ? (
           <ModalGuardarRegalo set={setShowForm} state={showForm}>
 
@@ -54,7 +66,7 @@ const ListaRegalos = () => {
             <BlockTitle title={"Lista de regalos"} />
             <div className="w-full flex flex-col md:flex-row justify-center items-center gap-6 ">
               <div className="w-full md:w-1/2 bg-white shadow-lg flex gap-8 items-center justify-center p-6 rounded-xl">
-                <span className="w-12 h-12 text-gray-500 flex items-center justify-center text-3xl">💰</span>
+                <DineroIcon className="w-12 h-12 text-gray-500" />
                 <div className="font-display flex flex-col items-center">
                   <h3 className="text-lg text-primary font-medium">
                     {t("totalvalue")}
@@ -68,7 +80,7 @@ const ListaRegalos = () => {
                 </div>
               </div>
               <div className="w-full md:w-1/2 bg-white shadow-lg flex gap-4 items-center justify-center p-6 rounded-xl">
-                <span className="w-12 h-12 text-gray-500 flex items-center justify-center text-3xl">🐷</span>
+                <CochinoIcon className="w-12 h-12 text-gray-500" />
                 <div className="font-display flex flex-col items-start">
                   <h3 className="text-lg text-primary font-medium">
                     {t("transferablebalance")}
@@ -78,7 +90,7 @@ const ListaRegalos = () => {
               </div>
             </div>
             <div className="w-full bg-white shadow-lg flex gap-4 items-center justify-center p-6 rounded-xl">
-              <span className="w-28 h-28 text-primary flex items-center justify-center text-6xl">🛒</span>
+              <AmazonIcon className="w-28 h-28 text-primary" />
               <div className="font-display flex flex-col items-start">
                 <h3 className="text-lg text-gray-400 font-medium leading-5">
                   {t("buildyourgiftlist")}

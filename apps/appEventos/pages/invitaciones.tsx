@@ -9,7 +9,6 @@ import { CounterInvitations } from "../components/Invitaciones/CounterInvitation
 import { DataTableGroupProvider } from "../context/DataTableGroupContext";
 import VistaSinCookie from "./vista-sin-cookie";
 import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
-import GuestTrialBanner from "../components/Utils/GuestTrialBanner";
 import { SkeletonPage } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import { useMounted } from "../hooks/useMounted"
@@ -158,16 +157,29 @@ const Invitaciones = () => {
   }, [optionSelect, event?.templateEmailSelect, event?.templateWhatsappSelect, event?.fecha_actualizacion, event?.updatedAt, event?.invitados_array]);
 
   if (verificationDone) {
+    if (user?.displayName === 'guest') {
+      return (
+        <GuestUpsellPage
+          section="Invitaciones digitales"
+          icon="✉️"
+          description="Diseña y envía invitaciones digitales personalizadas por WhatsApp, email o enlace directo."
+          benefits={[
+            'Plantillas de invitación personalizables con tu branding',
+            'Envío masivo por WhatsApp, email o SMS',
+            'Seguimiento de aperturas y confirmaciones',
+            'Editor drag & drop sin conocimientos de diseño',
+          ]}
+        />
+      )
+    }
     if (!user) {
       return (
         <VistaSinCookie />
       )
     }
     if (!event) return <EventLoadingOrError skeletonRows={3} />
-    const isGuest = user?.displayName === 'guest';
     return (
       <DataTableGroupProvider>
-        {isGuest && <GuestTrialBanner />}
         <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base. w-full pt-2 md:py-0"}>
           <motion.div
             initial={{ opacity: 0 }}

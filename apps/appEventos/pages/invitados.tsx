@@ -10,7 +10,6 @@ import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider }
 import { useSearchParams } from "next/navigation";
 import VistaSinCookie from "./vista-sin-cookie";
 import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
-import GuestTrialBanner from "../components/Utils/GuestTrialBanner";
 import { SkeletonTable } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import { ModuleErrorBoundary } from "../components/ErrorBoundary";
@@ -86,6 +85,20 @@ const Invitados: FC = () => {
   }
 
   if (verificationDone) {
+    if (user?.displayName === 'guest') {
+      return (
+        <GuestUpsellPage
+          section="Lista de invitados"
+          icon="👥"
+          description="Crea una cuenta gratuita para gestionar invitados reales, confirmaciones de asistencia y organización por mesas en tus eventos."
+          benefits={[
+            "Lista centralizada con estados de confirmación",
+            "Enlaces públicos de RSVP y control de acompañantes",
+            "Exportación e importación para coordinar con proveedores",
+          ]}
+        />
+      );
+    }
     if (!user) {
       return (
         <VistaSinCookie />
@@ -94,7 +107,6 @@ const Invitados: FC = () => {
     if (!event) return <EventLoadingOrError skeletonRows={8} />
     return (
       <>
-        {user?.displayName === 'guest' && <GuestTrialBanner />}
         {shouldRenderChild && (
           <ModalLeft state={isMounted} set={setIsMounted}>
             {(() => {
