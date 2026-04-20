@@ -6,6 +6,7 @@ import BlockTitle from "../components/Utils/BlockTitle";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import VistaSinCookie from "./vista-sin-cookie";
 import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
+import GuestTrialBanner from "../components/Utils/GuestTrialBanner";
 import { SkeletonPage } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import FormGuardarRegalos from "../components/Forms/FormGuardarRegalos"
@@ -23,20 +24,6 @@ const ListaRegalos = () => {
   useMounted()
 
   if (verificationDone) {
-    if (user?.displayName === 'guest') {
-      return (
-        <GuestUpsellPage
-          section="Lista de regalos"
-          icon="🎁"
-          description="Crea una cuenta para publicar tu lista real de regalos y compartirla con invitados."
-          benefits={[
-            "Enlaces públicos y seguimiento de reservas",
-            "Integración con tiendas habituales",
-            "Control de saldo y aportaciones",
-          ]}
-        />
-      );
-    }
     if (!user) {
       return (
         <VistaSinCookie />
@@ -45,6 +32,7 @@ const ListaRegalos = () => {
     if (!event) return <EventLoadingOrError skeletonRows={4} />
     return (
       <>
+        {user?.displayName === 'guest' && <GuestTrialBanner />}
         {showForm ? (
           <ModalGuardarRegalo set={setShowForm} state={showForm}>
 

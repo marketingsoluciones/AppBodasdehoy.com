@@ -9,6 +9,7 @@ import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
 import { getCurrency } from "../utils/Funciones";
 import VistaSinCookie from "./vista-sin-cookie";
 import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
+import GuestTrialBanner from "../components/Utils/GuestTrialBanner";
 import { SkeletonBudget } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import BlockTitle from "../components/Utils/BlockTitle";
@@ -72,20 +73,6 @@ const Presupuesto = () => {
   }, [])
 
   if (verificationDone) {
-    if (user?.displayName === 'guest') {
-      return (
-        <GuestUpsellPage
-          section="Control de presupuesto"
-          icon="💰"
-          description="Con una cuenta gratuita podrás registrar gastos reales, categorías y pagos vinculados a tu evento."
-          benefits={[
-            "Totales por categoría y comparación con estimado",
-            "Seguimiento de pagos a proveedores",
-            "Exportación para compartir con tu pareja o wedding planner",
-          ]}
-        />
-      );
-    }
     if (!user) {
       return (
         <VistaSinCookie />
@@ -94,6 +81,7 @@ const Presupuesto = () => {
     if (!event) return <EventLoadingOrError skeleton={<SkeletonBudget categories={5} />} />
     return (
       <>
+        {user?.displayName === 'guest' && <GuestTrialBanner />}
         {event &&
           <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4 " : "bg-base w-full pb-6 pt-2 md:py-0 h-full"}>
             {showInitModal && isAllowed() && (

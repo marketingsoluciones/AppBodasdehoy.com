@@ -11,6 +11,7 @@ import ModalLeft from "../components/Utils/ModalLeft";
 import FormInvitado from "../components/Forms/FormInvitado";
 import VistaSinCookie from "./vista-sin-cookie";
 import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
+import GuestTrialBanner from "../components/Utils/GuestTrialBanner";
 import { SkeletonMesas } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import SwiperCore, { Pagination } from 'swiper';
@@ -176,20 +177,6 @@ const Mesas: FC = () => {
   }, [showFormEditar])
 
   if (verificationDone) {
-    if (user?.displayName === 'guest') {
-      return (
-        <GuestUpsellPage
-          section="Plano de mesas"
-          icon="🪑"
-          description="Regístrate gratis para crear el plano real de tu evento y asignar invitados a mesas con herramientas de organización."
-          benefits={[
-            "Editor visual de mesas y salas",
-            "Asignación de invitados y control de capacidad",
-            "Enlaces para proveedores y seating público",
-          ]}
-        />
-      );
-    }
     if (!user) {
       return (
         <VistaSinCookie />
@@ -199,6 +186,7 @@ const Mesas: FC = () => {
     if (!event) return <EventLoadingOrError skeleton={<SkeletonMesas tables={6} />} />
     return (
       <>
+        {user?.displayName === 'guest' && <GuestTrialBanner />}
         {/* formulario emergente para crear mesas */}
         {showFormCreateTable ? (
           <ModalMesa set={setShowFormCreateTable} state={showFormCreateTable} title={t("addtable")}>
