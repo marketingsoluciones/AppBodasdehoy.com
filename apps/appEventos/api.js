@@ -167,6 +167,11 @@ export const api = {
       if (err?.response?.status === 403 || err?.response?.status === 401) {
         handleSessionExpired();
       }
+      // 400 en auth mutations: no relanzar como excepción ruidosa — devolver response con error
+      if (err?.response?.status === 400) {
+        console.warn('[api.ApiBodas] 400:', err?.response?.data?.errors?.[0]?.message || 'Bad Request');
+        return err.response;
+      }
       throw err;
     }
   }
