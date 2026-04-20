@@ -173,7 +173,16 @@ const Home: NextPage = () => {
     }
     if (!user) {
       if (router.pathname === "/") {
-        return <LandingVisitante onCreateEvent={() => setValirQuery(true)} />;
+        return (
+          <>
+            {shouldRenderChild && (
+              <ModalLeft state={valirQuery} set={setValirQuery}>
+                <FormCrearEvento state={valirQuery} set={setValirQuery} />
+              </ModalLeft>
+            )}
+            <LandingVisitante onCreateEvent={() => setValirQuery(true)} />
+          </>
+        );
       }
       return <VistaSinCookie />;
     }
