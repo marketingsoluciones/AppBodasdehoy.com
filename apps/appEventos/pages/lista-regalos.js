@@ -68,7 +68,7 @@ const ListaRegalos = () => {
                 </div>
               </div>
               <div className="w-full md:w-1/2 bg-white shadow-lg flex gap-4 items-center justify-center p-6 rounded-xl">
-                <CochinoIcon className="w-12 h-12 text-gray-500" />
+                <span className="w-12 h-12 text-gray-500 flex items-center justify-center text-3xl">🐷</span>
                 <div className="font-display flex flex-col items-start">
                   <h3 className="text-lg text-primary font-medium">
                     {t("transferablebalance")}
@@ -78,7 +78,7 @@ const ListaRegalos = () => {
               </div>
             </div>
             <div className="w-full bg-white shadow-lg flex gap-4 items-center justify-center p-6 rounded-xl">
-              <AmazonIcon className="w-28 h-28 text-primary" />
+              <span className="w-28 h-28 text-primary flex items-center justify-center text-6xl">🛒</span>
               <div className="font-display flex flex-col items-start">
                 <h3 className="text-lg text-gray-400 font-medium leading-5">
                   {t("buildyourgiftlist")}
