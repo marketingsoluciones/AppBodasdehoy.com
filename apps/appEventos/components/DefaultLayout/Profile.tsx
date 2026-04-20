@@ -259,7 +259,7 @@ const Profile = ({ user, state, set, ...rest }) => {
                       <span>Notificaciones push activadas</span>
                     </div>
                   )}
-                  {isAuthenticatedUser && (
+                  {!!user?.uid && !["guest", "anonymous"].includes(user?.displayName) && (
                     <div
                       role="button"
                       tabIndex={0}
