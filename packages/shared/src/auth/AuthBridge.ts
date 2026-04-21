@@ -101,6 +101,83 @@ export const parseJwt = (token: string): any => {
   }
 };
 
+/**
+ * Decodifica JWT de sessionBodas (API2 / GraphQL auth) en cliente: sin verificar firma.
+ * No aplica la restricción `iss` de Firebase — esas cookies usan emisor propio.
+ * Solo rechaza tokens caducados (exp en el pasado).
+ */
+export const parseSessionJwt = (token: string | null | undefined): any => {
+  if (!token) return null;
+  try {
+    const base64Url = token.split('.')[1];
+    if (!base64Url) return null;
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const payload = JSON.parse(jsonPayload);
+    if (payload.exp && payload.exp < Date.now() / 1000) {
+      return null;
+    }
+    return payload;
+  } catch {
+    return null;
+  }
+};
+
+/** UID en cookie sessionBodas (API2): distintos backends usan distintos claims. */
+export const getSessionUidFromPayload = (
+  payload: Record<string, unknown> | null | undefined
+): string | undefined => {
+  if (!payload || typeof payload !== 'object') return undefined;
+  const candidates = [
+    payload.user_id,
+    payload.usuario_id,
+    payload.sub,
+    payload.uid,
+    payload.id,
+    payload._id,
+    payload.firebase_uid,
+    payload.userId,
+    payload.userID,
+    payload.UserID,
+    payload.firebaseUid,
+  ];
+  for (const c of candidates) {
+    if (c !== undefined && c !== null && String(c).length > 0) return String(c);
+  }
+  const nested = payload.user as { uid?: string } | undefined;
+  if (nested && typeof nested === 'object' && nested.uid) return String(nested.uid);
+  const data = payload.data as Record<string, unknown> | undefined;
+  if (data && typeof data === 'object') {
+    const dataCandidates = [
+      data.user_id,
+      data.usuario_id,
+      data.sub,
+      data.uid,
+      data.id,
+      data._id,
+      data.firebase_uid,
+      data.userId,
+      data.userID,
+    ];
+    for (const c of dataCandidates) {
+      if (c !== undefined && c !== null && String(c).length > 0) return String(c);
+    }
+    const nestedDataUser = data.user as { uid?: string } | undefined;
+    if (nestedDataUser && typeof nestedDataUser === 'object' && nestedDataUser.uid) {
+      return String(nestedDataUser.uid);
+    }
+  }
+  return undefined;
+};
+
+export const getSessionUserIdFromToken = (token: string | null | undefined): string | undefined =>
+  getSessionUidFromPayload(parseSessionJwt(token) as Record<string, unknown> | null);
+
 class AuthBridge {
   private static instance: AuthBridge;
   private listeners: Set<(state: SharedAuthState) => void> = new Set();
@@ -181,16 +258,16 @@ class AuthBridge {
     const sessionCookie = config ? Cookies.get(config.cookie) : null;
     const idToken = Cookies.get('idTokenV0.1.0');
 
-    // Parsear tokens de Firebase para identificar al usuario real
-    const sessionPayload = parseJwt(sessionCookie || '');
+    // SessionBodas: JWT custom API2 (no iss Firebase). idToken: Firebase ID token.
+    const sessionPayload = parseSessionJwt(sessionCookie || '');
     const idTokenPayload = parseJwt(idToken || '');
 
     // Obtener datos adicionales de localStorage (guardados por Lobe-Chat)
     const devUserConfig = this.getDevUserConfig();
 
     // isAuthenticated via sessionBodas (appEventos path) O via idTokenV0.1.0 solo (chat-ia SSO path)
-    // sessionPayload es un JWT custom (api2) con user_id; idTokenPayload es un Firebase ID token con sub/email
-    const sessionUserId = sessionPayload?.user_id;
+    // sessionPayload es un JWT custom (api2); idTokenPayload es un Firebase ID token con sub/email
+    const sessionUserId = getSessionUidFromPayload(sessionPayload as Record<string, unknown> | null);
     const idTokenUserId = idTokenPayload?.sub || idTokenPayload?.email || idTokenPayload?.user_id;
     const userId = sessionUserId || idTokenUserId;
     const isAuthenticated = !!(
