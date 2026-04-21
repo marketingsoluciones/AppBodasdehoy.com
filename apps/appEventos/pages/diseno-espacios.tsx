@@ -17,8 +17,13 @@ const STYLES = [
 
 const DisenioEspacios: FC = () => {
   useMounted()
-  const { user, verificationDone } = AuthContextProvider()
+  const { user, verificationDone, config } = AuthContextProvider()
   const { event } = EventContextProvider()
+
+  if (config?.copilotEnabled === false) {
+    if (typeof window !== 'undefined') window.location.replace('/')
+    return null
+  }
 
   if (verificationDone) {
     if (!user || user?.displayName === "guest") {

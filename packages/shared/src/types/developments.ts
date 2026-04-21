@@ -47,6 +47,8 @@ export interface DevelopmentConfig {
   gtm_id?: string;
   /** Zona horaria principal de la empresa */
   timeZone?: string;
+  /** Si el tenant tiene acceso al Copilot IA. Default: true solo para bodasdehoy */
+  copilotEnabled?: boolean;
 }
 
 export const developments: DevelopmentConfig[] = [
@@ -72,6 +74,7 @@ export const developments: DevelopmentConfig[] = [
     metaPixel_id: '1019487254775689',
     gtm_id: 'GTM-P6R3S584',
     timeZone: 'Europe/Madrid',
+    copilotEnabled: true,
   },
   {
     name: 'eventosplanificador',
