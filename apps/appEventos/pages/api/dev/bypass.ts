@@ -2,7 +2,7 @@
  * API Endpoint para activar el bypass de desarrollo
  * 
  * Uso:
- * - GET /api/dev/bypass?email=bodasdehoy.com@gmail.com
+ * - GET /api/dev/bypass?email=jcc@bodasdehoy.com
  * - O simplemente GET /api/dev/bypass (usa email por defecto)
  * 
  * Esto establece sessionStorage y redirige a la página principal
@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Obtener email del query string o usar el por defecto
-  const email = (req.query.email as string) || 'bodasdehoy.com@gmail.com'
+  const email = (req.query.email as string) || 'jcc@bodasdehoy.com'
 
   // Retornar HTML que establece sessionStorage y redirige
   const html = `
@@ -40,6 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Establecer flags de bypass
     sessionStorage.setItem('dev_bypass', 'true');
     sessionStorage.setItem('dev_bypass_email', '${email}');
+    const uid = new URLSearchParams(window.location.search).get('uid');
+    if (uid) sessionStorage.setItem('dev_bypass_uid', uid);
     
     console.log('[Dev Bypass] ✅ Bypass activado para:', '${email}');
     console.log('[Dev Bypass] Redirigiendo a la página principal...');
