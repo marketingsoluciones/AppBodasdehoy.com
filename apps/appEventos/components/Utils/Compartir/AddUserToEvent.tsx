@@ -80,9 +80,9 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
 
     return (
         <>
-            <div className="z-50 fixed top-0 left-0 w-screen h-screen" />
-            <div className="backdrop-blur backdrop-filter bg-black opacity-40 z-50 fixed top-0 left-0 w-screen h-screen" />
-            <div className={`w-[320px] md:w-[382px] h-[80%] md:h-[90%] bg-white shadow-lg fixed m-auto inset-0 z-50 rounded-xl`}>
+            <div className="z-[60] fixed top-0 left-0 w-screen h-screen" />
+            <div className="backdrop-blur backdrop-filter bg-black opacity-40 z-[60] fixed top-0 left-0 w-screen h-screen" />
+            <div className={`w-[320px] md:w-[382px] h-[80%] md:h-[90%] bg-white shadow-lg fixed m-auto inset-0 z-[60] rounded-xl`}>
                 <ClickAwayListener onClickAway={() => openModal && setOpenModal(false)} >
                     <div className="h-full py-5 flex flex-col">
                         <div className="flex justify-between border-b pb-1 text-[20px] mx-4">
