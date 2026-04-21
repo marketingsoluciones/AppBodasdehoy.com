@@ -49,14 +49,18 @@ export const ModalPermissionList: FC<props> = ({ data, setOpenModal, event }) =>
     }
 
     return (
-        <ClickAwayListener onClickAway={() => setOpenModal(false)}>
-            <div style={{ left: "50%", }} className={`fixed z-50 bg-gray-100 rounded-lg p-4 text-[15px] w-64 ml-[50%] -translate-x-[calc(50%+14px)] md:translate-x-36 space-y-4`}>
-                <PermissionList permissions={permissions} handleChange={handleChangePermision} setPermission={setPermissions} />
-                <div className="flex">
-                    <div className="flex-1" />
-                    <button onClick={() => setOpenModal(false)} className="bg-primary text-white rounded-lg px-5 py-2 h-10 capitalize">{t("save")}</button>
+        <>
+            <div className="fixed inset-0 z-[60] bg-black/20" onClick={() => setOpenModal(false)} />
+            <ClickAwayListener onClickAway={() => setOpenModal(false)}>
+                <div className={`fixed z-[60] bg-white rounded-xl shadow-xl p-4 text-[15px] w-[280px] md:w-[320px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 space-y-4 border border-gray-200`}>
+                    <p className="text-primary font-semibold text-sm">{data?.email}</p>
+                    <PermissionList permissions={permissions} handleChange={handleChangePermision} setPermission={setPermissions} />
+                    <div className="flex">
+                        <div className="flex-1" />
+                        <button onClick={() => setOpenModal(false)} className="bg-primary text-white rounded-lg px-5 py-2 h-10 capitalize">{t("save")}</button>
+                    </div>
                 </div>
-            </div>
-        </ClickAwayListener>
+            </ClickAwayListener>
+        </>
     )
 }
