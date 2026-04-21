@@ -37,11 +37,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     <p>Redirigiendo...</p>
   </div>
   <script>
-    // Establecer flags de bypass
-    sessionStorage.setItem('dev_bypass', 'true');
-    sessionStorage.setItem('dev_bypass_email', '${email}');
+    // Establecer flags de bypass (localStorage para que sobreviva al cerrar pestaña)
+    localStorage.setItem('dev_bypass', 'true');
+    localStorage.setItem('dev_bypass_email', '${email}');
     const uid = new URLSearchParams(window.location.search).get('uid');
-    if (uid) sessionStorage.setItem('dev_bypass_uid', uid);
+    if (uid) localStorage.setItem('dev_bypass_uid', uid);
     
     console.log('[Dev Bypass] ✅ Bypass activado para:', '${email}');
     console.log('[Dev Bypass] Redirigiendo a la página principal...');
