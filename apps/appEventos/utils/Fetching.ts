@@ -1,4 +1,5 @@
 import { api } from "../api";
+import { normalizeApi2HttpBase } from "./resolveApi2BaseUrl";
 
 /**
  * Mensaje amigable según el código HTTP del error de la API.
@@ -14,6 +15,12 @@ export function getApiErrorMessage(error: any): string | null {
   }
   if (status === 502 || status === 503) {
     return 'El servidor no está disponible. Inténtalo en unos minutos.';
+  }
+  if (typeof status === 'number' && status >= 500 && status < 600) {
+    return `Error del servidor (${status}). Inténtalo en unos minutos.`;
+  }
+  if (typeof error?.message === 'string' && error.message.includes('timeout')) {
+    return 'La petición tardó demasiado. Comprueba la conexión y reintenta.';
   }
   if (status === 429) {
     return 'Demasiadas peticiones. Espera un momento e inténtalo de nuevo.';
@@ -42,13 +49,17 @@ export const fetchApiBodas = async ({
   try {
     if (type === "json") {
       const {
-        data: { data },
+        data: { data, errors },
       } = await api.ApiBodas({
         data: { query, variables },
         development,
         token,
       });
-      return Object.values(data)[0];
+      if (!data && errors) {
+        console.warn("[fetchApiBodas] GraphQL errors:", errors);
+        return null;
+      }
+      return data ? Object.values(data)[0] : null;
     } else if (type === "formData") {
       const formData = new FormData();
       const values = Object?.entries(variables);
@@ -131,16 +142,58 @@ interface argsFetchApi {
   token?: string;
   domain?: string;
 }
+/** Retorno depende de la mutación/query; tipar en el callsite si hace falta. */
 export const fetchApiEventos = async ({
   query,
   variables,
   token,
-}: argsFetchApi) => {
+}: argsFetchApi): Promise<any> => {
   try {
-    const {
-      data: { data },
-    } = await api.ApiApp({ query, variables }, token);
-    return Object.values(data)[0];
+    const axiosRes = await api.ApiApp({ query, variables }, token);
+    const body = axiosRes?.data as { data?: Record<string, unknown>; errors?: unknown[] };
+    if (body?.errors?.length) {
+      const synthetic: Error & { response?: { status: number; data: typeof body } } = new Error(
+        body.errors
+          .map((e: any) => (typeof e?.message === 'string' ? e.message : ''))
+          .filter(Boolean)
+          .join('; ') || 'GraphQL error'
+      ) as Error & { response?: { status: number; data: typeof body } };
+      synthetic.response = { status: axiosRes.status, data: body };
+      throw synthetic;
+    }
+    const data = body?.data;
+    if (data == null) {
+      const synthetic: Error & { response?: { status: number; data: typeof body } } = new Error(
+        'Respuesta GraphQL sin campo data'
+      ) as Error & { response?: { status: number; data: typeof body } };
+      synthetic.response = { status: axiosRes.status, data: body };
+      throw synthetic;
+    }
+    const payload = Object.values(data)[0] as any;
+    if (
+      payload &&
+      typeof payload === 'object' &&
+      payload.success === false &&
+      Array.isArray(payload.errors) &&
+      payload.errors.length
+    ) {
+      const mapped = (payload.errors as Record<string, unknown>[]).map((e) => ({
+        message: typeof e?.message === 'string' ? e.message : '',
+        extensions: {
+          code:
+            typeof e?.code === 'string' && e.code.length
+              ? e.code
+              : 'INTERNAL_SERVER_ERROR',
+        },
+      }));
+      const synthetic: Error & { response?: { status: number; data: { errors: typeof mapped } } } =
+        new Error(
+          mapped.map((e) => e.message).filter(Boolean).join('; ') || 'La mutación devolvió success: false'
+        ) as Error & { response?: { status: number; data: { errors: typeof mapped } } };
+      synthetic.response = { status: axiosRes.status, data: { errors: mapped } };
+      throw synthetic;
+    }
+    return payload;
   } catch (error: any) {
     console.error("[fetchApiEventos] Error en la llamada API:", {
       message: error?.message,
@@ -203,7 +256,7 @@ export const fetchApiBodasServer = async ({
 }) => {
   const axios = require("axios");
   const serverInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_BASE_API_BODAS,
+    baseURL: normalizeApi2HttpBase(process.env.NEXT_PUBLIC_BASE_API_BODAS),
     timeout: 15000, // 15 segundos de timeout
   });
   try {
@@ -850,7 +903,10 @@ export const queries = {
     }
   }`,
   updateUser: `mutation ($uid:ID, $variable:String, $valor:String){
-    updateUser(uid:$uid, variable:$variable, valor:$valor)
+    updateUser(uid:$uid, variable:$variable, valor:$valor){
+      city
+      country
+    }
   }`,
   createUser: `mutation  ($uid : ID, $city: String, $country : String, $weddingDate : String, $phoneNumber : String, $role : [String]) {
     createUser(uid: $uid, city : $city, country : $country, weddingDate : $weddingDate, phoneNumber : $phoneNumber, role: $role){
