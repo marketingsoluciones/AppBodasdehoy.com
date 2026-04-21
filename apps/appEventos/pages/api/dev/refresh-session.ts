@@ -7,7 +7,7 @@
  * fetch('/api/dev/refresh-session', {
  *   method: 'POST',
  *   headers: {'Content-Type': 'application/json'},
- *   body: JSON.stringify({email: 'bodasdehoy.com@gmail.com'}),
+ *   body: JSON.stringify({email: 'jcc@bodasdehoy.com'}),
  *   credentials: 'include'
  * }).then(r => r.json()).then(d => { console.log(d); if(d.success) location.reload() })
  *
@@ -91,14 +91,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const cookies = new Cookies(req, res)
-    const { email } = req.body || {}
+    const { email, development } = req.body || {}
 
     // Opción 1: Autenticación por email (más fácil para desarrollo)
     if (email) {
-      console.log(`[dev/refresh-session] Intentando identificar usuario por email: ${email}`)
+      console.log(`[dev/refresh-session] Intentando identificar usuario por email: ${email} (development: ${development || 'bodasdehoy'})`)
 
       const { force } = req.body || {}
-      const userData = await identifyUserByEmail(email)
+      const userData = await identifyUserByEmail(email, development || 'bodasdehoy')
 
       // Si force=true y estamos en localhost o test, crear sesión sin verificar backend
       if (force && isDevOrTest && !userData?.success) {
@@ -178,7 +178,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({
         error: 'No idToken found and no email provided',
         hint: 'Usa {email: "tu@email.com"} en el body o asegúrate de tener idTokenV0.1.0 en las cookies',
-        usage: 'fetch("/api/dev/refresh-session", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({email: "bodasdehoy.com@gmail.com"}), credentials: "include"})'
+        usage: 'fetch("/api/dev/refresh-session", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({email: "jcc@bodasdehoy.com"}), credentials: "include"})'
       })
     }
 
@@ -219,7 +219,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({
         error: 'Could not get sessionCookie from backend',
         hint: 'El idToken puede haber expirado. Intenta con email en su lugar.',
-        usage: 'fetch("/api/dev/refresh-session", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({email: "bodasdehoy.com@gmail.com"}), credentials: "include"})'
+        usage: 'fetch("/api/dev/refresh-session", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({email: "jcc@bodasdehoy.com"}), credentials: "include"})'
       })
     }
   } catch (error: any) {

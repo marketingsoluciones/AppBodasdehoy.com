@@ -3,6 +3,7 @@ import { AuthContextProvider } from "../context";
 import { fetchApiBodas, fetchApiEventos, queries, getApiErrorMessage } from "../utils/Fetching";
 import { Event, detalle_compartidos_array } from '../utils/Interfaces';
 import { useRouter, usePathname } from 'next/navigation';
+import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
 
 /** Estado de filtro activo enviado por el Copilot via postMessage FILTER_VIEW */
 export interface CopilotFilter {
@@ -51,6 +52,24 @@ enum actions {
   ADD_EVENT,
   DELETE_EVENT,
   UPDATE_A_EVENT
+}
+
+/** Límite por consulta getEventsByID (GraphQL HTTP). Alineado con tolerancia a API lenta / red móvil (servidor SSR usa 15s en fetchApiEventosServer). */
+const GET_EVENTS_BY_ID_TIMEOUT_MS = 20_000;
+
+/** queryenEvento puede devolver array u objeto envoltorio según versión del backend. */
+function coerceQueryenEventoList(value: unknown): Event[] {
+  if (value == null) return [];
+  if (Array.isArray(value)) return value as Event[];
+  if (typeof value === 'object') {
+    const o = value as Record<string, unknown>;
+    if (Array.isArray(o.eventos)) return o.eventos as Event[];
+    if (Array.isArray(o.events)) return o.events as Event[];
+    if (Array.isArray(o.data)) return o.data as Event[];
+    if (Array.isArray(o.results)) return o.results as Event[];
+    if (typeof o._id === 'string') return [value as Event];
+  }
+  return [];
 }
 
 type action = {
@@ -105,9 +124,15 @@ const EventsGroupProvider = ({ children }) => {
   const clearCopilotFilter = useCallback(() => setCopilotFilterState(null), [])
   const refreshEventsGroup = useCallback(() => setRefreshTrigger(t => t + 1), [])
   const withTimeout = useCallback(<T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const timeoutPromise = new Promise<T>((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`${label} timeout (${ms}ms)`)), ms)
+    })
     return Promise.race([
-      promise,
-      new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`${label} timeout (${ms}ms)`)), ms))
+      promise.finally(() => {
+        if (timer !== undefined) clearTimeout(timer)
+      }),
+      timeoutPromise,
     ])
   }, [])
 
@@ -145,13 +170,15 @@ const EventsGroupProvider = ({ children }) => {
             setEventsGroupDone(true)
             return
           }
-          // Esperar a que config esté cargado para tener development correcto (String! requerido en la query)
-          if (!config?.development) return;
+          // `development` en GraphQL (String!): usar config si ya existe; si no, hostname (evita bloqueo eterno en carrera de effects).
+          const development =
+            config?.development ||
+            (typeof window !== 'undefined' ? getDevelopmentNameFromHostname(window.location.hostname) : 'bodasdehoy');
           // BYPASS: Verificar si hay eventos del bypass en sessionStorage
           const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
           const isTestEnv = hostname.includes('chat-test') || hostname.includes('app-test') || hostname.includes('test.') || hostname.includes('localhost') || hostname.includes('127.0.0.1') || hostname.includes('app-dev')
-          const devBypass = typeof window !== 'undefined' && sessionStorage.getItem('dev_bypass') === 'true'
-          const bypassEventos = typeof window !== 'undefined' ? sessionStorage.getItem('dev_bypass_eventos') : null
+          const devBypass = typeof window !== 'undefined' && (localStorage.getItem('dev_bypass') === 'true' || sessionStorage.getItem('dev_bypass') === 'true')
+          const bypassEventos = typeof window !== 'undefined' ? (localStorage.getItem('dev_bypass_eventos') || sessionStorage.getItem('dev_bypass_eventos')) : null
 
           if (isTestEnv && devBypass) {
             console.log("[EventsGroup] 🔓 Bypass activo, bypassEventos:", bypassEventos ? 'presente' : 'vacío')
@@ -173,7 +200,7 @@ const EventsGroupProvider = ({ children }) => {
           }
 
           // Si estamos en bypass, usar el usuario_id del bypass
-          const userIdToUse = user?.uid || (sessionStorage.getItem('dev_bypass') === 'true' ? sessionStorage.getItem('dev_bypass_uid') : null)
+          const userIdToUse = user?.uid || ((localStorage.getItem('dev_bypass') === 'true' || sessionStorage.getItem('dev_bypass') === 'true') ? (localStorage.getItem('dev_bypass_uid') || sessionStorage.getItem('dev_bypass_uid')) : null)
           
           if (!userIdToUse) {
             console.warn("[EventsGroup] No hay user.uid disponible para buscar eventos")
@@ -184,25 +211,52 @@ const EventsGroupProvider = ({ children }) => {
           console.log("[EventsGroup] Buscando eventos para usuario_id:", userIdToUse)
           setEventsGroupError(false)
           setEventsGroupErrorMessage(null)
+          setEventsGroupSessionExpired(false)
           setEventsGroupDone(false)  // Reset para que EventLoadingOrError muestre skeleton durante re-fetch
           const startTime = performance.now()
           let detailsStartTime = startTime
 
-          // BUG-013: Buscar eventos propios Y compartidos en paralelo
-          Promise.all([
+          // BUG-013: Buscar eventos propios Y compartidos en paralelo.
+          // No usar .catch(() => []) por petición: un 500/timeout quedaba como "lista vacía" sin error en UI.
+          Promise.allSettled([
             withTimeout(fetchApiEventos({
               query: queries.getEventsByID,
-              variables: { variable: "usuario_id", valor: userIdToUse, development: config?.development },
-            }), 6500, "getEventsByID(usuario_id)").catch(() => [] as Event[]),
+              variables: { variable: "usuario_id", valor: userIdToUse, development },
+            }), GET_EVENTS_BY_ID_TIMEOUT_MS, "getEventsByID(usuario_id)"),
             withTimeout(fetchApiEventos({
               query: queries.getEventsByID,
-              variables: { variable: "compartido_array", valor: userIdToUse, development: config?.development },
-            }), 6500, "getEventsByID(compartido_array)").catch(() => [] as Event[]),
-          ]).then(([owned, shared]) => {
-            // Merge sin duplicados (por _id)
+              variables: { variable: "compartido_array", valor: userIdToUse, development },
+            }), GET_EVENTS_BY_ID_TIMEOUT_MS, "getEventsByID(compartido_array)"),
+          ]).then((results) => {
+            const [ownedSettled, sharedSettled] = results;
+
+            if (ownedSettled.status === "rejected" && sharedSettled.status === "rejected") {
+              console.error(
+                "[EventsGroup] queryenEvento: fallaron ambas consultas (usuario_id y compartido_array). development=",
+                development,
+                "uid(prefix)=",
+                String(userIdToUse).slice(0, 10),
+                ownedSettled.reason,
+                sharedSettled.reason
+              );
+              throw ownedSettled.reason;
+            }
+
+            const owned: Event[] =
+              ownedSettled.status === "fulfilled" ? coerceQueryenEventoList(ownedSettled.value) : [];
+            const shared: Event[] =
+              sharedSettled.status === "fulfilled" ? coerceQueryenEventoList(sharedSettled.value) : [];
+
+            if (ownedSettled.status === "rejected") {
+              console.warn("[EventsGroup] getEventsByID(usuario_id) falló:", ownedSettled.reason);
+            }
+            if (sharedSettled.status === "rejected") {
+              console.warn("[EventsGroup] getEventsByID(compartido_array) falló:", sharedSettled.reason);
+            }
+
             const seen = new Set<string>();
             const events: Event[] = [];
-            for (const e of [...(Array.isArray(owned) ? owned : []), ...(Array.isArray(shared) ? shared : [])]) {
+            for (const e of [...owned, ...shared]) {
               if (e?._id && !seen.has(e._id)) { seen.add(e._id); events.push(e); }
             }
             return events;
@@ -263,6 +317,7 @@ const EventsGroupProvider = ({ children }) => {
               const errorTime = performance.now() - startTime
               const status = error?.response?.status
               console.error(`[EventsGroup] ❌ Error después de ${errorTime.toFixed(0)}ms (status ${status}):`, error)
+              setEventsGroup({ type: "INITIAL_STATE", payload: [] })
               if (status === 401 || status === 403) {
                 console.warn('[EventsGroup] 401/403: sesión expirada o no autorizada')
                 setEventsGroupSessionExpired(true)
