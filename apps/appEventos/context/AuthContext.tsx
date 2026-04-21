@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { getAuth, onAuthStateChanged, signInWithCustomToken, getRedirectResult } from 'firebase/auth'
 import Cookies from 'js-cookie'
 import { nanoid, customAlphabet, } from 'nanoid'
@@ -16,7 +16,12 @@ import { initializeApp } from "firebase/app";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useActivity } from "../hooks/useActivity";
 import { isTestSubdomain, normalizeRedirectAfterLogin } from "../utils/urlHelpers";
-import { authBridge, parseJwt } from '@bodasdehoy/shared/auth';
+import {
+  authBridge,
+  parseJwt,
+  parseSessionJwt,
+  getSessionUserIdFromToken,
+} from '@bodasdehoy/shared/auth';
 import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
 import { registerReferralIfPending, trackRegistrationComplete, sendAttributionToApi } from '@bodasdehoy/shared';
 
@@ -119,6 +124,12 @@ const AuthProvider = ({ children }) => {
   const [triggerAuthStateChanged, setTriggerAuthStateChanged] = useState<number | null>(null)
   const [isStartingRegisterOrLogin, setIsStartingRegisterOrLogin] = useState<boolean>(null)
   const [showSkipLoadingButton, setShowSkipLoadingButton] = useState(false)
+  /** Segundos en pantalla de arranque (auth) — feedback cuando la red o SSO van lentos. */
+  const authBootStartRef = useRef<number | null>(null)
+  const [authBootSeconds, setAuthBootSeconds] = useState(0)
+  /** Tras restaurar sessionBodas desde API2, si el JWT sigue sin UID reconocible, no reintentar en bucle. */
+  const skipApi2SessionRestoreKeyRef = useRef<string | null>(null)
+  const verificatorDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [WihtProvider, SetWihtProvider] = useState<boolean>(false)
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -286,18 +297,19 @@ const AuthProvider = ({ children }) => {
       const devBypass = sessionStorage.getItem('dev_bypass') === 'true'
 
       if (isTestEnv && devBypass) {
-        console.log("[Auth] 🔓 Bypass de desarrollo activo para subdominio de test (NO localhost)")
-        // Crear usuario de desarrollo simulado CON UID REAL
+        const bypassEmail = sessionStorage.getItem('dev_bypass_email') || 'jcc@bodasdehoy.com'
+        const bypassUid = sessionStorage.getItem('dev_bypass_uid') || 'upSETrmXc7ZnsIhrjDjbHd7u2up1'
+        console.log("[Auth] 🔓 Bypass activo:", bypassEmail, bypassUid)
         const devUser = {
-          uid: 'upSETrmXc7ZnsIhrjDjbHd7u2up1', // UID REAL de bodasdehoy.com@gmail.com
-          email: 'bodasdehoy.com@gmail.com',
-          displayName: 'Usuario Dev',
+          uid: bypassUid,
+          email: bypassEmail,
+          displayName: bypassEmail.split('@')[0],
           role: ['creator'],
           status: true
         }
         setUser(devUser)
         setVerificationDone(true)
-        return // Saltar todo el flujo de autenticación
+        return
       }
 
       // Manejar resultado del redirect de login (Google/Facebook)
@@ -571,15 +583,22 @@ const AuthProvider = ({ children }) => {
   }, [config]);
 
   useEffect(() => {
-    if (triggerAuthStateChanged && !isStartingRegisterOrLogin) {
-      const user = getAuth().currentUser
-      const sessionCookie = Cookies.get(config?.cookie);
-      verificator({ user, sessionCookie })
-    }
     if (isStartingRegisterOrLogin) {
       setIsStartingRegisterOrLogin(false)
+      return
     }
-  }, [triggerAuthStateChanged])
+    if (!triggerAuthStateChanged) return
+    if (verificatorDebounceRef.current) clearTimeout(verificatorDebounceRef.current)
+    verificatorDebounceRef.current = setTimeout(() => {
+      verificatorDebounceRef.current = null
+      const u = getAuth().currentUser
+      const sessionCookie = Cookies.get(config?.cookie)
+      void verificator({ user: u, sessionCookie })
+    }, 400)
+    return () => {
+      if (verificatorDebounceRef.current) clearTimeout(verificatorDebounceRef.current)
+    }
+  }, [triggerAuthStateChanged, config?.cookie])
 
   // ✅ Timeout de seguridad: si la verificación no termina en 4s, mostrar la app como guest
   // 4s da tiempo suficiente para el flujo SSO cross-domain (authStatus + signInWithCustomToken)
@@ -614,7 +633,9 @@ const AuthProvider = ({ children }) => {
       });
       // Guard: if user logged out while this async call was in flight, do not overwrite null
       if (!getAuth().currentUser) return;
-      setUser({ ...user, ...userInfo });
+      const firebaseUid = getAuth().currentUser?.uid || user?.uid
+      // getUser no pide `uid` en GraphQL; si la API devolviera campos extra, no deben pisar el UID de Firebase (query eventos usa usuario_id === uid).
+      setUser({ ...user, ...userInfo, uid: firebaseUid });
       updateActivity("accessed")
       // Sincronizar sesión con apps/copilot via AuthBridge (escribe dev-user-config en localStorage)
       if (config) {
@@ -631,14 +652,23 @@ const AuthProvider = ({ children }) => {
     }
   }
 
-  const verificator = async ({ user, sessionCookie }) => {
+  const verificator = async ({
+    user,
+    sessionCookie,
+    skipSessionRestore = false,
+  }: {
+    user: any
+    sessionCookie?: string | null
+    skipSessionRestore?: boolean
+  }) => {
     try {
       console.log("[Verificator] Iniciando verificación", {
         hasUser: !!user,
         userUid: user?.uid,
         hasSessionCookie: !!sessionCookie,
         sessionCookieLength: sessionCookie?.length,
-        isStartingLogin: isStartingRegisterOrLogin
+        isStartingLogin: isStartingRegisterOrLogin,
+        skipSessionRestore,
       })
 
       // Si estamos en proceso de login, no verificar aún (dar tiempo a que se obtenga la sessionCookie)
@@ -647,15 +677,28 @@ const AuthProvider = ({ children }) => {
         return
       }
 
-      // Evitar parseJwt con valor inválido (undefined/null/vacío) por si acaso
-      const sessionCookieParsed = sessionCookie && typeof sessionCookie === 'string' ? parseJwt(sessionCookie) : null
+      // SessionBodas: JWT API2 (parseSessionJwt). idToken: parseJwt (iss Firebase).
+      const sessionCookieParsed =
+        sessionCookie && typeof sessionCookie === 'string' ? parseSessionJwt(sessionCookie) : null
+      const sessionUidFromCookie = getSessionUserIdFromToken(
+        sessionCookie && typeof sessionCookie === 'string' ? sessionCookie : null
+      )
+      if (sessionUidFromCookie) skipApi2SessionRestoreKeyRef.current = null
+
       console.log("[Verificator] SessionCookie parseada:", {
-        hasUserId: !!sessionCookieParsed?.user_id,
-        userId: sessionCookieParsed?.user_id,
-        matches: sessionCookieParsed?.user_id === user?.uid
+        hasUserId: !!sessionUidFromCookie,
+        userId: sessionUidFromCookie,
+        matches: sessionUidFromCookie === user?.uid
       })
 
-      if (!sessionCookieParsed?.user_id && user?.uid && !user?.isAnonymous) {
+      if (!sessionUidFromCookie && user?.uid && !user?.isAnonymous && !skipSessionRestore) {
+        const restoreLoopKey = `${user.uid}|${sessionCookie ?? ''}`
+        if (skipApi2SessionRestoreKeyRef.current === restoreLoopKey) {
+          console.warn('[Verificator] Evitando bucle: sessionBodas ya restaurada y sigue sin UID en JWT')
+          setUser(user)
+          moreInfo(user)
+          return
+        }
         console.warn("[Verificator] ⚠️ Usuario autenticado en Firebase pero sin sessionCookie válida")
         // FIX falsa sesión: intentar establecer sessionBodas desde el token Firebase antes de continuar
         // Solo para usuarios reales — los anónimos deben pasar por el SSO cross-domain más abajo
@@ -689,7 +732,20 @@ const AuthProvider = ({ children }) => {
                   sameSite: 'lax',
                 })
                 console.log('[Verificator] ✅ sessionBodas restablecida desde Firebase token')
-                await verificator({ user, sessionCookie: sessionResult.sessionCookie })
+                const restoredUid = getSessionUserIdFromToken(sessionResult.sessionCookie)
+                const postRestoreKey = `${user.uid}|${sessionResult.sessionCookie}`
+                if (restoredUid) {
+                  await verificator({
+                    user,
+                    sessionCookie: sessionResult.sessionCookie,
+                    skipSessionRestore: true,
+                  })
+                } else {
+                  console.warn('[Verificator] Cookie auth sin UID reconocible en payload; se continúa con Firebase.')
+                  skipApi2SessionRestoreKeyRef.current = postRestoreKey
+                  setUser(user)
+                  moreInfo(user)
+                }
                 return
               }
             }
@@ -697,16 +753,18 @@ const AuthProvider = ({ children }) => {
         } catch (sessionRestoreErr: any) {
           console.warn('[Verificator] ⚠️ No se pudo restablecer sessionBodas:', sessionRestoreErr?.message)
         }
+        // No reintentar auth API2 en bucle por cada onAuthStateChanged si ya falló con esta cookie/uid
+        skipApi2SessionRestoreKeyRef.current = restoreLoopKey
         // Fallback: continuar sin sessionBodas (acceso limitado)
         setUser(user)
         moreInfo(user) // ← setVerificationDone(true) se llama dentro de moreInfo
         return
       }
-      if (sessionCookieParsed?.user_id && user?.uid) {
-        if (sessionCookieParsed?.user_id !== user?.uid) {
+      if (sessionUidFromCookie && user?.uid) {
+        if (sessionUidFromCookie !== user?.uid) {
           console.error("[Verificator] ❌ Usuario no coincide con sessionCookie!")
           console.error("[Verificator] Firebase UID:", user?.uid)
-          console.error("[Verificator] SessionCookie UID:", sessionCookieParsed?.user_id)
+          console.error("[Verificator] SessionCookie UID:", sessionUidFromCookie)
 
           // La sessionCookie pertenece a otro usuario (p.ej. cookie caducada o SSO de otro tenant).
           // Usamos el usuario Firebase autenticado como fuente de verdad para no bloquear la UI
@@ -715,13 +773,13 @@ const AuthProvider = ({ children }) => {
           moreInfo(user)
           return
         }
-        if (sessionCookieParsed?.user_id === user?.uid) {
+        if (sessionUidFromCookie === user?.uid) {
           console.log("[Verificator] ✅ Usuario verificado correctamente")
           setUser(user)
           moreInfo(user)
         }
       }
-      if (sessionCookieParsed?.user_id && !user?.uid) {
+      if (sessionUidFromCookie && !user?.uid) {
         const resp = await fetchApiBodas({
           query: queries.authStatus,
           variables: { sessionCookie },
@@ -737,17 +795,17 @@ const AuthProvider = ({ children }) => {
               console.error('[Auth] signInWithCustomToken falló:', error?.code, error?.message)
               // Fallback: si tenemos userId de la sessionCookie, cargar datos del usuario directamente
               // Esto ocurre cuando el dominio no está autorizado en Firebase (ej. app-test.bodasdehoy.com)
-              if (sessionCookieParsed?.user_id) {
-                console.warn('[Auth] Fallback SSO: cargando usuario desde sessionCookie userId:', sessionCookieParsed.user_id)
+              if (sessionUidFromCookie) {
+                console.warn('[Auth] Fallback SSO: cargando usuario desde sessionCookie userId:', sessionUidFromCookie)
                 try {
                   const userInfo = await fetchApiBodas({
                     query: queries.getUser,
-                    variables: { uid: sessionCookieParsed.user_id },
+                    variables: { uid: sessionUidFromCookie },
                     development: config?.development
                   })
                   if (userInfo) {
                     console.log('[Auth] ✅ Fallback SSO exitoso, usuario cargado:', userInfo?.email)
-                    setUser({ uid: sessionCookieParsed.user_id, ...userInfo })
+                    setUser({ uid: sessionUidFromCookie, ...userInfo })
                     setVerificationDone(true)
                     return
                   }
@@ -836,7 +894,7 @@ const AuthProvider = ({ children }) => {
         }
         setUser({ uid: guestUid, displayName: "guest" })
         setVerificationDone(true)
-      } else if (user?.uid && !sessionCookieParsed?.user_id) {
+      } else if (user?.uid && !sessionUidFromCookie) {
         // Usuario autenticado en Firebase pero sin sessionCookie
         // Usar los datos de Firebase temporalmente
         console.log("[Verificator] ⚠️ Usuario autenticado en Firebase sin sessionCookie")
@@ -844,7 +902,7 @@ const AuthProvider = ({ children }) => {
         setUser(user)
         moreInfo(user)
       }
-      if (!sessionCookieParsed?.user_id && !user?.uid) {
+      if (!sessionUidFromCookie && !user?.uid) {
         setVerificationDone(true)
       }
     } catch (error) {
@@ -871,6 +929,21 @@ const AuthProvider = ({ children }) => {
     const t = setTimeout(() => setShowSkipLoadingButton(true), 2000);
     return () => clearTimeout(t);
   }, []);
+
+  // Cronómetro en overlay de auth (solo mientras verificationDone === false)
+  useEffect(() => {
+    if (verificationDone) {
+      authBootStartRef.current = null;
+      setAuthBootSeconds(0);
+      return;
+    }
+    if (authBootStartRef.current === null) authBootStartRef.current = Date.now();
+    const id = window.setInterval(() => {
+      const s = Math.floor((Date.now() - (authBootStartRef.current ?? Date.now())) / 1000);
+      setAuthBootSeconds(s);
+    }, 300);
+    return () => clearInterval(id);
+  }, [verificationDone]);
 
   // Timeout de seguridad: desbloquear UI si la verificación se cuelga (antes 5s; algo más corto mejora sensación de carga).
   useEffect(() => {
@@ -908,8 +981,11 @@ const AuthProvider = ({ children }) => {
     >
       <div style={{ pointerEvents: 'none' }}>
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-pink-500 mx-auto" />
-        <p className="mt-4 text-gray-700 font-medium">Cargando...</p>
-        <p className="mt-1 text-sm text-gray-400">Si tarda, la app se mostrará en unos segundos aunque la red vaya despacio.</p>
+        <p className="mt-4 text-gray-700 font-medium">Comprobando sesión y conexión…</p>
+        <p className="mt-1 text-lg font-semibold tabular-nums text-primary">{authBootSeconds}s</p>
+        <p className="mt-1 max-w-xs text-center text-sm text-gray-400">
+          El contenido principal (banner, tarjetas) carga después de este paso. Si el contador sube mucho, suele ser red lenta o el servidor de datos.
+        </p>
       </div>
       {showSkipLoadingButton && (
         <button
