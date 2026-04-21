@@ -77,11 +77,7 @@ const Invitados: FC = () => {
 };
 
   const ConditionalAction = ({ e }) => {
-    if ((event?.invitados_array?.length ?? 0) >= 200) {
-      setActionModals(!actionModals)
-    } else {
-      handleClick(e, "invitado")
-    }
+    handleClick(e, "invitado")
   }
 
   if (verificationDone) {
