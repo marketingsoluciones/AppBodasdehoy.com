@@ -294,11 +294,11 @@ const AuthProvider = ({ children }) => {
       // BYPASS: Para subdominios de test SOLAMENTE (no localhost)
       // localhost ahora usa autenticación real de Firebase
       const isTestEnv = window.location.hostname.includes('chat-test') || window.location.hostname.includes('app-test') || window.location.hostname.includes('test.') || window.location.hostname.includes('app-dev')
-      const devBypass = sessionStorage.getItem('dev_bypass') === 'true'
+      const devBypass = localStorage.getItem('dev_bypass') === 'true' || sessionStorage.getItem('dev_bypass') === 'true'
 
       if (isTestEnv && devBypass) {
-        const bypassEmail = sessionStorage.getItem('dev_bypass_email') || 'jcc@bodasdehoy.com'
-        const bypassUid = sessionStorage.getItem('dev_bypass_uid') || 'upSETrmXc7ZnsIhrjDjbHd7u2up1'
+        const bypassEmail = localStorage.getItem('dev_bypass_email') || sessionStorage.getItem('dev_bypass_email') || 'jcc@bodasdehoy.com'
+        const bypassUid = localStorage.getItem('dev_bypass_uid') || sessionStorage.getItem('dev_bypass_uid') || 'upSETrmXc7ZnsIhrjDjbHd7u2up1'
         console.log("[Auth] 🔓 Bypass activo:", bypassEmail, bypassUid)
         const devUser = {
           uid: bypassUid,
