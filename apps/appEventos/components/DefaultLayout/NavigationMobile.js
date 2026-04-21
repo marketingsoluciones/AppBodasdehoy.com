@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { usePathname } from "next/navigation";
-import { AuthContextProvider, EventContextProvider } from "../../context";
-import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
 import { InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
 import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
@@ -13,24 +12,42 @@ import ClickAwayListener from "react-click-away-listener";
 const NavigationMobile = () => {
   const { t } = useTranslation();
   const pathname = usePathname();
+  const router = useRouter();
   const toast = useToast();
   const { event } = EventContextProvider();
   const { user } = AuthContextProvider();
+  const { eventsGroup, eventsGroupDone } = EventsGroupContextProvider();
   const [show, setShow] = useState(false)
   const [itemSelect, setItemSelect] = useState()
+
+  const goNav = (item) => {
+    if (item.condicion === "verdadero") {
+      setItemSelect(item.title)
+      router.push(item.route)
+      return
+    }
+    if (!eventsGroupDone) {
+      toast("warning", t("waitEventsListToast"))
+      router.push("/")
+      return
+    }
+    const hasEvents = Array.isArray(eventsGroup) && eventsGroup.length > 0
+    toast("error", t(hasEvents ? "selectEventFromHomeToast" : "youmustcreateevent"))
+    router.push("/")
+  }
 
   const Navbar = [
     {
       title: "Mis eventos",
       icon: <MisEventosIcon className="text-primary w-7 h-7" />,
       route: "/",
-      condicion: event?._id ? "verdadero" : "falso"
+      condicion: "verdadero"
     },
     {
       title: "Resumen",
       icon: <ResumenIcon />,
       route: "/resumen-evento",
-      condicion: event?._id ? "verdadero" : "falso"
+      condicion: event?._id ? "verdadero" : "falso",
     },
     {
       title: "Invitados",
@@ -82,24 +99,40 @@ const NavigationMobile = () => {
               <IoIosArrowDown className={`w-6 h-6 transition duration-500 ease-in-out ${!show ? "scale-y-[-1]" : "scale-y-[1]"}`} />
             </div>
             {visibleNavbar.slice(0, 6).map((item, idx) => (
-              <Link key={idx} href={item.route} className="">
-                <li
-                  onClick={() => { item.condicion === "verdadero" ? setItemSelect(item.title) : toast("error", t("youmustcreateevent")) }}
-                  className={`cursor-pointer transition text-primary hover:scale-[115%] hover:opacity-100 ${pathname === item.route && itemSelect === item.title ? "opacity-100 scale-[115%]" : "opacity-70"}`}>
-                  {item.icon}
-                </li>
-              </Link>
+              <li
+                key={idx}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    goNav(item)
+                  }
+                }}
+                onClick={() => goNav(item)}
+                className={`cursor-pointer transition text-primary hover:scale-[115%] hover:opacity-100 ${pathname === item.route && itemSelect === item.title ? "opacity-100 scale-[115%]" : "opacity-70"}`}
+              >
+                {item.icon}
+              </li>
             ))}
           </div>
           <div className={`w-full grid grid-cols-2 pt-1 pb-5 place-items-center`}>
             {visibleNavbar.slice(6).map((item, idx) => (
-              <Link key={idx} href={item.route}>
-                <li
-                  onClick={() => { item.condicion === "verdadero" ? setItemSelect(item.title) : toast("error", t("youmustcreateevent")) }}
-                  className={`cursor-pointer transition text-primary hover:scale-[115%] hover:opacity-100 ${pathname === item.route && itemSelect === item.title ? "opacity-100 scale-[115%]" : "opacity-70"}`}>
-                  {item.icon}
-                </li>
-              </Link>
+              <li
+                key={idx}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    goNav(item)
+                  }
+                }}
+                onClick={() => goNav(item)}
+                className={`cursor-pointer transition text-primary hover:scale-[115%] hover:opacity-100 ${pathname === item.route && itemSelect === item.title ? "opacity-100 scale-[115%]" : "opacity-70"}`}
+              >
+                {item.icon}
+              </li>
             ))}
           </div>
         </ul >

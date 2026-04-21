@@ -66,10 +66,11 @@ const nextConfig = {
   },
 
   // Configuración experimental para compatibilidad
-  experimental: {
-    // Optimizar imports de paquetes grandes
-    optimizePackageImports: ['react-icons', 'lucide-react', 'framer-motion', '@lobehub/ui', 'antd', '@ant-design/icons', 'date-fns'],
-  },
+  experimental: process.env.NODE_ENV === 'production'
+    ? {
+        optimizePackageImports: ['react-icons', 'lucide-react', 'framer-motion', '@lobehub/ui', 'antd', '@ant-design/icons', 'date-fns', 'swiper'],
+      }
+    : {},
 
   // Turbopack: equivalentes de los aliases webpack críticos
   // Evita instancias duplicadas de React (resolveDispatcher is null)

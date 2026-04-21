@@ -2,6 +2,7 @@ import { GetServerSideProps, NextPage } from 'next';
 import Head from 'next/head';
 import { useState, useRef } from 'react';
 import { fetchApiEventosServer } from '../../utils/Fetching';
+import { developmentFromRequestHost } from '../../utils/ssrDevelopment';
 import { MdOutlineQrCode2 } from 'react-icons/md';
 
 const SEATING_QUERY = `
@@ -223,14 +224,15 @@ const BuscadorMesa: NextPage<Props> = ({ eventId, eventName, eventType, eventImg
   );
 };
 
-export const getServerSideProps: GetServerSideProps = async ({ params }) => {
+export const getServerSideProps: GetServerSideProps = async ({ params, req }) => {
   const eventId = params?.eventId as string;
-  const development = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy';
+  const development = developmentFromRequestHost(req?.headers?.host);
 
   try {
     const data = await fetchApiEventosServer({
       query: SEATING_QUERY,
       variables: { var_1: eventId },
+      development,
     });
 
     const eventos = data?.queryenEvento_id;

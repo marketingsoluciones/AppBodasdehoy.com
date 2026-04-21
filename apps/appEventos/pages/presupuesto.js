@@ -8,7 +8,7 @@ import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider }
 import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
 import { getCurrency } from "../utils/Funciones";
 import VistaSinCookie from "./vista-sin-cookie";
-import GuestDemoWrapper from "../components/Utils/GuestDemoWrapper";
+import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
 import { SkeletonBudget } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import BlockTitle from "../components/Utils/BlockTitle";
@@ -74,14 +74,17 @@ const Presupuesto = () => {
   if (verificationDone) {
     if (user?.displayName === 'guest') {
       return (
-        <GuestDemoWrapper
+        <GuestUpsellPage
           section="Control de presupuesto"
           icon="💰"
-          description="Lleva el control total del presupuesto de tu boda: categorías, pagos y proveedores."
-        >
-          <MontoPresupuesto />
-        </GuestDemoWrapper>
-      )
+          description="Con una cuenta gratuita podrás registrar gastos reales, categorías y pagos vinculados a tu evento."
+          benefits={[
+            "Totales por categoría y comparación con estimado",
+            "Seguimiento de pagos a proveedores",
+            "Exportación para compartir con tu pareja o wedding planner",
+          ]}
+        />
+      );
     }
     if (!user) {
       return (

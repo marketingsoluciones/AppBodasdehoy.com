@@ -11,7 +11,8 @@ export default async function handler(
   }
 
   try {
-    const baseURL = 'https://api.bodasdehoy.com';
+    const primaryBaseURL = process.env.API_BODAS_URL || 'https://api2.eventosorganizador.com';
+    const fallbackBaseURL = process.env.API_BODAS_URL_FALLBACK;
 
     // Extraer headers necesarios del request original
     const headers: any = {
@@ -33,7 +34,7 @@ export default async function handler(
       headers.IsProduction = req.headers.isproduction;
     }
 
-    console.log('[API Proxy Bodas] Proxying request to:', `${baseURL}/graphql`);
+    console.log('[API Proxy Bodas] Proxying request to:', `${primaryBaseURL}/graphql`);
     console.log('[API Proxy Bodas] Headers:', {
       hasAuth: !!headers.Authorization,
       hasDevelopment: !!headers.Development,
@@ -42,8 +43,7 @@ export default async function handler(
     });
     console.log('[API Proxy Bodas] Query:', req.body?.query?.substring(0, 200));
 
-    // Hacer la petición al backend
-    const response = await axios.post(
+    const doRequest = (baseURL: string) => axios.post(
       `${baseURL}/graphql`,
       req.body,
       {
@@ -51,6 +51,19 @@ export default async function handler(
         timeout: 30000 // 30 segundos
       }
     );
+
+    let response;
+    try {
+      response = await doRequest(primaryBaseURL);
+    } catch (error: any) {
+      const isNetworkError = !error?.response;
+      if (isNetworkError && fallbackBaseURL && fallbackBaseURL !== primaryBaseURL) {
+        console.warn('[API Proxy Bodas] Primary host falló. Reintentando con fallback:', fallbackBaseURL);
+        response = await doRequest(fallbackBaseURL);
+      } else {
+        throw error;
+      }
+    }
 
     // Devolver la respuesta
     return res.status(response.status).json(response.data);
@@ -67,7 +80,7 @@ export default async function handler(
       return res.status(error.response.status).json(error.response.data);
     } else {
       // Error de red o timeout
-      return res.status(500).json({
+      return res.status(503).json({
         error: 'Proxy error',
         message: error?.message
       });

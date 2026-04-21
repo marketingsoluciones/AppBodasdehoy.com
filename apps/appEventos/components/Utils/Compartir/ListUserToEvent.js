@@ -37,7 +37,7 @@ const User = ({ data, event }) => {
             const f2 = eventsGroup[f1].detalles_compartidos_array?.findIndex(elem => elem.uid === data?.uid)
             eventsGroup[f1].detalles_compartidos_array?.splice(f2, 1)
             eventsGroup[f1].compartido_array.splice(f2, 1)
-            setEventsGroup([...eventsGroup])
+            setEventsGroup({ type: "INITIAL_STATE", payload: eventsGroup.map((e, i) => (i === f1 ? { ...e } : e)) })
             setEvent({ ...eventsGroup[f1] })
             await fetchApiEventos({
                 query: queries.deleteCompartitions,

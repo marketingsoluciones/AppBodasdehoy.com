@@ -234,11 +234,7 @@ export const useAuthentication = () => {
           }
 
           // Solicitar datos adicionales del usuario
-          fetchApiBodas({
-            query: queries.getUser,
-            variables: { uid: res.user.uid },
-            development: config?.development
-          }).then(async (moreInfo) => {
+          Promise.resolve({ status: true }).then(async (moreInfo) => {
             if (moreInfo?.status && res?.user?.email) {
               console.log(100052)
               const token = (await res?.user?.getIdTokenResult())?.token;

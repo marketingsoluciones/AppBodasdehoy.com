@@ -1,15 +1,15 @@
-import { LoadingContextProvider } from "../../context"
+import { useEffect } from "react";
+import { LoadingContextProvider } from "../../context";
 
 const Event = () => {
-  const { setLoading } = LoadingContextProvider()
+  const { setLoading } = LoadingContextProvider();
 
-  setLoading(true)
+  useEffect(() => {
+    setLoading(true);
+    window.location.replace("/");
+  }, [setLoading]);
 
-  window.location.href = "/"
+  return null;
+};
 
-  return
-
-}
-
-export default Event
-
+export default Event;

@@ -1,6 +1,7 @@
 
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import { fetchApiEventos, fetchApiEventosServer, queries } from "../../utils/Fetching";
+import { developmentFromRequestHost } from "../../utils/ssrDevelopment";
 import { Event, Task } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
 import { AuthContextProvider, EventContextProvider } from "../../context";
@@ -13,15 +14,26 @@ import { useTranslation } from "react-i18next";
 import { BsCalendarPlus } from "react-icons/bs";
 
 interface props {
-  evento: Event
-  slug?: any
-  error?: string
+  evento: Event | null
+  slug?: string[] | null
+  /** Código o mensaje serializable desde getServerSideProps */
+  error?: string | null
 }
 
 interface TaskReduce {
   fecha: number
   tasks?: Task[]
 }
+
+const apiAppImgBase = (process.env.NEXT_PUBLIC_BASE_URL || "https://apiapp.bodasdehoy.com").replace(/\/$/, "");
+
+const PublicItineraryUnavailable = ({ title, body }: { title: string; body: string }) => (
+  <div className="min-h-[60vh] w-full flex flex-col items-center justify-center px-6 py-16 text-center bg-base">
+    <h1 className="text-xl font-semibold text-gray-800 mb-3">{title}</h1>
+    <p className="text-sm text-gray-600 max-w-md leading-relaxed">{body}</p>
+    <p className="mt-6 text-xs text-gray-400">Si el enlace lo compartió el organizador, pídele que lo vuelva a enviar.</p>
+  </div>
+)
 
 const Slug: FC<props> = (props) => {
   const { event, setEvent } = EventContextProvider()
@@ -30,15 +42,41 @@ const Slug: FC<props> = (props) => {
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
   const { t } = useTranslation()
 
+  if (props?.error) {
+    const isSlug = props.error === "invalid-slug"
+    return (
+      <PublicItineraryUnavailable
+        title={isSlug ? "Enlace no válido" : "No se pudo cargar el itinerario"}
+        body={
+          isSlug
+            ? "La dirección del itinerario está incompleta o mal formada. Comprueba que hayas abierto el enlace completo."
+            : "Hubo un problema al obtener los datos. Puede ser temporal: prueba de nuevo en unos minutos."
+        }
+      />
+    )
+  }
+
+  /** Si eventsGroup está vacío (invitado en ruta pública), EventContext hace setEvent(null) al cambiar user; no perder el SSR. */
+  const effectiveEvent = useMemo(() => {
+    if (event?.itinerarios_array?.length) return event
+    if (props.evento?.itinerarios_array?.length) return props.evento
+    return null
+  }, [event, props.evento])
+
   const slugParts = props?.slug?.[0]?.split("-") || []
   const eventId = slugParts[1]
   const itinerarioId = slugParts[2]
 
   useEffect(() => {
-    const tasks = props?.evento.itinerarios_array[0].tasks.filter((task) => task.spectatorView === true)
-    props.evento.itinerarios_array[0].tasks = tasks
-    setEvent({ ...props.evento })
-  }, [props])
+    const ev = props?.evento
+    if (!ev?.itinerarios_array?.[0]) return
+    const it0 = ev.itinerarios_array[0]
+    const tasks = (it0.tasks || []).filter((task) => task.spectatorView === true)
+    setEvent({
+      ...ev,
+      itinerarios_array: [{ ...it0, tasks }, ...ev.itinerarios_array.slice(1)],
+    })
+  }, [props.evento, setEvent])
 
   useEffect(() => {
     setTimeout(() => {
@@ -47,8 +85,9 @@ const Slug: FC<props> = (props) => {
   }, [])
 
   useEffect(() => {
-    if (event?.itinerarios_array[0]?.tasks?.length > 0) {
-      const tasks = [event?.itinerarios_array[0]?.tasks?.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())]
+    const ev = effectiveEvent
+    if (ev?.itinerarios_array?.[0]?.tasks?.length > 0) {
+      const tasks = [ev?.itinerarios_array?.[0]?.tasks?.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())]
       const taskReduce: TaskReduce[] = tasks[0].reduce((acc: TaskReduce[], item: Task) => {
         const f = new Date(item.fecha)
         const y = f.getUTCFullYear()
@@ -67,19 +106,20 @@ const Slug: FC<props> = (props) => {
     } else {
       setTasksReduce([])
     }
-  }, [event])
+  }, [effectiveEvent])
 
-  if (!event?.itinerarios_array?.length) {
+  if (!props?.evento?.itinerarios_array?.length) {
     return (
-      <div className="bg-[#ffbfbf] text-blue-700 w-full h-full text-center mt-20">
-        Page not found error 404
-      </div>
+      <PublicItineraryUnavailable
+        title="Itinerario no disponible"
+        body="No encontramos un itinerario público con este enlace. Puede haberse despublicado, el evento haber cambiado o el enlace ser antiguo."
+      />
     )
   }
 
   return (
     <>{
-      event &&
+      effectiveEvent &&
       <section className={"absolute z-[50] w-full h-[100vh] top-0 bg-white"}>
         <motion.div
           initial={{ opacity: 0 }}
@@ -89,8 +129,8 @@ const Slug: FC<props> = (props) => {
           <div className={`w-full h-14 rounded-xl shadow-lg flex items-center`}>
             <div className='flex flex-1 flex-col px-2 md:px-6 font-display'>
               <div className='flex flex-col'>
-                <span className='md:hidden capitalize text-primary text-[12px] leading-[12px]'>{event?.tipo}</span>
-                <span className='md:hidden capitalize text-gray-600 text-[12px] leading-[12px] font-medium line-clamp-2'>{event?.nombre}</span>
+                <span className='md:hidden capitalize text-primary text-[12px] leading-[12px]'>{effectiveEvent?.tipo}</span>
+                <span className='md:hidden capitalize text-gray-600 text-[12px] leading-[12px] font-medium line-clamp-2'>{effectiveEvent?.nombre}</span>
               </div>
             </div>
             {eventId && itinerarioId && (
@@ -109,24 +149,24 @@ const Slug: FC<props> = (props) => {
                   <TimeZone />
                   <span className="text-[11px]">{t("timeZone")}</span>
                 </div>
-                <span className="text-xs">{getTimeZoneCity(event?.timeZone) || getTimeZoneCity(config?.timeZone)}</span>
+                <span className="text-xs">{getTimeZoneCity(effectiveEvent?.timeZone) || getTimeZoneCity(config?.timeZone)}</span>
               </div>
             </div>
             <div className='md:flex-none h-[100%] flex flex-row-reverse md:flex-row items-center '>
               <img
-                src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event?.imgEvento?.i800}` : defaultImagenes[event?.tipo?.toLowerCase()]}
+                src={effectiveEvent?.imgEvento ? `${apiAppImgBase}/${effectiveEvent?.imgEvento?.i800}` : defaultImagenes[effectiveEvent?.tipo?.toLowerCase()]}
                 className="h-[90%] object-cover object-top rounded-md border-1 border-gray-600 block"
-                alt={event?.nombre}
+                alt={effectiveEvent?.nombre}
               />
               <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2 leading-3'>
-                <span className='text-sm text-primary text-[12px] first-letter:capitalize'>{event?.tipo}</span>
-                <span className='uppercase w-64 leading-[14px] line-clamp-2'>{event?.nombre}</span>
+                <span className='text-sm text-primary text-[12px] first-letter:capitalize'>{effectiveEvent?.tipo}</span>
+                <span className='uppercase w-64 leading-[14px] line-clamp-2'>{effectiveEvent?.nombre}</span>
               </div>
             </div>
           </div>
           <div className="w-full px-4 md:px-10 py-4" >
             <div className="flex flex-col justify-center items-center">
-              <span className="text-3xl md:text-[40px] font-title text-primary">{event?.itinerarios_array[0]?.title}</span>
+              <span className="text-3xl md:text-[40px] font-title text-primary">{effectiveEvent?.itinerarios_array?.[0]?.title}</span>
               <div className="w-[100px] bg-primary h-0.5 rounded-md mt-2" />
             </div>
           </div >
@@ -142,7 +182,7 @@ const Slug: FC<props> = (props) => {
                   <TaskNew
                     key={idx}
                     task={elem}
-                    itinerario={event?.itinerarios_array[0]}
+                    itinerario={effectiveEvent?.itinerarios_array?.[0]}
                     view={"schema"}
                     onClick={() => { }}
                   />
@@ -160,11 +200,21 @@ const Slug: FC<props> = (props) => {
 export default Slug;
 
 
-export async function getServerSideProps({ params }) {
+export async function getServerSideProps({ params, req }) {
   try {
-    const p = params?.slug[0]?.split("-")
+    const p = params?.slug?.[0]?.split("-")
     const evento_id = p[1]
     const itinerario_id = p[2]
+    if (!evento_id || !itinerario_id) {
+      return {
+        props: {
+          evento: null,
+          slug: params?.slug || null,
+          error: "invalid-slug",
+        },
+      };
+    }
+    const development = developmentFromRequestHost(req?.headers?.host)
     let evento: Event | null = null;
     try {
       const data = await fetchApiEventosServer({
@@ -172,7 +222,8 @@ export async function getServerSideProps({ params }) {
         variables: {
           evento_id,
           itinerario_id
-        }
+        },
+        development,
       });
       evento = data.getItinerario;
     } catch (error) {
@@ -189,7 +240,7 @@ export async function getServerSideProps({ params }) {
       }
     }
     if (evento) {
-      openGraphData.openGraph.title = `${evento?.itinerarios_array[0]?.title}`
+      openGraphData.openGraph.title = `${evento?.itinerarios_array?.[0]?.title || "Itinerario"}`
       openGraphData.openGraph.description = `Mira el itinerario del evento ${evento?.nombre} y no te pierdas de nada`
     }
     return {
@@ -198,12 +249,14 @@ export async function getServerSideProps({ params }) {
         slug: params.slug || null,
       },
     };
-  } catch (error) {
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : typeof error === "string" ? error : "unknown-error"
     return {
       props: {
         evento: null,
         slug: params.slug || null,
-        error: error
+        error: message,
       },
     };
   }

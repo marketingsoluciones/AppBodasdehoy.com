@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { fetchApiEventosServer, queries } from '../../../../utils/Fetching';
+import { developmentFromRequestHost } from '../../../../utils/ssrDevelopment';
 import { Task } from '../../../../utils/Interfaces';
 
 function escapeIcal(str: string): string {
@@ -72,12 +73,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const cleanItinerarioId = itinerarioId.replace(/\.ics$/, '');
 
   try {
+    const development = developmentFromRequestHost(req.headers?.host);
     const data = await fetchApiEventosServer({
       query: queries.getItinerario,
       variables: {
         evento_id: eventId,
         itinerario_id: cleanItinerarioId,
       },
+      development,
     });
 
     const evento = data?.getItinerario;

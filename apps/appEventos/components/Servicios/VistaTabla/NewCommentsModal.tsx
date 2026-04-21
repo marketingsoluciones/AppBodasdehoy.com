@@ -31,6 +31,25 @@ export const NewCommentsModal: React.FC<CommentsModalProps> = ({
     setComments(task.comments || []);
   }, [task.comments]);
 
+  // FRONT-03: Marcar usuario como viewer de comentarios al abrir el modal
+  useEffect(() => {
+    if (!isOpen || !user?.uid || !itinerario?._id || !task?._id) return;
+    const viewers: string[] = task.commentsViewers || [];
+    if (viewers.includes(user.uid)) return; // Ya marcado
+    const updated = [...viewers, user.uid];
+    fetchApiEventos({
+      query: queries.editTask,
+      variables: {
+        eventID: itinerario.evento_id,
+        itinerarioID: itinerario._id,
+        taskID: task._id,
+        variable: 'commentsViewers',
+        valor: JSON.stringify(updated),
+      },
+      domain: config?.domain,
+    }).catch(() => {}); // Fire-and-forget
+  }, [isOpen, user?.uid, itinerario?._id, task?._id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Auto-scroll al agregar nuevos comentarios
   useEffect(() => {
     if (comments.length > previousCountComments) {

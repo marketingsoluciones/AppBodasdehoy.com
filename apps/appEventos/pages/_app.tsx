@@ -2,13 +2,11 @@ import '../styles/globals.css'
 import '../utils/react-polyfill' // Polyfill para findDOMNode en React 19
 import '../utils/next-navigation-polyfill' // Polyfill para next/navigation en Pages Router
 import DefaultLayout from '../layouts/DefaultLayout'
-import 'swiper/css';
-import "swiper/css/bundle"
-import "@fontsource/italiana";
-import "@fontsource/montserrat";
-import "@fontsource/poppins";
+/** Un solo CSS de Swiper: `bundle` ya incluye estilos base + módulos (evita duplicar con `swiper/css`). */
+import 'swiper/css/bundle'
+import "../styles/fonts-app";
 import { AuthContextProvider, EventContextProvider } from '../context';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import i18n from "../utils/i18n"
 import { useAllowedRouter } from '../hooks/useAllowed';
@@ -22,25 +20,38 @@ import { developments } from '../firebase';
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
 import useDevLogger from '../hooks/useDevLogger';
-import DevWhitelabelSwitcher from '../components/Dev/DevWhitelabelSwitcher';
 import { verifyDomain, logUrlVerification, type UrlCheckResult } from '../utils/verifyUrls';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { CopilotPrewarmer } from '../components/Copilot/CopilotPrewarmer';
 import { captureTrackingParams } from '@bodasdehoy/shared';
 
-const MyApp = ({ Component, pageProps, openGraphData }) => {
+
+const DevWhitelabelSwitcher = dynamic(
+  () => import('../components/Dev/DevWhitelabelSwitcher'),
+  { ssr: false }
+);
+
+const MyApp = ({ Component, pageProps }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
   const [message, setMessage] = useState<string>()
+  const router = useRouter()
+
+  // OG data calculada en cliente (antes estaba en getInitialProps bloqueando SSR)
+  const ogData = useMemo(() => {
+    const host = typeof window !== 'undefined' ? window.location.hostname : ''
+    const arr = host.split('.')
+    const f1 = arr.findIndex((elem) => ['com', 'mx'].includes(elem))
+    const nameDomain = f1 > 0 ? arr[f1 - 1] : undefined
+    const development = developments.find((elem) => elem.name === nameDomain)
+    const path = '/' + router.pathname.split('/')[1]
+    return dataMetaData.find((elem) => elem.ruta === path)?.metaData(development) ?? {}
+  }, [router.pathname])
 
   useEffect(() => {
     if (valirBlock !== undefined) {
-      fetchApiBodas({
-        query: queries.getDevelopment,
-        variables: {},
-        development: varGlobalDevelopment
-      }).then(res => {
-        setMessage(res?.message?.message)
-      })
+      // Query getDevelopment puede no existir en algunos backends/proxies.
+      // Evitar ruido 400 en runtime y mantener la app funcional.
+      setMessage(undefined)
     }
   }, [valirBlock])
 
@@ -85,7 +96,6 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
   }, [])
 
   // Rutas públicas del portal del invitado — sin auth, sin nav, sin layout autenticado
-  const router = useRouter()
   const isPublicPortal = router.pathname.startsWith('/e/') || router.pathname.startsWith('/buscador-mesa/')
 
   if (isPublicPortal) {
@@ -102,12 +112,12 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
   return (
     <ErrorBoundary>
       <NextSeo
-        {...openGraphData}
+        {...ogData}
       />
       <I18nextProvider i18n={i18n}>
         <DefaultLayout>
-          {/* Pre-calentar el chat de LobeChat en segundo plano */}
-          <CopilotPrewarmer />
+          {/* En desarrollo evita prewarm para no penalizar el primer compile */}
+          {process.env.NODE_ENV === "production" && <CopilotPrewarmer />}
           {!!message && <div className='bg-yellow-400 absolute top-[7.5rem] left-0 w-full bg-red-500 z-50 flex items-center justify-center'>
             <span className='text-center px-10 py-0.5'>{message}</span>
           </div>}
@@ -122,29 +132,6 @@ const MyApp = ({ Component, pageProps, openGraphData }) => {
     </ErrorBoundary>
   )
 }
-
-export let openGraphData = {} as any
-// Esta función se ejecuta en el servidor en cada petición
-MyApp.getInitialProps = async ({ Component, ctx }) => {
-  const { req, pathname } = ctx;
-  let pageProps = {};
-
-  // Remover puerto del host si existe (ej: app-test.bodasdehoy.com:8080 → app-test.bodasdehoy.com)
-  const hostWithPort = req ? req.headers.host : window.location.hostname;
-  const host = hostWithPort?.split(':')[0];
-
-  const arr = host?.split(".")
-  const f1 = arr?.findIndex(elem => ["com", "mx"].includes(elem))
-  const nameDomain = arr[f1 - 1]
-  const development = developments.find(elem => elem.name === nameDomain)
-  const path = "/" + pathname.split("/")[1]
-  openGraphData = dataMetaData.find(elem => elem.ruta === path)?.metaData(development) ?? {}
-
-  if (Component.getInitialProps) {
-    pageProps = await Component.getInitialProps(ctx);
-  }
-  return { pageProps, openGraphData };
-};
 
 export default MyApp
 
@@ -222,8 +209,7 @@ const Load = ({ setValirBlock }) => {
       </Head>
       <PixelTracker />
       <style jsx global>
-        {`@import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap');
-      :root {
+        {`:root {
         --color-primary: ${themePrimary};
         --color-secondary: ${themeSecondary};
         --color-tertiary: ${themeTertiary};
@@ -234,7 +220,7 @@ const Load = ({ setValirBlock }) => {
       ::-webkit-scrollbar { width: 8px; }
       ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 6px; }
       ::-webkit-scrollbar-thumb { background: ${themeScroll}; border-radius: 6px; height: 50%; }
-      .my-emoji { white-space: pre-wrap; font-family: Montserrat, 'Noto Color Emoji'; }`}
+      .my-emoji { white-space: pre-wrap; font-family: Montserrat, 'Noto Color Emoji', sans-serif; }`}
       </style>
     </>
   )

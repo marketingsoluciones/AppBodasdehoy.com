@@ -1,6 +1,7 @@
 
 import { FC, useEffect, useState } from "react";
 import { fetchApiEventosServer, fetchApiBodasServer, queries } from "../../utils/Fetching";
+import { developmentFromRequestHost } from "../../utils/ssrDevelopment";
 import { Event } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
 import { defaultImagenes } from "../../components/Home/Card";
@@ -10,34 +11,53 @@ import { AuthContextProvider } from "../../context/AuthContext";
 import { EventContextProvider } from "../../context";
 import { TempPastedAndDropFile } from "../../components/Itinerario/MicroComponente/ItineraryPanel";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 interface props {
-  evento: Event
+  evento: Event | null
   users: any
   slug?: any
   query?: any
-  error?: any
+  error?: string | null
   development?: string
 }
 
+const PublicCardMessage = ({ title, body }: { title: string; body: string }) => (
+  <div className="min-h-[60vh] w-full flex flex-col items-center justify-center px-6 py-16 text-center bg-base">
+    <h1 className="text-xl font-semibold text-gray-800 mb-3">{title}</h1>
+    <p className="text-sm text-gray-600 max-w-md leading-relaxed">{body}</p>
+  </div>
+)
+
 const Slug: FC<props> = (props) => {
-  // Manejar error de getServerSideProps
+  const { t } = useTranslation()
+
   if (props?.error) {
+    const isSlug = props.error === "invalid-slug"
+    const detail =
+      typeof props.error === "string" && !isSlug ? props.error : null
     return (
-      <div className="bg-[#ffbfbf] text-red-700 w-full h-full text-center mt-20">
-        <h1 className="text-xl font-bold mb-4">Error al cargar la tarjeta</h1>
-        <p className="text-sm">Error: {props.error?.message || props.error}</p>
-        <p className="text-sm mt-2">Por favor, intenta de nuevo más tarde.</p>
-      </div>
+      <PublicCardMessage
+        title={isSlug ? t("publicCardInvalidLinkTitle") : t("publicCardLoadErrorTitle")}
+        body={
+          isSlug
+            ? t("publicCardInvalidLinkBody")
+            : detail
+              ? `${t("publicCardLoadErrorBody")} (${detail})`
+              : t("publicCardLoadErrorBody")
+        }
+      />
     )
   }
 
-  if (!props?.evento?.itinerarios_array?.length)
+  if (!props?.evento?.itinerarios_array?.length) {
     return (
-      <div className="bg-[#ffbfbf] text-blue-700 w-full h-full text-center mt-20">
-        Page not found error 404
-      </div>
+      <PublicCardMessage
+        title={t("publicCardUnavailableTitle")}
+        body={t("publicCardUnavailableBody")}
+      />
     )
+  }
   return (
     <ServicesVew evento={props.evento} />
   )
@@ -158,11 +178,26 @@ const ServicesVew = (props) => {
 
 export async function getServerSideProps(context) {
   const { params, query, req } = context
+  const development = developmentFromRequestHost(req?.headers?.host)
   let error_2 = null
   try {
-    const p = params?.slug[0]?.split("-")
-    const evento_id = p?.[1] || query?.event;
-    const itinerario_id = p?.[2] || query?.itinerary;
+    const slug0 = params?.slug?.[0]
+    const p = slug0?.split("-")
+    const evento_id = p?.[1] || query?.event
+    const itinerario_id = p?.[2] || query?.itinerary
+
+    if (!evento_id || !itinerario_id) {
+      return {
+        props: {
+          evento: null,
+          users: [],
+          query: query || {},
+          slug: params?.slug ?? null,
+          error: "invalid-slug",
+          development,
+        },
+      }
+    }
 
     let evento: Event | null = null;
     try {
@@ -171,7 +206,8 @@ export async function getServerSideProps(context) {
         variables: {
           evento_id,
           itinerario_id
-        }
+        },
+        development,
       });
       evento = data.getItinerario;
     } catch (error) {
@@ -181,16 +217,28 @@ export async function getServerSideProps(context) {
           variables: {
             evento_id,
             itinerario_id
-          }
+          },
+          development,
         }) as any;
       } catch (error2) {
         throw error2;
       }
     }
 
-    const itinerary = evento.itinerarios_array.find(elem => elem._id === query.itinerary)
-    const task = itinerary?.tasks?.find(elem => elem._id === query.task)
-    const development = getDevelopment(req.headers.host)
+    if (!evento || !Array.isArray(evento.itinerarios_array) || !evento.itinerarios_array.length) {
+      return {
+        props: {
+          evento: null,
+          users: [],
+          query: query || {},
+          slug: params?.slug ?? null,
+          development,
+        },
+      }
+    }
+
+    const itinerary = evento.itinerarios_array.find((elem) => elem._id === query?.itinerary)
+    const task = itinerary?.tasks?.find((elem) => elem._id === query?.task)
 
     let users = [];
     if (task?.comments?.length > 0) {
@@ -198,24 +246,26 @@ export async function getServerSideProps(context) {
         const data = await fetchApiBodasServer({
           query: queries?.getUsers,
           variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
-          development: !/^\d+$/.test(development) ? development : "champagne-events"
+          development,
         });
-        users = data.getUsers || [];
+        users = Array.isArray(data?.getUsers) ? data.getUsers : [];
       } catch (error) {
         try {
           error_2 = error
-          users = await fetchApiBodasServer({
+          const dataRetry = await fetchApiBodasServer({
             query: queries?.getUsers,
             variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
-            development: !/^\d+$/.test(development) ? development : "champagne-events"
+            development,
           });
+          users = Array.isArray(dataRetry?.getUsers) ? dataRetry.getUsers : [];
         } catch (error2) {
           error_2 = error2
           users = [];
         }
       }
     }
-    const usersMap = users?.map(elem => {
+    const usersList = Array.isArray(users) ? users : []
+    const usersMap = usersList.map((elem) => {
       return {
         uid: elem.uid,
         displayName: elem?.displayName,
@@ -227,52 +277,37 @@ export async function getServerSideProps(context) {
       itinerary.tasks = [task]
       evento.itinerarios_array = [itinerary]
     }
-    evento.detalles_compartidos_array = users
+    evento.detalles_compartidos_array = usersList
     evento.fecha_actualizacion = new Date().toLocaleString()
-    if (evento) {
-      openGraphData.openGraph.title = `${evento.itinerarios_array[0].tasks[0].descripcion}`
+    const firstTask = evento.itinerarios_array?.[0]?.tasks?.[0]
+    if (firstTask?.descripcion) {
+      openGraphData.openGraph.title = `${firstTask.descripcion}`
       openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion?.toString() || '0'))?.toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
-`    }
+`
+    }
 
-    // Solo incluir error_2 en props si no es null
-    const props: any = { ...params, query, evento, users: usersMap, development };
+    const props: any = { query: query || {}, evento, users: usersMap, development, slug: params?.slug ?? null };
     if (error_2 !== null) {
-      props.error_2 = error_2 instanceof Error ? { message: error_2.message, name: error_2.name } : String(error_2);
+      props.error_2 =
+        error_2 instanceof Error ? error_2.message : typeof error_2 === "string" ? error_2 : String(error_2)
     }
 
     return { props };
-  } catch (error) {
-    const props = {
-      ...params,
-      query,
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : typeof error === "string" ? error : "unknown-error"
+    const props: any = {
+      query: query || {},
       evento: null,
       users: null,
-      error: error instanceof Error ? { message: error.message, name: error.name } : String(error),
-      development: getDevelopment(req.headers.host)
-    };
+      error: message,
+      development,
+      slug: params?.slug ?? null,
+    }
     if (error_2 !== null) {
-      props.error_2 = error_2 instanceof Error ? { message: error_2.message, name: error_2.name } : String(error_2);
+      props.error_2 =
+        error_2 instanceof Error ? error_2.message : typeof error_2 === "string" ? error_2 : String(error_2)
     }
     return { props };
   }
-}
-
-const getDevelopment = (host) => {
-  let domain = '';
-  if (host) {
-    // Eliminar el puerto si existe (ej: localhost:3000)
-    const hostWithoutPort = host.split(':')[0];
-    const parts = hostWithoutPort.split('.');
-    const numParts = parts.length;
-    if (numParts >= 2) {
-      domain = parts.slice(-2).join('.');
-      // Caso especial para dominios como co.uk, com.ar, etc.
-      if (numParts > 2 && ['.co', '.com', '.net', '.org'].some(tld => domain.startsWith(tld))) {
-        domain = parts.slice(-3).join('.');
-      }
-    } else {
-      domain = hostWithoutPort; // Si no hay puntos, asumimos que es el dominio
-    }
-  }
-  return domain.split(".")[0]
 }

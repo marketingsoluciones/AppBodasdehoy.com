@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-const BODAS_API_URL = 'https://api.bodasdehoy.com';
+const BODAS_API_URL = process.env.API_BODAS_URL || 'https://api2.eventosorganizador.com';
+const BODAS_API_URL_FALLBACK = process.env.API_BODAS_URL_FALLBACK || '';
 
 export default async function handler(
   req: NextApiRequest,
@@ -13,14 +14,16 @@ export default async function handler(
 
   const { path } = req.query;
   const targetPath = Array.isArray(path) ? path.join('/') : path || '';
-  const targetUrl = `${BODAS_API_URL}/${targetPath}`;
+  const primaryUrl = `${BODAS_API_URL}/${targetPath}`;
+  const fallbackUrl = BODAS_API_URL_FALLBACK ? `${BODAS_API_URL_FALLBACK}/${targetPath}` : '';
 
   // Log para debug
   const queryName = req.body?.query?.match(/(?:query|mutation)\s+(\w+)/)?.[1] ||
                     req.body?.query?.match(/{\s*(\w+)/)?.[1] || 'unknown';
   console.log('[Proxy-Bodas] Request:', {
     method: req.method,
-    targetUrl,
+    targetUrl: primaryUrl,
+    fallbackUrl: fallbackUrl || null,
     queryName,
     hasBody: !!req.body,
     headers: {
@@ -44,11 +47,23 @@ export default async function handler(
       requestHeaders['IsProduction'] = req.headers['isproduction'] as string;
     }
 
-    const response = await fetch(targetUrl, {
+    const makeRequest = (url: string) => fetch(url, {
       method: req.method,
       headers: requestHeaders,
       body: req.method !== 'GET' && req.method !== 'HEAD' ? JSON.stringify(req.body) : undefined,
     });
+
+    let response: Response;
+    try {
+      response = await makeRequest(primaryUrl);
+    } catch (error) {
+      if (fallbackUrl && fallbackUrl !== primaryUrl) {
+        console.warn('[Proxy-Bodas] Primary host falló. Reintentando fallback:', fallbackUrl);
+        response = await makeRequest(fallbackUrl);
+      } else {
+        throw error;
+      }
+    }
 
     const data = await response.json();
 
@@ -62,7 +77,7 @@ export default async function handler(
     res.status(response.status).json(data);
   } catch (error) {
     console.error('[Proxy-Bodas] Error:', error);
-    res.status(500).json({ error: 'Proxy error', details: String(error) });
+    res.status(503).json({ error: 'Proxy error', details: String(error) });
   }
 }
 

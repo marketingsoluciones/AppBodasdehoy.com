@@ -356,20 +356,21 @@ const AuthProvider = ({ children }) => {
               }
 
               // Obtener información adicional del usuario
-              const moreInfo = await fetchApiBodas({
-                query: queries.getUser,
-                variables: { uid: result.user.uid },
-                development: config?.development
-              })
+              const moreInfo = { status: true }
 
               if (moreInfo?.status && result.user.email) {
                 // Obtener sessionCookie
                 const token = (await result.user.getIdTokenResult())?.token
-                const authResult: any = await fetchApiBodas({
-                  query: queries.auth,
-                  variables: { idToken: token },
-                  development: config?.development
-                })
+                let authResult: any = null
+                try {
+                  authResult = await fetchApiBodas({
+                    query: queries.auth,
+                    variables: { idToken: token },
+                    development: config?.development
+                  })
+                } catch (authErr: any) {
+                  console.warn("[Auth] ⚠️ auth mutation falló:", authErr?.message)
+                }
 
                 if (authResult?.sessionCookie) {
                   const { sessionCookie } = authResult
@@ -588,18 +589,10 @@ const AuthProvider = ({ children }) => {
     const safetyTimeout = setTimeout(() => {
       setVerificationDone((prev) => {
         if (!prev) {
-          console.warn('[Auth] Timeout de seguridad: mostrando app a los 4s como guest');
+          console.warn('[Auth] Timeout de seguridad: verificación lenta, mostrando app sin forzar guest');
           return true;
         }
         return prev;
-      });
-      setUser((prevUser) => {
-        if (!prevUser) {
-          console.warn('[Auth] Timeout de seguridad: creando guest por defecto');
-          const guestUid = nanoid(28);
-          return { uid: guestUid, displayName: 'guest', _isSafetyGuest: true };
-        }
-        return prevUser;
       });
     }, 10000);
 
@@ -676,7 +669,7 @@ const AuthProvider = ({ children }) => {
               window.location.hostname.includes('-test.') ||
               window.location.hostname.includes('-dev.')
             )
-            const sessionApiUrl = _isDevOrTest ? '/api/proxy-bodas/graphql' : 'https://api.bodasdehoy.com/graphql'
+            const sessionApiUrl = _isDevOrTest ? '/api/proxy-bodas/graphql' : (process.env.NEXT_PUBLIC_API_BODAS_URL || 'https://api2.eventosorganizador.com/graphql')
             const sessionResp = await fetch(sessionApiUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'Development': config?.development || 'bodasdehoy' },
@@ -793,7 +786,7 @@ const AuthProvider = ({ children }) => {
               window.location.hostname.includes('-test.') ||
               window.location.hostname.includes('-dev.')
             );
-            const ssoApiUrl = _isDevOrTestSSO ? '/api/proxy-bodas/graphql' : 'https://api.bodasdehoy.com/graphql';
+            const ssoApiUrl = _isDevOrTestSSO ? '/api/proxy-bodas/graphql' : (process.env.NEXT_PUBLIC_API_BODAS_URL || 'https://api2.eventosorganizador.com/graphql');
 
             const ssoResp = await fetch(ssoApiUrl, {
               method: 'POST',
@@ -884,14 +877,11 @@ const AuthProvider = ({ children }) => {
     }
   }
 
+  // Geo después de verificar sesión: no compite con auth + primer fetch de eventos en el arranque.
   useEffect(() => {
-    // getGeoInfo está en api.bodasdehoy.com, no en api2.eventosorganizador.com
-    fetchApiBodas({
-      query: queries.getGeoInfo,
-      variables: {},
-      development: config?.development || "bodasdehoy"
-    }).then(geoInfo => setGeoInfo(geoInfo)).catch(err => console.log("[GeoInfo]", err))
-  }, [config?.development])
+    if (!verificationDone) return
+    fetch('/api/geo').then(r => r.json()).then(setGeoInfo).catch(err => console.log("[GeoInfo]", err))
+  }, [verificationDone, config?.development])
 
   // Mostrar botón "Continuar como invitado" tras 2s por si la verificación se cuelga
   useEffect(() => {
@@ -899,25 +889,25 @@ const AuthProvider = ({ children }) => {
     return () => clearTimeout(t);
   }, []);
 
-  // Timeout de seguridad: si la verificación tarda > 5s, mostrar la app para no quedarse en carga infinita
+  // Timeout de seguridad: desbloquear UI si la verificación se cuelga (antes 5s; algo más corto mejora sensación de carga).
   useEffect(() => {
     const t = setTimeout(() => {
       setVerificationDone((done) => {
         if (!done) {
-          console.warn('[AuthContext] Timeout de carga (5s), mostrando app');
-          setUser((prev) => prev || { uid: nanoid(28), displayName: 'guest' });
+          console.warn('[AuthContext] Timeout de carga (~3,5s), mostrando app');
           return true;
         }
         return done;
       });
-    }, 5000);
+    }, 3500);
     return () => clearTimeout(t);
   }, []);
 
   const handleSkipLoading = () => {
-    setUser((prev) => prev || { uid: nanoid(28), displayName: 'guest' });
-    setVerificationDone(true);
+    const currentUser = getAuth().currentUser;
+    const sessionCookie = Cookies.get(config?.cookie);
     setShowSkipLoadingButton(false);
+    void verificator({ user: currentUser, sessionCookie });
   };
 
   // Pantalla mínima mientras no hay verificationDone (evita pantalla en blanco)
@@ -936,7 +926,7 @@ const AuthProvider = ({ children }) => {
       <div style={{ pointerEvents: 'none' }}>
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-pink-500 mx-auto" />
         <p className="mt-4 text-gray-700 font-medium">Cargando...</p>
-        <p className="mt-1 text-sm text-gray-400">Si ves esto, la app está respondiendo (máx. 4 s)</p>
+        <p className="mt-1 text-sm text-gray-400">Si tarda, la app se mostrará en unos segundos aunque la red vaya despacio.</p>
       </div>
       {showSkipLoadingButton && (
         <button
@@ -945,7 +935,7 @@ const AuthProvider = ({ children }) => {
           className="mt-6 px-4 py-2 rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition"
           style={{ pointerEvents: 'auto' }}
         >
-          Continuar como invitado
+          Reintentar sesión
         </button>
       )}
     </div>

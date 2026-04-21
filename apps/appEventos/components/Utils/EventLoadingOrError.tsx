@@ -1,4 +1,6 @@
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { EventsGroupContextProvider } from "../../context/EventsGroupContext";
 import { SkeletonTable } from "./SkeletonPage";
 
@@ -18,11 +20,50 @@ const EventLoadingOrError: FC<EventLoadingOrErrorProps> = ({
   skeletonRows = 6,
   skeleton,
 }) => {
-  const { eventsGroupDone, eventsGroupError, eventsGroupErrorMessage, eventsGroupSessionExpired, refreshEventsGroup } =
-    EventsGroupContextProvider();
+  const { t } = useTranslation();
+  const router = useRouter();
+  const [stuckLoading, setStuckLoading] = useState(false);
+  const {
+    eventsGroup,
+    eventsGroupDone,
+    eventsGroupError,
+    eventsGroupErrorMessage,
+    eventsGroupSessionExpired,
+    refreshEventsGroup,
+  } = EventsGroupContextProvider();
+
+  useEffect(() => {
+    if (eventsGroupDone) {
+      setStuckLoading(false);
+      return;
+    }
+    const timeoutId = setTimeout(() => setStuckLoading(true), 10000);
+    return () => clearTimeout(timeoutId);
+  }, [eventsGroupDone]);
 
   // Still loading events
   if (!eventsGroupDone) {
+    if (stuckLoading) {
+      return (
+        <div className="w-full py-16 flex items-center justify-center px-4">
+          <div className="max-w-md text-center space-y-4">
+            <h3 className="text-lg font-semibold text-gray-800">
+              Cargando eventos por más tiempo de lo normal
+            </h3>
+            <p className="text-sm text-gray-600">
+              Parece que la conexión con el servidor se quedó esperando respuesta.
+            </p>
+            <button
+              type="button"
+              onClick={() => refreshEventsGroup()}
+              className="inline-block px-5 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Reintentar carga
+            </button>
+          </div>
+        </div>
+      );
+    }
     return skeleton ?? <SkeletonTable rows={skeletonRows} />;
   }
 
@@ -107,8 +148,27 @@ const EventLoadingOrError: FC<EventLoadingOrErrorProps> = ({
     );
   }
 
-  // Events loaded, no error, but no event selected (user has 0 events)
-  return skeleton ?? <SkeletonTable rows={skeletonRows} />;
+  // Events loaded, no error, pero sin evento activo en contexto (0 eventos o hay que elegir en inicio)
+  const hasEvents = Array.isArray(eventsGroup) && eventsGroup.length > 0;
+  return (
+    <div className="w-full py-16 flex items-center justify-center px-4">
+      <div className="max-w-md text-center space-y-4">
+        <h3 className="text-lg font-semibold text-gray-800">
+          {hasEvents ? t("selectEventFromHomeTitle") : t("Primero debes crear un evento")}
+        </h3>
+        <p className="text-sm text-gray-600">
+          {hasEvents ? t("selectEventFromHomeBody") : t("selectEventCreateBody")}
+        </p>
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          className="inline-block px-5 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
+        >
+          {t("Mis eventos")}
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default EventLoadingOrError;
