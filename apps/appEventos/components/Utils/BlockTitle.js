@@ -37,7 +37,7 @@ export const BlockTitle = ({ title }) => {
           <span className='md:hidden capitalize text-gray-600 text-[12px] leading-[20px] font-medium'>{event?.nombre}</span>
         </div>
       </div>
-      <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center '>
+      <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center gap-2 overflow-hidden'>
         <img
           src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i320}` : defaultImagenes[event?.tipo?.toLowerCase()]}
           className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600  hidden md:block"
@@ -47,14 +47,13 @@ export const BlockTitle = ({ title }) => {
           <span className='text-sm translate-y-2 text-primary text-[12px] first-letter:capitalize'>{event?.tipo}</span>
           <span className='uppercase w-64 truncate '>{event?.nombre}</span>
         </div>
-        <div className='flex'>
-          <div className='flex items-center justify-center'>
-            <div onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }}
-              className={`-translate-y-[13px] -translate-x-3 md:-translate-y-[15px] ${title === "Presupuesto" ? "md:-translate-x-14" : "md:-translate-x-8"} `}>
+        <div className='flex items-center gap-1 shrink-0'>
+          <div className='flex items-center'>
+            <div onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }}>
               <UsuariosCompartidos event={event} />
             </div>
             <span
-              className={`transition transform ${event?.usuario_id === user?.uid && user?.displayName !== "guest" ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"} translate-y-2* -translate-x-1.5 md:-translate-y-3* ${title === "Presupuesto" ? "md:-translate-x-12" : "md:-translate-x-6"}`}
+              className={`transition transform ${event?.usuario_id === user?.uid && user?.displayName !== "guest" ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"}`}
               onClick={() => { event?.usuario_id === user?.uid && user?.displayName !== "guest" && setOpenModal(!openModal) }}
             >
               <IoShareSocial className="w-6 h-6" />
@@ -62,13 +61,13 @@ export const BlockTitle = ({ title }) => {
           </div>
           {
             title === "Presupuesto" ?
-              <div onClick={() => "setOpenModalDrive(!openModalDrive)"} className='md:-translate-x-12 cursor-pointer'>
+              <div onClick={() => "setOpenModalDrive(!openModalDrive)"} className='cursor-pointer'>
                 <DiGoogleDrive className='w-[32px] h-[32px] text-primary' />
               </div> :
               null
           }
           {title === "Mesas y asientos" && event?._id && (
-            <div className='relative md:-translate-x-10'>
+            <div className='relative'>
               <button
                 onClick={() => setShowSeatingLink(!showSeatingLink)}
                 title="Compartir buscador de mesa"
