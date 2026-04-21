@@ -37,15 +37,15 @@ export const BlockTitle = ({ title }) => {
           <span className='md:hidden capitalize text-gray-600 text-[12px] leading-[20px] font-medium'>{event?.nombre}</span>
         </div>
       </div>
-      <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center gap-2 overflow-hidden'>
+      <div className='flex-1 md:flex-none h-[100%] flex flex-row-reverse md:flex-row items-center gap-2 pr-2'>
         <img
           src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i320}` : defaultImagenes[event?.tipo?.toLowerCase()]}
-          className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600  hidden md:block"
+          className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600 hidden md:block shrink-0"
           alt={event?.nombre}
         />
-        <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2 md:pt-2 gap-2'>
+        <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2 md:pt-2 gap-2 min-w-0'>
           <span className='text-sm translate-y-2 text-primary text-[12px] first-letter:capitalize'>{event?.tipo}</span>
-          <span className='uppercase w-64 truncate '>{event?.nombre}</span>
+          <span className='uppercase truncate'>{event?.nombre}</span>
         </div>
         <div className='flex items-center gap-1 shrink-0'>
           <div className='flex items-center'>
