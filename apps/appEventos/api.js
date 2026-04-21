@@ -113,7 +113,10 @@ export const api = {
 
   socketIO: ({ token, development, father, origin }) => {
     if (!development) return
-    const manager = new Manager(process.env.NEXT_PUBLIC_BASE_API_BODAS ?? "", {
+    const socketUrl = (process.env.NEXT_PUBLIC_SOCKET_URL || "").trim()
+      || process.env.NEXT_PUBLIC_BASE_API_BODAS
+      || ""
+    const manager = new Manager(socketUrl, {
       closeOnBeforeunload: true,
     })
     const socket = manager.socket("/", {

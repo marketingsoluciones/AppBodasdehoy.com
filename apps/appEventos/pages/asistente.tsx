@@ -1,4 +1,5 @@
 import { FC, useMemo } from "react"
+import { useRouter } from "next/router"
 import { AuthContextProvider, EventContextProvider } from "../context"
 import { useMounted } from "../hooks/useMounted"
 import CopilotIframe from "../components/Copilot/CopilotIframe"
@@ -17,11 +18,18 @@ function getGuestSessionId(): string {
  * /asistente — Página de acceso directo al asistente IA.
  * - Usuario logueado: auth normal.
  * - Usuario no logueado: actúa como anónimo (restricciones por navegador, sin consumo).
+ * - Si copilotEnabled es false para el tenant, redirige a inicio.
  */
 const AsistentePage: FC = () => {
   useMounted()
-  const { user } = AuthContextProvider()
+  const router = useRouter()
+  const { user, config } = AuthContextProvider()
   const { event } = EventContextProvider()
+
+  if (config?.copilotEnabled === false) {
+    if (typeof window !== 'undefined') router.replace('/')
+    return null
+  }
   const guestId = useMemo(() => (typeof window !== 'undefined' ? getGuestSessionId() : null), [])
   const userId = user?.email || user?.uid || guestId || undefined
   const isAnonymous = !user || user?.displayName === 'guest' || !user?.email
