@@ -278,13 +278,17 @@ const Profile = ({ user, state, set, ...rest }) => {
                       <span>Notificaciones push activadas</span>
                     </div>
                   )}
-                  {
-                    true ?
-                      <div onClick={() => setActionModals(!actionModals)} className="col-span-2 flex text-white gap-2 bg-primary hover:bg-slate-400 transition cursor-pointer rounded-lg py-1 px-2 items-center justify-center ">
-                        {t("fullaccess")}
-                      </div> :
-                      null
-                  }
+                  {!!user?.uid && !["guest", "anonymous"].includes(user?.displayName) && (
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => { setDropwdon(false); router.push("/facturacion"); }}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setDropwdon(false); router.push("/facturacion"); } }}
+                      className="col-span-2 flex text-white gap-2 bg-primary hover:bg-slate-400 transition cursor-pointer rounded-lg py-1 px-2 items-center justify-center"
+                    >
+                      {t("Ver planes")}
+                    </div>
+                  )}
                 </ul>
               </div >
             )}
@@ -332,13 +336,7 @@ const Profile = ({ user, state, set, ...rest }) => {
           }
         </div>
       </div>
-      {
-        actionModals && (
-          <Modal classe={"w-[95%] md:w-[750px] h-[62%] flex items-center justify-center"} >
-            <ObtenerFullAcceso />
-          </Modal>
-        )
-      }
+      {/* Modal ObtenerFullAcceso eliminado — el botón ahora navega a /facturacion directamente */}
     </>
   );
 };

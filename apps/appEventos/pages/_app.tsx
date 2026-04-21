@@ -135,6 +135,9 @@ const MyApp = ({ Component, pageProps }) => {
 
 export default MyApp
 
+// Re-exportar para public-card y public-itinerary que mutan OG data en GSSP
+export let openGraphData = {} as any
+
 // ─── Web Vitals — reportadas por Next.js automáticamente ─────────────────────
 // Se invocan una vez por métrica por carga de página.
 // En producción podrías enviarlas a tu endpoint de analytics.
