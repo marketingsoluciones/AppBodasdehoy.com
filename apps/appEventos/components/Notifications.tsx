@@ -306,7 +306,7 @@ export const Notifications = () => {
                   }
                 </span>
                 {totalUnread > 0 && (
-                  <span className="text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded-full font-medium">{totalUnread}</span>
+                  <span className="text-[11px] bg-red-500 text-white px-2 py-0.5 rounded-full font-bold">{totalUnread}</span>
                 )}
               </div>
               {/* Navigation tabs */}
@@ -455,7 +455,7 @@ function TabBtn({ active, onClick, label, badge }: { active: boolean; onClick: (
     <button onClick={onClick} className={`px-2 py-1 text-[10px] font-medium rounded transition-colors flex items-center gap-1 ${active ? 'bg-primary text-white' : 'text-gray-400 hover:bg-gray-100'}`}>
       {label}
       {!!badge && badge > 0 && (
-        <span className={`text-[9px] px-1 py-0 rounded-full font-bold ${active ? 'bg-white/30 text-white' : 'bg-red-100 text-red-600'}`}>{badge > 99 ? '99+' : badge}</span>
+        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${active ? 'bg-white/30 text-white' : 'bg-red-500 text-white'}`}>{badge > 99 ? '99+' : badge}</span>
       )}
     </button>
   );
