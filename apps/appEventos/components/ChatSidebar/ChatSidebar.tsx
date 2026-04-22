@@ -50,8 +50,8 @@ const ChatSidebar: FC = () => {
   const config = authContext?.config;
   const event = eventContext?.event;
 
-  // Solo renderizar si el tenant tiene copilotEnabled explícitamente
-  if (config?.copilotEnabled !== true) return null;
+  // Solo renderizar si el tenant tiene copilotEnabled o el usuario es admin
+  if (config?.copilotEnabled !== true && !user?.role?.includes('admin')) return null;
 
   // Obtener datos para el chat - Detectar si es guest por displayName o falta de email
   // El AuthContext crea automáticamente un usuario guest si no hay sesión
