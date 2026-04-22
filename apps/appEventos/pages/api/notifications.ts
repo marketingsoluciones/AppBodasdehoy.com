@@ -47,8 +47,7 @@ const GET_NOTIFICATIONS = `
     getNotifications(filters: $filters, pagination: $pagination) {
       success total unreadCount
       notifications {
-        id type resourceType resourceId resourceName
-        message read readAt development createdAt
+        id type message read createdAt development
       }
     }
   }
