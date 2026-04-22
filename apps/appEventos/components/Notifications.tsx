@@ -104,17 +104,27 @@ export const Notifications = () => {
   // API2 fetch
   // ========================================
 
-  const fetchApi2 = useCallback(async (tab: string, page: number, eventId?: string) => {
+  const fetchApi2 = useCallback(async (tab: string, page: number, filterEventName?: string) => {
     if (!userId) return;
     setApi2Loading(true);
     try {
-      let url = `/api/notifications?userId=${userId}&dev=${development}&tab=${tab}&page=${page}&limit=${tab === 'history' ? 50 : PAGE_SIZE}`;
-      if (eventId) url += `&eventId=${eventId}`;
+      // Fetch more if filtering client-side by event name
+      const limit = filterEventName ? 200 : (tab === 'history' ? 50 : PAGE_SIZE);
+      const url = `/api/notifications?userId=${userId}&dev=${development}&tab=${tab}&page=${page}&limit=${limit}`;
       const res = await fetch(url);
       const data = await res.json();
       if (data.success) {
-        setApi2Notifs(data.notifications || []);
-        setApi2Total(data.total || 0);
+        let notifs = data.notifications || [];
+        // Client-side filter by event name when inside a specific event
+        if (filterEventName) {
+          const upperName = filterEventName.toUpperCase();
+          notifs = notifs.filter((n: Api2Notification) => {
+            const name = n.resourceName || extractEventName(n.message);
+            return name && name.toUpperCase() === upperName;
+          });
+        }
+        setApi2Notifs(notifs);
+        setApi2Total(filterEventName ? notifs.length : (data.total || 0));
         setApi2UnreadCount(data.unreadCount || 0);
       }
     } catch { /* silent */ }
@@ -129,11 +139,11 @@ export const Notifications = () => {
       const data = await res.json();
       if (data.success) {
         setApi2UnreadCount(data.unreadCount || 0);
-        // Build per-event unread map
+        // Build per-event unread map using event name from message
         const map: Record<string, number> = {};
         (data.notifications || []).forEach((n: Api2Notification) => {
-          const eid = n.resourceId || 'unknown';
-          map[eid] = (map[eid] || 0) + 1;
+          const eventName = n.resourceName || extractEventName(n.message) || 'unknown';
+          map[eventName] = (map[eventName] || 0) + 1;
         });
         setEventUnreadMap(map);
       }
@@ -227,7 +237,7 @@ export const Notifications = () => {
       setFocusedEventId(selectedEvent._id);
       setFilter('pending');
       setApi2Page(1);
-      fetchApi2('pending', 1, selectedEvent._id);
+      fetchApi2('pending', 1, selectedEvent.nombre);
     } else {
       setView('events-overview');
     }
@@ -238,7 +248,8 @@ export const Notifications = () => {
     setFocusedEventId(eventId);
     setFilter('pending');
     setApi2Page(1);
-    fetchApi2('pending', 1, eventId);
+    const eventName = eventsGroup?.find((e: any) => e._id === eventId)?.nombre;
+    fetchApi2('pending', 1, eventName);
   };
 
   const handleShowAll = () => {
@@ -252,7 +263,8 @@ export const Notifications = () => {
   const handleFilterChange = (f: Filter) => {
     setFilter(f);
     setApi2Page(1);
-    fetchApi2(f === 'pending' ? 'pending' : 'all', 1, focusedEventId || undefined);
+    const eventName = focusedEventId ? eventsGroup?.find((e: any) => e._id === focusedEventId)?.nombre : undefined;
+    fetchApi2(f === 'pending' ? 'pending' : 'all', 1, eventName);
   };
 
   const handleViewChange = (v: View) => {
@@ -260,14 +272,15 @@ export const Notifications = () => {
     setApi2Page(1);
     if (v === 'history') fetchApi2('history', 1);
     else if (v === 'events-overview') { /* no fetch needed */ }
-    else if (v === 'legacy') fetchApi2('all', 1); // Actual = todas las notificaciones recientes
+    else if (v === 'legacy') fetchApi2('all', 1);
   };
 
   // Refetch on page change
   useEffect(() => {
     if (!showPanel || view === 'legacy' || view === 'events-overview') return;
     const tab = view === 'history' ? 'history' : filter === 'pending' ? 'pending' : 'all';
-    fetchApi2(tab, api2Page, focusedEventId || undefined);
+    const eventName = focusedEventId ? eventsGroup?.find((e: any) => e._id === focusedEventId)?.nombre : undefined;
+    fetchApi2(tab, api2Page, eventName);
   }, [api2Page]);
 
   // Derived
@@ -283,7 +296,7 @@ export const Notifications = () => {
   }).map((ev: any) => ({
     _id: ev._id,
     nombre: ev.nombre,
-    unread: eventUnreadMap[ev._id] || 0,
+    unread: eventUnreadMap[ev.nombre?.toUpperCase()] || eventUnreadMap[ev.nombre] || eventUnreadMap[ev._id] || 0,
   })).sort((a: any, b: any) => b.unread - a.unread) || [];
 
   // ========================================
