@@ -149,8 +149,8 @@ const Navigation: FC = () => {
           </span>
           <NavbarDirectory />
           <div className="flex items-center gap-3">
-            {/* Boton Copilot Chat — solo si el tenant tiene copilotEnabled */}
-            {config?.copilotEnabled !== false && ChatSidebarContextProvider() && <ChatToggleButton />}
+            {/* Boton Copilot Chat — solo si el tenant tiene copilotEnabled explícitamente */}
+            {config?.copilotEnabled === true && ChatSidebarContextProvider() && <ChatToggleButton />}
             <Profile
               state={isMounted}
               set={(act) => setIsMounted(act)}
