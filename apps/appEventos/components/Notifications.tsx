@@ -44,6 +44,12 @@ const TYPE_ICON: Record<string, string> = {
   user: '👤', event: '📅', shop: '🛒',
 };
 
+/** Extraer nombre del evento del mensaje (ej: "... | Evento boda: <strong>TINA & JOHN</strong>") */
+function extractEventName(message: string): string | null {
+  const match = message.match(/Evento\s+\w+:\s*(?:<[^>]+>)?([^<|]+)/i);
+  return match?.[1]?.trim() || null;
+}
+
 // ========================================
 // Component
 // ========================================
@@ -79,6 +85,20 @@ export const Notifications = () => {
   const userId = user?.uid;
   const isRealUser = !!userId && user?.displayName !== 'guest' && user?.displayName !== 'anonymous';
   const hasSelectedEvent = !!selectedEvent?._id;
+
+  // Mark as read
+  const markAsRead = useCallback(async (notifId: string) => {
+    if (!userId) return;
+    try {
+      await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationId: notifId, userId, dev: development }),
+      });
+      setApi2Notifs(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n));
+      setApi2UnreadCount(prev => Math.max(0, prev - 1));
+    } catch { /* silent */ }
+  }, [userId, development]);
 
   // ========================================
   // API2 fetch
@@ -333,6 +353,7 @@ export const Notifications = () => {
                 onPageChange={setApi2Page}
                 t={t}
                 router={router}
+                onMarkRead={markAsRead}
               />
             )}
 
@@ -408,8 +429,9 @@ export const Notifications = () => {
                 ) : (() => {
                   const groups: Record<string, { name: string; id?: string; items: Api2Notification[] }> = {};
                   api2Notifs.forEach(n => {
-                    const key = n.resourceName || n.resourceId || 'other';
-                    if (!groups[key]) groups[key] = { name: n.resourceName || t("Sin evento"), id: n.resourceId, items: [] };
+                    const eventName = n.resourceName || extractEventName(n.message) || null;
+                    const key = eventName || 'other';
+                    if (!groups[key]) groups[key] = { name: eventName || t("General"), id: n.resourceId, items: [] };
                     groups[key].items.push(n);
                   });
                   return Object.entries(groups).map(([key, group]) => (
@@ -461,10 +483,10 @@ function TabBtn({ active, onClick, label, badge }: { active: boolean; onClick: (
   );
 }
 
-function NotifList({ notifications, loading, emptyText, totalPages, page, onPageChange, t, router }: {
+function NotifList({ notifications, loading, emptyText, totalPages, page, onPageChange, t, router, onMarkRead }: {
   notifications: Api2Notification[]; loading: boolean; emptyText: string;
   totalPages: number; page: number; onPageChange: (p: number) => void;
-  t: (k: string) => string; router: any;
+  t: (k: string) => string; router: any; onMarkRead?: (id: string) => void;
 }) {
   return (
     <div>
@@ -473,17 +495,21 @@ function NotifList({ notifications, loading, emptyText, totalPages, page, onPage
           <li className="py-8 text-center text-gray-400 text-xs">{t("cargando")}...</li>
         ) : notifications.length === 0 ? (
           <li className="py-8 text-center text-gray-400 text-xs">{emptyText}</li>
-        ) : notifications.map(n => (
-          <li key={n.id} className="flex gap-2 px-4 py-2.5 hover:bg-base border-b border-gray-50 cursor-pointer">
-            <span className="text-base shrink-0 mt-0.5">{TYPE_ICON[n.type || ''] || '🔔'}</span>
-            <div className="flex-1 min-w-0">
-              <Interweave className="text-xs text-gray-700 break-words" content={n.message} />
-              {n.resourceName && <span className="text-[10px] text-gray-400 block">{n.resourceName}</span>}
-              <RelativeTime date={new Date(n.createdAt).getTime()} className="text-[10px] text-gray-400 italic block" />
-            </div>
-            {!n.read && <span className="w-2.5 h-2.5 rounded-full bg-green shrink-0 mt-2" />}
-          </li>
-        ))}
+        ) : notifications.map(n => {
+          const eventName = n.resourceName || extractEventName(n.message);
+          return (
+            <li key={n.id} className="flex gap-2 px-4 py-2.5 hover:bg-base border-b border-gray-50 cursor-pointer"
+                onClick={() => { if (!n.read && onMarkRead) onMarkRead(n.id); }}>
+              <span className="text-base shrink-0 mt-0.5">{TYPE_ICON[n.type || ''] || '🔔'}</span>
+              <div className="flex-1 min-w-0">
+                <Interweave className="text-xs text-gray-700 break-words" content={n.message} />
+                {eventName && <span className="text-[10px] text-primary font-medium block mt-0.5">📅 {eventName}</span>}
+                <RelativeTime date={new Date(n.createdAt).getTime()} className="text-[10px] text-gray-400 italic block" />
+              </div>
+              {!n.read && <span className="w-2.5 h-2.5 rounded-full bg-green shrink-0 mt-2" />}
+            </li>
+          );
+        })}
       </ul>
       {totalPages > 1 && <Pagination page={page} total={totalPages} onPageChange={onPageChange} t={t} />}
     </div>
