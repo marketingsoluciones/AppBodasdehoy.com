@@ -97,15 +97,21 @@ export const Notifications = () => {
   const development = config?.development || 'bodasdehoy';
   const isRealUser = user?.uid && user?.displayName !== 'guest' && user?.displayName !== 'anonymous';
 
-  // Get Firebase token for api2 calls
+  // Get auth token for api2 calls (Firebase ID token or session cookie as fallback)
   const getToken = useCallback(async (): Promise<string | undefined> => {
     try {
       const { getAuth } = await import('firebase/auth');
       const auth = getAuth();
-      return await auth.currentUser?.getIdToken() || undefined;
-    } catch {
-      return undefined;
-    }
+      const firebaseToken = await auth.currentUser?.getIdToken();
+      if (firebaseToken) return firebaseToken;
+    } catch { /* no Firebase auth available */ }
+    // Fallback: use session cookie (bypass mode in test)
+    try {
+      const cookies = document.cookie.split(';').map(c => c.trim());
+      const session = cookies.find(c => c.startsWith('idTokenV0.1.0='));
+      if (session) return session.split('=')[1];
+    } catch { /* no cookie */ }
+    return undefined;
   }, []);
 
   // Poll api2 unread count
