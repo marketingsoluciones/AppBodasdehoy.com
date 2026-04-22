@@ -13,9 +13,10 @@ import CopilotFilterBar from "../Utils/CopilotFilterBar";
 const COPILOT_WIDE_BREAKPOINT = 1024;
 /** Por debajo de este ancho se considera móvil: Copilot flotante, contenido sin margen */
 const MOBILE_BREAKPOINT = 768;
-// Desactivado temporalmente: evita compilar cadena Copilot/@lobehub en local.
-const DISABLE_COPILOT_IN_DEV = true;
-const ChatSidebarDirect = () => null;
+// Copilot sidebar: lazy import para no bloquear el bundle principal
+const DISABLE_COPILOT_IN_DEV = false;
+import dynamic from 'next/dynamic';
+const ChatSidebarDirect = dynamic(() => import('../ChatSidebar/ChatSidebar'), { ssr: false });
 
 const Container = (props) => {
   const { children } = props;
