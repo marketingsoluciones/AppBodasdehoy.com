@@ -240,7 +240,7 @@ export const Notifications = () => {
     setApi2Page(1);
     if (v === 'history') fetchApi2('history', 1);
     else if (v === 'events-overview') { /* no fetch needed */ }
-    else if (v === 'legacy') { /* legacy uses its own state */ }
+    else if (v === 'legacy') fetchApi2('all', 1); // Actual = todas las notificaciones recientes
   };
 
   // Refetch on page change
@@ -322,42 +322,18 @@ export const Notifications = () => {
               </div>
             </div>
 
-            {/* ========== VIEW: LEGACY (original, intacta) ========== */}
+            {/* ========== VIEW: ACTUAL (últimas notificaciones via api2) ========== */}
             {view === 'legacy' && (
-              <ul id="ul-notifications" className="bg-white flex flex-col text-xs text-black max-h-[365px] overflow-y-scroll break-words">
-                {notifications?.results?.map((item: Notification, idx: number) => {
-                  if (item.fromUid != null) {
-                    const eventID = item?.focused?.split("event=")[1]?.split("&")[0];
-                    const eventExist = eventsGroup.find((ev: any) => ev._id === eventID);
-                    return (
-                      <li key={idx} onClick={() => item?.focused && eventExist && router.push(`${window.location.origin}${item.focused}`)} className={`flex w-full ${item?.focused && "cursor-pointer"}`}>
-                        <div className="w-full hover:bg-base text-gray-700 flex py-2 ml-2">
-                          <div className="bg-white text-gray-500 w-7 h-7 rounded-full border-gray-200 border flex justify-center items-center -translate-y-1 mx-1">
-                            {(!item?.type || item?.type === "event") && <MisEventosIcon className="w-5 h-5" />}
-                            {item?.type === "shop" && <TarjetaIcon className="w-5 h-5" />}
-                            {item?.type === "user" && <div className="w-5 h-5"><ImageAvatar user={detallesUsuarioIds?.find((elem: any) => elem?.uid === item?.fromUid)} disabledTooltip /></div>}
-                          </div>
-                          <div className="flex-1 flex flex-col">
-                            <Interweave className="text-xs break-words w-[248px]" content={item?.type === "user" ? `${detallesUsuarioIds?.find((elem: any) => elem?.uid === item?.fromUid)?.displayName} ${item?.message}` : item?.message} />
-                            <RelativeTime date={item.createdAt} className="text-[10px] flex-1 text-right italic" />
-                          </div>
-                          <div className="w-4 flex items-center justify-center">
-                            {item?.state !== "read" && <div className="w-2.5 h-2.5 rounded-full bg-green" />}
-                          </div>
-                        </div>
-                      </li>
-                    );
-                  }
-                  return null;
-                })}
-                <li className="flex items-center justify-center py-2">
-                  <span className="text-xs first-letter:capitalize">{
-                    notifications?.results?.length === notifications?.total
-                      ? notifications?.results?.length ? t("no hay más notificaciones") : t("no hay notificaciones")
-                      : !showLoad ? t("burcar más") : t("cargando")
-                  }</span>
-                </li>
-              </ul>
+              <NotifList
+                notifications={api2Notifs}
+                loading={api2Loading}
+                emptyText={t("No hay notificaciones")}
+                totalPages={api2TotalPages}
+                page={api2Page}
+                onPageChange={setApi2Page}
+                t={t}
+                router={router}
+              />
             )}
 
             {/* ========== VIEW: EVENTS OVERVIEW (sin evento seleccionado) ========== */}
@@ -409,26 +385,16 @@ export const Notifications = () => {
                     </button>
                   </div>
                 </div>
-                {/* Notification list */}
-                <ul className="max-h-[340px] overflow-y-auto">
-                  {api2Loading ? (
-                    <li className="py-8 text-center text-gray-400 text-xs">{t("cargando")}...</li>
-                  ) : api2Notifs.length === 0 ? (
-                    <li className="py-8 text-center text-gray-400 text-xs">{t("No hay notificaciones")}</li>
-                  ) : api2Notifs.map(n => (
-                    <li key={n.id} className="flex gap-2 px-4 py-2.5 hover:bg-base border-b border-gray-50 cursor-pointer" onClick={() => n.resourceId && router.push(`/resumen-evento?event=${n.resourceId}`)}>
-                      <span className="text-base shrink-0 mt-0.5">{TYPE_ICON[n.type || ''] || '🔔'}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-700 break-words">{n.message}</p>
-                        {n.resourceName && <span className="text-[10px] text-gray-400">{n.resourceName}</span>}
-                        <RelativeTime date={new Date(n.createdAt).getTime()} className="text-[10px] text-gray-400 italic block" />
-                      </div>
-                      {!n.read && <span className="w-2.5 h-2.5 rounded-full bg-green shrink-0 mt-2" />}
-                    </li>
-                  ))}
-                </ul>
-                {/* Pagination */}
-                {api2TotalPages > 1 && <Pagination page={api2Page} total={api2TotalPages} onPageChange={setApi2Page} t={t} />}
+                <NotifList
+                  notifications={api2Notifs}
+                  loading={api2Loading}
+                  emptyText={t("No hay notificaciones")}
+                  totalPages={api2TotalPages}
+                  page={api2Page}
+                  onPageChange={setApi2Page}
+                  t={t}
+                  router={router}
+                />
               </div>
             )}
 
@@ -455,9 +421,9 @@ export const Notifications = () => {
                       </div>
                       <ul>
                         {group.items.slice(0, 5).map(notif => (
-                          <li key={notif.id} className="flex gap-2 px-4 pl-8 py-2 hover:bg-base text-xs text-gray-600">
+                          <li key={notif.id} className="flex gap-2 px-4 pl-8 py-2 hover:bg-base text-xs text-gray-600 cursor-pointer">
                             <span className="shrink-0">{TYPE_ICON[notif.type || ''] || '🔔'}</span>
-                            <span className="flex-1 break-words">{notif.message}</span>
+                            <Interweave className="flex-1 break-words text-xs" content={notif.message} />
                             <RelativeTime date={new Date(notif.createdAt).getTime()} className="text-[10px] text-gray-400 shrink-0" />
                           </li>
                         ))}
@@ -492,6 +458,35 @@ function TabBtn({ active, onClick, label, badge }: { active: boolean; onClick: (
         <span className={`text-[9px] px-1 py-0 rounded-full font-bold ${active ? 'bg-white/30 text-white' : 'bg-red-100 text-red-600'}`}>{badge > 99 ? '99+' : badge}</span>
       )}
     </button>
+  );
+}
+
+function NotifList({ notifications, loading, emptyText, totalPages, page, onPageChange, t, router }: {
+  notifications: Api2Notification[]; loading: boolean; emptyText: string;
+  totalPages: number; page: number; onPageChange: (p: number) => void;
+  t: (k: string) => string; router: any;
+}) {
+  return (
+    <div>
+      <ul className="max-h-[340px] overflow-y-auto">
+        {loading ? (
+          <li className="py-8 text-center text-gray-400 text-xs">{t("cargando")}...</li>
+        ) : notifications.length === 0 ? (
+          <li className="py-8 text-center text-gray-400 text-xs">{emptyText}</li>
+        ) : notifications.map(n => (
+          <li key={n.id} className="flex gap-2 px-4 py-2.5 hover:bg-base border-b border-gray-50 cursor-pointer">
+            <span className="text-base shrink-0 mt-0.5">{TYPE_ICON[n.type || ''] || '🔔'}</span>
+            <div className="flex-1 min-w-0">
+              <Interweave className="text-xs text-gray-700 break-words" content={n.message} />
+              {n.resourceName && <span className="text-[10px] text-gray-400 block">{n.resourceName}</span>}
+              <RelativeTime date={new Date(n.createdAt).getTime()} className="text-[10px] text-gray-400 italic block" />
+            </div>
+            {!n.read && <span className="w-2.5 h-2.5 rounded-full bg-green shrink-0 mt-2" />}
+          </li>
+        ))}
+      </ul>
+      {totalPages > 1 && <Pagination page={page} total={totalPages} onPageChange={onPageChange} t={t} />}
+    </div>
   );
 }
 
