@@ -283,8 +283,8 @@ export const Notifications = () => {
             <div className="absolute w-2.5 h-2.5 rounded-full bg-green translate-x-2.5 translate-y-1.5" />
           )}
           {api2UnreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 flex items-center justify-center px-0.5">
-              <span className="text-white text-[9px] font-bold">{api2UnreadCount > 99 ? '99+' : api2UnreadCount}</span>
+            <span className="absolute -top-2 -right-2 min-w-[22px] h-[22px] rounded-full bg-red-600 border-2 border-white flex items-center justify-center shadow-sm">
+              <span className="text-white text-[10px] font-bold leading-none">{api2UnreadCount > 99 ? '99+' : api2UnreadCount}</span>
             </span>
           )}
         </div>
