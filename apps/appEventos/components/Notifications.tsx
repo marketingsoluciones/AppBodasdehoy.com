@@ -23,7 +23,7 @@ interface Api2Notification {
   development?: string;
 }
 
-type Tab = 'pending' | 'reviewed';
+type Tab = 'pending' | 'reviewed' | 'history';
 
 const POLL_INTERVAL = 60_000;
 const PAGE_SIZE = 15;
@@ -66,8 +66,9 @@ export const Notifications = () => {
     if (!userId) return;
     setLoading(true);
     try {
+      const pageSize = selectedTab === 'history' ? 50 : PAGE_SIZE;
       const res = await fetch(
-        `/api/notifications?userId=${userId}&dev=${development}&tab=${selectedTab}&page=${selectedPage}&limit=${PAGE_SIZE}`
+        `/api/notifications?userId=${userId}&dev=${development}&tab=${selectedTab}&page=${selectedPage}&limit=${pageSize}`
       );
       const data = await res.json();
       if (data.success) {
@@ -177,6 +178,16 @@ export const Notifications = () => {
                 >
                   {t("Revisadas")}
                 </button>
+                <button
+                  onClick={() => handleTabChange('history')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    tab === 'history'
+                      ? 'bg-primary text-white'
+                      : 'text-gray-500 hover:bg-gray-100'
+                  }`}
+                >
+                  {t("Historial")}
+                </button>
               </div>
             </div>
 
@@ -186,15 +197,52 @@ export const Notifications = () => {
                 <li className="py-8 text-center text-gray-400 text-xs">{t("cargando")}...</li>
               ) : notifications.length === 0 ? (
                 <li className="py-8 text-center text-gray-400 text-xs">
-                  {tab === 'pending' ? t("No hay notificaciones pendientes") : t("No hay notificaciones revisadas")}
+                  {tab === 'pending' ? t("No hay notificaciones pendientes") : tab === 'reviewed' ? t("No hay notificaciones revisadas") : t("No hay historial")}
                 </li>
+              ) : tab === 'history' ? (
+                // History tab: grouped by event (resourceName)
+                (() => {
+                  const groups: Record<string, { name: string; id?: string; items: Api2Notification[] }> = {};
+                  notifications.forEach(n => {
+                    const key = n.resourceName || n.resourceId || 'other';
+                    if (!groups[key]) groups[key] = { name: n.resourceName || t("Sin evento"), id: n.resourceId, items: [] };
+                    groups[key].items.push(n);
+                  });
+                  return Object.entries(groups).map(([key, group]) => (
+                    <li key={key} className="border-b border-gray-100">
+                      <div
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-50 cursor-pointer hover:bg-gray-100"
+                        onClick={() => group.id && router.push(`/resumen-evento?event=${group.id}`)}
+                      >
+                        <span className="text-sm">📅</span>
+                        <span className="text-xs font-semibold text-gray-700 flex-1">{group.name}</span>
+                        <span className="text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">{group.items.length}</span>
+                      </div>
+                      <ul>
+                        {group.items.slice(0, 5).map(notif => (
+                          <li key={notif.id} className="flex gap-2 px-4 pl-8 py-2 hover:bg-gray-50 text-xs text-gray-600">
+                            <span className="shrink-0">{TYPE_ICON[notif.type || ''] || '🔔'}</span>
+                            <span className="flex-1 break-words">{notif.message}</span>
+                            <RelativeTime date={new Date(notif.createdAt).getTime()} className="text-[10px] text-gray-400 shrink-0" />
+                          </li>
+                        ))}
+                        {group.items.length > 5 && (
+                          <li className="pl-8 py-1 text-[10px] text-primary italic cursor-pointer hover:underline"
+                              onClick={() => group.id && router.push(`/resumen-evento?event=${group.id}`)}>
+                            +{group.items.length - 5} {t("más")}...
+                          </li>
+                        )}
+                      </ul>
+                    </li>
+                  ));
+                })()
               ) : (
+                // Pending / Reviewed tabs: flat list
                 notifications.map((notif) => (
                   <li
                     key={notif.id}
                     className="flex gap-2 px-4 py-3 hover:bg-gray-50 border-b border-gray-50 cursor-pointer transition-colors"
                     onClick={() => {
-                      // Navigate based on type
                       if (notif.resourceId) {
                         router.push(`/resumen-evento?event=${notif.resourceId}`);
                       }

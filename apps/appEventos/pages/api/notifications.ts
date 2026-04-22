@@ -92,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const filters: Record<string, unknown> = {};
     if (tab === 'pending') filters.read = false;
     else if (tab === 'reviewed') filters.read = true;
-    // 'all' = no filter
+    // 'history' and 'all' = no filter (all notifications)
 
     const notifRes = await fetch(API2_URL, {
       method: 'POST',
