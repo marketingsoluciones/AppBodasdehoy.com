@@ -298,7 +298,13 @@ export const Notifications = () => {
             {/* Header */}
             <div className="border-b-2 border-gray-300 py-2 px-3">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600 text-sm font-medium">{t("Mis notificaciones")}</span>
+                <span className="text-gray-600 text-sm font-medium">
+                  {t("Mis notificaciones")}
+                  {view === 'event-notifications' && focusedEventName
+                    ? <span className="text-gray-400 text-xs ml-1">({focusedEventName})</span>
+                    : view !== 'legacy' && <span className="text-gray-400 text-xs ml-1">({t("Todos")})</span>
+                  }
+                </span>
                 {totalUnread > 0 && (
                   <span className="text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded-full font-medium">{totalUnread}</span>
                 )}
