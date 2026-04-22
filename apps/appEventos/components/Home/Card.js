@@ -223,8 +223,8 @@ const Card = ({ data, grupoStatus, idx }) => {
       </div>
       <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={data[idx]} />
       <div ref={hoverRef} className={`w-max h-full relative grid place-items-center bg-white transition ${isHovered ? "transform scale-105 duration-700" : ""}`}>
-        <div className={` h-32 w-10  absolute z-[10] right-0  flex flex-col items-center justify-between px-2 `}>
-          <div onClick={() => { data[idx]?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="w-max h-max relative" >
+        <div className={` h-32 w-28 absolute z-[10] right-0 flex flex-col items-end justify-between px-2 `}>
+          <div onClick={() => { data[idx]?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="w-max h-max relative">
             <UsuariosCompartidos event={data[idx]} />
           </div>
           {data[idx]?.usuario_id === user?.uid && <div className="space-y-1 flex flex-col items-center">

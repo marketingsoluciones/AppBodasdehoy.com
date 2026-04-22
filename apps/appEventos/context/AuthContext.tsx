@@ -293,18 +293,19 @@ const AuthProvider = ({ children }) => {
     if (isMounted && config) {
       // BYPASS: Para subdominios de test SOLAMENTE (no localhost)
       // localhost ahora usa autenticación real de Firebase
-      const isTestEnv = window.location.hostname.includes('chat-test') || window.location.hostname.includes('app-test') || window.location.hostname.includes('test.') || window.location.hostname.includes('app-dev')
+      const isTestEnv = window.location.hostname.includes('chat-test') || window.location.hostname.includes('app-test') || window.location.hostname.includes('test.') || window.location.hostname.includes('app-dev') || window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1')
       const devBypass = localStorage.getItem('dev_bypass') === 'true' || sessionStorage.getItem('dev_bypass') === 'true'
 
       if (isTestEnv && devBypass) {
         const bypassEmail = localStorage.getItem('dev_bypass_email') || sessionStorage.getItem('dev_bypass_email') || 'jcc@bodasdehoy.com'
         const bypassUid = localStorage.getItem('dev_bypass_uid') || sessionStorage.getItem('dev_bypass_uid') || 'upSETrmXc7ZnsIhrjDjbHd7u2up1'
-        console.log("[Auth] 🔓 Bypass activo:", bypassEmail, bypassUid)
+        const bypassRole = localStorage.getItem('dev_bypass_role') || sessionStorage.getItem('dev_bypass_role') || 'creator'
+        console.log("[Auth] 🔓 Bypass activo:", bypassEmail, bypassUid, "role:", bypassRole)
         const devUser = {
           uid: bypassUid,
           email: bypassEmail,
           displayName: bypassEmail.split('@')[0],
-          role: ['creator'],
+          role: [bypassRole],
           status: true
         }
         setUser(devUser)

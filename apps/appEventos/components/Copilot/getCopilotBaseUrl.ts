@@ -9,7 +9,7 @@ import { resolveChatOrigin } from '@bodasdehoy/shared/utils';
  */
 export function getCopilotBaseUrl(): string {
   if (typeof window === 'undefined') return '/copilot-chat';
-  const envUrl = process.env.NEXT_PUBLIC_CHAT;
-  if (envUrl) return envUrl.replace(/\/$/, '');
+  // Resolver siempre por tenant (hostname) — no usar NEXT_PUBLIC_CHAT
+  // porque cada whitelabel tiene su propio chat (chat.champagne-events.com.mx, etc.)
   return resolveChatOrigin(window.location.hostname);
 }

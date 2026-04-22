@@ -43,17 +43,17 @@ export const BlockTitle = ({ title }) => {
           className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600 hidden md:block shrink-0"
           alt={event?.nombre}
         />
-        <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2 md:pt-2 gap-2 min-w-0'>
+        <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2 md:pt-2 gap-2 min-w-0 max-w-[120px] lg:max-w-[180px]'>
           <span className='text-sm translate-y-2 text-primary text-[12px] first-letter:capitalize'>{event?.tipo}</span>
           <span className='uppercase truncate'>{event?.nombre}</span>
         </div>
         <div className='flex items-center gap-1 shrink-0'>
-          <div className='flex items-center'>
-            <div onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }}>
+          <div className='flex items-center h-8'>
+            <div onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="flex items-center h-8">
               <UsuariosCompartidos event={event} />
             </div>
             <span
-              className={`transition transform ${event?.usuario_id === user?.uid && user?.displayName !== "guest" ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"}`}
+              className={`flex items-center h-8 transition transform ${event?.usuario_id === user?.uid && user?.displayName !== "guest" ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"}`}
               onClick={() => { event?.usuario_id === user?.uid && user?.displayName !== "guest" && setOpenModal(!openModal) }}
             >
               <IoShareSocial className="w-6 h-6" />
