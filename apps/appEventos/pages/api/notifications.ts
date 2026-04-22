@@ -47,7 +47,7 @@ const GET_NOTIFICATIONS = `
     getNotifications(filters: $filters, pagination: $pagination) {
       success total unreadCount
       notifications {
-        id type message read createdAt development
+        id type message read readAt createdAt development resourceName
       }
     }
   }
@@ -55,7 +55,33 @@ const GET_NOTIFICATIONS = `
 
 const GET_UNREAD_COUNT = `query { getUnreadNotificationsCount }`;
 
+const MARK_AS_READ = `
+  mutation MarkNotificationAsRead($notificationId: ID!) {
+    markNotificationAsRead(notificationId: $notificationId) { success }
+  }
+`;
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // POST = mark as read
+  if (req.method === 'POST') {
+    const { notificationId, userId: bodyUserId, dev: bodyDev } = req.body || {};
+    if (!notificationId) return res.status(400).json({ error: 'notificationId required' });
+    const development = bodyDev || 'bodasdehoy';
+    const uid = bodyUserId || '';
+    const cookieToken = req.cookies?.['idTokenV0.1.0'];
+    const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-Development': development };
+    if (cookieToken && cookieToken.startsWith('ey')) headers['Authorization'] = `Bearer ${cookieToken}`;
+    else {
+      headers['X-Support-Key'] = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
+      if (uid) headers['X-User-Id'] = uid;
+    }
+    try {
+      const r = await fetch(API2_URL, { method: 'POST', headers, body: JSON.stringify({ query: MARK_AS_READ, variables: { notificationId } }) });
+      const d = await r.json();
+      return res.status(200).json({ success: d?.data?.markNotificationAsRead?.success ?? false });
+    } catch { return res.status(500).json({ success: false }); }
+  }
+
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   const userId = req.query.userId as string;
