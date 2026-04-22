@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { developments } from '@bodasdehoy/shared/types';
+
 /**
  * API Route para listar todos los developers disponibles
  * Hace proxy al backend Python
@@ -49,35 +51,15 @@ export async function GET(_request: NextRequest) {
   } catch (error: any) {
     console.error('❌ Error obteniendo lista de developers:', error);
 
-    // Fallback: devolver lista básica
+    // Fallback: generar desde shared (11 tenants)
     const fallbackList = {
-      count: 4,
-      developers: [
-        {
-          description: 'Asistente inteligente para la planificación de bodas',
-          developer: 'bodasdehoy',
-          enabled: true,
-          name: 'Bodas de Hoy',
-        },
-        {
-          description: 'Plataforma profesional para organización de eventos corporativos',
-          developer: 'eventosorganizador',
-          enabled: true,
-          name: 'Eventos Organizador',
-        },
-        {
-          description: 'Eventos exclusivos con estilo y elegancia',
-          developer: 'annloevents',
-          enabled: true,
-          name: 'Annlo Events',
-        },
-        {
-          description: 'Eventos sofisticados y memorables',
-          developer: 'champagneevents',
-          enabled: true,
-          name: 'Champagne Events',
-        },
-      ],
+      count: developments.length,
+      developers: developments.map((d) => ({
+        description: `Plataforma ${d.headTitle || d.name}`,
+        developer: d.development,
+        enabled: true,
+        name: d.headTitle || d.name,
+      })),
     };
 
     console.log('⚠️ Usando lista de developers fallback');

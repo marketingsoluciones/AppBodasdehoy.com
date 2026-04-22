@@ -33,6 +33,13 @@ import {
   type CodeOutputEvent,
 } from '../../services/copilotChat';
 import { EventsGroupContextProvider } from '../../context';
+import { developments } from '@bodasdehoy/shared/types';
+
+/** Hosts conocidos de todos los tenants — para interceptar links internos */
+const KNOWN_APP_HOSTS = developments.flatMap((d) => {
+  const root = d.domain.replace(/^\./, '');
+  return [`app.${root}`, `app-test.${root}`, `app-dev.${root}`, `organizador.${root}`];
+});
 
 /** Mapeo de path → entity para filtros del Copilot */
 const PATH_TO_ENTITY: Record<string, string> = {
@@ -968,7 +975,7 @@ export const CopilotEmbed = ({
       }
       try {
         const url = new URL(href, window.location.origin);
-        const knownHosts = ['app.bodasdehoy.com', 'app-test.bodasdehoy.com', 'app-dev.bodasdehoy.com', 'organizador.bodasdehoy.com'];
+        const knownHosts = KNOWN_APP_HOSTS;
         if (url.origin === window.location.origin || knownHosts.some(h => url.hostname === h)) {
           e.preventDefault();
           router.push(url.pathname + url.search + url.hash);

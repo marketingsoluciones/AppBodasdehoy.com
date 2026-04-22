@@ -3,12 +3,19 @@
  * Redirige al editor completo en chat-ia hasta que el paquete @bodasdehoy/wedding-creator
  * exporte el componente de edición.
  */
+import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
+import { resolveChatOrigin } from '@bodasdehoy/shared/utils';
+
 export default function EditorWebPage() {
+  const development =
+    typeof window !== 'undefined'
+      ? getDevelopmentNameFromHostname(window.location.hostname)
+      : 'bodasdehoy';
   const base =
     typeof window !== 'undefined'
-      ? process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com'
+      ? resolveChatOrigin(window.location.hostname)
       : process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com';
-  const url = `${base.replace(/\/$/, '')}/bodasdehoy/wedding-creator`;
+  const url = `${base.replace(/\/$/, '')}/${development}/wedding-creator`;
 
   return (
     <div style={{ maxWidth: 560, margin: '60px auto', padding: 24, fontFamily: 'system-ui' }}>

@@ -6,50 +6,50 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 
 import { LoginForm, SplitLoginPage } from '@bodasdehoy/auth-ui';
+import { developments, getDevelopmentConfig } from '@bodasdehoy/shared/types';
 import { useChatStore } from '@/store/chat';
 import { loginWithEmailPassword, loginWithFacebook, loginWithGoogle } from '@/services/firebase-auth';
 import { optimizedApiClient } from '@/utils/api-client-optimized';
 import { registerReferralIfPending, sendAttributionToApi } from '@bodasdehoy/shared';
 
-// ─── Config panel izquierdo (branding de chat-ia) ────────────────────────────
-const CHAT_IA_LEFT_PANEL = {
-  brandName: 'Bodas de Hoy · Copilot IA',
-  description:
-    'Planifica cada detalle con inteligencia artificial. Invitados, presupuesto, itinerario y mucho más — en un solo lugar.',
-  features: [
-    { icon: '✨', text: 'Asistente IA para bodas y todo tipo de eventos' },
-    { icon: '👥', text: 'Gestión inteligente de invitados' },
-    { icon: '💰', text: 'Control de presupuesto en tiempo real' },
-    { icon: '📋', text: 'Itinerario y coordinación todo en uno' },
-    { icon: '🎨', text: 'Creador de webs de evento personalizado' },
-  ],
-  stats: [
-    { label: 'bodas organizadas', value: '+5.000' },
-    { label: 'fotos compartidas', value: '+200K' },
-    { label: 'valoración media', value: '4.9★' },
-  ],
-};
+// ─── Config panel izquierdo (branding dinámico por tenant) ───────────────────
+function buildLeftPanel(developer?: string | null) {
+  const config = developer ? getDevelopmentConfig(developer) : undefined;
+  const brandName = config?.headTitle || 'Copilot IA';
+  return {
+    brandName: `${brandName} · Copilot IA`,
+    description:
+      'Planifica cada detalle con inteligencia artificial. Invitados, presupuesto, itinerario y mucho más — en un solo lugar.',
+    features: [
+      { icon: '✨', text: 'Asistente IA para bodas y todo tipo de eventos' },
+      { icon: '👥', text: 'Gestión inteligente de invitados' },
+      { icon: '💰', text: 'Control de presupuesto en tiempo real' },
+      { icon: '📋', text: 'Itinerario y coordinación todo en uno' },
+      { icon: '🎨', text: 'Creador de webs de evento personalizado' },
+    ],
+    stats: [
+      { label: 'eventos organizados', value: '+5.000' },
+      { label: 'fotos compartidas', value: '+200K' },
+      { label: 'valoración media', value: '4.9★' },
+    ],
+  };
+}
 
-// ─── Dominios permitidos para redirect (evitar open redirect) ─────────────────
-const ALLOWED_REDIRECT_HOSTS = [
-  'app.bodasdehoy.com',
-  'chat.bodasdehoy.com',
-  'memories.bodasdehoy.com',
-  'editor.bodasdehoy.com',
-  'wedding-creator.bodasdehoy.com',
-  'app-test.bodasdehoy.com',
-  'chat-test.bodasdehoy.com',
-  'memories-test.bodasdehoy.com',
-  'editor-test.bodasdehoy.com',
-  'app-dev.bodasdehoy.com',
-  'chat-dev.bodasdehoy.com',
-  'memories-dev.bodasdehoy.com',
-  'editor-dev.bodasdehoy.com',
-  'organizador.bodasdehoy.com',
-  'iachat.bodasdehoy.com',
-  'organizador.eventosorganizador.com',
-  'vivetuboda.com',
+// ─── Dominios permitidos para redirect (generado desde shared — 11 tenants) ──
+const ALLOWED_REDIRECT_HOSTS: string[] = [
   'localhost',
+  ...developments.flatMap((d) => {
+    const root = d.domain.replace(/^\./, '');
+    return [
+      root,
+      `www.${root}`,
+      `app.${root}`, `app-test.${root}`, `app-dev.${root}`,
+      `chat.${root}`, `chat-test.${root}`, `chat-dev.${root}`,
+      `memories.${root}`, `memories-test.${root}`, `memories-dev.${root}`,
+      `editor.${root}`, `editor-test.${root}`, `editor-dev.${root}`,
+      `organizador.${root}`,
+    ];
+  }),
 ];
 
 function isSafeRedirect(url: string): boolean {
@@ -421,8 +421,11 @@ const SSO_SCRIPT = `
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
 function LoginContent() {
+  const developer = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('developer')
+    : null;
   return (
-    <SplitLoginPage leftPanel={CHAT_IA_LEFT_PANEL}>
+    <SplitLoginPage leftPanel={buildLeftPanel(developer)}>
       <Suspense fallback={<div style={{ padding: 40, textAlign: 'center' }}>Cargando...</div>}>
         <RightPanel />
       </Suspense>

@@ -205,7 +205,7 @@ const Load = ({ setValirBlock }) => {
         <link id="favicon" rel="icon" href={config?.favicon} />
         <title>{config?.headTitle}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-        <meta name="description" content="¡Bodas de Hoy Organizador! Organiza tu boda en un solo click., user-scalable=no, width=device-width, initial-scale=1" />
+        <meta name="description" content={config?.headTitle || 'Organizador de eventos'} />
       </Head>
       <PixelTracker />
       <style jsx global>

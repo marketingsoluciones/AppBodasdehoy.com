@@ -4,6 +4,8 @@ import { createStyles } from 'antd-style';
 import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
+import { BrandLogo } from '@bodasdehoy/shared/components';
+
 import { useDeveloperBranding } from '@/hooks/useDeveloperBranding';
 import { useChatStore } from '@/store/chat';
 import { resolveDisplayBrandName } from '@/utils/brandingDisplay';
@@ -93,7 +95,9 @@ export const DeveloperSessionBrand = memo<DeveloperSessionBrandProps>(({ classNa
           src={logoUrl}
           width={28}
         />
-      ) : null}
+      ) : (
+        <BrandLogo development={slug} size={28} />
+      )}
       <Flexbox gap={2} justify={'center'} style={{ flex: 1, minWidth: 0 }}>
         <div className={styles.title} title={`${title} — ${subtitle}`}>
           {title}
