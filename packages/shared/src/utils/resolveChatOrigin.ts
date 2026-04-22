@@ -19,11 +19,13 @@ export function resolveChatOrigin(hostname: string): string {
   const dev = getDevelopmentByHostname(hostname);
   const tenantDomain = dev.domain.replace(/^\./, ''); // ".champagne-events.com.mx" → "champagne-events.com.mx"
 
-  if (hostname.includes('-dev.') || hostname.includes('dev.')) {
-    return `https://chat-dev.${tenantDomain}`;
-  }
-  if (hostname.includes('-test.') || hostname.includes('test.')) {
-    return `https://chat-test.${tenantDomain}`;
-  }
-  return `https://chat.${tenantDomain}`;
+  // Algunos tenants comparten el chat de bodasdehoy si no tienen el suyo propio
+  // Por ahora usar el dominio del tenant; si no funciona, el iframe mostrará error
+  const prefix = hostname.includes('-dev.') || hostname.includes('dev.')
+    ? 'chat-dev'
+    : hostname.includes('-test.') || hostname.includes('test.')
+      ? 'chat-test'
+      : 'chat';
+
+  return `https://${prefix}.${tenantDomain}`;
 }
