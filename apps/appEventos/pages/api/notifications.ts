@@ -81,10 +81,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     headers['Authorization'] = `Bearer ${cookieToken}`;
   }
 
-  // Si no hay token, usar support key como fallback (queries sin userId filter)
+  // Si no hay token, usar support key + X-User-Id como fallback (bypass/test)
   const supportKey = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
   if (!headers['Authorization']) {
     headers['X-Support-Key'] = supportKey;
+    headers['X-User-Id'] = userId;
   }
 
   try {
