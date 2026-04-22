@@ -48,12 +48,12 @@ export const BlockTitle = ({ title }) => {
           <span className='uppercase truncate'>{event?.nombre}</span>
         </div>
         <div className='flex items-center gap-1 shrink-0'>
-          <div className='flex items-center'>
-            <div onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }}>
+          <div className='flex items-center h-8'>
+            <div onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="flex items-center h-8">
               <UsuariosCompartidos event={event} />
             </div>
             <span
-              className={`transition transform ${event?.usuario_id === user?.uid && user?.displayName !== "guest" ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"}`}
+              className={`flex items-center h-8 transition transform ${event?.usuario_id === user?.uid && user?.displayName !== "guest" ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"}`}
               onClick={() => { event?.usuario_id === user?.uid && user?.displayName !== "guest" && setOpenModal(!openModal) }}
             >
               <IoShareSocial className="w-6 h-6" />
