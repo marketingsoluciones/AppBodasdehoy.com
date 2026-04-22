@@ -40,8 +40,9 @@ export const BlockTitle = ({ title }) => {
       <div className='flex-1 md:flex-none h-[100%] flex flex-row-reverse md:flex-row items-center gap-2 pr-2'>
         <img
           src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i320}` : defaultImagenes[event?.tipo?.toLowerCase()]}
-          className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600 hidden md:block shrink-0"
+          className="h-[90%] object-cover object-top rounded-md border-1 border-gray-600 hidden md:block shrink-0"
           alt={event?.nombre}
+          onError={(e) => { e.target.src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
         />
         <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2 md:pt-2 gap-2 min-w-0 max-w-[120px] lg:max-w-[180px]'>
           <span className='text-sm translate-y-2 text-primary text-[12px] first-letter:capitalize'>{event?.tipo}</span>
