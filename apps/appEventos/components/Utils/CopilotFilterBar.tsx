@@ -8,6 +8,8 @@ const entityLabels: Record<string, string> = {
   services: "servicio",
   moments: "momento",
   budget_items: "partida",
+  invitations: "invitación",
+  gifts: "regalo",
 };
 
 interface CopilotFilterBarProps {

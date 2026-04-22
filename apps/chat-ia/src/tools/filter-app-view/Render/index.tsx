@@ -12,7 +12,9 @@ interface FilterViewContent {
 const ENTITY_META: Record<string, { icon: string; label: string }> = {
   budget_items: { icon: '💰', label: 'partidas de presupuesto' },
   events: { icon: '📅', label: 'eventos' },
+  gifts: { icon: '🎁', label: 'regalos' },
   guests: { icon: '👥', label: 'invitados' },
+  invitations: { icon: '💌', label: 'invitaciones' },
   menus: { icon: '🍽️', label: 'menús' },
   moments: { icon: '📍', label: 'momentos del itinerario' },
   services: { icon: '🛎️', label: 'servicios' },

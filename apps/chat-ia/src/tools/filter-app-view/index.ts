@@ -19,6 +19,8 @@ export const FilterAppViewManifest: BuiltinToolManifest = {
               'services',
               'menus',
               'moments',
+              'invitations',
+              'gifts',
             ],
             type: 'string',
           },

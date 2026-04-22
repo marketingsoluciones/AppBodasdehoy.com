@@ -53,13 +53,75 @@ const ENTITY_TO_PATH: Record<string, string> = {
 };
 
 /** Preguntas sugeridas según sección actual */
-const SUGGESTED_QUESTIONS = [
-  '¿Cuántos invitados confirmados tengo?',
-  '¿Cómo va el presupuesto?',
-  'Muéstrame las tareas pendientes',
-  '¿Qué servicios tengo contratados?',
-  'Organiza las mesas por afinidad',
-];
+function getSuggestedQuestions(path: string): string[] {
+  if (path.includes('/invitados')) return [
+    '¿Cuántos invitados han confirmado?',
+    '¿Quiénes tienen alergias alimentarias?',
+    'Invitados sin mesa asignada',
+    'Estadísticas de invitados por grupo',
+  ];
+  if (path.includes('/presupuesto')) return [
+    '¿Cuánto he gastado hasta ahora?',
+    '¿Qué categoría tiene el mayor gasto?',
+    '¿Cuánto falta por pagar?',
+    '¿Alguna categoría supera el presupuesto?',
+  ];
+  if (path.includes('/mesas')) return [
+    '¿Hay invitados sin mesa asignada?',
+    'Sugiere distribución por grupos familiares',
+    '¿Qué mesas tienen invitados con alergias?',
+    '¿Cuántas sillas libres quedan?',
+  ];
+  if (path.includes('/itinerario') || path.includes('/servicios') || path.includes('/tareas')) return [
+    '¿Qué tareas están pendientes?',
+    '¿Hay tareas vencidas?',
+    'Sugiere tareas típicas para este tipo de evento',
+    '¿Cuál es la próxima tarea?',
+  ];
+  if (path.includes('/invitaciones')) return [
+    '¿Cuántas invitaciones se han enviado?',
+    '¿Quiénes no tienen email para invitar?',
+    'Invitados que recibieron invitación pero no confirmaron',
+    '¿Por qué canal se enviaron más invitaciones?',
+  ];
+  if (path.includes('/resumen-evento')) return [
+    '¿Está listo mi evento?',
+    'Dame un resumen general',
+    '¿Qué me falta por hacer?',
+    '¿Cómo van los números?',
+  ];
+  if (path.includes('/momentos')) return [
+    '¿Cuántos álbumes tengo?',
+    'Comparte el álbum del evento',
+  ];
+  return [
+    '¿Cuántos invitados confirmados tengo?',
+    '¿Cómo va el presupuesto?',
+    'Muéstrame las tareas pendientes',
+    '¿Qué me falta por hacer?',
+  ];
+}
+
+/** Chips proactivos basados en datos del evento */
+interface ProactiveChip { text: string; severity: 'danger' | 'warning' | 'info'; }
+
+function getProactiveChips(ctx: any): ProactiveChip[] {
+  if (!ctx?.eventSummary) return [];
+  const chips: ProactiveChip[] = [];
+  const s = ctx.eventSummary;
+  const cross = ctx.screenData?._crossSection;
+
+  if (s.pendingGuests > 10) chips.push({ text: `${s.pendingGuests} invitados sin confirmar`, severity: 'warning' });
+  if (s.budgetRemaining < 0) chips.push({ text: `Presupuesto excedido ${Math.abs(s.budgetRemaining)}${s.currency}`, severity: 'danger' });
+  if (cross?.confirmedWithoutTableCount > 0) chips.push({ text: `${cross.confirmedWithoutTableCount} confirmados sin mesa`, severity: 'warning' });
+  if (cross?.overdueTasksCount > 0) chips.push({ text: `${cross.overdueTasksCount} tareas vencidas`, severity: 'danger' });
+  if (cross?.unsentInvitations > 5) chips.push({ text: `${cross.unsentInvitations} invitaciones sin enviar`, severity: 'warning' });
+  if (s.totalTasks > 0 && s.completedTasks === s.totalTasks) chips.push({ text: '¡Todas las tareas completadas!', severity: 'info' });
+  if (s.daysUntilEvent >= 0 && s.daysUntilEvent <= 7) chips.push({ text: `¡Faltan ${s.daysUntilEvent} días para el evento!`, severity: 'danger' });
+  if (s.daysUntilEvent >= 0 && s.daysUntilEvent <= 30 && s.daysUntilEvent > 7) chips.push({ text: `Faltan ${s.daysUntilEvent} días`, severity: 'info' });
+
+  return chips.slice(0, 4);
+}
 
 export interface CopilotEmbedProps {
   userId: string;
@@ -991,8 +1053,33 @@ export const CopilotEmbed = ({
         >
           Prueba con
         </p>
+        {/* Chips proactivos */}
+        {(() => {
+          const chips = getProactiveChips(pageContext);
+          if (chips.length === 0) return null;
+          const chipColors = { danger: { bg: '#fef2f2', border: '#fca5a5', text: '#dc2626' }, warning: { bg: '#fffbeb', border: '#fcd34d', text: '#d97706' }, info: { bg: '#eff6ff', border: '#93c5fd', text: '#2563eb' } };
+          return (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+              {chips.map(chip => {
+                const c = chipColors[chip.severity];
+                return (
+                  <button key={chip.text} type="button" onClick={() => handleSend(chip.text)}
+                    style={{ background: c.bg, border: `1px solid ${c.border}`, borderRadius: 20, padding: '5px 12px', fontSize: 11, fontWeight: 600, color: c.text, cursor: 'pointer', transition: 'opacity 0.15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
+                    onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+                  >
+                    {chip.severity === 'danger' ? '🔴' : chip.severity === 'warning' ? '🟡' : '🟢'} {chip.text}
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
+        <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9ca3af' }}>
+          Prueba con
+        </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch' }}>
-          {SUGGESTED_QUESTIONS.map(q => (
+          {getSuggestedQuestions(router?.pathname || '').map(q => (
             <button
               key={q}
               type="button"
@@ -1028,7 +1115,7 @@ export const CopilotEmbed = ({
         </div>
       </div>
     </div>
-  ), [eventName, handleSend]);
+  ), [eventName, handleSend, pageContext, router?.pathname]);
 
   return (
     <div
