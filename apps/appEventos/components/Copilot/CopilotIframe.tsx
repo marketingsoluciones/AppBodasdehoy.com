@@ -13,12 +13,13 @@
  */
 
 import { useState, useCallback, memo, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Cookies from 'js-cookie';
 import { Event } from '../../utils/Interfaces';
 import { extractPageContext, PageContextData } from './pageContextExtractor';
 import { EventsGroupContextProvider } from '../../context';
-import { getDevelopmentConfig } from '@bodasdehoy/shared/types';
+import { getDevelopmentConfig, getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
 import type { AuthConfigPayload } from '@bodasdehoy/shared/communication';
 import { getCopilotBaseUrl as getCopilotBaseUrlUtil } from './getCopilotBaseUrl';
 
@@ -52,7 +53,7 @@ interface CopilotIframeProps {
 
 const CopilotIframe = ({
   userId,
-  development = 'bodasdehoy',
+  development,
   eventId,
   eventName,
   className,
@@ -94,6 +95,10 @@ const CopilotIframe = ({
     // recargue cuando el evento carga asíncronamente (lo que borra la conversación).
     const buildCopilotUrl = useCallback(() => {
       const params = new URLSearchParams();
+      const effectiveDevelopment =
+        development ||
+        (typeof window !== 'undefined' ? getDevelopmentNameFromHostname(window.location.hostname) : undefined) ||
+        'bodasdehoy';
 
       if (fullUi) {
         // Ver resolveChatEmbedMode en chat-ia: full_ui=1 desactiva el modo embed aunque el documento sea iframe.
@@ -105,9 +110,7 @@ const CopilotIframe = ({
         params.set('minimal', '1');
       }
 
-      if (development) {
-        params.set('developer', development);
-      }
+      params.set('developer', effectiveDevelopment);
       // Pasar el email del usuario para que EventosAutoAuth lo identifique directamente
       if (userData?.email) {
         params.set('email', userData.email);
@@ -121,7 +124,7 @@ const CopilotIframe = ({
       const queryString = params.toString();
 
       const baseUrl = getCopilotBaseUrl().replace(/\/$/, '');
-      const variants = encodeURIComponent(development || 'bodasdehoy');
+      const variants = encodeURIComponent(effectiveDevelopment);
 
       // LobeChat en este repo usa rutas con `[variants]`, por ejemplo:
       //   /{variants}/chat
@@ -693,7 +696,7 @@ const CopilotIframe = ({
           <div className="absolute top-0 left-0 right-0 bg-slate-100 border-b border-slate-200 z-20 p-2">
             <p className="text-xs text-slate-600 text-center">
               Estás como invitado.{' '}
-              <a href="/login" className="text-pink-600 hover:underline font-medium">Inicia sesión</a>
+              <Link href="/login" className="text-pink-600 hover:underline font-medium">Inicia sesión</Link>
               {' '}para chatear y no perder la información de tu evento.
             </p>
           </div>

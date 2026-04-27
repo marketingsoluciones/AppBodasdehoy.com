@@ -15,12 +15,21 @@ import { AuthContextProvider, EventContextProvider } from '../../context';
 import CopilotIframe from '../Copilot/CopilotIframe';
 import { getCopilotBaseUrl } from '../Copilot/getCopilotBaseUrl';
 import { IoClose, IoSparkles, IoExpand, IoChevronDown, IoOpenOutline } from 'react-icons/io5';
+import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
 
 const MIN_WIDTH = 360;
 /** Por debajo de este ancho el Copilot se muestra como overlay (no comprime el contenido) */
 const MOBILE_BREAKPOINT = 768;
 
-const ChatSidebar: FC = () => {
+type AuthCtx = ReturnType<typeof AuthContextProvider>;
+type EventCtx = ReturnType<typeof EventContextProvider>;
+type ChatSidebarInnerProps = {
+  user: AuthCtx['user'];
+  config: AuthCtx['config'];
+  event: EventCtx['event'];
+};
+
+const ChatSidebarInner: FC<ChatSidebarInnerProps> = ({ user, config, event }) => {
   const { isOpen, width, closeSidebar, setWidth } = useChatSidebar();
   const [viewMode, setViewMode] = useState<'minimal' | 'full'>('minimal');
   const [isMobile, setIsMobile] = useState(false);
@@ -43,22 +52,15 @@ const ChatSidebar: FC = () => {
     }
     return `guest_${Date.now()}`;
   });
-  const authContext = AuthContextProvider();
-  const eventContext = EventContextProvider();
-
-  const user = authContext?.user;
-  const config = authContext?.config;
-  const event = eventContext?.event;
-
-  // Solo renderizar si el tenant tiene copilotEnabled o el usuario es admin
-  const isAdmin = Array.isArray(user?.role) ? user.role.includes('admin') : user?.role === 'admin';
-  if (config?.copilotEnabled !== true && !isAdmin) return null;
 
   // Obtener datos para el chat - Detectar si es guest por displayName o falta de email
   // El AuthContext crea automáticamente un usuario guest si no hay sesión
   const isGuest = !user || user?.displayName === 'guest' || !user?.email;
   const userId = user?.email || user?.uid || guestSessionId;
-  const development = config?.development || 'bodasdehoy';
+  const development =
+    config?.development ||
+    (typeof window !== 'undefined' ? getDevelopmentNameFromHostname(window.location.hostname) : undefined) ||
+    'bodasdehoy';
   const eventId = event?._id;
 
   // Referencias para resize
@@ -423,6 +425,20 @@ const ChatSidebar: FC = () => {
       </AnimatePresence>
     </>
   );
+};
+
+const ChatSidebar: FC = () => {
+  const authContext = AuthContextProvider();
+  const eventContext = EventContextProvider();
+
+  const user = authContext?.user;
+  const config = authContext?.config;
+  const event = eventContext?.event;
+
+  const isAdmin = Array.isArray(user?.role) ? user.role.includes('admin') : user?.role === 'admin';
+  if (config?.copilotEnabled !== true && !isAdmin) return null;
+
+  return <ChatSidebarInner user={user} config={config} event={event} />;
 };
 
 export default memo(ChatSidebar);

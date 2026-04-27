@@ -7,10 +7,10 @@ import { isRtlLang } from 'rtl-detect';
 import { DEFAULT_LANG } from '@/const/locale';
 import { getDebugConfig } from '@/envs/debug';
 import { normalizeLocale } from '@/locales/resources';
-import { isOnServerSide } from '@/utils/env';
 
 const { I18N_DEBUG, I18N_DEBUG_BROWSER, I18N_DEBUG_SERVER } = getDebugConfig();
-const debugMode = (I18N_DEBUG ?? isOnServerSide) ? I18N_DEBUG_SERVER : I18N_DEBUG_BROWSER;
+const isServer = typeof window === 'undefined';
+const debugMode = (I18N_DEBUG ?? isServer) ? I18N_DEBUG_SERVER : I18N_DEBUG_BROWSER;
 
 export const createI18nNext = (lang?: string) => {
   const instance = i18n
@@ -23,10 +23,6 @@ export const createI18nNext = (lang?: string) => {
           if (lng === 'zh-CN') {
             return await import(`./default/${ns}`);
           }
-
-          // En SSR, las URLs relativas fallan en Node.js (no hay base URL)
-          // El cliente cargará las traducciones correctamente desde el browser
-          if (isOnServerSide) return {};
 
           const normalizedLng = normalizeLocale(lng);
 
@@ -72,7 +68,7 @@ export const createI18nNext = (lang?: string) => {
             console.warn(`[i18n] Missing translation: ${lng}/${ns}/${key}`);
           }
         },
-        ns: ['error', 'common', 'chat', 'editor', 'auth', 'setting', 'welcome', 'plugin', 'tool', 'file', 'image', 'topic', 'components', 'hotkey'],
+        ns: ['error', 'common', 'chat'],
         partialBundledLanguages: true,
       });
     },
