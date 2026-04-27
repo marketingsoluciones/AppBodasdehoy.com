@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import type { ReactNode } from 'react';
 
 import { useChatStore } from '@/store/chat';
 import { api2Client } from '@/services/api2/client';
 import { getUnreadNotificationsCount } from '@/services/api2/notifications';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
 
 import { useInboxChannels } from '../hooks/useInboxChannels';
 import type { InboxChannel } from '../hooks/useInboxChannels';
@@ -16,6 +18,7 @@ import { useRecentConversations, CHANNEL_BADGE } from '../hooks/useRecentConvers
 import type { RecentConversation, ChannelKind } from '../hooks/useRecentConversations';
 import { useChannelHealthMonitor } from '../hooks/useChannelHealthMonitor';
 import type { EventoData } from '../hooks/useEventData';
+import { useConversationMetaState } from '../hooks/useConversationMeta';
 
 import { ConnectChannelDrawer } from './ConnectChannelDrawer';
 
@@ -38,6 +41,8 @@ interface ChannelSidebarProps {
   /** Compact mode: panel fijo de 320px en desktop layout. Full: pantalla completa mobile. */
   compact?: boolean;
 }
+
+type InboxView = 'all' | 'mine' | 'unassigned' | 'closed';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -94,12 +99,13 @@ const FILTER_TABS: { key: ChannelFilter; label: string }[] = [
 
 // ─── hook: event summaries ────────────────────────────────────────────────────
 
-function useEventSummaries() {
+function useEventSummaries(enabled: boolean) {
   const userEvents = (useChatStore((s) => s.userEvents) as any[] | undefined) ?? [];
   const [summaries, setSummaries] = useState<EventSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   const eventIds = useMemo(() => {
+    if (!enabled) return [];
     const now = Date.now();
     return [...userEvents]
       .sort((a: any, b: any) => {
@@ -115,7 +121,7 @@ function useEventSummaries() {
         id: e.id || e._id || '',
         name: e.name || e.nombre || 'Evento',
       }));
-  }, [userEvents]);
+  }, [enabled, userEvents]);
 
   useEffect(() => {
     if (eventIds.length === 0) {
@@ -177,7 +183,7 @@ function useEventSummaries() {
 
 // ─── section label ────────────────────────────────────────────────────────────
 
-function SectionLabel({ label, extra }: { extra?: React.ReactNode; label: string }) {
+function SectionLabel({ label, extra }: { extra?: ReactNode; label: string }) {
   return (
     <div className="flex items-center justify-between px-3 pb-1 pt-4">
       <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400">{label}</span>
@@ -329,9 +335,13 @@ function ChannelRow({ channel, onClick }: { channel: InboxChannel; onClick: () =
     >
       <span className="shrink-0 text-sm">{icon}</span>
       <span className="flex-1 truncate text-xs">{channel.label}</span>
-      {channel.status === 'disconnected' && channel.kind === 'whatsapp' && (
-        <span className="shrink-0 rounded bg-green-700/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-green-300">
-          Conectar
+      {(channel.status === 'disconnected' || channel.status === 'connecting') && channel.kind === 'whatsapp' && (
+        <span className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${
+          channel.status === 'connecting'
+            ? 'bg-yellow-200 text-yellow-800'
+            : 'bg-green-700/60 text-green-300'
+        }`}>
+          {channel.status === 'connecting' ? 'Reconectar' : 'Conectar'}
         </span>
       )}
       {dotClass && channel.status !== 'disconnected' && (
@@ -350,13 +360,18 @@ function ChannelRow({ channel, onClick }: { channel: InboxChannel; onClick: () =
 
 export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { checkAuth } = useAuthCheck();
+  const { userId } = checkAuth();
+  const metaState = useConversationMetaState();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Data hooks
-  const { summaries: events, loading: eventsLoading } = useEventSummaries();
-  const { tasks: pendingTasks, loading: tasksLoading } = usePendingTasksSidebar();
-  const { conversations: recentConvs, loading: convsLoading } = useRecentConversations(50);
-  const { externalChannels, loading: channelsLoading } = useInboxChannels();
+  const { summaries: events, loading: eventsLoading } = useEventSummaries(!compact);
+  const { tasks: pendingTasks, loading: tasksLoading } = usePendingTasksSidebar(compact ? 0 : 6);
+  const { conversations: recentConvs, loading: convsLoading } = useRecentConversations(compact ? 15 : 50);
+  const { externalChannels, loading: channelsLoading } = useInboxChannels({ enableUnread: !compact });
 
   // Channel health monitor
   const [healthAlert, setHealthAlert] = useState<{ kind: string, label: string; } | null>(null);
@@ -379,9 +394,43 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
   const [search, setSearch] = useState('');
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all');
 
+  const activeView = (searchParams.get('view') as InboxView) || 'all';
+  const setView = useCallback(
+    (view: InboxView) => {
+      const next = new URLSearchParams(searchParams.toString());
+      if (view === 'all') next.delete('view');
+      else next.set('view', view);
+      const qs = next.toString();
+      router.push(qs ? `${pathname}?${qs}` : pathname);
+    },
+    [pathname, router, searchParams],
+  );
+
+  const viewCounts = useMemo(() => {
+    let mine = 0;
+    let unassigned = 0;
+    let closed = 0;
+    for (const c of recentConvs) {
+      const meta = metaState[c.conversationId] ?? {};
+      const status = meta.status ?? 'open';
+      const assignedUserId = meta.assignedUserId ?? null;
+      if (status === 'closed') {
+        closed++;
+        continue;
+      }
+      if (!assignedUserId) {
+        unassigned++;
+        continue;
+      }
+      if (userId && assignedUserId === userId) mine++;
+    }
+    return { closed, mine, unassigned };
+  }, [metaState, recentConvs, userId]);
+
   // Notification count
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   useEffect(() => {
+    if (compact) return;
     getUnreadNotificationsCount()
       .then(setUnreadNotifs)
       .catch(() => {});
@@ -391,7 +440,7 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
         .catch(() => {});
     }, 60_000);
     return () => clearInterval(id);
-  }, []);
+  }, [compact]);
 
   // Filtered conversations
   const filteredConvs = useMemo(() => {
@@ -448,7 +497,9 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
     router.push(`/messages/ev-${eventId}-itinerary`);
   };
   const handleConvClick = (conv: RecentConversation) => {
-    router.push(`/messages/${conv.channelParam}/${conv.conversationId}`);
+    router.push(
+      `/messages/${encodeURIComponent(conv.channelParam)}/${encodeURIComponent(conv.conversationId)}`,
+    );
   };
   const handleTaskClick = (item: PendingTaskItem) => {
     router.push(`/messages/ev-${item.eventId}-task/${item.tarea._id}`);
@@ -483,6 +534,51 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
             </button>
           </div>
         )}
+
+        {/* ── WhatsApp connection status banner ── */}
+        {!channelsLoading && (() => {
+          const waChannels = externalChannels.filter((ch) => ch.kind === 'whatsapp');
+          const hasConnected = waChannels.some((ch) => ch.status === 'connected');
+          const hasConnecting = waChannels.some((ch) => ch.status === 'connecting');
+          const allDisconnected = waChannels.length > 0 && !hasConnected && !hasConnecting;
+          const noChannels = waChannels.length === 0;
+
+          if (hasConnected) return null;
+
+          if (hasConnecting) {
+            return (
+              <div className="flex shrink-0 items-center gap-2 bg-yellow-50 px-3 py-2 text-xs text-yellow-800">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-yellow-400" />
+                <span className="flex-1">WhatsApp reconectando...</span>
+                <button
+                  className="shrink-0 rounded bg-yellow-200 px-2 py-0.5 text-[10px] font-semibold text-yellow-900 hover:bg-yellow-300"
+                  onClick={() => router.push('/settings/integrations')}
+                  type="button"
+                >
+                  Escanear QR
+                </button>
+              </div>
+            );
+          }
+
+          if (allDisconnected || noChannels) {
+            return (
+              <div className="flex shrink-0 items-center gap-2 bg-red-50 px-3 py-2 text-xs text-red-700">
+                <span>📱</span>
+                <span className="flex-1">WhatsApp no conectado</span>
+                <button
+                  className="shrink-0 rounded bg-green-600 px-2 py-0.5 text-[10px] font-semibold text-white hover:bg-green-700"
+                  onClick={() => router.push('/settings/integrations')}
+                  type="button"
+                >
+                  Conectar
+                </button>
+              </div>
+            );
+          }
+
+          return null;
+        })()}
 
         {/* ── Header ── */}
         <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3">
@@ -525,7 +621,7 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
         </div>
 
         {/* ── Summary pill ── */}
-        {(totalPending > 0 || totalUnread > 0 || unreadNotifs > 0) && (
+        {!compact && (totalPending > 0 || totalUnread > 0 || unreadNotifs > 0) && (
           <div className="shrink-0 px-2 pt-2">
             <div className="flex items-center gap-1.5 rounded-2xl bg-purple-600 px-3 py-1.5 text-[10px] font-medium text-white">
               <span>📅</span>
@@ -550,6 +646,48 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
             </div>
           </div>
         )}
+
+        {/* ── Views ── */}
+        <div className="shrink-0 px-2 pt-2">
+          <div className="flex gap-1">
+            <button
+              className={`flex-1 rounded-md px-2 py-1.5 text-[10px] font-semibold transition-colors ${
+                activeView === 'mine'
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              onClick={() => setView(activeView === 'mine' ? 'all' : 'mine')}
+              type="button"
+            >
+              Mis asignadas
+              {viewCounts.mine > 0 ? ` · ${viewCounts.mine}` : ''}
+            </button>
+            <button
+              className={`flex-1 rounded-md px-2 py-1.5 text-[10px] font-semibold transition-colors ${
+                activeView === 'unassigned'
+                  ? 'bg-amber-50 text-amber-800'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              onClick={() => setView(activeView === 'unassigned' ? 'all' : 'unassigned')}
+              type="button"
+            >
+              Sin asignar
+              {viewCounts.unassigned > 0 ? ` · ${viewCounts.unassigned}` : ''}
+            </button>
+            <button
+              className={`flex-1 rounded-md px-2 py-1.5 text-[10px] font-semibold transition-colors ${
+                activeView === 'closed'
+                  ? 'bg-gray-200 text-gray-800'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              onClick={() => setView(activeView === 'closed' ? 'all' : 'closed')}
+              type="button"
+            >
+              Cerradas
+              {viewCounts.closed > 0 ? ` · ${viewCounts.closed}` : ''}
+            </button>
+          </div>
+        </div>
 
         {/* ── Search ── */}
         <div className="shrink-0 px-2 pt-2">
@@ -593,7 +731,7 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
         {!isLoading && (
           <div className="flex-1 overflow-y-auto pb-2">
             {/* ── Pending tasks ── */}
-            {!tasksLoading && filteredTasks.length > 0 && channelFilter === 'all' && (
+            {!compact && !tasksLoading && filteredTasks.length > 0 && channelFilter === 'all' && (
               <>
                 <SectionLabel label="Tareas pendientes" />
                 <div className="space-y-1 px-2">
@@ -609,7 +747,7 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
             )}
 
             {/* ── Events (channels) ── */}
-            {events.length > 0 && channelFilter === 'all' && !search.trim() && (
+            {!compact && events.length > 0 && channelFilter === 'all' && !search.trim() && (
               <>
                 <SectionLabel label="Canales" />
                 <div className="space-y-0.5 px-2">
@@ -693,7 +831,7 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
               )}
 
             {/* ── Notifications ── */}
-            {channelFilter === 'all' && !search.trim() && (
+            {!compact && channelFilter === 'all' && !search.trim() && (
               <div className="px-2 pb-1 pt-3">
                 <button
                   className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-gray-700 transition-colors hover:bg-gray-100"

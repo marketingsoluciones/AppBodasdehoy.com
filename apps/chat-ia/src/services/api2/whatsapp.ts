@@ -33,7 +33,7 @@ export interface WhatsAppChannel {
 
 const GET_WA_CHANNELS = `
   query GetWhatsAppChannels {
-    getWhatsAppChannels { development id isConnected name phoneNumber status type }
+    getWhatsAppChannels { development id name phoneNumber status type }
   }
 `;
 
@@ -82,27 +82,76 @@ function sessionToChannel(s: any, fallbackDev?: string): WhatsAppChannel {
   };
 }
 
-/** Returns WhatsApp channels — tries GraphQL (multi-channel) then REST session fallback. */
-export async function getWhatsAppChannels(development?: string): Promise<WhatsAppChannel[]> {
-  // GraphQL path: multi-channel support (api2 schema v2+)
-  try {
-    const data = await api2Client.query<{ getWhatsAppChannels: WhatsAppChannel[] }>(GET_WA_CHANNELS, {});
-    if (Array.isArray(data.getWhatsAppChannels)) return data.getWhatsAppChannels;
-  } catch { /* fall through to REST */ }
+// ─── In-memory cache for getWhatsAppChannels (avoids duplicate calls per render cycle) ──
+let _channelsCache: { data: WhatsAppChannel[]; dev: string; ts: number } | null = null;
+const CHANNELS_CACHE_TTL = 10_000; // 10s
 
-  // REST fallback: reads local api2 session state
-  try {
-    const dev = development || 'bodasdehoy';
-    const res = await fetch(`/api/messages/whatsapp/session/${dev}`, {
-      headers: { 'Content-Type': 'application/json' },
-    });
-    if (!res.ok) return [];
-    const sess = await res.json();
-    if (!sess?.success) return [];
-    return [sessionToChannel({ ...sess, id: sess.sessionKey || dev }, dev)];
-  } catch {
-    return [];
+/** Returns WhatsApp channels — tries GraphQL (multi-channel) then REST session fallback, plus WAB config. */
+export async function getWhatsAppChannels(development?: string): Promise<WhatsAppChannel[]> {
+  const dev = development || 'bodasdehoy';
+
+  // Return cached result if fresh (prevents duplicate calls from multiple hooks)
+  if (_channelsCache && _channelsCache.dev === dev && Date.now() - _channelsCache.ts < CHANNELS_CACHE_TTL) {
+    return _channelsCache.data;
   }
+
+  const channels: WhatsAppChannel[] = [];
+
+  // 1. GraphQL + REST + WAB in parallel for speed
+  const [gqlResult, restResult, wabResult] = await Promise.allSettled([
+    // GraphQL multi-channel
+    api2Client.query<{ getWhatsAppChannels: WhatsAppChannel[] }>(GET_WA_CHANNELS, {})
+      .then((data) => (Array.isArray(data.getWhatsAppChannels) ? data.getWhatsAppChannels : []))
+      .catch(() => [] as WhatsAppChannel[]),
+    // REST Baileys session — 3s timeout to avoid blocking UI when Baileys is reconnecting
+    fetch(`/api/messages/whatsapp/session/${dev}`, {
+      headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(3_000),
+    })
+      .then(async (res) => {
+        if (!res.ok) return null;
+        const sess = await res.json();
+        return sess?.success ? sessionToChannel({ ...sess, id: sess.sessionKey || dev }, dev) : null;
+      })
+      .catch(() => null),
+    // WAB config (Meta Business API)
+    getWhatsAppBusinessConfig(dev).catch(() => null),
+  ]);
+
+  // Merge GraphQL channels
+  const gqlChannels = gqlResult.status === 'fulfilled' ? gqlResult.value : [];
+  if (gqlChannels.length > 0) channels.push(...gqlChannels);
+
+  // Add REST session if not already covered by GraphQL
+  const restChannel = restResult.status === 'fulfilled' ? restResult.value : null;
+  if (restChannel && !channels.some((ch) => ch.type === 'QR_USER' || ch.type === 'QR_WHITELABEL')) {
+    channels.push(restChannel);
+  }
+
+  // Add WAB if not already present
+  // NOTE: getWhatsAppConfig resolver in api2 currently returns success:false even though
+  // whatsappconfigs collection has the data. When api2 fixes this, WAB channel will appear.
+  const wabConfig = wabResult.status === 'fulfilled' ? wabResult.value : null;
+  if (wabConfig && wabConfig.isActive && !channels.some((ch) => ch.type === 'WAB')) {
+    channels.push({
+      development: dev,
+      displayName: wabConfig.phoneNumberId,
+      id: `wab-${dev}`,
+      isConnected: true,
+      name: 'WhatsApp Business',
+      phoneNumber: wabConfig.phoneNumberId,
+      status: 'ACTIVE',
+      type: 'WAB',
+    });
+  }
+
+  _channelsCache = { data: channels, dev, ts: Date.now() };
+  return channels;
+}
+
+/** Invalidate the channels cache (call after connect/disconnect) */
+export function invalidateChannelsCache() {
+  _channelsCache = null;
 }
 
 /** Send a WhatsApp message */
@@ -161,12 +210,48 @@ export async function regenerateWhatsAppQR(sessionId: string): Promise<boolean> 
   }
 }
 
+// ─── WhatsApp Business API (WAB) config ──────────────────────────────────────
+
+const GET_WAB_CONFIG = `
+  query GetWhatsAppConfig($developerId: String!) {
+    getWhatsAppConfig(developerId: $developerId) {
+      success
+      config {
+        phoneNumberId
+        developerId
+        isActive
+      }
+    }
+  }
+`;
+
+export interface WabConfig {
+  developerId: string;
+  isActive: boolean;
+  phoneNumberId: string;
+}
+
+/** Fetch WAB (Meta Business API) config for a development. Returns null if not configured. */
+export async function getWhatsAppBusinessConfig(developerId: string): Promise<WabConfig | null> {
+  try {
+    const data = await api2Client.query<{
+      getWhatsAppConfig: { config: WabConfig | null; success: boolean };
+    }>(GET_WAB_CONFIG, { developerId });
+    if (data.getWhatsAppConfig?.success && data.getWhatsAppConfig.config) {
+      return data.getWhatsAppConfig.config;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 // ─── Channel management GraphQL ───────────────────────────────────────────────
 
 const CREATE_WA_CHANNEL = `
   mutation CreateWhatsAppChannel($input: CreateWhatsAppChannelInput!) {
     createWhatsAppChannel(input: $input) {
-      channel { development id isConnected name phoneNumber status type }
+      channel { development id name phoneNumber status type }
       success
     }
   }
@@ -193,10 +278,19 @@ const ADD_WA_MEMBER = `
 export async function createWhatsAppChannel(name: string, type: string = 'QR_USER'): Promise<WhatsAppChannel | null> {
   try {
     const data = await api2Client.query<{ createWhatsAppChannel: { channel: WhatsAppChannel; success: boolean } }>(
-      CREATE_WA_CHANNEL, { input: { name, type } },
+      CREATE_WA_CHANNEL,
+      { input: { name, type } },
     );
     return data.createWhatsAppChannel?.success ? data.createWhatsAppChannel.channel : null;
-  } catch { return null; }
+  } catch (err: any) {
+    const msg = (err?.message ?? '').toString();
+    if (msg.includes('Unknown type "CreateWhatsAppChannelInput"')) {
+      throw new Error(
+        'Tu API2 no soporta crear canales WhatsApp desde aquí (schema sin CreateWhatsAppChannelInput). Crea el canal desde CRM/API2 o pide a API2 habilitar el schema multi-canal.',
+      );
+    }
+    throw err;
+  }
 }
 
 export async function deleteWhatsAppChannel(channelId: string): Promise<boolean> {
@@ -205,7 +299,18 @@ export async function deleteWhatsAppChannel(channelId: string): Promise<boolean>
       DELETE_WA_CHANNEL, { channelId },
     );
     return !!data.deleteWhatsAppChannel?.success;
-  } catch { return false; }
+  } catch {
+    try {
+      const res = await fetch(`/api/messages/whatsapp/session/${channelId}`, {
+        headers: { 'Content-Type': 'application/json' },
+        method: 'DELETE',
+      });
+      const data = await res.json().catch(() => null);
+      return !!data?.success;
+    } catch {
+      return false;
+    }
+  }
 }
 
 export async function getWhatsAppChannelMembers(channelId: string): Promise<WhatsAppChannelMember[]> {
@@ -247,9 +352,8 @@ export interface WaMessage {
 }
 
 const GET_WA_CONVERSATIONS = `
-  query GetWAConversations($developerId: String!, $pagination: CRM_PaginationInput) {
-    getWhatsAppConversations(developerId: $developerId, pagination: $pagination) {
-      total
+  query GetWAConversations($developerId: String!) {
+    getWhatsAppConversations(developerId: $developerId) {
       conversations {
         id
         phoneNumber
@@ -263,9 +367,8 @@ const GET_WA_CONVERSATIONS = `
 `;
 
 const GET_WA_MESSAGES = `
-  query GetWAMessages($conversationId: ID!, $pagination: CRM_PaginationInput) {
-    getWhatsAppMessages(conversationId: $conversationId, pagination: $pagination) {
-      total
+  query GetWAMessages($conversationId: ID!) {
+    getWhatsAppMessages(conversationId: $conversationId) {
       messages {
         id
         conversationId
@@ -282,12 +385,12 @@ const GET_WA_MESSAGES = `
 /** Fetch conversations from api2 native WhatsApp store (works even if external WA service is down) */
 export async function getWhatsAppConversationsGQL(
   developerId: string,
-  limit = 50,
+  _limit = 50,
 ): Promise<WaConversation[]> {
   try {
     const data = await api2Client.query<{
-      getWhatsAppConversations: { conversations: any[], total: number; };
-    }>(GET_WA_CONVERSATIONS, { developerId, pagination: { limit, page: 1 } });
+      getWhatsAppConversations: { conversations: any[] };
+    }>(GET_WA_CONVERSATIONS, { developerId });
     return (data.getWhatsAppConversations?.conversations ?? []).map((c: any) => ({
       contactName: c.contactInfo?.name || undefined,
       id: c.id,
@@ -304,12 +407,12 @@ export async function getWhatsAppConversationsGQL(
 /** Fetch messages for a conversation from api2 native store */
 export async function getWhatsAppMessagesGQL(
   conversationId: string,
-  limit = 50,
+  _limit = 50,
 ): Promise<WaMessage[]> {
   try {
     const data = await api2Client.query<{
-      getWhatsAppMessages: { messages: any[], total: number; };
-    }>(GET_WA_MESSAGES, { conversationId, pagination: { limit, page: 1 } });
+      getWhatsAppMessages: { messages: any[] };
+    }>(GET_WA_MESSAGES, { conversationId });
     return (data.getWhatsAppMessages?.messages ?? []).map((m: any) => ({
       conversationId: m.conversationId,
       direction: m.direction,

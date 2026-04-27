@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
+
 export const runtime = 'nodejs';
 
-const getApiIaUrl = (): string =>
-  process.env.PYTHON_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  'https://api-ia.bodasdehoy.com';
+const getApiIaUrl = (): string => resolveServerBackendOrigin();
 
 const getApi2Url = (): string =>
-  process.env.API2_URL || 'https://api2.eventosorganizador.com';
+  process.env.API2_URL || 'https://api3-mcp-graphql.eventosorganizador.com';
 
 /**
  * Proxy catch-all: /api/messages/[...path]
@@ -83,8 +82,10 @@ async function proxyRequest(request: NextRequest, path: string[]): Promise<NextR
       body: bodyToSend,
       headers,
       method: request.method,
-      // Sin timeout para SSE — la conexión puede durar indefinidamente
-      signal: isSSE ? undefined : AbortSignal.timeout(30_000),
+      // SSE: sin timeout. Session status: 5s (Baileys puede tardar 8s+ si está reconectando). Resto: 30s.
+      signal: isSSE
+        ? undefined
+        : AbortSignal.timeout(subpath.match(/^whatsapp\/session\//) ? 5_000 : 30_000),
     });
 
     const responseContentType = response.headers.get('content-type') || '';
