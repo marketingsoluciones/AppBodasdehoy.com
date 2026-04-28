@@ -24,6 +24,7 @@ import {
 } from '@bodasdehoy/shared/auth';
 import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
 import { registerReferralIfPending, trackRegistrationComplete, sendAttributionToApi } from '@bodasdehoy/shared';
+import { resolveApiBodasGraphqlUrl } from '../utils/api3Endpoints';
 
 const initialContext = {
   user: undefined,
@@ -308,6 +309,21 @@ const AuthProvider = ({ children }) => {
           role: [bypassRole],
           status: true
         }
+        // Generar JWT para que el copilot funcione con bypass.
+        // Pide un token firmado al endpoint /api/dev/mint-jwt (solo dev/test).
+        fetch('/api/dev/mint-jwt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid: bypassUid, email: bypassEmail, development: config?.development || 'bodasdehoy' }),
+        })
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data?.token) {
+              localStorage.setItem('dev-user-config', JSON.stringify({ token: data.token, email: bypassEmail, uid: bypassUid }))
+              console.log("[Auth] 🔓 Bypass JWT firmado obtenido para copilot")
+            }
+          })
+          .catch(() => console.warn("[Auth] 🔓 mint-jwt no disponible, copilot sin auth"))
         setUser(devUser)
         setVerificationDone(true)
         return
@@ -601,23 +617,10 @@ const AuthProvider = ({ children }) => {
     }
   }, [triggerAuthStateChanged, config?.cookie])
 
-  // ✅ Timeout de seguridad: si la verificación no termina en 4s, mostrar la app como guest
-  // 4s da tiempo suficiente para el flujo SSO cross-domain (authStatus + signInWithCustomToken)
-  // NOTA: El bucle de login está prevenido por login.js y vista-sin-cookie.js (hasSsoToken check),
-  // no por este timeout. Este timeout debe siempre completar la verificación.
-  useEffect(() => {
-    const safetyTimeout = setTimeout(() => {
-      setVerificationDone((prev) => {
-        if (!prev) {
-          console.warn('[Auth] Timeout de seguridad: verificación lenta, mostrando app sin forzar guest');
-          return true;
-        }
-        return prev;
-      });
-    }, 10000);
-
-    return () => clearTimeout(safetyTimeout);
-  }, [])
+  // Timeout de seguridad unificado: si la verificación no termina en 4s, mostrar la app.
+  // El timeout de 3.5s más abajo (línea ~966) es el que desbloquea la UI; este se elimina
+  // para evitar race condition con dos setVerificationDone compitiendo.
+  // (Movido a un solo punto en línea ~966)
 
   const moreInfo = async (user) => {
     try {
@@ -713,7 +716,7 @@ const AuthProvider = ({ children }) => {
               window.location.hostname.includes('-test.') ||
               window.location.hostname.includes('-dev.')
             )
-            const sessionApiUrl = _isDevOrTest ? '/api/proxy-bodas/graphql' : (process.env.NEXT_PUBLIC_API_BODAS_URL || 'https://api2.eventosorganizador.com/graphql')
+            const sessionApiUrl = _isDevOrTest ? '/api/proxy-bodas/graphql' : resolveApiBodasGraphqlUrl();
             const sessionResp = await fetch(sessionApiUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'Development': config?.development || 'bodasdehoy' },
@@ -845,7 +848,7 @@ const AuthProvider = ({ children }) => {
               window.location.hostname.includes('-test.') ||
               window.location.hostname.includes('-dev.')
             );
-            const ssoApiUrl = _isDevOrTestSSO ? '/api/proxy-bodas/graphql' : (process.env.NEXT_PUBLIC_API_BODAS_URL || 'https://api2.eventosorganizador.com/graphql');
+            const ssoApiUrl = _isDevOrTestSSO ? '/api/proxy-bodas/graphql' : resolveApiBodasGraphqlUrl();
 
             const ssoResp = await fetch(ssoApiUrl, {
               method: 'POST',

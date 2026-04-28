@@ -19,15 +19,26 @@ export const ModalPermissionList: FC<props> = ({ data, setOpenModal, event }) =>
     const { setEvent } = EventContextProvider()
     const [permissions, setPermissions] = useState([...data?.permissions])
 
+    const [saving, setSaving] = useState(false)
+
     const handleChangePermision = async (values) => {
+        // Guardar estado previo para rollback si falla
+        const prevPermissions = [...permissions]
+        const f1 = event.detalles_compartidos_array?.findIndex(elem => elem.uid === data?.uid)
+        const prevEventPermissions = f1 >= 0 ? [...event.detalles_compartidos_array[f1].permissions] : null
+
         try {
+            setSaving(true)
+
+            // Optimistic update
             const f1p = permissions.findIndex(elem => elem.title === values.title)
             permissions.splice(f1p, 1, { title: values.title, value: values.value })
             setPermissions([...permissions])
 
-            const f1 = event.detalles_compartidos_array?.findIndex(elem => elem.uid === data?.uid)
-            event.detalles_compartidos_array[f1].permissions = permissions
-            setEvent({ ...event })
+            if (f1 >= 0) {
+                event.detalles_compartidos_array[f1].permissions = permissions
+                setEvent({ ...event })
+            }
 
             await fetchApiEventos({
                 query: queries.updateCompartitions,
@@ -44,7 +55,17 @@ export const ModalPermissionList: FC<props> = ({ data, setOpenModal, event }) =>
                 message: `ha cambiado tu privilegios en el evento ${event?.tipo}: <strong>${event?.nombre.toUpperCase()}</strong>`,
                 uids: [data?.uid]
             })
-        } catch {
+        } catch (error) {
+            // Rollback optimistic update
+            setPermissions(prevPermissions)
+            if (f1 >= 0 && prevEventPermissions) {
+                event.detalles_compartidos_array[f1].permissions = prevEventPermissions
+                setEvent({ ...event })
+            }
+            console.error("[ModalPermissionList] Error guardando permisos:", error)
+            alert(t("Ha ocurrido un error al guardar los permisos. Inténtalo de nuevo."))
+        } finally {
+            setSaving(false)
         }
     }
 
@@ -57,7 +78,7 @@ export const ModalPermissionList: FC<props> = ({ data, setOpenModal, event }) =>
                     <PermissionList permissions={permissions} handleChange={handleChangePermision} setPermission={setPermissions} />
                     <div className="flex">
                         <div className="flex-1" />
-                        <button onClick={() => setOpenModal(false)} className="bg-primary text-white rounded-lg px-5 py-2 h-10 capitalize">{t("save")}</button>
+                        <button onClick={() => setOpenModal(false)} disabled={saving} className={`${saving ? "opacity-50 cursor-wait" : ""} bg-primary text-white rounded-lg px-5 py-2 h-10 capitalize`}>{t("save")}</button>
                     </div>
                 </div>
             </ClickAwayListener>

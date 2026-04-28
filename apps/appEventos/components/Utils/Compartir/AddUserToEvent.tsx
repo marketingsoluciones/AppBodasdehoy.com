@@ -63,7 +63,9 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             // falta setear evento
             toast("success", t("Evento fue compartido con éxito"));
         } catch (error) {
+            console.error("[AddUserToEvent] Error al compartir:", error)
             toast("error", t("Ha ocurrido un error al compartir el evento"));
+            setSaving(false)
         }
     }
 

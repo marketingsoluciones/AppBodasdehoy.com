@@ -244,20 +244,20 @@ const Card = ({ data, grupoStatus, idx }) => {
             }} className="w-5 h-5 flex items-center justify-center" >
               <IoShareSocial className={`w-full h-full cursor-pointer text-white ${user?.displayName !== "guest" && "hover:text-gray-300"}`} />
             </div>
-            <div onClick={handleArchivarEvent} className="w-5 h-5 flex items-center justify-center" >
+            <button type="button" onClick={handleArchivarEvent} className="w-5 h-5 flex items-center justify-center" aria-label="Archivar evento">
               <FaRegFolderOpen className="w-4.5 h-4.5 cursor-pointer text-white hover:text-gray-300" />
-            </div>
-            <div onClick={() => isAllowed() && handleEdit()} className="w-5 h-5 flex items-center justify-center"   >
+            </button>
+            <button type="button" onClick={() => isAllowed() && handleEdit()} className="w-5 h-5 flex items-center justify-center" aria-label="Editar evento">
               <BiSolidPencil className="w-5 h-5 cursor-pointer text-white hover:text-gray-300" />
-            </div>
-            <div onClick={handleRemoveEvent} className="w-5 h-5 flex items-center justify-center"   >
+            </button>
+            <button type="button" onClick={handleRemoveEvent} className="w-5 h-5 flex items-center justify-center" aria-label="Eliminar evento">
               <MdDelete className="w-full h-full cursor-pointer text-white hover:text-gray-300" />
-            </div>
+            </button>
           </div>}
         </div>
 
         {data[idx]?._id == user?.eventSelected ? <div className="flex w-[304px] h-40 border-dashed border-2 border-yellow-300 absolute z-0 rounded-xl" /> : <></>}
-        <div onClick={(e) => {
+        <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }} onClick={(e) => {
           e.preventDefault()
           e.stopPropagation()
 
