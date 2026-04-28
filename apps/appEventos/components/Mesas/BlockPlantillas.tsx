@@ -17,15 +17,29 @@ interface propsBlockPlatillas {
 const BlockPlantillas: FC<propsBlockPlatillas> = () => {
   const { t } = useTranslation();
   const { user } = AuthContextProvider()
-  const { event, setEvent } = EventContextProvider()
+  const { event, setEvent, planSpaceActive } = EventContextProvider()
   const { psTemplates } = EventsGroupContextProvider()
-  const handleClick = (item: planSpace) => {
+  const handleClick = async (item: planSpace) => {
+    if (!confirm(t("loadtemplatequestion") || `¿Cargar la plantilla "${item.title}"? Esto reemplazará el plano actual.`)) return
     try {
-      fetchApiEventos({
+      const result = await fetchApiEventos({
         query: queries.getPsTemplate,
         variables: { uid: user.uid }
       })
-    } catch {
+      // If result contains templates, find the selected one and apply
+      const templates = Array.isArray(result) ? result : result?.psTemplates || []
+      const template = templates.find((t: any) => t._id === item._id || t.title === item.title)
+      if (template) {
+        // Apply template tables and elements to current planSpace
+        const currentPlanSpace = event.planSpace?.find((ps: any) => ps._id === planSpaceActive?._id)
+        if (currentPlanSpace) {
+          currentPlanSpace.tables = template.tables || []
+          currentPlanSpace.elements = template.elements || []
+          setEvent({ ...event })
+        }
+      }
+    } catch (error) {
+      console.error("[BlockPlantillas] Error cargando template:", error)
     }
   }
   const path = `${process.env.NEXT_PUBLIC_CMS}/facturacion`
@@ -33,47 +47,27 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
 
   return (
     <div className="w-full h-full overflow-auto">
-      {
-        false &&
+      {psTemplates?.length > 0 ? (
         <BlockDefault listaLength={psTemplates?.length}>
-          {psTemplates?.map((item, idx) => {
-            return (
-              <div onClick={() => handleClick(item)} key={idx} className="w-full h-full p-2 flex-col justify-center items-center cursor-pointer">
-                <div key={idx} className={`rounded-lg flex w-full h-full transform hover:scale-105 transition justify-start gap-2`}>
-                  <ImInsertTemplate className={`text-primary w-5 h-5 2xl:w-12 2xl:h-12 `} />
-                  <span className='w-[calc(100%-44px)] truncate'> {item?.title}</span>
-                </div>
-              </div>)
-          })
-          }
-
+          {psTemplates?.map((item, idx) => (
+            <div onClick={() => handleClick(item)} key={idx} className="w-full h-full p-2 flex-col justify-center items-center cursor-pointer">
+              <div className="rounded-lg flex w-full h-full transform hover:scale-105 transition justify-start gap-2">
+                <ImInsertTemplate className="text-primary w-5 h-5 2xl:w-12 2xl:h-12" />
+                <span className="w-[calc(100%-44px)] truncate">{item?.title}</span>
+              </div>
+            </div>
+          ))}
         </BlockDefault>
-      }
-      {true && (
+      ) : (
         <div className="w-full py-2 text-xs 2xl:text-sm">
           <div className="flex flex-col items-center justify-center w-full h-full px-2">
-            <p className="w-full text-center">
-              <span className="text-primary mr-1">{t("createtemplates")}</span>
-              {t("livingroom")}
+            <VscLayoutMenubar className="text-gray-300 w-8 h-8 mb-2" />
+            <p className="w-full text-center text-gray-500">
+              {t("createtemplates") || "No hay plantillas guardadas"}
             </p>
-            <p className="hidden md:block w-full text-center px-4 mt-2">
-              {t("designthelayout")}<br />{t("creativefreedom")}<br />{t("eventsOrganizer")}
+            <p className="w-full text-center text-gray-400 text-[10px] mt-1">
+              {t("designthelayout") || "Usa el icono de guardar en la barra del plano"}
             </p>
-            <div className="text-yellow-500 flex items-center justify-center space-x-1 md:my-2 cursor-default">
-              <div>
-                <DiamanteIcon />
-              </div>
-              <Link href={`${redireccionFacturacion}`}>
-                <p>
-                  {t("activateversion")}<span className="font-semibold cursor-pointer">{t("premium")}</span>
-                </p>
-              </Link>
-            </div>
-            <Link href={`${redireccionFacturacion}`}>
-              <button className="text-white bg-primary px-7 py-1 rounded-lg" >
-                {t("begin")}
-              </button>
-            </Link>
           </div>
         </div>
       )}

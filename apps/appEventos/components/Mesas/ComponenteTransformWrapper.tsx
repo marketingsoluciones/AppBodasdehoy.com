@@ -103,13 +103,24 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
         <div className="flex text-red items-center pr-2 md:pr-3 gap-1 md:gap-2">
           <ClickAwayListener onClickAway={() => setShowMiniMenu(false)}>
             <div>
-              {/* <MdSaveAlt className="h-6 w-6 cursor-pointer text-primary" onClick={() => { !isAllowed() ? ht() : setShowMiniMenu(!showMiniMenu) }} /> */}
+              <MdSaveAlt className="h-6 w-6 cursor-pointer text-primary" onClick={() => { !isAllowed() ? ht() : setShowMiniMenu(!showMiniMenu) }} />
               {showMiniMenu &&
                 <div className="bg-white flex flex-col absolute z-[50] top-8 right-18 rounded-b-md shadow-md items-center text-[9px] px-3 pt-1 pb-3 text-gray-800 gap-y-2">
                   <div className="bg-white flex flex-col absolute z-[10] top-[0px] right-0 rounded-b-md shadow-md min-w-[140px] md:min-w-[120px] items-center text-[10px] md:text-[12px] px-3 pt-1 pb-2 text-gray-800">
                     <span className="w-full text-left font-bold transform -ml-2">{t("savetemplate")}</span>
                     <span className="flex flex-col text-[9px] md:text-[11px]">
                       <span className="capitalize">{t("names")}</span>
+                      <input
+                        type="text"
+                        value={value}
+                        onChange={(e) => {
+                          setValue(e.target.value)
+                          const exists = psTemplates?.some(t => t.title === e.target.value)
+                          setident(!!exists)
+                        }}
+                        placeholder={t("templatename") || "Nombre del plano"}
+                        className="w-full border border-gray-300 rounded px-2 py-1 text-xs mt-1 focus:border-primary focus:outline-none"
+                      />
                       <div className="relative">
                         {!valir && <p className="w-[75%] font-display absolute rounded-xl text-xs left-0 bottom-0 transform translate-y-full text-red flex gap-1"><WarningIcon className="w-4 h-4" />{t("saveitreplaces")}</p>}
                       </div>
