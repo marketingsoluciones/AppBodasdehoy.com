@@ -1,7 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-// apiapp.bodasdehoy.com para queries de eventos (queryenEvento, getPsTemplate, updateActivity)
-const BODAS_API_URL = 'https://apiapp.bodasdehoy.com';
+// GraphQL → api-mcp (servidor con fixes de seguridad)
+// apiapp.bodasdehoy.com se mantiene solo para imágenes/assets estáticos
+import { resolveApiBodasOrigin } from '../../../utils/api3Endpoints';
+const BODAS_API_URL = resolveApiBodasOrigin();
 
 export default async function handler(
   req: NextApiRequest,

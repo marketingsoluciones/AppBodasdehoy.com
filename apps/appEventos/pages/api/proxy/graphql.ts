@@ -11,7 +11,9 @@ export default async function handler(
   }
 
   try {
-    const baseURL = process.env.NEXT_PUBLIC_BASE_URL || 'https://apiapp.bodasdehoy.com';
+    // GraphQL → api-mcp (servidor con fixes de seguridad)
+    // NEXT_PUBLIC_BASE_URL se mantiene solo para imágenes/assets
+    const baseURL = process.env.API_MCP_GRAPHQL_URL?.replace(/\/graphql\/?$/i, '') || 'https://api3-mcp-graphql.eventosorganizador.com';
 
     // Extraer headers necesarios del request original
     const headers: any = {
