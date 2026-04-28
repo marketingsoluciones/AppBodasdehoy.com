@@ -14,7 +14,7 @@
  *   await registerReferralIfPending(jwtToken, development);
  */
 
-const DEFAULT_API2_URL = 'https://api2.eventosorganizador.com/graphql';
+const DEFAULT_API2_URL = 'https://api3-mcp-graphql.eventosorganizador.com/graphql';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 

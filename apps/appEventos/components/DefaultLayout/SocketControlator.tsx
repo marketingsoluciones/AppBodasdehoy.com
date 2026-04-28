@@ -37,7 +37,9 @@ export const SocketControlator = () => {
     if (user?.displayName === "anonymous") {
       if (received.channel === "app:message") {
         if (received?.msg?.payload?.action === "setEvent") {
-          let eventNew: Event = received.msg?.payload?.value
+          const rawAnon = received.msg?.payload?.value
+          if (!rawAnon || typeof rawAnon !== 'object') return
+          let eventNew: Event = rawAnon
           let itinerary = eventNew.itinerarios_array.find(elem => elem._id === event.itinerarios_array[0]._id)
           const task = itinerary?.tasks?.find(elem => elem._id === event.itinerarios_array[0].tasks[0]._id)
 
@@ -76,12 +78,24 @@ export const SocketControlator = () => {
       if (received.channel === "app:message") {
         // console.log(100020, "RECEIVED event")
         if (received?.msg?.payload?.action === "setEvent") {
+          const rawValue = received.msg?.payload?.value
+          if (!rawValue || typeof rawValue !== 'object') return
           const eventOld = {
             galerySvgs: event?.galerySvgs,
             updatedAt: new Date()
           }
-          let eventNew: Event = received.msg?.payload?.value
+          let eventNew: Event = rawValue
           eventNew.fecha = new Date(eventNew.fecha).getTime().toString()
+          // Hidratar detalles_usuario_id del owner si el usuario logueado es el owner
+          if (user?.uid === eventNew?.usuario_id && user) {
+            eventNew.detalles_usuario_id = {
+              ...eventNew.detalles_usuario_id,
+              uid: user.uid,
+              displayName: user.displayName || eventNew.detalles_usuario_id?.displayName,
+              photoURL: user.photoURL || eventNew.detalles_usuario_id?.photoURL,
+              email: user.email || eventNew.detalles_usuario_id?.email,
+            }
+          }
           if (eventNew?.compartido_array?.length) {
             const fMyUid = eventNew?.compartido_array?.findIndex(elem => elem === user?.uid)
             if (fMyUid > -1) {
@@ -89,9 +103,13 @@ export const SocketControlator = () => {
               eventNew.compartido_array.splice(fMyUid, 1)
               eventNew.detalles_compartidos_array?.splice(fMyUid, 1)
             }
+            // Siempre incluir el owner en la consulta para hidratar detalles_usuario_id
+            const uidsToFetch = user?.uid === eventNew?.usuario_id
+              ? eventNew?.compartido_array
+              : [...eventNew?.compartido_array, eventNew?.usuario_id]
             fetchApiBodas({
               query: queries?.getUsers,
-              variables: { uids: user?.uid === eventNew?.usuario_id ? eventNew?.compartido_array : [...eventNew?.compartido_array, eventNew?.usuario_id] },
+              variables: { uids: uidsToFetch },
               development: config?.development
             }).then((results) => {
               results?.map((result: detalle_compartidos_array) => {
@@ -106,7 +124,21 @@ export const SocketControlator = () => {
               setEvent({ ...eventNew, ...eventOld })
             })
           } else {
-            setEvent({ ...eventNew, ...eventOld })
+            // Sin compartidos: hidratar al owner si es colaborador viendo el evento
+            if (user?.uid !== eventNew?.usuario_id && eventNew?.usuario_id) {
+              fetchApiBodas({
+                query: queries?.getUsers,
+                variables: { uids: [eventNew.usuario_id] },
+                development: config?.development
+              }).then((results) => {
+                if (results?.[0]) {
+                  eventNew.detalles_usuario_id = results[0]
+                }
+                setEvent({ ...eventNew, ...eventOld })
+              })
+            } else {
+              setEvent({ ...eventNew, ...eventOld })
+            }
           }
         }
         if (received?.msg?.payload?.action === "setPlanSpaceActive") {
@@ -177,9 +209,11 @@ export const SocketControlator = () => {
         }
       }
       if (received.channel === "notification") {
-        notifications.total = notifications.total + 1
-        notifications.results.unshift(received.msg)
-        setNotifications({ ...notifications })
+        setNotifications({
+          ...notifications,
+          total: notifications.total + 1,
+          results: [received.msg, ...notifications.results]
+        })
       }
     }
   }, [received])
