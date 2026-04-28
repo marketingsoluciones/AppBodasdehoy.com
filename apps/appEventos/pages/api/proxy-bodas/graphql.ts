@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 
+import { resolveApiBodasOrigin } from '../../../utils/api3Endpoints';
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -11,7 +13,7 @@ export default async function handler(
   }
 
   try {
-    const primaryBaseURL = process.env.API_BODAS_URL || 'https://api2.eventosorganizador.com';
+    const primaryBaseURL = resolveApiBodasOrigin();
     const fallbackBaseURL = process.env.API_BODAS_URL_FALLBACK;
 
     // Extraer headers necesarios del request original
@@ -19,9 +21,13 @@ export default async function handler(
       'Content-Type': req.headers['content-type'] || 'application/json',
     };
 
-    // Pasar Authorization si existe
+    // Pasar Authorization: header directo o cookie idTokenV0.1.0 como fallback
     if (req.headers.authorization) {
       headers.Authorization = req.headers.authorization;
+    } else if (req.cookies?.['idTokenV0.1.0']) {
+      headers.Authorization = `Bearer ${req.cookies['idTokenV0.1.0']}`;
+    } else if (req.cookies?.sessionBodas) {
+      headers.Authorization = `Bearer ${req.cookies.sessionBodas}`;
     }
 
     // Pasar Development si existe

@@ -20,9 +20,13 @@ export default async function handler(
       'Content-Type': req.headers['content-type'] || 'application/json',
     };
 
-    // Pasar Authorization si existe
+    // Pasar Authorization: header directo o cookie idTokenV0.1.0 como fallback
     if (req.headers.authorization) {
       headers.Authorization = req.headers.authorization;
+    } else if (req.cookies?.['idTokenV0.1.0']) {
+      headers.Authorization = `Bearer ${req.cookies['idTokenV0.1.0']}`;
+    } else if (req.cookies?.sessionBodas) {
+      headers.Authorization = `Bearer ${req.cookies.sessionBodas}`;
     }
 
     // Pasar Development si existe
