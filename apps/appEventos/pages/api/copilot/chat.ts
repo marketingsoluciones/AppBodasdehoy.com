@@ -16,7 +16,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 // Python backend URL with auto-routing
-const PYTHON_BACKEND_URL = process.env.PYTHON_BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+const PYTHON_BACKEND_URL =
+  process.env.API_IA_URL ||
+  process.env.NEXT_PUBLIC_API_IA_URL ||
+  process.env.API3_IA_URL ||
+  process.env.PYTHON_BACKEND_URL ||
+  'https://api3-ia.eventosorganizador.com';
 
 // Safety guard: never return "fallback" model output if the backend IA is down.
 const ENABLE_COPILOT_FALLBACK = process.env.ENABLE_COPILOT_FALLBACK === 'true';
@@ -74,7 +79,11 @@ const PREFER_REASONING_MODEL = process.env.COPILOT_PREFER_REASONING_MODEL !== 'f
 
 // API2_GRAPHQL_URL: solo se usa como fallback de whitelabel si SKIP_WHITELABEL_VIA_API2 no está activo.
 // apps/web no debe apuntar a api2; preferir API_IA_WHITELABEL_URL o SKIP_WHITELABEL_VIA_API2=true.
-const API2_GRAPHQL_URL = process.env.API2_GRAPHQL_URL || '';
+const API2_GRAPHQL_URL =
+  process.env.API_MCP_GRAPHQL_URL ||
+  process.env.API3_MCP_GRAPHQL_URL ||
+  process.env.API2_GRAPHQL_URL ||
+  '';
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -632,7 +641,21 @@ async function proxyToPythonBackend(
     // Rol del usuario para que api-ia ajuste el acceso a datos (owner/collaborator/registered/guest)
     if (metadata?.pageContext?.userRole) headers['X-User-Role'] = metadata.pageContext.userRole;
     if (metadata?.pageContext?.permissions?.length) {
-      headers['X-User-Permissions'] = metadata.pageContext.permissions.join(',');
+      // Serializar permisos como JSON para api-ia: {"presupuesto":"edit","invitados":"view",...}
+      try {
+        const permsObj: Record<string, string> = {};
+        for (const p of metadata.pageContext.permissions) {
+          if (p && typeof p === 'object' && 'title' in p && 'value' in p) {
+            permsObj[(p as any).title] = (p as any).value;
+          } else if (typeof p === 'string' && p.includes(':')) {
+            const [k, v] = p.split(':');
+            permsObj[k] = v;
+          }
+        }
+        headers['X-User-Permissions'] = JSON.stringify(permsObj);
+      } catch {
+        headers['X-User-Permissions'] = JSON.stringify(metadata.pageContext.permissions);
+      }
     }
 
     // X-User-Email: api-ia lo usa como prioridad máxima para identificar al usuario.

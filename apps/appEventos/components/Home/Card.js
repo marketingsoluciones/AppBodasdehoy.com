@@ -259,7 +259,7 @@ const Card = ({ data, grupoStatus, idx }) => {
         </div>
 
         {data[idx]?._id == user?.eventSelected ? <div className="flex w-[304px] h-40 border-dashed border-2 border-yellow-300 absolute z-0 rounded-xl" /> : <></>}
-        <div role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }} onClick={(e) => {
+        <div role="button" tabIndex={0} aria-label={`Abrir evento ${data[idx]?.nombre || ''}`} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }} onClick={(e) => {
           e.preventDefault()
           e.stopPropagation()
 
