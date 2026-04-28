@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+import { resolveApiBodasGraphqlUrl } from '../../utils/api3Endpoints';
+
 /**
  * /api/notifications — Proxy server-side a api2 para notificaciones.
  * No requiere Firebase token del browser — usa credenciales server-side.
@@ -14,13 +16,13 @@ import type { NextApiRequest, NextApiResponse } from 'next';
  * GET /api/notifications?userId=Ii6UZ...&dev=champagne-events&tab=pending&page=1
  */
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+const API2_URL = resolveApiBodasGraphqlUrl();
 
 // Server-side: generar Firebase ID token para api2
 async function getServerToken(userId: string): Promise<string | null> {
   try {
     // 1. Generar custom token via Firebase Admin en api2
-    const supportKey = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
+    const supportKey = process.env.SUPPORT_SECRET_KEY || '';
     const impersonateRes = await fetch(API2_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Development': 'bodasdehoy' },
@@ -72,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-Development': development };
     if (cookieToken && cookieToken.startsWith('ey')) headers['Authorization'] = `Bearer ${cookieToken}`;
     else {
-      headers['X-Support-Key'] = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
+      headers['X-Support-Key'] = process.env.SUPPORT_SECRET_KEY || '';
       if (uid) headers['X-User-Id'] = uid;
     }
     try {
@@ -107,7 +109,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Si no hay token, usar support key + X-User-Id como fallback (bypass/test)
-  const supportKey = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
+  const supportKey = process.env.SUPPORT_SECRET_KEY || '';
   if (!headers['Authorization']) {
     headers['X-Support-Key'] = supportKey;
     headers['X-User-Id'] = userId;

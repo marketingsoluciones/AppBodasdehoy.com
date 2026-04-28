@@ -95,14 +95,14 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
           const eventsGroupSort = [...eventsPendientes].sort((a: any, b: any) => {
             return b.fecha_creacion - a.fecha_creacion
           })
-          // Buscar por user.eventSelected, luego por localStorage (persistencia al recargar)
+          // Prioridad: localStorage (selección más reciente) > user.eventSelected (BD, puede estar desactualizado)
           const savedEventId = typeof window !== 'undefined' ? localStorage.getItem('appEventos_activeEventId') : null
-          let eventSelected = eventsGroupSort?.find(elem => elem._id === user?.eventSelected)
+          let eventSelected = savedEventId ? eventsGroup.find(elem => elem._id === savedEventId) : null
+          if (!eventSelected && user?.eventSelected) {
+            eventSelected = eventsGroupSort?.find(elem => elem._id === user?.eventSelected)
+          }
           if (!eventSelected && user?.eventSelected) {
             eventSelected = eventsGroup.find(elem => elem._id === user?.eventSelected)
-          }
-          if (!eventSelected && savedEventId) {
-            eventSelected = eventsGroup.find(elem => elem._id === savedEventId)
           }
           if (!eventSelected && eventsGroupSort?.length) {
             eventSelected = eventsGroupSort[0]

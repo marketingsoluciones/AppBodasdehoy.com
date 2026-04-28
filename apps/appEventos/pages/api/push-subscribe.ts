@@ -5,7 +5,9 @@
  */
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com';
+import { resolveApiBodasOrigin } from '../../utils/api3Endpoints';
+
+const API2_URL = resolveApiBodasOrigin();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -16,6 +18,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!token || !userId) {
     return res.status(400).json({ error: 'token and userId are required' });
+  }
+
+  // Validar que el userId del body corresponde con la sesión del usuario
+  // La cookie sessionBodas contiene un JWT con el uid real
+  const sessionCookie = req.cookies?.sessionBodas || req.cookies?.['sessionBodas'];
+  if (!sessionCookie) {
+    return res.status(401).json({ error: 'No session cookie' });
   }
 
   try {

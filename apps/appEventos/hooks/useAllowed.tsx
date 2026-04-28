@@ -23,6 +23,8 @@ export const useAllowed = () => {
     const pathname = usePathname()
     const { user } = AuthContextProvider()
 
+    const VALID_MODULES = ['resumen','invitados','mesas','regalos','presupuesto','invitaciones','itinerario','servicios','memories']
+
     const isAllowed = (pathM?: keyof typeof types) => {
       if (event?.usuario_id === user?.uid) {
         return true
@@ -35,12 +37,13 @@ export const useAllowed = () => {
         if (path === "momentos") {
           path = "memories"
         }
+        if (!VALID_MODULES.includes(path)) return false
         const f1 = event?.permissions?.findIndex(elem => elem.title === path)
         if (f1 > -1) {
           return event?.permissions[f1].value === "edit"
         }
       }
-      return true
+      return false
     }
 
     const ht = () => {
@@ -62,6 +65,8 @@ export const useAllowedRouter = () => {
     const { t } = useTranslation()
     const { user } = AuthContextProvider()
 
+    const VALID_MODULES_ROUTER = ['resumen','invitados','mesas','regalos','presupuesto','invitaciones','itinerario','servicios','memories']
+
     const isAllowedRouter = (pathM?: any) => {
       if (event?.usuario_id === user?.uid) {
         return true
@@ -74,15 +79,13 @@ export const useAllowedRouter = () => {
         if (path === "momentos") {
           path = "memories"
         }
+        if (!VALID_MODULES_ROUTER.includes(path)) return false
         const f1 = event?.permissions?.findIndex(elem => elem.title === path)
         if (f1 > -1) {
           return event?.permissions[f1].value !== "none"
         }
-        else {
-          return true
-        }
       }
-      return true
+      return false
     }
     const ht = () => {
       toast("warning", t("No tienes permiso para este módulo"))

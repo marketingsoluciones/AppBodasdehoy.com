@@ -47,11 +47,12 @@ export const handleClickCard = async ({ t, final = true, data, user, setUser, co
           development: config?.development
         })
         
-        // Actualizar estado local del usuario
+        // Actualizar estado local del usuario + localStorage
         if (user) {
           user.eventSelected = data._id
           setUser(user)
         }
+        if (typeof window !== 'undefined') localStorage.setItem('appEventos_activeEventId', data._id)
       } catch (updateError) {
         console.error("[handleClickCard] ⚠️ Error actualizando evento seleccionado (continuando de todas formas):", updateError)
         // Continuar aunque falle la actualización en BD
@@ -59,6 +60,7 @@ export const handleClickCard = async ({ t, final = true, data, user, setUser, co
           user.eventSelected = data._id
           setUser(user)
         }
+        if (typeof window !== 'undefined') localStorage.setItem('appEventos_activeEventId', data._id)
       }
     } else {
       console.warn("[handleClickCard] ⚠️ No se puede actualizar evento seleccionado:", {

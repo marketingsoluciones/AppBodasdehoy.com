@@ -289,6 +289,7 @@ export function LoginForm({
             <input
               autoComplete="email"
               disabled={anyLoading}
+              name="email"
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tu@email.com"
               style={s.input}
@@ -304,6 +305,7 @@ export function LoginForm({
             <input
               autoComplete="current-password"
               disabled={anyLoading}
+              name="password"
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               style={s.input}
