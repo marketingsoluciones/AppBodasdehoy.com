@@ -298,8 +298,8 @@ export const getDevelopmentNameFromHostname = (hostname: string): string => {
     hostname.startsWith('localhost') ||
     !isProductionRootHostname(hostname);
 
-  if (isNonProductionHost && typeof localStorage !== 'undefined') {
-    const lsOverride = localStorage.getItem('__dev_domain');
+  if (isNonProductionHost && typeof window !== 'undefined' && typeof window.localStorage?.getItem === 'function') {
+    const lsOverride = window.localStorage.getItem('__dev_domain');
     if (lsOverride && knownDevelopments.includes(lsOverride)) {
       return lsOverride;
     }
