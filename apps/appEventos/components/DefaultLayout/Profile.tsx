@@ -178,13 +178,17 @@ const Profile = ({ user, state, set, ...rest }) => {
     }
   ]
 
+  const ALWAYS_SHOW_FOR_AUTH = ["Mi perfil", "Cerrar Sesión", "Facturacion"]
+
   const optionReduce = (options: Option[]) => {
     return options.reduce((acc: Option[], item: Option) => {
       if (item.development?.includes(config?.development) || item.development?.includes("all")) {
         // Entradas sin `rol` (p. ej. Iniciar sesión / Registrarse): solo invitado sin cuenta.
-        // Antes: `item.rol === user?.role` era true cuando ambos eran undefined → menú de login con sesión ya iniciada.
         if (item.rol === undefined) {
           if (!isAuthenticatedUser) acc.push(item)
+        } else if (isAuthenticatedUser && ALWAYS_SHOW_FOR_AUTH.includes(item.title)) {
+          // Opciones esenciales: siempre visibles para cualquier usuario autenticado
+          acc.push(item)
         } else if (
           isAuthenticatedUser &&
           !user?.role?.length &&
@@ -192,15 +196,12 @@ const Profile = ({ user, state, set, ...rest }) => {
             "Momentos",
             "Mi Web Creador",
             "Copilot IA",
-            "Mi perfil",
-            "Cerrar Sesión",
-            "Facturacion",
             "Diseño IA",
           ].includes(item.title)
         ) {
           acc.push(item)
         } else if (
-          item.rol?.includes(user?.role ? user.role[0] : "") ||
+          item.rol?.includes(Array.isArray(user?.role) ? user.role[0] : user?.role ?? "") ||
           item.rol?.includes("all") ||
           item.rol === user?.role
         ) {
