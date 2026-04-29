@@ -35,7 +35,7 @@ type Filter = 'pending' | 'all';
 
 const PAGE_SIZE = 20;
 // Socket cubre el push en tiempo real; el polling queda como fallback con intervalo amplio.
-const POLL_INTERVAL = 300_000;
+const POLL_INTERVAL = 300_000; // 5 min
 
 const TYPE_ICON: Record<string, string> = {
   whatsapp_message: '💬', task_reminder: '📋', access_revoked: '🔒',
@@ -258,7 +258,9 @@ export const Notifications = () => {
           onClick={() => showPanel ? handleClose() : handleOpen()}
           className="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer"
         >
-          <RiNotification2Fill className="text-primary w-6 h-6 scale-x-90" />
+          <RiNotification2Fill
+            className={`w-6 h-6 scale-x-90 transition-colors ${api2UnreadCount > 0 ? 'text-red-600 animate-pulse' : 'text-primary'}`}
+          />
           {api2UnreadCount > 0 && (
             <span className="absolute -top-2 -right-2 min-w-[24px] h-[24px] rounded-full bg-red-600 flex items-center justify-center shadow-md">
               <span className="text-white text-[11px] font-bold leading-none">{api2UnreadCount > 99 ? '99+' : api2UnreadCount}</span>

@@ -30,18 +30,18 @@ export const useAllowed = () => {
         return true
       }
       let path = pathM ? pathM : pathname.split("/")[1].split("-")[0]
-      if (path !== "") {
-        if (path === "lista") {
-          path = "regalos"
-        }
-        if (path === "momentos") {
-          path = "memories"
-        }
-        if (!VALID_MODULES.includes(path)) return false
-        const f1 = event?.permissions?.findIndex(elem => elem.title === path)
-        if (f1 > -1) {
-          return event?.permissions[f1].value === "edit"
-        }
+      // La home "/" no es un módulo restringido — siempre permitida
+      if (path === "") return true
+      if (path === "lista") {
+        path = "regalos"
+      }
+      if (path === "momentos") {
+        path = "memories"
+      }
+      if (!VALID_MODULES.includes(path)) return false
+      const f1 = event?.permissions?.findIndex(elem => elem.title === path)
+      if (f1 > -1) {
+        return event?.permissions[f1].value === "edit"
       }
       return false
     }
@@ -72,18 +72,18 @@ export const useAllowedRouter = () => {
         return true
       }
       let path = pathM ? pathM.split("/")[1].split("-")[0] : pathname.split("/")[1].split("-")[0]
-      if (path !== "") {
-        if (path === "lista") {
-          path = "regalos"
-        }
-        if (path === "momentos") {
-          path = "memories"
-        }
-        if (!VALID_MODULES_ROUTER.includes(path)) return false
-        const f1 = event?.permissions?.findIndex(elem => elem.title === path)
-        if (f1 > -1) {
-          return event?.permissions[f1].value !== "none"
-        }
+      // La home "/" no es un módulo restringido — siempre permitida
+      if (path === "") return true
+      if (path === "lista") {
+        path = "regalos"
+      }
+      if (path === "momentos") {
+        path = "memories"
+      }
+      if (!VALID_MODULES_ROUTER.includes(path)) return false
+      const f1 = event?.permissions?.findIndex(elem => elem.title === path)
+      if (f1 > -1) {
+        return event?.permissions[f1].value !== "none"
       }
       return false
     }
