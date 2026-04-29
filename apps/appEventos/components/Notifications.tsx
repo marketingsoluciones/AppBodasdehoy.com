@@ -2,9 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import ClickAwayListener from "react-click-away-listener"
 import { RiNotification2Fill } from "react-icons/ri";
 import { MisEventosIcon, TarjetaIcon } from "./icons";
-import { fetchApiBodas, queries } from "../utils/Fetching";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, SocketContextProvider } from "../context";
-import { Notification, ResultNotifications } from "../utils/Interfaces";
 import { Interweave } from "interweave";
 import { useTranslation } from "react-i18next";
 import { ImageAvatar } from "./Utils/ImageAvatar";
@@ -36,7 +34,8 @@ type View =
 type Filter = 'pending' | 'all';
 
 const PAGE_SIZE = 20;
-const POLL_INTERVAL = 60_000;
+// Socket cubre el push en tiempo real; el polling queda como fallback con intervalo amplio.
+const POLL_INTERVAL = 300_000;
 
 const TYPE_ICON: Record<string, string> = {
   whatsapp_message: '💬', task_reminder: '📋', access_revoked: '🔒',
@@ -59,18 +58,13 @@ export const Notifications = () => {
   const { event: selectedEvent } = EventContextProvider()
   const { eventsGroup } = EventsGroupContextProvider();
   const { user, config } = AuthContextProvider()
-  const { notifications, setNotifications } = SocketContextProvider()
+  const { socket } = SocketContextProvider()
   const router = useRouter()
 
   const [showPanel, setShowPanel] = useState(false);
   const [view, setView] = useState<View>('legacy');
   const [filter, setFilter] = useState<Filter>('pending');
   const [focusedEventId, setFocusedEventId] = useState<string | null>(null);
-
-  // Legacy state
-  const [countScroll, setCountScroll] = useState({ count: 1 })
-  const [showLoad, setShowLoad] = useState(false);
-  const detallesUsuarioIds = eventsGroup?.flatMap(ev => [...ev.detalles_compartidos_array, ev.detalles_usuario_id])?.filter(Boolean);
 
   // Api2 state
   const [api2Notifs, setApi2Notifs] = useState<Api2Notification[]>([]);
@@ -157,72 +151,26 @@ export const Notifications = () => {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [isRealUser, pollUnread]);
 
-  // ========================================
-  // Legacy notifications (tab "Actual")
-  // ========================================
-
-  let skip = 0;
-  const handleScroll = (e: any) => {
-    const zf = window.devicePixelRatio;
-    const sh = e.target.scrollHeight / zf;
-    const oh = e.target.offsetHeight / zf;
-    const st = e.target.scrollTop / zf;
-    if (notifications?.results && st + oh >= sh - 5 && notifications.results.length < notifications.total && skip !== 8 * countScroll.count) {
-      skip = 8 * countScroll.count;
-      setShowLoad(true);
-      fetchApiBodas({
-        query: queries.getNotifications,
-        variables: { args: { uid: user.uid }, sort: { createdAt: -1 }, skip: 8 * countScroll.count, limit: 8 },
-        development: config?.development
-      }).then((result: ResultNotifications) => {
-        if (result) {
-          countScroll.count++;
-          setCountScroll({ ...countScroll });
-          notifications.total = result.total;
-          notifications.results = [...notifications.results, ...result.results];
-          setShowLoad(false);
-          setNotifications({ ...notifications });
-        }
-      }).catch(() => setShowLoad(false));
-    }
-  };
-
+  // Push en tiempo real: cuando llega una "notification" por socket,
+  // refrescar inmediatamente el contador y la lista visible (si el panel está abierto).
   useEffect(() => {
-    if (isRealUser) {
-      fetchApiBodas({
-        query: queries.getNotifications,
-        variables: { args: { uid: user?.uid }, sort: { createdAt: -1 }, skip: 0, limit: 8 },
-        development: config?.development
-      }).then((r: ResultNotifications) => { if (r) setNotifications(r); }).catch(() => {});
-    }
-  }, [user?.uid]);
-
-  useEffect(() => {
-    if (showPanel && view === 'legacy' && notifications?.results?.length > 0 && notifications.results[0]?.state === "sent") {
-      const reduce = notifications.results.reduce((acc: any, item: any) => {
-        if (item.state === "sent") { acc.ids.push(item._id); acc.results.push({ ...item, state: "received" }); }
-        else acc.results.push(item);
-        return acc;
-      }, { results: [], ids: [] });
-      if (reduce.ids.length) {
-        fetchApiBodas({ query: queries.updateNotifications, variables: { args: { _id: reduce.ids, state: "received" } }, development: config?.development })
-          .then((r: any) => { if (r) { notifications.results = reduce.results; setNotifications({ ...notifications }); } }).catch(() => {});
+    if (!socket || !isRealUser) return;
+    const onNotification = () => {
+      pollUnread();
+      if (!showPanel) return;
+      if (view === 'event-notifications' && focusedEventId) {
+        const ev = eventsGroup?.find(e => e._id === focusedEventId);
+        fetchApi2(filter, api2Page, ev?.nombre);
+      } else if (view === 'all-pending' || view === 'legacy' || view === 'history') {
+        fetchApi2(filter, api2Page);
       }
-    }
-  }, [showPanel, view]);
+    };
+    socket.on('notification', onNotification);
+    return () => { socket.off('notification', onNotification); };
+  }, [socket, isRealUser, showPanel, view, focusedEventId, filter, api2Page, eventsGroup, pollUnread, fetchApi2]);
 
   const handleClose = () => {
     setShowPanel(false);
-    if (view !== 'legacy' || !notifications?.results?.length) return;
-    const reduce = notifications.results.reduce((acc: any, item: any) => {
-      if (item.state === "received") { acc.ids.push(item._id); acc.results.push({ ...item, state: "read" }); }
-      else acc.results.push(item);
-      return acc;
-    }, { results: [], ids: [] });
-    if (reduce.ids.length) {
-      fetchApiBodas({ query: queries.updateNotifications, variables: { args: { _id: reduce.ids, state: "read" } }, development: config?.development })
-        .then((r: any) => { if (r) { notifications.results = reduce.results; setNotifications({ ...notifications }); } }).catch(() => {});
-    }
   };
 
   // ========================================
@@ -284,8 +232,7 @@ export const Notifications = () => {
   }, [api2Page]);
 
   // Derived
-  const legacyUnread = notifications?.results?.filter((n: Notification) => n.state === 'sent').length || 0;
-  const totalUnread = legacyUnread + api2UnreadCount;
+  const totalUnread = api2UnreadCount;
   const api2TotalPages = Math.ceil(api2Total / (view === 'history' ? 50 : PAGE_SIZE));
   const focusedEventName = eventsGroup?.find((e: any) => e._id === focusedEventId)?.nombre || '';
 
@@ -312,9 +259,6 @@ export const Notifications = () => {
           className="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer"
         >
           <RiNotification2Fill className="text-primary w-6 h-6 scale-x-90" />
-          {notifications?.results?.length > 0 && notifications.results[0]?.state === "sent" && (
-            <div className="absolute w-2.5 h-2.5 rounded-full bg-green translate-x-2.5 translate-y-1.5" />
-          )}
           {api2UnreadCount > 0 && (
             <span className="absolute -top-2 -right-2 min-w-[24px] h-[24px] rounded-full bg-red-600 flex items-center justify-center shadow-md">
               <span className="text-white text-[11px] font-bold leading-none">{api2UnreadCount > 99 ? '99+' : api2UnreadCount}</span>

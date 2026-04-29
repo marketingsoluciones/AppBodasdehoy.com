@@ -36,8 +36,20 @@ export const useNotification = () => {
       development: config.development,
       type: "json"
     }).then(result => {
-      result?.total === 1 && toast("success", t(`Notificación enviada`))
-      result?.total > 1 && toast("success", t(`Notificaciones enviadas`))
+      if (!result || typeof result.total !== "number") {
+        console.error("[useNotification] respuesta inválida de createNotifications:", result)
+        toast("error", t(`No se pudo enviar la notificación`))
+        return
+      }
+      if (result.total === 0) {
+        toast("error", t(`No se pudo enviar la notificación`))
+        return
+      }
+      if (result.total === 1) toast("success", t(`Notificación enviada`))
+      else toast("success", t(`Notificaciones enviadas`))
+    }).catch(err => {
+      console.error("[useNotification] error createNotifications:", err)
+      toast("error", t(`No se pudo enviar la notificación`))
     })
   };
 
