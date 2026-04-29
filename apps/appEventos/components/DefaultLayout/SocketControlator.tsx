@@ -38,39 +38,57 @@ export const SocketControlator = () => {
       if (received.channel === "app:message") {
         if (received?.msg?.payload?.action === "setEvent") {
           const rawAnon = received.msg?.payload?.value
-          if (!rawAnon || typeof rawAnon !== 'object') return
-          let eventNew: Event = rawAnon
-          let itinerary = eventNew.itinerarios_array.find(elem => elem._id === event.itinerarios_array[0]._id)
-          const task = itinerary?.tasks?.find(elem => elem._id === event.itinerarios_array[0].tasks[0]._id)
+          const applyAnonEvent = (eventNewInput: any) => {
+            if (!eventNewInput || typeof eventNewInput !== 'object') return
+            if (!event?.itinerarios_array?.length || !event?.itinerarios_array?.[0]?.tasks?.length) return
+            let eventNew: Event = eventNewInput
+            let itinerary = eventNew.itinerarios_array?.find((elem: any) => elem._id === event.itinerarios_array[0]._id)
+            const task = itinerary?.tasks?.find((elem: any) => elem._id === event.itinerarios_array[0].tasks[0]._id)
+            if (!itinerary || !task) return
 
-          const commentUids = (task?.comments || [])
-            .filter((c: any) => !!c.uid)
-            .map((c: any) => c.uid)
+            const commentUids = (task?.comments || [])
+              .filter((c: any) => !!c.uid)
+              .map((c: any) => c.uid)
 
-          itinerary.tasks = [task]
-          eventNew.itinerarios_array = [itinerary]
-          eventNew.fecha_actualizacion = new Date().toLocaleString()
+            itinerary.tasks = [task]
+            eventNew.itinerarios_array = [itinerary]
+            eventNew.fecha_actualizacion = new Date().toLocaleString()
 
-          if (commentUids.length > 0) {
-            fetchApiBodas({
-              query: queries?.getUsers,
-              variables: { uids: commentUids },
-              development: config?.development,
-            }).then((results) => {
-              if (results?.length) {
-                eventNew.detalles_compartidos_array = results.map((u: detalle_compartidos_array) => ({
-                  uid: u.uid,
-                  displayName: u.displayName,
-                  photoURL: u.photoURL,
-                }))
-              }
+            if (commentUids.length > 0) {
+              fetchApiBodas({
+                query: queries?.getUsers,
+                variables: { uids: commentUids },
+                development: config?.development,
+              }).then((results) => {
+                if (results?.length) {
+                  eventNew.detalles_compartidos_array = results.map((u: detalle_compartidos_array) => ({
+                    uid: u.uid,
+                    displayName: u.displayName,
+                    photoURL: u.photoURL,
+                  }))
+                }
+                setEvent({ ...eventNew })
+              }).catch(() => {
+                setEvent({ ...eventNew })
+              })
+            } else {
               setEvent({ ...eventNew })
-            }).catch(() => {
-              setEvent({ ...eventNew })
-            })
-          } else {
-            setEvent({ ...eventNew })
+            }
           }
+
+          if (typeof rawAnon === 'string') {
+            fetchApiBodas({
+              query: queries?.getEventsByID,
+              variables: { variable: "_id", valor: rawAnon, development: config?.development },
+              development: config?.development,
+            }).then((res) => {
+              const eventFetched = Array.isArray(res) ? res?.[0] : res
+              applyAnonEvent(eventFetched)
+            })
+            return
+          }
+
+          applyAnonEvent(rawAnon)
         }
       }
     }
@@ -79,67 +97,81 @@ export const SocketControlator = () => {
         // console.log(100020, "RECEIVED event")
         if (received?.msg?.payload?.action === "setEvent") {
           const rawValue = received.msg?.payload?.value
-          if (!rawValue || typeof rawValue !== 'object') return
+          if (!rawValue) return
           const eventOld = {
             galerySvgs: event?.galerySvgs,
             updatedAt: new Date()
           }
-          let eventNew: Event = rawValue
-          eventNew.fecha = new Date(eventNew.fecha).getTime().toString()
-          // Hidratar detalles_usuario_id del owner si el usuario logueado es el owner
-          if (user?.uid === eventNew?.usuario_id && user) {
-            eventNew.detalles_usuario_id = {
-              ...eventNew.detalles_usuario_id,
-              uid: user.uid,
-              displayName: user.displayName || eventNew.detalles_usuario_id?.displayName,
-              photoURL: user.photoURL || eventNew.detalles_usuario_id?.photoURL,
-              email: user.email || eventNew.detalles_usuario_id?.email,
+          const applyEvent = (eventNewInput: any) => {
+            if (!eventNewInput || typeof eventNewInput !== 'object') return
+            let eventNew: Event = eventNewInput
+            eventNew.fecha = new Date(eventNew.fecha).getTime().toString()
+            if (user?.uid === eventNew?.usuario_id && user) {
+              eventNew.detalles_usuario_id = {
+                ...eventNew.detalles_usuario_id,
+                uid: user.uid,
+                displayName: user.displayName || eventNew.detalles_usuario_id?.displayName,
+                photoURL: user.photoURL || eventNew.detalles_usuario_id?.photoURL,
+                email: user.email || eventNew.detalles_usuario_id?.email,
+              }
             }
-          }
-          if (eventNew?.compartido_array?.length) {
-            const fMyUid = eventNew?.compartido_array?.findIndex(elem => elem === user?.uid)
-            if (fMyUid > -1) {
-              eventNew.permissions = [...eventNew.detalles_compartidos_array[fMyUid].permissions]
-              eventNew.compartido_array.splice(fMyUid, 1)
-              eventNew.detalles_compartidos_array?.splice(fMyUid, 1)
-            }
-            // Siempre incluir el owner en la consulta para hidratar detalles_usuario_id
-            const uidsToFetch = user?.uid === eventNew?.usuario_id
-              ? eventNew?.compartido_array
-              : [...eventNew?.compartido_array, eventNew?.usuario_id]
-            fetchApiBodas({
-              query: queries?.getUsers,
-              variables: { uids: uidsToFetch },
-              development: config?.development
-            }).then((results) => {
-              results?.map((result: detalle_compartidos_array) => {
-                const f1 = eventNew.detalles_compartidos_array?.findIndex(elem => elem.uid === result.uid);
-                if (f1 > -1) {
-                  eventNew.detalles_compartidos_array?.splice(f1, 1, { ...eventNew.detalles_compartidos_array[f1], ...result });
-                }
-                if (result.uid === eventNew?.usuario_id) {
-                  eventNew.detalles_usuario_id = result
-                }
-              })
-              setEvent({ ...eventNew, ...eventOld })
-            })
-          } else {
-            // Sin compartidos: hidratar al owner si es colaborador viendo el evento
-            if (user?.uid !== eventNew?.usuario_id && eventNew?.usuario_id) {
+            if (eventNew?.compartido_array?.length) {
+              const fMyUid = eventNew?.compartido_array?.findIndex(elem => elem === user?.uid)
+              if (fMyUid > -1) {
+                eventNew.permissions = [...eventNew.detalles_compartidos_array[fMyUid].permissions]
+                eventNew.compartido_array.splice(fMyUid, 1)
+                eventNew.detalles_compartidos_array?.splice(fMyUid, 1)
+              }
+              const uidsToFetch = user?.uid === eventNew?.usuario_id
+                ? eventNew?.compartido_array
+                : [...eventNew?.compartido_array, eventNew?.usuario_id]
               fetchApiBodas({
                 query: queries?.getUsers,
-                variables: { uids: [eventNew.usuario_id] },
+                variables: { uids: uidsToFetch },
                 development: config?.development
               }).then((results) => {
-                if (results?.[0]) {
-                  eventNew.detalles_usuario_id = results[0]
-                }
+                results?.map((result: detalle_compartidos_array) => {
+                  const f1 = eventNew.detalles_compartidos_array?.findIndex(elem => elem.uid === result.uid);
+                  if (f1 > -1) {
+                    eventNew.detalles_compartidos_array?.splice(f1, 1, { ...eventNew.detalles_compartidos_array[f1], ...result });
+                  }
+                  if (result.uid === eventNew?.usuario_id) {
+                    eventNew.detalles_usuario_id = result
+                  }
+                })
                 setEvent({ ...eventNew, ...eventOld })
               })
             } else {
-              setEvent({ ...eventNew, ...eventOld })
+              if (user?.uid !== eventNew?.usuario_id && eventNew?.usuario_id) {
+                fetchApiBodas({
+                  query: queries?.getUsers,
+                  variables: { uids: [eventNew.usuario_id] },
+                  development: config?.development
+                }).then((results) => {
+                  if (results?.[0]) {
+                    eventNew.detalles_usuario_id = results[0]
+                  }
+                  setEvent({ ...eventNew, ...eventOld })
+                })
+              } else {
+                setEvent({ ...eventNew, ...eventOld })
+              }
             }
           }
+
+          if (typeof rawValue === 'string') {
+            fetchApiBodas({
+              query: queries?.getEventsByID,
+              variables: { variable: "_id", valor: rawValue, development: config?.development },
+              development: config?.development
+            }).then((res) => {
+              const eventFetched = Array.isArray(res) ? res?.[0] : res
+              applyEvent(eventFetched)
+            })
+            return
+          }
+
+          applyEvent(rawValue)
         }
         if (received?.msg?.payload?.action === "setPlanSpaceActive") {
           // console.log(100020, "RECEIVED planSpaceActive", received?.msg?.payload?.value, event?.planSpace)
@@ -219,23 +251,32 @@ export const SocketControlator = () => {
   }, [received])
 
   useEffect(() => {
+    if (!socket) return
+    const onConnect = () => setReconet(new Date())
+    const onAppMessage = async (msg) => setReceived({ channel: "app:message", msg, d: new Date() })
+    const onNotification = async (msg) => setReceived({ channel: "notification", msg, d: new Date() })
+    const onCmsMessage = async (msg) => setReceived({ channel: "cms:message", msg, d: new Date() })
+    const onReconnectAttempt = () => setReconet(new Date())
 
-    socket?.on("connect", () => {
-      setReconet(new Date())
-    })
-    socket?.on("app:message", async (msg) => {
-      setReceived({ channel: "app:message", msg, d: new Date() })
-    })
-    socket?.on("notification", async (msg) => {
-      setReceived({ channel: "notification", msg, d: new Date() })
-    })
-    socket?.io.on("reconnect_attempt", (attempt) => {
-      setReconet(new Date())
-    })
+    socket.on("connect", onConnect)
+    socket.on("app:message", onAppMessage)
+    socket.on("notification", onNotification)
+    socket.on("cms:message", onCmsMessage)
+    socket.io.on("reconnect_attempt", onReconnectAttempt)
+
+    return () => {
+      socket.off("connect", onConnect)
+      socket.off("app:message", onAppMessage)
+      socket.off("notification", onNotification)
+      socket.off("cms:message", onCmsMessage)
+      socket.io.off("reconnect_attempt", onReconnectAttempt)
+    }
   }, [socket])
 
   useEffect(() => {
-    socket?.emit(`app:message`, {
+    if (!socket) return
+    if (!event?._id) return
+    socket.emit(`app:message`, {
       event: null,
       emit: user?.uid,
       receiver: null,
@@ -252,7 +293,7 @@ export const SocketControlator = () => {
     if (!valirRemotePlanSpaceActive) {
       // console.log(100010, "EMIT planSpaceActive")
       senderPlanSpaceActive = true
-      socket?.emit(countPlanSpaceActive > 2 ? `app:message` : `undefined`, {
+      socket?.emit(`app:message`, {
         event: event?._id,
         emit: user?.uid,
         receiver: event?._id,
@@ -272,7 +313,7 @@ export const SocketControlator = () => {
   useEffect(() => {
     if (!valirRemoteEvent && !valirRemotePlanSpaceActive && !senderPlanSpaceActive) {
       // console.log(100010, "EMIT event")
-      socket?.emit(countEvent > 2 ? `app:message` : `undefined`, {
+      socket?.emit(`app:message`, {
         event: event?._id,
         emit: user?.uid,
         receiver: event?._id,

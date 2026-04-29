@@ -3,6 +3,7 @@ import Cookies from "js-cookie"
 import { Manager } from "socket.io-client";
 import { getAuth } from "firebase/auth";
 import { parseJwt } from "./utils/Authentication";
+import { resolveApiBodasGraphqlUrl } from "./utils/api3Endpoints";
 import { varGlobalDomain, varGlobalDevelopment, varGlobalSubdomain } from "./context/AuthContext"
 
 /** En localhost el navegador rechaza cookies con domain=.bodasdehoy.com */
@@ -11,6 +12,8 @@ function _cookieDomain() {
   if (_isDevLocal) return undefined;
   return process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO;
 }
+
+const _socketManagersByUrl = new Map()
 
 /* // llamada a wordpresss ref1001
 const wp = axios.create({
@@ -85,7 +88,7 @@ export const api = {
     const headers = {
       "Content-Type": "application/json",
       Development: varGlobalDevelopment || "bodasdehoy",
-    }
+    };
     if (idToken) {
       headers.Authorization = `Bearer ${idToken}`
     }
@@ -116,10 +119,17 @@ export const api = {
     const socketUrl = (process.env.NEXT_PUBLIC_SOCKET_URL || "").trim()
       || process.env.NEXT_PUBLIC_BASE_API_BODAS
       || ""
-    const manager = new Manager(socketUrl, {
-      closeOnBeforeunload: true,
-    })
+    if (!socketUrl) return
+    const manager = _socketManagersByUrl.get(socketUrl) || (() => {
+      const m = new Manager(socketUrl, {
+        closeOnBeforeunload: true,
+        transports: ["websocket"],
+      })
+      _socketManagersByUrl.set(socketUrl, m)
+      return m
+    })()
     const socket = manager.socket("/", {
+      transports: ["websocket"],
       auth: {
         token: token ? `Bearer ${token}` : "anonymous",
         development,
@@ -130,7 +140,7 @@ export const api = {
     return socket
   },
 
-  ApiBodas: async ({ data, development, token }) => {
+  ApiBodas: async ({ data, development, token, type }) => {
     let idToken = Cookies.get("idTokenV0.1.0")
     try {
       if (getAuth().currentUser) {
@@ -146,15 +156,17 @@ export const api = {
 
     const bodasApiUrl = isLocalhost
       ? '/api/proxy-bodas/graphql'
-      : (process.env.NEXT_PUBLIC_API_BODAS_URL || 'https://api2.eventosorganizador.com/graphql');
+      : resolveApiBodasGraphqlUrl();
     const bodasApiFallbackUrl = !isLocalhost
       ? process.env.NEXT_PUBLIC_API_BODAS_URL_FALLBACK
       : undefined;
     const headers = {
-      Development: development,
+      Development: development || varGlobalDevelopment || "bodasdehoy",
       IsProduction: (process?.env?.NEXT_PUBLIC_PRODUCTION && !["testticket", "testinvitado"].includes(varGlobalSubdomain)) ?? false,
-      "Content-Type": "application/json",
     };
+    if (type !== "formData") {
+      headers["Content-Type"] = "application/json";
+    }
     if (idToken) {
       headers.Authorization = `Bearer ${idToken}`;
     }
@@ -206,6 +218,3 @@ export const fetchApiViewConfig = async (params) => {
     }
   });
 };
-
-
-

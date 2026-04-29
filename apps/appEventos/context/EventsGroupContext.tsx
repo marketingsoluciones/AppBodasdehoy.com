@@ -278,8 +278,9 @@ const EventsGroupProvider = ({ children }) => {
                   const fMyUid = event?.compartido_array?.findIndex(elem => elem === user?.uid)
                   if (fMyUid > -1) {
                     event.permissions = [...event.detalles_compartidos_array[fMyUid].permissions]
-                    event.compartido_array.splice(fMyUid, 1)
-                    event.detalles_compartidos_array?.splice(fMyUid, 1)
+                    // Eliminar TODAS las ocurrencias del usuario actual (fix duplicados)
+                    event.compartido_array = event.compartido_array.filter(uid => uid !== user?.uid)
+                    event.detalles_compartidos_array = event.detalles_compartidos_array?.filter(d => d.uid !== user?.uid) ?? []
                   }
                 }
                 return event
