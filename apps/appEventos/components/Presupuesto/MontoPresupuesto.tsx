@@ -14,8 +14,10 @@ export const MontoPresupuesto = () => {
 
 
   useEffect(() => {
-    if (event?.presupuesto_objeto && typeof event.presupuesto_objeto.presupuesto_total !== "number" && event.presupuesto_objeto.viewEstimates && event.presupuesto_objeto.coste_estimado) {
-      event.presupuesto_objeto.presupuesto_total = event.presupuesto_objeto.coste_estimado
+    const p = event?.presupuesto_objeto
+    if (!p) return
+    if (typeof p.presupuesto_total !== "number" && p.viewEstimates && p.coste_estimado) {
+      p.presupuesto_total = p.coste_estimado
       fetchApiEventos({
         query: queries.editPresupuesto,
         variables: {
@@ -42,6 +44,7 @@ export const MontoPresupuesto = () => {
     }
   }
   const handleChangeS = (e) => {
+    if (!event?._id || !event?.presupuesto_objeto) return
 
     const params = {
       query: `mutation {
@@ -54,8 +57,10 @@ export const MontoPresupuesto = () => {
     try {
       api.ApiApp(params).then(result => {
         const currency = result?.data?.data?.editCurrency?.currency
-        event.presupuesto_objeto.currency = currency
-        setEvent({ ...event })
+        if (currency && event.presupuesto_objeto) {
+          event.presupuesto_objeto.currency = currency
+          setEvent({ ...event })
+        }
       })
     } catch (error) {
     }

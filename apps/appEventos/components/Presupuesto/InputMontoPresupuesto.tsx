@@ -11,18 +11,22 @@ interface Props {
   title: string
 }
 
+const safeFixed = (v: any) => (v != null && !isNaN(Number(v))) ? Number(v).toFixed(2) : "0.00"
+
 export const InputMontoPresupuesto: FC<Props> = ({ title }) => {
   const inputRef = useRef(null)
   const { event, setEvent } = EventContextProvider()
   const [modificar, setModificar] = useState(false);
   const [isAllowed, ht] = useAllowed()
-  const [lastvalue, setLastValue] = useState<string>(event?.presupuesto_objeto[title === "Presupuesto Total" ? "presupuesto_total" : "coste_estimado"]?.toFixed(2))
-  const [value, setValue] = useState<string>(event?.presupuesto_objeto[title === "Presupuesto Total" ? "presupuesto_total" : "coste_estimado"]?.toFixed(2))
+  const raw = event?.presupuesto_objeto?.[title === "Presupuesto Total" ? "presupuesto_total" : "coste_estimado"]
+  const [lastvalue, setLastValue] = useState<string>(safeFixed(raw))
+  const [value, setValue] = useState<string>(safeFixed(raw))
   const { t } = useTranslation();
 
   useEffect(() => {
-    setLastValue(event?.presupuesto_objeto[title === "Presupuesto Total" ? "presupuesto_total" : "coste_estimado"]?.toFixed(2))
-    setValue(event?.presupuesto_objeto[title === "Presupuesto Total" ? "presupuesto_total" : "coste_estimado"]?.toFixed(2))
+    const rawVal = event?.presupuesto_objeto?.[title === "Presupuesto Total" ? "presupuesto_total" : "coste_estimado"]
+    setLastValue(safeFixed(rawVal))
+    setValue(safeFixed(rawVal))
   }, [event])
 
 

@@ -95,7 +95,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           backgroundColor: '#ffe0e0',
           color: '#000',
           height: '100vh',
-          overflow: 'auto'
+          overflow: 'auto',
+          position: 'relative',
+          zIndex: 99999,
         }}>
           <h1 style={{ color: '#d00' }}>⚠️ Error Capturado por ErrorBoundary</h1>
 
