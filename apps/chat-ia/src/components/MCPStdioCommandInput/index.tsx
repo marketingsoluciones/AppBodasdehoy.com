@@ -14,7 +14,7 @@ import { Flexbox } from 'react-layout-kit';
 const STDIO_COMMAND_OPTIONS: {
   // 假设图标是 React 函数组件
   color?: string;
-  icon?: FC<{ color?: string; size?: number }>;
+  icon?: FC<{ color?: string; size?: number | string }>;
   value: string;
 }[] = [
   { color: '#CB3837', icon: SiNpm, value: 'npx' },

@@ -22,6 +22,13 @@ export interface WeddingWebAPI {
   save: (wedding: WeddingWebData) => Promise<boolean>;
 }
 
+let weddingIdCounter = 0;
+
+function createWeddingId(): string {
+  weddingIdCounter = (weddingIdCounter + 1) % 1_000_000_000;
+  return `wedding-${Date.now()}-${weddingIdCounter}`;
+}
+
 function createInitialWeddingData(): WeddingWebData {
   return {
     couple: {
@@ -37,7 +44,7 @@ function createInitialWeddingData(): WeddingWebData {
       showCountdown: true,
       subtitle: 'Nos casamos',
     },
-    id: `wedding-${Date.now()}`,
+    id: createWeddingId(),
     published: false,
     sections: [
       {

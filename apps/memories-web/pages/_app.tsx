@@ -4,11 +4,12 @@ import Script from 'next/script';
 import { appWithTranslation } from 'next-i18next';
 import posthog from 'posthog-js';
 import { captureTrackingParams, registerReferralIfPending, sendAttributionToApi, getDevelopmentConfig, authBridge, getAttributionData } from '@bodasdehoy/shared';
+import { resolvePublicMcpGraphqlUrl } from '../utils/endpoints';
 import '../styles/globals.css';
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+const API2_URL = resolvePublicMcpGraphqlUrl();
 const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy').trim();
 
 // Los IDs de GTM y Meta Pixel vienen del config del white-label, no de env vars

@@ -9,15 +9,12 @@ const SEATING_QUERY = `
       _id
       nombre
       tipo
-      invitados_array {
-        _id
+      invitados {
+        id
         nombre
-        nombre_mesa
+        mesa
         puesto
         asistencia
-        tableNameRecepcion {
-          title
-        }
       }
     }
   }
@@ -60,17 +57,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: 'Event not found' });
     }
 
-    // Filtrar invitados con mesa asignada y que no hayan cancelado.
-    // Soporte para el campo legacy nombre_mesa y el nuevo tableNameRecepcion.
-    const guests: SeatGuest[] = (evento.invitados_array || [])
-      .filter((g: any) => {
-        const tableName = g.tableNameRecepcion?.title || g.nombre_mesa;
-        return tableName && g.asistencia !== 'cancelado';
-      })
+    const guests: SeatGuest[] = (evento.invitados || [])
+      .filter((g: any) => g.mesa && g.asistencia !== 'cancelado')
       .map((g: any) => ({
-        _id: g._id,
+        _id: g.id || '',
         nombre: g.nombre || '',
-        nombre_mesa: g.tableNameRecepcion?.title || g.nombre_mesa || null,
+        nombre_mesa: g.mesa || null,
         puesto: g.puesto || null,
       }));
 

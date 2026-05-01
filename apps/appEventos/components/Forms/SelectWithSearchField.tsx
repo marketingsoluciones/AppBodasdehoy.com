@@ -108,6 +108,13 @@ const SelectWithSearchField: FC<propsSelectField> = ({ label, children, options,
         const value = e.target.value
         setInputValue(value)
         setIsOpen(true)
+        if (Array.isArray(options) && options.length && typeof options[0] === "string") {
+            const search = value.trim().toLowerCase()
+            if (search) {
+                const exact = (options as string[]).find((o) => o.toLowerCase() === search)
+                if (exact) setValue(exact)
+            }
+        }
         // Si el campo se vacía y es nullable, limpiar el valor
         if (value === '' && nullable) {
             setValue('')
@@ -141,12 +148,28 @@ const SelectWithSearchField: FC<propsSelectField> = ({ label, children, options,
                 e.preventDefault()
                 if (selectedIndex >= 0 && selectedIndex < filteredOptions.length) {
                     handleOptionSelect(filteredOptions[selectedIndex])
+                } else {
+                    const search = (inputValue || '').trim().toLowerCase()
+                    if (search && filteredOptions.length) {
+                        const getLabel = (o: string | { _id: string, title: string }) =>
+                            (typeof o === "string" ? o : o?.title || '').toLowerCase()
+                        const exactMatches = filteredOptions.filter((o) => getLabel(o) === search)
+                        if (exactMatches.length === 1) {
+                            handleOptionSelect(exactMatches[0])
+                        } else if (filteredOptions.length === 1) {
+                            handleOptionSelect(filteredOptions[0])
+                        }
+                    }
                 }
                 break
             case 'Escape':
                 setIsOpen(false)
                 setSelectedIndex(-1)
                 inputRef.current?.blur()
+                break
+            case 'Tab':
+                setIsOpen(false)
+                setSelectedIndex(-1)
                 break
         }
     }
@@ -170,10 +193,17 @@ const SelectWithSearchField: FC<propsSelectField> = ({ label, children, options,
     }, [])
 
     useEffect(() => {
-        if (!isOpen) {
+        if (isOpen) return
+        if (typeof field.value === "string") {
             setInputValue(field.value)
+            return
         }
-    }, [isOpen])
+        if (field.value && typeof field.value === "object" && 'title' in field.value) {
+            setInputValue((field.value as any).title || '')
+            return
+        }
+        setInputValue('')
+    }, [isOpen, field.value])
 
     return (
         <div className={`relative w-full h-full col-span${colSpan && `-${colSpan}`} content-between`}>

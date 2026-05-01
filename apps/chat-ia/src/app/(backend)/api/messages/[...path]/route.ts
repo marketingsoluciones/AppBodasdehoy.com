@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
+import { resolveMcpOrigin } from '@/const/mcpEndpoints';
 
 export const runtime = 'nodejs';
 
 const getApiIaUrl = (): string => resolveServerBackendOrigin();
 
-const getApi2Url = (): string =>
-  process.env.API2_URL || 'https://api3-mcp-graphql.eventosorganizador.com';
+const getMcpOrigin = (): string =>
+  process.env.API_MCP_ORIGIN || process.env.API2_URL || resolveMcpOrigin() || 'https://api3-mcp-graphql.eventosorganizador.com';
 
 /**
  * Proxy catch-all: /api/messages/[...path]
@@ -15,7 +16,7 @@ const getApi2Url = (): string =>
  * Arquitectura objetivo: TODO pasa por api-ia (orquestador).
  *
  * TEMPORAL (hasta que api-ia implemente GAP 1 del RFC 2026-03-05):
- *   /api/messages/whatsapp/* → api2 /api/whatsapp/*  (Baileys QR personal)
+ *   /api/messages/whatsapp/* → MCP /api/whatsapp/*  (Baileys QR personal)
  *
  * Definitivo:
  *   todo lo demás → api-ia /api/messages/*
@@ -27,7 +28,7 @@ const getApi2Url = (): string =>
  *   /api/messages/web/*        → api-ia (Widget embebible + SSE)
  *
  * TODO: Cuando api-ia implemente /api/messages/conversations con datos Baileys
- *       y /api/messages/whatsapp/session/:dev, eliminar el bloque whatsapp→api2.
+ *       y /api/messages/whatsapp/session/:dev, eliminar el bloque whatsapp→mcp.
  */
 async function proxyRequest(request: NextRequest, path: string[]): Promise<NextResponse> {
   const subpath = path.join('/');
@@ -36,9 +37,9 @@ async function proxyRequest(request: NextRequest, path: string[]): Promise<NextR
 
   let targetUrl: string;
   if (subpath.startsWith('whatsapp/')) {
-    // TEMPORAL: WhatsApp Baileys va directo a api2 hasta que api-ia lo orqueste
-    const api2Path = subpath.replace(/^whatsapp\//, '');
-    targetUrl = `${getApi2Url()}/api/whatsapp/${api2Path}${search}`;
+    // TEMPORAL: WhatsApp Baileys va directo a API MCP hasta que api-ia lo orqueste
+    const mcpPath = subpath.replace(/^whatsapp\//, '');
+    targetUrl = `${getMcpOrigin()}/api/whatsapp/${mcpPath}${search}`;
   } else {
     // api-ia expone conversations/{id} sin el sufijo /messages — normalizar el path
     const normalizedSubpath = subpath.replace(/^(conversations\/[^/]+)\/messages$/, '$1');
@@ -73,10 +74,12 @@ async function proxyRequest(request: NextRequest, path: string[]): Promise<NextR
     if (isSSE) headers['Accept'] = 'text/event-stream';
 
     const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
-    let bodyToSend: BodyInit | undefined;
+    let bodyToSend: ArrayBuffer | undefined;
     if (hasBody) {
       bodyToSend = await request.arrayBuffer();
     }
+
+    const isWhatsappSession = /^whatsapp\/session\//.test(subpath);
 
     const response = await fetch(targetUrl, {
       body: bodyToSend,
@@ -85,7 +88,7 @@ async function proxyRequest(request: NextRequest, path: string[]): Promise<NextR
       // SSE: sin timeout. Session status: 5s (Baileys puede tardar 8s+ si está reconectando). Resto: 30s.
       signal: isSSE
         ? undefined
-        : AbortSignal.timeout(subpath.match(/^whatsapp\/session\//) ? 5_000 : 30_000),
+        : AbortSignal.timeout(isWhatsappSession ? 5000 : 30_000),
     });
 
     const responseContentType = response.headers.get('content-type') || '';

@@ -61,7 +61,7 @@ export async function GET(
       },
       // Cache durante 1 hora en producción
       next: { revalidate: 3600 },
-      signal: AbortSignal.timeout(8_000),
+      signal: AbortSignal.timeout(8000),
     });
 
     if (!response.ok) {

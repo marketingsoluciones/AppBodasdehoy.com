@@ -17,8 +17,95 @@ import type {
   ChatSource,
   IExternalChat,
 } from '@/types/externalChat';
+import { safeLocalStorage } from '@/utils/safeLocalStorage';
 
 import type { ChatStore } from '../../store';
+
+const normalizeToken = (token?: string | null): string | undefined => {
+  if (!token) return undefined;
+  if (token === 'null' || token === 'undefined') return undefined;
+  return token;
+};
+
+const isLikelyJwt = (token: string): boolean => token.split('.').length === 3;
+
+const decodeJwtExpMs = (token: string): number | null => {
+  try {
+    if (!isLikelyJwt(token)) return null;
+    if (typeof atob !== 'function') return null;
+    const payload = JSON.parse(atob(token.split('.')[1].replaceAll('-', '+').replaceAll('_', '/')));
+    const exp = payload?.exp;
+    if (!exp || typeof exp !== 'number') return null;
+    return exp * 1000;
+  } catch {
+    return null;
+  }
+};
+
+const isJwtExpired = (token: string): boolean => {
+  const expMs = decodeJwtExpMs(token);
+  if (!expMs) return false;
+  return Date.now() >= expMs;
+};
+
+const readJwtCacheToken = (): string | undefined => {
+  const cache = safeLocalStorage.getItem('jwt_token_cache');
+  if (!cache) return undefined;
+  try {
+    const parsed = JSON.parse(cache) as { expiry?: number; token?: string };
+    if (parsed?.token && parsed?.expiry && Date.now() < parsed.expiry) {
+      const token = normalizeToken(parsed.token);
+      if (!token) return undefined;
+      if (!isLikelyJwt(token)) return undefined;
+      if (isJwtExpired(token)) return undefined;
+      return token;
+    }
+  } catch {}
+  return undefined;
+};
+
+const resolveMcpToken = (explicit?: string): string | undefined => {
+  const clean = normalizeToken(explicit);
+  if (clean && isLikelyJwt(clean) && !isJwtExpired(clean)) return clean;
+
+  const cacheToken = readJwtCacheToken();
+  if (cacheToken) return cacheToken;
+
+  const directToken = normalizeToken(safeLocalStorage.getItem('jwt_token'));
+  if (directToken && isLikelyJwt(directToken) && !isJwtExpired(directToken)) return directToken;
+
+  const mcpToken = normalizeToken(safeLocalStorage.getItem('mcp_jwt_token'));
+  if (mcpToken && isLikelyJwt(mcpToken) && !isJwtExpired(mcpToken)) return mcpToken;
+
+  const firebaseToken = normalizeToken(safeLocalStorage.getItem('api2_jwt_token'));
+  if (firebaseToken && isLikelyJwt(firebaseToken) && !isJwtExpired(firebaseToken)) return firebaseToken;
+
+  const rawConfig = safeLocalStorage.getItem('dev-user-config');
+  if (rawConfig) {
+    try {
+      const parsed = JSON.parse(rawConfig) as { token?: string };
+      const configToken = normalizeToken(parsed?.token);
+      if (configToken && isLikelyJwt(configToken) && !isJwtExpired(configToken)) return configToken;
+    } catch {}
+  }
+
+  return undefined;
+};
+
+const hasMcpToken = () => {
+  return !!resolveMcpToken();
+};
+
+const isGuestIdentity = (userId: string, userType?: string, userRole?: string): boolean => {
+  const id = (userId || '').toLowerCase().trim();
+  if (userRole === 'guest') return true;
+  if (userType === 'guest' || userType === 'visitor') return true;
+  if (!id) return true;
+  if (id === 'guest' || id === 'anonymous' || id === 'visitante@guest.local') return true;
+  if (id.startsWith('visitor_')) return true;
+  if (id.includes('@guest.')) return true;
+  return false;
+};
 
 /**
  * Acciones para el slice de chat externo
@@ -76,6 +163,15 @@ export const externalChatSlice: StateCreator<
 > = (set, get) => ({
   // Cargar todos los datos del usuario
   fetchAllUserData: async () => {
+    if (!hasMcpToken()) {
+      set(
+        { externalChats: [], externalChatsInit: true, userApiConfigs: [], userEvents: [] },
+        false,
+        'externalChat/fetchAll/no-token',
+      );
+      return;
+    }
+
     // ✅ SOLUCIÓN RÁPIDA: Prevenir llamadas duplicadas
     const state = get();
     if (state.externalChatsLoading) {
@@ -124,7 +220,7 @@ export const externalChatSlice: StateCreator<
         }),
       ];
 
-      // ✅ OPTIMIZACIÓN: Aumentar timeout a 15s para queries a API2 (pueden tardar más)
+      // ✅ OPTIMIZACIÓN: Aumentar timeout a 15s para queries a MCP (pueden tardar más)
       Promise.race([
         Promise.allSettled(promises).then(() => {
           internal_setExternalChatsLoading(false);
@@ -134,7 +230,7 @@ export const externalChatSlice: StateCreator<
             console.warn('⚠️ Timeout de seguridad alcanzado (15s), continuando con datos parciales');
             internal_setExternalChatsLoading(false);
             resolve();
-          }, 15_000); // ✅ Aumentado a 15 segundos para queries a API2
+          }, 15_000); // ✅ Aumentado a 15 segundos para queries a MCP
         }),
       ]).catch(() => {
         internal_setExternalChatsLoading(false);
@@ -199,6 +295,14 @@ export const externalChatSlice: StateCreator<
 
   // Obtener lista de chats externos
   fetchExternalChats: async () => {
+    if (!hasMcpToken()) {
+      const { internal_setExternalChats, internal_setExternalChatsLoading } = get();
+      internal_setExternalChats([]);
+      set({ externalChatsInit: true }, false, 'externalChat/fetchChats/no-token');
+      internal_setExternalChatsLoading(false);
+      return;
+    }
+
     const {
       currentUserId,
       development,
@@ -234,7 +338,7 @@ export const externalChatSlice: StateCreator<
 
     try {
       // ✅ Cargar TODAS las páginas de conversaciones (no solo la primera)
-      console.log('📡 Enviando query getSessions a api2...');
+      console.log('📡 Enviando query getSessions a mcp...');
       let allChats: any[] = [];
       let currentPage = 1;
       const pageLimit = 50;
@@ -251,7 +355,7 @@ export const externalChatSlice: StateCreator<
           },
         });
 
-        console.log(`✅ Respuesta página ${currentPage} de api2:`, data);
+        console.log(`✅ Respuesta página ${currentPage} de mcp:`, data);
         const sessionsResponse = data?.getSessions;
         const pageSessions = sessionsResponse?.success ? sessionsResponse?.sessions || [] : [];
         allChats = [...allChats, ...pageSessions];
@@ -268,7 +372,7 @@ export const externalChatSlice: StateCreator<
       console.log(`📋 Sesiones encontradas (todas las páginas): ${chats.length}`);
 
       if (chats.length === 0) {
-        console.log('ℹ️ Usuario no tiene conversaciones en API2');
+        console.log('ℹ️ Usuario no tiene conversaciones en MCP');
         internal_setExternalChats([]);
         set({ externalChatsInit: true }, false, 'externalChat/fetchChats/empty');
         internal_setExternalChatsLoading(false);
@@ -279,10 +383,10 @@ export const externalChatSlice: StateCreator<
       // No necesitamos hacer queries adicionales para obtener el source
       const chatsWithSource = chats.map((session: any) => ({
         // Mapear campos de la nueva estructura a la estructura esperada por el frontend
-        _id: session.id, 
+        _id: session.id,
         development: session.development || 'bodasdehoy',
         // Mantener compatibilidad con código existente
-id: session.id,
+        id: session.id,
         lastMessageAt: session.lastMessageAt,
         mensajes: (session.messages || []).map((msg: any) => ({
           _id: msg.id,
@@ -322,7 +426,7 @@ id: session.id,
         externalChatsInit: storeAfter.externalChatsInit,
       });
     } catch (error: any) {
-      // No bloquear el flujo - las queries CHAT pueden no existir en api2
+      // No bloquear el flujo - las queries CHAT pueden no existir en MCP
       const errorMsg = error.message || 'Error al obtener chats';
       console.error('❌ Error fetchingexternal chats:', {
         development,
@@ -344,6 +448,11 @@ id: session.id,
 
   // Cargar configuraciones de API del usuario
   fetchUserApiConfigs: async () => {
+    if (!hasMcpToken()) {
+      set({ userApiConfigs: [] }, false, 'externalChat/fetchApiConfigs/no-token');
+      return;
+    }
+
     const { currentUserId, internal_setExternalChatsError } = get();
 
     if (!currentUserId) {
@@ -391,7 +500,7 @@ id: session.id,
         console.warn('⚠️ getUserApiConfigs devolvió datos vacíos');
       }
     } catch (error: any) {
-      // No bloquear el flujo si falla - esta query puede no existir en api2 aún
+      // No bloquear el flujo si falla - esta query puede no existir en MCP aún
       console.warn('⚠️ Error fetching user API configs (continuando):', {
         error: error.message,
         graphQLErrors: error.graphQLErrors,
@@ -404,6 +513,11 @@ id: session.id,
 
   // Cargar eventos del usuario
   fetchUserEvents: async (userIdOverride?: string) => {
+    if (!hasMcpToken()) {
+      set({ userEvents: [] }, false, 'externalChat/fetchEvents/no-token');
+      return;
+    }
+
     const { currentUserId: storeUserId, development, internal_setExternalChatsError } = get();
     // Allow callers (e.g. memories page) to pass their own userId when the store
     // hasn't been initialised via setExternalChatConfig yet.
@@ -416,11 +530,11 @@ id: session.id,
       return;
     }
 
-    // ✅ CORRECCIÓN: Detectar UUID y NO intentar consultar api2
+    // ✅ CORRECCIÓN: Detectar UUID y NO intentar consultar MCP
     const isUUID = /^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i.test(currentUserId);
     if (isUUID || currentUserId === 'visitante@guest.local') {
       console.warn(
-        '⚠️ fetchUserEvents: currentUserId es UUID o visitante, NO consultando api2:',
+        '⚠️ fetchUserEvents: currentUserId es UUID o visitante, NO consultando MCP:',
         currentUserId,
       );
       set({ userEvents: [] }, false, 'externalChat/fetchEvents/uuid-detected');
@@ -433,12 +547,12 @@ id: session.id,
       // Detectar si es email o teléfono (ya validado que NO es UUID)
       const isEmail = currentUserId.includes('@');
       const query = isEmail ? GET_USER_EVENTS_BY_EMAIL : GET_USER_EVENTS_BY_PHONE;
-      // ✅ CORRECCIÓN: API2 usa "phone" no "phoneNumber"
+      // ✅ CORRECCIÓN: MCP usa "phone" no "phoneNumber"
       const variables = isEmail
         ? { development, email: currentUserId, pagination: { limit: 100, page: 1 } }
         : { development, pagination: { limit: 100, page: 1 }, phone: currentUserId };
 
-      console.log('📡 Enviando query de eventos a api2...', {
+      console.log('📡 Enviando query de eventos a mcp...', {
         isEmail,
         queryName: isEmail ? 'getAllUserRelatedEventsByEmail' : 'getAllUserRelatedEventsByPhone',
         userId: currentUserId.slice(0, 10) + '...',
@@ -513,7 +627,7 @@ id: session.id,
         });
       }
 
-      // No bloquear el flujo si falla - las queries pueden no existir en api2 aún
+      // No bloquear el flujo si falla - las queries pueden no existir en MCP aún
       // Retornar array vacío en lugar de lanzar error
       set({ userEvents: [] }, false, 'externalChat/fetchEvents/error');
     }
@@ -521,6 +635,11 @@ id: session.id,
 
   // Cargar perfil del usuario
   fetchUserProfile: async () => {
+    if (!hasMcpToken()) {
+      set({ userProfile: undefined }, false, 'externalChat/fetchProfile/no-token');
+      return;
+    }
+
     const { currentUserId, internal_setExternalChatsError } = get();
 
     if (!currentUserId) {
@@ -532,7 +651,7 @@ id: session.id,
     console.log('🔍 fetchUserProfile iniciando para userId:', currentUserId);
 
     try {
-      console.log('📡 Enviando query getUserByEmail a api2...');
+      console.log('📡 Enviando query getUserByEmail a mcp...');
       // ✅ CORRECCIÓN: Usar getUserByEmail con development y errorPolicy
       const { development } = get();
       const { data } = (await apolloClient.query({
@@ -541,7 +660,7 @@ id: session.id,
           fetchOptions: {
             signal: (() => {
               try {
-                return AbortSignal.timeout(30_000); // ✅ Aumentado a 30s para queries a API2
+                return AbortSignal.timeout(30_000); // ✅ Aumentado a 30s para queries a MCP
               } catch {
                 return undefined;
               }
@@ -573,7 +692,7 @@ id: session.id,
         );
       }
     } catch (error: any) {
-      // No bloquear el flujo si falla - la query puede no existir en api2 aún
+      // No bloquear el flujo si falla - la query puede no existir en MCP aún
       console.warn('⚠️ Error fetching user profile (continuando):', {
         error: error.message,
         graphQLErrors: error.graphQLErrors,
@@ -678,6 +797,9 @@ id: session.id,
     userRole?: string,
     userData?: any,
   ) => {
+    const safeUserId = typeof userId === 'string' ? userId : '';
+    const isSafeEmail = safeUserId.includes('@');
+
     // ✅ CORRECCIÓN: Logging detallado para debuggear
     console.log('🔧 setExternalChatConfig llamado con:', {
       development,
@@ -685,7 +807,7 @@ id: session.id,
       userData: userData
         ? { displayName: userData.displayName, email: userData.email, nombre: userData.nombre }
         : null,
-      userId: userId?.slice(0, 20) + '...',
+      userId: safeUserId ? safeUserId.slice(0, 20) + '...' : 'EMPTY',
       userRole,
       userType,
     });
@@ -699,26 +821,26 @@ id: session.id,
           displayName:
             userData.displayName ||
             userData.nombre ||
-            (userId.includes('@') ? userId.split('@')[0] : userId),
-          email: userData.email || (userId.includes('@') ? userId : undefined),
+            (isSafeEmail ? safeUserId.split('@')[0] : safeUserId),
+          email: userData.email || (isSafeEmail ? safeUserId : undefined),
           nombre: userData.nombre,
           telefono: userData.telefono || userData.phoneNumber,
         }
       : undefined;
 
     // ✅ CORRECCIÓN: Verificar que userId es válido antes de guardar
-    if (!userId || userId === 'visitante@guest.local') {
-      console.warn('⚠️ setExternalChatConfig recibió userId inválido:', userId);
+    if (!safeUserId || safeUserId === 'visitante@guest.local') {
+      console.warn('⚠️ setExternalChatConfig recibió userId inválido:', safeUserId);
     }
 
     // ✅ CORRECCIÓN: También establecer externalChatsInit: true cuando se configura un usuario válido
     // Esto indica que la sesión se ha inicializado (desde localStorage o login)
     // y evita que GuestWelcomeMessage muestre mensaje de registro antes de verificar
-    const isValidUser = userId && userId !== 'visitante@guest.local' && userType !== 'guest';
+    const isValidUser = !!safeUserId && safeUserId !== 'visitante@guest.local' && userType !== 'guest';
 
     set(
       {
-        currentUserId: userId,
+        currentUserId: safeUserId,
         development,
         externalChatsInit: isValidUser ? true : get().externalChatsInit, // Solo marcar como init si es usuario válido
         userProfile: userProfile,
@@ -738,29 +860,46 @@ id: session.id,
       userType: stateAfter.userType,
     });
 
+    const resolvedToken = resolveMcpToken(token);
+
+    let existingConfigToken: string | undefined;
+    try {
+      const raw = safeLocalStorage.getItem('dev-user-config');
+      if (raw) {
+        const parsed = JSON.parse(raw) as { token?: string };
+        const candidate = normalizeToken(parsed?.token);
+        if (candidate && isLikelyJwt(candidate) && !isJwtExpired(candidate)) {
+          existingConfigToken = candidate;
+        }
+      }
+    } catch {}
+
+    const guestIdentity = isGuestIdentity(userId, userType, userRole);
+    const tokenToPersist = guestIdentity ? undefined : (resolvedToken ?? existingConfigToken);
+
     // Actualizar useUserStore para mostrar estado visual de login
     try {
       const { useUserStore } = await import('@/store/user');
       const userStore = useUserStore.getState();
 
       // Determinar si es email o phone
-      const isEmail = userId.includes('@');
+      const isEmail = isSafeEmail;
 
       // ✅ CORRECCIÓN: Actualizar estado de usuario autenticado con datos completos
       // Usar userData si está disponible, sino usar userId
-      const userEmail = userData?.email || (isEmail ? userId : undefined);
+      const userEmail = userData?.email || (isEmail ? safeUserId : undefined);
       const userFullName =
-        userData?.displayName || userData?.nombre || (isEmail ? userId.split('@')[0] : userId);
+        userData?.displayName || userData?.nombre || (isEmail ? safeUserId.split('@')[0] : safeUserId);
       const userName =
-        userData?.displayName || userData?.nombre || (isEmail ? userId.split('@')[0] : userId);
+        userData?.displayName || userData?.nombre || (isEmail ? safeUserId.split('@')[0] : safeUserId);
 
       useUserStore.setState({
         isLoaded: true,
-        isSignedIn: true,
+        isSignedIn: !!tokenToPersist,
         user: {
           email: userEmail,
           fullName: userFullName,
-          id: userId,
+          id: safeUserId,
           username: userName,
           ...userStore.user, // Preservar otros datos
         },
@@ -771,10 +910,23 @@ id: session.id,
       console.warn('⚠️ Error actualizando useUserStore:', error);
     }
 
-    // Si hay token, guardarlo en localStorage (solo almacenamiento)
-    if (token) {
-      localStorage.setItem('jwt_token', token);
+    if (resolvedToken) {
+      safeLocalStorage.setItem('jwt_token', resolvedToken);
+      safeLocalStorage.setItem('mcp_jwt_token', resolvedToken);
+      safeLocalStorage.setItem('api2_jwt_token', resolvedToken);
+      const expMs = decodeJwtExpMs(resolvedToken);
+      if (expMs) {
+        safeLocalStorage.setItem('mcp_jwt_expires_at', new Date(expMs).toISOString());
+        safeLocalStorage.setItem('api2_jwt_expires_at', new Date(expMs).toISOString());
+      }
       console.log('✅ Token JWT guardado');
+    }
+    if (guestIdentity) {
+      safeLocalStorage.removeItem('jwt_token');
+      safeLocalStorage.removeItem('mcp_jwt_token');
+      safeLocalStorage.removeItem('mcp_jwt_expires_at');
+      safeLocalStorage.removeItem('api2_jwt_token');
+      safeLocalStorage.removeItem('api2_jwt_expires_at');
     }
 
     // ✅ NUEVO: Guardar configuración en localStorage y en API
@@ -784,12 +936,12 @@ id: session.id,
         development: development,
         role: userRole,
         timestamp: Date.now(),
-        token: token,
+        token: tokenToPersist,
         userId: userId,
-        
+
         user_data: userData,
         // user_id (snake_case) es necesario para useAuthCheck en /messages
-user_id: userId,
+        user_id: userId,
         user_type: userType,
       };
 
@@ -818,7 +970,7 @@ user_id: userId,
             }),
             headers: {
               'Content-Type': 'application/json',
-              ...(token && { Authorization: `Bearer ${token}` }),
+              ...(tokenToPersist && { Authorization: `Bearer ${tokenToPersist}` }),
             },
             method: 'POST',
           })
@@ -941,6 +1093,8 @@ user_id: userId,
 
   // Sincronizar API keys del whitelabel a Lobe Chat keyVaults
   syncWhitelabelApiKeys: async () => {
+    if (!hasMcpToken()) return;
+
     const { development } = get();
 
     if (!development) {
@@ -964,7 +1118,7 @@ user_id: userId,
             fetchOptions: {
               signal: (() => {
                 try {
-                  return AbortSignal.timeout(30_000); // ✅ Aumentado a 30s para queries a API2
+                  return AbortSignal.timeout(30_000); // ✅ Aumentado a 30s para queries a MCP
                 } catch {
                   return undefined;
                 }
@@ -1027,7 +1181,7 @@ user_id: userId,
       const { useUserStore } = await import('@/store/user');
       const { updateKeyVaults } = useUserStore.getState();
 
-      // Mapear proveedores de api2 a Lobe Chat
+      // Mapear proveedores de MCP a Lobe Chat
       const providerMap: Record<string, string> = {
         anthropic: 'anthropic',
         azure: 'azure',
@@ -1059,7 +1213,7 @@ user_id: userId,
         console.warn('⚠️ No se pudieron mapear las API keys del whitelabel');
       }
     } catch (error: any) {
-      // No bloquear si falla - esta query puede no existir en api2 aún
+      // No bloquear si falla - esta query puede no existir en MCP aún
       console.warn('⚠️ Error sincronizando API keys del whitelabel (continuando):', {
         error: error.message,
         graphQLErrors: error.graphQLErrors,

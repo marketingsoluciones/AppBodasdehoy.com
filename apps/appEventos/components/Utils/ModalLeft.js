@@ -15,10 +15,15 @@ const ModalLeft = ({ children, state, set, clickAwayListened = true, ...rest }) 
 
   return (
     <>
-      <div className={`z-40 fixed top-0 left-0 w-full h-screen backdrop-filter backdrop-blur backlayout ${state ? "" : "hidden"} `} />
+      <div 
+        className={`fixed top-0 left-0 w-full h-screen backdrop-filter backdrop-blur backlayout transition-opacity duration-300 ${state ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"} `} 
+        style={{ zIndex: state ? 70 : -1 }}
+      />
       <ClickAwayListener onClickAway={() => (state && clickAwayListened) && set(false)} >
         <div
-          className={`bg-white w-full md:w-[400px] z-[60] fixed top-0 left-0 h-full md:rounded-r-2xl shadow-lg flex flex-col items-center justify-center transform transition duration-300 ${state ? initial : "-translate-x-full"} `} {...rest} >
+          className={`bg-white w-full md:w-[400px] fixed top-0 left-0 h-full md:rounded-r-2xl shadow-lg flex flex-col items-center justify-center transform transition duration-300 ${state ? initial : "-translate-x-full"} `} 
+          style={{ zIndex: state ? 80 : -1 }}
+          {...rest} >
           <span
             id='close'
             onClick={() => set(!state)}
@@ -36,11 +41,8 @@ const ModalLeft = ({ children, state, set, clickAwayListened = true, ...rest }) 
                 height: 100%;
                 background-color: rgba(0,0,0,0.5);
                 position: absolute;
-                z-index: 70;
                 top: 0;
                 right: 0;
-                
-  
               }
                 #close {
     position: fixed;

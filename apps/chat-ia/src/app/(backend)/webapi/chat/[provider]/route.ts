@@ -11,14 +11,13 @@ import { createTraceOptions, initModelRuntimeWithUserPayload } from '@/server/mo
 import { ChatStreamPayload } from '@/types/openai/chat';
 import { createErrorResponse } from '@/utils/errorResponse';
 import { getTracePayload } from '@/utils/trace';
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 
 export const maxDuration = 300;
 
 // Configuración del backend - Siempre usa api-ia.bodasdehoy.com (no hay backend local)
 const getPythonBackendUrl = (): string => {
-  return process.env.PYTHON_BACKEND_URL
-    || process.env.NEXT_PUBLIC_BACKEND_URL
-    || 'https://api-ia.bodasdehoy.com';
+  return resolveServerBackendOrigin();
 };
 
 // Cache de URL para evitar recalcular en cada request
@@ -223,7 +222,7 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
       }
     });
 
-    // Inyectar X-Support-Key para que api-ia pueda resolver la API key del developer vía api2
+    // Inyectar X-Support-Key para que api-ia pueda resolver la API key del developer vía MCP
     if (!headers['X-Support-Key'] && !headers['x-support-key']) {
       const dev = req.headers.get('x-development') || 'bodasdehoy';
       headers['X-Support-Key'] = getSupportKey(dev);
@@ -231,9 +230,9 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
 
     // Extraer JWT de cookie si no hay Authorization
     // Prioridad: 1) cookie api2_jwt (dedicada)
-    //            2) cookie dev-user-config.token (api2 JWT guardado tras login)
+    //            2) cookie dev-user-config.token (JWT de MCP guardado tras login)
     // ⚠️ idTokenV0.1.0 NO se usa aquí: es Firebase ID token para SSO cross-app,
-    //    NO un api2 JWT — enviarlo a api-ia causaría fallo de verificación JWT.
+    //    NO un JWT de MCP — enviarlo a api-ia causaría fallo de verificación JWT.
     if (!headers['Authorization'] && !headers['authorization']) {
       try {
         const cookieHeader = req.headers.get('cookie') || '';
@@ -247,7 +246,7 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           }
         }
 
-        // 2) Fallback: dev-user-config.token (api2 JWT)
+        // 2) Fallback: dev-user-config.token (JWT de MCP)
         if (!headers['Authorization']) {
           const match = cookieHeader.match(/dev-user-config=([^;]+)/);
           if (match) {
@@ -324,7 +323,7 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
           let reset_at: string | undefined;
           try {
             // El body puede venir como SSE: "data: {...}\n\ndata: [DONE]" o JSON plano
-            const cleanText = errorText.replace(/^data:\s*/gm, '').replace(/\[DONE\]/g, '').trim();
+            const cleanText = errorText.replaceAll(/^data:\s*/gm, '').replaceAll('[DONE]', '').trim();
             const parsed = JSON.parse(cleanText.split('\n')[0] || cleanText);
             const detail = parsed?.detail;
             // Aceptar campos en top-level o anidados en detail (FastAPI HTTPException)
@@ -520,11 +519,12 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
 'add_note': 'lobe-crm-actions____add_note____builtin',
                         
 
-// CRM Actions
-'create_lead': 'lobe-crm-actions____create_lead____builtin',
-                        
 
 'complete_task': 'lobe-crm-actions____complete_task____builtin',
+                        
+
+// CRM Actions
+'create_lead': 'lobe-crm-actions____create_lead____builtin',
                         'create_task': 'lobe-crm-actions____create_task____builtin',
                         
 
@@ -572,12 +572,15 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
                         
 
 
+'get_tasks': 'lobe-crm-actions____get_tasks____builtin',
+                        
+
+
 'list_campaigns': 'lobe-crm____list_campaigns____builtin',
                         
-
+                        
 
 'list_contacts': 'lobe-crm____list_contacts____builtin',
-                        
                         
 // CRM Data
 'list_leads': 'lobe-crm____list_leads____builtin',
@@ -587,12 +590,10 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
 'search_crm': 'lobe-crm____search_crm____builtin',
                         
 'send_message': 'lobe-crm-actions____send_message____builtin',
-                        
-'update_lead_status': 'lobe-crm-actions____update_lead_status____builtin',
 
+                        'update_lead_status': 'lobe-crm-actions____update_lead_status____builtin',
                         'update_opportunity_stage': 'lobe-crm-actions____update_opportunity_stage____builtin',
                         'update_task': 'lobe-crm-actions____update_task____builtin',
-                        'get_tasks': 'lobe-crm-actions____get_tasks____builtin',
                       };
                       let translatedData = rawData;
                       try {

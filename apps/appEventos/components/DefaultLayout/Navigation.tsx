@@ -12,6 +12,7 @@ import { useAllowedRouter } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { BsCalendarHeartFill, BsImages } from "react-icons/bs";
 import ChatToggleButton from "../ChatSidebar/ChatToggleButton";
+import { usePlanLimits } from "../../hooks/usePlanLimits";
 
 const Navigation: FC = () => {
   const refBanner = useRef(null)
@@ -19,6 +20,7 @@ const Navigation: FC = () => {
   const { event } = EventContextProvider();
   const { eventsGroup, eventsGroupDone } = EventsGroupContextProvider();
   const { user, config, setIsActiveStateSwiper } = AuthContextProvider();
+  const { plan } = usePlanLimits()
   const toast = useToast();
   const router = useRouter();
   const pathname = usePathname();
@@ -30,6 +32,15 @@ const Navigation: FC = () => {
   const [isAllowedRouter, ht] = useAllowedRouter()
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
+  const isAdmin = Array.isArray(user?.role) ? user.role.includes("admin") : user?.role === "admin"
+  const hasSkuAccess = (sku: string) => {
+    if (!plan) return false
+    const limits = Array.isArray((plan as any)?.product_limits) ? (plan as any).product_limits : []
+    const limit = limits.find((l: any) => l?.sku === sku) ?? null
+    if (!limit) return false
+    return limit?.free_quota > 0 || limit?.overage_enabled === true
+  }
+  const canUseCopilot = isAdmin ? true : hasSkuAccess("ai-tokens")
 
   useEffect(() => {
     setRoute(pathname)
@@ -150,7 +161,7 @@ const Navigation: FC = () => {
           <NavbarDirectory />
           <div className="flex items-center gap-3">
             {/* Boton Copilot Chat — tenant con copilotEnabled o usuario admin */}
-            {(config?.copilotEnabled === true || (Array.isArray(user?.role) ? user.role.includes('admin') : user?.role === 'admin')) && ChatSidebarContextProvider() && <ChatToggleButton />}
+            {(config?.copilotEnabled === true || isAdmin) && canUseCopilot && ChatSidebarContextProvider() && <ChatToggleButton />}
             <Profile
               state={isMounted}
               set={(act) => setIsMounted(act)}

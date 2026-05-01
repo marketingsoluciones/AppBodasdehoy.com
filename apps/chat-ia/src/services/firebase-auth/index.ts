@@ -16,47 +16,13 @@ import { setCrossAppIdToken, clearCrossAppSession } from '@bodasdehoy/shared/aut
 import { registerReferralIfPending, trackRegistrationComplete, getAttributionData, sendAttributionToApi } from '@bodasdehoy/shared';
 import posthog from 'posthog-js';
 
-/**
- * Obtener la URL actual para usar como redirect URL
- * ✅ IMPORTANTE: Usa el dominio real, no localhost (requerido para Google OAuth)
- */
-function getCurrentOrigin(): string {
-  if (typeof window !== 'undefined') {
-    // En el cliente, usar la URL real del navegador
-    return window.location.origin;
-  }
-  
-  // En el servidor, usar variables de entorno con dominio real
-  // Prioridad: NEXT_PUBLIC_BASE_URL > APP_URL > fallback a localhost solo en desarrollo
-  const baseUrl = 
-    process.env.NEXT_PUBLIC_BASE_URL || 
-    process.env.APP_URL || 
-    (process.env.NODE_ENV === 'development' ? 'http://localhost:8000' : undefined);
-  
-  if (baseUrl) {
-    // Asegurarse de que sea una URL completa
-    try {
-      const url = new URL(baseUrl);
-      return url.origin;
-    } catch {
-      // Si no es una URL válida, intentar construirla
-      if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
-        return baseUrl;
-      }
-      return `https://${baseUrl}`;
-    }
-  }
-  
-  // Fallback solo en desarrollo
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:8000';
-  }
-  
-  // En producción, lanzar error si no hay URL configurada
-  throw new Error('NEXT_PUBLIC_BASE_URL o APP_URL debe estar configurado para Google OAuth');
-}
-
 const DEFAULT_DEVELOPMENT = 'bodasdehoy';
+
+function setAuthCookie(name: string, token: string): void {
+  const maxAge = 30 * 24 * 60 * 60;
+  // eslint-disable-next-line unicorn/no-document-cookie
+  document.cookie = `${name}=${encodeURIComponent(token)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+}
 
 /**
  * Generar fingerprint del dispositivo (simple)
@@ -75,9 +41,51 @@ function generateFingerprint(): string {
   return btoa(JSON.stringify(fingerprint)).slice(0, 64);
 }
 
+function decodeJwtExpMs(token: string): number | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    if (typeof atob !== 'function') return null;
+    const payload = JSON.parse(atob(parts[1].replaceAll('-', '+').replaceAll('_', '/')));
+    const exp = payload?.exp;
+    if (!exp || typeof exp !== 'number') return null;
+    return exp * 1000;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeExpiresAt(expiresAt: unknown, token?: string): string | null {
+  const expFromToken = token ? decodeJwtExpMs(token) : null;
+  if (typeof expFromToken === 'number') return new Date(expFromToken).toISOString();
+
+  if (expiresAt instanceof Date) return expiresAt.toISOString();
+
+  if (typeof expiresAt === 'number' && Number.isFinite(expiresAt)) {
+    const ms = expiresAt < 10_000_000_000 ? expiresAt * 1000 : expiresAt;
+    return new Date(ms).toISOString();
+  }
+
+  if (typeof expiresAt === 'string') {
+    const trimmed = expiresAt.trim();
+    if (!trimmed) return null;
+    if (/^\d+$/.test(trimmed)) {
+      const asNumber = Number(trimmed);
+      if (Number.isFinite(asNumber)) {
+        const ms = asNumber < 10_000_000_000 ? asNumber * 1000 : asNumber;
+        return new Date(ms).toISOString();
+      }
+    }
+    const parsed = new Date(trimmed);
+    if (!Number.isNaN(parsed.getTime())) return parsed.toISOString();
+  }
+
+  return null;
+}
+
 /**
  * Intercambiar Firebase ID Token por JWT de API2
- * ✅ MEJORADO: Si API2 falla, igual retorna success=true usando datos de Firebase
+ * ✅ Requisito: Para sesión "registered" necesitamos JWT válido. Si el canje falla, devolver success=false.
  */
 async function exchangeFirebaseTokenForJWT(
   firebaseIdToken: string,
@@ -135,23 +143,14 @@ async function exchangeFirebaseTokenForJWT(
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ detail: response.statusText }));
       console.error('API2 error response:', response.status);
-      // ⚠️ IMPORTANTE: Retornar éxito parcial pero SIN JWT
-      // El usuario está autenticado con Firebase pero no podrá ejecutar mutations
-
-      // ✅ Aún así guardar dev-user-config para que el usuario no vea el prompt de registro
-      const devUserConfig = {
-        developer: development,
-        timestamp: Date.now(),
-        token: null,
-        userId: user?.email || user?.uid,
-        user_type: 'registered',
-      };
-      localStorage.setItem('dev-user-config', JSON.stringify(devUserConfig));
-
       return {
         development,
-        jwtError: 'No se pudo obtener token de escritura. Algunas funciones estarán limitadas.',
-        success: true,
+        errors: [
+          (errorData as any)?.detail ||
+            `No se pudo iniciar sesión (HTTP ${response.status}). Inténtalo de nuevo.`,
+        ],
+        jwtError: 'No se pudo obtener el token de MCP.',
+        success: false,
         user: user || undefined,
         user_id: user?.email || user?.uid,  // ✅ CORRECCIÓN: Añadir user_id para compatibilidad
       };
@@ -160,36 +159,37 @@ async function exchangeFirebaseTokenForJWT(
     const data = await response.json();
 
     if (!data.success) {
-      console.error('API2 returned success=false');
-      // ⚠️ IMPORTANTE: Retornar éxito parcial pero SIN JWT
-
-      // ✅ Aún así guardar dev-user-config para que el usuario no vea el prompt de registro
-      const devUserConfig = {
-        developer: development,
-        development,
-        email: user?.email || undefined,
-        timestamp: Date.now(),
-        token: null,
-        userId: user?.email || user?.uid,
-        user_id: user?.email || user?.uid,
-        user_type: 'registered',
-      };
-      localStorage.setItem('dev-user-config', JSON.stringify(devUserConfig));
-
+      console.error('MCP returned success=false');
       return {
         development,
-        jwtError: 'No se pudo obtener token de escritura. Algunas funciones estarán limitadas.',
-        success: true,
+        errors: [data?.detail || data?.error || 'No se pudo obtener el token de MCP.'],
+        jwtError: 'No se pudo obtener el token de MCP.',
+        success: false,
         user: user || undefined,
         user_id: user?.email || user?.uid,  // ✅ CORRECCIÓN: Añadir user_id para compatibilidad
       };
     }
 
+    if (!data?.token) {
+      return {
+        development,
+        errors: ['Login incompleto: el backend no devolvió token.'],
+        jwtError: 'No se pudo obtener el token de MCP.',
+        success: false,
+        user: user || undefined,
+        user_id: user?.email || user?.uid,
+      };
+    }
+
     // Guardar JWT en localStorage
+    localStorage.setItem('mcp_jwt_token', data.token);
     localStorage.setItem('api2_jwt_token', data.token);
-    if (data.expiresAt) {
-      localStorage.setItem('api2_jwt_expires_at', data.expiresAt);
+    const normalizedExpiresAt = normalizeExpiresAt(data.expiresAt, data.token);
+    if (normalizedExpiresAt) {
+      localStorage.setItem('mcp_jwt_expires_at', normalizedExpiresAt);
+      localStorage.setItem('api2_jwt_expires_at', normalizedExpiresAt);
     } else {
+      localStorage.removeItem('mcp_jwt_expires_at');
       localStorage.removeItem('api2_jwt_expires_at');
     }
     localStorage.setItem('current_development', data.development || development);
@@ -197,10 +197,11 @@ async function exchangeFirebaseTokenForJWT(
     // También guardar jwt_token para compatibilidad con getAuthToken()
     localStorage.setItem('jwt_token', data.token);
 
-    // Cookie dedicada api2_jwt: el chat proxy la lee para Authorization header.
+    // Cookie dedicada mcp_jwt: el chat proxy la lee para Authorization header.
     // A diferencia de dev-user-config, ningún componente React la sobreescribe.
     if (typeof window !== 'undefined') {
-      document.cookie = `api2_jwt=${encodeURIComponent(data.token)}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+      setAuthCookie('mcp_jwt', data.token);
+      setAuthCookie('api2_jwt', data.token);
     }
 
     // Guardar dev-user-config para que EventosAutoAuth reconozca al usuario
@@ -230,12 +231,12 @@ async function exchangeFirebaseTokenForJWT(
     if (user?.uid) {
       const lastTouch = getAttributionData();
       posthog.identify(user.uid, {
-        email: user.email ?? undefined,
         development,
-        utm_source: lastTouch?.utm_source,
-        utm_medium: lastTouch?.utm_medium,
-        utm_campaign: lastTouch?.utm_campaign,
+        email: user.email ?? undefined,
         ref: lastTouch?.ref,
+        utm_campaign: lastTouch?.utm_campaign,
+        utm_medium: lastTouch?.utm_medium,
+        utm_source: lastTouch?.utm_source,
       });
     }
 
@@ -278,31 +279,6 @@ async function exchangeFirebaseTokenForJWT(
  * Procesar resultado de redirect de Google
  * ✅ Separado para evitar llamadas duplicadas a getRedirectResult
  */
-export const processGoogleRedirectResult = async (development: string = DEFAULT_DEVELOPMENT) => {
-  try {
-    const redirectResult = await getRedirectResult(auth);
-    if (redirectResult && redirectResult.providerId === 'google.com') {
-      const savedDevelopment = safeGetSessionStorage('google_login_development') || development;
-      safeRemoveSessionStorage('google_login_development');
-      
-      // ✅ Obtener URL de redirección guardada
-      const redirectUrl = safeGetSessionStorage('google_login_redirect_url');
-      safeRemoveSessionStorage('google_login_redirect_url');
-      
-      if (redirectUrl && typeof window !== 'undefined') {
-        // La redirección se manejará en el componente que llama a esta función
-      }
-
-      const firebaseIdToken = await redirectResult.user.getIdToken();
-      return await exchangeFirebaseTokenForJWT(firebaseIdToken, savedDevelopment, redirectResult.user);
-    }
-    return null;
-  } catch (error: any) {
-    console.error('Google redirect error', error);
-    throw error;
-  }
-};
-
 /**
  * Verificar si sessionStorage está disponible
  */
@@ -370,6 +346,34 @@ function safeRemoveSessionStorage(key: string): void {
 }
 
 /**
+ * Procesar resultado de redirect de Google
+ * ✅ Separado para evitar llamadas duplicadas a getRedirectResult
+ */
+export const processGoogleRedirectResult = async (development: string = DEFAULT_DEVELOPMENT) => {
+  try {
+    const redirectResult = await getRedirectResult(auth);
+    if (redirectResult && redirectResult.providerId === 'google.com') {
+      const savedDevelopment = safeGetSessionStorage('google_login_development') || development;
+      safeRemoveSessionStorage('google_login_development');
+
+      const redirectUrl = safeGetSessionStorage('google_login_redirect_url');
+      safeRemoveSessionStorage('google_login_redirect_url');
+
+      if (redirectUrl && typeof window !== 'undefined') {
+        // La redirección se manejará en el componente que llama a esta función
+      }
+
+      const firebaseIdToken = await redirectResult.user.getIdToken();
+      return await exchangeFirebaseTokenForJWT(firebaseIdToken, savedDevelopment, redirectResult.user);
+    }
+    return null;
+  } catch (error: any) {
+    console.error('Google redirect error', error);
+    throw error;
+  }
+};
+
+/**
  * Login con Google usando Firebase
  * ✅ MEJORADO: Intenta popup primero, si falla usa redirect como fallback
  */
@@ -387,8 +391,8 @@ export const loginWithGoogle = async (development: string = DEFAULT_DEVELOPMENT)
   // Chrome/Firefox: intentar popup primero (mejor UX), con redirect como fallback.
   const isWebKit =
     typeof window !== 'undefined' &&
-    /Safari/i.test(navigator.userAgent) &&
-    !/Chrome|Chromium|Edg/i.test(navigator.userAgent);
+    /safari/i.test(navigator.userAgent) &&
+    !/chrome|chromium|edg/i.test(navigator.userAgent);
 
   const startRedirect = async () => {
     safeSetSessionStorage('google_login_development', development);

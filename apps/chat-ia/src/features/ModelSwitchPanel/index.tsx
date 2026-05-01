@@ -11,7 +11,7 @@ import { Flexbox } from 'react-layout-kit';
 
 import { ModelItemRender, ProviderItemRender } from '@/components/ModelSelect';
 import UpgradeToMaxModal from '@/components/UpgradeToMaxModal';
-import { subscribeToPlan } from '@/services/api2/subscriptions';
+import { subscribeToPlan } from '@/services/mcpApi/subscriptions';
 import { isDeprecatedEdition } from '@/const/version';
 import ActionDropdown from '@/features/ChatInput/ActionBar/components/ActionDropdown';
 import { useEnabledChatModels } from '@/hooks/useEnabledChatModels';

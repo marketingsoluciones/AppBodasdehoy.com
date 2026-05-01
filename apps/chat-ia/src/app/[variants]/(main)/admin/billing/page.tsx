@@ -11,8 +11,8 @@ import {
   type LowBalanceWallet,
   type UsageTrackingEntry,
   type WalletStats,
-} from '@/services/api2/admin-wallet';
-import type { WalletTransaction } from '@/services/api2/wallet';
+} from '@/services/mcpApi/admin-wallet';
+import type { WalletTransaction } from '@/services/mcpApi/wallet';
 
 type Period = 'day' | 'week' | 'month';
 

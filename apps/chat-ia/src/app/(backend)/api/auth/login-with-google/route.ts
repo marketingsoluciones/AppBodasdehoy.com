@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { resolveServerMcpGraphqlUrl } from '@/const/mcpEndpoints';
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
+
 type GoogleTokenInfo = {
   aud?: string;
   email?: string;
@@ -29,7 +32,7 @@ type IdentifyUserResponse = {
 };
 
 const GOOGLE_TOKENINFO_URL = 'https://oauth2.googleapis.com/tokeninfo';
-const DEFAULT_BACKEND_URL = process.env.BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+const DEFAULT_BACKEND_URL = resolveServerBackendOrigin();
 
 const resolveGoogleAudiences = () => {
   const possible = [
@@ -46,20 +49,7 @@ const resolveGoogleAudiences = () => {
     .filter((entry) => entry.length > 0);
 };
 
-const resolveGraphqlUrls = (): string[] => {
-  const urls = [
-    process.env.GRAPHQL_ENDPOINT,
-    process.env.API2_GRAPHQL_URL,
-    process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/graphql` : undefined,
-    'https://api2.eventosorganizador.com/graphql',
-  ];
-
-  return Array.from(
-    new Set(
-      urls.filter((url): url is string => typeof url === 'string' && url.length > 0)
-    )
-  );
-};
+const resolveGraphqlUrls = (): string[] => [resolveServerMcpGraphqlUrl()];
 
 async function verifyGoogleIdToken(idToken: string): Promise<GoogleTokenInfo> {
   const response = await fetch(`${GOOGLE_TOKENINFO_URL}?id_token=${encodeURIComponent(idToken)}`, {
@@ -259,8 +249,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-
-
 
 

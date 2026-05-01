@@ -2,10 +2,12 @@ import { useState } from "react"
 import { AuthContextProvider } from "../../context"
 import { useTranslation } from 'react-i18next';
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+import { resolveApiBodasGraphqlUrl } from "../../utils/apiEndpoints";
+
+const MCP_GRAPHQL_URL = resolveApiBodasGraphqlUrl();
 
 async function openCustomerPortal(token: string, development: string, returnUrl: string) {
-    const res = await fetch(API2_URL, {
+    const res = await fetch(MCP_GRAPHQL_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

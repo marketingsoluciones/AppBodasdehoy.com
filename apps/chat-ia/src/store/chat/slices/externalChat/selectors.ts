@@ -101,11 +101,19 @@ const isDomainGuestUser = (s: ChatStoreState): boolean => {
   )
     .toLowerCase()
     .trim();
-  if (profileName === 'guest') return true;
+  if (
+    profileName === 'guest' ||
+    profileName === 'anonymous' ||
+    profileName === 'visitante' ||
+    profileName.startsWith('visitante ') ||
+    profileName.startsWith('visitante·') ||
+    profileName.startsWith('visitante ·') ||
+    profileName === 'visitor' ||
+    profileName.startsWith('visitor ')
+  ) return true;
   if (s.userRole === 'guest') return true;
 
   if (s.userType === 'guest' || s.userType === 'visitor') return true;
-  if (s.userType === 'registered') return false;
 
   const id = s.currentUserId;
   // Sin usuario en chat store (Lobe standalone, tests): no inferir invitado embed.
@@ -130,6 +138,7 @@ const isDomainGuestUser = (s: ChatStoreState): boolean => {
   ) {
     return true;
   }
+  if (s.userType === 'registered') return false;
   return false;
 };
 
@@ -148,10 +157,6 @@ export const externalChatSelectors = {
   sortedExternalChats,
   totalUnreadCount,
 };
-
-
-
-
 
 
 

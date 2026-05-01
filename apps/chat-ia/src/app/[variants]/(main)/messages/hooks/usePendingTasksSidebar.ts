@@ -21,9 +21,10 @@ export function usePendingTasksSidebar(maxTasks = 6): {
   tasks: PendingTaskItem[];
 } {
   const userEvents = (useChatStore((s) => s.userEvents) as any[] | undefined) ?? [];
+  const enabled = maxTasks > 0;
 
   const { eventId, eventName } = useMemo(() => {
-    if (userEvents.length === 0) return { eventId: null as string | null, eventName: '' };
+    if (!enabled || userEvents.length === 0) return { eventId: null as string | null, eventName: '' };
     const now = Date.now();
     const sorted = [...userEvents].sort((a: any, b: any) => {
       const fa = a.fecha || a.date || '';
@@ -37,11 +38,12 @@ export function usePendingTasksSidebar(maxTasks = 6): {
       eventId: (first?.id || first?._id || null) as string | null,
       eventName: (first?.name || first?.nombre || 'Evento') as string,
     };
-  }, [userEvents]);
+  }, [enabled, userEvents]);
 
   const { data, loading } = useEventData(eventId);
 
   const tasks = useMemo<PendingTaskItem[]>(() => {
+    if (!enabled) return [];
     if (!data?.itinerarios_array || !eventId) return [];
     const result: PendingTaskItem[] = [];
     for (const it of data.itinerarios_array) {
@@ -58,7 +60,7 @@ export function usePendingTasksSidebar(maxTasks = 6): {
       }
     }
     return result.slice(0, maxTasks);
-  }, [data, eventId, eventName, maxTasks]);
+  }, [enabled, data, eventId, eventName, maxTasks]);
 
   return { eventId, eventName, loading, tasks };
 }

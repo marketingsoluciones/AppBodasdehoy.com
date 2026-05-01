@@ -3,7 +3,7 @@
  * Ejecuta todas las pruebas reales en un solo comando:
  * - chat-test y app-test (GET)
  * - api-ia (POST /webapi/chat/auto, 3 queries reales)
- * - api2 (POST /graphql getSubscriptionPlans)
+ * - mcp (POST /graphql getSubscriptionPlans)
  * Genera un único informe en test-results/ para enviar evidencia.
  *
  * Uso: node scripts/ejecutar-pruebas-reales-todas.mjs
@@ -16,8 +16,17 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 
-const API_IA_BASE = process.env.BACKEND_URL || 'https://api-ia.bodasdehoy.com';
-const API2_GRAPHQL = process.env.API2_GRAPHQL_URL || 'https://api2.eventosorganizador.com/graphql';
+const API_IA_BASE =
+  process.env.API_IA_URL ||
+  process.env.API3_IA_URL ||
+  process.env.PYTHON_BACKEND_URL ||
+  process.env.BACKEND_URL ||
+  'https://api3-ia.eventosorganizador.com';
+const MCP_GRAPHQL =
+  process.env.API_MCP_GRAPHQL_URL ||
+  process.env.API3_MCP_GRAPHQL_URL ||
+  process.env.API2_GRAPHQL_URL ||
+  'https://api3-mcp-graphql.eventosorganizador.com/graphql';
 const DEVELOPMENT = process.env.DEVELOPMENT || 'bodasdehoy';
 const FIREBASE_JWT = process.env.FIREBASE_JWT || '';
 const BASE_APP = 'https://app-test.bodasdehoy.com';
@@ -82,12 +91,12 @@ async function postApiIa(query) {
   }
 }
 
-async function postApi2() {
+async function postMcp() {
   const body = { query: GET_SUBSCRIPTION_PLANS_QUERY, variables: { development: DEVELOPMENT, is_public: true } };
   const headers = { 'Content-Type': 'application/json', 'X-Development': DEVELOPMENT };
   const start = Date.now();
   try {
-    const res = await fetch(API2_GRAPHQL, {
+    const res = await fetch(MCP_GRAPHQL, {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
@@ -101,7 +110,7 @@ async function postApi2() {
       else if (j.data) preview = JSON.stringify({ data: 'getSubscriptionPlans: ' + (j.data.getSubscriptionPlans?.length ?? 0) + ' planes' });
     } catch (_) {}
     return {
-      url: API2_GRAPHQL,
+      url: MCP_GRAPHQL,
       query: 'getSubscriptionPlans',
       status: res.status,
       ok: res.ok,
@@ -109,7 +118,7 @@ async function postApi2() {
       responsePreview: preview,
     };
   } catch (err) {
-    return { url: API2_GRAPHQL, query: 'getSubscriptionPlans', error: err.message || String(err), elapsedMs: Date.now() - start, ok: false, status: null };
+    return { url: MCP_GRAPHQL, query: 'getSubscriptionPlans', error: err.message || String(err), elapsedMs: Date.now() - start, ok: false, status: null };
   }
 }
 
@@ -123,10 +132,10 @@ async function main() {
   const report = {
     timestamp: iso,
     dateLabel,
-    env: { API_IA_BASE, API2_GRAPHQL, BASE_APP, BASE_CHAT, DEVELOPMENT, hasFirebaseJwt: !!FIREBASE_JWT },
+    env: { API_IA_BASE, BASE_APP, BASE_CHAT, DEVELOPMENT, MCP_GRAPHQL, hasFirebaseJwt: !!FIREBASE_JWT },
     chatAppTest: null,
     apiIa: null,
-    api2: null,
+    mcp: null,
     conclusion: {},
   };
 
@@ -170,13 +179,13 @@ async function main() {
   };
   report.conclusion.apiIa = report.apiIa.allOk;
 
-  // 3) api2
-  console.log('\n3) api2 (getSubscriptionPlans)');
+  // 3) mcp
+  console.log('\n3) mcp (getSubscriptionPlans)');
   process.stdout.write('   getSubscriptionPlans ... ');
-  const api2Result = await postApi2();
-  console.log(api2Result.status != null ? `HTTP ${api2Result.status} (${api2Result.elapsedMs} ms)` : `ERROR: ${api2Result.error}`);
-  report.api2 = { result: api2Result, ok: api2Result.ok };
-  report.conclusion.api2 = api2Result.ok;
+  const mcpResult = await postMcp();
+  console.log(mcpResult.status != null ? `HTTP ${mcpResult.status} (${mcpResult.elapsedMs} ms)` : `ERROR: ${mcpResult.error}`);
+  report.mcp = { result: mcpResult, ok: mcpResult.ok };
+  report.conclusion.mcp = mcpResult.ok;
 
   const outDir = join(ROOT, 'test-results');
   mkdirSync(outDir, { recursive: true });
@@ -201,15 +210,15 @@ async function main() {
     '|-------|------|-------------|--------|',
     ...apiIaResults.map((r) => `| ${(r.query || '').replace(/\|/g, '\\|').slice(0, 45)} | ${r.status ?? '—'} | ${r.elapsedMs} | ${r.ok ? '✅ OK' : '❌ FALLO'} |`),
     '',
-    '## 3. api2 (POST /graphql)',
+    '## 3. mcp (POST /graphql)',
     '',
-    `| getSubscriptionPlans | ${api2Result.status ?? '—'} | ${api2Result.elapsedMs} ms | ${api2Result.ok ? '✅ OK' : '❌ FALLO'} |`,
+    `| getSubscriptionPlans | ${mcpResult.status ?? '—'} | ${mcpResult.elapsedMs} ms | ${mcpResult.ok ? '✅ OK' : '❌ FALLO'} |`,
     '',
     '## Conclusión',
     '',
     `- **chat/app-test:** ${report.conclusion.chatAppTest ? 'OK' : 'FALLO'}`,
     `- **api-ia:** ${report.conclusion.apiIa ? 'OK' : 'FALLO'}`,
-    `- **api2:** ${report.conclusion.api2 ? 'OK' : 'FALLO'}`,
+    `- **mcp:** ${report.conclusion.mcp ? 'OK' : 'FALLO'}`,
     '',
     `Evidencia completa: \`test-results/pruebas-reales-completo-${dateLabel}.json\``,
   ].join('\n');
@@ -218,7 +227,7 @@ async function main() {
   console.log('\n--- Resumen ---');
   console.log('chat/app-test:', report.conclusion.chatAppTest ? 'OK' : 'FALLO');
   console.log('api-ia:      ', report.conclusion.apiIa ? 'OK' : 'FALLO');
-  console.log('api2:        ', report.conclusion.api2 ? 'OK' : 'FALLO');
+  console.log('mcp:         ', report.conclusion.mcp ? 'OK' : 'FALLO');
   console.log('\nEvidencia:');
   console.log('  ', jsonPath);
   console.log('  ', mdPath);

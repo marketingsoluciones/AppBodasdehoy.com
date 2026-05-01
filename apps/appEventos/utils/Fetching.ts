@@ -1,5 +1,5 @@
 import { api } from "../api";
-import { normalizeApi2HttpBase } from "./resolveApi2BaseUrl";
+import { resolveApiBodasOrigin } from "./apiEndpoints";
 
 /**
  * Mensaje amigable según el código HTTP del error de la API.
@@ -44,7 +44,7 @@ export const fetchApiBodas = async ({
   variables = {},
   type = "json",
   token,
-  development,
+  development = "bodasdehoy",
 }: propsFetchApiBodas): Promise<any> => {
   try {
     if (type === "json") {
@@ -54,6 +54,7 @@ export const fetchApiBodas = async ({
         data: { query, variables },
         development,
         token,
+        type: "json",
       });
       if (!data && errors) {
         console.warn("[fetchApiBodas] GraphQL errors:", errors);
@@ -112,17 +113,26 @@ export const fetchApiBodas = async ({
         }
       });
 
-      const { data } = await api.ApiApp(formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      const result = await api.ApiBodas({
+        data: formData,
+        development,
+        token,
+        type: "formData"
       });
 
-      if (data.errors) {
-        throw new Error(JSON.stringify(data.errors));
+      if (result?.status === 400) {
+        const errData = result?.data;
+        console.warn("[fetchApiBodas] Upload 400:", errData?.errors || errData);
+        throw new Error(errData?.errors?.[0]?.message || "Error al subir archivo");
       }
 
-      return Object.values(data.data)[0];
+      const body = result?.data as { data?: Record<string, unknown>; errors?: unknown[] };
+
+      if (body?.errors?.length) {
+        throw new Error(JSON.stringify(body.errors));
+      }
+
+      return body?.data ? Object.values(body.data)[0] : null;
     }
   } catch (error: any) {
     console.error("[fetchApiBodas] Error en la llamada API:", {
@@ -147,9 +157,17 @@ export const fetchApiEventos = async ({
   query,
   variables,
   token,
-}: argsFetchApi): Promise<any> => {
+  domain,
+  development,
+}: argsFetchApi & { domain?: string; development?: string }): Promise<any> => {
   try {
-    const axiosRes = await api.ApiApp({ query, variables }, token);
+    // Unificado: todo va a api3-mcp (apiapp ya no existe)
+    const axiosRes = await api.ApiBodas({
+      data: { query, variables },
+      development: development || domain || "bodasdehoy",
+      token,
+      type: "json",
+    });
     const body = axiosRes?.data as { data?: Record<string, unknown>; errors?: unknown[] };
     if (body?.errors?.length) {
       const synthetic: Error & { response?: { status: number; data: typeof body } } = new Error(
@@ -219,7 +237,7 @@ export const fetchApiEventosServer = async ({
 }) => {
   const axios = require("axios");
   const serverInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_BASE_URL,
+    baseURL: resolveApiBodasOrigin(),
     timeout: 15000, // 15 segundos de timeout
   });
   const headers: Record<string, string> = {
@@ -256,7 +274,7 @@ export const fetchApiBodasServer = async ({
 }) => {
   const axios = require("axios");
   const serverInstance = axios.create({
-    baseURL: normalizeApi2HttpBase(process.env.NEXT_PUBLIC_BASE_API_BODAS),
+    baseURL: resolveApiBodasOrigin(),
     timeout: 15000, // 15 segundos de timeout
   });
   try {
@@ -448,33 +466,37 @@ export const queries = {
       country
     }
   }`,
-  singleUpload: `mutation($file:Upload!,$use:String)
+  singleUpload: `mutation($file:Upload!,$development:String!,$eventId:ID!)
   {
-    singleUpload(file:$file,use:$use){
-      _id
-      i640
+    singleUpload(file:$file,development:$development,eventId:$eventId){
+      __typename
     }
   }`,
   getPGuestEvent: `query($p:String){
     getPGuestEvent(p:$p){
       _id
-      invitados_array{
-        _id
-        sexo
+      invitados {
+        id
         nombre
-        estatus
-        correo
+        email
         telefono
-        asistencia
+        menu { id nombre precio }
+        menu_seleccion { entrada plato_principal postre bebida }
         alergenos
-        passesQuantity
-        father
-        nombre_menu
+        asistencia
+        acompanantes
+        mesa
+        puesto
+        rol
+        sexo
         grupo_edad
+        comunicaciones { tipo estado fecha mensaje_id template_name }
       }
-      menus_array{
-        nombre_menu
-        tipo
+      menus {
+        id
+        nombre
+        precio
+        descripcion
       }
     }
   }`,
@@ -636,18 +658,10 @@ export const queries = {
     deleteTask ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID)
   }`,
   createComment: `
-  mutation  ( $eventID:String, $itinerarioID:String, $taskID:String, $comment:String, $attachments: [inputFileData], $nicknameUnregistered:String) {
-    createComment ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID, comment:$comment, attachments: $attachments, nicknameUnregistered:$nicknameUnregistered){
-      _id
-      comment
-      uid
-      createdAt
-      nicknameUnregistered
-      attachments{
-        _id
-        name
-        size
-      }
+  mutation ($task_id:ID!, $development:String!, $comment:TaskCommentInput!) {
+    createComment(task_id:$task_id, development:$development, comment:$comment){
+      success
+      errors{ message }
     }
   }`,
   deleteComment: `
@@ -761,57 +775,7 @@ export const queries = {
       nombre
       tipo
       timeZone
-      itinerarios_array{
-        _id
-        next_id
-        title
-        tasks{
-          _id
-          fecha
-          hora
-          horaActiva
-          icon
-          descripcion
-          responsable
-          duracion
-          tags
-          tips
-          estatus
-          attachments{
-            _id
-            name
-            url
-            size
-            createdAt
-            updatedAt
-          }
-          spectatorView
-          comments{
-            _id
-            comment
-            uid
-            createdAt
-            nicknameUnregistered
-            attachments{
-              _id
-              name
-              size
-            }
-          }
-          commentsViewers
-          estado
-          prioridad
-          fecha_creacion
-        }
-        columnsOrder{
-          columnId
-          order
-        }
-        viewers
-        tipo
-        estatus
-        fecha_creacion
-      }
+      itinerarios_array
     }
   }`,
   getPreregister: `query ($_id :ID){
@@ -823,30 +787,11 @@ export const queries = {
   updateActivityLink: `mutation ($args:inputActivityLink){
     updateActivityLink(args:$args)
   }`,
-  updateNotifications: `mutation ($args:inputNotification){
-    updateNotifications(args:$args)
-  }`,
   createNotifications: `mutation ($args:inputNotifications){
     createNotifications(args:$args){
       total
       results{
         _id
-      }
-    }
-  }`,
-  getNotifications: `query ($args:inputNotification, $sort:sortCriteriaNotification, $skip:Int, $limit:Int){
-    getNotifications(args:$args, sort:$sort, skip:$skip, limit:$limit){
-      total
-      results{
-        _id
-        uid
-        message
-        state
-        type
-        fromUid
-        focused
-        createdAt
-        updatedAt
       }
     }
   }`,
@@ -882,10 +827,7 @@ export const queries = {
       email
       displayName
       photoURL
-      onLine{
-        status
-        dateConection
-      }
+      onLine
     }
   }`,
   getGeoInfo: `query  {
@@ -902,8 +844,8 @@ export const queries = {
       sessionCookie
     }
   }`,
-  updateUser: `mutation ($uid:ID, $variable:String, $valor:String){
-    updateUser(uid:$uid, variable:$variable, valor:$valor){
+  updateUser: `mutation ($variable:String, $valor:String){
+    updateUser(variable:$variable, valor:$valor){
       city
       country
     }
@@ -921,9 +863,7 @@ export const queries = {
         getUser(uid:$uid){
           email
           photoURL
-          onLine{
-            status
-          }
+          onLine
           displayName
           phoneNumber
           role
@@ -968,22 +908,9 @@ export const queries = {
       _id
       grupos_array
       compartido_array
-      detalles_compartidos_array{
-        email
-        uid
-        planSpaceSelect
-        permissions{
-          title
-          value
-        }
-        createdAt
-        updatedAt
-      }
+      detalles_compartidos_array
       estatus
-      color
       temporada
-      estilo
-      tematica
       tarta
       nombre
       fecha_actualizacion
@@ -994,288 +921,39 @@ export const queries = {
       fecha
       galerySvgVersion
       listaRegalos
-      listIdentifiers{
-        table
-        start_Id
-        end_Id
-      }
       poblacion
       pais
       timeZone
-      templateEmailSelect
-      templateWhatsappSelect
-      imgEvento{
-        _id
-        i1024
-        i800
-        i640
-        i320
-        createdAt
-      }
-      imgInvitacion{
-        _id
-        i1024
-        i800
-        i640
-        i320
-        createdAt
-      }
-      notificaciones_array{
-        _id
-        fecha_creacion
-        fecha_lectura
-        mensaje
-      }
-      itinerarios_array{
-        _id
-        next_id
-        title
-        tasks{
-          _id
-          fecha
-          hora
-          horaActiva
-          icon
-          descripcion
-          responsable
-          duracion
-          tags
-          tips
-          estatus
-          attachments{
-            _id
-            name
-            url
-            size
-            createdAt
-            updatedAt
-          }
-          spectatorView
-          comments{
-            _id
-            comment
-            uid
-            createdAt
-            nicknameUnregistered
-            attachments{
-              _id
-              name
-              size
-            }
-          }
-          commentsViewers
-          estado
-          prioridad
-        }
-        columnsOrder{
-          columnId
-          order
-        }
-        viewers
-        tipo
-        estatus
-        fecha_creacion
-      }
+      imgEvento
+      notificaciones_array
+      itinerarios_array
       planSpaceSelect
-      planSpace{
-      _id
-      title
-      size{
-        width
-        height
-      }
-      spaceChairs
-      template
-      sections{
-        _id
-        title
-        position{
-          x
-          y
-        }
-        size{
-          width
-          height
-        }
-        color
-        elements{
-          _id
-          title
-          rotation
-          position{
-            x
-            y
-          }
-          size{
-            width
-            height
-          }
-        }
-        tables{
-          _id
-          title
-          rotation
-          position{
-            x
-            y
-          }
-          size{
-            width
-            height
-          }
-          tipo
-          numberChair
-          guests{
-            _id
-            chair
-            order
-          }
-        }
-      }
-      elements{
-        _id
-        title
-        rotation
-        position{
-          x
-          y
-        }
-        size{
-          width
-          height
-        }
-        tipo
-      }
-      tables{
-        _id
-        title
-        rotation
-        position{
-          x
-          y
-        }
-        size{
-          width
-          height
-        }
-        tipo
-        numberChair
-        guests{
-          _id
-          chair
-          order
-        }
-      }
-    }
-      mesas_array{
-            _id
-            nombre_mesa
-            tipo
-            cantidad_sillas
-            posicion {
-              x
-              y
-            }
-      }
-      invitados_array{
-        _id
+      planSpace
+      mesas_array
+      invitados {
+        id
         nombre
-        grupo_edad
-        correo
+        email
         telefono
-        chairs{
-          planSpaceID
-          sectionID
-          tableID
-          position
-          order
-        }
-        father
-        passesQuantity
-        nombre_mesa
-        puesto
+        menu { id nombre precio }
+        menu_seleccion { entrada plato_principal postre bebida }
+        alergenos
         asistencia
-        nombre_menu
+        acompanantes
+        mesa
+        puesto
         rol
-        correo
         sexo
-        movil
-        poblacion
-        pais
-        direccion
-        invitacion
-        fecha_invitacion
+        grupo_edad
+        comunicaciones { tipo estado fecha mensaje_id template_name }
       }
-      menus_array{
-        nombre_menu
-        tipo
+      menus {
+        id
+        nombre
+        precio
+        descripcion
       }
-      presupuesto_objeto{
-        weddingPlannerIngresos{
-          _id
-          fecha
-          monto
-          metodo
-          referencia
-          createdAt
-          updatedAt
-          }
-        coste_final
-        pagado
-        coste_estimado
-        currency
-        visibleColumns {
-          accessor
-          show
-        }
-        totalStimatedGuests{
-          children
-          adults
-        }
-        categorias_array{
-          _id
-          nombre
-          coste_estimado
-          coste_final
-          pagado
-          gastos_array {
-            _id
-            coste_estimado
-            coste_final
-            pagado
-            nombre
-            linkTask
-            estatus
-            pagos_array {
-              _id
-              estado
-              fecha_creacion
-              fecha_pago
-              fecha_vencimiento
-              medio_pago
-              importe
-              pagado_por
-              soporte{
-                image_url
-                medium_url
-                thumb_url
-                delete_url
-              }
-            }
-            items_array{
-              _id
-              next_id
-              unidad
-              cantidad
-              nombre
-              valor_unitario
-              total
-              estatus
-              fecha_creacion
-            }
-          }
-        }
-      }
+      presupuesto_objeto
       showChildrenGuest
     }
   }`,
@@ -1911,16 +1589,7 @@ export const queries = {
   addCompartitions: `mutation($args:inputCompartition){
     addCompartition(args:$args){
       compartido_array
-      detalles_compartidos_array{
-        email
-        uid
-        permissions{
-          title
-          value
-        }
-        createdAt
-        updatedAt
-      }
+      detalles_compartidos_array
     }
   }`,
   updateCompartitions: `mutation($args:inputCompartition){
@@ -1932,25 +1601,11 @@ export const queries = {
   getEventsByID: `query ($variable: String, $valor: String, $development: String!) {
     queryenEvento( variable:$variable, valor:$valor, development:$development){
       _id
-      development
       grupos_array
       compartido_array
-      detalles_compartidos_array{
-        email
-        uid
-        planSpaceSelect
-        permissions{
-          title
-          value
-        }
-        createdAt
-        updatedAt
-      }
+      detalles_compartidos_array
       estatus
-      color
       temporada
-      estilo
-      tematica
       tarta
       nombre
       fecha_actualizacion
@@ -1961,306 +1616,40 @@ export const queries = {
       fecha
       galerySvgVersion
       listaRegalos
-      listIdentifiers{
-        table
-        start_Id
-        end_Id
-      }
       poblacion
       pais
-      lugar {
-        _id
-        title
-        slug
-      }
+      lugar
       timeZone
-      templateEmailSelect
-      templateWhatsappSelect
-      imgEvento{
-        _id
-        i1024
-        i800
-        i640
-        i320
-        createdAt
-      }
-
-      imgInvitacion{
-        _id
-        i1024
-        i800
-        i640
-        i320
-        createdAt
-      }
-      notificaciones_array{
-        _id
-        fecha_creacion
-        fecha_lectura
-        mensaje
-      }
-      itinerarios_array{
-        _id
-        next_id
-        title
-        tasks{
-          _id
-          fecha
-          hora
-          horaActiva
-          icon
-          descripcion
-          responsable
-          duracion
-          tags
-          tips
-          estatus
-          attachments{
-            _id
-            name
-            url
-            size
-            createdAt
-            updatedAt
-          }
-          spectatorView
-          comments{
-            _id
-            comment
-            uid
-            createdAt
-            nicknameUnregistered
-            attachments{
-              _id
-              name
-              size
-            }
-          }
-          commentsViewers
-          estado
-          prioridad
-        }
-        columnsOrder{
-          columnId
-          order
-        }
-        viewers
-        tipo
-        estatus
-        fecha_creacion
-      }
+      imgEvento
+      notificaciones_array
+      itinerarios_array
       planSpaceSelect
-      planSpace{
-      _id
-      title
-      size{
-        width
-        height
-      }
-      spaceChairs
-      template
-      sections{
-        _id
-        title
-        position{
-          x
-          y
-        }
-        size{
-          width
-          height
-        }
-        color
-        elements{
-          _id
-          title
-          rotation
-          position{
-            x
-            y
-          }
-          size{
-            width
-            height
-          }
-        }
-        tables{
-          _id
-          title
-          rotation
-          position{
-            x
-            y
-          }
-          size{
-            width
-            height
-          }
-          tipo
-          numberChair
-          guests{
-            _id
-            chair
-            order
-          }
-        }
-      }
-      elements{
-        _id
-        title
-        rotation
-        position{
-          x
-          y
-        }
-        size{
-          width
-          height
-        }
-        tipo
-      }
-      tables{
-        _id
-        title
-        rotation
-        position{
-          x
-          y
-        }
-        size{
-          width
-          height
-        }
-        tipo
-        numberChair
-        guests{
-          _id
-          chair
-          order
-        }
-      }
-    }
-      mesas_array{
-           _id
-           nombre_mesa
-           tipo
-           cantidad_sillas
-           posicion {
-             x
-             y
-           }
-      }
-      invitados_array{
-        _id
+      planSpace
+      mesas_array
+      invitados {
+        id
         nombre
-        grupo_edad
-        correo
+        email
         telefono
-        chairs{
-          planSpaceID
-          sectionID
-          tableID
-          position
-          order
-        }
-        father
-        passesQuantity
-        comunicaciones_array{	
-          transport 
-          template_id
-          template_name
-          message_id  
-          statuses{
-            name
-            timestamp
-          }
-        }
-        nombre_mesa
-        puesto
+        menu { id nombre precio }
+        menu_seleccion { entrada plato_principal postre bebida }
+        alergenos
         asistencia
-        nombre_menu
+        acompanantes
+        mesa
+        puesto
         rol
-        correo
         sexo
-        movil
-        poblacion
-        pais
-        direccion
-        invitacion
-        fecha_invitacion
+        grupo_edad
+        comunicaciones { tipo estado fecha mensaje_id template_name }
       }
-      menus_array{
-        nombre_menu
-        tipo
+      menus {
+        id
+        nombre
+        precio
+        descripcion
       }
-      presupuesto_objeto{
-       weddingPlannerIngresos{
-          _id
-          fecha
-          monto
-          metodo
-          referencia
-          createdAt
-          updatedAt
-          }
-        presupuesto_total
-        viewEstimates
-        coste_final
-        pagado
-        coste_estimado
-        currency
-        visibleColumns {
-          accessor
-          show
-        }
-        totalStimatedGuests{
-          children
-          adults
-        }
-        categorias_array{
-          _id
-          nombre
-          coste_estimado
-          coste_final
-          pagado
-          gastos_array {
-            _id
-            coste_estimado
-            coste_final
-            pagado
-            nombre
-            linkTask
-            estatus
-            pagos_array {
-              _id
-              estado
-              fecha_creacion
-              fecha_pago
-              fecha_vencimiento
-              medio_pago
-              importe
-              pagado_por
-              soporte{
-                image_url
-                medium_url
-                thumb_url
-                delete_url
-              }
-            }
-            items_array{
-              _id
-              next_id
-              unidad
-              cantidad
-              nombre
-              valor_unitario
-              total
-              estatus
-              fecha_creacion
-            }
-          }
-        }
-      }
+      presupuesto_objeto
       showChildrenGuest
     }
   }`,
@@ -2289,25 +1678,7 @@ export const queries = {
   }`,
   createGuests: `mutation ($eventID: String, $invitados_array: [invitAinput]) {
     creaInvitado(evento_id: $eventID, invitados_array: $invitados_array){
-     invitados_array{
-       father
-       _id
-       nombre
-       grupo_edad
-       correo
-       telefono
-       father
-       passesQuantity
-       nombre_mesa
-       nombre_menu
-       puesto
-       asistencia
-       rol
-       correo
-       sexo
-       invitacion
-       fecha_invitacion
-     }
+     invitados_array
    }
   }`,
   editGuests: `mutation ($eventID:String, $guestID:String, $variable: String, $value:String) {
@@ -2340,41 +1711,28 @@ export const queries = {
   removeGuests: `mutation ($eventID:String, $guests: [String]){
       borraInvitados(evento_id:$eventID,
       invitados_ids_array:$guests){
-        invitados_array{
-          _id
-          nombre
-          sexo
-          grupo_edad
-          correo
-          telefono
-          nombre_mesa
-          puesto
-          asistencia
-          rol
-          father
-          passesQuantity
-        }
+        invitados_array
       }
   }`,
-  createGroup: `mutation ($eventID: String, $name: String) {
-    creaGrupo(evento_id:$eventID, nombre_grupo: $name){
-      grupos_array
+  createGroup: `mutation ($eventID: ID!, $grupo: JSON!) {
+    creaGrupo(evento_id:$eventID, grupo: $grupo){
+      success
+      errors { message code }
+      evento { grupos_array }
     }
   }`,
-  createMenu: `mutation ($eventID: String, $name: String) {
-    creaMenu(evento_id:$eventID, nombre_menu: $name){
-      menus_array{
-        nombre_menu
-        tipo
-      }
+  createMenu: `mutation ($eventID: ID!, $menu: JSON!) {
+    creaMenu(evento_id:$eventID, menu: $menu){
+      success
+      errors { message code }
+      evento { menus { id nombre } }
     }
   }`,
-  deleteMenu: `mutation ($eventID: String, $name: String) {
-    borraMenu(evento_id:$eventID, nombre_menu: $name){
-      menus_array{
-        nombre_menu
-        tipo
-      }
+  deleteMenu: `mutation ($eventID: ID!, $menuId: ID!) {
+    borraMenu(evento_id:$eventID, menu_id: $menuId){
+      success
+      errors { message code }
+      evento { menus { id nombre } }
     }
   }`,
   // createTable: `mutation ($eventID:String, $tableName: String, $tableType:String, $numberChairs:  Int, $position: [posicionAinput]) {
@@ -2391,17 +1749,11 @@ export const queries = {
   //     }
   //   }
   // }`,
-  getPsTemplate: `query ($uid:String ) {
-    getPsTemplate(uid:$uid) {
-      _id
-      title
-    }
+  getPsTemplate: `query ($evento_id:ID!, $development:String!) {
+    getPsTemplate(evento_id:$evento_id, development:$development)
   }`,
   createPsTemplate: `mutation ($eventID:ID, $planSpaceID:ID, $title:String, $uid:String ) {
-    createPsTemplate(eventID:$eventID, planSpaceID:$planSpaceID, title:$title, uid:$uid) {
-      _id
-      title
-    }
+    createPsTemplate(eventID:$eventID, planSpaceID:$planSpaceID, title:$title, uid:$uid)
   }`,
   createTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $values: String) {
     createTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, values:$values) {
@@ -2510,16 +1862,7 @@ export const queries = {
   }`,
   deleteTableOld: `mutation ($eventID:String, $tableID: String) {
     borraMesa(evento_id:$eventID,mesa_id:$tableID) {
-      mesas_array{
-           _id
-           nombre_mesa
-           tipo
-           cantidad_sillas
-           posicion {
-             x
-             y
-           }
-      }
+      mesas_array
     }
   }`,
   getDevelopment: `query {

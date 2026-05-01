@@ -2,8 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import type { MouseEvent as ReactMouseEvent } from 'react';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { Conversation } from '../hooks/useConversations';
 import { useConversationActions } from '../hooks/useConversationActions';
+import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
 import { ChannelBadge } from './ChannelBadge';
 
 interface ConversationItemProps {
@@ -44,6 +47,11 @@ export function ConversationItem({
   isSelected,
 }: ConversationItemProps) {
   const router = useRouter();
+  const { checkAuth } = useAuthCheck();
+  const { userId } = checkAuth();
+  const { meta } = useConversationMeta(conversation.id);
+  const status: ConversationStatus = meta.status ?? 'open';
+  const assignedToMe = !!(userId && meta.assignedUserId && meta.assignedUserId === userId);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const { isMuted, toggleArchive, toggleMute, deleteConversation } = useConversationActions();
@@ -72,10 +80,12 @@ export function ConversationItem({
   }, [contextMenu]);
 
   const handleClick = () => {
-    router.push(`/messages/${conversation.channel}/${conversation.id}`);
+    router.push(
+      `/messages/${encodeURIComponent(conversation.channel)}/${encodeURIComponent(conversation.id)}`,
+    );
   };
 
-  const handleContextMenu = (e: React.MouseEvent) => {
+  const handleContextMenu = (e: ReactMouseEvent) => {
     e.preventDefault();
     setContextMenu({ x: e.clientX, y: e.clientY });
   };
@@ -148,10 +158,28 @@ export function ConversationItem({
                   {conversation.contact.name}
                 </h3>
                 <ChannelBadge channel={conversation.channel} size="sm" />
+                <span
+                  className={
+                    status === 'open'
+                      ? 'rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-700'
+                      : status === 'pending'
+                        ? 'rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700'
+                        : 'rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600'
+                  }
+                >
+                  {status === 'open' ? 'Abierta' : status === 'pending' ? 'En espera' : 'Cerrada'}
+                </span>
               </div>
-              <span className="flex-shrink-0 text-xs text-gray-500">
-                {formatTimestamp(conversation.lastMessage.timestamp)}
-              </span>
+              <div className="flex flex-shrink-0 items-center gap-2">
+                {assignedToMe ? (
+                  <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+                    Asignada
+                  </span>
+                ) : null}
+                <span className="text-xs text-gray-500">
+                  {formatTimestamp(conversation.lastMessage.timestamp)}
+                </span>
+              </div>
             </div>
 
             {/* Last Message or Typing */}

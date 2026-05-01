@@ -1,0 +1,29 @@
+*P0 — un solo hilo, dueños claros (dejar de ir en rondas)*
+
+Front ya no puede avanzar más en código en socket / enum MCP / R2: eso es *Infra + MCP*. Pedimos *una* respuesta en *este hilo* (o hilo maestro #api-ia-api2-sync enlazado aquí) usando *esta plantilla por stream* (copiar 3 bloques: socket, enum-suscripcion, R2-CRM):
+
+```
+*Stream:* socket
+*DRI:* @___ (Infra)
+*Estado:* BLOQUEADO | EN CURSO | LISTO
+*ETA o fecha LISTO:*
+*Evidencia:*
+
+*Stream:* enum-suscripcion
+*DRI:* @___ (MCP)
+*Estado:*
+*ETA o fecha LISTO:*
+*Evidencia:*
+
+*Stream:* R2-CRM bodasdehoy
+*DRI:* @___ (MCP)
+*Estado:*
+*ETA o fecha LISTO:*
+*Evidencia:*
+```
+
+*Bugs api-ia ~24 feb:* misma plantilla en *#copilot-api-ia* con *Stream:* bugs-api-ia y DRI api-ia.
+
+*Regla:* sin DRI + ETA no contamos la petición como coordinada. Front deja de pinguear hasta ETA o cambio real.
+
+Refs proceso: repo `scripts/LIDERES-DRI-Y-ANTIBUCLE.txt` | técnico P0: `scripts/slack-mensaje-mcp-sync-operativo.txt`

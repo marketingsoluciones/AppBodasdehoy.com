@@ -25,6 +25,7 @@ import { IoIosArrowDown } from "react-icons/io";
 import { GoTasklist } from "react-icons/go";
 import { ImageAvatar } from "../Utils/ImageAvatar";
 import { authBridge } from '@bodasdehoy/shared/auth';
+import { usePlanLimits } from "../../hooks/usePlanLimits";
 
 interface Flag {
   value: string
@@ -58,6 +59,7 @@ const Profile = ({ user, state, set, ...rest }) => {
   const { event } = EventContextProvider()
   const [isAllowedRouter, ht] = useAllowedRouter()
   const [dropdown, setDropwdon] = useState(false);
+  const { plan, loading: planLoading } = usePlanLimits()
   const { permission: pushPermission, requestPermission: requestPushPermission, token: fcmToken } = useFCMToken(
     user?.uid,
     config?.development
@@ -65,6 +67,18 @@ const Profile = ({ user, state, set, ...rest }) => {
   const [showFlags, setShowFlags] = useState(false)
   const [optionSelect, setOptionSelect] = useState<Flag>(config.development === "champagne-events" ? idiomaArray[0] : idiomaArray[1])
   const isAuthenticatedUser = !!user?.uid && !["guest", "anonymous"].includes(user?.displayName) && !user?._isSafetyGuest
+  const isAdmin = Array.isArray(user?.role) ? user.role.includes("admin") : user?.role === "admin"
+  const primaryRole = Array.isArray(user?.role) ? user.role[0] : user?.role
+  const hasSkuAccess = (sku: string) => {
+    if (!plan) return false
+    const limit = Array.isArray((plan as any)?.product_limits)
+      ? (plan as any).product_limits.find((l: any) => l?.sku === sku)
+      : null
+    if (!limit) return false
+    return limit?.free_quota > 0 || limit?.overage_enabled === true
+  }
+  const canUseCopilot = isAdmin ? true : hasSkuAccess("ai-tokens")
+  const canUseDesignIA = isAdmin ? true : hasSkuAccess("image-gen")
 
   const cookieContent = JSON.parse(Cookies.get("guestbodas") ?? "{}")
 
@@ -120,7 +134,17 @@ const Profile = ({ user, state, set, ...rest }) => {
     {
       title: "Copilot IA",
       icon: <BsChatDots />,
-      onClick: async () => { window.location.href = process.env.NEXT_PUBLIC_CHAT ?? "" },
+      onClick: async () => {
+        if (planLoading) {
+          toast("warning", t("Cargando…"))
+          return
+        }
+        if (!canUseCopilot) {
+          router.push("/facturacion")
+          return
+        }
+        window.location.href = process.env.NEXT_PUBLIC_CHAT ?? ""
+      },
       development: ["all"],
       rol: ["novio", "novia", "otro", "empresa"],
     },
@@ -138,7 +162,17 @@ const Profile = ({ user, state, set, ...rest }) => {
   const optionsEnd: Option[] = [
     {
       title: "Diseño IA",
-      onClick: async () => { router.push("/diseno-espacios") },
+      onClick: async () => {
+        if (planLoading) {
+          toast("warning", t("Cargando…"))
+          return
+        }
+        if (!canUseDesignIA) {
+          router.push("/facturacion")
+          return
+        }
+        router.push("/diseno-espacios")
+      },
       icon: <LivingRoomIcon className="w-5 h-5" />,
       development: ["all"],
       rol: ["novio", "novia", "otro", "empresa"],
@@ -183,6 +217,9 @@ const Profile = ({ user, state, set, ...rest }) => {
   const optionReduce = (options: Option[]) => {
     return options.reduce((acc: Option[], item: Option) => {
       if (item.development?.includes(config?.development) || item.development?.includes("all")) {
+        if (["Copilot IA", "Diseño IA"].includes(item.title) && !(config?.copilotEnabled === true || isAdmin)) {
+          return acc
+        }
         // Entradas sin `rol` (p. ej. Iniciar sesión / Registrarse): solo invitado sin cuenta.
         if (item.rol === undefined) {
           if (!isAuthenticatedUser) acc.push(item)
@@ -240,11 +277,16 @@ const Profile = ({ user, state, set, ...rest }) => {
               <div data-testid="profile-menu-dropdown" className="bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 absolute top-0 right-0 translate-y-[46px] translate-x-[20px] md:-translate-x-[0px]  overflow-hidden z-[60] title-display">
                 <div className="w-full border-b border-gray-100 pb-2">
                   <p className="text-gray-500 font-extralight uppercase tracking-wider	text-xs text-center  cursor-default">
-                    {isAuthenticatedUser && (user?.role && user?.role?.length > 0) && t(user?.role[0])}
+                    {isAuthenticatedUser && primaryRole ? t(primaryRole) : ""}
                   </p>
                   <h3 data-testid="profile-menu-display-name" className="text-primary font-medium w-full text-center cursor-default ">
-                    {isAuthenticatedUser ? user?.displayName : "Invitado"}
+                    {isAuthenticatedUser ? (user?.displayName || user?.email || "—") : "Invitado"}
                   </h3>
+                  {isAuthenticatedUser && (
+                    <div className="mt-0.5 text-[12px] text-center text-gray-500 cursor-default">
+                      {user?.email || "—"}
+                    </div>
+                  )}
                 </div>
                 <ul className="grid grid-cols-2 gap-2 text-xs place-items-left p-2 ">
                   {optionsReduceStart.map((item: Option, idx) => (

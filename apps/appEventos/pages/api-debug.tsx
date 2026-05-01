@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { AuthContextProvider } from '../context';
 import Cookies from 'js-cookie';
 
+import { resolveApiBodasGraphqlUrl } from '../utils/apiEndpoints';
+
 export default function ApiDebug() {
   const { config, user } = AuthContextProvider();
   const [logs, setLogs] = useState<string[]>([]);
@@ -29,9 +31,10 @@ export default function ApiDebug() {
       addLog(`Config development: ${config?.development}`);
 
       // Test 1: Llamada directa a API Bodas
-      addLog('--- Test 1: Llamada directa a https://api2.eventosorganizador.com/graphql ---');
+      const directUrl = resolveApiBodasGraphqlUrl();
+      addLog(`--- Test 1: Llamada directa a ${directUrl} ---`);
 
-      const directResponse = await fetch('https://api2.eventosorganizador.com/graphql', {
+      const directResponse = await fetch(directUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,3 +1,8 @@
-export const createURL = (slug : string | undefined | null) => {
-    if(slug) return `${process.env.NEXT_PUBLIC_BASE_URL}${slug}`
-}
+import { resolveApiAppBaseUrl } from '@bodasdehoy/shared/utils';
+
+export const createURL = (slug: string | undefined | null) => {
+  if (!slug) return;
+  const base = resolveApiAppBaseUrl();
+  if (slug.startsWith('/')) return `${base}${slug}`;
+  return `${base}/${slug}`;
+};

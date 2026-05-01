@@ -2,6 +2,8 @@
  * Utilidad para verificar que las URLs y dominios configurados funcionen correctamente
  */
 
+import { resolveApiBodasOrigin, resolveApiIaOrigin } from './apiEndpoints';
+
 export interface UrlCheckResult {
   url: string;
   status: 'ok' | 'error' | 'timeout';
@@ -77,8 +79,7 @@ export async function verifyAllUrls(): Promise<UrlCheckResult[]> {
       process.env.NEXT_PUBLIC_EVENTSAPP,
       process.env.NEXT_PUBLIC_CHAT,
       // Backend IA
-      process.env.PYTHON_BACKEND_URL || 'https://api-ia.bodasdehoy.com',
-      process.env.NEXT_PUBLIC_BACKEND_URL,
+      resolveApiIaOrigin(),
     ].filter(Boolean) as string[];
     
     urlsToCheck.push(...envUrls);
@@ -94,11 +95,10 @@ export async function verifyAllUrls(): Promise<UrlCheckResult[]> {
     if (hostname.includes('bodasdehoy.com') && !isTestDomain) {
       // Solo verificar APIs externas en producción (evitar CORS en test)
       urlsToCheck.push('https://bodasdehoy.com');
-      urlsToCheck.push('https://api2.eventosorganizador.com');
-      urlsToCheck.push('https://apiapp.bodasdehoy.com');
+      urlsToCheck.push(resolveApiBodasOrigin());
       urlsToCheck.push('https://chat.bodasdehoy.com');
       // Backend IA
-      urlsToCheck.push('https://api-ia.bodasdehoy.com');
+      urlsToCheck.push(resolveApiIaOrigin());
     } else if (isTestDomain) {
       // En test, solo verificar URLs locales/proxy
       urlsToCheck.push(`${baseUrl}/api/proxy-bodas/graphql`);

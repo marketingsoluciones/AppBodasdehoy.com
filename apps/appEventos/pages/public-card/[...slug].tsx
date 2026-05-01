@@ -6,12 +6,13 @@ import { Event } from "../../utils/Interfaces";
 import { motion } from "framer-motion"
 import { defaultImagenes } from "../../components/Home/Card";
 import { TaskNew } from "../../components/Servicios/VistaTarjeta/TaskNew";
-import { openGraphData } from "../_app";
 import { AuthContextProvider } from "../../context/AuthContext";
 import { EventContextProvider } from "../../context";
 import { TempPastedAndDropFile } from "../../components/Itinerario/MicroComponente/ItineraryPanel";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { NextSeo } from "next-seo";
+import { resolveApiAppBaseUrl } from '@bodasdehoy/shared/utils';
 
 interface props {
   evento: Event | null
@@ -32,34 +33,73 @@ const PublicCardMessage = ({ title, body }: { title: string; body: string }) => 
 const Slug: FC<props> = (props) => {
   const { t } = useTranslation()
 
+  const firstTask = props?.evento?.itinerarios_array?.[0]?.tasks?.[0] as any
+  const seoTitle =
+    typeof firstTask?.descripcion === "string" && firstTask.descripcion.trim()
+      ? firstTask.descripcion.trim()
+      : typeof props?.evento?.nombre === "string" && props.evento.nombre.trim()
+        ? props.evento.nombre.trim()
+        : "Tarjeta pública"
+
+  const createdAt = props?.evento?.itinerarios_array?.[0]?.fecha_creacion
+  const createdAtMs =
+    typeof createdAt === "number"
+      ? createdAt
+      : typeof createdAt === "string"
+        ? Number.parseInt(createdAt, 10)
+        : Number.NaN
+
+  const createdAtText = Number.isFinite(createdAtMs)
+    ? new Date(createdAtMs).toLocaleDateString("es-VE", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        timeZone: "UTC",
+      })
+    : ""
+
+  const seoDescription =
+    props?.evento
+      ? `El Evento ${props.evento.tipo || ""}${props.evento.nombre ? `, de ${props.evento.nombre}` : ""}${createdAtText ? `, ${createdAtText}` : ""}`.trim()
+      : "Tarjeta pública"
+
   if (props?.error) {
     const isSlug = props.error === "invalid-slug"
     const detail =
       typeof props.error === "string" && !isSlug ? props.error : null
     return (
-      <PublicCardMessage
-        title={isSlug ? t("publicCardInvalidLinkTitle") : t("publicCardLoadErrorTitle")}
-        body={
-          isSlug
-            ? t("publicCardInvalidLinkBody")
-            : detail
-              ? `${t("publicCardLoadErrorBody")} (${detail})`
-              : t("publicCardLoadErrorBody")
-        }
-      />
+      <>
+        <NextSeo title={seoTitle} description={seoDescription} openGraph={{ title: seoTitle, description: seoDescription }} />
+        <PublicCardMessage
+          title={isSlug ? t("publicCardInvalidLinkTitle") : t("publicCardLoadErrorTitle")}
+          body={
+            isSlug
+              ? t("publicCardInvalidLinkBody")
+              : detail
+                ? `${t("publicCardLoadErrorBody")} (${detail})`
+                : t("publicCardLoadErrorBody")
+          }
+        />
+      </>
     )
   }
 
   if (!props?.evento?.itinerarios_array?.length) {
     return (
-      <PublicCardMessage
-        title={t("publicCardUnavailableTitle")}
-        body={t("publicCardUnavailableBody")}
-      />
+      <>
+        <NextSeo title={seoTitle} description={seoDescription} openGraph={{ title: seoTitle, description: seoDescription }} />
+        <PublicCardMessage
+          title={t("publicCardUnavailableTitle")}
+          body={t("publicCardUnavailableBody")}
+        />
+      </>
     )
   }
   return (
-    <ServicesVew evento={props.evento} />
+    <>
+      <NextSeo title={seoTitle} description={seoDescription} openGraph={{ title: seoTitle, description: seoDescription }} />
+      <ServicesVew evento={props.evento} />
+    </>
   )
 };
 export default Slug;
@@ -115,7 +155,7 @@ const ServicesVew = (props) => {
           </div>
           <div className='flex-1 md:flex-none md:w-[35%] h-[100%] flex flex-row-reverse md:flex-row items-center '>
             <img
-              src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i320}` : defaultImagenes[event?.tipo?.toLowerCase()]}
+              src={event?.imgEvento ? `${resolveApiAppBaseUrl()}/${event.imgEvento.i320}` : defaultImagenes[event?.tipo?.toLowerCase()]}
               className=" h-[90%] object-cover object-top rounded-md border-1 border-gray-600  hidden md:block"
               alt={event?.nombre}
             />
@@ -279,12 +319,6 @@ export async function getServerSideProps(context) {
     }
     evento.detalles_compartidos_array = usersList
     evento.fecha_actualizacion = new Date().toLocaleString()
-    const firstTask = evento.itinerarios_array?.[0]?.tasks?.[0]
-    if (firstTask?.descripcion) {
-      openGraphData.openGraph.title = `${firstTask.descripcion}`
-      openGraphData.openGraph.description = ` El Evento ${evento.tipo}, de ${evento.nombre}, ${new Date(parseInt(evento?.itinerarios_array[0].fecha_creacion?.toString() || '0'))?.toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}
-`
-    }
 
     const props: any = { query: query || {}, evento, users: usersMap, development, slug: params?.slug ?? null };
     if (error_2 !== null) {

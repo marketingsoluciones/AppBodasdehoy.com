@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-const BODAS_API_URL = process.env.API_BODAS_URL || 'https://api2.eventosorganizador.com';
+import { resolveApiBodasOrigin } from '../../../utils/apiEndpoints';
+
+const BODAS_API_URL = resolveApiBodasOrigin();
 const BODAS_API_URL_FALLBACK = process.env.API_BODAS_URL_FALLBACK || '';
 
 export default async function handler(

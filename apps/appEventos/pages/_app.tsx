@@ -1,7 +1,6 @@
 import '../styles/globals.css'
 import '../utils/react-polyfill' // Polyfill para findDOMNode en React 19
 import '../utils/next-navigation-polyfill' // Polyfill para next/navigation en Pages Router
-import DefaultLayout from '../layouts/DefaultLayout'
 /** Un solo CSS de Swiper: `bundle` ya incluye estilos base + módulos (evita duplicar con `swiper/css`). */
 import 'swiper/css/bundle'
 import "../styles/fonts-app";
@@ -10,24 +9,31 @@ import { useEffect, useState, useMemo } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import i18n from "../utils/i18n"
 import { useAllowedRouter } from '../hooks/useAllowed';
-import { BlockRedirection } from '../components/Utils/BlockRedirection';
 import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';
 import { dataMetaData } from "../utils/SeoRecurses"
-import { varGlobalDevelopment } from "../context/AuthContext"
-import { fetchApiBodas, queries } from '../utils/Fetching';
 import { developments } from '../firebase';
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
 import useDevLogger from '../hooks/useDevLogger';
-import { verifyDomain, logUrlVerification, type UrlCheckResult } from '../utils/verifyUrls';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { CopilotPrewarmer } from '../components/Copilot/CopilotPrewarmer';
 import { captureTrackingParams } from '@bodasdehoy/shared';
 
 
 const DevWhitelabelSwitcher = dynamic(
   () => import('../components/Dev/DevWhitelabelSwitcher'),
+  { ssr: false }
+);
+
+const DefaultLayout = dynamic(() => import('../layouts/DefaultLayout'), { ssr: true });
+
+const BlockRedirection = dynamic(
+  () => import('../components/Utils/BlockRedirection').then((m) => m.BlockRedirection as any),
+  { ssr: false }
+);
+
+const CopilotPrewarmer = dynamic(
+  () => import('../components/Copilot/CopilotPrewarmer').then((m) => m.CopilotPrewarmer as any),
   { ssr: false }
 );
 
@@ -62,37 +68,46 @@ const MyApp = ({ Component, pageProps }) => {
 
   // Verificar dominio y URLs al cargar (solo en cliente y producción)
   useEffect(() => {
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-      const domainInfo = verifyDomain();
+    if (typeof window === 'undefined' || process.env.NODE_ENV !== 'development') return;
+
+    let cancelled = false;
+    (async () => {
+      const mod = await import('../utils/verifyUrls');
+      if (cancelled) return;
+
+      const domainInfo = mod.verifyDomain();
       console.log('[App] Información del dominio:', domainInfo);
 
-      // En dominios de test, solo verificar URLs locales (evitar CORS)
       const isTestDomain = window.location.hostname.includes('-test.') ||
-                           window.location.hostname === 'localhost' ||
-                           window.location.hostname === '127.0.0.1';
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1';
 
-      if (isTestDomain) {
-        // En test solo verificar el origen; no HEAD a graphql (solo acepta POST → 405)
-        const localUrls = [
-          window.location.origin,
-          `${window.location.origin}/api/health`,
-        ].filter(Boolean);
-        Promise.all(
-          localUrls.map(async (url): Promise<UrlCheckResult> => {
-            try {
-              const response = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
-              console.log(`[App] ✅ ${url} - Status: ${response.status}`);
-              return { url, status: 'ok' as const, statusCode: response.status };
-            } catch (error: any) {
-              console.warn(`[App] ⚠️ ${url} - Error:`, error.message);
-              return { url, status: 'error' as const, error: error.message };
-            }
-          })
-        ).then(results => {
-          logUrlVerification(results);
-        });
-      }
-    }
+      if (!isTestDomain) return;
+
+      const localUrls = [
+        window.location.origin,
+        `${window.location.origin}/api/health`,
+      ].filter(Boolean);
+
+      const results = await Promise.all(
+        localUrls.map(async (url) => {
+          try {
+            const response = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
+            console.log(`[App] ✅ ${url} - Status: ${response.status}`);
+            return { url, status: 'ok' as const, statusCode: response.status };
+          } catch (error: any) {
+            console.warn(`[App] ⚠️ ${url} - Error:`, error.message);
+            return { url, status: 'error' as const, error: error.message };
+          }
+        })
+      );
+
+      if (!cancelled) mod.logUrlVerification(results as any);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [])
 
   // Rutas públicas del portal del invitado — sin auth, sin nav, sin layout autenticado

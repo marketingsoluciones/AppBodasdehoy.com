@@ -1,13 +1,13 @@
 /**
  * POST /api/push-subscribe
- * Guarda un FCM token en api2 asociado al usuario.
- * El backend (api-ia / api2) lo usará para enviar push notifications.
+ * Guarda un FCM token en API MCP asociado al usuario.
+ * El backend lo usará para enviar push notifications.
  */
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { resolveApiBodasOrigin } from '../../utils/api3Endpoints';
+import { resolveApiBodasOrigin } from '../../utils/apiEndpoints';
 
-const API2_URL = resolveApiBodasOrigin();
+const MCP_ORIGIN = resolveApiBodasOrigin();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -28,8 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Proxy hacia api2 para registrar el FCM token
-    const r = await fetch(`${API2_URL}/api/push/subscribe`, {
+    const r = await fetch(`${MCP_ORIGIN}/api/push/subscribe`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -42,8 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!r.ok) {
-      // Si api2 no tiene el endpoint aún, fallo silencioso
-      console.warn('[push-subscribe] api2 no disponible o endpoint no existe:', r.status);
+      console.warn('[push-subscribe] API MCP no disponible o endpoint no existe:', r.status);
       return res.status(200).json({ ok: true, forwarded: false });
     }
 

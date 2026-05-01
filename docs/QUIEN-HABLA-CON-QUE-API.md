@@ -1,6 +1,9 @@
 # Quién habla con qué API
 
-**Resumen:** Nosotros (frontend / Copilot) **no** hablamos con api2.eventosorganizador.com para el flujo normal. Hablamos con **api-ia** o, si es App Bodas (auth/datos), con **api.bodasdehoy.com**.
+**Resumen:** El frontend habla con dos backends, ambos referenciados por variables genéricas sin versión.
+
+- **API IA (chat/memories/tools):** `API_IA_URL` (por defecto `https://api3-ia.eventosorganizador.com`)
+- **API MCP GraphQL (datos):** `API_MCP_GRAPHQL_URL` (por defecto `https://api3-mcp-graphql.eventosorganizador.com/graphql`)
 
 ---
 
@@ -8,26 +11,29 @@
 
 | Quién | Habla con | URL / uso |
 |-------|-----------|-----------|
-| **Copilot (LobeChat)** | **api-ia** | `https://api-ia.bodasdehoy.com` — chat (/webapi/chat/auto), config, auth identify-user, etc. |
-| **App Bodas (web)** | **api-ia** | Mismo: chat va por `/api/copilot/chat` → proxy a `api-ia.bodasdehoy.com`. |
-| **App Bodas (web)** | **api.bodasdehoy.com** | Auth, usuarios, sesiones, GraphQL de la app (proxy-bodas/graphql → api.bodasdehoy.com). |
-| **Nosotros** | **api2.eventosorganizador.com** | **No** en el flujo principal. Solo en fallback/legacy (ver abajo). |
+| **Copilot (LobeChat)** | **API IA** | `API_IA_URL` — chat (`/webapi/chat/auto`), config, auth `identify-user`, etc. |
+| **App Bodas (web)** | **API IA** | Chat va por `/api/copilot/chat` → proxy a `API_IA_URL`. |
+| **App Bodas (web)** | **API MCP** | Auth, usuarios, sesiones, GraphQL (proxy-bodas/graphql → API MCP). |
+| **Imágenes/Assets** | **apiapp.bodasdehoy.com** | Temporal — futuro: dominio dedicado para imágenes. |
 
 ---
 
-## 2. Conclusión
+## 2. Dominios de producción
 
-- **Chat / IA:** siempre **api-ia.bodasdehoy.com** (no API2).
-- **App Bodas (auth, eventos):** **api.bodasdehoy.com** (no API2).
-- **api2.eventosorganizador.com** no es nuestro backend; es de otro producto (eventosorganizador). En nuestro código solo aparece en:
-  - Fallback de whitelabel en `apps/web/pages/api/copilot/chat.ts` (si api-ia falla y se pide getWhiteLabelConfig a API2).
-  - Historial en `chat-history.ts` si no está definido `API_IA_CHAT_HISTORY_URL` (entonces se usa API2 como respaldo).
-  - Algún proxy/legacy en `api.js` / `pages/api/proxy/graphql.ts` (NEXT_PUBLIC_BASE_URL puede apuntar a API2 en algunos entornos; en App Bodas el objetivo es usar apiapp.bodasdehoy.com / api.bodasdehoy.com).
+| App | URL |
+|-----|-----|
+| **appEventos** | `https://app.bodasdehoy.com` |
+| **chat-ia** | `https://chat.bodasdehoy.com` |
+| **memories-web** | `https://memories.bodasdehoy.com` |
 
 ---
 
-## 3. Referencias en código
+## 3. Archivos de resolución de endpoints
 
-- Chat → api-ia: `apps/web/pages/api/copilot/chat.ts` (PYTHON_BACKEND_URL), `apps/copilot/src/app/(backend)/webapi/chat/[provider]/route.ts`.
-- App Bodas auth → api.bodasdehoy.com: `apps/web/pages/api/proxy-bodas/graphql.ts`, `api.js` (bodasApiUrl), `NEXT_PUBLIC_BASE_API_BODAS`.
-- API2 solo fallback/legacy: `API2_GRAPHQL_URL` en chat.ts (getWhitelabelApiKey), chat-history.ts, api.js.
+| App | Archivo | Funciones |
+|-----|---------|-----------|
+| **appEventos** | `utils/apiEndpoints.ts` | `resolveApiBodasGraphqlUrl()`, `resolveApiIaOrigin()` |
+| **chat-ia** | `src/const/mcpEndpoints.ts` | `resolvePublicMcpGraphqlUrl()`, `resolveServerMcpGraphqlUrl()` |
+| **chat-ia** | `src/const/backendEndpoints.ts` | `resolvePublicBackendOrigin()`, `resolveServerBackendOrigin()` |
+| **memories-web** | `utils/endpoints.ts` | `resolvePublicMcpGraphqlUrl()`, `resolvePublicApiIaOrigin()` |
+| **shared** | `utils/resolveApiAppBaseUrl.ts` | `resolveApiAppBaseUrl()` (imágenes, temporal) |

@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 
-import { getUnreadNotificationsCount } from '@/services/api2/notifications';
+import { getUnreadNotificationsCount } from '@/services/mcpApi/notifications';
 import { useUserStore } from '@/store/user';
 import { authSelectors } from '@/store/user/selectors';
+import { safeLocalStorage } from '@/utils/safeLocalStorage';
 
 const POLL_INTERVAL_MS = 60_000;
 
@@ -15,7 +16,13 @@ export function useInboxUnreadCount(): number {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    const directToken = safeLocalStorage.getItem('jwt_token');
+    const firebaseToken = safeLocalStorage.getItem('api2_jwt_token');
+    const hasToken =
+      !!(directToken && directToken !== 'null' && directToken !== 'undefined') ||
+      !!(firebaseToken && firebaseToken !== 'null' && firebaseToken !== 'undefined');
+
+    if (!isLoggedIn || !hasToken) {
       setCount(0);
       return;
     }

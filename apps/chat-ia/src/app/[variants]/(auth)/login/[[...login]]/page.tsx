@@ -9,7 +9,7 @@ import { redirect } from 'next/navigation';
 import LoginPageClient from './_page-client';
 
 interface Props {
-  searchParams: Promise<{ redirect?: string; developer?: string }>;
+  searchParams: Promise<{ developer?: string, redirect?: string; }>;
 }
 
 export default async function LoginPage({ searchParams }: Props) {

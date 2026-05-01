@@ -11,7 +11,14 @@ interface MessageInputProps {
   conversationId: string;
 }
 
-const DRAFT_KEY_PREFIX = 'msg-draft-';
+type ComposerMode = 'reply' | 'internal';
+
+const DRAFT_KEY_PREFIX: Record<ComposerMode, string> = {
+  internal: 'note-draft-',
+  reply: 'msg-draft-',
+};
+
+const INTERNAL_NOTES_KEY_PREFIX = 'internal-notes-';
 
 const EMOJI_CATEGORIES: Record<string, string[]> = {
   'Caras': [
@@ -59,34 +66,54 @@ function addRecentEmoji(emoji: string): void {
   } catch { /* ignore */ }
 }
 
-function getDraftKey(conversationId: string): string {
-  return `${DRAFT_KEY_PREFIX}${conversationId}`;
+function getDraftKey(conversationId: string, mode: ComposerMode): string {
+  return `${DRAFT_KEY_PREFIX[mode]}${conversationId}`;
 }
 
-function loadDraft(conversationId: string): string {
+function loadDraft(conversationId: string, mode: ComposerMode): string {
   try {
-    return localStorage.getItem(getDraftKey(conversationId)) || '';
+    return localStorage.getItem(getDraftKey(conversationId, mode)) || '';
   } catch {
     return '';
   }
 }
 
-function saveDraft(conversationId: string, text: string): void {
+function saveDraft(conversationId: string, mode: ComposerMode, text: string): void {
   try {
     if (text.trim()) {
-      localStorage.setItem(getDraftKey(conversationId), text);
+      localStorage.setItem(getDraftKey(conversationId, mode), text);
     } else {
-      localStorage.removeItem(getDraftKey(conversationId));
+      localStorage.removeItem(getDraftKey(conversationId, mode));
     }
   } catch {
     // localStorage may be full or unavailable
   }
 }
 
+function getInternalNotesKey(conversationId: string): string {
+  return `${INTERNAL_NOTES_KEY_PREFIX}${conversationId}`;
+}
+
+function appendInternalNote(conversationId: string, note: { author: string; id: string; text: string; timestamp: string }): void {
+  try {
+    const raw = localStorage.getItem(getInternalNotesKey(conversationId));
+    const prev = raw ? JSON.parse(raw) : [];
+    const list = Array.isArray(prev) ? prev : [];
+    list.push(note);
+    localStorage.setItem(getInternalNotesKey(conversationId), JSON.stringify(list));
+    window.dispatchEvent(
+      new CustomEvent('internal-notes-updated', { detail: { conversationId } }),
+    );
+  } catch {
+    return;
+  }
+}
+
 const SMS_MAX_CHARS = 160;
 
 export function MessageInput({ channel, conversationId }: MessageInputProps) {
-  const [text, setText] = useState(() => loadDraft(conversationId));
+  const [mode, setMode] = useState<ComposerMode>('reply');
+  const [text, setText] = useState(() => loadDraft(conversationId, 'reply'));
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [emojiCategory, setEmojiCategory] = useState('Caras');
   const [emojiSearch, setEmojiSearch] = useState('');
@@ -98,14 +125,14 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
 
   // Load draft when conversation changes
   useEffect(() => {
-    setText(loadDraft(conversationId));
-  }, [conversationId]);
+    setText(loadDraft(conversationId, mode));
+  }, [conversationId, mode]);
 
   // Auto-save draft on text change (debounced)
   useEffect(() => {
-    const timer = setTimeout(() => saveDraft(conversationId, text), 300);
+    const timer = setTimeout(() => saveDraft(conversationId, mode, text), 300);
     return () => clearTimeout(timer);
-  }, [text, conversationId]);
+  }, [text, conversationId, mode]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -137,7 +164,18 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
 
     const messageText = text.trim();
     setText('');
-    saveDraft(conversationId, '');
+    saveDraft(conversationId, mode, '');
+
+    if (mode === 'internal') {
+      const now = new Date().toISOString();
+      appendInternalNote(conversationId, {
+        author: 'Tú',
+        id: `note_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+        text: messageText,
+        timestamp: now,
+      });
+      return;
+    }
 
     try {
       const result = await sendMessage(channel, conversationId, messageText);
@@ -147,8 +185,7 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
       } else {
         setText(messageText);
       }
-    } catch (error) {
-      console.error('Error al enviar mensaje:', error);
+    } catch {
       setText(messageText);
     }
   };
@@ -184,6 +221,37 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
 
   return (
     <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1 rounded-lg bg-gray-50 p-1">
+          <button
+            className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
+              mode === 'reply'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:bg-white/60 hover:text-gray-800'
+            }`}
+            onClick={() => setMode('reply')}
+            type="button"
+          >
+            Responder
+          </button>
+          <button
+            className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
+              mode === 'internal'
+                ? 'bg-amber-50 text-amber-900 shadow-sm'
+                : 'text-gray-500 hover:bg-white/60 hover:text-gray-800'
+            }`}
+            onClick={() => setMode('internal')}
+            type="button"
+          >
+            Nota interna
+          </button>
+        </div>
+        {mode === 'internal' && (
+          <span className="text-[11px] font-medium text-amber-700">
+            Visible solo para tu equipo
+          </span>
+        )}
+      </div>
       <div className="flex items-end gap-2">
         {/* Attach button */}
         <button
@@ -309,7 +377,7 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
           disabled={sending}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Escribe un mensaje..."
+          placeholder={mode === 'internal' ? 'Escribe una nota interna...' : 'Escribe un mensaje...'}
           ref={textareaRef}
           rows={1}
           value={text}
@@ -320,10 +388,10 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
           className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-xl text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={!text.trim() || sending}
           onClick={handleSend}
-          title="Enviar mensaje"
+          title={mode === 'internal' ? 'Guardar nota interna' : 'Enviar mensaje'}
           type="button"
         >
-          {sending ? '⏳' : '📤'}
+          {sending ? '⏳' : mode === 'internal' ? '🔒' : '📤'}
         </button>
       </div>
 

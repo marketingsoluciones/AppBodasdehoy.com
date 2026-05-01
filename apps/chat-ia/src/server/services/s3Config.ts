@@ -1,15 +1,17 @@
 /**
- * s3Config — Obtiene credenciales R2 desde el whitelabel de api2
+ * s3Config — Obtiene credenciales R2 desde el whitelabel de API MCP
  *
  * Patrón idéntico al de api-ia (whitelabel_config.py):
  *  - Fetch lazy por development (no en startup)
  *  - Cache in-memory 15 min
- *  - Si api2 cae → error propagado → sin servicio de storage (aceptado)
+ *  - Si API MCP cae → error propagado → sin servicio de storage (aceptado)
  *
  * NUNCA leer S3_ACCESS_KEY_ID ni S3_SECRET_ACCESS_KEY de variables de entorno.
- * Las credenciales viven en api2 MongoDB:
+ * Las credenciales viven en MongoDB (servidas por API MCP):
  *   whitelabel.externalServices[cloudflare_r2].config.credentials
  */
+
+import { resolveServerMcpGraphqlUrl } from '@/const/mcpEndpoints';
 
 const GET_WHITELABEL_STORAGE_CONFIG = `
   query GetWhitelabelStorageConfig($development: String!, $supportKey: String) {
@@ -49,7 +51,7 @@ const FETCH_TIMEOUT_MS = 10_000; // 10s
  * Usa cache in-memory de 15 min.
  *
  * @param development - Tenant/development (ej: 'bodasdehoy')
- * @throws Error si api2 no responde o no tiene config R2 para ese development
+ * @throws Error si API MCP no responde o no tiene config R2 para ese development
  */
 export async function getServerS3Config(development = 'bodasdehoy'): Promise<S3WhitelabelConfig> {
   const cached = CONFIG_CACHE.get(development);
@@ -57,11 +59,12 @@ export async function getServerS3Config(development = 'bodasdehoy'): Promise<S3W
     return cached.config;
   }
 
-  const api2Url = process.env.API2_GRAPHQL_URL || 'https://api2.eventosorganizador.com';
+  const graphqlUrl = resolveServerMcpGraphqlUrl();
   const supportKey = process.env[`SUPPORT_KEY_${development.toUpperCase().replaceAll('-', '_')}`]
+    || process.env.MCP_SUPPORT_KEY
     || process.env.API2_SUPPORT_KEY;
 
-  const res = await fetch(`${api2Url}/graphql`, {
+  const res = await fetch(graphqlUrl, {
     body: JSON.stringify({
       query: GET_WHITELABEL_STORAGE_CONFIG,
       variables: { development, supportKey },
@@ -72,13 +75,13 @@ export async function getServerS3Config(development = 'bodasdehoy'): Promise<S3W
   });
 
   if (!res.ok) {
-    throw new Error(`[s3Config] api2 returned ${res.status} for development=${development}`);
+    throw new Error(`[s3Config] API MCP returned ${res.status} for development=${development}`);
   }
 
   const { data, errors } = await res.json();
 
   if (errors?.length) {
-    throw new Error(`[s3Config] api2 GraphQL error: ${errors[0].message}`);
+    throw new Error(`[s3Config] API MCP GraphQL error: ${errors[0].message}`);
   }
 
   const cfg = data?.getWhiteLabelStorageConfig;
@@ -103,7 +106,7 @@ export async function getServerS3Config(development = 'bodasdehoy'): Promise<S3W
 
 /**
  * Invalida el cache de un development (o todos si no se especifica).
- * Útil si se actualizan las credenciales R2 en api2.
+ * Útil si se actualizan las credenciales R2 en API MCP.
  */
 export function invalidateS3Config(development?: string) {
   if (development) {

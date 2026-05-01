@@ -5,6 +5,7 @@
  */
 import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
 import { resolveChatOrigin } from '@bodasdehoy/shared/utils';
+import Link from 'next/link';
 
 export default function EditorWebPage() {
   const development =
@@ -41,7 +42,7 @@ export default function EditorWebPage() {
         >
           Abrir Creador en chat-ia
         </a>
-        <a
+        <Link
           href="/preview"
           style={{
             display: 'inline-block',
@@ -55,7 +56,7 @@ export default function EditorWebPage() {
           }}
         >
           Ver vista previa de ejemplo
-        </a>
+        </Link>
       </div>
       <p style={{ marginTop: 24, fontSize: 14, color: '#888' }}>
         Dominio ejemplo en producción: creador.bodasdehoy.com

@@ -102,7 +102,12 @@ export async function waitForAppReady(page: Page, timeoutMs = 25_000): Promise<v
   while (Date.now() - start < timeoutMs) {
     try {
       const text = (await body.textContent()) ?? '';
-      if (text.length > 80 && !text.includes('Error Capturado por ErrorBoundary')) return;
+      const lower = text.toLowerCase();
+      const stillAuthLoading =
+        lower.includes('comprobando sesión y conexión') ||
+        lower.includes('si ves esto, la app está respondiendo') ||
+        lower.includes('continuar como invitado');
+      if (text.length > 80 && !text.includes('Error Capturado por ErrorBoundary') && !stillAuthLoading) return;
     } catch {
       return; // Página cerrada o navegación en curso
     }

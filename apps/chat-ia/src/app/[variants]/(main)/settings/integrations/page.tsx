@@ -2,22 +2,24 @@
 
 import { Alert, Badge, Button, Card, Form, Input, Modal, Skeleton, Space, Tag, Typography } from 'antd';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
+import { resolveMcpSmmOAuthCallbackUrl } from '@/const/mcpEndpoints';
 import { EventosAutoAuth } from '@/features/EventosAutoAuth';
 import {
   disconnectSocialAccount,
   getSocialAccounts,
   initSocialConnect,
   type SMMSocialAccount,
-} from '@/services/api2/smm';
+} from '@/services/mcpApi/smm';
 import {
   createWhatsAppChannel,
   deleteWhatsAppChannel,
   getWhatsAppChannels,
   type WhatsAppChannel,
-} from '@/services/api2/whatsapp';
+} from '@/services/mcpApi/whatsapp';
 import { useChatStore } from '@/store/chat';
+import { getAuthToken } from '@/utils/authToken';
 import { useWhatsAppSession } from '../../messages/hooks/useWhatsAppSession';
 
 const { Title, Text, Paragraph } = Typography;
@@ -33,8 +35,8 @@ function QRModal({
   development: string;
   onClose: () => void;
 }) {
-  const sessionKey = channel?.id ?? development;
-  const { connectedAt, disconnectSession, error, loading, phoneNumber, qrCode, requestPairingCode, startSession, status } =
+  const sessionKey = channel?.sessionKey ?? channel?.id ?? development;
+  const { connectedAt, disconnectSession, error, loading, phoneNumber, qrCode, startAndRequestPairingCode, startSession, status } =
     useWhatsAppSession(sessionKey);
 
   const [mode, setMode] = useState<'qr' | 'code'>('qr');
@@ -42,6 +44,15 @@ function QRModal({
   const [pairingCode, setPairingCode] = useState<string | null>(null);
   const [pairingLoading, setPairingLoading] = useState(false);
   const [pairingError, setPairingError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (loading) return;
+    if (status !== 'connected') return;
+    const t = window.setTimeout(() => {
+      onClose();
+    }, 1200);
+    return () => window.clearTimeout(t);
+  }, [loading, onClose, status]);
 
   const handleRequestCode = async () => {
     const phone = pairingPhone.replaceAll(/\D/g, '');
@@ -51,12 +62,9 @@ function QRModal({
     }
     setPairingLoading(true);
     setPairingError(null);
+    setPairingCode(null);
     try {
-      // La sesión debe estar iniciada antes de pedir el código
-      if (status === 'disconnected' || status === 'error') {
-        await startSession();
-      }
-      const code = await requestPairingCode(phone);
+      const code = await startAndRequestPairingCode(phone);
       setPairingCode(code);
     } catch (err: any) {
       setPairingError(err?.message ?? 'Error solicitando código. Inténtalo de nuevo.');
@@ -70,7 +78,18 @@ function QRModal({
       footer={null}
       onCancel={onClose}
       open
-      title={channel ? `Conectar: ${channel.name}` : 'Conectar WhatsApp'}
+      title={
+        (() => {
+          if (!channel) return 'Conectar WhatsApp';
+          const n1 = channel.phoneNumber ? `+${channel.phoneNumber}` : null;
+          const n2 = !n1 && phoneNumber ? `+${phoneNumber}` : null;
+          const num = n1 || n2;
+          const base = channel.name;
+          if (!num) return `Conectar: ${base}`;
+          if (base.includes(num)) return `Conectar: ${base}`;
+          return `Conectar: ${base} · ${num}`;
+        })()
+      }
       width={440}
     >
       {loading && (
@@ -211,12 +230,10 @@ const TYPE_LABELS: Record<string, string> = {
 
 function ChannelCard({
   channel,
-  development: _development,
   onConnect,
   onDelete,
 }: {
   channel: WhatsAppChannel;
-  development: string;
   onConnect: () => void;
   onDelete: () => void;
 }) {
@@ -438,7 +455,9 @@ function WhatsAppDirectSession({ development }: { development: string }) {
 function IntegrationsPageInner() {
   const currentUserId = useChatStore((s) => s.currentUserId);
   const development = useChatStore((s) => s.development) || 'bodasdehoy';
-  const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
+  const hasValidJwt = !!getAuthToken();
+  const isAuthenticated = !!(hasValidJwt && currentUserId && currentUserId !== 'visitante@guest.local');
+  const hasUserButNoJwt = !!(!hasValidJwt && currentUserId && currentUserId !== 'visitante@guest.local');
 
   const [channels, setChannels] = useState<WhatsAppChannel[]>([]);
   const [loadingChannels, setLoadingChannels] = useState(true);
@@ -459,11 +478,33 @@ function IntegrationsPageInner() {
       setLoadingChannels(false);
       return;
     }
-    getWhatsAppChannels()
+    setLoadingChannels(true);
+    getWhatsAppChannels(development)
       .then(setChannels)
       .catch(() => setApiError(true))
       .finally(() => setLoadingChannels(false));
   }, [development, isAuthenticated]);
+
+  const refreshChannels = useCallback(() => {
+    if (!isAuthenticated) return;
+    getWhatsAppChannels(development)
+      .then(setChannels)
+      .catch(() => {});
+  }, [development, isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (!channels.some((c) => c.status === 'CONNECTING')) return;
+    const id = window.setInterval(() => {
+      getWhatsAppChannels(development).then(setChannels).catch(() => {});
+    }, 3000);
+    return () => window.clearInterval(id);
+  }, [channels, development, isAuthenticated]);
+
+  const handleCloseQr = useCallback(() => {
+    setQrTarget(undefined);
+    refreshChannels();
+  }, [refreshChannels]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -472,19 +513,19 @@ function IntegrationsPageInner() {
 
   const handleSmmConnect = async (platform: 'INSTAGRAM' | 'FACEBOOK') => {
     setConnectingPlatform(platform);
-    // The OAuth callback is handled by api2 directly — it completes token exchange
+    // The OAuth callback is handled by API MCP directly — it completes token exchange
     // and sends postMessage back to this window before closing the popup.
-    const API2_OAUTH_CALLBACK = 'https://api2.eventosorganizador.com/api/smm/oauth/callback';
+    const MCP_OAUTH_CALLBACK = resolveMcpSmmOAuthCallbackUrl();
 
     try {
-      const result = await initSocialConnect(platform, development, API2_OAUTH_CALLBACK);
+      const result = await initSocialConnect(platform, development, MCP_OAUTH_CALLBACK);
       if (!result?.authorization_url) {
         setSmmAlert({ message: 'No se pudo iniciar la conexión. Verifica las credenciales de la app Meta.', type: 'error' });
         setConnectingPlatform(null);
         return;
       }
 
-      // Open OAuth in a popup — api2 callback will postMessage the result back
+      // Open OAuth in a popup — MCP callback will postMessage the result back
       const popup = window.open(
         result.authorization_url,
         'smm_oauth',
@@ -492,11 +533,11 @@ function IntegrationsPageInner() {
       );
 
       const onMessage = (event: MessageEvent) => {
-        // api2 sends postMessage from any origin (*) — validate type
+        // MCP sends postMessage from any origin (*) — validate type
         if (!event.data || typeof event.data !== 'object') return;
         const { type, platform: plt, username } = event.data as {
-          type: string;
           platform?: string;
+          type: string;
           username?: string;
         };
 
@@ -553,6 +594,8 @@ function IntegrationsPageInner() {
   };
 
   const waConnectedCount = channels.filter((c) => c.status === 'ACTIVE').length;
+  const instagramAccount = socialAccounts.find((a) => a.platform === 'INSTAGRAM');
+  const facebookAccount = socialAccounts.find((a) => a.platform === 'FACEBOOK');
 
   return (
     <div style={{ margin: '0 auto', maxWidth: 768, padding: '24px 16px' }}>
@@ -583,6 +626,15 @@ function IntegrationsPageInner() {
           message="Inicia sesión para conectar tus canales."
           showIcon
           style={{ marginBottom: 24 }}
+          type="warning"
+        />
+      )}
+
+      {hasUserButNoJwt && (
+        <Alert
+          message="Sesión incompleta: hay usuario cargado pero falta el JWT. Vuelve a iniciar sesión para habilitar WhatsApp/SMM y evitar estados mezclados."
+          showIcon
+          style={{ marginBottom: 16 }}
           type="warning"
         />
       )}
@@ -642,30 +694,26 @@ function IntegrationsPageInner() {
           <SocialChannelCard
             channelId="instagram"
             connectLoading={connectingPlatform === 'INSTAGRAM'}
-            connectedAccount={socialAccounts.find((a) => a.platform === 'INSTAGRAM')}
+            connectedAccount={instagramAccount}
             description="DMs de Instagram Business"
             icon="📷"
             iconBg="linear-gradient(135deg, #f3e7ff, #ffe7f0)"
             name="Instagram"
             onConnect={isAuthenticated ? () => handleSmmConnect('INSTAGRAM') : undefined}
-            onDisconnect={socialAccounts.find((a) => a.platform === 'INSTAGRAM')
-              ? () => handleSmmDisconnect(socialAccounts.find((a) => a.platform === 'INSTAGRAM')!._id)
-              : undefined}
+            onDisconnect={instagramAccount ? () => handleSmmDisconnect(instagramAccount._id) : undefined}
           />
           <SocialChannelCard channelId="telegram" comingSoon description="Bot de Telegram" icon="✈️" iconBg="#e6f4ff" name="Telegram" />
           <SocialChannelCard channelId="email" comingSoon description="Gmail, Outlook o SMTP/IMAP" icon="📧" iconBg="#f9f0ff" name="Email" />
           <SocialChannelCard
             channelId="facebook"
             connectLoading={connectingPlatform === 'FACEBOOK'}
-            connectedAccount={socialAccounts.find((a) => a.platform === 'FACEBOOK')}
+            connectedAccount={facebookAccount}
             description="Messenger de tu página FB"
             icon="📘"
             iconBg="#e6f4ff"
             name="Facebook"
             onConnect={isAuthenticated ? () => handleSmmConnect('FACEBOOK') : undefined}
-            onDisconnect={socialAccounts.find((a) => a.platform === 'FACEBOOK')
-              ? () => handleSmmDisconnect(socialAccounts.find((a) => a.platform === 'FACEBOOK')!._id)
-              : undefined}
+            onDisconnect={facebookAccount ? () => handleSmmDisconnect(facebookAccount._id) : undefined}
           />
           <SocialChannelCard channelId="web" description="Widget embebible en tu web" icon="🌐" iconBg="#fff7e6" name="Chat Web" />
         </div>
@@ -716,7 +764,6 @@ function IntegrationsPageInner() {
               {channels.map((ch) => (
                 <ChannelCard
                   channel={ch}
-                  development={development}
                   key={ch.id}
                   onConnect={() => setQrTarget(ch)}
                   onDelete={() => !deleting && handleDelete(ch.id)}
@@ -728,7 +775,7 @@ function IntegrationsPageInner() {
       )}
 
       {qrTarget !== undefined && (
-        <QRModal channel={qrTarget} development={development} onClose={() => setQrTarget(undefined)} />
+        <QRModal channel={qrTarget} development={development} onClose={handleCloseQr} />
       )}
 
       {showCreateModal && (

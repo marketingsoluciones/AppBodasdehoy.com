@@ -6,7 +6,7 @@ import { Brain, Image, Mail, MessageSquare, TrendingDown, TrendingUp } from 'luc
 import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import { UsageStats } from '@/services/api2/invoices';
+import { UsageStats } from '@/services/mcpApi/invoices';
 
 const useStyles = createStyles(({ css, token }) => ({
   card: css`

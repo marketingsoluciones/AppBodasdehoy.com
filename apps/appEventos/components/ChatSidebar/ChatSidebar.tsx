@@ -15,7 +15,6 @@ import { AuthContextProvider, EventContextProvider } from '../../context';
 import CopilotIframe from '../Copilot/CopilotIframe';
 import { getCopilotBaseUrl } from '../Copilot/getCopilotBaseUrl';
 import { IoClose, IoSparkles, IoExpand, IoChevronDown, IoOpenOutline } from 'react-icons/io5';
-import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
 
 const MIN_WIDTH = 360;
 /** Por debajo de este ancho el Copilot se muestra como overlay (no comprime el contenido) */
@@ -57,10 +56,7 @@ const ChatSidebarInner: FC<ChatSidebarInnerProps> = ({ user, config, event }) =>
   // El AuthContext crea automáticamente un usuario guest si no hay sesión
   const isGuest = !user || user?.displayName === 'guest' || !user?.email;
   const userId = user?.email || user?.uid || guestSessionId;
-  const development =
-    config?.development ||
-    (typeof window !== 'undefined' ? getDevelopmentNameFromHostname(window.location.hostname) : undefined) ||
-    'bodasdehoy';
+  const development = config?.development || 'bodasdehoy';
   const eventId = event?._id;
 
   // Referencias para resize

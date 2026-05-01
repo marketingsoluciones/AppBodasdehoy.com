@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { fetchApiEventosServer } from '../../../utils/Fetching';
+import { resolveApiAppBaseUrl } from '@bodasdehoy/shared/utils';
 
 const QUERY = `
   query ($var_1: String) {
@@ -23,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       eventName = ev.nombre ?? eventName;
       eventType = ev.tipo ?? eventType;
       if (ev.imgEvento?.i800) {
-        iconUrl = `https://apiapp.bodasdehoy.com/${ev.imgEvento.i800}`;
+        iconUrl = `${resolveApiAppBaseUrl()}/${ev.imgEvento.i800}`;
       }
     }
   } catch { /* usa defaults */ }

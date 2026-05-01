@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { BRANDING_NAME } from '@/const/branding';
+import { resolveServerMcpGraphqlUrl } from '@/const/mcpEndpoints';
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 
 const SERVER_UA = `${BRANDING_NAME.replaceAll(/\s+/g, '')}-Server/1.0`;
 
@@ -36,10 +38,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const PYTHON_BACKEND_URL =
-      process.env.PYTHON_BACKEND_URL ||
-      process.env.NEXT_PUBLIC_BACKEND_URL ||
-      'https://api-ia.bodasdehoy.com';
+    const PYTHON_BACKEND_URL = resolveServerBackendOrigin();
 
     const response = await fetch(`${PYTHON_BACKEND_URL}/api/auth/login-with-jwt`, {
       body: JSON.stringify({
@@ -113,18 +112,7 @@ type GraphQLJson = {
   errors?: Array<{ message?: string } | string>;
 };
 
-const resolveGraphqlUrls = (): string[] => {
-  const urls = [
-    process.env.GRAPHQL_ENDPOINT,
-    process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/graphql` : undefined,
-    process.env.API2_GRAPHQL_URL,
-    'https://api2.eventosorganizador.com/graphql',
-  ];
-
-  const sanitized = urls.filter((url): url is string => typeof url === 'string' && url.length > 0);
-
-  return Array.from(new Set<string>(sanitized));
-};
+const resolveGraphqlUrls = (): string[] => [resolveServerMcpGraphqlUrl()];
 
 const extractGraphqlErrorMessage = (payload?: GraphQLJson | null): string | undefined => {
   if (!payload?.errors || !Array.isArray(payload.errors)) return undefined;

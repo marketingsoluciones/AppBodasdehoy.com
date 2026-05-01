@@ -10,6 +10,7 @@ import { Modal } from './Modal'
 import { useTranslation } from 'react-i18next'
 import { PermissionIndicator } from '../Servicios/Utils/PermissionIndicator'
 import ClickAwayListener from 'react-click-away-listener'
+import { resolveApiAppBaseUrl } from '@bodasdehoy/shared/utils';
 
 
 export const BlockTitle = ({ title }) => {
@@ -27,7 +28,7 @@ export const BlockTitle = ({ title }) => {
   return (
     <div className={`w-full h-14 bg-white rounded-xl shadow-lg ${forCms ? "hidden" : "flex"} items-center justify-between max-w-screen-lg mx-auto`}>
       <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={event} />
-      <div className='flex md:flex-1 flex-col px-2 md:px-6 font-display'>
+      <div className='flex flex-1 min-w-0 flex-col px-2 md:px-6 font-display'>
         <div className="flex items-center space-x-2">
           <span className="text-gray-500 text-[18px] leading-[20px] font-bold">{t(title)}</span>
           <PermissionIndicator />
@@ -37,9 +38,9 @@ export const BlockTitle = ({ title }) => {
           <span className='md:hidden capitalize text-gray-600 text-[12px] leading-[20px] font-medium'>{event?.nombre}</span>
         </div>
       </div>
-      <div className='flex-1 md:flex-none h-[100%] flex flex-row-reverse md:flex-row items-center gap-2 pr-2'>
+      <div className='flex h-[100%] flex-none items-center gap-2 pr-2'>
         <img
-          src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i320}` : defaultImagenes[event?.tipo?.toLowerCase()]}
+          src={event?.imgEvento ? `${resolveApiAppBaseUrl()}/${event.imgEvento.i320}` : defaultImagenes[event?.tipo?.toLowerCase()]}
           className="h-[90%] object-cover object-top rounded-md border-1 border-gray-600 hidden md:block shrink-0"
           alt={event?.nombre}
           onError={(e) => { e.target.src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}

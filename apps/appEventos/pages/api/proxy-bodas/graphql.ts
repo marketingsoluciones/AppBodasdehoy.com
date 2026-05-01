@@ -1,13 +1,22 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
+import { IncomingMessage } from 'http';
 
-import { resolveApiBodasOrigin } from '../../../utils/api3Endpoints';
+import { resolveApiBodasOrigin } from '../../../utils/apiEndpoints';
+
+function readBody(req: IncomingMessage): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on('data', (chunk: Buffer) => chunks.push(chunk));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Solo permitir POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -16,12 +25,13 @@ export default async function handler(
     const primaryBaseURL = resolveApiBodasOrigin();
     const fallbackBaseURL = process.env.API_BODAS_URL_FALLBACK;
 
-    // Extraer headers necesarios del request original
+    const contentType = req.headers['content-type'] || '';
+    const isMultipart = contentType.includes('multipart/form-data');
+
     const headers: any = {
-      'Content-Type': req.headers['content-type'] || 'application/json',
+      'Content-Type': contentType || 'application/json',
     };
 
-    // Pasar Authorization: header directo o cookie idTokenV0.1.0 como fallback
     if (req.headers.authorization) {
       headers.Authorization = req.headers.authorization;
     } else if (req.cookies?.['idTokenV0.1.0']) {
@@ -30,12 +40,10 @@ export default async function handler(
       headers.Authorization = `Bearer ${req.cookies.sessionBodas}`;
     }
 
-    // Pasar Development si existe
     if (req.headers.development) {
       headers.Development = req.headers.development;
     }
 
-    // Pasar IsProduction si existe
     if (req.headers.isproduction) {
       headers.IsProduction = req.headers.isproduction;
     }
@@ -45,16 +53,26 @@ export default async function handler(
       hasAuth: !!headers.Authorization,
       hasDevelopment: !!headers.Development,
       hasIsProduction: !!headers.IsProduction,
-      contentType: headers['Content-Type']
+      contentType: headers['Content-Type'],
     });
-    console.log('[API Proxy Bodas] Query:', req.body?.query?.substring(0, 200));
+
+    let body: any;
+    if (isMultipart) {
+      body = await readBody(req);
+      console.log('[API Proxy Bodas] Multipart upload');
+    } else {
+      const rawBody = await readBody(req);
+      body = rawBody.length > 0 ? JSON.parse(rawBody.toString()) : {};
+      console.log('[API Proxy Bodas] Query:', body?.query?.substring(0, 200));
+    }
 
     const doRequest = (baseURL: string) => axios.post(
       `${baseURL}/graphql`,
-      req.body,
+      body,
       {
         headers,
-        timeout: 30000 // 30 segundos
+        timeout: 30000,
+        ...(isMultipart ? { maxContentLength: Infinity, maxBodyLength: Infinity } : {}),
       }
     );
 
@@ -71,7 +89,6 @@ export default async function handler(
       }
     }
 
-    // Devolver la respuesta
     return res.status(response.status).json(response.data);
 
   } catch (error: any) {
@@ -82,10 +99,8 @@ export default async function handler(
     }, null, 2));
 
     if (error?.response) {
-      // Error de la API backend
       return res.status(error.response.status).json(error.response.data);
     } else {
-      // Error de red o timeout
       return res.status(503).json({
         error: 'Proxy error',
         message: error?.message
@@ -93,3 +108,9 @@ export default async function handler(
     }
   }
 }
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};

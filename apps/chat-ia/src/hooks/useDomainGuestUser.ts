@@ -13,6 +13,7 @@ import { useUserStore } from '@/store/user';
  */
 export function useDomainGuestUser(): boolean {
   const fromChat = useChatStore((s) => externalChatSelectors.isDomainGuestUser(s));
+  const isSignedIn = useUserStore((s) => s.isSignedIn);
   const { fullName, username } = useUserStore(
     (s) => ({
       fullName: s.user?.fullName,
@@ -21,6 +22,19 @@ export function useDomainGuestUser(): boolean {
     shallow,
   );
   const lobeName = (username || fullName || '').toLowerCase().trim();
-  if (lobeName === 'guest') return true;
+  const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
+  if (isServerMode && !isSignedIn) return true;
+  if (
+    lobeName === 'guest' ||
+    lobeName === 'anonymous' ||
+    lobeName === 'visitante' ||
+    lobeName.startsWith('visitante ') ||
+    lobeName.startsWith('visitante·') ||
+    lobeName.startsWith('visitante ·') ||
+    lobeName === 'visitor' ||
+    lobeName.startsWith('visitor ')
+  ) {
+    return true;
+  }
   return fromChat;
 }

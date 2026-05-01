@@ -1,5 +1,5 @@
 import { Form, Formik, FormikValues, useFormikContext } from "formik";
-import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, fetchApiEventos, getApiErrorMessage, queries } from "../../utils/Fetching";
 import { AuthContextProvider, EventsGroupContextProvider, EventContextProvider } from "../../context";
 import InputField from "./InputField";
 import SelectField from "./SelectField";
@@ -8,11 +8,13 @@ import * as yup from "yup";
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useTranslation } from 'react-i18next';
+import { normalizeInvitados, normalizeMenus } from '../../utils/mcpSchemaAdapter';
 import { Event, image } from "../../utils/Interfaces";
 import ModuloSubida, { subir_archivo } from "../Invitaciones/ModuloSubida";
 import { defaultImagenes } from "../Home/Card";
 import SelectWithSearchField from "./SelectWithSearchField";
 import { useDateTime } from "../../hooks/useDateTime";
+import { getAuth } from "firebase/auth";
 
 interface propsFromCrearEvento {
   state: boolean
@@ -79,8 +81,8 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       timeZone: "",
       pais: "",
       poblacion: "",
-      usuario_id: user?.uid,
-      usuario_nombre: user?.displayName,
+      usuario_id: user?.uid || "",
+      usuario_nombre: user?.displayName || user?.email || "",
       imgEvento: undefined
     }
 
@@ -102,12 +104,34 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
         }
       }
 
-      
+      const usuario_id =
+        (typeof getAuth().currentUser?.uid === "string" && getAuth().currentUser.uid.length ? getAuth().currentUser.uid : null) ||
+        (typeof user?.uid === "string" && user.uid.length ? user.uid : null) ||
+        (typeof (values as any)?.usuario_id === "string" && (values as any).usuario_id.length ? (values as any).usuario_id : null)
+      const usuario_nombre =
+        ((typeof getAuth().currentUser?.displayName === "string" && getAuth().currentUser.displayName.length ? getAuth().currentUser.displayName : null) ||
+          (typeof getAuth().currentUser?.email === "string" && getAuth().currentUser.email.length ? getAuth().currentUser.email : null)) ||
+        (typeof user?.displayName === "string" && user.displayName.length ? user.displayName : null) ||
+        (typeof user?.email === "string" && user.email.length ? user.email : null) ||
+        (typeof (values as any)?.usuario_nombre === "string" && (values as any).usuario_nombre.length ? (values as any).usuario_nombre : null)
+
+      if (!usuario_id || !usuario_nombre) {
+        throw new Error("Falta información de usuario (uid/nombre). Refresca la página e inténtalo de nuevo.")
+      }
+
       const event: Partial<Event> = await fetchApiEventos({
         query: queries.eventCreate,
-        variables: { ...values, fecha: fechaTimestamp, development: config?.development },
+        variables: {
+          ...values,
+          usuario_id,
+          usuario_nombre,
+          fecha: fechaTimestamp,
+          development: config?.development
+        },
       });
       if (event) {
+        event.invitados_array = normalizeInvitados((event as any).invitados)
+        event.menus_array = normalizeMenus((event as any).menus)
         const imgEvento = await subir_archivo({ imagePreviewUrl, event, use: "imgEvento" })
         const eventWithImg = { ...event, imgEvento }
         setEventsGroup({ type: "ADD_EVENT", payload: eventWithImg });
@@ -122,7 +146,6 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
         fetchApiBodas({
           query: queries.updateUser,
           variables: {
-            uid: user?.uid,
             variable: "eventSelected",
             valor: event?._id
           },
@@ -133,7 +156,11 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       }
       toast("success", t("successfullycreatedevent"));
     } catch (error) {
-      toast("error", t("Ha ocurrido un error al crear el evento"));
+      const msg =
+        getApiErrorMessage(error) ||
+        (typeof error?.message === "string" && error.message.length ? error.message : null) ||
+        t("Ha ocurrido un error al crear el evento")
+      toast("error", msg);
     } finally {
       set(!state);
       setValir(true)
@@ -186,7 +213,11 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
         toast("success", t("Evento actualizado con exito"))
       }
     } catch (error) {
-      toast("error", t("Ha ocurrido un error al modificar el evento"));
+      const msg =
+        getApiErrorMessage(error) ||
+        (typeof error?.message === "string" && error.message.length ? error.message : null) ||
+        t("Ha ocurrido un error al modificar el evento")
+      toast("error", msg);
     } finally {
       set(!state);
     }
@@ -200,7 +231,25 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       if (user?.displayName === "guest" && eventsGroup?.length === 0) {
         const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest))
         const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
-        Cookies.set(config?.cookieGuest, JSON.stringify({ ...cookieContent, eventCreated: true }), { domain: `${config?.domain}`, expires: dateExpire })
+        const isLocal =
+          typeof window !== "undefined" &&
+          (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+        const rawDomain = typeof config?.domain === "string" ? config.domain : ""
+        const cookieDomain =
+          rawDomain && !rawDomain.startsWith(".")
+            ? `.${rawDomain.replace(/^https?:\/\//, "").split("/")[0]}`
+            : rawDomain || undefined
+        Cookies.set(
+          config?.cookieGuest,
+          JSON.stringify({ ...cookieContent, eventCreated: true }),
+          {
+            domain: isLocal ? undefined : cookieDomain,
+            expires: dateExpire,
+            path: "/",
+            secure: typeof window !== "undefined" && window.location.protocol === "https:",
+            sameSite: "lax",
+          }
+        )
       }
     }
   };
@@ -221,6 +270,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       initialValues={initialValues}
       onSubmit={handleSubmit}
       validationSchema={validationSchema}
+      enableReinitialize
     >
       {({ isSubmitting, values }) => {
         return (

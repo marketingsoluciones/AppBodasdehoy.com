@@ -23,7 +23,7 @@ function getUserContext(): { development?: string; role?: string, userId?: strin
 /**
  * Headers completos para llamadas al proxy /api/messages.
  * Incluye Authorization + X-Development + X-User-ID + X-Role
- * para que api-ia y api2 puedan aplicar visibilidad por perfil.
+ * para que api-ia y MCP puedan aplicar visibilidad por perfil.
  */
 export function buildHeaders(): Record<string, string> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };

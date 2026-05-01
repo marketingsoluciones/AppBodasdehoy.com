@@ -22,6 +22,7 @@ const useStyles = createStyles(({ css }) => ({
   messages: css`
     overflow-y: auto;
     flex: 1;
+    min-height: 0;
   `,
 }));
 
@@ -151,4 +152,3 @@ const ExternalConversationView = memo(() => {
 ExternalConversationView.displayName = 'ExternalConversationView';
 
 export default ExternalConversationView;
-

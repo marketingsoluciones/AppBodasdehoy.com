@@ -10,7 +10,7 @@ import { RouteVariants } from '@/utils/server/routeVariants';
 const isDev = process.env.NODE_ENV === 'development';
 
 // ✅ OPTIMIZACIÓN: Timeout máximo para metadata (no debe bloquear SSR)
-const METADATA_TIMEOUT = 800; // 800ms máximo
+const METADATA_TIMEOUT = 200;
 
 export const generateMetadata = async (props: DynamicLayoutProps) => {
   try {

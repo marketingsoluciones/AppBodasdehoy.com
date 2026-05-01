@@ -468,7 +468,7 @@ export class EventosAPIClient {
     device?: string,
     fingerprint?: string
   ) {
-    const { loginWithFirebase: firebaseLogin } = await import('@/services/api2/auth');
+    const { loginWithFirebase: firebaseLogin } = await import('@/services/mcpApi/auth');
 
     const result = await firebaseLogin({
       development: developer,

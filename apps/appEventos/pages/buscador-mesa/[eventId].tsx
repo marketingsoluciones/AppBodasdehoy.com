@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { fetchApiEventosServer } from '../../utils/Fetching';
 import { developmentFromRequestHost } from '../../utils/ssrDevelopment';
 import { MdOutlineQrCode2 } from 'react-icons/md';
+import { resolveApiAppBaseUrl } from '@bodasdehoy/shared/utils';
 
 const SEATING_QUERY = `
   query ($var_1: String) {
@@ -12,10 +13,10 @@ const SEATING_QUERY = `
       nombre
       tipo
       imgEvento { i800 }
-      invitados_array {
-        _id
+      invitados {
+        id
         nombre
-        nombre_mesa
+        mesa
         puesto
         asistencia
       }
@@ -90,7 +91,7 @@ const BuscadorMesa: NextPage<Props> = ({ eventId, eventName, eventType, eventImg
         <meta name="description" content={`Busca tu mesa para ${eventName}`} />
         <meta property="og:title" content={`${eventName} — ¿En qué mesa estoy?`} />
         <meta property="og:description" content={`Busca tu nombre y descubre en qué mesa estás en ${eventName}`} />
-        {eventImg && <meta property="og:image" content={`https://apiapp.bodasdehoy.com/${eventImg}`} />}
+        {eventImg && <meta property="og:image" content={`${resolveApiAppBaseUrl()}/${eventImg}`} />}
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
@@ -99,7 +100,7 @@ const BuscadorMesa: NextPage<Props> = ({ eventId, eventName, eventType, eventImg
         <div className="flex flex-col items-center mb-8 text-center">
           {eventImg && (
             <img
-              src={`https://apiapp.bodasdehoy.com/${eventImg}`}
+              src={`${resolveApiAppBaseUrl()}/${eventImg}`}
               alt={eventName}
               className="w-20 h-20 rounded-full object-cover object-top border-2 border-rose-200 mb-4 shadow-sm"
             />
@@ -242,12 +243,12 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req }) =>
       return { props: { eventId, eventName: '', eventType: '', eventImg: null, guests: [], error: 'not_found' } };
     }
 
-    const guests: SeatGuest[] = (evento.invitados_array || [])
-      .filter((g: any) => g.nombre_mesa && g.asistencia !== 'cancelado')
+    const guests: SeatGuest[] = (evento.invitados || [])
+      .filter((g: any) => g.mesa && g.asistencia !== 'cancelado')
       .map((g: any) => ({
-        _id: g._id,
+        _id: g.id || '',
         nombre: g.nombre || '',
-        nombre_mesa: g.nombre_mesa || '',
+        nombre_mesa: g.mesa || '',
         puesto: g.puesto || null,
       }));
 

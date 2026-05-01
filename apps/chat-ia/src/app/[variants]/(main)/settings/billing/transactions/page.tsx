@@ -18,7 +18,7 @@ import {
 } from 'recharts';
 
 import { useWallet } from '@/hooks/useWallet';
-import { WalletTransaction } from '@/services/api2/wallet';
+import { WalletTransaction } from '@/services/mcpApi/wallet';
 import { useChatStore } from '@/store/chat';
 
 // ─── Styles ──────────────────────────────────────────────────────────────────

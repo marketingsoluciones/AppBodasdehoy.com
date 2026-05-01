@@ -16,7 +16,7 @@ interface propsBlockPlatillas {
 
 const BlockPlantillas: FC<propsBlockPlatillas> = () => {
   const { t } = useTranslation();
-  const { user } = AuthContextProvider()
+  const { user, config } = AuthContextProvider()
   const { event, setEvent, planSpaceActive } = EventContextProvider()
   const { psTemplates } = EventsGroupContextProvider()
   const handleClick = async (item: planSpace) => {
@@ -24,7 +24,7 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
     try {
       const result = await fetchApiEventos({
         query: queries.getPsTemplate,
-        variables: { uid: user.uid }
+        variables: { evento_id: event?._id, development: config?.development || "bodasdehoy" }
       })
       // If result contains templates, find the selected one and apply
       const templates = Array.isArray(result) ? result : result?.psTemplates || []

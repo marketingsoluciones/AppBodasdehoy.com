@@ -60,7 +60,7 @@ Si en **API2** la config del whitelabel (bodasdehoy) tiene mal la API key de Ant
 
 ## 4. Próximos pasos (consultar / reiniciar)
 
-En api2 y api-ia **solo consultar o reiniciar**, no modificar código. Ver [API2-API-IA-SOLO-CONSULTAR-O-REINICIAR.md](./API2-API-IA-SOLO-CONSULTAR-O-REINICIAR.md).
+En MCP e IA **solo consultar o reiniciar**, no modificar código. Ver [MCP-IA-SOLO-CONSULTAR-O-REINICIAR.md](./MCP-IA-SOLO-CONSULTAR-O-REINICIAR.md).
 
 - **Desde tu terminal (SSH):** `ssh backend-ia-v2` y revisar: `pgrep -fl cloudflared`, escucha en 8080/3210, logs de túnel o api-ia. (En backend-ia-v2 no hay cloudflared ni 8080/3210; ver [ESTADO-SERVIDOR-BACKEND-IA-V2.md](./ESTADO-SERVIDOR-BACKEND-IA-V2.md).)
 - **En esta máquina:** Si 8080/3210 están activos pero app-test y chat-test no cargan, **arrancar el túnel:** `cloudflared tunnel run` (config en `~/.cloudflared/config.yml`).

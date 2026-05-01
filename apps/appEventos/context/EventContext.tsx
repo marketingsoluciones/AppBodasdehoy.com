@@ -118,7 +118,7 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
                 query: queries.eventUpdate,
                 variables: { idEvento: eventSelected?._id, variable: "timeZone", value: defaultTimeZone },
                 token: null
-              })
+              }).catch(() => {})
             }
             setEvent({ ...eventSelected });
             if (typeof window !== 'undefined') localStorage.setItem('appEventos_activeEventId', eventSelected._id)
@@ -132,7 +132,7 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
               query: queries.eventUpdate,
               variables: { idEvento: eventSelected?._id, variable: "timeZone", value: defaultTimeZone },
               token: null
-            })
+            }).catch(() => {})
           }
           setEvent({ ...eventSelected });
           if (typeof window !== 'undefined') localStorage.setItem('appEventos_activeEventId', eventSelected._id)

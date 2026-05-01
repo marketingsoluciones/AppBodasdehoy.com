@@ -1,7 +1,7 @@
 'use client';
 
 import { Alert, Button, Input, Segmented, Space, Spin, Typography } from 'antd';
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 
 import { useWhatsAppSession } from '../hooks/useWhatsAppSession';
 
@@ -38,7 +38,7 @@ export function WhatsAppSetup({ development }: WhatsAppSetupProps) {
     setPairingError(null);
     setPairingCode(null);
     try {
-      // Usar el método atómico: desconecta, inicia y pide código antes de que api2 genere QR
+      // Usar el método atómico: desconecta, inicia y pide código antes de que MCP genere QR
       const code = await startAndRequestPairingCode(phone.trim());
       setPairingCode(code);
     } catch (err: any) {
@@ -48,7 +48,7 @@ export function WhatsAppSetup({ development }: WhatsAppSetupProps) {
     }
   };
 
-  const CENTER: React.CSSProperties = {
+  const CENTER: CSSProperties = {
     alignItems: 'center',
     display: 'flex',
     height: '100%',

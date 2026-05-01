@@ -4,6 +4,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { AuthContextProvider } from '../context';
+import { resolveApiBodasGraphqlUrl } from '../utils/apiEndpoints';
 import {
   canAccess,
   humanizeQuota,
@@ -61,7 +62,7 @@ export interface UsePlanLimitsReturn {
 // API2 GraphQL
 // ========================================
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+const MCP_GRAPHQL_URL = resolveApiBodasGraphqlUrl();
 
 async function graphqlQuery<T>(query: string, variables?: Record<string, unknown>, token?: string | null, development?: string): Promise<T> {
   const headers: Record<string, string> = {
@@ -70,7 +71,7 @@ async function graphqlQuery<T>(query: string, variables?: Record<string, unknown
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(API2_URL, {
+  const res = await fetch(MCP_GRAPHQL_URL, {
     method: 'POST',
     headers,
     body: JSON.stringify({ query, variables }),

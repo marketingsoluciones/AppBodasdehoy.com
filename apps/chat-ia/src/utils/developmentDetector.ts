@@ -15,6 +15,7 @@
 import React from 'react';
 
 import { developments } from '@bodasdehoy/shared/types';
+import { resolvePublicMcpGraphqlUrl } from '@/const/mcpEndpoints';
 
 export interface DevelopmentConfig {
   api: {
@@ -32,6 +33,7 @@ export interface DevelopmentConfig {
   development: string;
   domain: string;
   name: string;
+  shortName: string;
 }
 
 // ── Overrides de colores para tenants que tenían config custom ────────────────
@@ -62,7 +64,7 @@ const COLOR_OVERRIDES: Record<string, DevelopmentConfig['colors']> = {
 // ── DEVELOPMENTS_CONFIG generado desde shared (11 tenants) ───────────────────
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
-const GRAPHQL_ENDPOINT = 'https://api2.eventosorganizador.com/graphql';
+const GRAPHQL_ENDPOINT = resolvePublicMcpGraphqlUrl();
 
 export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = Object.fromEntries(
   developments.map((d) => {
@@ -82,6 +84,7 @@ export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = Object.fro
         development: d.development,
         domain: `https://${rootDomain}`,
         name: d.headTitle || d.name,
+        shortName: d.name,
       },
     ];
   }),
@@ -136,9 +139,9 @@ export function detectDevelopmentFromURL(): string | null {
     // Match directo
     if (DEVELOPMENTS_CONFIG[queryDeveloper]) return queryDeveloper;
     // Normalizado (backward compat: champagneevents → champagne-events)
-    const normalized = queryDeveloper.toLowerCase().replace(/-/g, '');
+    const normalized = queryDeveloper.toLowerCase().replaceAll('-', '');
     const found = Object.keys(DEVELOPMENTS_CONFIG).find(
-      (k) => k.replace(/-/g, '') === normalized,
+      (k) => k.replaceAll('-', '') === normalized,
     );
     if (found) return found;
   }
@@ -208,6 +211,20 @@ export function getDeveloperDisplayName(developerKey: string): string {
     developerKey.charAt(0).toUpperCase() +
     developerKey.slice(1).replaceAll(/[_-]/g, ' ')
   );
+}
+
+/** Nombre corto de marca para UI compacta (avatar, badges) */
+export function getDeveloperShortName(developerKey: string): string {
+  const k = (developerKey || 'bodasdehoy').toLowerCase();
+  const cfg = DEVELOPMENTS_CONFIG[k];
+  if (k === 'bodasdehoy') return 'Bodas de Hoy';
+  if (k === 'eventosorganizador') return 'Eventos Organizador';
+
+  const raw = cfg?.shortName?.trim();
+  const isSlugLike = !!raw && raw.toLowerCase() === k;
+  if (raw && !isSlugLike) return raw;
+
+  return getDeveloperDisplayName(developerKey);
 }
 
 /**

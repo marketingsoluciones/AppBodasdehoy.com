@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { TaskCard } from '@bodasdehoy/shared/components';
-import { completeTask } from '@/services/api2/tasks';
+import { completeTask } from '@/services/mcpApi/tasks';
 import { useChatStore } from '@/store/chat';
 import { useEventData } from '../hooks/useEventData';
 import type { Tarea, Itinerario } from '../hooks/useEventData';

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, SocketContextProvider, } from "../../context"
 import { useRouter } from "next/navigation";
 import { handleClickCard } from "../Home/Card";
@@ -18,7 +18,7 @@ export const SocketControlator = () => {
   const [reconet, setReconet] = useState(null)
   const [received, setReceived] = useState({ channel: "", msg: null, d: null })
   const router = useRouter()
-  let senderPlanSpaceActive = false
+  const senderPlanSpaceActiveRef = useRef(false)
   const [countEvent, setCountEvent] = useState(0)
   const [countPlanSpaceActive, setCountPlanSpaceActive] = useState(0)
 
@@ -276,23 +276,30 @@ export const SocketControlator = () => {
   useEffect(() => {
     if (!socket) return
     if (!event?._id) return
-    socket.emit(`app:message`, {
-      event: null,
-      emit: user?.uid,
-      receiver: null,
-      type: "joinRoom",
-      payload: {
-        action: "add",
-        value: event?._id
-      }
-    })
-    // }
+    const emitJoinRoom = () => {
+      socket.emit(`app:message`, {
+        event: null,
+        emit: user?.uid,
+        receiver: null,
+        type: "joinRoom",
+        payload: {
+          action: "add",
+          value: event?._id
+        }
+      })
+    }
+    if (socket.connected) {
+      emitJoinRoom()
+    } else {
+      socket.once("connect", emitJoinRoom)
+      return () => { socket.off("connect", emitJoinRoom) }
+    }
   }, [event?._id, reconet])
 
   useEffect(() => {
     if (!valirRemotePlanSpaceActive) {
       // console.log(100010, "EMIT planSpaceActive")
-      senderPlanSpaceActive = true
+      senderPlanSpaceActiveRef.current = true
       socket?.emit(`app:message`, {
         event: event?._id,
         emit: user?.uid,
@@ -311,7 +318,7 @@ export const SocketControlator = () => {
   }, [planSpaceActive])
 
   useEffect(() => {
-    if (!valirRemoteEvent && !valirRemotePlanSpaceActive && !senderPlanSpaceActive) {
+    if (!valirRemoteEvent && !valirRemotePlanSpaceActive && !senderPlanSpaceActiveRef.current) {
       // console.log(100010, "EMIT event")
       socket?.emit(`app:message`, {
         event: event?._id,
@@ -324,8 +331,8 @@ export const SocketControlator = () => {
         }
       })
     } else {
-      if (senderPlanSpaceActive) {
-        senderPlanSpaceActive = false
+      if (senderPlanSpaceActiveRef.current) {
+        senderPlanSpaceActiveRef.current = false
       }
       setValirRemoteEvent(false)
       setValirRemotePlanSpaceActive(false)

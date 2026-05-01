@@ -25,8 +25,8 @@ import dayjs from 'dayjs';
 
 import { useBilling } from '@/hooks/useBilling';
 import { useWallet } from '@/hooks/useWallet';
-import { INVOICE_STATUS_LABELS } from '@/services/api2/invoices';
-import { walletService, SERVICE_SKUS, StoredPaymentMethod } from '@/services/api2/wallet';
+import { INVOICE_STATUS_LABELS } from '@/services/mcpApi/invoices';
+import { walletService, SERVICE_SKUS, StoredPaymentMethod } from '@/services/mcpApi/wallet';
 import { useChatStore } from '@/store/chat';
 import { useUserStore } from '@/store/user';
 import { userProfileSelectors } from '@/store/user/selectors';

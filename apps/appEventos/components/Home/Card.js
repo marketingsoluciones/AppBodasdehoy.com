@@ -15,6 +15,7 @@ import FormCrearEvento from "../Forms/FormCrearEvento";
 import { useAllowed } from "../../hooks/useAllowed"
 import { useDelayUnmount } from "../../utils/Funciones";
 import { useDateTime } from "../../hooks/useDateTime";
+import { resolveApiAppBaseUrl } from '@bodasdehoy/shared/utils';
 
 export const defaultImagenes = {
   boda: "/cards/boda.webp",
@@ -40,7 +41,6 @@ export const handleClickCard = async ({ t, final = true, data, user, setUser, co
         await fetchApiBodas({
           query: queries.updateUser,
           variables: {
-            uid: user.uid,
             variable: "eventSelected",
             valor: data._id
           },
@@ -124,6 +124,7 @@ const Card = ({ data, grupoStatus, idx }) => {
   const { eventsGroup, setEventsGroup } = EventsGroupContextProvider();
   const { event, setEvent, idxGroupEvent, setIdxGroupEvent } = EventContextProvider();
   const router = useRouter();
+  const apiAppBaseUrl = resolveApiAppBaseUrl();
   const [openModal, setOpenModal] = useState(false)
   const [isAllowed, ht] = useAllowed()
   const [isMounted, setIsMounted] = useState(false);
@@ -317,7 +318,7 @@ const Card = ({ data, grupoStatus, idx }) => {
             })
         }} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden ${isNavigating ? 'opacity-70' : ''}`}>
           <img
-            src={data[idx]?.imgEvento ? `https://apiapp.bodasdehoy.com/${data[idx].imgEvento.i320}` : defaultImagenes[data[idx]?.tipo?.toLowerCase()]}
+            src={data[idx]?.imgEvento ? `${apiAppBaseUrl}/${data[idx].imgEvento.i320}` : defaultImagenes[data[idx]?.tipo?.toLowerCase()]}
             className="object-cover w-full h-full absolute top-0 left-0 object-top"
             onError={(e) => { e.target.src = defaultImagenes[data[idx]?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
           />

@@ -11,7 +11,7 @@
 
 set -euo pipefail
 
-BASE="${BASE:-${NEXT_PUBLIC_BACKEND_URL:-${PYTHON_BACKEND_URL:-https://api-ia.bodasdehoy.com}}}"
+BASE="${BASE:-${API_IA_URL:-${NEXT_PUBLIC_API_IA_URL:-${NEXT_PUBLIC_BACKEND_URL:-${PYTHON_BACKEND_URL:-https://api3-ia.eventosorganizador.com}}}}}"
 BASE="${BASE%/}"
 
 echo "================================================"

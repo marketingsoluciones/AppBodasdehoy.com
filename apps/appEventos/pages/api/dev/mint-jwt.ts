@@ -8,9 +8,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import crypto from 'crypto';
 
-const API2_JWT_SECRET = process.env.API2_JWT_SECRET;
-if (!API2_JWT_SECRET) {
-  console.warn('[mint-jwt] API2_JWT_SECRET no configurado — endpoint deshabilitado');
+const MCP_JWT_SECRET = process.env.MCP_JWT_SECRET || process.env.API2_JWT_SECRET || process.env.JWT_SECRET;
+if (!MCP_JWT_SECRET) {
+  console.warn('[mint-jwt] MCP_JWT_SECRET no configurado — endpoint deshabilitado');
 }
 
 function base64url(input: string | Buffer): string {
@@ -23,8 +23,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!API2_JWT_SECRET) {
-    return res.status(503).json({ error: 'API2_JWT_SECRET not configured' });
+  if (!MCP_JWT_SECRET) {
+    return res.status(503).json({ error: 'MCP_JWT_SECRET not configured' });
   }
 
   // Solo en dev/test
@@ -48,7 +48,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }));
 
   const signature = base64url(
-    crypto.createHmac('sha256', API2_JWT_SECRET).update(`${header}.${payload}`).digest()
+    crypto.createHmac('sha256', MCP_JWT_SECRET).update(`${header}.${payload}`).digest()
   );
 
   const token = `${header}.${payload}.${signature}`;

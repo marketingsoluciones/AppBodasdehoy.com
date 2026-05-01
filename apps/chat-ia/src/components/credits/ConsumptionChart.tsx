@@ -5,7 +5,7 @@ import { memo, useMemo } from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Flexbox } from 'react-layout-kit';
 
-import { UsageStats } from '@/services/api2/invoices';
+import { UsageStats } from '@/services/mcpApi/invoices';
 
 const useStyles = createStyles(({ css, token }) => ({
   card: css`

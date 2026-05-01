@@ -86,7 +86,7 @@ class UploadService {
    * Método principal de subida de archivos.
    *
    * Todos los uploads van a R2 via api-ia (whitelabel).
-   * Credenciales gestionadas por api2 — nunca por variables de entorno S3_*.
+   * Credenciales gestionadas por MCP — nunca por variables de entorno S3_*.
    *
    * Casos especiales:
    * - Desktop (Electron, sin sync): usa almacenamiento local → uploadToDesktopS3

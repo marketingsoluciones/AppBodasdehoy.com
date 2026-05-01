@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useConversations } from '../hooks/useConversations';
 import { useConversationActions } from '../hooks/useConversationActions';
+import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
 import { ChannelBadge } from './ChannelBadge';
 
 interface ConversationHeaderProps {
@@ -14,6 +16,12 @@ interface ConversationHeaderProps {
 export function ConversationHeader({ channel, conversationId, onSearchFilter }: ConversationHeaderProps) {
   const { conversations } = useConversations(channel ?? null);
   const conversation = conversations.find((c) => c.id === conversationId);
+
+  const { checkAuth } = useAuthCheck();
+  const { userId } = checkAuth();
+  const { meta, assignToUser, setStatus } = useConversationMeta(conversationId);
+  const assignedToMe = !!(userId && meta.assignedUserId && meta.assignedUserId === userId);
+  const status: ConversationStatus = meta.status ?? 'open';
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -136,7 +144,48 @@ export function ConversationHeader({ channel, conversationId, onSearchFilter }: 
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
+          <div className="hidden items-center gap-2 md:flex">
+            <div className="flex items-center gap-1">
+              <span
+                className={
+                  status === 'open'
+                    ? 'rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700'
+                    : status === 'pending'
+                      ? 'rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700'
+                      : 'rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600'
+                }
+              >
+                {status === 'open' ? 'Abierta' : status === 'pending' ? 'En espera' : 'Cerrada'}
+              </span>
+              <select
+                aria-label="Cambiar estado"
+                className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs text-gray-600 hover:border-gray-300"
+                onChange={(e) => setStatus(e.target.value as ConversationStatus)}
+                value={status}
+              >
+                <option value="open">Abierta</option>
+                <option value="pending">En espera</option>
+                <option value="closed">Cerrada</option>
+              </select>
+            </div>
+
+            <button
+              className={
+                assignedToMe
+                  ? 'rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100'
+                  : 'rounded-md border border-gray-200 bg-white px-2 py-1 text-xs text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+              }
+              onClick={() => {
+                if (!userId) return;
+                assignToUser(assignedToMe ? null : userId);
+              }}
+              type="button"
+            >
+              {assignedToMe ? 'Asignada a ti' : meta.assignedUserId ? 'Asignada' : 'Sin asignar'}
+            </button>
+          </div>
+
           <button
             className={`flex h-9 w-9 items-center justify-center rounded-lg text-lg transition-colors ${
               searchOpen ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'

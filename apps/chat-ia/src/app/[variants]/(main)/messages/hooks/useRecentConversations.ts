@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { useChatStore } from '@/store/chat';
-import { getWhatsAppChannels, getWhatsAppConversationsGQL } from '@/services/api2/whatsapp';
+import { getWhatsAppChannels, getWhatsAppConversationsGQL } from '@/services/mcpApi/whatsapp';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { buildHeaders } from '../utils/auth';
@@ -121,7 +121,7 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
         });
 
         // Fetch WhatsApp conversations
-        // Primary: REST via Baileys (live sessions). Fallback: GraphQL api2 store (works even if external WA service is down).
+        // Primary: REST via Baileys (live sessions). Fallback: GraphQL MCP store (works even if external WA service is down).
         const waPromise = (async (): Promise<RecentConversation[]> => {
           const perSessionLimit = String(Math.min(25, Math.max(10, Math.ceil(max / 2))));
           const qs = new URLSearchParams({ limit: perSessionLimit, page: '1' }).toString();

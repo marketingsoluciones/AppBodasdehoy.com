@@ -1,44 +1,27 @@
 import { useRouter } from "next/router";
 import { ButtonClose } from "../components/Forms/ButtonClose";
 import { Login, Register, ResetPass } from "../components/Forms/Login/Forms";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthContextProvider, LoadingContextProvider } from "../context";
 import { ArrowLeft } from "../components/icons";
 import { SplitLoginPage } from "@bodasdehoy/auth-ui";
 import { resolveChatOrigin } from "@bodasdehoy/shared/utils";
 
-const getLeftPanel = ({ development, headTitle }) => {
-  if (development === 'bodasdehoy') {
-    return {
-      brandName: 'Bodas de Hoy',
-      eventTypesForRotation: [],
-      headline: 'La plataforma todo-en-uno para organizar tu boda',
-      description: 'Invitados, mesas, presupuesto e itinerario — todo en un solo lugar.',
-      features: [
-        { icon: '👥', text: 'Gestión de invitados y confirmaciones' },
-        { icon: '🪑', text: 'Plano de mesas interactivo' },
-        { icon: '💰', text: 'Control de presupuesto en tiempo real' },
-        { icon: '📋', text: 'Itinerario y coordinación del día' },
-        { icon: '✨', text: 'Asistente IA incluido' },
-      ],
-      stats: [],
-    };
-  }
-
-  return {
-    brandName: headTitle || 'Organizador de Eventos',
-    eventTypesForRotation: [],
-    headline: 'La plataforma todo-en-uno para organizar tu evento',
-    description: 'Invitados, mesas, presupuesto e itinerario — todo en un solo lugar.',
-    features: [
-      { icon: '👥', text: 'Gestión de invitados y confirmaciones' },
-      { icon: '🪑', text: 'Plano de mesas interactivo' },
-      { icon: '💰', text: 'Control de presupuesto en tiempo real' },
-      { icon: '📋', text: 'Itinerario y coordinación del día' },
-      { icon: '✨', text: 'Asistente IA incluido' },
-    ],
-    stats: [],
-  };
+const APP_EVENTOS_LEFT_PANEL = {
+  brandName: 'Bodas de Hoy',
+  /** Un solo mensaje de marca: sin rotación (el default de auth-ui rota boda/comunión/bautizo…). */
+  eventTypesForRotation: [],
+  headline: 'La plataforma todo-en-uno para organizar tu boda',
+  description: 'Invitados, mesas, presupuesto e itinerario — todo en un solo lugar.',
+  features: [
+    { icon: '👥', text: 'Gestión de invitados y confirmaciones' },
+    { icon: '🪑', text: 'Plano de mesas interactivo' },
+    { icon: '💰', text: 'Control de presupuesto en tiempo real' },
+    { icon: '📋', text: 'Itinerario y coordinación del día' },
+    { icon: '✨', text: 'Asistente IA incluido' },
+  ],
+  /** Oculta el bloque de cifras del default (evita otra “capa” de marketing). */
+  stats: [],
 };
 
 const PageLogin = () => {
@@ -143,11 +126,6 @@ const PageLogin = () => {
     setTimeout(() => router.push(queryD || "/"), 100)
   }
 
-  const leftPanel = useMemo(
-    () => getLeftPanel({ development: config?.development, headTitle: config?.headTitle }),
-    [config?.development, config?.headTitle],
-  )
-
   // BUG-015: no mostrar el formulario mientras el redirect-timer está activo
   const isRedirectingAway = user && verificationDone && user?.displayName !== "guest" && !user?._isSafetyGuest
 
@@ -161,7 +139,7 @@ const PageLogin = () => {
   }
 
   return (
-    <SplitLoginPage leftPanel={leftPanel}>
+    <SplitLoginPage leftPanel={APP_EVENTOS_LEFT_PANEL}>
       <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', minHeight: '100vh', width: '100%' }}>
         <ArrowLeft
           className={`${(!["bodasdehoy"].includes(config?.development) && (stage === "login" || (stage === "register" && stageRegister === 0) || preregister)) && "hidden"} absolute w-6 h-6 text-gray-500 cursor-pointer`}

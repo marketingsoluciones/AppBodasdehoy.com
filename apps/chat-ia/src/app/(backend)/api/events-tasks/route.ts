@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const API2_URL = 'https://api2.eventosorganizador.com/graphql';
+import { resolveServerMcpGraphqlUrl } from '@/const/mcpEndpoints';
 
 const SUPPORT_KEYS: Record<string, string> = {
   bodasdehoy: 'SK-bodasdehoy-a71f5b3c',
@@ -69,7 +68,7 @@ export async function GET(req: NextRequest) {
   try {
     const supportKey = SUPPORT_KEYS[development] || SUPPORT_KEYS.bodasdehoy;
 
-    const res = await fetch(API2_URL, {
+    const res = await fetch(resolveServerMcpGraphqlUrl(), {
       body: JSON.stringify({
         query: EVENTS_WITH_TASKS_QUERY,
         variables: { development, email: userId },
@@ -85,7 +84,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (!res.ok) {
-      return NextResponse.json({ error: `api2 error ${res.status}`, events: [] }, { status: 502 });
+      return NextResponse.json({ error: `mcp error ${res.status}`, events: [] }, { status: 502 });
     }
 
     const data = await res.json();

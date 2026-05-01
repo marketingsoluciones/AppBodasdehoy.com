@@ -1,39 +1,87 @@
 #!/usr/bin/env bash
 #
-# Lee los últimos mensajes del canal #copilot-api-ia (Slack).
-# Requiere: SLACK_BOT_TOKEN en .env. Opcional: SLACK_CHANNEL_FRONTEND (por defecto C0AEV0GCLM7).
-# El bot debe tener scope channels:history y estar en #copilot-api-ia.
+# Lee mensajes de canales Slack del proyecto.
+#
+# Canales disponibles:
+#   (default)       → #bodasdehoy-backend-coordinacion (C0AV8EV5495)
+#   --from frontend → #app-bodas-alqtm (C04C34S2CJ3)
+#   --from api-ia   → #copilot-api-ia (C0AEV0GCLM7)
+#   --from mcp      → #api-ia-api2-sync (C0AE8K47VNF)
 #
 # Uso:
-#   ./scripts/slack-read.sh          # últimos 10 mensajes
-#   ./scripts/slack-read.sh 20       # últimos 20 mensajes
-#   LIMIT=5 ./scripts/slack-read.sh
+#   ./scripts/slack-read.sh              # últimos 10 de #coordinacion
+#   ./scripts/slack-read.sh 20           # últimos 20
+#   ./scripts/slack-read.sh --from api-ia      # leer #copilot-api-ia
+#   ./scripts/slack-read.sh --from mcp 5       # 5 mensajes de #api-ia-api2-sync
 #
+# Requiere: SLACK_BOT_TOKEN en .env.slack.local
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-ENV_FILE="$ROOT_DIR/.env"
 
-if [ -f "$ENV_FILE" ]; then
-  set -a
-  # shellcheck source=/dev/null
-  source "$ENV_FILE"
-  set +a
+if [ -f "$ROOT_DIR/.env.slack.local" ]; then
+  set -a && source "$ROOT_DIR/.env.slack.local" && set +a
+elif [ -f "$ROOT_DIR/.env.local" ]; then
+  set -a && source "$ROOT_DIR/.env.local" && set +a
+elif [ -f "$ROOT_DIR/.env" ]; then
+  set -a && source "$ROOT_DIR/.env" && set +a
 fi
 
+# Fallback: archivo compartido de credenciales (todos los equipos)
+if [ -z "${SLACK_BOT_TOKEN:-}" ] && [ -f "$HOME/.slack-bodasdehoy.env" ]; then
+  set -a && source "$HOME/.slack-bodasdehoy.env" && set +a
+fi
+
+# --- Canales ---
+CHANNEL_COORDINACION="C0AV8EV5495"
+CHANNEL_FRONTEND_TEAM="C04C34S2CJ3"
+CHANNEL_API_IA="C0AEV0GCLM7"
+CHANNEL_MCP_SYNC="C0AE8K47VNF"
+
+SOURCE=""
+while [[ "${1:-}" == --* ]]; do
+  case "$1" in
+    --from)
+      SOURCE="${2:-}"
+      shift 2
+      ;;
+    --from=*)
+      SOURCE="${1#--from=}"
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
 LIMIT="${1:-${LIMIT:-10}}"
-CHANNEL_ID="${SLACK_CHANNEL_FRONTEND:-C0AEV0GCLM7}"
 TOKEN="${SLACK_BOT_TOKEN:-${SLACK_OAUTH_TOKEN:-}}"
 
+# Seleccionar canal
+if [ "$SOURCE" = "frontend" ] || [ "$SOURCE" = "app-bodas-alqtm" ]; then
+  CHANNEL_ID="$CHANNEL_FRONTEND_TEAM"
+  CHANNEL_NAME="#app-bodas-alqtm"
+elif [ "$SOURCE" = "api-ia" ]; then
+  CHANNEL_ID="$CHANNEL_API_IA"
+  CHANNEL_NAME="#copilot-api-ia"
+elif [ "$SOURCE" = "mcp" ] || [ "$SOURCE" = "backend" ] || [ "$SOURCE" = "api2" ]; then
+  CHANNEL_ID="$CHANNEL_MCP_SYNC"
+  CHANNEL_NAME="#api-ia-api2-sync"
+else
+  CHANNEL_ID="$CHANNEL_COORDINACION"
+  CHANNEL_NAME="#bodasdehoy-backend-coordinacion"
+fi
+
 if [ -z "$TOKEN" ]; then
-  echo "Error: SLACK_BOT_TOKEN o SLACK_OAUTH_TOKEN no está definido en $ENV_FILE"
-  echo "Añade: SLACK_BOT_TOKEN=xoxb-... o SLACK_OAUTH_TOKEN=xoxp-..."
+  echo "Error: SLACK_BOT_TOKEN no está definido en .env.slack.local"
+  echo "Añade: SLACK_BOT_TOKEN=xoxb-..."
   exit 1
 fi
 
-echo "Leyendo últimos $LIMIT mensajes del canal #copilot-api-ia ($CHANNEL_ID)..."
+echo "Leyendo últimos $LIMIT mensajes de $CHANNEL_NAME ($CHANNEL_ID)..."
 echo ""
 
 RESPONSE=$(curl -sS --max-time 15 \

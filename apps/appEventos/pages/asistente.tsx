@@ -3,6 +3,7 @@ import { useRouter } from "next/router"
 import { AuthContextProvider, EventContextProvider } from "../context"
 import { useMounted } from "../hooks/useMounted"
 import CopilotIframe from "../components/Copilot/CopilotIframe"
+import { usePlanLimits } from "../hooks/usePlanLimits"
 
 /** ID de sesión anónima por navegador (mismo que ChatSidebar) para restricciones anónimo. */
 function getGuestSessionId(): string {
@@ -25,12 +26,24 @@ const AsistentePage: FC = () => {
   const router = useRouter()
   const { user, config } = AuthContextProvider()
   const { event } = EventContextProvider()
+  const { plan, loading: planLoading } = usePlanLimits()
+  const guestId = useMemo(() => (typeof window !== 'undefined' ? getGuestSessionId() : null), [])
 
-  if (config?.copilotEnabled === false) {
+  if (config?.copilotEnabled !== true) {
     if (typeof window !== 'undefined') router.replace('/')
     return null
   }
-  const guestId = useMemo(() => (typeof window !== 'undefined' ? getGuestSessionId() : null), [])
+  const isAuthenticated = !!user?.uid && user?.displayName !== "guest"
+  const canUseCopilot =
+    !!plan &&
+    Array.isArray((plan as any)?.product_limits) &&
+    (plan as any).product_limits.some(
+      (l: any) => l?.sku === "ai-tokens" && (l?.free_quota > 0 || l?.overage_enabled === true)
+    )
+  if (isAuthenticated && !planLoading && !canUseCopilot) {
+    if (typeof window !== 'undefined') router.replace('/facturacion')
+    return null
+  }
   const userId = user?.email || user?.uid || guestId || undefined
   const isAnonymous = !user || user?.displayName === 'guest' || !user?.email
 

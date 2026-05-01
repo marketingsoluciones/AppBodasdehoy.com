@@ -1,4 +1,4 @@
-import { createContext, FC, useState, useEffect, useContext, SetStateAction } from "react";
+import { createContext, FC, useState, useEffect, useContext, useRef, SetStateAction } from "react";
 import { Socket } from "socket.io-client";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from ".";
 import { api } from '../api';
@@ -8,6 +8,7 @@ import Cookies from "js-cookie";
 import { useRouter, useSearchParams } from "next/navigation";
 import { parseJwt } from "../utils/Authentication"
 import { Notification, ResultNotifications } from "../utils/Interfaces";
+import { getAuth, onIdTokenChanged } from "firebase/auth";
 
 type Context = {
   socket: Socket | null;
@@ -31,17 +32,15 @@ const SocketProvider: FC<any> = ({ children }): React.ReactElement => {
   const { user, config } = AuthContextProvider()
   const [socket, setSocket] = useState<Socket | null>(initialContext.socket);
   const [notifications, setNotifications] = useState<ResultNotifications>({ total: 0, results: [] });
+  const lastTokenRef = useRef<string | null>(null)
 
   useEffect(() => {
-    console.log("=======> User", user)
     const token = Cookies.get("idTokenV0.1.0")
-    console.log("=======> parseJwt", parseJwt(token))
-    console.log("=======> development", config?.development)
     const development = config?.development
     const father = searchParams?.get("father")
     if (!development) return
     if ((token && !socket?.connected) || (user?.displayName === "anonymous" && !socket?.connected)) {
-      console.log("=======> Conecta...")
+      lastTokenRef.current = token ?? null
       setSocket(api.socketIO({
         token,
         development,
@@ -50,11 +49,37 @@ const SocketProvider: FC<any> = ({ children }): React.ReactElement => {
       }))
     }
     if (!token && socket) {
-      console.log("=======> desconecta...")
       socket.disconnect();
     }
 
   }, [user, config?.development, searchParams])
+
+  // Reconectar socket cuando Firebase rota el token (~1h)
+  useEffect(() => {
+    try {
+      const auth = getAuth()
+      const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
+        if (!firebaseUser || !config?.development) return
+        const newToken = await firebaseUser.getIdToken()
+        if (newToken && newToken !== lastTokenRef.current) {
+          lastTokenRef.current = newToken
+          Cookies.set("idTokenV0.1.0", newToken, { domain: process.env.NEXT_PUBLIC_PRODUCTION ? ".bodasdehoy.com" : undefined })
+          if (socket) {
+            socket.disconnect()
+            setSocket(api.socketIO({
+              token: newToken,
+              development: config.development,
+              father: searchParams?.get("father"),
+              origin: window?.origin
+            }))
+          }
+        }
+      })
+      return () => unsubscribe()
+    } catch (e) {
+      // Firebase no inicializado (SSR o anonymous)
+    }
+  }, [socket, config?.development])
 
   useEffect(() => {
     if (!socket) return

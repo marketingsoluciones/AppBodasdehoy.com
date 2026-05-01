@@ -36,11 +36,19 @@ const nextConfig = {
   rewrites: async () => [
     {
       source: '/api/graphql',
-      destination: process.env.API2_GRAPHQL_URL || 'https://api2.eventosorganizador.com/graphql',
+      destination:
+        process.env.API_MCP_GRAPHQL_URL ||
+        process.env.API3_MCP_GRAPHQL_URL ||
+        process.env.API2_GRAPHQL_URL ||
+        'https://api3-mcp-graphql.eventosorganizador.com/graphql',
     },
     {
       source: '/api/memories/:path*',
-      destination: `${process.env.API_IA_URL || 'https://api-ia.bodasdehoy.com'}/api/memories/:path*`,
+      destination: `${
+        process.env.API_IA_URL ||
+        process.env.API3_IA_URL ||
+        'https://api3-ia.eventosorganizador.com'
+      }/api/memories/:path*`,
     },
   ],
   webpack: (config) => {

@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useChatStore } from '@/store/chat';
+import { safeLocalStorage } from '@/utils/safeLocalStorage';
 import {
   getMySubscription,
   getSubscriptionPlans,
   type SubscriptionPlan,
   type UserSubscriptionInfo,
-} from '@/services/api2/subscriptions';
+} from '@/services/mcpApi/subscriptions';
 import {
   canAccess,
   getConversionMessage,
@@ -68,7 +69,26 @@ export interface UsePlanLimitsReturn {
 
 export const usePlanLimits = (): UsePlanLimitsReturn => {
   const currentUserId = useChatStore((s) => s.currentUserId);
-  const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
+  const hasApi2Token = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+
+    const directToken = safeLocalStorage.getItem('jwt_token');
+    if (directToken && directToken !== 'null' && directToken !== 'undefined') return true;
+
+    const firebaseToken = safeLocalStorage.getItem('api2_jwt_token');
+    if (firebaseToken && firebaseToken !== 'null' && firebaseToken !== 'undefined') return true;
+
+    const cache = safeLocalStorage.getItem('jwt_token_cache');
+    if (cache) {
+      try {
+        const parsed = JSON.parse(cache) as { expiry?: number; token?: string };
+        if (parsed?.token && parsed?.expiry && Date.now() < parsed.expiry) return true;
+      } catch {}
+    }
+
+    return false;
+  }, [currentUserId]);
+  const canQueryApi2 = hasApi2Token;
 
   const [subscription, setSubscription] = useState<UserSubscriptionInfo | null>(null);
   const [allPlans, setAllPlans] = useState<SubscriptionPlan[]>([]);
@@ -80,11 +100,19 @@ export const usePlanLimits = (): UsePlanLimitsReturn => {
   // ========================================
 
   const refetch = useCallback(async () => {
+    if (!canQueryApi2) {
+      setSubscription(null);
+      setAllPlans([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
       const [sub, plans] = await Promise.all([
-        isAuthenticated ? getMySubscription() : null,
+        getMySubscription(),
         getSubscriptionPlans(),
       ]);
       setSubscription(sub);
@@ -94,10 +122,21 @@ export const usePlanLimits = (): UsePlanLimitsReturn => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [canQueryApi2]);
 
   useEffect(() => {
-    refetch();
+    if (!canQueryApi2) {
+      refetch();
+      return;
+    }
+
+    const start = () => void refetch();
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      requestIdleCallback(start, { timeout: 4000 });
+      return;
+    }
+    const t = setTimeout(start, 1000);
+    return () => clearTimeout(t);
   }, [refetch]);
 
   // ========================================
@@ -127,14 +166,19 @@ export const usePlanLimits = (): UsePlanLimitsReturn => {
   // ========================================
 
   // Cast ProductLimit → PlanLimit: structurally identical; overage_price is optional in API response
+  // Normalizar product_limits para evitar crashes cuando el backend no lo envía.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const planForUtils = plan as any;
+  const planForUtils = useMemo(() => {
+    if (!plan) return null as any;
+    const product_limits = Array.isArray((plan as any).product_limits) ? (plan as any).product_limits : [];
+    return { ...(plan as any), product_limits };
+  }, [plan]);
 
   const getLimit = useCallback(
     (sku: string): PlanLimit | null => {
-      return (plan?.product_limits.find((l) => l.sku === sku) as PlanLimit | undefined) ?? null;
+      return (planForUtils?.product_limits?.find((l: any) => l.sku === sku) as PlanLimit | undefined) ?? null;
     },
-    [plan],
+    [planForUtils],
   );
 
   const canUse = useCallback(
@@ -147,7 +191,7 @@ export const usePlanLimits = (): UsePlanLimitsReturn => {
 
   const getUsage = useCallback(
     (sku: string, currentUsage: number): SkuUsage => {
-      const limit = plan?.product_limits.find((l) => l.sku === sku);
+      const limit = planForUtils?.product_limits?.find((l: any) => l.sku === sku);
       const limitValue = limit?.free_quota ?? Infinity;
       const percent = usagePercent(currentUsage, limitValue);
       return {
@@ -158,16 +202,16 @@ export const usePlanLimits = (): UsePlanLimitsReturn => {
         used: currentUsage,
       };
     },
-    [plan],
+    [planForUtils],
   );
 
   const humanQuota = useCallback(
     (sku: string): string => {
-      const limit = plan?.product_limits.find((l) => l.sku === sku);
+      const limit = planForUtils?.product_limits?.find((l: any) => l.sku === sku);
       if (!limit) return 'No disponible';
       return humanizeQuota(sku, limit.free_quota);
     },
-    [plan],
+    [planForUtils],
   );
 
   const getUpgradeMsg = useCallback(

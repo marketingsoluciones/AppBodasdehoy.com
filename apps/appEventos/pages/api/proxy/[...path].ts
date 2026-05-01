@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 // GraphQL → api-mcp (servidor con fixes de seguridad)
 // apiapp.bodasdehoy.com se mantiene solo para imágenes/assets estáticos
-import { resolveApiBodasOrigin } from '../../../utils/api3Endpoints';
+import { resolveApiBodasOrigin } from '../../../utils/apiEndpoints';
 const BODAS_API_URL = resolveApiBodasOrigin();
 
 export default async function handler(

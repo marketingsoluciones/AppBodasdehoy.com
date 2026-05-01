@@ -128,9 +128,9 @@ pnpm build
 
 | Entorno | App Web | Chat IA |
 |---------|---------|---------|
-| **Desarrollo Local** | http://localhost:8080 | http://localhost:3210 |
+| **Desarrollo Local** | http://localhost:3220 | http://localhost:3210 |
 | **Test** | https://app-test.bodasdehoy.com | https://chat-test.bodasdehoy.com |
-| **Producción** | https://organizador.bodasdehoy.com | https://chat.bodasdehoy.com |
+| **Producción** | https://app.bodasdehoy.com | https://chat.bodasdehoy.com |
 
 ## 📦 Apps Principales
 
@@ -174,8 +174,8 @@ Chat inteligente basado en LobeChat para asistencia en eventos.
 #### apps/web/.env.production
 ```env
 NEXT_PUBLIC_CHAT=https://chat.bodasdehoy.com
-NEXT_PUBLIC_EVENTSAPP=https://organizador.bodasdehoy.com
-NEXT_PUBLIC_BASE_URL=https://apiapp.bodasdehoy.com
+NEXT_PUBLIC_EVENTSAPP=https://app.bodasdehoy.com
+NEXT_PUBLIC_BASE_URL=https://apiapp.bodasdehoy.com  # temporal — futuro: dominio dedicado para imágenes
 ```
 
 #### apps/copilot/.env

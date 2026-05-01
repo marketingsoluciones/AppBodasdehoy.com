@@ -4,7 +4,7 @@ import { CreditCard, Loader2, Lock, X } from 'lucide-react';
 import { memo, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import { BalanceCheck } from '@/services/api2/wallet';
+import { BalanceCheck } from '@/services/mcpApi/wallet';
 
 export interface RechargeModalProps {
   allowDebtMode?: boolean;

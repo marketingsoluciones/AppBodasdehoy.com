@@ -1,0 +1,40 @@
+# Bodasdehoy — Slack / MCP / Coordinación (pegar en Cursor → Settings → Rules, nivel usuario)
+# RECORDATORIO: tras git pull que toque este archivo, volver a pegar en Rules TODO desde la siguiente viñeta.
+
+## Slack — TODO AGENTE TIENE ACCESO (sin importar el repo)
+
+- **El token de Slack es COMPARTIDO entre todos los equipos.** Bot: `@api-ia Bot` (workspace `EventosOrganizador`).
+- **Archivo de credenciales (fuera de git):** `~/.slack-bodasdehoy.env` con `SLACK_BOT_TOKEN=xoxb-...`. Si no existe, preguntar al usuario y crearlo (`chmod 600`). NUNCA commitear este token.
+- **Kit autónomo:** si el repo actual tiene `scripts/slack-agent-setup.sh`, cargarlo con `source scripts/slack-agent-setup.sh`. Si NO está en este repo, copiarlo desde el repo FrontApp (`AppBodasdehoy.com/scripts/slack-agent-setup.sh`).
+- **Funciones disponibles tras cargar:** `slack_send_api_ia "msg"`, `slack_send_mcp "msg"`, `slack_send_frontend "msg"`, `slack_read_api_ia [N]`, `slack_read_mcp [N]`.
+- **Canales oficiales y cuándo usar cada uno:**
+  - `#copilot-api-ia` (C0AEV0GCLM7): FrontApp ↔ api-ia (chat IA, historial, whitelabel, modelos)
+  - `#api-ia-api2-sync` (C0AE8K47VNF): api-ia ↔ api-mcp ↔ FrontCRM (schema, migraciones, R2, socket). FrontApp SOLO entra si afecta a todos.
+  - `#app-bodas-alqtm` (C04C34S2CJ3): Solo FrontApp (interno).
+  - `#bodasdehoy-backend-coordinacion` (C0AV8EV5495): Legacy — preguntar si aún se usa.
+- **NO crear canales nuevos.** NO pegar tokens en el chat. NO dejar el token en variables de entorno visibles.
+
+## Si el bot no puede leer mensajes (missing_scope / not_in_channel)
+
+- El bot `@api-ia Bot` puede postear (chat.postMessage) pero NO puede leer conversaciones. Para leer, preguntar al usuario que pegue los mensajes manualmente o que use la app de Slack.
+
+## MCP / endpoints / SSH
+
+- MCP GraphQL: `API_MCP_GRAPHQL_URL` (default `https://api3-mcp-graphql.eventosorganizador.com/graphql`). IP: `178.104.209.139`.
+- API IA: `API_IA_URL` (default `https://api3-ia.eventosorganizador.com`). IP: `159.69.180.113`.
+- El agente NO tiene SSH a estos servidores. No intentar ssh.
+- Variables legacy (API2_*, API3_*) se leen como fallback pero el nombre canónico es `API_MCP_GRAPHQL_URL`.
+
+## MCP — suscripción y límites
+
+- Fuente de verdad de planes: MCP GraphQL. SKU invitados: `guests-per-event`.
+- Código: `usePlanLimits.ts`, `facturacion.tsx`, `planLimitsCoordination.ts`.
+- Mutación de invitados: `creaInvitado` (API app). El backend debe aplicar misma cuota que MCP.
+
+## Canales oficiales (referencia rápida para el agente)
+
+| Canal | ID | Uso |
+|-------|-----|-----|
+| #copilot-api-ia | C0AEV0GCLM7 | FrontApp ↔ api-ia |
+| #api-ia-api2-sync | C0AE8K47VNF | api-ia ↔ api-mcp ↔ FrontCRM |
+| #app-bodas-alqtm | C04C34S2CJ3 | Solo FrontApp |

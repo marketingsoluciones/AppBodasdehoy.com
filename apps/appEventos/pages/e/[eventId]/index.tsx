@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRef, useState, useEffect } from 'react';
 import { fetchApiEventosServer } from '../../../utils/Fetching';
 import { useGuestSession } from '../../../hooks/useGuestSession';
+import { resolveApiAppBaseUrl } from '@bodasdehoy/shared/utils';
 
 // ──────────────────────────────────────────────
 // Tipos
@@ -78,10 +79,10 @@ const EVENT_QUERY = `
   }
 `;
 
-const IMG_BASE = 'https://apiapp.bodasdehoy.com/';
+const IMG_BASE = resolveApiAppBaseUrl();
 
 function eventImageUrl(event: PublicEvent): string | null {
-  return event.imgEvento?.i800 ? `${IMG_BASE}${event.imgEvento.i800}` : null;
+  return event.imgEvento?.i800 ? `${IMG_BASE}/${event.imgEvento.i800}` : null;
 }
 
 function eventTypeIcon(tipo: string): string {

@@ -24,7 +24,7 @@ import {
 } from '@bodasdehoy/shared/auth';
 import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
 import { registerReferralIfPending, trackRegistrationComplete, sendAttributionToApi } from '@bodasdehoy/shared';
-import { resolveApiBodasGraphqlUrl } from '../utils/api3Endpoints';
+import { resolveApiBodasGraphqlUrl } from '../utils/apiEndpoints';
 
 const initialContext = {
   user: undefined,
@@ -628,7 +628,14 @@ const AuthProvider = ({ children }) => {
       if (!idToken) {
         idToken = await getAuth().currentUser?.getIdToken(true)
         const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: safeCookieDomain(process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO), expires: dateExpire })
+        const idTokenDomain = safeCookieDomain(process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO)
+        Cookies.set("idTokenV0.1.0", idToken ?? "", {
+          domain: idTokenDomain,
+          expires: dateExpire,
+          path: "/",
+          secure: typeof window !== "undefined" && window.location.protocol === "https:",
+          sameSite: "lax"
+        })
       }
       const userInfo = await fetchApiBodas({
         query: queries.getUser,
@@ -639,7 +646,11 @@ const AuthProvider = ({ children }) => {
       if (!getAuth().currentUser) return;
       const firebaseUid = getAuth().currentUser?.uid || user?.uid
       // getUser no pide `uid` en GraphQL; si la API devolviera campos extra, no deben pisar el UID de Firebase (query eventos usa usuario_id === uid).
-      setUser({ ...user, ...userInfo, uid: firebaseUid });
+      const mergedUser = { ...user, ...userInfo, uid: firebaseUid }
+      if (!mergedUser.email && user?.email) mergedUser.email = user.email
+      if (!mergedUser.displayName && user?.displayName) mergedUser.displayName = user.displayName
+      if (!mergedUser.photoURL && user?.photoURL) mergedUser.photoURL = user.photoURL
+      setUser(mergedUser);
       updateActivity("accessed")
       // Sincronizar sesión con apps/copilot via AuthBridge (escribe dev-user-config en localStorage)
       if (config) {
@@ -870,8 +881,11 @@ const AuthProvider = ({ children }) => {
               const isDevLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
               const cookieDomain = isDevLocal ? undefined : (process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : (process.env.NEXT_PUBLIC_DOMINIO || ".bodasdehoy.com"));
               Cookies.set(config?.cookie, ssoAuthResult.sessionCookie, {
-                domain: cookieDomain,
+                domain: safeCookieDomain(cookieDomain),
                 expires: 365,
+                path: "/",
+                secure: typeof window !== "undefined" && window.location.protocol === "https:",
+                sameSite: "lax",
               })
               console.log("[Verificator] ✅ SSO cross-domain: sessionBodas creada desde idTokenV0.1.0")
               // Re-verificar con la nueva cookie de sesión
@@ -894,7 +908,13 @@ const AuthProvider = ({ children }) => {
         if (!guestUid) {
           const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
           guestUid = nanoid(28)
-          Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: safeCookieDomain(config?.domain), expires: dateExpire })
+          Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), {
+            domain: safeCookieDomain(config?.domain),
+            expires: dateExpire,
+            path: "/",
+            secure: typeof window !== "undefined" && window.location.protocol === "https:",
+            sameSite: "lax",
+          })
         }
         setUser({ uid: guestUid, displayName: "guest" })
         setVerificationDone(true)

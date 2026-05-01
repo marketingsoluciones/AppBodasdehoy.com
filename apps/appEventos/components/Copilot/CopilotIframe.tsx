@@ -19,7 +19,7 @@ import Cookies from 'js-cookie';
 import { Event } from '../../utils/Interfaces';
 import { extractPageContext, PageContextData } from './pageContextExtractor';
 import { EventsGroupContextProvider } from '../../context';
-import { getDevelopmentConfig, getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
+import { getDevelopmentConfig } from '@bodasdehoy/shared/types';
 import type { AuthConfigPayload } from '@bodasdehoy/shared/communication';
 import { getCopilotBaseUrl as getCopilotBaseUrlUtil } from './getCopilotBaseUrl';
 
@@ -53,7 +53,7 @@ interface CopilotIframeProps {
 
 const CopilotIframe = ({
   userId,
-  development,
+  development = 'bodasdehoy',
   eventId,
   eventName,
   className,
@@ -95,10 +95,6 @@ const CopilotIframe = ({
     // recargue cuando el evento carga asíncronamente (lo que borra la conversación).
     const buildCopilotUrl = useCallback(() => {
       const params = new URLSearchParams();
-      const effectiveDevelopment =
-        development ||
-        (typeof window !== 'undefined' ? getDevelopmentNameFromHostname(window.location.hostname) : undefined) ||
-        'bodasdehoy';
 
       if (fullUi) {
         // Ver resolveChatEmbedMode en chat-ia: full_ui=1 desactiva el modo embed aunque el documento sea iframe.
@@ -110,7 +106,9 @@ const CopilotIframe = ({
         params.set('minimal', '1');
       }
 
-      params.set('developer', effectiveDevelopment);
+      if (development) {
+        params.set('developer', development);
+      }
       // Pasar el email del usuario para que EventosAutoAuth lo identifique directamente
       if (userData?.email) {
         params.set('email', userData.email);
@@ -124,7 +122,7 @@ const CopilotIframe = ({
       const queryString = params.toString();
 
       const baseUrl = getCopilotBaseUrl().replace(/\/$/, '');
-      const variants = encodeURIComponent(effectiveDevelopment);
+      const variants = encodeURIComponent(development || 'bodasdehoy');
 
       // LobeChat en este repo usa rutas con `[variants]`, por ejemplo:
       //   /{variants}/chat

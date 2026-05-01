@@ -28,6 +28,7 @@ vi.mock('./parseFilesConfig', () => ({
 
 vi.mock('@/const/agents/defaultCopilotSystemRole', () => ({
   DEFAULT_COPILOT_SYSTEM_ROLE: 'mock-system-role',
+  getSystemRoleForDevelopment: () => 'mock-system-role',
 }));
 
 describe('getServerDefaultAgentConfig', () => {

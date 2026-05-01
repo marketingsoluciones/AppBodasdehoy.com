@@ -13,7 +13,9 @@ import Toggle from '../../../../components/shared/Toggle';
 import ConfirmModal from '../../../../components/shared/ConfirmModal';
 import Toast from '../../../../components/shared/Toast';
 
-const API_BASE = process.env.NEXT_PUBLIC_MEMORIES_API_URL || 'https://api-ia.bodasdehoy.com';
+import { resolvePublicApiIaOrigin } from '../../../../utils/endpoints';
+
+const API_BASE = resolvePublicApiIaOrigin();
 const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy').trim();
 
 const ROLE_LABELS: Record<string, string> = {

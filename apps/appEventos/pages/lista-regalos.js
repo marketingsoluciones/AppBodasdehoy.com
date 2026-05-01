@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { CompartirIcon, ListaOne, ListaTwo } from "../components/icons";
+import { AmazonIcon, CochinoIcon, CompartirIcon, DineroIcon, ListaOne, ListaTwo } from "../components/icons";
 import ModalGuardarRegalo from "../components/ListaDeRegalos/ModalGuardarRegalo";
 import BlockTitle from "../components/Utils/BlockTitle";
 import { AuthContextProvider, EventContextProvider } from "../context";

@@ -45,13 +45,13 @@
   [ ] Si queréis RAG con HTTP 200 en lobechat-kb: su infra de embeddings
       (p. ej. Ollama) — ticket aparte con ETA.
 
-  EQUIPO API2 (GraphQL api2.eventosorganizador.com, Mongo, R2, etc.)
+  EQUIPO MCP (GraphQL api3-mcp-graphql.eventosorganizador.com, Mongo, R2, etc.)
   -------------------------------------------------------------------
   [ ] R2 / storage: error tipo "Storage no configurado para este development"
       con bodasdehoy en uploadCRMEntityFile (u operaciones similares).
       Hay que verificar en PROD que el fallback whitelabel / R2 esté desplegado.
 
-  Otros temas de API2 (GraphQL, eventos, etc.) solo si tenéis un fallo
+  Otros temas de MCP (GraphQL, eventos, etc.) solo si tenéis un fallo
   concreto → incidencia con 4 datos; no hay lista extra obligatoria aquí.
 
 
@@ -59,7 +59,7 @@
   Una frase
 ================================================================================
 
-  NOSOTROS = desplegar lo del repo + probar + re-probar cuando API2 conteste.
-  ELLOS  = api-ia (IA/providers/Leads/embeddings) y API2 (R2/storage/GraphQL).
+  NOSOTROS = desplegar lo del repo + probar + re-probar cuando MCP conteste.
+  ELLOS  = api-ia (IA/providers/Leads/embeddings) y MCP (R2/storage/GraphQL).
 
   Lista detallada historial: scripts/PENDIENTES-POR-COLABORADOR.txt

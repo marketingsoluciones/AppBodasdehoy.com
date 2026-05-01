@@ -4,6 +4,7 @@ import { fetchApiBodas, fetchApiEventos, queries, getApiErrorMessage } from "../
 import { Event, detalle_compartidos_array } from '../utils/Interfaces';
 import { useRouter, usePathname } from 'next/navigation';
 import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
+import { normalizeInvitados, normalizeMenus } from '../utils/mcpSchemaAdapter';
 
 /** Estado de filtro activo enviado por el Copilot via postMessage FILTER_VIEW */
 export interface CopilotFilter {
@@ -273,6 +274,8 @@ const EventsGroupProvider = ({ children }) => {
               detailsStartTime = performance.now()
 
               const normalizedEvents = events.map((event, index) => {
+                event.invitados_array = normalizeInvitados((event as any).invitados)
+                event.menus_array = normalizeMenus((event as any).menus)
                 if (event?.compartido_array?.length) {
                   console.log(`[EventsGroup] Procesando evento ${index + 1}/${events.length}: ${event.nombre || event._id}`)
                   const fMyUid = event?.compartido_array?.findIndex(elem => elem === user?.uid)
@@ -334,10 +337,10 @@ const EventsGroupProvider = ({ children }) => {
             });
           fetchApiEventos({
             query: queries.getPsTemplate,
-            variables: { uid: user.uid }
+            variables: { evento_id: eventsGroup?.[0]?._id || "none", development: config?.development || "bodasdehoy" }
           })
             .then((templates: any) => {
-              setPsTemplates(templates)
+              setPsTemplates(Array.isArray(templates) ? templates : templates ? [templates] : [])
             })
             .catch((error) => console.log(error));
         } else {

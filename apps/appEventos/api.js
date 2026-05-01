@@ -3,7 +3,7 @@ import Cookies from "js-cookie"
 import { Manager } from "socket.io-client";
 import { getAuth } from "firebase/auth";
 import { parseJwt } from "./utils/Authentication";
-import { resolveApiBodasGraphqlUrl } from "./utils/api3Endpoints";
+import { resolveApiBodasGraphqlUrl } from "./utils/apiEndpoints";
 import { varGlobalDomain, varGlobalDevelopment, varGlobalSubdomain } from "./context/AuthContext"
 
 /** En localhost el navegador rechaza cookies con domain=.bodasdehoy.com */
@@ -78,7 +78,13 @@ export const api = {
         if (!idToken) {
           idToken = await getAuth().currentUser?.getIdToken(true)
           const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-          Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: _cookieDomain(), expires: dateExpire })
+          Cookies.set("idTokenV0.1.0", idToken ?? "", {
+            domain: _cookieDomain(),
+            expires: dateExpire,
+            path: "/",
+            secure: typeof window !== "undefined" && window.location.protocol === "https:",
+            sameSite: "lax",
+          })
         }
       }
     } catch (error) {
@@ -102,7 +108,13 @@ export const api = {
       if (!idToken) {
         idToken = await getAuth().currentUser?.getIdToken(true)
         const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: _cookieDomain(), expires: dateExpire })
+        Cookies.set("idTokenV0.1.0", idToken ?? "", {
+          domain: _cookieDomain(),
+          expires: dateExpire,
+          path: "/",
+          secure: typeof window !== "undefined" && window.location.protocol === "https:",
+          sameSite: "lax",
+        })
       }
     }
     return await instance.post("/graphql", data, {
@@ -147,7 +159,13 @@ export const api = {
         if (!idToken) {
           idToken = await getAuth().currentUser?.getIdToken(true)
           const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-          Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: _cookieDomain(), expires: dateExpire })
+          Cookies.set("idTokenV0.1.0", idToken ?? "", {
+            domain: _cookieDomain(),
+            expires: dateExpire,
+            path: "/",
+            secure: typeof window !== "undefined" && window.location.protocol === "https:",
+            sameSite: "lax",
+          })
         }
       }
     } catch (error) {
@@ -194,7 +212,10 @@ export const api = {
 
 // Legacy: no se usa en el código actual. Endpoint unificado con el resto (HTTPS).
 // Si se elimina, verificar que ningún flujo la use. Ver docs/LISTADO-LLAMADAS-API2-AUDITORIA.md
-const API2_GRAPHQL_LEGACY = process.env.NEXT_PUBLIC_API2_GRAPHQL_URL || '';
+const MCP_GRAPHQL_LEGACY =
+  process.env.NEXT_PUBLIC_API_MCP_GRAPHQL_URL ||
+  process.env.NEXT_PUBLIC_API2_GRAPHQL_URL ||
+  '';
 
 export const fetchApiViewConfig = async (params) => {
   let idToken = Cookies.get("idTokenV0.1.0");
@@ -204,14 +225,17 @@ export const fetchApiViewConfig = async (params) => {
       const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000);
       Cookies.set("idTokenV0.1.0", idToken ?? "", {
         domain: _cookieDomain(),
-        expires: dateExpire
+        expires: dateExpire,
+        path: "/",
+        secure: typeof window !== "undefined" && window.location.protocol === "https:",
+        sameSite: "lax",
       });
     }
   } catch (error) {
     console.error("Error getting token:", error);
   }
 
-  return axios.post(API2_GRAPHQL_LEGACY, params, {
+  return axios.post(MCP_GRAPHQL_LEGACY, params, {
     headers: {
       Authorization: `Bearer ${idToken}`,
       'Content-Type': 'application/json',

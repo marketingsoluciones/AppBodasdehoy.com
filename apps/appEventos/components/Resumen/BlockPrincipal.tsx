@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { TimeZone } from "../icons";
 import { getTimeZoneCity } from "../../utils/FormatTime";
 import { useDateTime } from "../../hooks/useDateTime";
+import { resolveApiAppBaseUrl } from '@bodasdehoy/shared/utils';
 
 interface propsBlockVista {
   children?: React.ReactNode;
@@ -23,6 +24,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
   const { event } = EventContextProvider();
   const { t } = useTranslation();
   const { utcDateFormated } = useDateTime();
+  const apiAppBaseUrl = resolveApiAppBaseUrl();
 
   const seatedGuests: number = event?.invitados_array?.filter(
     (item) => item?.nombre_mesa?.toLowerCase() !== "no asignado"
@@ -50,7 +52,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
       <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12  md:gap-0 pt-10 md:pt-0">
         {event?.tipo && (
           <img
-            src={event?.imgEvento ? `https://apiapp.bodasdehoy.com/${event.imgEvento.i640}` : defaultImagenes[event?.tipo?.toLowerCase()]}
+            src={event?.imgEvento ? `${apiAppBaseUrl}/${event.imgEvento.i640}` : defaultImagenes[event?.tipo?.toLowerCase()]}
             className="md:w-1/2 md:h-full h-60 object-cover object-top rounded-xl"
             alt={event?.nombre}
           />
@@ -138,7 +140,7 @@ const BlockPrincipal: FC = () => {
       )}
       <BlockVista >
         <div className="absolute top-3 right-5 flex gap-2 z-30">
-          <div onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="w-1 h-1 -translate-y-0.5">
+          <div className="flex items-center">
             <UsuariosCompartidos event={event} />
           </div>
           <span

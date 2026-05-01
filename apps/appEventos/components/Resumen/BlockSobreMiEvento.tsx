@@ -16,6 +16,7 @@ import { FaCheck } from "react-icons/fa";
 import { image } from "../../utils/Interfaces";
 import { RiHotelLine } from "react-icons/ri";
 import { HiOutlineBuildingLibrary } from "react-icons/hi2";
+import { resolveApiAppBaseUrl } from '@bodasdehoy/shared/utils';
 
 interface propsInsideBlock extends schemaItem {
   setSelected?: Dispatch<
@@ -538,7 +539,7 @@ const TartaButton: FC<propsElement> = ({ title, value}) => {
         <span className="leading-4 text-center">
           {
             event.tarta &&
-            <img src={`https://apiapp.bodasdehoy.com${event.tarta}`} alt={"tarta"} className={"border-none border-2 rounded-md  h-20 w-20 hover:opacity-50 cursor-pointer object-cover object-center mb-2"} />
+            <img src={`${resolveApiAppBaseUrl()}${event.tarta}`} alt={"tarta"} className={"border-none border-2 rounded-md  h-20 w-20 hover:opacity-50 cursor-pointer object-cover object-center mb-2"} />
           }
 
           <p className="font-display font-light md:text-md text-gray-500">

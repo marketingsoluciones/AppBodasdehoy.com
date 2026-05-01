@@ -3,6 +3,7 @@ import { AuthContextProvider, EventContextProvider } from "../context"
 import VistaSinCookie from "./vista-sin-cookie"
 import { useMounted } from "../hooks/useMounted"
 import CopilotIframe from "../components/Copilot/CopilotIframe"
+import { usePlanLimits } from "../hooks/usePlanLimits"
 
 const STYLES = [
   { key: "romantico", label: "Romántico", emoji: "🌹", desc: "Flores blancas, velas, drapeados, tonos rosa y marfil" },
@@ -19,9 +20,21 @@ const DisenioEspacios: FC = () => {
   useMounted()
   const { user, verificationDone, config } = AuthContextProvider()
   const { event } = EventContextProvider()
+  const { plan, loading: planLoading } = usePlanLimits()
 
-  if (config?.copilotEnabled === false) {
+  if (config?.copilotEnabled !== true) {
     if (typeof window !== 'undefined') window.location.replace('/')
+    return null
+  }
+  const isAuthenticated = !!user?.uid && user?.displayName !== "guest"
+  const canUseDesignIA =
+    !!plan &&
+    Array.isArray((plan as any)?.product_limits) &&
+    (plan as any).product_limits.some(
+      (l: any) => l?.sku === "image-gen" && (l?.free_quota > 0 || l?.overage_enabled === true)
+    )
+  if (isAuthenticated && !planLoading && !canUseDesignIA) {
+    if (typeof window !== 'undefined') window.location.replace('/facturacion')
     return null
   }
 

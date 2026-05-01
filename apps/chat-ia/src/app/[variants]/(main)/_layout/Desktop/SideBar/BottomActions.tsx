@@ -64,7 +64,7 @@ const QuotaMiniBar = memo(() => {
 
   if (loading || !plan) return null;
 
-  const aiLimit = plan.product_limits.find((l) => l.sku === 'ai-tokens');
+  const aiLimit = plan.product_limits?.find?.((l) => l.sku === 'ai-tokens');
   if (!aiLimit || aiLimit.free_quota >= 999_999) return null;
 
   const currentTokens = usageStats?.totalTokens ?? 0;

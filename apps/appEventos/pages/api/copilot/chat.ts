@@ -25,9 +25,9 @@ const PYTHON_BACKEND_URL =
 
 // Safety guard: never return "fallback" model output if the backend IA is down.
 const ENABLE_COPILOT_FALLBACK = process.env.ENABLE_COPILOT_FALLBACK === 'true';
-// Si true, no llamamos a API2 getWhiteLabelConfig (diseño: front no usa API2). Ver docs/INFORME-BACKEND-API-IA-IMPLEMENTAR.md
-const SKIP_WHITELABEL_VIA_API2 = process.env.SKIP_WHITELABEL_VIA_API2 === 'true';
-// Opción B (recomendada): si api-ia expone whitelabel, definir API_IA_WHITELABEL_URL y el front solo llamará a api-ia (no a API2)
+const SKIP_WHITELABEL_VIA_MCP =
+  (process.env.SKIP_WHITELABEL_VIA_MCP || process.env.SKIP_WHITELABEL_VIA_API2) === 'true';
+// Opción B (recomendada): si api-ia expone whitelabel, definir API_IA_WHITELABEL_URL y el front solo llamará a api-ia (no a MCP)
 const API_IA_WHITELABEL_URL = process.env.API_IA_WHITELABEL_URL || '';
 
 const createRequestId = (): string => {
@@ -77,9 +77,7 @@ const DEFAULT_PROVIDER = 'auto';
 // GPT-4, o el mejor disponible en OpenRouter). Por defecto true para el Copilot.
 const PREFER_REASONING_MODEL = process.env.COPILOT_PREFER_REASONING_MODEL !== 'false';
 
-// API2_GRAPHQL_URL: solo se usa como fallback de whitelabel si SKIP_WHITELABEL_VIA_API2 no está activo.
-// apps/web no debe apuntar a api2; preferir API_IA_WHITELABEL_URL o SKIP_WHITELABEL_VIA_API2=true.
-const API2_GRAPHQL_URL =
+const MCP_GRAPHQL_URL =
   process.env.API_MCP_GRAPHQL_URL ||
   process.env.API3_MCP_GRAPHQL_URL ||
   process.env.API2_GRAPHQL_URL ||
@@ -407,7 +405,7 @@ async function getWhitelabelApiKey(development: string): Promise<{ apiKey: strin
   `;
 
   try {
-    const response = await fetch(API2_GRAPHQL_URL, {
+    const response = await fetch(MCP_GRAPHQL_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query }),
@@ -1262,7 +1260,7 @@ export default async function handler(
       }
     }
 
-    // 3. Fallback: Whitelabel credentials (api-ia opción B o API2; omitido si SKIP_WHITELABEL_VIA_API2)
+    // 3. Fallback: Whitelabel credentials (api-ia opción B o MCP; omitido si SKIP_WHITELABEL_VIA_MCP)
     if (API_IA_WHITELABEL_URL) {
       console.log('[Copilot API] Step 3: Getting whitelabel from api-ia (API_IA_WHITELABEL_URL)...');
       const fromApiIa = await getWhitelabelFromApiIa(development, (req.headers.authorization as string) || '');
@@ -1284,11 +1282,11 @@ export default async function handler(
         return;
       }
     }
-    if (SKIP_WHITELABEL_VIA_API2) {
-      console.log('[Copilot API] Skipping whitelabel via API2 (SKIP_WHITELABEL_VIA_API2=true)');
+    if (SKIP_WHITELABEL_VIA_MCP) {
+      console.log('[Copilot API] Skipping whitelabel via MCP (SKIP_WHITELABEL_VIA_MCP=true)');
       return respondBackendUnavailable(res, !!stream, requestId);
     }
-    console.log('[Copilot API] Step 3: Getting whitelabel credentials from API2...');
+    console.log('[Copilot API] Step 3: Getting whitelabel credentials from MCP...');
     const whitelabelConfig = await getWhitelabelApiKey(development);
 
     if (!whitelabelConfig) {

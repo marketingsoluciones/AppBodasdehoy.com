@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, type ComponentType } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { ConversationList } from '../components/ConversationList';
@@ -27,7 +27,7 @@ function isTaskChannel(channel: string) {
 }
 
 // Channels that show a full-width setup/config screen
-const SETUP_CHANNELS: Record<string, React.ComponentType<{ development: string }>> = {
+const SETUP_CHANNELS: Record<string, ComponentType<{ development: string }>> = {
   email: EmailSetup,
   facebook: FacebookSetup,
   instagram: InstagramSetup,
@@ -138,7 +138,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
 
       {/* Desktop: lista de conversaciones del canal + empty right */}
       <div className="hidden flex-1 overflow-hidden md:flex">
-        <div className="w-80 shrink-0 overflow-auto border-r border-gray-200 bg-gray-50">
+        <div className="w-[420px] shrink-0 overflow-auto border-r border-gray-200 bg-white">
           <ConversationList channel={channel} />
         </div>
         <div className="flex flex-1 items-center justify-center bg-gray-50">

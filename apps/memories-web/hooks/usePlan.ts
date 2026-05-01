@@ -14,6 +14,8 @@ import {
   type SubscriptionTier,
 } from '@bodasdehoy/shared/plans';
 
+import { resolvePublicMcpGraphqlUrl } from '../utils/endpoints';
+
 // ========================================
 // TYPES
 // ========================================
@@ -58,7 +60,7 @@ export interface UsePlanReturn {
 // API2 GraphQL calls
 // ========================================
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+const API2_URL = resolvePublicMcpGraphqlUrl();
 const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy').trim();
 
 async function graphqlQuery<T>(query: string, variables?: Record<string, unknown>, token?: string | null): Promise<T> {

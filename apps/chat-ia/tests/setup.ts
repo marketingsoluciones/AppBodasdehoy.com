@@ -7,11 +7,34 @@ import 'fake-indexeddb/auto';
 import React from 'react';
 import { vi } from 'vitest';
 
+const createMemoryStorage = () => {
+  let store: Record<string, string> = {};
+  return {
+    clear: () => { store = {}; },
+    getItem: (key: string) => (Object.prototype.hasOwnProperty.call(store, key) ? store[key] : null),
+    key: (index: number) => Object.keys(store)[index] ?? null,
+    get length() { return Object.keys(store).length; },
+    removeItem: (key: string) => { delete store[key]; },
+    setItem: (key: string, value: string) => { store[key] = String(value); },
+  };
+};
+
+const g = globalThis as any;
+if (!g.localStorage || typeof g.localStorage.getItem !== 'function' || typeof g.localStorage.clear !== 'function') {
+  g.localStorage = createMemoryStorage();
+}
+if (!g.sessionStorage || typeof g.sessionStorage.getItem !== 'function' || typeof g.sessionStorage.clear !== 'function') {
+  g.sessionStorage = createMemoryStorage();
+}
+
 // Global mock for @/const/agents to avoid loading the full system role string in tests
 vi.mock('@/const/agents/defaultCopilotSystemRole', () => ({
   DEFAULT_COPILOT_SYSTEM_ROLE: 'mock-system-role',
   DEFAULT_OPENING_MESSAGE: 'mock-opening-message',
   DEFAULT_OPENING_QUESTIONS: [],
+  getOpeningMessageForDevelopment: () => 'mock-opening-message',
+  getOpeningQuestionsForDevelopment: () => [],
+  getSystemRoleForDevelopment: () => 'mock-system-role',
 }));
 
 // Global mock for @lobehub/analytics/react to avoid AnalyticsProvider dependency

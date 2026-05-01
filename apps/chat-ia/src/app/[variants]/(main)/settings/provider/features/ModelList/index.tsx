@@ -148,7 +148,7 @@ const ModelList = memo<ModelListProps>(
     const theme = useTheme();
 
     return (
-      <ProviderSettingsContext
+      <ProviderSettingsContext.Provider
         value={{ modelEditable, sdkType, showAddNewModel, showDeployName, showModelFetcher }}
       >
         <Flexbox
@@ -169,7 +169,7 @@ const ModelList = memo<ModelListProps>(
             <Content id={id} />
           </Suspense>
         </Flexbox>
-      </ProviderSettingsContext>
+      </ProviderSettingsContext.Provider>
     );
   },
 );

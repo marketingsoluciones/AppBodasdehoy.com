@@ -34,12 +34,15 @@ function getTestSuiteUrl() {
 
 function getBackendUrl() {
   const envFile = path.join(PROJECT_ROOT, 'apps/appEventos/.env.production');
-  let backendUrl = 'https://api-ia.bodasdehoy.com';
+  let backendUrl = 'https://api3-ia.eventosorganizador.com';
   
   if (fs.existsSync(envFile)) {
     try {
       const content = fs.readFileSync(envFile, 'utf-8');
-      const match = content.match(/^PYTHON_BACKEND_URL=(.+)$/m);
+      const match =
+        content.match(/^API_IA_URL=(.+)$/m) ||
+        content.match(/^PYTHON_BACKEND_URL=(.+)$/m) ||
+        content.match(/^BACKEND_URL=(.+)$/m);
       if (match) {
         backendUrl = match[1].trim().replace(/['"]/g, '');
       }

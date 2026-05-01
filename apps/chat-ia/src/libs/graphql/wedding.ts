@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
  * GraphQL Queries y Mutations para Wedding Web Creator
  * ====================================================
  * Según guía de implementación backend - 14 de Diciembre 2025
- * Endpoint: https://api2.eventosorganizador.com/graphql
+ * Endpoint: https://api3-mcp-graphql.eventosorganizador.com/graphql
  */
 
 // ========================================

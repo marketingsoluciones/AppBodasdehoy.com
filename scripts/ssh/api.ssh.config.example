@@ -1,0 +1,11 @@
+Host mcp mcp-graphql
+  HostName api3-mcp-graphql.eventosorganizador.com
+  User TU_USUARIO
+  IdentityFile ~/.ssh/TU_KEY_LEADSCARAP
+  IdentitiesOnly yes
+
+Host ia
+  HostName api3-ia.eventosorganizador.com
+  User TU_USUARIO
+  IdentityFile ~/.ssh/TU_KEY_LEADSCARAP
+  IdentitiesOnly yes

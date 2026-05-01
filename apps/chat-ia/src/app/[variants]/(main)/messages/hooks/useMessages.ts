@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
-import { getWhatsAppMessagesGQL } from '@/services/api2/whatsapp';
+import { getWhatsAppMessagesGQL } from '@/services/mcpApi/whatsapp';
 import { buildHeaders, parseWhatsAppConversationId } from '../utils/auth';
 import { useMessageStream } from './useMessageStream';
 import type { StreamMessage } from './useMessageStream';
@@ -15,8 +15,10 @@ export interface Message {
     type: 'image' | 'file';
     url: string;
   }>;
+  author?: string;
   fromUser: boolean;
   id: string;
+  kind?: 'message' | 'internal_note';
   status?: 'sent' | 'delivered' | 'read';
   text: string;
   timestamp: string;
@@ -27,19 +29,19 @@ function buildFetchUrl(channel: string, conversationId: string): string | null {
     const parsed = parseWhatsAppConversationId(conversationId);
     if (!parsed) return null;
     const { dev, jid } = parsed;
-    return `/api/messages/whatsapp/conversations/${dev}/${encodeURIComponent(jid)}/messages`;
+    return `/api/messages/whatsapp/conversations/${encodeURIComponent(dev)}/${encodeURIComponent(jid)}/messages`;
   }
   return `/api/messages/conversations/${encodeURIComponent(conversationId)}`;
 }
 
 function normalizeMessage(msg: any): Message {
-  // Direction detection — covers: REST Baileys (fromMe bool), api2 GraphQL (emitUserUid),
+  // Direction detection — covers: REST Baileys (fromMe bool), MCP GraphQL (emitUserUid),
   // api-ia normalized (direction string), legacy (fromUser bool)
   let fromUser: boolean;
   if (msg.direction !== undefined) {
     fromUser = msg.direction === 'INBOUND';
   } else if (typeof msg.fromMe === 'boolean') {
-    // Baileys / api2 WhatsApp: fromMe=true means WE sent it
+    // Baileys / MCP WhatsApp: fromMe=true means WE sent it
     fromUser = !msg.fromMe;
   } else {
     fromUser = msg.fromUser !== false;
@@ -50,14 +52,14 @@ function normalizeMessage(msg: any): Message {
     fromUser,
     id: msg.id || msg.messageId || msg._id || `msg_${Date.now()}_${Math.random()}`,
     status: msg.status || 'read',
-    // Field variants: api-ia 'text', Baileys 'body', api2 graphql 'message', generic 'content'
+    // Field variants: api-ia 'text', Baileys 'body', MCP graphql 'message', generic 'content'
     text: msg.text || msg.body || msg.message || msg.content || '',
-    // Timestamp variants: ISO string, Unix seconds (Baileys), Float ms (api2 graphql)
+    // Timestamp variants: ISO string, Unix seconds (Baileys), Float ms (MCP graphql)
     timestamp: (() => {
       const raw = msg.timestamp || msg.createdAt;
       if (!raw) return new Date().toISOString();
       if (typeof raw === 'number') {
-        // Baileys uses Unix seconds; api2 createdAt is Float ms
+        // Baileys uses Unix seconds; MCP createdAt is Float ms
         return new Date(raw < 1e12 ? raw * 1000 : raw).toISOString();
       }
       return raw;
@@ -81,7 +83,7 @@ export function useMessages(channel: string, conversationId: string) {
       return;
     }
 
-    // GraphQL native store path (api2) — used when external WA service is down
+    // GraphQL native store path (MCP) — used when external WA service is down
     if (conversationId.startsWith('gql:')) {
       const gqlId = conversationId.slice(4);
       try {

@@ -11,7 +11,7 @@ function buildSendUrl(channel: string, conversationId: string): string | null {
     if (!parsed) return null;
     const { dev, jid } = parsed;
     const to = jidToPhone(jid);
-    return `/api/messages/whatsapp/conversations/${dev}/${encodeURIComponent(to)}/send`;
+    return `/api/messages/whatsapp/conversations/${encodeURIComponent(dev)}/${encodeURIComponent(to)}/send`;
   }
   return `/api/messages/send`;
 }

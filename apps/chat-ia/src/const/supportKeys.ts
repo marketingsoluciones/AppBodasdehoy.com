@@ -6,7 +6,7 @@
  * 
  * Cada developer tiene su propio token único.
  * 
- * @see https://api2.eventosorganizador.com/graphql
+ * @see https://api3-mcp-graphql.eventosorganizador.com/graphql
  */
 
 export const SUPPORT_KEYS: Record<string, string> = {
@@ -31,4 +31,3 @@ export const SUPPORT_KEYS: Record<string, string> = {
 export const getSupportKey = (development: string): string => {
   return SUPPORT_KEYS[development] || SUPPORT_KEYS['bodasdehoy'];
 };
-

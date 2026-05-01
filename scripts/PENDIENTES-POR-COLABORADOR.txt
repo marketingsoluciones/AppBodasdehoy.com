@@ -1,8 +1,8 @@
-# Pendientes con api-ia / API2 (según `#copilot-api-ia`, última lectura 2026-03-20)
+# Pendientes con api-ia / MCP (según `#copilot-api-ia`, última lectura 2026-03-20)
 
 **Claro “nosotros vs ellos”:** ver `scripts/PENDIENTES-NOSOTROS-VS-ELLOS.txt` o ejecutar `pnpm pendientes`.
 
-El canal mezcla mensajes **Front ↔ api-ia** y algunos **Front → API2** (cuando piden intervención de `api2.eventosorganizador.com`).
+El canal mezcla mensajes **Front ↔ api-ia** y algunos **Front → MCP** (cuando piden intervención de `api3-mcp-graphql.eventosorganizador.com`).
 
 ---
 
@@ -27,12 +27,12 @@ El canal mezcla mensajes **Front ↔ api-ia** y algunos **Front → API2** (cuan
 
 ---
 
-## Pendiente con **API2** (backend `api2.eventosorganizador.com`)
+## Pendiente con **MCP** (backend `api3-mcp-graphql.eventosorganizador.com`)
 
 | # | Tema | Nota |
 |---|------|------|
-| 1 | **R2 / `uploadCRMEntityFile`** — `Storage no configurado para este development` (**bodasdehoy**) | Mensaje ~19 mar: pedís confirmar que **fallback whitelabel** está en **producción** real. **No es api-ia**; es API2 / storage. |
-| 2 | Resto coordinación API2 | *OK sin bloqueos* o incidencia con **4 datos** si hay fallo (ver `REFERENCIA-CHECKLIST-API2-Y-NUESTRA-RESPUESTA.md`). |
+| 1 | **R2 / `uploadCRMEntityFile`** — `Storage no configurado para este development` (**bodasdehoy**) | Mensaje ~19 mar: pedís confirmar que **fallback whitelabel** está en **producción** real. **No es api-ia**; es MCP / storage. |
+| 2 | Resto coordinación MCP | *OK sin bloqueos* o incidencia con **4 datos** si hay fallo (ver `REFERENCIA-CHECKLIST-MCP-Y-NUESTRA-RESPUESTA.md`). |
 
 ---
 
@@ -40,19 +40,19 @@ El canal mezcla mensajes **Front ↔ api-ia** y algunos **Front → API2** (cuan
 
 - [ ] **Deploy prod** si aún no está: `X-Request-ID` RAG, `X-User-Role` vía `AUTH_CONFIG`, etc.
 - [ ] **Smoke** Copilot tras deploy.
-- [ ] Si **API2** contesta sobre R2: re-probar upload y cerrar o escalar con **4 datos**.
+- [ ] Si **MCP** contesta sobre R2: re-probar upload y cerrar o escalar con **4 datos**.
 
 ---
 
 ## Resumen una línea
 
 - **api-ia:** lobechat-kb *evidencia* cerrada; lo que **sigue vivo** es sobre todo **providers / Leads / embeddings 200**.
-- **API2:** lo que **sigue vivo** en el canal es **R2 CRM upload** para `bodasdehoy`, no el hilo lobechat-kb.
+- **MCP:** lo que **sigue vivo** en el canal es **R2 CRM upload** para `bodasdehoy`, no el hilo lobechat-kb.
 
 ---
 
 ## Próxima acción sugerida (2026-03-20+)
 
 1. **Deploy** chat-ia + appEventos con últimos merges (RAG + `userRole`).
-2. **Slack:** recordatorio único a api-ia — bugs 24 feb + Leads; a API2 — R2 bodasdehoy (`scripts/slack-mensaje-pendientes-sintesis.txt`).
-3. Tras respuesta API2: re-probar upload CRM o mandar **4 datos** si sigue fallando.
+2. **Slack:** recordatorio único a api-ia — bugs 24 feb + Leads; a MCP — R2 bodasdehoy (`scripts/slack-mensaje-pendientes-sintesis.txt`).
+3. Tras respuesta MCP: re-probar upload CRM o mandar **4 datos** si sigue fallando.

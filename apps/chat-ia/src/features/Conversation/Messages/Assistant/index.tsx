@@ -99,6 +99,8 @@ const AssistantMessage = memo<AssistantMessageProps>((props) => {
 
   // remove line breaks in artifact tag to make the ast transform easier
   const message = !editing ? normalizeThinkTags(processWithArtifact(content)) : content;
+  const hasCodeFence = typeof message === 'string' && message.includes('```');
+  const hasMermaidFence = hasCodeFence && typeof message === 'string' && message.includes('```mermaid');
 
   // when the message is in RAG flow or the AI generating, it should be in loading state
   const loading = isInRAGFlow || generating;
@@ -153,20 +155,22 @@ const AssistantMessage = memo<AssistantMessageProps>((props) => {
       animated,
       citations: search?.citations,
       componentProps: {
-        highlight: {
-          actionsRender: ({ content, actionIconSize, language, originalNode }: any) => {
-            const showHtmlPreview = isHtmlCode(content, language);
+        highlight: hasCodeFence
+          ? {
+              actionsRender: ({ content, actionIconSize, language, originalNode }: any) => {
+                const showHtmlPreview = isHtmlCode(content, language);
 
-            return (
-              <>
-                {showHtmlPreview && <HtmlPreviewAction content={content} size={actionIconSize} />}
-                {originalNode}
-              </>
-            );
-          },
-          theme: highlighterTheme,
-        },
-        mermaid: { theme: mermaidTheme },
+                return (
+                  <>
+                    {showHtmlPreview && <HtmlPreviewAction content={content} size={actionIconSize} />}
+                    {originalNode}
+                  </>
+                );
+              },
+              theme: highlighterTheme,
+            }
+          : undefined,
+        mermaid: hasMermaidFence ? { theme: mermaidTheme } : undefined,
       },
       components,
       enableCustomFootnotes: true,
@@ -179,7 +183,7 @@ const AssistantMessage = memo<AssistantMessageProps>((props) => {
         // if the citations's url and title are all the same, we should not show the citations
         search?.citations.every((item) => item.title !== item.url),
     }),
-    [animated, components, role, search, highlighterTheme, mermaidTheme],
+    [animated, components, role, search, highlighterTheme, mermaidTheme, hasCodeFence, hasMermaidFence],
   );
 
   const [isInbox] = useSessionStore((s) => [sessionSelectors.isInboxSession(s)]);

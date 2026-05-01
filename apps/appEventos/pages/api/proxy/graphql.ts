@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
+import { resolveApiBodasGraphqlUrl } from '../../../utils/apiEndpoints';
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,9 +12,9 @@ export default async function handler(
   }
 
   try {
-    // GraphQL → api-mcp (servidor con fixes de seguridad)
-    // NEXT_PUBLIC_BASE_URL se mantiene solo para imágenes/assets
-    const baseURL = process.env.API_MCP_GRAPHQL_URL?.replace(/\/graphql\/?$/i, '') || 'https://api3-mcp-graphql.eventosorganizador.com';
+    // Unificado: siempre va a api3-mcp (misma ruta que proxy-bodas)
+    const graphqlUrl = resolveApiBodasGraphqlUrl();
+    const baseURL = graphqlUrl.replace(/\/graphql\/?$/i, '');
 
     // Extraer headers necesarios del request original
     const headers: any = {

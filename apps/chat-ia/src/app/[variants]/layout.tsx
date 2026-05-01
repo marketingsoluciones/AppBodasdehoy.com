@@ -61,7 +61,7 @@ const RootLayout = async ({ children, params, modal }: RootLayoutProps) => {
   // URLs de APIs externas para preconnect
   const backendUrl =
     process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api-ia.bodasdehoy.com';
-  const api2Url = 'https://api2.eventosorganizador.com';
+  const api2Url = 'https://api3-mcp-graphql.eventosorganizador.com';
 
   return (
     <div dir={direction} lang={locale} style={{ display: 'flex', flexDirection: 'column', height: '100dvh' }} suppressHydrationWarning>

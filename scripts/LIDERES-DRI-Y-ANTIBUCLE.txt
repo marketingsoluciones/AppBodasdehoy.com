@@ -1,0 +1,56 @@
+================================================================================
+  LÍDERES (DRI) + REGLAS ANTI-BUCLE — Bodasdehoy / MCP / api-ia / Infra
+  Fuente de verdad de *proceso* (nombres/@: en Slack pinnado, no en git).
+  Última revisión: 2026-04-18
+================================================================================
+
+QUÉ ES ESTO
+-----------
+  Evitar “muchas rondas” sin dueño ni fecha. Cada *stream* tiene *un* DRI que
+  responde con *una plantilla*. El front no re-solicita el mismo P0 hasta que
+  cambie el estado o venza el ETA acordado.
+
+HILO MAESTRO (P0 — abril 2026)
+------------------------------
+  • Un solo hilo en #api-ia-api2-sync para: socket + enum suscripción + R2 CRM.
+  • No abrir hilos paralelos del mismo P0 sin enlace al hilo maestro.
+  • #copilot-api-ia = visibilidad api-ia + front; *decisión* P0 GraphQL/R2/infra
+    en el hilo maestro (o canal que elijáis, pero *uno*).
+
+DRI POR STREAM (rellenar nombres en Slack / mensaje pinnado)
+-------------------------------------------------------------
+  Los *roles* son fijos; los *nombres* los fija la org en Slack.
+
+  Stream                        Rol DRI (quién debe existir)     Cuenta R/A
+  ----------------------------- -------------------------------- ------------
+  Socket (BASE api-ia + DNS)    Infra (edge) + api-ia (ASGI+CORS) R/A cada uno
+  GraphQL MCP enum + deploy      Equipo / contacto MCP            R/A
+  R2 / storage CRM bodasdehoy     Equipo / contacto MCP            R/A
+  Bugs backend chat ~24 feb      Equipo api-ia                    R/A
+  Deploy + env front bodasdehoy  Quien release appEventos+chat  R/A
+  Producto / prioridad P0        Product owner / CTO (vuestra org) A (prioriza)
+
+PLANTILLA OBLIGATORIA (cada respuesta en hilo maestro — copiar y rellenar)
+-------------------------------------------------------------------------
+  *Stream:* (socket | enum-suscripcion | R2-CRM | bugs-api-ia)
+  *DRI:* @persona o nombre
+  *Estado:* BLOQUEADO | EN CURSO | LISTO
+  *ETA o fecha LISTO:* (fecha ISO o “ya LISTO”)
+  *Evidencia:* (URL deploy, captura, ticket, commit — sin tokens)
+
+REGLAS ANTI-BUCLE
+-----------------
+  1) Sin plantilla = no cuenta como “coordinado”; se pide *una* vez rellenarla.
+  2) Misma pregunta: *no* reenviar si el ETA no ha vencido; sí actualizar si
+     hay *nuevo* bloqueo o *nuevo* dato (deploy, URL, error distinto).
+  3) Front (repo): código y env ya preparados; *no* es DRI de socket ni de
+     resolver GraphQL en servidor MCP.
+  4) Si *72 h* sin respuesta en hilo P0: escalado a quien tenga *A* de
+     producto/CTO en vuestra tabla interna (fuera de este archivo).
+
+ENLACES A REPO (detalle técnico)
+--------------------------------
+  • scripts/PENDIENTES-NOSOTROS-VS-ELLOS.txt — urgencia, definición cerrado.
+  • scripts/COORDINACION-EQUIPOS-MCP-IA.txt — RACI + escalado.
+  • scripts/slack-mensaje-mcp-sync-operativo.txt — texto pegable P0.
+  • scripts/SIGUIENTE-PASO.txt | OPERATIVO-CHECKLIST.txt | PENDIENTES-NOSOTROS-VS-ELLOS.txt

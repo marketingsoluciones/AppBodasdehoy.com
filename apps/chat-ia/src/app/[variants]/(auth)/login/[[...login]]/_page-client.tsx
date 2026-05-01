@@ -7,6 +7,7 @@ import { Suspense, useState } from 'react';
 
 import { LoginForm, SplitLoginPage } from '@bodasdehoy/auth-ui';
 import { developments, getDevelopmentConfig } from '@bodasdehoy/shared/types';
+import { resolvePublicMcpGraphqlUrl } from '@/const/mcpEndpoints';
 import { useChatStore } from '@/store/chat';
 import { loginWithEmailPassword, loginWithFacebook, loginWithGoogle } from '@/services/firebase-auth';
 import { optimizedApiClient } from '@/utils/api-client-optimized';
@@ -114,7 +115,7 @@ function RightPanel() {
     }
   };
 
-  const api2Url = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+  const api2Url = resolvePublicMcpGraphqlUrl();
 
   // ── Email/password ──
   const handleEmailLogin = async (email: string, password: string) => {
@@ -323,7 +324,7 @@ function RightPanel() {
                 disabled={waLoading}
                 inputMode="numeric"
                 maxLength={8}
-                onChange={(e) => setWaCode(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => setWaCode(e.target.value.replaceAll(/\D/g, ''))}
                 placeholder="123456"
                 style={{ ...inputStyle, fontSize: 20, letterSpacing: 6, textAlign: 'center' }}
                 type="text"
@@ -436,7 +437,7 @@ function LoginContent() {
 const LoginPageClient = () => (
   <>
     {/* Script SSO: detecta idTokenV0.1.0 y autentica sin React useEffect */}
-    <Script id="sso-check" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: SSO_SCRIPT }} />
+    <Script dangerouslySetInnerHTML={{ __html: SSO_SCRIPT }} id="sso-check" strategy="afterInteractive" />
     <Suspense
       fallback={
         <div style={{ alignItems: 'center', background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)', display: 'flex', justifyContent: 'center', minHeight: '100vh' }}>

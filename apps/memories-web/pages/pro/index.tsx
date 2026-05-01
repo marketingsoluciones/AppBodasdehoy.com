@@ -10,7 +10,9 @@ import { TIER_COLORS } from '@bodasdehoy/shared/plans';
 import { trackPlanView, trackSubscriptionStarted } from '@bodasdehoy/shared';
 import WeddingDetailsModal, { type WeddingDetails } from '../../components/checkout/WeddingDetailsModal';
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+import { resolvePublicMcpGraphqlUrl } from '../../utils/endpoints';
+
+const API2_URL = resolvePublicMcpGraphqlUrl();
 const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy').trim();
 
 // Static feature map (matches DB plan_ids)

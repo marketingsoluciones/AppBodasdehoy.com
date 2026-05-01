@@ -7,11 +7,12 @@ import { motion } from "framer-motion"
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import { defaultImagenes } from "../../components/Home/Card";
 import { TaskNew } from "../../components/Servicios/VistaTarjeta/TaskNew";
-import { openGraphData } from "../_app";
 import { TimeZone } from "../../components/icons";
 import { getTimeZoneCity } from "../../utils/FormatTime";
 import { useTranslation } from "react-i18next";
 import { BsCalendarPlus } from "react-icons/bs";
+import { NextSeo } from "next-seo";
+import { resolveApiAppBaseUrl } from '@bodasdehoy/shared/utils';
 
 interface props {
   evento: Event | null
@@ -25,7 +26,7 @@ interface TaskReduce {
   tasks?: Task[]
 }
 
-const apiAppImgBase = (process.env.NEXT_PUBLIC_BASE_URL || "https://apiapp.bodasdehoy.com").replace(/\/$/, "");
+const apiAppImgBase = resolveApiAppBaseUrl();
 
 const PublicItineraryUnavailable = ({ title, body }: { title: string; body: string }) => (
   <div className="min-h-[60vh] w-full flex flex-col items-center justify-center px-6 py-16 text-center bg-base">
@@ -41,20 +42,8 @@ const Slug: FC<props> = (props) => {
   const [end, setEnd] = useState(false)
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
   const { t } = useTranslation()
-
-  if (props?.error) {
-    const isSlug = props.error === "invalid-slug"
-    return (
-      <PublicItineraryUnavailable
-        title={isSlug ? "Enlace no válido" : "No se pudo cargar el itinerario"}
-        body={
-          isSlug
-            ? "La dirección del itinerario está incompleta o mal formada. Comprueba que hayas abierto el enlace completo."
-            : "Hubo un problema al obtener los datos. Puede ser temporal: prueba de nuevo en unos minutos."
-        }
-      />
-    )
-  }
+  const hasError = Boolean(props?.error)
+  const isSlug = props.error === "invalid-slug"
 
   /** Si eventsGroup está vacío (invitado en ruta pública), EventContext hace setEvent(null) al cambiar user; no perder el SSR. */
   const effectiveEvent = useMemo(() => {
@@ -63,11 +52,18 @@ const Slug: FC<props> = (props) => {
     return null
   }, [event, props.evento])
 
+  const seoTitle =
+    (effectiveEvent?.itinerarios_array?.[0]?.title as any) || "Itinerario"
+  const seoDescription = effectiveEvent?.nombre
+    ? `Mira el itinerario del evento ${effectiveEvent.nombre} y no te pierdas de nada`
+    : "Itinerario público"
+
   const slugParts = props?.slug?.[0]?.split("-") || []
   const eventId = slugParts[1]
   const itinerarioId = slugParts[2]
 
   useEffect(() => {
+    if (hasError) return
     const ev = props?.evento
     if (!ev?.itinerarios_array?.[0]) return
     const it0 = ev.itinerarios_array[0]
@@ -76,7 +72,7 @@ const Slug: FC<props> = (props) => {
       ...ev,
       itinerarios_array: [{ ...it0, tasks }, ...ev.itinerarios_array.slice(1)],
     })
-  }, [props.evento, setEvent])
+  }, [hasError, props.evento, setEvent])
 
   useEffect(() => {
     setTimeout(() => {
@@ -85,6 +81,7 @@ const Slug: FC<props> = (props) => {
   }, [])
 
   useEffect(() => {
+    if (hasError) return
     const ev = effectiveEvent
     if (ev?.itinerarios_array?.[0]?.tasks?.length > 0) {
       const tasks = [ev?.itinerarios_array?.[0]?.tasks?.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())]
@@ -106,14 +103,29 @@ const Slug: FC<props> = (props) => {
     } else {
       setTasksReduce([])
     }
-  }, [effectiveEvent])
+  }, [effectiveEvent, hasError])
+
+  if (hasError) {
+    return (
+      <>
+        <NextSeo title={seoTitle} description={seoDescription} openGraph={{ title: seoTitle, description: seoDescription }} />
+        <PublicItineraryUnavailable
+          title={isSlug ? t("publicItineraryInvalidLinkTitle") : t("publicItineraryLoadErrorTitle")}
+          body={isSlug ? t("publicItineraryInvalidLinkBody") : t("publicItineraryLoadErrorBody")}
+        />
+      </>
+    )
+  }
 
   if (!props?.evento?.itinerarios_array?.length) {
     return (
-      <PublicItineraryUnavailable
-        title="Itinerario no disponible"
-        body="No encontramos un itinerario público con este enlace. Puede haberse despublicado, el evento haber cambiado o el enlace ser antiguo."
-      />
+      <>
+        <NextSeo title={seoTitle} description={seoDescription} openGraph={{ title: seoTitle, description: seoDescription }} />
+        <PublicItineraryUnavailable
+          title="Itinerario no disponible"
+          body="No encontramos un itinerario público con este enlace. Puede haberse despublicado, el evento haber cambiado o el enlace ser antiguo."
+        />
+      </>
     )
   }
 
@@ -240,8 +252,6 @@ export async function getServerSideProps({ params, req }) {
       }
     }
     if (evento) {
-      openGraphData.openGraph.title = `${evento?.itinerarios_array?.[0]?.title || "Itinerario"}`
-      openGraphData.openGraph.description = `Mira el itinerario del evento ${evento?.nombre} y no te pierdas de nada`
     }
     return {
       props: {

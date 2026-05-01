@@ -5,7 +5,7 @@ import { memo, useCallback, useEffect, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
 import RechargeModal from '@/components/Wallet/RechargeModal';
-import { walletService } from '@/services/api2/wallet';
+import { walletService } from '@/services/mcpApi/wallet';
 import { useChatStore } from '@/store/chat';
 
 const allowNegativeBalance = process.env.NEXT_PUBLIC_ALLOW_NEGATIVE_BALANCE === 'true';

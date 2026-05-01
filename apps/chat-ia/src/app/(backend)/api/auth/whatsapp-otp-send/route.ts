@@ -73,13 +73,13 @@ export async function POST(request: NextRequest) {
     console.error(`[whatsapp-otp-send] Twilio error code=${code}:`, message);
 
     // Errores conocidos de Twilio
-    if (code === 60200) {
+    if (code === 60_200) {
       return NextResponse.json(
         { detail: 'Número de teléfono inválido.' },
         { status: 400 },
       );
     }
-    if (code === 60203) {
+    if (code === 60_203) {
       return NextResponse.json(
         { detail: 'Demasiados intentos. Espera unos minutos.' },
         { status: 429 },

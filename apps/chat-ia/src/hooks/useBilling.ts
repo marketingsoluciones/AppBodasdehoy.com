@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   Invoice,
@@ -10,8 +10,9 @@ import {
   Subscription,
   UsageStats,
   invoicesService,
-} from '@/services/api2/invoices';
+} from '@/services/mcpApi/invoices';
 import { useChatStore } from '@/store/chat';
+import { safeLocalStorage } from '@/utils/safeLocalStorage';
 
 // ========================================
 // TYPES
@@ -67,6 +68,30 @@ export interface UseBillingReturn extends UseBillingState, UseBillingActions {}
 export const useBilling = (): UseBillingReturn => {
   const currentUserId = useChatStore((s) => s.currentUserId);
   const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
+  const bootRetryRef = useRef(false);
+
+  const hasApi2Token = useCallback(() => {
+    if (typeof window === 'undefined') return false;
+
+    const directToken = safeLocalStorage.getItem('jwt_token');
+    if (directToken) return true;
+
+    const firebaseToken = safeLocalStorage.getItem('api2_jwt_token');
+    if (firebaseToken) return true;
+
+    const cache = safeLocalStorage.getItem('jwt_token_cache');
+    if (!cache) return false;
+
+    try {
+      const parsed = JSON.parse(cache);
+      const token = parsed?.token;
+      const expiresAt = parsed?.expiresAt;
+      if (!token || !expiresAt) return false;
+      return Date.now() < Number(expiresAt);
+    } catch {
+      return false;
+    }
+  }, []);
 
   // Invoices state
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -247,9 +272,30 @@ export const useBilling = (): UseBillingReturn => {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    fetchSubscription();
-    fetchUsageStats('THIS_MONTH');
-  }, [isAuthenticated, fetchSubscription, fetchUsageStats]);
+    bootRetryRef.current = false;
+
+    const run = () => {
+      if (!hasApi2Token()) return;
+      fetchSubscription();
+      fetchUsageStats('THIS_MONTH');
+    };
+
+    run();
+    if (hasApi2Token()) return;
+
+    if (bootRetryRef.current) return;
+    bootRetryRef.current = true;
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const id = (window as any).requestIdleCallback(run, { timeout: 2000 });
+      return () => {
+        (window as any).cancelIdleCallback?.(id);
+      };
+    }
+
+    const t = setTimeout(run, 1500);
+    return () => clearTimeout(t);
+  }, [isAuthenticated, fetchSubscription, fetchUsageStats, hasApi2Token]);
 
   // ========================================
   // RETURN
