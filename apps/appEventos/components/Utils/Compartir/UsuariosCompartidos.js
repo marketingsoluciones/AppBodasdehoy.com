@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ClickAwayListener from "react-click-away-listener"
 import { AuthContextProvider } from "../../../context";
 import { ImageAvatar } from "../ImageAvatar"
@@ -9,6 +9,15 @@ import { FaCrown } from "react-icons/fa"
 export const UsuariosCompartidos = ({ event }) => {
     const { user } = AuthContextProvider()
     const [open, setOpen] = useState(false)
+    const [isMobile, setIsMobile] = useState(false)
+
+    useEffect(() => {
+        if (typeof window === "undefined") return
+        const check = () => setIsMobile(window.innerWidth < 768)
+        check()
+        window.addEventListener("resize", check)
+        return () => window.removeEventListener("resize", check)
+    }, [])
 
     const getOnlineInfo = (onLine) => {
         if (typeof onLine === "boolean") return { status: onLine, date: 0 }
@@ -116,73 +125,124 @@ export const UsuariosCompartidos = ({ event }) => {
                 <ClickAwayListener onClickAway={() => setOpen(false)}>
                     <div className="absolute top-full right-0 mt-2 w-[680px] max-w-[calc(100vw-16px)] bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
                         <div className="max-h-72 overflow-auto">
-                            <div className="sticky top-0 bg-white border-b border-gray-100">
-                                <div className="flex items-center gap-2 px-3 py-2">
-                                    <div className="w-56 text-xs font-semibold text-gray-600">Personas con acceso</div>
-                                    <div className="flex-1 overflow-x-auto">
-                                        <div className="inline-flex gap-2">
-                                            {permissionColumns.map((c) => (
-                                                <div key={c.title} className="w-10 text-[11px] font-semibold text-gray-500 text-center">
-                                                    {c.label}
-                                                </div>
-                                            ))}
+
+                            {/* ─── Desktop: tabla por columnas ─── */}
+                            <div className="hidden md:block">
+                                <div className="sticky top-0 bg-white border-b border-gray-100">
+                                    <div className="flex items-center gap-2 px-3 py-2">
+                                        <div className="w-56 text-xs font-semibold text-gray-600">Personas con acceso</div>
+                                        <div className="flex-1 overflow-x-auto">
+                                            <div className="inline-flex gap-2">
+                                                {permissionColumns.map((c) => (
+                                                    <div key={c.title} className="w-10 text-[11px] font-semibold text-gray-500 text-center">
+                                                        {c.label}
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            {sharedUsers.slice().reverse().map((u, idx) => {
-                                const isOwner = u?.uid && u?.uid === event?.usuario_id
-                                const counts = getPermissionCounts(u)
-                                return (
-                                    <div key={idx} className="flex items-center gap-2 px-3 py-2 border-b border-gray-50 last:border-b-0">
-                                        <div className="flex items-center gap-2 min-w-0 w-56">
-                                            <div className="bg-gray-300 rounded-full w-8 h-8 flex items-center justify-center border relative shrink-0">
-                                                <ImageAvatar user={u} />
-                                                <div className={`h-2.5 w-2.5 ${getOnlineInfo(u?.onLine).status ? "bg-green" : "bg-none"} absolute rounded-full right-0.5 -bottom-0.5`} />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <div className="text-sm text-gray-700 font-medium truncate">
-                                                    {u?.displayName || u?.email || "Usuario"}
+                                {sharedUsers.slice().reverse().map((u, idx) => {
+                                    const isOwner = u?.uid && u?.uid === event?.usuario_id
+                                    const counts = getPermissionCounts(u)
+                                    return (
+                                        <div key={idx} className="flex items-center gap-2 px-3 py-2 border-b border-gray-50 last:border-b-0">
+                                            <div className="flex items-center gap-2 min-w-0 w-56">
+                                                <div className="bg-gray-300 rounded-full w-8 h-8 flex items-center justify-center border relative shrink-0">
+                                                    <ImageAvatar user={u} />
+                                                    <div className={`h-2.5 w-2.5 ${getOnlineInfo(u?.onLine).status ? "bg-green" : "bg-none"} absolute rounded-full right-0.5 -bottom-0.5`} />
                                                 </div>
-                                                {u?.email && (
-                                                    <div className="text-xs text-gray-500 truncate">{u.email}</div>
+                                                <div className="min-w-0">
+                                                    <div className="text-sm text-gray-700 font-medium truncate">
+                                                        {u?.displayName || u?.email || "Usuario"}
+                                                    </div>
+                                                    {u?.email && (
+                                                        <div className="text-xs text-gray-500 truncate">{u.email}</div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="flex-1 overflow-x-auto">
+                                                <div className="inline-flex gap-2">
+                                                    {permissionColumns.map((c) => {
+                                                        const value = isOwner ? "edit" : getPermissionValue(u, c.title)
+                                                        return (
+                                                            <div key={c.title} className="w-10 flex items-center justify-center">
+                                                                <PermissionCell value={value} />
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 pl-2 shrink-0">
+                                                {isOwner ? (
+                                                    <span className="flex items-center gap-1 px-2 py-1 bg-yellow-50 border border-yellow-200 rounded-md">
+                                                        <FaCrown className="w-3 h-3 text-yellow-600" />
+                                                        <span className="text-xs text-yellow-700 font-medium">Propietario</span>
+                                                    </span>
+                                                ) : (
+                                                    <>
+                                                        <span className="flex items-center gap-1 px-2 py-1 bg-blue-50 border border-blue-200 rounded-md">
+                                                            <IoEyeOutline className="w-3 h-3 text-blue-600" />
+                                                            <span className="text-xs text-blue-700 font-medium">{counts.view}</span>
+                                                        </span>
+                                                        <span className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded-md">
+                                                            <MdOutlineEdit className="w-3 h-3 text-green-600" />
+                                                            <span className="text-xs text-green-700 font-medium">{counts.edit}</span>
+                                                        </span>
+                                                    </>
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="flex-1 overflow-x-auto">
-                                            <div className="inline-flex gap-2">
-                                                {permissionColumns.map((c) => {
-                                                    const value = isOwner ? "edit" : getPermissionValue(u, c.title)
-                                                    return (
-                                                        <div key={c.title} className="w-10 flex items-center justify-center">
-                                                            <PermissionCell value={value} />
-                                                        </div>
-                                                    )
-                                                })}
+                                    )
+                                })}
+                            </div>
+
+                            {/* ─── Mobile: tarjetas apiladas ─── */}
+                            <div className="md:hidden">
+                                <div className="sticky top-0 bg-white border-b border-gray-100 px-3 py-2">
+                                    <div className="text-xs font-semibold text-gray-600">Personas con acceso</div>
+                                </div>
+                                {sharedUsers.slice().reverse().map((u, idx) => {
+                                    const isOwner = u?.uid && u?.uid === event?.usuario_id
+                                    const counts = getPermissionCounts(u)
+                                    return (
+                                        <div key={idx} className="px-3 py-2 border-b border-gray-50 last:border-b-0">
+                                            <div className="flex items-center gap-2">
+                                                <div className="bg-gray-300 rounded-full w-8 h-8 flex items-center justify-center border relative shrink-0">
+                                                    <ImageAvatar user={u} />
+                                                    <div className={`h-2.5 w-2.5 ${getOnlineInfo(u?.onLine).status ? "bg-green" : "bg-none"} absolute rounded-full right-0.5 -bottom-0.5`} />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="text-sm text-gray-700 font-medium truncate">
+                                                        {u?.displayName || u?.email || "Usuario"}
+                                                    </div>
+                                                    {u?.email && (
+                                                        <div className="text-xs text-gray-500 truncate">{u.email}</div>
+                                                    )}
+                                                </div>
+                                                {isOwner ? (
+                                                    <span className="flex items-center gap-1 px-2 py-0.5 bg-yellow-50 border border-yellow-200 rounded-md shrink-0">
+                                                        <FaCrown className="w-3 h-3 text-yellow-600" />
+                                                        <span className="text-[10px] text-yellow-700 font-medium">Creador</span>
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center gap-1 shrink-0">
+                                                        <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-50 border border-blue-200 rounded-md">
+                                                            <IoEyeOutline className="w-3 h-3 text-blue-600" />
+                                                            <span className="text-[10px] text-blue-700 font-medium">{counts.view}</span>
+                                                        </span>
+                                                        <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-green-50 border border-green-200 rounded-md">
+                                                            <MdOutlineEdit className="w-3 h-3 text-green-600" />
+                                                            <span className="text-[10px] text-green-700 font-medium">{counts.edit}</span>
+                                                        </span>
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-1.5 pl-2 shrink-0">
-                                            {isOwner ? (
-                                                <span className="flex items-center gap-1 px-2 py-1 bg-yellow-50 border border-yellow-200 rounded-md">
-                                                    <FaCrown className="w-3 h-3 text-yellow-600" />
-                                                    <span className="text-xs text-yellow-700 font-medium">Propietario</span>
-                                                </span>
-                                            ) : (
-                                                <>
-                                                    <span className="flex items-center gap-1 px-2 py-1 bg-blue-50 border border-blue-200 rounded-md">
-                                                        <IoEyeOutline className="w-3 h-3 text-blue-600" />
-                                                        <span className="text-xs text-blue-700 font-medium">{counts.view}</span>
-                                                    </span>
-                                                    <span className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded-md">
-                                                        <MdOutlineEdit className="w-3 h-3 text-green-600" />
-                                                        <span className="text-xs text-green-700 font-medium">{counts.edit}</span>
-                                                    </span>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-                                )
-                            })}
+                                    )
+                                })}
+                            </div>
+
                         </div>
                     </div>
                 </ClickAwayListener>

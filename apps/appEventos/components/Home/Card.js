@@ -344,6 +344,17 @@ const Card = ({ data, grupoStatus, idx }) => {
               <span className="mt-[-4px] uppercase text-xs font-display text-white">
                 {t(data[idx]?.estatus)}
               </span>
+              <div className="flex gap-2 mt-1">
+                {data[idx]?.invitados_array?.length > 0 && (
+                  <span className="text-white/80 text-[10px] leading-none">👥 {data[idx].invitados_array.length}</span>
+                )}
+                {data[idx]?.presupuesto_objeto && (
+                  <span className="text-white/80 text-[10px] leading-none">💰</span>
+                )}
+                {(data[idx]?.planSpace?.length > 0 || data[idx]?.mesas_array?.length > 0) && (
+                  <span className="text-white/80 text-[10px] leading-none">🪑</span>
+                )}
+              </div>
             </div>
           </div>
         </div>

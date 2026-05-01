@@ -883,78 +883,62 @@ export const queries = {
           customToken
         }
   }`,
-  eventCreate: `mutation (
-    $nombre: String,
-    $tipo: String!,
-    $fecha: String,
-    $pais: String,
-    $poblacion: String,
-    $usuario_id: String!
-    $usuario_nombre: String!
-    $timeZone: String,
-    $development: String!
-  ){
-    crearEvento(
-      nombre: $nombre,
-      tipo: $tipo,
-      fecha: $fecha,
-      pais: $pais,
-      poblacion: $poblacion,
-      usuario_id: $usuario_id,
-      usuario_nombre: $usuario_nombre,
-      timeZone: $timeZone,
-      development: $development
-    ){
-      _id
-      grupos_array
-      compartido_array
-      detalles_compartidos_array
-      estatus
-      temporada
-      tarta
-      nombre
-      fecha_actualizacion
-      fecha_creacion
-      tipo
-      usuario_id
-      usuario_nombre
-      fecha
-      galerySvgVersion
-      listaRegalos
-      poblacion
-      pais
-      timeZone
-      imgEvento
-      notificaciones_array
-      itinerarios_array
-      planSpaceSelect
-      planSpace
-      mesas_array
-      invitados {
-        id
+  eventCreate: `mutation ($input: EventoInput!) {
+    createEvento(input: $input) {
+      success
+      errors { field message }
+      evento {
+        _id
+        grupos_array
+        compartido_array
+        detalles_compartidos_array
+        estatus
+        temporada
+        tarta
         nombre
-        email
-        telefono
-        menu { id nombre precio }
-        menu_seleccion { entrada plato_principal postre bebida }
-        alergenos
-        asistencia
-        acompanantes
-        mesa
-        puesto
-        rol
-        sexo
-        grupo_edad
-        comunicaciones { tipo estado fecha mensaje_id template_name }
+        fecha_actualizacion
+        fecha_creacion
+        tipo
+        usuario_id
+        usuario_nombre
+        fecha
+        galerySvgVersion
+        listaRegalos
+        poblacion
+        pais
+        timeZone
+        imgEvento
+        notificaciones_array
+        itinerarios_array
+        planSpaceSelect
+        planSpace
+        mesas_array
+        invitados {
+          id
+          nombre
+          email
+          telefono
+          menu { id nombre precio }
+          menu_seleccion { entrada plato_principal postre bebida }
+          alergenos
+          asistencia
+          acompanantes
+          mesa
+          puesto
+          rol
+          sexo
+          grupo_edad
+          comunicaciones { tipo estado fecha mensaje_id template_name }
+        }
+        menus {
+          id
+          nombre
+          precio
+          descripcion
+        }
+        presupuesto_objeto
+        showChildrenGuest
       }
-      menus {
-        id
-        nombre
-        precio
-        descripcion
-      }
-      presupuesto_objeto
-      showChildrenGuest
     }
   }`,
 
@@ -1752,8 +1736,8 @@ export const queries = {
   getPsTemplate: `query ($evento_id:ID!, $development:String!) {
     getPsTemplate(evento_id:$evento_id, development:$development)
   }`,
-  createPsTemplate: `mutation ($eventID:ID, $planSpaceID:ID, $title:String, $uid:String ) {
-    createPsTemplate(eventID:$eventID, planSpaceID:$planSpaceID, title:$title, uid:$uid)
+  createPsTemplate: `mutation ($evento_id:ID!, $template:PsTemplateInput!) {
+    createPsTemplate(evento_id:$evento_id, template:$template)
   }`,
   createTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $values: String) {
     createTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, values:$values) {

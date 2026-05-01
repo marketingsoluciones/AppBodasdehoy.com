@@ -37,7 +37,7 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
   const { event, setEvent } = EventContextProvider()
   const { t } = useTranslation();
   return (
-    <div className="w-full flex items-center gap-2 ">
+    <div className="w-full flex flex-wrap items-center gap-2 ">
       {list.map((item, idx) => {
         return (
           <ElementItemInsideBlock
@@ -106,7 +106,7 @@ const InsideBlockWithMultiSelected: FC<propsInsideBlock> = ({
 
 
   return (
-    <div className="w-full flex items-center gap-2 ">
+    <div className="w-full flex flex-wrap items-center gap-2 ">
       {list.map((item, idx) => {
         return (
           <ElementItemInsideBlockSelect

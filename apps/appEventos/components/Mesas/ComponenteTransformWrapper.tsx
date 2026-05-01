@@ -139,10 +139,12 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
                               const resp = await fetchApiEventos({
                                 query: queries.createPsTemplate,
                                 variables: {
-                                  eventID: event._id,
-                                  planSpaceID: planSpaceActive._id,
-                                  title: value,
-                                  uid: user?.uid
+                                  evento_id: event._id,
+                                  template: {
+                                    planSpaceID: planSpaceActive._id,
+                                    title: value,
+                                    uid: user?.uid
+                                  }
                                 }
                               })
                               setPsTemplates(old => {
