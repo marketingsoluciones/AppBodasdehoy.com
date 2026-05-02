@@ -22,8 +22,7 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { BoardColumn as IBoardColumn } from '../types';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import { AuthContextProvider } from '../../../context'; // Importar el contexto de autenticación
-import { EventContextProvider } from '../../../context/EventContext'; // Importar el contexto de evento
+import { useServicePermissions } from '../../../hooks/useServicePermissions';
 
 interface BoardColumnProps {
   column: IBoardColumn;
@@ -58,8 +57,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const { t } = useTranslation();
-  const { user } = AuthContextProvider(); // Obtener el usuario actual
-  const { event } = EventContextProvider(); // Obtener el evento actual
+  const { canViewTask } = useServicePermissions(itinerario?.viewers ?? [])
 
   // Configurar droppable para recibir tareas
   const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
@@ -171,12 +169,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
     }
   };
 
-  // Filtrar tareas según permisos de visualización
-  // Si el usuario es el propietario, ve todas las tareas. Si no, solo las que tienen spectatorView !== false
-  const filteredTasks = column.tasks.filter(task => {
-    if (user && event && user.uid === event.usuario_id) return true; // El propietario ve todas
-    return task.spectatorView !== false; // Otros solo ven si spectatorView está activo
-  });
+  const filteredTasks = column.tasks.filter(task => canViewTask(task));
 
   return (
     <div

@@ -10,7 +10,7 @@ import { useToast } from "../../hooks/useToast";
 import { Modal } from "../Utils/Modal";
 import { DeleteConfirmation } from "../Utils/DeleteConfirmation";
 import { useTranslation } from "react-i18next";
-import { useAllowed, useAllowedViewer } from "../../hooks/useAllowed";
+import { useServicePermissions } from "../../hooks/useServicePermissions";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LiaUserClockSolid } from "react-icons/lia";
 import { t } from "i18next";
@@ -32,8 +32,7 @@ export const BoddyIter = () => {
     const { copilotFilter } = EventsGroupContextProvider()
     const [itinerario, setItinerario] = useState<Itinerary>()
     const [editTitle, setEditTitle] = useState<boolean>(false)
-    const [isAllowedViewer] = useAllowedViewer()
-    const [isAllowed] = useAllowed()
+    const { canAccessList } = useServicePermissions(itinerario?.viewers ?? [])
     const [view, setView] = useState<ViewItinerary>()
     const [modal, setModal] = useState<Modal>({ state: false, title: null, subTitle: null, handle: () => { } })
     const toast = useToast()
@@ -354,7 +353,7 @@ export const BoddyIter = () => {
                     setOrderAndDirection={setOrderAndDirection}
                 />
                 {
-                    (isAllowedViewer(itinerario?.viewers ?? []) || window?.location?.pathname === "/itinerario" || isAllowed())
+                    (canAccessList || window?.location?.pathname === "/itinerario")
                         ? <ModuleErrorBoundary label="Itinerario">
                             <ItineraryPanel
                                 itinerario={itinerario}

@@ -6,6 +6,7 @@ import { EventContextProvider } from "../../../context/EventContext";
 import { Modal } from "../../Utils/Modal";
 import { useToast } from "../../../hooks/useToast";
 import { useAllowed, } from "../../../hooks/useAllowed";
+import { useServicePermissions } from "../../../hooks/useServicePermissions";
 import { WarningMessage } from "./WarningMessage";
 import { useTranslation } from 'react-i18next';
 import { ItineraryColumns } from "./ItineraryColumns";
@@ -81,6 +82,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   const { config, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
+  const { canViewTask } = useServicePermissions(itinerario?.viewers ?? [])
   const toast = useToast()
   const [tasks, setTasks] = useState<Task[]>()
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
@@ -308,9 +310,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         elem && (
           view === "schema"
           || ["/itinerario"].includes(window?.location?.pathname)
-          || elem.spectatorView
-          || event.usuario_id === user.uid
-          || isAllowed()
+          || canViewTask(elem)
         )
       );
       if (view === "schema") {
