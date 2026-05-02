@@ -48,6 +48,13 @@ const idiomaArray = [
   }
 ]
 
+const clearDevBypass = () => {
+  if (typeof window === 'undefined') return
+  const keys = ['dev_bypass', 'dev_bypass_email', 'dev_bypass_uid', 'dev_bypass_role', 'dev_bypass_eventos']
+  keys.forEach(k => { localStorage.removeItem(k); sessionStorage.removeItem(k) })
+  localStorage.removeItem('appEventos_activeEventId')
+}
+
 const Profile = ({ user, state, set, ...rest }) => {
   const { t } = useTranslation()
   const router = useRouter()
@@ -194,6 +201,7 @@ const Profile = ({ user, state, set, ...rest }) => {
         authBridge.clearAuth()
         Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
         Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
+        clearDevBypass()
         signOut(getAuth()).then(() => {
           setUser(null)
           toast("success", t("loggedoutsuccessfully"))

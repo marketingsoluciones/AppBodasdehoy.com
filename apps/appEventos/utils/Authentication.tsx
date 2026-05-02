@@ -368,7 +368,13 @@ export const useAuthentication = () => {
   const _signOut = useCallback(async () => {
     Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
     Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
-    authBridge.clearAuth(); // Limpia dev-user-config y tokens de apps/copilot
+    authBridge.clearAuth();
+    if (typeof window !== 'undefined') {
+      ['dev_bypass', 'dev_bypass_email', 'dev_bypass_uid', 'dev_bypass_role', 'dev_bypass_eventos'].forEach(k => {
+        localStorage.removeItem(k); sessionStorage.removeItem(k)
+      })
+      localStorage.removeItem('appEventos_activeEventId')
+    }
     signOut(getAuth());
     router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
   }, [router])
