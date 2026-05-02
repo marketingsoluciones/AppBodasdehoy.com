@@ -96,6 +96,20 @@ export const BoddyIter = () => {
         }
     }, [])
 
+    // Forzar vista cards en móvil cuando la vista actual es de tabla
+    useEffect(() => {
+        if (typeof window === "undefined") return
+        const TABLE_VIEWS = ["newTable", "extraTable", "table", "boardView"]
+        const check = () => {
+            if (window.innerWidth < 768) {
+                setView(prev => prev && TABLE_VIEWS.includes(prev) ? "cards" : prev)
+            }
+        }
+        check()
+        window.addEventListener("resize", check)
+        return () => window.removeEventListener("resize", check)
+    }, [])
+
     useEffect(() => {
         try {
             if (typeof window !== "undefined" && view && itinerario) {
