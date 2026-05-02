@@ -117,7 +117,7 @@ export const handleClickCard = async ({ t, final = true, data, user, setUser, co
   }
 };
 
-const Card = ({ data, grupoStatus, idx }) => {
+const Card = ({ data, grupoStatus, idx, onSelect }) => {
   const { t } = useTranslation()
   const [hoverRef, isHovered] = useHover();
   const { user, setUser, config, actionModals, setActionModals } = AuthContextProvider()
@@ -264,7 +264,8 @@ const Card = ({ data, grupoStatus, idx }) => {
           e.preventDefault()
           e.stopPropagation()
 
-          // Prevenir múltiples clics rápidos
+          onSelect?.()
+
           if (isNavigating) {
             return
           }

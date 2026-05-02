@@ -70,7 +70,7 @@ export const MontoPresupuesto = () => {
     <div className="flex flex-col w-full items-center relative">
      {/*  <Switch isOn={event?.presupuesto_objeto?.viewEstimates} onToggle={(value) => handleChangeViewEstimates(value)} /> */}
       <div className="flex flex-col w-full items-center relative">
-        {!event?.presupuesto_objeto?.viewEstimates && <div className="bg-white opacity-50 absolute w-full h-full z-30" />}
+        {!event?.presupuesto_objeto?.viewEstimates && <div className="bg-white opacity-50 absolute w-full h-full z-30 pointer-events-none" />}
         <div className="grid grid-cols-2 w-full mt-1 z-40 ">
           <div className="flex items-center justify-center">
             <CochinoIcon className="w-12 h-12 text-gray-500" />

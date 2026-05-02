@@ -185,6 +185,16 @@ const Navigation: FC = () => {
                     {Navbar.filter(item => !(item.hideForGuest && user?.displayName === 'guest')).map((item, idx) => (
                       <li
                         key={idx}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={t(item.title)}
+                        aria-current={route === item.route ? "page" : undefined}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            e.currentTarget.click()
+                          }
+                        }}
                         onClick={() => {
                           if (item.condicion) {
                             !isAllowedRouter(item.route) ? ht() : [router.push(item.route), setRoute(item.route)]

@@ -1063,8 +1063,8 @@ export const queries = {
   }
   }`,
 
-  duplicatePresupuesto: `mutation ($eventID:String, $eventDestinationID:String){
-    duplicatePresupuesto(eventID:$eventID,  eventDestinationID:$eventDestinationID ){
+  duplicatePresupuesto: `mutation ($evento_origen_id:String!, $evento_destino_id:String!){
+    duplicatePresupuesto(evento_origen_id:$evento_origen_id,  evento_destino_id:$evento_destino_id ){
     presupuesto_total
     viewEstimates
     coste_estimado

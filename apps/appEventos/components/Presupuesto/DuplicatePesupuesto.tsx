@@ -38,8 +38,8 @@ export const DuplicatePresupuesto = ({ setModal, showModalDuplicate }) => {
             const result = await fetchApiEventos({
                 query: queries.duplicatePresupuesto,
                 variables: {
-                    eventID: eventoSeleccionado._id,
-                    eventDestinationID: event._id
+                    evento_origen_id: eventoSeleccionado._id,
+                    evento_destino_id: event._id
                 },
                 domain: config.domain
             }) as estimate
