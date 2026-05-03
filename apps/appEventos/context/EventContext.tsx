@@ -158,7 +158,6 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
       query: queries.getPlanSpaceSelect,
       variables: {
         evento_id: event._id,
-        isOwner: user?.uid === event?.usuario_id
       },
     }).then(res => {
       setPlanSpaceSelect(res ? res as string : event?.planSpace[0]?._id)

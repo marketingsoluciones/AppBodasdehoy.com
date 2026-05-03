@@ -1892,11 +1892,11 @@ export const queries = {
   deleteGalerySvg: `mutation ($evento_id: ID, $icon_id: ID) {
     deleteGalerySvg(evento_id: $evento_id, icon_id: $icon_id) 
   }`,
-  setPlanSpaceSelect: `mutation ($evento_id: ID, $planSpaceSelect: ID, $isOwner: Boolean) {
-    setPlanSpaceSelect(evento_id: $evento_id, planSpaceSelect: $planSpaceSelect, isOwner: $isOwner)
+  setPlanSpaceSelect: `mutation ($evento_id: ID, $planSpaceSelect: ID) {
+    setPlanSpaceSelect(evento_id: $evento_id, planSpaceSelect: $planSpaceSelect)
   }`,
-  getPlanSpaceSelect: `query ($evento_id: ID, $isOwner: Boolean) {
-    getPlanSpaceSelect(evento_id: $evento_id, isOwner: $isOwner)
+  getPlanSpaceSelect: `query ($evento_id: ID) {
+    getPlanSpaceSelect(evento_id: $evento_id)
   }`,
   addTaskAttachments: `mutation ($eventID: String, $itinerarioID: String, $taskID: String, $attachment: inputFileData) {
     addTaskAttachments(eventID: $eventID, itinerarioID: $itinerarioID, taskID: $taskID, attachment: $attachment)

@@ -7,23 +7,24 @@ interface props {
 }
 
 export const TrExpand: FC<props> = ({ row, ColSpan, renderRowSubComponent }) => {
+  const { key: _rowKey, ...rowProps } = row.getRowProps();
+
   return (
     <>
       <tr
-        {...row.getRowProps()}
+        {...rowProps}
         className="w-full bg-white border-b font-display text-sm grid grid-cols-24"
       >
         {
-          // Loop over the rows cells
-          row.cells.map((cell, i) => {
+          row.cells.map((cell: any, i: number) => {
+            const { key: _cellKey, ...cellProps } = cell.getCellProps();
             return (
               <td
                 key={i}
-                {...cell.getCellProps()}
-                className={`px-6 py-2 flex items-center ${ColSpan(cell.column.id, row.cells.map(item => item.column), 12)}`}
+                {...cellProps}
+                className={`px-6 py-2 flex items-center ${ColSpan(cell.column.id, row.cells.map((item: any) => item.column), 12)}`}
               >
                 {
-                  // Render the cell contents
                   cell.render("Cell")
                 }
               </td>
