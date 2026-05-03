@@ -276,13 +276,12 @@ const EventsGroupProvider = ({ children }) => {
               const normalizedEvents = events.map((event, index) => {
                 event.invitados_array = normalizeInvitados((event as any).invitados)
                 event.menus_array = normalizeMenus((event as any).menus)
-                if (event?.compartido_array?.length) {
+                if (event?.detalles_compartidos_array?.length > 0) {
                   console.log(`[EventsGroup] Procesando evento ${index + 1}/${events.length}: ${event.nombre || event._id}`)
-                  const fMyUid = event?.compartido_array?.findIndex(elem => elem === user?.uid)
-                  if (fMyUid > -1) {
-                    event.permissions = [...event.detalles_compartidos_array[fMyUid].permissions]
-                    // Eliminar TODAS las ocurrencias del usuario actual (fix duplicados)
-                    event.compartido_array = event.compartido_array.filter(uid => uid !== user?.uid)
+                  const myDetail = event.detalles_compartidos_array.find((d: any) => d.uid === user?.uid)
+                  if (myDetail?.permissions) {
+                    event.permissions = [...myDetail.permissions]
+                    event.compartido_array = (event.compartido_array || []).filter(uid => uid !== user?.uid)
                     event.detalles_compartidos_array = event.detalles_compartidos_array?.filter(d => d.uid !== user?.uid) ?? []
                   }
                 }

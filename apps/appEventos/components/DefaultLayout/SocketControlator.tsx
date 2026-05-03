@@ -115,12 +115,12 @@ export const SocketControlator = () => {
                 email: user.email || eventNew.detalles_usuario_id?.email,
               }
             }
-            if (eventNew?.compartido_array?.length) {
-              const fMyUid = eventNew?.compartido_array?.findIndex(elem => elem === user?.uid)
-              if (fMyUid > -1) {
-                eventNew.permissions = [...eventNew.detalles_compartidos_array[fMyUid].permissions]
-                eventNew.compartido_array.splice(fMyUid, 1)
-                eventNew.detalles_compartidos_array?.splice(fMyUid, 1)
+            if (eventNew?.detalles_compartidos_array?.length > 0) {
+              const myDetail = eventNew.detalles_compartidos_array.find((d: any) => d.uid === user?.uid)
+              if (myDetail?.permissions) {
+                eventNew.permissions = [...myDetail.permissions]
+                eventNew.compartido_array = (eventNew.compartido_array || []).filter(uid => uid !== user?.uid)
+                eventNew.detalles_compartidos_array = eventNew.detalles_compartidos_array?.filter(d => d.uid !== user?.uid) ?? []
               }
               const uidsToFetch = user?.uid === eventNew?.usuario_id
                 ? eventNew?.compartido_array

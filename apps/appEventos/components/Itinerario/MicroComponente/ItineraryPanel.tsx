@@ -82,7 +82,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   const { config, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
-  const { canViewTask } = useServicePermissions(itinerario?.viewers ?? [])
+  const { canViewTask, canEditTask } = useServicePermissions(itinerario?.viewers ?? [])
   const toast = useToast()
   const [tasks, setTasks] = useState<Task[]>()
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
@@ -110,7 +110,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   // Función para manejar actualización de campos
   const handleUpdate = async (fieldName: string, value: any): Promise<void> => {
     const task = tasks?.find(task => task._id === selectTask);
-    const canEdit = !user?.uid ? false : isAllowed() || task.responsable?.includes(user?.uid);
+    const canEdit = !user?.uid ? false : canEditTask()
     if (!canEdit) {
       ht();
       return;
