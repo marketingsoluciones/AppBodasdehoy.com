@@ -1,10 +1,11 @@
 import { getAuth } from "firebase/auth";
-import { AuthContextProvider } from "../context";
+import { AuthContextProvider, EventContextProvider } from "../context";
 import { fetchApiEventos, queries } from "../utils/Fetching";
 
 
 export const useActivity = () => {
   const { link_id, storage_id, user, preregister, SetPreregister } = AuthContextProvider()
+  const { event } = EventContextProvider()
 
   enum activities {
     used,
@@ -30,10 +31,17 @@ export const useActivity = () => {
     try {
       await fetchApiEventos({
         query: queries.updateActivity,
-        variables: { args: { activity } }
+        variables: {
+          args: {
+            activityId: activities[activity],
+            eventId: event?._id || "",
+            development: "bodasdehoy",
+            nombre: activities[activity],
+          }
+        }
       })
     } catch (error) {
-      console.log(error)
+      console.log("[updateActivityV2]", error)
     }
   };
 

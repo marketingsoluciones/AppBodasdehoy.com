@@ -781,8 +781,8 @@ export const queries = {
   getPreregister: `query ($_id :ID){
     getPreregister(_id:$_id)
   }`,
-  updateActivity: `mutation ($args:inputActivity){
-    updateActivity(args:$args)
+  updateActivity: `mutation ($args:inputActivity!){
+    updateActivityV2(args:$args){ success errors { message } }
   }`,
   updateActivityLink: `mutation ($args:inputActivityLink){
     updateActivityLink(args:$args)
