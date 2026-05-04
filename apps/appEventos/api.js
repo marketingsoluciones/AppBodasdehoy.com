@@ -13,6 +13,12 @@ function _cookieDomain() {
   return process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO;
 }
 
+function isJwtLike(value) {
+  if (!value || typeof value !== 'string') return false;
+  const parts = value.split('.');
+  return parts.length >= 3 && parts.every(Boolean);
+}
+
 const _socketManagersByUrl = new Map()
 
 /* // llamada a wordpresss ref1001
@@ -44,7 +50,7 @@ function handleSessionExpired() {
   const hasIdToken = Cookies.get('idTokenV0.1.0');
   let hasFirebaseUser = false;
   try { hasFirebaseUser = !!getAuth().currentUser; } catch (_) {}
-  if (hasIdToken && !hasFirebaseUser) {
+  if (hasIdToken && isJwtLike(hasIdToken) && !hasFirebaseUser) {
     console.warn('[handleSessionExpired] SSO en curso (idTokenV0.1.0 presente, sin Firebase user). No redirigir.');
     return;
   }
@@ -95,7 +101,7 @@ export const api = {
       "Content-Type": "application/json",
       Development: varGlobalDevelopment || "bodasdehoy",
     };
-    if (idToken) {
+    if (idToken && isJwtLike(idToken)) {
       headers.Authorization = `Bearer ${idToken}`
     }
     return await instance.post("/graphql", params, { headers });
@@ -119,7 +125,7 @@ export const api = {
     }
     return await instance.post("/graphql", data, {
       headers: {
-        Authorization: `Bearer ${idToken}`,
+        ...(idToken && isJwtLike(idToken) ? { Authorization: `Bearer ${idToken}` } : {}),
         "Content-Type": "multipart/form-data",
         Development: "bodasdehoy"
       }
@@ -185,7 +191,7 @@ export const api = {
     if (type !== "formData") {
       headers["Content-Type"] = "application/json";
     }
-    if (idToken) {
+    if (idToken && isJwtLike(idToken)) {
       headers.Authorization = `Bearer ${idToken}`;
     }
 
@@ -237,7 +243,7 @@ export const fetchApiViewConfig = async (params) => {
 
   return axios.post(MCP_GRAPHQL_LEGACY, params, {
     headers: {
-      Authorization: `Bearer ${idToken}`,
+      ...(idToken && isJwtLike(idToken) ? { Authorization: `Bearer ${idToken}` } : {}),
       'Content-Type': 'application/json',
     }
   });
