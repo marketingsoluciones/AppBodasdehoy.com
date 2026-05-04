@@ -62,16 +62,24 @@ export interface UsePlanLimitsReturn {
 // API2 GraphQL
 // ========================================
 
-const MCP_GRAPHQL_URL = resolveApiBodasGraphqlUrl();
+function resolveGraphqlUrlForPlanLimits() {
+  if (typeof window === 'undefined') return resolveApiBodasGraphqlUrl();
+  const host = window.location.hostname || '';
+  const isLocalhost = host === 'localhost' || host === '127.0.0.1';
+  if (isLocalhost) return '/api/proxy-bodas/graphql';
+  return resolveApiBodasGraphqlUrl();
+}
 
 async function graphqlQuery<T>(query: string, variables?: Record<string, unknown>, token?: string | null, development?: string): Promise<T> {
+  const graphqlUrl = resolveGraphqlUrlForPlanLimits();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'X-Development': development || 'bodasdehoy',
+    Development: development || 'bodasdehoy',
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(MCP_GRAPHQL_URL, {
+  const res = await fetch(graphqlUrl, {
     method: 'POST',
     headers,
     body: JSON.stringify({ query, variables }),
