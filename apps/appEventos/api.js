@@ -3,7 +3,7 @@ import Cookies from "js-cookie"
 import { Manager } from "socket.io-client";
 import { getAuth } from "firebase/auth";
 import { parseJwt } from "./utils/Authentication";
-import { resolveApiBodasGraphqlUrl } from "./utils/apiEndpoints";
+import { resolveApiBodasGraphqlUrl, resolveApiIaOrigin } from "./utils/apiEndpoints";
 import { varGlobalDomain, varGlobalDevelopment, varGlobalSubdomain } from "./context/AuthContext"
 
 /** En localhost el navegador rechaza cookies con domain=.bodasdehoy.com */
@@ -135,6 +135,7 @@ export const api = {
   socketIO: ({ token, development, father, origin }) => {
     if (!development) return
     const socketUrl = (process.env.NEXT_PUBLIC_SOCKET_URL || "").trim()
+      || resolveApiIaOrigin()
       || process.env.NEXT_PUBLIC_BASE_API_BODAS
       || ""
     if (!socketUrl) return
