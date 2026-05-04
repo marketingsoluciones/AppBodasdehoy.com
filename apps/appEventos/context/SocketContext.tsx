@@ -142,6 +142,31 @@ const SocketProvider: FC<any> = ({ children }): React.ReactElement => {
   }, [socket])
 
 
+  useEffect(() => {
+    if (!socket) return
+    if (!user?.uid) return
+
+    const emitJoinUserRoom = () => {
+      socket.emit(`app:message`, {
+        event: null,
+        emit: user.uid,
+        receiver: null,
+        type: "joinRoom",
+        payload: {
+          action: "add",
+          value: `user:${user.uid}`
+        }
+      })
+    }
+
+    if (socket.connected) {
+      emitJoinUserRoom()
+    } else {
+      socket.once("connect", emitJoinUserRoom)
+      return () => { socket.off("connect", emitJoinUserRoom) }
+    }
+  }, [socket, user?.uid])
+
 
   return (
     <SocketContext.Provider value={{ socket, notifications, setNotifications }}>
