@@ -2,6 +2,11 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 import { resolveApiBodasGraphqlUrl } from '../../../utils/apiEndpoints';
 
+function isJwtLike(value: string) {
+  const parts = value.split('.');
+  return parts.length >= 3 && parts.every(Boolean);
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -24,10 +29,13 @@ export default async function handler(
     // Pasar Authorization: header directo o cookie idTokenV0.1.0 como fallback
     if (req.headers.authorization) {
       headers.Authorization = req.headers.authorization;
-    } else if (req.cookies?.['idTokenV0.1.0']) {
-      headers.Authorization = `Bearer ${req.cookies['idTokenV0.1.0']}`;
-    } else if (req.cookies?.sessionBodas) {
-      headers.Authorization = `Bearer ${req.cookies.sessionBodas}`;
+    } else {
+      const idTokenCookie = req.cookies?.['idTokenV0.1.0'];
+      const sessionCookie = req.cookies?.sessionBodas;
+      const token = idTokenCookie || sessionCookie;
+      if (token && isJwtLike(token)) {
+        headers.Authorization = `Bearer ${token}`;
+      }
     }
 
     // Pasar Development si existe

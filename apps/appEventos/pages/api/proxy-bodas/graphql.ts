@@ -4,6 +4,11 @@ import { IncomingMessage } from 'http';
 
 import { resolveApiBodasOrigin } from '../../../utils/apiEndpoints';
 
+function isJwtLike(value: string) {
+  const parts = value.split('.');
+  return parts.length >= 3 && parts.every(Boolean);
+}
+
 function readBody(req: IncomingMessage): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
@@ -34,10 +39,13 @@ export default async function handler(
 
     if (req.headers.authorization) {
       headers.Authorization = req.headers.authorization;
-    } else if (req.cookies?.['idTokenV0.1.0']) {
-      headers.Authorization = `Bearer ${req.cookies['idTokenV0.1.0']}`;
-    } else if (req.cookies?.sessionBodas) {
-      headers.Authorization = `Bearer ${req.cookies.sessionBodas}`;
+    } else {
+      const idTokenCookie = req.cookies?.['idTokenV0.1.0'];
+      const sessionCookie = req.cookies?.sessionBodas;
+      const token = idTokenCookie || sessionCookie;
+      if (token && isJwtLike(token)) {
+        headers.Authorization = `Bearer ${token}`;
+      }
     }
 
     if (req.headers.development) {
