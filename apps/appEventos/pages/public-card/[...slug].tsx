@@ -245,21 +245,24 @@ export async function getServerSideProps(context) {
         query: queries.getItinerario,
         variables: {
           evento_id,
-          itinerario_id
+          itinerario_id,
+          development,
         },
         development,
       });
-      evento = data.getItinerario;
+      evento = data.queryenEvento?.[0] ?? null;
     } catch (error) {
       try {
-        evento = await fetchApiEventosServer({
+        const data2 = await fetchApiEventosServer({
           query: queries.getItinerario,
           variables: {
             evento_id,
-            itinerario_id
+            itinerario_id,
+            development,
           },
           development,
         }) as any;
+        evento = data2?.queryenEvento?.[0] ?? null;
       } catch (error2) {
         throw error2;
       }

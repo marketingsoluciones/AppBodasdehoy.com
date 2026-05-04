@@ -770,8 +770,9 @@ export const queries = {
   mutation  ( $eventID:String, $itinerarioID:String ) {
     deleteItinerario ( eventID:$eventID  itinerarioID:$itinerarioID  )
   }`,
-  getItinerario: ` query($evento_id:String, $itinerario_id:String){
-    getItinerario(evento_id:$evento_id, itinerario_id:$itinerario_id){
+  getItinerario: ` query($evento_id:String, $itinerario_id:String, $development:String){
+    queryenEvento(variable:"_id", valor:$evento_id, development:$development){
+      _id
       nombre
       tipo
       timeZone
