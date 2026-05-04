@@ -41,6 +41,9 @@ WEBHOOK_URL="${SLACK_WEBHOOK_FRONTEND:-${SLACK_WEBHOOK_LOBECHAT:-${SLACK_WEBHOOK
 
 REPO=""
 DEST=""
+DE_TEAM=""
+PARA_TEAM=""
+DRI_HANDLE=""
 
 while [[ "${1:-}" == --* ]]; do
   case "$1" in
@@ -54,6 +57,30 @@ while [[ "${1:-}" == --* ]]; do
       ;;
     --memories)
       REPO="memories"
+      shift
+      ;;
+    --de)
+      DE_TEAM="${2:-}"
+      shift 2
+      ;;
+    --de=*)
+      DE_TEAM="${1#--de=}"
+      shift
+      ;;
+    --para-equipo)
+      PARA_TEAM="${2:-}"
+      shift 2
+      ;;
+    --para-equipo=*)
+      PARA_TEAM="${1#--para-equipo=}"
+      shift
+      ;;
+    --dri)
+      DRI_HANDLE="${2:-}"
+      shift 2
+      ;;
+    --dri=*)
+      DRI_HANDLE="${1#--dri=}"
       shift
       ;;
     --to)
@@ -127,13 +154,48 @@ if [ -n "${SLACK_CHANNEL_OVERRIDE:-}" ]; then
   CHANNEL_ID="$SLACK_CHANNEL_OVERRIDE"
 fi
 
+# --- Directorio (equipos) ---
+if [ -z "$DE_TEAM" ] && [ -n "${SLACK_DE_TEAM:-}" ]; then
+  DE_TEAM="$SLACK_DE_TEAM"
+fi
+if [ -z "$DE_TEAM" ]; then
+  if [ "$REPO" = "web" ]; then
+    DE_TEAM="FRONT-appEventos"
+  else
+    DE_TEAM="FRONT-appEventos"
+  fi
+fi
+
+if [ -z "$PARA_TEAM" ] && [ -n "${SLACK_PARA_TEAM:-}" ]; then
+  PARA_TEAM="$SLACK_PARA_TEAM"
+fi
+if [ -z "$PARA_TEAM" ]; then
+  if [ "$DEST" = "mcp" ] || [ "$DEST" = "backend" ] || [ "$DEST" = "api2" ]; then
+    PARA_TEAM="BACKEND-MCP/GraphQL"
+  elif [ "$DEST" = "api-ia" ]; then
+    PARA_TEAM="BACKEND-API-IA (Realtime/Webhooks)"
+  elif [ "$DEST" = "frontend" ] || [ "$DEST" = "app-bodas-alqtm" ]; then
+    PARA_TEAM="FRONT-appEventos"
+  else
+    PARA_TEAM="BACKEND-MCP/GraphQL"
+  fi
+fi
+
+if [ -z "$DRI_HANDLE" ] && [ -n "${SLACK_DRI_HANDLE:-}" ]; then
+  DRI_HANDLE="$SLACK_DRI_HANDLE"
+fi
+if [ -z "$DRI_HANDLE" ]; then
+  DRI_HANDLE="@backend_oncall"
+fi
+
 SLACK_PARA="${SLACK_MSG_PARA:-$DEST_PARA}"
-PREFIX="${SLACK_DE}\n${SLACK_PARA}\n\n"
+HEADER_LINE="DE: ${DE_TEAM} | PARA: ${PARA_TEAM} | DRI: ${DRI_HANDLE}"
+PREFIX="${HEADER_LINE}\n\n${SLACK_DE}\n${SLACK_PARA}\n\n"
 [ -n "$REPO_LINE" ] && PREFIX="${PREFIX}${REPO_LINE}\n\n"
 
 if [ -z "$1" ]; then
   echo "Error: Debes proporcionar un mensaje"
-  echo "Uso: $0 [--copilot|--web|--memories] [--to frontend|coordinacion|api-ia|mcp] \"Tu mensaje aquí\""
+  echo "Uso: $0 [--copilot|--web|--memories] [--de <equipo>] [--para-equipo <equipo>] [--dri @handle] [--to frontend|coordinacion|api-ia|mcp] \"Tu mensaje aquí\""
   echo ""
   echo "Canales:"
   echo "  --to frontend   → #app-bodas-alqtm ($CHANNEL_FRONTEND_TEAM)"
