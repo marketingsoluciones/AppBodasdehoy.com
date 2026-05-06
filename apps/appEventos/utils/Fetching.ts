@@ -48,19 +48,32 @@ export const fetchApiBodas = async ({
 }: propsFetchApiBodas): Promise<any> => {
   try {
     if (type === "json") {
-      const {
-        data: { data, errors },
-      } = await api.ApiBodas({
+      const axiosRes = await api.ApiBodas({
         data: { query, variables },
         development,
         token,
         type: "json",
       });
-      if (!data && errors) {
-        console.warn("[fetchApiBodas] GraphQL errors:", errors);
-        return null;
+      const body = axiosRes?.data as { data?: Record<string, unknown>; errors?: unknown[] };
+      if (body?.errors?.length) {
+        const synthetic: Error & { response?: { status: number; data: typeof body } } = new Error(
+          (body.errors as any[])
+            .map((e: any) => (typeof e?.message === 'string' ? e.message : ''))
+            .filter(Boolean)
+            .join('; ') || 'GraphQL error'
+        ) as Error & { response?: { status: number; data: typeof body } };
+        synthetic.response = { status: axiosRes.status, data: body };
+        throw synthetic;
       }
-      return data ? Object.values(data)[0] : null;
+      const data = body?.data;
+      if (data == null) {
+        const synthetic: Error & { response?: { status: number; data: typeof body } } = new Error(
+          'Respuesta GraphQL sin campo data'
+        ) as Error & { response?: { status: number; data: typeof body } };
+        synthetic.response = { status: axiosRes.status, data: body };
+        throw synthetic;
+      }
+      return Object.values(data)[0] as any;
     } else if (type === "formData") {
       const formData = new FormData();
       const values = Object?.entries(variables);
