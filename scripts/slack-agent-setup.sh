@@ -14,7 +14,6 @@
 # Canales predefinidos:
 #   slack_send_api_ia "mensaje"          → #copilot-api-ia
 #   slack_send_mcp  "mensaje"           → #api-ia-api2-sync
-#   slack_send_frontend "mensaje"       → #app-bodas-alqtm
 #   slack_send_coordinacion "mensaje"   → #bodasdehoy-backend-coordinacion
 # ============================================================================
 
@@ -31,7 +30,6 @@ SLACK_BOT_TOKEN="${SLACK_BOT_TOKEN:-}"
 SLACK_WORKSPACE="${SLACK_WORKSPACE:-EventosOrganizador}"
 
 # ─── Canales oficiales ───
-CH_ID_FRONTEND="C04C34S2CJ3"       #app-bodas-alqtm (solo FrontApp)
 CH_ID_API_IA="C0AEV0GCLM7"         #copilot-api-ia (FrontApp ↔ api-ia)
 CH_ID_MCP="C0AE8K47VNF"            #api-ia-api2-sync (api-ia ↔ api-mcp ↔ FrontCRM)
 CH_ID_COORD="C0AV8EV5495"          #bodasdehoy-backend-coordinacion (legacy)
@@ -62,7 +60,7 @@ slack_send() {
   curl -sS --max-time 15 -X POST "https://slack.com/api/chat.postMessage" \
     -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
     -H "Content-Type: application/json" \
-    -d "$(python3 -c "import json,sys; print(json.dumps({'channel':sys.argv[1],'text':sys.argv[2]}))" "$channel_id" "$message")" \
+    -d "$(python3 -c "import json,sys; print(json.dumps(dict(channel=sys.argv[1], text=sys.argv[2])))" "$channel_id" "$message")" \
     | python3 -c "import json,sys; d=json.load(sys.stdin); print('✅' if d.get('ok') else '❌ '+d.get('error',''))"
 }
 
@@ -90,12 +88,10 @@ for m in reversed(d.get('messages',[]) or []):
 # ─── Shortcuts ───
 slack_send_api_ia()    { slack_send "$CH_ID_API_IA" "$1"; }
 slack_send_mcp()       { slack_send "$CH_ID_MCP" "$1"; }
-slack_send_frontend()  { slack_send "$CH_ID_FRONTEND" "$1"; }
 slack_send_coordinacion() { slack_send "$CH_ID_COORD" "$1"; }
 
 slack_read_api_ia()    { slack_read "$CH_ID_API_IA" "${1:-10}"; }
 slack_read_mcp()       { slack_read "$CH_ID_MCP" "${1:-10}"; }
-slack_read_frontend()  { slack_read "$CH_ID_FRONTEND" "${1:-10}"; }
 slack_read_coordinacion() { slack_read "$CH_ID_COORD" "${1:-10}"; }
 
 # ─── Banner al cargar ───
@@ -133,7 +129,6 @@ if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
   echo "CANALES OFICIALES:"
   echo "  #copilot-api-ia                 → FrontApp ↔ api-ia (IA, chat)"
   echo "  #api-ia-api2-sync               → api-ia ↔ api-mcp ↔ FrontCRM"
-  echo "  #app-bodas-alqtm                → Solo FrontApp (interno)"
   echo ""
   echo "NO crear canales nuevos. NO compartir tokens por Slack."
   exit 0

@@ -15,7 +15,6 @@
 #   ./slack-send.sh "Mensaje"                    # → #bodasdehoy-backend-coordinacion
 #   ./slack-send.sh --web "Mensaje"              # → idem, identificado como appEventos
 #   ./slack-send.sh --copilot "Mensaje"          # → idem, identificado como chat-ia
-#   ./slack-send.sh --to frontend "Mensaje"      # → #app-bodas-alqtm
 #   ./slack-send.sh --to api-ia "Mensaje"        # → #copilot-api-ia
 #   ./slack-send.sh --to mcp "Mensaje"           # → #api-ia-api2-sync
 #
@@ -127,7 +126,6 @@ fi
 # --- Canal destino ---
 # Default: #bodasdehoy-backend-coordinacion (el canal correcto para frontend)
 CHANNEL_COORDINACION="C0AV8EV5495"
-CHANNEL_FRONTEND_TEAM="C04C34S2CJ3"
 CHANNEL_API_IA="C0AEV0GCLM7"
 CHANNEL_MCP_SYNC="C0AE8K47VNF"
 
@@ -140,9 +138,8 @@ if [ "$DEST" = "war-room" ] || [ "$DEST" = "coordinacion" ] || [ -z "$DEST" ]; t
   CHANNEL_ID="$CHANNEL_COORDINACION"
   DEST_PARA="Para: #bodasdehoy-backend-coordinacion"
 elif [ "$DEST" = "frontend" ] || [ "$DEST" = "app-bodas-alqtm" ]; then
-  DEST_LABEL="app-bodas-alqtm"
-  CHANNEL_ID="$CHANNEL_FRONTEND_TEAM"
-  DEST_PARA="Para: Equipo de frontEnd (#app-bodas-alqtm)"
+  echo "Error: destino '$DEST' no válido en este repo. Usa --to coordinacion." >&2
+  exit 1
 elif [ "$DEST" = "api-ia" ]; then
   DEST_LABEL="api-ia"
   CHANNEL_ID="$CHANNEL_API_IA"
@@ -179,8 +176,6 @@ if [ -z "$PARA_TEAM" ]; then
     PARA_TEAM="BACKEND-MCP/GraphQL"
   elif [ "$DEST" = "api-ia" ]; then
     PARA_TEAM="BACKEND-API-IA (Realtime/Webhooks)"
-  elif [ "$DEST" = "frontend" ] || [ "$DEST" = "app-bodas-alqtm" ]; then
-    PARA_TEAM="FRONT-appEventos"
   else
     PARA_TEAM="BACKEND-MCP/GraphQL"
   fi
@@ -204,7 +199,6 @@ if [ -z "$1" ]; then
   echo ""
   echo "Canales:"
   echo "  --to war-room   → #bodasdehoy-backend-coordinacion ($CHANNEL_COORDINACION)"
-  echo "  --to frontend   → #app-bodas-alqtm ($CHANNEL_FRONTEND_TEAM)"
   echo "  --to coordinacion → #bodasdehoy-backend-coordinacion ($CHANNEL_COORDINACION)"
   echo "  --to api-ia     → #copilot-api-ia ($CHANNEL_API_IA)"
   echo "  --to mcp        → #api-ia-api2-sync ($CHANNEL_MCP_SYNC)"
