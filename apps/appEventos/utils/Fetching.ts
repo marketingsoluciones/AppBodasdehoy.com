@@ -73,7 +73,31 @@ export const fetchApiBodas = async ({
         synthetic.response = { status: axiosRes.status, data: body };
         throw synthetic;
       }
-      return Object.values(data)[0] as any;
+      const payload = Object.values(data)[0] as any;
+      if (
+        payload &&
+        typeof payload === 'object' &&
+        payload.success === false &&
+        Array.isArray(payload.errors) &&
+        payload.errors.length
+      ) {
+        const mapped = (payload.errors as Record<string, unknown>[]).map((e) => ({
+          message: typeof e?.message === 'string' ? e.message : '',
+          extensions: {
+            code:
+              typeof (e as any)?.code === 'string' && (e as any).code.length
+                ? (e as any).code
+                : 'INTERNAL_SERVER_ERROR',
+          },
+        }));
+        const synthetic: Error & { response?: { status: number; data: { errors: typeof mapped } } } =
+          new Error(
+            mapped.map((e) => e.message).filter(Boolean).join('; ') || 'La mutación devolvió success: false'
+          ) as Error & { response?: { status: number; data: { errors: typeof mapped } } };
+        synthetic.response = { status: axiosRes.status, data: { errors: mapped } };
+        throw synthetic;
+      }
+      return payload;
     } else if (type === "formData") {
       const formData = new FormData();
       const values = Object?.entries(variables);
@@ -142,10 +166,41 @@ export const fetchApiBodas = async ({
       const body = result?.data as { data?: Record<string, unknown>; errors?: unknown[] };
 
       if (body?.errors?.length) {
-        throw new Error(JSON.stringify(body.errors));
+        const synthetic: Error & { response?: { status: number; data: typeof body } } = new Error(
+          body.errors
+            .map((e: any) => (typeof e?.message === 'string' ? e.message : ''))
+            .filter(Boolean)
+            .join('; ') || 'GraphQL error'
+        ) as Error & { response?: { status: number; data: typeof body } };
+        synthetic.response = { status: result?.status ?? 400, data: body };
+        throw synthetic;
       }
 
-      return body?.data ? Object.values(body.data)[0] : null;
+      const payload = body?.data ? (Object.values(body.data)[0] as any) : null;
+      if (
+        payload &&
+        typeof payload === 'object' &&
+        payload.success === false &&
+        Array.isArray(payload.errors) &&
+        payload.errors.length
+      ) {
+        const mapped = (payload.errors as Record<string, unknown>[]).map((e) => ({
+          message: typeof e?.message === 'string' ? e.message : '',
+          extensions: {
+            code:
+              typeof (e as any)?.code === 'string' && (e as any).code.length
+                ? (e as any).code
+                : 'INTERNAL_SERVER_ERROR',
+          },
+        }));
+        const synthetic: Error & { response?: { status: number; data: { errors: typeof mapped } } } =
+          new Error(
+            mapped.map((e) => e.message).filter(Boolean).join('; ') || 'La mutación devolvió success: false'
+          ) as Error & { response?: { status: number; data: { errors: typeof mapped } } };
+        synthetic.response = { status: result?.status ?? 200, data: { errors: mapped } };
+        throw synthetic;
+      }
+      return payload;
     }
   } catch (error: any) {
     console.error("[fetchApiBodas] Error en la llamada API:", {
