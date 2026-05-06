@@ -135,7 +135,11 @@ DEST_LABEL="coordinacion"
 CHANNEL_ID="$CHANNEL_COORDINACION"
 DEST_PARA="Para: #bodasdehoy-backend-coordinacion"
 
-if [ "$DEST" = "frontend" ] || [ "$DEST" = "app-bodas-alqtm" ]; then
+if [ "$DEST" = "war-room" ] || [ "$DEST" = "coordinacion" ] || [ -z "$DEST" ]; then
+  DEST_LABEL="coordinacion"
+  CHANNEL_ID="$CHANNEL_COORDINACION"
+  DEST_PARA="Para: #bodasdehoy-backend-coordinacion"
+elif [ "$DEST" = "frontend" ] || [ "$DEST" = "app-bodas-alqtm" ]; then
   DEST_LABEL="app-bodas-alqtm"
   CHANNEL_ID="$CHANNEL_FRONTEND_TEAM"
   DEST_PARA="Para: Equipo de frontEnd (#app-bodas-alqtm)"
@@ -148,6 +152,7 @@ elif [ "$DEST" = "mcp" ] || [ "$DEST" = "backend" ] || [ "$DEST" = "api2" ]; the
   CHANNEL_ID="$CHANNEL_MCP_SYNC"
   DEST_PARA="Para: Equipo MCP (#api-ia-api2-sync)"
 fi
+
 
 # Override por env si existe
 if [ -n "${SLACK_CHANNEL_OVERRIDE:-}" ]; then
@@ -195,9 +200,10 @@ PREFIX="${HEADER_LINE}\n\n${SLACK_DE}\n${SLACK_PARA}\n\n"
 
 if [ -z "$1" ]; then
   echo "Error: Debes proporcionar un mensaje"
-  echo "Uso: $0 [--copilot|--web|--memories] [--de <equipo>] [--para-equipo <equipo>] [--dri @handle] [--to frontend|coordinacion|api-ia|mcp] \"Tu mensaje aquí\""
+  echo "Uso: $0 [--copilot|--web|--memories] [--de <equipo>] [--para-equipo <equipo>] [--dri @handle] [--to war-room|coordinacion|frontend|api-ia|mcp] \"Tu mensaje aquí\""
   echo ""
   echo "Canales:"
+  echo "  --to war-room   → #bodasdehoy-backend-coordinacion ($CHANNEL_COORDINACION)"
   echo "  --to frontend   → #app-bodas-alqtm ($CHANNEL_FRONTEND_TEAM)"
   echo "  --to coordinacion → #bodasdehoy-backend-coordinacion ($CHANNEL_COORDINACION)"
   echo "  --to api-ia     → #copilot-api-ia ($CHANNEL_API_IA)"

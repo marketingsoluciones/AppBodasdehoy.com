@@ -31,16 +31,11 @@ OUR_USER_ID="${SLACK_WATCH_OUR_USER_ID:-U0AEBNW9TD3}"
 SLEEP_SECONDS="${SLACK_WATCH_SLEEP_SECONDS:-480}"
 PING_COOLDOWN_SECONDS="${SLACK_WATCH_PING_COOLDOWN_SECONDS:-3600}"
 
-CH_MCP="${SLACK_WATCH_CH_MCP:-C0AE8K47VNF}"
-CH_API_IA="${SLACK_WATCH_CH_API_IA:-C0AEV0GCLM7}"
-CH_LEGACY="${SLACK_WATCH_CH_LEGACY:-C0AV8EV5495}"
+CH_WAR_ROOM="${SLACK_WATCH_CH_WAR_ROOM:-C0AV8EV5495}"
 
-last_ts_mcp="0"
-last_ts_api_ia="0"
-last_ts_legacy="0"
+last_ts_war_room="0"
 
-last_ping_mcp_epoch=0
-last_ping_apiia_epoch=0
+last_ping_war_room_epoch=0
 
 now_epoch() { date +%s; }
 
@@ -55,24 +50,13 @@ fetch_messages() {
 send_norm_reminder() {
   local label="$1"
   local text='Recordatorio normas: empezar con "DE: <equipo> | PARA: <equipo> | DRI: @handle". Si no sabes a quién asignar: "DRI: @backend_oncall".'
-  if [ "$label" = "mcp" ]; then
-    bash scripts/slack-send.sh --to mcp --web --dri @backend_oncall "$text" || true
-  elif [ "$label" = "api-ia" ]; then
-    bash scripts/slack-send.sh --to api-ia --web --dri @backend_oncall "$text" || true
-  else
-    bash scripts/slack-send.sh --to coordinacion --web --dri @backend_oncall "$text" || true
-  fi
+  bash scripts/slack-send.sh --to war-room --web --dri @backend_oncall "$text" || true
 }
 
 send_ping_pendientes() {
   local label="$1"
-  if [ "$label" = "mcp" ]; then
-    bash scripts/slack-send.sh --to mcp --web --dri @backend_oncall \
-      "Ping pendientes (normas): ¿DRI+Estado+ETA para (createComment Task no encontrada / getNotifications=0 / schema updateCustomer+getEventTicket)?" || true
-  elif [ "$label" = "api-ia" ]; then
-    bash scripts/slack-send.sh --to api-ia --web --dri @backend_oncall \
-      "Ping realtime (normas): confirmad DRI+ETA + contrato final (room user:<uid> y evento notification)." || true
-  fi
+  bash scripts/slack-send.sh --to war-room --web --dri @backend_oncall \
+    "Ping pendientes (normas): ¿DRI+Estado+ETA para (createComment Task no encontrada / getNotifications=0 / socket notification / schema updateCustomer+getEventTicket)?" || true
 }
 
 process_channel() {
@@ -142,13 +126,10 @@ process_channel() {
   printf -v "$last_ts_var" "%s" "$newest"
 }
 
-echo "Slack watcher activo: cada 8 min revisa pendientes + cumplimiento DE|PARA|DRI." >&2
+echo "Slack watcher activo (canal canónico): cada 8 min revisa pendientes + cumplimiento DE|PARA|DRI en #bodasdehoy-backend-coordinacion." >&2
 
 while true; do
   echo "=== Watch tick $(date -u +"%Y-%m-%dT%H:%M:%SZ") ===" >&2
-  process_channel mcp "$CH_MCP" last_ts_mcp || true
-  process_channel api-ia "$CH_API_IA" last_ts_api_ia || true
-  process_channel legacy "$CH_LEGACY" last_ts_legacy || true
+  process_channel war-room "$CH_WAR_ROOM" last_ts_war_room || true
   sleep "$SLEEP_SECONDS"
 done
-

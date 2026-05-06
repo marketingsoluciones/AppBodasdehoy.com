@@ -4,6 +4,7 @@
 #
 # Canales disponibles:
 #   (default)       → #bodasdehoy-backend-coordinacion (C0AV8EV5495)
+#   --from war-room → #bodasdehoy-backend-coordinacion (C0AV8EV5495)
 #   --from frontend → #app-bodas-alqtm (C04C34S2CJ3)
 #   --from api-ia   → #copilot-api-ia (C0AEV0GCLM7)
 #   --from mcp      → #api-ia-api2-sync (C0AE8K47VNF)
@@ -64,6 +65,9 @@ TOKEN="${SLACK_BOT_TOKEN:-${SLACK_OAUTH_TOKEN:-}}"
 if [ "$SOURCE" = "frontend" ] || [ "$SOURCE" = "app-bodas-alqtm" ]; then
   CHANNEL_ID="$CHANNEL_FRONTEND_TEAM"
   CHANNEL_NAME="#app-bodas-alqtm"
+elif [ "$SOURCE" = "war-room" ] || [ "$SOURCE" = "coordinacion" ]; then
+  CHANNEL_ID="$CHANNEL_COORDINACION"
+  CHANNEL_NAME="#bodasdehoy-backend-coordinacion"
 elif [ "$SOURCE" = "api-ia" ]; then
   CHANNEL_ID="$CHANNEL_API_IA"
   CHANNEL_NAME="#copilot-api-ia"
