@@ -128,26 +128,32 @@ export async function loginAndSelectEvent(
   password: string,
   baseUrl: string,
 ): Promise<string | null> {
+  // SSO real: login en chat-test (no local-login=1 que está roto en app-test).
+  // Cookie idTokenV0.1.0 se setea en .bodasdehoy.com → app-test la reconoce.
   const isRemoteEnv = baseUrl.includes('app-test') || baseUrl.includes('app-dev');
   const isLocalEnv = baseUrl.includes('127.0.0.1') || baseUrl.includes('localhost');
-  const loginUrl = (isRemoteEnv || isLocalEnv) ? `${baseUrl}/login?local-login=1` : `${baseUrl}/login`;
+  const chatUrl = isRemoteEnv
+    ? baseUrl.replace('app-test', 'chat-test').replace('app-dev', 'chat-dev').replace(/\/$/, '')
+    : isLocalEnv
+      ? baseUrl.replace(':3220', ':3210').replace(':8080', ':3210')
+      : baseUrl.replace('app.', 'chat.');
+
+  // Patrón idéntico al de auth.spec.ts:loginInChat (ya verificado: 8/8 PASS)
   try {
-    await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+    await page.goto(`${chatUrl}/login`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
   } catch (e) {
     if (!String(e).includes('interrupted by another navigation')) throw e;
   }
-  await page.waitForLoadState('domcontentloaded').catch(() => {});
   await page.waitForTimeout(2000);
 
-  const emailInput = page.locator('input[type="email"], input[name="identifier"]').first();
+  const emailInput = page.locator('input[type="email"]').first();
   const hasLoginForm = await emailInput.isVisible({ timeout: 15_000 }).catch(() => false);
   if (hasLoginForm) {
-    await emailInput.fill(email, { timeout: 20_000 });
+    await emailInput.fill(email, { timeout: 10_000 });
     await page.locator('input[type="password"]').first().fill(password);
     await page.locator('button[type="submit"]').first().click();
-    await page.waitForURL((url: URL) => !url.pathname.includes('/login'), { timeout: 30_000 }).catch(() => {});
-    await waitForAppReady(page, 20_000);
-    if (page.url().includes('/login')) return null;
+    await page.waitForURL((url: URL) => url.pathname === '/chat', { timeout: 30_000 }).catch(() => {});
+    if (!page.url().includes('/chat')) return null;
   }
 
   // 2. Ir al home y hacer click en el primer evento
@@ -253,8 +259,13 @@ export async function loginAndSelectEventByName(
   await page.locator('input[type="password"]').first().fill(password);
   await page.locator('button[type="submit"]').first().click();
   await page.waitForURL((url: URL) => !url.pathname.includes('/login'), { timeout: 30_000 }).catch(() => {});
+  const hasToken = await page.waitForFunction(
+    () => document.cookie.includes('idTokenV0.1.0') || document.cookie.includes('sessionBodas'),
+    null,
+    { timeout: 20_000 },
+  ).then(() => true).catch(() => false);
   await waitForAppReady(page, 20_000);
-  if (page.url().includes('/login')) return null;
+  if (page.url().includes('/login') && !hasToken) return null;
 
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
   await waitForAppReady(page, 15_000);
