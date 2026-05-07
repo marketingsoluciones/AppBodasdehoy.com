@@ -129,43 +129,52 @@ export async function loginAndSelectEvent(
   baseUrl: string,
 ): Promise<string | null> {
   const isRemoteEnv = baseUrl.includes('app-test') || baseUrl.includes('app-dev');
-  const loginUrl = isRemoteEnv ? `${baseUrl}/login?local-login=1` : `${baseUrl}/login`;
-  await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+  const isLocalEnv = baseUrl.includes('127.0.0.1') || baseUrl.includes('localhost');
+  const loginUrl = (isRemoteEnv || isLocalEnv) ? `${baseUrl}/login?local-login=1` : `${baseUrl}/login`;
+  try {
+    await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+  } catch (e) {
+    if (!String(e).includes('interrupted by another navigation')) throw e;
+  }
   await page.waitForLoadState('domcontentloaded').catch(() => {});
   await page.waitForTimeout(2000);
 
   const emailInput = page.locator('input[type="email"], input[name="identifier"]').first();
-  if (!await emailInput.isVisible({ timeout: 15_000 }).catch(() => false)) return null;
-
-  await emailInput.fill(email, { timeout: 20_000 });
-  await page.locator('input[type="password"]').first().fill(password);
-  await page.locator('button[type="submit"]').first().click();
-  await page.waitForURL((url: URL) => !url.pathname.includes('/login'), { timeout: 30_000 }).catch(() => {});
-  await waitForAppReady(page, 20_000);
-  if (page.url().includes('/login')) return null;
+  const hasLoginForm = await emailInput.isVisible({ timeout: 15_000 }).catch(() => false);
+  if (hasLoginForm) {
+    await emailInput.fill(email, { timeout: 20_000 });
+    await page.locator('input[type="password"]').first().fill(password);
+    await page.locator('button[type="submit"]').first().click();
+    await page.waitForURL((url: URL) => !url.pathname.includes('/login'), { timeout: 30_000 }).catch(() => {});
+    await waitForAppReady(page, 20_000);
+    if (page.url().includes('/login')) return null;
+  }
 
   // 2. Ir al home y hacer click en el primer evento
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
   await waitForAppReady(page, 15_000);
 
   // Buscar tarjeta de evento (Card component)
+  // hasNotText excluye los eventos marcados como [ZOMBIE] en BD (clones de test obsoletos)
   let eventCards = page.locator('[class*="rounded"][class*="shadow"]').filter({
     hasText: /\d{4}|boda|evento|fiesta|aniversario|cumpleaños/i,
+    hasNotText: /\[ZOMBIE\]/,
   });
   let cardCount = await eventCards.count();
   if (cardCount === 0) {
     eventCards = page.locator('[class*="rounded"][class*="shadow"], [class*="card"], [data-testid*="event"]').filter({
       hasText: /evento|isabel|raúl|invitado|\d{4}|boda/i,
+      hasNotText: /\[ZOMBIE\]/,
     });
     cardCount = await eventCards.count();
   }
   if (cardCount === 0) {
-    const anyEventLink = page.locator('a[href*="event"], [role="button"]').filter({ hasText: /evento|isabel|raúl|\d{4}/i });
+    const anyEventLink = page.locator('a[href*="event"], [role="button"]').filter({ hasText: /evento|isabel|raúl|\d{4}/i, hasNotText: /\[ZOMBIE\]/ });
     if ((await anyEventLink.count()) > 0) {
       await anyEventLink.first().click();
       await page.waitForTimeout(2000);
       const url = page.url();
-      const eventIdMatch = url.match(/event=([a-f0-9]{24})/);
+      const eventIdMatch = url.match(/event=([a-f0-9]{24})/i) || url.match(/\/e\/([a-f0-9]{24})/i);
       console.log('✅ Evento seleccionado (enlace/fallback)');
       return eventIdMatch?.[1] ?? 'selected';
     }
@@ -181,7 +190,7 @@ export async function loginAndSelectEvent(
 
   // Extraer event ID de la URL si cambió
   const url = page.url();
-  const eventIdMatch = url.match(/event=([a-f0-9]{24})/);
+  const eventIdMatch = url.match(/event=([a-f0-9]{24})/i) || url.match(/\/e\/([a-f0-9]{24})/i);
   const eventId = eventIdMatch?.[1] ?? null;
 
   console.log(`✅ Evento seleccionado: "${cardText.slice(0, 40).trim()}" (id: ${eventId ?? 'desconocido'})`);
@@ -200,7 +209,10 @@ export async function loginAndSelectEventByName(
   baseUrl: string,
   eventName: string,
 ): Promise<string | null> {
-  const loginUrl = (baseUrl.includes('app-test') || baseUrl.includes('app-dev')) ? `${baseUrl}/login?local-login=1` : `${baseUrl}/login`;
+  const loginUrl =
+    (baseUrl.includes('app-test') || baseUrl.includes('app-dev') || baseUrl.includes('127.0.0.1') || baseUrl.includes('localhost'))
+      ? `${baseUrl}/login?local-login=1`
+      : `${baseUrl}/login`;
   try {
     await page.goto(loginUrl, { waitUntil: 'commit', timeout: 45_000 });
   } catch (e) {
@@ -210,12 +222,14 @@ export async function loginAndSelectEventByName(
       const searchWords = eventName.replace(/\s+/g, ' ').trim().toLowerCase().split(' ').filter(Boolean);
       const eventCards = page.locator('[class*="rounded"][class*="shadow"]').filter({
         hasText: /\d{4}|boda|evento|fiesta|aniversario|cumpleaños/i,
+        hasNotText: /\[ZOMBIE\]/,
       });
       const cardCount = await eventCards.count();
       if (cardCount === 0) return null;
       for (let i = 0; i < cardCount; i++) {
         const card = eventCards.nth(i);
         const text = (await card.textContent()) ?? '';
+        if (text.includes('[ZOMBIE]')) continue;
         const textLower = text.toLowerCase();
         if (searchWords.every((w: string) => textLower.includes(w))) {
           await card.click();
@@ -246,8 +260,10 @@ export async function loginAndSelectEventByName(
   await waitForAppReady(page, 15_000);
 
   const searchWords = eventName.replace(/\s+/g, ' ').trim().toLowerCase().split(' ').filter(Boolean);
+  // hasNotText excluye eventos marcados como [ZOMBIE] (clones test obsoletos en BD)
   const eventCards = page.locator('[class*="rounded"][class*="shadow"]').filter({
     hasText: /\d{4}|boda|evento|fiesta|aniversario|cumpleaños/i,
+    hasNotText: /\[ZOMBIE\]/,
   });
   const cardCount = await eventCards.count();
   if (cardCount === 0) return null;
@@ -255,6 +271,7 @@ export async function loginAndSelectEventByName(
   for (let i = 0; i < cardCount; i++) {
     const card = eventCards.nth(i);
     const text = (await card.textContent()) ?? '';
+    if (text.includes('[ZOMBIE]')) continue;
     const textLower = text.toLowerCase();
     const allWordsMatch = searchWords.every((w) => textLower.includes(w));
     if (allWordsMatch) {
@@ -271,6 +288,7 @@ export async function loginAndSelectEventByName(
     for (let i = 0; i < cardCount; i++) {
       const card = eventCards.nth(i);
       const text = (await card.textContent()) ?? '';
+      if (text.includes('[ZOMBIE]')) continue;
       if (text.toLowerCase().includes(word)) {
         await card.click();
         await page.waitForTimeout(2000);
@@ -475,6 +493,7 @@ export async function gotoModule(
   if (page.url().endsWith('/') || page.url().endsWith(baseUrl)) {
     const cards = page.locator('[class*="rounded"][class*="shadow"]').filter({
       hasText: /\d{4}|boda|evento/i,
+      hasNotText: /\[ZOMBIE\]/,
     });
     if (await cards.count() > 0) {
       await cards.first().click();
