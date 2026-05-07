@@ -93,14 +93,9 @@ test.describe('Mesas — Carga y estructura básica', () => {
     const text = (await page.locator('body').textContent()) ?? '';
     const hasResumen =
       /asignado|capacidad|total|invitado|libre|ocupado/i.test(text) ||
-      // Buscar patrón "X/Y" que es típico de capacidad
       /\d+\s*\/\s*\d+/.test(text);
 
-    if (hasResumen) {
-      console.log('✅ Resumen de capacidad/invitados visible');
-    } else {
-      console.log('ℹ️ Resumen no encontrado — puede estar en otro panel');
-    }
+    expect(hasResumen, 'Resumen de capacidad/invitados no visible en /mesas').toBe(true);
   });
 
   // 1.5.8 — Añadir elemento decorativo (árbol, DJ, piano) al plano
@@ -122,14 +117,7 @@ test.describe('Mesas — Carga y estructura básica', () => {
     const hasAddToolbar =
       (await page.locator('[class*="toolbar"], [class*="tool-bar"], [class*="controls"]').count()) > 0;
 
-    if (hasElementBtn) {
-      console.log('✅ Botón de añadir elemento decorativo encontrado');
-    } else if (hasAddToolbar) {
-      console.log('ℹ️ Toolbar detectado — botón de elemento puede estar con icono');
-    } else {
-      console.log('ℹ️ No se encontró toolbar de elementos — puede requerir plano abierto');
-    }
-    // No fallo hard — la existencia del editor ya verifica la funcionalidad base
+    expect(hasElementBtn || hasAddToolbar, 'Toolbar/botón de añadir elementos decorativos no encontrado').toBe(true);
   });
 
   // 1.5.9 — Añadir texto al plano de mesas
@@ -151,13 +139,7 @@ test.describe('Mesas — Carga y estructura básica', () => {
     const hasToolbar =
       (await page.locator('[class*="toolbar"], [class*="tool-bar"]').count()) > 0;
 
-    if (hasTextTool) {
-      console.log('✅ Herramienta de texto en plano encontrada');
-    } else if (hasToolbar) {
-      console.log('ℹ️ Toolbar presente — texto puede estar como icono T');
-    } else {
-      console.log('ℹ️ No se detectó herramienta de texto — puede estar oculta hasta seleccionar plano');
-    }
+    expect(hasTextTool || hasToolbar, 'Toolbar / herramienta de texto en plano no encontrada').toBe(true);
   });
 
   // 1.5.10 — Ver resumen invitados sentados vs no-sentados (BlockResumen)
@@ -176,13 +158,10 @@ test.describe('Mesas — Carga y estructura básica', () => {
     const hasResumenBlock =
       (await page.locator('[class*="resumen"], [class*="summary"], [class*="block-resumen"]').count()) > 0;
 
-    if (hasSentados || hasCountPattern) {
-      console.log('✅ Datos de sentados/sin sentar visibles:', { hasSentados, hasCountPattern });
-    } else if (hasResumenBlock) {
-      console.log('ℹ️ BlockResumen encontrado pero texto no reconocido como sentados');
-    } else {
-      console.log('ℹ️ Resumen detallado no visible — puede requerir invitados en el evento');
-    }
+    expect(
+      hasSentados || hasCountPattern || hasResumenBlock,
+      'Resumen sentados/sin sentar no visible (texto ni bloque resumen detectado)'
+    ).toBe(true);
   });
 });
 
@@ -206,35 +185,26 @@ test.describe('Mesas — Crear nueva mesa', () => {
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
-    // Buscar botón de crear mesa
+    // Botón crear mesa: por texto O por icono/aria-label/clase
     const createBtn = page.locator('button').filter({
       hasText: /nueva mesa|crear mesa|add table|añadir mesa/i,
     }).first();
+    const plusBtn = page.locator('[aria-label*="mesa"], [aria-label*="table"], [class*="add-table"]').first();
 
-    if (!await createBtn.isVisible({ timeout: 8_000 }).catch(() => false)) {
-      // Buscar por icono o clase
-      const plusBtn = page.locator('[aria-label*="mesa"], [aria-label*="table"], [class*="add-table"]').first();
-      if (!await plusBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-        console.log('ℹ️ Botón crear mesa no encontrado');
-        return;
-      }
-      await plusBtn.click();
-    } else {
-      await createBtn.click();
-    }
+    const createBtnVisible = await createBtn.isVisible({ timeout: 8_000 }).catch(() => false);
+    const plusBtnVisible = !createBtnVisible && await plusBtn.isVisible({ timeout: 5_000 }).catch(() => false);
+    expect(createBtnVisible || plusBtnVisible, 'BUG_PRODUCTO: ningún botón crear mesa visible (ni por texto ni por icono)').toBe(true);
 
+    if (createBtnVisible) await createBtn.click();
+    else await plusBtn.click();
     await page.waitForTimeout(1500);
 
-    // Formulario de nueva mesa
+    // Formulario nueva mesa
     const nameInput = page.locator('input[placeholder*="nombre"], input[placeholder*="mesa"], input[type="text"]').first();
-    if (await nameInput.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await nameInput.fill(MESA_NAME);
-    } else {
-      console.log('ℹ️ Input nombre de mesa no encontrado');
-      return;
-    }
+    await expect(nameInput, 'BUG_PRODUCTO: input nombre mesa no aparece tras click crear').toBeVisible({ timeout: 5_000 });
+    await nameInput.fill(MESA_NAME);
 
-    // Capacidad
+    // Capacidad (puede no existir en todos los UI variants)
     const capacityInput = page.locator('input[type="number"], input[placeholder*="capacidad"], input[placeholder*="asientos"]').first();
     if (await capacityInput.isVisible({ timeout: 3_000 }).catch(() => false)) {
       await capacityInput.fill(MESA_CAPACITY);
@@ -244,28 +214,22 @@ test.describe('Mesas — Crear nueva mesa', () => {
     const saveBtn = page.locator('[role="dialog"], form').locator('button').filter({
       hasText: /guardar|crear|añadir|save|aceptar/i,
     }).first();
-
-    if (await saveBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await saveBtn.click();
-    } else {
-      await page.keyboard.press('Enter');
-    }
-
+    if (await saveBtn.isVisible({ timeout: 5_000 }).catch(() => false)) await saveBtn.click();
+    else await page.keyboard.press('Enter');
     await page.waitForTimeout(3000);
 
-    // Verificar que la mesa aparece en la lista
+    // Verificación: mesa creada visible en lista O en canvas SVG
     const mesaEl = page.getByText(MESA_NAME, { exact: false });
-    const isVisible = await mesaEl.first().isVisible({ timeout: 10_000 }).catch(() => false);
-
-    if (isVisible) {
-      console.log(`✅ Mesa "${MESA_NAME}" creada y visible en lista`);
-      await expect(mesaEl.first()).toBeVisible();
-    } else {
-      // También puede aparecer en el canvas como elemento SVG
+    const isVisibleInList = await mesaEl.first().isVisible({ timeout: 10_000 }).catch(() => false);
+    let inCanvas = false;
+    if (!isVisibleInList) {
       const svgText = await page.locator('svg text, svg [title]').allTextContents();
-      const inCanvas = svgText.some(t => t.includes(MESA_NAME.split(' ').pop()!));
-      console.log(inCanvas ? `✅ Mesa visible en canvas SVG` : `ℹ️ Mesa no encontrada visualmente`);
+      inCanvas = svgText.some(t => t.includes(MESA_NAME.split(' ').pop()!));
     }
+    expect(
+      isVisibleInList || inCanvas,
+      `BUG_PRODUCTO: mesa "${MESA_NAME}" creada NO visible (ni en lista ni en canvas SVG). Posible: mutation falló silente, o UI no refrescó.`
+    ).toBe(true);
   });
 
   test('editar nombre de mesa existente', async ({ page }) => {
@@ -275,24 +239,25 @@ test.describe('Mesas — Crear nueva mesa', () => {
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
-    // Hacer click en una mesa existente para editarla
     const mesaItem = page.locator('[class*="table-item"], [class*="mesa-item"], [class*="TableCard"]').first();
-    if (!await mesaItem.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      console.log('ℹ️ No hay mesas visibles para editar');
+    const hasMesa = await mesaItem.isVisible({ timeout: 5_000 }).catch(() => false);
+    if (!hasMesa) {
+      test.skip(true, 'TEST_DATA_SETUP: evento sin mesas previas para editar — crear una antes vía test "crear mesa E2E"');
       return;
     }
 
-    // Buscar botón de editar en la mesa
     const editBtn = mesaItem.locator('button').filter({ hasText: /editar|edit|✏️/i }).first();
-    if (await editBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+    const hasEditBtn = await editBtn.isVisible({ timeout: 3_000 }).catch(() => false);
+    if (hasEditBtn) {
       await editBtn.click();
-      await page.waitForTimeout(1000);
-      console.log('✅ Modal de edición de mesa abierto');
     } else {
-      // Doble click en la mesa para editar
-      await mesaItem.dblclick().catch(() => {});
-      console.log('ℹ️ Intento de doble click para editar mesa');
+      await mesaItem.dblclick();
     }
+    await page.waitForTimeout(1000);
+
+    // Tras click/dblclick debe aparecer modal de edición o input editable
+    const modal = page.locator('[role="dialog"], [class*="modal"], input[type="text"]:visible').first();
+    await expect(modal, 'BUG_PRODUCTO: ni modal ni input aparece tras editar mesa (botón editar ni doble click responden)').toBeVisible({ timeout: 5_000 });
   });
 });
 
@@ -325,11 +290,7 @@ test.describe('Mesas — Planos múltiples', () => {
     const text = (await page.locator('body').textContent()) ?? '';
     const hasPlanoText = /plano|floor|zona/i.test(text);
 
-    if (hasPlanos || hasPlanoText) {
-      console.log('✅ Selector de planos disponible');
-    } else {
-      console.log('ℹ️ Planos no detectados — puede ser que solo haya uno');
-    }
+    expect(hasPlanos || hasPlanoText, 'Selector/texto de planos no detectado en /mesas').toBe(true);
   });
 
   test('crear nuevo plano E2E', async ({ page }) => {
@@ -339,36 +300,34 @@ test.describe('Mesas — Planos múltiples', () => {
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
-    // Buscar botón de nuevo plano
     const newPlanoBtn = page.locator('button').filter({
       hasText: /nuevo plano|crear plano|add floor|nueva zona/i,
     }).first();
-
-    if (!await newPlanoBtn.isVisible({ timeout: 8_000 }).catch(() => false)) {
-      console.log('ℹ️ Botón nuevo plano no encontrado');
-      return;
-    }
+    await expect(newPlanoBtn, 'BUG_PRODUCTO: botón nuevo plano no visible en /mesas').toBeVisible({ timeout: 8_000 });
 
     await newPlanoBtn.click();
     await page.waitForTimeout(1500);
 
     const nameInput = page.locator('input[type="text"], input[placeholder*="nombre"]').first();
-    if (await nameInput.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await nameInput.fill(PLANO_NAME);
-    }
+    await expect(nameInput, 'BUG_PRODUCTO: input nombre plano no aparece tras click').toBeVisible({ timeout: 5_000 });
+    await nameInput.fill(PLANO_NAME);
 
     const saveBtn = page.locator('[role="dialog"], form').locator('button').filter({
       hasText: /guardar|crear|save/i,
     }).first();
-
     if (await saveBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
       await saveBtn.click();
+      await page.waitForTimeout(2000);
+    } else {
+      await page.keyboard.press('Enter');
       await page.waitForTimeout(2000);
     }
 
     const planoEl = page.getByText(PLANO_NAME, { exact: false });
-    const isVisible = await planoEl.first().isVisible({ timeout: 8_000 }).catch(() => false);
-    console.log(isVisible ? `✅ Plano "${PLANO_NAME}" creado` : `ℹ️ Plano no encontrado visualmente`);
+    await expect(
+      planoEl.first(),
+      `BUG_PRODUCTO: plano "${PLANO_NAME}" creado pero NO visible (mutation falló silente o UI no refrescó)`
+    ).toBeVisible({ timeout: 8_000 });
   });
 });
 
@@ -397,11 +356,7 @@ test.describe('Mesas — Asignar invitados', () => {
       /sin asignar|unassigned|sin mesa|no asignado/i.test(text) ||
       (await page.locator('[class*="unassigned"], [class*="sin-asignar"]').count()) > 0;
 
-    if (hasUnassigned) {
-      console.log('✅ Panel de invitados sin asignar visible');
-    } else {
-      console.log('ℹ️ Panel de invitados sin asignar no detectado — puede estar vacío o en otra sección');
-    }
+    expect(hasUnassigned, 'Panel/sección de invitados sin asignar no detectado en /mesas').toBe(true);
   });
 
   test('asignar invitado a mesa desde panel', async ({ page }) => {
@@ -411,34 +366,33 @@ test.describe('Mesas — Asignar invitados', () => {
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
-    // Buscar un invitado en el panel de no asignados
     const unassignedGuest = page.locator('[class*="unassigned"] [class*="guest"], [class*="sin-asignar"] [class*="invitado"]').first();
-
-    if (!await unassignedGuest.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      console.log('ℹ️ No hay invitados sin asignar para probar drag');
+    const hasGuest = await unassignedGuest.isVisible({ timeout: 5_000 }).catch(() => false);
+    if (!hasGuest) {
+      test.skip(true, 'TEST_DATA_SETUP: evento sin invitados sin asignar — necesita invitados creados primero');
       return;
     }
 
-    // Buscar una mesa en el canvas
     const mesaTarget = page.locator('[class*="table-drop"], [class*="mesa-drop"], [data-droppable]').first();
-
-    if (!await mesaTarget.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      console.log('ℹ️ No hay mesa destino para drop');
+    const hasMesa = await mesaTarget.isVisible({ timeout: 5_000 }).catch(() => false);
+    if (!hasMesa) {
+      test.skip(true, 'TEST_DATA_SETUP: evento sin mesa destino para drop — necesita mesa creada primero');
       return;
     }
 
-    // Drag del invitado a la mesa
     const guestBox = await unassignedGuest.boundingBox();
     const mesaBox = await mesaTarget.boundingBox();
+    expect(guestBox && mesaBox, 'BUG_PRODUCTO: bounding boxes de invitado/mesa no calculables').toBeTruthy();
 
-    if (guestBox && mesaBox) {
-      await page.mouse.move(guestBox.x + guestBox.width / 2, guestBox.y + guestBox.height / 2);
-      await page.mouse.down();
-      await page.mouse.move(mesaBox.x + mesaBox.width / 2, mesaBox.y + mesaBox.height / 2, { steps: 10 });
-      await page.mouse.up();
-      await page.waitForTimeout(2000);
-      console.log('✅ Drag & drop de invitado a mesa ejecutado');
-    }
+    await page.mouse.move(guestBox!.x + guestBox!.width / 2, guestBox!.y + guestBox!.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(mesaBox!.x + mesaBox!.width / 2, mesaBox!.y + mesaBox!.height / 2, { steps: 10 });
+    await page.mouse.up();
+    await page.waitForTimeout(2000);
+
+    // Verificar que tras drag el invitado YA NO está en panel sin asignar (cambió de estado)
+    const stillUnassigned = await unassignedGuest.isVisible({ timeout: 2_000 }).catch(() => false);
+    expect(stillUnassigned, 'BUG_PRODUCTO: invitado sigue en panel sin asignar tras drag-drop a mesa').toBe(false);
   });
 
   test('plantillas de disposición disponibles', async ({ page }) => {
@@ -448,20 +402,14 @@ test.describe('Mesas — Asignar invitados', () => {
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
-    // Buscar panel de plantillas
     const templatePanel = page.locator('[class*="template"], [class*="plantilla"]').filter({
       hasText: /plantilla|template|prediseño/i,
     });
     const hasTemplates = await templatePanel.count() > 0;
-
     const text = (await page.locator('body').textContent()) ?? '';
     const hasTemplateText = /plantilla|template/i.test(text);
 
-    if (hasTemplates || hasTemplateText) {
-      console.log('✅ Panel de plantillas de disposición disponible');
-    } else {
-      console.log('ℹ️ Plantillas no encontradas — puede estar en otro tab/panel');
-    }
+    expect(hasTemplates || hasTemplateText, 'Panel de plantillas de disposición no detectado en /mesas').toBe(true);
   });
 });
 
@@ -485,15 +433,14 @@ test.describe('Mesas — Exportar plano', () => {
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
-    const exportBtn = page.locator('button, a').filter({
+    const exportBtnText = page.locator('button, a').filter({
       hasText: /imprimir|exportar|descargar|print|export|pdf/i,
     }).first();
+    const exportBtnIcon = page.locator('[aria-label*="exportar" i], [aria-label*="imprimir" i], [aria-label*="print" i], [aria-label*="export" i], [title*="exportar" i], [title*="imprimir" i]').first();
 
-    const hasExport = await exportBtn.isVisible({ timeout: 5_000 }).catch(() => false);
-    if (hasExport) {
-      console.log('✅ Botón de exportar/imprimir plano disponible');
-    } else {
-      console.log('ℹ️ Botón de exportar no encontrado con texto — puede tener icono');
-    }
+    const hasTextBtn = await exportBtnText.isVisible({ timeout: 5_000 }).catch(() => false);
+    const hasIconBtn = !hasTextBtn && await exportBtnIcon.isVisible({ timeout: 3_000 }).catch(() => false);
+
+    expect(hasTextBtn || hasIconBtn, 'BUG_PRODUCTO: botón de exportar/imprimir plano no detectado (ni por texto ni por icono)').toBe(true);
   });
 });
