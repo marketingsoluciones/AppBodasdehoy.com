@@ -438,9 +438,7 @@ class ChatService {
       }
     }
     
-    if (development) {
-      userContextHeaders['X-Development'] = development;
-    }
+    userContextHeaders['X-Development'] = development || 'bodasdehoy';
     if (eventId) {
       userContextHeaders['X-Event-ID'] = eventId;
     }
