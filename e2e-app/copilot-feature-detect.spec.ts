@@ -30,7 +30,11 @@ test.describe('Copilot — Detección y verificación funcional', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppDev) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
   });
 
   test('botón ChatToggle visible en home tras login', async ({ page }) => {

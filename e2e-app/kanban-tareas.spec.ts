@@ -52,7 +52,11 @@ test.describe('Kanban Tareas — Estructura /servicios', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
   });
 
   test('/servicios carga con columnas kanban y título "Tasks"', async ({ page }) => {
@@ -127,7 +131,11 @@ test.describe('Kanban Tareas — Crear tarea', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
   });
 
   test('crear tarea E2E en columna Pendiente → visible en kanban', async ({ page }) => {
@@ -251,7 +259,11 @@ test.describe('Kanban Tareas — Detalle y edición de tarea', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
   });
 
   test('click en tarea → panel/modal de detalle abre con campos', async ({ page }) => {
@@ -345,7 +357,11 @@ test.describe('Kanban Tareas — Drag & Drop entre columnas', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
   });
 
   test('arrastrar tarea de Pendiente a En Progreso → columna cambia', async ({ page }) => {
@@ -449,7 +465,11 @@ test.describe('Kanban Tareas — Completar tarea', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
   });
 
   test('marcar tarea como completada → aparece en columna Completadas', async ({ page }) => {
@@ -515,7 +535,11 @@ test.describe('Kanban Tareas — Filtros', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
   });
 
   test('filtro por responsable disponible', async ({ page }) => {

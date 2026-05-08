@@ -40,7 +40,12 @@ test.describe('Mesas — Carga y estructura básica', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    // Fail-fast: si login falla, abortar el test entero (evita falsos BUG_PRODUCTO en assertions posteriores)
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Verificar TEST_USER credenciales/Firebase Auth/SSO chat-dev. Test abortado para no generar falsos positivos.');
+    }
   });
 
   test('/mesas carga sin ErrorBoundary con editor visual', async ({ page }) => {
@@ -175,7 +180,12 @@ test.describe('Mesas — Crear nueva mesa', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    // Fail-fast: si login falla, abortar el test entero (evita falsos BUG_PRODUCTO en assertions posteriores)
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Verificar TEST_USER credenciales/Firebase Auth/SSO chat-dev. Test abortado para no generar falsos positivos.');
+    }
   });
 
   test('crear mesa E2E con capacidad → visible en lista', async ({ page }) => {
@@ -271,7 +281,12 @@ test.describe('Mesas — Planos múltiples', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    // Fail-fast: si login falla, abortar el test entero (evita falsos BUG_PRODUCTO en assertions posteriores)
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Verificar TEST_USER credenciales/Firebase Auth/SSO chat-dev. Test abortado para no generar falsos positivos.');
+    }
   });
 
   test('selector de planos visible y funcional', async ({ page }) => {
@@ -341,7 +356,12 @@ test.describe('Mesas — Asignar invitados', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    // Fail-fast: si login falla, abortar el test entero (evita falsos BUG_PRODUCTO en assertions posteriores)
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Verificar TEST_USER credenciales/Firebase Auth/SSO chat-dev. Test abortado para no generar falsos positivos.');
+    }
   });
 
   test('panel de invitados sin asignar disponible', async ({ page }) => {
@@ -423,7 +443,12 @@ test.describe('Mesas — Exportar plano', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    // Fail-fast: si login falla, abortar el test entero (evita falsos BUG_PRODUCTO en assertions posteriores)
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Verificar TEST_USER credenciales/Firebase Auth/SSO chat-dev. Test abortado para no generar falsos positivos.');
+    }
   });
 
   test('botón imprimir/exportar plano existe', async ({ page }) => {

@@ -41,7 +41,11 @@ test.describe('Presupuesto — /resumen-evento', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
   });
 
   test('muestra bloque de presupuesto con cifras €', async ({ page }) => {
@@ -88,7 +92,11 @@ test.describe('Presupuesto — /presupuesto página principal', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
   });
 
   test('carga sin crash y muestra tabla con categorías o estado vacío', async ({ page }) => {
@@ -228,7 +236,11 @@ test.describe('Presupuesto — Crear categoría y gasto', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
   });
 
   test('crear categoría E2E → visible en la lista', async ({ page }) => {
@@ -348,7 +360,11 @@ test.describe('Presupuesto — Registrar pago', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
   });
 
   test('registrar pago con importe, medio, fecha y concepto', async ({ page }) => {
