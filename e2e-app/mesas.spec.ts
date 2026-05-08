@@ -13,7 +13,7 @@
  *   - Imprimir/exportar plano (botón existe)
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, loginAndSelectEvent, waitForAppReady } from './helpers';
+import { clearSession, loginAndSelectEvent, waitForAppReady, assertNoRuntimeError } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
@@ -46,6 +46,8 @@ test.describe('Mesas — Carga y estructura básica', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Verificar TEST_USER credenciales/Firebase Auth/SSO chat-dev. Test abortado para no generar falsos positivos.');
     }
+    // Detectar runtime errors UI tras login (Runtime Error, GraphQL mismatch, ErrorBoundary, etc.)
+    await assertNoRuntimeError(page);
   });
 
   test('/mesas carga sin ErrorBoundary con editor visual', async ({ page }) => {
@@ -186,6 +188,8 @@ test.describe('Mesas — Crear nueva mesa', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Verificar TEST_USER credenciales/Firebase Auth/SSO chat-dev. Test abortado para no generar falsos positivos.');
     }
+    // Detectar runtime errors UI tras login (Runtime Error, GraphQL mismatch, ErrorBoundary, etc.)
+    await assertNoRuntimeError(page);
   });
 
   test('crear mesa E2E con capacidad → visible en lista', async ({ page }) => {
@@ -287,6 +291,8 @@ test.describe('Mesas — Planos múltiples', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Verificar TEST_USER credenciales/Firebase Auth/SSO chat-dev. Test abortado para no generar falsos positivos.');
     }
+    // Detectar runtime errors UI tras login (Runtime Error, GraphQL mismatch, ErrorBoundary, etc.)
+    await assertNoRuntimeError(page);
   });
 
   test('selector de planos visible y funcional', async ({ page }) => {
@@ -362,6 +368,8 @@ test.describe('Mesas — Asignar invitados', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Verificar TEST_USER credenciales/Firebase Auth/SSO chat-dev. Test abortado para no generar falsos positivos.');
     }
+    // Detectar runtime errors UI tras login (Runtime Error, GraphQL mismatch, ErrorBoundary, etc.)
+    await assertNoRuntimeError(page);
   });
 
   test('panel de invitados sin asignar disponible', async ({ page }) => {
@@ -449,6 +457,8 @@ test.describe('Mesas — Exportar plano', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Verificar TEST_USER credenciales/Firebase Auth/SSO chat-dev. Test abortado para no generar falsos positivos.');
     }
+    // Detectar runtime errors UI tras login (Runtime Error, GraphQL mismatch, ErrorBoundary, etc.)
+    await assertNoRuntimeError(page);
   });
 
   test('botón imprimir/exportar plano existe', async ({ page }) => {

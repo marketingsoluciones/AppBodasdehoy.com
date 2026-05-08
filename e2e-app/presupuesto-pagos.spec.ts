@@ -12,7 +12,7 @@
  *   - Exportar presupuesto (botón existe)
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, loginAndSelectEvent, waitForAppReady } from './helpers';
+import { clearSession, loginAndSelectEvent, waitForAppReady, assertNoRuntimeError } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
@@ -46,6 +46,7 @@ test.describe('Presupuesto — /resumen-evento', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
     }
+    await assertNoRuntimeError(page);
   });
 
   test('muestra bloque de presupuesto con cifras €', async ({ page }) => {
@@ -97,6 +98,7 @@ test.describe('Presupuesto — /presupuesto página principal', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
     }
+    await assertNoRuntimeError(page);
   });
 
   test('carga sin crash y muestra tabla con categorías o estado vacío', async ({ page }) => {
@@ -241,6 +243,7 @@ test.describe('Presupuesto — Crear categoría y gasto', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
     }
+    await assertNoRuntimeError(page);
   });
 
   test('crear categoría E2E → visible en la lista', async ({ page }) => {
@@ -365,6 +368,7 @@ test.describe('Presupuesto — Registrar pago', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
     }
+    await assertNoRuntimeError(page);
   });
 
   test('registrar pago con importe, medio, fecha y concepto', async ({ page }) => {

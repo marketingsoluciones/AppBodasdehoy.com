@@ -15,7 +15,7 @@
  * limitaciones), saber qué implementación corre y si responde es CRÍTICO.
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, loginAndSelectEvent, waitForAppReady } from './helpers';
+import { clearSession, loginAndSelectEvent, waitForAppReady, assertNoRuntimeError } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppDev = BASE_URL.includes('app-dev.bodasdehoy.com') || BASE_URL.includes('app-test.bodasdehoy.com');
@@ -35,6 +35,7 @@ test.describe('Copilot — Detección y verificación funcional', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
     }
+    await assertNoRuntimeError(page);
   });
 
   test('botón ChatToggle visible en home tras login', async ({ page }) => {

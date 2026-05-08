@@ -18,7 +18,7 @@
  *  10. Prioridad de tarea: alta/media/baja — indicador visual
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, loginAndSelectEvent, waitForAppReady } from './helpers';
+import { clearSession, loginAndSelectEvent, waitForAppReady, assertNoRuntimeError } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
@@ -57,6 +57,7 @@ test.describe('Kanban Tareas — Estructura /servicios', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
     }
+    await assertNoRuntimeError(page);
   });
 
   test('/servicios carga con columnas kanban y título "Tasks"', async ({ page }) => {
@@ -136,6 +137,7 @@ test.describe('Kanban Tareas — Crear tarea', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
     }
+    await assertNoRuntimeError(page);
   });
 
   test('crear tarea E2E en columna Pendiente → visible en kanban', async ({ page }) => {
@@ -264,6 +266,7 @@ test.describe('Kanban Tareas — Detalle y edición de tarea', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
     }
+    await assertNoRuntimeError(page);
   });
 
   test('click en tarea → panel/modal de detalle abre con campos', async ({ page }) => {
@@ -362,6 +365,7 @@ test.describe('Kanban Tareas — Drag & Drop entre columnas', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
     }
+    await assertNoRuntimeError(page);
   });
 
   test('arrastrar tarea de Pendiente a En Progreso → columna cambia', async ({ page }) => {
@@ -470,6 +474,7 @@ test.describe('Kanban Tareas — Completar tarea', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
     }
+    await assertNoRuntimeError(page);
   });
 
   test('marcar tarea como completada → aparece en columna Completadas', async ({ page }) => {
@@ -540,6 +545,7 @@ test.describe('Kanban Tareas — Filtros', () => {
     if (!eventId) {
       test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
     }
+    await assertNoRuntimeError(page);
   });
 
   test('filtro por responsable disponible', async ({ page }) => {

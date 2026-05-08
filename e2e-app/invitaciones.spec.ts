@@ -15,7 +15,7 @@
  *   - Portal público: /e/[eventId] carga con info del evento
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, loginAndSelectEvent, waitForAppReady } from './helpers';
+import { clearSession, loginAndSelectEvent, waitForAppReady, assertNoRuntimeError } from './helpers';
 import { TEST_URLS, E2E_ENV } from './fixtures';
 
 const BASE_URL = TEST_URLS.app;
@@ -69,7 +69,12 @@ test.describe('Invitaciones — Estructura de la página', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
+    await assertNoRuntimeError(page);
   });
 
   test('carga /invitaciones sin crash con tabs Email y WhatsApp', async ({ page }) => {
@@ -217,7 +222,12 @@ test.describe('Invitaciones — Email: plantilla y envío a Carlos', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
+    await assertNoRuntimeError(page);
   });
 
   test('tab email activo por defecto con selector de plantilla', async ({ page }) => {
@@ -357,7 +367,12 @@ test.describe('Invitaciones — WhatsApp', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
+    await assertNoRuntimeError(page);
   });
 
   test('tab WhatsApp muestra editor de mensaje O pantalla setup/QR', async ({ page }) => {
