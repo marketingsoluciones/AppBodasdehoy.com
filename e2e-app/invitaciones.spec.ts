@@ -40,7 +40,10 @@ test.describe('Setup — Verificar invitado de prueba', () => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
     const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
-    if (!eventId) { console.log('ℹ️ No hay eventos disponibles'); return; }
+    if (!eventId) {
+      test.skip(true, 'TEST_DATA_SETUP: TEST_USER no tiene eventos disponibles');
+      return;
+    }
 
     await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
     await waitForAppReady(page, 20_000);
@@ -49,12 +52,10 @@ test.describe('Setup — Verificar invitado de prueba', () => {
     const text = (await page.locator('body').textContent()) ?? '';
     const carlosExists = text.includes(CARLOS_EMAIL) || text.includes(CARLOS_NAME);
 
-    if (carlosExists) {
-      console.log(`✅ ${CARLOS_EMAIL} ya existe como invitado`);
-    } else {
-      console.log(`ℹ️ ${CARLOS_EMAIL} no encontrado — puede no estar en este evento`);
-      // No falla el test — puede estar en otro evento o no haberse creado aún
-    }
+    expect(
+      carlosExists,
+      `TEST_DATA_SETUP: ${CARLOS_EMAIL} no existe como invitado en el evento. Crear primero antes de tests envío.`
+    ).toBe(true);
   });
 });
 
@@ -85,7 +86,7 @@ test.describe('Invitaciones — Estructura de la página', () => {
     // Página de invitaciones: verificar que carga contenido coherente
     const noEvent = /selecciona un evento|elige un evento|sin evento|no hay evento/i.test(text);
     if (noEvent) {
-      console.log('ℹ️ Sin evento seleccionado — tabs no disponibles (pass)');
+      test.skip(true, 'TEST_DATA_SETUP: usuario sin evento seleccionado');
       return;
     }
 
@@ -94,14 +95,10 @@ test.describe('Invitaciones — Estructura de la página', () => {
       (await page.locator('[role="tab"], button, [class*="tab"]').filter({ hasText: /email|correo/i }).count()) > 0;
     const hasInvitacionesContent = /invitaci|enviada|pendiente|plantilla|diseño|template|whatsapp/i.test(text);
 
-    if (hasEmailTab) {
-      console.log('✅ Tab Email visible en /invitaciones');
-    } else if (hasInvitacionesContent) {
-      console.log('ℹ️ Tab Email no detectado por selector pero la página tiene contenido de invitaciones (pass)');
-    } else {
-      // Sin ningún contenido de invitaciones — esto sí es un fallo real
-      expect(hasEmailTab || hasInvitacionesContent).toBe(true);
-    }
+    expect(
+      hasEmailTab || hasInvitacionesContent,
+      'BUG_PRODUCTO: ni tab Email ni contenido invitaciones visible en /invitaciones'
+    ).toBe(true);
   });
 
   test('tabla de invitados visible con checkboxes', async ({ page }) => {
@@ -117,24 +114,14 @@ test.describe('Invitaciones — Estructura de la página', () => {
     const hasCheckboxes =
       (await page.locator('input[type="checkbox"]').count()) > 0;
 
-    if (hasTable) {
-      console.log('✅ Tabla de invitados visible');
-    }
-    if (hasCheckboxes) {
-      console.log('✅ Checkboxes disponibles para selección');
-    }
-
-    // Al menos uno debe estar presente
     const hasGuestList = hasTable || hasCheckboxes;
-    // Si no hay invitados, puede que la lista esté vacía — también es válido
     const text = (await page.locator('body').textContent()) ?? '';
     const hasEmptyState = /sin invitados|no hay invitados|lista vacía|añade|agrega|selecciona un evento|elige un evento|sin evento/i.test(text);
 
-    if (!hasGuestList && !hasEmptyState) {
-      console.log(`ℹ️ Lista de invitados no detectada (puede estar cargando o sin evento). Texto: ${text.slice(0, 150)}`);
-    } else {
-      expect(hasGuestList || hasEmptyState).toBe(true);
-    }
+    expect(
+      hasGuestList || hasEmptyState,
+      `BUG_PRODUCTO: ni tabla/checkbox ni empty-state visible en /invitaciones. Body: ${text.slice(0, 200)}`
+    ).toBe(true);
   });
 
   test('contadores visibles: total, enviadas, pendientes, confirmadas', async ({ page }) => {
@@ -149,11 +136,7 @@ test.describe('Invitaciones — Estructura de la página', () => {
       /total|enviada|pendiente|confirmada|invitado/i.test(text) ||
       (await page.locator('[class*="counter"], [class*="count"], [class*="stat"]').count()) > 0;
 
-    if (hasCounters) {
-      console.log('✅ Contadores de invitaciones visibles');
-    } else {
-      console.log('ℹ️ Contadores no detectados — puede estar cargando o ser diferente UI');
-    }
+    expect(hasCounters, 'BUG_PRODUCTO: contadores invitaciones (total/enviadas/pendientes/confirmadas) no visibles').toBe(true);
   });
 
   // 1.9.7 — Panel enviados/no-enviados (EnviadosComponent) — resend individual
@@ -169,30 +152,19 @@ test.describe('Invitaciones — Estructura de la página', () => {
 
     const noEvent = /selecciona un evento|elige un evento|sin evento|no hay evento/i.test(text);
     if (noEvent) {
-      console.log('ℹ️ Sin evento seleccionado — test no aplicable');
+      test.skip(true, 'TEST_DATA_SETUP: usuario sin evento seleccionado');
       return;
     }
 
-    // Buscar panel con estado enviado/no-enviado
     const hasSentPanel =
       /enviado|no enviado|pendiente de envío/i.test(text) ||
       (await page.locator('[class*="enviado"], [class*="sent"], [class*="pending"]').count()) > 0;
 
-    // Buscar botón de reenvío
     const hasResendBtn =
       (await page.locator('button, [role="button"]').filter({ hasText: /reenviar|re-enviar|enviar de nuevo|resend/i }).count()) > 0;
 
-    if (hasSentPanel) {
-      console.log('✅ Panel enviados/no-enviados detectado');
-    } else {
-      console.log('ℹ️ Panel de enviados no detectado — puede requerir haber enviado invitaciones antes');
-    }
-
-    if (hasResendBtn) {
-      console.log('✅ Botón de reenvío disponible');
-    } else {
-      console.log('ℹ️ Botón reenvío no visible — puede aparecer al hover sobre fila enviada');
-    }
+    expect(hasSentPanel, 'BUG_PRODUCTO: panel de enviados/no-enviados no visible en /invitaciones').toBe(true);
+    expect(hasResendBtn, 'BUG_PRODUCTO: botón reenvío no visible (debería estar al menos al hover en filas)').toBe(true);
   });
 
   // 1.9.8 — Diseño personalizado (DiseñoComponent) — subida de imagen de invitación
@@ -208,7 +180,7 @@ test.describe('Invitaciones — Estructura de la página', () => {
 
     const noEvent = /selecciona un evento|elige un evento|sin evento|no hay evento/i.test(text);
     if (noEvent) {
-      console.log('ℹ️ Sin evento seleccionado — test no aplicable');
+      test.skip(true, 'TEST_DATA_SETUP: usuario sin evento seleccionado');
       return;
     }
 
@@ -228,13 +200,10 @@ test.describe('Invitaciones — Estructura de la página', () => {
       /subir|upload|imagen|arrastra|drop|selecciona.*imagen/i.test(textAfter) ||
       (await page.locator('input[type="file"], [class*="upload"], [class*="dropzone"]').count()) > 0;
 
-    if (hasUploadZone) {
-      console.log('✅ Zona de subida de imagen en DiseñoComponent encontrada');
-    } else if (hasDisenoTab) {
-      console.log('ℹ️ Tab de diseño presente pero zona upload no visible — puede requerir scroll');
-    } else {
-      console.log('ℹ️ DiseñoComponent no detectado — puede estar en otro tab o requerir configuración previa');
-    }
+    expect(
+      hasUploadZone || hasDisenoTab,
+      'BUG_PRODUCTO: ni zona upload ni tab de diseño detectado en /invitaciones'
+    ).toBe(true);
   });
 });
 
@@ -312,11 +281,7 @@ test.describe('Invitaciones — Email: plantilla y envío a Carlos', () => {
       (await previewArea.count()) > 0 ||
       (await page.locator('body').textContent())?.includes('preview');
 
-    if (hasPreview) {
-      console.log('✅ Preview de plantilla visible tras selección');
-    } else {
-      console.log('ℹ️ Preview no detectado como elemento separado');
-    }
+    expect(hasPreview, 'BUG_PRODUCTO: preview de plantilla no visible tras selección').toBe(true);
   });
 
   test('seleccionar a Carlos y enviar email → ModalConfirmacionEnvio aparece', async ({ page }) => {
@@ -328,83 +293,57 @@ test.describe('Invitaciones — Email: plantilla y envío a Carlos', () => {
 
     const text0 = (await page.locator('body').textContent()) ?? '';
     if (!text0.includes(CARLOS_EMAIL) && !text0.includes(CARLOS_NAME)) {
-      console.log(`ℹ️ ${CARLOS_EMAIL} no encontrado en la lista — skipping envío`);
+      test.skip(true, `TEST_DATA_SETUP: ${CARLOS_EMAIL} no en lista invitados — crear primero antes de probar envío`);
       return;
     }
 
-    // Seleccionar checkbox de Carlos
     const carlosRow = page.locator('tr, [class*="row"], [class*="invitado"]')
       .filter({ hasText: new RegExp(CARLOS_EMAIL.split('@')[0], 'i') })
       .first();
-
-    if (!await carlosRow.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      console.log('ℹ️ Fila de Carlos no encontrada');
-      return;
-    }
+    await expect(carlosRow, 'BUG_PRODUCTO: fila Carlos no visible aunque su email aparece en body').toBeVisible({ timeout: 5_000 });
 
     const checkbox = carlosRow.locator('input[type="checkbox"]').first();
     if (await checkbox.isVisible({ timeout: 3_000 }).catch(() => false)) {
       await checkbox.check();
-      await page.waitForTimeout(1000);
-      console.log('✅ Checkbox de Carlos seleccionado');
     } else {
-      // Hacer click en la fila directamente
       await carlosRow.click();
-      await page.waitForTimeout(1000);
     }
+    await page.waitForTimeout(1000);
 
-    // Buscar botón de enviar
     const sendBtn = page.locator('button').filter({
       hasText: /enviar|send|invitar/i,
     }).first();
-
-    if (!await sendBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      console.log('ℹ️ Botón de enviar no visible');
-      return;
-    }
+    await expect(sendBtn, 'BUG_PRODUCTO: botón enviar no visible tras seleccionar invitado').toBeVisible({ timeout: 5_000 });
 
     await sendBtn.click();
     await page.waitForTimeout(2000);
 
-    // ModalConfirmacionEnvio debe aparecer
     const modalText = (await page.locator('body').textContent()) ?? '';
     const hasConfirmModal =
       /confirmar|¿enviar|seguro|envío/i.test(modalText) ||
       (await page.locator('[role="dialog"], [class*="modal"]').filter({
         hasText: /confirm|enviar|invitaci/i,
       }).count()) > 0;
+    expect(hasConfirmModal, 'BUG_PRODUCTO: ModalConfirmacionEnvio no aparece tras click enviar').toBe(true);
 
-    if (hasConfirmModal) {
-      console.log('✅ ModalConfirmacionEnvio aparece');
+    const confirmBtn = page.locator('[role="dialog"], [class*="modal"]')
+      .locator('button')
+      .filter({ hasText: /confirm|enviar|sí|aceptar/i })
+      .first();
+    await expect(confirmBtn, 'BUG_PRODUCTO: botón confirmar no visible en modal envío').toBeVisible({ timeout: 5_000 });
+    await confirmBtn.click();
+    await page.waitForTimeout(5000);
 
-      // Confirmar el envío
-      const confirmBtn = page.locator('[role="dialog"], [class*="modal"]')
-        .locator('button')
-        .filter({ hasText: /confirm|enviar|sí|aceptar/i })
-        .first();
-
-      if (await confirmBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-        await confirmBtn.click();
-        await page.waitForTimeout(3000);
-        console.log('✅ Envío confirmado');
-
-        // Verificar estado "enviada" en la fila
-        await page.waitForTimeout(2000);
-        const carlosRowAfter = page.locator('tr, [class*="row"]')
-          .filter({ hasText: new RegExp(CARLOS_EMAIL.split('@')[0], 'i') })
-          .first();
-        const rowText = (await carlosRowAfter.textContent()) ?? '';
-        const markedAsSent = /enviada|sent|✓|✅/i.test(rowText);
-
-        if (markedAsSent) {
-          console.log('✅ Fila de Carlos marcada como "enviada"');
-        } else {
-          console.log('ℹ️ Estado de envío no reflejado visualmente aún');
-        }
-      }
-    } else {
-      console.log('ℹ️ Modal de confirmación no apareció');
-    }
+    // Verificar fila marcada como enviada (CRUD real)
+    const carlosRowAfter = page.locator('tr, [class*="row"]')
+      .filter({ hasText: new RegExp(CARLOS_EMAIL.split('@')[0], 'i') })
+      .first();
+    const rowText = (await carlosRowAfter.textContent()) ?? '';
+    const markedAsSent = /enviada|sent|✓|✅/i.test(rowText);
+    expect(
+      markedAsSent,
+      `BUG_PRODUCTO: fila Carlos NO marcada como enviada tras confirmar envío. Body fila: ${rowText.slice(0, 200)}`
+    ).toBe(true);
   });
 });
 
@@ -430,10 +369,7 @@ test.describe('Invitaciones — WhatsApp', () => {
 
     // Click en tab WhatsApp
     const waTab = page.locator('[role="tab"], button').filter({ hasText: /whatsapp/i }).first();
-    if (!await waTab.isVisible({ timeout: 8_000 }).catch(() => false)) {
-      console.log('ℹ️ Tab WhatsApp no encontrado');
-      return;
-    }
+    await expect(waTab, 'BUG_PRODUCTO: tab WhatsApp no visible en /invitaciones').toBeVisible({ timeout: 8_000 });
 
     await waTab.click();
     await page.waitForTimeout(3000);
@@ -495,11 +431,7 @@ test.describe('Invitaciones — WhatsApp', () => {
     const text = (await page.locator('body').textContent()) ?? '';
     const hasTemplateRef = /plantilla|template/i.test(text);
 
-    if (hasSelectorWA || hasTemplateRef) {
-      console.log('✅ Selector/referencia de plantilla WA encontrado');
-    } else {
-      console.log('ℹ️ No hay selector de plantilla WA visible (puede estar en setup)');
-    }
+    expect(hasSelectorWA || hasTemplateRef, 'BUG_PRODUCTO: ni selector ni referencia plantilla WA detectado').toBe(true);
   });
 
   test('enviar WA a Carlos si WhatsApp está conectado', async ({ page }) => {
@@ -510,25 +442,23 @@ test.describe('Invitaciones — WhatsApp', () => {
     await page.waitForTimeout(2000);
 
     const waTab = page.locator('[role="tab"], button').filter({ hasText: /whatsapp/i }).first();
-    if (!await waTab.isVisible({ timeout: 5_000 }).catch(() => false)) { return; }
+    await expect(waTab, 'BUG_PRODUCTO: tab WhatsApp no visible').toBeVisible({ timeout: 5_000 });
     await waTab.click();
     await page.waitForTimeout(3000);
 
     const text = (await page.locator('body').textContent()) ?? '';
 
-    // Si hay QR o setup, WA no está conectado
     if (/qr|escanear|scan|conectar/i.test(text)) {
-      console.log('ℹ️ WhatsApp no conectado — requiere QR scan. Skipping envío WA');
+      test.skip(true, 'INFRA_WA_NOT_CONNECTED: WhatsApp requiere QR scan. Conectar primero antes de probar envío');
       return;
     }
 
-    // Si WA está conectado, intentar seleccionar a Carlos
     const carlosRow = page.locator('tr, [class*="row"]')
       .filter({ hasText: new RegExp(CARLOS_EMAIL.split('@')[0], 'i') })
       .first();
-
-    if (!await carlosRow.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      console.log('ℹ️ Carlos no encontrado en lista WA');
+    const hasCarlos = await carlosRow.isVisible({ timeout: 5_000 }).catch(() => false);
+    if (!hasCarlos) {
+      test.skip(true, `TEST_DATA_SETUP: ${CARLOS_EMAIL} no en lista WA — crear primero`);
       return;
     }
 
@@ -538,11 +468,14 @@ test.describe('Invitaciones — WhatsApp', () => {
     }
 
     const sendBtn = page.locator('button').filter({ hasText: /enviar|send/i }).first();
-    if (await sendBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await sendBtn.click();
-      await page.waitForTimeout(3000);
-      console.log('✅ Intento de envío WA a Carlos completado');
-    }
+    await expect(sendBtn, 'BUG_PRODUCTO: botón enviar WA no visible').toBeVisible({ timeout: 5_000 });
+    await sendBtn.click();
+    await page.waitForTimeout(3000);
+
+    // Verificar que tras envío hay confirmación (modal, toast, o estado actualizado)
+    const bodyAfter = (await page.locator('body').textContent()) ?? '';
+    const hasConfirmation = /enviad|sent|✓|confirmad|exitoso|success/i.test(bodyAfter);
+    expect(hasConfirmation, 'BUG_PRODUCTO: tras click enviar WA no hay indicador de éxito (toast/modal/estado)').toBe(true);
   });
 });
 
@@ -562,7 +495,7 @@ test.describe('Invitaciones — Portal RSVP y portal público', () => {
 
     const text = await page.locator('body').textContent().catch(() => null) ?? '';
     if (text === null || text.length < 20) {
-      console.log('ℹ️ /confirmar-asistencia no accesible — pass sin crash');
+      test.skip(true, 'INFRA: /confirmar-asistencia no accesible (posible BUG_PRODUCTO route deprecada o endpoint caído)');
       return;
     }
     expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
@@ -578,7 +511,7 @@ test.describe('Invitaciones — Portal RSVP y portal público', () => {
 
     const text = await page.locator('body').textContent().catch(() => null) ?? '';
     if (text === null || text.length < 20) {
-      console.log('ℹ️ /confirmar-asistencia no accesible — pass sin crash');
+      test.skip(true, 'INFRA: /confirmar-asistencia no accesible (posible BUG_PRODUCTO route deprecada o endpoint caído)');
       return;
     }
     expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
