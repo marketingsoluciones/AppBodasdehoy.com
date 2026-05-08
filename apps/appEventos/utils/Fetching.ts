@@ -947,7 +947,7 @@ export const queries = {
           updatedAt
         }
   }`,
-  authStatus: `mutation ($sessionCookie : String){
+  authStatus: `mutation ($sessionCookie : String!){
         status(sessionCookie: $sessionCookie){
           customToken
         }

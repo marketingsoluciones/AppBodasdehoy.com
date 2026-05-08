@@ -539,3 +539,28 @@ export async function getAuthJwt(page: Page): Promise<string | null> {
     return null;
   });
 }
+
+/**
+ * Detecta errores runtime UI que un user real vería y NO seguiría usando la app.
+ * Llamar tras cada page.goto + waitForAppReady, antes de assertions principales.
+ *
+ * Si detecta error → throw con prefijo BUG_PRODUCTO + snippet pantalla.
+ * Test que ignora estos overlays = simulación user inválida.
+ */
+export async function assertNoRuntimeError(page: Page): Promise<void> {
+  const text = (await page.locator('body').textContent().catch(() => '')) ?? '';
+  const errorPatterns: { pattern: RegExp; label: string }[] = [
+    { pattern: /Runtime Error/i, label: 'Next.js Runtime Error overlay' },
+    { pattern: /Variable ".*" of type .* expecting type/i, label: 'GraphQL schema mismatch' },
+    { pattern: /Error Capturado por ErrorBoundary/i, label: 'React ErrorBoundary' },
+    { pattern: /Internal Server Error/i, label: 'HTTP 500' },
+    { pattern: /Hydration failed/i, label: 'Next.js hydration mismatch' },
+    { pattern: /Application error: a client-side exception/i, label: 'Next.js client exception' },
+  ];
+  for (const { pattern, label } of errorPatterns) {
+    if (pattern.test(text)) {
+      const snippet = text.slice(0, 400).replace(/\s+/g, ' ');
+      throw new Error(`BUG_PRODUCTO [${label}]: ${pattern.source} detectado en UI. Snippet: ${snippet}`);
+    }
+  }
+}

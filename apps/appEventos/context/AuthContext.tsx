@@ -795,6 +795,12 @@ const AuthProvider = ({ children }) => {
         }
       }
       if (sessionUidFromCookie && !user?.uid) {
+        // Guard: authStatus mutation requiere sessionCookie String! (non-null).
+        // Sin sessionCookie no tiene sentido validar status — abort silente.
+        if (!sessionCookie) {
+          console.warn('[Verificator] sessionCookie null/undefined — skipping authStatus (evita Runtime Error GraphQL)');
+          return;
+        }
         const resp = await fetchApiBodas({
           query: queries.authStatus,
           variables: { sessionCookie },
