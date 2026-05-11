@@ -801,11 +801,37 @@ const AuthProvider = ({ children }) => {
           console.warn('[Verificator] sessionCookie null/undefined — skipping authStatus (evita Runtime Error GraphQL)');
           return;
         }
-        const resp = await fetchApiBodas({
-          query: queries.authStatus,
-          variables: { sessionCookie },
-          development: config?.development
-        });
+        let resp: any = null;
+        try {
+          resp = await fetchApiBodas({
+            query: queries.authStatus,
+            variables: { sessionCookie },
+            development: config?.development
+          });
+        } catch (authStatusErr: any) {
+          // Workaround SSO-safe: si backend api-mcp rechaza la sesión con "Sesión inválida",
+          // NO limpiamos cookies (rompería SSO entre apps). Cargamos al usuario desde la
+          // sessionCookie y desbloqueamos UI. La sesión sigue válida en el resto de apps.
+          const msg = String(authStatusErr?.message || '');
+          if (/sesi[oó]n inv[aá]lida|expirad[ao]/i.test(msg)) {
+            console.warn('[Verificator] authStatus rechazada por backend — cargando usuario desde sessionCookie sin tocar cookies (SSO-safe)');
+            try {
+              const userInfo = await fetchApiBodas({
+                query: queries.getUser,
+                variables: { uid: sessionUidFromCookie },
+                development: config?.development
+              });
+              if (userInfo) {
+                setUser({ uid: sessionUidFromCookie, ...userInfo });
+              }
+            } catch (fallbackErr) {
+              console.error('[Verificator] Fallback getUser también falló:', fallbackErr);
+            }
+            setVerificationDone(true);
+            return;
+          }
+          throw authStatusErr;
+        }
         if (resp?.customToken) {
           setIsStartingRegisterOrLogin(true)
           await signInWithCustomToken(getAuth(), resp.customToken)

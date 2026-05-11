@@ -119,15 +119,26 @@ function RightPanel() {
 
   // ── Email/password ──
   const handleEmailLogin = async (email: string, password: string) => {
+    console.log('[login] handleEmailLogin INICIO');
     const result = await loginWithEmailPassword(email, password, development);
+    console.log('[login] loginWithEmailPassword OK', { success: result.success, hasToken: !!result.token, user_id: result.user_id });
     if (!result.success) throw new Error(result.errors?.[0] || 'Credenciales incorrectas.');
-    saveSession(result.user_id!, result.development, result.token || null, email);
-    await setExternalChatConfig(result.user_id!, result.development, result.token || undefined, 'registered');
-    fetchExternalChats().catch(() => {});
-    if (result.token) {
-      registerReferralIfPending(result.token, result.development, api2Url).catch(() => {});
-      sendAttributionToApi(result.token, result.development, api2Url).catch(() => {});
+    try {
+      saveSession(result.user_id!, result.development, result.token || null, email);
+      console.log('[login] saveSession OK');
+      // setExternalChatConfig en background — si falla NO debe bloquear redirect
+      setExternalChatConfig(result.user_id!, result.development, result.token || undefined, 'registered').catch((err: any) => {
+        console.warn('[login] setExternalChatConfig falló (no bloqueante):', err?.message);
+      });
+      fetchExternalChats().catch(() => {});
+      if (result.token) {
+        registerReferralIfPending(result.token, result.development, api2Url).catch(() => {});
+        sendAttributionToApi(result.token, result.development, api2Url).catch(() => {});
+      }
+    } catch (err: any) {
+      console.error('[login] Error en post-login pre-afterLogin (NO bloqueante):', err?.message);
     }
+    console.log('[login] llamando afterLogin()');
     afterLogin();
   };
 
@@ -139,7 +150,9 @@ function RightPanel() {
     const email = result.user?.email || '';
     const token = localStorage.getItem('api2_jwt_token') || null;
     saveSession(email, result.development, token, email);
-    await setExternalChatConfig(email, result.development, token || undefined, 'registered');
+    setExternalChatConfig(email, result.development, token || undefined, 'registered').catch((err: any) => {
+      console.warn('[login] setExternalChatConfig falló (no bloqueante):', err?.message);
+    });
     fetchExternalChats().catch(() => {});
     if (token) {
       registerReferralIfPending(token, result.development, api2Url).catch(() => {});
@@ -156,7 +169,9 @@ function RightPanel() {
     const email = result.user?.email || '';
     const token = localStorage.getItem('api2_jwt_token') || null;
     saveSession(email, result.development, token, email);
-    await setExternalChatConfig(email, result.development, token || undefined, 'registered');
+    setExternalChatConfig(email, result.development, token || undefined, 'registered').catch((err: any) => {
+      console.warn('[login] setExternalChatConfig falló (no bloqueante):', err?.message);
+    });
     fetchExternalChats().catch(() => {});
     if (token) {
       registerReferralIfPending(token, result.development, api2Url).catch(() => {});
@@ -198,7 +213,9 @@ function RightPanel() {
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error(result.detail || 'Código incorrecto.');
       saveSession(result.user_id, development, result.token, result.email ?? undefined);
-      await setExternalChatConfig(result.user_id, development, result.token || undefined, 'registered');
+      setExternalChatConfig(result.user_id, development, result.token || undefined, 'registered').catch((err: any) => {
+        console.warn('[login] setExternalChatConfig falló (no bloqueante):', err?.message);
+      });
       fetchExternalChats().catch(() => {});
       if (result.token) {
         registerReferralIfPending(result.token, development, api2Url).catch(() => {});

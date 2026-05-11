@@ -30,12 +30,24 @@ export async function POST(request: NextRequest) {
     if (xDevelopment) headers['X-Development'] = xDevelopment;
 
     const backendUrl = getBackendUrl();
-    const response = await fetch(`${backendUrl}/graphql`, {
-      body: JSON.stringify(body),
-      headers,
-      method: 'POST',
-      signal: AbortSignal.timeout(30_000),
-    });
+    const opName = body?.operationName ?? '(anon)';
+    const querySnip = typeof body?.query === 'string' ? body.query.slice(0, 80).replace(/\s+/g, ' ') : '(no query)';
+    const startedAt = Date.now();
+    let response: Response;
+    try {
+      response = await fetch(`${backendUrl}/graphql`, {
+        body: JSON.stringify(body),
+        headers,
+        method: 'POST',
+        // Timeout 8s en lugar de 30s — evita bloquear el render del page SSR.
+        // Si una query tarda más, el client maneja el error gracefully (try/catch en servicios).
+        signal: AbortSignal.timeout(8_000),
+      });
+    } catch (fetchErr: any) {
+      const elapsed = Date.now() - startedAt;
+      console.error(`⏱️  /api/graphql TIMEOUT/ERR [${opName}] tras ${elapsed}ms — query: ${querySnip}`);
+      throw fetchErr;
+    }
 
     const data = await response.json().catch(() => ({}));
 
