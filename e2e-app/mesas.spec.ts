@@ -13,7 +13,7 @@
  *   - Imprimir/exportar plano (botón existe)
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, loginAndSelectEvent, waitForAppReady, assertNoRuntimeError } from './helpers';
+import { clearSession, loginAndSelectEvent, waitForAppReady, assertNoRuntimeError, navigateToModule } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
@@ -53,7 +53,10 @@ test.describe('Mesas — Carga y estructura básica', () => {
   test('/mesas carga sin ErrorBoundary con editor visual', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    // Simulación realista usuario: click en menú "Mesas" (NO page.goto que fuerza
+    // full reload y re-monta AuthProvider, generando race condition con overlay).
+    const navigated = await navigateToModule(page, 'mesas');
+    expect(navigated, 'Botón "Mesas" del menú lateral debe estar visible/clickable — usuario no puede acceder al módulo').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(4000);
 
@@ -73,7 +76,10 @@ test.describe('Mesas — Carga y estructura básica', () => {
   test('panel lateral con lista de mesas o botón crear mesa', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    // Simulación realista usuario: click en menú "Mesas" (NO page.goto que fuerza
+    // full reload y re-monta AuthProvider, generando race condition con overlay).
+    const navigated = await navigateToModule(page, 'mesas');
+    expect(navigated, 'Botón "Mesas" del menú lateral debe estar visible/clickable — usuario no puede acceder al módulo').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -93,7 +99,10 @@ test.describe('Mesas — Carga y estructura básica', () => {
   test('resumen de invitados asignados / capacidad total visible', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    // Simulación realista usuario: click en menú "Mesas" (NO page.goto que fuerza
+    // full reload y re-monta AuthProvider, generando race condition con overlay).
+    const navigated = await navigateToModule(page, 'mesas');
+    expect(navigated, 'Botón "Mesas" del menú lateral debe estar visible/clickable — usuario no puede acceder al módulo').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -109,7 +118,10 @@ test.describe('Mesas — Carga y estructura básica', () => {
   test('toolbar del plano tiene botón para añadir elementos decorativos', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    // Simulación realista usuario: click en menú "Mesas" (NO page.goto que fuerza
+    // full reload y re-monta AuthProvider, generando race condition con overlay).
+    const navigated = await navigateToModule(page, 'mesas');
+    expect(navigated, 'Botón "Mesas" del menú lateral debe estar visible/clickable — usuario no puede acceder al módulo').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(4000);
 
@@ -131,7 +143,10 @@ test.describe('Mesas — Carga y estructura básica', () => {
   test('toolbar del plano tiene opción para añadir texto', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    // Simulación realista usuario: click en menú "Mesas" (NO page.goto que fuerza
+    // full reload y re-monta AuthProvider, generando race condition con overlay).
+    const navigated = await navigateToModule(page, 'mesas');
+    expect(navigated, 'Botón "Mesas" del menú lateral debe estar visible/clickable — usuario no puede acceder al módulo').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(4000);
 
@@ -153,7 +168,10 @@ test.describe('Mesas — Carga y estructura básica', () => {
   test('resumen diferencia invitados sentados vs no sentados', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    // Simulación realista usuario: click en menú "Mesas" (NO page.goto que fuerza
+    // full reload y re-monta AuthProvider, generando race condition con overlay).
+    const navigated = await navigateToModule(page, 'mesas');
+    expect(navigated, 'Botón "Mesas" del menú lateral debe estar visible/clickable — usuario no puede acceder al módulo').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(4000);
 
@@ -195,7 +213,10 @@ test.describe('Mesas — Crear nueva mesa', () => {
   test('crear mesa E2E con capacidad → visible en lista', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    // Simulación realista usuario: click en menú "Mesas" (NO page.goto que fuerza
+    // full reload y re-monta AuthProvider, generando race condition con overlay).
+    const navigated = await navigateToModule(page, 'mesas');
+    expect(navigated, 'Botón "Mesas" del menú lateral debe estar visible/clickable — usuario no puede acceder al módulo').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -249,7 +270,10 @@ test.describe('Mesas — Crear nueva mesa', () => {
   test('editar nombre de mesa existente', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    // Simulación realista usuario: click en menú "Mesas" (NO page.goto que fuerza
+    // full reload y re-monta AuthProvider, generando race condition con overlay).
+    const navigated = await navigateToModule(page, 'mesas');
+    expect(navigated, 'Botón "Mesas" del menú lateral debe estar visible/clickable — usuario no puede acceder al módulo').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -298,7 +322,10 @@ test.describe('Mesas — Planos múltiples', () => {
   test('selector de planos visible y funcional', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    // Simulación realista usuario: click en menú "Mesas" (NO page.goto que fuerza
+    // full reload y re-monta AuthProvider, generando race condition con overlay).
+    const navigated = await navigateToModule(page, 'mesas');
+    expect(navigated, 'Botón "Mesas" del menú lateral debe estar visible/clickable — usuario no puede acceder al módulo').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -317,7 +344,10 @@ test.describe('Mesas — Planos múltiples', () => {
   test('crear nuevo plano E2E', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    // Simulación realista usuario: click en menú "Mesas" (NO page.goto que fuerza
+    // full reload y re-monta AuthProvider, generando race condition con overlay).
+    const navigated = await navigateToModule(page, 'mesas');
+    expect(navigated, 'Botón "Mesas" del menú lateral debe estar visible/clickable — usuario no puede acceder al módulo').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -375,7 +405,10 @@ test.describe('Mesas — Asignar invitados', () => {
   test('panel de invitados sin asignar disponible', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    // Simulación realista usuario: click en menú "Mesas" (NO page.goto que fuerza
+    // full reload y re-monta AuthProvider, generando race condition con overlay).
+    const navigated = await navigateToModule(page, 'mesas');
+    expect(navigated, 'Botón "Mesas" del menú lateral debe estar visible/clickable — usuario no puede acceder al módulo').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -390,7 +423,10 @@ test.describe('Mesas — Asignar invitados', () => {
   test('asignar invitado a mesa desde panel', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    // Simulación realista usuario: click en menú "Mesas" (NO page.goto que fuerza
+    // full reload y re-monta AuthProvider, generando race condition con overlay).
+    const navigated = await navigateToModule(page, 'mesas');
+    expect(navigated, 'Botón "Mesas" del menú lateral debe estar visible/clickable — usuario no puede acceder al módulo').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -426,7 +462,10 @@ test.describe('Mesas — Asignar invitados', () => {
   test('plantillas de disposición disponibles', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    // Simulación realista usuario: click en menú "Mesas" (NO page.goto que fuerza
+    // full reload y re-monta AuthProvider, generando race condition con overlay).
+    const navigated = await navigateToModule(page, 'mesas');
+    expect(navigated, 'Botón "Mesas" del menú lateral debe estar visible/clickable — usuario no puede acceder al módulo').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -464,7 +503,10 @@ test.describe('Mesas — Exportar plano', () => {
   test('botón imprimir/exportar plano existe', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    // Simulación realista usuario: click en menú "Mesas" (NO page.goto que fuerza
+    // full reload y re-monta AuthProvider, generando race condition con overlay).
+    const navigated = await navigateToModule(page, 'mesas');
+    expect(navigated, 'Botón "Mesas" del menú lateral debe estar visible/clickable — usuario no puede acceder al módulo').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 

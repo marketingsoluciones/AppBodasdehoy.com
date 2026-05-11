@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { clearSession, loginAndSelectEvent, waitForAppReady } from './helpers';
+import { clearSession, loginAndSelectEvent, waitForAppReady, navigateToModule } from './helpers';
 import { TEST_CREDENTIALS, TEST_URLS } from './fixtures';
 
 const BASE_URL = TEST_URLS.app;
@@ -14,7 +14,7 @@ function uniqueSuffix(): string {
 test.describe('Invitados + Menús — CRUD básico', () => {
   test.setTimeout(240_000);
 
-  test('crear menú → usarlo en invitado → editar invitado → borrar invitado → borrar menú', async ({ context, page }) => {
+  test('crear menú → usarlo en invitado → editar invitado → borrar invitado → borrar menú', async ({ context, page }, testInfo) => {
     if (!hasCredentials) {
       test.skip();
       return;
@@ -26,10 +26,20 @@ test.describe('Invitados + Menús — CRUD básico', () => {
 
     await clearSession(context, page);
 
-    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    const eventId = await loginAndSelectEvent(
+      page,
+      TEST_EMAIL,
+      TEST_PASSWORD,
+      BASE_URL,
+      testInfo.outputPath('login-after-submit.png'),
+    );
+    if (eventId === null) {
+      await page.screenshot({ path: testInfo.outputPath('login-after-submit.png'), fullPage: true }).catch(() => {});
+      console.log(`INVITADOS-CRUD: loginAndSelectEvent returned null url=${page.url()}`);
+    }
     expect(eventId).not.toBeNull();
 
-    await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    await navigateToModule(page, 'invitados');
     await waitForAppReady(page, 25_000);
 
     const suffix = uniqueSuffix();

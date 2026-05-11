@@ -258,10 +258,11 @@ while true; do
   process_channel war-room "$CH_WAR_ROOM" last_ts_war_room || true
   if [ "$TICK_POSTS" = "1" ]; then
     # Health snapshot real para que tick sea útil (no plantilla muerta)
-    local hcheck_app hcheck_chat
+    hcheck_app=""
+    hcheck_chat=""
     hcheck_app="$(curl -sS --max-time 3 -o /dev/null -w "%{http_code}" "$HEALTH_URL_APP" 2>/dev/null || echo "000")"
     hcheck_chat="$(curl -sS --max-time 3 -o /dev/null -w "%{http_code}" "$HEALTH_URL_CHAT" 2>/dev/null || echo "000")"
-    local last_head
+    last_head=""
     last_head="$(git log -1 --format='%h %s' 2>/dev/null | cut -c1-80 || echo "?")"
     bash scripts/slack-send.sh --to coordinacion --web --para-equipo "COORD-APP" --dri @frontend_oncall --thread-ts "$THREAD_TS" --reply-broadcast \
       "ASUNTO: Heartbeat ${tick_utc}\napp-dev=${hcheck_app} chat-dev=${hcheck_chat} HEAD=${last_head}\n${STATUS_TEXT}\n\nSi tienes algún PASS/FAIL nuevo desde el último heartbeat, reportalo APARTE con bloques PENDIENTES/AVANCES/DIFICULTADES/PRÓXIMO." || true

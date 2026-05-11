@@ -12,7 +12,7 @@
  *   - Exportar presupuesto (botón existe)
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, loginAndSelectEvent, waitForAppReady, assertNoRuntimeError } from './helpers';
+import { clearSession, loginAndSelectEvent, waitForAppReady, assertNoRuntimeError, navigateToModule } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
@@ -52,7 +52,8 @@ test.describe('Presupuesto — /resumen-evento', () => {
   test('muestra bloque de presupuesto con cifras €', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/resumen-evento`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'resumen');
+    expect(navigated, 'Botón "Resumen" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(4000);
 
@@ -67,7 +68,8 @@ test.describe('Presupuesto — /resumen-evento', () => {
   test('columnas estimado y pagado/gastado visibles', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/resumen-evento`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'resumen');
+    expect(navigated, 'Botón "Resumen" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(4000);
 
@@ -104,7 +106,8 @@ test.describe('Presupuesto — /presupuesto página principal', () => {
   test('carga sin crash y muestra tabla con categorías o estado vacío', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -123,7 +126,8 @@ test.describe('Presupuesto — /presupuesto página principal', () => {
   test('total general visible con cifra numérica', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -145,7 +149,8 @@ test.describe('Presupuesto — /presupuesto página principal', () => {
   test('botón añadir categoría/gasto disponible', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -163,7 +168,8 @@ test.describe('Presupuesto — /presupuesto página principal', () => {
   test('botón exportar presupuesto a Excel existe y abre sin crash', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -197,7 +203,8 @@ test.describe('Presupuesto — /presupuesto página principal', () => {
   test('duplicar presupuesto de evento anterior — modal abre y muestra lista de eventos', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -249,7 +256,8 @@ test.describe('Presupuesto — Crear categoría y gasto', () => {
   test('crear categoría E2E → visible en la lista', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -291,7 +299,8 @@ test.describe('Presupuesto — Crear categoría y gasto', () => {
   test('crear gasto E2E con importe → visible en tabla', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -374,7 +383,8 @@ test.describe('Presupuesto — Registrar pago', () => {
   test('registrar pago con importe, medio, fecha y concepto', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -460,7 +470,8 @@ test.describe('Presupuesto — Registrar pago', () => {
   test('totales coherentes: columna pagado ≥ 0 y alguna cifra visible', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 

@@ -15,7 +15,7 @@
  *   - Portal público: /e/[eventId] carga con info del evento
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, loginAndSelectEvent, waitForAppReady, assertNoRuntimeError } from './helpers';
+import { clearSession, loginAndSelectEvent, waitForAppReady, assertNoRuntimeError, navigateToModule } from './helpers';
 import { TEST_URLS, E2E_ENV } from './fixtures';
 
 const BASE_URL = TEST_URLS.app;
@@ -45,7 +45,8 @@ test.describe('Setup — Verificar invitado de prueba', () => {
       return;
     }
 
-    await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'invitados');
+    expect(navigated, 'Botón "Invitados" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -80,7 +81,8 @@ test.describe('Invitaciones — Estructura de la página', () => {
   test('carga /invitaciones sin crash con tabs Email y WhatsApp', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/invitaciones`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'invitaciones');
+    expect(navigated, 'Botón "Invitaciones" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -109,7 +111,8 @@ test.describe('Invitaciones — Estructura de la página', () => {
   test('tabla de invitados visible con checkboxes', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/invitaciones`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'invitaciones');
+    expect(navigated, 'Botón "Invitaciones" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -132,7 +135,8 @@ test.describe('Invitaciones — Estructura de la página', () => {
   test('contadores visibles: total, enviadas, pendientes, confirmadas', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/invitaciones`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'invitaciones');
+    expect(navigated, 'Botón "Invitaciones" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -148,7 +152,8 @@ test.describe('Invitaciones — Estructura de la página', () => {
   test('panel enviados/no-enviados visible con opción de reenvío', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/invitaciones`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'invitaciones');
+    expect(navigated, 'Botón "Invitaciones" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(4000);
 
@@ -176,7 +181,8 @@ test.describe('Invitaciones — Estructura de la página', () => {
   test('diseño personalizado — opción de subir imagen de invitación visible', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/invitaciones`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'invitaciones');
+    expect(navigated, 'Botón "Invitaciones" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(4000);
 
@@ -233,7 +239,8 @@ test.describe('Invitaciones — Email: plantilla y envío a Carlos', () => {
   test('tab email activo por defecto con selector de plantilla', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/invitaciones`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'invitaciones');
+    expect(navigated, 'Botón "Invitaciones" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -261,7 +268,8 @@ test.describe('Invitaciones — Email: plantilla y envío a Carlos', () => {
   test('seleccionar plantilla → preview visible con nombre del evento', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/invitaciones`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'invitaciones');
+    expect(navigated, 'Botón "Invitaciones" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -297,7 +305,8 @@ test.describe('Invitaciones — Email: plantilla y envío a Carlos', () => {
   test('seleccionar a Carlos y enviar email → ModalConfirmacionEnvio aparece', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/invitaciones`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'invitaciones');
+    expect(navigated, 'Botón "Invitaciones" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -378,7 +387,8 @@ test.describe('Invitaciones — WhatsApp', () => {
   test('tab WhatsApp muestra editor de mensaje O pantalla setup/QR', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/invitaciones`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'invitaciones');
+    expect(navigated, 'Botón "Invitaciones" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -400,7 +410,8 @@ test.describe('Invitaciones — WhatsApp', () => {
   test('WhatsApp: preview del mensaje con variables sustituidas', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/invitaciones`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'invitaciones');
+    expect(navigated, 'Botón "Invitaciones" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -430,7 +441,8 @@ test.describe('Invitaciones — WhatsApp', () => {
   test('WhatsApp: selección de plantilla disponible', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/invitaciones`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'invitaciones');
+    expect(navigated, 'Botón "Invitaciones" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -452,7 +464,8 @@ test.describe('Invitaciones — WhatsApp', () => {
   test('enviar WA a Carlos si WhatsApp está conectado', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/invitaciones`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'invitaciones');
+    expect(navigated, 'Botón "Invitaciones" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 

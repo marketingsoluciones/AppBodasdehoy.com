@@ -24,7 +24,7 @@
  *     --config=playwright.config.ts e2e-app/usuario-secundario-vivetuboda.spec.ts --headed
  */
 import { test, expect, Page, BrowserContext } from '@playwright/test';
-import { clearSession, waitForAppReady } from './helpers';
+import { clearSession, waitForAppReady, navigateToModule } from './helpers';
 import { getChatUrl } from './fixtures';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
@@ -342,7 +342,7 @@ test.describe('Developer vivetuboda — comportamiento y branding', () => {
     console.log(`✅ App con dev=vivetuboda: ${text.length} chars`);
 
     // Verificar módulos
-    await page.goto(`${BASE_URL}/itinerario`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await navigateToModule(page, 'itinerario');
     await waitForAppReady(page, 10_000);
     const itText = (await page.locator('body').textContent()) ?? '';
     expect(itText).not.toMatch(/Error Capturado por ErrorBoundary/);

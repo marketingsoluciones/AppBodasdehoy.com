@@ -43,6 +43,8 @@ DEST=""
 DE_TEAM=""
 PARA_TEAM=""
 DRI_HANDLE=""
+THREAD_TS=""
+REPLY_BROADCAST="0"
 
 while [[ "${1:-}" == --* ]]; do
   case "$1" in
@@ -82,6 +84,22 @@ while [[ "${1:-}" == --* ]]; do
       DRI_HANDLE="${1#--dri=}"
       shift
       ;;
+    --thread-ts)
+      THREAD_TS="${2:-}"
+      shift 2
+      ;;
+    --thread-ts=*)
+      THREAD_TS="${1#--thread-ts=}"
+      shift
+      ;;
+    --reply-broadcast)
+      REPLY_BROADCAST="1"
+      shift
+      ;;
+    --reply-broadcast=*)
+      REPLY_BROADCAST="${1#--reply-broadcast=}"
+      shift
+      ;;
     --to)
       DEST="${2:-}"
       shift 2
@@ -102,6 +120,14 @@ fi
 
 if [ -z "$DEST" ] && [ -n "${SLACK_TO:-}" ]; then
   DEST="$SLACK_TO"
+fi
+
+if [ -z "$THREAD_TS" ] && [ -n "${SLACK_THREAD_TS:-}" ]; then
+  THREAD_TS="$SLACK_THREAD_TS"
+fi
+
+if [ "${SLACK_REPLY_BROADCAST:-}" = "1" ]; then
+  REPLY_BROADCAST="1"
 fi
 
 # --- Identificación del remitente ---
@@ -173,11 +199,11 @@ if [ -z "$PARA_TEAM" ] && [ -n "${SLACK_PARA_TEAM:-}" ]; then
 fi
 if [ -z "$PARA_TEAM" ]; then
   if [ "$DEST" = "mcp" ] || [ "$DEST" = "backend" ] || [ "$DEST" = "api2" ]; then
-    PARA_TEAM="BACKEND-MCP/GraphQL"
+    PARA_TEAM="API-MCP (GraphQL)"
   elif [ "$DEST" = "api-ia" ]; then
-    PARA_TEAM="BACKEND-API-IA (Realtime/Webhooks)"
+    PARA_TEAM="API-IA (Realtime/Webhooks)"
   else
-    PARA_TEAM="BACKEND-MCP/GraphQL"
+    PARA_TEAM="COORD-APP"
   fi
 fi
 
@@ -185,7 +211,7 @@ if [ -z "$DRI_HANDLE" ] && [ -n "${SLACK_DRI_HANDLE:-}" ]; then
   DRI_HANDLE="$SLACK_DRI_HANDLE"
 fi
 if [ -z "$DRI_HANDLE" ]; then
-  DRI_HANDLE="@backend_oncall"
+  DRI_HANDLE="@frontend_oncall"
 fi
 
 SLACK_PARA="${SLACK_MSG_PARA:-$DEST_PARA}"
@@ -195,7 +221,7 @@ PREFIX="${HEADER_LINE}\n\n${SLACK_DE}\n${SLACK_PARA}\n\n"
 
 if [ -z "$1" ]; then
   echo "Error: Debes proporcionar un mensaje"
-  echo "Uso: $0 [--copilot|--web|--memories] [--de <equipo>] [--para-equipo <equipo>] [--dri @handle] [--to war-room|coordinacion|frontend|api-ia|mcp] \"Tu mensaje aquí\""
+  echo "Uso: $0 [--copilot|--web|--memories] [--de <equipo>] [--para-equipo <equipo>] [--dri @handle] [--thread-ts <ts>] [--reply-broadcast] [--to war-room|coordinacion|frontend|api-ia|mcp] \"Tu mensaje aquí\""
   echo ""
   echo "Canales:"
   echo "  --to war-room   → #bodasdehoy-backend-coordinacion ($CHANNEL_COORDINACION)"
@@ -205,20 +231,37 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-MESSAGE="${PREFIX}$1"
+MESSAGE_TEXT="$*"
+MESSAGE_TEXT_TRIMMED="$(printf '%s' "$MESSAGE_TEXT" | sed -e 's/^[[:space:]]*//')"
+if printf '%s' "$MESSAGE_TEXT_TRIMMED" | grep -q '^DE:'; then
+  MESSAGE="$MESSAGE_TEXT"
+else
+  MESSAGE="${PREFIX}${MESSAGE_TEXT}"
+fi
 
 # Escapar comillas y backslash para JSON
 escape_json() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\n/\\n/g'; }
 MESSAGE_ESC=$(escape_json "$MESSAGE")
 SENDER_ESC=$(escape_json "$SLACK_SENDER")
+THREAD_ESC=$(escape_json "$THREAD_TS")
 
 echo "Enviando a #${DEST_LABEL} ($CHANNEL_ID)..."
 
 if [ -n "$BOT_TOKEN" ]; then
+  if [ -n "$THREAD_TS" ]; then
+    if [ "$REPLY_BROADCAST" = "1" ]; then
+      PAYLOAD="{\"channel\": \"$CHANNEL_ID\", \"text\": \"$MESSAGE_ESC\", \"username\": \"$SENDER_ESC\", \"thread_ts\": \"$THREAD_ESC\", \"reply_broadcast\": true}"
+    else
+      PAYLOAD="{\"channel\": \"$CHANNEL_ID\", \"text\": \"$MESSAGE_ESC\", \"username\": \"$SENDER_ESC\", \"thread_ts\": \"$THREAD_ESC\"}"
+    fi
+  else
+    PAYLOAD="{\"channel\": \"$CHANNEL_ID\", \"text\": \"$MESSAGE_ESC\", \"username\": \"$SENDER_ESC\"}"
+  fi
+
   RESP=$(curl -sS --max-time 15 -X POST "https://slack.com/api/chat.postMessage" \
     -H "Authorization: Bearer $BOT_TOKEN" \
     -H "Content-Type: application/json" \
-    -d "{\"channel\": \"$CHANNEL_ID\", \"text\": \"$MESSAGE_ESC\", \"username\": \"$SENDER_ESC\"}")
+    -d "$PAYLOAD")
   if command -v jq &>/dev/null; then
     OK=$(echo "$RESP" | jq -r '.ok // false')
     if [ "$OK" = "true" ]; then

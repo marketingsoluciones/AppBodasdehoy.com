@@ -18,7 +18,7 @@
  *  10. Prioridad de tarea: alta/media/baja — indicador visual
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, loginAndSelectEvent, waitForAppReady, assertNoRuntimeError } from './helpers';
+import { clearSession, loginAndSelectEvent, waitForAppReady, assertNoRuntimeError, navigateToModule } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
@@ -63,7 +63,8 @@ test.describe('Kanban Tareas — Estructura /servicios', () => {
   test('/servicios carga con columnas kanban y título "Tasks"', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(4000);
 
@@ -84,7 +85,8 @@ test.describe('Kanban Tareas — Estructura /servicios', () => {
   test('columnas del kanban visibles: Pendiente, En progreso, Completada', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -108,7 +110,8 @@ test.describe('Kanban Tareas — Estructura /servicios', () => {
   test('selector de itinerarios disponible (ItineraryTabs)', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -143,7 +146,8 @@ test.describe('Kanban Tareas — Crear tarea', () => {
   test('crear tarea E2E en columna Pendiente → visible en kanban', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -215,7 +219,8 @@ test.describe('Kanban Tareas — Crear tarea', () => {
   test('crear itinerario nuevo → aparece como tab/opción', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -272,7 +277,8 @@ test.describe('Kanban Tareas — Detalle y edición de tarea', () => {
   test('click en tarea → panel/modal de detalle abre con campos', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -299,7 +305,8 @@ test.describe('Kanban Tareas — Detalle y edición de tarea', () => {
   test('asignar responsable "novia" a tarea desde detalle', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -334,7 +341,8 @@ test.describe('Kanban Tareas — Detalle y edición de tarea', () => {
   test('prioridad alta/media/baja visible en tarea', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -371,7 +379,8 @@ test.describe('Kanban Tareas — Drag & Drop entre columnas', () => {
   test('arrastrar tarea de Pendiente a En Progreso → columna cambia', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -436,7 +445,8 @@ test.describe('Kanban Tareas — Drag & Drop entre columnas', () => {
   test('cambiar estado de tarea via botón de workflow (si existe)', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -480,7 +490,8 @@ test.describe('Kanban Tareas — Completar tarea', () => {
   test('marcar tarea como completada → aparece en columna Completadas', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -551,7 +562,8 @@ test.describe('Kanban Tareas — Filtros', () => {
   test('filtro por responsable disponible', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -572,7 +584,8 @@ test.describe('Kanban Tareas — Filtros', () => {
   test('banner copilot filter rosa visible si hay filtro activo', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 

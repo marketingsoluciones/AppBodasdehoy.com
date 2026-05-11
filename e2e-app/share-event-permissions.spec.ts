@@ -21,7 +21,7 @@
  * test bloqueará en login U2 — escalar como TEST_DATA_SETUP.
  */
 import { test, expect, Browser, BrowserContext, Page } from '@playwright/test';
-import { clearSession, loginAndSelectEvent, waitForAppReady } from './helpers';
+import { clearSession, loginAndSelectEvent, waitForAppReady, navigateToModule } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppDev =
@@ -160,7 +160,7 @@ test.describe('Seguridad — Compartir evento U1→U2 + permisos', () => {
       }
 
       // Ir a /mesas y verificar UI permite crear (no readonly)
-      await page.goto(`${BASE_URL}/mesas`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+      await navigateToModule(page, 'mesas');
       await waitForAppReady(page, 20_000);
       await page.waitForTimeout(3000);
 
