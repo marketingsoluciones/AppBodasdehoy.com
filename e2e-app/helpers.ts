@@ -1,5 +1,7 @@
-import { BrowserContext, Page } from '@playwright/test';
+import { BrowserContext, Page, Response } from '@playwright/test';
 import { getChatUrl } from './fixtures';
+
+declare const process: { env: Record<string, string | undefined> };
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -62,7 +64,10 @@ async function clearStorageAtOrigin(page: Page): Promise<void> {
  * redirigde de vuelta automáticamente por sesión Firebase en su propio storage.
  */
 export async function clearSession(context: BrowserContext, page: Page): Promise<void> {
+  const existingCookies = await context.cookies().catch(() => []);
+  const cfCookies = existingCookies.filter((c) => c.name === 'cf_clearance' || c.name === '__cf_bm');
   await context.clearCookies();
+  if (cfCookies.length) await context.addCookies(cfCookies).catch(() => {});
 
   // 1. Limpiar app-test origin
   try {
@@ -89,6 +94,7 @@ export async function clearSession(context: BrowserContext, page: Page): Promise
   }
 
   await context.clearCookies();
+  if (cfCookies.length) await context.addCookies(cfCookies).catch(() => {});
 }
 
 /**
@@ -98,6 +104,8 @@ export async function clearSession(context: BrowserContext, page: Page): Promise
 export async function waitForAppReady(page: Page, timeoutMs = 25_000): Promise<void> {
   const body = page.locator('body');
   await body.waitFor({ state: 'visible', timeout: Math.min(timeoutMs, 10_000) }).catch(() => {});
+  const sessionOverlay = page.locator('[role="status"]').filter({ hasText: /comprobando sesión y conexión/i }).first();
+  await sessionOverlay.waitFor({ state: 'hidden', timeout: Math.min(timeoutMs, 15_000) }).catch(() => {});
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     try {
@@ -116,6 +124,66 @@ export async function waitForAppReady(page: Page, timeoutMs = 25_000): Promise<v
 }
 
 /**
+ * Navega a un módulo de la app haciendo click en el menú lateral
+ * (simulación realista de usuario — NO usar page.goto que fuerza full reload
+ * y dispara re-mount de AuthProvider, generando race condition con overlay).
+ *
+ * Mapping nombre módulo → texto del botón en menú lateral de appEventos:
+ *   "mesas"        → "Mesas"
+ *   "invitados"    → "Invitados"
+ *   "presupuesto"  → "Presupuesto"
+ *   "resumen"      → "Resumen"
+ *   "regalos"      → "Lista de regalos"
+ *   "invitaciones" → "Invitaciones"
+ *   "itinerario"   → "Itinerario"
+ *   "servicios"    → "Servicios"
+ *
+ * Pre-condición: el usuario debe estar logueado y tener un evento seleccionado
+ * (después de loginAndSelectEvent). Si el menú lateral no aparece (ej. en home),
+ * intenta primero seleccionar evento via "Mis eventos" tab.
+ *
+ * Retorna true si la navegación funcionó (módulo cargó), false si no.
+ */
+export async function navigateToModule(page: Page, moduleName: string, timeoutMs = 30_000): Promise<boolean> {
+  const moduleButtonMap: Record<string, RegExp> = {
+    mesas: /^Mesas$/i,
+    invitados: /^Invitados$/i,
+    presupuesto: /^Presupuesto$/i,
+    resumen: /^Resumen$/i,
+    regalos: /^Lista de regalos$/i,
+    invitaciones: /^Invitaciones$/i,
+    itinerario: /^Itinerario$/i,
+    servicios: /^Servicios$/i,
+  };
+
+  const buttonRegex = moduleButtonMap[moduleName.toLowerCase()];
+  if (!buttonRegex) {
+    console.warn(`[navigateToModule] módulo desconocido: ${moduleName}`);
+    return false;
+  }
+
+  // El menú lateral aparece tras seleccionar evento. Esperar a que sea visible.
+  const moduleButton = page.getByRole('button', { name: buttonRegex }).first();
+  const isVisible = await moduleButton.waitFor({ state: 'visible', timeout: 10_000 }).then(() => true).catch(() => false);
+
+  if (!isVisible) {
+    console.warn(`[navigateToModule] botón "${moduleName}" no visible — ¿no hay evento seleccionado?`);
+    return false;
+  }
+
+  await moduleButton.click({ timeout: 8_000 }).catch(() => {});
+
+  // Esperar a que la app responda — overlay desaparezca y contenido del módulo cargue.
+  // NO usar waitForAppReady completo porque la navegación es interna (SPA)
+  // y AuthProvider NO se re-monta — solo esperar overlay si aparece por defensa.
+  await page.waitForTimeout(800);
+  const sessionOverlay = page.locator('[role="status"]').filter({ hasText: /comprobando sesión y conexión/i }).first();
+  await sessionOverlay.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => {});
+
+  return true;
+}
+
+/**
  * Login en app-test y selecciona el primer evento disponible.
  * Navega al home, hace click en la primera tarjeta de evento y espera
  * a que el contexto de evento esté activo (URL cambia o módulo carga).
@@ -127,6 +195,7 @@ export async function loginAndSelectEvent(
   email: string,
   password: string,
   baseUrl: string,
+  loginAfterSubmitScreenshotPath?: string,
 ): Promise<string | null> {
   // SSO real: login en chat-test (no local-login=1 que está roto en app-test).
   // Cookie idTokenV0.1.0 se setea en .bodasdehoy.com → app-test la reconoce.
@@ -145,37 +214,109 @@ export async function loginAndSelectEvent(
     if (!String(e).includes('interrupted by another navigation')) throw e;
   }
   await page.waitForTimeout(2000);
+  // Esperar hidratación React: el form usa onSubmit React, si Playwright clica antes
+  // de que el handler quede bound el form hace GET HTML nativo (URL con ?email=...&password=...).
+  // Esperamos a que React Network APIs sean accesibles via window — indicador de hidratación.
+  await page.waitForFunction(
+    () => typeof window !== 'undefined' && document.readyState === 'complete' && !!(document.querySelector('button[type=\"submit\"]') as any),
+    { timeout: 15_000 },
+  ).catch(() => {});
+  await page.waitForTimeout(1500); // margen extra para handlers React
 
-  const emailInput = page.locator('input[type="email"]').first();
-  const hasLoginForm = await emailInput.isVisible({ timeout: 15_000 }).catch(() => false);
-  if (hasLoginForm) {
-    await emailInput.fill(email, { timeout: 10_000 });
-    await page.locator('input[type="password"]').first().fill(password);
-    await page.locator('button[type="submit"]').first().click();
-    await page.waitForURL((url: URL) => url.pathname === '/chat', { timeout: 30_000 }).catch(() => {});
-    if (!page.url().includes('/chat')) return null;
+  let lastTraceId: string | null = null;
+  const captureTraceId = async (response: Response) => {
+    const url = response.url();
+    if (!url.includes('bodasdehoy.com')) return;
+    if (!url.includes('/api/') && !url.includes('graphql')) return;
+    const ct = response.headers()['content-type'] || '';
+    if (!ct.includes('application/json')) return;
+    try {
+      const body: any = await response.json();
+      const t1 = body?.extensions?.trace_id;
+      const t2 = body?.trace_id;
+      const t3 = Array.isArray(body?.errors)
+        ? body.errors.find((e: any) => typeof e?.extensions?.trace_id === 'string')?.extensions?.trace_id
+        : null;
+      const trace = t1 || t2 || t3;
+      if (typeof trace === 'string' && trace.length > 6) lastTraceId = trace;
+    } catch { /* ignore */ }
+  };
+
+  page.on('response', captureTraceId);
+  try {
+    const emailInput = page.locator('input[type="email"]').first();
+    const hasLoginForm = await emailInput.isVisible({ timeout: 15_000 }).catch(() => false);
+    if (hasLoginForm) {
+      const passwordInput = page.locator('input[type="password"]').first();
+      const submitButton = page.locator('button[type="submit"]').first();
+      for (let attempt = 0; attempt < 2; attempt++) {
+        await emailInput.fill(email, { timeout: 10_000 });
+        await passwordInput.fill(password);
+        await submitButton.click();
+        await page.waitForTimeout(500);
+        if (attempt === 0 && loginAfterSubmitScreenshotPath) {
+          await page.screenshot({ path: loginAfterSubmitScreenshotPath, fullPage: true }).catch(() => {});
+        }
+        console.log(`loginAndSelectEvent: after submit url=${page.url()} trace_id=${lastTraceId ?? 'NONE'}`);
+        await page
+          .waitForURL((url: URL) => url.pathname.endsWith('/chat'), {
+            timeout: 45_000,
+            waitUntil: 'domcontentloaded',
+          })
+          .catch(() => {});
+        const chatPath = new URL(page.url()).pathname;
+        if (chatPath.endsWith('/chat')) break;
+        const emailValue = await emailInput.inputValue().catch(() => '');
+        if (attempt === 0 && emailValue === '') {
+          await page.waitForTimeout(1200);
+          continue;
+        }
+        break;
+      }
+      const finalChatPath = new URL(page.url()).pathname;
+      if (!finalChatPath.endsWith('/chat')) {
+        console.log(`loginAndSelectEvent: failed redirect url=${page.url()} trace_id=${lastTraceId ?? 'NONE'}`);
+        return null;
+      }
+      const cookies = await page.context().cookies();
+      const hasAuthCookie = cookies.some((c) => c.name === 'idTokenV0.1.0' || c.name === 'sessionBodas');
+      if (!hasAuthCookie) {
+        console.log(`loginAndSelectEvent: missing auth cookie url=${page.url()} trace_id=${lastTraceId ?? 'NONE'}`);
+        return null;
+      }
+    }
+  } finally {
+    page.off('response', captureTraceId);
   }
 
   // 2. Ir al home y hacer click en el primer evento
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
   await waitForAppReady(page, 15_000);
 
+  const misEventosTab = page.locator('a, button').filter({ hasText: /^Mis eventos$/i }).first();
+  if (await misEventosTab.isVisible({ timeout: 8_000 }).catch(() => false)) {
+    await misEventosTab.click().catch(() => {});
+    await page.waitForTimeout(1500);
+    await waitForAppReady(page, 20_000);
+  }
+
   // Buscar tarjeta de evento (Card component)
   // hasNotText excluye los eventos marcados como [ZOMBIE] en BD (clones de test obsoletos)
+  const notEventCard = /\[ZOMBIE\]|crea\s*evento|crear\s+un\s+evento|crear\s+evento/i;
   let eventCards = page.locator('[class*="rounded"][class*="shadow"]').filter({
     hasText: /\d{4}|boda|evento|fiesta|aniversario|cumpleaños/i,
-    hasNotText: /\[ZOMBIE\]/,
+    hasNotText: notEventCard,
   });
   let cardCount = await eventCards.count();
   if (cardCount === 0) {
     eventCards = page.locator('[class*="rounded"][class*="shadow"], [class*="card"], [data-testid*="event"]').filter({
       hasText: /evento|isabel|raúl|invitado|\d{4}|boda/i,
-      hasNotText: /\[ZOMBIE\]/,
+      hasNotText: notEventCard,
     });
     cardCount = await eventCards.count();
   }
   if (cardCount === 0) {
-    const anyEventLink = page.locator('a[href*="event"], [role="button"]').filter({ hasText: /evento|isabel|raúl|\d{4}/i, hasNotText: /\[ZOMBIE\]/ });
+    const anyEventLink = page.locator('a[href*="event"], [role="button"]').filter({ hasText: /evento|isabel|raúl|\d{4}/i, hasNotText: notEventCard });
     if ((await anyEventLink.count()) > 0) {
       await anyEventLink.first().click();
       await page.waitForTimeout(2000);
@@ -191,7 +332,11 @@ export async function loginAndSelectEvent(
   // Click en primer evento
   const firstCard = eventCards.first();
   const cardText = (await firstCard.textContent()) ?? '';
-  await firstCard.click();
+  // Dismiss <nextjs-portal> overlay (dev mode intercepta pointer events)
+  await page.locator('nextjs-portal').evaluateAll((els) => els.forEach((el) => el.remove())).catch(() => {});
+  await firstCard.click({ force: true }).catch(async () => {
+    await firstCard.click();
+  });
   await page.waitForTimeout(2000);
 
   // Extraer event ID de la URL si cambió

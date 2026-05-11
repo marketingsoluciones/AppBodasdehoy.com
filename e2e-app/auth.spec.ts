@@ -11,7 +11,7 @@
  * Solo aplica cuando BASE_URL es app-test.bodasdehoy.com.
  */
 import { test, expect, Browser, BrowserContext } from '@playwright/test';
-import { clearSession, waitForAppReady } from './helpers';
+import { clearSession, waitForAppReady, navigateToModule } from './helpers';
 import { getChatUrl } from './fixtures';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
@@ -155,18 +155,17 @@ test.describe('Auth — Login en app-test', () => {
 
     const cookies = await context.cookies();
     const sessionCookie = cookies.find(
-      c => c.name === 'sessionBodas' || c.name === 'idTokenV0.1.0' || c.name.includes('session'),
+      c => c.name === 'sessionBodas' || c.name === 'idTokenV0.1.0',
     );
-    if (sessionCookie) {
-      expect(sessionCookie.value.length).toBeGreaterThan(10);
-      console.log(`✅ Cookie de sesión: ${sessionCookie.name}=${sessionCookie.value.slice(0, 20)}...`);
-    } else {
+    if (!sessionCookie) {
       console.log('Cookies encontradas:', cookies.map(c => c.name).join(', '));
-      // Verificar al menos que la app cargó sin error (SSO puede estar pendiente en dev)
-      const text = (await page.locator('body').textContent()) ?? '';
-      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
-      expect(text.length).toBeGreaterThan(50);
     }
+    expect(
+      sessionCookie,
+      'BUG_AUTH: cookie sessionBodas/idTokenV0.1.0 ausente tras login — sesión es guest, NO autenticada',
+    ).toBeTruthy();
+    expect(sessionCookie!.value.length).toBeGreaterThan(10);
+    console.log(`✅ Cookie de sesión: ${sessionCookie!.name}=${sessionCookie!.value.slice(0, 20)}...`);
   });
 
   test('sesión persiste tras reload de página', async ({ context, page }) => {
@@ -232,7 +231,7 @@ test.describe('Auth — Login en app-test', () => {
     } else {
       // Logout manual: limpiar sesión
       await clearSession(context, page);
-      await page.goto(`${BASE_URL}/invitados`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+      await navigateToModule(page, 'invitados');
       await page.waitForTimeout(3000);
     }
 
