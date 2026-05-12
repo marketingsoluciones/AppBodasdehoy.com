@@ -8,14 +8,14 @@ import VistaSinCookie from "./vista-sin-cookie"
 import { usePlanLimits } from "../hooks/usePlanLimits"
 import { humanizeQuota, TIER_COLORS } from "@bodasdehoy/shared/plans"
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql'
+const API_MCP_URL = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com'
 const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy'
 
 async function handleSubscribePlan(planId: string, billingPeriod: 'monthly' | 'yearly') {
     const { authBridge } = await import('@bodasdehoy/shared')
     const authState = authBridge.getSharedAuthState()
     if (!authState.idToken) { window.location.href = '/login'; return }
-    const res = await fetch(API2_URL, {
+    const res = await fetch(API_MCP_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authState.idToken}`, 'X-Development': DEVELOPMENT },
         body: JSON.stringify({

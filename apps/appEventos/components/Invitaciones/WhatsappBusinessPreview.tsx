@@ -63,7 +63,7 @@ export const WhatsappBusinessPreview: FC<Props> = ({ values, variableMap }) => {
     return processedText;
   };
   const formattedBody = replaceVariables(bodyContent, variableMap);
-  const formattedHeaderEvent = headerType._id === 'image_event' ? `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgEvento?.i1024}` : '';
+  const formattedHeaderEvent = headerType._id === 'image_event' ? `${process.env.NEXT_PUBLIC_API_MCP_URL}${event?.imgEvento?.i1024}` : '';
   // Manejar headerContent según su tipo
   let formattedHeader: string = '';
   if (headerType._id === 'text') {

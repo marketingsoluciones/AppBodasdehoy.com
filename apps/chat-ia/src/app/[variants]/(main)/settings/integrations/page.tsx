@@ -474,7 +474,7 @@ function IntegrationsPageInner() {
     setConnectingPlatform(platform);
     // The OAuth callback is handled by api2 directly — it completes token exchange
     // and sends postMessage back to this window before closing the popup.
-    const API2_OAUTH_CALLBACK = 'https://api2.eventosorganizador.com/api/smm/oauth/callback';
+    const API2_OAUTH_CALLBACK = 'https://api-mcp.eventosorganizador.com/api/smm/oauth/callback';
 
     try {
       const result = await initSocialConnect(platform, development, API2_OAUTH_CALLBACK);

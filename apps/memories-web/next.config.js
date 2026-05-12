@@ -36,7 +36,7 @@ const nextConfig = {
   rewrites: async () => [
     {
       source: '/api/graphql',
-      destination: process.env.API2_GRAPHQL_URL || 'https://api2.eventosorganizador.com/graphql',
+      destination: process.env.API_MCP_URL || 'https://api-mcp.eventosorganizador.com',
     },
     {
       source: '/api/memories/:path*',

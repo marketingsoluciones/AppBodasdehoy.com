@@ -114,7 +114,7 @@ function RightPanel() {
     }
   };
 
-  const api2Url = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+  const api2Url = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
 
   // ── Email/password ──
   const handleEmailLogin = async (email: string, password: string) => {

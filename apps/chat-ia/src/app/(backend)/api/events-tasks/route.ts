@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API2_URL = 'https://api2.eventosorganizador.com/graphql';
+const API_MCP_URL = 'https://api-mcp.eventosorganizador.com';
 
 const SUPPORT_KEYS: Record<string, string> = {
   bodasdehoy: 'SK-bodasdehoy-a71f5b3c',
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
   try {
     const supportKey = SUPPORT_KEYS[development] || SUPPORT_KEYS.bodasdehoy;
 
-    const res = await fetch(API2_URL, {
+    const res = await fetch(API_MCP_URL, {
       body: JSON.stringify({
         query: EVENTS_WITH_TASKS_QUERY,
         variables: { development, email: userId },

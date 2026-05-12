@@ -14,14 +14,14 @@ import type { NextApiRequest, NextApiResponse } from 'next';
  * GET /api/notifications?userId=Ii6UZ...&dev=champagne-events&tab=pending&page=1
  */
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+const API_MCP_URL = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
 
 // Server-side: generar Firebase ID token para api2
 async function getServerToken(userId: string): Promise<string | null> {
   try {
     // 1. Generar custom token via Firebase Admin en api2
     const supportKey = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
-    const impersonateRes = await fetch(API2_URL, {
+    const impersonateRes = await fetch(API_MCP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Development': 'bodasdehoy' },
       body: JSON.stringify({
@@ -76,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (uid) headers['X-User-Id'] = uid;
     }
     try {
-      const r = await fetch(API2_URL, { method: 'POST', headers, body: JSON.stringify({ query: MARK_AS_READ, variables: { notificationId } }) });
+      const r = await fetch(API_MCP_URL, { method: 'POST', headers, body: JSON.stringify({ query: MARK_AS_READ, variables: { notificationId } }) });
       const d = await r.json();
       return res.status(200).json({ success: d?.data?.markNotificationAsRead?.success ?? false });
     } catch { return res.status(500).json({ success: false }); }
@@ -120,7 +120,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     else if (tab === 'reviewed') filters.read = true;
     // 'history' and 'all' = no filter (all notifications)
 
-    const notifRes = await fetch(API2_URL, {
+    const notifRes = await fetch(API_MCP_URL, {
       method: 'POST',
       headers,
       body: JSON.stringify({

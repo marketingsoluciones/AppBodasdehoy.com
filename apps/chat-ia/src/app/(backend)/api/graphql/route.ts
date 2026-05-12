@@ -5,12 +5,12 @@ export const runtime = 'nodejs';
 // ✅ CORRECCIÓN: Las queries del apolloClient (fetchUserEvents, fetchExternalChats, etc.) son api2 queries.
 // Usar GRAPHQL_ENDPOINT (api2) como destino del proxy, NO el Python backend (api-ia).
 const getBackendUrl = (): string => {
-  const graphqlEndpoint = process.env.GRAPHQL_ENDPOINT || process.env.API2_GRAPHQL_URL;
+  const graphqlEndpoint = process.env.GRAPHQL_ENDPOINT || process.env.API_MCP_URL;
   if (graphqlEndpoint) {
     // graphqlEndpoint ya incluye /graphql — extraemos la base para que el proxy añada /graphql
     return graphqlEndpoint.replace(/\/graphql$/, '');
   }
-  return 'https://api2.eventosorganizador.com';
+  return 'https://api-mcp.eventosorganizador.com';
 };
 
 /**

@@ -14,7 +14,7 @@
  *   await registerReferralIfPending(jwtToken, development);
  */
 
-const DEFAULT_API2_URL = 'https://api2.eventosorganizador.com/graphql';
+const DEFAULT_API_MCP_URL = 'https://api-mcp.eventosorganizador.com';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -149,7 +149,7 @@ export function getFirstTouchData(): Attribution | null {
 export async function registerReferralIfPending(
   jwtToken: string,
   development: string,
-  api2Url = DEFAULT_API2_URL,
+  api2Url = DEFAULT_API_MCP_URL,
 ): Promise<void> {
   if (typeof window === 'undefined') return;
   const code = localStorage.getItem('pending_referral_code');
@@ -192,7 +192,7 @@ export async function registerReferralIfPending(
 export async function sendAttributionToApi(
   jwtToken: string,
   development: string,
-  api2Url = DEFAULT_API2_URL,
+  api2Url = DEFAULT_API_MCP_URL,
 ): Promise<void> {
   if (typeof window === 'undefined') return;
 

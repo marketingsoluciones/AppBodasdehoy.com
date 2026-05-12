@@ -78,7 +78,7 @@ const EVENT_QUERY = `
   }
 `;
 
-const IMG_BASE = 'https://apiapp.bodasdehoy.com/';
+const IMG_BASE = 'https://api-mcp.eventosorganizador.com/';
 
 function eventImageUrl(event: PublicEvent): string | null {
   return event.imgEvento?.i800 ? `${IMG_BASE}${event.imgEvento.i800}` : null;

@@ -67,7 +67,7 @@ export const TableIntegration: React.FC<TableIntegrationProps> = ({
           itinerarioID: itinerario._id,
           taskID: taskId
         },
-        domain: process.env.NEXT_PUBLIC_BASE_URL
+        domain: process.env.NEXT_PUBLIC_API_MCP_URL
       });
 
       // Actualizar estado local
@@ -109,7 +109,7 @@ export const TableIntegration: React.FC<TableIntegrationProps> = ({
           fecha: taskData.fecha || new Date(),
           duracion: taskData.duracion || 30,
         },
-        domain: process.env.NEXT_PUBLIC_BASE_URL
+        domain: process.env.NEXT_PUBLIC_API_MCP_URL
       });
 
       if (!createResponse) throw new Error("No se recibió respuesta del servidor");
@@ -145,7 +145,7 @@ export const TableIntegration: React.FC<TableIntegrationProps> = ({
           variable: "all",
           valor: JSON.stringify(fullTaskData)
         },
-        domain: process.env.NEXT_PUBLIC_BASE_URL
+        domain: process.env.NEXT_PUBLIC_API_MCP_URL
       });
 
       const finalTask: Task = {

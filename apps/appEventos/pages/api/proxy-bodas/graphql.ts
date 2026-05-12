@@ -11,8 +11,8 @@ export default async function handler(
   }
 
   try {
-    const primaryBaseURL = process.env.API_BODAS_URL || 'https://api2.eventosorganizador.com';
-    const fallbackBaseURL = process.env.API_BODAS_URL_FALLBACK;
+    const primaryBaseURL = process.env.API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
+    const fallbackBaseURL = process.env.API_MCP_URL;
 
     // Extraer headers necesarios del request original
     const headers: any = {

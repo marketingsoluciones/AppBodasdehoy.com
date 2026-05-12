@@ -17,7 +17,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 
 const API_IA_BASE = process.env.BACKEND_URL || 'https://api-ia.bodasdehoy.com';
-const API2_GRAPHQL = process.env.API2_GRAPHQL_URL || 'https://api2.eventosorganizador.com/graphql';
+const API2_GRAPHQL = process.env.API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
 const DEVELOPMENT = process.env.DEVELOPMENT || 'bodasdehoy';
 const FIREBASE_JWT = process.env.FIREBASE_JWT || '';
 const BASE_APP = 'https://app-test.bodasdehoy.com';

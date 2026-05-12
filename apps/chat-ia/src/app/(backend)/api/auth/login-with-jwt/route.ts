@@ -117,8 +117,8 @@ const resolveGraphqlUrls = (): string[] => {
   const urls = [
     process.env.GRAPHQL_ENDPOINT,
     process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/graphql` : undefined,
-    process.env.API2_GRAPHQL_URL,
-    'https://api2.eventosorganizador.com/graphql',
+    process.env.API_MCP_URL,
+    'https://api-mcp.eventosorganizador.com',
   ];
 
   const sanitized = urls.filter((url): url is string => typeof url === 'string' && url.length > 0);

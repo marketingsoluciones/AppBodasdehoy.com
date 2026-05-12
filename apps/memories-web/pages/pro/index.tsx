@@ -10,7 +10,7 @@ import { TIER_COLORS } from '@bodasdehoy/shared/plans';
 import { trackPlanView, trackSubscriptionStarted } from '@bodasdehoy/shared';
 import WeddingDetailsModal, { type WeddingDetails } from '../../components/checkout/WeddingDetailsModal';
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+const API_MCP_URL = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
 const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy').trim();
 
 // Static feature map (matches DB plan_ids)
@@ -51,7 +51,7 @@ async function handlePurchase(planId: string, details?: WeddingDetails) {
     return null;
   }
 
-  const res = await fetch(API2_URL, {
+  const res = await fetch(API_MCP_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

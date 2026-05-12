@@ -24,7 +24,7 @@ const isLocalhost = typeof window !== 'undefined' &&
    window.location.hostname === '127.0.0.1' ||
    window.location.hostname.includes('-test.') ||
    window.location.hostname.includes('-dev.'));
-const baseURL = isLocalhost ? '/api/proxy' : process.env.NEXT_PUBLIC_BASE_URL;
+const baseURL = isLocalhost ? '/api/proxy' : process.env.NEXT_PUBLIC_API_MCP_URL;
 const instance = axios.create({ baseURL });
 
 // Ante 403/401: limpiar sesión y redirigir a login con mensaje (evita "Request failed with status code 403" en pantalla).
@@ -114,7 +114,7 @@ export const api = {
   socketIO: ({ token, development, father, origin }) => {
     if (!development) return
     const socketUrl = (process.env.NEXT_PUBLIC_SOCKET_URL || "").trim()
-      || process.env.NEXT_PUBLIC_BASE_API_BODAS
+      || process.env.NEXT_PUBLIC_API_MCP_URL
       || ""
     const manager = new Manager(socketUrl, {
       closeOnBeforeunload: true,
@@ -146,9 +146,9 @@ export const api = {
 
     const bodasApiUrl = isLocalhost
       ? '/api/proxy-bodas/graphql'
-      : (process.env.NEXT_PUBLIC_API_BODAS_URL || 'https://api2.eventosorganizador.com/graphql');
+      : (process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com');
     const bodasApiFallbackUrl = !isLocalhost
-      ? process.env.NEXT_PUBLIC_API_BODAS_URL_FALLBACK
+      ? process.env.NEXT_PUBLIC_API_MCP_URL
       : undefined;
     const headers = {
       Development: development,
@@ -182,7 +182,7 @@ export const api = {
 
 // Legacy: no se usa en el código actual. Endpoint unificado con el resto (HTTPS).
 // Si se elimina, verificar que ningún flujo la use. Ver docs/LISTADO-LLAMADAS-API2-AUDITORIA.md
-const API2_GRAPHQL_LEGACY = process.env.NEXT_PUBLIC_API2_GRAPHQL_URL || '';
+const API2_GRAPHQL_LEGACY = process.env.NEXT_PUBLIC_API_MCP_URL || '';
 
 export const fetchApiViewConfig = async (params) => {
   let idToken = Cookies.get("idTokenV0.1.0");

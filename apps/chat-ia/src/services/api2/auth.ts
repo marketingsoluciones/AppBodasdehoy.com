@@ -1,5 +1,5 @@
-const API2_GRAPHQL_URL =
-  process.env.NEXT_PUBLIC_API2_GRAPHQL_URL ?? 'https://api2.eventosorganizador.com/graphql';
+const API_MCP_URL =
+  process.env.NEXT_PUBLIC_API_MCP_URL ?? 'https://api-mcp.eventosorganizador.com';
 
 const DEFAULT_DEVELOPMENT =
   process.env.NEXT_PUBLIC_API2_DEVELOPMENT ?? process.env.NEXT_PUBLIC_WHITELABEL ?? 'bodasdehoy';
@@ -66,7 +66,7 @@ export const loginAPI2 = async ({
   development = DEFAULT_DEVELOPMENT,
   rememberToken = true,
 }: LoginAPI2Params): Promise<LoginAPI2Result> => {
-  const response = await fetch(API2_GRAPHQL_URL, {
+  const response = await fetch(API_MCP_URL, {
     body: JSON.stringify(buildAuthPayload(email, password, development)),
     headers: {
       'Content-Type': 'application/json',

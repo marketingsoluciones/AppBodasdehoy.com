@@ -4,10 +4,10 @@
  * Ejecuta varias operaciones y reporta HTTP status + resumen coherente/incoherente.
  *
  * Uso: node scripts/run-bateria-api2.mjs [--json] [--output resultado-api2.json]
- * Env: API2_URL, DEVELOPMENT, SUPPORT_KEY (opcionales)
+ * Env: API_MCP_URL, DEVELOPMENT, SUPPORT_KEY (opcionales)
  */
 
-const API2_URL = process.env.API2_URL || 'https://api2.eventosorganizador.com/graphql';
+const API_MCP_URL = process.env.API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
 const DEVELOPMENT = process.env.DEVELOPMENT || 'bodasdehoy';
 const SUPPORT_KEY = process.env.SUPPORT_KEY || 'SK-bodasdehoy-a71f5b3c';
 const USER_EMAIL = process.env.USER_EMAIL || 'bodasdehoy.com@gmail.com';
@@ -67,7 +67,7 @@ async function runOne(test) {
   let httpStatus = 0;
   let responseText = '';
   try {
-    const res = await fetch(API2_URL, { method: 'POST', headers, body });
+    const res = await fetch(API_MCP_URL, { method: 'POST', headers, body });
     httpStatus = res.status;
     responseText = await res.text();
   } catch (e) {
@@ -91,7 +91,7 @@ async function main() {
   const outIdx = process.argv.indexOf('--output');
   const outputFile = outIdx >= 0 ? process.argv[outIdx + 1] : null;
 
-  console.log(`\n🧪 Batería API2 → ${API2_URL}\n`);
+  console.log(`\n🧪 Batería API2 → ${API_MCP_URL}\n`);
 
   const resultados = [];
   let coherentes = 0;
@@ -110,7 +110,7 @@ async function main() {
   const salida = {
     bateria: 'api2',
     fecha: new Date().toISOString(),
-    api2Url: API2_URL,
+    api2Url: API_MCP_URL,
     development: DEVELOPMENT,
     total: TESTS.length,
     coherentes,

@@ -8,7 +8,7 @@ import '../styles/globals.css';
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+const API_MCP_URL = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
 const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy').trim();
 
 // Los IDs de GTM y Meta Pixel vienen del config del white-label, no de env vars
@@ -46,8 +46,8 @@ function App({ Component, pageProps }: AppProps) {
   useEffect(() => {
     const authState = authBridge.getSharedAuthState();
     if (authState.isAuthenticated && authState.idToken) {
-      registerReferralIfPending(authState.idToken, DEVELOPMENT, API2_URL).catch(() => undefined);
-      sendAttributionToApi(authState.idToken, DEVELOPMENT, API2_URL).catch(() => undefined);
+      registerReferralIfPending(authState.idToken, DEVELOPMENT, API_MCP_URL).catch(() => undefined);
+      sendAttributionToApi(authState.idToken, DEVELOPMENT, API_MCP_URL).catch(() => undefined);
     }
   }, []);
 

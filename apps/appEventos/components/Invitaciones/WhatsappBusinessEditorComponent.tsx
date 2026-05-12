@@ -642,7 +642,7 @@ const HeaderTypeWatcher = () => {
             // Limpiar headerContent cuando cambie el tipo
             setPrevHeaderType(currentHeaderType);
             setTimeout(() => {
-                setFieldValue('headerContent', currentHeaderType === 'image_event' ? event?.imgEvento?.i1024 ? `${process.env.NEXT_PUBLIC_BASE_URL}${event?.imgEvento?.i1024}` : '' : '');
+                setFieldValue('headerContent', currentHeaderType === 'image_event' ? event?.imgEvento?.i1024 ? `${process.env.NEXT_PUBLIC_API_MCP_URL}${event?.imgEvento?.i1024}` : '' : '');
             }, 10);
         }
     }, [values?.headerType?._id, setFieldValue]);

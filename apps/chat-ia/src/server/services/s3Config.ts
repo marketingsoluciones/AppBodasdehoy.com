@@ -57,7 +57,7 @@ export async function getServerS3Config(development = 'bodasdehoy'): Promise<S3W
     return cached.config;
   }
 
-  const api2Url = process.env.API2_GRAPHQL_URL || 'https://api2.eventosorganizador.com';
+  const api2Url = process.env.API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
   const supportKey = process.env[`SUPPORT_KEY_${development.toUpperCase().replaceAll('-', '_')}`]
     || process.env.API2_SUPPORT_KEY;
 

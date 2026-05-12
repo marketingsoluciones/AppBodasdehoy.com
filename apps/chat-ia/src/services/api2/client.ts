@@ -1,7 +1,7 @@
 import { loginWithDemoCredentials } from './auth';
 
-const API2_GRAPHQL_URL =
-  process.env.NEXT_PUBLIC_API2_GRAPHQL_URL ?? 'https://api2.eventosorganizador.com/graphql';
+const API_MCP_URL =
+  process.env.NEXT_PUBLIC_API_MCP_URL ?? 'https://api-mcp.eventosorganizador.com';
 
 const DEFAULT_DEVELOPMENT =
   process.env.NEXT_PUBLIC_API2_DEVELOPMENT ?? process.env.NEXT_PUBLIC_WHITELABEL ?? 'bodasdehoy';
@@ -83,7 +83,7 @@ export class API2Client {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    const response = await fetch(API2_GRAPHQL_URL, {
+    const response = await fetch(API_MCP_URL, {
       body,
       headers,
       method: 'POST',
@@ -98,7 +98,7 @@ export class API2Client {
         preview: text.slice(0, 200),
         status: response.status,
         statusText: response.statusText,
-        url: API2_GRAPHQL_URL,
+        url: API_MCP_URL,
       });
       throw new Error(
         `API2 devolvió una respuesta no-JSON (${response.status} ${response.statusText}). Verifica que el servidor esté funcionando correctamente.`

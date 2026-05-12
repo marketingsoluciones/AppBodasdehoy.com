@@ -69,8 +69,8 @@ export async function verifyAllUrls(): Promise<UrlCheckResult[]> {
   if (typeof window === 'undefined') {
     // Server-side: usar variables de entorno
     const envUrls = [
-      process.env.NEXT_PUBLIC_BASE_URL,
-      process.env.NEXT_PUBLIC_BASE_API_BODAS,
+      process.env.NEXT_PUBLIC_API_MCP_URL,
+      process.env.NEXT_PUBLIC_API_MCP_URL,
       process.env.NEXT_PUBLIC_DIRECTORY,
       process.env.NEXT_PUBLIC_CMS,
       process.env.NEXT_PUBLIC_CUSTOMWEB,
@@ -94,8 +94,8 @@ export async function verifyAllUrls(): Promise<UrlCheckResult[]> {
     if (hostname.includes('bodasdehoy.com') && !isTestDomain) {
       // Solo verificar APIs externas en producción (evitar CORS en test)
       urlsToCheck.push('https://bodasdehoy.com');
-      urlsToCheck.push('https://api2.eventosorganizador.com');
-      urlsToCheck.push('https://apiapp.bodasdehoy.com');
+      urlsToCheck.push('https://api-mcp.eventosorganizador.com');
+      urlsToCheck.push('https://api-mcp.eventosorganizador.com');
       urlsToCheck.push('https://chat.bodasdehoy.com');
       // Backend IA
       urlsToCheck.push('https://api-ia.bodasdehoy.com');

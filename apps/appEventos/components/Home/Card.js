@@ -315,7 +315,7 @@ const Card = ({ data, grupoStatus, idx }) => {
             })
         }} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden ${isNavigating ? 'opacity-70' : ''}`}>
           <img
-            src={data[idx]?.imgEvento ? `https://apiapp.bodasdehoy.com/${data[idx].imgEvento.i320}` : defaultImagenes[data[idx]?.tipo?.toLowerCase()]}
+            src={data[idx]?.imgEvento ? `https://api-mcp.eventosorganizador.com/${data[idx].imgEvento.i320}` : defaultImagenes[data[idx]?.tipo?.toLowerCase()]}
             className="object-cover w-full h-full absolute top-0 left-0 object-top"
             onError={(e) => { e.target.src = defaultImagenes[data[idx]?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
           />

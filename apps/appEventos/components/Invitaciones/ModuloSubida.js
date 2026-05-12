@@ -72,7 +72,7 @@ const ModuloSubida = (props) => {
     preview: false,
     image: event
       ? event[use]?.i800
-        ? `${process.env.NEXT_PUBLIC_BASE_URL}${event[use]?.i800}`
+        ? `${process.env.NEXT_PUBLIC_API_MCP_URL}${event[use]?.i800}`
         : defaultImagen
       : defaultImagen
   }
@@ -170,7 +170,7 @@ const ModuloSubida = (props) => {
             {t("change")} <EditarIcon className="w-6 h-6" />
           </label>
           {event?.[use]?.i1024 && (
-            <CopyToClipboard text={`${process.env.NEXT_PUBLIC_BASE_URL}${event[use].i1024}`}>
+            <CopyToClipboard text={`${process.env.NEXT_PUBLIC_API_MCP_URL}${event[use].i1024}`}>
               <label onClick={() => { setCopied(true) }} className="flex items-center justify-center w-1/2 py-1 cursor-pointer">
                 {t("copylink")} {copied ? <PiCheckFatThin className="w-6 h-6" /> : <LiaLinkSolid className="w-6 h-6" />}
               </label>

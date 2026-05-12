@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { TIER_COLORS } from '@bodasdehoy/shared/plans';
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+const API_MCP_URL = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
 const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'memories').trim();
 
 // Features per plan_id (static — must match what's in DB)
@@ -58,7 +58,7 @@ export default function Pricing() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    fetch(API2_URL, {
+    fetch(API_MCP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Development': DEVELOPMENT },
       body: JSON.stringify({

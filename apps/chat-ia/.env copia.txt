@@ -33,8 +33,8 @@ USE_PYTHON_BACKEND=true
 # ========================================
 # GRAPHQL API2
 # ========================================
-GRAPHQL_ENDPOINT=https://api2.eventosorganizador.com/graphql
-API2_GRAPHQL_URL=https://api2.eventosorganizador.com/graphql
+GRAPHQL_ENDPOINT=https://api-mcp.eventosorganizador.com
+API_MCP_URL=https://api-mcp.eventosorganizador.com
 
 # ========================================
 # FIREBASE AUTH

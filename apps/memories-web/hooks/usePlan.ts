@@ -58,7 +58,7 @@ export interface UsePlanReturn {
 // API2 GraphQL calls
 // ========================================
 
-const API2_URL = process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+const API_MCP_URL = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
 const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy').trim();
 
 async function graphqlQuery<T>(query: string, variables?: Record<string, unknown>, token?: string | null): Promise<T> {
@@ -68,7 +68,7 @@ async function graphqlQuery<T>(query: string, variables?: Record<string, unknown
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(API2_URL, {
+  const res = await fetch(API_MCP_URL, {
     method: 'POST',
     headers,
     body: JSON.stringify({ query, variables }),

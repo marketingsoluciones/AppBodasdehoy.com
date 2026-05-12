@@ -49,9 +49,9 @@ const resolveGoogleAudiences = () => {
 const resolveGraphqlUrls = (): string[] => {
   const urls = [
     process.env.GRAPHQL_ENDPOINT,
-    process.env.API2_GRAPHQL_URL,
+    process.env.API_MCP_URL,
     process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/graphql` : undefined,
-    'https://api2.eventosorganizador.com/graphql',
+    'https://api-mcp.eventosorganizador.com',
   ];
 
   return Array.from(

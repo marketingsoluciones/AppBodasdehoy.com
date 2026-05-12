@@ -203,7 +203,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://bodasdehoy.com';
+    const baseUrl = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://bodasdehoy.com';
     const url = weddingWeb.subdomain 
       ? `https://${weddingWeb.subdomain}.bodasdehoy.com`
       : `${baseUrl}/wedding/${weddingWeb.subdomain}`;

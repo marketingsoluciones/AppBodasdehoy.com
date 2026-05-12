@@ -22,13 +22,13 @@ export const MiPerfil = () => {
 
   const initialValues = {
     email: user?.email,
-    displayName: user?.displayName,
+    displayName: user?.displayName ?? "",
     currentPassword: "",
     password: ""
   }
 
   const validationSchema = yup.object().shape({
-    displayName: yup.string().required("El nombre no puede estar en blanco"),
+    displayName: yup.string().nullable().required("El nombre no puede estar en blanco"),
     password: yup.string().test("Unico", `Debe contener mas de 5 caractéres`, (value: any) => {
       const name = document.activeElement?.getAttribute("name")
       if (canChangePassword) {

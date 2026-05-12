@@ -36,7 +36,7 @@ export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = {
   annloevents: {
     api: {
       backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030',
-      graphqlEndpoint: 'https://api2.eventosorganizador.com/graphql',
+      graphqlEndpoint: 'https://api-mcp.eventosorganizador.com',
     },
     colors: {
       accent: '#06b6d4',
@@ -53,7 +53,7 @@ export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = {
   bodasdehoy: {
     api: {
       backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030',
-      graphqlEndpoint: 'https://api2.eventosorganizador.com/graphql',
+      graphqlEndpoint: 'https://api-mcp.eventosorganizador.com',
     },
     colors: {
       accent: '#ff69b4',
@@ -70,7 +70,7 @@ export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = {
   champagneevents: {
     api: {
       backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030',
-      graphqlEndpoint: 'https://api2.eventosorganizador.com/graphql',
+      graphqlEndpoint: 'https://api-mcp.eventosorganizador.com',
     },
     colors: {
       accent: '#eab308',
@@ -87,7 +87,7 @@ export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = {
   eventosorganizador: {
     api: {
       backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030',
-      graphqlEndpoint: 'https://api2.eventosorganizador.com/graphql',
+      graphqlEndpoint: 'https://api-mcp.eventosorganizador.com',
     },
     colors: {
       accent: '#f59e0b',

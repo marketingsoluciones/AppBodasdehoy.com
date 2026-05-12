@@ -8,7 +8,7 @@ const getApiIaUrl = (): string =>
   'https://api-ia.bodasdehoy.com';
 
 const getApi2Url = (): string =>
-  process.env.API2_URL || 'https://api2.eventosorganizador.com';
+  process.env.API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
 
 /**
  * Proxy catch-all: /api/messages/[...path]

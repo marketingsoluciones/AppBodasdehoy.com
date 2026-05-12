@@ -11,7 +11,7 @@ export default async function handler(
   }
 
   try {
-    const baseURL = process.env.NEXT_PUBLIC_BASE_URL || 'https://apiapp.bodasdehoy.com';
+    const baseURL = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
 
     // Extraer headers necesarios del request original
     const headers: any = {

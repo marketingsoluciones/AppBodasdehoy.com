@@ -72,9 +72,9 @@ const DEFAULT_PROVIDER = 'auto';
 // GPT-4, o el mejor disponible en OpenRouter). Por defecto true para el Copilot.
 const PREFER_REASONING_MODEL = process.env.COPILOT_PREFER_REASONING_MODEL !== 'false';
 
-// API2_GRAPHQL_URL: solo se usa como fallback de whitelabel si SKIP_WHITELABEL_VIA_API2 no está activo.
+// API_MCP_URL: solo se usa como fallback de whitelabel si SKIP_WHITELABEL_VIA_API2 no está activo.
 // apps/web no debe apuntar a api2; preferir API_IA_WHITELABEL_URL o SKIP_WHITELABEL_VIA_API2=true.
-const API2_GRAPHQL_URL = process.env.API2_GRAPHQL_URL || '';
+const API_MCP_URL = process.env.API_MCP_URL || '';
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -398,7 +398,7 @@ async function getWhitelabelApiKey(development: string): Promise<{ apiKey: strin
   `;
 
   try {
-    const response = await fetch(API2_GRAPHQL_URL, {
+    const response = await fetch(API_MCP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query }),

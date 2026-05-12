@@ -15,7 +15,7 @@
  */
 import { test, expect } from '@playwright/test';
 
-const MCP_GRAPHQL = process.env.MCP_GRAPHQL_URL || 'https://api3-mcp-graphql.eventosorganizador.com/graphql';
+const MCP_GRAPHQL = process.env.MCP_GRAPHQL_URL || 'https://api-mcp.eventosorganizador.com/graphql';
 const DEVELOPMENT = 'bodasdehoy';
 
 async function introspectType(request: any, typeName: string): Promise<any> {

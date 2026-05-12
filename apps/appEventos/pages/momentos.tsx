@@ -13,7 +13,7 @@ const MOMENTOS_API_BASE =
   typeof window !== 'undefined'
     ? ''
     : (process.env.NEXT_PUBLIC_MEMORIES_API_URL ||
-        process.env.NEXT_PUBLIC_BASE_URL ||
+        process.env.NEXT_PUBLIC_API_MCP_URL ||
         '');
 
 function ShareAlbumButton({ albumId }: { albumId: string }) {

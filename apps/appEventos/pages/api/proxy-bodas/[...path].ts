@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-const BODAS_API_URL = process.env.API_BODAS_URL || 'https://api2.eventosorganizador.com';
-const BODAS_API_URL_FALLBACK = process.env.API_BODAS_URL_FALLBACK || '';
+const BODAS_API_URL = process.env.API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
+const BODAS_API_URL_FALLBACK = process.env.API_MCP_URL || '';
 
 export default async function handler(
   req: NextApiRequest,

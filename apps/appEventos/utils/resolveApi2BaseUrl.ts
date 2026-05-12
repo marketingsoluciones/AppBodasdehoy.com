@@ -4,5 +4,5 @@
  * Si no, usa la variable de entorno o el default.
  */
 export function normalizeApi2HttpBase(url?: string): string {
-  return url || process.env.NEXT_PUBLIC_API2_URL || 'https://api2.eventosorganizador.com/graphql';
+  return url || process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
 }

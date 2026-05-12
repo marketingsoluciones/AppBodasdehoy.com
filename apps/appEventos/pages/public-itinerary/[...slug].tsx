@@ -25,7 +25,7 @@ interface TaskReduce {
   tasks?: Task[]
 }
 
-const apiAppImgBase = (process.env.NEXT_PUBLIC_BASE_URL || "https://apiapp.bodasdehoy.com").replace(/\/$/, "");
+const apiAppImgBase = (process.env.NEXT_PUBLIC_API_MCP_URL || "https://api-mcp.eventosorganizador.com").replace(/\/$/, "");
 
 const PublicItineraryUnavailable = ({ title, body }: { title: string; body: string }) => (
   <div className="min-h-[60vh] w-full flex flex-col items-center justify-center px-6 py-16 text-center bg-base">

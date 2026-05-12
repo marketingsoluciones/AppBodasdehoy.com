@@ -27,9 +27,9 @@ function getCurrentOrigin(): string {
   }
   
   // En el servidor, usar variables de entorno con dominio real
-  // Prioridad: NEXT_PUBLIC_BASE_URL > APP_URL > fallback a localhost solo en desarrollo
+  // Prioridad: NEXT_PUBLIC_API_MCP_URL > APP_URL > fallback a localhost solo en desarrollo
   const baseUrl = 
-    process.env.NEXT_PUBLIC_BASE_URL || 
+    process.env.NEXT_PUBLIC_API_MCP_URL || 
     process.env.APP_URL || 
     (process.env.NODE_ENV === 'development' ? 'http://localhost:8000' : undefined);
   
@@ -53,7 +53,7 @@ function getCurrentOrigin(): string {
   }
   
   // En producción, lanzar error si no hay URL configurada
-  throw new Error('NEXT_PUBLIC_BASE_URL o APP_URL debe estar configurado para Google OAuth');
+  throw new Error('NEXT_PUBLIC_API_MCP_URL o APP_URL debe estar configurado para Google OAuth');
 }
 
 const DEFAULT_DEVELOPMENT = 'bodasdehoy';
