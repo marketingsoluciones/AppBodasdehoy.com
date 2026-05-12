@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useChatStore } from '@/store/chat';
 import { api2Client } from '@/services/api2/client';
 import { getUnreadNotificationsCount } from '@/services/api2/notifications';
@@ -38,6 +39,8 @@ interface ChannelSidebarProps {
   /** Compact mode: panel fijo de 320px en desktop layout. Full: pantalla completa mobile. */
   compact?: boolean;
 }
+
+type InboxView = 'all' | 'mine' | 'unassigned' | 'closed';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -352,6 +355,8 @@ function ChannelRow({ channel, onClick }: { channel: InboxChannel; onClick: () =
 export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { checkAuth } = useAuthCheck();
+  const { userId } = checkAuth();
 
   const internalEnabled = false;
 
@@ -383,6 +388,30 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
   // Search & filter state
   const [search, setSearch] = useState('');
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all');
+  const [activeView, setActiveView] = useState<InboxView>('all');
+
+  const isClosed = useCallback((status?: string) => {
+    const s = (status || '').toString().toUpperCase();
+    return s === 'CLOSED' || s === 'ARCHIVED';
+  }, []);
+
+  const viewCounts = useMemo(() => {
+    let mine = 0;
+    let unassigned = 0;
+    let closed = 0;
+    for (const c of recentConvs) {
+      if (isClosed(c.status)) {
+        closed++;
+        continue;
+      }
+      if (!c.assignedToUserId) {
+        unassigned++;
+        continue;
+      }
+      if (userId && c.assignedToUserId === userId) mine++;
+    }
+    return { closed, mine, unassigned };
+  }, [isClosed, recentConvs, userId]);
 
   // Notification count
   const [unreadNotifs, setUnreadNotifs] = useState(0);
@@ -401,6 +430,11 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
   // Filtered conversations
   const filteredConvs = useMemo(() => {
     let list = recentConvs;
+    if (activeView !== 'all') {
+      if (activeView === 'mine') list = list.filter((c) => !!userId && c.assignedToUserId === userId);
+      else if (activeView === 'unassigned') list = list.filter((c) => !c.assignedToUserId);
+      else if (activeView === 'closed') list = list.filter((c) => isClosed(c.status));
+    }
     if (channelFilter !== 'all') {
       list = list.filter((c) => c.kind === channelFilter);
     }
@@ -411,7 +445,7 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
       );
     }
     return list;
-  }, [recentConvs, channelFilter, search]);
+  }, [recentConvs, activeView, channelFilter, isClosed, search, userId]);
 
   // Filtered tasks
   const filteredTasks = useMemo(() => {
@@ -556,6 +590,44 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
             </div>
           </div>
         )}
+
+        <div className="shrink-0 px-2 pt-2">
+          <div className="flex gap-1">
+            <button
+              className={`flex-1 rounded-md px-2 py-1.5 text-[10px] font-semibold transition-colors ${
+                activeView === 'mine'
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              onClick={() => setActiveView(activeView === 'mine' ? 'all' : 'mine')}
+              type="button"
+            >
+              Mis asignadas{viewCounts.mine > 0 ? ` · ${viewCounts.mine}` : ''}
+            </button>
+            <button
+              className={`flex-1 rounded-md px-2 py-1.5 text-[10px] font-semibold transition-colors ${
+                activeView === 'unassigned'
+                  ? 'bg-amber-50 text-amber-800'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              onClick={() => setActiveView(activeView === 'unassigned' ? 'all' : 'unassigned')}
+              type="button"
+            >
+              Sin asignar{viewCounts.unassigned > 0 ? ` · ${viewCounts.unassigned}` : ''}
+            </button>
+            <button
+              className={`flex-1 rounded-md px-2 py-1.5 text-[10px] font-semibold transition-colors ${
+                activeView === 'closed'
+                  ? 'bg-gray-200 text-gray-800'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              onClick={() => setActiveView(activeView === 'closed' ? 'all' : 'closed')}
+              type="button"
+            >
+              Cerradas{viewCounts.closed > 0 ? ` · ${viewCounts.closed}` : ''}
+            </button>
+          </div>
+        </div>
 
         {/* ── Search ── */}
         <div className="shrink-0 px-2 pt-2">
