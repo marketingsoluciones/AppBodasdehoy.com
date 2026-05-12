@@ -94,12 +94,13 @@ const FILTER_TABS: { key: ChannelFilter; label: string }[] = [
 
 // ─── hook: event summaries ────────────────────────────────────────────────────
 
-function useEventSummaries() {
+function useEventSummaries(enabled: boolean) {
   const userEvents = (useChatStore((s) => s.userEvents) as any[] | undefined) ?? [];
   const [summaries, setSummaries] = useState<EventSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   const eventIds = useMemo(() => {
+    if (!enabled) return [];
     const now = Date.now();
     return [...userEvents]
       .sort((a: any, b: any) => {
@@ -115,10 +116,10 @@ function useEventSummaries() {
         id: e.id || e._id || '',
         name: e.name || e.nombre || 'Evento',
       }));
-  }, [userEvents]);
+  }, [enabled, userEvents]);
 
   useEffect(() => {
-    if (eventIds.length === 0) {
+    if (!enabled || eventIds.length === 0) {
       setSummaries([]);
       setLoading(false);
       return;
@@ -170,7 +171,7 @@ function useEventSummaries() {
       .then(setSummaries)
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(eventIds)]);
+  }, [enabled, JSON.stringify(eventIds)]);
 
   return { loading, summaries };
 }
@@ -352,10 +353,14 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  const internalEnabled = false;
+
   // Data hooks
-  const { summaries: events, loading: eventsLoading } = useEventSummaries();
-  const { tasks: pendingTasks, loading: tasksLoading } = usePendingTasksSidebar();
-  const { conversations: recentConvs, loading: convsLoading } = useRecentConversations(50);
+  const { summaries: events, loading: eventsLoading } = useEventSummaries(!compact && internalEnabled);
+  const { tasks: pendingTasks, loading: tasksLoading } = usePendingTasksSidebar(
+    !compact && internalEnabled ? 6 : 0,
+  );
+  const { conversations: recentConvs, loading: convsLoading } = useRecentConversations(compact ? 15 : 50);
   const { externalChannels, loading: channelsLoading } = useInboxChannels();
 
   // Channel health monitor
@@ -434,8 +439,9 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
   }, [externalChannels, recentConvs]);
 
   const totalUnread = recentConvs.reduce((n, c) => n + c.unreadCount, 0);
-  const totalPending = pendingTasks.length;
+  const totalPending = internalEnabled ? pendingTasks.length : 0;
   const isLoading = eventsLoading && tasksLoading && convsLoading;
+  const searchPlaceholder = internalEnabled ? 'Buscar tareas, chats...' : 'Buscar chats...';
 
   // Available channel filter tabs
   const availableKinds = useMemo(() => {
@@ -556,7 +562,7 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
           <input
             className="w-full rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs placeholder:text-gray-400 focus:border-blue-400 focus:bg-white focus:outline-none"
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar tareas, chats..."
+            placeholder={searchPlaceholder}
             type="text"
             value={search}
           />
@@ -593,7 +599,7 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
         {!isLoading && (
           <div className="flex-1 overflow-y-auto pb-2">
             {/* ── Pending tasks ── */}
-            {!tasksLoading && filteredTasks.length > 0 && channelFilter === 'all' && (
+            {internalEnabled && !compact && !tasksLoading && filteredTasks.length > 0 && channelFilter === 'all' && (
               <>
                 <SectionLabel label="Tareas pendientes" />
                 <div className="space-y-1 px-2">
@@ -609,7 +615,7 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
             )}
 
             {/* ── Events (channels) ── */}
-            {events.length > 0 && channelFilter === 'all' && !search.trim() && (
+            {internalEnabled && !compact && events.length > 0 && channelFilter === 'all' && !search.trim() && (
               <>
                 <SectionLabel label="Canales" />
                 <div className="space-y-0.5 px-2">
