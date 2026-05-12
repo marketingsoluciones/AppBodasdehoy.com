@@ -5,6 +5,7 @@ import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { buildHeaders } from '../utils/auth';
 
 export interface Conversation {
+  assignedToUserId?: string | null;
   channel: 'whatsapp' | 'instagram' | 'telegram' | 'email' | 'web' | 'facebook';
   contact: {
     avatar?: string;
@@ -18,7 +19,14 @@ export interface Conversation {
     text: string;
     timestamp: string;
   };
+  lastInboundAt?: string;
+  lastOutboundAt?: string;
+  labels?: any[];
+  linkedContactId?: string | null;
+  linkedEventId?: string | null;
+  status?: string;
   unreadCount: number;
+  unreadCountForAgent?: number;
 }
 
 export function useConversations(channel: string | null) {
@@ -55,6 +63,7 @@ export function useConversations(channel: string | null) {
         const data = await response.json();
         const rawList = Array.isArray(data) ? data : data.conversations || [];
         const normalized: Conversation[] = rawList.map((c: any) => ({
+          assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
           channel: (c.channel || c.platform || channel || 'whatsapp') as Conversation['channel'],
           contact: {
             name: c.displayName || c.phoneNumber || 'Desconocido',
@@ -66,7 +75,14 @@ export function useConversations(channel: string | null) {
             text: c.lastMessage || '',
             timestamp: c.lastMessageAt || c.updatedAt || new Date().toISOString(),
           },
+          lastInboundAt: c.lastInboundAt ?? c.last_inbound_at ?? undefined,
+          lastOutboundAt: c.lastOutboundAt ?? c.last_outbound_at ?? undefined,
+          labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,
+          linkedContactId: c.linkedContactId ?? c.linked_contact_id ?? null,
+          linkedEventId: c.linkedEventId ?? c.linked_event_id ?? null,
+          status: c.status ?? c.conversationStatus ?? undefined,
           unreadCount: c.unreadCount || 0,
+          unreadCountForAgent: c.unreadCountForAgent ?? c.unread_count_for_agent ?? undefined,
         }));
         const filtered = channel ? normalized.filter((c) => c.channel === channel) : normalized;
         setConversations(filtered);
