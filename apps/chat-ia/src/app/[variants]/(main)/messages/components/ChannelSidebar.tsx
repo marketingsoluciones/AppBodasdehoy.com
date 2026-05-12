@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useChatStore } from '@/store/chat';
-import { api2Client } from '@/services/api2/client';
-import { getUnreadNotificationsCount } from '@/services/api2/notifications';
+import { mcpClient } from '@/services/mcpApi/client';
+import { getUnreadNotificationsCount } from '@/services/mcpApi/notifications';
 
 import { useInboxChannels } from '../hooks/useInboxChannels';
 import type { InboxChannel } from '../hooks/useInboxChannels';
@@ -132,7 +132,7 @@ function useEventSummaries(enabled: boolean) {
     Promise.all(
       eventIds.map(async (ev) => {
         try {
-          const res = await api2Client.query<{ getEventoById: EventoData }>(GET_EVENTO_BY_ID, {
+          const res = await mcpClient.query<{ getEventoById: EventoData }>(GET_EVENTO_BY_ID, {
             id: ev.id,
           });
           const data = res.getEventoById;

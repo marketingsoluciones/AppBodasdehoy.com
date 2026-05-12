@@ -65,7 +65,7 @@ const readToken = () => {
   return undefined;
 };
 
-export class API2Client {
+export class MCPClient {
   private development: string;
 
   constructor(development: string = DEFAULT_DEVELOPMENT) {
@@ -161,12 +161,12 @@ export class API2Client {
     if (!token) {
       const result = await loginWithDemoCredentials();
       if (!result.success) {
-        console.warn('[API2Client] ensureDemoToken: login automático falló o no hay credenciales configuradas.');
+        console.warn('[MCPClient] ensureDemoToken: login automático falló o no hay credenciales configuradas.');
       }
     }
   }
 }
 
-export const api2Client = new API2Client();
+export const mcpClient = new MCPClient();
 
 

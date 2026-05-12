@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (!res.ok) {
-      return NextResponse.json({ error: `api2 error ${res.status}`, events: [] }, { status: 502 });
+      return NextResponse.json({ error: `MCP error ${res.status}`, events: [] }, { status: 502 });
     }
 
     const data = await res.json();

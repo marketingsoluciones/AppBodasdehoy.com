@@ -114,7 +114,7 @@ function RightPanel() {
     }
   };
 
-  const api2Url = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
+  const mcpUrl = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
 
   // ── Email/password ──
   const handleEmailLogin = async (email: string, password: string) => {
@@ -124,8 +124,8 @@ function RightPanel() {
     await setExternalChatConfig(result.user_id!, result.development, result.token || undefined, 'registered');
     fetchExternalChats().catch(() => {});
     if (result.token) {
-      registerReferralIfPending(result.token, result.development, api2Url).catch(() => {});
-      sendAttributionToApi(result.token, result.development, api2Url).catch(() => {});
+      registerReferralIfPending(result.token, result.development, mcpUrl).catch(() => {});
+      sendAttributionToApi(result.token, result.development, mcpUrl).catch(() => {});
     }
     afterLogin();
   };
@@ -141,8 +141,8 @@ function RightPanel() {
     await setExternalChatConfig(email, result.development, token || undefined, 'registered');
     fetchExternalChats().catch(() => {});
     if (token) {
-      registerReferralIfPending(token, result.development, api2Url).catch(() => {});
-      sendAttributionToApi(token, result.development, api2Url).catch(() => {});
+      registerReferralIfPending(token, result.development, mcpUrl).catch(() => {});
+      sendAttributionToApi(token, result.development, mcpUrl).catch(() => {});
     }
     afterLogin();
   };
@@ -158,8 +158,8 @@ function RightPanel() {
     await setExternalChatConfig(email, result.development, token || undefined, 'registered');
     fetchExternalChats().catch(() => {});
     if (token) {
-      registerReferralIfPending(token, result.development, api2Url).catch(() => {});
-      sendAttributionToApi(token, result.development, api2Url).catch(() => {});
+      registerReferralIfPending(token, result.development, mcpUrl).catch(() => {});
+      sendAttributionToApi(token, result.development, mcpUrl).catch(() => {});
     }
     afterLogin();
   };
@@ -200,8 +200,8 @@ function RightPanel() {
       await setExternalChatConfig(result.user_id, development, result.token || undefined, 'registered');
       fetchExternalChats().catch(() => {});
       if (result.token) {
-        registerReferralIfPending(result.token, development, api2Url).catch(() => {});
-        sendAttributionToApi(result.token, development, api2Url).catch(() => {});
+        registerReferralIfPending(result.token, development, mcpUrl).catch(() => {});
+        sendAttributionToApi(result.token, development, mcpUrl).catch(() => {});
       }
       afterLogin();
     } catch (err: any) {

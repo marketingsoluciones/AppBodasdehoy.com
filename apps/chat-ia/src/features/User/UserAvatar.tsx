@@ -14,7 +14,7 @@ import { useUserStore } from '@/store/user';
 import { authSelectors, userProfileSelectors } from '@/store/user/selectors';
 import { getAvatarInitials, isGenericPlaceholderAvatarUrl } from '@/utils/avatarInitials';
 import {
-  getDeveloperShortName,
+  getDeveloperDisplayName,
   resolveActiveDeveloperForBranding,
 } from '@/utils/developmentDetector';
 
@@ -71,7 +71,7 @@ const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
     const { branding } = useDeveloperBranding();
     const slug = resolveActiveDeveloperForBranding(storeDevelopment);
     const guestBrandName =
-      (branding?.name && branding.name.trim()) || getDeveloperShortName(slug);
+      (branding?.name && branding.name.trim()) || getDeveloperDisplayName(slug);
 
     /** Sesión real (no el “siempre logueado” cuando enableAuth=false). */
     const isRealLogin = useUserStore(authSelectors.isLoginWithAuth);

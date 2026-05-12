@@ -163,9 +163,6 @@ const DOMAIN_TO_DEVELOPMENT: Record<string, string> = {
   
 
 'eventosorganizador.com': 'eventosorganizador',
-  
-
-'chat.bodasdehoy.com': 'bodasdehoy',
 
 // Legacy
 'iachat.bodasdehoy.com': 'bodasdehoy',

@@ -10,13 +10,13 @@ import {
   getSocialAccounts,
   initSocialConnect,
   type SMMSocialAccount,
-} from '@/services/api2/smm';
+} from '@/services/mcpApi/smm';
 import {
   createWhatsAppChannel,
   deleteWhatsAppChannel,
   getWhatsAppChannels,
   type WhatsAppChannel,
-} from '@/services/api2/whatsapp';
+} from '@/services/mcpApi/whatsapp';
 import { useChatStore } from '@/store/chat';
 import { useWhatsAppSession } from '../../messages/hooks/useWhatsAppSession';
 
@@ -472,7 +472,7 @@ function IntegrationsPageInner() {
 
   const handleSmmConnect = async (platform: 'INSTAGRAM' | 'FACEBOOK') => {
     setConnectingPlatform(platform);
-    // The OAuth callback is handled by api2 directly — it completes token exchange
+    // The OAuth callback is handled by MCP directly — it completes token exchange
     // and sends postMessage back to this window before closing the popup.
     const API2_OAUTH_CALLBACK = 'https://api-mcp.eventosorganizador.com/api/smm/oauth/callback';
 

@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
-// ✅ CORRECCIÓN: Las queries del apolloClient (fetchUserEvents, fetchExternalChats, etc.) son api2 queries.
-// Usar GRAPHQL_ENDPOINT (api2) como destino del proxy, NO el Python backend (api-ia).
+// ✅ Las queries del apolloClient (fetchUserEvents, fetchExternalChats, etc.) son queries de MCP.
+// Usar MCP GraphQL como destino del proxy, NO el backend Python (api-ia).
 const getBackendUrl = (): string => {
   const graphqlEndpoint = process.env.GRAPHQL_ENDPOINT || process.env.API_MCP_URL;
   if (graphqlEndpoint) {
@@ -14,7 +14,7 @@ const getBackendUrl = (): string => {
 };
 
 /**
- * Proxy: POST /api/graphql → **API2** (/graphql). Mongo y dominio de negocio viven detrás de API2.
+ * Proxy: POST /api/graphql → **API2** (/graphql). Mongo y dominio de negocio viven detrás de MCP.
  * Orquestación IA (tools, RAG, chat): **api-ia**; este route solo evita CORS desde el Copilot.
  */
 export async function POST(request: NextRequest) {
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       const operationName = body?.operationName ?? '(unknown)';
       const querySnippet = typeof body?.query === 'string' ? body.query.slice(0, 300) : '(no query)';
       console.error(
-        `❌ api2 GraphQL ${response.status} [${operationName}]:\n` +
+        `❌ MCP GraphQL ${response.status} [${operationName}]:\n` +
         `  Query: ${querySnippet}\n` +
         `  Variables: ${JSON.stringify(body?.variables ?? {}).slice(0, 200)}\n` +
         `  Response: ${JSON.stringify(data).slice(0, 500)}`

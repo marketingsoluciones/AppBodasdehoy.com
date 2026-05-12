@@ -57,11 +57,11 @@ export async function getServerS3Config(development = 'bodasdehoy'): Promise<S3W
     return cached.config;
   }
 
-  const api2Url = process.env.API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
+  const mcpUrl = process.env.API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
   const supportKey = process.env[`SUPPORT_KEY_${development.toUpperCase().replaceAll('-', '_')}`]
     || process.env.API2_SUPPORT_KEY;
 
-  const res = await fetch(`${api2Url}/graphql`, {
+  const res = await fetch(`${mcpUrl}/graphql`, {
     body: JSON.stringify({
       query: GET_WHITELABEL_STORAGE_CONFIG,
       variables: { development, supportKey },
@@ -78,7 +78,7 @@ export async function getServerS3Config(development = 'bodasdehoy'): Promise<S3W
   const { data, errors } = await res.json();
 
   if (errors?.length) {
-    throw new Error(`[s3Config] api2 GraphQL error: ${errors[0].message}`);
+    throw new Error(`[s3Config] MCP GraphQL error: ${errors[0].message}`);
   }
 
   const cfg = data?.getWhiteLabelStorageConfig;

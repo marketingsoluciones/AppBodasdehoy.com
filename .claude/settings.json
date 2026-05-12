@@ -116,7 +116,11 @@
       "Bash(bash scripts/slack-send.sh --web \":white_check_mark: *Pruebas completadas — 27/28 operaciones OK*:*)",
       "Bash(cd /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/appEventos lsof -ti:3220)",
       "Bash(bash scripts/slack-send.sh --web \":white_check_mark: *Frontend adaptado al schema JSON — breaking change resuelto*:*)",
-      "Bash(cd /Users/juancarlosparra/Projects/AppBodasdehoy.com curl -s https://app-dev.bodasdehoy.com/)"
+      "Bash(cd /Users/juancarlosparra/Projects/AppBodasdehoy.com curl -s https://app-dev.bodasdehoy.com/)",
+      "Bash(perl -pi -e 's/\\\\bgetDeveloperShortName\\\\b/getDeveloperDisplayName/g' apps/chat-ia/src/features/User/UserAvatar.tsx)",
+      "Bash(sed -n '60,68p' apps/chat-ia/src/features/FirebaseAuth/index.tsx)",
+      "Bash(sed -n '135,145p' apps/chat-ia/src/features/FirebaseAuth/index.tsx)",
+      "Bash(sed -n '165,175p' apps/chat-ia/src/utils/developmentDetector.ts)"
     ],
     "additionalDirectories": [
       "/Users/juancarlosparra/.claude/projects/-Users-juancarlosparra-Projects-AppBodasdehoy-com/memory",

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { useChatStore } from '@/store/chat';
-import { getWhatsAppChannels, getWhatsAppConversationsGQL } from '@/services/api2/whatsapp';
+import { getWhatsAppChannels, getWhatsAppConversationsGQL } from '@/services/mcpApi/whatsapp';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { buildHeaders } from '../utils/auth';
@@ -119,7 +119,7 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
           })
           .then(async (restConvs) => {
             if (restConvs !== null) return restConvs;
-            // Fallback: api2 GraphQL native store (doesn't require external WA service)
+            // Fallback: MCP GraphQL native store (doesn't require external WA service)
             const gqlConvs = await getWhatsAppConversationsGQL(dev).catch(() => []);
             return gqlConvs.map((c) => ({
               channelLabel: undefined,
