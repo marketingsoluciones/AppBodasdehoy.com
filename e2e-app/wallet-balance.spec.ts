@@ -135,7 +135,7 @@ test.describe('Wallet — API services exposed', () => {
   test('GraphQL query wallet sin auth devuelve error/null', async ({ request }) => {
     if (!isDev) { test.skip(); return; }
 
-    const response = await request.post('https://api3-mcp-graphql.eventosorganizador.com/graphql', {
+    const response = await request.post('https://api-mcp.eventosorganizador.com/graphql', {
       data: {
         query: `query { wallet { balance } }`,
       },

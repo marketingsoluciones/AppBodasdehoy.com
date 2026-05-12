@@ -194,7 +194,7 @@ test.describe('WhatsApp — API endpoints', () => {
   test('Query whatsappChannels sin auth devuelve error/null', async ({ request }) => {
     if (!isAppDev) { test.skip(); return; }
 
-    const response = await request.post('https://api3-mcp-graphql.eventosorganizador.com/graphql', {
+    const response = await request.post('https://api-mcp.eventosorganizador.com/graphql', {
       data: {
         query: `query { whatsappChannels { _id } }`,
       },

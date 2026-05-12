@@ -96,7 +96,7 @@ test('REPRO-EXHAUSTIVO: status(sessionCookie) en api3-mcp DEV', async ({ page, c
 
   console.log('\n--- VARIANTE 2: api3-mcp directo + X-Development ---');
   const v2 = await page.evaluate(async (token: string) => {
-    const res = await fetch('https://api3-mcp-graphql.eventosorganizador.com/graphql', {
+    const res = await fetch('https://api-mcp.eventosorganizador.com/graphql', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json', 'X-Development': 'bodasdehoy' },
@@ -117,7 +117,7 @@ test('REPRO-EXHAUSTIVO: status(sessionCookie) en api3-mcp DEV', async ({ page, c
 
   console.log('\n--- CONTROL: { __typename } con misma cookie (debe pasar) ---');
   const ctrl = await page.evaluate(async () => {
-    const res = await fetch('https://api3-mcp-graphql.eventosorganizador.com/graphql', {
+    const res = await fetch('https://api-mcp.eventosorganizador.com/graphql', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json', 'X-Development': 'bodasdehoy' },
@@ -130,7 +130,7 @@ test('REPRO-EXHAUSTIVO: status(sessionCookie) en api3-mcp DEV', async ({ page, c
 
   console.log('\n--- CONTROL NEGATIVO: status(sessionCookie=\"\") ---');
   const v3 = await page.evaluate(async () => {
-    const res = await fetch('https://api3-mcp-graphql.eventosorganizador.com/graphql', {
+    const res = await fetch('https://api-mcp.eventosorganizador.com/graphql', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json', 'X-Development': 'bodasdehoy' },
@@ -147,7 +147,7 @@ test('REPRO-EXHAUSTIVO: status(sessionCookie) en api3-mcp DEV', async ({ page, c
   console.log('\n--- CONTROL POSITIVO: misma mutation en api3 produccion / no DEV ---');
   const v4 = await page.evaluate(async () => {
     try {
-      const res = await fetch('https://api3-mcp-graphql.eventosorganizador.com/graphql', {
+      const res = await fetch('https://api-mcp.eventosorganizador.com/graphql', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: '{ __typename }' }),

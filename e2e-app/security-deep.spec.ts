@@ -117,7 +117,7 @@ test.describe('Security — CSRF/Auth headers', () => {
   test('GraphQL mutation sin cookie ni Authorization devuelve error/null data', async ({ request }) => {
     if (!isAppDev) { test.skip(); return; }
 
-    const response = await request.post('https://api3-mcp-graphql.eventosorganizador.com/graphql', {
+    const response = await request.post('https://api-mcp.eventosorganizador.com/graphql', {
       data: {
         query: `mutation { createEvent(name: "test-csrf", date: "2026-12-31") { _id } }`,
       },
@@ -136,7 +136,7 @@ test.describe('Security — CSRF/Auth headers', () => {
   test('Authorization con Bearer fake JWT rechazado', async ({ request }) => {
     if (!isAppDev) { test.skip(); return; }
 
-    const response = await request.post('https://api3-mcp-graphql.eventosorganizador.com/graphql', {
+    const response = await request.post('https://api-mcp.eventosorganizador.com/graphql', {
       data: {
         query: `mutation { createEvent(name: "test-fake-jwt", date: "2026-12-31") { _id } }`,
       },
@@ -167,7 +167,7 @@ test.describe('Security — Injection patterns', () => {
     const session = cookies.find((c) => c.name === 'sessionBodas' || c.name === 'idTokenV0.1.0')?.value;
 
     // NoSQL injection attempt: $ne en variable
-    const response = await request.post('https://api3-mcp-graphql.eventosorganizador.com/graphql', {
+    const response = await request.post('https://api-mcp.eventosorganizador.com/graphql', {
       data: {
         query: `query($variable: String, $valor: String, $development: String!) {
           queryenEvento(variable: $variable, valor: $valor, development: $development) { _id usuario_id }
