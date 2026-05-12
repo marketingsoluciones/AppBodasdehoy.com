@@ -64,7 +64,7 @@ const MyApp = ({ Component, pageProps }) => {
   useEffect(() => {
     if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
       const domainInfo = verifyDomain();
-      // console.log('[App] Información del dominio:', domainInfo);
+      console.log('[App] Información del dominio:', domainInfo);
 
       // En dominios de test, solo verificar URLs locales (evitar CORS)
       const isTestDomain = window.location.hostname.includes('-test.') ||
@@ -81,7 +81,7 @@ const MyApp = ({ Component, pageProps }) => {
           localUrls.map(async (url): Promise<UrlCheckResult> => {
             try {
               const response = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
-              // console.log(`[App] ✅ ${url} - Status: ${response.status}`);
+              console.log(`[App] ✅ ${url} - Status: ${response.status}`);
               return { url, status: 'ok' as const, statusCode: response.status };
             } catch (error: any) {
               console.warn(`[App] ⚠️ ${url} - Error:`, error.message);
@@ -157,7 +157,7 @@ export function reportWebVitals(metric: {
       : metric.name === 'TTFB' ? (metric.value < 800 ? '✅' : metric.value < 1800 ? '⚠️' : '❌')
       : metric.name === 'FCP' ? (metric.value < 1800 ? '✅' : metric.value < 3000 ? '⚠️' : '❌')
       : '📊';
-    // console.log(`[WebVitals] ${status} ${metric.name}: ${rounded}${metric.name === 'CLS' ? '' : 'ms'} (id: ${metric.id})`);
+    console.log(`[WebVitals] ${status} ${metric.name}: ${rounded}${metric.name === 'CLS' ? '' : 'ms'} (id: ${metric.id})`);
   }
 
   // En producción: enviar a tu endpoint de analytics (descomenta cuando tengas el endpoint)

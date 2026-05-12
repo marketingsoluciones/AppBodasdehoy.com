@@ -19,7 +19,7 @@ export const createHandleTaskCreate = (
   try {
     // Si la tarea tiene un _id, significa que ya fue creada
     if (taskData._id) {
-      // console.log('La tarea ya existe, no se creará nuevamente');
+      console.log('La tarea ya existe, no se creará nuevamente');
       return;
     }
 

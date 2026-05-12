@@ -905,7 +905,7 @@ const BillingPage = memo(() => {
                     className={styles.secondaryButton}
                     onClick={async () => {
                       try {
-                        // console.log('🔍 [BillingPage] Descargando PDF de factura:', record._id);
+                        console.log('🔍 [BillingPage] Descargando PDF de factura:', record._id);
                         const result = await downloadInvoicePDF(record._id);
                         if (!result.success) {
                           console.error('❌ [BillingPage] Error al descargar PDF:', result.error_message);
@@ -1022,7 +1022,7 @@ const BillingPage = memo(() => {
         balanceCheck={null}
         isOpen={showRechargeModal}
         onClose={() => {
-          // console.log('🔍 [BillingPage] Cerrando modal de recarga');
+          console.log('🔍 [BillingPage] Cerrando modal de recarga');
           setShowRechargeModal(false);
         }}
         onRecharge={handleRecharge}

@@ -196,13 +196,13 @@ const TestSuite = () => {
       const backendURL = getTestBackendURL();
       const url = `${backendURL}/api/admin/tests/questions${params.toString() ? `?${params.toString()}` : ''}`;
 
-      // console.log('[TestSuite] 🔄 Cargando tests desde:', url);
+      console.log('[TestSuite] 🔄 Cargando tests desde:', url);
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       const data = await response.json();
-      // console.log('[TestSuite] ✅ Tests cargados:', data.length);
+      console.log('[TestSuite] ✅ Tests cargados:', data.length);
       setTests(data);
       setLoadingProgress({ current: data.length, total: data.length });
     } catch (error) {

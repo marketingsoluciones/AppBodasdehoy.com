@@ -29,7 +29,7 @@ export const deleteRecursive = async (storage: FirebaseStorage, path: string) =>
         });
         await Promise.all(deletePromises);
     } catch (error) {
-        // console.log(error)
+        console.log(error)
         throw await error
     }
 };
@@ -43,7 +43,7 @@ export const deleteAllFiles = async (storage: FirebaseStorage, path: string) => 
         });
         await Promise.all(deletePromises);
     } catch (error) {
-        // console.log(error)
+        console.log(error)
         throw await error
     }
 };

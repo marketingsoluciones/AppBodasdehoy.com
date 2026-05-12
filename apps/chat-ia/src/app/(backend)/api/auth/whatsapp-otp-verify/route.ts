@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       .services(VERIFY_SID)
       .verificationChecks.create({ code, to: phone });
 
-    // console.log(`[whatsapp-otp-verify] status=${check.status} phone=${phone.slice(0, 6)}***`);
+    console.log(`[whatsapp-otp-verify] status=${check.status} phone=${phone.slice(0, 6)}***`);
 
     if (check.status !== 'approved') {
       return NextResponse.json(

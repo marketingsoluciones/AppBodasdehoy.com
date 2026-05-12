@@ -373,7 +373,7 @@ const SSO_SCRIPT = `
     if (!ssoEntry) return;
     var ssoToken = ssoEntry.slice('idTokenV0.1.0='.length);
     if (!ssoToken) return;
-    // console.log('[sso-script] token encontrado, len=' + ssoToken.length);
+    console.log('[sso-script] token encontrado, len=' + ssoToken.length);
     var urlDev = new URLSearchParams(window.location.search).get('developer') || 'bodasdehoy';
     fetch('/api/auth/firebase-login', {
       method: 'POST',

@@ -24,7 +24,7 @@ export async function GET(_request: NextRequest) {
       ? `${backendUrl}api/config`
       : `${backendUrl}/api/config`;
 
-    // console.log(`🔄 Fetching developers list from: ${url}`);
+    console.log(`🔄 Fetching developers list from: ${url}`);
 
     // Hacer fetch al backend Python
     const response = await fetch(url, {
@@ -40,12 +40,12 @@ export async function GET(_request: NextRequest) {
       console.error(`❌ Backend error (${response.status}):`, errorText);
 
       // En lugar de retornar error, usar fallback
-      // console.log('⚠️ Backend no disponible, usando fallback');
+      console.log('⚠️ Backend no disponible, usando fallback');
       throw new Error(`Backend returned ${response.status}`);
     }
 
     const data = await response.json();
-    // console.log(`✅ Developers list obtenida: ${data.count} developers`);
+    console.log(`✅ Developers list obtenida: ${data.count} developers`);
 
     return NextResponse.json(data);
   } catch (error: any) {
@@ -62,7 +62,7 @@ export async function GET(_request: NextRequest) {
       })),
     };
 
-    // console.log('⚠️ Usando lista de developers fallback');
+    console.log('⚠️ Usando lista de developers fallback');
 
     return NextResponse.json(fallbackList, {
       headers: {

@@ -115,8 +115,8 @@ const Header = memo(() => {
       });
 
       // Create the group with the agent IDs and host configuration
-      // console.log('Creating group with hostConfig:', hostConfig);
-      // console.log(
+      console.log('Creating group with hostConfig:', hostConfig);
+      console.log(
         'Mapped config:',
         hostConfig
           ? {
@@ -161,8 +161,8 @@ const Header = memo(() => {
     // Don't close modal immediately for custom group creation either
     setIsCreatingGroup(true);
     try {
-      // console.log('Creating custom group with hostConfig:', hostConfig);
-      // console.log(
+      console.log('Creating custom group with hostConfig:', hostConfig);
+      console.log(
         'Mapped config:',
         hostConfig
           ? {

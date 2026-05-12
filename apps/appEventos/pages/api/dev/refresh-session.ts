@@ -95,14 +95,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Opción 1: Autenticación por email (más fácil para desarrollo)
     if (email) {
-      // console.log(`[dev/refresh-session] Intentando identificar usuario por email: ${email} (development: ${development || 'bodasdehoy'})`)
+      console.log(`[dev/refresh-session] Intentando identificar usuario por email: ${email} (development: ${development || 'bodasdehoy'})`)
 
       const { force } = req.body || {}
       const userData = await identifyUserByEmail(email, development || 'bodasdehoy')
 
       // Si force=true y estamos en localhost o test, crear sesión sin verificar backend
       if (force && isDevOrTest && !userData?.success) {
-        // console.log(`[dev/refresh-session] Modo FORCE: Creando sesión sin verificar backend (host: ${host})`)
+        console.log(`[dev/refresh-session] Modo FORCE: Creando sesión sin verificar backend (host: ${host})`)
         const oneYear = 365 * 24 * 60 * 60 * 1000
         const expires = new Date(Date.now() + oneYear)
 

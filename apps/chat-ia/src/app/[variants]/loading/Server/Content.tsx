@@ -33,7 +33,7 @@ const Content = memo<ContentProps>(({ loadingStage }) => {
     const shouldSkip = ROUTES_TO_SKIP.some((route) => currentPath.includes(route));
 
     if (shouldSkip) {
-      // console.log('🚫 [Loading Content Server] Skip loading screen: Ya estamos en', currentPath);
+      console.log('🚫 [Loading Content Server] Skip loading screen: Ya estamos en', currentPath);
       setShouldShow(false);
     }
   }, []);

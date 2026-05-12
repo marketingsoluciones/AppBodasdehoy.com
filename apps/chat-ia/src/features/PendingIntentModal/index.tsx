@@ -28,7 +28,7 @@ function PendingIntentModal() {
 
   // Mostrar modal cuando hay intención pendiente después del login
   useEffect(() => {
-    // console.log('🔍 [PendingIntentModal] Verificando condiciones:', {
+    console.log('🔍 [PendingIntentModal] Verificando condiciones:', {
       hasPendingIntent,
       hasShown,
       isAuthenticated,
@@ -37,23 +37,23 @@ function PendingIntentModal() {
 
     // Solo mostrar una vez por sesión
     if (hasShown) {
-      // console.log('ℹ️ [PendingIntentModal] Ya se mostró en esta sesión, no mostrar de nuevo');
+      console.log('ℹ️ [PendingIntentModal] Ya se mostró en esta sesión, no mostrar de nuevo');
       return;
     }
 
     // Si está autenticado y hay intención pendiente, mostrar modal
     if (isAuthenticated && hasPendingIntent && pendingIntent) {
-      // console.log('✅ [PendingIntentModal] Condiciones cumplidas, mostrando modal en 500ms');
+      console.log('✅ [PendingIntentModal] Condiciones cumplidas, mostrando modal en 500ms');
       // Pequeño delay para que la UI se estabilice
       const timer = setTimeout(() => {
-        // console.log('🎯 [PendingIntentModal] Abriendo modal ahora');
+        console.log('🎯 [PendingIntentModal] Abriendo modal ahora');
         setIsOpen(true);
         setHasShown(true);
       }, 500);
 
       return () => clearTimeout(timer);
     } else {
-      // console.log('ℹ️ [PendingIntentModal] Condiciones no cumplidas:', {
+      console.log('ℹ️ [PendingIntentModal] Condiciones no cumplidas:', {
         hasPendingIntent,
         hasPendingIntentObject: !!pendingIntent,
         isAuthenticated,
@@ -64,11 +64,11 @@ function PendingIntentModal() {
   const handleContinue = useCallback(() => {
     if (!pendingIntent) return;
 
-    // console.log('🚀 [PendingIntentModal] Enviando mensaje pendiente:', pendingIntent.message.slice(0, 50) + '...');
+    console.log('🚀 [PendingIntentModal] Enviando mensaje pendiente:', pendingIntent.message.slice(0, 50) + '...');
 
     // Obtener el título sugerido para la conversación
     const suggestedTitle = generateConversationTitle(pendingIntent.message);
-    // console.log('📝 [PendingIntentModal] Título sugerido:', suggestedTitle);
+    console.log('📝 [PendingIntentModal] Título sugerido:', suggestedTitle);
 
     // ✅ MEJORADO: Usar el store para enviar el mensaje directamente
     const store = useChatStore.getState();
@@ -86,7 +86,7 @@ function PendingIntentModal() {
         message: pendingIntent.message,
       });
 
-      // console.log('✅ [PendingIntentModal] Mensaje enviado exitosamente');
+      console.log('✅ [PendingIntentModal] Mensaje enviado exitosamente');
     }, 100);
 
     clearPendingIntent();

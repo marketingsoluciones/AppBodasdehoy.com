@@ -61,7 +61,7 @@ const ChatHydration = memo(() => {
 
             // Solo mostrar si no hay mensajes
             if (!hasMessages) {
-              // console.log('✅ Mostrando mensaje de bienvenida con eventos');
+              console.log('✅ Mostrando mensaje de bienvenida con eventos');
               // Crear mensaje de bienvenida como mensaje del asistente
               store.internal_createMessage({
                 content: message,
@@ -99,7 +99,7 @@ const ChatHydration = memo(() => {
       const development = params.get('development');
 
       if (sessionId) {
-        // console.log('✅ Copilot abierto desde apps/web:', {
+        console.log('✅ Copilot abierto desde apps/web:', {
           development,
           email,
           eventId,

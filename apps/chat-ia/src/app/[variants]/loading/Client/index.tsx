@@ -35,10 +35,10 @@ const ClientMode = () => {
       (window as any).logAnalyzer = logAnalyzer;
       (window as any).performanceMonitor = performanceMonitor;
       (window as any).blockingDetector = blockingDetector;
-      // console.log('💡 [DEBUG] Herramientas disponibles:');
-      // console.log('  - window.logAnalyzer.printReport()');
-      // console.log('  - window.performanceMonitor.printSummary()');
-      // console.log('  - window.blockingDetector.printReport()');
+      console.log('💡 [DEBUG] Herramientas disponibles:');
+      console.log('  - window.logAnalyzer.printReport()');
+      console.log('  - window.performanceMonitor.printSummary()');
+      console.log('  - window.blockingDetector.printReport()');
     }
 
     // ✅ MEDICIÓN: Imprimir resumen cuando termine la carga (después de 5 segundos)
@@ -98,7 +98,7 @@ const ClientMode = () => {
     if (stage === AppLoadingStage.GoToChat) {
       hasReachedGoToChatRef.current = true;
       maxStageIndexReachedRef.current = CLIENT_LOADING_STAGES.length - 1;
-      // console.log(`✅ [Loading] Llegamos a GoToChat, bloqueando retrocesos`);
+      console.log(`✅ [Loading] Llegamos a GoToChat, bloqueando retrocesos`);
       setActiveStage(stage);
       return;
     }

@@ -33,9 +33,9 @@ const Migration = memo(() => {
       'users',
     ]);
     const data = await dbReader.readAllData();
-    // console.log('migration data:', data);
+    console.log('migration data:', data);
     const state = await dbReader.convertToImportData(data);
-    // console.log('import state', state);
+    console.log('import state', state);
     setDbState(state as any);
     setOpen(true);
   };

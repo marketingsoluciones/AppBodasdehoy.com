@@ -52,7 +52,7 @@ export async function GET(
       ? `${backendUrl}api/config/${cacheKey}`
       : `${backendUrl}/api/config/${cacheKey}`;
 
-    // console.log(`🔄 Fetching branding config from: ${url}`);
+    console.log(`🔄 Fetching branding config from: ${url}`);
 
     // Hacer fetch al backend Python (timeout 8s para evitar cuelgues indefinidos)
     const response = await fetch(url, {
@@ -90,7 +90,7 @@ export async function GET(
     }
 
     const data = await response.json();
-    // console.log(`✅ Branding config obtenido para ${developer}`);
+    console.log(`✅ Branding config obtenido para ${developer}`);
 
     // ✅ Guardar en caché
     configCache.set(cacheKey, { data, timestamp: Date.now() });
@@ -120,7 +120,7 @@ export async function GET(
       name: developer ? developer.charAt(0).toUpperCase() + developer.slice(1) : 'Bodas de Hoy',
     };
 
-    // console.log(`⚠️ Usando configuración fallback para ${developer}`);
+    console.log(`⚠️ Usando configuración fallback para ${developer}`);
 
     return NextResponse.json(fallbackConfig, {
       headers: {

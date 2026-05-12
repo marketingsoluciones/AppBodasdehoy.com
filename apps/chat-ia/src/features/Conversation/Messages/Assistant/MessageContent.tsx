@@ -98,7 +98,7 @@ export const AssistantMessageContent = memo<
   // ✅ NUEVO: Guardar intención pendiente cuando se muestra AuthPromptCard
   useEffect(() => {
     if (requiresAuth && !generating && previousUserMessage && !hasPendingIntent) {
-      // console.log('💾 [MessageContent] Guardando intención pendiente:', previousUserMessage.slice(0, 50) + '...');
+      console.log('💾 [MessageContent] Guardando intención pendiente:', previousUserMessage.slice(0, 50) + '...');
       savePendingIntent(previousUserMessage, {
         action: authAction,
         aiMessage: typeof content === 'string' ? content.slice(0, 200) : '',

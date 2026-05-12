@@ -27,12 +27,12 @@ const ContextFromEmbed = () => {
         // Verificar que no sea muy viejo (< 30 segundos)
         const age = Date.now() - (context.timestamp || 0);
         if (age > 30_000) {
-          // console.log('[ContextFromEmbed] Contexto demasiado viejo, ignorando:', age, 'ms');
+          console.log('[ContextFromEmbed] Contexto demasiado viejo, ignorando:', age, 'ms');
           sessionStorage.removeItem('copilot_open_context');
           return;
         }
 
-        // console.log('[ContextFromEmbed] 📥 Contexto recuperado desde sidebar embebido:', {
+        console.log('[ContextFromEmbed] 📥 Contexto recuperado desde sidebar embebido:', {
           age,
           development: context.development,
           eventId: context.eventId,
@@ -89,7 +89,7 @@ const ContextFromEmbed = () => {
 
         await agentStore.updateAgentConfig({ systemRole: newSystemRole });
 
-        // console.log('[ContextFromEmbed] ✅ Contexto de evento inyectado en system prompt:', {
+        console.log('[ContextFromEmbed] ✅ Contexto de evento inyectado en system prompt:', {
           eventName,
           pageName,
           systemRoleLength: newSystemRole.length,

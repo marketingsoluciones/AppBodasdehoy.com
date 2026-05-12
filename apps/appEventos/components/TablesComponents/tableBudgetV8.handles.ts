@@ -103,7 +103,7 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
         }
         return
       }).catch((error) => {
-        // console.log(error);
+        console.log(error);
       })
     }
 
@@ -141,7 +141,7 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
         }
         return
       }).catch((error) => {
-        // console.log(error);
+        console.log(error);
       })
     }
     if (original.object === "categoria" || (original.object === "gasto" && values.accessor === "categoria") || (original.object === "item" && values.accessor === "categoria")) {
@@ -158,11 +158,11 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
       }).then((result: any) => {
         return
       }).catch((error) => {
-        // console.log(error);
+        console.log(error);
       })
     }
   } catch (error) {
-    // console.log(error)
+    console.log(error)
   }
 }
 
@@ -243,7 +243,7 @@ export const handleDelete = ({ showModalDelete, event, setEvent, setLoading, set
       setLoading(false)
     })
   } catch (error) {
-    // console.log(error)
+    console.log(error)
   }
 }
 
@@ -279,7 +279,7 @@ export const handleCreateItem = async ({ info, event, setEvent, setShowDotsOptio
       setEvent({ ...event })
     })
   } catch (error) {
-    // console.log(220045, error);
+    console.log(220045, error);
     throw new Error(error)
   }
 }
@@ -300,7 +300,7 @@ export const handleCreateGasto = async ({ info, event, setEvent, setShowDotsOpti
       setEvent({ ...event })
     })
   } catch (error) {
-    // console.log(220046, error);
+    console.log(220046, error);
     throw new Error(error)
   }
 }
@@ -333,7 +333,7 @@ export const handleCreateCategoria = async ({ info, event, setEvent, setShowDots
       setEvent({ ...event })
     })
   } catch (error) {
-    // console.log(220047, error);
+    console.log(220047, error);
     throw new Error(error)
   }
 }
@@ -343,7 +343,7 @@ export const handleChangeEstatus = async ({ event, categoriaID, gastoId, setEven
   const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item._id == gastoId);
   const gastoEstatus = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.estatus
 
-  // console.log('entro en el gasto')
+  console.log('entro en el gasto')
 
   try {
     fetchApiEventos({
@@ -360,7 +360,7 @@ export const handleChangeEstatus = async ({ event, categoriaID, gastoId, setEven
       setEvent({ ...event })
     })
   } catch (error) {
-    // console.log(220046, error);
+    console.log(220046, error);
     throw new Error(error)
   }
 }
@@ -372,7 +372,7 @@ export const handleChangeEstatusItem = async ({ event, categoriaID, gastoId, ite
   const ItemEstatus = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array[f3]?.estatus
   event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3].estatus = !ItemEstatus
 
-  // console.log('Entro')
+  console.log('Entro')
 
   try {
     fetchApiEventos({
@@ -420,7 +420,7 @@ export const handleChangeEstatusItem = async ({ event, categoriaID, gastoId, ite
       }));
     })
   } catch (error) {
-    // console.log(220046, error);
+    console.log(220046, error);
     throw new Error(error)
   }
 }

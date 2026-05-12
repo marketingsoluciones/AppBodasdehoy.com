@@ -11,7 +11,7 @@ export default function handler(req, res) {
         }
     } catch (error) {
         res.status(400).json({ error: error })
-        // console.log(error)
+        console.log(error)
         return error
     } finally {
         

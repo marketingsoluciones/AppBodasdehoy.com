@@ -276,7 +276,7 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
 
     // DEBUG: verificar si Authorization se envía a api-ia
     const authSnippet = headers['Authorization'] ? 'Bearer ' + headers['Authorization'].slice(7, 27) + '...' : 'NONE';
-    // console.log(`[chat-proxy] → ${provider} | Auth: ${authSnippet} | Support-Key: ${headers['X-Support-Key'] ? 'YES' : 'NO'}`);
+    console.log(`[chat-proxy] → ${provider} | Auth: ${authSnippet} | Support-Key: ${headers['X-Support-Key'] ? 'YES' : 'NO'}`);
 
     // Timeout de 60 segundos
     const controller = new AbortController();

@@ -19,7 +19,7 @@ export default async function handler(
   // Log para debug - mostrar query GraphQL
   const queryName = req.body?.query?.match(/(?:query|mutation)\s+(\w+)/)?.[1] ||
                     req.body?.query?.match(/{\s*(\w+)/)?.[1] || 'unknown';
-  // console.log('[Proxy] Request:', {
+  console.log('[Proxy] Request:', {
     method: req.method,
     targetUrl,
     queryName,
@@ -55,7 +55,7 @@ export default async function handler(
 
     const data = await response.json();
 
-    // console.log('[Proxy] Response:', {
+    console.log('[Proxy] Response:', {
       status: response.status,
       hasData: !!data?.data,
       hasErrors: !!data?.errors,

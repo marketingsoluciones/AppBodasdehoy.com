@@ -161,7 +161,7 @@ const DataImporter = memo<DataImporterProps>(({ children, onFinishImport }) => {
             // TODO: remove in V2
             await importConfigFile(file, async (config) => {
               setImportState(ImportStage.Preparing);
-              // console.log(config);
+              console.log(config);
 
               const importConfigState = async (
                 config: ConfigFile,

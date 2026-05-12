@@ -57,7 +57,7 @@ const Redirect = memo<RedirectProps>(({ setLoadingStage }) => {
 
       // Si estamos en una de estas rutas, NO redirigir
       if (routesToSkip.some(route => currentPath.includes(route))) {
-        // console.log('🚫 Skip server redirect: Ya estamos en', currentPath);
+        console.log('🚫 Skip server redirect: Ya estamos en', currentPath);
         hasRedirectedRef.current = true; // Marcar como redirigido para evitar loops
         return;
       }
@@ -98,7 +98,7 @@ const Redirect = memo<RedirectProps>(({ setLoadingStage }) => {
 
       // Si ya estamos en una de estas rutas, marcar como redirigido y salir
       if (routesToSkip.some((route) => currentPath.includes(route))) {
-        // console.log('🚫 Skip loading redirect: Ya estamos en', currentPath);
+        console.log('🚫 Skip loading redirect: Ya estamos en', currentPath);
         hasRedirectedRef.current = true;
         return;
       }

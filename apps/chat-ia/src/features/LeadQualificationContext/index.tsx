@@ -87,7 +87,7 @@ const LeadQualificationContext = () => {
         await agentStore.updateAgentConfig({ systemRole: newSystemRole });
         injectedRef.current = true;
 
-        // console.log('[LeadQualificationContext] Instrucciones de cualificación inyectadas en system prompt');
+        console.log('[LeadQualificationContext] Instrucciones de cualificación inyectadas en system prompt');
       } catch (err) {
         console.error('[LeadQualificationContext] Error inyectando instrucciones:', err);
       }

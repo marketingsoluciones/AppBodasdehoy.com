@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         to: phone,
       });
 
-    // console.log(
+    console.log(
       `[whatsapp-otp-send] sid=${verification.sid} status=${verification.status} channel=${OTP_CHANNEL} phone=${phone.slice(0, 6)}***`,
     );
 

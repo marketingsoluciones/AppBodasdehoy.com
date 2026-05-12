@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password, developer = 'bodasdehoy' } = body;
 
-    // console.log('📥 /api/auth/login-with-jwt proxy recibido:', {
+    console.log('📥 /api/auth/login-with-jwt proxy recibido:', {
       developer,
       email: email ? `${email.slice(0, 10)}...` : undefined,
       hasPassword: !!password,
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
-    // console.log('✅ Respuesta del backend Python:', {
+    console.log('✅ Respuesta del backend Python:', {
       development: data.development,
       hasToken: !!data.token,
       success: data.success,
@@ -167,7 +167,7 @@ async function _generateCRMToken(email: string, password: string, development?: 
 
   for (const graphqlUrl of graphqlUrls) {
     try {
-      // console.log(`🔐 Intentando generateCRMToken contra: ${graphqlUrl}`);
+      console.log(`🔐 Intentando generateCRMToken contra: ${graphqlUrl}`);
 
       const response = await fetch(graphqlUrl, {
         body: JSON.stringify({ query: mutation, variables }),
@@ -194,7 +194,7 @@ async function _generateCRMToken(email: string, password: string, development?: 
 
       const tokenPayload = json.data?.generateCRMToken;
       if (tokenPayload?.success && tokenPayload.token) {
-        // console.log('✅ Token JWT obtenido correctamente (longitud %d)', tokenPayload.token.length);
+        console.log('✅ Token JWT obtenido correctamente (longitud %d)', tokenPayload.token.length);
         return tokenPayload.token as string;
       }
 
@@ -238,11 +238,11 @@ async function _getUserByEmailOrPhone(
 ) {
   try {
     if (!email && !phone) {
-      // console.log('⚠️ getUserByEmailOrPhone: No se proporcionó email ni teléfono');
+      console.log('⚠️ getUserByEmailOrPhone: No se proporcionó email ni teléfono');
       return null;
     }
 
-    // console.log(`🔍 Buscando usuario en GraphQL:`, {
+    console.log(`🔍 Buscando usuario en GraphQL:`, {
       development,
       email: email ? `${email.slice(0, 5)}...` : undefined,
       phone: phone ? `${phone.slice(0, 5)}...` : undefined,
@@ -294,18 +294,18 @@ async function _getUserByEmailOrPhone(
       return null;
     }
 
-    // console.log(`📤 Query GraphQL:`, {
+    console.log(`📤 Query GraphQL:`, {
       development,
       email: variables.email ? `${variables.email.slice(0, 5)}...` : undefined,
       phone: variables.phone ? `${variables.phone.slice(0, 5)}...` : undefined,
     });
 
     const graphqlUrls = resolveGraphqlUrls();
-    // console.log(`📡 Endpoints GraphQL disponibles:`, graphqlUrls);
+    console.log(`📡 Endpoints GraphQL disponibles:`, graphqlUrls);
 
     for (const graphqlUrl of graphqlUrls) {
       try {
-        // console.log(`📡 Haciendo consulta GraphQL a: ${graphqlUrl}`);
+        console.log(`📡 Haciendo consulta GraphQL a: ${graphqlUrl}`);
 
         const response = await fetch(graphqlUrl, {
           body: JSON.stringify({ query, variables }),
@@ -335,7 +335,7 @@ async function _getUserByEmailOrPhone(
         }
 
         const eventosResponse = result.data?.getAllUserRelatedEventsByEmail || null;
-        // console.log(`📦 Respuesta GraphQL parseada (${graphqlUrl}):`, {
+        console.log(`📦 Respuesta GraphQL parseada (${graphqlUrl}):`, {
           eventos_count: eventosResponse?.eventos?.length || 0,
           has_errors: !!eventosResponse?.errors?.length,
           has_response: !!eventosResponse,
@@ -357,7 +357,7 @@ async function _getUserByEmailOrPhone(
               phoneNumber: undefined,
               telefono: undefined,
             };
-            // console.log(`✅ Usuario encontrado en GraphQL (desde eventos):`, {
+            console.log(`✅ Usuario encontrado en GraphQL (desde eventos):`, {
               _id: userData._id?.slice(0, 20) + '...',
               development,
               email: userData.email?.slice(0, 5) + '...',
@@ -367,7 +367,7 @@ async function _getUserByEmailOrPhone(
           }
 
           // Usuario sin eventos pero existente
-          // console.log(`✅ Usuario encontrado pero sin eventos (válido):`, { development, email });
+          console.log(`✅ Usuario encontrado pero sin eventos (válido):`, { development, email });
           const localPart = email.split('@')[0] ?? email;
           return {
             _id: email,

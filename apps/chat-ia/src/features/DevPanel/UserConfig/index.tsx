@@ -48,7 +48,7 @@ const UserConfig = () => {
         userId
       }));
 
-      // console.log('✅ Configuración de usuario actualizada y sincronizada');
+      console.log('✅ Configuración de usuario actualizada y sincronizada');
     } catch (error) {
       console.error('Error actualizando configuración:', error);
     } finally {
