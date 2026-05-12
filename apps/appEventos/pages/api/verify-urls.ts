@@ -22,7 +22,7 @@ export default async function handler(
     const domainInfo = verifyDomain();
     
     // Log en servidor
-    console.log('[Verify URLs] Resultados:', {
+    // console.log('[Verify URLs] Resultados:', {
       urls: urlResults,
       domain: domainInfo,
     });

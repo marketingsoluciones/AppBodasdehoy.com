@@ -215,7 +215,7 @@ export default function WeddingPublicPage() {
   }, [slug]);
 
   const handleRSVPSubmit = async (submission: RSVPSubmission) => {
-    console.log('RSVP Submission:', submission);
+    // console.log('RSVP Submission:', submission);
     // TODO: Send to API
     // await fetch(`/api/wedding/${slug}/rsvp`, {
     //   method: 'POST',

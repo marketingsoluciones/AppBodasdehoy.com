@@ -28,14 +28,14 @@ const Init = memo<InitProps>(({ setActiveStage }) => {
       // ✅ CRÍTICO: Si ya redirigimos, ignorar TODOS los cambios de estado de la DB
       // Esto previene que la DB haga retroceder el stage
       if (hasRedirectedRef.current) {
-        console.log(`🚫 [DB] Ignorando cambio de estado a ${stage} - ya redirigimos`);
+        // console.log(`🚫 [DB] Ignorando cambio de estado a ${stage} - ya redirigimos`);
         return;
       }
 
       // ✅ Si el stage es GoToChat, marcar que ya redirigimos y no actualizar
       if (stage === AppLoadingStage.GoToChat) {
         hasRedirectedRef.current = true;
-        console.log(`✅ [DB] Llegamos a GoToChat, marcando como redirigido`);
+        // console.log(`✅ [DB] Llegamos a GoToChat, marcando como redirigido`);
         return;
       }
 
@@ -71,7 +71,7 @@ const Content = memo<ContentProps>(({ loadingStage, setActiveStage }) => {
     // Si la DB no está lista en 500ms, continuar de todos modos
     if (isPgliteNotInited && !isError) {
       const quickTimeout = setTimeout(() => {
-        console.log('⚡ Redirigiendo rápidamente, la DB se cargará en background');
+        // console.log('⚡ Redirigiendo rápidamente, la DB se cargará en background');
         setSkipLoading(true);
         setForceContinue(true);
       }, 500); // ✅ Reducido de 3 minutos a 500ms
@@ -148,7 +148,7 @@ const Content = memo<ContentProps>(({ loadingStage, setActiveStage }) => {
 
     // Si estamos en una de estas rutas, NO mostrar loading screen
     if (routesToSkip.some(route => currentPath.includes(route))) {
-      console.log('🚫 [Loading Content] Skip loading screen: Ya estamos en', currentPath);
+      // console.log('🚫 [Loading Content] Skip loading screen: Ya estamos en', currentPath);
       return null; // No mostrar loading, permitir que la página se cargue
     }
   }

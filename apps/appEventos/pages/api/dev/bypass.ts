@@ -43,8 +43,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const uid = new URLSearchParams(window.location.search).get('uid');
     if (uid) localStorage.setItem('dev_bypass_uid', uid);
     
-    console.log('[Dev Bypass] ✅ Bypass activado para:', '${email}');
-    console.log('[Dev Bypass] Redirigiendo a la página principal...');
+    // console.log('[Dev Bypass] ✅ Bypass activado para:', '${email}');
+    // console.log('[Dev Bypass] Redirigiendo a la página principal...');
     
     // Redirigir a la página principal
     const queryD = new URLSearchParams(window.location.search).get('d');

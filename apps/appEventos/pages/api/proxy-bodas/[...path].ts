@@ -20,7 +20,7 @@ export default async function handler(
   // Log para debug
   const queryName = req.body?.query?.match(/(?:query|mutation)\s+(\w+)/)?.[1] ||
                     req.body?.query?.match(/{\s*(\w+)/)?.[1] || 'unknown';
-  console.log('[Proxy-Bodas] Request:', {
+  // console.log('[Proxy-Bodas] Request:', {
     method: req.method,
     targetUrl: primaryUrl,
     fallbackUrl: fallbackUrl || null,
@@ -67,7 +67,7 @@ export default async function handler(
 
     const data = await response.json();
 
-    console.log('[Proxy-Bodas] Response:', {
+    // console.log('[Proxy-Bodas] Response:', {
       status: response.status,
       hasData: !!data?.data,
       hasErrors: !!data?.errors,

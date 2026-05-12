@@ -40,7 +40,7 @@ const HotkeySetting = memo(() => {
           setLoading(true);
           try {
             const result = await updateDesktopHotkey(item.id, value);
-            console.log(result);
+            // console.log(result);
             if (result.success) {
               message.success(t('hotkey.updateSuccess', { ns: 'setting' }));
             } else {

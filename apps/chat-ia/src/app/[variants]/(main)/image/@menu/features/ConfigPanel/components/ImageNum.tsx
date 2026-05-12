@@ -176,7 +176,7 @@ const ImageNum = memo<ImageNumSelectorProps>(
 
     // 处理输入变化
     const handleInputChange = useCallback((value: number | string | null) => {
-      console.log('handleInputChange', value);
+      // console.log('handleInputChange', value);
 
       if (value === null) {
         setCustomCount(null);

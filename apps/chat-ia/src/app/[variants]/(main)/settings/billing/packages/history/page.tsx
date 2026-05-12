@@ -62,7 +62,7 @@ const PackagesHistoryPage = memo(() => {
   const [pageSize, setPageSize] = useState(20);
 
   useEffect(() => {
-    console.log('🔍 [PackagesHistoryPage] Cargando transacciones...');
+    // console.log('🔍 [PackagesHistoryPage] Cargando transacciones...');
     fetchTransactions(1, 100); // Cargar más transacciones para filtrar
   }, [fetchTransactions]);
 

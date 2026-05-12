@@ -19,7 +19,7 @@ const InvitationEmailEditor = (props) => {
             var json = data.design; 
             var imageUrl = data.url; 
 
-            console.log('img', imageUrl)
+            // console.log('img', imageUrl)
         }); */
 
     };

@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { developer = 'bodasdehoy', email, phone } = body;
 
-    console.log('📥 /api/auth/identify-user proxy recibido:', {
+    // console.log('📥 /api/auth/identify-user proxy recibido:', {
       developer,
       email: email ? `${email.slice(0, 10)}...` : undefined,
       hasEmail: !!email,
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     });
 
     const PYTHON_BACKEND_URL = getBackendUrl();
-    console.log(`📡 Haciendo proxy a: ${PYTHON_BACKEND_URL}/api/auth/identify-user`);
+    // console.log(`📡 Haciendo proxy a: ${PYTHON_BACKEND_URL}/api/auth/identify-user`);
 
     const response = await fetch(`${PYTHON_BACKEND_URL}/api/auth/identify-user`, {
       body: JSON.stringify({
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
-    console.log('✅ Respuesta del backend Python:', {
+    // console.log('✅ Respuesta del backend Python:', {
       development: data.development,
       success: data.success,
       user_id: data.user_id ? `${data.user_id.slice(0, 20)}...` : undefined,

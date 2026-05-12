@@ -177,7 +177,7 @@ const LoginRapido = () => {
   credentials: 'include'
 }).then(r => r.json())
  .then(d => {
-   console.log(d);
+   // console.log(d);
    if(d.success) location.reload()
  })`}
           </pre>

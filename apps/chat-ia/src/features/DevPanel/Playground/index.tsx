@@ -55,8 +55,8 @@ const Playground = () => {
         (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
       if (isDevelopment) {
-        console.log('🎮 Playground: Usando preguntas MOCK (desarrollo local)');
-        console.log(`📋 Total preguntas cargadas: ${MOCK_QUESTIONS.length}`);
+        // console.log('🎮 Playground: Usando preguntas MOCK (desarrollo local)');
+        // console.log(`📋 Total preguntas cargadas: ${MOCK_QUESTIONS.length}`);
         // Simular delay de red
         await new Promise(resolve => setTimeout(resolve, 500));
         setQuestions(MOCK_QUESTIONS);
@@ -70,7 +70,7 @@ const Playground = () => {
 
       url.searchParams.append('limit', '100'); // Cargar primeras 100 para empezar
 
-      console.log('📡 Playground: Cargando preguntas desde backend:', url.toString());
+      // console.log('📡 Playground: Cargando preguntas desde backend:', url.toString());
 
       const response = await fetch(url.toString(), {
         headers: {
@@ -84,7 +84,7 @@ const Playground = () => {
       }
 
       const data = await response.json();
-      console.log(`✅ Preguntas cargadas del backend: ${data.length}`);
+      // console.log(`✅ Preguntas cargadas del backend: ${data.length}`);
       setQuestions(data);
     } catch (error) {
       console.error('❌ Error loading questions:', error);

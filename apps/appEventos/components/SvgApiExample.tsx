@@ -124,7 +124,7 @@ const SvgApiExample: React.FC = () => {
                 fill="#6B7280"
                 className="mx-auto mb-2"
                 onLoad={(content) => {
-                  console.log(`${url.split('/').pop()}: ${(content.length / 1024).toFixed(1)}KB`);
+                  // console.log(`${url.split('/').pop()}: ${(content.length / 1024).toFixed(1)}KB`);
                 }}
               /> */}
               <p className="text-xs text-gray-600">

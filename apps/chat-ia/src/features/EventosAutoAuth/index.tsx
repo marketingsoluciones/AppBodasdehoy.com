@@ -202,7 +202,7 @@ user_id: effectiveUserId,
         // Intentar procesar redirect de Google
         const googleResult = await processGoogleRedirectResult('bodasdehoy');
         if (googleResult?.success) {
-          console.log('✅ Login con Google completado (redirect)');
+          // console.log('✅ Login con Google completado (redirect)');
           message.success('¡Inicio de sesión exitoso con Google!');
           
           // Configurar usuario en el store
@@ -222,7 +222,7 @@ user_id: effectiveUserId,
         // Intentar procesar redirect de Facebook
         const facebookResult = await processFacebookRedirectResult('bodasdehoy');
         if (facebookResult?.success) {
-          console.log('✅ Login con Facebook completado (redirect)');
+          // console.log('✅ Login con Facebook completado (redirect)');
           message.success('¡Inicio de sesión exitoso con Facebook!');
           
           // Configurar usuario en el store

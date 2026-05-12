@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     });
 
     const data = await response.json().catch(() => null);
-    console.log(`[sso-auto] status=${response.status} | success=${data?.success} | user_id=${data?.user_id || 'NULL'}`);
+    // console.log(`[sso-auto] status=${response.status} | success=${data?.success} | user_id=${data?.user_id || 'NULL'}`);
 
     if (!data?.success) {
       // Token inválido/expirado → redirigir al login + limpiar cookie para evitar bucle infinito

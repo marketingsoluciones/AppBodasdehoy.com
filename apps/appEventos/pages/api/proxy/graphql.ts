@@ -28,13 +28,13 @@ export default async function handler(
       headers.Development = req.headers.development;
     }
 
-    console.log('[API Proxy] Proxying request to:', `${baseURL}/graphql`);
-    console.log('[API Proxy] Headers:', {
+    // console.log('[API Proxy] Proxying request to:', `${baseURL}/graphql`);
+    // console.log('[API Proxy] Headers:', {
       hasAuth: !!headers.Authorization,
       hasDevelopment: !!headers.Development,
       contentType: headers['Content-Type']
     });
-    console.log('[API Proxy] Query:', req.body?.query?.substring(0, 200));
+    // console.log('[API Proxy] Query:', req.body?.query?.substring(0, 200));
 
     // Hacer la petición al backend
     const response = await axios.post(

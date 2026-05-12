@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       // Puedes comentar esta línea si quieres permitir cualquier dominio
       // return res.status(403).json({ error: 'Domain not allowed' });
     }
-    console.log(`🔄 Descargando SVG desde: ${url}`);
+    // console.log(`🔄 Descargando SVG desde: ${url}`);
     // Hacer la petición al servidor externo
     const response = await fetch(url, {
       method: 'GET',
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
     }
     // Optimizar SVG (opcional)
     const optimizedContent = optimizeSvg(content);
-    console.log(`✅ SVG descargado exitosamente: ${(content.length / 1024).toFixed(1)}KB`);
+    // console.log(`✅ SVG descargado exitosamente: ${(content.length / 1024).toFixed(1)}KB`);
     // Devolver el SVG con headers apropiados
     res.setHeader('Content-Type', 'image/svg+xml');
     res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache por 1 hora
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     // Opción 1: Devolver como SVG directo
-    console.log("aqui");
+    // console.log("aqui");
     res.status(200).send(optimizedContent);
     // Opción 2: Devolver como JSON (si prefieres)
     // res.status(200).json({

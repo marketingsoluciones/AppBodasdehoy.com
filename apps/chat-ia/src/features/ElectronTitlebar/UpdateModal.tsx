@@ -22,7 +22,7 @@ export const UpdateModal = memo(() => {
   // --- Event Listeners ---
 
   useWatchBroadcast('manualUpdateCheckStart', () => {
-    console.log('[Manual Update] Check Start');
+    // console.log('[Manual Update] Check Start');
     manualFlowRef.current = true;
 
     setIsChecking(true);
@@ -35,7 +35,7 @@ export const UpdateModal = memo(() => {
   });
 
   useWatchBroadcast('manualUpdateAvailable', (info: UpdateInfo) => {
-    console.log('[Manual Update] Available:', info);
+    // console.log('[Manual Update] Available:', info);
     // Only react if it's part of a manual check flow (i.e., isChecking was true)
     // No need to check isChecking here as this event is specific
     setIsChecking(false);
@@ -43,7 +43,7 @@ export const UpdateModal = memo(() => {
   });
 
   useWatchBroadcast('manualUpdateNotAvailable', (info) => {
-    console.log('[Manual Update] Not Available:', info);
+    // console.log('[Manual Update] Not Available:', info);
     // Only react if it's part of a manual check flow
     // No need to check isChecking here as this event is specific
     setIsChecking(false);
@@ -57,7 +57,7 @@ export const UpdateModal = memo(() => {
   });
 
   useWatchBroadcast('updateError', (message: string) => {
-    console.log('[Manual Update] Error:', message);
+    // console.log('[Manual Update] Error:', message);
     // Only react if it's part of a manual check/download flow
     if (isChecking || isDownloading) {
       setIsChecking(false);
@@ -72,7 +72,7 @@ export const UpdateModal = memo(() => {
   });
 
   useWatchBroadcast('updateDownloadStart', () => {
-    console.log('[Manual Update] Download Start');
+    // console.log('[Manual Update] Download Start');
     // This event implies a manual download was triggered (likely from the 'updateAvailable' modal)
     manualFlowRef.current = true;
 
@@ -85,13 +85,13 @@ export const UpdateModal = memo(() => {
   });
 
   useWatchBroadcast('updateDownloadProgress', (progressInfo: ProgressInfo) => {
-    console.log('[Manual Update] Progress:', progressInfo);
+    // console.log('[Manual Update] Progress:', progressInfo);
     // Only update progress if we are in the manual download state
     setProgress(progressInfo);
   });
 
   useWatchBroadcast('updateDownloaded', (info: UpdateInfo) => {
-    console.log('[Manual Update] Downloaded:', info);
+    // console.log('[Manual Update] Downloaded:', info);
     // 仅在手动流程里展示阻塞式的“更新就绪”弹窗
     if (manualFlowRef.current) {
       setIsChecking(false);

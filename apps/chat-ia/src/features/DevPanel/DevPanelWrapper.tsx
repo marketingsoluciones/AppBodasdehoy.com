@@ -183,7 +183,7 @@ const DevPanelWrapper = memo(() => {
       const urlInfo = typeof window !== 'undefined'
         ? `URL: ${window.location.search || window.location.hash}`
         : 'URL params';
-      console.log('✅ DevPanel habilitado: Parámetro de URL detectado', urlInfo);
+      // console.log('✅ DevPanel habilitado: Parámetro de URL detectado', urlInfo);
       setShowPanel(true);
       return;
     }
@@ -197,7 +197,7 @@ const DevPanelWrapper = memo(() => {
         }
       : 'N/A';
 
-    console.log('🔍 DevPanelWrapper - Verificando acceso:', {
+    // console.log('🔍 DevPanelWrapper - Verificando acceso:', {
       DEBUG_MODE: debugConfig.DEBUG_MODE,
       NODE_ENV: process.env.NODE_ENV,
       localStorage: typeof window !== 'undefined' ? localStorage.getItem('debug-panel-enabled') : 'N/A',
@@ -209,14 +209,14 @@ const DevPanelWrapper = memo(() => {
 
     // 1. Verificar DEBUG_MODE
     if (debugConfig.DEBUG_MODE) {
-      console.log('✅ DevPanel habilitado: DEBUG_MODE activo');
+      // console.log('✅ DevPanel habilitado: DEBUG_MODE activo');
       setShowPanel(true);
       return;
     }
 
     // 2. En desarrollo, siempre mostrar
     if (process.env.NODE_ENV === 'development') {
-      console.log('✅ DevPanel habilitado: Modo desarrollo');
+      // console.log('✅ DevPanel habilitado: Modo desarrollo');
       setShowPanel(true);
       return;
     }
@@ -225,7 +225,7 @@ const DevPanelWrapper = memo(() => {
     try {
       const debugEnabled = localStorage.getItem('debug-panel-enabled');
       if (debugEnabled === 'true') {
-        console.log('✅ DevPanel habilitado: localStorage flag');
+        // console.log('✅ DevPanel habilitado: localStorage flag');
         setShowPanel(true);
         return;
       }
@@ -238,18 +238,18 @@ const DevPanelWrapper = memo(() => {
     setShowPanel(isAdmin);
 
     if (isAdmin) {
-      console.log('✅ DevPanel habilitado para usuario admin:', userEmail || '(localStorage)');
+      // console.log('✅ DevPanel habilitado para usuario admin:', userEmail || '(localStorage)');
     } else {
-      console.log('❌ DevPanel deshabilitado - Usuario no tiene acceso. Usa ?debug=true en la URL para activar.');
+      // console.log('❌ DevPanel deshabilitado - Usuario no tiene acceso. Usa ?debug=true en la URL para activar.');
     }
   }, [isMounted, userEmail, showPanel, urlDebugActive]);
 
   // Log cuando el componente se renderiza
   useEffect(() => {
     if (showPanel) {
-      console.log('🎯 DevPanel renderizado y visible');
+      // console.log('🎯 DevPanel renderizado y visible');
     } else {
-      console.log('🚫 DevPanel NO renderizado (showPanel=false)');
+      // console.log('🚫 DevPanel NO renderizado (showPanel=false)');
     }
   }, [showPanel]);
 

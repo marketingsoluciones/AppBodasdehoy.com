@@ -116,7 +116,7 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
   };
 
   const handleSubmit = async (values: initialValues, actions: any) => {
-    console.log(550018, values)
+    // console.log(550018, values)
     let UserFirebase: any = getAuth().currentUser ?? {};
     try {
       setIsStartingRegisterOrLogin(true)

@@ -34,14 +34,14 @@ export default async function handler(
       headers.IsProduction = req.headers.isproduction;
     }
 
-    console.log('[API Proxy Bodas] Proxying request to:', `${primaryBaseURL}/graphql`);
-    console.log('[API Proxy Bodas] Headers:', {
+    // console.log('[API Proxy Bodas] Proxying request to:', `${primaryBaseURL}/graphql`);
+    // console.log('[API Proxy Bodas] Headers:', {
       hasAuth: !!headers.Authorization,
       hasDevelopment: !!headers.Development,
       hasIsProduction: !!headers.IsProduction,
       contentType: headers['Content-Type']
     });
-    console.log('[API Proxy Bodas] Query:', req.body?.query?.substring(0, 200));
+    // console.log('[API Proxy Bodas] Query:', req.body?.query?.substring(0, 200));
 
     const doRequest = (baseURL: string) => axios.post(
       `${baseURL}/graphql`,

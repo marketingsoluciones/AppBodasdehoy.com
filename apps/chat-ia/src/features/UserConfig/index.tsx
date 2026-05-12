@@ -47,7 +47,7 @@ export const UserConfig = () => {
         userId
       }));
 
-      console.log('✅ Configuración de usuario actualizada');
+      // console.log('✅ Configuración de usuario actualizada');
       setOpen(false);
     } catch (error) {
       console.error('Error actualizando configuración:', error);

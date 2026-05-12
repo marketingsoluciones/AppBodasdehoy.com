@@ -541,7 +541,7 @@ async function proxyToPythonBackend(
   requestId?: string
 ): Promise<boolean> {
   const backendUrl = `${PYTHON_BACKEND_URL}/webapi/chat/${provider}`;
-  console.log('[Copilot API] Proxying to Python backend:', backendUrl, 'provider:', provider, 'requestId:', requestId);
+  // console.log('[Copilot API] Proxying to Python backend:', backendUrl, 'provider:', provider, 'requestId:', requestId);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 60000);
@@ -652,7 +652,7 @@ async function proxyToPythonBackend(
       } catch { /* ignorar — el JWT puede no tener email */ }
     }
 
-    console.log('[Copilot API] Request:', {
+    // console.log('[Copilot API] Request:', {
       model: payload.model || '(auto)',
       messagesCount: payload.messages.length,
       stream: payload.stream,
@@ -679,7 +679,7 @@ async function proxyToPythonBackend(
     }
 
     clearTimeout(timeoutId);
-    console.log('[Copilot API] Backend response status:', backendResponse.status);
+    // console.log('[Copilot API] Backend response status:', backendResponse.status);
 
     if (!backendResponse.ok) {
       // Extract structured error info from backend
@@ -1204,11 +1204,11 @@ export default async function handler(
     }
 
     // 1. Primary: Proxy to Python backend (handles ALL tools via orchestrator)
-    console.log('[Copilot API] Step 1: Proxying to Python backend...', { requestId, provider: provider || DEFAULT_PROVIDER });
+    // console.log('[Copilot API] Step 1: Proxying to Python backend...', { requestId, provider: provider || DEFAULT_PROVIDER });
     let proxySuccess = await proxyToPythonBackend(req, res, provider || DEFAULT_PROVIDER, undefined, undefined, requestId);
 
     if (proxySuccess) {
-      console.log('[Copilot API] Python backend proxy successful');
+      // console.log('[Copilot API] Python backend proxy successful');
       return;
     }
 
@@ -1222,7 +1222,7 @@ export default async function handler(
 
     // 2. Fallback: OpenAI directly (text-only, no tools)
     if (OPENAI_API_KEY) {
-      console.log('[Copilot API] Step 2: Using OpenAI direct fallback (text-only)...');
+      // console.log('[Copilot API] Step 2: Using OpenAI direct fallback (text-only)...');
       const dynamicPrompt = buildSystemPrompt(metadata);
       const contextPrefix = buildUserContextPrefix(metadata);
       const augmentedMessages = messages.map((msg: any, idx: number) => {
@@ -1241,12 +1241,12 @@ export default async function handler(
 
     // 3. Fallback: Whitelabel credentials (api-ia opción B o API2; omitido si SKIP_WHITELABEL_VIA_API2)
     if (API_IA_WHITELABEL_URL) {
-      console.log('[Copilot API] Step 3: Getting whitelabel from api-ia (API_IA_WHITELABEL_URL)...');
+      // console.log('[Copilot API] Step 3: Getting whitelabel from api-ia (API_IA_WHITELABEL_URL)...');
       const fromApiIa = await getWhitelabelFromApiIa(development, (req.headers.authorization as string) || '');
       if (fromApiIa) {
         const whitelabelConfig = fromApiIa;
         const { apiKey, model: whitelabelModel, provider: whitelabelProvider } = whitelabelConfig;
-        console.log('[Copilot API] Step 3: Trying api-ia with whitelabel:', whitelabelProvider, whitelabelModel);
+        // console.log('[Copilot API] Step 3: Trying api-ia with whitelabel:', whitelabelProvider, whitelabelModel);
         const fallbackSuccess = await proxyToPythonBackend(req, res, whitelabelProvider, apiKey, whitelabelModel, requestId);
         if (fallbackSuccess) return;
         const dynamicPrompt = buildSystemPrompt(metadata);
@@ -1262,10 +1262,10 @@ export default async function handler(
       }
     }
     if (SKIP_WHITELABEL_VIA_API2) {
-      console.log('[Copilot API] Skipping whitelabel via API2 (SKIP_WHITELABEL_VIA_API2=true)');
+      // console.log('[Copilot API] Skipping whitelabel via API2 (SKIP_WHITELABEL_VIA_API2=true)');
       return respondBackendUnavailable(res, !!stream, requestId);
     }
-    console.log('[Copilot API] Step 3: Getting whitelabel credentials from API2...');
+    // console.log('[Copilot API] Step 3: Getting whitelabel credentials from API2...');
     const whitelabelConfig = await getWhitelabelApiKey(development);
 
     if (!whitelabelConfig) {
@@ -1285,14 +1285,14 @@ export default async function handler(
     }
 
     const { apiKey, model: whitelabelModel, provider: whitelabelProvider } = whitelabelConfig;
-    console.log('[Copilot API] Step 3: Trying api-ia with whitelabel:', whitelabelProvider, whitelabelModel);
+    // console.log('[Copilot API] Step 3: Trying api-ia with whitelabel:', whitelabelProvider, whitelabelModel);
 
     // Try api-ia with whitelabel credentials
     let fallbackSuccess = await proxyToPythonBackend(req, res, whitelabelProvider, apiKey, whitelabelModel, requestId);
     if (fallbackSuccess) return;
 
     // 4. Last resort: Direct provider call (text-only, no tools)
-    console.log('[Copilot API] Step 4: Direct provider call (text-only)...');
+    // console.log('[Copilot API] Step 4: Direct provider call (text-only)...');
     const dynamicPrompt = buildSystemPrompt(metadata);
     const contextPrefix = buildUserContextPrefix(metadata);
     const augmentedMessages = messages.map((msg: any, idx: number) => {

@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     // Also revalidate the /w/ route if it exists
     revalidatePath(`/w/${subdomain}`);
 
-    console.log(`[Revalidate] Successfully revalidated /wedding/${subdomain}`);
+    // console.log(`[Revalidate] Successfully revalidated /wedding/${subdomain}`);
 
     return NextResponse.json({
       revalidated: true,
