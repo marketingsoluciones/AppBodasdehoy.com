@@ -1,7 +1,7 @@
 import { useField } from "formik"
 import React, { ChangeEvent, FC, InputHTMLAttributes, useEffect, useState } from "react"
 import { useAllowed } from "../../hooks/useAllowed";
-import { flags } from "../../utils/flags.js"
+import { flags } from "../../utils/flags"
 import { AuthContextProvider } from "../../context";
 import { IoIosArrowDown } from "react-icons/io";
 import ClickAwayListener from "react-click-away-listener"

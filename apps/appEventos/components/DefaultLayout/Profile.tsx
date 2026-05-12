@@ -20,7 +20,7 @@ import { useAllowedRouter } from "../../hooks/useAllowed";
 import { useFCMToken } from "../../hooks/useFCMToken";
 import i18next from "i18next";
 import { useTranslation } from "react-i18next";
-import { flags } from "../../utils/flags.js"
+import { flags } from "../../utils/flags"
 import { IoIosArrowDown } from "react-icons/io";
 import { GoTasklist } from "react-icons/go";
 import { ImageAvatar } from "../Utils/ImageAvatar";
