@@ -71,7 +71,7 @@ Resumen actualizado de lo que **está pendiente** en nuestro lado, lo que **ya h
 
 **No es código:** Cloudflare (app-test / chat-test) — configuración de hostnames.
 
-**Pedir ayuda a API2 / api-ia:** Ver **`docs/PANELES-PENDIENTES-PETICIONES-API2-API-IA.md`**. Ahí está el análisis por panel, qué necesitamos que expongan (queries, mutations, endpoints) y **texto listo para copiar** en Slack o enviar a los equipos. Usar ese doc para coordinar y priorizar con API2/api-ia.
+**Pedir ayuda a MCP / IA:** Ver **`docs/PANELES-PENDIENTES-PETICIONES-MCP-IA.md`**. Ahí está el análisis por panel, qué necesitamos que expongan (queries, mutations, endpoints) y **texto listo para copiar** en Slack o enviar a los equipos. Usar ese doc para coordinar y priorizar con MCP/IA.
 
 ---
 

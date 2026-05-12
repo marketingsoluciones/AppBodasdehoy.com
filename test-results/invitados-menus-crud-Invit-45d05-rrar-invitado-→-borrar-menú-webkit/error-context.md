@@ -1,0 +1,193 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - status "Cargando" [ref=e4]:
+      - generic:
+        - paragraph: Comprobando sesión y conexión…
+        - paragraph: 0s
+        - paragraph: El contenido principal (banner, tarjetas) carga después de este paso. Si el contador sube mucho, suele ser red lenta o el servidor de datos.
+    - generic [ref=e5]:
+      - banner [ref=e7]:
+        - generic [ref=e8]:
+          - img [ref=e10] [cursor=pointer]
+          - navigation [ref=e24]:
+            - list [ref=e25]:
+              - link "Novia" [ref=e26]:
+                - /url: http://localhost:3220/categoria/novias
+                - listitem [ref=e27] [cursor=pointer]: Novia
+              - link "Novio" [ref=e28]:
+                - /url: http://localhost:3220/categoria/novios
+                - listitem [ref=e29] [cursor=pointer]: Novio
+              - link "Proveedores" [ref=e30]:
+                - /url: http://localhost:3220/categoria/proveedores
+                - listitem [ref=e31] [cursor=pointer]: Proveedores
+              - link "Lugares para bodas" [ref=e32]:
+                - /url: http://localhost:3220/categoria/lugares-para-bodas
+                - listitem [ref=e33] [cursor=pointer]: Lugares para bodas
+          - generic [ref=e34]:
+            - button "Abrir Copilot" [ref=e35] [cursor=pointer]:
+              - img [ref=e36]
+              - generic [ref=e41]: Copilot
+            - generic [ref=e43]:
+              - generic "Servicios" [ref=e45] [cursor=pointer]:
+                - img [ref=e46]
+              - img [ref=e50] [cursor=pointer]
+              - generic [ref=e52] [cursor=pointer]:
+                - img "Photo perfil" [ref=e56]
+                - img [ref=e57]
+              - generic [ref=e59] [cursor=pointer]:
+                - generic [ref=e60]:
+                  - img [ref=e61]
+                  - generic [ref=e62]: es
+                - img [ref=e63]
+        - generic [ref=e66]:
+          - list [ref=e69]:
+            - listitem [ref=e70] [cursor=pointer]:
+              - img [ref=e71]
+              - paragraph [ref=e74]: Mis eventos
+            - listitem [ref=e75] [cursor=pointer]:
+              - img [ref=e76]
+              - paragraph [ref=e78]: Resumen
+            - listitem [ref=e79] [cursor=pointer]:
+              - img [ref=e80]
+              - paragraph [ref=e82]: Invitados
+            - listitem [ref=e83] [cursor=pointer]:
+              - img [ref=e84]
+              - paragraph [ref=e92]: Mesas
+            - listitem [ref=e93] [cursor=pointer]:
+              - img [ref=e94]
+              - paragraph [ref=e98]: Lista de regalos
+            - listitem [ref=e99] [cursor=pointer]:
+              - img [ref=e100]
+              - paragraph [ref=e105]: Presupuesto
+            - listitem [ref=e106] [cursor=pointer]:
+              - img [ref=e107]
+              - paragraph [ref=e109]: Invitaciones
+            - listitem [ref=e110] [cursor=pointer]:
+              - img [ref=e111]
+              - paragraph [ref=e113]: Itinerario
+            - listitem [ref=e114] [cursor=pointer]:
+              - img [ref=e115]
+              - paragraph [ref=e118]: Momentos
+          - img [ref=e120]
+      - main [ref=e124]:
+        - generic [ref=e126]:
+          - generic [ref=e127] [cursor=pointer]: X
+          - generic [ref=e129]:
+            - generic [ref=e130]:
+              - heading "Crear" [level=2] [ref=e131]
+              - heading "guest" [level=2] [ref=e132]
+            - generic [ref=e133]:
+              - generic [ref=e134]:
+                - generic [ref=e136] [cursor=pointer]:
+                  - paragraph [ref=e137]: importar contactos
+                  - img [ref=e138]
+                - img "Hombre" [ref=e142]
+                - generic [ref=e143]:
+                  - text: TELEFONO
+                  - generic [ref=e144]:
+                    - generic [ref=e145] [cursor=pointer]:
+                      - img [ref=e146]
+                      - img [ref=e147]
+                    - textbox [ref=e149]: "+34630188931"
+              - generic [ref=e152]:
+                - text: nombre
+                - textbox [ref=e154]: E2E Invitado 1777630188931
+              - generic [ref=e155]:
+                - generic [ref=e157]:
+                  - text: Sexo
+                  - generic [ref=e158]:
+                    - generic [ref=e159] [cursor=pointer]: hombre
+                    - generic [ref=e160] [cursor=pointer]: mujer
+                - generic [ref=e162]:
+                  - text: Edad
+                  - generic [ref=e163]:
+                    - generic [ref=e164] [cursor=pointer]: adulto
+                    - generic [ref=e165] [cursor=pointer]: niño
+              - generic [ref=e167]:
+                - text: Correo electronico
+                - textbox [active] [ref=e169]: e2e-invitado-1777630188931@bodasdehoy-test.com
+              - generic [ref=e171]:
+                - text: Rol
+                - generic [ref=e172]:
+                  - combobox [ref=e173] [cursor=pointer]:
+                    - option "Seleccionar" [selected]
+                  - paragraph [ref=e174]: Rol requerido
+              - generic [ref=e175]:
+                - generic [ref=e177]:
+                  - text: menu
+                  - combobox [ref=e179] [cursor=pointer]:
+                    - option "menu-e2e-1777629990684" [selected]
+                    - option "menu-e2e-1777630188931"
+                    - option "sin menú"
+                - generic [ref=e181]:
+                  - text: No. Acompañantes
+                  - spinbutton [ref=e183]: "0"
+              - button "Crear invitado" [ref=e184] [cursor=pointer]
+        - generic [ref=e186]:
+          - generic [ref=e187]:
+            - generic [ref=e189]:
+              - generic [ref=e190]: Mis invitados
+              - generic [ref=e191]:
+                - img [ref=e192]
+                - generic [ref=e194]: Propietario
+            - generic [ref=e195]:
+              - img "Contratar DJ para la boda de Isabel y Raúl" [ref=e196]
+              - generic [ref=e197]:
+                - generic [ref=e198]: OTRO
+                - generic [ref=e199]: Contratar DJ para la boda de Isabel y Raúl
+              - generic [ref=e201]:
+                - generic:
+                  - generic:
+                    - button
+                - img [ref=e203] [cursor=pointer]
+          - generic [ref=e205]:
+            - generic [ref=e206]:
+              - generic [ref=e207]:
+                - paragraph [ref=e208]: "0"
+                - paragraph [ref=e209]: Invitados
+              - generic [ref=e210]:
+                - paragraph [ref=e211]:
+                  - text: "0"
+                  - generic [ref=e212]: adultos
+                - paragraph [ref=e213]:
+                  - text: "0"
+                  - generic [ref=e214]: niños y bebes
+            - generic [ref=e215]:
+              - generic [ref=e216]:
+                - img [ref=e217]
+                - generic [ref=e219]:
+                  - paragraph [ref=e220]: 0 de 0
+                  - paragraph [ref=e221]: por confirmar
+              - generic [ref=e222]:
+                - img [ref=e223]
+                - generic [ref=e225]:
+                  - paragraph [ref=e226]: 0 de 0
+                  - paragraph [ref=e227]: confirmados
+              - generic [ref=e228]:
+                - img [ref=e229]
+                - generic [ref=e231]:
+                  - paragraph [ref=e232]: 0 de 0
+                  - paragraph [ref=e233]: cancelados
+            - generic [ref=e234]:
+              - img [ref=e235]
+              - paragraph [ref=e237]: sentar Invitados
+              - button "Añadir mesa" [ref=e238] [cursor=pointer]
+          - generic [ref=e241]:
+            - button "invitados" [ref=e242] [cursor=pointer]:
+              - img [ref=e243]
+              - text: invitados
+            - button "grupo" [ref=e245] [cursor=pointer]:
+              - img [ref=e246]
+              - text: grupo
+            - button "menu" [ref=e248] [cursor=pointer]:
+              - img [ref=e249]
+              - text: menu
+            - button "importar" [ref=e251] [cursor=pointer]
+    - button "🏷 bodasdehoy" [ref=e253] [cursor=pointer]
+  - alert [ref=e254]
+  - iframe [ref=e255]:
+    
+```

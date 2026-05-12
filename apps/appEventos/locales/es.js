@@ -853,5 +853,8 @@ export const es = {
     'Cargando': 'Cargando',
     'ago': 'Hace',
     'disabledtoSend': 'No es posible enviar el correo a todos los invitados seleccionados, ya que algunos no tienen correo registrado',
+    'home_eventsLoadFailedTitle': 'No se pudieron cargar los eventos',
+    'home_eventsLoadFailedBody': 'El servidor no responde. Revisa tu conexión o inténtalo en unos minutos.',
+    'home_eventsLoadFailedRetry': 'Reintentar',
   }
 }

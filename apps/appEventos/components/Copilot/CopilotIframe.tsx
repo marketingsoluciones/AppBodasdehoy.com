@@ -13,6 +13,7 @@
  */
 
 import { useState, useCallback, memo, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Cookies from 'js-cookie';
 import { Event } from '../../utils/Interfaces';
@@ -693,7 +694,7 @@ const CopilotIframe = ({
           <div className="absolute top-0 left-0 right-0 bg-slate-100 border-b border-slate-200 z-20 p-2">
             <p className="text-xs text-slate-600 text-center">
               Estás como invitado.{' '}
-              <a href="/login" className="text-pink-600 hover:underline font-medium">Inicia sesión</a>
+              <Link href="/login" className="text-pink-600 hover:underline font-medium">Inicia sesión</Link>
               {' '}para chatear y no perder la información de tu evento.
             </p>
           </div>

@@ -89,7 +89,6 @@ export const EventsTable: FC<any> = () => {
               fetchApiBodas({
                 query: queries.updateUser,
                 variables: {
-                  uid: user?.uid,
                   variable: "eventSelected",
                   valor: data?._id
                 },

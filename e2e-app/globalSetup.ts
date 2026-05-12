@@ -1,6 +1,7 @@
 import https from 'https';
 import http from 'http';
 import { resetBreaker } from './circuit-breaker';
+import { getMemoriesUrl } from './fixtures';
 
 /**
  * Global setup — corre ANTES de cualquier test.
@@ -101,6 +102,19 @@ export default async function globalSetup() {
       // 401, 405, 400, etc. = backend UP (solo rechaza porque no hay auth/method)
       console.log(`[E2E] ✅ Chat backend responde (HTTP ${probe.status}) — proxy OK`);
     }
+  }
+
+  const memoriesURL = getMemoriesUrl();
+  if (memoriesURL) {
+    console.log(`[E2E] Probe memories → ${memoriesURL}`);
+    const probe = await fetchStatus(memoriesURL, 10_000);
+    if (probe.status === 0) {
+      throw new Error(`[E2E] ❌ memories-web no accesible (timeout/unreachable). Abortando suite.\nURL: ${memoriesURL}\n`);
+    }
+    if (probe.status >= 500) {
+      throw new Error(`[E2E] ❌ memories-web devuelve ${probe.status}. Abortando suite.\nURL: ${memoriesURL}\nBody: ${probe.body.slice(0, 200)}\n`);
+    }
+    console.log(`[E2E] ✅ memories-web responde (HTTP ${probe.status})`);
   }
 
   console.log('');

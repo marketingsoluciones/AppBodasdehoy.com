@@ -21,16 +21,16 @@ const FormCrearGrupo = ({ set, state }) => {
 
   const handleSubmit = async (values, actions) => {
     try {
-      const { grupos_array }: any = await fetchApiEventos({
+      const { evento }: any = await fetchApiEventos({
         query: queries.createGroup,
         variables: {
           eventID: event._id,
-          name: values.nombre,
+          grupo: { title: values.nombre, nombre: values.nombre, nombre_grupo: values.nombre },
         },
       });
       setEvent((old) => ({
         ...old,
-        grupos_array,
+        grupos_array: evento?.grupos_array || old?.grupos_array,
       }));
       toast("success", t("Grupo creado con exito"));
     } catch (error) {

@@ -7,10 +7,11 @@ import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useLoginModal } from '@/contexts/LoginModalContext';
 import { useChatStore } from '@/store/chat';
 
-/** Minutos restantes hasta que expire el JWT de api-ia. null = sin info. */
+/** Minutos restantes hasta que expire el JWT de MCP. null = sin info. */
 const getJwtMinutesRemaining = (): number | null => {
   if (typeof window === 'undefined') return null;
-  const expiresAt = localStorage.getItem('api2_jwt_expires_at');
+  const expiresAt =
+    localStorage.getItem('mcp_jwt_expires_at') || localStorage.getItem('api2_jwt_expires_at');
   if (!expiresAt) return null;
   const ms = new Date(expiresAt).getTime() - Date.now();
   return Math.floor(ms / 60_000);
@@ -18,6 +19,31 @@ const getJwtMinutesRemaining = (): number | null => {
 
 /** Umbral (minutos) para mostrar la advertencia proactiva. */
 const WARN_THRESHOLD_MIN = 5;
+
+const continueAsVisitor = () => {
+  try {
+    localStorage.removeItem('mcp_jwt_token');
+    localStorage.removeItem('mcp_jwt_expires_at');
+    localStorage.removeItem('api2_jwt_token');
+    localStorage.removeItem('api2_jwt_expires_at');
+    localStorage.removeItem('jwt_token');
+    localStorage.removeItem('jwt_token_cache');
+
+    const visitorId = `visitor_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const rawConfig = localStorage.getItem('dev-user-config');
+    const config = rawConfig ? JSON.parse(rawConfig) : {};
+    const visitorConfig = {
+      development: config.development || 'bodasdehoy',
+      token: undefined,
+      user_id: visitorId,
+    };
+    localStorage.setItem('dev-user-config', JSON.stringify(visitorConfig));
+
+    window.location.reload();
+  } catch {
+    window.location.reload();
+  }
+};
 
 /**
  * Banner que se muestra:
@@ -69,13 +95,13 @@ const ReloginBanner = memo(() => {
     };
 
     recheck();
-    window.addEventListener('api2:token-expired', recheck);
-    window.addEventListener('api2:token-refreshed', recheck);
+    window.addEventListener('mcp:token-expired', recheck);
+    window.addEventListener('mcp:token-refreshed', recheck);
     document.addEventListener('visibilitychange', onVisibilityChange);
     const interval = setInterval(recheck, 30_000);
     return () => {
-      window.removeEventListener('api2:token-expired', recheck);
-      window.removeEventListener('api2:token-refreshed', recheck);
+      window.removeEventListener('mcp:token-expired', recheck);
+      window.removeEventListener('mcp:token-refreshed', recheck);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       clearInterval(interval);
     };
@@ -95,36 +121,12 @@ const ReloginBanner = memo(() => {
    * 2. Genera un visitor_id nuevo en dev-user-config
    * 3. Recarga la página para aplicar el estado visitante correctamente
    */
-  const handleContinueAsVisitor = () => {
-    try {
-      // Limpiar tokens
-      localStorage.removeItem('api2_jwt_token');
-      localStorage.removeItem('api2_jwt_expires_at');
-      localStorage.removeItem('jwt_token');
-      localStorage.removeItem('jwt_token_cache');
-
-      // Generar nuevo ID de visitante y resetear dev-user-config
-      const visitorId = `visitor_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      const rawConfig = localStorage.getItem('dev-user-config');
-      const config = rawConfig ? JSON.parse(rawConfig) : {};
-      const visitorConfig = {
-        development: config.development || 'bodasdehoy',
-        token: undefined,
-        user_id: visitorId,
-      };
-      localStorage.setItem('dev-user-config', JSON.stringify(visitorConfig));
-
-      // Recargar para aplicar estado visitante en todos los stores/hooks
-      window.location.reload();
-    } catch {
-      window.location.reload();
-    }
-  };
+  const handleContinueAsVisitor = continueAsVisitor;
 
   if (!showBanner && !showWarningSoon) return null;
 
   const accountLabel = userEmail ? ` (${userEmail})` : '';
-  const bannerStyle = { position: 'fixed' as const, top: 0, left: 0, right: 0, zIndex: 9999 };
+  const bannerStyle = { left: 0, position: 'fixed' as const, right: 0, top: 0, zIndex: 9999 };
 
   // Sesión expirada — acción requerida
   if (showBanner) {

@@ -32,7 +32,24 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
     );
   }
 
-  if (isGuest) return null;
+  if (isGuest) {
+    return (
+      <div className="flex h-full items-center justify-center bg-white px-6">
+        <div className="w-full max-w-sm text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-purple-500" />
+          <div className="mt-4 text-sm font-semibold text-gray-900">Acceso requerido</div>
+          <div className="mt-1 text-xs text-gray-500">Redirigiendo a login…</div>
+          <button
+            className="mt-4 rounded-lg bg-purple-600 px-4 py-2 text-xs font-semibold text-white hover:bg-purple-700"
+            onClick={() => router.push('/login?redirect=/messages')}
+            type="button"
+          >
+            Ir a login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full overflow-hidden bg-white">

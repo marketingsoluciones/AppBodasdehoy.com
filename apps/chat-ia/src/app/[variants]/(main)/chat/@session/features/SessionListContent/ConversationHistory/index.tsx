@@ -29,7 +29,7 @@ const ConversationHistory = memo(() => {
       (currentUserId && currentUserId.includes('@') ? currentUserId : undefined),
     [profileEmail, currentUserId],
   );
-  // Detectar si es usuario invitado (no tiene conversaciones en API2)
+  // Detectar si es usuario invitado (no tiene conversaciones en MCP)
   const isGuestUser = useMemo(
     () =>
       !userEmail ||
@@ -108,7 +108,7 @@ const ConversationHistory = memo(() => {
           <div>
             {data.errorMessage
               ? `No se pudo conectar con el backend: ${data.errorMessage}`
-              : 'Sin conexión con API2.'}
+              : 'Sin conexión con MCP.'}
           </div>
           {data.lastUpdated && (
             <div className="text-amber-700/80 mt-1">
@@ -119,10 +119,10 @@ const ConversationHistory = memo(() => {
       );
     }
 
-    if (data.source === 'api2') {
+    if (data.source === 'mcp') {
       return (
         <div className="text-[11px] text-gray-500 px-3 pb-2">
-          ✅ Historial sincronizado con API2{' '}
+          ✅ Historial sincronizado con MCP{' '}
           {data.lastUpdated ? `(${formatLastSync(data.lastUpdated)})` : ''}
         </div>
       );
@@ -180,4 +180,3 @@ const ConversationHistory = memo(() => {
 ConversationHistory.displayName = 'ConversationHistory';
 
 export default ConversationHistory;
-

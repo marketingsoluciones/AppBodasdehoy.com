@@ -168,22 +168,22 @@ export default function AdminDashboard() {
           { key: 'ollama' as const, label: 'Ollama' },
         ].map(({ label, key }) => (
           <div
-            className={`rounded-lg border p-4 ${getStatusBg(health?.services[key])}`}
+            className={`rounded-lg border p-4 ${getStatusBg(health?.services?.[key])}`}
             key={key}
           >
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700">{label}</span>
-              <span className={`text-sm font-semibold ${getStatusColor(health?.services[key])}`}>
-                {health?.services[key] || 'unknown'}
+              <span className={`text-sm font-semibold ${getStatusColor(health?.services?.[key])}`}>
+                {health?.services?.[key] || 'unknown'}
               </span>
             </div>
             <div className="mt-3">
               <div className="h-1.5 w-full rounded-full bg-gray-200">
                 <div
                   className={`h-1.5 rounded-full transition-all ${
-                    health?.services[key] === 'ok' || health?.services[key] === 'healthy'
+                    health?.services?.[key] === 'ok' || health?.services?.[key] === 'healthy'
                       ? 'w-full bg-green-500'
-                      : health?.services[key] === 'degraded'
+                      : health?.services?.[key] === 'degraded'
                         ? 'w-3/4 bg-yellow-500'
                         : 'w-0 bg-red-500'
                   }`}
@@ -219,7 +219,7 @@ export default function AdminDashboard() {
             Sesiones Activas
           </div>
           <div className="mt-2 text-3xl font-bold text-blue-700">
-            {health?.metrics.active_sessions || 0}
+            {health?.metrics?.active_sessions || 0}
           </div>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6">
@@ -228,7 +228,7 @@ export default function AdminDashboard() {
             Requests/min
           </div>
           <div className="mt-2 text-3xl font-bold text-green-700">
-            {health?.metrics.requests_per_minute || 0}
+            {health?.metrics?.requests_per_minute || 0}
           </div>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-6">
@@ -237,7 +237,7 @@ export default function AdminDashboard() {
             Tiempo de Respuesta
           </div>
           <div className="mt-2 text-3xl font-bold text-purple-700">
-            {health?.metrics.avg_response_time_ms || 0}
+            {health?.metrics?.avg_response_time_ms || 0}
             <span className="text-base font-normal text-gray-400">ms</span>
           </div>
         </div>

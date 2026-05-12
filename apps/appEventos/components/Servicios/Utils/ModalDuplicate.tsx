@@ -28,8 +28,7 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
 
   useEffect(() => {
     setFilteredEventsGroup(eventsGroup?.filter(elem =>
-      elem.usuario_id === user.uid ||
-      (elem.usuario_id !== user.uid && elem.permissions?.some(permission => permission.title === "servicios" && permission.value === "edit"))
+      elem.usuario_id === user.uid
     ))
   }, [eventsGroup])
 

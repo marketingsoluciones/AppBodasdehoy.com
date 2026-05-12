@@ -12,7 +12,8 @@
     "./components": "./src/components/index.ts",
     "./utils": "./src/utils/index.ts",
     "./upload": "./src/upload/index.ts",
-    "./plans": "./src/plans/index.ts"
+    "./plans": "./src/plans/index.ts",
+    "./branding": "./src/branding/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

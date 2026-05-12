@@ -213,6 +213,15 @@ export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, p
             valor: JSON.stringify([...table?.guests])
           },
         });
+        // Sync guest record: update nombre_mesa and puesto
+        fetchApiEventos({
+          query: queries.editGuests,
+          variables: { eventID, guestID: invitadoID, variable: "nombre_mesa", value: table?.title || tableID },
+        });
+        fetchApiEventos({
+          query: queries.editGuests,
+          variables: { eventID, guestID: invitadoID, variable: "puesto", value: String(chair) },
+        });
       }
       if (prefijo === "dragS") {
         const gestPrevMove = filterGuests.sentados.find(elem => elem._id === invitadoID)

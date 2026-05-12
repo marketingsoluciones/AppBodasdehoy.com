@@ -80,15 +80,68 @@ export function TableConfiguratorFloating() {
           }),
         },
       });
-      planSpaceActive.tables.push({ ...result });
-      setPlanSpaceActive({ ...planSpaceActive });
-      event.planSpace[planSpaceSelect] = planSpaceActive;
-      setEvent({ ...event });
+      const nextPlanSpace = {
+        ...planSpaceActive,
+        tables: [...(planSpaceActive.tables ?? []), { ...result }],
+      };
+      setPlanSpaceActive(nextPlanSpace);
+
+      const nextEvent = {
+        ...event,
+        planSpace: (event.planSpace ?? []).map((ps: any, idx: number) => {
+          if (ps?._id === nextPlanSpace._id) return nextPlanSpace;
+          if (ps?._id === planSpaceSelect) return nextPlanSpace;
+          return ps;
+        }),
+      };
+      setEvent(nextEvent);
       toast('success', `Mesa "${result.title}" creada con el configurador visual`);
     } catch {
       toast('error', 'Error al crear la mesa desde el configurador');
     } finally {
       setOpen(false);
+    }
+  };
+
+  const handleAddBenchRow = async () => {
+    try {
+      const position = {
+        x: 180 + Math.round(Math.random() * 80),
+        y: 240 + Math.round(Math.random() * 80),
+      };
+      const result: any = await fetchApiEventos({
+        query: queries.createTable,
+        variables: {
+          eventID: event._id,
+          planSpaceID: planSpaceActive._id,
+          values: JSON.stringify({
+            title: `Bancos ceremonia ${((planSpaceActive.tables?.length ?? 0) + 1)}`,
+            numberChair: 12,
+            position,
+            rotation: 0,
+            size: { width: 100, height: 40 },
+            tipo: 'bancos',
+          }),
+        },
+      });
+
+      const nextPlanSpace = {
+        ...planSpaceActive,
+        tables: [...(planSpaceActive.tables ?? []), { ...result }],
+      };
+      setPlanSpaceActive(nextPlanSpace);
+      setEvent({
+        ...event,
+        planSpace: (event.planSpace ?? []).map((ps: any, idx: number) => {
+          if (ps?._id === nextPlanSpace._id) return nextPlanSpace;
+          if (ps?._id === planSpaceSelect) return nextPlanSpace;
+          return ps;
+        }),
+      });
+
+      toast('success', `"${result.title}" añadido al plano`);
+    } catch {
+      toast('error', 'Error al añadir bancos al plano');
     }
   };
 
@@ -118,6 +171,28 @@ export function TableConfiguratorFloating() {
         }}
       >
         ✦ Diseñar mesa
+      </button>
+
+      <button
+        type="button"
+        onClick={handleAddBenchRow}
+        style={{
+          position: 'fixed',
+          bottom: 24,
+          right: 152,
+          zIndex: 200,
+          background: '#111827',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 40,
+          padding: '10px 14px',
+          fontSize: 13,
+          fontWeight: 600,
+          cursor: 'pointer',
+          boxShadow: '0 4px 16px rgba(17,24,39,0.25)',
+        }}
+      >
+        + Bancos
       </button>
 
       {/* Modal configurador */}

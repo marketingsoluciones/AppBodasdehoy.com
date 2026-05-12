@@ -6,7 +6,7 @@ import { CreditCard, RefreshCw, Zap } from 'lucide-react';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import { StoredPaymentMethod, WalletAutoRechargeConfig, walletService } from '@/services/api2/wallet';
+import { StoredPaymentMethod, WalletAutoRechargeConfig, walletService } from '@/services/mcpApi/wallet';
 
 const useStyles = createStyles(({ css, token }) => ({
   card: css`
@@ -99,7 +99,7 @@ const AutoRechargeCard = memo<AutoRechargeCardProps>(
         setSaveSuccess(false);
 
         if (!checked) {
-          // Deshabilitar via api2 GraphQL
+          // Deshabilitar via MCP GraphQL
           setSaving(true);
           const result = await walletService.configureAutoRecharge(false);
           setSaving(false);

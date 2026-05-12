@@ -20,7 +20,7 @@ Durante la migración del monorepo, se configuraron **incorrectamente** los endp
 1. **En `.env.local` (Desarrollo)**:
    ```bash
    # ❌ ANTES (INCORRECTO):
-   NEXT_PUBLIC_BASE_URL=https://api2.eventosorganizador.com
+   NEXT_PUBLIC_BASE_URL=https://api3-mcp-graphql.eventosorganizador.com
 
    # ✅ AHORA (CORRECTO):
    NEXT_PUBLIC_BASE_URL=https://apiapp.bodasdehoy.com
@@ -62,7 +62,7 @@ AppBodasdehoy debe usar **3 APIs diferentes** para distintos propósitos:
 |-----|-----|-----------|---------------------|
 | **API Eventos** | `https://apiapp.bodasdehoy.com` | Gestión de eventos, invitados, presupuestos, itinerarios | `NEXT_PUBLIC_BASE_URL` |
 | **API Bodas** | `https://api.bodasdehoy.com` | Autenticación, usuarios, sesiones | `NEXT_PUBLIC_BASE_API_BODAS` |
-| **API2** | `https://api2.eventosorganizador.com` | ❌ **NO DEBE USARSE** en AppBodasdehoy | - |
+| **API MCP GraphQL** | `https://api3-mcp-graphql.eventosorganizador.com/graphql` | Planes/suscripción (no es API de eventos) | `NEXT_PUBLIC_API_MCP_GRAPHQL_URL` |
 
 ### Queries Disponibles por API
 
@@ -85,9 +85,9 @@ AppBodasdehoy debe usar **3 APIs diferentes** para distintos propósitos:
 ✅ whatsappGetAllSessions
 ```
 
-#### api2.eventosorganizador.com (API2)
+#### api3-mcp-graphql.eventosorganizador.com/graphql (MCP GraphQL)
 ```
-⚠️ NO USAR desde AppBodasdehoy
+⚠️ No usar como API de eventos (solo planes/suscripción)
 ✅ getEventos
 ✅ getEventosByUsuario
 ✅ getEventosCompartidos
@@ -102,7 +102,7 @@ AppBodasdehoy debe usar **3 APIs diferentes** para distintos propósitos:
 **Archivo:** `apps/web/.env.local`
 
 ```diff
-- NEXT_PUBLIC_BASE_URL=https://api2.eventosorganizador.com
+- NEXT_PUBLIC_BASE_URL=https://api3-mcp-graphql.eventosorganizador.com
 + NEXT_PUBLIC_BASE_URL=https://apiapp.bodasdehoy.com
 ```
 
@@ -230,7 +230,7 @@ NEXT_PUBLIC_BASE_API_BODAS=https://api.bodasdehoy.com  # ✅ API Auth
 ## 📚 Referencias
 
 - **Arquitectura APIs Backend:** `/ARQUITECTURA_APIS_BACKEND_2026-02-10.md`
-- **Listado Llamadas API2:** `/docs/LISTADO-LLAMADAS-API2-AUDITORIA.md`
+- **Listado Llamadas MCP:** `/docs/LISTADO-LLAMADAS-MCP-AUDITORIA.md`
 - **Informe APIs:** `/docs/INFORME_APIS_APPBODASDEHOY.md`
 
 ---

@@ -6,7 +6,7 @@ import {
   type AppNotification,
   getNotifications,
   markNotificationAsRead,
-} from '@/services/api2/notifications';
+} from '@/services/mcpApi/notifications';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useChatStore } from '@/store/chat';
@@ -19,28 +19,28 @@ import { buildHeaders } from '../utils/auth';
 export type FeedItemKind = 'conversation' | 'notification';
 
 export interface FeedItem {
-  /** 'conv-{channelParam}-{conversationId}' or 'notif-{notificationId}' */
-  id: string;
-  kind: FeedItemKind;
   channelKind: ChannelKind | 'notification';
+  /** Short label for multi-channel disambiguation (e.g. "Sv", "IG") */
+  channelLabel?: string;
   /** First URL segment: /messages/{channelParam}/... (null for notifications) */
   channelParam: string | null;
   /** Second URL segment: /messages/{channelParam}/{conversationId} (null for notifications) */
   conversationId: string | null;
+  /** 'conv-{channelParam}-{conversationId}' or 'notif-{notificationId}' */
+  id: string;
+  isRead: boolean;
+  kind: FeedItemKind;
   /** Contact name or notification type label */
   name: string;
+  /** Pre-computed navigation URL (for notifications) */
+  navigationUrl?: string;
+  /** null for conversations */
+  notificationId: string | null;
   /** Last message preview or notification message */
   preview: string;
   /** ISO string for sorting and display */
   timestamp: string;
   unreadCount: number;
-  /** null for conversations */
-  notificationId: string | null;
-  isRead: boolean;
-  /** Short label for multi-channel disambiguation (e.g. "Sv", "IG") */
-  channelLabel?: string;
-  /** Pre-computed navigation URL (for notifications) */
-  navigationUrl?: string;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -91,7 +91,26 @@ export function useUnifiedFeed(maxItems = 60): {
 
   const { conversations, loading: convLoading } = useRecentConversations(50, refreshTick);
 
-  const refresh = useCallback(() => setRefreshTick((t) => t + 1), []);
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastRefreshAtRef = useRef(0);
+  const refresh = useCallback(() => {
+    const now = Date.now();
+    const minIntervalMs = 1500;
+
+    if (now - lastRefreshAtRef.current >= minIntervalMs) {
+      lastRefreshAtRef.current = now;
+      setRefreshTick((t) => t + 1);
+      return;
+    }
+
+    if (refreshTimerRef.current) return;
+    const waitMs = Math.max(0, minIntervalMs - (now - lastRefreshAtRef.current));
+    refreshTimerRef.current = setTimeout(() => {
+      refreshTimerRef.current = null;
+      lastRefreshAtRef.current = Date.now();
+      setRefreshTick((t) => t + 1);
+    }, waitMs);
+  }, []);
 
   // Fetch notifications on mount + every 60s
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -119,7 +138,7 @@ export function useUnifiedFeed(maxItems = 60): {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isGuestUser, development, refreshTick]);
+  }, [isGuestUser, development]);
 
   // SSE — GET /api/messages/stream (api-ia, desplegado 2026-04-13)
   // Usa fetch+ReadableStream en lugar de EventSource para enviar el JWT en el
@@ -131,7 +150,7 @@ export function useUnifiedFeed(maxItems = 60): {
     if (isGuestUser || typeof window === 'undefined') return;
 
     const dev = development || 'bodasdehoy';
-    let retryDelay = 3_000;
+    let retryDelay = 3000;
     let cancelled = false;
 
     async function connect() {
@@ -156,7 +175,7 @@ export function useUnifiedFeed(maxItems = 60): {
 
         if (!response.ok || !response.body) throw new Error(`SSE ${response.status}`);
 
-        retryDelay = 3_000; // reset backoff on successful connection
+        retryDelay = 3000; // reset backoff on successful connection
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buf = '';
@@ -174,7 +193,7 @@ export function useUnifiedFeed(maxItems = 60): {
               refresh();
             }
             // any event resets the backoff
-            retryDelay = 3_000;
+            retryDelay = 3000;
           }
         }
       } catch (e: any) {
@@ -199,36 +218,36 @@ export function useUnifiedFeed(maxItems = 60): {
 
   // Map conversations → FeedItem
   const convItems: FeedItem[] = conversations.map((conv) => ({
-    id: `conv-${conv.channelParam}-${conv.conversationId}`,
-    kind: 'conversation' as const,
     channelKind: conv.kind,
+    channelLabel: conv.channelLabel,
     channelParam: conv.channelParam,
     conversationId: conv.conversationId,
+    id: `conv-${conv.channelParam}-${conv.conversationId}`,
+    isRead: conv.unreadCount === 0,
+    kind: 'conversation' as const,
     name: conv.name,
+    notificationId: null,
     preview: conv.lastMessage,
     timestamp: conv.lastMessageAt,
     unreadCount: conv.unreadCount,
-    notificationId: null,
-    isRead: conv.unreadCount === 0,
-    channelLabel: conv.channelLabel,
   }));
 
   // Map notifications → FeedItem
   const notifItems: FeedItem[] = notifications.map((n) => {
     const typeInfo = TYPE_LABEL[n.type ?? ''];
     return {
-      id: `notif-${n.id}`,
-      kind: 'notification' as const,
       channelKind: 'notification' as const,
       channelParam: null,
       conversationId: null,
+      id: `notif-${n.id}`,
+      isRead: n.read,
+      kind: 'notification' as const,
       name: typeInfo ? `${typeInfo.icon} ${typeInfo.label}` : (n.type ?? 'Notificación'),
+      navigationUrl: computeNotificationUrl(n) ?? undefined,
+      notificationId: n.id,
       preview: n.message,
       timestamp: n.createdAt,
       unreadCount: n.read ? 0 : 1,
-      notificationId: n.id,
-      isRead: n.read,
-      navigationUrl: computeNotificationUrl(n) ?? undefined,
     };
   });
 

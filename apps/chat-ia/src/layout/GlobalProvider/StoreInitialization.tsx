@@ -43,7 +43,7 @@ const StoreInitialization = memo(() => {
   useInitAgentStore(isLoginOnInit, currentServerConfig?.defaultAgent?.config);
   useInitAiProviderKeyVaults(isLoginOnInit);
   useInitUserState(isLoginOnInit, currentServerConfig, {
-    onSuccess: (_state: any) => {},
+    onSuccess: () => {},
   });
 
   const useStoreUpdater = createStoreUpdater(useGlobalStore);
@@ -102,9 +102,9 @@ const StoreInitialization = memo(() => {
     };
 
     if ('requestIdleCallback' in window) {
-      requestIdleCallback(initNonCritical, { timeout: 10 });
+      requestIdleCallback(initNonCritical, { timeout: 2000 });
     } else {
-      setTimeout(initNonCritical, 10);
+      setTimeout(initNonCritical, 2000);
     }
   }, [router, useInitAgentStore, useInitAiProviderKeyVaults, useInitUserState]);
 

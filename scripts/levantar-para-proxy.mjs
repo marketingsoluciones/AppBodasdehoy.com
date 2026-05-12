@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Levanta web (8080) y chat (3210) en los puertos que espera el reverse proxy
- * (config/cloudflared-config.yml: app-test → 8080, chat-test → 3210).
+ * Levanta appEventos (3220) y chat-ia (3210) en los puertos que espera el reverse proxy
+ * (config/cloudflared-config.yml: app-dev → 3220, chat-dev → 3210).
  * Uso: node scripts/levantar-para-proxy.mjs
  * O: pnpm dev:proxy
  */
@@ -35,6 +35,7 @@ chat.on('error', (e) => { console.error('chat:', e); killAll(); });
 web.on('exit', (code) => { if (code !== 0 && code !== null) killAll(); });
 chat.on('exit', (code) => { if (code !== 0 && code !== null) killAll(); });
 
-console.log('Web (app-test) → http://127.0.0.1:8080');
-console.log('Chat (chat-test) → http://127.0.0.1:3210');
-console.log('Reverse proxy (túnel) apunta a estos puertos. Ctrl+C para parar.\n');
+console.log('Web (app-dev) → http://127.0.0.1:3220');
+console.log('Chat (chat-dev) → http://127.0.0.1:3210');
+console.log('Túnel (Cloudflare) → https://app-dev.bodasdehoy.com y https://chat-dev.bodasdehoy.com');
+console.log('Ctrl+C para parar.\n');

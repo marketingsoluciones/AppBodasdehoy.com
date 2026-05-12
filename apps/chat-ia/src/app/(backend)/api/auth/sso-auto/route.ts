@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
+
 export const runtime = 'nodejs';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+const BACKEND_URL = resolveServerBackendOrigin();
 
 // Dominios permitidos para redirect (misma lista que login/page.tsx)
 const ALLOWED_REDIRECT_HOSTS = [
@@ -44,14 +46,14 @@ export async function GET(request: NextRequest) {
 
   try {
     const response = await fetch(`${BACKEND_URL}/api/auth/firebase-login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         development,
         device: request.headers.get('user-agent') || 'sso-auto',
         fingerprint: 'sso-auto-server',
         firebaseIdToken: ssoToken,
       }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
     });
 
     const data = await response.json().catch(() => null);

@@ -20,7 +20,15 @@ const MIN_WIDTH = 360;
 /** Por debajo de este ancho el Copilot se muestra como overlay (no comprime el contenido) */
 const MOBILE_BREAKPOINT = 768;
 
-const ChatSidebar: FC = () => {
+type AuthCtx = ReturnType<typeof AuthContextProvider>;
+type EventCtx = ReturnType<typeof EventContextProvider>;
+type ChatSidebarInnerProps = {
+  user: AuthCtx['user'];
+  config: AuthCtx['config'];
+  event: EventCtx['event'];
+};
+
+const ChatSidebarInner: FC<ChatSidebarInnerProps> = ({ user, config, event }) => {
   const { isOpen, width, closeSidebar, setWidth } = useChatSidebar();
   const [viewMode, setViewMode] = useState<'minimal' | 'full'>('minimal');
   const [isMobile, setIsMobile] = useState(false);
@@ -43,12 +51,6 @@ const ChatSidebar: FC = () => {
     }
     return `guest_${Date.now()}`;
   });
-  const authContext = AuthContextProvider();
-  const eventContext = EventContextProvider();
-
-  const user = authContext?.user;
-  const config = authContext?.config;
-  const event = eventContext?.event;
 
   // Solo renderizar si el tenant tiene copilotEnabled o el usuario es admin
   const isAdmin = Array.isArray(user?.role) ? user.role.includes('admin') : user?.role === 'admin';
@@ -423,6 +425,20 @@ const ChatSidebar: FC = () => {
       </AnimatePresence>
     </>
   );
+};
+
+const ChatSidebar: FC = () => {
+  const authContext = AuthContextProvider();
+  const eventContext = EventContextProvider();
+
+  const user = authContext?.user;
+  const config = authContext?.config;
+  const event = eventContext?.event;
+
+  const isAdmin = Array.isArray(user?.role) ? user.role.includes('admin') : user?.role === 'admin';
+  if (config?.copilotEnabled !== true && !isAdmin) return null;
+
+  return <ChatSidebarInner user={user} config={config} event={event} />;
 };
 
 export default memo(ChatSidebar);

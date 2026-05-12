@@ -1,5 +1,5 @@
 import { Form, Formik, FormikValues, useFormikContext } from "formik";
-import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, fetchApiEventos, getApiErrorMessage, queries } from "../../utils/Fetching";
 import { AuthContextProvider, EventsGroupContextProvider, EventContextProvider } from "../../context";
 import InputField from "./InputField";
 import SelectField from "./SelectField";
@@ -8,11 +8,24 @@ import * as yup from "yup";
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useTranslation } from 'react-i18next';
+import { normalizeInvitados, normalizeMenus } from '../../utils/mcpSchemaAdapter';
 import { Event, image } from "../../utils/Interfaces";
 import ModuloSubida, { subir_archivo } from "../Invitaciones/ModuloSubida";
 import { defaultImagenes } from "../Home/Card";
 import SelectWithSearchField from "./SelectWithSearchField";
 import { useDateTime } from "../../hooks/useDateTime";
+import { getAuth } from "firebase/auth";
+
+const TIPO_ENUM_MAP: Record<string, string> = {
+  "cumpleaños": "CUMPLEAÑOS",
+  "boda": "BODA",
+  "babyshower": "BABYSHOWER",
+  "graduación": "GRADUACIÓN",
+  "bautizo": "BAUTIZO",
+  "comunión": "COMUNIÓN",
+  "despedida de soltero": "DESPEDIDA_DE_SOLTERO",
+  "otro": "OTRO",
+};
 
 interface propsFromCrearEvento {
   state: boolean
@@ -79,64 +92,110 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       timeZone: "",
       pais: "",
       poblacion: "",
-      usuario_id: user?.uid,
-      usuario_nombre: user?.displayName,
+      usuario_id: user?.uid || "",
+      usuario_nombre: user?.displayName || user?.email || "",
       imgEvento: undefined
     }
 
   const createEvent = async (values: Partial<Event>) => {
+    let succeeded = false;
     try {
       const imagePreviewUrl = values?.imgEvento
       delete values?.imgEvento
-      
-      // Convertir fecha YYYY-MM-DD a timestamp UTC para evitar desfases de zona horaria
+
       let fechaTimestamp = values.fecha;
       if (values.fecha && typeof values.fecha === 'string') {
-        if (values.fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
-          fechaTimestamp = new Date(values.fecha + 'T00:00:00Z').getTime().toString();
+        const cleaned = values.fecha.split('T')[0]
+        if (cleaned.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          fechaTimestamp = cleaned
         } else if (!isNaN(Number(values.fecha))) {
           fechaTimestamp = values.fecha;
         } else {
           const parsed = new Date(values.fecha).getTime();
-          fechaTimestamp = isNaN(parsed) ? '' : parsed.toString();
+          fechaTimestamp = isNaN(parsed) ? '' : new Date(parsed).toISOString().split('T')[0]
         }
       }
 
-      
-      const event: Partial<Event> = await fetchApiEventos({
+      const usuario_id =
+        (typeof getAuth().currentUser?.uid === "string" && getAuth().currentUser.uid.length ? getAuth().currentUser.uid : null) ||
+        (typeof user?.uid === "string" && user.uid.length ? user.uid : null) ||
+        (typeof (values as any)?.usuario_id === "string" && (values as any).usuario_id.length ? (values as any).usuario_id : null)
+      const usuario_nombre =
+        ((typeof getAuth().currentUser?.displayName === "string" && getAuth().currentUser.displayName.length ? getAuth().currentUser.displayName : null) ||
+          (typeof getAuth().currentUser?.email === "string" && getAuth().currentUser.email.length ? getAuth().currentUser.email : null)) ||
+        (typeof user?.displayName === "string" && user.displayName.length ? user.displayName : null) ||
+        (typeof user?.email === "string" && user.email.length ? user.email : null) ||
+        (typeof (values as any)?.usuario_nombre === "string" && (values as any).usuario_nombre.length ? (values as any).usuario_nombre : null)
+
+      if (!usuario_id || !usuario_nombre) {
+        throw new Error("Falta información de usuario (uid/nombre). Refresca la página e inténtalo de nuevo.")
+      }
+
+      const tipoMapped = TIPO_ENUM_MAP[values.tipo as string] || values.tipo
+      const sanitizedTimeZone = values.timeZone && typeof values.timeZone === 'string'
+        ? values.timeZone.split(/[\d-]/)[0].trim()
+        : values.timeZone
+
+      const input = {
+        nombre: values.nombre,
+        tipo: tipoMapped,
+        fecha: fechaTimestamp,
+        pais: values.pais || "",
+        poblacion: values.poblacion || "",
+        usuario_id,
+        usuario_nombre,
+        timeZone: sanitizedTimeZone,
+        development: config?.development || "bodasdehoy",
+      }
+
+      const result = await fetchApiEventos({
         query: queries.eventCreate,
-        variables: { ...values, fecha: fechaTimestamp, development: config?.development },
+        variables: { input },
       });
-      if (event) {
-        const imgEvento = await subir_archivo({ imagePreviewUrl, event, use: "imgEvento" })
-        const eventWithImg = { ...event, imgEvento }
+
+      if (!result?.success) {
+        const backendErrors = Array.isArray(result?.errors) ? result.errors : []
+        const errorMsg = backendErrors.length
+          ? backendErrors.map((e: any) => `${e.field ?? ''}: ${e.message ?? ''}`).join('; ')
+          : "El servidor rechazó la creación del evento"
+        throw new Error(errorMsg)
+      }
+
+      const createdEvent: Partial<Event> = result?.evento || result
+      if (createdEvent) {
+        createdEvent.invitados_array = normalizeInvitados((createdEvent as any).invitados)
+        createdEvent.menus_array = normalizeMenus((createdEvent as any).menus)
+        const imgEvento = await subir_archivo({ imagePreviewUrl, event: createdEvent, use: "imgEvento" })
+        const eventWithImg = { ...createdEvent, imgEvento }
         setEventsGroup({ type: "ADD_EVENT", payload: eventWithImg });
-        // Persistir en localStorage para que el guest pueda ver el evento tras reload
         if (user?.displayName === 'guest') {
           try {
             const key = `guest_events_${user.uid}`
             const existing = JSON.parse(localStorage.getItem(key) || '[]')
             localStorage.setItem(key, JSON.stringify([...existing, eventWithImg]))
-          } catch { /* ignorar si no hay localStorage */ }
+          } catch { }
         }
-        fetchApiBodas({
+        await fetchApiBodas({
           query: queries.updateUser,
-          variables: {
-            uid: user?.uid,
-            variable: "eventSelected",
-            valor: event?._id
-          },
+          variables: { variable: "eventSelected", valor: createdEvent?._id },
           development: config?.development
         })
-        user.eventSelected = event?._id
+        user.eventSelected = createdEvent?._id
         setUser(user)
+        succeeded = true;
+        toast("success", t("successfullycreatedevent"));
       }
-      toast("success", t("successfullycreatedevent"));
     } catch (error) {
-      toast("error", t("Ha ocurrido un error al crear el evento"));
+      const msg =
+        getApiErrorMessage(error) ||
+        (typeof error?.message === "string" && error.message.length ? error.message : null) ||
+        t("Ha ocurrido un error al crear el evento")
+      toast("error", msg);
     } finally {
-      set(!state);
-      setValir(true)
+      if (succeeded) {
+        set(!state);
+        setValir(true)
+      }
     }
   }
 
@@ -186,7 +245,11 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
         toast("success", t("Evento actualizado con exito"))
       }
     } catch (error) {
-      toast("error", t("Ha ocurrido un error al modificar el evento"));
+      const msg =
+        getApiErrorMessage(error) ||
+        (typeof error?.message === "string" && error.message.length ? error.message : null) ||
+        t("Ha ocurrido un error al modificar el evento")
+      toast("error", msg);
     } finally {
       set(!state);
     }
@@ -200,7 +263,25 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       if (user?.displayName === "guest" && eventsGroup?.length === 0) {
         const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest))
         const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
-        Cookies.set(config?.cookieGuest, JSON.stringify({ ...cookieContent, eventCreated: true }), { domain: `${config?.domain}`, expires: dateExpire })
+        const isLocal =
+          typeof window !== "undefined" &&
+          (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+        const rawDomain = typeof config?.domain === "string" ? config.domain : ""
+        const cookieDomain =
+          rawDomain && !rawDomain.startsWith(".")
+            ? `.${rawDomain.replace(/^https?:\/\//, "").split("/")[0]}`
+            : rawDomain || undefined
+        Cookies.set(
+          config?.cookieGuest,
+          JSON.stringify({ ...cookieContent, eventCreated: true }),
+          {
+            domain: isLocal ? undefined : cookieDomain,
+            expires: dateExpire,
+            path: "/",
+            secure: typeof window !== "undefined" && window.location.protocol === "https:",
+            sameSite: "lax",
+          }
+        )
       }
     }
   };
@@ -221,6 +302,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       initialValues={initialValues}
       onSubmit={handleSubmit}
       validationSchema={validationSchema}
+      enableReinitialize
     >
       {({ isSubmitting, values }) => {
         return (
@@ -285,7 +367,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
               <button
                 disabled={isSubmitting}
                 type="submit"
-                className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 ${isSubmitting ? "bg-secondary" : "bg-primary"
+                className={`font-display rounded-full mt-4 py-2 px-6 text-white font-medium transition w-full hover:opacity-70 relative z-10 ${isSubmitting ? "bg-secondary" : "bg-primary"
                   }`}
               >
                 {t("save")}

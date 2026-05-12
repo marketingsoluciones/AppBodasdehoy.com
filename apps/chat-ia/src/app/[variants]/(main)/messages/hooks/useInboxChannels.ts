@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useChatStore } from '@/store/chat';
-import { getSocialAccounts } from '@/services/api2/smm';
-import type { SMMSocialAccount } from '@/services/api2/smm';
-import { getWhatsAppChannels } from '@/services/api2/whatsapp';
-import type { WhatsAppChannel } from '@/services/api2/whatsapp';
+import { getSocialAccounts } from '@/services/mcpApi/smm';
+import type { SMMSocialAccount } from '@/services/mcpApi/smm';
+import { getWhatsAppChannels } from '@/services/mcpApi/whatsapp';
+import type { WhatsAppChannel } from '@/services/mcpApi/whatsapp';
 import { buildHeaders } from '../utils/auth';
 
 export type ChannelKind =
@@ -39,7 +39,7 @@ export interface EventGroup {
   eventName: string;
 }
 
-export function useInboxChannels() {
+export function useInboxChannels(options?: { enableUnread?: boolean }) {
   const [waChannels, setWaChannels] = useState<WhatsAppChannel[]>([]);
   const [socialAccounts, setSocialAccounts] = useState<SMMSocialAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,6 +49,7 @@ export function useInboxChannels() {
   const userEvents = (useChatStore((s) => s.userEvents) as any[] | undefined) ?? [];
   const userType = useChatStore((s) => s.userType);
   const isGuest = userType === 'guest' || userType === 'visitor';
+  const enableUnread = options?.enableUnread !== false;
 
   const { checkAuth } = useAuthCheck();
   const { development } = checkAuth();
@@ -69,21 +70,52 @@ export function useInboxChannels() {
 
   // Fetch unread counts from conversations (refresh every 60s)
   useEffect(() => {
-    if (isGuest || !development) return;
+    if (isGuest || !enableUnread) return;
 
     const fetchUnread = async () => {
       try {
-        const dev = development;
-        const res = await fetch(`/api/messages/whatsapp/conversations/${dev}`, { headers: buildHeaders() });
-        if (!res.ok) return;
-        const data = await res.json();
-        const list: any[] = Array.isArray(data) ? data : (data.conversations ?? []);
-        // Sum unreadCount per sessionKey/channel
+        const qs = new URLSearchParams({ limit: '50', page: '1' }).toString();
         const counts = new Map<string, number>();
-        for (const conv of list) {
-          const key = conv.sessionKey || 'whatsapp';
-          counts.set(key, (counts.get(key) ?? 0) + (conv.unreadCount || 0));
-        }
+        const sessions =
+          waChannels.length > 0
+            ? waChannels.map((ch) => ch.sessionKey || ch.id || ch.development)
+            : [development || 'bodasdehoy'];
+
+        const mapWithConcurrency = async <T, R>(
+          items: T[],
+          concurrency: number,
+          fn: (item: T) => Promise<R>,
+        ): Promise<R[]> => {
+          if (items.length === 0) return [];
+          const results: R[] = [];
+          let idx = 0;
+          const workers = Array.from({ length: Math.min(concurrency, items.length) }).map(async () => {
+            while (idx < items.length) {
+              const cur = items[idx++];
+              results.push(await fn(cur));
+            }
+          });
+          await Promise.all(workers);
+          return results;
+        };
+
+        await mapWithConcurrency(
+          sessions.filter(Boolean),
+          2,
+          async (sessionId) => {
+            const res = await fetch(
+              `/api/messages/whatsapp/conversations/${encodeURIComponent(String(sessionId))}?${qs}`,
+              { headers: buildHeaders() },
+            );
+            if (!res.ok) return;
+            const data = await res.json();
+            const list: any[] = Array.isArray(data) ? data : (data.conversations ?? []);
+            for (const conv of list) {
+              counts.set(String(sessionId), (counts.get(String(sessionId)) ?? 0) + (conv.unreadCount || 0));
+            }
+          },
+        );
+
         setUnreadByChannel(counts);
       } catch {
         // ignore — badge just stays at 0
@@ -93,21 +125,21 @@ export function useInboxChannels() {
     fetchUnread();
     const interval = setInterval(fetchUnread, 60_000);
     return () => clearInterval(interval);
-  }, [isGuest, development]);
+  }, [enableUnread, isGuest, development, waChannels]);
 
-  // External channels — WhatsApp (real from api2) + social (placeholders)
+  // External channels — WhatsApp (real from MCP) + social (placeholders)
   const externalChannels: InboxChannel[] = [
     ...waChannels.map((ch) => ({
       id: `wa-${ch.id}`,
       kind: 'whatsapp' as const,
-      label: ch.displayName || ch.phoneNumber || ch.name,
+      label: ch.phoneNumber ? `${ch.name} · +${ch.phoneNumber}` : (ch.displayName || ch.name),
       status:
         ch.status === 'ACTIVE'
           ? ('connected' as const)
           : ch.status === 'CONNECTING'
             ? ('connecting' as const)
             : ('disconnected' as const),
-      unread: unreadByChannel.get(ch.sessionKey || ch.name || '') ?? 0,
+      unread: unreadByChannel.get(ch.sessionKey || ch.id || ch.development || '') ?? 0,
     })),
     // If no WA channels configured yet, show a "connect" entry
     ...(waChannels.length === 0 && !loading

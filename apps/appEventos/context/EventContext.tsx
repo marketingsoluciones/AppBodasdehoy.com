@@ -95,7 +95,12 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
           const eventsGroupSort = [...eventsPendientes].sort((a: any, b: any) => {
             return b.fecha_creacion - a.fecha_creacion
           })
-          let eventSelected = eventsGroupSort?.find(elem => elem._id === user?.eventSelected)
+          // Prioridad: localStorage (selección más reciente) > user.eventSelected (BD, puede estar desactualizado)
+          const savedEventId = typeof window !== 'undefined' ? localStorage.getItem('appEventos_activeEventId') : null
+          let eventSelected = savedEventId ? eventsGroup.find(elem => elem._id === savedEventId) : null
+          if (!eventSelected && user?.eventSelected) {
+            eventSelected = eventsGroupSort?.find(elem => elem._id === user?.eventSelected)
+          }
           if (!eventSelected && user?.eventSelected) {
             eventSelected = eventsGroup.find(elem => elem._id === user?.eventSelected)
           }
@@ -113,9 +118,10 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
                 query: queries.eventUpdate,
                 variables: { idEvento: eventSelected?._id, variable: "timeZone", value: defaultTimeZone },
                 token: null
-              })
+              }).catch(() => {})
             }
             setEvent({ ...eventSelected });
+            if (typeof window !== 'undefined') localStorage.setItem('appEventos_activeEventId', eventSelected._id)
           }
         } else {
           let eventSelected = eventsGroup[0]
@@ -126,9 +132,10 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
               query: queries.eventUpdate,
               variables: { idEvento: eventSelected?._id, variable: "timeZone", value: defaultTimeZone },
               token: null
-            })
+            }).catch(() => {})
           }
           setEvent({ ...eventSelected });
+          if (typeof window !== 'undefined') localStorage.setItem('appEventos_activeEventId', eventSelected._id)
         }
         eventsGroup[0] && setValir(true)
       } else if (user?.eventSelected && (!event?._id || user.eventSelected !== event?._id)) {
@@ -151,7 +158,6 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
       query: queries.getPlanSpaceSelect,
       variables: {
         evento_id: event._id,
-        isOwner: user?.uid === event?.usuario_id
       },
     }).then(res => {
       setPlanSpaceSelect(res ? res as string : event?.planSpace[0]?._id)

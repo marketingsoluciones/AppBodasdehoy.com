@@ -8,6 +8,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!url) {
     return res.status(400).json({ error: 'URL es requerida' });
   }
+
+  // Allowlist de dominios para evitar SSRF
+  const ALLOWED_DOMAINS = [
+    'bodasdehoy.com',
+    'eventosorganizador.com',
+    'champagne-events.com.mx',
+    'mercurycloud.mx',
+  ];
+  try {
+    const parsedUrl = new URL(url);
+    const isAllowed = ALLOWED_DOMAINS.some(d => parsedUrl.hostname === d || parsedUrl.hostname.endsWith('.' + d));
+    if (!isAllowed) {
+      return res.status(403).json({ error: 'Dominio no permitido para generación de PDF' });
+    }
+  } catch {
+    return res.status(400).json({ error: 'URL inválida' });
+  }
+
   try {
     const response = await fetch("https://api-convert.bodasdehoy.com/url-to-pdf", {
       method: 'POST',

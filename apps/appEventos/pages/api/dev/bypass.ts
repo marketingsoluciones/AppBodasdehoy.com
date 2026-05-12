@@ -11,12 +11,24 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Solo permitir en desarrollo o subdominios de test
-  const host = req.headers.host || ''
-  const isDevOrTest = host.includes('localhost') || host.includes('chat-test') || host.includes('app-test') || host.includes('test')
+  // Bloquear en producción siempre
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ error: 'Not found' })
+  }
 
-  if (!isDevOrTest && process.env.NODE_ENV === 'production') {
-    return res.status(403).json({ error: 'This endpoint is only available in development/test environments' })
+  // Solo permitir en localhost (desarrollo local)
+  const host = req.headers.host || ''
+  const isLocalhost = host.startsWith('localhost') || host.startsWith('127.0.0.1')
+  if (!isLocalhost) {
+    return res.status(403).json({ error: 'Bypass only available on localhost' })
+  }
+
+  // Requiere secret para evitar uso accidental
+  const secret = req.query.secret || req.headers['x-dev-secret']
+  if (secret !== process.env.DEV_BYPASS_SECRET && !process.env.DEV_BYPASS_SECRET) {
+    // Si no hay DEV_BYPASS_SECRET configurado, permitir solo en localhost (ya validado arriba)
+  } else if (secret !== process.env.DEV_BYPASS_SECRET) {
+    return res.status(403).json({ error: 'Invalid secret' })
   }
 
   // Obtener email del query string o usar el por defecto

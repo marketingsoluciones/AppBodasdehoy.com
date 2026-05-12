@@ -20,7 +20,7 @@
 
 import { test, expect, Page } from '@playwright/test';
 import { TEST_URLS } from './fixtures';
-import { clearSession } from './helpers';
+import { clearSession, navigateToModule } from './helpers';
 import { ISABEL_RAUL_EVENT } from './fixtures/isabel-raul-event';
 
 // ── Constantes ─────────────────────────────────────────────────────────────────
@@ -59,7 +59,7 @@ test.beforeAll(async ({ browser }) => {
       () => !/Cargando eventos/i.test(document.body.innerText ?? ''),
       { timeout: 15_000 },
     ).catch(() => {});
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await navigateToModule(page, 'presupuesto');
     await page.waitForFunction(
       () => {
         const t = document.body.innerText ?? '';
@@ -409,7 +409,7 @@ test.describe('BATCH PRE — Presupuesto × Roles', () => {
     }
 
     await clearSession(context, page);
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await navigateToModule(page, 'presupuesto');
 
     let finalUrl = page.url();
     let bodyText = '';

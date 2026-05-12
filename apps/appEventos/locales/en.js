@@ -854,5 +854,8 @@ export const en = {
     'Cargando': 'Loading',
     'ago': 'ago',
     'disabledtoSend': 'It is not possible to send the email to all selected guests, because some do not have a registered email',
+    'home_eventsLoadFailedTitle': 'Could not load events',
+    'home_eventsLoadFailedBody': 'The server is not responding. Check your connection or try again in a few minutes.',
+    'home_eventsLoadFailedRetry': 'Retry',
   }
 }

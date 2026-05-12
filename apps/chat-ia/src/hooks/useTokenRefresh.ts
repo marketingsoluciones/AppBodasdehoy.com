@@ -1,6 +1,6 @@
 /**
  * Hook para renovación automática del JWT token antes de que expire
- * 
+ *
  * Características:
  * - Verifica el token cada 5 minutos
  * - Renueva automáticamente cuando quedan menos de 2 días
@@ -35,6 +35,32 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:803
 const CHECK_INTERVAL_MS = 5 * 60 * 1000; // Verificar cada 5 minutos
 const REFRESH_THRESHOLD_MS = 2 * 24 * 60 * 60 * 1000; // Renovar cuando quedan menos de 2 días
 
+/**
+ * Generar fingerprint del dispositivo
+ */
+function generateFingerprint(): string {
+  const nav = navigator;
+  const screen = window.screen;
+  const fingerprint = [
+    nav.userAgent,
+    nav.language,
+    screen.colorDepth,
+    screen.width,
+    screen.height,
+    new Date().getTimezoneOffset(),
+  ].join('|');
+
+  // Simple hash function
+  let hash = 0;
+  for (let i = 0; i < fingerprint.length; i++) {
+    const char = fingerprint.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+
+  return Math.abs(hash).toString(36);
+}
+
 export const useTokenRefresh = () => {
   const [status, setStatus] = useState<TokenRefreshStatus>({
     daysUntilExpiry: null,
@@ -43,7 +69,7 @@ export const useTokenRefresh = () => {
     nextRefresh: null,
   });
 
-  const intervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const isRefreshingRef = useRef(false);
 
   /**
@@ -99,7 +125,7 @@ export const useTokenRefresh = () => {
   }, []);
 
   /**
-   * Renovar JWT de API2 usando Firebase token
+   * Renovar JWT de MCP usando Firebase token
    */
   const refreshJWT = useCallback(async (silent: boolean = true): Promise<boolean> => {
     if (isRefreshingRef.current) {
@@ -124,7 +150,7 @@ export const useTokenRefresh = () => {
       // Obtener development actual
       const development = localStorage.getItem('current_development') || 'bodasdehoy';
 
-      // Intercambiar por JWT de API2
+      // Intercambiar por JWT de MCP
       const response = await fetch(`${BACKEND_URL}/api/auth/firebase-login`, {
         body: JSON.stringify({
           development,
@@ -149,7 +175,7 @@ export const useTokenRefresh = () => {
       const data = await response.json();
 
       if (!data.success || !data.token) {
-        console.error('❌ API2 no devolvió token válido');
+        console.error('❌ MCP no devolvió token válido');
         if (!silent) {
           message.error({ content: 'No se pudo renovar la sesión', key: 'token-refresh' });
         }
@@ -157,13 +183,15 @@ export const useTokenRefresh = () => {
       }
 
       // Guardar nuevo token
+      localStorage.setItem('mcp_jwt_token', data.token);
+      localStorage.setItem('mcp_jwt_expires_at', data.expiresAt);
       localStorage.setItem('api2_jwt_token', data.token);
       localStorage.setItem('api2_jwt_expires_at', data.expiresAt);
 
       console.log('✅ JWT renovado exitosamente. Expira:', data.expiresAt);
 
       // Notificar al ReloginBanner para que se oculte
-      window.dispatchEvent(new CustomEvent('api2:token-refreshed'));
+      window.dispatchEvent(new CustomEvent('mcp:token-refreshed'));
 
       if (!silent) {
         message.success({ content: 'Sesión renovada correctamente', key: 'token-refresh' });
@@ -190,8 +218,9 @@ export const useTokenRefresh = () => {
     setStatus(prev => ({ ...prev, isChecking: true }));
 
     try {
-      const token = localStorage.getItem('api2_jwt_token');
-      const expiresAtStr = localStorage.getItem('api2_jwt_expires_at');
+      const token = localStorage.getItem('mcp_jwt_token') || localStorage.getItem('api2_jwt_token');
+      const expiresAtStr =
+        localStorage.getItem('mcp_jwt_expires_at') || localStorage.getItem('api2_jwt_expires_at');
 
       if (!token || !expiresAtStr) {
         console.log('⚠️ No hay JWT en localStorage');
@@ -229,7 +258,7 @@ export const useTokenRefresh = () => {
       if (msUntilExpiry < REFRESH_THRESHOLD_MS) {
         console.log(`🔄 Token próximo a expirar (${daysUntilExpiry.toFixed(1)} días), renovando...`);
         const success = await refreshJWT(true);
-        
+
         if (success) {
           message.success('Tu sesión se ha renovado automáticamente');
         }
@@ -269,7 +298,7 @@ export const useTokenRefresh = () => {
   const manualRefresh = useCallback(async () => {
     message.loading({ content: 'Renovando sesión...', duration: 0, key: 'manual-refresh' });
     const success = await refreshJWT(false);
-    
+
     if (success) {
       message.success({ content: 'Sesión renovada correctamente', key: 'manual-refresh' });
       await checkTokenExpiry(); // Actualizar estado
@@ -286,32 +315,6 @@ export const useTokenRefresh = () => {
     status,
   };
 };
-
-/**
- * Generar fingerprint del dispositivo
- */
-function generateFingerprint(): string {
-  const nav = navigator;
-  const screen = window.screen;
-  const fingerprint = [
-    nav.userAgent,
-    nav.language,
-    screen.colorDepth,
-    screen.width,
-    screen.height,
-    new Date().getTimezoneOffset(),
-  ].join('|');
-
-  // Simple hash function
-  let hash = 0;
-  for (let i = 0; i < fingerprint.length; i++) {
-    const char = fingerprint.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-
-  return Math.abs(hash).toString(36);
-}
 
 /**
  * ============================================
@@ -381,6 +384,8 @@ export async function refreshJWTStandalone(silent: boolean = true): Promise<bool
     const data = await response.json();
     if (!data.success || !data.token) return false;
 
+    localStorage.setItem('mcp_jwt_token', data.token);
+    localStorage.setItem('mcp_jwt_expires_at', data.expiresAt);
     localStorage.setItem('api2_jwt_token', data.token);
     localStorage.setItem('api2_jwt_expires_at', data.expiresAt);
 
@@ -388,7 +393,7 @@ export async function refreshJWTStandalone(silent: boolean = true): Promise<bool
     localStorage.setItem('jwt_token', data.token);
 
     // Notificar al ReloginBanner para que se oculte
-    window.dispatchEvent(new CustomEvent('api2:token-refreshed'));
+    window.dispatchEvent(new CustomEvent('mcp:token-refreshed'));
 
     // ✅ Actualizar token en dev-user-config si existe
     try {
@@ -475,7 +480,4 @@ export async function withSessionRetry<T>(
 
   throw lastError;
 }
-
-
-
 

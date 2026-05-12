@@ -9,8 +9,9 @@ import { useBilling } from '@/hooks/useBilling';
 import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useWallet } from '@/hooks/useWallet';
 import { useChatStore } from '@/store/chat';
+import { safeLocalStorage } from '@/utils/safeLocalStorage';
 import { canAccessDaily, isUnlimited, usagePercent } from '@bodasdehoy/shared/plans';
-import type { UsageStats } from '@/services/api2/invoices';
+import type { UsageStats } from '@/services/mcpApi/invoices';
 
 /**
  * Banner above chat input showing quota warnings.
@@ -22,29 +23,59 @@ const QuotaBanner = memo(() => {
   const currentUserId = useChatStore((s) => s.currentUserId);
   const isGuest = !currentUserId || currentUserId === 'visitante@guest.local';
   const { plan, loading: planLoading } = usePlanLimits();
-  const { usageStats, usageStatsLoading, fetchUsageStats } = useBilling();
+  const { usageStats, usageStatsLoading } = useBilling();
   const { isCreditExhausted, totalBalance, creditLimit, loading: walletLoading } = useWallet();
   const [todayStats, setTodayStats] = useState<UsageStats | null>(null);
-
-  useEffect(() => {
-    if (!isGuest) {
-      fetchUsageStats('TODAY').then(() => {}).catch(() => {});
-    }
-  }, [isGuest, fetchUsageStats]);
 
   // Fetch today stats separately
   useEffect(() => {
     if (isGuest) return;
-    import('@/services/api2/invoices').then(({ invoicesService }) => {
-      invoicesService.getUsageStats('TODAY').then((res) => {
-        if (res.success && res.stats) setTodayStats(res.stats);
-      }).catch(() => {});
-    });
+
+    const hasApi2Token = () => {
+      const directToken = safeLocalStorage.getItem('jwt_token');
+      if (directToken) return true;
+
+      const firebaseToken = safeLocalStorage.getItem('api2_jwt_token');
+      if (firebaseToken) return true;
+
+      const cache = safeLocalStorage.getItem('jwt_token_cache');
+      if (!cache) return false;
+
+      try {
+        const parsed = JSON.parse(cache);
+        const token = parsed?.token;
+        const expiresAt = parsed?.expiresAt;
+        if (!token || !expiresAt) return false;
+        return Date.now() < Number(expiresAt);
+      } catch {
+        return false;
+      }
+    };
+
+    const run = () => {
+      if (!hasApi2Token()) return;
+      import('@/services/mcpApi/invoices')
+        .then(({ invoicesService }) => invoicesService.getUsageStats('TODAY'))
+        .then((res) => {
+          if (res.success && res.stats) setTodayStats(res.stats);
+        })
+        .catch(() => {});
+    };
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const id = (window as any).requestIdleCallback(run, { timeout: 2500 });
+      return () => {
+        (window as any).cancelIdleCallback?.(id);
+      };
+    }
+
+    const t = setTimeout(run, 1500);
+    return () => clearTimeout(t);
   }, [isGuest]);
 
   if (isGuest || planLoading || usageStatsLoading || walletLoading || !plan) return null;
 
-  const aiLimit = plan.product_limits.find((l) => l.sku === 'ai-tokens');
+  const aiLimit = plan.product_limits?.find?.((l) => l.sku === 'ai-tokens');
   if (!aiLimit || isUnlimited('ai-tokens', aiLimit.free_quota)) return null;
 
   // --- Límite diario ---

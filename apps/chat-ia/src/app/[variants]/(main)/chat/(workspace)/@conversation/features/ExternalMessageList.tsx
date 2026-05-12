@@ -21,7 +21,6 @@ const useStyles = createStyles(({ css, token }) => ({
     border-radius: 50%;
   `,
   container: css`
-    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -184,4 +183,3 @@ const ExternalMessageList = memo<ExternalMessageListProps>(
 ExternalMessageList.displayName = 'ExternalMessageList';
 
 export default ExternalMessageList;
-

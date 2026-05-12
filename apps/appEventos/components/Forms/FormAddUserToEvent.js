@@ -127,7 +127,7 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) 
         <div className={`flex flex-col space-y-1 mb-5 md:mb-0 `}>
             {/* <label className="text-primary">{t("addperson")}</label> */}
             <div className="relative">
-                <div onKeyUp={(e) => { if (!separators.includes(e.key)) { error && setError(null) } }} >
+                <div onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { const val = e.target?.value?.trim(); if (val && beforeAddValidate(val)) { e.preventDefault(); const newUsers = [...users, val.toLowerCase()]; setUsers(newUsers); e.target.value = ''; setCurrentInputValue(''); } } }} onKeyUp={(e) => { if (!separators.includes(e.key)) { error && setError(null) } }} >
                     <TagsInput
                         value={users}
                         onChange={handleSubmit}

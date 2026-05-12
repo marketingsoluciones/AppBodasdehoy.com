@@ -16,6 +16,9 @@ const SessionHydration = memo(() => {
   const useChatStoreUpdater = createStoreUpdater(useChatStore);
   const [switchTopic] = useChatStore((s) => [s.switchTopic]);
 
+  const storageKey =
+    'LobeChat_LastSession_' + (process.env.NEXT_PUBLIC_DEVELOPMENT || process.env.NEXT_PUBLIC_WHITELABEL || 'default');
+
   // two-way bindings the url and session store
   const [session, setSession] = useQueryState(
     'session',
@@ -26,18 +29,25 @@ const SessionHydration = memo(() => {
   useChatStoreUpdater('activeId', session);
 
   useEffect(() => {
+    const hasSessionParam = new URLSearchParams(window.location.search).has('session');
+    if (!hasSessionParam) {
+      const stored = window.localStorage.getItem(storageKey);
+      if (stored && stored !== 'inbox') setSession(stored);
+    }
+
     const unsubscribe = useSessionStore.subscribe(
       (s) => s.activeId,
       (state) => {
         switchTopic();
         setSession(state);
+        if (state && state !== 'inbox') window.localStorage.setItem(storageKey, state);
       },
     );
 
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [setSession, storageKey, switchTopic]);
 
   return null;
 });

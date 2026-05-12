@@ -1,0 +1,40 @@
+---
+description: Usuario JCC / cuenta E2E multi-marca (Bodas de Hoy, Eventos Organizador, Marketing Soluciones) para todos los agentes
+alwaysApply: true
+---
+
+# Cuenta operador E2E / QA (JCC) — multi-marca
+
+## Quién es «JCC» en este monorepo
+
+- **No** se trata solo del dominio **bodasdehoy**. El mismo operador de pruebas / owner transversal (**JCC**) puede autenticarse y operar en **varios whitelabels / marcas** del ecosistema.
+- En scripts E2E, variables como `TEST_USER_EMAIL` / `E2E_USER_EMAIL` pueden apuntar a **cualquiera** de los correos corporativos válidos del operador, según el entorno o la app que se pruebe. **No asumir** que la única cuenta relevante sea `@bodasdehoy.com`.
+
+## Correos de referencia (misma persona, distintas marcas)
+
+Usar la ortografía real del dominio (si en chat aparece un typo, corregir antes de pegar en `.env`):
+
+| Marca / contexto | Email típico |
+|------------------|--------------|
+| Bodas de Hoy | `jcc@bodasdehoy.com` |
+| Eventos Organizador | `jcc@eventosorganizador.com` |
+| Marketing Soluciones | `jcc@marketingsoluciones.com` |
+
+- **Dominios canónicos (TLD `.com`):** `bodasdehoy.com`, `eventosorganizador.com`, `marketingsoluciones.com`. No inventar variantes en `.env` salvo que el usuario confirme un dominio distinto en producción.
+
+> Si el usuario escribe `marketingsoluones`, interpretar como **`marketingsoluciones`** salvo confirmación explícita de otro dominio.
+
+## Checklist si fallan tests que usan api-ia / JWT (dev)
+
+- En **`.env.e2e.dev.local`**, el **email** usado en login (`TEST_USER_EMAIL`, etc.) debe ser **coherente** con el `sub` / claims del **`E2E_API_IA_JWT`** (misma identidad que emitió el token). Si cambiaste de `jcc@bodasdehoy.com` a otro alias de marca, **regenerar el JWT** para ese usuario; un token viejo suele dar 401 o datos inconsistentes.
+
+## Implicaciones para agentes
+
+- **API2 / GraphQL**, Firebase, Clerk y dominios de desarrollo pueden variar (`development` / slug: `bodasdehoy`, `eventosorganizador`, `champagne-events`, etc.). Las credenciales en **`.env.e2e.*.local`** (raíz, no versionadas) deben coincidir con la **marca y el backend** que se esté probando.
+- **No** versionar contraseñas ni tokens. Plantilla: **`.env.e2e.credentials.example`** → copiar a `.env.e2e.test.local` / `.env.e2e.dev.local` y rellenar en local.
+- Scripts que exigen email (p. ej. `USER_EMAIL` en baterías API) deben recibirlo por **env**, no hardcodear un solo dominio como única verdad.
+
+## Dónde está documentado el flujo E2E técnico
+
+- Índice para agentes (raíz): **`AGENTS.md`**.
+- Regla complementaria: **`.cursor/rules/app-test-chat-test.mdc`** (WebKit, `with-root-e2e-env.sh`, `pnpm test:e2e:*`, `apps/appEventos/scripts/`).

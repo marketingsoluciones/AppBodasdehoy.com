@@ -10,6 +10,29 @@ interface MessageListProps {
   searchFilter?: string;
 }
 
+interface InternalNote {
+  author?: string;
+  id: string;
+  text: string;
+  timestamp: string;
+}
+
+const INTERNAL_NOTES_KEY_PREFIX = 'internal-notes-';
+
+function getInternalNotesKey(conversationId: string): string {
+  return `${INTERNAL_NOTES_KEY_PREFIX}${conversationId}`;
+}
+
+function loadInternalNotes(conversationId: string): InternalNote[] {
+  try {
+    const raw = localStorage.getItem(getInternalNotesKey(conversationId));
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? (parsed as InternalNote[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 function formatDateDivider(dateStr: string): string {
   const date = new Date(dateStr);
   const now = new Date();
@@ -66,13 +89,45 @@ function groupMessages(messages: Message[]): MessageGroup[] {
 
 export function MessageList({ channel, conversationId, searchFilter }: MessageListProps) {
   const { messages, loading, error } = useMessages(channel, conversationId);
+  const [internalNotes, setInternalNotes] = useState<InternalNote[]>([]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setInternalNotes(loadInternalNotes(conversationId));
+  }, [conversationId]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = (e: Event) => {
+      const ce = e as CustomEvent<{ conversationId?: string }>;
+      if (ce.detail?.conversationId && ce.detail.conversationId !== conversationId) return;
+      setInternalNotes(loadInternalNotes(conversationId));
+    };
+    window.addEventListener('internal-notes-updated', handler);
+    return () => window.removeEventListener('internal-notes-updated', handler);
+  }, [conversationId]);
+
+  const mergedMessages = useMemo(() => {
+    const notesAsMessages: Message[] = internalNotes.map((n) => ({
+      author: n.author,
+      fromUser: false,
+      id: n.id,
+      kind: 'internal_note',
+      text: n.text,
+      timestamp: n.timestamp,
+    }));
+
+    const all = [...messages, ...notesAsMessages];
+    all.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    return all;
+  }, [internalNotes, messages]);
 
   // Filter messages by search term
   const filteredMessages = useMemo(() => {
-    if (!searchFilter?.trim()) return messages;
+    if (!searchFilter?.trim()) return mergedMessages;
     const q = searchFilter.toLowerCase();
-    return messages.filter((m) => m.text.toLowerCase().includes(q));
-  }, [messages, searchFilter]);
+    return mergedMessages.filter((m) => m.text.toLowerCase().includes(q));
+  }, [mergedMessages, searchFilter]);
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isInitialLoad = useRef(true);
@@ -104,11 +159,11 @@ export function MessageList({ channel, conversationId, searchFilter }: MessageLi
       messagesEndRef.current?.scrollIntoView({ behavior: isInitialLoad.current ? 'auto' : 'smooth' });
       isInitialLoad.current = false;
       setNewMessageCount(0);
-    } else if (messages.length > prevMessageCount.current) {
-      setNewMessageCount((c) => c + (messages.length - prevMessageCount.current));
+    } else if (mergedMessages.length > prevMessageCount.current) {
+      setNewMessageCount((c) => c + (mergedMessages.length - prevMessageCount.current));
     }
-    prevMessageCount.current = messages.length;
-  }, [messages, isNearBottom]);
+    prevMessageCount.current = mergedMessages.length;
+  }, [mergedMessages, isNearBottom]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

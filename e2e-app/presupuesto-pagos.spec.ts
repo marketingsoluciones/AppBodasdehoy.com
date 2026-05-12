@@ -12,7 +12,7 @@
  *   - Exportar presupuesto (botón existe)
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, loginAndSelectEvent, waitForAppReady } from './helpers';
+import { clearSession, loginAndSelectEvent, waitForAppReady, assertNoRuntimeError, navigateToModule } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
@@ -41,13 +41,19 @@ test.describe('Presupuesto — /resumen-evento', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
+    await assertNoRuntimeError(page);
   });
 
   test('muestra bloque de presupuesto con cifras €', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/resumen-evento`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'resumen');
+    expect(navigated, 'Botón "Resumen" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(4000);
 
@@ -62,7 +68,8 @@ test.describe('Presupuesto — /resumen-evento', () => {
   test('columnas estimado y pagado/gastado visibles', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/resumen-evento`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'resumen');
+    expect(navigated, 'Botón "Resumen" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(4000);
 
@@ -88,13 +95,19 @@ test.describe('Presupuesto — /presupuesto página principal', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
+    await assertNoRuntimeError(page);
   });
 
   test('carga sin crash y muestra tabla con categorías o estado vacío', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -113,7 +126,8 @@ test.describe('Presupuesto — /presupuesto página principal', () => {
   test('total general visible con cifra numérica', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -135,7 +149,8 @@ test.describe('Presupuesto — /presupuesto página principal', () => {
   test('botón añadir categoría/gasto disponible', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -144,22 +159,17 @@ test.describe('Presupuesto — /presupuesto página principal', () => {
     }).first();
 
     const hasAddButton = await addBtn.isVisible({ timeout: 5_000 }).catch(() => false);
-    if (hasAddButton) {
-      console.log('✅ Botón de añadir categoría/gasto visible');
-    } else {
-      console.log('ℹ️ Botón añadir no encontrado con ese texto — puede tener icono +');
-      // Buscar por icono +
-      const plusBtn = page.locator('button[class*="add"], button[class*="create"], [aria-label*="añadir"]');
-      const hasPlusBtn = await plusBtn.count() > 0;
-      console.log(`Botón + por clase/aria: ${hasPlusBtn}`);
-    }
+    const plusBtn = page.locator('button[class*="add"], button[class*="create"], [aria-label*="añadir"]');
+    const hasPlusBtn = !hasAddButton && await plusBtn.count() > 0;
+    expect(hasAddButton || hasPlusBtn, 'BUG_PRODUCTO: ningún botón añadir categoría/gasto visible (ni texto ni icono)').toBe(true);
   });
 
   // 1.6.10 — Exportar presupuesto a Excel (ExportExcelPresupuesto)
   test('botón exportar presupuesto a Excel existe y abre sin crash', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -179,15 +189,13 @@ test.describe('Presupuesto — /presupuesto página principal', () => {
       expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
       if (download) {
         const filename = download.suggestedFilename();
-        console.log(`✅ Descarga Excel iniciada: ${filename}`);
         expect(filename).toMatch(/\.(xlsx|csv|xls)$/i);
-      } else {
-        console.log('✅ Botón exportar clickado sin crash (descarga no capturada)');
       }
+      // Sin crash en click es válido aunque no se capture la descarga
     } else {
-      console.log('ℹ️ Botón exportar no visible — puede estar en menú de opciones o sin partidas');
       const text = (await page.locator('body').textContent()) ?? '';
       expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      throw new Error('BUG_PRODUCTO: botón exportar Excel no visible en /presupuesto (esperado al menos opción menú o icono)');
     }
   });
 
@@ -195,7 +203,8 @@ test.describe('Presupuesto — /presupuesto página principal', () => {
   test('duplicar presupuesto de evento anterior — modal abre y muestra lista de eventos', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -205,27 +214,23 @@ test.describe('Presupuesto — /presupuesto página principal', () => {
       .filter({ hasText: /importar|duplicar|copiar.*evento|desde.*evento|duplicate/i })
       .first();
 
-    if (await importBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await importBtn.click().catch(() => {});
-      await page.waitForTimeout(1200);
-      const text = (await page.locator('body').textContent()) ?? '';
-      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
-      const hasModal = /evento|duplicar|importar|selecciona|categoría/i.test(text);
-      console.log(`✅ Modal duplicar presupuesto: visible=${hasModal}`);
-      // Cerrar modal sin hacer cambios
-      const cancelBtn = page
-        .locator('button, [role="button"]')
-        .filter({ hasText: /cancelar|cancel|cerrar/i })
-        .first();
-      if (await cancelBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {
-        await cancelBtn.click().catch(() => {});
-      } else {
-        await page.keyboard.press('Escape');
-      }
+    await expect(importBtn, 'BUG_PRODUCTO: botón duplicar/importar presupuesto no visible').toBeVisible({ timeout: 5_000 });
+    await importBtn.click();
+    await page.waitForTimeout(1200);
+    const text = (await page.locator('body').textContent()) ?? '';
+    expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+    const hasModal = /evento|duplicar|importar|selecciona|categoría/i.test(text);
+    expect(hasModal, 'BUG_PRODUCTO: modal duplicar presupuesto no muestra contenido esperado').toBe(true);
+
+    // Cerrar modal sin hacer cambios
+    const cancelBtn = page
+      .locator('button, [role="button"]')
+      .filter({ hasText: /cancelar|cancel|cerrar/i })
+      .first();
+    if (await cancelBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {
+      await cancelBtn.click();
     } else {
-      console.log('ℹ️ Botón duplicar presupuesto no detectado — puede estar en menú contextual');
-      const text = (await page.locator('body').textContent()) ?? '';
-      expect(text).not.toMatch(/Error Capturado por ErrorBoundary/);
+      await page.keyboard.press('Escape');
     }
   });
 });
@@ -240,13 +245,19 @@ test.describe('Presupuesto — Crear categoría y gasto', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
+    await assertNoRuntimeError(page);
   });
 
   test('crear categoría E2E → visible en la lista', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -255,21 +266,12 @@ test.describe('Presupuesto — Crear categoría y gasto', () => {
       hasText: /nueva categoría|add category|añadir categoría|nueva/i,
     }).first();
 
-    if (!await newCatBtn.isVisible({ timeout: 8_000 }).catch(() => false)) {
-      console.log('ℹ️ Botón de nueva categoría no encontrado — puede requerir scroll o diferente UI');
-      return;
-    }
-
+    await expect(newCatBtn, 'BUG_PRODUCTO: botón nueva categoría no visible en /presupuesto').toBeVisible({ timeout: 8_000 });
     await newCatBtn.click();
     await page.waitForTimeout(1500);
 
-    // Rellenar nombre de categoría en el modal/formulario
     const nameInput = page.locator('input[placeholder*="nombre"], input[placeholder*="categoría"], input[type="text"]').first();
-    if (!await nameInput.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      console.log('ℹ️ Input de nombre no encontrado');
-      return;
-    }
-
+    await expect(nameInput, 'BUG_PRODUCTO: input nombre categoría no visible tras click crear').toBeVisible({ timeout: 5_000 });
     await nameInput.fill(CAT_NAME);
     await page.waitForTimeout(500);
 
@@ -288,20 +290,17 @@ test.describe('Presupuesto — Crear categoría y gasto', () => {
 
     // Verificar que aparece en la lista
     const catEl = page.getByText(CAT_NAME, { exact: false });
-    const isVisible = await catEl.first().isVisible({ timeout: 8_000 }).catch(() => false);
-
-    if (isVisible) {
-      console.log(`✅ Categoría "${CAT_NAME}" creada y visible`);
-      await expect(catEl.first()).toBeVisible();
-    } else {
-      console.log(`ℹ️ Categoría no encontrada visualmente — puede estar en otro orden`);
-    }
+    await expect(
+      catEl.first(),
+      `BUG_PRODUCTO: categoría "${CAT_NAME}" creada pero NO visible (mutation falló silente o UI no refrescó)`
+    ).toBeVisible({ timeout: 8_000 });
   });
 
   test('crear gasto E2E con importe → visible en tabla', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -310,21 +309,19 @@ test.describe('Presupuesto — Crear categoría y gasto', () => {
       hasText: /nuevo gasto|nueva partida|añadir gasto|add expense/i,
     }).first();
 
-    if (!await newGastoBtn.isVisible({ timeout: 8_000 }).catch(() => false)) {
-      // Intentar expandir la primera categoría y añadir gasto desde allí
+    const newGastoVisible = await newGastoBtn.isVisible({ timeout: 8_000 }).catch(() => false);
+    if (!newGastoVisible) {
       const expandBtn = page.locator('[class*="category"], [class*="categoria"]').first()
         .locator('button').filter({ hasText: /\+|añadir|add/i }).first();
-
-      if (!await expandBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-        console.log('ℹ️ No se encontró botón de añadir gasto');
-        return;
-      }
+      await expect(
+        expandBtn,
+        'BUG_PRODUCTO: ningún botón añadir gasto/partida visible (ni global ni dentro de categoría)'
+      ).toBeVisible({ timeout: 5_000 });
       await expandBtn.click();
-      await page.waitForTimeout(1000);
     } else {
       await newGastoBtn.click();
-      await page.waitForTimeout(1000);
     }
+    await page.waitForTimeout(1000);
 
     // Rellenar descripción
     const descInput = page.locator('input[placeholder*="descripción"], input[placeholder*="concepto"], input[placeholder*="gasto"], input[type="text"]').first();
@@ -358,16 +355,10 @@ test.describe('Presupuesto — Crear categoría y gasto', () => {
     const descVisible = await gastoEl.first().isVisible({ timeout: 8_000 }).catch(() => false);
     const amountVisible = await amountEl.first().isVisible({ timeout: 5_000 }).catch(() => false);
 
-    if (descVisible) {
-      console.log(`✅ Gasto "${GASTO_DESC}" visible en presupuesto`);
-    }
-    if (amountVisible) {
-      console.log(`✅ Importe ${GASTO_AMOUNT} visible`);
-    }
-
-    if (descVisible || amountVisible) {
-      expect(descVisible || amountVisible).toBe(true);
-    }
+    expect(
+      descVisible || amountVisible,
+      `BUG_PRODUCTO: gasto "${GASTO_DESC}" (importe ${GASTO_AMOUNT}) creado pero ni descripción ni importe visibles tras submit`
+    ).toBe(true);
   });
 });
 
@@ -381,13 +372,19 @@ test.describe('Presupuesto — Registrar pago', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
+    await assertNoRuntimeError(page);
   });
 
   test('registrar pago con importe, medio, fecha y concepto', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -396,26 +393,24 @@ test.describe('Presupuesto — Registrar pago', () => {
       hasText: /añadir pago|nuevo pago|registrar pago|pagar|add payment/i,
     }).first();
 
-    if (!await pagoBtn.isVisible({ timeout: 8_000 }).catch(() => false)) {
-      // Buscar en items de gastos existentes
+    const pagoBtnVisible = await pagoBtn.isVisible({ timeout: 8_000 }).catch(() => false);
+    if (!pagoBtnVisible) {
       const gastoRow = page.locator('tr, [class*="expense-row"], [class*="gasto"]').first();
-      if (await gastoRow.isVisible({ timeout: 5_000 }).catch(() => false)) {
-        const pagoInRow = gastoRow.locator('button').filter({ hasText: /pago|pay/i }).first();
-        if (await pagoInRow.isVisible({ timeout: 3_000 }).catch(() => false)) {
-          await pagoInRow.click();
-          await page.waitForTimeout(1500);
-        } else {
-          console.log('ℹ️ Botón de pago no encontrado en filas de gastos');
-          return;
-        }
-      } else {
-        console.log('ℹ️ No hay gastos visibles para añadir pago');
+      const hasGasto = await gastoRow.isVisible({ timeout: 5_000 }).catch(() => false);
+      if (!hasGasto) {
+        test.skip(true, 'TEST_DATA_SETUP: presupuesto sin gastos previos para registrar pago — crear gasto primero');
         return;
       }
+      const pagoInRow = gastoRow.locator('button').filter({ hasText: /pago|pay/i }).first();
+      await expect(
+        pagoInRow,
+        'BUG_PRODUCTO: gasto existe pero ningún botón pago en su fila (esperado al menos icono $)'
+      ).toBeVisible({ timeout: 3_000 });
+      await pagoInRow.click();
     } else {
       await pagoBtn.click();
-      await page.waitForTimeout(1500);
     }
+    await page.waitForTimeout(1500);
 
     // Rellenar formulario de pago
     // Importe
@@ -466,22 +461,17 @@ test.describe('Presupuesto — Registrar pago', () => {
     const pagoVisible = await pagoEl.first().isVisible({ timeout: 8_000 }).catch(() => false);
     const amountVisible = await amountEl.first().isVisible({ timeout: 5_000 }).catch(() => false);
 
-    if (pagoVisible) {
-      console.log(`✅ Pago "${PAGO_CONCEPTO}" registrado y visible`);
-    }
-    if (amountVisible) {
-      console.log(`✅ Importe ${PAGO_AMOUNT} del pago visible`);
-    }
-
-    if (!pagoVisible && !amountVisible) {
-      console.log('ℹ️ Pago no verificado visualmente — puede estar en vista colapsada');
-    }
+    expect(
+      pagoVisible || amountVisible,
+      `BUG_PRODUCTO: pago "${PAGO_CONCEPTO}" (importe ${PAGO_AMOUNT}) registrado pero NO visible (mutation falló silente o UI colapsada)`
+    ).toBe(true);
   });
 
   test('totales coherentes: columna pagado ≥ 0 y alguna cifra visible', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/presupuesto`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'presupuesto');
+    expect(navigated, 'Botón "Presupuesto" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 

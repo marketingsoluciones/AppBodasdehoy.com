@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { api2Client } from '@/services/api2/client';
+import { mcpClient } from '@/services/mcpApi/client';
 
 const GET_EVENTO_BY_ID = `
   query GetEventoById($id: ID!) {
@@ -21,7 +21,7 @@ export interface Tarea {
   _id: string;
   completada?: boolean;
   descripcion: string;
-  /** api2 uses estatus ('true'/'false' string or boolean) as task completion */
+  /** MCP uses estatus ('true'/'false' string or boolean) as task completion */
   estatus?: string | boolean;
   fecha?: string;
   icon?: string;
@@ -55,7 +55,7 @@ export interface CategoriaPresupuesto {
 
 export interface Invitado {
   _id: string;
-  /** Campo real en api2: 'confirmado' | 'pendiente' | 'no' | 'si' */
+  /** Campo real en MCP: 'confirmado' | 'pendiente' | 'no' | 'si' */
   asistencia?: string;
   email?: string;
   grupo_relacion?: string;
@@ -93,7 +93,7 @@ export function useEventData(eventId: string | null) {
     if (!eventId) return;
     setLoading(true);
     setError(null);
-    api2Client
+    mcpClient
       .query<EventoResponse>(GET_EVENTO_BY_ID, { id: eventId })
       .then((res) => {
         setData(res.getEventoById ?? null);

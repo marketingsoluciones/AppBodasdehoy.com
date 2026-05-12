@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useChatStore } from '@/store/chat';
+import { safeLocalStorage } from '@/utils/safeLocalStorage';
 import {
   BalanceCheck,
   ConsumeResponse,
@@ -10,7 +11,7 @@ import {
   WalletBalance,
   WalletTransaction,
   walletService,
-} from '@/services/api2/wallet';
+} from '@/services/mcpApi/wallet';
 
 // ========================================
 // TYPES
@@ -63,6 +64,7 @@ export interface UseWalletReturn extends UseWalletState, UseWalletActions {
 export const useWallet = (): UseWalletReturn => {
   const currentUserId = useChatStore((s) => s.currentUserId);
   const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
+  const bootRetryRef = useRef(false);
 
   // Balance state
   const [balance, setBalance] = useState(0);
@@ -87,6 +89,29 @@ export const useWallet = (): UseWalletReturn => {
   // Retry guard: solo un reintento por sesión de error UNAUTHORIZED
   const unauthorizedRetryDoneRef = useRef(false);
 
+  const hasApi2Token = useCallback(() => {
+    if (typeof window === 'undefined') return false;
+
+    const directToken = safeLocalStorage.getItem('jwt_token');
+    if (directToken) return true;
+
+    const firebaseToken = safeLocalStorage.getItem('api2_jwt_token');
+    if (firebaseToken) return true;
+
+    const cache = safeLocalStorage.getItem('jwt_token_cache');
+    if (!cache) return false;
+
+    try {
+      const parsed = JSON.parse(cache);
+      const token = parsed?.token;
+      const expiresAt = parsed?.expiresAt;
+      if (!token || !expiresAt) return false;
+      return Date.now() < Number(expiresAt);
+    } catch {
+      return false;
+    }
+  }, []);
+
   // Computed
   const isNegativeBalance = balance < 0;
   // Credit is exhausted only when ALL funds (balance + bonus + credit limit) are gone
@@ -99,6 +124,11 @@ export const useWallet = (): UseWalletReturn => {
   // ========================================
 
   const refetchBalance = useCallback(async () => {
+    if (!hasApi2Token()) {
+      setError(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -118,7 +148,7 @@ export const useWallet = (): UseWalletReturn => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [hasApi2Token]);
 
   const canAfford = useCallback(async (amount: number): Promise<BalanceCheck> => {
     const check = await walletService.checkBalance(amount);
@@ -229,10 +259,38 @@ export const useWallet = (): UseWalletReturn => {
   // ========================================
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
     unauthorizedRetryDoneRef.current = false;
-    refetchBalance();
-  }, [currentUserId]); // Re-fetch cada vez que cambia el userId (login event)
+
+    bootRetryRef.current = false;
+
+    const run = () => {
+      if (!hasApi2Token()) {
+        setLoading(false);
+        return;
+      }
+      refetchBalance();
+    };
+
+    run();
+    if (hasApi2Token()) return;
+
+    if (bootRetryRef.current) return;
+    bootRetryRef.current = true;
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const id = (window as any).requestIdleCallback(run, { timeout: 2000 });
+      return () => {
+        (window as any).cancelIdleCallback?.(id);
+      };
+    }
+
+    const t = setTimeout(run, 1500);
+    return () => clearTimeout(t);
+  }, [currentUserId, isAuthenticated, refetchBalance, hasApi2Token]); // Re-fetch cada vez que cambia el userId (login event)
 
   // Auto-retry si UNAUTHORIZED y hay token disponible (solo UN reintento, evita loops)
   useEffect(() => {
@@ -240,7 +298,7 @@ export const useWallet = (): UseWalletReturn => {
     if (unauthorizedRetryDoneRef.current) return;
     unauthorizedRetryDoneRef.current = true;
     const retryTimer = setTimeout(() => {
-      if (localStorage.getItem('jwt_token')) {
+      if (safeLocalStorage.getItem('jwt_token')) {
         refetchBalance();
       }
     }, 500);

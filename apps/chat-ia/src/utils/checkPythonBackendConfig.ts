@@ -8,6 +8,14 @@
 export function getPythonBackendConfig() {
   const isClient = typeof window !== 'undefined';
 
+  const resolveBackendUrl = () => {
+    if (isClient) {
+      return process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL?.trim() || process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
+    }
+
+    return process.env.PYTHON_BACKEND_URL?.trim() || process.env.BACKEND_INTERNAL_URL?.trim() || process.env.BACKEND_URL?.trim() || process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
+  };
+
   // En cliente, solo usar NEXT_PUBLIC_*
   // En servidor, intentar primero sin prefijo, luego con prefijo
   let USE_PYTHON_BACKEND: boolean;
@@ -19,7 +27,7 @@ export function getPythonBackendConfig() {
     // ✅ CORRECCIÓN: Solo activar si está explícitamente configurado como 'true' o '1'
     // Si no está definido, NO activar (evita activación accidental)
     USE_PYTHON_BACKEND = envValue === 'true' || envValue === '1';
-    PYTHON_BACKEND_URL = process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL;
+    PYTHON_BACKEND_URL = resolveBackendUrl();
   } else {
     // Servidor: intentar sin prefijo primero, luego con prefijo
     const serverValue = process.env.USE_PYTHON_BACKEND;
@@ -33,10 +41,7 @@ export function getPythonBackendConfig() {
       USE_PYTHON_BACKEND = true; // Default: true
     }
 
-    PYTHON_BACKEND_URL =
-      process.env.PYTHON_BACKEND_URL ||
-      process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL ||
-      process.env.NEXT_PUBLIC_BACKEND_URL;
+    PYTHON_BACKEND_URL = resolveBackendUrl();
   }
 
   return {
@@ -44,7 +49,6 @@ export function getPythonBackendConfig() {
     USE_PYTHON_BACKEND,
   };
 }
-
 
 
 

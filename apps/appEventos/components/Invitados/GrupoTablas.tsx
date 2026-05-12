@@ -718,8 +718,6 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
               function: () => HandleEdit(row.row.original._id),
             },
           ];
-          //gvp*hqx7xgf.PWP0xky
-          //miki.ibarra@vivetuboda.com
 
           return (
             <>

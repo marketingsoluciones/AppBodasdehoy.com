@@ -37,44 +37,24 @@ const GlobalLayout = async ({
   isMobile,
   variants,
 }: GlobalLayoutProps) => {
-  // ✅ SOLUCIÓN RÁPIDA: No bloquear en getAntdLocale, usar timeout de 500ms
-  let antdLocale;
-  try {
-    antdLocale = await Promise.race([
-      getAntdLocale(userLocale),
-      new Promise((resolve) => {
-        setTimeout(() => {
-          // Si tarda más de 500ms, usar locale por defecto (se cargará en cliente)
-          resolve(undefined);
-        }, 500);
-      })
-    ]) as any;
-  } catch (error) {
-    console.warn('⚠️ [GlobalLayout] Error obteniendo antdLocale, usando undefined (se cargará en cliente):', error);
-    antdLocale = undefined;
-  }
+  const SSR_FAST_TIMEOUT_MS = 200;
+
+  const antdLocalePromise = Promise.race([
+    getAntdLocale(userLocale),
+    new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), SSR_FAST_TIMEOUT_MS)),
+  ]).catch(() => undefined);
 
   // get default feature flags to use with ssr
   const serverFeatureFlags = getServerFeatureFlagsValue();
 
-  // ✅ SOLUCIÓN RÁPIDA: No esperar getServerGlobalConfig, usar valores por defecto y cargar en background
-  // Esto evita que bloquee el render del servidor
-  let serverConfig;
-  try {
-    // Intentar obtener con timeout muy corto (500ms)
-    serverConfig = await Promise.race([
-      getServerGlobalConfig(),
-      new Promise((resolve) => {
-        setTimeout(() => {
-          // Si tarda más de 500ms, usar configuración mínima
-          resolve(null);
-        }, 500);
-      })
-    ]) as any;
-  } catch (error) {
-    console.warn('⚠️ [GlobalLayout] Error obteniendo serverConfig, usando valores por defecto:', error);
-    serverConfig = null;
-  }
+  const serverConfigPromise = Promise.race([
+    getServerGlobalConfig(),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), SSR_FAST_TIMEOUT_MS)),
+  ]).catch(() => null);
+
+  const [antdLocale, serverConfigResult] = await Promise.all([antdLocalePromise, serverConfigPromise]);
+
+  let serverConfig = serverConfigResult as any;
 
   // Si no se obtuvo configuración, usar valores por defecto mínimos
   if (!serverConfig) {

@@ -102,7 +102,21 @@
       "Read(//private/etc/**)",
       "Bash(E2E_ENV=dev PLAYWRIGHT_BROWSER=webkit TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD='lorca2012M*+' npx playwright test e2e-app/auth-flow-multiapp.spec.ts --grep \"SSO02\")",
       "Bash(nc -z -w5 localhost 3210)",
-      "Bash(top -l 1 -pid 42151 -stats pid,command,cpu,mem)"
+      "Bash(top -l 1 -pid 42151 -stats pid,command,cpu,mem)",
+      "Bash(bash scripts/slack-send.sh --web \":white_check_mark: *createNotifications FUNCIONA — confirmado E2E*:*)",
+      "Bash(/dev/null pkill:*)",
+      "Bash(/dev/null sleep:*)",
+      "Bash(bash scripts/slack-send.sh --web \":mag: *Verificacion del informe E2E A→B de cowork — 2 bugs backend confirmados*:*)",
+      "Bash(bash scripts/slack-send.sh --web \":rotating_light: *CRITICO: ~70 queries van a romperse cuando se apague apiapp*:*)",
+      "Bash(bash scripts/slack-send.sh --web \":rotating_light: *ACTUALIZACION CRITICA: 44 de 68 operaciones NO EXISTEN en api3-mcp*:*)",
+      "Bash(bash scripts/slack-send.sh --web \":bulb: *CORRECCION: Las 44 operaciones SI EXISTEN — renombradas a espanol*:*)",
+      "Bash(bash scripts/slack-send.sh --web \":sos: *28 operaciones NO EXISTEN en api3-mcp — necesitamos implementacion URGENTE*:*)",
+      "Bash(bash scripts/slack-read.sh --from api-ia 3)",
+      "Bash(bash scripts/slack-send.sh --web \":white_check_mark: *Frontend adaptado — createComment migrado + proxy unificado*:*)",
+      "Bash(bash scripts/slack-send.sh --web \":white_check_mark: *Pruebas completadas — 27/28 operaciones OK*:*)",
+      "Bash(cd /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/appEventos lsof -ti:3220)",
+      "Bash(bash scripts/slack-send.sh --web \":white_check_mark: *Frontend adaptado al schema JSON — breaking change resuelto*:*)",
+      "Bash(cd /Users/juancarlosparra/Projects/AppBodasdehoy.com curl -s https://app-dev.bodasdehoy.com/)"
     ],
     "additionalDirectories": [
       "/Users/juancarlosparra/.claude/projects/-Users-juancarlosparra-Projects-AppBodasdehoy-com/memory",

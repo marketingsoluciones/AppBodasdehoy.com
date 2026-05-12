@@ -102,15 +102,20 @@ export const InputCommentsOld: FC<props> = ({ itinerario, task, tempPastedAndDro
       fetchApiEventos({
         query: queries.createComment,
         variables: {
-          eventID: event?._id,
-          itinerarioID: itinerario?._id,
-          taskID: task?._id,
-          comment: valueSend,
-          attachments,
-          nicknameUnregistered
+          task_id: task?._id,
+          development: config?.development || "bodasdehoy",
+          comment: { mensaje: valueSend }
         },
-        domain: config.domain
-      }).then((results: Comment) => {
+        development: config?.development
+      }).then((res: any) => {
+        const results = {
+          _id: res?._id || `temp-${Date.now()}`,
+          comment: valueSend,
+          uid: user?.uid,
+          createdAt: new Date(),
+          nicknameUnregistered,
+          attachments: [],
+        } as unknown as Comment;
         const f1 = event?.itinerarios_array.findIndex(elm => elm?._id === itinerario?._id)
         const f2 = event?.itinerarios_array[f1]?.tasks.findIndex(elm => elm?._id === task?._id)
         event?.itinerarios_array[f1]?.tasks[f2]?.comments.push(results)

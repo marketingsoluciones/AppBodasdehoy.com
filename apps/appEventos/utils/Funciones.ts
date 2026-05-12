@@ -31,7 +31,8 @@ export function useDelayUnmount(isMounted: boolean, delayTime: number) {
 
 export const getCurrency = (value: number | string, currency?: string) => {
   const v = typeof value === "string" ? parseFloat(value) : value
-  return v?.toLocaleString(currency ? navigator.language : undefined, {
+  if (v == null || isNaN(v)) return currency ? "0" : "0.00"
+  return v.toLocaleString(currency ? navigator.language : undefined, {
     style: currency ? "currency" : "decimal",
     currency: currency,
     minimumFractionDigits: !["cop"].includes(GlobalCurrency) ? 2 : 0,

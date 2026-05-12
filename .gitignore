@@ -20,14 +20,18 @@ out/
 
 # OS
 .DS_Store
+._*
 Thumbs.db
 
 # Environment files
 .env
 .env.local
+.env.slack.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.e2e.*
+.env.e2e.*.local
 
 # Debug logs
 npm-debug.log*
@@ -58,6 +62,9 @@ coverage/
 .temp/
 *.tmp
 ERRORES_CONSOLA.json
+
+# SSH local config
+scripts/ssh/*.local
 
 # Test results / battery output files
 resultados-bateria-*.json

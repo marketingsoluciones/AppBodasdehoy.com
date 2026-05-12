@@ -18,7 +18,7 @@
  *  10. Prioridad de tarea: alta/media/baja — indicador visual
  */
 import { test, expect } from '@playwright/test';
-import { clearSession, loginAndSelectEvent, waitForAppReady } from './helpers';
+import { clearSession, loginAndSelectEvent, waitForAppReady, assertNoRuntimeError, navigateToModule } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const isAppTest =
@@ -52,13 +52,19 @@ test.describe('Kanban Tareas — Estructura /servicios', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
+    await assertNoRuntimeError(page);
   });
 
   test('/servicios carga con columnas kanban y título "Tasks"', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(4000);
 
@@ -79,7 +85,8 @@ test.describe('Kanban Tareas — Estructura /servicios', () => {
   test('columnas del kanban visibles: Pendiente, En progreso, Completada', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -92,21 +99,19 @@ test.describe('Kanban Tareas — Estructura /servicios', () => {
     console.log(`Columnas detectadas: pendiente=${hasPending}, en progreso=${hasInProgress}, completada=${hasCompleted}`);
 
     const columnCount = [hasPending, hasInProgress, hasCompleted].filter(Boolean).length;
-    if (columnCount === 0) {
-      // Si no hay columnas, puede que la vista activa sea Tabla o Tarjeta — no Kanban
-      // Verificar al menos que la página tiene contenido de servicios
-      const hasServiciosContent = /servicios|tarea|tasks|proveed|contrat/i.test(text);
-      console.log(`ℹ️ Sin columnas kanban visibles (vista no-kanban activa). Contenido servicios: ${hasServiciosContent}`);
-      expect(hasServiciosContent).toBe(true);
-    } else {
-      console.log(`✅ ${columnCount} columnas kanban detectadas`);
-    }
+    const hasServiciosContent = /servicios|tarea|tasks|proveed|contrat/i.test(text);
+
+    expect(
+      columnCount > 0 || hasServiciosContent,
+      'BUG_PRODUCTO: ni columnas kanban (pendiente/en progreso/completada) ni contenido servicios visibles'
+    ).toBe(true);
   });
 
   test('selector de itinerarios disponible (ItineraryTabs)', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -116,11 +121,7 @@ test.describe('Kanban Tareas — Estructura /servicios', () => {
     const hasSelector =
       (await page.locator('select, [class*="selector"], [class*="itinerary-select"]').count()) > 0;
 
-    if (hasTabs || hasSelector) {
-      console.log('✅ Selector/tabs de itinerario visible');
-    } else {
-      console.log('ℹ️ Selector de itinerario no detectado — puede haber solo uno');
-    }
+    expect(hasTabs || hasSelector, 'BUG_PRODUCTO: ni tabs ni selector de itinerario visible en /servicios').toBe(true);
   });
 });
 
@@ -134,13 +135,19 @@ test.describe('Kanban Tareas — Crear tarea', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
+    await assertNoRuntimeError(page);
   });
 
   test('crear tarea E2E en columna Pendiente → visible en kanban', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -170,27 +177,20 @@ test.describe('Kanban Tareas — Crear tarea', () => {
       }
     }
 
-    if (!btnToClick) {
-      console.log('ℹ️ Botón de añadir tarea no encontrado');
-      return;
-    }
+    expect(btnToClick, 'BUG_PRODUCTO: ningún botón añadir tarea visible (ni global, ni en columna pendiente, ni AddEvent)').toBeTruthy();
 
     await btnToClick.click();
     await page.waitForTimeout(1500);
 
     // Rellenar descripción de la tarea
     const descInput = page.locator('input[placeholder*="descripción"], input[placeholder*="tarea"], input[placeholder*="title"], textarea').first();
-    if (!await descInput.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      // Puede que sea inline editing (en la misma columna)
-      const inlineInput = page.locator('[contenteditable="true"], input[type="text"]').last();
-      if (await inlineInput.isVisible({ timeout: 3_000 }).catch(() => false)) {
-        await inlineInput.fill(TASK_DESC);
-      } else {
-        console.log('ℹ️ Input de nueva tarea no encontrado');
-        return;
-      }
-    } else {
+    const hasDescInput = await descInput.isVisible({ timeout: 5_000 }).catch(() => false);
+    if (hasDescInput) {
       await descInput.fill(TASK_DESC);
+    } else {
+      const inlineInput = page.locator('[contenteditable="true"], input[type="text"]').last();
+      await expect(inlineInput, 'BUG_PRODUCTO: ni modal ni inline input de nueva tarea visible tras click crear').toBeVisible({ timeout: 3_000 });
+      await inlineInput.fill(TASK_DESC);
     }
 
     // Submit con Enter o botón guardar
@@ -210,18 +210,17 @@ test.describe('Kanban Tareas — Crear tarea', () => {
     const taskEl = page.getByText(TASK_DESC, { exact: false });
     const isVisible = await taskEl.first().isVisible({ timeout: 10_000 }).catch(() => false);
 
-    if (isVisible) {
-      console.log(`✅ Tarea "${TASK_DESC}" visible en kanban`);
-      await expect(taskEl.first()).toBeVisible();
-    } else {
-      console.log('ℹ️ Tarea no encontrada visualmente — puede requerir refresh');
-    }
+    await expect(
+      taskEl.first(),
+      `BUG_PRODUCTO: tarea "${TASK_DESC}" creada pero NO visible en kanban (mutation falló silente o UI no refrescó)`
+    ).toBeVisible({ timeout: 10_000 });
   });
 
   test('crear itinerario nuevo → aparece como tab/opción', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(2000);
 
@@ -230,31 +229,30 @@ test.describe('Kanban Tareas — Crear tarea', () => {
       hasText: /nuevo itinerario|crear itinerario|add itinerary|nuevo/i,
     }).first();
 
-    if (!await newIterBtn.isVisible({ timeout: 8_000 }).catch(() => false)) {
-      console.log('ℹ️ Botón nuevo itinerario no encontrado');
-      return;
-    }
+    await expect(newIterBtn, 'BUG_PRODUCTO: botón nuevo itinerario no visible en /servicios').toBeVisible({ timeout: 8_000 });
 
     await newIterBtn.click();
     await page.waitForTimeout(1500);
 
     const nameInput = page.locator('input[type="text"], input[placeholder*="nombre"]').first();
-    if (await nameInput.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await nameInput.fill(ITER_NAME);
-    }
+    await expect(nameInput, 'BUG_PRODUCTO: input nombre itinerario no visible tras click crear').toBeVisible({ timeout: 5_000 });
+    await nameInput.fill(ITER_NAME);
 
     const saveBtn = page.locator('[role="dialog"], form').locator('button').filter({
       hasText: /guardar|crear|save/i,
     }).first();
-
     if (await saveBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
       await saveBtn.click();
-      await page.waitForTimeout(2000);
+    } else {
+      await page.keyboard.press('Enter');
     }
+    await page.waitForTimeout(2000);
 
     const iterEl = page.getByText(ITER_NAME, { exact: false });
-    const isVisible = await iterEl.first().isVisible({ timeout: 8_000 }).catch(() => false);
-    console.log(isVisible ? `✅ Itinerario "${ITER_NAME}" creado` : `ℹ️ Itinerario no encontrado visualmente`);
+    await expect(
+      iterEl.first(),
+      `BUG_PRODUCTO: itinerario "${ITER_NAME}" creado pero NO visible (mutation falló o UI no refrescó)`
+    ).toBeVisible({ timeout: 8_000 });
   });
 });
 
@@ -268,13 +266,19 @@ test.describe('Kanban Tareas — Detalle y edición de tarea', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
+    await assertNoRuntimeError(page);
   });
 
   test('click en tarea → panel/modal de detalle abre con campos', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -283,91 +287,74 @@ test.describe('Kanban Tareas — Detalle y edición de tarea', () => {
     const count = await taskCards.count();
 
     if (count === 0) {
-      console.log('ℹ️ No hay tareas en el kanban para hacer click');
+      test.skip(true, 'TEST_DATA_SETUP: kanban sin tareas para click — crear tarea primero (test "crear tarea E2E")');
       return;
     }
 
     await taskCards.first().click();
     await page.waitForTimeout(2000);
 
-    // Panel/modal de detalle debe abrirse
     const hasDetail =
       (await page.locator('[role="dialog"], [class*="panel"], [class*="detail"], [class*="InfoLateral"]').count()) > 0;
     const text = (await page.locator('body').textContent()) ?? '';
     const hasDetailContent = /responsable|prioridad|fecha|descripción|estado/i.test(text);
 
-    if (hasDetail || hasDetailContent) {
-      console.log('✅ Panel/modal de detalle de tarea abierto');
-    } else {
-      console.log('ℹ️ Detalle de tarea no detectado — puede abrirse de otra forma');
-    }
+    expect(hasDetail || hasDetailContent, 'BUG_PRODUCTO: tras click tarea ni panel/modal ni contenido detalle visible').toBe(true);
   });
 
   test('asignar responsable "novia" a tarea desde detalle', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
     const taskCards = page.locator('[class*="task-card"], [class*="TaskCard"]');
     if (await taskCards.count() === 0) {
-      console.log('ℹ️ No hay tareas para asignar responsable');
+      test.skip(true, 'TEST_DATA_SETUP: kanban sin tareas — crear primero');
       return;
     }
 
     await taskCards.first().click();
     await page.waitForTimeout(2000);
 
-    // Buscar selector de responsable
     const responsableSelector = page.locator(
       '[class*="responsable"], [class*="GruposResponsables"], [aria-label*="responsable"]',
     ).first();
+    await expect(responsableSelector, 'BUG_PRODUCTO: selector de responsable no visible en detalle tarea').toBeVisible({ timeout: 5_000 });
 
-    if (!await responsableSelector.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      console.log('ℹ️ Selector de responsable no encontrado');
-      return;
-    }
-
-    // Buscar opción "novia" en el selector
-    await responsableSelector.click().catch(() => {});
+    await responsableSelector.click();
     await page.waitForTimeout(1000);
 
     const noviaOption = page.locator('[role="option"], [class*="option"], li').filter({
       hasText: /novia/i,
     }).first();
+    await expect(noviaOption, 'BUG_PRODUCTO: opción "novia" no disponible en selector responsable').toBeVisible({ timeout: 5_000 });
+    await noviaOption.click();
+    await page.waitForTimeout(2000);
 
-    if (await noviaOption.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await noviaOption.click();
-      await page.waitForTimeout(2000);
-      console.log('✅ Responsable "novia" seleccionada');
-
-      // Verificar que aparece en la tarea
-      const text = (await page.locator('body').textContent()) ?? '';
-      const hasNovia = /novia/i.test(text);
-      if (hasNovia) {
-        console.log('✅ "novia" visible en detalle de tarea');
-      }
-    } else {
-      console.log('ℹ️ Opción "novia" no encontrada en el selector');
-    }
+    const text = (await page.locator('body').textContent()) ?? '';
+    expect(/novia/i.test(text), 'BUG_PRODUCTO: tras seleccionar "novia" no aparece en detalle de tarea').toBe(true);
   });
 
   test('prioridad alta/media/baja visible en tarea', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
     const text = (await page.locator('body').textContent()) ?? '';
-    const hasPriority = /alta|media|baja|high|medium|low|prioridad/i.test(text);
+    const hasPriorityText = /alta|media|baja|high|medium|low|prioridad/i.test(text);
+    // Prioridad puede estar como icono color (sin texto)
+    const hasPriorityIcon = (await page.locator('[class*="priority"], [class*="prioridad"], [aria-label*="priority"], [aria-label*="prioridad"]').count()) > 0;
 
-    if (hasPriority) {
-      console.log('✅ Indicador de prioridad visible en tareas');
-    } else {
-      console.log('ℹ️ Prioridad no detectada en texto — puede estar como icono de color');
-    }
+    expect(
+      hasPriorityText || hasPriorityIcon,
+      'BUG_PRODUCTO: ningún indicador de prioridad detectado (ni texto ni icono) en tareas /servicios'
+    ).toBe(true);
   });
 });
 
@@ -381,13 +368,19 @@ test.describe('Kanban Tareas — Drag & Drop entre columnas', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
+    await assertNoRuntimeError(page);
   });
 
   test('arrastrar tarea de Pendiente a En Progreso → columna cambia', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -396,26 +389,19 @@ test.describe('Kanban Tareas — Drag & Drop entre columnas', () => {
       hasText: KANBAN_COLUMNS.pending,
     }).first();
 
-    if (!await pendingCol.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      console.log('ℹ️ Columna Pendiente no encontrada');
-      return;
-    }
+    await expect(pendingCol, 'BUG_PRODUCTO: columna Pendiente no visible en kanban').toBeVisible({ timeout: 5_000 });
 
     const taskInPending = pendingCol.locator('[class*="task"], [class*="card"]').first();
-    if (!await taskInPending.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      console.log('ℹ️ No hay tareas en columna Pendiente para arrastrar');
+    const hasTask = await taskInPending.isVisible({ timeout: 5_000 }).catch(() => false);
+    if (!hasTask) {
+      test.skip(true, 'TEST_DATA_SETUP: columna Pendiente sin tareas para drag — crear tarea primero');
       return;
     }
 
-    // Buscar columna "En Progreso"
     const inProgressCol = page.locator('[class*="column"], [class*="col"]').filter({
       hasText: KANBAN_COLUMNS.inProgress,
     }).first();
-
-    if (!await inProgressCol.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      console.log('ℹ️ Columna En Progreso no encontrada');
-      return;
-    }
+    await expect(inProgressCol, 'BUG_PRODUCTO: columna En Progreso no visible en kanban').toBeVisible({ timeout: 5_000 });
 
     // Guardar texto de la tarea que vamos a mover
     const taskText = (await taskInPending.textContent()) ?? 'tarea';
@@ -424,18 +410,15 @@ test.describe('Kanban Tareas — Drag & Drop entre columnas', () => {
     const sourceBox = await taskInPending.boundingBox();
     const targetBox = await inProgressCol.boundingBox();
 
-    if (!sourceBox || !targetBox) {
-      console.log('ℹ️ No se pudo obtener bounding box para drag & drop');
-      return;
-    }
+    expect(sourceBox && targetBox, 'BUG_PLAYWRIGHT: bounding boxes para drag & drop no calculables').toBeTruthy();
 
     // Drag simulado
-    await page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2);
+    await page.mouse.move(sourceBox!.x + sourceBox!.width / 2, sourceBox!.y + sourceBox!.height / 2);
     await page.mouse.down();
     await page.waitForTimeout(500);
     await page.mouse.move(
-      targetBox.x + targetBox.width / 2,
-      targetBox.y + targetBox.height / 2,
+      targetBox!.x + targetBox!.width / 2,
+      targetBox!.y + targetBox!.height / 2,
       { steps: 15 },
     );
     await page.waitForTimeout(500);
@@ -453,19 +436,17 @@ test.describe('Kanban Tareas — Drag & Drop entre columnas', () => {
     const stillInPending = await pendingColAfter.locator(`text=${taskText.slice(0, 20)}`).count() > 0;
     const nowInProgress = await inProgressColAfter.locator(`text=${taskText.slice(0, 20)}`).count() > 0;
 
-    if (nowInProgress) {
-      console.log('✅ Tarea movida a "En Progreso" exitosamente');
-    } else if (!stillInPending) {
-      console.log('✅ Tarea salió de "Pendiente" (posiblemente en "En Progreso")');
-    } else {
-      console.log('ℹ️ Drag & drop completado — verificación visual pendiente');
-    }
+    expect(
+      nowInProgress || !stillInPending,
+      'BUG_PRODUCTO: tras drag&drop, tarea sigue en columna Pendiente y no aparece en En Progreso (drag no funcionó o mutation falló)'
+    ).toBe(true);
   });
 
   test('cambiar estado de tarea via botón de workflow (si existe)', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -474,13 +455,17 @@ test.describe('Kanban Tareas — Drag & Drop entre columnas', () => {
       hasText: /estado|mover|workflow|columna/i,
     }).first();
 
-    if (await workflowBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await workflowBtn.click();
-      await page.waitForTimeout(1000);
-      console.log('✅ Botón de cambio de estado disponible');
-    } else {
-      console.log('ℹ️ Botón de workflow no encontrado — drag & drop es el método principal');
+    const hasWorkflow = await workflowBtn.isVisible({ timeout: 5_000 }).catch(() => false);
+    if (!hasWorkflow) {
+      // Drag & drop es alternativa válida — skip explícito
+      test.skip(true, 'TEST_FEATURE_OPTIONAL: botón workflow no implementado (drag & drop es método principal — ver test "arrastrar tarea")');
+      return;
     }
+    await workflowBtn.click();
+    await page.waitForTimeout(1000);
+    // Tras click el modal/menu de estados debe aparecer
+    const hasStateMenu = (await page.locator('[role="dialog"], [role="menu"], [class*="state"], [class*="workflow"]').count()) > 0;
+    expect(hasStateMenu, 'BUG_PRODUCTO: tras click workflow, ningún menú/modal de estados visible').toBe(true);
   });
 });
 
@@ -494,62 +479,65 @@ test.describe('Kanban Tareas — Completar tarea', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
+    await assertNoRuntimeError(page);
   });
 
   test('marcar tarea como completada → aparece en columna Completadas', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
     // Buscar tarea existente
     const taskCards = page.locator('[class*="task-card"], [class*="TaskCard"]');
     if (await taskCards.count() === 0) {
-      console.log('ℹ️ No hay tareas para completar');
+      test.skip(true, 'TEST_DATA_SETUP: kanban sin tareas — crear primero');
       return;
     }
 
+    const firstTaskText = (await taskCards.first().textContent()) ?? 'tarea';
     await taskCards.first().click();
     await page.waitForTimeout(2000);
 
-    // Buscar botón/acción de "completar" en el detalle
     const completeBtn = page.locator('button').filter({
       hasText: /completar|marcar como completada|done|finish|completada/i,
     }).first();
+    const hasCompleteBtn = await completeBtn.isVisible({ timeout: 5_000 }).catch(() => false);
 
-    if (!await completeBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      // Intentar con checkbox
-      const completeCheckbox = page.locator('input[type="checkbox"][aria-label*="completar"], [class*="complete-check"]').first();
-      if (await completeCheckbox.isVisible({ timeout: 3_000 }).catch(() => false)) {
-        await completeCheckbox.check();
-        await page.waitForTimeout(2000);
-        console.log('✅ Tarea marcada como completada via checkbox');
-      } else {
-        console.log('ℹ️ Acción de completar no encontrada en el detalle');
-        return;
-      }
-    } else {
+    if (hasCompleteBtn) {
       await completeBtn.click();
-      await page.waitForTimeout(2000);
-      console.log('✅ Tarea marcada como completada via botón');
+    } else {
+      const completeCheckbox = page.locator('input[type="checkbox"][aria-label*="completar"], [class*="complete-check"]').first();
+      await expect(
+        completeCheckbox,
+        'BUG_PRODUCTO: ni botón completar ni checkbox de completar visibles en detalle tarea'
+      ).toBeVisible({ timeout: 3_000 });
+      await completeCheckbox.check();
     }
+    await page.waitForTimeout(3000);
 
-    // Cerrar detalle y verificar columna Completadas
     await page.keyboard.press('Escape').catch(() => {});
     await page.waitForTimeout(1000);
 
+    // Verificar tarea ahora aparece en columna Completadas (CRUD verificable)
     const completedCol = page.locator('[class*="column"], [class*="col"]').filter({
       hasText: KANBAN_COLUMNS.completed,
     }).first();
+    const taskInCompleted = completedCol.locator(`text=${firstTaskText.slice(0, 20)}`);
+    const isInCompleted = await taskInCompleted.first().isVisible({ timeout: 5_000 }).catch(() => false);
+    const completedTotal = await completedCol.locator('[class*="task"], [class*="card"]').count();
 
-    const completedCount = await completedCol.locator('[class*="task"], [class*="card"]').count();
-    console.log(`Tareas en columna Completadas: ${completedCount}`);
-
-    if (completedCount > 0) {
-      console.log('✅ Columna Completadas tiene tareas');
-    }
+    expect(
+      isInCompleted || completedTotal > 0,
+      'BUG_PRODUCTO: tras marcar tarea completada, columna Completadas no contiene la tarea (mutation falló o UI no refrescó)'
+    ).toBe(true);
   });
 });
 
@@ -563,13 +551,19 @@ test.describe('Kanban Tareas — Filtros', () => {
   test.beforeEach(async ({ context, page }) => {
     if (!isAppTest) return;
     await clearSession(context, page);
-    if (hasCredentials) await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!hasCredentials) return;
+    const eventId = await loginAndSelectEvent(page, TEST_EMAIL, TEST_PASSWORD, BASE_URL);
+    if (!eventId) {
+      test.skip(true, 'TEST_LOGIN_FAILED: loginAndSelectEvent retornó null. Test abortado, evita falsos positivos.');
+    }
+    await assertNoRuntimeError(page);
   });
 
   test('filtro por responsable disponible', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
@@ -584,38 +578,34 @@ test.describe('Kanban Tareas — Filtros', () => {
     const sortSelector = page.locator('[class*="sort"], [class*="order"], [class*="filter"]').first();
     const hasSort = await sortSelector.isVisible({ timeout: 3_000 }).catch(() => false);
 
-    if (hasFilter || hasSort) {
-      console.log('✅ Controles de filtrado/ordenación disponibles');
-    } else {
-      console.log('ℹ️ Filtros no detectados en /servicios');
-    }
+    expect(hasFilter || hasSort, 'BUG_PRODUCTO: ni filtros ni ordenación disponibles en /servicios').toBe(true);
   });
 
   test('banner copilot filter rosa visible si hay filtro activo', async ({ page }) => {
     if (!isAppTest || !hasCredentials) { test.skip(); return; }
 
-    await page.goto(`${BASE_URL}/servicios`, { waitUntil: 'domcontentloaded', timeout: 40_000 });
+    const navigated = await navigateToModule(page, 'servicios');
+    expect(navigated, 'Botón "Servicios" del menú lateral debe estar visible/clickable').toBe(true);
     await waitForAppReady(page, 20_000);
     await page.waitForTimeout(3000);
 
-    // El banner copilot aparece cuando hay un filtro activo del copilot
-    // Verificar que si está, tiene el botón X para limpiar
     const copilotBanner = page.locator('[class*="pink"], .bg-pink-50').filter({
       hasText: /copilot|filtró|filter/i,
     });
 
-    if (await copilotBanner.count() > 0) {
-      const clearBtn = copilotBanner.locator('button').filter({ hasText: /✕|limpiar|clear/i }).first();
-      const hasClear = await clearBtn.isVisible({ timeout: 3_000 }).catch(() => false);
-      console.log(`✅ Banner copilot visible con botón clear: ${hasClear}`);
-      if (hasClear) {
-        await clearBtn.click();
-        await page.waitForTimeout(1000);
-        const bannerAfter = await copilotBanner.count();
-        console.log(`✅ Banner eliminado tras click clear (banners: ${bannerAfter})`);
-      }
-    } else {
-      console.log('ℹ️ No hay banner de filtro copilot activo — es el estado normal');
+    const bannerCount = await copilotBanner.count();
+    if (bannerCount === 0) {
+      // Estado normal: sin filtro copilot activo. Test válido sin más asserts.
+      // Para test viable: forzar filtro vía URL/API y verificar banner aparece.
+      test.skip(true, 'TEST_DATA_SETUP: sin filtro copilot activo — para validar requiere setup que dispare filtro');
+      return;
     }
+
+    const clearBtn = copilotBanner.locator('button').filter({ hasText: /✕|limpiar|clear/i }).first();
+    await expect(clearBtn, 'BUG_PRODUCTO: banner copilot visible pero sin botón clear/limpiar').toBeVisible({ timeout: 3_000 });
+    await clearBtn.click();
+    await page.waitForTimeout(1000);
+    const bannerAfter = await copilotBanner.count();
+    expect(bannerAfter, 'BUG_PRODUCTO: tras click clear, banner copilot NO se elimina').toBeLessThan(bannerCount);
   });
 });

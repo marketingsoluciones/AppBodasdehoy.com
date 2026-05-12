@@ -172,6 +172,18 @@ const Home: NextPage = () => {
       )
     }
     if (!user) {
+      const wasLoggedIn = typeof window !== 'undefined' && localStorage.getItem('appEventos_activeEventId')
+      if (wasLoggedIn) {
+        return (
+          <div className="flex items-center justify-center h-screen w-full bg-white px-4">
+            <div className="flex flex-col items-center gap-3 text-center max-w-sm">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+              <p className="text-sm font-medium text-gray-700">Restaurando sesión…</p>
+              <p className="text-xs text-gray-400">Esto suele tardar unos segundos tras recargar.</p>
+            </div>
+          </div>
+        )
+      }
       if (router.pathname === "/") {
         return <LandingVisitante />;
       }
@@ -569,9 +581,8 @@ const GridCards: FC<propsGridCards> = ({
                       <div
                         key={idx}
                         className="flex items-center justify-center my-3"
-                        onClick={() => { setIdxGroupEvent({ idx, isActiveStateSwiper, event_id: evento._id }) }}
                       >
-                        <Card data={group.data} grupoStatus={group.status} idx={idx} />
+                        <Card data={group.data} grupoStatus={group.status} idx={idx} onSelect={() => setIdxGroupEvent({ idx, isActiveStateSwiper, event_id: evento._id })} />
                       </div>
                     )
                   })}

@@ -8,8 +8,11 @@ const ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
 const AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const VERIFY_SID = process.env.TWILIO_VERIFY_SERVICE_SID;
 
-// Mismo secret que usa api-ia para compatibilidad con api2
-const JWT_SECRET = process.env.API2_JWT_SECRET || process.env.JWT_SECRET || 'bodasdehoy-secret-key';
+const JWT_SECRET =
+  process.env.MCP_JWT_SECRET ||
+  process.env.API2_JWT_SECRET ||
+  process.env.JWT_SECRET ||
+  'bodasdehoy-secret-key';
 // TTL del token: 7 días (igual que el resto de tokens del sistema)
 const JWT_TTL_SECONDS = 7 * 24 * 60 * 60;
 
@@ -17,7 +20,7 @@ const JWT_TTL_SECONDS = 7 * 24 * 60 * 60;
  * POST /api/auth/whatsapp-otp-verify
  * Body: { phone: string, code: string, development?: string }
  *
- * Verifica el OTP con Twilio y devuelve un JWT compatible con api2/api-ia.
+ * Verifica el OTP con Twilio y devuelve un JWT compatible con MCP/api-ia.
  * Mismo formato de respuesta que /api/auth/firebase-login para que el cliente
  * pueda usar saveSession() sin cambios.
  */
@@ -36,7 +39,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     phone = (body.phone || '').trim();
-    code = (body.code || '').trim().replace(/\s/g, '');
+    code = (body.code || '').trim().replaceAll(/\s/g, '');
     development = (body.development || 'bodasdehoy').trim();
   } catch {
     return NextResponse.json({ detail: 'Body inválido.' }, { status: 400 });
@@ -69,7 +72,7 @@ export async function POST(request: NextRequest) {
     // Formato: wa:{e164} — distingue de emails en el sistema
     const userId = `wa:${phone}`;
 
-    // ── JWT compatible con api2 (mismo secret y estructura que api-ia) ────────
+    // ── JWT compatible con MCP (mismo secret y estructura que api-ia) ────────
     const secret = new TextEncoder().encode(JWT_SECRET);
     const token = await new SignJWT({
       development,
@@ -97,7 +100,7 @@ export async function POST(request: NextRequest) {
     const message = err?.message || 'Error al verificar el código.';
     console.error(`[whatsapp-otp-verify] Twilio error code=${code}:`, message);
 
-    if (code === 60202) {
+    if (code === 60_202) {
       return NextResponse.json(
         { detail: 'Demasiados intentos incorrectos. Solicita un nuevo código.', success: false },
         { status: 429 },

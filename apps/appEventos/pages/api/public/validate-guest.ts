@@ -16,10 +16,9 @@ import { fetchApiEventosServer } from '../../../utils/Fetching';
 const GET_PGUEST_QUERY = `
   query($p: String) {
     getPGuestEvent(p: $p) {
-      invitados_array {
-        _id
+      invitados {
+        id
         nombre
-        father
       }
     }
   }
@@ -56,18 +55,17 @@ export default async function handler(
       variables: { p: token },
     });
 
-    // fetchApiEventosServer devuelve el objeto completo { getPGuestEvent: { invitados_array: [...] } }
-    const guests: any[] = data?.getPGuestEvent?.invitados_array ?? [];
-    const mainGuest = guests.find((g) => g.father === null) ?? guests[0];
+    const guests: any[] = data?.getPGuestEvent?.invitados ?? [];
+    const mainGuest = guests[0];
 
-    if (!mainGuest?._id) {
+    if (!mainGuest?.id) {
       return res.status(200).json({ valid: false });
     }
 
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json({
       valid: true,
-      guestId: mainGuest._id,
+      guestId: mainGuest.id,
       guestName: mainGuest.nombre ?? 'Invitado',
     });
   } catch (error) {

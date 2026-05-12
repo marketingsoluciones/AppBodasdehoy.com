@@ -3,11 +3,9 @@
 import { ActionIcon } from '@lobehub/ui';
 import { Minimize2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, lazy } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import MainInterfaceTracker from '@/components/Analytics/MainInterfaceTracker';
-import { EventosAutoAuth } from '@/features/EventosAutoAuth';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
 
@@ -16,6 +14,8 @@ import { resolveChatEmbedMode } from '@/utils/resolveChatEmbedMode';
 import { LayoutProps } from '../type';
 import ChatHeader from './ChatHeader';
 import Portal from './Portal';
+
+const MainInterfaceTracker = lazy(() => import('@/components/Analytics/MainInterfaceTracker'));
 
 const Layout = ({ children, conversation, portal }: LayoutProps) => {
   const searchParams = useSearchParams();
@@ -29,7 +29,6 @@ const Layout = ({ children, conversation, portal }: LayoutProps) => {
 
   return (
     <>
-      <EventosAutoAuth />
       {/* En embed queremos solo conversación + input (sin header/paneles) */}
       {!isEmbed && !isFullscreen && <ChatHeader />}
       {/* Floating exit button when in fullscreen */}
@@ -51,6 +50,7 @@ const Layout = ({ children, conversation, portal }: LayoutProps) => {
         />
       )}
       <Flexbox
+        data-testid="chat-shell"
         height={'100%'}
         horizontal
         style={{ overflow: 'hidden', position: 'relative' }}
@@ -71,7 +71,9 @@ const Layout = ({ children, conversation, portal }: LayoutProps) => {
           </Portal>
         )}
       </Flexbox>
-      <MainInterfaceTracker />
+      <Suspense fallback={null}>
+        <MainInterfaceTracker />
+      </Suspense>
     </>
   );
 };

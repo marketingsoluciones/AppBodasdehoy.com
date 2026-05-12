@@ -17,6 +17,15 @@ export interface WhatsAppSessionState {
 const POLL_INTERVAL_MS = 3000;
 const CONNECTING_TIMEOUT_MS = 25_000;
 
+async function readJsonSafe(response: Response): Promise<any> {
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    return response.json();
+  }
+  const text = await response.text();
+  throw new Error(`Respuesta no-JSON (HTTP ${response.status}): ${text.slice(0, 200)}`);
+}
+
 export function useWhatsAppSession(development: string) {
   const [state, setState] = useState<WhatsAppSessionState>({
     error: null,
@@ -81,7 +90,7 @@ export function useWhatsAppSession(development: string) {
         headers: buildHeaders(),
         method: 'POST',
       });
-      const data = await response.json();
+      const data = await readJsonSafe(response);
       if (!data.success) {
         connectingSinceRef.current = null;
         setState((prev) => ({ ...prev, error: data.error || 'Error iniciando sesión', status: 'error' }));
@@ -115,7 +124,7 @@ export function useWhatsAppSession(development: string) {
       headers: buildHeaders(),
       method: 'POST',
     });
-    const data = await response.json();
+    const data = await readJsonSafe(response);
     if (!data.success) throw new Error(data.error || 'Error solicitando código');
     return data.code as string;
   }, [development]);
@@ -123,7 +132,7 @@ export function useWhatsAppSession(development: string) {
   /**
    * Método atómico para vincular por número de teléfono.
    * Desconecta la sesión existente, inicia una nueva y solicita el código
-   * de emparejamiento ANTES de que api2 genere el QR (Baileys no permite
+   * de emparejamiento ANTES de que MCP genere el QR (Baileys no permite
    * pairing-code una vez que el modo QR está activo).
    */
   const startAndRequestPairingCode = useCallback(async (phoneNumber: string): Promise<string> => {
@@ -142,18 +151,18 @@ export function useWhatsAppSession(development: string) {
       headers: buildHeaders(),
       method: 'POST',
     });
-    const startData = await startRes.json();
+    const startData = await readJsonSafe(startRes);
     if (!startData.success) {
       throw new Error(startData.error || 'Error iniciando sesión');
     }
 
-    // 3. Solicitar código de emparejamiento inmediatamente, antes de que api2 genere el QR
+    // 3. Solicitar código de emparejamiento inmediatamente, antes de que MCP genere el QR
     const pairRes = await fetch(`/api/messages/whatsapp/session/${development}/pairing-code`, {
       body: JSON.stringify({ phoneNumber }),
       headers: buildHeaders(),
       method: 'POST',
     });
-    const pairData = await pairRes.json();
+    const pairData = await readJsonSafe(pairRes);
     if (!pairData.success) throw new Error(pairData.error || 'Error solicitando código');
     return pairData.code as string;
   }, [development]);

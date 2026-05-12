@@ -12,7 +12,7 @@ import {
   getUnreadNotificationsCount,
   markAllNotificationsAsRead,
   markNotificationAsRead,
-} from '@/services/api2/notifications';
+} from '@/services/mcpApi/notifications';
 
 function getNotificationUrl(n: AppNotification): string | null {
   const focused = n.focused ?? '';

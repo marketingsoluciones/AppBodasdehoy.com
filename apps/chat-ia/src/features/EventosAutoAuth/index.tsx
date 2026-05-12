@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 
 import { message } from '@/components/AntdStaticMethods';
 import { getDeveloperToken, setDeveloperToken } from '@/const/developerTokens';
-import { consumeInviteToken } from '@/services/api2/invite';
+import { consumeInviteToken } from '@/services/mcpApi/invite';
 import { processGoogleRedirectResult, processFacebookRedirectResult, initCrossAppTokenRefresh } from '@/services/firebase-auth';
 import { useChatStore } from '@/store/chat';
 import { useAgentStore } from '@/store/agent';
@@ -59,8 +59,26 @@ function EventosAutoAuthComponent() {
   // ── SSO token refresh: renueva idTokenV0.1.0 automáticamente cada ~55 min
   // Mantiene la sesión cross-domain válida indefinidamente mientras el usuario esté activo
   useEffect(() => {
-    const unsubscribe = initCrossAppTokenRefresh();
-    return unsubscribe;
+    if (typeof window === 'undefined') return;
+    let unsubscribe: undefined | (() => void);
+
+    const start = () => {
+      unsubscribe = initCrossAppTokenRefresh();
+    };
+
+    if ('requestIdleCallback' in window) {
+      const id = (window as any).requestIdleCallback(start, { timeout: 2000 });
+      return () => {
+        (window as any).cancelIdleCallback?.(id);
+        unsubscribe?.();
+      };
+    }
+
+    const t = setTimeout(start, 1500);
+    return () => {
+      clearTimeout(t);
+      unsubscribe?.();
+    };
   }, []);
 
   // ✅ CORRECCIÓN: Refs para evitar llamadas duplicadas de autenticación
@@ -360,7 +378,7 @@ user_id: effectiveUserId,
         if (sharedAuth.isAuthenticated && sharedAuth.user && sharedAuth.sessionCookie) {
           devLog('✅ [AuthBridge] Usuario autenticado via cookie compartida de la app:', sharedAuth.user.uid);
 
-          // Guardar en localStorage para que api2/client.ts pueda leer el token
+          // Guardar en localStorage para que mcpApi/client.ts pueda leer el token
           // SOLO usar idToken (JWT de Firebase) — sessionCookie es un token opaco de servidor,
           // no un JWT válido y causa "Not enough segments" en api-ia al intentar decodificarlo.
           const apiToken = sharedAuth.idToken;
@@ -373,7 +391,7 @@ user_id: effectiveUserId,
           await authBridge.syncAuthToLobechat(sharedAuth);
 
           // Identificar al usuario en el store de LobeChat
-          // ✅ CRÍTICO: Usar email como userId (NO Firebase UID) porque api2 consulta eventos/chats por email.
+          // ✅ CRÍTICO: Usar email como userId (NO Firebase UID) porque MCP consulta eventos/chats por email.
           // fetchUserEvents detecta si es email → usa getAllUserRelatedEventsByEmail
           // fetchExternalChats también envía userId a getSessions query
           const userId = sharedAuth.user.email || sharedAuth.user.uid;
@@ -904,7 +922,7 @@ user_id: effectiveUserId,
       // ✅ Función para cargar credenciales (con timeout y fallback)
       const loadCredentials = async () => {
         try {
-          const { fetchAICredentials } = await import('@/services/api2/aiCredentials');
+          const { fetchAICredentials } = await import('@/services/mcpApi/aiCredentials');
           const { useUserStore } = await import('@/store/user');
 
           // ✅ Timeout rápido para credenciales (2 segundos)

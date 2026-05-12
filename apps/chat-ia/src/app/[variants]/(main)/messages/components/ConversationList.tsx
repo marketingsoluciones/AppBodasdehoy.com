@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
 import { useConversationActions } from '../hooks/useConversationActions';
+import { ConversationStatus, useConversationMetaState } from '../hooks/useConversationMeta';
 import { useConversations } from '../hooks/useConversations';
 import { useWhatsAppSession } from '../hooks/useWhatsAppSession';
 import { ConversationItem } from './ConversationItem';
@@ -44,16 +46,35 @@ function WhatsAppConversationList({ development, selectedId }: { development: st
 }
 
 type SortMode = 'recent' | 'unread';
+type InboxView = 'all' | 'mine' | 'unassigned' | 'closed';
 
 function ConversationListInner({ channel, selectedId }: ConversationListProps) {
   const { conversations, loading, error } = useConversations(channel);
   const { isArchived } = useConversationActions();
+  const metaState = useConversationMetaState();
+  const { checkAuth } = useAuthCheck();
+  const { userId } = checkAuth();
+  const searchParams = useSearchParams();
+  const view = (searchParams.get('view') as InboxView) || 'all';
   const [search, setSearch] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('recent');
 
   const filtered = useMemo(() => {
     // Hide archived conversations
     let list = conversations.filter((c) => !isArchived(c.id));
+
+    const getStatus = (id: string): ConversationStatus => metaState[id]?.status ?? 'open';
+    const getAssigned = (id: string): string | null | undefined => metaState[id]?.assignedUserId;
+
+    if (view === 'mine') {
+      list = list.filter((c) => getAssigned(c.id) && userId && getAssigned(c.id) === userId && getStatus(c.id) !== 'closed');
+    }
+    if (view === 'unassigned') {
+      list = list.filter((c) => !getAssigned(c.id) && getStatus(c.id) !== 'closed');
+    }
+    if (view === 'closed') {
+      list = list.filter((c) => getStatus(c.id) === 'closed');
+    }
 
     // Search filter
     if (search.trim()) {
@@ -75,7 +96,7 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
     }
 
     return list;
-  }, [conversations, search, sortMode, isArchived]);
+  }, [conversations, isArchived, metaState, search, sortMode, userId, view]);
 
   const totalUnread = useMemo(
     () => conversations.reduce((n, c) => n + c.unreadCount, 0),

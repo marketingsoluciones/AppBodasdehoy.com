@@ -67,23 +67,56 @@ export const useAuthCheck = () => {
   const checkJwtValidity = useCallback((): boolean => {
     if (typeof window === 'undefined') return false;
 
+    const isLikelyJwt = (t: string) => t.split('.').length === 3;
+    const decodeJwtExpMs = (t: string): number | null => {
+      try {
+        if (!isLikelyJwt(t)) return null;
+        if (typeof atob !== 'function') return null;
+        const payload = JSON.parse(atob(t.split('.')[1].replaceAll('-', '+').replaceAll('_', '/')));
+        const exp = payload?.exp;
+        if (!exp || typeof exp !== 'number') return null;
+        return exp * 1000;
+      } catch {
+        return null;
+      }
+    };
+
     // Buscar JWT en las diferentes ubicaciones
-    const jwtToken = localStorage.getItem('api2_jwt_token') ||
-                     localStorage.getItem('jwt_token') ||
-                     getUserConfig()?.token;
+    let jwtToken =
+      localStorage.getItem('jwt_token') ||
+      localStorage.getItem('mcp_jwt_token') ||
+      localStorage.getItem('api2_jwt_token') ||
+      getUserConfig()?.token;
+
+    if (!jwtToken) {
+      const cache = localStorage.getItem('jwt_token_cache');
+      if (cache) {
+        try {
+          const parsed = JSON.parse(cache) as { expiry?: number; token?: string };
+          if (parsed?.token && parsed?.expiry && Date.now() < parsed.expiry) {
+            jwtToken = parsed.token;
+          }
+        } catch {}
+      }
+    }
 
     if (!jwtToken) return false;
+    if (!isLikelyJwt(jwtToken)) return false;
 
     // Verificar expiración si existe
-    const expiresAt = localStorage.getItem('api2_jwt_expires_at');
+    const expiresAt =
+      localStorage.getItem('mcp_jwt_expires_at') || localStorage.getItem('api2_jwt_expires_at');
     if (expiresAt) {
       const expiration = new Date(expiresAt);
       if (expiration <= new Date()) {
         console.warn('⚠️ JWT token expirado');
         return false;
       }
+      return true;
     }
 
+    const expMs = decodeJwtExpMs(jwtToken);
+    if (expMs && expMs <= Date.now()) return false;
     return true;
   }, [getUserConfig]);
 
@@ -230,6 +263,8 @@ export const useAuthCheck = () => {
     if (typeof window === 'undefined') return;
 
     // Limpiar tokens expirados/inválidos
+    localStorage.removeItem('mcp_jwt_token');
+    localStorage.removeItem('mcp_jwt_expires_at');
     localStorage.removeItem('api2_jwt_token');
     localStorage.removeItem('api2_jwt_expires_at');
     localStorage.removeItem('jwt_token');

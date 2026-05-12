@@ -121,7 +121,7 @@ interface AuthParams {
 
 export const createPayloadWithKeyVaults = (provider: string) => {
   // ✅ Si se usa el backend Python, no requerir API Keys en el cliente
-  // El backend Python maneja las credenciales desde API2
+  // El backend Python maneja las credenciales desde MCP
   const { USE_PYTHON_BACKEND, PYTHON_BACKEND_URL } = getPythonBackendConfig();
 
   // ✅ CRÍTICO: Aplicar placeholder SIEMPRE cuando se usa backend Python
@@ -130,14 +130,14 @@ export const createPayloadWithKeyVaults = (provider: string) => {
 
   if (shouldUseBackendPython) {
     // Cuando se usa backend Python, retornar payload con placeholder válido
-    // El backend Python obtendrá las credenciales desde API2 y ignorará el placeholder
+    // El backend Python obtendrá las credenciales desde MCP y ignorará el placeholder
     const runtimeProvider = resolveRuntimeProvider(provider);
-    
+
     // ✅ IMPORTANTE: Usar un formato que pase la validación básica de ModelRuntime
     // Para OpenAI/Anthropic, el formato debe ser "sk-..." o similar
     // Usamos un formato que parece válido pero que el backend Python ignorará
     let placeholderKey = 'sk-placeholder-for-python-backend-ignored-by-server-1234567890abcdef';
-    
+
     // Si el runtimeProvider es Anthropic, usar formato específico de Anthropic
     if (runtimeProvider === 'anthropic') {
       // Formato Anthropic: sk-ant-api03-...
@@ -146,15 +146,15 @@ export const createPayloadWithKeyVaults = (provider: string) => {
       // Formato OpenAI: sk-proj-... o sk-...
       placeholderKey = 'sk-proj-placeholder-for-python-backend-ignored-by-server-1234567890abcdef';
     }
-    
+
     console.log(`✅ Backend Python activado - provider: ${provider}, runtimeProvider: ${runtimeProvider}, usando placeholder para API key`);
-    
+
     return {
       // ✅ Incluir placeholder para evitar validación de ModelRuntime
 // El backend Python ignorará este valor y usará las keys del whitelabel
 apiKey: placeholderKey,
-      
-      
+
+
       runtimeProvider,
     };
   }
@@ -193,15 +193,17 @@ export const createHeaderWithAuth = async (params?: AuthParams): Promise<Headers
 
   const token = createAuthTokenWithPayload(payload);
 
-  // ✅ CRÍTICO: Incluir JWT token de nuestro sistema de auth (Firebase/API2)
+  // ✅ CRÍTICO: Incluir JWT token de nuestro sistema de auth (Firebase/MCP)
   // Esto permite que el backend Python identifique al usuario
-  const headers: HeadersInit = { ...params?.headers, [LOBE_CHAT_AUTH_HEADER]: token };
+  const headers: Record<string, string> = { [LOBE_CHAT_AUTH_HEADER]: token };
+  if (params?.headers) Object.assign(headers, params.headers as Record<string, string>);
 
   // Obtener JWT de localStorage si está disponible y NO está expirado
   if (typeof window !== 'undefined') {
     // Verificar expiración antes de incluir el JWT
     const isJwtExpired = (): boolean => {
-      const expiresAt = localStorage.getItem('api2_jwt_expires_at');
+      const expiresAt =
+        localStorage.getItem('mcp_jwt_expires_at') || localStorage.getItem('api2_jwt_expires_at');
       if (!expiresAt) return false;
       return new Date(expiresAt) <= new Date();
     };
@@ -210,12 +212,13 @@ export const createHeaderWithAuth = async (params?: AuthParams): Promise<Headers
       // Sesión expirada: no incluir JWT para evitar que api-ia devuelva datos privados
       // con un token caducado que el servidor aún no ha invalidado.
       console.warn('⚠️ [createHeaderWithAuth] JWT expirado — Authorization header OMITIDO. Disparando evento session-expired.');
-      window.dispatchEvent(new CustomEvent('api2:token-expired'));
+      window.dispatchEvent(new CustomEvent('mcp:token-expired'));
       // Añadir header para que route.ts lo detecte y bloquee antes de llegar a api-ia
       (headers as Record<string, string>)['X-Session-Expired'] = '1';
     } else {
       const jwtToken =
         localStorage.getItem('jwt_token') ||
+        localStorage.getItem('mcp_jwt_token') ||
         localStorage.getItem('api2_jwt_token');
 
       if (jwtToken && jwtToken !== 'null' && jwtToken !== 'undefined') {

@@ -10,7 +10,7 @@ import {
   getNotifications,
   markAllNotificationsAsRead,
   markNotificationAsRead,
-} from '@/services/api2/notifications';
+} from '@/services/mcpApi/notifications';
 
 const TYPE_LABEL: Record<string, { icon: string; label: string }> = {
   access_revoked: { icon: '🔒', label: 'Acceso revocado' },

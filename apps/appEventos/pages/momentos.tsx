@@ -4,6 +4,7 @@
  */
 import { AuthContextProvider, EventContextProvider } from '../context';
 import { MemoriesProvider, useMemoriesStore } from '@bodasdehoy/memories';
+import { resolveChatOrigin } from '@bodasdehoy/shared/utils';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { LiaLinkSolid } from 'react-icons/lia';
@@ -130,8 +131,8 @@ function MomentosContent() {
 
   const chatBase =
     typeof window !== 'undefined'
-      ? process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com'
-      : 'https://chat.bodasdehoy.com';
+      ? resolveChatOrigin(window.location.hostname)
+      : (process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com');
 
   return (
     <section className="bg-base w-full min-h-[60vh] md:py-10 px-4 md:px-0">

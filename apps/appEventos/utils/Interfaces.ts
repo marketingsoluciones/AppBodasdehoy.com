@@ -279,17 +279,14 @@ interface permission {
     title: string
     value: string
 }
-interface onLine {
-    status: boolean
-    dateConection: number
-}
+export type OnLine = boolean | { status?: boolean; dateConection?: number }
 
 export interface detalle_compartidos_array {
     uid: string
     email: string
     displayName: string
     photoURL: string
-    onLine: onLine
+    onLine: OnLine
     planSpaceSelect: string
     permissions?: permission[]
     owner?: boolean

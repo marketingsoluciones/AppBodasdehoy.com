@@ -197,12 +197,48 @@ export const generateAIChat: StateCreator<
     }
 
     // Sesión expirada: usuario identificado pero JWT caducado → bloquear ANTES de hacer request.
-    // El banner ya se muestra vía el evento api2:token-expired; aquí evitamos el round-trip a api-ia.
+    // El banner ya se muestra vía el evento mcp:token-expired; aquí evitamos el round-trip a api-ia.
     if (!isVisitor && typeof window !== 'undefined') {
       const expiresAt = localStorage.getItem('api2_jwt_expires_at');
       if (expiresAt && new Date(expiresAt) <= new Date()) {
         console.warn('⚠️ [generateAIChat] Sesión expirada — mensaje bloqueado client-side');
-        window.dispatchEvent(new CustomEvent('api2:token-expired'));
+        window.dispatchEvent(new CustomEvent('mcp:token-expired'));
+        return;
+      }
+    }
+
+    if (!isVisitor && typeof message === 'string' && typeof currentUserId === 'string') {
+      const currentEmail = currentUserId.toLowerCase();
+      const requestedEmail = message.match(/[\w%+.-]+@[\d.a-z-]+\.[a-z]{2,}/i)?.[0]?.toLowerCase();
+      const isOtherUser = !!requestedEmail && !!currentEmail && requestedEmail !== currentEmail;
+      const looksLikeCrossUserEventsRequest =
+        isOtherUser &&
+        /(eventos?|boda|celebraci[oó]n|itinerario|invitad)/i.test(message) &&
+        /(del\s+usuario|de\s+usuario|usuario\s+[\w%+.-]+@|eventos\s+del\s+usuario)/i.test(message);
+
+      if (looksLikeCrossUserEventsRequest) {
+        set({ isCreatingMessage: true }, false, n('creatingMessage/start'));
+
+        const newMessage: CreateMessageParams = {
+          content: message,
+          files: fileIdList,
+          role: 'user',
+          sessionId: activeId,
+          topicId: activeTopicId,
+          threadId: activeThreadId,
+        };
+
+        await get().internal_createMessage(newMessage, { skipRefresh: true });
+        await get().internal_createMessage({
+          content:
+            'Por privacidad no puedo mostrar los eventos de otros usuarios. Puedo mostrarte tus eventos (los de tu cuenta) o ayudarte a invitar a esa persona como colaborador/a si corresponde.',
+          role: 'assistant',
+          sessionId: activeId,
+          topicId: activeTopicId,
+          threadId: activeThreadId,
+        });
+
+        set({ isCreatingMessage: false }, false, n('creatingMessage/end'));
         return;
       }
     }
@@ -695,11 +731,9 @@ export const generateAIChat: StateCreator<
         }
         // Si el backend devuelve 401 session_expired (sesión caducada detectada en route.ts)
         // → disparar evento para que ReloginBanner se muestre
-        if ((error as any)?.type === 'session_expired') {
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('api2:token-expired'));
+        if ((error as any)?.type === 'session_expired' && typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('mcp:token-expired'));
           }
-        }
         await messageService.updateMessageError(messageId, error);
         await refreshMessages();
       },

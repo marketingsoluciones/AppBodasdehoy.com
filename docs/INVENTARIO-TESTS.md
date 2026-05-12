@@ -25,6 +25,10 @@ Documento de referencia: **qué tests existen**, **qué datos necesitan**, **qu�
 
 ## 1. Resumen ejecutivo
 
+**Sanity check (config):**
+
+- `pnpm lint:env:endpoints` valida que los `.env*.example` usan variables canónicas (`API_IA_URL`, `API_MCP_GRAPHQL_URL`) y no duplican/mezclan legacy.
+
 | Área | Herramienta | Archivos | Datos / requisitos principales |
 |------|-------------|----------|--------------------------------|
 | **E2E (Playwright)** | Playwright | 29 specs en `e2e-app/` | BASE_URL, TEST_USER_EMAIL, TEST_USER_PASSWORD, VPN para app-test |

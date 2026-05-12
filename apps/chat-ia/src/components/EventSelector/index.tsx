@@ -7,7 +7,7 @@ import {
   type Evento,
   formatEventoLabel,
   getEventosByUsuario,
-} from '@/services/api2/eventos';
+} from '@/services/mcpApi/eventos';
 
 interface EventSelectorProps {
   development: string;

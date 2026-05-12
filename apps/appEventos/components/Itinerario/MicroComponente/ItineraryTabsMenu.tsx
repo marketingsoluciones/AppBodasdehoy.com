@@ -9,6 +9,7 @@ import { MdOutlineDeleteOutline } from "react-icons/md"
 import { CgInfo } from "react-icons/cg"
 import { AddUserToServices } from "../../Utils/Compartir/AddUserToServices"
 import { LuCopy } from "react-icons/lu";
+import { AuthContextProvider, EventContextProvider } from "../../../context";
 
 
 interface props {
@@ -30,6 +31,9 @@ export const ItineraryTabsMenu: FC<props> = ({ setModalDuplicate, itinerario, it
     const [value, setValue] = useState<string>()
     const { t } = useTranslation();
     const [isAllowed, ht] = useAllowed()
+    const { user } = AuthContextProvider()
+    const { event } = EventContextProvider()
+    const isOwner = user?.uid && event?.usuario_id && user.uid === event.usuario_id
 
     const optionsSelect: OptionsSelect[] = [
         {
@@ -49,14 +53,14 @@ export const ItineraryTabsMenu: FC<props> = ({ setModalDuplicate, itinerario, it
             },
             icon: <IoShareSocial className="w-5 h-5" />
         },
-        {
+        ...(isOwner ? [{
             title: t("duplicar"),
-            value: "Diplicar",
+            value: "duplicar",
             onClick: () => {
                 setModalDuplicate({ state: true, data: item })
             },
             icon: <LuCopy className="w-5 h-5" />
-        },
+        }] : []),
         {
             title: t("Borrar"),
             value: "delete",

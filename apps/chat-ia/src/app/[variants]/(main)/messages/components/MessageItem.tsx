@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import { Lock } from 'lucide-react';
 
 import { sendFeedback, type FeedbackRating } from '@/services/feedback';
 
@@ -40,6 +41,32 @@ const getStatusIcon = (status?: string) => {
 export function MessageItem({ message, compact }: MessageItemProps) {
   const isFromUser = message.fromUser;
   const [feedback, setFeedback] = useState<FeedbackRating | null>(null);
+
+  if (message.kind === 'internal_note') {
+    return (
+      <div className="flex justify-center">
+        <div
+          className={`max-w-[80%] rounded-xl border border-amber-200 bg-amber-50 px-4 ${
+            compact ? 'py-1.5' : 'py-3'
+          } text-amber-950`}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Lock className="h-4 w-4 text-amber-700" />
+              <span className="text-xs font-semibold text-amber-900">Nota interna</span>
+              {message.author && (
+                <span className="text-xs text-amber-700">
+                  {message.author}
+                </span>
+              )}
+            </div>
+            <span className="shrink-0 text-xs text-amber-700">{formatTime(message.timestamp)}</span>
+          </div>
+          <p className="mt-2 whitespace-pre-wrap break-words text-sm">{message.text}</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleFeedback = async (rating: FeedbackRating) => {
     if (feedback) return;

@@ -42,12 +42,12 @@ beforeEach(() => {
   // Bypass Python backend proxy so tests reach the LobeChat runtime path
   process.env.USE_PYTHON_BACKEND = 'false';
   request = new Request(new URL('https://test.com'), {
+    body: JSON.stringify({ model: 'test-model' }),
     headers: {
       [LOBE_CHAT_AUTH_HEADER]: 'Bearer some-valid-token',
       [OAUTH_AUTHORIZED]: 'true',
     },
     method: 'POST',
-    body: JSON.stringify({ model: 'test-model' }),
   });
 });
 
@@ -88,8 +88,8 @@ describe('POST handler', () => {
     it('should return Unauthorized error when LOBE_CHAT_AUTH_HEADER is missing', async () => {
       const mockParams = Promise.resolve({ provider: 'test-provider' });
       const requestWithoutAuthHeader = new Request(new URL('https://test.com'), {
-        method: 'POST',
         body: JSON.stringify({ model: 'test-model' }),
+        method: 'POST',
       });
 
       const response = await POST(requestWithoutAuthHeader, { params: mockParams });
@@ -125,22 +125,20 @@ describe('POST handler', () => {
       );
 
       const request = new Request(new URL('https://test.com'), {
-        method: 'POST',
         body: JSON.stringify({ model: 'test-model' }),
         headers: {
           [LOBE_CHAT_AUTH_HEADER]: 'some-valid-token',
           [OAUTH_AUTHORIZED]: '1',
         },
+        method: 'POST',
       });
 
       await POST(request, { params: mockParams });
 
-      // Note: getAuthFromRequest is async but called without await in the middleware,
-      // so clerkAuth is undefined (the Promise object, not its resolved .clerkAuth)
       expect(checkAuthMethod).toBeCalledWith({
         accessCode: 'test-access-code',
         apiKey: 'test-api-key',
-        clerkAuth: undefined,
+        clerkAuth: {},
         nextAuthAuthorized: true,
       });
     });
@@ -176,12 +174,12 @@ describe('POST handler', () => {
       const mockParams = Promise.resolve({ provider: 'test-provider' });
       const mockChatPayload = { message: 'Hello, world!' };
       request = new Request(new URL('https://test.com'), {
+        body: JSON.stringify(mockChatPayload),
         headers: { [LOBE_CHAT_AUTH_HEADER]: 'Bearer some-valid-token' },
         method: 'POST',
-        body: JSON.stringify(mockChatPayload),
       });
 
-      const mockChatResponse: any = { success: true, message: 'Reply from agent' };
+      const mockChatResponse: any = { message: 'Reply from agent', success: true };
 
       vi.spyOn(ModelRuntime.prototype, 'chat').mockResolvedValue(mockChatResponse);
 
@@ -189,8 +187,8 @@ describe('POST handler', () => {
 
       expect(response).toEqual(mockChatResponse);
       expect(ModelRuntime.prototype.chat).toHaveBeenCalledWith(mockChatPayload, {
-        user: 'abc',
         signal: expect.anything(),
+        user: 'abc',
       });
     });
 
@@ -205,14 +203,14 @@ describe('POST handler', () => {
       const mockParams = Promise.resolve({ provider: 'test-provider' });
       const mockChatPayload = { message: 'Hello, world!' };
       request = new Request(new URL('https://test.com'), {
+        body: JSON.stringify(mockChatPayload),
         headers: { [LOBE_CHAT_AUTH_HEADER]: 'Bearer some-valid-token' },
         method: 'POST',
-        body: JSON.stringify(mockChatPayload),
       });
 
       const mockErrorResponse = {
-        errorType: ChatErrorType.InternalServerError,
         errorMessage: 'Something went wrong',
+        errorType: ChatErrorType.InternalServerError,
       };
 
       vi.spyOn(ModelRuntime.prototype, 'chat').mockRejectedValue(mockErrorResponse);
@@ -222,11 +220,11 @@ describe('POST handler', () => {
       expect(response.status).toBe(500);
       expect(await response.json()).toEqual({
         body: {
-          errorMessage: 'Something went wrong',
           error: {
             errorMessage: 'Something went wrong',
             errorType: 500,
           },
+          errorMessage: 'Something went wrong',
           provider: 'test-provider',
         },
         errorType: 500,

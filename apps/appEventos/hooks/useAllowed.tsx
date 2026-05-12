@@ -23,24 +23,29 @@ export const useAllowed = () => {
     const pathname = usePathname()
     const { user } = AuthContextProvider()
 
+    const VALID_MODULES = ['resumen','invitados','mesas','regalos','presupuesto','invitaciones','itinerario','servicios','memories']
+    // Rutas no-modulares (no dependen de evento activo): se permiten siempre
+    const NON_MODULE_ROUTES = ['','login','login-rapido','registro','register','configuracion','facturacion','eventos','perfil','diseno','mi-web-creador','asistente','chat','momentos-publicos','public-card','public-itinerary','confirmar-asistencia','info-app','bandeja-de-mensajes','InvitationEmailEditor','aiEmail','api-debug','debug-error','debug-front','prueba','app']
+
     const isAllowed = (pathM?: keyof typeof types) => {
       if (event?.usuario_id === user?.uid) {
         return true
       }
       let path = pathM ? pathM : pathname.split("/")[1].split("-")[0]
-      if (path !== "") {
-        if (path === "lista") {
-          path = "regalos"
-        }
-        if (path === "momentos") {
-          path = "memories"
-        }
-        const f1 = event?.permissions?.findIndex(elem => elem.title === path)
-        if (f1 > -1) {
-          return event?.permissions[f1].value === "edit"
-        }
+      // Rutas no-modulares siempre permitidas
+      if (NON_MODULE_ROUTES.includes(path as string)) return true
+      if (path === "lista") {
+        path = "regalos"
       }
-      return true
+      if (path === "momentos") {
+        path = "memories"
+      }
+      if (!VALID_MODULES.includes(path)) return false
+      const f1 = event?.permissions?.findIndex(elem => elem.title === path)
+      if (f1 > -1) {
+        return event?.permissions[f1].value === "edit"
+      }
+      return false
     }
 
     const ht = () => {
@@ -62,27 +67,29 @@ export const useAllowedRouter = () => {
     const { t } = useTranslation()
     const { user } = AuthContextProvider()
 
+    const VALID_MODULES_ROUTER = ['resumen','invitados','mesas','regalos','presupuesto','invitaciones','itinerario','servicios','memories']
+    // Rutas no-modulares (no dependen de un evento activo): nunca se bloquean por permissions
+    const NON_MODULE_ROUTES = ['','login','login-rapido','registro','register','configuracion','facturacion','eventos','perfil','diseno','mi-web-creador','asistente','chat','momentos-publicos','public-card','public-itinerary','confirmar-asistencia','info-app','bandeja-de-mensajes','InvitationEmailEditor','aiEmail','api-debug','debug-error','debug-front','prueba','app']
+
     const isAllowedRouter = (pathM?: any) => {
       if (event?.usuario_id === user?.uid) {
         return true
       }
       let path = pathM ? pathM.split("/")[1].split("-")[0] : pathname.split("/")[1].split("-")[0]
-      if (path !== "") {
-        if (path === "lista") {
-          path = "regalos"
-        }
-        if (path === "momentos") {
-          path = "memories"
-        }
-        const f1 = event?.permissions?.findIndex(elem => elem.title === path)
-        if (f1 > -1) {
-          return event?.permissions[f1].value !== "none"
-        }
-        else {
-          return true
-        }
+      // Rutas no-modulares (home, login, perfil, configuracion, etc.) siempre permitidas
+      if (NON_MODULE_ROUTES.includes(path)) return true
+      if (path === "lista") {
+        path = "regalos"
       }
-      return true
+      if (path === "momentos") {
+        path = "memories"
+      }
+      if (!VALID_MODULES_ROUTER.includes(path)) return false
+      const f1 = event?.permissions?.findIndex(elem => elem.title === path)
+      if (f1 > -1) {
+        return event?.permissions[f1].value !== "none"
+      }
+      return false
     }
     const ht = () => {
       toast("warning", t("No tienes permiso para este módulo"))

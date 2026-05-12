@@ -1,17 +1,33 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
+import { getAuth, signOut } from "firebase/auth";
 
-/**
- * Ruta usada tras cerrar sesión (config.pathSignout → {origin}/signout?end=true).
- * En producción bodasdehoy.com puede existir otra página; en app-dev / app-test
- * antes no había página → 404. Aquí solo redirigimos a inicio (la sesión ya se limpió en Profile / Sidebar).
- */
 export default function SignoutPage() {
   const router = useRouter();
 
   useEffect(() => {
     if (!router.isReady) return;
-    router.replace("/");
+
+    const cleanup = async () => {
+      try {
+        await signOut(getAuth());
+      } catch (e) {
+        console.warn("[signout] Firebase signOut:", e);
+      }
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("appEventos_activeEventId");
+          localStorage.removeItem("dev_bypass");
+          localStorage.removeItem("dev_bypass_email");
+          localStorage.removeItem("dev_bypass_uid");
+        }
+      } catch (e) {
+        console.warn("[signout] localStorage cleanup:", e);
+      }
+      router.replace("/?signedOut=true");
+    };
+
+    cleanup();
   }, [router.isReady, router]);
 
   return (

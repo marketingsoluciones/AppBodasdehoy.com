@@ -1,9 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 const MEMORIES_API_BASE =
+  process.env.API_IA_URL ||
+  process.env.NEXT_PUBLIC_API_IA_URL ||
+  process.env.API3_IA_URL ||
+  process.env.NEXT_PUBLIC_API3_IA_URL ||
   process.env.NEXT_PUBLIC_MEMORIES_API_URL ||
   process.env.MEMORIES_API_URL ||
-  'https://api-ia.bodasdehoy.com';
+  'https://api3-ia.eventosorganizador.com';
 
 /**
  * Proxy a la API de Memories (api-ia).

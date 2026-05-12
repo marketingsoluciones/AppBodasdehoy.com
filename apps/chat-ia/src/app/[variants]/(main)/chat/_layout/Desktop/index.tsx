@@ -8,8 +8,6 @@ import ReloginBanner from '@/components/ReloginBanner';
 import { isDesktop } from '@/const/version';
 import InitClientDB from '@/features/InitClientDB';
 import ProtocolUrlHandler from '@/features/ProtocolUrlHandler';
-import { EventosAutoAuth } from '@/features/EventosAutoAuth';
-import { CopilotBridgeListener } from '@/features/CopilotBridgeListener';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
 
@@ -25,6 +23,10 @@ const PendingIntentModal = lazy(() => import('@/features/PendingIntentModal'));
 const InsufficientBalanceModal = lazy(() => import('@/features/InsufficientBalanceModal'));
 const LoginRequiredModal = lazy(() => import('@/features/LoginRequiredModal'));
 const NegativeBalanceBanner = lazy(() => import('@/components/Wallet/NegativeBalanceBanner'));
+const CopilotBridgeListener = lazy(() => import('@/features/CopilotBridgeListener'));
+const EventosAutoAuth = lazy(() =>
+  import('@/features/EventosAutoAuth').then((m) => ({ default: m.EventosAutoAuth })),
+);
 
 const Layout = ({ children, session }: LayoutProps) => {
   const searchParams = useSearchParams();
@@ -37,8 +39,12 @@ const Layout = ({ children, session }: LayoutProps) => {
 
   return (
     <>
-      <EventosAutoAuth />
-      <CopilotBridgeListener />
+      <Suspense fallback={null}>
+        <EventosAutoAuth />
+      </Suspense>
+      <Suspense fallback={null}>
+        <CopilotBridgeListener />
+      </Suspense>
       {!isEmbed && <ReloginBanner />}
       {/* Modal para continuar conversación después del login */}
       {!isEmbed && (

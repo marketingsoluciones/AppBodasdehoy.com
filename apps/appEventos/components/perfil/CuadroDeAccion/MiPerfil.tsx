@@ -75,7 +75,13 @@ export const MiPerfil = () => {
         await updatePassword(auth.currentUser, values.password);
         const idToken = await getAuth().currentUser?.getIdToken(true)
         const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+        Cookies.set("idTokenV0.1.0", idToken ?? "", {
+          domain: process.env.NEXT_PUBLIC_DOMINIO ?? "",
+          expires: dateExpire,
+          path: "/",
+          secure: typeof window !== "undefined" && window.location.protocol === "https:",
+          sameSite: "lax",
+        })
         setCanChangePassword(false)
         setPasswordView(false)
         setValues({ ...values, currentPassword: "", password: "" })

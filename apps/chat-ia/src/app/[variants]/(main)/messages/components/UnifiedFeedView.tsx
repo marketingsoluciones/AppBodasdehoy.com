@@ -1,6 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import { Virtuoso } from 'react-virtuoso';
 
 import type { FeedItem } from '../hooks/useUnifiedFeed';
 
@@ -140,29 +142,99 @@ interface UnifiedFeedViewProps {
 
 export function UnifiedFeedView({ items, loading, onItemClick }: UnifiedFeedViewProps) {
   const router = useRouter();
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<
+    'all' | 'unread' | 'notifications' | 'whatsapp' | 'instagram' | 'telegram' | 'email' | 'web' | 'facebook'
+  >('all');
+
+  const availableFilters = useMemo(() => {
+    const kinds = new Set<string>();
+    for (const it of items) {
+      if (it.kind === 'notification') kinds.add('notifications');
+      else kinds.add(String(it.channelKind));
+    }
+    const base: { key: typeof filter; label: string }[] = [{ key: 'all', label: 'Todo' }];
+    if (items.some((it) => (it.unreadCount ?? 0) > 0 || !it.isRead)) base.push({ key: 'unread', label: 'Sin leer' });
+    if (kinds.has('notifications')) base.push({ key: 'notifications', label: 'Notifs' });
+    const ordered: Array<{ key: typeof filter; kind: string, label: string; }> = [
+      { key: 'whatsapp', kind: 'whatsapp', label: 'WA' },
+      { key: 'instagram', kind: 'instagram', label: 'IG' },
+      { key: 'facebook', kind: 'facebook', label: 'FB' },
+      { key: 'telegram', kind: 'telegram', label: 'TG' },
+      { key: 'email', kind: 'email', label: '@' },
+      { key: 'web', kind: 'web', label: 'Web' },
+    ];
+    for (const o of ordered) {
+      if (kinds.has(o.kind)) base.push({ key: o.key, label: o.label });
+    }
+    return base;
+  }, [items]);
+
+  const filteredItems = useMemo(() => {
+    let list = items;
+    if (filter === 'unread') {
+      list = list.filter((it) => (it.unreadCount ?? 0) > 0 || !it.isRead);
+    } else if (filter === 'notifications') {
+      list = list.filter((it) => it.kind === 'notification');
+    } else if (filter !== 'all') {
+      list = list.filter((it) => it.kind !== 'notification' && it.channelKind === filter);
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (it) => it.name.toLowerCase().includes(q) || (it.preview ?? '').toLowerCase().includes(q),
+      );
+    }
+    return list;
+  }, [filter, items, search]);
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-        <h2 className="text-base font-semibold text-gray-800">Todos los mensajes</h2>
-        {!loading && items.length > 0 && (
-          <span className="text-xs text-gray-400">{items.length} conversaciones</span>
+      <div className="border-b border-gray-100 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold text-gray-800">Bandeja</h2>
+          {!loading && items.length > 0 && (
+            <span className="text-xs text-gray-400">{items.length} items</span>
+          )}
+        </div>
+        <div className="mt-2 flex items-center gap-2">
+          <input
+            className="flex-1 rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs placeholder:text-gray-400 focus:border-blue-400 focus:bg-white focus:outline-none"
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar..."
+            type="text"
+            value={search}
+          />
+        </div>
+        {availableFilters.length > 1 && (
+          <div className="mt-2 flex gap-1 overflow-x-auto pb-1">
+            {availableFilters.map((t) => (
+              <button
+                className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${
+                  filter === t.key ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+                key={t.key}
+                onClick={() => setFilter(t.key)}
+                type="button"
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         )}
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 min-h-0">
         {loading ? (
           <FeedSkeleton />
-        ) : items.length === 0 ? (
+        ) : filteredItems.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
             <span className="text-5xl">💬</span>
             <div>
-              <p className="font-medium text-gray-700">No hay mensajes aún</p>
-              <p className="mt-1 text-sm text-gray-400">
-                Conecta un canal para recibir mensajes aquí
-              </p>
+              <p className="font-medium text-gray-700">Sin resultados</p>
+              <p className="mt-1 text-sm text-gray-400">Prueba otro filtro o cambia la búsqueda</p>
             </div>
             <button
               className="mt-2 rounded-lg bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600 transition-colors"
@@ -173,11 +245,14 @@ export function UnifiedFeedView({ items, loading, onItemClick }: UnifiedFeedView
             </button>
           </div>
         ) : (
-          <div>
-            {items.map((item) => (
-              <FeedItemRow key={item.id} item={item} onClick={() => onItemClick(item)} />
-            ))}
-          </div>
+          <Virtuoso
+            computeItemKey={(_, item) => item.id}
+            data={filteredItems}
+            itemContent={(_, item) => (
+              <FeedItemRow item={item} onClick={() => onItemClick(item)} />
+            )}
+            style={{ height: '100%' }}
+          />
         )}
       </div>
     </div>

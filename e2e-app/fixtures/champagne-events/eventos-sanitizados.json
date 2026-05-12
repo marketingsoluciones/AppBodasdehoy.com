@@ -1,0 +1,375 @@
+[
+  {
+    "nombre": "juanito",
+    "tipo": "comunión",
+    "fecha": "2025-06-25T00:00:00.000Z",
+    "usuario_id": "TEST_OWNER_UID_001",
+    "usuario_nombre": "Test Owner",
+    "color": [
+      "Rojo",
+      "Rosado"
+    ],
+    "invitados_count": 10,
+    "invitados": [
+      {
+        "nombre": "QA-COORG-Ev1-Inv1",
+        "correo": "jcc+ev1inv1@bodasdehoy.com",
+        "telefono": "+34600000011",
+        "rol": "familia materna",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",
+        "alergenos": [],
+        "comunicaciones_count": 3
+      },
+      {
+        "nombre": "QA-INVITADO-Ev1-Inv2",        "correo": "jcc+ev1inv2@marketingsoluciones.com",
+        "telefono": "+34600000012",
+        "rol": "padres y hermanos de (nombre)",
+        "asistencia": "confirmado",
+        "nombre_menu": "adultos",
+        "alergenos": [],
+        "comunicaciones_count": 3
+      },
+      {
+        "nombre": "QA-EXTRA-Ev1-Inv3",
+        "correo": "jcc+ev1inv3@recargaexpres.com",
+        "telefono": "+34600000013",
+        "rol": "comulgante",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",
+        "alergenos": [],
+        "comunicaciones_count": 3
+      },
+      {
+        "nombre": "QA-INVITADO-Ev1-Inv4",
+        "correo": "jcc+ev1inv4@marketingsoluciones.com",
+        "telefono": "+34600000014",
+        "rol": "padres y hermanos de (nombre)",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-INVITADO-Ev1-Inv5",
+        "correo": "jcc+ev1inv5@marketingsoluciones.com",
+        "telefono": "+34600000015",
+        "rol": "padrino y madrina",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-INVITADO-Ev1-Inv6",
+        "correo": "jcc+ev1inv6@marketingsoluciones.com",
+        "telefono": "+34600000016",
+        "rol": "padres y hermanos de (nombre)",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-INVITADO-Ev1-Inv7",        "correo": "jcc+ev1inv7@marketingsoluciones.com",
+        "telefono": "+34600000017",
+        "rol": "padres y hermanos de (nombre)",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-INVITADO-Ev1-Inv8",
+        "correo": "jcc+ev1inv8@marketingsoluciones.com",
+        "telefono": "+34600000018",
+        "rol": "padres y hermanos de (nombre)",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-INVITADO-Ev1-Inv9",
+        "correo": "jcc+ev1inv9@marketingsoluciones.com",
+        "telefono": "+34600000019",
+        "rol": "familia materna",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-COORG-Ev1-Inv10",
+        "correo": "jcc+ev1inv10@bodasdehoy.com",
+        "telefono": "+34600000020",
+        "rol": "padrino y madrina",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",
+        "alergenos": [],
+        "comunicaciones_count": 2
+      }
+    ]
+  },
+  {
+    "nombre": "boda de carlos",
+    "tipo": "boda",
+    "fecha": "2025-08-16T00:00:00.000Z",
+    "usuario_id": "TEST_OWNER_UID_001",
+    "usuario_nombre": "Test Owner",
+    "color": [
+      "Dorado",
+      "Plata",
+      "Naranja",      "Morado",
+      "Rojo",
+      "Rosado",
+      "Celeste",
+      "Amarillo",
+      "Beige"
+    ],
+    "invitados_count": 5,
+    "invitados": [
+      {
+        "nombre": "QA-INVITADO-Ev2-Inv1",
+        "correo": "jcc+ev2inv1@marketingsoluciones.com",
+        "telefono": "+34600000021",
+        "rol": "novios",
+        "asistencia": "pendiente",
+        "nombre_menu": "niños",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-COORG-Ev2-Inv2",
+        "correo": "jcc+ev2inv2@bodasdehoy.com",
+        "telefono": "+34600000022",
+        "rol": "novios",
+        "asistencia": "Seleccionar",        "nombre_menu": "adultos",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-EXTRA-Ev2-Inv3",
+        "correo": "jcc+ev2inv3@recargaexpres.com",
+        "telefono": "+34600000023",
+        "rol": "amigos de la novia",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-INVITADO-Ev2-Inv4",
+        "correo": "jcc+ev2inv4@marketingsoluciones.com",
+        "telefono": "+34600000024",
+        "rol": "amigos de la novia",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {        "nombre": "QA-COORG-Ev2-Inv5",
+        "correo": "jcc+ev2inv5@bodasdehoy.com",
+        "telefono": "+34600000025",
+        "rol": "familia de la novia",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      }
+    ]
+  },
+  {
+    "nombre": "comunion1",
+    "tipo": "cumpleaños",
+    "fecha": "2025-12-06T00:00:00.000Z",
+    "usuario_id": "TEST_OWNER_UID_001",
+    "usuario_nombre": "Test Owner",
+    "color": [
+      "Celeste"
+    ],
+    "invitados_count": 19,
+    "invitados": [
+      {
+        "nombre": "QA-OWNER-Ev3-Inv1",
+        "correo": "bodasdehoy.com+ev3inv1@gmail.com",        "telefono": "+34600000026",
+        "rol": "amigos de (nombre)",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-INVITADO-Ev3-Inv2",
+        "correo": "jcc+ev3inv2@marketingsoluciones.com",
+        "telefono": "+34600000027",
+        "rol": "familia materna",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",
+        "alergenos": [],
+        "comunicaciones_count": 45
+      },
+      {
+        "nombre": "QA-COORG-Ev3-Inv3",
+        "correo": "jcc+ev3inv3@bodasdehoy.com",
+        "telefono": "+34600000028",
+        "rol": "cumpleañero o cumpleañera",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",
+        "alergenos": [],        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-COORG-Ev3-Inv4",
+        "correo": "jcc+ev3inv4@bodasdehoy.com",
+        "telefono": "+34600000029",
+        "rol": "no asignado",
+        "asistencia": "pendiente",
+        "nombre_menu": "",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-COORG-Ev3-Inv5",
+        "correo": "jcc+ev3inv5@bodasdehoy.com",
+        "telefono": "+34600000030",
+        "rol": "no asignado",
+        "asistencia": "pendiente",
+        "nombre_menu": null,
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-COORG-Ev3-Inv6",
+        "correo": "jcc+ev3inv6@bodasdehoy.com",        "telefono": "+34600000031",
+        "rol": "no asignado",
+        "asistencia": "pendiente",
+        "nombre_menu": "",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-COORG-Ev3-Inv7",
+        "correo": "jcc+ev3inv7@bodasdehoy.com",
+        "telefono": "+34600000032",
+        "rol": "no asignado",
+        "asistencia": "pendiente",
+        "nombre_menu": "",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-COORG-Ev3-Inv8",
+        "correo": "jcc+ev3inv8@bodasdehoy.com",
+        "telefono": "+34600000033",
+        "rol": "no asignado",
+        "asistencia": "pendiente",
+        "nombre_menu": "",
+        "alergenos": [],        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-INVITADO-Ev3-Inv9",
+        "correo": "jcc+ev3inv9@marketingsoluciones.com",
+        "telefono": "+34600000034",
+        "rol": "no asignado",
+        "asistencia": "pendiente",
+        "nombre_menu": "",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-COORG-Ev3-Inv10",
+        "correo": "jcc+ev3inv10@bodasdehoy.com",
+        "telefono": "+34600000035",
+        "rol": "no asignado",
+        "asistencia": "pendiente",
+        "nombre_menu": "",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-EXTRA-Ev3-Inv11",
+        "correo": "jcc+ev3inv11@recargaexpres.com",        "telefono": "+34600000036",
+        "rol": "no asignado",
+        "asistencia": "pendiente",
+        "nombre_menu": "",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-COORG-Ev3-Inv12",
+        "correo": "jcc+ev3inv12@bodasdehoy.com",
+        "telefono": "+34600000037",
+        "rol": "no asignado",
+        "asistencia": "pendiente",
+        "nombre_menu": "",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-COORG-Ev3-Inv13",
+        "correo": "jcc+ev3inv13@bodasdehoy.com",
+        "telefono": "+34600000038",
+        "rol": "no asignado",
+        "asistencia": "pendiente",
+        "nombre_menu": "",
+        "alergenos": [],        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-INVITADO-Ev3-Inv14",
+        "correo": "jcc+ev3inv14@marketingsoluciones.com",
+        "telefono": "+34600000039",
+        "rol": "no asignado",
+        "asistencia": "pendiente",
+        "nombre_menu": "",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-EXTRA-Ev3-Inv15",
+        "correo": "jcc+ev3inv15@recargaexpres.com",
+        "telefono": "+34600000040",
+        "rol": "no asignado",
+        "asistencia": "pendiente",
+        "nombre_menu": "",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-INVITADO-Ev3-Inv16",
+        "correo": "jcc+ev3inv16@marketingsoluciones.com",        "telefono": "+34600000041",
+        "rol": "no asignado",
+        "asistencia": "pendiente",
+        "nombre_menu": "",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-COORG-Ev3-Inv17",
+        "correo": "jcc+ev3inv17@bodasdehoy.com",
+        "telefono": "+34600000042",
+        "rol": "no asignado",
+        "asistencia": "pendiente",
+        "nombre_menu": "",
+        "alergenos": [],
+        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-INVITADO-Ev3-Inv18",
+        "correo": "jcc+ev3inv18@marketingsoluciones.com",
+        "telefono": "+34600000043",
+        "rol": "familia materna",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",
+        "alergenos": [],        "comunicaciones_count": 0
+      },
+      {
+        "nombre": "QA-INVITADO-Ev3-Inv19",
+        "correo": "jcc+ev3inv19@marketingsoluciones.com",
+        "telefono": "+34600000044",
+        "rol": "familia materna",
+        "asistencia": "pendiente",
+        "nombre_menu": "adultos",
+        "alergenos": [],
+        "comunicaciones_count": 1
+      }
+    ]
+  }
+]

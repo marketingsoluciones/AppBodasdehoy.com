@@ -131,7 +131,13 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
       UserFirebase = userCredential.user;
       const idToken = await userCredential.user.getIdToken()
       const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-      Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+      Cookies.set("idTokenV0.1.0", idToken ?? "", {
+        domain: process.env.NEXT_PUBLIC_DOMINIO ?? "",
+        expires: dateExpire,
+        path: "/",
+        secure: typeof window !== "undefined" && window.location.protocol === "https:",
+        sameSite: "lax",
+      })
 
       values.uid = userCredential.user.uid;
     } catch (error) {
@@ -152,7 +158,13 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             UserFirebase = userCredential.user
             const idToken = await userCredential.user.getIdToken()
             const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
-            Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: process.env.NEXT_PUBLIC_DOMINIO ?? "", expires: dateExpire })
+            Cookies.set("idTokenV0.1.0", idToken ?? "", {
+              domain: process.env.NEXT_PUBLIC_DOMINIO ?? "",
+              expires: dateExpire,
+              path: "/",
+              secure: typeof window !== "undefined" && window.location.protocol === "https:",
+              sameSite: "lax",
+            })
             await getSessionCookie(idToken)
             values.uid = UserFirebase.uid
           } catch {

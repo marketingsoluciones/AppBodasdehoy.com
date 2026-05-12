@@ -9,8 +9,6 @@ import { createI18nNext } from '@/locales/create';
 import { isOnServerSide } from '@/utils/env';
 import { getAntdLocale } from '@/utils/locale';
 
-import Editor from './Editor';
-
 const updateDayjs = async (lang: string) => {
   // load default lang
   let dayJSLocale;
@@ -115,7 +113,7 @@ const Locale = memo<LocaleLayoutProps>(({ children, defaultLang, antdLocale }) =
         },
       }}
     >
-      <Editor>{children}</Editor>
+      {children}
     </ConfigProvider>
   );
 });
