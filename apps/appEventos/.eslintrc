@@ -8,6 +8,7 @@
     "@next/next/no-page-custom-font": "off",
     "react-hooks/exhaustive-deps": "off",
     "jsx-a11y/alt-text": "off",
-    "import/no-anonymous-default-export": "off"
+    "import/no-anonymous-default-export": "off",
+    "no-console": ["warn", { "allow": ["warn", "error"] }]
   }
 }
