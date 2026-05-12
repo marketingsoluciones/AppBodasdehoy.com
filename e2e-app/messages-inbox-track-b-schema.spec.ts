@@ -11,7 +11,7 @@
  *   B7 — GraphQL Subscriptions WebSocket
  *
  * Cobertura sprint /messages — P1 schema verification
- * Endpoint: api3-mcp-graphql producción (B1-B7 mergeados a main)
+ * Endpoint: api-mcp.eventosorganizador.com producción (B1-B7 mergeados a main)
  */
 import { test, expect } from '@playwright/test';
 
