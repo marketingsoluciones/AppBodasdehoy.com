@@ -24,7 +24,7 @@ const continueAsVisitor = () => {
   try {
     localStorage.removeItem('mcp_jwt_token');
     localStorage.removeItem('mcp_jwt_expires_at');
-    localStorage.removeItem('api2_jwt_token');
+    localStorage.removeItem('mcp_jwt_token');
     localStorage.removeItem('api2_jwt_expires_at');
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('jwt_token_cache');

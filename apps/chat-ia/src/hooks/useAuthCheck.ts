@@ -85,7 +85,7 @@ export const useAuthCheck = () => {
     let jwtToken =
       localStorage.getItem('jwt_token') ||
       localStorage.getItem('mcp_jwt_token') ||
-      localStorage.getItem('api2_jwt_token') ||
+      localStorage.getItem('mcp_jwt_token') ||
       getUserConfig()?.token;
 
     if (!jwtToken) {
@@ -265,7 +265,7 @@ export const useAuthCheck = () => {
     // Limpiar tokens expirados/inválidos
     localStorage.removeItem('mcp_jwt_token');
     localStorage.removeItem('mcp_jwt_expires_at');
-    localStorage.removeItem('api2_jwt_token');
+    localStorage.removeItem('mcp_jwt_token');
     localStorage.removeItem('api2_jwt_expires_at');
     localStorage.removeItem('jwt_token');
 

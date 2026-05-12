@@ -98,7 +98,7 @@ try {
   var cfg = ${configJson};
   localStorage.setItem('dev-user-config', JSON.stringify(cfg));
   localStorage.setItem('jwt_token', ${JSON.stringify(token)});
-  localStorage.setItem('api2_jwt_token', ${JSON.stringify(token)});
+  localStorage.setItem('mcp_jwt_token', ${JSON.stringify(token)});
   document.cookie = 'dev-user-config=' + encodeURIComponent(JSON.stringify(cfg)) + '; path=/; max-age=' + (30 * 24 * 60 * 60) + '; SameSite=Lax';
 } catch(e) {}
 window.location.replace(${JSON.stringify(safeRedirect)});

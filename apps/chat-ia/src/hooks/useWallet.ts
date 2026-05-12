@@ -95,7 +95,7 @@ export const useWallet = (): UseWalletReturn => {
     const directToken = safeLocalStorage.getItem('jwt_token');
     if (directToken) return true;
 
-    const firebaseToken = safeLocalStorage.getItem('api2_jwt_token');
+    const firebaseToken = safeLocalStorage.getItem('mcp_jwt_token');
     if (firebaseToken) return true;
 
     const cache = safeLocalStorage.getItem('jwt_token_cache');

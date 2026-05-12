@@ -36,7 +36,7 @@ describe('ConversationHeader meta', () => {
       'dev-user-config',
       JSON.stringify({ user_id: 'u1', development: 'bodasdehoy' }),
     );
-    localStorage.setItem('api2_jwt_token', 'x.y.z');
+    localStorage.setItem('mcp_jwt_token', 'x.y.z');
     localStorage.setItem('api2_jwt_expires_at', new Date('2099-01-01').toISOString());
   });
 

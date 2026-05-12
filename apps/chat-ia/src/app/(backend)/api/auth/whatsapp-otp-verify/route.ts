@@ -10,7 +10,7 @@ const VERIFY_SID = process.env.TWILIO_VERIFY_SERVICE_SID;
 
 const JWT_SECRET =
   process.env.MCP_JWT_SECRET ||
-  process.env.API2_JWT_SECRET ||
+  process.env.MCP_JWT_SECRET ||
   process.env.JWT_SECRET ||
   'bodasdehoy-secret-key';
 // TTL del token: 7 días (igual que el resto de tokens del sistema)

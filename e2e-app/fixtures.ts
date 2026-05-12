@@ -194,8 +194,8 @@ export const TEST_TABLE = {
 export const KNOWN_EVENT_IDS: string[] = [];
 
 export const TEST_CREDENTIALS_U2 = {
-  email: process.env.TEST_USER2_EMAIL || 'test-usuario2@bodasdehoy.com',
-  password: process.env.TEST_USER2_PASSWORD || 'TestBodas2024!',
+  email: process.env.TEST_USER2_EMAIL || 'jcc@marketingsoluciones.com',
+  password: process.env.TEST_USER2_PASSWORD || 'lorca2012M*+',
 };
 
 export const VIVETUBODA_URLS = {

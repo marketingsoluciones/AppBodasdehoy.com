@@ -600,15 +600,15 @@ async function proxyToPythonBackend(
       // NO se añade Authorization — api-ia tratará la request como visitante anónimo
     } else {
       // Auth: use client-sent header if it carries a real token (not empty Bearer)
-      // Fallback: extract from cookies (idTokenV0.1.0 SSO, api2_jwt, dev-user-config)
+      // Fallback: extract from cookies (idTokenV0.1.0 SSO, mcp_jwt, dev-user-config)
       const rawAuthHeader = req.headers['authorization'] as string | undefined;
       const clientToken = rawAuthHeader?.replace(/^Bearer\s+/i, '').trim();
       if (clientToken && clientToken.startsWith('eyJ')) {
         headers['Authorization'] = rawAuthHeader as string;
       } else {
         const cookieHeader = req.headers['cookie'] || '';
-        // 1) api2_jwt (dedicated)
-        const jwtMatch = cookieHeader.match(/api2_jwt=([^;]+)/);
+        // 1) mcp_jwt (dedicated)
+        const jwtMatch = cookieHeader.match(/mcp_jwt=([^;]+)/);
         const jwtToken = jwtMatch ? decodeURIComponent(jwtMatch[1]) : '';
         // 2) SSO idTokenV0.1.0 (Firebase, domain=.bodasdehoy.com)
         const ssoMatch = cookieHeader.match(/idTokenV0\.1\.0=([^;]+)/);

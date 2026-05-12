@@ -31,7 +31,7 @@ const readToken = (): string | undefined => {
   try {
     const direct = localStorage.getItem('jwt_token');
     if (direct && direct !== 'null') return direct;
-    const firebase = localStorage.getItem('api2_jwt_token');
+    const firebase = localStorage.getItem('mcp_jwt_token');
     if (firebase && firebase !== 'null') return firebase;
     const config = localStorage.getItem('dev-user-config');
     if (config) return JSON.parse(config)?.token;

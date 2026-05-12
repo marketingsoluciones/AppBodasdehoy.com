@@ -407,7 +407,7 @@ class AuthBridge {
     // Clean all auth-related localStorage entries
     localStorage.removeItem('dev-user-config');
     localStorage.removeItem('jwt_token');
-    localStorage.removeItem('api2_jwt_token');
+    localStorage.removeItem('mcp_jwt_token');
     localStorage.removeItem('user_email');
     localStorage.removeItem('user_uid');
     localStorage.removeItem('user_display_name');

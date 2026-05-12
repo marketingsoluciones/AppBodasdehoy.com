@@ -243,7 +243,7 @@ export async function automateGoogleLogin(config: AutomationConfig) {
     console.log('✅ Paso 6: Verificando login exitoso...');
     
     const verifyScript = `
-      const token = localStorage.getItem('api2_jwt_token');
+      const token = localStorage.getItem('mcp_jwt_token');
       const userConfig = localStorage.getItem('dev-user-config');
       const currentUrl = window.location.href;
       const hostname = window.location.hostname;
@@ -429,7 +429,7 @@ await browser_click({
 const result = await browser_execute_script({
   script: \`
     ({
-      hasToken: !!localStorage.getItem('api2_jwt_token'),
+      hasToken: !!localStorage.getItem('mcp_jwt_token'),
       hasUserConfig: !!localStorage.getItem('dev-user-config'),
       url: window.location.href,
       development: window.location.hostname.includes('bodasdehoy') ? 'bodasdehoy' : 'unknown'
@@ -502,7 +502,7 @@ await browser_navigate({ url: 'https://www.bodasdehoy.com' });
 const loginCheck1 = await browser_execute_script({
   script: \`
     ({
-      hasToken: !!localStorage.getItem('api2_jwt_token'),
+      hasToken: !!localStorage.getItem('mcp_jwt_token'),
       hasSessionCookie: document.cookie.includes('sessionBodas='),
       domain: window.location.hostname
     })
@@ -516,7 +516,7 @@ await browser_wait_for({ time: 2000 });
 const loginCheck2 = await browser_execute_script({
   script: \`
     ({
-      hasToken: !!localStorage.getItem('api2_jwt_token'),
+      hasToken: !!localStorage.getItem('mcp_jwt_token'),
       hasSessionCookie: document.cookie.includes('sessionBodas='),
       domain: window.location.hostname
     })
@@ -530,7 +530,7 @@ await browser_wait_for({ time: 2000 });
 const loginCheck3 = await browser_execute_script({
   script: \`
     ({
-      hasToken: !!localStorage.getItem('api2_jwt_token'),
+      hasToken: !!localStorage.getItem('mcp_jwt_token'),
       hasSessionCookie: document.cookie.includes('sessionBodas='),
       domain: window.location.hostname
     })

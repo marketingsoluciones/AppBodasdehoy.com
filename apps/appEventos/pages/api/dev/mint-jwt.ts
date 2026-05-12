@@ -8,7 +8,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import crypto from 'crypto';
 
-const MCP_JWT_SECRET = process.env.MCP_JWT_SECRET || process.env.API2_JWT_SECRET || process.env.JWT_SECRET;
+const MCP_JWT_SECRET = process.env.MCP_JWT_SECRET || process.env.MCP_JWT_SECRET || process.env.JWT_SECRET;
 if (!MCP_JWT_SECRET) {
   console.warn('[mint-jwt] MCP_JWT_SECRET no configurado — endpoint deshabilitado');
 }

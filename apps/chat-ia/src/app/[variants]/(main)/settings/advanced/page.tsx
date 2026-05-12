@@ -97,7 +97,7 @@ export default function AdvancedSettingsPage() {
 
   const clearAllLocalData = useCallback(() => {
     try {
-      const preserve = ['dev-user-config', 'jwt_token', 'api2_jwt_token'];
+      const preserve = ['dev-user-config', 'jwt_token', 'mcp_jwt_token'];
       const saved: Record<string, string> = {};
       preserve.forEach((k) => {
         const v = localStorage.getItem(k);

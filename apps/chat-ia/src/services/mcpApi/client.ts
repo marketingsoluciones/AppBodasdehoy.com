@@ -56,8 +56,8 @@ const readToken = () => {
     return directToken;
   }
 
-  // 2. api2_jwt_token (login con Firebase Auth)
-  const firebaseToken = localStorage.getItem('api2_jwt_token');
+  // 2. mcp_jwt_token (login con Firebase Auth)
+  const firebaseToken = localStorage.getItem('mcp_jwt_token');
   if (firebaseToken && firebaseToken !== 'null' && firebaseToken !== 'undefined' && !isExpired(firebaseToken)) {
     return firebaseToken;
   }
@@ -123,7 +123,7 @@ export class MCPClient {
 
     if (shouldResetToken(payload.errors) && typeof window !== 'undefined') {
       localStorage.removeItem('jwt_token');
-      localStorage.removeItem('api2_jwt_token');
+      localStorage.removeItem('mcp_jwt_token');
       localStorage.removeItem('jwt_token_cache');
       // Notificar a la UI para que muestre un aviso de sesión expirada
       window.dispatchEvent(new CustomEvent('api2:token-expired'));

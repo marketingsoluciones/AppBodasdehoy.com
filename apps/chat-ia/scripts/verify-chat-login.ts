@@ -5,7 +5,7 @@
  * está correctamente logueado en el chat/copilot después del login.
  * 
  * Verifica múltiples fuentes de verdad:
- * - localStorage (api2_jwt_token, dev-user-config)
+ * - localStorage (mcp_jwt_token, dev-user-config)
  * - Cookies (dev-user-config)
  * - Store de Zustand (useChatStore)
  * - UI del chat (usuario visible)
@@ -52,7 +52,7 @@ export function getVerificationScript(): string {
   return `
     (function() {
       // Verificar localStorage
-      const api2Token = localStorage.getItem('api2_jwt_token');
+      const api2Token = localStorage.getItem('mcp_jwt_token');
       const jwtToken = localStorage.getItem('jwt_token');
       const devUserConfig = localStorage.getItem('dev-user-config');
       

@@ -73,7 +73,7 @@ const UserInfo = memo<UserInfoProps>(({ avatarProps, onClick, ...rest }) => {
   // ✅ NUEVO: Verificar si la sesión está activa (JWT válido)
   const hasActiveSession = (() => {
     if (typeof window === 'undefined') return false;
-    const token = localStorage.getItem('api2_jwt_token') || localStorage.getItem('jwt_token');
+    const token = localStorage.getItem('mcp_jwt_token') || localStorage.getItem('jwt_token');
     if (!token) return false;
     
     const expiresAt = localStorage.getItem('api2_jwt_expires_at');

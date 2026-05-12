@@ -384,7 +384,7 @@ user_id: effectiveUserId,
           const apiToken = sharedAuth.idToken;
           if (apiToken) {
             localStorage.setItem('jwt_token', apiToken);
-            localStorage.setItem('api2_jwt_token', apiToken);
+            localStorage.setItem('mcp_jwt_token', apiToken);
           }
 
           // Sincronizar a formato dev-user-config que usa LobeChat

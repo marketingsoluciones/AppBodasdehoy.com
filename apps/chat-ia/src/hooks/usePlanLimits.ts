@@ -75,7 +75,7 @@ export const usePlanLimits = (): UsePlanLimitsReturn => {
     const directToken = safeLocalStorage.getItem('jwt_token');
     if (directToken && directToken !== 'null' && directToken !== 'undefined') return true;
 
-    const firebaseToken = safeLocalStorage.getItem('api2_jwt_token');
+    const firebaseToken = safeLocalStorage.getItem('mcp_jwt_token');
     if (firebaseToken && firebaseToken !== 'null' && firebaseToken !== 'undefined') return true;
 
     const cache = safeLocalStorage.getItem('jwt_token_cache');

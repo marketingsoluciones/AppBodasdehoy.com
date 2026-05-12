@@ -77,7 +77,7 @@ const resolveMcpToken = (explicit?: string): string | undefined => {
   const mcpToken = normalizeToken(safeLocalStorage.getItem('mcp_jwt_token'));
   if (mcpToken && isLikelyJwt(mcpToken) && !isJwtExpired(mcpToken)) return mcpToken;
 
-  const firebaseToken = normalizeToken(safeLocalStorage.getItem('api2_jwt_token'));
+  const firebaseToken = normalizeToken(safeLocalStorage.getItem('mcp_jwt_token'));
   if (firebaseToken && isLikelyJwt(firebaseToken) && !isJwtExpired(firebaseToken)) return firebaseToken;
 
   const rawConfig = safeLocalStorage.getItem('dev-user-config');
@@ -913,7 +913,7 @@ export const externalChatSlice: StateCreator<
     if (resolvedToken) {
       safeLocalStorage.setItem('jwt_token', resolvedToken);
       safeLocalStorage.setItem('mcp_jwt_token', resolvedToken);
-      safeLocalStorage.setItem('api2_jwt_token', resolvedToken);
+      safeLocalStorage.setItem('mcp_jwt_token', resolvedToken);
       const expMs = decodeJwtExpMs(resolvedToken);
       if (expMs) {
         safeLocalStorage.setItem('mcp_jwt_expires_at', new Date(expMs).toISOString());
@@ -925,7 +925,7 @@ export const externalChatSlice: StateCreator<
       safeLocalStorage.removeItem('jwt_token');
       safeLocalStorage.removeItem('mcp_jwt_token');
       safeLocalStorage.removeItem('mcp_jwt_expires_at');
-      safeLocalStorage.removeItem('api2_jwt_token');
+      safeLocalStorage.removeItem('mcp_jwt_token');
       safeLocalStorage.removeItem('api2_jwt_expires_at');
     }
 

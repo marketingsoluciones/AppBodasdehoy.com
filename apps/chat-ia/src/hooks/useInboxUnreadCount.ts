@@ -17,7 +17,7 @@ export function useInboxUnreadCount(): number {
 
   useEffect(() => {
     const directToken = safeLocalStorage.getItem('jwt_token');
-    const firebaseToken = safeLocalStorage.getItem('api2_jwt_token');
+    const firebaseToken = safeLocalStorage.getItem('mcp_jwt_token');
     const hasToken =
       !!(directToken && directToken !== 'null' && directToken !== 'undefined') ||
       !!(firebaseToken && firebaseToken !== 'null' && firebaseToken !== 'undefined');

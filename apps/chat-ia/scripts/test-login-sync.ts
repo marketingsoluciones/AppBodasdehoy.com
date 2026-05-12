@@ -43,7 +43,7 @@ export async function verifyChatLogin(): Promise<{
   const verificationScript = `
     (function() {
       // Verificar localStorage
-      const api2Token = localStorage.getItem('api2_jwt_token');
+      const api2Token = localStorage.getItem('mcp_jwt_token');
       const jwtToken = localStorage.getItem('jwt_token');
       const devUserConfig = localStorage.getItem('dev-user-config');
       

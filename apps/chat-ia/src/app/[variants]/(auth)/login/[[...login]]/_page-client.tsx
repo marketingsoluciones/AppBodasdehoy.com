@@ -110,7 +110,7 @@ function RightPanel() {
     if (token) {
       optimizedApiClient.setToken(token, userId, dev);
       localStorage.setItem('jwt_token', token);
-      localStorage.setItem('api2_jwt_token', token);
+      localStorage.setItem('mcp_jwt_token', token);
     }
   };
 
@@ -136,7 +136,7 @@ function RightPanel() {
     if (!result) return; // signInWithRedirect en progreso
     if (!result.success) throw new Error(result.errors?.join(', ') || 'Error con Google.');
     const email = result.user?.email || '';
-    const token = localStorage.getItem('api2_jwt_token') || null;
+    const token = localStorage.getItem('mcp_jwt_token') || null;
     saveSession(email, result.development, token, email);
     await setExternalChatConfig(email, result.development, token || undefined, 'registered');
     fetchExternalChats().catch(() => {});
@@ -153,7 +153,7 @@ function RightPanel() {
     if (!result) return;
     if (!result.success) throw new Error(result.errors?.join(', ') || 'Error con Facebook.');
     const email = result.user?.email || '';
-    const token = localStorage.getItem('api2_jwt_token') || null;
+    const token = localStorage.getItem('mcp_jwt_token') || null;
     saveSession(email, result.development, token, email);
     await setExternalChatConfig(email, result.development, token || undefined, 'registered');
     fetchExternalChats().catch(() => {});
@@ -398,7 +398,7 @@ const SSO_SCRIPT = `
       try { document.cookie = 'dev-user-config=' + encodeURIComponent(JSON.stringify(config)) + '; path=/; max-age=' + (30 * 24 * 60 * 60) + '; SameSite=Lax'; } catch(e) {}
       if (token) {
         try { localStorage.setItem('jwt_token', token); } catch(e) {}
-        try { localStorage.setItem('api2_jwt_token', token); } catch(e) {}
+        try { localStorage.setItem('mcp_jwt_token', token); } catch(e) {}
       }
       var redirectParam = new URLSearchParams(window.location.search).get('redirect');
       var ALLOWED = ['app.bodasdehoy.com','chat.bodasdehoy.com','memories.bodasdehoy.com','editor.bodasdehoy.com',

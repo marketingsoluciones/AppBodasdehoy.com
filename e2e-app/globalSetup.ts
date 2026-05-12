@@ -1,7 +1,7 @@
 import https from 'https';
 import http from 'http';
 import { resetBreaker } from './circuit-breaker';
-import { getMemoriesUrl } from './fixtures';
+import { getMemoriesUrl, TEST_URLS, E2E_ENV } from './fixtures';
 
 /**
  * Global setup — corre ANTES de cualquier test.
@@ -18,21 +18,6 @@ import { getMemoriesUrl } from './fixtures';
 
 const ERROR_PATTERNS =
   /Error Capturado por ErrorBoundary|Error al cargar|Internal Server Error|Something went wrong|Failed to load|No se pudo cargar|Ha ocurrido un error/i;
-
-function fetchText(url: string, timeoutMs = 10_000): Promise<string> {
-  return new Promise((resolve) => {
-    const lib = url.startsWith('https') ? https : http;
-    const req = lib.get(url, { timeout: timeoutMs }, (res) => {
-      let body = '';
-      res.on('data', (chunk) => { body += chunk; if (body.length > 4000) { req.destroy(); resolve(body); } });
-      res.on('end', () => resolve(body));
-      res.on('error', () => resolve(body || ''));
-    });
-    req.on('error', () => resolve(''));
-    req.on('timeout', () => { req.destroy(); resolve(''); });
-    setTimeout(() => { req.destroy(); resolve(''); }, timeoutMs);
-  });
-}
 
 function fetchStatus(url: string, timeoutMs = 10_000): Promise<{ status: number; body: string }> {
   return new Promise((resolve) => {
@@ -61,34 +46,41 @@ export default async function globalSetup() {
     await new Promise((r) => setTimeout(r, delayMs));
   }
 
-  const baseURL = process.env.BASE_URL || '';
-  const isRemote = baseURL.includes('.bodasdehoy.com') || baseURL.startsWith('https://');
-  if (!isRemote) return; // local dev: no health check (el webServer ya lo gestiona)
+  const isRemote = E2E_ENV !== 'local';
+  if (!isRemote) return;
 
-  console.log(`\n[E2E] Health check → ${baseURL}`);
-  const html = await fetchText(baseURL, 12_000);
-
-  if (!html || html.length < 100) {
-    // Servidor no responde → los tests individuales skipearán solos, no abortamos
-    console.log('[E2E] ⚠️  Servidor no accesible o sin contenido — los tests saltarán individualmente\n');
-    return;
-  }
-
-  if (ERROR_PATTERNS.test(html)) {
-    // Servidor UP pero mostrando error → abortar TODA la suite
-    const snippet = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300);
-    throw new Error(
-      `[E2E] ❌ El servidor muestra un error visible. Abortando toda la suite.\n` +
-      `URL: ${baseURL}\n` +
-      `Texto: ${snippet}\n\n` +
-      `Corrige el error en el servidor y vuelve a ejecutar los tests.`,
+  const checks: Array<{ label: string; url: string; timeoutMs: number }> = [
+    { label: 'app', url: `${TEST_URLS.app}/`, timeoutMs: 5_000 },
+    { label: 'chat', url: `${TEST_URLS.chat}/`, timeoutMs: 5_000 },
+  ];
+  if (E2E_ENV === 'dev') {
+    checks.push(
+      { label: 'tunnel_app_localhost_3220', url: 'http://localhost:3220/', timeoutMs: 3_000 },
+      { label: 'tunnel_chat_localhost_3210', url: 'http://localhost:3210/', timeoutMs: 3_000 },
     );
   }
 
-  console.log('[E2E] ✅ Servidor accesible y sin errores visibles');
+  console.log(`\n[E2E] Health check (${E2E_ENV})`);
+  const results = await Promise.all(checks.map(async (c) => ({ ...c, ...(await fetchStatus(c.url, c.timeoutMs)) })));
+  const failed = results.filter((r) => r.status !== 200);
+  if (failed.length > 0) {
+    const lines = results.map((r) => `- ${r.label}: ${r.url} -> HTTP ${r.status || 0}`).join('\n');
+    throw new Error(
+      `[E2E] ❌ BLOQUEO_INFRA: health-check no pasa (se requiere 200).\n` +
+      `${lines}\n`,
+    );
+  }
+
+  const appBody = results.find((r) => r.label === 'app')?.body || '';
+  if (ERROR_PATTERNS.test(appBody)) {
+    const snippet = appBody.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300);
+    throw new Error(`[E2E] ❌ El servidor muestra un error visible.\nURL: ${TEST_URLS.app}\nTexto: ${snippet}\n`);
+  }
+
+  console.log('[E2E] ✅ Health-check OK');
 
   // ── Backend probe: verificar que el proxy al chat backend responde ──
-  const chatURL = process.env.CHAT_URL || '';
+  const chatURL = TEST_URLS.chat;
   if (chatURL) {
     console.log(`[E2E] Backend probe → ${chatURL}/webapi/chat/auto`);
     const probe = await fetchStatus(`${chatURL}/webapi/chat/auto`, 10_000);

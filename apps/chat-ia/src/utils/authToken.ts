@@ -102,16 +102,16 @@ export const getAuthToken = (): string | undefined => {
     return mcpToken;
   }
 
-  // 3. Legacy: buscar api2_jwt_token
-  const legacyApi2Token = localStorage.getItem('api2_jwt_token');
+  // 3. Legacy: buscar mcp_jwt_token
+  const legacyApi2Token = localStorage.getItem('mcp_jwt_token');
   if (doLog) {
     console.log(
-      '🔍 [TOKEN-DEBUG] api2_jwt_token:',
+      '🔍 [TOKEN-DEBUG] mcp_jwt_token:',
       legacyApi2Token ? `presente (${legacyApi2Token.length} chars)` : 'NO EXISTE',
     );
   }
   if (legacyApi2Token && legacyApi2Token !== 'null' && legacyApi2Token !== 'undefined') {
-    if (doLog) console.log('✅ [TOKEN-DEBUG] Usando api2_jwt_token (legacy)');
+    if (doLog) console.log('✅ [TOKEN-DEBUG] Usando mcp_jwt_token (legacy)');
     return legacyApi2Token;
   }
 
@@ -127,7 +127,7 @@ export const getAuthToken = (): string | undefined => {
     console.log('🔍 [TOKEN-DEBUG] Estado localStorage:');
     console.log('   - jwt_token:', localStorage.getItem('jwt_token'));
     console.log('   - mcp_jwt_token:', localStorage.getItem('mcp_jwt_token'));
-    console.log('   - api2_jwt_token:', localStorage.getItem('api2_jwt_token'));
+    console.log('   - mcp_jwt_token:', localStorage.getItem('mcp_jwt_token'));
     console.log('   - dev-user-config:', localStorage.getItem('dev-user-config')?.slice(0, 100));
     console.log('   - user_email:', localStorage.getItem('user_email'));
   }
@@ -146,7 +146,7 @@ export const debugAuthState = () => {
 
   const jwtToken = localStorage.getItem('jwt_token');
   const mcpToken = localStorage.getItem('mcp_jwt_token');
-  const legacyApi2Token = localStorage.getItem('api2_jwt_token');
+  const legacyApi2Token = localStorage.getItem('mcp_jwt_token');
   const jwtCache = localStorage.getItem('jwt_token_cache');
   const devConfig = localStorage.getItem('dev-user-config');
   const userEmail = localStorage.getItem('user_email');
@@ -157,7 +157,7 @@ export const debugAuthState = () => {
   console.log('  jwt_token:', jwtToken ? `✅ (${jwtToken.length} chars)` : '❌ NO EXISTE');
   console.log('  mcp_jwt_token:', mcpToken ? `✅ (${mcpToken.length} chars)` : '❌ NO EXISTE');
   console.log(
-    '  api2_jwt_token (legacy):',
+    '  mcp_jwt_token (legacy):',
     legacyApi2Token ? `✅ (${legacyApi2Token.length} chars)` : '❌ NO EXISTE',
   );
 

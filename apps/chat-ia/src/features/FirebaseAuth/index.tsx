@@ -45,7 +45,7 @@ export const FirebaseAuth: React.FC<FirebaseAuthProps> = ({
 
         // Configurar usuario en el chat store
         const userEmail = result.user.email || '';
-        const jwtToken = localStorage.getItem('api2_jwt_token') || undefined;
+        const jwtToken = localStorage.getItem('mcp_jwt_token') || undefined;
 
         const configToSave = {
           developer: currentDevelopment,
@@ -120,7 +120,7 @@ export const FirebaseAuth: React.FC<FirebaseAuthProps> = ({
 
         // Configurar usuario en el chat store
         const userEmail = result.user.email || '';
-        const jwtToken = localStorage.getItem('api2_jwt_token') || undefined;
+        const jwtToken = localStorage.getItem('mcp_jwt_token') || undefined;
 
         const configToSave = {
           developer: currentDevelopment,

@@ -219,7 +219,7 @@ export const createHeaderWithAuth = async (params?: AuthParams): Promise<Headers
       const jwtToken =
         localStorage.getItem('jwt_token') ||
         localStorage.getItem('mcp_jwt_token') ||
-        localStorage.getItem('api2_jwt_token');
+        localStorage.getItem('mcp_jwt_token');
 
       if (jwtToken && jwtToken !== 'null' && jwtToken !== 'undefined') {
         (headers as Record<string, string>)['Authorization'] = `Bearer ${jwtToken}`;

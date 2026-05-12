@@ -186,7 +186,7 @@ async function exchangeFirebaseTokenForJWT(
     }
 
     // Guardar JWT en localStorage
-    localStorage.setItem('api2_jwt_token', data.token);
+    localStorage.setItem('mcp_jwt_token', data.token);
     if (data.expiresAt) {
       localStorage.setItem('api2_jwt_expires_at', data.expiresAt);
     } else {
@@ -197,10 +197,10 @@ async function exchangeFirebaseTokenForJWT(
     // También guardar jwt_token para compatibilidad con getAuthToken()
     localStorage.setItem('jwt_token', data.token);
 
-    // Cookie dedicada api2_jwt: el chat proxy la lee para Authorization header.
+    // Cookie dedicada mcp_jwt: el chat proxy la lee para Authorization header.
     // A diferencia de dev-user-config, ningún componente React la sobreescribe.
     if (typeof window !== 'undefined') {
-      document.cookie = `api2_jwt=${encodeURIComponent(data.token)}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
+      document.cookie = `mcp_jwt=${encodeURIComponent(data.token)}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
     }
 
     // Guardar dev-user-config para que EventosAutoAuth reconozca al usuario
@@ -597,7 +597,7 @@ export function initCrossAppTokenRefresh(): () => void {
 
         // Auto-refresh del JWT de API2: si existe un token previo, renovarlo
         // para que las llamadas a API2 no fallen con 401 tras ~55 min.
-        const existingJwt = localStorage.getItem('api2_jwt_token');
+        const existingJwt = localStorage.getItem('mcp_jwt_token');
         if (existingJwt) {
           const dev = localStorage.getItem('current_development') || 'bodasdehoy';
           exchangeFirebaseTokenForJWT(freshToken, dev, user).catch(() => {
@@ -624,7 +624,7 @@ export const signOut = async () => {
     clearCrossAppSession();
 
     // Limpiar localStorage
-    localStorage.removeItem('api2_jwt_token');
+    localStorage.removeItem('mcp_jwt_token');
     localStorage.removeItem('api2_jwt_expires_at');
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('dev-user-config');
@@ -649,7 +649,7 @@ export const getCurrentUser = (): User | null => {
  * Verificar si hay sesión activa
  */
 export const isAuthenticated = (): boolean => {
-  const token = localStorage.getItem('api2_jwt_token');
+  const token = localStorage.getItem('mcp_jwt_token');
   const expiresAt = localStorage.getItem('api2_jwt_expires_at');
 
   if (!token || !expiresAt) return false;
@@ -666,5 +666,5 @@ export const isAuthenticated = (): boolean => {
  */
 export const getJWT = (): string | null => {
   if (!isAuthenticated()) return null;
-  return localStorage.getItem('api2_jwt_token');
+  return localStorage.getItem('mcp_jwt_token');
 };

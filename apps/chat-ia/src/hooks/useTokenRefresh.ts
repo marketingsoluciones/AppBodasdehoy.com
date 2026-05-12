@@ -185,7 +185,7 @@ export const useTokenRefresh = () => {
       // Guardar nuevo token
       localStorage.setItem('mcp_jwt_token', data.token);
       localStorage.setItem('mcp_jwt_expires_at', data.expiresAt);
-      localStorage.setItem('api2_jwt_token', data.token);
+      localStorage.setItem('mcp_jwt_token', data.token);
       localStorage.setItem('api2_jwt_expires_at', data.expiresAt);
 
       console.log('✅ JWT renovado exitosamente. Expira:', data.expiresAt);
@@ -218,7 +218,7 @@ export const useTokenRefresh = () => {
     setStatus(prev => ({ ...prev, isChecking: true }));
 
     try {
-      const token = localStorage.getItem('mcp_jwt_token') || localStorage.getItem('api2_jwt_token');
+      const token = localStorage.getItem('mcp_jwt_token') || localStorage.getItem('mcp_jwt_token');
       const expiresAtStr =
         localStorage.getItem('mcp_jwt_expires_at') || localStorage.getItem('api2_jwt_expires_at');
 
@@ -386,7 +386,7 @@ export async function refreshJWTStandalone(silent: boolean = true): Promise<bool
 
     localStorage.setItem('mcp_jwt_token', data.token);
     localStorage.setItem('mcp_jwt_expires_at', data.expiresAt);
-    localStorage.setItem('api2_jwt_token', data.token);
+    localStorage.setItem('mcp_jwt_token', data.token);
     localStorage.setItem('api2_jwt_expires_at', data.expiresAt);
 
     // También actualizar jwt_token para compatibilidad

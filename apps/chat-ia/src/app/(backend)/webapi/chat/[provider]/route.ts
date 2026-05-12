@@ -229,7 +229,7 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
     }
 
     // Extraer JWT de cookie si no hay Authorization
-    // Prioridad: 1) cookie api2_jwt (dedicada)
+    // Prioridad: 1) cookie mcp_jwt (dedicada)
     //            2) cookie dev-user-config.token (JWT de MCP guardado tras login)
     // ⚠️ idTokenV0.1.0 NO se usa aquí: es Firebase ID token para SSO cross-app,
     //    NO un JWT de MCP — enviarlo a api-ia causaría fallo de verificación JWT.
@@ -237,8 +237,8 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
       try {
         const cookieHeader = req.headers.get('cookie') || '';
 
-        // 1) Cookie dedicada api2_jwt
-        const jwtMatch = cookieHeader.match(/api2_jwt=([^;]+)/);
+        // 1) Cookie dedicada mcp_jwt
+        const jwtMatch = cookieHeader.match(/mcp_jwt=([^;]+)/);
         if (jwtMatch) {
           const jwt = decodeURIComponent(jwtMatch[1]);
           if (jwt && jwt.startsWith('eyJ')) {

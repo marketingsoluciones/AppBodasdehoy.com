@@ -18,13 +18,13 @@ const CHAT_API_BASE = '';
 
 /**
  * Obtiene el token JWT del usuario para autenticar requests a api-ia.
- * Prioridad: cookie idTokenV0.1.0 (SSO chat-ia) → cookie api2_jwt → localStorage dev-user-config (AuthBridge)
+ * Prioridad: cookie idTokenV0.1.0 (SSO chat-ia) → cookie mcp_jwt → localStorage dev-user-config (AuthBridge)
  * Necesario porque AuthBridge guarda el Firebase token en localStorage, no en cookies.
  */
 function getAuthToken(): string {
   const ssoToken = Cookies.get('idTokenV0.1.0') || '';
   if (ssoToken.startsWith('eyJ')) return ssoToken;
-  const api2Token = Cookies.get('api2_jwt') || '';
+  const api2Token = Cookies.get('mcp_jwt') || '';
   if (api2Token.startsWith('eyJ')) return api2Token;
   if (typeof window !== 'undefined') {
     try {
