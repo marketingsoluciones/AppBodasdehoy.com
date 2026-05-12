@@ -141,6 +141,7 @@ interface argsFetchApi {
   variables: object;
   token?: string;
   domain?: string;
+  development?: string;
 }
 /** Retorno depende de la mutación/query; tipar en el callsite si hace falta. */
 export const fetchApiEventos = async ({

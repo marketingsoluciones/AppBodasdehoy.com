@@ -115,7 +115,7 @@ export const handleClickCard = async ({ t, final = true, data, user, setUser, co
   }
 };
 
-const Card = ({ data, grupoStatus, idx }) => {
+const Card = ({ data, grupoStatus, idx, onSelect }) => {
   const { t } = useTranslation()
   const [hoverRef, isHovered] = useHover();
   const { user, setUser, config, actionModals, setActionModals } = AuthContextProvider()
