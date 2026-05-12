@@ -1,4 +1,6 @@
+// @ts-ignore — html2canvas sin tipos declarados
 import html2canvas from 'html2canvas';
+// @ts-ignore — jspdf sin tipos declarados
 import { jsPDF } from "jspdf";
 
 export const PrintDocumentPDF = (element) => {
