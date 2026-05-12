@@ -17,11 +17,19 @@ export interface RecentConversation {
   channelParam: string;
   /** Conversation id used as the second URL segment */
   conversationId: string;
+  assignedToUserId?: string | null;
   kind: ChannelKind;
   lastMessage: string;
   lastMessageAt: string;
+  lastInboundAt?: string;
+  lastOutboundAt?: string;
+  labels?: any[];
+  linkedContactId?: string | null;
+  linkedEventId?: string | null;
   name: string;
   unreadCount: number;
+  unreadCountForAgent?: number;
+  status?: string;
 }
 
 const CHANNEL_BADGE: Record<ChannelKind, { bg: string; label: string; text: string }> = {
@@ -90,14 +98,22 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
               const channelParam = matchedChannel ? `wa-${matchedChannel.id}` : defaultWaParam;
               const channelLabel = matchedChannel ? channelLabelMap.get(matchedChannel.id) : undefined;
               return {
+                assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
                 channelLabel,
                 channelParam,
                 conversationId: c.conversationId || c.id || '',
                 kind: 'whatsapp' as const,
                 lastMessage: c.lastMessage || '',
                 lastMessageAt: c.lastMessageAt || c.updatedAt || '',
+                lastInboundAt: c.lastInboundAt ?? c.last_inbound_at ?? undefined,
+                lastOutboundAt: c.lastOutboundAt ?? c.last_outbound_at ?? undefined,
+                labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,
+                linkedContactId: c.linkedContactId ?? c.linked_contact_id ?? null,
+                linkedEventId: c.linkedEventId ?? c.linked_event_id ?? null,
                 name: c.displayName || c.phoneNumber || 'Desconocido',
                 unreadCount: c.unreadCount || 0,
+                unreadCountForAgent: c.unreadCountForAgent ?? c.unread_count_for_agent ?? undefined,
+                status: c.status ?? c.conversationStatus ?? undefined,
               };
             });
           })
@@ -131,13 +147,21 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
               const kind = (c.channel || c.platform || 'web') as ChannelKind;
               const isKnown = otherChannels.includes(kind);
               return {
+                assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
                 channelParam: isKnown ? kind : 'web',
                 conversationId: c.conversationId || c.id || '',
                 kind: isKnown ? kind : ('web' as const),
                 lastMessage: c.lastMessage || '',
                 lastMessageAt: c.lastMessageAt || c.updatedAt || '',
+                lastInboundAt: c.lastInboundAt ?? c.last_inbound_at ?? undefined,
+                lastOutboundAt: c.lastOutboundAt ?? c.last_outbound_at ?? undefined,
+                labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,
+                linkedContactId: c.linkedContactId ?? c.linked_contact_id ?? null,
+                linkedEventId: c.linkedEventId ?? c.linked_event_id ?? null,
                 name: c.displayName || c.contactName || c.username || 'Desconocido',
                 unreadCount: c.unreadCount || 0,
+                unreadCountForAgent: c.unreadCountForAgent ?? c.unread_count_for_agent ?? undefined,
+                status: c.status ?? c.conversationStatus ?? undefined,
               };
             });
           })
