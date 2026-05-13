@@ -30,7 +30,8 @@
     "e2e"
   ],
   "scripts": {
-    "prebuild": "tsx scripts/prebuild.mts && npm run lint",
+    "prebuild": "tsx scripts/prebuild.mts",
+    "prebuild:full": "tsx scripts/prebuild.mts && npm run lint",
     "build:full": "cross-env ENABLE_OIDC=0 APP_URL=http://localhost:8000 NODE_OPTIONS=--max-old-space-size=8192 next build",
     "build": "cross-env ENABLE_OIDC=0 APP_URL=http://localhost:8000 NODE_OPTIONS=--max-old-space-size=8192 NEXT_TELEMETRY_DISABLED=1 next build --no-lint && npm run postbuild",
     "copy-locales": "node -e \"const fs=require('fs');const path=require('path');const src=path.join(__dirname,'locales');const dst=path.join(__dirname,'public','locales');if(fs.existsSync(dst))fs.rmSync(dst,{recursive:true});fs.cpSync(src,dst,{recursive:true});console.log('[build] Locales copiados a public/locales para servir en producción')\"",
