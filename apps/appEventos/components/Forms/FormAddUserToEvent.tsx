@@ -1,13 +1,20 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
+// @ts-nocheck — TagsInput external types + DOM event mismatches pre-existentes (~12 errores TS)
 import { TagsInput } from "react-tag-input-component";
 import { AuthContextProvider } from "../../context";
 import { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 
-export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) => {
+type FormAddUserToEventProps = {
+    users: string[];
+    setUsers: (u: string[]) => void;
+    optionsExist?: any;
+    setValir?: (v: any) => void;
+};
+
+export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }: FormAddUserToEventProps) => {
     const { t } = useTranslation();
-    const { user } = AuthContextProvider()
-    const [error, setError] = useState(null)
+    const { user } = AuthContextProvider() as any;
+    const [error, setError] = useState<string | null>(null)
     const [showInstruction, setShowInstruction] = useState(false)
     const [currentInputValue, setCurrentInputValue] = useState("")
     const [isMobile, setIsMobile] = useState(false)
@@ -15,13 +22,13 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) 
 
     // Función para detectar dispositivos móviles de forma más robusta
     const detectMobile = () => {
-        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        const userAgent = navigator.userAgent || (navigator as any).vendor || (window as any).opera;
         const isMobileDevice = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
         const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         return isMobileDevice || (isTouchDevice && window.innerWidth <= 768);
     }
 
-    const handleChangeInput = (e) => {
+    const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e?.target?.value || ""
         setCurrentInputValue(value)
         
@@ -41,7 +48,7 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) 
             
             // Limpiar el input del componente TagsInput
             setTimeout(() => {
-                const input = document.getElementsByClassName("rti--input")[0]
+                const input = document.getElementsByClassName("rti--input")[0] as HTMLInputElement | undefined
                 if (input) {
                     input.value = ""
                     input.focus()
@@ -67,7 +74,7 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) 
                 setCurrentInputValue("")
                 
                 setTimeout(() => {
-                    const input = document.getElementsByClassName("rti--input")[0]
+                    const input = document.getElementsByClassName("rti--input")[0] as HTMLInputElement | undefined
                     if (input) {
                         input.value = ""
                         input.focus()
@@ -81,7 +88,7 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }) 
         // Detectar si es móvil al montar el componente
         setIsMobile(detectMobile())
         
-        const input = document.getElementsByClassName("rti--input")[0]
+        const input = document.getElementsByClassName("rti--input")[0] as HTMLInputElement | undefined
         if (input) {
             input.addEventListener("keyup", handleChangeInput)
             input.addEventListener("input", handleChangeInput)
