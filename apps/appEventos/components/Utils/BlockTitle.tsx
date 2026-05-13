@@ -42,7 +42,7 @@ export const BlockTitle = ({ title }) => {
           src={event?.imgEvento ? `https://api-mcp.eventosorganizador.com/${event.imgEvento.i320}` : defaultImagenes[event?.tipo?.toLowerCase()]}
           className="h-[90%] object-cover object-top rounded-md border-1 border-gray-600 hidden md:block shrink-0"
           alt={event?.nombre}
-          onError={(e) => { e.target.src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
+          onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
         />
         <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2 md:pt-2 gap-2 min-w-0 max-w-[120px] lg:max-w-[180px]'>
           <span className='text-sm translate-y-2 text-primary text-[12px] first-letter:capitalize'>{event?.tipo}</span>
@@ -92,7 +92,7 @@ export const BlockTitle = ({ title }) => {
       </div>
       {
         openModalDrive ?
-          <Modal openIcon={openModalDrive} setOpenIcon={setOpenModalDrive} classe={"h-max w-[40%] flex items-center justify-center"}>
+          <Modal {...({ openIcon: openModalDrive, setOpenIcon: setOpenModalDrive, classe: "h-max w-[40%] flex items-center justify-center" } as any)}>
             <div className='my-10 mx-32'>
               <img src='/WIP.png' />
             </div>

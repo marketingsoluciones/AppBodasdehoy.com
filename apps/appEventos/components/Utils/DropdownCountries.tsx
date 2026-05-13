@@ -5,10 +5,10 @@ import { useState, useMemo } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import DataCountries from "../../utils/RestCountries.json";
 
-const DropdownCountries = memo(({ label, ...props }) => {
+const DropdownCountries = memo(({ label, ...props }: { label?: string; [key: string]: any }) => {
   const Countries = useMemo(() => DataCountries, []);
   const [ciudades, setCiudades] = useState(Countries);
-  const [field, meta, helpers] = useField(props);
+  const [field, meta, helpers] = useField(props as any);
   const [show, setShow] = useState(false);
   const { setValue } = helpers;
   const [image, setImage] = useState("");
@@ -100,6 +100,6 @@ const DropdownCountries = memo(({ label, ...props }) => {
   );
 });
 
-DropdownCountries.displayName = DropdownCountries
+DropdownCountries.displayName = 'DropdownCountries';
 
 export default DropdownCountries;
