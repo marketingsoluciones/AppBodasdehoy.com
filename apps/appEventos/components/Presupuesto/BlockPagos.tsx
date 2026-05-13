@@ -10,6 +10,8 @@ type BlockPagosProps = {
   setGetId?: any;
   cate?: any;
   estado?: any;
+  categorias_array?: any[];
+  [key: string]: any;
 };
 
 const BlockPagos = ({ getId, setGetId, cate, estado }: BlockPagosProps) => {

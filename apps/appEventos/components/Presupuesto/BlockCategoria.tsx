@@ -16,7 +16,8 @@ import { EditableLabelWithInput } from "../Forms/EditableLabelWithInput";
 import { handleChange } from "../TablesComponents/tableBudgetV8.handles";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 
-const BlockCategoria = ({ showCategoria, setShowCategoria, setGetId }) => {
+const BlockCategoria = (props: any) => {
+  const { showCategoria, setShowCategoria, setGetId, categorias_array } = props;
   const { t } = useTranslation();
   const { user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
