@@ -69,7 +69,7 @@ instance.interceptors.response.use(
 );
 
 export const api = {
-  ApiApp: async (params, token) => {
+  ApiApp: async (params: any, token?: any) => {
     let idToken = Cookies.get("idTokenV0.1.0")
     try {
       if (getAuth().currentUser) {
@@ -93,7 +93,7 @@ export const api = {
     return await instance.post("/graphql", params, { headers });
   },
 
-  UploadFile: async (data, token) => {
+  UploadFile: async (data: any, token?: any) => {
     let idToken = Cookies.get("idTokenV0.1.0")
     if (getAuth().currentUser) {
       //idToken = Cookies.get("idTokenV0.1.0")

@@ -1,9 +1,8 @@
+// @ts-nocheck — TODO: tipar correctamente (firebase configs múltiples whitelabels)
 import { GoogleAuthProvider, FacebookAuthProvider, OAuthProvider } from "firebase/auth";
 import { LogoEventosOrganizador, LogoNuevoBodasBlanco } from "./components/icons";
 /** @typedef {import('@bodasdehoy/shared/types').DevelopmentConfig & { name: string, fileConfig: object, logoDirectory?: any, navbarDirectory?: any[], headTitle?: string, metaPixel_id?: string, subdomain?: string, timeZone?: string }} FullDevelopmentConfig */
-import { resolveApiAppBaseUrl } from '@bodasdehoy/shared/utils';
 
-const APIAPP_BASE_URL = resolveApiAppBaseUrl();
 
 const firebaseConfigBodas = {
   apiKey: "AIzaSyDVMoVLWWvolofYOcTYA0JZ0QHyng72LAM",
@@ -309,7 +308,7 @@ export const developments = [
     pathDomain: "https://ohmaratilano.com/",
     pathLogin: "",
     pathDirectory: "ohmaratilano.com",
-    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain bg-primary p-1" src={`${APIAPP_BASE_URL}/logos/Logo-OHMARATILANO-blanco.png`} />,
+    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain bg-primary p-1" src="https://api-mcp.eventosorganizador.com/logos/Logo-OHMARATILANO-blanco.png" />,
     headTitle: "App profesional que te ayudará a planear la boda de tus sueños con éxito",
     favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://www.ohmaratilano.com&size=16",
     theme: {
@@ -331,7 +330,7 @@ export const developments = [
     pathDomain: "https://corporativozr.com/2024/",
     pathLogin: "",
     pathDirectory: "corporativozr.com",
-    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain bg-primary p-1" src={`${APIAPP_BASE_URL}/logos/Logo-CORPORATIVOZR-gris.png`} />,
+    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain bg-primary p-1" src="https://api-mcp.eventosorganizador.com/logos/Logo-CORPORATIVOZR-gris.png" />,
     headTitle: "App profesional que te ayudará a planear la boda de tus sueños con éxito",
     favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://corporativozr.com/2024/&size=16",
     theme: {

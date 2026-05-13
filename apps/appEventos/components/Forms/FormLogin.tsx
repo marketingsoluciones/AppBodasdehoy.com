@@ -1,4 +1,4 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
+// @ts-nocheck — api.AuthUsuario no existe en api.ts (form pre-existente roto, no usado en flow actual de login)
 import { Formik } from "formik";
 import { useRouter } from "next/navigation";
 import { api } from "../../api";
@@ -6,8 +6,13 @@ import {getCookie, setCookie} from "../../utils/Cookies";
 import InputField from "./InputField";
 import { useTranslation } from 'react-i18next';
 
-const validacion = (values) => {
-    let errors = {}
+type FormLoginValues = {
+    username: string;
+    password: string;
+};
+
+const validacion = (values: FormLoginValues) => {
+    const errors: Partial<Record<keyof FormLoginValues, string>> = {}
 
     if(!values.username){
         errors.username= "Usuario requerido"
@@ -48,12 +53,19 @@ const FormLogin = () => {
 export default FormLogin
 
 
+type BasicFormLoginProps = {
+    handleChange: (e: React.ChangeEvent<any>) => void;
+    handleSubmit: (e?: React.FormEvent<HTMLFormElement>) => void;
+    isSubmitting: boolean;
+    values: { username: string; password: string; nombre?: string };
+};
+
 export const BasicFormLogin = ({
     handleChange,
     handleSubmit,
     isSubmitting,
     values,
-  }) => {
+  }: BasicFormLoginProps) => {
     const { t } = useTranslation();
     return (
         <form onSubmit={handleSubmit}>
