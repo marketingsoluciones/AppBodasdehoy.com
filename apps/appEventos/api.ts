@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar correctamente (high-traffic infra file)
 import axios from "axios";
 import Cookies from "js-cookie"
 import { Manager } from "socket.io-client";
