@@ -255,7 +255,7 @@
     "model-bank": "workspace:*",
     "modern-screenshot": "^4.6.6",
     "nanoid": "^5.1.6",
-    "next": ">=15.3.8",
+    "next": "^15.5.9",
     "next-auth": "5.0.0-beta.30",
     "next-mdx-remote": "^6.0.0",
     "nextjs-toploader": "^3.9.17",
