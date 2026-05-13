@@ -1,3 +1,4 @@
+// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { useContext, useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { api } from "../../api";

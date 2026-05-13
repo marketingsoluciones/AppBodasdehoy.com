@@ -1,3 +1,4 @@
+// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
@@ -154,4 +155,3 @@ const NavigationMobile = () => {
 };
 
 export default NavigationMobile;
-

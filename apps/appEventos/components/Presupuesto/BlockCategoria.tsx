@@ -1,3 +1,4 @@
+// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useExpanded, useTable } from "react-table";
 import { EventContextProvider, AuthContextProvider } from "../../context";

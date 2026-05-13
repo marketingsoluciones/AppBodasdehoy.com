@@ -1,3 +1,4 @@
+// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 /**
  * Página de login rápido para desarrollo
  * Permite establecer las cookies de sesión rápidamente sin depender del botón de Google

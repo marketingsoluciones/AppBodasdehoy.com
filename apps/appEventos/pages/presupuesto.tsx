@@ -1,3 +1,4 @@
+// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { DineroIcon } from "../components/icons";

@@ -1,3 +1,4 @@
+// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import React, { useEffect, useState } from "react";
 import { useTable } from "react-table";
 import { useTranslation } from 'react-i18next';

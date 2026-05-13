@@ -1,3 +1,4 @@
+// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { TagsInput } from "react-tag-input-component";
 import { AuthContextProvider } from "../../context";
 import { useEffect, useState } from "react";

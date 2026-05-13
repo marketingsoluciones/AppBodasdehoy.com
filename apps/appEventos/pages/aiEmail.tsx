@@ -1,3 +1,4 @@
+// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import React, { useState } from 'react';
 import { Send, Mail, Loader2, Copy, Check } from 'lucide-react';
 

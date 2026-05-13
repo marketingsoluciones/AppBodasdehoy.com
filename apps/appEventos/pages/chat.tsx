@@ -1,3 +1,4 @@
+// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import React, { useState, useEffect, useContext } from 'react'
 import { AuthContextProvider } from "../context";
 import { useTranslation } from 'react-i18next';

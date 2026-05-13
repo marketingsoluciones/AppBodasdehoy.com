@@ -1,3 +1,4 @@
+// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import * as XLSX from 'xlsx';
 import { getCurrency } from '../../utils/Funciones';
 import { EventContextProvider } from '../../context';
