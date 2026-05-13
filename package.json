@@ -10,6 +10,8 @@
     "browser:open": "npx ts-node --project scripts/tsconfig.json scripts/browser-control.ts open",
     "browser:screenshot": "npx ts-node --project scripts/tsconfig.json scripts/browser-control.ts screenshot",
     "build": "turbo run build",
+    "build:packages": "turbo run build --filter='./packages/*'",
+    "postinstall": "turbo run build --filter='./packages/*' --output-logs=errors-only || true",
     "build:copilot": "turbo run build --filter @bodasdehoy/chat-ia",
     "rebuild:chat": "turbo run build --filter @bodasdehoy/chat-ia && pm2 restart chat-dev",
     "build:web": "turbo run build --filter @bodasdehoy/appEventos",
