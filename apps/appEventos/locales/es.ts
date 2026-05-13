@@ -1,4 +1,3 @@
-// @ts-nocheck — translations objects con keys duplicadas (pre-existente)
 export const es = {
   translation: {
     'about': 'Acerca de',
@@ -647,7 +646,6 @@ export const es = {
     'card': "tarjeta",
     'schema': "esquema",
     'rename': "renombrar",
-    'share': "compartir",
     'unnamed': "sin nombre",
     'responsible': "responsable",
     'addfile': "archivo adjunto",
@@ -658,7 +656,6 @@ export const es = {
     'duracion': "duración",
     'owner': "propietario",
     'type': "tipo",
-    'eventdate': "fecha del evento",
     'creationdate': "fecha de creacion",
     'Asientos Ceremonia': 'Asientos Ceremonia',
     'Asientos recepción': 'Asientos recepción',
@@ -717,7 +714,6 @@ export const es = {
     itinerary: "itinerario",
     'Esta persona no tiene permisos': 'Esta persona no tiene permisos',
     templateName: "Nombre de la plantilla",
-    hello: "Hola",
     headerContent: "Texto del encabezado",
     enterText: "Introduce el texto",
     // WhatsApp Template Button Translations
@@ -828,8 +824,6 @@ export const es = {
     'Columnas': 'Columnas',
     '{{visible}} de {{total}} visibles': '{{visible}} de {{total}} visibles',
     'Sin plantilla seleccionada': 'Sin plantilla seleccionada',
-    'Seleccionar plantilla': 'Seleccionar plantilla',
-    'Canal de envío': 'Canal de envío',
     'Contenido de la plantilla': 'Contenido de la plantilla',
     'Sin vista previa disponible': 'Sin vista previa disponible',
     'Invitados seleccionados': 'Invitados seleccionados',
@@ -848,7 +842,6 @@ export const es = {
     'Envio por email exitoso': 'Envío por email exitoso',
     'Envio por WhatsApp exitoso': 'Envío por WhatsApp exitoso',
     'Error al enviar invitaciones': 'Error al enviar invitaciones',
-    'Sin vista previa disponible': 'Sin vista previa disponible',
     'Error cargando plantillas': 'Error cargando plantillas',
     'Error al seleccionar plantilla': 'Error al seleccionar plantilla',
     'Cargando': 'Cargando',
