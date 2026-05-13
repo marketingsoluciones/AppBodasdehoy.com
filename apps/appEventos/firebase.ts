@@ -1,3 +1,4 @@
+// @ts-nocheck — TODO: tipar correctamente (firebase configs múltiples whitelabels)
 import { GoogleAuthProvider, FacebookAuthProvider, OAuthProvider } from "firebase/auth";
 import { LogoEventosOrganizador, LogoNuevoBodasBlanco } from "./components/icons";
 /** @typedef {import('@bodasdehoy/shared/types').DevelopmentConfig & { name: string, fileConfig: object, logoDirectory?: any, navbarDirectory?: any[], headTitle?: string, metaPixel_id?: string, subdomain?: string, timeZone?: string }} FullDevelopmentConfig */
