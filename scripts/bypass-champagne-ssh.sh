@@ -32,7 +32,7 @@ cat << 'EOF'
 
 # Ejemplo de comandos SSH para obtener UID:
 # 1. Conectarse a MCP
-ssh usuario@api3-mcp-graphql.eventosorganizador.com
+ssh usuario@${SSH_HOST:-mcp}
 
 # 2. Buscar usuario en la base de datos
 # Depende de la estructura de la BD, pero podría ser algo como:

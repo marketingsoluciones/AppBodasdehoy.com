@@ -2,7 +2,7 @@
 
 **Claro “nosotros vs ellos”:** ver `scripts/PENDIENTES-NOSOTROS-VS-ELLOS.txt` o ejecutar `pnpm pendientes`.
 
-El canal mezcla mensajes **Front ↔ api-ia** y algunos **Front → MCP** (cuando piden intervención de `api3-mcp-graphql.eventosorganizador.com`).
+El canal mezcla mensajes **Front ↔ api-ia** y algunos **Front → MCP** (cuando piden intervención del backend MCP GraphQL).
 
 ---
 
@@ -27,7 +27,7 @@ El canal mezcla mensajes **Front ↔ api-ia** y algunos **Front → MCP** (cuand
 
 ---
 
-## Pendiente con **MCP** (backend `api3-mcp-graphql.eventosorganizador.com`)
+## Pendiente con **MCP** (backend MCP GraphQL)
 
 | # | Tema | Nota |
 |---|------|------|

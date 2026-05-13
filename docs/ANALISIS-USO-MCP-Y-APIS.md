@@ -12,7 +12,7 @@ Resumen de **qué backend usa cada app** y **en qué casos** se usa MCP frente a
 |---------|------------|--------|--------------|
 | **api.bodasdehoy.com** | https://api.bodasdehoy.com (GraphQL) | API principal del **organizador** (eventos, invitados, mesas, itinerario, etc.). | **Solo AppBodasdehoy** (apps/web), vía `/api/proxy-bodas/graphql`. |
 | **api-ia** | `API_IA_URL` (ej. https://api-ia.bodasdehoy.com) | Backend de **IA** (chat, streaming, herramientas). **Él** es quien escribe los mensajes del chat en MCP. | AppBodasdehoy (proxy `/api/copilot/chat` → api-ia). LobeChat también llama a api-ia para el chat. |
-| **MCP (GraphQL)** | https://api3-mcp-graphql.eventosorganizador.com/graphql | API GraphQL de **negocio compartido** (whitelabels, facturación, wallet, auth JWT, **persistencia de mensajes del chat**). | **api-ia** (escribe mensajes). **AppBodasdehoy** (solo lectura: historial Copilot + whitelabel fallback). **LobeChat** (auth, billing, wallet, sesiones, etc.). |
+| **MCP (GraphQL)** | $API_MCP_GRAPHQL_URL | API GraphQL de **negocio compartido** (whitelabels, facturación, wallet, auth JWT, **persistencia de mensajes del chat**). | **api-ia** (escribe mensajes). **AppBodasdehoy** (solo lectura: historial Copilot + whitelabel fallback). **LobeChat** (auth, billing, wallet, sesiones, etc.). |
 
 **Conclusión:** MCP **no** es api-ia ni “apunta” a api-ia. Son dos servicios separados. **api-ia** es quien **habla con MCP** para guardar los mensajes del chat; las apps (web y copilot) usan MCP para otras cosas según la tabla siguiente.
 

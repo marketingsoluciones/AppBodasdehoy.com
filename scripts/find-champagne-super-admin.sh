@@ -19,7 +19,7 @@ echo -e "${RED}Los mensajes van al SUPER ADMIN real de champagne events${NC}"
 echo -e "${RED}Necesitas encontrar al usuario REAL, no uno de prueba${NC}\n"
 
 SSH_USER="${SSH_USER:-$USER}"
-SSH_HOST="${SSH_HOST:-api3-mcp-graphql.eventosorganizador.com}"
+SSH_HOST="${SSH_HOST:-mcp}"
 
 echo -e "${GREEN}📋 Configuración SSH:${NC}"
 echo -e "  👤 Usuario: ${SSH_USER}"

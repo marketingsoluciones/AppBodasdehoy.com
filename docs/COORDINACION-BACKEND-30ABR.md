@@ -26,7 +26,7 @@ Remitente: Frontend Bodasdehoy (appEventos)
 
 **Test de verificacion:**
 ```bash
-curl -X POST 'https://api3-mcp-graphql.eventosorganizador.com/graphql' \
+curl -X POST "$API_MCP_GRAPHQL_URL" \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <token-firebase>' \
   -H 'Development: bodasdehoy' \

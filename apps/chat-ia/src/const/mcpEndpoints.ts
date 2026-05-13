@@ -3,8 +3,8 @@
  * API MCP (GraphQL + REST bajo el mismo host). Un solo sitio para fallback y helpers.
  * Prioridad: variables de entorno del proyecto → valores por defecto en eventosorganizador.com.
  */
-export const DEFAULT_MCP_ORIGIN = 'https://api3-mcp-graphql.eventosorganizador.com';
-export const DEFAULT_MCP_GRAPHQL_URL = `${DEFAULT_MCP_ORIGIN}/graphql`;
+export const DEFAULT_MCP_ORIGIN = '';
+export const DEFAULT_MCP_GRAPHQL_URL = '';
 
 /** Cliente + RSC: NEXT_PUBLIC primero; en servidor también suele existir API2_GRAPHQL_URL. */
 export function resolvePublicMcpGraphqlUrl(): string {
@@ -16,7 +16,8 @@ export function resolvePublicMcpGraphqlUrl(): string {
     process.env.NEXT_PUBLIC_API2_URL?.trim() ||
     process.env.API3_MCP_GRAPHQL_URL?.trim() ||
     process.env.API2_GRAPHQL_URL?.trim();
-  return u || DEFAULT_MCP_GRAPHQL_URL;
+  if (!u) throw new Error('Missing MCP GraphQL URL. Set API_MCP_GRAPHQL_URL or NEXT_PUBLIC_API_MCP_GRAPHQL_URL.');
+  return u;
 }
 
 /** Handlers Node: env de servidor primero. */
@@ -28,7 +29,8 @@ export function resolveServerMcpGraphqlUrl(): string {
     process.env.GRAPHQL_ENDPOINT?.trim() ||
     process.env.API2_GRAPHQL_URL?.trim() ||
     process.env.NEXT_PUBLIC_API2_GRAPHQL_URL?.trim();
-  return u || DEFAULT_MCP_GRAPHQL_URL;
+  if (!u) throw new Error('Missing MCP GraphQL URL. Set API_MCP_GRAPHQL_URL.');
+  return u;
 }
 
 export function resolveMcpOrigin(): string {

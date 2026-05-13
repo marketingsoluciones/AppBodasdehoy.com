@@ -1,6 +1,6 @@
 # Mapeo GraphQL Legacy → api3-mcp (VERIFICADO 30-abr)
 
-Todas las firmas verificadas con pruebas reales contra api3-mcp-graphql.eventosorganizador.com.
+Todas las firmas verificadas con pruebas reales contra `$API_MCP_GRAPHQL_URL`.
 
 ## FUNCIONA SIN CAMBIOS
 

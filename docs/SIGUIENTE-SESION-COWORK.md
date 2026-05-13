@@ -30,7 +30,7 @@ bash scripts/slack-read.sh --from api-ia 5
 # Probar E2E
 TOKEN=$(curl -sS -X POST "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDVMoVLWWvolofYOcTYA0JZ0QHyng72LAM" -H 'Content-Type: application/json' -d '{"email":"bodasdehoy.com@gmail.com","password":"lorca2012M*+","returnSecureToken":true}' | python3 -c "import sys,json; print(json.load(sys.stdin)['idToken'])")
 
-curl -sS -X POST 'https://api3-mcp-graphql.eventosorganizador.com/graphql' \
+curl -sS -X POST "$API_MCP_GRAPHQL_URL" \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer '"$TOKEN" \
   -H 'Development: bodasdehoy' \

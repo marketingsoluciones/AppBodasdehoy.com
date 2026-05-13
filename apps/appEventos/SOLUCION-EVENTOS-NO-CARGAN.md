@@ -20,7 +20,7 @@ Durante la migración del monorepo, se configuraron **incorrectamente** los endp
 1. **En `.env.local` (Desarrollo)**:
    ```bash
    # ❌ ANTES (INCORRECTO):
-   NEXT_PUBLIC_BASE_URL=https://api3-mcp-graphql.eventosorganizador.com
+   NEXT_PUBLIC_BASE_URL=<MCP base URL>
 
    # ✅ AHORA (CORRECTO):
    NEXT_PUBLIC_BASE_URL=https://apiapp.bodasdehoy.com
@@ -62,7 +62,7 @@ AppBodasdehoy debe usar **3 APIs diferentes** para distintos propósitos:
 |-----|-----|-----------|---------------------|
 | **API Eventos** | `https://apiapp.bodasdehoy.com` | Gestión de eventos, invitados, presupuestos, itinerarios | `NEXT_PUBLIC_BASE_URL` |
 | **API Bodas** | `https://api.bodasdehoy.com` | Autenticación, usuarios, sesiones | `NEXT_PUBLIC_BASE_API_BODAS` |
-| **API MCP GraphQL** | `https://api3-mcp-graphql.eventosorganizador.com/graphql` | Planes/suscripción (no es API de eventos) | `NEXT_PUBLIC_API_MCP_GRAPHQL_URL` |
+| **API MCP GraphQL** | `$API_MCP_GRAPHQL_URL` | Planes/suscripción (no es API de eventos) | `NEXT_PUBLIC_API_MCP_GRAPHQL_URL` |
 
 ### Queries Disponibles por API
 
@@ -85,7 +85,7 @@ AppBodasdehoy debe usar **3 APIs diferentes** para distintos propósitos:
 ✅ whatsappGetAllSessions
 ```
 
-#### api3-mcp-graphql.eventosorganizador.com/graphql (MCP GraphQL)
+#### $API_MCP_GRAPHQL_URL (MCP GraphQL)
 ```
 ⚠️ No usar como API de eventos (solo planes/suscripción)
 ✅ getEventos
@@ -102,7 +102,7 @@ AppBodasdehoy debe usar **3 APIs diferentes** para distintos propósitos:
 **Archivo:** `apps/web/.env.local`
 
 ```diff
-- NEXT_PUBLIC_BASE_URL=https://api3-mcp-graphql.eventosorganizador.com
+- NEXT_PUBLIC_BASE_URL=<MCP base URL>
 + NEXT_PUBLIC_BASE_URL=https://apiapp.bodasdehoy.com
 ```
 

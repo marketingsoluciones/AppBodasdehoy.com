@@ -3,14 +3,10 @@
 ## Endpoints
 
 - API MCP GraphQL (sustituye a “API2” en el frontend)
-  - Host: `api3-mcp-graphql.eventosorganizador.com`
-  - URL: `https://api3-mcp-graphql.eventosorganizador.com`
-  - GraphQL: `https://api3-mcp-graphql.eventosorganizador.com/graphql`
-  - MCP: `https://api3-mcp-graphql.eventosorganizador.com/mcp`
-  - SSE: `https://api3-mcp-graphql.eventosorganizador.com/sse`
-  - Health: `https://api3-mcp-graphql.eventosorganizador.com/health`
-  - Webhooks: `https://api3-mcp-graphql.eventosorganizador.com/api/webhook/`
-  - DNS: registro `A api3-mcp-graphql → 178.104.209.139`
+  - Host: `$MCP_HOST` (alias en `~/.ssh/config` o variable)
+  - GraphQL: `$API_MCP_GRAPHQL_URL`
+  - Health: `$MCP_HEALTH_URL`
+  - Webhooks: `$MCP_WEBHOOKS_URL`
 - API IA (sustituye a “api-ia” en DEV/TEST)
   - Host: `api3-ia.eventosorganizador.com`
   - URL: `https://api3-ia.eventosorganizador.com`
@@ -27,8 +23,8 @@
 ### API MCP GraphQL
 
 - Canónicas:
-  - `API_MCP_GRAPHQL_URL=https://api3-mcp-graphql.eventosorganizador.com/graphql`
-  - `NEXT_PUBLIC_API_MCP_GRAPHQL_URL=https://api3-mcp-graphql.eventosorganizador.com/graphql`
+  - `API_MCP_GRAPHQL_URL=<MCP GraphQL URL>`
+  - `NEXT_PUBLIC_API_MCP_GRAPHQL_URL=<MCP GraphQL URL>`
 - Aliases legacy soportados (evitar en entornos nuevos):
   - El repo también lee variables antiguas (por ejemplo `API3_MCP_GRAPHQL_URL`, `API2_GRAPHQL_URL`, `GRAPHQL_ENDPOINT`, etc.) para no romper despliegues previos.
 
@@ -75,4 +71,4 @@ ssh ia
 
 ## Nota de red
 
-Desde esta máquina, `https://api3-ia.eventosorganizador.com/health` devuelve `200`. Para GraphQL, usar `POST` a `https://api3-mcp-graphql.eventosorganizador.com/graphql` (un `GET` puede no responder según configuración del servidor).
+Para GraphQL, usar `POST` a `$API_MCP_GRAPHQL_URL` (un `GET` puede no responder según configuración del servidor).

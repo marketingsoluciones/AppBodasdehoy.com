@@ -16,7 +16,7 @@ echo -e "${BLUE}============================================${NC}\n"
 
 # Configuración (ajusta según tu entorno)
 SSH_USER="${SSH_USER:-tu_usuario}"
-SSH_HOST="${SSH_HOST:-api3-mcp-graphql.eventosorganizador.com}"
+SSH_HOST="${SSH_HOST:-mcp}"
 EMAIL="${1:-admin@champagne-events.com.mx}"
 
 echo -e "${GREEN}📋 Configuración:${NC}"
@@ -60,7 +60,7 @@ cat << 'EOF'
 # get-uid-auto.sh - Versión automática (requiere configuración previa)
 
 SSH_USER="tu_usuario"
-SSH_HOST="api3-mcp-graphql.eventosorganizador.com"
+SSH_HOST="mcp"
 EMAIL="${1:-admin@champagne-events.com.mx}"
 
 # Comando SSH que ejecuta remotamente

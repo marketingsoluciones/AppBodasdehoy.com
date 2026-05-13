@@ -1,9 +1,13 @@
-import json, subprocess, sys
+import json, os, subprocess, sys
+
+MCP_GRAPHQL_URL = os.getenv('API_MCP_GRAPHQL_URL') or os.getenv('NEXT_PUBLIC_API_MCP_GRAPHQL_URL')
+if not MCP_GRAPHQL_URL:
+    raise SystemExit('Missing API_MCP_GRAPHQL_URL')
 
 def fetch_type(name):
     query = f'{{ __type(name:"{name}") {{ name fields {{ name type {{ name kind ofType {{ name kind ofType {{ name kind }} }} }} }} }} }}'
     r = subprocess.run(['curl', '-s', '--max-time', '10',
-        'https://api3-mcp-graphql.eventosorganizador.com/graphql',
+        MCP_GRAPHQL_URL,
         '-X', 'POST', '-H', 'Content-Type: application/json',
         '-d', json.dumps({'query': query})], capture_output=True, text=True)
     return json.loads(r.stdout)

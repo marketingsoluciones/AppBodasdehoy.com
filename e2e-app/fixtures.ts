@@ -198,6 +198,11 @@ export const TEST_CREDENTIALS_U2 = {
   password: process.env.TEST_USER2_PASSWORD || 'lorca2012M*+',
 };
 
+export const TEST_CREDENTIALS_U3 = {
+  email: process.env.TEST_USER3_EMAIL || 'jcc@bodasdehoy.com',
+  password: process.env.TEST_USER3_PASSWORD || 'lorca2012M*+',
+};
+
 export const VIVETUBODA_URLS = {
   chat: process.env.VTB_CHAT_URL || 'https://chat.vivetuboda.com',
   app: process.env.VTB_APP_URL || 'https://app.vivetuboda.com',

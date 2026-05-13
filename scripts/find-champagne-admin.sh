@@ -16,7 +16,7 @@ echo -e "${BLUE}========================================================${NC}\n"
 
 # Configuración SSH (ajustar según tu entorno)
 SSH_USER="${SSH_USER:-$USER}"
-SSH_HOST="${SSH_HOST:-api3-mcp-graphql.eventosorganizador.com}"
+SSH_HOST="${SSH_HOST:-mcp}"
 
 echo -e "${GREEN}📋 Configuración SSH:${NC}"
 echo -e "  👤 Usuario: ${SSH_USER}"

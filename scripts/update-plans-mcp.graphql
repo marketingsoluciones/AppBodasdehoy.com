@@ -1,6 +1,6 @@
 # ============================================================
 # Script de mutations GraphQL para actualizar planes en MCP
-# Ejecutar contra: https://api3-mcp-graphql.eventosorganizador.com/graphql
+# Ejecutar contra: $API_MCP_GRAPHQL_URL
 # Header requerido: Development: bodasdehoy
 # Header requerido: Authorization: Bearer <ADMIN_JWT>
 # ============================================================

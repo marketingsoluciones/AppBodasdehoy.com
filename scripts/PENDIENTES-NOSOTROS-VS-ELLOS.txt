@@ -45,7 +45,7 @@
   [ ] Si queréis RAG con HTTP 200 en lobechat-kb: su infra de embeddings
       (p. ej. Ollama) — ticket aparte con ETA.
 
-  EQUIPO MCP (GraphQL api3-mcp-graphql.eventosorganizador.com, Mongo, R2, etc.)
+  EQUIPO MCP (GraphQL MCP, Mongo, R2, etc.)
   -------------------------------------------------------------------
   [ ] R2 / storage: error tipo "Storage no configurado para este development"
       con bodasdehoy en uploadCRMEntityFile (u operaciones similares).

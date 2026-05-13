@@ -37,7 +37,7 @@ El modelo responde "necesito saber el nombre del evento" en preguntas como "¿Cu
 *3) RESUMEN EJECUTIVO 21 FEB*
 
 • 80 preguntas (baterías A+B+C+D): 58/80 fallos 503 (AUTH_ERROR + PROVIDER_ERROR), 22/80 HTTP 200 pero sin datos reales del usuario, 0/80 con respuesta correcta con datos.
-• MCP (api3-mcp-graphql.eventosorganizador.com): todo OK en nuestra batería (getWhitelabelBySlug, getUserProfile, getUserApiConfigs, getUserChats, getUserEventsByEmail).
+• MCP ($API_MCP_GRAPHQL_URL): todo OK en nuestra batería (getWhitelabelBySlug, getUserProfile, getUserApiConfigs, getUserChats, getUserEventsByEmail).
 • api-ia /health, /, /graphql, /api/jobs: OK. Problema acotado a /webapi/chat/auto (provider/model) + worker improve_text.
 
 ---

@@ -120,7 +120,9 @@
       "Bash(perl -pi -e 's/\\\\bgetDeveloperShortName\\\\b/getDeveloperDisplayName/g' apps/chat-ia/src/features/User/UserAvatar.tsx)",
       "Bash(sed -n '60,68p' apps/chat-ia/src/features/FirebaseAuth/index.tsx)",
       "Bash(sed -n '135,145p' apps/chat-ia/src/features/FirebaseAuth/index.tsx)",
-      "Bash(sed -n '165,175p' apps/chat-ia/src/utils/developmentDetector.ts)"
+      "Bash(sed -n '165,175p' apps/chat-ia/src/utils/developmentDetector.ts)",
+      "Bash(perl -pi -e \"s|https://api3-mcp-graphql\\\\.eventosorganizador\\\\.com/graphql|https://api-mcp.eventosorganizador.com/graphql|g\" e2e-app/security-deep.spec.ts)",
+      "Bash(perl -pi -e \"s|https://api3-mcp-graphql\\\\.eventosorganizador\\\\.com|https://api-mcp.eventosorganizador.com|g\" e2e-app/security-deep.spec.ts)"
     ],
     "additionalDirectories": [
       "/Users/juancarlosparra/.claude/projects/-Users-juancarlosparra-Projects-AppBodasdehoy-com/memory",

@@ -32,7 +32,7 @@ Tareas que cowork puede hacer sin esperar a frontend:
     frontend sigue recibiendo total:0 con evento_ids reales"
 
 2. Probar aliases legacy en Playground (B2):
-   URL: https://api3-mcp-graphql.eventosorganizador.com/graphql
+   URL: $API_MCP_GRAPHQL_URL
    - addCompartition con formato legacy
    - updateCompartition
    - deleteCompartition

@@ -31,7 +31,7 @@ FIREBASE_JWT=<token> node scripts/pruebas-reales-api-ia-mcp.mjs
 | Backend | Endpoint | Query real |
 |---------|----------|------------|
 | **api-ia** | `POST https://api-ia.bodasdehoy.com/webapi/chat/auto` | 3 mensajes: "Hola", "¿Cuántos invitados tengo?", "Dame un resumen de mi evento" (mismo formato que el chat) |
-| **mcp** | `POST https://api3-mcp-graphql.eventosorganizador.com/graphql` | `getSubscriptionPlans(development: "bodasdehoy", is_public: true)` (query real del front) |
+| **mcp** | `POST $API_MCP_GRAPHQL_URL` | `getSubscriptionPlans(development: "bodasdehoy", is_public: true)` (query real del front) |
 
 Genera en `test-results/`:
 
@@ -56,6 +56,6 @@ El JSON de esa ejecución incluye el `requestBody` y `responsePreview` exactos p
 | Variable | Por defecto | Uso |
 |----------|-------------|-----|
 | `BACKEND_URL` | `https://api-ia.bodasdehoy.com` | Base de api-ia |
-| `API_MCP_GRAPHQL_URL` | `https://api3-mcp-graphql.eventosorganizador.com/graphql` | URL GraphQL MCP |
+| `API_MCP_GRAPHQL_URL` | `<MCP GraphQL URL>` | URL GraphQL MCP |
 | `DEVELOPMENT` | `bodasdehoy` | Header X-Development |
 | `FIREBASE_JWT` | (vacío) | Si se pone, api-ia recibe Authorization Bearer (usuario identificado) |

@@ -30,7 +30,7 @@ Estas credenciales están hardcodeadas en el backend de API MCP y funcionan siem
 ## Validación Rápida
 
 ```bash
-curl -X POST https://api3-mcp-graphql.eventosorganizador.com/graphql \
+curl -X POST "$API_MCP_GRAPHQL_URL" \
   -H "Content-Type: application/json" \
   -H "X-Development: bodasdehoy" \
   -d '{"query": "mutation { generateCRMToken(input: { email: \"admin@eventosorganizador.com\", password: \"Admin123!\" }) { success token errors { message } } }"}'

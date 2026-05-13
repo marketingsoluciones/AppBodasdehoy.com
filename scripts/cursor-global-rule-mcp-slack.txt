@@ -20,8 +20,8 @@
 
 ## MCP / endpoints / SSH
 
-- MCP GraphQL: `API_MCP_GRAPHQL_URL` (default `https://api3-mcp-graphql.eventosorganizador.com/graphql`). IP: `178.104.209.139`.
-- API IA: `API_IA_URL` (default `https://api3-ia.eventosorganizador.com`). IP: `159.69.180.113`.
+- MCP GraphQL: `API_MCP_GRAPHQL_URL` (definido por entorno).
+- API IA: `API_IA_URL` (definido por entorno).
 - El agente NO tiene SSH a estos servidores. No intentar ssh.
 - Variables legacy (API2_*, API3_*) se leen como fallback pero el nombre canónico es `API_MCP_GRAPHQL_URL`.
 

@@ -2,8 +2,8 @@
 
 **Resumen:** El frontend habla con dos backends, ambos referenciados por variables genéricas sin versión.
 
-- **API IA (chat/memories/tools):** `API_IA_URL` (por defecto `https://api3-ia.eventosorganizador.com`)
-- **API MCP GraphQL (datos):** `API_MCP_GRAPHQL_URL` (por defecto `https://api3-mcp-graphql.eventosorganizador.com/graphql`)
+- **API IA (chat/memories/tools):** `API_IA_URL` (definido por entorno)
+- **API MCP GraphQL (datos):** `API_MCP_GRAPHQL_URL` (definido por entorno)
 
 ---
 

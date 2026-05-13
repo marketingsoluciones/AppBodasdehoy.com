@@ -44,7 +44,10 @@ echo "KEY_PATH=$KEY_PATH"
 echo "SSH_USER=$SSH_USER"
 echo "SSH_PORT=$SSH_PORT"
 
-for host in api3-mcp-graphql.eventosorganizador.com api3-ia.eventosorganizador.com; do
+MCP_SSH_HOST="${MCP_SSH_HOST:-mcp}"
+IA_SSH_HOST="${IA_SSH_HOST:-ia}"
+
+for host in "$MCP_SSH_HOST" "$IA_SSH_HOST"; do
   printf '%s ... ' "$host"
   if check_one "$host"; then
     echo "OK"

@@ -7,7 +7,11 @@
 # Batería automatizada: scripts/run-bateria-mcp.mjs
 # ========================================
 
-MCP_GRAPHQL_URL="https://api3-mcp-graphql.eventosorganizador.com/graphql"
+MCP_GRAPHQL_URL="${API_MCP_GRAPHQL_URL:-${NEXT_PUBLIC_API_MCP_GRAPHQL_URL:-}}"
+if [ -z "$MCP_GRAPHQL_URL" ]; then
+  echo "Missing API_MCP_GRAPHQL_URL" >&2
+  exit 1
+fi
 DEVELOPMENT="bodasdehoy"
 SUPPORT_KEY="SK-bodasdehoy-a71f5b3c"
 USER_EMAIL="bodasdehoy.com@gmail.com"

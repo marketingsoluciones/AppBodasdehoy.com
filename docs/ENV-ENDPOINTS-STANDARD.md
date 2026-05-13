@@ -20,7 +20,7 @@ Default recomendado:
 
 Default recomendado:
 
-- `https://api3-mcp-graphql.eventosorganizador.com/graphql`
+- `$API_MCP_GRAPHQL_URL`
 
 ### Imágenes/assets (temporal)
 
@@ -39,7 +39,7 @@ Ejemplo mínimo (server-only):
 
 ```env
 API_IA_URL=https://api3-ia.eventosorganizador.com
-API_MCP_GRAPHQL_URL=https://api3-mcp-graphql.eventosorganizador.com/graphql
+API_MCP_GRAPHQL_URL=<MCP GraphQL URL>
 ```
 
 ## Aliases legacy (compatibilidad)
