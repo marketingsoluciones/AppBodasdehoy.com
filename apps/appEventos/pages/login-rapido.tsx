@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 /**
  * Página de login rápido para desarrollo
  * Permite establecer las cookies de sesión rápidamente sin depender del botón de Google
@@ -17,10 +16,10 @@ import { AuthContextProvider } from "../context";
 const LoginRapido = () => {
   const [email, setEmail] = useState("bodasdehoy.com@gmail.com");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
-  const { config } = AuthContextProvider();
+  const { config } = AuthContextProvider() as any;
 
   const handleQuickLogin = async () => {
     setLoading(true);
