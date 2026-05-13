@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { useContext, useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { api } from "../../api";
@@ -8,12 +7,19 @@ import { capitalize } from '../../utils/Capitalize';
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 
-const CellEdit = (props) => {
+type CellEditProps = {
+  value?: any;
+  type?: 'text' | 'number';
+  row?: any;
+  [key: string]: any;
+};
+
+const CellEdit = (props: CellEditProps) => {
   const { t } = useTranslation();
-  const { event, setEvent } = EventContextProvider()
+  const { event, setEvent } = EventContextProvider() as any;
   const [edit, setEdit] = useState(false);
-  const [mask, setMask] = useState(0);
-  const [value, setValue] = useState();
+  const [mask, setMask] = useState<any>(0);
+  const [value, setValue] = useState<any>();
   const [isAllowed, ht] = useAllowed()
 
   useEffect(() => {
@@ -29,15 +35,15 @@ const CellEdit = (props) => {
     }
   }, [value, event?.presupuesto_objeto?.currency]);
 
-  const keyDown = (e) => {
-    let tecla = e.key.toLowerCase();
+  const keyDown = (e: React.KeyboardEvent) => {
+    const tecla = e.key.toLowerCase();
     if (tecla == "enter") {
       setEdit(false);
       handleBlur();
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const r = e.target.value?.split(".")
     setValue(r)
   };
@@ -94,7 +100,7 @@ const CellEdit = (props) => {
 
   return (
     <ClickAwayListener
-      onClickAway={() => edit && setEdit(false) && handleBlur()}
+      onClickAway={() => { if (edit) { setEdit(false); handleBlur(); } }}
     >
       <div >
         {edit ? (
