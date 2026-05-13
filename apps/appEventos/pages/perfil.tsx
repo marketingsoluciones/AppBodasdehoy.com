@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { PencilEdit } from "../components/icons";
 import { AuthContextProvider } from '../context'
 import { ImageProfile } from "../utils/Funciones";
-import { Mensaje } from "./bandeja-de-mensajes";
+// removed dead import: { Mensaje } from "./bandeja-de-mensajes" (no exportado, no usado)
 import PagesWithAuth from '../HOC/PagesWithAuth'
 import { useTranslation } from 'react-i18next';
 

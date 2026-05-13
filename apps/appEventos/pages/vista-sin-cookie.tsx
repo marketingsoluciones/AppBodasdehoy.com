@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 const VistaSinCookie = () => {
   const { t } = useTranslation();
   const router = useRouter()
-  const pathname = router.pathname
+  const pathname: string = router.pathname
   const { config } = AuthContextProvider()
   const { setLoading } = LoadingContextProvider()
   const { event } = EventContextProvider()
@@ -45,7 +45,7 @@ const VistaSinCookie = () => {
 
       // Si no hay evento disponible, redirigir a login inmediatamente
       setRedirected(true);
-      router?.push(`/login${pathname !== "/" ? `?d=${pathname}` : ""}`)
+      router?.push(`/login${(pathname as string) !== "/" ? `?d=${pathname}` : ""}`)
       setLoading(false);
       return;
     }
