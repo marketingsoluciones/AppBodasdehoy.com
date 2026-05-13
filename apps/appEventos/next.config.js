@@ -172,7 +172,7 @@ module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
       project: 'app-eventos',
       widenClientFileUpload: true,
       hideSourceMaps: true,
-      disableLogger: true,
+      webpack: { treeshake: { removeDebugLogging: true } },
       disableClientWebpackPlugin: !isProdBuild,
       disableServerWebpackPlugin: !isProdBuild,
     })

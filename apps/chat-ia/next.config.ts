@@ -526,7 +526,7 @@ const sentryOptions = {
   project: 'chat-ia',
   widenClientFileUpload: true,
   hideSourceMaps: true,
-  disableLogger: true,
+  webpack: { treeshake: { removeDebugLogging: true } },
   disableClientWebpackPlugin: !isProd,
   disableServerWebpackPlugin: !isProd,
 };
