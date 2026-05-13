@@ -7,7 +7,11 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "files": ["dist", "src"],
   "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch --preserveWatchOutput",
+    "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "type-check": "tsc --noEmit",
     "lint": "echo \"no lint configured\" && exit 0"
@@ -17,6 +21,6 @@
   },
   "devDependencies": {
     "@types/react": "^18",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   }
 }
