@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { Formik } from "formik";
 import { useContext, useState } from "react";
 import { api } from "../../api";
@@ -6,14 +5,22 @@ import { EventContextProvider } from "../../context";
 import InputField from "./InputField";
 import { useTranslation } from 'react-i18next';
 
-const validacion = (values) => {
-  let errors = {};
+type FormPresupuestoValues = {
+  nombre: string;
+  presupuesto?: number;
+};
 
-
+const validacion = (_values: FormPresupuestoValues) => {
+  const errors: Partial<Record<keyof FormPresupuestoValues, string>> = {};
   return errors;
 };
 
-const FormPresupuesto = ({ set, state }) => {
+type FormPresupuestoProps = {
+  set?: (v: any) => void;
+  state?: any;
+};
+
+const FormPresupuesto = ({ set, state }: FormPresupuestoProps) => {
   const { event, setEvent } = EventContextProvider();
   return (
     <Formik
@@ -32,13 +39,21 @@ const FormPresupuesto = ({ set, state }) => {
 
 export default FormPresupuesto;
 
+type BasicFormProps = {
+  handleChange: (e: React.ChangeEvent<any>) => void;
+  handleSubmit: (e?: React.FormEvent<HTMLFormElement>) => void;
+  isSubmitting: boolean;
+  values: { presupuesto?: number; nombre?: string };
+  handleBlur: (e: React.FocusEvent<any>) => void;
+};
+
 export const BasicForm = ({
   handleChange,
   handleSubmit,
   isSubmitting,
   values,
   handleBlur,
-}) => {
+}: BasicFormProps) => {
   const { t } = useTranslation();
   return (
     <div className="w-full flex flex-col">

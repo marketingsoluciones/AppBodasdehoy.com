@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { Formik } from "formik";
 import { useContext, useState } from "react";
 import { api } from "../../api";
@@ -7,8 +6,18 @@ import InputField from "./InputField";
 import { useTranslation } from 'react-i18next';
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 
-const validacion = (values) => {
-  let errors = {};
+type FormValues = { nombre: string };
+type Props = { set: (v: boolean) => void; state: boolean };
+type BasicFormProps = {
+  handleChange: (e: React.ChangeEvent<any>) => void;
+  handleSubmit: (e?: React.FormEvent<HTMLFormElement>) => void;
+  isSubmitting: boolean;
+  values: FormValues;
+  handleBlur: (e: React.FocusEvent<any>) => void;
+};
+
+const validacion = (values: FormValues) => {
+  const errors: Partial<Record<keyof FormValues, string>> = {};
   if (!values.nombre) {
     errors.nombre = "Nombre no valido";
   }
@@ -16,9 +25,9 @@ const validacion = (values) => {
   return errors;
 };
 
-const FormCrearCategoria = ({ set, state }) => {
+const FormCrearCategoria = ({ set, state }: Props) => {
 
-  const { event, setEvent } = EventContextProvider()
+  const { event, setEvent } = EventContextProvider() as any;
   return (
     <Formik
       initialValues={{
@@ -53,7 +62,7 @@ export const BasicForm = ({
   isSubmitting,
   values,
   handleBlur,
-}) => {
+}: BasicFormProps) => {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col w-full" >

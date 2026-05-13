@@ -1,4 +1,4 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
+// @ts-nocheck — Chart.js Doughnut types muy estrictos para opciones legend/labels (pre-existente)
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { useEffect, useState } from "react";
@@ -6,17 +6,24 @@ import { capitalize } from "../../utils/Capitalize";
 import { EventContextProvider } from "../../context";
 import { useTranslation } from 'react-i18next';
 
+type Categoria = {
+  nombre?: string;
+  coste_final: number;
+  coste_estimado: number;
+  [key: string]: any;
+};
+
 // Registrar elementos de Chart.js necesarios para Doughnut
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const Grafico = ({ categorias }) => {
+const Grafico = ({ categorias }: { categorias: Categoria[] }) => {
   const { t } = useTranslation();
-  const { event } = EventContextProvider()
-  const [labels, setLabels] = useState()
-  const [data, setData] = useState()
+  const { event } = EventContextProvider() as any;
+  const [labels, setLabels] = useState<string[] | undefined>()
+  const [data, setData] = useState<string[] | undefined>()
 
   const DefinirData = () => {
-    const data = categorias?.map(item => {
+    const data = categorias?.map((item: Categoria) => {
       if (item.coste_final >= item.coste_estimado) {
         return item.coste_final.toFixed(2)
       } else {
@@ -24,7 +31,7 @@ const Grafico = ({ categorias }) => {
       }
     })
     if (event?.presupuesto_objeto?.coste_estimado == 0 && event?.presupuesto_objeto?.coste_final == 0) {
-      data?.push(1)
+      data?.push("1")
     }
     return data
   }
@@ -58,11 +65,10 @@ const Grafico = ({ categorias }) => {
       <div className="w-full  md:mb-2  bg-white rounded-xl shadow-md flex justify-center md:py-6 pt-6">
         <div className="w-[350px]">
           <Doughnut
-            type="Doughnut"
+            type={"Doughnut" as any}
             className="chart"
             data={{
-              className: "data ",
-              labels: labels,
+              labels: labels as any,
               datasets: [
                 {
                   label: "Categorias",
