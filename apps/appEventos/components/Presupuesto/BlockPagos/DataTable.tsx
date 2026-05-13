@@ -1,15 +1,20 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import React, { useEffect, useState } from "react";
 import { useTable } from "react-table";
 import { useTranslation } from 'react-i18next';
 
-const DataTable = ({ columns, data, estado }) => {
+type DataTableProps = {
+  columns: any[];
+  data: any[];
+  estado?: string;
+};
+
+const DataTable = ({ columns, data, estado }: DataTableProps) => {
   const { t } = useTranslation()
 
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows } =
     useTable({ columns, data });
 
-  const [stado, setStado] = useState({})
+  const [stado, setStado] = useState<Record<number, number>>({})
 
   const colSpan = {
     0: 2,
