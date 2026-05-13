@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { useRouter } from "next/router";
 import { ButtonClose } from "../components/Forms/ButtonClose";
 import { Login, Register, ResetPass } from "../components/Forms/Login/Forms";
@@ -26,8 +25,8 @@ const APP_EVENTOS_LEFT_PANEL = {
 };
 
 const PageLogin = () => {
-  const { config, user, verificationDone, linkMedia, preregister } = AuthContextProvider()
-  const { setLoading } = LoadingContextProvider()
+  const { config, user, verificationDone, linkMedia, preregister } = AuthContextProvider() as any;
+  const { setLoading } = LoadingContextProvider() as any;
   const router = useRouter()
 
   const queryQ = typeof router.query.q === 'string' ? router.query.q : null
