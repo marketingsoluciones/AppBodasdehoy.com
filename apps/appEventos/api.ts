@@ -82,7 +82,7 @@ export const api = {
       //
     }
     // Solo incluir Authorization si hay token válido
-    const headers = {
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Development: varGlobalDevelopment || "bodasdehoy",
     }
@@ -150,7 +150,7 @@ export const api = {
     const bodasApiFallbackUrl = !isLocalhost
       ? process.env.NEXT_PUBLIC_API_MCP_URL
       : undefined;
-    const headers = {
+    const headers: Record<string, any> = {
       Development: development,
       IsProduction: (process?.env?.NEXT_PUBLIC_PRODUCTION && !["testticket", "testinvitado"].includes(varGlobalSubdomain)) ?? false,
       "Content-Type": "application/json",

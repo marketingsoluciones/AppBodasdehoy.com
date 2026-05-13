@@ -82,6 +82,9 @@ const nextConfig = {
       // next/navigation: compatibilidad con Pages Router (relativo a este next.config.js)
       'next/navigation': './hooks/useCompatRouter.ts',
     },
+    // Permitir resolver imports `from "../api"` a `api.ts` (post migración ITEM 8 .js→.ts)
+    // Sin esto, Turbopack en Next 15 busca literalmente `.js` y falla si solo existe `.ts`.
+    resolveExtensions: ['.tsx', '.ts', '.jsx', '.js', '.mts', '.cts', '.mjs', '.cjs', '.json'],
   },
 
   // Webpack config para resolver módulos ESM de @lobehub/ui
