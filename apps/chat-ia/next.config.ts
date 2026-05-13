@@ -58,10 +58,8 @@ const nextConfig: NextConfig = {
     },
   },
   experimental: {
-    // ✅ Solo limitar CPUs en producción (build), no en desarrollo
-    // 2 CPUs: seguro con 8GB — 1 CPU era demasiado conservador
-    ...(isProd && { cpus: 2 }),
-
+    // ⚡ PERF 2026-05-13: eliminado cpus:2 — Turborepo gestiona paralelismo a nivel monorepo.
+    // Limitar a 2 cores en máquinas con 10+ cores ralentizaba builds hasta 5×.
     optimizePackageImports: [
       'emoji-mart',
       '@emoji-mart/react',
@@ -404,51 +402,43 @@ const nextConfig: NextConfig = {
 
   transpilePackages: ['pdfjs-dist', 'mermaid', '@bodasdehoy/wedding-creator', '@bodasdehoy/memories', '@bodasdehoy/shared', '@bodasdehoy/auth-ui'],
 
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-
   webpack(config) {
     config.experiments = {
       asyncWebAssembly: true,
       layers: true,
     };
 
-    // ✅ Optimizaciones de memoria para dev (evitar OOM con webpack ~6GB)
-    if (!isProd) {
-      config.parallelism = 2; // Reducir de 10 (CPU cores) a 2 para ahorrar memoria
+    // ⚡ PERF 2026-05-13: eliminado parallelism:2 — webpack usa todos los cores disponibles.
+    // En máquinas con 10+ cores, limitar a 2 era 5× más lento.
 
-      // ✅ Cache filesystem en dev: evita recompilar 44k módulos en cada restart
-      // Sin esto, cada crash/restart → 400s+ de recompilación completa
+    // ✅ Cache filesystem en dev: evita recompilar 44k módulos en cada restart
+    if (!isProd) {
       config.cache = {
         type: 'filesystem',
         cacheDirectory: require('path').join(__dirname, '.next/cache/webpack'),
-        compression: false, // Sin compresión en dev → más rápido escribir/leer cache
-        maxMemoryGenerations: 1, // Limitar generaciones en memoria
-        maxAge: 2 * 24 * 60 * 60 * 1000, // Expirar entradas >2 días (evita que el caché ocupe todo el disco)
+        compression: false,
+        maxMemoryGenerations: 1,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días — entradas frecuentes se mantienen, antiguas se purgan
+        cacheUnaffected: true, // ⚡ Skip rebuild de módulos no afectados por cambios (Next 15+)
       };
     }
 
     // ✅ Optimizaciones de memoria para build
     if (isProd) {
-      // 2 CPUs: equilibrio entre velocidad y memoria (seguro con 8GB)
-      config.parallelism = 2;
-
       // ✅ Deshabilitar source maps para reducir memoria y tamaño
       config.devtool = false;
 
       // ✅ Filesystem cache: builds posteriores 3-5× más rápidos
-      // Solo recompila módulos que cambiaron — sin cache = compilar todo desde 0
       config.cache = {
         type: 'filesystem',
         buildDependencies: {
-          config: [__filename], // Invalida cache si cambia next.config.ts
+          config: [__filename],
         },
-        // Guardar en .next/cache/webpack (ya ignorado por git)
         cacheDirectory: require('path').join(__dirname, '.next/cache/webpack'),
         compression: 'gzip',
-        // Máximo 500MB de cache en disco
         maxMemoryGenerations: 1,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días — TTL explícito (sin esto cache crecía 9GB+)
+        cacheUnaffected: true,
       };
 
       // ✅ Optimizaciones de output para código más liviano
@@ -521,7 +511,8 @@ const withPWA =
       })
     : noWrapper;
 
-// Sentry — solo activo cuando hay DSN configurado (evita overhead en dev local sin DSN)
+// Sentry — solo en producción Y solo cuando hay DSN configurado.
+// ⚡ PERF 2026-05-13: condicionado a isProd para evitar overhead webpack-plugin en dev.
 import { withSentryConfig } from '@sentry/nextjs';
 const sentryOptions = {
   silent: true,
@@ -530,11 +521,12 @@ const sentryOptions = {
   widenClientFileUpload: true,
   hideSourceMaps: true,
   disableLogger: true,
-  // Turbopack-compatible: no webpack plugin en dev
   disableClientWebpackPlugin: !isProd,
   disableServerWebpackPlugin: !isProd,
 };
 const withSentry = (cfg: NextConfig) =>
-  process.env.NEXT_PUBLIC_SENTRY_DSN ? withSentryConfig(cfg, sentryOptions) : cfg;
+  isProd && process.env.NEXT_PUBLIC_SENTRY_DSN
+    ? withSentryConfig(cfg, sentryOptions)
+    : cfg;
 
 export default withBundleAnalyzer(withPWA(withSentry(nextConfig) as NextConfig));

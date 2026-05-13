@@ -1,5 +1,7 @@
 {
   "$schema": "https://turborepo.com/schema.json",
+  "ui": "stream",
+  "envMode": "loose",
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -7,6 +9,9 @@
       "inputs": [
         "src/**",
         "public/**",
+        "pages/**",
+        "components/**",
+        "lib/**",
         "package.json",
         "tsconfig.json",
         "next.config.*",
@@ -32,11 +37,12 @@
       "outputs": []
     },
     "lint": {
-      "outputs": []
+      "outputs": [],
+      "inputs": ["src/**", "pages/**", "components/**", ".eslintrc*", "package.json"]
     },
     "type-check": {
-      "dependsOn": ["^build"],
-      "outputs": []
+      "outputs": [],
+      "inputs": ["src/**", "pages/**", "components/**", "tsconfig.json", "package.json"]
     },
     "clean": {
       "cache": false
@@ -50,6 +56,15 @@
   "globalEnv": [
     "NODE_ENV",
     "NEXT_PUBLIC_API_MCP_URL",
-    "NEXT_PUBLIC_API_IA_URL"
+    "NEXT_PUBLIC_API_IA_URL",
+    "NEXT_PUBLIC_BACKEND_URL",
+    "NEXT_PUBLIC_SOCKET_URL",
+    "NEXT_PUBLIC_BASE_URL",
+    "NEXT_PUBLIC_SENTRY_DSN",
+    "NEXT_PUBLIC_IS_DESKTOP_APP",
+    "NEXT_PUBLIC_CLIENT_DB",
+    "MCP_JWT_SECRET",
+    "VERCEL",
+    "CI"
   ]
 }

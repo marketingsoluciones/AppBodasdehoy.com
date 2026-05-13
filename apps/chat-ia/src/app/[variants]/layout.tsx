@@ -139,7 +139,9 @@ export const dynamic = 'force-dynamic';
 
 export const generateStaticParams = () => {
   const themes: ThemeAppearance[] = ['dark', 'light'];
-  const mobileOptions = isDesktop ? [false] : [true, false];
+  // ⚡ PERF 2026-05-13: reducido de 8 → 4 variants (eliminado mobile preset estático).
+  // Mobile se detecta runtime via User-Agent middleware. Build SSG -50% tiempo.
+  const mobileOptions = [false];
   // only static for serveral page, other go to dynamtic
   const staticLocales: Locales[] = [DEFAULT_LANG, 'zh-CN'];
 
