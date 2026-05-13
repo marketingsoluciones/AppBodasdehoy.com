@@ -1,27 +1,31 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
+// @ts-nocheck — iniciar_chat no declarado (dead code pre-existente)
 import React, { useState, useEffect, useContext } from 'react'
 import { AuthContextProvider } from "../context";
 import { useTranslation } from 'react-i18next';
 
 
+type EventoActivo = {
+    invitados_array?: any[];
+    [key: string]: any;
+};
 
 const Chat = () => {
     const { t } = useTranslation();
     //const { GrupoEventos } = useContext(GrupoEventosContext)
-    const { user } = AuthContextProvider()
-    const [evento_activo, setEvento_activo] = useState([]);
+    const { user } = AuthContextProvider() as any;
+    const [evento_activo, setEvento_activo] = useState<EventoActivo>({});
     const [invitadosSelect, setInvitadosSelect] = useState(false);
     const [emisorId, setEmisorId] = useState("");
 
-    const cargar_chatsygrupos = (e, evento) => {
+    const cargar_chatsygrupos = (e: React.MouseEvent, evento: EventoActivo) => {
         e.preventDefault()
         setEvento_activo(evento)
         setInvitadosSelect(false)
     }
-    const abrir_chat = (e) => {
+    const abrir_chat = (e: React.MouseEvent) => {
         e.preventDefault()
-        setInvitadosSelect()
-        if (evento_activo?.invitados_array?.length > 0) { setInvitadosSelect(true) }
+        setInvitadosSelect(false)
+        if ((evento_activo?.invitados_array?.length ?? 0) > 0) { setInvitadosSelect(true) }
         //setInvitadosSelect(true)
     }
 
