@@ -187,4 +187,6 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 const EventContextProvider = () => useContext(EventContext)
+
+export default EventContext;
 export { EventContextProvider, EventProvider };

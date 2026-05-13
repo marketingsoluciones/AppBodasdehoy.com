@@ -60,7 +60,7 @@ export const SelectIcon = ({ handleChange, ...props }) => {
       }
       {
         openIcon
-          ? <Modal openIcon={openIcon} setOpenIcon={setOpenIcon} classe={"h-max md:w-[30%] flex items-center justify-center"} >
+          ? <Modal {...({ openIcon, setOpenIcon, classe: "h-max md:w-[30%] flex items-center justify-center" } as any)} >
             <IconList IterArry={IconArray} openIcon={openIcon} setOpenIcon={setOpenIcon} setSelectIcon={setSelectIcon} />
           </Modal>
           : null

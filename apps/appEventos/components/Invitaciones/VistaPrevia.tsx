@@ -46,7 +46,7 @@ const VistaPrevia = ({ event }) => {
   const PlantillaCorreo = () => {
     return (
       <>
-        <iframe sandbox="allow-same-origin" seamless="seamless" srcDoc={content} />;
+        <iframe sandbox="allow-same-origin" {...({ seamless: 'seamless' } as any)} srcDoc={content} />;
         <style jsx>
           {`
             iframe {

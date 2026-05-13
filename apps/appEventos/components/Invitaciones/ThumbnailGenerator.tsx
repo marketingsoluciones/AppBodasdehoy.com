@@ -1,6 +1,7 @@
 // components/ThumbnailGenerator.js
 
 import React, { useRef, useState } from 'react';
+// @ts-ignore — html-to-image dep no instalada (pre-existente)
 import { toPng } from 'html-to-image';
 
 // --- TU PLANTILLA DE CORREO EN HTML ---
