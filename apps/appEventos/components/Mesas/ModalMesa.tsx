@@ -1,6 +1,13 @@
 import ClickAwayListener from "react-click-away-listener"
 
-const ModalMesa = ({ set, state, children, title }) => {
+type ModalMesaProps = {
+    set: (state: boolean) => void;
+    state: boolean;
+    children: React.ReactNode;
+    title?: string;
+};
+
+const ModalMesa = ({ set, state, children, title }: ModalMesaProps) => {
 
     return (
         <>
