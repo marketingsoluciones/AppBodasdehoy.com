@@ -1,4 +1,11 @@
 
+declare global {
+  interface Window {
+    gapi: any;
+    google: any;
+  }
+}
+
 export const useImportGuest = () => {
 
   const contactsForApiGoogle = async () => {
@@ -40,7 +47,7 @@ export const useImportGuest = () => {
 
     if (!access_token) {
       try {
-        const tokenGapi = await tokenResponse()
+        const tokenGapi: any = await tokenResponse()
         access_token = tokenGapi?.access_token
       } catch (error) {
         console.log(1000002, "error", error);
@@ -59,7 +66,7 @@ export const useImportGuest = () => {
         result = response?.result
       } catch (error) {
         console.log(1000003, "error", error);
-        const tokenGapi = await tokenResponse()
+        const tokenGapi: any = await tokenResponse()
         access_token = tokenGapi?.access_token
         const response = await window?.gapi?.client?.people?.people?.connections?.list({
           'resourceName': 'people/me',

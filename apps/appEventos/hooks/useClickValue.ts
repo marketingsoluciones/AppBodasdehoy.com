@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 
-export const useClickValue = () => {
+export const useClickValue = (): [React.MutableRefObject<any>, string] => {
     const [value, setValue] = useState("")
-    const ref = useRef(null)
-    
+    const ref = useRef<any>(null)
 
+    // HandleClick no estaba definido en .js original — stub para evitar referencia rota
+    const HandleClick = () => { /* TODO: implementar */ };
 
     useEffect(() => {
         (() => {
@@ -14,7 +15,7 @@ export const useClickValue = () => {
             }
 
             return () => {
-                node.addEventListener('click', HandleClick)
+                if (node) node.removeEventListener('click', HandleClick)
             }
         })()
     }, [ref.current])
