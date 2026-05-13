@@ -403,7 +403,10 @@ const nextConfig: NextConfig = {
   // También excluimos sharp para evitar errores de compatibilidad ARM64 en Vercel
   serverExternalPackages: isProd ? ['@electric-sql/pglite', 'sharp'] : undefined,
 
-  transpilePackages: ['pdfjs-dist', 'mermaid', '@bodasdehoy/wedding-creator', '@bodasdehoy/memories', '@bodasdehoy/shared', '@bodasdehoy/auth-ui'],
+  // ⚡ FASE 4 PR-4.3 (2026-05-13): packages compartidos eliminados de transpilePackages
+  // tras FASE 3 (dist build). Next los carga pre-compilados → ahorra recompile en cada build.
+  // SOLO quedan los packages externos que aún requieren transpile (no tienen dist propio).
+  transpilePackages: ['pdfjs-dist', 'mermaid'],
 
   webpack(config) {
     config.experiments = {
