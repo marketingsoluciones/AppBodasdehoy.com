@@ -42,7 +42,10 @@
       "default": "./dist/branding/index.js"
     }
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch --preserveWatchOutput",
@@ -57,12 +60,12 @@
     "js-cookie": "^3.0.1"
   },
   "peerDependencies": {
-    "react": ">=18.0.0",
+    "react": ">=18.2.0",
     "heic2any": "^0.0.4"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.1",
-    "@types/react": "^18.3.28",
+    "@types/react": "^19.2.8",
     "typescript": "^5.9.3"
   }
 }

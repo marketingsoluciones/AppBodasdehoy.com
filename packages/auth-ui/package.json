@@ -10,7 +10,10 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch --preserveWatchOutput",
@@ -21,10 +24,10 @@
     "lint": "echo \"no lint configured\" && exit 0"
   },
   "peerDependencies": {
-    "react": ">=18"
+    "react": ">=18.2.0"
   },
   "devDependencies": {
-    "@types/react": "^18",
+    "@types/react": "^19.2.8",
     "typescript": "^5.9.3"
   }
 }

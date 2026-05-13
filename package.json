@@ -132,7 +132,8 @@
     "test:e2e:canales": "E2E_HEADED=1 PLAYWRIGHT_BROWSER=webkit BASE_URL=https://app-test.bodasdehoy.com TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD='lorca2012M*+' playwright test --config=playwright.config.ts e2e-app/canales-setup.spec.ts --headed",
     "test:e2e:notificaciones": "E2E_HEADED=1 PLAYWRIGHT_BROWSER=webkit BASE_URL=https://app-test.bodasdehoy.com TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD='lorca2012M*+' playwright test --config=playwright.config.ts e2e-app/notificaciones.spec.ts --headed",
     "test:e2e:admin": "E2E_HEADED=1 PLAYWRIGHT_BROWSER=webkit BASE_URL=https://app-test.bodasdehoy.com TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD='lorca2012M*+' playwright test --config=playwright.config.ts e2e-app/admin-panel.spec.ts --headed",
-    "test:e2e:ultimos": "E2E_HEADED=1 PLAYWRIGHT_BROWSER=webkit BASE_URL=https://app-test.bodasdehoy.com TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD='lorca2012M*+' playwright test --config=playwright.config.ts e2e-app/widget-chat.spec.ts e2e-app/canales-setup.spec.ts e2e-app/notificaciones.spec.ts e2e-app/admin-panel.spec.ts --headed"
+    "test:e2e:ultimos": "E2E_HEADED=1 PLAYWRIGHT_BROWSER=webkit BASE_URL=https://app-test.bodasdehoy.com TEST_USER_EMAIL=bodasdehoy.com@gmail.com TEST_USER_PASSWORD='lorca2012M*+' playwright test --config=playwright.config.ts e2e-app/widget-chat.spec.ts e2e-app/canales-setup.spec.ts e2e-app/notificaciones.spec.ts e2e-app/admin-panel.spec.ts --headed",
+    "disk:size": "du -sh apps/*/.next/cache 2>/dev/null | sort -h"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",

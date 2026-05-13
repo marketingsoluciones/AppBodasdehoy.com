@@ -26,13 +26,13 @@
   },
   "peerDependencies": {
     "@emotion/react": ">=11.0.0",
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react": ">=18.2.0",
+    "react-dom": ">=18.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@types/react": "^18.0.0",
-    "@types/react-dom": "^18.0.0",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
     "antd": "^5.29.0",
     "dayjs": "^1.11.0",
     "lucide-react": "^0.460.0",
