@@ -5,12 +5,12 @@ import { AuthContextProvider, EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 
-const CellPagado = ({ set, ...props }) => {
+const CellPagado = ({ set, ...props }: { set: (v: any) => void; [key: string]: any }) => {
   const { t } = useTranslation();
-  const { event, setEvent } = EventContextProvider()
-  const [value, setValue] = useState();
+  const { event, setEvent } = EventContextProvider() as any;
+  const [value, setValue] = useState<any>();
   const [isAllowed, ht] = useAllowed()
-  const [mask, setMask] = useState()
+  const [mask, setMask] = useState<string | undefined>()
   const toast = useToast()
 
   useEffect(() => {

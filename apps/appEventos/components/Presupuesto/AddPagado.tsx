@@ -4,13 +4,15 @@ import { useAllowed } from "../../hooks/useAllowed";
 import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 import { GrMoney } from "react-icons/gr";
+import { EventContextProvider } from "../../context";
 
 
-const AddPagado = ({ set, ...props }) => {
+const AddPagado = ({ set, ...props }: { set: (v: any) => void; [key: string]: any }) => {
   const { t } = useTranslation();
-  const [value, setValue] = useState();
+  const { event } = EventContextProvider() as any;
+  const [value, setValue] = useState<any>();
   const [isAllowed, ht] = useAllowed()
-  const [mask, setMask] = useState()
+  const [mask, setMask] = useState<string | undefined>()
   const toast = useToast()
   const costeFional = props?.row?.original?.coste_final
 
