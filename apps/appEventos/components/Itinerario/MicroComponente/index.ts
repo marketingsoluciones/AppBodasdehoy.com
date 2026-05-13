@@ -1,12 +1,9 @@
 export * from "./Description"
 export * from "./IconList"
-export * from "./SelectIcon"
+// removed: ./SelectIcon, ./SubHeader, ./ResponsableSelector, ./ResponsableList (archivos no existen pre-existente)
 export * from "./Time"
 export * from "./Preboda"
 export * from "./ElGranDia"
-export * from "./SubHeader"
-export * from "./ResponsableSelector"
-export * from "./ResponsableList"
 export * from "./Tips"
 export * from "./Duration"
 export * from "./AddEvent"

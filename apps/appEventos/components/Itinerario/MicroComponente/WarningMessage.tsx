@@ -1,7 +1,7 @@
 import { AuthContextProvider } from "../../../context"
 import { useTranslation } from 'react-i18next';
 
-export const WarningMessage = ({ modal, setModal, title }) => {
+export const WarningMessage = ({ modal, setModal, title }: { modal: boolean; setModal: (v: boolean) => void; title?: string }) => {
     const { t } = useTranslation();
     const { user, config } = AuthContextProvider()
 
