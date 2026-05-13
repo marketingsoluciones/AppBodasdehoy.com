@@ -12,8 +12,10 @@ const nextConfig = {
   // Deshabilitar indicadores de desarrollo que causan errores en Next.js 15
   devIndicators: false,
 
-  // Transpile packages del monorepo y @lobehub/ui
-  transpilePackages: ['@bodasdehoy/auth-ui', '@bodasdehoy/shared', '@bodasdehoy/memories', '@bodasdehoy/copilot-shared', '@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'zustand-utils'],
+  // ⚡ FASE 4 PR-4.2 (2026-05-13): packages compartidos eliminados de transpilePackages
+  // tras migrar a dist build (FASE 3). Next los carga pre-compilados → ahorra recompile.
+  // SOLO quedan los packages externos que aún requieren transpile.
+  transpilePackages: ['@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'zustand-utils'],
 
   // Redirects para URLs con caracteres especiales → ASCII equivalente
   async redirects() {
