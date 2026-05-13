@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import React, { useState } from 'react';
 import { Send, Mail, Loader2, Copy, Check } from 'lucide-react';
 
@@ -13,7 +12,7 @@ const EmailTemplateGenerator = () => {
   // Contexto base que se añadirá a todos los prompts
   const baseContext = "Eres un experto en diseño de plantillas de correo electrónico HTML. Tu tarea es generar código HTML para plantillas de correo que incluyan etiquetas dinámicas para personalización. Las etiquetas dinámicas deben estar en formato {{variable}} para ser reemplazadas programáticamente. El HTML debe ser compatible con clientes de correo y usar estilos inline. Incluye estilos CSS inline para máxima compatibilidad. Haz el diseño atractivo y profesional. Solicitud del usuario: ";
 
-  const callAnthropicAPI = async (userPrompt) => {
+  const callAnthropicAPI = async (userPrompt: string) => {
     if (!apiKey) {
       setError('Por favor ingresa tu API Key de Anthropic');
       return;
