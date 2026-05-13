@@ -1,27 +1,40 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { useEffect, useState } from "react"
 import { MdOutlineSearch, MdOutlineCheck } from "react-icons/md"
 import { ArrowLeft } from "../icons"
 import { useTranslation } from 'react-i18next';
 
-export const ForApiPeople = ({ setContact, showForApiGoogle, setShowForApiGoogle, }) => {
-  const [userInfo, setUserInfo] = useState()
-  const [contacts, setContacts] = useState(
-    showForApiGoogle?.payload?.result?.connections?.reduce((acc, item) => {
-      const phones = `${item?.phoneNumbers?.map(elem => elem?.canonicalForm)}`
-      acc.push({ ...item, textSearch: `${item?.names[0]?.displayName} ${``} ${phones.replace(/,/g, " ")}` })
+type GoogleContact = {
+  names?: Array<{ displayName?: string }>;
+  phoneNumbers?: Array<{ canonicalForm?: string }>;
+  emailAddresses?: Array<{ value?: string }>;
+  textSearch?: string;
+  [key: string]: any;
+};
+
+type ForApiPeopleProps = {
+  setContact?: (c: any) => void;
+  showForApiGoogle?: any;
+  setShowForApiGoogle?: (v: any) => void;
+};
+
+export const ForApiPeople = ({ setContact, showForApiGoogle, setShowForApiGoogle, }: ForApiPeopleProps) => {
+  const [userInfo, setUserInfo] = useState<any>()
+  const [contacts, setContacts] = useState<GoogleContact[] | undefined>(
+    showForApiGoogle?.payload?.result?.connections?.reduce((acc: GoogleContact[], item: GoogleContact) => {
+      const phones = `${item?.phoneNumbers?.map((elem: any) => elem?.canonicalForm)}`
+      acc.push({ ...item, textSearch: `${item?.names?.[0]?.displayName} ${``} ${phones.replace(/,/g, " ")}` })
       return acc
     }, [])
   )
-  const [searchContacts, setSearchContacts] = useState()
-  const [contactsShow, setContactsShow] = useState()
-  const [itemSelect, setItemSelect] = useState()
+  const [searchContacts, setSearchContacts] = useState<any>()
+  const [contactsShow, setContactsShow] = useState<GoogleContact[] | undefined>()
+  const [itemSelect, setItemSelect] = useState<any>()
   const [activeSearch, setActiveSearch] = useState(false)
 
   let nextPageToken = showForApiGoogle?.payload?.result?.nextPageToken
   delete showForApiGoogle?.payload?.result?.nextPageToken
 
-  const getData = (nextPageToken) => {
+  const getData = (nextPageToken: string) => {
     window.gapi.client.people.people.connections.list({
       'resourceName': 'people/me',
       'pageSize': 300,
@@ -50,7 +63,7 @@ export const ForApiPeople = ({ setContact, showForApiGoogle, setShowForApiGoogle
   }, [])
 
   useEffect(() => {
-    const requestOptions = {
+    const requestOptions: RequestInit = {
       method: 'GET',
       redirect: 'follow'
     }
@@ -61,7 +74,7 @@ export const ForApiPeople = ({ setContact, showForApiGoogle, setShowForApiGoogle
   }, [])
 
   useEffect(() => {
-    setContactsShow(searchContacts ? searchContacts : contacts)
+    setContactsShow((searchContacts ? searchContacts : contacts) as any)
   }, [contacts, searchContacts])
 
   const handleOnChange = (e) => {
