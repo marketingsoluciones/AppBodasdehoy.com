@@ -122,11 +122,28 @@
       "Bash(sed -n '135,145p' apps/chat-ia/src/features/FirebaseAuth/index.tsx)",
       "Bash(sed -n '165,175p' apps/chat-ia/src/utils/developmentDetector.ts)",
       "Bash(perl -pi -e \"s|https://api3-mcp-graphql\\\\.eventosorganizador\\\\.com/graphql|https://api-mcp.eventosorganizador.com/graphql|g\" e2e-app/security-deep.spec.ts)",
-      "Bash(perl -pi -e \"s|https://api3-mcp-graphql\\\\.eventosorganizador\\\\.com|https://api-mcp.eventosorganizador.com|g\" e2e-app/security-deep.spec.ts)"
+      "Bash(perl -pi -e \"s|https://api3-mcp-graphql\\\\.eventosorganizador\\\\.com|https://api-mcp.eventosorganizador.com|g\" e2e-app/security-deep.spec.ts)",
+      "Bash(npx --yes depcheck --json)",
+      "Bash(nc -z localhost 3220)",
+      "Bash(nc -z localhost 3210)",
+      "Bash(awk '{print $2, $3\"% CPU\", $5, \"RSS\", $11, $12}')"
     ],
     "additionalDirectories": [
       "/Users/juancarlosparra/.claude/projects/-Users-juancarlosparra-Projects-AppBodasdehoy-com/memory",
       "/Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/(auth)/login/[[...login]]"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/block-git-push.sh"
+          }
+        ]
+      }
     ]
   }
 }
