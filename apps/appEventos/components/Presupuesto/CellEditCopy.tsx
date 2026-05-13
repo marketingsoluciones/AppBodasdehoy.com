@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { useContext, useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { api } from "../../api";
@@ -13,13 +12,20 @@ import { useToast } from "../../hooks/useToast";
 import { string } from "yup";
 import { InputUpdateInBlur } from "../Forms/inputs/InputUpdateInBlur";
 
-const CellEditCopy = (props) => {
+type CellEditCopyProps = {
+  value?: any;
+  type?: 'text' | 'number' | 'cantidad' | 'string' | 'unidad';
+  row?: any;
+  [key: string]: any;
+};
+
+const CellEditCopy = (props: CellEditCopyProps) => {
 
   const { t } = useTranslation();
-  const { event, setEvent } = EventContextProvider()
+  const { event, setEvent } = EventContextProvider() as any;
   const [edit, setEdit] = useState(false);
-  const [mask, setMask] = useState(0);
-  const [value, setValue] = useState();
+  const [mask, setMask] = useState<any>(0);
+  const [value, setValue] = useState<any>();
   const [isAllowed, ht] = useAllowed()
   const toast = useToast()
 
@@ -39,20 +45,20 @@ const CellEditCopy = (props) => {
     }
   }, [value, event?.presupuesto_objeto?.currency]);
 
-  const keyDown = (e) => {
-    let tecla = e.key.toLowerCase();
+  const keyDown = (e: React.KeyboardEvent) => {
+    const tecla = e.key.toLowerCase();
     if (tecla == "enter") {
       setEdit(false);
       handleBlur();
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const r = e.target.value?.split(".")
     setValue(r)
   };
 
-  const handleBlur = async (e) => {
+  const handleBlur = async (e?: React.FocusEvent<HTMLInputElement>) => {
     setEdit(false);
     let res;
     if (value !== props?.value) {
@@ -134,7 +140,7 @@ const CellEditCopy = (props) => {
 
   return (
     <ClickAwayListener
-      onClickAway={() => edit && setEdit(false) && handleBlur()}
+      onClickAway={() => { if (edit) { setEdit(false); handleBlur(); } }}
     >
       <div >
         {edit ? (
