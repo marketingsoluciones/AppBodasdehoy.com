@@ -112,7 +112,7 @@ export const api = {
     });
   },
 
-  socketIO: ({ token, development, father, origin }) => {
+  socketIO: ({ token, development, father, origin }: { token?: any; development?: any; father?: any; origin?: any }) => {
     if (!development) return
     const socketUrl = (process.env.NEXT_PUBLIC_SOCKET_URL || "").trim()
       || process.env.NEXT_PUBLIC_API_MCP_URL
@@ -131,7 +131,7 @@ export const api = {
     return socket
   },
 
-  ApiBodas: async ({ data, development, token }) => {
+  ApiBodas: async ({ data, development, token }: { data?: any; development?: any; token?: any }) => {
     let idToken = Cookies.get("idTokenV0.1.0")
     try {
       if (getAuth().currentUser) {
@@ -185,7 +185,7 @@ export const api = {
 // Si se elimina, verificar que ningún flujo la use. Ver docs/LISTADO-LLAMADAS-API2-AUDITORIA.md
 const API2_GRAPHQL_LEGACY = process.env.NEXT_PUBLIC_API_MCP_URL || '';
 
-export const fetchApiViewConfig = async (params) => {
+export const fetchApiViewConfig = async (params: any) => {
   let idToken = Cookies.get("idTokenV0.1.0");
   try {
     if (getAuth().currentUser && !idToken) {
