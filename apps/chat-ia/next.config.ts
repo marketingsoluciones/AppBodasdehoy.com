@@ -28,6 +28,9 @@ const standaloneConfig: NextConfig = {
 const nextConfig: NextConfig = {
   ...(isStandaloneMode ? standaloneConfig : {}),
   assetPrefix: process.env.NEXT_PUBLIC_ASSET_PREFIX,
+  // ⚡ PERF 2026-05-13: silenciar warning "multiple lockfiles" — el root pnpm-lock.yaml
+  // es la fuente de verdad; apps/chat-ia/pnpm-lock.yaml es legacy pre-monorepo.
+  outputFileTracingRoot: require('path').join(__dirname, '../..'),
   compiler: {
     emotion: true,
   },
