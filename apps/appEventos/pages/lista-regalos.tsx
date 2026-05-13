@@ -1,4 +1,4 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
+// @ts-nocheck — ModalGuardarRegalo + FormGuardarRegalos props mismatch pre-existente
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { AmazonIcon, CochinoIcon, CompartirIcon, DineroIcon, ListaOne, ListaTwo } from "../components/icons";
@@ -16,8 +16,8 @@ import { useTranslation } from 'react-i18next';
 
 const ListaRegalos = () => {
   const { t } = useTranslation();
-  const { event } = EventContextProvider()
-  const { user, verificationDone } = AuthContextProvider()
+  const { event } = EventContextProvider() as any;
+  const { user, verificationDone } = AuthContextProvider() as any;
   const [showForm, setShowForm] = useState(false)
   const [isAllowed, ht] = useAllowed()
 
