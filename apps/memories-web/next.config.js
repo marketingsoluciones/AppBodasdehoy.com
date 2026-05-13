@@ -55,7 +55,10 @@ const nextConfig = {
   },
 };
 
+// Sentry — solo activo cuando NEXT_PUBLIC_SENTRY_DSN está definido.
+// En dev se deshabilita el webpack plugin para evitar overhead de compilación.
 const { withSentryConfig } = require('@sentry/nextjs');
+const isProdBuild = process.env.NODE_ENV === 'production';
 
 module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
   ? withSentryConfig(nextConfig, {
@@ -65,5 +68,7 @@ module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
       widenClientFileUpload: true,
       hideSourceMaps: true,
       disableLogger: true,
+      disableClientWebpackPlugin: !isProdBuild,
+      disableServerWebpackPlugin: !isProdBuild,
     })
   : nextConfig;

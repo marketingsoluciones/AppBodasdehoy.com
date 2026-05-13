@@ -127,6 +127,9 @@ const nextConfig = {
     'localhost',
   ],
 
+  // Source maps en prod desactivados — Sentry los sube por su cuenta si está configurado.
+  productionBrowserSourceMaps: false,
+
   // Rewrites para el proxy de Lobe-Chat. Usa NEXT_PUBLIC_CHAT del .env (chat-dev en dev, chat en prod).
   async rewrites() {
     const copilotBase = (process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com').replace(/\/$/, '');
@@ -157,4 +160,20 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// Sentry — solo activo cuando NEXT_PUBLIC_SENTRY_DSN está definido.
+// En dev se deshabilita el webpack plugin para evitar overhead de compilación.
+const { withSentryConfig } = require('@sentry/nextjs');
+const isProdBuild = process.env.NODE_ENV === 'production';
+
+module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(nextConfig, {
+      silent: true,
+      org: 'itel-0n',
+      project: 'app-eventos',
+      widenClientFileUpload: true,
+      hideSourceMaps: true,
+      disableLogger: true,
+      disableClientWebpackPlugin: !isProdBuild,
+      disableServerWebpackPlugin: !isProdBuild,
+    })
+  : nextConfig;
