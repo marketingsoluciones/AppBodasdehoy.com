@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
@@ -9,19 +8,26 @@ import { BsCalendarHeartFill } from "react-icons/bs";
 import { IoIosArrowDown } from "react-icons/io";
 import ClickAwayListener from "react-click-away-listener";
 
+type NavItem = {
+  title: string;
+  route: string;
+  condicion?: string;
+  Icon?: any;
+};
+
 /* menu inferior con las opciones de redireccion de la app en vista movil */
 const NavigationMobile = () => {
   const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
   const toast = useToast();
-  const { event } = EventContextProvider();
-  const { user } = AuthContextProvider();
-  const { eventsGroup, eventsGroupDone } = EventsGroupContextProvider();
+  const { event } = EventContextProvider() as any;
+  const { user } = AuthContextProvider() as any;
+  const { eventsGroup, eventsGroupDone } = EventsGroupContextProvider() as any;
   const [show, setShow] = useState(false)
-  const [itemSelect, setItemSelect] = useState()
+  const [itemSelect, setItemSelect] = useState<string | undefined>()
 
-  const goNav = (item) => {
+  const goNav = (item: NavItem) => {
     if (item.condicion === "verdadero") {
       setItemSelect(item.title)
       router.push(item.route)
