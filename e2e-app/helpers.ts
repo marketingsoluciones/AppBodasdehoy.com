@@ -162,16 +162,28 @@ export async function navigateToModule(page: Page, moduleName: string, timeoutMs
     return false;
   }
 
-  // El menú lateral aparece tras seleccionar evento. Esperar a que sea visible.
-  const moduleButton = page.getByRole('button', { name: buttonRegex }).first();
-  const isVisible = await moduleButton.waitFor({ state: 'visible', timeout: 10_000 }).then(() => true).catch(() => false);
+  const nav = page.locator('nav').first();
+  const candidates = [
+    page.getByRole('button', { name: buttonRegex }).first(),
+    page.getByRole('listitem', { name: buttonRegex }).first(),
+    page.getByRole('link', { name: buttonRegex }).first(),
+    page.getByText(buttonRegex).first(),
+    nav.getByText(buttonRegex).first(),
+  ];
 
-  if (!isVisible) {
-    console.warn(`[navigateToModule] botón "${moduleName}" no visible — ¿no hay evento seleccionado?`);
-    return false;
+  let clicked = false;
+  for (const c of candidates) {
+    const ok = await c.isVisible({ timeout: 2_000 }).catch(() => false);
+    if (!ok) continue;
+    await c.click({ timeout: 10_000 }).catch(() => {});
+    clicked = true;
+    break;
   }
 
-  await moduleButton.click({ timeout: 8_000 }).catch(() => {});
+  if (!clicked) {
+    console.warn(`[navigateToModule] destino "${moduleName}" no visible — ¿no hay evento seleccionado?`);
+    return false;
+  }
 
   // Esperar a que la app responda — overlay desaparezca y contenido del módulo cargue.
   // NO usar waitForAppReady completo porque la navegación es interna (SPA)
@@ -345,6 +357,78 @@ export async function loginAndSelectEvent(
   const eventId = eventIdMatch?.[1] ?? null;
 
   console.log(`✅ Evento seleccionado: "${cardText.slice(0, 40).trim()}" (id: ${eventId ?? 'desconocido'})`);
+  return eventId ?? 'selected';
+}
+
+export async function loginInAppAndSelectFirstEvent(
+  page: Page,
+  email: string,
+  password: string,
+  baseUrl: string,
+): Promise<string | null> {
+  const loginUrl =
+    (baseUrl.includes('app-test') || baseUrl.includes('app-dev') || baseUrl.includes('127.0.0.1') || baseUrl.includes('localhost'))
+      ? `${baseUrl}/login?local-login=1`
+      : `${baseUrl}/login`;
+
+  try {
+    await page.goto(loginUrl, { waitUntil: 'commit', timeout: 90_000 });
+  } catch (e) {
+    if (!String(e).includes('interrupted by another navigation')) throw e;
+  }
+  await page.waitForLoadState('domcontentloaded').catch(() => {});
+  await page.waitForTimeout(2000);
+
+  const emailInput = page
+    .locator('input[type="email"], input[name="identifier"], input[placeholder*="@"], input[autocomplete="email"]')
+    .first();
+  if (!(await emailInput.isVisible({ timeout: 25_000 }).catch(() => false))) return null;
+
+  await emailInput.fill(email, { timeout: 20_000 });
+  await page.locator('input[type="password"]').first().fill(password);
+  const submitButton = page
+    .locator('button[type="submit"], button')
+    .filter({ hasText: /iniciar\s+sesión/i })
+    .first();
+  await submitButton.click({ timeout: 30_000 });
+
+  await page.waitForURL((url: URL) => !url.pathname.includes('/login'), { timeout: 60_000 }).catch(() => {});
+  const hasToken = await page
+    .waitForFunction(
+      () => document.cookie.includes('idTokenV0.1.0') || document.cookie.includes('sessionBodas'),
+      null,
+      { timeout: 25_000 },
+    )
+    .then(() => true)
+    .catch(() => false);
+  await waitForAppReady(page, 25_000);
+  if (page.url().includes('/login') && !hasToken) return null;
+
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 90_000 });
+  await waitForAppReady(page, 25_000);
+
+  const misEventosTab = page.locator('a, button').filter({ hasText: /^Mis eventos$/i }).first();
+  if (await misEventosTab.isVisible({ timeout: 10_000 }).catch(() => false)) {
+    await misEventosTab.click().catch(() => {});
+    await page.waitForTimeout(1500);
+  }
+
+  const eventCards = page.locator('[class*="rounded"][class*="shadow"]').filter({
+    hasText: /\d{4}|boda|evento|fiesta|aniversario|cumpleaños/i,
+    hasNotText: /\[ZOMBIE\]/,
+  });
+  const cardCount = await eventCards.count();
+  if (cardCount === 0) return null;
+
+  const firstCard = eventCards.first();
+  const cardText = ((await firstCard.textContent()) ?? '').trim();
+  await firstCard.click();
+  await page.waitForTimeout(2000);
+
+  const url = page.url();
+  const eventIdMatch = url.match(/event=([a-f0-9]{24})/i) || url.match(/\/e\/([a-f0-9]{24})/i);
+  const eventId = eventIdMatch?.[1] ?? null;
+  console.log(`✅ Evento seleccionado (app login): "${cardText.slice(0, 40).trim()}" (id: ${eventId ?? 'desconocido'})`);
   return eventId ?? 'selected';
 }
 
