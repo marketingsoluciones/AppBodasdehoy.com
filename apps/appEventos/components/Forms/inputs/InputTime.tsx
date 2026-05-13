@@ -13,7 +13,14 @@ const optionsFormatTime = {
     //timeZone: "America/Los_Angeles",
 };
 
-export const InputTime = ({ disable, ht, ...props }) => {
+type InputTimeProps = {
+    disable?: boolean;
+    ht?: any;
+    name: string;
+    [key: string]: any;
+};
+
+export const InputTime = ({ disable, ht, ...props }: InputTimeProps) => {
     const [field, meta, helpers] = useField({ name: props?.name });
     const [value, setValue] = useState("")
 

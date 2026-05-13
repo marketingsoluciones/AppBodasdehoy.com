@@ -40,5 +40,6 @@ const LoadingProvider = ({ children }: { children: ReactNode }) => {
 
 const LoadingContextProvider = () => useContext(LoadingContext);
 
+export default LoadingContext;
 export { LoadingContextProvider, LoadingProvider };
 

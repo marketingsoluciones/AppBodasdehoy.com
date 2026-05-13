@@ -5,12 +5,19 @@ import { memo } from "react";
 // eslint-disable-next-line react/display-name
 
 
-export const InputFieldGlobal = memo(({ className, placeholder,...props }) => {
+type InputFieldGlobalProps = {
+  className?: string;
+  placeholder?: string;
+  name: string;
+  [key: string]: any;
+};
+
+export const InputFieldGlobal = memo(({ className, placeholder, ...props }: InputFieldGlobalProps) => {
   const [field, meta, helpers] = useField({ name: props.name });
   return (
     <div className="w-[100%]">
       <input placeholder={placeholder} className={className} {...field} {...props} />
-      {meta.touched && meta.error && {/* <Popup title={`${meta.error}`} arrow={"top"} /> */}}
+      {meta.touched && meta.error && null /* <Popup title={`${meta.error}`} arrow={"top"} /> */}
     </div>
   );
 });
