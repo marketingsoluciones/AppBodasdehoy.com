@@ -37,6 +37,26 @@ const nextConfig: NextConfig = {
     // your project has ESLint errors (middleware lazy-loading pattern)
     ignoreDuringBuilds: true,
   },
+  // ✅ PERF: Ignorar typecheck en build (manejado en CI paralelo)
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  // ✅ PERF: modularizeImports — más agresivo que optimizePackageImports
+  // Convierte `import { X, Y } from 'lucide-react'` → imports individuales
+  // Reduce drásticamente tiempo compile y bundle size
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{ kebabCase member }}',
+      skipDefaultConversion: true,
+    },
+    'lodash-es': {
+      transform: 'lodash-es/{{member}}',
+    },
+    '@ant-design/icons': {
+      transform: '@ant-design/icons/lib/icons/{{member}}',
+      skipDefaultConversion: true,
+    },
+  },
   experimental: {
     // ✅ Solo limitar CPUs en producción (build), no en desarrollo
     // 2 CPUs: seguro con 8GB — 1 CPU era demasiado conservador
