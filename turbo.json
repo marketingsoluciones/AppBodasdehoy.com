@@ -11,12 +11,18 @@
         "public/**",
         "pages/**",
         "components/**",
+        "context/**",
+        "hooks/**",
         "lib/**",
+        "utils/**",
+        "styles/**",
+        "locales/**",
         "package.json",
         "tsconfig.json",
         "next.config.*",
         "tailwind.config.*",
-        "postcss.config.*"
+        "postcss.config.*",
+        "sentry.*.config.ts"
       ]
     },
     "dev": {
@@ -38,11 +44,11 @@
     },
     "lint": {
       "outputs": [],
-      "inputs": ["src/**", "pages/**", "components/**", ".eslintrc*", "package.json"]
+      "inputs": ["src/**", "pages/**", "components/**", "context/**", "hooks/**", "utils/**", ".eslintrc*", "package.json"]
     },
     "type-check": {
       "outputs": [],
-      "inputs": ["src/**", "pages/**", "components/**", "tsconfig.json", "package.json"]
+      "inputs": ["src/**", "pages/**", "components/**", "context/**", "hooks/**", "utils/**", "tsconfig.json", "package.json"]
     },
     "clean": {
       "cache": false

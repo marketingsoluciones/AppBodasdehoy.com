@@ -1,14 +1,19 @@
-import { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useState, useContext, useEffect, ReactNode } from "react";
 import Loading from "../components/DefaultLayout/Loading";
 
-const initialContext = {
+type LoadingContextType = {
+  loading: boolean;
+  setLoading: ((loading: boolean) => void) | undefined;
+};
+
+const initialContext: LoadingContextType = {
   loading: false,
   setLoading: undefined,
-}
+};
 
-const LoadingContext = createContext(initialContext);
+const LoadingContext = createContext<LoadingContextType>(initialContext);
 
-const LoadingProvider = ({ children }) => {
+const LoadingProvider = ({ children }: { children: ReactNode }) => {
   // Iniciar en false: el contenido se muestra; quien necesite loading lo pone a true.
   // Antes era true y dependía de Container para poner false; si Container no montaba a tiempo quedaba "Procesando" fijo.
   const [loading, setLoading] = useState(false);
