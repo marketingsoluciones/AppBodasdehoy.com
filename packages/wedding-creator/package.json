@@ -12,9 +12,13 @@
       "require": "./src/index.ts"
     }
   },
-  "files": ["src"],
+  "files": [
+    "src"
+  ],
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "type-check": "tsc --noEmit",
+    "lint": "echo \"no lint configured\" && exit 0"
   },
   "peerDependencies": {
     "@emotion/react": ">=11.0.0",
@@ -30,7 +34,12 @@
     "lucide-react": "^0.460.0",
     "typescript": "^5.9.0"
   },
-  "keywords": ["wedding", "creador", "bodasdehoy", "monorepo"],
+  "keywords": [
+    "wedding",
+    "creador",
+    "bodasdehoy",
+    "monorepo"
+  ],
   "author": "BodasdeHoy",
   "license": "MIT"
 }

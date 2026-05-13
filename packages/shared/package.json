@@ -16,7 +16,9 @@
     "./branding": "./src/branding/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "type-check": "tsc --noEmit",
+    "lint": "echo \"no lint configured\" && exit 0"
   },
   "dependencies": {
     "jose": "^5.10.0",

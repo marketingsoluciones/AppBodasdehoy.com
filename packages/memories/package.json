@@ -12,10 +12,14 @@
       "require": "./src/index.ts"
     }
   },
-  "files": ["src"],
+  "files": [
+    "src"
+  ],
   "scripts": {
     "build": "tsc --noEmit",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "type-check": "tsc --noEmit",
+    "lint": "echo \"no lint configured\" && exit 0"
   },
   "dependencies": {
     "@bodasdehoy/shared": "workspace:*",
@@ -29,7 +33,12 @@
     "@types/react": "^18.0.0",
     "typescript": "^5.9.0"
   },
-  "keywords": ["memories", "albums", "bodasdehoy", "monorepo"],
+  "keywords": [
+    "memories",
+    "albums",
+    "bodasdehoy",
+    "monorepo"
+  ],
   "author": "BodasdeHoy",
   "license": "MIT"
 }

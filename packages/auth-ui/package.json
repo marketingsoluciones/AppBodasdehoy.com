@@ -8,7 +8,9 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "type-check": "tsc --noEmit",
+    "lint": "echo \"no lint configured\" && exit 0"
   },
   "peerDependencies": {
     "react": ">=18"

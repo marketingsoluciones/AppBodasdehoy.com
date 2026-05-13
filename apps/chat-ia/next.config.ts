@@ -406,6 +406,8 @@ const nextConfig: NextConfig = {
     config.experiments = {
       asyncWebAssembly: true,
       layers: true,
+      // ⚡ Skip rebuild de módulos no afectados por cambios (Next 15+ / webpack 5)
+      cacheUnaffected: true,
     };
 
     // ⚡ PERF 2026-05-13: eliminado parallelism:2 — webpack usa todos los cores disponibles.
@@ -419,7 +421,6 @@ const nextConfig: NextConfig = {
         compression: false,
         maxMemoryGenerations: 1,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días — entradas frecuentes se mantienen, antiguas se purgan
-        cacheUnaffected: true, // ⚡ Skip rebuild de módulos no afectados por cambios (Next 15+)
       };
     }
 
@@ -438,7 +439,6 @@ const nextConfig: NextConfig = {
         compression: 'gzip',
         maxMemoryGenerations: 1,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días — TTL explícito (sin esto cache crecía 9GB+)
-        cacheUnaffected: true,
       };
 
       // ✅ Optimizaciones de output para código más liviano
