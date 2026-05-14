@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { Types } from 'mongoose';
 import React, { useState, useEffect, useContext } from 'react'
 import { api } from '../api'
@@ -142,7 +141,7 @@ const Registrolog = () => {
                 `,
           variables: {},
         }
-        const { data } = await api.ApiApp(props)
+        const { data } = await api.ApiApp(params)
         const { logs_array } = data.data.queryLog[0]
         setData(logs_array)
       } catch (error) {
