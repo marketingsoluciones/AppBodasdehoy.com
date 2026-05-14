@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import { GrDocumentDownload } from "react-icons/gr";
@@ -215,7 +214,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                                         idxGastos
                                     ].pagos_array = filterPagosArray;
 
-                                    toast("success", t("success"))
+                                    toast.success(t("success"))
 
                                     return { ...old };
                                 });
@@ -398,7 +397,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                                     old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[
                                         idxGastos
                                     ].pagos_array = filterPagosArray;
-                                    toast("success", t("success"))
+                                    toast.success(t("success"))
                                     return { ...old };
                                 });
                             }
@@ -463,7 +462,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                 : (
                     <div className="bg-white  p-6">
                         <p onClick={() => setShowPagos(!PagosOrFormAdd)} className="absolute font-display text-xl transform transition top-5 right-5 text-gray-500 hover:scale-125 cursor-pointer">X</p>
-                        <FormEditarPago getId={getId} categorias={cate} ListaPagos={data} IDPagoAModificar={PagoID} IDGastoAModificar={GastoID} set={act => setShowPagos(act)} state={PagosOrFormAdd} />
+                        <FormEditarPago getId={getId} categorias={cate} ListaPagos={data} IDPagoAModificar={PagoID} IDs={GastoID} set={(act: any) => setShowPagos(act)} state={PagosOrFormAdd} />
                     </div>
                 )
             }
