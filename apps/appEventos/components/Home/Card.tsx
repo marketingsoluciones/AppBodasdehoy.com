@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { useEffect, useState } from "react";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context/";
 import useHover from "../../hooks/useHover";
@@ -28,7 +27,7 @@ export const defaultImagenes = {
   otro: "/cards/pexels-pixabay-50675.jpg"
 };
 
-export const handleClickCard = async ({ t, final = true, data, user, setUser, config, setEvent, router }) => {
+export const handleClickCard = async ({ t, final = true, data, user, setUser, config, setEvent, router }: any) => {
   try {
     // Establecer timeZone si no está definido
     if (!data?.timeZone) {
@@ -116,7 +115,7 @@ export const handleClickCard = async ({ t, final = true, data, user, setUser, co
   }
 };
 
-const Card = ({ data, grupoStatus, idx, onSelect }) => {
+const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
   const { t } = useTranslation()
   const [hoverRef, isHovered] = useHover();
   const { user, setUser, config, actionModals, setActionModals } = AuthContextProvider()
@@ -142,7 +141,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }) => {
           variables: { idEvento: data[idx]?._id, variable: "estatus", value },
           token: null
         })
-        if (!result || result.errors) {
+        if (!result || (result as any).errors) {
           throw new Error("Ha ocurrido un error")
         }
         setEventsGroup({
@@ -183,7 +182,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }) => {
         query: queries.eventDelete,
         variables: { eventoID: data[idx]?._id }
       })
-      if (!result || result.errors) {
+      if (!result || (result as any).errors) {
         throw new Error("Ha ocurrido un error")
       }
       setEventsGroup({ type: "DELETE_EVENT", payload: data[idx]?._id })
@@ -276,7 +275,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }) => {
           }
 
           setIsNavigating(true) // Bloquear más clics
-          toast("info", t("Abriendo evento..."))
+          toast("success", t("Abriendo evento..."))
 
           handleClickCard({
             t,
@@ -318,7 +317,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }) => {
           <img
             src={data[idx]?.imgEvento ? `https://api-mcp.eventosorganizador.com/${data[idx].imgEvento.i320}` : defaultImagenes[data[idx]?.tipo?.toLowerCase()]}
             className="object-cover w-full h-full absolute top-0 left-0 object-top"
-            onError={(e) => { e.target.src = defaultImagenes[data[idx]?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
+            onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[data[idx]?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
           />
           <div className="relative w-full h-full z-10 p-4 pb-2 flex flex-col justify-between">
             <div className="flex flex-col">
