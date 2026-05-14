@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import * as XLSX from 'xlsx';
 import { getCurrency } from '../../utils/Funciones';
 import { EventContextProvider } from '../../context';
@@ -6,18 +5,18 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '../../hooks/useToast';
 import { BsDownload } from 'react-icons/bs';
 
-const ExportExcelPresupuesto = ({ className = "" }) => {
+const ExportExcelPresupuesto = ({ className = "" }: { className?: string }) => {
   const { event } = EventContextProvider();
   const { t } = useTranslation();
   const toast = useToast();
 
-  const formatCurrency = (value) => {
+  const formatCurrency = (value: number) => {
     if (typeof value !== 'number') return 0;
     return value;
   };
 
   // Función para crear estilos más compatibles
-  const createCellStyle = (style) => {
+  const createCellStyle = (style: any) => {
     return {
       font: style.font || {},
       fill: style.fill || {},
@@ -38,7 +37,7 @@ const ExportExcelPresupuesto = ({ className = "" }) => {
       const workbook = XLSX.utils.book_new();
 
       // Hoja 1: Resumen General
-      const resumenData = [
+      const resumenData: any[] = [
         ['RESUMEN DEL PRESUPUESTO'],
         [''],
         ['Evento:', event.nombre || 'Sin nombre'],
@@ -116,7 +115,7 @@ const ExportExcelPresupuesto = ({ className = "" }) => {
         detalleHeaders
       ];
       
-      const detalleData = [...encabezadoData];
+      const detalleData: any[] = [...encabezadoData];
 
       // Procesar categorías, gastos e items
       if (presupuesto.categorias_array && Array.isArray(presupuesto.categorias_array)) {
@@ -306,7 +305,7 @@ const ExportExcelPresupuesto = ({ className = "" }) => {
 
       // Hoja 3: Pagos (simplificada)
       const pagosHeaders = ['Categoría', 'Gasto', 'Fecha', 'Importe', 'Estado', 'Método de Pago', 'Concepto'];
-      const pagosData = [pagosHeaders];
+      const pagosData: any[] = [pagosHeaders];
       let hasPagos = false;
 
       if (presupuesto.categorias_array && Array.isArray(presupuesto.categorias_array)) {
