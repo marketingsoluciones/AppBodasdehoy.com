@@ -1,28 +1,34 @@
 export const DEFAULT_API_IA_ORIGIN = 'https://api3-ia.eventosorganizador.com';
 
-export function resolvePublicBackendOrigin(): string {
-  const u =
-    process.env.NEXT_PUBLIC_API_IA_URL?.trim() ||
-    process.env.NEXT_PUBLIC_API3_IA_URL?.trim() ||
-    process.env.NEXT_PUBLIC_BACKEND_URL?.trim() ||
-    process.env.API_IA_URL?.trim() ||
-    process.env.API3_IA_URL?.trim() ||
-    process.env.BACKEND_URL?.trim() ||
-    process.env.PYTHON_BACKEND_URL?.trim();
+const LEGACY_ALIASES = [
+  'NEXT_PUBLIC_API3_IA_URL',
+  'NEXT_PUBLIC_BACKEND_URL',
+  'API3_IA_URL',
+  'BACKEND_INTERNAL_URL',
+  'BACKEND_URL',
+  'PYTHON_BACKEND_URL',
+] as const;
 
-  return u || DEFAULT_API_IA_ORIGIN;
+function failIfLegacyAliasSet(): void {
+  const detected = LEGACY_ALIASES.filter((k) => process.env[k]?.trim());
+  if (detected.length === 0) return;
+  const lines = detected.map((k) => `  - ${k}`).join('\n');
+  throw new Error(
+    `Legacy API IA env vars detected:\n${lines}\n` +
+      `Allowed: API_IA_URL, NEXT_PUBLIC_API_IA_URL.`,
+  );
+}
+
+export function resolvePublicBackendOrigin(): string {
+  failIfLegacyAliasSet();
+  const u = process.env.NEXT_PUBLIC_API_IA_URL?.trim() || process.env.API_IA_URL?.trim();
+  return u?.replace(/\/+$/, '') || DEFAULT_API_IA_ORIGIN;
 }
 
 export function resolveServerBackendOrigin(): string {
-  const u =
-    process.env.API_IA_URL?.trim() ||
-    process.env.API3_IA_URL?.trim() ||
-    process.env.PYTHON_BACKEND_URL?.trim() ||
-    process.env.BACKEND_INTERNAL_URL?.trim() ||
-    process.env.BACKEND_URL?.trim() ||
-    process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
-
-  return u || DEFAULT_API_IA_ORIGIN;
+  failIfLegacyAliasSet();
+  const u = process.env.API_IA_URL?.trim() || process.env.NEXT_PUBLIC_API_IA_URL?.trim();
+  return u?.replace(/\/+$/, '') || DEFAULT_API_IA_ORIGIN;
 }
 
 export function resolveServerBackendGraphqlUrl(): string {

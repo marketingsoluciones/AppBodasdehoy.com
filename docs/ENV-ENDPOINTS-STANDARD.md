@@ -1,65 +1,78 @@
-# Estándar de endpoints por variables de entorno
+# Estándar de endpoints — env vars permitidas
 
-Objetivo: evitar duplicados y errores por “variables legacy” que apuntan a la misma URL.
+> **Última revisión: 2026-05-14**
+> **Fuente de verdad única.** Cualquier otro nombre está retirado y dispara error en runtime.
 
-## Variables canónicas (mínimas)
+## Solo hay 2 APIs en este proyecto
 
-### API IA (chat/memories/tools)
+| API | Para qué sirve |
+|---|---|
+| **API MCP GraphQL** | Datos: eventos, invitados, mesas, presupuesto, itinerario, notificaciones |
+| **API IA** | Chat IA, memories, leads (sub-router), tools/function-calling |
 
-- Server: `API_IA_URL`
-- Client (solo si hace falta en navegador): `NEXT_PUBLIC_API_IA_URL`
+> **Leads no es una API separada.** Vive como router dentro de API IA (`/api/leads/*`). No requiere env var propia.
 
-Default recomendado:
+## Variables canónicas (las únicas válidas)
 
-- `https://api3-ia.eventosorganizador.com`
+### API MCP GraphQL
 
-### API MCP GraphQL (datos)
+```
+API_MCP_GRAPHQL_URL=https://api-mcp.eventosorganizador.com/graphql
+NEXT_PUBLIC_API_MCP_GRAPHQL_URL=https://api-mcp.eventosorganizador.com/graphql
+```
 
-- Server: `API_MCP_GRAPHQL_URL`
-- Client (solo si hace falta en navegador): `NEXT_PUBLIC_API_MCP_GRAPHQL_URL`
+### API IA
 
-Default recomendado:
-
-- `$API_MCP_GRAPHQL_URL`
-
-### Imágenes/assets (temporal)
-
-- Client: `NEXT_PUBLIC_IMAGES_BASE_URL`
-
-Default recomendado (temporal):
-
-- `https://apiapp.bodasdehoy.com`
-
-## Regla principal (para evitar duplicación)
-
-- En cada entorno, define solo las canónicas.
-- No declares aliases legacy apuntando a lo mismo.
-
-Ejemplo mínimo (server-only):
-
-```env
+```
 API_IA_URL=https://api3-ia.eventosorganizador.com
-API_MCP_GRAPHQL_URL=<MCP GraphQL URL>
+NEXT_PUBLIC_API_IA_URL=https://api3-ia.eventosorganizador.com
 ```
 
-## Aliases legacy (compatibilidad)
+**Regla:** server (sin prefix) + public (con `NEXT_PUBLIC_`). Mismo valor en ambos. Nada más.
 
-El repo mantiene soporte de lectura para no romper entornos antiguos. Evitar declararlas si ya usas las canónicas:
+## Cómo se usan en código
 
-- MCP GraphQL legacy: `API2_GRAPHQL_URL`, `NEXT_PUBLIC_API2_GRAPHQL_URL`, `GRAPHQL_ENDPOINT`, `NEXT_PUBLIC_API2_URL`, `API2_URL`, `API3_MCP_GRAPHQL_URL`, `NEXT_PUBLIC_API3_MCP_GRAPHQL_URL`
-- IA legacy: `PYTHON_BACKEND_URL`, `NEXT_PUBLIC_BACKEND_URL`, `BACKEND_URL`, `BACKEND_INTERNAL_URL`, `API3_IA_URL`, `NEXT_PUBLIC_API3_IA_URL`
-- Imágenes/assets legacy: `NEXT_PUBLIC_BASE_URL`
+Usa siempre el helper de `apps/appEventos/utils/apiEndpoints.ts`:
 
-## Detección automática de duplicados
+```ts
+import { resolveApiBodasGraphqlUrl, resolveApiIaOrigin } from '@/utils/apiEndpoints';
 
-Usar `pnpm lint:env:endpoints` para detectar (por defecto solo `.env*.example`):
-
-- canónicas ausentes cuando hay legacy
-- valores en conflicto (dos variables del mismo grupo con URLs distintas)
-- hardcodes antiguos en ejemplos de `.env.example` (cuando aplique)
-
-Para incluir ficheros locales (`.env`, `.env.local`, etc.) en la validación:
-
-```bash
-LINT_ENV_INCLUDE_LOCAL=1 pnpm lint:env:endpoints
+const graphqlUrl = resolveApiBodasGraphqlUrl();  // → MCP GraphQL
+const apiIaOrigin = resolveApiIaOrigin();        // → API IA base
 ```
+
+**Prohibido:** usar `process.env.<X>` directo con cualquier alias legacy. El helper detecta y rechaza en arranque.
+
+## Aliases retirados (NO usar)
+
+Cualquiera de estos en `.env` dispara error `Legacy env vars detected (retired 2026-05-14)` con sugerencia de migración:
+
+<!--
+  IMPORTANTE: la tabla siguiente contiene NOMBRES LEGACY A PROPÓSITO (referencia para migración).
+  NO ejecutar sed/find-replace sobre este bloque ni sobre este archivo sin filtrar este rango.
+  Si reaplicas la limpieza masiva, excluye explícitamente docs/ENV-ENDPOINTS-STANDARD.md.
+-->
+
+| Alias retirado | Migrar a |
+|---|---|
+| `API_BODAS_URL` | `API_MCP_GRAPHQL_URL` |
+| `NEXT_PUBLIC_API_BODAS_URL` | `NEXT_PUBLIC_API_MCP_GRAPHQL_URL` |
+| `API3_MCP_GRAPHQL_URL` | `API_MCP_GRAPHQL_URL` |
+| `NEXT_PUBLIC_API3_MCP_GRAPHQL_URL` | `NEXT_PUBLIC_API_MCP_GRAPHQL_URL` |
+| `API2_URL` / `NEXT_PUBLIC_API2_URL` | `API_MCP_GRAPHQL_URL` / `NEXT_PUBLIC_API_MCP_GRAPHQL_URL` |
+| `API3_IA_URL` | `API_IA_URL` |
+| `NEXT_PUBLIC_API3_IA_URL` | `NEXT_PUBLIC_API_IA_URL` |
+| `PYTHON_BACKEND_URL` / `NEXT_PUBLIC_PYTHON_BACKEND_URL` | `API_IA_URL` / `NEXT_PUBLIC_API_IA_URL` |
+| `BACKEND_URL` / `NEXT_PUBLIC_BACKEND_URL` | `API_IA_URL` / `NEXT_PUBLIC_API_IA_URL` |
+| `BACKEND_INTERNAL_URL` | `API_IA_URL` |
+
+## Vercel: configuración
+
+En `vercel.com → Project → Settings → Environment Variables`:
+- Define **solo las 4 canónicas** (2 server + 2 public).
+- Borra cualquier alias legacy que aparezca.
+- Aplica a los 3 entornos (Production / Preview / Development).
+
+## Local
+
+En `.env.local` de cada app: copia los 4 valores. Si tu .env tiene aliases legacy, **migra**, no acumules.
