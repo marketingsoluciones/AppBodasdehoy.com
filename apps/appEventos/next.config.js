@@ -128,6 +128,7 @@ const nextConfig = {
     'app-test.bodasdehoy.com',
     '127.0.0.1',
     'localhost',
+    '192.168.1.48',
   ],
 
   // Source maps en prod desactivados — Sentry los sube por su cuenta si está configurado.

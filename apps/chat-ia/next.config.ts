@@ -272,6 +272,7 @@ const nextConfig: NextConfig = {
     'memories-dev.bodasdehoy.com', 'editor-dev.bodasdehoy.com',
     'wedding-creator.bodasdehoy.com',
     '127.0.0.1', 'localhost',
+    '192.168.1.48',
   ],
 
   reactStrictMode: true,
@@ -354,7 +355,7 @@ const nextConfig: NextConfig = {
   // ✅ PROXY para backend Python (evita CORS)
   // Usa BACKEND_INTERNAL_URL para servidor separado o localhost para desarrollo
   async rewrites() {
-    const backendUrl = process.env.BACKEND_INTERNAL_URL || process.env.BACKEND_URL || process.env.PYTHON_BACKEND_URL || 'http://localhost:8030';
+    const backendUrl = process.env.API_IA_URL || process.env.API_IA_URL || process.env.API_IA_URL || 'http://localhost:8030';
 
     console.log('[next.config] Proxying API requests to:', backendUrl);
 
