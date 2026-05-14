@@ -7,7 +7,7 @@
 | Origen | Env | Uso |
 |--------|-----|-----|
 | API app (eventos) | `NEXT_PUBLIC_BASE_URL` → POST `/graphql` | `getEventsByID`, invitados, `creaInvitado` (`fetchApiEventos`) |
-| API2 (planes) | `NEXT_PUBLIC_API2_URL` (default `https://api2.eventosorganizador.com/graphql`) | `getSubscriptionPlans`, `getMySubscription` (`usePlanLimits`) |
+| API2 (planes) | `NEXT_PUBLIC_API_MCP_GRAPHQL_URL` (default `https://api2.eventosorganizador.com/graphql`) | `getSubscriptionPlans`, `getMySubscription` (`usePlanLimits`) |
 | Socket.IO | `NEXT_PUBLIC_BASE_API_BODAS` normalizado (`apps/appEventos/utils/resolveApi2BaseUrl.ts`) | Tiempo real; **no** sustituye el listado por GraphQL |
 
 GraphQL y socket son canales distintos; si el socket falla (404), los eventos dependen solo de que responda el GraphQL de la API app.

@@ -32,7 +32,7 @@ Plan paso a paso del monorepo (appEventos + chat-ia), integración del Copilot s
 | 1.1 | Node.js | >= 20.0.0 (ver `package.json` engines). |
 | 1.2 | pnpm | 8.15.9 (ver `packageManager` en raíz). |
 | 1.3 | Clonar / abrir repo | Raíz = `AppBodasdehoy.com` (monorepo). |
-| 1.4 | Variables de entorno (opcional) | Web: `PYTHON_BACKEND_URL`, `API_IA_CHAT_HISTORY_URL`, `API_IA_WHITELABEL_URL` (para no llamar a MCP desde web); `API_MCP_GRAPHQL_URL` (canónica) y `API2_GRAPHQL_URL` (legacy) como fallback. Ver docs/DESPLIEGUE-APP-TEST-COPILOT.md. |
+| 1.4 | Variables de entorno (opcional) | Web: `API_IA_URL`, `API_IA_CHAT_HISTORY_URL`, `API_IA_WHITELABEL_URL` (para no llamar a MCP desde web); `API_MCP_GRAPHQL_URL` (canónica) y `API2_GRAPHQL_URL` (legacy) como fallback. Ver docs/DESPLIEGUE-APP-TEST-COPILOT.md. |
 
 ---
 
@@ -79,9 +79,9 @@ Plan paso a paso del monorepo (appEventos + chat-ia), integración del Copilot s
 
 | Paso | Sistema | Rol |
 |------|---------|-----|
-| 4.1 | **api-ia** (Python) | Backend de IA. Recibe chat vía proxy Next.js; hace el modelo, herramientas, streaming SSE; **guarda** los mensajes llamando a **MCP** (mutation) al recibir `event: done`. URL: `PYTHON_BACKEND_URL`. |
+| 4.1 | **api-ia** (Python) | Backend de IA. Recibe chat vía proxy Next.js; hace el modelo, herramientas, streaming SSE; **guarda** los mensajes llamando a **MCP** (mutation) al recibir `event: done`. URL: `API_IA_URL`. |
 | 4.2 | **MCP** (GraphQL) | Servicio **separado** (GraphQL). api-ia **escribe** ahí; el front **lee** historial con `getChatMessages(sessionId, limit)`. URL canónica: `API_MCP_GRAPHQL_URL` (legacy: `API2_GRAPHQL_URL`). |
-| 4.3 | ¿Todo por api-ia? | Si api-ia expone un endpoint “dame historial” que internamente llame a MCP, el front **solo** necesitaría `PYTHON_BACKEND_URL` y no hablaría con MCP para historial. |
+| 4.3 | ¿Todo por api-ia? | Si api-ia expone un endpoint “dame historial” que internamente llame a MCP, el front **solo** necesitaría `API_IA_URL` y no hablaría con MCP para historial. |
 | 4.4 | Headers | Para api-ia y para MCP: `Authorization: Bearer <JWT>`, `X-Development`, `Content-Type: application/json`. |
 | 4.5 | SessionId | Enviado en `metadata.sessionId`. Formato: cualquier UUID único; nosotros usamos `user_<uid>` o `guest_<id>`. |
 
@@ -143,9 +143,9 @@ Plan paso a paso del monorepo (appEventos + chat-ia), integración del Copilot s
 |------|------|---------|
 | 9.1 | app-test | Despliegue de `apps/web`. Dominio típico: app-test.bodasdehoy.com. Usuarios usan aquí el Copilot en embed. |
 | 9.2 | chat-test | Despliegue de `apps/chat-ia` si aplica. Solo necesario si se usa **CopilotDirect (iframe)** o el botón "Abrir en nueva pestaña". |
-| 9.3 | api-ia | Backend de IA en producción (p. ej. api-ia.bodasdehoy.com). La web debe tener `PYTHON_BACKEND_URL` apuntando a esta URL. |
+| 9.3 | api-ia | Backend de IA en producción (p. ej. api-ia.bodasdehoy.com). La web debe tener `API_IA_URL` apuntando a esta URL. |
 | 9.4 | MCP | GraphQL en producción. La ruta `/api/copilot/chat-history` debe poder llamar a MCP (con `API_MCP_GRAPHQL_URL` si aplica; legacy: `API2_GRAPHQL_URL`). |
-| 9.5 | Variables en producción | En el entorno de la web: `PYTHON_BACKEND_URL`, opcionalmente `API_MCP_GRAPHQL_URL` (legacy: `API2_GRAPHQL_URL`). JWT y headers los aporta el cliente. |
+| 9.5 | Variables en producción | En el entorno de la web: `API_IA_URL`, opcionalmente `API_MCP_GRAPHQL_URL` (legacy: `API2_GRAPHQL_URL`). JWT y headers los aporta el cliente. |
 
 ---
 
@@ -154,7 +154,7 @@ Plan paso a paso del monorepo (appEventos + chat-ia), integración del Copilot s
 | Síntoma | Comprobar |
 |--------|-----------|
 | Panel del Copilot en blanco | AuthContext: si `verificationDone` no se pone a true, puede mostrarse carga o blanco. Timeout de seguridad 2s. Revisar que el layout renderice ChatSidebar cuando corresponda. |
-| "Servicio IA no disponible" al enviar mensaje | `PYTHON_BACKEND_URL` y que api-ia responda (health, CORS, auth). Ver docs del backend. |
+| "Servicio IA no disponible" al enviar mensaje | `API_IA_URL` y que api-ia responda (health, CORS, auth). Ver docs del backend. |
 | Historial siempre vacío | 1) SessionId estable (user_ o guest_). 2) Que api-ia esté enviando `event: done` para que guarde en MCP. 3) Que `/api/copilot/chat-history` llegue a MCP con JWT y X-Development correctos. 4) Que la query `getChatMessages` exista en MCP y devuelva datos. |
 | Tests fallan (jest not found) | 1) Desde la raíz: `pnpm install` (si el lockfile pide actualización: `pnpm install --no-frozen-lockfile`). 2) Luego `pnpm test:web`. En `apps/web` el script usa `pnpm exec jest` para que Jest se resuelva desde las dependencias del workspace. |
 | Eventos enriquecidos no se ven | Que el proxy reenvíe los tipos (event_card, usage, etc.) y que el cliente los tenga en ENRICHED_EVENT_TYPES. Revisar que api-ia envíe `event: <tipo>\ndata: ...`. |
@@ -198,7 +198,7 @@ Plan paso a paso del monorepo (appEventos + chat-ia), integración del Copilot s
 
 | # | Paso | Acción |
 |---|------|--------|
-| 5 | Desplegar app-test | Subir `apps/appEventos` con variables de producción (`PYTHON_BACKEND_URL`, opcionalmente `API_IA_CHAT_HISTORY_URL`, `API_IA_WHITELABEL_URL` para no llamar a MCP para historial/whitelabel). Checklist: **docs/DESPLIEGUE-APP-TEST-COPILOT.md**. Ver sección 9. |
+| 5 | Desplegar app-test | Subir `apps/appEventos` con variables de producción (`API_IA_URL`, opcionalmente `API_IA_CHAT_HISTORY_URL`, `API_IA_WHITELABEL_URL` para no llamar a MCP para historial/whitelabel). Checklist: **docs/DESPLIEGUE-APP-TEST-COPILOT.md**. Ver sección 9. |
 | 6 | ~~(Opcional) UI de event_card~~ | ✅ Implementado: CopilotEmbed muestra botones cuando `event_card` trae `actions[]` con `url` y `label` (p. ej. "Ver invitados", "Añadir otro"). |
 | 7 | ~~(Opcional) Fallback de historial~~ | ✅ Implementado: `getChatHistory()` intenta primero `/api/copilot/chat-history`; si falla o no responde ok, usa `GET /api/chat/messages` (store en memoria). |
 
@@ -220,4 +220,4 @@ Plan paso a paso del monorepo (appEventos + chat-ia), integración del Copilot s
 - [ ] 5. Comprobar que la respuesta llega (o mensaje de error si api-ia no está).
 - [ ] 6. Comprobar que al reabrir el panel se carga historial si API2 tiene datos.
 - [ ] 7. (Opcional) Probar evento enriquecido (p. ej. tool_result con url) y que se muestre en el embed.
-- [ ] 8. Variables de producción configuradas (`PYTHON_BACKEND_URL`, `API2_GRAPHQL_URL` si aplica).
+- [ ] 8. Variables de producción configuradas (`API_IA_URL`, `API2_GRAPHQL_URL` si aplica).

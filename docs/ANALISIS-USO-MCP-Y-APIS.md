@@ -23,7 +23,7 @@ Resumen de **qué backend usa cada app** y **en qué casos** se usa MCP frente a
 | Caso de uso | API que usa | Dónde en código |
 |-------------|-------------|------------------|
 | Eventos, invitados, mesas, itinerario, etc. | **api.bodasdehoy.com** (vía `/api/proxy-bodas/graphql`) | api.js, _app.tsx, Fetching, proxy-bodas/[...path].ts |
-| Enviar mensaje al Copilot / streaming | **api-ia** (vía `/api/copilot/chat` → proxy) | services/copilotChat.ts → /api/copilot/chat → chat.ts → PYTHON_BACKEND_URL |
+| Enviar mensaje al Copilot / streaming | **api-ia** (vía `/api/copilot/chat` → proxy) | services/copilotChat.ts → /api/copilot/chat → chat.ts → API_IA_URL |
 | Cargar historial del Copilot | **MCP** (query `getChatMessages`) | getChatHistory() → /api/copilot/chat-history → chat-history.ts → MCP GraphQL URL (canon: `API_MCP_GRAPHQL_URL`) |
 | Fallback cuando api-ia no está (obtener API key whitelabel) | **MCP** (query `getWhiteLabelConfig`) | pages/api/copilot/chat.ts → getWhitelabelApiKey() → MCP GraphQL URL (canon: `API_MCP_GRAPHQL_URL`) |
 

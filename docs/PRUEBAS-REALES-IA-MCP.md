@@ -55,7 +55,7 @@ El JSON de esa ejecución incluye el `requestBody` y `responsePreview` exactos p
 
 | Variable | Por defecto | Uso |
 |----------|-------------|-----|
-| `BACKEND_URL` | `https://api-ia.bodasdehoy.com` | Base de api-ia |
+| `API_IA_URL` | `https://api-ia.bodasdehoy.com` | Base de api-ia |
 | `API_MCP_GRAPHQL_URL` | `<MCP GraphQL URL>` | URL GraphQL MCP |
 | `DEVELOPMENT` | `bodasdehoy` | Header X-Development |
 | `FIREBASE_JWT` | (vacío) | Si se pone, api-ia recibe Authorization Bearer (usuario identificado) |

@@ -48,18 +48,18 @@ Todo el flujo de mensajería unificada apunta a **api-ia**. No hay otro backend 
 | Enviar mensaje | `externalChat/action.ts` → `SEND_MESSAGE` | **GraphQL** → api-ia |
 
 - **Cliente GraphQL:** `apps/copilot/src/libs/graphql/client.ts`.  
-- **URL en navegador:** same-origin (`/api/graphql` o `NEXT_PUBLIC_GRAPHQL_ENDPOINT` si está definido). El proxy del Copilot (`apps/copilot/src/app/(backend)/api/graphql/route.ts`) reenvía a **`NEXT_PUBLIC_BACKEND_URL/graphql`** (por defecto `https://api-ia.bodasdehoy.com/graphql`).  
+- **URL en navegador:** same-origin (`/api/graphql` o `NEXT_PUBLIC_GRAPHQL_ENDPOINT` si está definido). El proxy del Copilot (`apps/copilot/src/app/(backend)/api/graphql/route.ts`) reenvía a **`NEXT_PUBLIC_API_IA_URL/graphql`** (por defecto `https://api-ia.bodasdehoy.com/graphql`).  
 - **Headers que envía el front:** Authorization (Bearer token desde `jwt_token` o `dev-user-config`), Developer, SupportKey, Origin, X-Development, Content-Type.
 
 ### Flujo B – Página /messages (Inbox)
 
 | Qué | Dónde en código | Backend / URL |
 |-----|-----------------|----------------|
-| Lista de conversaciones | `useConversations.ts` | **REST** `GET {NEXT_PUBLIC_BACKEND_URL}/api/messages/conversations` |
-| Mensajes de una conversación | `useMessages.ts` | **REST** `GET {NEXT_PUBLIC_BACKEND_URL}/api/messages/conversations/{id}` |
-| Enviar mensaje | `useSendMessage.ts` | **REST** `POST {NEXT_PUBLIC_BACKEND_URL}/api/messages/send` |
+| Lista de conversaciones | `useConversations.ts` | **REST** `GET {NEXT_PUBLIC_API_IA_URL}/api/messages/conversations` |
+| Mensajes de una conversación | `useMessages.ts` | **REST** `GET {NEXT_PUBLIC_API_IA_URL}/api/messages/conversations/{id}` |
+| Enviar mensaje | `useSendMessage.ts` | **REST** `POST {NEXT_PUBLIC_API_IA_URL}/api/messages/send` |
 
-- **BACKEND_URL:** `NEXT_PUBLIC_BACKEND_URL` o, por defecto, `http://localhost:8030`. En producción suele ser `https://api-ia.bodasdehoy.com`.  
+- **API_IA_URL:** `NEXT_PUBLIC_API_IA_URL` o, por defecto, `http://localhost:8030`. En producción suele ser `https://api-ia.bodasdehoy.com`.  
 - **Headers REST:** Content-Type: application/json, Authorization: Bearer (desde `auth-token`, `sessionStorage` o `dev-user-config`).  
 - **Query params (conversations):** `development`, `email`, `user_id`, `channel` (opcional).
 
@@ -69,13 +69,13 @@ Todo el flujo de mensajería unificada apunta a **api-ia**. No hay otro backend 
 
 Las APIs en api-ia **ya están hechas**. Este front las consume. Resumen de lo que el front usa:
 
-- **GraphQL (mismo origen que BACKEND_URL/graphql):**
+- **GraphQL (mismo origen que API_IA_URL/graphql):**
   - **getSessions**(userId, development, pagination) → devuelve sesiones con `session_type` (WHATSAPP, TELEGRAM, API, LOBE_CHAT), `id`, `titulo`, `participants`, `unreadCount`, `lastMessageAt`, `status`.
   - **sendMessage**(chatId, sessionId, input: { role: USER, content, type: TEXT }) → envía mensaje al canal correspondiente.
   - **getMessages**(sessionId, pagination) para cargar mensajes de una sesión.
   - **getSession**(sessionId) para detalle de una sesión.
 
-- **REST (mismo BACKEND_URL):**
+- **REST (mismo API_IA_URL):**
   - `GET /api/messages/conversations?development=...&email=...&user_id=...&channel=...` → lista de conversaciones (formato array con `channel`, `id`, `contact`, `lastMessage`, `unreadCount`).
   - `GET /api/messages/conversations/:conversationId` → mensajes de una conversación.
   - `POST /api/messages/send` → body `{ channel, conversationId, text }` → envía mensaje.
@@ -102,8 +102,8 @@ En **apps/web** hay otra integración con WhatsApp (invitaciones, QR, etc.) que 
 ## 6. Qué revisar en el front para que funcione
 
 1. **Variables de entorno del Copilot:**  
-   - `NEXT_PUBLIC_BACKEND_URL` debe apuntar a api-ia (p. ej. `https://api-ia.bodasdehoy.com`).  
-   - `NEXT_PUBLIC_GRAPHQL_ENDPOINT` (opcional): si se usa, debe ser la URL del GraphQL de api-ia; si no, el front usa same-origin y el proxy reenvía a BACKEND_URL/graphql.
+   - `NEXT_PUBLIC_API_IA_URL` debe apuntar a api-ia (p. ej. `https://api-ia.bodasdehoy.com`).  
+   - `NEXT_PUBLIC_GRAPHQL_ENDPOINT` (opcional): si se usa, debe ser la URL del GraphQL de api-ia; si no, el front usa same-origin y el proxy reenvía a API_IA_URL/graphql.
 
 2. **Revisar la implementación en el front:**  
    - Que las llamadas GraphQL y REST usen la URL correcta (incl. proxy).  

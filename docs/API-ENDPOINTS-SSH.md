@@ -26,7 +26,7 @@
   - `API_MCP_GRAPHQL_URL=<MCP GraphQL URL>`
   - `NEXT_PUBLIC_API_MCP_GRAPHQL_URL=<MCP GraphQL URL>`
 - Aliases legacy soportados (evitar en entornos nuevos):
-  - El repo también lee variables antiguas (por ejemplo `API3_MCP_GRAPHQL_URL`, `API2_GRAPHQL_URL`, `GRAPHQL_ENDPOINT`, etc.) para no romper despliegues previos.
+  - El repo también lee variables antiguas (por ejemplo `API_MCP_GRAPHQL_URL`, `API2_GRAPHQL_URL`, `GRAPHQL_ENDPOINT`, etc.) para no romper despliegues previos.
 
 ### API IA
 
@@ -34,7 +34,7 @@
   - `API_IA_URL=https://api3-ia.eventosorganizador.com`
   - `NEXT_PUBLIC_API_IA_URL=https://api3-ia.eventosorganizador.com`
 - Aliases legacy soportados (evitar en entornos nuevos):
-  - El repo también lee variables antiguas (por ejemplo `API3_IA_URL`, `PYTHON_BACKEND_URL`, `BACKEND_URL`, etc.) para no romper despliegues previos.
+  - El repo también lee variables antiguas (por ejemplo `API_IA_URL`, `API_IA_URL`, `API_IA_URL`, etc.) para no romper despliegues previos.
 
 En este repo hay ejemplos actualizados en:
 

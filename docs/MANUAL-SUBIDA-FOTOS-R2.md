@@ -25,7 +25,7 @@ Este documento describe **cómo se suben fotos a Cloudflare R2** en el proyecto 
 [Next.js - chat-ia]
        │ POST /api/storage/upload (FormData: file, event_id, access_level)
        │
-       │ 2. Proxy con BACKEND_URL / NEXT_PUBLIC_BACKEND_URL
+       │ 2. Proxy con API_IA_URL / NEXT_PUBLIC_API_IA_URL
        ▼
 [api-ia - backend Python]
        │ POST /api/storage/events/{eventId}/upload?access_level=shared
@@ -38,7 +38,7 @@ Este documento describe **cómo se suben fotos a Cloudflare R2** en el proyecto 
 
 - **Cliente:** `apps/chat-ia/src/services/upload.ts` → `uploadToStorageR2()` llama a `fetch('/api/storage/upload', …)`.
 - **Proxy:** `apps/chat-ia/src/app/(backend)/api/storage/upload/route.ts` reenvía a `backendUrl + /api/storage/events/${eventId}/upload`.
-- **Backend URL:** `process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api-ia.bodasdehoy.com'` → siempre **api-ia**, no api2.
+- **Backend URL:** `process.env.API_IA_URL || process.env.NEXT_PUBLIC_API_IA_URL || 'https://api-ia.bodasdehoy.com'` → siempre **api-ia**, no api2.
 
 ---
 
@@ -74,7 +74,7 @@ Archivos en el repo:
 - `apps/chat-ia/src/app/(backend)/api/storage/upload/route.ts` (POST y GET listado).
 - `apps/chat-ia/src/app/(backend)/api/storage/files/[fileId]/route.ts` (GET y DELETE).
 
-En todos ellos, `backendUrl` es `BACKEND_URL` / `NEXT_PUBLIC_BACKEND_URL` con fallback `https://api-ia.bodasdehoy.com`.
+En todos ellos, `backendUrl` es `API_IA_URL` / `NEXT_PUBLIC_API_IA_URL` con fallback `https://api-ia.bodasdehoy.com`.
 
 ---
 
@@ -93,7 +93,7 @@ En todos ellos, `backendUrl` es `BACKEND_URL` / `NEXT_PUBLIC_BACKEND_URL` con fa
 
 ### Next.js → api-ia
 
-- **URL:** `{BACKEND_URL}/api/storage/events/{eventId}/upload?access_level={accessLevel}`  
+- **URL:** `{API_IA_URL}/api/storage/events/{eventId}/upload?access_level={accessLevel}`  
   Ejemplo: `https://api-ia.bodasdehoy.com/api/storage/events/abc123/upload?access_level=shared`
 - **Body:** mismo FormData (`file` + `access_level`; el proxy no reenvía `event_id` en el body, va en la URL).
 - **Headers:** `X-Development`, `X-User-Email`, `X-User-ID` (sin `Content-Type`; FormData genera el boundary).
@@ -155,7 +155,7 @@ Para comprobar la subida a R2 hay que verificar que **api-ia** exponga estos end
 | Variable | Uso |
 |----------|-----|
 | `NEXT_PUBLIC_USE_STORAGE_R2` | `'true'` para que el cliente use R2 (vía api-ia) en lugar de S3. |
-| `BACKEND_URL` / `NEXT_PUBLIC_BACKEND_URL` | Base URL del backend; en producción suele ser `https://api-ia.bodasdehoy.com`. Usado por las rutas `/api/storage/*` para hacer proxy a api-ia. |
+| `API_IA_URL` / `NEXT_PUBLIC_API_IA_URL` | Base URL del backend; en producción suele ser `https://api-ia.bodasdehoy.com`. Usado por las rutas `/api/storage/*` para hacer proxy a api-ia. |
 
 ---
 

@@ -8,11 +8,11 @@ Este documento traza todas las llamadas desde este repositorio a api-ia para men
 
 | Flujo | Archivo(s) | API | URL efectiva |
 |-------|------------|-----|--------------|
-| Lista de chats (sidebar) | `apps/copilot/src/store/chat/slices/externalChat/action.ts` | GraphQL getSessions | Navegador: same-origin → proxy → `NEXT_PUBLIC_BACKEND_URL/graphql` |
+| Lista de chats (sidebar) | `apps/copilot/src/store/chat/slices/externalChat/action.ts` | GraphQL getSessions | Navegador: same-origin → proxy → `NEXT_PUBLIC_API_IA_URL/graphql` |
 | Enviar mensaje (sidebar) | Mismo + `SEND_MESSAGE` | GraphQL sendMessage | Igual |
-| Lista conversaciones (/messages) | `apps/copilot/src/app/.../messages/hooks/useConversations.ts` | REST GET | `NEXT_PUBLIC_BACKEND_URL/api/messages/conversations` |
-| Mensajes de una conversación | `apps/copilot/src/app/.../messages/hooks/useMessages.ts` | REST GET | `NEXT_PUBLIC_BACKEND_URL/api/messages/conversations/:id` |
-| Enviar mensaje (/messages) | `apps/copilot/src/app/.../messages/hooks/useSendMessage.ts` | REST POST | `NEXT_PUBLIC_BACKEND_URL/api/messages/send` |
+| Lista conversaciones (/messages) | `apps/copilot/src/app/.../messages/hooks/useConversations.ts` | REST GET | `NEXT_PUBLIC_API_IA_URL/api/messages/conversations` |
+| Mensajes de una conversación | `apps/copilot/src/app/.../messages/hooks/useMessages.ts` | REST GET | `NEXT_PUBLIC_API_IA_URL/api/messages/conversations/:id` |
+| Enviar mensaje (/messages) | `apps/copilot/src/app/.../messages/hooks/useSendMessage.ts` | REST POST | `NEXT_PUBLIC_API_IA_URL/api/messages/send` |
 
 ---
 
@@ -24,11 +24,11 @@ Este documento traza todas las llamadas desde este repositorio a api-ia para men
 - **HTTP_ENDPOINT:**  
   - Si `NEXT_PUBLIC_GRAPHQL_ENDPOINT` está definido → se usa ese.  
   - Si no, en navegador `getBackendUrl()` devuelve `''` (same-origin), luego `HTTP_ENDPOINT` = `'/api/graphql'` (o `/graphql` según fallback).  
-  - En servidor (SSR) `getBackendUrl()` = `NEXT_PUBLIC_BACKEND_URL` → `HTTP_ENDPOINT` = `{BACKEND_URL}/graphql`.
+  - En servidor (SSR) `getBackendUrl()` = `NEXT_PUBLIC_API_IA_URL` → `HTTP_ENDPOINT` = `{API_IA_URL}/graphql`.
 
 - **Proxy:** `apps/copilot/src/app/(backend)/api/graphql/route.ts`  
   - Recibe POST al Copilot en `/api/graphql`.  
-  - Reenvía a `getBackendUrl()/graphql` = `NEXT_PUBLIC_BACKEND_URL/graphql` (por defecto `https://api-ia.bodasdehoy.com/graphql`).  
+  - Reenvía a `getBackendUrl()/graphql` = `NEXT_PUBLIC_API_IA_URL/graphql` (por defecto `https://api-ia.bodasdehoy.com/graphql`).  
   - Reenvía headers: Authorization, Developer, SupportKey, Origin, Content-Type.  
   - **Posible fallo:** En `client.ts` la variable se llama `supportkey` (minúscula) al leer del contexto; el proxy lee `supportkey`. Verificar que api-ia espere el mismo nombre.
 
@@ -70,7 +70,7 @@ Este documento traza todas las llamadas desde este repositorio a api-ia para men
 
 - **Archivo:** `useConversations.ts`.  
 - **URL:** `${backendUrl}/api/messages/conversations?development=...&email=...&user_id=...&channel=...`  
-  - `backendUrl` = `process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030'`.  
+  - `backendUrl` = `process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030'`.  
 
 - **Headers:**  
   - `Content-Type: application/json`.  
@@ -111,7 +111,7 @@ Este documento traza todas las llamadas desde este repositorio a api-ia para men
 
 ## 4. Checklist de verificación (front y coordinación con api-ia)
 
-- [ ] **Variables de entorno:** En el entorno donde se prueba el Copilot, `NEXT_PUBLIC_BACKEND_URL` apunta a api-ia (p. ej. https://api-ia.bodasdehoy.com). Si se usa GraphQL directo, `NEXT_PUBLIC_GRAPHQL_ENDPOINT` coherente con api-ia.
+- [ ] **Variables de entorno:** En el entorno donde se prueba el Copilot, `NEXT_PUBLIC_API_IA_URL` apunta a api-ia (p. ej. https://api-ia.bodasdehoy.com). Si se usa GraphQL directo, `NEXT_PUBLIC_GRAPHQL_ENDPOINT` coherente con api-ia.
 - [ ] **Login / token:** Usuario con sesión válida; token en `localStorage` o `dev-user-config` para que las peticiones lleven Authorization. Sin token, api-ia puede devolver 401.
 - [ ] **Headers GraphQL:** En una petición getSessions desde la UI, comprobar en DevTools (Network) que la petición al proxy (o a graphql) lleve Developer, SupportKey, X-Development si api-ia los requiere.
 - [ ] **Proxy /api/graphql:** Comprobar que la petición POST al Copilot en `/api/graphql` devuelve 200 y que la respuesta tiene la estructura que espera el front (getSessions.success, getSessions.sessions).

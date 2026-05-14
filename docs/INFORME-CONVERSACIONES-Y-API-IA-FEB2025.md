@@ -23,7 +23,7 @@
 ### 1.3 Sincronización app-test ↔ chat-test
 
 - **app-test** obtiene historial vía **GET /api/copilot/chat-history** (web) → proxy a api-ia o API2.
-- **chat-test** obtiene lista de conversaciones vía **/api/conversations/last** (Copilot) → backend api-ia (EventosAPIClient, `BACKEND_URL`).
+- **chat-test** obtiene lista de conversaciones vía **/api/conversations/last** (Copilot) → backend api-ia (EventosAPIClient, `API_IA_URL`).
 - Para que **la misma conversación se vea en ambos** hace falta que:
   1. **api-ia** (o API2) **persista** los mensajes con un `sessionId` estable (p. ej. ligado al usuario).
   2. **app-test** y **chat-test** usen el **mismo sessionId** para ese usuario (p. ej. derivado de userId o email).

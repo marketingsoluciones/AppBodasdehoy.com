@@ -35,6 +35,6 @@ Gracias.
 
 - **Backend:** api-ia (APIs de mensajería ya desarrolladas).
 - **Front:** Solo consume; no gestiona mensajería. Copilot llama a:
-  - **GraphQL** (vía proxy same-origin a BACKEND_URL/graphql): getSessions, sendMessage, getMessages, getSession.
-  - **REST** (directo a NEXT_PUBLIC_BACKEND_URL): GET/POST /api/messages/conversations y POST /api/messages/send.
+  - **GraphQL** (vía proxy same-origin a API_IA_URL/graphql): getSessions, sendMessage, getMessages, getSession.
+  - **REST** (directo a NEXT_PUBLIC_API_IA_URL): GET/POST /api/messages/conversations y POST /api/messages/send.
 - **Objetivo:** Que probadores de api-ia (y vosotros) verifiquen end-to-end y nos digan si algo falla o falta en contrato (headers, formato, rutas).
