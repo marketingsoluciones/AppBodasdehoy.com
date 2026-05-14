@@ -1,4 +1,3 @@
-// @ts-nocheck — BlockCategoria/BlockPagos props inferidos por @ts-nocheck cascade (sprint dedicado)
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { DineroIcon } from "../components/icons";

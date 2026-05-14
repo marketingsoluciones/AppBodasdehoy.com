@@ -15,7 +15,7 @@ interface Categoria {
     coste_final: number;
 }
 
-export const ExcelView = ({ showCategoria }) => {
+export const ExcelView = ({ showCategoria, setShowCategoria, categorias_array }: any) => {
     const [windowsWidth, setWindowsWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 0)
     const { user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()

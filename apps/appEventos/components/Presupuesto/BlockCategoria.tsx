@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useExpanded, useTable } from "react-table";
 import { EventContextProvider, AuthContextProvider } from "../../context";
@@ -19,11 +18,11 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 const BlockCategoria = (props: any) => {
   const { showCategoria, setShowCategoria, setGetId, categorias_array } = props;
   const { t } = useTranslation();
-  const { user } = AuthContextProvider()
-  const { event, setEvent } = EventContextProvider()
-  const [categoria, setCategoria] = useState({});
-  const [data, setData] = useState([]);
-  const [GastoID, setGastoID] = useState({ id: "", crear: false })
+  const { user } = AuthContextProvider() as any
+  const { event, setEvent } = EventContextProvider() as any
+  const [categoria, setCategoria] = useState<any>({});
+  const [data, setData] = useState<any[]>([]);
+  const [GastoID, setGastoID] = useState<any>({ id: "", crear: false })
   const [isAllowed, ht] = useAllowed()
 
   useEffect(() => {
@@ -360,7 +359,7 @@ export const DataTable = ({ data, columns, AddGasto, renderRowSubComponent, cate
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, rows, state: { expanded } } =
     useTable({ columns, data }, useExpanded);
   const [isAllowed, ht] = useAllowed()
-  const { event, setEvent } = EventContextProvider()
+  const { event, setEvent } = EventContextProvider() as any
 
 
   const colSpan = {
