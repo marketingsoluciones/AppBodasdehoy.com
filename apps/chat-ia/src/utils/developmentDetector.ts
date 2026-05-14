@@ -35,7 +35,7 @@ export interface DevelopmentConfig {
 export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = {
   annloevents: {
     api: {
-      backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030',
+      backendUrl: process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030',
       graphqlEndpoint: 'https://api-mcp.eventosorganizador.com',
     },
     colors: {
@@ -52,7 +52,7 @@ export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = {
   },
   bodasdehoy: {
     api: {
-      backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030',
+      backendUrl: process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030',
       graphqlEndpoint: 'https://api-mcp.eventosorganizador.com',
     },
     colors: {
@@ -69,7 +69,7 @@ export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = {
   },
   champagneevents: {
     api: {
-      backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030',
+      backendUrl: process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030',
       graphqlEndpoint: 'https://api-mcp.eventosorganizador.com',
     },
     colors: {
@@ -86,7 +86,7 @@ export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = {
   },
   eventosorganizador: {
     api: {
-      backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030',
+      backendUrl: process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030',
       graphqlEndpoint: 'https://api-mcp.eventosorganizador.com',
     },
     colors: {

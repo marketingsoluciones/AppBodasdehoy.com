@@ -15,8 +15,8 @@ export async function GET(_request: NextRequest) {
   try {
     // URL del backend Python
     const backendUrl =
-      process.env.BACKEND_URL ||
-      process.env.NEXT_PUBLIC_BACKEND_URL ||
+      process.env.API_IA_URL ||
+      process.env.NEXT_PUBLIC_API_IA_URL ||
       'http://localhost:8030';
 
     // ✅ CORRECCIÓN: Asegurar que la URL termine con /api/config y no sea solo el root

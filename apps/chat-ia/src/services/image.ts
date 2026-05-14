@@ -9,7 +9,7 @@ const log = debug('lobe-image:service');
 // ============================================
 // Configuración del Backend Python
 // ============================================
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8080';
 
 /**
  * Obtiene la configuración del usuario desde localStorage

@@ -1,7 +1,7 @@
 import { loginWithDemoCredentials } from './auth';
+import { resolvePublicMcpGraphqlUrl } from '@/const/mcpEndpoints';
 
-const API_MCP_URL =
-  process.env.NEXT_PUBLIC_API_MCP_URL ?? 'https://api-mcp.eventosorganizador.com';
+const API_MCP_URL = resolvePublicMcpGraphqlUrl();
 
 const DEFAULT_DEVELOPMENT =
   process.env.NEXT_PUBLIC_API2_DEVELOPMENT ?? process.env.NEXT_PUBLIC_WHITELABEL ?? 'bodasdehoy';
@@ -168,5 +168,4 @@ export class MCPClient {
 }
 
 export const mcpClient = new MCPClient();
-
 

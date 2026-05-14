@@ -9,13 +9,12 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { LiaLinkSolid } from 'react-icons/lia';
 import { FiCheck, FiLoader, FiZap, FiCopy, FiGrid } from 'react-icons/fi';
+import { resolveApiIaOrigin } from '../utils/apiEndpoints';
 
 const MOMENTOS_API_BASE =
   typeof window !== 'undefined'
     ? ''
-    : (process.env.NEXT_PUBLIC_MEMORIES_API_URL ||
-        process.env.NEXT_PUBLIC_API_MCP_URL ||
-        '');
+    : resolveApiIaOrigin();
 
 function ShareAlbumButton({ albumId }: { albumId: string }) {
   const { generateShareLink } = useMemoriesStore();

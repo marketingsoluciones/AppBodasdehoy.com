@@ -12,6 +12,7 @@ function safeCookieDomain(domain?: string): string | undefined {
   return domain;
 }
 import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
+import { resolveApiBodasGraphqlUrl } from "../utils/apiEndpoints";
 import { initializeApp } from "firebase/app";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useActivity } from "../hooks/useActivity";
@@ -713,7 +714,7 @@ const AuthProvider = ({ children }) => {
               window.location.hostname.includes('-test.') ||
               window.location.hostname.includes('-dev.')
             )
-            const sessionApiUrl = _isDevOrTest ? '/api/proxy-bodas/graphql' : (process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com')
+            const sessionApiUrl = _isDevOrTest ? '/api/proxy-bodas/graphql' : resolveApiBodasGraphqlUrl()
             const sessionResp = await fetch(sessionApiUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'Development': config?.development || 'bodasdehoy' },
@@ -845,7 +846,7 @@ const AuthProvider = ({ children }) => {
               window.location.hostname.includes('-test.') ||
               window.location.hostname.includes('-dev.')
             );
-            const ssoApiUrl = _isDevOrTestSSO ? '/api/proxy-bodas/graphql' : (process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com');
+            const ssoApiUrl = _isDevOrTestSSO ? '/api/proxy-bodas/graphql' : resolveApiBodasGraphqlUrl();
 
             const ssoResp = await fetch(ssoApiUrl, {
               method: 'POST',

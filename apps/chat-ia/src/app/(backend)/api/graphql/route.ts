@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveServerMcpGraphqlUrl } from '@/const/mcpEndpoints';
 
 export const runtime = 'nodejs';
 
 // ✅ Las queries del apolloClient (fetchUserEvents, fetchExternalChats, etc.) son queries de MCP.
 // Usar MCP GraphQL como destino del proxy, NO el backend Python (api-ia).
-const getBackendUrl = (): string => {
-  const graphqlEndpoint = process.env.GRAPHQL_ENDPOINT || process.env.API_MCP_URL;
-  if (graphqlEndpoint) {
-    // graphqlEndpoint ya incluye /graphql — extraemos la base para que el proxy añada /graphql
-    return graphqlEndpoint.replace(/\/graphql$/, '');
-  }
-  return 'https://api-mcp.eventosorganizador.com';
-};
+const MCP_GRAPHQL_URL = resolveServerMcpGraphqlUrl();
 
 /**
  * Proxy: POST /api/graphql → **API2** (/graphql). Mongo y dominio de negocio viven detrás de MCP.
@@ -34,8 +28,7 @@ export async function POST(request: NextRequest) {
     const xDevelopment = request.headers.get('x-development');
     if (xDevelopment) headers['X-Development'] = xDevelopment;
 
-    const backendUrl = getBackendUrl();
-    const response = await fetch(`${backendUrl}/graphql`, {
+    const response = await fetch(MCP_GRAPHQL_URL, {
       body: JSON.stringify(body),
       headers,
       method: 'POST',

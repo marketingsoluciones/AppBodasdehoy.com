@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || process.env.API_IA_URL || 'https://api-ia.bodasdehoy.com';
 
 /**
  * Proxy server-side para POST /api/auth/firebase-login

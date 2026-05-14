@@ -10,6 +10,7 @@ import { useChatStore } from '@/store/chat';
 import { loginWithEmailPassword, loginWithFacebook, loginWithGoogle } from '@/services/firebase-auth';
 import { optimizedApiClient } from '@/utils/api-client-optimized';
 import { registerReferralIfPending, sendAttributionToApi } from '@bodasdehoy/shared';
+import { resolveMcpOrigin } from '@/const/mcpEndpoints';
 
 // ─── Config panel izquierdo (branding de chat-ia) ────────────────────────────
 const CHAT_IA_LEFT_PANEL = {
@@ -114,7 +115,7 @@ function RightPanel() {
     }
   };
 
-  const mcpUrl = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
+  const mcpUrl = resolveMcpOrigin();
 
   // ── Email/password ──
   const handleEmailLogin = async (email: string, password: string) => {

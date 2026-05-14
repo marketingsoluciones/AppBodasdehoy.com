@@ -3,6 +3,7 @@ import { NewTableView } from './NewTableView';
 import { Task, Itinerary, Event as EventInterface } from '../../../utils/Interfaces';
 import { EventContextProvider } from '../../../context';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
+import { resolveApiBodasOrigin } from '../../../utils/apiEndpoints';
 import { useToast } from '../../../hooks/useToast';
 import { useTranslation } from 'react-i18next';
 
@@ -67,7 +68,7 @@ export const TableIntegration: React.FC<TableIntegrationProps> = ({
           itinerarioID: itinerario._id,
           taskID: taskId
         },
-        domain: process.env.NEXT_PUBLIC_API_MCP_URL
+        domain: resolveApiBodasOrigin()
       });
 
       // Actualizar estado local
@@ -109,7 +110,7 @@ export const TableIntegration: React.FC<TableIntegrationProps> = ({
           fecha: taskData.fecha || new Date(),
           duracion: taskData.duracion || 30,
         },
-        domain: process.env.NEXT_PUBLIC_API_MCP_URL
+        domain: resolveApiBodasOrigin()
       });
 
       if (!createResponse) throw new Error("No se recibió respuesta del servidor");
@@ -145,7 +146,7 @@ export const TableIntegration: React.FC<TableIntegrationProps> = ({
           variable: "all",
           valor: JSON.stringify(fullTaskData)
         },
-        domain: process.env.NEXT_PUBLIC_API_MCP_URL
+        domain: resolveApiBodasOrigin()
       });
 
       const finalTask: Task = {

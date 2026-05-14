@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
+import { resolveServerMcpGraphqlUrl } from '@/const/mcpEndpoints';
 
 type GoogleTokenInfo = {
   aud?: string;
@@ -29,7 +31,7 @@ type IdentifyUserResponse = {
 };
 
 const GOOGLE_TOKENINFO_URL = 'https://oauth2.googleapis.com/tokeninfo';
-const DEFAULT_BACKEND_URL = process.env.BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+const DEFAULT_BACKEND_URL = resolveServerBackendOrigin();
 
 const resolveGoogleAudiences = () => {
   const possible = [
@@ -47,18 +49,7 @@ const resolveGoogleAudiences = () => {
 };
 
 const resolveGraphqlUrls = (): string[] => {
-  const urls = [
-    process.env.GRAPHQL_ENDPOINT,
-    process.env.API_MCP_URL,
-    process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/graphql` : undefined,
-    'https://api-mcp.eventosorganizador.com',
-  ];
-
-  return Array.from(
-    new Set(
-      urls.filter((url): url is string => typeof url === 'string' && url.length > 0)
-    )
-  );
+  return [resolveServerMcpGraphqlUrl()];
 };
 
 async function verifyGoogleIdToken(idToken: string): Promise<GoogleTokenInfo> {
@@ -259,7 +250,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
 
 
 

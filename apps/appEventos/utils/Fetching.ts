@@ -1,5 +1,6 @@
 import { api } from "../api";
 import { normalizeApi2HttpBase } from "./resolveApi2BaseUrl";
+import { resolveApiBodasOrigin } from "./apiEndpoints";
 
 /**
  * Mensaje amigable según el código HTTP del error de la API.
@@ -220,7 +221,7 @@ export const fetchApiEventosServer = async ({
 }) => {
   const axios = require("axios");
   const serverInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_MCP_URL,
+    baseURL: resolveApiBodasOrigin(),
     timeout: 15000, // 15 segundos de timeout
   });
   const headers: Record<string, string> = {
@@ -257,7 +258,7 @@ export const fetchApiBodasServer = async ({
 }) => {
   const axios = require("axios");
   const serverInstance = axios.create({
-    baseURL: normalizeApi2HttpBase(process.env.NEXT_PUBLIC_API_MCP_URL),
+    baseURL: normalizeApi2HttpBase(),
     timeout: 15000, // 15 segundos de timeout
   });
   try {

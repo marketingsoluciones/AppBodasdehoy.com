@@ -8,8 +8,8 @@
 export const runtime = 'nodejs';
 
 const getBackendUrl = () =>
-  process.env.PYTHON_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.API_IA_URL ||
+  process.env.NEXT_PUBLIC_API_IA_URL ||
   'https://api-ia.bodasdehoy.com';
 
 export const POST = async (req: Request) => {

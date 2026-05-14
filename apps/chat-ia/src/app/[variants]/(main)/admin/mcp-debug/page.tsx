@@ -6,6 +6,7 @@ import { Button, Card, Badge, Tag, Typography } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 
 import { SUPPORT_KEYS } from '@/const/supportKeys';
+import { resolvePublicMcpGraphqlUrl } from '@/const/mcpEndpoints';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -26,7 +27,7 @@ export default function API2DebugPage() {
     const startTime = Date.now();
 
     try {
-      const graphqlUrl = process.env.NEXT_PUBLIC_API_MCP_URL ?? 'https://api-mcp.eventosorganizador.com';
+      const graphqlUrl = resolvePublicMcpGraphqlUrl();
       const response = await fetch(graphqlUrl, {
         body: JSON.stringify({
           query: `
@@ -443,4 +444,3 @@ export default function API2DebugPage() {
     </Flexbox>
   );
 }
-

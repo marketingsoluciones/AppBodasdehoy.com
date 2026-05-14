@@ -788,7 +788,7 @@ user_id: effectiveUserId,
       devLog('🚀 Iniciando carga paralela de branding y credenciales para:', developer);
 
       const BRANDING_FETCH_TIMEOUT = 3000; // ✅ Reducido de 8s a 3s para carga más rápida
-      const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+      const backendBaseUrl = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
 
       // Helper con timeout
       const fetchWithTimeout = async (url: string, timeout: number = BRANDING_FETCH_TIMEOUT) => {

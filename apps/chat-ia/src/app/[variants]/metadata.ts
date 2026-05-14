@@ -6,13 +6,16 @@ import { translation } from '@/server/translation';
 import { getDeveloperBranding, ServerBranding } from '@/server/branding';
 import { DynamicLayoutProps } from '@/types/next';
 import { RouteVariants } from '@/utils/server/routeVariants';
+import type { ReactNode } from 'react';
 
 const isDev = process.env.NODE_ENV === 'development';
 
 // ✅ OPTIMIZACIÓN: Timeout máximo para metadata (no debe bloquear SSR)
 const METADATA_TIMEOUT = 200;
 
-export const generateMetadata = async (props: DynamicLayoutProps) => {
+type LayoutGenerateProps = DynamicLayoutProps & { children: ReactNode; modal: ReactNode };
+
+export const generateMetadata = async (props: LayoutGenerateProps) => {
   try {
     // ✅ OPTIMIZACIÓN: En desarrollo, skip fetch de branding (usa valores por defecto)
     // Esto reduce el tiempo de carga de 2+ minutos a <1 segundo

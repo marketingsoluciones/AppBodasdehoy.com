@@ -16,7 +16,7 @@ const getBackendURL = () => {
   }
 
   // En el servidor (SSR), usar backend externo
-  return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8030';
+  return process.env.NEXT_PUBLIC_API_IA_URL || 'http://127.0.0.1:8030';
 };
 
 export const EVENTOS_API_CONFIG = {

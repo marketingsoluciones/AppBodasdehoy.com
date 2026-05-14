@@ -3,6 +3,7 @@ import { FC, useEffect, useState } from 'react';
 import { AuthContextProvider } from '../../context/AuthContext';
 import { EventContextProvider } from '../../context/EventContext';
 import { fetchApiEventos, queries } from '../../utils/Fetching';
+import { resolveApiBodasOrigin } from '../../utils/apiEndpoints';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../hooks/useToast';
 import { WhatsappBusinessPreview } from './WhatsappBusinessPreview';
@@ -642,7 +643,7 @@ const HeaderTypeWatcher = () => {
             // Limpiar headerContent cuando cambie el tipo
             setPrevHeaderType(currentHeaderType);
             setTimeout(() => {
-                setFieldValue('headerContent', currentHeaderType === 'image_event' ? event?.imgEvento?.i1024 ? `${process.env.NEXT_PUBLIC_API_MCP_URL}${event?.imgEvento?.i1024}` : '' : '');
+                setFieldValue('headerContent', currentHeaderType === 'image_event' ? event?.imgEvento?.i1024 ? `${resolveApiBodasOrigin()}${event?.imgEvento?.i1024}` : '' : '');
             }, 10);
         }
     }, [values?.headerType?._id, setFieldValue]);

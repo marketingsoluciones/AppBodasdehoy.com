@@ -29,7 +29,7 @@ interface TokenRefreshStatus {
   nextRefresh: Date | null;
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
 
 // Configuración
 const CHECK_INTERVAL_MS = 5 * 60 * 1000; // Verificar cada 5 minutos

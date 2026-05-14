@@ -26,7 +26,7 @@ export interface BillingData {
   totalTokens: number;
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
 
 export function useBillingData(period: 'day' | 'week' | 'month', development = 'bodasdehoy') {
   const [data, setData] = useState<BillingData | null>(null);

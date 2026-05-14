@@ -4,6 +4,7 @@ import { Manager } from "socket.io-client";
 import { getAuth } from "firebase/auth";
 import { parseJwt } from "./utils/Authentication";
 import { varGlobalDomain, varGlobalDevelopment, varGlobalSubdomain } from "./context/AuthContext"
+import { resolveApiBodasGraphqlUrl, resolveApiBodasOrigin } from "./utils/apiEndpoints";
 
 /** En localhost el navegador rechaza cookies con domain=.bodasdehoy.com */
 const _isDevLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -24,7 +25,7 @@ const isLocalhost = typeof window !== 'undefined' &&
    window.location.hostname === '127.0.0.1' ||
    window.location.hostname.includes('-test.') ||
    window.location.hostname.includes('-dev.'));
-const baseURL = isLocalhost ? '/api/proxy' : process.env.NEXT_PUBLIC_API_MCP_URL;
+const baseURL = isLocalhost ? '/api/proxy' : resolveApiBodasOrigin();
 const instance = axios.create({ baseURL });
 
 // Ante 403/401: limpiar sesión y redirigir a login con mensaje (evita "Request failed with status code 403" en pantalla).
@@ -114,7 +115,7 @@ export const api = {
   socketIO: ({ token, development, father, origin }: { token?: any; development?: any; father?: any; origin?: any }) => {
     if (!development) return
     const socketUrl = (process.env.NEXT_PUBLIC_SOCKET_URL || "").trim()
-      || process.env.NEXT_PUBLIC_API_MCP_URL
+      || resolveApiBodasOrigin()
       || ""
     const manager = new Manager(socketUrl, {
       closeOnBeforeunload: true,
@@ -144,12 +145,7 @@ export const api = {
       console.log("error no firebase")
     }
 
-    const bodasApiUrl = isLocalhost
-      ? '/api/proxy-bodas/graphql'
-      : (process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com');
-    const bodasApiFallbackUrl = !isLocalhost
-      ? process.env.NEXT_PUBLIC_API_MCP_URL
-      : undefined;
+    const bodasApiUrl = isLocalhost ? '/api/proxy-bodas/graphql' : resolveApiBodasGraphqlUrl();
     const headers: Record<string, any> = {
       Development: development,
       IsProduction: (process?.env?.NEXT_PUBLIC_PRODUCTION && !["testticket", "testinvitado"].includes(varGlobalSubdomain)) ?? false,
@@ -162,11 +158,6 @@ export const api = {
     try {
       return await axios.post(bodasApiUrl, data, { headers });
     } catch (err) {
-      const isNetworkError = !err?.response;
-      if (isNetworkError && bodasApiFallbackUrl && bodasApiFallbackUrl !== bodasApiUrl) {
-        console.warn('[api.ApiBodas] Host primario falló, reintentando fallback');
-        return await axios.post(bodasApiFallbackUrl, data, { headers });
-      }
       if (err?.response?.status === 403 || err?.response?.status === 401) {
         handleSessionExpired();
       }
@@ -179,10 +170,6 @@ export const api = {
     }
   }
 };
-
-// Legacy: no se usa en el código actual. Endpoint unificado con el resto (HTTPS).
-// Si se elimina, verificar que ningún flujo la use. Ver docs/LISTADO-LLAMADAS-API2-AUDITORIA.md
-const API2_GRAPHQL_LEGACY = process.env.NEXT_PUBLIC_API_MCP_URL || '';
 
 export const fetchApiViewConfig = async (params: any) => {
   let idToken = Cookies.get("idTokenV0.1.0");
@@ -199,7 +186,8 @@ export const fetchApiViewConfig = async (params: any) => {
     console.error("Error getting token:", error);
   }
 
-  return axios.post(API2_GRAPHQL_LEGACY, params, {
+  const graphqlUrl = isLocalhost ? '/api/proxy-bodas/graphql' : resolveApiBodasGraphqlUrl();
+  return axios.post(graphqlUrl, params, {
     headers: {
       Authorization: `Bearer ${idToken}`,
       'Content-Type': 'application/json',

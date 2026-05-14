@@ -1,8 +1,9 @@
 import { useState } from "react"
 import { AuthContextProvider } from "../../context"
 import { useTranslation } from 'react-i18next';
+import { resolveApiBodasGraphqlUrl } from "../../utils/apiEndpoints";
 
-const API_MCP_URL = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
+const API_MCP_URL = resolveApiBodasGraphqlUrl();
 
 async function openCustomerPortal(token: string, development: string, returnUrl: string) {
     const res = await fetch(API_MCP_URL, {

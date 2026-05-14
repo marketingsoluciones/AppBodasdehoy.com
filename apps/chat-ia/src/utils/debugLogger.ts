@@ -52,7 +52,7 @@ export const debugLog = (location: string, message: string, data?: any, hypothes
     localStorage.setItem(DEBUG_LOG_KEY, JSON.stringify(existingLogs));
 
     // ✅ Enviar al backend también (sin bloquear)
-    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+    const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
     fetch(`${BACKEND_URL}/api/debug-logs/upload`, {
       body: JSON.stringify({ logs: [log] }),
       headers: { 'Content-Type': 'application/json' },

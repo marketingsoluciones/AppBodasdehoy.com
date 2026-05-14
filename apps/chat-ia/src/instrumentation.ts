@@ -12,7 +12,7 @@ export async function register() {
   if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
     if (process.env.NEXT_RUNTIME === 'nodejs') {
       const Sentry = await import('@sentry/nextjs');
-      captureRequestError = Sentry.captureRequestError;
+      captureRequestError = (err, req, ctx) => Sentry.captureRequestError(err, req as any, ctx as any);
       await import('../sentry.server.config');
     }
     if (process.env.NEXT_RUNTIME === 'edge') {

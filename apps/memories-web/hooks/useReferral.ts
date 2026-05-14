@@ -9,8 +9,9 @@
  */
 import { useEffect, useState } from 'react';
 import { authBridge } from '@bodasdehoy/shared';
+import { resolvePublicMcpGraphqlUrl } from '../utils/endpoints';
 
-const API_MCP_URL = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
+const API_MCP_URL = resolvePublicMcpGraphqlUrl();
 const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'memories').trim();
 const MEMORIES_BASE =
   typeof window !== 'undefined'

@@ -1,5 +1,6 @@
-const API_MCP_URL =
-  process.env.NEXT_PUBLIC_API_MCP_URL ?? 'https://api-mcp.eventosorganizador.com';
+import { resolvePublicMcpGraphqlUrl } from '@/const/mcpEndpoints';
+
+const API_MCP_URL = resolvePublicMcpGraphqlUrl();
 
 const DEFAULT_DEVELOPMENT =
   process.env.NEXT_PUBLIC_API2_DEVELOPMENT ?? process.env.NEXT_PUBLIC_WHITELABEL ?? 'bodasdehoy';
@@ -165,7 +166,7 @@ export const loginWithFirebase = async ({
   fingerprint,
   rememberToken = true,
 }: LoginWithFirebaseParams): Promise<LoginWithFirebaseResult> => {
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+  const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
   
   try {
     const response = await fetch(`${BACKEND_URL}/api/auth/firebase-login`, {
@@ -217,5 +218,4 @@ export const loginWithFirebase = async ({
     };
   }
 };
-
 

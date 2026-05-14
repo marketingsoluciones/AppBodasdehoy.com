@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { TIER_COLORS } from '@bodasdehoy/shared/plans';
+import { resolvePublicMcpGraphqlUrl } from '../../utils/endpoints';
 
-const API_MCP_URL = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
+const API_MCP_URL = resolvePublicMcpGraphqlUrl();
 const DEVELOPMENT = (process.env.NEXT_PUBLIC_DEVELOPMENT || 'memories').trim();
 
 // Features per plan_id (static — must match what's in DB)

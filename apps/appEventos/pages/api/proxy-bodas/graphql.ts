@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
+import { resolveApiBodasGraphqlUrl } from '../../../utils/apiEndpoints';
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,8 +12,7 @@ export default async function handler(
   }
 
   try {
-    const primaryBaseURL = process.env.API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
-    const fallbackBaseURL = process.env.API_MCP_URL;
+    const graphqlUrl = resolveApiBodasGraphqlUrl();
 
     // Extraer headers necesarios del request original
     const headers: any = {
@@ -34,7 +34,7 @@ export default async function handler(
       headers.IsProduction = req.headers.isproduction;
     }
 
-    console.log('[API Proxy Bodas] Proxying request to:', `${primaryBaseURL}/graphql`);
+    console.log('[API Proxy Bodas] Proxying request to:', graphqlUrl);
     console.log('[API Proxy Bodas] Headers:', {
       hasAuth: !!headers.Authorization,
       hasDevelopment: !!headers.Development,
@@ -43,8 +43,8 @@ export default async function handler(
     });
     console.log('[API Proxy Bodas] Query:', req.body?.query?.substring(0, 200));
 
-    const doRequest = (baseURL: string) => axios.post(
-      `${baseURL}/graphql`,
+    const doRequest = () => axios.post(
+      graphqlUrl,
       req.body,
       {
         headers,
@@ -52,18 +52,7 @@ export default async function handler(
       }
     );
 
-    let response;
-    try {
-      response = await doRequest(primaryBaseURL);
-    } catch (error: any) {
-      const isNetworkError = !error?.response;
-      if (isNetworkError && fallbackBaseURL && fallbackBaseURL !== primaryBaseURL) {
-        console.warn('[API Proxy Bodas] Primary host falló. Reintentando con fallback:', fallbackBaseURL);
-        response = await doRequest(fallbackBaseURL);
-      } else {
-        throw error;
-      }
-    }
+    const response = await doRequest();
 
     // Devolver la respuesta
     return res.status(response.status).json(response.data);

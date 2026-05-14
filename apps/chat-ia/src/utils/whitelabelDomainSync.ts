@@ -26,7 +26,7 @@ interface WhitelabelConfig {
  */
 export async function fetchWhitelabelByDomain(domain: string): Promise<WhitelabelConfig | null> {
   try {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+    const backendUrl = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
     
     // Llamar al endpoint del backend que consulta MongoDB
     const response = await fetch(`${backendUrl}/api/whitelabel/by-domain`, {

@@ -260,7 +260,7 @@ export class OptimizedApiClient {
     }
 
     // Usar middleware Python (evita CORS y SSL)
-    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+    const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
     const graphqlURL = this.baseURL || `${BACKEND_URL}/graphql`;
     const url = graphqlURL.includes('/graphql') ? graphqlURL : `${graphqlURL}/graphql`;
 

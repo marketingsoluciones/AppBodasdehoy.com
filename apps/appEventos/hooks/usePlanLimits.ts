@@ -15,6 +15,7 @@ import {
   type SubscriptionTier,
   TIER_LABELS,
 } from '@bodasdehoy/shared/plans';
+import { resolveApiBodasGraphqlUrl } from '../utils/apiEndpoints';
 
 // ========================================
 // TYPES
@@ -61,7 +62,7 @@ export interface UsePlanLimitsReturn {
 // API2 GraphQL
 // ========================================
 
-const API_MCP_URL = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
+const API_MCP_URL = resolveApiBodasGraphqlUrl();
 
 async function graphqlQuery<T>(query: string, variables?: Record<string, unknown>, token?: string | null, development?: string): Promise<T> {
   const headers: Record<string, string> = {

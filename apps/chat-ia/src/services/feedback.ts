@@ -24,7 +24,7 @@ export interface FeedbackResult {
 
 const FEEDBACK_ENDPOINT =
   process.env.NEXT_PUBLIC_FEEDBACK_ENDPOINT ??
-  `${process.env.NEXT_PUBLIC_BACKEND_URL ?? 'https://api-ia.bodasdehoy.com'}/api/feedback`;
+  `${process.env.NEXT_PUBLIC_API_IA_URL ?? 'https://api-ia.bodasdehoy.com'}/api/feedback`;
 
 const readToken = (): string | undefined => {
   if (typeof window === 'undefined') return undefined;

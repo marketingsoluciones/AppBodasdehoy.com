@@ -14,9 +14,10 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { resolveApiBodasOrigin, resolveApiIaOrigin } from '../../../utils/apiEndpoints';
 
 // Python backend URL with auto-routing
-const PYTHON_BACKEND_URL = process.env.PYTHON_BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+const PYTHON_BACKEND_URL = resolveApiIaOrigin();
 
 // Safety guard: never return "fallback" model output if the backend IA is down.
 const ENABLE_COPILOT_FALLBACK = process.env.ENABLE_COPILOT_FALLBACK === 'true';
@@ -74,7 +75,7 @@ const PREFER_REASONING_MODEL = process.env.COPILOT_PREFER_REASONING_MODEL !== 'f
 
 // API_MCP_URL: solo se usa como fallback de whitelabel si SKIP_WHITELABEL_VIA_API2 no está activo.
 // apps/web no debe apuntar a api2; preferir API_IA_WHITELABEL_URL o SKIP_WHITELABEL_VIA_API2=true.
-const API_MCP_URL = process.env.API_MCP_URL || '';
+const API_MCP_URL = resolveApiBodasOrigin();
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 

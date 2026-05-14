@@ -176,7 +176,7 @@ export async function getDeveloperBranding(developer?: string): Promise<ServerBr
   try {
     // Construir URL del backend
     const backendUrl =
-      process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+      process.env.API_IA_URL || process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
 
     // Validar que la URL sea válida
     if (!backendUrl || (!backendUrl.startsWith('http://') && !backendUrl.startsWith('https://'))) {

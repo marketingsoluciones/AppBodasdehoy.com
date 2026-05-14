@@ -7,8 +7,9 @@ import { countries_eur } from "../utils/Currencies"
 import VistaSinCookie from "./vista-sin-cookie"
 import { usePlanLimits } from "../hooks/usePlanLimits"
 import { humanizeQuota, TIER_COLORS } from "@bodasdehoy/shared/plans"
+import { resolveApiBodasGraphqlUrl } from "../utils/apiEndpoints"
 
-const API_MCP_URL = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com'
+const API_MCP_URL = resolveApiBodasGraphqlUrl()
 const DEVELOPMENT = process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy'
 
 async function handleSubscribePlan(planId: string, billingPeriod: 'monthly' | 'yearly') {

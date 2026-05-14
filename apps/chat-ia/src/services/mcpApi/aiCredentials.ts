@@ -12,7 +12,7 @@
  * Basado en: SISTEMA_CREDENCIALES_IA_COMPLETO.md
  */
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
 
 /**
  * Estructura de credenciales para un provider específico

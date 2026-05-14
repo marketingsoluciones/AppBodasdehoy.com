@@ -97,6 +97,13 @@ const defaultMiddleware = (request: NextRequest) => {
   const originalPathname = pathname;
 
   if (pathname === '/' || pathname === '') {
+    const host = (request.headers.get('host') || '').toLowerCase();
+    const isLocalhost = host.startsWith('localhost:') || host.startsWith('127.0.0.1:');
+    const isNonBrowserRequest = !request.headers.has('sec-fetch-dest');
+    if (isLocalhost && isNonBrowserRequest) return NextResponse.json({ ok: true }, { status: 200 });
+  }
+
+  if (pathname === '/' || pathname === '') {
     pathname = '/chat';
     url.pathname = '/chat';
     logDefault('Root path: treating as /chat');

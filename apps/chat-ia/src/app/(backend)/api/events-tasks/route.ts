@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveServerMcpGraphqlUrl } from '@/const/mcpEndpoints';
 
-const API_MCP_URL = 'https://api-mcp.eventosorganizador.com';
+const API_MCP_URL = resolveServerMcpGraphqlUrl();
 
 const SUPPORT_KEYS: Record<string, string> = {
   bodasdehoy: 'SK-bodasdehoy-a71f5b3c',

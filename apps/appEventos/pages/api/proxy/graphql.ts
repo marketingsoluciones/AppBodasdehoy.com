@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
+import { resolveApiBodasGraphqlUrl } from '../../../utils/apiEndpoints';
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,7 +12,7 @@ export default async function handler(
   }
 
   try {
-    const baseURL = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
+    const graphqlUrl = resolveApiBodasGraphqlUrl();
 
     // Extraer headers necesarios del request original
     const headers: any = {
@@ -28,7 +29,7 @@ export default async function handler(
       headers.Development = req.headers.development;
     }
 
-    console.log('[API Proxy] Proxying request to:', `${baseURL}/graphql`);
+    console.log('[API Proxy] Proxying request to:', graphqlUrl);
     console.log('[API Proxy] Headers:', {
       hasAuth: !!headers.Authorization,
       hasDevelopment: !!headers.Development,
@@ -38,7 +39,7 @@ export default async function handler(
 
     // Hacer la petición al backend
     const response = await axios.post(
-      `${baseURL}/graphql`,
+      graphqlUrl,
       req.body,
       {
         headers,

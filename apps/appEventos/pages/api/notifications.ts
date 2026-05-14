@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { resolveApiBodasGraphqlUrl } from '../../utils/apiEndpoints';
 
 /**
  * /api/notifications — Proxy server-side a api2 para notificaciones.
@@ -14,7 +15,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
  * GET /api/notifications?userId=Ii6UZ...&dev=champagne-events&tab=pending&page=1
  */
 
-const API_MCP_URL = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
+const API_MCP_URL = resolveApiBodasGraphqlUrl();
 
 // Server-side: generar Firebase ID token para api2
 async function getServerToken(userId: string): Promise<string | null> {

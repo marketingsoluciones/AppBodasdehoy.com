@@ -1,6 +1,6 @@
 // Sentry/OTEL solo cuando hay DSN definido. En dev o sin DSN el SDK ni se importa
 // (tree-shake elimina la rama inalcanzable), evitando ~3min compile extra.
-let captureRequestError: ((err: unknown, req: unknown, ctx: unknown) => void) | undefined;
+let captureRequestError: ((err: unknown, req: any, ctx: any) => void) | undefined;
 
 export async function register() {
   if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
@@ -12,6 +12,6 @@ export async function register() {
   }
 }
 
-export const onRequestError = (err: unknown, req: unknown, ctx: unknown) => {
+export const onRequestError = (err: unknown, req: any, ctx: any) => {
   if (captureRequestError) captureRequestError(err, req, ctx);
 };

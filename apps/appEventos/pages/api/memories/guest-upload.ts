@@ -23,8 +23,8 @@ import { fetchApiEventosServer } from '../../../utils/Fetching';
 const MEMORIES_API_BASE =
   process.env.API_IA_URL ||
   process.env.NEXT_PUBLIC_API_IA_URL ||
-  process.env.API3_IA_URL ||
-  process.env.NEXT_PUBLIC_API3_IA_URL ||
+  process.env.API_IA_URL ||
+  process.env.NEXT_PUBLIC_API_IA_URL ||
   process.env.NEXT_PUBLIC_MEMORIES_API_URL ||
   process.env.MEMORIES_API_URL ||
   'https://api3-ia.eventosorganizador.com';

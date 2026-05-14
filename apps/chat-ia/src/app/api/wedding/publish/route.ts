@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveServerMcpGraphqlUrl } from '@/const/mcpEndpoints';
 
 /**
  * API Route: Publish Wedding Web
@@ -11,10 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * NOTA: Este endpoint hace proxy a la mutation GraphQL PUBLISH_WEDDING_WEB
  */
 
-const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 
-  process.env.NEXT_PUBLIC_BACKEND_URL 
-    ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/graphql`
-    : 'http://localhost:8030/graphql';
+const GRAPHQL_ENDPOINT = resolveServerMcpGraphqlUrl();
 
 const PUBLISH_WEDDING_WEB_MUTATION = `
   mutation PublishWeddingWeb($weddingWebId: String!) {
@@ -145,8 +143,8 @@ export async function GET(request: NextRequest) {
   }
 
   const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 
-    process.env.NEXT_PUBLIC_BACKEND_URL 
-      ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/graphql`
+    process.env.NEXT_PUBLIC_API_IA_URL 
+      ? `${process.env.NEXT_PUBLIC_API_IA_URL}/graphql`
       : 'http://localhost:8030/graphql';
 
   const GET_WEDDING_WEB_QUERY = `
@@ -203,7 +201,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://bodasdehoy.com';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://bodasdehoy.com';
     const url = weddingWeb.subdomain 
       ? `https://${weddingWeb.subdomain}.bodasdehoy.com`
       : `${baseUrl}/wedding/${weddingWeb.subdomain}`;

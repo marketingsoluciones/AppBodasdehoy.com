@@ -93,7 +93,7 @@ export default function AdminDashboard() {
 
   const fetchSystemHealth = useCallback(async () => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+      const backendUrl = process.env.NEXT_PUBLIC_API_IA_URL || 'https://api-ia.bodasdehoy.com';
       const response = await fetch(`${backendUrl}/api/health/detailed`);
       if (!response.ok) throw new Error('Error al obtener health');
       const data = await response.json();
@@ -288,7 +288,7 @@ export default function AdminDashboard() {
           <div>
             <span className="block text-xs text-gray-500">Backend URL</span>
             <span className="text-xs font-mono text-gray-500">
-              {process.env.NEXT_PUBLIC_BACKEND_URL || 'api-ia.bodasdehoy.com'}
+              {process.env.NEXT_PUBLIC_API_IA_URL || 'api-ia.bodasdehoy.com'}
             </span>
           </div>
         </div>

@@ -12,6 +12,7 @@ import { TimeZone } from "../../components/icons";
 import { getTimeZoneCity } from "../../utils/FormatTime";
 import { useTranslation } from "react-i18next";
 import { BsCalendarPlus } from "react-icons/bs";
+import { resolveApiBodasOrigin } from "../../utils/apiEndpoints";
 
 interface props {
   evento: Event | null
@@ -25,7 +26,7 @@ interface TaskReduce {
   tasks?: Task[]
 }
 
-const apiAppImgBase = (process.env.NEXT_PUBLIC_API_MCP_URL || "https://api-mcp.eventosorganizador.com").replace(/\/$/, "");
+const apiAppImgBase = resolveApiBodasOrigin().replace(/\/$/, "");
 
 const PublicItineraryUnavailable = ({ title, body }: { title: string; body: string }) => (
   <div className="min-h-[60vh] w-full flex flex-col items-center justify-center px-6 py-16 text-center bg-base">

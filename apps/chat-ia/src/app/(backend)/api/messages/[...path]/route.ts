@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
+import { resolveMcpOrigin } from '@/const/mcpEndpoints';
 
 export const runtime = 'nodejs';
-
-const getApiIaUrl = (): string =>
-  process.env.PYTHON_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  'https://api-ia.bodasdehoy.com';
-
-const getMcpUrl = (): string =>
-  process.env.API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
+const API_IA_ORIGIN = resolveServerBackendOrigin();
+const MCP_ORIGIN = resolveMcpOrigin();
 
 /**
  * Proxy catch-all: /api/messages/[...path]
@@ -39,11 +35,11 @@ async function proxyRequest(request: NextRequest, path: string[]): Promise<NextR
   if (subpath.startsWith('whatsapp/')) {
     // TEMPORAL: WhatsApp Baileys va directo a api2 hasta que api-ia lo orqueste
     const mcpPath = subpath.replace(/^whatsapp\//, '');
-    targetUrl = `${getMcpUrl()}/api/whatsapp/${mcpPath}${search}`;
+    targetUrl = `${MCP_ORIGIN}/api/whatsapp/${mcpPath}${search}`;
   } else {
     // api-ia expone conversations/{id} sin el sufijo /messages — normalizar el path
     const normalizedSubpath = subpath.replace(/^(conversations\/[^/]+)\/messages$/, '$1');
-    targetUrl = `${getApiIaUrl()}/api/messages/${normalizedSubpath}${search}`;
+    targetUrl = `${API_IA_ORIGIN}/api/messages/${normalizedSubpath}${search}`;
   }
 
   // Propagar headers de autenticación y contexto completos

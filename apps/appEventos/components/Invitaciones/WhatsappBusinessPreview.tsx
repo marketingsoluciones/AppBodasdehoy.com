@@ -8,6 +8,7 @@ import { PiClipboardTextBold } from 'react-icons/pi';
 import { TemplateWathsappBusinessValues } from './WhatsappBusinessEditorComponent';
 import { BsReply } from 'react-icons/bs';
 import { EventContextProvider } from '../../context/EventContext';
+import { resolveApiBodasOrigin } from '../../utils/apiEndpoints';
 
 // Función auxiliar para formatear un número añadiendo un cero inicial si es menor que 10.
 const padZero = (num) => {
@@ -63,7 +64,7 @@ export const WhatsappBusinessPreview: FC<Props> = ({ values, variableMap }) => {
     return processedText;
   };
   const formattedBody = replaceVariables(bodyContent, variableMap);
-  const formattedHeaderEvent = headerType._id === 'image_event' ? `${process.env.NEXT_PUBLIC_API_MCP_URL}${event?.imgEvento?.i1024}` : '';
+  const formattedHeaderEvent = headerType._id === 'image_event' ? `${resolveApiBodasOrigin()}${event?.imgEvento?.i1024}` : '';
   // Manejar headerContent según su tipo
   let formattedHeader: string = '';
   if (headerType._id === 'text') {

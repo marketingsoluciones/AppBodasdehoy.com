@@ -961,7 +961,7 @@ export const externalChatSlice: StateCreator<
       if (typeof window !== 'undefined') {
         const saveConfigInBackground = () => {
           // En el navegador usar same-origin para evitar CORS (proxy en /api/auth/save-user-config)
-          const BACKEND_URL = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030');
+          const BACKEND_URL = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030');
           fetch(`${BACKEND_URL || ''}/api/auth/save-user-config`, {
             body: JSON.stringify({
               config: configToSave,
@@ -1141,7 +1141,7 @@ export const externalChatSlice: StateCreator<
 
         // Si GraphQL falla, obtener desde backend Python
         try {
-          const BACKEND_URL_FALLBACK = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030';
+          const BACKEND_URL_FALLBACK = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
           const backendResponse = await fetch(
             `${BACKEND_URL_FALLBACK}/api/developers/${development}/config`,
           );

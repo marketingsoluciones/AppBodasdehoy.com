@@ -10,10 +10,10 @@ export function getPythonBackendConfig() {
 
   const resolveBackendUrl = () => {
     if (isClient) {
-      return process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL?.trim() || process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
+      return process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL?.trim() || process.env.NEXT_PUBLIC_API_IA_URL?.trim();
     }
 
-    return process.env.PYTHON_BACKEND_URL?.trim() || process.env.BACKEND_INTERNAL_URL?.trim() || process.env.BACKEND_URL?.trim() || process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
+    return process.env.API_IA_URL?.trim() || process.env.API_IA_URL?.trim() || process.env.API_IA_URL?.trim() || process.env.NEXT_PUBLIC_API_IA_URL?.trim();
   };
 
   // En cliente, solo usar NEXT_PUBLIC_*

@@ -4,8 +4,9 @@
  * El backend (api-ia / api2) lo usará para enviar push notifications.
  */
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { resolveApiBodasOrigin } from '../../utils/apiEndpoints';
 
-const API_MCP_URL = process.env.NEXT_PUBLIC_API_MCP_URL || 'https://api-mcp.eventosorganizador.com';
+const API_MCP_URL = resolveApiBodasOrigin();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {

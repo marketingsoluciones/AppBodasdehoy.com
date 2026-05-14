@@ -8,6 +8,7 @@ import { createClient } from 'graphql-ws';
 import { BRANDING_NAME } from '@lobechat/const';
 import { getSupportKey } from '@/const/supportKeys';
 import { getAPIOriginHeader, getCurrentDevelopment } from '@/utils/developmentDetector';
+import { resolvePublicMcpGraphqlUrl, resolveServerMcpGraphqlUrl } from '@/const/mcpEndpoints';
 
 // ✅ FIX: Suprimir errores de campos faltantes en cache de Apollo
 // Estos errores ocurren cuando la API no devuelve campos opcionales como 'aiModel'
@@ -27,14 +28,12 @@ if (typeof window !== 'undefined') {
   };
 }
 
-// Configuración de endpoints - en el navegador usar same-origin para evitar CORS
-const getBackendUrl = () =>
-  typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8030');
-const BACKEND_URL = getBackendUrl();
-const HTTP_ENDPOINT =
-  process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT ||
-  (BACKEND_URL ? `${BACKEND_URL}/graphql` : '/api/graphql');
-const WS_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_WS_ENDPOINT || `ws://localhost:8030/graphql`;
+const HTTP_ENDPOINT = typeof window !== 'undefined' ? '/api/graphql' : resolveServerMcpGraphqlUrl();
+
+const WS_ENDPOINT =
+  typeof window !== 'undefined'
+    ? resolvePublicMcpGraphqlUrl().replace(/^https:/, 'wss:').replace(/^http:/, 'ws:')
+    : resolveServerMcpGraphqlUrl().replace(/^https:/, 'wss:').replace(/^http:/, 'ws:');
 
 // Crear link para agregar headers de autenticación dinámicamente
 const authLink = new SetContextLink((prevContext) => {

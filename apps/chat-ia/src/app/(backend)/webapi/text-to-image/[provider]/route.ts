@@ -17,9 +17,9 @@ async function proxyToPythonBackend(
   if (process.env.USE_PYTHON_BACKEND === 'false') return null;
 
   const backendUrl =
-    process.env.BACKEND_INTERNAL_URL ||
-    process.env.PYTHON_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_BACKEND_URL;
+    process.env.API_IA_URL ||
+    process.env.API_IA_URL ||
+    process.env.NEXT_PUBLIC_API_IA_URL;
   if (!backendUrl) return null;
 
   try {

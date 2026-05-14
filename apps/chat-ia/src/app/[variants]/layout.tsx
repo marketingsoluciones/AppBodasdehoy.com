@@ -60,7 +60,7 @@ const RootLayout = async ({ children, params, modal }: RootLayoutProps) => {
 
   // URLs de APIs externas para preconnect
   const backendUrl =
-    process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api-ia.bodasdehoy.com';
+    process.env.NEXT_PUBLIC_API_IA_URL || 'https://api-ia.bodasdehoy.com';
   const mcpUrl = 'https://api-mcp.eventosorganizador.com';
 
   return (
@@ -97,7 +97,7 @@ export default RootLayout;
 
 export { generateMetadata } from './metadata';
 
-export const generateViewport = async (props: DynamicLayoutProps): ResolvingViewport => {
+export const generateViewport = async (props: RootLayoutProps): ResolvingViewport => {
   try {
     const isMobile = await RouteVariants.getIsMobile(props);
 
