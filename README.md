@@ -193,6 +193,7 @@ S3_ENDPOINT=https://...
 - [ARQUITECTURA_MONOREPO.md](ARQUITECTURA_MONOREPO.md) - ✅ Arquitectura completa del monorepo
 - [CONTRIBUTING.md](CONTRIBUTING.md) - ✅ Guía de contribución
 - [RESUMEN_EJECUTIVO_MONOREPO.md](RESUMEN_EJECUTIVO_MONOREPO.md) - ✅ Resumen ejecutivo del proyecto
+- [docs/CI-UI-SMOKE.md](docs/CI-UI-SMOKE.md) - Smoke UI en CI (Playwright + Slack)
 
 ### Documentación de Fases
 
