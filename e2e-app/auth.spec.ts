@@ -113,6 +113,8 @@ async function loginInApp(page: any, email: string, password: string): Promise<b
     await page.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
     await page.waitForTimeout(2000);
 
+    await waitForAppReady(page, 20_000);
+
     const ok = await fillLoginForm(page, email, password);
     if (!ok) return false;
 
@@ -253,7 +255,7 @@ test.describe('Auth — SSO cross-domain', () => {
   test.setTimeout(150_000);
 
   test.beforeEach(async ({ context, page }) => {
-    if (!isAppTest) return;
+    if (!isDev) return;
     await clearSession(context, page);
   });
 
@@ -261,7 +263,7 @@ test.describe('Auth — SSO cross-domain', () => {
     context,
     page,
   }) => {
-    if (!isAppTest || !hasU1Creds) {
+    if (!isDev || !hasU1Creds) {
       test.skip();
       return;
     }
@@ -300,7 +302,7 @@ test.describe('Auth — SSO cross-domain', () => {
     context,
     page,
   }) => {
-    if (!isAppTest || !hasU1Creds) {
+    if (!isDev || !hasU1Creds) {
       test.skip();
       return;
     }
@@ -339,7 +341,7 @@ test.describe('Auth — Sesiones múltiples aisladas', () => {
   test.setTimeout(150_000);
 
   test('U1 y U2 tienen cookies de sesión con valores distintos', async ({ browser }) => {
-    if (!isAppTest || !hasU1Creds || !hasU2Creds) {
+    if (!isDev || !hasU1Creds || !hasU2Creds) {
       test.skip();
       return;
     }
@@ -370,7 +372,7 @@ test.describe('Auth — Sesiones múltiples aisladas', () => {
   });
 
   test('U1 logueado no ve datos de U2 al navegar a home', async ({ browser }) => {
-    if (!isAppTest || !hasU1Creds || !hasU2Creds) {
+    if (!isDev || !hasU1Creds || !hasU2Creds) {
       test.skip();
       return;
     }

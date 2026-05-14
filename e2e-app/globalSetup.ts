@@ -34,6 +34,17 @@ function fetchStatus(url: string, timeoutMs = 10_000): Promise<{ status: number;
   });
 }
 
+async function fetchStatusWithFallback(
+  url: string,
+  primaryTimeoutMs: number,
+  fallbackTimeoutMs: number,
+): Promise<{ status: number; body: string; fallbackStatus?: number }> {
+  const primary = await fetchStatus(url, primaryTimeoutMs);
+  if (primary.status === 200 || primary.status === 307) return primary;
+  const fallback = await fetchStatus(url, fallbackTimeoutMs);
+  return { ...primary, fallbackStatus: fallback.status };
+}
+
 export default async function globalSetup() {
   // Resetear circuit breaker al inicio de cada run
   resetBreaker();
@@ -57,12 +68,12 @@ export default async function globalSetup() {
 
   const checks: Array<{ label: string; url: string; timeoutMs: number }> = [
     { label: 'app', url: `${TEST_URLS.app}/`, timeoutMs: 5_000 },
-    { label: 'chat', url: `${TEST_URLS.chat}/`, timeoutMs: 5_000 },
+    { label: 'chat', url: `${TEST_URLS.chat}/chat`, timeoutMs: 5_000 },
   ];
   if (E2E_ENV === 'dev') {
     checks.push(
       { label: 'tunnel_app_localhost_3220', url: 'http://localhost:3220/', timeoutMs: 3_000 },
-      { label: 'tunnel_chat_localhost_3210', url: 'http://localhost:3210/', timeoutMs: 3_000 },
+      { label: 'tunnel_chat_localhost_3210', url: 'http://localhost:3210/chat', timeoutMs: 3_000 },
     );
   }
 
@@ -74,7 +85,18 @@ export default async function globalSetup() {
   };
   const failed = results.filter((r) => !isAllowed(r.label, r.status));
   if (failed.length > 0) {
-    const lines = results.map((r) => `- ${r.label}: ${r.url} -> HTTP ${r.status || 0}`).join('\n');
+    const diagTargets = results.filter((r) => r.label === 'tunnel_app_localhost_3220' || r.label === 'tunnel_chat_localhost_3210');
+    const diagnostics = await Promise.all(diagTargets.map(async (t) => (
+      { label: t.label, url: t.url, ...(await fetchStatusWithFallback(t.url, t.timeoutMs, 30_000)) }
+    )));
+
+    const diagByLabel = new Map(diagnostics.map((d) => [d.label, d.fallbackStatus]));
+    const lines = results.map((r) => {
+      const base = `- ${r.label}: ${r.url} -> HTTP ${r.status || 0}`;
+      const fb = diagByLabel.get(r.label);
+      if (typeof fb === 'number' && fb !== (r.status || 0)) return `${base} (fallback 30s -> HTTP ${fb})`;
+      return base;
+    }).join('\n');
     throw new Error(
       `[E2E] ❌ BLOQUEO_INFRA: health-check no pasa.\n` +
       `${lines}\n`,

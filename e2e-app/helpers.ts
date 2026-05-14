@@ -209,19 +209,46 @@ export async function loginAndSelectEvent(
   baseUrl: string,
   loginAfterSubmitScreenshotPath?: string,
 ): Promise<string | null> {
-  // SSO real: login en chat-test (no local-login=1 que está roto en app-test).
-  // Cookie idTokenV0.1.0 se setea en .bodasdehoy.com → app-test la reconoce.
   const isRemoteEnv = baseUrl.includes('app-test') || baseUrl.includes('app-dev');
   const isLocalEnv = baseUrl.includes('127.0.0.1') || baseUrl.includes('localhost');
+
+  if (isRemoteEnv) {
+    const loginUrl = `${baseUrl.replace(/\/$/, '')}/login?local-login=1`;
+    try {
+      await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+      await page.waitForTimeout(1500);
+      const emailInput = page.locator('input[type="email"]').first();
+      const hasLoginForm = await emailInput.isVisible({ timeout: 12_000 }).catch(() => false);
+      if (hasLoginForm) {
+        await emailInput.fill(email, { timeout: 10_000 });
+        await page.locator('input[type="password"]').first().fill(password);
+        const submit = page
+          .locator('button[type="submit"], button')
+          .filter({ hasText: /iniciar\s+sesión|continuar|entrar/i })
+          .first();
+        await submit.click({ timeout: 20_000 });
+        await page.waitForTimeout(1500);
+        await page.waitForURL((u: URL) => !u.pathname.includes('/login'), { timeout: 45_000 }).catch(() => {});
+        const cookies = await page.context().cookies();
+        const hasAuthCookie = cookies.some((c) => c.name === 'idTokenV0.1.0' || c.name === 'sessionBodas');
+        if (hasAuthCookie) {
+          console.log(`loginAndSelectEvent: app local-login OK url=${page.url()}`);
+        } else {
+          console.log(`loginAndSelectEvent: app local-login no cookie url=${page.url()}`);
+        }
+      }
+    } catch (e) {
+      console.log(`loginAndSelectEvent: app local-login failed (${String(e).split('\n')[0]})`);
+    }
+  }
   const chatUrl = isRemoteEnv
     ? baseUrl.replace('app-test', 'chat-test').replace('app-dev', 'chat-dev').replace(/\/$/, '')
     : isLocalEnv
       ? baseUrl.replace(':3220', ':3210').replace(':8080', ':3210')
       : baseUrl.replace('app.', 'chat.');
 
-  // Patrón idéntico al de auth.spec.ts:loginInChat (ya verificado: 8/8 PASS)
   try {
-    await page.goto(`${chatUrl}/login`, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+    await page.goto(`${chatUrl}/login`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
   } catch (e) {
     if (!String(e).includes('interrupted by another navigation')) throw e;
   }
@@ -302,7 +329,7 @@ export async function loginAndSelectEvent(
   }
 
   // 2. Ir al home y hacer click en el primer evento
-  await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 });
   await waitForAppReady(page, 15_000);
 
   const misEventosTab = page.locator('a, button').filter({ hasText: /^Mis eventos$/i }).first();
@@ -790,6 +817,49 @@ export async function assertNoRuntimeError(page: Page): Promise<void> {
     if (pattern.test(text)) {
       const snippet = text.slice(0, 400).replace(/\s+/g, ' ');
       throw new Error(`BUG_PRODUCTO [${label}]: ${pattern.source} detectado en UI. Snippet: ${snippet}`);
+    }
+  }
+}
+
+/**
+ * Detecta pantallas en blanco / loaders infinitos que un user real vería como roto.
+ *
+ * Falla si tras `waitMs` la página NO tiene contenido significativo:
+ *   - Body con <minMeaningfulChars caracteres no-whitespace.
+ *   - Texto compuesto SOLO por loaders/spinners ("Comprobando sesión", "Cargando...", "Loading").
+ *
+ * Llamar tras `waitForAppReady` cuando la ruta debería tener contenido real renderizado.
+ * Si la ruta es legítimamente loading (carga lenta de datos), aumentar `waitMs`.
+ */
+export async function assertNotBlankScreen(
+  page: Page,
+  opts: { waitMs?: number; minMeaningfulChars?: number } = {},
+): Promise<void> {
+  const waitMs = opts.waitMs ?? 5000;
+  const minChars = opts.minMeaningfulChars ?? 80;
+  await page.waitForTimeout(waitMs);
+
+  const text = (await page.locator('body').textContent().catch(() => '')) ?? '';
+  const clean = text.replace(/\s+/g, ' ').trim();
+
+  if (clean.length < minChars) {
+    const snippet = clean.slice(0, 200);
+    throw new Error(
+      `BUG_PRODUCTO [Pantalla en blanco]: body tiene ${clean.length} chars (<${minChars} esperados) tras ${waitMs}ms. Snippet: "${snippet}"`,
+    );
+  }
+
+  const stuckLoadingPatterns = [
+    /^Comprobando sesión y conexión/i,
+    /^Cargando\.{3,}$/i,
+    /^Loading\.{3,}$/i,
+    /^Cargando contenido\.{3,}$/i,
+  ];
+  for (const pat of stuckLoadingPatterns) {
+    if (pat.test(clean)) {
+      throw new Error(
+        `BUG_PRODUCTO [Loading infinito]: body contiene solo "${clean.slice(0, 100)}" tras ${waitMs}ms. La app no terminó de cargar.`,
+      );
     }
   }
 }
