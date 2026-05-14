@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { Formik } from "formik";
 import { useEffect, useState } from "react";
 import { GoFileDiff } from "react-icons/go";
@@ -12,8 +11,11 @@ import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching";
 
 
 
-const validacion = (values) => {
-  let errors = {}
+type PagoValues = { importe?: number; fechaPago?: string; pagado_por?: string; medio_pago?: string; [key: string]: any };
+type PagoErrors = Partial<Record<keyof PagoValues, string>>;
+
+const validacion = (values: PagoValues) => {
+  const errors: PagoErrors = {}
   if (!values.importe) {
     errors.importe = "Importe requerido"
   }
@@ -30,8 +32,8 @@ const validacion = (values) => {
 }
 
 
-const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categorias, getId, }) => {
-  const { event, setEvent } = EventContextProvider()
+const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categorias, getId, }: any) => {
+  const { event, setEvent } = EventContextProvider() as any;
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [pago, setPago] = useState(ListaPagos?.find(item => item._id == IDPagoAModificar))
   const toast = useToast()
@@ -103,7 +105,7 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
   return (
     <Formik
       initialValues={initialValues}
-      onSubmit={async (values) => {
+      onSubmit={async (values: any) => {
         try {
           setIsLoadingImage(true)
 
@@ -170,12 +172,12 @@ export const BasicFormLogin = ({
   getId,
   isLoadingImage,
   pago
-}) => {
+}: any) => {
 
-  const { event } = EventContextProvider()
-  const { config } = AuthContextProvider()
+  const { event } = EventContextProvider() as any;
+  const { config } = AuthContextProvider() as any;
   const [ischecked, setCheck] = useState(values.pagado)
-  const { currency } = AuthContextProvider()
+  const { currency } = AuthContextProvider() as any;
   const toast = useToast()
   const [showProOptions, setShowProOptions] = useState(true)
   const Categoria = event?.presupuesto_objeto?.categorias_array?.find(item => item?._id == pago.idCategoria)?.nombre
