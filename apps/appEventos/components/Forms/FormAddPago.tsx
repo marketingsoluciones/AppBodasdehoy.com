@@ -1,4 +1,3 @@
-// @ts-nocheck — TODO: tipar este archivo correctamente (ITEM 8 batch 12, migración rápida)
 import { Formik } from "formik";
 import { useEffect, useState } from "react";
 import { EventContextProvider } from "../../context/";
@@ -11,8 +10,17 @@ import { GoChevronDown } from "react-icons/go";
 import { useTranslation } from 'react-i18next';
 import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching";
 
-const validacion = (values) => {
-  let errors = {}
+type PagoValues = {
+  importe?: number;
+  fechaPago?: string;
+  pagado_por?: string;
+  medio_pago?: string;
+  [key: string]: any;
+};
+type PagoErrors = Partial<Record<keyof PagoValues, string>>;
+
+const validacion = (values: PagoValues) => {
+  const errors: PagoErrors = {}
   if (!values.importe) {
     errors.importe = "Importe requerido"
   }
@@ -29,8 +37,8 @@ const validacion = (values) => {
   return errors
 }
 
-const validacion2 = (values) => {
-  let errors = {}
+const validacion2 = (values: PagoValues) => {
+  const errors: PagoErrors = {}
   if (!values.importe) {
     errors.importe = "Importe requerido"
   }
@@ -138,19 +146,20 @@ const FormAddPago = ({ GastoID, cate, setGastoID }) => {
           setIsSubmitting(false)
         }
       }}
-      validate={ischecked ? validacion : validacion2}
+      validate={(ischecked ? validacion : validacion2) as any}
     >
-      {(props) => <BasicFormLogin ischecked={ischecked} setCheck={setCheck} Categoria={Categoria} isSubmitting={isSubmitting} Proveedor={Proveedor} props {...props} />}
+      {(props: any) => <BasicFormLogin ischecked={ischecked} setCheck={setCheck} Categoria={Categoria} isSubmitting={isSubmitting} Proveedor={Proveedor} {...props} />}
     </Formik>
   );
 }
 
 export default FormAddPago
 
-export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit, isSubmitting, values, setValues, Proveedor, Categoria }) => {
-  const { event } = EventContextProvider()
+export const BasicFormLogin = ({ ischecked, setCheck, handleChange, handleSubmit, isSubmitting, values, setValues, Proveedor, Categoria }: any) => {
+  const { event } = EventContextProvider() as any;
   const [showProOptions, setShowProOptions] = useState(true)
   const { t } = useTranslation();
+  const toast = useToast();
   const [selectedFile, setSelectedFile] = useState(null);
   const [isWeddingPlanner, setIsWeddingPlanner] = useState(false);
 

@@ -35,7 +35,7 @@ interface propsFetchApiBodas {
   query: string;
   variables: any;
   type?: string;
-  development: string;
+  development?: string;
   token?: string;
 }
 
