@@ -1,4 +1,3 @@
-// @ts-nocheck — ModalGuardarRegalo + FormGuardarRegalos props mismatch pre-existente
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { AmazonIcon, CochinoIcon, CompartirIcon, DineroIcon, ListaOne, ListaTwo } from "../components/icons";
