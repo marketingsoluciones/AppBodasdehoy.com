@@ -18,6 +18,12 @@
       • Si sigue fallando: mandar incidencia con los 4 datos (endpoint, UTC,
         headers/development, payload completo).
 
+  [ ] DESBLOQUEAR CI — UI SMOKE (app-test):
+      • Configurar Secrets en GitHub Actions: SLACK_BOT_TOKEN, API_MCP_GRAPHQL_URL,
+        FIREBASE_API_KEY, SMOKE_EMAIL, SMOKE_PASSWORD.
+      • El workflow `UI Smoke (app-test)` está creado y programado; sin secrets
+        reporta BLOCKED en Slack.
+
   NO es nuestro trabajo arreglar: Ollama en servidores de api-ia, keys rotas en
   su backend, ni la config R2 en servidores de API2.
 

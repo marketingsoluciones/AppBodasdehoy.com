@@ -40,6 +40,7 @@ El canal mezcla mensajes **Front ↔ api-ia** y algunos **Front → MCP** (cuand
 
 - [ ] **Deploy prod** si aún no está: `X-Request-ID` RAG, `X-User-Role` vía `AUTH_CONFIG`, etc.
 - [ ] **Smoke** Copilot tras deploy.
+- [ ] **CI Smoke UI**: configurar secrets en GitHub Actions (ver `docs/CI-UI-SMOKE.md`).
 - [ ] Si **MCP** contesta sobre R2: re-probar upload y cerrar o escalar con **4 datos**.
 
 ---

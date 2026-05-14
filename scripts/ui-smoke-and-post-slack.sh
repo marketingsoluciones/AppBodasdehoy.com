@@ -11,11 +11,61 @@ MODE="${UI_SMOKE_MODE:-bypass}"
 NODE_MAJOR="$(node -p "process.versions.node.split('.')[0]" 2>/dev/null || echo '')"
 
 BASE_CHECK="$(curl -sS --max-time 12 "$BASE_URL/" 2>/dev/null | head -n 5 || true)"
-if echo "$BASE_CHECK" | grep -qi "Internal Server Error"; then
-  MSG="DE: FRONT-appEventos | PARA: COORDINACIÓN + war-room | DRI: @front_lead\nASUNTO: UI smoke (-dev) — BLOCKED (web 500)\n\nBase: $BASE_URL\nModo: $MODE\nNode: v$(node -v 2>/dev/null || echo unknown)\n\nMotivo: el front devuelve 'Internal Server Error' antes de ejecutar tests, no es fallo de flujo de usuario." 
+if [ -z "${BASE_CHECK//[[:space:]]/}" ]; then
+  MSG="$(cat <<EOF
+DE: FRONT-appEventos | PARA: COORDINACIÓN + war-room | DRI: @front_lead
+ASUNTO: UI smoke — BLOCKED (web inaccesible)
+
+Base: $BASE_URL
+Modo: $MODE
+Node: $(node -v 2>/dev/null || echo unknown)
+
+Motivo: no se pudo obtener respuesta HTTP del front (timeout / red / DNS).
+EOF
+)"
   MSG_SAFE="$(printf '%s' "$MSG" | tr -d '\000-\010\013\014\016-\037\177')"
   "$ROOT_DIR/scripts/slack-send.sh" --web --to "$CHANNEL" "$MSG_SAFE" || true
   exit 2
+fi
+
+if echo "$BASE_CHECK" | grep -qi "Internal Server Error"; then
+  MSG="$(cat <<EOF
+DE: FRONT-appEventos | PARA: COORDINACIÓN + war-room | DRI: @front_lead
+ASUNTO: UI smoke — BLOCKED (web 500)
+
+Base: $BASE_URL
+Modo: $MODE
+Node: $(node -v 2>/dev/null || echo unknown)
+
+Motivo: el front devuelve 'Internal Server Error' antes de ejecutar tests, no es fallo de flujo de usuario.
+EOF
+)"
+  MSG_SAFE="$(printf '%s' "$MSG" | tr -d '\000-\010\013\014\016-\037\177')"
+  "$ROOT_DIR/scripts/slack-send.sh" --web --to "$CHANNEL" "$MSG_SAFE" || true
+  exit 2
+fi
+
+if [ -n "${GITHUB_ACTIONS:-}" ]; then
+  missing=""
+  for v in SLACK_BOT_TOKEN API_MCP_GRAPHQL_URL FIREBASE_API_KEY SMOKE_EMAIL SMOKE_PASSWORD; do
+    if [ -z "${!v:-}" ]; then
+      missing="$missing $v"
+    fi
+  done
+  if [ -n "$missing" ]; then
+    MSG="$(cat <<EOF
+DE: FRONT-appEventos | PARA: COORDINACIÓN + war-room | DRI: @front_lead
+ASUNTO: UI smoke (CI) — BLOCKED (faltan secrets)
+
+Base: $BASE_URL
+Modo: $MODE
+Faltan:$missing
+EOF
+)"
+    MSG_SAFE="$(printf '%s' "$MSG" | tr -d '\000-\010\013\014\016-\037\177')"
+    "$ROOT_DIR/scripts/slack-send.sh" --web --to "$CHANNEL" "$MSG_SAFE" || true
+    exit 2
+  fi
 fi
 
 if [ -n "$NODE_MAJOR" ] && [ "$NODE_MAJOR" -ge 24 ]; then
