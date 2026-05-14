@@ -1,4 +1,3 @@
-// @ts-nocheck — TagsInput external types + DOM event mismatches pre-existentes (~12 errores TS)
 import { TagsInput } from "react-tag-input-component";
 import { AuthContextProvider } from "../../context";
 import { useEffect, useState } from "react";
@@ -28,10 +27,10 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }: 
         return isMobileDevice || (isTouchDevice && window.innerWidth <= 768);
     }
 
-    const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChangeInput = (e: any) => {
         const value = e?.target?.value || ""
         setCurrentInputValue(value)
-        
+
         if (value.length) {
             setShowInstruction(true)
         } else {
@@ -58,7 +57,7 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }: 
     }
 
     // Detectar eventos del teclado móvil para separadores
-    const handleMobileInput = (e) => {
+    const handleMobileInput = (e: any) => {
         if (!isMobile) return
         
         const value = e.target.value
@@ -108,17 +107,17 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }: 
         }
     }, [users, currentInputValue])
 
-    const handleSubmit = (selectedOption) => {
-        setUsers(selectedOption.map(elem => elem.toLowerCase()))
+    const handleSubmit = (selectedOption: string[]) => {
+        setUsers(selectedOption.map((elem: string) => elem.toLowerCase()))
     }
 
-    const errorValidator = (message) => {
+    const errorValidator = (message: string) => {
         setError(message)
         return false
     }
     const separators = ["Enter", ",", " ", ";"]
-    const beforeAddValidate = (tag) => {
-        const validator = []
+    const beforeAddValidate = (tag: string) => {
+        const validator: boolean[] = []
         const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         validator.push(regex.test(tag) ? true : errorValidator(t("invalidmail")))
         validator.push(optionsExist?.includes(tag) ? errorValidator(t("sharedmail")) : true)
@@ -127,15 +126,15 @@ export const FormAddUserToEvent = ({ users, setUsers, optionsExist, setValir }: 
     }
 
     const onBlur = () => {
-        const imp = document.getElementsByName("emails")
-        setValir(!imp[0].value)
+        const imp = document.getElementsByName("emails") as NodeListOf<HTMLInputElement>;
+        setValir?.(!imp[0]?.value)
     }
 
     return (
         <div className={`flex flex-col space-y-1 mb-5 md:mb-0 `}>
             {/* <label className="text-primary">{t("addperson")}</label> */}
             <div className="relative">
-                <div onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { const val = e.target?.value?.trim(); if (val && beforeAddValidate(val)) { e.preventDefault(); const newUsers = [...users, val.toLowerCase()]; setUsers(newUsers); e.target.value = ''; setCurrentInputValue(''); } } }} onKeyUp={(e) => { if (!separators.includes(e.key)) { error && setError(null) } }} >
+                <div onKeyDown={(e: any) => { if (e.key === 'Enter' || e.key === ' ') { const val = e.target?.value?.trim(); if (val && beforeAddValidate(val)) { e.preventDefault(); const newUsers = [...users, val.toLowerCase()]; setUsers(newUsers); e.target.value = ''; setCurrentInputValue(''); } } }} onKeyUp={(e) => { if (!separators.includes(e.key)) { error && setError(null) } }} >
                     <TagsInput
                         value={users}
                         onChange={handleSubmit}
