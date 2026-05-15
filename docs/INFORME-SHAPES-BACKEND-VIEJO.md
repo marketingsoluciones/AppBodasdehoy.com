@@ -883,3 +883,52 @@ extend type Mutation {
   createEventTicket(args:[inputEventTicket]):salidaEventTicket
   updateEventTicket(args:inputEventTicket):sventTicket
 }
+
+---
+
+## Tabla resumen — Firmas de endpoints clave del backend viejo
+
+Cruce exacto: cada endpoint que el cliente llama vs schema donde vive en api-bodas (137.184.148.28).
+
+| Endpoint del cliente | Schema (api-bodas) | Firma GraphQL exacta |
+|---|---|---|
+| `auth` | user | `auth(idToken:String): sessionCookie` |
+| `createUser` | user | `createUser(...)` (ver `user.js`) |
+| `createUserWithPassword` | user | `createUserWithPassword(email:String, password:String):String` |
+| `getUser` | user | `getUser(uid: ID): User` |
+| `getUsers` | user | `getUsers(uids: [ID]): [User]` |
+| `updateUser` | user | `updateUser(uid: ID, variable: String, valor: String): String` |
+| `updateCustomer` | stripe | `updateCustomer(args:inputCustomer):String` |
+| `getCustomer` | ⚠️ NO_FOUND en api-bodas | (probable en apiapp) |
+| `createCheckoutSession` | stripe | `createCheckoutSession(items:[inputItemsCheckout], email, cancel_url, mode, success_url):String` |
+| `setCheckoutItems` | stripe | `setCheckoutItems(unique:ID, args:[inputDetailsItemsCheckout]):String` |
+| `getCheckoutItems` | stripe | `getCheckoutItems(unique:ID):itemsCheckout` |
+| `createNotifications` | notifications | `createNotifications(args:inputNotifications):salidaNotification` |
+| `getNotifications` | notifications | `getNotifications(args:inputNotification, sort:sortCriteriaNotification, skip:Int, limit:Int):salidaNotification` |
+| `updateNotifications` | notifications | `updateNotifications(args:inputNotification):String` |
+| `getAllBusinesses` | business | `getAllBusinesses(searchCriteria:searchCriteriaBusiness, sort:sortCriteriaBusiness, skip:Int, limit:Int, development:String!):salidaBusinessCms` |
+| `getAllProducts` | stripe | `getAllProducts(grupo:String):salidaProducts` |
+| `createEventTicket` | eventTicket | `createEventTicket(args:[inputEventTicket]):salidaEventTicket` |
+| `getEventTicket` | eventTicket | `getEventTicket(args:inputEventTicket, sort:sortCriteriaEventTicket, skip:Int, limit:Int):salidaEventTicket` |
+| `updateEventTicket` | eventTicket | `updateEventTicket(args:inputEventTicket):sventTicket` |
+| `addCompartition` | ⚠️ NO_FOUND | (probable en apiapp) |
+| `updateCompartition` | ⚠️ NO_FOUND | (probable en apiapp) |
+| `deleteCompartition` | ⚠️ NO_FOUND | (probable en apiapp) |
+
+### Cómo ver el resolver completo (NO solo la firma)
+
+Desde el server de api-mcp:
+```bash
+ssh investigate-bodas
+cat /root/api-bodas/db/schemas/stripe.js          # resolver updateCustomer/checkout/products
+cat /root/api-bodas/db/schemas/user.js            # resolver auth/users
+cat /root/api-bodas/db/schemas/business.js        # resolver directorio
+cat /root/api-bodas/db/schemas/notifications.js   # resolver notificaciones
+cat /root/api-bodas/db/schemas/eventTicket.js     # resolver tickets
+```
+
+Todos los schemas vienen incluidos en el paquete offline:
+```bash
+cd /tmp && tar xzf api-bodas-export.tar.gz
+ls api-bodas-export/db/schemas/
+```
