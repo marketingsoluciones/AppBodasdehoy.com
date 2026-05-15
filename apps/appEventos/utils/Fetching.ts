@@ -402,7 +402,7 @@ export const queries = {
     }
   }`,
 
-  getAllBusiness: `query ($criteria :searchCriteriaBusiness, $sort : sortCriteriaBusiness, $skip :Int, $limit : Int, $development: String!) {
+  getAllBusiness: `query ($criteria :JSON, $sort : JSON, $skip :Int, $limit : Int, $development: String!) {
     getAllBusinesses(searchCriteria:$criteria, sort: $sort, skip: $skip, limit: $limit, development: $development){
       total
       results{
@@ -487,7 +487,7 @@ export const queries = {
     }
   }`,
 
-  setCheckoutItems: `mutation ( $unique:ID, $args:[inputDetailsItemsCheckout] )
+  setCheckoutItems: `mutation ( $unique:ID, $args:JSON )
   {
     setCheckoutItems(unique:$unique, args:$args)
   }`,
@@ -503,7 +503,7 @@ export const queries = {
     }
   }`,
 
-  getEventTicket: `query ( $args:inputEventTicket, $sort:sortCriteriaEventTicket, $skip:Int, $limit:Int )
+  getEventTicket: `query ( $args:inputEventTicket, $sort:JSON, $skip:Int, $limit:Int )
   {
     getEventTicket(args:$args, sort:$sort, skip:$skip, limit:$limit ){
       total
@@ -516,7 +516,7 @@ export const queries = {
     }
   }`,
 
-  createCheckoutSession: `mutation ($items:[inputItemsCheckout], $email:String, $cancel_url:String, $mode:String, $success_url:String){
+  createCheckoutSession: `mutation ($items:JSON, $email:String, $cancel_url:String, $mode:String, $success_url:String){
     createCheckoutSession(items:$items, email:$email, cancel_url:$cancel_url, mode:$mode, success_url:$success_url)
   }`,
 
@@ -836,7 +836,7 @@ export const queries = {
       }
     }
   }`,
-  getNotifications: `query ($args:inputNotification, $sort:sortCriteriaNotification, $skip:Int, $limit:Int){
+  getNotifications: `query ($args:JSON, $sort:JSON, $skip:Int, $limit:Int){
     getNotifications(args:$args, sort:$sort, skip:$skip, limit:$limit){
       total
       results{
@@ -1317,7 +1317,7 @@ export const queries = {
     }
   }`,
 
-  editVisibleColumns: `mutation ($evento_id:String, $visibleColumns:[inputVisibleColumn]){
+  editVisibleColumns: `mutation ($evento_id:String, $visibleColumns:JSON){
     editVisibleColumns(evento_id:$evento_id, visibleColumns:$visibleColumns ){
       presupuesto_total
       viewEstimates
@@ -2553,7 +2553,7 @@ export const queries = {
       }
     }
   }`,
-  createGalerySvgs: `mutation ($evento_id: ID, $galerySvgs:[inputGalerySvg]) {
+  createGalerySvgs: `mutation ($evento_id: ID, $galerySvgs:JSON) {
     createGalerySvgs(evento_id: $evento_id, galerySvgs: $galerySvgs) {
       total
       results{
