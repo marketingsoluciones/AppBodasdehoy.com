@@ -999,9 +999,9 @@ const AuthProvider = ({ children }) => {
       }}
     >
       <div style={{ pointerEvents: 'none' }}>
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-pink-500 mx-auto" />
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-azulCorporativo mx-auto" />
         <p className="mt-4 text-gray-700 font-medium">Comprobando sesión y conexión…</p>
-        <p className="mt-1 text-lg font-semibold tabular-nums text-primary">{authBootSeconds}s</p>
+        <p className="mt-1 text-lg font-semibold tabular-nums text-azulCorporativo">{authBootSeconds}s</p>
         <p className="mt-1 max-w-xs text-center text-sm text-gray-400">
           El contenido principal (banner, tarjetas) carga después de este paso. Si el contador sube mucho, suele ser red lenta o el servidor de datos.
         </p>
@@ -1010,7 +1010,7 @@ const AuthProvider = ({ children }) => {
         <button
           type="button"
           onClick={handleSkipLoading}
-          className="mt-6 px-4 py-2 rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition"
+          className="mt-6 px-4 py-2 rounded-lg bg-azulCorporativo text-white font-medium hover:bg-azulCorporativo/90 transition"
           style={{ pointerEvents: 'auto' }}
         >
           Reintentar sesión
