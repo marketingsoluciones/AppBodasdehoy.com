@@ -2393,8 +2393,8 @@ export const queries = {
   //     }
   //   }
   // }`,
-  getPsTemplate: `query ($uid: String, $development: String!) {
-    getPsTemplate(uid: $uid, development: $development) {
+  getPsTemplate: `query ($uid: String, $evento_id: ID!, $development: String!) {
+    getPsTemplate(uid: $uid, evento_id: $evento_id, development: $development) {
       _id
       title
     }

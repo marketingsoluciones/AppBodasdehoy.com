@@ -331,14 +331,13 @@ const EventsGroupProvider = ({ children }) => {
               setEventsGroupError(true)
               setEventsGroupDone(true)
             });
-          fetchApiEventos({
-            query: queries.getPsTemplate,
-            variables: { uid: user.uid, development }
-          })
-            .then((templates: any) => {
-              setPsTemplates(templates)
-            })
-            .catch((error) => console.log(error));
+          // NOTE 2026-05-15: backend schema cambió — getPsTemplate ahora requiere
+          // `evento_id: ID!` que este contexto NO tiene (se carga antes de seleccionar
+          // evento). Llamada deshabilitada para evitar spam GraphQL validation errors
+          // que saturan webpack dev (vía /api/dev/browser-log). Los componentes que
+          // necesiten plantillas (BlockPlantillas en Mesas) las cargan demand-driven
+          // cuando ya hay event._id en scope.
+          setPsTemplates([])
         } else {
           setEventsGroupDone(true)
         }
