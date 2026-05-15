@@ -124,5 +124,9 @@ getNotifications(args: JSON, sort: JSON, skip: Int, limit: Int): NotificationsRe
 
 ## 5. Pendientes para coordinación
 
-- **Acceso al origen real de apiapp.bodasdehoy.com**: no localizado por SSH. ¿Puede el equipo backend confirmar la IP origen detrás de Cloudflare? Con SSH ahí podríamos extraer schemas exactos en lugar de inferir por error de tipo.
-- **Decisión sobre 3 endpoints removidos en api-mcp**: `updateCustomer` (Stripe), `getAllBusinesses` (directorio venues), `getEventTicket`. El cliente los llama; backend debe decidir si reimplementar o cliente eliminar callsites.
+- **Workflow**: cuando completen un dominio, avisar en Slack `#coordinacion` thread `1778170638.897419` para que COORD actualice el cliente AppEventos (cambia URL a api-mcp, ajusta tipos si simplifican a JSON).
+- **Decisión sobre 3 endpoints específicos**: `updateCustomer` (Stripe), `getAllBusinesses` (directorio venues), `getEventTicket`. El cliente los llama; backend api-mcp decide:
+  - **Opción A**: reimplementar en api-mcp (mantiene funcionalidad).
+  - **Opción B**: marcar como deprecados → COORD elimina callsites del cliente.
+
+> **NOTA**: No se necesita SSH al origen real de `apiapp.bodasdehoy.com`. El fragmento exacto del cliente (en el informe) + introspección HTTP pública del backend viejo es suficiente para implementar cada endpoint. La recomendación de simplificar a `JSON` genérico evita tener que replicar tipos custom legacy.
