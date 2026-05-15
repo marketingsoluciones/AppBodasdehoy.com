@@ -333,7 +333,7 @@ const EventsGroupProvider = ({ children }) => {
             });
           fetchApiEventos({
             query: queries.getPsTemplate,
-            variables: { uid: user.uid }
+            variables: { uid: user.uid, development }
           })
             .then((templates: any) => {
               setPsTemplates(templates)

@@ -63,7 +63,15 @@ export const DEFAULT_API_IA_ORIGIN = 'https://api3-ia.eventosorganizador.com';
 export function resolveApiBodasGraphqlUrl(): string {
   failIfLegacyAliasSet();
   const raw = process.env.API_MCP_GRAPHQL_URL || process.env.NEXT_PUBLIC_API_MCP_GRAPHQL_URL;
-  return normalizeGraphqlUrl(raw || DEFAULT_MCP_GRAPHQL_URL);
+  const resolved = normalizeGraphqlUrl(raw || DEFAULT_MCP_GRAPHQL_URL);
+
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    if (isLocalhost) return '/api/proxy-bodas/graphql';
+  }
+
+  return resolved;
 }
 
 export function resolveApiBodasOrigin(): string {

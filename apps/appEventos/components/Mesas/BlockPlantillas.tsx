@@ -24,7 +24,7 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
     try {
       const result = await fetchApiEventos({
         query: queries.getPsTemplate,
-        variables: { evento_id: event?._id, development: config?.development || "bodasdehoy" }
+        variables: { uid: user?.uid, development: config?.development || "bodasdehoy" }
       })
       // If result contains templates, find the selected one and apply
       const templates = Array.isArray(result) ? result : result?.psTemplates || []
