@@ -190,9 +190,9 @@ export function SplitLoginPage({ children, leftPanel }: SplitLoginPageProps) {
 
   return (
     <div
+      className="auth-ui-split"
       style={{
         display: 'grid',
-        gridTemplateColumns: 'clamp(260px, 42%, 460px) 1fr',
         minHeight: '100vh',
       }}
     >
@@ -216,8 +216,10 @@ export function SplitLoginPage({ children, leftPanel }: SplitLoginPageProps) {
       </div>
 
       <style>{`
+        .auth-ui-split { grid-template-columns: clamp(260px, 42%, 460px) 1fr; }
         @media (max-width: 768px) {
           .auth-ui-left-panel { display: none !important; }
+          .auth-ui-split { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>

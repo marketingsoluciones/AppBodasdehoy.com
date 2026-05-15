@@ -15,20 +15,20 @@ module.exports = {
     },
     extend: {
       colors: {
-        primary: `var(--color-primary)`,
-        secondary: `var(--color-secondary)`,
-        tertiary: `var(--color-tertiary)`,
-        "color-base": `var(--color-base)`,
-        base: "#F2F2F2",
+        primary: `var(--color-primary, #ec4899)`,
+        secondary: `var(--color-secondary, #f472b6)`,
+        tertiary: `var(--color-tertiary, #f9a8d4)`,
+        "color-base": `var(--color-base, #ffffff)`,
+        base: `var(--color-base, #F2F2F2)`,
         green: "#13ce66",
         red: "#fa0202",
         basePage: "#F6F6F6",
-        primaryOrg: "#6096B9",
-        secondaryOrg: "#284C77",
-        acento: "#F4C02F",
+        primaryOrg: `var(--color-primary, #6096B9)`,
+        secondaryOrg: `var(--color-secondary, #284C77)`,
+        acento: `var(--color-tertiary, #F4C02F)`,
         titelCard: "#B5B5B5",
         textGrisClaro: "#727272",
-        'azulCorporativo': '#49516F'
+        'azulCorporativo': `var(--color-secondary, #49516F)`
       },
       transitionProperty: {
         'height': 'height'
