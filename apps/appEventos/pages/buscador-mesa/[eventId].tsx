@@ -52,7 +52,7 @@ const BuscadorMesa: NextPage<Props> = ({ eventId, eventName, eventType, eventImg
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white flex flex-col items-center justify-center gap-3 px-4">
+      <div className="min-h-screen bg-gradient-to-b from-base to-white flex flex-col items-center justify-center gap-3 px-4">
         <p className="text-2xl">😕</p>
         <p className="text-gray-700 font-medium text-center">
           {error === 'not_found' ? 'Evento no encontrado' : 'No se pudo cargar el evento'}
@@ -94,17 +94,17 @@ const BuscadorMesa: NextPage<Props> = ({ eventId, eventName, eventType, eventImg
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <main className="min-h-screen bg-gradient-to-b from-rose-50 to-white flex flex-col items-center px-4 py-12">
+      <main className="min-h-screen bg-gradient-to-b from-base to-white flex flex-col items-center px-4 py-12">
         {/* Header */}
         <div className="flex flex-col items-center mb-8 text-center">
           {eventImg && (
             <img
               src={`https://api-mcp.eventosorganizador.com/${eventImg}`}
               alt={eventName}
-              className="w-20 h-20 rounded-full object-cover object-top border-2 border-rose-200 mb-4 shadow-sm"
+              className="w-20 h-20 rounded-full object-cover object-top border-2 border-primary mb-4 shadow-sm"
             />
           )}
-          <p className="text-sm text-rose-400 capitalize font-medium mb-1">{eventType}</p>
+          <p className="text-sm text-primary capitalize font-medium mb-1">{eventType}</p>
           <h1 className="text-2xl font-semibold text-gray-800">{eventName}</h1>
           <p className="text-gray-500 mt-2 text-sm">¿En qué mesa estoy?</p>
         </div>
@@ -119,7 +119,7 @@ const BuscadorMesa: NextPage<Props> = ({ eventId, eventName, eventType, eventImg
               onChange={(e) => handleSearch(e.target.value)}
               placeholder="Escribe tu nombre..."
               autoFocus
-              className="w-full px-5 py-4 rounded-2xl border border-gray-200 shadow-sm text-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300 bg-white"
+              className="w-full px-5 py-4 rounded-2xl border border-gray-200 shadow-sm text-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-white"
             />
             {query && (
               <button
@@ -145,15 +145,15 @@ const BuscadorMesa: NextPage<Props> = ({ eventId, eventName, eventType, eventImg
                     key={guest._id}
                     className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 flex items-center gap-4"
                   >
-                    <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-rose-400 font-semibold text-sm">
+                    <div className="w-10 h-10 rounded-full bg-base flex items-center justify-center flex-shrink-0">
+                      <span className="text-primary font-semibold text-sm">
                         {guest.nombre.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 truncate">{guest.nombre}</p>
                       <p className="text-sm text-gray-500 mt-0.5">
-                        Mesa: <span className="font-semibold text-rose-500">{guest.nombre_mesa}</span>
+                        Mesa: <span className="font-semibold text-primary">{guest.nombre_mesa}</span>
                         {guest.puesto && (
                           <span className="ml-2 text-gray-400">· Asiento {guest.puesto}</span>
                         )}
@@ -212,7 +212,7 @@ const BuscadorMesa: NextPage<Props> = ({ eventId, eventName, eventType, eventImg
 
         <a
           href={`/e/${eventId}`}
-          className="mt-8 text-xs text-rose-400 hover:text-rose-500 transition underline"
+          className="mt-8 text-xs text-primary hover:text-primary transition underline"
         >
           Ver el programa del evento →
         </a>

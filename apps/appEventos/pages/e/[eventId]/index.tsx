@@ -151,7 +151,7 @@ function CountdownTimer({ dateStr }: { dateStr: string }) {
   ];
 
   return (
-    <div className="bg-rose-500 text-white rounded-2xl px-5 py-4 mb-5 shadow-sm">
+    <div className="bg-primary text-white rounded-2xl px-5 py-4 mb-5 shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-widest opacity-75 text-center mb-3">
         El gran día llega en
       </p>
@@ -203,8 +203,8 @@ function GuestInfoCard({
   const hasMenu = data.nombre_menu && data.nombre_menu !== 'no asignado';
 
   return (
-    <div className="bg-white border border-rose-100 rounded-2xl px-5 py-4 mb-5 shadow-sm">
-      <p className="text-xs font-semibold text-rose-400 uppercase tracking-widest mb-3">Tu invitación</p>
+    <div className="bg-white border border-primary rounded-2xl px-5 py-4 mb-5 shadow-sm">
+      <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">Tu invitación</p>
       <div className="space-y-2 mb-4">
         <div className="flex items-center gap-2 text-sm">
           <span className="text-base">{confirmed ? '✅' : '⏳'}</span>
@@ -232,7 +232,7 @@ function GuestInfoCard({
       {!confirmed && (
         <button
           onClick={onRsvp}
-          className="w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold py-3 rounded-xl text-sm transition active:scale-95"
+          className="w-full bg-primary hover:bg-primary text-white font-semibold py-3 rounded-xl text-sm transition active:scale-95"
         >
           ✉️ Confirmar mi asistencia
         </button>
@@ -250,7 +250,7 @@ function AlbumCard({ album, eventId }: { album: EventAlbum; eventId: string }) {
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3 hover:shadow-md hover:border-rose-200 transition"
+      className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3 hover:shadow-md hover:border-primary transition"
     >
       {album.cover_image_url ? (
         <img
@@ -259,14 +259,14 @@ function AlbumCard({ album, eventId }: { album: EventAlbum; eventId: string }) {
           className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
         />
       ) : (
-        <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center flex-shrink-0 text-2xl">
+        <div className="w-12 h-12 rounded-xl bg-base flex items-center justify-center flex-shrink-0 text-2xl">
           📸
         </div>
       )}
       <div className="flex-1 min-w-0">
         <p className="font-medium text-gray-900 text-sm leading-snug line-clamp-1">{album.name}</p>
         {album.media_count != null && album.media_count > 0 ? (
-          <p className="text-xs text-rose-400 mt-0.5 font-medium">{album.media_count} foto{album.media_count !== 1 ? 's' : ''}</p>
+          <p className="text-xs text-primary mt-0.5 font-medium">{album.media_count} foto{album.media_count !== 1 ? 's' : ''}</p>
         ) : (
           <p className="text-xs text-gray-400 mt-0.5">Sube las primeras fotos</p>
         )}
@@ -317,7 +317,7 @@ function SeatFinder({ guests }: { guests: { _id: string; nombre: string; nombre_
           value={query}
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="Escribe tu nombre…"
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-300 bg-gray-50"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-gray-50"
         />
         {query && (
           <button
@@ -337,14 +337,14 @@ function SeatFinder({ guests }: { guests: { _id: string; nombre: string; nombre_
             </div>
           ) : (
             results.map((g) => (
-              <div key={g._id} className="flex items-center gap-3 bg-rose-50 rounded-xl px-4 py-2.5">
-                <div className="w-8 h-8 rounded-full bg-rose-200 flex items-center justify-center flex-shrink-0">
-                  <span className="text-rose-600 font-semibold text-xs">{g.nombre.charAt(0).toUpperCase()}</span>
+              <div key={g._id} className="flex items-center gap-3 bg-base rounded-xl px-4 py-2.5">
+                <div className="w-8 h-8 rounded-full bg-base flex items-center justify-center flex-shrink-0">
+                  <span className="text-primary font-semibold text-xs">{g.nombre.charAt(0).toUpperCase()}</span>
                 </div>
                 <div>
                   <p className="font-medium text-gray-900 text-sm">{g.nombre}</p>
                   <p className="text-xs text-gray-500">
-                    Mesa: <span className="font-semibold text-rose-500">{g.nombre_mesa}</span>
+                    Mesa: <span className="font-semibold text-primary">{g.nombre_mesa}</span>
                     {g.puesto && <span className="ml-1.5 text-gray-400">· Asiento {g.puesto}</span>}
                   </p>
                 </div>
@@ -371,19 +371,19 @@ function IosInstallModal({ onClose }: { onClose: () => void }) {
         </div>
         <ol className="space-y-3 text-sm text-gray-600 mb-5">
           <li className="flex items-start gap-2">
-            <span className="w-5 h-5 rounded-full bg-rose-100 text-rose-500 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+            <span className="w-5 h-5 rounded-full bg-base text-primary font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
             <span>Pulsa el botón <strong>Compartir</strong> <span className="text-base">⬆️</span> en Safari</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="w-5 h-5 rounded-full bg-rose-100 text-rose-500 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+            <span className="w-5 h-5 rounded-full bg-base text-primary font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
             <span>Toca <strong>"Añadir a pantalla de inicio"</strong></span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="w-5 h-5 rounded-full bg-rose-100 text-rose-500 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+            <span className="w-5 h-5 rounded-full bg-base text-primary font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
             <span>Pulsa <strong>Añadir</strong> — ¡ya lo tienes!</span>
           </li>
         </ol>
-        <button onClick={onClose} className="w-full bg-rose-500 text-white font-semibold py-3 rounded-xl">
+        <button onClick={onClose} className="w-full bg-primary text-white font-semibold py-3 rounded-xl">
           Entendido
         </button>
       </div>
@@ -419,12 +419,12 @@ function PortalNameModal({ onConfirm, onClose }: { onConfirm: (name: string) => 
             onChange={(e) => setName(e.target.value)}
             placeholder="Tu nombre"
             maxLength={50}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-base focus:outline-none focus:ring-2 focus:ring-rose-300 bg-gray-50"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-base focus:outline-none focus:ring-2 focus:ring-primary bg-gray-50"
           />
           <button
             type="submit"
             disabled={name.trim().length < 2}
-            className="w-full bg-rose-500 disabled:bg-gray-200 disabled:text-gray-400 text-white font-semibold py-3 rounded-xl transition active:scale-95"
+            className="w-full bg-primary disabled:bg-gray-200 disabled:text-gray-400 text-white font-semibold py-3 rounded-xl transition active:scale-95"
           >
             Entrar →
           </button>
@@ -560,7 +560,7 @@ const GuestPortal: NextPage<Props> = ({ event, error }) => {
         <meta name="apple-mobile-web-app-title" content={event.nombre} />
       </Head>
 
-      <main className="absolute z-[50] w-full min-h-[100vh] top-0 bg-gradient-to-b from-rose-50 to-white overflow-y-auto pb-24">
+      <main className="absolute z-[50] w-full min-h-[100vh] top-0 bg-gradient-to-b from-base to-white overflow-y-auto pb-24">
 
         {/* ── Hero ── */}
         {imgUrl ? (
@@ -582,7 +582,7 @@ const GuestPortal: NextPage<Props> = ({ event, error }) => {
             {showInstallButton && (
               <button
                 onClick={handleInstall}
-                className="absolute top-4 right-4 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur text-rose-500 text-xs font-semibold px-3 py-1.5 rounded-full shadow hover:bg-white transition active:scale-95"
+                className="absolute top-4 right-4 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur text-primary text-xs font-semibold px-3 py-1.5 rounded-full shadow hover:bg-white transition active:scale-95"
               >
                 <span>📲</span>
                 <span>Guardar</span>
@@ -592,10 +592,10 @@ const GuestPortal: NextPage<Props> = ({ event, error }) => {
         ) : (
           /* Sin foto: header centrado */
           <div className="flex flex-col items-center text-center px-4 pt-10 pb-2">
-            <div className="w-20 h-20 rounded-full bg-rose-100 flex items-center justify-center mb-3 shadow-md">
+            <div className="w-20 h-20 rounded-full bg-base flex items-center justify-center mb-3 shadow-md">
               <span className="text-3xl">{eventTypeIcon(event.tipo)}</span>
             </div>
-            <p className="text-xs font-semibold text-rose-400 uppercase tracking-widest mb-1">{event.tipo}</p>
+            <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-1">{event.tipo}</p>
             <h1 className="text-2xl font-bold text-gray-800">{event.nombre}</h1>
             {event.fecha && (
               <p className="text-sm text-gray-500 mt-1 capitalize">{formatEventDate(event.fecha)}</p>
@@ -609,7 +609,7 @@ const GuestPortal: NextPage<Props> = ({ event, error }) => {
             {showInstallButton && (
               <button
                 onClick={handleInstall}
-                className="mt-3 inline-flex items-center gap-1.5 bg-white border border-rose-200 text-rose-500 text-xs font-semibold px-4 py-2 rounded-full shadow-sm hover:border-rose-400 hover:bg-rose-50 active:scale-95 transition"
+                className="mt-3 inline-flex items-center gap-1.5 bg-white border border-primary text-primary text-xs font-semibold px-4 py-2 rounded-full shadow-sm hover:border-primary hover:bg-base active:scale-95 transition"
               >
                 <span>📲</span>
                 <span>Guardar en mi móvil</span>
@@ -632,7 +632,7 @@ const GuestPortal: NextPage<Props> = ({ event, error }) => {
                   href={mapLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-rose-400 font-medium hover:underline"
+                  className="text-primary font-medium hover:underline"
                 >
                   Ver en el mapa →
                 </a>
@@ -646,7 +646,7 @@ const GuestPortal: NextPage<Props> = ({ event, error }) => {
                 href={mapLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-rose-400 font-medium hover:underline"
+                className="text-xs text-primary font-medium hover:underline"
               >
                 📍 Ver ubicación en Google Maps →
               </a>
@@ -669,9 +669,9 @@ const GuestPortal: NextPage<Props> = ({ event, error }) => {
           {!sessionLoading && (
             session ? (
               session.level < 2 && (
-                <div className="bg-white border border-rose-100 rounded-2xl px-4 py-3 mb-5 flex items-center gap-3 shadow-sm">
-                  <div className="w-9 h-9 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-rose-500 font-bold text-sm">{session.guestName.charAt(0).toUpperCase()}</span>
+                <div className="bg-white border border-primary rounded-2xl px-4 py-3 mb-5 flex items-center gap-3 shadow-sm">
+                  <div className="w-9 h-9 rounded-full bg-base flex items-center justify-center flex-shrink-0">
+                    <span className="text-primary font-bold text-sm">{session.guestName.charAt(0).toUpperCase()}</span>
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-gray-800">Hola, {session.guestName} 👋</p>
@@ -680,7 +680,7 @@ const GuestPortal: NextPage<Props> = ({ event, error }) => {
                     </p>
                   </div>
                   {hasAlbums && (
-                    <span className="text-xs text-rose-400 font-medium flex-shrink-0">📸 {albums.length}</span>
+                    <span className="text-xs text-primary font-medium flex-shrink-0">📸 {albums.length}</span>
                   )}
                 </div>
               )
@@ -688,10 +688,10 @@ const GuestPortal: NextPage<Props> = ({ event, error }) => {
               /* Sin sesión — invitar a identificarse */
               <button
                 onClick={() => setShowNameModal(true)}
-                className="w-full bg-white border border-dashed border-rose-200 rounded-2xl px-4 py-3 mb-5 flex items-center gap-3 hover:border-rose-400 transition text-left"
+                className="w-full bg-white border border-dashed border-primary rounded-2xl px-4 py-3 mb-5 flex items-center gap-3 hover:border-primary transition text-left"
               >
-                <div className="w-9 h-9 rounded-full bg-rose-50 flex items-center justify-center flex-shrink-0">
-                  <span className="text-rose-300 text-xl">👤</span>
+                <div className="w-9 h-9 rounded-full bg-base flex items-center justify-center flex-shrink-0">
+                  <span className="text-primary text-xl">👤</span>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-700">¿Cómo te llamas?</p>
@@ -704,12 +704,12 @@ const GuestPortal: NextPage<Props> = ({ event, error }) => {
           {/* ── Nivel 2: nombre del invitado verificado ── */}
           {!sessionLoading && session?.level === 2 && (
             <div className="flex items-center gap-2 mb-5 px-1">
-              <div className="w-7 h-7 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
-                <span className="text-rose-500 font-bold text-xs">{session.guestName.charAt(0).toUpperCase()}</span>
+              <div className="w-7 h-7 rounded-full bg-base flex items-center justify-center flex-shrink-0">
+                <span className="text-primary font-bold text-xs">{session.guestName.charAt(0).toUpperCase()}</span>
               </div>
               <p className="text-sm text-gray-600">
                 Bienvenido, <span className="font-semibold text-gray-900">{session.guestName}</span>
-                <span className="ml-1.5 text-xs bg-rose-100 text-rose-500 px-1.5 py-0.5 rounded-full font-medium">✓ Verificado</span>
+                <span className="ml-1.5 text-xs bg-base text-primary px-1.5 py-0.5 rounded-full font-medium">✓ Verificado</span>
               </p>
             </div>
           )}
@@ -738,7 +738,7 @@ const GuestPortal: NextPage<Props> = ({ event, error }) => {
           {itineraryHref && (
             <a
               href={itineraryHref}
-              className="flex items-center justify-between bg-white border border-gray-100 rounded-2xl px-4 py-3 mb-6 shadow-sm hover:border-rose-200 hover:shadow-md transition"
+              className="flex items-center justify-between bg-white border border-gray-100 rounded-2xl px-4 py-3 mb-6 shadow-sm hover:border-primary hover:shadow-md transition"
             >
               <div className="flex items-center gap-3">
                 <span className="text-xl">📋</span>
