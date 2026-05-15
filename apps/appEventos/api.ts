@@ -4,7 +4,7 @@ import { Manager } from "socket.io-client";
 import { getAuth } from "firebase/auth";
 import { parseJwt } from "./utils/Authentication";
 import { varGlobalDomain, varGlobalDevelopment, varGlobalSubdomain } from "./context/AuthContext"
-import { resolveApiBodasGraphqlUrl, resolveApiBodasOrigin } from "./utils/apiEndpoints";
+import { resolveApiBodasAuthGraphqlUrl, resolveApiEventosOrigin } from "./utils/apiEndpoints";
 
 /** En localhost el navegador rechaza cookies con domain=.bodasdehoy.com */
 const _isDevLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -25,7 +25,7 @@ const isLocalhost = typeof window !== 'undefined' &&
    window.location.hostname === '127.0.0.1' ||
    window.location.hostname.includes('-test.') ||
    window.location.hostname.includes('-dev.'));
-const baseURL = isLocalhost ? '/api/proxy' : resolveApiBodasOrigin();
+const baseURL = isLocalhost ? '/api/proxy' : resolveApiEventosOrigin();
 const instance = axios.create({ baseURL });
 
 // Ante 403/401: limpiar sesión y redirigir a login con mensaje (evita "Request failed with status code 403" en pantalla).
@@ -115,7 +115,7 @@ export const api = {
   socketIO: ({ token, development, father, origin }: { token?: any; development?: any; father?: any; origin?: any }) => {
     if (!development) return
     const socketUrl = (process.env.NEXT_PUBLIC_SOCKET_URL || "").trim()
-      || resolveApiBodasOrigin()
+      || resolveApiEventosOrigin()
       || ""
     const manager = new Manager(socketUrl, {
       closeOnBeforeunload: true,
@@ -145,7 +145,7 @@ export const api = {
       console.log("error no firebase")
     }
 
-    const bodasApiUrl = isLocalhost ? '/api/proxy-bodas/graphql' : resolveApiBodasGraphqlUrl();
+    const bodasApiUrl = isLocalhost ? '/api/proxy-bodas/graphql' : resolveApiBodasAuthGraphqlUrl();
     const headers: Record<string, any> = {
       Development: development,
       IsProduction: (process?.env?.NEXT_PUBLIC_PRODUCTION && !["testticket", "testinvitado"].includes(varGlobalSubdomain)) ?? false,
@@ -186,7 +186,7 @@ export const fetchApiViewConfig = async (params: any) => {
     console.error("Error getting token:", error);
   }
 
-  const graphqlUrl = isLocalhost ? '/api/proxy-bodas/graphql' : resolveApiBodasGraphqlUrl();
+  const graphqlUrl = isLocalhost ? '/api/proxy-bodas/graphql' : resolveApiBodasAuthGraphqlUrl();
   return axios.post(graphqlUrl, params, {
     headers: {
       Authorization: `Bearer ${idToken}`,

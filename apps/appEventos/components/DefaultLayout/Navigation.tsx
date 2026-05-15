@@ -192,12 +192,8 @@ const Navigation: FC = () => {
                         }}
                         className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition cursor-pointer
                   ${route == item.route
-                            ? route == "/"
-                              ? "text-white transform scale-110"
-                              : "text-primary transform scale-110"
-                            : route == "/"
-                              ? "text-gray-200"
-                              : "text-gray-400"
+                            ? "text-primary transform scale-110"
+                            : "text-gray-400"
                           }
                     ${event?._id ? "" : ""}
                   }`}

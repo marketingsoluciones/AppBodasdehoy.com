@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
-import { resolveApiBodasGraphqlUrl } from '../../../utils/apiEndpoints';
+import { resolveApiEventosGraphqlUrl } from '../../../utils/apiEndpoints';
 
 export default async function handler(
   req: NextApiRequest,
@@ -12,7 +12,7 @@ export default async function handler(
   }
 
   try {
-    const graphqlUrl = resolveApiBodasGraphqlUrl();
+    const graphqlUrl = resolveApiEventosGraphqlUrl();
 
     // Extraer headers necesarios del request original
     const headers: any = {

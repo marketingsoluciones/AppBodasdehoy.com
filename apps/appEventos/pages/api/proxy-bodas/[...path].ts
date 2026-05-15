@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { resolveApiBodasOrigin } from '../../../utils/apiEndpoints';
+import { resolveApiBodasAuthOrigin } from '../../../utils/apiEndpoints';
 
-const BODAS_API_URL = resolveApiBodasOrigin();
+const BODAS_API_URL = resolveApiBodasAuthOrigin();
 
 export default async function handler(
   req: NextApiRequest,

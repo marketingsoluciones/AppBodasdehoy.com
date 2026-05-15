@@ -59,13 +59,15 @@ const normalizeGraphqlUrl = (u: string): string => {
 
 export const DEFAULT_MCP_GRAPHQL_URL = 'https://api-mcp.eventosorganizador.com/graphql';
 export const DEFAULT_API_IA_ORIGIN = 'https://api3-ia.eventosorganizador.com';
+const DEFAULT_EVENTOS_ORIGIN = 'https://apiapp.bodasdehoy.com';
+const DEFAULT_BODAS_AUTH_GRAPHQL_URL = 'https://api.bodasdehoy.com/graphql';
 
 export function resolveApiBodasGraphqlUrl(): string {
   failIfLegacyAliasSet();
   const raw = process.env.API_MCP_GRAPHQL_URL || process.env.NEXT_PUBLIC_API_MCP_GRAPHQL_URL;
   const resolved = normalizeGraphqlUrl(raw || DEFAULT_MCP_GRAPHQL_URL);
 
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && window?.location?.hostname) {
     const hostname = window.location.hostname;
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
     if (isLocalhost) return '/api/proxy-bodas/graphql';
@@ -75,11 +77,40 @@ export function resolveApiBodasGraphqlUrl(): string {
 }
 
 export function resolveApiBodasOrigin(): string {
-  return resolveApiBodasGraphqlUrl().replace(/\/graphql\/?$/i, '');
+  return resolveApiEventosOrigin();
 }
 
 export function resolveApiIaOrigin(): string {
   failIfLegacyAliasSet();
   const raw = process.env.API_IA_URL || process.env.NEXT_PUBLIC_API_IA_URL;
   return (raw || DEFAULT_API_IA_ORIGIN).trim().replace(/\/+$/, '');
+}
+
+export function resolveApiEventosOrigin(): string {
+  const raw =
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.BASE_URL ||
+    process.env.NEXT_PUBLIC_IMAGES_BASE_URL;
+  return (raw || DEFAULT_EVENTOS_ORIGIN).trim().replace(/\/+$/, '');
+}
+
+export function resolveApiEventosGraphqlUrl(): string {
+  return `${resolveApiEventosOrigin()}/graphql`;
+}
+
+export function resolveMcpOrigin(): string {
+  return resolveApiBodasGraphqlUrl().replace(/\/graphql\/?$/i, '');
+}
+
+export function resolveApiBodasAuthGraphqlUrl(): string {
+  const raw =
+    process.env.NEXT_PUBLIC_BASE_API_BODAS ||
+    process.env.BASE_API_BODAS ||
+    process.env.NEXT_PUBLIC_BASE_API_BODAS_URL ||
+    process.env.BASE_API_BODAS_URL;
+  return normalizeGraphqlUrl(raw || DEFAULT_BODAS_AUTH_GRAPHQL_URL);
+}
+
+export function resolveApiBodasAuthOrigin(): string {
+  return resolveApiBodasAuthGraphqlUrl().replace(/\/graphql\/?$/i, '');
 }
