@@ -58,8 +58,8 @@ const normalizeGraphqlUrl = (u: string): string => {
 };
 
 export const DEFAULT_MCP_GRAPHQL_URL = 'https://api-mcp.eventosorganizador.com/graphql';
-export const DEFAULT_API_IA_ORIGIN = 'https://api3-ia.eventosorganizador.com';
-const DEFAULT_EVENTOS_ORIGIN = 'https://apiapp.bodasdehoy.com';
+export const DEFAULT_API_IA_ORIGIN = 'https://api-ia.bodasdehoy.com';
+const DEFAULT_EVENTOS_ORIGIN = 'https://api-mcp.eventosorganizador.com';
 const DEFAULT_BODAS_AUTH_GRAPHQL_URL = 'https://api.bodasdehoy.com/graphql';
 
 export function resolveApiBodasGraphqlUrl(): string {

@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-// apiapp.bodasdehoy.com para queries de eventos (queryenEvento, getPsTemplate, updateActivity)
-const BODAS_API_URL = 'https://apiapp.bodasdehoy.com';
+// api-mcp.eventosorganizador.com — canónico unificado (migrado 2026-05-16 post Sprint 1 P0)
+const BODAS_API_URL = 'https://api-mcp.eventosorganizador.com';
 
 export default async function handler(
   req: NextApiRequest,

@@ -2,6 +2,33 @@ import { api } from "../api";
 import { normalizeApi2HttpBase } from "./resolveApi2BaseUrl";
 import { resolveApiBodasOrigin } from "./apiEndpoints";
 
+async function reportHttpFailureToSentry(kind: 'bodas' | 'eventos', error: any) {
+  try {
+    if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return
+    const status = error?.response?.status
+    if (status !== 502 && status !== 503) return
+    const url = error?.config?.url
+    const baseURL = error?.config?.baseURL
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
+    let Sentry: any = null
+    try {
+      const req = (new Function('return typeof require !== "undefined" ? require : null'))()
+      if (req) Sentry = req('@sentry/nextjs')
+    } catch {}
+    if (!Sentry?.withScope) return
+    Sentry.withScope((scope) => {
+      scope.setLevel('warning')
+      scope.setTag('http.status', String(status))
+      scope.setTag('http.kind', kind)
+      if (hostname) scope.setTag('app.hostname', hostname)
+      if (typeof url === 'string' && url) scope.setContext('http', { url, baseURL })
+      scope.setFingerprint([`http-${kind}-${status}`])
+      Sentry.captureMessage(`HTTP ${status} (${kind})`)
+    })
+    void Sentry.flush(1500)
+  } catch { /* ignore */ }
+}
+
 /**
  * Mensaje amigable según el código HTTP del error de la API.
  * 403 = no es "error de conexión", es sesión no autorizada o expirada.
@@ -126,13 +153,16 @@ export const fetchApiBodas = async ({
       return Object.values(data.data)[0];
     }
   } catch (error: any) {
-    console.error("[fetchApiBodas] Error en la llamada API:", {
+    const status = error?.response?.status
+    const log = status === 502 || status === 503 ? console.warn : console.error
+    log("[fetchApiBodas] Error en la llamada API:", {
       message: error?.message,
       code: error?.code,
       isAxiosError: error?.isAxiosError,
       response: error?.response?.data,
-      status: error?.response?.status
+      status
     });
+    void reportHttpFailureToSentry('bodas', error)
     throw error; // Lanzar el error en lugar de retornarlo
   }
 };
@@ -197,13 +227,16 @@ export const fetchApiEventos = async ({
     }
     return payload;
   } catch (error: any) {
-    console.error("[fetchApiEventos] Error en la llamada API:", {
+    const status = error?.response?.status
+    const log = status === 502 || status === 503 ? console.warn : console.error
+    log("[fetchApiEventos] Error en la llamada API:", {
       message: error?.message,
       code: error?.code,
       isAxiosError: error?.isAxiosError,
       response: error?.response?.data,
-      status: error?.response?.status
+      status
     });
+    void reportHttpFailureToSentry('eventos', error)
     throw error; // Lanzar el error en lugar de retornarlo
   }
 };
@@ -940,33 +973,16 @@ export const queries = {
           updatedAt
         }
   }`,
-  authStatus: `mutation ($sessionCookie : String){
+  authStatus: `mutation ($sessionCookie : String!){
         status(sessionCookie: $sessionCookie){
           customToken
         }
   }`,
-  eventCreate: `mutation (
-    $nombre: String,
-    $tipo: String!,
-    $fecha: String,
-    $pais: String,
-    $poblacion: String,
-    $usuario_id: String!
-    $usuario_nombre: String!
-    $timeZone: String,
-    $development: String!
-  ){
-    crearEvento(
-      nombre: $nombre,
-      tipo: $tipo,
-      fecha: $fecha,
-      pais: $pais,
-      poblacion: $poblacion,
-      usuario_id: $usuario_id,
-      usuario_nombre: $usuario_nombre,
-      timeZone: $timeZone,
-      development: $development
-    ){
+  eventCreate: `mutation ($input: EventoInput!){
+    createEvento(input: $input){
+      success
+      errors{ field message code }
+      evento{
       _id
       grupos_array
       compartido_array
@@ -2264,97 +2280,112 @@ export const queries = {
         }
       }
       showChildrenGuest
+      }
     }
   }`,
-  getListaRegalos: `query($_id: String){
+  getListaRegalos: `query($_id: ID!, $development: String!){
     queryenEvento_id(
-      var_1:$_id
+      _id: $_id,
+      development: $development
     ){
       _id
       nombre
       listaRegalos
     }
   }`,
-  eventDelete: `mutation ($eventoID : String!) {
-    borrarEvento(evento_id:$eventoID){
-      modificado
+  eventDelete: `mutation ($eventoID : ID!) {
+    deleteEvento(id:$eventoID){
+      success
+      errors{ field message code }
     }
   }`,
-  eventUpdate: `mutation ($idEvento: String!, $variable:String, $value : String){
-    editEvento(
-      evento_id: $idEvento, 
-      variable_reemplazar: $variable, 
-      valor_reemplazar: $value
-      ){
-      _id
+  eventUpdate: `mutation ($idEvento: ID!, $input: EventoUpdateInput!){
+    updateEvento(id: $idEvento, input: $input){
+      success
+      errors{ field message code }
+      evento{ _id }
     }
   }`,
-  createGuests: `mutation ($eventID: String, $invitados_array: [invitAinput]) {
-    creaInvitado(evento_id: $eventID, invitados_array: $invitados_array){
-     invitados_array{
-       father
-       _id
-       nombre
-       grupo_edad
-       correo
-       telefono
-       father
-       passesQuantity
-       nombre_mesa
-       nombre_menu
-       puesto
-       asistencia
-       rol
-       correo
-       sexo
-       invitacion
-       fecha_invitacion
-     }
+  createGuests: `mutation ($eventID: ID!, $invitados_array: [JSON!]!) {
+    createGuests(evento_id: $eventID, invitados: $invitados_array){
+      success
+      errors{ field message code }
+      evento{
+        _id
+        invitados_array{
+          father
+          _id
+          nombre
+          grupo_edad
+          correo
+          telefono
+          passesQuantity
+          nombre_mesa
+          nombre_menu
+          puesto
+          asistencia
+          rol
+          sexo
+          invitacion
+          fecha_invitacion
+        }
+      }
    }
   }`,
-  editGuests: `mutation ($eventID:String, $guestID:String, $variable: String, $value:String) {
-    editInvitado(
-      evento_id:$eventID, 
-      invitado_id:$guestID, 
-      variable_reemplazar:$variable,
-      valor_reemplazar:$value){
+  editGuests: `mutation ($eventID:ID!, $guestID:String!, $datos: JSON) {
+    actualizarInvitado(
+      evento_id: $eventID,
+      invitado_id: $guestID,
+      datos: $datos
+    ){
+      success
+      errors{ field message code }
+      evento{
         _id
-        nombre
-        grupo_edad
-        correo
-        telefono
-        nombre_mesa
-        nombre_menu
-        puesto
-        asistencia
-        rol
-        correo
-        sexo
-        invitacion
-        fecha_invitacion
-        movil
-        poblacion
-        pais
-        direccion
-        passesQuantity
-      }
-  }`,
-  removeGuests: `mutation ($eventID:String, $guests: [String]){
-      borraInvitados(evento_id:$eventID,
-      invitados_ids_array:$guests){
         invitados_array{
           _id
           nombre
-          sexo
           grupo_edad
           correo
           telefono
           nombre_mesa
+          nombre_menu
           puesto
           asistencia
           rol
-          father
+          sexo
+          invitacion
+          fecha_invitacion
+          movil
+          poblacion
+          pais
+          direccion
           passesQuantity
+        }
+      }
+    }
+  }`,
+  removeGuests: `mutation ($eventID:ID!, $guests: [ID!]!){
+      borraInvitados(evento_id:$eventID,
+      invitados_ids_array:$guests){
+        success
+        errors{ field message code }
+        evento{
+          _id
+          invitados_array{
+            _id
+            nombre
+            sexo
+            grupo_edad
+            correo
+            telefono
+            nombre_mesa
+            puesto
+            asistencia
+            rol
+            father
+            passesQuantity
+          }
         }
       }
   }`,
@@ -2536,7 +2567,7 @@ export const queries = {
       }
     }
   }`,
-  signOut: `mutation ($sessionCookie :String){
+  signOut: `mutation ($sessionCookie :String!){
     signOut(sessionCookie:$sessionCookie)
   }`,
   testInvitacion: `mutation ($evento_id: String, $email: String, $phoneNumber: String, $lang: String){
