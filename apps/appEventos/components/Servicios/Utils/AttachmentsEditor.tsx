@@ -38,9 +38,9 @@ const getFileIcon = (fileName: string) => {
     docx: <FileText className="w-4 h-4 text-blue-500" />,
     txt: <FileText className="w-4 h-4" />,
     // Audio
-    mp3: <Music className="w-4 h-4 text-purple-500" />,
-    wav: <Music className="w-4 h-4 text-purple-500" />,
-    ogg: <Music className="w-4 h-4 text-purple-500" />,
+    mp3: <Music className="w-4 h-4 text-secondary" />,
+    wav: <Music className="w-4 h-4 text-secondary" />,
+    ogg: <Music className="w-4 h-4 text-secondary" />,
     // Video
     mp4: <Video className="w-4 h-4 text-green" />,
     avi: <Video className="w-4 h-4 text-green" />,

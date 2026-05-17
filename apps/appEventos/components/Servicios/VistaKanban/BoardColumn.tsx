@@ -161,9 +161,9 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
       case 'in_progress':
         return 'bg-primary';
       case 'completed':
-        return 'bg-[#00b341]';
+        return 'bg-emerald-600';
       case 'blocked':
-        return 'bg-[#ff2525]';
+        return 'bg-red-600';
       default:
         return 'bg-gray-600';
     }

@@ -115,7 +115,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
           <button
             onClick={onToggleFilters}
             className={`p-2 rounded-md transition-colors ${showFilters || Object.keys(activeFilters).length > 0
-              ? 'bg-pink-100 text-primary'
+              ? 'bg-base text-primary'
               : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
               }`}
             title="Filtros"
@@ -142,7 +142,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({
               disabled={isSaving}
               className={`p-2 rounded-md transition-colors ${isSaving
                 ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
-                : 'text-primary hover:text-white hover:bg-primary bg-pink-100'
+                : 'text-primary hover:text-white hover:bg-primary bg-base'
                 }`}
               title="Guardar cambios (Ctrl+S)"
             >

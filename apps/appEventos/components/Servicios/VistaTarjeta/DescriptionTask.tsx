@@ -177,8 +177,8 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
         background-color: #e5e7eb !important;
       }
       .description-editor .ql-toolbar button.ql-active {
-        background-color: #ddd6fe !important;
-        color: #6b21a8 !important;
+        background-color: rgba(0, 0, 0, 0.06) !important;
+        color: var(--color-secondary, #f472b6) !important;
       }
       .description-editor .ql-editor.ql-blank::before {
         color: #9ca3af;

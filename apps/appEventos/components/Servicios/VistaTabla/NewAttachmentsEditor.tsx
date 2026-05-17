@@ -17,7 +17,7 @@ const getFileIcon = (fileName: string) => {
     return <FileImage className="w-4 h-4 text-primary" />;
   }
   if (['mp4', 'avi', 'mov', 'wmv'].includes(ext || '')) {
-    return <FileVideo className="w-4 h-4 text-purple-500" />;
+    return <FileVideo className="w-4 h-4 text-secondary" />;
   }
   if (['mp3', 'wav', 'ogg'].includes(ext || '')) {
     return <FileAudio className="w-4 h-4 text-green-500" />;

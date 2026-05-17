@@ -93,7 +93,7 @@ export const StatusPriorityTask: FC<StatusPriorityTaskProps> = ({
                     }}
                     className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100"
                   >
-                    <Flag className={`w-4 h-4 mr-3 ${priority.value === 'alta' ? 'text-[#ef4444]' :
+                    <Flag className={`w-4 h-4 mr-3 ${priority.value === 'alta' ? 'text-red-500' :
                       priority.value === 'media' ? 'text-yellow-500' :
                         'text-gray-400'
                       }`} />

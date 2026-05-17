@@ -198,7 +198,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
                         onTaskDelete(task._id);
                         setShowMoreMenu(false);
                       }}
-                      className="flex items-center w-full px-3 py-2 text-sm text-[#ff2424] hover:bg-[#fff0f0] "
+                      className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
                     >
                       Eliminar
                     </button>
@@ -235,7 +235,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
 
             {/* Indicador de bloqueo */}
             {isCompleted && (
-              <div className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#e9fdf1] text-green border border-green">
+              <div className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-emerald-50 text-emerald-700 border border-emerald-200">
                 <div className="">
                   <CheckCircle2 className="w-3 h-3 mr-1" />
                 </div>
@@ -243,7 +243,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
               </div>
             )}
             {isBlocked && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[#ffdada] text-red border border-red mt-1">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-50 text-red-700 border border-red-200 mt-1">
                 <AlertCircle className="w-3 h-3 mr-1" />
                 Bloqueado
               </span>
@@ -261,7 +261,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
               <span className={`
               inline-flex items-center. px-2 py-1 rounded-full text-xs
               ${isOverdue
-                  ? 'bg-[#ffdada] text-red border border-red mt-1'
+                  ? 'bg-red-50 text-red-700 border border-red-200 mt-1'
                   : isDueSoon
                     ? 'bg-yellow-100 text-yellow-800 border border-yellow-800'
                     : 'bg-gray-100 text-gray-600 border border-gray-600'
@@ -323,7 +323,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskClick, onTaskUpd
                   {task.tags.slice(0, 2).map((tag, index) => (
                     <span
                       key={index}
-                      className="inline-block px-2 py-1 text-xs bg-pink-100 text-primary rounded"
+                      className="inline-block px-2 py-1 text-xs bg-base text-primary border border-primary rounded"
                     >
                       {tag}
                     </span>

@@ -276,7 +276,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
                             className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-white rounded shadow-sm hover:bg-gray-100"
                             title={t('Eliminar comentario')}
                           >
-                            <Trash2 className="w-4 h-4 text-gray-500 hover:text-[#ef4444]" />
+                            <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-500" />
                           </button>
                         }
                       </div>

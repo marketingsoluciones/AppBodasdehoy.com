@@ -136,7 +136,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
           <Filter className="w-5 h-5 text-gray-500" />
           <h3 className="text-lg font-semibold text-gray-800">Filtros</h3>
           {activeFilterCount > 0 && (
-            <span className="bg-pink-100 text-primary text-xs px-2 py-1 rounded-full">
+            <span className="bg-base border border-primary text-primary text-xs px-2 py-1 rounded-full">
               {activeFilterCount} activo{activeFilterCount > 1 ? 's' : ''}
             </span>
           )}
@@ -198,7 +198,7 @@ export const BoardFilters: React.FC<BoardFiltersProps> = ({
           <div className="space-y-1">
             {[
               { key: 'pending', label: 'Pendiente', icon: Clock, color: 'text-gray-600' },
-              { key: 'completed', label: 'Completado', icon: CheckCircle, color: 'text-[#00b341]' }
+              { key: 'completed', label: 'Completado', icon: CheckCircle, color: 'text-emerald-600' }
             ].map(status => (
               <label
                 key={status.key}
