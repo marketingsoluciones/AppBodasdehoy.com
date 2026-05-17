@@ -870,8 +870,11 @@ export const queries = {
   updateActivityLink: `mutation ($args:inputActivityLink){
     updateActivityLink(args:$args)
   }`,
-  updateNotifications: `mutation ($args:inputNotification){
-    updateNotifications(args:$args)
+  updateNotifications: `mutation ($evento_id:ID!, $notificaciones:[JSON!]!){
+    updateNotifications(evento_id:$evento_id, notificaciones:$notificaciones){
+      success
+      errors{ field message code }
+    }
   }`,
   createNotifications: `mutation ($args:inputNotifications){
     createNotifications(args:$args){
@@ -1940,24 +1943,31 @@ export const queries = {
   }`,
   addCompartitions: `mutation($args:inputCompartition){
     addCompartition(args:$args){
-      compartido_array
-      detalles_compartidos_array{
-        email
-        uid
-        permissions{
-          title
-          value
+      success
+      errors{ field message code }
+      evento{
+        compartido_array
+        detalles_compartidos_array{
+          email
+          uid
+          permissions{ title value }
+          createdAt
+          updatedAt
         }
-        createdAt
-        updatedAt
       }
     }
   }`,
   updateCompartitions: `mutation($args:inputCompartition){
-    updateCompartition(args:$args)
+    updateCompartition(args:$args){
+      success
+      errors{ field message code }
+    }
   }`,
   deleteCompartitions: `mutation($args:inputCompartition){
-    deleteCompartition(args:$args)
+    deleteCompartition(args:$args){
+      success
+      errors{ field message code }
+    }
   }`,
   getEventsByID: `query ($variable: String, $valor: String, $development: String!) {
     queryenEvento( variable:$variable, valor:$valor, development:$development){
