@@ -145,7 +145,6 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
         usuario_id,
         usuario_nombre,
         timeZone: sanitizedTimeZone,
-        development: config?.development || "bodasdehoy",
       }
 
       const result = await fetchApiEventos({

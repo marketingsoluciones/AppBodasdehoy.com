@@ -232,8 +232,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
             query: queries.eventUpdate,
             variables: {
                 idEvento: event._id,
-                variable: "showChildrenGuest",
-                value: !showModalAcompañante2 ? showModalAcompañante2.id : ""
+                input: { showChildrenGuest: !showModalAcompañante2 ? showModalAcompañante2.id : "" }
             }
         })
         event.showChildrenGuest = !showModalAcompañante2 ? showModalAcompañante2.id : null
@@ -264,8 +263,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                 variables: {
                                     eventID: event._id,
                                     guestID: invitado._id,
-                                    variable: reemplazar,
-                                    value: value
+                                    datos: { [reemplazar]: value }
                                 },
                             });
                             return {

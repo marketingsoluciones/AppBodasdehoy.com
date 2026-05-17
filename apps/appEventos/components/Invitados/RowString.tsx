@@ -29,8 +29,7 @@ export const RowString: FC<props> = (props) => {
       variables: {
         eventID: event._id,
         guestID,
-        variable,
-        value: value
+        datos: { [variable]: value }
       },
     }).then(() => {
       setValue(value)

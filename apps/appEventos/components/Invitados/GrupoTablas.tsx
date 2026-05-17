@@ -182,8 +182,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 variables: {
                   eventID: event._id,
                   guestID: invitado._id,
-                  variable: reemplazar,
-                  value: value
+                  datos: { [reemplazar]: value }
                 },
               });
               return {
@@ -543,8 +542,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
               query: queries.eventUpdate,
               variables: {
                 idEvento: event._id,
-                variable: "showChildrenGuest",
-                value: !props?.row?.isExpanded ? props.row.original._id : ""
+                input: { showChildrenGuest: !props?.row?.isExpanded ? props.row.original._id : "" }
               }
             })
             event.showChildrenGuest = !props?.row?.isExpanded ? props.row.original._id : null

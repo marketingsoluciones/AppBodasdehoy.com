@@ -72,7 +72,7 @@ const FormAcompañante: FC<propsFormAcompañante> = ({ state, set, guestFather }
       if (result) {
         setEvent({
           ...event,
-          invitados_array: (result as any)?.invitados_array || event.invitados_array
+          invitados_array: (result as any)?.evento?.invitados_array || event.invitados_array
         });
         set(!state);
       }

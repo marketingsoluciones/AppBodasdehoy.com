@@ -116,7 +116,7 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
               eventSelected.timeZone = defaultTimeZone;
               fetchApiEventos({
                 query: queries.eventUpdate,
-                variables: { idEvento: eventSelected?._id, variable: "timeZone", value: defaultTimeZone },
+                variables: { idEvento: eventSelected?._id, input: { timeZone: defaultTimeZone } },
                 token: null
               }).catch(() => {})
             }
@@ -130,7 +130,7 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
             eventSelected.timeZone = defaultTimeZone;
             fetchApiEventos({
               query: queries.eventUpdate,
-              variables: { idEvento: eventSelected?._id, variable: "timeZone", value: defaultTimeZone },
+              variables: { idEvento: eventSelected?._id, input: { timeZone: defaultTimeZone } },
               token: null
             }).catch(() => {})
           }

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context/";
 import useHover from "../../hooks/useHover";
 import { useRouter } from "next/navigation";
-import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, fetchApiEventos, queries, getApiErrorMessage } from "../../utils/Fetching";
 import { useToast } from '../../hooks/useToast'
 import { IoShareSocial } from "react-icons/io5";
 import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir"
@@ -138,7 +138,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
         const value = grupoStatus === "pendiente" ? "archivado" : "pendiente"
         const result = fetchApiEventos({
           query: queries.eventUpdate,
-          variables: { idEvento: data[idx]?._id, variable: "estatus", value },
+          variables: { idEvento: data[idx]?._id, input: { estatus: value } },
           token: null
         })
         if (!result || (result as any).errors) {
@@ -298,7 +298,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
             })
             .catch((error) => {
               console.error("[Card] ❌ Error en handleClickCard:", error)
-              toast("error", error?.message || t("Ha ocurrido un error"))
+              toast("error", getApiErrorMessage(error) || t("Ha ocurrido un error"))
               setIsNavigating(false)
 
               // Fallback: intentar abrir el evento de todas formas
@@ -315,7 +315,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
             })
         }} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden ${isNavigating ? 'opacity-70' : ''}`}>
           <img
-            src={data[idx]?.imgEvento ? `https://api-mcp.eventosorganizador.com/${data[idx].imgEvento.i320}` : defaultImagenes[data[idx]?.tipo?.toLowerCase()]}
+            src={data[idx]?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${data[idx].imgEvento.i320}`)}` : defaultImagenes[data[idx]?.tipo?.toLowerCase()]}
             className="object-cover w-full h-full absolute top-0 left-0 object-top"
             onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[data[idx]?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
           />

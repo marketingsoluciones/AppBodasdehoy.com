@@ -125,7 +125,7 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick, setL
             },
           })
             .then((results: any) => {
-              event.invitados_array = results?.invitados_array
+              event.invitados_array = results?.evento?.invitados_array || event.invitados_array
               setEvent({ ...event })
               toast("success", `${dataImportReduce.corrects.length} ${t("importCorrect")}`)
             })

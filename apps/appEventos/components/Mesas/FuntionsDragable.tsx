@@ -216,11 +216,11 @@ export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, p
         // Sync guest record: update nombre_mesa and puesto
         fetchApiEventos({
           query: queries.editGuests,
-          variables: { eventID, guestID: invitadoID, variable: "nombre_mesa", value: table?.title || tableID },
+          variables: { eventID, guestID: invitadoID, datos: { nombre_mesa: table?.title || tableID } },
         });
         fetchApiEventos({
           query: queries.editGuests,
-          variables: { eventID, guestID: invitadoID, variable: "puesto", value: String(chair) },
+          variables: { eventID, guestID: invitadoID, datos: { puesto: String(chair) } },
         });
       }
       if (prefijo === "dragS") {
