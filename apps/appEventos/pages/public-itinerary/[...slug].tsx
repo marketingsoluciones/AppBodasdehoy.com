@@ -43,20 +43,6 @@ const Slug: FC<props> = (props) => {
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
   const { t } = useTranslation()
 
-  if (props?.error) {
-    const isSlug = props.error === "invalid-slug"
-    return (
-      <PublicItineraryUnavailable
-        title={isSlug ? "Enlace no válido" : "No se pudo cargar el itinerario"}
-        body={
-          isSlug
-            ? "La dirección del itinerario está incompleta o mal formada. Comprueba que hayas abierto el enlace completo."
-            : "Hubo un problema al obtener los datos. Puede ser temporal: prueba de nuevo en unos minutos."
-        }
-      />
-    )
-  }
-
   /** Si eventsGroup está vacío (invitado en ruta pública), EventContext hace setEvent(null) al cambiar user; no perder el SSR. */
   const effectiveEvent = useMemo(() => {
     if (event?.itinerarios_array?.length) return event
@@ -69,6 +55,7 @@ const Slug: FC<props> = (props) => {
   const itinerarioId = slugParts[2]
 
   useEffect(() => {
+    if (props?.error) return
     const ev = props?.evento
     if (!ev?.itinerarios_array?.[0]) return
     const it0 = ev.itinerarios_array[0]
@@ -80,12 +67,14 @@ const Slug: FC<props> = (props) => {
   }, [props.evento, setEvent])
 
   useEffect(() => {
+    if (props?.error) return
     setTimeout(() => {
       setEnd(true)
     }, 2000);
   }, [])
 
   useEffect(() => {
+    if (props?.error) return
     const ev = effectiveEvent
     if (ev?.itinerarios_array?.[0]?.tasks?.length > 0) {
       const tasks = [ev?.itinerarios_array?.[0]?.tasks?.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())]
@@ -108,6 +97,20 @@ const Slug: FC<props> = (props) => {
       setTasksReduce([])
     }
   }, [effectiveEvent])
+
+  if (props?.error) {
+    const isSlug = props.error === "invalid-slug"
+    return (
+      <PublicItineraryUnavailable
+        title={isSlug ? "Enlace no válido" : "No se pudo cargar el itinerario"}
+        body={
+          isSlug
+            ? "La dirección del itinerario está incompleta o mal formada. Comprueba que hayas abierto el enlace completo."
+            : "Hubo un problema al obtener los datos. Puede ser temporal: prueba de nuevo en unos minutos."
+        }
+      />
+    )
+  }
 
   if (!props?.evento?.itinerarios_array?.length) {
     return (

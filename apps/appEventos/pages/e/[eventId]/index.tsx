@@ -78,10 +78,10 @@ const EVENT_QUERY = `
   }
 `;
 
-const IMG_BASE = 'https://api-mcp.eventosorganizador.com/';
-
 function eventImageUrl(event: PublicEvent): string | null {
-  return event.imgEvento?.i800 ? `${IMG_BASE}${event.imgEvento.i800}` : null;
+  return event.imgEvento?.i800
+    ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i800}`)}`
+    : null;
 }
 
 function eventTypeIcon(tipo: string): string {

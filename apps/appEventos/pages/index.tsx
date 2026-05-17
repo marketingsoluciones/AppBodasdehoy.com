@@ -37,6 +37,8 @@ const Home: NextPage = () => {
   const [eventNotFound, setEventNotFound] = useState<boolean>(false)
   const eventsLoadStartRef = useRef<number | null>(null)
   const [eventsLoadSeconds, setEventsLoadSeconds] = useState(0)
+  const [restoreSessionSeconds, setRestoreSessionSeconds] = useState(0)
+  const [restoreSessionGiveUp, setRestoreSessionGiveUp] = useState(false)
 
   // Query params usando router.query (Pages Router)
   const pAccShas = typeof router.query.pAccShas === 'string' ? router.query.pAccShas : null
@@ -63,6 +65,41 @@ const Home: NextPage = () => {
     }, 400)
     return () => clearInterval(id)
   }, [waitingEventsList])
+
+  const shouldRestoreSession =
+    verificationDone &&
+    eventsGroupDone &&
+    !user &&
+    typeof window !== 'undefined' &&
+    !!localStorage.getItem('appEventos_activeEventId')
+
+  useEffect(() => {
+    if (!shouldRestoreSession) {
+      setRestoreSessionSeconds(0)
+      setRestoreSessionGiveUp(false)
+      return
+    }
+
+    const start = Date.now()
+    const intervalId = window.setInterval(() => {
+      setRestoreSessionSeconds(Math.floor((Date.now() - start) / 1000))
+    }, 400)
+
+    const giveUpId = window.setTimeout(() => {
+      setRestoreSessionGiveUp(true)
+      try {
+        localStorage.removeItem('appEventos_activeEventId')
+      } catch {}
+
+      const loginUrl = config?.pathLogin ? `${config.pathLogin}?restore=1` : '/login?restore=1'
+      window.location.href = loginUrl
+    }, 6000)
+
+    return () => {
+      window.clearInterval(intervalId)
+      window.clearTimeout(giveUpId)
+    }
+  }, [shouldRestoreSession, config?.pathLogin])
 
   // Mostrar error si la API de eventos falla (403 = sesión; 502/503 = servidor; otro = genérico).
   // No mostrar si no hay usuario logueado (usuario libre/guest): no se cargan eventos, no tiene sentido el mensaje.
@@ -124,7 +161,7 @@ const Home: NextPage = () => {
     return (
       <div className="flex items-center justify-center h-screen w-full bg-white px-4">
         <div className="flex flex-col items-center gap-3 text-center max-w-sm">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
           <p className="text-sm font-medium text-gray-700">Cargando tus eventos…</p>
           <p className="text-2xl font-semibold tabular-nums text-primary">{eventsLoadSeconds}s</p>
           <p className="text-xs text-gray-400">
@@ -151,7 +188,7 @@ const Home: NextPage = () => {
     if (pAccShas && !eventNotFound) {
       return (
         <div className="flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
         </div>
       )
     }
@@ -159,7 +196,7 @@ const Home: NextPage = () => {
       router.push(`/confirmar-asistencia?pGuestEvent=${pGuestEvent}`)
       return (
         <div className="flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
         </div>
       )
     }
@@ -167,7 +204,7 @@ const Home: NextPage = () => {
       router?.push(`/login`)
       return (
         <div className="flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
         </div>
       )
     }
@@ -177,9 +214,18 @@ const Home: NextPage = () => {
         return (
           <div className="flex items-center justify-center h-screen w-full bg-white px-4">
             <div className="flex flex-col items-center gap-3 text-center max-w-sm">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
               <p className="text-sm font-medium text-gray-700">Restaurando sesión…</p>
               <p className="text-xs text-gray-400">Esto suele tardar unos segundos tras recargar.</p>
+              <p className="text-2xl font-semibold tabular-nums text-primary">{restoreSessionSeconds}s</p>
+              {restoreSessionGiveUp && (
+                <a
+                  href={config?.pathLogin ? `${config.pathLogin}?restore=1` : '/login?restore=1'}
+                  className="mt-2 inline-flex items-center justify-center px-4 py-2 rounded-full bg-primary text-white font-medium text-sm hover:opacity-80 transition"
+                >
+                  Ir a iniciar sesión
+                </a>
+              )}
             </div>
           </div>
         )
@@ -257,7 +303,7 @@ const Home: NextPage = () => {
   return (
     <div className="flex items-center justify-center h-screen w-full bg-white px-4">
       <div className="flex flex-col items-center gap-3 text-center max-w-sm">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
         <p className="text-sm font-medium text-gray-700">Cargando tus eventos…</p>
         <p className="text-2xl font-semibold tabular-nums text-primary">{eventsLoadSeconds}s</p>
         <p className="text-xs text-gray-400">
@@ -323,11 +369,11 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="hidden md:block relative overflow-hidden col-span-3"
+          className="relative overflow-hidden col-span-3"
         >
           {/* <CircleBanner className="w-full h-auto top-12 transform translate-y-1/6 absolute bottom-0 right-0 left-2 z-0" /> */}
           <img
-            className="z-20 image mx-auto inset-x-0 relative top-16"
+            className="z-20 image mx-auto inset-x-0 relative top-6 md:top-16 w-full max-w-[520px]"
             src="/IndexImg2.png"
             alt=""
             width={520}
@@ -345,13 +391,18 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
             width: 600px;
           }
           .image {
-            height: 500px;
+            height: 260px;
           }
 
           @media only screen and (min-width: 1536px) {
             .image {
               height: 500px;
 
+            }
+          }
+          @media only screen and (min-width: 768px) {
+            .image {
+              height: 500px;
             }
           }
         `}
@@ -625,7 +676,7 @@ const LandingVisitante: FC = () => {
   ];
 
   return (
-    <div className="flex flex-col items-center w-full bg-base min-h-[calc(100vh-144px)] overflow-y-auto">
+    <div className="paper flex flex-col items-center w-full bg-base min-h-[calc(100vh-144px)] overflow-y-auto">
       {/* Hero */}
       <div className="w-full max-w-3xl px-6 pt-12 pb-8 flex flex-col items-center text-center gap-5">
         <div className="w-40 h-16 flex items-center justify-center">

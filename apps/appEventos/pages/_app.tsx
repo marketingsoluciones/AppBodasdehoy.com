@@ -20,7 +20,7 @@ import { developments } from '../firebase';
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
 import useDevLogger from '../hooks/useDevLogger';
-import { verifyDomain, logUrlVerification, type UrlCheckResult } from '../utils/verifyUrls';
+import { checkUrl, logUrlVerification } from '../utils/verifyUrls';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { CopilotPrewarmer } from '../components/Copilot/CopilotPrewarmer';
 import { captureTrackingParams } from '@bodasdehoy/shared';
@@ -60,40 +60,23 @@ const MyApp = ({ Component, pageProps }) => {
     captureTrackingParams();
   }, []);
 
-  // Verificar dominio y URLs al cargar (solo en cliente y producción)
   useEffect(() => {
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-      const domainInfo = verifyDomain();
-      console.log('[App] Información del dominio:', domainInfo);
+    if (typeof window === 'undefined') return;
+    if (process.env.NODE_ENV !== 'development') return;
+    if (window.localStorage.getItem('debug_verify_urls') !== 'true') return;
 
-      // En dominios de test, solo verificar URLs locales (evitar CORS)
-      const isTestDomain = window.location.hostname.includes('-test.') ||
-                           window.location.hostname === 'localhost' ||
-                           window.location.hostname === '127.0.0.1';
+    const run = async () => {
+      const origin = window.location.origin;
+      const results = await Promise.all([
+        checkUrl(origin, 10000),
+        checkUrl(`${origin}/api/health`, 10000),
+      ]);
+      logUrlVerification(results);
+    };
 
-      if (isTestDomain) {
-        // En test solo verificar el origen; no HEAD a graphql (solo acepta POST → 405)
-        const localUrls = [
-          window.location.origin,
-          `${window.location.origin}/api/health`,
-        ].filter(Boolean);
-        Promise.all(
-          localUrls.map(async (url): Promise<UrlCheckResult> => {
-            try {
-              const response = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
-              console.log(`[App] ✅ ${url} - Status: ${response.status}`);
-              return { url, status: 'ok' as const, statusCode: response.status };
-            } catch (error: any) {
-              console.warn(`[App] ⚠️ ${url} - Error:`, error.message);
-              return { url, status: 'error' as const, error: error.message };
-            }
-          })
-        ).then(results => {
-          logUrlVerification(results);
-        });
-      }
-    }
-  }, [])
+    const t = window.setTimeout(run, 2500);
+    return () => window.clearTimeout(t);
+  }, []);
 
   // Rutas públicas del portal del invitado — sin auth, sin nav, sin layout autenticado
   const isPublicPortal = router.pathname.startsWith('/e/') || router.pathname.startsWith('/buscador-mesa/')
@@ -116,8 +99,7 @@ const MyApp = ({ Component, pageProps }) => {
       />
       <I18nextProvider i18n={i18n}>
         <DefaultLayout>
-          {/* En desarrollo evita prewarm para no penalizar el primer compile */}
-          {process.env.NODE_ENV === "production" && <CopilotPrewarmer />}
+          <CopilotPrewarmer />
           {!!message && <div className='bg-yellow-400 absolute top-[7.5rem] left-0 w-full bg-red-500 z-50 flex items-center justify-center'>
             <span className='text-center px-10 py-0.5'>{message}</span>
           </div>}
@@ -189,8 +171,11 @@ const Load = ({ setValirBlock }) => {
   const themeBase = safeThemeValue(config?.theme?.baseColor) || '#ffffff'
   const themeScroll = safeThemeValue(config?.theme?.colorScroll) || '#e5e7eb'
 
-  // Enable browser logging in development for Claude Code integration
-  useDevLogger(process.env.NODE_ENV === 'development')
+  const devLoggerEnabled =
+    process.env.NODE_ENV === 'development' &&
+    typeof window !== 'undefined' &&
+    window.localStorage.getItem('debug_dev_logger') === 'true'
+  useDevLogger(devLoggerEnabled)
 
   useEffect(() => {
     // No bloquear mientras los datos se están cargando o si no hay evento seleccionado

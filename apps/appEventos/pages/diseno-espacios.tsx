@@ -52,7 +52,7 @@ const DisenioEspacios: FC = () => {
       <div className="flex h-screen w-full overflow-hidden bg-base">
         {/* Panel lateral de referencia de estilos */}
         <aside className="hidden lg:flex flex-col w-72 xl:w-80 shrink-0 border-r border-gray-200 bg-white overflow-y-auto">
-          <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-pink-50">
+          <div className="p-4 border-b border-gray-100 bg-base">
             <h2 className="text-base font-semibold text-gray-800">🏛️ Diseño de Espacios</h2>
             <p className="text-xs text-gray-500 mt-1">
               Visualiza tu salón con IA. Habla con el asistente para generar ideas.
@@ -67,7 +67,7 @@ const DisenioEspacios: FC = () => {
               {STYLES.map((s) => (
                 <div
                   key={s.key}
-                  className="flex items-start gap-2.5 p-2.5 rounded-lg bg-gray-50 hover:bg-purple-50 transition-colors cursor-default"
+                  className="flex items-start gap-2.5 p-2.5 rounded-lg bg-gray-50 hover:bg-base transition-colors cursor-default"
                 >
                   <span className="text-lg shrink-0">{s.emoji}</span>
                   <div className="min-w-0">

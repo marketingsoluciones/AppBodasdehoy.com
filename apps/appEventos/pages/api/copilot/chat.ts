@@ -55,6 +55,7 @@ const respondBackendUnavailable = (
       res.setHeader('Connection', 'keep-alive');
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('X-Request-Id', requestId);
+      res.setHeader('X-Api-Ia-Origin', PYTHON_BACKEND_URL);
     }
     res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: msg } }] })}\n\n`);
     res.write('data: [DONE]\n\n');
@@ -62,7 +63,9 @@ const respondBackendUnavailable = (
     return;
   }
 
-  res.status(503).json({ error: 'IA_BACKEND_UNAVAILABLE', message: msg, requestId });
+  res.setHeader('X-Request-Id', requestId);
+  res.setHeader('X-Api-Ia-Origin', PYTHON_BACKEND_URL);
+  res.status(503).json({ error: 'IA_BACKEND_UNAVAILABLE', message: msg, requestId, backendOrigin: PYTHON_BACKEND_URL });
 };
 
 // Default provider: backend IA auto-routing

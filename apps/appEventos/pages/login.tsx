@@ -1,11 +1,16 @@
 import { useRouter } from "next/router";
 import { ButtonClose } from "../components/Forms/ButtonClose";
 import { Login, Register, ResetPass } from "../components/Forms/Login/Forms";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AuthContextProvider, LoadingContextProvider } from "../context";
 import { ArrowLeft } from "../components/icons";
 import { SplitLoginPage } from "@bodasdehoy/auth-ui";
 import { resolveChatOrigin } from "@bodasdehoy/shared/utils";
+import { cloneElement, isValidElement } from "react";
+import type { ImgHTMLAttributes, ReactElement } from "react";
+
+const safeThemeValue = (v: unknown) =>
+  (typeof v === 'string' && !/[\r\n`\\]/.test(v) ? v : '')
 
 const APP_EVENTOS_LEFT_PANEL = {
   brandName: 'Bodas de Hoy',
@@ -37,6 +42,19 @@ const PageLogin = () => {
   const [stageRegister, setStageRegister] = useState(0)
   const [whoYouAre, setWhoYouAre] = useState("");
   const [isMounted, setIsMounted] = useState(false)
+  const [logoError, setLogoError] = useState(false)
+
+  const themePrimary = safeThemeValue(config?.theme?.primaryColor) || '#ec4899'
+  const themeSecondary = safeThemeValue(config?.theme?.secondaryColor) || '#f472b6'
+  const themeTertiary = safeThemeValue(config?.theme?.tertiaryColor) || '#f9a8d4'
+  const splitLeftPanel = useMemo(() => {
+    const brandName = (typeof config?.headTitle === 'string' && config.headTitle.trim()) ? config.headTitle : APP_EVENTOS_LEFT_PANEL.brandName
+    return {
+      ...APP_EVENTOS_LEFT_PANEL,
+      brandName,
+      gradient: `linear-gradient(150deg, ${themePrimary} 0%, ${themeSecondary} 60%, ${themeTertiary} 100%)`,
+    }
+  }, [config?.headTitle, themePrimary, themeSecondary, themeTertiary])
 
   useEffect(() => {
     if (!isMounted) {
@@ -128,6 +146,22 @@ const PageLogin = () => {
 
   // BUG-015: no mostrar el formulario mientras el redirect-timer está activo
   const isRedirectingAway = user && verificationDone && user?.displayName !== "guest" && !user?._isSafetyGuest
+  const safeLogoNode = useMemo(() => {
+    if (logoError) return null
+    const node = config?.logoDirectory
+    if (!node) return null
+    if (isValidElement(node) && typeof node.type === 'string' && node.type === 'img') {
+      const imgNode = node as ReactElement<ImgHTMLAttributes<HTMLImageElement>>
+      const prevOnError = imgNode.props?.onError
+      return cloneElement(imgNode, {
+        onError: (e: any) => {
+          setLogoError(true)
+          if (typeof prevOnError === 'function') prevOnError(e)
+        },
+      })
+    }
+    return node
+  }, [config?.logoDirectory, logoError])
 
   if (isRedirectingAway) {
     return (
@@ -138,7 +172,7 @@ const PageLogin = () => {
   }
 
   return (
-    <SplitLoginPage leftPanel={APP_EVENTOS_LEFT_PANEL}>
+    <SplitLoginPage leftPanel={splitLeftPanel}>
       <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', minHeight: '100vh', width: '100%' }}>
         <ArrowLeft
           className={`${(!["bodasdehoy"].includes(config?.development) && (stage === "login" || (stage === "register" && stageRegister === 0) || preregister)) && "hidden"} absolute w-6 h-6 text-gray-500 cursor-pointer`}
@@ -156,7 +190,19 @@ const PageLogin = () => {
         )}
         <div className="flex w-full md:w-2/3 max-w-sm flex-col items-center font-display">
           <div className="flex flex-col items-center justify-center transform w-full max-h-[124px] px-4 mb-4">
-            {config?.logoDirectory}
+            {safeLogoNode ?? (
+              <div className="w-full flex items-center justify-center">
+                <div className="px-4 py-2 rounded-lg bg-primary text-white font-title text-base text-center max-w-full truncate">
+                  {(typeof config?.headTitle === 'string' && config.headTitle.trim())
+                    ? config.headTitle
+                    : (typeof config?.development === 'string' && config.development.trim())
+                      ? config.development
+                      : (typeof config?.name === 'string' && config.name.trim())
+                        ? config.name
+                        : 'App'}
+                </div>
+              </div>
+            )}
           </div>
           {sessionExpired && (
             <p className="mb-4 px-4 py-2 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-sm text-center max-w-sm">

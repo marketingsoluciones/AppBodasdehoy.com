@@ -31,8 +31,8 @@ export default function SignoutPage() {
   }, [router.isReady, router]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#fdf2f8] gap-3">
-      <div className="h-10 w-10 animate-spin rounded-full border-4 border-pink-200 border-t-pink-600" />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-base gap-3">
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-primary" />
       <p className="text-sm text-gray-600 font-body">Cerrando sesión…</p>
     </div>
   );

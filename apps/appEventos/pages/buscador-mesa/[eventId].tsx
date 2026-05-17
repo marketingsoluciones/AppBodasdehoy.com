@@ -90,7 +90,7 @@ const BuscadorMesa: NextPage<Props> = ({ eventId, eventName, eventType, eventImg
         <meta name="description" content={`Busca tu mesa para ${eventName}`} />
         <meta property="og:title" content={`${eventName} — ¿En qué mesa estoy?`} />
         <meta property="og:description" content={`Busca tu nombre y descubre en qué mesa estás en ${eventName}`} />
-        {eventImg && <meta property="og:image" content={`https://api-mcp.eventosorganizador.com/${eventImg}`} />}
+        {eventImg && <meta property="og:image" content={`/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${eventImg}`)}`} />}
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
@@ -99,7 +99,7 @@ const BuscadorMesa: NextPage<Props> = ({ eventId, eventName, eventType, eventImg
         <div className="flex flex-col items-center mb-8 text-center">
           {eventImg && (
             <img
-              src={`https://api-mcp.eventosorganizador.com/${eventImg}`}
+              src={`/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${eventImg}`)}`}
               alt={eventName}
               className="w-20 h-20 rounded-full object-cover object-top border-2 border-primary mb-4 shadow-sm"
             />

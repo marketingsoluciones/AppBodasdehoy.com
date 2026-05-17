@@ -79,7 +79,7 @@ function AlbumQRButton({ albumId, eventId }: { albumId: string; eventId: string 
           <p className="text-xs text-gray-500 text-center max-w-[130px] break-all">{momentUrl}</p>
           <button
             onClick={() => { navigator.clipboard.writeText(momentUrl); setOpen(false); }}
-            className="text-xs text-pink-500 hover:underline"
+            className="text-xs text-primary hover:underline"
           >
             Copiar enlace
           </button>
@@ -143,10 +143,10 @@ function MomentosContent() {
 
         {/* ── Portal del invitado ── */}
         {portalUrl && (
-          <div className="mb-6 p-4 bg-pink-50 border border-pink-200 rounded-lg flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="mb-6 p-4 bg-base border border-primary rounded-lg flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1">
-              <p className="text-sm font-medium text-pink-800 mb-1">Portal del evento para invitados</p>
-              <p className="text-xs text-pink-600 break-all">{portalUrl}</p>
+              <p className="text-sm font-medium text-gray-800 mb-1">Portal del evento para invitados</p>
+              <p className="text-xs text-gray-600 break-all">{portalUrl}</p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
               <img
@@ -159,13 +159,13 @@ function MomentosContent() {
                   href={portalUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-pink-600 hover:underline"
+                  className="text-xs text-primary hover:underline"
                 >
                   Ver portal →
                 </a>
                 <button
                   onClick={handleCopyPortal}
-                  className="flex items-center gap-1 text-xs text-pink-600 hover:text-pink-800"
+                  className="flex items-center gap-1 text-xs text-primary hover:text-primaryOrg"
                 >
                   {copiedPortal ? <FiCheck className="w-3 h-3 text-green-500" /> : <FiCopy className="w-3 h-3" />}
                   {copiedPortal ? 'Copiado' : 'Copiar URL'}
@@ -241,7 +241,7 @@ function MomentosContent() {
           href={`${chatBase.replace(/\/$/, '')}/bodasdehoy/memories`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white font-medium hover:opacity-80 transition-opacity"
         >
           Abrir Momentos en Copilot
         </a>
@@ -270,7 +270,7 @@ export default function MomentosPage() {
           <p className="text-gray-700 mb-4">Inicia sesión para ver tus Momentos.</p>
           <Link
             href="/login/"
-            className="inline-block px-4 py-2 rounded-lg bg-pink-500 text-white font-medium hover:bg-pink-600"
+            className="inline-block px-4 py-2 rounded-lg bg-primary text-white font-medium hover:opacity-80 transition-opacity"
           >
             Iniciar sesión
           </Link>
