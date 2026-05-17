@@ -596,8 +596,12 @@ export const queries = {
     }
   `,
 
-  editTask: `mutation ($eventID:String, $itinerarioID:String, $taskID:String, $variable:String, $valor:String){
-    editTask(eventID:$eventID itinerarioID:$itinerarioID  taskID:$taskID  variable:$variable  valor:$valor )
+  editTask: `mutation ($evento_id:ID!, $task_id:ID!, $development:String!, $updates:TaskUpdateInput!){
+    editTask(evento_id:$evento_id, task_id:$task_id, development:$development, updates:$updates){
+      success
+      errors{ field message code }
+      task{ _id }
+    }
   }`,
 
   saveViewConfig: `
@@ -625,50 +629,45 @@ export const queries = {
     }
   `,
 
-  createTask: `mutation ($eventID:String, $itinerarioID:String, $fecha:String, $descripcion:String, $hora:String, $duracion:Int){
-    createTask(eventID:$eventID, itinerarioID:$itinerarioID, fecha:$fecha, descripcion:$descripcion, hora:$hora, duracion:$duracion ){
-      _id
-      fecha
-      hora
-      horaActiva
-      icon
-      descripcion
-      responsable
-      duracion
-      tags
-      tips
-      estatus
-      attachments{
+  createTask: `mutation ($evento_id:ID!, $development:String!, $task:TaskInput!){
+    createTask(evento_id:$evento_id, development:$development, task:$task){
+      success
+      errors{ field message code }
+      task{
         _id
-        name
-        url
-        size
-        createdAt
-        updatedAt
-      }
-      spectatorView
-      comments{
-        _id
-        comment
-        uid
-        createdAt
-        nicknameUnregistered
-        attachments{
+        fecha
+        hora
+        horaActiva
+        icon
+        descripcion
+        responsable
+        duracion
+        tags
+        tips
+        estatus
+        attachments{ _id name url size createdAt updatedAt }
+        spectatorView
+        comments{
           _id
-          name
-          size
+          comment
+          uid
+          createdAt
+          nicknameUnregistered
+          attachments{ _id name size }
         }
+        commentsViewers
+        estado
+        prioridad
+        fecha_creacion
       }
-      commentsViewers
-      estado
-      prioridad
-      fecha_creacion
     }
   }`,
 
-  deleteTask: `
-  mutation  ( $eventID:String, $itinerarioID:String, $taskID:String  ) {
-    deleteTask ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID)
+  deleteTask: `mutation ($task_id:ID!, $development:String!){
+    deleteTask(task_id:$task_id, development:$development){
+      success
+      errors{ field message code }
+    }
   }`,
   createComment: `
   mutation  ( $eventID:String, $itinerarioID:String, $taskID:String, $comment:String, $attachments: [inputFileData], $nicknameUnregistered:String) {
@@ -689,9 +688,12 @@ export const queries = {
   mutation  ( $eventID:String, $itinerarioID:String, $taskID:String, $commentID:String  ) {
     deleteComment ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID, commentID:$commentID)
   }`,
-  createItinerario: `mutation ($eventID:String, $title:String, $dateTime:String, $tipo:String, $next_id:ID){
-    createItinerario(eventID:$eventID, title:$title, dateTime:$dateTime, tipo:$tipo, next_id:$next_id ){
-      _id
+  createItinerario: `mutation ($evento_id:ID!, $itinerario:JSON!){
+    createItinerario(evento_id:$evento_id, itinerario:$itinerario){
+      success
+      errors{ field message code }
+      itinerario{
+        _id
       next_id
       title
       tasks{
@@ -733,10 +735,14 @@ export const queries = {
       }
       tipo
       fecha_creacion
+      }
     }
   }`,
-  duplicateItinerario: `mutation ($eventID:String, $itinerarioID:String, $eventDestinationID:String, $next_id:ID, $storageBucket:String){
-    duplicateItinerario(eventID:$eventID, itinerarioID:$itinerarioID, eventDestinationID:$eventDestinationID, next_id:$next_id, storageBucket:$storageBucket){
+  duplicateItinerario: `mutation ($evento_id:ID!, $itinerario_id:ID!){
+    duplicateItinerario(evento_id:$evento_id, itinerario_id:$itinerario_id){
+      success
+      errors{ field message code }
+      itinerario{
       _id
       next_id
       title
@@ -784,12 +790,18 @@ export const queries = {
   mutation  ( $url:String, $nameFile:String, ) {
     generatePdf ( url:$url,  nameFile:$nameFile)
   }`,
-  editItinerario: `mutation ($eventID:String, $itinerarioID:String, $variable:String, $valor:String, $next_id:ID){
-    editItinerario(eventID:$eventID itinerarioID:$itinerarioID, variable:$variable, valor:$valor, next_id:$next_id )
+  editItinerario: `mutation ($evento_id:ID!, $itinerario_id:ID!, $datos:JSON!){
+    editItinerario(evento_id:$evento_id, itinerario_id:$itinerario_id, datos:$datos){
+      success
+      errors{ field message code }
+      itinerario{ _id }
+    }
   }`,
-  deleteItinerario: `
-  mutation  ( $eventID:String, $itinerarioID:String ) {
-    deleteItinerario ( eventID:$eventID  itinerarioID:$itinerarioID  )
+  deleteItinerario: `mutation ($evento_id:ID!, $itinerario_id:ID!){
+    deleteItinerario(evento_id:$evento_id, itinerario_id:$itinerario_id){
+      success
+      errors{ field message code }
+    }
   }`,
   getItinerario: ` query($evento_id:String, $itinerario_id:String){
     getItinerario(evento_id:$evento_id, itinerario_id:$itinerario_id){
@@ -2438,85 +2450,43 @@ export const queries = {
   }`,
   createTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $values: String) {
     createTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, values:$values) {
-      _id
-      title
-      rotation
-      position{
-        x
-        y
-      }
-      size{
-        width
-        height
-      }
-      tipo
-      numberChair
-      guests{
-        _id
-        chair
-        order
-      }
+      success
+      errors{ field message code }
+      evento{ _id }
     }
   }`,
   editTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $tableID: ID, $variable: String, $valor: String) {
     editTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, tableID:$tableID, variable:$variable, valor:$valor) {
-      _id
-      title
-      rotation
-      position{
-        x
-        y
-      }
-      size{
-        width
-        height
-      }
-      tipo
-      numberChair
-      guests{
-        _id
-        chair
-        order
-      }
+      success
+      errors{ field message code }
+      evento{ _id }
     }
   }`,
   deleteTable: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $tableID: ID) {
-    deleteTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, tableID:$tableID) 
-  }`,
-  createElement: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $values: String) {
-    createElement(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, values:$values) {
-      _id
-      title
-      rotation
-      position{
-        x
-        y
-      }
-      size{
-        width
-        height
-      }
-      tipo
+    deleteTable(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, tableID:$tableID) {
+      success
+      errors{ field message code }
     }
   }`,
-  editElement: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $elementID: ID, $variable: String, $valor: String) {
-    editElement(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, elementID:$elementID, variable:$variable, valor:$valor) {
-      _id
-      title
-      rotation
-      position{
-        x
-        y
-      }
-      size{
-        width
-        height
-      }
-      tipo
+  createElement: `mutation ($evento_id: ID!, $element: JSON!) {
+    createElement(evento_id: $evento_id, element: $element) {
+      success
+      errors{ field message code }
+      evento{ _id }
     }
   }`,
-  deleteElement: `mutation ($eventID:ID, $planSpaceID: ID, $sectionID: ID, $elementID: ID) {
-    deleteElement(eventID:$eventID, planSpaceID:$planSpaceID, sectionID:$sectionID, elementID:$elementID) 
+  editElement: `mutation ($evento_id: ID!, $element_id: ID!, $datos: JSON!) {
+    editElement(evento_id: $evento_id, element_id: $element_id, datos: $datos) {
+      success
+      errors{ field message code }
+      evento{ _id }
+    }
+  }`,
+  deleteElement: `mutation ($evento_id: ID!, $element_id: ID!) {
+    deleteElement(evento_id: $evento_id, element_id: $element_id) {
+      success
+      errors{ field message code }
+    }
   }`,
   editTableOld: `mutation ($eventID:String, $tableID: String, $variable: String, $coordenadas: [posicionAinput]) {
     editMesa(evento_id:$eventID,mesa_id:$tableID, variable_reemplazar:$variable, coordenadas:$coordenadas) {

@@ -285,11 +285,9 @@ export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, plan
       fetchApiEventos({
         query: queries.editElement,
         variables: {
-          eventID: event._id,
-          planSpaceID: planSpaceActive._id,
-          elementID: ID,
-          variable: "position",
-          valor: JSON.stringify({ x, y })
+          evento_id: event._id,
+          element_id: ID,
+          datos: { position: { x, y } }
         },
       });
       const index: number = planSpaceActive?.elements.findIndex((elem) => elem._id === ID)
@@ -338,11 +336,9 @@ export const ActualizarSize = async ({ width, height, targetID, event, setEvent,
       await fetchApiEventos({
         query: queries.editElement,
         variables: {
-          eventID: event._id,
-          planSpaceID: planSpaceActive._id,
-          elementID: ID,
-          variable: "size",
-          valor: JSON.stringify({ width, height })
+          evento_id: event._id,
+          element_id: ID,
+          datos: { size: { width, height } }
         },
       });
       const index: number = planSpaceActive?.elements.findIndex((elem) => elem._id === ID);

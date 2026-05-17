@@ -34,9 +34,8 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
         await fetchApiEventos({
           query: queries.deleteElement,
           variables: {
-            eventID: event._id,
-            planSpaceID: planSpaceActive._id,
-            elementID: item._id
+            evento_id: event._id,
+            element_id: item._id
           }
         })
       }
@@ -75,11 +74,9 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
       await fetchApiEventos({
         query: queries.editElement,
         variables: {
-          eventID: event._id,
-          planSpaceID: planSpaceActive?._id,
-          elementID: item._id,
-          variable: "rotation",
-          valor: JSON.stringify(item?.rotation)
+          evento_id: event._id,
+          element_id: item._id,
+          datos: { rotation: item?.rotation }
         }
       })
     }

@@ -138,12 +138,11 @@ const Mesas: FC = () => {
         fetchApiEventos({
           query: queries.createElement,
           variables: {
-            eventID: event._id,
-            planSpaceID: planSpaceActive._id,
-            values: JSON.stringify({ ...inputValues })
+            evento_id: event._id,
+            element: { ...inputValues, planSpaceID: planSpaceActive._id }
           },
         }).then((result: any) => {
-          planSpaceActive.elements.push({ ...result })
+          planSpaceActive.elements.push({ ...inputValues })
           setPlanSpaceActive({ ...planSpaceActive })
           event.planSpace[planSpaceSelect] = planSpaceActive
           setEvent({ ...event })
