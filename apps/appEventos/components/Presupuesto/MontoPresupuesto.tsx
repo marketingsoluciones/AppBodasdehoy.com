@@ -22,7 +22,7 @@ export const MontoPresupuesto = () => {
         query: queries.editPresupuesto,
         variables: {
           evento_id: event?._id,
-          presupuesto_total: event.presupuesto_objeto.coste_estimado
+          datos: { presupuesto_total: event.presupuesto_objeto.coste_estimado }
         }
       })
       setEvent({ ...event })
@@ -31,14 +31,16 @@ export const MontoPresupuesto = () => {
 
   const handleChangeViewEstimates = async (value: boolean) => {
     try {
-      const result = await fetchApiEventos({
+      const result: any = await fetchApiEventos({
         query: queries.editPresupuesto,
         variables: {
           evento_id: event?._id,
-          viewEstimates: value
+          datos: { viewEstimates: value }
         }
       })
-      event.presupuesto_objeto = result as estimate
+      if (result?.evento?.presupuesto_objeto) {
+        event.presupuesto_objeto = result.evento.presupuesto_objeto
+      }
       setEvent({ ...event })
     } catch (error) {
     }

@@ -71,14 +71,14 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
 
   const saveData = async (values) => {
     try {
-      await fetchApiEventos({
+      const result: any = await fetchApiEventos({
         query: queries.editPago,
         variables: {
           evento_id: event?._id,
           categoria_id: pago?.idCategoria,
           gasto_id: pago?.idGasto,
           pago_id: IDPagoAModificar,
-          pagos_array: {
+          pagos_array: [{
             importe: values.importe,
             estado: checkbox[values.pagado],
             fecha_pago: values.fechaPago,
@@ -87,13 +87,17 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
             medio_pago: values.medio_pago,
             concepto: values.concepto,
             soporte: values?.soporte
-          }
+          }]
         }
       })
-      const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == pago?.idCategoria)
-      const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.findIndex(item => item._id == pago?.idGasto)
-      const f3 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.pagos_array?.findIndex(item => item._id == IDPagoAModificar)
-      event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].pagos_array[f3] = { ...event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2].pagos_array[f3], ...values }
+      if (result?.evento?.presupuesto_objeto) {
+        event.presupuesto_objeto = result.evento.presupuesto_objeto
+      } else {
+        const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == pago?.idCategoria)
+        const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.findIndex(item => item._id == pago?.idGasto)
+        const f3 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.pagos_array?.findIndex(item => item._id == IDPagoAModificar)
+        event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].pagos_array[f3] = { ...event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2].pagos_array[f3], ...values }
+      }
       toast("success", t("savedpayment"))
       setEvent({ ...event })
       set(!state)

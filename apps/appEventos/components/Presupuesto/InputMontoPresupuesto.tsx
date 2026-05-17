@@ -39,15 +39,15 @@ export const InputMontoPresupuesto: FC<Props> = ({ title }) => {
 
     setIsSubmitting(true)
     try {
-      const result = await fetchApiEventos({
+      const result: any = await fetchApiEventos({
         query: queries.editPresupuesto,
         variables: {
           evento_id: event?._id,
-          [`${title === "Presupuesto Total" ? "presupuesto_total" : "coste_estimado"}`]: numVal
+          datos: { [title === "Presupuesto Total" ? "presupuesto_total" : "coste_estimado"]: numVal }
         }
       })
-      if (result) {
-        const updated = { ...event, presupuesto_objeto: result as estimate }
+      if (result?.evento?.presupuesto_objeto) {
+        const updated = { ...event, presupuesto_objeto: result.evento.presupuesto_objeto as estimate }
         setEvent(updated)
         setLastValue(safeFixed(numVal))
         toast("success", t("successfully"))

@@ -79,13 +79,13 @@ const FormAddPago = ({ GastoID, cate, setGastoID }) => {
 
   const saveData = async (values) => {
     try {
-      const result = await fetchApiEventos({
+      const result: any = await fetchApiEventos({
         query: queries.nuevoPago,
         variables: {
           evento_id: event?._id,
           categoria_id: cate,
           gasto_id: GastoID,
-          pagos_array: {
+          pagos_array: [{
             importe: values.importe,
             estado: checkbox[values.pagado],
             fecha_pago: values.fechaPago,
@@ -94,17 +94,15 @@ const FormAddPago = ({ GastoID, cate, setGastoID }) => {
             medio_pago: values.medio_pago,
             concepto: values.concepto,
             soporte: values?.soporte
-          }
+          }]
         }
       })
       toast("success", t("savedpayment"))
       setEvent(old => {
-        const f1 = old?.presupuesto_objeto?.categorias_array?.findIndex(item => item?._id == cate)
-        const f2 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.findIndex(item => item?._id == GastoID)
-        old.presupuesto_objeto.pagado = result?.pagado
-        old.presupuesto_objeto.categorias_array[f1].pagado = result?.categorias_array[0]?.pagado
-        old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].pagado = result?.categorias_array[0]?.gastos_array[0]?.pagado
-        old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].pagos_array?.push(result?.categorias_array[0]?.gastos_array[0]?.pagos_array[0])
+        if (result?.evento?.presupuesto_objeto) {
+          setIsSubmitting(false)
+          return { ...old, presupuesto_objeto: result.evento.presupuesto_objeto }
+        }
         setIsSubmitting(false)
         return { ...old }
       })
