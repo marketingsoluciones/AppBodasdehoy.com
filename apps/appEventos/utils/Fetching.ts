@@ -604,31 +604,6 @@ export const queries = {
     }
   }`,
 
-  saveViewConfig: `
-    mutation saveViewConfig($eventID: String, $itinerarioID: String, $viewConfig: String) {
-      saveViewConfig(
-        eventID: $eventID,
-        itinerarioID: $itinerarioID,
-        viewConfig: $viewConfig
-      )
-    }
-  `,
-
-  getViewConfigs: `
-    query getViewConfigs($eventID: String, $itinerarioID: String) {
-      getViewConfigs(
-        eventID: $eventID,
-        itinerarioID: $itinerarioID
-      ) {
-        id
-        name
-        columns
-        filters
-        sortBy
-      }
-    }
-  `,
-
   createTask: `mutation ($evento_id:ID!, $development:String!, $task:TaskInput!){
     createTask(evento_id:$evento_id, development:$development, task:$task){
       success
@@ -870,33 +845,11 @@ export const queries = {
   updateActivityLink: `mutation ($args:inputActivityLink){
     updateActivityLink(args:$args)
   }`,
-  updateNotifications: `mutation ($evento_id:ID!, $notificaciones:[JSON!]!){
-    updateNotifications(evento_id:$evento_id, notificaciones:$notificaciones){
-      success
-      errors{ field message code }
-    }
-  }`,
   createNotifications: `mutation ($args:inputNotifications){
     createNotifications(args:$args){
       total
       results{
         _id
-      }
-    }
-  }`,
-  getNotifications: `query ($args:inputNotification, $sort:sortCriteriaNotification, $skip:Int, $limit:Int){
-    getNotifications(args:$args, sort:$sort, skip:$skip, limit:$limit){
-      total
-      results{
-        _id
-        uid
-        message
-        state
-        type
-        fromUid
-        focused
-        createdAt
-        updatedAt
       }
     }
   }`,
