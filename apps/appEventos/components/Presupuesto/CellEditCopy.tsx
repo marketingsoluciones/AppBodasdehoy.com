@@ -120,18 +120,12 @@ const CellEditCopy = (props: CellEditCopyProps) => {
             variable: props?.cell?.column?.id,
             valor: !!value ? value[0] : "sin datos"
           }
-        }).then((res) => {
-          const f1 = res?.categorias_array?.findIndex((item) => item._id == props?.categoriaID)
-          const f2 = res?.categorias_array[f1]?.gastos_array.findIndex((item) => item.items_array.some((item) => item._id == props?.row?.original?._id))
-          const f3 = res?.categorias_array[f1]?.gastos_array[f2]?.items_array.findIndex((item) => item._id == props?.row?.original?._id)
-          const data = res?.categorias_array[f1]?.gastos_array[f2]?.items_array[f3][props?.cell?.column?.id]
-          setEvent((old) => {
-            const f1 = old?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == props?.categoriaID)
-            const f2 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array.findIndex((item) => item.items_array.some((item) => item._id == props?.row?.original?._id))
-            const f3 = old?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.items_array.findIndex((item) => item._id == props?.row?.original?._id)
-            old.presupuesto_objeto.categorias_array[f1].gastos_array[f2].items_array[f3][props?.cell?.column?.id] = data
-            return { ...old }
-          })
+        }).then((res: any) => {
+          // PresupuestoResponse wrapper: res.evento.presupuesto_objeto contiene la estructura
+          const presupuesto = res?.evento?.presupuesto_objeto || res
+          if (presupuesto?.categorias_array) {
+            setEvent((old) => ({ ...old, presupuesto_objeto: presupuesto }))
+          }
           toast("success", t("item actualizado con exito"))
         })
       }
