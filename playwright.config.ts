@@ -24,7 +24,8 @@ const useSystemChrome = process.env.USE_SYSTEM_CHROME === '1';
 const browserName = process.env.PLAYWRIGHT_BROWSER || 'webkit';
 const isCI = process.env.CI === 'true' || process.env.CI === '1';
 const headed = process.env.E2E_HEADED === '1' || process.env.E2E_HEADED === 'true';
-const headless = isCI && !headed;
+const forceHeadless = process.env.E2E_HEADLESS === '1' || process.env.E2E_HEADLESS === 'true';
+const headless = forceHeadless || (isCI && !headed);
 
 const project = browserName === 'firefox'
   ? { name: 'firefox', use: { ...devices['Desktop Firefox'] } }

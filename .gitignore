@@ -81,3 +81,4 @@ resultados-bateria-api2-*.json
 # GitHub Actions (managed separately)
 .github/
 test-results/
+.agent-browser/
