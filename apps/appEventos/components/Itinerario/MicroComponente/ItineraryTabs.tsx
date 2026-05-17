@@ -72,23 +72,26 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             const addNewTask = await fetchApiEventos({
                 query: queries.createTask,
                 variables: {
-                    eventID: event._id,
-                    itinerarioID: itinerario._id,
-                    descripcion: itinerario.tipo === "itinerario" ? "Tarea nueva" : "Servicio nuevo",
-                    ...(itinerario.tipo === "itinerario" && { fecha: fecha }),
-                    ...(itinerario.tipo === "itinerario" && { duracion: 30 }),
-                    ...(itinerario.tipo === "itinerario" && { spectatorView: true })
+                    evento_id: event._id,
+                    development: config.development || "bodasdehoy",
+                    task: {
+                        itinerario_id: itinerario._id,
+                        descripcion: itinerario.tipo === "itinerario" ? "Tarea nueva" : "Servicio nuevo",
+                        ...(itinerario.tipo === "itinerario" && { fecha: fecha }),
+                        ...(itinerario.tipo === "itinerario" && { duracion: 30 }),
+                        ...(itinerario.tipo === "itinerario" && { spectatorView: true })
+                    }
                 },
                 domain: config.domain
-            }).then((addNewTask: Task) => {
+            }).then((result: any) => {
+                const addNewTask = result?.task || result
                 fetchApiEventos({
                     query: queries.editTask,
                     variables: {
-                        eventID: event._id,
-                        itinerarioID: itinerario._id,
-                        taskID: addNewTask._id,
-                        variable: "estatus",
-                        valor: "true"
+                        evento_id: event._id,
+                        task_id: addNewTask._id,
+                        development: config.development || "bodasdehoy",
+                        updates: { estatus: true }
                     }
                 })
                 const task = { ...(addNewTask as any), spectatorView: false, estatus: "true" } as Task
@@ -225,13 +228,16 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
         fetchApiEventos({
             query: queries.createItinerario,
             variables: {
-                eventID: event._id,
-                title: t("unnamed"),
-                dateTime: new Date(y, m, d, 8, 0),
-                tipo: window?.location?.pathname.slice(1)
+                evento_id: event._id,
+                itinerario: {
+                    title: t("unnamed"),
+                    dateTime: new Date(y, m, d, 8, 0),
+                    tipo: window?.location?.pathname.slice(1)
+                }
             },
             domain: config.domain
-        }).then((result: Itinerary) => {
+        }).then((r: any) => {
+            const result: Itinerary = r?.itinerario || r
             const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
             if (event.itinerarios_array?.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length) {
                 const lastListIdentifiers = { ...event.listIdentifiers[fListIdentifiers] }

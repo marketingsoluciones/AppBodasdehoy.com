@@ -124,10 +124,9 @@ export const BoddyIter = () => {
         return await fetchApiEventos({
             query: queries.editItinerario,
             variables: {
-                eventID: event._id,
-                itinerarioID: itinerary._id,
-                variable: "next_id",
-                valor: itinerary.next_id
+                evento_id: event._id,
+                itinerario_id: itinerary._id,
+                datos: { next_id: itinerary.next_id }
             },
             domain: config.domain
         })
@@ -138,8 +137,7 @@ export const BoddyIter = () => {
             query: queries.eventUpdate,
             variables: {
                 idEvento: event._id,
-                variable: "listIdentifiers",
-                value: JSON.stringify(event.listIdentifiers)
+                input: { listIdentifiers: event.listIdentifiers }
             }
         })
     }
@@ -176,8 +174,8 @@ export const BoddyIter = () => {
                                     fetchApiEventos({
                                         query: queries.deleteItinerario,
                                         variables: {
-                                            eventID: event._id,
-                                            itinerarioID: itinerario?._id,
+                                            evento_id: event._id,
+                                            itinerario_id: itinerario?._id,
                                         },
                                         domain: config.domain
                                     })
@@ -229,10 +227,9 @@ export const BoddyIter = () => {
         await fetchApiEventos({
             query: queries.editItinerario,
             variables: {
-                eventID: event._id,
-                itinerarioID: itinerario?._id,
-                variable: "title",
-                valor: title
+                evento_id: event._id,
+                itinerario_id: itinerario?._id,
+                datos: { title: title }
             },
             domain: config.domain
         })
