@@ -1,18 +1,12 @@
 #!/usr/bin/env bash
-# PreToolUse hook que BLOQUEA cualquier `git push` ejecutado por Claude.
+# PreToolUse hook que CONTROLA `git push` ejecutado por Claude.
 #
-# REGLA ABSOLUTA: solo el user humano puede ejecutar push.
-# Incidente origen: 2026-05-13, €200 pérdida por push automatizado de agente IA.
+# REGLA actualizada 2026-05-17 (autorización user explícita):
+#   - PERMITIDO: push a `dev` o feature branches `tj/feat/*`
+#   - BLOQUEADO: push a `test`, `master`, `masterv1` (críticos)
+#
+# Incidente origen: 2026-05-13, €200 pérdida por push automatizado de IA.
 # Memoria: feedback_solo_user_push.md + feedback_no_push_sin_confirmacion.md
-#
-# Si Claude necesita que algo llegue a remote, debe:
-#   1. Crear el commit local
-#   2. Imprimir al user el comando exacto: `git push origin <rama>`
-#   3. ESPERAR a que el user lo ejecute manualmente
-#
-# Para bypassear este hook (solo el user humano debe hacerlo):
-#   - Eliminar/renombrar este script
-#   - O ejecutar `git push` directamente desde una shell fuera de Claude
 
 set -euo pipefail
 
@@ -29,30 +23,44 @@ if printf '%s' "$CMD" | grep -qE '(^|[^a-zA-Z0-9_-])git([[:space:]]+-[A-Za-z]+[[
     # --help y --version son inofensivos, permitir
     exit 0
   fi
-  cat >&2 <<EOF
+
+  # BLOQUEAR siempre push a ramas críticas (test/master/masterv1)
+  if printf '%s' "$CMD" | grep -qE '(:|[[:space:]])(test|master|masterv1)([[:space:]]|$)' \
+     && ! printf '%s' "$CMD" | grep -qE '(:|[[:space:]])(masterv1[[:alnum:]]|test[[:alnum:]])'; then
+    cat >&2 <<EOF
 ══════════════════════════════════════════════════════════════════════
-🚫 BLOQUEADO POR HOOK: git push no autorizado
+🚫 BLOQUEADO POR HOOK: push a rama crítica (test/master/masterv1)
 ══════════════════════════════════════════════════════════════════════
 
-REGLA ABSOLUTA del proyecto AppBodasdehoy:
-  - SOLO el user humano (Juan Carlos) puede ejecutar git push.
-  - Incidente origen: 2026-05-13, €200 pérdida por push automatizado de IA.
-  - La rama 'test' está VETADA — nadie pushea sin tests al 100%.
-
-QUÉ HACER EN SU LUGAR:
-  1. Tu commit local ya está creado (eso sí está permitido).
-  2. Imprime al user el comando exacto:
-       git push origin <rama>
-  3. ESPERA a que él lo ejecute manualmente.
+Las ramas test, master y masterv1 están VETADAS para push automatizado.
+Solo humano puede pushear ahí, y solo con tests al 100%.
 
 Comando bloqueado:
   ${CMD}
-
-Si crees que esto es un falso positivo o el user te autorizó explícitamente,
-PIDE al user que ejecute el push él mismo desde su terminal.
 ══════════════════════════════════════════════════════════════════════
 EOF
-  exit 2
+    exit 2
+  fi
+
+  # FORZAR --force bloqueado siempre (excepto en feature branches con autorización)
+  if printf '%s' "$CMD" | grep -qE '\-\-force([[:space:]]|$)|\-f([[:space:]]|$)'; then
+    cat >&2 <<EOF
+══════════════════════════════════════════════════════════════════════
+🚫 BLOQUEADO POR HOOK: git push --force no autorizado
+══════════════════════════════════════════════════════════════════════
+
+Force push puede sobrescribir trabajo en remote. Sólo humano puede ejecutarlo.
+
+Comando bloqueado:
+  ${CMD}
+══════════════════════════════════════════════════════════════════════
+EOF
+    exit 2
+  fi
+
+  # Permitir push a dev o feature branches (autorización user 2026-05-17)
+  # No requiere matching explícito — si llega aquí (no test/master/masterv1, no --force), permitir
+  exit 0
 fi
 
 # Cualquier otro comando: permitir
