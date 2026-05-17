@@ -206,9 +206,8 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             fetchApiEventos({
               query: queries.deleteTask,
               variables: {
-                eventID: event._id,
-                itinerarioID: itinerario._id,
-                taskID: values._id,
+                task_id: values._id,
+                development: config.development || "bodasdehoy",
               },
               domain: config.domain
             }).then(() => {

@@ -27,15 +27,18 @@ export const AddEvent = ({ itinerario, tasks, setSelectTask }) => {
             const addNewTask = await fetchApiEventos({
                 query: queries.createTask,
                 variables: {
-                    eventID: event._id,
-                    itinerarioID: itinerario._id,
-                    descripcion: itinerario.tipo === "itinerario" ? "Tarea nueva" : "Servicio nuevo",
-                    ...(itinerario.tipo === "itinerario" && { fecha: fecha }),
-                    ...(itinerario.tipo === "itinerario" && { duracion: 30 })
+                    evento_id: event._id,
+                    development: config.development || "bodasdehoy",
+                    task: {
+                        itinerario_id: itinerario._id,
+                        descripcion: itinerario.tipo === "itinerario" ? "Tarea nueva" : "Servicio nuevo",
+                        ...(itinerario.tipo === "itinerario" && { fecha: fecha }),
+                        ...(itinerario.tipo === "itinerario" && { duracion: 30 })
+                    }
                 },
                 domain: config.domain
             })
-            const task = addNewTask as Task
+            const task = ((addNewTask as any)?.task || addNewTask) as Task
             const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
             event.itinerarios_array[f1].tasks.push(task as Task)
             setEvent({ ...event })

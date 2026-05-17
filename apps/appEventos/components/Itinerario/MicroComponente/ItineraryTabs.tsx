@@ -414,10 +414,9 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
         return await fetchApiEventos({
             query: queries.editItinerario,
             variables: {
-                eventID: event._id,
-                itinerarioID: itinerary._id,
-                variable: "next_id",
-                valor: itinerary.next_id
+                evento_id: event._id,
+                itinerario_id: itinerary._id,
+                datos: { next_id: itinerary.next_id }
             },
             domain: config.domain
         })

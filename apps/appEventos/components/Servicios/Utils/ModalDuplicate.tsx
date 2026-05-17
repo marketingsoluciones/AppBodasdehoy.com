@@ -44,16 +44,15 @@ export const ModalDuplicate = ({ setModalDuplicate, modalDuplicate }) => {
       }
       setloading(true)
       const itinerary: Itinerary = modalDuplicate.data
-      const result = await fetchApiEventos({
+      const rawResult = await fetchApiEventos({
         query: queries.duplicateItinerario,
         variables: {
-          eventID: event._id,
-          itinerarioID: itinerary._id,
-          eventDestinationID: eventDestination._id,
-          storageBucket: config.fileConfig.storageBucket
+          evento_id: eventDestination._id || event._id,
+          itinerario_id: itinerary._id,
         },
         domain: config.domain
-      }) as Itinerary
+      })
+      const result = ((rawResult as any)?.itinerario || rawResult) as Itinerary
       //si es el mismo evento
       if (eventDestination._id === event._id) {
         const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerary._id)

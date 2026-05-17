@@ -155,11 +155,10 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         await fetchApiEventos({
           query: queries.editTask,
           variables: {
-            eventID: event._id,
-            itinerarioID: itinerario._id,
-            taskID: task._id,
-            variable: fieldName,
-            valor: apiValue,
+            evento_id: event._id,
+            task_id: task._id,
+            development: config.development || "bodasdehoy",
+            updates: { [fieldName]: apiValue },
           },
           domain: config.domain,
         });
@@ -347,11 +346,10 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       fetchApiEventos({
         query: queries.editTask,
         variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          taskID: values._id,
-          variable: "spectatorView",
-          valor: JSON.stringify(newSpectatorViewValue)
+          evento_id: event._id,
+          task_id: values._id,
+          development: config.development || "bodasdehoy",
+          updates: { spectatorView: newSpectatorViewValue }
         },
         domain: config.domain
       })
@@ -412,9 +410,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
             fetchApiEventos({
               query: queries.deleteTask,
               variables: {
-                eventID: event._id,
-                itinerarioID: itinerario._id,
-                taskID: values._id,
+                task_id: values._id,
+                development: config.development || "bodasdehoy",
               },
               domain: config.domain
             }).then(() => {
@@ -517,12 +514,15 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       const response = await fetchApiEventos({
         query: queries.createTask,
         variables: {
-          eventID: event._id,
-          itinerarioID: itinerario._id,
-          descripcion: taskData.descripcion || "Nueva tarea",
-          fecha: fechaString,
-          hora: horaString,
-          duracion: taskData.duracion || 30
+          evento_id: event._id,
+          development: config.development || "bodasdehoy",
+          task: {
+            itinerario_id: itinerario._id,
+            descripcion: taskData.descripcion || "Nueva tarea",
+            fecha: fechaString,
+            hora: horaString,
+            duracion: taskData.duracion || 30
+          }
         },
         domain: config.domain
       });
@@ -530,8 +530,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       if (!response) {
         throw new Error('No se recibió respuesta del servidor');
       }
-      // ✅ Agregar esta línea que faltaba
-      const responseObj = response as any;
+      // Extraer task de EventoResponse wrapper
+      const responseObj = (response as any)?.task || response;
       // Verificar que la respuesta sea un objeto válido con _id
       if (typeof responseObj !== 'object' || !responseObj._id || typeof responseObj._id !== 'string') {
         console.error('Respuesta inválida del servidor:', response);

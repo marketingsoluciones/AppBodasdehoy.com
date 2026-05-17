@@ -64,9 +64,8 @@ export const TableIntegration: React.FC<TableIntegrationProps> = ({
       await fetchApiEventos({
         query: queries.deleteTask,
         variables: {
-          eventID: initialEvent._id,
-          itinerarioID: itinerario._id,
-          taskID: taskId
+          task_id: taskId,
+          development: (initialEvent as any)?.development || "bodasdehoy",
         },
         domain: resolveApiBodasOrigin()
       });
