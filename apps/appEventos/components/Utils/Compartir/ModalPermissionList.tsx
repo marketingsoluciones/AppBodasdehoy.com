@@ -33,9 +33,9 @@ export const ModalPermissionList: FC<props> = ({ data, setOpenModal, event }) =>
                 query: queries.updateCompartitions,
                 variables: {
                     args: {
-                        eventID: event._id,
-                        users: data?.uid,
-                        permissions: values
+                        evento_id: event._id,
+                        usuario_id: data?.uid,
+                        permisos: Array.isArray(values) ? values : [values]
                     }
                 }
             });

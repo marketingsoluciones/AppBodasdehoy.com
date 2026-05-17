@@ -32,16 +32,23 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
     const handleSubmit = async () => {
         setSaving(true)
         try {
-            const results = await fetchApiEventos({
-                query: queries.addCompartitions,
-                variables: {
-                    args: {
-                        eventID: event._id,
-                        users,
-                        permissions
+            // api-mcp addCompartition acepta 1 usuario por llamada (canonical: compartirEvento)
+            // Iteramos sobre cada user.
+            let lastResult: any = null
+            for (const uid of users) {
+                const r: any = await fetchApiEventos({
+                    query: queries.addCompartitions,
+                    variables: {
+                        args: {
+                            evento_id: event._id,
+                            usuario_id: uid,
+                            permisos: permissions
+                        }
                     }
-                }
-            }) as Event
+                })
+                lastResult = r
+            }
+            const results = (lastResult?.evento || lastResult || {}) as Event
             const resultsUser = await fetchApiBodas({
                 query: queries?.getUsers,
                 variables: { uids: results?.compartido_array },

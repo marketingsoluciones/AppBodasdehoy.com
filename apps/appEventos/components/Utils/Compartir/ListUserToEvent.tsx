@@ -43,8 +43,8 @@ const User = ({ data, event }) => {
                 query: queries.deleteCompartitions,
                 variables: {
                     args: {
-                        eventID: event._id,
-                        users: data?.uid,
+                        evento_id: event._id,
+                        usuario_id: data?.uid,
                     }
                 }
             });
