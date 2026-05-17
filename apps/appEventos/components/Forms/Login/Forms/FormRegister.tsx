@@ -71,10 +71,10 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
     }).test("Unico", "Correo inválido", async (value) => {
       const name = document.activeElement?.getAttribute("name")
       if (name !== "identifier" && value?.includes("@")) {
-        const result = await fetchApiBodas({
+        // Migrado a api-mcp 2026-05-17 — getEmailValid implementado en canonical
+        const result = await fetchApiEventos({
           query: queries.getEmailValid,
           variables: { email: value },
-          development: config?.development
         })
         return result?.valid
       } else {
