@@ -3,7 +3,7 @@ import { resolvePublicMcpGraphqlUrl } from '@/const/mcpEndpoints';
 const API_MCP_URL = resolvePublicMcpGraphqlUrl();
 
 const DEFAULT_DEVELOPMENT =
-  process.env.NEXT_PUBLIC_API2_DEVELOPMENT ?? process.env.NEXT_PUBLIC_WHITELABEL ?? 'bodasdehoy';
+  process.env.NEXT_PUBLIC_MCP_DEVELOPMENT ?? process.env.NEXT_PUBLIC_WHITELABEL ?? 'bodasdehoy';
 
 export const DEMO_CREDENTIALS = Object.freeze({
   email: process.env.NEXT_PUBLIC_DEMO_LOGIN_EMAIL ?? process.env.DEMO_LOGIN_EMAIL ?? '',
@@ -95,7 +95,7 @@ export const loginAPI2 = async ({
 
   if (!mutation) {
     return {
-      errors: directErrors.length ? directErrors : ['Respuesta inesperada de API2'],
+      errors: directErrors.length ? directErrors : ['Respuesta inesperada de MCP'],
       success: false,
     };
   }
@@ -218,4 +218,3 @@ export const loginWithFirebase = async ({
     };
   }
 };
-

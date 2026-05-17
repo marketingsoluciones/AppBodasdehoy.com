@@ -30,6 +30,7 @@ const normalizeGraphqlUrl = (u: string): string => {
 
 /** Cliente + RSC */
 export function resolvePublicMcpGraphqlUrl(): string {
+  if (typeof window !== 'undefined') return '/api/graphql';
   failIfLegacyAliasSet();
   const raw = process.env.NEXT_PUBLIC_API_MCP_GRAPHQL_URL || process.env.API_MCP_GRAPHQL_URL;
   return normalizeGraphqlUrl(raw || DEFAULT_MCP_GRAPHQL_URL);

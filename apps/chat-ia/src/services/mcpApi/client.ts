@@ -4,7 +4,7 @@ import { resolvePublicMcpGraphqlUrl } from '@/const/mcpEndpoints';
 const API_MCP_URL = resolvePublicMcpGraphqlUrl();
 
 const DEFAULT_DEVELOPMENT =
-  process.env.NEXT_PUBLIC_API2_DEVELOPMENT ?? process.env.NEXT_PUBLIC_WHITELABEL ?? 'bodasdehoy';
+  process.env.NEXT_PUBLIC_MCP_DEVELOPMENT ?? process.env.NEXT_PUBLIC_WHITELABEL ?? 'bodasdehoy';
 
 type GraphQLErrorShape = { message?: string };
 
@@ -41,7 +41,7 @@ const isExpired = (token: string): boolean => {
 const readToken = () => {
   if (typeof window === 'undefined') return undefined;
 
-  // 0. Primero buscar jwt_token_cache (api2 HS256, válido ~7 días)
+  // 0. Primero buscar jwt_token_cache (JWT cache, válido ~7 días)
   const cache = localStorage.getItem('jwt_token_cache');
   if (cache) {
     try {
@@ -50,7 +50,7 @@ const readToken = () => {
     } catch { /* ignorar */ }
   }
 
-  // 1. jwt_token (login directo API2 o Firebase reciente)
+  // 1. jwt_token (login directo o Firebase reciente)
   const directToken = localStorage.getItem('jwt_token');
   if (directToken && directToken !== 'null' && directToken !== 'undefined' && !isExpired(directToken)) {
     return directToken;
@@ -93,7 +93,7 @@ export class MCPClient {
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
-      console.error('❌ [API2] Respuesta no es JSON:', {
+      console.error('❌ [MCP] Respuesta no es JSON:', {
         contentType,
         preview: text.slice(0, 200),
         status: response.status,
@@ -101,7 +101,7 @@ export class MCPClient {
         url: API_MCP_URL,
       });
       throw new Error(
-        `API2 devolvió una respuesta no-JSON (${response.status} ${response.statusText}). Verifica que el servidor esté funcionando correctamente.`
+        `MCP devolvió una respuesta no-JSON (${response.status} ${response.statusText}). Verifica que el servidor esté funcionando correctamente.`
       );
     }
 
@@ -110,14 +110,14 @@ export class MCPClient {
       payload = (await response.json()) as GraphQLResponse<T>;
     } catch (error) {
       const text = await response.text();
-      console.error('❌ [API2] Error al parsear JSON:', {
+      console.error('❌ [MCP] Error al parsear JSON:', {
         error,
         preview: text.slice(0, 200),
         status: response.status,
         statusText: response.statusText,
       });
       throw new Error(
-        `Error al parsear respuesta de API2: ${error instanceof Error ? error.message : 'Error desconocido'}`
+        `Error al parsear respuesta de MCP: ${error instanceof Error ? error.message : 'Error desconocido'}`
       );
     }
 
@@ -126,7 +126,7 @@ export class MCPClient {
       localStorage.removeItem('mcp_jwt_token');
       localStorage.removeItem('jwt_token_cache');
       // Notificar a la UI para que muestre un aviso de sesión expirada
-      window.dispatchEvent(new CustomEvent('api2:token-expired'));
+      window.dispatchEvent(new CustomEvent('mcp:token-expired'));
     }
 
     return payload;
@@ -137,21 +137,21 @@ export class MCPClient {
       const payload = await this.request<T>(JSON.stringify({ query, variables }));
 
       if (payload.errors && payload.errors.length > 0) {
-        const errorMessage = payload.errors[0]?.message ?? 'Error desconocido al consultar API2';
-        console.error('❌ [API2] Error en query:', errorMessage);
-        console.error('❌ [API2] Errores completos:', payload.errors);
+        const errorMessage = payload.errors[0]?.message ?? 'Error desconocido al consultar MCP';
+        console.error('❌ [MCP] Error en query:', errorMessage);
+        console.error('❌ [MCP] Errores completos:', payload.errors);
         throw new Error(errorMessage);
       }
 
       if (!payload.data) {
-        console.error('❌ [API2] Respuesta vacía sin datos');
-        throw new Error('API2 devolvió una respuesta vacía');
+        console.error('❌ [MCP] Respuesta vacía sin datos');
+        throw new Error('MCP devolvió una respuesta vacía');
       }
 
-      console.log('✅ [API2] Query exitosa');
+      console.log('✅ [MCP] Query exitosa');
       return payload.data;
     } catch (error) {
-      console.error('❌ [API2] Excepción en query:', error);
+      console.error('❌ [MCP] Excepción en query:', error);
       throw error;
     }
   }
@@ -168,4 +168,3 @@ export class MCPClient {
 }
 
 export const mcpClient = new MCPClient();
-

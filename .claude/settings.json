@@ -126,11 +126,13 @@
       "Bash(npx --yes depcheck --json)",
       "Bash(nc -z localhost 3220)",
       "Bash(nc -z localhost 3210)",
-      "Bash(awk '{print $2, $3\"% CPU\", $5, \"RSS\", $11, $12}')"
+      "Bash(awk '{print $2, $3\"% CPU\", $5, \"RSS\", $11, $12}')",
+      "Bash(# Crear *)"
     ],
     "additionalDirectories": [
       "/Users/juancarlosparra/.claude/projects/-Users-juancarlosparra-Projects-AppBodasdehoy-com/memory",
-      "/Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/(auth)/login/[[...login]]"
+      "/Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia/src/app/[variants]/(auth)/login/[[...login]]",
+      "/Users/juancarlosparra/Projects/AppBodasdehoy.com/docs"
     ]
   },
   "hooks": {

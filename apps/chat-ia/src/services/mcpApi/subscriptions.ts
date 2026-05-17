@@ -10,7 +10,6 @@ import { mcpClient } from './client';
 
 const DEFAULT_DEVELOPMENT =
   process.env.NEXT_PUBLIC_MCP_DEVELOPMENT ??
-  process.env.NEXT_PUBLIC_API2_DEVELOPMENT ??
   process.env.NEXT_PUBLIC_WHITELABEL ??
   'bodasdehoy';
 
