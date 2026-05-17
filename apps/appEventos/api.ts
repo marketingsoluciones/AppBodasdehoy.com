@@ -114,9 +114,19 @@ export const api = {
 
   socketIO: ({ token, development, father, origin }: { token?: any; development?: any; father?: any; origin?: any }) => {
     if (!development) return
-    const socketUrl = (process.env.NEXT_PUBLIC_SOCKET_URL || "").trim()
-      || resolveApiEventosOrigin()
-      || ""
+    const rawSocketUrl = (process.env.NEXT_PUBLIC_SOCKET_URL || "").trim()
+    const socketUrl = (() => {
+      const fallback = resolveApiEventosOrigin() || ""
+      if (!rawSocketUrl) return fallback
+      try {
+        const u = new URL(rawSocketUrl)
+        const h = (u.hostname || '').toLowerCase()
+        if (h.includes('api3-ia.') || h.includes('api-ia.')) return fallback
+        return rawSocketUrl
+      } catch {
+        return fallback
+      }
+    })()
     const manager = new Manager(socketUrl, {
       closeOnBeforeunload: true,
     })

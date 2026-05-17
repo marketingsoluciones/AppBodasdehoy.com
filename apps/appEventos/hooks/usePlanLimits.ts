@@ -125,14 +125,15 @@ export function usePlanLimits(): UsePlanLimitsReturn {
     async function load() {
       try {
         // Fetch public plans
-        const plansData = await graphqlQuery<{ getSubscriptionPlans: SubscriptionPlanData[] }>(
+        const plansData = await graphqlQuery<{ getSubscriptionPlans?: SubscriptionPlanData[] }>(
           GET_PUBLIC_PLANS,
           { development },
           null,
           development
         );
         if (cancelled) return;
-        setAllPlans(plansData.getSubscriptionPlans ?? []);
+        const publicPlans = plansData?.getSubscriptionPlans ?? [];
+        setAllPlans(publicPlans);
 
         // Fetch user subscription if authenticated
         if (isAuthenticated) {
@@ -161,11 +162,17 @@ export function usePlanLimits(): UsePlanLimitsReturn {
 
         // Fallback: Free plan
         if (!cancelled) {
-          const freePlan = plansData.getSubscriptionPlans?.find((p) => p.tier === 'FREE') ?? null;
+          const freePlan = publicPlans.find((p) => p.tier === 'FREE') ?? null;
           setPlan(freePlan);
         }
       } catch (err) {
-        console.error('[usePlanLimits] Error:', err);
+        const shouldLog =
+          process.env.NODE_ENV === 'development' &&
+          typeof window !== 'undefined' &&
+          window.localStorage.getItem('debug_plan_limits') === 'true';
+        if (shouldLog) {
+          console.error('[usePlanLimits] Error:', err);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }

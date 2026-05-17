@@ -20,12 +20,12 @@ export const ButtonComponent: FC<propsButton> = ({ variant = "primary", size = "
                 switch (variant) {
                     case "primary":
                         return (
-                            <button className={`first-letter:capitalize hover:opacity-90 transition focus:outline-none focus:ring-4 focus:ring-pink-300 font-medium rounded-full ${sizes[size]} px-5 py-2.5 text-center mr-2 mb-2 ${props.disabled ? "text-gray-400 bg-gray-300" : "text-white bg-primary"}`} {...props}>{children}</button>
+                            <button className={`first-letter:capitalize hover:opacity-90 transition focus:outline-none focus:ring-4 focus:ring-primary font-medium rounded-full ${sizes[size]} px-5 py-2.5 text-center mr-2 mb-2 ${props.disabled ? "text-gray-400 bg-gray-300" : "text-white bg-primary"}`} {...props}>{children}</button>
                         )
                         break;
                     case "alternative":
                         return (
-                            <button className={`first-letter:capitalize py-2.5 px-5 mr-2 mb-2 ${sizes[size]} font-medium text-primary bg-white rounded-full border border-primary hover:bg-gray-100 hover:text-pink-600 focus:z-10 focus:ring-2 focus:ring-pink-700 focus:text-pink-700 transition`} {...props}>{children}</button>
+                            <button className={`first-letter:capitalize py-2.5 px-5 mr-2 mb-2 ${sizes[size]} font-medium text-primary bg-white rounded-full border border-primary hover:bg-gray-100 hover:text-primaryOrg focus:z-10 focus:ring-2 focus:ring-primaryOrg focus:text-primaryOrg transition`} {...props}>{children}</button>
 
                         )
                     default:
@@ -36,4 +36,3 @@ export const ButtonComponent: FC<propsButton> = ({ variant = "primary", size = "
         </>
     )
 }
-

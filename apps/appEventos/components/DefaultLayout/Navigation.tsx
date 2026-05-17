@@ -1,6 +1,7 @@
-import { useMemo, useEffect, useState, FC, useRef } from "react";
+import { useMemo, useEffect, useState, FC, useRef, cloneElement, isValidElement } from "react";
+import type { ImgHTMLAttributes, ReactElement } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, ChatSidebarContextProvider } from "../../context";
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
 import { Banner, IconLightBulb16, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
 import { useToast } from "../../hooks/useToast";
 import { useDelayUnmount } from "../../utils/Funciones";
@@ -24,16 +25,37 @@ const Navigation: FC = () => {
   const pathname = usePathname();
   const [showSidebar, setShowSidebar] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [route, setRoute] = useState<string>("");
+  const [logoError, setLogoError] = useState(false);
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const url = pathname
   const [isAllowedRouter, ht] = useAllowedRouter()
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
+  const canSeeCopilot =
+    config?.copilotEnabled !== false ||
+    (Array.isArray(user?.role) ? user.role.includes('admin') : user?.role === 'admin');
+  const safeLogoNode = useMemo(() => {
+    if (logoError) return null
+    const node = config?.logoDirectory
+    if (!node) return null
+    if (isValidElement(node) && typeof node.type === 'string' && node.type === 'img') {
+      const imgNode = node as ReactElement<ImgHTMLAttributes<HTMLImageElement>>
+      const prevOnError = imgNode.props?.onError
+      return cloneElement(imgNode, {
+        onError: (e: any) => {
+          setLogoError(true)
+          if (typeof prevOnError === 'function') prevOnError(e)
+        },
+      })
+    }
+    return node
+  }, [config?.logoDirectory, logoError])
 
-  useEffect(() => {
-    setRoute(pathname)
-  }, [pathname])
+  const isActiveRoute = (currentPath: string, itemRoute: string) => {
+    if (!currentPath || !itemRoute) return false
+    if (itemRoute === '/') return currentPath === '/'
+    return currentPath === itemRoute || currentPath.startsWith(`${itemRoute}/`)
+  }
 
   const Navbar = useMemo(() => [
     {
@@ -145,12 +167,21 @@ const Navigation: FC = () => {
               setIsActiveStateSwiper(0)
             }}
             className="cursor-pointer items-center flex justify-center w-[130px] md:w-[208px] h-[60px] md:h-[64px] translate-x-[-14px] md:translate-x-[-160px]">
-            {config?.logoDirectory}
+            {safeLogoNode ?? (
+              <span className="px-3 py-1 rounded-lg bg-primary text-white font-title text-sm max-w-full truncate">
+                {(typeof config?.headTitle === 'string' && config.headTitle.trim())
+                  ? config.headTitle
+                  : (typeof config?.development === 'string' && config.development.trim())
+                    ? config.development
+                    : (typeof config?.name === 'string' && config.name.trim())
+                      ? config.name
+                      : 'App'}
+              </span>
+            )}
           </span>
           <NavbarDirectory />
           <div className="flex items-center gap-3">
-            {/* Boton Copilot Chat — tenant con copilotEnabled o usuario admin */}
-            {(config?.copilotEnabled === true || (Array.isArray(user?.role) ? user.role.includes('admin') : user?.role === 'admin')) && ChatSidebarContextProvider() && <ChatToggleButton />}
+            {canSeeCopilot && <ChatToggleButton />}
             <Profile
               state={isMounted}
               set={(act) => setIsMounted(act)}
@@ -176,7 +207,11 @@ const Navigation: FC = () => {
                         key={idx}
                         onClick={() => {
                           if (item.condicion) {
-                            !isAllowedRouter(item.route) ? ht() : [router.push(item.route), setRoute(item.route)]
+                            if (!isAllowedRouter(item.route)) {
+                              ht()
+                            } else {
+                              router.push(item.route)
+                            }
                           } else {
                             if (!eventsGroupDone) {
                               toast("warning", t("waitEventsListToast"))
@@ -190,13 +225,11 @@ const Navigation: FC = () => {
                             router.push("/")
                           }
                         }}
-                        className={`w-max flex flex-col justify-between items-center hover:opacity-80  transition cursor-pointer
-                  ${route == item.route
-                            ? "text-primary transform scale-110"
-                            : "text-gray-400"
-                          }
-                    ${event?._id ? "" : ""}
-                  }`}
+                        className={`w-max flex flex-col justify-between items-center transition cursor-pointer hover:opacity-100 hover:scale-110
+                  ${isActiveRoute(pathname, item.route)
+                            ? "text-primary opacity-100 scale-110"
+                            : "text-gray-800 opacity-70"
+                          }`}
                       >
                         {item.icon}
                         <p className="font-display text-[10px] text-center leading-tight h-max whitespace-nowrap">{t(item.title)}</p>
@@ -208,7 +241,7 @@ const Navigation: FC = () => {
               </div>
             <div ref={refBanner} className="flex max-w-[1020px] flex-1 items-start">
               <Banner
-                className={`${route == "/" ? "text-primary" : "text-white"} transition`}
+                className={`${pathname === "/" ? "text-primary" : "text-white"} transition`}
               />
             </div>
           </div >

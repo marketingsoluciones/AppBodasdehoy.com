@@ -246,7 +246,7 @@ export const developments = [
     pathDomain: "https://www.champagne-events.com.mx",
     pathLogin: "",
     pathDirectory: "champagne-events.com.mx",
-    logoDirectory: <img className="hover:opacity-80 transition text-primary w-full h-full object-contain" src="https://i.ibb.co/Nsr8LgX/cropped-Logo-Gray-Champagne-1.png" />,
+    logoDirectory: <img className="hover:opacity-80 transition text-primary w-full h-full object-contain" src={`/api/proxy-image?url=${encodeURIComponent('https://i.ibb.co/Nsr8LgX/cropped-Logo-Gray-Champagne-1.png')}`} />,
     headTitle: "App Champagne Event Planner",
     favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://champagne-events.com.mx/en/destination-weddings&size=16",
     theme: {
@@ -268,7 +268,7 @@ export const developments = [
     pathDomain: "https://annloevents.com/",
     pathLogin: "",
     pathDirectory: "annloevents.com",
-    logoDirectory: <img className="hover:opacity-80 transition text-primary w-full h-full object-contain" src="https://i.ibb.co/R6by86b/logotipo-annlo-events.png" />,
+    logoDirectory: <img className="hover:opacity-80 transition text-primary w-full h-full object-contain" src={`/api/proxy-image?url=${encodeURIComponent('https://i.ibb.co/R6by86b/logotipo-annlo-events.png')}`} />,
     headTitle: "Planificador Ann Lo Events",
     favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://annloevents.com&size=16",
     theme: {
@@ -290,7 +290,7 @@ export const developments = [
     pathDomain: "https://miamorcitocorazon.mx/",
     pathLogin: "",
     pathDirectory: "miamorcitocorazon.mx",
-    logoDirectory: <img className="hover:opacity-80 transition text-primary w-full h-full object-contain" src="https://i.ibb.co/L8bTqBf/Amorcito-Corazon2.png" />,
+    logoDirectory: <img className="hover:opacity-80 transition text-primary w-full h-full object-contain" src={`/api/proxy-image?url=${encodeURIComponent('https://i.ibb.co/L8bTqBf/Amorcito-Corazon2.png')}`} />,
     headTitle: "Planificador de Eventos",
     favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://miamorcitocorazon.mx&size=16",
     theme: {
@@ -312,7 +312,7 @@ export const developments = [
     pathDomain: "https://eventosintegrados.com/",
     pathLogin: "",
     pathDirectory: "eventosintegrados.com",
-    logoDirectory: <img className="hover:opacity-80 transition text-primary w-full h-full object-contain" src="https://i.ibb.co/p3qm62p/image-2-1.png" />,
+    logoDirectory: <img className="hover:opacity-80 transition text-primary w-full h-full object-contain" src={`/api/proxy-image?url=${encodeURIComponent('https://i.ibb.co/p3qm62p/image-2-1.png')}`} />,
     headTitle: "App - Eventos Empresariales, bodas a nivel nacional, wennding planner",
     favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://eventosintegrados.com&size=16",
     theme: {
@@ -334,7 +334,7 @@ export const developments = [
     pathDomain: "https://ohmaratilano.com/",
     pathLogin: "",
     pathDirectory: "ohmaratilano.com",
-    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain bg-primary p-1" src="https://api-mcp.eventosorganizador.com/logos/Logo-OHMARATILANO-blanco.png" />,
+    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain bg-primary p-1" src="/Pantalla.png" />,
     headTitle: "App profesional que te ayudará a planear la boda de tus sueños con éxito",
     favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://www.ohmaratilano.com&size=16",
     theme: {
@@ -356,7 +356,7 @@ export const developments = [
     pathDomain: "https://corporativozr.com/2024/",
     pathLogin: "",
     pathDirectory: "corporativozr.com",
-    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain bg-primary p-1" src="https://api-mcp.eventosorganizador.com/logos/Logo-CORPORATIVOZR-gris.png" />,
+    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain bg-primary p-1" src="/Pantalla.png" />,
     headTitle: "App profesional que te ayudará a planear la boda de tus sueños con éxito",
     favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://corporativozr.com/2024/&size=16",
     theme: {
@@ -378,7 +378,7 @@ export const developments = [
     pathDomain: "https://theweddingplanner.com/",
     pathLogin: "",
     pathDirectory: "theweddingplanner.mx",
-    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain p-1" src="https://www.theweddingplanner.mx/assets/imgs/theweddingplanner.mx-logo.png" />,
+    logoDirectory: <img className="hover:opacity-80 transition text-primary h-full object-contain p-1" src={`/api/proxy-image?url=${encodeURIComponent('https://www.theweddingplanner.mx/assets/imgs/theweddingplanner.mx-logo.png')}`} />,
     headTitle: "Desde una elegante boda hasta una íntima ceremonia!",
     favicon: "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://www.theweddingplanner.mx/&size=16",
     theme: {

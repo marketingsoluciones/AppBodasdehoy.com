@@ -68,21 +68,21 @@ describe('apiEndpoints — guard de env vars canónicas', () => {
 
   describe('resolveApiIaOrigin', () => {
     it('devuelve la URL canónica cuando API_IA_URL está definida', () => {
-      process.env.API_IA_URL = 'https://api3-ia.eventosorganizador.com';
+      process.env.API_IA_URL = 'https://api-ia.bodasdehoy.com';
       const { resolveApiIaOrigin } = require('../../utils/apiEndpoints');
-      expect(resolveApiIaOrigin()).toBe('https://api3-ia.eventosorganizador.com');
+      expect(resolveApiIaOrigin()).toBe('https://api-ia.bodasdehoy.com');
     });
 
     it('quita trailing slash', () => {
-      process.env.API_IA_URL = 'https://api3-ia.eventosorganizador.com/';
+      process.env.API_IA_URL = 'https://api-ia.bodasdehoy.com/';
       const { resolveApiIaOrigin } = require('../../utils/apiEndpoints');
-      expect(resolveApiIaOrigin()).toBe('https://api3-ia.eventosorganizador.com');
+      expect(resolveApiIaOrigin()).toBe('https://api-ia.bodasdehoy.com');
     });
 
     it('cae al DEFAULT canónico cuando no hay env var (no throw)', () => {
       const { resolveApiIaOrigin, DEFAULT_API_IA_ORIGIN } = require('../../utils/apiEndpoints');
       expect(resolveApiIaOrigin()).toBe(DEFAULT_API_IA_ORIGIN);
-      expect(DEFAULT_API_IA_ORIGIN).toMatch(/^https:\/\/api3-ia\.eventosorganizador\.com$/);
+      expect(DEFAULT_API_IA_ORIGIN).toMatch(/^https:\/\/api-ia\.bodasdehoy\.com$/);
     });
   });
 
@@ -90,7 +90,7 @@ describe('apiEndpoints — guard de env vars canónicas', () => {
     it.each(LEGACY_KEYS)('rechaza %s con mensaje de migración', (legacyKey) => {
       // Definimos canónica válida para que el guard sea la única causa de error
       process.env.API_MCP_GRAPHQL_URL = 'https://api-mcp.eventosorganizador.com/graphql';
-      process.env.API_IA_URL = 'https://api3-ia.eventosorganizador.com';
+      process.env.API_IA_URL = 'https://api-ia.bodasdehoy.com';
       process.env[legacyKey] = 'https://legacy.example.com';
 
       const { resolveApiBodasGraphqlUrl } = require('../../utils/apiEndpoints');
@@ -120,8 +120,8 @@ describe('apiEndpoints — guard de env vars canónicas', () => {
     it('NO lanza error si solo hay canónicas', () => {
       process.env.API_MCP_GRAPHQL_URL = 'https://api-mcp.eventosorganizador.com/graphql';
       process.env.NEXT_PUBLIC_API_MCP_GRAPHQL_URL = 'https://api-mcp.eventosorganizador.com/graphql';
-      process.env.API_IA_URL = 'https://api3-ia.eventosorganizador.com';
-      process.env.NEXT_PUBLIC_API_IA_URL = 'https://api3-ia.eventosorganizador.com';
+      process.env.API_IA_URL = 'https://api-ia.bodasdehoy.com';
+      process.env.NEXT_PUBLIC_API_IA_URL = 'https://api-ia.bodasdehoy.com';
 
       const { resolveApiBodasGraphqlUrl, resolveApiIaOrigin } = require('../../utils/apiEndpoints');
       expect(() => resolveApiBodasGraphqlUrl()).not.toThrow();

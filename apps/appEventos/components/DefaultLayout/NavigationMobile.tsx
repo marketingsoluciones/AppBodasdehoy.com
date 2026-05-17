@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { BsCalendarHeartFill } from "react-icons/bs";
 import { IoIosArrowDown } from "react-icons/io";
 import ClickAwayListener from "react-click-away-listener";
+import ChatToggleButton from "../ChatSidebar/ChatToggleButton";
 
 type NavItem = {
   title: string;
@@ -22,10 +23,19 @@ const NavigationMobile = () => {
   const router = useRouter();
   const toast = useToast();
   const { event } = EventContextProvider() as any;
-  const { user } = AuthContextProvider() as any;
+  const { user, config } = AuthContextProvider() as any;
   const { eventsGroup, eventsGroupDone } = EventsGroupContextProvider() as any;
   const [show, setShow] = useState(false)
   const [itemSelect, setItemSelect] = useState<string | undefined>()
+  const canSeeCopilot =
+    config?.copilotEnabled !== false ||
+    (Array.isArray(user?.role) ? user.role.includes('admin') : user?.role === 'admin');
+
+  const isActiveRoute = (currentPath: string, itemRoute: string) => {
+    if (!currentPath || !itemRoute) return false
+    if (itemRoute === '/') return currentPath === '/'
+    return currentPath === itemRoute || currentPath.startsWith(`${itemRoute}/`)
+  }
 
   const goNav = (item: NavItem) => {
     if (item.condicion === "verdadero") {
@@ -46,7 +56,7 @@ const NavigationMobile = () => {
   const Navbar = [
     {
       title: "Mis eventos",
-      icon: <MisEventosIcon className="text-primary w-7 h-7" />,
+      icon: <MisEventosIcon className="w-7 h-7" />,
       route: "/",
       condicion: "verdadero"
     },
@@ -58,7 +68,7 @@ const NavigationMobile = () => {
     },
     {
       title: "Invitados",
-      icon: <InvitadosIcon className="text-primary w-7 h-7" />,
+      icon: <InvitadosIcon className="w-7 h-7" />,
       route: event?._id ? "/invitados" : "/",
       condicion: event?._id ? "verdadero" : "falso"
     },
@@ -70,19 +80,19 @@ const NavigationMobile = () => {
     },
     {
       title: "Invitaciones",
-      icon: <InvitacionesIcon className="text-primary w-7 h-7" />,
+      icon: <InvitacionesIcon className="w-7 h-7" />,
       route: event?._id ? "/invitaciones" : "/",
       condicion: event?._id ? "verdadero" : "falso"
     },
     {
       title: "Presupuesto",
-      icon: <PresupuestoIcon className="text-primary w-7 h-7" />,
+      icon: <PresupuestoIcon className="w-7 h-7" />,
       route: event?._id ? "/presupuesto" : "/",
       condicion: event?._id ? "verdadero" : "falso"
     },
     {
       title: "Mesas",
-      icon: <MesasIcon className="text-primary w-7 h-7" />,
+      icon: <MesasIcon className="w-7 h-7" />,
       route: event?._id ? "/mesas" : "/",
       condicion: event?._id ? "verdadero" : "falso"
     },
@@ -99,6 +109,11 @@ const NavigationMobile = () => {
 
   return (
     <div className="w-full flex justify-center relative">
+      {canSeeCopilot && (
+        <div className="fixed bottom-[92px] right-4 z-[80] md:hidden">
+          <ChatToggleButton className="shadow-lg" />
+        </div>
+      )}
       <ClickAwayListener onClickAway={() => setShow(false)}>
         <ul onClick={() => { show && setShow(false) }} className={`flex flex-col md:hidden bg-white z-50 rounded-t-2xl Shadow w-full fixed bottom-0 transition duration-300 ease-in-out ${!show && "translate-y-[54px]"}`}>
           <div className="w-full grid grid-cols-6 py-5 place-items-center">
@@ -117,7 +132,7 @@ const NavigationMobile = () => {
                   }
                 }}
                 onClick={() => goNav(item)}
-                className={`cursor-pointer transition text-primary hover:scale-[115%] hover:opacity-100 ${pathname === item.route && itemSelect === item.title ? "opacity-100 scale-[115%]" : "opacity-70"}`}
+                className={`cursor-pointer transition hover:scale-[115%] hover:opacity-100 ${isActiveRoute(pathname, item.route) && itemSelect === item.title ? "text-primary opacity-100 scale-[115%]" : "text-gray-800 opacity-70"}`}
               >
                 {item.icon}
               </li>
@@ -136,7 +151,7 @@ const NavigationMobile = () => {
                   }
                 }}
                 onClick={() => goNav(item)}
-                className={`cursor-pointer transition text-primary hover:scale-[115%] hover:opacity-100 ${pathname === item.route && itemSelect === item.title ? "opacity-100 scale-[115%]" : "opacity-70"}`}
+                className={`cursor-pointer transition hover:scale-[115%] hover:opacity-100 ${isActiveRoute(pathname, item.route) && itemSelect === item.title ? "text-primary opacity-100 scale-[115%]" : "text-gray-800 opacity-70"}`}
               >
                 {item.icon}
               </li>

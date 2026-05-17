@@ -208,6 +208,24 @@ const EventsGroupProvider = ({ children }) => {
             return
           }
 
+          const cacheKey = `events_${development}_${userIdToUse}`
+          const readCachedEvents = () => {
+            try {
+              const raw = typeof window !== 'undefined' ? localStorage.getItem(cacheKey) : null
+              if (!raw) return null
+              const parsed = JSON.parse(raw)
+              return Array.isArray(parsed) ? parsed : null
+            } catch {
+              return null
+            }
+          }
+          const writeCachedEvents = (events: any[]) => {
+            try {
+              if (typeof window === 'undefined') return
+              localStorage.setItem(cacheKey, JSON.stringify(events))
+            } catch { /* ignore */ }
+          }
+
           console.log("[EventsGroup] Buscando eventos para usuario_id:", userIdToUse)
           setEventsGroupError(false)
           setEventsGroupErrorMessage(null)
@@ -310,6 +328,7 @@ const EventsGroupProvider = ({ children }) => {
                 const detailsTime = performance.now() - detailsStartTime
                 console.log(`[EventsGroup] ✅ Detalles cargados en ${detailsTime.toFixed(0)}ms`)
                 console.log(`[EventsGroup] ✅ TOTAL tiempo de carga: ${totalTime.toFixed(0)}ms (${(totalTime/1000).toFixed(1)}s)`)
+                if (Array.isArray(values)) writeCachedEvents(values)
                 setEventsGroup({ type: "INITIAL_STATE", payload: values })
                 setEventsGroupDone(true)
               })
@@ -317,15 +336,25 @@ const EventsGroupProvider = ({ children }) => {
               const errorTime = performance.now() - startTime
               const status = error?.response?.status
               console.error(`[EventsGroup] ❌ Error después de ${errorTime.toFixed(0)}ms (status ${status}):`, error)
-              setEventsGroup({ type: "INITIAL_STATE", payload: [] })
               if (status === 401 || status === 403) {
                 console.warn('[EventsGroup] 401/403: sesión expirada o no autorizada')
+                setEventsGroup({ type: "INITIAL_STATE", payload: [] })
                 setEventsGroupSessionExpired(true)
                 setEventsGroupError(true)
                 setEventsGroupDone(true)
                 return
               }
               const friendlyMessage = getApiErrorMessage(error)
+              const cached = readCachedEvents()
+              if ((status === 502 || status === 503) && cached && cached.length > 0) {
+                setEventsGroup({ type: "INITIAL_STATE", payload: cached })
+                setEventsGroupErrorMessage(`${friendlyMessage || 'El servidor no está disponible. Inténtalo en unos minutos.'} Mostrando datos guardados.`)
+                setEventsGroupSessionExpired(false)
+                setEventsGroupError(true)
+                setEventsGroupDone(true)
+                return
+              }
+              setEventsGroup({ type: "INITIAL_STATE", payload: [] })
               setEventsGroupErrorMessage(friendlyMessage || null)
               setEventsGroupSessionExpired(false)
               setEventsGroupError(true)

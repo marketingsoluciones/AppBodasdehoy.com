@@ -50,7 +50,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
       <div className="w-full bg-white shadow rounded-xl overflow-hidden relative flex flex-col-reverse md:flex-row md:h-72 gap-12  md:gap-0 pt-10 md:pt-0">
         {event?.tipo && (
           <img
-            src={event?.imgEvento ? `https://api-mcp.eventosorganizador.com/${event.imgEvento.i640}` : defaultImagenes[event?.tipo?.toLowerCase()]}
+            src={event?.imgEvento?.i640 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i640}`)}` : defaultImagenes[event?.tipo?.toLowerCase()]}
             className="md:w-1/2 md:h-full h-60 object-cover object-top rounded-xl"
             alt={event?.nombre}
           />

@@ -16,7 +16,7 @@ const MOBILE_BREAKPOINT = 768;
 // Copilot sidebar: lazy import para no bloquear el bundle principal
 const DISABLE_COPILOT_IN_DEV = false;
 import dynamic from 'next/dynamic';
-const ChatSidebarDirect = dynamic(() => import('../ChatSidebar/ChatSidebar'), { ssr: false });
+const ChatSidebarDirect = dynamic(() => import('../ChatSidebar/ChatSidebarDirect'), { ssr: false });
 
 const Container = (props) => {
   const { children } = props;
@@ -95,7 +95,7 @@ const Container = (props) => {
     chatSidebar &&
     !excludeChatSidebar.includes(pathname?.split("/")[1] || "");
   const shouldMountChatSidebar = shouldShowChatSidebar && !!chatSidebar?.isOpen;
-  const showNavigation = !["RelacionesPublicas", "event", "public-card", "public-itinerary", "asistente"].includes(pathname?.split("/")[1]);
+  const showNavigation = !["RelacionesPublicas", "event", "public-card", "public-itinerary", "asistente", "login", "signout", "vista-sin-cookie", "registro"].includes(pathname?.split("/")[1]);
   // Mobile bottom nav oculto en login/registro (el top nav con logo sí se muestra)
   const showMobileNav = showNavigation && !["login", "registro"].includes(pathname?.split("/")[1] || "");
 

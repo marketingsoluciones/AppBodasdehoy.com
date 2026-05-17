@@ -5,9 +5,15 @@ let captureRequestError: ((err: unknown, req: unknown, ctx: unknown) => void) | 
 export async function register() {
   if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
     if (process.env.NEXT_RUNTIME === 'nodejs') {
-      const Sentry = await import('@sentry/nextjs');
-      captureRequestError = Sentry.captureRequestError;
-      await import('./sentry.server.config');
+      let Sentry: any = null
+      try {
+        const req = (new Function('return typeof require !== "undefined" ? require : null'))()
+        if (req) Sentry = req('@sentry/nextjs')
+      } catch {}
+      if (Sentry?.captureRequestError) {
+        captureRequestError = Sentry.captureRequestError;
+        await import('./sentry.server.config');
+      }
     }
   }
 }

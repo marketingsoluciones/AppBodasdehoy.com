@@ -35,10 +35,10 @@ const GuestUpsellPage: FC<GuestUpsellPageProps> = ({ section, description, icon 
         </p>
 
         {benefits.length > 0 && (
-          <ul className="text-left w-full flex flex-col gap-2 bg-pink-50 rounded-xl p-4">
+          <ul className="text-left w-full flex flex-col gap-2 bg-base border border-primary rounded-xl p-4">
             {benefits.map((b, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                <span className="text-pink-500 mt-0.5">✓</span>
+                <span className="text-primary mt-0.5">✓</span>
                 <span>{b}</span>
               </li>
             ))}

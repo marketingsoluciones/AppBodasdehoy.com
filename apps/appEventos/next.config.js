@@ -139,6 +139,48 @@ const nextConfig = {
     const copilotBase = (process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com').replace(/\/$/, '');
     return [
       {
+        source: '/locales/:path*',
+        has: [
+          { type: 'header', key: 'referer', value: '.*\\/copilot-chat.*' },
+        ],
+        destination: `${copilotBase}/locales/:path*`,
+      },
+      {
+        source: '/cdn-cgi/:path*',
+        has: [
+          { type: 'header', key: 'referer', value: '.*\\/copilot-chat.*' },
+        ],
+        destination: `${copilotBase}/cdn-cgi/:path*`,
+      },
+      {
+        source: '/jwe/:path*',
+        has: [
+          { type: 'header', key: 'referer', value: '.*\\/copilot-chat.*' },
+        ],
+        destination: `${copilotBase}/jwe/:path*`,
+      },
+      {
+        source: '/trpc/:path*',
+        has: [
+          { type: 'header', key: 'referer', value: '.*\\/copilot-chat.*' },
+        ],
+        destination: `${copilotBase}/trpc/:path*`,
+      },
+      {
+        source: '/socket.io/:path*',
+        has: [
+          { type: 'header', key: 'referer', value: '.*\\/copilot-chat.*' },
+        ],
+        destination: `${copilotBase}/socket.io/:path*`,
+      },
+      {
+        source: '/api/graphql',
+        has: [
+          { type: 'header', key: 'referer', value: '.*\\/copilot-chat.*' },
+        ],
+        destination: `${copilotBase}/api/graphql`,
+      },
+      {
         source: '/_next/:path*',
         has: [
           { type: 'header', key: 'referer', value: '.*\\/copilot-chat.*' },

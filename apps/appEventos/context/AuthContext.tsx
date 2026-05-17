@@ -3,6 +3,7 @@ import { getAuth, onAuthStateChanged, signInWithCustomToken, getRedirectResult }
 import Cookies from 'js-cookie'
 import { nanoid, customAlphabet, } from 'nanoid'
 import { developments } from "../firebase";
+import { useRouter as usePagesRouter } from 'next/router';
 
 /** En localhost el navegador rechaza cookies con domain=.bodasdehoy.com */
 function safeCookieDomain(domain?: string): string | undefined {
@@ -10,6 +11,15 @@ function safeCookieDomain(domain?: string): string | undefined {
     return undefined;
   }
   return domain;
+}
+
+function safeJsonParse<T>(raw: unknown, fallback: T): T {
+  if (typeof raw !== 'string') return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
 }
 import { fetchApiBodas, fetchApiEventos, queries } from "../utils/Fetching";
 import { resolveApiBodasGraphqlUrl } from "../utils/apiEndpoints";
@@ -133,6 +143,7 @@ const AuthProvider = ({ children }) => {
   const verificatorDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [WihtProvider, SetWihtProvider] = useState<boolean>(false)
   const router = useRouter()
+  const pagesRouter = usePagesRouter()
   const searchParams = useSearchParams()
   const [updateActivity] = useActivity()
   const [EventTicket, setEventTicket] = useState({})
@@ -160,7 +171,7 @@ const AuthProvider = ({ children }) => {
           query: queries.getPreregister,
           variables: { _id: searchParams?.get("_id") }
         }).then((result: any) => {
-          SetPreregister(JSON.parse(result ?? {}))
+          SetPreregister(typeof result === 'string' ? safeJsonParse(result, {}) : (result ?? {}))
         })
       }
       SetLinkMedia(searchParams?.get("m"))
@@ -782,6 +793,10 @@ const AuthProvider = ({ children }) => {
         }
       }
       if (sessionUidFromCookie && !user?.uid) {
+        if (typeof sessionCookie !== 'string' || !sessionCookie) {
+          setVerificationDone(true)
+          return
+        }
         const resp = await fetchApiBodas({
           query: queries.authStatus,
           variables: { sessionCookie },
@@ -904,7 +919,7 @@ const AuthProvider = ({ children }) => {
       // IMPORTANTE: Solo crear guest si NO hay usuario autenticado en Firebase
       if (["bodasdehoy"].includes(config?.development) && !sessionCookie && !user?.uid) {
         console.log("[Verificator] Creando usuario guest (no hay sessionCookie ni usuario Firebase)")
-        const cookieContent = JSON.parse(Cookies.get(config?.cookieGuest) ?? "{}")
+        const cookieContent = safeJsonParse<{ guestUid?: string }>(Cookies.get(config?.cookieGuest), {})
         let guestUid = cookieContent?.guestUid
         if (!guestUid) {
           const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
@@ -924,13 +939,36 @@ const AuthProvider = ({ children }) => {
       if (!sessionUidFromCookie && !user?.uid) {
         setVerificationDone(true)
       }
-    } catch (error) {
-      console.error("[Verificator] ❌ Error en verificación:", error)
-      console.error("[Verificator] Error detalles:", {
+    } catch (error: any) {
+      const status = error?.response?.status
+      const log = status === 502 || status === 503 ? console.warn : console.error
+      log("[Verificator] ❌ Error en verificación:", error)
+      log("[Verificator] Error detalles:", {
         message: error?.message,
         stack: error?.stack,
-        name: error?.name
+        name: error?.name,
+        status,
       })
+      if ((status === 502 || status === 503) && process.env.NEXT_PUBLIC_SENTRY_DSN) {
+        try {
+          let Sentry: any = null
+          try {
+            const req = (new Function('return typeof require !== "undefined" ? require : null'))()
+            if (req) Sentry = req('@sentry/nextjs')
+          } catch {}
+          if (!Sentry?.withScope) throw new Error('Sentry not available')
+          Sentry.withScope((scope) => {
+            scope.setLevel('warning')
+            scope.setTag('http.status', String(status))
+            scope.setTag('auth.phase', 'verificator')
+            const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
+            if (hostname) scope.setTag('app.hostname', hostname)
+            scope.setFingerprint([`auth-verificator-${status}`])
+            Sentry.captureMessage(`Auth verificator HTTP ${status}`)
+          })
+          void Sentry.flush(1500)
+        } catch { /* ignore */ }
+      }
       // ✅ CORRECCIÓN CRÍTICA: Establecer verificationDone incluso si hay error
       // Esto evita que la aplicación se quede en "Cargando..." indefinidamente
       setVerificationDone(true)
@@ -1023,7 +1061,7 @@ const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={{
       usuariosTickets, setUsuariosTickets, selectTicket, setSelectTicket, EventTicket, setEventTicket, setActionModals, actionModals, user, setUser, verificationDone, setVerificationDone, config, setConfig, theme, setTheme, isActiveStateSwiper, setIsActiveStateSwiper, geoInfo, setGeoInfo, forCms, setForCms, setIsStartingRegisterOrLogin, link_id, SetLink_id, storage_id, SetStorage_id, linkMedia, SetLinkMedia, preregister, SetPreregister, SetWihtProvider, WihtProvider,
     }}>
-      {verificationDone ? children : loadingScreen}
+      {(verificationDone || ['/login', '/signout', '/vista-sin-cookie'].includes(pagesRouter?.pathname)) ? children : loadingScreen}
     </AuthContext.Provider>
   );
 };

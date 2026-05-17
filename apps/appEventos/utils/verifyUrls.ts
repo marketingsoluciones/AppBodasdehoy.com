@@ -23,12 +23,9 @@ export async function checkUrl(url: string, timeout = 5000): Promise<UrlCheckRes
     const timeoutId = setTimeout(() => controller.abort(), timeout);
     
     const response = await fetch(url, {
-      method: 'HEAD', // Solo HEAD para verificar sin descargar contenido
+      method: 'GET',
       signal: controller.signal,
-      // Agregar headers para evitar bloqueos
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; URL-Checker/1.0)',
-      },
+      cache: 'no-store',
     });
     
     clearTimeout(timeoutId);
@@ -172,6 +169,9 @@ export function verifyDomain(): {
  * Log de verificación para debugging
  */
 export function logUrlVerification(results: UrlCheckResult[]) {
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    if (window.localStorage.getItem('debug_verify_urls') !== 'true') return;
+  }
   console.group('🔍 Verificación de URLs y Dominios');
   
   results.forEach(result => {
