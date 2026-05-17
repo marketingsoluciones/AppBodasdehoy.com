@@ -12,6 +12,14 @@ case "$ENV" in
   test|dev|prod) ;;
   *) echo "Entorno inválido: $ENV (use test, dev o prod)" >&2; exit 1 ;;
 esac
+
+# Permitir prefijos tipo VAR=VAL antes del comando:
+# bash scripts/with-root-e2e-env.sh dev VAR=1 OTRO=2 pnpm exec ...
+while [[ "${1:-}" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; do
+  export "$1"
+  shift
+done
+
 set -a
 f1="$ROOT/.env.e2e.$ENV"
 f2="$ROOT/.env.e2e.${ENV}.local"
