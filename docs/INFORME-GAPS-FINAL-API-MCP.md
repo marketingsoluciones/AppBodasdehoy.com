@@ -1,6 +1,31 @@
 # 🎯 Informe FINAL — Gaps detectados entre cliente AppEventos y api-mcp
 
-> **Fecha**: 2026-05-15
+> ## ✅ CERRADO TOTAL 2026-05-17 — Migración cliente AppEventos 100% completada
+>
+> **Sprint 1+2+3 — 12 commits aplicados y pushed a `dev`:**
+> - 8/8 dominios cliente migrados (Eventos · Invitados · Mesas/Elements · Itinerario/Tareas · Compartir · Notificaciones · Presupuesto · Menores)
+> - ~30 queries Fetching.ts reescritas con schema canónico api-mcp
+> - ~25 callers adaptados al EventoResponse/PresupuestoResponse/ItinerarioResponse/TaskResponse wrappers
+> - 6 endpoints gaps originales deployed + QA tracking dedupe verde
+> - 0 bugs backend abiertos
+>
+> **Validaciones in-vivo PROD api-mcp confirmadas:**
+> - Ciclo create+update+delete evento con auth Firebase real
+> - WhatsApp send con wamid + dedupeKey contractual
+> - Smoke E2E 6 endpoints gaps (B4/B5 uploads reales a Meta)
+>
+> **Push completado a:** `origin/dev` y `origin/tj/feat/inbox-fase1`
+>
+> **Único pendiente humano:** QA UI manual exhaustivo por dominio en navegador con datos reales.
+> Si verde → apagar droplet `apiapp.bodasdehoy.com` (ahorro DigitalOcean).
+>
+> **Residuos esperados en código (NO tocar):**
+> - `packages/shared/src/utils/resolveApiAppBaseUrl.ts` — CDN imágenes/assets (intencional, no GraphQL)
+> - `.env.vercel.*` + `.env.production.local` — heredados Vercel, regla user "no tocar"
+>
+> **Fase 2 pendiente (fuera scope inmediato)**: integrar WhatsApp en sistema SMM (cuentas por usuario + sharing en grupos). Hoy WhatsApp sigue en colección `whatsappconfigs` (legacy por whitelabel).
+
+> **Fecha**: 2026-05-15 (cierre 2026-05-16)
 > **Autor**: COORD-AppBodas (Claude) sobre SSH a `api3-mcp-graphql.eventosorganizador.com` (server PROD api-mcp en `178.104.209.139`)
 > **Fuente**: análisis propio del equipo api-mcp (29-30 abril 2026) + cruce con `apps/appEventos/utils/Fetching.ts`
 
