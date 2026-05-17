@@ -64,13 +64,19 @@ export const CopilotPrewarmer: React.FC<CopilotPrewarmerProps> = ({ development 
 
     // Pre-calentar usando requestIdleCallback para no competir con el render inicial
     if (typeof window !== 'undefined') {
+      if (localStorage.getItem('copilot_prewarm_disabled') === 'true') return;
+      if (process.env.NODE_ENV === 'development' && localStorage.getItem('copilot_prewarm_dev') !== 'true') return;
+
       const runPrewarm = () => {
-        if ('requestIdleCallback' in window) {
-          (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => void })
-            .requestIdleCallback(prewarmChat, { timeout: 3000 });
-        } else {
-          setTimeout(prewarmChat, 0);
-        }
+        const run = () => {
+          if ('requestIdleCallback' in window) {
+            (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => void })
+              .requestIdleCallback(prewarmChat, { timeout: 3000 });
+          } else {
+            setTimeout(prewarmChat, 0);
+          }
+        };
+        run();
       };
       if (document.readyState === 'complete' || document.readyState === 'interactive') {
         runPrewarm();

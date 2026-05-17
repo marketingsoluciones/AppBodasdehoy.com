@@ -72,6 +72,7 @@ const CopilotIframe = ({
     const [backendCheck, setBackendCheck] = useState<'idle' | 'checking' | 'ok' | 'error'>('idle');
     const [backendError, setBackendError] = useState<string | null>(null);
     const [copyStatus, setCopyStatus] = useState<'ok' | 'fail' | null>(null);
+    const didBackendCheckRef = useRef(false);
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const lastSentPath = useRef<string | null>(null);
     const lastSentEventId = useRef<string | null>(null);
@@ -82,6 +83,12 @@ const CopilotIframe = ({
     const [iframeReady, setIframeReady] = useState(false);
     const [pendingMessage, setPendingMessage] = useState('');
     const [pendingSent, setPendingSent] = useState(false);
+    const iframeReadyRef = useRef(false);
+    const finalReadyTimeoutRef = useRef<number | null>(null);
+
+    useEffect(() => {
+      iframeReadyRef.current = iframeReady;
+    }, [iframeReady]);
 
     // Obtener contexto de la página actual con datos reales
     const currentPath = router.pathname;
@@ -108,12 +115,6 @@ const CopilotIframe = ({
 
       if (development) {
         params.set('developer', development);
-      }
-      // Pasar el email del usuario para que EventosAutoAuth lo identifique directamente
-      if (userData?.email) {
-        params.set('email', userData.email);
-      } else if (userId && userId.includes('@')) {
-        params.set('email', userId);
       }
       // ⚠️ NO añadir eventId aquí: cambia cuando el evento carga asíncronamente
       // y causaría que el iframe recargue borrando la conversación activa.
@@ -152,10 +153,10 @@ const CopilotIframe = ({
 
       const url = queryString ? `${chatBase}?${queryString}` : chatBase;
       return url;
-    // Solo userId, email y development determinan la URL base del iframe.
+    // Solo userId y development determinan la URL base del iframe.
     // eventId se excluye para evitar recargas cuando el evento carga asíncronamente.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [userId, userData?.email, development, getCopilotBaseUrl, fullUi]);
+    }, [userId, development, getCopilotBaseUrl, fullUi]);
 
     const [iframeSrc, setIframeSrc] = useState(buildCopilotUrl());
     const retryCountRef = useRef(0);
@@ -201,6 +202,7 @@ const CopilotIframe = ({
       return () => {
         if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
         if (readyTimeoutRef.current) window.clearTimeout(readyTimeoutRef.current);
+        if (finalReadyTimeoutRef.current) window.clearTimeout(finalReadyTimeoutRef.current);
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [iframeSrc]);
@@ -216,9 +218,11 @@ const CopilotIframe = ({
         timeoutRef.current = null;
       }
 
-      // Auto-retry si el iframe cargó un 404 (Turbopack aún compilando):
-      // Backoff exponencial: [5s, 10s, 20s, 30s] — más agresivo al principio
       if (readyTimeoutRef.current) window.clearTimeout(readyTimeoutRef.current);
+      if (finalReadyTimeoutRef.current) window.clearTimeout(finalReadyTimeoutRef.current);
+
+      if (iframeReadyRef.current) return;
+
       if (retryCountRef.current < MAX_RETRIES) {
         const RETRY_DELAYS = [5_000, 10_000, 20_000, 30_000];
         const retryDelay = RETRY_DELAYS[retryCountRef.current] ?? 30_000;
@@ -228,6 +232,14 @@ const CopilotIframe = ({
           const sep = base.includes('?') ? '&' : '?';
           setIframeSrc(`${base}${sep}_r=${Date.now()}`);
         }, retryDelay);
+      } else {
+        finalReadyTimeoutRef.current = window.setTimeout(() => {
+          if (iframeReadyRef.current) return;
+          setError(
+            'El Copilot cargó, pero no terminó de iniciar. Suele ser un 404 o un error de red dentro del iframe. Prueba a recargar; si persiste, abre el chat en una pestaña nueva.'
+          );
+          setIsLoaded(true);
+        }, 4_000);
       }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [iframeSrc, buildCopilotUrl]);
@@ -255,6 +267,8 @@ const CopilotIframe = ({
 
     // Chequeo del backend IA (proxy /api/copilot/chat → api-ia.bodasdehoy.com). No bloqueante.
     const checkBackendIa = useCallback(async () => {
+      setBackendCheck('checking');
+
       const controller = new AbortController();
       const timeoutId = window.setTimeout(() => controller.abort(), 5_000); // 5 s para dar margen al backend
 
@@ -298,15 +312,16 @@ const CopilotIframe = ({
         setBackendCheck('ok');
         setBackendError(null);
       } catch (e: any) {
-        if (e?.name !== 'AbortError') {
+        if (e?.name === 'AbortError') {
+          setBackendCheck('idle');
+          setBackendError(null);
+        } else {
           const msg = e?.message || 'unknown';
           const friendly = msg.includes('Failed to fetch') || msg.includes('NetworkError')
             ? 'No se pudo conectar con el servidor IA. Comprueba tu conexión o que api-ia.bodasdehoy.com esté disponible.'
             : msg;
           setBackendError(`Error: ${friendly}`);
           setBackendCheck('error');
-        } else {
-          setBackendCheck('ok');
         }
       } finally {
         window.clearTimeout(timeoutId);
@@ -316,9 +331,17 @@ const CopilotIframe = ({
     // ✅ OPTIMIZACIÓN: Hacer check inmediatamente en background, sin delay
     useEffect(() => {
       if (isLoaded) {
-        // Hacer check inmediatamente en background, no bloquear el iframe
+        if (didBackendCheckRef.current) return;
+        if (
+          process.env.NODE_ENV === 'development' &&
+          typeof window !== 'undefined' &&
+          window.localStorage.getItem('debug_copilot_backend_check') !== 'true'
+        ) {
+          return;
+        }
+        didBackendCheckRef.current = true;
         checkBackendIa().catch(() => {
-          // Ignorar errores - el iframe ya está visible
+          //
         });
       }
     }, [isLoaded, checkBackendIa]);
@@ -360,6 +383,24 @@ const CopilotIframe = ({
       // usar el Firebase idToken del usuario logueado actualmente — válido para cualquier whitelabel.
       const idToken = Cookies.get('idTokenV0.1.0') || null;
       const effectiveToken = sessionToken || idToken;
+
+      if (typeof window !== 'undefined') {
+        try {
+          const devUserConfig = {
+            token: effectiveToken,
+            user_id: userId,
+            development,
+            email: userData?.email || null,
+          };
+          window.localStorage.setItem('dev-user-config', JSON.stringify(devUserConfig));
+          if (effectiveToken) {
+            window.localStorage.setItem('jwt_token', effectiveToken);
+            window.localStorage.setItem('mcp_jwt_token', effectiveToken);
+          }
+        } catch {
+          //
+        }
+      }
 
       // Extraer contexto de la página actual
       const pageContextData: PageContextData = extractPageContext(currentPath, event || null);
@@ -426,6 +467,10 @@ const CopilotIframe = ({
             if (readyTimeoutRef.current) {
               window.clearTimeout(readyTimeoutRef.current);
               readyTimeoutRef.current = null;
+            }
+            if (finalReadyTimeoutRef.current) {
+              window.clearTimeout(finalReadyTimeoutRef.current);
+              finalReadyTimeoutRef.current = null;
             }
             retryCountRef.current = MAX_RETRIES; // no más retries
             sendAuthConfig();
@@ -629,14 +674,14 @@ const CopilotIframe = ({
                 placeholder={pendingSent ? 'Enviando cuando esté listo...' : 'Escribe tu pregunta...'}
                 disabled={pendingSent}
                 className={`flex-1 border border-gray-300 rounded-xl px-4 py-3 text-sm outline-none transition-colors ${
-                  pendingSent ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'focus:border-pink-400 focus:ring-1 focus:ring-pink-200'
+                  pendingSent ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'focus:border-primary focus:ring-1 focus:ring-primary'
                 }`}
                 autoFocus
               />
               <button
                 type="submit"
                 disabled={!pendingMessage.trim() || pendingSent}
-                className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-violet-500 text-white disabled:opacity-40 transition-opacity"
+                className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary text-white disabled:opacity-40 transition-opacity"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13" />
@@ -651,7 +696,7 @@ const CopilotIframe = ({
         {!isLoaded && error && (
           <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
             <div className="flex flex-col items-center gap-4">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500" />
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
               <p className="text-sm text-gray-500">Cargando Copilot...</p>
             </div>
           </div>
@@ -668,7 +713,7 @@ const CopilotIframe = ({
                 href={getCopilotBaseUrl().startsWith('http') ? getCopilotBaseUrl() : 'https://chat.bodasdehoy.com'}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-pink-600 hover:underline"
+                className="text-xs text-primary hover:underline"
               >
                 Abrir chat en nueva pestaña
               </a>
@@ -681,7 +726,7 @@ const CopilotIframe = ({
                   const sep = url.includes('?') ? '&' : '?';
                   setIframeSrc(`${url}${sep}_retry=${Date.now()}`);
                 }}
-                className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:opacity-80 transition-opacity"
               >
                 Reintentar
               </button>
@@ -694,7 +739,7 @@ const CopilotIframe = ({
           <div className="absolute top-0 left-0 right-0 bg-slate-100 border-b border-slate-200 z-20 p-2">
             <p className="text-xs text-slate-600 text-center">
               Estás como invitado.{' '}
-              <Link href="/login" className="text-pink-600 hover:underline font-medium">Inicia sesión</Link>
+              <Link href="/login" className="text-primary hover:underline font-medium">Inicia sesión</Link>
               {' '}para chatear y no perder la información de tu evento.
             </p>
           </div>
@@ -733,6 +778,7 @@ const CopilotIframe = ({
                   onClick={() => {
                     setBackendCheck('idle');
                     setBackendError(null);
+                    didBackendCheckRef.current = false;
                     checkBackendIa();
                   }}
                   className="px-3 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
@@ -744,6 +790,7 @@ const CopilotIframe = ({
                   onClick={() => {
                     setBackendCheck('idle');
                     setBackendError(null);
+                    didBackendCheckRef.current = false;
                   }}
                   className="px-2 py-1 text-xs text-yellow-600 hover:text-yellow-800"
                   title="Cerrar"

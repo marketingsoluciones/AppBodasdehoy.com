@@ -379,7 +379,7 @@ const ChatSidebarDirect: FC = () => {
           <div className="flex items-center px-2 py-1.5 sm:px-3 border-b border-gray-200 bg-white [color-scheme:light] flex-shrink-0 gap-1">
 
             {/* Sparkles */}
-            <IoSparkles className="text-pink-500 text-base shrink-0 mr-0.5" aria-hidden />
+            <IoSparkles className="text-primary text-base shrink-0 mr-0.5" aria-hidden />
 
             {/* Título editable — click para renombrar */}
             <div className="flex-1 min-w-0">
@@ -393,11 +393,11 @@ const ChatSidebarDirect: FC = () => {
                     onBlur={handleConfirmLabel}
                     onKeyDown={e => { if (e.key === 'Enter') handleConfirmLabel(); if (e.key === 'Escape') setEditingLabel(false); }}
                     placeholder="Nombre de la conversación"
-                    className="flex-1 min-w-0 text-sm font-medium bg-gray-100 border-0 rounded px-2 py-0.5 outline-none focus:ring-1 focus:ring-pink-300 text-gray-800"
+                    className="flex-1 min-w-0 text-sm font-medium bg-gray-100 border-0 rounded px-2 py-0.5 outline-none focus:ring-1 focus:ring-primary text-gray-800"
                     autoFocus
                     maxLength={50}
                   />
-                  <button type="button" onMouseDown={handleConfirmLabel} className="p-1 text-pink-500 hover:text-pink-700">
+                  <button type="button" onMouseDown={handleConfirmLabel} className="p-1 text-primary hover:text-primaryOrg">
                     <IoCheckmarkOutline className="w-4 h-4" />
                   </button>
                 </div>
@@ -406,7 +406,7 @@ const ChatSidebarDirect: FC = () => {
                   type="button"
                   id="copilot-sidebar-title"
                   onClick={handleStartEditLabel}
-                  className="w-full text-left text-sm font-medium text-gray-800 truncate leading-snug hover:text-pink-600 transition-colors px-1 py-0.5 rounded hover:bg-gray-50"
+                  className="w-full text-left text-sm font-medium text-gray-800 truncate leading-snug hover:text-primary transition-colors px-1 py-0.5 rounded hover:bg-gray-50"
                   title="Clic para renombrar"
                 >
                   {truncateLabel(activeSessionLabel)}
@@ -419,7 +419,7 @@ const ChatSidebarDirect: FC = () => {
               <button
                 type="button"
                 onClick={() => setDropdownOpen(v => !v)}
-                className={`p-1.5 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center ${dropdownOpen ? 'bg-pink-100 text-pink-600' : 'hover:bg-gray-100 text-gray-500'}`}
+                className={`p-1.5 rounded-lg transition-colors touch-manipulation inline-flex items-center justify-center ${dropdownOpen ? 'bg-base text-primary' : 'hover:bg-gray-100 text-gray-500'}`}
                 title="Historial de conversaciones"
                 aria-haspopup="listbox"
                 aria-expanded={dropdownOpen}
@@ -449,10 +449,10 @@ const ChatSidebarDirect: FC = () => {
                             key={session.id}
                             role="option"
                             aria-selected={isActive}
-                            className={`flex items-center gap-1 px-3 py-2 cursor-pointer group/item transition-colors ${isActive ? 'bg-pink-50' : 'hover:bg-gray-50'}`}
+                            className={`flex items-center gap-1 px-3 py-2 cursor-pointer group/item transition-colors ${isActive ? 'bg-base' : 'hover:bg-gray-50'}`}
                             onClick={() => handleSelectSession(session.id)}
                           >
-                            <span className={`flex-1 min-w-0 text-xs truncate ${isActive ? 'text-pink-700 font-medium' : 'text-gray-700'}`}>
+                            <span className={`flex-1 min-w-0 text-xs truncate ${isActive ? 'text-primary font-medium' : 'text-gray-700'}`}>
                               {truncateLabel(session.label, 28)}
                             </span>
                             {sessions.length > 1 && (
@@ -482,7 +482,7 @@ const ChatSidebarDirect: FC = () => {
               title="Nueva conversación"
             >
               <IoChatbubbleOutline className="w-4 h-4" />
-              <IoAddOutline className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 text-pink-500 stroke-[3]" />
+              <IoAddOutline className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 text-primary stroke-[3]" />
             </button>
 
             {/* Abrir en nueva pestaña */}
@@ -534,7 +534,7 @@ const ChatSidebarDirect: FC = () => {
         {/* Resize handle — solo desktop */}
         {!isMobile && (
           <div
-            className="w-1 cursor-col-resize hover:bg-pink-400 active:bg-pink-600 transition-colors flex-shrink-0"
+            className="w-1 cursor-col-resize hover:bg-primary active:bg-secondary transition-colors flex-shrink-0"
             onMouseDown={handleMouseDown}
           />
         )}
