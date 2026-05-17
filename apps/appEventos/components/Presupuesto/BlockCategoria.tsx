@@ -42,6 +42,7 @@ const BlockCategoria = (props: any) => {
   }, [showCategoria, event, event?.presupuesto_objeto?.currency]);
 
   const saldo = categoria?.coste_estimado - categoria?.coste_final;
+  const saldoAFavor = Math.abs(saldo) == saldo;
 
   const totalCosteFinal = categoria?.gastos_array?.reduce((total, item) => total + item.coste_final, 0)
 
@@ -155,7 +156,7 @@ const BlockCategoria = (props: any) => {
         id: "pendiente_pagar",
         Cell: (props) => {
           const [value, setValue] = useState(0);
-          const total = props?.row?.values?.pagado - props?.row?.values?.coste_final
+          const total = (props?.row?.values?.coste_final || 0) - (props?.row?.values?.pagado || 0)
 
           useEffect(() => {
             if (props?.row?.values?.coste_final === 0) {
@@ -185,13 +186,16 @@ const BlockCategoria = (props: any) => {
                   query: queries.borrarGasto,
                   variables: {
                     evento_id: event?._id,
-                    categoria_id: categoria?._id,
                     gasto_id: props?.row?.original?._id,
                   },
-                }).then(result => {
-                  const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === categoria?._id)
-                  const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === props?.row?.original?._id)
-                  event?.presupuesto_objeto?.categorias_array[f1].gastos_array.splice(f2, 1)
+                }).then((result: any) => {
+                  if (result?.evento?.presupuesto_objeto) {
+                    event.presupuesto_objeto = result.evento.presupuesto_objeto
+                  } else {
+                    const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === categoria?._id)
+                    const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === props?.row?.original?._id)
+                    event?.presupuesto_objeto?.categorias_array[f1].gastos_array.splice(f2, 1)
+                  }
                   resolve(event)
                 })
               }).then((result) => {
@@ -229,10 +233,12 @@ const BlockCategoria = (props: any) => {
           categoria_id: categoria?._id,
           nombre: "Nueva part. de gasto",
         }
-      }).then((result) => {
-        const f1 = event?.presupuesto_objeto?.categorias_array.findIndex((elem) => elem._id === categoria?._id)
-        event?.presupuesto_objeto?.categorias_array[f1].gastos_array.push(result)
-        setEvent({ ...event })
+      }).then((result: any) => {
+        if (result?.evento?.presupuesto_objeto) {
+          setEvent({ ...event, presupuesto_objeto: result.evento.presupuesto_objeto })
+        } else {
+          setEvent({ ...event })
+        }
       })
     } catch (error) {
       throw new Error(error)
@@ -289,8 +295,7 @@ const BlockCategoria = (props: any) => {
               <h3 className="text-sm font-medium ">
                 {t("actualcost")}
                 <span
-                  className={`text-sm pl-1 text-${Math.abs(saldo) == saldo ? "green" : "red"
-                    }`}
+                  className={`text-sm pl-1 ${saldoAFavor ? "text-green-600" : "text-red-600"}`}
                 >
                   {getCurrency(categoria?.coste_final, event?.presupuesto_objeto?.currency)}
                 </span>
@@ -305,15 +310,15 @@ const BlockCategoria = (props: any) => {
             <div className="bg-gray-300 rounded-xl flex items-center overflow-hidden md:h-5 w-full relative">
               <p className="font-display text-xs text-white pl-2 z-10 relative p-3">
                 {
-                  Math.abs(saldo) == saldo ? `Saldo a favor ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}` : `${t("balanceagainst")} ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}`
+                  saldoAFavor ? `Saldo a favor ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}` : `${t("balanceagainst")} ${getCurrency(saldo, event?.presupuesto_objeto?.currency)}`
                 }
 
               </p>
-              <svg
-                className={`bg-${Math.abs(saldo) == saldo ? "green" : "red"
-                  } h-full absolute top-0 left-0 z-0  transition-all duration-700 `}
-                width={`${porcentaje}%`}
-              ></svg>
+              <div
+                aria-hidden
+                className={`h-full absolute top-0 left-0 z-0 transition-all duration-700 ${saldoAFavor ? "bg-green-500" : "bg-red-500"}`}
+                style={{ width: `${porcentaje}%` }}
+              />
             </div>
           </div>
         }

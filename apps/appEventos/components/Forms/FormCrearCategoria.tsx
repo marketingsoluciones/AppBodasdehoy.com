@@ -40,9 +40,12 @@ const FormCrearCategoria = ({ set, state }: Props) => {
             evento_id: event?._id,
             nombre: values?.nombre,
           }
-        }).then((result) => {
-          event?.presupuesto_objeto?.categorias_array.push(result)
-          setEvent({ ...event })
+        }).then((result: any) => {
+          if (result?.evento?.presupuesto_objeto) {
+            setEvent({ ...event, presupuesto_objeto: result.evento.presupuesto_objeto })
+          } else {
+            setEvent({ ...event })
+          }
           set(!state);
           actions.setSubmitting(false);
         }).catch(() => {})
