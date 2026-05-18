@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Batería de pruebas contra api2.eventosorganizador.com (GraphQL).
+ * Batería de pruebas contra api-mcp.eventosorganizador.com (GraphQL).
  * Ejecuta varias operaciones y reporta HTTP status + resumen coherente/incoherente.
  *
- * Uso: node scripts/run-bateria-api2.mjs [--json] [--output resultado-api2.json]
+ * Uso: node scripts/run-bateria-mcp.mjs [--json] [--output resultado-mcp.json]
  * Env: API_MCP_URL, DEVELOPMENT, SUPPORT_KEY (opcionales)
  */
 
