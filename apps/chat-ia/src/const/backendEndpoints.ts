@@ -1,4 +1,4 @@
-export const DEFAULT_API_IA_ORIGIN = 'https://api3-ia.eventosorganizador.com';
+export const DEFAULT_API_IA_ORIGIN = 'https://api-ia.bodasdehoy.com';
 
 const LEGACY_ALIASES = [
   'NEXT_PUBLIC_API3_IA_URL',
