@@ -1,39 +1,37 @@
-import { ChatCompletionErrorPayload } from '@lobechat/model-runtime';
-import { ChatErrorType } from '@lobechat/types';
-import { ModelProvider } from 'model-bank';
 import { NextResponse } from 'next/server';
 
-import { checkAuth } from '@/app/(backend)/middleware/auth';
-import { initModelRuntimeWithUserPayload } from '@/server/modules/ModelRuntime';
-import { createErrorResponse } from '@/utils/errorResponse';
-
-const noNeedAPIKey = (provider: string) => [ModelProvider.OpenRouter].includes(provider as any);
-
-export const GET = checkAuth(async (req, { params, jwtPayload }) => {
+export const GET = async (req: Request, { params }: { params: Promise<{ provider: string }> }) => {
   const { provider } = await params;
+  const backendUrl = process.env.API_IA_URL || process.env.NEXT_PUBLIC_API_IA_URL;
+
+  if (!backendUrl) {
+    return NextResponse.json(
+      { error: { message: 'Backend IA no configurado', type: 'config_error' } },
+      { status: 500 },
+    );
+  }
 
   try {
-    const hasDefaultApiKey = jwtPayload.apiKey || 'dont-need-api-key-for-model-list';
+    const headers: Record<string, string> = {};
+    const auth = req.headers.get('Authorization');
+    if (auth) headers['Authorization'] = auth;
+    const cookie = req.headers.get('Cookie');
+    if (cookie) headers['Cookie'] = cookie;
+    const supportKey = req.headers.get('X-Support-Key');
+    if (supportKey) headers['X-Support-Key'] = supportKey;
 
-    const agentRuntime = await initModelRuntimeWithUserPayload(provider, {
-      ...jwtPayload,
-      apiKey: noNeedAPIKey(provider) ? hasDefaultApiKey : jwtPayload.apiKey,
+    const upstream = await fetch(`${backendUrl}/webapi/models/${provider}`, {
+      headers,
+      method: 'GET',
     });
 
-    const list = await agentRuntime.models();
-
-    return NextResponse.json(list);
-  } catch (e) {
-    const {
-      errorType = ChatErrorType.InternalServerError,
-      error: errorContent,
-      ...res
-    } = e as ChatCompletionErrorPayload;
-
-    const error = errorContent || e;
-    // track the error at server side
-    console.error(`Route: [${provider}] ${errorType}:`, error);
-
-    return createErrorResponse(errorType, { error, ...res, provider });
+    const data = await upstream.json().catch(() => ({}));
+    return NextResponse.json(data, { status: upstream.status });
+  } catch (e: any) {
+    console.error(`[models] ❌ proxy error provider="${provider}":`, e?.message);
+    return NextResponse.json(
+      { error: { message: 'No se pudo obtener la lista de modelos', type: 'proxy_error' } },
+      { status: 502 },
+    );
   }
-});
+};
