@@ -1,6 +1,7 @@
 'use client';
 
 import { ChatHeader } from '@lobehub/ui/mobile';
+import dynamic from 'next/dynamic';
 import { memo, useState } from 'react';
 
 import { INBOX_SESSION_ID } from '@/const/session';
@@ -8,8 +9,9 @@ import { useQueryRoute } from '@/hooks/useQueryRoute';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import SettingButton from '../../../features/SettingButton';
-import ShareButton from '../../../features/ShareButton';
 import ChatHeaderTitle from './ChatHeaderTitle';
+
+const ShareButton = dynamic(() => import('../../../features/ShareButton'), { ssr: false });
 
 const MobileHeader = memo(() => {
   const router = useQueryRoute();
