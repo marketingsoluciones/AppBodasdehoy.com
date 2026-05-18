@@ -121,7 +121,7 @@ export const api = {
       try {
         const u = new URL(rawSocketUrl)
         const h = (u.hostname || '').toLowerCase()
-        if (h.includes('api3-ia.') || h.includes('api-ia.')) return fallback
+        if (h.includes('api-ia.')) return fallback
         return rawSocketUrl
       } catch {
         return fallback
