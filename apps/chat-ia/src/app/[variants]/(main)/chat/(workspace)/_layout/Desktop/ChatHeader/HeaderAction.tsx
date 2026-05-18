@@ -7,6 +7,7 @@ import {
   PanelLeftRightDashedIcon,
   SquareChartGanttIcon,
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
@@ -17,7 +18,8 @@ import { systemStatusSelectors } from '@/store/global/selectors';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import SettingButton from '../../../features/SettingButton';
-import ShareButton from '../../../features/ShareButton';
+
+const ShareButton = dynamic(() => import('../../../features/ShareButton'), { ssr: false });
 
 const HeaderAction = memo<{ className?: string }>(({ className }) => {
   const { t } = useTranslation('chat');

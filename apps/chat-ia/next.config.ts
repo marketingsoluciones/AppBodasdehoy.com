@@ -407,7 +407,10 @@ const nextConfig: NextConfig = {
   // ⚡ FASE 4 PR-4.3 (2026-05-13): packages compartidos eliminados de transpilePackages
   // tras FASE 3 (dist build). Next los carga pre-compilados → ahorra recompile en cada build.
   // SOLO quedan los packages externos que aún requieren transpile (no tienen dist propio).
-  transpilePackages: ['pdfjs-dist', 'mermaid'],
+  // @lobehub/ui añadido 2026-05-18: workaround para bug Next 15.5.9 RSC con
+  // componentes Modal/Drawer/Markdown — Next no los marca como Client correctamente
+  // sin transpile.
+  transpilePackages: ['pdfjs-dist', 'mermaid', '@lobehub/ui'],
 
   webpack(config) {
     config.experiments = {
