@@ -48,10 +48,9 @@ const nextConfig: NextConfig = {
   // Convierte `import { X, Y } from 'lucide-react'` → imports individuales
   // Reduce drásticamente tiempo compile y bundle size
   modularizeImports: {
-    'lucide-react': {
-      transform: 'lucide-react/dist/esm/icons/{{ kebabCase member }}',
-      skipDefaultConversion: true,
-    },
+    // lucide-react eliminado 2026-05-18: rompía con sufijo Icon (ArrowBigUpIcon →
+    // arrow-big-up-icon.js inexistente). optimizePackageImports nativo abajo lo
+    // maneja correctamente desde @lobehub/ui (que ahora está en transpilePackages).
     'lodash-es': {
       transform: 'lodash-es/{{member}}',
     },
