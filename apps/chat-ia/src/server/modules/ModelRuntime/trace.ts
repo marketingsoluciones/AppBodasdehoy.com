@@ -1,5 +1,5 @@
 import { INBOX_SESSION_ID, LOBE_CHAT_OBSERVATION_ID, LOBE_CHAT_TRACE_ID } from '@lobechat/const';
-import { ChatStreamCallbacks, ChatStreamPayload } from '@lobechat/model-runtime';
+import type { ChatStreamCallbacks, ChatStreamPayload } from '@lobechat/model-runtime';
 import { TracePayload, TraceTagMap } from '@lobechat/types';
 import { after } from 'next/server';
 
