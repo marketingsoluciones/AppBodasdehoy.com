@@ -1,14 +1,18 @@
 'use client';
 
 import { Suspense, lazy } from 'react';
+import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { Flexbox } from 'react-layout-kit';
 
 import ReloginBanner from '@/components/ReloginBanner';
 import { isDesktop } from '@/const/version';
 import InitClientDB from '@/features/InitClientDB';
-import ProtocolUrlHandler from '@/features/ProtocolUrlHandler';
 import { useGlobalStore } from '@/store/global';
+
+const ProtocolUrlHandler = dynamic(() => import('@/features/ProtocolUrlHandler'), {
+  ssr: false,
+});
 import { systemStatusSelectors } from '@/store/global/selectors';
 
 import { resolveChatEmbedMode } from '@/utils/resolveChatEmbedMode';

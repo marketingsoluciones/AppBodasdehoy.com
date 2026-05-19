@@ -1,4 +1,4 @@
-import { AgentRuntimeErrorType } from '@lobechat/model-runtime';
+import { AgentRuntimeErrorType } from '@lobechat/types';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { ErrorHandlerService } from '@/server/services/comfyui/core/errorHandlerService';

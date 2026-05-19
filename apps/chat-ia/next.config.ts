@@ -48,10 +48,9 @@ const nextConfig: NextConfig = {
   // Convierte `import { X, Y } from 'lucide-react'` → imports individuales
   // Reduce drásticamente tiempo compile y bundle size
   modularizeImports: {
-    'lucide-react': {
-      transform: 'lucide-react/dist/esm/icons/{{ kebabCase member }}',
-      skipDefaultConversion: true,
-    },
+    // lucide-react eliminado 2026-05-18: rompía con sufijo Icon (ArrowBigUpIcon →
+    // arrow-big-up-icon.js inexistente). optimizePackageImports nativo abajo lo
+    // maneja correctamente desde @lobehub/ui (que ahora está en transpilePackages).
     'lodash-es': {
       transform: 'lodash-es/{{member}}',
     },
@@ -407,7 +406,10 @@ const nextConfig: NextConfig = {
   // ⚡ FASE 4 PR-4.3 (2026-05-13): packages compartidos eliminados de transpilePackages
   // tras FASE 3 (dist build). Next los carga pre-compilados → ahorra recompile en cada build.
   // SOLO quedan los packages externos que aún requieren transpile (no tienen dist propio).
-  transpilePackages: ['pdfjs-dist', 'mermaid'],
+  // @lobehub/ui añadido 2026-05-18: workaround para bug Next 15.5.9 RSC con
+  // componentes Modal/Drawer/Markdown — Next no los marca como Client correctamente
+  // sin transpile.
+  transpilePackages: ['pdfjs-dist', 'mermaid', '@lobehub/ui'],
 
   webpack(config) {
     config.experiments = {

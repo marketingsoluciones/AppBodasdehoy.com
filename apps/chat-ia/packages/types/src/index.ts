@@ -1,5 +1,7 @@
 export * from './agent';
+export * from './agentRuntimeError';
 export * from './aiChat';
+export * from './webCrawler';
 export * from './aiProvider';
 export * from './artifact';
 export * from './asyncTask';

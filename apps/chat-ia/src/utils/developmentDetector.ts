@@ -11,6 +11,8 @@
 
 import React from 'react';
 
+import { developments as sharedDevelopments } from '@bodasdehoy/shared/types';
+
 export interface DevelopmentConfig {
   api: {
     backendUrl: string;
@@ -30,78 +32,48 @@ export interface DevelopmentConfig {
 }
 
 /**
- * Configuraciones de developments disponibles
+ * Overrides de colores específicos por tenant (resto usa shared theme).
+ * bodasdehoy tiene branding chat-ia distinto del theme general (web).
  */
-export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = {
-  annloevents: {
-    api: {
-      backendUrl: process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030',
-      graphqlEndpoint: 'https://api-mcp.eventosorganizador.com',
-    },
-    colors: {
-      accent: '#06b6d4',
-      background: '#ffffff',
-      primary: '#ec4899',
-      secondary: '#8b5cf6',
-      text: '#1a202c',
-    },
-    corsOrigin: ['https://annloevents.com', 'https://www.annloevents.com'],
-    development: 'annloevents',
-    domain: 'https://annloevents.com',
-    name: 'Annlo Events',
-  },
-  bodasdehoy: {
-    api: {
-      backendUrl: process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030',
-      graphqlEndpoint: 'https://api-mcp.eventosorganizador.com',
-    },
-    colors: {
-      accent: '#ff69b4',
-      background: '#ffffff',
-      primary: '#667eea',
-      secondary: '#764ba2',
-      text: '#1a202c',
-    },
-    corsOrigin: ['https://bodasdehoy.com', 'https://www.bodasdehoy.com'],
-    development: 'bodasdehoy',
-    domain: 'https://bodasdehoy.com',
-    name: 'Bodas de Hoy',
-  },
-  champagneevents: {
-    api: {
-      backendUrl: process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030',
-      graphqlEndpoint: 'https://api-mcp.eventosorganizador.com',
-    },
-    colors: {
-      accent: '#eab308',
-      background: '#ffffff',
-      primary: '#f59e0b',
-      secondary: '#d97706',
-      text: '#1a202c',
-    },
-    corsOrigin: ['https://champagneevents.com', 'https://www.champagneevents.com'],
-    development: 'champagneevents',
-    domain: 'https://champagneevents.com',
-    name: 'Champagne Events',
-  },
-  eventosorganizador: {
-    api: {
-      backendUrl: process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030',
-      graphqlEndpoint: 'https://api-mcp.eventosorganizador.com',
-    },
-    colors: {
-      accent: '#f59e0b',
-      background: '#ffffff',
-      primary: '#7c3aed',
-      secondary: '#db2777',
-      text: '#1a202c',
-    },
-    corsOrigin: ['https://eventosorganizador.com', 'https://www.eventosorganizador.com'],
-    development: 'eventosorganizador',
-    domain: 'https://eventosorganizador.com',
-    name: 'Eventos Organizador',
-  },
+const COLOR_OVERRIDES: Record<string, Partial<DevelopmentConfig['colors']>> = {
+  bodasdehoy: { accent: '#ff69b4', primary: '#667eea', secondary: '#764ba2' },
 };
+
+const DEFAULT_API_BACKEND = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
+const DEFAULT_GRAPHQL = 'https://api-mcp.eventosorganizador.com';
+
+/**
+ * Configuraciones de developments disponibles — generado dinámicamente
+ * desde @bodasdehoy/shared/types developments (fuente única de verdad, 11 tenants).
+ * Shape adaptado a las necesidades chat-ia (api + colors + corsOrigin).
+ */
+export const DEVELOPMENTS_CONFIG: Record<string, DevelopmentConfig> = Object.fromEntries(
+  sharedDevelopments.map((dev) => {
+    const root = dev.domain.replace(/^\./, ''); // ".bodasdehoy.com" → "bodasdehoy.com"
+    const httpsRoot = `https://${root}`;
+    const override = COLOR_OVERRIDES[dev.development] ?? {};
+    return [
+      dev.development,
+      {
+        api: {
+          backendUrl: DEFAULT_API_BACKEND,
+          graphqlEndpoint: DEFAULT_GRAPHQL,
+        },
+        colors: {
+          accent: override.accent ?? dev.theme?.tertiaryColor ?? '#06b6d4',
+          background: override.background ?? dev.theme?.baseColor ?? '#ffffff',
+          primary: override.primary ?? dev.theme?.primaryColor ?? '#667eea',
+          secondary: override.secondary ?? dev.theme?.secondaryColor ?? '#764ba2',
+          text: override.text ?? '#1a202c',
+        },
+        corsOrigin: [httpsRoot, `https://www.${root}`],
+        development: dev.development,
+        domain: httpsRoot,
+        name: dev.headTitle ?? dev.name,
+      },
+    ];
+  }),
+);
 
 /**
  * Mapping de dominios a developments

@@ -2,7 +2,7 @@
 // Si el env var no está seteado, fallback a producción. Throw eliminado para
 // que `next build` pueda completar `Collecting page data` sin env local.
 export const DEFAULT_MCP_GRAPHQL_URL = 'https://api-mcp.eventosorganizador.com/graphql';
-export const DEFAULT_API_IA_ORIGIN = 'https://api3-ia.eventosorganizador.com';
+export const DEFAULT_API_IA_ORIGIN = 'https://api-ia.bodasdehoy.com';
 
 const LEGACY_ALIASES = [
   'NEXT_PUBLIC_API3_MCP_GRAPHQL_URL',

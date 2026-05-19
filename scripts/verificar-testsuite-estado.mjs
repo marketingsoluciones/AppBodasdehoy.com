@@ -34,7 +34,7 @@ function getTestSuiteUrl() {
 
 function getBackendUrl() {
   const envFile = path.join(PROJECT_ROOT, 'apps/appEventos/.env.production');
-  let backendUrl = 'https://api3-ia.eventosorganizador.com';
+  let backendUrl = 'https://api-ia.bodasdehoy.com';
   
   if (fs.existsSync(envFile)) {
     try {

@@ -1,11 +1,15 @@
 Host mcp mcp-graphql
-  HostName api3-mcp-graphql.eventosorganizador.com
+  # Cloudflare proxy bloquea puerto 22 sobre api-mcp.eventosorganizador.com
+  # Usar IP directa (verificado 2026-05-18)
+  HostName 178.104.209.139
   User TU_USUARIO
   IdentityFile ~/.ssh/TU_KEY_LEADSCARAP
   IdentitiesOnly yes
 
-Host ia
-  HostName api3-ia.eventosorganizador.com
+Host ia api-ia
+  # Dominio público api-ia.bodasdehoy.com sirve HTTPS (Cloudflare proxy)
+  # — usar IP directa para SSH (verificado 2026-05-18).
+  HostName 159.69.180.113
   User TU_USUARIO
   IdentityFile ~/.ssh/TU_KEY_LEADSCARAP
   IdentitiesOnly yes
