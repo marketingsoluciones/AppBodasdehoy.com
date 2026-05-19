@@ -1,4 +1,4 @@
-import { AgentRuntimeErrorType, ILobeAgentRuntimeErrorType } from '@lobechat/model-runtime';
+import { AgentRuntimeErrorType, ILobeAgentRuntimeErrorType } from '@lobechat/types';
 import { ChatErrorType, ErrorResponse, ErrorType } from '@lobechat/types';
 
 const getStatus = (errorType: ILobeAgentRuntimeErrorType | ErrorType) => {
