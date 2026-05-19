@@ -15,9 +15,6 @@ vi.mock('@lobechat/const', () => ({
 
 vi.mock('@lobechat/utils', () => ({
   parseDataUri: vi.fn(),
-}));
-
-vi.mock('@lobechat/utils', () => ({
   uuid: () => 'mock-uuid',
 }));
 
