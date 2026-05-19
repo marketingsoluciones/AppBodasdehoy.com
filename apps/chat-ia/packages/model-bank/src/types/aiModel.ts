@@ -1,10 +1,17 @@
 import { z } from 'zod';
 
-import type { AiModelSourceType, ModelAbilities } from '@lobechat/types';
+import type {
+  AiModelSourceType,
+  AiModelType,
+  BasicModelPricing,
+  ModelAbilities,
+  ModelPriceCurrency,
+} from '@lobechat/types';
 
 import { ModelParamsSchema } from '../standard-parameters';
 
-export type ModelPriceCurrency = 'CNY' | 'USD';
+// ModelPriceCurrency + AiModelType + BasicModelPricing movidos a @lobechat/types 2026-05-19 SPRINT-A.5
+export type { ModelPriceCurrency, AiModelType, BasicModelPricing } from '@lobechat/types';
 
 // AiModelSourceEnum + AiModelSourceType movidos a @lobechat/types 2026-05-19 SPRINT-A.2
 export { AiModelSourceEnum, type AiModelSourceType } from '@lobechat/types';
@@ -19,8 +26,6 @@ export const AiModelTypeSchema = z.enum([
   'text2music',
   'realtime',
 ] as const);
-
-export type AiModelType = z.infer<typeof AiModelTypeSchema>;
 
 // ModelAbilities movido a @lobechat/types 2026-05-19 SPRINT-A.4
 export type { ModelAbilities } from '@lobechat/types';
@@ -38,17 +43,7 @@ const AiModelAbilitiesSchema = z.object({
 // LLMParams movido a @lobechat/types 2026-05-19 SPRINT-A.3
 export type { LLMParams } from '@lobechat/types';
 
-export interface BasicModelPricing {
-  /**
-   * the currency of the pricing
-   * @default USD
-   */
-  currency?: ModelPriceCurrency;
-  /**
-   * the input pricing, e.g. $1 / 1M tokens
-   */
-  input?: number;
-}
+// BasicModelPricing movido a @lobechat/types 2026-05-19 SPRINT-A.5 (re-export arriba)
 
 export interface ChatModelPricing extends BasicModelPricing {
   audioInput?: number;
