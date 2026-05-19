@@ -2,6 +2,7 @@
 
 import { ActionIcon, SortableList } from '@lobehub/ui';
 import { Settings, UserMinus } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
@@ -16,7 +17,9 @@ import { useUserStore } from '@/store/user';
 import { userProfileSelectors } from '@/store/user/selectors';
 import { LobeGroupSession } from '@/types/session';
 
-import AgentSettings from '../../../features/AgentSettings';
+// SPRINT-H 2026-05-19: AgentSettings es un Drawer pesado (importa @lobehub/ui Drawer + Form + 30+ subcomponentes).
+// Solo se renderiza si `agentSettingsOpen=true`. Dynamic ssr:false → fuera del bundle inicial /chat.
+const AgentSettings = dynamic(() => import('../../../features/AgentSettings'), { ssr: false });
 import GroupMemberItem from './GroupMemberItem';
 
 interface GroupMemberProps {
