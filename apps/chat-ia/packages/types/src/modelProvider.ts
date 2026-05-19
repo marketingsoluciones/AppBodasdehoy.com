@@ -15,6 +15,23 @@ export const AiModelSourceEnum = {
 
 export type AiModelSourceType = (typeof AiModelSourceEnum)[keyof typeof AiModelSourceEnum];
 
+// ─── LLMParams (movido 2026-05-19 SPRINT-A.3) ──────────────────────────────
+/** Parámetros de configuración del modelo LLM (temperature, max_tokens, etc.) */
+export interface LLMParams {
+  /** Penaliza repetición (-2 a 2, default 0) */
+  frequency_penalty?: number;
+  /** Longitud máxima de generación */
+  max_tokens?: number;
+  /** Penaliza temas repetidos (-2 a 2, default 0) */
+  presence_penalty?: number;
+  /** Esfuerzo de reasoning (modelos o1, etc.) */
+  reasoning_effort?: string;
+  /** Creatividad/temperatura (0-2, default 1) */
+  temperature?: number;
+  /** Top-p nucleus sampling (0-1, default 1) */
+  top_p?: number;
+}
+
 // ─── ModelProvider enum ─────────────────────────────────────────────────────
 export enum ModelProvider {
   Ai21 = 'ai21',
