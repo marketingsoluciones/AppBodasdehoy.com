@@ -9,7 +9,7 @@ import {
   VertexAIKeyVault,
 } from '@lobechat/types';
 import { clientApiKeyManager } from '@lobechat/utils/client';
-import { ModelProvider } from 'model-bank';
+import { ModelProvider } from '@lobechat/types';
 
 import { aiProviderSelectors, useAiInfraStore } from '@/store/aiInfra';
 import { useUserStore } from '@/store/user';

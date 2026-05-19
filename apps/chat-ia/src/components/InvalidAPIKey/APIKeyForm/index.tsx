@@ -1,6 +1,6 @@
 import { ProviderIcon } from '@lobehub/icons';
 import { Button } from '@lobehub/ui';
-import { ModelProvider } from 'model-bank';
+import { ModelProvider } from '@lobechat/types';
 import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Center, Flexbox } from 'react-layout-kit';

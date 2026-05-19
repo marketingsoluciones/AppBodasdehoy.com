@@ -1,6 +1,7 @@
 export * from './agent';
 export * from './agentRuntimeError';
 export * from './aiChat';
+export * from './modelProvider';
 export * from './webCrawler';
 export * from './aiProvider';
 export * from './artifact';
