@@ -1,12 +1,14 @@
 import { publicProcedure, asyncRouter as router } from '@/libs/trpc/async';
 
-// SPRINT-O 2026-05-19 — migración:
-// Eliminados sub-routers `file`, `image`, `ragEval` (ejecutaban LLM via ModelRuntime
-// que ahora es stub porque chat-ia es proxy puro a api-ia). Esos routers son código
-// muerto en bodasdehoy — la funcionalidad real está en api-ia /webapi/*.
+import { fileRouter } from './file';
+import { imageRouter } from './image';
+import { ragEvalRouter } from './ragEval';
 
 export const asyncRouter = router({
+  file: fileRouter,
   healthcheck: publicProcedure.query(() => "i'm live!"),
+  image: imageRouter,
+  ragEval: ragEvalRouter,
 });
 
 export type AsyncRouter = typeof asyncRouter;

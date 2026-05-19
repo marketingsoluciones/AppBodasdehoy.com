@@ -4,7 +4,7 @@
 import { publicProcedure, router } from '@/libs/trpc/lambda';
 
 import { agentRouter } from './agent';
-// SPRINT-O 2026-05-19: aiChatRouter eliminado — chat-ia es proxy a api-ia /webapi/chat
+import { aiChatRouter } from './aiChat';
 import { aiModelRouter } from './aiModel';
 import { aiProviderRouter } from './aiProvider';
 import { apiKeyRouter } from './apiKey';
@@ -35,7 +35,7 @@ import { userRouter } from './user';
 
 export const lambdaRouter = router({
   agent: agentRouter,
-  // SPRINT-O 2026-05-19: aiChat eliminado (proxy a api-ia /webapi/chat)
+  aiChat: aiChatRouter,
   aiModel: aiModelRouter,
   aiProvider: aiProviderRouter,
   apiKey: apiKeyRouter,
