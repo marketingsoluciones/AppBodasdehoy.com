@@ -1,4 +1,5 @@
 export * from './agent';
+export * from './agentRuntimeError';
 export * from './aiChat';
 export * from './aiProvider';
 export * from './artifact';

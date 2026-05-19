@@ -1,50 +1,16 @@
-/* eslint-disable sort-keys-fix/sort-keys-fix */
-// ******* Runtime Biz Error ******* //
-export const AgentRuntimeErrorType = {
-  AgentRuntimeError: 'AgentRuntimeError', // Agent Runtime 模块运行时错误
-  LocationNotSupportError: 'LocationNotSupportError',
-
-  QuotaLimitReached: 'QuotaLimitReached',
-  InsufficientQuota: 'InsufficientQuota',
-
-  ModelNotFound: 'ModelNotFound',
-
-  PermissionDenied: 'PermissionDenied',
-  ExceededContextWindow: 'ExceededContextWindow',
-
-  InvalidProviderAPIKey: 'InvalidProviderAPIKey',
-  ProviderBizError: 'ProviderBizError',
-
-  InvalidOllamaArgs: 'InvalidOllamaArgs',
-  OllamaBizError: 'OllamaBizError',
-  OllamaServiceUnavailable: 'OllamaServiceUnavailable',
-
-  InvalidComfyUIArgs: 'InvalidComfyUIArgs',
-  ComfyUIBizError: 'ComfyUIBizError',
-  ComfyUIServiceUnavailable: 'ComfyUIServiceUnavailable',
-  ComfyUIEmptyResult: 'ComfyUIEmptyResult',
-  ComfyUIUploadFailed: 'ComfyUIUploadFailed',
-  ComfyUIWorkflowError: 'ComfyUIWorkflowError',
-  ComfyUIModelError: 'ComfyUIModelError',
-
-  InvalidBedrockCredentials: 'InvalidBedrockCredentials',
-  InvalidVertexCredentials: 'InvalidVertexCredentials',
-  StreamChunkError: 'StreamChunkError',
-
-  InvalidGithubToken: 'InvalidGithubToken',
-
-  ConnectionCheckFailed: 'ConnectionCheckFailed',
-
-  /**
-   * @deprecated
-   */
-  NoOpenAIAPIKey: 'NoOpenAIAPIKey',
-} as const;
-
-export const AGENT_RUNTIME_ERROR_SET = new Set<string>(Object.values(AgentRuntimeErrorType));
-
-export type ILobeAgentRuntimeErrorType =
-  (typeof AgentRuntimeErrorType)[keyof typeof AgentRuntimeErrorType];
+/**
+ * Agent Runtime errors — fuente de verdad MOVIDA a @lobechat/types/agentRuntimeError
+ * (2026-05-19) para romper la dep cruzada types ↔ model-runtime.
+ *
+ * Este archivo re-exporta los símbolos para backward compat con código que
+ * importa `from '@lobechat/model-runtime'`. Nuevos consumidores deben importar
+ * directamente desde @lobechat/types.
+ */
+export {
+  AgentRuntimeErrorType,
+  AGENT_RUNTIME_ERROR_SET,
+  type ILobeAgentRuntimeErrorType,
+} from '@lobechat/types';
 
 /* eslint-disable sort-keys-fix/sort-keys-fix */
 export const StandardErrorType = {
@@ -65,6 +31,8 @@ export const StandardErrorType = {
 /* eslint-enable */
 
 export type ErrorType = (typeof StandardErrorType)[keyof typeof StandardErrorType];
+
+import type { ILobeAgentRuntimeErrorType } from '@lobechat/types';
 
 /**
  * 聊天消息错误对象
