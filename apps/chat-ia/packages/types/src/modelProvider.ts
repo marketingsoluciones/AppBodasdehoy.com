@@ -5,6 +5,17 @@
  *
  * Re-exportado por model-bank/index.ts para retrocompat.
  */
+
+// ─── AiModelSourceEnum (movido 2026-05-19 SPRINT-A.2) ──────────────────────
+export const AiModelSourceEnum = {
+  Builtin: 'builtin',
+  Custom: 'custom',
+  Remote: 'remote',
+} as const;
+
+export type AiModelSourceType = (typeof AiModelSourceEnum)[keyof typeof AiModelSourceEnum];
+
+// ─── ModelProvider enum ─────────────────────────────────────────────────────
 export enum ModelProvider {
   Ai21 = 'ai21',
   Ai302 = 'ai302',

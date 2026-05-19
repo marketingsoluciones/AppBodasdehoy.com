@@ -1,16 +1,13 @@
 import { z } from 'zod';
 
+import type { AiModelSourceType } from '@lobechat/types';
+
 import { ModelParamsSchema } from '../standard-parameters';
 
 export type ModelPriceCurrency = 'CNY' | 'USD';
 
-export const AiModelSourceEnum = {
-  Builtin: 'builtin',
-  Custom: 'custom',
-  Remote: 'remote',
-} as const;
-
-export type AiModelSourceType = (typeof AiModelSourceEnum)[keyof typeof AiModelSourceEnum];
+// AiModelSourceEnum + AiModelSourceType movidos a @lobechat/types 2026-05-19 SPRINT-A.2
+export { AiModelSourceEnum, type AiModelSourceType } from '@lobechat/types';
 
 export const AiModelTypeSchema = z.enum([
   'chat',
