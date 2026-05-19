@@ -2,8 +2,20 @@ import { Strategy } from 'unstructured-client/sdk/models/shared';
 
 import type { NewChunkItem, NewUnstructuredChunkItem } from '@/database/schemas';
 import { knowledgeEnv } from '@/envs/knowledge';
-import { ChunkingLoader } from '@/libs/langchain';
 import { ChunkingStrategy, Unstructured } from '@/libs/unstructured';
+
+// SPRINT-O 2026-05-19 — migración:
+// @/libs/langchain eliminado (deps langchain* removidas en SPRINT-J).
+// ChunkingLoader stub local: bodasdehoy NO usa knowledge base (RAG) en MVP.
+// Si knowledge base se activa en el futuro, integrar via api-ia /webapi/files/parse.
+class ChunkingLoader {
+  async partitionContent(_filename: string, _content: Uint8Array): Promise<any[]> {
+    throw new Error(
+      '[ChunkingLoader stub] knowledge base / RAG no implementado en bodasdehoy. ' +
+        'Usar api-ia /webapi/files/parse para parsing remoto.',
+    );
+  }
+}
 
 import { ChunkingRuleParser } from './rules';
 import type { ChunkingService } from './rules';
