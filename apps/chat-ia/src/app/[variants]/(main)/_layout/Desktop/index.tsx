@@ -9,7 +9,9 @@ import { Flexbox } from 'react-layout-kit';
 
 import { isDesktop } from '@/const/version';
 import { BANNER_HEIGHT } from '@/features/AlertBanner/CloudBanner';
-import TitleBar, { TITLE_BAR_HEIGHT } from '@/features/ElectronTitlebar';
+// SPRINT-G 2026-05-19: TitleBar import dynamic + ssr:false — solo se renderiza si isDesktop,
+// pero antes era static y arrastraba @lobechat/electron-client-ipc + 39 archivos al bundle web.
+import { TITLE_BAR_HEIGHT } from '@/features/ElectronTitlebar/const';
 import HotkeyHelperPanel from '@/features/HotkeyHelperPanel';
 import { usePlatform } from '@/hooks/usePlatform';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
@@ -22,6 +24,7 @@ import RegisterHotkeys from './RegisterHotkeys';
 import SideBar from './SideBar';
 
 const CloudBanner = dynamic(() => import('@/features/AlertBanner/CloudBanner'));
+const TitleBar = dynamic(() => import('@/features/ElectronTitlebar'), { ssr: false });
 
 const Layout = memo<PropsWithChildren>(({ children }) => {
   const searchParams = useSearchParams();

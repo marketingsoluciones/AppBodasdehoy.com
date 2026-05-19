@@ -13,7 +13,7 @@ import { INBOX_SESSION_ID } from '@/const/session';
 import { isDesktop } from '@/const/version';
 import { AgentCategory, AgentSettings as Settings } from '@/features/AgentSetting';
 import { AgentSettingsProvider } from '@/features/AgentSetting/AgentSettingsProvider';
-import { TITLE_BAR_HEIGHT } from '@/features/ElectronTitlebar';
+import { TITLE_BAR_HEIGHT } from '@/features/ElectronTitlebar/const';
 import Footer from '@/features/Setting/Footer';
 import { useInitAgentConfig } from '@/hooks/useInitAgentConfig';
 import { useAgentStore } from '@/store/agent';
