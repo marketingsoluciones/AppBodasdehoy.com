@@ -86,6 +86,13 @@ const nextConfig: NextConfig = {
       // SPRINT-B 2026-05-19: tree-shaking electron-client-ipc en builds web.
       // 39 imports detrás de guard isDesktop — solo carga lo invocado en runtime.
       '@lobechat/electron-client-ipc',
+      // SPRINT-C 2026-05-19: tree-shaking model-runtime (14 imports residuales
+      // tras migración chat-ia → api-ia). El package pesa 284 archivos con SDKs
+      // OpenAI/Anthropic/Bedrock/Google/etc — tree-shaking carga solo invokes.
+      '@lobechat/model-runtime',
+      // SPRINT-D 2026-05-19: tree-shaking model-bank (35 imports tras SPRINT-A.1-3).
+      // 75 archivos con catálogo modelos + types — tree-shaking carga solo lo usado.
+      'model-bank',
     ],
 
     // ✅ Limitar CPUs para reducir memoria paralela
