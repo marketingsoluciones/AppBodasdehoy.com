@@ -2,7 +2,7 @@
 
 import { AutoComplete, Input, InputPassword, Markdown } from '@lobehub/ui';
 import { createStyles } from 'antd-style';
-import { ModelProvider } from 'model-bank';
+import { ModelProvider } from '@lobechat/types';
 import { useTranslation } from 'react-i18next';
 
 import { AzureProviderCard } from '@/config/modelProviders';

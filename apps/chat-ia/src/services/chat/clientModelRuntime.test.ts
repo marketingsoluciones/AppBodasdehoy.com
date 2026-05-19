@@ -19,7 +19,7 @@ import {
   ModelRuntime,
 } from '@lobechat/model-runtime';
 import { merge } from 'lodash-es';
-import { ModelProvider } from 'model-bank';
+import { ModelProvider } from '@lobechat/types';
 import OpenAI from 'openai';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
