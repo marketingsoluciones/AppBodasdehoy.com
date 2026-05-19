@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import type { AiModelSourceType } from '@lobechat/types';
+import type { AiModelSourceType, ModelAbilities } from '@lobechat/types';
 
 import { ModelParamsSchema } from '../standard-parameters';
 
@@ -22,40 +22,8 @@ export const AiModelTypeSchema = z.enum([
 
 export type AiModelType = z.infer<typeof AiModelTypeSchema>;
 
-export interface ModelAbilities {
-  /**
-   * whether model supports file upload
-   */
-  files?: boolean;
-  /**
-   * whether model supports function call
-   */
-  functionCall?: boolean;
-  /**
-   * whether model supports image output
-   */
-  imageOutput?: boolean;
-  /**
-   * whether model supports reasoning
-   */
-  reasoning?: boolean;
-  /**
-   * whether model supports search web
-   */
-  search?: boolean;
-  /**
-   * whether model supports structured output
-   */
-  structuredOutput?: boolean;
-  /**
-   * whether model supports video
-   */
-  video?: boolean;
-  /**
-   *  whether model supports vision
-   */
-  vision?: boolean;
-}
+// ModelAbilities movido a @lobechat/types 2026-05-19 SPRINT-A.4
+export type { ModelAbilities } from '@lobechat/types';
 
 const AiModelAbilitiesSchema = z.object({
   // files: z.boolean().optional(),
