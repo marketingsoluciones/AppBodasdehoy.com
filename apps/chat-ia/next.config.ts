@@ -83,6 +83,9 @@ const nextConfig: NextConfig = {
       'framer-motion',
       '@tanstack/react-query',
       'zustand',
+      // SPRINT-B 2026-05-19: tree-shaking electron-client-ipc en builds web.
+      // 39 imports detrás de guard isDesktop — solo carga lo invocado en runtime.
+      '@lobechat/electron-client-ipc',
     ],
 
     // ✅ Limitar CPUs para reducir memoria paralela
