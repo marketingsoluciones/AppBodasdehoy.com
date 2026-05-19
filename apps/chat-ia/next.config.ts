@@ -93,6 +93,17 @@ const nextConfig: NextConfig = {
       // SPRINT-D 2026-05-19: tree-shaking model-bank (35 imports tras SPRINT-A.1-3).
       // 75 archivos con catálogo modelos + types — tree-shaking carga solo lo usado.
       'model-bank',
+      // Packages internos chat-ia con muchos archivos — tree-shaking individual.
+      '@lobechat/types',
+      '@lobechat/const',
+      '@lobechat/utils',
+      '@lobechat/database',
+      '@lobechat/prompts',
+      '@lobechat/context-engine',
+      // External UI helpers — pesados sin tree-shaking nativo.
+      '@lobehub/chat-plugin-sdk',
+      '@lobehub/market-sdk',
+      '@lobehub/editor',
     ],
 
     // ✅ Limitar CPUs para reducir memoria paralela
