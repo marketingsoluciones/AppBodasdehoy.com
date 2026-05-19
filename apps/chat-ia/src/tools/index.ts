@@ -1,15 +1,17 @@
 import { LobeBuiltinTool } from '@lobechat/types';
 
-import { isDesktop } from '@/const/version';
-
 import { ArtifactsManifest } from './artifacts';
 import { CodeInterpreterManifest } from './code-interpreter';
 import { DalleManifest } from './dalle';
 import { FilterAppViewManifest } from './filter-app-view';
 import { FloorPlanEditorManifest } from './floor-plan-editor';
-import { LocalSystemManifest } from './local-system';
 import { VenueVisualizerManifest } from './venue-visualizer';
 import { WebBrowsingManifest } from './web-browsing';
+
+// SPRINT-M 2026-05-19: LocalSystemManifest eliminado.
+// Bodasdehoy es web puro — local-system tool (read/write/list/rename local files)
+// solo aplica a Electron desktop. Manifest + tool/local-system/* + features/LocalFile/
+// + store/chat/slices/builtinTool/actions/localSystem.ts eliminados juntos.
 
 export const builtinTools: LobeBuiltinTool[] = [
   {
@@ -20,12 +22,6 @@ export const builtinTools: LobeBuiltinTool[] = [
   {
     identifier: DalleManifest.identifier,
     manifest: DalleManifest,
-    type: 'builtin',
-  },
-  {
-    hidden: !isDesktop,
-    identifier: LocalSystemManifest.identifier,
-    manifest: LocalSystemManifest,
     type: 'builtin',
   },
   {

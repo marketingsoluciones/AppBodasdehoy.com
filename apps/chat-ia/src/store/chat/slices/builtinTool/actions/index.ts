@@ -4,16 +4,17 @@ import { ChatStore } from '@/store/chat/store';
 
 import { ChatDallEAction, dalleSlice } from './dalle';
 import { ChatFilterAppViewAction, filterAppViewSlice } from './filterAppView';
+import { ChatFloorPlanEditorAction, floorPlanEditorSlice } from './floorPlanEditor';
 import { ChatCodeInterpreterAction, codeInterpreterSlice } from './interpreter';
-import { LocalFileAction, localSystemSlice } from './localSystem';
 import { SearchAction, searchSlice } from './search';
 import { ChatVenueVisualizerAction, venueVisualizerSlice } from './venueVisualizer';
-import { ChatFloorPlanEditorAction, floorPlanEditorSlice } from './floorPlanEditor';
+
+// SPRINT-M 2026-05-19: LocalFileAction / localSystemSlice eliminados.
+// La tool local-system es desktop-only — bodasdehoy es web.
 
 export interface ChatBuiltinToolAction
   extends ChatDallEAction,
     SearchAction,
-    LocalFileAction,
     ChatCodeInterpreterAction,
     ChatVenueVisualizerAction,
     ChatFilterAppViewAction,
@@ -27,7 +28,6 @@ export const chatToolSlice: StateCreator<
 > = (...params) => ({
   ...dalleSlice(...params),
   ...searchSlice(...params),
-  ...localSystemSlice(...params),
   ...codeInterpreterSlice(...params),
   ...venueVisualizerSlice(...params),
   ...filterAppViewSlice(...params),
