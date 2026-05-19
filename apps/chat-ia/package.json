@@ -170,7 +170,6 @@
     "@lobechat/database": "workspace:*",
     "@lobechat/electron-client-ipc": "workspace:*",
     "@lobechat/electron-server-ipc": "workspace:*",
-    "@lobechat/file-loaders": "workspace:*",
     "@lobechat/model-runtime": "workspace:*",
     "@lobechat/prompts": "workspace:*",
     "@lobechat/utils": "workspace:*",
