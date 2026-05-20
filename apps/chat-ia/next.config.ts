@@ -538,6 +538,12 @@ const nextConfig: NextConfig = {
 
     config.resolve.alias.canvas = false;
 
+    // SPRINT-AL 2026-05-20: stub @splinetool/runtime (3.7MB) — solo lo usa
+    // @lobehub/ui/brand/LogoThree/LogoSpline que chat-ia NO renderiza.
+    // LobeHub/LobeHubText (Logo2d) son los únicos brand logos usados.
+    // Ahorra ~3.7MB del bundle inicial cliente.
+    config.resolve.alias['@splinetool/runtime'] = false;
+
     // to ignore epub2 compile error
     // refs: https://github.com/lobehub/lobe-chat/discussions/6769
     config.resolve.fallback = {
