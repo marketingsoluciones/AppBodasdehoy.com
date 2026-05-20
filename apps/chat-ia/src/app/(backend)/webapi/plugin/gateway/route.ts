@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+// SPRINT-AC: edge runtime — solo hace fetch a api-ia.
+export const runtime = 'edge';
+
 export const POST = async (req: Request) => {
   const backendUrl = process.env.API_IA_URL || process.env.NEXT_PUBLIC_API_IA_URL;
 

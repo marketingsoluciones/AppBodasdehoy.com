@@ -113,6 +113,13 @@ const nextConfig: NextConfig = {
       'recharts',                  // 3 archivos billing + artifacts + ConsumptionChart
       'langfuse',                  // 2 archivos libs/traces server-side
       'langfuse-core',
+      // SPRINT-AC 2026-05-20: packages workspace @bodasdehoy/* compilados a dist.
+      // Tree-shake exports inferidos del barrel index.js → ahorra bundle inicial cliente.
+      '@bodasdehoy/shared',
+      '@bodasdehoy/memories',
+      '@bodasdehoy/wedding-creator',
+      '@bodasdehoy/auth-ui',
+      '@bodasdehoy/copilot-shared',
     ],
 
     // ✅ Limitar CPUs para reducir memoria paralela
