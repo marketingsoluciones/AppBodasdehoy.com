@@ -12,7 +12,8 @@ import { useDevelopment } from '@/utils/developmentDetector';
 import { VenueVisualizerItem } from '@/types/tool/venueVisualizer';
 
 import VenueItem from './Item';
-import { exportVenuePdf } from './VenuePdf';
+// SPRINT-V 2026-05-20: exportVenuePdf usa @react-pdf/renderer (~400KB).
+// Import dynamic dentro del handler — solo carga al click "Generate PDF".
 
 function getEventNameFromStorage(): string | undefined {
   if (typeof window === 'undefined') return undefined;
@@ -43,6 +44,7 @@ const VenueVisualizerRender = memo<BuiltinRenderProps<VenueVisualizerItem[]>>(
       setExporting(true);
       try {
         const eventName = getEventNameFromStorage();
+        const { exportVenuePdf } = await import('./VenuePdf');
         await exportVenuePdf(content, eventName);
       } catch {
         // Silently ignore export errors
