@@ -148,7 +148,9 @@ export const generateStaticParams = () => {
   // Mobile se detecta runtime via User-Agent middleware. Build SSG -50% tiempo.
   const mobileOptions = [false];
   // only static for serveral page, other go to dynamtic
-  const staticLocales: Locales[] = [DEFAULT_LANG, 'zh-CN'];
+  // SPRINT-BG: solo es-ES locale activo en bodasdehoy (es-ES = idioma principal,
+  // en-US = fallback DEFAULT_LANG).
+  const staticLocales: Locales[] = [DEFAULT_LANG, 'es-ES'];
 
   const variants: { variants: string }[] = [];
 
