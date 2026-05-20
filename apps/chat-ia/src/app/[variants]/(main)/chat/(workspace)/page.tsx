@@ -1,5 +1,3 @@
-import dynamic from 'next/dynamic';
-
 import StructuredData from '@/components/StructuredData';
 import { BRANDING_NAME } from '@/const/branding';
 import { ldModule } from '@/server/ld';
@@ -9,12 +7,10 @@ import { DynamicLayoutProps } from '@/types/next';
 import { RouteVariants } from '@/utils/server/routeVariants';
 
 import PageTitle from '../features/PageTitle';
-
-// SPRINT-AB: TelemetryNotification es banner one-time (consent telemetría).
-// Solo se muestra si user no ha dado consent. Dynamic ssr:false saca del bundle inicial.
-const TelemetryNotification = dynamic(() => import('./features/TelemetryNotification'), {
-  ssr: false,
-});
+// SPRINT-AB revertido SPRINT-AG: page.tsx es Server Component; next/dynamic ssr:false
+// NO está permitido en Server Components (Next 15+). El componente ya es 'use client'
+// internamente — Next maneja el code splitting via routing convention.
+import TelemetryNotification from './features/TelemetryNotification';
 
 export const generateMetadata = async (props: DynamicLayoutProps) => {
   try {

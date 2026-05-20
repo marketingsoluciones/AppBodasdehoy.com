@@ -15,14 +15,14 @@ import { LoginModalProvider } from '@/contexts/LoginModalContext';
 import AuthProvider from '@/layout/AuthProvider';
 import GlobalProvider from '@/layout/GlobalProvider';
 
-// SPRINT-Z2: 4 componentes non-interactive lazy (Analytics, TrackingCapture, DynamicFavicon, PWAInstall, DeveloperTheme).
-// Cargan side-effects pero no bloquean primer render → dynamic ssr:false ahorra
-// ~100KB del bundle inicial cliente del root layout [variants].
-const Analytics = nextDynamic(() => import('@/components/Analytics'), { ssr: false });
-const TrackingCapture = nextDynamic(() => import('@/components/TrackingCapture'), { ssr: false });
-const DeveloperTheme = nextDynamic(() => import('@/components/DeveloperTheme'), { ssr: false });
-const DynamicFavicon = nextDynamic(() => import('@/components/DynamicFavicon'), { ssr: false });
-const PWAInstall = nextDynamic(() => import('@/features/PWAInstall'), { ssr: false });
+// SPRINT-Z2 revertido SPRINT-AG: layout.tsx es Server Component — next/dynamic ssr:false
+// NO está permitido. Dynamic sin ssr permite SSR pero sigue generando chunk separado
+// → bundle inicial más ligero, sin crash RSC.
+const Analytics = nextDynamic(() => import('@/components/Analytics'), {});
+const TrackingCapture = nextDynamic(() => import('@/components/TrackingCapture'), {});
+const DeveloperTheme = nextDynamic(() => import('@/components/DeveloperTheme'), {});
+const DynamicFavicon = nextDynamic(() => import('@/components/DynamicFavicon'), {});
+const PWAInstall = nextDynamic(() => import('@/features/PWAInstall'), {});
 import { Locales } from '@/locales/resources';
 import { DynamicLayoutProps } from '@/types/next';
 import { RouteVariants } from '@/utils/server/routeVariants';
