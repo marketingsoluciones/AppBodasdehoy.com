@@ -772,9 +772,6 @@ importers:
       sharp:
         specifier: ^0.34.4
         version: 0.34.5
-      shiki:
-        specifier: ^3.13.0
-        version: 3.21.0
       ssrf-safe-fetch:
         specifier: workspace:*
         version: link:packages/ssrf-safe-fetch
