@@ -127,7 +127,14 @@
       "Bash(nc -z localhost 3220)",
       "Bash(nc -z localhost 3210)",
       "Bash(awk '{print $2, $3\"% CPU\", $5, \"RSS\", $11, $12}')",
-      "Bash(# Crear *)"
+      "Bash(# Crear *)",
+      "Bash(awk -F'│' '{print $3, $7, $10}')",
+      "Bash(awk 'NR>1 {split\\($9,a,\":\"\\); port=a[length\\(a\\)]; if \\(port+0 >= 3000 && port+0 < 4000 || port+0 == 8000 || port+0 == 8080\\) print port\"\\\\t\"$1\"\\\\t\"$2}')",
+      "Bash(head -80 e2e-app/auth-flow.spec.ts)",
+      "Bash(head -40 e2e-app/crud-permission.spec.ts)",
+      "Bash(awk -F'|' '$2 ~ /[0-9]+ *[+-]/ && $2 !~ /^[ ]+0[ ]+$/ {print}')",
+      "Bash(git config *)",
+      "Bash(git rev-list *)"
     ],
     "additionalDirectories": [
       "/Users/juancarlosparra/.claude/projects/-Users-juancarlosparra-Projects-AppBodasdehoy-com/memory",
