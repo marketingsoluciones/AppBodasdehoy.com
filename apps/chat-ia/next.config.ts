@@ -544,6 +544,13 @@ const nextConfig: NextConfig = {
     // Ahorra ~3.7MB del bundle inicial cliente.
     config.resolve.alias['@splinetool/runtime'] = false;
 
+    // SPRINT-AM 2026-05-20: stub @primer/octicons (911KB data.json).
+    // Solo lo usa rehype-github-alerts (transitivo via @lobehub/ui Markdown)
+    // para renderizar iconos en `> [!NOTE]` blocks. chat-ia/src usa 0 GitHub
+    // alerts — los mensajes IA bodasdehoy nunca generan esos markdown blocks.
+    // Si alguien escribe alert, fallback graceful a blockquote sin icon.
+    config.resolve.alias['@primer/octicons'] = false;
+
     // to ignore epub2 compile error
     // refs: https://github.com/lobehub/lobe-chat/discussions/6769
     config.resolve.fallback = {
