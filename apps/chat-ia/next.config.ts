@@ -131,6 +131,9 @@ const nextConfig: NextConfig = {
       '@formkit/auto-animate', // 3 archivos
       'react-responsive',   // 2 archivos
       'modern-screenshot',  // 2 archivos
+      // SPRINT-AP 2026-05-20: top imports library con barrel.
+      'react-i18next',      // 579 archivos — useTranslation principalmente
+      'zod',                // 63 archivos
     ],
 
     // ✅ Limitar CPUs para reducir memoria paralela
