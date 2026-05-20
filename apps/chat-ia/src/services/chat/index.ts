@@ -1,5 +1,11 @@
-import { AgentRuntimeError, ChatCompletionErrorPayload } from '@lobechat/model-runtime';
-import { ChatErrorType, TracePayload, TraceTagMap, UIChatMessage } from '@lobechat/types';
+import {
+  AgentRuntimeError,
+  ChatCompletionErrorPayload,
+  ChatErrorType,
+  TracePayload,
+  TraceTagMap,
+  UIChatMessage,
+} from '@lobechat/types';
 import { PluginRequestPayload, createHeadersWithPluginSettings } from '@lobehub/chat-plugin-sdk';
 import { merge } from 'lodash-es';
 import { ModelProvider } from '@lobechat/types';
