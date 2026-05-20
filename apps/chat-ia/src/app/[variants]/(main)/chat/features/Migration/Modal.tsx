@@ -1,12 +1,14 @@
 import { Button, Icon } from '@lobehub/ui';
 import { Result } from 'antd';
 import { CheckCircle, CpuIcon } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Center } from 'react-layout-kit';
 
-import DataStyleModal from '@/components/DataStyleModal';
 import { BRANDING_NAME } from '@/const/branding';
+
+const DataStyleModal = dynamic(() => import('@/components/DataStyleModal'), { ssr: false });
 
 import Failed from './Failed';
 import MigrationStart from './Start';
