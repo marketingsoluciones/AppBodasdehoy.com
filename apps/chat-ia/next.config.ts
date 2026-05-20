@@ -572,6 +572,8 @@ const nextConfig: NextConfig = {
       config.resolve.alias['@fal-ai/client'] = false;
       config.resolve.alias['@azure-rest/ai-inference'] = false;
       config.resolve.alias['@aws-sdk/client-bedrock-runtime'] = false;
+      // SPRINT-AR: añadido @google/genai (262KB). Solo en src/server/modules/ModelRuntime.
+      config.resolve.alias['@google/genai'] = false;
     }
 
     // to ignore epub2 compile error
