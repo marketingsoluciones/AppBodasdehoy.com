@@ -487,9 +487,6 @@ importers:
       '@react-pdf/renderer':
         specifier: ^4.3.0
         version: 4.3.2(react@19.2.4)
-      '@saintno/comfyui-sdk':
-        specifier: ^0.2.48
-        version: 0.2.49(typescript@5.9.3)
       '@sentry/nextjs':
         specifier: ^10.47.0
         version: 10.47.0(@opentelemetry/context-async-hooks@2.6.1)(@opentelemetry/core@2.6.1)(@opentelemetry/sdk-trace-base@2.6.1)(next@15.5.9)(react@19.2.4)(webpack@5.106.0)
@@ -13280,18 +13277,6 @@ packages:
   /@rushstack/eslint-patch@1.15.0:
     resolution: {integrity: sha512-ojSshQPKwVvSMR8yT2L/QtUkV5SXi/IfDiJ4/8d6UbTPjiHVmxZzUAzGD8Tzks1b9+qQkZa0isUOvYObedITaw==}
     dev: true
-
-  /@saintno/comfyui-sdk@0.2.49(typescript@5.9.3):
-    resolution: {integrity: sha512-HSD+pjE+i/yHsYY5bdjEqNXHIjOEcACoJPh9m5Zwge7OGgBSR4K7hWLrQ0ABt/cH1bcKiwhJJtLW3Ppp8TAqHQ==}
-    peerDependencies:
-      typescript: ^5.0.0
-    dependencies:
-      typescript: 5.9.3
-      ws: 8.19.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    dev: false
 
   /@scarf/scarf@1.4.0:
     resolution: {integrity: sha512-xxeapPiUXdZAE3che6f3xogoJPeZgig6omHEy1rIY5WVsB3H2BHNnZH+gHG6x91SCWyQCzWGsuL2Hh3ClO5/qQ==}
