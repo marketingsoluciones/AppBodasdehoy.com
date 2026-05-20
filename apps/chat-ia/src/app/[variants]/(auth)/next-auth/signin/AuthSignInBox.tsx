@@ -2,7 +2,8 @@
 
 import { BRANDING_NAME, DOCUMENTS_REFER_URL, PRIVACY_URL, TERMS_URL } from '@lobechat/const';
 import { Button, Text } from '@lobehub/ui';
-import { LobeHub } from '@lobehub/ui/brand';
+// SPRINT-AS: sub-path directo — evita barrel @lobehub/ui/brand (arrastra LogoSpline 3.7MB).
+import LobeHub from '@lobehub/ui/es/brand/LobeHub';
 import { Col, Flex, Row, Skeleton } from 'antd';
 import { createStyles } from 'antd-style';
 import { AuthError } from 'next-auth';
