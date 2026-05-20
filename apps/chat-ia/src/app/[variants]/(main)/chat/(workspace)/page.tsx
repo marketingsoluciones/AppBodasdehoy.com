@@ -1,3 +1,5 @@
+import dynamic from 'next/dynamic';
+
 import StructuredData from '@/components/StructuredData';
 import { BRANDING_NAME } from '@/const/branding';
 import { ldModule } from '@/server/ld';
@@ -7,7 +9,12 @@ import { DynamicLayoutProps } from '@/types/next';
 import { RouteVariants } from '@/utils/server/routeVariants';
 
 import PageTitle from '../features/PageTitle';
-import TelemetryNotification from './features/TelemetryNotification';
+
+// SPRINT-AB: TelemetryNotification es banner one-time (consent telemetría).
+// Solo se muestra si user no ha dado consent. Dynamic ssr:false saca del bundle inicial.
+const TelemetryNotification = dynamic(() => import('./features/TelemetryNotification'), {
+  ssr: false,
+});
 
 export const generateMetadata = async (props: DynamicLayoutProps) => {
   try {
