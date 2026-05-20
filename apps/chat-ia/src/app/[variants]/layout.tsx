@@ -3,21 +3,26 @@ import '@/styles/tailwind.css';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ThemeAppearance } from 'antd-style';
 import { ResolvingViewport } from 'next';
+import nextDynamic from 'next/dynamic';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ReactNode } from 'react';
 import { isRtlLang } from 'rtl-detect';
 
-import Analytics from '@/components/Analytics';
-import TrackingCapture from '@/components/TrackingCapture';
-import DeveloperTheme from '@/components/DeveloperTheme';
-import DynamicFavicon from '@/components/DynamicFavicon';
 import LoginModal from '@/components/LoginModal';
 import { DEFAULT_LANG } from '@/const/locale';
 import { isDesktop } from '@/const/version';
 import { LoginModalProvider } from '@/contexts/LoginModalContext';
-import PWAInstall from '@/features/PWAInstall';
 import AuthProvider from '@/layout/AuthProvider';
 import GlobalProvider from '@/layout/GlobalProvider';
+
+// SPRINT-Z2: 4 componentes non-interactive lazy (Analytics, TrackingCapture, DynamicFavicon, PWAInstall, DeveloperTheme).
+// Cargan side-effects pero no bloquean primer render → dynamic ssr:false ahorra
+// ~100KB del bundle inicial cliente del root layout [variants].
+const Analytics = nextDynamic(() => import('@/components/Analytics'), { ssr: false });
+const TrackingCapture = nextDynamic(() => import('@/components/TrackingCapture'), { ssr: false });
+const DeveloperTheme = nextDynamic(() => import('@/components/DeveloperTheme'), { ssr: false });
+const DynamicFavicon = nextDynamic(() => import('@/components/DynamicFavicon'), { ssr: false });
+const PWAInstall = nextDynamic(() => import('@/features/PWAInstall'), { ssr: false });
 import { Locales } from '@/locales/resources';
 import { DynamicLayoutProps } from '@/types/next';
 import { RouteVariants } from '@/utils/server/routeVariants';
