@@ -124,6 +124,13 @@ const nextConfig: NextConfig = {
       'react-layout-kit',   // 728 archivos (Flexbox, Center, etc)
       'react-router-dom',   // 36 archivos /discover/* (legacy LobeChat — tech debt: migrar a next/navigation)
       'swr',                // 49 archivos
+      // SPRINT-AO 2026-05-20: más packages npm con barrel + uso significativo.
+      'ahooks',             // 13 archivos (hooks library ~1MB barrel)
+      'use-merge-value',    // 10 archivos
+      'react-hotkeys-hook', // 7 archivos
+      '@formkit/auto-animate', // 3 archivos
+      'react-responsive',   // 2 archivos
+      'modern-screenshot',  // 2 archivos
     ],
 
     // ✅ Limitar CPUs para reducir memoria paralela
