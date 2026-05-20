@@ -120,6 +120,10 @@ const nextConfig: NextConfig = {
       '@bodasdehoy/wedding-creator',
       '@bodasdehoy/auth-ui',
       '@bodasdehoy/copilot-shared',
+      // SPRINT-AE 2026-05-20: top npm packages con barrel exports descubiertos via grep.
+      'react-layout-kit',   // 728 archivos (Flexbox, Center, etc)
+      'react-router-dom',   // 36 archivos /discover/* (legacy LobeChat — tech debt: migrar a next/navigation)
+      'swr',                // 49 archivos
     ],
 
     // ✅ Limitar CPUs para reducir memoria paralela
