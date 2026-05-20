@@ -14,7 +14,6 @@ import { serverDatabase } from '@/libs/trpc/lambda/middleware';
 import { KeyVaultsGateKeeper } from '@/server/modules/KeyVaultsEncrypt';
 import { S3 } from '@/server/modules/S3';
 import { FileService } from '@/server/services/file';
-import { NextAuthUserService } from '@/server/services/nextAuthUser';
 import { UserService } from '@/server/services/user';
 import {
   NextAuthAccountSchame,
@@ -29,7 +28,6 @@ const userProcedure = authedProcedure.use(serverDatabase).use(async ({ ctx, next
     ctx: {
       clerkAuth: new ClerkAuth(),
       fileService: new FileService(ctx.serverDB, ctx.userId),
-      nextAuthUserService: new NextAuthUserService(ctx.serverDB),
       userModel: new UserModel(ctx.serverDB, ctx.userId),
     },
   });
@@ -142,12 +140,11 @@ export const userRouter = router({
     return ctx.userModel.deleteSetting();
   }),
 
-  unlinkSSOProvider: userProcedure.input(NextAuthAccountSchame).mutation(async ({ ctx, input }) => {
-    const { provider, providerAccountId } = input;
-    const account = await ctx.nextAuthUserService.getAccount(providerAccountId, provider);
-    // The userId can either get from ctx.nextAuth?.id or ctx.userId
-    if (!account || account.userId !== ctx.userId) throw new Error('The account does not exist');
-    await ctx.nextAuthUserService.unlinkAccount({ provider, providerAccountId });
+  unlinkSSOProvider: userProcedure.input(NextAuthAccountSchame).mutation(async () => {
+    // NextAuth eliminado SPRINT-N + LOTE 4 2026-05-20. Endpoint mantenido
+    // como no-op para back-compat con clientes que aún llamen. Auth real
+    // chat-ia es Firebase via libs/auth.
+    throw new Error('SSO unlink no longer supported — chat-ia migró a Firebase auth');
   }),
 
   // 服务端上传头像
