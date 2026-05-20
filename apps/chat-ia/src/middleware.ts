@@ -354,86 +354,11 @@ const initClerkRouteMatchers = async () => {
   }
 };
 
-// NextAuth middleware is created lazily to avoid crashing the whole Edge middleware
-// when NextAuth/SSO env is misconfigured (common source of global 500s).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _nextAuthMiddleware: any | null = null;
-
-const getNextAuthMiddleware = async () => {
-  if (_nextAuthMiddleware) return _nextAuthMiddleware;
-  try {
-    const nextAuthModule = await import('@/libs/next-auth');
-    const NextAuth = nextAuthModule.default as any;
-
-    _nextAuthMiddleware = NextAuth.auth((req: any) => {
-      logNextAuth('NextAuth middleware processing request: %s %s', req.method, req.url);
-
-      const pathname = req.nextUrl.pathname || '/';
-      if (pathname === '/' || pathname === '') {
-        const url = req.nextUrl.clone();
-        url.pathname = `/${DEFAULT_VARIANT_PATH}`;
-        return NextResponse.redirect(url, 307);
-      }
-
-      const response = defaultMiddleware(req);
-      if (response.status >= 301 && response.status <= 308) return response;
-
-      // when enable auth protection, only public route is not protected, others are all protected
-      const isProtected = appEnv.ENABLE_AUTH_PROTECTION ? !isPublicRoute(req) : isProtectedRoute(req);
-
-      logNextAuth('Route protection status: %s, %s', req.url, isProtected ? 'protected' : 'public');
-
-      // Just check if session exists
-      const session = req.auth;
-
-      // Check if next-auth throws errors
-      // refs: https://github.com/lobehub/lobe-chat/pull/1323
-      const isLoggedIn = !!session?.expires;
-
-      logNextAuth('NextAuth session status: %O', {
-        expires: session?.expires,
-        isLoggedIn,
-        userId: session?.user?.id,
-      });
-
-      // Remove & amend OAuth authorized header
-      response.headers.delete(OAUTH_AUTHORIZED);
-      if (isLoggedIn) {
-        logNextAuth('Setting auth header: %s = %s', OAUTH_AUTHORIZED, 'true');
-        response.headers.set(OAUTH_AUTHORIZED, 'true');
-
-        // If OIDC is enabled and user is logged in, add OIDC session pre-sync header
-        if (oidcEnv.ENABLE_OIDC && session?.user?.id) {
-          logNextAuth('OIDC session pre-sync: Setting %s = %s', OIDC_SESSION_HEADER, session.user.id);
-          response.headers.set(OIDC_SESSION_HEADER, session.user.id);
-        }
-      } else {
-        // If request a protected route, redirect to sign-in page
-        // ref: https://authjs.dev/getting-started/session-management/protecting
-        if (isProtected) {
-          logNextAuth('Request a protected route, redirecting to sign-in page');
-          const nextLoginUrl = new URL('/next-auth/signin', req.nextUrl.origin);
-          nextLoginUrl.searchParams.set('callbackUrl', req.nextUrl.href);
-          return Response.redirect(nextLoginUrl);
-        }
-        logNextAuth('Request a free route but not login, allow visit without auth header');
-      }
-
-      return response;
-    });
-
-    return _nextAuthMiddleware;
-  } catch (error) {
-    console.error('❌ NextAuth middleware init failed; falling back to default middleware', error);
-    _nextAuthMiddleware = null;
-    return null;
-  }
-};
-
+// SPRINT-P 2026-05-19 — migración Clerk-out + NextAuth-out:
+// Eliminado bloque getNextAuthMiddleware completo. @/libs/next-auth no existe
+// (Clerk + NextAuth eliminados). bodasdehoy usa Firebase via api-ia.
 const nextAuthMiddlewareWrapper = async (req: NextRequest) => {
-  const middleware = await getNextAuthMiddleware();
-  if (!middleware) return defaultMiddleware(req);
-  return middleware(req);
+  return defaultMiddleware(req);
 };
 
 // Clerk middleware factory - creates the middleware only when needed

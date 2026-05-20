@@ -1,39 +1,30 @@
-import { AuthObject } from '@clerk/backend';
-import {
-  AgentRuntimeError,
-  ChatCompletionErrorPayload,
-  ModelRuntime,
-} from '@lobechat/model-runtime';
 import { ChatErrorType, ClientSecretPayload } from '@lobechat/types';
 import { getXorPayload } from '@lobechat/utils/server';
-import { NextRequest } from 'next/server';
 
-import {
-  LOBE_CHAT_AUTH_HEADER,
-  LOBE_CHAT_OIDC_AUTH_HEADER,
-  OAUTH_AUTHORIZED,
-  enableClerk,
-} from '@/const/auth';
-import { ClerkAuth } from '@/libs/clerk-auth';
+import { LOBE_CHAT_AUTH_HEADER, LOBE_CHAT_OIDC_AUTH_HEADER } from '@/const/auth';
 import { validateOIDCJWT } from '@/libs/oidc-provider/jwt';
 import { createErrorResponse } from '@/utils/errorResponse';
 
-import { checkAuthMethod } from './utils';
+// SPRINT-N 2026-05-19 — migración Clerk-out:
+// Eliminados @clerk/backend AuthObject, @lobechat/model-runtime AgentRuntimeError/ModelRuntime,
+// @/libs/clerk-auth ClerkAuth, ./utils checkAuthMethod, enableClerk.
+//
+// bodasdehoy es web puro con Firebase via api-ia. El middleware /webapi/* del lado
+// chat-ia ya no orquesta runtime LLM (api-ia hace eso). Esta función solo valida
+// el JWT envuelto en LOBE_CHAT_AUTH_HEADER + OIDC opcional, y pasa al handler.
 
-type CreateRuntime = (jwtPayload: ClientSecretPayload) => ModelRuntime;
-type RequestOptions = { createRuntime?: CreateRuntime; params: Promise<{ provider: string }> };
+type RequestOptions = { params: Promise<{ provider: string }> };
 
 export type RequestHandler = (
   req: Request,
   options: RequestOptions & {
-    createRuntime?: CreateRuntime;
     jwtPayload: ClientSecretPayload;
   },
 ) => Promise<Response>;
 
 export const checkAuth =
   (handler: RequestHandler) => async (req: Request, options: RequestOptions) => {
-    // we have a special header to debug the api endpoint in development mode
+    // header especial para debug api endpoint en dev
     const isDebugApi = req.headers.get('lobe-auth-dev-backend-api') === '1';
     if (process.env.NODE_ENV === 'development' && isDebugApi) {
       return handler(req, { ...options, jwtPayload: { userId: 'DEV_USER' } });
@@ -42,69 +33,36 @@ export const checkAuth =
     let jwtPayload: ClientSecretPayload;
 
     try {
-      // get Authorization from header
       const authorization = req.headers.get(LOBE_CHAT_AUTH_HEADER);
-      const oauthAuthorized = !!req.headers.get(OAUTH_AUTHORIZED);
 
-      if (!authorization) throw AgentRuntimeError.createError(ChatErrorType.Unauthorized);
-
-      // check the Auth With payload and clerk auth
-      let clerkAuth = {} as AuthObject;
-
-      // TODO: V2 完整移除 client 模式下的 clerk 集成代码
-      if (enableClerk) {
-        const auth = new ClerkAuth();
-        const data = await auth.getAuthFromRequest(req as NextRequest);
-        clerkAuth = data.clerkAuth;
+      if (!authorization) {
+        return createErrorResponse(ChatErrorType.Unauthorized, {
+          error: new Error('Missing authorization header'),
+        });
       }
 
       jwtPayload = getXorPayload(authorization);
 
       const oidcAuthorization = req.headers.get(LOBE_CHAT_OIDC_AUTH_HEADER);
-      let isUseOidcAuth = false;
-      if (!!oidcAuthorization) {
+      if (oidcAuthorization) {
         const oidc = await validateOIDCJWT(oidcAuthorization);
-
-        isUseOidcAuth = true;
-
         jwtPayload = {
           ...jwtPayload,
           userId: oidc.userId,
         };
       }
-
-      if (!isUseOidcAuth)
-        checkAuthMethod({
-          accessCode: jwtPayload.accessCode,
-          apiKey: jwtPayload.apiKey,
-          clerkAuth,
-          nextAuthAuthorized: oauthAuthorized,
-        });
     } catch (e) {
       const params = await options.params;
 
-      // if the error is not a ChatCompletionErrorPayload, it means the application error
-      if (!(e as ChatCompletionErrorPayload).errorType) {
-        if ((e as any).code === 'ERR_JWT_EXPIRED')
-          return createErrorResponse(ChatErrorType.SystemTimeNotMatchError, e);
-
-        // other issue will be internal server error
-        console.error(e);
-        return createErrorResponse(ChatErrorType.InternalServerError, {
-          error: e,
-          provider: params?.provider,
-        });
+      if ((e as any).code === 'ERR_JWT_EXPIRED') {
+        return createErrorResponse(ChatErrorType.SystemTimeNotMatchError, e);
       }
 
-      const {
-        errorType = ChatErrorType.InternalServerError,
-        error: errorContent,
-        ...res
-      } = e as ChatCompletionErrorPayload;
-
-      const error = errorContent || e;
-
-      return createErrorResponse(errorType, { error, ...res, provider: params?.provider });
+      console.error('[middleware/auth] auth check failed:', e);
+      return createErrorResponse(ChatErrorType.InternalServerError, {
+        error: e,
+        provider: params?.provider,
+      });
     }
 
     return handler(req, { ...options, jwtPayload });

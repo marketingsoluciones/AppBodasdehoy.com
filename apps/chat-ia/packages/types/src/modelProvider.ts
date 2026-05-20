@@ -15,6 +15,52 @@ export const AiModelSourceEnum = {
 
 export type AiModelSourceType = (typeof AiModelSourceEnum)[keyof typeof AiModelSourceEnum];
 
+// ─── ModelPriceCurrency (movido 2026-05-19 SPRINT-A.5) ─────────────────────
+/** Moneda usada en pricing de modelos LLM */
+export type ModelPriceCurrency = 'CNY' | 'USD';
+
+// ─── AiModelType (movido 2026-05-19 SPRINT-A.5) ────────────────────────────
+/** Tipo de modelo IA. Schema zod sigue en model-bank/types/aiModel.ts */
+export type AiModelType =
+  | 'chat'
+  | 'embedding'
+  | 'tts'
+  | 'stt'
+  | 'image'
+  | 'text2video'
+  | 'text2music'
+  | 'realtime';
+
+// ─── BasicModelPricing (movido 2026-05-19 SPRINT-A.5) ──────────────────────
+/** Pricing base — moneda + input. Heredado por ChatModelPricing */
+export interface BasicModelPricing {
+  /** @default USD */
+  currency?: ModelPriceCurrency;
+  /** input pricing, e.g. $1 / 1M tokens */
+  input?: number;
+}
+
+// ─── ModelAbilities (movido 2026-05-19 SPRINT-A.4) ─────────────────────────
+/** Capacidades soportadas por un modelo LLM (files, functionCall, vision, etc.) */
+export interface ModelAbilities {
+  /** whether model supports file upload */
+  files?: boolean;
+  /** whether model supports function call */
+  functionCall?: boolean;
+  /** whether model supports image output */
+  imageOutput?: boolean;
+  /** whether model supports reasoning */
+  reasoning?: boolean;
+  /** whether model supports search web */
+  search?: boolean;
+  /** whether model supports structured output */
+  structuredOutput?: boolean;
+  /** whether model supports video */
+  video?: boolean;
+  /** whether model supports vision */
+  vision?: boolean;
+}
+
 // ─── LLMParams (movido 2026-05-19 SPRINT-A.3) ──────────────────────────────
 /** Parámetros de configuración del modelo LLM (temperature, max_tokens, etc.) */
 export interface LLMParams {

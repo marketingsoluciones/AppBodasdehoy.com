@@ -12,7 +12,9 @@ import UserAvatar from '@/features/User/UserAvatar';
 import { useUserStore } from '@/store/user';
 import { authSelectors, userProfileSelectors } from '@/store/user/selectors';
 
-import SSOProvidersList from './features/SSOProvidersList';
+// SPRINT-N 2026-05-19 — migración Clerk-out:
+// SSOProvidersList era una UI que mostraba providers NextAuth (Google, GitHub, etc).
+// bodasdehoy usa Firebase via api-ia → no se renderiza ningún provider list.
 
 const Client = memo<{ mobile?: boolean }>(({ mobile }) => {
   const [isLoginWithNextAuth, isLogin] = useUserStore((s) => [
@@ -58,13 +60,7 @@ const Client = memo<{ mobile?: boolean }>(({ mobile }) => {
         label: t('profile.email'),
         name: 'email',
       },
-      {
-        children: <SSOProvidersList />,
-        hidden: !isLoginWithNextAuth,
-        label: t('profile.sso.providers'),
-        layout: 'vertical',
-        minWidth: undefined,
-      },
+      // SPRINT-N 2026-05-19: SSOProvidersList eliminado (NextAuth fuera).
     ],
     title: t('tab.profile'),
   };

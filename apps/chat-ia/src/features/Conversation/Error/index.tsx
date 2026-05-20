@@ -10,7 +10,6 @@ import { useTranslation } from 'react-i18next';
 import { useProviderName } from '@/hooks/useProviderName';
 
 import ChatInvalidAPIKey from './ChatInvalidApiKey';
-import ClerkLogin from './ClerkLogin';
 import ErrorJsonViewer from './ErrorJsonViewer';
 import InvalidAccessCode from './InvalidAccessCode';
 import { ErrorActionContainer } from './style';
@@ -115,9 +114,7 @@ const ErrorMessageExtra = memo<{ data: UIChatMessage }>(({ data }) => {
 
     /* ↑ cloud slot ↑ */
 
-    case ChatErrorType.InvalidClerkUser: {
-      return <ClerkLogin id={data.id} />;
-    }
+    // SPRINT-N 2026-05-19: ChatErrorType.InvalidClerkUser case eliminado (Clerk-out).
 
     case ChatErrorType.InvalidAccessCode: {
       return <InvalidAccessCode id={data.id} provider={data.error?.body?.provider} />;

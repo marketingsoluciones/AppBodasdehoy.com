@@ -9,7 +9,7 @@ import { Flexbox } from 'react-layout-kit';
 import BrandWatermark from '@/components/BrandWatermark';
 import PanelTitle from '@/components/PanelTitle';
 import { isDesktop } from '@/const/version';
-import { TITLE_BAR_HEIGHT } from '@/features/ElectronTitlebar';
+import { TITLE_BAR_HEIGHT } from '@/features/ElectronTitlebar/const';
 import {
   AgentTeamSettings,
   GroupCategory,
