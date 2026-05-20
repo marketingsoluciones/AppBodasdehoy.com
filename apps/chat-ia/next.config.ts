@@ -449,7 +449,9 @@ const nextConfig: NextConfig = {
   // SOLO quedan los packages externos que aún requieren transpile (no tienen dist propio).
   // SPRINT-AG 2026-05-20: eliminado @lobehub/ui del array (estaba como workaround Next 15.5.9
   // RSC bug del 2026-05-18). Si Modal/Drawer/Markdown rompen, revertir esta línea.
-  transpilePackages: ['pdfjs-dist', 'mermaid'],
+  // SPRINT-AH 2026-05-20: eliminado pdfjs-dist — dep removida en SPRINT-J, transpile sin efecto.
+  // mermaid se mantiene: lo usa @lobehub/ui internamente para renderizar diagramas.
+  transpilePackages: ['mermaid'],
 
   webpack(config) {
     config.experiments = {
