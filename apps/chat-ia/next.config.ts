@@ -104,6 +104,15 @@ const nextConfig: NextConfig = {
       '@lobehub/chat-plugin-sdk',
       '@lobehub/market-sdk',
       '@lobehub/editor',
+      // SPRINT-U 2026-05-20: paquetes pesados con barrel exports que aún no estaban.
+      // antd-style: 547 archivos importan from 'antd-style' — barrel masivo.
+      'antd-style',
+      '@lobehub/charts',           // 5 archivos (profile/stats + ConsumptionChart)
+      '@lobehub/analytics',        // 4 archivos analytics
+      '@cyntler/react-doc-viewer', // 5 archivos FileViewer renderers
+      'recharts',                  // 3 archivos billing + artifacts + ConsumptionChart
+      'langfuse',                  // 2 archivos libs/traces server-side
+      'langfuse-core',
     ],
 
     // ✅ Limitar CPUs para reducir memoria paralela
