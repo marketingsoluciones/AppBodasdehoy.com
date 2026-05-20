@@ -463,7 +463,7 @@ const nextConfig: NextConfig = {
   // mermaid se mantiene: lo usa @lobehub/ui internamente para renderizar diagramas.
   transpilePackages: ['mermaid'],
 
-  webpack(config) {
+  webpack(config, { isServer }) {
     config.experiments = {
       asyncWebAssembly: true,
       layers: true,
@@ -560,6 +560,19 @@ const nextConfig: NextConfig = {
     // alerts — los mensajes IA bodasdehoy nunca generan esos markdown blocks.
     // Si alguien escribe alert, fallback graceful a blockquote sin icon.
     config.resolve.alias['@primer/octicons'] = false;
+
+    // SPRINT-AQ 2026-05-20: stub IA SDKs SOLO en bundle CLIENTE (not server).
+    // chat-ia post-SPRINT-Q es thin proxy — cliente NO ejecuta SDKs IA.
+    // Estos SDKs vienen al bundle cliente via model-runtime + model-bank barrels
+    // sin tree-shake efectivo. Server-side sigue usándolos normalmente.
+    // Total ahorro estimado: ~875KB del bundle cliente inicial.
+    if (!isServer) {
+      config.resolve.alias['@huggingface/inference'] = false;
+      config.resolve.alias['@anthropic-ai/sdk'] = false;
+      config.resolve.alias['@fal-ai/client'] = false;
+      config.resolve.alias['@azure-rest/ai-inference'] = false;
+      config.resolve.alias['@aws-sdk/client-bedrock-runtime'] = false;
+    }
 
     // to ignore epub2 compile error
     // refs: https://github.com/lobehub/lobe-chat/discussions/6769
