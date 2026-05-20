@@ -4,13 +4,16 @@ import { createStyles } from 'antd-style';
 import type { ItemType } from 'antd/es/menu/interface';
 import { Infinity, LucideArrowRight, LucideBolt } from 'lucide-react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Fragment, type ReactNode, memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
 import { ModelItemRender, ProviderItemRender } from '@/components/ModelSelect';
-import UpgradeToMaxModal from '@/components/UpgradeToMaxModal';
+
+// SPRINT-X: UpgradeToMaxModal solo se abre cuando user llega a límite plan → dynamic ssr:false.
+const UpgradeToMaxModal = dynamic(() => import('@/components/UpgradeToMaxModal'), { ssr: false });
 import { subscribeToPlan } from '@/services/mcpApi/subscriptions';
 import { isDeprecatedEdition } from '@/const/version';
 import ActionDropdown from '@/features/ChatInput/ActionBar/components/ActionDropdown';
