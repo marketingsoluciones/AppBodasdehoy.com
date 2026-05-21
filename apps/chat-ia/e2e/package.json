@@ -9,7 +9,7 @@
     "test:sessions": "tsx save-storage-states.ts && playwright test tests/sessions.spec.ts --project=webkit-super-admin",
     "test:auth": "tsx save-storage-states.ts && playwright test tests/auth-flow.spec.ts --project=webkit-super-admin",
     "test:sso": "tsx save-storage-states.ts && playwright test tests/sso-cross-app.spec.ts --project=webkit-super-admin",
-    "smoke:scripts": "tsx save-storage-states.ts && tsx smoke-with-state.ts && tsx smoke-crud-session.ts && tsx smoke-chat-message.ts && tsx smoke-memories.ts && tsx smoke-auth-state.ts",
+    "smoke:scripts": "tsx save-storage-states.ts && tsx smoke-with-state.ts && tsx smoke-crud-session.ts && tsx smoke-chat-message.ts && tsx smoke-memories.ts && tsx smoke-auth-state.ts && WAIT_MS=15000 tsx smoke-token-refresh.ts",
     "smoke:save-states": "tsx save-storage-states.ts"
   },
   "dependencies": {

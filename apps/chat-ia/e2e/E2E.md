@@ -246,11 +246,14 @@ Login form (accesibles sin testid):
 
 ---
 
-## 🚀 Próximos Sprints (roadmap remanente)
+## ✅ Sprints Q/R-strict/S/T completados (post-100% sesión autónoma)
 
-- **Sprint P**: visitor-message-limit completo (5 msgs + modal "Crea una cuenta") — slow test
-- **Sprint Q**: auth-token-refresh (60s+ wait flow)
-- **Sprint R-strict**: chat-tool-invocation con assert venue cards visible (requiere data-testid en tool renders)
-- **Sprint S**: bundle-size GitHub Action integrado con Sentry alerts
-- **Sprint T**: video recording per test failure (Playwright trace viewer)
-- **Sprint V**: smoke-events.ts via api-mcp directo (skip LLM determinism)
+- **Sprint T**: video + trace + screenshot retain-on-failure ✓
+- **Sprint R-strict**: data-testid en venue-visualizer + spec con soft-skip cuando LLM no invoca ✓
+- **Sprint Q**: smoke-token-refresh verifica API sigue accesible post-wait + sessions visibles ✓
+- **Sprint S**: bundle-size workflow ya estaba sólido (threshold 5MB + PR comments + analyzer reports), sin cambios
+
+## 🕒 Sprints diferidos (alto costo / dependencias externas)
+
+- **Sprint P** — visitor 5 msgs + modal upsell: requiere flujo lento (~5min/test) + LLM cooperativo. La modal LoginRequiredModal existe en `src/features/LoginRequiredModal/`. Trigger: `chatStore.showLoginRequired = true` cuando api-ia retorna 401 (`/webapi/chat/[provider]/route.ts:104,293`). Implementación futura: enviar mensajes hasta el límite + assert modal `text=/Crea tu cuenta gratis/i` visible.
+- **Sprint V** — events CRUD via api-mcp directo: requiere fetch cross-origin a `https://api-mcp.eventosorganizador.com/graphql`. CORS desde localhost no whitelisted (memoria: `feedback_mcp_whitelabel_ai_config_null.md`). Alternativa: usar la AI tool `create_event` (LLM-dependent, no determinista).
