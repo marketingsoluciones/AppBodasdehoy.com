@@ -1,0 +1,8 @@
+# Storage state Firebase + screenshots (contienen JWT y datos personales)
+.auth/
+screenshots/
+*.png
+/reports/
+
+# Logs locales
+*.log
