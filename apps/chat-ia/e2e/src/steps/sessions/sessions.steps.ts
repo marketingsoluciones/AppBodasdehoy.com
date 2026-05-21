@@ -9,7 +9,10 @@ import { CustomWorld } from '../../support/world';
 
 // Background
 Given('I am logged in', async function (this: CustomWorld) {
-  // Reuse auth steps mock pattern
+  // SPRINT-C 2026-05-21: si STORAGE_STATE env presente, context ya viene autenticado.
+  // Skip mock auth en ese caso (login real persistido por save-storage-states.ts).
+  if (process.env.STORAGE_STATE) return;
+  // Fallback legacy: cookie mock (specs en pipeline sin Firebase real).
   await this.browserContext.addCookies([
     {
       name: 'idTokenV0.1.0',

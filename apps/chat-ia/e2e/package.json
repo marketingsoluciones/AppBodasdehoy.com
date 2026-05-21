@@ -9,7 +9,9 @@
     "test:headed": "HEADLESS=false cucumber-js --config cucumber.config.js",
     "test:routes": "cucumber-js --config cucumber.config.js --tags '@routes'",
     "test:routes:ci": "cucumber-js --config cucumber.config.js --tags '@routes and not @ci-skip'",
-    "test:smoke": "cucumber-js --config cucumber.config.js --tags '@smoke'"
+    "test:smoke": "cucumber-js --config cucumber.config.js --tags '@smoke'",
+    "test:authenticated": "tsx save-storage-states.ts && STORAGE_STATE=.auth/super-admin.json cucumber-js --config cucumber.config.js --tags '@sessions'",
+    "smoke:scripts": "tsx save-storage-states.ts && tsx smoke-with-state.ts && tsx smoke-crud-session.ts"
   },
   "dependencies": {
     "@cucumber/cucumber": "^12.2.0",

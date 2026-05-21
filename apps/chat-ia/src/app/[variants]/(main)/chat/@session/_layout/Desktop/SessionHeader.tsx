@@ -253,6 +253,7 @@ const Header = memo(() => {
                 trigger={['hover']}
               >
                 <ActionIcon
+                  data-testid="new-session-dropdown"
                   icon={SquarePlus}
                   loading={isValidatingAgent || isCreatingGroup}
                   size={DESKTOP_HEADER_ICON_SIZE}
@@ -261,6 +262,7 @@ const Header = memo(() => {
               </Dropdown>
             ) : (
               <ActionIcon
+                data-testid="new-session-button"
                 icon={MessageSquarePlus}
                 loading={isValidatingAgent}
                 onClick={() => mutateAgent()}

@@ -40,9 +40,13 @@ export class CustomWorld extends World {
       headless: process.env.HEADLESS !== 'false',
     });
 
+    // SPRINT-C 2026-05-21: opcional reuso storage state (skip login en specs).
+    // Set STORAGE_STATE=.auth/super-admin.json antes de correr la suite.
+    const storageStatePath = process.env.STORAGE_STATE;
     this.browserContext = await this.browser.newContext({
       baseURL: BASE_URL,
       viewport: { height: 720, width: 1280 },
+      ...(storageStatePath ? { storageState: storageStatePath } : {}),
     });
 
     // Set expect timeout for assertions (e.g., toBeVisible, toHaveText)
