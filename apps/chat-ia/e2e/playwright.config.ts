@@ -30,8 +30,10 @@ export default defineConfig({
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: BASE_URL,
+    // SPRINT T 2026-05-21: debug artifacts cuando algo falla
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
     actionTimeout: 30_000,
     navigationTimeout: 60_000,
     storageState: process.env.STORAGE_STATE,

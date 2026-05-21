@@ -58,8 +58,9 @@ const VenueVisualizerRender = memo<BuiltinRenderProps<VenueVisualizerItem[]>>(
     const hasGenerated = content.some((item) => item.generatedUrl);
 
     return (
-      <Flexbox gap={12}>
+      <Flexbox data-testid="tool-render-venue-visualizer" gap={12}>
         <div
+          data-testid="venue-grid"
           style={{
             display: 'grid',
             gap: 12,
@@ -67,11 +68,9 @@ const VenueVisualizerRender = memo<BuiltinRenderProps<VenueVisualizerItem[]>>(
           }}
         >
           {content.map((item, index) => (
-            <VenueItem
-              key={`${item.style}-${item.roomType}-${index}`}
-              messageId={messageId}
-              {...item}
-            />
+            <div data-testid="venue-card" key={`${item.style}-${item.roomType}-${index}`}>
+              <VenueItem messageId={messageId} {...item} />
+            </div>
           ))}
         </div>
 
