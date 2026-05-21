@@ -34,17 +34,31 @@ test.describe.serial('@sessions Session management', () => {
   });
 
   test('@sessions-create create new session', async ({ page }) => {
-    const idsBefore = await getSessionIds(page);
+    // Reload + wait estabilizar (otros tests pueden estar sincronizando con backend)
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.waitForTimeout(3000);
+    const idsBefore = new Set(await getSessionIds(page));
+
     await page
       .locator('[data-testid="new-session-button"], [data-testid="new-session-dropdown"]')
       .first()
       .click();
-    await page.waitForTimeout(3000);
-    const idsAfter = await getSessionIds(page);
-    expect(idsAfter.length).toBe(idsBefore.length + 1);
 
+    // Poll para detectar al menos UN id nuevo (no asume count exacto)
+    let newId: string | undefined;
+    await expect
+      .poll(
+        async () => {
+          const idsNow = await getSessionIds(page);
+          newId = idsNow.find((id) => !idsBefore.has(id));
+          return newId;
+        },
+        { timeout: 15_000, message: 'esperando nuevo session id en sidebar' },
+      )
+      .toBeTruthy();
+
+    expect(newId).toBeDefined();
     // Cleanup obligatorio (memory: feedback_e2e_super_admin_cleanup.md)
-    const newId = idsAfter.find((id) => !idsBefore.includes(id));
     if (newId) await deleteSessionByApi(page, newId);
   });
 

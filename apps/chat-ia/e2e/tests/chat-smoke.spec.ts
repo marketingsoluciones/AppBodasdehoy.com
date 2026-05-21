@@ -29,14 +29,24 @@ async function deleteSessionByApi(page: Page, id: string) {
 }
 
 async function createEphemeralSession(page: Page): Promise<string | undefined> {
-  const before = await getSessionIds(page);
+  // Estabilizar + capturar set base
+  await page.waitForTimeout(2000);
+  const beforeSet = new Set(await getSessionIds(page));
+
   await page
     .locator('[data-testid="new-session-button"], [data-testid="new-session-dropdown"]')
     .first()
     .click();
-  await page.waitForTimeout(3000);
-  const after = await getSessionIds(page);
-  return after.find((id) => !before.includes(id));
+
+  // Poll para detectar al menos un nuevo id (max 15s)
+  const deadline = Date.now() + 15_000;
+  while (Date.now() < deadline) {
+    const ids = await getSessionIds(page);
+    const newId = ids.find((id) => !beforeSet.has(id));
+    if (newId) return newId;
+    await page.waitForTimeout(500);
+  }
+  return undefined;
 }
 
 test.describe.serial('@chat @smoke Chat smoke flow', () => {

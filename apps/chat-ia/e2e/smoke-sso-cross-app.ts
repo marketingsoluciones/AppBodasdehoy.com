@@ -15,7 +15,8 @@ import { resolve } from 'path';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 const CHAT_URL = process.env.BASE_URL || 'http://localhost:3210';
-const APP_URL = process.env.APP_URL || 'http://localhost:3220';
+// APPEVENTOS_URL prefer (APP_URL puede chocar con api-ia python :8000)
+const APP_URL = process.env.APPEVENTOS_URL || 'http://localhost:3220';
 const STORAGE_DIR = resolve(__dirname, '.auth');
 const USER_TAG = process.env.USER_TAG || 'super-admin';
 
