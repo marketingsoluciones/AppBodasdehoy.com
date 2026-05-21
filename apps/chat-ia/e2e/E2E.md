@@ -2,10 +2,12 @@
 
 Suite completa Playwright Test + smoke scripts para chat-ia operativa con Firebase real + 3 usuarios.
 
-**Status (2026-05-21 sesión autónoma A→O):**
-- **11/11 Playwright Test specs PASS** (sessions, chat-smoke, auth-flow, sso-cross-app, visitor-limits)
+**Status (2026-05-21 sesión autónoma A→U):**
+- **36/36 Playwright Test specs PASS** (12 tests × 3 user projects)
 - **7 smoke scripts** (login, state, crud, chat-message, memories, sso, auth-state)
-- Tiempo total suite: ~1.4 min webkit prod build
+- **Cucumber legacy descomisionado** (-1700 LOC, -1 dep)
+- Suite total: ~8.3 min (3 projects × 12 specs, workers=1 estable)
+- Suite single project: ~1.5 min
 
 ---
 
@@ -107,6 +109,8 @@ npx playwright test tests/auth-flow --project=webkit-super-admin
 | `auth-flow.spec.ts` | 2 | login real Firebase + no runtime errors |
 | `sso-cross-app.spec.ts` | 1 | cookie idToken cross-app |
 | `visitor-limits.spec.ts` | 2 | visitor /chat load + no Authorization leak |
+| `tool-invocation.spec.ts` | 1 | tool/assistant response a query "venues" |
+| **Total** | **12** | × 3 user projects = **36 tests** |
 
 ### CI GitHub Actions
 Workflow `.github/workflows/e2e-chat-ia.yml` corre todo en push/PR a dev/master.
@@ -234,16 +238,19 @@ Login form (accesibles sin testid):
 | K | chat-smoke.spec.ts (Cucumber → Playwright) | 3/3 |
 | L | CI workflow GitHub Actions actualizado prod build | YAML válido |
 | M | auth-flow.spec.ts + visitor-limits.spec.ts | 4/4 |
-| O | E2E.md documentación completa | este file |
+| O | E2E.md documentación completa | ✓ |
+| U | Cucumber descomisionado (1701 LOC) | ✓ |
+| N | tool-invocation.spec.ts (LLM tolerant) | 1/1 |
+
+**Suite final: 36/36 PASS · 3 projects × 12 specs · 8.3 min total**
 
 ---
 
-## 🚀 Próximos Sprints (roadmap)
+## 🚀 Próximos Sprints (roadmap remanente)
 
-- **Sprint N**: smoke-events.ts — crear evento real via chat-ia AI tool (create_event function-calling)
-- **Sprint P**: visitor-message-limit completo (5 msgs + modal "Crea una cuenta")
+- **Sprint P**: visitor-message-limit completo (5 msgs + modal "Crea una cuenta") — slow test
 - **Sprint Q**: auth-token-refresh (60s+ wait flow)
-- **Sprint R**: chat-tool-invocation (venue-visualizer renderiza inline)
+- **Sprint R-strict**: chat-tool-invocation con assert venue cards visible (requiere data-testid en tool renders)
 - **Sprint S**: bundle-size GitHub Action integrado con Sentry alerts
 - **Sprint T**: video recording per test failure (Playwright trace viewer)
-- **Sprint U**: descomisionar Cucumber legacy (5 features + 5 steps files), eliminar `@cucumber/cucumber` dep
+- **Sprint V**: smoke-events.ts via api-mcp directo (skip LLM determinism)

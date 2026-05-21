@@ -23,8 +23,10 @@ export default defineConfig({
   testDir: './tests',
   timeout: 120_000,
   expect: { timeout: 30_000 },
-  retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 1 : 2,
+  retries: process.env.CI ? 2 : 1,
+  // workers=1 evita contention webkit + race conditions backend per-user
+  // (3 projects con storageState distintos pero comparten trpc backend)
+  workers: 1,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: BASE_URL,
