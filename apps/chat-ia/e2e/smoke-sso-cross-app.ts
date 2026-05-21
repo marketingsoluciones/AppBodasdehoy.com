@@ -76,8 +76,10 @@ async function main() {
 
   try {
     console.log(`[3] navigate appEventos /`);
-    const navResponse = await page.goto(APP_URL, { waitUntil: 'networkidle', timeout: 60_000 });
-    await page.waitForTimeout(3000);
+    // domcontentloaded en vez de networkidle — appEventos hace polling continuo a
+    // socket.io api3-ia.eventosorganizador.com (NXDOMAIN, memoria proyecto)
+    const navResponse = await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    await page.waitForTimeout(5000);
     const status = navResponse?.status() || 0;
     checks.push({ step: 'appEventos / responds', status: status === 200 ? 'OK' : 'FAIL', detail: `${status}` });
     console.log(`    status=${status} url=${page.url()}`);
@@ -90,20 +92,23 @@ async function main() {
       detail: `url=${page.url()}`,
     });
 
-    // Check para indicios de user logged in: avatar, user email visible, etc.
-    const userIndicators = await page.evaluate(() => {
-      const email = (window.localStorage as any).getItem('user_email');
-      const uid = (window.localStorage as any).getItem('user_uid');
-      const hasNotificationBell = !!document.querySelector('[class*="notification"], [class*="Notification"]');
-      const userText = document.body.innerText.toLowerCase();
-      const hasEmail = userText.includes('bodasdehoy.com@gmail.com') || userText.includes('@');
-      return { email, uid, hasNotificationBell, hasEmail };
+    // Indicadores de UI autenticada (appEventos no expone email en localStorage root):
+    //  - Avatar visible top-right (signo de session activa)
+    //  - "Copilot" button (solo aparece logged in)
+    //  - NO botón "Iniciar sesión" / "Login"
+    const uiSignals = await page.evaluate(() => {
+      const text = document.body.innerText.toLowerCase();
+      const hasLoginPrompt = /iniciar sesi[oó]n|reg[ií]strate|sign in/i.test(text)
+        && !/cerrar sesi[oó]n|sign out|logout/i.test(text);
+      const hasCopilot = text.includes('copilot');
+      const avatars = document.querySelectorAll('img[alt*="avatar" i], [class*="avatar" i], [class*="Avatar"]').length;
+      return { hasLoginPrompt, hasCopilot, avatars };
     });
-    console.log(`    userIndicators:`, userIndicators);
+    console.log(`    uiSignals:`, uiSignals);
     checks.push({
-      step: 'user metadata in localStorage',
-      status: userIndicators.email || userIndicators.uid ? 'OK' : 'FAIL',
-      detail: `email=${userIndicators.email} uid=${userIndicators.uid}`,
+      step: 'UI logged-in (no login prompt, copilot or avatar)',
+      status: !uiSignals.hasLoginPrompt && (uiSignals.hasCopilot || uiSignals.avatars > 0) ? 'OK' : 'FAIL',
+      detail: `loginPrompt=${uiSignals.hasLoginPrompt} copilot=${uiSignals.hasCopilot} avatars=${uiSignals.avatars}`,
     });
 
     // Screenshot final para inspección
