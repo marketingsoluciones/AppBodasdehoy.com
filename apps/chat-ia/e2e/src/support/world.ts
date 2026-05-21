@@ -1,5 +1,5 @@
 import { IWorldOptions, World, setWorldConstructor } from '@cucumber/cucumber';
-import { Browser, BrowserContext, Page, Response, chromium } from '@playwright/test';
+import { Browser, BrowserContext, Page, Response, chromium, webkit } from '@playwright/test';
 
 export interface TestContext {
   [key: string]: any;
@@ -32,8 +32,11 @@ export class CustomWorld extends World {
     const PORT = process.env.PORT ? Number(process.env.PORT) : 3010;
     const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
-    this.browser = await chromium.launch({
-      channel: process.env.BROWSER_CHANNEL as 'chrome' | 'chromium' | undefined ?? 'chromium',
+    // SPRINT-E2E-impl 2026-05-21: Default webkit per memoria proyecto
+    // ("E2E: Playwright con webkit (NUNCA Chromium)"). chromium fallback via
+    // BROWSER=chromium env si se necesita en CI con limitations.
+    const browserType = process.env.BROWSER === 'chromium' ? chromium : webkit;
+    this.browser = await browserType.launch({
       headless: process.env.HEADLESS !== 'false',
     });
 
