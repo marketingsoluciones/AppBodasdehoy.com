@@ -6,3 +6,5 @@ screenshots/
 
 # Logs locales
 *.log
+test-results/
+playwright-report/
