@@ -1,0 +1,103 @@
+# SPRINT-E2E-impl 2026-05-21: E2E suite Cucumber+Playwright para chat-ia.
+# 5 features × 25 scenarios cubre: auth, chat-smoke, sessions, visitor-limits, sso-cross-app.
+#
+# Default: webkit (memoria proyecto: "E2E con webkit NUNCA chromium").
+# Override: BROWSER=chromium para CI específicos con limitations webkit.
+name: E2E — chat-ia
+
+on:
+  push:
+    branches: [dev, master]
+    paths:
+      - 'apps/chat-ia/src/**'
+      - 'apps/chat-ia/e2e/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+  pull_request:
+    branches: [dev, master]
+    paths:
+      - 'apps/chat-ia/src/**'
+      - 'apps/chat-ia/e2e/**'
+      - 'packages/**'
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: E2E Cucumber+Playwright (webkit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Run subsets en paralelo via tags
+        suite:
+          - { name: 'smoke', tags: '@smoke' }
+          - { name: 'auth', tags: '@auth' }
+          - { name: 'chat', tags: '@chat' }
+          - { name: 'sessions', tags: '@sessions' }
+          - { name: 'visitor', tags: '@visitor' }
+          - { name: 'sso', tags: '@sso' }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright webkit browser
+        working-directory: apps/chat-ia/e2e
+        run: pnpm exec playwright install webkit --with-deps
+
+      - name: Start chat-ia dev server
+        working-directory: apps/chat-ia
+        env:
+          NEXT_PUBLIC_API_IA_URL: 'https://api-ia.bodasdehoy.com'
+          NEXT_PUBLIC_DEVELOPMENT: 'bodasdehoy'
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.E2E_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.E2E_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.E2E_FIREBASE_PROJECT_ID }}
+          NODE_OPTIONS: '--max-old-space-size=8192'
+        run: |
+          pnpm next dev -p 3210 &
+          # Wait for server ready
+          for i in {1..60}; do
+            if curl -s http://localhost:3210/ > /dev/null; then
+              echo "✅ Server ready"
+              break
+            fi
+            sleep 5
+          done
+
+      - name: Run E2E tests — ${{ matrix.suite.name }}
+        working-directory: apps/chat-ia/e2e
+        env:
+          BASE_URL: 'http://localhost:3210'
+          BROWSER: 'webkit'
+          HEADLESS: 'true'
+          CI: 'true'
+          TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
+        run: pnpm test -- --tags '${{ matrix.suite.tags }} and not @ci-skip'
+
+      - name: Upload Cucumber reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-report-${{ matrix.suite.name }}-${{ github.sha }}
+          path: |
+            apps/chat-ia/e2e/reports/
+            apps/chat-ia/e2e/screenshots/
+          retention-days: 7

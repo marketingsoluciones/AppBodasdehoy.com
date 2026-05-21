@@ -106,6 +106,7 @@ const DesktopChatInput = memo<{ showFootnote?: boolean }>(({ showFootnote }) => 
       {!expand && <QuotaBanner />}
       <Flexbox
         className={cx(styles.container, expand && styles.fullscreen)}
+        data-testid="chat-input"
         gap={8}
         paddingBlock={containerPadding}
         paddingInline={12}

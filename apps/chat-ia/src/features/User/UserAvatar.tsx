@@ -130,6 +130,7 @@ const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
         <div
           aria-label={altText}
           className={cx(clickable && styles.clickable, className)}
+          data-testid="user-avatar"
           onClick={onClick}
           ref={ref}
           role="img"
@@ -164,6 +165,7 @@ const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
         avatar={avatarUrl}
         background={isRealLogin && avatar ? background : 'transparent'}
         className={cx(clickable && styles.clickable, className)}
+        data-testid="user-avatar"
         onClick={onClick}
         onError={handleAvatarImageError}
         ref={ref}

@@ -62,6 +62,8 @@ const ListItem = memo<
       active={mobile ? false : active}
       avatar={avatarRender}
       className={cx(styles.container, mobile && styles.mobile)}
+      data-active={mobile ? false : active}
+      data-testid="session-item"
       ref={ref}
       showAction={actions && (isHovering || showAction || mobile)}
       title={<span className={styles.title}>{title}</span>}
