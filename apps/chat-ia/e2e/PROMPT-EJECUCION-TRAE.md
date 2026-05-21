@@ -1,6 +1,12 @@
-# Prompt ejecutivo E2E suite — para Cursor/Claude Code/Trae
+# Prompt ejecutivo E2E suite — para Trae IDE
 
-**Contexto**: Suite Cucumber+Playwright (5 specs, 25 scenarios) implementada en sesión Claude. Infrastructura validada (webkit launch OK). Falta primer run completo con Firebase env real + warm-up server.
+**Contexto**: Suite Cucumber+Playwright (5 specs, 25 scenarios) implementada en sesión Claude. Infrastructura validada en local (webkit launch + Cucumber ejecución confirmados). Falta primer run completo con Firebase env real + warm-up server.
+
+**Cómo usar este prompt en Trae**:
+1. Abre Trae IDE
+2. Carga este archivo como contexto
+3. Indica: "Ejecuta el runbook completo de este archivo y reporta resultados de los 25 scenarios"
+4. Trae ejecutará los pasos vía bash + Playwright + Cucumber
 
 **Estado actual confirmado en sesión Claude**:
 - ✅ webkit launch funciona (post `playwright install webkit` en `~/Library/Caches/ms-playwright/webkit-2227`)
