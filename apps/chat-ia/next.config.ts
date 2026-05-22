@@ -104,6 +104,36 @@ const nextConfig: NextConfig = {
       '@lobehub/chat-plugin-sdk',
       '@lobehub/market-sdk',
       '@lobehub/editor',
+      // SPRINT-U 2026-05-20: paquetes pesados con barrel exports que aún no estaban.
+      // antd-style: 547 archivos importan from 'antd-style' — barrel masivo.
+      'antd-style',
+      '@lobehub/charts',           // 5 archivos (profile/stats + ConsumptionChart)
+      '@lobehub/analytics',        // 4 archivos analytics
+      '@cyntler/react-doc-viewer', // 5 archivos FileViewer renderers
+      'recharts',                  // 3 archivos billing + artifacts + ConsumptionChart
+      'langfuse',                  // 2 archivos libs/traces server-side
+      'langfuse-core',
+      // SPRINT-AC 2026-05-20: packages workspace @bodasdehoy/* compilados a dist.
+      // Tree-shake exports inferidos del barrel index.js → ahorra bundle inicial cliente.
+      '@bodasdehoy/shared',
+      '@bodasdehoy/memories',
+      '@bodasdehoy/wedding-creator',
+      '@bodasdehoy/auth-ui',
+      '@bodasdehoy/copilot-shared',
+      // SPRINT-AE 2026-05-20: top npm packages con barrel exports descubiertos via grep.
+      'react-layout-kit',   // 728 archivos (Flexbox, Center, etc)
+      'react-router-dom',   // 36 archivos /discover/* (legacy LobeChat — tech debt: migrar a next/navigation)
+      'swr',                // 49 archivos
+      // SPRINT-AO 2026-05-20: más packages npm con barrel + uso significativo.
+      'ahooks',             // 13 archivos (hooks library ~1MB barrel)
+      'use-merge-value',    // 10 archivos
+      'react-hotkeys-hook', // 7 archivos
+      '@formkit/auto-animate', // 3 archivos
+      'react-responsive',   // 2 archivos
+      'modern-screenshot',  // 2 archivos
+      // SPRINT-AP 2026-05-20: top imports library con barrel.
+      'react-i18next',      // 579 archivos — useTranslation principalmente
+      'zod',                // 63 archivos
     ],
 
     // ✅ Limitar CPUs para reducir memoria paralela
@@ -427,10 +457,11 @@ const nextConfig: NextConfig = {
   // ⚡ FASE 4 PR-4.3 (2026-05-13): packages compartidos eliminados de transpilePackages
   // tras FASE 3 (dist build). Next los carga pre-compilados → ahorra recompile en cada build.
   // SOLO quedan los packages externos que aún requieren transpile (no tienen dist propio).
-  // @lobehub/ui añadido 2026-05-18: workaround para bug Next 15.5.9 RSC con
-  // componentes Modal/Drawer/Markdown — Next no los marca como Client correctamente
-  // sin transpile.
-  transpilePackages: ['pdfjs-dist', 'mermaid', '@lobehub/ui'],
+  // SPRINT-AG 2026-05-20: eliminado @lobehub/ui del array (estaba como workaround Next 15.5.9
+  // RSC bug del 2026-05-18). Si Modal/Drawer/Markdown rompen, revertir esta línea.
+  // SPRINT-AH 2026-05-20: eliminado pdfjs-dist — dep removida en SPRINT-J, transpile sin efecto.
+  // mermaid se mantiene: lo usa @lobehub/ui internamente para renderizar diagramas.
+  transpilePackages: ['mermaid'],
 
   webpack(config) {
     config.experiments = {

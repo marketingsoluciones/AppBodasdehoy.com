@@ -1,4 +1,5 @@
-import { LobeHub, type LobeHubProps } from '@lobehub/ui/brand';
+// SPRINT-AS: sub-path directo — evita barrel @lobehub/ui/brand (arrastra LogoSpline 3.7MB).
+import LobeHub, { type LobeHubProps } from '@lobehub/ui/es/brand/LobeHub';
 import { memo } from 'react';
 
 import { ORG_NAME } from '@/const/branding';

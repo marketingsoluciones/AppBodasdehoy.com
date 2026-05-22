@@ -12,7 +12,6 @@ import { BANNER_HEIGHT } from '@/features/AlertBanner/CloudBanner';
 // SPRINT-G 2026-05-19: TitleBar import dynamic + ssr:false — solo se renderiza si isDesktop,
 // pero antes era static y arrastraba @lobechat/electron-client-ipc + 39 archivos al bundle web.
 import { TITLE_BAR_HEIGHT } from '@/features/ElectronTitlebar/const';
-import HotkeyHelperPanel from '@/features/HotkeyHelperPanel';
 import { usePlatform } from '@/hooks/usePlatform';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { HotkeyScopeEnum } from '@/types/hotkey';
@@ -25,6 +24,9 @@ import SideBar from './SideBar';
 
 const CloudBanner = dynamic(() => import('@/features/AlertBanner/CloudBanner'));
 const TitleBar = dynamic(() => import('@/features/ElectronTitlebar'), { ssr: false });
+// SPRINT-X 2026-05-20: HotkeyHelperPanel usa Modal + Grid + Segmented de @lobehub/ui —
+// solo se abre cuando user presiona Cmd+/ → dynamic ssr:false saca Modal del bundle inicial.
+const HotkeyHelperPanel = dynamic(() => import('@/features/HotkeyHelperPanel'), { ssr: false });
 
 const Layout = memo<PropsWithChildren>(({ children }) => {
   const searchParams = useSearchParams();

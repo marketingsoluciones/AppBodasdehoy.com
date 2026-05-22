@@ -4,7 +4,9 @@
  * mantener el enrutamiento y facturación centralizada.
  */
 
-export const runtime = 'nodejs';
+// SPRINT-AC 2026-05-20: edge runtime (antes nodejs). Solo hace fetch a api-ia
+// + reenvía stream binario audio — todas Web APIs disponibles en edge.
+export const runtime = 'edge';
 
 const getBackendUrl = () =>
   process.env.API_IA_URL ||

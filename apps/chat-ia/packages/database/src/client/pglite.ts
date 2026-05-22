@@ -1,4 +1,8 @@
-import { PGliteWorker } from '@electric-sql/pglite/worker';
+// SPRINT-AT: type-only import + dynamic runtime para que el chunk lazy de pglite
+// NO arrastre @electric-sql/pglite/worker estáticamente al evaluar el módulo.
+// El runtime se carga solo cuando initPgliteWorker se invoca (idem al patrón
+// usado en db.ts:382 con await import('./pglite')).
+import type { PGliteWorker } from '@electric-sql/pglite/worker';
 
 import { InitMeta } from './type';
 
@@ -13,6 +17,9 @@ export const initPgliteWorker = async (meta: InitMeta) => {
   try {
     // ✅ Agregar timeout a la creación del worker
     const WORKER_TIMEOUT = 15000; // 15 segundos
+
+    // Dynamic import: runtime de @electric-sql/pglite/worker solo cuando se invoca init.
+    const { PGliteWorker } = await import('@electric-sql/pglite/worker');
 
     const createPromise = PGliteWorker.create(
       new Worker(new URL('pglite.worker.ts', import.meta.url)),

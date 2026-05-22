@@ -2,11 +2,17 @@ import { ActionIcon, Dropdown, type DropdownProps, Icon, type MenuProps } from '
 import { App } from 'antd';
 import { createStyles } from 'antd-style';
 import { MoreVertical, PencilLine, Plus, Settings2, Trash, UsersRound } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { MemberSelectionModal } from '@/components/MemberSelectionModal';
 import { useIsMobile } from '@/hooks/useIsMobile';
+
+// SPRINT-Y: MemberSelectionModal solo se abre al click "Add member" en Group actions → dynamic.
+const MemberSelectionModal = dynamic(
+  () => import('@/components/MemberSelectionModal').then((m) => ({ default: m.MemberSelectionModal })),
+  { ssr: false },
+);
 import { useChatGroupStore } from '@/store/chatGroup';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useSessionStore } from '@/store/session';

@@ -7,6 +7,9 @@ import { DynamicLayoutProps } from '@/types/next';
 import { RouteVariants } from '@/utils/server/routeVariants';
 
 import PageTitle from '../features/PageTitle';
+// SPRINT-AB revertido SPRINT-AG: page.tsx es Server Component; next/dynamic ssr:false
+// NO está permitido en Server Components (Next 15+). El componente ya es 'use client'
+// internamente — Next maneja el code splitting via routing convention.
 import TelemetryNotification from './features/TelemetryNotification';
 
 export const generateMetadata = async (props: DynamicLayoutProps) => {

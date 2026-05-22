@@ -1,21 +1,51 @@
+// Tipos puros movidos a @lobechat/types 2026-05-20 SPRINT-A.final.
+// Este archivo retiene SOLO los zod schemas runtime + sus type aliases.
+// Re-export de todos los tipos para back-compat con consumers externos.
+
 import { z } from 'zod';
 
-import type {
+import { AiModelSourceEnum } from '@lobechat/types';
+
+// Re-export tipos puros (movidos a @lobechat/types)
+export type {
+  AIBaseModelCard,
+  AIChatModelCard,
+  AIEmbeddingModelCard,
+  AIImageModelCard,
+  AIRealtimeModelCard,
+  AISTTModelCard,
+  AITTSModelCard,
+  AiFullModelCard,
+  AiModelConfig,
+  AiModelForSelect,
+  AiModelSettings,
+  AiModelSortMap,
   AiModelSourceType,
   AiModelType,
+  AiProviderModelListItem,
   BasicModelPricing,
+  ChatModelPricing,
+  EnabledAiModel,
+  ExtendParamsType,
+  FixedPricingUnit,
+  LLMParams,
+  LobeDefaultAiModelListItem,
+  LookupPricingUnit,
   ModelAbilities,
   ModelPriceCurrency,
+  ModelSearchImplementType,
+  Pricing,
+  PricingStrategy,
+  PricingUnit,
+  PricingUnitBase,
+  PricingUnitName,
+  PricingUnitType,
+  TieredPricingUnit,
 } from '@lobechat/types';
 
-import { ModelParamsSchema } from '../standard-parameters';
+export { AiModelSourceEnum };
 
-// ModelPriceCurrency + AiModelType + BasicModelPricing movidos a @lobechat/types 2026-05-19 SPRINT-A.5
-export type { ModelPriceCurrency, AiModelType, BasicModelPricing } from '@lobechat/types';
-
-// AiModelSourceEnum + AiModelSourceType movidos a @lobechat/types 2026-05-19 SPRINT-A.2
-export { AiModelSourceEnum, type AiModelSourceType } from '@lobechat/types';
-
+// Schemas runtime — permanecen en model-bank
 export const AiModelTypeSchema = z.enum([
   'chat',
   'embedding',
@@ -27,11 +57,7 @@ export const AiModelTypeSchema = z.enum([
   'realtime',
 ] as const);
 
-// ModelAbilities movido a @lobechat/types 2026-05-19 SPRINT-A.4
-export type { ModelAbilities } from '@lobechat/types';
-
 const AiModelAbilitiesSchema = z.object({
-  // files: z.boolean().optional(),
   functionCall: z.boolean().optional(),
   imageOutput: z.boolean().optional(),
   reasoning: z.boolean().optional(),
@@ -40,222 +66,6 @@ const AiModelAbilitiesSchema = z.object({
   vision: z.boolean().optional(),
 });
 
-// LLMParams movido a @lobechat/types 2026-05-19 SPRINT-A.3
-export type { LLMParams } from '@lobechat/types';
-
-// BasicModelPricing movido a @lobechat/types 2026-05-19 SPRINT-A.5 (re-export arriba)
-
-export interface ChatModelPricing extends BasicModelPricing {
-  audioInput?: number;
-  audioOutput?: number;
-  cachedAudioInput?: number;
-  cachedInput?: number;
-  /**
-   * the output pricing, e.g. $2 / 1M tokens
-   */
-  output?: number;
-  writeCacheInput?: number;
-}
-
-// New pricing system types
-export type PricingUnitName =
-  // Text-based pricing units
-  | 'textInput' // corresponds to ChatModelPricing.input
-  | 'textOutput' // corresponds to ChatModelPricing.output
-  | 'textInput_cacheRead' // corresponds to ChatModelPricing.cachedInput
-  | 'textInput_cacheWrite' // corresponds to ChatModelPricing.writeCacheInput
-
-  // Audio-based pricing units
-  | 'audioInput' // corresponds to ChatModelPricing.audioInput
-  | 'audioOutput' // corresponds to ChatModelPricing.audioOutput
-  | 'audioInput_cacheRead' // corresponds to ChatModelPricing.cachedAudioInput
-
-  // Image-based pricing units
-  | 'imageGeneration' // for image generation models
-  | 'imageInput'
-  | 'imageInput_cacheRead'
-  | 'imageOutput';
-
-export type PricingUnitType =
-  | 'millionTokens' // per 1M tokens
-  | 'millionCharacters' // per 1M characters
-  | 'image' // per image
-  | 'megapixel' // per megapixel
-  | 'second'; // per second
-
-export type PricingStrategy = 'fixed' | 'tiered' | 'lookup';
-
-export interface PricingUnitBase {
-  name: PricingUnitName;
-  strategy: PricingStrategy;
-  unit: PricingUnitType;
-}
-
-export interface FixedPricingUnit extends PricingUnitBase {
-  rate: number;
-  strategy: 'fixed';
-}
-
-export interface TieredPricingUnit extends PricingUnitBase {
-  strategy: 'tiered';
-  tiers: Array<{
-    rate: number;
-    upTo: number | 'infinity';
-  }>;
-}
-
-export interface LookupPricingUnit extends PricingUnitBase {
-  lookup: {
-    prices: Record<string, number>;
-    pricingParams: string[];
-  };
-  strategy: 'lookup';
-}
-
-export type PricingUnit = FixedPricingUnit | TieredPricingUnit | LookupPricingUnit;
-
-export interface Pricing {
-  currency?: ModelPriceCurrency;
-  units: PricingUnit[];
-}
-
-export interface AIBaseModelCard {
-  /**
-   * the context window (or input + output tokens limit)
-   */
-  contextWindowTokens?: number;
-  description?: string;
-  /**
-   * the name show for end user
-   */
-  displayName?: string;
-  enabled?: boolean;
-  id: string;
-  /**
-   * whether model is legacy (deprecated but not removed yet)
-   */
-  legacy?: boolean;
-  maxOutput?: number;
-  /**
-   * who create this model
-   */
-  organization?: string;
-
-  releasedAt?: string;
-}
-
-export interface AiModelConfig {
-  /**
-   * used in azure and volcengine
-   */
-  deploymentName?: string;
-
-  /**
-   * qwen series model enabled search
-   */
-  enabledSearch?: boolean;
-}
-
-export type ModelSearchImplementType = 'tool' | 'params' | 'internal';
-
-export type ExtendParamsType =
-  | 'reasoningBudgetToken'
-  | 'enableReasoning'
-  | 'disableContextCaching'
-  | 'reasoningEffort'
-  | 'gpt5ReasoningEffort'
-  | 'textVerbosity'
-  | 'thinking'
-  | 'thinkingBudget'
-  | 'urlContext';
-
-export interface AiModelSettings {
-  extendParams?: ExtendParamsType[];
-  /**
-   * 模型层实现搜索的方式
-   */
-  searchImpl?: ModelSearchImplementType;
-  searchProvider?: string;
-}
-
-export interface AIChatModelCard extends AIBaseModelCard {
-  abilities?: ModelAbilities;
-  config?: AiModelConfig;
-  maxOutput?: number;
-  pricing?: Pricing;
-  settings?: AiModelSettings;
-  type: 'chat';
-}
-
-export interface AIEmbeddingModelCard extends AIBaseModelCard {
-  maxDimension: number;
-  pricing?: Pricing;
-  type: 'embedding';
-}
-
-export interface AIImageModelCard extends AIBaseModelCard {
-  parameters?: ModelParamsSchema;
-  pricing?: Pricing;
-  resolutions?: string[];
-  type: 'image';
-}
-
-export interface AITTSModelCard extends AIBaseModelCard {
-  pricing?: Pricing;
-  type: 'tts';
-}
-
-export interface AISTTModelCard extends AIBaseModelCard {
-  pricing?: Pricing;
-  type: 'stt';
-}
-
-export interface AIRealtimeModelCard extends AIBaseModelCard {
-  abilities?: {
-    /**
-     * whether model supports file upload
-     */
-    files?: boolean;
-    /**
-     * whether model supports function call
-     */
-    functionCall?: boolean;
-    /**
-     *  whether model supports reasoning
-     */
-    reasoning?: boolean;
-    /**
-     *  whether model supports vision
-     */
-    vision?: boolean;
-  };
-  /**
-   * used in azure and volcengine
-   */
-  deploymentName?: string;
-  maxOutput?: number;
-  pricing?: Pricing;
-  type: 'realtime';
-}
-
-export interface AiFullModelCard extends AIBaseModelCard {
-  abilities?: ModelAbilities;
-  config?: AiModelConfig;
-  contextWindowTokens?: number;
-  displayName?: string;
-  id: string;
-  maxDimension?: number;
-  parameters?: ModelParamsSchema;
-  pricing?: Pricing;
-  type: AiModelType;
-}
-
-export interface LobeDefaultAiModelListItem extends AiFullModelCard {
-  abilities: ModelAbilities;
-  providerId: string;
-}
-
-// create
 export const CreateAiModelSchema = z.object({
   abilities: AiModelAbilitiesSchema.optional(),
   contextWindowTokens: z.number().optional(),
@@ -264,32 +74,10 @@ export const CreateAiModelSchema = z.object({
   providerId: z.string(),
   releasedAt: z.string().optional(),
   type: AiModelTypeSchema.optional(),
-
-  // checkModel: z.string().optional(),
-  // homeUrl: z.string().optional(),
-  // modelsUrl: z.string().optional(),
 });
 
 export type CreateAiModelParams = z.infer<typeof CreateAiModelSchema>;
 
-// List Query
-
-export interface AiProviderModelListItem {
-  abilities?: ModelAbilities;
-  config?: AiModelConfig;
-  contextWindowTokens?: number;
-  displayName?: string;
-  enabled: boolean;
-  id: string;
-  parameters?: ModelParamsSchema;
-  pricing?: Pricing;
-  releasedAt?: string;
-  settings?: AiModelSettings;
-  source?: AiModelSourceType;
-  type: AiModelType;
-}
-
-// Update
 export const UpdateAiModelSchema = z.object({
   abilities: AiModelAbilitiesSchema.optional(),
   config: z
@@ -304,12 +92,6 @@ export const UpdateAiModelSchema = z.object({
 
 export type UpdateAiModelParams = z.infer<typeof UpdateAiModelSchema>;
 
-export interface AiModelSortMap {
-  id: string;
-  sort: number;
-  type?: AiModelType;
-}
-
 export const ToggleAiModelEnableSchema = z.object({
   enabled: z.boolean(),
   id: z.string(),
@@ -319,26 +101,3 @@ export const ToggleAiModelEnableSchema = z.object({
 });
 
 export type ToggleAiModelEnableParams = z.infer<typeof ToggleAiModelEnableSchema>;
-
-//
-
-export interface AiModelForSelect {
-  abilities: ModelAbilities;
-  contextWindowTokens?: number;
-  displayName?: string;
-  id: string;
-}
-
-export interface EnabledAiModel {
-  abilities: ModelAbilities;
-  config?: AiModelConfig;
-  contextWindowTokens?: number;
-  displayName?: string;
-  enabled?: boolean;
-  id: string;
-  parameters?: ModelParamsSchema;
-  providerId: string;
-  settings?: AiModelSettings;
-  sort?: number;
-  type: AiModelType;
-}

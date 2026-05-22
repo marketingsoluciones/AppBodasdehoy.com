@@ -7,7 +7,6 @@ import { memo, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
-import { MemberSelectionModal } from '@/components/MemberSelectionModal';
 import { DEFAULT_AVATAR, DEFAULT_SUPERVISOR_AVATAR } from '@/const/meta';
 import { useChatStore } from '@/store/chat';
 import { chatSelectors } from '@/store/chat/selectors';
@@ -20,6 +19,11 @@ import { LobeGroupSession } from '@/types/session';
 // SPRINT-H 2026-05-19: AgentSettings es un Drawer pesado (importa @lobehub/ui Drawer + Form + 30+ subcomponentes).
 // Solo se renderiza si `agentSettingsOpen=true`. Dynamic ssr:false → fuera del bundle inicial /chat.
 const AgentSettings = dynamic(() => import('../../../features/AgentSettings'), { ssr: false });
+// SPRINT-Y: MemberSelectionModal solo se abre al click "Add member" en Group config → dynamic.
+const MemberSelectionModal = dynamic(
+  () => import('@/components/MemberSelectionModal').then((m) => ({ default: m.MemberSelectionModal })),
+  { ssr: false },
+);
 import GroupMemberItem from './GroupMemberItem';
 
 interface GroupMemberProps {

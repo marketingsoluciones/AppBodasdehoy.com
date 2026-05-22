@@ -3,13 +3,19 @@
 import { ActionIcon, Dropdown, Icon } from '@lobehub/ui';
 import { createStyles } from 'antd-style';
 import { Bot, MessageSquarePlus, SquarePlus, Users } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
 import { DeveloperSessionBrand } from '@/components/Branding';
-import { ChatGroupWizard } from '@/components/ChatGroupWizard';
 import { useGroupTemplates } from '@/components/ChatGroupWizard/templates';
+
+// SPRINT-X: ChatGroupWizard solo se abre cuando user click "Create Group" → dynamic ssr:false.
+const ChatGroupWizard = dynamic(
+  () => import('@/components/ChatGroupWizard').then((m) => ({ default: m.ChatGroupWizard })),
+  { ssr: false },
+);
 import { DESKTOP_HEADER_ICON_SIZE } from '@/const/layoutTokens';
 import { DEFAULT_CHAT_GROUP_CHAT_CONFIG } from '@/const/settings';
 import { useActionSWR } from '@/libs/swr';
@@ -247,6 +253,7 @@ const Header = memo(() => {
                 trigger={['hover']}
               >
                 <ActionIcon
+                  data-testid="new-session-dropdown"
                   icon={SquarePlus}
                   loading={isValidatingAgent || isCreatingGroup}
                   size={DESKTOP_HEADER_ICON_SIZE}
@@ -255,6 +262,7 @@ const Header = memo(() => {
               </Dropdown>
             ) : (
               <ActionIcon
+                data-testid="new-session-button"
                 icon={MessageSquarePlus}
                 loading={isValidatingAgent}
                 onClick={() => mutateAgent()}

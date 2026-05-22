@@ -5,7 +5,8 @@
  * Reenvía el formData (multipart) tal cual a api-ia.
  */
 
-export const runtime = 'nodejs';
+// SPRINT-AN 2026-05-20: edge runtime — proxy puro a api-ia, arrayBuffer + fetch (Web APIs).
+export const runtime = 'edge';
 
 const getBackendUrl = () =>
   process.env.API_IA_URL ||

@@ -4,6 +4,10 @@ import { after } from 'next/server';
 import { TraceClient } from '@/libs/traces';
 import { TraceEventBasePayload, TraceEventPayloads } from '@/types/trace';
 
+// SPRINT-AN 2026-05-20: edge runtime — Langfuse v3 es ESM edge-compatible.
+// after() está soportado en edge desde Next 15.
+export const runtime = 'edge';
+
 export const POST = async (req: Request) => {
   type RequestData = TraceEventPayloads & TraceEventBasePayload;
   const data = (await req.json()) as RequestData;

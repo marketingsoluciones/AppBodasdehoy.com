@@ -15,7 +15,8 @@ export const translation = async (ns: NS = 'common', hl: string) => {
   let i18ns = {};
   const lng = await getLocale(hl);
   try {
-    if (isDev && lng === 'zh-CN') i18ns = await import(`@/locales/default/${ns}`);
+    // SPRINT-BG: dev locale default = es-ES (era zh-CN LobeChat upstream).
+    if (isDev && lng === 'es-ES') i18ns = await import(`@/locales/default/${ns}`);
     i18ns = await import(`@/../locales/${normalizeLocale(lng)}/${ns}.json`);
   } catch (e) {
     console.error('Error while reading translation file', e);

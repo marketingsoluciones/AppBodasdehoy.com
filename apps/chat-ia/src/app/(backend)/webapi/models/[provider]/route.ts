@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 
+// SPRINT-AC: edge runtime — solo hace fetch a api-ia, sin Node APIs.
+// Cold start mucho más rápido + distributed en edge locations.
+export const runtime = 'edge';
+
 export const GET = async (req: Request, { params }: { params: Promise<{ provider: string }> }) => {
   const { provider } = await params;
   const backendUrl = process.env.API_IA_URL || process.env.NEXT_PUBLIC_API_IA_URL;

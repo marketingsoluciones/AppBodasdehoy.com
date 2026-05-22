@@ -3,21 +3,26 @@ import '@/styles/tailwind.css';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ThemeAppearance } from 'antd-style';
 import { ResolvingViewport } from 'next';
+import nextDynamic from 'next/dynamic';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ReactNode } from 'react';
 import { isRtlLang } from 'rtl-detect';
 
-import Analytics from '@/components/Analytics';
-import TrackingCapture from '@/components/TrackingCapture';
-import DeveloperTheme from '@/components/DeveloperTheme';
-import DynamicFavicon from '@/components/DynamicFavicon';
 import LoginModal from '@/components/LoginModal';
 import { DEFAULT_LANG } from '@/const/locale';
 import { isDesktop } from '@/const/version';
 import { LoginModalProvider } from '@/contexts/LoginModalContext';
-import PWAInstall from '@/features/PWAInstall';
 import AuthProvider from '@/layout/AuthProvider';
 import GlobalProvider from '@/layout/GlobalProvider';
+
+// SPRINT-Z2 revertido SPRINT-AG: layout.tsx es Server Component — next/dynamic ssr:false
+// NO está permitido. Dynamic sin ssr permite SSR pero sigue generando chunk separado
+// → bundle inicial más ligero, sin crash RSC.
+const Analytics = nextDynamic(() => import('@/components/Analytics'), {});
+const TrackingCapture = nextDynamic(() => import('@/components/TrackingCapture'), {});
+const DeveloperTheme = nextDynamic(() => import('@/components/DeveloperTheme'), {});
+const DynamicFavicon = nextDynamic(() => import('@/components/DynamicFavicon'), {});
+const PWAInstall = nextDynamic(() => import('@/features/PWAInstall'), {});
 import { Locales } from '@/locales/resources';
 import { DynamicLayoutProps } from '@/types/next';
 import { RouteVariants } from '@/utils/server/routeVariants';
@@ -143,7 +148,9 @@ export const generateStaticParams = () => {
   // Mobile se detecta runtime via User-Agent middleware. Build SSG -50% tiempo.
   const mobileOptions = [false];
   // only static for serveral page, other go to dynamtic
-  const staticLocales: Locales[] = [DEFAULT_LANG, 'zh-CN'];
+  // SPRINT-BG: solo es-ES locale activo en bodasdehoy (es-ES = idioma principal,
+  // en-US = fallback DEFAULT_LANG).
+  const staticLocales: Locales[] = [DEFAULT_LANG, 'es-ES'];
 
   const variants: { variants: string }[] = [];
 

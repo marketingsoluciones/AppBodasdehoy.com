@@ -1,98 +1,49 @@
-import { NextResponse } from 'next/server';
+/**
+ * ComfyUI create-image proxy → api-ia backend
+ * Migrado 2026-05-20 LOTE 6. Antes invocaba lambdaRouter.comfyui.createImage
+ * (server/services/comfyui local) que llamaba a ComfyUI server directamente.
+ * Ahora proxea el payload tal cual a api-ia, que gestiona ComfyUI con keys
+ * centralizadas e idéntico mapping de errores (InvalidProviderAPIKey 401,
+ * PermissionDenied 403, ModelNotFound 404, ComfyUIServiceUnavailable 503).
+ */
 
-import { checkAuth } from '@/app/(backend)/middleware/auth';
-import { getServerDBConfig } from '@/config/db';
-import { createCallerFactory } from '@/libs/trpc/lambda';
-import { lambdaRouter } from '@/server/routers/lambda';
+import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
 
-const serverDBEnv = getServerDBConfig();
-
-// Custom handler that supports both regular auth and internal service auth
-const handler = async (req: Request, { jwtPayload }: { jwtPayload?: any }) => {
-  try {
-    const body = await req.json();
-    const { model, params, options } = body;
-
-    // Create tRPC caller with authentication context
-    const createCaller = createCallerFactory(lambdaRouter);
-
-    const caller = createCaller({
-      jwtPayload,
-      nextAuth: undefined, // WebAPI routes don't have nextAuth session
-      userId: jwtPayload?.userId, // Required for userAuth middleware
-    });
-
-    // Call ComfyUI service through tRPC
-    const result = await caller.comfyui.createImage({
-      model,
-      options,
-      params,
-    });
-
-    return NextResponse.json(result);
-  } catch (error: any) {
-    console.error('[ComfyUI WebAPI] Error:', error);
-
-    // Extract AgentRuntimeError from TRPCError's cause
-    const agentError = error?.cause;
-
-    // If we have an AgentRuntimeError in the cause, return it
-    if (agentError && typeof agentError === 'object' && 'errorType' in agentError) {
-      // Convert errorType to HTTP status
-      let status;
-      switch (agentError.errorType) {
-        case 'InvalidProviderAPIKey':
-        case 401: {
-          status = 401;
-          break;
-        }
-        case 'PermissionDenied':
-        case 403: {
-          status = 403;
-          break;
-        }
-        case 'ModelNotFound':
-        case 404: {
-          status = 404;
-          break;
-        }
-        case 'ComfyUIServiceUnavailable':
-        case 503: {
-          status = 503;
-          break;
-        }
-        default: {
-          status = 500;
-        }
-      }
-
-      // Return the AgentRuntimeError directly for the Provider to handle
-      return NextResponse.json(agentError, { status });
-    }
-
-    // Fallback for other errors
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
-  }
-};
+const getBackendUrl = () =>
+  process.env.API_IA_URL ||
+  process.env.NEXT_PUBLIC_API_IA_URL ||
+  'https://api-ia.bodasdehoy.com';
 
 export const POST = async (req: Request) => {
-  // Check for internal service authentication (only if KEY_VAULTS_SECRET is set)
-  if (serverDBEnv.KEY_VAULTS_SECRET) {
-    const authorization = req.headers.get('Authorization');
+  const backendUrl = getBackendUrl();
 
-    // If request has internal service token, bypass regular auth
-    if (authorization === `Bearer ${serverDBEnv.KEY_VAULTS_SECRET}`) {
-      // Internal service call from ComfyUI provider
-      // Pass a system user ID for internal service calls
-      return handler(req, { jwtPayload: { userId: 'INTERNAL_SERVICE' } });
-    }
+  try {
+    const body = await req.text();
+
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const auth = req.headers.get('Authorization');
+    if (auth) headers['Authorization'] = auth;
+    const cookie = req.headers.get('Cookie');
+    if (cookie) headers['Cookie'] = cookie;
+    const supportKey = req.headers.get('X-Support-Key');
+    if (supportKey) headers['X-Support-Key'] = supportKey;
+
+    const upstream = await fetch(`${backendUrl}/webapi/create-image/comfyui`, {
+      body,
+      headers,
+      method: 'POST',
+    });
+
+    const data = await upstream.json().catch(() => ({}));
+    return NextResponse.json(data, { status: upstream.status });
+  } catch (e: any) {
+    console.error('[ComfyUI WebAPI] ❌ proxy error:', e?.message);
+    return NextResponse.json(
+      { error: { message: 'Error al generar imagen ComfyUI. Intenta de nuevo.', type: 'proxy_error' } },
+      { status: 502 },
+    );
   }
-
-  // Otherwise use regular checkAuth
-  // ComfyUI doesn't have a provider param, but checkAuth requires it
-  return checkAuth(handler)(req, { params: Promise.resolve({ provider: 'comfyui' }) });
 };

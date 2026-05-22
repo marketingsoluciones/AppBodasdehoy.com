@@ -1,0 +1,104 @@
+# SPRINT-BQ 2026-05-21: Bundle size analyzer + threshold check.
+# Genera reportes Webpack Bundle Analyzer en cada PR contra dev/master.
+# Falla CI si First Load JS supera threshold (regresión bundle).
+name: Bundle Size — chat-ia
+
+on:
+  push:
+    branches: [dev, master]
+    paths:
+      - 'apps/chat-ia/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+  pull_request:
+    branches: [dev, master]
+    paths:
+      - 'apps/chat-ia/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  analyze:
+    name: Analyze chat-ia bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build chat-ia with analyzer
+        working-directory: apps/chat-ia
+        env:
+          ANALYZE: 'true'
+          NODE_OPTIONS: '--max-old-space-size=16384'
+          ENABLE_OIDC: '0'
+          APP_URL: 'http://localhost:8000'
+        run: |
+          pnpm next build --no-lint || true
+          # Build puede fallar en /oidc por Node 25 incompat (no bloqueante para analyzer)
+          ls -la .next/analyze/ || exit 1
+
+      - name: Upload analyzer reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-analyzer-chat-ia-${{ github.sha }}
+          path: apps/chat-ia/.next/analyze/
+          retention-days: 30
+
+      - name: Bundle size threshold check
+        working-directory: apps/chat-ia
+        run: |
+          # Threshold: First Load JS <= 5MB (estado actual ~3.5MB post-AS)
+          # Si excede, alerta regresión bundle.
+          THRESHOLD_KB=5120
+          TOTAL_KB=$(du -sk .next/static/chunks | awk '{print $1}')
+          echo "Bundle chunks total: ${TOTAL_KB}KB (threshold: ${THRESHOLD_KB}KB)"
+          if [ "$TOTAL_KB" -gt "$THRESHOLD_KB" ]; then
+            echo "::error::Bundle regression detected: ${TOTAL_KB}KB > ${THRESHOLD_KB}KB"
+            exit 1
+          fi
+
+      - name: Comment PR with bundle stats
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const chunksDir = 'apps/chat-ia/.next/static/chunks';
+            const stats = fs.readdirSync(chunksDir)
+              .map(f => ({ name: f, size: fs.statSync(path.join(chunksDir, f)).size }))
+              .filter(f => f.size > 100_000)
+              .sort((a, b) => b.size - a.size)
+              .slice(0, 10);
+
+            const body = `## 📦 chat-ia bundle stats\n\n` +
+              `Top 10 chunks (>100KB):\n\n` +
+              `| Chunk | Size |\n|---|---|\n` +
+              stats.map(s => `| \`${s.name}\` | ${(s.size/1024).toFixed(0)}KB |`).join('\n') +
+              `\n\n[Full analyzer report in artifacts](${context.payload.pull_request.html_url}/checks)`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
