@@ -21,6 +21,9 @@ import { resolve } from 'path';
 const APPEVENTOS_URL = process.env.APPEVENTOS_URL || 'http://localhost:3220';
 const DUAL_STATE = resolve(__dirname, '../.auth/super-admin-dual.json');
 
+// Cache shared entre tests del describe.serial
+let cachedEventId: string | null = null;
+
 async function gotoPage(page: Page, path: string) {
   // domcontentloaded — appEventos hace polling socket.io api3-ia NXDOMAIN
   // que impide networkidle. timeout 180s — cold compile primer hit puede tardar ~3min
@@ -36,6 +39,33 @@ async function assertNoGuestGate(page: Page) {
     .isVisible({ timeout: 500 })
     .catch(() => false);
   expect(guestGateVisible, 'guest gate "Crear cuenta gratis" visible — dual login no aplicado').toBe(false);
+}
+
+/**
+ * /mesas, /presupuesto, /itinerario requieren ?eventId=<X> en URL.
+ * Sin event seleccionado, vista-sin-cookie.tsx redirige a /login?d=<path>.
+ * Confirmed en pages/api/copilot/chat.ts:184 (URL canónica con eventId).
+ *
+ * Esta helper navega a /eventos, lee el primer eventId del DOM y lo cachea
+ * en cachedEventId. Si /eventos está vacío → null (test debe skip).
+ */
+async function fetchFirstEventId(page: Page): Promise<string | null> {
+  if (cachedEventId) return cachedEventId;
+  await gotoPage(page, '/eventos');
+  // Busca links/buttons con href que contenga eventId, o data-eventid
+  const eventLink = await page
+    .locator('a[href*="eventId="], a[href*="/event/"], [data-eventid]')
+    .first();
+  const href = await eventLink.getAttribute('href').catch(() => null);
+  const dataId = await eventLink.getAttribute('data-eventid').catch(() => null);
+  let id: string | null = null;
+  if (href) {
+    const m = href.match(/eventId=([a-f0-9]+)/i) || href.match(/\/event\/([a-f0-9]+)/i);
+    if (m) id = m[1];
+  }
+  if (!id && dataId) id = dataId;
+  if (id) cachedEventId = id;
+  return id;
 }
 
 test.describe.serial('@appeventos appEventos page smoke (logged-in via dual storage state)', () => {
@@ -82,11 +112,13 @@ test.describe.serial('@appeventos appEventos page smoke (logged-in via dual stor
     }
   });
 
-  test('@appeventos-mesas /mesas accesible (no guest gate)', async ({ browser }) => {
+  test('@appeventos-mesas /mesas?eventId=<X> accesible (no guest gate)', async ({ browser }) => {
     const ctx = await browser.newContext({ storageState: DUAL_STATE, viewport: { width: 1280, height: 720 } });
     const page = await ctx.newPage();
     try {
-      await gotoPage(page, '/mesas');
+      const eventId = await fetchFirstEventId(page);
+      test.skip(!eventId, '/eventos sin eventos visibles — no se puede testear /mesas');
+      await gotoPage(page, `/mesas?eventId=${eventId}`);
       expect(page.url()).not.toMatch(/login/i);
       await assertNoGuestGate(page);
     } finally {
@@ -94,11 +126,13 @@ test.describe.serial('@appeventos appEventos page smoke (logged-in via dual stor
     }
   });
 
-  test('@appeventos-presupuesto /presupuesto accesible (no guest gate)', async ({ browser }) => {
+  test('@appeventos-presupuesto /presupuesto?eventId=<X> accesible (no guest gate)', async ({ browser }) => {
     const ctx = await browser.newContext({ storageState: DUAL_STATE, viewport: { width: 1280, height: 720 } });
     const page = await ctx.newPage();
     try {
-      await gotoPage(page, '/presupuesto');
+      const eventId = await fetchFirstEventId(page);
+      test.skip(!eventId, '/eventos sin eventos visibles — no se puede testear /presupuesto');
+      await gotoPage(page, `/presupuesto?eventId=${eventId}`);
       expect(page.url()).not.toMatch(/login/i);
       await assertNoGuestGate(page);
     } finally {
@@ -106,11 +140,13 @@ test.describe.serial('@appeventos appEventos page smoke (logged-in via dual stor
     }
   });
 
-  test('@appeventos-itinerario /itinerario accesible (no guest gate)', async ({ browser }) => {
+  test('@appeventos-itinerario /itinerario?eventId=<X> accesible (no guest gate)', async ({ browser }) => {
     const ctx = await browser.newContext({ storageState: DUAL_STATE, viewport: { width: 1280, height: 720 } });
     const page = await ctx.newPage();
     try {
-      await gotoPage(page, '/itinerario');
+      const eventId = await fetchFirstEventId(page);
+      test.skip(!eventId, '/eventos sin eventos visibles — no se puede testear /itinerario');
+      await gotoPage(page, `/itinerario?eventId=${eventId}`);
       expect(page.url()).not.toMatch(/login/i);
       await assertNoGuestGate(page);
     } finally {
