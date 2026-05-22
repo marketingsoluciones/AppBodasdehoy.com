@@ -82,3 +82,4 @@ resultados-bateria-api2-*.json
 .github/
 test-results/
 .agent-browser/
+node_modules
