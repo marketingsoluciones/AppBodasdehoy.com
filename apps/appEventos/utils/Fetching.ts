@@ -1884,7 +1884,6 @@ export const queries = {
         }
       }
       showChildrenGuest
-      }
     }
   }`,
   getListaRegalos: `query($_id: ID!, $development: String!){
