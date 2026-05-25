@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
-import { getAuth, onAuthStateChanged, signInWithCustomToken, getRedirectResult } from 'firebase/auth'
+import { getAuth, onAuthStateChanged, getRedirectResult } from 'firebase/auth'
 import Cookies from 'js-cookie'
 import { nanoid, customAlphabet, } from 'nanoid'
 import { developments } from "../firebase";
@@ -797,44 +797,38 @@ const AuthProvider = ({ children }) => {
           setVerificationDone(true)
           return
         }
-        const resp = await fetchApiBodas({
-          query: queries.authStatus,
-          variables: { sessionCookie },
-          development: config?.development
-        });
-        if (resp?.customToken) {
-          setIsStartingRegisterOrLogin(true)
-          await signInWithCustomToken(getAuth(), resp.customToken)
-            .then(result => {
-              setUser(result?.user)
-              moreInfo(result?.user)
-            }).catch(async (error) => {
-              console.error('[Auth] signInWithCustomToken falló:', error?.code, error?.message)
-              // Fallback: si tenemos userId de la sessionCookie, cargar datos del usuario directamente
-              // Esto ocurre cuando el dominio no está autorizado en Firebase (ej. app-test.bodasdehoy.com)
-              if (sessionUidFromCookie) {
-                console.warn('[Auth] Fallback SSO: cargando usuario desde sessionCookie userId:', sessionUidFromCookie)
-                try {
-                  const userInfo = await fetchApiBodas({
-                    query: queries.getUser,
-                    variables: { uid: sessionUidFromCookie },
-                    development: config?.development
-                  })
-                  if (userInfo) {
-                    console.log('[Auth] ✅ Fallback SSO exitoso, usuario cargado:', userInfo?.email)
-                    setUser({ uid: sessionUidFromCookie, ...userInfo })
-                    setVerificationDone(true)
-                    return
-                  }
-                } catch (fallbackErr) {
-                  console.error('[Auth] Fallback SSO también falló:', fallbackErr)
-                }
-              }
-              setVerificationDone(true)
-            })
-        } else {
-          setVerificationDone(true)
+        // T-501 (2026-05-24): validación canónica vía getCurrentUser con Bearer sessionCookie.
+        // Reemplaza el legacy `status(sessionCookie)` mutation (DiarioCivitas) que api-mcp
+        // valida SOLO con JWT_SECRET OLD → rechazaba sessionBodas firmados con JWT_SECRET_NEW
+        // ("Sesión inválida o expirada"). getCurrentUser pasa por context.ts dual-accept (NEW→OLD).
+        // Decisión BACKEND-api-mcp 2026-05-24: no compat legacy, migración en front.
+        // Ver SEGUIMIENTO-BUG-API-MCP-STATUS.md.
+        try {
+          const currentUser = await fetchApiBodas({
+            query: queries.getCurrentUser,
+            variables: {},
+            token: sessionCookie,
+            development: config?.development
+          });
+          if (currentUser?.id) {
+            console.log('[Auth] ✅ Sesión validada vía getCurrentUser:', currentUser?.email)
+            // Cargar datos completos del usuario appEventos (eventSelected, weddingDate, etc.)
+            const userInfo = await fetchApiBodas({
+              query: queries.getUser,
+              variables: { uid: currentUser.id },
+              token: sessionCookie,
+              development: config?.development
+            }).catch(() => null)
+            const merged = { uid: currentUser.id, email: currentUser.email, ...(userInfo || {}) }
+            setUser(merged)
+            moreInfo(merged)
+          } else {
+            console.warn('[Auth] getCurrentUser no devolvió usuario — sesión inválida')
+          }
+        } catch (err) {
+          console.error('[Auth] Validación getCurrentUser falló:', err)
         }
+        setVerificationDone(true)
       }
       // SSO cross-domain: si no hay sessionCookie y no hay usuario real (o es anónimo),
       // pero hay idTokenV0.1.0 (p. ej. login en chat-dev/chat-test/chat), crear sesión automáticamente.

@@ -924,9 +924,7 @@ export const queries = {
         getUser(uid:$uid){
           email
           photoURL
-          onLine{
-            status
-          }
+          onLine
           displayName
           phoneNumber
           role
@@ -944,6 +942,17 @@ export const queries = {
   authStatus: `mutation ($sessionCookie : String!){
         status(sessionCookie: $sessionCookie){
           customToken
+        }
+  }`,
+  // T-501 (2026-05-24): validación canónica de sesión. Reemplaza el legacy
+  // `status(sessionCookie)` mutation que api-mcp valida solo con JWT_SECRET OLD.
+  // getCurrentUser pasa por context.ts dual-accept (NEW→OLD). Bearer = sessionCookie.
+  getCurrentUser: `query {
+        getCurrentUser {
+          id
+          email
+          role
+          development
         }
   }`,
   eventCreate: `mutation ($input: EventoInput!){

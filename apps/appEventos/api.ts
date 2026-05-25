@@ -161,7 +161,12 @@ export const api = {
       IsProduction: (process?.env?.NEXT_PUBLIC_PRODUCTION && !["testticket", "testinvitado"].includes(varGlobalSubdomain)) ?? false,
       "Content-Type": "application/json",
     };
-    if (idToken) {
+    // T-501 (2026-05-24): el param `token` (p.ej. sessionBodas HS256) tiene prioridad
+    // sobre idTokenV0.1.0 (Firebase RS256, 1h TTL). Necesario para validar sesión vía
+    // getCurrentUser cuando NO hay user Firebase pero sí sessionBodas válido.
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    } else if (idToken) {
       headers.Authorization = `Bearer ${idToken}`;
     }
 
