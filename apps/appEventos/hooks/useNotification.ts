@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { AuthContextProvider, EventContextProvider } from "../context";
 import { queries } from "../utils/Fetching";
 import { useToast } from "./useToast";
+import { resolveApiBodasGraphqlUrl } from "../utils/apiEndpoints";
 import axios from "axios";
 import Cookies from "js-cookie";
 
@@ -44,9 +45,9 @@ export const useNotification = () => {
 
     const idToken = Cookies.get("idTokenV0.1.0");
     const development = config?.development || "bodasdehoy";
-    const isLocalhost = typeof window !== 'undefined' &&
-      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    const url = isLocalhost ? '/api/proxy-bodas/graphql' : (process.env.NEXT_PUBLIC_API_MCP_GRAPHQL_URL || '/api/proxy-bodas/graphql');
+    // Estándar 2026: usar el resolver canónico (no process.env directo).
+    // resolveApiBodasGraphqlUrl ya devuelve /api/proxy-bodas/graphql en localhost.
+    const url = resolveApiBodasGraphqlUrl();
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
