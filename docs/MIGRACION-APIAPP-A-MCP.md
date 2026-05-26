@@ -105,5 +105,12 @@ Opcion B: Confirmar mapeo + documentar campos de los Input types nuevos.
 
 ## Proxy unificado
 
-`/api/proxy/graphql` ahora usa `resolveApiBodasGraphqlUrl()` → api3-mcp.
-apiapp.bodasdehoy.com eliminado de todo el codigo.
+`/api/proxy/graphql` reenvía a `resolveApiEventosOrigin()`.
+
+⚠️ CORRECCIÓN 2026-05-26: la afirmación previa "apiapp.bodasdehoy.com eliminado de
+todo el codigo" era FALSA. Verificado: `NEXT_PUBLIC_BASE_URL` aún apunta a apiapp y
+hay ~305 llamadas `fetchApiEventos` → apiapp. NO se puede eliminar todavía: api-mcp
+tiene el SCHEMA canónico de eventos (getEventosByUsuario, getEventos,
+getAllUserRelatedEventsByEmail) pero su base de datos de eventos está VACÍA
+(getEventos → total:0). Los 133 eventos reales solo existen en apiapp. BLOQUEO de
+BACKEND: migrar los DATOS apiapp→api-mcp antes de que el front pueda cortar apiapp.
