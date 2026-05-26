@@ -60,7 +60,6 @@ const normalizeGraphqlUrl = (u: string): string => {
 export const DEFAULT_MCP_GRAPHQL_URL = 'https://api-mcp.eventosorganizador.com/graphql';
 export const DEFAULT_API_IA_ORIGIN = 'https://api-ia.bodasdehoy.com';
 const DEFAULT_EVENTOS_ORIGIN = 'https://api-mcp.eventosorganizador.com';
-const DEFAULT_BODAS_AUTH_GRAPHQL_URL = 'https://api.bodasdehoy.com/graphql';
 
 export function resolveApiBodasGraphqlUrl(): string {
   failIfLegacyAliasSet();
@@ -102,15 +101,12 @@ export function resolveMcpOrigin(): string {
   return resolveApiBodasGraphqlUrl().replace(/\/graphql\/?$/i, '');
 }
 
+// Estándar 2026: auth/Stripe/notif/directorio viven en api-mcp (mismas 2 vars MCP).
+// Los nombres NEXT_PUBLIC_BASE_API_BODAS* quedaron RETIRADOS — delega al canónico.
 export function resolveApiBodasAuthGraphqlUrl(): string {
-  const raw =
-    process.env.NEXT_PUBLIC_BASE_API_BODAS ||
-    process.env.BASE_API_BODAS ||
-    process.env.NEXT_PUBLIC_BASE_API_BODAS_URL ||
-    process.env.BASE_API_BODAS_URL;
-  return normalizeGraphqlUrl(raw || DEFAULT_BODAS_AUTH_GRAPHQL_URL);
+  return resolveApiBodasGraphqlUrl();
 }
 
 export function resolveApiBodasAuthOrigin(): string {
-  return resolveApiBodasAuthGraphqlUrl().replace(/\/graphql\/?$/i, '');
+  return resolveMcpOrigin();
 }
