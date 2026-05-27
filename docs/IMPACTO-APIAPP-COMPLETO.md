@@ -103,3 +103,20 @@ Reportado Slack ts 1779897479. Bloquea migrar la lista de eventos sin perder fea
 ## 🟢 RE-VERIFICACIÓN LIVE 2026-05-27 (token fresco) — pendiente ENCOGIÓ
 BACKEND implementó (silencio): nuevoPago/editPago/borraPago, getPlanSpaceSelect, getPsTemplate, getItinerario AHORA EXISTEN.
 **Pendiente api-mcp REAL hoy:** (1) 6 campos type Evento [estilo,tematica,listIdentifiers,templateEmailSelect,templateWhatsappSelect,imgInvitacion]; (2) 5 ops [getAllBusinesses,getAllProducts,generatePdf,getGeoInfo,updateTasksOrder]; (3) host imágenes. Slack ts 1779898228.
+
+## 🔧 Mapeo migración por dominio (verificado live 2026-05-27)
+
+### Eventos (lista) — ✅ MIGRADO (commit 9fd4c0bc)
+queryenEvento → getEventosByUsuario. Embebe invitados_array/mesas_array/presupuesto_objeto/
+itinerarios_array (lecturas de sub-dominios YA vienen de api-mcp).
+
+### Invitados — mapeo listo (mutations, pendiente migrar call-sites)
+| Front (root actual) | api-mcp canónico (verificado existe) | call-sites |
+|---|---|---|
+| editGuests (root `actualizarInvitado`) | `actualizarInvitado(evento_id,invitado_id,datos:JSON)` — YA canónico, solo routing | GrupoTablas, RowString, BlockTableroInvitados, FuntionsDragable |
+| createGuests (root `createGuests` ❌) | `agregarInvitadosBatch(evento_id,invitados:[JSON])` → EventoBatchResponse | FormAcompañante, FormConfirmarAsistencia, FormEditarInvitado, FormInvitado, OptionsSubMenu |
+| removeGuests (root `borraInvitados` ❌) | `removerInvitadosBatch` | GrupoTablas |
+
+⚠️ RIESGO: cada call-site pasa fetchApiEventos→apiapp; migrar = cambiar a fetchApiBodas +
+adaptar response shape (EventoResponse/EventoBatchResponse). Son mutations → NO testeables
+sin crear data real. Requiere E2E como red de seguridad antes de tocar ~30 call-sites de mutations.
