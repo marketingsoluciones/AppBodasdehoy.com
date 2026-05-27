@@ -50,9 +50,20 @@ actualizarInvitado, addTaskAttachments, addWeddingPlannerIngreso, auth, borraMen
 | `deleteItinerario` | `eliminarItinerario` |
 | `addCompartition` | `compartirEvento` / `compartirEventoConGrupo` |
 
+### ✅ Categoría B VERIFICADA EN VIVO (2026-05-27, probe query+mutation a api-mcp prod)
+TODAS confirmadas que EXISTEN: getEventosByUsuario, getEventosCompartidos, getEventoById,
+agregarInvitado, removerInvitado, creaMesa, borraMesa, editMesa, agregarGastoPresupuesto,
+actualizarGastoPresupuesto, eliminarGastoPresupuesto, crearCategoriaPresupuesto,
+crearItinerario, actualizarItinerario, eliminarItinerario, compartirEvento.
+
 ## Categoría C — TRULY MISSING (BACKEND debe implementar en api-mcp)
 
-Sin equivalente alguno (verificado por keyword en typeDefs):
+### ✅ VERIFICADO EN VIVO (probe real, api-mcp responde "Cannot query field"):
+nuevoPago, editPago, borraPago (pagos boda) · getAllBusinesses, getAllProducts (directorio) ·
+generatePdf · getGeoInfo · getPlanSpaceSelect · getPsTemplate · getItinerario (¡lectura! el
+write crearItinerario/actualizar/eliminar SÍ existe) · updateTasksOrder.
+
+### Resto (inferido por keyword, pendiente verificar 1 a 1):
 
 - **Pagos presupuesto**: `nuevoPago`, `editPago`, `borraPago`, `deletepayment` (wedding) — `[Pago]→NADA`
 - **Directorio**: `getAllBusinesses`, `getAllProducts` — `[Business/Negocio]→NADA`
