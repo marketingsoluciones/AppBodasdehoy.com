@@ -586,16 +586,6 @@ export const queries = {
     }
   }`,
 
-  updateTasksOrder: `
-    mutation($eventID: String, $itinerarioID: String, $tasksOrder: String) {
-      updateTasksOrder(
-        eventID: $eventID,
-        itinerarioID: $itinerarioID,
-        tasksOrder: $tasksOrder
-      )
-    }
-  `,
-
   editTask: `mutation ($evento_id:ID!, $task_id:ID!, $development:String!, $updates:TaskUpdateInput!){
     editTask(evento_id:$evento_id, task_id:$task_id, development:$development, updates:$updates){
       success
@@ -761,10 +751,6 @@ export const queries = {
       tipo
     }
   }`,
-  generatePdf: `
-  mutation  ( $url:String, $nameFile:String, ) {
-    generatePdf ( url:$url,  nameFile:$nameFile)
-  }`,
   editItinerario: `mutation ($evento_id:ID!, $itinerario_id:ID!, $datos:JSON!){
     editItinerario(evento_id:$evento_id, itinerario_id:$itinerario_id, datos:$datos){
       success
@@ -889,15 +875,6 @@ export const queries = {
         status
         dateConection
       }
-    }
-  }`,
-  getGeoInfo: `query  {
-    getGeoInfo {
-      referer
-      acceptLanguage
-      loop
-      connectingIp
-      ipcountry
     }
   }`,
   auth: `mutation ($idToken : String!){
