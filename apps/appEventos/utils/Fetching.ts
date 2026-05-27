@@ -1551,6 +1551,24 @@ export const queries = {
       errors{ field message code }
     }
   }`,
+  // Migración apiapp→api-mcp 2026-05-27: reemplaza queryenEvento (apiapp legacy).
+  // getEventosByUsuario(usuario_id) devuelve owned + shared en 1 call (securityFilter $or).
+  // Campos complejos (lugar, *_array, presupuesto_objeto, etc.) son JSON escalar en api-mcp
+  // → se piden SIN subselección; devuelven el objeto completo (el front accede en runtime).
+  getEventosByUsuario: `query ($uid: String!, $pag: CRM_PaginationInput!, $dev: String) {
+    getEventosByUsuario(usuario_id: $uid, pagination: $pag, development: $dev){
+      total
+      eventos{
+        _id development grupos_array compartido_array detalles_compartidos_array
+        estatus color temporada estilo tematica tarta nombre
+        fecha_actualizacion fecha_creacion tipo usuario_id usuario_nombre fecha
+        galerySvgVersion listaRegalos listIdentifiers poblacion pais lugar timeZone
+        templateEmailSelect templateWhatsappSelect imgEvento imgInvitacion
+        notificaciones_array itinerarios_array planSpaceSelect planSpace
+        mesas_array invitados_array menus_array presupuesto_objeto showChildrenGuest
+      }
+    }
+  }`,
   getEventsByID: `query ($variable: String, $valor: String, $development: String!) {
     queryenEvento( variable:$variable, valor:$valor, development:$development){
       _id

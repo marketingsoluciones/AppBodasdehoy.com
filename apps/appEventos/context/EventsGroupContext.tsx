@@ -234,47 +234,35 @@ const EventsGroupProvider = ({ children }) => {
           const startTime = performance.now()
           let detailsStartTime = startTime
 
-          // BUG-013: Buscar eventos propios Y compartidos en paralelo.
-          // No usar .catch(() => []) por petición: un 500/timeout quedaba como "lista vacía" sin error en UI.
+          // Migración apiapp→api-mcp 2026-05-27: getEventosByUsuario(usuario_id) devuelve
+          // owned + shared en 1 sola call (securityFilter $or [usuario_id, compartido_array]).
+          // Reemplaza las 2 llamadas queryenEvento (apiapp legacy) → fetchApiBodas (api-mcp).
+          // No usar .catch(() => []): un 500/timeout debe propagar error a UI, no "lista vacía".
           Promise.allSettled([
-            withTimeout(fetchApiEventos({
-              query: queries.getEventsByID,
-              variables: { variable: "usuario_id", valor: userIdToUse, development },
-            }), GET_EVENTS_BY_ID_TIMEOUT_MS, "getEventsByID(usuario_id)"),
-            withTimeout(fetchApiEventos({
-              query: queries.getEventsByID,
-              variables: { variable: "compartido_array", valor: userIdToUse, development },
-            }), GET_EVENTS_BY_ID_TIMEOUT_MS, "getEventsByID(compartido_array)"),
+            withTimeout(fetchApiBodas({
+              query: queries.getEventosByUsuario,
+              variables: { uid: userIdToUse, pag: { page: 1, limit: 1000 }, dev: development },
+              development,
+            }), GET_EVENTS_BY_ID_TIMEOUT_MS, "getEventosByUsuario"),
           ]).then((results) => {
-            const [ownedSettled, sharedSettled] = results;
+            const [settled] = results;
 
-            if (ownedSettled.status === "rejected" && sharedSettled.status === "rejected") {
+            if (settled.status === "rejected") {
               console.error(
-                "[EventsGroup] queryenEvento: fallaron ambas consultas (usuario_id y compartido_array). development=",
+                "[EventsGroup] getEventosByUsuario falló. development=",
                 development,
                 "uid(prefix)=",
                 String(userIdToUse).slice(0, 10),
-                ownedSettled.reason,
-                sharedSettled.reason
+                settled.reason
               );
-              throw ownedSettled.reason;
+              throw settled.reason;
             }
 
-            const owned: Event[] =
-              ownedSettled.status === "fulfilled" ? coerceQueryenEventoList(ownedSettled.value) : [];
-            const shared: Event[] =
-              sharedSettled.status === "fulfilled" ? coerceQueryenEventoList(sharedSettled.value) : [];
-
-            if (ownedSettled.status === "rejected") {
-              console.warn("[EventsGroup] getEventsByID(usuario_id) falló:", ownedSettled.reason);
-            }
-            if (sharedSettled.status === "rejected") {
-              console.warn("[EventsGroup] getEventsByID(compartido_array) falló:", sharedSettled.reason);
-            }
+            const list: Event[] = coerceQueryenEventoList(settled.value);
 
             const seen = new Set<string>();
             const events: Event[] = [];
-            for (const e of [...owned, ...shared]) {
+            for (const e of list) {
               if (e?._id && !seen.has(e._id)) { seen.add(e._id); events.push(e); }
             }
             return events;
