@@ -77,6 +77,13 @@ write crearItinerario/actualizar/eliminar SÍ existe) · updateTasksOrder.
 
 (⚠️ Algunos de C pueden tener equivalente renombrado no detectado por keyword — verificar 1 a 1 al migrar.)
 
+## ➕ Gaps del `type Evento` api-mcp (descubierto al migrar keystone 2026-05-27)
+
+api-mcp `type Evento` NO declara 6 campos que el front usa en getEventsByID (están en
+el doc mongo pero no en el GraphQL type → no se pueden pedir). BACKEND debe añadirlos:
+`estilo`, `tematica`, `listIdentifiers`, `templateEmailSelect`, `templateWhatsappSelect`, `imgInvitacion`.
+Reportado Slack ts 1779897479. Bloquea migrar la lista de eventos sin perder features.
+
 ## Imágenes / assets
 
 `apps/appEventos/utils/UrlImage.ts` → `createURL(slug)` = `resolveApiBodasOrigin()` + slug.
