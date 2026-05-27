@@ -98,3 +98,8 @@ Reportado Slack ts 1779897479. Bloquea migrar la lista de eventos sin perder fea
 ## Estado var (front ya estandarizado a 4 vars)
 
 `NEXT_PUBLIC_BASE_URL`→apiapp es la ÚNICA var fuera del estándar, pendiente de (1) arriba. El resto (api-mcp + api-ia) ya consolidado (commits 87766b24, f281d3f1).
+
+
+## 🟢 RE-VERIFICACIÓN LIVE 2026-05-27 (token fresco) — pendiente ENCOGIÓ
+BACKEND implementó (silencio): nuevoPago/editPago/borraPago, getPlanSpaceSelect, getPsTemplate, getItinerario AHORA EXISTEN.
+**Pendiente api-mcp REAL hoy:** (1) 6 campos type Evento [estilo,tematica,listIdentifiers,templateEmailSelect,templateWhatsappSelect,imgInvitacion]; (2) 5 ops [getAllBusinesses,getAllProducts,generatePdf,getGeoInfo,updateTasksOrder]; (3) host imágenes. Slack ts 1779898228.
