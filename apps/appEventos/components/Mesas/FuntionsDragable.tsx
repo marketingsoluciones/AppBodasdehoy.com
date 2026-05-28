@@ -1,7 +1,7 @@
 import interact from "interactjs"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import { string } from "yup/lib/locale"
-import { fetchApiEventos, queries } from "../../utils/Fetching"
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching"
 import { Event, guests, planSpace, table } from "../../utils/Interfaces"
 
 const addClass = (element: any, className: any) => {
@@ -213,12 +213,12 @@ export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, p
             valor: JSON.stringify([...table?.guests])
           },
         });
-        // Sync guest record: update nombre_mesa and puesto
-        fetchApiEventos({
+        // Sync guest record: update nombre_mesa and puesto (api-mcp via fetchApiBodas)
+        fetchApiBodas({
           query: queries.editGuests,
           variables: { eventID, guestID: invitadoID, datos: { nombre_mesa: table?.title || tableID } },
         });
-        fetchApiEventos({
+        fetchApiBodas({
           query: queries.editGuests,
           variables: { eventID, guestID: invitadoID, datos: { puesto: String(chair) } },
         });

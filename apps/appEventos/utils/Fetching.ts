@@ -1930,7 +1930,10 @@ export const queries = {
       }
    }
   }`,
-  editGuests: `mutation ($eventID:ID!, $guestID:String!, $datos: JSON) {
+  // api-mcp canonical: invitado_id es String!, datos es JSON! (obligatorio),
+  // invitados_array es escalar [JSON!] (NO admite selección de subcampos).
+  // actualizarInvitado hace MERGE (preserva campos no enviados). Verificado 2026-05-28.
+  editGuests: `mutation ($eventID:ID!, $guestID:String!, $datos: JSON!) {
     actualizarInvitado(
       evento_id: $eventID,
       invitado_id: $guestID,
@@ -1940,26 +1943,7 @@ export const queries = {
       errors{ field message code }
       evento{
         _id
-        invitados_array{
-          _id
-          nombre
-          grupo_edad
-          correo
-          telefono
-          nombre_mesa
-          nombre_menu
-          puesto
-          asistencia
-          rol
-          sexo
-          invitacion
-          fecha_invitacion
-          movil
-          poblacion
-          pais
-          direccion
-          passesQuantity
-        }
+        invitados_array
       }
     }
   }`,

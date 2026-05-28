@@ -8,7 +8,7 @@ import { BorrarInvitado } from "../../hooks/EditarInvitado";
 import { CanceladoIcon, ConfirmadosIcon, DotsOpcionesIcon, PendienteIcon, } from "../icons";
 import { Event, guests, table } from "../../utils/Interfaces";
 import { DataTableGroupContextProvider, DataTableGroupProvider, } from "../../context/DataTableGroupContext";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
 import { LiaLinkSolid } from "react-icons/lia";
@@ -177,7 +177,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           const resultado = arr.map((invitado) => {
             if (invitado._id === rowID) {
               //Para escribir en base de datos
-              fetchApiEventos({
+              fetchApiBodas({
                 query: queries.editGuests,
                 variables: {
                   eventID: event._id,

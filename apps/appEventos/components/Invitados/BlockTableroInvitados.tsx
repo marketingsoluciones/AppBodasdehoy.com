@@ -8,7 +8,7 @@ import ModalBottom from "../Utils/ModalBottom";
 import FormEditarInvitado from "../Forms/FormEditarInvitado";
 import { guests, table, Event } from "../../utils/Interfaces";
 import { SlOptionsVertical } from "react-icons/sl";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching";
 import ClickAwayListener from "react-click-away-listener";
 import { useRouter } from "next/navigation";
 import { BorrarInvitado } from "../../hooks/EditarInvitado";
@@ -258,7 +258,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                     const resultado = arr.map((invitado) => {
                         if (invitado._id === rowID) {
                             //Para escribir en base de datos
-                            fetchApiEventos({
+                            fetchApiBodas({
                                 query: queries.editGuests,
                                 variables: {
                                     eventID: event._id,

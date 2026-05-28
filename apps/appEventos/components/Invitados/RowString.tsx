@@ -2,7 +2,7 @@ import { cloneElement, FC, useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { useAllowed } from "../../hooks/useAllowed";
 import { EventContextProvider } from "../../context";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching";
 
 interface props {
   initialValue: string
@@ -24,7 +24,7 @@ export const RowString: FC<props> = (props) => {
     const f1 = event?.invitados_array?.findIndex(elem => elem._id === guestID)
     event.invitados_array[f1][variable] = value
     setEvent({ ...event })
-    fetchApiEventos({
+    fetchApiBodas({
       query: queries.editGuests,
       variables: {
         eventID: event._id,
