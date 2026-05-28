@@ -5,7 +5,7 @@ import { BorrarInvitado } from "../../hooks/EditarInvitado";
 import InputField from "./InputField";
 import { ImageProfile } from '../../utils/Funciones'
 import { guests, table } from '../../utils/Interfaces';
-import { fetchApiEventos, queries } from '../../utils/Fetching';
+import { fetchApiBodas, queries } from '../../utils/Fetching';
 import { useToast } from '../../hooks/useToast';
 import { capitalize } from '../../utils/Capitalize';
 import SelectField from './SelectField';
@@ -62,11 +62,16 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
       }
     });
 
-    const result: any = await fetchApiEventos({
-      query: queries.createGuests,
+    // EDITAR invitado = actualizarInvitado (api-mcp SDL: agregar/actualizar separados;
+    // agregarInvitadosBatch ignora el _id del cliente → crearía duplicado). Merge por _id.
+    const datos = { ...val }
+    delete datos._id
+    const result: any = await fetchApiBodas({
+      query: queries.editGuests,
       variables: {
         eventID: event._id,
-        invitados_array: [val],
+        guestID: values._id,
+        datos,
       },
     });
     const f1 = event?.invitados_array?.findIndex(elem => elem._id === values._id)

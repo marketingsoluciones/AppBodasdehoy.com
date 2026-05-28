@@ -6,7 +6,7 @@ import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { ExportarExcel } from "../Utils/ExportarExcel";
 import ClickAwayListener from "react-click-away-listener";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
 import * as XLSX from 'xlsx';
 import axios from "axios";
 
@@ -117,7 +117,7 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick, setL
         if (dataImport.length !== dataImportReduce.corrects.length) {
           toast("error", t("fileErrors"))
         } else {
-          fetchApiEventos({
+          fetchApiBodas({
             query: queries.createGuests,
             variables: {
               eventID: event._id,

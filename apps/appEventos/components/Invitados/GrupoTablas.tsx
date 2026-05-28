@@ -832,16 +832,19 @@ const CheckBoxAll: FC<any> = ({ check, ...rest }) => {
 
   const eliminarTodo = async () => {
     try {
-      const { invitados_array }: any = await fetchApiEventos({
+      const res: any = await fetchApiBodas({
         query: queries.removeGuests,
         variables: {
           eventID: event._id,
           guests: arrIDs,
         },
       });
+      // api-mcp devuelve invitados_array bajo .evento (EventoBatchResponse).
+      // Fallback a la lista vieja para no vaciar la tabla si viene null.
+      const invitados_array = res?.evento?.invitados_array ?? res?.invitados_array
       setEvent((old) => ({
         ...old,
-        invitados_array,
+        invitados_array: invitados_array ?? old.invitados_array,
       }));
       dispatch({ type: "RESET_STATE" });
       toast("success", t("Invitado eliminado con exito"));

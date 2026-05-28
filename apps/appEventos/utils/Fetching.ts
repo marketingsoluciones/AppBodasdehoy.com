@@ -1904,29 +1904,18 @@ export const queries = {
       evento{ _id }
     }
   }`,
+  // api-mcp canonical (SDL evento.ts): createGuests NO existe; el equivalente es
+  // agregarInvitadosBatch(evento_id, invitados:[JSON!]!) → EventoBatchResponse.
+  // Autogenera _id server-side (IGNORA cualquier _id de cliente). invitados_array escalar.
+  // Solo para CREAR invitados nuevos (no editar). Verificado 2026-05-28.
   createGuests: `mutation ($eventID: ID!, $invitados_array: [JSON!]!) {
-    createGuests(evento_id: $eventID, invitados: $invitados_array){
+    agregarInvitadosBatch(evento_id: $eventID, invitados: $invitados_array){
       success
+      processed
       errors{ field message code }
       evento{
         _id
-        invitados_array{
-          father
-          _id
-          nombre
-          grupo_edad
-          correo
-          telefono
-          passesQuantity
-          nombre_mesa
-          nombre_menu
-          puesto
-          asistencia
-          rol
-          sexo
-          invitacion
-          fecha_invitacion
-        }
+        invitados_array
       }
    }
   }`,
@@ -1947,27 +1936,18 @@ export const queries = {
       }
     }
   }`,
+  // api-mcp canonical (SDL evento.ts): borraInvitados NO existe; el equivalente es
+  // removerInvitadosBatch(evento_id, invitado_ids:[ID!]!) → EventoBatchResponse.
+  // invitados_array escalar. El consumer lee result.evento.invitados_array.
   removeGuests: `mutation ($eventID:ID!, $guests: [ID!]!){
-      borraInvitados(evento_id:$eventID,
-      invitados_ids_array:$guests){
+      removerInvitadosBatch(evento_id:$eventID,
+      invitado_ids:$guests){
         success
+        processed
         errors{ field message code }
         evento{
           _id
-          invitados_array{
-            _id
-            nombre
-            sexo
-            grupo_edad
-            correo
-            telefono
-            nombre_mesa
-            puesto
-            asistencia
-            rol
-            father
-            passesQuantity
-          }
+          invitados_array
         }
       }
   }`,

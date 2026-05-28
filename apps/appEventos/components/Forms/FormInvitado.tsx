@@ -5,7 +5,7 @@ import { WarningIcon } from "../icons";
 import InputField from "./InputField";
 import SelectField from "./SelectField";
 import * as yup from "yup";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { ImageProfile } from "../../utils/Funciones";
 import useHover from "../../hooks/useHover";
@@ -105,7 +105,7 @@ const FormInvitado: FC<propsFormInvitado> = ({ state, set }) => {
         values.telefono = `+${phoneUtil.getCountryCodeForRegion(geoInfo.ipcountry)}${values?.telefono.slice(1, values?.telefono.length)}`
       }
       if (values.nombre_menu === "sin menú") values.nombre_menu = undefined
-      const result: any = await fetchApiEventos({
+      const result: any = await fetchApiBodas({
         query: queries.createGuests,
         variables: {
           eventID: event._id,
