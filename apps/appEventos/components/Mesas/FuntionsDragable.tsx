@@ -282,7 +282,7 @@ export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, plan
       setEvent({ ...event })
     }
     if (target === "element") {
-      fetchApiEventos({
+      fetchApiBodas({
         query: queries.editElement,
         variables: {
           evento_id: event._id,
@@ -333,7 +333,7 @@ export const ActualizarSize = async ({ width, height, targetID, event, setEvent,
       }
     }
     if (target === "element") {
-      await fetchApiEventos({
+      await fetchApiBodas({
         query: queries.editElement,
         variables: {
           evento_id: event._id,

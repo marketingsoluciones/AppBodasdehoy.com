@@ -5,7 +5,7 @@ import { element } from "../../utils/Interfaces";
 import { RxQuestionMark } from "react-icons/rx";
 import 'react-quill/dist/quill.snow.css';
 import dynamic from "next/dynamic";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching";
 
 interface propsElement {
   item: element
@@ -36,14 +36,12 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
   useEffect(() => {
     if (item?.tipo === "text") {
       if (item?.title !== customEditor) {
-        fetchApiEventos({
+        fetchApiBodas({
           query: queries.editElement,
           variables: {
-            eventID: event._id,
-            planSpaceID: planSpaceActive?._id,
-            elementID: item._id,
-            variable: "title",
-            valor: customEditor
+            evento_id: event._id,
+            element_id: item._id,
+            datos: { title: customEditor }
           }
         }).then((res) => {
           const index: number = planSpaceActive?.elements.findIndex((elem) => elem._id === item._id)

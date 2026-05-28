@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { EventContextProvider } from "../../context";
 import { CochinoIcon } from "../icons";
 import { Switch } from "../../components/Forms/Switch";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { estimate } from "../../utils/Interfaces";
 import { InputMontoPresupuesto } from "./InputMontoPresupuesto";
 import { useAllowed } from "../../hooks/useAllowed";
@@ -18,7 +18,7 @@ export const MontoPresupuesto = () => {
     if (!p) return
     if (typeof p.presupuesto_total !== "number" && p.viewEstimates && p.coste_estimado) {
       p.presupuesto_total = p.coste_estimado
-      fetchApiEventos({
+      fetchApiBodas({
         query: queries.editPresupuesto,
         variables: {
           evento_id: event?._id,
@@ -31,7 +31,7 @@ export const MontoPresupuesto = () => {
 
   const handleChangeViewEstimates = async (value: boolean) => {
     try {
-      const result: any = await fetchApiEventos({
+      const result: any = await fetchApiBodas({
         query: queries.editPresupuesto,
         variables: {
           evento_id: event?._id,

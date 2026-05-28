@@ -1,6 +1,6 @@
 import { FC } from "react"
 import { EventContextProvider } from "../../context"
-import { fetchApiEventos, queries } from "../../utils/Fetching"
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching"
 import { EditDefaultState } from "../../utils/Interfaces"
 import { BorrarIcon, EditarIcon } from "../icons"
 
@@ -31,7 +31,7 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
         })
       }
       if (itemTipo == "element") {
-        await fetchApiEventos({
+        await fetchApiBodas({
           query: queries.deleteElement,
           variables: {
             evento_id: event._id,
@@ -71,7 +71,7 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
       })
     }
     if (itemTipo === "element") {
-      await fetchApiEventos({
+      await fetchApiBodas({
         query: queries.editElement,
         variables: {
           evento_id: event._id,

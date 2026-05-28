@@ -25,7 +25,7 @@ import { SubMenu } from "../components/Utils/SubMenu";
 import { BlockPlanos } from "../components/Mesas/BlockPlanos";
 import { setupDropzone } from "../components/Mesas/FuntionsDragable";
 import BlockPanelElements from "../components/Mesas/BlockPanelElements";
-import { fetchApiEventos, queries } from "../utils/Fetching";
+import { fetchApiEventos, fetchApiBodas, queries } from "../utils/Fetching";
 import { useToast } from "../hooks/useToast";
 import BlockPlantillas from "../components/Mesas/BlockPlantillas";
 import BlockZonas from "../components/Mesas/BlockZonas";
@@ -135,7 +135,7 @@ const Mesas: FC = () => {
           rotation: 0,
           size: element?.size ?? { width: 60, height: 60 }
         }
-        fetchApiEventos({
+        fetchApiBodas({
           query: queries.createElement,
           variables: {
             evento_id: event._id,

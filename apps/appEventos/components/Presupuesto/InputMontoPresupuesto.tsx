@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAllowed } from "../../hooks/useAllowed";
 import { getCurrency } from "../../utils/Funciones";
 import ClickAwayListener from "react-click-away-listener";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { estimate } from "../../utils/Interfaces";
 import { useToast } from "../../hooks/useToast";
 
@@ -39,7 +39,7 @@ export const InputMontoPresupuesto: FC<Props> = ({ title }) => {
 
     setIsSubmitting(true)
     try {
-      const result: any = await fetchApiEventos({
+      const result: any = await fetchApiBodas({
         query: queries.editPresupuesto,
         variables: {
           evento_id: event?._id,
