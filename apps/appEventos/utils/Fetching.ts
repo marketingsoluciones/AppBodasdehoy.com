@@ -1418,11 +1418,11 @@ export const queries = {
       evento{ _id }
     }
   }`,
-  editCategoria: `mutation($evento_id:ID!, $categoria_id:ID!, $nombre:String){
-    editCategoria(evento_id:$evento_id, categoria_id:$categoria_id, nombre:$nombre){
+  editCategoria: `mutation($evento_id:ID!, $categoria_id:ID!, $updates:CategoriaPresupuestoUpdateInput!){
+    actualizarCategoriaPresupuesto(evento_id:$evento_id, categoria_id:$categoria_id, updates:$updates){
       success
       errors{ field message code }
-      evento{ _id }
+      evento{ _id presupuesto_objeto }
     }
   }`,
   nuevoPago: `mutation($evento_id:ID!, $categoria_id:ID, $gasto_id:ID!, $pagos_array:[JSON!]){

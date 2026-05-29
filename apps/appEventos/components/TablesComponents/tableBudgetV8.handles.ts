@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction, useState } from "react"
-import { fetchApiEventos, queries } from "../../utils/Fetching"
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching"
 import { Event, item, expenses, estimateCategory } from "../../utils/Interfaces"
 
 interface propsHandleChange {
@@ -148,12 +148,12 @@ export const handleChange = ({ values, info, event, setEvent }: propsHandleChang
       const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === original?.categoriaID)
       event.presupuesto_objeto.categorias_array[f1].nombre = values.value !== "" ? values.value : "nueva categoria"
       setEvent({ ...event })
-      fetchApiEventos({
+      fetchApiBodas({
         query: queries.editCategoria,
         variables: {
           evento_id: event?._id,
           categoria_id: original?.categoriaID,
-          nombre: values.value !== "" ? values.value : "nueva categoria"
+          updates: { nombre: values.value !== "" ? values.value : "nueva categoria" }
         }
       }).then((result: any) => {
         return

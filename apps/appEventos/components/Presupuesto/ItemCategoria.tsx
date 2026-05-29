@@ -8,7 +8,7 @@ import { estimateCategory, ModalInterface } from "../../utils/Interfaces";
 import { SimpleDeleteConfirmation } from "../Utils/SimpleDeleteConfirmation";
 import { handleDelete } from "../TablesComponents/tableBudgetV8.handles";
 import { EditableLabelWithInput } from "../Forms/EditableLabelWithInput";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 
 interface props {
@@ -28,12 +28,12 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
 
   const handleOnBlur = ({ value, id }) => {
     try {
-      fetchApiEventos({
+      fetchApiBodas({
         query: queries.editCategoria,
         variables: {
           evento_id: event?._id,
           categoria_id: item._id,
-          nombre: value !== "" ? value : "nueva categoria"
+          updates: { nombre: value !== "" ? value : "nueva categoria" }
         }
       }).then(() => {
         setEvent(old => {
