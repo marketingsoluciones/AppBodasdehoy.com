@@ -130,6 +130,17 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     }),
     mapResponse: (p) => presupuestoSuperset(p),
   },
+
+  // ── Invitaciones/Templates ──
+  // getWhatsappInvitationTemplates: el front no selecciona subfields (espera escalar); api-mcp
+  // devuelve [WhatsappInvitationTemplate!] (typed). El adapter añade la selección y pasa el array.
+  getWhatsappInvitationTemplates: {
+    canonicalQuery: `query($evento_id:ID){
+      getWhatsappInvitationTemplates(evento_id:$evento_id){ _id evento_id data created_at updated_at }
+    }`,
+    mapVariables: (v) => ({ evento_id: v.evento_id }),
+    mapResponse: (p) => p,
+  },
 };
 
 export const ADAPTER_ENABLED = (field: string | null): boolean =>
