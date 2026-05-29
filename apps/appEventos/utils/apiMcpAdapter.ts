@@ -35,6 +35,19 @@ const parsePresupuesto = (ev: any) => {
   return typeof po === 'string' ? JSON.parse(po) : po;
 };
 
+// Respuesta superset de presupuesto: { ...entidadCreada?, evento:{presupuesto_objeto}, success, errors }.
+const presupuestoSuperset = (p: any, pick?: (po: any) => any) => {
+  const ev = p?.evento ?? {};
+  const po = parsePresupuesto(ev) ?? {};
+  const entity = pick ? pick(po) : {};
+  return { ...(entity ?? {}), evento: { _id: ev._id, presupuesto_objeto: po }, success: p?.success, errors: p?.errors };
+};
+const lastGastoOf = (po: any, categoria_id: string) => {
+  const cat = (po?.categorias_array ?? []).find((c: any) => String(c?._id) === String(categoria_id));
+  const arr = cat?.gastos_array ?? [];
+  return arr[arr.length - 1] ?? {};
+};
+
 // Registro de adaptadores, keyed por el nombre del campo GraphQL de la query LEGACY del front.
 export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
   // ── Presupuesto: nuevoCategoria → crearCategoriaPresupuesto ──
@@ -61,6 +74,61 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
       // SUPERSET: entidad creada + evento (con presupuesto_objeto) para todos los consumers
       return { ...created, evento: { _id: ev._id, presupuesto_objeto: po }, success: p?.success, errors: p?.errors };
     },
+  },
+
+  // nuevoGasto → agregarGastoPresupuesto(evento_id, categoria_id, gasto:{nombre})
+  // Consumers: BlockCategoria lee result.evento.presupuesto_objeto; tableBudgetV8 lee el gasto creado.
+  nuevoGasto: {
+    canonicalQuery: `mutation($evento_id:ID!,$categoria_id:ID!,$gasto:GastoPresupuestoInput!){
+      agregarGastoPresupuesto(evento_id:$evento_id,categoria_id:$categoria_id,gasto:$gasto){
+        success errors{ field message code } evento{ _id presupuesto_objeto }
+      }
+    }`,
+    mapVariables: (v) => ({
+      evento_id: v.evento_id,
+      categoria_id: v.categoria_id,
+      gasto: { nombre: v.nombre ?? v.gasto?.nombre ?? 'Nueva part. de gasto' },
+    }),
+    mapResponse: (p, v) => presupuestoSuperset(p, (po) => lastGastoOf(po, v.categoria_id)),
+  },
+
+  // borrarGasto → eliminarGastoPresupuesto(evento_id, categoria_id, gasto_id)
+  // categoria_id ahora lo pasa el call-site (BlockCategoria parcheado para incluirlo).
+  borrarGasto: {
+    canonicalQuery: `mutation($evento_id:ID!,$categoria_id:ID!,$gasto_id:ID!){
+      eliminarGastoPresupuesto(evento_id:$evento_id,categoria_id:$categoria_id,gasto_id:$gasto_id){
+        success errors{ field message code } evento{ _id presupuesto_objeto }
+      }
+    }`,
+    mapVariables: (v) => ({ evento_id: v.evento_id, categoria_id: v.categoria_id, gasto_id: v.gasto_id }),
+    mapResponse: (p) => presupuestoSuperset(p),
+  },
+
+  // nuevoItemGasto → nuevoItemGasto(evento_id, gasto_id, item:JSON!)  [api-mcp ignora categoria_id]
+  nuevoItemGasto: {
+    canonicalQuery: `mutation($evento_id:ID!,$gasto_id:ID!,$item:JSON!){
+      nuevoItemGasto(evento_id:$evento_id,gasto_id:$gasto_id,item:$item){
+        success errors{ field message code } evento{ _id presupuesto_objeto }
+      }
+    }`,
+    mapVariables: (v) => ({ evento_id: v.evento_id, gasto_id: v.gasto_id, item: v.itemGasto ?? v.item ?? {} }),
+    mapResponse: (p) => presupuestoSuperset(p),
+  },
+
+  // editItemGasto → editItemGasto(evento_id, gasto_id, item_id, datos:JSON!)  [variable/valor → datos:{}]
+  editItemGasto: {
+    canonicalQuery: `mutation($evento_id:ID!,$gasto_id:ID!,$item_id:ID!,$datos:JSON!){
+      editItemGasto(evento_id:$evento_id,gasto_id:$gasto_id,item_id:$item_id,datos:$datos){
+        success errors{ field message code } evento{ _id presupuesto_objeto }
+      }
+    }`,
+    mapVariables: (v) => ({
+      evento_id: v.evento_id,
+      gasto_id: v.gasto_id,
+      item_id: v.itemGasto_id ?? v.item_id,
+      datos: v.datos ?? (v.variable != null ? { [v.variable]: v.valor } : {}),
+    }),
+    mapResponse: (p) => presupuestoSuperset(p),
   },
 };
 

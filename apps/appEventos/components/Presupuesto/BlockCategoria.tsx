@@ -186,6 +186,7 @@ const BlockCategoria = (props: any) => {
                   query: queries.borrarGasto,
                   variables: {
                     evento_id: event?._id,
+                    categoria_id: categoria?._id,
                     gasto_id: props?.row?.original?._id,
                   },
                 }).then((result: any) => {
