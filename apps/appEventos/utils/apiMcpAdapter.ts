@@ -201,6 +201,21 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapVariables: (v) => ({ template_id: v.template_id, development: resolveDevelopment(v) }),
     mapResponse: (p) => p,
   },
+
+  // ── Galería / Lista de regalos ──
+  // getGalerySvgs(evento_id, development):[JSON!]. Front pide {total,results}; superset desde el array.
+  getGalerySvgs: {
+    canonicalQuery: `query($evento_id:ID!,$development:String!){ getGalerySvgs(evento_id:$evento_id, development:$development) }`,
+    mapVariables: (v) => ({ evento_id: v.evento_id, development: resolveDevelopment(v) }),
+    mapResponse: (p) => ({ total: (p ?? []).length, results: p ?? [] }),
+  },
+
+  // guardarListaRegalos: el front usaba editEvento(variable_reemplazar). → updateEvento(input:{listaRegalos}).
+  guardarListaRegalos: {
+    canonicalQuery: `mutation($idEvento:ID!,$input:EventoUpdateInput!){ updateEvento(id:$idEvento, input:$input){ success errors{ field message code } evento{ _id listaRegalos } } }`,
+    mapVariables: (v) => ({ idEvento: v.evento_id, input: { [v.variable_reemplazar ?? 'listaRegalos']: v.valor_reemplazar } }),
+    mapResponse: (p) => ({ _id: p?.evento?._id, listaRegalos: p?.evento?.listaRegalos, success: p?.success, errors: p?.errors }),
+  },
 };
 
 export const ADAPTER_ENABLED = (field: string | null): boolean =>
