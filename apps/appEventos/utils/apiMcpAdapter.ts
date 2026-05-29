@@ -225,7 +225,8 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapVariables: (v) => {
       if (v.input) return { idEvento: v.idEvento, input: v.input };
       if (v.variable == null) return null;
-      if (v.variable === 'estatus' || v.variable === 'tipo') return null;
+      // P3 estatus: api-mcp ya acepta lowercase (verificado 2026-05-29). tipo sigue siendo enum estricto.
+      if (v.variable === 'tipo') return null;
       return { idEvento: v.idEvento, input: { [v.variable]: v.value } };
     },
     mapResponse: (p) => p,
@@ -252,6 +253,91 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     }`,
     mapVariables: (v) => ({ evento_id: v.args?.evento_id, usuario_id: v.args?.usuario_id }),
     mapResponse: (p) => p,
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // P2 MESAS (planSpace) — desplegado 2026-05-29
+  // ═══════════════════════════════════════════════════════════
+  // Front legacy: createTable(eventID, planSpaceID, sectionID, values:JSON.stringify({...}))
+  // Canónico:     createTable(evento_id, mesa:JSON!)
+  createTable: {
+    canonicalQuery: `mutation($evento_id:ID!,$mesa:JSON!){ createTable(evento_id:$evento_id, mesa:$mesa){ success errors{ field message code } evento{ _id } } }`,
+    mapVariables: (v) => {
+      let parsed: any = {};
+      try { parsed = typeof v.values === 'string' ? JSON.parse(v.values) : (v.values ?? {}); } catch { parsed = {}; }
+      return { evento_id: v.eventID ?? v.evento_id, mesa: { ...parsed, planSpaceID: v.planSpaceID, sectionID: v.sectionID } };
+    },
+    mapResponse: (p) => p,
+  },
+  // Front: editTable(eventID, planSpaceID, sectionID, tableID, variable, valor) → editTable(evento_id, mesa_id, datos:JSON!)
+  editTable: {
+    canonicalQuery: `mutation($evento_id:ID!,$mesa_id:ID!,$datos:JSON!){ editTable(evento_id:$evento_id, mesa_id:$mesa_id, datos:$datos){ success errors{ field message code } evento{ _id } } }`,
+    mapVariables: (v) => {
+      let parsedVal: any = v.valor;
+      try { if (typeof v.valor === 'string') parsedVal = JSON.parse(v.valor); } catch { /* mantener string */ }
+      return { evento_id: v.eventID ?? v.evento_id, mesa_id: v.tableID ?? v.mesa_id, datos: { [v.variable]: parsedVal } };
+    },
+    mapResponse: (p) => p,
+  },
+  deleteTable: {
+    canonicalQuery: `mutation($evento_id:ID!,$mesa_id:ID!){ deleteTable(evento_id:$evento_id, mesa_id:$mesa_id){ success errors{ field message code } } }`,
+    mapVariables: (v) => ({ evento_id: v.eventID ?? v.evento_id, mesa_id: v.tableID ?? v.mesa_id }),
+    mapResponse: (p) => p,
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // P4 editGasto — GastoPresupuestoUpdateInput desplegado (nombre opcional, sigue requiriendo categoria_id)
+  // ═══════════════════════════════════════════════════════════
+  // Front legacy: editGasto(evento_id, categoria_id, gasto_id, variable_reemplazar, valor_reemplazar:String)
+  // → actualizarGastoPresupuesto(evento_id, categoria_id, gasto_id, updates: GastoPresupuestoUpdateInput!)
+  editGasto: {
+    canonicalQuery: `mutation($evento_id:ID!,$categoria_id:ID!,$gasto_id:ID!,$updates:GastoPresupuestoUpdateInput!){
+      actualizarGastoPresupuesto(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, updates:$updates){
+        success errors{ field message code } evento{ _id presupuesto_objeto }
+      }
+    }`,
+    mapVariables: (v) => {
+      const FLOAT = new Set(['coste_proporcion','coste_estimado','coste_final','pagado']);
+      const key = v.variable_reemplazar;
+      let val: any = v.valor_reemplazar;
+      if (FLOAT.has(key) && typeof val === 'string') { const n = Number(val); if (!isNaN(n)) val = n; }
+      return { evento_id: v.evento_id, categoria_id: v.categoria_id, gasto_id: v.gasto_id, updates: { [key]: val } };
+    },
+    mapResponse: (p) => presupuestoSuperset(p),
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // P1 ITINERARIO/TASKS — desplegado 2026-05-29
+  // Front pasa itinerarioID (verificado). TareaInput: descripcion/fecha/responsable/duracion/tags/icon/completada.
+  // ═══════════════════════════════════════════════════════════
+  // Front editTask(evento_id, task_id, development, updates:TaskUpdateInput) → actualizarTarea
+  editTask: {
+    canonicalQuery: `mutation($evento_id:ID!,$itinerario_id:ID!,$tarea_id:ID!,$updates:TareaUpdateInput!){
+      actualizarTarea(evento_id:$evento_id, itinerario_id:$itinerario_id, tarea_id:$tarea_id, updates:$updates){
+        success errors{ field message code }
+      }
+    }`,
+    mapVariables: (v) => {
+      const it = v.itinerario_id ?? v.itinerarioID;
+      const tk = v.tarea_id ?? v.task_id ?? v.taskID;
+      if (!it || !tk) return null;
+      return { evento_id: v.evento_id, itinerario_id: it, tarea_id: tk, updates: v.updates ?? {} };
+    },
+    mapResponse: (p) => ({ success: p?.success, errors: p?.errors, task: { _id: p?.itinerario?._id } }),
+  },
+  // Front createTask(evento_id, development, task:TaskInput) → crearTarea
+  createTask: {
+    canonicalQuery: `mutation($evento_id:ID!,$itinerario_id:ID!,$tarea:TareaInput!){
+      crearTarea(evento_id:$evento_id, itinerario_id:$itinerario_id, tarea:$tarea){
+        success errors{ field message code }
+      }
+    }`,
+    mapVariables: (v) => {
+      const it = v.itinerario_id ?? v.itinerarioID;
+      if (!it) return null;
+      return { evento_id: v.evento_id, itinerario_id: it, tarea: v.task ?? v.tarea ?? {} };
+    },
+    mapResponse: (p) => ({ success: p?.success, errors: p?.errors, task: { _id: p?.itinerario?._id } }),
   },
 };
 
