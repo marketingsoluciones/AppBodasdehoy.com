@@ -2,7 +2,7 @@ import { Form, Formik } from "formik";
 import { EventContextProvider } from "../../context";
 import InputField from "./InputField";
 import * as yup from "yup";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { useTranslation } from 'react-i18next';
 
@@ -21,11 +21,11 @@ const FormCrearGrupo = ({ set, state }) => {
 
   const handleSubmit = async (values, actions) => {
     try {
-      const { evento }: any = await fetchApiEventos({
+      const { evento }: any = await fetchApiBodas({
         query: queries.createGroup,
         variables: {
           eventID: event._id,
-          grupo: { title: values.nombre, nombre: values.nombre, nombre_grupo: values.nombre },
+          grupo: values.nombre,
         },
       });
       setEvent((old) => ({

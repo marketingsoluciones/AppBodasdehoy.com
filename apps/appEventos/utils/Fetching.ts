@@ -1951,25 +1951,27 @@ export const queries = {
         }
       }
   }`,
-  createGroup: `mutation ($eventID: String, $name: String) {
-    creaGrupo(evento_id:$eventID, nombre_grupo: $name){
-      grupos_array
+  // api-mcp canonical (SDL evento.ts): creaGrupo(grupo:JSON!), creaMenu(menu:JSON!),
+  // borraMenu(menu_id:ID!). EventoResponse{success,errors,evento}. grupos_array/menus_array escalares.
+  createGroup: `mutation ($eventID: ID!, $grupo: JSON!) {
+    creaGrupo(evento_id: $eventID, grupo: $grupo){
+      success
+      errors{ field message code }
+      evento{ _id grupos_array }
     }
   }`,
-  createMenu: `mutation ($eventID: String, $name: String) {
-    creaMenu(evento_id:$eventID, nombre_menu: $name){
-      menus_array{
-        nombre_menu
-        tipo
-      }
+  createMenu: `mutation ($eventID: ID!, $menu: JSON!) {
+    creaMenu(evento_id: $eventID, menu: $menu){
+      success
+      errors{ field message code }
+      evento{ _id menus_array }
     }
   }`,
-  deleteMenu: `mutation ($eventID: String, $name: String) {
-    borraMenu(evento_id:$eventID, nombre_menu: $name){
-      menus_array{
-        nombre_menu
-        tipo
-      }
+  deleteMenu: `mutation ($eventID: ID!, $menuId: ID!) {
+    borraMenu(evento_id: $eventID, menu_id: $menuId){
+      success
+      errors{ field message code }
+      evento{ _id menus_array }
     }
   }`,
   // createTable: `mutation ($eventID:String, $tableName: String, $tableType:String, $numberChairs:  Int, $position: [posicionAinput]) {

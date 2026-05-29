@@ -2,7 +2,7 @@ import { Form, Formik } from "formik";
 import { EventContextProvider } from "../../context";
 import InputField from "./InputField";
 import * as yup from "yup";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { BorrarIcon, IconLocationFood } from "../icons";
 import { useTranslation } from 'react-i18next';
@@ -24,7 +24,7 @@ const FormCrearMenu = ({ set, state }) => {
 
   const handleSubmit = async (values, actions) => {
     try {
-      const { evento }: any = await fetchApiEventos({
+      const { evento }: any = await fetchApiBodas({
         query: queries.createMenu,
         variables: {
           eventID: event._id,
@@ -33,7 +33,7 @@ const FormCrearMenu = ({ set, state }) => {
       });
       setEvent((old) => ({
         ...old,
-        menus_array: normalizeMenus(evento?.menus),
+        menus_array: normalizeMenus(evento?.menus_array),
       }));
       toast("success", t("Menú creado con exito"));
     } catch (error) {
@@ -45,7 +45,7 @@ const FormCrearMenu = ({ set, state }) => {
 
   const handleDeleteMenu = async (menu: { _id?: string; nombre_menu?: string }) => {
     try {
-      const { evento }: any = await fetchApiEventos({
+      const { evento }: any = await fetchApiBodas({
         query: queries.deleteMenu,
         variables: {
           eventID: event._id,
@@ -56,7 +56,7 @@ const FormCrearMenu = ({ set, state }) => {
         const invitados_array = old.invitados_array.map(elem => elem.nombre_menu == menu?.nombre_menu ? { ...elem, nombre_menu: null } : elem)
         return ({
           ...old,
-          menus_array: normalizeMenus(evento?.menus),
+          menus_array: normalizeMenus(evento?.menus_array),
           invitados_array
         })
       });
