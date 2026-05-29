@@ -152,7 +152,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
         timeZone: sanitizedTimeZone,
       }
 
-      const result = await fetchApiEventos({
+      const result = await fetchApiBodas({
         query: queries.eventCreate,
         variables: { input },
       });

@@ -181,7 +181,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
 
   const handleRemoveEvent = (grupoStatus) => {
     try {
-      const result = fetchApiEventos({
+      const result = fetchApiBodas({
         query: queries.eventDelete,
         variables: { eventoID: data[idx]?._id }
       })
