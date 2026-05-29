@@ -136,7 +136,10 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
     if (true) {
       try {
         const value = grupoStatus === "pendiente" ? "archivado" : "pendiente"
-        const result = fetchApiBodas({
+        // estatus es enum EventoStatus (PENDIENTE/ARCHIVADO uppercase) en api-mcp; el front usa
+        // lowercase ("archivado"/"pendiente"). Migrar rompería el enum + consistencia con apiapp.
+        // Se mantiene en apiapp hasta que BACKEND alinee el enum. Ver hilo coordinación.
+        const result = fetchApiEventos({
           query: queries.eventUpdate,
           variables: { idEvento: data[idx]?._id, input: { estatus: value } },
           token: null
