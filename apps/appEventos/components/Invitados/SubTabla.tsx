@@ -5,7 +5,7 @@ import { CanceladoIcon, ConfirmadosIcon, PendienteIcon } from "../icons";
 import { RowString } from "./RowString";
 import { guests, table } from "../../utils/Interfaces";
 import { RowObject } from "./RowObject";
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching";
 import { useTranslation } from 'react-i18next';
 import { useAllowed } from "../../hooks/useAllowed";
 
@@ -128,12 +128,11 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather, handleClick, setSele
                 className="top-5 right-5 text-lg text-gray-500 hover:text-gray-300 transition hover:scale-125 absolute transform focus:outline-none"
                 onClick={() => {
                     //    row.toggleRowExpanded(false)
-                    fetchApiEventos({
+                    fetchApiBodas({
                         query: queries.eventUpdate,
                         variables: {
                             idEvento: event._id,
-                            variable: "showChildrenGuest",
-                            value: ""
+                            input: { showChildrenGuest: "" }
                         }
                     })
                     event.showChildrenGuest = null

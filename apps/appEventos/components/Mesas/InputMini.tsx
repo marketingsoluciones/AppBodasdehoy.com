@@ -1,7 +1,7 @@
 import { Dispatch, FC, SetStateAction, useState } from "react"
 import { size } from "../../utils/Interfaces"
 import { AuthContextProvider, EventContextProvider } from "../../context"
-import { fetchApiEventos, queries } from "../../utils/Fetching"
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching"
 import { useAllowed } from "../../hooks/useAllowed"
 import { useTranslation } from "react-i18next"
 
@@ -38,9 +38,9 @@ export const InputMini: FC<propsInputMini> = ({ label, lienzo, setLienzo, center
           setPlanSpaceActive({ ...event.planSpace[idxPlanSpace] })
           setEvent({ ...event })
         }
-        fetchApiEventos({
+        fetchApiBodas({
           query: queries.eventUpdate,
-          variables: { idEvento: event._id, variable: "planSpace", value: JSON.stringify(event.planSpace) }, token: null
+          variables: { idEvento: event._id, input: { planSpace: event.planSpace } }, token: null
         })
         setEvent({ ...event })
       }

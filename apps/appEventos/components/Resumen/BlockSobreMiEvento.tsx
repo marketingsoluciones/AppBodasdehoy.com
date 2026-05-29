@@ -44,9 +44,9 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
             {...item}
             onClick={async () => {
               try {
-                const result: any = await fetchApiEventos({
+                const result: any = await fetchApiBodas({
                   query: queries.eventUpdate,
-                  variables: { idEvento: event._id, variable: title, value: item.title },
+                  variables: { idEvento: event._id, input: { [title]: item.title } },
                   token: null
                 })
                 if (result.errors) {
@@ -90,9 +90,9 @@ const InsideBlockWithMultiSelected: FC<propsInsideBlock> = ({
 
   const handleSave = async () => {
     try {
-      const result: any = await fetchApiEventos({
+      const result: any = await fetchApiBodas({
         query: queries.eventUpdate,
-        variables: { idEvento: event._id, variable: title, value: JSON.stringify(selectedItems) },
+        variables: { idEvento: event._id, input: { [title]: selectedItems } },
         token: null
       })
       setEvent({ ...event, [title]: selectedItems })
@@ -137,9 +137,9 @@ const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, 
     <div className="px-5">
       <Formik initialValues={values[title]} onSubmit={async (values) => {
         try {
-          const result: any = await fetchApiEventos({
+          const result: any = await fetchApiBodas({
             query: queries.eventUpdate,
-            variables: { idEvento: event._id, variable: title, value: values.title }, token: null
+            variables: { idEvento: event._id, input: { [title]: values.title } }, token: null
           })
           if (result?.errors) {
             throw new Error("Hubo un error")
@@ -489,9 +489,9 @@ const TartaButton: FC<propsElement> = ({ title, value}) => {
           }
         )
         if (result?.i640) {
-          await fetchApiEventos({
+          await fetchApiBodas({
             query: queries.eventUpdate,
-            variables: { idEvento: event._id, variable: title, value: result.i640 },
+            variables: { idEvento: event._id, input: { [title]: result.i640 } },
             token: null
           })
           setEvent({ ...event, "tarta": result.i640 })
