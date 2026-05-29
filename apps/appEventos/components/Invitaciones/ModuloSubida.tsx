@@ -10,7 +10,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { PiCheckFatThin } from "react-icons/pi";
 import { LiaLinkSolid, LiaTrashSolid } from "react-icons/lia";
 import { convertHeicIfNeeded } from "@bodasdehoy/shared/upload";
-import { resolveApiBodasOrigin } from "../../utils/apiEndpoints";
+import { createURL } from "../../utils/UrlImage";
 
 const resizeImage = (file) => {
   try {
@@ -73,7 +73,7 @@ const ModuloSubida = (props) => {
     preview: false,
     image: event
       ? event[use]?.i800
-        ? `${resolveApiBodasOrigin()}${event[use]?.i800}`
+        ? createURL(event[use]?.i800)
         : defaultImagen
       : defaultImagen
   }
@@ -171,7 +171,7 @@ const ModuloSubida = (props) => {
             {t("change")} <EditarIcon className="w-6 h-6" />
           </label>
           {event?.[use]?.i1024 && (
-            <CopyToClipboard text={`${resolveApiBodasOrigin()}${event[use].i1024}`}>
+            <CopyToClipboard text={createURL(event[use].i1024) || ""}>
               <label onClick={() => { setCopied(true) }} className="flex items-center justify-center w-1/2 py-1 cursor-pointer">
                 {t("copylink")} {copied ? <PiCheckFatThin className="w-6 h-6" /> : <LiaLinkSolid className="w-6 h-6" />}
               </label>

@@ -104,6 +104,18 @@ export function resolveApiEventosOrigin(): string {
   return (raw || DEFAULT_EVENTOS_ORIGIN).trim().replace(/\/+$/, '');
 }
 
+// Host que sirve los FICHEROS de imagen (slugs relativos de imágenes ya subidas).
+// Dedicado y desacoplado del origin GraphQL: el día que se apague apiapp basta con
+// fijar NEXT_PUBLIC_IMAGES_BASE_URL al nuevo host (sin tocar código ni BD).
+// Las imágenes NUEVAS se guardan como URL absoluta, así que no dependen de esto.
+export function resolveImagesOrigin(): string {
+  const raw =
+    process.env.NEXT_PUBLIC_IMAGES_BASE_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.BASE_URL;
+  return (raw || DEFAULT_EVENTOS_ORIGIN).trim().replace(/\/+$/, '');
+}
+
 export function resolveApiEventosGraphqlUrl(): string {
   return `${resolveApiEventosOrigin()}/graphql`;
 }
