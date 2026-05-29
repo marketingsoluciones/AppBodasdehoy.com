@@ -9,7 +9,19 @@
 // Activación por whitelist (ADAPTER_ENABLED): cero riesgo — lo no listado sigue por apiapp.
 // El día que se apague apiapp, todo lo del registro ya habla api-mcp.
 
+import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
+
 type Vars = Record<string, any>;
+
+// Resuelve el tenant (development) que varios ops de api-mcp exigen como arg y que los call-sites
+// legacy no pasaban. Cliente: por hostname; SSR/fallback: bodasdehoy.
+const resolveDevelopment = (v: Vars): string => {
+  if (typeof v?.development === 'string' && v.development) return v.development;
+  if (typeof window !== 'undefined' && window?.location?.hostname) {
+    try { return getDevelopmentNameFromHostname(window.location.hostname) || 'bodasdehoy'; } catch { /* noop */ }
+  }
+  return 'bodasdehoy';
+};
 
 export interface McpAdapterEntry {
   // Query/mutation canónica de api-mcp a ejecutar (vía fetchApiBodas).
@@ -166,6 +178,27 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
       deleteWhatsappInvitationTemplate(evento_id:$evento_id,template_id:$template_id)
     }`,
     mapVariables: (v) => ({ evento_id: v.evento_id, template_id: v.template_id }),
+    mapResponse: (p) => p,
+  },
+
+  // getEmailTemplate(template_id, development):JSON single. El front lee res[0].design (array) → wrap.
+  getEmailTemplate: {
+    canonicalQuery: `query($template_id:ID!,$development:String!){ getEmailTemplate(template_id:$template_id, development:$development) }`,
+    mapVariables: (v) => ({ template_id: v.template_id, development: resolveDevelopment(v) }),
+    mapResponse: (p) => (p == null ? [] : [p]),
+  },
+
+  // getPreviewsEmailTemplates(development):[JSON!]. Front pasa evento_id (ignorado); pide development.
+  getPreviewsEmailTemplates: {
+    canonicalQuery: `query($development:String!){ getPreviewsEmailTemplates(development:$development) }`,
+    mapVariables: (v) => ({ development: resolveDevelopment(v) }),
+    mapResponse: (p) => p,
+  },
+
+  // deleteEmailTemplate(template_id, development):JSON  (front pasa evento_id, no aceptado).
+  deleteEmailTemplate: {
+    canonicalQuery: `mutation($template_id:ID!,$development:String!){ deleteEmailTemplate(template_id:$template_id, development:$development) }`,
+    mapVariables: (v) => ({ template_id: v.template_id, development: resolveDevelopment(v) }),
     mapResponse: (p) => p,
   },
 };
