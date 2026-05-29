@@ -1,6 +1,7 @@
 import { api } from "../api";
 import { normalizeApi2HttpBase } from "./resolveApi2BaseUrl";
 import { resolveApiBodasOrigin } from "./apiEndpoints";
+import { MCP_ADAPTERS, extractGraphqlField } from "./apiMcpAdapter";
 
 async function reportHttpFailureToSentry(kind: 'bodas' | 'eventos', error: any) {
   try {
@@ -180,6 +181,19 @@ export const fetchApiEventos = async ({
   variables,
   token,
 }: argsFetchApi): Promise<any> => {
+  // ── Adaptador apiapp→api-mcp ──
+  // Si la query legacy tiene adaptador registrado, traduce petición+respuesta y enruta a api-mcp.
+  // Lo no registrado sigue por apiapp (cero riesgo). Ver utils/apiMcpAdapter.ts.
+  const __field = extractGraphqlField(query);
+  const __adapter = __field ? MCP_ADAPTERS[__field] : undefined;
+  if (__adapter) {
+    const canonical = await fetchApiBodas({
+      query: __adapter.canonicalQuery,
+      variables: __adapter.mapVariables(variables || {}),
+      token,
+    });
+    return __adapter.mapResponse(canonical, variables || {});
+  }
   try {
     const axiosRes = await api.ApiApp({ query, variables }, token);
     const body = axiosRes?.data as { data?: Record<string, unknown>; errors?: unknown[] };
