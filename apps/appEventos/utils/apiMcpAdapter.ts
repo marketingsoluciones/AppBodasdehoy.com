@@ -26,8 +26,8 @@ const resolveDevelopment = (v: Vars): string => {
 export interface McpAdapterEntry {
   // Query/mutation canónica de api-mcp a ejecutar (vía fetchApiBodas).
   canonicalQuery: string;
-  // Traduce las variables legacy → variables canónicas de api-mcp.
-  mapVariables: (v: Vars) => Vars;
+  // Traduce las variables legacy → variables canónicas de api-mcp. null = no adaptar (cae a apiapp).
+  mapVariables: (v: Vars) => Vars | null;
   // Traduce el payload canónico (Object.values(data)[0]) → forma legacy que esperan los consumers.
   mapResponse: (canonicalPayload: any, originalVars: Vars) => any;
 }
@@ -215,6 +215,20 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     canonicalQuery: `mutation($idEvento:ID!,$input:EventoUpdateInput!){ updateEvento(id:$idEvento, input:$input){ success errors{ field message code } evento{ _id listaRegalos } } }`,
     mapVariables: (v) => ({ idEvento: v.evento_id, input: { [v.variable_reemplazar ?? 'listaRegalos']: v.valor_reemplazar } }),
     mapResponse: (p) => ({ _id: p?.evento?._id, listaRegalos: p?.evento?.listaRegalos, success: p?.success, errors: p?.errors }),
+  },
+
+  // ── eventUpdate (variable/value → input) ── captura los call-sites legacy que aún pasan
+  // {idEvento, variable, value}. Salta estatus/tipo (enum: estatus pendiente P3; tipo necesita mapeo)
+  // devolviendo null en mapVariables → cae a apiapp hasta que se resuelvan.
+  eventUpdate: {
+    canonicalQuery: `mutation($idEvento:ID!,$input:EventoUpdateInput!){ updateEvento(id:$idEvento, input:$input){ success errors{ field message code } evento{ _id } } }`,
+    mapVariables: (v) => {
+      if (v.input) return { idEvento: v.idEvento, input: v.input };
+      if (v.variable == null) return null;
+      if (v.variable === 'estatus' || v.variable === 'tipo') return null;
+      return { idEvento: v.idEvento, input: { [v.variable]: v.value } };
+    },
+    mapResponse: (p) => p,
   },
 
   // ── Compartición ── inputCompartition {evento_id, usuario_id, permisos} mapea directo.

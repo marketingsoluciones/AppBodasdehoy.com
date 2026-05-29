@@ -187,12 +187,16 @@ export const fetchApiEventos = async ({
   const __field = extractGraphqlField(query);
   const __adapter = __field ? MCP_ADAPTERS[__field] : undefined;
   if (__adapter) {
-    const canonical = await fetchApiBodas({
-      query: __adapter.canonicalQuery,
-      variables: __adapter.mapVariables(variables || {}),
-      token,
-    });
-    return __adapter.mapResponse(canonical, variables || {});
+    const __mapped = __adapter.mapVariables(variables || {});
+    // mapVariables puede devolver null para señalar "no adaptar este caso" → cae a apiapp legacy.
+    if (__mapped != null) {
+      const canonical = await fetchApiBodas({
+        query: __adapter.canonicalQuery,
+        variables: __mapped,
+        token,
+      });
+      return __adapter.mapResponse(canonical, variables || {});
+    }
   }
   try {
     const axiosRes = await api.ApiApp({ query, variables }, token);
