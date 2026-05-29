@@ -353,6 +353,32 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapResponse: (p) => p,
   },
 
+  // deleteTask(task_id, development): clean — same args, return {success errors}.
+  deleteTask: {
+    canonicalQuery: `mutation($task_id:ID!,$development:String!){ deleteTask(task_id:$task_id, development:$development){ success errors{ field message code } } }`,
+    mapVariables: (v) => ({ task_id: v.task_id ?? v.taskID, development: v.development ?? 'bodasdehoy' }),
+    mapResponse: (p) => p,
+  },
+  // addTaskAttachments(task_id, development, adjuntos:[TaskAttachmentInput!]!): front pasa attachment (single) → array.
+  addTaskAttachments: {
+    canonicalQuery: `mutation($task_id:ID!,$development:String!,$adjuntos:[TaskAttachmentInput!]!){
+      addTaskAttachments(task_id:$task_id, development:$development, adjuntos:$adjuntos){ success errors{ field message code } }
+    }`,
+    mapVariables: (v) => {
+      const adj = v.adjuntos ?? (v.attachment ? [v.attachment] : (v.attachments ?? []));
+      return { task_id: v.task_id ?? v.taskID, development: v.development ?? 'bodasdehoy', adjuntos: adj };
+    },
+    mapResponse: (p) => p,
+  },
+  // deleteTaskAttachment(task_id, attachment_id, development): clean.
+  deleteTaskAttachment: {
+    canonicalQuery: `mutation($task_id:ID!,$attachment_id:ID!,$development:String!){
+      deleteTaskAttachment(task_id:$task_id, attachment_id:$attachment_id, development:$development){ success errors{ field message code } }
+    }`,
+    mapVariables: (v) => ({ task_id: v.task_id ?? v.taskID, attachment_id: v.attachment_id ?? v.attachmentID, development: v.development ?? 'bodasdehoy' }),
+    mapResponse: (p) => p,
+  },
+
   // Front createTask(evento_id, development, task:TaskInput) → crearTarea
   createTask: {
     canonicalQuery: `mutation($evento_id:ID!,$itinerario_id:ID!,$tarea:TareaInput!){
