@@ -216,6 +216,29 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapVariables: (v) => ({ idEvento: v.evento_id, input: { [v.variable_reemplazar ?? 'listaRegalos']: v.valor_reemplazar } }),
     mapResponse: (p) => ({ _id: p?.evento?._id, listaRegalos: p?.evento?.listaRegalos, success: p?.success, errors: p?.errors }),
   },
+
+  // ── Compartición ── inputCompartition {evento_id, usuario_id, permisos} mapea directo.
+  addCompartitions: {
+    canonicalQuery: `mutation($evento_id:ID!,$usuario_id:String!,$permisos:[String!]!){
+      compartirEvento(evento_id:$evento_id, usuario_id:$usuario_id, permisos:$permisos){ success errors{ field message code } evento{ _id compartido_array } }
+    }`,
+    mapVariables: (v) => ({ evento_id: v.args?.evento_id, usuario_id: v.args?.usuario_id, permisos: v.args?.permisos ?? [] }),
+    mapResponse: (p) => p,
+  },
+  updateCompartitions: {
+    canonicalQuery: `mutation($evento_id:ID!,$usuario_id:String!,$permisos:[String!]!){
+      compartirEvento(evento_id:$evento_id, usuario_id:$usuario_id, permisos:$permisos){ success errors{ field message code } evento{ _id compartido_array } }
+    }`,
+    mapVariables: (v) => ({ evento_id: v.args?.evento_id, usuario_id: v.args?.usuario_id, permisos: v.args?.permisos ?? [] }),
+    mapResponse: (p) => p,
+  },
+  deleteCompartitions: {
+    canonicalQuery: `mutation($evento_id:ID!,$usuario_id:String!){
+      revocarAccesoEvento(evento_id:$evento_id, usuario_id:$usuario_id){ success errors{ field message code } evento{ _id compartido_array } }
+    }`,
+    mapVariables: (v) => ({ evento_id: v.args?.evento_id, usuario_id: v.args?.usuario_id }),
+    mapResponse: (p) => p,
+  },
 };
 
 export const ADAPTER_ENABLED = (field: string | null): boolean =>
