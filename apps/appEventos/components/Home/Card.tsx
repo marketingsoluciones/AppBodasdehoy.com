@@ -136,7 +136,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
     if (true) {
       try {
         const value = grupoStatus === "pendiente" ? "archivado" : "pendiente"
-        const result = fetchApiEventos({
+        const result = fetchApiBodas({
           query: queries.eventUpdate,
           variables: { idEvento: data[idx]?._id, input: { estatus: value } },
           token: null

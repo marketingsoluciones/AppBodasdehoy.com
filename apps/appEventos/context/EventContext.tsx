@@ -3,7 +3,7 @@ import { EditDefaultState, Event, filterGuest, planSpace } from "../utils/Interf
 import { EventsGroupContextProvider } from "./EventsGroupContext";
 import { getAllFilterGuest } from "../utils/Funciones";
 import { AuthContextProvider } from "./AuthContext";
-import { fetchApiEventos, queries } from "../utils/Fetching";
+import { fetchApiEventos, fetchApiBodas, queries } from "../utils/Fetching";
 
 interface idxGroupEvent {
   idx: number
@@ -114,7 +114,7 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
             if (!eventSelected?.timeZone) {
               const defaultTimeZone = config?.timeZone || "UTC";
               eventSelected.timeZone = defaultTimeZone;
-              fetchApiEventos({
+              fetchApiBodas({
                 query: queries.eventUpdate,
                 variables: { idEvento: eventSelected?._id, input: { timeZone: defaultTimeZone } },
                 token: null
@@ -128,7 +128,7 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
           if (!eventSelected?.timeZone) {
             const defaultTimeZone = config?.timeZone || "UTC";
             eventSelected.timeZone = defaultTimeZone;
-            fetchApiEventos({
+            fetchApiBodas({
               query: queries.eventUpdate,
               variables: { idEvento: eventSelected?._id, input: { timeZone: defaultTimeZone } },
               token: null

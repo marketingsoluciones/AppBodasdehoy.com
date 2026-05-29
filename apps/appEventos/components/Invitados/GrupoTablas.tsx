@@ -538,7 +538,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           }
           const value = initialValue;
           const handleClick = () => {
-            fetchApiEventos({
+            fetchApiBodas({
               query: queries.eventUpdate,
               variables: {
                 idEvento: event._id,

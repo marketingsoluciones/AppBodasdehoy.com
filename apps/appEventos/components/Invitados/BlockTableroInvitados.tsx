@@ -228,7 +228,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
             setAcompañanteID({ id: showModalAcompañante2.id, crear: false })
             return
         }
-        fetchApiEventos({
+        fetchApiBodas({
             query: queries.eventUpdate,
             variables: {
                 idEvento: event._id,
