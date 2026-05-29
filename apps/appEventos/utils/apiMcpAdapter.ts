@@ -15,6 +15,17 @@ type Vars = Record<string, any>;
 
 // Resuelve el tenant (development) que varios ops de api-mcp exigen como arg y que los call-sites
 // legacy no pasaban. Cliente: por hostname; SSR/fallback: bodasdehoy.
+// Mapeo central front("boda","cumpleaños"...) → enum EventoTipo de api-mcp (BODA, CUMPLEANOS, ...).
+const TIPO_ENUM: Record<string, string> = {
+  'boda': 'BODA', 'cumpleaños': 'CUMPLEANOS', 'comunión': 'COMUNION', 'bautizo': 'BAUTIZO',
+  'babyshower': 'BABY_SHOWER', 'despedida de soltero': 'DESPEDIDA_SOLTERO', 'graduación': 'GRADUACION',
+  'corporativo': 'CORPORATIVO', 'religioso': 'RELIGIOSO', 'social': 'SOCIAL', 'otro': 'OTRO',
+};
+const mapTipo = (t: any): any => {
+  if (typeof t !== 'string') return t;
+  return TIPO_ENUM[t.toLowerCase()] ?? t.toUpperCase();
+};
+
 const resolveDevelopment = (v: Vars): string => {
   if (typeof v?.development === 'string' && v.development) return v.development;
   if (typeof window !== 'undefined' && window?.location?.hostname) {
@@ -225,9 +236,9 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapVariables: (v) => {
       if (v.input) return { idEvento: v.idEvento, input: v.input };
       if (v.variable == null) return null;
-      // P3 estatus: api-mcp ya acepta lowercase (verificado 2026-05-29). tipo sigue siendo enum estricto.
-      if (v.variable === 'tipo') return null;
-      return { idEvento: v.idEvento, input: { [v.variable]: v.value } };
+      // P3 estatus: api-mcp ya acepta lowercase. tipo: el adapter mapea lowercase→enum EventoTipo.
+      const val = v.variable === 'tipo' ? mapTipo(v.value) : v.value;
+      return { idEvento: v.idEvento, input: { [v.variable]: val } };
     },
     mapResponse: (p) => p,
   },
@@ -350,6 +361,38 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
       eliminarItinerario(evento_id:$evento_id, itinerario_id:$itinerario_id){ success errors{ field message code } }
     }`,
     mapVariables: (v) => ({ evento_id: v.evento_id, itinerario_id: v.itinerario_id }),
+    mapResponse: (p) => p,
+  },
+
+  // createComment(task_id, development, comment:TaskCommentInput!{mensaje}): TaskCommentResponse{success,comment:TaskComment}
+  // Consumer legacy lee {_id, comment(mensaje), uid(autor), createdAt(fecha), attachments, nicknameUnregistered}.
+  createComment: {
+    canonicalQuery: `mutation($task_id:ID!,$development:String!,$comment:TaskCommentInput!){
+      createComment(task_id:$task_id, development:$development, comment:$comment){
+        success errors{ field message code }
+        comment{ id task_id autor mensaje fecha }
+      }
+    }`,
+    mapVariables: (v) => ({
+      task_id: v.task_id ?? v.taskID,
+      development: v.development ?? 'bodasdehoy',
+      comment: { mensaje: v.comment?.mensaje ?? v.mensaje ?? '' },
+    }),
+    mapResponse: (p) => {
+      const c = p?.comment ?? {};
+      return { _id: c.id, comment: c.mensaje, uid: c.autor, createdAt: c.fecha, nicknameUnregistered: null, attachments: [], success: p?.success, errors: p?.errors };
+    },
+  },
+  // deleteComment(task_id, comment_id, development): TaskResponse → front lee escalar/success.
+  deleteComment: {
+    canonicalQuery: `mutation($task_id:ID!,$comment_id:ID!,$development:String!){
+      deleteComment(task_id:$task_id, comment_id:$comment_id, development:$development){ success errors{ field message code } }
+    }`,
+    mapVariables: (v) => ({
+      task_id: v.task_id ?? v.taskID,
+      comment_id: v.comment_id ?? v.commentID,
+      development: v.development ?? 'bodasdehoy',
+    }),
     mapResponse: (p) => p,
   },
 
