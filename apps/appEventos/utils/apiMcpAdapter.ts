@@ -325,6 +325,34 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     },
     mapResponse: (p) => ({ success: p?.success, errors: p?.errors, task: { _id: p?.itinerario?._id } }),
   },
+  // Front createItinerario(evento_id, title, tipo) → crearItinerario(evento_id, itinerario:ItinerarioInput!)
+  createItinerario: {
+    canonicalQuery: `mutation($evento_id:ID!,$itinerario:ItinerarioInput!){
+      crearItinerario(evento_id:$evento_id, itinerario:$itinerario){ success errors{ field message code } }
+    }`,
+    mapVariables: (v) => ({
+      evento_id: v.evento_id,
+      itinerario: { title: v.title ?? v.nombre ?? '', tipo: v.tipo ?? 'itinerario', viewers: v.viewers, participantes: v.participantes },
+    }),
+    mapResponse: (p) => p,
+  },
+  // Front editItinerario(evento_id, itinerario_id, datos) → actualizarItinerario
+  editItinerario: {
+    canonicalQuery: `mutation($evento_id:ID!,$itinerario_id:ID!,$updates:ItinerarioUpdateInput!){
+      actualizarItinerario(evento_id:$evento_id, itinerario_id:$itinerario_id, updates:$updates){ success errors{ field message code } }
+    }`,
+    mapVariables: (v) => ({ evento_id: v.evento_id, itinerario_id: v.itinerario_id, updates: v.datos ?? v.updates ?? {} }),
+    mapResponse: (p) => p,
+  },
+  // Front deleteItinerario(evento_id, itinerario_id) → eliminarItinerario
+  deleteItinerario: {
+    canonicalQuery: `mutation($evento_id:ID!,$itinerario_id:ID!){
+      eliminarItinerario(evento_id:$evento_id, itinerario_id:$itinerario_id){ success errors{ field message code } }
+    }`,
+    mapVariables: (v) => ({ evento_id: v.evento_id, itinerario_id: v.itinerario_id }),
+    mapResponse: (p) => p,
+  },
+
   // Front createTask(evento_id, development, task:TaskInput) → crearTarea
   createTask: {
     canonicalQuery: `mutation($evento_id:ID!,$itinerario_id:ID!,$tarea:TareaInput!){
