@@ -16,16 +16,21 @@ import SelectWithSearchField from "./SelectWithSearchField";
 import { useDateTime } from "../../hooks/useDateTime";
 import { getAuth } from "firebase/auth";
 
+// Valores reales del enum EventoTipo en api-mcp (SDL): sin acentos, BABY_SHOWER/DESPEDIDA_SOLTERO/GRADUACION.
 const TIPO_ENUM_MAP: Record<string, string> = {
-  "cumpleaños": "CUMPLEAÑOS",
   "boda": "BODA",
-  "babyshower": "BABYSHOWER",
-  "graduación": "GRADUACIÓN",
+  "cumpleaños": "CUMPLEANOS",
+  "comunión": "COMUNION",
   "bautizo": "BAUTIZO",
-  "comunión": "COMUNIÓN",
-  "despedida de soltero": "DESPEDIDA_DE_SOLTERO",
+  "babyshower": "BABY_SHOWER",
+  "despedida de soltero": "DESPEDIDA_SOLTERO",
+  "graduación": "GRADUACION",
+  "corporativo": "CORPORATIVO",
+  "religioso": "RELIGIOSO",
+  "social": "SOCIAL",
   "otro": "OTRO",
 };
+const mapTipo = (t?: string) => (t ? (TIPO_ENUM_MAP[t.toLowerCase()] || t.toUpperCase()) : t);
 
 interface propsFromCrearEvento {
   state: boolean
@@ -210,24 +215,21 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
     try {
       const imagePreviewUrl = values?.imgEvento
       values.fecha = new Date(values.fecha).getTime().toString()
-      values.nombre !== event.nombre && await fetchApiEventos({
+      values.nombre !== event.nombre && await fetchApiBodas({
         query: queries.eventUpdate,
-        variables: {
-          idEvento: values._id, variable: "nombre",
-          value: values.nombre
-        }, token: null
+        variables: { idEvento: values._id, input: { nombre: values.nombre } }, token: null
       })
-      values.tipo !== event.tipo && await fetchApiEventos({
+      values.tipo !== event.tipo && await fetchApiBodas({
         query: queries.eventUpdate,
-        variables: { idEvento: values._id, variable: "tipo", value: values.tipo }, token: null
+        variables: { idEvento: values._id, input: { tipo: mapTipo(values.tipo) } }, token: null
       })
-      values.fecha !== event.fecha && await fetchApiEventos({
+      values.fecha !== event.fecha && await fetchApiBodas({
         query: queries.eventUpdate,
-        variables: { idEvento: values._id, variable: "fecha", value: values.fecha }, token: null
+        variables: { idEvento: values._id, input: { fecha: values.fecha } }, token: null
       })
-      values.timeZone !== event.timeZone && await fetchApiEventos({
+      values.timeZone !== event.timeZone && await fetchApiBodas({
         query: queries.eventUpdate,
-        variables: { idEvento: values._id, variable: "timeZone", value: values.timeZone }, token: null
+        variables: { idEvento: values._id, input: { timeZone: values.timeZone } }, token: null
       })
 
       let updatedValues = { ...event, ...values }
