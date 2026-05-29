@@ -141,6 +141,33 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapVariables: (v) => ({ evento_id: v.evento_id }),
     mapResponse: (p) => p,
   },
+
+  // getVariablesTemplatesInvitaciones: front sin subfields (escalar); api-mcp [TemplateVariable!]! typed.
+  getVariablesTemplatesInvitaciones: {
+    canonicalQuery: `query($evento_id:ID!){
+      getVariablesTemplatesInvitaciones(evento_id:$evento_id){ key label value category }
+    }`,
+    mapVariables: (v) => ({ evento_id: v.evento_id }),
+    mapResponse: (p) => p,
+  },
+
+  // createWhatsappInvitationTemplate(evento_id, data:JSON) → WhatsappInvitationTemplate typed.
+  createWhatsappInvitationTemplate: {
+    canonicalQuery: `mutation($evento_id:ID,$data:JSON){
+      createWhatsappInvitationTemplate(evento_id:$evento_id,data:$data){ _id evento_id data created_at updated_at }
+    }`,
+    mapVariables: (v) => ({ evento_id: v.evento_id, data: v.data }),
+    mapResponse: (p) => p,
+  },
+
+  // deleteWhatsappInvitationTemplate(evento_id, template_id) → Boolean escalar (args compatibles).
+  deleteWhatsappInvitationTemplate: {
+    canonicalQuery: `mutation($evento_id:ID,$template_id:ID){
+      deleteWhatsappInvitationTemplate(evento_id:$evento_id,template_id:$template_id)
+    }`,
+    mapVariables: (v) => ({ evento_id: v.evento_id, template_id: v.template_id }),
+    mapResponse: (p) => p,
+  },
 };
 
 export const ADAPTER_ENABLED = (field: string | null): boolean =>
