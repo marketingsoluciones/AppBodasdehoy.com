@@ -656,6 +656,70 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapResponse: (p) => p,
   },
 
+  // getVariableEmailTemplate(template_id, selectVariable): EmailTemplateVariable{_id, name, type, defaultValue, description, configTemplate:JSON}
+  // Consumers leen res.configTemplate.name. configTemplate es JSON scalar (sin subfields).
+  getVariableEmailTemplate: {
+    canonicalQuery: `query($template_id:ID!,$selectVariable:String!){
+      getVariableEmailTemplate(template_id:$template_id, selectVariable:$selectVariable){
+        _id name type defaultValue description configTemplate
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.template_id || !v.selectVariable) return null;
+      return { template_id: v.template_id, selectVariable: v.selectVariable };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // editVisibleColumns(evento_id, visibleColumns: [VisibleColumnInput!]!): PresupuestoResponse
+  // BACKEND resolvió la discrepancia — ahora acepta [{accessor, show}] tal como envía el front.
+  editVisibleColumns: {
+    canonicalQuery: `mutation($evento_id:ID!,$visibleColumns:[VisibleColumnInput!]!){
+      editVisibleColumns(evento_id:$evento_id, visibleColumns:$visibleColumns){
+        success errors{ field message code }
+        evento{ _id presupuesto_objeto }
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.evento_id) return null;
+      return { evento_id: v.evento_id, visibleColumns: v.visibleColumns ?? [] };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // editTotalStimatedGuests(evento_id, children?, adults?): PresupuestoResponse
+  // BACKEND resolvió la discrepancia — acepta children y adults separados.
+  editTotalStimatedGuests: {
+    canonicalQuery: `mutation($evento_id:ID!,$children:Int,$adults:Int){
+      editTotalStimatedGuests(evento_id:$evento_id, children:$children, adults:$adults){
+        success errors{ field message code }
+        evento{ _id presupuesto_objeto }
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.evento_id) return null;
+      return { evento_id: v.evento_id, children: v.children, adults: v.adults };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // duplicatePresupuesto(evento_id, target_evento_id?): PresupuestoResponse
+  // BACKEND resolvió la discrepancia — target_evento_id opcional, copia entre eventos distintos.
+  // Front legacy pasa `nuevo_evento_id` → renombramos.
+  duplicatePresupuesto: {
+    canonicalQuery: `mutation($evento_id:ID!,$target_evento_id:ID){
+      duplicatePresupuesto(evento_id:$evento_id, target_evento_id:$target_evento_id){
+        success errors{ field message code }
+        evento{ _id presupuesto_objeto }
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.evento_id) return null;
+      return { evento_id: v.evento_id, target_evento_id: v.target_evento_id ?? v.nuevo_evento_id ?? null };
+    },
+    mapResponse: (p) => p,
+  },
+
   // getEmailValid(email): emailValid{valid, validators{regex|typo|disposable|mx|smtp}, reason}
   // Consumer (FormRegister) solo lee result.valid. Pass-through con shape completo.
   getEmailValid: {
