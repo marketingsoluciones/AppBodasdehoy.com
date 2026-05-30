@@ -11,7 +11,7 @@ const SEATING_QUERY = `
       _id
       nombre
       tipo
-      imgEvento { i800 }
+      imgEventoUrl
       invitados_array {
         _id
         nombre
@@ -256,7 +256,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req }) =>
         eventId,
         eventName: evento.nombre || '',
         eventType: evento.tipo || '',
-        eventImg: evento.imgEvento?.i800 || null,
+        eventImg: evento.imgEventoUrl || null,
         guests,
       },
     };

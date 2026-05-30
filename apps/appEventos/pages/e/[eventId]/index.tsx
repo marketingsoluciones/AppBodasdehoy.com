@@ -33,7 +33,7 @@ interface PublicEvent {
   poblacion?: string;
   pais?: string;
   color?: string[];
-  imgEvento?: { i800: string };
+  imgEventoUrl?: string | null;
   lugar?: { _id: string; title: string; slug: string };
   itinerarios_array?: PublicItinerary[];
 }
@@ -68,7 +68,7 @@ const EVENT_QUERY = `
       poblacion
       pais
       color
-      imgEvento { i800 }
+      imgEventoUrl
       lugar { _id title slug }
       itinerarios_array {
         _id
@@ -79,9 +79,7 @@ const EVENT_QUERY = `
 `;
 
 function eventImageUrl(event: PublicEvent): string | null {
-  return event.imgEvento?.i800
-    ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i800}`)}`
-    : null;
+  return event.imgEventoUrl || null;
 }
 
 function eventTypeIcon(tipo: string): string {

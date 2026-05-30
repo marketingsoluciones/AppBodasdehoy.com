@@ -400,20 +400,28 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
   },
 
   // getEventsByID (queryenEvento legacy) → getEventoById(id) cuando variable="_id". Otros (usuario_id) caen a apiapp.
+  // imgEvento/imgInvitacion en api-mcp son String (slug). Pedimos imgEventoSizes/imgInvitacionSizes (type ImageSizes con i1024/i800/i640/i320)
+  // y los renombramos en mapResponse para mantener la forma { iXXX } esperada por los consumers existentes.
   getEventsByID: {
     canonicalQuery: `query($id:ID!){ getEventoById(id:$id){
       _id development estatus tipo color nombre fecha poblacion pais
       usuario_id usuario_nombre compartido_array detalles_compartidos_array
       grupos_array invitados_array menus_array mesas_array presupuesto_objeto
       itinerarios_array planSpace listIdentifiers templateEmailSelect templateWhatsappSelect
-      estilo tematica imgInvitacion imgEvento showChildrenGuest timeZone listaRegalos
+      estilo tematica showChildrenGuest timeZone listaRegalos
+      imgEventoUrl imgEventoSizes{ i1024 i800 i640 i320 }
+      imgInvitacionUrl imgInvitacionSizes{ i1024 i800 i640 i320 }
       fecha_creacion fecha_actualizacion
     } }`,
     mapVariables: (v) => {
       if (v.variable !== '_id' || !v.valor) return null;
       return { id: v.valor };
     },
-    mapResponse: (p) => p,
+    mapResponse: (p) => {
+      if (!p) return p;
+      const { imgEventoSizes, imgInvitacionSizes, ...rest } = p;
+      return { ...rest, imgEvento: imgEventoSizes ?? null, imgInvitacion: imgInvitacionSizes ?? null };
+    },
   },
 
   // updateActivity → updateActivityV2(args:inputActivity!) — args:{activityId,eventId,development,nombre,...}

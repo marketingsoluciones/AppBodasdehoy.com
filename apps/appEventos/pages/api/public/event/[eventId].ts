@@ -21,7 +21,7 @@ const EVENT_PUBLIC_QUERY = `
       poblacion
       pais
       color
-      imgEvento { i800 }
+      imgEventoUrl
       lugar { _id title slug }
       itinerarios_array {
         _id

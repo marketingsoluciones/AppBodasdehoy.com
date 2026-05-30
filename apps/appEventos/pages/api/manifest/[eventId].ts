@@ -4,7 +4,7 @@ import { fetchApiEventosServer } from '../../../utils/Fetching';
 const QUERY = `
   query ($var_1: String) {
     queryenEvento_id(var_1: $var_1) {
-      _id nombre tipo imgEvento { i800 }
+      _id nombre tipo imgEventoUrl
     }
   }
 `;
@@ -22,8 +22,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (ev) {
       eventName = ev.nombre ?? eventName;
       eventType = ev.tipo ?? eventType;
-      if (ev.imgEvento?.i800) {
-        iconUrl = `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${ev.imgEvento.i800}`)}`;
+      if (ev.imgEventoUrl) {
+        iconUrl = ev.imgEventoUrl;
       }
     }
   } catch { /* usa defaults */ }
