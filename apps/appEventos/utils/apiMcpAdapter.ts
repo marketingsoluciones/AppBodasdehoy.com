@@ -627,6 +627,51 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     },
     mapResponse: (p) => p,
   },
+
+  // setPlanSpaceSelect — front legacy pasa (evento_id, planSpaceSelect, isOwner);
+  // api-mcp pide (evento_id, planspace_id). Rename + drop isOwner.
+  setPlanSpaceSelect: {
+    canonicalQuery: `mutation($evento_id:ID!,$planspace_id:ID!){
+      setPlanSpaceSelect(evento_id:$evento_id, planspace_id:$planspace_id){
+        success errors{ field message code }
+      }
+    }`,
+    mapVariables: (v) => {
+      const ps = v.planspace_id ?? v.planSpaceSelect;
+      if (!v.evento_id || !ps) return null;
+      return { evento_id: v.evento_id, planspace_id: ps };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // createNotifications (Cat A — exact name + firma compat NotificationsResponse{total, results}). Pass-through.
+  createNotifications: {
+    canonicalQuery: `mutation($args:inputNotifications){
+      createNotifications(args:$args){
+        total
+        results{ _id }
+      }
+    }`,
+    mapVariables: (v) => ({ args: v.args ?? v }),
+    mapResponse: (p) => p,
+  },
+
+  // getEventTicket (Cat A — firma idéntica). Pass-through. results shape: {_id, title, createdAt, updatedAt}.
+  getEventTicket: {
+    canonicalQuery: `query($args:inputEventTicket,$sort:sortCriteriaEventTicket,$skip:Int,$limit:Int){
+      getEventTicket(args:$args, sort:$sort, skip:$skip, limit:$limit){
+        total
+        results{ _id title createdAt updatedAt }
+      }
+    }`,
+    mapVariables: (v) => ({
+      args: v.args,
+      sort: v.sort,
+      skip: v.skip,
+      limit: v.limit,
+    }),
+    mapResponse: (p) => p,
+  },
 };
 
 export const ADAPTER_ENABLED = (field: string | null): boolean =>
