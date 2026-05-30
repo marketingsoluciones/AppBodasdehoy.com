@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import React, { useState, useEffect, useContext } from 'react'
-import { api } from '../api'
+import { fetchApiBodas } from '../utils/Fetching'
 import { useTable, usePagination } from 'react-table'
 
 
@@ -131,19 +131,12 @@ const Registrolog = () => {
   useEffect(() => {
     const llamada = async () => {
       try {
-        const params = {
-          query: `
-                    query {
-                        queryLog {
-                        _id,usuario_id,logs_array {evento_id,fecha,tipo,descripcion}
-                        }
-                    }
-                `,
+        const result: any = await fetchApiBodas({
+          query: `query { queryLog { _id usuario_id logs_array { evento_id fecha tipo descripcion } } }`,
           variables: {},
-        }
-        const { data } = await api.ApiApp(params)
-        const { logs_array } = data.data.queryLog[0]
-        setData(logs_array)
+        });
+        const logs = Array.isArray(result) && result[0]?.logs_array ? result[0].logs_array : [];
+        setData(logs);
       } catch (error) {
       }
     }

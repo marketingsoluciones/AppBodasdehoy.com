@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { api } from "../../api";
+import { fetchApiBodas } from "../../utils/Fetching";
 import { BorrarIcon, CompartirIcon, FlechaIcon, SubirImagenIcon } from "../icons";
 import { useTranslation } from 'react-i18next';
 import { resolveApiBodasOrigin } from "../../utils/apiEndpoints";
@@ -10,29 +10,20 @@ const VistaPrevia = ({ event }) => {
   const [content, setContent] = useState();
 
   async function FetchHtmlContent(idEvento) {
-    const params = {
-      query: `mutation obtenerTemplate($eventoID: String) {
-                obtenerTemplate(evento_id: $eventoID)
-              }`,
-      variables: {
-        eventoID: JSON.stringify(idEvento),
-      },
-    };
-
     try {
-      const res = await api.ApiApp(params);
-      if (res.data) {
-        let contenido = res.data.data.obtenerTemplate
+      const contenido: any = await fetchApiBodas({
+        query: `mutation($evento_id:ID!){ obtenerTemplate(evento_id:$evento_id) }`,
+        variables: { evento_id: idEvento },
+      });
+      if (typeof contenido === 'string' && contenido.length) {
         const refImg = `<img width="20" height="38" style="display:block; max-height:38px; max-width:20px;" alt="" src="https://img.mailinblue.com/new_images/rnb/rnb_space.gif">`;
         const pathImage = `${resolveApiBodasOrigin()}${event?.imgInvitacion?.i640}`;
         const img = `<img style="display:block; object-fit: contain; width:300px; right:0; left:0; margin:auto;  alt="" src=${pathImage} />`;
         setContent(contenido
           .replace("{{params.tipoEvento}}", event.tipo == "otro" ? "evento especial" : event.tipo)
           .replace("{{params.invitadoNombre}}", event?.invitados_array[0]?.nombre)
-
           .replace(refImg, img));
-
-        return res.data.data.obtenerTemplate;
+        return contenido;
       }
     } catch (error) {
     }
