@@ -364,6 +364,41 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapResponse: (p) => p,
   },
 
+  // sendComunications: SendComunicationsResponse{success,sent,failed,total,results,errors}. Front usa
+  // queries.sendComunications con args legacy (dominio, lang, invitados_ids_array). Mapeo args.
+  sendComunications: {
+    canonicalQuery: `mutation($evento_id:ID!,$invitado_ids:[ID!]!,$template_id:ID,$tipo:String,$development:String!){
+      sendComunications(evento_id:$evento_id, invitado_ids:$invitado_ids, template_id:$template_id, tipo:$tipo, development:$development){
+        success sent failed total results errors{ field message code }
+      }
+    }`,
+    mapVariables: (v) => ({
+      evento_id: v.evento_id,
+      invitado_ids: v.invitado_ids ?? v.invitados_ids_array ?? [],
+      template_id: v.template_id,
+      tipo: v.tipo ?? v.transport,
+      development: v.development ?? v.dominio ?? 'bodasdehoy',
+    }),
+    mapResponse: (p) => p,
+  },
+
+  // testInvitacion: acepta email/phoneNumber sin invitado_id (desplegado 30-may). EventoResponse.
+  testInvitacion: {
+    canonicalQuery: `mutation($evento_id:ID!,$invitado_id:ID,$email:String,$phoneNumber:String,$template_id:ID){
+      testInvitacion(evento_id:$evento_id, invitado_id:$invitado_id, email:$email, phoneNumber:$phoneNumber, template_id:$template_id){
+        success errors{ field message code }
+      }
+    }`,
+    mapVariables: (v) => ({
+      evento_id: v.evento_id,
+      invitado_id: v.invitado_id,
+      email: v.email,
+      phoneNumber: v.phoneNumber,
+      template_id: v.template_id,
+    }),
+    mapResponse: (p) => p,
+  },
+
   // getEventsByID (queryenEvento legacy) → getEventoById(id) cuando variable="_id". Otros (usuario_id) caen a apiapp.
   getEventsByID: {
     canonicalQuery: `query($id:ID!){ getEventoById(id:$id){
@@ -383,7 +418,7 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
 
   // updateActivity → updateActivityV2(args:inputActivity!) — args:{activityId,eventId,development,nombre,...}
   updateActivity: {
-    canonicalQuery: `mutation($args:inputActivity!){ updateActivityV2(args:$args) }`,
+    canonicalQuery: `mutation($args:inputActivity!){ updateActivityV2(args:$args){ success errors{ field message code } } }`,
     mapVariables: (v) => ({ args: v.args ?? v }),
     mapResponse: (p) => p,
   },
