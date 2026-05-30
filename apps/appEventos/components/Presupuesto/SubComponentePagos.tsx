@@ -1,7 +1,7 @@
 import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 import { BorrarIcon, EditarIcon, PlusIcon } from "../icons";
-import { api } from "../../api";
+import { fetchApiBodas } from "../../utils/Fetching";
 import { useContext, useEffect, useState } from "react";
 import { EventContextProvider, AuthContextProvider } from "../../context";
 import FormEditarPago from "../Forms/FormEditarPago";
@@ -80,25 +80,16 @@ const ListadoComponent = ({ pagos_array, cate, gasto, wantCreate, idModificar, r
   const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider();
   const BorrarPago = async (pagoID) => {
-    let data;
-    const params = {
-      query: `mutation {
-        borraPago(evento_id:"${event?._id}", categoria_id: "${cate}", gasto_id: "${gasto}", pago_id: "${pagoID}"){
-          pagado
-          categorias_array{
-            pagado
-            gastos_array{
-              pagado
-            }
-          }
-        }
-      }`,
-      variables: {},
-    };
-
     try {
-      const { data: res } = await api.ApiApp(params);
-      data = res.data.borraPago;
+      await fetchApiBodas({
+        query: `mutation($evento_id:ID!,$gasto_id:ID!,$pago_id:ID!){
+          borraPago(evento_id:$evento_id, gasto_id:$gasto_id, pago_id:$pago_id){
+            success errors{ field message code }
+            evento{ _id presupuesto_objeto }
+          }
+        }`,
+        variables: { evento_id: event?._id, gasto_id: gasto, pago_id: pagoID },
+      });
     } catch {
     } finally {
       setEvent((old) => {

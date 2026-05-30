@@ -10,10 +10,9 @@ import { EditarIcon } from "../../icons";
 import { capitalize } from "../../../utils/Capitalize";
 import { useAllowed } from "../../../hooks/useAllowed";
 import { GrDocumentMissing } from "react-icons/gr";
-import { fetchApiEventos, queries } from "../../../utils/Fetching";
+import { fetchApiEventos, fetchApiBodas, queries } from "../../../utils/Fetching";
 import { Variable } from "lucide-react";
 import { toast } from "react-toastify";
-import { api } from "../../../api";
 
 const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSoporte }) => {
     const { t } = useTranslation();
@@ -157,25 +156,20 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                         const handleDelete = async () => {
                             const dataProp = props.row.original
 
-                            let data;
-                            const params = {
-                                query: `mutation {
-                                borraPago(evento_id:"${event?._id}", categoria_id: "${dataProp.idCategoria}", gasto_id: "${dataProp.idGasto}", pago_id: "${dataProp._id}"){
-                                  pagado
-                                  categorias_array{
-                                    pagado
-                                    gastos_array{
-                                      pagado
-                                    }
-                                  }
-                                }
-                              }`,
-                                variables: {},
-                            };
-
                             try {
-                                const { data: res } = await api.ApiApp(params);
-                                data = res.data.borraPago;
+                                await fetchApiBodas({
+                                    query: `mutation($evento_id:ID!,$gasto_id:ID!,$pago_id:ID!){
+                                      borraPago(evento_id:$evento_id, gasto_id:$gasto_id, pago_id:$pago_id){
+                                        success errors{ field message code }
+                                        evento{ _id presupuesto_objeto }
+                                      }
+                                    }`,
+                                    variables: {
+                                        evento_id: event?._id,
+                                        gasto_id: dataProp.idGasto,
+                                        pago_id: dataProp._id,
+                                    },
+                                });
                             } catch (error) {
                             } finally {
 
@@ -342,25 +336,20 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                         const handleDelete = async () => {
                             const dataProp = props.row.original
 
-                            let data;
-                            const params = {
-                                query: `mutation {
-                                borraPago(evento_id:"${event?._id}", categoria_id: "${dataProp.idCategoria}", gasto_id: "${dataProp.idGasto}", pago_id: "${dataProp._id}"){
-                                  pagado
-                                  categorias_array{
-                                    pagado
-                                    gastos_array{
-                                      pagado
-                                    }
-                                  }
-                                }
-                              }`,
-                                variables: {},
-                            };
-
                             try {
-                                const { data: res } = await api.ApiApp(params);
-                                data = res.data.borraPago;
+                                await fetchApiBodas({
+                                    query: `mutation($evento_id:ID!,$gasto_id:ID!,$pago_id:ID!){
+                                      borraPago(evento_id:$evento_id, gasto_id:$gasto_id, pago_id:$pago_id){
+                                        success errors{ field message code }
+                                        evento{ _id presupuesto_objeto }
+                                      }
+                                    }`,
+                                    variables: {
+                                        evento_id: event?._id,
+                                        gasto_id: dataProp.idGasto,
+                                        pago_id: dataProp._id,
+                                    },
+                                });
                             } catch (error) {
                             } finally {
                                 setEvent((old) => {
