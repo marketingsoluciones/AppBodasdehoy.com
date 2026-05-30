@@ -542,6 +542,37 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     },
     mapResponse: (p) => p,
   },
+
+  // actualizarCategoriaPresupuesto — la query legacy `editCategoria` (Fetching.ts:1439) ya pide este
+  // field canónico; solo necesita rerouting a api-mcp (no transformación). Misma firma+respuesta.
+  actualizarCategoriaPresupuesto: {
+    canonicalQuery: `mutation($evento_id:ID!,$categoria_id:ID!,$updates:CategoriaPresupuestoUpdateInput!){
+      actualizarCategoriaPresupuesto(evento_id:$evento_id, categoria_id:$categoria_id, updates:$updates){
+        success errors{ field message code }
+        evento{ _id presupuesto_objeto }
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.evento_id || !v.categoria_id) return null;
+      return { evento_id: v.evento_id, categoria_id: v.categoria_id, updates: v.updates ?? {} };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // borraCategoria (apiapp legacy) → eliminarCategoriaPresupuesto canónico.
+  borraCategoria: {
+    canonicalQuery: `mutation($evento_id:ID!,$categoria_id:ID!){
+      eliminarCategoriaPresupuesto(evento_id:$evento_id, categoria_id:$categoria_id){
+        success errors{ field message code }
+        evento{ _id presupuesto_objeto }
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.evento_id || !v.categoria_id) return null;
+      return { evento_id: v.evento_id, categoria_id: v.categoria_id };
+    },
+    mapResponse: (p) => p,
+  },
 };
 
 export const ADAPTER_ENABLED = (field: string | null): boolean =>
