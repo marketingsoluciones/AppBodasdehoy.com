@@ -364,6 +364,36 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapResponse: (p) => p,
   },
 
+  // getEventsByID (queryenEvento legacy) → getEventoById(id) cuando variable="_id". Otros (usuario_id) caen a apiapp.
+  getEventsByID: {
+    canonicalQuery: `query($id:ID!){ getEventoById(id:$id){
+      _id development estatus tipo color nombre fecha poblacion pais
+      usuario_id usuario_nombre compartido_array detalles_compartidos_array
+      grupos_array invitados_array menus_array mesas_array presupuesto_objeto
+      itinerarios_array planSpace listIdentifiers templateEmailSelect templateWhatsappSelect
+      estilo tematica imgInvitacion imgEvento showChildrenGuest timeZone listaRegalos
+      fecha_creacion fecha_actualizacion
+    } }`,
+    mapVariables: (v) => {
+      if (v.variable !== '_id' || !v.valor) return null;
+      return { id: v.valor };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // updateActivity → updateActivityV2(args:inputActivity!) — args:{activityId,eventId,development,nombre,...}
+  updateActivity: {
+    canonicalQuery: `mutation($args:inputActivity!){ updateActivityV2(args:$args) }`,
+    mapVariables: (v) => ({ args: v.args ?? v }),
+    mapResponse: (p) => p,
+  },
+  // updateActivityLink(args:inputActivityLink) — el nombre canónico es el mismo.
+  updateActivityLink: {
+    canonicalQuery: `mutation($args:inputActivityLink){ updateActivityLink(args:$args){ success errors{ field message code } evento{ _id } } }`,
+    mapVariables: (v) => ({ args: v.args ?? v }),
+    mapResponse: (p) => p,
+  },
+
   // createComment(task_id, development, comment:TaskCommentInput!{mensaje}): TaskCommentResponse{success,comment:TaskComment}
   // Consumer legacy lee {_id, comment(mensaje), uid(autor), createdAt(fecha), attachments, nicknameUnregistered}.
   createComment: {
