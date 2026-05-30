@@ -1,53 +1,43 @@
-import { api } from "../api";
+import { fetchApiBodas } from "../utils/Fetching";
 
-export const EditarInvitado = async (eventoID, invitadoID, variable_reemplazar, valor_reemplazar) => {
-  const params = {
-    query: `mutation {
-            editInvitado(
-              evento_id:"${eventoID}", 
-              invitado_id:"${invitadoID}", 
-              variable_reemplazar:"${variable_reemplazar}",
-              valor_reemplazar:"${valor_reemplazar}"){
-                _id
-                nombre
-                grupo_edad
-                correo
-                telefono
-                nombre_mesa
-                puesto
-                asistencia
-                nombre_menu
-                rol
-                correo
-                sexo
-                movil
-                poblacion
-                pais
-                direccion
-              }
-            }`,
-    variables: {},
-  };
+// Mutaciones invitados: migradas de apiapp (editInvitado/borraInvitado) a api-mcp canónico
+// (actualizarInvitado/removerInvitado). Los 3 consumers de BorrarInvitado son fire-and-forget;
+// EditarInvitado mantiene shape de retorno {editInvitado:{...invitado}} extrayendo el invitado del evento.
 
-  const { data: { data: editInvitado } } = await api.ApiApp(params);
-  return {
-    editInvitado,
-  };
-};
-
-
-export const BorrarInvitado = async (eventoID, invitadoID) => {
-  const params = {
-    query: `mutation {
-      borraInvitado(evento_id: "${eventoID}", invitado_id: "${invitadoID}"){
-        fecha_actualizacion
+export const EditarInvitado = async (
+  eventoID: string,
+  invitadoID: string,
+  variable_reemplazar: string,
+  valor_reemplazar: any,
+) => {
+  const result = await fetchApiBodas({
+    query: `mutation($evento_id:ID!,$invitado_id:String!,$datos:JSON!){
+      actualizarInvitado(evento_id:$evento_id, invitado_id:$invitado_id, datos:$datos){
+        success
+        errors{ field message code }
+        evento{ _id invitados_array }
       }
     }`,
-    variables: {},
-  };
-
-  const resp = await api.ApiApp(params);
-
-  return resp
+    variables: {
+      evento_id: eventoID,
+      invitado_id: invitadoID,
+      datos: { [variable_reemplazar]: valor_reemplazar },
+    },
+  });
+  const invitado = (result?.evento?.invitados_array ?? []).find(
+    (i: any) => (i?._id?.toString?.() ?? i?._id ?? i?.id) === invitadoID,
+  );
+  return { editInvitado: invitado ?? null };
 };
 
+export const BorrarInvitado = async (eventoID: string, invitadoID: string) => {
+  return await fetchApiBodas({
+    query: `mutation($evento_id:ID!,$invitado_id:String!){
+      removerInvitado(evento_id:$evento_id, invitado_id:$invitado_id){
+        success
+        errors{ field message code }
+      }
+    }`,
+    variables: { evento_id: eventoID, invitado_id: invitadoID },
+  });
+};
