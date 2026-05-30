@@ -573,6 +573,45 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     },
     mapResponse: (p) => p,
   },
+
+  // createElement/editElement/deleteElement — PlanSpace elements. Las 3 queries del front
+  // ya piden los nombres canónicos con firma correcta; solo necesitan rerouting a api-mcp.
+  createElement: {
+    canonicalQuery: `mutation($evento_id:ID!,$element:JSON!){
+      createElement(evento_id:$evento_id, element:$element){
+        success errors{ field message code } evento{ _id }
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.evento_id || !v.element) return null;
+      return { evento_id: v.evento_id, element: v.element };
+    },
+    mapResponse: (p) => p,
+  },
+  editElement: {
+    canonicalQuery: `mutation($evento_id:ID!,$element_id:ID!,$datos:JSON!){
+      editElement(evento_id:$evento_id, element_id:$element_id, datos:$datos){
+        success errors{ field message code } evento{ _id }
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.evento_id || !v.element_id) return null;
+      return { evento_id: v.evento_id, element_id: v.element_id, datos: v.datos ?? {} };
+    },
+    mapResponse: (p) => p,
+  },
+  deleteElement: {
+    canonicalQuery: `mutation($evento_id:ID!,$element_id:ID!){
+      deleteElement(evento_id:$evento_id, element_id:$element_id){
+        success errors{ field message code }
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.evento_id || !v.element_id) return null;
+      return { evento_id: v.evento_id, element_id: v.element_id };
+    },
+    mapResponse: (p) => p,
+  },
 };
 
 export const ADAPTER_ENABLED = (field: string | null): boolean =>
