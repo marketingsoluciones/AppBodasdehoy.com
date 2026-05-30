@@ -656,6 +656,26 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapResponse: (p) => p,
   },
 
+  // getEmailValid(email): emailValid{valid, validators{regex|typo|disposable|mx|smtp}, reason}
+  // Consumer (FormRegister) solo lee result.valid. Pass-through con shape completo.
+  getEmailValid: {
+    canonicalQuery: `query($email:String){
+      getEmailValid(email:$email){
+        valid
+        reason
+        validators{
+          regex{ valid reason }
+          typo{ valid reason }
+          disposable{ valid reason }
+          mx{ valid reason }
+          smtp{ valid reason }
+        }
+      }
+    }`,
+    mapVariables: (v) => ({ email: v.email }),
+    mapResponse: (p) => p,
+  },
+
   // getEventTicket (Cat A — firma idéntica). Pass-through. results shape: {_id, title, createdAt, updatedAt}.
   getEventTicket: {
     canonicalQuery: `query($args:inputEventTicket,$sort:sortCriteriaEventTicket,$skip:Int,$limit:Int){
