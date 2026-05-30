@@ -509,6 +509,39 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     },
     mapResponse: (p) => ({ success: p?.success, errors: p?.errors, task: { _id: p?.itinerario?._id } }),
   },
+
+  // getPsTemplate(evento_id, development): JSON — front legacy pasa (uid, evento_id, development),
+  // ignoramos uid (api-mcp lo resuelve por auth). Devuelve JSON tal cual (front maneja array u objeto).
+  getPsTemplate: {
+    canonicalQuery: `query($evento_id:ID!,$development:String!){ getPsTemplate(evento_id:$evento_id, development:$development) }`,
+    mapVariables: (v) => {
+      if (!v.evento_id) return null;
+      return { evento_id: v.evento_id, development: resolveDevelopment(v) };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // getPlanSpaceSelect(evento_id, development): ID — front legacy pasa (evento_id, isOwner),
+  // ignoramos isOwner. Devuelve ID escalar tal cual.
+  getPlanSpaceSelect: {
+    canonicalQuery: `query($evento_id:ID!,$development:String!){ getPlanSpaceSelect(evento_id:$evento_id, development:$development) }`,
+    mapVariables: (v) => {
+      if (!v.evento_id) return null;
+      return { evento_id: v.evento_id, development: resolveDevelopment(v) };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // getEmailTemplate(template_id, development): JSON — front legacy pasa (template_id) y lee {design}.
+  // api-mcp devuelve JSON; pasamos tal cual (si trae {design:...} el consumer lo lee correcto).
+  getEmailTemplate: {
+    canonicalQuery: `query($template_id:ID!,$development:String!){ getEmailTemplate(template_id:$template_id, development:$development) }`,
+    mapVariables: (v) => {
+      if (!v.template_id) return null;
+      return { template_id: v.template_id, development: resolveDevelopment(v) };
+    },
+    mapResponse: (p) => p,
+  },
 };
 
 export const ADAPTER_ENABLED = (field: string | null): boolean =>
