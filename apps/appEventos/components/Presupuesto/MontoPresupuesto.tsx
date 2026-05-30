@@ -6,7 +6,6 @@ import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { estimate } from "../../utils/Interfaces";
 import { InputMontoPresupuesto } from "./InputMontoPresupuesto";
 import { useAllowed } from "../../hooks/useAllowed";
-import { api } from "../../api";
 
 export const MontoPresupuesto = () => {
   const { event, setEvent } = EventContextProvider()
@@ -47,25 +46,22 @@ export const MontoPresupuesto = () => {
   }
   const handleChangeS = (e) => {
     if (!event?._id || !event?.presupuesto_objeto) return
-
-    const params = {
-      query: `mutation {
-          editCurrency(evento_id:"${event._id}", currency:"${e.target.value}"  ){
-            currency
-          }
-        }`,
-      variables: {},
-    }
-    try {
-      api.ApiApp(params).then(result => {
-        const currency = result?.data?.data?.editCurrency?.currency
-        if (currency && event.presupuesto_objeto) {
-          event.presupuesto_objeto.currency = currency
-          setEvent({ ...event })
+    const moneda = e.target.value
+    fetchApiBodas({
+      query: `mutation($evento_id:ID!,$moneda:String!){
+        editCurrency(evento_id:$evento_id, moneda:$moneda){
+          success errors{ field message code }
+          evento{ _id presupuesto_objeto }
         }
-      })
-    } catch (error) {
-    }
+      }`,
+      variables: { evento_id: event._id, moneda }
+    }).then((result: any) => {
+      const currency = result?.evento?.presupuesto_objeto?.currency
+      if (currency && event.presupuesto_objeto) {
+        event.presupuesto_objeto.currency = currency
+        setEvent({ ...event })
+      }
+    }).catch(() => {})
   }
 
   return (

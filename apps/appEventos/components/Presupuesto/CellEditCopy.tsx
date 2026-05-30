@@ -1,12 +1,11 @@
 import { useContext, useEffect, useState } from "react";
 import ClickAwayListener from "react-click-away-listener";
-import { api } from "../../api";
 import { EventContextProvider, AuthContextProvider } from "../../context";
 import { getCurrency } from "../../utils/Funciones";
 import { capitalize } from '../../utils/Capitalize';
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
-import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching";
 import { set } from "date-fns";
 import { useToast } from "../../hooks/useToast";
 import { string } from "yup";
@@ -63,48 +62,34 @@ const CellEditCopy = (props: CellEditCopyProps) => {
     let res;
     if (value !== props?.value) {
       if (props?.table === "principal") {
-
+        const key = props?.cell?.column?.id;
+        const FLOAT = new Set(['coste_proporcion','coste_estimado','coste_final','pagado']);
+        let val: any = !!value ? value : "sin datos";
+        if (FLOAT.has(key) && typeof val === 'string') {
+          const n = Number(val);
+          if (!isNaN(n)) val = n;
+        }
         try {
-          const params = {
-            query: `mutation{
-                editGasto(evento_id:"${event?._id}", categoria_id: "${props?.categoriaID}", gasto_id: "${props?.row?.original?._id}", variable_reemplazar:"${props?.cell?.column?.id}", valor_reemplazar:"${!!value ? value : "sin datos"}")
-                {
-                  coste_estimado
-                  coste_final
-                  pagado 
-                  categorias_array{
-                    _id,
-                    nombre,
-                    coste_estimado,
-                    coste_final,
-                    pagado,
-                    gastos_array{
-                      _id,
-                      nombre,
-                      coste_estimado,
-                      coste_final,
-                      pagado,
-                    }
-                }
+          const result = await fetchApiBodas({
+            query: `mutation($evento_id:ID!,$categoria_id:ID!,$gasto_id:ID!,$updates:GastoPresupuestoUpdateInput!){
+              actualizarGastoPresupuesto(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, updates:$updates){
+                success errors{ field message code }
+                evento{ _id presupuesto_objeto }
               }
             }`,
-            variables: {},
-          };
-          const { data } = await api.ApiApp(params);
-          res = data?.data?.editGasto
-        } catch (error) {
-        } finally {
-          setEvent((old) => {
-            const index = old?.presupuesto_objeto?.categorias_array?.findIndex(
-              (item) => item._id == props.categoriaID
-            );
-            const idx = old?.presupuesto_objeto?.categorias_array[index]?.gastos_array.findIndex(item => item._id == props?.row?.original?._id)
-            old.presupuesto_objeto[props?.cell?.column?.id] = res[props?.cell?.column?.id]
-            old.presupuesto_objeto.categorias_array[index][props?.cell?.column?.id] = res?.categorias_array[0][props?.cell?.column?.id]
-            old.presupuesto_objeto.categorias_array[index].gastos_array[idx][props?.cell?.column?.id] = res?.categorias_array[0]?.gastos_array[0][props?.cell?.column?.id]
-            return { ...old }
+            variables: {
+              evento_id: event?._id,
+              categoria_id: props?.categoriaID,
+              gasto_id: props?.row?.original?._id,
+              updates: { [key]: val },
+            },
           });
+          const nuevoPresupuesto = result?.evento?.presupuesto_objeto;
+          if (nuevoPresupuesto) {
+            setEvent((old: any) => ({ ...old, presupuesto_objeto: nuevoPresupuesto }));
+          }
           toast("success", t("Partida actualizada con exito"))
+        } catch (error) {
         }
       }
       if (props?.table === "subtable") {

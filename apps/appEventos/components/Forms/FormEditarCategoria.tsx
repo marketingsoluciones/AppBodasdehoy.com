@@ -1,6 +1,6 @@
 import { Formik } from "formik";
 import { useContext, useState } from "react";
-import { api } from "../../api";
+import { fetchApiBodas } from "../../utils/Fetching";
 import { EventContextProvider } from "../../context";
 import { capitalize } from '../../utils/Capitalize';
 import InputField from "./InputField";
@@ -27,19 +27,20 @@ const FormEditarCategoria = ({ set, state, categoria }: Props) => {
         nombre: categoria?.nombre && capitalize(categoria?.nombre),
       }}
       onSubmit={async (values, actions) => {
-        const params = {
-          query: `mutation{
-            editCategoria(evento_id:"${event?._id}", categoria_id: "${categoria._id}", nombre: "${values.nombre}"){
-             coste_final
-            }
-          }
-          `,
-          variables: {},
-        };
-
         try {
           actions.setSubmitting(true);
-          await api.ApiApp(params);
+          await fetchApiBodas({
+            query: `mutation($evento_id:ID!,$categoria_id:ID!,$updates:CategoriaPresupuestoUpdateInput!){
+              actualizarCategoriaPresupuesto(evento_id:$evento_id, categoria_id:$categoria_id, updates:$updates){
+                success errors{ field message code }
+              }
+            }`,
+            variables: {
+              evento_id: event?._id,
+              categoria_id: categoria._id,
+              updates: { nombre: values.nombre },
+            },
+          });
         } catch (error) {
         } finally {
           set(!state);
