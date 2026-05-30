@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { api } from "../../api";
 import { EventContextProvider } from "../../context";
 import { CheckIcon, EditarIcon, SubirImagenIcon } from "../icons";
 import { useToast } from "../../hooks/useToast";
@@ -10,7 +9,11 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { PiCheckFatThin } from "react-icons/pi";
 import { LiaLinkSolid, LiaTrashSolid } from "react-icons/lia";
 import { convertHeicIfNeeded } from "@bodasdehoy/shared/upload";
+import { getDevelopmentNameFromHostname } from "@bodasdehoy/shared/types";
+import Cookies from "js-cookie";
+import { getAuth } from "firebase/auth";
 import { createURL } from "../../utils/UrlImage";
+import { resolveApiBodasGraphqlUrl } from "../../utils/apiEndpoints";
 
 const resizeImage = (file) => {
   try {
@@ -32,37 +35,73 @@ const resizeImage = (file) => {
   }
 }
 
+// Sube imagen a api-mcp (singleUpload → R2 multi-tenant). Mantiene la forma de respuesta
+// legacy { _id, i1024, i800, i640, i320, createdAt } esperada por los consumers (event[use]
+// se guarda en el store y los componentes lo leen como objeto con tamaños).
 export const subir_archivo = async ({ imagePreviewUrl, event, use }) => {
   try {
-    if (imagePreviewUrl?.file) {
-      const newFile = new FormData();
-      const params = {
-        query: `mutation ($file: Upload!, $_id : String, $use : String) {
-                  singleUpload(file: $file, _id:$_id, use : $use){
-                    _id
-                    i1024
-                    i800
-                    i640
-                    i320
-                    createdAt
-                  }
-                }
-              `,
-        variables: {
-          file: null,
-          _id: event?._id,
-          use: use,
-        },
-      };
-      let map = { 0: ["variables.file"] };
-      newFile.append("operations", JSON.stringify(params));
-      newFile.append("map", JSON.stringify(map));
-      newFile.append("0", imagePreviewUrl.file, imagePreviewUrl.file.name);
-      const { data } = await api.UploadFile(newFile);
-      return data?.data?.singleUpload
+    if (!imagePreviewUrl?.file) return undefined;
+
+    const development = typeof window !== 'undefined'
+      ? (getDevelopmentNameFromHostname(window.location.hostname) || 'bodasdehoy')
+      : 'bodasdehoy';
+
+    let idToken = Cookies.get("idTokenV0.1.0");
+    if (!idToken && getAuth().currentUser) {
+      idToken = await getAuth().currentUser?.getIdToken(true);
     }
+
+    const newFile = new FormData();
+    const params = {
+      query: `mutation ($file: Upload!, $development: String!, $eventId: ID!, $category: String) {
+        singleUpload(file: $file, development: $development, eventId: $eventId, category: $category) {
+          success
+          errors { field message code }
+          file {
+            _id
+            createdAt
+            publicUrls { original optimized800w optimized400w thumbnail }
+          }
+        }
+      }`,
+      variables: {
+        file: null,
+        development,
+        eventId: event?._id,
+        category: use,
+      },
+    };
+    newFile.append("operations", JSON.stringify(params));
+    newFile.append("map", JSON.stringify({ 0: ["variables.file"] }));
+    newFile.append("0", imagePreviewUrl.file, imagePreviewUrl.file.name);
+
+    const res = await fetch(resolveApiBodasGraphqlUrl(), {
+      method: "POST",
+      headers: {
+        ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+        "x-apollo-operation-name": "singleUpload",
+      },
+      body: newFile,
+    });
+    const json = await res.json();
+    const payload = json?.data?.singleUpload;
+    if (!payload?.success || !payload?.file) {
+      const err = payload?.errors?.[0]?.message || json?.errors?.[0]?.message || 'singleUpload failed';
+      throw new Error(err);
+    }
+    const f = payload.file;
+    // Mapear FileMetadata → forma legacy. api-mcp da: original(full), 800w, 400w, thumbnail.
+    // Consumers leen i1024/i800/i640/i320 → mapeo más cercano por tamaño.
+    return {
+      _id: f._id,
+      i1024: f.publicUrls?.original ?? null,
+      i800: f.publicUrls?.optimized800w ?? f.publicUrls?.original ?? null,
+      i640: f.publicUrls?.optimized400w ?? f.publicUrls?.optimized800w ?? null,
+      i320: f.publicUrls?.thumbnail ?? f.publicUrls?.optimized400w ?? null,
+      createdAt: f.createdAt,
+    };
   } catch (error) {
-    throw new Error(error)
+    throw new Error(error);
   }
 };
 
