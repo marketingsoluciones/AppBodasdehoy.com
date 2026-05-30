@@ -612,6 +612,21 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     },
     mapResponse: (p) => p,
   },
+
+  // editPresupuesto (Cat A, exact name en api-mcp con misma firma). Pass-through.
+  editPresupuesto: {
+    canonicalQuery: `mutation($evento_id:ID!,$datos:JSON!){
+      editPresupuesto(evento_id:$evento_id, datos:$datos){
+        success errors{ field message code }
+        evento{ _id presupuesto_objeto }
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.evento_id) return null;
+      return { evento_id: v.evento_id, datos: v.datos ?? {} };
+    },
+    mapResponse: (p) => p,
+  },
 };
 
 export const ADAPTER_ENABLED = (field: string | null): boolean =>
