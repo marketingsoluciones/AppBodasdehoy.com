@@ -887,6 +887,222 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapResponse: (p) => p,
   },
 
+  // ────── Invitados batch (queries.X usan canonical name pero NO interceptados antes) ──────
+  actualizarInvitado: {
+    canonicalQuery: `mutation($evento_id:ID!,$invitado_id:String!,$datos:JSON!){
+      actualizarInvitado(evento_id:$evento_id, invitado_id:$invitado_id, datos:$datos){
+        success errors{ field message code }
+        evento{ _id invitados_array }
+      }
+    }`,
+    mapVariables: (v) => {
+      const evId = v.evento_id ?? v.eventID;
+      const invId = v.invitado_id ?? v.guestID;
+      if (!evId || !invId) return null;
+      return { evento_id: evId, invitado_id: invId, datos: v.datos ?? {} };
+    },
+    mapResponse: (p) => p,
+  },
+  agregarInvitadosBatch: {
+    canonicalQuery: `mutation($evento_id:ID!,$invitados:[JSON!]!){
+      agregarInvitadosBatch(evento_id:$evento_id, invitados:$invitados){
+        success processed failed total
+        errors{ field message code }
+        evento{ _id invitados_array }
+      }
+    }`,
+    mapVariables: (v) => {
+      const evId = v.evento_id ?? v.eventID;
+      const invs = v.invitados ?? v.invitados_array;
+      if (!evId || !invs) return null;
+      return { evento_id: evId, invitados: invs };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // ────── Stripe productos (Cat A, pass-through) ──────
+  getAllProducts: {
+    canonicalQuery: `query($grupo:String){
+      getAllProducts(grupo:$grupo){
+        currency
+        total
+        results{
+          id name description images usage subscriptionId
+          current_period_start current_period_end
+          prices{ id currency unit_amount recurring{ interval interval_count } }
+        }
+      }
+    }`,
+    mapVariables: (v) => ({ grupo: v.grupo }),
+    mapResponse: (p) => p,
+  },
+
+  // ────── getPreregister: legacy (_id) → canonical (evento_id, invitado_id?) ──────
+  getPreregister: {
+    canonicalQuery: `query($evento_id:ID!,$invitado_id:ID){
+      getPreregister(evento_id:$evento_id, invitado_id:$invitado_id){
+        success errors{ field message code }
+        evento{ _id nombre fecha }
+        invitado{ nombre email }
+      }
+    }`,
+    mapVariables: (v) => {
+      const evId = v.evento_id ?? v._id;
+      if (!evId) return null;
+      return { evento_id: evId, invitado_id: v.invitado_id ?? null };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // ────── duplicateItinerario (Cat A, pass-through) ──────
+  duplicateItinerario: {
+    canonicalQuery: `mutation($evento_id:ID!,$itinerario_id:ID!){
+      duplicateItinerario(evento_id:$evento_id, itinerario_id:$itinerario_id){
+        success errors{ field message code }
+        itinerario{ _id next_id title tasks{ _id descripcion fecha hora horaActiva tips estatus spectatorView } }
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.evento_id || !v.itinerario_id) return null;
+      return { evento_id: v.evento_id, itinerario_id: v.itinerario_id };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // ────── Pagos legacy: front pasa pagos_array[] → api-mcp pide pago objeto único ──────
+  nuevoPago: {
+    canonicalQuery: `mutation($evento_id:ID!,$gasto_id:ID!,$pago:JSON!){
+      nuevoPago(evento_id:$evento_id, gasto_id:$gasto_id, pago:$pago){
+        success errors{ field message code }
+        evento{ _id presupuesto_objeto }
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.evento_id || !v.gasto_id) return null;
+      const pagos = Array.isArray(v.pagos_array) ? v.pagos_array : [];
+      const pago = pagos[0] ?? v.pago ?? {};
+      return { evento_id: v.evento_id, gasto_id: v.gasto_id, pago };
+    },
+    mapResponse: (p) => p,
+  },
+  editPago: {
+    canonicalQuery: `mutation($evento_id:ID!,$gasto_id:ID!,$pago_id:ID!,$datos:JSON!){
+      editPago(evento_id:$evento_id, gasto_id:$gasto_id, pago_id:$pago_id, datos:$datos){
+        success errors{ field message code }
+        evento{ _id presupuesto_objeto }
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.evento_id || !v.gasto_id || !v.pago_id) return null;
+      const pagos = Array.isArray(v.pagos_array) ? v.pagos_array : [];
+      const datos = pagos[0] ?? v.datos ?? {};
+      return { evento_id: v.evento_id, gasto_id: v.gasto_id, pago_id: v.pago_id, datos };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // ────── borraItemsGastos: rename itemsGastos_ids→items_ids, drop categoria_id ──────
+  borraItemsGastos: {
+    canonicalQuery: `mutation($evento_id:ID!,$gasto_id:ID!,$items_ids:[ID!]!){
+      borraItemsGastos(evento_id:$evento_id, gasto_id:$gasto_id, items_ids:$items_ids){
+        success errors{ field message code }
+        evento{ _id presupuesto_objeto }
+      }
+    }`,
+    mapVariables: (v) => {
+      const ids = v.items_ids ?? v.itemsGastos_ids;
+      if (!v.evento_id || !v.gasto_id || !ids) return null;
+      return { evento_id: v.evento_id, gasto_id: v.gasto_id, items_ids: ids };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // ────── createPsTemplate: legacy 4-args → canonical {template:JSON} ──────
+  createPsTemplate: {
+    canonicalQuery: `mutation($evento_id:ID!,$template:JSON!){
+      createPsTemplate(evento_id:$evento_id, template:$template){
+        success errors{ field message code }
+        evento{ _id }
+      }
+    }`,
+    mapVariables: (v) => {
+      const evId = v.evento_id ?? v.eventID;
+      if (!evId) return null;
+      return {
+        evento_id: evId,
+        template: { planSpaceID: v.planSpaceID, title: v.title, uid: v.uid, ...(v.template || {}) },
+      };
+    },
+    mapResponse: (p) => {
+      const ev = p?.evento;
+      const templates = (ev as any)?.psTemplates;
+      const last = Array.isArray(templates) ? templates[templates.length - 1] : null;
+      return last ?? { _id: null, title: null };
+    },
+  },
+
+  // ────── createGalerySvgs: rename galerySvgs→svgs + add development ──────
+  createGalerySvgs: {
+    canonicalQuery: `mutation($evento_id:ID!,$svgs:[JSON!]!,$development:String!){
+      createGalerySvgs(evento_id:$evento_id, svgs:$svgs, development:$development){
+        success errors{ field message code }
+        evento{ _id }
+      }
+    }`,
+    mapVariables: (v) => {
+      const svgs = v.svgs ?? v.galerySvgs;
+      if (!v.evento_id || !svgs) return null;
+      return { evento_id: v.evento_id, svgs, development: resolveDevelopment(v) };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // ────── Auth (pass-through) ──────
+  auth: {
+    canonicalQuery: `mutation($idToken:String!){
+      auth(idToken:$idToken){ sessionCookie }
+    }`,
+    mapVariables: (v) => {
+      if (!v.idToken) return null;
+      return { idToken: v.idToken };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // ────── updateUser: legacy (uid, variable, valor) → canonical (id, input?, variable, valor) ──────
+  updateUser: {
+    canonicalQuery: `mutation($id:ID,$variable:String,$valor:String,$development:String){
+      updateUser(id:$id, variable:$variable, valor:$valor, development:$development){
+        city country
+      }
+    }`,
+    mapVariables: (v) => ({
+      id: v.id ?? v.uid,
+      variable: v.variable,
+      valor: v.valor,
+      development: resolveDevelopment(v),
+    }),
+    mapResponse: (p) => p,
+  },
+
+  // ────── createUser: legacy (uid, city, country, ...) — api-mcp acepta args sueltos ──────
+  createUser: {
+    canonicalQuery: `mutation($uid:ID,$city:String,$country:String,$weddingDate:String,$phoneNumber:String,$role:[String]){
+      createUser(uid:$uid, city:$city, country:$country, weddingDate:$weddingDate, phoneNumber:$phoneNumber, role:$role){
+        city country weddingDate phoneNumber role
+      }
+    }`,
+    mapVariables: (v) => ({
+      uid: v.uid,
+      city: v.city,
+      country: v.country,
+      weddingDate: v.weddingDate,
+      phoneNumber: v.phoneNumber,
+      role: v.role,
+    }),
+    mapResponse: (p) => p,
+  },
+
   // getEmailValid(email): emailValid{valid, validators{regex|typo|disposable|mx|smtp}, reason}
   // Consumer (FormRegister) solo lee result.valid. Pass-through con shape completo.
   getEmailValid: {
