@@ -765,6 +765,46 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapResponse: (p) => p,
   },
 
+  // getInvoices (apiapp legacy) → getStripeInvoices canónico. Mismo shape {total, results[StripeInvoice]}.
+  // StripeInvoice = {number, amount, created, currency, status, hostedInvoiceUrl, invoicePdf} coincide 1:1.
+  getInvoices: {
+    canonicalQuery: `query($page:Int,$limit:Int){
+      getStripeInvoices(page:$page, limit:$limit){
+        total
+        results{ number amount created status hostedInvoiceUrl invoicePdf currency }
+        error
+      }
+    }`,
+    mapVariables: (v) => ({ page: v.page, limit: v.limit }),
+    mapResponse: (p) => p,
+  },
+
+  // createUserWithPassword: api-mcp devuelve {success, customToken, error}.
+  // Consumer (FormRegister) espera customToken string si OK, o "apiBodas/email-already-in-use" si error.
+  // mapResponse traduce: success → customToken string; error 'email-already-in-use' → string sentinel.
+  createUserWithPassword: {
+    canonicalQuery: `mutation($email:String!,$password:String!){
+      createUserWithPassword(email:$email, password:$password){
+        success
+        customToken
+        error
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.email || !v.password) return null;
+      return { email: v.email, password: v.password };
+    },
+    mapResponse: (p) => {
+      if (!p) return null;
+      if (p.success && p.customToken) return p.customToken;
+      const err = (p.error || '').toString().toLowerCase();
+      if (err.includes('email-already-in-use') || err.includes('email_already')) {
+        return 'apiBodas/email-already-in-use';
+      }
+      return p.error || 'apiBodas/unknown-error';
+    },
+  },
+
   // getEmailValid(email): emailValid{valid, validators{regex|typo|disposable|mx|smtp}, reason}
   // Consumer (FormRegister) solo lee result.valid. Pass-through con shape completo.
   getEmailValid: {
