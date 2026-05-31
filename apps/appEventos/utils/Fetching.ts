@@ -2152,14 +2152,15 @@ export const queries = {
   }`,
 
   // WhatsApp Queries and Mutations
-  // Queries migradas a api-mcp canonical 2026-05-31: firma cambió a sessionKey:String!
-  // y WhatsAppWebSession{sessionKey, development, status, qrCode, phoneNumber, connectedAt, isConnected}.
-  // Los consumers reciben `id` (alias de sessionKey) y `userId`/`connectionTime`/`lastActivity` con valor null
-  // (api-mcp no los expone — degradación graceful, ver call-site para fallback context).
+  // Queries migradas a api-mcp canonical 2026-05-31: firma sessionKey:String! y type
+  // WhatsAppWebSession{sessionKey, development, userId, status, qrCode, phoneNumber, connectedAt, isConnected}.
+  // userId añadido por BACKEND commit 872678f — restaura detección dupplicatingConnection multi-user.
+  // El call-site mapea sessionKey → id para compat con consumer.
   whatsappGetSession: `query($sessionKey: String!) {
     whatsappGetSession(sessionKey: $sessionKey) {
       sessionKey
       development
+      userId
       status
       isConnected
       qrCode
@@ -2172,6 +2173,7 @@ export const queries = {
     whatsappGetAllSessions {
       sessionKey
       development
+      userId
       status
       isConnected
       qrCode
@@ -2186,6 +2188,7 @@ export const queries = {
       session {
         sessionKey
         development
+        userId
         status
         isConnected
         qrCode
@@ -2202,6 +2205,7 @@ export const queries = {
       session {
         sessionKey
         development
+        userId
         status
         isConnected
         qrCode
