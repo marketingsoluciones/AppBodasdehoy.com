@@ -160,22 +160,22 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
     if (!sessionId || !config?.development || optionSelect !== "whatsapp") return;
     try {
       setLoading(true);
-      const result = await fetchApiBodas({
+      const result: any = await fetchApiBodas({
         query: queries.whatsappGetSession,
-        variables: {
-          args: {
-            sessionId
-          }
-        },
+        variables: { sessionKey: sessionId },
         development: config.development
       });
 
       if (result) {
-        setSession(result);
+        // api-mcp devuelve sessionKey (no id) y NO expone userId.
+        // Compat: mapear sessionKey→id. dupplicatingConnection desactivada hasta que
+        // BACKEND añada userId a WhatsAppWebSession (ver TODO Slack).
+        const mapped = { ...result, id: result.sessionKey, userId: result.userId ?? null };
+        setSession(mapped);
         if (result.isConnected) {
           setQrCode(null);
         } else if (result.qrCode) {
-          if (result.userId !== user?.uid) {
+          if (result.userId && result.userId !== user?.uid) {
             setQrCode(null);
             const dupplicatingUser = [event?.detalles_usuario_id, ...(event?.detalles_compartidos_array || [])].find(elem => elem.uid === result.userId)
             setDupplicatingConnection({ state: true, user: dupplicatingUser })

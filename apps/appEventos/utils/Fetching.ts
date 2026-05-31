@@ -2152,70 +2152,68 @@ export const queries = {
   }`,
 
   // WhatsApp Queries and Mutations
-  whatsappGetSession: `query ($args: GetWhatsAppSessionArgs!) {
-    whatsappGetSession(args: $args) {
-      id
+  // Queries migradas a api-mcp canonical 2026-05-31: firma cambió a sessionKey:String!
+  // y WhatsAppWebSession{sessionKey, development, status, qrCode, phoneNumber, connectedAt, isConnected}.
+  // Los consumers reciben `id` (alias de sessionKey) y `userId`/`connectionTime`/`lastActivity` con valor null
+  // (api-mcp no los expone — degradación graceful, ver call-site para fallback context).
+  whatsappGetSession: `query($sessionKey: String!) {
+    whatsappGetSession(sessionKey: $sessionKey) {
+      sessionKey
       development
-      userId
+      status
       isConnected
       qrCode
       phoneNumber
-      connectionTime
-      lastActivity
+      connectedAt
     }
   }`,
 
   whatsappGetAllSessions: `query {
     whatsappGetAllSessions {
-      id
+      sessionKey
       development
-      userId
+      status
       isConnected
       qrCode
       phoneNumber
-      connectionTime
-      lastActivity
+      connectedAt
     }
   }`,
 
-  whatsappCreateSession: `mutation ($args: CreateWhatsAppSessionArgs!) {
-    whatsappCreateSession(args: $args) {
+  whatsappCreateSession: `mutation($sessionKey: String!) {
+    whatsappCreateSession(sessionKey: $sessionKey) {
       success
       session {
-        id
+        sessionKey
         development
-        userId
+        status
         isConnected
         qrCode
         phoneNumber
-        connectionTime
-        lastActivity
+        connectedAt
       }
-      qrCode
       error
     }
   }`,
 
-  whatsappRegenerateQR: `mutation ($sessionId: String!) {
-    whatsappRegenerateQR(sessionId: $sessionId) {
+  whatsappRegenerateQR: `mutation($sessionKey: String!) {
+    whatsappRegenerateQR(sessionKey: $sessionKey) {
       success
       session {
-        id
+        sessionKey
         development
-        userId
+        status
         isConnected
         qrCode
         phoneNumber
-        connectionTime
-        lastActivity
+        connectedAt
       }
-      qrCode
       error
     }
   }`,
 
-  whatsappDisconnectSession: `mutation ($args: DisconnectWhatsAppSessionArgs!) {
-    whatsappDisconnectSession(args: $args) {
+  whatsappDisconnectSession: `mutation($sessionKey: String!) {
+    whatsappDisconnectSession(sessionKey: $sessionKey) {
       success
       error
     }
