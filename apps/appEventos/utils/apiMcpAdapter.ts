@@ -779,6 +779,30 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapResponse: (p) => p,
   },
 
+  // getItinerario: la firma canónica api-mcp `getItinerario(evento_id, development): [Itinerario!]!`
+  // devuelve solo array de itinerarios sin datos del evento padre. El front legacy esperaba el evento
+  // ENTERO {nombre, tipo, timeZone, itinerarios_array} para iCal/portal público. Solución: el adapter
+  // usa getEventoById como source y filtra itinerarios_array por itinerario_id (si se pasa).
+  getItinerario: {
+    canonicalQuery: `query($id:ID!){ getEventoById(id:$id){
+      _id nombre tipo timeZone fecha
+      itinerarios_array
+    } }`,
+    mapVariables: (v) => {
+      if (!v.evento_id) return null;
+      return { id: v.evento_id };
+    },
+    mapResponse: (p, v) => {
+      if (!p) return null;
+      const itinerario_id = v?.itinerario_id;
+      let itinerarios = Array.isArray(p.itinerarios_array) ? p.itinerarios_array : [];
+      if (itinerario_id) {
+        itinerarios = itinerarios.filter((it: any) => it?._id?.toString?.() === itinerario_id || it?._id === itinerario_id);
+      }
+      return { ...p, itinerarios_array: itinerarios };
+    },
+  },
+
   // createUserWithPassword: api-mcp devuelve {success, customToken, error}.
   // Consumer (FormRegister) espera customToken string si OK, o "apiBodas/email-already-in-use" si error.
   // mapResponse traduce: success → customToken string; error 'email-already-in-use' → string sentinel.
@@ -803,6 +827,64 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
       }
       return p.error || 'apiBodas/unknown-error';
     },
+  },
+
+  // Stripe checkout — 4 ops Cat A con firma idéntica. Pass-through directo.
+  createCheckoutSession: {
+    canonicalQuery: `mutation($items:[inputItemsCheckout],$email:String,$cancel_url:String,$mode:String,$success_url:String){
+      createCheckoutSession(items:$items, email:$email, cancel_url:$cancel_url, mode:$mode, success_url:$success_url)
+    }`,
+    mapVariables: (v) => ({
+      items: v.items,
+      email: v.email,
+      cancel_url: v.cancel_url,
+      mode: v.mode,
+      success_url: v.success_url,
+    }),
+    mapResponse: (p) => p,
+  },
+  setCheckoutItems: {
+    canonicalQuery: `mutation($unique:ID,$args:[inputDetailsItemsCheckout]){
+      setCheckoutItems(unique:$unique, args:$args)
+    }`,
+    mapVariables: (v) => ({ unique: v.unique, args: v.args }),
+    mapResponse: (p) => p,
+  },
+  getCheckoutItems: {
+    canonicalQuery: `query($unique:ID){
+      getCheckoutItems(unique:$unique){
+        currency
+        amount
+        name
+        price
+      }
+    }`,
+    mapVariables: (v) => ({ unique: v.unique }),
+    mapResponse: (p) => p,
+  },
+  updateCustomer: {
+    canonicalQuery: `mutation($args:inputCustomer){
+      updateCustomer(args:$args)
+    }`,
+    mapVariables: (v) => ({ args: v.args }),
+    mapResponse: (p) => p,
+  },
+
+  // getCustomer: type StripeCustomer (BACKEND respondió con shape {name, email, line1, line2, postalCode, city, ...}).
+  // Front lee {name, email, line1, line2, postalCode, city}. Pass-through.
+  getCustomer: {
+    canonicalQuery: `query{
+      getCustomer{
+        name
+        email
+        line1
+        line2
+        postalCode
+        city
+      }
+    }`,
+    mapVariables: () => ({}),
+    mapResponse: (p) => p,
   },
 
   // getEmailValid(email): emailValid{valid, validators{regex|typo|disposable|mx|smtp}, reason}

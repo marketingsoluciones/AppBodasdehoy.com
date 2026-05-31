@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useMemo, FC, Dispatch, SetStateAction, clo
 import ClickAwayListener from "react-click-away-listener";
 import { useRouter } from "next/navigation";
 import { EventContextProvider, EventsGroupContextProvider } from "../../context";
-import { api } from "../../api";
 import DataTableFinal from "./DataTable";
 import { BorrarInvitado } from "../../hooks/EditarInvitado";
 import { CanceladoIcon, ConfirmadosIcon, DotsOpcionesIcon, PendienteIcon, } from "../icons";
@@ -626,16 +625,14 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
 
           const DeleteGroup = async () => {
             try {
-              const params = {
-                query: `mutation {
-                  borraGrupo(evento_id:"${event._id}",nombre_grupo:"${title}"){
-                    _id
+              await fetchApiBodas({
+                query: `mutation($evento_id:ID!,$grupo_id:ID!){
+                  borraGrupo(evento_id:$evento_id, grupo_id:$grupo_id){
+                    success errors{ field message code }
                   }
                 }`,
-                variables: {},
-              };
-
-              await api.ApiApp(params);
+                variables: { evento_id: event._id, grupo_id: title },
+              });
             } catch (error) {
             } finally {
               setEvent((old) => ({
