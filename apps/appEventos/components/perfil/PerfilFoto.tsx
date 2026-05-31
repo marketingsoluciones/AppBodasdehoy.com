@@ -50,20 +50,28 @@ const ImageProfile: FC = () => {
             // HEIC conversion
             file = await convertHeicIfNeeded(file);
 
-            const result: Partial<image> = await fetchApiBodas(
+            // Upload perfil: NO hay evento, usamos user.uid como eventId discriminador.
+            // TODO BACKEND: endpoint dedicado uploadProfileImage(file, userId) sin eventId.
+            const result: any = await fetchApiBodas(
                 {
                     query: queries.singleUpload,
-                    variables: { file, use: "profile" },
+                    variables: {
+                        file,
+                        development: config?.development || 'bodasdehoy',
+                        eventId: user?.uid || 'profile',
+                        category: "profile",
+                    },
                     type: "formData",
                     development: config?.development
                 }
             )
-
-            if (result?.i640 && auth?.currentUser) {
-                await updateProfile(auth.currentUser, {
-                    photoURL: createURL(result.i640)
-                })
-                setUser(old => ({ ...old, photoURL: createURL(result.i640) }))
+            const url = result?.file?.publicUrls?.optimized400w
+                ?? result?.file?.publicUrls?.optimized800w
+                ?? result?.file?.publicUrls?.original
+                ?? null
+            if (url && auth?.currentUser) {
+                await updateProfile(auth.currentUser, { photoURL: createURL(url) })
+                setUser(old => ({ ...old, photoURL: createURL(url) }))
             }
             toast("success", t("imagesuccessfully"))
             setLoading(false)

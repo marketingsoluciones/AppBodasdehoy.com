@@ -501,11 +501,18 @@ export const queries = {
       country
     }
   }`,
-  singleUpload: `mutation($file:Upload!,$use:String)
-  {
-    singleUpload(file:$file,use:$use){
-      _id
-      i640
+  // singleUpload canonical api-mcp (sube a R2 multi-tenant). Front pasa file + eventId + development.
+  // category opcional (= use legacy). Devuelve FileMetadata{_id, publicUrls{original,optimized800w,optimized400w,thumbnail}, createdAt}.
+  // Los call-sites mapean publicUrls a {i1024,i800,i640,i320} para compat con consumers existentes.
+  singleUpload: `mutation($file:Upload!,$development:String!,$eventId:ID!,$category:String) {
+    singleUpload(file:$file, development:$development, eventId:$eventId, category:$category){
+      success
+      errors{ field message code }
+      file{
+        _id
+        createdAt
+        publicUrls{ original optimized800w optimized400w thumbnail }
+      }
     }
   }`,
   getPGuestEvent: `query($p:String){

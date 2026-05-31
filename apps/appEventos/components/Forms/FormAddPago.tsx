@@ -1,6 +1,6 @@
 import { Formik } from "formik";
 import { useEffect, useState } from "react";
-import { EventContextProvider } from "../../context/";
+import { EventContextProvider, AuthContextProvider } from "../../context/";
 import { CheckIcon, DiamanteIcon } from "../icons";
 import InputField from "./InputField";
 import { GoFileDiff } from "react-icons/go";
@@ -50,6 +50,7 @@ const validacion2 = (values: PagoValues) => {
 
 const FormAddPago = ({ GastoID, cate, setGastoID }) => {
   const { event, setEvent } = EventContextProvider()
+  const { config } = AuthContextProvider() as any
   const [ischecked, setCheck] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const toast = useToast()
@@ -120,15 +121,24 @@ const FormAddPago = ({ GastoID, cate, setGastoID }) => {
             setIsSubmitting(true)
             if (values.soporte_file) {
               try {
-                const result = await fetchApiBodas({
+                const result: any = await fetchApiBodas({
                   query: queries.singleUpload,
-                  variables: { file: values.soporte_file, use: "payment" },
+                  variables: {
+                    file: values.soporte_file,
+                    development: config?.development || 'bodasdehoy',
+                    eventId: event?._id,
+                    category: "payment",
+                  },
                   type: "formData"
                 })
+                const url = result?.file?.publicUrls?.optimized400w
+                  ?? result?.file?.publicUrls?.optimized800w
+                  ?? result?.file?.publicUrls?.original
+                  ?? null
                 values.soporte = {
-                  image_url: result?.i640,
-                  medium_url: result?.i640,
-                  thumb_url: result?.i640,
+                  image_url: url,
+                  medium_url: url,
+                  thumb_url: url,
                 }
               } catch (uploadError) {
                 toast("error", "Error al subir la imagen")

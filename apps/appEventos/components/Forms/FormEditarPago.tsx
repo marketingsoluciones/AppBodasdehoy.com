@@ -34,6 +34,7 @@ const validacion = (values: PagoValues) => {
 
 const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categorias, getId, }: any) => {
   const { event, setEvent } = EventContextProvider() as any;
+  const { config } = AuthContextProvider() as any;
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [pago, setPago] = useState(ListaPagos?.find(item => item._id == IDPagoAModificar))
   const toast = useToast()
@@ -119,15 +120,24 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
             // Verificar si hay un archivo nuevo (File object o base64 string) para subir
             if (values.soporte_file instanceof File) {
               try {
-                const result = await fetchApiBodas({
+                const result: any = await fetchApiBodas({
                   query: queries.singleUpload,
-                  variables: { file: values.soporte_file, use: "payment" },
+                  variables: {
+                    file: values.soporte_file,
+                    development: config?.development || 'bodasdehoy',
+                    eventId: event?._id,
+                    category: "payment",
+                  },
                   type: "formData"
                 });
+                const url = result?.file?.publicUrls?.optimized400w
+                  ?? result?.file?.publicUrls?.optimized800w
+                  ?? result?.file?.publicUrls?.original
+                  ?? null
                 values.soporte = {
-                  image_url: result?.i640,
-                  medium_url: result?.i640,
-                  thumb_url: result?.i640,
+                  image_url: url,
+                  medium_url: url,
+                  thumb_url: url,
                 };
                 saveData(values);
               } catch (uploadError) {

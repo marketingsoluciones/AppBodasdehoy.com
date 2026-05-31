@@ -480,21 +480,30 @@ const TartaButton: FC<propsElement> = ({ title, value}) => {
       const file = e.target.files[0]
       const reader = new FileReader();
       reader.onloadend = async () => {
-        const result: Partial<image> = await fetchApiBodas(
+        const result: any = await fetchApiBodas(
           {
             query: queries.singleUpload,
-            variables: { file, use: "tarta" },
+            variables: {
+              file,
+              development: config?.development || 'bodasdehoy',
+              eventId: event?._id,
+              category: "tarta",
+            },
             type: "formData",
             development: config?.development
           }
         )
-        if (result?.i640) {
+        const url = result?.file?.publicUrls?.optimized400w
+          ?? result?.file?.publicUrls?.optimized800w
+          ?? result?.file?.publicUrls?.original
+          ?? null
+        if (url) {
           await fetchApiBodas({
             query: queries.eventUpdate,
-            variables: { idEvento: event._id, input: { [title]: result.i640 } },
+            variables: { idEvento: event._id, input: { [title]: url } },
             token: null
           })
-          setEvent({ ...event, "tarta": result.i640 })
+          setEvent({ ...event, "tarta": url })
           toast("success", t("imagesuccessfully"))
         } else {
           toast("error", t("El tipo de imagen no es correcta"))
