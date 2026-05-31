@@ -703,6 +703,51 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapResponse: (p) => p,
   },
 
+  // createEmailTemplate(evento_id!, design!, configTemplate!, html?, development!): EmailTemplate
+  // Front legacy NO pasa development — lo resolvemos por hostname. configTemplate.name ahora soportado
+  // tras fix BACKEND commit 5441a77 (inputCongigTemplate añadió `name`).
+  createEmailTemplate: {
+    canonicalQuery: `mutation($evento_id:ID!,$design:JSON!,$configTemplate:inputCongigTemplate!,$html:String,$development:String!){
+      createEmailTemplate(evento_id:$evento_id, design:$design, configTemplate:$configTemplate, html:$html, development:$development){
+        _id evento_id design configTemplate html createdAt updatedAt
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.evento_id || !v.design || !v.configTemplate) return null;
+      return {
+        evento_id: v.evento_id,
+        design: v.design,
+        configTemplate: v.configTemplate,
+        html: v.html ?? null,
+        development: resolveDevelopment(v),
+      };
+    },
+    mapResponse: (p) => p,
+  },
+
+  // updateEmailTemplate(template_id!, evento_id?, design?, configTemplate?, html?, development!): EmailTemplate
+  // Front consumer lee `res[0]._id` — envuelve la respuesta en array para compat (apiapp devolvía
+  // un array de templates, api-mcp devuelve uno solo).
+  updateEmailTemplate: {
+    canonicalQuery: `mutation($template_id:ID!,$evento_id:ID,$design:JSON,$configTemplate:inputCongigTemplate,$html:String,$development:String!){
+      updateEmailTemplate(template_id:$template_id, evento_id:$evento_id, design:$design, configTemplate:$configTemplate, html:$html, development:$development){
+        _id evento_id design configTemplate html createdAt updatedAt
+      }
+    }`,
+    mapVariables: (v) => {
+      if (!v.template_id) return null;
+      return {
+        template_id: v.template_id,
+        evento_id: v.evento_id ?? null,
+        design: v.design ?? null,
+        configTemplate: v.configTemplate ?? null,
+        html: v.html ?? null,
+        development: resolveDevelopment(v),
+      };
+    },
+    mapResponse: (p) => (p ? [p] : []),
+  },
+
   // duplicatePresupuesto(evento_id, target_evento_id?): PresupuestoResponse
   // BACKEND resolvió la discrepancia — target_evento_id opcional, copia entre eventos distintos.
   // Front legacy pasa `nuevo_evento_id` → renombramos.
