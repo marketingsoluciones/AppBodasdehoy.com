@@ -103,10 +103,21 @@ const ChatSidebarDirect: FC = () => {
   const verificationDone = authContext?.verificationDone;
   const event = eventContext?.event;
 
+  // Timeout local del Copilot (2s) para no mantener "Cargando..." cuando Firebase tarda.
+  // El safety global de AuthContext es 10s — demasiado para UX del Copilot. Si verificationDone
+  // no llega en 2s, asumimos guest y montamos el embed (el banner guest y empty state ya lo cubren).
+  const [authTimedOut, setAuthTimedOut] = useState(false);
+  useEffect(() => {
+    if (verificationDone) return;
+    const t = setTimeout(() => setAuthTimedOut(true), 2000);
+    return () => clearTimeout(t);
+  }, [verificationDone]);
+  const authReady = verificationDone || authTimedOut;
+
   // isGuest: true solo si no hay UID de Firebase (usuario no autenticado).
   // No usar user?.email — puede ser null en ciertos flujos de auth y causaría que
   // un usuario registrado aparezca como visitante incorrectamente.
-  const isGuest = !verificationDone ? false : (!user?.uid || !!user?.isAnonymous || user?.displayName === 'guest');
+  const isGuest = !authReady ? false : (!user?.uid || !!user?.isAnonymous || user?.displayName === 'guest');
 
   // Rol del usuario respecto al evento actual
   // owner: es el creador del evento
@@ -511,7 +522,7 @@ const ChatSidebarDirect: FC = () => {
             {/* Esperar a que auth resuelva antes de montar el embed.
                 Esto evita que el copilot se inicialice como "visitante" si Firebase
                 todavía no ha confirmado el estado de autenticación. */}
-            {!verificationDone ? (
+            {!authReady ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#bbb', fontSize: 13 }}>
                 Cargando...
               </div>

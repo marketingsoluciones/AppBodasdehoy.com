@@ -9,10 +9,10 @@ const NavbarDirectory: FC = () => {
     return (
         <>
             <nav className="hidden lg:block">
-                <ul className="flex md:gap-3 lg:gap-4 xl:gap-4 text-sm  text-gray-200">
+                <ul className="flex md:gap-3 lg:gap-4 xl:gap-4 text-sm text-gray-700">
                     {config?.navbarDirectory?.map((item: any, idx: number) => (
                         <Link key={idx} href={config?.pathDirectory && `${(typeof window !== 'undefined' && window.origin.includes("://test.")) ? config?.pathDirectory.replace("//", "//test") : config?.pathDirectory}/${item?.path}`}>
-                            < li className="font-light uppercase flex items-center justify-center cursor-pointer relative transition text-gray-500 hover:text-primary" >
+                            < li className="font-medium uppercase flex items-center justify-center cursor-pointer relative transition text-gray-700 hover:text-primary" >
                                 {t(item.title)}
                             </li >
                         </Link >

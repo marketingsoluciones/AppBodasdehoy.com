@@ -166,7 +166,7 @@ const Navigation: FC = () => {
               }
               setIsActiveStateSwiper(0)
             }}
-            className="cursor-pointer items-center flex justify-center w-[130px] md:w-[208px] h-[60px] md:h-[64px] translate-x-[-14px] md:translate-x-[-160px]">
+            className="cursor-pointer items-center flex justify-center w-[130px] md:w-[208px] h-[60px] md:h-[64px] pl-1 md:pl-2 shrink-0 overflow-visible">
             {safeLogoNode ?? (
               <span className="px-3 py-1 rounded-lg bg-primary text-white font-title text-sm max-w-full truncate">
                 {(typeof config?.headTitle === 'string' && config.headTitle.trim())
