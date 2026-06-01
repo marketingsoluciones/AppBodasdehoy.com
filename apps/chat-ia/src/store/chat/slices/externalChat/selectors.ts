@@ -116,8 +116,11 @@ const isDomainGuestUser = (s: ChatStoreState): boolean => {
   if (s.userType === 'guest' || s.userType === 'visitor') return true;
 
   const id = s.currentUserId;
-  // Sin usuario en chat store (Lobe standalone, tests): no inferir invitado embed.
-  if (!id) return false;
+  // 🔒 SEGURIDAD: sin identidad confirmada → tratar como invitado (modelo de negocio:
+  // anónimo = visitante limitado). Ante la duda, RESTRINGIR (ocultar menús/historial de
+  // usuario registrado), no exponer. EventosAutoAuth asignará la identidad real en cuanto
+  // cargue; hasta entonces el usuario ve la experiencia de visitante, no la de logueado.
+  if (!id) return true;
   if (id === 'visitante@guest.local') return true;
   const lower = id.toLowerCase();
   if (
