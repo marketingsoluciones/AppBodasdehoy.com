@@ -532,17 +532,6 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapResponse: (p) => p,
   },
 
-  // getEmailTemplate(template_id, development): JSON — front legacy pasa (template_id) y lee {design}.
-  // api-mcp devuelve JSON; pasamos tal cual (si trae {design:...} el consumer lo lee correcto).
-  getEmailTemplate: {
-    canonicalQuery: `query($template_id:ID!,$development:String!){ getEmailTemplate(template_id:$template_id, development:$development) }`,
-    mapVariables: (v) => {
-      if (!v.template_id) return null;
-      return { template_id: v.template_id, development: resolveDevelopment(v) };
-    },
-    mapResponse: (p) => p,
-  },
-
   // actualizarCategoriaPresupuesto — la query legacy `editCategoria` (Fetching.ts:1439) ya pide este
   // field canónico; solo necesita rerouting a api-mcp (no transformación). Misma firma+respuesta.
   actualizarCategoriaPresupuesto: {
