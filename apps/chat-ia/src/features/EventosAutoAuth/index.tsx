@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 
 import { message } from '@/components/AntdStaticMethods';
 import { getDeveloperToken, setDeveloperToken } from '@/const/developerTokens';
+import { isRestorableSessionToken } from '@/utils/jwtSession';
 import { consumeInviteToken } from '@/services/mcpApi/invite';
 import { processGoogleRedirectResult, processFacebookRedirectResult, initCrossAppTokenRefresh } from '@/services/firebase-auth';
 import { useChatStore } from '@/store/chat';
@@ -20,6 +21,35 @@ const devLog = (...args: any[]): void => {
 const devWarn = (...args: any[]): void => {
   if (isDev) console.warn(...args);
 };
+
+/**
+ * 🔒 SEGURIDAD: gate para la auto-inyección de tokens admin predefinidos
+ * (ver getDeveloperToken / DEVELOPER_TOKENS).
+ *
+ * Estos tokens son credenciales `role:admin` hardcodeadas pensadas SOLO como
+ * atajo de desarrollo local. Auto-inyectarlas sin condición provoca un
+ * "login fantasma": la UI aparece autenticada como admin sin login ni cookie SSO.
+ *
+ * Solo se permiten cuando se cumplen AMBAS condiciones:
+ *   1. hostname es estrictamente local (localhost / 127.0.0.1)
+ *   2. el desarrollador lo habilita explícitamente con `localStorage.dev_bypass = 'true'`
+ *
+ * En chat-dev / test / prod NUNCA se inyectan: ahí la sesión llega por el SSO real.
+ */
+const isLocalDevBypassEnabled = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+  if (!isLocalHost) return false;
+  try {
+    return localStorage.getItem('dev_bypass') === 'true';
+  } catch {
+    return false;
+  }
+};
+
+// 🔒 SEGURIDAD: validación mínima de JWT (no expirado / bien formado) para decidir
+// si una sesión guardada en localStorage puede restaurarse. Ver utils/jwtSession.
 
 /**
  * Componente de extensión para auto-identificación de usuarios
@@ -500,8 +530,14 @@ user_id: effectiveUserId,
           // ✅ Si NO hay email/phone en URL, intentar cargar desde localStorage
           const savedDeveloper = savedConfig?.developer || savedConfig?.development;
 
+          // 🔒 SEGURIDAD: si la sesión guardada trae token, debe ser un JWT válido y
+          // no expirado para restaurarla. Tokens sin caducar legítimos (SSO) pasan;
+          // tokens admin falsos/expirados de un dev-user-config viejo se descartan.
+          const savedTokenIsValid =
+            !savedConfig?.token || isRestorableSessionToken(savedConfig.token);
+
           // Si hay sesión guardada para este developer, cargarla automáticamente
-          if (savedConfig?.userId && savedDeveloper === developerParam) {
+          if (savedConfig?.userId && savedDeveloper === developerParam && savedTokenIsValid) {
             devLog(
               `✅ Sesión encontrada para developer ${developerParam}, cargando usuario: ${savedConfig.userId.slice(0, 20)}...`,
             );
@@ -633,7 +669,16 @@ user_id: effectiveUserId,
 
         // ✅ NUEVO: Si hay sesión guardada para este developer, cargarla automáticamente
         const savedDeveloper = savedConfig?.developer || savedConfig?.development;
-        if (savedConfig?.userId && savedDeveloper === developer && !emailParam && !phoneParam) {
+        // 🔒 SEGURIDAD: igual que arriba, si hay token guardado debe ser JWT válido/no expirado.
+        const savedTokenIsValid =
+          !savedConfig?.token || isRestorableSessionToken(savedConfig.token);
+        if (
+          savedConfig?.userId &&
+          savedDeveloper === developer &&
+          !emailParam &&
+          !phoneParam &&
+          savedTokenIsValid
+        ) {
           devLog(
             `✅ Sesión encontrada para developer ${developer}, cargando usuario: ${savedConfig.userId.slice(0, 20)}...`,
           );
@@ -692,11 +737,11 @@ user_id: effectiveUserId,
             : undefined);
       }
 
-      // ✅ CARGAR TOKEN JWT AUTOMÁTICAMENTE PARA DESARROLLO
-      // Esto debe ejecutarse SIEMPRE para asegurar que hay un token válido
+      // 🔒 SEGURIDAD: cargar token admin predefinido SOLO en dev local con opt-in explícito.
+      // Sin esto se producía un "login fantasma" (UI admin sin login ni SSO). Ver isLocalDevBypassEnabled().
       devLog('🔍 EventosAutoAuth: Verificando token JWT', { developer });
 
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && isLocalDevBypassEnabled()) {
         const currentToken = localStorage.getItem('jwt_token');
         const developerToken = getDeveloperToken(developer);
 
