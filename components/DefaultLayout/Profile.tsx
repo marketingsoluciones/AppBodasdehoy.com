@@ -22,6 +22,7 @@ import { flags } from "../../utils/flags.js"
 import { IoIosArrowDown } from "react-icons/io";
 import { GoTasklist } from "react-icons/go";
 import { ImageAvatar } from "../Utils/ImageAvatar";
+import packageJson from "../../package.json";
 
 interface Flag {
   value: string
@@ -295,6 +296,8 @@ const Profile = ({ user, state, set, ...rest }) => {
                       null
                   }
                 </ul>
+                {/* Version del package.json*/}
+                <span className="absolute -bottom-[3px] right-2.5 text-[8px] text-gray-500">v{packageJson.version}</span>
               </div >
             )}
             <div className="w-10 h-10">
