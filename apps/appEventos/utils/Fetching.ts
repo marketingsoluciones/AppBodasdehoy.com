@@ -553,12 +553,6 @@ export const queries = {
     }
   }`,
 
-  getLinkInvitation: ` query($evento_id:String, $invitado_id:String){
-  getLinkInvitation(evento_id:$evento_id, invitado_id:$invitado_id){
-      link
-    }
-  }`,
-
   setCheckoutItems: `mutation ( $unique:ID, $args:[inputDetailsItemsCheckout] )
   {
     setCheckoutItems(unique:$unique, args:$args)
@@ -1288,22 +1282,6 @@ export const queries = {
         }
       }
       showChildrenGuest
-    }
-  }`,
-
-  //        createWhatsappTemplate( data: JSON, development: String! ): JSON
-  createWhatsappTemplate: `mutation( $data:JSON, $development:String!){
-    createWhatsappTemplate(data:$data, development:$development){
-      _id
-      title
-      content
-      createdAt
-    }
-  }`,
-
-  sendInvitations: ` mutation( $evento_id:String, $invitados_ids_array:[String], $dominio:String, $transport:String, $lang:String){
-    enviaInvitacion(evento_id:$evento_id, invitados_ids_array:$invitados_ids_array, dominio:$dominio, transport:$transport, lang:$lang){
-      _id,
     }
   }`,
 
