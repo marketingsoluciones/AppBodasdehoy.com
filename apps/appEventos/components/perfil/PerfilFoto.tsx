@@ -50,15 +50,15 @@ const ImageProfile: FC = () => {
             // HEIC conversion
             file = await convertHeicIfNeeded(file);
 
-            // Upload perfil: NO hay evento, usamos user.uid como eventId discriminador.
-            // TODO BACKEND: endpoint dedicado uploadProfileImage(file, userId) sin eventId.
+            // Upload perfil: endpoint dedicado api-mcp uploadProfileImage (commit 9fcea06).
+            // Sin eventId, identifica por userId.
             const result: any = await fetchApiBodas(
                 {
-                    query: queries.singleUpload,
+                    query: queries.uploadProfileImage,
                     variables: {
                         file,
                         development: config?.development || 'bodasdehoy',
-                        eventId: user?.uid || 'profile',
+                        userId: user?.uid || '',
                         category: "profile",
                     },
                     type: "formData",

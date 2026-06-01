@@ -515,6 +515,20 @@ export const queries = {
       }
     }
   }`,
+
+  // uploadProfileImage canonical (commit api-mcp 9fcea06, 2026-06-01).
+  // Endpoint dedicado para foto perfil — sin eventId. Mismo shape FileMetadataResponse.
+  uploadProfileImage: `mutation($file:Upload!,$development:String!,$userId:String!,$category:String) {
+    uploadProfileImage(file:$file, development:$development, userId:$userId, category:$category){
+      success
+      errors{ field message code }
+      file{
+        _id
+        createdAt
+        publicUrls{ original optimized800w optimized400w thumbnail }
+      }
+    }
+  }`,
   getPGuestEvent: `query($p:String){
     getPGuestEvent(p:$p){
       _id
