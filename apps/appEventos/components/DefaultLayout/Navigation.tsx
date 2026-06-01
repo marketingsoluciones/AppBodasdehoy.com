@@ -13,6 +13,7 @@ import { useAllowedRouter } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import { BsCalendarHeartFill, BsImages } from "react-icons/bs";
 import ChatToggleButton from "../ChatSidebar/ChatToggleButton";
+import { useChatSidebar, CHAT_SIDEBAR_MIN_WIDTH, CHAT_SIDEBAR_MAX_WIDTH, CHAT_SIDEBAR_DEFAULT_WIDTH } from "../../context/ChatSidebarContext";
 
 const Navigation: FC = () => {
   const refBanner = useRef(null)
@@ -31,6 +32,24 @@ const Navigation: FC = () => {
   const [isAllowedRouter, ht] = useAllowedRouter()
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const chatSidebar = useChatSidebar();
+  // Copilot abierto en desktop empuja el contenido. El header está fuera del grid; aplicamos
+  // padding-left dinámico = copilotSlotWidth para que el header acompañe visualmente al contenido.
+  const copilotPushPx = (isDesktop && chatSidebar?.isOpen)
+    ? Math.max(
+        CHAT_SIDEBAR_MIN_WIDTH,
+        Math.min(CHAT_SIDEBAR_MAX_WIDTH, chatSidebar?.width ?? CHAT_SIDEBAR_DEFAULT_WIDTH),
+      ) + 4
+    : 0;
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(min-width: 768px)');
+    const apply = () => setIsDesktop(mq.matches);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
   const canSeeCopilot =
     config?.copilotEnabled !== false ||
     (Array.isArray(user?.role) ? user.role.includes('admin') : user?.role === 'admin');
@@ -153,7 +172,10 @@ const Navigation: FC = () => {
           set={(accion) => setIsMounted(accion)}
         />
       )}
-      <header className="f-top relative w-full bg-white">
+      <header
+        className="f-top relative w-full bg-white"
+        style={{ paddingLeft: copilotPushPx, transition: 'padding-left 0.2s ease' }}
+      >
         <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0  ">
           <span
             onClick={() => {
