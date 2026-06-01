@@ -47,9 +47,18 @@ export const DescriptionTask: FC<Props> = ({ canEdit, task, handleUpdate, owner,
   const [customDescription, setCustomDescription] = useState(task?.tips || '');
   const ruta = window.location.pathname;
 
+  // Al cambiar de tarea, salir del modo edición y cargar su descripción
   useEffect(() => {
+    setEditing(false);
     setCustomDescription(task?.tips || '');
-  }, [task])
+  }, [task?._id]);
+
+  // Sincronizar tips remotos solo si no hay edición en curso (evita borrar borrador por socket)
+  useEffect(() => {
+    if (!editing) {
+      setCustomDescription(task?.tips || '');
+    }
+  }, [task?.tips, editing]);
 
   const canShowEditButton = canEdit
   const shouldShowEditor = editing && canShowEditButton;

@@ -1,6 +1,6 @@
 import { TaskNew } from "../../Servicios/VistaTarjeta/TaskNew"
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
-import { Dispatch, FC, SetStateAction, useCallback, useEffect, useState } from "react";
+import { Dispatch, FC, SetStateAction, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AuthContextProvider } from "../../../context/AuthContext";
 import { EventContextProvider } from "../../../context/EventContext";
 import { Modal } from "../../Utils/Modal";
@@ -97,6 +97,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFile[]>([]);
   const [loading, setLoading] = useState<boolean>(false)
   const [currentItinerario, setCurrentItinerario] = useState<Itinerary>(itinerario);
+  const listScrollRef = useRef<HTMLDivElement>(null);
+  const savedListScrollTop = useRef<number | null>(null);
+  const prevSelectTaskRef = useRef<string | undefined>(undefined);
 
   // Función para manejar actualización de campos
   const handleUpdate = async (fieldName: string, value: any) => {
@@ -250,9 +253,21 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       const found = event.itinerarios_array.find(
         (it: Itinerary) => it._id === itinerario._id
       );
-      if (found) setCurrentItinerario({ ...found });
+      if (found) {
+        if (listScrollRef.current) {
+          savedListScrollTop.current = listScrollRef.current.scrollTop;
+        }
+        setCurrentItinerario({ ...found });
+      }
     }
   }, [event, itinerario?._id, orderAndDirection]);
+
+  useLayoutEffect(() => {
+    if (listScrollRef.current && savedListScrollTop.current !== null) {
+      listScrollRef.current.scrollTop = savedListScrollTop.current;
+      savedListScrollTop.current = null;
+    }
+  }, [currentItinerario]);
 
   useEffect(() => {
     if (currentItinerario?.tasks?.length > 0) {
@@ -588,37 +603,37 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   }, [swrEvent, event._id]);
 
   useEffect(() => {
-    if (selectTask) {
-      // Esperar un poco para que el DOM se actualice
-      setTimeout(() => {
-        const element = document.getElementById(selectTask);
-        if (element) {
-          const elementRect = element.getBoundingClientRect();
-          const container = element.closest('.overflow-auto') as HTMLElement | null;
-          const previousScrollTop = ["/itinerario"].includes(window?.location?.pathname) ? 48 : 24;
-          if (container) {
-            // Si hay un contenedor con overflow-auto, usar scrollTo en ese contenedor
-            const containerRect = container.getBoundingClientRect();
-            const targetScrollTop = container.scrollTop + elementRect.top - containerRect.top - previousScrollTop;
-            container.scrollTo({
-              top: targetScrollTop,
-              behavior: 'smooth'
-            });
-          } else {
-            // Si no hay contenedor, usar scrollTo en window
-            const targetScrollTop = window.pageYOffset + elementRect.top - previousScrollTop;
-            window.scrollTo({
-              top: targetScrollTop,
-              behavior: 'smooth',
-            });
-          }
-        }
-      }, 100);
+    if (!selectTask || selectTask === prevSelectTaskRef.current) {
+      return;
     }
-  }, [selectTask, currentItinerario])
+    prevSelectTaskRef.current = selectTask;
+    // Solo al seleccionar otra task (no en cada sync remoto del evento)
+    setTimeout(() => {
+      const element = document.getElementById(selectTask);
+      if (element) {
+        const elementRect = element.getBoundingClientRect();
+        const container = element.closest('.overflow-auto') as HTMLElement | null;
+        const previousScrollTop = ["/itinerario"].includes(window?.location?.pathname) ? 48 : 24;
+        if (container) {
+          const containerRect = container.getBoundingClientRect();
+          const targetScrollTop = container.scrollTop + elementRect.top - containerRect.top - previousScrollTop;
+          container.scrollTo({
+            top: targetScrollTop,
+            behavior: 'smooth'
+          });
+        } else {
+          const targetScrollTop = window.pageYOffset + elementRect.top - previousScrollTop;
+          window.scrollTo({
+            top: targetScrollTop,
+            behavior: 'smooth',
+          });
+        }
+      }
+    }, 100);
+  }, [selectTask])
 
   return (
-    <div className="w-full flex-1 flex flex-col overflow-auto">
+    <div ref={listScrollRef} className="w-full flex-1 flex flex-col overflow-auto">
       <InfoLateral ubication="left" infoOptions={infoLeftOptions} />
       <InfoLateral ubication="right" infoOptions={[]} />
       {showEditTask?.state && (
@@ -727,14 +742,14 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                           {el?.tasks?.map((elem, idx) => {
                             return (
                               <PermissionTaskActionWrapper
-                                key={idx}
+                                key={elem._id}
                                 task={elem}
                                 isTaskVisible={elem.spectatorView}
                                 optionsItineraryButtonBox={optionsItineraryButtonBox}
                               >
                                 <TaskNew
                                   id={elem._id}
-                                  key={idx}
+                                  key={elem._id}
                                   task={elem}
                                   itinerario={itinerario}
                                   view={view}

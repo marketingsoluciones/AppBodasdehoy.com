@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect, useMemo } from 'react';
+import React, { FC, useState, useEffect, useMemo, useRef } from 'react';
 import { Task, Itinerary, OptionsSelect, Comment } from '../../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 import { EventContextProvider } from "../../../context/EventContext";
@@ -51,7 +51,7 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
 }) => {
   const { t } = useTranslation();
   const { event } = EventContextProvider();
-  const [previousCountComments, setPreviousCountComments] = useState(0);
+  const previousCountCommentsRef = useRef(task.comments?.length ?? 0);
   const { user } = AuthContextProvider();
   const owner = user?.uid === event?.usuario_id;
   const [showAttachments, setShowAttachments] = useState(false);
@@ -93,9 +93,10 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
     return () => window.removeEventListener('resize', checkIsMobile)
   }, [])
 
-  // Auto-scroll al agregar nuevos comentarios
+  // Auto-scroll solo cuando aumenta el número de comentarios (no en sync remoto sin comentarios nuevos)
   useEffect(() => {
-    if (task.comments.length > previousCountComments) {
+    const len = task.comments?.length ?? 0;
+    if (len > previousCountCommentsRef.current) {
       setTimeout(() => {
         const commentsContainer = document.getElementById(`comments-container-${task._id}`);
         if (commentsContainer) {
@@ -106,8 +107,8 @@ export const TaskFullView: FC<TaskFullViewProps> = ({
         }
       }, 100);
     }
-    setPreviousCountComments(task.comments.length);
-  }, [task.comments.length, previousCountComments, task._id]);
+    previousCountCommentsRef.current = len;
+  }, [task.comments?.length, task._id]);
 
   return (
     <div {...props} className={`w-full bg-white rounded-lg shadow-lg cursor-default  ${isMobile ? "scale-90" : ""}`}>

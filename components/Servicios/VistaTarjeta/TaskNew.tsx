@@ -60,7 +60,7 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
   const [isAllowed, ht] = useAllowed();
   const toast = useToast();
   const commentsContainerRef = useRef<HTMLDivElement>(null);
-  const [previousCountComments, setPreviousCountComments] = useState(0);
+  const previousCountCommentsRef = useRef(task?.comments?.length ?? 0);
   const [comments, setComments] = useState<Comment[]>([]);
 
   const canEdit = !user?.uid ? false : isAllowed() || task.responsable?.includes(user?.uid);
@@ -119,7 +119,7 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
   }, [task?.comments]);
 
   useEffect(() => {
-    if (comments.length > previousCountComments && commentsContainerRef.current) {
+    if (comments.length > previousCountCommentsRef.current && commentsContainerRef.current) {
       setTimeout(() => {
         commentsContainerRef.current?.scrollTo({
           top: commentsContainerRef.current.scrollHeight,
@@ -127,8 +127,8 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
         });
       }, 100);
     }
-    setPreviousCountComments(comments.length);
-  }, [comments, previousCountComments]);
+    previousCountCommentsRef.current = comments.length;
+  }, [comments.length]);
 
   useEffect(() => {
     if (event?.itinerarios_array) {
