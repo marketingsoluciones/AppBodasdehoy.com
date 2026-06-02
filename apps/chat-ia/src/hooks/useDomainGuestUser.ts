@@ -24,6 +24,11 @@ export function useDomainGuestUser(): boolean {
   const lobeName = (username || fullName || '').toLowerCase().trim();
   const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
   if (isServerMode && !isSignedIn) return true;
+  // ✅ Si el usuario está autenticado por el sistema nativo de LobeChat (isSignedIn),
+  // NO es invitado aunque el chatStore aún no tenga currentUserId (puebla EventosAutoAuth).
+  // Esto evita tratar como guest a un usuario logueado por isSignedIn (regresión del gate de
+  // seguridad en isDomainGuestUser, que asume guest si falta currentUserId).
+  if (isSignedIn) return false;
   if (
     lobeName === 'guest' ||
     lobeName === 'anonymous' ||
