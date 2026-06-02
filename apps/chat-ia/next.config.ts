@@ -460,8 +460,11 @@ const nextConfig: NextConfig = {
   // SPRINT-AG 2026-05-20: eliminado @lobehub/ui del array (estaba como workaround Next 15.5.9
   // RSC bug del 2026-05-18). Si Modal/Drawer/Markdown rompen, revertir esta línea.
   // SPRINT-AH 2026-05-20: eliminado pdfjs-dist — dep removida en SPRINT-J, transpile sin efecto.
-  // mermaid se mantiene: lo usa @lobehub/ui internamente para renderizar diagramas.
-  transpilePackages: ['mermaid'],
+  // 🧪 2026-06-02: eliminado 'mermaid' de transpilePackages. @lobehub/ui ya lo carga LAZY
+  // (es/hooks/useMermaid.js → `import('mermaid')`), así que transpilarlo eager (65MB + cytoscape
+  // + d3) solo inflaba el grafo de compilación de /chat sin necesidad. Si los diagramas mermaid
+  // dejan de renderizar en el chat, revertir esta línea a ['mermaid'].
+  transpilePackages: [],
 
   webpack(config) {
     config.experiments = {
