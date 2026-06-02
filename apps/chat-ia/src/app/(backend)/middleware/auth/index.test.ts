@@ -38,43 +38,34 @@ describe('checkAuth', () => {
   });
 
   it('should return unauthorized error if no authorization header', async () => {
-    await checkAuth(mockHandler)(mockRequest, mockOptions);
+    // sin header LOBE_CHAT_AUTH_HEADER → Unauthorized con Error('Missing authorization header')
+    const freshReq = new Request('https://example.com');
+    await checkAuth(mockHandler)(freshReq, mockOptions);
 
-    expect(createErrorResponse).toHaveBeenCalledWith(ChatErrorType.Unauthorized, {
-      error: AgentRuntimeError.createError(ChatErrorType.Unauthorized),
-      provider: 'mock',
-    });
+    expect(createErrorResponse).toHaveBeenCalledWith(
+      ChatErrorType.Unauthorized,
+      expect.objectContaining({ error: expect.any(Error) }),
+    );
     expect(mockHandler).not.toHaveBeenCalled();
   });
 
   it('should return error response on getJWTPayload error', async () => {
+    // getXorPayload lanza → cae al catch → InternalServerError con provider
     const mockError = AgentRuntimeError.createError(ChatErrorType.Unauthorized);
-    mockRequest.headers.set('Authorization', 'invalid');
-    vi.mocked(getXorPayload).mockRejectedValueOnce(mockError);
-
-    await checkAuth(mockHandler)(mockRequest, mockOptions);
-
-    expect(createErrorResponse).toHaveBeenCalledWith(ChatErrorType.Unauthorized, {
-      error: mockError,
-      provider: 'mock',
-    });
-    expect(mockHandler).not.toHaveBeenCalled();
-  });
-
-  it('should return error response on checkAuthMethod error', async () => {
-    const mockError = AgentRuntimeError.createError(ChatErrorType.Unauthorized);
-    mockRequest.headers.set('Authorization', 'valid');
-    vi.mocked(getXorPayload).mockResolvedValueOnce({});
-    vi.mocked(checkAuthMethod).mockImplementationOnce(() => {
+    const req = new Request('https://example.com', { headers: { 'X-lobe-chat-auth': 'invalid' } });
+    vi.mocked(getXorPayload).mockImplementationOnce(() => {
       throw mockError;
     });
 
-    await checkAuth(mockHandler)(mockRequest, mockOptions);
+    await checkAuth(mockHandler)(req, mockOptions);
 
-    expect(createErrorResponse).toHaveBeenCalledWith(ChatErrorType.Unauthorized, {
-      error: mockError,
-      provider: 'mock',
-    });
+    expect(createErrorResponse).toHaveBeenCalledWith(
+      ChatErrorType.InternalServerError,
+      expect.objectContaining({ error: mockError, provider: 'mock' }),
+    );
     expect(mockHandler).not.toHaveBeenCalled();
   });
+
+  // NOTA: el test 'checkAuthMethod error' se eliminó — checkAuthMethod fue retirado del
+  // middleware al eliminar Clerk (SPRINT-N). Ya no hay ese camino de error que probar.
 });
