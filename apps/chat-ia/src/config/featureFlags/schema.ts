@@ -101,7 +101,11 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
 
   cloud_promotion: false,
 
-  market: true,
+  // Discover/Marketplace de LobeChat DESACTIVADO 2026-06-03: no se usa (a futuro habrá
+  // marketplace PROPIO orientado a productos del cliente, distinto). Solo afecta el link
+  // "Discover" del NavBar. NOTA: el flag `plugins` NO se toca — gatea el botón de Tools
+  // que da acceso a las builtin tools propias (filter-app-view, venue-visualizer).
+  market: false,
   speech_to_text: true,
   changelog: true,
 

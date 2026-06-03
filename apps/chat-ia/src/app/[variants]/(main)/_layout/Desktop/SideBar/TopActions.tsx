@@ -41,7 +41,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
   const isLoggedIn = !isGuest;
 
   const isAdmin = useChatStore((s) => s.userRole === 'admin');
-  const { enableKnowledgeBase } = useServerConfigStore(featureFlagsSelectors);
+  const { enableKnowledgeBase, showMarket } = useServerConfigStore(featureFlagsSelectors);
 
   const isChatActive = tab === SidebarTabKey.Chat && !isPinned;
   const isMemoriesActive = tab === SidebarTabKey.Memories;
@@ -109,7 +109,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           />
         </Link>
       )}
-      {isLoggedIn && (
+      {isLoggedIn && showMarket && (
         <Link aria-label="Discover" href={'/discover'} suppressHydrationWarning>
           <ActionIcon
             active={tab === SidebarTabKey.Discover}
