@@ -109,3 +109,12 @@ con prioridad: createMessage + createSession + createTopic + getTopics (mínimo 
 
 **FRONT no puede avanzar el desacople hasta que BACKEND complete esas mutations** (service atómico).
 Mientras: el chat sigue funcionando en SERVICE_MODE=server (tRPC LobeChat) — no se toca hasta paridad.
+
+## 9. ✅ API-IA CONFIRMÓ (2026-06-03): streaming NO depende de la BD LobeChat
+Respuesta API-IA verificada contra su código:
+- `messages = payload.get("messages", [])` (rest_chat_handler.py:1145, 1498) — reconstruyen
+  el contexto desde el array `messages` del request body, NO de la BD.
+- 0 imports de drizzle/tRPC/postgres/prisma. "Lobe" solo para formato SSE, no para leer su BD.
+- → CONFIRMADO: se puede quitar la BD/tRPC de LobeChat sin tocar api-ia. Riesgo de streaming = 0.
+
+Pendiente único: BACKEND-api-mcp completar P1 (createMessage/Session/Topic + getTopics + file).
