@@ -97,3 +97,15 @@ Esto es tarea de BACKEND (escalación), no de frontend. Sin eso, el desacople de
 - Fase 1.0-1.3 (message+topic+session a api-ia): ~1-2 sesiones SI api-ia ya los cubre.
 - Fase 1.4-1.5 (resto + limpieza): varias sesiones.
 - Bloqueante real: que el backend cubra el CRUD de conversaciones. Verificar ANTES de empezar.
+
+## 8. ESTADO 2026-06-03: Fase 1 escalada a BACKEND (bloqueada hasta CRUD completo)
+
+Verificado el alcance real: los 3 dominios de persistencia (message/session/topic) usan en
+total ~53 métodos; api-mcp lobe-chat cubre solo LECTURA (getMessages/getSessions/updateMessage/
+deleteMessage). La parte de STREAMING IA ya está desacoplada (aiChat→chatService→api-ia OK).
+
+Escalado a BACKEND (Slack #coordinacion hilo AppBodas) la lista completa de mutations faltantes,
+con prioridad: createMessage + createSession + createTopic + getTopics (mínimo para persistir).
+
+**FRONT no puede avanzar el desacople hasta que BACKEND complete esas mutations** (service atómico).
+Mientras: el chat sigue funcionando en SERVICE_MODE=server (tRPC LobeChat) — no se toca hasta paridad.
