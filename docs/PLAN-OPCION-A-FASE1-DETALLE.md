@@ -303,3 +303,26 @@ LO QUE FRONT YA DEJÓ LISTO (en paralelo, inactivo):
   - services/api-ia.ts: 8 funciones detrás de USE_API_IA_ENDPOINTS=false. Dominio correcto
     (api-ia.bodasdehoy.com, NO api3-ia=NXDOMAIN). Activar cuando api-ia despliegue.
   - El upload YA va por api-ia (uploadService.uploadFileToS3) — no necesita migración.
+
+## 17. DECISIONES COORD (2026-06-03) + esqueleto api-ia.ts COMPLETO
+
+D1 DOMINIO: api-ia.bodasdehoy.com (verificado /health → 200; api-ia.eventosorganizador.com
+   también responde 200, pero el front YA usa bodasdehoy en .env → sin cambio, sin riesgo CORS).
+   api3-ia.eventosorganizador.com = NXDOMAIN (descartado). Confirmar con api-ia team cuál prod.
+D2 LECTURA: OPCIÓN A — todo vía api-ia gateway (lectura + escritura). Front = 1 cliente.
+   api-ia necesita GET /chat/messages y GET /chat/sessions además de los POST.
+D3 FILES: FASE 2 (separada). El upload actual ya va por api-ia (uploadService) → no se pierde.
+
+ESQUELETO services/api-ia.ts COMPLETO (inactivo, USE_API_IA_ENDPOINTS=false):
+  Escritura: sendChatMessage, createChatSession, uploadFile, sendWhatsApp, sendSMS,
+             sendEmailCampaign, generateImage, transcribeAudio
+  Lectura (D2-A): getChatMessages, getChatSessions
+  Headers front: Authorization(JWT) + X-Development. NO X-Api-Ia-Secret (es server-to-server api-ia↔api-mcp).
+  Base: NEXT_PUBLIC_API_IA_URL (api-ia.bodasdehoy.com) / same-origin en navegador.
+
+ENDPOINTS que api-ia debe implementar (CRÍTICO chat básico):
+  POST /chat/stream, POST /chat/session, GET /chat/messages, GET /chat/sessions
+  (MEDIO/fase2: /storage/upload, /whatsapp/send, /sms/send, /email/campaign)
+
+BLOQUEANTE: api-ia despliega esos 4 endpoints CRÍTICOS. ETA ~1 día. Luego: verificar dominio,
+activar flag staging, E2E conjunto (5 pasos de api-mcp), rollout 10→50→100%.

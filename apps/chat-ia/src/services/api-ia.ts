@@ -42,9 +42,12 @@ function ensureEnabled(fn: string): void {
   }
 }
 
+// El front solo manda JWT + X-Development. El X-Api-Ia-Secret es server-to-server
+// (api-ia ↔ api-mcp), NO lo pone el cliente.
 const jsonHeaders = () => ({
   Authorization: `Bearer ${getJWT()}`,
   'Content-Type': 'application/json',
+  'X-Development': getTenant(),
 });
 
 // ─────────── ENDPOINT 1: chat streaming + persistencia (SSE) ───────────
@@ -76,7 +79,38 @@ export async function createChatSession(opts?: {
   return r.json();
 }
 
-// ─────────── ENDPOINT 3: storage upload (multipart) ───────────
+// ─────────── LECTURA vía api-ia gateway (DECISIÓN D2 = Opción A, 2026-06-03) ───────────
+// Todo (lectura + escritura) pasa por api-ia. api-ia hace proxy GraphQL read-only a api-mcp.
+export async function getChatMessages(
+  sessionId: string,
+  opts?: { limit?: number; offset?: number; topicId?: string },
+): Promise<any[]> {
+  ensureEnabled('getChatMessages');
+  const qs = new URLSearchParams({ development: getTenant(), sessionId });
+  if (opts?.topicId) qs.set('topicId', opts.topicId);
+  if (opts?.limit !== undefined) qs.set('limit', String(opts.limit));
+  if (opts?.offset !== undefined) qs.set('offset', String(opts.offset));
+  const r = await fetch(`${API_IA_BASE}/chat/messages?${qs.toString()}`, {
+    headers: jsonHeaders(),
+    method: 'GET',
+  });
+  const data = await r.json();
+  return data?.messages ?? data ?? [];
+}
+
+export async function getChatSessions(opts?: { filters?: object }): Promise<any[]> {
+  ensureEnabled('getChatSessions');
+  const qs = new URLSearchParams({ development: getTenant() });
+  if (opts?.filters) qs.set('filters', JSON.stringify(opts.filters));
+  const r = await fetch(`${API_IA_BASE}/chat/sessions?${qs.toString()}`, {
+    headers: jsonHeaders(),
+    method: 'GET',
+  });
+  const data = await r.json();
+  return data?.sessions ?? data ?? [];
+}
+
+// ─────────── ENDPOINT 3: storage upload (multipart) — FASE 2 (D3) ───────────
 export async function uploadFile(
   file: File,
   opts?: { metadata?: object, sessionId?: string; },
