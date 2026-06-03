@@ -74,11 +74,12 @@ export async function sendChatMessage(
 
 // ─────────── ENDPOINT 2: crear sesión ───────────
 // Ruta REAL: POST /api/sessions  (contrato: { title, model, development, user_email })
+// Respuesta api-ia envuelta en { success, data }. Devolvemos el id de la sesión creada.
 export async function createChatSession(opts?: {
   model?: string;
   title?: string;
   userEmail?: string;
-}): Promise<{ createdAt?: string; sessionId?: string }> {
+}): Promise<string> {
   ensureEnabled('createChatSession');
   const r = await fetch(`${API_IA_BASE}/api/sessions`, {
     body: JSON.stringify({
@@ -90,7 +91,15 @@ export async function createChatSession(opts?: {
     headers: jsonHeaders(),
     method: 'POST',
   });
-  return r.json();
+  const res = await r.json();
+  if (res?.success === false) {
+    throw new Error(res?.error || res?.message || '[api-ia] createChatSession falló');
+  }
+  // api-ia envuelve en { success, data }. El id puede venir en varias formas — robusto:
+  const d = res?.data ?? res;
+  const id = d?.sessionId ?? d?.id ?? d?._id;
+  if (!id) throw new Error('[api-ia] createChatSession: respuesta sin id de sesión');
+  return id as string;
 }
 
 // ─────────── LECTURA vía api-ia gateway (DECISIÓN D2 = Opción A, 2026-06-03) ───────────

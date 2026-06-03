@@ -10,6 +10,7 @@ import { MESSAGE_CANCEL_FLAT } from '@/const/message';
 import { DEFAULT_AGENT_LOBE_SESSION, INBOX_SESSION_ID } from '@/const/session';
 import { DEFAULT_CHAT_GROUP_CHAT_CONFIG } from '@/const/settings';
 import { useClientDataSWR } from '@/libs/swr';
+import { USE_API_IA_ENDPOINTS, createChatSession as apiIaCreateSession } from '@/services/api-ia';
 import { chatGroupService } from '@/services/chatGroup';
 import { sessionService } from '@/services/session';
 import { getChatGroupStoreState } from '@/store/chatGroup';
@@ -116,7 +117,15 @@ export const createSessionSlice: StateCreator<
 
     const newSession: LobeAgentSession = merge(defaultAgent, agent);
 
-    const id = await sessionService.createSession(LobeSessionType.Agent, newSession);
+    // 🚧 Migración Opción A: cuando USE_API_IA_ENDPOINTS, crear sesión vía api-ia gateway
+    // (→ MCP_GRAPHQL createLobeSession). Mientras flag=false → flujo actual intacto.
+    const id = USE_API_IA_ENDPOINTS
+      ? await apiIaCreateSession({
+          model: newSession.config?.model,
+          title: newSession.meta?.title,
+          userEmail: userProfileSelectors.email(useUserStore.getState()),
+        })
+      : await sessionService.createSession(LobeSessionType.Agent, newSession);
     await refreshSessions();
 
     // Track new agent creation analytics
