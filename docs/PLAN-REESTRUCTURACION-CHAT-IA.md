@@ -90,10 +90,23 @@ Candidatas confirmadas a eliminar (no usadas / genéricas LobeChat):
   experiencia tipo ChatGPT/Claude (chat completo), no solo el embed pequeño.
 - → chat-ia sigue como app standalone Y se sigue embebiendo via copilot-shared. Ambos.
 
-## 7. Orden de ejecución acordado
+## 7. Orden de ejecución acordado + ESTADO
 
-1. **Knowledge/RAG fuera** (confirmado por auditoría) — primer gran recorte de módulos.
-2. **Plugins/Tools store + Discover/Marketplace LobeChat fuera** (genéricos no usados).
-3. **Image → módulo** (visor genérico para cualquier agente con imágenes).
-4. **Aislar mermaid/shiki/katex** (lazy).
-5. Medir módulos de /chat tras cada fase (baseline 40.418).
+1. ✅ **Knowledge/RAG oculto** (commit 1300cec9) — flag `knowledge_base:false` + sidebar. api-mcp ya lo cubre.
+2. ✅ **Discover/Marketplace oculto** (commit a36f9567) — flag `market:false` + sidebar.
+   ⚠️ **Plugins NO se toca**: el flag `plugins` gatea el botón Tools del chat = acceso a las
+   builtin tools propias (filter-app-view, venue-visualizer). Separar marketplace-de-plugins
+   de builtin-tools requiere cambio en código, no flag. Diferido.
+3. ✅ **Image /standalone oculto** (commit 2767f817) — flag `ai_image:false` + sidebar.
+   ⚠️ **dalle NO se toca**: es la tool de generar imágenes EN el chat (sí se usa).
+   📋 PENDIENTE: extraer /image (63 archivos) a módulo VISOR GENÉRICO en sesión dedicada.
+4. 📋 **Aislar mermaid/shiki/katex** (lazy) — pendiente.
+5. 📋 **Borrado de código muerto en BLOQUE** (knowledge ~48 archivos + discover + image) —
+   diferido a entorno donde compilar no cueste 10min. El flag ya neutralizó lo funcional.
+
+### Lección clave de los flags
+Los feature flags de LobeChat NO separan limpiamente "feature genérica" de "funcionalidad propia":
+- `plugins` = marketplace LobeChat + builtin tools propias (mismo flag)
+- `dalle` = generación en chat (propia) ≠ `ai_image` = página standalone
+Por eso solo se desactivaron los flags que NO tocan funcionalidad propia (knowledge_base, market,
+ai_image). El borrado real de código se hace en bloque, con medición, más adelante.
