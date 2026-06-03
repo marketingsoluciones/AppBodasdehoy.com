@@ -66,6 +66,33 @@ api-mcp YA expone el CRUD de conversaciones para LobeChat. Confirmado en código
 - Pendiente menor: confirmar paridad de campos (¿el resolver lobe-chat cubre topics además de
   sessions/messages?) — verificar `lobe-chat.ts` resolver en detalle al empezar Fase 1.1.
 
+## 6.b MAPA DE PARIDAD message (verificado 2026-06-03) — bloqueo PARCIAL real
+
+Contrato: `IMessageService` (~28 métodos). Lo que el resolver `lobe-chat.ts` de api-mcp YA cubre:
+
+| Método chat (usos) | api-mcp lobe-chat |
+|---|---|
+| getMessages (4) | ✅ |
+| updateMessage (13) | ✅ |
+| removeMessage/deleteMessage (1) | ✅ |
+| getSessions | ✅ |
+| **createMessage (23 — el #1)** | ❌ FALTA |
+| createNewMessage, batchCreateMessages | ❌ FALTA |
+| updateMessageTTS/Translate/PluginState/RAG (9) | ❌ FALTA |
+| getAllMessages, countMessages, rankModels, getHeatmaps | ❌ FALTA |
+
+**CONCLUSIÓN:** el backend cubrió la LECTURA pero NO la ESCRITURA de mensajes (falta createMessage
+y las updates específicas). Recablear `message` completo a api-mcp HOY romper ía crear mensajes.
+→ **Fase 1.1 está BLOQUEADA por backend**: necesita que api-mcp añada `createMessage`,
+`createNewMessage`, `batchCreateMessages` y los `updateMessage*` específicos al resolver lobe-chat.
+Esto es tarea de BACKEND (escalación), no de frontend. Sin eso, el desacople de message no avanza.
+
+### Qué SÍ se puede hacer ahora (sin backend)
+- Recablear solo los métodos de LECTURA (getMessages/getSessions/updateMessage/deleteMessage) NO
+  sirve: el service es atómico (o todo a api-mcp o todo a tRPC). Migrar parcial deja el chat roto.
+- → Lo accionable HOY es: (a) escalar a BACKEND la lista de mutations faltantes, (b) mientras,
+  avanzar en lo que NO depende del backend (ej. eliminar features muertas ya decididas).
+
 ## 7. Estimación honesta
 - Fase 1.0-1.3 (message+topic+session a api-ia): ~1-2 sesiones SI api-ia ya los cubre.
 - Fase 1.4-1.5 (resto + limpieza): varias sesiones.
