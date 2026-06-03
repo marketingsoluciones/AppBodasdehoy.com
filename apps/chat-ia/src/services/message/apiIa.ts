@@ -78,6 +78,9 @@ export class ApiIaMessageService implements IMessageService {
   createMessage: IMessageService['createMessage'] = async ({ sessionId, ...params }) => {
     const res = await call('POST', '/chat/messages', {
       content: (params as any).content,
+      // CONTRATO role (api-ia 2026-06-03): front↔api-ia en MINÚSCULAS ('user'/'assistant').
+      // api-ia uppercasea antes de api-mcp (cuya comparación es role==='ASSISTANT' para facturar).
+      // NO cambiar a mayúsculas aquí — romperías el doble-uppercase y la facturación. [[contrato]]
       role: String((params as any).role),
       sessionId: this.toDbSessionId(sessionId),
       type: (params as any).type,
