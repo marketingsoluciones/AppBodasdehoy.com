@@ -139,6 +139,7 @@ const nextConfig: NextConfig = {
       // tras @lobehub/ui=427), dayjs=177. Tree-shaking nativo reduce su fan-out.
       '@emotion/react',     // 397 módulos en bundle /chat (styled/css/keyframes)
       'dayjs',              // 177 módulos (locales + plugins barrel)
+      '@next/third-parties', // 36 módulos (Google tag/Analytics — barrel)
     ],
 
     // ✅ Limitar CPUs para reducir memoria paralela
