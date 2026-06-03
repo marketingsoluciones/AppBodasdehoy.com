@@ -54,7 +54,7 @@ check "GET /chat/sessions?userId" 1 GET "/chat/sessions?userId=${USER_ID}&limit=
 # crear sesión de prueba y capturar su id
 CREATE_CODE="$(curl -s -o /tmp/smoke_sess.txt -w "%{http_code}" -X POST "${API_IA_URL}/chat/session" "${AUTH[@]}" \
   -d "{\"development\":\"${DEV}\",\"title\":\"SMOKE-test\",\"type\":\"agent\"}" --max-time 20 2>/dev/null)"
-SESSION_ID="${SESSION_ID:-$(grep -oE '"(id|_id|sessionId)":"[^"]+"' /tmp/smoke_sess.txt 2>/dev/null | head -1 | grep -oE '[^"]+$')}"
+SESSION_ID="${SESSION_ID:-$(grep -oE '"(id|_id|sessionId)"[[:space:]]*:[[:space:]]*"[^"]+"' /tmp/smoke_sess.txt 2>/dev/null | head -1 | sed -E 's/.*:[[:space:]]*"([^"]+)".*/\1/')}"
 if [ "$CREATE_CODE" -ge 200 ] && [ "$CREATE_CODE" -lt 300 ] && [ -n "$SESSION_ID" ]; then
   echo "  ✅ OK   [$CREATE_CODE] POST /chat/session → id=${SESSION_ID}"; PASS=$((PASS+1))
 else
@@ -65,7 +65,7 @@ echo "── 2. MENSAJES (CRUD) ──"
 if [ -n "$SESSION_ID" ]; then
   MSG_CODE="$(curl -s -o /tmp/smoke_msg.txt -w "%{http_code}" -X POST "${API_IA_URL}/chat/messages" "${AUTH[@]}" \
     -d "{\"sessionId\":\"${SESSION_ID}\",\"role\":\"user\",\"content\":\"smoke ping\"}" --max-time 20 2>/dev/null)"
-  MSG_ID="$(grep -oE '"(id|_id)":"[^"]+"' /tmp/smoke_msg.txt 2>/dev/null | head -1 | grep -oE '[^"]+$')"
+  MSG_ID="$(grep -oE '"(id|_id)"[[:space:]]*:[[:space:]]*"[^"]+"' /tmp/smoke_msg.txt 2>/dev/null | head -1 | sed -E 's/.*:[[:space:]]*"([^"]+)".*/\1/')"
   [ "$MSG_CODE" -ge 200 ] && [ "$MSG_CODE" -lt 300 ] && { echo "  ✅ OK   [$MSG_CODE] POST /chat/messages → id=${MSG_ID}"; PASS=$((PASS+1)); } \
     || { echo "  ❌ [$MSG_CODE] POST /chat/messages"; CRIT_FAIL=$((CRIT_FAIL+1)); }
   check "GET /chat/messages?sessionId" 1 GET "/chat/messages?sessionId=${SESSION_ID}&limit=10"
