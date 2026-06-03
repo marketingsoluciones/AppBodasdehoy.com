@@ -118,3 +118,40 @@ Respuesta API-IA verificada contra su código:
 - → CONFIRMADO: se puede quitar la BD/tRPC de LobeChat sin tocar api-ia. Riesgo de streaming = 0.
 
 Pendiente único: BACKEND-api-mcp completar P1 (createMessage/Session/Topic + getTopics + file).
+
+## 10. MAPEO REAL confirmado por BACKEND (2026-06-03) — guía de implementación
+
+GraphQL: https://api-mcp.eventosorganizador.com/graphql
+Auth: Authorization: Bearer <mcp_jwt> + X-Development: <dev>  (login: POST /auth/firebase-login {firebaseToken, development})
+
+MESSAGE:
+  createMessage  → sendMessage(sessionId, input)  ✅ {success,message:{id},errors}  [implementado en apiServer.ts]
+  getMessages    → getMessages ✅ {success,messages[],total,pagination}
+  updateMessage  → updateMessage ✅ (genérico: input:{tts|translate|pluginState|error|...})
+  deleteMessage  → deleteMessage ✅ (soft delete)
+  createNewMessage → usar sendMessage + devolver objeto
+  batchCreateMessages → ❌ FALTA (P2, no bloquea)
+  updateMessageTTS/Translate/Plugin*/RAG → vía updateMessage(input:{campo}) — confirmar shape exacto
+
+SESSION:
+  createSession(type,defaultValue) → createLobeSession(userId, development, input) ✅
+     ⚠️ mapeo NO 1:1: input={titulo?, session_type(LOBE_CHAT), participants[userId], config?, meta?, group_id?}
+  getSessions   → getSessions ✅ {success,sessions[],total,pagination}
+  updateSession → updateSession ✅ ; deleteSession ✅ ; archive/restore ✅ ; searchSessions ✅
+  getGroupedSessions → ❌ FALTA (el sidebar lo usa — pedir o construir desde getSessions+getSessionGroups)
+  getSessionConfig, removeAllSessions, cloneSession → ❌ FALTAN (P3)
+  SessionGroups: create/update/delete/get ✅
+
+TOPIC:
+  createTopic, getTopics → ⏳ BACKEND implementando (Opción A subdocumento en Chat, ETA 50min)
+  resto topic → P3
+
+CAMPOS clave getMessages: id(_id), role(USER|ASSISTANT|SYSTEM), content, sessionId, createdAt/updatedAt(ISO8601)
+  + legacy: emisor, mensaje(=content), tokens, cost, aiProvider, aiModel
+CAMPOS clave getSessions: id, titulo, session_type, participants[], config, meta, group_id,
+  status(ACTIVE|DELETED|ARCHIVED), development, whitelabel_info{whitelabel,project_id,event_id}
+
+GAPS que FRONT debe resolver al recablear:
+  - getGroupedSessions: construir en cliente desde getSessions + getSessionGroups (BACKEND no lo tiene)
+  - role mayúsculas (USER no user) — mapear en ambos sentidos
+  - createSession: adaptar (type,defaultValue) de LobeChat → input de createLobeSession
