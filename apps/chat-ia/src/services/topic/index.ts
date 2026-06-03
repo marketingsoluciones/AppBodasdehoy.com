@@ -1,6 +1,8 @@
 import { isDesktop } from '@/const/version';
+import { USE_API_IA_ENDPOINTS } from '@/services/api-ia';
 
 import { ClientService as DeprecatedService } from './_deprecated';
+import { ApiIaTopicService } from './apiIa';
 import { ServerService } from './server';
 import { ITopicService } from './type';
 
@@ -17,7 +19,10 @@ function buildClientService(): ITopicService {
 
 const clientService = buildClientService();
 
-export const topicService =
-  process.env.NEXT_PUBLIC_SERVICE_MODE === 'server' || isDesktop
+// Migración Opción A: con USE_API_IA_ENDPOINTS, topics vía api-ia (ApiIaTopicService →
+// /chat/topics), eliminando tRPC/drizzle. Flag false → comportamiento intacto.
+export const topicService = USE_API_IA_ENDPOINTS
+  ? new ApiIaTopicService()
+  : process.env.NEXT_PUBLIC_SERVICE_MODE === 'server' || isDesktop
     ? new ServerService()
     : clientService;

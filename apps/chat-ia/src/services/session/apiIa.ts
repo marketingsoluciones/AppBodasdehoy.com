@@ -56,56 +56,78 @@ export class ApiIaSessionService implements ISessionService {
     return id as string;
   };
 
-  // ───────── PENDIENTE api-ia (path propuesto en el throw) ─────────
-  private pending(method: string, proposedPath: string): never {
+  // ───────── CONFIRMADOS por api-ia (2026-06-03, 12 endpoints desplegados) ─────────
+  // PATCH /chat/sessions/{id} — update genérico (session + meta + config van por aquí).
+  updateSession: ISessionService['updateSession'] = async (id, data) =>
+    call('PATCH', `/chat/sessions/${encodeURIComponent(id)}`, data);
+  updateSessionMeta: ISessionService['updateSessionMeta'] = async (id, meta) =>
+    call('PATCH', `/chat/sessions/${encodeURIComponent(id)}`, { meta });
+  updateSessionConfig: ISessionService['updateSessionConfig'] = async (id, config) =>
+    call('PATCH', `/chat/sessions/${encodeURIComponent(id)}`, { config });
+  updateSessionChatConfig: ISessionService['updateSessionChatConfig'] = async (id, chatConfig) =>
+    call('PATCH', `/chat/sessions/${encodeURIComponent(id)}`, { chatConfig });
+
+  // DELETE /chat/sessions/{id}
+  removeSession: ISessionService['removeSession'] = async (id) =>
+    call('DELETE', `/chat/sessions/${encodeURIComponent(id)}`);
+
+  // GET /chat/sessions/search?userId=X&q=Y
+  searchSessions: ISessionService['searchSessions'] = async (keyword) => {
+    const res = await call(
+      'GET',
+      `/chat/sessions/search?userId=${encodeURIComponent(uid())}&q=${encodeURIComponent(keyword)}`,
+    );
+    const list = mapApiIaSessionsToList(res?.data ?? res?.sessions ?? res);
+    return list.sessions;
+  };
+
+  // ───────── SESSION GROUPS — CONFIRMADOS (GET/POST/PATCH/DELETE /chat/session-groups) ─────────
+  createSessionGroup: ISessionService['createSessionGroup'] = async (name, sort) => {
+    const res = await call('POST', '/chat/session-groups', { name, sort });
+    const d = res?.data ?? res;
+    return (d?.id ?? d?._id) as string;
+  };
+  getSessionGroups: ISessionService['getSessionGroups'] = async () => {
+    const res = await call('GET', '/chat/session-groups');
+    return (res?.data ?? res?.groups ?? res ?? []) as any;
+  };
+  updateSessionGroup: ISessionService['updateSessionGroup'] = async (id, data) =>
+    call('PATCH', `/chat/session-groups/${encodeURIComponent(id)}`, data);
+  removeSessionGroup: ISessionService['removeSessionGroup'] = async (id, removeChildren) =>
+    call(
+      'DELETE',
+      `/chat/session-groups/${encodeURIComponent(id)}${removeChildren ? '?removeChildren=true' : ''}`,
+    );
+
+  // ───────── 5 ops NO existentes en api-mcp (api-ia 2026-06-03) — pending, no bloquean ─────────
+  private pending(method: string, note: string): never {
     throw new Error(
-      `[session/apiIa] ${method}: endpoint api-ia no confirmado (propuesto: ${proposedPath}). ` +
-        `NO activar sin que api-ia lo exponga. Ver project_migracion_api_ia_estado_03jun.`,
+      `[session/apiIa] ${method}: ${note}. NO existe en api-mcp (api-ia 2026-06-03). ` +
+        `No bloquea el flujo principal. Ver project_migracion_api_ia_estado_03jun.`,
     );
   }
-
-  updateSession: ISessionService['updateSession'] = async () =>
-    this.pending('updateSession', 'PATCH /chat/sessions/{id}');
-  updateSessionConfig: ISessionService['updateSessionConfig'] = async () =>
-    this.pending('updateSessionConfig', 'PATCH /chat/sessions/{id}/config');
-  updateSessionMeta: ISessionService['updateSessionMeta'] = async () =>
-    this.pending('updateSessionMeta', 'PATCH /chat/sessions/{id} (meta)');
-  updateSessionChatConfig: ISessionService['updateSessionChatConfig'] = async () =>
-    this.pending('updateSessionChatConfig', 'PATCH /chat/sessions/{id}/chat-config');
-  getSessionConfig: ISessionService['getSessionConfig'] = async () =>
-    this.pending('getSessionConfig', 'GET /chat/sessions/{id}/config');
   cloneSession: ISessionService['cloneSession'] = async () =>
-    this.pending('cloneSession', 'POST /chat/sessions/{id}/clone');
-  removeSession: ISessionService['removeSession'] = async () =>
-    this.pending('removeSession', 'DELETE /chat/sessions/{id}');
-  removeAllSessions: ISessionService['removeAllSessions'] = async () =>
-    this.pending('removeAllSessions', 'DELETE /chat/sessions');
-  searchSessions: ISessionService['searchSessions'] = async () =>
-    this.pending('searchSessions', 'GET /chat/sessions/search?q=');
-  getSessionsByType: ISessionService['getSessionsByType'] = async () =>
-    this.pending('getSessionsByType', 'GET /chat/sessions?type=');
-  countSessions: ISessionService['countSessions'] = async () =>
-    this.pending('countSessions', 'GET /chat/sessions/count');
-  rankSessions: ISessionService['rankSessions'] = async () =>
-    this.pending('rankSessions', 'GET /chat/sessions/rank');
-  hasSessions: ISessionService['hasSessions'] = async () =>
-    this.pending('hasSessions', 'GET /chat/sessions/count');
-  batchCreateSessions: ISessionService['batchCreateSessions'] = async () =>
-    this.pending('batchCreateSessions', 'POST /chat/sessions/batch');
-
-  // Session groups (ninguno confirmado)
-  createSessionGroup: ISessionService['createSessionGroup'] = async () =>
-    this.pending('createSessionGroup', 'POST /chat/session-groups');
-  getSessionGroups: ISessionService['getSessionGroups'] = async () =>
-    this.pending('getSessionGroups', 'GET /chat/session-groups');
-  updateSessionGroup: ISessionService['updateSessionGroup'] = async () =>
-    this.pending('updateSessionGroup', 'PATCH /chat/session-groups/{id}');
+    this.pending('cloneSession', 'duplicar sesión (UX secundaria)');
+  getSessionConfig: ISessionService['getSessionConfig'] = async () =>
+    this.pending('getSessionConfig', 'leer config agente por sesión — EN OBSERVACIÓN, pedir a api-mcp si el flujo lo requiere');
   updateSessionGroupOrder: ISessionService['updateSessionGroupOrder'] = async () =>
-    this.pending('updateSessionGroupOrder', 'PATCH /chat/session-groups/order');
-  removeSessionGroup: ISessionService['removeSessionGroup'] = async () =>
-    this.pending('removeSessionGroup', 'DELETE /chat/session-groups/{id}');
+    this.pending('updateSessionGroupOrder', 'reordenar grupos (cosmético)');
   removeSessionGroups: ISessionService['removeSessionGroups'] = async () =>
-    this.pending('removeSessionGroups', 'DELETE /chat/session-groups');
+    this.pending('removeSessionGroups', 'borrar todos los grupos (raro)');
   batchCreateSessionGroups: ISessionService['batchCreateSessionGroups'] = async () =>
-    this.pending('batchCreateSessionGroups', 'POST /chat/session-groups/batch');
+    this.pending('batchCreateSessionGroups', 'import masivo de grupos (raro)');
+
+  // ───────── ops poco usadas — sin endpoint dedicado, pending ─────────
+  removeAllSessions: ISessionService['removeAllSessions'] = async () =>
+    this.pending('removeAllSessions', 'borrar todas las sesiones (raro/peligroso)');
+  getSessionsByType: ISessionService['getSessionsByType'] = async () =>
+    this.pending('getSessionsByType', 'filtrar por tipo — usar getGroupedSessions y filtrar en cliente');
+  countSessions: ISessionService['countSessions'] = async () =>
+    this.pending('countSessions', 'contar sesiones (stats)');
+  rankSessions: ISessionService['rankSessions'] = async () =>
+    this.pending('rankSessions', 'ranking sesiones (stats)');
+  hasSessions: ISessionService['hasSessions'] = async () =>
+    this.pending('hasSessions', 'check existencia (stats)');
+  batchCreateSessions: ISessionService['batchCreateSessions'] = async () =>
+    this.pending('batchCreateSessions', 'import masivo de sesiones (raro)');
 }

@@ -1,11 +1,7 @@
 /**
- * 🚧 ApiIaTopicService — topics vía api-ia (Opción A). NINGÚN endpoint confirmado aún.
- *
- * api-ia NO ha confirmado rutas de topic (2026-06-03). Esqueleto con PATHS PROPUESTOS en el
- * throw para que, cuando api-ia los exponga (ver project_migracion_api_ia_estado_03jun), solo
- * haya que rellenar la llamada `call()`. NO activar hasta que existan.
- *
- * Patrón idéntico a ApiIaMessageService / ApiIaSessionService: fetch a /api/backend/... (→api-ia).
+ * 🚧 ApiIaTopicService — topics vía api-ia (Opción A). CRUD CONFIRMADO por api-ia (2026-06-03):
+ * GET/POST/PATCH/DELETE /chat/topics desplegados. searchTopics/cloneTopic NO existen en api-mcp
+ * (no bloquean → pending). Patrón fetch /api/backend/... (→api-ia), buildAuthHeaders + credentials.
  */
 import { buildAuthHeaders } from '@/utils/authToken';
 
@@ -14,8 +10,6 @@ import { ITopicService } from './type';
 const BACKEND = '/api/backend';
 const origin = () => (typeof window !== 'undefined' ? window.location.origin : '');
 
-// Helper listo para cuando se rellenen los métodos (evita duplicar fetch en cada uno).
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function call(method: string, path: string, body?: unknown): Promise<any> {
   const res = await fetch(`${origin()}${BACKEND}${path}`, {
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -28,38 +22,51 @@ async function call(method: string, path: string, body?: unknown): Promise<any> 
   return text ? JSON.parse(text) : null;
 }
 
+const unwrap = (res: any) => res?.data ?? res?.topics ?? res ?? [];
+
 export class ApiIaTopicService implements ITopicService {
-  private pending(method: string, proposedPath: string): never {
+  // ───────── CONFIRMADOS (GET/POST/PATCH/DELETE /chat/topics) ─────────
+  createTopic: ITopicService['createTopic'] = async (params) => {
+    const res = await call('POST', '/chat/topics', params);
+    const d = res?.data ?? res;
+    return (d?.id ?? d?._id) as string;
+  };
+  getTopics: ITopicService['getTopics'] = async (params) => {
+    const qs = new URLSearchParams();
+    if ((params as any)?.sessionId) qs.set('sessionId', (params as any).sessionId);
+    const res = await call('GET', `/chat/topics?${qs.toString()}`);
+    return unwrap(res);
+  };
+  getAllTopics: ITopicService['getAllTopics'] = async () => {
+    const res = await call('GET', '/chat/topics');
+    return unwrap(res);
+  };
+  updateTopic: ITopicService['updateTopic'] = async (id, data) =>
+    call('PATCH', `/chat/topics/${encodeURIComponent(id)}`, data);
+  removeTopic: ITopicService['removeTopic'] = async (id) =>
+    call('DELETE', `/chat/topics/${encodeURIComponent(id)}`);
+  removeTopics: ITopicService['removeTopics'] = async (sessionId) =>
+    call('DELETE', `/chat/topics?sessionId=${encodeURIComponent(sessionId)}`);
+
+  // ───────── pending: NO existen en api-mcp / poco usadas (no bloquean) ─────────
+  private pending(method: string, note: string): never {
     throw new Error(
-      `[topic/apiIa] ${method}: endpoint api-ia no confirmado (propuesto: ${proposedPath}). ` +
-        `NO activar sin que api-ia lo exponga. Ver project_migracion_api_ia_estado_03jun.`,
+      `[topic/apiIa] ${method}: ${note}. No bloquea el flujo principal. ` +
+        `Ver project_migracion_api_ia_estado_03jun.`,
     );
   }
-
-  createTopic: ITopicService['createTopic'] = async () =>
-    this.pending('createTopic', 'POST /chat/topics');
-  getTopics: ITopicService['getTopics'] = async () =>
-    this.pending('getTopics', 'GET /chat/topics?sessionId=');
-  getAllTopics: ITopicService['getAllTopics'] = async () =>
-    this.pending('getAllTopics', 'GET /chat/topics/all');
-  updateTopic: ITopicService['updateTopic'] = async () =>
-    this.pending('updateTopic', 'PATCH /chat/topics/{id}');
-  removeTopic: ITopicService['removeTopic'] = async () =>
-    this.pending('removeTopic', 'DELETE /chat/topics/{id}');
-  removeTopics: ITopicService['removeTopics'] = async () =>
-    this.pending('removeTopics', 'DELETE /chat/topics?sessionId=');
   cloneTopic: ITopicService['cloneTopic'] = async () =>
-    this.pending('cloneTopic', 'POST /chat/topics/{id}/clone');
+    this.pending('cloneTopic', 'duplicar topic — NO existe en api-mcp (UX secundaria)');
   searchTopics: ITopicService['searchTopics'] = async () =>
-    this.pending('searchTopics', 'GET /chat/topics/search?q=');
+    this.pending('searchTopics', 'buscar topics — NO existe en api-mcp (secundaria)');
   countTopics: ITopicService['countTopics'] = async () =>
-    this.pending('countTopics', 'GET /chat/topics/count');
+    this.pending('countTopics', 'contar topics (stats)');
   rankTopics: ITopicService['rankTopics'] = async () =>
-    this.pending('rankTopics', 'GET /chat/topics/rank');
+    this.pending('rankTopics', 'ranking topics (stats)');
   batchCreateTopics: ITopicService['batchCreateTopics'] = async () =>
-    this.pending('batchCreateTopics', 'POST /chat/topics/batch');
+    this.pending('batchCreateTopics', 'import masivo (raro)');
   batchRemoveTopics: ITopicService['batchRemoveTopics'] = async () =>
-    this.pending('batchRemoveTopics', 'DELETE /chat/topics/batch');
+    this.pending('batchRemoveTopics', 'borrado masivo (raro)');
   removeAllTopic: ITopicService['removeAllTopic'] = async () =>
-    this.pending('removeAllTopic', 'DELETE /chat/topics');
+    this.pending('removeAllTopic', 'borrar todos (raro/peligroso)');
 }

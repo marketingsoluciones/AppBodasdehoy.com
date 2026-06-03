@@ -1,6 +1,8 @@
 import { isDesktop } from '@/const/version';
+import { USE_API_IA_ENDPOINTS } from '@/services/api-ia';
 
 import { ClientService as DeprecatedService } from './_deprecated';
+import { ApiIaSessionService } from './apiIa';
 import { ServerService } from './server';
 import { ISessionService } from './type';
 
@@ -17,7 +19,10 @@ function buildClientService(): ISessionService {
 
 const clientService = buildClientService();
 
-export const sessionService =
-  process.env.NEXT_PUBLIC_SERVICE_MODE === 'server' || isDesktop
+// Migración Opción A: con USE_API_IA_ENDPOINTS, sesiones vía api-ia (ApiIaSessionService →
+// /chat/sessions + session-groups), eliminando tRPC/drizzle. Flag false → comportamiento intacto.
+export const sessionService = USE_API_IA_ENDPOINTS
+  ? new ApiIaSessionService()
+  : process.env.NEXT_PUBLIC_SERVICE_MODE === 'server' || isDesktop
     ? new ServerService()
     : clientService;
