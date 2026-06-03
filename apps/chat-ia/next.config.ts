@@ -134,6 +134,11 @@ const nextConfig: NextConfig = {
       // SPRINT-AP 2026-05-20: top imports library con barrel.
       'react-i18next',      // 579 archivos — useTranslation principalmente
       'zod',                // 63 archivos
+      // 2026-06-03: medido en bundle server real de /chat (.next/server/app).
+      // Barrels grandes que NO estaban en la lista. @emotion/react=397 módulos (#2
+      // tras @lobehub/ui=427), dayjs=177. Tree-shaking nativo reduce su fan-out.
+      '@emotion/react',     // 397 módulos en bundle /chat (styled/css/keyframes)
+      'dayjs',              // 177 módulos (locales + plugins barrel)
     ],
 
     // ✅ Limitar CPUs para reducir memoria paralela
