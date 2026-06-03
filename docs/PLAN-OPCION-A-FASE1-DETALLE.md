@@ -257,3 +257,23 @@ BLOQUEANTES para FRONT (no podemos avanzar hasta):
   2. Confirmar dominio real (api-ia.bodasdehoy.com, NO api3-ia.eventosorganizador.com).
   3. Decisión: ¿migramos los 8 flujos o solo chat/persistencia primero? (alcance).
   4. El streaming/upload ACTUAL funciona — no romperlo hasta que los nuevos estén probados.
+
+## 15. DECISIÓN COORD (2026-06-03): alcance = LOS 8 ENDPOINTS completos (plan BACKEND)
+
+COORD eligió migrar los 8 flujos al patrón REST de api-ia (chat/storage/whatsapp/sms/email/
+imagen/audio + lectura directo api-mcp). Centraliza facturación en api-ia, arquitectura limpia.
+
+SECUENCIA OBLIGATORIA (BACKEND lo marcó, RIESGO app rota si se salta):
+  1. api-ia IMPLEMENTA los 8 endpoints REST/SSE (ETA backend 8h) — HOY NO EXISTEN.
+  2. api-ia DESPLIEGA + da URL/dominio REAL probado (NO api3-ia.eventosorganizador.com = NXDOMAIN;
+     el real es api-ia.bodasdehoy.com).
+  3. api-mcp: Files P1 opción B (ETA 1h) — pendiente.
+  4. SOLO ENTONCES front migra con feature flag USE_API_IA_ENDPOINTS, testing E2E conjunto, rollout gradual.
+
+FRONT BLOQUEADO hasta paso 1+2. NO tocar el flujo actual (streaming + upload YA funcionan).
+Mientras: preparar los helpers api-ia.ts (esqueleto) SIN activarlos, contra el dominio correcto.
+
+LO QUE FRONT PUEDE ADELANTAR (sin romper, sin endpoints aún):
+  - Esqueleto src/services/api-ia.ts con las 8 funciones (sendChatMessage, uploadFile, sendWhatsApp...)
+    apuntando a NEXT_PUBLIC_API_IA_URL (api-ia.bodasdehoy.com), detrás de flag USE_API_IA_ENDPOINTS=false.
+  - Mapear qué llamadas actuales del front reemplazará cada endpoint.
