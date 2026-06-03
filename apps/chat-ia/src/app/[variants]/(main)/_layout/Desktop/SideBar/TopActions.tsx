@@ -41,7 +41,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
   const isLoggedIn = !isGuest;
 
   const isAdmin = useChatStore((s) => s.userRole === 'admin');
-  const { enableKnowledgeBase, showMarket } = useServerConfigStore(featureFlagsSelectors);
+  const { enableKnowledgeBase, showMarket, showAiImage } = useServerConfigStore(featureFlagsSelectors);
 
   const isChatActive = tab === SidebarTabKey.Chat && !isPinned;
   const isMemoriesActive = tab === SidebarTabKey.Memories;
@@ -87,16 +87,19 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           tooltipProps={{ placement: 'right' }}
         />
       </Link>
-      {/* Generación de imágenes — visible para visitantes y registrados */}
-      <Link aria-label="Imágenes" href={'/image'} suppressHydrationWarning>
-        <ActionIcon
-          active={tab === SidebarTabKey.Image}
-          icon={ImagePlus}
-          size={ICON_SIZE}
-          title="Generación de imágenes"
-          tooltipProps={{ placement: 'right' }}
-        />
-      </Link>
+      {/* Generación de imágenes (/image standalone) — gateado por showAiImage.
+          NOTA: NO afecta la tool DALL-E del chat (esa la controla `dalle`, intacta). */}
+      {showAiImage && (
+        <Link aria-label="Imágenes" href={'/image'} suppressHydrationWarning>
+          <ActionIcon
+            active={tab === SidebarTabKey.Image}
+            icon={ImagePlus}
+            size={ICON_SIZE}
+            title="Generación de imágenes"
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
       {/* Resto de opciones — solo usuarios registrados */}
       {isLoggedIn && isServerMode && (
         <Link aria-label={t('tab.weddingCreator' as any)} href={'/wedding-creator'} suppressHydrationWarning>

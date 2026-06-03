@@ -83,8 +83,12 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   edit_agent: true,
 
   plugins: true,
+  // dalle SE MANTIENE: es la tool de generar imágenes EN el chat (builtin tool, sí se usa).
   dalle: true,
-  ai_image: true,
+  // ai_image (página /image standalone) DESACTIVADO 2026-06-03: pendiente de EXTRAER a módulo
+  // visor de imágenes genérico (para cualquier agente IA con imágenes), no solo DALL-E.
+  // Ocultar por flag hasta la extracción. NO afecta la generación en el chat (dalle).
+  ai_image: false,
 
   check_updates: true,
   welcome_suggest: true,
