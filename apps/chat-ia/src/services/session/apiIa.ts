@@ -42,7 +42,8 @@ export class ApiIaSessionService implements ISessionService {
     return mapApiIaSessionsToList(res?.data ?? res?.sessions ?? res) as ChatSessionList;
   };
 
-  // POST /chat/session → {success,data:{id}}
+  // POST /chat/session → {success, data:{id}, errors}. Verificado smoke 2026-06-03: la respuesta
+  // trae success:false + errors[] cuando falla (p.ej. UNAUTHENTICATED) → propagar el error real.
   createSession: ISessionService['createSession'] = async (_type, defaultValue) => {
     const res = await call('POST', '/chat/session', {
       config: (defaultValue as LobeAgentSession)?.config,
@@ -50,6 +51,10 @@ export class ApiIaSessionService implements ISessionService {
       title: (defaultValue as LobeAgentSession)?.meta?.title,
       type: _type === LobeSessionType.Group ? 'group' : 'agent',
     });
+    if (res?.success === false) {
+      const e = res?.errors?.[0];
+      throw new Error(`[session/apiIa] createSession: ${e?.message || 'falló'} (${e?.code || 'ERROR'})`);
+    }
     const d = res?.data ?? res;
     const id = d?.id ?? d?._id ?? d?.sessionId;
     if (!id) throw new Error('[session/apiIa] createSession: respuesta sin id');
@@ -87,8 +92,9 @@ export class ApiIaSessionService implements ISessionService {
     const d = res?.data ?? res;
     return (d?.id ?? d?._id) as string;
   };
+  // GET /chat/session-groups REQUIERE userId (verificado smoke 2026-06-03: 422 sin él).
   getSessionGroups: ISessionService['getSessionGroups'] = async () => {
-    const res = await call('GET', '/chat/session-groups');
+    const res = await call('GET', `/chat/session-groups?userId=${encodeURIComponent(uid())}`);
     return (res?.data ?? res?.groups ?? res ?? []) as any;
   };
   updateSessionGroup: ISessionService['updateSessionGroup'] = async (id, data) =>
