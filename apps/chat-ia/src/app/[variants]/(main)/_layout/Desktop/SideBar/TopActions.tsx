@@ -13,6 +13,7 @@ import { useChatStore } from '@/store/chat';
 import { useGlobalStore } from '@/store/global';
 import { SidebarTabKey } from '@/store/global/initialState';
 import { useSessionStore } from '@/store/session';
+import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { settingsSelectors } from '@/store/user/selectors';
 import { HotkeyEnum } from '@/types/hotkey';
@@ -40,6 +41,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
   const isLoggedIn = !isGuest;
 
   const isAdmin = useChatStore((s) => s.userRole === 'admin');
+  const { enableKnowledgeBase } = useServerConfigStore(featureFlagsSelectors);
 
   const isChatActive = tab === SidebarTabKey.Chat && !isPinned;
   const isMemoriesActive = tab === SidebarTabKey.Memories;
@@ -118,7 +120,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           />
         </Link>
       )}
-      {isLoggedIn && (
+      {isLoggedIn && enableKnowledgeBase && (
         <Link aria-label="Conocimiento" href={'/knowledge'} suppressHydrationWarning>
           <ActionIcon
             active={tab === SidebarTabKey.Knowledge}

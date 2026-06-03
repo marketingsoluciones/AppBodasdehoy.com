@@ -90,7 +90,11 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   welcome_suggest: true,
   token_counter: true,
 
-  knowledge_base: true,
+  // Knowledge/RAG nativo de LobeChat DESACTIVADO 2026-06-03: el KB ya lo provee api-mcp
+  // (kb-mcp-server.ts, MongoDB Atlas Vector Search, /mcp/kb). El RAG nativo (pgvector) +
+  // lobechatKBMiddleware son redundantes. Fase 1 reestructuración: ocultar por flag antes
+  // de eliminar el código. Ver docs/PLAN-REESTRUCTURACION-CHAT-IA.md.
+  knowledge_base: false,
   rag_eval: false,
 
   clerk_sign_up: true,
