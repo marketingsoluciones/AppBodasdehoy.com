@@ -28,6 +28,20 @@ const standaloneConfig: NextConfig = {
 const nextConfig: NextConfig = {
   ...(isStandaloneMode ? standaloneConfig : {}),
   assetPrefix: process.env.NEXT_PUBLIC_ASSET_PREFIX,
+  // ⚡ PERF 2026-06-03: en dev, NO retener páginas compiladas inactivas en memoria.
+  // En esta Mac (16GB, swap saturado) cada página retenida del árbol de 40k módulos
+  // come RAM y empuja a swap → recompilación lenta por I/O. Liberar rápido las inactivas
+  // mantiene a Node dentro de RAM física. Solo afecta a dev (en prod se ignora).
+  ...(isProd
+    ? {}
+    : {
+        onDemandEntries: {
+          // Cuánto tiempo mantener una página en memoria sin visitarla (ms).
+          maxInactiveAge: 25 * 1000,
+          // Cuántas páginas mantener simultáneamente compiladas en memoria.
+          pagesBufferLength: 3,
+        },
+      }),
   // ⚡ PERF 2026-05-13: silenciar warning "multiple lockfiles" — el root pnpm-lock.yaml
   // es la fuente de verdad; apps/chat-ia/pnpm-lock.yaml es legacy pre-monorepo.
   outputFileTracingRoot: require('path').join(__dirname, '../..'),
