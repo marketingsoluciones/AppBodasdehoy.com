@@ -155,3 +155,23 @@ GAPS que FRONT debe resolver al recablear:
   - getGroupedSessions: construir en cliente desde getSessions + getSessionGroups (BACKEND no lo tiene)
   - role mayúsculas (USER no user) — mapear en ambos sentidos
   - createSession: adaptar (type,defaultValue) de LobeChat → input de createLobeSession
+
+## 11. ✅✅ BACKEND ENTREGÓ P1 COMPLETO (2026-06-03, commits 4e0d565 + df55c40)
+
+VERIFICADO en código api-mcp (no solo Slack). El resolver lobe-chat ahora tiene:
+- ✅ createMessage (ALIAS directo de sendMessage — nombre ya coincide 1:1, no hay que mapear)
+- ✅ createSession (alias) + createLobeSession
+- ✅ createTopic(sessionId, title, favorite) -> ID!  + getTopics(sessionId) -> [Topic!]!
+- ✅ updateTopic, removeTopic
+- ✅ getMessages, getSessions, getSession, updateMessage, deleteMessage, searchSessions
+- ✅ sessionGroups (create/update/delete/get)
+- ✅ BONUS: subscriptions onNewMessage/onNewSession/onSessionUpdated, markAsRead, shareChatSession
+
+Topic implementado como Opción A (modelo unificado de mensajería — commit df55c40
+"unificar colecciones mensajería en modelo único").
+
+→ BLOQUEANTE DESPEJADO. P1 COMPLETO. FRONT puede recablear message+session+topic AHORA.
+   Los aliases (createMessage/createSession con esos nombres) hacen el recableo casi 1:1.
+
+PRÓXIMO (FRONT): completar apiServer.ts de los 3 dominios, switch, verificar contra
+docs/CHECKLIST-PARIDAD-INPUT-CHAT.md, medir reducción de módulos.
