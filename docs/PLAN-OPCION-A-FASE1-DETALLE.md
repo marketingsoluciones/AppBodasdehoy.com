@@ -199,3 +199,31 @@ REGLA PARA EL RECABLEO (no romper ingresos):
 4. ⚠️ DUDA A RESOLVER CON BACKEND: ¿la persistencia de mensajes debe pasar por api-ia (para que
    contabilice) o el front puede escribir directo a api-mcp? BACKEND dijo "NO bypass api-ia" pero
    también dio el GraphQL de api-mcp como destino de persistencia. ACLARAR antes de activar el switch.
+
+## 13. ✅ AUDITORÍA facturación chat (SSH api-mcp + frontend, 2026-06-03) — diseño RESPETADO
+
+Revisado dónde está la facturación/IA del chat hoy vs el diseño original. RESULTADO: el flujo
+de facturación del CHAT ya es correcto, NO hay bypass que romper.
+
+DISEÑO ORIGINAL (de MEMORY "Balance enforcement chat-ia"):
+  chat-ia front (X-User-ID) → api-ia hace wallet_checkBalance → 402 si insufficient_balance
+  → showInsufficientBalance. api-ia es quien factura/chequea el chat.
+
+VERIFICADO en código:
+- Frontend chat: factura VÍA api-ia (aiChat/initialState: "detail from api-ia 402/503",
+  "backend returns 402 insufficient_balance"). El chat NO chequea balance directo a api-mcp. ✅
+- walletService.checkBalance (mcpApi/wallet → api-mcp directo) SOLO se usa en settings/billing
+  (página de saldo/recarga), NO en el flujo del chat. Legítimo (mostrar saldo). ✅
+- api-mcp tiene unified-usage-tracking (AI_TOKENS_INPUT/OUTPUT, CHAT_MESSAGE) y wallet.resolver
+  → es el ALMACÉN del wallet/tracking. api-ia lo CONSUME para facturar. Correcto: api-mcp = dato,
+  api-ia = lógica de facturación del chat.
+
+REGLA CONFIRMADA para el recableo de persistencia:
+- NO tocar nada de facturación: el chat seguirá facturando vía api-ia (sin cambios).
+- El recableo solo cambia DÓNDE se guarda el TEXTO de conversaciones (persistencia), que NO factura.
+- api-ia sigue siendo la capa de IA + facturación del chat. api-mcp = persistencia + wallet-store.
+- → NO se rompe ningún ingreso. La preocupación del usuario está cubierta y verificada.
+
+PENDIENTE menor (aclarar con BACKEND, no urgente): si createMessage (persistencia del texto)
+debe pasar por api-ia para que cuente el mensaje, o el front escribe directo a api-mcp. El
+STREAMING (que es lo que factura) ya va por api-ia sí o sí.
