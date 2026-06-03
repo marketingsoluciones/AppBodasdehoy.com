@@ -161,7 +161,7 @@ export const fetchApiBodasServer = async ({
 }) => {
   const axios = require("axios");
   const serverInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BODAS_URL,
+    baseURL: process.env.NEXT_PUBLIC_BASE_API_BODAS_V1,
     timeout: 15000, // 15 segundos de timeout
   });
   try {

@@ -59,7 +59,7 @@ export const api = {
 
   socketIO: ({ token, development, father, origin }) => {
     if (!development) return
-    const manager = new Manager(process.env.NEXT_PUBLIC_API_BODAS_URL ?? "", {
+    const manager = new Manager(process.env.NEXT_PUBLIC_BASE_API_BODAS_V1 ?? "", {
       closeOnBeforeunload: true,
     })
     const socket = manager.socket("/", {
