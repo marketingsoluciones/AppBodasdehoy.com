@@ -48,6 +48,66 @@ describe('api-ia service (esqueleto)', () => {
     expect(body).toMatchObject({ development: 'bodasdehoy', message: 'hola mundo', model: 'claude-sonnet-4', sessionId: 'sess-123' });
   });
 
+  it('consumeChatStream: parsea event:text (acumula), usage, done (contrato api-ia)', async () => {
+    vi.stubEnv('NEXT_PUBLIC_USE_API_IA_ENDPOINTS', 'true');
+    vi.resetModules();
+    const api = await import('./api-ia');
+
+    // SSE: 2 chunks de texto, usage, done — formato real api-ia (event:text → string JSON-encoded).
+    const sse =
+      'event: text\ndata: "Hola "\n\n' +
+      'event: text\ndata: "mundo"\n\n' +
+      'event: usage\ndata: {"tokens":42}\n\n' +
+      'event: done\ndata: {}\n\n';
+    const response = new Response(sse, { headers: { 'Content-Type': 'text/event-stream' }, status: 200 });
+
+    let text = '';
+    let usage: any = null;
+    let done = false;
+    await api.consumeChatStream(response, {
+      onDone: () => { done = true; },
+      onText: (c) => { text += c; },
+      onUsage: (u) => { usage = u; },
+    });
+
+    expect(text).toBe('Hola mundo');
+    expect(usage).toEqual({ tokens: 42 });
+    expect(done).toBe(true);
+  });
+
+  it('consumeChatStream: event:error invoca onError con mensaje + traceId de headers', async () => {
+    vi.stubEnv('NEXT_PUBLIC_USE_API_IA_ENDPOINTS', 'true');
+    vi.resetModules();
+    const api = await import('./api-ia');
+
+    const sse = 'event: error\ndata: {"error":"rate limited"}\n\n';
+    const response = new Response(sse, {
+      headers: { 'X-Error-Code': 'RATE_LIMIT', 'X-Trace-ID': 'trace-xyz' },
+      status: 200,
+    });
+
+    let errMsg = '';
+    let meta: any = null;
+    await api.consumeChatStream(response, {
+      onError: (e, m) => { errMsg = e; meta = m; },
+    });
+
+    expect(errMsg).toBe('rate limited');
+    expect(meta?.traceId).toBe('trace-xyz');
+    expect(meta?.code).toBe('RATE_LIMIT');
+  });
+
+  it('consumeChatStream: HTTP no-ok → onError sin body', async () => {
+    vi.stubEnv('NEXT_PUBLIC_USE_API_IA_ENDPOINTS', 'true');
+    vi.resetModules();
+    const api = await import('./api-ia');
+
+    const response = new Response('', { headers: { 'X-Error-Code': 'AUTH' }, status: 401 });
+    let errMsg = '';
+    await api.consumeChatStream(response, { onError: (e) => { errMsg = e; } });
+    expect(errMsg).toContain('401');
+  });
+
   it('con flag=true → getChatMessages hace GET a /chat/messages con sessionId', async () => {
     vi.stubEnv('NEXT_PUBLIC_USE_API_IA_ENDPOINTS', 'true');
     vi.resetModules();

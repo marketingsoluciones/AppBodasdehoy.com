@@ -51,8 +51,7 @@ const jsonHeaders = () => ({
 });
 
 // ─────────── ENDPOINT 1: chat streaming + persistencia (SSE) ───────────
-// Ruta DEFINITIVA (api-ia desplegó 2026-06-03): POST /chat/stream (los /chat/* son los oficiales
-// para el front; /api/messages/* son el adaptador genérico interno). Devuelve SSE.
+// Ruta DEFINITIVA (api-ia desplegó 2026-06-03): POST /chat/stream. Devuelve SSE.
 export async function sendChatMessage(
   sessionId: string,
   message: string,
@@ -64,6 +63,103 @@ export async function sendChatMessage(
     headers: jsonHeaders(),
     method: 'POST',
   });
+}
+
+/**
+ * Callbacks del streaming SSE de /chat/stream. Contrato CONFIRMADO por api-ia (2026-06-03):
+ *   event: text     data: "<string>"        → delta de texto (STRING JSON-encoded, NO {delta}).
+ *                                              Acumular concatenando.
+ *   event: usage    data: {tokens,...}        → consumo, llega ANTES de done.
+ *   event: done     data: {}                  → fin (data VACÍO, sin messageId).
+ *   event: error    data: {"error":"..."}     → + headers X-Error-Code, X-Trace-ID.
+ *   (extras opcionales: tool_calls, reasoning, tool_start, tool_result, confirm_required)
+ * El messageId NO viene del SSE: sale de la persistencia (getChatMessages tras el done).
+ */
+export interface ApiIaStreamHandlers {
+  onDone?: () => void;
+  onError?: (error: string, meta?: { code?: string; traceId?: string }) => void;
+  onEvent?: (event: string, data: any) => void; // extras: tool_calls, reasoning, etc.
+  onText?: (chunk: string) => void; // delta acumulable
+  onUsage?: (usage: any) => void;
+}
+
+/**
+ * Consume el ReadableStream SSE de sendChatMessage y despacha por tipo de evento.
+ * Parser SSE estándar (líneas "event:" + "data:", bloques separados por \n\n).
+ * NO acumula por su cuenta: invoca onText con cada chunk para que el store lo concatene.
+ */
+export async function consumeChatStream(
+  response: Response,
+  handlers: ApiIaStreamHandlers,
+): Promise<void> {
+  if (!response.ok || !response.body) {
+    const code = response.headers.get('X-Error-Code') || undefined;
+    const traceId = response.headers.get('X-Trace-ID') || undefined;
+    handlers.onError?.(`[api-ia] /chat/stream HTTP ${response.status}`, { code, traceId });
+    return;
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  const dispatch = (rawEvent: string) => {
+    let event = 'message';
+    const dataLines: string[] = [];
+    for (const line of rawEvent.split('\n')) {
+      if (line.startsWith('event:')) event = line.slice(6).trim();
+      else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim());
+    }
+    if (dataLines.length === 0) return;
+    const rawData = dataLines.join('\n');
+
+    let parsed: any = rawData;
+    try {
+      parsed = JSON.parse(rawData);
+    } catch {
+      // event:text llega como string JSON-encoded; si falla el parse, usar crudo.
+    }
+
+    switch (event) {
+      case 'text': {
+        handlers.onText?.(typeof parsed === 'string' ? parsed : rawData);
+        break;
+      }
+      case 'usage': {
+        handlers.onUsage?.(parsed);
+        break;
+      }
+      case 'done': {
+        handlers.onDone?.();
+        break;
+      }
+      case 'error': {
+        handlers.onError?.(parsed?.error || rawData, {
+          code: response.headers.get('X-Error-Code') || undefined,
+          traceId: response.headers.get('X-Trace-ID') || undefined,
+        });
+        break;
+      }
+      default: {
+        handlers.onEvent?.(event, parsed);
+      }
+    }
+  };
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    // Bloques SSE separados por línea en blanco.
+    let sep: number;
+    while ((sep = buffer.indexOf('\n\n')) !== -1) {
+      const rawEvent = buffer.slice(0, sep);
+      buffer = buffer.slice(sep + 2);
+      if (rawEvent.trim()) dispatch(rawEvent);
+    }
+  }
+  if (buffer.trim()) dispatch(buffer);
 }
 
 // ─────────── ENDPOINT 2: crear sesión ───────────

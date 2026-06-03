@@ -255,8 +255,9 @@ export const createSessionSlice: StateCreator<
       // (→ MCP getLobeSessions). El mapeador traduce el shape plano de api-ia al ChatSessionList
       // que espera el store. Mientras flag=false → flujo actual (sessionService) intacto.
       () =>
+        // api-ia (2026-06-03) pide firebase_uid, NO email → userProfileSelectors.userId (s.user?.id).
         USE_API_IA_ENDPOINTS
-          ? apiIaGetSessions(userProfileSelectors.email(useUserStore.getState()) || '').then(
+          ? apiIaGetSessions(userProfileSelectors.userId(useUserStore.getState()) || '').then(
               mapApiIaSessionsToList,
             )
           : sessionService.getGroupedSessions(),
