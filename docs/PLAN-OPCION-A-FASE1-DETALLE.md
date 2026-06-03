@@ -227,3 +227,33 @@ REGLA CONFIRMADA para el recableo de persistencia:
 PENDIENTE menor (aclarar con BACKEND, no urgente): si createMessage (persistencia del texto)
 debe pasar por api-ia para que cuente el mensaje, o el front escribe directo a api-mcp. El
 STREAMING (que es lo que factura) ya va por api-ia sí o sí.
+
+## 14. AUDITORÍA respuesta BACKEND 16:30 (2026-06-03) — decisión correcta PERO 2 banderas rojas
+
+BACKEND decidió: TODA escritura facturable (chat/storage/whatsapp/sms/email/imagen/audio) vía
+api-ia (8 endpoints REST/SSE); lectura (getMessages/getSessions/getFiles) directo a api-mcp.
+Conceptualmente CORRECTO (centraliza facturación en api-ia, protege ingresos).
+
+🔴 BANDERA ROJA 1 — DOMINIO MUERTO:
+  BACKEND documentó todos los endpoints en `https://api3-ia.eventosorganizador.com`.
+  VERIFICADO: api3-ia.eventosorganizador.com = NXDOMAIN (no resuelve). El dominio REAL de
+  api-ia es `api-ia.bodasdehoy.com` (172.67.137.140). Memoria ya lo marcaba NXDOMAIN desde 05-18.
+  → Si se implementa contra api3-ia, TODO falla. Confirmar dominio correcto con BACKEND.
+
+🔴 BANDERA ROJA 2 — ENDPOINTS NO EXISTEN AÚN:
+  Los 8 endpoints REST (/chat/stream, /storage/upload, /whatsapp/send, etc.) NO están
+  implementados. El propio checklist de BACKEND: "API-IA [ ] Implementar 8 endpoints, ETA 8h".
+  El frontend HOY usa OTRO flujo que YA FUNCIONA: createAssistantMessageStream + /api/storage/upload
+  (proxy local). Migrar a endpoints inexistentes = romper el chat.
+
+🟡 ALCANCE AMPLIADO: esto ya no es "recablear persistencia". Es migrar 8 flujos del front a un
+  patrón REST nuevo contra api-ia. Proyecto grande (front ETA BACKEND dice 6h + api-ia 8h).
+
+SECUENCIA OBLIGATORIA (BACKEND lo dice): NO deployar frontend antes de que api-ia tenga los
+endpoints. Riesgo: app rota.
+
+BLOQUEANTES para FRONT (no podemos avanzar hasta):
+  1. api-ia implementa los 8 endpoints REST (ETA 8h backend) — NO existen.
+  2. Confirmar dominio real (api-ia.bodasdehoy.com, NO api3-ia.eventosorganizador.com).
+  3. Decisión: ¿migramos los 8 flujos o solo chat/persistencia primero? (alcance).
+  4. El streaming/upload ACTUAL funciona — no romperlo hasta que los nuevos estén probados.
