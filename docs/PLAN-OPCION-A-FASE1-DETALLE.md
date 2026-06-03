@@ -326,3 +326,30 @@ ENDPOINTS que api-ia debe implementar (CRÍTICO chat básico):
 
 BLOQUEANTE: api-ia despliega esos 4 endpoints CRÍTICOS. ETA ~1 día. Luego: verificar dominio,
 activar flag staging, E2E conjunto (5 pasos de api-mcp), rollout 10→50→100%.
+
+## 18. PROCEDIMIENTO DE ACTIVACIÓN (cuando api-ia despliegue) + tests del cliente
+
+Estado verificado 2026-06-03: los 4 endpoints api-ia (/chat/stream,/session,/messages,/sessions)
+dan 404 en api-ia.bodasdehoy.com (dominio OK, endpoints NO desplegados aún). Sigue bloqueado.
+
+✅ Cliente FRONT verificado con tests (src/services/api-ia.test.ts, 3/3):
+  - flag=false → funciones lanzan error (no activan por accidente)
+  - flag=true → sendChatMessage POST /chat/stream con JWT+X-Development+body OK
+  - flag=true → getChatMessages GET /chat/messages?sessionId=...&limit= OK
+
+PROCEDIMIENTO DE ACTIVACIÓN (orden estricto, cuando api-ia confirme endpoints listos):
+  1. Verificar endpoints vivos (NO 404):
+       curl -I https://api-ia.bodasdehoy.com/chat/stream   → esperar 401/405 (existe), no 404/000
+  2. CABLEAR los call-sites del chat con el patrón flag (PENDIENTE, hacer en esa sesión):
+       - sendMessage: store/chat/slices/aiChat/.../generateAIChat.ts → si flag, usar api-ia.sendChatMessage
+       - createSession: store/session/slices/session/action.ts:119 → api-ia.createChatSession
+       - getMessages/getSessions: services correspondientes → api-ia.getChatMessages/getChatSessions
+       (mapear shape api-ia → al que el store espera; verificar contra CHECKLIST-PARIDAD-INPUT-CHAT.md)
+  3. Activar en STAGING: NEXT_PUBLIC_USE_API_IA_ENDPOINTS=true
+  4. E2E conjunto (5 pasos de api-mcp): UI chat + logs persistencia + BD chats/messages + facturación.
+  5. Rollout gradual: 10% → 24h → 50% → 24h → 100%.
+
+⚠️ El cableado de call-sites (paso 2) NO se hace ahora: requiere el shape REAL de respuesta de
+los endpoints api-ia (que no existen). Hacerlo a ciegas = retrabajo. Se hace cuando api-ia
+despliegue y pueda probarse contra el endpoint real. El esqueleto + tests ya garantizan que el
+cliente está correcto.
