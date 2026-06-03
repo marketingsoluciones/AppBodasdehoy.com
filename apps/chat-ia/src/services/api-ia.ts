@@ -50,29 +50,43 @@ const jsonHeaders = () => ({
   'X-Development': getTenant(),
 });
 
-// ─────────── ENDPOINT 1: chat streaming + persistencia (SSE) ───────────
+// ─────────── ENDPOINT 1: enviar mensaje ───────────
+// Ruta REAL verificada en api-ia openapi (2026-06-03): POST /api/messages/send
+// (BACKEND documentó /chat/stream pero NO existe; el real es /api/messages/send).
+// Contrato: { conversationId, channel, text, attachments? }
 export async function sendChatMessage(
-  sessionId: string,
-  message: string,
-  opts?: { maxTokens?: number, model?: string; temperature?: number; },
+  conversationId: string,
+  text: string,
+  opts?: { attachments?: any[]; channel?: string },
 ): Promise<Response> {
   ensureEnabled('sendChatMessage');
-  return fetch(`${API_IA_BASE}/chat/stream`, {
-    body: JSON.stringify({ development: getTenant(), message, sessionId, ...opts }),
+  return fetch(`${API_IA_BASE}/api/messages/send`, {
+    body: JSON.stringify({
+      attachments: opts?.attachments,
+      channel: opts?.channel ?? 'LOBE_CHAT',
+      conversationId,
+      text,
+    }),
     headers: jsonHeaders(),
     method: 'POST',
   });
 }
 
 // ─────────── ENDPOINT 2: crear sesión ───────────
+// Ruta REAL: POST /api/sessions  (contrato: { title, model, development, user_email })
 export async function createChatSession(opts?: {
-  config?: object;
+  model?: string;
   title?: string;
-  type?: string;
-}): Promise<{ createdAt: string; sessionId: string }> {
+  userEmail?: string;
+}): Promise<{ createdAt?: string; sessionId?: string }> {
   ensureEnabled('createChatSession');
-  const r = await fetch(`${API_IA_BASE}/chat/session`, {
-    body: JSON.stringify({ development: getTenant(), ...opts }),
+  const r = await fetch(`${API_IA_BASE}/api/sessions`, {
+    body: JSON.stringify({
+      development: getTenant(),
+      model: opts?.model,
+      title: opts?.title,
+      user_email: opts?.userEmail,
+    }),
     headers: jsonHeaders(),
     method: 'POST',
   });
@@ -81,28 +95,28 @@ export async function createChatSession(opts?: {
 
 // ─────────── LECTURA vía api-ia gateway (DECISIÓN D2 = Opción A, 2026-06-03) ───────────
 // Todo (lectura + escritura) pasa por api-ia. api-ia hace proxy GraphQL read-only a api-mcp.
+// Ruta REAL: GET /api/messages/conversations/{conversationId}/messages
 export async function getChatMessages(
-  sessionId: string,
-  opts?: { limit?: number; offset?: number; topicId?: string },
+  conversationId: string,
+  opts?: { limit?: number; offset?: number },
 ): Promise<any[]> {
   ensureEnabled('getChatMessages');
-  const qs = new URLSearchParams({ development: getTenant(), sessionId });
-  if (opts?.topicId) qs.set('topicId', opts.topicId);
+  const qs = new URLSearchParams();
   if (opts?.limit !== undefined) qs.set('limit', String(opts.limit));
   if (opts?.offset !== undefined) qs.set('offset', String(opts.offset));
-  const r = await fetch(`${API_IA_BASE}/chat/messages?${qs.toString()}`, {
-    headers: jsonHeaders(),
-    method: 'GET',
-  });
+  const suffix = qs.toString() ? `?${qs.toString()}` : '';
+  const r = await fetch(
+    `${API_IA_BASE}/api/messages/conversations/${encodeURIComponent(conversationId)}/messages${suffix}`,
+    { headers: jsonHeaders(), method: 'GET' },
+  );
   const data = await r.json();
   return data?.messages ?? data ?? [];
 }
 
-export async function getChatSessions(opts?: { filters?: object }): Promise<any[]> {
+// Ruta REAL: GET /api/sessions
+export async function getChatSessions(): Promise<any[]> {
   ensureEnabled('getChatSessions');
-  const qs = new URLSearchParams({ development: getTenant() });
-  if (opts?.filters) qs.set('filters', JSON.stringify(opts.filters));
-  const r = await fetch(`${API_IA_BASE}/chat/sessions?${qs.toString()}`, {
+  const r = await fetch(`${API_IA_BASE}/api/sessions`, {
     headers: jsonHeaders(),
     method: 'GET',
   });

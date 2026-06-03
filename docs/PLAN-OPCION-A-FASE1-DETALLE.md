@@ -353,3 +353,29 @@ PROCEDIMIENTO DE ACTIVACIÓN (orden estricto, cuando api-ia confirme endpoints l
 los endpoints api-ia (que no existen). Hacerlo a ciegas = retrabajo. Se hace cuando api-ia
 despliegue y pueda probarse contra el endpoint real. El esqueleto + tests ya garantizan que el
 cliente está correcto.
+
+## 19. ✅ HALLAZGO (2026-06-03): api-ia SÍ tiene endpoints — rutas REALES (≠ las documentadas)
+
+Verificado contra el openapi REAL de api-ia (https://api-ia.bodasdehoy.com/openapi.json, 332 rutas).
+BACKEND documentó /chat/stream etc. pero ESAS NO existen (404). Las rutas REALES son:
+
+| Documentado (mal) | REAL en api-ia (verificado openapi) |
+|---|---|
+| POST /chat/stream  | POST /api/messages/send  (+ GET /api/messages/stream para SSE) |
+| POST /chat/session | POST /api/sessions |
+| GET /chat/messages | GET /api/messages/conversations/{conversationId}/messages |
+| GET /chat/sessions | GET /api/sessions |
+| (status)           | GET /api/lobechat/status (adaptador LobeChat ya existe) |
+
+Contratos reales (openapi):
+  POST /api/messages/send → { conversationId*, channel*, text*, attachments? }
+  POST /api/sessions      → { title, model, development, user_email }
+
+→ api-ia YA TIENE la integración LobeChat (/api/lobechat/status existe). El esqueleto
+services/api-ia.ts CORREGIDO con las rutas reales. Tests 3/3 con rutas reales. Lint OK.
+
+ESTADO: el cliente FRONT ahora apunta a las rutas REALES de api-ia. Falta:
+  - Confirmar con api-ia el shape de RESPUESTA de /api/messages/send y /api/sessions (para mapear
+    al store del chat). Probar un request real con JWT.
+  - Cablear call-sites del chat con flag (cuando se confirme el shape de respuesta).
+  - api-ia tiene /api/messages/* y /api/sessions VIVOS (no 404) — verificar auth/método exactos.
