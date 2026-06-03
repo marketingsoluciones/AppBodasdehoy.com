@@ -10,9 +10,8 @@
  * api-ia, ver src/app/(backend)/api/backend/[...path]/route.ts). Mismo patrón que
  * useConversationHistory (fetch + buildAuthHeaders + credentials:'include').
  *
- * ⚠️ NO ACTIVAR (USE_API_IA_INBOX=false default) hasta que api-ia confirme las rutas REST
- * equivalentes a: getSession, getUserChats, getUserApiConfigs, getUserRelatedEvents,
- * getUserByEmail, getWhiteLabelConfig. Si no existen → 404 y rompe el inbox. Pedido a api-ia.
+ * ✅ RUTAS CONFIRMADAS por api-ia (2026-06-03): todas existen, shape plano {success,data,...},
+ * reenvían Authorization+X-Development a api-mcp. Ninguna queda en api-mcp directo.
  */
 import { buildAuthHeaders } from '@/utils/authToken';
 
@@ -49,22 +48,21 @@ async function getJson(path: string, params?: Record<string, string | number | u
   return res.json();
 }
 
-// ─── Las 6 lecturas del inbox (rutas REST por confirmar con api-ia) ───
-// NOTA: los paths /api/inbox/* son PROPUESTA — confirmar con api-ia antes de activar.
+// ─── Las 6 lecturas del inbox — RUTAS CONFIRMADAS por api-ia (2026-06-03) ───
 
-/** GET_CHAT_SOURCE { sessionId } → getSession */
+/** GET_CHAT_SOURCE { sessionId } → GET /chat/messages?sessionId=X */
 export async function getSession(sessionId: string): Promise<any> {
   ensureEnabled('getSession');
-  return getJson(`/api/inbox/sessions/${encodeURIComponent(sessionId)}`);
+  return getJson('/chat/messages', { sessionId });
 }
 
-/** GET_USER_CHATS { development, userId, pagination } → getUserChats */
+/** GET_USER_CHATS { development, userId, pagination } → GET /chat/sessions?userId=X */
 export async function getUserChats(
   userId: string,
   opts: { development: string; limit?: number; page?: number },
 ): Promise<any> {
   ensureEnabled('getUserChats');
-  return getJson('/api/inbox/chats', {
+  return getJson('/chat/sessions', {
     development: opts.development,
     limit: opts.limit,
     page: opts.page,
@@ -72,20 +70,20 @@ export async function getUserChats(
   });
 }
 
-/** GET_USER_API_CONFIGS { userId } → getUserApiConfigs */
-export async function getUserApiConfigs(userId: string): Promise<any> {
+/** GET_USER_API_CONFIGS → GET /webapi/config/whitelabel?development=X */
+export async function getUserApiConfigs(development: string): Promise<any> {
   ensureEnabled('getUserApiConfigs');
-  return getJson('/api/inbox/api-configs', { userId });
+  return getJson('/webapi/config/whitelabel', { development });
 }
 
-/** GET_USER_EVENTS_BY_EMAIL/PHONE → getAllUserRelatedEventsBy... */
+/** GET_USER_EVENTS_BY_EMAIL/PHONE → GET /api/users/related-events?email|phone */
 export async function getUserRelatedEvents(
   userIdOrContact: string,
   opts: { development: string; limit?: number; page?: number },
 ): Promise<any> {
   ensureEnabled('getUserRelatedEvents');
   const isEmail = userIdOrContact.includes('@');
-  return getJson('/api/inbox/events', {
+  return getJson('/api/users/related-events', {
     development: opts.development,
     limit: opts.limit ?? 100,
     page: opts.page ?? 1,
@@ -93,14 +91,15 @@ export async function getUserRelatedEvents(
   });
 }
 
-/** GET_USER_PROFILE { development, email } → getUserByEmail */
+/** GET_USER_PROFILE { email } → GET /api/users/by-email?email=X */
 export async function getUserProfile(email: string, development: string): Promise<any> {
   ensureEnabled('getUserProfile');
-  return getJson('/api/inbox/user-profile', { development, email });
+  return getJson('/api/users/by-email', { development, email });
 }
 
-/** GET_WHITELABEL_CONFIG { development, supportKey } → getWhiteLabelConfig */
-export async function getWhitelabelConfig(development: string, supportKey?: string): Promise<any> {
+/** GET_WHITELABEL_CONFIG { development } → GET /webapi/config/whitelabel?development=X
+ *  (api-ia ya resuelve la supportKey internamente; el front solo manda development). */
+export async function getWhitelabelConfig(development: string): Promise<any> {
   ensureEnabled('getWhitelabelConfig');
-  return getJson('/api/inbox/whitelabel', { development, supportKey });
+  return getJson('/webapi/config/whitelabel', { development });
 }

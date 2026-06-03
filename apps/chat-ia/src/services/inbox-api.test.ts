@@ -24,7 +24,7 @@ describe('inbox-api service', () => {
     await expect(api.getUserProfile('a@b.com', 'bodasdehoy')).rejects.toThrow(/NO activada/);
   });
 
-  it('flag on → getUserChats hace GET a /api/backend/api/inbox/chats con userId+development', async () => {
+  it('flag on → getUserChats hace GET a /api/backend/chat/sessions con userId+development', async () => {
     vi.stubEnv('NEXT_PUBLIC_USE_API_IA_INBOX', 'true');
     vi.resetModules();
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ success: true })));
@@ -34,7 +34,7 @@ describe('inbox-api service', () => {
     await api.getUserChats('user-1', { development: 'bodasdehoy', limit: 20, page: 2 });
 
     const [url, opts] = fetchMock.mock.calls[0];
-    expect(String(url)).toContain('/api/backend/api/inbox/chats');
+    expect(String(url)).toContain('/api/backend/chat/sessions');
     expect(String(url)).toContain('userId=user-1');
     expect(String(url)).toContain('development=bodasdehoy');
     expect(String(url)).toContain('limit=20');
@@ -44,7 +44,7 @@ describe('inbox-api service', () => {
     expect(opts.headers.Authorization).toBe('Bearer test.jwt');
   });
 
-  it('flag on → getUserRelatedEvents detecta email vs phone', async () => {
+  it('flag on → getUserRelatedEvents (/api/users/related-events) detecta email vs phone', async () => {
     vi.stubEnv('NEXT_PUBLIC_USE_API_IA_INBOX', 'true');
     vi.resetModules();
     const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(new Response('{}')));
@@ -52,9 +52,22 @@ describe('inbox-api service', () => {
     const api = await import('./inbox-api');
 
     await api.getUserRelatedEvents('a@b.com', { development: 'bodasdehoy' });
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/api/backend/api/users/related-events');
     expect(String(fetchMock.mock.calls[0][0])).toContain('email=a%40b.com');
 
     await api.getUserRelatedEvents('+34600', { development: 'bodasdehoy' });
     expect(String(fetchMock.mock.calls[1][0])).toContain('phone=');
+  });
+
+  it('flag on → getWhitelabelConfig → GET /webapi/config/whitelabel?development', async () => {
+    vi.stubEnv('NEXT_PUBLIC_USE_API_IA_INBOX', 'true');
+    vi.resetModules();
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{}'));
+    vi.stubGlobal('fetch', fetchMock);
+    const api = await import('./inbox-api');
+
+    await api.getWhitelabelConfig('bodasdehoy');
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/api/backend/webapi/config/whitelabel');
+    expect(String(fetchMock.mock.calls[0][0])).toContain('development=bodasdehoy');
   });
 });

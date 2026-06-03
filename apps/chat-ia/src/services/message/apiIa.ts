@@ -14,12 +14,15 @@
  * removeMessage 1×) vía fetch a /api/backend/... (proxy que YA apunta a api-ia). Los métodos
  * raros (TTS/translate/plugin/RAG/stats) lanzan pending() hasta que se confirmen.
  *
- * ⚠️ NO ACTIVAR hasta que api-ia confirme los endpoints REST de persistencia:
- *   POST   /chat/messages           (crear) — ¿existe, o la persistencia es solo vía /chat/stream?
- *   PATCH  /chat/messages/{id}       (actualizar)
- *   DELETE /chat/messages/{id}       (borrar)
- *   GET    /chat/messages?sessionId  (leer) — este SÍ confirmado (api-ia 2026-06-03)
- * Pedido a api-ia. Si no existen → este service no se activa (index.ts sigue con ServerService).
+ * ✅ ENDPOINTS CONFIRMADOS por api-ia (2026-06-03), todos desplegados:
+ *   POST   /chat/messages           body:{sessionId, role, content, type?} → {success,data:{id,...}}
+ *   PATCH  /chat/messages/{id}       body:{content,...}
+ *   DELETE /chat/messages/{id}?reason=X
+ *   GET    /chat/messages?sessionId  (leer)
+ * Shape plano, role en minúsculas, Authorization Bearer JWT. api-mcp soporta send/update/delete.
+ *
+ * NOTA: en el flujo normal de chat, /chat/stream con persist:true persiste user+assistant solo.
+ * Estos endpoints individuales son para edición/borrado/correcciones que el front dispara aparte.
  */
 import { UIChatMessage } from '@lobechat/types';
 
@@ -70,13 +73,16 @@ export class ApiIaMessageService implements IMessageService {
   };
 
   // ───────── ESCRITURA vía api-ia (endpoints por confirmar) ─────────
-  // POST /chat/messages — crear. Devuelve el id del mensaje creado.
+  // POST /chat/messages — crear. body confirmado: {sessionId, role, content, type?}.
+  // Devuelve {success, data:{id,...}}. toDbSessionId mapea INBOX_SESSION_ID → null (no revertir).
   createMessage: IMessageService['createMessage'] = async ({ sessionId, ...params }) => {
-    // toDbSessionId mapea INBOX_SESSION_ID → null (a propósito); NO revertir con ?? sessionId.
     const res = await call('POST', '/chat/messages', {
-      ...params,
-      role: String(params.role),
+      content: (params as any).content,
+      role: String((params as any).role),
       sessionId: this.toDbSessionId(sessionId),
+      type: (params as any).type,
+      // campos extra del flujo (parentId, topicId, etc.) van también — api-ia ignora los no usados.
+      ...params,
     });
     const d = res?.data ?? res;
     const id = d?.id ?? d?._id ?? d?.messageId;
@@ -90,8 +96,9 @@ export class ApiIaMessageService implements IMessageService {
   updateMessageError: IMessageService['updateMessageError'] = async (id, error) =>
     this.updateMessage(id, { error } as any);
 
+  // DELETE /chat/messages/{id}?reason=X (reason opcional, confirmado por api-ia).
   removeMessage: IMessageService['removeMessage'] = async (id) =>
-    call('DELETE', `/chat/messages/${encodeURIComponent(id)}`);
+    call('DELETE', `/chat/messages/${encodeURIComponent(id)}?reason=user_delete`);
 
   // ───────── pending: métodos raros — confirmar endpoint antes de activar ─────────
   private pending(method: string): never {

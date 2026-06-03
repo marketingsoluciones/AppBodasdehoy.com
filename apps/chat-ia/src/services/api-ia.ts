@@ -51,15 +51,18 @@ const jsonHeaders = () => ({
 });
 
 // ─────────── ENDPOINT 1: chat streaming + persistencia (SSE) ───────────
-// Ruta DEFINITIVA (api-ia desplegó 2026-06-03): POST /chat/stream. Devuelve SSE.
+// Ruta DEFINITIVA (api-ia 2026-06-03, Opción A): POST /chat/stream REEMPLAZA a /webapi/chat.
+// Con persist:true streamea Y persiste user+assistant en api-mcp (billing+JWT). Sin persist:true
+// se comporta como /webapi/chat hoy (migración opt-in sin riesgo). Devuelve SSE.
 export async function sendChatMessage(
   sessionId: string,
   message: string,
-  opts?: { maxTokens?: number; model?: string; temperature?: number },
+  opts?: { maxTokens?: number; model?: string; persist?: boolean; temperature?: number },
 ): Promise<Response> {
   ensureEnabled('sendChatMessage');
+  const { persist = true, ...rest } = opts || {};
   return fetch(`${API_IA_BASE}/chat/stream`, {
-    body: JSON.stringify({ development: getTenant(), message, sessionId, ...opts }),
+    body: JSON.stringify({ development: getTenant(), message, persist, sessionId, ...rest }),
     headers: jsonHeaders(),
     method: 'POST',
   });
