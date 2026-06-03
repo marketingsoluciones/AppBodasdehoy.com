@@ -50,9 +50,22 @@ const DELETE_MESSAGE = gql`
   }
 `;
 
-// 🔴 BACKEND-PENDIENTE: createMessage, createNewMessage, batchCreateMessages,
-//    updateMessageTTS/Translate/PluginState/PluginError/PluginArguments/RAG no existen aún
-//    en el resolver lobe-chat de api-mcp. Definir gql cuando BACKEND los añada.
+// ✅ BACKEND confirmó (2026-06-03): createMessage existe como `sendMessage`
+// Devuelve { success, message: { id, ... }, errors }. Mapeo: extraer message.id.
+const SEND_MESSAGE = gql`
+  mutation SendMessage($sessionId: ID!, $input: SendMessageInput!) {
+    sendMessage(sessionId: $sessionId, input: $input) {
+      success
+      message { id content role createdAt }
+      errors { message }
+    }
+  }
+`;
+
+// 🔴 BACKEND-PENDIENTE: createNewMessage, batchCreateMessages,
+//    updateMessageTTS/Translate/PluginState/PluginError/PluginArguments/RAG.
+//    BACKEND indicó que los update* van vía updateMessage(input:{tts|translate|...}) genérico
+//    — pendiente confirmar shape exacto antes de activarlos.
 
 export class ApiServerService implements IMessageService {
   private toDbSessionId = (sessionId: string | undefined) =>
@@ -105,7 +118,22 @@ export class ApiServerService implements IMessageService {
     );
   }
 
-  createMessage: IMessageService['createMessage'] = async () => this.pending('createMessage');
+  // ✅ createMessage → sendMessage (api-mcp). Devuelve el id del mensaje creado.
+  createMessage: IMessageService['createMessage'] = async ({ sessionId, ...params }) => {
+    const { data } = await apolloClient.mutate<any>({
+      mutation: SEND_MESSAGE,
+      variables: {
+        input: { ...params, role: String(params.role).toUpperCase() },
+        sessionId: this.toDbSessionId(sessionId) ?? sessionId,
+      },
+    });
+    const res = data?.sendMessage;
+    if (!res?.success) {
+      throw new Error(res?.errors?.[0]?.message || '[message/apiServer] sendMessage falló');
+    }
+    return res.message.id as string;
+  };
+
   createNewMessage: IMessageService['createNewMessage'] = async () => this.pending('createNewMessage');
   batchCreateMessages: IMessageService['batchCreateMessages'] = async () => this.pending('batchCreateMessages');
   updateMessageTTS: IMessageService['updateMessageTTS'] = async () => this.pending('updateMessageTTS');
