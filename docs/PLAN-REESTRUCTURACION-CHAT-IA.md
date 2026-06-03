@@ -124,6 +124,16 @@ Hacer en sesión dedicada, idealmente en máquina con más RAM, en orden hojas�
 compilación tras cada eliminación. Verificar antes si memory.ts/FileManager dependen de chunk/modal
 y si esa funcionalidad se usa.
 
+### ⚠️ HALLAZGO 2026-06-03 (probado en MacBook): /knowledge comparte código con /files
+Se intentó borrar la ruta /knowledge (31 archivos) en el MacBook. El build FALLÓ:
+`Module not found: knowledge/shared/FileModalQueryRoute` — importado por **`/files/(content)/page.tsx`**.
+Y FileModalQueryRoute a su vez importa `../components/FileDetail`, `../components/modal/FilePreview`,
+`./useFileQueryParam` — todo dentro de /knowledge pero USADO por /files (gestor de archivos, SÍ se usa).
+→ **Borrar /knowledge a lo bruto rompe /files.** Antes hay que SEPARAR el código compartido
+(FileModal/FileDetail/FilePreview/useFileQueryParam) a un lugar común (ej. features/FileManager o
+un /files/shared), y SOLO entonces borrar lo que quede de /knowledge. Revertido el borrado; sin daño.
+**Conclusión:** el borrado del knowledge es refactor de DESACOPLAMIENTO, no eliminación directa.
+
 ### Lección clave de los flags
 Los feature flags de LobeChat NO separan limpiamente "feature genérica" de "funcionalidad propia":
 - `plugins` = marketplace LobeChat + builtin tools propias (mismo flag)
