@@ -175,3 +175,27 @@ Topic implementado como Opción A (modelo unificado de mensajería — commit df
 
 PRÓXIMO (FRONT): completar apiServer.ts de los 3 dominios, switch, verificar contra
 docs/CHECKLIST-PARIDAD-INPUT-CHAT.md, medir reducción de módulos.
+
+## 12. ⚠️ CRÍTICO — separación facturación/contabilidad (api-ia) vs persistencia (api-mcp)
+
+Alerta del usuario (2026-06-03): api-ia es el backend de chat-ia Y lleva la CONTABILIDAD/
+FACTURACIÓN (ingresos reales). api-ia habla con api-mcp por debajo. RIESGO: que al recablear
+el chat "directo a api-mcp" se BYPASEE la capa contable de api-ia y se rompan los ingresos.
+
+ANÁLISIS (verificado en código frontend):
+- Mi recableo SOLO toca message/session/topicService (persistencia de TEXTO de conversaciones).
+  → Verificado: server.ts de los 3 NO tienen refs a wallet/billing/cost/factura (0 refs). NO facturan.
+- La FACTURACIÓN/wallet va por OTRO camino que NO toco:
+  · `services/mcpApi/wallet.ts` (wallet_checkBalance)
+  · `chatService` (services/chat/index.ts) → api-ia (streaming + X-User-ID + balance)
+- chatService NO usa message/session/topicService → mi recableo NO le afecta.
+- El STREAMING sigue por api-ia (confirmado por API-IA). La FACTURACIÓN sigue por su camino.
+
+REGLA PARA EL RECABLEO (no romper ingresos):
+1. Solo cambiar el DESTINO de persistencia de conversaciones (tRPC LobeChat → api-mcp GraphQL).
+2. NO tocar: chatService (api-ia), mcpApi/wallet, balance, X-User-ID, el flujo de streaming.
+3. El flujo correcto se mantiene: chat-ia → api-ia (streaming + contabilidad) → api-mcp (persistencia).
+   La persistencia directa a api-mcp es SOLO para guardar/leer el texto, NO para facturar.
+4. ⚠️ DUDA A RESOLVER CON BACKEND: ¿la persistencia de mensajes debe pasar por api-ia (para que
+   contabilice) o el front puede escribir directo a api-mcp? BACKEND dijo "NO bypass api-ia" pero
+   también dio el GraphQL de api-mcp como destino de persistencia. ACLARAR antes de activar el switch.
