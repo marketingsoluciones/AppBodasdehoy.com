@@ -50,44 +50,32 @@ const jsonHeaders = () => ({
   'X-Development': getTenant(),
 });
 
-// ─────────── ENDPOINT 1: enviar mensaje ───────────
-// Ruta REAL verificada en api-ia openapi (2026-06-03): POST /api/messages/send
-// (BACKEND documentó /chat/stream pero NO existe; el real es /api/messages/send).
-// Contrato: { conversationId, channel, text, attachments? }
+// ─────────── ENDPOINT 1: chat streaming + persistencia (SSE) ───────────
+// Ruta DEFINITIVA (api-ia desplegó 2026-06-03): POST /chat/stream (los /chat/* son los oficiales
+// para el front; /api/messages/* son el adaptador genérico interno). Devuelve SSE.
 export async function sendChatMessage(
-  conversationId: string,
-  text: string,
-  opts?: { attachments?: any[]; channel?: string },
+  sessionId: string,
+  message: string,
+  opts?: { maxTokens?: number; model?: string; temperature?: number },
 ): Promise<Response> {
   ensureEnabled('sendChatMessage');
-  return fetch(`${API_IA_BASE}/api/messages/send`, {
-    body: JSON.stringify({
-      attachments: opts?.attachments,
-      channel: opts?.channel ?? 'LOBE_CHAT',
-      conversationId,
-      text,
-    }),
+  return fetch(`${API_IA_BASE}/chat/stream`, {
+    body: JSON.stringify({ development: getTenant(), message, sessionId, ...opts }),
     headers: jsonHeaders(),
     method: 'POST',
   });
 }
 
 // ─────────── ENDPOINT 2: crear sesión ───────────
-// Ruta REAL: POST /api/sessions  (contrato: { title, model, development, user_email })
-// Respuesta api-ia envuelta en { success, data }. Devolvemos el id de la sesión creada.
+// Ruta DEFINITIVA: POST /chat/session. Respuesta envuelta {success,data}; devolvemos el id.
 export async function createChatSession(opts?: {
-  model?: string;
+  config?: object;
   title?: string;
-  userEmail?: string;
+  type?: string;
 }): Promise<string> {
   ensureEnabled('createChatSession');
-  const r = await fetch(`${API_IA_BASE}/api/sessions`, {
-    body: JSON.stringify({
-      development: getTenant(),
-      model: opts?.model,
-      title: opts?.title,
-      user_email: opts?.userEmail,
-    }),
+  const r = await fetch(`${API_IA_BASE}/chat/session`, {
+    body: JSON.stringify({ development: getTenant(), ...opts }),
     headers: jsonHeaders(),
     method: 'POST',
   });
@@ -95,7 +83,6 @@ export async function createChatSession(opts?: {
   if (res?.success === false) {
     throw new Error(res?.error || res?.message || '[api-ia] createChatSession falló');
   }
-  // api-ia envuelve en { success, data }. El id puede venir en varias formas — robusto:
   const d = res?.data ?? res;
   const id = d?.sessionId ?? d?.id ?? d?._id;
   if (!id) throw new Error('[api-ia] createChatSession: respuesta sin id de sesión');
@@ -104,33 +91,33 @@ export async function createChatSession(opts?: {
 
 // ─────────── LECTURA vía api-ia gateway (DECISIÓN D2 = Opción A, 2026-06-03) ───────────
 // Todo (lectura + escritura) pasa por api-ia. api-ia hace proxy GraphQL read-only a api-mcp.
-// Ruta REAL: GET /api/messages/conversations/{conversationId}/messages
+// Ruta DEFINITIVA: GET /chat/messages?sessionId=X&limit=N
 export async function getChatMessages(
-  conversationId: string,
-  opts?: { limit?: number; offset?: number },
+  sessionId: string,
+  opts?: { limit?: number },
 ): Promise<any[]> {
   ensureEnabled('getChatMessages');
-  const qs = new URLSearchParams();
+  const qs = new URLSearchParams({ sessionId });
   if (opts?.limit !== undefined) qs.set('limit', String(opts.limit));
-  if (opts?.offset !== undefined) qs.set('offset', String(opts.offset));
-  const suffix = qs.toString() ? `?${qs.toString()}` : '';
-  const r = await fetch(
-    `${API_IA_BASE}/api/messages/conversations/${encodeURIComponent(conversationId)}/messages${suffix}`,
-    { headers: jsonHeaders(), method: 'GET' },
-  );
-  const data = await r.json();
-  return data?.messages ?? data ?? [];
-}
-
-// Ruta REAL: GET /api/sessions
-export async function getChatSessions(): Promise<any[]> {
-  ensureEnabled('getChatSessions');
-  const r = await fetch(`${API_IA_BASE}/api/sessions`, {
+  const r = await fetch(`${API_IA_BASE}/chat/messages?${qs.toString()}`, {
     headers: jsonHeaders(),
     method: 'GET',
   });
-  const data = await r.json();
-  return data?.sessions ?? data ?? [];
+  const res = await r.json();
+  return res?.data ?? res?.messages ?? res ?? [];
+}
+
+// Ruta DEFINITIVA: GET /chat/sessions?userId=X&limit=N
+export async function getChatSessions(userId: string, opts?: { limit?: number }): Promise<any[]> {
+  ensureEnabled('getChatSessions');
+  const qs = new URLSearchParams({ userId });
+  if (opts?.limit !== undefined) qs.set('limit', String(opts.limit));
+  const r = await fetch(`${API_IA_BASE}/chat/sessions?${qs.toString()}`, {
+    headers: jsonHeaders(),
+    method: 'GET',
+  });
+  const res = await r.json();
+  return res?.data ?? res?.sessions ?? res ?? [];
 }
 
 // ─────────── ENDPOINT 3: storage upload (multipart) — FASE 2 (D3) ───────────
