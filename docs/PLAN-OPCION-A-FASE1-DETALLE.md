@@ -379,3 +379,25 @@ ESTADO: el cliente FRONT ahora apunta a las rutas REALES de api-ia. Falta:
     al store del chat). Probar un request real con JWT.
   - Cablear call-sites del chat con flag (cuando se confirme el shape de respuesta).
   - api-ia tiene /api/messages/* y /api/sessions VIVOS (no 404) — verificar auth/método exactos.
+
+## 20. ✅✅ api-ia LISTO Y VERIFICADO EN VIVO (2026-06-03) — adaptador LobeChat activo
+
+GET /api/lobechat/status confirma el adaptador "LobeChat Adapter" v2.0.0 status:active.
+Endpoints VIVOS verificados (curl real):
+  GET  /api/sessions      → 200, shape: { success, data[], total }  ✅ (→ /api/conversations/last)
+  GET  /api/sessions/{id} → ✅ (→ MCP_GRAPHQL)
+  POST /api/sessions      → ✅ (→ MCP_GRAPHQL createLobeSession)
+  GET  /api/messages      → ✅ (→ /api/conversations/{id}/messages)
+  POST /api/messages/send → 422 pide {conversationId, channel, text} (mi cliente YA los manda) ✅
+  DELETE /api/sessions/{id}, /api/messages/{id} → ⚠️ TODO (no críticos para chat básico)
+
+ARQUITECTURA CONFIRMADA EN VIVO: api-ia → MCP_GRAPHQL (api-mcp). Exactamente el diseño original.
+api-ia es el gateway; persiste vía createLobeSession/sendMessage de api-mcp. SIN bypass.
+
+SHAPE respuesta: { success: boolean, data: [...], total: number } (envoltorio estándar api-ia).
+
+→ BLOQUEO LEVANTADO: api-ia está implementado y funcionando. El cliente FRONT (api-ia.ts) ya
+apunta a las rutas correctas y manda el body correcto. PRÓXIMO: cablear call-sites del chat
+con el flag, mapeando { success, data } → al shape del store, verificando contra checklist paridad.
+
+PENDIENTE menor (api-ia): DELETE session/message (TODO). No bloquea chat básico (crear+leer+enviar).
