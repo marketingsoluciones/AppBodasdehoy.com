@@ -277,3 +277,29 @@ LO QUE FRONT PUEDE ADELANTAR (sin romper, sin endpoints aún):
   - Esqueleto src/services/api-ia.ts con las 8 funciones (sendChatMessage, uploadFile, sendWhatsApp...)
     apuntando a NEXT_PUBLIC_API_IA_URL (api-ia.bodasdehoy.com), detrás de flag USE_API_IA_ENDPOINTS=false.
   - Mapear qué llamadas actuales del front reemplazará cada endpoint.
+
+## 16. ✅ ARQUITECTURA CONFIRMADA por api-mcp (análisis 07:08) — todos alineados
+
+api-mcp confirmó la lógica original del usuario:
+  chat-ia → api-ia (streaming IA + facturación) → api-mcp (persistencia GraphQL, colección UNIFICADA chats)
+
+- api-mcp implementó Topics CORRECTO (subdoc en `chats`, unificada con WhatsApp/Instagram/etc).
+- Resolvers GraphQL persistencia correctos. El problema era QUIÉN los llama → debe ser api-ia, NO el front directo.
+- Hay 6 colecciones de mensajería hoy (chats/chat_messages/email_messages/developmentmessages/
+  whatsapp/inbox) → meta: unificar en `chats`. api-mcp ya empezó (df55c40).
+
+IMPLICACIÓN para FRONT (corrige enfoque previo):
+  ❌ message/apiServer.ts (apolloClient → api-mcp DIRECTO) = ENFOQUE EQUIVOCADO (bypass api-ia). DESCARTADO.
+  ✅ services/api-ia.ts (todo por api-ia) = ENFOQUE CORRECTO. Este se mantiene.
+  El front escribe SOLO contra api-ia (8 endpoints); api-ia persiste en api-mcp.
+  Lectura (getMessages/getSessions): BACKEND dijo directo a api-mcp OK — pero confirmar si también
+  debe pasar por api-ia para consistencia (su análisis sugiere api-ia como gateway).
+
+ESTADO REAL (PROYECTO 4 de api-mcp): AppEventos BLOQUEADO por api-ia endpoints.
+  Front no completa nada hasta que api-ia: (1) tenga los 8 endpoints, (2) persista en api-mcp GraphQL.
+  ETA api-ia: ~1 día. PRIORIDAD CRÍTICA (revenue).
+
+LO QUE FRONT YA DEJÓ LISTO (en paralelo, inactivo):
+  - services/api-ia.ts: 8 funciones detrás de USE_API_IA_ENDPOINTS=false. Dominio correcto
+    (api-ia.bodasdehoy.com, NO api3-ia=NXDOMAIN). Activar cuando api-ia despliegue.
+  - El upload YA va por api-ia (uploadService.uploadFileToS3) — no necesita migración.
