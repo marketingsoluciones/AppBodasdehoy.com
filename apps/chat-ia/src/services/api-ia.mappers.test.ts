@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { mapApiIaSession, mapApiIaSessionsToList } from './api-ia.mappers';
+import {
+  mapApiIaMessage,
+  mapApiIaMessages,
+  mapApiIaSession,
+  mapApiIaSessionsToList,
+} from './api-ia.mappers';
 
 /**
  * Tests del CONTRATO de los mapeadores api-ia → tipos del store. Verifican que el front
@@ -42,5 +47,38 @@ describe('api-ia mappers', () => {
     const list = mapApiIaSessionsToList(undefined);
     expect(list.sessions).toEqual([]);
     expect(list.sessionGroups).toEqual([]);
+  });
+
+  it('mapApiIaMessage: requeridos (content,id,role,createdAt,updatedAt,meta) + role en minúsculas', () => {
+    const m = mapApiIaMessage({
+      content: 'hola',
+      createdAt: 1700000000000,
+      id: 'm1',
+      role: 'USER',
+    });
+    expect(m.id).toBe('m1');
+    expect(m.content).toBe('hola');
+    expect(m.role).toBe('user');
+    expect(m.createdAt).toBe(1700000000000);
+    expect(m.updatedAt).toBe(1700000000000); // fallback a createdAt
+    expect(m.meta).toEqual({});
+  });
+
+  it('mapApiIaMessage: tolera _id, text y createdAt ISO string', () => {
+    const m = mapApiIaMessage({ _id: 'm2', createdAt: '2023-11-14T22:13:20.000Z', text: 'desde text' });
+    expect(m.id).toBe('m2');
+    expect(m.content).toBe('desde text');
+    expect(m.role).toBe('assistant'); // default
+    expect(typeof m.createdAt).toBe('number');
+    expect(m.createdAt).toBeGreaterThan(0);
+  });
+
+  it('mapApiIaMessages: filtra mensajes sin id y mapea el resto', () => {
+    const list = mapApiIaMessages([
+      { content: 'a', id: 'm1', role: 'user' },
+      { content: 'sin id' },
+      { _id: 'm3', content: 'c', role: 'assistant' },
+    ]);
+    expect(list.map((m) => m.id)).toEqual(['m1', 'm3']);
   });
 });

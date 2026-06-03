@@ -11,6 +11,8 @@
  * Mientras tanto, estos mapeadores son tolerantes: aceptan id|_id|sessionId, title|name|meta.title,
  * etc. NO se activan hasta que el flag esté en true y se haya verificado en E2E conjunto.
  */
+import { UIChatMessage } from '@lobechat/types';
+
 import { ChatSessionList, LobeAgentSession, LobeSessionType } from '@/types/session';
 
 /** Una sesión "cruda" tal como podría llegar de api-ia (campos tolerantes). */
@@ -30,6 +32,13 @@ interface RawApiIaSession {
 
 const toDate = (v: number | string | undefined): Date =>
   v === undefined ? new Date(0) : new Date(v);
+
+const toEpoch = (v: number | string | undefined): number => {
+  if (v === undefined) return 0;
+  if (typeof v === 'number') return v;
+  const n = Date.parse(v);
+  return Number.isNaN(n) ? 0 : n;
+};
 
 /**
  * Mapea una sesión cruda de api-ia → LobeAgentSession (lo mínimo que el store/UI necesita
@@ -67,4 +76,43 @@ export function mapApiIaSessionsToList(rawList: RawApiIaSession[] | undefined): 
     sessionGroups: [],
     sessions,
   };
+}
+
+/** Un mensaje "crudo" tal como podría llegar de api-ia (campos tolerantes). */
+interface RawApiIaMessage {
+  _id?: string;
+  content?: string;
+  createdAt?: number | string;
+  id?: string;
+  meta?: any;
+  role?: string;
+  sessionId?: string;
+  text?: string;
+  topicId?: string;
+  updatedAt?: number | string;
+}
+
+/**
+ * Mapea un mensaje crudo de api-ia → UIChatMessage (campos REQUERIDOS: content, createdAt,
+ * id, meta, role, updatedAt). Defensivo con id|_id, content|text y normaliza role a minúsculas
+ * (el store usa 'user'|'assistant'|'system'|'tool'). Campos ricos opcionales (fileList,
+ * imageList, plugin...) se preservan si vienen; si no, el render los trata como undefined.
+ */
+export function mapApiIaMessage(raw: RawApiIaMessage): UIChatMessage {
+  const createdAt = toEpoch(raw.createdAt);
+  return {
+    content: raw.content ?? raw.text ?? '',
+    createdAt,
+    id: raw.id ?? raw._id ?? '',
+    meta: raw.meta ?? {},
+    role: (raw.role ?? 'assistant').toLowerCase() as UIChatMessage['role'],
+    sessionId: raw.sessionId,
+    topicId: raw.topicId,
+    updatedAt: toEpoch(raw.updatedAt) || createdAt,
+  } as UIChatMessage;
+}
+
+/** Mapea el array plano de api-ia (getChatMessages) → UIChatMessage[], filtrando sin id. */
+export function mapApiIaMessages(rawList: RawApiIaMessage[] | undefined): UIChatMessage[] {
+  return (rawList ?? []).map(mapApiIaMessage).filter((m) => !!m.id);
 }
