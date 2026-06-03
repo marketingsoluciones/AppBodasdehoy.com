@@ -10,7 +10,12 @@ import { MESSAGE_CANCEL_FLAT } from '@/const/message';
 import { DEFAULT_AGENT_LOBE_SESSION, INBOX_SESSION_ID } from '@/const/session';
 import { DEFAULT_CHAT_GROUP_CHAT_CONFIG } from '@/const/settings';
 import { useClientDataSWR } from '@/libs/swr';
-import { USE_API_IA_ENDPOINTS, createChatSession as apiIaCreateSession } from '@/services/api-ia';
+import {
+  USE_API_IA_ENDPOINTS,
+  createChatSession as apiIaCreateSession,
+  getChatSessions as apiIaGetSessions,
+} from '@/services/api-ia';
+import { mapApiIaSessionsToList } from '@/services/api-ia.mappers';
 import { chatGroupService } from '@/services/chatGroup';
 import { sessionService } from '@/services/session';
 import { getChatGroupStoreState } from '@/store/chatGroup';
@@ -246,7 +251,15 @@ export const createSessionSlice: StateCreator<
   useFetchSessions: (enabled, isLogin) =>
     useClientDataSWR<ChatSessionList>(
       enabled ? [FETCH_SESSIONS_KEY, isLogin] : null,
-      () => sessionService.getGroupedSessions(),
+      // 🚧 Migración Opción A: con USE_API_IA_ENDPOINTS, listar conversaciones vía api-ia gateway
+      // (→ MCP getLobeSessions). El mapeador traduce el shape plano de api-ia al ChatSessionList
+      // que espera el store. Mientras flag=false → flujo actual (sessionService) intacto.
+      () =>
+        USE_API_IA_ENDPOINTS
+          ? apiIaGetSessions(userProfileSelectors.email(useUserStore.getState()) || '').then(
+              mapApiIaSessionsToList,
+            )
+          : sessionService.getGroupedSessions(),
       {
         fallbackData: {
           sessionGroups: [],
