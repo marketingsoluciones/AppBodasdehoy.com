@@ -22,8 +22,6 @@ import { SWRResponse, mutate } from 'swr';
 import { StateCreator } from 'zustand/vanilla';
 
 import { useClientDataSWR } from '@/libs/swr';
-import { USE_API_IA_ENDPOINTS, getChatMessages as apiIaGetMessages } from '@/services/api-ia';
-import { mapApiIaMessages } from '@/services/api-ia.mappers';
 import { messageService } from '@/services/message';
 import { topicService } from '@/services/topic';
 import { traceService } from '@/services/trace';
@@ -282,13 +280,11 @@ export const chatMessage: StateCreator<
   useFetchMessages: (enable, sessionId, activeTopicId) =>
     useClientDataSWR<ChatMessage[]>(
       enable ? [SWR_USE_FETCH_MESSAGES, sessionId, activeTopicId] : null,
-      // 🚧 Migración Opción A: con USE_API_IA_ENDPOINTS, cargar mensajes vía api-ia gateway
-      // (→ MCP getMessages). El mapeador traduce el shape plano de api-ia a UIChatMessage[].
-      // Mientras flag=false → flujo actual (messageService) intacto.
-      async ([, sessionId]: [string, string, string | undefined]) =>
-        USE_API_IA_ENDPOINTS
-          ? apiIaGetMessages(sessionId).then(mapApiIaMessages)
-          : messageService.getMessages(sessionId, activeTopicId),
+      // Migración Opción A: getMessages se resuelve en el service (messageService =
+      // ApiIaMessageService cuando USE_API_IA_ENDPOINTS, ver services/message/index.ts).
+      // UN solo camino — no duplicar el flag aquí.
+      async ([, sessionId, topicId]: [string, string, string | undefined]) =>
+        messageService.getMessages(sessionId, topicId),
       {
         onSuccess: (messages, key) => {
           const normalizedMessages = normalizeDeliveryStatus(messages);

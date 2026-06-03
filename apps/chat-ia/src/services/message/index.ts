@@ -1,6 +1,8 @@
 import { isDesktop } from '@/const/version';
+import { USE_API_IA_ENDPOINTS } from '@/services/api-ia';
 
 import { ClientService as DeprecatedService } from './_deprecated';
+import { ApiIaMessageService } from './apiIa';
 import { ServerService } from './server';
 import { IMessageService } from './type';
 
@@ -17,7 +19,11 @@ function buildClientService(): IMessageService {
 
 const clientService = buildClientService();
 
-export const messageService =
-  process.env.NEXT_PUBLIC_SERVICE_MODE === 'server' || isDesktop
+// Migración Opción A: con USE_API_IA_ENDPOINTS, la persistencia de mensajes va por api-ia
+// (ApiIaMessageService → /chat/messages), eliminando tRPC/drizzle del flujo. Mientras flag=false
+// → comportamiento actual intacto (ServerService tRPC o clientService).
+export const messageService = USE_API_IA_ENDPOINTS
+  ? new ApiIaMessageService()
+  : process.env.NEXT_PUBLIC_SERVICE_MODE === 'server' || isDesktop
     ? new ServerService()
     : clientService;
