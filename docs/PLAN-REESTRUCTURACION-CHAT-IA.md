@@ -104,6 +104,26 @@ Candidatas confirmadas a eliminar (no usadas / genéricas LobeChat):
 5. 📋 **Borrado de código muerto en BLOQUE** (knowledge ~48 archivos + discover + image) —
    diferido a entorno donde compilar no cueste 10min. El flag ya neutralizó lo funcional.
 
+## 8. Mapa de dependencias para el BORRADO futuro (crítico — no borrar a ciegas)
+
+⚠️ El knowledge/RAG está MÁS entrelazado de lo que parece. Borrar requiere orden cuidadoso:
+
+| Pieza | La importan | Riesgo |
+|---|---|---|
+| `routers/lambda/document` | solo `lambda/index.ts` | 🟢 fácil (quitar registro + archivo) |
+| `routers/lambda/chunk` | `lambda/index.ts` + **`lambda/memory.ts`** | 🔴 memory.ts puede ser funcionalidad que SÍ se usa |
+| `routers/async/ragEval` | `async/index.ts`, `lambda/index.ts`, **`libs/langchain`**, `store/knowledgeBase`, locales | 🔴 muy enredado |
+| `KnowledgeBaseModal` | `FileManager` (gestor archivos), `ChatInput/Knowledge` | 🟡 FileManager puede usarse |
+| `store/knowledgeBase` (+ slices ragEval) | varios | 🔴 store completo |
+
+**Medición real:** ocultar por flag NO redujo módulos de /chat (sigue 40.418 = baseline). Los
+flags resuelven UX, NO velocidad de compilación. El recorte de módulos REQUIERE borrar código.
+
+**Recomendación:** el borrado NO debe hacerse en este entorno (10min/verificación) ni apresurado.
+Hacer en sesión dedicada, idealmente en máquina con más RAM, en orden hojas→raíz, verificando
+compilación tras cada eliminación. Verificar antes si memory.ts/FileManager dependen de chunk/modal
+y si esa funcionalidad se usa.
+
 ### Lección clave de los flags
 Los feature flags de LobeChat NO separan limpiamente "feature genérica" de "funcionalidad propia":
 - `plugins` = marketplace LobeChat + builtin tools propias (mismo flag)
