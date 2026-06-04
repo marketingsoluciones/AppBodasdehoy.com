@@ -682,6 +682,8 @@ export const en = {
     custom: "custom",
     none: "none",
     toOrder: "to order",
+    creationDate: "creation date",
+    updatedAt: "last updated",
     maxLimitedItineraries: "The maximum limit for creating or duplicating was reached",
     importCorrect: "guests imported successfully",
     fileErrors: "The file contains errors",

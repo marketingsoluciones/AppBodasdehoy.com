@@ -9,6 +9,7 @@ import ModalLeft from "../components/Utils/ModalLeft";
 import { useDelayUnmount } from "../utils/Funciones";
 import { NextPage } from "next";
 import { Event, SelectModeSortType } from "../utils/Interfaces";
+import { compareByOrder } from "../utils/sortByOrder";
 import VistaSinCookie from "../pages/vista-sin-cookie"
 import { useRouter } from "next/router";
 import { useToast } from "../hooks/useToast";
@@ -314,14 +315,8 @@ const GridCards: FC<propsGridCards> = ({ state, set: setNewEvent }) => {
       <div className="flex flex-col md:flex-1 overflow-x-scroll md:overflow-clip">
         {tabsGroup.map((group, idx) => {
           group?.data?.sort((a, b) => {
-            if (orderAndDirection.order === "fecha") {
-              const dateA = new Date(parseInt(a?.fecha)).getTime();
-              const dateB = new Date(parseInt(b?.fecha)).getTime();
-              return orderAndDirection.direction === "asc" ? dateA - dateB : dateB - dateA;
-            }
-            if (orderAndDirection.order === "nombre") {
-              return orderAndDirection.direction === "asc" ? a.nombre.localeCompare(b.nombre) : b.nombre.localeCompare(a.nombre);
-            }
+            if (!orderAndDirection?.order) return 0;
+            return compareByOrder(a, b, orderAndDirection.order, orderAndDirection.direction);
           });
           return (
             <div key={idx} className={`${isActiveStateSwiper !== idx && "hidden"} mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5`}>

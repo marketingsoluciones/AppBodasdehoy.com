@@ -532,6 +532,7 @@ export const queries = {
       estado
       prioridad
       fecha_creacion
+      updatedAt
     }
   }`,
 
@@ -599,6 +600,8 @@ export const queries = {
         commentsViewers
         estado
         prioridad
+        fecha_creacion
+        updatedAt
       }
       tipo
       fecha_creacion
@@ -645,6 +648,8 @@ export const queries = {
         commentsViewers
         estado
         prioridad
+        fecha_creacion
+        updatedAt
       }
       tipo
     }
@@ -706,6 +711,7 @@ export const queries = {
           estado
           prioridad
           fecha_creacion
+          updatedAt
         }
         columnsOrder{
           columnId
@@ -967,6 +973,8 @@ export const queries = {
           commentsViewers
           estado
           prioridad
+          fecha_creacion
+          updatedAt
         }
         columnsOrder{
           columnId
@@ -1940,6 +1948,8 @@ export const queries = {
           commentsViewers
           estado
           prioridad
+          fecha_creacion
+          updatedAt
         }
         columnsOrder{
           columnId

@@ -14,6 +14,7 @@ import { GoEye, GoEyeClosed, GoGitBranch } from "react-icons/go";
 import { LiaLinkSolid } from "react-icons/lia";
 import { MdOutlineDeleteOutline } from "react-icons/md";
 import { OptionsSelect, Task, Itinerary, Info, ModalInterface, SelectModeSortType } from "../../../utils/Interfaces"
+import { compareByOrder } from "../../../utils/sortByOrder"
 import { SubHeader } from "../../Servicios/Utils/SubHeader";
 import { ViewItinerary } from "../../../pages/invitados";
 import FormTask from "../../Forms/FormTask";
@@ -282,7 +283,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         )
       );
       if (view === "schema") {
-        filteredTasks.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+        const order = orderAndDirection?.order ?? "fecha";
+        const direction = orderAndDirection?.direction ?? "asc";
+        filteredTasks.sort((a, b) => compareByOrder(a, b, order, direction));
       }
       setTasks(filteredTasks);
       const taskReduce: TaskReduce[] = filteredTasks.reduce((acc: TaskReduce[], item: Task) => {
@@ -304,7 +307,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       setTasks(prev => (prev && prev.length === 0 ? prev : []));
       setTasksReduce(prev => (prev && prev.length === 0 ? prev : []));
     }
-  }, [currentItinerario, itinerario]);
+  }, [currentItinerario, itinerario, orderAndDirection]);
 
   const handleAddSpectatorView = async (values: Task) => {
     console.log("values", values)

@@ -682,6 +682,8 @@ export const es = {
     custom: "personalizado",
     none: "ninguno",
     toOrder: "ordenar",
+    creationDate: "fecha de creación",
+    updatedAt: "fecha de actualización",
     importCorrect: "invitados importados correctamente",
     fileErrors: "El archivo contiene errores",
     contactTemplateFileName: "Plantilla%20de%20Contactos",

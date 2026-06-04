@@ -36,9 +36,16 @@ export const SelectModeSort: FC<props> = ({ value, setValue }) => {
       value: "descripcion",
       title: t("name")
     },
+    {
+      value: "fecha_creacion",
+      title: t("creationDate")
+    },
+    {
+      value: "fecha_actualizacion",
+      title: t("updatedAt")
+    }
   ]
-  if (window?.location?.pathname === "/servicios") {
-    orderOptions = [...orderOptions,
+  const addOptions = [
     {
       value: "estado",
       title: t("state")
@@ -47,7 +54,9 @@ export const SelectModeSort: FC<props> = ({ value, setValue }) => {
       value: "prioridad",
       title: t("priority")
     },
-    ]
+  ]
+  if (window?.location?.pathname === "/servicios") {
+    orderOptions.splice(2, 0, ...addOptions as orderOptions[])
   }
 
   const directionOptions: { value: Direction, title: string }[] = [
@@ -74,7 +83,7 @@ export const SelectModeSort: FC<props> = ({ value, setValue }) => {
         </div>
 
         {show &&
-          <div className={`absolute right-0 bg-white top-8 rounded-md shadow-md`}>
+          <div className={`w-[185px] absolute right-0 bg-white top-8 rounded-md shadow-md`}>
             {[...orderOptions.map(elem => { return { ...elem, type: "order" } }),
               null,
             ...directionOptions.map(elem => { return { ...elem, type: "direction" } })]?.map((item, idx) => {
@@ -84,7 +93,7 @@ export const SelectModeSort: FC<props> = ({ value, setValue }) => {
                     item.type === "order" ? setOrder(item.value as Order) : setDirection(item.value as Direction)
                     // setShow(false)
                   }}
-                  className={`py-1 pl-2 pr-8 text-gray-700 text-xs flex items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${[order, direction].includes(item?.value) && "bg-gray-200"}`}
+                  className={`py-1 pl-2 text-gray-700 text-xs flex items-center gap-2 capitalize cursor-pointer hover:bg-gray-100 ${[order, direction].includes(item?.value) && "bg-graybuel-500"}`}
                 >
                   <div className={`w-2 h-2 rounded-full ${[order, direction].includes(item?.value) && "bg-green"}`} />
                   {item.title}

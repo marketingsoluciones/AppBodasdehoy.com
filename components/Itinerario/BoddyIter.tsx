@@ -3,6 +3,7 @@ import { ItineraryTabs } from "./MicroComponente/ItineraryTabs"
 import { ItineraryPanel } from "./MicroComponente/ItineraryPanel"
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import { Event, Itinerary, SelectModeSortType } from "../../utils/Interfaces"
+import { compareByOrder } from "../../utils/sortByOrder"
 import { ViewItinerary } from "../../pages/invitados";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
@@ -229,60 +230,8 @@ export const BoddyIter = () => {
         if (!orderAndDirection || !tasks || view === "schema") {
             return tasks;
         }
-        const statusOrder: Record<string, number> = {
-            pending: 0,
-            in_progress: 1,
-            completed: 2,
-            blocked: 3
-        };
-        const prioridadOrder: Record<string, number> = {
-            baja: 0,
-            media: 1,
-            alta: 2
-        };
         const { order, direction } = orderAndDirection;
-        const isDesc = direction === "desc";
-        return [...tasks].sort((a, b) => {
-            let comparison = 0;
-
-            switch (order) {
-                case "descripcion":
-                    comparison = (a?.descripcion || "").localeCompare(b?.descripcion || "");
-                    break;
-
-                case "fecha":
-                    const dateA = new Date(a?.fecha || 0).getTime();
-                    const dateB = new Date(b?.fecha || 0).getTime();
-                    comparison = dateA - dateB;
-                    break;
-
-                case "estado":
-                    const aIdx = a?.estado ? (statusOrder[a.estado] ?? 0) : 0;
-                    const bIdx = b?.estado ? (statusOrder[b.estado] ?? 0) : 0;
-                    comparison = aIdx - bIdx;
-                    break;
-
-                case "prioridad":
-                    const aPrioridad = a?.prioridad ? (prioridadOrder[a.prioridad] ?? 0) : 0;
-                    const bPrioridad = b?.prioridad ? (prioridadOrder[b.prioridad] ?? 0) : 0;
-                    comparison = aPrioridad - bPrioridad;
-                    break;
-
-                case "nombre":
-                    comparison = (a?.title || "").localeCompare(b?.title || "");
-                    break;
-
-                case "personalizada":
-                    comparison = (a?.personalizada || "").localeCompare(b?.personalizada || "");
-                    break;
-
-                case "ninguna":
-                default:
-                    // Sin ordenamiento específico, mantener orden original
-                    return 0;
-            }
-            return isDesc ? -comparison : comparison;
-        });
+        return [...tasks].sort((a, b) => compareByOrder(a, b, order, direction));
     };
 
     useEffect(() => {
