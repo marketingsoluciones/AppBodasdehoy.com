@@ -155,21 +155,18 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                         }
                         const handleDelete = async () => {
                             const dataProp = props.row.original
+                            let updatedPresupuesto: any = null
 
                             try {
-                                await fetchApiBodas({
-                                    query: `mutation($evento_id:ID!,$gasto_id:ID!,$pago_id:ID!){
-                                      borraPago(evento_id:$evento_id, gasto_id:$gasto_id, pago_id:$pago_id){
-                                        success errors{ field message code }
-                                        evento{ _id presupuesto_objeto }
-                                      }
-                                    }`,
+                                updatedPresupuesto = await fetchApiBodas({
+                                    query: queries.deletepayment,
                                     variables: {
                                         evento_id: event?._id,
+                                        categoria_id: dataProp.idCategoria,
                                         gasto_id: dataProp.idGasto,
                                         pago_id: dataProp._id,
                                     },
-                                });
+                                })
                             } catch (error) {
                             } finally {
 
@@ -191,17 +188,22 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                                         (item) => item._id !== dataProp._id
                                     );
 
-                                    //Actualizar pagado del evento
-                                    old.presupuesto_objeto.pagado = data?.pagado;
+                                    if (updatedPresupuesto?.pagado != null) {
+                                        old.presupuesto_objeto.pagado = updatedPresupuesto.pagado;
+                                    }
 
                                     //Actualizar pagado de la categoria
-                                    old.presupuesto_objeto.categorias_array[idxCategoria].pagado =
-                                        data?.categorias_array[0]?.pagado;
+                                    if (updatedPresupuesto?.categorias_array?.[0]?.pagado != null) {
+                                        old.presupuesto_objeto.categorias_array[idxCategoria].pagado =
+                                            updatedPresupuesto.categorias_array[0].pagado;
+                                    }
 
                                     //Actualizar pagado del gasto
-                                    old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[
-                                        idxGastos
-                                    ].pagado = data?.categorias_array[0]?.gastos_array[0]?.pagado;
+                                    if (updatedPresupuesto?.categorias_array?.[0]?.gastos_array?.[0]?.pagado != null) {
+                                        old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[
+                                            idxGastos
+                                        ].pagado = updatedPresupuesto.categorias_array[0].gastos_array[0].pagado;
+                                    }
 
                                     // Sobrescribir arr de pagos anterior por el nuevo
                                     old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[
@@ -335,21 +337,18 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                         }
                         const handleDelete = async () => {
                             const dataProp = props.row.original
+                            let updatedPresupuesto: any = null
 
                             try {
-                                await fetchApiBodas({
-                                    query: `mutation($evento_id:ID!,$gasto_id:ID!,$pago_id:ID!){
-                                      borraPago(evento_id:$evento_id, gasto_id:$gasto_id, pago_id:$pago_id){
-                                        success errors{ field message code }
-                                        evento{ _id presupuesto_objeto }
-                                      }
-                                    }`,
+                                updatedPresupuesto = await fetchApiBodas({
+                                    query: queries.deletepayment,
                                     variables: {
                                         evento_id: event?._id,
+                                        categoria_id: dataProp.idCategoria,
                                         gasto_id: dataProp.idGasto,
                                         pago_id: dataProp._id,
                                     },
-                                });
+                                })
                             } catch (error) {
                             } finally {
                                 setEvent((old) => {
@@ -370,17 +369,22 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                                         (item) => item._id !== dataProp._id
                                     );
 
-                                    //Actualizar pagado del evento
-                                    old.presupuesto_objeto.pagado = data?.pagado;
+                                    if (updatedPresupuesto?.pagado != null) {
+                                        old.presupuesto_objeto.pagado = updatedPresupuesto.pagado;
+                                    }
 
                                     //Actualizar pagado de la categoria
-                                    old.presupuesto_objeto.categorias_array[idxCategoria].pagado =
-                                        data?.categorias_array[0]?.pagado;
+                                    if (updatedPresupuesto?.categorias_array?.[0]?.pagado != null) {
+                                        old.presupuesto_objeto.categorias_array[idxCategoria].pagado =
+                                            updatedPresupuesto.categorias_array[0].pagado;
+                                    }
 
                                     //Actualizar pagado del gasto
-                                    old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[
-                                        idxGastos
-                                    ].pagado = data?.categorias_array[0]?.gastos_array[0]?.pagado;
+                                    if (updatedPresupuesto?.categorias_array?.[0]?.gastos_array?.[0]?.pagado != null) {
+                                        old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[
+                                            idxGastos
+                                        ].pagado = updatedPresupuesto.categorias_array[0].gastos_array[0].pagado;
+                                    }
 
                                     // Sobrescribir arr de pagos anterior por el nuevo
                                     old.presupuesto_objeto.categorias_array[idxCategoria].gastos_array[
@@ -416,7 +420,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
         [event?.presupuesto_objeto?.currency]
     );
 
-    const data = categorias?.reduce((acc, categoria) => {
+    const pagosData = categorias?.reduce((acc, categoria) => {
         if (categoria?.gastos_array?.length >= 1) {
             const reduce = categoria?.gastos_array?.reduce((arr, gasto) => {
                 if (gasto?.pagos_array?.length >= 1) {
@@ -442,7 +446,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
         return acc;
     }, []);
 
-    const dataFilter = data.filter((elemnt) => elemnt.estado == estado)
+    const dataFilter = pagosData.filter((elemnt) => elemnt.estado == estado)
 
     return (
         <>
@@ -451,7 +455,7 @@ const TablaDatosPagos = ({ estado, getId, setGetId, cate, showSoporte, setShowSo
                 : (
                     <div className="bg-white  p-6">
                         <p onClick={() => setShowPagos(!PagosOrFormAdd)} className="absolute font-display text-xl transform transition top-5 right-5 text-gray-500 hover:scale-125 cursor-pointer">X</p>
-                        <FormEditarPago getId={getId} categorias={cate} ListaPagos={data} IDPagoAModificar={PagoID} IDs={GastoID} set={(act: any) => setShowPagos(act)} state={PagosOrFormAdd} />
+                        <FormEditarPago getId={getId} categorias={cate} ListaPagos={pagosData} IDPagoAModificar={PagoID} IDs={GastoID} set={(act: any) => setShowPagos(act)} state={PagosOrFormAdd} />
                     </div>
                 )
             }
