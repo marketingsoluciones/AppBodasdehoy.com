@@ -1235,6 +1235,7 @@ export const CopilotEmbed = ({
       >
         <CopilotChatInput
           generating={loading}
+          leftActions={[['history', 'clear']]}
           chatKey={sessionId}
           onSend={({ clearContent, getMarkdownContent }) => {
             const content = getMarkdownContent();

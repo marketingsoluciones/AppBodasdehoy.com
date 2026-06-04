@@ -33,15 +33,23 @@ const Navigation: FC = () => {
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(0);
   const chatSidebar = useChatSidebar();
   // Copilot abierto en desktop empuja el contenido. El header está fuera del grid; aplicamos
   // padding-left dinámico = copilotSlotWidth para que el header acompañe visualmente al contenido.
-  const copilotPushPx = (isDesktop && chatSidebar?.isOpen)
-    ? Math.max(
-        CHAT_SIDEBAR_MIN_WIDTH,
-        Math.min(CHAT_SIDEBAR_MAX_WIDTH, chatSidebar?.width ?? CHAT_SIDEBAR_DEFAULT_WIDTH),
-      ) + 4
+  const copilotDesiredWidth = Math.max(
+    CHAT_SIDEBAR_MIN_WIDTH,
+    Math.min(CHAT_SIDEBAR_MAX_WIDTH, chatSidebar?.width ?? CHAT_SIDEBAR_DEFAULT_WIDTH),
+  );
+  const canDockCopilot =
+    isDesktop &&
+    !!chatSidebar?.isOpen &&
+    viewportWidth > 0 &&
+    viewportWidth - 900 >= CHAT_SIDEBAR_MIN_WIDTH;
+  const copilotDockWidth = canDockCopilot
+    ? Math.max(CHAT_SIDEBAR_MIN_WIDTH, Math.min(copilotDesiredWidth, viewportWidth - 900))
     : 0;
+  const copilotPushPx = canDockCopilot && copilotDockWidth > 0 ? copilotDockWidth + 4 : 0;
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const mq = window.matchMedia('(min-width: 768px)');
@@ -49,6 +57,13 @@ const Navigation: FC = () => {
     apply();
     mq.addEventListener('change', apply);
     return () => mq.removeEventListener('change', apply);
+  }, []);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const apply = () => setViewportWidth(window.innerWidth);
+    apply();
+    window.addEventListener('resize', apply);
+    return () => window.removeEventListener('resize', apply);
   }, []);
   const canSeeCopilot =
     config?.copilotEnabled !== false ||
@@ -75,6 +90,8 @@ const Navigation: FC = () => {
     if (itemRoute === '/') return currentPath === '/'
     return currentPath === itemRoute || currentPath.startsWith(`${itemRoute}/`)
   }
+
+  const navTone = pathname === '/' ? 'onPrimary' : 'onLight'
 
   const Navbar = useMemo(() => [
     {
@@ -247,11 +264,16 @@ const Navigation: FC = () => {
                             router.push("/")
                           }
                         }}
-                        className={`w-max flex flex-col justify-between items-center transition cursor-pointer hover:opacity-100 hover:scale-110
-                  ${isActiveRoute(pathname, item.route)
-                            ? "text-primary opacity-100 scale-110"
-                            : "text-gray-800 opacity-70"
-                          }`}
+                        className={`w-max flex flex-col justify-between items-center transition cursor-pointer hover:opacity-100 hover:scale-110 rounded-xl px-2 py-1
+                  ${navTone === 'onPrimary'
+                            ? (isActiveRoute(pathname, item.route)
+                              ? "text-white bg-white/20 opacity-100 scale-110"
+                              : "text-white opacity-80 hover:bg-white/10")
+                            : (isActiveRoute(pathname, item.route)
+                              ? "text-primary opacity-100 scale-110"
+                              : "text-gray-800 opacity-70")
+                          }
+                  ${isActiveRoute(pathname, item.route) ? "after:content-[''] after:block after:mt-1 after:h-[2px] after:w-6 after:rounded-full after:bg-current" : ""}`}
                       >
                         {item.icon}
                         <p className="font-display text-[10px] text-center leading-tight h-max whitespace-nowrap">{t(item.title)}</p>

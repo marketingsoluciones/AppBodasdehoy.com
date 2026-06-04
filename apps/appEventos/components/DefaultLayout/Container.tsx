@@ -13,6 +13,8 @@ import CopilotFilterBar from "../Utils/CopilotFilterBar";
 const COPILOT_WIDE_BREAKPOINT = 1024;
 /** Por debajo de este ancho se considera móvil: Copilot flotante, contenido sin margen */
 const MOBILE_BREAKPOINT = 768;
+/** No aplastar el contenido: si no queda al menos este ancho, Copilot pasa a overlay. */
+const MIN_CONTENT_WHEN_DOCKED = 900;
 // Copilot sidebar: lazy import para no bloquear el bundle principal
 const DISABLE_COPILOT_IN_DEV = false;
 import dynamic from 'next/dynamic';
@@ -28,6 +30,7 @@ const Container = (props) => {
 
   const [isWideScreen, setIsWideScreen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(0);
 
   const { setCopilotFilter, clearCopilotFilter } = EventsGroupContextProvider();
 
@@ -65,6 +68,7 @@ const Container = (props) => {
     const check = () => {
       setIsWideScreen(window.innerWidth >= COPILOT_WIDE_BREAKPOINT);
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+      setViewportWidth(window.innerWidth);
     };
     check();
     window.addEventListener("resize", check);
@@ -101,13 +105,22 @@ const Container = (props) => {
 
   // En desktop, cuando el Copilot está abierto, reservar su ancho en el layout para que el contenido
   // (tarjetas de eventos, etc.) ceda espacio y no quede tapado por superposición.
-  const copilotOpenDesktop = shouldMountChatSidebar && !isMobile && chatSidebar?.isOpen;
-  const copilotSlotWidth = copilotOpenDesktop
-    ? Math.max(
-        CHAT_SIDEBAR_MIN_WIDTH,
-        Math.min(CHAT_SIDEBAR_MAX_WIDTH, chatSidebar?.width ?? CHAT_SIDEBAR_DEFAULT_WIDTH),
-      ) + 4
-    : 0; // +4 px = asa de resize dentro del panel
+  const desiredCopilotWidth = Math.max(
+    CHAT_SIDEBAR_MIN_WIDTH,
+    Math.min(CHAT_SIDEBAR_MAX_WIDTH, chatSidebar?.width ?? CHAT_SIDEBAR_DEFAULT_WIDTH),
+  );
+  const canDockCopilot =
+    shouldMountChatSidebar &&
+    !isMobile &&
+    isWideScreen &&
+    viewportWidth > 0 &&
+    viewportWidth - MIN_CONTENT_WHEN_DOCKED >= CHAT_SIDEBAR_MIN_WIDTH;
+  const dockedCopilotWidth = canDockCopilot
+    ? Math.max(CHAT_SIDEBAR_MIN_WIDTH, Math.min(desiredCopilotWidth, viewportWidth - MIN_CONTENT_WHEN_DOCKED))
+    : 0;
+  const copilotDocked = canDockCopilot && dockedCopilotWidth > 0;
+  const copilotOverlay = shouldMountChatSidebar && !copilotDocked;
+  const copilotSlotWidth = copilotDocked ? dockedCopilotWidth + 4 : 0; // +4 px = asa de resize dentro del panel
 
   return (
     <>
@@ -132,26 +145,27 @@ const Container = (props) => {
           width: "100%",
           maxWidth: "100%",
           boxSizing: "border-box",
-          // Dos columnas cuando hay Copilot: primera reserva espacio (0px si cerrado), segunda 1fr = resto para banner/contenido
-          gridTemplateColumns: shouldMountChatSidebar ? `${copilotSlotWidth}px minmax(0, 1fr)` : "1fr",
+          // Modo Trae: Copilot a la izquierda + resultados/app a la derecha.
+          // Copilot overlay: 1 columna (no aplasta contenido).
+          gridTemplateColumns: copilotDocked ? `${copilotSlotWidth}px minmax(0, 1fr)` : "1fr",
           transition: "grid-template-columns 0.2s ease",
         }}
       >
-        {shouldMountChatSidebar && (
-          /* Columna Copilot: mismo ancho que reserva el grid (sin hueco gris por 20vw vs slot). */
+        {copilotDocked && (
+          /* Columna Copilot: dock a la izquierda, con separación visual */
           <div
-            className="flex flex-row h-full overflow-hidden shrink-0 bg-white text-gray-900 [color-scheme:light]"
+            className="flex flex-row h-full overflow-hidden shrink-0 bg-white text-gray-900 [color-scheme:light] border-r border-gray-200"
             style={{
               minWidth: 0,
               width: copilotSlotWidth,
               maxWidth: copilotSlotWidth,
             }}
           >
-            <ChatSidebarDirect />
+            <ChatSidebarDirect overlayBreakpoint={MOBILE_BREAKPOINT} />
           </div>
         )}
 
-        {/* Columna del contenido (banner "Organiza tus eventos", tarjetas, etc.): siempre a la derecha del Copilot */}
+        {/* Columna de resultados/app (banner "Organiza tus eventos", tarjetas, etc.): siempre a la derecha del Copilot */}
         <div
           className="min-w-0 overflow-auto overflow-y-scroll transition-all duration-300 relative z-[45] flex flex-col"
           style={{ isolation: "isolate" }}
@@ -166,6 +180,10 @@ const Container = (props) => {
           </main>
         </div>
       </div>
+
+      {copilotOverlay && (
+        <ChatSidebarDirect forceOverlay={!isMobile} overlayBreakpoint={MOBILE_BREAKPOINT} />
+      )}
     </>
   );
 };

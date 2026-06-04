@@ -75,9 +75,20 @@ function truncateLabel(label: string, max = 34) {
 
 const MOBILE_BREAKPOINT = 768;
 
-const ChatSidebarDirect: FC = () => {
+type ChatSidebarDirectProps = {
+  /** Forzar modo overlay (drawer) aunque sea desktop, para no aplastar el contenido. */
+  forceOverlay?: boolean;
+  /** Breakpoint para entrar en overlay automáticamente (px). Default: 768. */
+  overlayBreakpoint?: number;
+};
+
+const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBreakpoint }) => {
   const { isOpen, width, closeSidebar, setWidth } = useChatSidebar();
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return !!forceOverlay;
+    const bp = typeof overlayBreakpoint === 'number' ? overlayBreakpoint : MOBILE_BREAKPOINT;
+    return !!forceOverlay || window.innerWidth < bp;
+  });
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [editingLabel, setEditingLabel] = useState(false);
@@ -241,16 +252,19 @@ const ChatSidebarDirect: FC = () => {
   // ── Mobile detection ────────────────────────────────────────────────────
   const applyViewportMode = useCallback(() => {
     if (typeof window === 'undefined') return;
-    const mobile = window.innerWidth < MOBILE_BREAKPOINT;
-    setIsMobile(mobile);
-    if (mobile) {
+    const bp = typeof overlayBreakpoint === 'number' ? overlayBreakpoint : MOBILE_BREAKPOINT;
+    const shouldOverlay = !!forceOverlay || window.innerWidth < bp;
+    setIsMobile(shouldOverlay);
+    // Solo ajustar width al viewport cuando es móvil real (<=768). En overlay forzado (desktop),
+    // mantenemos el width del sidebar para no pisar la preferencia del usuario.
+    if (window.innerWidth < MOBILE_BREAKPOINT) {
       wasMobileViewportRef.current = true;
       const vw = window.innerWidth;
       if (sidebarWidthRef.current !== vw) setWidth(vw);
     } else if (wasMobileViewportRef.current) {
       wasMobileViewportRef.current = false;
     }
-  }, [setWidth]);
+  }, [forceOverlay, overlayBreakpoint, setWidth]);
 
   useLayoutEffect(() => { applyViewportMode(); }, [applyViewportMode]);
 
@@ -363,13 +377,13 @@ const ChatSidebarDirect: FC = () => {
         aria-modal={isOverlay ? true : undefined}
         aria-labelledby={isOverlay ? 'copilot-sidebar-title' : undefined}
         tabIndex={isOverlay ? -1 : undefined}
-        initial={isOverlay ? { x: '-100%' } : { opacity: 0 }}
+        initial={isOverlay ? { x: '100%' } : { opacity: 0 }}
         animate={isOverlay ? { x: 0 } : { opacity: 1 }}
-        exit={isOverlay ? { x: '-100%' } : { opacity: 0 }}
+        exit={isOverlay ? { x: '100%' } : { opacity: 0 }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
         className={
           isOverlay
-            ? 'fixed top-0 left-0 h-screen max-h-[100dvh] bg-white shadow-2xl z-50 flex flex-col overscroll-y-contain [-webkit-tap-highlight-color:transparent] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] outline-none'
+            ? 'fixed top-0 right-0 h-screen max-h-[100dvh] bg-white shadow-2xl z-50 flex flex-col overscroll-y-contain [-webkit-tap-highlight-color:transparent] pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] outline-none'
             : 'h-full max-w-full bg-white shadow-xl flex flex-shrink-0 z-40 min-w-0'
         }
         style={{
