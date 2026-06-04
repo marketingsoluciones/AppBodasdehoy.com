@@ -56,6 +56,7 @@
     "desktop:prepare-dist": "tsx scripts/electronWorkflow/moveNextStandalone.ts",
     "dev": "cross-env NODE_OPTIONS=--max-old-space-size=6144 next dev -H 0.0.0.0 -p 3210",
     "dev:local": "cross-env NODE_OPTIONS=--max-old-space-size=6144 next dev -H 0.0.0.0 -p 3210",
+    "dev:hmr": "cross-env NODE_OPTIONS=--max-old-space-size=6144 next dev -H 127.0.0.1 -p 3215",
     "dev:turbo": "cross-env NODE_OPTIONS=--max-old-space-size=8192 next dev --turbopack -H 0.0.0.0 -p 3210",
     "dev:desktop": "next dev --turbopack -H localhost -p 3015",
     "dev:fast": "next dev -H localhost -p 8000",
