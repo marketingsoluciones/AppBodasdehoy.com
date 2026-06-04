@@ -68,11 +68,17 @@ const nextConfig = {
   },
 
   // Configuración experimental para compatibilidad
-  experimental: process.env.NODE_ENV === 'production'
-    ? {
-        optimizePackageImports: ['react-icons', 'lucide-react', 'framer-motion', '@lobehub/ui', 'antd', '@ant-design/icons', 'date-fns', 'swiper'],
-      }
-    : {},
+  // PERF 2026-06-04: optimizePackageImports también en DEV (antes solo prod). Reduce el fan-out
+  // de barrels grandes (antd, lucide, @lobehub/ui) en cada compilación on-demand de dev.
+  experimental: {
+    optimizePackageImports: ['react-icons', 'lucide-react', 'framer-motion', '@lobehub/ui', 'antd', '@ant-design/icons', 'date-fns', 'swiper'],
+  },
+
+  // PERF 2026-06-04: NO retener páginas compiladas inactivas en memoria (la Mac de 16GB satura
+  // swap al compilar /login = 15922 módulos). Solo afecta a dev.
+  ...(process.env.NODE_ENV === 'production'
+    ? {}
+    : { onDemandEntries: { maxInactiveAge: 25 * 1000, pagesBufferLength: 3 } }),
 
   // Turbopack: equivalentes de los aliases webpack críticos
   // Evita instancias duplicadas de React (resolveDispatcher is null)
@@ -118,6 +124,18 @@ const nextConfig = {
           message: /ESM packages \(supports-color\)/,
         },
       ];
+    }
+
+    // PERF 2026-06-04: cache filesystem de webpack en DEV → compilaciones posteriores 3-5× más
+    // rápidas (no recompila los 15922 módulos desde cero en cada arranque). Replicado de chat-ia.
+    if (dev) {
+      config.cache = {
+        type: 'filesystem',
+        cacheDirectory: path.join(__dirname, '.next/cache/webpack'),
+        compression: false,
+        maxMemoryGenerations: 1,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+      };
     }
 
     return config;
