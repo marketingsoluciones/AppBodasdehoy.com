@@ -1,20 +1,34 @@
 import debug from 'debug';
 
-import { lambdaClient } from '@/libs/trpc/client';
-import { CreateImageServicePayload } from '@/server/routers/lambda/image';
+// CAPA 2 PASO C 2026-06-04: image 100% vía api-ia REST (/webapi/text-to-image/{provider}).
+// Eliminado fallback tRPC (lambdaClient.image.createImage) — el modo whitelabel siempre
+// usa Backend Python.
 
-// Create debug logger
 const log = debug('lobe-image:service');
 
-// ============================================
-// Configuración del Backend Python
-// ============================================
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8080';
+
+// Type local (antes vivía en server/routers/lambda/image.ts).
+export interface CreateImageServicePayload {
+  generationTopicId: string;
+  imageNum: number;
+  model: string;
+  params: {
+    cfg?: number;
+    height?: number;
+    imageUrls?: string[];
+    prompt: string;
+    seed?: number | null;
+    steps?: number;
+    width?: number;
+  };
+  provider: string;
+}
 
 /**
  * Obtiene la configuración del usuario desde localStorage
  */
-function getDevUserConfig(): { development?: string; token?: string, userId?: string; } | null {
+function getDevUserConfig(): { development?: string; token?: string; userId?: string } | null {
   if (typeof window === 'undefined') return null;
 
   try {
@@ -27,35 +41,21 @@ function getDevUserConfig(): { development?: string; token?: string, userId?: st
 }
 
 /**
- * Genera imagen usando el Backend Python con AUTO-ROUTING inteligente
+ * Genera imagen usando el Backend Python (api-ia) con AUTO-ROUTING.
  *
- * El sistema selecciona automáticamente el mejor proveedor según:
- * - Disponibilidad de API keys
- * - Calidad de texto en imágenes (importante para invitaciones)
- * - Costo por imagen
- *
- * Proveedores soportados:
- * - OpenAI DALL-E 3 (buena calidad, buen texto)
- * - Google Imagen 3 (excelente texto)
- * - Ideogram 3 (MEJOR para texto)
- * - Stability AI (económico)
- * - Replicate FLUX (alta calidad)
- * - ComfyUI Local (gratis, fallback)
+ * Proveedores: OpenAI DALL-E 3, Google Imagen 3, Ideogram 3, Stability AI,
+ * Replicate FLUX, ComfyUI Local. El backend selecciona el mejor según
+ * disponibilidad / calidad de texto / coste.
  */
 async function createImageWithBackend(payload: CreateImageServicePayload): Promise<{
   error?: string;
-  images?: Array<{ b64_json?: string, base64?: string; url: string; }>;
+  images?: Array<{ b64_json?: string; base64?: string; url: string }>;
   success: boolean;
 }> {
   const userConfig = getDevUserConfig();
 
-  // =====================================================
-  // AUTO-ROUTING: Usar "auto" como provider por defecto
-  // El backend seleccionará el mejor proveedor disponible
-  // =====================================================
-  let provider = 'auto'; // Default: auto-routing inteligente
+  let provider = 'auto';
 
-  // Si el usuario especificó un provider específico, usarlo
   if (payload.provider) {
     if (payload.provider === 'google' || payload.model?.startsWith('imagen')) {
       provider = 'google';
@@ -64,13 +64,10 @@ async function createImageWithBackend(payload: CreateImageServicePayload): Promi
     } else if (['ideogram', 'stability', 'replicate', 'comfyui'].includes(payload.provider)) {
       provider = payload.provider;
     }
-    // Si no coincide con ninguno conocido, usar auto-routing
   }
 
-  // Determinar caso de uso basado en el prompt
-  // Esto ayuda al auto-router a seleccionar el mejor modelo
   const promptLower = payload.params.prompt.toLowerCase();
-  let useCase = 'invitation'; // Default para bodas
+  let useCase = 'invitation';
   if (promptLower.includes('menu') || promptLower.includes('menú')) {
     useCase = 'menu';
   } else if (promptLower.includes('decoración') || promptLower.includes('decoration') || promptLower.includes('fondo')) {
@@ -79,7 +76,6 @@ async function createImageWithBackend(payload: CreateImageServicePayload): Promi
     useCase = 'save_the_date';
   }
 
-  // ¿Requiere texto en la imagen?
   const requiresText = promptLower.includes('texto') ||
     promptLower.includes('text') ||
     promptLower.includes('invitación') ||
@@ -91,25 +87,17 @@ async function createImageWithBackend(payload: CreateImageServicePayload): Promi
 
   const backendPayload = {
     development: userConfig?.development || 'bodasdehoy',
-    model: payload.model, 
+    model: payload.model,
     n: payload.imageNum || 1,
-    
-prompt: payload.params.prompt,
-    
-quality: 'standard',
-    
-requires_text: requiresText,
-    // Puede ser null, el auto-router elegirá el mejor
-size: payload.params.width && payload.params.height
+    prompt: payload.params.prompt,
+    quality: 'standard',
+    requires_text: requiresText,
+    size: payload.params.width && payload.params.height
       ? `${payload.params.width}x${payload.params.height}`
       : '1024x1024',
     token: userConfig?.token,
-    
-    // Parámetros para auto-routing
-use_case: useCase,
-    
-user_id: userConfig?.userId || 'anonymous',
-    // Imagen de referencia para image-to-image (si se proporcionó)
+    use_case: useCase,
+    user_id: userConfig?.userId || 'anonymous',
     ...(payload.params.imageUrls && payload.params.imageUrls.length > 0 && {
       image_url: payload.params.imageUrls[0],
       strength: 0.75,
@@ -145,77 +133,41 @@ export class AiImageService {
   async createImage(payload: CreateImageServicePayload) {
     log('Creating image with payload: %O', payload);
 
-    // ============================================
-    // MODO WHITELABEL: Usar Backend Python
-    // ============================================
-    // Detectar si estamos en modo whitelabel (sin Clerk / dev-login)
-    const useBackend = typeof window !== 'undefined' && localStorage.getItem('dev-user-config');
+    const backendResult = await createImageWithBackend(payload);
 
-    if (useBackend) {
-      log('Using backend Python for image generation (whitelabel mode)');
+    if (backendResult.error) {
+      throw new Error(backendResult.error);
+    }
 
-      try {
-        const backendResult = await createImageWithBackend(payload);
+    // Adaptar respuesta al formato GenerationBatch esperado por el store.
+    const now = new Date();
+    return {
+      data: {
+        batch: {
+          config: { prompt: payload.params.prompt },
+          createdAt: now,
+          generations: (backendResult.images || []).map((img, idx) => {
+            let imageUrl = '';
+            if (img.url) imageUrl = img.url;
+            else if (img.b64_json) imageUrl = `data:image/png;base64,${img.b64_json}`;
+            else if (img.base64) imageUrl = `data:image/png;base64,${img.base64}`;
 
-        if (backendResult.error) {
-          throw new Error(backendResult.error);
-        }
-
-        // Adaptar respuesta al formato GenerationBatch esperado por el store
-        const now = new Date();
-        return {
-          data: {
-            batch: {
-              config: { prompt: payload.params.prompt },
+            return {
+              asset: imageUrl ? { originalUrl: imageUrl, type: 'image', url: imageUrl } : null,
+              asyncTaskId: null,
               createdAt: now,
-              generations: (backendResult.images || []).map((img: any, idx: number) => {
-                let imageUrl = '';
-                if (img.url) imageUrl = img.url;
-                else if (img.b64_json) imageUrl = `data:image/png;base64,${img.b64_json}`;
-                else if (img.base64) imageUrl = `data:image/png;base64,${img.base64}`;
-
-                return {
-                  asset: imageUrl ? { originalUrl: imageUrl, type: 'image', url: imageUrl } : null,
-                  asyncTaskId: null,
-                  createdAt: now,
-                  id: `gen-${Date.now()}-${idx}`,
-                  task: { id: `task-${Date.now()}-${idx}`, status: 'success' as any },
-                };
-              }),
-              id: `batch-${Date.now()}`,
-              model: payload.model || 'gpt-image-1',
-              prompt: payload.params.prompt,
-              provider: payload.provider || 'openai',
-            },
-          },
-          success: true,
-        };
-      } catch (error) {
-        log('Backend image creation failed: %O', error);
-        throw error;
-      }
-    }
-
-    // ============================================
-    // MODO ESTÁNDAR: Usar tRPC Lambda (LobeChat original)
-    // ============================================
-    try {
-      const result = await lambdaClient.image.createImage.mutate(payload);
-      log('Image creation service call completed successfully: %O', {
-        batchId: result.data?.batch?.id,
-        generationCount: result.data?.generations?.length,
-        success: result.success,
-      });
-
-      return result;
-    } catch (error) {
-      log('Image creation service call failed: %O', {
-        error: (error as Error).message,
-        payload,
-      });
-
-      throw error;
-    }
+              id: `gen-${Date.now()}-${idx}`,
+              task: { id: `task-${Date.now()}-${idx}`, status: 'success' as any },
+            };
+          }),
+          id: `batch-${Date.now()}`,
+          model: payload.model || 'gpt-image-1',
+          prompt: payload.params.prompt,
+          provider: payload.provider || 'openai',
+        },
+      },
+      success: true,
+    };
   }
 }
 
