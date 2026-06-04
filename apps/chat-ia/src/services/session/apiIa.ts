@@ -10,6 +10,7 @@
  * Patrón: fetch a /api/backend/... (proxy → api-ia), buildAuthHeaders + credentials. Igual que
  * ApiIaMessageService. userId = firebase_uid.
  */
+import { DEFAULT_AGENT_CONFIG } from '@/const/settings';
 import { ChatSessionList, LobeAgentSession, LobeSessionType } from '@/types/session';
 import { buildAuthHeaders } from '@/utils/authToken';
 
@@ -114,8 +115,12 @@ export class ApiIaSessionService implements ISessionService {
   }
   cloneSession: ISessionService['cloneSession'] = async () =>
     this.pending('cloneSession', 'duplicar sesión (UX secundaria)');
+  // getSessionConfig: api-mcp aún no expone getGlobalConfig/config por sesión (verificado
+  // 2026-06-04: query no está en el schema). Para NO bloquear el arranque del chat
+  // (useFetchAgentConfig la llama al abrir cada sesión), devolvemos el DEFAULT_AGENT_CONFIG
+  // como fallback (estrategia acordada con api-ia). Cuando api-mcp lo exponga, conectar aquí.
   getSessionConfig: ISessionService['getSessionConfig'] = async () =>
-    this.pending('getSessionConfig', 'leer config agente por sesión — EN OBSERVACIÓN, pedir a api-mcp si el flujo lo requiere');
+    DEFAULT_AGENT_CONFIG;
   updateSessionGroupOrder: ISessionService['updateSessionGroupOrder'] = async () =>
     this.pending('updateSessionGroupOrder', 'reordenar grupos (cosmético)');
   removeSessionGroups: ISessionService['removeSessionGroups'] = async () =>
