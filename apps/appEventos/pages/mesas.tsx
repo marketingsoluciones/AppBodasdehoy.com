@@ -127,9 +127,10 @@ const Mesas: FC = () => {
         : null
       try {
         const inputValues = {
+          title: values.tipo === "text" ? "text" : values.modelo,
           position: {
-            x: (values.offsetX - (element?.size?.width ?? 60) / 2).toFixed(0),
-            y: (values.offsetY - (element?.size?.height ?? 60) / 2).toFixed(0)
+            x: Math.round(values.offsetX - (element?.size?.width ?? 60) / 2),
+            y: Math.round(values.offsetY - (element?.size?.height ?? 60) / 2)
           },
           tipo: values.tipo === "text" ? "text" : values.modelo,
           rotation: 0,

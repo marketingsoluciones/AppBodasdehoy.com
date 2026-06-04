@@ -287,13 +287,6 @@ const Home: NextPage = () => {
             refreshEventsGroup={refreshEventsGroup}
           />
         </section>
-        <style jsx>
-          {`
-            .section {
-              height: calc(100vh - 144px);
-            }
-          `}
-        </style>
       </>
     );
   }

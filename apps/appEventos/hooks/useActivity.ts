@@ -36,7 +36,7 @@ export const useActivity = () => {
             activityId: activities[activity],
             eventId: event?._id || "",
             development: "bodasdehoy",
-            nombre: activities[activity],
+            nombre: activity,
           }
         }
       })

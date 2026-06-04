@@ -7,7 +7,7 @@ import { resolveApiBodasOrigin } from "../../utils/apiEndpoints";
 
 const VistaPrevia = ({ event }) => {
   /* console.log(12345, event) */
-  const [content, setContent] = useState();
+  const [content, setContent] = useState<string>('');
 
   async function FetchHtmlContent(idEvento) {
     try {
