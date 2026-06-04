@@ -112,7 +112,7 @@ const EventsGroupProvider = ({ children }) => {
   const pathname = usePathname();
   const [eventsGroup, setEventsGroup] = useReducer(reducerAction, []);
   const [psTemplates, setPsTemplates] = useState<any>([]);
-  const { user, config, verificationDone } = AuthContextProvider();
+  const { user, config, verificationDone, storage_id } = AuthContextProvider();
   const [isMounted, setIsMounted] = useState(false)
   const [eventsGroupDone, setEventsGroupDone] = useState(false)
   const [eventsGroupError, setEventsGroupError] = useState(false)
@@ -174,33 +174,7 @@ const EventsGroupProvider = ({ children }) => {
           const development =
             config?.development ||
             (typeof window !== 'undefined' ? getDevelopmentNameFromHostname(window.location.hostname) : 'bodasdehoy');
-          // BYPASS: Verificar si hay eventos del bypass en sessionStorage
-          const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
-          const isTestEnv = hostname.includes('chat-test') || hostname.includes('app-test') || hostname.includes('test.') || hostname.includes('localhost') || hostname.includes('127.0.0.1') || hostname.includes('app-dev')
-          const devBypass = typeof window !== 'undefined' && (localStorage.getItem('dev_bypass') === 'true' || sessionStorage.getItem('dev_bypass') === 'true')
-          const bypassEventos = typeof window !== 'undefined' ? (localStorage.getItem('dev_bypass_eventos') || sessionStorage.getItem('dev_bypass_eventos')) : null
-
-          if (isTestEnv && devBypass) {
-            console.log("[EventsGroup] 🔓 Bypass activo, bypassEventos:", bypassEventos ? 'presente' : 'vacío')
-            if (bypassEventos) {
-              try {
-                const eventos = JSON.parse(bypassEventos)
-                console.log("[EventsGroup] 🔓 Usando eventos del bypass:", eventos.length)
-                if (eventos && eventos.length > 0) {
-                  setEventsGroup({ type: "INITIAL_STATE", payload: eventos })
-                  setEventsGroupDone(true)
-                  return // Saltar fetch normal
-                }
-              } catch (e) {
-                console.error("[EventsGroup] Error parseando eventos del bypass:", e)
-              }
-            }
-            // Si no hay eventos en bypass, intentar con el fetch normal
-            console.log("[EventsGroup] Continuando con fetch normal...")
-          }
-
-          // Si estamos en bypass, usar el usuario_id del bypass
-          const userIdToUse = user?.uid || ((localStorage.getItem('dev_bypass') === 'true' || sessionStorage.getItem('dev_bypass') === 'true') ? (localStorage.getItem('dev_bypass_uid') || sessionStorage.getItem('dev_bypass_uid')) : null)
+          const userIdToUse = user?.uid
           
           if (!userIdToUse) {
             console.warn("[EventsGroup] No hay user.uid disponible para buscar eventos")
@@ -238,27 +212,56 @@ const EventsGroupProvider = ({ children }) => {
           // owned + shared en 1 sola call (securityFilter $or [usuario_id, compartido_array]).
           // Reemplaza las 2 llamadas queryenEvento (apiapp legacy) → fetchApiBodas (api-mcp).
           // No usar .catch(() => []): un 500/timeout debe propagar error a UI, no "lista vacía".
-          Promise.allSettled([
-            withTimeout(fetchApiBodas({
-              query: queries.getEventosByUsuario,
-              variables: { uid: userIdToUse, pag: { page: 1, limit: 1000 }, dev: development },
-              development,
-            }), GET_EVENTS_BY_ID_TIMEOUT_MS, "getEventosByUsuario"),
-          ]).then((results) => {
-            const [settled] = results;
+          const requests: Promise<unknown>[] = [
+            withTimeout(
+              fetchApiBodas({
+                query: queries.getEventosByUsuario,
+                variables: { uid: userIdToUse, pag: { page: 1, limit: 1000 }, dev: development },
+                development,
+              }),
+              GET_EVENTS_BY_ID_TIMEOUT_MS,
+              "getEventosByUsuario",
+            ),
+          ]
 
-            if (settled.status === "rejected") {
+          if (storage_id && storage_id !== userIdToUse) {
+            requests.push(
+              withTimeout(
+                fetchApiBodas({
+                  query: queries.getEventosByUsuario,
+                  variables: { uid: storage_id, pag: { page: 1, limit: 1000 }, dev: development },
+                  development,
+                }),
+                GET_EVENTS_BY_ID_TIMEOUT_MS,
+                "getEventosByUsuario(storage_id)",
+              ),
+            )
+          }
+
+          Promise.allSettled(requests).then((results) => {
+            let hadFulfilled = false
+            let firstError: unknown = null
+            const list: Event[] = []
+
+            for (const settled of results) {
+              if (settled.status === "fulfilled") {
+                hadFulfilled = true
+                list.push(...coerceQueryenEventoList(settled.value))
+              } else if (!firstError) {
+                firstError = settled.reason
+              }
+            }
+
+            if (!hadFulfilled) {
               console.error(
                 "[EventsGroup] getEventosByUsuario falló. development=",
                 development,
                 "uid(prefix)=",
                 String(userIdToUse).slice(0, 10),
-                settled.reason
-              );
-              throw settled.reason;
+                firstError,
+              )
+              throw firstError
             }
-
-            const list: Event[] = coerceQueryenEventoList(settled.value);
 
             const seen = new Set<string>();
             const events: Event[] = [];
