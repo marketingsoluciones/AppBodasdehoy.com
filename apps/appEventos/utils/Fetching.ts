@@ -337,22 +337,6 @@ export const fetchApiBodasServer = async ({
 };
 
 export const queries = {
-  addWeddingPlannerIngreso: `mutation($evento_id:String, $weddingPlannerIngreso:WeddingPlannerIngresoInput ){
-    addWeddingPlannerIngreso(evento_id:$evento_id, weddingPlannerIngreso:$weddingPlannerIngreso){
-      _id
-      fecha
-      monto
-      metodo
-      referencia
-      createdAt
-      updatedAt
-    }
-  }`,
-
-  deleteWeddingPlannerIngreso: `mutation($evento_id:String, $weddingPlannerIngreso_id:ID){
-    deleteWeddingPlannerIngreso(evento_id:$evento_id, weddingPlannerIngreso_id:$weddingPlannerIngreso_id)
-  }`,
-
   // Shape canonical api-mcp 2026-06-05: borraPago NO acepta categoria_id (verificado smoke).
   // Devuelve EventoResponse { success, errors, evento{ _id presupuesto_objeto } }.
   // Antes (legacy apiapp) pedía pagado/categorias_array — ya no existe en PresupuestoResponse.
@@ -530,30 +514,6 @@ export const queries = {
       }
     }
   }`,
-  getPGuestEvent: `query($p:String){
-    getPGuestEvent(p:$p){
-      _id
-      invitados_array{
-        _id
-        sexo
-        nombre
-        estatus
-        correo
-        telefono
-        asistencia
-        alergenos
-        passesQuantity
-        father
-        nombre_menu
-        grupo_edad
-      }
-      menus_array{
-        nombre_menu
-        tipo
-      }
-    }
-  }`,
-
   setCheckoutItems: `mutation ( $unique:ID, $args:[inputDetailsItemsCheckout] )
   {
     setCheckoutItems(unique:$unique, args:$args)
@@ -1899,16 +1859,6 @@ export const queries = {
       showChildrenGuest
     }
   }`,
-  getListaRegalos: `query($_id: ID!, $development: String!){
-    queryenEvento_id(
-      _id: $_id,
-      development: $development
-    ){
-      _id
-      nombre
-      listaRegalos
-    }
-  }`,
   eventDelete: `mutation ($eventoID : ID!) {
     deleteEvento(id:$eventoID){
       success
@@ -2058,55 +2008,6 @@ export const queries = {
       errors{ field message code }
     }
   }`,
-  editTableOld: `mutation ($eventID:String, $tableID: String, $variable: String, $coordenadas: [posicionAinput]) {
-    editMesa(evento_id:$eventID,mesa_id:$tableID, variable_reemplazar:$variable, coordenadas:$coordenadas) {
-      _id
-      nombre_mesa
-      posicion {
-        x
-        y
-      }
-      cantidad_sillas
-    }
-  }`,
-  editNameTable: `mutation ($eventID:String, $tableID: String, $variable: String, $valor_reemplazar: String) {
-    editMesa(evento_id:$eventID,mesa_id:$tableID, variable_reemplazar:$variable, valor_reemplazar:$valor_reemplazar) {
-      _id
-      nombre_mesa
-      posicion {
-        x
-        y
-      }
-      cantidad_sillas
-      tipo
-    }
-  }`,
-  deleteTableOld: `mutation ($eventID:String, $tableID: String) {
-    borraMesa(evento_id:$eventID,mesa_id:$tableID) {
-      mesas_array{
-           _id
-           nombre_mesa
-           tipo
-           cantidad_sillas
-           posicion {
-             x
-             y
-           }
-      }
-    }
-  }`,
-  getDevelopment: `query {
-    getMyDevelopment{
-      _id
-      development
-      domain
-      message{
-        _id
-        name
-        message
-      }
-    }
-  }`,
   signOut: `mutation ($sessionCookie :String!){
     signOut(sessionCookie:$sessionCookie)
   }`,
@@ -2169,19 +2070,6 @@ export const queries = {
     }
   }`,
 
-  whatsappGetAllSessions: `query {
-    whatsappGetAllSessions {
-      sessionKey
-      development
-      userId
-      status
-      isConnected
-      qrCode
-      phoneNumber
-      connectedAt
-    }
-  }`,
-
   whatsappCreateSession: `mutation($sessionKey: String!) {
     whatsappCreateSession(sessionKey: $sessionKey) {
       success
@@ -2223,11 +2111,4 @@ export const queries = {
     }
   }`,
 
-  whatsappSendMessage: `mutation ($args: SendWhatsAppMessageArgs!) {
-    whatsappSendMessage(args: $args) {
-      success
-      messageId
-      error
-    }
-  }`,
 };

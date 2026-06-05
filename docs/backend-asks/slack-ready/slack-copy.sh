@@ -30,6 +30,9 @@ if [ -z "$choice" ]; then
 ║   Canal: #coordinacion · Hilo: 1778170638.897419            ║
 ╚══════════════════════════════════════════════════════════════╝
 
+  [0] → TODOS    📋 ESTADO PROYECTO + pendientes por equipo
+                  (resumen ejecutivo, enviar este PRIMERO)
+
   ─ Pendientes de enviar ─────────────────────────────────
 
   [3] → api-mcp  ⚠️ Thread CONFIRMADO + 4 ajustes contrato
@@ -58,6 +61,11 @@ MENU
 fi
 
 case "$choice" in
+  0|estado|resumen)
+    file="0-ESTADO-PROYECTO-Y-PENDIENTES.txt"
+    target="TODOS (api-mcp + api-ia + AppBodas)"
+    note="📋 ESTADO PROYECTO + pendientes por equipo (resumen ejecutivo)"
+    ;;
   1|cat-c)
     file="2b-RE-API-MCP-CatC.txt"
     target="api-mcp"
