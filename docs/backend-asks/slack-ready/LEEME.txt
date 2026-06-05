@@ -1,60 +1,58 @@
 ═══════════════════════════════════════════════════════════════════
-   MENSAJES SLACK LISTOS PARA ENVIAR — 05-jun
+   MENSAJES SLACK — estado al 05-jun (ronda 2)
 ═══════════════════════════════════════════════════════════════════
 
 CANAL Slack:    #coordinacion (C0AV8EV5495)
 WORKSPACE:      eventosorganizador.slack.com
 HILO único:     1778170638.897419  ← TODOS los mensajes van AQUÍ
 
-(Memoria del proyecto: "TODAS las conversaciones AppBodas van en ese
-hilo. BACKEND-api-mcp postea en ese mismo canal/hilo via bot
-compartido — distinguir por contenido DE: BACKEND.")
+
+═══════════════════════════════════════════════════════════════════
+   🔥 LO QUE HAY QUE ENVIAR AHORA (orden de prioridad)
+═══════════════════════════════════════════════════════════════════
+
+
+[4] PRIORIDAD ALTA — api-mcp acuse + fijar naming Thread
+─────────────────────────────────────────────────────────
+  Archivo:   4-RE-API-MCP-acuse-Thread-fijar-naming.txt
+  Comando:   ./slack-copy.sh 4
+  Motivo:    Backend confirmó los 4 ajustes y arrancó ETA 1-2h.
+             Pero los enums quedan en MAYÚSCULAS schema (correcto),
+             el front usa minúsculas. Hay que confirmar que aplican
+             el patrón uppercase/lowercase IDÉNTICO al que ya tienen
+             con `role` (front↔ia minúsculas, ia↔mcp MAYÚSCULAS).
+             Sin esto, el primer round-trip Thread rompe.
+  Urgencia:  Antes de que merguen el commit.
+
+
+[5] PRIORIDAD MEDIA — api-ia avisar Thread desbloqueado
+─────────────────────────────────────────────────────────
+  Archivo:   5-PARA-API-IA-Thread-preparar-proxy-naming.txt
+  Comando:   ./slack-copy.sh 5
+  Motivo:    api-mcp publicará Thread en ~1-2h. Aviso a api-ia para
+             que arranquen el proxy REST con el patrón uppercase/
+             lowercase correcto (igual que role). Incluye los 6
+             endpoints REST esperados y recordatorio de los 3
+             servicios pendientes (A/B/C) que aún esperan respuesta.
 
 
 ═══════════════════════════════════════════════════════════════════
-   4 MENSAJES ACTIVOS
+   📜 HISTÓRICOS — ya enviados, no reenviar salvo error
 ═══════════════════════════════════════════════════════════════════
 
-ORDEN RECOMENDADO DE ENVÍO:
-  1 → 2 → 3 → 4 (cada uno responde a lo anterior).
+  [1] 2b-RE-API-MCP-CatC.txt
+      → api-mcp · Confirmación Cat C + P0 + 2 ops NO necesarias
 
+  [2] 1c-RE-API-IA-decision-plugin-c.txt
+      → api-ia · Decisión plugin (c) DEPRECAR
 
-─── MENSAJE 1 ─────────────────────────────────────────────────────
-  Archivo: 2b-RE-API-MCP-CatC.txt
-  Para:    api-mcp
-  Asunto:  Confirmamos P0 estable + Cat C 12/13 + 2 ops NO necesarias
-           (generatePdf/getGeoInfo ya están como endpoints locales)
-  Status:  pendiente de respuesta backend
+  [3] 3-PARA-API-MCP-Thread-ajustes-contrato.txt
+      → api-mcp · Thread + 4 ajustes contrato
+      Status: ✅ api-mcp respondió confirmando los 4
 
-─── MENSAJE 2 ─────────────────────────────────────────────────────
-  Archivo: 1c-RE-API-IA-decision-plugin-c.txt
-  Para:    api-ia
-  Asunto:  Decisión plugin opción (c) DEPRECAR
-           Front YA implementado (commit chat-ia 30799792).
-           Pregunta colateral aiProvider/chatGroup/knowledgeBase.
-  Status:  pendiente de respuesta backend
-
-─── MENSAJE 3 ─────────────────────────────────────────────────────
-  Archivo: 3-PARA-API-MCP-Thread-ajustes-contrato.txt
-  Para:    api-mcp
-  Asunto:  ⚠️ Thread SE MANTIENE (corrección importante) +
-           4 ajustes al contrato GraphQL antes del merge:
-             - enum type: Continuation/Standalone (no branch/followup)
-             - enum status: Deprecated (no closed)
-             - reusar SendMessageInput existente
-             - type/status como enum tipado, no String!
-  Urgencia: ALTA — están implementando AHORA con 6-8h ETA,
-            cambiar después es más caro.
-
-─── MENSAJE 4 ─────────────────────────────────────────────────────
-  Archivo: 1d-PARA-API-IA-Thread-mantener-y-3-pendientes.txt
-  Para:    api-ia
-  Asunto:  ⚠️ Thread se MANTIENE (corrección al malentendido previo) +
-           3 servicios CAPA 2 pendientes de decisión:
-             [A] aiProvider     → ¿opción (c) deprecar?
-             [B] chatGroup      → ¿(a) deprecar order/role, (b) modelar, (c) userConfig?
-             [C] knowledgeBase  → ¿(a), (b) o (c)?
-           Si los 3 son (c), CAPA 2 cerrada esta semana.
+  [6] 1d-PARA-API-IA-Thread-mantener-y-3-pendientes.txt
+      → api-ia · Thread se MANTIENE + 3 servicios pendientes A/B/C
+      Status: ⏳ esperando respuesta sobre A/B/C
 
 
 ═══════════════════════════════════════════════════════════════════
@@ -63,64 +61,79 @@ ORDEN RECOMENDADO DE ENVÍO:
 
 Forma fácil — menú interactivo:
 
+    $ cd ~/Projects/AppBodasdehoy.com/docs/backend-asks/slack-ready
     $ ./slack-copy.sh
 
 Atajos directos:
 
-    $ ./slack-copy.sh 1      # 2b api-mcp Cat C
-    $ ./slack-copy.sh 2      # 1c api-ia plugin (c)
-    $ ./slack-copy.sh 3      # 3 api-mcp Thread + 4 ajustes
-    $ ./slack-copy.sh 4      # 1d api-ia Thread mantener + 3 pendientes
+    $ ./slack-copy.sh 4       # 🆕 acuse api-mcp + naming (URGENTE)
+    $ ./slack-copy.sh 5       # 🆕 aviso api-ia proxy REST + naming
+    $ ./slack-copy.sh ls      # listar todos los archivos vivos
 
 El mensaje queda en el portapapeles. Luego:
   Cmd+Tab a Slack
   → canal #coordinacion (C0AV8EV5495)
   → entra al hilo 1778170638.897419
-  → click en "Reply in thread"
+  → "Reply in thread"
   → Cmd+V
   → Enter
 
 
 ═══════════════════════════════════════════════════════════════════
-   CONTEXTO IMPORTANTE — Thread (corrección sesión anterior)
+   ESTADO PROYECTO AHORA MISMO
 ═══════════════════════════════════════════════════════════════════
 
-COORD había planteado deprecar Thread del front asumiendo que AppBodas
-no iba a usarlo. ERROR: chat-ia es multi-tenant (bodas + proyectos de
-desarrollo + más apps). Thread (sub-conversaciones tipo Slack-thread,
-"Reply in thread") es feature CORE en todos los tenants.
+✅ CERRADO en el front (commits en branch tj/feat/inbox-fase1):
+   - CAPA 1 PASO C: message, session, topic
+   - CAPA 2 (9 servicios): image, global, user, file, rag,
+     generation, plugin, tool, ragEval
+   - 23 commits totales esta semana
 
-REGLA: el objetivo de CAPA 2 PASO C es ELIMINAR drizzle/pglite/tRPC
-del bundle PRESERVANDO 100% de funcionalidades. NO deprecar features.
-
-Por eso los mensajes 3 y 4 son CORRECCIÓN del anterior planteo y
-mantienen Thread activo.
-
-
-═══════════════════════════════════════════════════════════════════
-   ESTADO PROYECTO TRAS ENVIAR LOS 4
-═══════════════════════════════════════════════════════════════════
-
-✅ CERRADO front (commits en branch tj/feat/inbox-fase1):
-   image, global, user, file, rag, generation, plugin, tool, ragEval
-   borrado, CAPA 1 message/session/topic.
+🚧 EN PROGRESO backend (api-mcp):
+   - Thread + 4 ajustes contrato (ETA 1-2h)
+   - updateTasksOrder Cat C (ETA 06-jun)
 
 ⏳ ESPERANDO respuesta backend:
-   - api-mcp: Thread con 4 ajustes (ETA 6-8h una vez aceptados)
-   - api-mcp: updateTasksOrder (Cat C, ETA 06-jun)
-   - api-ia:  decisión aiProvider/chatGroup/knowledgeBase (A/B/C)
-   - api-ia:  endpoint getUserRegistrationDuration (User.createdAt YA existe)
+   - api-mcp: confirmar naming uppercase/lowercase Thread
+              (mensaje 4 de esta carpeta)
+   - api-ia:  preparar proxy REST Thread + naming
+              (mensaje 5 de esta carpeta)
+   - api-ia:  decisión A/B/C sobre aiProvider/chatGroup/knowledgeBase
+              (mensaje 6 ya enviado, sin respuesta aún)
 
-🎯 SIGUIENTE HITO COORD:
+🎯 SIGUIENTE HITO del lado COORD:
    - Smoke E2E Cat C con JWT real (hoy/mañana)
-   - Apagar droplet apiapp.bodasdehoy.com (viernes objetivo)
+   - Apagar droplet apiapp.bodasdehoy.com (viernes)
+   - Integrar Thread cuando api-ia exponga los 6 endpoints REST
 
 
 ═══════════════════════════════════════════════════════════════════
-   HISTÓRICO (no enviar)
+   📚 CONTEXTO IMPORTANTE — patrón role/Thread naming
 ═══════════════════════════════════════════════════════════════════
 
-_archived/  contiene:
-  - mensajes originales 1, 2, 3, 1b (ya respondidos por backend)
-  - drafts 3-PARAR-Thread y 1d-Thread-retirado (descartados — eran
-    el plan incorrecto de deprecar Thread, antes de la corrección)
+El proyecto ya tiene un precedente exacto para los enums:
+
+  Memoria: memory/project_contrato_role_chat_persistencia.md
+
+  Contrato message.role (verificado SSH, en producción):
+
+    front ↔ api-ia      → MINÚSCULAS  ('user', 'assistant', 'tool')
+    api-ia ↔ api-mcp    → MAYÚSCULAS  ('USER', 'ASSISTANT', 'TOOL')
+
+    api-ia hace la transformación. NO cambiar el front a mayúsculas
+    (rompe facturación assistant — ya verificado).
+
+→ Aplicar el MISMO patrón a Thread.type y Thread.status.
+→ Eso es exactamente lo que pide el mensaje 4 a api-mcp y el 5 a api-ia.
+
+
+═══════════════════════════════════════════════════════════════════
+   HISTÓRICO DE DRAFTS DESCARTADOS
+═══════════════════════════════════════════════════════════════════
+
+_archived/ contiene:
+  - Mensajes originales 1, 2, 3, 1b (ya respondidos por backend
+    en rondas anteriores)
+  - Drafts 3-PARAR-Thread y 1d-Thread-retirado (descartados — eran
+    el plan INCORRECTO de deprecar Thread, basado en mi confusión
+    de que chat-ia era solo AppBodas; en realidad es multi-tenant).

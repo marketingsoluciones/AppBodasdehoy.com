@@ -7,10 +7,8 @@
 #
 # Uso:
 #   ./slack-copy.sh                # menú interactivo
-#   ./slack-copy.sh 1              # mensaje 1
-#   ./slack-copy.sh 2              # mensaje 2
-#   ./slack-copy.sh 3              # mensaje 3
-#   ./slack-copy.sh 4              # mensaje 4
+#   ./slack-copy.sh 1..6           # mensaje por número
+#   ./slack-copy.sh ls             # lista archivos vivos
 #
 # Requisito: macOS (usa pbcopy).
 
@@ -19,45 +17,73 @@ cd "$(dirname "$0")"
 
 choice="$1"
 
+if [ "$choice" = "ls" ]; then
+  ls -1 *.txt
+  exit 0
+fi
+
 if [ -z "$choice" ]; then
   cat <<'MENU'
 
 ╔══════════════════════════════════════════════════════════════╗
-║   MENSAJES SLACK LISTOS PARA ENVIAR — 05-jun                ║
+║   MENSAJES SLACK LISTOS PARA ENVIAR                         ║
 ║   Canal: #coordinacion · Hilo: 1778170638.897419            ║
 ╚══════════════════════════════════════════════════════════════╝
 
-  [1] → api-mcp  ✅ Cat C + P0 confirmados, call-sites por verificar
-  [2] → api-ia   ✅ decisión plugin opción (c) DEPRECAR
-  [3] → api-mcp  ⚠️  Thread CONFIRMADO + 4 ajustes contrato
-  [4] → api-ia   ⚠️  Thread se MANTIENE + 3 servicios pendientes (A/B/C)
+  ─ Pendientes de enviar ─────────────────────────────────
+
+  [3] → api-mcp  ⚠️ Thread CONFIRMADO + 4 ajustes contrato
+                  (probablemente ya enviado y respondido por mcp ✅)
+
+  [4] → api-mcp  🆕 Acuse + fijar naming uppercase/lowercase
+                  (URGENTE — antes que cierren merge Thread)
+
+  [5] → api-ia   🆕 Thread desbloqueado, preparar proxy REST
+                  + recordatorio decisión A/B/C (aiProvider/etc)
+
+  ─ Históricos en mismo hilo (por si necesitas reenviar) ──
+
+  [1] → api-mcp  Cat C + P0 confirmados + 2 ops NO necesarias
+  [2] → api-ia   Decisión plugin opción (c) DEPRECAR
+  [6] → api-ia   Thread se MANTIENE + 3 servicios pendientes A/B/C
+
   [s] → salir
 
-Elige (1/2/3/4/s):
+Elige (1/2/3/4/5/6/s):
 MENU
   read choice
 fi
 
 case "$choice" in
-  1|cat-c|mcp-cat)
+  1|cat-c)
     file="2b-RE-API-MCP-CatC.txt"
     target="api-mcp"
     note="confirmación Cat C + P0 + 2 ops NO necesarias"
     ;;
-  2|plugin|ia-plugin)
+  2|plugin)
     file="1c-RE-API-IA-decision-plugin-c.txt"
     target="api-ia"
     note="decisión plugin opción (c) DEPRECAR"
     ;;
-  3|thread-mcp|mcp-thread)
+  3|thread-ajustes)
     file="3-PARA-API-MCP-Thread-ajustes-contrato.txt"
     target="api-mcp"
-    note="Thread CONFIRMADO + 4 ajustes al contrato GraphQL"
+    note="Thread CONFIRMADO + 4 ajustes contrato (ya respondido por mcp)"
     ;;
-  4|thread-ia|ia-thread)
+  4|naming|thread-naming)
+    file="4-RE-API-MCP-acuse-Thread-fijar-naming.txt"
+    target="api-mcp"
+    note="🆕 acuse + fijar naming enums uppercase/lowercase como role"
+    ;;
+  5|proxy|thread-proxy)
+    file="5-PARA-API-IA-Thread-preparar-proxy-naming.txt"
+    target="api-ia"
+    note="🆕 Thread desbloqueado por api-mcp, preparar proxy REST + naming"
+    ;;
+  6|abc|3-pendientes)
     file="1d-PARA-API-IA-Thread-mantener-y-3-pendientes.txt"
     target="api-ia"
-    note="Thread se MANTIENE + 3 servicios CAPA 2 pendientes (aiProvider/chatGroup/knowledgeBase)"
+    note="Thread se MANTIENE + 3 servicios CAPA 2 pendientes A/B/C"
     ;;
   s|S|salir)
     echo "Saliendo."
