@@ -245,7 +245,7 @@ export async function getServerSideProps(context) {
       try {
         const data = await fetchApiBodasServer({
           query: queries?.getUsers,
-          variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
+          variables: { ids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid), development: development || 'bodasdehoy' },
           development,
         });
         users = Array.isArray(data?.getUsers) ? data.getUsers : [];
@@ -254,7 +254,7 @@ export async function getServerSideProps(context) {
           error_2 = error
           const dataRetry = await fetchApiBodasServer({
             query: queries?.getUsers,
-            variables: { uids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid) },
+            variables: { ids: task.comments.filter(elem => !!elem.uid).map(elem => elem.uid), development: development || 'bodasdehoy' },
             development,
           });
           users = Array.isArray(dataRetry?.getUsers) ? dataRetry.getUsers : [];

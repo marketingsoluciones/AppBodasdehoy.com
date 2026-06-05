@@ -53,6 +53,8 @@ declare -a OPS=(
 
   # Itinerario (2 ops) — getItinerario NO existe, front lo resuelve via getEventoById
   'getItinerario|query($id:ID!){ getEventoById(id:$id){ _id nombre } }|{"id":"x"}'
+  # updateTasksOrder (api-mcp 2026-06-05 commit cb9b33c) — última Cat C
+  'updateTasksOrder|mutation($evento_id:ID!,$itinerario_id:ID!,$taskIds:[ID!]!){ updateTasksOrder(evento_id:$evento_id,itinerario_id:$itinerario_id,taskIds:$taskIds){ success errors{ field message code } evento{ _id } } }|{"evento_id":"x","itinerario_id":"x","taskIds":["a","b"]}'
   'duplicateItinerario|mutation($evento_id:ID!,$itinerario_id:ID!){ duplicateItinerario(evento_id:$evento_id,itinerario_id:$itinerario_id){ success } }|{"evento_id":"x","itinerario_id":"x"}'
 )
 

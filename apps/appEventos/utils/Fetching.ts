@@ -341,13 +341,12 @@ export const fetchApiBodasServer = async ({
 };
 
 export const queries = {
-  // Shape canonical api-mcp 2026-06-05: borraPago NO acepta categoria_id (verificado smoke).
-  // Devuelve EventoResponse { success, errors, evento{ _id presupuesto_objeto } }.
-  // Antes (legacy apiapp) pedía pagado/categorias_array — ya no existe en PresupuestoResponse.
-  // Los 3 call-sites en components/Presupuesto/{SubComponentePagos,BlockPagos/TablaDatosPagos}
-  // ya no leen el shape de respuesta — actualizan estado local en finally.
-  deletepayment: `mutation($evento_id:ID!, $gasto_id:ID!, $pago_id:ID!){
-    borraPago(evento_id:$evento_id, gasto_id:$gasto_id, pago_id:$pago_id){
+  // Shape canonical api-mcp 2026-06-05 (rev. 10:30):
+  // api-mcp añadió categoria_id como arg opcional (coherencia con
+  // actualizarGastoPresupuesto). Front lo pasa de nuevo para localización exacta
+  // (evita scan de todas las categorías del presupuesto). Devuelve EventoResponse.
+  deletepayment: `mutation($evento_id:ID!, $categoria_id:ID!, $gasto_id:ID!, $pago_id:ID!){
+    borraPago(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, pago_id:$pago_id){
       success
       errors{ field message code }
       evento{ _id presupuesto_objeto }
@@ -863,16 +862,20 @@ export const queries = {
       reason
     }
   }`,
-  getUsers: `query ($uids:[ID]){
-    getUsers(uids:$uids){
-      uid
+  // api-mcp 2026-06-05 (rev. 10:30): nuevo endpoint getUsersByIds(ids, development).
+  // Tipo User actual: { id, email, role }. Campos displayName/photoURL/phoneNumber/onLine
+  // NO existen aún en User (reportado a api-mcp en mensaje pendiente).
+  //
+  // Aliases para preservar shape esperado por los call-sites:
+  //   - getUsers: getUsersByIds  (campo response sigue siendo "getUsers")
+  //   - uid: id                  (front lee u.uid → ahora == u.id)
+  //   - displayName: email       (fallback: muestra email cuando no hay nombre)
+  //   - photoURL: "" desde lado front (no se selecciona aquí; queda undefined)
+  getUsers: `query ($ids:[ID!]!, $development:String!){
+    getUsers: getUsersByIds(ids:$ids, development:$development){
+      uid: id
       email
-      displayName
-      photoURL
-      onLine{
-        status
-        dateConection
-      }
+      displayName: email
     }
   }`,
   auth: `mutation ($idToken : String!){
@@ -2112,6 +2115,17 @@ export const queries = {
     whatsappDisconnectSession(sessionKey: $sessionKey) {
       success
       error
+    }
+  }`,
+
+  // ── api-mcp 2026-06-05 ── última Cat C (commit cb9b33c)
+  // Reordena las tareas dentro de un itinerario del evento.
+  updateTasksOrder: `mutation($evento_id:ID!,$itinerario_id:ID!,$taskIds:[ID!]!){
+    updateTasksOrder(evento_id:$evento_id, itinerario_id:$itinerario_id, taskIds:$taskIds){
+      success
+      errors{ field message code }
+      evento{ _id }
+      itinerario{ _id tasks }
     }
   }`,
 

@@ -51,7 +51,7 @@ export const AddUserToEvent = ({ openModal, setOpenModal, event }) => {
             const results = (lastResult?.evento || lastResult || {}) as Event
             const resultsUser = await fetchApiBodas({
                 query: queries?.getUsers,
-                variables: { uids: results?.compartido_array },
+                variables: { ids: results?.compartido_array, development: config?.development || 'bodasdehoy' },
                 development: config?.development
             });
             resultsUser.map((result) => {

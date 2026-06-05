@@ -57,7 +57,7 @@ export const SocketControlator = () => {
             if (commentUids.length > 0) {
               fetchApiBodas({
                 query: queries?.getUsers,
-                variables: { uids: commentUids },
+                variables: { ids: commentUids, development: config?.development || 'bodasdehoy' },
                 development: config?.development,
               }).then((results) => {
                 if (results?.length) {
@@ -127,7 +127,7 @@ export const SocketControlator = () => {
                 : [...eventNew?.compartido_array, eventNew?.usuario_id]
               fetchApiBodas({
                 query: queries?.getUsers,
-                variables: { uids: uidsToFetch },
+                variables: { ids: uidsToFetch, development: config?.development || 'bodasdehoy' },
                 development: config?.development
               }).then((results) => {
                 results?.map((result: detalle_compartidos_array) => {
@@ -145,7 +145,7 @@ export const SocketControlator = () => {
               if (user?.uid !== eventNew?.usuario_id && eventNew?.usuario_id) {
                 fetchApiBodas({
                   query: queries?.getUsers,
-                  variables: { uids: [eventNew.usuario_id] },
+                  variables: { ids: [eventNew.usuario_id], development: config?.development || 'bodasdehoy' },
                   development: config?.development
                 }).then((results) => {
                   if (results?.[0]) {
