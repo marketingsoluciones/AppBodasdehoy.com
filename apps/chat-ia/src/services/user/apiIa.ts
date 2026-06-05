@@ -113,27 +113,43 @@ export class ApiIaUserService implements IUserService {
     await saveUserConfig({ settings: null });
   };
 
-  // ─── Sin endpoint api-ia equivalente — stubs documentados ─────────────
-  // Ver pregunta 3.2 en docs/backend-asks/slack-ready/1b-RE-API-IA-respuestas-3.1-3.4.txt
-  // Si api-ia confirma deprecar (igual que ragEval), borramos estos métodos del front.
+  // ─── Sin endpoint api-ia equivalente — SSO se gestiona en Firebase SDK cliente ──
+  // api-ia confirmó (msg 04:41, 05-jun): "SSO providers → Firebase SDK en cliente,
+  // NO backend". Mantenemos stubs neutros para compatibilidad con IUserService.
 
   getUserSSOProviders = async (): Promise<AdapterAccount[]> => {
-    // TODO api-ia: ¿endpoint /api/auth/sso-providers o deprecar?
     return [];
   };
 
   unlinkSSOProvider = async (_provider: string, _providerAccountId: string) => {
-    // TODO api-ia: ¿endpoint para desvincular SSO o deprecar?
     return;
   };
 
+  // ─── /api/auth/registration-duration LIVE desde 05-jun 08:35 ──────────
+  // Endpoint api-ia: GET /api/auth/registration-duration?user_id=...&development=...
+  // Devuelve { createdAt, durationSeconds, durationDays }.
   getUserRegistrationDuration = async () => {
-    // TODO api-ia: ¿endpoint registration duration o calcular en cliente?
-    const now = new Date();
-    return {
-      createdAt: now.toISOString(),
-      duration: 0,
-      updatedAt: now.toISOString(),
-    };
+    const { userId, development } = getUserConfigContext();
+    if (!userId) {
+      const now = new Date();
+      return { createdAt: now.toISOString(), duration: 0, updatedAt: now.toISOString() };
+    }
+    const qs = new URLSearchParams();
+    qs.set('user_id', userId);
+    if (development) qs.set('development', development);
+    try {
+      const res = await fetch(`${API_IA_BASE}/api/auth/registration-duration?${qs.toString()}`, {
+        headers: authHeaders(),
+        method: 'GET',
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const createdAt = json.createdAt || json.created_at || new Date().toISOString();
+      const duration = Number(json.durationSeconds ?? json.duration_seconds ?? 0);
+      return { createdAt, duration, updatedAt: new Date().toISOString() };
+    } catch {
+      const now = new Date();
+      return { createdAt: now.toISOString(), duration: 0, updatedAt: now.toISOString() };
+    }
   };
 }
