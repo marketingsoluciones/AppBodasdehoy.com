@@ -353,15 +353,16 @@ export const queries = {
     deleteWeddingPlannerIngreso(evento_id:$evento_id, weddingPlannerIngreso_id:$weddingPlannerIngreso_id)
   }`,
 
-  deletepayment: `mutation($evento_id:String, $categoria_id:String, $gasto_id:String, $pago_id:String){
-    borraPago(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id, pago_id:$pago_id){
-      pagado
-      categorias_array{
-        pagado
-        gastos_array{
-          pagado
-        }
-      }
+  // Shape canonical api-mcp 2026-06-05: borraPago NO acepta categoria_id (verificado smoke).
+  // Devuelve EventoResponse { success, errors, evento{ _id presupuesto_objeto } }.
+  // Antes (legacy apiapp) pedía pagado/categorias_array — ya no existe en PresupuestoResponse.
+  // Los 3 call-sites en components/Presupuesto/{SubComponentePagos,BlockPagos/TablaDatosPagos}
+  // ya no leen el shape de respuesta — actualizan estado local en finally.
+  deletepayment: `mutation($evento_id:ID!, $gasto_id:ID!, $pago_id:ID!){
+    borraPago(evento_id:$evento_id, gasto_id:$gasto_id, pago_id:$pago_id){
+      success
+      errors{ field message code }
+      evento{ _id presupuesto_objeto }
     }
   }`,
 
