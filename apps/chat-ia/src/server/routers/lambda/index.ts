@@ -1,65 +1,52 @@
 /**
- * This file contains the root router of Lobe Chat tRPC-backend
+ * Root router del backend tRPC lambda de chat-ia.
+ *
+ * CAPA 3 PASO C 2026-06-05: borrados 12 routers ya migrados a api-ia REST.
+ * Quedan 15 routers que el cliente AÚN consume (pendientes de migrar en
+ * subfases CAPA 3 posteriores):
+ *   agent, aiChat, aiModel, apiKey, config, exporter, file, generation,
+ *   generationBatch, generationTopic, image, importer, market, memory, thread, upload
+ *
+ * Cuando estos 15 estén migrados → este archivo se elimina y se borran
+ * drizzle/pglite/@trpc/* del package.json (CAPA 3 final).
  */
 import { publicProcedure, router } from '@/libs/trpc/lambda';
 
 import { agentRouter } from './agent';
 import { aiChatRouter } from './aiChat';
 import { aiModelRouter } from './aiModel';
-import { aiProviderRouter } from './aiProvider';
 import { apiKeyRouter } from './apiKey';
-import { chunkRouter } from './chunk';
 import { configRouter } from './config';
-import { documentRouter } from './document';
 import { exporterRouter } from './exporter';
 import { fileRouter } from './file';
 import { generationRouter } from './generation';
 import { generationBatchRouter } from './generationBatch';
 import { generationTopicRouter } from './generationTopic';
-import { groupRouter } from './group';
 import { imageRouter } from './image';
 import { importerRouter } from './importer';
-import { knowledgeBaseRouter } from './knowledgeBase';
 import { marketRouter } from './market';
 import { memoryRouter } from './memory';
-import { messageRouter } from './message';
-import { pluginRouter } from './plugin';
-import { sessionRouter } from './session';
-import { sessionGroupRouter } from './sessionGroup';
 import { threadRouter } from './thread';
-import { topicRouter } from './topic';
 import { uploadRouter } from './upload';
-import { userRouter } from './user';
 
 export const lambdaRouter = router({
   agent: agentRouter,
   aiChat: aiChatRouter,
   aiModel: aiModelRouter,
-  aiProvider: aiProviderRouter,
   apiKey: apiKeyRouter,
-  chunk: chunkRouter,
   config: configRouter,
-  document: documentRouter,
   exporter: exporterRouter,
   file: fileRouter,
   generation: generationRouter,
   generationBatch: generationBatchRouter,
   generationTopic: generationTopicRouter,
-  group: groupRouter,
   healthcheck: publicProcedure.query(() => "i'm live!"),
   image: imageRouter,
   importer: importerRouter,
-  knowledgeBase: knowledgeBaseRouter,
   market: marketRouter,
   memory: memoryRouter,
-  message: messageRouter,
-  plugin: pluginRouter,
-  session: sessionRouter,
-  sessionGroup: sessionGroupRouter,
   thread: threadRouter,
-  topic: topicRouter,
   upload: uploadRouter,
-  user: userRouter,
 });
 
 export type LambdaRouter = typeof lambdaRouter;
