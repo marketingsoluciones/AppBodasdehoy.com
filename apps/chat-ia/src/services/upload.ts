@@ -4,7 +4,6 @@ import dayjs from 'dayjs';
 import { sha256 } from 'js-sha256';
 
 import { fileEnv } from '@/envs/file';
-import { lambdaClient } from '@/libs/trpc/client';
 import { API_ENDPOINTS } from '@/services/_url';
 import { clientS3Storage } from '@/services/file/ClientS3';
 import { FileMetadata, UploadBase64ToS3Result } from '@/types/files';
@@ -182,65 +181,10 @@ class UploadService {
     return await this.uploadFileToS3(file, options);
   };
 
-  uploadToServerS3 = async (
-    file: File,
-    {
-      onProgress,
-      directory,
-      pathname,
-    }: {
-      directory?: string;
-      onProgress?: (status: FileUploadStatus, state: FileUploadState) => void;
-      pathname?: string;
-    },
-  ): Promise<FileMetadata> => {
-    const xhr = new XMLHttpRequest();
-
-    const { preSignUrl, ...result } = await this.getSignedUploadUrl(file, { directory, pathname });
-    let startTime = Date.now();
-    xhr.upload.addEventListener('progress', (event) => {
-      if (event.lengthComputable) {
-        const progress = Number(((event.loaded / event.total) * 100).toFixed(1));
-
-        const speedInByte = event.loaded / ((Date.now() - startTime) / 1000);
-
-        onProgress?.('uploading', {
-          // if the progress is 100, it means the file is uploaded
-          // but the server is still processing it
-          // so make it as 99.9 and let users think it's still uploading
-          progress: progress === 100 ? 99.9 : progress,
-          restTime: (event.total - event.loaded) / speedInByte,
-          speed: speedInByte,
-        });
-      }
-    });
-
-    xhr.open('PUT', preSignUrl);
-    xhr.setRequestHeader('Content-Type', file.type);
-    const data = await file.arrayBuffer();
-
-    await new Promise((resolve, reject) => {
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          onProgress?.('success', {
-            progress: 100,
-            restTime: 0,
-            speed: file.size / ((Date.now() - startTime) / 1000),
-          });
-          resolve(xhr.response);
-        } else {
-          reject(xhr.statusText);
-        }
-      });
-      xhr.addEventListener('error', () => {
-        if (xhr.status === 0) reject(UPLOAD_NETWORK_ERROR);
-        else reject(xhr.statusText);
-      });
-      xhr.send(data);
-    });
-
-    return result;
-  };
+  // CAPA 3 PASO C fase 3a (2026-06-05): borrados uploadToServerS3 + getSignedUploadUrl.
+  // Eran código muerto (solo se invocaban a sí mismos, ragEval que los usaba fue
+  // borrado en CAPA 2). Flujo presign+PUT eliminado — el front usa POST multipart
+  // un paso a /storage/upload de api-ia (uploadToStorageR2).
 
   private uploadToDesktopS3 = async (
     file: File,
@@ -461,27 +405,6 @@ class UploadService {
     return new File([data], filename, { lastModified: Date.now(), type: fileType });
   };
 
-  private getSignedUploadUrl = async (
-    file: File,
-    options: { directory?: string; pathname?: string } = {},
-  ): Promise<
-    FileMetadata & {
-      preSignUrl: string;
-    }
-  > => {
-    // 生成文件路径元数据
-    const { date, dirname, filename, pathname } = generateFilePathMetadata(file.name, options);
-
-    const preSignUrl = await lambdaClient.upload.createS3PreSignedUrl.mutate({ pathname });
-
-    return {
-      date,
-      dirname,
-      filename,
-      path: pathname,
-      preSignUrl,
-    };
-  };
 }
 
 export const uploadService = new UploadService();
