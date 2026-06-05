@@ -41,6 +41,8 @@ if [ -z "$choice" ]; then
   [5] → api-ia   🆕 Thread desbloqueado, preparar proxy REST
                   + recordatorio decisión A/B/C (aiProvider/etc)
 
+  [6] → api-mcp  🆕 Smoke Cat C 10/10 OK + bug producción borraPago FIXED
+
   ─ Históricos en mismo hilo (por si necesitas reenviar) ──
 
   [1] → api-mcp  Cat C + P0 confirmados + 2 ops NO necesarias
@@ -80,7 +82,12 @@ case "$choice" in
     target="api-ia"
     note="🆕 Thread desbloqueado por api-mcp, preparar proxy REST + naming"
     ;;
-  6|abc|3-pendientes)
+  6|smoke|bug)
+    file="6-PARA-API-MCP-bug-deletepayment-fixed.txt"
+    target="api-mcp"
+    note="🆕 smoke Cat C 10/10 OK + bug producción borraPago FIXED"
+    ;;
+  7|abc|3-pendientes)
     file="1d-PARA-API-IA-Thread-mantener-y-3-pendientes.txt"
     target="api-ia"
     note="Thread se MANTIENE + 3 servicios CAPA 2 pendientes A/B/C"
