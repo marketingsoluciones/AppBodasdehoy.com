@@ -42,6 +42,7 @@ if [ -z "$choice" ]; then
                   + recordatorio decisión A/B/C (aiProvider/etc)
 
   [6] → api-mcp  🆕 Smoke Cat C 10/10 OK + bug producción borraPago FIXED
+  [7] → api-mcp  🆕 Auditoría Fetching.ts — 3 bugs front más detectados
 
   ─ Históricos en mismo hilo (por si necesitas reenviar) ──
 
@@ -87,7 +88,12 @@ case "$choice" in
     target="api-mcp"
     note="🆕 smoke Cat C 10/10 OK + bug producción borraPago FIXED"
     ;;
-  7|abc|3-pendientes)
+  7|audit|bugs)
+    file="7-PARA-API-MCP-bugs-front-mas-detectados.txt"
+    target="api-mcp"
+    note="🆕 auditoría Fetching.ts — 3 bugs front más detectados"
+    ;;
+  8|abc|3-pendientes)
     file="1d-PARA-API-IA-Thread-mantener-y-3-pendientes.txt"
     target="api-ia"
     note="Thread se MANTIENE + 3 servicios CAPA 2 pendientes A/B/C"
