@@ -1,139 +1,89 @@
 ═══════════════════════════════════════════════════════════════════
-   MENSAJES SLACK — estado al 05-jun (ronda 2)
+   2 MENSAJES SLACK PENDIENTES — 05-jun (cierre sesión)
 ═══════════════════════════════════════════════════════════════════
 
-CANAL Slack:    #coordinacion (C0AV8EV5495)
-WORKSPACE:      eventosorganizador.slack.com
-HILO único:     1778170638.897419  ← TODOS los mensajes van AQUÍ
+CANAL:      #coordinacion (C0AV8EV5495)
+WORKSPACE:  eventosorganizador.slack.com
+HILO:       1778170638.897419  ← TODO va aquí
 
 
-═══════════════════════════════════════════════════════════════════
-   🔥 LO QUE HAY QUE ENVIAR AHORA (orden de prioridad)
-═══════════════════════════════════════════════════════════════════
+─── MENSAJE 1 ─────────────────────────────────────────────────────
+
+  Archivo:  F1-PARA-API-MCP-pendientes-finales.txt
+  Para:     api-mcp
+  Asunto:   Pendientes FINALES (2 gaps menores, no bloquean)
+
+  Pide respuesta sobre:
+   - User type sin displayName/photoURL/phoneNumber/onLine
+   - getAllBusinesses: types searchCriteriaBusiness/sortCriteriaBusiness
+     anunciados como "definidos" pero introspect dice Unknown
+   - Estado 3 mejoras infra que anunciaron ellos
 
 
-[4] PRIORIDAD ALTA — api-mcp acuse + fijar naming Thread
-─────────────────────────────────────────────────────────
-  Archivo:   4-RE-API-MCP-acuse-Thread-fijar-naming.txt
-  Comando:   ./slack-copy.sh 4
-  Motivo:    Backend confirmó los 4 ajustes y arrancó ETA 1-2h.
-             Pero los enums quedan en MAYÚSCULAS schema (correcto),
-             el front usa minúsculas. Hay que confirmar que aplican
-             el patrón uppercase/lowercase IDÉNTICO al que ya tienen
-             con `role` (front↔ia minúsculas, ia↔mcp MAYÚSCULAS).
-             Sin esto, el primer round-trip Thread rompe.
-  Urgencia:  Antes de que merguen el commit.
+─── MENSAJE 2 ─────────────────────────────────────────────────────
 
+  Archivo:  F2-PARA-API-IA-pendientes-CAPA3.txt
+  Para:     api-ia
+  Asunto:   CAPA 3 PASO C — 13 endpoints / decisiones para cerrar
 
-[5] PRIORIDAD MEDIA — api-ia avisar Thread desbloqueado
-─────────────────────────────────────────────────────────
-  Archivo:   5-PARA-API-IA-Thread-preparar-proxy-naming.txt
-  Comando:   ./slack-copy.sh 5
-  Motivo:    api-mcp publicará Thread en ~1-2h. Aviso a api-ia para
-             que arranquen el proxy REST con el patrón uppercase/
-             lowercase correcto (igual que role). Incluye los 6
-             endpoints REST esperados y recordatorio de los 3
-             servicios pendientes (A/B/C) que aún esperan respuesta.
+  Lista priorizada de los 11 archivos cliente que aún usan tRPC.
+  Atajo: si responden "ABCD = c,c,c,c" sobre los 4 servicios CRUD
+  principales (aiModel, apiKey, agent, generation), cierro CAPA 3
+  en 2-3h sin necesidad de endpoints nuevos.
 
-
-═══════════════════════════════════════════════════════════════════
-   📜 HISTÓRICOS — ya enviados, no reenviar salvo error
-═══════════════════════════════════════════════════════════════════
-
-  [1] 2b-RE-API-MCP-CatC.txt
-      → api-mcp · Confirmación Cat C + P0 + 2 ops NO necesarias
-
-  [2] 1c-RE-API-IA-decision-plugin-c.txt
-      → api-ia · Decisión plugin (c) DEPRECAR
-
-  [3] 3-PARA-API-MCP-Thread-ajustes-contrato.txt
-      → api-mcp · Thread + 4 ajustes contrato
-      Status: ✅ api-mcp respondió confirmando los 4
-
-  [6] 1d-PARA-API-IA-Thread-mantener-y-3-pendientes.txt
-      → api-ia · Thread se MANTIENE + 3 servicios pendientes A/B/C
-      Status: ⏳ esperando respuesta sobre A/B/C
+  Reducción esperada al cerrar CAPA 3: -25k módulos, build chat-ia
+  10min → 3-4min.
 
 
 ═══════════════════════════════════════════════════════════════════
-   CÓMO ENVIAR
+   CÓMO ENVIARLOS
 ═══════════════════════════════════════════════════════════════════
 
-Forma fácil — menú interactivo:
+  $ cd ~/Projects/AppBodasdehoy.com/docs/backend-asks/slack-ready
+  $ ./slack-copy.sh F1      # copia F1 al portapapeles
+                            # → Cmd+Tab a Slack → hilo → Cmd+V → Enter
+  $ ./slack-copy.sh F2      # idem F2
 
-    $ cd ~/Projects/AppBodasdehoy.com/docs/backend-asks/slack-ready
-    $ ./slack-copy.sh
-
-Atajos directos:
-
-    $ ./slack-copy.sh 4       # 🆕 acuse api-mcp + naming (URGENTE)
-    $ ./slack-copy.sh 5       # 🆕 aviso api-ia proxy REST + naming
-    $ ./slack-copy.sh ls      # listar todos los archivos vivos
-
-El mensaje queda en el portapapeles. Luego:
-  Cmd+Tab a Slack
-  → canal #coordinacion (C0AV8EV5495)
-  → entra al hilo 1778170638.897419
-  → "Reply in thread"
-  → Cmd+V
-  → Enter
+Orden recomendado: F1 → F2 (F1 es trivial respuesta corta, F2 requiere
+decisión backend mayor — mejor que vean primero el F1 que está casi cerrado).
 
 
 ═══════════════════════════════════════════════════════════════════
-   ESTADO PROYECTO AHORA MISMO
+   ESTADO PROYECTO AL CIERRE
 ═══════════════════════════════════════════════════════════════════
 
-✅ CERRADO en el front (commits en branch tj/feat/inbox-fase1):
-   - CAPA 1 PASO C: message, session, topic
-   - CAPA 2 (9 servicios): image, global, user, file, rag,
-     generation, plugin, tool, ragEval
-   - 23 commits totales esta semana
+✅ CERRADO HOY del lado COORD-FRONT (24 commits):
+   - CAPA 1 PASO C (message/session/topic)
+   - CAPA 2 PASO C completa (9 servicios + Thread + ragEval BORRADO)
+   - CAPA 2 A/B/C opción (c): aiProvider/chatGroup/knowledgeBase
+   - Cat C apiapp 11/11: updateTasksOrder + borraPago categoria_id +
+     getUsersByIds parcial
+   - apiapp.bodasdehoy.com retirado del front (.env limpios)
+   - Bug producción borraPago FIXED
+   - CAPA 3 PASO C fase 3a (-12 routers + mobile + thread + upload)
+   - 6 mensajes Slack enviados (todos en _archived/)
+   - Smoke + auditoría reproducibles (scripts/)
+   - Memoria proyecto + 14 docs en docs/backend-asks/
 
-🚧 EN PROGRESO backend (api-mcp):
-   - Thread + 4 ajustes contrato (ETA 1-2h)
-   - updateTasksOrder Cat C (ETA 06-jun)
+⏳ PENDIENTE backend:
+   - F1 al api-mcp (2 gaps)
+   - F2 al api-ia (13 puntos CAPA 3)
 
-⏳ ESPERANDO respuesta backend:
-   - api-mcp: confirmar naming uppercase/lowercase Thread
-              (mensaje 4 de esta carpeta)
-   - api-ia:  preparar proxy REST Thread + naming
-              (mensaje 5 de esta carpeta)
-   - api-ia:  decisión A/B/C sobre aiProvider/chatGroup/knowledgeBase
-              (mensaje 6 ya enviado, sin respuesta aún)
-
-🎯 SIGUIENTE HITO del lado COORD:
-   - Smoke E2E Cat C con JWT real (hoy/mañana)
-   - Apagar droplet apiapp.bodasdehoy.com (viernes)
-   - Integrar Thread cuando api-ia exponga los 6 endpoints REST
-
-
-═══════════════════════════════════════════════════════════════════
-   📚 CONTEXTO IMPORTANTE — patrón role/Thread naming
-═══════════════════════════════════════════════════════════════════
-
-El proyecto ya tiene un precedente exacto para los enums:
-
-  Memoria: memory/project_contrato_role_chat_persistencia.md
-
-  Contrato message.role (verificado SSH, en producción):
-
-    front ↔ api-ia      → MINÚSCULAS  ('user', 'assistant', 'tool')
-    api-ia ↔ api-mcp    → MAYÚSCULAS  ('USER', 'ASSISTANT', 'TOOL')
-
-    api-ia hace la transformación. NO cambiar el front a mayúsculas
-    (rompe facturación assistant — ya verificado).
-
-→ Aplicar el MISMO patrón a Thread.type y Thread.status.
-→ Eso es exactamente lo que pide el mensaje 4 a api-mcp y el 5 a api-ia.
+🎯 PENDIENTE acción humana (TÚ):
+   - Enviar F1 + F2 a Slack (15 min)
+   - QA UI manual fix borraPago en una boda real (10 min, mañana)
+   - Apagar droplet apiapp.bodasdehoy.com (viernes, 5 min)
+     → ya no se necesita: el front no llama a apiapp desde hoy
 
 
 ═══════════════════════════════════════════════════════════════════
-   HISTÓRICO DE DRAFTS DESCARTADOS
+   HISTÓRICO
 ═══════════════════════════════════════════════════════════════════
 
-_archived/ contiene:
-  - Mensajes originales 1, 2, 3, 1b (ya respondidos por backend
-    en rondas anteriores)
-  - Drafts 3-PARAR-Thread y 1d-Thread-retirado (descartados — eran
-    el plan INCORRECTO de deprecar Thread, basado en mi confusión
-    de que chat-ia era solo AppBodas; en realidad es multi-tenant).
+_archived/  → 11 mensajes Slack ya enviados / históricos:
+  · 0-ESTADO-PROYECTO + 1c, 1d, 2b, 3, 4, 5, 6, 7 (rondas anteriores)
+  · U1, U2 (urgentes ya respondidos por backend)
+  · Drafts incorrectos (PARAR-Thread, Thread-retirado)
+
+U3-PARA-TI-JCP.txt sigue en raíz por si lo quieres releer (acciones
+humanas mañana + viernes).

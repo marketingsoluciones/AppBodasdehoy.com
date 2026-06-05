@@ -3,12 +3,12 @@
 #
 # CANAL Slack: #coordinacion (C0AV8EV5495)
 # WORKSPACE:   eventosorganizador.slack.com
-# HILO único:  1778170638.897419 (todos los mensajes van en ESTE hilo)
+# HILO único:  1778170638.897419
 #
 # Uso:
-#   ./slack-copy.sh                # menú interactivo
-#   ./slack-copy.sh 1..6           # mensaje por número
-#   ./slack-copy.sh ls             # lista archivos vivos
+#   ./slack-copy.sh         # menú
+#   ./slack-copy.sh F1      # api-mcp pendientes finales (2 gaps menores)
+#   ./slack-copy.sh F2      # api-ia pendientes CAPA 3 (13 puntos)
 #
 # Requisito: macOS (usa pbcopy).
 
@@ -17,116 +17,41 @@ cd "$(dirname "$0")"
 
 choice="$1"
 
-if [ "$choice" = "ls" ]; then
-  ls -1 *.txt
-  exit 0
-fi
-
 if [ -z "$choice" ]; then
   cat <<'MENU'
 
 ╔══════════════════════════════════════════════════════════════╗
-║   MENSAJES SLACK LISTOS PARA ENVIAR                         ║
-║   Canal: #coordinacion · Hilo: 1778170638.897419            ║
+║   MENSAJES SLACK PENDIENTES DE ENVIAR                       ║
+║   Canal: #coordinacion (C0AV8EV5495)                        ║
+║   Hilo:  1778170638.897419                                   ║
 ╚══════════════════════════════════════════════════════════════╝
 
-  ━━━ URGENTES (enviar HOY) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [F1] → api-mcp   📋 Pendientes finales tras CAPA 2 cerrada
+                    2 gaps menores: User fields incompletos + Business
+                    types Unknown. No bloquean nada. Respuesta corta.
 
-  [U1] → api-mcp  ⏰ lo MÍNIMO que necesito YA (3 líneas respuesta)
-  [U2] → api-ia   ⏰ decisión ABC + naming Thread (4 letras respuesta)
-  [U3] → TÚ (JCP) ⏰ acciones humanas: hoy, mañana, viernes
-
-  ━━━ Resumen ejecutivo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  [0] → TODOS    📋 ESTADO PROYECTO + pendientes por equipo
-
-  ─ Pendientes de enviar ─────────────────────────────────
-
-  [3] → api-mcp  ⚠️ Thread CONFIRMADO + 4 ajustes contrato
-                  (probablemente ya enviado y respondido por mcp ✅)
-
-  [4] → api-mcp  🆕 Acuse + fijar naming uppercase/lowercase
-                  (URGENTE — antes que cierren merge Thread)
-
-  [5] → api-ia   🆕 Thread desbloqueado, preparar proxy REST
-                  + recordatorio decisión A/B/C (aiProvider/etc)
-
-  [6] → api-mcp  🆕 Smoke Cat C 10/10 OK + bug producción borraPago FIXED
-  [7] → api-mcp  🆕 Auditoría Fetching.ts — 3 bugs front más detectados
-
-  ─ Históricos en mismo hilo (por si necesitas reenviar) ──
-
-  [1] → api-mcp  Cat C + P0 confirmados + 2 ops NO necesarias
-  [2] → api-ia   Decisión plugin opción (c) DEPRECAR
-  [6] → api-ia   Thread se MANTIENE + 3 servicios pendientes A/B/C
+  [F2] → api-ia    🟦 Pendientes CAPA 3 PASO C (decisión grande)
+                    11 archivos cliente bloqueados, 13 puntos
+                    priorizados. ATAJO: "ABCD = c,c,c,c" → cierro
+                    CAPA 3 en 2-3h.
 
   [s] → salir
 
-Elige (1/2/3/4/5/6/s):
+Elige (F1/F2/s):
 MENU
   read choice
 fi
 
 case "$choice" in
-  U1|u1|urgente-mcp)
-    file="U1-URGENTE-API-MCP.txt"
+  F1|f1|mcp)
+    file="F1-PARA-API-MCP-pendientes-finales.txt"
     target="api-mcp"
-    note="⏰ URGENTE — pide 3 líneas respuesta para desbloquear"
+    note="📋 2 gaps menores tras CAPA 2 cerrada"
     ;;
-  U2|u2|urgente-ia)
-    file="U2-URGENTE-API-IA.txt"
+  F2|f2|ia)
+    file="F2-PARA-API-IA-pendientes-CAPA3.txt"
     target="api-ia"
-    note="⏰ URGENTE — pide decisión ABC + naming (4 letras respuesta)"
-    ;;
-  U3|u3|urgente-jcp|jcp|tu)
-    file="U3-PARA-TI-JCP.txt"
-    target="TÚ (JCP, para abrirlo y leer)"
-    note="📋 acciones humanas: hoy, mañana, viernes"
-    ;;
-  0|estado|resumen)
-    file="0-ESTADO-PROYECTO-Y-PENDIENTES.txt"
-    target="TODOS (api-mcp + api-ia + AppBodas)"
-    note="📋 ESTADO PROYECTO + pendientes por equipo (resumen ejecutivo)"
-    ;;
-  1|cat-c)
-    file="2b-RE-API-MCP-CatC.txt"
-    target="api-mcp"
-    note="confirmación Cat C + P0 + 2 ops NO necesarias"
-    ;;
-  2|plugin)
-    file="1c-RE-API-IA-decision-plugin-c.txt"
-    target="api-ia"
-    note="decisión plugin opción (c) DEPRECAR"
-    ;;
-  3|thread-ajustes)
-    file="3-PARA-API-MCP-Thread-ajustes-contrato.txt"
-    target="api-mcp"
-    note="Thread CONFIRMADO + 4 ajustes contrato (ya respondido por mcp)"
-    ;;
-  4|naming|thread-naming)
-    file="4-RE-API-MCP-acuse-Thread-fijar-naming.txt"
-    target="api-mcp"
-    note="🆕 acuse + fijar naming enums uppercase/lowercase como role"
-    ;;
-  5|proxy|thread-proxy)
-    file="5-PARA-API-IA-Thread-preparar-proxy-naming.txt"
-    target="api-ia"
-    note="🆕 Thread desbloqueado por api-mcp, preparar proxy REST + naming"
-    ;;
-  6|smoke|bug)
-    file="6-PARA-API-MCP-bug-deletepayment-fixed.txt"
-    target="api-mcp"
-    note="🆕 smoke Cat C 10/10 OK + bug producción borraPago FIXED"
-    ;;
-  7|audit|bugs)
-    file="7-PARA-API-MCP-bugs-front-mas-detectados.txt"
-    target="api-mcp"
-    note="🆕 auditoría Fetching.ts — 3 bugs front más detectados"
-    ;;
-  8|abc|3-pendientes)
-    file="1d-PARA-API-IA-Thread-mantener-y-3-pendientes.txt"
-    target="api-ia"
-    note="Thread se MANTIENE + 3 servicios CAPA 2 pendientes A/B/C"
+    note="🟦 CAPA 3 — 13 puntos para cerrar -25k módulos"
     ;;
   s|S|salir)
     echo "Saliendo."
@@ -156,8 +81,10 @@ cat <<EOF
    destino: $target
    asunto:  $note
 
-📋 Cmd+Tab a Slack → canal #coordinacion (C0AV8EV5495)
-   → entra al hilo 1778170638.897419
-   → Cmd+V → enviar.
+📋 Pegar en Slack:
+   1. Cmd+Tab → Slack
+   2. Canal #coordinacion (C0AV8EV5495)
+   3. Hilo 1778170638.897419 → "Reply in thread"
+   4. Cmd+V → Enter
 
 EOF
