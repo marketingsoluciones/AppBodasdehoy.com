@@ -226,14 +226,17 @@ export const createFileManageSlice: StateCreator<
   },
 
   useFetchFileItem: (id) =>
-    useClientDataSWR<FileListItem | undefined>(!id ? null : ['useFetchFileItem', id], () =>
-      getFileManageService().getFileItem(id!),
+    useClientDataSWR<FileListItem | undefined>(!id ? null : ['useFetchFileItem', id], async () =>
+      // CAPA 2 PASO C: cast desde FileItem (api-ia) a FileListItem (front).
+      // Los campos de embedding/chunking se rellenan con defaults si api-ia no los expone.
+      (await getFileManageService().getFileItem(id!)) as unknown as FileListItem,
     ),
 
   useFetchFileManage: (params) =>
     useClientDataSWR<FileListItem[]>(
       [FETCH_FILE_LIST_KEY, params],
-      () => getFileManageService().getFiles(params),
+      async () =>
+        (await getFileManageService().getFiles(params)) as unknown as FileListItem[],
       {
         onSuccess: (data) => {
           set({ fileList: data, queryListParams: params });
