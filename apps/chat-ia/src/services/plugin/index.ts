@@ -1,23 +1,9 @@
-import { isDesktop } from '@/const/version';
+import { ApiIaPluginService } from './apiIa';
 
-import { ClientService as DeprecatedService } from './_deprecated';
-import { ServerService } from './server';
-import { IPluginService } from './type';
+// CAPA 2 PASO C 2026-06-05 opción (c) — deprecar persistencia de plugins.
+// El registry instalado vive en userConfig.enabledPlugins (string[]).
+// Settings/customParams por plugin NO se persisten (los manifests se resuelven
+// en runtime vía /webapi/plugin/gateway).
+// Eliminado ternary tRPC/pglite — server.ts, client.ts, _deprecated.ts borrados.
 
-// PERF 2026-06-03: ./client (pglite) arrastra drizzle-orm + pglite al árbol de /chat.
-// Es código muerto salvo NEXT_PUBLIC_CLIENT_DB==='pglite' → carga diferida para tree-shake.
-function buildClientService(): IPluginService {
-  if (process.env.NEXT_PUBLIC_CLIENT_DB === 'pglite') {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, unicorn/prefer-module
-    const { ClientService } = require('./client');
-    return new ClientService();
-  }
-  return new DeprecatedService();
-}
-
-const clientService = buildClientService();
-
-export const pluginService =
-  process.env.NEXT_PUBLIC_SERVICE_MODE === 'server' || isDesktop
-    ? new ServerService()
-    : clientService;
+export const pluginService = new ApiIaPluginService();
