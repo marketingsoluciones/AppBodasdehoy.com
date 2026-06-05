@@ -181,14 +181,18 @@ export const fetchApiEventos = async ({
   variables,
   token,
 }: argsFetchApi): Promise<any> => {
-  // ── Adaptador apiapp→api-mcp ──
-  // Si la query legacy tiene adaptador registrado, traduce petición+respuesta y enruta a api-mcp.
-  // Lo no registrado sigue por apiapp (cero riesgo). Ver utils/apiMcpAdapter.ts.
+  // ── Adaptador legacy→api-mcp ──
+  // 2026-06-05: apiapp retirado. Si la query legacy tiene adaptador, traduce a canonical
+  // y enruta a api-mcp. Si NO está en MCP_ADAPTERS, la query va tal cual al host
+  // resuelto por `resolveApiEventosOrigin()` que por DEFAULT apunta a api-mcp.
+  // En ese caso fallará con error GraphQL si el shape no es canonical — es lo correcto,
+  // fuerza migrar el call-site (no silent fallback a un backend retirado).
   const __field = extractGraphqlField(query);
   const __adapter = __field ? MCP_ADAPTERS[__field] : undefined;
   if (__adapter) {
     const __mapped = __adapter.mapVariables(variables || {});
-    // mapVariables puede devolver null para señalar "no adaptar este caso" → cae a apiapp legacy.
+    // mapVariables puede devolver null para señalar "no adaptar este caso" → llama directo
+    // al host eventos resuelto (api-mcp por default). Si shape mismatch → error GraphQL claro.
     if (__mapped != null) {
       const canonical = await fetchApiBodas({
         query: __adapter.canonicalQuery,
