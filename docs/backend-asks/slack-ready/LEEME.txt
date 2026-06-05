@@ -1,27 +1,64 @@
-3 mensajes listos para copiar y pegar en Slack
-==============================================
+═══════════════════════════════════════════════════════════════
+   MENSAJES SLACK LISTOS PARA ENVIAR — 05-jun
+═══════════════════════════════════════════════════════════════
 
-Estos archivos son .txt (texto plano). Abrelos en VSCode, selecciona TODO el contenido (Cmd+A) y copia (Cmd+C). Pega en Slack tal cual.
+Esta carpeta tiene 2 mensajes activos para Slack + 1 script
+de copy automático al portapapeles.
 
+ARCHIVOS VIVOS
+──────────────
 
-1-API-IA.txt
-   Para: API-IA
-   Slack: hilo 1779046688.849779 en #coordinacion
-   Contiene: 6 endpoints `thread` + decisión `ragEval` + 5 confirmaciones de shape
+  1c-RE-API-IA-decision-plugin-c.txt
+      DESTINO: api-ia
+      HILO:    1779046688.849779 (#coordinacion)
+      ASUNTO:  decisión plugin opción (c) DEPRECAR
+      CONTENIDO: respuesta a su pregunta b/c sobre plugin CRUD +
+                 desglose de lo YA IMPLEMENTADO hoy (commit 30799792) +
+                 pregunta colateral aiProvider/chatGroup/knowledgeBase
 
-2-API-MCP-Cat-C.txt
-   Para: API-MCP
-   Slack: hilo 1779046688.849779 en #coordinacion
-   Contiene: 13 ops Cat C ALTA + 20 por verificar (apagar apiapp)
+  2b-RE-API-MCP-CatC.txt
+      DESTINO: api-mcp
+      HILO:    1779046688.849779 (#coordinacion)
+      ASUNTO:  confirmación P0 OK + Cat C 12/13 + plan apagar apiapp
+      CONTENIDO: confirmamos P0 ESTABLE (5/5 calls /health OK) +
+                 Cat C cableada en MCP_ADAPTERS (81 ops) +
+                 generatePdf y getGeoInfo NO necesarios (front local) +
+                 call-sites "Por verificar" para mapeo +
+                 cronograma apagar apiapp viernes
 
-3-API-MCP-P0-eventos.txt
-   Para: API-MCP
-   Slack: hilo 1779939514 (escalación P0 original)
-   Contiene: diagnóstico solicitado + plan verificación P0 conexión eventos
+CÓMO ENVIAR (la forma fácil)
+────────────────────────────
 
+  $ ./slack-copy.sh
 
-ORDEN RECOMENDADO DE ENVÍO
---------------------------
+→ Menú interactivo. Eliges 1 o 2 y se copia al portapapeles.
+  Luego Cmd+Tab a Slack → Cmd+V → enviar.
 
-1. PRIMERO el 3 (P0 conexión eventos) — es prerequisito de todo.
-2. LUEGO el 1 (API-IA) y el 2 (API-MCP Cat C) en paralelo — equipos distintos.
+ATAJOS DIRECTOS
+───────────────
+
+  $ ./slack-copy.sh api-ia       # → 1c (decisión plugin)
+  $ ./slack-copy.sh api-mcp      # → 2b (P0 + Cat C)
+
+ORDEN RECOMENDADO
+─────────────────
+
+  PRIMERO  2b (api-mcp)  — confirmas Cat C + el cronograma viernes
+                           desbloquea apagar apiapp esta semana
+  LUEGO    1c (api-ia)   — decisión plugin + pregunta colateral
+                           para cerrar Fase 2 CAPA 2 completa
+
+HISTÓRICO
+─────────
+
+  _archived/  contiene los mensajes anteriores (ya respondidos por
+              backend o superados por la conversación). Solo histórico.
+
+ESTADO DEL PROYECTO POST-ENVÍO
+──────────────────────────────
+
+Una vez enviados los 2 mensajes:
+  ✅ COORD-FRONT no tiene NADA bloqueando del lado backend.
+  ⏳ Esperamos respuesta api-ia sobre aiProvider/chatGroup/KB.
+  ⏳ Esperamos updateTasksOrder de api-mcp (ETA mañana 06-jun).
+  ⏳ Viernes: apagar apiapp.bodasdehoy.com.

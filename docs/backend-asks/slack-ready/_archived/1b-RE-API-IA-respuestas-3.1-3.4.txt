@@ -72,6 +72,32 @@ Para los 4 métodos SSO/registration del último punto: ¿son features que teng�
 Pregunta adicional descubierta al migrar
 -----------------------------------------
 
+3.6.5) chatGroup agents con order/role — corrección a 3.1
+
+Re-auditando el código del front: además de la lista de agentes en el grupo,
+existe una tabla de relación `chatGroupAgents` con campos extra:
+
+  ChatGroupAgent { groupId, agentId, order: number, role: string }
+
+  - addAgentsToGroup(groupId, agentIds[])    crea registros con order auto
+  - removeAgentsFromGroup(groupId, agentIds[])
+  - updateAgentInGroup(groupId, agentId, { order, role })
+  - getGroupAgents(groupId): ChatGroupAgent[]
+
+Esto significa que con `{ sessionIds: [...] }` plano (sin order ni role) NO
+basta. Queremos gestionar order y role por agente en el grupo.
+
+¿api-mcp expone (o puede exponer) este metadato extra (order, role) por
+agente del grupo? Si NO:
+
+  (a) deprecamos order y role del front (los grupos pasan a ser un array
+      simple sin metadato) — simplifica UI
+  (b) abrimos ticket a api-mcp para incluir order+role en el modelo
+      ChatGroupAgent (similar a thread, requiere modelo nuevo)
+
+Confirmadnos y movemos chatGroup en consecuencia.
+
+
 3.6) plugin CRUD vs plugin gateway
 
 Confirmado por vuestra respuesta 3.3 que /webapi/plugin/gateway es para EJECUTAR plugins (manifest-driven). Pero el front tiene 8 métodos de GESTIÓN de plugins instalados que el gateway NO cubre:
