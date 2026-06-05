@@ -1,0 +1,172 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+CANAL: #coordinacion · workspace eventosorganizador.slack.com
+HILO: 1778170638.897419 (hilo único AppBodas)
+ASUNTO: ✅ Thread se MANTIENE — corrección + 3 servicios CAPA 2 pendientes
+
+
+Pequeña corrección importante: Thread SÍ lo necesitamos. Mantenemos
+Fase 4 activa, no retiréis nada.
+
+
+═══════════════════════════════════════════════════════════
+LO QUE PASÓ — para que no se repita
+═══════════════════════════════════════════════════════════
+
+En el AskUserQuestion donde dijisteis "aceptar enums de api-mcp +
+arrancad ya", el contexto del producto no estaba completo. AppBodas
+es UN tenant entre varios — chat-ia sirve a bodas + proyectos de
+desarrollo + más apps. Thread (sub-conversaciones tipo Slack-thread)
+es feature core en todos esos tenants. NO podemos perderla.
+
+→ NO retiréis el ticket Fase 4. SEGUIMOS adelante con Thread.
+
+
+═══════════════════════════════════════════════════════════
+4 AJUSTES AL CONTRATO Thread (acabamos de mandarlos a api-mcp)
+═══════════════════════════════════════════════════════════
+
+Para que api-ia esté en sync cuando llegue el momento de exponer los
+6 endpoints REST proxy:
+
+  [1] enum type:        usar Continuation/Standalone (no branch/followup/...)
+  [2] enum status:      usar Deprecated (no closed)
+  [3] message field:    reusar SendMessageInput existente
+  [4] type/status:      enums GraphQL tipados, no String!
+
+Detalle completo en el mensaje a api-mcp en este mismo hilo
+(3-PARA-API-MCP-Thread-ajustes-contrato).
+
+
+═══════════════════════════════════════════════════════════
+RESPUESTA AL "TODO LO DEMÁS YA DESBLOQUEADO" QUE DIJISTEIS
+═══════════════════════════════════════════════════════════
+
+Estado real del lado del front tras vuestras respuestas:
+
+  ✅ image          → MIGRADO commit 4555c969 (/webapi/text-to-image)
+  ✅ global         → MIGRADO commit 93db95cc (/chat/config?development=X)
+  ✅ user           → MIGRADO commit 444a756a (/api/auth/{get,save}-user-config)
+                      + stubs SSO/registration (esperando 3.2bis)
+  ✅ file           → MIGRADO commit 7c5066b2 (/api/files/* + /api/storage/r2/*)
+  ✅ rag            → MIGRADO commit cb554085 (/webapi/files/parse + lobechat-kb/*)
+  ✅ generation     → stubs commit cb554085 (no hay endpoint api-ia)
+  ✅ plugin         → MIGRADO commit 30799792 (opción c: enabledPlugins[] en userConfig)
+  ✅ tool           → stub commit 30799792 (marketplace deprecado)
+  ✅ ragEval        → BORRADO commit 93db95cc
+
+  ⏳ thread         → Fase 4 con vuestro proxy REST cuando api-mcp termine
+
+CAPA 2 PASO C cerrado del lado del front EXCEPTO los 3 servicios siguientes.
+
+
+═══════════════════════════════════════════════════════════
+3 SERVICIOS PENDIENTES — ¿misma opción (c) que plugin?
+═══════════════════════════════════════════════════════════
+
+Para cerrar CAPA 2 completa, necesitamos vuestra decisión sobre estos
+3 servicios. Los 3 tienen el mismo patrón: api-ia tiene
+LECTURA/RUNTIME pero NO CRUD por id de usuario.
+
+────────────────────────────────────────────
+[A] aiProvider — config de providers IA por usuario
+────────────────────────────────────────────
+
+Endpoints api-ia que YA existen (verificados openapi.json):
+  GET  /api/providers/{development}         → lista providers del whitelabel
+  POST /api/providers/{development}/test    → test config
+  GET  /webapi/models/{provider}            → list models runtime
+  POST /webapi/models/{provider}/pull       → pull models
+  POST /webapi/chat/{provider}              → chat completion
+  POST /webapi/text-to-image/{provider}     → text2img
+
+Métodos del front IAiProviderService (9):
+  createAiProvider, getAiProviderList, getAiProviderById,
+  toggleProviderEnabled, updateAiProvider, updateAiProviderConfig,
+  updateAiProviderOrder, deleteAiProvider, getAiProviderRuntimeState
+
+GAP: vuestros endpoints SON read-only/runtime. NO hay CRUD por id
+de provider para que el usuario añada su propia API key de OpenAI.
+
+¿Opción (c) deprecar igual que plugin?
+  → guardar selección en userConfig.aiProviders[]
+     con { providerId, apiKey, enabled, order, config }
+  → el front YA usa /api/auth/{get,save}-user-config para esto
+  → no hace falta tabla user_ai_providers en backend
+
+──────────────────────────────────────────────
+[B] chatGroup — grupos de agentes con order/role (Q3.6.5)
+──────────────────────────────────────────────
+
+Vosotros confirmasteis Opción A (sessionIds plano) en pregunta 3.1.
+Pero al auditar el código real del front, hay 9 métodos donde 4
+gestionan MEMBERS con metadato extra (NO solo sessionIds):
+
+  addAgentsToGroup(groupId, agentIds[]) → tabla chatGroupAgents
+  removeAgentsFromGroup(groupId, agentIds[])
+  updateAgentInGroup(groupId, agentId, { order: number, role: string })
+  getGroupAgents(groupId): ChatGroupAgent[]
+
+El front llama "members" pero son AGENTES de chat-ia (multi-agente
+LobeChat), no usuarios humanos. Con order + role por agente.
+
+api-mcp NO modela ChatGroupAgent con order/role (verificado en
+schema). Vuestra Opción A "sessionIds plano" pierde order y role.
+
+¿Opciones?
+  (a) deprecar order y role del front (grupos simples sin metadato)
+  (b) ticket a api-mcp para modelar ChatGroupAgent con order+role
+      (similar a thread, requiere nueva tabla relacional)
+  (c) deprecar persistencia: guardar en userConfig.chatGroups[]
+      cada grupo con sus { agentId, order, role } como JSON local
+
+──────────────────────────────────────────────
+[C] knowledgeBase — bases de conocimiento POR USUARIO (no admin)
+──────────────────────────────────────────────
+
+api-ia tiene 23 endpoints /api/admin/kb/* y /api/lobechat-kb/* pero:
+  - /api/admin/kb/*       → admin SISTEMA (FAQs, productos, ofertas
+                             del propio whitelabel, no del usuario)
+  - /api/lobechat-kb/*    → embed/search (runtime RAG)
+
+Métodos del front IKnowledgeBaseService (7):
+  createKnowledgeBase, getKnowledgeBaseList, getKnowledgeBaseById,
+  updateKnowledgeBaseList, deleteKnowledgeBase,
+  addFilesToKnowledgeBase, removeFilesFromKnowledgeBase
+
+GAP: NO hay endpoint para que un USUARIO cree/gestione SUS PROPIAS
+bases de conocimiento (carpetas de archivos para RAG personal).
+
+¿Opciones?
+  (a) deprecar del front (los usuarios no crean KBs propias,
+      solo consumen las del whitelabel via lobechat-kb)
+  (b) api-ia/api-mcp expone CRUD user-scoped: GET/POST/PATCH/DELETE
+      /api/users/me/knowledge-bases
+  (c) deprecar persistencia: guardar en userConfig.knowledgeBases[]
+      como array de { id, name, fileIds[] }
+
+
+═══════════════════════════════════════════════════════════
+PREGUNTA RESUMIDA
+═══════════════════════════════════════════════════════════
+
+  [A] aiProvider     → ¿opción (c) deprecar a userConfig.aiProviders[]?
+  [B] chatGroup      → ¿opción (a), (b) o (c)?
+  [C] knowledgeBase  → ¿opción (a), (b) o (c)?
+
+Si la respuesta es (c) para los 3, cerramos CAPA 2 entera esta semana
+con el mismo patrón que aplicamos a plugin (commit 30799792).
+
+
+═══════════════════════════════════════════════════════════
+LO QUE NO BLOQUEA (sin acción vuestra)
+═══════════════════════════════════════════════════════════
+
+  - SSO providers Firebase SDK → ya manejado en front (no es backend)
+  - getUserRegistrationDuration → api-mcp confirmó User.createdAt
+    YA existe. ¿Lo exponéis vosotros como /api/auth/registration-duration
+    o lo dejamos en stub indefinido?
+
+
+DRI: coord_appeventos — atento a vuestra respuesta sobre A/B/C.

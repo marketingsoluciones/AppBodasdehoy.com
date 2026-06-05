@@ -1,64 +1,126 @@
-═══════════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════════
    MENSAJES SLACK LISTOS PARA ENVIAR — 05-jun
-═══════════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════════
 
-Esta carpeta tiene 2 mensajes activos para Slack + 1 script
-de copy automático al portapapeles.
+CANAL Slack:    #coordinacion (C0AV8EV5495)
+WORKSPACE:      eventosorganizador.slack.com
+HILO único:     1778170638.897419  ← TODOS los mensajes van AQUÍ
 
-ARCHIVOS VIVOS
-──────────────
+(Memoria del proyecto: "TODAS las conversaciones AppBodas van en ese
+hilo. BACKEND-api-mcp postea en ese mismo canal/hilo via bot
+compartido — distinguir por contenido DE: BACKEND.")
 
-  1c-RE-API-IA-decision-plugin-c.txt
-      DESTINO: api-ia
-      HILO:    1779046688.849779 (#coordinacion)
-      ASUNTO:  decisión plugin opción (c) DEPRECAR
-      CONTENIDO: respuesta a su pregunta b/c sobre plugin CRUD +
-                 desglose de lo YA IMPLEMENTADO hoy (commit 30799792) +
-                 pregunta colateral aiProvider/chatGroup/knowledgeBase
 
-  2b-RE-API-MCP-CatC.txt
-      DESTINO: api-mcp
-      HILO:    1779046688.849779 (#coordinacion)
-      ASUNTO:  confirmación P0 OK + Cat C 12/13 + plan apagar apiapp
-      CONTENIDO: confirmamos P0 ESTABLE (5/5 calls /health OK) +
-                 Cat C cableada en MCP_ADAPTERS (81 ops) +
-                 generatePdf y getGeoInfo NO necesarios (front local) +
-                 call-sites "Por verificar" para mapeo +
-                 cronograma apagar apiapp viernes
+═══════════════════════════════════════════════════════════════════
+   4 MENSAJES ACTIVOS
+═══════════════════════════════════════════════════════════════════
 
-CÓMO ENVIAR (la forma fácil)
-────────────────────────────
+ORDEN RECOMENDADO DE ENVÍO:
+  1 → 2 → 3 → 4 (cada uno responde a lo anterior).
 
-  $ ./slack-copy.sh
 
-→ Menú interactivo. Eliges 1 o 2 y se copia al portapapeles.
-  Luego Cmd+Tab a Slack → Cmd+V → enviar.
+─── MENSAJE 1 ─────────────────────────────────────────────────────
+  Archivo: 2b-RE-API-MCP-CatC.txt
+  Para:    api-mcp
+  Asunto:  Confirmamos P0 estable + Cat C 12/13 + 2 ops NO necesarias
+           (generatePdf/getGeoInfo ya están como endpoints locales)
+  Status:  pendiente de respuesta backend
 
-ATAJOS DIRECTOS
-───────────────
+─── MENSAJE 2 ─────────────────────────────────────────────────────
+  Archivo: 1c-RE-API-IA-decision-plugin-c.txt
+  Para:    api-ia
+  Asunto:  Decisión plugin opción (c) DEPRECAR
+           Front YA implementado (commit chat-ia 30799792).
+           Pregunta colateral aiProvider/chatGroup/knowledgeBase.
+  Status:  pendiente de respuesta backend
 
-  $ ./slack-copy.sh api-ia       # → 1c (decisión plugin)
-  $ ./slack-copy.sh api-mcp      # → 2b (P0 + Cat C)
+─── MENSAJE 3 ─────────────────────────────────────────────────────
+  Archivo: 3-PARA-API-MCP-Thread-ajustes-contrato.txt
+  Para:    api-mcp
+  Asunto:  ⚠️ Thread SE MANTIENE (corrección importante) +
+           4 ajustes al contrato GraphQL antes del merge:
+             - enum type: Continuation/Standalone (no branch/followup)
+             - enum status: Deprecated (no closed)
+             - reusar SendMessageInput existente
+             - type/status como enum tipado, no String!
+  Urgencia: ALTA — están implementando AHORA con 6-8h ETA,
+            cambiar después es más caro.
 
-ORDEN RECOMENDADO
-─────────────────
+─── MENSAJE 4 ─────────────────────────────────────────────────────
+  Archivo: 1d-PARA-API-IA-Thread-mantener-y-3-pendientes.txt
+  Para:    api-ia
+  Asunto:  ⚠️ Thread se MANTIENE (corrección al malentendido previo) +
+           3 servicios CAPA 2 pendientes de decisión:
+             [A] aiProvider     → ¿opción (c) deprecar?
+             [B] chatGroup      → ¿(a) deprecar order/role, (b) modelar, (c) userConfig?
+             [C] knowledgeBase  → ¿(a), (b) o (c)?
+           Si los 3 son (c), CAPA 2 cerrada esta semana.
 
-  PRIMERO  2b (api-mcp)  — confirmas Cat C + el cronograma viernes
-                           desbloquea apagar apiapp esta semana
-  LUEGO    1c (api-ia)   — decisión plugin + pregunta colateral
-                           para cerrar Fase 2 CAPA 2 completa
 
-HISTÓRICO
-─────────
+═══════════════════════════════════════════════════════════════════
+   CÓMO ENVIAR
+═══════════════════════════════════════════════════════════════════
 
-  _archived/  contiene los mensajes anteriores (ya respondidos por
-              backend o superados por la conversación). Solo histórico.
+Forma fácil — menú interactivo:
 
-ESTADO DEL PROYECTO POST-ENVÍO
-──────────────────────────────
+    $ ./slack-copy.sh
 
-Una vez enviados los 2 mensajes:
-  ✅ COORD-FRONT no tiene NADA bloqueando del lado backend.
-  ⏳ Esperamos respuesta api-ia sobre aiProvider/chatGroup/KB.
-  ⏳ Esperamos updateTasksOrder de api-mcp (ETA mañana 06-jun).
-  ⏳ Viernes: apagar apiapp.bodasdehoy.com.
+Atajos directos:
+
+    $ ./slack-copy.sh 1      # 2b api-mcp Cat C
+    $ ./slack-copy.sh 2      # 1c api-ia plugin (c)
+    $ ./slack-copy.sh 3      # 3 api-mcp Thread + 4 ajustes
+    $ ./slack-copy.sh 4      # 1d api-ia Thread mantener + 3 pendientes
+
+El mensaje queda en el portapapeles. Luego:
+  Cmd+Tab a Slack
+  → canal #coordinacion (C0AV8EV5495)
+  → entra al hilo 1778170638.897419
+  → click en "Reply in thread"
+  → Cmd+V
+  → Enter
+
+
+═══════════════════════════════════════════════════════════════════
+   CONTEXTO IMPORTANTE — Thread (corrección sesión anterior)
+═══════════════════════════════════════════════════════════════════
+
+COORD había planteado deprecar Thread del front asumiendo que AppBodas
+no iba a usarlo. ERROR: chat-ia es multi-tenant (bodas + proyectos de
+desarrollo + más apps). Thread (sub-conversaciones tipo Slack-thread,
+"Reply in thread") es feature CORE en todos los tenants.
+
+REGLA: el objetivo de CAPA 2 PASO C es ELIMINAR drizzle/pglite/tRPC
+del bundle PRESERVANDO 100% de funcionalidades. NO deprecar features.
+
+Por eso los mensajes 3 y 4 son CORRECCIÓN del anterior planteo y
+mantienen Thread activo.
+
+
+═══════════════════════════════════════════════════════════════════
+   ESTADO PROYECTO TRAS ENVIAR LOS 4
+═══════════════════════════════════════════════════════════════════
+
+✅ CERRADO front (commits en branch tj/feat/inbox-fase1):
+   image, global, user, file, rag, generation, plugin, tool, ragEval
+   borrado, CAPA 1 message/session/topic.
+
+⏳ ESPERANDO respuesta backend:
+   - api-mcp: Thread con 4 ajustes (ETA 6-8h una vez aceptados)
+   - api-mcp: updateTasksOrder (Cat C, ETA 06-jun)
+   - api-ia:  decisión aiProvider/chatGroup/knowledgeBase (A/B/C)
+   - api-ia:  endpoint getUserRegistrationDuration (User.createdAt YA existe)
+
+🎯 SIGUIENTE HITO COORD:
+   - Smoke E2E Cat C con JWT real (hoy/mañana)
+   - Apagar droplet apiapp.bodasdehoy.com (viernes objetivo)
+
+
+═══════════════════════════════════════════════════════════════════
+   HISTÓRICO (no enviar)
+═══════════════════════════════════════════════════════════════════
+
+_archived/  contiene:
+  - mensajes originales 1, 2, 3, 1b (ya respondidos por backend)
+  - drafts 3-PARAR-Thread y 1d-Thread-retirado (descartados — eran
+    el plan incorrecto de deprecar Thread, antes de la corrección)

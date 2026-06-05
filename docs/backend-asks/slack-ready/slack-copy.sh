@@ -1,10 +1,16 @@
 #!/bin/bash
 # slack-copy.sh — copia un mensaje al portapapeles para pegar en Slack con Cmd+V
 #
+# CANAL Slack: #coordinacion (C0AV8EV5495)
+# WORKSPACE:   eventosorganizador.slack.com
+# HILO único:  1778170638.897419 (todos los mensajes van en ESTE hilo)
+#
 # Uso:
-#   ./slack-copy.sh              # menú interactivo
-#   ./slack-copy.sh api-ia       # copia 1c-RE-API-IA-decision-plugin-c.txt
-#   ./slack-copy.sh api-mcp      # copia 2b-RE-API-MCP-CatC.txt
+#   ./slack-copy.sh                # menú interactivo
+#   ./slack-copy.sh 1              # mensaje 1
+#   ./slack-copy.sh 2              # mensaje 2
+#   ./slack-copy.sh 3              # mensaje 3
+#   ./slack-copy.sh 4              # mensaje 4
 #
 # Requisito: macOS (usa pbcopy).
 
@@ -16,34 +22,42 @@ choice="$1"
 if [ -z "$choice" ]; then
   cat <<'MENU'
 
-╔════════════════════════════════════════════════════════════╗
-║       MENSAJES SLACK LISTOS PARA ENVIAR (05-jun)          ║
-╚════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════╗
+║   MENSAJES SLACK LISTOS PARA ENVIAR — 05-jun                ║
+║   Canal: #coordinacion · Hilo: 1778170638.897419            ║
+╚══════════════════════════════════════════════════════════════╝
 
-  [1] PARA api-ia  →  decisión plugin opción (c) DEPRECAR
-                      + pregunta colateral aiProvider/chatGroup/KB
-                      ENVIAR EN: hilo 1779046688.849779 (#coordinacion)
+  [1] → api-mcp  ✅ Cat C + P0 confirmados, call-sites por verificar
+  [2] → api-ia   ✅ decisión plugin opción (c) DEPRECAR
+  [3] → api-mcp  ⚠️  Thread CONFIRMADO + 4 ajustes contrato
+  [4] → api-ia   ⚠️  Thread se MANTIENE + 3 servicios pendientes (A/B/C)
+  [s] → salir
 
-  [2] PARA api-mcp →  confirmación P0 OK + Cat C 12/13
-                      + 2 ops NO necesarias (generatePdf/getGeoInfo)
-                      + call-sites "Por verificar"
-                      ENVIAR EN: hilo 1779046688.849779 (#coordinacion)
-
-  [s] Salir
-
-Elige (1/2/s):
+Elige (1/2/3/4/s):
 MENU
   read choice
 fi
 
 case "$choice" in
-  1|api-ia|ia)
-    file="1c-RE-API-IA-decision-plugin-c.txt"
-    target="api-ia (hilo 1779046688.849779)"
-    ;;
-  2|api-mcp|mcp)
+  1|cat-c|mcp-cat)
     file="2b-RE-API-MCP-CatC.txt"
-    target="api-mcp (hilo 1779046688.849779)"
+    target="api-mcp"
+    note="confirmación Cat C + P0 + 2 ops NO necesarias"
+    ;;
+  2|plugin|ia-plugin)
+    file="1c-RE-API-IA-decision-plugin-c.txt"
+    target="api-ia"
+    note="decisión plugin opción (c) DEPRECAR"
+    ;;
+  3|thread-mcp|mcp-thread)
+    file="3-PARA-API-MCP-Thread-ajustes-contrato.txt"
+    target="api-mcp"
+    note="Thread CONFIRMADO + 4 ajustes al contrato GraphQL"
+    ;;
+  4|thread-ia|ia-thread)
+    file="1d-PARA-API-IA-Thread-mantener-y-3-pendientes.txt"
+    target="api-ia"
+    note="Thread se MANTIENE + 3 servicios CAPA 2 pendientes (aiProvider/chatGroup/knowledgeBase)"
     ;;
   s|S|salir)
     echo "Saliendo."
@@ -71,7 +85,10 @@ cat <<EOF
    archivo: $file
    tamaño:  $lines líneas, $bytes bytes
    destino: $target
+   asunto:  $note
 
-📋 Cmd+Tab a Slack → pulsa Cmd+V dentro del mensaje del hilo → enviar.
+📋 Cmd+Tab a Slack → canal #coordinacion (C0AV8EV5495)
+   → entra al hilo 1778170638.897419
+   → Cmd+V → enviar.
 
 EOF
