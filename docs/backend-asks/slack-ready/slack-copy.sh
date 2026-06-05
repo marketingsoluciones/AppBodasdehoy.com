@@ -30,8 +30,15 @@ if [ -z "$choice" ]; then
 ║   Canal: #coordinacion · Hilo: 1778170638.897419            ║
 ╚══════════════════════════════════════════════════════════════╝
 
+  ━━━ URGENTES (enviar HOY) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [U1] → api-mcp  ⏰ lo MÍNIMO que necesito YA (3 líneas respuesta)
+  [U2] → api-ia   ⏰ decisión ABC + naming Thread (4 letras respuesta)
+  [U3] → TÚ (JCP) ⏰ acciones humanas: hoy, mañana, viernes
+
+  ━━━ Resumen ejecutivo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
   [0] → TODOS    📋 ESTADO PROYECTO + pendientes por equipo
-                  (resumen ejecutivo, enviar este PRIMERO)
 
   ─ Pendientes de enviar ─────────────────────────────────
 
@@ -61,6 +68,21 @@ MENU
 fi
 
 case "$choice" in
+  U1|u1|urgente-mcp)
+    file="U1-URGENTE-API-MCP.txt"
+    target="api-mcp"
+    note="⏰ URGENTE — pide 3 líneas respuesta para desbloquear"
+    ;;
+  U2|u2|urgente-ia)
+    file="U2-URGENTE-API-IA.txt"
+    target="api-ia"
+    note="⏰ URGENTE — pide decisión ABC + naming (4 letras respuesta)"
+    ;;
+  U3|u3|urgente-jcp|jcp|tu)
+    file="U3-PARA-TI-JCP.txt"
+    target="TÚ (JCP, para abrirlo y leer)"
+    note="📋 acciones humanas: hoy, mañana, viernes"
+    ;;
   0|estado|resumen)
     file="0-ESTADO-PROYECTO-Y-PENDIENTES.txt"
     target="TODOS (api-mcp + api-ia + AppBodas)"
