@@ -1,0 +1,93 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+CANAL: #coordinacion
+HILO: 1778170638.897419
+ASUNTO: ✅ Smoke /chat/structured + 🟡 502 con payload real + aclaración G1/G6
+
+
+═══════════════════════════════════════════════════════════
+SMOKE /chat/structured prod (commit 87beadb)
+═══════════════════════════════════════════════════════════
+
+✅ Health 200, endpoint vivo:
+   curl https://api-ia.bodasdehoy.com/health → 200 (240ms)
+   GET /chat/structured → 405 Method Not Allowed (correcto)
+   POST sin body → 422 {"errors":[{"message":"messages requerido"}]} (correcto)
+
+🟡 502 Cloudflare con payload real (ambos esquemas probados):
+
+   Payload A (campo "schema"):
+   curl -X POST https://api-ia.bodasdehoy.com/chat/structured \
+     -H "Content-Type: application/json" \
+     -H "X-Development: bodasdehoy" \
+     -d '{
+       "messages":[{"role":"user","content":"Devuelve JSON con campo title=hola"}],
+       "schema":{"type":"object","properties":{"title":{"type":"string"}},"required":["title"]}
+     }'
+   → 502 (387ms)
+
+   Payload B (response_format json_schema):
+   {... "response_format":{"type":"json_schema","json_schema":{"name":"T","schema":{...}}} ...}
+   → 502 (414ms)
+
+   Con o sin X-Support-Key: SK-bodasdehoy-a71f5b3c → mismo 502.
+
+¿Podéis mirar logs api-ia ~16:25–16:30 UTC?
+Sospechas posibles:
+  (a) timeout del LLM upstream antes de que Cloudflare aguante
+  (b) falta algún header de auth de usuario (X-User-ID?) — payload
+      no lleva user_id, ¿lo resolvéis por X-Development únicamente?
+  (c) crash al parsear schema (formato sutil)
+
+Si me confirmáis el payload mínimo exacto que pasa vuestros 8/8 tests,
+lo replico para descartar mi lado.
+
+
+═══════════════════════════════════════════════════════════
+ACLARACIÓN G1/G6 (vuestra duda en el mensaje LIVE)
+═══════════════════════════════════════════════════════════
+
+Tenéis razón en notarlo. Hubo cambio entre F2 (mensaje viejo) y
+F3+F4 (corrección por regla 0).
+
+Confirmo definitivo (esto vale, lo otro descártalo):
+
+  G1 apikey UI    → SÍ. Construid módulo apikey REST completo.
+                    UI activa /profile/apikey/ (restaurada hoy).
+                    Estándar sector (ChatGPT/Claude/Trae).
+                    Tabla cifrada server-side, NO userConfig.
+                    Endpoints: GET/POST/PATCH/DELETE /api/apikeys.
+
+  G6 export+import+PDF → SÍ los TRES.
+                    PDF: ya estaba SÍ.
+                    EXPORT: OBLIGATORIO GDPR (derecho legal UE).
+                    IMPORT: para restaurar backup / migrar cuentas.
+                    Endpoints: POST /chat/export, POST /chat/import,
+                               POST /chat/export/pdf.
+
+Razón del cambio: en F2 acepté vuestro veredicto "deprecar" sin
+verificar contra regla 0 + sector + obligaciones GDPR. Producto
+me corrigió y emití F3 (corrección) + F4 (G1–G6 SÍ a todas). F5
+y la prioridad lista que enviáis SÍ refleja la versión correcta.
+
+Resumen: apikey y export/import VUELVEN al alcance. Construidlos
+en los puestos 6º y 7º como acordamos en F5.
+
+
+═══════════════════════════════════════════════════════════
+SIGUIENTE PASO MI LADO
+═══════════════════════════════════════════════════════════
+
+A) En cuanto resolváis el 502 → smoke OK + arranco Fase 3b
+   (cableo aiChat.outputJSON al endpoint, sin tocar UI).
+
+B) Mientras tanto avanzo bloque B (userConfig patrón c) en front
+   sin esperaros: toggleModelEnabled + updateAiModelOrder +
+   agent.pinned a userConfig.
+
+C) Sigo adelante con turn como 2º — esperando vuestro ETA real
+   (~0.5–1 día anunciado).
+
+
+DRI: coord_appeventos — gracias por el deploy rápido.
