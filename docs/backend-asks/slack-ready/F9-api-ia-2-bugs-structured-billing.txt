@@ -1,0 +1,184 @@
+DE: COORD-AppEventos
+PARA: API-IA
+DRI: api_ia_oncall
+CANAL: #coordinacion
+HILO: 1778170638.897419
+ASUNTO: 🚨 /chat/structured tiene 2 bugs (routing + billing) + 6 preguntas restantes
+
+
+Tras revisar SSH api3-ia con calma, son 2 bugs en /chat/structured.
+Producto recordó que cobramos por uso → cada feature IA debe
+descontar wallet. Lo siguiente es crítico.
+
+
+═══════════════════════════════════════════════════════════
+🐛 BUG A — Routing Groq (F7.2 ya enviado, sigue abierto)
+═══════════════════════════════════════════════════════════
+
+archivo: /opt/backend/rest_chat_handler.py:6398
+fix: 6 líneas (base_url Groq en OpenAIClient)
+
+Sin cambios desde F7.2. Os recuerdo:
+  - rest_chat_handler.py:6398 mete groq+deepseek en bucket openai
+  - OpenAIClient(api_key=api_key) SIN base_url
+  - AsyncOpenAI default api.openai.com → 401 con gsk_
+  - Fix: 1 archivo + 6 líneas + 1 systemctl restart = 20 min
+
+Reproducido HOY a las 05:45 UTC:
+  POST /chat/structured → 502
+  Log: httpx POST https://api.openai.com/v1/chat/completions 401
+
+(Streaming /chat sí va correctamente a api.groq.com/openai/v1
+con 200 OK, verificado en log Jun 07 04:39:12)
+
+
+═══════════════════════════════════════════════════════════
+🐛 BUG B — NUEVO: /chat/structured NO factura (CRÍTICO)
+═══════════════════════════════════════════════════════════
+
+Hallazgo SSH:
+  - rest_chat_handler.py:5418 (streaming /chat) integra
+    `from backend.services.ai.usage_tracking import track_ai_usage,
+    calculate_ai_cost`
+  - rest_chat_handler.py:6320-6440 (/chat/structured) NO menciona
+    usage_tracking, wallet_charge, ni hook de balance
+
+  → cada llamada a /chat/structured consume tokens en LLM
+    upstream PERO no descuenta del wallet del usuario AppBodas
+
+Riesgo de negocio:
+  - Usuarios FREE pueden generar títulos/clasificadores ilimitados
+  - Coste real lo asume AppBodas
+  - Plan de precios inconsistente
+
+Fix solicitado:
+  - Integrar `track_ai_usage(...)` y `calculate_ai_cost(...)` al
+    final del handler /chat/structured (líneas ~6430)
+  - Usar mismo patrón que streaming /chat:5418
+  - Descontar el wallet del user_id pasado en X-User-ID header
+  - Smoke E2E: verificar que balance baja correctamente
+
+
+═══════════════════════════════════════════════════════════
+🛡️ POLÍTICA UNIVERSAL — TODOS los endpoints IA nuevos
+═══════════════════════════════════════════════════════════
+
+Aplica de aquí en adelante a todo lo que pidamos a api-ia:
+
+  Cada endpoint IA que cree, modifique o consuma recursos
+  externos (LLM tokens, embeddings, generación imagen, etc.)
+  DEBE:
+
+  1. Declarar UNIDAD DE COBRO (token / llamada / GB-mes / imagen)
+  2. Llamar al hook de wallet existente (track_ai_usage +
+     calculate_ai_cost) al final del request
+  3. Reportar al usage_tracking para auditoría
+  4. Tener smoke E2E que demuestre que balance baja correctamente
+
+  Sin hook al wallet = endpoint NO sale a producción.
+
+
+═══════════════════════════════════════════════════════════
+PREGUNTAS RESTANTES
+═══════════════════════════════════════════════════════════
+
+
+[P1] Bottleneck — ¿por qué F7.2 lleva 14h sin redeploy?
+─────────────────────────────────────────────────────
+SSH confirma backend.service mismo PID 2936233 desde
+2026-06-06 13:38 UTC.
+
+  (a) Quien aplica el fix está offline / sin SSH
+  (b) Otra prioridad mayor de api-ia esta semana
+  (c) Discrepancia con el diagnóstico de F7.2
+  (d) Falta canal CI/CD que automatice el deploy
+  (e) No habéis visto F7.2 en Slack
+
+
+[P3] NameError /webapi/models/{provider}
+────────────────────────────────────────
+Verificado SSH Jun 06 14:48:21:
+  NameError: name 'request' is not defined.
+  con: headers=request.headers,
+
+Sospecho image_ai_router.py por grep, pero solo log puntual
+del request fallido confirma archivo+línea.
+
+¿Localizáis archivo+línea exacto y dais fix?
+¿Va en el mismo PR del fix Groq+billing o separado?
+
+
+[P5] Plan B si fix Groq tarda > 24h
+───────────────────────────────────
+Producto prohíbe fallback en el front.
+Opciones:
+
+  (a) Habilitar provider=openai temporal en whitelabel
+      bodasdehoy (vuestra .env tiene OpenAI key válida)
+  (b) Pausar CAPA 3 fase 3b hasta deploy
+  (c) Otra propuesta vuestra
+
+¿Qué preferís?
+
+
+[P6] ETA bloque 2 /chat/messages/turn (CON billing)
+───────────────────────────────────────────────────
+Mantenemos prioridad CAPA 3:
+  1º /chat/structured (con bugs A+B abiertos)
+  2º /chat/messages/turn
+  3º galería /image/topics
+  ...
+
+Para bloque 2 anunciasteis ~0.5–1 día.
+Requisito añadido: turn debe descontar wallet del user al
+mismo tiempo que crea topic+thread+mensaje.
+
+¿Sigue ETA en pie? ¿Empezáis DESPUÉS del fix Groq+billing
+o en paralelo?
+
+
+[P7] ETAs orden de magnitud bloques 3-7 (todos con billing)
+──────────────────────────────────────────────────────────
+Cada endpoint declara UNIDAD DE COBRO + integra wallet.
+
+  3º galería /image/topics + /image/generations
+     → unidad: 1 image-generation por POST
+  4º GET /api/lobechat-kb/files/{id}/chunks
+     → unidad: 1 chunk-read por call (¿coste?)
+  5º POST /chat/export/pdf
+     → unidad: 1 pdf-export (coste fijo)
+  6º /api/apikeys (CRUD)
+     → unidad: gratis (solo gestión user, no consume IA)
+  7º /chat/export + /chat/import (GDPR)
+     → unidad: gratis (derecho legal usuario)
+
+¿ETAs orden de magnitud para cada uno?
+¿Coincidís con estas unidades de cobro propuestas?
+
+
+[P8] Verificación arquitectura streaming vs structured
+──────────────────────────────────────────────────────
+SSH muestra:
+  - rest_chat_handler.py:894-966 streaming → orchestrator →
+    groq_adapter + usage_tracking → factura OK
+  - rest_chat_handler.py:6395 structured → OpenAIClient directo
+    SIN base_url + SIN tracking → no factura ni rutea bien
+
+¿Por qué /chat/structured se hizo "directo" sin pasar por el
+orchestrator? Útil saberlo para que próximos bloques (turn,
+galería, etc.) NO caigan en el mismo patrón.
+
+
+═══════════════════════════════════════════════════════════
+RESUMEN ACCIONABLE PARA VOSOTROS
+═══════════════════════════════════════════════════════════
+
+  1. Fix bug A (routing Groq) — 6 líneas, 20 min
+  2. Fix bug B (billing /chat/structured) — integrar
+     track_ai_usage + calculate_ai_cost al final del handler
+  3. Restart backend.service + smoke
+  4. Responder P1, P3, P5, P6, P7, P8
+
+Mientras tanto no toco código front (política sin fallback).
+
+DRI: coord_appeventos
