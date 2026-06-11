@@ -113,8 +113,8 @@ export const createGenerationBatchSlice: StateCreator<
       'internal_deleteGeneration',
     );
 
-    // 2. 调用后端服务删除generation
-    await generationService.deleteGeneration(generationId);
+    // 2. 调用后端服务删除generation (api-ia DELETE /image/generations/{id}?topic_id=)
+    await generationService.deleteGeneration(generationId, activeGenerationTopicId);
 
     // 3. 刷新数据确保一致性
     await refreshGenerationBatches();
