@@ -59,13 +59,19 @@ export class ApiIaMessageService implements IMessageService {
 
   // ───────── LECTURA (GET /chat/messages confirmado por api-ia) ─────────
   getMessages: IMessageService['getMessages'] = async (sessionId, topicId) => {
-    const qs = new URLSearchParams({ sessionId: String(this.toDbSessionId(sessionId) ?? '') });
+    const dbSessionId = this.toDbSessionId(sessionId);
+    // Guard: sin sessionId válido (visitante/sesión sin resolver) NO lanzar ?sessionId= vacío.
+    // OJO: null es VÁLIDO (INBOX_SESSION_ID → null intencional); solo bloqueamos undefined/''.
+    if (dbSessionId === undefined || dbSessionId === '') return [];
+    const qs = new URLSearchParams({ sessionId: String(dbSessionId ?? '') });
     if (topicId) qs.set('topicId', topicId);
     const res = await call('GET', `/chat/messages?${qs.toString()}`);
     return mapApiIaMessages(res?.data ?? res?.messages ?? res) as UIChatMessage[];
   };
 
   getGroupMessages: IMessageService['getGroupMessages'] = async (groupId, topicId) => {
+    // Guard: sin groupId no lanzar ?groupId= vacío.
+    if (!groupId) return [];
     const qs = new URLSearchParams({ groupId });
     if (topicId) qs.set('topicId', topicId);
     const res = await call('GET', `/chat/messages?${qs.toString()}`);
