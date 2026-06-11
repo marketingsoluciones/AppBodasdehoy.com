@@ -31,6 +31,17 @@ $ curl -X POST https://api-ia.bodasdehoy.com/api/lobechat-kb/batch-embed-file \
 # (api_key_monitor + usage_tracking + cost_auditor + audit_alerts).
 # PREGUNTA: ¿se integró el billing en /chat/structured? Toda feature IA debe medir+facturar.
 
+## 🟡 PENDIENTE 4 — files: endpoint register-metadata (sin re-subir binario)
+# Auditado 2026-06-11: /api/files/list, /api/storage/files/{id}/metadata, remove → OK (funcionan).
+# GAP: el flujo legacy del front sube binario (uploadService) y LUEGO registra metadata aparte.
+# api-ia solo tiene /api/files/upload (multipart: binario+metadata juntos). NO hay forma de
+# registrar metadata de un binario YA subido. Workaround actual (file/apiIa.ts:77-91): createFile
+# es PASSTHROUGH — construye el id desde la URL; si la URL no encaja, inventa id (randomUUID) = frágil.
+# PETICIÓN: exponed POST /api/files/register-metadata {url, filename, size, user_id, ...}
+#           que devuelva el file_id canónico, sin re-subir el binario.
+# (También útil para fase 2 RAG: ese file_id sería el que pasamos a batch-embed-file.)
+# Menor: ¿endpoint dedupe por hash? ¿cancelar tasks asíncronos? (file/apiIa.ts:157,168). No bloqueante.
+
 # ------------------------------------------------------------
 # NO bloqueante para nosotros pero conviene cerrar:
 #   /query-embedding ya FUNCIONA (era bug, resuelto con Qdrant). OK.
