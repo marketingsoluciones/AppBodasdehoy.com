@@ -39,6 +39,8 @@ export class ApiIaSessionService implements ISessionService {
   // ───────── CONFIRMADOS ─────────
   // GET /chat/sessions?userId=<firebase_uid> → {success,data:[...]}
   getGroupedSessions: ISessionService['getGroupedSessions'] = async () => {
+    // Guard: visitante sin uid → no lanzar /chat/sessions?userId= vacío; lista vacía.
+    if (!uid()) return mapApiIaSessionsToList([]) as ChatSessionList;
     const res = await call('GET', `/chat/sessions?userId=${encodeURIComponent(uid())}`);
     return mapApiIaSessionsToList(res?.data ?? res?.sessions ?? res) as ChatSessionList;
   };
@@ -79,6 +81,8 @@ export class ApiIaSessionService implements ISessionService {
 
   // GET /chat/sessions/search?userId=X&q=Y
   searchSessions: ISessionService['searchSessions'] = async (keyword) => {
+    // Guard: visitante sin uid → no lanzar /chat/sessions/search?userId= vacío; sin resultados.
+    if (!uid()) return [];
     const res = await call(
       'GET',
       `/chat/sessions/search?userId=${encodeURIComponent(uid())}&q=${encodeURIComponent(keyword)}`,
