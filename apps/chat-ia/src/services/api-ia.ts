@@ -169,8 +169,10 @@ export async function consumeChatStream(
 // Ruta DEFINITIVA: POST /chat/session. Respuesta envuelta {success,data}; devolvemos el id.
 export async function createChatSession(opts?: {
   config?: object;
+  model?: string;
   title?: string;
   type?: string;
+  userEmail?: string;
 }): Promise<string> {
   ensureEnabled('createChatSession');
   const r = await fetch(`${API_IA_BASE}/chat/session`, {

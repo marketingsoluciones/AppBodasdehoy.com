@@ -212,7 +212,7 @@ export const createGenerationBatchSlice: StateCreator<
       enable && generationId && !generationId.startsWith('temp-') && asyncTaskId
         ? [SWR_USE_CHECK_GENERATION_STATUS, generationId, asyncTaskId]
         : null,
-      async ([, generationId, asyncTaskId]: [string, string, string]) => {
+      async ([, generationId, asyncTaskId]: readonly [string, string, string]) => {
         // 增加请求计数
         requestCountRef.current += 1;
         return generationService.getGenerationStatus(generationId, asyncTaskId);

@@ -39,7 +39,9 @@ async function getJson(path: string, params?: Record<string, string | number | u
   }
   const q = qs.toString();
   const url = `${BACKEND}${path}${q ? `?${q}` : ''}`;
-  const res = await fetch(typeof window !== 'undefined' ? url : `${window.location?.origin || ''}${url}`, {
+  // En cliente: prefijar origin si url es relativa. En server: usar url tal cual (ya lleva BACKEND).
+  const fetchUrl = typeof window !== 'undefined' ? `${window.location?.origin || ''}${url}` : url;
+  const res = await fetch(fetchUrl, {
     credentials: 'include',
     headers: { ...buildAuthHeaders(), Accept: 'application/json' },
     method: 'GET',

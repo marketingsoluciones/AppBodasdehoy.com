@@ -41,7 +41,9 @@ async function checkAuthState(u: typeof USERS[0]): Promise<Check[]> {
     const state = JSON.parse(readFileSync(statePath, 'utf-8'));
 
     // Cookies
-    const idTokenCookie = state.cookies.find((c) => c.name.startsWith('idTokenV') || c.name === 'idToken');
+    const idTokenCookie = state.cookies.find(
+      (c: { domain: string; name: string }) => c.name.startsWith('idTokenV') || c.name === 'idToken',
+    );
     checks.push({
       user: u.tag,
       field: 'idToken cookie',
@@ -51,8 +53,10 @@ async function checkAuthState(u: typeof USERS[0]): Promise<Check[]> {
 
     // localStorage tokens
     const origin = state.origins[0];
-    const mcpJwt = origin?.localStorage.find((kv) => kv.name === 'mcp_jwt_token');
-    const fbAuth = origin?.localStorage.find((kv) => kv.name.includes('firebase:authUser'));
+    const mcpJwt = origin?.localStorage.find((kv: { name: string; value: string }) => kv.name === 'mcp_jwt_token');
+    const fbAuth = origin?.localStorage.find((kv: { name: string; value: string }) =>
+      kv.name.includes('firebase:authUser'),
+    );
     checks.push({
       user: u.tag,
       field: 'mcp_jwt_token',

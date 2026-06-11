@@ -77,6 +77,9 @@ export class ApiIaMessageService implements IMessageService {
   // Devuelve {success, data:{id,...}}. toDbSessionId mapea INBOX_SESSION_ID → null (no revertir).
   createMessage: IMessageService['createMessage'] = async ({ sessionId, ...params }) => {
     const res = await call('POST', '/chat/messages', {
+      // campos extra del flujo (parentId, topicId, etc.) van también — api-ia ignora los no usados.
+      // ...params PRIMERO para que los campos explícitos de abajo NO sean sobreescritos (TS2783).
+      ...params,
       content: (params as any).content,
       // CONTRATO role (api-ia 2026-06-03): front↔api-ia en MINÚSCULAS ('user'/'assistant').
       // api-ia uppercasea antes de api-mcp (cuya comparación es role==='ASSISTANT' para facturar).
@@ -84,8 +87,6 @@ export class ApiIaMessageService implements IMessageService {
       role: String((params as any).role),
       sessionId: this.toDbSessionId(sessionId),
       type: (params as any).type,
-      // campos extra del flujo (parentId, topicId, etc.) van también — api-ia ignora los no usados.
-      ...params,
     });
     const d = res?.data ?? res;
     const id = d?.id ?? d?._id ?? d?.messageId;

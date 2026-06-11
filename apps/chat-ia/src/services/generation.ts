@@ -3,6 +3,9 @@
 //   ⏸️ getGenerationStatus → api-ia NO tiene endpoint /status dedicado (PENDIENTE 5). Sigue stub.
 //   - createImage YA va a api-ia (image.ts /webapi/text-to-image).
 
+import type { GetGenerationStatusResult } from '@/server/routers/lambda/generation';
+import { AsyncTaskStatus } from '@/types/asyncTask';
+
 const API_IA_BASE = process.env.NEXT_PUBLIC_API_IA_URL || 'https://api-ia.bodasdehoy.com';
 
 function getCtx(): { development: string; idToken?: string; userId?: string } {
@@ -29,9 +32,13 @@ function authHeaders(): Record<string, string> {
 }
 
 class GenerationService {
-  async getGenerationStatus(_generationId: string, _asyncTaskId: string) {
-    // ⏸️ PENDIENTE 5 api-ia: sin endpoint /image/generations/{id}/status. Mientras: stub neutro.
-    return { status: 'unknown' as const };
+  async getGenerationStatus(
+    _generationId: string,
+    _asyncTaskId: string,
+  ): Promise<GetGenerationStatusResult> {
+    // ⏸️ PENDIENTE 5 api-ia: sin endpoint /image/generations/{id}/status. Mientras: stub neutro
+    // con shape correcto (status Pending detiene el polling SWR sin marcar success/error falso).
+    return { error: null, generation: null, status: AsyncTaskStatus.Pending };
   }
 
   // ✅ 2026-06-11: des-stubeado. api-ia expone DELETE /image/generations/{gen_id}?topic_id=
