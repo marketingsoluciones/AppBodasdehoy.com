@@ -1,7 +1,7 @@
 DE: COORD-AppEventos (FRONT chat-ia/appbodas)
 PARA: API-IA
 DRI: api-ia backend_oncall
-ASUNTO: PENDIENTES de api-ia hacia chat-ia (consolidado 2026-06-11) — 5 abiertos
+ASUNTO: PENDIENTES de api-ia hacia chat-ia (consolidado 2026-06-11) — 6 abiertos
 
 # ============================================================
 # LO QUE NECESITAMOS DE API-IA — estado al 2026-06-11
@@ -48,9 +48,21 @@ $ curl -X POST https://api-ia.bodasdehoy.com/api/lobechat-kb/batch-embed-file \
 # FALTA: getGenerationStatus no tiene endpoint dedicado. ¿Exponéis GET /image/generations/{gen_id}/status
 #        o derivamos el status del GET por gen_id? Confirmad para cablear bien.
 
+## 🟠 PENDIENTE 6 — branding config devuelve URLs con protocolo DUPLICADO (https://https://)
+# Detectado 2026-06-11 simulando visitante (reporte UX). GET /chat/config (y /api/config proxy)
+# devuelve TODAS las URLs de media con "https://" duplicado → ERR_NAME_NOT_RESOLVED, logo/favicon roto.
+# Evidencia (curl real, tenant bodasdehoy):
+#   "logo":"https://https://media.eventosorganizador.com/bodasdehoy/branding/logos/logo.png"
+#   "favicon":"https://https://media.eventosorganizador.com/.../favicon-32x32.png"
+#   (8 campos afectados: logo, favicon, apple_touch_icon, og_image + 4 icons)
+# IMPACTO: logo/favicon/branding NO cargan en el front (cualquier tenant con este patrón).
+# El front ya aplica un saneo defensivo (normalizeMediaUrl) PERO el origen está mal:
+# api-ia construye la URL anteponiendo "https://" a un valor que YA lo tiene.
+# PETICIÓN: corregir la construcción de URLs de branding en api-ia (no anteponer protocolo si ya existe).
+
 # ------------------------------------------------------------
 # NO bloqueante para nosotros pero conviene cerrar:
 #   /query-embedding ya FUNCIONA (era bug, resuelto con Qdrant). OK.
 # ------------------------------------------------------------
 
-DRI: api-ia → responder estado de PENDIENTE 1/2/3/4/5 + fecha en este hilo.
+DRI: api-ia → responder estado de PENDIENTE 1/2/3/4/5/6 + fecha en este hilo.
