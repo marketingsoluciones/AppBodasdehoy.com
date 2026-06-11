@@ -41,7 +41,7 @@ DESPUÉS: chat-ia ── fetch REST ──▶ api-ia (RAG/embeddings/files/stora
 | `(main)/discover/` | 175 | ✅ **CONSERVAR** | ❌ NO — se sirve de market-sdk LobeHub. Borrar = perder feature. NO tocar. |
 | `(main)/knowledge/` | 31 | 🔀 **Migrar backend a api-ia** SOLO tras probar paridad | ✅ `/api/lobechat-kb/embed`, `/query-embedding`, `/search` (probar E2E antes) |
 | `(main)/files/` | 7 | 🔀 **Migrar backend a api-ia** SOLO tras probar paridad | ✅ `/api/files/*`, `/webapi/files/parse`, `/api/storage/*` (probar antes) |
-| `(main)/image/` | 63 | ❓ **EVALUAR con user** | parcial: `/webapi/text-to-image/{provider}`. Confirmar uso (venues) antes de nada |
+| `(main)/image/` | 63 | ✅ **CONSERVAR — es valor boda** | api-ia tiene arsenal: `/api/ai/images/{interior-redesign,virtual-staging,empty-room,interior-render,exterior-render,sketch-to-render}` + `/api/venue/generate-design`. Es diseño de espacios/venues = ALTO valor boda. NO borrar. |
 | `server/routers/lambda/chunk.ts` | 1 | 🔀 redirigir a api-ia tras paridad | ✅ `/api/lobechat-kb/files/{file_id}/chunks` |
 | `server/routers/async/ragEval.ts` | 1 | ⏸️ revisar si se usa | — (no borrar sin confirmar que no se usa) |
 | `memories/`, `wedding/`, `wedding-creator/`, `tasks/`, `messages/` | — | ✅ **NO TOCAR** | DOMINIO BODA — el core del producto |
@@ -145,6 +145,26 @@ Desglose de discover (175 arch.):
 - **SSH a api-ia roto** (config apunta a `api3-ia` NXDOMAIN) → no se necesita; se trabaja contra la API REST viva.
 
 ---
+
+## ✅ AUDITORÍA files + image (2026-06-11) — migrados, sin pérdida
+
+### files — migrado, 1 gap menor
+- `/api/files/list`, `/api/storage/files/{id}/metadata`, remove → ✅ verificados (curl).
+- GAP: `createFile` es passthrough (file/apiIa.ts:77) — falta `register-metadata` en api-ia (PENDIENTE 4).
+
+### image — CONSERVAR (alto valor boda), generation des-stubeable
+- `image.ts` ya usa `/webapi/text-to-image/{provider}` (auto-routing) ✅.
+- api-ia tiene endpoints de diseño de espacios/venues (interior-render, virtual-staging, empty-room,
+  exterior-render, sketch-to-render, /api/venue/generate-design) → NO borrar, es valor boda.
+- **OPORTUNIDAD:** `generation.ts` tiene 2 stubs (getGenerationStatus, deleteGeneration) escritos
+  el 05-jun "porque api-ia no tenía CRUD". AHORA api-ia SÍ los expone (verificado curl):
+    GET /image/generations?topic_id= → {"success":true,"data":[]}  ✅
+    GET /image/topics → devuelve topics reales  ✅
+    DELETE /image/generations/{gen_id}?topic_id=  (existe)
+  → Se puede DES-STUBEAR deleteGeneration (el caller tiene activeGenerationTopicId).
+  → getGenerationStatus: api-ia NO tiene endpoint /status dedicado (solo GET por gen_id);
+    derivar status del GET o pedir a api-ia /image/generations/{gen_id}/status (pendiente menor).
+  - Tarea dedicada con smoke (toca store de imágenes con borrado real) — NO cablear a ciegas.
 
 ## 🔴 AUDITORÍA DE PARIDAD RAG (2026-06-11) — api-ia NO tiene paridad, BLOQUEADO
 

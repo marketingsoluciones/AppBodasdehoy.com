@@ -42,6 +42,12 @@ $ curl -X POST https://api-ia.bodasdehoy.com/api/lobechat-kb/batch-embed-file \
 # (También útil para fase 2 RAG: ese file_id sería el que pasamos a batch-embed-file.)
 # Menor: ¿endpoint dedupe por hash? ¿cancelar tasks asíncronos? (file/apiIa.ts:157,168). No bloqueante.
 
+## 🟢 PENDIENTE 5 (menor) — image generations: endpoint de STATUS
+# Auditado 2026-06-11: GET /image/generations?topic_id= y DELETE /image/generations/{gen_id}?topic_id=
+# YA EXISTEN y funcionan (antes no → el front tenía stubs). Vamos a des-stubear deleteGeneration. ✅
+# FALTA: getGenerationStatus no tiene endpoint dedicado. ¿Exponéis GET /image/generations/{gen_id}/status
+#        o derivamos el status del GET por gen_id? Confirmad para cablear bien.
+
 # ------------------------------------------------------------
 # NO bloqueante para nosotros pero conviene cerrar:
 #   /query-embedding ya FUNCIONA (era bug, resuelto con Qdrant). OK.
