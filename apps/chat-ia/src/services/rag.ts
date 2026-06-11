@@ -3,7 +3,7 @@ import { SemanticSearchSchemaType } from '@/types/rag';
 // CAPA 2 PASO C 2026-06-05: RAG vía api-ia REST. Estado verificado 2026-06-11 (Qdrant):
 //   ✅ POST /webapi/files/parse        → parseFileContent / createParseFileTask / retryParseFile
 //   ✅ POST /api/lobechat-kb/search    → semanticSearch / semanticSearchForChat (smoke OK, score 0.74)
-//   ⏸️ POST /api/lobechat-kb/batch-embed → createEmbeddingChunksTask (BLOQUEADO: contrato array vs file_id)
+//   ✅ POST /api/lobechat-kb/batch-embed-file → createEmbeddingChunksTask (B1: api-ia trocea por file_id)
 // Stubs:
 //   deleteMessageRagQuery → no-op (api-mcp gestiona cleanup al borrar message)
 
@@ -66,18 +66,13 @@ class RAGService {
     return apiPost('/webapi/files/parse', { file_id: id, retry: true, skip_exist: false });
   };
 
-  // ⏸️ BLOQUEADO 2026-06-11 — pendiente decisión contrato batch-embed con api-ia (B1 vs B2).
-  // api-ia /batch-embed espera ARRAY [{text,user_id,file_id}], pero el front NO tiene los textos
-  // de los chunks (el troceo vivía en ChunkService server). Ver:
-  //   docs/backend-asks/slack-ready/RAG-batch-embed-RESPUESTA-PARA-API-IA.txt
-  // El caller (fileManager/action.ts:62) envuelve en try/catch → el fallo NO rompe la subida.
-  // Cuando api-ia confirme B1 (trocea por file_id) o B2 (expone chunks) → cablear aquí.
+  // ✅ B1 cableado 2026-06-11 — api-ia resolvió con /batch-embed-file (smoke OK: success, total_chunks).
+  // El front dispara por file_id; api-ia descarga (R2) + parsea + trocea + vectoriza. NO troceamos aquí.
+  // Schema EmbedFileRequest: {file_id*, user_id*, file_url?, text?, filename?, metadata?}.
   createEmbeddingChunksTask = async (id: string) => {
     const { userId } = getCtx();
     if (!userId) throw new Error('createEmbeddingChunksTask requires userId');
-    // TODO(api-ia batch-embed): mientras se acuerda el contrato, este endpoint devuelve 422.
-    // NO migrar a array sin los textos de chunks (perdería el parse+chunk nativo).
-    return apiPost('/api/lobechat-kb/batch-embed', { file_id: id, user_id: userId });
+    return apiPost('/api/lobechat-kb/batch-embed-file', { file_id: id, user_id: userId });
   };
 
   semanticSearch = async (query: string, fileIds?: string[]) => {
