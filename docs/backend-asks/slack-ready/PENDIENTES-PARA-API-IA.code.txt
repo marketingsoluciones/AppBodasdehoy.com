@@ -1,7 +1,7 @@
 DE: COORD-AppEventos (FRONT chat-ia/appbodas)
 PARA: API-IA
 DRI: api-ia backend_oncall
-ASUNTO: PENDIENTES de api-ia hacia chat-ia (consolidado 2026-06-11) — 3 abiertos
+ASUNTO: PENDIENTES de api-ia hacia chat-ia (consolidado 2026-06-11) — 5 abiertos
 
 # ============================================================
 # LO QUE NECESITAMOS DE API-IA — estado al 2026-06-11
@@ -53,4 +53,4 @@ $ curl -X POST https://api-ia.bodasdehoy.com/api/lobechat-kb/batch-embed-file \
 #   /query-embedding ya FUNCIONA (era bug, resuelto con Qdrant). OK.
 # ------------------------------------------------------------
 
-DRI: api-ia → responder estado de PENDIENTE 1/2/3 + fecha en este hilo.
+DRI: api-ia → responder estado de PENDIENTE 1/2/3/4/5 + fecha en este hilo.
