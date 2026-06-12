@@ -38,12 +38,20 @@ export function useSendMessage() {
       return { message: optimisticMsg, success: false };
     }
 
+    // 🐛 FIX 8.2 (informe 2026-06-12): el endpoint genérico /api/messages/send exige
+    // conversationId + channel + text (422 si faltan). La URL de WhatsApp ya lleva la conv
+    // en el path, pero el body debe incluir los campos requeridos para el endpoint genérico.
+    const isWhatsAppDirectUrl = url.includes('/whatsapp/conversations/');
+    const body = isWhatsAppDirectUrl
+      ? JSON.stringify({ text })
+      : JSON.stringify({ channel, conversationId, text });
+
     try {
       setSending(true);
       setError(null);
 
       const response = await fetch(url, {
-        body: JSON.stringify({ text }),
+        body,
         headers: buildHeaders(),
         method: 'POST',
       });
