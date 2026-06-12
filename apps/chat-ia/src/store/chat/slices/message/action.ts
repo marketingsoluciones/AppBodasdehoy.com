@@ -288,9 +288,22 @@ export const chatMessage: StateCreator<
       {
         onSuccess: (messages, key) => {
           const normalizedMessages = normalizeDeliveryStatus(messages);
+          const mapKey = messageMapKey(sessionId, activeTopicId);
+          const existing = get().messagesMap[mapKey] || [];
+
+          // 🐛 FIX render-en-blanco (informe 2026-06-12): si el fetch viene VACÍO pero ya hay
+          // mensajes locales (optimistic update recién enviado, o topic nuevo aún no persistido
+          // en backend / visitante sin sesión), NO pisar el map con [] → se borraba la burbuja
+          // del usuario y la respuesta, dejando el transcript en blanco. Preservar los locales.
+          if (messages.length === 0 && existing.length > 0) {
+            // marcar init para no re-disparar, pero conservar los mensajes ya pintados.
+            if (!get().messagesInit) set({ messagesInit: true }, false, n('useFetchMessages/keepLocal'));
+            return;
+          }
+
           const nextMap = {
             ...get().messagesMap,
-            [messageMapKey(sessionId, activeTopicId)]: normalizedMessages,
+            [mapKey]: normalizedMessages,
           };
           // no need to update map if the messages have been init and the map is the same
           if (get().messagesInit && isEqual(nextMap, get().messagesMap)) return;
