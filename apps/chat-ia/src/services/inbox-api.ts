@@ -55,6 +55,8 @@ async function getJson(path: string, params?: Record<string, string | number | u
 /** GET_CHAT_SOURCE { sessionId } → GET /chat/messages?sessionId=X */
 export async function getSession(sessionId: string): Promise<any> {
   ensureEnabled('getSession');
+  // Guard: visitante/sesión sin resolver → no lanzar /chat/messages?sessionId= vacío (reporte 2026-06-11).
+  if (!sessionId) return [];
   return getJson('/chat/messages', { sessionId });
 }
 
@@ -64,6 +66,8 @@ export async function getUserChats(
   opts: { development: string; limit?: number; page?: number },
 ): Promise<any> {
   ensureEnabled('getUserChats');
+  // Guard: visitante sin userId → no lanzar /chat/sessions?userId= vacío.
+  if (!userId) return [];
   return getJson('/chat/sessions', {
     development: opts.development,
     limit: opts.limit,
