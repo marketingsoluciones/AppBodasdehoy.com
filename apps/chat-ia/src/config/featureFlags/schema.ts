@@ -69,7 +69,8 @@ export const evaluateFeatureFlag = (
 };
 
 export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
-  pin_list: false,
+  // REACTIVADO 2026-06-12: probar todo sin perder funcionalidad (REGLA 0). Según plan se ajustará.
+  pin_list: true,
 
   language_model_settings: true,
   provider_settings: true,
@@ -77,7 +78,8 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   openai_api_key: true,
   openai_proxy_url: true,
 
-  api_key_manage: false,
+  // REACTIVADO 2026-06-12: probar todo (gestión de API keys en settings).
+  api_key_manage: true,
 
   create_session: true,
   edit_agent: true,
@@ -85,35 +87,34 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   plugins: true,
   // dalle SE MANTIENE: es la tool de generar imágenes EN el chat (builtin tool, sí se usa).
   dalle: true,
-  // ai_image (página /image standalone) DESACTIVADO 2026-06-03: pendiente de EXTRAER a módulo
-  // visor de imágenes genérico (para cualquier agente IA con imágenes), no solo DALL-E.
-  // Ocultar por flag hasta la extracción. NO afecta la generación en el chat (dalle).
-  ai_image: false,
+  // ai_image (página /image standalone): REACTIVADO 2026-06-12 para probar todo.
+  // Backend api-ia /webapi/text-to-image verificado (200). El plan de extraer a visor
+  // genérico se hará después; mientras, no perder funcionalidad (REGLA 0).
+  ai_image: true,
 
   check_updates: true,
   welcome_suggest: true,
   token_counter: true,
 
-  // Knowledge/RAG nativo de LobeChat DESACTIVADO 2026-06-03: el KB ya lo provee api-mcp
-  // (kb-mcp-server.ts, MongoDB Atlas Vector Search, /mcp/kb). El RAG nativo (pgvector) +
-  // lobechatKBMiddleware son redundantes. Fase 1 reestructuración: ocultar por flag antes
-  // de eliminar el código. Ver docs/PLAN-REESTRUCTURACION-CHAT-IA.md.
-  knowledge_base: false,
-  rag_eval: false,
+  // Knowledge/RAG: REACTIVADO 2026-06-12 para probar todo (REGLA 0 — no perder funcionalidad).
+  // ⚠️ Requiere re-registrar chunkRouter en server/routers/lambda/index.ts (RAG nativo) para que
+  // el backend responda; api-ia /lobechat-kb tiene bugs pendientes (IA-1..3). El plan de migrar
+  // a api-mcp KB se hará cuando api-ia esté listo. Ver docs/ANALISIS-FEATURES-DESACTIVADAS.md.
+  knowledge_base: true,
+  rag_eval: true,
 
   clerk_sign_up: true,
 
   cloud_promotion: false,
 
-  // Discover/Marketplace de LobeChat DESACTIVADO 2026-06-03: no se usa (a futuro habrá
-  // marketplace PROPIO orientado a productos del cliente, distinto). Solo afecta el link
-  // "Discover" del NavBar. NOTA: el flag `plugins` NO se toca — gatea el botón de Tools
-  // que da acceso a las builtin tools propias (filter-app-view, venue-visualizer).
-  market: false,
+  // Discover/Marketplace: REACTIVADO 2026-06-12 para probar todo. Es el marketplace genérico
+  // de LobeHub (hub público). El plan de marketplace PROPIO del cliente se hará después.
+  market: true,
   speech_to_text: true,
   changelog: true,
 
-  group_chat: false,
+  // REACTIVADO 2026-06-12 para probar todo (chat grupal multi-agente).
+  group_chat: true,
 
   // the flags below can only be used with commercial license
   // if you want to use it in the commercial usage

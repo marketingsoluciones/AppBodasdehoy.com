@@ -16,6 +16,9 @@ import { agentRouter } from './agent';
 import { aiChatRouter } from './aiChat';
 import { aiModelRouter } from './aiModel';
 import { apiKeyRouter } from './apiKey';
+// RE-REGISTRADO 2026-06-12: knowledge_base reactivado → el RAG nativo (chunk/embedding) vuelve
+// a estar disponible para no perder funcionalidad. Ver docs/ANALISIS-FEATURES-DESACTIVADAS.md.
+import { chunkRouter } from './chunk';
 import { configRouter } from './config';
 import { exporterRouter } from './exporter';
 import { fileRouter } from './file';
@@ -34,6 +37,7 @@ export const lambdaRouter = router({
   aiChat: aiChatRouter,
   aiModel: aiModelRouter,
   apiKey: apiKeyRouter,
+  chunk: chunkRouter,
   config: configRouter,
   exporter: exporterRouter,
   file: fileRouter,
