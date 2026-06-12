@@ -5,15 +5,32 @@ import { useState } from 'react';
 import { buildHeaders, jidToPhone, parseWhatsAppConversationId } from '../utils/auth';
 import type { Message } from './useMessages';
 
-function buildSendUrl(channel: string, conversationId: string): string | null {
+// Construye URL + body para enviar. 🐛 FIX (informe 2026-06-12): la ruta WhatsApp anterior
+// (/api/messages/whatsapp/conversations/{dev}/{to}/send) daba 404 — NO existe en api-ia.
+// El endpoint REAL es POST /api/whatsapp/messages/send?development= con body {phone_number, content}
+// (verificado contra el OpenAPI de api-ia). El genérico /api/messages/send da storage_unavailable (Redis).
+function buildSendRequest(
+  channel: string,
+  conversationId: string,
+  text: string,
+): { body: string; url: string } | null {
   if (channel === 'whatsapp') {
     const parsed = parseWhatsAppConversationId(conversationId);
     if (!parsed) return null;
     const { dev, jid } = parsed;
-    const to = jidToPhone(jid);
-    return `/api/messages/whatsapp/conversations/${encodeURIComponent(dev)}/${encodeURIComponent(to)}/send`;
+    const phone = jidToPhone(jid);
+    // Vía el proxy /api/messages/whatsapp/* → el route.ts lo mapea a MCP /api/whatsapp/*
+    // (quita "whatsapp/" y antepone el origin MCP). Así se aplican auth/headers del proxy.
+    // El endpoint real es /api/whatsapp/messages/send con body {phone_number, content}.
+    return {
+      body: JSON.stringify({ content: text, phone_number: phone }),
+      url: `/api/messages/whatsapp/messages/send?development=${encodeURIComponent(dev)}`,
+    };
   }
-  return `/api/messages/send`;
+  return {
+    body: JSON.stringify({ channel, conversationId, text }),
+    url: `/api/messages/send`,
+  };
 }
 
 export function useSendMessage() {
@@ -33,18 +50,11 @@ export function useSendMessage() {
       timestamp: new Date().toISOString(),
     };
 
-    const url = buildSendUrl(channel, conversationId);
-    if (!url) {
+    const req = buildSendRequest(channel, conversationId, text);
+    if (!req) {
       return { message: optimisticMsg, success: false };
     }
-
-    // 🐛 FIX 8.2 (informe 2026-06-12): el endpoint genérico /api/messages/send exige
-    // conversationId + channel + text (422 si faltan). La URL de WhatsApp ya lleva la conv
-    // en el path, pero el body debe incluir los campos requeridos para el endpoint genérico.
-    const isWhatsAppDirectUrl = url.includes('/whatsapp/conversations/');
-    const body = isWhatsAppDirectUrl
-      ? JSON.stringify({ text })
-      : JSON.stringify({ channel, conversationId, text });
+    const { url, body } = req;
 
     try {
       setSending(true);
