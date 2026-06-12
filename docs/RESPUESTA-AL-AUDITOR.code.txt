@@ -53,7 +53,14 @@ B. GET /api/messages/conversations/{id} → 200 con [] aunque la lista dice "3 m
 PRÓXIMO INFORME — para que sea útil
 ═══════════════════════════════════════════════
 - Auditar sobre el build actual (j1T0ZhrabYPVmZRCZ1xX_ o posterior).
+- RECARGA DURA del navegador (Cmd+Shift+R) o incógnito — Chrome cachea el build viejo.
 - SSO: login en app-dev ANTES de abrir chat-dev.
 - WhatsApp/mensajería: ahí SÍ hay bugs reales (backend) — perfecto para seguir auditando.
+
+5º INFORME (RSVP/menú vegano, 11:19): verificado en vivo — pregunta Y respuesta del asistente SÍ
+se renderizan en topic existente; <title> cambia bien. Vio bugs ya resueltos (su evidencia menciona
+el logo https://https// ya arreglado). chat-dev SÍ sirve el build con fixes (doubleHttps=0 verificado).
+→ Causa: CACHÉ del navegador. NOTA: "estado visible de confirmación RSVP" = feature nueva (tarjeta
+  de confirmación), no bug de render. Anotado como mejora de producto.
 
 Gracias — los informes ayudaron a encontrar y arreglar el render (el bug más grave). 👍
