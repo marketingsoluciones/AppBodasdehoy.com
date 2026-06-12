@@ -69,6 +69,12 @@ export const createI18nNext = (lang?: string) => {
           }
         },
         ns: ['error', 'common', 'chat'],
+        // 🐛 FIX FOUC (informe 2026-06-12): con partialBundledLanguages los namespaces lazy
+        // mostraban la CLAVE cruda (p.ej. "searchAgentPlaceholder") un instante antes de hidratar
+        // la traducción → parecía inglés/mezcla. En prod devolvemos '' en vez de la clave cruda
+        // (no contamina la UI durante la carga). En debug/dev SÍ mostramos la clave para detectar
+        // traducciones realmente faltantes. Las traducciones ES están completas (ver auditoría).
+        parseMissingKeyHandler: debugMode ? undefined : () => '',
         partialBundledLanguages: true,
       });
     },
