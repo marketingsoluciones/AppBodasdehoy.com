@@ -20,8 +20,13 @@ const Title = memo(() => {
   const agentTitle = useSessionStore(sessionMetaSelectors.currentAgentTitle);
 
   const topicTitle = useChatStore((s) => topicSelectors.currentActiveTopic(s)?.title);
+  // Truncar AMBOS: si el agente no tiene título corto, agentTitle puede ser el system prompt
+  // completo ("Soy el asistente de BodasDeHoy, especializado en…") → <title> gigante y "anclado".
+  // (informe 2026-06-12: el título quedaba largo/obsoleto). topicTitle prioritario.
   return (
-    <PageTitle title={[truncateTitle(topicTitle), agentTitle].filter(Boolean).join(' · ')} />
+    <PageTitle
+      title={[truncateTitle(topicTitle), truncateTitle(agentTitle)].filter(Boolean).join(' · ')}
+    />
   );
 });
 
