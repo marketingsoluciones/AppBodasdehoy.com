@@ -11,8 +11,12 @@ ASUNTO: 2 bugs BACKEND en módulo mensajería/WhatsApp (con trace_ids) — infor
 # (con/sin development, con/sin to):
 #   {"detail":{"error":"internal_error","message":"Error interno procesando la solicitud","trace_id":"..."}}
 # TRACE_IDS para depurar (servidor): trc_19cae2ab1a29 · trc_9d0b16e0538a · trc_3291b588d255
+# RE-TEST 2026-06-12 (8.2-bis del informe): front 422 CONFIRMADO corregido por el auditor ✓.
+#   PERO el 500 PERSISTE con usuario +34622440213
+#   (conversationId "bodasdehoy:34622440213@s.whatsapp.net") → trace NUEVO: trc_2d8a5c95eace
 # IMPACTO: el mensaje de WhatsApp NO se envía. Es lo que pidió el user (enviar mensaje de prueba).
-# PETICIÓN: revisar logs con esos trace_ids. ¿Por qué crashea /api/messages/send con payload válido?
+# PETICIÓN: revisar logs con esos trace_ids (incl. trc_2d8a5c95eace). ¿Por qué crashea
+#   /api/messages/send con payload válido? Es 100% backend — el front ya manda bien los 3 campos.
 
 ## 🟠 BUG 2 — GET /api/messages/conversations/{id} → 200 con [] (hilo siempre vacío)
 # La LISTA de conversaciones muestra el chat con "3 mensajes · hace 1h", pero el DETALLE del hilo
