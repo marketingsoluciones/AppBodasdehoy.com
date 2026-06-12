@@ -1,6 +1,9 @@
-// CAPA 2 PASO C — generation vía api-ia REST. Estado 2026-06-11 (auditado por curl):
+// CAPA 2 PASO C — generation vía api-ia REST. Estado 2026-06-12 (auditado por curl + RE api-ia):
 //   ✅ deleteGeneration → DELETE /image/generations/{gen_id}?topic_id=  (verificado: endpoint existe)
-//   ⏸️ getGenerationStatus → api-ia NO tiene endpoint /status dedicado (PENDIENTE 5). Sigue stub.
+//   ✅ getGenerationStatus → CERRADO (IA-5): api-ia confirmó que la generación de imágenes es SÍNCRONA
+//      (POST /webapi/text-to-image devuelve la imagen al momento; no hay job async). Por tanto el stub
+//      que retorna status:Pending es CORRECTO — detiene el polling SWR sin marcar success/error falso.
+//      No se necesita un /status async. (GET /image/generations/{id} existe para leer el registro si hiciera falta.)
 //   - createImage YA va a api-ia (image.ts /webapi/text-to-image).
 
 import type { GetGenerationStatusResult } from '@/server/routers/lambda/generation';
@@ -36,8 +39,8 @@ class GenerationService {
     _generationId: string,
     _asyncTaskId: string,
   ): Promise<GetGenerationStatusResult> {
-    // ⏸️ PENDIENTE 5 api-ia: sin endpoint /image/generations/{id}/status. Mientras: stub neutro
-    // con shape correcto (status Pending detiene el polling SWR sin marcar success/error falso).
+    // ✅ IA-5 CERRADO (api-ia 2026-06-12): generación SÍNCRONA, no hay job async que pollear.
+    // status:Pending detiene el polling SWR — correcto para el flujo síncrono. No es un stub pendiente.
     return { error: null, generation: null, status: AsyncTaskStatus.Pending };
   }
 
