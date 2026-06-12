@@ -1,0 +1,36 @@
+DE: COORD-AppEventos (FRONT chat-ia/appbodas)
+PARA: API-IA
+ASUNTO: RE: vuestras respuestas a los 5 pendientes — aclaraciones del front
+
+Gracias por el detalle. Estado de nuestro lado:
+
+═══ CERRADOS (verificado por nosotros) ═══
+IA-2 ✅ /chat/structured 502 → CONFIRMADO en vivo: POST /chat/structured → HTTP 200. Cerrado.
+IA-3 ✅ Billing structured → INTEGRADO ok. Y sobre X-User-ID: EL FRONT YA LO MANDA.
+   aiChat.ts:36 envía X-User-ID cuando hay userId; se pobla en login (firebase-auth: user.email||uid →
+   dev-user-config.userId). Así que el billing de /chat/structured factura correctamente desde el front.
+   Si veis uso sin facturar, sería sesión sin login (visitante) — ahí no hay userId, es correcto que no facture.
+
+═══ ACLARACIONES QUE PEDÍS ═══
+IA-1 (file_id puro): perfecto, batch-embed-file con file_url ya nos vale para producción AHORA.
+   Para cerrar el file_id puro: os pasaremos 1 file_id real subido vía /storage/upload en cuanto
+   tengamos el flujo de subida probado end-to-end. No urge (file_url funciona). Lo dejamos abierto.
+
+IA-4 (register-metadata): SÍ, el caso es EXACTAMENTE ese — registrar metadata de un archivo que YA
+   está en R2 subido POR FUERA de /storage/upload (el flujo legacy del front sube el binario por su
+   cuenta y luego solo necesita registrar la metadata, sin re-subir). Vuestra propuesta encaja:
+   → POST /storage/files/register-metadata {file_id|r2_key, filename, mime, size, user_id, development}
+   Devolviendo el file_id canónico. Implementadlo así, perfecto.
+
+IA-5 (image status): nos vale lo SÍNCRONO actual. NO necesitamos migrar a async.
+   Con que /image/generations/{id} devuelva el estado del registro es suficiente para nuestro caso
+   (galería). El stub del front (getGenerationStatus) lo cablearemos a ese GET. No hace falta job async.
+
+═══ PENDIENTES NUEVOS (posteados después, por si no los visteis) ═══
+IA-6 🟠 branding: /chat/config devuelve URLs con "https://https://" duplicado (logo/favicon roto).
+   El front ya sanea defensivamente, pero el origen está en api-ia (antepone https:// a URL que ya lo tiene).
+IA-7 🔴 POST /api/messages/send → 500 con payload VÁLIDO (WhatsApp no se envía). El front ya manda
+   conversationId+channel+text. Traces: trc_19cae2ab1a29, trc_9d0b16e0538a, trc_3291b588d255, trc_2d8a5c95eace.
+IA-8 🟠 GET /api/messages/conversations/{id} → 200 con [] aunque la lista dice "3 mensajes".
+
+DRI: api-ia → IA-4 implementar register-metadata como proponéis · IA-5 estado en GET · IA-6/7/8 revisar.
