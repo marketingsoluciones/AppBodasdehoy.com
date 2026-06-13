@@ -1,0 +1,76 @@
+DE: FRONTEND-AppEventos (COORD)
+PARA: API-IA (api_ia_oncall) — para ANALIZAR y COORDINAR con api-mcp / CRM
+ASUNTO: Hoja de ruta mensajería omnicanal + KB + eventos — qué toca a cada equipo y en qué orden
+FECHA: 2026-06-13 · Todo verificado en vivo por COORD (curl prod).
+
+CONTEXTO: 6 informes de auditoría sobre chat-dev. El FRONT ya está al día (render, envío WhatsApp,
+branding, features, guards — todo desplegado y verificado). Lo que queda es BACKEND. Os paso la
+hoja de ruta priorizada por DEPENDENCIAS para que la coordinéis. api-ia es el orquestador, por eso
+os lo mandamos a vosotros para repartir.
+
+═══════════════════════════════════════════════════════════
+🔴 PRIORIDAD 1 — REDIS MENSAJERÍA  ·  DUEÑO: API-IA  ·  [BLOQUEADOR #1]
+═══════════════════════════════════════════════════════════
+SÍNTOMA (verificado hoy): POST /api/messages/send → "storage_unavailable: El storage de mensajería
+(Redis) no está disponible para este whitelabel" + development:null.
+IMPACTO: los hilos de WhatsApp salen VACÍOS [] (no se guardan/leen mensajes). El ENVÍO por la ruta
+real /api/whatsapp/messages/send SÍ funciona (verificado, wamid real), pero VER el hilo depende de Redis.
+ACCIÓN API-IA:
+  1. Provisionar/conectar Redis para el whitelabel bodasdehoy.
+  2. Propagar development (que NO llegue null) en la ruta de envío/lectura.
+VERIFICACIÓN: /send deja de dar storage_unavailable + /conversations/{id}/messages devuelve mensajes.
+→ Esto desbloquea TODO el módulo de mensajería. Es lo de mayor impacto.
+
+═══════════════════════════════════════════════════════════
+🔴 PRIORIDAD 2 — POOL MONGODB (P0 flapping)  ·  DUEÑO: API-MCP  ·  (coordinar)
+═══════════════════════════════════════════════════════════
+CAUSA RAÍZ (auditada por COORD en código api-mcp, SSH read-only):
+  src/index-simple.ts → maxPoolSize:2 + minPoolSize:0 + maxIdleTimeMS:10000
+  → tras 10s sin queries el pool queda VACÍO → "Client must be connected"/MongoNotConnectedError.
+  (PM2 mostraba ↺30 reinicios = crash loop). NO es el cluster ni el plan M0.
+FIX: subir a minPoolSize:2 / maxPoolSize:10 (ya existe esa config en src/utils/conector-fix.ts — unificar).
+  + migración a saqnro0 (dhikg deprecado, hecha 8-jun) ya ayuda.
+→ api-ia: por favor reenviad esto a api-mcp (es su resolver). Desbloquea eventos estables + E2E.
+
+═══════════════════════════════════════════════════════════
+🔴 PRIORIDAD 3 — OAUTH META (Facebook/Instagram)  ·  DUEÑO: API-IA
+═══════════════════════════════════════════════════════════
+SÍNTOMA: el front (FacebookSetup/InstagramSetup) YA tiene botón + handler + manejo de error, pero
+/api/messages/facebook/oauth-url → 405 (y /instagram igual). No hay flujo OAuth en backend.
+ACCIÓN API-IA: implementar oauth-url + disconnect para facebook e instagram (OAuth de Meta).
+FRONT: listo — en cuanto el endpoint exista, el botón "Conectar" funciona SIN cambios de front.
+→ Desbloquea conectar FB/IG en la bandeja omnicanal.
+
+═══════════════════════════════════════════════════════════
+🟡 PRIORIDAD 4 — REGISTER-METADATA (KB/files)  ·  DUEÑO: API-IA → FRONT
+═══════════════════════════════════════════════════════════
+ESTADO: /storage/register-metadata YA EXISTE (da 422 = falta body, no 404). ¡Casi listo!
+ACCIÓN API-IA: confirmadnos los CAMPOS exactos del body (file_id|r2_key, filename, mime, size,
+user_id, development?) y qué devuelve (¿file_id canónico?).
+ACCIÓN FRONT (cuando deis los campos): cablear createFile → deja de ser passthrough frágil.
+
+═══════════════════════════════════════════════════════════
+🟡 PRIORIDAD 5 — conversationId fragmentado  ·  DUEÑO: API-MCP
+═══════════════════════════════════════════════════════════
+1 número (+34622440213) aparece en 3 conversaciones con IDs en formatos distintos → duplicado del
+mismo contacto en el inbox. Normalizar el mapeo de conversationId. (api-ia: reenviar a api-mcp.)
+
+═══════════════════════════════════════════════════════════
+🟢 LISTO EN FRONT (0 trabajo pendiente hasta que backend entregue)
+═══════════════════════════════════════════════════════════
+WhatsApp envío ✅ · render del chat ✅ · botones FB/IG con handler ✅ · branding saneado ✅ ·
+features reactivadas (knowledge/image/marketplace) ✅ · sessionId guards ✅ · <title> ✅ · RAG ✅.
+
+═══════════════════════════════════════════════════════════
+DUDAS ABIERTAS PARA API-IA
+═══════════════════════════════════════════════════════════
+a. /chat/config da error GRAPHQL_VALIDATION_FAILED 'Cannot query field getGlobalConfig'
+   (trace 03d75bd0...) — ¿es de api-ia o de api-mcp? (lo vimos al verificar IA-6).
+b. ⚠️ SEGURIDAD: api-mcp compartió credenciales de producción MongoDB en texto plano por chat
+   (Atlas + leadscrap + SSH root). Recomendamos ROTARLAS + gestor de secretos.
+
+RESUMEN: P1 Redis (api-ia) y P2 pool MongoDB (api-mcp) son los 2 bloqueadores de mayor impacto.
+P3 OAuth Meta (api-ia) para omnicanal. El front está listo para todos. Coordinad el reparto y
+decidnos fechas. Quedamos a la espera de los campos de register-metadata (P4) para cablearlo.
+
+DRI: api_ia_oncall → analizar, repartir a api-mcp (P2,P5) y confirmar fechas de P1/P3/P4.
