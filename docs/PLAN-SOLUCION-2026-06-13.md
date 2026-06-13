@@ -12,14 +12,16 @@ Hoy: arquitectura correcta, pero bloqueada por **3 cosas de backend** y **2 cabl
 
 ## FASE 1 — DESBLOQUEAR MENSAJERÍA (lo de mayor impacto)
 
-### 1A. 🔴 Redis para mensajería — **DRI: api-ia** [BLOQUEADOR #1]
+### 1A. 🔴 Redis para mensajería — **CADENA api-ia ↔ api-mcp** [BLOQUEADOR #1]
 - **Problema:** `/api/messages/send` → "storage_unavailable" (Redis no disponible) + `development:null`.
 - **Síntoma que causa:** hilos de WhatsApp salen vacíos `[]` (no se leen/guardan mensajes).
-- **Solución (backend):**
-  1. Provisionar/conectar Redis para el whitelabel `bodasdehoy`.
-  2. Propagar `development` (que NO llegue null) en la ruta de envío.
+- **CAUSA REAL (confirmada por api-ia 13-jun):** api-ia pide las credenciales de Redis del whitelabel
+  vía la query GraphQL `whitelabel(development){...}` de **api-mcp**, que NO responde (va por fallback).
+- **Solución (cadena):**
+  1. **api-mcp:** exponer las credenciales de Redis del tenant en la query `whitelabel(development)`.
+  2. **api-ia:** ya parcheó `development` (no null); su storage levantará cuando api-mcp dé las creds.
 - **Verifica:** `/send` deja de dar storage_unavailable + el hilo `/conversations/{id}/messages` devuelve mensajes.
-- **Estado:** ❌ sigue caído (verificado hoy). Es el bloqueador principal del módulo.
+- **Estado:** ❌ sigue caído (verificado hoy). api-ia + api-mcp coordinando. Es el bloqueador principal.
 
 ### 1B. ✅ WhatsApp envío — YA RESUELTO (front)
 - La ruta real `/api/whatsapp/messages/send {phone_number,content}` ENVÍA (wamid real, verificado).
@@ -83,6 +85,32 @@ Hoy: arquitectura correcta, pero bloqueada por **3 cosas de backend** y **2 cabl
 ## 🟢 LO QUE EL FRONT YA TIENE LISTO (0 trabajo pendiente hasta que backend entregue)
 - WhatsApp envío ✅ · render chat ✅ · botones FB/IG con handler ✅ · branding saneado ✅ ·
   features reactivadas ✅ · sessionId guards ✅ · title ✅.
+
+---
+
+## 🔄 RE-VERIFICACIÓN (13-jun 07:55, batería nueva tras actividad backend)
+
+Backend estuvo muy activo (cerraron RAG, rotaron credenciales, coordinaron MongoDB). Re-probado:
+
+| Punto | Antes | AHORA (verificado curl) | Cambio |
+|---|---|---|---|
+| **P1 Redis /send** | storage_unavailable | ✅ **success:true + msg_id real** (`msg_1781337358...`) | 🟢 **RESUELTO** — Redis levantó |
+| **P1 leer hilo** | [] (Redis caído) | ⚠️ total:0 + error **`'NoneType' object has no attribute 'encode'`** | 🟠 bug NUEVO de código api-ia (ya no es Redis) |
+| **P2 MongoDB** | flapping | ✅ 5/5 queries 200 (estable) | 🟢 estable ahora (confirmar pool con logs) |
+| **P3 OAuth Meta** | 405 | ⚠️ sigue 405 | sin cambio — api-ia pendiente |
+| **P4 register-metadata** | 422 (faltan campos) | campos = `url`+`filename` obligatorios; con ellos → **502** | 🟠 campos conocidos pero da 502 |
+
+### NUEVOS hallazgos para backend (api-ia):
+- **N1 🟠 leer hilo WhatsApp:** `/conversations/{id}/messages` ya no da storage_unavailable, pero
+  ahora crashea con `'NoneType' object has no attribute 'encode'` (total:0). Bug de código al
+  serializar — revisar. Es lo que falta para VER los mensajes del hilo (el envío ya funciona).
+- **N2 🟠 register-metadata:** campos confirmados (`url`, `filename` obligatorios) pero POST con
+  ellos → 502. Revisar el handler. Cuando responda 200, el front cablea createFile.
+
+### ✅ DESBLOQUEADO desde la última versión del plan:
+- **P1 envío WhatsApp por /send** ahora funciona (Redis arriba). El envío está 100% operativo
+  (tanto por /whatsapp/messages/send como por /messages/send).
+- **P2 MongoDB** estable en pruebas (5/5). Falta que api-mcp confirme el fix de pool en logs.
 
 ## EN UNA FRASE
 **El plan es: backend levanta Redis (1) → WhatsApp completo. api-mcp sube el pool (2) → eventos
