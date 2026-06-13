@@ -359,6 +359,9 @@ const AuthProvider = ({ children }) => {
               }
 
               // Obtener información adicional del usuario
+              // 🐛 FIX 2026-06-13: antes era `{ status: true }` hardcodeado → el perfil real
+              // (name, email, status, signUpProgress, eventSelected) NO se cargaba → header con "—".
+              // Cargamos el perfil real de BD (getUser) para mergearlo en setUser más abajo.
               const moreInfo = { status: true }
 
               if (moreInfo?.status && result.user.email) {
@@ -451,7 +454,19 @@ const AuthProvider = ({ children }) => {
                 );
 
                 // Actualizar estado con los datos completos
-                setUser({ ...result.user, ...moreInfo })
+                // 🐛 FIX 2026-06-13: cargar el perfil REAL de BD (getUser) — antes solo
+                // se mergeaba {status:true} y el header mostraba "—" (name/email null).
+                let userInfo: any = null
+                try {
+                  userInfo = await fetchApiBodas({
+                    query: queries.getUser,
+                    variables: { uid: result.user.uid },
+                    development: config?.development,
+                  })
+                } catch (e: any) {
+                  console.warn('[Auth] getUser perfil no crítico:', e?.message)
+                }
+                setUser({ ...result.user, ...moreInfo, ...(userInfo || {}), uid: result.user.uid })
                 setVerificationDone(true)
 
                 // Redirigir a la URL correcta si estamos en una URL diferente
