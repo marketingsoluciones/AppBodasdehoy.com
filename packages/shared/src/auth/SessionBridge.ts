@@ -79,23 +79,57 @@ export function setCrossAppIdToken(idToken: string): void {
 }
 
 /**
+ * Nombre de la cookie cross-app que transporta el whitelabel/development activo.
+ * Permite que app-dev herede el development elegido en chat-dev (y viceversa) sin
+ * depender de localStorage, que es por-origen y NO cruza subdominios (informe 13-jun §13.1).
+ */
+export const CROSS_APP_DEVELOPMENT_COOKIE = 'current_development';
+
+/**
+ * Setea la cookie current_development con dominio cross-app (.bodasdehoy.com) para
+ * que app-dev ↔ chat-dev compartan el whitelabel activo. localStorage no cruza
+ * subdominios; esta cookie sí. Llamar siempre que se persista current_development.
+ */
+export function setCrossAppDevelopment(development: string): void {
+  if (typeof document === 'undefined' || !development) return;
+
+  const domain = getCrossAppDomain();
+  const maxAge = 7 * 24 * 3600; // 7 días
+
+  const cookieParts = [
+    `${CROSS_APP_DEVELOPMENT_COOKIE}=${encodeURIComponent(development)}`,
+    'path=/',
+    `max-age=${maxAge}`,
+    'SameSite=Lax',
+  ];
+
+  if (domain) {
+    cookieParts.push(`Domain=${domain}`);
+  }
+
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+    cookieParts.push('Secure');
+  }
+
+  // eslint-disable-next-line unicorn/no-document-cookie
+  document.cookie = cookieParts.join('; ');
+}
+
+/**
  * Limpia las cookies cross-app en logout.
  */
 export function clearCrossAppSession(): void {
   if (typeof document === 'undefined') return;
 
   const domain = getCrossAppDomain();
-  const expiredParts = [
-    'idTokenV0.1.0=',
-    'path=/',
-    'max-age=0',
-    'SameSite=Lax',
-  ];
-
-  if (domain) {
-    expiredParts.push(`Domain=${domain}`);
-  }
+  const buildExpired = (name: string) => {
+    const parts = [`${name}=`, 'path=/', 'max-age=0', 'SameSite=Lax'];
+    if (domain) parts.push(`Domain=${domain}`);
+    return parts.join('; ');
+  };
 
   // eslint-disable-next-line unicorn/no-document-cookie
-  document.cookie = expiredParts.join('; ');
+  document.cookie = buildExpired('idTokenV0.1.0');
+  // eslint-disable-next-line unicorn/no-document-cookie
+  document.cookie = buildExpired(CROSS_APP_DEVELOPMENT_COOKIE);
 }

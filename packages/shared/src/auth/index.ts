@@ -7,4 +7,9 @@ export {
   getSessionUserIdFromToken,
 } from './AuthBridge';
 export type { SharedAuthState, SharedAuthUser, AuthBridgeConfig } from './AuthBridge';
-export { setCrossAppIdToken, clearCrossAppSession } from './SessionBridge';
+export {
+  setCrossAppIdToken,
+  setCrossAppDevelopment,
+  clearCrossAppSession,
+  CROSS_APP_DEVELOPMENT_COOKIE,
+} from './SessionBridge';

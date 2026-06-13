@@ -12,7 +12,7 @@ import {
 } from 'firebase/auth';
 
 import { auth } from '@/libs/firebase';
-import { setCrossAppIdToken, clearCrossAppSession } from '@bodasdehoy/shared/auth';
+import { setCrossAppIdToken, setCrossAppDevelopment, clearCrossAppSession } from '@bodasdehoy/shared/auth';
 import { registerReferralIfPending, trackRegistrationComplete, getAttributionData, sendAttributionToApi } from '@bodasdehoy/shared';
 import posthog from 'posthog-js';
 
@@ -108,10 +108,12 @@ async function exchangeFirebaseTokenForJWT(
     }
   }
 
-  // SSO cross-domain: setear idTokenV0.1.0 con Domain=.bodasdehoy.com
-  // Permite que appEventos detecte la sesión iniciada desde chat-ia
+  // SSO cross-domain: setear idTokenV0.1.0 + current_development con Domain=.bodasdehoy.com
+  // Permite que appEventos detecte la sesión iniciada desde chat-ia y herede el whitelabel
+  // activo (localStorage es por-origen y no cruza subdominios — informe 13-jun §13.1).
   if (typeof window !== 'undefined') {
     setCrossAppIdToken(firebaseIdToken);
+    setCrossAppDevelopment(development);
   }
 
   try {
@@ -190,7 +192,10 @@ async function exchangeFirebaseTokenForJWT(
     } else {
       localStorage.removeItem('api2_jwt_expires_at');
     }
-    localStorage.setItem('current_development', data.development || development);
+    const resolvedDev = data.development || development;
+    localStorage.setItem('current_development', resolvedDev);
+    // Propagar el whitelabel activo cross-subdominio (app-dev ↔ chat-dev).
+    if (typeof window !== 'undefined') setCrossAppDevelopment(resolvedDev);
 
     // También guardar jwt_token para compatibilidad con getAuthToken()
     localStorage.setItem('jwt_token', data.token);
