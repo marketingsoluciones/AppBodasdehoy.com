@@ -101,11 +101,16 @@ Backend estuvo muy activo (cerraron RAG, rotaron credenciales, coordinaron Mongo
 | **P4 register-metadata** | 422 (faltan campos) | campos = `url`+`filename` obligatorios; con ellos → **502** | 🟠 campos conocidos pero da 502 |
 
 ### NUEVOS hallazgos para backend (api-ia):
-- **N1 🟠 leer hilo WhatsApp:** `/conversations/{id}/messages` ya no da storage_unavailable, pero
-  ahora crashea con `'NoneType' object has no attribute 'encode'` (total:0). Bug de código al
-  serializar — revisar. Es lo que falta para VER los mensajes del hilo (el envío ya funciona).
+- **N1 🟢 RESUELTO EN FRONT (13-jun, commit 969a3cb5) — NO era de api-ia.** El `'NoneType...encode'`
+  salía porque el front (a) leía por `/api/messages/whatsapp/conversations/{dev}/{jid}/messages`
+  → 404 en api-ia, y (b) mandaba `development` solo por header `X-Development`, que api-ia NO usa
+  para la LECTURA del hilo. Verificado en vivo: `/messages/conversations/{id}/messages` CON
+  `?development=` en query → devuelve los 3 mensajes reales; con header solo → `[]`.
+  Fix: `useMessages.ts` usa el endpoint genérico + `?development=`; `useSendMessage.ts` añade
+  `?development=` a `/send`. Backend api-ia estaba correcto.
 - **N2 🟠 register-metadata:** campos confirmados (`url`, `filename` obligatorios) pero POST con
-  ellos → 502. Revisar el handler. Cuando responda 200, el front cablea createFile.
+  ellos → 502 (Bad Gateway, el servicio crashea en ese endpoint). DRI api-ia. Revisar el handler.
+  Cuando responda 200, el front cablea createFile. **Es el ÚNICO pendiente real de api-ia.**
 
 ### ✅ DESBLOQUEADO desde la última versión del plan:
 - **P1 envío WhatsApp por /send** ahora funciona (Redis arriba). El envío está 100% operativo

@@ -36,6 +36,10 @@ function getCtx(): { development: string; idToken?: string; userId?: string } {
   return { development: process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy' };
 }
 
+function lastSegment(s: string): string | undefined {
+  return s.split('/').findLast(Boolean);
+}
+
 function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
   const { idToken, development, userId } = getCtx();
   const headers: Record<string, string> = {
@@ -74,21 +78,36 @@ export class ApiIaFileService implements IFileService {
     params: UploadFileParams,
     knowledgeBaseId?: string,
   ): Promise<{ id: string; url: string }> => {
-    // CAPA 2 PASO C 2026-06-05: en api-ia el binario y la metadata se suben
-    // a la vez vía /api/files/upload (multipart). El flujo legacy del front
-    // (uploadService sube binario → fileService.createFile registra metadata
-    // por separado) NO tiene equivalente directo en api-ia.
-    //
-    // Mientras backend expone /api/files/register-metadata o equivalente,
-    // tratamos createFile como passthrough: asumimos que el binario YA fue
-    // subido por uploadService y la metadata vive en api-mcp implícitamente.
-    // El id se construye desde la URL (último segmento del path R2).
-    //
-    // TODO api-ia: endpoint para REGISTRAR metadata sin re-subir binario.
-    const urlSegments = (params.url || '').split('/').filter(Boolean);
-    const id = urlSegments[urlSegments.length - 1] || crypto.randomUUID();
-    console.log('[ApiIaFileService.createFile] passthrough', { id, knowledgeBaseId });
-    return { id, url: params.url || '' };
+    // CAPA 2 PASO C: el binario lo sube uploadService a R2; aquí registramos la
+    // metadata en api-ia vía POST /storage/register-metadata (verificado 2026-06-13:
+    // body {url, filename, user_id, development} obligatorios url+filename → 200 con
+    // {success, file_id, indexed_chunks, message}). api-ia indexa el archivo en el KB (RAG).
+    const { development, userId } = getCtx();
+    const url = params.url || '';
+    const filename = params.name || lastSegment(url) || 'file';
+
+    const body: Record<string, any> = { development, filename, url };
+    if (userId) body.user_id = userId;
+    if (knowledgeBaseId) body.kb_id = knowledgeBaseId;
+
+    const fallbackId = () => lastSegment(url) || crypto.randomUUID();
+
+    try {
+      const res = await fetch(
+        `${API_IA_BASE}/storage/register-metadata?development=${encodeURIComponent(development)}`,
+        { body: JSON.stringify(body), headers: authHeaders(), method: 'POST' },
+      );
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json?.success === false) {
+        // El binario ya está en R2; no rompemos el flujo si la indexación falla.
+        console.warn('[ApiIaFileService.createFile] register-metadata failed', json?.error || res.status);
+        return { id: fallbackId(), url };
+      }
+      return { id: json.file_id || json.id || fallbackId(), url: json.url || url };
+    } catch (err) {
+      console.warn('[ApiIaFileService.createFile] register-metadata error', err);
+      return { id: fallbackId(), url };
+    }
   };
 
   getFile = async (id: string): Promise<FileItem> => {
