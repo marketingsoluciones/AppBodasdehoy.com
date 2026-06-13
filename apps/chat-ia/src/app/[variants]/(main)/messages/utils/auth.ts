@@ -4,7 +4,7 @@ import { getAuthToken } from '@/utils/authToken';
  * Lee el contexto del usuario desde dev-user-config:
  * userId, development, role
  */
-function getUserContext(): { development?: string; role?: string, userId?: string; } {
+export function getUserContext(): { development?: string; role?: string, userId?: string; } {
   if (typeof window === 'undefined') return {};
   try {
     const config = localStorage.getItem('dev-user-config');
