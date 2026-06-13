@@ -6,6 +6,8 @@
 
 import { cookies } from 'next/headers';
 
+import { normalizeBrandingUrls } from '@/utils/normalizeMediaUrl';
+
 // ✅ CACHE EN MEMORIA para evitar múltiples fetch durante SSR
 const brandingCache: Map<string, { data: ServerBranding; timestamp: number }> = new Map();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
@@ -207,14 +209,18 @@ export async function getDeveloperBranding(developer?: string): Promise<ServerBr
         return defaultBranding;
       }
 
-      const data: ServerBranding = await response.json();
+      const rawData: ServerBranding = await response.json();
 
       // Validar datos
-      if (!data || typeof data !== 'object') {
+      if (!rawData || typeof rawData !== 'object') {
         console.warn('⚠️ Invalid branding data, usando fallback');
         brandingCache.set(dev, { data: defaultBranding, timestamp: Date.now() });
         return defaultBranding;
       }
+
+      // Saneo defensivo de URLs (favicon/logo/og_image con protocolo duplicado
+      // https://https//... → 503). Reportado 2026-06-13. Corrige en la fuente.
+      const data = normalizeBrandingUrls(rawData);
 
       // ✅ GUARDAR EN CACHE
       brandingCache.set(dev, { data, timestamp: Date.now() });

@@ -11,8 +11,10 @@
 export function normalizeMediaUrl(url?: string | null): string | undefined {
   if (!url || typeof url !== 'string') return url ?? undefined;
   let u = url.trim();
-  // Colapsar protocolo duplicado: https://https:// → https:// (y http variantes).
-  u = u.replace(/^(https?:\/\/)+(https?:\/\/)/i, '$2');
+  // Colapsar protocolo duplicado, incluyendo el caso mixto donde el 2º protocolo
+  // viene SIN los dos puntos: "https://https//host" o "https://https://host" → "https://host".
+  // (reportado 2026-06-13: favicon https://https//media... daba 503).
+  u = u.replace(/^(https?:\/\/)+(https?):?\/\//i, '$2://');
   // Corregir "https//host" (faltan los dos puntos) → "https://host".
   u = u.replace(/^(https?)\/\/(?!\/)/i, '$1://');
   return u;
@@ -24,7 +26,7 @@ export function normalizeBrandingUrls<T extends Record<string, any>>(obj: T): T 
   const out: Record<string, any> = Array.isArray(obj) ? [...obj] : { ...obj };
   for (const key of Object.keys(out)) {
     const val = out[key];
-    if (typeof val === 'string' && /^https?[:/]/i.test(val)) {
+    if (typeof val === 'string' && /^https?[/:]/i.test(val)) {
       out[key] = normalizeMediaUrl(val);
     } else if (val && typeof val === 'object') {
       out[key] = normalizeBrandingUrls(val);
