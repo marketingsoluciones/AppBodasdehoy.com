@@ -51,11 +51,15 @@ interface UserConfigKB {
 }
 
 async function loadKBs(): Promise<UserConfigKB[]> {
-  const { userId } = getCtx();
+  const { userId, development } = getCtx();
   if (!userId) return [];
   try {
+    // api-ia resuelve la config SOLO por el query param ?development= (NO por el
+    // header X-Development) — verificado 13-jun: sin él devuelve config:null y la
+    // KB no persiste (nombre como skeleton permanente). Mismo patrón que la lectura
+    // del hilo de WhatsApp (?development= obligatorio en query).
     const res = await fetch(
-      `${API_IA_BASE}/api/auth/get-user-config?user_id=${encodeURIComponent(userId)}`,
+      `${API_IA_BASE}/api/auth/get-user-config?user_id=${encodeURIComponent(userId)}&development=${encodeURIComponent(development)}`,
       { headers: authHeaders(), method: 'GET' },
     );
     if (!res.ok) return [];
@@ -70,11 +74,16 @@ async function loadKBs(): Promise<UserConfigKB[]> {
 async function saveKBs(knowledgeBases: UserConfigKB[]): Promise<void> {
   const { userId, development } = getCtx();
   if (!userId) return;
-  await fetch(`${API_IA_BASE}/api/auth/save-user-config`, {
-    body: JSON.stringify({ config: { knowledgeBases }, development, user_id: userId }),
-    headers: authHeaders(),
-    method: 'POST',
-  });
+  // development también en query por consistencia con get-user-config (api-ia lo
+  // resuelve del query param). El body lo mantiene para el merge server-side.
+  await fetch(
+    `${API_IA_BASE}/api/auth/save-user-config?development=${encodeURIComponent(development)}`,
+    {
+      body: JSON.stringify({ config: { knowledgeBases }, development, user_id: userId }),
+      headers: authHeaders(),
+      method: 'POST',
+    },
+  );
 }
 
 class KnowledgeBaseService {

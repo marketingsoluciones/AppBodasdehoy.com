@@ -58,12 +58,13 @@ async function saveUserConfig(partial: Record<string, unknown>): Promise<void> {
 }
 
 async function getUserConfig(): Promise<Record<string, any> | null> {
-  const { userId } = getUserConfigContext();
+  const { userId, development } = getUserConfigContext();
   if (!userId) return null;
-  const res = await fetch(`${API_IA_BASE}/api/auth/get-user-config?user_id=${encodeURIComponent(userId)}`, {
-    headers: authHeaders(),
-    method: 'GET',
-  });
+  // ?development= obligatorio en query (api-ia no resuelve config por header).
+  const res = await fetch(
+    `${API_IA_BASE}/api/auth/get-user-config?user_id=${encodeURIComponent(userId)}&development=${encodeURIComponent(development)}`,
+    { headers: authHeaders(), method: 'GET' },
+  );
   if (!res.ok) return null;
   return res.json().catch(() => null);
 }

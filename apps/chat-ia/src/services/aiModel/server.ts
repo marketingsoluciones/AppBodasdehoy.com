@@ -40,10 +40,11 @@ interface UserConfigAiModelsState {
 }
 
 async function loadAiModelsState(): Promise<UserConfigAiModelsState> {
-  const { userId } = getCtx();
+  const { userId, development } = getCtx();
   if (!userId) return { disabled: [], order: {} };
+  // ?development= obligatorio en query (api-ia no resuelve config por header).
   const res = await fetch(
-    `${API_IA_BASE}/api/auth/get-user-config?user_id=${encodeURIComponent(userId)}`,
+    `${API_IA_BASE}/api/auth/get-user-config?user_id=${encodeURIComponent(userId)}&development=${encodeURIComponent(development)}`,
     { headers: authHeaders(), method: 'GET' },
   );
   if (!res.ok) return { disabled: [], order: {} };

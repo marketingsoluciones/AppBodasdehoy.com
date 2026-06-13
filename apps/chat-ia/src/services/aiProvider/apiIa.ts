@@ -69,11 +69,14 @@ async function loadUserConfig(): Promise<{
   aiProviders: UserConfigAiProvider[];
   api_keys: Record<string, UserConfigApiKey>;
 }> {
-  const { userId } = getCtx();
+  const { userId, development } = getCtx();
   if (!userId) return { aiProviders: [], api_keys: {} };
   try {
+    // ?development= obligatorio en query: api-ia NO resuelve la config por el header
+    // X-Development (verificado 13-jun: sin él → config:null). Sin esto el selector
+    // mostraba "No hay proveedores habilitados" pese a responder el modelo (informe §2.2).
     const res = await fetch(
-      `${API_IA_BASE}/api/auth/get-user-config?user_id=${encodeURIComponent(userId)}`,
+      `${API_IA_BASE}/api/auth/get-user-config?user_id=${encodeURIComponent(userId)}&development=${encodeURIComponent(development)}`,
       { headers: authHeaders(), method: 'GET' },
     );
     if (!res.ok) return { aiProviders: [], api_keys: {} };

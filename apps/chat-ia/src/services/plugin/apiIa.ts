@@ -62,11 +62,12 @@ function authHeaders(): Record<string, string> {
 }
 
 async function getEnabledPluginIds(): Promise<string[]> {
-  const { userId } = getCtx();
+  const { userId, development } = getCtx();
   if (!userId) return [];
   try {
+    // ?development= obligatorio en query (api-ia no resuelve config por header).
     const res = await fetch(
-      `${API_IA_BASE}/api/auth/get-user-config?user_id=${encodeURIComponent(userId)}`,
+      `${API_IA_BASE}/api/auth/get-user-config?user_id=${encodeURIComponent(userId)}&development=${encodeURIComponent(development)}`,
       { headers: authHeaders(), method: 'GET' },
     );
     if (!res.ok) return [];
