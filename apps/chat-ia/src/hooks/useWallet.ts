@@ -76,6 +76,9 @@ export const useWallet = (): UseWalletReturn => {
   const [lowBalanceThreshold, setLowBalanceThreshold] = useState(5);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // ¿se ha leído el saldo con ÉXITO al menos una vez? Mientras NO, el saldo es DESCONOCIDO,
+  // no agotado → no debemos bloquear al usuario por los ceros iniciales (informe 14-jun).
+  const [balanceLoaded, setBalanceLoaded] = useState(false);
 
   // Modal state
   const [showRechargeModal, setShowRechargeModal] = useState(false);
@@ -115,9 +118,11 @@ export const useWallet = (): UseWalletReturn => {
   // Computed
   const isNegativeBalance = balance < 0;
   // Credit is exhausted only when ALL funds (balance + bonus + credit limit) are gone
-  // e.g. balance=-0.90, creditLimit=50 → still has 49.10 available → NOT exhausted
-  const isCreditExhausted = totalBalance + creditLimit <= 0;
-  const isLowBalance = totalBalance <= lowBalanceThreshold && !isCreditExhausted;
+  // e.g. balance=-0.90, creditLimit=50 → still has 49.10 available → NOT exhausted.
+  // SOLO se evalúa si el saldo se leyó con éxito; mientras no, NO está agotado (desconocido ≠ 0)
+  // → evita el falso "sin saldo" con los ceros iniciales o cuando la query falla (UNAUTHORIZED).
+  const isCreditExhausted = balanceLoaded && totalBalance + creditLimit <= 0;
+  const isLowBalance = balanceLoaded && totalBalance <= lowBalanceThreshold && !isCreditExhausted;
 
   // ========================================
   // BALANCE FUNCTIONS
@@ -133,16 +138,24 @@ export const useWallet = (): UseWalletReturn => {
     setError(null);
     try {
       const data = await walletService.getBalance();
+      // Si la consulta FALLA (success:false, p.ej. UNAUTHORIZED), api-mcp devuelve
+      // balance=0, total_balance=0, credit_limit=null. NO debemos aplicar esos ceros:
+      // harían isCreditExhausted = 0+0 <= 0 = true → "sin saldo" FALSO, bloqueando a un
+      // usuario que SÍ tiene crédito (informe 14-jun: da sin saldo teniendo crédito).
+      // Un fallo de consulta = saldo DESCONOCIDO, no saldo agotado → no sobrescribir.
+      if (!data.success) {
+        const errorMsg = data.error || (data.errors as any[] | undefined)?.[0]?.message ||
+          (data.errors as string[] | undefined)?.[0] || 'No se pudo leer el saldo';
+        setError(typeof errorMsg === 'string' ? errorMsg : 'No se pudo leer el saldo');
+        return; // mantener el último saldo conocido; no bloquear por datos vacíos
+      }
       setBalance(data.balance ?? 0);
       setBonusBalance(data.bonus_balance ?? 0);
       setCreditLimit(data.credit_limit ?? 0);
       setTotalBalance(data.total_balance ?? 0);
       setCurrency(data.currency || 'EUR');
       setStatus(data.status || 'ACTIVE');
-      if (!data.success) {
-        const errorMsg = data.error || (data.errors as string[] | undefined)?.[0] || null;
-        if (errorMsg) setError(errorMsg);
-      }
+      setBalanceLoaded(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
