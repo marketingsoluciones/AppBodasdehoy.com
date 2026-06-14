@@ -12,13 +12,11 @@ const FileManager = dynamic(() => import('@/features/FileManager'), {
   ssr: false,
 });
 
-const FileModalQueryRoute = dynamic(
-  () =>
-    import(
-      '@/app/[variants]/(main)/knowledge/shared/FileModalQueryRoute'
-    ),
-  { ssr: false },
-);
+// NOTA: NO usar aquí FileModalQueryRoute. Ese componente usa useSearchParams de
+// react-router-dom (pensado para el MemoryRouter de /knowledge) y esta página es App
+// Router de Next, SIN Router padre → crash "useLocation() may be used only in the
+// context of a <Router>" + React #418 (informe 14-jun, /files se rompía). El modal de
+// esta página ya se gestiona con estado local (fileModalId → FilePanel) → es redundante.
 
 const FilesPage = memo(() => {
   const [fileModalId, setFileModalId] = useState<string | undefined>();
@@ -35,7 +33,6 @@ const FilesPage = memo(() => {
         <FileManager onOpenFile={setFileModalId} title="Archivos" />
       </Flexbox>
       {fileModalId && <FilePanel id={fileModalId} />}
-      <FileModalQueryRoute />
     </Flexbox>
   );
 });
