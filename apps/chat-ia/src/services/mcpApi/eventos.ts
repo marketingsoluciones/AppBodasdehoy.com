@@ -19,14 +19,23 @@ export interface Evento {
   _id: string;
   development?: string;
   fecha?: string;
-  fecha_boda?: string;
   nombre?: string;
-  nombre_evento?: string;
+  tipo?: string;
   usuario_id?: string;
 }
 
+// EventosResponse (schema api-mcp actual): { total, eventos[] }.
+// CAMBIO 14-jun: getEventosByUsuario AHORA exige usuario_id:String! + pagination:CRM_PaginationInput!
+// (obligatorios) y devuelve EventosResponse{ total, eventos[] } — antes era la lista directa con
+// campos nombre_evento/fecha_boda que YA NO existen. El front estaba con la firma vieja → GraphQL
+// rechazaba la query → 0 eventos → "lista de eventos vacía". Verificado en vivo contra prod.
+export interface EventosResponse {
+  eventos: Evento[];
+  total: number;
+}
+
 export interface GetEventosByUsuarioResponse {
-  getEventosByUsuario: Evento[];
+  getEventosByUsuario: EventosResponse;
 }
 
 // ========================================
@@ -34,15 +43,17 @@ export interface GetEventosByUsuarioResponse {
 // ========================================
 
 const GET_EVENTOS_BY_USUARIO = `
-  query GetEventosByUsuario($development: String!) {
-    getEventosByUsuario(development: $development) {
-      _id
-      nombre_evento
-      nombre
-      fecha_boda
-      fecha
-      development
-      usuario_id
+  query GetEventosByUsuario($development: String!, $usuario_id: String!, $pagination: CRM_PaginationInput!) {
+    getEventosByUsuario(development: $development, usuario_id: $usuario_id, pagination: $pagination) {
+      total
+      eventos {
+        _id
+        nombre
+        fecha
+        tipo
+        development
+        usuario_id
+      }
     }
   }
 `;
@@ -52,22 +63,27 @@ const GET_EVENTOS_BY_USUARIO = `
 // ========================================
 
 /**
- * Obtiene los eventos del usuario autenticado vía API2.
- * Reemplaza el uso de queryenEvento según indicación de API2.
+ * Obtiene los eventos del usuario autenticado vía api-mcp GraphQL.
+ * usuario_id = email o uid del usuario (lo resuelve el caller desde el contexto de sesión).
  */
-export const getEventosByUsuario = async (development: string): Promise<Evento[]> => {
-  const data = await mcpClient.query<GetEventosByUsuarioResponse>(
-    GET_EVENTOS_BY_USUARIO,
-    { development },
-  );
-  return data.getEventosByUsuario ?? [];
+export const getEventosByUsuario = async (
+  development: string,
+  usuarioId: string,
+  pagination?: { limit?: number; page?: number },
+): Promise<Evento[]> => {
+  if (!usuarioId) return [];
+  const data = await mcpClient.query<GetEventosByUsuarioResponse>(GET_EVENTOS_BY_USUARIO, {
+    development,
+    pagination: { limit: pagination?.limit ?? 100, page: pagination?.page ?? 1 },
+    usuario_id: usuarioId,
+  });
+  return data.getEventosByUsuario?.eventos ?? [];
 };
 
 /**
  * Formatea el nombre de un evento para mostrarlo en selectores.
  */
 export const formatEventoLabel = (evento: Evento): string => {
-  const nombre = evento.nombre_evento || evento.nombre || `Evento ${evento._id.slice(-6)}`;
-  const fecha = evento.fecha_boda || evento.fecha;
-  return fecha ? `${nombre} (${fecha})` : nombre;
+  const nombre = evento.nombre || `Evento ${evento._id.slice(-6)}`;
+  return evento.fecha ? `${nombre} (${evento.fecha})` : nombre;
 };
