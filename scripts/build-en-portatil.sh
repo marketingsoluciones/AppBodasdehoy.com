@@ -30,9 +30,12 @@ UNUSED_MB=$(ssh -o BatchMode=yes "$REMOTE_HOST" "top -l 1 | awk '/PhysMem/{for(i
 echo "RAM 'unused' en portátil: ${UNUSED_MB}MB (heap del build: ${HEAP_MB}MB). Si <2000, considera cerrar apps."
 
 echo "=== 2) Actualizar repo del portátil a $BRANCH ==="
+# OJO: el portátil puede NO tener refspec para esta branch (solo inbox-fase1). Por eso
+# NO usamos origin/$BRANCH (da 'unknown revision'); fetch a FETCH_HEAD + reset --hard FETCH_HEAD.
 ssh -o BatchMode=yes "$REMOTE_HOST" "export PATH=$REMOTE_PATH:\$PATH; cd $REMOTE_DIR && \
-  git fetch origin $BRANCH:$BRANCH 2>&1 | tail -1 || git fetch origin $BRANCH && \
-  git checkout $BRANCH && git reset --hard origin/$BRANCH 2>&1 | tail -1 && \
+  git stash 2>/dev/null; \
+  git fetch origin $BRANCH 2>&1 | tail -1 && \
+  git reset --hard FETCH_HEAD 2>&1 | tail -1 && \
   echo 'repo en:' \$(git log --oneline -1)"
 
 echo "=== 3) Sincronizar node_modules de ESTE Mac → portátil (evita deps fantasma) ==="

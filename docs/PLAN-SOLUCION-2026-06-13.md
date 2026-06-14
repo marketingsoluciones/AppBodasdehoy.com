@@ -35,7 +35,10 @@ Hoy: arquitectura correcta, pero bloqueada por **3 cosas de backend** y **2 cabl
 - **Causa raíz (auditada en su código):** src/index-simple.ts → maxPoolSize:2 + minPoolSize:0 +
   maxIdleTimeMS:10000 → pool vacío tras 10s → MongoNotConnectedError intermitente.
 - **Solución (backend):** subir a minPoolSize:2 / maxPoolSize:10 (ya existe en conector-fix.ts; unificar).
-  + migración a saqnro0 (dhikg deprecado, ya hecha 8-jun) ayuda.
+  + la migración de EVENTOS a saqnro0 ayuda. ⚠️ OJO: que eventos ya no use dhikg NO significa que
+    dhikg se pueda apagar — apagarlo NO es neutro. Hay que verificar QUÉ más cuelga de cluster0.dhikg
+    (directorio/api.bodasdehoy/etc.) ANTES de apagar. Decisión del usuario, no del front. NO afirmar
+    "dhikg deprecado/apagable" sin esa verificación.
 - **Verifica:** 0 MongoNotConnectedError en 7 días + PM2 sin crash-loop (hoy ↺30 reinicios).
 - **Estado:** ping GraphQL OK ahora, pero el fix de pool aún no confirmado por api-mcp.
 

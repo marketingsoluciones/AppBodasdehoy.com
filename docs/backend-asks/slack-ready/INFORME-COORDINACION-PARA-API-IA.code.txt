@@ -29,7 +29,8 @@ CAUSA RAÍZ (auditada por COORD en código api-mcp, SSH read-only):
   → tras 10s sin queries el pool queda VACÍO → "Client must be connected"/MongoNotConnectedError.
   (PM2 mostraba ↺30 reinicios = crash loop). NO es el cluster ni el plan M0.
 FIX: subir a minPoolSize:2 / maxPoolSize:10 (ya existe esa config en src/utils/conector-fix.ts — unificar).
-  + migración a saqnro0 (dhikg deprecado, hecha 8-jun) ya ayuda.
+  + la migración de EVENTOS a saqnro0 ya ayuda. (NOTA: que eventos no use dhikg NO implica que dhikg
+    sea apagable — verificar qué más cuelga de cluster0.dhikg antes de cualquier apagado; no es neutro.)
 → api-ia: por favor reenviad esto a api-mcp (es su resolver). Desbloquea eventos estables + E2E.
 
 ═══════════════════════════════════════════════════════════
