@@ -270,8 +270,12 @@ function EventCard({ event, onClick }: { event: EventSummary; onClick: () => voi
 // ─── conversation row ─────────────────────────────────────────────────────────
 
 function ConversationRow({ conv, onClick }: { conv: RecentConversation; onClick: () => void }) {
-  const badge = CHANNEL_BADGE[conv.kind];
-  const initials = conv.name
+  // Guards defensivos: una sola conversación con `name` ausente o `kind` fuera del set conocido
+  // tumbaba TODA la bandeja vía ErrorBoundary ("Se ha producido un problema") — informe 14-jun B11,
+  // reproducible para cualquier usuario, independiente del whitelabel. El componente NO debe asumir
+  // que los fallbacks del hook siempre se aplicaron (otras fuentes de conversaciones pueden no normalizar).
+  const badge = CHANNEL_BADGE[conv.kind] ?? CHANNEL_BADGE.web;
+  const initials = (conv.name ?? '')
     .split(' ')
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase() ?? '')
