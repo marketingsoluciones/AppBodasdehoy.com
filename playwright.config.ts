@@ -1,5 +1,41 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 import { defineConfig, devices } from '@playwright/test';
 import { TEST_URLS, E2E_ENV } from './e2e-app/fixtures';
+
+/**
+ * Carga automática de credenciales E2E desde .env.e2e.{env} (gitignored).
+ * Evita tener que pasar TEST_USER_EMAIL/PASSWORD por línea de comando en cada batería.
+ * Las vars ya presentes en process.env (CLI) tienen prioridad y NO se sobrescriben.
+ * Sin dependencias: parser propio (dotenv no está instalado).
+ */
+function loadE2EEnv(): void {
+  const env = process.env.E2E_ENV || 'dev';
+  for (const file of [`.env.e2e.${env}`, '.env.e2e.local']) {
+    try {
+      const content = readFileSync(resolve(process.cwd(), file), 'utf8');
+      for (const rawLine of content.split('\n')) {
+        const line = rawLine.trim();
+        if (!line || line.startsWith('#')) continue;
+        const eq = line.indexOf('=');
+        if (eq < 0) continue;
+        const key = line.slice(0, eq).trim();
+        let val = line.slice(eq + 1).trim();
+        if (
+          (val.startsWith('"') && val.endsWith('"')) ||
+          (val.startsWith("'") && val.endsWith("'"))
+        ) {
+          val = val.slice(1, -1);
+        }
+        if (key && process.env[key] === undefined) process.env[key] = val;
+      }
+    } catch {
+      // archivo ausente → ignorar (en CI las vars vienen del entorno)
+    }
+  }
+}
+loadE2EEnv();
 
 /**
  * E2E — Playwright (y uso con MCP).
