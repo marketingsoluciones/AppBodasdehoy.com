@@ -1,17 +1,24 @@
 /**
  * messages-inbox-track-b-schema.spec.ts
  *
- * Tests Track B api-mcp — Sprint Fase 1 schema GraphQL:
- *   B1 — enums CRM extendidos con CONVERSATION
- *   B2 — ConversationStatus alineado (OPEN/PENDING/CLOSED + ACTIVE legacy)
- *   B3 — WhatsAppConversation: assigned_to, linked_event_id, labels, last_*_at
- *   B4 — QuickReply CRUD (separado de campaign-template)
- *   B5 — Automation triggers (INCOMING_MESSAGE, KEYWORD_MATCH, etc.)
- *   B6 — Campañas multicanal + segmentos dinámicos
- *   B7 — GraphQL Subscriptions WebSocket
+ * ⚠️ OBSOLETO / SKIP (2026-06-14). NO ejecutar como verificación.
  *
- * Cobertura sprint /messages — P1 schema verification
- * Endpoint: api-mcp.eventosorganizador.com producción (B1-B7 mergeados a main)
+ * Dos razones por las que este spec NO aplica a AppEventos:
+ *
+ *  1. AppEventos NO es un CRM. Somos un organizador de eventos (invitados, mesas,
+ *     presupuesto, itinerario). La bandeja /messages es WhatsApp del organizador con
+ *     sus proveedores/invitados — NO un CRM de ventas. Este spec valida un modelo CRM
+ *     (QuickReply CRUD, Automation triggers, campañas multicanal con segmentos,
+ *     round-robin, SavedViews) que NO es nuestro producto. Pedir esos tipos a api-mcp
+ *     sería pedir algo que no nos corresponde.
+ *
+ *  2. La introspección GraphQL está DESHABILITADA en api-mcp producción (Apollo:
+ *     "introspection is not allowed"). Por eso __type/__schema devuelven vacío y los
+ *     asserts dan falso negativo SIEMPRE — no prueban nada real.
+ *
+ * Se deja en el repo como histórico del Sprint Fase 1, marcado skip. La verificación
+ * real de la bandeja va por los flujos de appEventos (WhatsApp leer/enviar), no por
+ * introspección de tipos CRM.
  */
 import { test, expect } from '@playwright/test';
 
@@ -41,7 +48,7 @@ async function introspectType(request: any, typeName: string): Promise<any> {
   return await response.json();
 }
 
-test.describe('Track B — Schema GraphQL verification', () => {
+test.describe.skip('Track B — Schema GraphQL verification — OBSOLETO: AppEventos no es CRM + introspección off', () => {
   test.setTimeout(120_000);
 
   test('B1: enum CRM_LabelEntityType incluye CONVERSATION', async ({ request }) => {
@@ -184,7 +191,7 @@ test.describe('Track B — Schema GraphQL verification', () => {
   });
 });
 
-test.describe('Track B — Subscriptions WebSocket (B7)', () => {
+test.describe.skip('Track B — Subscriptions WebSocket (B7) — OBSOLETO: ver cabecera', () => {
   test.setTimeout(60_000);
 
   test('B7: endpoint /graphql soporta protocolo graphql-ws (websocket upgrade)', async ({ request }) => {
