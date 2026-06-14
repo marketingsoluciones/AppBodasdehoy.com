@@ -71,7 +71,11 @@ export function mapApiIaSession(raw: RawApiIaSession): LobeAgentSession {
  * extender aquí). Filtra entradas sin id para no romper el render.
  */
 export function mapApiIaSessionsToList(rawList: RawApiIaSession[] | undefined): ChatSessionList {
-  const sessions = (rawList ?? []).map(mapApiIaSession).filter((s) => !!s.id);
+  // Defensa: api-ia puede devolver data NO-array cuando la query falla (success:false → data:0).
+  // Sin este guard, (0).map() lanzaba y, con SWR suspense:true, dejaba la lista lateral en
+  // ESQUELETO INFINITO (informe 14-jun: "lista lateral no carga"). data no-array = lista vacía.
+  const safeList = Array.isArray(rawList) ? rawList : [];
+  const sessions = safeList.map(mapApiIaSession).filter((s) => !!s.id);
   return {
     sessionGroups: [],
     sessions,
@@ -114,5 +118,7 @@ export function mapApiIaMessage(raw: RawApiIaMessage): UIChatMessage {
 
 /** Mapea el array plano de api-ia (getChatMessages) → UIChatMessage[], filtrando sin id. */
 export function mapApiIaMessages(rawList: RawApiIaMessage[] | undefined): UIChatMessage[] {
-  return (rawList ?? []).map(mapApiIaMessage).filter((m) => !!m.id);
+  // Defensa: igual que las sesiones, api-ia puede dar data no-array (success:false). No lanzar.
+  const safeList = Array.isArray(rawList) ? rawList : [];
+  return safeList.map(mapApiIaMessage).filter((m) => !!m.id);
 }
