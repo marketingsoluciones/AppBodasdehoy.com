@@ -75,6 +75,17 @@ describe('ApiIaMessageService (persistencia vía api-ia)', () => {
     expect(res).toEqual([{ id: 'm1' }]);
   });
 
+  it('getMessages: INBOX/vacío NO lanza fetch (evita 400 por ?sessionId= vacío)', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    // INBOX_SESSION_ID ('inbox') → null → no se lee por /chat/messages (inbox tiene su capa)
+    expect(await svc().getMessages('inbox', undefined)).toEqual([]);
+    // sessionId vacío → no hay sesión → []
+    expect(await svc().getMessages('', undefined)).toEqual([]);
+    expect(await svc().getMessages(undefined as any, undefined)).toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('métodos no confirmados lanzan pending()', async () => {
     await expect(svc().updateMessageTTS('m', {} as any)).rejects.toThrow(/no confirmado/);
     await expect(svc().batchCreateMessages([] as any)).rejects.toThrow(/no confirmado/);

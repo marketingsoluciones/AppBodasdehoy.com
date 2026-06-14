@@ -60,10 +60,12 @@ export class ApiIaMessageService implements IMessageService {
   // ───────── LECTURA (GET /chat/messages confirmado por api-ia) ─────────
   getMessages: IMessageService['getMessages'] = async (sessionId, topicId) => {
     const dbSessionId = this.toDbSessionId(sessionId);
-    // Guard: sin sessionId válido (visitante/sesión sin resolver) NO lanzar ?sessionId= vacío.
-    // OJO: null es VÁLIDO (INBOX_SESSION_ID → null intencional); solo bloqueamos undefined/''.
-    if (dbSessionId === undefined || dbSessionId === '') return [];
-    const qs = new URLSearchParams({ sessionId: String(dbSessionId ?? '') });
+    // Guard: NO lanzar GET /chat/messages con ?sessionId= vacío → api-ia responde 400
+    // (reporte 14-jun §0: "chat atascado en esqueletos" = bucle de 400 por sessionId vacío).
+    // dbSessionId es null para INBOX (INBOX_SESSION_ID); el inbox NO se lee por esta ruta
+    // (tiene su propia capa inbox-api). undefined/''/null → no hay sesión real que leer → [].
+    if (dbSessionId === undefined || dbSessionId === null || dbSessionId === '') return [];
+    const qs = new URLSearchParams({ sessionId: String(dbSessionId) });
     if (topicId) qs.set('topicId', topicId);
     const res = await call('GET', `/chat/messages?${qs.toString()}`);
     return mapApiIaMessages(res?.data ?? res?.messages ?? res) as UIChatMessage[];
