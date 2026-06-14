@@ -124,8 +124,13 @@ export const useAddUserMessageHotkey = () => {
 
 export const useClearCurrentMessagesHotkey = () => {
   const clearCurrentMessages = useClearCurrentMessages();
+  // B7 (informe 14-jun): Alt+Shift+Backspace borra TODA la sesión ("no se podrán
+  // recuperar"). Es destructivo → NO debe dispararse mientras el usuario edita el
+  // input de mensaje. Desactivamos su activación en form tags / contentEditable para
+  // evitar borrados accidentales al limpiar el campo (Cmd+A + Borrar y combos).
   return useHotkeyById(HotkeyEnum.ClearCurrentMessages, () => clearCurrentMessages(), {
-    enableOnContentEditable: true,
+    enableOnContentEditable: false,
+    enableOnFormTags: false,
   });
 };
 
