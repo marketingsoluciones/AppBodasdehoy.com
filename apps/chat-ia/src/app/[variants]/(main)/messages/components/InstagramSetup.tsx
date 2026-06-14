@@ -21,18 +21,23 @@ export function InstagramSetup({ development, onConnected }: InstagramSetupProps
     setStatus('connecting');
     setError(null);
     try {
-      const res = await fetch('/api/messages/instagram/oauth-url', {
-        body: JSON.stringify({ development }),
-        headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
-        method: 'POST',
-      });
+      const res = await fetch(
+        `/api/messages/instagram/oauth-url?development=${encodeURIComponent(development)}`,
+        {
+          body: JSON.stringify({ development }),
+          headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
+          method: 'POST',
+        },
+      );
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || data.detail || `Error ${res.status}`);
       }
       const data = await res.json();
-      if (data.oauthUrl) {
-        const popup = window.open(data.oauthUrl, 'instagram-oauth', 'width=600,height=700');
+      // api-ia devuelve oauth_url (snake_case); toleramos oauthUrl por compatibilidad.
+      const oauthUrl = data.oauth_url || data.oauthUrl;
+      if (oauthUrl) {
+        const popup = window.open(oauthUrl, 'instagram-oauth', 'width=600,height=700');
         if (!popup) throw new Error('No se pudo abrir la ventana de autorización. Desactiva el bloqueador de popups.');
         const handleMessage = (event: MessageEvent) => {
           if (event.data?.type === 'INSTAGRAM_OAUTH_SUCCESS') {
