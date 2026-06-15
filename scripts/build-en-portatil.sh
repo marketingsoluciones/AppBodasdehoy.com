@@ -59,8 +59,17 @@ rsync -az --delete -e "ssh -o BatchMode=yes" \
 echo "✅ .next copiado. BUILD_ID local: $(cat $LOCAL_DIR/apps/chat-ia/.next/BUILD_ID 2>/dev/null)"
 
 echo "=== 7) Arrancar chat-ia con next start (build con fixes) ==="
+# CRÍTICO: matar TODOS los next start de chat-ia, no solo el del puerto. Arranques manuales
+# fallidos dejaban procesos HUÉRFANOS (de días previos) sirviendo BUILDS VIEJOS → el server
+# repartía peticiones entre ellos y el QA veía bugs ya arreglados (incidente 15-jun). Matar por
+# patrón + por puerto, NO solo lsof:3210 (que solo coge el que tiene el puerto en ese instante).
 pm2 delete chat-dev 2>/dev/null || true
+pkill -9 -f "next start -p 3210" 2>/dev/null || true
+pkill -9 -f "apps/chat-ia/.bin/next" 2>/dev/null || true
 lsof -ti:3210 2>/dev/null | xargs kill -9 2>/dev/null || true
+sleep 2
+# Garantía: el puerto debe quedar LIBRE antes de arrancar
+if lsof -ti:3210 >/dev/null 2>&1; then echo "⚠️ puerto 3210 AÚN ocupado tras kill — revisar procesos zombi"; fi
 pm2 start /tmp/start-chat.sh --name chat-dev --log /tmp/pm2-chat-start.log 2>&1 | tail -1 || \
   echo "⚠️ arranca manual: cd $LOCAL_DIR/apps/chat-ia && pnpm next start -p 3210 -H 0.0.0.0"
 
