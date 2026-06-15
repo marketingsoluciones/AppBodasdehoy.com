@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { buildHeaders, getUserContext, jidToPhone, parseWhatsAppConversationId } from '../utils/auth';
+import { buildHeaders, jidToPhone, parseWhatsAppConversationId } from '../utils/auth';
 import type { Message } from './useMessages';
 
 // Construye URL + body para enviar. 🐛 FIX (informe 2026-06-12): la ruta WhatsApp anterior
@@ -27,13 +27,12 @@ function buildSendRequest(
       url: `/api/messages/whatsapp/messages/send?development=${encodeURIComponent(dev)}`,
     };
   }
-  // Genérico (no-WhatsApp): api-ia exige development o devuelve 400 development_required.
-  // Lo enviamos también por query (api-ia lo prioriza sobre el header X-Development).
-  const dev = getUserContext().development;
-  const qs = dev ? `?development=${encodeURIComponent(dev)}` : '';
+  // Genérico (no-WhatsApp) → api-ia. El development viaja por el header X-Development
+  // (buildHeaders + proxy lo propaga). Verificado 15-jun: el header basta (send → 200), ya
+  // no hace falta ?development= en query.
   return {
     body: JSON.stringify({ channel, conversationId, text }),
-    url: `/api/messages/send${qs}`,
+    url: `/api/messages/send`,
   };
 }
 

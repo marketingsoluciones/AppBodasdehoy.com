@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
 import { getWhatsAppMessagesGQL } from '@/services/mcpApi/whatsapp';
-import { buildHeaders, getUserContext, parseWhatsAppConversationId } from '../utils/auth';
+import { buildHeaders, parseWhatsAppConversationId } from '../utils/auth';
 import { useMessageStream } from './useMessageStream';
 import type { StreamMessage } from './useMessageStream';
 
@@ -25,20 +25,15 @@ export interface Message {
 }
 
 function buildFetchUrl(channel: string, conversationId: string): string | null {
-  // api-ia resuelve el storage (Redis) del whitelabel SOLO por el query param
-  // ?development= ; el header X-Development NO basta para la lectura del hilo
-  // (verificado en vivo: con header solo → [], con ?development= → mensajes reales).
-  // Endpoint canónico: /api/messages/conversations/{conversationId}/messages
-  // donde conversationId es el id completo (para WhatsApp: "${dev}:${jid}").
+  // api-ia resuelve el whitelabel del header X-Development (que buildHeaders ya envía y el
+  // proxy /api/messages propaga). Verificado 15-jun: el header BASTA (antes exigía ?development=
+  // en query, era una muleta). Endpoint canónico: /api/messages/conversations/{id}/messages
+  // (conversationId completo; para WhatsApp "${dev}:${jid}").
   if (channel === 'whatsapp') {
     const parsed = parseWhatsAppConversationId(conversationId);
     if (!parsed) return null;
-    const dev = parsed.dev;
-    return `/api/messages/conversations/${encodeURIComponent(conversationId)}/messages?development=${encodeURIComponent(dev)}`;
   }
-  const dev = getUserContext().development;
-  const qs = dev ? `?development=${encodeURIComponent(dev)}` : '';
-  return `/api/messages/conversations/${encodeURIComponent(conversationId)}/messages${qs}`;
+  return `/api/messages/conversations/${encodeURIComponent(conversationId)}/messages`;
 }
 
 function normalizeMessage(msg: any): Message {
