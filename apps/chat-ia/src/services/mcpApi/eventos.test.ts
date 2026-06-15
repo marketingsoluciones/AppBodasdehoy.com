@@ -1,11 +1,9 @@
 /**
  * Tests del Servicio de Eventos
  * =============================
- * Simulan escenarios reales del usuario en el selector de eventos:
- * - Usuario ve lista de sus bodas/eventos
- * - Cada evento muestra nombre + fecha formateado
- * - Eventos sin nombre muestran ID parcial como fallback
- * - Eventos sin fecha muestran solo el nombre
+ * Schema api-mcp actual (15-jun): getEventosByUsuario(development, usuario_id, pagination)
+ * → EventosResponse { total, eventos[] }. Campos del evento: _id, nombre, fecha, tipo.
+ * (Los antiguos nombre_evento / fecha_boda fueron eliminados del schema.)
  */
 import { describe, expect, it, vi } from 'vitest';
 
@@ -29,55 +27,23 @@ describe('Eventos Service', () => {
   // ━━━ formatEventoLabel ━━━
 
   describe('formatEventoLabel — formato en selector de eventos', () => {
-    it('muestra nombre_evento + fecha_boda', () => {
+    it('muestra nombre + fecha', () => {
       const label = formatEventoLabel({
         _id: 'evt-001',
-        fecha_boda: '2025-06-15',
-        nombre_evento: 'Boda María y Pedro',
+        fecha: '2025-06-15',
+        nombre: 'Boda María y Pedro',
       });
 
       expect(label).toBe('Boda María y Pedro (2025-06-15)');
     });
 
-    it('usa nombre si no hay nombre_evento', () => {
+    it('sin fecha muestra solo el nombre', () => {
       const label = formatEventoLabel({
-        _id: 'evt-002',
-        fecha_boda: '2025-08-20',
-        nombre: 'Mi Boda',
+        _id: 'evt-006',
+        nombre: 'Boda sin fecha',
       });
 
-      expect(label).toBe('Mi Boda (2025-08-20)');
-    });
-
-    it('usa fecha si no hay fecha_boda', () => {
-      const label = formatEventoLabel({
-        _id: 'evt-003',
-        fecha: '2025-12-01',
-        nombre_evento: 'Comunión',
-      });
-
-      expect(label).toBe('Comunión (2025-12-01)');
-    });
-
-    it('prioriza fecha_boda sobre fecha', () => {
-      const label = formatEventoLabel({
-        _id: 'evt-004',
-        fecha: '2025-01-01',
-        fecha_boda: '2025-09-15',
-        nombre_evento: 'Evento',
-      });
-
-      expect(label).toBe('Evento (2025-09-15)');
-    });
-
-    it('prioriza nombre_evento sobre nombre', () => {
-      const label = formatEventoLabel({
-        _id: 'evt-005',
-        nombre: 'Nombre genérico',
-        nombre_evento: 'Boda Especial',
-      });
-
-      expect(label).toBe('Boda Especial');
+      expect(label).toBe('Boda sin fecha');
     });
 
     it('sin nombre muestra "Evento" + últimos 6 chars del ID', () => {
@@ -86,15 +52,6 @@ describe('Eventos Service', () => {
       });
 
       expect(label).toBe('Evento 123456');
-    });
-
-    it('sin fecha muestra solo el nombre', () => {
-      const label = formatEventoLabel({
-        _id: 'evt-006',
-        nombre_evento: 'Boda sin fecha',
-      });
-
-      expect(label).toBe('Boda sin fecha');
     });
 
     it('sin nombre ni fecha muestra fallback con últimos 6 chars del ID', () => {
@@ -109,36 +66,51 @@ describe('Eventos Service', () => {
   // ━━━ getEventosByUsuario ━━━
 
   describe('getEventosByUsuario — carga eventos del backend', () => {
-    it('retorna lista de eventos del usuario', async () => {
+    it('retorna la lista eventos de EventosResponse', async () => {
       mockQuery.mockResolvedValueOnce({
-        getEventosByUsuario: [
-          { _id: 'e1', nombre_evento: 'Boda', fecha_boda: '2025-06-15' },
-          { _id: 'e2', nombre_evento: 'Comunión', fecha: '2025-09-01' },
-        ],
+        getEventosByUsuario: {
+          eventos: [
+            { _id: 'e1', fecha: '2025-06-15', nombre: 'Boda' },
+            { _id: 'e2', fecha: '2025-09-01', nombre: 'Comunión' },
+          ],
+          total: 2,
+        },
       });
 
-      const eventos = await getEventosByUsuario('dev-123');
+      const eventos = await getEventosByUsuario('bodasdehoy', 'user@x.com');
 
       expect(eventos).toHaveLength(2);
-      expect(eventos[0].nombre_evento).toBe('Boda');
-      expect(eventos[1].nombre_evento).toBe('Comunión');
+      expect(eventos[0].nombre).toBe('Boda');
+      expect(eventos[1].nombre).toBe('Comunión');
     });
 
-    it('envía development como variable GraphQL', async () => {
-      mockQuery.mockResolvedValueOnce({ getEventosByUsuario: [] });
+    it('envía development, usuario_id y pagination como variables GraphQL', async () => {
+      mockQuery.mockResolvedValueOnce({ getEventosByUsuario: { eventos: [], total: 0 } });
 
-      await getEventosByUsuario('my-dev-id');
+      await getEventosByUsuario('bodasdehoy', 'user@x.com');
 
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('GetEventosByUsuario'),
-        { development: 'my-dev-id' },
+        expect.objectContaining({
+          development: 'bodasdehoy',
+          pagination: { limit: 100, page: 1 },
+          usuario_id: 'user@x.com',
+        }),
       );
     });
 
-    it('retorna array vacío si la respuesta es null', async () => {
+    it('sin usuario_id devuelve [] sin llamar al backend', async () => {
+      mockQuery.mockClear();
+      const eventos = await getEventosByUsuario('bodasdehoy', '');
+
+      expect(eventos).toEqual([]);
+      expect(mockQuery).not.toHaveBeenCalled();
+    });
+
+    it('retorna array vacío si la respuesta no trae eventos', async () => {
       mockQuery.mockResolvedValueOnce({ getEventosByUsuario: null });
 
-      const eventos = await getEventosByUsuario('dev-123');
+      const eventos = await getEventosByUsuario('bodasdehoy', 'user@x.com');
 
       expect(eventos).toEqual([]);
     });
