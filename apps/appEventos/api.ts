@@ -116,19 +116,15 @@ export const api = {
     if (!development) return
     const rawSocketUrl = (process.env.NEXT_PUBLIC_SOCKET_URL || "").trim()
     const socketUrl = (() => {
-      // socket.io VIVE en api-ia.bodasdehoy.com (verificado 16-jun: /socket.io → 200).
-      // BUG (informe 16-jun, BUG-02): este bloque DESCARTABA api-ia (`if api-ia → fallback`)
-      // y caía al fallback = api-mcp, donde /socket.io da 404 → reconexión infinita, realtime
-      // roto. Era un resto de cuando api-ia no tenía socket. Ahora SÍ lo tiene → usar
-      // NEXT_PUBLIC_SOCKET_URL tal cual; solo caer al fallback si la env var falta o es inválida.
-      if (!rawSocketUrl) return resolveApiEventosOrigin() || ""
+      const fallback = resolveApiEventosOrigin() || ""
+      if (!rawSocketUrl) return fallback
       try {
-        // valida que sea una URL bien formada
-        // eslint-disable-next-line no-new
-        new URL(rawSocketUrl)
+        const u = new URL(rawSocketUrl)
+        const h = (u.hostname || '').toLowerCase()
+        if (h.includes('api-ia.')) return fallback
         return rawSocketUrl
       } catch {
-        return resolveApiEventosOrigin() || ""
+        return fallback
       }
     })()
     const manager = new Manager(socketUrl, {
