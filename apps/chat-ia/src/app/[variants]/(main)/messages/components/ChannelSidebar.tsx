@@ -231,7 +231,10 @@ function EventCard({ event, onClick }: { event: EventSummary; onClick: () => voi
   }
   const statsLine = stats.length > 0 ? ` · ${stats.join(' · ')}` : '';
 
-  const nameLower = event.name.toLowerCase();
+  // Guard: event.name puede llegar undefined (datos incompletos del backend) → .toLowerCase()
+  // crasheaba toda la lista (mismo patrón que conv.name). Defensivo en TODOS los accesos a name.
+  const safeName = event.name ?? 'Evento';
+  const nameLower = safeName.toLowerCase();
   const icon = nameLower.includes('boda')
     ? '💒'
     : nameLower.includes('cumple') || nameLower.includes('aniversario')
@@ -251,7 +254,7 @@ function EventCard({ event, onClick }: { event: EventSummary; onClick: () => voi
       />
       <div className="min-w-0 flex-1 truncate">
         <span className="text-[11px] font-semibold text-gray-900">
-          {icon} {event.name}
+          {icon} {safeName}
           <span className="font-normal text-gray-500">{statsLine}</span>
         </span>
       </div>
@@ -444,8 +447,10 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
     }
     if (search.trim()) {
       const q = search.toLowerCase();
+      // Guard: name/lastMessage pueden ser undefined → .toLowerCase() crasheaba el filtro
+      // (rompía la búsqueda ⌘K y dejaba skeletons — informe 16-jun BUG-01).
       list = list.filter(
-        (c) => c.name.toLowerCase().includes(q) || c.lastMessage?.toLowerCase().includes(q),
+        (c) => c.name?.toLowerCase().includes(q) || c.lastMessage?.toLowerCase().includes(q),
       );
     }
     return list;
@@ -457,8 +462,8 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
     const q = search.toLowerCase();
     return pendingTasks.filter(
       (t) =>
-        t.tarea.descripcion.toLowerCase().includes(q) ||
-        t.itinerarioTitle.toLowerCase().includes(q),
+        t.tarea?.descripcion?.toLowerCase().includes(q) ||
+        t.itinerarioTitle?.toLowerCase().includes(q),
     );
   }, [pendingTasks, search]);
 
