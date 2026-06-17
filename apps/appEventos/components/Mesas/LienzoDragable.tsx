@@ -45,11 +45,13 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
 
   useEffect(() => {
     const tablesDrag = planSpaceActive?.tables?.reduce((acc, item) => {
-      acc[`table_${item._id}`] = { x: item.position.x, y: item.position.y }
+      if (!item?._id) return acc
+      acc[`table_${item._id}`] = { x: item?.position?.x ?? 0, y: item?.position?.y ?? 0 }
       return acc
     }, {})
     const elementsDrag = planSpaceActive?.elements?.reduce((acc, item) => {
-      acc[`element_${item._id}`] = { x: item.position.x, y: item.position.y }
+      if (!item?._id) return acc
+      acc[`element_${item._id}`] = { x: item?.position?.x ?? 0, y: item?.position?.y ?? 0 }
       return acc
     }, {})
 
