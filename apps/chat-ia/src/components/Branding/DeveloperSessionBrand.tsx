@@ -6,8 +6,12 @@ import { Flexbox } from 'react-layout-kit';
 
 import { BrandLogo } from '@bodasdehoy/shared/components';
 
+import { useLoginModal } from '@/contexts/LoginModalContext';
 import { useDeveloperBranding } from '@/hooks/useDeveloperBranding';
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 import { useChatStore } from '@/store/chat';
+import { useUserStore } from '@/store/user';
+import { authSelectors } from '@/store/user/selectors';
 import { resolveDisplayBrandName } from '@/utils/brandingDisplay';
 import { resolveActiveDeveloperForBranding } from '@/utils/developmentDetector';
 
@@ -16,6 +20,17 @@ const useStyles = createStyles(({ css }) => ({
     min-width: 0;
     flex: 1;
     max-width: 100%;
+  `,
+  guestCta: css`
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.15;
+    opacity: 0.95;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
   `,
   subtitle: css`
     font-size: 10px;
@@ -50,10 +65,14 @@ export const DeveloperSessionBrand = memo<DeveloperSessionBrandProps>(({ classNa
   const { styles, cx } = useStyles();
   const { branding, loading } = useDeveloperBranding();
   const storeDevelopment = useChatStore((s) => s.development);
+  const { openLoginModal } = useLoginModal();
+  const isDomainGuest = useDomainGuestUser();
+  const isLoginWithAuth = useUserStore(authSelectors.isLoginWithAuth);
   const slug = resolveActiveDeveloperForBranding(storeDevelopment);
 
   const title = resolveDisplayBrandName(branding?.name, branding?.developer || slug);
-  const subtitle = `IA · ${slug}`;
+  const isVisitor = !isLoginWithAuth || isDomainGuest;
+  const subtitle = isVisitor ? `Usuario no registrado · IA · ${slug}` : `IA · ${slug}`;
 
   if (loading && !branding) {
     return (
@@ -105,6 +124,20 @@ export const DeveloperSessionBrand = memo<DeveloperSessionBrandProps>(({ classNa
         <div className={styles.subtitle} title={subtitle}>
           {subtitle}
         </div>
+        {isVisitor && (
+          <div
+            className={styles.guestCta}
+            onClick={() => openLoginModal('header_brand')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') openLoginModal('header_brand');
+            }}
+            role="button"
+            tabIndex={0}
+            title="Inicia sesión o crea tu cuenta"
+          >
+            🔐 Inicia sesión / Regístrate
+          </div>
+        )}
       </Flexbox>
     </Flexbox>
   );
