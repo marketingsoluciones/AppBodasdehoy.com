@@ -23,22 +23,28 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
   useEffect(() => {
     if (prefijo !== "table") {
       if (item?.tipo !== "text") {
+        if (!item?._id) return
         const divElement = document.getElementById(`${prefijo}_${item._id}`)
-        const relativeElement = divElement.firstElementChild as HTMLElement | null;
+        const relativeElement = divElement?.firstElementChild as HTMLElement | null;
         const svgElement = (relativeElement?.firstElementChild || undefined) as HTMLElement | undefined;
-        const { width, height, rotation } = svgElement?.dataset
-        svgElement.setAttribute('style', `width: ${width}px; height: ${height}px; rotate: ${item?.rotation}deg`)
+        if (!svgElement?.dataset) return
+        const { width, height } = svgElement.dataset
+        svgElement.setAttribute('style', `width: ${width}px; height: ${height}px; rotate: ${item?.rotation ?? 0}deg`)
       }
     }
   }, [item?.rotation])
 
   //Setear posicion
   useEffect(() => {
+    if (!item?._id) return
     const divElement = document.getElementById(`${prefijo}_${item._id}`)
-    divElement.setAttribute('style', `left: ${item.position.x}px; top: ${item.position.y}px; ${prefijo === "table" || item?.tipo === "text" ? `rotate: ${item?.rotation ?? 0}deg` : ""}`)
-    divElement.setAttribute('data-x', `${item.position.x}`)
-    divElement.setAttribute('data-y', `${item.position.y}`)
-  }, [item.position.x, item.position.y, item._id])
+    if (!divElement) return
+    const x = item?.position?.x ?? 0
+    const y = item?.position?.y ?? 0
+    divElement.setAttribute('style', `left: ${x}px; top: ${y}px; ${prefijo === "table" || item?.tipo === "text" ? `rotate: ${item?.rotation ?? 0}deg` : ""}`)
+    divElement.setAttribute('data-x', `${x}`)
+    divElement.setAttribute('data-y', `${y}`)
+  }, [item?.position?.x, item?.position?.y, item?._id])
 
   return (
     <div

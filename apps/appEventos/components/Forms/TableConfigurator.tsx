@@ -62,27 +62,49 @@ export function TableConfiguratorFloating() {
         x: 200 + Math.round(Math.random() * 100),
         y: 200 + Math.round(Math.random() * 100),
       };
+      const title = config.tableName || `Mesa ${config.tableNumber ?? planSpaceActive.tables.length + 1}`;
+      const tipo = SHAPE_TO_TIPO[config.shape] ?? 'redonda';
       const result: any = await fetchApiEventos({
         query: queries.createTable,
         variables: {
           eventID: event._id,
           planSpaceID: planSpaceActive._id,
           values: JSON.stringify({
-            title: config.tableName || `Mesa ${config.tableNumber ?? planSpaceActive.tables.length + 1}`,
+            title,
             numberChair: config.seats,
             position,
             rotation: 0,
             size: { width: 100, height: 80 },
-            tipo: SHAPE_TO_TIPO[config.shape] ?? 'redonda',
+            tipo,
             // Datos del nuevo configurador (el canvas existente los ignora, quedan en DB)
             tableConfig: JSON.stringify(config),
             svgString,
           }),
         },
       });
+      if (!result?.success) {
+        toast('error', result?.errors?.[0]?.message ?? 'Error al crear la mesa');
+        return;
+      }
+      // Construir la mesa LOCAL con los datos que el front conoce (no usar result crudo,
+      // que solo trae { success, errors, evento }). Garantiza que `position` existe y
+      // evita crashes en DragableDefault al renderizar la mesa recién creada.
+      const newTable: any = {
+        _id: result?.table?._id ?? result?.evento?._id ?? `tmp_${Date.now()}`,
+        title,
+        nombre_mesa: title,
+        tipo,
+        cantidad_sillas: config.seats,
+        numberChair: config.seats,
+        position,
+        rotation: 0,
+        size: { width: 100, height: 80 },
+        tableConfig: config,
+        svgString,
+      };
       const nextPlanSpace = {
         ...planSpaceActive,
-        tables: [...(planSpaceActive.tables ?? []), { ...result }],
+        tables: [...(planSpaceActive.tables ?? []), newTable],
       };
       setPlanSpaceActive(nextPlanSpace);
 
@@ -95,7 +117,7 @@ export function TableConfiguratorFloating() {
         }),
       };
       setEvent(nextEvent);
-      toast('success', `Mesa "${result.title}" creada con el configurador visual`);
+      toast('success', `Mesa "${title}" creada con el configurador visual`);
     } catch {
       toast('error', 'Error al crear la mesa desde el configurador');
     } finally {
@@ -109,13 +131,14 @@ export function TableConfiguratorFloating() {
         x: 180 + Math.round(Math.random() * 80),
         y: 240 + Math.round(Math.random() * 80),
       };
+      const title = `Bancos ceremonia ${((planSpaceActive.tables?.length ?? 0) + 1)}`;
       const result: any = await fetchApiEventos({
         query: queries.createTable,
         variables: {
           eventID: event._id,
           planSpaceID: planSpaceActive._id,
           values: JSON.stringify({
-            title: `Bancos ceremonia ${((planSpaceActive.tables?.length ?? 0) + 1)}`,
+            title,
             numberChair: 12,
             position,
             rotation: 0,
@@ -124,10 +147,25 @@ export function TableConfiguratorFloating() {
           }),
         },
       });
-
+      if (!result?.success) {
+        toast('error', result?.errors?.[0]?.message ?? 'Error al añadir bancos al plano');
+        return;
+      }
+      // Mesa LOCAL (createTable devuelve { success, errors, evento }, no la mesa entera)
+      const newTable: any = {
+        _id: result?.table?._id ?? result?.evento?._id ?? `tmp_${Date.now()}`,
+        title,
+        nombre_mesa: title,
+        tipo: 'bancos',
+        cantidad_sillas: 12,
+        numberChair: 12,
+        position,
+        rotation: 0,
+        size: { width: 100, height: 40 },
+      };
       const nextPlanSpace = {
         ...planSpaceActive,
-        tables: [...(planSpaceActive.tables ?? []), { ...result }],
+        tables: [...(planSpaceActive.tables ?? []), newTable],
       };
       setPlanSpaceActive(nextPlanSpace);
       setEvent({
@@ -139,7 +177,7 @@ export function TableConfiguratorFloating() {
         }),
       });
 
-      toast('success', `"${result.title}" añadido al plano`);
+      toast('success', `"${title}" añadido al plano`);
     } catch {
       toast('error', 'Error al añadir bancos al plano');
     }
