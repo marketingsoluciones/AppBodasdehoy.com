@@ -97,10 +97,12 @@ export function resolveApiIaOrigin(): string {
 }
 
 export function resolveApiEventosOrigin(): string {
+  // Host del GraphQL canónico (api-mcp). NUNCA usar NEXT_PUBLIC_IMAGES_BASE_URL
+  // como fallback: ese apunta al host de IMÁGENES legacy (media-apiapp), y mezclarlos
+  // hacía que /api/proxy/graphql y el socket fallback golpearan un host muerto → 502/404.
   const raw =
     process.env.NEXT_PUBLIC_BASE_URL ||
-    process.env.BASE_URL ||
-    process.env.NEXT_PUBLIC_IMAGES_BASE_URL;
+    process.env.BASE_URL;
   return (raw || DEFAULT_EVENTOS_ORIGIN).trim().replace(/\/+$/, '');
 }
 
