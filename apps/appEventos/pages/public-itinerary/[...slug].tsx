@@ -161,6 +161,7 @@ const Slug: FC<props> = (props) => {
                 src={effectiveEvent?.imgEvento ? `${apiAppImgBase}/${effectiveEvent?.imgEvento?.i800}` : defaultImagenes[effectiveEvent?.tipo?.toLowerCase()]}
                 className="h-[90%] object-cover object-top rounded-md border-1 border-gray-600 block"
                 alt={effectiveEvent?.nombre}
+                onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[effectiveEvent?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
               />
               <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2 leading-3'>
                 <span className='text-sm text-primary text-[12px] first-letter:capitalize'>{effectiveEvent?.tipo}</span>

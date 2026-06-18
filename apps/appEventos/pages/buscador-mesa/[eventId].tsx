@@ -102,6 +102,7 @@ const BuscadorMesa: NextPage<Props> = ({ eventId, eventName, eventType, eventImg
               src={`/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${eventImg}`)}`}
               alt={eventName}
               className="w-20 h-20 rounded-full object-cover object-top border-2 border-primary mb-4 shadow-sm"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           )}
           <p className="text-sm text-primary capitalize font-medium mb-1">{eventType}</p>
