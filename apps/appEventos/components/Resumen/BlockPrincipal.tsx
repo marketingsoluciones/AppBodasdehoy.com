@@ -53,6 +53,7 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
             src={event?.imgEvento?.i640 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i640}`)}` : defaultImagenes[event?.tipo?.toLowerCase()]}
             className="md:w-1/2 md:h-full h-60 object-cover object-top rounded-xl"
             alt={event?.nombre}
+            onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
           />
         )}
         {children}

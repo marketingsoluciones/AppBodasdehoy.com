@@ -564,7 +564,12 @@ const GuestPortal: NextPage<Props> = ({ event, error }) => {
         {imgUrl ? (
           /* Con foto: hero a ancho completo con overlay */
           <div className="relative w-full h-56 sm:h-72 overflow-hidden">
-            <img src={imgUrl} alt={event.nombre} className="w-full h-full object-cover object-center" />
+            <img
+              src={imgUrl}
+              alt={event.nombre}
+              className="w-full h-full object-cover object-center"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 px-5 pb-5 text-white">
               <p className="text-xs font-semibold uppercase tracking-widest opacity-70 mb-1">{event.tipo}</p>
