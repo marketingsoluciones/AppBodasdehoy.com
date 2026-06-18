@@ -32,6 +32,17 @@ const TIPO_ENUM_MAP: Record<string, string> = {
 };
 const mapTipo = (t?: string) => (t ? (TIPO_ENUM_MAP[t.toLowerCase()] || t.toUpperCase()) : t);
 
+// Inverso del map: api-mcp devuelve el tipo en MAYÚSCULAS (enum EventoTipo)
+// pero el select del form usa valores minúsculas como ListaTipo[] → al editar un
+// evento, sin esta normalización el select queda vacío (BUG-15 "tipo no precarga").
+const TIPO_ENUM_REVERSE: Record<string, string> = Object.fromEntries(
+  Object.entries(TIPO_ENUM_MAP).map(([lower, upper]) => [upper, lower])
+);
+const normalizeTipoForForm = (t?: string) => {
+  if (!t) return t;
+  return TIPO_ENUM_REVERSE[t] ?? t.toLowerCase();
+};
+
 interface propsFromCrearEvento {
   state: boolean
   set: Dispatch<SetStateAction<boolean>>
@@ -88,6 +99,9 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
   const initialValues: MyValues = EditEvent ?
     {
       ...event,
+      // api-mcp devuelve tipo en MAYÚSCULAS (EventoTipo enum); ListaTipo del select es lowercase.
+      // Sin normalizar, el select queda en blanco al editar (BUG-15).
+      tipo: normalizeTipoForForm(event.tipo) ?? "",
       fecha: utcDate(event.fecha),
     }
     : {
