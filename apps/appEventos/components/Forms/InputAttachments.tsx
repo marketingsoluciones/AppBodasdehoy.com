@@ -10,6 +10,7 @@ import { getStorage, ref, uploadBytesResumable, deleteObject } from "firebase/st
 import { FileData, Task } from "../../utils/Interfaces";
 import { customAlphabet } from "nanoid";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { validateFiles, ALL_FILES_ACCEPT } from "@bodasdehoy/shared/upload";
 
 interface props extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
@@ -35,7 +36,14 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
 
   const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
     try {
-      const files = [...Array.from(e.target.files)]
+      // Validar TODOS antes de añadir a la lista. Tope por categoría dinámico
+      // (50MB fotos, 5GB vídeos, 100MB docs, 500MB archives, 100MB audio).
+      const { valid, rejected } = validateFiles(e.target.files);
+      if (rejected.length) {
+        console.warn('[InputAttachments] archivos rechazados:', rejected.map(r => `${r.file.name}: ${r.error}`));
+      }
+      const files = valid.map(v => v.file);
+      if (files.length === 0) return;
       let attachments: FileData[] = [...field.value, ...files.map((elem: File): FileData => { return { _id: undefined, name: elem.name, size: elem.size } })]
       helpers.setValue([...attachments])
       files.map((elem) => {
@@ -129,9 +137,9 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
           type="file"
           multiple
           name="attachments"
+          accept={ALL_FILES_ACCEPT}
           onChange={(e) => handleOnChange(e)}
           className="hidden"
-          //accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           disabled={false}
         />
       </div>

@@ -8,6 +8,7 @@ import { useToast } from "../../hooks/useToast";
 import { getCurrency } from "../../utils/Funciones";
 import { useTranslation } from 'react-i18next';
 import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching";
+import { withRetry } from "@bodasdehoy/shared/upload";
 
 
 
@@ -120,16 +121,20 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
             // Verificar si hay un archivo nuevo (File object o base64 string) para subir
             if (values.soporte_file instanceof File) {
               try {
-                const result: any = await fetchApiBodas({
-                  query: queries.singleUpload,
-                  variables: {
-                    file: values.soporte_file,
-                    development: config?.development || 'bodasdehoy',
-                    eventId: event?._id,
-                    category: "payment",
-                  },
-                  type: "formData"
-                });
+                // withRetry: red móvil intermitente → 2 reintentos backoff exponencial.
+                const result: any = await withRetry(
+                  () => fetchApiBodas({
+                    query: queries.singleUpload,
+                    variables: {
+                      file: values.soporte_file,
+                      development: config?.development || 'bodasdehoy',
+                      eventId: event?._id,
+                      category: "payment",
+                    },
+                    type: "formData"
+                  }),
+                  { maxRetries: 2, initialDelay: 1000, backoffMultiplier: 2 }
+                );
                 const url = result?.file?.publicUrls?.optimized400w
                   ?? result?.file?.publicUrls?.optimized800w
                   ?? result?.file?.publicUrls?.original

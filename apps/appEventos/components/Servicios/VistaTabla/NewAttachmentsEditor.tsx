@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, Dispatch, SetStateAction } from 'react';
 import { usePathname } from 'next/navigation';
-import { Upload, X, FileText, FileImage, FileVideo, FileAudio, File, Check, Loader2, Download, Trash2, Lock, Plus } from 'lucide-react';
+import { Upload, X, FileText, FileImage, FileVideo, FileAudio, File, Check, Loader2, Download, Trash2, Lock, Plus, FileArchive, FileSpreadsheet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getStorage, ref, uploadBytesResumable, deleteObject } from "firebase/storage";
 import { FileData, Task } from '../../../utils/Interfaces';
@@ -9,21 +9,41 @@ import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { AuthContextProvider, EventContextProvider } from "../../../context";
 import { downloadFile } from "../../Utils/storages";
 import { useToast } from "../../../hooks/useToast";
+import { validateFiles, ALL_FILES_ACCEPT } from '@bodasdehoy/shared/upload';
 
 const getFileIcon = (fileName: string) => {
   const ext = fileName.split('.').pop()?.toLowerCase();
 
-  if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(ext || '')) {
+  // Imágenes (+ HEIC/HEIF iOS, AVIF moderno)
+  if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'heic', 'heif', 'avif'].includes(ext || '')) {
     return <FileImage className="w-4 h-4 text-primary" />;
   }
-  if (['mp4', 'avi', 'mov', 'wmv'].includes(ext || '')) {
+  // Vídeos (+ webm, mkv)
+  if (['mp4', 'avi', 'mov', 'wmv', 'webm', 'mkv'].includes(ext || '')) {
     return <FileVideo className="w-4 h-4 text-secondary" />;
   }
-  if (['mp3', 'wav', 'ogg'].includes(ext || '')) {
+  // Audio (+ m4a, flac)
+  if (['mp3', 'wav', 'ogg', 'm4a', 'flac'].includes(ext || '')) {
     return <FileAudio className="w-4 h-4 text-green-500" />;
   }
-  if (['pdf', 'doc', 'docx', 'txt'].includes(ext || '')) {
+  // PDF/DOC
+  if (['pdf', 'doc', 'docx', 'odt', 'rtf'].includes(ext || '')) {
     return <FileText className="w-4 h-4 text-red-500" />;
+  }
+  // Spreadsheets / presentaciones
+  if (['xls', 'xlsx', 'ods', 'csv'].includes(ext || '')) {
+    return <FileSpreadsheet className="w-4 h-4 text-emerald-600" />;
+  }
+  if (['ppt', 'pptx', 'odp'].includes(ext || '')) {
+    return <FileText className="w-4 h-4 text-orange-500" />;
+  }
+  // Archives
+  if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext || '')) {
+    return <FileArchive className="w-4 h-4 text-yellow-500" />;
+  }
+  // Texto plano
+  if (['txt', 'md', 'json'].includes(ext || '')) {
+    return <FileText className="w-4 h-4 text-gray-600" />;
   }
 
   return <File className="w-4 h-4 text-gray-500" />;
@@ -71,7 +91,14 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
 
   const handleFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    const filesArray = Array.from(files);
+    // Validar TODOS antes de subir nada. Tope por categoría dinámico
+    // (50MB fotos, 5GB vídeos, 100MB docs, 500MB archives, 100MB audio).
+    const { valid, rejected } = validateFiles(files);
+    for (const r of rejected) {
+      toast('error', `${r.file.name}: ${r.error}`);
+    }
+    if (valid.length === 0) return;
+    const filesArray = valid.map((v) => v.file);
     // Verificar archivos duplicados
     const existingNames = task.attachments.map(elem => elem.name);
     const duplicates = filesArray.filter(file => existingNames.includes(file.name));
@@ -288,6 +315,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
               ref={fileInputRef}
               type="file"
               multiple
+              accept={ALL_FILES_ACCEPT}
               onChange={(e) => handleFileSelect(e.target.files)}
               className="hidden"
             />

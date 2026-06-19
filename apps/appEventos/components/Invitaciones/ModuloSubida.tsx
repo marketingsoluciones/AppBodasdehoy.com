@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { PiCheckFatThin } from "react-icons/pi";
 import { LiaLinkSolid, LiaTrashSolid } from "react-icons/lia";
-import { convertHeicIfNeeded } from "@bodasdehoy/shared/upload";
+import { convertHeicIfNeeded, withRetry, categorize, validateFile, PHOTO_TYPES } from "@bodasdehoy/shared/upload";
 import { getDevelopmentNameFromHostname } from "@bodasdehoy/shared/types";
 import Cookies from "js-cookie";
 import { getAuth } from "firebase/auth";
@@ -75,20 +75,31 @@ export const subir_archivo = async ({ imagePreviewUrl, event, use }) => {
     newFile.append("map", JSON.stringify({ 0: ["variables.file"] }));
     newFile.append("0", imagePreviewUrl.file, imagePreviewUrl.file.name);
 
-    const res = await fetch(resolveApiBodasGraphqlUrl(), {
-      method: "POST",
-      headers: {
-        ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
-        "x-apollo-operation-name": "singleUpload",
-      },
-      body: newFile,
-    });
-    const json = await res.json();
-    const payload = json?.data?.singleUpload;
-    if (!payload?.success || !payload?.file) {
-      const err = payload?.errors?.[0]?.message || json?.errors?.[0]?.message || 'singleUpload failed';
-      throw new Error(err);
-    }
+    // withRetry: red móvil intermitente → 2 reintentos con backoff exponencial
+    // (1s, 2s). isRetryableError NO reintenta en 4xx (auth/payload inválido).
+    const payload = await withRetry(async () => {
+      const res = await fetch(resolveApiBodasGraphqlUrl(), {
+        method: "POST",
+        headers: {
+          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+          "x-apollo-operation-name": "singleUpload",
+        },
+        body: newFile,
+      });
+      if (!res.ok) {
+        const err: any = new Error(`singleUpload HTTP ${res.status}`);
+        err.status = res.status;
+        throw err;
+      }
+      const json = await res.json();
+      const p = json?.data?.singleUpload;
+      if (!p?.success || !p?.file) {
+        const msg = p?.errors?.[0]?.message || json?.errors?.[0]?.message || 'singleUpload failed';
+        throw new Error(msg);
+      }
+      return p;
+    }, { maxRetries: 2, initialDelay: 1000, backoffMultiplier: 2 });
+
     const f = payload.file;
     // Mapear FileMetadata → forma legacy. api-mcp da: original(full), 800w, 400w, thumbnail.
     // Consumers leen i1024/i800/i640/i320 → mapeo más cercano por tamaño.
@@ -163,8 +174,17 @@ const ModuloSubida = (props) => {
       if (!file) {
         return;
       }
+      // Validar: solo fotos (este input es imgEvento/imgInvitacion, NO docs).
+      const v = validateFile(file, { allowedTypes: PHOTO_TYPES });
+      if (!v.valid) {
+        toast("error", v.error || t("erroroccurred"));
+        return;
+      }
       file = await convertHeicIfNeeded(file);
-      const fileNew = file?.size > 900000 ? await resizeImage(file) : file;
+      // Comprimir SOLO si la categoría es photos (defensa por si convertHeic
+      // cambió el tipo o llegó algo raro). resizeImage es JPEG-only.
+      const isPhoto = categorize(file) === 'photos';
+      const fileNew = (isPhoto && file?.size > 900000) ? await resizeImage(file) : file;
       let reader = new FileReader();
       reader.onloadend = () => {
         setImagePreviewUrl({ file: fileNew, image: reader.result, preview: true });
