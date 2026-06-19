@@ -19,6 +19,10 @@ ssh -o BatchMode=yes "$REMOTE_HOST" "export PATH=$REMOTE_PATH:\$PATH; cd $REMOTE
 echo "=== 3) Sincronizar node_modules ==="
 rsync -az --delete -e "ssh -o BatchMode=yes" "$LOCAL_DIR/node_modules/" "$REMOTE_HOST:$REMOTE_DIR/node_modules/"
 
+echo "=== 3.5) Rebuild packages/shared (TypeScript → dist/) ==="
+ssh -o BatchMode=yes "$REMOTE_HOST" "export PATH=$REMOTE_PATH:\$PATH; cd $REMOTE_DIR/packages/shared && \
+  npx tsc 2>&1 | tail -5 && echo '✅ shared/dist rebuilded'"
+
 echo "=== 4) next build appEventos (heap ${HEAP_MB}MB) ==="
 ssh -o BatchMode=yes "$REMOTE_HOST" "export PATH=$REMOTE_PATH:\$PATH; cd $REMOTE_DIR/apps/appEventos && \
   NODE_OPTIONS=--max-old-space-size=$HEAP_MB NEXT_TELEMETRY_DISABLED=1 pnpm exec next build 2>&1 | tail -15"
