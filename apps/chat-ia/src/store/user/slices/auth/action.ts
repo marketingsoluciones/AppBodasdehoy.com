@@ -109,6 +109,7 @@ export const createAuthSlice: StateCreator<
     // 5. Limpiar keys específicas de autenticación
     try {
       localStorage.removeItem('jwt_token');
+      localStorage.removeItem('jwt_token_cache');
       localStorage.removeItem('dev-user-config');
       localStorage.removeItem('invite-token');
       localStorage.removeItem('whitelabel_logo');
