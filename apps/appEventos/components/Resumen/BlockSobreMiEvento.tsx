@@ -7,6 +7,7 @@ import InputField from "../Forms/InputField";
 import { useDelayUnmount } from "../../utils/Funciones";
 import ModalBottom from "../Utils/ModalBottom";
 import { fetchApiBodas, fetchApiEventos, queries } from '../../utils/Fetching';
+import { withRetry } from "@bodasdehoy/shared/upload";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
@@ -480,8 +481,9 @@ const TartaButton: FC<propsElement> = ({ title, value}) => {
       const file = e.target.files[0]
       const reader = new FileReader();
       reader.onloadend = async () => {
-        const result: any = await fetchApiBodas(
-          {
+        // withRetry: red móvil intermitente → 2 reintentos backoff exponencial.
+        const result: any = await withRetry(
+          () => fetchApiBodas({
             query: queries.singleUpload,
             variables: {
               file,
@@ -491,7 +493,8 @@ const TartaButton: FC<propsElement> = ({ title, value}) => {
             },
             type: "formData",
             development: config?.development
-          }
+          }),
+          { maxRetries: 2, initialDelay: 1000, backoffMultiplier: 2 }
         )
         const url = result?.file?.publicUrls?.optimized400w
           ?? result?.file?.publicUrls?.optimized800w

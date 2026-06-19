@@ -7,7 +7,7 @@ import { image } from "../../utils/Interfaces";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { LoadingItem } from "../Loading";
 import { useTranslation } from 'react-i18next';
-import { convertHeicIfNeeded, validateFile } from "@bodasdehoy/shared/upload";
+import { convertHeicIfNeeded, validateFile, withRetry } from "@bodasdehoy/shared/upload";
 
 export const PerfilFoto = () => {
     const { t } = useTranslation();
@@ -52,8 +52,9 @@ const ImageProfile: FC = () => {
 
             // Upload perfil: endpoint dedicado api-mcp uploadProfileImage (commit 9fcea06).
             // Sin eventId, identifica por userId.
-            const result: any = await fetchApiBodas(
-                {
+            // withRetry: red móvil intermitente → 2 reintentos con backoff exponencial.
+            const result: any = await withRetry(
+                () => fetchApiBodas({
                     query: queries.uploadProfileImage,
                     variables: {
                         file,
@@ -63,7 +64,8 @@ const ImageProfile: FC = () => {
                     },
                     type: "formData",
                     development: config?.development
-                }
+                }),
+                { maxRetries: 2, initialDelay: 1000, backoffMultiplier: 2 }
             )
             const url = result?.file?.publicUrls?.optimized400w
                 ?? result?.file?.publicUrls?.optimized800w

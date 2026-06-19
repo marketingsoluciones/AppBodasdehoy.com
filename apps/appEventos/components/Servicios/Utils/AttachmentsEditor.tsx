@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Paperclip, X, Download, Trash2, Upload, File, Image, FileText, Music, Video, Archive, Plus, Check } from 'lucide-react';
+import { Paperclip, X, Download, Trash2, Upload, File, Image, FileText, Music, Video, Archive, Plus, Check, FileSpreadsheet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getStorage, ref, uploadBytesResumable, deleteObject } from 'firebase/storage';
 import { downloadFile } from '../../Utils/storages';
@@ -9,6 +9,7 @@ import ClickAwayListener from 'react-click-away-listener';
 import { customAlphabet } from 'nanoid';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { AuthContextProvider, EventContextProvider } from '../../../context';
+import { validateFiles, ALL_FILES_ACCEPT, MAX_SIZE_BY_CATEGORY } from '@bodasdehoy/shared/upload';
 
 interface AttachmentsEditorProps {
   value: any[];
@@ -25,30 +26,53 @@ const getFileIcon = (fileName: string) => {
   const ext = fileName.split('.').pop()?.toLowerCase() || '';
 
   const iconMap: { [key: string]: React.ReactElement } = {
-    // Imágenes
+    // Imágenes (+ HEIC/HEIF iOS, AVIF moderno)
     jpg: <Image className="w-4 h-4" />,
     jpeg: <Image className="w-4 h-4" />,
     png: <Image className="w-4 h-4" />,
     gif: <Image className="w-4 h-4" />,
     svg: <Image className="w-4 h-4" />,
     webp: <Image className="w-4 h-4" />,
-    // Documentos
+    heic: <Image className="w-4 h-4" />,
+    heif: <Image className="w-4 h-4" />,
+    avif: <Image className="w-4 h-4" />,
+    // Documentos PDF / Word
     pdf: <FileText className="w-4 h-4 text-red-500" />,
     doc: <FileText className="w-4 h-4 text-blue-500" />,
     docx: <FileText className="w-4 h-4 text-blue-500" />,
+    odt: <FileText className="w-4 h-4 text-blue-500" />,
+    rtf: <FileText className="w-4 h-4 text-blue-500" />,
+    // Spreadsheets / CSV
+    xls: <FileSpreadsheet className="w-4 h-4 text-emerald-600" />,
+    xlsx: <FileSpreadsheet className="w-4 h-4 text-emerald-600" />,
+    ods: <FileSpreadsheet className="w-4 h-4 text-emerald-600" />,
+    csv: <FileSpreadsheet className="w-4 h-4 text-emerald-600" />,
+    // Presentaciones
+    ppt: <FileText className="w-4 h-4 text-orange-500" />,
+    pptx: <FileText className="w-4 h-4 text-orange-500" />,
+    odp: <FileText className="w-4 h-4 text-orange-500" />,
+    // Texto plano
     txt: <FileText className="w-4 h-4" />,
+    md: <FileText className="w-4 h-4" />,
+    json: <FileText className="w-4 h-4" />,
     // Audio
     mp3: <Music className="w-4 h-4 text-secondary" />,
     wav: <Music className="w-4 h-4 text-secondary" />,
     ogg: <Music className="w-4 h-4 text-secondary" />,
+    m4a: <Music className="w-4 h-4 text-secondary" />,
+    flac: <Music className="w-4 h-4 text-secondary" />,
     // Video
     mp4: <Video className="w-4 h-4 text-green" />,
     avi: <Video className="w-4 h-4 text-green" />,
     mov: <Video className="w-4 h-4 text-green" />,
-    // Archivos
+    webm: <Video className="w-4 h-4 text-green" />,
+    mkv: <Video className="w-4 h-4 text-green" />,
+    // Archives
     zip: <Archive className="w-4 h-4 text-yellow-500" />,
     rar: <Archive className="w-4 h-4 text-yellow-500" />,
     '7z': <Archive className="w-4 h-4 text-yellow-500" />,
+    tar: <Archive className="w-4 h-4 text-yellow-500" />,
+    gz: <Archive className="w-4 h-4 text-yellow-500" />,
   };
 
   return iconMap[ext] || <File className="w-4 h-4" />;
@@ -136,7 +160,19 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
     if (!files || files.length === 0) return;
     try {
       setUploading(true);
-      const filesArray = Array.from(files);
+      // Validar TODOS antes de subir nada. Tope por categoría dinámico
+      // (50MB fotos, 5GB vídeos, 100MB docs, 500MB archives, 100MB audio).
+      const { valid, rejected } = validateFiles(files);
+      if (rejected.length > 0) {
+        for (const r of rejected) {
+          toast('error', `${r.file.name}: ${r.error}`);
+        }
+      }
+      if (valid.length === 0) {
+        setUploading(false);
+        return;
+      }
+      const filesArray = valid.map((v) => v.file);
 
       // Crear nuevos attachments con los archivos
       let newAttachments: FileData[] = [
@@ -152,11 +188,6 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
       onChange(newAttachments);
       // Subir archivos uno por uno
       for (const file of filesArray) {
-        // Validar tamaño (máximo 10MB)
-        if (file.size > 10 * 1024 * 1024) {
-          toast('error', t('El archivo es demasiado grande. Máximo 10MB'));
-          continue;
-        }
         const storageRef = ref(storage, `${taskId}//${file.name}`);
         const uploadTask = uploadBytesResumable(storageRef, file);
         uploadTask.on('state_changed',
@@ -415,6 +446,7 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
               ref={fileInputRef}
               type="file"
               multiple
+              accept={ALL_FILES_ACCEPT}
               onChange={(e) => handleFileSelect(e.target.files)}
               className="hidden"
             />
