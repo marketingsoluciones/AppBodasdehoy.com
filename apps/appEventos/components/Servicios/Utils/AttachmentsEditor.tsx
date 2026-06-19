@@ -9,7 +9,7 @@ import ClickAwayListener from 'react-click-away-listener';
 import { customAlphabet } from 'nanoid';
 import { fetchApiEventos, queries } from '../../../utils/Fetching';
 import { AuthContextProvider, EventContextProvider } from '../../../context';
-import { validateFiles, ALL_FILES_ACCEPT, MAX_SIZE_BY_CATEGORY } from '@bodasdehoy/shared/upload';
+import { validateFiles, ALL_FILES_ACCEPT, MAX_SIZE_BY_CATEGORY, filesFromDataTransfer, filterDropFiles } from '@bodasdehoy/shared/upload';
 
 interface AttachmentsEditorProps {
   value: any[];
@@ -314,11 +314,20 @@ export const AttachmentsEditor: React.FC<AttachmentsEditorProps> = ({
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setShowDropzone(false);
-    handleFileSelect(e.dataTransfer.files);
+    // filesFromDataTransfer recorre subcarpetas con webkitGetAsEntry —
+    // sin esto soltar una CARPETA daba 0 archivos. filterDropFiles descarta
+    // .DS_Store, ._* y archivos 0 bytes que iOS suele incluir.
+    const { files: dropped } = await filesFromDataTransfer(e.dataTransfer);
+    const { kept } = filterDropFiles(dropped);
+    if (kept.length === 0) return;
+    // Reconstruir como FileList-compat para reusar handleFileSelect existente.
+    const dt = new DataTransfer();
+    kept.forEach((f) => dt.items.add(f));
+    handleFileSelect(dt.files);
   };
 
   if (!isEditing) {

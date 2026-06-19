@@ -9,7 +9,7 @@ import { fetchApiEventos, queries } from "../../../utils/Fetching";
 import { AuthContextProvider, EventContextProvider } from "../../../context";
 import { downloadFile } from "../../Utils/storages";
 import { useToast } from "../../../hooks/useToast";
-import { validateFiles, ALL_FILES_ACCEPT } from '@bodasdehoy/shared/upload';
+import { validateFiles, ALL_FILES_ACCEPT, filesFromDataTransfer, filterDropFiles } from '@bodasdehoy/shared/upload';
 
 const getFileIcon = (fileName: string) => {
   const ext = fileName.split('.').pop()?.toLowerCase();
@@ -276,13 +276,20 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
     e.stopPropagation();
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
 
-    const files = e.dataTransfer.files;
-    handleFileSelect(files);
+    // filesFromDataTransfer recorre subcarpetas con webkitGetAsEntry;
+    // soltar una CARPETA antes daba 0 archivos. filterDropFiles descarta
+    // .DS_Store, ._* y archivos 0 bytes.
+    const { files: dropped } = await filesFromDataTransfer(e.dataTransfer);
+    const { kept } = filterDropFiles(dropped);
+    if (kept.length === 0) return;
+    const dt = new DataTransfer();
+    kept.forEach((f) => dt.items.add(f));
+    handleFileSelect(dt.files);
   };
 
   return (
