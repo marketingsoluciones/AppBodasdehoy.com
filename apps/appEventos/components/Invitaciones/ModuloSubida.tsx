@@ -3,37 +3,16 @@ import { EventContextProvider } from "../../context";
 import { CheckIcon, EditarIcon, SubirImagenIcon } from "../icons";
 import { useToast } from "../../hooks/useToast";
 import { useAllowed } from "../../hooks/useAllowed";
-import Resizer from "react-image-file-resizer";
 import { useTranslation } from 'react-i18next';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { PiCheckFatThin } from "react-icons/pi";
 import { LiaLinkSolid, LiaTrashSolid } from "react-icons/lia";
-import { convertHeicIfNeeded, withRetry, categorize, validateFile, PHOTO_TYPES } from "@bodasdehoy/shared/upload";
+import { convertHeicIfNeeded, withRetry, categorize, validateFile, PHOTO_TYPES, compressImage } from "@bodasdehoy/shared/upload";
 import { getDevelopmentNameFromHostname } from "@bodasdehoy/shared/types";
 import Cookies from "js-cookie";
 import { getAuth } from "firebase/auth";
 import { createURL } from "../../utils/UrlImage";
 import { resolveApiBodasGraphqlUrl } from "../../utils/apiEndpoints";
-
-const resizeImage = (file) => {
-  try {
-    return new Promise((resolve) => {
-      Resizer.imageFileResizer(
-        file,
-        1200,
-        1200,
-        "JPEG",
-        80,
-        0,
-        (uri) => resolve(uri),
-        "file"
-      );
-    });
-  } catch (error) {
-    console.error("Error resizing image:", error);
-    return error;
-  }
-}
 
 // Sube imagen a api-mcp (singleUpload → R2 multi-tenant). Mantiene la forma de respuesta
 // legacy { _id, i1024, i800, i640, i320, createdAt } esperada por los consumers (event[use]
@@ -181,10 +160,15 @@ const ModuloSubida = (props) => {
         return;
       }
       file = await convertHeicIfNeeded(file);
-      // Comprimir SOLO si la categoría es photos (defensa por si convertHeic
-      // cambió el tipo o llegó algo raro). resizeImage es JPEG-only.
+      // Comprimir SOLO si la categoría es photos. compressImage del shared:
+      //   - lee EXIF orientation y rota (resuelve iPhone vertical al revés)
+      //   - usa OffscreenCanvas
+      //   - solo comprime si el resultado es realmente más pequeño
+      //   - skipUnderSize 500KB (configurado en la función) evita tocar fotos pequeñas
       const isPhoto = categorize(file) === 'photos';
-      const fileNew = (isPhoto && file?.size > 900000) ? await resizeImage(file) : file;
+      const fileNew = isPhoto
+        ? await compressImage(file, { maxWidth: 1200, quality: 0.8 })
+        : file;
       let reader = new FileReader();
       reader.onloadend = () => {
         setImagePreviewUrl({ file: fileNew, image: reader.result, preview: true });

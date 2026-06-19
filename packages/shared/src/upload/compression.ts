@@ -1,7 +1,16 @@
 /**
  * Client-side image compression using Canvas API.
  * No external dependencies required.
+ *
+ * Lee EXIF orientation antes de canvas y rota — sin esto, fotos verticales
+ * del iPhone (EXIF orientation 6/8) salían al revés tras compresión.
  */
+
+import {
+  readExifOrientation,
+  rotateForOrientation,
+  isOrientationSwapped,
+} from './exif';
 
 export interface CompressImageOptions {
   /** Max width in pixels. Defaults to 1920. */
@@ -12,6 +21,8 @@ export interface CompressImageOptions {
   outputType?: 'image/jpeg' | 'image/webp';
   /** Skip compression if file is already under this size in bytes. Defaults to 500KB. */
   skipUnderSize?: number;
+  /** Respect EXIF orientation. Defaults to true. */
+  respectExif?: boolean;
 }
 
 /**
@@ -27,6 +38,7 @@ export async function compressImage(
     quality = 0.85,
     outputType = 'image/jpeg',
     skipUnderSize = 500 * 1024, // 500KB
+    respectExif = true,
   } = options;
 
   // Not an image or already small enough — return as-is
@@ -38,6 +50,7 @@ export async function compressImage(
   if (file.type === 'image/svg+xml') return file;
 
   try {
+    const orientation = respectExif ? await readExifOrientation(file) : 1;
     const bitmap = await createImageBitmap(file);
     const { width, height } = bitmap;
 
@@ -48,17 +61,25 @@ export async function compressImage(
     }
 
     const scale = width > maxWidth ? maxWidth / width : 1;
-    const targetWidth = Math.round(width * scale);
-    const targetHeight = Math.round(height * scale);
+    const sourceWidth = Math.round(width * scale);
+    const sourceHeight = Math.round(height * scale);
+    // Si EXIF orientation rota 90°, el canvas final lleva w/h intercambiados.
+    const swap = isOrientationSwapped(orientation);
+    const canvasWidth = swap ? sourceHeight : sourceWidth;
+    const canvasHeight = swap ? sourceWidth : sourceHeight;
 
-    const canvas = new OffscreenCanvas(targetWidth, targetHeight);
+    const canvas = new OffscreenCanvas(canvasWidth, canvasHeight);
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       bitmap.close();
       return file;
     }
 
-    ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
+    if (orientation !== 1) {
+      rotateForOrientation(bitmap, orientation, ctx, sourceWidth, sourceHeight);
+    } else {
+      ctx.drawImage(bitmap, 0, 0, sourceWidth, sourceHeight);
+    }
     bitmap.close();
 
     const blob = await canvas.convertToBlob({ type: outputType, quality });
