@@ -24,6 +24,8 @@ import { checkUrl, logUrlVerification } from '../utils/verifyUrls';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { CopilotPrewarmer } from '../components/Copilot/CopilotPrewarmer';
 import { captureTrackingParams } from '@bodasdehoy/shared';
+import { UploadProvider } from '../components/Upload/UploadProvider';
+import { UploadTray } from '../components/Upload/UploadTray';
 
 
 const DevWhitelabelSwitcher = dynamic(
@@ -98,17 +100,20 @@ const MyApp = ({ Component, pageProps }) => {
         {...ogData}
       />
       <I18nextProvider i18n={i18n}>
-        <DefaultLayout>
-          <CopilotPrewarmer />
-          {!!message && <div className='bg-yellow-400 absolute top-[7.5rem] left-0 w-full bg-red-500 z-50 flex items-center justify-center'>
-            <span className='text-center px-10 py-0.5'>{message}</span>
-          </div>}
-          <Load setValirBlock={setValirBlock} />
-          {valirBlock
-            ? <BlockRedirection />
-            : <Component {...pageProps} />
-          }
-        </DefaultLayout>
+        <UploadProvider>
+          <DefaultLayout>
+            <CopilotPrewarmer />
+            {!!message && <div className='bg-yellow-400 absolute top-[7.5rem] left-0 w-full bg-red-500 z-50 flex items-center justify-center'>
+              <span className='text-center px-10 py-0.5'>{message}</span>
+            </div>}
+            <Load setValirBlock={setValirBlock} />
+            {valirBlock
+              ? <BlockRedirection />
+              : <Component {...pageProps} />
+            }
+            <UploadTray />
+          </DefaultLayout>
+        </UploadProvider>
       </I18nextProvider>
       {process.env.NODE_ENV === 'development' && <DevWhitelabelSwitcher />}
     </ErrorBoundary>
