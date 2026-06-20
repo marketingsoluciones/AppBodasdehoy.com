@@ -21,9 +21,18 @@ export const RowString: FC<props> = (props) => {
   const [isAllowed] = useAllowed()
 
   const handleChange = ({ value }) => {
-    const f1 = event?.invitados_array?.findIndex(elem => elem._id === guestID)
-    event.invitados_array[f1][variable] = value
-    setEvent({ ...event })
+    // Inmutable: NO mutar event.invitados_array directamente. Reemplazamos la
+    // referencia para que React detecte el cambio y los useMemo/useEffect que
+    // comparen invitados_array por referencia se invaliden correctamente.
+    setEvent((prev: any) => {
+      if (!prev?.invitados_array) return prev
+      const idx = prev.invitados_array.findIndex((elem: any) => elem._id === guestID)
+      if (idx < 0) return prev
+      const next = { ...prev }
+      next.invitados_array = [...prev.invitados_array]
+      next.invitados_array[idx] = { ...next.invitados_array[idx], [variable]: value }
+      return next
+    })
     fetchApiBodas({
       query: queries.editGuests,
       variables: {
