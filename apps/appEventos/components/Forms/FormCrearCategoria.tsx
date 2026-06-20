@@ -34,21 +34,31 @@ const FormCrearCategoria = ({ set, state }: Props) => {
         nombre: "",
       }}
       onSubmit={async (values, actions) => {
-        fetchApiEventos({
-          query: queries.nuevoCategoria,
-          variables: {
-            evento_id: event?._id,
-            nombre: values?.nombre,
+        try {
+          const result: any = await fetchApiEventos({
+            query: queries.nuevoCategoria,
+            variables: {
+              evento_id: event?._id,
+              nombre: values?.nombre,
+            }
+          })
+          // PRES-01 (2026-06-20): el patrón anterior tenía .catch(() => {}) silente y
+          // setEvent({...event}) sin cambios → modal se cerraba aunque la mutation fallara.
+          // Ahora chequeamos success/errors y mantenemos el modal abierto si falla.
+          if (result?.success === false && Array.isArray(result?.errors) && result.errors.length) {
+            console.warn('[FormCrearCategoria] mutation rechazada:', result.errors)
+            actions.setSubmitting(false)
+            return
           }
-        }).then((result: any) => {
           if (result?.evento?.presupuesto_objeto) {
             setEvent({ ...event, presupuesto_objeto: result.evento.presupuesto_objeto })
-          } else {
-            setEvent({ ...event })
           }
-          set(!state);
-          actions.setSubmitting(false);
-        }).catch(() => {})
+          set(!state)
+          actions.setSubmitting(false)
+        } catch (error) {
+          console.warn('[FormCrearCategoria] error de red:', error)
+          actions.setSubmitting(false)
+        }
       }}
       validate={validacion}
     >

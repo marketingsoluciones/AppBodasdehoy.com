@@ -172,12 +172,15 @@ export const EventsTable: FC<any> = () => {
             { color: "bg-orange-400", title: "Naranja" },
             { color: "bg-lime-600", title: "verde" },
           ]
-          const colorFind = list.find((elem) => elem.title === data.value[0])
+          // EVT-01: guard contra data.value null (eventos con campo color ausente).
+          // Sin esto, .length tira la página entera (ErrorBoundary).
+          const values = Array.isArray(data.value) ? data.value : []
+          const colorFind = list.find((elem) => elem.title === values[0])
           return (
             <div className={`flex w-full items-center justify-center capitalize  `}>
-              {data.value.length > 0 ?
+              {values.length > 0 ?
                 <span className={`${colorFind?.color} flex w-full* items-center capitalize text-white  p-1 rounded-md text-[10px] `}>
-                  {colorFind?.title + " +" + (data.value.length - 1)}
+                  {colorFind?.title + " +" + (values.length - 1)}
                 </span> :
                 <span className={`bg-gray-400 flex w-full* items-center capitalize text-white  p-1 rounded-md text-[10px]`}>
                   null
@@ -245,9 +248,10 @@ export const EventsTable: FC<any> = () => {
         accessor: "invitados_array",
         id: "invitados_array",
         Cell: (data) => {
+          const arr = Array.isArray(data.value) ? data.value : []
           return (
             <div className="flex w-full items-center justify-end capitalize">
-              {data.value.length > 0 ? data.value.length : ""}
+              {arr.length > 0 ? arr.length : ""}
             </div>
           )
         }
@@ -257,13 +261,14 @@ export const EventsTable: FC<any> = () => {
         accessor: "detalles_compartidos_array",
         id: "detalles_compartidos_array",
         Cell: (data) => {
+          const arr = Array.isArray(data.value) ? data.value : []
           return (
             <div onClick={() => {
               data.data[data.cell.row.id]?.usuario_id === user?.uid &&
                 setOpenModal({ state: true, data: data.data[data.cell.row.id], idx: data.cell.row.id })
             }} className=" w-full capitalize">
               {
-                data.value.length > 0 ?
+                arr.length > 0 ?
                   <UsuariosCompartidos event={data.data[data.cell.row.id]} /> :
                   data.data[data.cell.row.id]?.usuario_id === user?.uid ?
                     <div className="flex items-center justify-center">
@@ -283,9 +288,10 @@ export const EventsTable: FC<any> = () => {
         accessor: "itinerarios_array",
         id: "itinerarios_array",
         Cell: (data) => {
+          const arr = Array.isArray(data.value) ? data.value : []
           return (
             <div className="flex w-full items-center justify-end capitalize">
-              {data.value.length > 0 ? data.value.length : ""}
+              {arr.length > 0 ? arr.length : ""}
             </div>
           )
         }
@@ -295,9 +301,10 @@ export const EventsTable: FC<any> = () => {
         accessor: "menus_array",
         id: "menus_array",
         Cell: (data) => {
+          const arr = Array.isArray(data.value) ? data.value : []
           return (
             <div className="flex w-full items-center justify-end capitalize">
-              {data.value.length > 0 ? data.value.length : ""}
+              {arr.length > 0 ? arr.length : ""}
             </div>
           )
         }

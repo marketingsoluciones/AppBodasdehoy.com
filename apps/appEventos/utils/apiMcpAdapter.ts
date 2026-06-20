@@ -399,10 +399,17 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapResponse: (p) => p,
   },
 
-  // getEventsByID (queryenEvento legacy) → getEventoById(id) cuando variable="_id". Otros (usuario_id) caen a apiapp.
-  // imgEvento/imgInvitacion en api-mcp son String (slug). Pedimos imgEventoSizes/imgInvitacionSizes (type ImageSizes con i1024/i800/i640/i320)
-  // y los renombramos en mapResponse para mantener la forma { iXXX } esperada por los consumers existentes.
-  getEventsByID: {
+  // API-01 (2026-06-20): la CLAVE del adapter debe matchear con el field GraphQL,
+  // no con el nombre del wrapper en `queries`. extractGraphqlField sobre
+  // `query { queryenEvento(...) {...} }` devuelve "queryenEvento" → si la clave era
+  // "getEventsByID" el adapter NUNCA se activaba y caía al fallback con la query
+  // literal → 400 GRAPHQL_VALIDATION_FAILED "Cannot query field queryenEvento".
+  //
+  // queryenEvento (legacy apiapp) → getEventoById(id) cuando variable="_id".
+  // imgEvento/imgInvitacion en api-mcp son String (slug). Pedimos imgEventoSizes/imgInvitacionSizes
+  // (type ImageSizes con i1024/i800/i640/i320) y los renombramos en mapResponse para mantener
+  // la forma { iXXX } esperada por los consumers existentes.
+  queryenEvento: {
     canonicalQuery: `query($id:ID!){ getEventoById(id:$id){
       _id development estatus tipo color nombre fecha poblacion pais
       usuario_id usuario_nombre compartido_array detalles_compartidos_array
@@ -476,13 +483,20 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapResponse: (p) => p,
   },
   // addTaskAttachments(task_id, development, adjuntos:[TaskAttachmentInput!]!): front pasa attachment (single) → array.
+  // UP-02 (2026-06-20): TaskAttachmentInput requiere `nombre`, no `name`. Los call-sites
+  // (AttachmentsEditor, NewAttachmentsEditor, InputAttachments) construyen FileData con
+  // `{_id, name, size}` (legacy) → mapear name→nombre aquí.
   addTaskAttachments: {
     canonicalQuery: `mutation($task_id:ID!,$development:String!,$adjuntos:[TaskAttachmentInput!]!){
       addTaskAttachments(task_id:$task_id, development:$development, adjuntos:$adjuntos){ success errors{ field message code } }
     }`,
     mapVariables: (v) => {
-      const adj = v.adjuntos ?? (v.attachment ? [v.attachment] : (v.attachments ?? []));
-      return { task_id: v.task_id ?? v.taskID, development: v.development ?? 'bodasdehoy', adjuntos: adj };
+      const rawAdj = v.adjuntos ?? (v.attachment ? [v.attachment] : (v.attachments ?? []));
+      const adjuntos = (Array.isArray(rawAdj) ? rawAdj : []).map((a: any) => ({
+        ...a,
+        nombre: a?.nombre ?? a?.name ?? '',
+      }));
+      return { task_id: v.task_id ?? v.taskID, development: v.development ?? 'bodasdehoy', adjuntos };
     },
     mapResponse: (p) => p,
   },
