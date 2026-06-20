@@ -86,7 +86,11 @@ export const InputComments: FC<props> = ({
             .then(() => {
               elem.loading = false
             })
-            .catch(() => {})
+            .catch((error) => {
+              elem.loading = false
+              ;(elem as any).error = error?.code ?? error?.message ?? 'upload_failed'
+              console.warn('[InputComments] uploadBytesResumable falló:', elem.file?.name, error?.message ?? error)
+            })
         })
         Promise.all(promises).then(() => {
           setTempPastedAndDropFiles([...tempPastedAndDropFiles])

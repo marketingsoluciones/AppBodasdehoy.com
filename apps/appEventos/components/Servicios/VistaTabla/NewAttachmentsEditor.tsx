@@ -172,9 +172,11 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
             })
           } catch (error) {
             console.error('Error updating attachments:', error);
-            // Si falla la actualización, eliminar el archivo del storage
+            // Si falla la actualización, eliminar el archivo del storage (cleanup).
             const deleteRef = ref(storage, `${task._id}//${file.name}`);
-            deleteObject(deleteRef).catch(() => { });
+            deleteObject(deleteRef).catch((delErr) => {
+              console.warn('[NewAttachmentsEditor] deleteObject cleanup falló:', delErr?.code ?? delErr?.message ?? delErr)
+            });
             setUploadingFiles(prev => prev.map(elem =>
               elem.id === uploadId ? { ...elem, status: 'error' } : elem
             ));

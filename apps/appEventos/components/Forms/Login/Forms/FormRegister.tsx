@@ -224,10 +224,14 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               mobile: (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
             }
           }
-        }).catch(() => {})
+        }).catch((error) => {
+          // Tracking de preregistro best-effort: si falla NO bloquea el registro.
+          console.warn('[FormRegister] updateActivityLink preregistered falló:', error?.message ?? error)
+        })
       }
       setPhoneNumber(values?.phoneNumber)
-    } catch {
+    } catch (error) {
+      console.warn('[FormRegister] handlePreRegister:', error)
     }
   }
 

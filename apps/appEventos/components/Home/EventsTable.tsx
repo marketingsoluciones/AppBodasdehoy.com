@@ -2,7 +2,7 @@ import { FC, useEffect, useMemo, useState, useRef } from "react";
 import { useRowSelect, useSortBy, useTable } from "react-table";
 import { useTranslation } from 'react-i18next';
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
-import { getCurrency } from "../../utils/Funciones";
+import { getCurrency, safeArr } from "../../utils/Funciones";
 import { LiaPaperclipSolid } from "react-icons/lia";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useRouter } from "next/navigation";
@@ -174,7 +174,7 @@ export const EventsTable: FC<any> = () => {
           ]
           // EVT-01: guard contra data.value null (eventos con campo color ausente).
           // Sin esto, .length tira la página entera (ErrorBoundary).
-          const values = Array.isArray(data.value) ? data.value : []
+          const values = safeArr<string>(data.value)
           const colorFind = list.find((elem) => elem.title === values[0])
           return (
             <div className={`flex w-full items-center justify-center capitalize  `}>
@@ -248,7 +248,7 @@ export const EventsTable: FC<any> = () => {
         accessor: "invitados_array",
         id: "invitados_array",
         Cell: (data) => {
-          const arr = Array.isArray(data.value) ? data.value : []
+          const arr = safeArr(data.value)
           return (
             <div className="flex w-full items-center justify-end capitalize">
               {arr.length > 0 ? arr.length : ""}
@@ -261,7 +261,7 @@ export const EventsTable: FC<any> = () => {
         accessor: "detalles_compartidos_array",
         id: "detalles_compartidos_array",
         Cell: (data) => {
-          const arr = Array.isArray(data.value) ? data.value : []
+          const arr = safeArr(data.value)
           return (
             <div onClick={() => {
               data.data[data.cell.row.id]?.usuario_id === user?.uid &&
@@ -288,7 +288,7 @@ export const EventsTable: FC<any> = () => {
         accessor: "itinerarios_array",
         id: "itinerarios_array",
         Cell: (data) => {
-          const arr = Array.isArray(data.value) ? data.value : []
+          const arr = safeArr(data.value)
           return (
             <div className="flex w-full items-center justify-end capitalize">
               {arr.length > 0 ? arr.length : ""}
@@ -301,7 +301,7 @@ export const EventsTable: FC<any> = () => {
         accessor: "menus_array",
         id: "menus_array",
         Cell: (data) => {
-          const arr = Array.isArray(data.value) ? data.value : []
+          const arr = safeArr(data.value)
           return (
             <div className="flex w-full items-center justify-end capitalize">
               {arr.length > 0 ? arr.length : ""}

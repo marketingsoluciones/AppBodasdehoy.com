@@ -72,7 +72,13 @@ export const InputCommentsOld: FC<props> = ({ itinerario, task, tempPastedAndDro
             .then(() => {
               elem.loading = false
             })
-            .catch(() => {})
+            .catch((error) => {
+              // Marcar el archivo como error para que la UI pueda mostrar estado
+              // (el componente debe leer elem.loading/elem.error en su render).
+              elem.loading = false
+              ;(elem as any).error = error?.code ?? error?.message ?? 'upload_failed'
+              console.warn('[InputCommentsOld] uploadBytesResumable falló:', elem.file?.name, error?.message ?? error)
+            })
         })
         Promise.all(promises).then(() => {
           setTempPastedAndDropFiles([...tempPastedAndDropFiles])

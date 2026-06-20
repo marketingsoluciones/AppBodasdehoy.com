@@ -191,7 +191,11 @@ function GuestInfoCard({
         const guest = guests.find((g) => g._id === guestId) ?? guests.find((g) => g.father === null) ?? guests[0];
         if (guest) setData(guest);
       })
-      .catch(() => {});
+      .catch((error) => {
+        // Página pública del invitado: si la red falla queda sin data → el guard
+        // `if (!data) return null` lo gestiona, pero logueamos para detectar caídas API.
+        console.warn('[public/rsvp-guest] fetch falló:', error?.message ?? error);
+      });
   }, [token, guestId]);
 
   if (!data) return null;
@@ -483,7 +487,10 @@ const GuestPortal: NextPage<Props> = ({ event, error }) => {
     fetch(`/api/public/seating/${event._id}`)
       .then((r) => r.json())
       .then((data) => setSeatGuests(data.guests ?? []))
-      .catch(() => {});
+      .catch((error) => {
+        // Mapa de mesas público: si falla queda vacío → la UI muestra estado neutro.
+        console.warn('[public/seating] fetch falló:', error?.message ?? error);
+      });
   }, [event?._id]);
 
   // Cargar álbumes del evento desde memories
@@ -502,7 +509,9 @@ const GuestPortal: NextPage<Props> = ({ event, error }) => {
         const all = [...(main ? [main] : []), ...subs];
         setAlbums(all);
       })
-      .catch(() => {})
+      .catch((error) => {
+        console.warn('[memories/by-event] fetch falló:', error?.message ?? error);
+      })
       .finally(() => setAlbumsLoaded(true));
   }, [event?._id]);
 
