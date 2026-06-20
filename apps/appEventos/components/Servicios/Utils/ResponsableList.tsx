@@ -48,7 +48,7 @@ export const ResponsableList = ({ openModal, setOpenModal, DataArry, setSelectIc
                                         onClick={() => { handleClick(item) }}
                                     >
                                         <div className="w-10 h-10 border-[1px] border-gray-300 rounded-full flex justify-center items-center">
-                                            <img src={item?.icon} className="object-cover w-full h-full rounded-full" />
+                                            <img alt={item?.title ?? 'responsable'} src={item?.icon} className="object-cover w-full h-full rounded-full" />
                                         </div>
                                         <span className="flex-1">{t(item?.title)}</span>
                                         {value?.includes(item?.title) && <span className="w-4">x</span>}

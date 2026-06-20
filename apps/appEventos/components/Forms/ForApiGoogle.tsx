@@ -132,7 +132,7 @@ export const ForApiPeople = ({ setContact, showForApiGoogle, setShowForApiGoogle
             </div>
             }
             {false && <div className="bg-gray-100 w-10 h-10 rounded-full flex items-center justify-center truncate">
-              <img src={userInfo?.picture} />
+              <img alt={userInfo?.name ?? 'Usuario'} src={userInfo?.picture} />
             </div>}
           </div>
         </div>

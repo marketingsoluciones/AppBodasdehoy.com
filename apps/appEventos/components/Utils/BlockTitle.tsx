@@ -94,7 +94,7 @@ export const BlockTitle = ({ title }) => {
         openModalDrive ?
           <Modal {...({ openIcon: openModalDrive, setOpenIcon: setOpenModalDrive, classe: "h-max w-[40%] flex items-center justify-center" } as any)}>
             <div className='my-10 mx-32'>
-              <img src='/WIP.png' />
+              <img alt="Work in progress" src='/WIP.png' />
             </div>
           </Modal>
           : null

@@ -64,7 +64,6 @@ const BlockVista: FC<propsBlockVista> = ({ children }) => {
             </h1>
             <span className="font-display font-base text-sm flex gap-2 mx-auto w-max inset-x-0">
               <p className="text-gray-500">
-                {/* @ts-ignore */}
                 {utcDateFormated(event?.fecha)}
               </p>
               -<p className="text-primary">{event?.tipo == "otro" ? t("Mi Evento Especial") : event?.tipo && capitalize(t(event?.tipo))}</p>

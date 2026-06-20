@@ -12,7 +12,9 @@ export const getRelativeTime = (date: number) => {
 
   for (var u in units)
     if (Math?.abs(elapsed) > units[u] || u == 'second') {
-      //@ts-ignore
+      // @ts-expect-error — `u` viene de Object.keys(units) (string genérico)
+      // pero rtf.format espera Intl.RelativeTimeFormatUnit. Las claves de units
+      // SON valores válidos del enum, pero TS no puede inferirlo.
       return rtf?.format(Math.round(elapsed / units[u]), u)
     }
 
