@@ -55,7 +55,7 @@ const Notification = ({ data }) => {
   return (
     <div className="flex gap-3 w-full min-w-full justify-start items-center border-b border-base py-3 px-3 relative rounded-lg overflow-hidden hover:bg-base transition">
       <div className="w-1 h-full bg-tertiary absolute left-0 rounded-lg " />
-      <img src="/profile_woman.png" className="w-8 h-8 object-cover" />
+      <img alt="" aria-hidden="true" src="/profile_woman.png" className="w-8 h-8 object-cover" />
       <p className="text-gray-300 text-sm font-medium ">
         <span className="font-normal text-gray-500">
           {mensaje}

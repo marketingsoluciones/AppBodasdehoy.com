@@ -29,8 +29,8 @@ const Perfil = () => {
 
         <div className="max-w-screen-lg mx-auto inset-x-0 py-10 grid gap-10 font-display">
           <div className="bg-white rounded-xl h-96 w-full shadow overflow-hidden relative">
-            <img className="h-2/5 object-cover object-top bg-black w-full" src="/boda_card.jpg" />
-            <img className="rounded-full p-1 bg-white h-40 w-40 object-cover absolute top-12 left-10" src="profile_men.png" />
+            <img alt="" aria-hidden="true" className="h-2/5 object-cover object-top bg-black w-full" src="/boda_card.jpg" />
+            <img alt="" aria-hidden="true" className="rounded-full p-1 bg-white h-40 w-40 object-cover absolute top-12 left-10" src="profile_men.png" />
             <div className="font-display py-14 px-10 leading-5">
               <h2 className="font-semibold text-xl text-gray-300">Francisco Montilla</h2>
               <p className="font-regular text-md text-gray-300">{t("developergraphic")}</p>

@@ -17,6 +17,16 @@ const nextConfig = {
   // SOLO quedan los packages externos que aún requieren transpile.
   transpilePackages: ['@lobehub/ui', '@lobehub/editor', 'react-layout-kit', 'zustand-utils'],
 
+  // Antipatrón 6 (auditoría 20-jun): 109 archivos tenían console.log heredados de debug.
+  // El SWC compiler de Next 15 los elimina del bundle de producción —
+  // mantenemos `error` y `warn` para que sigan llegando a Sentry y a logs operativos
+  // (especialmente útil ahora que erradicamos los .catch silentes en commit 70ac0402).
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+
   // Redirects para URLs con caracteres especiales → ASCII equivalente
   async redirects() {
     return [
