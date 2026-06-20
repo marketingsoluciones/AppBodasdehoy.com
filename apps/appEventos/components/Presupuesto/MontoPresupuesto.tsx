@@ -61,7 +61,9 @@ export const MontoPresupuesto = () => {
         event.presupuesto_objeto.currency = currency
         setEvent({ ...event })
       }
-    }).catch(() => {})
+    }).catch((error) => {
+      console.warn('[MontoPresupuesto] editCurrency falló:', error?.message ?? error)
+    })
   }
 
   return (

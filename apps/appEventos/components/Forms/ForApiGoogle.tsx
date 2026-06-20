@@ -70,7 +70,10 @@ export const ForApiPeople = ({ setContact, showForApiGoogle, setShowForApiGoogle
     fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=\"${showForApiGoogle?.payload?.access_token}\"`, requestOptions)
       .then(response => response.text())
       .then(result => setUserInfo(JSON.parse(result)))
-      .catch(() => {})
+      .catch((error) => {
+        // Si Google devuelve error o el token expiró: solo afecta la auto-foto del usuario.
+        console.warn('[ForApiGoogle] userinfo falló (no bloquea import contactos):', error?.message ?? error)
+      })
   }, [])
 
   useEffect(() => {

@@ -81,7 +81,11 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
     const storageRef = ref(storage, `${task._id}//${elem.name}`)
     deleteObject(storageRef)
       .then(() => { })
-      .catch(() => { })
+      .catch((error) => {
+        // Cleanup best-effort: si el blob no estaba (ya borrado, race con otro borrado),
+        // no rompemos la UI — el adjunto se quita igual del estado y del backend abajo.
+        console.warn('[InputAttachments] deleteObject falló (cleanup best-effort):', error?.code ?? error?.message ?? error)
+      })
     const f1 = field.value.findIndex(el => el.name === elem.name)
     field.value.splice(f1, 1)
     fetchApiEventos({

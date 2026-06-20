@@ -2,6 +2,20 @@ import { useEffect, useState } from "react";
 import { GlobalCurrency } from "../context/EventContext"
 import { Event } from "../utils/Interfaces"
 
+/**
+ * Devuelve el array recibido o un array vacío si no es array.
+ * Pensado para Cells de react-table donde data.value puede llegar como null
+ * (campo ausente en BD) y los accesos a .length / .map / .find tiran toda
+ * la página por TypeError. EVT-01 (informe 20-jun) viene de no usar esto.
+ *
+ * Uso:
+ *   const arr = safeArr(data.value)
+ *   return <div>{arr.length}</div>
+ */
+export function safeArr<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : []
+}
+
 export const Loading = (set) => {
   set(true)
   setTimeout(() => {
