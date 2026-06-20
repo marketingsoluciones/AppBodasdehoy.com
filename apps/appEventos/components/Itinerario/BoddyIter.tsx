@@ -204,11 +204,16 @@ export const BoddyIter = () => {
                                                     updatedNextId(event.itinerarios_array[f1next_id])
                                                 }
                                             }
-                                            const f1 = event.itinerarios_array?.findIndex(elem => elem._id === itinerario._id)
-                                            if (f1 > -1) {
-                                                event.itinerarios_array?.splice(f1, 1)
-                                            }
-                                            setEvent({ ...event })
+                                            // Inmutable: filtrar fuera del array en vez de splice.
+                                            setEvent((prev: any) => {
+                                                if (!Array.isArray(prev?.itinerarios_array)) return prev
+                                                return {
+                                                    ...prev,
+                                                    itinerarios_array: prev.itinerarios_array.filter(
+                                                        (elem: any) => elem._id !== itinerario._id
+                                                    )
+                                                }
+                                            })
                                             setModal({ state: false })
                                             setTimeout(() => {
                                                 setLoadingModal(false)
@@ -233,10 +238,16 @@ export const BoddyIter = () => {
             },
             domain: config.domain
         })
-        const f1 = event.itinerarios_array?.findIndex(elem => elem._id === itinerario._id)
-        const updatedItinerario = { ...event.itinerarios_array[f1], title }
-        event.itinerarios_array[f1] = updatedItinerario
-        setEvent({ ...event })
+        // Inmutable: actualizar el itinerario sin mutar el array.
+        setEvent((prev: any) => {
+            const arr = prev?.itinerarios_array
+            if (!Array.isArray(arr)) return prev
+            const idx = arr.findIndex((elem: any) => elem._id === itinerario._id)
+            if (idx < 0) return prev
+            const next = [...arr]
+            next[idx] = { ...arr[idx], title }
+            return { ...prev, itinerarios_array: next }
+        })
         setEditTitle(false)
     }
 

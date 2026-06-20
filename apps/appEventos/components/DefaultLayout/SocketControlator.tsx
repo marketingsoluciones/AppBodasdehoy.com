@@ -178,53 +178,63 @@ export const SocketControlator = () => {
           if (received?.msg?.payload?.value?._id === planSpaceSelect) {
             setPlanSpaceActive(received?.msg?.payload?.value)
           }
-          const f1 = event?.planSpace?.findIndex(elem => elem._id === received?.msg?.payload?.value?._id)
-          event?.planSpace?.splice(f1, 1, received?.msg?.payload?.value)
-          setEvent({ ...event })
-          // setPlanSpaceActive(received?.msg?.payload?.value)
+          // Inmutable: reemplazo el planSpace concreto sin mutar el array original.
+          // El socket llega en cualquier momento → usar updater functional evita
+          // race conditions con otros setEvent en paralelo.
+          const newPlanSpace = received?.msg?.payload?.value
+          setEvent((prev: any) => {
+            if (!Array.isArray(prev?.planSpace)) return prev
+            const idx = prev.planSpace.findIndex((elem: any) => elem._id === newPlanSpace?._id)
+            if (idx < 0) return prev
+            const next = [...prev.planSpace]
+            next[idx] = newPlanSpace
+            return { ...prev, planSpace: next }
+          })
         }
         if (received?.msg?.payload?.action === "setStatusComunicacion") {
-          const f1 = event?.invitados_array?.findIndex(elem => elem._id === received?.msg?.payload?.value?.invitado_id)
-          const f2 = event?.invitados_array[f1]?.comunicaciones_array?.findIndex(elem => elem.message_id
-            === received?.msg?.payload?.value?.message_id)
-          
-          if (f1 > -1 && f2 > -1) {
-            const comunicacion = event?.invitados_array[f1]?.comunicaciones_array[f2]
-            const newStatus = {
-              name: received?.msg?.payload?.value?.status,
-              timestamp: new Date(received?.msg?.payload?.value?.timestamp).toISOString()
-            }
-            
-            // Verificar si el status ya existe con el mismo name y timestamp (duplicado exacto)
+          // Inmutable: reconstruyo invitados_array → comunicaciones_array → statuses
+          // sin mutar el original. El socket llega async y otros setEvent corren en
+          // paralelo; mutar directamente provoca race conditions con realtime.
+          const newStatus = {
+            name: received?.msg?.payload?.value?.status,
+            timestamp: new Date(received?.msg?.payload?.value?.timestamp).toISOString()
+          }
+          const invitadoId = received?.msg?.payload?.value?.invitado_id
+          const messageId = received?.msg?.payload?.value?.message_id
+
+          setEvent((prev: any) => {
+            const invArr = prev?.invitados_array
+            if (!Array.isArray(invArr)) return prev
+            const f1 = invArr.findIndex((elem: any) => elem._id === invitadoId)
+            if (f1 < 0) return prev
+            const comArr = invArr[f1]?.comunicaciones_array
+            if (!Array.isArray(comArr)) return prev
+            const f2 = comArr.findIndex((elem: any) => elem.message_id === messageId)
+            if (f2 < 0) return prev
+
+            const comunicacion = comArr[f2]
             const exactDuplicate = comunicacion?.statuses?.some(
-              (status: any) => 
-                status.name === newStatus.name && 
-                status.timestamp === newStatus.timestamp
+              (s: any) => s.name === newStatus.name && s.timestamp === newStatus.timestamp
             )
-            
-            // Si es un duplicado exacto, no hacer nada
-            if (exactDuplicate) {
-              return;
-            }
-            
-            // Agregar el nuevo status al array (si no es duplicado exacto ya lo verificamos arriba)
-            comunicacion.statuses.push(newStatus)
-            
-            // Limpiar duplicados del array completo: mantener solo la versión más reciente de cada status por name
+            if (exactDuplicate) return prev
+
+            // Limpiar duplicados: mantener solo el más reciente por name.
             const statusMap = new Map<string, { name: string; timestamp: string }>()
-            
-            comunicacion.statuses.forEach((status: any) => {
-              const existing = statusMap.get(status.name)
-              if (!existing || new Date(status.timestamp) > new Date(existing.timestamp)) {
-                statusMap.set(status.name, status)
+            const allStatuses = [...(comunicacion.statuses ?? []), newStatus]
+            allStatuses.forEach((s: any) => {
+              const existing = statusMap.get(s.name)
+              if (!existing || new Date(s.timestamp) > new Date(existing.timestamp)) {
+                statusMap.set(s.name, s)
               }
             })
-            
-            // Reemplazar el array completo con los statuses únicos y actualizados
-            comunicacion.statuses = Array.from(statusMap.values())
-            
-            setEvent({ ...event })
-          }
+
+            const nextStatuses = Array.from(statusMap.values())
+            const nextCom = [...comArr]
+            nextCom[f2] = { ...comunicacion, statuses: nextStatuses }
+            const nextInv = [...invArr]
+            nextInv[f1] = { ...invArr[f1], comunicaciones_array: nextCom }
+            return { ...prev, invitados_array: nextInv }
+          })
         }
       }
       if (received.channel === "cms:message") {

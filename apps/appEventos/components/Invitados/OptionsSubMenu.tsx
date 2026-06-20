@@ -125,8 +125,12 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick, setL
             },
           })
             .then((results: any) => {
-              event.invitados_array = results?.evento?.invitados_array || event.invitados_array
-              setEvent({ ...event })
+              // Inmutable: usar updater functional. Importante porque otro setEvent
+              // puede haber corrido en paralelo (race con socket de realtime).
+              const nuevos = results?.evento?.invitados_array
+              if (nuevos) {
+                setEvent((prev: any) => ({ ...prev, invitados_array: nuevos }))
+              }
               toast("success", `${dataImportReduce.corrects.length} ${t("importCorrect")}`)
             })
         }

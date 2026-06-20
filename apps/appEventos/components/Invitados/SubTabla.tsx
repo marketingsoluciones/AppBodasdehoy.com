@@ -135,8 +135,8 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather, handleClick, setSele
                             input: { showChildrenGuest: "" }
                         }
                     })
-                    event.showChildrenGuest = null
-                    setEvent({ ...event })
+                    // Inmutable: usar updater functional en vez de mutar event.X directamente.
+                    setEvent((prev: any) => ({ ...prev, showChildrenGuest: null }))
                 }
                 }
             >
