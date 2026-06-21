@@ -1,7 +1,7 @@
 import { createContext, useState, useContext, useEffect, Dispatch, SetStateAction } from "react";
 import { EditDefaultState, Event, filterGuest, planSpace } from "../utils/Interfaces";
 import { EventsGroupContextProvider } from "./EventsGroupContext";
-import { getAllFilterGuest } from "../utils/Funciones";
+import { getAllFilterGuest, readCache, writeCache } from "../utils/Funciones";
 import { AuthContextProvider } from "./AuthContext";
 import { fetchApiEventos, fetchApiBodas, queries } from "../utils/Fetching";
 
@@ -174,13 +174,24 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
     // Solo ejecutar cuando hay un event._id válido
     if (!event?._id) return;
 
+    // Cache TTL 5 min: getPlanSpaceSelect devuelve el id del plan space
+    // activo. Cambia poco, se llama en cada cambio de evento.
+    const cacheKey = `planSpaceSelect_${event._id}`
+    const cached = readCache<string>(cacheKey, 5 * 60 * 1000)
+    if (cached !== null) {
+      setPlanSpaceSelect(cached || event?.planSpace?.[0]?._id || '')
+      return
+    }
+
     fetchApiEventos({
       query: queries.getPlanSpaceSelect,
       variables: {
         evento_id: event._id,
       },
     }).then(res => {
-      setPlanSpaceSelect(res ? res as string : event?.planSpace[0]?._id)
+      const id = res ? (res as string) : (event?.planSpace?.[0]?._id || '')
+      setPlanSpaceSelect(id)
+      if (typeof id === 'string') writeCache(cacheKey, id)
     }).catch(err => {
       console.log("[EventContext] Error getting planSpaceSelect:", err)
     })

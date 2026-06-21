@@ -2,6 +2,28 @@ import { api } from "../api";
 import { normalizeApi2HttpBase } from "./resolveApi2BaseUrl";
 import { resolveApiBodasOrigin } from "./apiEndpoints";
 import { MCP_ADAPTERS, extractGraphqlField } from "./apiMcpAdapter";
+import { invalidateCache } from "./Funciones";
+
+/**
+ * Cache TTL: cualquier mutation que afecte al estado del evento debe invalidar
+ * el cache de la lista de eventos (`events_*`) para que el siguiente render
+ * vea datos frescos. Lo hacemos a nivel de fetchApi* para que cada componente
+ * no tenga que recordar invalidar — bastante con que use queries.* normal.
+ *
+ * Cómo lo detectamos: GraphQL siempre empieza con `mutation` o `query`. Si la
+ * cadena del query empieza con `mutation`, invalidamos.
+ */
+function maybeInvalidateOnMutation(query: string): void {
+  if (typeof query !== 'string') return
+  // Saltar comentarios + espacios al inicio
+  const trimmed = query.replace(/^\s+|^#.*$/gm, '').trimStart()
+  if (trimmed.toLowerCase().startsWith('mutation')) {
+    // Invalida TODO lo que empiece con 'events_' (lista de eventos por development+email)
+    invalidateCache('events_', true)
+    // También invalidamos planSpaceSelect, que cachea por evento
+    invalidateCache('planSpaceSelect_', true)
+  }
+}
 
 async function reportHttpFailureToSentry(kind: 'bodas' | 'eventos', error: any) {
   try {
@@ -88,6 +110,7 @@ export const fetchApiBodas = async ({
         console.warn("[fetchApiBodas] GraphQL errors:", errors);
         return null;
       }
+      maybeInvalidateOnMutation(query);
       return data ? Object.values(data)[0] : null;
     } else if (type === "formData") {
       const formData = new FormData();
@@ -151,6 +174,7 @@ export const fetchApiBodas = async ({
         throw new Error(JSON.stringify(data.errors));
       }
 
+      maybeInvalidateOnMutation(query);
       return Object.values(data.data)[0];
     }
   } catch (error: any) {
@@ -199,6 +223,7 @@ export const fetchApiEventos = async ({
         variables: __mapped,
         token,
       });
+      maybeInvalidateOnMutation(query);
       return __adapter.mapResponse(canonical, variables || {});
     }
   }
@@ -247,6 +272,7 @@ export const fetchApiEventos = async ({
       synthetic.response = { status: axiosRes.status, data: { errors: mapped } };
       throw synthetic;
     }
+    maybeInvalidateOnMutation(query);
     return payload;
   } catch (error: any) {
     const status = error?.response?.status
