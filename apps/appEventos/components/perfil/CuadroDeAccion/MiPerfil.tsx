@@ -7,7 +7,7 @@ import { useToast } from '../../../hooks/useToast';
 import InputField from "../../Forms/InputField";
 import { Eye, EyeSlash } from "../../icons";
 import * as yup from "yup";
-import { parseJwt } from "../../../utils/Authentication";
+import { parseJwt, safeJwtExpiry } from "../../../utils/Authentication";
 import Cookies from "js-cookie";
 import { useTranslation } from 'react-i18next';
 
@@ -74,7 +74,8 @@ export const MiPerfil = () => {
         )
         await updatePassword(auth.currentUser, values.password);
         const idToken = await getAuth().currentUser?.getIdToken(true)
-        const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
+        // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → session cookie.
+        const dateExpire = safeJwtExpiry(idToken)
         Cookies.set("idTokenV0.1.0", idToken ?? "", {
           domain: process.env.NEXT_PUBLIC_DOMINIO ?? "",
           expires: dateExpire,

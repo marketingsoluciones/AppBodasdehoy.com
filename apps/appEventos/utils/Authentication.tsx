@@ -13,6 +13,30 @@ import { authBridge, parseJwt } from '@bodasdehoy/shared/auth';
 
 export { parseJwt }; // re-exportar para compatibilidad con imports existentes
 
+/**
+ * BUG-1 sesión fantasma (informe QA 21-jun): parseJwt() devuelve null si el
+ * token está EXPIRADO, mal formado o vacío. Los call-sites legacy hacían
+ * `parseJwt(token).exp * 1000` sin guard → TypeError "Cannot read properties
+ * of null (reading 'exp')" → ErrorBoundary y usuario atrapado en UI fantasma.
+ *
+ * Helper safeJwtExpiry:
+ *   · Si parseJwt OK + tiene exp → Date válido
+ *   · Si parseJwt null o falta exp → undefined (consumer decide fallback)
+ *
+ * Si se pasa `onExpired` y el token resultó inválido/expirado, se llama —
+ * útil para auto-cleanup desde sitios que pueden disparar logout (Cookies.set
+ * sin expiry, por ejemplo, deja al cliente sin TTL aplicable).
+ */
+export function safeJwtExpiry(token: string | null | undefined, onExpired?: () => void): Date | undefined {
+  if (!token) return undefined;
+  const payload = parseJwt(token);
+  if (!payload || typeof payload.exp !== 'number') {
+    onExpired?.();
+    return undefined;
+  }
+  return new Date(payload.exp * 1000);
+}
+
 export const phoneUtil = PhoneNumberUtil.getInstance();
 
 /** En localhost el navegador rechaza cookies con domain=.bodasdehoy.com; omitir domain para que use el hostname actual */
@@ -208,7 +232,8 @@ export const useAuthentication = () => {
         if (res) {
           setLoading(true)
           const idToken = await res?.user?.getIdToken()
-          const dateExpire = new Date(parseJwt(idToken).exp * 1000)
+          // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → session cookie.
+          const dateExpire = safeJwtExpiry(idToken)
           
           const idTokenDomain = getCookieDomain(config?.domain)
           
