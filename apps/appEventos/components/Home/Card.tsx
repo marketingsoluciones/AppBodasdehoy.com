@@ -134,10 +134,15 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
   const handleArchivarEvent = () => {
     /* setActionModals(!actionModals) */
     if (true) {
-      // BUG-13 (informe QA 21-jun): archivar era inmediato sin confirmación + el icono
-      // de carpeta no era intuitivo. Como mínimo paso: dialog nativo de confirmación
-      // antes de archivar. (Desarchivar es seguro, no requiere confirmación.)
-      if (grupoStatus === "pendiente") {
+      // BUG-13 (informes QA 21-jun y batería post-commit): archivar era inmediato
+      // sin confirmación. En la primera tanda comparé con === "pendiente" estricto,
+      // pero el QA verificó que el dialog NO aparecía. Causa: si grupoStatus llega
+      // como "PENDIENTE" (uppercase del enum api-mcp), undefined, null o el flujo
+      // entra desde otro path, mi check fallaba y archivaba sin confirmar.
+      // Fix: confirmar SIEMPRE al ARCHIVAR (toBe→"archivado"). Desarchivar sigue
+      // siendo seguro (no requiere confirmación) — solo se evita el typo.
+      const willArchivar = String(grupoStatus ?? "").toLowerCase() !== "archivado"
+      if (willArchivar) {
         const nombre = data[idx]?.nombre ?? "este evento"
         const ok = typeof window !== "undefined"
           ? window.confirm(`¿Archivar "${nombre}"?\n\nEl evento se moverá a Archivados. Podrás recuperarlo en cualquier momento.`)

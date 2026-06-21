@@ -10,6 +10,7 @@ import { SkeletonPage } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import FormGuardarRegalos from "../components/Forms/FormGuardarRegalos"
 import { useMounted } from "../hooks/useMounted"
+import { useEventSyncWithUrl } from "../hooks/useEventSyncWithUrl"
 import { useAllowed } from "../hooks/useAllowed"
 import { useTranslation } from 'react-i18next';
 
@@ -21,6 +22,7 @@ const ListaRegalos = () => {
   const [isAllowed, ht] = useAllowed()
 
   useMounted()
+  useEventSyncWithUrl()  // BUG-12: sincronizar event activo con ?event= de URL
 
   if (verificationDone) {
     if (user?.displayName === 'guest') {

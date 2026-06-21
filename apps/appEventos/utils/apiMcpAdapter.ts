@@ -421,7 +421,18 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
       fecha_creacion fecha_actualizacion
     } }`,
     mapVariables: (v) => {
-      if (v.variable !== '_id' || !v.valor) return null;
+      // NEW-2 (informe QA post-commit 21-jun): si la variable NO es _id, devolver
+      // null aquí caía al fallback "queryenEvento literal" → 400 "Cannot query field
+      // queryenEvento on type Query". Ahora si vienen variables raras NO disparamos
+      // la query (el caller tendría que migrar). El consumer decide qué hacer con null.
+      if (v.variable !== '_id' || !v.valor) {
+        if (typeof console !== 'undefined') {
+          console.warn('[adapter:queryenEvento] variable!=_id no soportado por api-mcp:', v.variable);
+        }
+        // Devolver un mapVariables "imposible" para que el adapter no llame al backend
+        // y consumer reciba null en vez de error 400.
+        return { id: '__NO_OP__' };
+      }
       return { id: v.valor };
     },
     mapResponse: (p) => {

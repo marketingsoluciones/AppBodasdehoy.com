@@ -3,6 +3,7 @@
  * Usa el paquete compartido; opcionalmente redirige a Copilot para la UI completa.
  */
 import { AuthContextProvider, EventContextProvider } from '../context';
+import { useEventSyncWithUrl } from '../hooks/useEventSyncWithUrl';
 import { MemoriesProvider, useMemoriesStore } from '@bodasdehoy/memories';
 import { resolveChatOrigin } from '@bodasdehoy/shared/utils';
 import Link from 'next/link';
@@ -90,6 +91,7 @@ function AlbumQRButton({ albumId, eventId }: { albumId: string; eventId: string 
 }
 
 function MomentosContent() {
+  useEventSyncWithUrl()  // BUG-12: sincronizar event activo con ?event= de URL
   const { albums, albumsLoading, fetchAlbums, createEventAlbumStructure } = useMemoriesStore();
   const { event } = EventContextProvider();
   const [creatingStructure, setCreatingStructure] = useState(false);
