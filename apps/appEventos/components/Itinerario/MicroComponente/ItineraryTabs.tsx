@@ -96,8 +96,12 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 })
                 const task = { ...(addNewTask as any), spectatorView: false, estatus: "true" } as Task
                 const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-                event.itinerarios_array[f1].tasks.push(task)
-                setEvent({ ...event })
+                setEvent((prev) => ({
+                    ...prev,
+                    itinerarios_array: prev.itinerarios_array.map((it, i) =>
+                        i !== f1 ? it : { ...it, tasks: [...it.tasks, task] }
+                    ),
+                }))
                 setSelectTask(task._id)
                 toast("success", t(itinerario.tipo === "itinerario" ? "Actividad añadida" : "Servicio añadido"));
             })
@@ -177,7 +181,10 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         value: JSON.stringify(event.itinerarios_array)
                     }
                 })
-                setEvent({ ...event })
+                // Trigger re-render con copia top-level del estado actual.
+                // Aquí no mutamos event directamente, sólo forzamos identidad nueva
+                // para que los consumers que dependen de la referencia se actualicen.
+                setEvent((prev) => ({ ...prev }))
                 setItineraries([...itineraries])
             } else {
                 let newItineraries = []
@@ -282,12 +289,11 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                     }
                 })
             }
-            event.itinerarios_array.push(result)
-            const f2 = event.itinerarios_array.findIndex(elem => elem._id === result._id)
-            if (event.itinerarios_array[f2]) {
-                event.itinerarios_array[f2].viewers = []
-            }
-            setEvent({ ...event })
+            const newItinerario = { ...result, viewers: [] as any[] }
+            setEvent((prev) => ({
+                ...prev,
+                itinerarios_array: [...prev.itinerarios_array, newItinerario],
+            }))
             setItinerario({ ...result })
             /*  setEditTitle(true) */
         })
