@@ -5,9 +5,12 @@ import { fetchApiEventosServer } from '../../utils/Fetching';
 import { developmentFromRequestHost } from '../../utils/ssrDevelopment';
 import { MdOutlineQrCode2 } from 'react-icons/md';
 
+// BUG-5 (informe QA 21-jun): queryenEvento_id es legacy apiapp (retirado 05-jun).
+// api-mcp acepta getEventoById(id:ID!). fetchApiEventosServer NO pasa por MCP_ADAPTERS
+// → la query ESCRITA debe ser ya canonical. Sin esto: 400 → catch → "server_error".
 const SEATING_QUERY = `
-  query ($var_1: String) {
-    queryenEvento_id(var_1: $var_1) {
+  query ($eventId: ID!) {
+    getEventoById(id: $eventId) {
       _id
       nombre
       tipo
@@ -232,12 +235,11 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req }) =>
   try {
     const data = await fetchApiEventosServer({
       query: SEATING_QUERY,
-      variables: { var_1: eventId },
+      variables: { eventId },
       development,
     });
 
-    const eventos = data?.queryenEvento_id;
-    const evento = Array.isArray(eventos) ? eventos[0] : eventos;
+    const evento = data?.getEventoById;
 
     if (!evento) {
       return { props: { eventId, eventName: '', eventType: '', eventImg: null, guests: [], error: 'not_found' } };

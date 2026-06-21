@@ -30,10 +30,15 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
   }
 
   const calculoEscala = (lienzo: size, contenedor: any) => {
-    const sX = contenedor.current.offsetWidth * 100 / lienzo?.width
-    const sY = contenedor.current.offsetHeight * 100 / lienzo?.height
+    // BUG-4 (informe QA 21-jun): sin guard, lienzo?.width undefined → NaN
+    // en initialScale → canvas no renderiza.
+    const w = lienzo?.width
+    const h = lienzo?.height
+    if (!contenedor?.current || !w || !h) return 0
+    const sX = contenedor.current.offsetWidth * 100 / w
+    const sY = contenedor.current.offsetHeight * 100 / h
     const asd = Math.min(sX, sY) / 100
-    return asd
+    return Number.isFinite(asd) && asd > 0 ? asd : 0
   }
 
   useEffect(() => {
@@ -43,7 +48,9 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
   return (
     <>
       <div className="flex divOrange w-[100%] h-[100%] justify-start relative pt-8" >
-        <div id="rootElementTables" ref={refDiv} className="bg-blue-200 flex w-[100%] h-[calc(100%-32px)] relative">
+        {/* BUG-6 (informe QA 21-jun): bg-blue-200 era debug hardcoded. Cambiamos a
+            bg-base (token de tema) para que respete el diseño del whitelabel. */}
+        <div id="rootElementTables" ref={refDiv} className="bg-base flex w-[100%] h-[calc(100%-32px)] relative">
           {editDefault?.clicked &&
             <ClickAwayListener
               onClickAway={() => {

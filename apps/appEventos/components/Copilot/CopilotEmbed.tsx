@@ -1048,24 +1048,19 @@ export const CopilotEmbed = ({
         <p style={{ margin: '0 0 18px', fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
           Pregunta por invitados, presupuesto, mesas o servicios. También puedes escribir abajo.
         </p>
-        <p
-          style={{
-            margin: '0 0 10px',
-            fontSize: 11,
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            color: '#9ca3af',
-          }}
-        >
-          Prueba con
-        </p>
+        {/* BUG-15 (informe QA 21-jun): "PRUEBA CON" sin chips proactivos quedaba huérfano
+            (label sin lista). Movemos el label DENTRO del bloque de chips para que solo
+            aparezca cuando hay algo que mostrar. */}
         {/* Chips proactivos */}
         {(() => {
           const chips = getProactiveChips(pageContext);
           if (chips.length === 0) return null;
           const chipColors = { danger: { bg: '#fef2f2', border: '#fca5a5', text: '#dc2626' }, warning: { bg: '#fffbeb', border: '#fcd34d', text: '#d97706' }, info: { bg: '#eff6ff', border: '#93c5fd', text: '#2563eb' } };
           return (
+            <>
+            <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9ca3af' }}>
+              Atención
+            </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
               {chips.map(chip => {
                 const c = chipColors[chip.severity];
@@ -1080,13 +1075,20 @@ export const CopilotEmbed = ({
                 );
               })}
             </div>
+            </>
           );
         })()}
-        <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9ca3af' }}>
-          Prueba con
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch' }}>
-          {getSuggestedQuestions(router?.pathname || '').map(q => (
+        {/* BUG-15: ocultar "Prueba con" si no hay sugerencias. */}
+        {(() => {
+          const suggestions = getSuggestedQuestions(router?.pathname || '');
+          if (!suggestions || suggestions.length === 0) return null;
+          return (
+            <>
+              <p style={{ margin: '0 0 10px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9ca3af' }}>
+                Prueba con
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch' }}>
+                {suggestions.map(q => (
             <button
               key={q}
               type="button"
@@ -1118,8 +1120,11 @@ export const CopilotEmbed = ({
             >
               {q}
             </button>
-          ))}
-        </div>
+                ))}
+              </div>
+            </>
+          );
+        })()}
       </div>
     </div>
   ), [eventName, handleSend, pageContext, router?.pathname]);

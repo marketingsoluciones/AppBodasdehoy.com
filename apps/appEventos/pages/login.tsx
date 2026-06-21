@@ -174,15 +174,23 @@ const PageLogin = () => {
   return (
     <SplitLoginPage leftPanel={splitLeftPanel}>
       <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', minHeight: '100vh', width: '100%' }}>
-        <ArrowLeft
-          className={`${(!["bodasdehoy"].includes(config?.development) && (stage === "login" || (stage === "register" && stageRegister === 0) || preregister)) && "hidden"} absolute w-6 h-6 text-gray-500 cursor-pointer`}
+        {/* OBS-3 (informe QA 21-jun): flecha sin label era ambigua. Añadimos
+            aria-label + title para tooltip y lectores de pantalla. */}
+        <button
+          type="button"
+          className={`${(!["bodasdehoy"].includes(config?.development) && (stage === "login" || (stage === "register" && stageRegister === 0) || preregister)) && "hidden"} absolute flex items-center gap-1 text-gray-500 hover:text-gray-700 cursor-pointer bg-transparent border-0 p-1`}
           style={{ top: 20, left: 20 }}
+          aria-label="Volver"
+          title="Volver"
           onClick={() => {
             if (stage === "resetPassword") { setStage("login"); return }
             if (stageRegister > 0) { setStageRegister(stageRegister - 1); return }
             handleClose()
           }}
-        />
+        >
+          <ArrowLeft className="w-6 h-6" />
+          <span className="hidden sm:inline text-sm">Volver</span>
+        </button>
         {["bodasdehoy"].includes(config?.development) && (
           <div style={{ position: 'absolute', top: 16, right: 16 }}>
             <ButtonClose onClick={handleClose} />
