@@ -165,9 +165,17 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
             }).then(() => {
               toast("success", t("Archivo subido correctamente"));
               const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerarioId);
-              const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task._id);
-              event.itinerarios_array[f1].tasks[f2].attachments.push(newFileData);
-              setEvent({ ...event });
+              setEvent((prev) => ({
+                ...prev,
+                itinerarios_array: prev.itinerarios_array.map((it, i) =>
+                  i !== f1 ? it : {
+                    ...it,
+                    tasks: it.tasks.map(tk =>
+                      tk._id !== task._id ? tk : { ...tk, attachments: [...(tk.attachments ?? []), newFileData] }
+                    ),
+                  }
+                ),
+              }));
               setUploadingFiles(prev => prev?.filter(elem => elem.id !== uploadId));
             })
           } catch (error) {
