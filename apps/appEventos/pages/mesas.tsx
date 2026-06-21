@@ -245,7 +245,11 @@ const Mesas: FC = () => {
                   </div>
                   <div className={`bg-base flex w-[100%] h-[calc(100%-40px)]`} >
                     <div className="flex flex-col h-[100%] w-full md:px-2 justify-start transform transition duration-700">
-                      <div className={`bg-white w-[100%] h-[100%] my-1 ${fullScreen ? "md:h-[30%] 2xl:h-[25%]" : "md:h-[40%] 2xl:h-[25%] rounded-lg shadow-lg"}`}>
+                      {/* BUG-18 (informe QA 21-jun): el panel con `h-[40%]` (md+ no full) cortaba los
+                          últimos items de ListTables (banco/bancos quedaban fuera del área visible
+                          aunque BlockDefault tuviera overflow-auto). Subimos a 50% + min-h específico
+                          para asegurar que los 7 tipos de mesa caben. */}
+                      <div className={`bg-white w-[100%] h-[100%] my-1 min-h-[280px] ${fullScreen ? "md:h-[35%] 2xl:h-[30%]" : "md:h-[50%] 2xl:h-[30%] rounded-lg shadow-lg"}`}>
                         {itemSelect == "invitados" &&
                           <BlockInvitados set={setIsMounted} setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
                         }

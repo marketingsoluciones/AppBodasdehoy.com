@@ -9,10 +9,11 @@ import { fetchApiEventosServer } from '../../../../utils/Fetching';
  * No requiere autenticación.
  */
 
-// queryenEvento_id no requiere autenticación — ideal para consultas públicas
+// BUG-5 (informe QA 21-jun): queryenEvento_id es legacy apiapp retirado. api-mcp
+// usa getEventoById(id:ID!). Endpoint público.
 const EVENT_PUBLIC_QUERY = `
-  query ($var_1: String) {
-    queryenEvento_id(var_1: $var_1) {
+  query ($eventId: ID!) {
+    getEventoById(id: $eventId) {
       _id
       nombre
       tipo
@@ -53,12 +54,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const data = await fetchApiEventosServer({
       query: EVENT_PUBLIC_QUERY,
-      variables: { var_1: eventId },
+      variables: { eventId },
       development: false, // portal público: todos los tenants
     });
 
-    const eventos = data?.queryenEvento_id;
-    const evento = Array.isArray(eventos) ? eventos[0] : eventos;
+    const evento = data?.getEventoById;
 
     if (!evento) {
       return res.status(404).json({ error: 'not_found' });
