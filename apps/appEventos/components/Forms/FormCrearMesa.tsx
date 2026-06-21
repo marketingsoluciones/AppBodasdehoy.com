@@ -103,10 +103,16 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
           })
         },
       })
-      planSpaceActive.tables.push({ ...result })
-      setPlanSpaceActive({ ...planSpaceActive })
-      event.planSpace[planSpaceSelect] = planSpaceActive
-      setEvent({ ...event })
+      const newTable = { ...result }
+      const newPlanSpaceActive = { ...planSpaceActive, tables: [...planSpaceActive.tables, newTable] }
+      setPlanSpaceActive(newPlanSpaceActive)
+      // planSpaceSelect es el ID del plan space activo (string), no el índice.
+      // El código original mutaba event.planSpace[planSpaceSelect] que era
+      // undefined al ser acceso por string a un array. Match por _id.
+      setEvent((prev) => ({
+        ...prev,
+        planSpace: prev.planSpace.map((ps) => ps?._id === planSpaceSelect ? newPlanSpaceActive : ps),
+      }))
       toast("success", t("Mesa creada con exito"))
     } catch (err) {
       toast("error", t("Ha ocurrido un error al crear la mesa"))

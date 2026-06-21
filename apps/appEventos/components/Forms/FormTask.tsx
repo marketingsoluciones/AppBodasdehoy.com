@@ -69,9 +69,15 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
       })
         .then(() => {
           const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerarioID)
-          const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
-          event.itinerarios_array[f1].tasks[f2] = dataSend
-          setEvent({ ...event })
+          setEvent((prev) => ({
+            ...prev,
+            itinerarios_array: prev.itinerarios_array.map((it, i) =>
+              i !== f1 ? it : {
+                ...it,
+                tasks: it.tasks.map(tk => tk._id !== values._id ? tk : dataSend),
+              }
+            ),
+          }))
           toast("success", t("Item guardado con exito"))
           setShowEditTask({ state: false })
         })

@@ -67,8 +67,10 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
             },
           })
           const svgsWithReactIcons = convertBackendSvgsToReact(result.results);
-          event.galerySvgs = event.galerySvgs ? [...event.galerySvgs, ...svgsWithReactIcons] : svgsWithReactIcons;
-          setEvent({ ...event });
+          setEvent((prev) => ({
+            ...prev,
+            galerySvgs: prev.galerySvgs ? [...prev.galerySvgs, ...svgsWithReactIcons] : svgsWithReactIcons,
+          }));
           const newListElements = [...listElements, newElement]
           setListElements(newListElements);
           setShowModal(false);
@@ -120,8 +122,10 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
           },
         })
         const svgsWithReactIcons = convertBackendSvgsToReact(result.results);
-        event.galerySvgs = event.galerySvgs ? [...event.galerySvgs, ...svgsWithReactIcons] : svgsWithReactIcons;
-        setEvent({ ...event });
+        setEvent((prev) => ({
+          ...prev,
+          galerySvgs: prev.galerySvgs ? [...prev.galerySvgs, ...svgsWithReactIcons] : svgsWithReactIcons,
+        }));
         const newListElements = [...listElements, ...svgsWithReactIcons]
         setListElements(newListElements);
         setShowModal(false);
