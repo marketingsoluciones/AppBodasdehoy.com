@@ -96,7 +96,7 @@ class GlobalService {
           .then((fullConfig) => {
             if (fullConfig) globalConfigCache = { config: fullConfig, timestamp: Date.now() };
           })
-          .catch(() => {});
+          .catch((e) => console.warn('[global] background fetchGlobalConfigFromApiIa falló:', e?.message));
       }
 
       return result;

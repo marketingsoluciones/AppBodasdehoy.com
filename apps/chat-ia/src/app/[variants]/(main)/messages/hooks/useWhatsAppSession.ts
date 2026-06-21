@@ -140,7 +140,7 @@ export function useWhatsAppSession(development: string) {
     await fetch(`/api/messages/whatsapp/session/${development}`, {
       headers: buildHeaders(),
       method: 'DELETE',
-    }).catch(() => {});
+    }).catch((e) => console.warn('[whatsapp] DELETE sesión previa falló:', e?.message));
 
     connectingSinceRef.current = null;
     setState({ error: null, status: 'connecting' });

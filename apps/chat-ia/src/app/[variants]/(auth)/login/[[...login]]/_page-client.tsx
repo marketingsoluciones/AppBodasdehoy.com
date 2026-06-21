@@ -123,10 +123,10 @@ function RightPanel() {
     if (!result.success) throw new Error(result.errors?.[0] || 'Credenciales incorrectas.');
     saveSession(result.user_id!, result.development, result.token || null, email);
     await setExternalChatConfig(result.user_id!, result.development, result.token || undefined, 'registered');
-    fetchExternalChats().catch(() => {});
+    fetchExternalChats().catch((e) => console.warn('[login] fetchExternalChats falló:', e?.message));
     if (result.token) {
-      registerReferralIfPending(result.token, result.development, mcpUrl).catch(() => {});
-      sendAttributionToApi(result.token, result.development, mcpUrl).catch(() => {});
+      registerReferralIfPending(result.token, result.development, mcpUrl).catch((e) => console.warn('[login] registerReferralIfPending falló:', e?.message));
+      sendAttributionToApi(result.token, result.development, mcpUrl).catch((e) => console.warn('[login] sendAttributionToApi falló:', e?.message));
     }
     afterLogin();
   };
@@ -140,10 +140,10 @@ function RightPanel() {
     const token = localStorage.getItem('mcp_jwt_token') || null;
     saveSession(email, result.development, token, email);
     await setExternalChatConfig(email, result.development, token || undefined, 'registered');
-    fetchExternalChats().catch(() => {});
+    fetchExternalChats().catch((e) => console.warn('[login] fetchExternalChats falló:', e?.message));
     if (token) {
-      registerReferralIfPending(token, result.development, mcpUrl).catch(() => {});
-      sendAttributionToApi(token, result.development, mcpUrl).catch(() => {});
+      registerReferralIfPending(token, result.development, mcpUrl).catch((e) => console.warn('[login] registerReferralIfPending falló:', e?.message));
+      sendAttributionToApi(token, result.development, mcpUrl).catch((e) => console.warn('[login] sendAttributionToApi falló:', e?.message));
     }
     afterLogin();
   };
@@ -157,10 +157,10 @@ function RightPanel() {
     const token = localStorage.getItem('mcp_jwt_token') || null;
     saveSession(email, result.development, token, email);
     await setExternalChatConfig(email, result.development, token || undefined, 'registered');
-    fetchExternalChats().catch(() => {});
+    fetchExternalChats().catch((e) => console.warn('[login] fetchExternalChats falló:', e?.message));
     if (token) {
-      registerReferralIfPending(token, result.development, mcpUrl).catch(() => {});
-      sendAttributionToApi(token, result.development, mcpUrl).catch(() => {});
+      registerReferralIfPending(token, result.development, mcpUrl).catch((e) => console.warn('[login] registerReferralIfPending falló:', e?.message));
+      sendAttributionToApi(token, result.development, mcpUrl).catch((e) => console.warn('[login] sendAttributionToApi falló:', e?.message));
     }
     afterLogin();
   };
@@ -199,10 +199,10 @@ function RightPanel() {
       if (!res.ok || !result.success) throw new Error(result.detail || 'Código incorrecto.');
       saveSession(result.user_id, development, result.token, result.email ?? undefined);
       await setExternalChatConfig(result.user_id, development, result.token || undefined, 'registered');
-      fetchExternalChats().catch(() => {});
+      fetchExternalChats().catch((e) => console.warn('[login] fetchExternalChats falló:', e?.message));
       if (result.token) {
-        registerReferralIfPending(result.token, development, mcpUrl).catch(() => {});
-        sendAttributionToApi(result.token, development, mcpUrl).catch(() => {});
+        registerReferralIfPending(result.token, development, mcpUrl).catch((e) => console.warn('[login] registerReferralIfPending falló:', e?.message));
+        sendAttributionToApi(result.token, development, mcpUrl).catch((e) => console.warn('[login] sendAttributionToApi falló:', e?.message));
       }
       afterLogin();
     } catch (err: any) {

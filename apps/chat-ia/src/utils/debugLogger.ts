@@ -57,7 +57,10 @@ export const debugLog = (location: string, message: string, data?: any, hypothes
       body: JSON.stringify({ logs: [log] }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST'
-    }).catch(() => {}); // Ignorar errores de red
+    }).catch(() => {
+      // Silenciar a propósito: si el endpoint de debug-logs falla NO debe
+      // ensuciar la consola — sería logger del logger en bucle infinito.
+    });
   } catch (error) {
     // Si localStorage falla, solo usar console
     console.warn('⚠️ No se pudo guardar log en localStorage:', error);
