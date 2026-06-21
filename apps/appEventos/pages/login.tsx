@@ -1,5 +1,4 @@
 import { useRouter } from "next/router";
-import { ButtonClose } from "../components/Forms/ButtonClose";
 import { Login, Register, ResetPass } from "../components/Forms/Login/Forms";
 import { useEffect, useMemo, useState } from "react";
 import { AuthContextProvider, LoadingContextProvider } from "../context";
@@ -191,11 +190,31 @@ const PageLogin = () => {
           <ArrowLeft className="w-6 h-6" />
           <span className="hidden sm:inline text-sm">Volver</span>
         </button>
-        {["bodasdehoy"].includes(config?.development) && (
-          <div style={{ position: 'absolute', top: 16, right: 16 }}>
-            <ButtonClose onClick={handleClose} />
-          </div>
-        )}
+        {/* OBS-2 (informe QA 21-jun): la ✕ en la esquina superior derecha era
+            ambigua (¿cierra qué?) y solo aparecía en bodasdehoy. Reemplazo
+            multi-tenant: botón "Ir a {brand}" que usa pathDirectory de cada
+            whitelabel — si está definido se muestra, si no, no aparece.
+            Esto es consistente entre los 11 tenants y autoexplicativo. */}
+        {(() => {
+          const path = typeof config?.pathDirectory === 'string' ? config.pathDirectory.trim() : ''
+          if (!path) return null
+          const href = /^https?:\/\//.test(path) ? path : `https://${path}`
+          let label = path.replace(/^https?:\/\//, '').replace(/\/$/, '')
+          if (label.length > 28) label = label.slice(0, 25) + '…'
+          return (
+            <a
+              href={href}
+              className="absolute flex items-center gap-1.5 text-gray-500 hover:text-gray-700 text-xs sm:text-sm bg-transparent border border-gray-200 hover:border-gray-300 rounded-full px-3 py-1.5 transition-colors"
+              style={{ top: 16, right: 16, textDecoration: 'none' }}
+              title={`Ir a ${label}`}
+              aria-label={`Ir a ${label}`}
+            >
+              <span className="hidden sm:inline">Ir a</span>
+              <span style={{ fontWeight: 600 }}>{label}</span>
+              <span aria-hidden style={{ fontSize: 11 }}>↗</span>
+            </a>
+          )
+        })()}
         <div className="flex w-full md:w-2/3 max-w-sm flex-col items-center font-display">
           <div className="flex flex-col items-center justify-center transform w-full max-h-[124px] px-4 mb-4">
             {safeLogoNode ?? (
