@@ -75,11 +75,16 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
       },
     });
     const f1 = event?.invitados_array?.findIndex(elem => elem._id === values._id)
-    event.invitados_array[f1] = { ...invitado, ...values }
+    const updatedInvitado = { ...invitado, ...values }
+    // Sincronizar el invitado actualizado en el estado de forma inmutable.
+    // handleMoveGuest (más abajo) recibe la closure de `event` pero internamente
+    // usa el updater funcional de setEvent, así que verá el estado fresco.
+    setEvent((prev) => ({
+      ...prev,
+      invitados_array: prev.invitados_array.map((inv, i) => i === f1 ? updatedInvitado : inv),
+    }))
     if (initialValues?.tableNameRecepcion?._id === values?.tableNameRecepcion?._id && initialValues?.tableNameCeremonia?._id === values?.tableNameCeremonia?._id) {
-      if (valirChange) {
-        setEvent({ ...event })
-      }
+      // Sin cambios de mesa: el setEvent de arriba ya cubrió el re-render.
     } else {
       if (initialValues?.tableNameRecepcion?._id !== values?.tableNameRecepcion?._id) {
         const f1 = event?.planSpace.findIndex(elem => elem?.title === "recepción")
