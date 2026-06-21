@@ -71,7 +71,7 @@ const Locale = memo<LocaleLayoutProps>(({ children, defaultLang, antdLocale }) =
   // El init() del render path ya carga las traducciones vía fetch en el cliente
   useEffect(() => {
     if (isOnServerSide) return;
-    i18n.instance.loadNamespaces(['error']).catch(() => {});
+    i18n.instance.loadNamespaces(['error']).catch((e) => console.warn('[i18n] loadNamespaces(error) falló:', e?.message));
   }, []);
 
   // handle i18n instance language change

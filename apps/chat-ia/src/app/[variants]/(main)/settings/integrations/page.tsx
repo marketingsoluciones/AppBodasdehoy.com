@@ -467,7 +467,7 @@ function IntegrationsPageInner() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    getSocialAccounts(development).then(setSocialAccounts).catch(() => {});
+    getSocialAccounts(development).then(setSocialAccounts).catch((e) => console.warn('[integrations] getSocialAccounts falló:', e?.message));
   }, [development, isAuthenticated]);
 
   const handleSmmConnect = async (platform: 'INSTAGRAM' | 'FACEBOOK') => {
@@ -505,7 +505,7 @@ function IntegrationsPageInner() {
           popup?.close();
           setSmmAlert({ message: `✅ ${plt ?? platform} conectado: @${username}`, type: 'success' });
           // Reload social accounts to reflect new connection
-          getSocialAccounts(development).then(setSocialAccounts).catch(() => {});
+          getSocialAccounts(development).then(setSocialAccounts).catch((e) => console.warn('[integrations] getSocialAccounts falló:', e?.message));
           setConnectingPlatform(null);
         } else if (type === 'SMM_OAUTH_ERROR') {
           window.removeEventListener('message', onMessage);

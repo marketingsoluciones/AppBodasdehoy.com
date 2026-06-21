@@ -189,7 +189,7 @@ function EventosAutoAuthComponent() {
           if (payload.enablePlugins && Array.isArray(payload.enablePlugins)) {
             for (const pluginId of payload.enablePlugins) {
               devLog('[EventosAutoAuth] Habilitando plugin desde AUTH_CONFIG:', pluginId);
-              togglePlugin(pluginId, true).catch(() => {});
+              togglePlugin(pluginId, true).catch((e) => console.warn(`[EventosAutoAuth] togglePlugin(${pluginId}) falló:`, e?.message));
             }
           }
 

@@ -317,19 +317,12 @@ export class EventosAPIClient {
    * El backend maneja toda la lógica de identificación
    */
   async identifyUser(developer?: string, email?: string, phone?: string) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/10a0d667-c77d-44ea-a28d-e9f9b782eee2',{body:JSON.stringify({data:{baseURL:this.baseURL,developer,hasEmail:!!email,hasPhone:!!phone},hypothesisId:'A',location:'eventos-api.ts:324',message:'identifyUser ENTRY',runId:'run1',sessionId:'debug-session',timestamp:Date.now()}),headers:{'Content-Type':'application/json'},method:'POST'}).catch(()=>{});
-    // #endregion
     try {
       // ✅ FIX: Reducido de 20s a 8s. En modo iframe el usuario llega via AUTH_CONFIG (~600ms),
       // así que identifyUser solo se llama como fallback (no-iframe o fallback). 20s era excesivo.
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 segundos para identifyUser
 
-      // #region agent log
-      const fetchStartTime = Date.now();
-      fetch('http://127.0.0.1:7242/ingest/10a0d667-c77d-44ea-a28d-e9f9b782eee2',{body:JSON.stringify({data:{timestamp:fetchStartTime,url:`${this.baseURL}/api/auth${EVENTOS_API_CONFIG.ENDPOINTS.IDENTIFY_USER}`},hypothesisId:'A',location:'eventos-api.ts:341',message:'identifyUser BEFORE fetch',runId:'run1',sessionId:'debug-session',timestamp:Date.now()}),headers:{'Content-Type':'application/json'},method:'POST'}).catch(()=>{});
-      // #endregion
       try {
         // El endpoint está en /api/auth/identify-user (el router auth ya tiene prefijo /api/auth)
         const response = await fetch(`${this.baseURL}/api/auth${EVENTOS_API_CONFIG.ENDPOINTS.IDENTIFY_USER}`, {
@@ -343,10 +336,6 @@ export class EventosAPIClient {
           signal: controller.signal
         });
 
-        // #region agent log
-        const fetchEndTime = Date.now();
-        fetch('http://127.0.0.1:7242/ingest/10a0d667-c77d-44ea-a28d-e9f9b782eee2',{body:JSON.stringify({data:{elapsed:fetchEndTime-fetchStartTime,ok:response.ok,status:response.status,statusText:response.statusText},hypothesisId:'A',location:'eventos-api.ts:352',message:'identifyUser AFTER fetch',runId:'run1',sessionId:'debug-session',timestamp:Date.now()}),headers:{'Content-Type':'application/json'},method:'POST'}).catch(()=>{});
-        // #endregion
         clearTimeout(timeoutId);
 
         if (!response.ok) {
@@ -373,6 +362,7 @@ export class EventosAPIClient {
 
         const result = await response.json();
 
+
         // ✅ CRÍTICO: Verificar si la respuesta indica error aunque sea HTTP 200
         if (result.success === false) {
           const error = new Error(result.message || result.error || 'Error al identificar usuario');
@@ -382,24 +372,16 @@ export class EventosAPIClient {
           (error as any).response_data = result;
           throw error;
         }
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/10a0d667-c77d-44ea-a28d-e9f9b782eee2',{body:JSON.stringify({data:{hasUserId:!!result.user_id,success:result.success,userType:result.user_type},hypothesisId:'A',location:'eventos-api.ts:360',message:'identifyUser SUCCESS',runId:'run1',sessionId:'debug-session',timestamp:Date.now()}),headers:{'Content-Type':'application/json'},method:'POST'}).catch(()=>{});
-        // #endregion
+
         return result;
       } catch (fetchError: any) {
         clearTimeout(timeoutId);
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/10a0d667-c77d-44ea-a28d-e9f9b782eee2',{body:JSON.stringify({data:{isAbort:fetchError.name==='AbortError',message:fetchError.message,name:fetchError.name},hypothesisId:'A',location:'eventos-api.ts:369',message:'identifyUser FETCH ERROR',runId:'run1',sessionId:'debug-session',timestamp:Date.now()}),headers:{'Content-Type':'application/json'},method:'POST'}).catch(()=>{});
-        // #endregion
         if (fetchError.name === 'AbortError') {
           throw new Error(`Timeout después de 8 segundos al identificar usuario`);
         }
         throw fetchError;
       }
     } catch (error: any) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/10a0d667-c77d-44ea-a28d-e9f9b782eee2',{body:JSON.stringify({data:{message:error.message,name:error.name},hypothesisId:'A',location:'eventos-api.ts:376',message:'identifyUser CATCH ERROR',runId:'run1',sessionId:'debug-session',timestamp:Date.now()}),headers:{'Content-Type':'application/json'},method:'POST'}).catch(()=>{});
-      // #endregion
       console.error('❌ Error en EventosAPIClient.identifyUser:', {
         message: error.message,
         name: error.name,

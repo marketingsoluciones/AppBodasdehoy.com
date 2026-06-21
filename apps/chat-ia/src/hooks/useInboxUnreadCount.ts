@@ -30,7 +30,7 @@ export function useInboxUnreadCount(): number {
     const fetch = () => {
       getUnreadNotificationsCount()
         .then(setCount)
-        .catch(() => {});
+        .catch((e) => console.warn('[useInboxUnreadCount] getUnreadNotificationsCount falló:', e?.message));
     };
 
     fetch();

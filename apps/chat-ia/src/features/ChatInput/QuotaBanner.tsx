@@ -59,7 +59,7 @@ const QuotaBanner = memo(() => {
         .then((res) => {
           if (res.success && res.stats) setTodayStats(res.stats);
         })
-        .catch(() => {});
+        .catch((e) => console.warn('[QuotaBanner] getUsageStats falló:', e?.message));
     };
 
     if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
