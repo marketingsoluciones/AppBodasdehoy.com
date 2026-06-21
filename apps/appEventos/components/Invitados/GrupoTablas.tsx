@@ -47,14 +47,34 @@ interface handleMoveGuest {
 
 
 
+/**
+ * Antes este handler mutaba event.planSpace[f1].tables[f2].guests con splice/push
+ * y luego hacía setEvent({ ...event }). El spread top-level NO clona los hijos →
+ * React no detecta el cambio en planSpace[].tables[].guests; cualquier memo o
+ * useEffect que dependa de identidad de referencia se queda con datos viejos.
+ *
+ * Refactor: actualizar inmutablemente usando el updater funcional de setEvent
+ * (ya envuelto en EventContext con persistencia a localStorage).
+ */
 export const handleMoveGuest = (props: handleMoveGuest) => {
   try {
     const { invitadoID, previousTable, lastTable, f1, event, setEvent, toast } = props
     if (previousTable?._id) {
       const f2 = event?.planSpace[f1]?.tables?.findIndex(elem => elem._id === previousTable?._id)
-      const f3 = event.planSpace[f1].tables[f2].guests.findIndex(elem => elem._id === invitadoID)
-      event.planSpace[f1].tables[f2].guests.splice(f3, 1)
-      setEvent({ ...event })
+      const newGuests = event.planSpace[f1].tables[f2].guests.filter(g => g._id !== invitadoID)
+
+      setEvent((prev) => ({
+        ...prev,
+        planSpace: prev.planSpace.map((ps, i) =>
+          i !== f1 ? ps : {
+            ...ps,
+            tables: ps.tables.map((tb, j) =>
+              j !== f2 ? tb : { ...tb, guests: newGuests }
+            ),
+          }
+        ),
+      }))
+
       fetchApiEventos({
         query: queries.editTable,
         variables: {
@@ -62,7 +82,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
           planSpaceID: event?.planSpace[f1]?._id,
           tableID: event.planSpace[f1].tables[f2]?._id,
           variable: "guests",
-          valor: JSON.stringify([...event.planSpace[f1].tables[f2]?.guests])
+          valor: JSON.stringify(newGuests),
         },
       });
       if (!lastTable) {
@@ -74,8 +94,23 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
         if (!lastTable?.guests?.map(el => el.chair).includes(i)) {
           if (lastTable) {
             const f2 = event?.planSpace[f1]?.tables?.findIndex(elem => elem._id === lastTable?._id)
-            event.planSpace[f1].tables[f2].guests.push({ _id: invitadoID, chair: i, order: new Date() })
-            setEvent({ ...event })
+            const newGuests = [
+              ...event.planSpace[f1].tables[f2].guests,
+              { _id: invitadoID, chair: i, order: new Date() },
+            ]
+
+            setEvent((prev) => ({
+              ...prev,
+              planSpace: prev.planSpace.map((ps, k) =>
+                k !== f1 ? ps : {
+                  ...ps,
+                  tables: ps.tables.map((tb, j) =>
+                    j !== f2 ? tb : { ...tb, guests: newGuests }
+                  ),
+                }
+              ),
+            }))
+
             fetchApiEventos({
               query: queries.editTable,
               variables: {
@@ -83,7 +118,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
                 planSpaceID: event?.planSpace[f1]?._id,
                 tableID: event.planSpace[f1].tables[f2]?._id,
                 variable: "guests",
-                valor: JSON.stringify([...event.planSpace[f1].tables[f2]?.guests])
+                valor: JSON.stringify(newGuests),
               },
             });
             toast("success", `${props.t("El invitado fue sentado en la mesa")}; ${lastTable.title}, ${props.t("puesto")}: ${i + 1}`,)
@@ -93,6 +128,7 @@ export const handleMoveGuest = (props: handleMoveGuest) => {
       }
     }
   } catch (error) {
+    console.error('[handleMoveGuest] error:', error)
   }
 }
 
@@ -544,8 +580,8 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 input: { showChildrenGuest: !props?.row?.isExpanded ? props.row.original._id : "" }
               }
             })
-            event.showChildrenGuest = !props?.row?.isExpanded ? props.row.original._id : null
-            setEvent({ ...event })
+            const newShowChildrenGuest = !props?.row?.isExpanded ? props.row.original._id : null
+            setEvent((prev) => ({ ...prev, showChildrenGuest: newShowChildrenGuest }))
           }
           return (
             <div className="relative w-full flex justify-center items-center">
