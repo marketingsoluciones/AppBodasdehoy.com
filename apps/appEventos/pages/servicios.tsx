@@ -9,6 +9,7 @@ import EventLoadingOrError from "../components/Utils/EventLoadingOrError"
 import { motion } from "framer-motion"
 import { useSearchParams } from "next/navigation"
 import { useMounted } from "../hooks/useMounted"
+import { useEventSyncWithUrl } from "../hooks/useEventSyncWithUrl"
 import CopilotFilterBar from "../components/Utils/CopilotFilterBar"
 
 
@@ -18,6 +19,7 @@ const Itinerario: FC<any> = (props) => {
     const { user, setUser, verificationDone, forCms } = AuthContextProvider()
     const searchParams = useSearchParams()
     useMounted()
+    useEventSyncWithUrl()  // BUG-12: hook centralizado (sustituye el patrón inline previo)
 
     const queryEvent = searchParams.get("event")
 

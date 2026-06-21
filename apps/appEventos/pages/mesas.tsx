@@ -1,6 +1,7 @@
 
 import React, { FC, useEffect, useState } from "react";
 import { AuthContextProvider, EventContextProvider } from "../context";
+import { useEventSyncWithUrl } from "../hooks/useEventSyncWithUrl";
 import FormCrearMesa from "../components/Forms/FormCrearMesa";
 import BlockPanelMesas, { ListTables } from "../components/Mesas/BlockPanelMesas";
 import BlockResumen from "../components/Mesas/BlockResumen";
@@ -63,6 +64,9 @@ const Mesas: FC = () => {
   const { t } = useTranslation();
   const { forCms } = AuthContextProvider()
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, setFilterGuests, allFilterGuests, setEditDefault, planSpaceSelect } = EventContextProvider();
+  // BUG-12 (informe QA post-commit): hook centralizado que sincroniza el event
+  // activo con ?event= de la URL.
+  useEventSyncWithUrl()
   const [values, setValues] = useState<any>({});
   const [showFormCreateTable, setShowFormCreateTable] = useState<boolean>(false);
   const [showFormEditar, setShowFormEditar] = useState<any>({ table: {}, visible: false });

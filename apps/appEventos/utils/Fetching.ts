@@ -883,15 +883,16 @@ export const queries = {
       sessionCookie
     }
   }`,
-  // BUG-9 (informe QA 21-jun): api-mcp Mutation.updateUser usa `id`, NO `uid` (legacy apiapp).
-  // Los call-sites (Card.tsx, EventsTable.tsx, FormCrearEvento.tsx) usan fetchApiBodas
-  // que NO pasa por MCP_ADAPTERS (solo fetchApiEventos lo hace), por lo que la query
-  // debe ser ya canonical. Aceptamos `uid` en variables del call-site por compat (los 3
-  // sitios siguen pasando `uid: user.uid`) y la query GraphQL declara `$id` mapeándolo.
+  // BUG-9 + NEW-1 (informe QA post-commit 21-jun): api-mcp Mutation.updateUser:
+  //   · Usa `id`, NO `uid` (legacy apiapp). Mantenemos $uid en variables por
+  //     compat con call-sites (Card, EventsTable, FormCrearEvento).
+  //   · Retorna `UserResponse` (NO `User`). UserResponse SOLO tiene
+  //     {success, errors{field,message,code}}. Pedir city/country da
+  //     "Cannot query field city on type UserResponse" verificado en vivo.
   updateUser: `mutation ($uid:ID, $variable:String, $valor:String){
     updateUser(id:$uid, variable:$variable, valor:$valor){
-      city
-      country
+      success
+      errors { field message code }
     }
   }`,
   createUser: `mutation  ($uid : ID, $city: String, $country : String, $weddingDate : String, $phoneNumber : String, $role : [String]) {

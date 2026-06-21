@@ -12,6 +12,7 @@ import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
 import { SkeletonPage } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import { useMounted } from "../hooks/useMounted"
+import { useEventSyncWithUrl } from "../hooks/useEventSyncWithUrl"
 import { OptionsMenu } from "../components/Invitaciones/OptionsMenu";
 import { EnviadosComponent } from "../components/Invitaciones/EnviadosComponent";
 import { DiseñoComponent } from "../components/Invitaciones/DiseñoComponent";
@@ -93,6 +94,7 @@ const Invitaciones = () => {
   ]
 
   useMounted()
+  useEventSyncWithUrl()  // BUG-12: sincronizar event activo con ?event= de URL
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const storedConfigState = window.localStorage.getItem(CONFIG_PANEL_STORAGE_KEY);

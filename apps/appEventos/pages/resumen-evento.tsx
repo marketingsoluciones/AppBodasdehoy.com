@@ -11,6 +11,7 @@ import { EventContextProvider } from "../context";
 import { SkeletonPage } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import { useMounted } from "../hooks/useMounted"
+import { useEventSyncWithUrl } from "../hooks/useEventSyncWithUrl"
 import { BlockItinerario } from "../components/Resumen/BlockItinerario";
 import { BlockLugarEvento } from "../components/Resumen/BlockLugarEvento";
 import { BlockMomentos } from "../components/Resumen/BlockMomentos";
@@ -20,6 +21,7 @@ import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
 const Resumen = () => {
   const { event } = EventContextProvider()
   useMounted()
+  useEventSyncWithUrl()  // BUG-12: sincronizar event activo con ?event= de URL
 
   if (!event) return <EventLoadingOrError skeletonRows={6} />
   return (

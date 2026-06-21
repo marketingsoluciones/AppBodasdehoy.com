@@ -13,6 +13,7 @@ import { SkeletonBudget } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import BlockTitle from "../components/Utils/BlockTitle";
 import { useMounted } from "../hooks/useMounted"
+import { useEventSyncWithUrl } from "../hooks/useEventSyncWithUrl"
 import { useTranslation } from 'react-i18next';
 import { ExcelView } from "../components/Presupuesto/ExcelView";
 import { BlockListaCategorias } from "../components/Presupuesto/BlockListaCategorias";
@@ -26,6 +27,7 @@ import { PresupuestoInitModal } from "../components/Presupuesto/PresupuestoInitM
 
 const Presupuesto = () => {
   useMounted()
+  useEventSyncWithUrl()  // BUG-12: sincronizar event activo con ?event= de URL
   const { t } = useTranslation();
   const { user, verificationDone, forCms } = AuthContextProvider() as any;
   const [showCategoria, setShowCategoria] = useState<{ state: boolean; _id: string }>({ state: false, _id: "" });
