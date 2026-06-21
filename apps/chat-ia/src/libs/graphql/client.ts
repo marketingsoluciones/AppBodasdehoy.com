@@ -149,10 +149,9 @@ const splitLink =
 // Apollo Client
 export const apolloClient = new ApolloClient({
   cache: new InMemoryCache({
-    // ✅ FIX: Permitir campos faltantes en el cache (evita errores "Missing field 'aiModel'")
-    // @ts-expect-error - Apollo InMemoryCache config
-    addTypename: true,
-    // ✅ NO fallar si hay campos undefined
+    // addTypename es true por DEFAULT en Apollo Client (ya no se pasa explícito).
+    // Antes había un `addTypename: true` con @ts-expect-error pero esa opción
+    // NO existe en InMemoryCacheConfig — silenciosamente ignorada por Apollo.
     possibleTypes: {},
     typePolicies: {
       // ✅ FIX: Manejar campos opcionales en tipos de mensaje

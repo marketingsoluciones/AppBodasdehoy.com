@@ -56,6 +56,7 @@ const DropdownCountries = memo(({ label, ...props }: { label?: string; [key: str
             ></input>
             <img
               src={image}
+              alt="Bandera del país seleccionado"
               className="absolute top-0 bottom-0 my-auto right-6 w-6 h-4 rounded"
             />
           </span>

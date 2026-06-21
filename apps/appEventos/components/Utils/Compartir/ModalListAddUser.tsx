@@ -26,6 +26,7 @@ const User = ({ data }) => {
             <div className="hidden md:block">
                 <img
                     src={data?.sexo == "hombre" ? "/profile_men.png": "profile_woman.png"}
+                    alt={data?.nombre ? `Avatar de ${data.nombre}` : 'Avatar de usuario'}
                     className="object-cover w-11 h-11 rounded-full"
                 />
             </div>
