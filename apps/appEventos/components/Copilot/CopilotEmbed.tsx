@@ -548,7 +548,7 @@ function lsLoadMsgs(sessionId: string): MessageItem[] | null {
     }
     return messages.map((m: any) => ({
       ...m,
-      avatar: m.role === 'user' ? { title: 'Tú' } : { title: 'Copilot', backgroundColor: '#FF1493' },
+      avatar: m.role === 'user' ? { title: 'Tú', avatar: '👤', backgroundColor: '#f3f4f6' } : { title: 'Copilot', avatar: '✨', backgroundColor: '#FF1493' },
       loading: false,
       // JSON serializa Date → string; restaurar como Date para que MessageList llame .getTime()
       createdAt: m.createdAt ? new Date(m.createdAt) : undefined,
@@ -625,8 +625,8 @@ export const CopilotEmbed = ({
           message: msg.content,
           avatar:
             msg.role === 'user'
-              ? { title: 'Tú' }
-              : { title: 'Copilot', backgroundColor: '#FF1493' },
+              ? { title: 'Tú', avatar: '👤', backgroundColor: '#f3f4f6' }
+              : { title: 'Copilot', avatar: '✨', backgroundColor: '#FF1493' },
           createdAt: msg.createdAt,
           loading: false,
           error: msg.error ? { message: msg.error } : undefined,
@@ -844,7 +844,7 @@ export const CopilotEmbed = ({
         id: userMessageId,
         role: 'user',
         message: content,
-        avatar: { title: 'Tú' },
+        avatar: { title: 'Tú', avatar: '👤', backgroundColor: '#f3f4f6' },
         createdAt: new Date(),
       };
       setMessages(prev => [...prev, userMessage]);
@@ -857,7 +857,7 @@ export const CopilotEmbed = ({
         id: assistantMessageId,
         role: 'assistant',
         message: '',
-        avatar: { title: 'Copilot', backgroundColor: '#FF1493' },
+        avatar: { title: 'Copilot', avatar: '✨', backgroundColor: '#FF1493' },
         createdAt: new Date(),
         loading: true,
       };
