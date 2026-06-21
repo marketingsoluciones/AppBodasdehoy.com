@@ -2,6 +2,7 @@ import { createContext, useState, useContext, useEffect, SetStateAction, Dispatc
 import { AuthContextProvider } from "../context";
 import { fetchApiBodas, fetchApiEventos, queries, getApiErrorMessage } from "../utils/Fetching";
 import { Event, detalle_compartidos_array } from '../utils/Interfaces';
+import { readCache, writeCache } from '../utils/Funciones';
 import { useRouter, usePathname } from 'next/navigation';
 import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
 
@@ -182,29 +183,34 @@ const EventsGroupProvider = ({ children }) => {
             return
           }
 
+          // BUG-10 cache offline (informe QA 21-jun): cache de eventos con TTL.
+          // Refactorizado al helper de utils/Funciones.ts (readCache/writeCache).
+          // TTL 24h — los eventos cambian poco; si el usuario los modifica desde la app
+          // invalidamos manualmente vía writeCachedEvents. Al recargar la página el usuario
+          // ve sus eventos instantáneo (stale) y el fetch refresca en background.
           const cacheKey = `events_${development}_${userIdToUse}`
-          const readCachedEvents = () => {
-            try {
-              const raw = typeof window !== 'undefined' ? localStorage.getItem(cacheKey) : null
-              if (!raw) return null
-              const parsed = JSON.parse(raw)
-              return Array.isArray(parsed) ? parsed : null
-            } catch {
-              return null
-            }
+          const CACHE_TTL_MS = 24 * 60 * 60 * 1000
+          const readCachedEvents = (): any[] | null => {
+            const cached = readCache<any[]>(cacheKey, CACHE_TTL_MS)
+            return Array.isArray(cached) ? cached : null
           }
           const writeCachedEvents = (events: any[]) => {
-            try {
-              if (typeof window === 'undefined') return
-              localStorage.setItem(cacheKey, JSON.stringify(events))
-            } catch { /* ignore */ }
+            writeCache(cacheKey, events)
           }
 
           console.log("[EventsGroup] Buscando eventos para usuario_id:", userIdToUse)
           setEventsGroupError(false)
           setEventsGroupErrorMessage(null)
           setEventsGroupSessionExpired(false)
-          setEventsGroupDone(false)  // Reset para que EventLoadingOrError muestre skeleton durante re-fetch
+          // BUG-10 cache offline: si hay cache válido (TTL 24h) pintamos inmediato
+          // mientras el fetch refresca en background. Mejor UX y resistente a red lenta.
+          const cachedAtStart = readCachedEvents()
+          if (cachedAtStart && cachedAtStart.length > 0) {
+            setEventsGroup({ type: "INITIAL_STATE", payload: cachedAtStart })
+            setEventsGroupDone(true)
+          } else {
+            setEventsGroupDone(false)  // Reset para que EventLoadingOrError muestre skeleton durante re-fetch
+          }
           const startTime = performance.now()
           let detailsStartTime = startTime
 

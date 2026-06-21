@@ -47,6 +47,12 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: require('path').join(__dirname, '../..'),
   compiler: {
     emotion: true,
+    // Antipatrón 6 (auditoría 20-jun aplicada a chat-ia 21-jun): muchos console.log
+    // heredados de debug. SWC los elimina del bundle de producción; mantenemos error
+    // y warn para que sigan llegando a Sentry y a logs operativos.
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
   },
   compress: isProd,
   eslint: {

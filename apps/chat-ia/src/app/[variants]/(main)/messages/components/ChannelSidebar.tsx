@@ -425,11 +425,15 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
   useEffect(() => {
     getUnreadNotificationsCount()
       .then(setUnreadNotifs)
-      .catch(() => {});
+      .catch((error) => {
+        console.warn('[ChannelSidebar] getUnreadNotificationsCount falló:', error?.message ?? error);
+      });
     const id = setInterval(() => {
       getUnreadNotificationsCount()
         .then(setUnreadNotifs)
-        .catch(() => {});
+        .catch((error) => {
+          console.warn('[ChannelSidebar] getUnreadNotificationsCount (poll) falló:', error?.message ?? error);
+        });
     }, 60_000);
     return () => clearInterval(id);
   }, []);
