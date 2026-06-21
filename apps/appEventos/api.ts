@@ -175,8 +175,19 @@ export const api = {
     // T-501 (2026-05-24): el param `token` (p.ej. sessionBodas HS256) tiene prioridad
     // sobre idTokenV0.1.0 (Firebase RS256, 1h TTL). Necesario para validar sesión vía
     // getCurrentUser cuando NO hay user Firebase pero sí sessionBodas válido.
+    // BUG-11 (informe QA 21-jun): si la cookie sessionBodas fue rechazada por el browser
+    // (tamaño, ITP, third-party), Authentication.tsx guarda el JWT en localStorage como
+    // fallback. Aquí lo usamos para que la sesión funcione aunque la cookie falte.
+    let fallbackToken: string | undefined
+    try {
+      if (!token && typeof window !== 'undefined') {
+        fallbackToken = localStorage.getItem('sessionBodas_fallback') ?? undefined
+      }
+    } catch { /* private mode */ }
     if (token) {
       headers.Authorization = `Bearer ${token}`;
+    } else if (fallbackToken) {
+      headers.Authorization = `Bearer ${fallbackToken}`;
     } else if (idToken) {
       headers.Authorization = `Bearer ${idToken}`;
     }
