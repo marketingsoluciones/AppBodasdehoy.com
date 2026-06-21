@@ -290,14 +290,18 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         domain: config.domain,
       }).then((result) => {
         const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario?._id);
-        const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === task?._id);
-        if (fieldName === 'spectatorView') {
-          event.itinerarios_array[f1].tasks[f2].spectatorView = value;
-          setEvent({ ...event });
-        } else {
-          event.itinerarios_array[f1].tasks[f2][fieldName] = value;
-          setEvent({ ...event });
-        }
+        // Update inmutable: actualiza el field en el task identificado por _id.
+        setEvent((prev) => ({
+          ...prev,
+          itinerarios_array: prev.itinerarios_array.map((it, i) =>
+            i !== f1 ? it : {
+              ...it,
+              tasks: it.tasks.map(tk =>
+                tk._id !== task?._id ? tk : { ...tk, [fieldName]: value }
+              ),
+            }
+          ),
+        }));
       });
       !['horaActiva'].includes(fieldName) && (fieldName === 'duracion' ? value !== 0 : true) && toast("success", t("Campo actualizado"));
     } catch (error) {

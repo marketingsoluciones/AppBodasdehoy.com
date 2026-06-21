@@ -124,8 +124,17 @@ export const InputCommentsOld: FC<props> = ({ itinerario, task, tempPastedAndDro
         } as unknown as Comment;
         const f1 = event?.itinerarios_array.findIndex(elm => elm?._id === itinerario?._id)
         const f2 = event?.itinerarios_array[f1]?.tasks.findIndex(elm => elm?._id === task?._id)
-        event?.itinerarios_array[f1]?.tasks[f2]?.comments.push(results)
-        setEvent({ ...event })
+        setEvent((prev) => ({
+          ...prev,
+          itinerarios_array: prev.itinerarios_array.map((it, i) =>
+            i !== f1 ? it : {
+              ...it,
+              tasks: it.tasks.map((tk, j) =>
+                j !== f2 ? tk : { ...tk, comments: [...(tk.comments ?? []), results] }
+              ),
+            }
+          ),
+        }))
         const asd = event?.detalles_compartidos_array?.filter(elem => ["edit", "view"].includes(elem?.permissions?.find(el => el.title === "servicios")?.value))?.map(elem => elem.uid) ?? []
         let qwe = [...asd, event?.usuario_id]
         const af1 = qwe?.findIndex(elem => elem === user?.uid)
