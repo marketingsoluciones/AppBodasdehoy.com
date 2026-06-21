@@ -212,14 +212,40 @@ export function SplitLoginPage({ children, leftPanel }: SplitLoginPageProps) {
           overflowY: 'auto',
         }}
       >
+        {/*
+          OBS-4 (informe QA 21-jun): en móvil <768px el panel izquierdo se ocultaba
+          entero y el usuario llegaba al form sin contexto de marca ni propuesta de
+          valor. Añadimos un tagline compacto SOLO en móvil que sí cabe (logo + brand
+          + headline corto, sin features ni stats).
+        */}
+        <div className="auth-ui-mobile-tagline">
+          <span style={{ fontSize: 22 }} aria-hidden>{config.logoEmoji}</span>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#6b7280' }}>
+              {config.brandName}
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginTop: 2, lineHeight: 1.25 }}>
+              {config.headline}
+            </div>
+          </div>
+        </div>
         {children}
       </div>
 
       <style>{`
         .auth-ui-split { grid-template-columns: clamp(260px, 42%, 460px) 1fr; }
+        .auth-ui-mobile-tagline { display: none; }
         @media (max-width: 768px) {
           .auth-ui-left-panel { display: none !important; }
           .auth-ui-split { grid-template-columns: 1fr !important; }
+          .auth-ui-mobile-tagline {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px;
+            border-bottom: 1px solid #f3f4f6;
+            background: #fafafa;
+          }
         }
       `}</style>
     </div>
