@@ -270,7 +270,9 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
               <InputFieldIcons
                 name="password"
                 type={passwordView ? "password" : "text"}
-                autoComplete="off"
+                // OBS-1 (informe QA 21-jun): autoComplete="new-password" señaliza al browser
+                // que es una contraseña NUEVA (no pre-rellenar con credenciales guardadas).
+                autoComplete="new-password"
                 label={t("password")}
                 autoFocus={!!preregister}
                 icon={<LockClosed className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />} />

@@ -441,7 +441,21 @@ const AuthProvider = ({ children }) => {
                   if (cookieVerificada) {
                     console.log("[Auth] ✅ Cookie sessionBodas establecida correctamente")
                   } else {
-                    console.error("[Auth] ❌ Error: Cookie sessionBodas NO se estableció")
+                    // BUG-11 (informe QA 21-jun): diagnóstico ampliado + fallback localStorage.
+                    const sz = (typeof sessionCookie === 'string' ? sessionCookie.length : 0)
+                    console.error("[Auth] ❌ Cookie sessionBodas NO se estableció. Aplicando fallback localStorage.", {
+                      valueSize: sz,
+                      domain: cookieDomain,
+                      protocol: window.location.protocol,
+                      hint: sz > 4000
+                        ? "sessionCookie excede 4KB — backend debe acortar el JWT"
+                        : "browser rechazó (third-party cookies / ITP / SameSite)"
+                    })
+                    try {
+                      if (typeof window !== 'undefined') {
+                        localStorage.setItem('sessionBodas_fallback', sessionCookie)
+                      }
+                    } catch { /* quota / private mode */ }
                   }
                 }
 

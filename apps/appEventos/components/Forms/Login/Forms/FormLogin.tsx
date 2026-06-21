@@ -62,7 +62,10 @@ const FormLogin: FC<any> = ({ setStage }) => {
           <InputField
             name="password"
             type={!passwordView ? "password" : "text"}
-            autoComplete="off"
+            // OBS-1 (informe QA 21-jun): autoComplete="off" Chrome lo ignora en password.
+            // current-password es el estándar HTML — el browser puede autocompletar UNA SOLA
+            // VEZ con la última credencial, sin pre-rellenar al abrir la página de login.
+            autoComplete="current-password"
             icon={<LockClosed className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />}
             label={t("password")}
           />

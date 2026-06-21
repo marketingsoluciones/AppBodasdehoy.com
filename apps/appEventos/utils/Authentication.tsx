@@ -89,31 +89,55 @@ export const useAuthentication = () => {
         const { sessionCookie } = authResult;
         // Setear en localStorage token JWT
         const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
-        
+
         const cookieDomain = getCookieDomain(config?.domain)
-        
+
+        // BUG-11 (informe QA 21-jun): diagnóstico ampliado y fallback.
+        // Causas comunes de que Cookies.set no persista:
+        //   · Valor >4096 bytes (límite browser por cookie)
+        //   · Cross-site con SameSite=lax bloqueado en algunos browsers
+        //   · 3rd-party cookies disabled (Safari ITP, modo incógnito strict)
+        //   · Cuota total de cookies por dominio (>180 en Chrome)
+        const sessionCookieSize = (typeof sessionCookie === 'string' ? sessionCookie.length : 0)
         console.log("[Auth] Estableciendo cookie sessionBodas (popup):", {
           cookie: config?.cookie,
           domain: cookieDomain,
-          expires: dateExpire.toISOString()
+          expires: dateExpire.toISOString(),
+          valueSize: sessionCookieSize,
+          tooLarge: sessionCookieSize > 4000
         })
-        
-        Cookies.set(config?.cookie, sessionCookie, { 
-          domain: cookieDomain, 
+
+        Cookies.set(config?.cookie, sessionCookie, {
+          domain: cookieDomain,
           expires: dateExpire,
           path: "/",
           secure: window.location.protocol === "https:",
           sameSite: "lax"
         });
-        
+
         // Verificar que la cookie se estableció
         const cookieVerificada = Cookies.get(config?.cookie)
         if (cookieVerificada) {
           console.log("[Auth] ✅ Cookie sessionBodas establecida correctamente (popup)")
         } else {
-          console.error("[Auth] ❌ Error: Cookie sessionBodas NO se estableció (popup)")
+          // BUG-11 fallback: si la cookie falla (Safari ITP, tamaño, etc.) persistir
+          // en localStorage para que api.ApiBodas tenga el token como Bearer.
+          // No es óptimo (no cross-domain), pero evita que el usuario quede sin sesión.
+          console.error("[Auth] ❌ Cookie sessionBodas NO se estableció (popup). Aplicando fallback localStorage.", {
+            valueSize: sessionCookieSize,
+            domain: cookieDomain,
+            protocol: window.location.protocol,
+            hint: sessionCookieSize > 4000
+              ? "sessionCookie excede 4KB — backend debe acortar el JWT"
+              : "browser rechazó (third-party cookies / ITP / SameSite)"
+          })
+          try {
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('sessionBodas_fallback', sessionCookie)
+            }
+          } catch { /* quota / private mode */ }
         }
-        
+
         return sessionCookie
       } else {
         console.error("[Auth] ❌ No se recibió sessionCookie de la API")
@@ -399,6 +423,8 @@ export const useAuthentication = () => {
         localStorage.removeItem(k); sessionStorage.removeItem(k)
       })
       localStorage.removeItem('appEventos_activeEventId')
+      // BUG-11 (informe QA 21-jun): limpiar fallback sessionBodas si se usó.
+      localStorage.removeItem('sessionBodas_fallback')
     }
     signOut(getAuth());
     router.push(config?.pathDirectory ? `${config?.pathDirectory}/signout?end=true` : "/")
