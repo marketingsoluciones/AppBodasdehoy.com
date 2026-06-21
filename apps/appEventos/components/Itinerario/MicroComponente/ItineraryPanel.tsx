@@ -120,13 +120,19 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
     const f2 = event.itinerarios_array[f1]?.tasks.findIndex(elem => elem._id === task?._id);
     const previousValue = event.itinerarios_array[f1]?.tasks[f2]?.[fieldName];
 
-    // Optimistic local update immediately — rollback if API fails
-    if (fieldName === 'spectatorView') {
-      event.itinerarios_array[f1].tasks[f2].spectatorView = value;
-    } else {
-      event.itinerarios_array[f1].tasks[f2][fieldName] = value;
-    }
-    setEvent({ ...event });
+    // Optimistic local update inmutable — rollback si API falla.
+    // Refactor: antes mutaba event.itinerarios_array[f1].tasks[f2][fieldName]
+    // directamente (mismo array ref antes/después → React puede no detectar
+    // el cambio en hijos memoizados).
+    setEvent((prev) => ({
+      ...prev,
+      itinerarios_array: prev.itinerarios_array.map((it, i) =>
+        i !== f1 ? it : {
+          ...it,
+          tasks: it.tasks.map((tk, j) => j !== f2 ? tk : { ...tk, [fieldName]: value }),
+        }
+      ),
+    }));
 
     let apiValue: string;
     if (fieldName === 'horaActiva') {
@@ -185,10 +191,17 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         !['horaActiva'].includes(fieldName) && (fieldName === 'duracion' ? value !== 0 : true) && toast("success", t("Campo actualizado"));
       } catch (error) {
         console.error('Error al actualizar:', error);
-        // Rollback optimistic state change
+        // Rollback optimistic state change (inmutable)
         if (f1 >= 0 && f2 >= 0) {
-          event.itinerarios_array[f1].tasks[f2][fieldName] = previousValue;
-          setEvent({ ...event });
+          setEvent((prev) => ({
+            ...prev,
+            itinerarios_array: prev.itinerarios_array.map((it, i) =>
+              i !== f1 ? it : {
+                ...it,
+                tasks: it.tasks.map((tk, j) => j !== f2 ? tk : { ...tk, [fieldName]: previousValue }),
+              }
+            ),
+          }));
         }
         toast("error", t("Error al actualizar"));
       } finally {
@@ -355,13 +368,20 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       })
         .then(() => {
           const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-          const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
-          event.itinerarios_array[f1].tasks[f2].spectatorView = newSpectatorViewValue
-          setEvent({ ...event })
+          setEvent((prev) => ({
+            ...prev,
+            itinerarios_array: prev.itinerarios_array.map((it, i) =>
+              i !== f1 ? it : {
+                ...it,
+                tasks: it.tasks.map(tk => tk._id !== values._id ? tk : { ...tk, spectatorView: newSpectatorViewValue }),
+              }
+            ),
+          }))
           toast("success", t("Item guardado con exito"))
           setShowEditTask({ state: false })
         })
     } catch (error) {
+      console.error('[ItineraryPanel] handleSpectatorView error:', error)
     }
   }
   const handleChangeStatus = async (values: Task) => {
@@ -379,9 +399,16 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       })
         .then(() => {
           const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-          const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
-          event.itinerarios_array[f1].tasks[f2].estatus = !values?.estatus
-          setEvent({ ...event })
+          const newEstatus = !values?.estatus
+          setEvent((prev) => ({
+            ...prev,
+            itinerarios_array: prev.itinerarios_array.map((it, i) =>
+              i !== f1 ? it : {
+                ...it,
+                tasks: it.tasks.map(tk => tk._id !== values._id ? tk : { ...tk, estatus: newEstatus }),
+              }
+            ),
+          }))
           toast("success", t("Item guardado con exito"))
           setShowEditTask({ state: false })
           const asd = event?.detalles_compartidos_array?.filter(elem => ["edit", "view"]?.includes(elem?.permissions?.find(el => el.title === "itinerari")?.value))?.map(elem => elem.uid)
@@ -416,9 +443,15 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
               domain: config.domain
             }).then(() => {
               const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-              const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id);
-              event.itinerarios_array[f1].tasks.splice(f2, 1);
-              setEvent({ ...event });
+              setEvent((prev) => ({
+                ...prev,
+                itinerarios_array: prev.itinerarios_array.map((it, i) =>
+                  i !== f1 ? it : {
+                    ...it,
+                    tasks: it.tasks.filter(tk => tk._id !== values._id),
+                  }
+                ),
+              }));
               setTimeout(() => {
                 setModal({ state: false, title: null, values: null, itinerario: null });
                 setLoading(false);
