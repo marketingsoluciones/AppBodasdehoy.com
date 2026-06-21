@@ -8,7 +8,7 @@ import { ButtonComponent } from "../../ButtonComponent";
 import { useToast } from "../../../../hooks/useToast";
 import { AuthContextProvider, LoadingContextProvider } from "../../../../context";
 import { UserCredential, createUserWithEmailAndPassword, getAuth, signInWithCustomToken, updateProfile } from "firebase/auth";
-import { parseJwt, phoneUtil, useAuthentication } from "../../../../utils/Authentication";
+import { parseJwt, safeJwtExpiry, phoneUtil, useAuthentication } from "../../../../utils/Authentication";
 import { fetchApiBodas, fetchApiEventos, queries } from "../../../../utils/Fetching";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from 'firebase/app';
@@ -130,7 +130,8 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
       );
       UserFirebase = userCredential.user;
       const idToken = await userCredential.user.getIdToken()
-      const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
+      // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → session cookie.
+      const dateExpire = safeJwtExpiry(idToken)
       Cookies.set("idTokenV0.1.0", idToken ?? "", {
         domain: process.env.NEXT_PUBLIC_DOMINIO ?? "",
         expires: dateExpire,
@@ -157,7 +158,8 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             const userCredential: UserCredential = await signInWithCustomToken(getAuth(), result)
             UserFirebase = userCredential.user
             const idToken = await userCredential.user.getIdToken()
-            const dateExpire = new Date(parseJwt(idToken ?? "").exp * 1000)
+            // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → session cookie.
+            const dateExpire = safeJwtExpiry(idToken)
             Cookies.set("idTokenV0.1.0", idToken ?? "", {
               domain: process.env.NEXT_PUBLIC_DOMINIO ?? "",
               expires: dateExpire,
