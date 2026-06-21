@@ -36,13 +36,19 @@ export const InputMontoPresupuesto: FC<Props> = ({ title }) => {
     if (isSubmitting) return
     const numVal = parseFloat(submitValue)
     if (isNaN(numVal)) return
+    // BUG-16 (informe QA 21-jun): sin guard, evento_id undefined → 400 "Variable
+    // $evento_id of required type ID! was not provided" + array errors en consola.
+    if (!event?._id) {
+      console.warn('[InputMontoPresupuesto] sin event._id, abortar editPresupuesto')
+      return
+    }
 
     setIsSubmitting(true)
     try {
       const result: any = await fetchApiBodas({
         query: queries.editPresupuesto,
         variables: {
-          evento_id: event?._id,
+          evento_id: event._id,
           datos: { [title === "Presupuesto Total" ? "presupuesto_total" : "coste_estimado"]: numVal }
         }
       })

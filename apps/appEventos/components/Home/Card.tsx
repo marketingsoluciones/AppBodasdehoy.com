@@ -134,6 +134,16 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
   const handleArchivarEvent = () => {
     /* setActionModals(!actionModals) */
     if (true) {
+      // BUG-13 (informe QA 21-jun): archivar era inmediato sin confirmación + el icono
+      // de carpeta no era intuitivo. Como mínimo paso: dialog nativo de confirmación
+      // antes de archivar. (Desarchivar es seguro, no requiere confirmación.)
+      if (grupoStatus === "pendiente") {
+        const nombre = data[idx]?.nombre ?? "este evento"
+        const ok = typeof window !== "undefined"
+          ? window.confirm(`¿Archivar "${nombre}"?\n\nEl evento se moverá a Archivados. Podrás recuperarlo en cualquier momento.`)
+          : true
+        if (!ok) return
+      }
       try {
         const value = grupoStatus === "pendiente" ? "archivado" : "pendiente"
         // estatus es enum EventoStatus (PENDIENTE/ARCHIVADO uppercase) en api-mcp; el front usa

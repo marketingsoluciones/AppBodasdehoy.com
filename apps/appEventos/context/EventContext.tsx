@@ -69,7 +69,27 @@ export let GlobalCurrency = ""
 
 
 const EventProvider = ({ children }: { children: React.ReactNode }) => {
-  const [event, setEvent] = useState<Event | null>(null);
+  const [event, setEventRaw] = useState<Event | null>(null);
+
+  // BUG-12 (informe QA 21-jun): handlers como handleClickCard llamaban setEvent(data)
+  // directamente y NO persistían appEventos_activeEventId → al navegar a /mesas, /presupuesto
+  // o cualquier módulo que lo lee del localStorage, seguían viendo el evento ANTERIOR.
+  // Wrapper: cualquier setEvent actualiza el localStorage en una sola fuente de verdad.
+  const setEvent: typeof setEventRaw = (updater) => {
+    setEventRaw((prev) => {
+      const next = typeof updater === 'function' ? (updater as (p: Event | null) => Event)(prev) : (updater as Event)
+      try {
+        if (typeof window !== 'undefined') {
+          if (next?._id) {
+            localStorage.setItem('appEventos_activeEventId', next._id)
+          } else {
+            localStorage.removeItem('appEventos_activeEventId')
+          }
+        }
+      } catch { /* localStorage may throw in private mode */ }
+      return next
+    })
+  }
   const [invitadoCero, setInvitadoCero] = useState<string | null>(null);
   const [valir, setValir] = useState<boolean | null>(false);
   const [idxGroupEvent, setIdxGroupEvent] = useState<idxGroupEvent | null>({ idx: 0, isActiveStateSwiper: 0, event_id: null });

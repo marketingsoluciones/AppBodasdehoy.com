@@ -29,11 +29,16 @@ export const MontoPresupuesto = () => {
   }, [event?.presupuesto_objeto]);
 
   const handleChangeViewEstimates = async (value: boolean) => {
+    // BUG-16 (informe QA 21-jun): guard contra evento_id undefined.
+    if (!event?._id) {
+      console.warn('[MontoPresupuesto] sin event._id, abortar editPresupuesto viewEstimates')
+      return
+    }
     try {
       const result: any = await fetchApiBodas({
         query: queries.editPresupuesto,
         variables: {
-          evento_id: event?._id,
+          evento_id: event._id,
           datos: { viewEstimates: value }
         }
       })

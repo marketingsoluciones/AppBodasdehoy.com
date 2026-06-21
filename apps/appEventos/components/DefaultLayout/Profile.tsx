@@ -10,7 +10,9 @@ import { RiLoginBoxLine } from "react-icons/ri";
 import { PiUserPlusLight } from "react-icons/pi";
 import { MdLogout } from "react-icons/md";
 import { TbWorldWww } from "react-icons/tb";
-import { BsImages, BsChatDots } from "react-icons/bs";
+import { BsImages } from "react-icons/bs";
+import { Sparkles } from "lucide-react";
+import { getCopilotBaseUrl } from "../Copilot/getCopilotBaseUrl";
 import { useToast } from "../../hooks/useToast";
 import { Notifications } from "../Notifications";
 import { Modal } from "../Utils/Modal";
@@ -140,7 +142,10 @@ const Profile = ({ user, state, set, ...rest }) => {
     },
     {
       title: "Copilot IA",
-      icon: <BsChatDots />,
+      // MEJ-1 (informe QA 21-jun, Opción A): icono Sparkles de Lucide como estándar
+      // de facto para agentes IA (ChatGPT, Notion AI, Copilot). Sustituye BsChatDots
+      // (burbuja chat genérica) por algo que identifica al agente IA.
+      icon: <Sparkles size={18} />,
       onClick: async () => {
         if (planLoading) {
           toast("warning", t("Cargando…"))
@@ -150,7 +155,10 @@ const Profile = ({ user, state, set, ...rest }) => {
           router.push("/facturacion")
           return
         }
-        window.location.href = process.env.NEXT_PUBLIC_CHAT ?? ""
+        // BUG-14 (informe QA 21-jun): NEXT_PUBLIC_CHAT directo apuntaba a chat.bodasdehoy.com
+        // en runtime de app-dev → 404. getCopilotBaseUrl detecta el hostname (app-dev →
+        // chat-dev, app-test → chat-test, app → chat) y devuelve el origin correcto del tenant.
+        window.location.href = getCopilotBaseUrl()
       },
       development: ["all"],
       rol: ["novio", "novia", "otro", "empresa"],
@@ -343,15 +351,27 @@ const Profile = ({ user, state, set, ...rest }) => {
                 </ul>
               </div >
             )}
-            <div className="w-10 h-10">
-              {isAuthenticatedUser ? (
+            {/*
+              BUG-2 (informe QA 21-jun): el icono guest era invisible (bg-gray-100/text-gray-500
+              sin label) y un usuario nuevo no sabía que era el acceso a login. Fix en 3 capas:
+                · CSS: colores de marca (bg-primary/10 + text-primary + border-primary/20)
+                · UX: title="Iniciar sesión" para tooltip nativo + aria-label para a11y
+                · Desktop: texto "Iniciar sesión" junto al icono en ≥lg
+            */}
+            {isAuthenticatedUser ? (
+              <div className="w-10 h-10">
                 <ImageAvatar user={user} disabledTooltip />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
-                  <UserIcon className="w-5 h-5 text-gray-500" />
-                </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div
+                className="h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center gap-1.5 px-2 lg:px-3 text-primary hover:bg-primary/15 transition"
+                title={t("signin")}
+                aria-label={t("signin")}
+              >
+                <UserIcon className="w-5 h-5 shrink-0" />
+                <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">{t("signin")}</span>
+              </div>
+            )}
             <ArrowDownBodasIcon className="w-5 h-5 rotate-90 transform text-black" />
           </div>
         </ClickAwayListener>
