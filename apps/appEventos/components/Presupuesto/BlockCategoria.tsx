@@ -44,17 +44,34 @@ const BlockCategoria = (props: any) => {
   const saldo = categoria?.coste_estimado - categoria?.coste_final;
   const saldoAFavor = Math.abs(saldo) == saldo;
 
-  const totalCosteFinal = categoria?.gastos_array?.reduce((total, item) => total + item.coste_final, 0)
+  // BUG-P-01 (informe QA 22-jun): el reduce sumaba undefined cuando una partida nueva
+  // venía sin coste_final → total NaN → totales del header presupuesto se reseteaban
+  // a 0 (NaN || 0). Además la comparación era objeto != number (siempre true) →
+  // setEvent se disparaba en bucle. Y mutaba el estado directo. Fix completo:
+  const totalCosteFinal = categoria?.gastos_array?.reduce(
+    (total, item) => total + (typeof item?.coste_final === 'number' ? item.coste_final : 0),
+    0
+  ) ?? 0
 
   useEffect(() => {
-    const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex((item) => item?._id === categoria?._id)
-    if (event?.presupuesto_objeto?.categorias_array[f1] != totalCosteFinal) {
-      setEvent((old) => {
-        old.presupuesto_objeto.categorias_array[f1].coste_final = totalCosteFinal
-        return { ...old }
-      })
-    }
-  }, [totalCosteFinal])
+    const cats = event?.presupuesto_objeto?.categorias_array
+    if (!cats || !categoria?._id) return
+    const f1 = cats.findIndex((item) => item?._id === categoria._id)
+    if (f1 < 0) return
+    // Comparar number vs number (no objeto vs number).
+    const current = cats[f1]?.coste_final
+    if (current === totalCosteFinal) return
+    // Update inmutable (no mutar el array).
+    setEvent((prev) => ({
+      ...prev,
+      presupuesto_objeto: {
+        ...prev.presupuesto_objeto,
+        categorias_array: prev.presupuesto_objeto.categorias_array.map((cat, i) =>
+          i !== f1 ? cat : { ...cat, coste_final: totalCosteFinal }
+        ),
+      },
+    }))
+  }, [totalCosteFinal, categoria?._id])
 
   const Columna = useMemo(() => {
     const columns = [

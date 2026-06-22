@@ -271,77 +271,89 @@ interface propsHandleDelete {
   setShowModalDelete: Dispatch<SetStateAction<any>>
 }
 
-export const handleDelete = ({ showModalDelete, event, setEvent, setLoading, setShowModalDelete }: propsHandleDelete) => {
+export const handleDelete = async ({ showModalDelete, event, setEvent, setLoading, setShowModalDelete }: propsHandleDelete) => {
+  // BUG-P-02 (informe QA 22-jun): la versión anterior con Promise wrapper no
+  // resolvía si el object no era reconocido o si fetchApiEventos lanzaba excepción
+  // (resolve nunca se llamaba → spinner infinito). Refactor a async/await + try/finally
+  // que GARANTIZA cerrar modal + reset loading en TODOS los casos.
+  const { values } = showModalDelete
+  setLoading(true)
   try {
-    const { values } = showModalDelete
-    setLoading(true)
-    new Promise(resolve => {
-      if (values?.object === "categoria") {
-        fetchApiEventos({
-          query: queries.borraCategoria,
-          variables: {
-            evento_id: event?._id,
-            categoria_id: values?._id,
-          },
-        }).then(result => {
-          const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(elem => elem._id === values?._id)
-          event?.presupuesto_objeto?.categorias_array?.splice(f1, 1)
-          resolve(event)
-        })
-      }
-      if (values?.object === "gasto") {
-        fetchApiEventos({
-          query: queries.borrarGasto,
-          variables: {
-            evento_id: event?._id,
-            categoria_id: values?.categoriaID,
-            gasto_id: values?._id,
-          },
-        }).then(result => {
-          const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(elem => elem._id === values?.categoriaID)
-          const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.findIndex(elem => elem._id === values?._id)
-          event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.splice(f2, 1)
-          resolve(event)
-        })
-      }
-      if (values?.object === "item") {
-        fetchApiEventos({
-          query: queries.borrarItemsGastos,
-          variables: {
-            evento_id: event?._id,
-            categoria_id: values?.categoriaID,
-            gasto_id: values?.gastoID,
-            itemsGastos_ids: [values?._id],
-          },
-        }).then(result => {
-          // Inmutable: filtrar el item borrado en categorias→gastos→items.
-          setEvent((prev) => ({
-            ...prev,
-            presupuesto_objeto: {
-              ...prev.presupuesto_objeto,
-              categorias_array: prev.presupuesto_objeto.categorias_array.map(cat =>
-                cat._id !== values?.categoriaID ? cat : {
-                  ...cat,
-                  gastos_array: cat.gastos_array.map(gasto =>
-                    gasto._id !== values?.gastoID ? gasto : {
-                      ...gasto,
-                      items_array: gasto.items_array.filter(item => item._id !== values._id),
-                    }
-                  ),
+    if (values?.object === "categoria") {
+      await fetchApiEventos({
+        query: queries.borraCategoria,
+        variables: {
+          evento_id: event?._id,
+          categoria_id: values?._id,
+        },
+      })
+      // Update inmutable (no splice mutante).
+      setEvent((prev) => ({
+        ...prev,
+        presupuesto_objeto: {
+          ...prev.presupuesto_objeto,
+          categorias_array: prev.presupuesto_objeto.categorias_array.filter(cat => cat._id !== values?._id),
+        },
+      }))
+    } else if (values?.object === "gasto") {
+      await fetchApiEventos({
+        query: queries.borrarGasto,
+        variables: {
+          evento_id: event?._id,
+          categoria_id: values?.categoriaID,
+          gasto_id: values?._id,
+        },
+      })
+      // Update inmutable.
+      setEvent((prev) => ({
+        ...prev,
+        presupuesto_objeto: {
+          ...prev.presupuesto_objeto,
+          categorias_array: prev.presupuesto_objeto.categorias_array.map(cat =>
+            cat._id !== values?.categoriaID ? cat : {
+              ...cat,
+              gastos_array: cat.gastos_array.filter(g => g._id !== values?._id),
+            }
+          ),
+        },
+      }))
+    } else if (values?.object === "item") {
+      await fetchApiEventos({
+        query: queries.borrarItemsGastos,
+        variables: {
+          evento_id: event?._id,
+          categoria_id: values?.categoriaID,
+          gasto_id: values?.gastoID,
+          itemsGastos_ids: [values?._id],
+        },
+      })
+      setEvent((prev) => ({
+        ...prev,
+        presupuesto_objeto: {
+          ...prev.presupuesto_objeto,
+          categorias_array: prev.presupuesto_objeto.categorias_array.map(cat =>
+            cat._id !== values?.categoriaID ? cat : {
+              ...cat,
+              gastos_array: cat.gastos_array.map(gasto =>
+                gasto._id !== values?.gastoID ? gasto : {
+                  ...gasto,
+                  items_array: gasto.items_array.filter(item => item._id !== values._id),
                 }
               ),
-            },
-          }))
-          resolve(true)
-        })
-      }
-    }).then(() => {
-      showModalDelete["setShowDotsOptionsMenu"] && showModalDelete?.setShowDotsOptionsMenu({ state: false })
-      setShowModalDelete({ state: false })
-      setLoading(false)
-    })
-  } catch (error) {
-    console.log(error)
+            }
+          ),
+        },
+      }))
+    } else {
+      console.warn('[handleDelete] object no reconocido:', values?.object, '— solo "categoria"/"gasto"/"item"')
+    }
+  } catch (error: any) {
+    console.warn('[handleDelete] falló:', error?.message ?? error)
+  } finally {
+    // SIEMPRE ejecutar: cerrar modal + reset loading aunque el API falle.
+    showModalDelete["setShowDotsOptionsMenu"] && showModalDelete?.setShowDotsOptionsMenu({ state: false })
+    setShowModalDelete({ state: false })
+    setLoading(false)
   }
 }
 

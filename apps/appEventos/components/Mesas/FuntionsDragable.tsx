@@ -284,6 +284,9 @@ export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, plan
     const target = asd[0]
     const ID = asd[1]
     if (target === "table") {
+      // BUG-M-02 (informe QA 22-jun): drag movía visualmente pero el backend
+      // no persistía. Capturamos la respuesta del API para detectar el problema
+      // (success/errors) en vez de fire-and-forget.
       fetchApiEventos({
         query: queries.editTable,
         variables: {
@@ -293,6 +296,12 @@ export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, plan
           variable: "position",
           valor: JSON.stringify({ x, y })
         },
+      }).then((r: any) => {
+        if (r && r.success === false) {
+          console.warn('[ActualizarPosicion] backend rechazó la mutación de position:', r.errors)
+        }
+      }).catch((e) => {
+        console.warn('[ActualizarPosicion] editTable position falló:', e?.message ?? e)
       });
       // Update inmutable de la posición de la mesa.
       const newPlanSpaceActive = {

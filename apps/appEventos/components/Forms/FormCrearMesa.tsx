@@ -87,6 +87,16 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
   }
 
   const handleSubmit = async (values: FormikValues, actions: any) => {
+    // BUG-M-01 (informe QA 22-jun): si values.tipo llega vacío/null (drag callback
+    // no setó modelo correctamente), el render de MesaComponent crashea con
+    // "Cannot read properties of undefined (reading 'component')". Validamos antes
+    // de enviar al API.
+    const tipoNormalizado = typeof values.tipo === 'string' ? values.tipo.toLowerCase().trim() : ''
+    if (!tipoNormalizado) {
+      toast("error", t("Tipo de mesa inválido. Vuelve a arrastrar la plantilla."))
+      actions.setSubmitting(false)
+      return
+    }
     try {
       const result: any = await fetchApiEventos({
         query: queries.createTable,
@@ -99,11 +109,19 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
             position: values.defPosicion,
             rotation: 0,
             size: { width: 100, height: 80 },
-            tipo: values.tipo
+            tipo: tipoNormalizado
           })
         },
       })
-      const newTable = { ...result }
+      // BUG-M-01: si result viene null o sin tipo, no metemos basura al estado.
+      if (!result || !result._id) {
+        toast("error", t("Error al crear la mesa"))
+        console.warn('[FormCrearMesa] createTable devolvió result null/sin _id', result)
+        actions.setSubmitting(false)
+        return
+      }
+      // Normalizar tipo del result (api-mcp puede devolver MAYÚSCULAS).
+      const newTable = { ...result, tipo: (typeof result.tipo === 'string' ? result.tipo.toLowerCase() : tipoNormalizado) }
       const newPlanSpaceActive = { ...planSpaceActive, tables: [...planSpaceActive.tables, newTable] }
       setPlanSpaceActive(newPlanSpaceActive)
       // planSpaceSelect es el ID del plan space activo (string), no el índice.
