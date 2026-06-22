@@ -823,13 +823,23 @@ const AuthProvider = ({ children }) => {
           if (currentUser?.id) {
             console.log('[Auth] ✅ Sesión validada vía getCurrentUser:', currentUser?.email)
             // Cargar datos completos del usuario appEventos (eventSelected, weddingDate, etc.)
-            const userInfo = await fetchApiBodas({
+            const userInfo: any = await fetchApiBodas({
               query: queries.getUser,
               variables: { uid: currentUser.id },
               token: sessionCookie,
               development: config?.development
             }).catch(() => null)
-            const merged = { uid: currentUser.id, email: currentUser.email, ...(userInfo || {}) }
+            // BUG-H-02 (informe QA 22-jun): el backend a veces devuelve campos
+            // en `name`/`avatar` (alias) en vez de `displayName`/`photoURL`.
+            // Hacemos el merge tolerante a ambos shapes para que el avatar y el
+            // nombre se pinten correctamente sin depender del backend.
+            const merged: any = {
+              uid: currentUser.id,
+              email: currentUser.email || userInfo?.email,
+              ...(userInfo || {}),
+              displayName: userInfo?.displayName || userInfo?.name || currentUser?.name || currentUser?.displayName,
+              photoURL: userInfo?.photoURL || userInfo?.avatar || currentUser?.avatar || currentUser?.photoURL,
+            }
             setUser(merged)
             moreInfo(merged)
           } else {

@@ -210,6 +210,13 @@ const Profile = ({ user, state, set, ...rest }) => {
         Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
         Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
         clearDevBypass()
+        // BUG-01 (informe QA 22-jun): el logout del menú de Profile no limpiaba
+        // sessionBodas_fallback ni appEventos_activeEventId. Riesgo de fuga de
+        // datos de sesión anterior en dispositivos compartidos.
+        if (typeof window !== "undefined") {
+          localStorage.removeItem('sessionBodas_fallback')
+          localStorage.removeItem('appEventos_activeEventId')
+        }
         signOut(getAuth()).then(() => {
           setUser(null)
           toast("success", t("loggedoutsuccessfully"))

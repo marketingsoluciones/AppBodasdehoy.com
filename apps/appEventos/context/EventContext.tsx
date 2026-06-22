@@ -80,10 +80,20 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
       const next = typeof updater === 'function' ? (updater as (p: Event | null) => Event)(prev) : (updater as Event)
       try {
         if (typeof window !== 'undefined') {
+          const prevId = prev?._id
           if (next?._id) {
             localStorage.setItem('appEventos_activeEventId', next._id)
           } else {
             localStorage.removeItem('appEventos_activeEventId')
+          }
+          // BUG-H-03/H-05 (informe QA 22-jun): notificar a otros provider/componentes
+          // (Notifications, Copilot, etc.) que el evento activo cambió. Esto permite
+          // que el sync useEffect de arriba reaccione inmediato sin esperar a
+          // re-render del contexto.
+          if (prevId !== next?._id) {
+            window.dispatchEvent(new CustomEvent('appEventos:activeEventChanged', {
+              detail: { eventId: next?._id, prevEventId: prevId }
+            }))
           }
         }
       } catch { /* localStorage may throw in private mode */ }
@@ -101,6 +111,31 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
   const { user, setUser } = AuthContextProvider()
   const [planSpaceSelect, setPlanSpaceSelect] = useState<string>("")
   const { config } = AuthContextProvider()
+
+  // BUG-H-03/H-05 + BUG-12 (informe QA 22-jun): el evento actual se quedaba con
+  // el último cacheado aunque appEventos_activeEventId hubiese cambiado (Home →
+  // /invitados → notificaciones mostraban evento incorrecto). Escuchamos cambios
+  // del localStorage (storage event entre pestañas + custom event mismo tab) y
+  // re-seleccionamos el evento si discrepa.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const sync = () => {
+      const stored = localStorage.getItem('appEventos_activeEventId')
+      if (!stored) return
+      if (event?._id === stored) return
+      if (!eventsGroup?.length) return
+      const found = eventsGroup.find(e => e._id === stored)
+      if (found && found._id !== event?._id) {
+        setEvent({ ...found })
+      }
+    }
+    window.addEventListener('storage', sync)
+    window.addEventListener('appEventos:activeEventChanged', sync as EventListener)
+    return () => {
+      window.removeEventListener('storage', sync)
+      window.removeEventListener('appEventos:activeEventChanged', sync as EventListener)
+    }
+  }, [event?._id, eventsGroup])
 
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {

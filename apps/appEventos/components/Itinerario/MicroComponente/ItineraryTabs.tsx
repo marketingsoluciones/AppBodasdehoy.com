@@ -228,10 +228,17 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             toast("warning", t("maxLimitedItineraries"));
             return
         }
-        const f = new Date(parseInt(event?.fecha))
-        const y = f.getUTCFullYear()
-        const m = f.getUTCMonth()
-        const d = f.getUTCDate()
+        // BUG-IT-01 (informe QA 22-jun): si event.fecha es null/undefined o no
+        // parseable, new Date(parseInt(undefined)) = Invalid Date → API 400.
+        // Usar la fecha del evento si es válida, si no fallback a "hoy".
+        const fechaParsed = event?.fecha ? parseInt(String(event.fecha)) : NaN
+        const f = !isNaN(fechaParsed) && fechaParsed > 0
+          ? new Date(fechaParsed)
+          : new Date()
+        const baseDate = isNaN(f.getTime()) ? new Date() : f
+        const y = baseDate.getUTCFullYear()
+        const m = baseDate.getUTCMonth()
+        const d = baseDate.getUTCDate()
         fetchApiEventos({
             query: queries.createItinerario,
             variables: {
@@ -245,6 +252,13 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             domain: config.domain
         }).then((r: any) => {
             const result: Itinerary = r?.itinerario || r
+            // BUG-IT-01: si el API devuelve null/error, abortar sin romper
+            // (antes intentaba result._id → crash "Cannot read properties of null").
+            if (!result || !result._id) {
+                toast("error", t("Error al crear itinerario"))
+                console.warn("[ItineraryTabs] createItinerario devolvió result null/sin _id", r)
+                return
+            }
             const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
             if (event.itinerarios_array?.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length) {
                 const lastListIdentifiers = { ...event.listIdentifiers[fListIdentifiers] }

@@ -773,8 +773,20 @@ async function proxyToPythonBackend(
       if (backendResponse.status === 402) {
         const msg = extractedMessage || 'Saldo de IA agotado. Recarga tu cuenta para continuar usando el asistente.';
         res.setHeader('X-Backend-Error-Code', 'SALDO_AGOTADO');
-        // URL de Facturación: la que envía api-ia o fallback a Copilot /settings/billing
-        const copilotOrigin = process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com';
+        // BUG-H-04: derivar el copilotOrigin del host de la request (dev/test/prod)
+        // en vez de hardcodear chat.bodasdehoy.com. Si hay X-Forwarded-Host o Host,
+        // usamos resolveChatOrigin; si no, fallback al env.
+        const reqHost = (req.headers['x-forwarded-host'] || req.headers.host || '') as string;
+        let copilotOrigin: string;
+        if (reqHost) {
+          // ej. "app-dev.bodasdehoy.com" → "https://chat-dev.bodasdehoy.com"
+          const hostname = reqHost.split(':')[0];
+          if (hostname.includes('-dev.')) copilotOrigin = `https://chat-dev.${hostname.split('-dev.')[1]}`;
+          else if (hostname.includes('-test.')) copilotOrigin = `https://chat-test.${hostname.split('-test.')[1]}`;
+          else copilotOrigin = `https://chat.${hostname.replace(/^[^.]+\./, '')}`;
+        } else {
+          copilotOrigin = process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com';
+        }
         const billingUrl = extractedPaymentUrl || `${copilotOrigin.replace(/\/$/, '')}/settings/billing`;
         console.warn('[Copilot API] 402 saldo agotado recibido de api-ia', { requestId, paymentUrl: extractedPaymentUrl });
         res.status(402).json({

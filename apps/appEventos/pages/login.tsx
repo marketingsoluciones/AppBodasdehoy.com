@@ -196,7 +196,33 @@ const PageLogin = () => {
             whitelabel — si está definido se muestra, si no, no aparece.
             Esto es consistente entre los 11 tenants y autoexplicativo. */}
         {(() => {
-          const path = typeof config?.pathDirectory === 'string' ? config.pathDirectory.trim() : ''
+          // OBS-02 (informe QA 22-jun): config.pathDirectory se sobrescribe a window.origin
+          // (app-dev) en subdominios -dev/-test por la lógica de mantener al usuario en
+          // el mismo entorno tras SSO. Pero el botón "Ir a {brand}" debe ir SIEMPRE a la
+          // web de marketing del tenant (bodasdehoy.com, etc.), no al subdominio dev.
+          // Fix: derivar el host de producción del hostname actual.
+          const buildProdDirectory = (): string => {
+            // Si config.pathDirectory original (sin override) está disponible, usarlo.
+            // Si estamos en dev/test/local, derivar el host de prod del hostname actual.
+            if (typeof window === 'undefined') return ''
+            const host = window.location.hostname
+            // En prod (bodasdehoy.com) usamos config.pathDirectory directamente.
+            if (host && !host.includes('-dev.') && !host.includes('-test.') && host !== 'localhost' && host !== '127.0.0.1') {
+              return typeof config?.pathDirectory === 'string' ? config.pathDirectory.trim() : ''
+            }
+            // En dev/test/local, derivar el host de prod (quitar prefix dev/test).
+            const baseHost = host
+              .replace(/^app-dev\./, '')
+              .replace(/^app-test\./, '')
+              .replace(/^app\./, '')
+            if (baseHost && baseHost.includes('.')) {
+              return `https://${baseHost}`
+            }
+            // Fallback final.
+            return typeof config?.pathDirectory === 'string' ? config.pathDirectory.trim() : ''
+          }
+
+          const path = buildProdDirectory()
           if (!path) return null
           const href = /^https?:\/\//.test(path) ? path : `https://${path}`
           let label = path.replace(/^https?:\/\//, '').replace(/\/$/, '')
@@ -204,6 +230,8 @@ const PageLogin = () => {
           return (
             <a
               href={href}
+              target="_blank"
+              rel="noopener noreferrer"
               className="absolute flex items-center gap-1.5 text-gray-500 hover:text-gray-700 text-xs sm:text-sm bg-transparent border border-gray-200 hover:border-gray-300 rounded-full px-3 py-1.5 transition-colors"
               style={{ top: 16, right: 16, textDecoration: 'none' }}
               title={`Ir a ${label}`}
