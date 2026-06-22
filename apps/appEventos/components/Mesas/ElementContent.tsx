@@ -44,10 +44,20 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
             datos: { title: customEditor }
           }
         }).then((res) => {
-          const index: number = planSpaceActive?.elements.findIndex((elem) => elem._id === item._id)
-          planSpaceActive.elements[index].title = customEditor
-          setPlanSpaceActive({ ...planSpaceActive })
-          setEvent({ ...event })
+          // Update inmutable del title del elemento.
+          const newPlanSpaceActive = {
+            ...planSpaceActive,
+            elements: planSpaceActive.elements.map((el) =>
+              el._id !== item._id ? el : { ...el, title: customEditor }
+            ),
+          }
+          setPlanSpaceActive(newPlanSpaceActive)
+          setEvent((prev) => ({
+            ...prev,
+            planSpace: prev.planSpace.map((ps) =>
+              ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+            ),
+          }))
         })
       }
     }

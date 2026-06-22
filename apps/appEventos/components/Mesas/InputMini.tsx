@@ -29,20 +29,27 @@ export const InputMini: FC<propsInputMini> = ({ label, lienzo, setLienzo, center
     try {
       setValue(e.target.value)
       if (e.target.value !== "") {
+        const parsedValue = e?.target.value ? parseFloat(e.target.value) * 100 : 0
+        const sizeKey = label === "alto" ? "height" : "width"
+        // Pre-calcular planSpace nuevo según el tipo de cambio.
+        let newPlanSpace = event.planSpace
         if (label === "alto" || label === "ancho") {
-          event.planSpace[idxPlanSpace].size[`${label == "alto" ? "height" : "width"}`] = e?.target.value ? parseFloat(e.target.value) * 100 : 0
-          setLienzo({ ...lienzo, [`${label == "alto" ? "height" : "width"}`]: e?.target.value ? parseFloat(e.target.value) * 100 : 0 })
+          newPlanSpace = event.planSpace.map((ps, i) =>
+            i !== idxPlanSpace ? ps : { ...ps, size: { ...ps.size, [sizeKey]: parsedValue } }
+          )
+          setLienzo({ ...lienzo, [sizeKey]: parsedValue })
         }
         if (label === "espacio") {
-          event.planSpace[idxPlanSpace].spaceChairs = e?.target.value ? parseFloat(e.target.value) * 100 : 0
-          setPlanSpaceActive({ ...event.planSpace[idxPlanSpace] })
-          setEvent({ ...event })
+          newPlanSpace = event.planSpace.map((ps, i) =>
+            i !== idxPlanSpace ? ps : { ...ps, spaceChairs: parsedValue }
+          )
+          setPlanSpaceActive(newPlanSpace[idxPlanSpace])
         }
         fetchApiBodas({
           query: queries.eventUpdate,
-          variables: { idEvento: event._id, input: { planSpace: event.planSpace } }, token: null
+          variables: { idEvento: event._id, input: { planSpace: newPlanSpace } }, token: null
         })
-        setEvent({ ...event })
+        setEvent((prev) => ({ ...prev, planSpace: newPlanSpace }))
       }
     } catch {
     }
