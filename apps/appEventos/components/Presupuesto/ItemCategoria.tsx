@@ -37,10 +37,20 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
         }
       }).then(() => {
         setEvent(old => {
-          const index = old?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == id)
-          
-          old.presupuesto_objeto.categorias_array[index].nombre = value !== "" ? value : "nueva categoria"
-          return { ...old }
+          const cats = old?.presupuesto_objeto?.categorias_array
+          if (!Array.isArray(cats)) return old
+          const index = cats.findIndex(item => item?._id == id)
+          if (index < 0) return old
+          const newNombre = value !== "" ? value : "nueva categoria"
+          return {
+            ...old,
+            presupuesto_objeto: {
+              ...old.presupuesto_objeto,
+              categorias_array: cats.map((cat, i) =>
+                i !== index ? cat : { ...cat, nombre: newNombre }
+              ),
+            },
+          }
         });
         toast("success", t("suscess"))
       })
