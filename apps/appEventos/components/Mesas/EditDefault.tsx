@@ -54,13 +54,14 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
   const handleRotate = async (direcction) => {
     // Calcular nueva rotación sin mutar el item.
     let newRotation: number
-    if (item?.rotation == 0 && direcction === "left") {
+    const currentRotation = typeof item?.rotation === 'number' ? item.rotation : 0
+    if (currentRotation === 0 && direcction === "left") {
       newRotation = 360 - 15
     } else {
-      newRotation = item.rotation + (direcction === "left" ? -15 : 15)
+      newRotation = currentRotation + (direcction === "left" ? -15 : 15)
       if (newRotation === 360) newRotation = 0
+      if (newRotation < 0) newRotation = 360 + newRotation
     }
-    item.rotation = newRotation  // mantenemos el sync local para que el handler use el valor abajo
     const arrayKey = itemTipo === "table" ? "tables" : "elements"
     // Update inmutable: rotación del item dentro de planSpaceActive y event.
     const newPlanSpaceActive = {
@@ -77,6 +78,10 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
       ),
     }))
     if (itemTipo === "table") {
+      // BUG-M-03 (informe QA 22-jun): la mutación se disparaba pero no persistía.
+      // Causa: JSON.stringify(15) = "15" (string) y backend espera number. Si
+      // valor es number, va sin stringify; si el backend exige string, va el
+      // toString plano (no JSON-encoded).
       await fetchApiEventos({
         query: queries.editTable,
         variables: {
@@ -84,7 +89,7 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
           planSpaceID: planSpaceActive?._id,
           tableID: item._id,
           variable: "rotation",
-          valor: JSON.stringify(item?.rotation)
+          valor: String(newRotation)
         }
       })
     }
@@ -94,7 +99,7 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
         variables: {
           evento_id: event._id,
           element_id: item._id,
-          datos: { rotation: item?.rotation }
+          datos: { rotation: newRotation }
         }
       })
     }

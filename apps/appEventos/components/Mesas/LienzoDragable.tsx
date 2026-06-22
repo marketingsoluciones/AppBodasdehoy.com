@@ -173,15 +173,20 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
     x: 1,
     y: 1
   }
-  let valirStart = false
-  let valirMove = false
+  // BUG-M-02 (informe QA 22-jun): valirStart/valirMove eran variables FUERA del
+  // listener compartidas entre TODOS los dragables. Una vez arrastras una vez y
+  // sueltas, las flags quedan a true; la siguiente vez NO se inicializa start()
+  // correctamente y end() no dispara mutación. Además el guard !!i?.x && !!i?.y
+  // rechazaba posiciones (0, Y) o (X, 0) que son válidas.
+  // Fix: mover el estado al WeakMap por target (cada elemento mantiene su propio
+  // estado) + cambiar !!i?.x a typeof i?.x === 'number' (acepta 0).
+  const dragState = new WeakMap<EventTarget, { start: boolean; move: boolean }>()
   // setup draggable elements.
   const optionsDrag = {
     ignoreFrom: '.ign, .ql-editor',
     manualStart: false,
     listeners: {
       start(e) {
-
         const safeScale = scale || 1
         sizeElement = { w: e.rect.width / safeScale, h: e.rect.height / safeScale }
         sizeElement = { ...sizeElement }
@@ -190,18 +195,20 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
         i.x = parseInt(e.target.getAttribute('data-x'), 10) || 0
         i.y = parseInt(e.target.getAttribute('data-y'), 10) || 0
         i = { ...i }
-        valirStart = true
+        dragState.set(e.target, { start: true, move: false })
       },
       move(e) {
-        if (!valirMove) {
-          if (!valirStart) {
+        const st = dragState.get(e.target) ?? { start: false, move: false }
+        if (!st.move) {
+          if (!st.start) {
             i.x = parseInt(e.target.getAttribute('data-x'), 10) || 0
             i.y = parseInt(e.target.getAttribute('data-y'), 10) || 0
             i = { ...i }
           }
-          valirMove = true
+          dragState.set(e.target, { start: st.start, move: true })
         }
-        if (!!i?.x && !!i?.y && valirStart) {
+        const stNow = dragState.get(e.target)
+        if (typeof i?.x === 'number' && typeof i?.y === 'number' && stNow?.start) {
           i.x = i.x + (e?.dx / scale)
           i.y = i.y + (e?.dy / scale)
           i = { ...i }
@@ -214,11 +221,14 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
         }
       },
       end(e) {
-        if (!!i?.x && !!i?.y && valirStart && valirMove) {
+        const st = dragState.get(e.target)
+        if (typeof i?.x === 'number' && typeof i?.y === 'number' && st?.start && st?.move) {
           e.target.setAttribute('data-x', i.x)
           e.target.setAttribute('data-y', i.y)
           ActualizarPosicion({ x: Math.trunc(i.x), y: Math.trunc(i.y), event: event, targetID: e.target.getAttribute('id'), setEvent: setEvent, planSpaceActive, setPlanSpaceActive })
         }
+        // Limpiar el estado para que el próximo drag arranque limpio.
+        dragState.delete(e.target)
       },
     },
   }

@@ -57,19 +57,28 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 toast("warning", t("Selecciona un itinerario primero"));
                 return;
             }
-            const f = new Date(parseInt(event.fecha))
-            const fy = f.getUTCFullYear()
-            const fm = f.getUTCMonth()
-            const fd = f.getUTCDate()
+            // BUG-IT-01 (informe QA 22-jun): si event.fecha es null/undefined/no-number,
+            // new Date(parseInt(undefined)) = Invalid Date → API 400 → toast error sin contexto.
+            // Guard: usar fecha del evento si es válida, si no fallback a hoy.
+            const fechaParsed = event?.fecha ? parseInt(String(event.fecha)) : NaN
+            const f = !isNaN(fechaParsed) && fechaParsed > 0
+              ? new Date(fechaParsed)
+              : new Date()
+            const baseDate = isNaN(f.getTime()) ? new Date() : f
+            const fy = baseDate.getUTCFullYear()
+            const fm = baseDate.getUTCMonth()
+            const fd = baseDate.getUTCDate()
             let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000
             const tasks = itinerario.tasks || [];
             if (tasks.length) {
                 const item = tasks[tasks.length - 1]
-                const epoch = new Date(item.fecha).getTime()
-                newEpoch = epoch + item.duracion * 60 * 1000
+                const epoch = item?.fecha ? new Date(item.fecha).getTime() : NaN
+                if (!isNaN(epoch)) {
+                    newEpoch = epoch + (item.duracion || 0) * 60 * 1000
+                }
             }
             const fecha = new Date(newEpoch)
-            const addNewTask = await fetchApiEventos({
+            await fetchApiEventos({
                 query: queries.createTask,
                 variables: {
                     evento_id: event._id,
@@ -84,7 +93,13 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 },
                 domain: config.domain
             }).then((result: any) => {
+                // BUG-IT-01: si el API devuelve null/sin _id, no podemos seguir.
                 const addNewTask = result?.task || result
+                if (!addNewTask || !addNewTask._id) {
+                    console.warn('[ItineraryTabs] createTask devolvió result null/sin _id', result)
+                    toast("error", t("Error al añadir"));
+                    return
+                }
                 fetchApiEventos({
                     query: queries.editTask,
                     variables: {
@@ -93,7 +108,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         development: config.development || "bodasdehoy",
                         updates: { estatus: true }
                     }
-                })
+                }).catch((e) => console.warn('[ItineraryTabs] editTask estatus falló:', e?.message ?? e))
                 const task = { ...(addNewTask as any), spectatorView: false, estatus: "true" } as Task
                 const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
                 setEvent((prev) => ({
@@ -105,7 +120,8 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 setSelectTask(task._id)
                 toast("success", t(itinerario.tipo === "itinerario" ? "Actividad añadida" : "Servicio añadido"));
             })
-        } catch (error) {
+        } catch (error: any) {
+            console.warn('[ItineraryTabs] handleAddNewItem error:', error?.message ?? error)
             toast("error", t("Error al añadir"));
         }
     }

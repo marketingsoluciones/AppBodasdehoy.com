@@ -138,7 +138,17 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicionRedonda, table, invitad
       </>
     )
   }
-  return cloneElement(schemaGeneral[table.tipo].component, {
+  // BUG-M-01 (informe QA 22-jun): si table.tipo no existe en schemaGeneral
+  // (mesa recién creada con tipo desconocido, tipo en mayúsculas, null o vacío),
+  // schemaGeneral[table.tipo] devuelve undefined y .component crashea con
+  // "Cannot read properties of undefined". Guard + fallback a 'redonda' (el
+  // tipo más común).
+  const schemaEntry = schemaGeneral[table?.tipo] || schemaGeneral['redonda']
+  if (!schemaEntry?.component) {
+    console.warn('[MesaComponent] table.tipo desconocido:', table?.tipo, '— sin schema, render vacío')
+    return null
+  }
+  return cloneElement(schemaEntry.component, {
     cantidad_sillas: numberChair,
     children: nSillas?.map((elem, idx) => {
       const invitado = invitados.filter(element => element.chair == idx.toString())[0]
@@ -149,7 +159,7 @@ const MesaComponent: FC<propsMesaComponent> = ({ posicionRedonda, table, invitad
             index={idx}
             position={elem}
             radio={45}
-            className={schemaGeneral[table.tipo].type}>
+            className={schemaEntry.type}>
             {invitado && <SentadoItem
               posicion={elem}
               invitado={invitado}
