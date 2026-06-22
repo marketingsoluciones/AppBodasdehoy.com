@@ -66,9 +66,17 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
               .then(() => {
                 helpers.setValue([...attachments])
                 const f1 = event.itinerarios_array.findIndex(elm => elm._id === itinerarioID)
-                const f2 = event.itinerarios_array[f1].tasks.findIndex(elm => elm._id === task._id)
-                event.itinerarios_array[f1].tasks[f2].attachments = [...attachments]
-                setEvent({ ...event })
+                setEvent((prev) => ({
+                  ...prev,
+                  itinerarios_array: prev.itinerarios_array.map((it, i) =>
+                    i !== f1 ? it : {
+                      ...it,
+                      tasks: it.tasks.map(tk =>
+                        tk._id !== task._id ? tk : { ...tk, attachments: [...attachments] }
+                      ),
+                    }
+                  ),
+                }))
               })
           })
       })
@@ -86,8 +94,8 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
         // no rompemos la UI — el adjunto se quita igual del estado y del backend abajo.
         console.warn('[InputAttachments] deleteObject falló (cleanup best-effort):', error?.code ?? error?.message ?? error)
       })
-    const f1 = field.value.findIndex(el => el.name === elem.name)
-    field.value.splice(f1, 1)
+    // Filtrar el attachment borrado del array de field.value (inmutable).
+    const newAttachments = field.value.filter(el => el.name !== elem.name)
     fetchApiEventos({
       query: queries.editTask,
       variables: {
@@ -95,15 +103,23 @@ const InputAttachments: FC<Partial<props>> = ({ label, task, itinerarioID, class
         itinerarioID,
         taskID: task._id,
         variable: "all",
-        valor: JSON.stringify({ ...task, attachments: field.value })
+        valor: JSON.stringify({ ...task, attachments: newAttachments })
       },
       domain: config.domain
     }).then(() => {
-      helpers.setValue([...field.value])
+      helpers.setValue(newAttachments)
       const f1 = event.itinerarios_array.findIndex(elm => elm._id === itinerarioID)
-      const f2 = event.itinerarios_array[f1].tasks.findIndex(elm => elm._id === task._id)
-      event.itinerarios_array[f1].tasks[f2].attachments = [...field.value]
-      setEvent({ ...event })
+      setEvent((prev) => ({
+        ...prev,
+        itinerarios_array: prev.itinerarios_array.map((it, i) =>
+          i !== f1 ? it : {
+            ...it,
+            tasks: it.tasks.map(tk =>
+              tk._id !== task._id ? tk : { ...tk, attachments: newAttachments }
+            ),
+          }
+        ),
+      }))
     })
   }
 

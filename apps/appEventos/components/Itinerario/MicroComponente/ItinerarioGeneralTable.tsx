@@ -548,9 +548,18 @@ const SubComponenteTable = ({ data, itinerario }) => {
                             })
                                 .then(() => {
                                     const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-                                    const f2 = event.itinerarios_array[f1].tasks.findIndex(elem => elem._id === values._id)
-                                    event.itinerarios_array[f1].tasks[f2].spectatorView = !values?.spectatorView
-                                    setEvent({ ...event })
+                                    const newSpectatorView = !values?.spectatorView
+                                    setEvent((prev) => ({
+                                        ...prev,
+                                        itinerarios_array: prev.itinerarios_array.map((it, i) =>
+                                            i !== f1 ? it : {
+                                                ...it,
+                                                tasks: it.tasks.map(tk =>
+                                                    tk._id !== values._id ? tk : { ...tk, spectatorView: newSpectatorView }
+                                                ),
+                                            }
+                                        ),
+                                    }))
                                     toast("success", t("Item guardado con exito"))
                                     setShowEditTask({ state: false })
                                 })

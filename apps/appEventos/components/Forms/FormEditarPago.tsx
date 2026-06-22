@@ -93,15 +93,30 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
         }
       })
       if (result?.evento?.presupuesto_objeto) {
-        event.presupuesto_objeto = result.evento.presupuesto_objeto
+        setEvent((prev) => ({ ...prev, presupuesto_objeto: result.evento.presupuesto_objeto }))
       } else {
-        const f1 = event?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == pago?.idCategoria)
-        const f2 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array?.findIndex(item => item._id == pago?.idGasto)
-        const f3 = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.pagos_array?.findIndex(item => item._id == IDPagoAModificar)
-        event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].pagos_array[f3] = { ...event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2].pagos_array[f3], ...values }
+        // Update inmutable del pago dentro de gastos→pagos.
+        setEvent((prev) => ({
+          ...prev,
+          presupuesto_objeto: {
+            ...prev.presupuesto_objeto,
+            categorias_array: prev.presupuesto_objeto.categorias_array.map(cat =>
+              cat._id != pago?.idCategoria ? cat : {
+                ...cat,
+                gastos_array: cat.gastos_array.map(gst =>
+                  gst._id != pago?.idGasto ? gst : {
+                    ...gst,
+                    pagos_array: gst.pagos_array.map(p =>
+                      p._id != IDPagoAModificar ? p : { ...p, ...values }
+                    ),
+                  }
+                ),
+              }
+            ),
+          },
+        }))
       }
       toast("success", t("savedpayment"))
-      setEvent({ ...event })
       set(!state)
     } catch (error) {
       toast("error", t("erroroccurred") || "Error al guardar el pago")
