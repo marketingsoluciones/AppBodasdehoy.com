@@ -34,13 +34,17 @@ const BlockPlantillas: FC<propsBlockPlatillas> = () => {
       const templates = Array.isArray(result) ? result : result?.psTemplates || []
       const template = templates.find((t: any) => t._id === item._id || t.title === item.title)
       if (template) {
-        // Apply template tables and elements to current planSpace
-        const currentPlanSpace = event.planSpace?.find((ps: any) => ps._id === planSpaceActive?._id)
-        if (currentPlanSpace) {
-          currentPlanSpace.tables = template.tables || []
-          currentPlanSpace.elements = template.elements || []
-          setEvent({ ...event })
-        }
+        // Apply template tables and elements to current planSpace (inmutable).
+        setEvent((prev) => ({
+          ...prev,
+          planSpace: prev.planSpace.map((ps: any) =>
+            ps._id !== planSpaceActive?._id ? ps : {
+              ...ps,
+              tables: template.tables || [],
+              elements: template.elements || [],
+            }
+          ),
+        }))
       }
     } catch (error) {
       console.error("[BlockPlantillas] Error cargando template:", error)

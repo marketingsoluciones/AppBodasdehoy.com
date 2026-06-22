@@ -15,11 +15,20 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
   const handleDeleteItem = async () => {
     try {
       setEditDefault({})
-      const f1 = planSpaceActive[`${itemTipo}s`].findIndex(elem => elem._id === item._id)
-      planSpaceActive[`${itemTipo}s`].splice(f1, 1)
-      setPlanSpaceActive({ ...planSpaceActive })
-      event.galerySvgs = event?.galerySvgs?.filter(elem => elem._id !== item._id) ?? []
-      setEvent({ ...event })
+      const arrayKey = `${itemTipo}s`
+      // Update inmutable: filtrar el item borrado del planSpaceActive.
+      const newPlanSpaceActive = {
+        ...planSpaceActive,
+        [arrayKey]: planSpaceActive[arrayKey].filter(elem => elem._id !== item._id),
+      }
+      setPlanSpaceActive(newPlanSpaceActive)
+      setEvent((prev) => ({
+        ...prev,
+        galerySvgs: (prev?.galerySvgs ?? []).filter(elem => elem._id !== item._id),
+        planSpace: prev.planSpace.map(ps =>
+          ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+        ),
+      }))
       if (itemTipo == "table") {
         await fetchApiEventos({
           query: queries.deleteTable,
@@ -43,21 +52,30 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
     }
   }
   const handleRotate = async (direcction) => {
+    // Calcular nueva rotación sin mutar el item.
+    let newRotation: number
     if (item?.rotation == 0 && direcction === "left") {
-      item.rotation = 360 - 15
+      newRotation = 360 - 15
     } else {
-      item.rotation = item.rotation + (direcction === "left" ? -15 : 15)
-      if (item?.rotation === 360) {
-        item.rotation = 0
-      }
+      newRotation = item.rotation + (direcction === "left" ? -15 : 15)
+      if (newRotation === 360) newRotation = 0
     }
-    const f1 = planSpaceActive[`${itemTipo}s`].findIndex(elem => elem._id === item._id)
-    planSpaceActive[`${itemTipo}s`][f1].rotation = item?.rotation
-    setPlanSpaceActive({ ...planSpaceActive })
-    const f1e = event.planSpace.findIndex(elem => elem._id === planSpaceActive._id)
-    const f2e = event.planSpace[f1e][itemTipo === "table" ? "tables" : "elements"].findIndex(elem => elem._id === item._id)
-    event.planSpace[f1e][itemTipo === "table" ? "tables" : "elements"][f2e].rotation = item?.rotation
-    setEvent({ ...event })
+    item.rotation = newRotation  // mantenemos el sync local para que el handler use el valor abajo
+    const arrayKey = itemTipo === "table" ? "tables" : "elements"
+    // Update inmutable: rotación del item dentro de planSpaceActive y event.
+    const newPlanSpaceActive = {
+      ...planSpaceActive,
+      [arrayKey]: planSpaceActive[arrayKey].map(elem =>
+        elem._id !== item._id ? elem : { ...elem, rotation: newRotation }
+      ),
+    }
+    setPlanSpaceActive(newPlanSpaceActive)
+    setEvent((prev) => ({
+      ...prev,
+      planSpace: prev.planSpace.map(ps =>
+        ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+      ),
+    }))
     if (itemTipo === "table") {
       await fetchApiEventos({
         query: queries.editTable,

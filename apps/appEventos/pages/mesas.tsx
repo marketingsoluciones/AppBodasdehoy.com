@@ -95,8 +95,7 @@ const Mesas: FC = () => {
       }).then((result: any) => {
         // Convertir los SVGs del backend en elementos React
         const svgsWithReactIcons = convertBackendSvgsToReact(result.results);
-        event.galerySvgs = svgsWithReactIcons;
-        setEvent({ ...event });
+        setEvent((prev) => ({ ...prev, galerySvgs: svgsWithReactIcons }));
         // Actualizar también la lista local
         setListElements(prev => {
           // Mantener los elementos estáticos (Arbol, Arbol2, etc.)
@@ -147,10 +146,19 @@ const Mesas: FC = () => {
             element: { ...inputValues, planSpaceID: planSpaceActive._id }
           },
         }).then((result: any) => {
-          planSpaceActive.elements.push({ ...inputValues })
-          setPlanSpaceActive({ ...planSpaceActive })
-          event.planSpace[planSpaceSelect] = planSpaceActive
-          setEvent({ ...event })
+          // Update inmutable: añadir elemento al planSpaceActive.
+          const newPlanSpaceActive = {
+            ...planSpaceActive,
+            elements: [...(planSpaceActive.elements ?? []), { ...inputValues }],
+          }
+          setPlanSpaceActive(newPlanSpaceActive)
+          // planSpaceSelect es ID (string) — match por _id, no por índice (mismo bug latente que FormCrearMesa).
+          setEvent((prev) => ({
+            ...prev,
+            planSpace: prev.planSpace.map(ps =>
+              ps?._id === planSpaceSelect ? newPlanSpaceActive : ps
+            ),
+          }))
           setCreaElement(false)
         })
       } catch (err) {

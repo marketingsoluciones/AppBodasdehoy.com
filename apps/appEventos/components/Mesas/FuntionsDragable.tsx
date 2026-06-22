@@ -192,17 +192,26 @@ type propsMoveInvitado = {
 export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, planSpaceActive, setPlanSpaceActive, filterGuests, prefijo, planSpaceSelect }: propsMoveInvitado): Promise<void> => {
   try {
     const eventID = event?._id
-    let table: table = planSpaceActive?.tables?.find(elem => elem._id === tableID)
+    const table: table = planSpaceActive?.tables?.find(elem => elem._id === tableID)
     const idx = table?.guests?.findIndex(elem => elem.chair === chair)
     if (idx < 0 || idx === undefined) {
       if (chair >= 0) {
-        table.guests.push({ _id: invitadoID, chair, order: new Date() })
-        let f1 = planSpaceActive.tables.findIndex(elem => elem._id === tableID)
-        //planSpaceActive.tables.splice(f1, 1, table)
-        setPlanSpaceActive({ ...planSpaceActive })
-        f1 = event.planSpace.findIndex(elem => elem._id === planSpaceSelect)
-        event.planSpace[f1] = planSpaceActive
-        setEvent({ ...event })
+        const newGuest = { _id: invitadoID, chair, order: new Date() }
+        const newGuests = [...(table.guests ?? []), newGuest]
+        // Update inmutable de planSpaceActive y event.planSpace.
+        const newPlanSpaceActive = {
+          ...planSpaceActive,
+          tables: planSpaceActive.tables.map(tb =>
+            tb._id !== tableID ? tb : { ...tb, guests: newGuests }
+          ),
+        }
+        setPlanSpaceActive(newPlanSpaceActive)
+        setEvent((prev) => ({
+          ...prev,
+          planSpace: prev.planSpace.map(ps =>
+            ps._id !== planSpaceSelect ? ps : newPlanSpaceActive
+          ),
+        }))
         fetchApiEventos({
           query: queries.editTable,
           variables: {
@@ -210,7 +219,7 @@ export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, p
             planSpaceID: planSpaceActive?._id,
             tableID: table?._id,
             variable: "guests",
-            valor: JSON.stringify([...table?.guests])
+            valor: JSON.stringify(newGuests)
           },
         });
         // Sync guest record: update nombre_mesa and puesto (api-mcp via fetchApiBodas)
@@ -225,9 +234,15 @@ export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, p
       }
       if (prefijo === "dragS") {
         const gestPrevMove = filterGuests.sentados.find(elem => elem._id === invitadoID)
-        let f1 = planSpaceActive.tables.findIndex(elem => elem._id === gestPrevMove.tableID)
-        const f2 = planSpaceActive.tables[f1].guests.findIndex(elem => elem._id === invitadoID)
-        planSpaceActive.tables[f1].guests.splice(f2, 1)
+        const f1 = planSpaceActive.tables.findIndex(elem => elem._id === gestPrevMove.tableID)
+        const newGuestsAfterRemove = planSpaceActive.tables[f1].guests.filter(g => g._id !== invitadoID)
+        // Update inmutable: remover invitado de mesa previa.
+        const newPlanSpaceActive2 = {
+          ...planSpaceActive,
+          tables: planSpaceActive.tables.map((tb, i) =>
+            i !== f1 ? tb : { ...tb, guests: newGuestsAfterRemove }
+          ),
+        }
         fetchApiEventos({
           query: queries.editTable,
           variables: {
@@ -235,13 +250,16 @@ export const moveGuest = async ({ invitadoID, chair, tableID, event, setEvent, p
             planSpaceID: planSpaceActive?._id,
             tableID: planSpaceActive.tables[f1]._id,
             variable: "guests",
-            valor: JSON.stringify(planSpaceActive.tables[f1].guests)
+            valor: JSON.stringify(newGuestsAfterRemove)
           },
         });
-        setPlanSpaceActive({ ...planSpaceActive })
-        f1 = event.planSpace.findIndex(elem => elem._id === planSpaceSelect)
-        event.planSpace[f1] = planSpaceActive
-        setEvent({ ...event })
+        setPlanSpaceActive(newPlanSpaceActive2)
+        setEvent((prev) => ({
+          ...prev,
+          planSpace: prev.planSpace.map(ps =>
+            ps._id !== planSpaceSelect ? ps : newPlanSpaceActive2
+          ),
+        }))
       }
     }
   } catch (error) {
@@ -276,10 +294,20 @@ export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, plan
           valor: JSON.stringify({ x, y })
         },
       });
-      const index: number = planSpaceActive?.tables.findIndex((elem) => elem._id === ID)
-      planSpaceActive.tables[index].position = { x, y }
-      setPlanSpaceActive({ ...planSpaceActive })
-      setEvent({ ...event })
+      // Update inmutable de la posición de la mesa.
+      const newPlanSpaceActive = {
+        ...planSpaceActive,
+        tables: planSpaceActive.tables.map(tb =>
+          tb._id !== ID ? tb : { ...tb, position: { x, y } }
+        ),
+      }
+      setPlanSpaceActive(newPlanSpaceActive)
+      setEvent((prev) => ({
+        ...prev,
+        planSpace: prev.planSpace.map(ps =>
+          ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+        ),
+      }))
     }
     if (target === "element") {
       fetchApiBodas({
@@ -290,10 +318,20 @@ export const ActualizarPosicion = async ({ x, y, targetID, event, setEvent, plan
           datos: { position: { x, y } }
         },
       });
-      const index: number = planSpaceActive?.elements.findIndex((elem) => elem._id === ID)
-      planSpaceActive.elements[index].position = { x, y }
-      setPlanSpaceActive({ ...planSpaceActive })
-      setEvent({ ...event })
+      // Update inmutable de la posición del elemento.
+      const newPlanSpaceActive = {
+        ...planSpaceActive,
+        elements: planSpaceActive.elements.map(el =>
+          el._id !== ID ? el : { ...el, position: { x, y } }
+        ),
+      }
+      setPlanSpaceActive(newPlanSpaceActive)
+      setEvent((prev) => ({
+        ...prev,
+        planSpace: prev.planSpace.map(ps =>
+          ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+        ),
+      }))
     }
   } catch (error) {
     console.error(error);
@@ -325,11 +363,22 @@ export const ActualizarSize = async ({ width, height, targetID, event, setEvent,
           valor: JSON.stringify({ width, height })
         },
       });
-      const index: number = planSpaceActive?.tables.findIndex((elem) => elem._id === ID);
-      if (index >= 0) {
-        planSpaceActive.tables[index].size = { width, height } as any;
-        setPlanSpaceActive({ ...planSpaceActive });
-        setEvent({ ...event });
+      const exists = planSpaceActive?.tables.some((elem) => elem._id === ID);
+      if (exists) {
+        // Update inmutable del size de la mesa.
+        const newPlanSpaceActive = {
+          ...planSpaceActive,
+          tables: planSpaceActive.tables.map(tb =>
+            tb._id !== ID ? tb : { ...tb, size: { width, height } as any }
+          ),
+        }
+        setPlanSpaceActive(newPlanSpaceActive);
+        setEvent((prev) => ({
+          ...prev,
+          planSpace: prev.planSpace.map(ps =>
+            ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+          ),
+        }));
       }
     }
     if (target === "element") {
@@ -341,11 +390,22 @@ export const ActualizarSize = async ({ width, height, targetID, event, setEvent,
           datos: { size: { width, height } }
         },
       });
-      const index: number = planSpaceActive?.elements.findIndex((elem) => elem._id === ID);
-      if (index >= 0) {
-        planSpaceActive.elements[index].size = { width, height } as any;
-        setPlanSpaceActive({ ...planSpaceActive });
-        setEvent({ ...event });
+      const exists = planSpaceActive?.elements.some((elem) => elem._id === ID);
+      if (exists) {
+        // Update inmutable del size del elemento.
+        const newPlanSpaceActive = {
+          ...planSpaceActive,
+          elements: planSpaceActive.elements.map(el =>
+            el._id !== ID ? el : { ...el, size: { width, height } as any }
+          ),
+        }
+        setPlanSpaceActive(newPlanSpaceActive);
+        setEvent((prev) => ({
+          ...prev,
+          planSpace: prev.planSpace.map(ps =>
+            ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+          ),
+        }));
       }
     }
   } catch (error) {
