@@ -58,9 +58,9 @@ export const BlockLugarEvento = () => {
                 development: "bodasdehoy"
             }
         });
-        setLugarEvento({ _id: item._id, title: item.businessName, slug: item?.slug });
-        event.lugar = { _id: item._id, title: item.businessName, slug: item?.slug };
-        setEvent({ ...event });
+        const newLugar = { _id: item._id, title: item.businessName, slug: item?.slug }
+        setLugarEvento(newLugar);
+        setEvent((prev) => ({ ...prev, lugar: newLugar }));
         setOpenList(!openList);
     };
 

@@ -235,8 +235,8 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                 input: { showChildrenGuest: !showModalAcompañante2 ? showModalAcompañante2.id : "" }
             }
         })
-        event.showChildrenGuest = !showModalAcompañante2 ? showModalAcompañante2.id : null
-        setEvent({ ...event })
+        const newShowChildrenGuest = !showModalAcompañante2 ? showModalAcompañante2.id : null
+        setEvent((prev) => ({ ...prev, showChildrenGuest: newShowChildrenGuest }))
 
 
     }, [acompañanteID.id, showModalAcompañante2])

@@ -40,8 +40,12 @@ export const AddEvent = ({ itinerario, tasks, setSelectTask }) => {
             })
             const task = ((addNewTask as any)?.task || addNewTask) as Task
             const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
-            event.itinerarios_array[f1].tasks.push(task as Task)
-            setEvent({ ...event })
+            setEvent((prev) => ({
+                ...prev,
+                itinerarios_array: prev.itinerarios_array.map((it, i) =>
+                    i !== f1 ? it : { ...it, tasks: [...it.tasks, task] }
+                ),
+            }))
             setSelectTask(task._id)
         } catch (error) {
         }
