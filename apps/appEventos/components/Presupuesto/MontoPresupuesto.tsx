@@ -16,15 +16,17 @@ export const MontoPresupuesto = () => {
     const p = event?.presupuesto_objeto
     if (!p) return
     if (typeof p.presupuesto_total !== "number" && p.viewEstimates && p.coste_estimado) {
-      p.presupuesto_total = p.coste_estimado
       fetchApiBodas({
         query: queries.editPresupuesto,
         variables: {
           evento_id: event?._id,
-          datos: { presupuesto_total: event.presupuesto_objeto.coste_estimado }
+          datos: { presupuesto_total: p.coste_estimado }
         }
       })
-      setEvent({ ...event })
+      setEvent((prev) => ({
+        ...prev,
+        presupuesto_objeto: { ...prev.presupuesto_objeto, presupuesto_total: p.coste_estimado },
+      }))
     }
   }, [event?.presupuesto_objeto]);
 
@@ -43,9 +45,8 @@ export const MontoPresupuesto = () => {
         }
       })
       if (result?.evento?.presupuesto_objeto) {
-        event.presupuesto_objeto = result.evento.presupuesto_objeto
+        setEvent((prev) => ({ ...prev, presupuesto_objeto: result.evento.presupuesto_objeto }))
       }
-      setEvent({ ...event })
     } catch (error) {
     }
   }
@@ -63,8 +64,10 @@ export const MontoPresupuesto = () => {
     }).then((result: any) => {
       const currency = result?.evento?.presupuesto_objeto?.currency
       if (currency && event.presupuesto_objeto) {
-        event.presupuesto_objeto.currency = currency
-        setEvent({ ...event })
+        setEvent((prev) => ({
+          ...prev,
+          presupuesto_objeto: { ...prev.presupuesto_objeto, currency },
+        }))
       }
     }).catch((error) => {
       console.warn('[MontoPresupuesto] editCurrency falló:', error?.message ?? error)

@@ -44,9 +44,11 @@ export const DuplicatePresupuesto = ({ setModal, showModalDuplicate }) => {
                 domain: config.domain
             })
             if (result?.evento?.presupuesto_objeto) {
-                event.presupuesto_objeto = result.evento.presupuesto_objeto as estimate
+                setEvent((prev) => ({
+                    ...prev,
+                    presupuesto_objeto: result.evento.presupuesto_objeto as estimate,
+                }))
             }
-            setEvent({ ...event })
             toast("success", t("successful"));
             setModal(false)
         } catch (error) {

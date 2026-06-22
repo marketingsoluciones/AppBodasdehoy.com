@@ -32,13 +32,10 @@ export const ModalTaskList = ({ setModal, event, categoria, gasto, setEvent }) =
     const handleSubmit = async (values, { resetForm, setSubmitting }) => {
         try {
             setSubmitting(true);
-            
-            if (!event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.linkTask) {
-                event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].linkTask = []
-            }
-            
-            event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2].linkTask.push(values.url)
-            
+
+            const currentLinks = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.linkTask ?? []
+            const newLinks = [...currentLinks, values.url]
+
             await fetchApiEventos({
                 query: queries.editGasto,
                 variables: {
@@ -46,11 +43,25 @@ export const ModalTaskList = ({ setModal, event, categoria, gasto, setEvent }) =
                     categoria_id: categoria,
                     gasto_id: gasto,
                     variable_reemplazar: "linkTask",
-                    valor_reemplazar: JSON.stringify(event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.linkTask)
+                    valor_reemplazar: JSON.stringify(newLinks)
                 }
             })
-            
-            setEvent({ ...event })
+
+            // Update inmutable: linkTask del gasto correspondiente.
+            setEvent((prev) => ({
+                ...prev,
+                presupuesto_objeto: {
+                    ...prev.presupuesto_objeto,
+                    categorias_array: prev.presupuesto_objeto.categorias_array.map((cat, ci) =>
+                        ci !== f1 ? cat : {
+                            ...cat,
+                            gastos_array: cat.gastos_array.map((gst, gi) =>
+                                gi !== f2 ? gst : { ...gst, linkTask: newLinks }
+                            ),
+                        }
+                    ),
+                },
+            }))
             toast("success", t("successful"))
             resetForm()
         } catch (error) {
@@ -63,14 +74,10 @@ export const ModalTaskList = ({ setModal, event, categoria, gasto, setEvent }) =
 
     const handleDeleteLink = async (index) => {
         try {
-            if (!event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.linkTask) {
-                return;
-            }
-            
-            const updatedLinks = [...event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].linkTask];
-            updatedLinks.splice(index, 1);
-            
-            event.presupuesto_objeto.categorias_array[f1].gastos_array[f2].linkTask = updatedLinks;
+            const currentLinks = event?.presupuesto_objeto?.categorias_array[f1]?.gastos_array[f2]?.linkTask
+            if (!currentLinks) return;
+
+            const updatedLinks = currentLinks.filter((_, i) => i !== index);
 
             await fetchApiEventos({
                 query: queries.editGasto,
@@ -82,8 +89,21 @@ export const ModalTaskList = ({ setModal, event, categoria, gasto, setEvent }) =
                     valor_reemplazar: JSON.stringify(updatedLinks)
                 }
             })
-            
-            setEvent({ ...event })
+
+            setEvent((prev) => ({
+                ...prev,
+                presupuesto_objeto: {
+                    ...prev.presupuesto_objeto,
+                    categorias_array: prev.presupuesto_objeto.categorias_array.map((cat, ci) =>
+                        ci !== f1 ? cat : {
+                            ...cat,
+                            gastos_array: cat.gastos_array.map((gst, gi) =>
+                                gi !== f2 ? gst : { ...gst, linkTask: updatedLinks }
+                            ),
+                        }
+                    ),
+                },
+            }))
             toast("success", "Enlace eliminado correctamente")
         } catch (error) {
             console.error("Error al eliminar enlace:", error)
