@@ -312,30 +312,44 @@ export const BoddyIter = () => {
     };
 
     useEffect(() => {
+        // BUG-CW-02 (informe QA 22-jun noche): crash "Cannot read properties of null"
+        // por accesos a itinerario._id, nuevoItinerario.tasks sin guard cuando
+        // itinerario era null/undefined o el find no encontraba nada.
+        // Fix: guards exhaustivos + early returns.
+        if (typeof window === 'undefined') return
         let arr = Array.isArray(event?.itinerarios_array) ? event.itinerarios_array : []
         if ((copilotFilter?.entity === 'moments' || copilotFilter?.entity === 'services') && copilotFilter.ids?.length) {
             arr = arr.filter((elem) => elem?._id && copilotFilter.ids!.includes(elem._id))
         }
-        const itinerarios = arr.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
-        const itinerarioSeleccionado = event?._id ? localStorage.getItem(`E_${event._id}_${window?.location?.pathname.slice(1)}`) : null
-        const itinerario = arr.find(elem => elem._id === itinerarioSeleccionado)
+        const pathSlice = window?.location?.pathname.slice(1)
+        const itinerarios = arr.filter(elem => elem?.tipo === pathSlice)
+        const itinerarioSeleccionado = event?._id ? localStorage.getItem(`E_${event._id}_${pathSlice}`) : null
+        const itinerario = arr.find(elem => elem?._id === itinerarioSeleccionado)
         if (itinerarios.length) {
             let nuevoItinerario = itinerario;
             if (queryItinerary) {
-                nuevoItinerario = itinerarios.find(elem => elem?._id === queryItinerary)
-            } else if (!itinerario || !itinerarios.some(elem => elem._id === itinerario._id)) {
+                const found = itinerarios.find(elem => elem?._id === queryItinerary)
+                if (found) nuevoItinerario = found
+            } else if (!itinerario || !itinerarios.some(elem => elem?._id === itinerario._id)) {
                 nuevoItinerario = itinerarios[0]
             }
+            // Guard CRÍTICO: si después de todo no hay nuevoItinerario, no continuar.
+            if (!nuevoItinerario || !nuevoItinerario._id) {
+                return
+            }
             if (!itinerario || nuevoItinerario._id !== itinerario._id) {
-                const tasksOrdenadas = sortTasks(nuevoItinerario.tasks, orderAndDirection);
-                nuevoItinerario = { ...nuevoItinerario, tasks: tasksOrdenadas };
-                setItinerario(nuevoItinerario);
-            } else if (itinerario && orderAndDirection) {
-                const tasksOrdenadas = sortTasks(itinerario.tasks, orderAndDirection);
+                const tasksOrdenadas = sortTasks(nuevoItinerario.tasks ?? [], orderAndDirection);
+                setItinerario({ ...nuevoItinerario, tasks: tasksOrdenadas });
+            } else if (orderAndDirection) {
+                const tasksOrdenadas = sortTasks(itinerario.tasks ?? [], orderAndDirection);
                 setItinerario({ ...itinerario, tasks: tasksOrdenadas });
             }
         } else {
-            setItinerario({ ...itinerario })
+            // No hay itinerarios para este pathSlice. Solo actualizar si tenemos
+            // un itinerario válido (no propagar undefined).
+            if (itinerario && itinerario._id) {
+                setItinerario({ ...itinerario })
+            }
         }
     }, [event, queryItinerary, orderAndDirection, itinerario?._id, view, copilotFilter])
 

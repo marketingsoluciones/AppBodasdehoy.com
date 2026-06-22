@@ -482,7 +482,25 @@ const AuthProvider = ({ children }) => {
                 } catch (e: any) {
                   console.warn('[Auth] getUser perfil no crítico:', e?.message)
                 }
-                setUser({ ...result.user, ...moreInfo, ...(userInfo || {}), uid: result.user.uid })
+                // BUG-CW-03 (informe QA 22-jun noche): userInfo (getUser) puede
+                // venir con displayName/photoURL/email = null y sobreescribir los
+                // de result.user (válidos del JWT). Spread con guards por campo
+                // para que solo MERGE NON-NULL values del backend.
+                const ui: any = userInfo || {}
+                const safeUserInfo: any = {}
+                Object.keys(ui).forEach((k) => {
+                  if (ui[k] !== null && ui[k] !== undefined) safeUserInfo[k] = ui[k]
+                })
+                const ru: any = result.user
+                setUser({
+                  ...result.user,
+                  ...moreInfo,
+                  ...safeUserInfo,
+                  uid: result.user.uid,
+                  email: safeUserInfo.email || ru.email,
+                  displayName: safeUserInfo.displayName || safeUserInfo.name || ru.displayName || ru.name,
+                  photoURL: safeUserInfo.photoURL || safeUserInfo.avatar || ru.photoURL || ru.avatar,
+                })
                 setVerificationDone(true)
 
                 // Redirigir a la URL correcta si estamos en una URL diferente
@@ -658,7 +676,20 @@ const AuthProvider = ({ children }) => {
       if (!getAuth().currentUser) return;
       const firebaseUid = getAuth().currentUser?.uid || user?.uid
       // getUser no pide `uid` en GraphQL; si la API devolviera campos extra, no deben pisar el UID de Firebase (query eventos usa usuario_id === uid).
-      setUser({ ...user, ...userInfo, uid: firebaseUid });
+      // BUG-CW-03: filter null fields del userInfo para no pisar valores válidos del user actual.
+      const ui: any = userInfo || {}
+      const safeUserInfo: any = {}
+      Object.keys(ui).forEach((k) => {
+        if (ui[k] !== null && ui[k] !== undefined) safeUserInfo[k] = ui[k]
+      })
+      setUser({
+        ...user,
+        ...safeUserInfo,
+        uid: firebaseUid,
+        email: safeUserInfo.email || user?.email,
+        displayName: safeUserInfo.displayName || safeUserInfo.name || user?.displayName || user?.name,
+        photoURL: safeUserInfo.photoURL || safeUserInfo.avatar || user?.photoURL || user?.avatar,
+      });
       updateActivity("accessed")
       // Sincronizar sesión con apps/copilot via AuthBridge (escribe dev-user-config en localStorage)
       if (config) {
@@ -829,16 +860,21 @@ const AuthProvider = ({ children }) => {
               token: sessionCookie,
               development: config?.development
             }).catch(() => null)
-            // BUG-H-02 (informe QA 22-jun): el backend a veces devuelve campos
-            // en `name`/`avatar` (alias) en vez de `displayName`/`photoURL`.
-            // Hacemos el merge tolerante a ambos shapes para que el avatar y el
-            // nombre se pinten correctamente sin depender del backend.
+            // BUG-H-02 + BUG-CW-03 (informes QA 22-jun): el backend devuelve
+            // campos en `name`/`avatar` (alias) o NULL en `displayName`/`photoURL`.
+            // Filter null fields antes de spread para NO sobreescribir valores
+            // válidos del currentUser con null.
+            const ui: any = userInfo || {}
+            const safeUserInfo: any = {}
+            Object.keys(ui).forEach((k) => {
+              if (ui[k] !== null && ui[k] !== undefined) safeUserInfo[k] = ui[k]
+            })
             const merged: any = {
+              ...safeUserInfo,
               uid: currentUser.id,
-              email: currentUser.email || userInfo?.email,
-              ...(userInfo || {}),
-              displayName: userInfo?.displayName || userInfo?.name || currentUser?.name || currentUser?.displayName,
-              photoURL: userInfo?.photoURL || userInfo?.avatar || currentUser?.avatar || currentUser?.photoURL,
+              email: currentUser.email || safeUserInfo.email,
+              displayName: safeUserInfo.displayName || safeUserInfo.name || currentUser?.name || currentUser?.displayName,
+              photoURL: safeUserInfo.photoURL || safeUserInfo.avatar || currentUser?.avatar || currentUser?.photoURL,
             }
             setUser(merged)
             moreInfo(merged)
