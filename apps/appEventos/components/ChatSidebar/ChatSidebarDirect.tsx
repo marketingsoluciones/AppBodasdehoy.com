@@ -314,10 +314,16 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
   }, [setWidth]);
 
   // ── Abrir en nueva pestaña ──────────────────────────────────────────────
+  // BUG-H-04 (informe QA 22-jun): antes priorizaba NEXT_PUBLIC_CHAT sobre
+  // resolveChatOrigin, lo que hacía que en app-dev se abriera chat.bodasdehoy.com
+  // (prod) si el build no inyectaba bien .env.production.local. Ahora
+  // resolveChatOrigin (dinámico, basado en hostname actual) tiene prioridad
+  // y NEXT_PUBLIC_CHAT solo se usa si NO hay hostname utilizable (SSR).
   const copilotUrl = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    const envUrl = process.env.NEXT_PUBLIC_CHAT;
-    if (envUrl) return envUrl.replace(/\/$/, '');
+    if (typeof window === 'undefined') {
+      const envUrl = process.env.NEXT_PUBLIC_CHAT;
+      return envUrl ? envUrl.replace(/\/$/, '') : '';
+    }
     return resolveChatOrigin(window.location.hostname);
   }, []);
 

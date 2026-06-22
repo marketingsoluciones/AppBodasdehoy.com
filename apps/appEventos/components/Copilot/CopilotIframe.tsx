@@ -710,7 +710,18 @@ const CopilotIframe = ({
               </div>
               <p className="text-sm text-red-600">{error}</p>
               <a
-                href={getCopilotBaseUrl().startsWith('http') ? getCopilotBaseUrl() : 'https://chat.bodasdehoy.com'}
+                href={(() => {
+                  // BUG-H-04 (informe QA 22-jun): el fallback hardcoded a
+                  // chat.bodasdehoy.com (prod) hacía que en app-dev se abriera
+                  // producción. Reemplazado por resolveChatOrigin dinámico
+                  // que detecta el dominio actual (-dev → chat-dev, -test → chat-test).
+                  const base = getCopilotBaseUrl();
+                  if (base.startsWith('http')) return base;
+                  if (typeof window !== 'undefined') {
+                    return getCopilotBaseUrlUtil();
+                  }
+                  return 'https://chat.bodasdehoy.com';
+                })()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-primary hover:underline"

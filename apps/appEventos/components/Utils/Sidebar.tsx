@@ -116,6 +116,11 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                             updateActivityLink("logoutd")
                             Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
                             Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
+                            // BUG-01 (informe QA 22-jun): el logout no limpiaba el fallback.
+                            if (typeof window !== "undefined") {
+                                localStorage.removeItem('sessionBodas_fallback')
+                                localStorage.removeItem('appEventos_activeEventId')
+                            }
                             signOut(getAuth()).then(() => {
                                 if (["vivetuboda"].includes(config?.development)) {
                                     setUser()

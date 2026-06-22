@@ -232,11 +232,16 @@ export const Notifications = () => {
 
   return (
     <ClickAwayListener onClickAway={handleClose}>
-      <div className="bg-white items-center flex relative cursor-default">
-        {/* Bell icon */}
-        <div
+      <div className="bg-white items-center flex relative">
+        {/* Bell icon — BUG-H-06 (informe QA 22-jun): era <div> sin a11y. Cambio a <button>
+            con aria-label dinámico que incluye contador de no leídos para lectores de pantalla. */}
+        <button
+          type="button"
           onClick={() => showPanel ? handleClose() : handleOpen()}
-          className="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer"
+          aria-label={api2UnreadCount > 0 ? `Notificaciones, ${api2UnreadCount} sin leer` : "Notificaciones"}
+          aria-expanded={showPanel}
+          aria-haspopup="dialog"
+          className="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer border-0 p-0 relative"
         >
           <RiNotification2Fill className="text-primary w-6 h-6 scale-x-90" />
           {api2UnreadCount > 0 && (
@@ -244,7 +249,7 @@ export const Notifications = () => {
               <span className="text-white text-[11px] font-bold leading-none">{api2UnreadCount > 99 ? '99+' : api2UnreadCount}</span>
             </span>
           )}
-        </div>
+        </button>
 
         {/* Panel */}
         {showPanel && (

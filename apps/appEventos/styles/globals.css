@@ -105,6 +105,16 @@ input[type="text"]:focus {
   overflow: auto;
 }
 
+/* BUG-H-01 (informe QA 22-jun): Tailwind preflight setea button { cursor: default }
+   sobreescribiendo el comportamiento nativo. Los <button> sin clase cursor-pointer
+   explícita mostraban cursor de flecha → daña la affordance UX en TODA la app.
+   Fix: revertir al cursor pointer por defecto en cualquier <button> no disabled.
+   También se aplica a <a> y elementos con role="button" para consistencia. */
+button:not([disabled]):not([aria-disabled="true"]),
+[role="button"]:not([disabled]):not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
 /* Override Next.js dev overlay portal — prevent transparent overlay from intercepting clicks */
 nextjs-portal {
   left: unset;

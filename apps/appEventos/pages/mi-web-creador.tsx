@@ -5,10 +5,14 @@
 import { AuthContextProvider } from '../context';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { resolveChatOrigin } from '@bodasdehoy/shared/utils';
 
 const getCreatorUrl = () => {
   if (typeof window === 'undefined') return '';
-  const base = (process.env.NEXT_PUBLIC_CHAT || 'https://chat.bodasdehoy.com').replace(/\/$/, '');
+  // BUG-H-04: usar resolveChatOrigin (basado en hostname actual) en vez de
+  // process.env.NEXT_PUBLIC_CHAT que podía apuntar a chat.bodasdehoy.com (prod)
+  // incluso desde app-dev.
+  const base = resolveChatOrigin(window.location.hostname);
   return `${base}/bodasdehoy/wedding-creator`;
 };
 

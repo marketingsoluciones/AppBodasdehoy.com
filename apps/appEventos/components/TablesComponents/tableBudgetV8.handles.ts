@@ -437,6 +437,12 @@ export const handleCreateCategoria = async ({ info, event, setEvent, setShowDots
       }
     }).then((result: estimateCategory) => {
       setShowDotsOptionsMenu({ state: false })
+      // Test 34 (informe QA 22-jun): si el API devuelve null/sin _id, no podemos
+      // crear el gasto inicial (categoria_id sería null → API 400).
+      if (!result || !result._id) {
+        console.warn("[handleCreateCategoria] nuevoCategoria devolvió result null/sin _id", result)
+        return
+      }
       // Paso 1: añadir categoría nueva (inmutable).
       const nuevaCategoria = { ...result, gastos_array: [] as any[] }
       setEvent((prev) => ({
@@ -451,16 +457,22 @@ export const handleCreateCategoria = async ({ info, event, setEvent, setShowDots
         query: queries.nuevoGasto,
         variables: {
           evento_id: event?._id,
-          categoria_id: result?._id,
+          categoria_id: result._id,
           nombre: "Nueva part. de gasto",
         }
       }).then((resultGasto: expenses) => {
+        // Test 34: si el API de gasto devuelve null, NO mutar el array (antes se
+        // metía resultGasto = null en gastos_array → la categoría quedaba "rota").
+        if (!resultGasto || !(resultGasto as any)._id) {
+          console.warn("[handleCreateCategoria] nuevoGasto devolvió result null/sin _id", resultGasto)
+          return
+        }
         setEvent((prev) => ({
           ...prev,
           presupuesto_objeto: {
             ...prev.presupuesto_objeto,
             categorias_array: prev.presupuesto_objeto.categorias_array.map(cat =>
-              cat._id !== result?._id ? cat : {
+              cat._id !== result._id ? cat : {
                 ...cat,
                 gastos_array: [...(cat.gastos_array ?? []), resultGasto],
               }
