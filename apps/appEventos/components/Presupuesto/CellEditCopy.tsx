@@ -93,8 +93,14 @@ const CellEditCopy = (props: CellEditCopyProps) => {
         }
       }
       if (props?.table === "subtable") {
-        const f1 = event?.presupuesto_objeto?.categorias_array.findIndex((item) => item._id == props?.categoriaID)
-        const data = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.find((item) => item.items_array.some((item) => item._id == props?.row?.original?._id))
+        const cats = event?.presupuesto_objeto?.categorias_array
+        if (!Array.isArray(cats)) return
+        const f1 = cats.findIndex((item) => item?._id == props?.categoriaID)
+        if (f1 < 0 || !Array.isArray(cats[f1]?.gastos_array)) return
+        const data = cats[f1].gastos_array.find((item) =>
+          Array.isArray(item?.items_array) &&
+          item.items_array.some((it) => it?._id == props?.row?.original?._id)
+        )
         fetchApiEventos({
           query: queries.editItemGasto,
           variables: {

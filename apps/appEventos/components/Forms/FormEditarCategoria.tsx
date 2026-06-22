@@ -45,9 +45,20 @@ const FormEditarCategoria = ({ set, state, categoria }: Props) => {
         } finally {
           set(!state);
           setEvent(old => {
-            const index = old?.presupuesto_objeto?.categorias_array?.findIndex(item => item._id == categoria._id)
-            old.presupuesto_objeto.categorias_array[index].nombre = values.nombre
-            return { ...old }
+            // Guards: si no hay categorias_array o no se encuentra la categoría, no tocar nada.
+            const cats = old?.presupuesto_objeto?.categorias_array
+            if (!Array.isArray(cats)) return old
+            const index = cats.findIndex(item => item?._id == categoria._id)
+            if (index < 0) return old
+            return {
+              ...old,
+              presupuesto_objeto: {
+                ...old.presupuesto_objeto,
+                categorias_array: cats.map((cat, i) =>
+                  i !== index ? cat : { ...cat, nombre: values.nombre }
+                ),
+              },
+            }
           });
           actions.setSubmitting(false);
         }

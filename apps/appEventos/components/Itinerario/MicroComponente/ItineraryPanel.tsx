@@ -116,9 +116,15 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       return;
     }
 
-    const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario?._id);
-    const f2 = event.itinerarios_array[f1]?.tasks.findIndex(elem => elem._id === task?._id);
-    const previousValue = event.itinerarios_array[f1]?.tasks[f2]?.[fieldName];
+    // Guard: si event.itinerarios_array o itinerario no están, salir sin tocar nada.
+    if (!Array.isArray(event?.itinerarios_array) || !itinerario?._id) return;
+    const f1 = event.itinerarios_array.findIndex(elem => elem?._id === itinerario._id);
+    if (f1 < 0) return; // itinerario no encontrado
+    const tasksArr = event.itinerarios_array[f1]?.tasks;
+    if (!Array.isArray(tasksArr) || !task?._id) return;
+    const f2 = tasksArr.findIndex(elem => elem?._id === task._id);
+    if (f2 < 0) return;
+    const previousValue = tasksArr[f2]?.[fieldName];
 
     // Optimistic local update inmutable — rollback si API falla.
     // Refactor: antes mutaba event.itinerarios_array[f1].tasks[f2][fieldName]
@@ -486,16 +492,22 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         console.error('Tarea no encontrada:', taskId);
         return;
       }
-      // Actualizar el estado global del evento inmediatamente
+      // Actualizar el estado global del evento inmediatamente (inmutable + guards).
       setEvent((oldEvent) => {
-        const f1 = oldEvent.itinerarios_array.findIndex(elem => elem._id === itinerario._id);
-        const f2 = oldEvent.itinerarios_array[f1].tasks.findIndex(elem => elem._id === taskId);
-        // Actualizar la tarea con los nuevos valores
-        oldEvent.itinerarios_array[f1].tasks[f2] = {
-          ...oldEvent.itinerarios_array[f1].tasks[f2],
-          ...updates
-        }
-        return { ...oldEvent };
+        if (!Array.isArray(oldEvent?.itinerarios_array)) return oldEvent;
+        const f1 = oldEvent.itinerarios_array.findIndex(elem => elem?._id === itinerario._id);
+        if (f1 < 0) return oldEvent;
+        return {
+          ...oldEvent,
+          itinerarios_array: oldEvent.itinerarios_array.map((it, i) =>
+            i !== f1 ? it : {
+              ...it,
+              tasks: Array.isArray(it.tasks)
+                ? it.tasks.map(tk => tk?._id === taskId ? { ...tk, ...updates } : tk)
+                : it.tasks,
+            }
+          ),
+        };
       });
       // Actualizar el estado local de las tareas
       setTasks(prevTasks => {
