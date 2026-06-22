@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect, Dispatch, SetStateAction } from "react";
+import { createContext, useState, useContext, useEffect, useRef, Dispatch, SetStateAction } from "react";
 import { EditDefaultState, Event, filterGuest, planSpace } from "../utils/Interfaces";
 import { EventsGroupContextProvider } from "./EventsGroupContext";
 import { getAllFilterGuest, readCache, writeCache } from "../utils/Funciones";
@@ -117,16 +117,29 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
   // /invitados → notificaciones mostraban evento incorrecto). Escuchamos cambios
   // del localStorage (storage event entre pestañas + custom event mismo tab) y
   // re-seleccionamos el evento si discrepa.
+  //
+  // BUG-CW-01 (informe QA 22-jun noche): la versión anterior tenía [event?._id,
+  // eventsGroup] en deps → cada setEvent re-montaba el listener → re-ejecutaba
+  // sync() → loop infinito (RangeError "Maximum call stack size exceeded").
+  // Fix: leer event/eventsGroup vía ref (no recompilar el listener) +
+  // dependencias VACÍAS para que el listener se monte UNA SOLA VEZ.
+  const eventRef = useRef(event)
+  const eventsGroupRef = useRef(eventsGroup)
+  useEffect(() => { eventRef.current = event }, [event])
+  useEffect(() => { eventsGroupRef.current = eventsGroup }, [eventsGroup])
+
   useEffect(() => {
     if (typeof window === 'undefined') return
     const sync = () => {
       const stored = localStorage.getItem('appEventos_activeEventId')
       if (!stored) return
-      if (event?._id === stored) return
-      if (!eventsGroup?.length) return
-      const found = eventsGroup.find(e => e._id === stored)
-      if (found && found._id !== event?._id) {
-        setEvent({ ...found })
+      const currentEvent = eventRef.current
+      const currentGroup = eventsGroupRef.current
+      if (currentEvent?._id === stored) return
+      if (!currentGroup?.length) return
+      const found = currentGroup.find(e => e._id === stored)
+      if (found && found._id !== currentEvent?._id) {
+        setEventRaw(found)
       }
     }
     window.addEventListener('storage', sync)
@@ -135,7 +148,7 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
       window.removeEventListener('storage', sync)
       window.removeEventListener('appEventos:activeEventChanged', sync as EventListener)
     }
-  }, [event?._id, eventsGroup])
+  }, [])
 
   // Capturar eventos del cumulo y seleccionar uno
   useEffect(() => {
