@@ -94,9 +94,11 @@ export const ModalOptionsCategoria = ({ showOptionsModal, setShowOptionsModal })
         }
       })
       if (result?.evento?.presupuesto_objeto) {
-        event.presupuesto_objeto = result.evento.presupuesto_objeto as estimate
+        setEvent((prev) => ({
+          ...prev,
+          presupuesto_objeto: result.evento.presupuesto_objeto as estimate,
+        }))
       }
-      setEvent({ ...event })
     } catch (error) {
     }
   }

@@ -179,28 +179,36 @@ const BlockCategoria = (props: any) => {
         id: "options",
         Cell: (props) => {
           const handleRemove = async () => {
-            let data
             try {
-              new Promise(resolve => {
-                fetchApiEventos({
-                  query: queries.borrarGasto,
-                  variables: {
-                    evento_id: event?._id,
-                    categoria_id: categoria?._id,
-                    gasto_id: props?.row?.original?._id,
-                  },
-                }).then((result: any) => {
-                  if (result?.evento?.presupuesto_objeto) {
-                    event.presupuesto_objeto = result.evento.presupuesto_objeto
-                  } else {
-                    const f1 = event?.presupuesto_objeto?.categorias_array.findIndex(elem => elem._id === categoria?._id)
-                    const f2 = event?.presupuesto_objeto?.categorias_array[f1].gastos_array.findIndex(elem => elem._id === props?.row?.original?._id)
-                    event?.presupuesto_objeto?.categorias_array[f1].gastos_array.splice(f2, 1)
-                  }
-                  resolve(event)
-                })
-              }).then((result) => {
-                setEvent({ ...event })
+              fetchApiEventos({
+                query: queries.borrarGasto,
+                variables: {
+                  evento_id: event?._id,
+                  categoria_id: categoria?._id,
+                  gasto_id: props?.row?.original?._id,
+                },
+              }).then((result: any) => {
+                // Si el API devuelve el presupuesto completo, lo reemplazamos.
+                // Si no, eliminamos el gasto borrado del array inmutablemente.
+                if (result?.evento?.presupuesto_objeto) {
+                  setEvent((prev) => ({
+                    ...prev,
+                    presupuesto_objeto: result.evento.presupuesto_objeto,
+                  }))
+                } else {
+                  setEvent((prev) => ({
+                    ...prev,
+                    presupuesto_objeto: {
+                      ...prev.presupuesto_objeto,
+                      categorias_array: prev.presupuesto_objeto.categorias_array.map(cat =>
+                        cat._id !== categoria?._id ? cat : {
+                          ...cat,
+                          gastos_array: cat.gastos_array.filter(g => g._id !== props?.row?.original?._id),
+                        }
+                      ),
+                    },
+                  }))
+                }
               })
             } catch {
             }
@@ -227,20 +235,25 @@ const BlockCategoria = (props: any) => {
   const AddGasto = async () => {
 
     try {
-      fetchApiEventos({
+      const result: any = await fetchApiEventos({
         query: queries.nuevoGasto,
         variables: {
           evento_id: event?._id,
           categoria_id: categoria?._id,
           nombre: "Nueva part. de gasto",
         }
-      }).then((result: any) => {
-        if (result?.evento?.presupuesto_objeto) {
-          setEvent({ ...event, presupuesto_objeto: result.evento.presupuesto_objeto })
-        } else {
-          setEvent({ ...event })
-        }
       })
+      if (!result?.success && result?.errors?.length) {
+        // No falsear estado: si backend rechaza, informar y abortar.
+        console.warn('[AddGasto] mutation rechazada:', result.errors)
+        return
+      }
+      // BUG-17: si presupuesto_objeto NO viene en la respuesta no hacemos
+      // setEvent({...event}) espurio (misma referencia interna → React no re-renderiza
+      // y la nueva partida no aparece). Solo actualizamos si viene el objeto canonical.
+      if (result?.evento?.presupuesto_objeto) {
+        setEvent({ ...event, presupuesto_objeto: result.evento.presupuesto_objeto })
+      }
     } catch (error) {
       throw new Error(error)
     }
