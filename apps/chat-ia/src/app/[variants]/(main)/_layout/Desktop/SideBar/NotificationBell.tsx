@@ -70,13 +70,34 @@ const NotificationBell = memo(() => {
     return lower === 'guest' || lower === 'anonymous' || lower.includes('@guest.') || lower.startsWith('visitor_');
   });
 
-  // Poll unread count
+  // Poll unread count — pausa en background (perf mobile, BUG-CW-N18 5ª ronda).
   useEffect(() => {
     if (isGuestUser) return;
-    const fetch = () => getUnreadNotificationsCount().then(setUnread);
-    fetch();
-    const id = setInterval(fetch, POLL_INTERVAL);
-    return () => clearInterval(id);
+    const fetchCount = () => getUnreadNotificationsCount().then(setUnread).catch(() => {});
+    fetchCount();
+    if (typeof document === 'undefined') return;
+
+    let id: ReturnType<typeof setInterval> | null = null;
+    const start = () => {
+      if (id) return;
+      id = setInterval(() => {
+        if (!document.hidden) fetchCount();
+      }, POLL_INTERVAL);
+    };
+    const stop = () => {
+      if (id) { clearInterval(id); id = null; }
+    };
+    const onVisibility = () => {
+      if (document.hidden) stop();
+      else { fetchCount(); start(); }
+    };
+
+    if (!document.hidden) start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      stop();
+    };
   }, [isGuestUser]);
 
   // Load full list when panel opens

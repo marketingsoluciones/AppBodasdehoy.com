@@ -420,22 +420,40 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
     return { closed, mine, unassigned };
   }, [isClosed, recentConvs, userId]);
 
-  // Notification count
+  // Notification count — pausa en background (perf mobile, BUG-CW-N18 5ª ronda).
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   useEffect(() => {
-    getUnreadNotificationsCount()
-      .then(setUnreadNotifs)
-      .catch((error) => {
-        console.warn('[ChannelSidebar] getUnreadNotificationsCount falló:', error?.message ?? error);
-      });
-    const id = setInterval(() => {
+    const fetchCount = () => {
       getUnreadNotificationsCount()
         .then(setUnreadNotifs)
         .catch((error) => {
-          console.warn('[ChannelSidebar] getUnreadNotificationsCount (poll) falló:', error?.message ?? error);
+          console.warn('[ChannelSidebar] getUnreadNotificationsCount falló:', error?.message ?? error);
         });
-    }, 60_000);
-    return () => clearInterval(id);
+    };
+    fetchCount();
+    if (typeof document === 'undefined') return;
+
+    let id: ReturnType<typeof setInterval> | null = null;
+    const start = () => {
+      if (id) return;
+      id = setInterval(() => {
+        if (!document.hidden) fetchCount();
+      }, 60_000);
+    };
+    const stop = () => {
+      if (id) { clearInterval(id); id = null; }
+    };
+    const onVisibility = () => {
+      if (document.hidden) stop();
+      else { fetchCount(); start(); }
+    };
+
+    if (!document.hidden) start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      stop();
+    };
   }, []);
 
   // Filtered conversations
