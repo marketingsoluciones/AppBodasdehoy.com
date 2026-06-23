@@ -71,6 +71,11 @@ const normalizeGraphqlUrl = (u: string): string => {
 export const DEFAULT_MCP_GRAPHQL_URL = 'https://api-mcp.eventosorganizador.com/graphql';
 export const DEFAULT_API_IA_ORIGIN = 'https://api-ia.bodasdehoy.com';
 const DEFAULT_EVENTOS_ORIGIN = 'https://api-mcp.eventosorganizador.com';
+// Host por defecto para imágenes legacy. Aclaración api-mcp 23-jun: media-apiapp
+// está VIVO y estable (proxy R2 legacy). Si NEXT_PUBLIC_IMAGES_BASE_URL no está
+// seteado, NO caer a DEFAULT_EVENTOS_ORIGIN — eso devolvería api-mcp como host
+// de imágenes, que NO sirve los slugs legacy `/imgs/...`. Default explícito.
+const DEFAULT_IMAGES_ORIGIN = 'https://media-apiapp.eventosorganizador.com';
 
 export function resolveApiBodasGraphqlUrl(): string {
   failIfLegacyAliasSet();
@@ -115,7 +120,7 @@ export function resolveImagesOrigin(): string {
     process.env.NEXT_PUBLIC_IMAGES_BASE_URL ||
     process.env.NEXT_PUBLIC_BASE_URL ||
     process.env.BASE_URL;
-  return (raw || DEFAULT_EVENTOS_ORIGIN).trim().replace(/\/+$/, '');
+  return (raw || DEFAULT_IMAGES_ORIGIN).trim().replace(/\/+$/, '');
 }
 
 export function resolveApiEventosGraphqlUrl(): string {
