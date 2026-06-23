@@ -345,7 +345,29 @@ export const handleDelete = async ({ showModalDelete, event, setEvent, setLoadin
         },
       }))
     } else {
-      console.warn('[handleDelete] object no reconocido:', values?.object, '— solo "categoria"/"gasto"/"item"')
+      // BUG-CW-N06 (informe QA 23-jun): si object no fue seteado por
+      // handleCreateGasto/handleCreateItem (filas recién creadas), inferir
+      // por shape — si tiene categoriaID + gastoID + _id, es item;
+      // si tiene categoriaID + _id, es gasto; si tiene solo _id, es categoria.
+      let inferredType: string | null = null
+      if (values?.categoriaID && values?.gastoID && values?._id !== values?.gastoID) {
+        inferredType = "item"
+      } else if (values?.categoriaID && values?._id) {
+        inferredType = "gasto"
+      } else if (values?._id) {
+        inferredType = "categoria"
+      }
+      if (inferredType) {
+        console.warn('[handleDelete] object no seteado, inferido:', inferredType, '— re-llamando con object correcto')
+        return handleDelete({
+          showModalDelete: { ...showModalDelete, values: { ...values, object: inferredType } },
+          event,
+          setEvent,
+          setLoading,
+          setShowModalDelete,
+        })
+      }
+      console.warn('[handleDelete] object no reconocido y no inferible:', values, '— solo "categoria"/"gasto"/"item"')
     }
   } catch (error: any) {
     console.warn('[handleDelete] falló:', error?.message ?? error)
@@ -383,6 +405,14 @@ export const handleCreateItem = async ({ info, event, setEvent, setShowDotsOptio
       },
     }).then((result: item) => {
       setShowDotsOptionsMenu({ state: false })
+      // BUG-CW-N06: añadir meta-campos para que el "Borrar" desde la tabla
+      // funcione (handleDelete lee values.object para saber el tipo).
+      const newItem: any = {
+        ...result,
+        object: "item",
+        categoriaID: info?.row?.original?.categoriaID,
+        gastoID: info?.row?.original?.gastoID,
+      }
       // Inmutable: añadir item a categorias→gastos→items.
       setEvent((prev) => ({
         ...prev,
@@ -394,7 +424,7 @@ export const handleCreateItem = async ({ info, event, setEvent, setShowDotsOptio
               gastos_array: cat.gastos_array.map(gasto =>
                 gasto._id != info?.row?.original?.gastoID ? gasto : {
                   ...gasto,
-                  items_array: [...(gasto.items_array ?? []), result],
+                  items_array: [...(gasto.items_array ?? []), newItem],
                 }
               ),
             }
@@ -419,6 +449,20 @@ export const handleCreateGasto = async ({ info, event, setEvent, setShowDotsOpti
       }
     }).then((result: expenses) => {
       setShowDotsOptionsMenu({ state: false })
+      // BUG-CW-N06 (informe QA 23-jun): el resultado del API solo trae los
+      // campos del gasto en sí (_id, nombre, etc.) pero NO los meta-campos
+      // que la tabla "Presupuesto Detallado" espera para identificar la fila:
+      //   object: "gasto"    → handleDelete necesita esto para saber el tipo
+      //   categoriaID       → para resolver el padre
+      //   gastoID           → idem
+      // Sin esto, al hacer Borrar → handleDelete cae en el else (no reconocido)
+      // → cierra modal SILENCIOSAMENTE sin borrar.
+      const newGasto: any = {
+        ...result,
+        object: "gasto",
+        categoriaID: info?.row?.original?.categoriaID,
+        gastoID: (result as any)?._id,
+      }
       // Inmutable: añadir gasto a categorias[].gastos_array.
       setEvent((prev) => ({
         ...prev,
@@ -427,7 +471,7 @@ export const handleCreateGasto = async ({ info, event, setEvent, setShowDotsOpti
           categorias_array: prev.presupuesto_objeto.categorias_array.map(cat =>
             cat._id !== info?.row?.original?.categoriaID ? cat : {
               ...cat,
-              gastos_array: [...(cat.gastos_array ?? []), result],
+              gastos_array: [...(cat.gastos_array ?? []), newGasto],
             }
           ),
         },
