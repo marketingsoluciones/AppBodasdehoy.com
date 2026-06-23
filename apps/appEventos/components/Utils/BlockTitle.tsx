@@ -25,7 +25,7 @@ export const BlockTitle = ({ title }) => {
     : ''
 
   return (
-    <div className={`w-full h-14 bg-white rounded-xl shadow-lg ${forCms ? "hidden" : "flex"} items-center justify-between max-w-screen-lg mx-auto`}>
+    <div className={`w-full h-14 max-h-14 overflow-hidden bg-white rounded-xl shadow-lg ${forCms ? "hidden" : "flex"} items-center justify-between max-w-screen-lg mx-auto`}>
       <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={event} />
       <div className='flex md:flex-1 flex-col px-2 md:px-6 font-display'>
         <div className="flex items-center space-x-2">
@@ -38,9 +38,13 @@ export const BlockTitle = ({ title }) => {
         </div>
       </div>
       <div className='flex-1 md:flex-none h-[100%] flex flex-row-reverse md:flex-row items-center gap-2 pr-2'>
+        {/* BUG-CW-N28 (informe QA 7ª ronda): h-[90%] sin max-h hacía que la imagen
+            de evento expandiera el contenedor a 402px en /presupuesto (vs 56px en
+            /mesas, donde la imagen cacheada era más pequeña). max-h-[50px] +
+            overflow-hidden en el wrapper aseguran banner SIEMPRE 56px. */}
         <img
           src={event?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i320}`)}` : defaultImagenes[event?.tipo?.toLowerCase()]}
-          className="h-[90%] object-cover object-top rounded-md border-1 border-gray-600 hidden md:block shrink-0"
+          className="h-[90%] max-h-[50px] object-cover object-top rounded-md border-1 border-gray-600 hidden md:block shrink-0"
           alt={event?.nombre}
           onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
         />

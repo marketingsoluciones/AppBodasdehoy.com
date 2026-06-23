@@ -53,9 +53,16 @@ export const InputMontoPresupuesto: FC<Props> = ({ title }) => {
         }
       })
       if (result?.evento?.presupuesto_objeto) {
-        const updated = { ...event, presupuesto_objeto: result.evento.presupuesto_objeto as estimate }
-        setEvent(updated)
-        setLastValue(safeFixed(numVal))
+        // BUG-CW-N25 (informe QA 7ª ronda): tras editPresupuesto, la UI mostraba
+        // "0,00" porque dependíamos del useEffect ([event]) para refrescar value.
+        // Si el setEvent llegaba sin que el useEffect dispara en el siguiente
+        // tick (batching React), el render mostraba el value VIEJO ("0.00").
+        // Solución: actualizar value Y lastvalue INMEDIATAMENTE con el valor que
+        // acabamos de guardar — el useEffect después solo confirmará.
+        const formatted = safeFixed(numVal)
+        setLastValue(formatted)
+        setValue(formatted)
+        setEvent((prev: any) => ({ ...prev, presupuesto_objeto: result.evento.presupuesto_objeto as estimate }))
         toast("success", t("successfully"))
       }
     } catch (error) {
@@ -90,6 +97,7 @@ export const InputMontoPresupuesto: FC<Props> = ({ title }) => {
             ref={inputRef}
             inputMode="decimal"
             value={value}
+            onFocus={(e) => e.currentTarget.select()}
             onChange={(e) => {
               const raw = e.target.value
               const cleaned = raw.replace(/,/g, '.')

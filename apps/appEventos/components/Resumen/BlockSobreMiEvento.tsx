@@ -550,7 +550,14 @@ const TartaButton: FC<propsElement> = ({ title, value}) => {
         <span className="leading-4 text-center">
           {
             event.tarta &&
-            <img src={`https://api-mcp.eventosorganizador.com${event.tarta}`} alt={"tarta"} className={"border-none border-2 rounded-md  h-20 w-20 hover:opacity-50 cursor-pointer object-cover object-center mb-2"} />
+            // Defensivo: si el binario está perdido (404 legacy), ocultar la
+            // <img> en lugar de mostrar el icono de imagen rota.
+            <img
+              src={`https://api-mcp.eventosorganizador.com${event.tarta}`}
+              alt={"tarta"}
+              className={"border-none border-2 rounded-md  h-20 w-20 hover:opacity-50 cursor-pointer object-cover object-center mb-2"}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
           }
 
           <p className="font-display font-light md:text-md text-gray-500">

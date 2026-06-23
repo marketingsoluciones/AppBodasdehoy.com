@@ -20,7 +20,9 @@ const WeddingHeader = ({
             </div>
             <div className="border-l pl-4 ml-4">
               <p className="text-xs text-gray-500">Evento</p>
-              <p className="font-semibold capitalize">{clientName}</p>
+              {/* BUG-CW-N27 (informe QA 7ª ronda): sin color explícito heredaba
+                  del padre; en algún tab queda invisible (white-on-white). */}
+              <p className="font-semibold capitalize text-gray-800">{clientName}</p>
               <p className="text-xs text-gray-600 capitalize">{type}: {new Date(parseInt(weddingDate)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}</p>
             </div>
           </div>
