@@ -1,0 +1,75 @@
+# GraphQL Codegen — FASE 1 (autorizado por api-mcp 23-jun)
+#
+# OBJETIVO: generar tipos TS desde el SDL público de api-mcp para queries
+# nuevas que viven en src/services/mcpApi (ya usan shapes canonical directos).
+#
+# NO TOCAR las queries de appEventos que pasan por adapter MCP_ADAPTERS — esas
+# usan tipos legacy y se migrarán en FASE 2 (sesión futura).
+#
+# CÓMO EJECUTAR (cuando se quiera regenerar):
+#   cd apps/chat-ia
+#   pnpm codegen          # añadir script al package.json (ver README)
+#
+# DEPS REQUERIDAS (instalar antes de la primera generación):
+#   pnpm add -D \
+#     @graphql-codegen/cli \
+#     @graphql-codegen/typescript \
+#     @graphql-codegen/typescript-operations \
+#     @graphql-codegen/typed-document-node
+#
+# CI: este YAML debería correrse en pre-commit o pre-PR para detectar breaking
+# changes del backend ANTES de mergear. Si el SDL elimina un campo que
+# nuestros documents usan, codegen falla y se ve en el log de CI.
+#
+# Versión pinneada por SHA256 (api-mcp confirmó 23-jun, no por git commit):
+#   https://api-mcp.eventosorganizador.com/graphql/schema-<sha256>.graphql
+# Para pinning estable en CI, intercambiar la URL del schema por la versión
+# con hash una vez api-mcp publique el endpoint estable. Para dev usamos
+# live para reflejar los últimos cambios del backend.
+
+overwrite: true
+
+schema:
+  - https://api-mcp.eventosorganizador.com/graphql/schema.graphql
+
+documents:
+  - 'src/services/mcpApi/**/*.ts'
+  - '!src/services/mcpApi/**/*.test.ts'
+  - '!src/services/mcpApi/**/*.spec.ts'
+
+generates:
+  src/generated/graphql.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+    config:
+      # Producir union types en vez de enums (mejor tree-shaking en bundle).
+      enumsAsTypes: true
+      # Generar campos como requeridos (matchea el server SDL — null se gestiona
+      # con maybe explícito en la query).
+      avoidOptionals: true
+      # Mapear scalars a tipos TS sensatos para los nuestros canónicos:
+      scalars:
+        DateTime: string
+        JSON: 'Record<string, any>'
+        Upload: File
+        ID: string
+      # No prefijo de Maybe (default) para reducir verbosidad.
+      maybeValue: 'T | null'
+      # Sin nullable input por defecto (el server lo enforce).
+      defaultScalarType: unknown
+      # Sufijos de los tipos generados (clarifica origen).
+      typesPrefix: 'Mcp'
+      operationResultSuffix: 'Result'
+
+  # Plugin de hooks/react-query NO incluido en FASE 1.
+  # Los call-sites actuales usan fetch directo, no React Query.
+  # En FASE 2, cuando se migre a TypedDocumentNode + tanstack-query, añadir:
+  #   src/generated/operations.ts:
+  #     plugins:
+  #       - typescript-operations
+  #       - typed-document-node
+
+hooks:
+  afterAllFileWrite:
+    - prettier --write
