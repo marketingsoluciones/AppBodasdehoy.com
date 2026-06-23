@@ -8,7 +8,8 @@
  *   3. Empezar desde cero (cierra el modal)
  */
 
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { EventContextProvider } from '../../context';
 
 interface Props {
@@ -19,6 +20,18 @@ interface Props {
 export const PresupuestoInitModal: FC<Props> = ({ onClose, onDuplicate }) => {
   const { event } = EventContextProvider();
   const [generating, setGenerating] = useState(false);
+
+  // BUG-CW-N21 (reconfirmado QA 7ª ronda): el fix z-[60] del backdrop no
+  // bastaba porque el modal se renderiza dentro de la página /presupuesto,
+  // cuyo árbol padre tiene un DIV con z-[45] que crea un stacking context.
+  // El header del layout es z-[46] → gana al backdrop hijo (sus z-index se
+  // comparan SOLO contra hermanos del z-[45], no contra el header global).
+  // Fix correcto: portal a document.body para que el modal viva en la raíz
+  // del DOM, sin stacking context padre que lo limite.
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setPortalTarget(typeof document !== 'undefined' ? document.body : null);
+  }, []);
 
   const handleGenerateWithAI = () => {
     if (generating) return;
@@ -78,17 +91,12 @@ export const PresupuestoInitModal: FC<Props> = ({ onClose, onDuplicate }) => {
     }
   }
 
-  return (
+  if (!portalTarget) return null;
+
+  const modalContent = (
     <div
-      // BUG-CW-N21 (informe QA 6ª ronda): en viewports donde la altura del modal
-      // excede la del viewport (mobile vertical, desktop ~880px de alto), el
-      // contenido superior (header con título y X) quedaba fuera de pantalla y
-      // tapado por la navbar sticky. z-[60] para garantizar overlay sobre navbar
-      // (z-50 colisionaba con menús laterales que también usan z-50). overflow-y-auto
-      // + py-8 hace que el propio modal scrollee internamente cuando es alto.
-      className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center bg-black/40 backdrop-blur-sm overflow-y-auto py-8"
+      className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center bg-black/40 backdrop-blur-sm overflow-y-auto py-8"
       onClick={(e) => {
-        // Click en el backdrop (no en el contenido del modal) → cerrar.
         if (e.target === e.currentTarget) onClose()
       }}
     >
@@ -155,4 +163,6 @@ export const PresupuestoInitModal: FC<Props> = ({ onClose, onDuplicate }) => {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, portalTarget);
 };
