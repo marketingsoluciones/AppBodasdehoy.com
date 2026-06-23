@@ -2,6 +2,23 @@
 
 import { useCallback, useMemo } from 'react';
 
+// BUG-CW-N23 (QA1 informe 23-jun, 7+ warns en <1s): useAuthCheck es un hook
+// que MUCHOS componentes consumen (sidebar, badge, captation, copilot, etc.).
+// En la primera hidratación todos llaman checkAuth() simultáneamente y cada
+// llamada disparaba 1 warn → spam de consola (que QA2 confundió con bloqueo
+// de Firebase API). Dedupe a nivel módulo: emitir cada warn UNA vez por
+// ventana de 60s. Reset en cada cambio de estado real (logout, login).
+const __warnedOnce: Record<string, number> = {};
+const warnOnce = (key: string, msg: string) => {
+  if (typeof window === 'undefined') return;
+  const now = Date.now();
+  const last = __warnedOnce[key] ?? 0;
+  if (now - last < 60_000) return;
+  __warnedOnce[key] = now;
+  // eslint-disable-next-line no-console
+  console.warn(msg);
+};
+
 export interface DevUserConfig {
   development?: string;
   email?: string;
@@ -109,7 +126,7 @@ export const useAuthCheck = () => {
     if (expiresAt) {
       const expiration = new Date(expiresAt);
       if (expiration <= new Date()) {
-        console.warn('⚠️ JWT token expirado');
+        warnOnce('jwt-expired', '⚠️ JWT token expirado');
         return false;
       }
       return true;
@@ -142,7 +159,7 @@ export const useAuthCheck = () => {
     const needsRelogin = isAuthenticated && !hasValidJwt;
 
     if (needsRelogin) {
-      console.warn('⚠️ Usuario identificado pero sin JWT válido - necesita re-login');
+      warnOnce('needs-relogin', '⚠️ Usuario identificado pero sin JWT válido - necesita re-login');
     }
 
     return {
