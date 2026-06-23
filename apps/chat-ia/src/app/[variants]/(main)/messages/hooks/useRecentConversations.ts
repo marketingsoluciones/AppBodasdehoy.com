@@ -7,6 +7,7 @@ import { getWhatsAppChannels, getWhatsAppConversationsGQL } from '@/services/mcp
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { buildHeaders } from '../utils/auth';
+import { friendlyContactName } from '../utils/jid';
 
 export type ChannelKind = 'whatsapp' | 'instagram' | 'telegram' | 'email' | 'web' | 'facebook';
 
@@ -110,7 +111,7 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
                 labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,
                 linkedContactId: c.linkedContactId ?? c.linked_contact_id ?? null,
                 linkedEventId: c.linkedEventId ?? c.linked_event_id ?? null,
-                name: c.displayName || c.phoneNumber || 'Desconocido',
+                name: friendlyContactName(c.displayName, c.phoneNumber),
                 unreadCount: c.unreadCount || 0,
                 unreadCountForAgent: c.unreadCountForAgent ?? c.unread_count_for_agent ?? undefined,
                 status: c.status ?? c.conversationStatus ?? undefined,
@@ -128,7 +129,7 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
               kind: 'whatsapp' as const,
               lastMessage: '',
               lastMessageAt: c.lastMessageAt || '',
-              name: c.contactName || c.phoneNumber || 'Desconocido',
+              name: friendlyContactName(c.contactName, c.phoneNumber),
               unreadCount: 0,
             }));
           })
@@ -146,19 +147,33 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
             return rawList.map((c: any) => {
               const kind = (c.channel || c.platform || 'web') as ChannelKind;
               const isKnown = otherChannels.includes(kind);
+              // BUG-CW-N31 (QA3 reporte 23-jun): api-ia devuelve lastMessage como
+              // OBJETO {text,timestamp,fromUser} en lugar de string, lo que disparaba
+              // React Error #31 ("Objects are not valid as a React child") al
+              // renderizar la Bandeja. Defensa front: normalizar a string siempre.
+              // Reportado a api-ia en paralelo para fix definitivo del shape.
+              const lm = c.lastMessage;
+              const normalizedLastMessage =
+                typeof lm === 'string' ? lm
+                : (lm && typeof lm === 'object' && typeof lm.text === 'string') ? lm.text
+                : '';
+              const inferredLastMessageAt =
+                c.lastMessageAt
+                || c.updatedAt
+                || (lm && typeof lm === 'object' && typeof lm.timestamp === 'string' ? lm.timestamp : '');
               return {
                 assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
                 channelParam: isKnown ? kind : 'web',
                 conversationId: c.conversationId || c.id || '',
                 kind: isKnown ? kind : ('web' as const),
-                lastMessage: c.lastMessage || '',
-                lastMessageAt: c.lastMessageAt || c.updatedAt || '',
+                lastMessage: normalizedLastMessage,
+                lastMessageAt: inferredLastMessageAt,
                 lastInboundAt: c.lastInboundAt ?? c.last_inbound_at ?? undefined,
                 lastOutboundAt: c.lastOutboundAt ?? c.last_outbound_at ?? undefined,
                 labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,
                 linkedContactId: c.linkedContactId ?? c.linked_contact_id ?? null,
                 linkedEventId: c.linkedEventId ?? c.linked_event_id ?? null,
-                name: c.displayName || c.contactName || c.username || 'Desconocido',
+                name: friendlyContactName(c.displayName || c.contactName || c.username, c.phoneNumber),
                 unreadCount: c.unreadCount || 0,
                 unreadCountForAgent: c.unreadCountForAgent ?? c.unread_count_for_agent ?? undefined,
                 status: c.status ?? c.conversationStatus ?? undefined,
