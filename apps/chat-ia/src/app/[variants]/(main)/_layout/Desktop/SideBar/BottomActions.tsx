@@ -14,9 +14,11 @@ import { usePlanLimits } from '@/hooks/usePlanLimits';
 import { useBilling } from '@/hooks/useBilling';
 import { usagePercent, usageColor } from '@bodasdehoy/shared/plans';
 
+// BUG-CW-N16 (informe QA 23-jun 5ª ronda): blockSize 36 era peor que el 40
+// de TopActions. Apple HIG mínimo 44x44px. Subido a 44.
 const ICON_SIZE: ActionIconProps['size'] = {
-  blockSize: 36,
-  size: 20,
+  blockSize: 44,
+  size: 22,
   strokeWidth: 1.5,
 };
 

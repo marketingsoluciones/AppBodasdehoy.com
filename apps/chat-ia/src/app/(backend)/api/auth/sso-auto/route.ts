@@ -44,6 +44,14 @@ export async function GET(request: NextRequest) {
   const redirectAfterLogin = urlParams.get('redirect');
   const safeRedirect = redirectAfterLogin && isSafeRedirect(redirectAfterLogin) ? redirectAfterLogin : '/chat';
 
+  // BUG-CW-N14 (informe QA 23-jun 5ª ronda): /messages directo se quedaba
+  // colgado >20s sin timeout. El fetch a firebase-login no tenía AbortController
+  // → si el backend cuelga, el spinner dura indefinidamente. Fix: 5s timeout
+  // + fallback explícito a /login con mensaje al usuario.
+  const TIMEOUT_MS = 5000;
+  const abortController = new AbortController();
+  const timeoutId = setTimeout(() => abortController.abort(), TIMEOUT_MS);
+
   try {
     const response = await fetch(`${BACKEND_URL}/api/auth/firebase-login`, {
       body: JSON.stringify({
@@ -54,7 +62,9 @@ export async function GET(request: NextRequest) {
       }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
+      signal: abortController.signal,
     });
+    clearTimeout(timeoutId);
 
     const data = await response.json().catch(() => null);
     console.log(`[sso-auto] status=${response.status} | success=${data?.success} | user_id=${data?.user_id || 'NULL'}`);
@@ -112,8 +122,12 @@ window.location.replace(${JSON.stringify(safeRedirect)});
       status: 200,
     });
   } catch (error: any) {
-    console.error('[sso-auto] Error:', error.message);
-    // Cualquier error → redirigir al login para que muestre formulario
-    return NextResponse.redirect(new URL('/login', request.url), 307);
+    clearTimeout(timeoutId);
+    const isTimeout = error?.name === 'AbortError';
+    console.error('[sso-auto] Error:', isTimeout ? `TIMEOUT después de ${TIMEOUT_MS}ms` : error.message);
+    // Timeout o error de red → redirigir al login con flag para mostrar mensaje
+    const loginUrl = new URL('/login', request.url);
+    if (isTimeout) loginUrl.searchParams.set('sso_timeout', '1');
+    return NextResponse.redirect(loginUrl, 307);
   }
 }
