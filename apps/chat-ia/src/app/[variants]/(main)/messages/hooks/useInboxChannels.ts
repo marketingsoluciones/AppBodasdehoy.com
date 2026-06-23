@@ -122,9 +122,40 @@ export function useInboxChannels(options?: { enableUnread?: boolean }) {
       }
     };
 
+    // BUG-CW-N18 + perf mobile (informe QA 23-jun 5ª ronda): pausar polling
+    // cuando pestaña en background; refresh inmediato al volver. Evita drain
+    // de batería en mobile.
     fetchUnread();
-    const interval = setInterval(fetchUnread, 60_000);
-    return () => clearInterval(interval);
+    if (typeof document === 'undefined') return;
+
+    let interval: ReturnType<typeof setInterval> | null = null;
+    const start = () => {
+      if (interval) return;
+      interval = setInterval(() => {
+        if (!document.hidden) fetchUnread();
+      }, 60_000);
+    };
+    const stop = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        fetchUnread();
+        start();
+      }
+    };
+
+    if (!document.hidden) start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      stop();
+    };
   }, [enableUnread, isGuest, development, waChannels]);
 
   // External channels — WhatsApp (real from MCP) + social (placeholders)

@@ -192,16 +192,52 @@ export function useMessages(channel: string, conversationId: string) {
     onMessage: handleStreamMessage,
   });
 
-  // Poll for new messages every 10 seconds — only when SSE is not connected
+  // Poll for new messages — only when SSE is not connected.
+  // BUG-CW-N18 + perf mobile (informe QA 23-jun 5ª ronda): polling cada 10s
+  // drena batería en mobile y se ejecuta incluso con pestaña en background.
+  // Mejoras:
+  //   · Intervalo a 15s (era 10s) — equilibrio entre UX y batería.
+  //   · Pausa cuando document.hidden = true (visibilitychange).
+  //   · Refresh inmediato cuando vuelve a visible.
   useEffect(() => {
     if (isGuest || !conversationId) return;
     // If SSE is connected and not in fallback mode, skip polling
     if (sseConnected && !shouldFallbackToPolling) return;
+    if (typeof document === 'undefined') return;
 
-    const interval = setInterval(() => {
-      if (initialLoadDone.current) fetchMessages();
-    }, 10_000);
-    return () => clearInterval(interval);
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    const start = () => {
+      if (interval) return;
+      interval = setInterval(() => {
+        if (initialLoadDone.current && !document.hidden) fetchMessages();
+      }, 15_000);
+    };
+    const stop = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    const onVisibility = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        // Volvió a visible: fetch inmediato + arrancar polling de nuevo.
+        if (initialLoadDone.current) fetchMessages();
+        start();
+      }
+    };
+
+    // Estado inicial
+    if (!document.hidden) start();
+
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      stop();
+    };
   }, [fetchMessages, isGuest, conversationId, sseConnected, shouldFallbackToPolling]);
 
   const addMessage = (message: Message) => {
