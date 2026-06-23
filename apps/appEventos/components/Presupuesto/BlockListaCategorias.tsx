@@ -8,7 +8,7 @@ import { PlusIcon } from "../icons";
 import { ItemCategoria } from "./ItemCategoria";
 import { estimate, estimateCategory } from "../../utils/Interfaces";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { fetchApiBodas, queries } from "../../utils/Fetching";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 import ClickAwayListener from "react-click-away-listener";
 
 interface props {
@@ -86,7 +86,7 @@ export const ModalOptionsCategoria = ({ showOptionsModal, setShowOptionsModal })
   const handleChangeViewEstimates = async (value: boolean) => {
     if (!event) return
     try {
-      const result: any = await fetchApiBodas({
+      const result: any = await fetchApiEventos({
         query: queries.editPresupuesto,
         variables: {
           evento_id: event._id,

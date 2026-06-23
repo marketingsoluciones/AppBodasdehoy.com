@@ -23,7 +23,22 @@ const WeddingHeader = ({
               {/* BUG-CW-N27 (informe QA 7ª ronda): sin color explícito heredaba
                   del padre; en algún tab queda invisible (white-on-white). */}
               <p className="font-semibold capitalize text-gray-800">{clientName}</p>
-              <p className="text-xs text-gray-600 capitalize">{type}: {new Date(parseInt(weddingDate)).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}</p>
+              {/* QA1 23-jun: si weddingDate es 0/null/undefined, new Date(0)
+                  imprimía "1 de Enero de 1970" (epoch). Guard contra fechas
+                  inválidas o ausentes. */}
+              <p className="text-xs text-gray-600 capitalize">
+                {type}:{" "}
+                {(() => {
+                  const ts = parseInt(weddingDate, 10);
+                  if (!ts || isNaN(ts) || ts <= 0) return "—";
+                  return new Date(ts).toLocaleDateString("es-VE", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    timeZone: "UTC",
+                  });
+                })()}
+              </p>
             </div>
           </div>
           {/* <div className="flex items-center space-x-3">

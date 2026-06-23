@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAllowed } from "../../hooks/useAllowed";
 import { getCurrency } from "../../utils/Funciones";
 import ClickAwayListener from "react-click-away-listener";
-import { fetchApiBodas, queries } from "../../utils/Fetching";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { estimate } from "../../utils/Interfaces";
 import { useToast } from "../../hooks/useToast";
 
@@ -45,7 +45,14 @@ export const InputMontoPresupuesto: FC<Props> = ({ title }) => {
 
     setIsSubmitting(true)
     try {
-      const result: any = await fetchApiBodas({
+      // BUG-CW-N25 v2 (informe QA1 23-jun): fetchApiBodas iba DIRECTO al endpoint
+      // api-bodas legacy y se saltaba el adapter MCP_ADAPTERS. El endpoint legacy
+      // respondía {success:true} SIN el campo evento{...}, así que el siguiente
+      // `if (result?.evento?.presupuesto_objeto)` nunca entraba y la UI no se
+      // actualizaba (ni el valor persistía en api-mcp). Cambio a fetchApiEventos
+      // que aplica el adapter (apiMcpAdapter.ts:editPresupuesto pass-through a
+      // api-mcp con shape correcto: success errors evento{ _id presupuesto_objeto }).
+      const result: any = await fetchApiEventos({
         query: queries.editPresupuesto,
         variables: {
           evento_id: event._id,
