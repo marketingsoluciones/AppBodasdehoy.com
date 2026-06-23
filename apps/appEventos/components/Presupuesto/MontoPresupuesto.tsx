@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { EventContextProvider } from "../../context";
 import { CochinoIcon } from "../icons";
 import { Switch } from "../../components/Forms/Switch";
-import { fetchApiBodas, queries } from "../../utils/Fetching";
+import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { estimate } from "../../utils/Interfaces";
 import { InputMontoPresupuesto } from "./InputMontoPresupuesto";
 import { useAllowed } from "../../hooks/useAllowed";
@@ -16,7 +16,7 @@ export const MontoPresupuesto = () => {
     const p = event?.presupuesto_objeto
     if (!p) return
     if (typeof p.presupuesto_total !== "number" && p.viewEstimates && p.coste_estimado) {
-      fetchApiBodas({
+      fetchApiEventos({
         query: queries.editPresupuesto,
         variables: {
           evento_id: event?._id,
@@ -37,7 +37,7 @@ export const MontoPresupuesto = () => {
       return
     }
     try {
-      const result: any = await fetchApiBodas({
+      const result: any = await fetchApiEventos({
         query: queries.editPresupuesto,
         variables: {
           evento_id: event._id,
@@ -53,7 +53,7 @@ export const MontoPresupuesto = () => {
   const handleChangeS = (e) => {
     if (!event?._id || !event?.presupuesto_objeto) return
     const moneda = e.target.value
-    fetchApiBodas({
+    fetchApiEventos({
       query: `mutation($evento_id:ID!,$moneda:String!){
         editCurrency(evento_id:$evento_id, moneda:$moneda){
           success errors{ field message code }
