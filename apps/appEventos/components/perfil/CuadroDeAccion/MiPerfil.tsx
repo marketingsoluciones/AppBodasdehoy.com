@@ -150,10 +150,10 @@ export const MiPerfil = () => {
                         disabled={!canChangePassword}
                         label={t("currentpassword")}
                         name={"currentPassword"}
-                        type={passwordView ? "password" : "text"}
+                        type={passwordView ? "text" : "password"}
                       />
                       <div onClick={() => { setPasswordView(!passwordView) }} className="absolute cursor-pointer inset-y-0 right-4 m-auto w-4 h-4 text-gray-500 translate-y-2.5" >
-                        {!passwordView ? <EyeSlash /> : <Eye />}
+                        {passwordView ? <EyeSlash /> : <Eye />}
                       </div>
                     </div>
                     <div className="flex-1 md:flex-none md:w-[300px] relative w-full">
@@ -162,10 +162,10 @@ export const MiPerfil = () => {
                         disabled={!canChangePassword}
                         label={t("newpassword")}
                         name={"password"}
-                        type={passwordView ? "password" : "text"}
+                        type={passwordView ? "text" : "password"}
                       />
                       <div onClick={() => { setPasswordView(!passwordView) }} className="absolute cursor-pointer inset-y-0 right-4 m-auto w-4 h-4 text-gray-500 translate-y-2.5" >
-                        {!passwordView ? <EyeSlash /> : <Eye />}
+                        {passwordView ? <EyeSlash /> : <Eye />}
                       </div>
                     </div>
                    {/*  <div className="h-4 hidden sm:flex flex-1" /> */}
