@@ -16,6 +16,7 @@ import { useState, useCallback, memo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Cookies from 'js-cookie';
+import { getAuth } from 'firebase/auth';
 import { Event } from '../../utils/Interfaces';
 import { extractPageContext, PageContextData } from './pageContextExtractor';
 import { EventsGroupContextProvider } from '../../context';
@@ -374,6 +375,15 @@ const CopilotIframe = ({
     const sendAuthConfig = useCallback(() => {
       const iframe = iframeRef.current;
       if (!iframe?.contentWindow || !userId) return;
+
+      // BUG-CW-N03 (informe QA 22-jun noche): si el usuario hizo logout, este callback
+      // puede ejecutarse con userId STALE (props memoizadas) y re-setear jwt_token/
+      // mcp_jwt_token en localStorage. Verificar Firebase user actual ANTES de setear
+      // nada — si no hay user real, abortar.
+      try {
+        const fbUser = getAuth()?.currentUser
+        if (!fbUser) return
+      } catch { /* si firebase no disponible, fallback al check original */ }
 
       // Obtener cookie de sesión correcta para este whitelabel (no hardcodeada)
       const devConfig = getDevelopmentConfig(development);
