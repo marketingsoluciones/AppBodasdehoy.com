@@ -1,77 +1,155 @@
 #!/bin/bash
-# Build de producción de chat-ia en el MacBook Pro 24GB (Tailscale) y traer el .next a este Mac.
-# Motivo: este Mac (16GB) da OOM al buildear chat-ia (~21k módulos). El portátil tiene 24GB.
-# Uso: bash scripts/build-en-portatil.sh
+# Build de producción de chat-ia en el MacBook Pro 24GB (Tailscale).
+# Este Mac (16GB) da OOM al buildear chat-ia (~21k módulos). Portátil tiene 24GB.
 #
-# APRENDIZAJES (build real 2026-06-12, BUILD_ID durvB6K7k50pV17Kskj7m, ~4min):
-#   - HEAP 16GB (no 8GB): con 8192 dio OOM; 16384 cabe en los 24GB del portátil.
-#   - RSYNC node_modules (no pnpm install): el repo tiene deps "fantasma" (ollama, ua-parser-js)
-#     importadas pero NO declaradas en package.json → pnpm install limpio las pierde y rompe el build.
-#     El node_modules de ESTE Mac (que sí compila) es la fuente de verdad. Ambos arm64 → rsync directo.
-#   - El build tarda ~4min: 97s webpack + ~2min generar 277 páginas estáticas (SSG). Normal con RAM ok.
-# Requisitos: Tailscale activo + portátil online + SSH ok (100.105.48.36) + node@26/pnpm en /opt/homebrew/bin.
+# USO:
+#   bash scripts/build-en-portatil.sh all      # encadena todo (foreground)
+#   bash scripts/build-en-portatil.sh <step>   # ejecuta un step solo
+#
+# STEPS: check | gitsync | rsync-up | shared | build | rsync-down | restart | verify
+#
+# APRENDIZAJES (builds reales):
+#   - HEAP 16GB (8GB da OOM en chat-ia).
+#   - RSYNC node_modules (NO pnpm install): repo tiene deps "fantasma" (ollama,
+#     ua-parser-js) importadas pero NO declaradas → pnpm install las pierde.
+#   - Build tarda ~4 min (97s webpack + ~2min generate static pages SSG).
+#   - Script monolítico con `nohup ... &` muere silencioso entre steps.
+#     Por eso ahora son sub-comandos idempotentes. Memoria:
+#     feedback_builds_portatil_no_background.md
 set -euo pipefail
 
-REMOTE_HOST="100.105.48.36"          # macbook-pro-de-juan (Tailscale)
+REMOTE_HOST="100.105.48.36"
 REMOTE_DIR="/Users/juancarlosparra/Projects/AppBodasdehoy.com"
-REMOTE_PATH="/opt/homebrew/bin"      # node@26 + pnpm (no en PATH SSH por defecto)
+REMOTE_PATH="/opt/homebrew/bin"
 BRANCH="tj/refactor/adelgazar-chat-ia"
 LOCAL_DIR="/Users/juancarlosparra/Projects/AppBodasdehoy.com"
-HEAP_MB=16384                        # 16GB heap (8GB da OOM en chat-ia)
+HEAP_MB=16384
 
-echo "=== 1) Verificar portátil online ==="
-if ! ssh -o ConnectTimeout=10 -o BatchMode=yes "$REMOTE_HOST" 'echo ok' >/dev/null 2>&1; then
-  echo "❌ Portátil NO accesible por SSH ($REMOTE_HOST). ¿Tailscale activo? ¿portátil encendido?"
-  exit 1
-fi
-# Memoria realmente disponible (PhysMem unused). Aviso si está muy justa, pero NO abortamos:
-# con heap 16GB + 24GB físicos hay margen aunque vm_stat 'free' parezca bajo.
-UNUSED_MB=$(ssh -o BatchMode=yes "$REMOTE_HOST" "top -l 1 | awk '/PhysMem/{for(i=1;i<=NF;i++)if(\$i~/unused/){gsub(/[A-Z]/,\"\",\$(i-1));print \$(i-1)}}'" 2>/dev/null || echo "?")
-echo "RAM 'unused' en portátil: ${UNUSED_MB}MB (heap del build: ${HEAP_MB}MB). Si <2000, considera cerrar apps."
+step_check() {
+  echo "=== check) Verificar portátil online ==="
+  ssh -o BatchMode=yes -o ConnectTimeout=10 "$REMOTE_HOST" 'echo ok' >/dev/null || {
+    echo "❌ portátil no accesible (Tailscale activo? portátil encendido?)"; exit 1;
+  }
+  local unused_mb
+  unused_mb=$(ssh -o BatchMode=yes "$REMOTE_HOST" "top -l 1 | awk '/PhysMem/{for(i=1;i<=NF;i++)if(\$i~/unused/){gsub(/[A-Z]/,\"\",\$(i-1));print \$(i-1)}}'" 2>/dev/null || echo "?")
+  echo "✅ portátil OK — RAM unused: ${unused_mb}MB (heap build: ${HEAP_MB}MB)"
+}
 
-echo "=== 2) Actualizar repo del portátil a $BRANCH ==="
-# OJO: el portátil puede NO tener refspec para esta branch (solo inbox-fase1). Por eso
-# NO usamos origin/$BRANCH (da 'unknown revision'); fetch a FETCH_HEAD + reset --hard FETCH_HEAD.
-ssh -o BatchMode=yes "$REMOTE_HOST" "export PATH=$REMOTE_PATH:\$PATH; cd $REMOTE_DIR && \
-  git stash 2>/dev/null; \
-  git fetch origin $BRANCH 2>&1 | tail -1 && \
-  git reset --hard FETCH_HEAD 2>&1 | tail -1 && \
-  echo 'repo en:' \$(git log --oneline -1)"
+step_gitsync() {
+  echo "=== gitsync) Actualizar repo del portátil a $BRANCH ==="
+  ssh -o BatchMode=yes -T "$REMOTE_HOST" <<EOF
+export PATH=$REMOTE_PATH:\$PATH
+cd $REMOTE_DIR
+git stash 2>/dev/null || true
+git fetch origin $BRANCH 2>&1 | tail -1
+git reset --hard FETCH_HEAD 2>&1 | tail -1
+echo "repo en: \$(git log --oneline -1)"
+EOF
+}
 
-echo "=== 3) Sincronizar node_modules de ESTE Mac → portátil (evita deps fantasma) ==="
-rsync -az --delete -e "ssh -o BatchMode=yes" \
-  "$LOCAL_DIR/node_modules/" "$REMOTE_HOST:$REMOTE_DIR/node_modules/"
-echo "node_modules sincronizado."
+step_rsync_up() {
+  echo "=== rsync-up) node_modules local → portátil ==="
+  rsync -az --delete -e "ssh -o BatchMode=yes" \
+    "$LOCAL_DIR/node_modules/" "$REMOTE_HOST:$REMOTE_DIR/node_modules/"
+  echo "✅ node_modules sincronizado"
+}
 
-echo "=== 4) next build chat-ia (heap ${HEAP_MB}MB) ==="
-ssh -o BatchMode=yes "$REMOTE_HOST" "export PATH=$REMOTE_PATH:\$PATH; cd $REMOTE_DIR/apps/chat-ia && \
-  NODE_OPTIONS=--max-old-space-size=$HEAP_MB NEXT_TELEMETRY_DISABLED=1 pnpm exec next build --no-lint 2>&1 | tail -18"
+step_shared() {
+  echo "=== shared) Rebuild packages/shared en portátil ==="
+  ssh -o BatchMode=yes -T "$REMOTE_HOST" <<EOF
+export PATH=$REMOTE_PATH:\$PATH
+cd $REMOTE_DIR/packages/shared
+npx tsc 2>&1 | tail -5
+echo '✅ shared/dist rebuilded'
+EOF
+}
 
-echo "=== 5) Verificar BUILD_ID generado en el portátil ==="
-BID=$(ssh -o BatchMode=yes "$REMOTE_HOST" "cat $REMOTE_DIR/apps/chat-ia/.next/BUILD_ID 2>/dev/null" || echo "")
-if [ -z "$BID" ]; then echo "❌ Build NO generó BUILD_ID (revisar OOM/errores arriba)"; exit 3; fi
-echo "✅ BUILD_ID portátil: $BID"
+step_build() {
+  echo "=== build) next build chat-ia (heap ${HEAP_MB}MB, ~4 min) ==="
+  ssh -o BatchMode=yes -T "$REMOTE_HOST" <<EOF
+export PATH=$REMOTE_PATH:\$PATH
+cd $REMOTE_DIR/apps/chat-ia
+NODE_OPTIONS=--max-old-space-size=$HEAP_MB NEXT_TELEMETRY_DISABLED=1 pnpm exec next build --no-lint 2>&1 | tail -20
+EOF
+  local bid
+  bid=$(ssh -o BatchMode=yes "$REMOTE_HOST" "cat $REMOTE_DIR/apps/chat-ia/.next/BUILD_ID 2>/dev/null" || echo "")
+  [ -z "$bid" ] && { echo "❌ Build NO generó BUILD_ID (¿OOM?)"; exit 3; }
+  echo "✅ BUILD_ID portátil: $bid"
+}
 
-echo "=== 6) rsync .next del portátil → este Mac ==="
-rsync -az --delete -e "ssh -o BatchMode=yes" \
-  "$REMOTE_HOST:$REMOTE_DIR/apps/chat-ia/.next/" \
-  "$LOCAL_DIR/apps/chat-ia/.next/"
-echo "✅ .next copiado. BUILD_ID local: $(cat $LOCAL_DIR/apps/chat-ia/.next/BUILD_ID 2>/dev/null)"
+step_rsync_down() {
+  echo "=== rsync-down) .next portátil → local ==="
+  rsync -az --delete -e "ssh -o BatchMode=yes" \
+    "$REMOTE_HOST:$REMOTE_DIR/apps/chat-ia/.next/" "$LOCAL_DIR/apps/chat-ia/.next/"
+  echo "✅ BUILD_ID local: $(cat "$LOCAL_DIR/apps/chat-ia/.next/BUILD_ID" 2>/dev/null)"
+}
 
-echo "=== 7) Arrancar chat-ia con next start (build con fixes) ==="
-# CRÍTICO: matar TODOS los next start de chat-ia, no solo el del puerto. Arranques manuales
-# fallidos dejaban procesos HUÉRFANOS (de días previos) sirviendo BUILDS VIEJOS → el server
-# repartía peticiones entre ellos y el QA veía bugs ya arreglados (incidente 15-jun). Matar por
-# patrón + por puerto, NO solo lsof:3210 (que solo coge el que tiene el puerto en ese instante).
-pm2 delete chat-dev 2>/dev/null || true
-pkill -9 -f "next start -p 3210" 2>/dev/null || true
-pkill -9 -f "apps/chat-ia/.bin/next" 2>/dev/null || true
-lsof -ti:3210 2>/dev/null | xargs kill -9 2>/dev/null || true
-sleep 2
-# Garantía: el puerto debe quedar LIBRE antes de arrancar
-if lsof -ti:3210 >/dev/null 2>&1; then echo "⚠️ puerto 3210 AÚN ocupado tras kill — revisar procesos zombi"; fi
-pm2 start /tmp/start-chat.sh --name chat-dev --log /tmp/pm2-chat-start.log 2>&1 | tail -1 || \
-  echo "⚠️ arranca manual: cd $LOCAL_DIR/apps/chat-ia && pnpm next start -p 3210 -H 0.0.0.0"
+step_restart() {
+  echo "=== restart) PM2 chat-dev (kill zombis + arrancar UNO) ==="
+  pm2 delete chat-dev 2>/dev/null || true
+  pkill -9 -f "next start -p 3210" 2>/dev/null || true
+  pkill -9 -f "apps/chat-ia/.bin/next" 2>/dev/null || true
+  lsof -ti:3210 2>/dev/null | xargs kill -9 2>/dev/null || true
+  sleep 3
+  if lsof -ti:3210 >/dev/null 2>&1; then
+    echo "⚠️ puerto 3210 AÚN ocupado tras kill — revisar zombis"
+  fi
 
-echo ""
-echo "=== LISTO. chat-ia sirve el build de producción CON los fixes. Verifica: curl localhost:3210/chat"
+  cat > /tmp/start-chat.sh <<'INNER'
+#!/bin/bash
+export PATH="/opt/homebrew/bin:$PATH"
+cd /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia
+exec pnpm next start -p 3210 -H 0.0.0.0
+INNER
+  chmod +x /tmp/start-chat.sh
+
+  pm2 start /tmp/start-chat.sh --name chat-dev --interpreter bash --log /tmp/pm2-chat-dev.log 2>&1 | tail -3
+  sleep 8
+  echo "✅ PM2 status: $(pm2 jlist 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); p=[x for x in d if x['name']=='chat-dev']; print(p[0]['pm2_env']['status'] if p else 'NO ENCONTRADO')" 2>/dev/null)"
+}
+
+step_verify() {
+  echo "=== verify) HTTP + BUILD_ID online ==="
+  local code
+  code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://chat-dev.bodasdehoy.com/ || echo "000")
+  echo "HTTP: $code"
+  local local_bid
+  local_bid=$(cat "$LOCAL_DIR/apps/chat-ia/.next/BUILD_ID" 2>/dev/null)
+  echo "BUILD_ID local: $local_bid"
+  local match
+  # grep -F (literal) + -e (anti-flag-injection): BUILD_IDs pueden empezar con `-`
+  match=$(curl -s --max-time 10 https://chat-dev.bodasdehoy.com/chat | grep -F -c -e "$local_bid" || echo "0")
+  if [ "$code" = "200" ] && [ "$match" -ge 1 ]; then
+    echo "✅ DEPLOY VERIFICADO — chat-dev sirve el build nuevo"
+  else
+    echo "⚠️ verificación inconsistente (HTTP=$code, matches=$match)"
+  fi
+}
+
+run_all() {
+  step_check
+  step_gitsync
+  step_rsync_up
+  step_shared
+  step_build
+  step_rsync_down
+  step_restart
+  step_verify
+}
+
+cmd="${1:-all}"
+case "$cmd" in
+  check)       step_check ;;
+  gitsync)     step_gitsync ;;
+  rsync-up)    step_rsync_up ;;
+  shared)      step_shared ;;
+  build)       step_build ;;
+  rsync-down)  step_rsync_down ;;
+  restart)     step_restart ;;
+  verify)      step_verify ;;
+  all)         run_all ;;
+  *)
+    echo "USO: $0 {check|gitsync|rsync-up|shared|build|rsync-down|restart|verify|all}"
+    exit 2
+    ;;
+esac
