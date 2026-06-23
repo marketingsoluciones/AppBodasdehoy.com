@@ -28,13 +28,13 @@ const normalizeGraphqlUrl = (u: string): string => {
 export function resolvePublicMcpGraphqlUrl(): string {
   failIfLegacyAliasSet();
   const raw = process.env.NEXT_PUBLIC_API_MCP_GRAPHQL_URL;
-  if (!raw?.trim()) throw new Error('Missing NEXT_PUBLIC_API_MCP_GRAPHQL_URL.');
+  if (!raw?.trim()) return DEFAULT_MCP_GRAPHQL_URL;
   return normalizeGraphqlUrl(raw);
 }
 
 export function resolvePublicApiIaOrigin(): string {
   failIfLegacyAliasSet();
   const raw = process.env.NEXT_PUBLIC_API_IA_URL;
-  if (!raw?.trim()) throw new Error('Missing NEXT_PUBLIC_API_IA_URL.');
+  if (!raw?.trim()) return DEFAULT_API_IA_ORIGIN;
   return raw.trim().replace(/\/+$/, '');
 }
