@@ -80,13 +80,19 @@ export const PresupuestoInitModal: FC<Props> = ({ onClose, onDuplicate }) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      // BUG-CW-N21 (informe QA 6ª ronda): en viewports donde la altura del modal
+      // excede la del viewport (mobile vertical, desktop ~880px de alto), el
+      // contenido superior (header con título y X) quedaba fuera de pantalla y
+      // tapado por la navbar sticky. z-[60] para garantizar overlay sobre navbar
+      // (z-50 colisionaba con menús laterales que también usan z-50). overflow-y-auto
+      // + py-8 hace que el propio modal scrollee internamente cuando es alto.
+      className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center bg-black/40 backdrop-blur-sm overflow-y-auto py-8"
       onClick={(e) => {
         // Click en el backdrop (no en el contenido del modal) → cerrar.
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden my-auto">
         <div className="bg-primary px-6 py-4 relative">
           {/* BUG-CW-N01: botón X visible para cerrar el modal sin tener que elegir
               una opción. Mejora UX y permite QA automation acceder al panel detrás. */}
