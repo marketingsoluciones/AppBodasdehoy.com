@@ -210,12 +210,15 @@ export async function getChatMessages(
   return res?.data ?? res?.messages ?? res ?? [];
 }
 
-// Ruta DEFINITIVA: GET /chat/sessions?userId=X&limit=N
+// Ruta DEFINITIVA: GET /chat/sessions?userId=X&development=Y&limit=N
 export async function getChatSessions(userId: string, opts?: { limit?: number }): Promise<any[]> {
   ensureEnabled('getChatSessions');
   // Guard: sin userId (p.ej. visitante sin login) no lanzar request con ?userId= vacío.
   if (!userId) return [];
-  const qs = new URLSearchParams({ userId });
+  // BUG-MSG-01 (QA1 informe 23-jun): defensa duplicada — jsonHeaders ya añade
+  // X-Development, pero algunos proxies lo dropean. Pasar también en query string
+  // para que ?development= esté SIEMPRE presente.
+  const qs = new URLSearchParams({ userId, development: getTenant() });
   if (opts?.limit !== undefined) qs.set('limit', String(opts.limit));
   const r = await fetch(`${API_IA_BASE}/chat/sessions?${qs.toString()}`, {
     headers: jsonHeaders(),
