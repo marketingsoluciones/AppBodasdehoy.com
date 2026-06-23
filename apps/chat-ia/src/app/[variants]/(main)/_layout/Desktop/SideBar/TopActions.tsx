@@ -18,8 +18,11 @@ import { useUserStore } from '@/store/user';
 import { settingsSelectors } from '@/store/user/selectors';
 import { HotkeyEnum } from '@/types/hotkey';
 
+// BUG-CW-N16 (informe QA 23-jun 5ª ronda): blockSize 40 estaba por debajo del
+// mínimo 44x44px de Apple HIG y 48dp de Material → 18/19 iconos de sidebar
+// chat-dev fallaban tap targets en mobile. Subido a 44.
 const ICON_SIZE: ActionIconProps['size'] = {
-  blockSize: 40,
+  blockSize: 44,
   size: 24,
   strokeWidth: 2,
 };

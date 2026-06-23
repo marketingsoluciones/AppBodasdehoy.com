@@ -49,8 +49,22 @@ const NavigationMobile = () => {
       return
     }
     const hasEvents = Array.isArray(eventsGroup) && eventsGroup.length > 0
+    // BUG-CW-N20 (informe QA 23-jun 5ª ronda): el usuario tocaba "Invitaciones"
+    // sin evento seleccionado y el handler hacía router.push("/") + toast.
+    // Si ya estaba en "/", router.push("/") no hace nada visible y el toast
+    // se podía perder. Mejora: forzar scroll al top + flag query param para
+    // que el home muestre banner persistente "Elige un evento primero".
     toast("error", t(hasEvents ? "selectEventFromHomeToast" : "youmustcreateevent"))
-    router.push("/")
+    if (typeof window !== "undefined") {
+      // Si ya estamos en home, scroll arriba para que vea los eventos.
+      if (window.location.pathname === "/") {
+        window.scrollTo({ top: 0, behavior: "smooth" })
+      } else {
+        router.push("/?needsEvent=1")
+      }
+    } else {
+      router.push("/")
+    }
   }
 
   const Navbar = [
@@ -132,9 +146,17 @@ const NavigationMobile = () => {
                   }
                 }}
                 onClick={() => goNav(item)}
-                className={`cursor-pointer transition hover:scale-[115%] hover:opacity-100 ${isActiveRoute(pathname, item.route) && itemSelect === item.title ? "text-primary opacity-100 scale-[115%]" : "text-gray-800 opacity-70"}`}
+                aria-label={item.title}
+                title={item.title}
+                className={`cursor-pointer transition hover:scale-[110%] hover:opacity-100 flex flex-col items-center justify-center gap-0.5 min-h-[48px] min-w-[44px] px-1 ${isActiveRoute(pathname, item.route) && itemSelect === item.title ? "text-primary opacity-100" : "text-gray-800 opacity-70"}`}
               >
                 {item.icon}
+                {/* BUG-CW-N19 (informe QA 23-jun 5ª ronda): tabbar inferior sin
+                    labels de texto → usuario mobile desorientado. Añadido label
+                    debajo del icono (truncado y pequeño para no romper layout). */}
+                <span className="text-[9px] leading-tight font-medium text-center max-w-[60px] truncate">
+                  {item.title}
+                </span>
               </li>
             ))}
           </div>
@@ -151,9 +173,17 @@ const NavigationMobile = () => {
                   }
                 }}
                 onClick={() => goNav(item)}
-                className={`cursor-pointer transition hover:scale-[115%] hover:opacity-100 ${isActiveRoute(pathname, item.route) && itemSelect === item.title ? "text-primary opacity-100 scale-[115%]" : "text-gray-800 opacity-70"}`}
+                aria-label={item.title}
+                title={item.title}
+                className={`cursor-pointer transition hover:scale-[110%] hover:opacity-100 flex flex-col items-center justify-center gap-0.5 min-h-[48px] min-w-[44px] px-1 ${isActiveRoute(pathname, item.route) && itemSelect === item.title ? "text-primary opacity-100" : "text-gray-800 opacity-70"}`}
               >
                 {item.icon}
+                {/* BUG-CW-N19 (informe QA 23-jun 5ª ronda): tabbar inferior sin
+                    labels de texto → usuario mobile desorientado. Añadido label
+                    debajo del icono (truncado y pequeño para no romper layout). */}
+                <span className="text-[9px] leading-tight font-medium text-center max-w-[60px] truncate">
+                  {item.title}
+                </span>
               </li>
             ))}
           </div>

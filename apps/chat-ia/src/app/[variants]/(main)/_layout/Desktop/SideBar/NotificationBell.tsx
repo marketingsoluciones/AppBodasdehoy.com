@@ -31,7 +31,8 @@ function getExternalUrl(_n: AppNotification): string | null {
   return null;
 }
 
-const ICON_SIZE = { blockSize: 40, size: 22, strokeWidth: 2 };
+// BUG-CW-N16 (informe QA 23-jun 5ª ronda): blockSize 40 < 44 mínimo iOS HIG.
+const ICON_SIZE = { blockSize: 44, size: 22, strokeWidth: 2 };
 const POLL_INTERVAL = 60_000; // 60s
 
 const TYPE_LABEL: Record<string, string> = {

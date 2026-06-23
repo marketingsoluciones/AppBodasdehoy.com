@@ -578,7 +578,10 @@ const GridCards: FC<propsGridCards> = ({
             <button
               onClick={(e) => setIsActiveStateSwiper(idx)}
               key={idx}
-              className={`${isActiveStateSwiper == idx ? `bg-${item.color} text-white` : "bg-white text-gray-500"} w-max px-4 py-0.5 rounded-xl flex items-center justify-center cursor-pointer hover:bg-${item.color} hover:text-gray-500 transition focus:outline-none text-sm font-display`}
+              // BUG-CW-N16 (informe QA 23-jun 5ª ronda): tabs Pendientes/Archivados/
+              // Realizados tenían py-0.5 → altura total 24px, muy por debajo del
+              // mínimo 44px de Apple HIG. Subido a py-2 + min-h-[44px] para tap fácil.
+              className={`${isActiveStateSwiper == idx ? `bg-${item.color} text-white` : "bg-white text-gray-500"} w-max px-4 py-2 min-h-[44px] rounded-xl flex items-center justify-center cursor-pointer hover:bg-${item.color} hover:text-gray-500 transition focus:outline-none text-sm font-display`}
             >
               {t(item.nombre)}
             </button>
