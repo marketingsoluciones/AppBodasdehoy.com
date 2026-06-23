@@ -3,7 +3,7 @@
 import Script from 'next/script';
 import { message } from 'antd';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 import { LoginForm, SplitLoginPage } from '@bodasdehoy/auth-ui';
 import { useChatStore } from '@/store/chat';
@@ -74,6 +74,15 @@ function RightPanel() {
   const development = searchParams.get('developer') || 'bodasdehoy';
   const redirectAfterLogin = searchParams.get('redirect') || null;
   const reason = searchParams.get('reason');
+
+  // BUG-CW-N04: hydration mismatch (#418) — `reason` viene de useSearchParams() y
+  // su valor difiere entre SSR (vacío en prerender estático) y CSR (real). El
+  // <LoginForm sessionExpiredMessage={...}> dependía de `reason`, así que el HTML
+  // del servidor y el primer render cliente diferían. Guard: solo leer `reason`
+  // tras hidratar.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  const reasonAfterMount = mounted ? reason : null;
 
   const [messageApi, contextHolder] = message.useMessage();
   const { setExternalChatConfig, fetchExternalChats } = useChatStore();
@@ -357,7 +366,7 @@ function RightPanel() {
         onVisitor={handleVisitor}
         onWhatsAppLogin={() => { setWaStep('phone'); setWaError(null); }}
         sessionExpiredMessage={
-          reason === 'session_expired' ? 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.' : null
+          reasonAfterMount === 'session_expired' ? 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.' : null
         }
       />
     </div>

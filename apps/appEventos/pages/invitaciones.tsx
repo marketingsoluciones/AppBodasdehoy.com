@@ -103,6 +103,11 @@ const Invitaciones = () => {
     }
   }, []);
   useEffect(() => {
+    // BUG-CW-N13: race — el useEffect se disparaba con event?._id=undefined cuando
+    // EventContextProvider aún no había hidratado el evento activo, lanzando 3 queries
+    // GraphQL con evento_id null. Guard explícito antes de cualquier fetch.
+    if (!event?._id) return;
+
     const reduce = event?.invitados_array?.reduce((acc: any, item: any) => {
       if (!item) return acc;
       const asd = {
@@ -127,7 +132,7 @@ const Invitaciones = () => {
     fetchApiEventos({
       query: queries.getVariablesTemplatesInvitaciones,
       variables: {
-        evento_id: event?._id
+        evento_id: event._id
       },
     }).then((res: any) => {
       setVariablesTemplatesInvitaciones(res)
@@ -147,7 +152,7 @@ const Invitaciones = () => {
       fetchApiEventos({
         query: queries.getWhatsappInvitationTemplates,
         variables: {
-          evento_id: event?._id
+          evento_id: event._id
         },
       }).then((res: any) => {
         const template = Array.isArray(res)
