@@ -33,9 +33,36 @@ export function useInboxUnreadCount(): number {
         .catch((e) => console.warn('[useInboxUnreadCount] getUnreadNotificationsCount falló:', e?.message));
     };
 
+    // BUG-CW-N18 + perf mobile (informe QA 23-jun 5ª ronda): pausar polling
+    // cuando pestaña en background. La campana no necesita actualizarse si
+    // el usuario no está mirando.
     fetch();
-    const id = setInterval(fetch, POLL_INTERVAL_MS);
-    return () => clearInterval(id);
+    if (typeof document === 'undefined') return;
+
+    let id: ReturnType<typeof setInterval> | null = null;
+    const start = () => {
+      if (id) return;
+      id = setInterval(() => {
+        if (!document.hidden) fetch();
+      }, POLL_INTERVAL_MS);
+    };
+    const stop = () => {
+      if (id) {
+        clearInterval(id);
+        id = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.hidden) stop();
+      else { fetch(); start(); }
+    };
+
+    if (!document.hidden) start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      stop();
+    };
   }, [isLoggedIn]);
 
   return count;
