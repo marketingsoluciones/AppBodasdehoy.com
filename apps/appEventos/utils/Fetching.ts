@@ -1283,7 +1283,8 @@ export const queries = {
       }
       showChildrenGuest
     }
-  }`,
+  }
+}`,
 
   sendComunications: ` mutation( $evento_id:String, $invitados_ids_array:[String], $dominio:String, $transport:String, $lang:String, $template_id:ID){
     sendComunications(evento_id:$evento_id, invitados_ids_array:$invitados_ids_array, dominio:$dominio, transport:$transport, lang:$lang, template_id:$template_id){
@@ -1458,8 +1459,14 @@ export const queries = {
     }
   }`,
 
-  borrarGasto: `mutation($evento_id:ID!, $gasto_id:ID!){
-    borraGasto(evento_id:$evento_id, gasto_id:$gasto_id){
+  // BUG-CW-N06 (informe QA 23-jun 4ª ronda): el campo del schema se llama
+  // `borrarGasto` (con 'r'), no `borraGasto`. El backend devolvía
+  // "Cannot query field borraGasto on type Mutation". El adapter MCP usa
+  // `eliminarGastoPresupuesto` (canonical), pero cuando NO se va por el
+  // adapter (ej. event no en api-mcp), el query directo iba al endpoint
+  // legacy con nombre erróneo.
+  borrarGasto: `mutation($evento_id:ID!, $categoria_id:ID!, $gasto_id:ID!){
+    borrarGasto(evento_id:$evento_id, categoria_id:$categoria_id, gasto_id:$gasto_id){
       success
       errors{ field message code }
       evento{ _id presupuesto_objeto }
