@@ -965,6 +965,11 @@ export const queries = {
           development
         }
   }`,
+  // QA1 23-jun re-test v2: api-mcp expone detalles_compartidos_array como
+  // [JSON!] (escalar), NO admite sub-selección {email, uid, ...} → 400
+  // "must not have a selection since type [JSON!] has no subfields" bloqueaba
+  // crearEvento. Quitar las llaves. Mismo cambio en los otros 3 queries del
+  // archivo donde aparece detalles_compartidos_array{...} (eventos y editEvento).
   eventCreate: `mutation ($input: EventoInput!){
     createEvento(input: $input){
       success
@@ -973,17 +978,7 @@ export const queries = {
       _id
       grupos_array
       compartido_array
-      detalles_compartidos_array{
-        email
-        uid
-        planSpaceSelect
-        permissions{
-          title
-          value
-        }
-        createdAt
-        updatedAt
-      }
+      detalles_compartidos_array
       estatus
       color
       temporada
@@ -1530,13 +1525,7 @@ export const queries = {
       errors{ field message code }
       evento{
         compartido_array
-        detalles_compartidos_array{
-          email
-          uid
-          permissions{ title value }
-          createdAt
-          updatedAt
-        }
+        detalles_compartidos_array
       }
     }
   }`,
@@ -1576,17 +1565,7 @@ export const queries = {
       development
       grupos_array
       compartido_array
-      detalles_compartidos_array{
-        email
-        uid
-        planSpaceSelect
-        permissions{
-          title
-          value
-        }
-        createdAt
-        updatedAt
-      }
+      detalles_compartidos_array
       estatus
       color
       temporada

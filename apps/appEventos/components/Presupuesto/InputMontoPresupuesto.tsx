@@ -60,16 +60,27 @@ export const InputMontoPresupuesto: FC<Props> = ({ title }) => {
         }
       })
       if (result?.evento?.presupuesto_objeto) {
-        // BUG-CW-N25 (informe QA 7ª ronda): tras editPresupuesto, la UI mostraba
-        // "0,00" porque dependíamos del useEffect ([event]) para refrescar value.
-        // Si el setEvent llegaba sin que el useEffect dispara en el siguiente
-        // tick (batching React), el render mostraba el value VIEJO ("0.00").
-        // Solución: actualizar value Y lastvalue INMEDIATAMENTE con el valor que
-        // acabamos de guardar — el useEffect después solo confirmará.
+        // BUG-CW-N25 v3 (informe QA1 23-jun re-test v2): api-mcp devuelve un
+        // SUBSET de presupuesto_objeto sin `presupuesto_total` ni `viewEstimates`.
+        // Si reemplazamos prev.presupuesto_objeto con el subset, perdemos
+        // viewEstimates → el render condicionado a viewEstimates muestra BLANK
+        // y el useEffect re-setea value="0.00" porque rawVal=undefined.
+        //
+        // Fix v3: MERGE en lugar de replace y FORZAR el valor recién guardado
+        // para que las consultas locales siguientes lo vean aunque el backend
+        // no lo incluya en el response.
+        const fieldKey = title === "Presupuesto Total" ? "presupuesto_total" : "coste_estimado"
         const formatted = safeFixed(numVal)
         setLastValue(formatted)
         setValue(formatted)
-        setEvent((prev: any) => ({ ...prev, presupuesto_objeto: result.evento.presupuesto_objeto as estimate }))
+        setEvent((prev: any) => ({
+          ...prev,
+          presupuesto_objeto: {
+            ...(prev?.presupuesto_objeto || {}),
+            ...(result.evento.presupuesto_objeto || {}),
+            [fieldKey]: numVal,
+          } as estimate,
+        }))
         toast("success", t("successfully"))
       }
     } catch (error) {
