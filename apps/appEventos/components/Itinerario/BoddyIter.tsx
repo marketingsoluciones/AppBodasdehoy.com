@@ -391,7 +391,11 @@ export const BoddyIter = () => {
                 {
                     (canAccessList || window?.location?.pathname === "/itinerario")
                         ? <ModuleErrorBoundary label="Itinerario">
-                            <ItineraryPanel
+                            {/* BUG-CW-02 (informe QA 22-jun noche): si itinerario
+                                es undefined (evento sin datos o array null),
+                                ItineraryPanel crashea al hacer itinerario._id.
+                                Render alternativo "sin datos" en ese caso. */}
+                            {itinerario && itinerario._id ? <ItineraryPanel
                                 itinerario={itinerario}
                                 editTitle={editTitle}
                                 setEditTitle={setEditTitle}
@@ -403,7 +407,7 @@ export const BoddyIter = () => {
                                 selectTask={selectTask}
                                 setSelectTask={setSelectTask}
                                 orderAndDirection={orderAndDirection}
-                            />
+                            /> : <ViewWihtoutData />}
                           </ModuleErrorBoundary>
                         : <div className="h-full">
                             <ViewWihtoutData />

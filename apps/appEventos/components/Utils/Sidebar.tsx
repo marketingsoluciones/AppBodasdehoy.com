@@ -10,6 +10,7 @@ import Cookies from "js-cookie";
 import { useActivity } from "../../hooks/useActivity";
 import { signOut, getAuth } from "firebase/auth";
 import { useTranslation } from "react-i18next";
+import { authBridge } from "@bodasdehoy/shared/auth";
 
 /* menu desplegable izquierdo en la vista movil con las opciones de redireccion de la app */
 const Sidebar = ({ setShowSidebar, showSidebar }) => {
@@ -114,6 +115,10 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                             setLoading(true)
                             updateActivity("logoutd")
                             updateActivityLink("logoutd")
+                            // BUG-CW-N03 (informe QA 22-jun noche): Sidebar logout NO llamaba
+                            // authBridge.clearAuth() → jwt_token/mcp_jwt_token/user_* persistían
+                            // en localStorage → /login redirigía a / por "sesión zombie".
+                            authBridge.clearAuth()
                             Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
                             Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
                             // BUG-01 (informe QA 22-jun): el logout no limpiaba el fallback.
@@ -122,6 +127,10 @@ const Sidebar = ({ setShowSidebar, showSidebar }) => {
                                 localStorage.removeItem('appEventos_activeEventId')
                             }
                             signOut(getAuth()).then(() => {
+                                // BUG-CW-N03: re-limpiar después de signOut por si el iframe del
+                                // Copilot (CopilotIframe:397-398) volvió a setear los tokens
+                                // durante la transición. Belt-and-suspenders.
+                                authBridge.clearAuth()
                                 if (["vivetuboda"].includes(config?.development)) {
                                     setUser()
                                     router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/login")

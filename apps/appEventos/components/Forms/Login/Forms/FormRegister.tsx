@@ -269,7 +269,11 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             <div className={`w-full relative ${WihtProvider ? "hidden" : ""}`}>
               <InputFieldIcons
                 name="password"
-                type={passwordView ? "password" : "text"}
+                // BUG-CW-N02 (informe QA 22-jun noche): la lógica estaba INVERTIDA —
+                // passwordView=false (default "ocultar") devolvía type="text" que
+                // exponía la contraseña en texto plano. El usuario veía su password
+                // sin máscara al teclearla. Fix: passwordView=true → "text", false → "password".
+                type={passwordView ? "text" : "password"}
                 // OBS-1 (informe QA 21-jun): autoComplete="new-password" señaliza al browser
                 // que es una contraseña NUEVA (no pre-rellenar con credenciales guardadas).
                 autoComplete="new-password"
@@ -277,7 +281,9 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
                 autoFocus={!!preregister}
                 icon={<LockClosed className="absolute w-4 h-4 inset-y-0 left-4 m-auto  text-gray-500" />} />
               <div onClick={() => { setPasswordView(!passwordView) }} className="absolute cursor-pointer inset-y-0 top-5 right-4 m-auto w-4 h-4 text-gray-500" >
-                {!passwordView ? <Eye /> : <EyeSlash />}
+                {/* Cuando ocultas (default), muestras icono "ojo abierto" (clic para mostrar);
+                    cuando muestras, "ojo tachado" (clic para ocultar). */}
+                {passwordView ? <EyeSlash /> : <Eye />}
               </div>
             </div>
           }

@@ -63,11 +63,42 @@ export const PresupuestoInitModal: FC<Props> = ({ onClose, onDuplicate }) => {
     onClose();
   };
 
+  // BUG-CW-N01 (informe QA 22-jun noche): permitir cerrar modal con ESC o
+  // click en el backdrop (fuera del contenido). Sin esto, el modal era
+  // imposible de cerrar excepto eligiendo una de las 3 opciones — el QA
+  // automation no podía interactuar con el panel detrás.
+  if (typeof window !== 'undefined') {
+    // Listener Escape (solo uno por instancia)
+    (window as any).__presupuestoInitModalEscBound = (window as any).__presupuestoInitModalEscBound || false
+    if (!(window as any).__presupuestoInitModalEscBound) {
+      const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+      window.addEventListener('keydown', onEsc, { once: true })
+      ;(window as any).__presupuestoInitModalEscBound = true
+      setTimeout(() => { (window as any).__presupuestoInitModalEscBound = false }, 100)
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      onClick={(e) => {
+        // Click en el backdrop (no en el contenido del modal) → cerrar.
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
       <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden">
-        <div className="bg-primary px-6 py-4">
-          <h2 className="text-white font-display font-semibold text-lg">¿Cómo quieres empezar?</h2>
+        <div className="bg-primary px-6 py-4 relative">
+          {/* BUG-CW-N01: botón X visible para cerrar el modal sin tener que elegir
+              una opción. Mejora UX y permite QA automation acceder al panel detrás. */}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="absolute top-2 right-3 text-white/80 hover:text-white text-xl font-light leading-none w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition cursor-pointer"
+          >
+            ×
+          </button>
+          <h2 className="text-white font-display font-semibold text-lg pr-8">¿Cómo quieres empezar?</h2>
           <p className="text-white/80 text-xs mt-0.5">Este evento aún no tiene categorías de presupuesto</p>
         </div>
 

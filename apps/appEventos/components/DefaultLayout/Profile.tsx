@@ -218,6 +218,11 @@ const Profile = ({ user, state, set, ...rest }) => {
           localStorage.removeItem('appEventos_activeEventId')
         }
         signOut(getAuth()).then(() => {
+          // BUG-CW-N03 (informe QA 22-jun noche): el CopilotIframe puede volver a setear
+          // jwt_token/mcp_jwt_token durante la transición de logout (race condition con el
+          // bridge SSO). Re-limpiar tras signOut garantiza que /login no detecte sesión
+          // zombie y rediriga a /.
+          authBridge.clearAuth()
           setUser(null)
           toast("success", t("loggedoutsuccessfully"))
           router.push(config?.pathSignout ? `${config.pathSignout}?end=true` : "/")

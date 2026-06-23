@@ -308,14 +308,16 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   }, []);
 
   useEffect(() => {
+    // BUG-CW-02 (informe QA 22-jun noche): si event.itinerarios_array contiene
+    // elementos null/undefined, it._id === ... crashea. Guard Array + filter null.
     if (
       event &&
-      event.itinerarios_array &&
+      Array.isArray(event.itinerarios_array) &&
       itinerario &&
       typeof itinerario._id !== "undefined"
     ) {
       const found = event.itinerarios_array.find(
-        (it: Itinerary) => it._id === itinerario._id
+        (it: Itinerary) => it && it._id === itinerario._id
       );
       if (found) setCurrentItinerario({ ...found });
     }
