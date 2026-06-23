@@ -196,11 +196,27 @@ const Navigation: FC = () => {
         <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0  ">
           <span
             onClick={() => {
-              const path = config?.pathDomain ? `${config?.pathDomain}` : '/';
-              // Verificar si es una URL externa (comienza con http:// o https://)
-              if (path && (path.startsWith('http://') || path.startsWith('https://'))) {
-                window.open(path, '_blank');
-              } else if (path) {
+              // BUG-CW-N22 (informe QA 6ª ronda): en whitelabel bodasdehoy,
+              // config.pathDomain = "https://www.bodasdehoy.com" → al clickear
+              // el logo se abría producción en nueva pestaña, sacando al usuario
+              // de app-dev/app-test. La navegación interna SIEMPRE debe quedarse
+              // en la app actual. Si pathDomain apunta al MISMO origin que el
+              // actual, se permite (router.push); si es otro origin (producción
+              // u otro tenant), router.push("/") al home de la app.
+              const path = config?.pathDomain || '/';
+              const isExternal = path.startsWith('http://') || path.startsWith('https://');
+              if (isExternal) {
+                try {
+                  const parsed = new URL(path);
+                  if (typeof window !== 'undefined' && parsed.origin === window.location.origin) {
+                    router.push(parsed.pathname + parsed.search + parsed.hash || '/');
+                  } else {
+                    router.push('/');
+                  }
+                } catch {
+                  router.push('/');
+                }
+              } else {
                 router.push(path);
               }
               setIsActiveStateSwiper(0)
