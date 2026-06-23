@@ -115,21 +115,36 @@ export const useAuthentication = () => {
           sameSite: "lax"
         });
 
-        // Verificar que la cookie se estableció
-        const cookieVerificada = Cookies.get(config?.cookie)
+        // Verificar que la cookie se estableció. Si falla, reintentar tras un
+        // breve delay (race con popup callback) antes de declarar fallo.
+        let cookieVerificada = Cookies.get(config?.cookie)
+        if (!cookieVerificada) {
+          // BUG-CW-N05 (informe QA 23-jun): el popup de Firebase puede tener
+          // race condition con Cookies.set en el callback. Reintentar 1 vez.
+          await new Promise(resolve => setTimeout(resolve, 100))
+          Cookies.set(config?.cookie, sessionCookie, {
+            domain: cookieDomain,
+            expires: dateExpire,
+            path: "/",
+            secure: window.location.protocol === "https:",
+            sameSite: "lax"
+          });
+          cookieVerificada = Cookies.get(config?.cookie)
+        }
         if (cookieVerificada) {
           console.log("[Auth] ✅ Cookie sessionBodas establecida correctamente (popup)")
         } else {
           // BUG-11 fallback: si la cookie falla (Safari ITP, tamaño, etc.) persistir
           // en localStorage para que api.ApiBodas tenga el token como Bearer.
           // No es óptimo (no cross-domain), pero evita que el usuario quede sin sesión.
-          console.error("[Auth] ❌ Cookie sessionBodas NO se estableció (popup). Aplicando fallback localStorage.", {
+          // BUG-CW-N05: bajamos de error a warn — el fallback funciona, no es bloqueante.
+          console.warn("[Auth] ⚠️ Cookie sessionBodas NO se estableció (popup) tras reintento. Aplicando fallback localStorage.", {
             valueSize: sessionCookieSize,
             domain: cookieDomain,
             protocol: window.location.protocol,
             hint: sessionCookieSize > 4000
               ? "sessionCookie excede 4KB — backend debe acortar el JWT"
-              : "browser rechazó (third-party cookies / ITP / SameSite)"
+              : "browser rechazó (third-party cookies / ITP / SameSite). Fallback localStorage activo — la sesión funciona normalmente."
           })
           try {
             if (typeof window !== 'undefined') {

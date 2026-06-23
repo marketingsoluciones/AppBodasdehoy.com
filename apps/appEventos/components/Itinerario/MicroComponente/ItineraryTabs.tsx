@@ -154,39 +154,46 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     }, [isMobileDropdownOpen])
 
     useEffect(() => {
-        const itineraries = event?.itinerarios_array?.filter(elem => elem?.tipo === window?.location?.pathname.slice(1))
-        if (!itineraries?.length) {
+        // BUG-CW-02 PERSISTE (informe QA 23-jun): el crash original
+        // "Cannot read properties of null (reading 'undefined')" venía de:
+        //   event?.listIdentifiers[fListIdentifiers]
+        // Si event.listIdentifiers es NULL (no undefined; el optional chaining
+        // `?.findIndex` retorna undefined pero el `[undefined]` después da el
+        // crash exacto del reporte). Guards completos:
+        if (typeof window === 'undefined') return
+        const pathSlice = window?.location?.pathname.slice(1)
+        const itineraries = Array.isArray(event?.itinerarios_array)
+            ? event.itinerarios_array.filter(elem => elem?.tipo === pathSlice)
+            : []
+        if (!itineraries.length) {
             setItineraries([])
         }
-        
-        if (itineraries?.length) {
-            const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
-            const listIdentifiers = event?.listIdentifiers[fListIdentifiers]
+
+        if (itineraries.length) {
+            // Guard listIdentifiers null/undefined → array vacío para procesarlo igual.
+            const safeListIdentifiers = Array.isArray(event?.listIdentifiers) ? event.listIdentifiers : []
+            const fListIdentifiers = safeListIdentifiers.findIndex(elem => elem?.table === pathSlice)
+            const listIdentifiers = fListIdentifiers >= 0 ? safeListIdentifiers[fListIdentifiers] : null
             if (!listIdentifiers?.start_Id) {
                 const listIdentifier = {
-                    table: window?.location?.pathname.slice(1),
+                    table: pathSlice,
                     start_Id: itineraries[0]?._id,
                     end_Id: itineraries[itineraries.length - 1]?._id
                 }
-                event?.listIdentifiers?.push(listIdentifier)
+                // Reconstruir el array de listIdentifiers de forma segura.
+                const newListIdentifiers = [...safeListIdentifiers, listIdentifier]
                 fetchApiEventos({
                     query: queries.eventUpdate,
                     variables: {
                         idEvento: event._id,
                         variable: "listIdentifiers",
-                        value: JSON.stringify(event.listIdentifiers)
+                        value: JSON.stringify(newListIdentifiers)
                     }
                 })
                 if (itineraries.length > 1) {
                     const itinerariesSlice = itineraries.slice(0, itineraries.length - 1)
                     itinerariesSlice.map((elem, idx) => {
-                        const variables = {
-                            eventID: event._id,
-                            itinerarioID: elem?._id,
-                            variable: "next_id",
-                            valor: itineraries[idx + 1]._id
-                        }
-                        elem.next_id = itineraries[idx + 1]._id
+                        if (elem) elem.next_id = itineraries[idx + 1]?._id
                     })
                 }
                 fetchApiEventos({
@@ -198,28 +205,30 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                     }
                 })
                 // Trigger re-render con copia top-level del estado actual.
-                // Aquí no mutamos event directamente, sólo forzamos identidad nueva
-                // para que los consumers que dependen de la referencia se actualicen.
                 setEvent((prev) => ({ ...prev }))
                 setItineraries([...itineraries])
             } else {
-                let newItineraries = []
+                let newItineraries: any[] = []
                 const itinerariesCopy = [...itineraries] // Copia para no modificar el original mientras iteramos
-                const pushNextElem = ({ _id }) => {
-                    const f1 = itinerariesCopy.findIndex(elem => elem._id === _id)
+                const pushNextElem = ({ _id }: { _id: any }) => {
+                    if (!_id) return
+                    const f1 = itinerariesCopy.findIndex(elem => elem?._id === _id)
                     if (f1 > -1) {
                         const itinerary = { ...itinerariesCopy[f1] }
                         newItineraries.push(itinerary)
                         itinerariesCopy.splice(f1, 1)
-                        if (!!itinerary?.next_id) {
+                        if (itinerary?.next_id) {
                             pushNextElem({ _id: itinerary.next_id })
                         }
                     }
                 }
-                const firsItinerary = itinerariesCopy.find(elem => elem._id === listIdentifiers.start_Id)
+                // BUG-CW-02 PERSISTE: listIdentifiers ya está garantizado != null arriba
+                // por el guard inicial, pero re-validar por defensa.
+                const startId = listIdentifiers?.start_Id
+                const firsItinerary = startId ? itinerariesCopy.find(elem => elem?._id === startId) : undefined
                 if (firsItinerary) {
                     newItineraries.push(firsItinerary)
-                    const index = itinerariesCopy.findIndex(elem => elem._id === listIdentifiers.start_Id)
+                    const index = itinerariesCopy.findIndex(elem => elem?._id === startId)
                     if (index > -1) {
                         itinerariesCopy.splice(index, 1)
                     }
@@ -232,15 +241,14 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 } else {
                     newItineraries = [...itineraries]
                 }
-                const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
-                const lastListIdentifiers = { ...event.listIdentifiers[fListIdentifiers] }
-                
+
                 setItineraries([...newItineraries])
             }
         }
     }, [event, setEvent])
     const handleCreateItinerario = async () => {
-        if (event.itinerarios_array.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length > 15) {
+        const safeItins = Array.isArray(event?.itinerarios_array) ? event.itinerarios_array : []
+        if (safeItins.filter(elem => elem?.tipo === window?.location?.pathname.slice(1)).length > 15) {
             toast("warning", t("maxLimitedItineraries"));
             return
         }
