@@ -63,7 +63,8 @@ const FinancialSummary = ({
 
         <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3">
           <p className="text-xs font-medium text-gray-600 mb-1">💳 Por otros</p>
-          <p className="text-2xl font-bold ">
+          {/* BUG-CW-N27: faltaba color explícito → invisible si padre tiene text-white */}
+          <p className="text-2xl font-bold text-orange-700">
             {getCurrency(parseFloat(PagadoPorOtros), currency)}
           </p>
           <p className="text-xs text-gray-500 mt-1">Total pagado</p>
