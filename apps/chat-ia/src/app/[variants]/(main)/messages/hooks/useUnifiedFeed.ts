@@ -133,10 +133,33 @@ export function useUnifiedFeed(maxItems = 60): {
       }
     }
 
+    // BUG-CW-N18 + perf mobile (informe QA 5ª ronda): pausar polling cuando
+    // pestaña en background; refresh inmediato al volver. Evita drain batería.
     fetchNotifications();
-    intervalRef.current = setInterval(fetchNotifications, 60_000);
+    if (typeof document === 'undefined') return;
+
+    const start = () => {
+      if (intervalRef.current) return;
+      intervalRef.current = setInterval(() => {
+        if (!document.hidden) fetchNotifications();
+      }, 60_000);
+    };
+    const stop = () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.hidden) stop();
+      else { fetchNotifications(); start(); }
+    };
+
+    if (!document.hidden) start();
+    document.addEventListener('visibilitychange', onVisibility);
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      document.removeEventListener('visibilitychange', onVisibility);
+      stop();
     };
   }, [isGuestUser, development]);
 
