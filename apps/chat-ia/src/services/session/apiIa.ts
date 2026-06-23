@@ -24,10 +24,20 @@ const tenant = () =>
 const uid = () => (typeof window !== 'undefined' && localStorage.getItem('user_uid')) || '';
 
 async function call(method: string, path: string, body?: unknown): Promise<any> {
+  // BUG-MSG-01 (QA1 informe 23-jun): api-ia exige X-Development o
+  // ?development= para listar sesiones. buildAuthHeaders SOLO añade
+  // Authorization, así que el header faltaba → HTTP 400 "Falta X-Development".
+  // El bug bloqueaba TODA la cadena: sidebar agentes skeleton, conversación
+  // no carga, input no acepta texto. Añadir aquí (no en buildAuthHeaders
+  // global porque es específico de api-ia).
   const res = await fetch(`${origin()}${BACKEND}${path}`, {
     body: body === undefined ? undefined : JSON.stringify(body),
     credentials: 'include',
-    headers: { ...buildAuthHeaders(), 'Content-Type': 'application/json' },
+    headers: {
+      ...buildAuthHeaders(),
+      'Content-Type': 'application/json',
+      'X-Development': tenant(),
+    },
     method,
   });
   if (!res.ok) throw new Error(`[session/apiIa] ${method} ${path} → HTTP ${res.status}`);
