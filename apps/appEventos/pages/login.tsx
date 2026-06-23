@@ -37,7 +37,12 @@ const PageLogin = () => {
   const queryD = typeof router.query.d === 'string' ? router.query.d : null
   const sessionExpired = router.query.session_expired === '1'
 
-  const [stage, setStage] = useState((linkMedia != null ? "register" : null) ?? queryQ ?? "login");
+  // BUG-CW-N04 (informe QA 7ª ronda): React #418 "hydration mismatch HTML root"
+  // en /login. Causa: useState inicial leía `linkMedia` (AuthContext, hidratado
+  // tarde) y `queryQ` (router.query, vacío en SSR de Pages Router). El primer
+  // render cliente difería del HTML servidor → mismatch. Stage SIEMPRE "login"
+  // en el primer render; tras montar, useEffect ajusta a lo que toque.
+  const [stage, setStage] = useState<string>("login");
   const [stageRegister, setStageRegister] = useState(0)
   const [whoYouAre, setWhoYouAre] = useState("");
   const [isMounted, setIsMounted] = useState(false)
@@ -66,6 +71,14 @@ const PageLogin = () => {
       if (isMounted) setIsMounted(false)
     }
   }, [isMounted, setLoading])
+
+  // BUG-CW-N04: tras hidratar, ajustar el stage al valor real (linkMedia o ?q=)
+  // que NO podíamos leer en el render inicial sin romper hydration.
+  useEffect(() => {
+    const target = (linkMedia != null ? "register" : null) ?? queryQ ?? "login"
+    if (target !== stage) setStage(target)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkMedia, queryQ])
 
   useEffect(() => {
     if (preregister) {
