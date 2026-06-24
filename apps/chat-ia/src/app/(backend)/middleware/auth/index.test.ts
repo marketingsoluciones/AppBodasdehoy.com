@@ -1,5 +1,9 @@
-import { AgentRuntimeError } from '@lobechat/model-runtime';
 import { ChatErrorType } from '@lobechat/types';
+
+// Inline stub (antes en @lobechat/model-runtime eliminado refactor 24-jun-2026).
+const AgentRuntimeError = {
+  createError: (errorType: unknown, error?: unknown) => ({ error, errorType }),
+};
 import { getXorPayload } from '@lobechat/utils/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
