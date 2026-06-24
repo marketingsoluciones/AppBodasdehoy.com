@@ -4,8 +4,16 @@ import { SWRResponse, mutate } from 'swr';
 import { StateCreator } from 'zustand';
 
 import { useClientDataSWR } from '@/libs/swr';
-import { GetGenerationStatusResult } from '@/server/routers/lambda/generation';
 import { generationService } from '@/services/generation';
+import { AsyncTaskStatus as _AsyncTaskStatus } from '@/types/asyncTask';
+
+// Type local — antes vivía en server/routers/lambda/generation.ts (eliminado en
+// refactor runtime-only-api-ia 2026-06-24). El servicio devuelve este shape.
+type GetGenerationStatusResult = {
+  error: any;
+  generation: any;
+  status: _AsyncTaskStatus;
+};
 import { generationBatchService } from '@/services/generationBatch';
 import { AsyncTaskStatus } from '@/types/asyncTask';
 import { GenerationBatch } from '@/types/generation';

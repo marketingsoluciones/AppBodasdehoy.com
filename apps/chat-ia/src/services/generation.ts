@@ -6,8 +6,15 @@
 //      No se necesita un /status async. (GET /image/generations/{id} existe para leer el registro si hiciera falta.)
 //   - createImage YA va a api-ia (image.ts /webapi/text-to-image).
 
-import type { GetGenerationStatusResult } from '@/server/routers/lambda/generation';
 import { AsyncTaskStatus } from '@/types/asyncTask';
+
+// Type local — antes vivía en server/routers/lambda/generation.ts (eliminado en
+// refactor runtime-only-api-ia 2026-06-24).
+type GetGenerationStatusResult = {
+  error: unknown | null;
+  generation: unknown | null;
+  status: AsyncTaskStatus;
+};
 
 const API_IA_BASE = process.env.NEXT_PUBLIC_API_IA_URL || 'https://api-ia.bodasdehoy.com';
 
