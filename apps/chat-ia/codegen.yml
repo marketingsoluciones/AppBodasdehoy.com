@@ -32,16 +32,19 @@ overwrite: true
 schema:
   - https://api-mcp.eventosorganizador.com/graphql/schema.graphql
 
-documents:
-  - 'src/services/mcpApi/**/*.ts'
-  - '!src/services/mcpApi/**/*.test.ts'
-  - '!src/services/mcpApi/**/*.spec.ts'
+# FASE 1 limitada: solo tipos del schema (input/output/enums/scalars).
+# typescript-operations requiere queries con tag `gql` o archivos .graphql
+# separados. Los 22 archivos de src/services/mcpApi usan template literals
+# plain (`query GetX { ... }`), incompatibles con el plucker por defecto.
+# Posponemos operations para FASE 1.5 (decidir: añadir tag gql vs extraer a
+# .graphql). Por ahora los tipos generados se importan manualmente cuando
+# se quiera tipado fuerte en los results.
+# documents: removed
 
 generates:
   src/generated/graphql.ts:
     plugins:
       - typescript
-      - typescript-operations
     config:
       # Producir union types en vez de enums (mejor tree-shaking en bundle).
       enumsAsTypes: true
