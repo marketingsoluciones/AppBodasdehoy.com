@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useChatStore } from '@/store/chat';
 import { getWhatsAppChannels, getWhatsAppConversationsGQL } from '@/services/mcpApi/whatsapp';
@@ -8,6 +8,7 @@ import { getWhatsAppChannels, getWhatsAppConversationsGQL } from '@/services/mcp
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { buildHeaders } from '../utils/auth';
 import { friendlyContactName } from '../utils/jid';
+import { useMessageStream } from './useMessageStream';
 
 export type ChannelKind = 'whatsapp' | 'instagram' | 'telegram' | 'email' | 'web' | 'facebook';
 
@@ -47,6 +48,10 @@ export { CHANNEL_BADGE };
 export function useRecentConversations(max = 50, refreshKey = 0) {
   const [conversations, setConversations] = useState<RecentConversation[]>([]);
   const [loading, setLoading] = useState(true);
+  // SSE realtime: cuando llega un mensaje nuevo via stream, incrementamos este
+  // contador local para forzar re-ejecución del useEffect de fetch (efecto =
+  // refrescar lista). Throttled a 1.5s en el callback para coalescer ráfagas.
+  const [streamTick, setStreamTick] = useState(0);
 
   const { checkAuth, isGuest } = useAuthCheck();
   const { development } = checkAuth();
@@ -190,7 +195,29 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
     }
 
     fetchAll();
-  }, [isGuestUser, development, max, refreshKey]);
+  }, [isGuestUser, development, max, refreshKey, streamTick]);
+
+  // SSE: refresh throttled al recibir nuevos mensajes (api-ia confirma stream
+  // activo 24-jun). Reemplaza polling 30s anterior.
+  const streamTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleStreamRefresh = useCallback(() => {
+    if (streamTimerRef.current) return;
+    streamTimerRef.current = setTimeout(() => {
+      streamTimerRef.current = null;
+      setStreamTick((t) => t + 1);
+    }, 1500);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (streamTimerRef.current) clearTimeout(streamTimerRef.current);
+    };
+  }, []);
+
+  useMessageStream({
+    enabled: !isGuestUser,
+    onMessage: scheduleStreamRefresh,
+  });
 
   return { conversations, loading };
 }
