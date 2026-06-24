@@ -14,6 +14,7 @@ import AddPagado from "./AddPagado";
 import { EditableLabelWithInput } from "../Forms/EditableLabelWithInput";
 import { handleChange } from "../TablesComponents/tableBudgetV8.handles";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
+import { EntityNotesSection } from "../Notes/EntityNotesSection";
 
 const BlockCategoria = (props: any) => {
   const { showCategoria, setShowCategoria, setGetId, categorias_array } = props;
@@ -377,6 +378,13 @@ const BlockCategoria = (props: any) => {
           </div>
         </div>
       </div>
+      {categoria?._id && (
+        <EntityNotesSection
+          entityType="ENTITY"
+          entityId={categoria._id}
+          entityName={categoria?.nombre || categoria?.titulo || 'Categoría'}
+        />
+      )}
       <style jsx>
         {`
           .block-categoria {

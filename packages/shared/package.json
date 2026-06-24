@@ -40,6 +40,10 @@
     "./branding": {
       "types": "./dist/branding/index.d.ts",
       "default": "./dist/branding/index.js"
+    },
+    "./crm-ui": {
+      "types": "./dist/crm-ui/index.d.ts",
+      "default": "./dist/crm-ui/index.js"
     }
   },
   "files": [
