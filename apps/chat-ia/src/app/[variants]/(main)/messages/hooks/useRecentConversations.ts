@@ -147,27 +147,15 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
             return rawList.map((c: any) => {
               const kind = (c.channel || c.platform || 'web') as ChannelKind;
               const isKnown = otherChannels.includes(kind);
-              // BUG-CW-N31 (QA3 reporte 23-jun): api-ia devuelve lastMessage como
-              // OBJETO {text,timestamp,fromUser} en lugar de string, lo que disparaba
-              // React Error #31 ("Objects are not valid as a React child") al
-              // renderizar la Bandeja. Defensa front: normalizar a string siempre.
-              // Reportado a api-ia en paralelo para fix definitivo del shape.
-              const lm = c.lastMessage;
-              const normalizedLastMessage =
-                typeof lm === 'string' ? lm
-                : (lm && typeof lm === 'object' && typeof lm.text === 'string') ? lm.text
-                : '';
-              const inferredLastMessageAt =
-                c.lastMessageAt
-                || c.updatedAt
-                || (lm && typeof lm === 'object' && typeof lm.timestamp === 'string' ? lm.timestamp : '');
+              // N31 retirado 24-jun: api-ia commit 665097b normalizó lastMessage
+              // a string + lastMessageAt + lastMessageFromMe. Ya no llega objeto.
               return {
                 assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
                 channelParam: isKnown ? kind : 'web',
                 conversationId: c.conversationId || c.id || '',
                 kind: isKnown ? kind : ('web' as const),
-                lastMessage: normalizedLastMessage,
-                lastMessageAt: inferredLastMessageAt,
+                lastMessage: c.lastMessage || '',
+                lastMessageAt: c.lastMessageAt || c.updatedAt || '',
                 lastInboundAt: c.lastInboundAt ?? c.last_inbound_at ?? undefined,
                 lastOutboundAt: c.lastOutboundAt ?? c.last_outbound_at ?? undefined,
                 labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,
