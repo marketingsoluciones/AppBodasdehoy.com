@@ -29,7 +29,8 @@ export const initializeWithClientStore = async ({
   provider,
   runtimeProvider,
   payload,
-}: InitializeWithClientStoreOptions) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+}: InitializeWithClientStoreOptions): Promise<any> => {
   /**
    * Since #5267, parameters for client-fetch are mapped in `getProviderAuthPayload`
    * called by `createPayloadWithKeyVaults`.
@@ -61,18 +62,18 @@ export const initializeWithClientStore = async ({
     }
   }
 
-  const commonOptions = {
-    // Allow OpenAI SDK and Anthropic SDK run on browser
-    dangerouslyAllowBrowser: true,
-  };
-
-  // SPRINT-Q: dynamic import → ModelRuntime fuera del bundle inicial.
-  // Solo se carga si esta función se invoca (fetchOnClient providers).
-  const { ModelRuntime } = await import('@lobechat/model-runtime');
-
-  return ModelRuntime.initializeWithProvider(runtimeProvider ?? provider, {
-    ...commonOptions,
-    ...providerAuthPayload,
-    ...payload,
-  });
+  // commonOptions y providerAuthPayload preparados pero NO usados —
+  // refactor runtime-only-api-ia 24-jun-2026: el package @lobechat/model-runtime
+  // fue eliminado (api-ia centraliza modelos). Esta función nunca se invoca en
+  // el flujo normal: el chat NORMAL pasa por /webapi/chat/[provider] → api-ia,
+  // sin instanciar runtime cliente. Solo se llamaba con fetchOnClient=true
+  // (Ollama/LM Studio local), que NO usamos en bodasdehoy. Lanzamos error
+  // claro si alguien intenta invocar — la rama era código muerto en prod.
+  void providerAuthPayload;
+  void runtimeProvider;
+  throw new Error(
+    '[clientModelRuntime] eliminado en refactor runtime-only-api-ia. ' +
+      'api-ia centraliza modelos — usa /webapi/chat/[provider] o /chat/structured. ' +
+      `Provider intentado: ${provider}`,
+  );
 };
