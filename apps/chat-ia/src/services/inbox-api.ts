@@ -21,6 +21,9 @@ export const USE_API_IA_INBOX = process.env.NEXT_PUBLIC_USE_API_IA_INBOX === 'tr
 // El proxy /api/backend/[...path] reenvía a api-ia (api-ia.bodasdehoy.com) sin CORS.
 const BACKEND = '/api/backend';
 
+const tenant = () =>
+  (typeof window !== 'undefined' && localStorage.getItem('current_development')) || 'bodasdehoy';
+
 function ensureEnabled(fn: string): void {
   if (!USE_API_IA_INBOX) {
     throw new Error(
@@ -37,13 +40,22 @@ async function getJson(path: string, params?: Record<string, string | number | u
       if (v !== undefined) qs.set(k, String(v));
     }
   }
+  // BUG-MSG-01 paridad (auditoría 24-jun): defensa doble — query string Y header.
+  // Si caller no pasó `development` explícito, añadirlo desde localStorage.
+  if (!params?.development) {
+    qs.set('development', tenant());
+  }
   const q = qs.toString();
   const url = `${BACKEND}${path}${q ? `?${q}` : ''}`;
   // En cliente: prefijar origin si url es relativa. En server: usar url tal cual (ya lleva BACKEND).
   const fetchUrl = typeof window !== 'undefined' ? `${window.location?.origin || ''}${url}` : url;
   const res = await fetch(fetchUrl, {
     credentials: 'include',
-    headers: { ...buildAuthHeaders(), Accept: 'application/json' },
+    headers: {
+      ...buildAuthHeaders(),
+      Accept: 'application/json',
+      'X-Development': tenant(),
+    },
     method: 'GET',
   });
   if (!res.ok) throw new Error(`[inbox-api] GET ${path} → HTTP ${res.status}`);

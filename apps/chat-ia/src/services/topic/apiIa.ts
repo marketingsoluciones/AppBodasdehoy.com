@@ -9,12 +9,22 @@ import { ITopicService } from './type';
 
 const BACKEND = '/api/backend';
 const origin = () => (typeof window !== 'undefined' ? window.location.origin : '');
+const tenant = () =>
+  (typeof window !== 'undefined' && localStorage.getItem('current_development')) || 'bodasdehoy';
 
 async function call(method: string, path: string, body?: unknown): Promise<any> {
+  // BUG-MSG-01 paridad (auditoría 24-jun): api-ia exige X-Development en todos
+  // los endpoints /api/backend/chat/... (sessions, messages, topics, etc.).
+  // Sin él → HTTP 400 "Falta X-Development". Añadir aquí proactivamente para
+  // que cuando alguien empiece a usar este service no salga el mismo bug.
   const res = await fetch(`${origin()}${BACKEND}${path}`, {
     body: body === undefined ? undefined : JSON.stringify(body),
     credentials: 'include',
-    headers: { ...buildAuthHeaders(), 'Content-Type': 'application/json' },
+    headers: {
+      ...buildAuthHeaders(),
+      'Content-Type': 'application/json',
+      'X-Development': tenant(),
+    },
     method,
   });
   if (!res.ok) throw new Error(`[topic/apiIa] ${method} ${path} → HTTP ${res.status}`);
