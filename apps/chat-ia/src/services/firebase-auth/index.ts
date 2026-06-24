@@ -429,9 +429,26 @@ export const loginWithGoogle = async (development: string = DEFAULT_DEVELOPMENT)
     return startRedirect();
   }
 
-  // Chrome/Firefox: popup primero, redirect como fallback
+  // Chrome/Firefox: popup primero, redirect como fallback.
+  // Bug QA 24-jun: en browsers automation / headless, el popup puede ser bloqueado
+  // silenciosamente sin que Firebase dispare 'auth/popup-blocked' — la promesa queda
+  // PENDING infinito y el spinner del UI nunca se resetea. Timeout 60s fuerza
+  // rechazo con código popup-blocked para que el catch de abajo dispare el redirect.
+  const popupWithTimeout = async (): Promise<ReturnType<typeof signInWithPopup>> => {
+    return await Promise.race([
+      signInWithPopup(auth, provider),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => {
+          const err: any = new Error('Popup de Google no respondió (60s) — probablemente bloqueado.');
+          err.code = 'auth/popup-blocked';
+          reject(err);
+        }, 60_000),
+      ),
+    ]);
+  };
+
   try {
-    const result = await signInWithPopup(auth, provider);
+    const result = await popupWithTimeout();
     const firebaseIdToken = await result.user.getIdToken();
     return await exchangeFirebaseTokenForJWT(firebaseIdToken, development, result.user);
   } catch (popupError: any) {
