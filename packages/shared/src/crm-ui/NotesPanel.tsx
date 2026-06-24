@@ -82,8 +82,16 @@ function NoteItem({ note, readOnly, onUpdate, onDelete, onTogglePin, compact }: 
       className={cn(
         'group rounded-lg border bg-white transition-shadow hover:shadow-sm',
         compact ? 'p-2' : 'p-3',
-        note.isPinned ? 'border-amber-300 bg-amber-50' : 'border-gray-200',
+        note.isPinned ? 'border-gray-200' : 'border-gray-200',
       )}
+      // P12 Diseño 24-jun: nota pinneada usa colores Tailwind amber-50/500/700
+      // mapeados a los exactos #FFFBEB / #F59E0B / #B45309 vía style inline
+      // para no depender del config de Tailwind del consumidor.
+      style={
+        note.isPinned
+          ? { backgroundColor: '#FFFBEB', borderLeft: '3px solid #F59E0B' }
+          : undefined
+      }
     >
       <div className="flex items-start gap-2">
         <div
@@ -105,7 +113,9 @@ function NoteItem({ note, readOnly, onUpdate, onDelete, onTogglePin, compact }: 
             <span className={cn('shrink-0 text-gray-400', compact ? 'text-[9px]' : 'text-[10px]')}>
               {formatRelativeTime(note.createdAt)}
               {note.updatedAt && note.updatedAt !== note.createdAt && ' · editada'}
-              {note.isPinned && ' · 📌'}
+              {note.isPinned && (
+                <span style={{ color: '#B45309' }} title="Nota fijada"> · 📌</span>
+              )}
               {note.isPrivate && ' · 🔒'}
             </span>
           </div>
@@ -187,7 +197,7 @@ function NoteItem({ note, readOnly, onUpdate, onDelete, onTogglePin, compact }: 
             <button
               type="button"
               onClick={() => void onTogglePin(note.id)}
-              title={note.isPinned ? 'Quitar pin' : 'Fijar'}
+              title={note.isPinned ? 'Desfijar nota' : 'Fijar nota'}
               className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-amber-600"
             >
               {note.isPinned ? '📌' : '📍'}
@@ -288,14 +298,25 @@ export function NotesPanel({
     [deleteNote, onChange, notes],
   );
 
+  // P12 Diseño 24-jun: máx 3 notas pinned por entidad. Si se supera, aviso inline.
+  const MAX_PINNED = 3;
+  const [pinLimitWarning, setPinLimitWarning] = useState(false);
+  const pinnedCount = useMemo(() => notes.filter((n) => n.isPinned).length, [notes]);
+
   const handleTogglePin = useCallback(
     async (id: string) => {
       const target = notes.find((n) => n.id === id);
       if (!target) return;
+      // Si NO está pinneada y ya hay 3 → mostrar aviso y no llamar al backend.
+      if (!target.isPinned && pinnedCount >= MAX_PINNED) {
+        setPinLimitWarning(true);
+        setTimeout(() => setPinLimitWarning(false), 4000);
+        return;
+      }
       const ok = await togglePin(id);
       if (ok && target) onChange?.(target, target.isPinned ? 'unpin' : 'pin');
     },
-    [togglePin, onChange, notes],
+    [togglePin, onChange, notes, pinnedCount],
   );
 
   return (
@@ -328,6 +349,16 @@ export function NotesPanel({
         {error && (
           <div className="rounded border border-rose-200 bg-rose-50 p-2 text-xs text-rose-700">
             Error: {error.message}
+          </div>
+        )}
+
+        {pinLimitWarning && (
+          <div
+            className="rounded p-2 text-xs"
+            style={{ backgroundColor: '#FFFBEB', borderLeft: '3px solid #F59E0B', color: '#B45309' }}
+            role="alert"
+          >
+            Ya tienes {MAX_PINNED} notas fijadas. Desclava una para fijar esta.
           </div>
         )}
 
