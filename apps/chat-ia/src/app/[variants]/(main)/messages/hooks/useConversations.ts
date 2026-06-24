@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
 import { buildHeaders } from '../utils/auth';
 import { friendlyContactName, safePhoneOrEmpty } from '../utils/jid';
+import { useMessageStream } from './useMessageStream';
 
 export interface Conversation {
   assignedToUserId?: string | null;
@@ -116,6 +117,30 @@ export function useConversations(channel: string | null) {
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
+
+  // SSE realtime: api-ia confirmó /api/messages/stream ACTIVO 24-jun (commit
+  // refactor runtime-only-api-ia). Cuando llega un mensaje nuevo, refrescamos
+  // la lista. Throttle 1.5s para coalescer ráfagas (varios mensajes seguidos).
+  const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleRefetch = useCallback(() => {
+    if (refetchTimerRef.current) return; // ya hay refetch pendiente
+    refetchTimerRef.current = setTimeout(() => {
+      refetchTimerRef.current = null;
+      void fetchConversations();
+    }, 1500);
+  }, [fetchConversations]);
+
+  useEffect(() => {
+    return () => {
+      if (refetchTimerRef.current) clearTimeout(refetchTimerRef.current);
+    };
+  }, []);
+
+  useMessageStream({
+    channel: channel || undefined,
+    enabled: isAuthenticated && !isGuest,
+    onMessage: scheduleRefetch,
+  });
 
   return { conversations, error, isAuthenticated, loading, refetch: fetchConversations };
 }
