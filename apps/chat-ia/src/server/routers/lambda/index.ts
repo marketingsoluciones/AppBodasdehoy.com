@@ -20,28 +20,27 @@ import { agentRouter } from './agent';
 import { aiChatRouter } from './aiChat';
 import { aiModelRouter } from './aiModel';
 import { apiKeyRouter } from './apiKey';
-// RE-REGISTRADO 2026-06-12: knowledge_base reactivado → el RAG nativo (chunk/embedding) vuelve
-// a estar disponible para no perder funcionalidad. Ver docs/ANALISIS-FEATURES-DESACTIVADAS.md.
-import { chunkRouter } from './chunk';
 import { exporterRouter } from './exporter';
 import { generationBatchRouter } from './generationBatch';
 import { generationTopicRouter } from './generationTopic';
-import { imageRouter } from './image';
 import { importerRouter } from './importer';
 import { marketRouter } from './market';
 import { memoryRouter } from './memory';
+
+// Routers eliminados (refactor runtime-only-api-ia 24-jun-2026):
+//   · chunk → migrado a services/apiIa/chunks.ts (api-ia REST)
+//   · image → migrado a services/image.ts (POST /webapi/text-to-image)
+// Ambos usaban runtime SDK directo en server-side.
 
 export const lambdaRouter = router({
   agent: agentRouter,
   aiChat: aiChatRouter,
   aiModel: aiModelRouter,
   apiKey: apiKeyRouter,
-  chunk: chunkRouter,
   exporter: exporterRouter,
   generationBatch: generationBatchRouter,
   generationTopic: generationTopicRouter,
   healthcheck: publicProcedure.query(() => "i'm live!"),
-  image: imageRouter,
   importer: importerRouter,
   market: marketRouter,
   memory: memoryRouter,
