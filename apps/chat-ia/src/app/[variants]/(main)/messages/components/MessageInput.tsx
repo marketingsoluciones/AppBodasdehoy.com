@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { useMessages } from '../hooks/useMessages';
 import { useSendMessage } from '../hooks/useSendMessage';
+import { useDraftSync, type ServerDraft } from '../hooks/useDraftSync';
 
 interface MessageInputProps {
   channel: string;
@@ -118,14 +119,34 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
   const [emojiCategory, setEmojiCategory] = useState('Caras');
   const [emojiSearch, setEmojiSearch] = useState('');
   const [recentEmojis, setRecentEmojis] = useState<string[]>([]);
+  const [iaDraft, setIaDraft] = useState<ServerDraft | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const emojiRef = useRef<HTMLDivElement>(null);
   const { sendMessage, sending } = useSendMessage();
   const { addMessage } = useMessages(channel, conversationId);
 
+  // M1 drafts api-ia (24-jun): sincroniza el texto del modo 'reply' con backend
+  // (TTL 24h, cross-device). Si el backend devuelve un draft existente al
+  // cargar la conversación, lo popula en el textarea o lo expone como
+  // "Borrador IA" si iaGenerated=true.
+  const { clearDraft } = useDraftSync({
+    conversationId,
+    disabled: mode !== 'reply',
+    onRemoteDraft: (draft) => {
+      if (draft.iaGenerated) {
+        setIaDraft(draft);
+      } else if (!text.trim()) {
+        // Solo poblar si el textarea está vacío (no pisar lo que el user escribe).
+        setText(draft.content);
+      }
+    },
+    text,
+  });
+
   // Load draft when conversation changes
   useEffect(() => {
     setText(loadDraft(conversationId, mode));
+    setIaDraft(null);
   }, [conversationId, mode]);
 
   // Auto-save draft on text change (debounced)
@@ -182,12 +203,27 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
 
       if (result.success && result.message) {
         addMessage(result.message);
+        // M1: limpia draft cross-device tras envío exitoso.
+        void clearDraft();
+        setIaDraft(null);
       } else {
         setText(messageText);
       }
     } catch {
       setText(messageText);
     }
+  };
+
+  const handleUseIaDraft = () => {
+    if (!iaDraft) return;
+    setText(iaDraft.content);
+    setIaDraft(null);
+    textareaRef.current?.focus();
+  };
+
+  const handleDiscardIaDraft = () => {
+    setIaDraft(null);
+    void clearDraft();
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -221,6 +257,36 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
 
   return (
     <div className="space-y-1">
+      {/* M1 — Borrador IA pendiente (cross-device, TTL 24h api-ia) */}
+      {mode === 'reply' && iaDraft && (
+        <div className="flex items-start gap-2 rounded-lg border border-violet-200 bg-violet-50 px-3 py-2">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-100 text-xs">
+            🤖
+          </div>
+          <div className="flex-1 text-xs">
+            <p className="font-semibold text-violet-900">
+              Borrador del asistente {iaDraft.iaModel ? `(${iaDraft.iaModel})` : ''}
+            </p>
+            <p className="mt-0.5 line-clamp-2 text-violet-800">{iaDraft.content}</p>
+          </div>
+          <div className="flex shrink-0 gap-1">
+            <button
+              className="rounded-md bg-violet-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-violet-700"
+              onClick={handleUseIaDraft}
+              type="button"
+            >
+              Usar
+            </button>
+            <button
+              className="rounded-md border border-violet-300 bg-white px-2 py-1 text-[11px] font-semibold text-violet-700 hover:bg-violet-100"
+              onClick={handleDiscardIaDraft}
+              type="button"
+            >
+              Descartar
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1 rounded-lg bg-gray-50 p-1">
           <button
