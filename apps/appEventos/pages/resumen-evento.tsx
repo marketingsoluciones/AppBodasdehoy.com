@@ -17,6 +17,7 @@ import { BlockLugarEvento } from "../components/Resumen/BlockLugarEvento";
 import { BlockMomentos } from "../components/Resumen/BlockMomentos";
 import { ModuleErrorBoundary } from "../components/ErrorBoundary";
 import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
+import { EntityNotesSection } from "../components/Notes/EntityNotesSection";
 
 const Resumen = () => {
   const { event } = EventContextProvider()
@@ -54,6 +55,13 @@ const Resumen = () => {
           </ModuleErrorBoundary>
           <ModuleErrorBoundary label="Sobre mi evento">
             <BlockSobreMiEvento />
+          </ModuleErrorBoundary>
+          <ModuleErrorBoundary label="Notas del evento">
+            <EntityNotesSection
+              entityType="EVENTO"
+              entityId={event._id}
+              entityName={event.nombre || 'Evento'}
+            />
           </ModuleErrorBoundary>
         </motion.div>
       </section>

@@ -6,7 +6,9 @@ import { ConversationList } from '../../components/ConversationList';
 import { MessageList } from '../../components/MessageList';
 import { MessageInput } from '../../components/MessageInput';
 import { ConversationHeader } from '../../components/ConversationHeader';
+import { ConversationNotesSidebar } from '../../components/ConversationNotesSidebar';
 import { TaskDetailWorkspace } from '../../components/TaskDetailWorkspace';
+import { useConversations } from '../../hooks/useConversations';
 
 interface ConversationPageProps {
   params: Promise<{
@@ -25,6 +27,11 @@ export default function ConversationPage({ params }: ConversationPageProps) {
   const { channel, conversation_id } = use(params);
   const router = useRouter();
   const [searchFilter, setSearchFilter] = useState('');
+
+  // Datos extra de la conversación para el sidebar de notas (linked_contact_id,
+  // linked_event_id, nombre del contacto). useConversations ya carga la lista.
+  const { conversations } = useConversations(channel);
+  const conv = conversations.find((c) => c.id === conversation_id);
 
   const taskEventId = parseTaskChannel(channel);
 
@@ -72,6 +79,16 @@ export default function ConversationPage({ params }: ConversationPageProps) {
           <MessageInput channel={channel} conversationId={conversation_id} />
         </div>
       </div>
+
+      {/* Sidebar derecho 280px — FASE B v2.0 handoff Bandeja. Solo desktop ≥1024px. */}
+      <aside className="hidden w-[280px] shrink-0 overflow-hidden border-l border-gray-200 bg-white lg:flex lg:flex-col">
+        <ConversationNotesSidebar
+          conversationId={conversation_id}
+          contactName={conv?.contact?.name}
+          linkedContactId={conv?.linkedContactId}
+          linkedEventId={conv?.linkedEventId}
+        />
+      </aside>
     </>
   );
 }

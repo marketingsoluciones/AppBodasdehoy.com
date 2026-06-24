@@ -14,6 +14,7 @@ import * as yup from 'yup'
 import useHover from "../../hooks/useHover";
 import { handleMoveGuest } from '../Invitados/GrupoTablas';
 import { useTranslation } from 'react-i18next';
+import { EntityNotesSection } from '../Notes/EntityNotesSection';
 
 interface InitialValues extends Partial<guests> {
   tableNameCeremonia: Partial<table>
@@ -260,6 +261,13 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                 </button>
               </div>
             </Form>
+            {invitado?._id && (
+              <EntityNotesSection
+                entityType="CONTACT"
+                entityId={invitado._id}
+                entityName={invitado?.nombre || 'Invitado'}
+              />
+            )}
           </>
         )
       }}

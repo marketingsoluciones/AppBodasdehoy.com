@@ -28,6 +28,7 @@ import FormTask from '../../Forms/FormTask';
 import { getStorage, ref, listAll, deleteObject } from "firebase/storage";
 import { deleteAllFiles, deleteRecursive } from "../../Utils/storages";
 import { SimpleDeleteConfirmation } from "../../Utils/SimpleDeleteConfirmation";
+import { EntityNotesSection } from "../../Notes/EntityNotesSection";
 
 interface TaskDetailModalProps {
   task: Task;
@@ -356,6 +357,11 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 onDeleteComment={handleDeleteComment}
                 view="kanban"
                 handleUpdate={handleUpdate}
+              />
+              <EntityNotesSection
+                entityType="TASK"
+                entityId={localTask._id}
+                entityName={localTask.descripcion || 'Tarea'}
               />
             </div>
           </div>
