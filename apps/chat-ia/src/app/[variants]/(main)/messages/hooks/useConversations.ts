@@ -63,26 +63,13 @@ export function useConversations(channel: string | null) {
       if (response.ok) {
         const data = await response.json();
         const rawList = Array.isArray(data) ? data : data.conversations || [];
-        // BUG-CW-N31 (QA3 reporte 23-jun): api-ia devuelve `lastMessage` como
-        // OBJETO {text,timestamp,fromUser} en algunos canales (no-WA) en lugar
-        // de string. Sin normalizar, `text:` aquí quedaba como objeto y al
-        // renderizar `{conversation.lastMessage.text}` en ConversationItem
-        // se disparaba React Error #31 ("Objects are not valid as a React child").
-        // Defensa front: aceptar tanto string como objeto y extraer .text.
+        // N31 retirado 24-jun: api-ia commit 665097b normalizó lastMessage a
+        // string (+ lastMessageAt, lastMessageFromMe). Ya no llega objeto.
+        // Mantengo defensa de string vacío por si algún canal aún no migrado
+        // devuelve null/undefined.
+        // N33 mantengo: phoneNumber JID Newsletter sigue sin normalizar
+        // backend (parseJid pendiente api-ia).
         const normalized: Conversation[] = rawList.map((c: any) => {
-          const lm = c.lastMessage;
-          const lmIsObj = lm && typeof lm === 'object';
-          const text = typeof lm === 'string' ? lm
-            : lmIsObj && typeof lm.text === 'string' ? lm.text
-            : '';
-          const timestamp = c.lastMessageAt || c.updatedAt
-            || (lmIsObj && typeof lm.timestamp === 'string' ? lm.timestamp : new Date().toISOString());
-          const fromUser = lmIsObj && typeof lm.fromUser === 'boolean' ? lm.fromUser : false;
-          // BUG-CW-N33 (QA3 reporte 23-jun BUG 3): api-ia guarda en phoneNumber
-          // el prefijo del JID (Newsletter, Group, broadcast) sin distinguir.
-          // Defensa display: si el nombre/teléfono es realmente un JID,
-          // mostrar "Canal ...", "Grupo ..." o "Status Broadcast" en lugar
-          // de un número de 18 dígitos que confunde al usuario.
           const rawName = c.displayName || c.contactInfo?.name || c.phoneNumber || '';
           return {
             assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
@@ -92,7 +79,11 @@ export function useConversations(channel: string | null) {
               phone: safePhoneOrEmpty(c.phoneNumber),
             },
             id: c.conversationId || c.id,
-            lastMessage: { fromUser, text, timestamp },
+            lastMessage: {
+              fromUser: c.lastMessageFromMe === false,
+              text: c.lastMessage || '',
+              timestamp: c.lastMessageAt || c.updatedAt || new Date().toISOString(),
+            },
             lastInboundAt: c.lastInboundAt ?? c.last_inbound_at ?? undefined,
             lastOutboundAt: c.lastOutboundAt ?? c.last_outbound_at ?? undefined,
             labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,

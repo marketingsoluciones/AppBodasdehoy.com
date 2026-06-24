@@ -311,23 +311,13 @@ function ConversationRow({ conv, onClick }: { conv: RecentConversation; onClick:
           <span className="truncate text-[11px] font-medium leading-tight">{conv.name}</span>
           {timeLabel && <span className="shrink-0 text-[9px] text-gray-400">{timeLabel}</span>}
         </div>
-        {/* BUG-CW-N31 (QA3 reporte 23-jun, stack trace ChannelSidebar:316): si
-            api-ia devuelve lastMessage como objeto {text,timestamp,fromUser}
-            (escapa al fix de los hooks por alguna ruta no contemplada) o si
-            llega desde un caller distinto, este render directo {conv.lastMessage}
-            crasheaba con React Error #31. Defensa local: extraer .text si es
-            objeto, mostrar string tal cual. */}
-        {(() => {
-          const lm: any = (conv as any).lastMessage;
-          const text = typeof lm === 'string' ? lm
-            : lm && typeof lm === 'object' && typeof lm.text === 'string' ? lm.text
-            : '';
-          return text ? (
-            <span className="block truncate text-[10px] leading-none text-gray-400">
-              {text}
-            </span>
-          ) : null;
-        })()}
+        {/* N31 retirado 24-jun: api-ia normalizó shape en backend (commit 665097b)
+            así que conv.lastMessage SIEMPRE es string. Render directo seguro. */}
+        {conv.lastMessage && (
+          <span className="block truncate text-[10px] leading-none text-gray-400">
+            {conv.lastMessage}
+          </span>
+        )}
       </div>
       {conv.unreadCount > 0 && (
         <span className="shrink-0 rounded-full bg-green-500 px-1 py-0.5 text-[9px] font-bold text-white">
