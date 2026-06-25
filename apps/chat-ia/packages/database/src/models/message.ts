@@ -457,7 +457,7 @@ export class MessageModel {
     {
       fromModel,
       fromProvider,
-      files,
+      files: fileIds,
       plugin,
       pluginState,
       fileChunks,
@@ -500,10 +500,34 @@ export class MessageModel {
         });
       }
 
-      if (files && files.length > 0) {
-        await trx
-          .insert(messagesFiles)
-          .values(files.map((file) => ({ fileId: file, messageId: id, userId: this.userId })));
+      if (fileIds && fileIds.length > 0) {
+        // Bug RAG QA 25-jun: cuando los archivos vienen de api-ia/R2 (id estilo
+        // "r2_TIMESTAMP_filename") NO existen en la tabla `files` local de drizzle
+        // → FK constraint falla → toda la transacción aborta → mensaje NO se guarda.
+        //
+        // Fix: pre-validar qué fileIds existen realmente en la tabla local antes
+        // del INSERT. Solo insertamos los que pasan. Los archivos remotos (api-ia)
+        // se ignoran aquí — RAG los lee directo via api-ia, no necesita la tabla
+        // de unión local. Coordinación con api-ia pendiente para que sincronice
+        // metadata si quieren mantener la tabla local sincronizada.
+        const existingFiles = await trx
+          .select({ id: files.id })
+          .from(files)
+          .where(inArray(files.id, fileIds));
+        const validFileIds = new Set(existingFiles.map((f) => f.id));
+        const insertable = fileIds.filter((id) => validFileIds.has(id));
+        if (insertable.length > 0) {
+          await trx
+            .insert(messagesFiles)
+            .values(insertable.map((file) => ({ fileId: file, messageId: id, userId: this.userId })));
+        }
+        if (insertable.length < fileIds.length) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            '[messagesFiles] omitidos por no existir en files local (probable api-ia/R2):',
+            { skipped: fileIds.filter((f) => !validFileIds.has(f)), messageId: id },
+          );
+        }
       }
 
       if (fileChunks && fileChunks.length > 0 && ragQueryId) {

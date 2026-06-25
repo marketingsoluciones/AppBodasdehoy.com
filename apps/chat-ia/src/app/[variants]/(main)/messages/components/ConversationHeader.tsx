@@ -37,10 +37,49 @@ export function ConversationHeader({ channel, conversationId, onSearchFilter }: 
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
-  // FASE B v2.0: nivel IA por conversación. Por defecto 'copilot' (Diseño P2:
-  // se configura por bandeja con override por conversación). Persistencia
-  // backend pendiente — hoy solo estado local + log.
+  // FASE B v2.0: nivel IA por workspace (Diseño P2: scope workspace).
+  // Persistencia api-ia (commit 9080fe9):
+  //   GET  /api/messages/workspace/{dev}/ia-config
+  //   POST /api/messages/workspace/{dev}/ia-config
+  //     body: { ia_level?, autopilot_threshold? }
+  // Default 'copilot' mientras carga + si falla GET.
+  const development =
+    checkAuth().development ||
+    (typeof window !== 'undefined' && localStorage.getItem('current_development')) ||
+    'bodasdehoy';
   const [iaLevel, setIaLevel] = useState<IaLevel>('copilot');
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/messages/workspace/${encodeURIComponent(development)}/ia-config`);
+        if (!res.ok) return;
+        const json = await res.json();
+        const lvl = json?.config?.ia_level;
+        if (!cancelled && (lvl === 'manual' || lvl === 'copilot' || lvl === 'autopilot')) {
+          setIaLevel(lvl);
+        }
+      } catch {
+        /* silencio — mantiene default 'copilot' */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [development]);
+
+  const persistIaLevel = async (next: IaLevel) => {
+    try {
+      await fetch(`/api/messages/workspace/${encodeURIComponent(development)}/ia-config`, {
+        body: JSON.stringify({ ia_level: next }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('[ConversationHeader] persistIaLevel falló:', err);
+    }
+  };
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -177,15 +216,9 @@ export function ConversationHeader({ channel, conversationId, onSearchFilter }: 
               <IaLevelPicker
                 level={iaLevel}
                 onChange={(next) => {
+                  // Optimistic UI + persistir via api-ia.
                   setIaLevel(next);
-                  // TODO: persistir en backend (api-ia) cuando exista endpoint
-                  // para config IA por workspace + override conversación.
-                  // eslint-disable-next-line no-console
-                  console.info('[ConversationHeader] iaLevel cambio', {
-                    conversationId,
-                    from: iaLevel,
-                    to: next,
-                  });
+                  void persistIaLevel(next);
                 }}
               />
             </div>
