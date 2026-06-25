@@ -74,22 +74,50 @@ export function MessageItem({ message, compact }: MessageItemProps) {
     await sendFeedback({ messageId: message.id, rating });
   };
 
+  // FASE B v2.0 — distinción visual por origen (Diseño 24-jun):
+  //   contact (fromUser=true)              → blanco, borde, radius 4-16-16-16, izq
+  //   equipo humano (fromUser=false sin IA) → morado #7C3AED, radius 16-4-16-16, der
+  //   IA copilot aprobada                  → teal #2DD4BF + texto #0A2A28
+  //   IA autopilot                         → gradiente teal→cyan #0D9488→#0891B2
+  const isIa = !isFromUser && message.iaGenerated === true;
+  const isIaAutopilot = isIa && message.iaMode === 'autopilot';
+
+  const bubbleStyle: React.CSSProperties = isFromUser
+    ? {}
+    : isIaAutopilot
+      ? { background: 'linear-gradient(135deg, #0D9488, #0891B2)', color: '#fff' }
+      : isIa
+        ? { backgroundColor: '#2DD4BF', color: '#0A2A28' }
+        : { backgroundColor: '#7C3AED', color: '#fff' };
+
   return (
     <div className={`flex ${isFromUser ? 'justify-start' : 'justify-end'}`}>
       <div
-        className={`group max-w-[70%] px-4 ${compact ? 'py-0.5' : 'py-2'} ${
-          isFromUser
-            ? `bg-white shadow-sm ${compact ? 'rounded-lg' : 'rounded-2xl'}`
-            : `bg-blue-600 text-white shadow-md ${compact ? 'rounded-lg' : 'rounded-2xl'}`
-        }`}
+        className={`group max-w-[70%] px-4 ${compact ? 'py-0.5' : 'py-2'} shadow-sm ${
+          compact ? 'rounded-lg' : 'rounded-2xl'
+        } ${isFromUser ? 'bg-white' : ''}`}
+        style={bubbleStyle}
       >
+        {/* Sello IA — solo cuando viene del modelo */}
+        {isIa && (
+          <div
+            className="mb-0.5 flex items-center gap-1 text-[10px] font-semibold"
+            style={{ color: isIaAutopilot ? '#CFFAFE' : '#0F766E' }}
+          >
+            <span aria-hidden>✦</span>
+            <span>
+              Enviado por IA{message.iaMode === 'autopilot' ? ' (Autopilot)' : ''}
+              {message.iaModel ? ` · ${message.iaModel}` : ''}
+            </span>
+          </div>
+        )}
         {/* Message Text */}
         <p className="whitespace-pre-wrap break-words text-sm">{message.text}</p>
 
         {/* Timestamp & Status */}
         <div
           className={`mt-1 flex items-center justify-end gap-1 text-xs ${
-            isFromUser ? 'text-gray-500' : 'text-blue-100'
+            isFromUser ? 'text-gray-500' : 'text-white/70'
           }`}
         >
           <span>{formatTime(message.timestamp)}</span>
