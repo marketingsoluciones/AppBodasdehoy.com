@@ -166,3 +166,16 @@ mutation AssignConversationToUser($conversationId: ID!, $userId: ID) {
   assignConversationToUser(conversationId: $conversationId, userId: $userId)
 }
 `;
+
+/** Buscar usuarios del workspace por nombre o email (Diseño picker asignación).
+ *  api-mcp YA expuesto en schema — devuelve users del mismo development.
+ *  CRM_SearchUsersResponse { users, total, errors }. */
+export const GQL_SEARCH_CRM_USERS = `
+query SearchCrmUsers($search: String, $limit: Int) {
+  searchCRMUsers(search: $search, limit: $limit) {
+    users { id name email avatar }
+    total
+    errors { field message code }
+  }
+}
+`;

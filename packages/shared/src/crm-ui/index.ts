@@ -12,6 +12,7 @@ export { hasLegacyNotesPending, migrateLocalStorageNotesToCRM } from './migrate'
 export {
   GQL_UPDATE_GUEST_RSVP_BY_CONVERSATION,
   GQL_ASSIGN_CONVERSATION_TO_USER,
+  GQL_SEARCH_CRM_USERS,
 } from './graphql';
 export type { MigrationResult } from './migrate';
 export type { MCPGraphQLError, MCPGraphQLResponse } from './client';
