@@ -1,0 +1,146 @@
+═══════════════════════════════════════════════════════════════════════════
+ PROMPT PARA COWORK — AUDITORÍA DE BUGS DEL FRONT (17/06/2026)
+ Copiar y pegar tal cual al cowork.
+═══════════════════════════════════════════════════════════════════════════
+
+CONTEXTO:
+Soy el coordinador del front (chat-ia + appEventos) del monorepo AppBodasdehoy. He desplegado
+fixes y necesito que AUDITES con login REAL en la UI los siguientes bugs porque mi E2E
+automatizado de Firebase es frágil (4 intentos fallidos) y no quiero dar falsos positivos.
+
+ENTORNO:
+- chat-dev.bodasdehoy.com — BUILD_ID actual: V25QUtu9 (17-jun 09:28, con fixes)
+- app-dev.bodasdehoy.com  — BUILD_ID actual: RlC1Q67P (17-jun 09:36, con socket → api-ia)
+- Si el BUILD_ID que ves es distinto al servido, hard-refresh (Cmd+Shift+R) o incógnito.
+
+USUARIOS DE PRUEBA (todos password lorca2012M*+):
+  - bodasdehoy.com@gmail.com   (ADMIN, role:admin verificado por api-ia)
+  - jcc@bodasdehoy.com         (colaborador) → QA reportó que VE 3 eventos
+  - jcc@marketingsoluciones.com (colaborador) → login con error de red, ignorar
+
+═══════════════════════════════════════════════════════════════════════════
+ BUGS A AUDITAR — necesito DATO CONCRETO de cada uno
+═══════════════════════════════════════════════════════════════════════════
+
+🔴 BUG-14 ADMIN VE 0 EVENTOS (el más importante)
+─────────────────────────────────────────────────
+Síntoma: bodasdehoy.com@gmail.com tras login con Google OAuth ve 0 eventos en dashboard
+("Mis eventos: 0 pendientes / 0 archivados / 0 realizados").
+Sin embargo:
+  - Por API directa: getAllUserRelatedEventsByEmail(email:"bodasdehoy.com@gmail.com",
+    development:"bodasdehoy", pagination:{page:1,limit:1}){ success total } → 185 eventos
+  - El front usa OTRA query: getEventosByUsuario(usuario_id: UID, pagination, development)
+  - jcc@bodasdehoy.com con email/password SÍ ve 3 eventos en dashboard (uid 2eBU8Hhnx1PrVPzhx9QwAD2CXtc2)
+
+PISTA en el código (encontrada por mí):
+  apps/appEventos/context/AuthContext.tsx línea 709 tiene un comentario literal:
+  "FIX falsa sesión: intentar establecer sessionBodas desde el token Firebase antes de continuar"
+  → sugiere que hay un caso conocido de cookies parciales tras login.
+
+QUE NECESITO QUE AUDITES (con login REAL como admin Google OAuth):
+  1. Tras login, abre DevTools → Application → Cookies. ¿Están AMBAS:
+     - idTokenV0.1.0 (dominio .bodasdehoy.com)
+     - sessionBodas (dominio .bodasdehoy.com)
+  2. DevTools → Network → filtra "graphql". ¿Aparece getEventosByUsuario?
+     - ¿Qué usuario_id se manda?
+     - ¿La respuesta es success:true, total:N? ¿N=0 o N>0?
+     - Si N=0, ¿hay errors en la respuesta?
+  3. DevTools → Console. ¿Hay logs "[EventsGroup] Buscando eventos para usuario_id: XXXX"?
+     ¿Qué dice "[EventsGroup] ✅ Eventos obtenidos en Xms, total: Y"?
+  4. ¿Hay diferencia si entras con email/password (no OAuth) como bodasdehoy.com@gmail.com?
+
+HIPÓTESIS QUE QUIERO QUE CONFIRMES O DESCARTES:
+  - H1: El UID que Firebase asigna al admin via OAuth Google es DISTINTO al UID al que están
+    vinculados los 185 eventos en la BD.
+  - H2: Las cookies del flujo OAuth no se establecen completas (sessionBodas falta o caduca antes).
+  - H3: La query getEventosByUsuario tiene un bug de filtrado para el admin.
+
+
+🟠 BUG-01 LISTA LATERAL EN /chat (esqueletos infinitos)
+─────────────────────────────────────────────────
+Síntoma reportado por QA: en chat-dev/chat, panel izquierdo (Conversaciones) se queda
+en skeletons indefinidamente.
+Mi fix aplicado: commit 7b7421ff — `Array.isArray(rawList) ? rawList : []` en mappers
+(api-ia.mappers.ts) para que data no-array no crashee el SWR con suspense.
+
+QUE NECESITO QUE AUDITES:
+  1. Tras login en chat-dev/chat, ¿la lista lateral aparece o queda skeleton?
+  2. DevTools → Network → filtra "chat/sessions" o "chat/topics". ¿Status? ¿Body?
+  3. Si sigue skeleton, ¿hay error en Console? ¿Hay throw en mapApiIaSessions?
+
+
+🟠 BUG-03 BANDEJA CRASHEA AL ABRIR
+─────────────────────────────────────────────────
+Síntoma: en chat-dev/chat → pestaña "Bandeja" → ErrorBoundary "Se ha producido un problema".
+Mi fix: commits 125e86f9 + 457f74bd. Bandeja tenía 4 accesos a .name/.toLowerCase sin guard:
+  - conv.name (ConversationRow línea 274)
+  - CHANNEL_BADGE[conv.kind] (sin ?? fallback)
+  - event.name.toLowerCase() en EventRow
+  - filtros de búsqueda c.name.toLowerCase() y t.tarea.descripcion.toLowerCase()
+Una sola conversación con name=undefined tumbaba todo el sidebar.
+
+QUE NECESITO QUE AUDITES:
+  1. Tras login, ¿la pestaña Bandeja abre sin crash, o sigue dando "Se ha producido un problema"?
+  2. Si crashea, abre DevTools → Console, ¿hay TypeError ".name" o ".toLowerCase"?
+  3. ¿Aparece la lista de conversaciones? ¿Cuántas?
+
+
+🟠 BUG-04 /messages REDIRECT A LOGIN ESTANDO AUTENTICADO
+─────────────────────────────────────────────────
+Mi fix: commit cf77f65a — ventana de gracia AUTH_GRACE_MS=2500 en messages/layout.tsx para
+no redirigir antes de que el SSO Bodas hidrate currentUserId.
+
+QUE NECESITO QUE AUDITES:
+  1. Tras login en chat-dev, navegar directo a chat-dev.bodasdehoy.com/messages
+  2. ¿Queda en /messages o redirige a /login?redirect=/messages?
+  3. Si redirige, ¿pasa antes o después de 2.5s? (ver tiempo en Network)
+
+
+🔴 NUEVO Saldo €84,71 positivo pero /image dice "Saldo insuficiente"
+─────────────────────────────────────────────────
+QA reporta: wallet en cabecera muestra €84,71 positivo, pero al entrar a /image (generación
+imágenes) sale "Saldo insuficiente".
+
+QUE NECESITO QUE AUDITES:
+  1. ¿wallet_getBalance en GraphQL devuelve {balance:84.71, credit_limit:?, total_balance:?}?
+  2. En /image, ¿qué query falla? ¿checkBalance(amount)? ¿qué amount pide y qué allowed devuelve?
+  3. ¿Es problema del front (mostrando dato erróneo en cabecera) o del backend (price check incoherente)?
+
+
+═══════════════════════════════════════════════════════════════════════════
+ LO QUE YA DESCARTÉ Y NO NECESITO AUDITAR
+═══════════════════════════════════════════════════════════════════════════
+
+✅ BUG-05 Momentos álbum: QA confirmó CORREGIDO. No tocar.
+✅ BUG-07 WhatsApp "front no manda development": FALSO — verificado en código:
+   apps/chat-ia/src/app/[variants]/(main)/messages/utils/auth.ts:34 manda X-Development header.
+🔴 BUG-02 Copiloto "Confirmar florista 2080": api-ia (tool-routing confunde tareas/eventos). NO front.
+🔴 BUG-06 Discover ficha asistente: backend (endpoint detalle). NO front.
+
+═══════════════════════════════════════════════════════════════════════════
+ FORMATO DE TU RESPUESTA — necesito esto
+═══════════════════════════════════════════════════════════════════════════
+
+Para CADA bug auditado, dame:
+  - ESTADO en build V25QUtu9/RlC1Q67P: ✅ resuelto / 🔴 sigue / 🟡 parcial
+  - EVIDENCIA: capturas + logs Network + Console
+  - DIAGNÓSTICO si sigue: qué query falla, qué dice el error, qué pista da
+  - CULPA: ¿front o backend?
+
+Y un RESUMEN final con la tabla:
+  | Bug    | Estado | Culpa  | Siguiente acción |
+  |--------|--------|--------|------------------|
+
+═══════════════════════════════════════════════════════════════════════════
+ ARCHIVOS DEL REPO QUE PUEDEN AYUDARTE
+═══════════════════════════════════════════════════════════════════════════
+
+- apps/appEventos/context/AuthContext.tsx — línea 709 ("FIX falsa sesión")
+- apps/appEventos/utils/Authentication.tsx — signIn() línea 186, providers línea 111-174
+- apps/appEventos/context/EventsGroupContext.tsx — línea 203 "Buscando eventos para usuario_id"
+- apps/appEventos/utils/Fetching.ts — query getEventosByUsuario con firma actual
+- apps/chat-ia/src/services/api-ia.mappers.ts — fix Array.isArray
+- apps/chat-ia/src/app/[variants]/(main)/messages/components/ChannelSidebar.tsx — fixes Bandeja
+- apps/chat-ia/src/app/[variants]/(main)/messages/layout.tsx — AUTH_GRACE_MS
+
+GRACIAS. Cuando tengas la auditoría con datos reales, vuélvemela en el mismo formato.

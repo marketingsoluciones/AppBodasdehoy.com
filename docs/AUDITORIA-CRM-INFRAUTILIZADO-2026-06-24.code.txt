@@ -1,0 +1,199 @@
+═══════════════════════════════════════════════════════════════════════════════
+AUDITORÍA — CRM API-MCP INFRAUTILIZADO POR EL FRONT
+Fecha: 2026-06-24
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJETIVO: el user pidió "investiga si hay más casos como notes".
+RESULTADO: NO es solo notas. Existe un CRM completo en api-mcp que el front
+            ignora masivamente. Hay sistemas DUPLICADOS legacy en uso.
+
+═══════════════════════════════════════════════════════════════════════════════
+SISTEMAS CRM DISPONIBLES en api-mcp (con queries+mutations completas)
+═══════════════════════════════════════════════════════════════════════════════
+
+  Sistema                       Backend listo    Front lo usa    Front usa legacy
+  ─────────────────────────────┼────────────────┼───────────────┼──────────────
+  CRM_Note (notas universales)  ✅ Completo      ❌ NO           ⚠️ localStorage
+  CRM_Contact                   ✅ Completo      ❌ NO           ⚠️ invitados_array
+  CRM_Lead                      ✅ Completo      ❌ NO           — (no usado)
+  CRM_Opportunity               ✅ Completo      ❌ NO           — (no usado)
+  CRM_Task                      ✅ Completo      ❌ NO           ⚠️ editTask legacy
+  CRM_Campaign                  ✅ Completo      ❌ NO           ⚠️ Invitaciones envío
+  CRM_TimelineItem              ✅ Completo      ❌ NO           — (no usado)
+  CRM_ContactList               ✅ Completo      ❌ NO           — (no usado)
+  CRM_SavedViewColumn           ✅ Completo      ❌ NO           — (no usado)
+  CRM_Group (equipos lite)      ✅ Parcial       ❌ NO           — (no usado)
+  CRM_Entity (entidad genérica) ✅ Existe        ❌ NO           — (no usado)
+  CRM_Ownership (control acc.)  ✅ Universal     ❌ NO           — (no usado)
+  CRM_GroupShare                ✅ Existe        ❌ NO           — (no usado)
+  CRM_Review                    ✅ Existe        ❌ NO           — (no usado)
+
+  Lo que SÍ usa el front del CRM (muy poco):
+    · CRM_PaginationInput (helper de paginación) — eventos, notifications
+    · CRM_GenerateTokenInput (auth)
+    · getEventosByUsuario (que no es CRM puro, es híbrido Evento)
+
+═══════════════════════════════════════════════════════════════════════════════
+CASOS CONCRETOS DE DUPLICACIÓN
+═══════════════════════════════════════════════════════════════════════════════
+
+CASO 1 — NOTAS:
+  Front (chat-ia):
+    · MessageInput.tsx → toggle "Nota interna" (mode='internal')
+    · useConversationMeta.ts → guarda en localStorage clave `internal-notes-{convId}`
+    · MessageList.tsx → renderiza notas internas en el hilo
+    · NUNCA llama a createCRMNote ni getCRMNotes
+  Backend api-mcp:
+    · CRM_Note con relación a [CONTACT, LEAD, OPPORTUNITY, EVENTO, ENTITY,
+      CAMPAIGN, TASK, CONVERSATION* — *bug, no está en Mongo enum]
+    · Mutations: create/update/delete/addRelation/removeRelation/pin/unpin
+                  /addAttachment/removeAttachment
+    · Queries: getCRMNotes / getCRMNoteById / getCRMNotesByEntity
+                / getCRMNotesByMultipleEntities / getCRMNotesStats
+    · Ownership control (primary_owner + shared_with_users + shared_with_groups)
+    · isPrivate, isPinned, tags, attachments[], mentions implícitos via author
+
+CASO 2 — TASKS:
+  Front (chat-ia + appEventos):
+    · TaskCard / BoardColumn / VistaKanban (UI completa)
+    · tasks.ts mutation: editTask(eventID, itinerarioID, taskID, variable, valor)
+      ↑ LEGACY (atado a evento + itinerario)
+  Backend api-mcp tiene TAMBIÉN:
+    · CRM_Task con title, type, status, priority, due_date, contact_id,
+      lead_id, opportunity_id, assigned_to, etc.
+    · Query: CRM_getTasks(development, status, type, priority, assigned_to,
+              contact_id, lead_id, opportunity_id, overdue, page, limit)
+    · NUNCA usado por el front
+
+CASO 3 — CAMPAÑAS (invitaciones email/WhatsApp):
+  Front (appEventos /invitaciones):
+    · Sistema custom de invitaciones por email + WhatsApp con plantillas
+  Backend api-mcp tiene CRM_Campaign:
+    · Settings + Metrics + DeliveryReport + EmailDayMetrics + CampaignExecution
+    · Mutations: createCRMCampaign, sendCampaign, etc.
+    · NUNCA usado por el front
+
+CASO 4 — TIMELINE (historial cross-canal de un contacto):
+  Front: NO existe vista de timeline
+  Backend api-mcp tiene CRM_TimelineItem + CRM_ClientTimeline:
+    · Histórico cross-canal de un contacto/cliente
+    · NUNCA usado por el front
+
+═══════════════════════════════════════════════════════════════════════════════
+BUG BACKEND DETECTADO (PARA REPORTAR A api-mcp)
+═══════════════════════════════════════════════════════════════════════════════
+
+DESALINEAMIENTO SDL público vs schema Mongo real (descubierto SSH):
+
+  SDL GraphQL (publicado):
+    enum CRM_NoteEntityType {
+      CONTACT, LEAD, OPPORTUNITY, EVENTO, ENTITY,
+      CAMPAIGN, TASK, CONVERSATION  ← presente en SDL
+    }
+
+  Mongo Schema (real en BD, dist-production/src/db/models/note.js):
+    enum: ["CONTACT", "LEAD", "OPPORTUNITY", "EVENTO",
+           "ENTITY", "CAMPAIGN", "TASK"]
+                                                ↑ FALTA CONVERSATION
+
+  IMPACTO:
+    Si el front intenta createCRMNote con entityType: CONVERSATION:
+      · GraphQL valida OK (está en el SDL).
+      · Mongo rechaza por enum constraint.
+      · Error opaco al user.
+
+  WORKAROUND mientras lo arreglan:
+    · Para conv huérfana sin contact: usar entityType: ENTITY con
+      entityId: conversationId (ENTITY es el catch-all genérico).
+
+═══════════════════════════════════════════════════════════════════════════════
+DECISIONES ESTRATÉGICAS (para el user)
+═══════════════════════════════════════════════════════════════════════════════
+
+DECISIÓN A — Alcance de la migración CRM
+  A1) SOLO notas ahora (para Bandeja handoff). Resto del CRM se mantiene
+      como deuda → reportar y migrar progresivamente.
+  A2) Estrategia capa CRM-UI universal: notas YA + componentes reusables
+      preparados para tasks/timeline/contact en sprints siguientes.
+  A3) Migración masiva en este sprint (notes + tasks + timeline + contact)
+      → ALCANCE GRANDE, 3-5 semanas.
+
+  RECOMENDACIÓN: A2 — porque crea infraestructura para el futuro sin
+  alargar este sprint. Es el balance correcto entre "máxima funcionalidad"
+  (objetivo del user) y "sin perder compatibilidad".
+
+DECISIÓN B — Componentes reusables: ¿dónde?
+  B1) packages/shared/src/crm-ui/ (nuevo subpath)
+  B2) packages/crm-ui (nuevo paquete dedicado)
+  B3) apps/chat-ia/src/components/crm/ (solo chat-ia, no compartido)
+
+  RECOMENDACIÓN: B1 — packages/shared/src/crm-ui/ con:
+    · <NotesPanel entity={{type, id, name}} />
+    · <NoteEditor onSubmit={...} />
+    · <TasksList entity={...} />  (futuro)
+    · <Timeline entity={...} />   (futuro)
+    · useCRMNotes(entity) hook
+    · useCRMTasks(entity) hook (futuro)
+  appEventos puede importar igual que importa auth-ui.
+
+DECISIÓN C — Migración localStorage → CRM_Note
+  C1) Borrar localStorage existente y empezar desde cero.
+  C2) Migración automática: en el primer load de conv, si hay notas en
+      localStorage, crearCRMNote con cada una + borrar localStorage.
+  C3) Mantener ambos (dual write) durante 1 sprint, después limpiar.
+
+  RECOMENDACIÓN: C2 — usuarios no pierden notas, código limpia solo.
+
+DECISIÓN D — Conversación huérfana (sin contact ni event)
+  D1) Notas asociadas a entityType: ENTITY (catch-all genérico).
+  D2) NO permitir notas hasta vincular conv a contact/evento.
+  D3) Asociar a CONVERSATION — pero recordar el bug Mongo enum.
+
+  RECOMENDACIÓN: D1 con migración cuando vincules a contact
+  (addNoteRelation + removeNoteRelation).
+
+═══════════════════════════════════════════════════════════════════════════════
+PROPUESTA DE PLAN FASE B v2.0 (con CRM-UI universal)
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 0 (0h) — Reportar bug Mongo enum CONVERSATION a api-mcp.
+
+PASO 1 (~3h) — packages/shared/src/crm-ui/types.ts
+  Tipos genéricos reusables: CRMEntity, CRMNotePanel props, hooks.
+
+PASO 2 (~4h) — packages/shared/src/crm-ui/useCRMNotes.ts
+  Hook que llama a getCRMNotesByEntity + create/update/delete vía mcpClient.
+  Cache local (Zustand) para no re-fetchear al cambiar de pestaña.
+
+PASO 3 (~6h) — packages/shared/src/crm-ui/NotesPanel.tsx
+  Componente con:
+    · Lista de notas (paginada)
+    · Editor inline
+    · Pin / Unpin
+    · isPrivate toggle
+    · Tags
+    · Mentions (resolved by backend según api-ia)
+  Theme via antd-style + Tailwind (consistencia chat-ia + appEventos).
+
+PASO 4 (~3h) — Migración localStorage → CRM_Note en chat-ia /messages
+  Detectar localStorage al cargar conv, crearCRMNotes paralelas,
+  borrar localStorage al confirmar. Sin pérdida.
+
+PASO 5 (~3h) — Integrar NotesPanel en sidebar derecho /messages.
+  En FASE B principal del handoff Bandeja.
+
+PASO 6 (~3h) — Bonus: integrar NotesPanel en appEventos
+  · /invitados → notas asociadas a CONTACT (futuro: o EVENTO con
+    entityId=invitado_id).
+  · /servicios → notas asociadas a TASK (servicios = tareas).
+  · /presupuesto → notas asociadas a ENTITY (gastos genéricos).
+  Da valor inmediato al user en módulos existentes.
+
+═══════════════════════════════════════════════════════════════════════════════
+TOTAL HORAS PASO 0-6: ~22h. Comparado con el plan anterior (5-8h "solo
+notas chat-ia"), añade ~14h pero ENTREGA:
+  · Componente NotesPanel universal reusable
+  · Notas en 3 módulos extra (invitados/servicios/presupuesto) gratis
+  · Migración cero-pérdida
+  · Infraestructura para futuro CRM-UI (tasks, timeline, contacts)
+═══════════════════════════════════════════════════════════════════════════════

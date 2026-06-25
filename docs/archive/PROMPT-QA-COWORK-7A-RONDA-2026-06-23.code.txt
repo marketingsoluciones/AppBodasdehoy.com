@@ -1,0 +1,239 @@
+═══════════════════════════════════════════════════════════════════════════════
+PROMPT QA COWORK — 7ª RONDA — 2026-06-23 (tarde)
+═══════════════════════════════════════════════════════════════════════════════
+
+Tras vuestro informe consolidado (3ª + 6ª ronda) hemos:
+  · Aplicado 2 fixes NUEVOS (N21 + N22) → rebuild app-dev hecho.
+  · Aclarado 2 falsos positivos (N06 vía adapter, BUILD detectable).
+  · Diagnosticado N10 (auth cross-domain) y N11 (rutas inventadas).
+  · Cerrado N17 como "won't fix by design" (decisión usuario).
+  · Escalado N15 a BACKEND-api-mcp y N18 a INFRA.
+
+BUILDS DESPLEGADOS PARA ESTA RONDA
+───────────────────────────────────────────────────────────────────────────────
+
+🟢 app-dev   BUILD: VKtntow_ejYMa42tojCao   (HEAD 95e1a16a) ← NUEVO
+🟢 chat-dev  BUILD: _uW7J7DxEZUdp6D0SzWz5   (HEAD 211a2b4b)
+🟢 memories-dev  (sin cambios)
+
+CÓMO DETECTAR BUILD_ID (sin /_next/BUILD_ID):
+  · appEventos:  curl -s https://app-dev.bodasdehoy.com/ \
+                   | grep -oE 'buildId":"[^"]+"'
+  · chat-ia:     curl -s https://chat-dev.bodasdehoy.com/chat \
+                   | grep -F -c -e "_uW7J7DxEZUdp6D0SzWz5"
+                   (devuelve 1 si está sirviendo ese build)
+
+═══════════════════════════════════════════════════════════════════════════════
+🆕 PRIORIDAD 1 — Re-test fixes NUEVOS de esta tarde
+═══════════════════════════════════════════════════════════════════════════════
+
+BUG-CW-N22 ✅ Logo header NO debe abrir producción en nueva pestaña
+  ARCHIVO: apps/appEventos/components/DefaultLayout/Navigation.tsx
+  PROBAR:
+    1. Login en app-dev, ir a /presupuesto?event=<id>
+    2. Click en logo "Bodasdehoy.com" (header superior)
+    3. ESPERADO: navegación INTERNA a "/" (o equivalente) en la MISMA pestaña
+    4. NO debe abrir https://www.bodasdehoy.com en nueva pestaña
+    5. Repetir en viewport 390px (mobile) y 1280px (desktop)
+
+BUG-CW-N21 ✅ Modal presupuesto accesible en TODOS los viewports
+  ARCHIVO: apps/appEventos/components/Presupuesto/PresupuestoInitModal.tsx
+  PROBAR:
+    1. /presupuesto?event=<evento_sin_categorias>
+    2. Modal "¿Cómo quieres empezar?" abre.
+    3. EN 880px desktop:
+       · Botón × visible arriba a la derecha (no tapado por navbar)
+       · Escape cierra ✅
+       · Click backdrop cierra ✅
+       · Click × cierra ✅
+    4. EN 390px mobile:
+       · Modal accesible, scroll interno si el contenido excede viewport
+       · Las 3 formas de cierre funcionan
+    5. EN 1440px desktop:
+       · Modal centrado vertical/horizontal (sin cambios respecto a antes)
+       · Las 3 formas de cierre funcionan
+
+═══════════════════════════════════════════════════════════════════════════════
+🔄 PRIORIDAD 2 — Bloques B y C de 6ª ronda (NO testeados antes)
+═══════════════════════════════════════════════════════════════════════════════
+
+⚠️  IMPORTANTE: chat-dev YA ESTÁ DESPLEGADO con los fixes. El informe
+    anterior decía "pendiente rebuild" pero era confusión por el path
+    /_next/BUILD_ID (no público). chat-dev sirve _uW7J7DxEZUdp6D0SzWz5
+    desde 2026-06-23 ~11:55.
+
+BLOQUE B — Mobile + a11y chat-dev:
+
+  BUG-CW-N14: SSO-auto NO debe colgar >5s
+    1. Cerrar sesión completamente (limpiar cookies .bodasdehoy.com).
+    2. Visitar https://chat-dev.bodasdehoy.com directamente.
+    3. ESPERADO: en <5s, o ve al chat (si SSO ok) o redirige a /login
+       (con ?sso_timeout=1 si hubo timeout).
+    4. NUNCA spinner infinito >5s.
+
+  BUG-CW-N16: Tap targets sidebar ≥44px (Apple HIG)
+    1. Inspector → seleccionar cada icono del sidebar desktop.
+    2. blockSize debe ser 44 (era 40 antes).
+    3. Archivos:
+       · TopActions.tsx
+       · BottomActions.tsx
+       · NotificationBell.tsx
+
+BLOQUE C — Perf polling mobile (chat-dev):
+
+  Test reproducible:
+    1. Abrir chat-dev/messages en mobile (o DevTools mobile).
+    2. DevTools → Network → filtrar XHR/Fetch.
+    3. Cambiar a otra pestaña/app durante 2-3 min.
+    4. Volver al tab y revisar Network timeline.
+    5. ESPERADO: durante el background NO debe haber requests a
+       /api/messages/* ni /api/notifications/* (un "hueco" en la
+       timeline).
+    6. Al volver a la pestaña: 1 fetch inmediato + reanudar interval.
+
+  Hooks afectados:
+    · useMessages (10s → 15s + visibility pause)
+    · useInboxChannels (60s + visibility)
+    · useInboxUnreadCount (60s + visibility)
+    · useUnifiedFeed (60s + visibility)
+    · NotificationBell (60s + visibility)
+    · ChannelSidebar (60s + visibility)
+
+═══════════════════════════════════════════════════════════════════════════════
+🐛 PRIORIDAD 3 — Bloque E del backlog (re-test si ya pasaron antes, skip)
+═══════════════════════════════════════════════════════════════════════════════
+
+BUG-CW-N04: Hydration #418 en /login chat-ia
+  1. https://chat-dev.bodasdehoy.com/login?reason=session_expired
+  2. DevTools Console abierta.
+  3. ESPERADO: NO debe aparecer error #418 ni "Hydration failed".
+  4. El mensaje "Tu sesión ha expirado..." debe aparecer (tras hidratar).
+
+BUG-CW-N12: Tool router warn diagnóstico
+  1. chat-dev con DevTools Console abierta.
+  2. Invocar tools en el chat: "muéstrame el presupuesto" o similar.
+  3. Si alguna tool no renderiza, debe aparecer warn:
+     [BuiltinType] No render registered for identifier="X" (apiName="Y").
+  4. Si TODAS renderizan, NO debe aparecer warn (test no-regresión).
+
+BUG-CW-N13: Race condition $evento_id en /invitaciones
+  1. Login + seleccionar evento ("Boda Isabel & Raúl").
+  2. Ir directamente a /invitaciones?event=<id> desde URL.
+  3. DevTools Network → filtrar GraphQL.
+  4. ESPERADO: NO debe aparecer ningún POST con `evento_id: null` o
+     `evento_id: undefined` en variables.
+  5. La página debe renderizar templates sin spinners infinitos.
+
+═══════════════════════════════════════════════════════════════════════════════
+🔍 PRIORIDAD 4 — REPRO necesarios para diagnosticar
+═══════════════════════════════════════════════════════════════════════════════
+
+BUG-CW-N10: sessionCookie inválida
+  Investigación pendiente. Necesito de QA:
+  1. Login completo en https://chat-dev.bodasdehoy.com con
+     bodasdehoy.com@gmail.com / lorca2012M*+
+  2. Esperar redirect a chat (o ir manualmente).
+  3. Abrir https://app-dev.bodasdehoy.com EN LA MISMA PESTAÑA.
+  4. DevTools → Application → Cookies → seleccionar app-dev.bodasdehoy.com.
+  5. CAPTURAR (screenshot o copy as table):
+     · Name, Value (truncar a primeros 20 chars), Domain, Path,
+       Expires, HttpOnly, Secure, SameSite
+     · Especialmente buscar: sessionBodas, idTokenV0.1.0, jwt_token,
+       mcp_jwt_token, dev-user-config
+  6. Console → ver mensaje completo del Verificator (incluye uid mismatch?).
+  7. Network → ver POST a /api/proxy-bodas/graphql con queries.auth →
+     ¿response 200? ¿errors?
+
+  Sin esos datos no puedo fixear (es bug auth, sensible — no toco a ciegas).
+
+BUG-CW-N09: Crear evento (EOF fix verificación)
+  Como el botón "Crear evento" depende de N10 (sessionCookie), no se puede
+  probar end-to-end hasta resolver N10. Mientras tanto:
+  1. Postman / Insomnia → POST https://api-mcp.eventosorganizador.com/graphql
+  2. Headers: X-Development: bodasdehoy, Authorization: Bearer <JWT-válido>
+  3. Body: la mutation crearEvento (puedo enviaros el query si necesitáis)
+  4. ESPERADO: HTTP 200 (success:true o success:false por permisos OK,
+     pero NO debe aparecer "Syntax Error: Expected Name, found <EOF>")
+
+═══════════════════════════════════════════════════════════════════════════════
+🚫 DESCARTADOS / ACLARACIONES
+═══════════════════════════════════════════════════════════════════════════════
+
+BUG-CW-N06: borrarGasto
+  FALSO POSITIVO en vuestro test directo. Razón:
+  · Vuestro test contra /api/proxy-bodas/graphql con `borrarGasto` falla
+    a propósito — ese endpoint NO tiene esa mutation con ese nombre.
+  · La UI usa el adapter MCP_ADAPTERS (apiMcpAdapter.ts:120) que traduce
+    `borrarGasto` → `eliminarGastoPresupuesto` (nombre real api-mcp).
+  PROCEDIMIENTO CORRECTO:
+    1. Login + /presupuesto del evento con al menos 1 gasto.
+    2. Borrar el gasto desde la UI.
+    3. DevTools Network → POST GraphQL debe ir con query
+       `eliminarGastoPresupuesto` (no `borrarGasto`).
+    4. Response 200 + success:true → gasto desaparece.
+
+BUG-CW-N11: /resumen y /lista-de-regalos 404
+  FALSO POSITIVO. Rutas inventadas. Las reales son:
+    · /resumen → en realidad es /resumen-evento
+    · /lista-de-regalos → en realidad es /lista-regalos (sin guion)
+  Ningún componente del repo apunta a las versiones que probasteis.
+
+BUG-CW-N17: Sidebar chat-ia sin labels
+  CERRADO "won't fix by design". Tooltip + aria-label ya están. Patrón
+  compacto es estándar en Discord/Slack/VSCode/LobeChat (upstream).
+  NO reabrir en futuras rondas.
+
+BUG-CW-N15: Badge 63 ≠ 0 notificaciones
+  ESCALADO HOY a BACKEND-api-mcp en canal C0AV8EV5495. Causa raíz:
+  `getUnreadNotificationsCount` no filtra por X-Development.
+  Esperar fix backend antes de re-testar.
+
+BUG-CW-N18: i18n sin CDN
+  ESCALADO HOY a INFRA en canal C0AV8EV5495. Propuesta: cache-control
+  inmutable + versionado URL. No bloquea features.
+
+═══════════════════════════════════════════════════════════════════════════════
+✅ LIMPIEZA POST-TEST
+═══════════════════════════════════════════════════════════════════════════════
+
+  · Si creáis eventos de prueba: eliminarlos en afterEach.
+  · NUNCA tocar "Boda Isabel & Raúl" (evento de QA permanente).
+  · Si crashea algo: capturar Console + Network + state.
+
+═══════════════════════════════════════════════════════════════════════════════
+📋 FORMATO DE INFORME ESPERADO
+═══════════════════════════════════════════════════════════════════════════════
+
+Por cada bug listado, reportar:
+
+  BUG-ID | RESULTADO | EVIDENCIA
+  ─────────────────────────────────────────────────────────────
+  N22    | ✅ OK     | screenshot logo navega interno
+  N21    | ✅ OK     | screenshot modal en 880px con X visible
+  N14    | ✅ OK     | NetworkTimeline sin spinner >5s
+  ...
+
+Para los que NO pasen:
+  · Screenshot/video del fallo
+  · Pasos de reproducción exactos
+  · Console errors si aplican
+  · BUILD_ID confirmado (usar comandos curl arriba)
+
+═══════════════════════════════════════════════════════════════════════════════
+CREDENCIALES + ENTORNOS
+═══════════════════════════════════════════════════════════════════════════════
+
+  Super admin:  bodasdehoy.com@gmail.com / lorca2012M*+
+  Secund 1:     jcc@bodasdehoy.com          / lorca2012M*+
+  Secund 2:     jcc@marketingsoluciones.com / lorca2012M*+
+
+  app-dev:      https://app-dev.bodasdehoy.com
+  chat-dev:     https://chat-dev.bodasdehoy.com
+  memories-dev: https://memories-dev.bodasdehoy.com
+  editor-dev:   https://editor-dev.bodasdehoy.com
+
+Devolverme el informe en code-block para poder copiar.
+
+═══════════════════════════════════════════════════════════════════════════════
+FIN
+═══════════════════════════════════════════════════════════════════════════════

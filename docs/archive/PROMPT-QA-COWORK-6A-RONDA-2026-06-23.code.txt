@@ -1,0 +1,307 @@
+═══════════════════════════════════════════════════════════════════════════════
+PROMPT QA COWORK — 6ª RONDA — 2026-06-23
+═══════════════════════════════════════════════════════════════════════════════
+
+CONTEXTO PREVIO
+───────────────────────────────────────────────────────────────────────────────
+Tras 5 rondas de QA acumuladas (≈30 bugs reportados, ≈22 cerrados), entregamos
+nueva tanda de fixes centrados en:
+
+  · Mobile-first (99% de usuarios reales usan móvil)
+  · Perf — drain de batería por polling en background
+  · WhatsApp messaging
+  · Accesibilidad (tap targets Apple HIG, labels nav móvil)
+  · SSO timeout
+
+ESTADO DE DEPLOYS A FECHA DE ESTE INFORME
+───────────────────────────────────────────────────────────────────────────────
+
+🟢 https://app-dev.bodasdehoy.com   (appEventos :3220)
+   ────────────────────────────────────────────────────────
+   BUILD_ID NUEVO:  jRdZh0MjMYkX18W013bsr  ✅ DESPLEGADO 2026-06-23 ~15:00
+   HEAD:            211a2b4b
+   Incluye commits:
+     · 56cdb596 — BUG-CW-N09 (crear evento EOF) + BUG-CW-N06 (borraGasto)
+     · 4887975f — 5 bugs mobile 5ª ronda (BUG-CW-N14/16/19/20 + a11y)
+     · 211a2b4b — BUG-CW-N13 (race $evento_id Invitaciones)
+
+   ✅ QA puede validar AHORA los BLOQUES A y E en app-dev.
+
+🟢 https://chat-dev.bodasdehoy.com   (chat-ia :3210)
+   ────────────────────────────────────────────────────────
+   BUILD_ID NUEVO:  _uW7J7DxEZUdp6D0SzWz5  ✅ DESPLEGADO 2026-06-23 ~15:15
+   HEAD:            211a2b4b
+   Incluye commits:
+     · 4887975f — BUG-CW-N14 (SSO-auto timeout) + BUG-CW-N16 (tap targets sidebar)
+     · cbae8bea — perf polling visibility (useMessages, useInboxChannels, useInboxUnreadCount)
+     · fb80548e — perf polling visibility (NotificationBell, ChannelSidebar, useUnifiedFeed)
+     · 211a2b4b — BUG-CW-N04 (hydration #418 /login) + BUG-CW-N12 (tool router warn)
+
+   ✅ QA puede validar AHORA los BLOQUES B, C y E en chat-dev.
+
+🟢 https://memories-dev.bodasdehoy.com   (memories-web :3240)
+   ────────────────────────────────────────────────────────
+   ccdccb2d HeroAlbum desplegado y validado live. Sin pendientes.
+
+═══════════════════════════════════════════════════════════════════════════════
+LISTA DE FIXES A VERIFICAR — 6ª RONDA
+═══════════════════════════════════════════════════════════════════════════════
+
+📱 BLOQUE A — MOBILE & A11Y (appEventos, app-dev)
+───────────────────────────────────────────────────────────────────────────────
+
+  BUG-CW-N19 ✅ NavigationMobile sin labels
+  ─────────────────────────────────────────────────────────
+  Archivo: apps/appEventos/components/DefaultLayout/NavigationMobile.tsx
+  Fix:
+    · Cada uno de los 5 botones del nav inferior ahora tiene su <span> con
+      el label de texto debajo del icono (Inicio / Servicios / Invitados /
+      Mesas / Presupuesto).
+    · aria-label en cada button para lectores de pantalla.
+    · min-h-[48px] aplicado (Material Design tap target).
+  PROBAR:
+    1. Abrir app-dev en mobile real (o DevTools mobile).
+    2. Verificar que el nav inferior muestra LABELS (no solo iconos).
+    3. Verificar contraste suficiente.
+    4. Activar VoiceOver/TalkBack y verificar que lee el label.
+    5. Verificar tap-target ≥48px tocando con dedo real.
+
+  BUG-CW-N20 ✅ Click logo NO refresca si ya está en home
+  ─────────────────────────────────────────────────────────
+  Archivo: apps/appEventos/components/DefaultLayout/NavigationMobile.tsx
+  Fix:
+    · Si el usuario ya está en "/" → window.scrollTo(0, 0) en lugar de push.
+    · Si está en otra ruta → router.push("/?needsEvent=1").
+  PROBAR:
+    1. Estar en /presupuesto.
+    2. Tap en logo Bodas de Hoy → debe ir a "/" con needsEvent=1.
+    3. Estar en "/".
+    4. Scrollear abajo.
+    5. Tap en logo → debe volver al top sin recargar la página.
+
+  BUG-CW-N09 ✅ Crear evento — GraphQL EOF error
+  ─────────────────────────────────────────────────────────
+  Archivo: apps/appEventos/utils/Fetching.ts (función eventCreate)
+  Fix:
+    · El template literal del query tenía 49 `{` y 48 `}` (faltaba 1 cierre).
+    · Añadido `}` al final del query → ahora balanceado.
+  PROBAR:
+    1. Login con usuario super-admin (bodasdehoy.com@gmail.com / lorca2012M*+).
+    2. Crear evento nuevo desde /?needsEvent=1.
+    3. Rellenar formulario completo y submit.
+    4. Verificar que NO sale el error "Syntax Error: Expected Name, found <EOF>".
+    5. Verificar que el evento aparece listado.
+
+  BUG-CW-N06 ✅ Borrar gasto — mutation no existe
+  ─────────────────────────────────────────────────────────
+  Archivo: apps/appEventos/utils/Fetching.ts (función borrarGasto)
+  Fix:
+    · Mutation usaba `borraGasto` (sin 'r') pero schema declara `borrarGasto`.
+    · Renombrado a `borrarGasto` + añadido `categoria_id` como argumento.
+  PROBAR:
+    1. Login + seleccionar evento.
+    2. Ir a /presupuesto → BlockCategoria → ver lista de gastos.
+    3. Borrar un gasto.
+    4. Verificar que NO sale "Cannot query field 'borraGasto' on type Mutation".
+    5. Verificar que el gasto desaparece de la lista.
+
+  Tap targets — Apple HIG 44×44 mínimo (3 sites en appEventos)
+  ─────────────────────────────────────────────────────────
+  Archivos:
+    · apps/appEventos/pages/index.tsx (tabs Pendientes/Archivados/Realizados)
+  Fix:
+    · py-0.5 → py-2 + min-h-[44px].
+  PROBAR:
+    1. Mobile real.
+    2. Tap en tabs del home: tap target debe ser cómodo con dedo (≥44px).
+
+📱 BLOQUE B — MOBILE & A11Y (chat-ia, chat-dev) ⚠️ REQUIERE REBUILD CHAT-DEV
+───────────────────────────────────────────────────────────────────────────────
+
+  BUG-CW-N14 ✅ SSO-auto cuelga (spinner infinito) si backend tarda
+  ─────────────────────────────────────────────────────────
+  Archivo: apps/chat-ia/src/app/(backend)/api/auth/sso-auto/route.ts
+  Fix:
+    · Añadido AbortController con timeout 5s.
+    · Si el fetch al backend no responde en 5s → redirect a /login?sso_timeout=1.
+  PROBAR:
+    1. Cerrar sesión completamente.
+    2. Visitar chat-dev.bodasdehoy.com directamente (sin SSO previo).
+    3. Verificar que NO se queda colgado >5s mostrando spinner.
+    4. Si el backend tarda, debe redirigir a /login?sso_timeout=1 (el QP es la
+       señal visible para confirmar que entró la rama de timeout).
+
+  BUG-CW-N16 ✅ Tap targets sidebar desktop < 44px
+  ─────────────────────────────────────────────────────────
+  Archivos:
+    · apps/chat-ia/src/app/[variants]/(main)/_layout/Desktop/SideBar/TopActions.tsx
+    · apps/chat-ia/src/app/[variants]/(main)/_layout/Desktop/SideBar/BottomActions.tsx
+    · apps/chat-ia/src/app/[variants]/(main)/_layout/Desktop/SideBar/NotificationBell.tsx
+  Fix:
+    · blockSize de 40/36/40 → 44 (Apple HIG).
+  PROBAR:
+    1. Abrir chat-dev en desktop.
+    2. Inspector → verificar que iconos sidebar tienen 44×44 mínimo.
+    3. Bonus: en touch screen (iPad simulado en DevTools), confirmar tap OK.
+
+⚡ BLOQUE C — PERF MOBILE (chat-ia, chat-dev) ⚠️ REQUIERE REBUILD CHAT-DEV
+───────────────────────────────────────────────────────────────────────────────
+
+  perf mobile ✅ Pausar polling cuando pestaña/app en background
+  ─────────────────────────────────────────────────────────
+  Archivos (6 hooks/componentes):
+    · src/app/[variants]/(main)/messages/hooks/useMessages.ts (10s → 15s + visibility)
+    · src/app/[variants]/(main)/messages/hooks/useInboxChannels.ts (60s + visibility)
+    · src/hooks/useInboxUnreadCount.ts (60s + visibility)
+    · src/app/[variants]/(main)/messages/hooks/useUnifiedFeed.ts (60s + visibility)
+    · src/app/[variants]/(main)/_layout/Desktop/SideBar/NotificationBell.tsx (60s + visibility)
+    · src/app/[variants]/(main)/messages/components/ChannelSidebar.tsx (60s + visibility)
+  Fix:
+    · document.hidden → clearInterval (stop polling).
+    · Vuelve visible → fetch inmediato + restart interval.
+    · Cleanup: removeEventListener + clearInterval al unmount.
+  PROBAR (test reproducible):
+    1. Abrir chat-dev/messages en mobile/tablet/desktop.
+    2. DevTools → Network → filtrar XHR/Fetch.
+    3. ANTES del fix: con la pestaña en background, los fetch a
+       /api/messages/* y /api/notifications/* seguían ejecutándose
+       (10-60s cada uno).
+    4. DESPUÉS del fix: cambiar a otra pestaña/app durante 2-3 min,
+       volver y verificar que durante ese tiempo NO hubo requests
+       (verás un "hueco" en la timeline de Network).
+    5. Al volver a la pestaña: debe disparar 1 fetch inmediato + reanudar
+       interval normal.
+
+🎨 BLOQUE D — MEMORIES HERO (memories-dev) ✅ YA DESPLEGADO
+───────────────────────────────────────────────────────────────────────────────
+
+  ccdccb2d ✅ HeroAlbum integrado
+  ─────────────────────────────────────────────────────────
+  · Reemplazadas 6 imágenes externas trae.ai (ByteDance/TikTok endpoint sin
+    TOS público — riesgo legal eliminado) por archivos Pexels locales en
+    /public/hero/1..6.jpg (1.44 MB total).
+  · alt semántico por foto: "{moment} – foto de {guest}".
+  · loading="lazy" + decoding="async" en 5/6 imágenes; LCP queda eager.
+  PROBAR:
+    1. Visitar memories-dev.bodasdehoy.com.
+    2. Hero debe cargar SIN consultar trae.ai (verificable en Network).
+    3. Inspeccionar img tags y confirmar alt + loading="lazy".
+
+🆕 BLOQUE E — BUGS PENDIENTES DEL BACKLOG (commit 211a2b4b)
+───────────────────────────────────────────────────────────────────────────────
+
+  BUG-CW-N04 ✅ Hydration #418 en /login (chat-dev)
+  ─────────────────────────────────────────────────────────
+  Archivo: apps/chat-ia/src/app/[variants]/(auth)/login/[[...login]]/_page-client.tsx
+  Causa raíz:
+    `useSearchParams().get('reason')` devuelve valor DISTINTO entre SSR
+    (vacío en prerender estático) y CSR (real con ?reason=session_expired).
+    El render condicional `sessionExpiredMessage={reason === ... ? ... : null}`
+    en LoginForm causaba mismatch → React #418.
+  Fix:
+    Guard `mounted` flag — `reasonAfterMount = mounted ? reason : null`.
+    Primera pasada CSR (igual que SSR) usa null; segunda pasada
+    (post-useEffect) usa el valor real. Sin mismatch.
+  PROBAR:
+    1. Cerrar sesión.
+    2. Visitar chat-dev.bodasdehoy.com/login?reason=session_expired
+    3. Abrir DevTools Console — NO debe aparecer error #418 ni
+       "Hydration failed because the initial UI does not match...".
+    4. El mensaje "Tu sesión ha expirado..." debe aparecer (tras hidratar).
+
+  BUG-CW-N12 ✅ Tool router silencioso si Render falta (chat-dev)
+  ─────────────────────────────────────────────────────────
+  Archivo: apps/chat-ia/src/features/PluginsUI/Render/BuiltinType/index.tsx
+  Causa raíz:
+    Cuando la IA invocaba una tool con identifier NO registrado en
+    `BuiltinToolsRenders`, el componente devolvía undefined silenciosamente
+    (`if (!Render) return;`). Bugs reales (identifier mal en api-ia, tool
+    nueva sin registrar) quedaban invisibles.
+  Fix:
+    Console.warn explícito en dev con identifier + apiName. En prod sigue
+    retornando silencioso. Esto solo EXPONE bugs; el fix real (si aparece
+    un warn) debe ir en api-ia o en src/tools/renders.ts según corresponda.
+  PROBAR:
+    1. chat-dev con DevTools Console abierta.
+    2. Invocar al chat: "muéstrame un análisis del presupuesto" o similar
+       que dispare tools.
+    3. Si alguna tool no renderiza, debe aparecer warn:
+       [BuiltinType] No render registered for identifier="X" (apiName="Y").
+    4. Si TODAS renderizan bien, NO debe aparecer warn (test de no-regresión).
+
+  BUG-CW-N13 ✅ Race condition $evento_id en Invitaciones (app-dev)
+  ─────────────────────────────────────────────────────────
+  Archivo: apps/appEventos/pages/invitaciones.tsx
+  Causa raíz:
+    useEffect lanzaba 3 queries GraphQL con `evento_id: event?._id` sin
+    guard. Si el componente montaba antes de que EventContextProvider
+    hidratara el evento activo, los queries iban con evento_id=undefined →
+    backend respondía vacío o error → race visible en UI.
+  Fix:
+    Guard `if (!event?._id) return;` al inicio del useEffect, antes de
+    cualquier fetch. Las 3 queries ahora SIEMPRE tienen evento_id válido.
+  PROBAR:
+    1. Login + seleccionar evento ("Boda Isabel & Raúl").
+    2. Ir directamente a /invitaciones desde URL (sin pasar por home).
+    3. DevTools Network → filtrar GraphQL.
+    4. NO debe aparecer ningún POST con `evento_id: null` o
+       `evento_id: undefined` en variables.
+    5. La página debe renderizar templates correctamente (no spinners
+       infinitos, no errores en consola).
+
+═══════════════════════════════════════════════════════════════════════════════
+BUGS PENDIENTES — NO TOCADOS EN ESTA RONDA
+═══════════════════════════════════════════════════════════════════════════════
+
+  BUG-CW-N15 ⏸️ Badge "63" notificaciones ≠ 0 reales
+    Causa raíz: backend api-mcp `getUnreadNotificationsCount` no filtra
+    por X-Development (whitelabel). El front pinta lo que recibe; el
+    fix va EN api-mcp. ESCALADO al equipo api-mcp.
+
+  BUG-CW-N17 ⏸️ Sidebar chat-ia sin labels
+    Tooltip + aria-label YA presentes. Añadir labels permanentes rompe
+    el patrón compacto de LobeChat. DECISIÓN UX del usuario pendiente —
+    no se modifica sin spec explícita.
+
+  BUG-CW-N18 ⏸️ i18n sin CDN
+    Carga de locales sin CDN. NO es front-fixable sin cambiar
+    arquitectura de assets. ESCALADO al equipo infra.
+
+═══════════════════════════════════════════════════════════════════════════════
+CREDENCIALES DE TESTING
+═══════════════════════════════════════════════════════════════════════════════
+
+  Super admin:    bodasdehoy.com@gmail.com / lorca2012M*+
+  Secundario 1:   jcc@bodasdehoy.com        / lorca2012M*+
+  Secundario 2:   jcc@marketingsoluciones.com / lorca2012M*+
+
+═══════════════════════════════════════════════════════════════════════════════
+ENTORNOS
+═══════════════════════════════════════════════════════════════════════════════
+
+  appEventos:    https://app-dev.bodasdehoy.com
+  chat-ia:       https://chat-dev.bodasdehoy.com
+  memories-web:  https://memories-dev.bodasdehoy.com
+  editor-web:    https://editor-dev.bodasdehoy.com
+
+═══════════════════════════════════════════════════════════════════════════════
+FORMATO INFORME ESPERADO
+═══════════════════════════════════════════════════════════════════════════════
+
+Por cada bug listado en bloques A/B/C/D, reportar:
+
+  BUG-ID  | RESULTADO  | EVIDENCIA
+  ──────────────────────────────────────────────────────────────
+  N19     | ✅ OK      | screenshot nav mobile con labels visibles
+  N20     | ✅ OK      | logo en home scrollea al top, en /pres redirige
+  ...
+
+Para los que NO pasen:
+  · screenshot/video del fallo
+  · pasos de reproducción exactos
+  · consola JS errors si aplican
+  · BUILD_ID del cliente (footer o /_next/BUILD_ID)
+
+═══════════════════════════════════════════════════════════════════════════════
+FIN — entregar resultado en code-block para que pueda copiar/pegar.
+═══════════════════════════════════════════════════════════════════════════════

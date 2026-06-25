@@ -1,0 +1,97 @@
+═══════════════════════════════════════════════════════════════════════════════
+DE:    COORD-AppEventos (front bodas)
+PARA:  BACKEND-api-mcp
+ASUNTO: [BUG-CW-N15] getUnreadNotificationsCount NO filtra por X-Development
+        (badge muestra 63, lista devuelve 0 reales)
+HILO:  C0AV8EV5495 (ts a definir cuando se postee)
+═══════════════════════════════════════════════════════════════════════════════
+
+Hola equipo api-mcp. Reporte de QA del 23-jun: el badge de notificaciones
+en chat-ia muestra "63" sin notifs y al abrir el panel hay 0 items.
+Es un mismatch entre dos resolvers vuestros que probablemente compartan
+modelo pero NO el mismo filtro de tenant (whitelabel).
+
+══════════════════════════════════════════════════════════════════════
+SITUACIÓN
+══════════════════════════════════════════════════════════════════════
+
+Front llama DOS queries para pintar notificaciones (file:
+apps/chat-ia/src/services/mcpApi/notifications.ts):
+
+  Query A — badge:
+    query { getUnreadNotificationsCount }
+    → devuelve escalar Int (ej. 63)
+
+  Query B — panel al abrir:
+    query GetNotifications($filters: NotificationFilters, $pagination: CRM_PaginationInput) {
+      getNotifications(filters: $filters, pagination: $pagination) {
+        success total unreadCount notifications { ... }
+      }
+    }
+    → devuelve { unreadCount: 0, notifications: [], total: 0 }
+
+Ambas llamadas envían el header X-Development: bodasdehoy
+(mcpClient.ts:7-12) Y el JWT del usuario (Authorization Bearer).
+
+══════════════════════════════════════════════════════════════════════
+HIPÓTESIS — resolver A no filtra por X-Development
+══════════════════════════════════════════════════════════════════════
+
+El resolver `getUnreadNotificationsCount` probablemente está haciendo:
+  db.notifications.countDocuments({ userId, read: false })
+
+Mientras que `getNotifications` filtra correctamente:
+  db.notifications.find({ userId, development, read: false })
+
+Resultado: el badge cuenta notifs de OTROS tenants donde el mismo userId
+también tiene cuenta (super-admin de varias whitelabels), pero el panel
+solo muestra las del tenant actual → mismatch 63 vs 0.
+
+══════════════════════════════════════════════════════════════════════
+EVIDENCIA QA
+══════════════════════════════════════════════════════════════════════
+
+Usuario:       bodasdehoy.com@gmail.com (super-admin, tiene cuenta en
+                varios tenants — bodas, planificador, etc.)
+Tenant:        bodasdehoy
+BUILD chat-dev: _uW7J7DxEZUdp6D0SzWz5
+
+Repro:
+  1. Login con bodasdehoy.com@gmail.com en chat-dev.
+  2. Mirar el badge superior derecho: "63"
+  3. Click → panel se abre, lista vacía o con muy pocos items.
+
+══════════════════════════════════════════════════════════════════════
+LO QUE NECESITAMOS
+══════════════════════════════════════════════════════════════════════
+
+Que el resolver `getUnreadNotificationsCount` aplique el MISMO filtro
+de tenant que `getNotifications`. Concretamente:
+
+  Antes:
+    countDocuments({ userId, read: false })
+
+  Después:
+    countDocuments({ userId, development, read: false })
+
+  donde `development` se resuelve del contexto GraphQL (header
+  X-Development o claim del JWT — el patrón que ya uséis en
+  getNotifications).
+
+══════════════════════════════════════════════════════════════════════
+LO QUE NO ES VUESTRO
+══════════════════════════════════════════════════════════════════════
+
+El front pinta exactamente lo que devolvéis. No hay nada que cambiar
+de nuestro lado hasta que el resolver corrija el filtro.
+
+Si al verificar el código del resolver veis que el filtro YA está
+puesto, avisad y os mandamos un trace_id concreto + JWT decoded
+para que rastreéis el caso (puede ser cache stale, índice
+incorrecto, o pipeline de aggregate mal montado).
+
+Gracias 🙏 Cuando esté podemos validar en menos de 1 min con
+el QA.
+
+DRI: COORD-AppEventos
+═══════════════════════════════════════════════════════════════════════════════
