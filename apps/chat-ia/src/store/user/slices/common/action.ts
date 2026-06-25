@@ -121,11 +121,14 @@ export const createCommonSlice: StateCreator<
           options?.onSuccess?.(data);
 
           if (data) {
+            // BUG-CRASH-01 QA #17 (25-jun): serverConfig puede llegar undefined
+            // si el store del whitelabel no se hidrató a tiempo. Guard `?.` en
+            // los 4 campos para evitar TypeError 'defaultAgent of undefined'.
             const serverSettings: PartialDeep<UserSettings> = {
-              defaultAgent: serverConfig.defaultAgent,
-              image: serverConfig.image,
-              languageModel: serverConfig.languageModel,
-              systemAgent: serverConfig.systemAgent,
+              defaultAgent: serverConfig?.defaultAgent,
+              image: serverConfig?.image,
+              languageModel: serverConfig?.languageModel,
+              systemAgent: serverConfig?.systemAgent,
             };
 
             const defaultSettings = merge(get().defaultSettings, serverSettings);
@@ -154,7 +157,7 @@ export const createCommonSlice: StateCreator<
                 isUserHasConversation: data.hasConversation,
                 isUserStateInit: true,
                 preference,
-                serverLanguageModel: serverConfig.languageModel,
+                serverLanguageModel: serverConfig?.languageModel,
                 settings: data.settings || {},
                 subscriptionPlan: data.subscriptionPlan,
                 user,
