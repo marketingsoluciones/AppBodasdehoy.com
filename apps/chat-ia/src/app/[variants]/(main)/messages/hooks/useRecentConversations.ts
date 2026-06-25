@@ -28,6 +28,10 @@ export interface RecentConversation {
   labels?: any[];
   linkedContactId?: string | null;
   linkedEventId?: string | null;
+  /** FASE B v2.0 — api-mcp commit 7d52fec (25-jun): RSVP visible en lista. */
+  guestStatus?: 'confirmed' | 'pending' | 'declined' | null;
+  jidType?: string | null;
+  jidRaw?: string | null;
   name: string;
   unreadCount: number;
   unreadCountForAgent?: number;
@@ -116,6 +120,13 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
                 labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,
                 linkedContactId: c.linkedContactId ?? c.linked_contact_id ?? null,
                 linkedEventId: c.linkedEventId ?? c.linked_event_id ?? null,
+                guestStatus: (c.guestStatus ?? c.guest_status ?? null) as
+                  | 'confirmed'
+                  | 'pending'
+                  | 'declined'
+                  | null,
+                jidType: c.jidType ?? c.jid_type ?? null,
+                jidRaw: c.jidRaw ?? c.jid_raw ?? null,
                 name: friendlyContactName(c.displayName, c.phoneNumber),
                 unreadCount: c.unreadCount || 0,
                 unreadCountForAgent: c.unreadCountForAgent ?? c.unread_count_for_agent ?? undefined,

@@ -30,7 +30,10 @@
 overwrite: true
 
 schema:
-  - https://api-mcp.eventosorganizador.com/graphql/schema.graphql
+  # Pinneado 25-jun-2026 por hash exacto (api-mcp commit 7d52fec).
+  # Incluye: guestStatus en WhatsAppConversation, getWhatsAppTemplates,
+  # jidType/jidRaw, enum CONVERSATION para Notes, updateGuestRsvpByConversation.
+  - https://api-mcp.eventosorganizador.com/graphql/schema-3b42adac0ff554e70c1c7f5da5bcd0664826552f.graphql
 
 # FASE 1 limitada: solo tipos del schema (input/output/enums/scalars).
 # typescript-operations requiere queries con tag `gql` o archivos .graphql

@@ -26,6 +26,13 @@ export interface Conversation {
   labels?: any[];
   linkedContactId?: string | null;
   linkedEventId?: string | null;
+  /** FASE B v2.0 — api-mcp commit 7d52fec (25-jun): RSVP del invitado
+   *  resuelto desde el evento vinculado por teléfono. null si no aplica. */
+  guestStatus?: 'confirmed' | 'pending' | 'declined' | null;
+  /** api-mcp jidType: user | group | newsletter | broadcast | lid | unknown.
+   *  Si != 'user', phoneNumber NO es un teléfono real. */
+  jidType?: string | null;
+  jidRaw?: string | null;
   status?: string;
   unreadCount: number;
   unreadCountForAgent?: number;
@@ -88,6 +95,14 @@ export function useConversations(channel: string | null) {
             labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,
             linkedContactId: c.linkedContactId ?? c.linked_contact_id ?? null,
             linkedEventId: c.linkedEventId ?? c.linked_event_id ?? null,
+            // FASE B v2.0 — guestStatus desde api-mcp (commit 7d52fec).
+            guestStatus: (c.guestStatus ?? c.guest_status ?? null) as
+              | 'confirmed'
+              | 'pending'
+              | 'declined'
+              | null,
+            jidType: c.jidType ?? c.jid_type ?? null,
+            jidRaw: c.jidRaw ?? c.jid_raw ?? null,
             status: c.status ?? c.conversationStatus ?? undefined,
             unreadCount: c.unreadCount || 0,
             unreadCountForAgent: c.unreadCountForAgent ?? c.unread_count_for_agent ?? undefined,

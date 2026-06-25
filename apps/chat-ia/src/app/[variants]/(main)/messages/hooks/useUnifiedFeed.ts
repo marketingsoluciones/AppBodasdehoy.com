@@ -272,8 +272,8 @@ export function useUnifiedFeed(maxItems = 60): {
     name: conv.name,
     notificationId: null,
     preview: conv.lastMessage,
-    // rsvpStatus quedará undefined hasta que api-mcp lo exponga en
-    // ConversationExtended.guestStatus (FASE B v2.0 backlog).
+    // FASE B v2.0 — api-mcp commit 7d52fec (25-jun) expone guestStatus.
+    rsvpStatus: conv.guestStatus ?? undefined,
     timestamp: conv.lastMessageAt,
     unreadCount: conv.unreadCount,
   }));
