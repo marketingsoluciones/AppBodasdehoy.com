@@ -11,8 +11,9 @@
  *   · Tablet/Mobile: oculto por defecto (el usuario lo abre desde header).
  *   · Migración localStorage → CRM_Note se dispara una vez al montar.
  *
- * Update 07-jul: api-mcp confirmó CRM_NoteEntityType enum acepta
- * CONVERSATION en producción — workaround ENTITY catch-all retirado.
+ * Enum CONVERSATION: corregido por api-mcp commit aba3f09 (24-jun-2026).
+ * Usamos entityType:'CONVERSATION' directo. El resolver valida que el
+ * conversation_id sea real (WhatsAppConversation), no inventado.
  */
 
 import { useEffect } from 'react';
@@ -48,9 +49,8 @@ export function ConversationNotesSidebar({
   }, []);
 
   // Entidad principal: si hay linked_contact_id, las notas pertenecen al
-  // CONTACTO (vida del contacto, supervive a la conv). Si no, entityType:
-  // CONVERSATION vincula las notas al ciclo de vida de esa conversación
-  // concreta (útil para hilos de soporte one-off).
+  // CONTACTO (vida del contacto, supervive a la conv). Si no, usamos la
+  // conversación como entidad CONVERSATION (enum corregido api-mcp aba3f09).
   const entity: CRMEntityRef = linkedContactId
     ? {
         entityId: linkedContactId,

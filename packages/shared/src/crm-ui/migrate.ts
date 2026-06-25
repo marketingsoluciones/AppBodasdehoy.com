@@ -124,6 +124,11 @@ export async function migrateLocalStorageNotesToCRM(opts?: {
     // Crear cada nota en backend. Si una falla, se conserva en localStorage.
     for (const note of notes) {
       try {
+        // Enum CONVERSATION arreglado por api-mcp (commit aba3f09 24-jun-2026).
+        // Antes usábamos ENTITY como catch-all por bug Mongo.
+        // OJO: el resolver valida que la conversación EXISTA — si convId es
+        // una clave localStorage huérfana (conversación borrada en backend),
+        // la mutación fallará y la nota quedará en localStorage para reintento.
         await callMcpGraphQL<{ createCRMNote: { success: boolean } }>(GQL_CREATE_CRM_NOTE, {
           input: {
             content: note.text,
