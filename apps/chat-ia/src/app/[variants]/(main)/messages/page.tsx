@@ -1,15 +1,30 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 import { ChannelSidebar } from './components/ChannelSidebar';
+import { InboxFilters, type ChannelFilter, type RsvpFilter } from './components/InboxFilters';
+import { ScopeSelector, type ScopeId } from './components/ScopeSelector';
 import { UnifiedFeedView } from './components/UnifiedFeedView';
 import { type FeedItem, useUnifiedFeed } from './hooks/useUnifiedFeed';
 
 export default function MessagesPage() {
   const router = useRouter();
   const { items, loading, markNotificationRead } = useUnifiedFeed();
+  // FASE B v2.0: scope selector. 'support' = bandeja del equipo;
+  // un eventId = bandeja de ese evento. Al cambiar, el caller debe
+  // (futuro) recargar lista filtrada por linkedEvents=eventId.
+  const [activeScope, setActiveScope] = useState<ScopeId>('support');
+  const [rsvpFilter, setRsvpFilter] = useState<RsvpFilter>('all');
+  const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all');
+
+  // Al cambiar de scope: resetear filtros (regla state management Diseño).
+  const handleScopeChange = useCallback((s: ScopeId) => {
+    setActiveScope(s);
+    setRsvpFilter('all');
+    setChannelFilter('all');
+  }, []);
 
   const handleItemClick = useCallback(
     (item: FeedItem) => {
@@ -36,8 +51,23 @@ export default function MessagesPage() {
 
       {/* Desktop: feed unificado de todos los mensajes y notificaciones */}
       <div className="hidden flex-1 overflow-hidden md:flex">
-        <div className="w-[420px] shrink-0 overflow-hidden border-r border-gray-200 bg-white">
-          <UnifiedFeedView items={items} loading={loading} onItemClick={handleItemClick} />
+        <div className="flex w-[420px] shrink-0 flex-col overflow-hidden border-r border-gray-200 bg-white">
+          {/* FASE B v2.0 — Scope selector pill (Soporte / eventos del usuario).
+              Por ahora cambia solo el header; el filtrado de la lista por
+              linkedEventId vendrá cuando integremos useConversations(scope). */}
+          <div className="border-b border-gray-100 px-3 py-2">
+            <ScopeSelector activeScope={activeScope} onChange={handleScopeChange} />
+          </div>
+          <InboxFilters
+            hideRsvp={activeScope === 'support'}
+            rsvp={rsvpFilter}
+            channel={channelFilter}
+            onRsvpChange={setRsvpFilter}
+            onChannelChange={setChannelFilter}
+          />
+          <div className="min-h-0 flex-1 overflow-hidden">
+            <UnifiedFeedView items={items} loading={loading} onItemClick={handleItemClick} />
+          </div>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center bg-gray-50 px-6 text-center">
           <div className="max-w-md">
