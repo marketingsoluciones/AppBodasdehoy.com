@@ -22,13 +22,15 @@ export interface Message {
   status?: 'sent' | 'delivered' | 'read';
   text: string;
   timestamp: string;
-  // SPRINT 3 iMessage (6-jul) — edit/delete cross-device.
-  /** Fecha ISO de la última edición. Se muestra pill "(editado)" cuando presente. */
-  editedAt?: string;
-  /** true si el mensaje fue borrado en modo soft (tachar + placeholder). */
-  deleted?: boolean;
-  /** Fecha ISO del borrado. */
-  deletedAt?: string;
+  /** FASE B v2.0 + M1 api-ia (24-jun): origen IA cuando el mensaje fue
+   *  generado por el asistente. iaGenerated=true → burbuja teal o autopilot
+   *  (según iaMode), sello "✦ Enviado por IA". */
+  iaGenerated?: boolean;
+  /** Si iaGenerated y enviado en modo Copilot (aprobado por humano) o
+   *  Autopilot (auto-enviado). Default 'copilot' si iaGenerated=true. */
+  iaMode?: 'copilot' | 'autopilot';
+  /** Modelo IA usado (ej: 'gpt-4o', 'claude-3-5-sonnet'). */
+  iaModel?: string;
 }
 
 function buildFetchUrl(channel: string, conversationId: string): string | null {
