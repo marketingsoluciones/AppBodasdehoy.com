@@ -81,8 +81,8 @@ export function useConversations(channel: string | null) {
             assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
             channel: (c.channel || c.platform || channel || 'whatsapp') as Conversation['channel'],
             contact: {
-              name: friendlyContactName(rawName, c.phoneNumber),
-              phone: safePhoneOrEmpty(c.phoneNumber),
+              name: friendlyContactName(rawName, c.phoneNumber, c.jidType ?? c.jid_type),
+              phone: safePhoneOrEmpty(c.phoneNumber, c.jidType ?? c.jid_type),
             },
             id: c.conversationId || c.id,
             lastMessage: {
