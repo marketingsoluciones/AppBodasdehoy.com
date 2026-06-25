@@ -137,3 +137,32 @@ export const GQL_SEARCH_CRM_USERS = `
     }
   }
 `;
+
+/* ════════════════════════════════════════════════════════════════════
+   FASE B v2.0 — Mutaciones api-mcp Bandeja Eventos (commit 926b5df 25-jun)
+   ════════════════════════════════════════════════════════════════════ */
+
+/** Mutación RSVP: actualizar asistencia del invitado vinculado a la conversación.
+ *  api-mcp resuelve invitado por teléfono + linkedEvents internamente.
+ *  status canónico inglés: "confirmed" | "pending" | "declined".
+ *  Devuelve objeto GuestRsvpResponse — leer .success (NO boolean pelado). */
+export const GQL_UPDATE_GUEST_RSVP_BY_CONVERSATION = `
+mutation UpdateGuestRsvpByConversation($conversationId: ID!, $status: String!) {
+  updateGuestRsvpByConversation(conversationId: $conversationId, status: $status) {
+    success
+    message
+    guestStatus
+    eventId
+    invitadoId
+  }
+}
+`;
+
+/** Mutación asignación: setear el usuario asignado a la conversación.
+ *  userId null = desasignar. Devuelve Boolean.
+ *  Variante user-only. Teams requiere entidad Teams (sprint aparte). */
+export const GQL_ASSIGN_CONVERSATION_TO_USER = `
+mutation AssignConversationToUser($conversationId: ID!, $userId: ID) {
+  assignConversationToUser(conversationId: $conversationId, userId: $userId)
+}
+`;
