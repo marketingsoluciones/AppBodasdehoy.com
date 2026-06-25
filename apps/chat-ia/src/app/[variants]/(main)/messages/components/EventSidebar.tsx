@@ -43,6 +43,9 @@ interface EventSidebarProps {
   rsvpStatus?: RsvpStatus;
   /** Persona/equipo asignado a la conversación. */
   assignedTo?: { id: string; name: string; kind: 'user' | 'team' } | null;
+  /** Canal de la conversación para que NotesPanel use entityType correcto.
+   *  WA → CONVERSATION; otros canales → ENTITY (evita HTTP 400 resolver). */
+  channel?: string;
 }
 
 const RSVP_BUTTONS: Array<{
@@ -88,6 +91,7 @@ export function EventSidebar({
   eventLabel,
   rsvpStatus: initialRsvp,
   assignedTo,
+  channel,
 }: EventSidebarProps) {
   // Cambio optimista cableado a api-mcp commit 926b5df (25-jun):
   //   updateGuestRsvpByConversation(conversationId, status) → GuestRsvpResponse
@@ -352,6 +356,7 @@ export function EventSidebar({
             contactName={contactName}
             linkedContactId={linkedContactId}
             linkedEventId={linkedEventId}
+            channel={channel}
             compact
           />
         </div>

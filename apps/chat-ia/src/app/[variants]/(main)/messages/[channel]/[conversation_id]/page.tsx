@@ -94,6 +94,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
             contactPhone={conv.contact?.phone}
             linkedContactId={conv.linkedContactId}
             linkedEventId={conv.linkedEventId}
+            channel={conv.channel ?? channel}
             // FASE B v2.0 — api-mcp commit 7d52fec (25-jun) expone guestStatus
             // resolviendo invitado por teléfono internamente.
             rsvpStatus={conv.guestStatus ?? undefined}
@@ -106,6 +107,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
             contactName={conv?.contact?.name}
             linkedContactId={conv?.linkedContactId}
             linkedEventId={conv?.linkedEventId}
+            channel={conv?.channel ?? channel}
           />
         )}
       </aside>
