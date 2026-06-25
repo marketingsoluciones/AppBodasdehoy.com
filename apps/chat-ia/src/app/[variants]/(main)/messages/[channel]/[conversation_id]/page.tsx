@@ -7,6 +7,7 @@ import { MessageList } from '../../components/MessageList';
 import { MessageInput } from '../../components/MessageInput';
 import { ConversationHeader } from '../../components/ConversationHeader';
 import { ConversationNotesSidebar } from '../../components/ConversationNotesSidebar';
+import { EventSidebar } from '../../components/EventSidebar';
 import { TaskDetailWorkspace } from '../../components/TaskDetailWorkspace';
 import { useConversations } from '../../hooks/useConversations';
 
@@ -80,14 +81,31 @@ export default function ConversationPage({ params }: ConversationPageProps) {
         </div>
       </div>
 
-      {/* Sidebar derecho 280px — FASE B v2.0 handoff Bandeja. Solo desktop ≥1024px. */}
+      {/* Sidebar derecho 280px — FASE B v2.0 handoff Bandeja Diseño 24-jun.
+          P9: render condicional según contexto:
+            · linkedEventId presente → EventSidebar (RSVP + asignación + datos + notas)
+            · linkedEventId vacío    → ConversationNotesSidebar (modo Soporte: solo notas)
+          Solo desktop ≥1024px. */}
       <aside className="hidden w-[280px] shrink-0 overflow-hidden border-l border-gray-200 bg-white lg:flex lg:flex-col">
-        <ConversationNotesSidebar
-          conversationId={conversation_id}
-          contactName={conv?.contact?.name}
-          linkedContactId={conv?.linkedContactId}
-          linkedEventId={conv?.linkedEventId}
-        />
+        {conv?.linkedEventId ? (
+          <EventSidebar
+            conversationId={conversation_id}
+            contactName={conv.contact?.name}
+            contactPhone={conv.contact?.phone}
+            linkedContactId={conv.linkedContactId}
+            linkedEventId={conv.linkedEventId}
+            // rsvpStatus llegará de api-mcp en próximo backend update
+            // (ConversationExtended.guestStatus). Hoy undefined → ningún botón activo.
+            // assignedTo idem cuando bridge esté.
+          />
+        ) : (
+          <ConversationNotesSidebar
+            conversationId={conversation_id}
+            contactName={conv?.contact?.name}
+            linkedContactId={conv?.linkedContactId}
+            linkedEventId={conv?.linkedEventId}
+          />
+        )}
       </aside>
     </>
   );
