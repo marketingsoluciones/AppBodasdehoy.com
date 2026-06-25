@@ -94,9 +94,11 @@ export default function ConversationPage({ params }: ConversationPageProps) {
             contactPhone={conv.contact?.phone}
             linkedContactId={conv.linkedContactId}
             linkedEventId={conv.linkedEventId}
-            // rsvpStatus llegará de api-mcp en próximo backend update
-            // (ConversationExtended.guestStatus). Hoy undefined → ningún botón activo.
-            // assignedTo idem cuando bridge esté.
+            // FASE B v2.0 — api-mcp commit 7d52fec (25-jun) expone guestStatus
+            // resolviendo invitado por teléfono internamente.
+            rsvpStatus={conv.guestStatus ?? undefined}
+            // assignedTo: api-mcp confirma user-asignación ya disponible
+            // (team requiere entidad Teams, sprint aparte). Cableo en próximo commit.
           />
         ) : (
           <ConversationNotesSidebar
