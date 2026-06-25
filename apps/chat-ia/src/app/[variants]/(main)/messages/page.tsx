@@ -30,7 +30,9 @@ export default function MessagesPage() {
   const [rsvpFilter, setRsvpFilter] = useState<RsvpFilter>('all');
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all');
   // FASE B v2.0 (Diseño 25-jun): cola Pendientes IA. Visible solo cuando
-  // iaLevel='copilot'. Por ahora iaLevel se gestiona por conversación.
+  // iaLevel='copilot'. Por ahora iaLevel se gestiona por conversación en el
+  // header — cuando se persista por workspace, leemos de ahí. Mientras
+  // mostramos el filtro si HAY borradores pendientes (count > 0).
   const [pendingIaActive, setPendingIaActive] = useState(false);
   const pendingIaCount = 0; // TODO: contar items con draftState='pending' cuando api-ia exponga
 
@@ -129,56 +131,36 @@ export default function MessagesPage() {
         <ChannelSidebar />
       </div>
 
-      {/* Desktop: tabs Conversaciones / Bandeja / Historial + feed por tab */}
-      <div className="hidden flex-1 flex-col overflow-hidden md:flex">
-        {/* Tabs FASE B v2.0 Diseño 24-jun */}
-        <BandejaTabs
-          active={activeTab}
-          counts={{ history: notifUnreadCount, inbox: convUnreadCount }}
-        />
-        <div className="flex flex-1 overflow-hidden">
-          <div className="flex w-[420px] shrink-0 flex-col overflow-hidden border-r border-gray-200 bg-white">
-            {/* ScopeSelector + filtros solo visibles en tab 'inbox'. En 'history'
-                el feed es plano (notificaciones) sin scope ni filtros canal/RSVP. */}
-            {activeTab === 'inbox' && (
-              <>
-                <div className="border-b border-gray-100 px-3 py-2">
-                  <ScopeSelector activeScope={activeScope} onChange={handleScopeChange} />
-                </div>
-                <InboxFilters
-                  hideRsvp={activeScope === 'support'}
-                  rsvp={rsvpFilter}
-                  channel={channelFilter}
-                  onRsvpChange={setRsvpFilter}
-                  onChannelChange={setChannelFilter}
-                  iaCopilotActive={true}
-                  pendingIaCount={pendingIaCount}
-                  pendingIaActive={pendingIaActive}
-                  onPendingIaToggle={() => setPendingIaActive((v) => !v)}
-                />
-              </>
-            )}
-            {/* Tab Historial — barra "marcar todas leídas" cuando hay unread */}
-            {activeTab === 'history' && notifUnreadCount > 0 && (
-              <div className="flex items-center justify-between border-b border-gray-100 px-3 py-2">
-                <span className="text-[11px] text-gray-500">
-                  {notifUnreadCount} sin leer
-                </span>
-                <button
-                  className="rounded-md px-2 py-1 text-[11px] font-semibold text-violet-700 transition-colors hover:bg-violet-50"
-                  onClick={() => void markAllNotificationsRead()}
-                  type="button"
-                >
-                  Marcar todas leídas
-                </button>
-              </div>
-            )}
-            <div className="min-h-0 flex-1 overflow-hidden">
-              <UnifiedFeedView
-                items={filteredItems}
-                loading={loading}
-                onItemClick={handleItemClick}
-              />
+      {/* Desktop: feed unificado de todos los mensajes y notificaciones */}
+      <div className="hidden flex-1 overflow-hidden md:flex">
+        <div className="flex w-[420px] shrink-0 flex-col overflow-hidden border-r border-gray-200 bg-white">
+          {/* FASE B v2.0 — Scope selector pill (Soporte / eventos del usuario).
+              Por ahora cambia solo el header; el filtrado de la lista por
+              linkedEventId vendrá cuando integremos useConversations(scope). */}
+          <div className="border-b border-gray-100 px-3 py-2">
+            <ScopeSelector activeScope={activeScope} onChange={handleScopeChange} />
+          </div>
+          <InboxFilters
+            hideRsvp={activeScope === 'support'}
+            rsvp={rsvpFilter}
+            channel={channelFilter}
+            onRsvpChange={setRsvpFilter}
+            onChannelChange={setChannelFilter}
+            iaCopilotActive={true}
+            pendingIaCount={pendingIaCount}
+            pendingIaActive={pendingIaActive}
+            onPendingIaToggle={() => setPendingIaActive((v) => !v)}
+          />
+          <div className="min-h-0 flex-1 overflow-hidden">
+            <UnifiedFeedView items={items} loading={loading} onItemClick={handleItemClick} />
+          </div>
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center bg-gray-50 px-6 text-center">
+          <div className="max-w-md">
+            <div className="text-4xl">💬</div>
+            <div className="mt-3 text-sm font-semibold text-gray-800">Bandeja unificada</div>
+            <div className="mt-1 text-xs text-gray-500">
+              Mensajes y notificaciones en un solo sitio. Selecciona una conversación para ver el detalle.
             </div>
           </div>
           {/* Panel principal — empty state según tab */}
