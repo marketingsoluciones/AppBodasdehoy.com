@@ -18,7 +18,13 @@
  * conversation↔invitado (D3 backend pendiente). Mientras: cambio local
  * optimista + log para diagnóstico. Anotado en FASE B v2.0 backlog.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+import {
+  callMcpGraphQL,
+  GQL_UPDATE_GUEST_RSVP_BY_CONVERSATION,
+  GQL_ASSIGN_CONVERSATION_TO_USER,
+} from '@bodasdehoy/shared/crm-ui';
 
 import { ConversationNotesSidebar } from './ConversationNotesSidebar';
 
@@ -81,42 +87,74 @@ export function EventSidebar({
   rsvpStatus: initialRsvp,
   assignedTo,
 }: EventSidebarProps) {
-  // Cambio optimista: actualizamos localmente al click; si la mutación
-  // falla en backend, revertimos a `lastConfirmedRsvp`. Aún sin endpoint
-  // backend confirmado — log en consola para diagnóstico mientras tanto.
+  // Cambio optimista cableado a api-mcp commit 926b5df (25-jun):
+  //   updateGuestRsvpByConversation(conversationId, status) → GuestRsvpResponse
+  // Devuelve objeto (NO Boolean) — leer .success para confirmar/revertir.
+  // Sincronizamos también si llega un initialRsvp distinto (props cambian
+  // cuando navega de una conv a otra).
   const [rsvp, setRsvp] = useState<RsvpStatus | undefined>(initialRsvp);
   const [savingRsvp, setSavingRsvp] = useState(false);
+  const [rsvpError, setRsvpError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setRsvp(initialRsvp);
+    setRsvpError(null);
+  }, [initialRsvp, conversationId]);
 
   const handleRsvpClick = async (next: RsvpStatus) => {
     if (savingRsvp || rsvp === next) return;
     const prev = rsvp;
     setRsvp(next);
     setSavingRsvp(true);
+    setRsvpError(null);
 
     try {
-      // TODO: cuando api-mcp confirme D3 (extender actualizarInvitado para
-      // aceptar phoneNumber directo) o mutación bridge contact↔guest, llamar
-      // aquí con callMcpGraphQL. Por ahora solo log.
-      // eslint-disable-next-line no-console
-      console.info('[EventSidebar] RSVP optimista', {
+      const data = await callMcpGraphQL<{
+        updateGuestRsvpByConversation: {
+          success: boolean;
+          message?: string | null;
+          guestStatus?: string | null;
+          eventId?: string | null;
+          invitadoId?: string | null;
+        };
+      }>(GQL_UPDATE_GUEST_RSVP_BY_CONVERSATION, {
         conversationId,
-        linkedEventId,
-        from: prev,
-        to: next,
+        status: next,
       });
-      // Pseudo:
-      //   await callMcpGraphQL(GQL_UPDATE_GUEST_RSVP, {
-      //     conversationId, eventId: linkedEventId, status: next,
-      //   });
-    } catch (err) {
-      // Revertir en error
+      const ok = data?.updateGuestRsvpByConversation?.success === true;
+      if (!ok) {
+        setRsvp(prev);
+        setRsvpError(
+          data?.updateGuestRsvpByConversation?.message ||
+            'No se pudo actualizar el RSVP del invitado.',
+        );
+      }
+    } catch (err: any) {
       setRsvp(prev);
-      // eslint-disable-next-line no-console
-      console.warn('[EventSidebar] RSVP fallo, revertido:', err);
+      setRsvpError(err?.message || 'Error de red al actualizar RSVP.');
     } finally {
       setSavingRsvp(false);
     }
   };
+
+  const [savingAssign, setSavingAssign] = useState(false);
+  /** Para uso futuro cuando expongamos el picker. Funciona ahora si se invoca. */
+  const handleAssignToUser = async (userId: string | null) => {
+    if (savingAssign) return;
+    setSavingAssign(true);
+    try {
+      await callMcpGraphQL<{ assignConversationToUser: boolean | null }>(
+        GQL_ASSIGN_CONVERSATION_TO_USER,
+        { conversationId, userId },
+      );
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('[EventSidebar] assign user falló:', err);
+    } finally {
+      setSavingAssign(false);
+    }
+  };
+  void handleAssignToUser; // expuesto cuando integremos UI picker
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-white">
@@ -158,6 +196,15 @@ export function EventSidebar({
           <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
             RSVP
           </div>
+          {rsvpError && (
+            <div
+              className="mb-1.5 rounded px-2 py-1 text-[10px]"
+              style={{ backgroundColor: '#FFE4E6', color: '#9F1239', borderLeft: '2px solid #F43F5E' }}
+              role="alert"
+            >
+              {rsvpError}
+            </div>
+          )}
           <div className="flex gap-1">
             {RSVP_BUTTONS.map((b) => {
               const isActive = rsvp === b.value;

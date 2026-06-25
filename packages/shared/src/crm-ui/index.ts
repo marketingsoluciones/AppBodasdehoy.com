@@ -9,6 +9,10 @@ export { NotesPanel } from './NotesPanel';
 export { useCRMNotes } from './useCRMNotes';
 export { callMcpGraphQL } from './client';
 export { hasLegacyNotesPending, migrateLocalStorageNotesToCRM } from './migrate';
+export {
+  GQL_UPDATE_GUEST_RSVP_BY_CONVERSATION,
+  GQL_ASSIGN_CONVERSATION_TO_USER,
+} from './graphql';
 export type { MigrationResult } from './migrate';
 export type { MCPGraphQLError, MCPGraphQLResponse } from './client';
 export type {
