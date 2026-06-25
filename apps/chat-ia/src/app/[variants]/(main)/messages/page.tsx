@@ -15,14 +15,29 @@ export default function MessagesPage() {
   const activeTab = useActiveBandejaTab();
   const { items, loading, markNotificationRead, markAllNotificationsRead } = useUnifiedFeed();
 
+  // FASE B v2.0: scope selector. 'support' = bandeja del equipo;
+  // un eventId = bandeja de ese evento. Al cambiar, el caller debe
+  // (futuro) recargar lista filtrada por linkedEvents=eventId.
+  const [activeScope, setActiveScope] = useState<ScopeId>('support');
+
   // FASE B v2.0 (Diseño 24-jun): items filtrados según tab activa.
   //   inbox   → conversaciones (kind === 'conversation')
   //   history → notificaciones (kind === 'notification')
+  // BUG-06 QA #13 (25-jun): además filtrar por scope evento — si activeScope es
+  // un eventId (no 'support'), conservar solo conversaciones cuyo linkedEventId
+  // coincide. Las notificaciones (kind='notification') no llevan linkedEventId
+  // y se mantienen como están en tab history.
   const filteredItems = useMemo(() => {
-    if (activeTab === 'history') return items.filter((i) => i.kind === 'notification');
-    if (activeTab === 'inbox') return items.filter((i) => i.kind === 'conversation');
-    return items;
-  }, [items, activeTab]);
+    let arr = items;
+    if (activeTab === 'history') arr = arr.filter((i) => i.kind === 'notification');
+    else if (activeTab === 'inbox') arr = arr.filter((i) => i.kind === 'conversation');
+    if (activeScope !== 'support') {
+      arr = arr.filter(
+        (i) => i.kind !== 'conversation' || i.linkedEventId === activeScope,
+      );
+    }
+    return arr;
+  }, [items, activeTab, activeScope]);
 
   const notifUnreadCount = useMemo(
     () => items.filter((i) => i.kind === 'notification' && !i.isRead).length,
@@ -32,10 +47,6 @@ export default function MessagesPage() {
     () => items.filter((i) => i.kind === 'conversation' && i.unreadCount > 0).length,
     [items],
   );
-  // FASE B v2.0: scope selector. 'support' = bandeja del equipo;
-  // un eventId = bandeja de ese evento. Al cambiar, el caller debe
-  // (futuro) recargar lista filtrada por linkedEvents=eventId.
-  const [activeScope, setActiveScope] = useState<ScopeId>('support');
   const [rsvpFilter, setRsvpFilter] = useState<RsvpFilter>('all');
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all');
   // FASE B v2.0 (Diseño 25-jun): cola Pendientes IA. Visible solo cuando

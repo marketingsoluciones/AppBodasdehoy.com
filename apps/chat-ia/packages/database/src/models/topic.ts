@@ -195,8 +195,33 @@ export class TopicModel {
         userId: this.userId,
       };
 
-      // Insert new topic
-      const [topic] = await tx.insert(topics).values(insertData).returning();
+      // BUG-01 QA #13 (25-jun): el índice único (clientId, userId) choca cuando
+      // el front reintenta sendMessageInServer con mismo clientId (race React
+      // double-mount o retry). Idempotente: si ya existe, devolver el existente
+      // en lugar de crashear.
+      const inserted = await tx
+        .insert(topics)
+        .values(insertData)
+        .onConflictDoNothing()
+        .returning();
+      let topic = inserted[0];
+      if (!topic) {
+        const existing = await tx
+          .select()
+          .from(topics)
+          .where(and(eq(topics.userId, this.userId), eq(topics.id, id)))
+          .limit(1);
+        topic = existing[0];
+        if (!topic && (clientId ?? null) !== null) {
+          const byClient = await tx
+            .select()
+            .from(topics)
+            .where(and(eq(topics.userId, this.userId), eq(topics.clientId, clientId as string)))
+            .limit(1);
+          topic = byClient[0];
+        }
+        if (!topic) throw new Error('topic insert conflict and existing row not found');
+      }
 
       // Update associated messages' topicId
       if (messageIds && messageIds.length > 0) {
