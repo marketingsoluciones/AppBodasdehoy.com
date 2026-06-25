@@ -5,7 +5,7 @@
  *   import { NotesPanel, useCRMNotes, type CRMEntityRef } from '@bodasdehoy/shared/crm-ui'
  */
 
-export { NotesPanel } from './NotesPanel';
+export { NotesPanel, extractMentionsFromContent } from './NotesPanel';
 export { useCRMNotes } from './useCRMNotes';
 export { callMcpGraphQL } from './client';
 export { hasLegacyNotesPending, migrateLocalStorageNotesToCRM } from './migrate';
