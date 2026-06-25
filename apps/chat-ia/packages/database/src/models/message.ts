@@ -500,35 +500,19 @@ export class MessageModel {
         });
       }
 
-      if (fileIds && fileIds.length > 0) {
-        // Bug RAG QA 25-jun: cuando los archivos vienen de api-ia/R2 (id estilo
-        // "r2_TIMESTAMP_filename") NO existen en la tabla `files` local de drizzle
-        // → FK constraint falla → toda la transacción aborta → mensaje NO se guarda.
-        //
-        // Fix: pre-validar qué fileIds existen realmente en la tabla local antes
-        // del INSERT. Solo insertamos los que pasan. Los archivos remotos (api-ia)
-        // se ignoran aquí — RAG los lee directo via api-ia, no necesita la tabla
-        // de unión local. Coordinación con api-ia pendiente para que sincronice
-        // metadata si quieren mantener la tabla local sincronizada.
-        const existingFiles = await trx
-          .select({ id: files.id })
-          .from(files)
-          .where(inArray(files.id, fileIds));
-        const validFileIds = new Set(existingFiles.map((f) => f.id));
-        const insertable = fileIds.filter((id) => validFileIds.has(id));
-        if (insertable.length > 0) {
-          await trx
-            .insert(messagesFiles)
-            .values(insertable.map((file) => ({ fileId: file, messageId: id, userId: this.userId })));
-        }
-        if (insertable.length < fileIds.length) {
-          // eslint-disable-next-line no-console
-          console.warn(
-            '[messagesFiles] omitidos por no existir en files local (probable api-ia/R2):',
-            { skipped: fileIds.filter((f) => !validFileIds.has(f)), messageId: id },
-          );
-        }
-      }
+      // Bloque INSERT messages_files ELIMINADO 25-jun-2026.
+      //
+      // Auditoría Neon Postgres reveló: la tabla `messages_files` está VACÍA
+      // (0 filas) y `files` solo tiene 1 PNG legacy de marzo. Los uploads
+      // reales pasan 100% por api-ia + R2 (commit CAPA 2 PASO C 2026-06-05).
+      // El bug RAG QA 25-jun se reproducía contra una tabla que NUNCA se usa.
+      //
+      // Mantener este INSERT solo añade complejidad + riesgo de FK fail.
+      // RAG funciona enteramente vía api-ia (embeddings + chunks remotos).
+      //
+      // Próximo paso (sprint): drop tabla messages_files de Neon + eliminar
+      // schemas/imports drizzle + simplificar el resto del modelo.
+      void fileIds; // declarada en destructuring para compat de tipo
 
       if (fileChunks && fileChunks.length > 0 && ragQueryId) {
         await trx.insert(messageQueryChunks).values(
