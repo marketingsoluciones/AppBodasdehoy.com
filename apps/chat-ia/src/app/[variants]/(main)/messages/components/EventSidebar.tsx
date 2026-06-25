@@ -24,6 +24,7 @@ import {
   callMcpGraphQL,
   GQL_UPDATE_GUEST_RSVP_BY_CONVERSATION,
   GQL_ASSIGN_CONVERSATION_TO_USER,
+  GQL_SEARCH_CRM_USERS,
 } from '@bodasdehoy/shared/crm-ui';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
@@ -105,6 +106,12 @@ export function EventSidebar({
   const [rsvpError, setRsvpError] = useState<string | null>(null);
   const [assignPickerOpen, setAssignPickerOpen] = useState(false);
   const assignPickerRef = useRef<HTMLDivElement>(null);
+  // Lista usuarios workspace (api-mcp searchCRMUsers). Búsqueda debounced.
+  const [userSearch, setUserSearch] = useState('');
+  const [userResults, setUserResults] = useState<
+    Array<{ id: string; name: string; email?: string | null }>
+  >([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   useEffect(() => {
     setRsvp(initialRsvp);
@@ -167,6 +174,27 @@ export function EventSidebar({
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);
   }, [assignPickerOpen]);
+
+  // Búsqueda usuarios workspace via api-mcp searchCRMUsers (debounced 250ms).
+  useEffect(() => {
+    if (!assignPickerOpen) return;
+    const t = setTimeout(async () => {
+      setLoadingUsers(true);
+      try {
+        const data = await callMcpGraphQL<{
+          searchCRMUsers: { users: Array<{ id: string; name: string; email: string | null }> };
+        }>(GQL_SEARCH_CRM_USERS, { search: userSearch || null, limit: 20 });
+        const list = data?.searchCRMUsers?.users ?? [];
+        // Excluir el currentUser para no duplicar con "Asignármela a mí".
+        setUserResults(list.filter((u) => u.id !== currentUserId));
+      } catch {
+        setUserResults([]);
+      } finally {
+        setLoadingUsers(false);
+      }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [assignPickerOpen, userSearch, currentUserId]);
 
   const handleAssignToUser = async (userId: string | null, userLabel?: string) => {
     if (savingAssign) return;
@@ -340,10 +368,48 @@ export function EventSidebar({
                   <span>Desasignar</span>
                 </button>
               )}
-              {/* TODO: lista de usuarios del workspace cuando api-mcp/api-ia
-                       expongan endpoint /workspace/{dev}/users. */}
-              <div className="px-3 py-2 text-[10px] text-gray-400">
-                Lista de equipo: pendiente endpoint backend
+              {/* Lista usuarios workspace via api-mcp searchCRMUsers */}
+              <div className="border-b border-gray-100 px-2 py-1.5">
+                <input
+                  aria-label="Buscar usuarios"
+                  className="w-full rounded border border-gray-200 px-2 py-1 text-[11px] focus:border-violet-500 focus:outline-none"
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  placeholder="Buscar miembros del equipo…"
+                  type="text"
+                  value={userSearch}
+                />
+              </div>
+              <div className="max-h-48 overflow-y-auto">
+                {loadingUsers && (
+                  <div className="px-3 py-2 text-[10px] text-gray-400">Cargando…</div>
+                )}
+                {!loadingUsers && userResults.length === 0 && (
+                  <div className="px-3 py-2 text-[10px] text-gray-400">
+                    {userSearch ? 'Sin resultados' : 'No hay más miembros'}
+                  </div>
+                )}
+                {!loadingUsers &&
+                  userResults.map((u) => (
+                    <button
+                      className="flex w-full items-center gap-2 border-b border-gray-100 px-3 py-2 text-left text-[12px] transition-colors hover:bg-gray-50"
+                      key={u.id}
+                      onClick={() => {
+                        void handleAssignToUser(u.id, u.name);
+                        setAssignPickerOpen(false);
+                      }}
+                      role="option"
+                      aria-selected={assignedToLocal?.id === u.id}
+                      type="button"
+                    >
+                      <span aria-hidden className="text-base">👤</span>
+                      <span className="min-w-0 flex-1 truncate">
+                        <span className="block truncate text-gray-800">{u.name}</span>
+                        {u.email && (
+                          <span className="block truncate text-[10px] text-gray-500">{u.email}</span>
+                        )}
+                      </span>
+                    </button>
+                  ))}
               </div>
             </div>
           )}
