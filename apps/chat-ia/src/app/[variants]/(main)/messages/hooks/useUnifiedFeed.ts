@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   type AppNotification,
   getNotifications,
+  markAllNotificationsAsRead,
   markNotificationAsRead,
 } from '@/services/mcpApi/notifications';
 
@@ -85,6 +86,8 @@ export function useUnifiedFeed(maxItems = 60): {
   items: FeedItem[];
   loading: boolean;
   markNotificationRead: (notificationId: string) => void;
+  /** Marca TODAS las notificaciones como leídas (tab Historial bulk action). */
+  markAllNotificationsRead: () => Promise<void>;
   /** Fuerza un refresh inmediato del feed (p.ej. tras recibir un SSE message) */
   refresh: () => void;
 } {
@@ -305,9 +308,23 @@ export function useUnifiedFeed(maxItems = 60): {
     });
   }, []);
 
+  // Bulk: marcar todas como leídas (tab Historial).
+  // Optimistic: marca todo local + llama backend en background.
+  const markAllNotificationsRead = useCallback(async () => {
+    const prev = notifications;
+    setNotifications((curr) => curr.map((n) => ({ ...n, read: true })));
+    try {
+      const ok = await markAllNotificationsAsRead();
+      if (!ok) setNotifications(prev); // rollback si backend rechaza
+    } catch {
+      setNotifications(prev);
+    }
+  }, [notifications]);
+
   return {
     items,
     loading: convLoading || notifLoading,
+    markAllNotificationsRead,
     markNotificationRead,
     refresh,
   };

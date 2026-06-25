@@ -13,7 +13,7 @@ import { type FeedItem, useUnifiedFeed } from './hooks/useUnifiedFeed';
 export default function MessagesPage() {
   const router = useRouter();
   const activeTab = useActiveBandejaTab();
-  const { items, loading, markNotificationRead } = useUnifiedFeed();
+  const { items, loading, markNotificationRead, markAllNotificationsRead } = useUnifiedFeed();
 
   // FASE B v2.0 (Diseño 24-jun): items filtrados según tab activa.
   //   inbox   → conversaciones (kind === 'conversation')
@@ -103,6 +103,21 @@ export default function MessagesPage() {
                   onPendingIaToggle={() => setPendingIaActive((v) => !v)}
                 />
               </>
+            )}
+            {/* Tab Historial — barra "marcar todas leídas" cuando hay unread */}
+            {activeTab === 'history' && notifUnreadCount > 0 && (
+              <div className="flex items-center justify-between border-b border-gray-100 px-3 py-2">
+                <span className="text-[11px] text-gray-500">
+                  {notifUnreadCount} sin leer
+                </span>
+                <button
+                  className="rounded-md px-2 py-1 text-[11px] font-semibold text-violet-700 transition-colors hover:bg-violet-50"
+                  onClick={() => void markAllNotificationsRead()}
+                  type="button"
+                >
+                  Marcar todas leídas
+                </button>
+              </div>
             )}
             <div className="min-h-0 flex-1 overflow-hidden">
               <UnifiedFeedView
