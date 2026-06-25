@@ -18,6 +18,12 @@ export default function MessagesPage() {
   const [activeScope, setActiveScope] = useState<ScopeId>('support');
   const [rsvpFilter, setRsvpFilter] = useState<RsvpFilter>('all');
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all');
+  // FASE B v2.0 (Diseño 25-jun): cola Pendientes IA. Visible solo cuando
+  // iaLevel='copilot'. Por ahora iaLevel se gestiona por conversación en el
+  // header — cuando se persista por workspace, leemos de ahí. Mientras
+  // mostramos el filtro si HAY borradores pendientes (count > 0).
+  const [pendingIaActive, setPendingIaActive] = useState(false);
+  const pendingIaCount = 0; // TODO: contar items con draftState='pending' cuando api-ia exponga
 
   // Al cambiar de scope: resetear filtros (regla state management Diseño).
   const handleScopeChange = useCallback((s: ScopeId) => {
@@ -64,6 +70,10 @@ export default function MessagesPage() {
             channel={channelFilter}
             onRsvpChange={setRsvpFilter}
             onChannelChange={setChannelFilter}
+            iaCopilotActive={true}
+            pendingIaCount={pendingIaCount}
+            pendingIaActive={pendingIaActive}
+            onPendingIaToggle={() => setPendingIaActive((v) => !v)}
           />
           <div className="min-h-0 flex-1 overflow-hidden">
             <UnifiedFeedView items={items} loading={loading} onItemClick={handleItemClick} />

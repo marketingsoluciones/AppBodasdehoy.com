@@ -15,8 +15,18 @@ interface ConversationHeaderProps {
 }
 
 export function ConversationHeader({ channel, conversationId, onSearchFilter }: ConversationHeaderProps) {
-  const { conversations } = useConversations(channel ?? null);
+  const { conversations, loading: convListLoading } = useConversations(channel ?? null);
   const conversation = conversations.find((c) => c.id === conversationId);
+
+  // QA bug 25-jun: si la conversación no aparece en la lista (canal Web sin
+  // resultado, o conv huérfana), el header se quedaba "Cargando..." eterno.
+  // Damos 5s de gracia; tras eso renderizamos UI mínima con datos del URL.
+  const [graceExpired, setGraceExpired] = useState(false);
+  useEffect(() => {
+    setGraceExpired(false);
+    const t = setTimeout(() => setGraceExpired(true), 5000);
+    return () => clearTimeout(t);
+  }, [conversationId]);
 
   const { checkAuth } = useAuthCheck();
   const { userId } = checkAuth();
@@ -100,9 +110,36 @@ export function ConversationHeader({ channel, conversationId, onSearchFilter }: 
   };
 
   if (!conversation) {
+    // Mientras carga la lista y dentro de la gracia: spinner mínimo.
+    if (convListLoading || !graceExpired) {
+      return (
+        <div className="flex items-center justify-between border-b border-gray-200 bg-white p-4">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-purple-500" />
+            <span>Cargando…</span>
+          </div>
+        </div>
+      );
+    }
+    // Fallback tras gracia: render mínimo con el conversationId (no bloqueante).
+    // Permite seguir interactuando (notas, mensajes) aunque la conv no esté
+    // en la lista del canal pedido (puede venir de otro endpoint backend).
     return (
       <div className="flex items-center justify-between border-b border-gray-200 bg-white p-4">
-        <div className="text-sm text-gray-500">Cargando...</div>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-rose-500 text-sm font-semibold text-white">
+            ?
+          </div>
+          <div>
+            <h2 className="font-semibold text-gray-700">
+              Conversación {conversationId.slice(0, 12)}…
+            </h2>
+            <p className="text-xs text-gray-500">
+              No disponible en la lista de {channel ?? 'este canal'} —
+              el contenido sigue accesible.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }

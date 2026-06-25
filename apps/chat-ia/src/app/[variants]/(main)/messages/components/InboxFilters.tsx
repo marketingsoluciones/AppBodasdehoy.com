@@ -27,6 +27,13 @@ interface InboxFiltersProps {
     rsvp?: Partial<Record<RsvpFilter, number>>;
     channel?: Partial<Record<ChannelFilter, number>>;
   };
+  /** FASE B v2.0 — Cola "Pendientes IA" (Diseño 25-jun). Solo visible cuando
+   *  iaLevel='copilot'. Muestra chip "✦ Pendientes N" a la derecha de los
+   *  filtros de canal. Al activarse, filtra lista a draftState='pending'. */
+  iaCopilotActive?: boolean;
+  pendingIaCount?: number;
+  pendingIaActive?: boolean;
+  onPendingIaToggle?: () => void;
 }
 
 const RSVP_OPTIONS: Array<{
@@ -65,6 +72,10 @@ export function InboxFilters({
   onRsvpChange,
   onChannelChange,
   counts,
+  iaCopilotActive = false,
+  pendingIaCount = 0,
+  pendingIaActive = false,
+  onPendingIaToggle,
 }: InboxFiltersProps) {
   const rsvpRow = useMemo(
     () =>
@@ -122,7 +133,34 @@ export function InboxFilters({
   return (
     <div className="flex flex-col gap-1.5 border-b border-gray-100 px-3 py-2">
       {!hideRsvp && <div className="flex flex-wrap gap-1">{rsvpRow}</div>}
-      <div className="flex flex-wrap gap-1">{channelRow}</div>
+      <div className="flex flex-wrap items-center gap-1">
+        {channelRow}
+        {iaCopilotActive && (
+          <button
+            aria-pressed={pendingIaActive}
+            className="ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-colors"
+            onClick={onPendingIaToggle}
+            style={{
+              backgroundColor: '#CCFBF1',
+              color: '#0F766E',
+              border: pendingIaActive ? '1.5px solid #0D9488' : '1.5px solid transparent',
+            }}
+            type="button"
+            title="Borradores IA esperando aprobación"
+          >
+            <span aria-hidden>✦</span>
+            <span>Pendientes</span>
+            {pendingIaCount > 0 && (
+              <span
+                className="rounded-md px-1 text-[10px] font-bold"
+                style={{ backgroundColor: '#0D9488', color: '#fff' }}
+              >
+                {pendingIaCount > 99 ? '99+' : pendingIaCount}
+              </span>
+            )}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
