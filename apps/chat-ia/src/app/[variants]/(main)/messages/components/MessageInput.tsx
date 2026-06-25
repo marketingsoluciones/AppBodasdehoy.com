@@ -6,6 +6,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useMessages } from '../hooks/useMessages';
 import { useSendMessage } from '../hooks/useSendMessage';
 import { useDraftSync, type ServerDraft } from '../hooks/useDraftSync';
+import { useConversations } from '../hooks/useConversations';
+import { isWhatsAppWindowExpired } from '../hooks/useWhatsAppTemplates';
+import { WhatsAppTemplatePicker } from './WhatsAppTemplatePicker';
 
 interface MessageInputProps {
   channel: string;
@@ -124,6 +127,17 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
   const emojiRef = useRef<HTMLDivElement>(null);
   const { sendMessage, sending } = useSendMessage();
   const { addMessage } = useMessages(channel, conversationId);
+
+  // Detección ventana 24h WhatsApp (Diseño P5): si lastInboundAt > 24h,
+  // mostrar picker de plantillas HSM en lugar del composer normal.
+  const { conversations: convList } = useConversations(channel);
+  const currentConv = convList.find((c) => c.id === conversationId);
+  const waWindowExpired = isWhatsAppWindowExpired(
+    currentConv?.channel,
+    currentConv?.lastInboundAt,
+  );
+  const [waTemplateDismissed, setWaTemplateDismissed] = useState(false);
+  const showTemplatePicker = waWindowExpired && !waTemplateDismissed && mode === 'reply';
 
   // M1 drafts api-ia (24-jun): sincroniza el texto del modo 'reply' con backend
   // (TTL 24h, cross-device). Si el backend devuelve un draft existente al
@@ -257,6 +271,16 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
 
   return (
     <div className="space-y-1">
+      {/* P5 Diseño — Picker plantillas HSM cuando ventana 24h WA expira */}
+      {showTemplatePicker && (
+        <WhatsAppTemplatePicker
+          onSelect={(_, body) => {
+            if (body) setText(body);
+          }}
+          onDismiss={() => setWaTemplateDismissed(true)}
+        />
+      )}
+
       {/* M1 — Borrador IA pendiente (cross-device, TTL 24h api-ia) */}
       {mode === 'reply' && iaDraft && (
         <div className="flex items-start gap-2 rounded-lg border border-violet-200 bg-violet-50 px-3 py-2">

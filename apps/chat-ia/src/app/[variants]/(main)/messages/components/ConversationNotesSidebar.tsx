@@ -29,6 +29,11 @@ interface ConversationNotesSidebarProps {
   contactName?: string;
   linkedContactId?: string | null;
   linkedEventId?: string | null;
+  /** Canal de la conversación (whatsapp|instagram|telegram|email|web|facebook).
+   *  Si NO es 'whatsapp', el resolver api-mcp valida contra WhatsAppConversation
+   *  y devuelve HTTP 400. En esos casos usamos CONTACT (si hay linkedContactId)
+   *  o ENTITY como entityType para evitar el 400. */
+  channel?: string;
   /** Mostrar variante compacta (mobile sheet, paneles pequeños). */
   compact?: boolean;
 }
@@ -38,6 +43,7 @@ export function ConversationNotesSidebar({
   contactName,
   linkedContactId,
   linkedEventId,
+  channel,
   compact = false,
 }: ConversationNotesSidebarProps) {
   // Migración una vez por sesión (idempotente: no hace nada si ya migrado).
@@ -48,20 +54,34 @@ export function ConversationNotesSidebar({
     });
   }, []);
 
-  // Entidad principal: si hay linked_contact_id, las notas pertenecen al
-  // CONTACTO (vida del contacto, supervive a la conv). Si no, usamos la
-  // conversación como entidad CONVERSATION (enum corregido api-mcp aba3f09).
+  // Entidad principal: lógica por canal (fix QA bug HTTP 400 25-jun):
+  //   1. Si hay linkedContactId → CONTACT (siempre que sea posible, vida del contacto)
+  //   2. WhatsApp + sin contacto → CONVERSATION (resolver valida WhatsAppConversation)
+  //   3. Otros canales (web/email/instagram/telegram/facebook) sin contacto →
+  //      ENTITY como catch-all (el resolver CONVERSATION rechaza ids no-WA con 400)
+  const isWhatsApp = !channel || channel === 'whatsapp';
   const entity: CRMEntityRef = linkedContactId
     ? {
         entityId: linkedContactId,
         entityName: contactName ?? 'Contacto',
         entityType: 'CONTACT',
       }
-    : {
-        entityId: conversationId,
-        entityName: contactName ?? `Conversación ${conversationId.slice(0, 8)}`,
-        entityType: 'CONVERSATION',
-      };
+    : isWhatsApp
+      ? {
+          entityId: conversationId,
+          entityName: contactName ?? `Conversación ${conversationId.slice(0, 8)}`,
+          entityType: 'CONVERSATION',
+        }
+      : {
+          entityId: conversationId,
+          entityName:
+            contactName ?? `Conversación ${channel ?? 'web'} ${conversationId.slice(0, 8)}`,
+          // Canal no-WA: el resolver CONVERSATION devuelve 400 (solo valida
+          // WhatsAppConversation). Usar ENTITY como catch-all hasta que
+          // api-mcp soporte conversaciones multi-canal o las CONVERSATION
+          // se generalicen.
+          entityType: 'ENTITY',
+        };
 
   // Si la conversación está vinculada a un evento, mostramos también las
   // notas de ese evento (contexto cruzado para el agente).
