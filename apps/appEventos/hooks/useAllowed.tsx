@@ -28,13 +28,17 @@ export const useAllowed = () => {
     const NON_MODULE_ROUTES = ['','login','login-rapido','registro','register','configuracion','facturacion','eventos','perfil','diseno','mi-web-creador','asistente','chat','momentos-publicos','public-card','public-itinerary','confirmar-asistencia','info-app','bandeja-de-mensajes','InvitationEmailEditor','aiEmail','api-debug','debug-error','debug-front','prueba','app']
 
     const isAllowed = (pathM?: keyof typeof types) => {
-      // BUG-11 QA #13 (25-jun): comparar también por email — eventos legacy
-      // guardan usuario_id como email; eventos nuevos como Firebase uid. El
-      // QA ve "waitOwner" siendo el dueño porque uid !== email guardado.
-      // Conservador: ampliar la igualdad sin tocar la lógica de permissions.
+      // BUG-11 QA #17 SSH MongoDB verificado: evento legacy "Boda de Maria y
+      // MamaJuana" tiene usuario_id=upSETrmXc7ZnsIhrjDjbHd7u2up1 (uid HISTÓRICO,
+      // distinto del Firebase uid actual del super-admin) + usuario_nombre=
+      // "bodasdehoy.com@gmail.com". La comparación uid no matchea porque
+      // Firebase emitió nuevo uid; la comparación email-vs-usuario_id no aplica
+      // porque usuario_id es uid. La pista real es usuario_nombre que SÍ
+      // contiene el email del creador.
       if (
         event?.usuario_id === user?.uid ||
-        (event?.usuario_id && user?.email && event.usuario_id === user.email)
+        (event?.usuario_id && user?.email && event.usuario_id === user.email) ||
+        (event?.usuario_nombre && user?.email && event.usuario_nombre === user.email)
       ) {
         return true
       }
@@ -79,10 +83,11 @@ export const useAllowedRouter = () => {
     const NON_MODULE_ROUTES = ['','login','login-rapido','registro','register','configuracion','facturacion','eventos','perfil','diseno','mi-web-creador','asistente','chat','momentos-publicos','public-card','public-itinerary','confirmar-asistencia','info-app','bandeja-de-mensajes','InvitationEmailEditor','aiEmail','api-debug','debug-error','debug-front','prueba','app']
 
     const isAllowedRouter = (pathM?: any) => {
-      // BUG-11 (25-jun): paridad con isAllowed — usuario_id legacy guardado como email.
+      // BUG-11 (25-jun): paridad con isAllowed — usuario_nombre contiene el email del creador.
       if (
         event?.usuario_id === user?.uid ||
-        (event?.usuario_id && user?.email && event.usuario_id === user.email)
+        (event?.usuario_id && user?.email && event.usuario_id === user.email) ||
+        (event?.usuario_nombre && user?.email && event.usuario_nombre === user.email)
       ) {
         return true
       }
@@ -138,10 +143,11 @@ export const useAllowedViewer = () => {
           }
         }
       }
-      // BUG-11 (25-jun): paridad con isAllowed — usuario_id legacy guardado como email.
+      // BUG-11 (25-jun): paridad con isAllowed — usuario_nombre contiene el email del creador.
       if (
         event?.usuario_id === user?.uid ||
-        (event?.usuario_id && user?.email && event.usuario_id === user.email)
+        (event?.usuario_id && user?.email && event.usuario_id === user.email) ||
+        (event?.usuario_nombre && user?.email && event.usuario_nombre === user.email)
       ) {
         return true
       }
