@@ -64,7 +64,8 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
       onClick={onClick}
       type="button"
     >
-      {/* Avatar with channel badge */}
+      {/* Avatar 38x38 con badge canal (bottom-LEFT) + RSVP (bottom-RIGHT)
+          según FASE B v2.0 P-handoff Bandeja Diseño 24-jun. */}
       <div className="relative shrink-0">
         <div
           className={`flex h-10 w-10 items-center justify-center rounded-full ${avatarBg} text-sm font-medium text-gray-600`}
@@ -75,12 +76,35 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
             <span>{initials(item.name)}</span>
           )}
         </div>
-        {/* Channel badge */}
-        <span
-          className={`absolute -bottom-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-0.5 text-[9px] font-bold text-white ${cfg.bg}`}
-        >
-          {item.channelLabel ?? cfg.label}
-        </span>
+        {/* Badge canal — bottom-LEFT, cuadrado 16x16 radius 4px */}
+        {item.kind !== 'notification' && (
+          <span
+            aria-label={`Canal ${cfg.label}`}
+            className={`absolute -bottom-0.5 -left-0.5 flex h-4 min-w-4 items-center justify-center rounded px-0.5 text-[9px] font-bold text-white ${cfg.bg}`}
+          >
+            {item.channelLabel ?? cfg.label}
+          </span>
+        )}
+        {/* Badge RSVP — bottom-RIGHT, círculo 15x15. Solo cuando hay valor
+            (rsvpStatus llega de api-mcp en modo Evento; undefined si no aplica). */}
+        {item.rsvpStatus && (
+          <span
+            aria-label={`RSVP ${item.rsvpStatus}`}
+            className="absolute -bottom-0.5 -right-0.5 flex h-[15px] w-[15px] items-center justify-center rounded-full text-[10px] font-bold text-white"
+            style={{
+              backgroundColor:
+                item.rsvpStatus === 'confirmed' ? '#22C55E' :
+                item.rsvpStatus === 'pending' ? '#F59E0B' : '#F43F5E',
+            }}
+            title={
+              item.rsvpStatus === 'confirmed' ? 'Confirmado' :
+              item.rsvpStatus === 'pending' ? 'Pendiente' : 'Declinado'
+            }
+          >
+            {item.rsvpStatus === 'confirmed' ? '✓' :
+              item.rsvpStatus === 'pending' ? '⏳' : '✕'}
+          </span>
+        )}
       </div>
 
       {/* Content */}

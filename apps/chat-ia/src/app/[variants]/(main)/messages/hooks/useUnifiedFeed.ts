@@ -41,6 +41,14 @@ export interface FeedItem {
   /** ISO string for sorting and display */
   timestamp: string;
   unreadCount: number;
+  /** FASE B v2.0: estado RSVP del invitado en modo Evento. Solo se pinta el
+   *  badge cuando hay valor. Vendrá de ConversationExtended.guestStatus
+   *  (api-mcp) — hoy se queda undefined hasta que api-mcp lo exponga. */
+  rsvpStatus?: 'confirmed' | 'pending' | 'declined';
+  /** ID de evento vinculado (linkedEventId) — para filtrar por scope evento. */
+  linkedEventId?: string | null;
+  /** ID del contacto CRM vinculado. */
+  linkedContactId?: string | null;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -248,9 +256,13 @@ export function useUnifiedFeed(maxItems = 60): {
     id: `conv-${conv.channelParam}-${conv.conversationId}`,
     isRead: conv.unreadCount === 0,
     kind: 'conversation' as const,
+    linkedContactId: conv.linkedContactId,
+    linkedEventId: conv.linkedEventId,
     name: conv.name,
     notificationId: null,
     preview: conv.lastMessage,
+    // rsvpStatus quedará undefined hasta que api-mcp lo exponga en
+    // ConversationExtended.guestStatus (FASE B v2.0 backlog).
     timestamp: conv.lastMessageAt,
     unreadCount: conv.unreadCount,
   }));
