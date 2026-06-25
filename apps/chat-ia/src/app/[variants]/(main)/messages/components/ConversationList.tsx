@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
@@ -212,10 +212,16 @@ function ChannelConversationList({
   development: string;
   selectedId?: string;
 }) {
-  const [connected, setConnected] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem(`channel_connected_${channel}_${development}`) === 'true';
-  });
+  // BUG-04 QA #13 (25-jun): el useState initializer leyendo localStorage rompía
+  // hydration (SSR=false, CSR=true) → React duplicaba el DOM (BUG-05). Inicial
+  // false y reconciliar en effect tras montar.
+  const [connected, setConnected] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setConnected(
+      localStorage.getItem(`channel_connected_${channel}_${development}`) === 'true',
+    );
+  }, [channel, development]);
 
   const handleConnected = () => {
     localStorage.setItem(`channel_connected_${channel}_${development}`, 'true');

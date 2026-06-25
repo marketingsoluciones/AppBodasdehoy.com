@@ -75,6 +75,10 @@ function getDraftKey(conversationId: string, mode: ComposerMode): string {
 }
 
 function loadDraft(conversationId: string, mode: ComposerMode): string {
+  // BUG-04 QA #13 (25-jun): SSR no tiene localStorage. Guard explícito para
+  // que el useState initializer devuelva '' en server y CSR-only carga el
+  // draft tras montar (via setText en useEffect).
+  if (typeof window === 'undefined') return '';
   try {
     return localStorage.getItem(getDraftKey(conversationId, mode)) || '';
   } catch {
@@ -117,7 +121,12 @@ const SMS_MAX_CHARS = 160;
 
 export function MessageInput({ channel, conversationId }: MessageInputProps) {
   const [mode, setMode] = useState<ComposerMode>('reply');
-  const [text, setText] = useState(() => loadDraft(conversationId, 'reply'));
+  // BUG-04 (25-jun): inicializar '' en SSR; cargar draft de localStorage en
+  // effect tras hidratar (evita mismatch SSR/CSR).
+  const [text, setText] = useState('');
+  useEffect(() => {
+    setText(loadDraft(conversationId, 'reply'));
+  }, [conversationId]);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [emojiCategory, setEmojiCategory] = useState('Caras');
   const [emojiSearch, setEmojiSearch] = useState('');
