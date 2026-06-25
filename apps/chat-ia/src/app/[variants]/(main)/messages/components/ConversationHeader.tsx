@@ -6,6 +6,7 @@ import { useConversations } from '../hooks/useConversations';
 import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
 import { ChannelBadge } from './ChannelBadge';
+import { IaLevelPicker, type IaLevel } from './IaLevelPicker';
 
 interface ConversationHeaderProps {
   channel?: string;
@@ -26,6 +27,10 @@ export function ConversationHeader({ channel, conversationId, onSearchFilter }: 
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  // FASE B v2.0: nivel IA por conversación. Por defecto 'copilot' (Diseño P2:
+  // se configura por bandeja con override por conversación). Persistencia
+  // backend pendiente — hoy solo estado local + log.
+  const [iaLevel, setIaLevel] = useState<IaLevel>('copilot');
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -132,6 +137,20 @@ export function ConversationHeader({ channel, conversationId, onSearchFilter }: 
                 {conversation.contact.name}
               </h2>
               <ChannelBadge channel={conversation.channel} size="sm" />
+              <IaLevelPicker
+                level={iaLevel}
+                onChange={(next) => {
+                  setIaLevel(next);
+                  // TODO: persistir en backend (api-ia) cuando exista endpoint
+                  // para config IA por workspace + override conversación.
+                  // eslint-disable-next-line no-console
+                  console.info('[ConversationHeader] iaLevel cambio', {
+                    conversationId,
+                    from: iaLevel,
+                    to: next,
+                  });
+                }}
+              />
             </div>
             <p className="text-xs text-gray-500">
               {isOnline ? (
