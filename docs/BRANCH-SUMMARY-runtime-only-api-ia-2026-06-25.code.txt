@@ -1,0 +1,235 @@
+═══════════════════════════════════════════════════════════════════════════════
+PR DESCRIPTION — branch `tj/refactor/runtime-only-api-ia` → `dev`
+Fecha: 2026-06-25 · Autor: COORD-AppEventos
+═══════════════════════════════════════════════════════════════════════════════
+
+## TL;DR
+
+Sesión 25-jun-2026 cierra **FASE B v2.0 Bandeja** + **refactor runtime-only-api-ia**.
+
+  · 28 commits HOY en chat-ia
+  · 13 BUILDS desplegados en chat-dev
+  · -89.387 líneas refactor model-runtime
+  · 17 features FASE B nuevas según handoff v2 Diseño 24-jun
+  · 2 bugs CRÍTICOS QA cerrados (RAG + HTTP 400)
+  · 3 try/catch defensivos protegen flujo crítico chat
+
+BUILD activo final: `E60ON3H47UzFJoJiKyIuV` (chat-dev #13)
+
+═══════════════════════════════════════════════════════════════════════════════
+1. REFACTOR runtime-only-api-ia (~-89.387 líneas)
+═══════════════════════════════════════════════════════════════════════════════
+
+Eliminado entero `apps/chat-ia/packages/model-runtime/` (3.3 MB, 162 archivos):
+  - 66 providers SDK (Ollama, OpenAI, Anthropic, Google, Bedrock, Mistral,
+    Cohere, Groq, Perplexity, Azure, Cloudflare, HuggingFace, DeepSeek,
+    Moonshot, Qwen, ZeroOne, Zhipu, TogetherAI, OpenRouter, Fireworks, etc.)
+  - `runtimeMap.ts` central
+  - Core ModelRuntime + AgentRuntime + streams + context builders
+
+Eliminadas 3 SDK deps del package.json:
+  - `ollama@^0.6.3`
+  - `openai@^4.104.0` (uso directo, NO la dep transitiva)
+  - `@google/genai@^1.24.0`
+
+Eliminados 5 lambda tRPC routers muertos:
+  - `config`, `file`, `generation`, `thread`, `upload`
+
+Eliminados 3 async tRPC routers:
+  - `file`, `image`, `ragEval`
+
+Eliminado `src/server/modules/ModelRuntime/` (initModelRuntimeWithUserPayload,
+apiKeyManager, trace).
+
+Razón: api-ia centraliza modelos via `/webapi/chat/[provider]` (proxy) y
+`/chat/structured` (direct fetch). Front 100% via api-ia, sin SDK directos.
+
+NO desinstalar (deps fantasma usadas por código vivo):
+  · `@vercel/functions` — geo.ts en @lobechat/utils/server
+  · `ua-parser-js@^1` — platform.ts (v2 cambió API, mantener v1)
+  · `systemjs` — PluginsUI/SystemJsRender
+
+═══════════════════════════════════════════════════════════════════════════════
+2. FASE B v2.0 BANDEJA — implementación completa
+═══════════════════════════════════════════════════════════════════════════════
+
+DESKTOP ≥1024px (4 columnas):
+  · Rail vertical 54px (Avatar + Conv + Bandeja + Historial + badge plan)
+  · ChannelSidebar lateral
+  · Tabs Conversaciones / Bandeja / Historial (BandejaTabs.tsx)
+  · ScopeSelector pill (Soporte + eventos del usuario)
+  · InboxFilters (RSVP + canal + ✦ Pendientes IA)
+  · Lista con badges canal bottom-left + RSVP bottom-right (datos REALES)
+  · Burbujas IA distintas (contact/equipo/copilot teal/autopilot gradiente)
+  · Sidebar derecho 280px (EventSidebar o NotesSidebar según linkedEventId)
+
+TABLET md..lg:
+  · ChannelSidebar + Tabs + Bandeja + bottom sheet
+
+MÓVIL <768px:
+  · BottomNavBar inferior (Asistente / Bandeja / Historial con badges)
+  · Header conv botón ℹ → BottomSheet 75% con sidebar info
+  · safe-area-inset-bottom iOS respetado
+
+Componentes nuevos:
+  · BandejaTabs.tsx                  — 3 tabs sync URL ?tab=
+  · ScopeSelector.tsx                — pill Soporte/eventos
+  · InboxFilters.tsx                 — RSVP + canal + Pendientes IA
+  · EventSidebar.tsx                 — modo Evento (RSVP + asign + datos + notas)
+  · ConversationNotesSidebar.tsx     — modo Soporte (solo notas)
+  · MessagesRail.tsx                 — Rail vertical 54px
+  · IaLevelPicker.tsx                — chip Manual/Copilot/Autopilot
+  · BottomNavBar.tsx                 — nav inferior móvil
+  · BottomSheet.tsx                  — overlay 75% móvil
+  · WhatsAppTemplatePicker.tsx       — picker plantillas HSM ventana 24h
+
+Tokens centralizados:
+  · `apps/chat-ia/src/styles/tailwind.css` @theme con 36 colores +
+    6 radius + 3 shadows + Hanken Grotesk + 6 sizes (tokens.json Diseño).
+
+Persistencia E2E real:
+  · RSVP: api-mcp `updateGuestRsvpByConversation` (commit 926b5df)
+  · Asignación user: api-mcp `assignConversationToUser` + `searchCRMUsers`
+  · IA Level: api-ia `/api/messages/workspace/{dev}/ia-config` (commit 9080fe9)
+  · M1 Drafts: api-ia `/api/messages/conversations/{id}/draft` PUT/GET/approve/DELETE
+  · guestStatus: api-mcp WhatsAppConversation.guestStatus (commit 7d52fec)
+  · jidType/jidRaw: api-mcp (commit 7d52fec) — heurística front como fallback
+
+═══════════════════════════════════════════════════════════════════════════════
+3. SISTEMA CRM_NOTE UNIVERSAL (paquete compartido)
+═══════════════════════════════════════════════════════════════════════════════
+
+`packages/shared/src/crm-ui/` — sistema universal para 6 módulos:
+
+  · NotesPanel.tsx                — UI completa con pinned/edit/delete/tags
+  · useCRMNotes.ts                — hook polling 30s + optimistic UI + socket stub
+  · client.ts                     — callMcpGraphQL browser→api-mcp directo
+  · graphql.ts                    — 11 queries/mutations (notas + RSVP + asign + users)
+  · migrate.ts                    — migrador idempotente localStorage→CRM_Note
+  · types.ts                      — 8 entityTypes (CONTACT/LEAD/OPP/EVENTO/ENTITY/CAMPAIGN/TASK/CONVERSATION)
+
+Integrado en 6 módulos:
+  1. chat-ia /messages (sidebar conversación)
+  2. appEventos /invitados (FormEditarInvitado acordeón)
+  3. appEventos /servicios (TaskDetailModal acordeón)
+  4. appEventos /presupuesto (BlockCategoria acordeón)
+  5. appEventos /eventos (resumen-evento acordeón)
+  6. appEventos /tareas (mismo TaskDetailModal)
+
+Pinned UI exacta Diseño P12:
+  · Fondo `#FFFBEB` + borde 3px `#F59E0B` + icono `#B45309`
+  · Máximo 3 pinned por entidad + aviso inline autohide 4s
+
+═══════════════════════════════════════════════════════════════════════════════
+4. BUGS CERRADOS
+═══════════════════════════════════════════════════════════════════════════════
+
+CRÍTICO (reportado QA 25-jun):
+  · RAG `messages_files INSERT` FK fail — FIX BUILD #6 (eliminé bloque INSERT
+    a tabla VACÍA legacy LobeChat. RAG sigue funcionando via api-ia).
+
+MEDIO:
+  · Header conv canal Web "Cargando…" perpetuo — FIX BUILD #4 (timeout 5s
+    + fallback con conversationId mínimo).
+  · HTTP 400 [crm-ui] al abrir conv Web — FIX BUILD #10 (entityType correcto
+    por canal: WA→CONVERSATION, otros→ENTITY).
+
+BAJO:
+  · Auth /messages directo perdía sesión — FIX BUILD #4 (AUTH_GRACE_MS 5000ms
+    + fast-path hasLocalJwt).
+  · OAuth Google popup blocked spinner colgado — FIX BUILD #1 (timeout 60s
+    promise.race).
+
+═══════════════════════════════════════════════════════════════════════════════
+5. DECISIONES ARQUITECTÓNICAS
+═══════════════════════════════════════════════════════════════════════════════
+
+  · NO migrar histórico Neon Postgres a api-ia (chat-ia no tiene usuarios
+    reales aún, decisión user 25-jun).
+  · Rename `lobe → chat` postpuesto: api-mcp confirma que tener "lobe*" en
+    su GraphQL es OK (solo 1 ref vivo en front). api-ia debe renombrar SUS
+    endpoints `/api/lobe/*` → `/api/chat/*` (su trabajo, no bloquea).
+  · `getLobe*` queries en api-mcp se mantienen (alias-compat innecesario).
+
+═══════════════════════════════════════════════════════════════════════════════
+6. PENDIENTES TRAS MERGE (sin bloquear)
+═══════════════════════════════════════════════════════════════════════════════
+
+Externos:
+  · api-ia: refactorizar `lobechat_mcp_graphql_service.py:get_or_create_user`
+    para llamar a la mutation real `getOrCreateUser` de api-mcp (commit
+    baecfbd 25-jun) en lugar de MongoDB directo bloqueado.
+  · api-ia: rename endpoints/collections lobe→chat (cuando convenga).
+  · QA: retest exhaustivo BUILD #13 (prompt ~150 casos archivado en Slack).
+
+Front (cuando api-ia rename y QA OK):
+  · Swap consumidores tRPC `lambdaClient.*` → fetches `/api/chat/*`.
+  · Drop tablas Neon + eliminar `drizzle-orm` + `@neondatabase/serverless`
+    + `pg` + `packages/database/` (~50MB bundle reducción).
+
+Sprint futuro Diseño (FASE B+):
+  · Hilos tipo Slack (P3 spec archivada).
+  · Broadcast / envío masivo.
+  · Llamadas + transcripción IA.
+  · SLA timer / detección colisión / búsqueda semántica.
+
+═══════════════════════════════════════════════════════════════════════════════
+7. TESTING — checklist QA pegado al hilo Slack ts 1782404475
+═══════════════════════════════════════════════════════════════════════════════
+
+~150 casos repartidos en 9 secciones (Auth, Chat IA, Bandeja, Notas CRM,
+AppEventos, Móvil, Casos límite, Performance, Browsers).
+
+Reglas cleanup:
+  · Cada test debe limpiar su data en afterEach
+  · NUNCA tocar evento "Boda Isabel & Raúl" (fixture compartido)
+
+═══════════════════════════════════════════════════════════════════════════════
+8. BUNDLE METRICS (BUILD #13 chat-ia)
+═══════════════════════════════════════════════════════════════════════════════
+
+  Total `.next/`:           293 MB
+  Server build:             209 MB
+  Static chunks:             49 MB
+
+  Top 5 chunks (KB):
+    1. 1cda3abf.c826a1ce0c63ac28.js     2035 KB
+    2. 97449-ae6327ac71814fda.js        1543 KB
+    3. 7ef09c20.504ddf4890469c9b.js     1352 KB
+    4. 2e117529-b950fdcb2acf17de.js      933 KB
+    5. f903588b.eb552d52ef603ccc.js      780 KB
+
+  Reducción esperada futura tras drop Neon + drizzle: ~50MB total.
+
+═══════════════════════════════════════════════════════════════════════════════
+9. COMMITS DESTACADOS 25-jun (28 commits)
+═══════════════════════════════════════════════════════════════════════════════
+
+  0d79402b  🔧 chore(chat-ia/codegen): pin schema-dda9b115
+  6aacc315  ✨ feat(chat-ia/messages): picker asignación user completo
+  64f92155  ✨ feat(chat-ia/messages): móvil BottomNavBar + BottomSheet
+  272cf229  ✨ feat(chat-ia/messages): 3 tabs estructural
+  faf39c60  ✨ feat: fix HTTP 400 + cablear getWhatsAppTemplates
+  e6fdb951  ✨ feat: picker asignación user-only EventSidebar
+  72799882  ♻️ refactor: jid.ts prefiere jidType backend
+  d4c046c1  ✨ feat: script migrate-neon-to-apiia.ts
+  c8993315  ✨ feat: cablear updateGuestRsvp + assignConversationToUser
+  bd3fc17a  ✨ feat: cablear guestStatus + jidType (api-mcp 7d52fec)
+  864070a1  🔥 fix: eliminar INSERT messages_files (tabla vacía)
+  fd62322b  🐛 fix: bug RAG + cablear IaLevelPicker
+  b5e56570  ✨ feat: Rail 54px + tokens Diseño + cola Pendientes IA
+  3d5d1245  ✨ feat: IaLevelPicker en header
+  6b650565  ✨ feat: EventSidebar + retirar workaround CONVERSATION
+  3090a42f  ✨ feat: burbujas IA distintas + sello
+  b1e93745  ✨ feat: badges canal + RSVP en avatars
+  14573ef5  ✨ feat: ScopeSelector + InboxFilters
+  903437f5  ✨ feat: cablear SSE /api/messages/stream
+  2daae36b  🐛 fix(chat-ia/login): OAuth Google popup timeout 60s
+  a72541d7  ♻️ refactor: eliminar @lobechat/model-runtime + 66 providers
+  9185bbbd  ♻️ refactor: eliminar árbol RAG/image/runtime
+  0dcb955d  ♻️ refactor: eliminar 5 lambda routers + outputJSON
+  9e526d23  📝 docs: auditoría model-runtime
+
+═══════════════════════════════════════════════════════════════════════════════
+FIN — listo para PR review cuando QA OK
+═══════════════════════════════════════════════════════════════════════════════
