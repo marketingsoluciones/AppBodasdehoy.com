@@ -18,6 +18,7 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 
+import { MentionAutocomplete } from './MentionAutocomplete';
 import { useCRMNotes } from './useCRMNotes';
 import type { CRMNote, NotesPanelProps } from './types';
 
@@ -402,17 +403,22 @@ export function NotesPanel({
             compact ? 'p-2' : 'p-3',
           )}
         >
-          <textarea
+          <MentionAutocomplete
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={setDraft}
             onKeyDown={(e) => {
               if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
                 void handleCreate();
               }
             }}
-            placeholder="Escribe una nota interna…"
+            placeholder={
+              enableMentions
+                ? 'Escribe una nota interna… (usa @ para mencionar)'
+                : 'Escribe una nota interna…'
+            }
             disabled={busy}
             rows={compact ? 2 : 3}
+            enableMentions={enableMentions}
             className={cn(
               'w-full resize-none rounded border border-gray-300 px-2 py-1 outline-none focus:border-violet-500',
               compact ? 'text-xs' : 'text-sm',
