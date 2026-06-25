@@ -9,6 +9,7 @@ import { ConversationHeader } from '../../components/ConversationHeader';
 import { ConversationNotesSidebar } from '../../components/ConversationNotesSidebar';
 import { EventSidebar } from '../../components/EventSidebar';
 import { TaskDetailWorkspace } from '../../components/TaskDetailWorkspace';
+import { BottomSheet } from '../../components/BottomSheet';
 import { useConversations } from '../../hooks/useConversations';
 
 interface ConversationPageProps {
@@ -28,6 +29,8 @@ export default function ConversationPage({ params }: ConversationPageProps) {
   const { channel, conversation_id } = use(params);
   const router = useRouter();
   const [searchFilter, setSearchFilter] = useState('');
+  // Móvil: bottom sheet con sidebar info contacto (Diseño 24-jun móvil)
+  const [infoSheetOpen, setInfoSheetOpen] = useState(false);
 
   // Datos extra de la conversación para el sidebar de notas (linked_contact_id,
   // linked_event_id, nombre del contacto). useConversations ya carga la lista.
@@ -49,6 +52,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
       <div className="flex flex-1 flex-col bg-gray-50">
         <div className="md:hidden flex items-center gap-2 border-b border-gray-200 bg-white px-2 py-1">
           <button
+            aria-label="Volver"
             className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100"
             onClick={() => router.push('/messages')}
             type="button"
@@ -62,6 +66,15 @@ export default function ConversationPage({ params }: ConversationPageProps) {
               onSearchFilter={setSearchFilter}
             />
           </div>
+          {/* Botón ℹ — abre bottom sheet con sidebar info (Diseño móvil) */}
+          <button
+            aria-label="Información del contacto"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100"
+            onClick={() => setInfoSheetOpen(true)}
+            type="button"
+          >
+            ℹ
+          </button>
         </div>
 
         <div className="hidden md:block">
@@ -111,6 +124,35 @@ export default function ConversationPage({ params }: ConversationPageProps) {
           />
         )}
       </aside>
+
+      {/* Bottom sheet móvil 75% con sidebar info contacto.
+          El sidebar derecho lateral NO existe en móvil (Diseño 24-jun). */}
+      <BottomSheet
+        open={infoSheetOpen}
+        onClose={() => setInfoSheetOpen(false)}
+        title={conv?.contact?.name ?? 'Detalles de la conversación'}
+      >
+        {conv?.linkedEventId ? (
+          <EventSidebar
+            conversationId={conversation_id}
+            contactName={conv.contact?.name}
+            contactPhone={conv.contact?.phone}
+            linkedContactId={conv.linkedContactId}
+            linkedEventId={conv.linkedEventId}
+            channel={conv.channel ?? channel}
+            rsvpStatus={conv.guestStatus ?? undefined}
+          />
+        ) : (
+          <ConversationNotesSidebar
+            conversationId={conversation_id}
+            contactName={conv?.contact?.name}
+            linkedContactId={conv?.linkedContactId}
+            linkedEventId={conv?.linkedEventId}
+            channel={conv?.channel ?? channel}
+            compact
+          />
+        )}
+      </BottomSheet>
     </>
   );
 }
