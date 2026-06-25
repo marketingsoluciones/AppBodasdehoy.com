@@ -16,7 +16,7 @@
  * pinned + createdAt desc).
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 import { useCRMNotes } from './useCRMNotes';
 import type { CRMNote, NotesPanelProps } from './types';
@@ -171,7 +171,7 @@ function NoteItem({ note, readOnly, onUpdate, onDelete, onTogglePin, compact }: 
                 compact ? 'text-xs' : 'text-sm',
               )}
             >
-              {note.content}
+              {renderContentWithMentions(note.content)}
             </p>
           )}
 
@@ -458,4 +458,40 @@ export function NotesPanel({
       )}
     </div>
   );
+}
+
+/**
+ * Render del content con @menciones coloreadas (Diseño P8 24-jun).
+ * Detecta tokens "@palabra" (alfanumérico + _ + - + .) y los pinta
+ * en azul #2563EB. Resto del texto en gris.
+ *
+ * Limitación MVP: extracción por regex. Sin tooltip con datos del user.
+ * Cuando api-mcp añada `mentions: [ID!]` al CRM_Note schema, switch a
+ * resolver el userId real + tooltip.
+ */
+function renderContentWithMentions(content: string): React.ReactNode {
+  if (!content) return null;
+  const parts = content.split(/(@[A-Za-z0-9_.\-]+)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('@')) {
+      return (
+        <span key={i} style={{ color: '#2563EB', fontWeight: 600 }}>
+          {part}
+        </span>
+      );
+    }
+    // Plain text part — span sin estilo para mantener key uniforme
+    return <span key={i}>{part}</span>;
+  });
+}
+
+/**
+ * Extrae menciones (@palabra) del content para guardar en
+ * metadata.mentions del CRM_Note. Devuelve array sin duplicados.
+ * Exported para uso desde callers que crean/editan notas.
+ */
+export function extractMentionsFromContent(content: string): string[] {
+  if (!content) return [];
+  const matches = content.match(/@[A-Za-z0-9_.\-]+/g) ?? [];
+  return [...new Set(matches.map((m) => m.slice(1)))];
 }
