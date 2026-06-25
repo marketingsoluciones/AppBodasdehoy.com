@@ -18,13 +18,15 @@
  * conversation↔invitado (D3 backend pendiente). Mientras: cambio local
  * optimista + log para diagnóstico. Anotado en FASE B v2.0 backlog.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   callMcpGraphQL,
   GQL_UPDATE_GUEST_RSVP_BY_CONVERSATION,
   GQL_ASSIGN_CONVERSATION_TO_USER,
 } from '@bodasdehoy/shared/crm-ui';
+
+import { useAuthCheck } from '@/hooks/useAuthCheck';
 
 import { ConversationNotesSidebar } from './ConversationNotesSidebar';
 
@@ -92,9 +94,13 @@ export function EventSidebar({
   // Devuelve objeto (NO Boolean) — leer .success para confirmar/revertir.
   // Sincronizamos también si llega un initialRsvp distinto (props cambian
   // cuando navega de una conv a otra).
+  const { checkAuth } = useAuthCheck();
+  const currentUserId = checkAuth().userId || null;
   const [rsvp, setRsvp] = useState<RsvpStatus | undefined>(initialRsvp);
   const [savingRsvp, setSavingRsvp] = useState(false);
   const [rsvpError, setRsvpError] = useState<string | null>(null);
+  const [assignPickerOpen, setAssignPickerOpen] = useState(false);
+  const assignPickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setRsvp(initialRsvp);
@@ -138,23 +144,50 @@ export function EventSidebar({
   };
 
   const [savingAssign, setSavingAssign] = useState(false);
-  /** Para uso futuro cuando expongamos el picker. Funciona ahora si se invoca. */
-  const handleAssignToUser = async (userId: string | null) => {
+  const [assignedToLocal, setAssignedToLocal] = useState<
+    { id: string; name: string; kind: 'user' | 'team' } | null | undefined
+  >(assignedTo);
+
+  useEffect(() => {
+    setAssignedToLocal(assignedTo);
+  }, [assignedTo, conversationId]);
+
+  // Cerrar picker al hacer click fuera
+  useEffect(() => {
+    if (!assignPickerOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (assignPickerRef.current && !assignPickerRef.current.contains(e.target as Node)) {
+        setAssignPickerOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [assignPickerOpen]);
+
+  const handleAssignToUser = async (userId: string | null, userLabel?: string) => {
     if (savingAssign) return;
+    const prev = assignedToLocal;
     setSavingAssign(true);
+    // Optimistic UI
+    setAssignedToLocal(
+      userId ? { id: userId, kind: 'user', name: userLabel || userId } : null,
+    );
     try {
-      await callMcpGraphQL<{ assignConversationToUser: boolean | null }>(
+      const data = await callMcpGraphQL<{ assignConversationToUser: boolean | null }>(
         GQL_ASSIGN_CONVERSATION_TO_USER,
         { conversationId, userId },
       );
+      if (data?.assignConversationToUser !== true) {
+        setAssignedToLocal(prev);
+      }
     } catch (err) {
+      setAssignedToLocal(prev);
       // eslint-disable-next-line no-console
       console.warn('[EventSidebar] assign user falló:', err);
     } finally {
       setSavingAssign(false);
     }
   };
-  void handleAssignToUser; // expuesto cuando integremos UI picker
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-white">
@@ -238,27 +271,77 @@ export function EventSidebar({
           </div>
         </div>
 
-        {/* 3. Asignación */}
-        <div className="border-b border-gray-100 px-3 py-3">
+        {/* 3. Asignación — picker user-only (api-mcp commit 926b5df, 25-jun) */}
+        <div className="relative border-b border-gray-100 px-3 py-3" ref={assignPickerRef}>
           <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
             Asignado a
           </div>
-          {assignedTo ? (
-            <div className="flex items-center gap-2 rounded-lg border border-gray-200 px-2 py-1.5">
-              <span aria-hidden className="text-base">
-                {assignedTo.kind === 'team' ? '👥' : '👤'}
+          <button
+            aria-expanded={assignPickerOpen}
+            aria-haspopup="listbox"
+            className="flex w-full items-center justify-between gap-2 rounded-lg border border-gray-200 px-2 py-1.5 text-xs transition-colors hover:bg-gray-50 disabled:opacity-60"
+            disabled={savingAssign}
+            onClick={() => setAssignPickerOpen((v) => !v)}
+            type="button"
+          >
+            {assignedToLocal ? (
+              <span className="flex items-center gap-2 truncate">
+                <span aria-hidden className="text-base">
+                  {assignedToLocal.kind === 'team' ? '👥' : '👤'}
+                </span>
+                <span className="truncate text-gray-800">{assignedToLocal.name}</span>
               </span>
-              <span className="truncate text-xs text-gray-800">{assignedTo.name}</span>
-            </div>
-          ) : (
-            <button
-              className="w-full rounded-lg border border-dashed border-gray-300 px-2 py-1.5 text-[11px] text-gray-500 hover:bg-gray-50"
-              disabled
-              title="Picker disponible en próximo sprint"
-              type="button"
+            ) : (
+              <span className="text-gray-500">Sin asignar</span>
+            )}
+            <span aria-hidden className="opacity-60">
+              ▾
+            </span>
+          </button>
+
+          {assignPickerOpen && (
+            <div
+              className="absolute left-3 right-3 top-full z-20 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg"
+              role="listbox"
             >
-              Sin asignar — picker próximo sprint
-            </button>
+              {/* Asignármela a mí — siempre primero, color verde Diseño */}
+              {currentUserId && (
+                <button
+                  className="flex w-full items-center gap-2 border-b border-gray-100 px-3 py-2 text-left text-[12px] transition-colors hover:bg-gray-50"
+                  onClick={() => {
+                    void handleAssignToUser(currentUserId, 'Yo');
+                    setAssignPickerOpen(false);
+                  }}
+                  role="option"
+                  aria-selected={assignedToLocal?.id === currentUserId}
+                  type="button"
+                  style={{ color: '#16A34A' }}
+                >
+                  <span aria-hidden className="text-base">⤴</span>
+                  <span className="font-semibold">Asignármela a mí</span>
+                </button>
+              )}
+              {/* Desasignar */}
+              {assignedToLocal && (
+                <button
+                  className="flex w-full items-center gap-2 border-b border-gray-100 px-3 py-2 text-left text-[12px] text-gray-700 transition-colors hover:bg-gray-50"
+                  onClick={() => {
+                    void handleAssignToUser(null);
+                    setAssignPickerOpen(false);
+                  }}
+                  role="option"
+                  type="button"
+                >
+                  <span aria-hidden>✕</span>
+                  <span>Desasignar</span>
+                </button>
+              )}
+              {/* TODO: lista de usuarios del workspace cuando api-mcp/api-ia
+                       expongan endpoint /workspace/{dev}/users. */}
+              <div className="px-3 py-2 text-[10px] text-gray-400">
+                Lista de equipo: pendiente endpoint backend
+              </div>
+            </div>
           )}
         </div>
 
