@@ -33,7 +33,7 @@ schema:
   # Pinneado 25-jun-2026 por hash exacto (api-mcp commit 7d52fec).
   # Incluye: guestStatus en WhatsAppConversation, getWhatsAppTemplates,
   # jidType/jidRaw, enum CONVERSATION para Notes, updateGuestRsvpByConversation.
-  - https://api-mcp.eventosorganizador.com/graphql/schema-16189700a32ba349f5637bc96b7a174df06c2668.graphql
+  - https://api-mcp.eventosorganizador.com/graphql/schema-dda9b115d8924e0bd95d41ce37130dfea535db80.graphql
 
 # FASE 1 limitada: solo tipos del schema (input/output/enums/scalars).
 # typescript-operations requiere queries con tag `gql` o archivos .graphql
