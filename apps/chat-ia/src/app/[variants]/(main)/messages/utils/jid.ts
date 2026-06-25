@@ -1,17 +1,29 @@
 // BUG-CW-N33 (QA3 reporte 23-jun BUG 3): Baileys envía contactos como JIDs.
-// api-ia guardaba solo el prefijo (antes del @) en `phoneNumber` Y en
-// `contactInfo.name`, así que la UI mostraba el JID de Newsletter
-// "120363242494972533" como si fuera un número de teléfono real.
-// 6 de 8 conversaciones en MongoDB tenían datos basura.
 //
-// Fix REAL va en api-ia (función parseJid + schema con jidRaw + jidType).
-// Defensa front mientras: detectar patrón y mostrar etiqueta sensata
-// ("Canal", "Grupo", "Status Broadcast") en lugar del número crudo.
+// FIX REAL EN PROD: api-mcp commit 7d52fec (25-jun) añadió campos jidType +
+// jidRaw al schema WhatsAppConversation. Cuando los recibimos, usamos el
+// valor del backend en lugar de adivinar.
+//
+// La heurística antigua se mantiene como FALLBACK para:
+//   · Conversaciones legacy en BD que aún no fueron normalizadas
+//   · Otros canales que no expongan jidType (no-WhatsApp)
 
 export type JidKind = 'person' | 'newsletter' | 'group' | 'broadcast' | 'unknown';
 
-/** Heurística: detecta el tipo de identificador a partir del valor crudo
- *  (puede ser un JID `id@domain` o solo el prefijo guardado por api-ia). */
+/** Normaliza el jidType crudo de api-mcp a nuestro JidKind interno.
+ *  api-mcp devuelve: user | group | newsletter | broadcast | lid | unknown. */
+export function jidTypeToKind(jidType: string | null | undefined): JidKind {
+  if (!jidType) return 'unknown';
+  const v = String(jidType).toLowerCase().trim();
+  if (v === 'user' || v === 'lid') return 'person';
+  if (v === 'newsletter') return 'newsletter';
+  if (v === 'group') return 'group';
+  if (v === 'broadcast') return 'broadcast';
+  return 'unknown';
+}
+
+/** Heurística legacy: detecta el tipo a partir del valor crudo.
+ *  Solo se usa cuando jidType del backend no está disponible. */
 export function classifyJidLike(raw: string | null | undefined): JidKind {
   if (!raw) return 'unknown';
   const v = String(raw).trim();
@@ -35,8 +47,15 @@ export function classifyJidLike(raw: string | null | undefined): JidKind {
 }
 
 /** Devuelve un nombre amigable a mostrar al usuario cuando el campo
- *  recibido es probablemente un JID/prefijo y no un nombre real. */
-export function friendlyContactName(rawName: string | null | undefined, rawPhone?: string | null): string {
+ *  recibido es probablemente un JID/prefijo y no un nombre real.
+ *
+ *  Si `jidType` viene del backend (api-mcp 7d52fec) lo usamos como
+ *  fuente de verdad. Si no, heurística legacy sobre el rawPhone. */
+export function friendlyContactName(
+  rawName: string | null | undefined,
+  rawPhone?: string | null,
+  jidType?: string | null,
+): string {
   const name = (rawName ?? '').trim();
   const phone = (rawPhone ?? '').trim();
 
@@ -45,8 +64,9 @@ export function friendlyContactName(rawName: string | null | undefined, rawPhone
   const looksLikeId = /^\d{8,}$/.test(name) || name.includes('@');
   if (name && !looksLikeId) return name;
 
+  // Si backend nos dio jidType, lo usamos directo. Si no, heurística.
   const candidate = name || phone;
-  const kind = classifyJidLike(candidate);
+  const kind = jidType ? jidTypeToKind(jidType) : classifyJidLike(candidate);
   switch (kind) {
     case 'newsletter':
       return `Canal ${(candidate || '').replace(/@.*$/, '').slice(-6)}`;
@@ -64,9 +84,13 @@ export function friendlyContactName(rawName: string | null | undefined, rawPhone
 }
 
 /** Devuelve el teléfono solo si es realmente un teléfono (no JID de Newsletter
- *  ni de Grupo). Útil para no mostrar un número de 18 dígitos como tel. */
-export function safePhoneOrEmpty(rawPhone: string | null | undefined): string {
+ *  ni de Grupo). Si `jidType` viene del backend, fuente de verdad. */
+export function safePhoneOrEmpty(
+  rawPhone: string | null | undefined,
+  jidType?: string | null,
+): string {
   const phone = (rawPhone ?? '').trim();
   if (!phone) return '';
-  return classifyJidLike(phone) === 'person' ? phone : '';
+  const kind = jidType ? jidTypeToKind(jidType) : classifyJidLike(phone);
+  return kind === 'person' ? phone : '';
 }
