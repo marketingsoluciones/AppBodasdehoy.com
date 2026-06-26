@@ -309,5 +309,115 @@ Reglas cleanup:
   · Smoke script: scripts/smoke-bug09-currency.sh para verificar post-migración
 
 ═══════════════════════════════════════════════════════════════════════════════
+6. MEJORAS UX / DISEÑO RECOMENDADAS (post-merge)
+═══════════════════════════════════════════════════════════════════════════════
+
+La auditoría del 26-jun identificó áreas donde el flujo actual funciona PERO
+puede mejorarse para reducir tickets soporte y elevar conversión sin
+introducir riesgo. Estas mejoras NO son blockers del merge — son backlog
+post-merge para considerar en próximos sprints.
+
+─── A. LOGIN UNIFICADO (las 4 apps) ────────────────────────────────────────
+
+Estado actual:
+  · 4 métodos: Email+password, Google OAuth, Facebook OAuth, WhatsApp OTP
+  · SSO cookie .bodasdehoy.com unifica sesión cross-app
+  · Funciona pero hay friction y abuse vector en WhatsApp OTP
+
+Áreas a mejorar (ver docs/PLAN-LOGIN-P0-2026-06-26.code.txt):
+
+  P0 (alto impacto, riesgo bajo):
+    1. Añadir MAGIC LINK email como reemplazo del password tradicional
+       → -40% tickets "olvidé password"
+       → 0€ coste extra (usa SES ya configurado)
+    2. CAPTCHA Cloudflare Turnstile + rate limit en WhatsApp OTP send
+       → previene factura Meta inflada por bots
+       → 0€ coste extra
+    3. Auto-sugerir provider por domain email (@gmail → Google)
+       → +10% conversión, reduce confusión usuarios
+
+  P1 (próximo trimestre):
+    4. Auditar uso real Facebook OAuth → deprecar si <5% logins
+    5. Account linking (mismo email Google/FB/magic link → mismo user)
+    6. "Remember device" 30 días con cookie fingerprint
+
+  P2 (cuando haya banda):
+    7. 2FA opcional TOTP para usuarios power
+    8. Step-up auth en acciones sensibles (export invitados, billing)
+
+  NO HACER:
+    · 3FA universal (friction sin valor para tipo de app)
+    · Apple Sign In (no hay app iOS)
+    · SMS OTP (WhatsApp OTP es superior)
+    · Passkeys hasta 2027 (adopción <20% hoy)
+
+─── B. CONSISTENCIA BRANDING CROSS-APP ─────────────────────────────────────
+
+Las 4 apps deben sentirse de la misma marca. Verificar:
+
+  · Logo Bodas de Hoy en mismo lugar/tamaño en las 4 pantallas login
+  · Paleta de colores consistente (#A93E8C → #D946EF rosa-violeta)
+  · Tipografía: Quicksand títulos + Inter cuerpo en TODAS
+  · CTAs idénticos: "Continuar con Google" (NO "Login Google" en una y
+    "Acceder con Google" en otra)
+  · Misma altura/padding de cards en split-screen
+
+Ya hay coherencia parcial (packages/auth-ui/SplitLoginPage compartido) pero
+appEventos tiene su propio LoginForm legacy que NO usa el split del auth-ui.
+Plan: migrar appEventos al mismo SplitLoginPage del package compartido.
+
+─── C. ESTADOS DE LOADING + MENSAJES DE ERROR ──────────────────────────────
+
+Patrón actual: cada componente maneja loading/error de forma distinta.
+
+Recomendado:
+  · Spinner único compartido (componente <LoadingButton />)
+  · Mensajes de error accionables, NO genéricos:
+    ❌ "Error en autenticación"
+    ✅ "Email o contraseña incorrectos. ¿Olvidaste tu password?
+        [Iniciar con Google] [Recuperar acceso]"
+  · Estados optimistas (UI responde inmediato, backend confirma después)
+  · Skeleton loaders mientras hidrata (en lugar de pantalla blanca)
+
+─── D. MOBILE-FIRST + ACCESIBILIDAD ────────────────────────────────────────
+
+QA reportó viewport 1054×749 (intermedio). Verificar:
+
+  · Login responsive <375px (iPhone SE) — auth-ui SplitLoginPage colapsa
+    el split a stacked
+  · Inputs con type="email" + autocomplete="email" para nativos mobile
+  · Botones touch-friendly (min 44×44px tap area)
+  · Aria-labels en todos los botones de icono
+  · Contraste WCAG AA mínimo en textos sobre fondos color
+  · Tab navigation funcional con teclado
+  · prefers-reduced-motion respetado en animaciones
+
+─── E. RECOVERY FLOW VISIBLE ──────────────────────────────────────────────
+
+Si user falla login 3 veces, mostrar PROACTIVAMENTE opciones:
+  · "¿Has olvidado tu password? Te enviamos un magic link"
+  · "¿Cambiaste de email? Contacta soporte"
+
+Hoy el "olvidé password" está como link pequeño abajo. Promoverlo cuando
+detectamos friction.
+
+─── F. INSTRUMENTACIÓN — datos para decidir mejoras futuras ───────────────
+
+Eventos a trackear (Sentry, GA4 o ambos):
+  · login_initiated (method: google/facebook/whatsapp/email/magic)
+  · login_completed (method, time_elapsed_ms)
+  · login_abandoned (method, step_where, time_elapsed_ms)
+  · password_reset_requested
+  · captcha_challenge_shown / passed / failed
+  · cross_app_sso_inherited (origin_app, target_app)
+
+Dashboard "Login health" semanal con:
+  · Conversión por método
+  · Tiempo medio login
+  · Tasa de abandono
+  · Tickets soporte "no puedo entrar"
+  · Coste mensual OTP WhatsApp
+
+═══════════════════════════════════════════════════════════════════════════════
 FIN — listo para PR review cuando QA cierre prompt exhaustivo + retest #20
 ═══════════════════════════════════════════════════════════════════════════════
