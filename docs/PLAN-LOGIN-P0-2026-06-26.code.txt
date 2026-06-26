@@ -286,6 +286,76 @@ RIESGOS
       Mitigación: siempre mantener alternativas visibles.
 
 ═══════════════════════════════════════════════════════════════════════════════
+3.5 CONSIDERACIONES MULTIMARCA (whitelabel-aware)
+═══════════════════════════════════════════════════════════════════════════════
+
+El login YA es multimarca: cada whitelabel tiene su propio config (logo,
+paleta, dominio, providers habilitados). Los 3 cambios del plan deben
+respetar esa multimarca SIN romper whitelabels existentes.
+
+CAMBIOS A LOGINFORM (packages/auth-ui/LoginForm.tsx):
+
+Props nuevas multimarca-aware:
+  · primaryColor?: string  → color CTA + hint sugerencia (default rosa-violeta
+                            Bodas de Hoy, cada whitelabel pasa el suyo)
+  · enableProviderHint?: boolean → si false, oculta el hint auto-sugerir.
+                                   Default true.
+
+Por qué importa multimarca:
+  1. Cada whitelabel tiene paleta distinta — el hint debe usar SU color
+  2. Algunos whitelabels pueden no querer auto-sugerir (UX uniforme)
+  3. El hint solo aparece si el provider sugerido ESTÁ habilitado en ese
+     whitelabel (controlado por onGoogleLogin / onFacebookLogin props)
+
+CAMBIOS A MAGIC LINK:
+
+Email template SES debe ser PER-WHITELABEL:
+  · subject: "Tu enlace de acceso a {whitelabel.brandName}"
+  · header logo: whitelabel.logoUrl
+  · color primario: whitelabel.colors.primary
+  · footer: whitelabel.supportEmail + dirección legal
+
+api-mcp ya tiene 11 SES SMTP credentials una por whitelabel — usar la
+adecuada según el `development` que viene en el request.
+
+Sender address debe ser per-whitelabel:
+  · bodasdehoy → no-reply@bodasdehoy.com
+  · champagne-events → no-reply@champagne-events.com
+  · etc.
+
+CAMBIOS A WhatsApp OTP:
+
+Template Meta WAB debe estar aprobado por número de WhatsApp Business
+de cada whitelabel. Esto NO es nuevo — ya es el flujo actual.
+
+Rate limit per-whitelabel:
+  · No es 3 OTPs/hora globales, es 3 OTPs/hora POR whitelabel + teléfono
+  · Cada whitelabel tiene su saldo Meta y consume aparte
+
+CAMBIOS A AUTO-SUGERIR PROVIDER:
+
+Solo sugiere providers que el whitelabel TIENE habilitados:
+  · Si bodasdehoy tiene Google + WhatsApp pero NO Facebook → el hint
+    nunca sugiere Facebook
+  · Si un whitelabel internacional tiene Microsoft OAuth → hint con
+    Microsoft funciona
+
+Control: el hint se renderiza solo si `onGoogleLogin` (o el provider
+correspondiente) está pasado como prop. Si el whitelabel no lo configura,
+el hint para ese provider no aparece.
+
+CHECKLIST MULTIMARCA antes de release:
+
+  [ ] Magic link email template renderiza en bodasdehoy + champagne-events
+      + 2 whitelabels más con sus colores/logos respectivos
+  [ ] Hint provider respeta el primaryColor de cada whitelabel
+  [ ] Hint NO sugiere provider que el whitelabel no tiene activo
+  [ ] Rate limit cuenta separado por whitelabel + teléfono
+  [ ] WhatsApp OTP template aprobado en cada whitelabel Meta WAB
+  [ ] SSO cookie .bodasdehoy.com sigue heredando entre las 4 apps SIN
+      filtrar otros whitelabels (cookie path + domain correctos)
+
+═══════════════════════════════════════════════════════════════════════════════
 4. PROPAGACIÓN A LAS 4 APPS
 ═══════════════════════════════════════════════════════════════════════════════
 
