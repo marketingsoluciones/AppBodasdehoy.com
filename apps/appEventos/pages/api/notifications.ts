@@ -17,11 +17,27 @@ import { resolveApiBodasGraphqlUrl } from '../../utils/apiEndpoints';
 
 const API_MCP_URL = resolveApiBodasGraphqlUrl();
 
+/**
+ * Lee SUPPORT_SECRET_KEY de env. Throw EXPLÍCITO si no está configurada.
+ * Antes había un fallback hardcoded (mismo valor 3 veces) que filtraba la
+ * key real en git → eliminado 2026-06-26 por política PROHIBIDO FALLBACK +
+ * recomendación AWS SES "no almacenar credenciales en repos terceros".
+ */
+function getSupportKey(): string {
+  const key = process.env.SUPPORT_SECRET_KEY;
+  if (!key) {
+    throw new Error(
+      '[notifications.ts] SUPPORT_SECRET_KEY no configurado. Configurar en .env del servidor (NUNCA hardcodear en código).',
+    );
+  }
+  return key;
+}
+
 // Server-side: generar Firebase ID token para api2
 async function getServerToken(userId: string): Promise<string | null> {
   try {
     // 1. Generar custom token via Firebase Admin en api2
-    const supportKey = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
+    const supportKey = getSupportKey();
     const impersonateRes = await fetch(API_MCP_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Development': 'bodasdehoy' },
@@ -73,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-Development': development };
     if (cookieToken && cookieToken.startsWith('ey')) headers['Authorization'] = `Bearer ${cookieToken}`;
     else {
-      headers['X-Support-Key'] = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
+      headers['X-Support-Key'] = getSupportKey();
       if (uid) headers['X-User-Id'] = uid;
     }
     try {
@@ -107,10 +123,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     headers['Authorization'] = `Bearer ${cookieToken}`;
   }
 
-  // Si no hay token, usar support key + X-User-Id como fallback (bypass/test)
-  const supportKey = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
+  // Si no hay token, usar support key + X-User-Id (bypass/test server-side)
   if (!headers['Authorization']) {
-    headers['X-Support-Key'] = supportKey;
+    headers['X-Support-Key'] = getSupportKey();
     headers['X-User-Id'] = userId;
   }
 
