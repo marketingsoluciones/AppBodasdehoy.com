@@ -9,10 +9,10 @@
  *   users 275 · sessions 1622 · topics 345 · messages 1026 · resto < 200 (basura legacy)
  *
  * api-ia confirmó (commit 6920758) que ya tienen endpoints batch:
- *   POST /api/lobe/users           (loop individual, 275 calls)
- *   POST /api/lobe/sessions/batch  (17 batches × 100 = 1622)
- *   POST /api/lobe/topics/batch    (4 batches × 100 = 345)
- *   POST /api/lobe/messages/batch  (11 batches × 100 = 1026)
+ *   POST /api/history/users           (loop individual, 275 calls)
+ *   POST /api/history/sessions/batch  (17 batches × 100 = 1622)
+ *   POST /api/history/topics/batch    (4 batches × 100 = 345)
+ *   POST /api/history/messages/batch  (11 batches × 100 = 1026)
  *
  * MODOS:
  *   --dry-run    → SELECT desde Neon + dump JSON local en /tmp/neon-dump/
@@ -141,7 +141,7 @@ async function migrateUsers(): Promise<MigrationStats> {
   // Loop individual (api-ia no tiene users/batch — son pocos)
   for (const r of rows) {
     try {
-      await apiPost('/api/lobe/users', {
+      await apiPost('/api/history/users', {
         development: 'bodasdehoy',
         email: r.email ?? undefined,
         metadata: { migrated_from_neon: true, neon_created_at: r.created_at },
@@ -190,7 +190,7 @@ async function migrateSessions(): Promise<MigrationStats> {
         count?: number;
         errors?: Array<{ client_id?: string; error?: string }>;
         success?: boolean;
-      }>('/api/lobe/sessions/batch', body);
+      }>('/api/history/sessions/batch', body);
       stats.success += res?.count ?? batch.length;
       for (const e of res?.errors ?? []) {
         stats.failed++;
@@ -235,7 +235,7 @@ async function migrateTopics(): Promise<MigrationStats> {
       const res = await apiPost<{
         count?: number;
         errors?: Array<{ client_id?: string; error?: string }>;
-      }>('/api/lobe/topics/batch', body);
+      }>('/api/history/topics/batch', body);
       stats.success += res?.count ?? batch.length;
       for (const e of res?.errors ?? []) {
         stats.failed++;
@@ -289,7 +289,7 @@ async function migrateMessages(): Promise<MigrationStats> {
       const res = await apiPost<{
         count?: number;
         errors?: Array<{ client_id?: string; error?: string }>;
-      }>('/api/lobe/messages/batch', body);
+      }>('/api/history/messages/batch', body);
       stats.success += res?.count ?? batch.length;
       for (const e of res?.errors ?? []) {
         stats.failed++;
