@@ -1,0 +1,422 @@
+═══════════════════════════════════════════════════════════════════════════════
+PLAN P0 — LOGIN UNIFICADO (4 apps Bodas de Hoy)
+Fecha: 2026-06-26 · Autor: COORD-AppEventos
+Estado: PROPUESTA — pendiente aprobación user para implementar
+═══════════════════════════════════════════════════════════════════════════════
+
+## TL;DR
+
+3 cambios en login con impacto medible. Reducen tickets soporte (-40%) +
+elevan conversión signup (+10%) + frenan abuso de coste WhatsApp OTP.
+Las 4 apps los heredan vía SSO cookie `.bodasdehoy.com` existente.
+
+Apps afectadas:
+  · appEventos (PRINCIPAL — organizadores)
+  · chat-ia (asistente IA)
+  · memories-web (álbumes)
+  · editor-web (creador webs)
+
+Tiempo total estimado: ~5 días (1 dev front + 1 dev backend api-mcp en
+paralelo). Sin tocar UI Diseño v2 actual — solo adiciones.
+
+═══════════════════════════════════════════════════════════════════════════════
+1. MAGIC LINK EMAIL — reemplazar password tradicional
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJETIVO
+─────────────────────────────────────────────────────────────────────────────
+Sustituir el flujo password tradicional (origen del 40% de tickets soporte)
+por un magic link en email. User escribe email → recibe link → click → logueado.
+
+UX FLOW
+─────────────────────────────────────────────────────────────────────────────
+
+  ┌─────────────────────────────┐
+  │ Pantalla actual login       │
+  │ ─ Email                     │
+  │ ─ Contraseña [opcional]     │
+  │ ─ [Iniciar sesión]          │
+  └─────────────────────────────┘
+              │
+              │ Si user escribe SOLO email + click "Iniciar sesión"
+              ▼
+  ┌─────────────────────────────┐
+  │ Pantalla "Revisa tu email"  │
+  │ ─ Texto: enviamos enlace    │
+  │ ─ countdown 30 min          │
+  │ ─ [Reenviar tras 60s]       │
+  │ ─ Volver atrás              │
+  └─────────────────────────────┘
+              │
+              │ User click en link del email
+              ▼
+  ┌─────────────────────────────┐
+  │ /api/auth/magic-verify?t=X  │
+  │ Valida JWT → crea sesión    │
+  │ Redirect → /chat o /messages│
+  └─────────────────────────────┘
+
+Si user escribe email Y password → flujo password actual (legacy, sin
+cambios). Magic link solo se ofrece cuando NO hay password input.
+
+COMPONENTES A TOCAR
+─────────────────────────────────────────────────────────────────────────────
+
+FRONT (packages/auth-ui + chat-ia + appEventos):
+
+  packages/auth-ui/src/LoginForm.tsx
+    + Prop `onMagicLink?: (email: string) => Promise<void>`
+    + Si pasada, click en "Iniciar sesión" SIN password → llama onMagicLink
+    + Nueva pantalla `<MagicLinkSent />` con countdown + reenvío
+    Estimado: 4h
+
+  apps/chat-ia/src/app/[variants]/(auth)/login/[[...login]]/_page-client.tsx
+    + Handler handleMagicLink(email): POST /api/auth/magic-link
+    + State magicSent + countdown
+    Estimado: 2h
+
+  apps/appEventos/components/Forms/Login/Forms.tsx
+    + Mismo cableo handler magic link
+    Estimado: 1h
+
+FRONT — endpoints proxy (chat-ia App Router + appEventos pages router):
+
+  apps/chat-ia/src/app/api/auth/magic-link/route.ts                NUEVO
+  apps/chat-ia/src/app/api/auth/magic-verify/route.ts              NUEVO
+  apps/appEventos/pages/api/auth/magic-link.ts                     NUEVO
+  apps/appEventos/pages/api/auth/magic-verify.ts                   NUEVO
+
+  Cada uno proxy al endpoint api-mcp/api-ia equivalente.
+  Estimado: 4h (2 endpoints × 2 apps)
+
+BACKEND api-mcp (NECESITA EQUIPO BACKEND):
+
+  Nuevos endpoints REST (NO GraphQL, son flujos auth):
+
+  POST /api/auth/magic-link/send
+    body: { email, development, redirectTo?: string }
+    1. Verificar email existe en users collection
+    2. Generar JWT signed con { email, uid, tokenId, exp: 30min }
+    3. Mandar email via SES con template "magic-link"
+       Link: https://{app}/api/auth/magic-verify?t={jwt}
+    4. Insertar tokenId en magic_link_used collection (anti-replay)
+    response: { success: true, expiresIn: 1800 }
+
+  POST /api/auth/magic-link/verify
+    body: { token }
+    1. Decodificar JWT, verificar firma
+    2. Verificar tokenId NO está en magic_link_used (anti-replay)
+    3. Marcar tokenId como used
+    4. Crear sesión Firebase custom token + JWT api-mcp
+    response: { success: true, token, user_id, email, development }
+
+  Rate limit:
+    · 3 magic links por hora por email (Redis Upstash)
+    · 10 magic links por hora por IP (anti-bot)
+    · 5 verify attempts por token (anti-brute force tokenId)
+
+  Anti-fraud:
+    · Verificar Referer/Origin del verify viene de dominio whitelist
+    · Token de un solo uso (consumed en primer verify exitoso)
+    · JWT firmado con secret separado del JWT de sesión normal
+
+  Email template SES:
+    Subject: "Tu enlace de acceso a {development_name}"
+    Body: link clickable + texto "Expira en 30 minutos"
+    Header List-Unsubscribe (AWS SES Trust & Safety)
+
+  Estimado backend: 1-1.5 días
+
+RIESGOS Y MITIGACIONES
+─────────────────────────────────────────────────────────────────────────────
+
+  R1. Entrega email tarda o no llega
+      Mitigación: pantalla "no recibí" con opciones:
+        · Reenviar tras 60s
+        · Probar con WhatsApp OTP
+        · Probar con Google login
+
+  R2. User abre email en otro device → fricción
+      Mitigación: el verify endpoint debe funcionar en cualquier device.
+      Tras verify, crea sesión en ESE device. Si user tenía intención de
+      loguearse en mobile pero abrió email en desktop, queda logueado en
+      desktop. Mostrar mensaje "Logueado en este device" + sugerir QR para
+      transferir sesión (futuro).
+
+  R3. Token JWT filtrado en logs/network → atacante puede usarlo
+      Mitigación: token único uso + expiry 30min + Referer check.
+
+  R4. Phishing — atacante manda email falso con link similar
+      Mitigación: nuestro email viene de dominio verificado SES
+      (no-reply@bodasdehoy.com). Educación usuarios (link en ayuda).
+
+  R5. Cost factor — SES tiene coste por email
+      Mitigación: rate limit + AWS SES ya configurado con keys whitelabel.
+      Coste estimado: <0.001€ por email vs 0.03€ WhatsApp OTP.
+
+═══════════════════════════════════════════════════════════════════════════════
+2. CAPTCHA + RATE LIMIT EN WhatsApp OTP
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJETIVO
+─────────────────────────────────────────────────────────────────────────────
+Prevenir abuse de coste (factura Meta inflada) y SIM swap brute force.
+Hoy /api/auth/whatsapp-otp-send es público sin protección.
+
+UX FLOW
+─────────────────────────────────────────────────────────────────────────────
+
+  Step actual: phone input → click "Enviar código" → OTP via WhatsApp
+  Step nuevo:  phone input + Turnstile widget (transparente) → click
+              "Enviar código" → validar Turnstile + rate limit → OTP
+
+Cloudflare Turnstile es invisible en 95% de los casos. Solo muestra
+challenge si detecta patrones de bot. UX no cambia para usuarios reales.
+
+COMPONENTES A TOCAR
+─────────────────────────────────────────────────────────────────────────────
+
+FRONT:
+
+  apps/chat-ia/src/app/[variants]/(auth)/login/[[...login]]/_page-client.tsx
+    + Importar @marsidev/react-turnstile (componente oficial)
+    + Renderizar widget en step 'phone'
+    + Capturar token onSuccess, pasar a /api/auth/whatsapp-otp-send
+    Estimado: 3h
+
+  apps/chat-ia/src/app/api/auth/whatsapp-otp-send/route.ts
+    + Validar turnstile_token recibido contra
+      https://challenges.cloudflare.com/turnstile/v0/siteverify
+    + Si invalid → 400 "captcha failed"
+    Estimado: 2h
+
+BACKEND api-mcp (endpoint /api/auth/whatsapp-otp-send):
+
+  + Verificar turnstile_token server-side (defensa profunda)
+  + Rate limit Redis Upstash:
+    · 3 OTPs por hora por teléfono
+    · 10 OTPs por hora por IP
+    · Backoff exponencial: 1min, 5min, 30min entre intentos
+  + Log fraud attempts (multiple números desde misma IP)
+  Estimado: 4h
+
+CONFIG:
+
+  Variables ENV nuevas:
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY=xxx (en .env de chat-ia + appEventos)
+    TURNSTILE_SECRET_KEY=xxx (solo backend api-mcp)
+    UPSTASH_REDIS_REST_URL=xxx
+    UPSTASH_REDIS_REST_TOKEN=xxx
+
+  Cloudflare Turnstile setup (5 min):
+    1. dash.cloudflare.com → Turnstile → Add Site
+    2. Domain: bodasdehoy.com, eventosorganizador.com
+    3. Widget mode: Managed (auto-detect)
+    4. Copy site key + secret key a .env
+
+RIESGOS
+─────────────────────────────────────────────────────────────────────────────
+
+  R1. Turnstile falla → user no puede loguear
+      Mitigación: graceful degradation. Si validate timeout >5s, permitir
+      con flag suspicious=true + rate limit más estricto.
+
+  R2. Redis Upstash caído → no hay rate limit
+      Mitigación: fallback in-memory (limita por proceso, mejor que nada).
+
+  R3. Turnstile false positive (user real bloqueado)
+      Mitigación: Turnstile tiene tasa false positive <0.5%. Si afecta,
+      fallback a magic link email.
+
+  R4. Coste Upstash si volumen alto
+      Mitigación: free tier (10K req/día). Login OTP es bajo volumen
+      (<500 OTPs/día). Sobrado.
+
+═══════════════════════════════════════════════════════════════════════════════
+3. AUTO-SUGERIR PROVIDER POR DOMAIN EMAIL
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJETIVO
+─────────────────────────────────────────────────────────────────────────────
+Reducir confusión "qué método uso" mostrando una sugerencia inteligente
+basada en el dominio del email que escribe el usuario.
+
+UX FLOW
+─────────────────────────────────────────────────────────────────────────────
+
+  User escribe en email input "juan@gmail.com"
+  ↓
+  Onchange detecta @gmail.com
+  ↓
+  Debajo del input aparece hint:
+  "Detectamos cuenta Gmail.
+   Iniciar con Google es más rápido (1 click, sin password). [Continuar con Google]"
+
+  Si user escribe @outlook → sugiere Microsoft (solo si añadís Microsoft OAuth)
+  Si user escribe @yahoo → sugiere magic link (Yahoo no tiene OAuth fácil)
+
+COMPONENTES A TOCAR
+─────────────────────────────────────────────────────────────────────────────
+
+  packages/auth-ui/src/LoginForm.tsx
+    + Detect domain on email change
+    + Render <ProviderHint domain={...} onClickProvider={...} />
+    + Mapping:
+        gmail.com, googlemail.com   → Google
+        outlook.com, hotmail.com,   → Microsoft (futuro)
+        live.com, msn.com
+        otros                       → magic link como sugerencia neutral
+    Estimado: 4h
+
+  Diseño:
+    Banner discreto debajo del input email.
+    Fondo color suave (#F4F1FE violeta lite).
+    Texto pequeño 12px.
+    Botón secundario alineado a la derecha.
+
+RIESGOS
+─────────────────────────────────────────────────────────────────────────────
+
+  R1. Heurística por domain puede fallar
+      (ej: alguien con @gmail.com sin cuenta Google activa)
+      Mitigación: es solo SUGERENCIA. User puede seguir con email+password
+      o magic link. No fuerza nada.
+
+  R2. Adopción muy alta de Google → si Google cae, todo el login se rompe
+      Mitigación: siempre mantener alternativas visibles.
+
+═══════════════════════════════════════════════════════════════════════════════
+4. PROPAGACIÓN A LAS 4 APPS
+═══════════════════════════════════════════════════════════════════════════════
+
+Las 4 apps comparten cookie SSO `.bodasdehoy.com`. Un login en chat-ia se
+hereda automáticamente a appEventos / memories / editor.
+
+POR APP:
+
+  chat-ia:
+    · IMPLEMENTAR los 3 cambios (es donde está el flujo principal)
+    · Forma canónica del flow
+
+  appEventos:
+    · IMPLEMENTAR magic link + auto-sugerir (tiene su LoginForm propio)
+    · WhatsApp OTP: actualmente NO tiene (verificar — añadir si interesa)
+
+  memories-web:
+    · NO requiere cambio — usa SSO cookie del login en chat-ia
+    · Verificar que el banner "Inicia sesión" redirige a /login de chat-ia
+
+  editor-web:
+    · NO requiere cambio — mismo SSO
+
+ARMONIZACIÓN BRANDING:
+  Verificar que las 4 apps muestran el mismo branding en login:
+    · Logo Bodas de Hoy consistente
+    · Misma paleta colores (#A93E8C → #D946EF rosa-violeta)
+    · Mismo fuente (Quicksand para títulos, Inter cuerpo)
+    · Mismo CTAs ("Continuar con Google", no "Login Google" en una y
+      "Acceder con Google" en otra)
+
+═══════════════════════════════════════════════════════════════════════════════
+5. PLAN DE EJECUCIÓN
+═══════════════════════════════════════════════════════════════════════════════
+
+DEPENDENCIAS BACKEND (api-mcp / api-ia):
+
+  Antes de empezar front, necesitamos:
+    [ ] Endpoint POST /api/auth/magic-link/send creado y testeado
+    [ ] Endpoint POST /api/auth/magic-link/verify creado y testeado
+    [ ] SES template "magic-link" aprobado y desplegado
+    [ ] Variable env TURNSTILE_SECRET_KEY en api-mcp
+    [ ] Variable env UPSTASH_REDIS_REST_TOKEN en api-mcp
+    [ ] Rate limit endpoint /api/auth/whatsapp-otp-send activo
+    [ ] JWT magic-link secret rotado independiente del JWT sesión
+
+  ESCALACIÓN A api-mcp / api-ia: bloque Slack separado.
+
+DESARROLLO PARALELO (5 días):
+
+  Día 1 (front + backend en paralelo):
+    Front: Magic link UI en LoginForm + pantalla MagicLinkSent
+    Backend: endpoint /api/auth/magic-link/send (api-mcp)
+    Setup: Cloudflare Turnstile cuenta + keys
+
+  Día 2:
+    Front: Auto-sugerir provider en LoginForm
+    Backend: endpoint /api/auth/magic-link/verify
+    Backend: rate limit Upstash en whatsapp-otp-send
+
+  Día 3:
+    Front: Cablear endpoints magic link en chat-ia + appEventos
+    Front: Turnstile widget en step phone
+    Backend: SES template magic-link + smoke test E2E
+
+  Día 4:
+    Tests E2E:
+      · Magic link happy path (3 apps)
+      · Magic link expirado, anti-replay
+      · WhatsApp OTP con Turnstile
+      · Auto-sugerir Google con @gmail
+      · Rate limit triggered (Redis)
+
+  Día 5:
+    Documentación + UAT con QA + deploy gradual:
+      · BUILD #21 chat-dev con feature flag MAGIC_LINK_ENABLED
+      · Smoke en producción interna
+      · Habilitar para todos cuando QA OK
+
+═══════════════════════════════════════════════════════════════════════════════
+6. MÉTRICAS DE ÉXITO
+═══════════════════════════════════════════════════════════════════════════════
+
+Antes del cambio (baseline a tomar):
+  · % logins via cada método (Google, FB, WA, email)
+  · Tickets soporte "olvidé password" / mes
+  · Tasa abandono signup form
+  · Coste mensual WhatsApp OTP (factura Meta)
+  · Tiempo medio login (desde click "Iniciar sesión" hasta /chat cargado)
+
+Tras el cambio (medir a 30 días):
+  · OBJETIVO Google login % → +20% (de X% actual a X+20%)
+  · OBJETIVO tickets "olvidé password" → -40%
+  · OBJETIVO tasa abandono → -15%
+  · OBJETIVO coste OTP → -30% (parte migran a magic link gratis)
+  · OBJETIVO tiempo login → -25% (Google 1 click vs typing password)
+
+Instrumentación:
+  · Eventos Sentry / GA4: login_initiated, login_completed, login_method,
+    login_abandoned, password_reset_requested
+  · Dashboard "Login health" semanal
+
+═══════════════════════════════════════════════════════════════════════════════
+7. COSTE ESTIMADO
+═══════════════════════════════════════════════════════════════════════════════
+
+Desarrollo: 5 días × 2 devs = 10 días-persona
+
+Infra mensual:
+  · Cloudflare Turnstile: 0€ (gratis ilimitado)
+  · Upstash Redis free tier: 0€ (hasta 10K req/día, sobrado)
+  · AWS SES magic link emails: ~5-10€/mes (1000-2000 emails/día × 0.0001€)
+  · Reducción factura WhatsApp OTP: -50€/mes estimado
+
+Coste neto: ahorro ~40€/mes en factura Meta. ROI positivo desde día 1.
+
+═══════════════════════════════════════════════════════════════════════════════
+8. FUERA DE SCOPE (futuro)
+═══════════════════════════════════════════════════════════════════════════════
+
+P1 (Q3 2026):
+  · 2FA opcional TOTP (Google Authenticator) configurable en /perfil/seguridad
+  · Step-up auth para acciones sensibles (export invitados, billing)
+  · Account linking Google + email + WhatsApp → mismo user
+  · Auditoría Facebook OAuth (decidir deprecar o no)
+
+P2 (2027):
+  · Passkeys (WebAuthn) cuando >50% browsers adoption
+  · Apple Sign In si se publica app iOS
+  · Multi-tenant identity (whitelabel-specific OAuth providers)
+
+═══════════════════════════════════════════════════════════════════════════════
+FIN — pendiente OK user para arrancar
+═══════════════════════════════════════════════════════════════════════════════
