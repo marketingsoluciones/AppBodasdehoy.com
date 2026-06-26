@@ -5,16 +5,24 @@ Fecha: 2026-06-25 · Autor: COORD-AppEventos
 
 ## TL;DR
 
-Sesión 25-jun-2026 cierra **FASE B v2.0 Bandeja** + **refactor runtime-only-api-ia**.
+Sesiones 25-jun + 26-jun-2026 cierran **FASE B v2.0 Bandeja** + **refactor
+runtime-only-api-ia** + **11 bugs QA reportados**.
 
-  · 28 commits HOY en chat-ia
-  · 13 BUILDS desplegados en chat-dev
-  · -89.387 líneas refactor model-runtime
+  · 44 commits acumulados entre 2 días
+  · 20 BUILDS desplegados en chat-dev
+  · -89.473 líneas (refactor model-runtime + cleanup huérfanos)
   · 17 features FASE B nuevas según handoff v2 Diseño 24-jun
-  · 2 bugs CRÍTICOS QA cerrados (RAG + HTTP 400)
+  · 10 / 11 bugs QA atendidos en código (1 escalado api-mcp)
+  · BUG-CRASH-01 (whitelabel selectores undefined) fixeado en 2 ondas (#18 + #19)
+  · 6 selectores serverConfig/preference/message/topic con guard defensivo `?.`
   · 3 try/catch defensivos protegen flujo crítico chat
+  · 3 features huérfanos borrados post-refactor (Follow/FirebaseAuth/MobileSwitchLoading)
+  · 23 docs `.code.txt` archivados a `docs/archive/`
+  · Spec E2E smoke `fase-b-bandeja-v2.spec.ts` con 10 tests (1 PASA, 9 skipean
+    por login programático intermitente — pendiente Firebase REST helper)
 
-BUILD activo final: `E60ON3H47UzFJoJiKyIuV` (chat-dev #13)
+BUILD activo final: `dHj1BBkgDbIkR6cuFNA4O` (chat-dev #20)
+Commit HEAD: `8eb61403` (rename /api/lobe → /api/history en script Neon)
 
 ═══════════════════════════════════════════════════════════════════════════════
 1. REFACTOR runtime-only-api-ia (~-89.387 líneas)
@@ -230,6 +238,76 @@ Reglas cleanup:
   0dcb955d  ♻️ refactor: eliminar 5 lambda routers + outputJSON
   9e526d23  📝 docs: auditoría model-runtime
 
+  ─── Sesión 26-jun ───────────────────────────────────────────────────────
+
+  7966ad2e  ✨ feat: @menciones azul en notas (Diseño P8)
+  ba4e9cf8  ✨ feat: Tab Historial botón "Marcar todas leídas"
+  3eb9cf33  ✨ feat: autocomplete @ usuarios NotesPanel + MentionAutocomplete
+  2f67aabf  🧹 chore: archivar 23 docs antiguos a docs/archive/
+  46925e1c  🐛 fix(qa-#13): 4 bugs — topics dup, scope filter, web snippet, moneda
+  c03b8748  🐛 fix(qa-#13): BUG-04/05 hydration + BUG-11 rol dueño legacy
+  e957d651  🐛 fix: BUG-CRASH-01 selectores serverConfig defensivos
+  7a8c8f59  🐛 fix(appEventos): BUG-11 isAllowed compara usuario_nombre
+  29abe6d4  🐛 fix: BUG-CRASH-01 preventivo 3 selectores más con ?.
+  71be2dd9  🧹 chore: borrar 3 features huérfanos post-refactor
+  131aed8b  🧪 test: fase-b-bandeja-v2 smoke /chat + skip-if-visitor
+  8eb61403  🔧 chore: rename /api/lobe/* → /api/history/* en script Neon
+
 ═══════════════════════════════════════════════════════════════════════════════
-FIN — listo para PR review cuando QA OK
+4. BUGS QA REPORTADOS — STATUS POR-#20
+═══════════════════════════════════════════════════════════════════════════════
+
+  ✅ BUG-CRASH-01  whitelabel oAuthSSOProviders/showCloudPromotion/defaultAgent
+                  CRÍTICO bloqueante. 2 ondas: e957d651 (raíz) + 29abe6d4
+                  (preventivos preference/message/topic). Selectores con `?.`.
+                  Defensa pura — no cambia comportamiento bien hidratado.
+
+  ✅ BUG-01       topics duplicate key — onConflictDoNothing + retry SELECT
+                  por id luego por (clientId,userId). Idempotente.
+                  Archivo: apps/chat-ia/packages/database/src/models/topic.ts
+
+  ✅ BUG-02       Tab Historial vacío — barra "{N} sin leer" + botón
+                  "Marcar todas leídas" (commit ba4e9cf8 #15)
+
+  ✅ BUG-03       Notas 400 Canal Web — channel prop + entityType ENTITY
+                  para non-WhatsApp (fix pre-#13, validar retest)
+
+  ✅ BUG-04+05    React #418 hydration + DOM duplicado — 3 puntos useState
+                  init con localStorage movidos a useEffect post-mount.
+                  Archivos: layout.tsx, ConversationList.tsx, MessageInput.tsx
+
+  ✅ BUG-06       ScopeSelector no filtra — filtro por linkedEventId === scope
+
+  ⚠️ BUG-07       Whitelabel API keys timeout >15s — ESCALADO api-mcp,
+                  ETA diagnóstico 27-jun EOD
+
+  ✅ BUG-08       Snippet Web tapa panel — guard `!selectedId` en
+                  ChannelConversationList
+
+  ⚠️ BUG-09       Moneda US$ ≠ € — DATA MIGRATION escalada api-mcp.
+                  511 docs bodasdehoy con currency='usd' identificados
+                  vía SSH cross-check con users.country. Query REFINADA
+                  enviada: excluir 15 USA/VE legítimos. GO dado, esperan
+                  ventana ejecución.
+
+  🟡 BUG-10       Spinner "Comprobando sesión" /itinerario — NO reproducido
+                  determinísticamente, instrucciones repro en ANEXO QA
+
+  ✅ BUG-11       "Espera al dueño" siendo dueño — 3 hooks isAllowed comparan
+                  ahora event.usuario_nombre === user.email (legacy uid
+                  Firebase distinto).
+
+═══════════════════════════════════════════════════════════════════════════════
+5. INFRA OPERATIVA POST-#20
+═══════════════════════════════════════════════════════════════════════════════
+
+  · chat-dev: BUILD_ID dHj1BBkgDbIkR6cuFNA4O — HTTP 200 /chat /messages /
+  · app-dev: hot-reload PM2 — commit 8eb61403 activo
+  · api-ia: confirmado rename /api/lobe → /api/history en api-ia.bodasdehoy.com
+    (deadline cutover 03-jul). 0 refs vivas en front chat-ia.
+  · Sentry: DSN público activo en chat-ia (.env.local NEXT_PUBLIC_SENTRY_DSN)
+  · Smoke script: scripts/smoke-bug09-currency.sh para verificar post-migración
+
+═══════════════════════════════════════════════════════════════════════════════
+FIN — listo para PR review cuando QA cierre prompt exhaustivo + retest #20
 ═══════════════════════════════════════════════════════════════════════════════
