@@ -19,6 +19,18 @@ export interface LoginFormProps {
   error?: string | null;
   /** Mensaje de sesión expirada */
   sessionExpiredMessage?: string | null;
+  /**
+   * Color primario whitelabel (afecta CTA primario + acentos del hint
+   * auto-sugerir provider). Default rosa-violeta Bodas de Hoy (#A93E8C).
+   * Multimarca: cada whitelabel pasa su color desde el config.
+   */
+  primaryColor?: string;
+  /**
+   * Si false, oculta el hint "Detectamos cuenta Gmail" tras el email.
+   * Default true. Multimarca: whitelabels que prefieren login uniforme
+   * pueden desactivarlo.
+   */
+  enableProviderHint?: boolean;
 }
 
 // Iconos inline — sin dependencias externas
@@ -156,6 +168,25 @@ const s = {
   },
 };
 
+/**
+ * Mapping domain → provider sugerido. Heurística simple basada en el dominio
+ * mail más común para cada OAuth. Multimarca: el botón solo aparece si el
+ * whitelabel YA tiene esa opción habilitada (onGoogleLogin pasado).
+ */
+const PROVIDER_HINTS: Record<string, { provider: 'google' | 'facebook'; label: string }> = {
+  'gmail.com': { provider: 'google', label: 'Gmail' },
+  'googlemail.com': { provider: 'google', label: 'Gmail' },
+  // 'outlook.com' / 'hotmail.com' / 'live.com' → Microsoft (no implementado todavía)
+  // 'yahoo.com' → no tiene OAuth fácil, sin hint
+};
+
+function getProviderHint(email: string): { provider: 'google' | 'facebook'; label: string } | null {
+  if (!email || !email.includes('@')) return null;
+  const domain = email.split('@')[1]?.toLowerCase().trim();
+  if (!domain) return null;
+  return PROVIDER_HINTS[domain] ?? null;
+}
+
 export function LoginForm({
   onEmailLogin,
   onGoogleLogin,
@@ -166,6 +197,8 @@ export function LoginForm({
   onRegister,
   error: externalError,
   sessionExpiredMessage,
+  primaryColor = '#A93E8C',
+  enableProviderHint = true,
 }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -177,6 +210,14 @@ export function LoginForm({
 
   const displayError = error || externalError || null;
   const anyLoading = loading || googleLoading || facebookLoading;
+
+  // Hint multimarca: solo si está habilitado, hay providers activos en este
+  // whitelabel y el dominio matchea uno de los providers disponibles.
+  const providerHint = enableProviderHint ? getProviderHint(email) : null;
+  const hintAvailable =
+    providerHint &&
+    ((providerHint.provider === 'google' && !!onGoogleLogin) ||
+      (providerHint.provider === 'facebook' && !!onFacebookLogin));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -303,6 +344,50 @@ export function LoginForm({
               value={email}
             />
           </div>
+          {/* Hint multimarca auto-sugerir provider */}
+          {hintAvailable && providerHint && (
+            <div
+              role="region"
+              aria-label="Sugerencia de método de acceso"
+              style={{
+                alignItems: 'center',
+                background: `${primaryColor}10`,
+                border: `1px solid ${primaryColor}33`,
+                borderRadius: 6,
+                color: '#525252',
+                display: 'flex',
+                fontSize: 12,
+                gap: 8,
+                justifyContent: 'space-between',
+                marginTop: 6,
+                padding: '8px 10px',
+              }}
+            >
+              <span>
+                Detectamos cuenta {providerHint.label}. Iniciar con{' '}
+                {providerHint.provider === 'google' ? 'Google' : 'Facebook'} es
+                más rápido (1 click).
+              </span>
+              <button
+                onClick={providerHint.provider === 'google' ? handleGoogle : handleFacebook}
+                disabled={anyLoading}
+                style={{
+                  background: 'transparent',
+                  border: `1px solid ${primaryColor}`,
+                  borderRadius: 6,
+                  color: primaryColor,
+                  cursor: anyLoading ? 'not-allowed' : 'pointer',
+                  flexShrink: 0,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: '4px 10px',
+                }}
+                type="button"
+              >
+                Usar {providerHint.provider === 'google' ? 'Google' : 'Facebook'}
+              </button>
+            </div>
+          )}
         </div>
 
         <div style={s.fieldWrap}>
