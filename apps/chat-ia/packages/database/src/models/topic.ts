@@ -302,11 +302,24 @@ export class TopicModel {
 >>>>>>> 028a44d0 (🐛 fix(chat-ia): BUG-01 topics duplicate v2 — try/catch + topic sintetico)
 
       // Update associated messages' topicId
+      // BUG-01 retest #28 (27-jun): los IDs temporales optimistas tmp_* no
+      // existen en Neon todavía (son state local del front mientras se
+      // confirma el insert). Si los incluimos en el UPDATE, Postgres falla
+      // con "Failed query update messages set topic_id". Filtramos
+      // explícitamente cualquier tmp_*. Best-effort: si el filtrado deja
+      // 0 IDs reales, omitimos el UPDATE.
       if (messageIds && messageIds.length > 0) {
-        await tx
-          .update(messages)
-          .set({ topicId: topic.id })
-          .where(and(eq(messages.userId, this.userId), inArray(messages.id, messageIds)));
+        const realIds = messageIds.filter((id) => !id.startsWith('tmp_'));
+        if (realIds.length > 0) {
+          try {
+            await tx
+              .update(messages)
+              .set({ topicId: topic.id })
+              .where(and(eq(messages.userId, this.userId), inArray(messages.id, realIds)));
+          } catch {
+            /* swallow — el chat sigue funcionando con topic sintético/real */
+          }
+        }
       }
 
       return topic;
@@ -332,14 +345,22 @@ export class TopicModel {
         .returning();
 
       // 对每个新创建的 topic,更新关联的 messages 的 topicId
+      // BUG-01 retest #28: mismo filtrado de tmp_* que create()
       await Promise.all(
         createdTopics.map(async (topic, index) => {
           const messageIds = topicParams[index].messages;
           if (messageIds && messageIds.length > 0) {
-            await tx
-              .update(messages)
-              .set({ topicId: topic.id })
-              .where(and(eq(messages.userId, this.userId), inArray(messages.id, messageIds)));
+            const realIds = messageIds.filter((id) => !id.startsWith('tmp_'));
+            if (realIds.length > 0) {
+              try {
+                await tx
+                  .update(messages)
+                  .set({ topicId: topic.id })
+                  .where(and(eq(messages.userId, this.userId), inArray(messages.id, realIds)));
+              } catch {
+                /* swallow */
+              }
+            }
           }
         }),
       );
