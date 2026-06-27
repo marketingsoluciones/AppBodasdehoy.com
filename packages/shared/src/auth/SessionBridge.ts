@@ -52,7 +52,7 @@ export function setCrossAppIdToken(idToken: string): void {
   if (typeof document === 'undefined' || !idToken) return;
 
   const domain = getCrossAppDomain();
-  const maxAge = 7 * 24 * 3600; // 7 días — el contenido se renueva via onIdTokenChanged
+  const maxAge = 30 * 24 * 3600; // 30 días — best practice 2026 sliding renewal vía onIdTokenChanged
 
   const cookieParts = [
     `idTokenV0.1.0=${idToken}`,
@@ -94,7 +94,7 @@ export function setCrossAppDevelopment(development: string): void {
   if (typeof document === 'undefined' || !development) return;
 
   const domain = getCrossAppDomain();
-  const maxAge = 7 * 24 * 3600; // 7 días
+  const maxAge = 30 * 24 * 3600; // 30 días — coherente con setCrossAppIdToken
 
   const cookieParts = [
     `${CROSS_APP_DEVELOPMENT_COOKIE}=${encodeURIComponent(development)}`,
