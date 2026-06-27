@@ -116,18 +116,24 @@ const BillingPage = memo(() => {
 
   // Mientras EventosAutoAuth hidrata el store desde cookie/localStorage, mostrar skeleton
   // en lugar de la pantalla de bloqueo (evita el flash de "Área exclusiva")
-  const [isCheckingAuth, setIsCheckingAuth] = useState(() => {
-    if (typeof window === 'undefined') return false;
+  // BUG-04 hydration (27-jun): useState initializer leyendo localStorage/cookie
+  // produce mismatch SSR (false) / CSR (true según storage). Inicial false +
+  // hidratar en effect post-mount.
+  const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
     try {
       const hasSSOCookie = document.cookie.includes('idTokenV0.1.0');
       const hasUserUid = !!localStorage.getItem('user_uid');
       const hasJwt = !!localStorage.getItem('jwt_token');
       const hasEmail = !!localStorage.getItem('user_email');
-      return !!(hasSSOCookie || hasUserUid || (hasJwt && hasEmail));
+      const checking = !!(hasSSOCookie || hasUserUid || (hasJwt && hasEmail));
+      if (checking) setIsCheckingAuth(true);
     } catch {
-      return false;
+      /* ignore */
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {

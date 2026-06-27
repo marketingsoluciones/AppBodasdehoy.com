@@ -212,19 +212,81 @@ export class ApiIaAiProviderService implements IAiProviderService {
   };
 
   getAiProviderRuntimeState = async (_isLogin?: boolean): Promise<AiProviderRuntimeState> => {
-    // Runtime state derivado del whitelabel (api-mcp via /api/providers/{development})
-    // + preferencia del usuario en userConfig.aiProviders.
+    // BUG-NEW-02 QA #20 (27-jun): api-ia devuelve {providers: [...]} pero el
+    // front (store + selectors) espera la shape AiProviderRuntimeState:
+    // {enabledAiProviders, enabledChatAiProviders, enabledImageAiProviders,
+    //  enabledAiModels, runtimeConfig}. Sin esta transformación el chat IA
+    // queda sin providers → "0/0 habilitados" → no responde.
     const { development } = getCtx();
+    const emptyState = {
+      enabledAiModels: [],
+      enabledAiProviders: [],
+      enabledChatAiProviders: [],
+      enabledImageAiProviders: [],
+      runtimeConfig: {},
+    } as AiProviderRuntimeState;
     try {
       const res = await fetch(
         `${API_IA_BASE}/api/providers/${encodeURIComponent(development)}`,
         { headers: authHeaders(), method: 'GET' },
       );
-      if (!res.ok) return { enabledAiProviders: [], runtimeConfig: {} } as unknown as AiProviderRuntimeState;
+      if (!res.ok) return emptyState;
       const json = await res.json().catch(() => null);
-      return (json?.data ?? json ?? {}) as AiProviderRuntimeState;
+      if (!json) return emptyState;
+
+      // Si api-ia ya retorna la shape final → pass-through.
+      if (Array.isArray((json as any).enabledChatAiProviders)) {
+        return (json.data ?? json) as AiProviderRuntimeState;
+      }
+
+      // Adaptación shape {providers: [{provider, enabled, model, base_url, has_key}]}
+      // → AiProviderRuntimeState con providers + runtimeConfig + modelos derivados.
+      const rawProviders = (json.providers ?? json.data?.providers ?? []) as Array<{
+        provider: string;
+        enabled: boolean;
+        model?: string;
+        base_url?: string | null;
+        has_key?: boolean;
+      }>;
+
+      const enabledProvidersList = rawProviders.filter((p) => p.enabled && p.has_key !== false);
+
+      const enabledAiProviders = enabledProvidersList.map((p) => ({
+        id: p.provider,
+        name: p.provider,
+        source: 'builtin' as const,
+      }));
+
+      // Modelos por defecto del whitelabel: cada provider expone el modelo
+      // marcado como `model` por api-ia. Sin esto el selector de modelos
+      // queda vacío aunque el provider esté habilitado.
+      const enabledAiModels = enabledProvidersList
+        .filter((p) => !!p.model)
+        .map((p) => ({
+          id: p.model as string,
+          providerId: p.provider,
+          enabled: true,
+          type: 'chat' as const,
+          abilities: {} as any,
+        }));
+
+      const runtimeConfig: Record<string, any> = {};
+      for (const p of enabledProvidersList) {
+        runtimeConfig[p.provider] = {
+          fetchOnClient: false,
+          keyVaults: p.base_url ? { baseURL: p.base_url } : {},
+        };
+      }
+
+      return {
+        enabledAiModels,
+        enabledAiProviders,
+        enabledChatAiProviders: enabledAiProviders,
+        enabledImageAiProviders: [],
+        runtimeConfig,
+      } as AiProviderRuntimeState;
     } catch {
-      return { enabledAiProviders: [], runtimeConfig: {} } as unknown as AiProviderRuntimeState;
+      return emptyState;
     }
   };
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { Alert, Button, Space, Typography } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const { Text, Paragraph } = Typography;
 
@@ -13,9 +13,14 @@ interface WebChatSetupProps {
 export function WebChatSetup({ development, onConnected: _onConnected }: WebChatSetupProps) {
   const [copied, setCopied] = useState(false);
 
-  const chatUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/widget/${development}`
-    : `https://chat.bodasdehoy.com/widget/${development}`;
+  // BUG-04 hydration (27-jun): window.location.origin durante render causa
+  // mismatch SSR (usa fallback) / CSR (usa origin real). Inicial fallback +
+  // hidratar al origin real post-mount.
+  const [chatUrl, setChatUrl] = useState(`https://chat.bodasdehoy.com/widget/${development}`);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setChatUrl(`${window.location.origin}/widget/${development}`);
+  }, [development]);
 
   const embedCode = `<!-- Chat Widget - ${development} -->
 <script>

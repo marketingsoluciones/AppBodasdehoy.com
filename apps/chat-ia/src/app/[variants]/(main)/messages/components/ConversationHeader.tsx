@@ -33,10 +33,15 @@ export function ConversationHeader({ channel, conversationId, onSearchFilter }: 
   //   POST /api/messages/workspace/{dev}/ia-config
   //     body: { ia_level?, autopilot_threshold? }
   // Default 'copilot' mientras carga + si falla GET.
-  const development =
-    checkAuth().development ||
-    (typeof window !== 'undefined' && localStorage.getItem('current_development')) ||
-    'bodasdehoy';
+  // BUG-04 hydration (27-jun): leer localStorage durante render produce
+  // mismatch SSR/CSR. Inicial vacío + hidratar en effect post-mount.
+  const [development, setDevelopment] = useState<string>(checkAuth().development || 'bodasdehoy');
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const fromStorage = localStorage.getItem('current_development');
+    if (fromStorage && fromStorage !== development) setDevelopment(fromStorage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [iaLevel, setIaLevel] = useState<IaLevel>('copilot');
   useEffect(() => {
     let cancelled = false;

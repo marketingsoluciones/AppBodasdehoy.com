@@ -260,16 +260,24 @@ const TransactionsHistoryPage = memo(() => {
   const currentUserId = useChatStore((s) => s.currentUserId);
   const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
 
-  const [isCheckingAuth, setIsCheckingAuth] = useState(() => {
-    if (typeof window === 'undefined') return false;
+  // BUG-04 hydration (27-jun): useState initializer leyendo localStorage/cookie
+  // produce mismatch SSR (false) / CSR (true según storage). Inicial false +
+  // hidratar en effect post-mount.
+  const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
     try {
       const saved = JSON.parse(localStorage.getItem('dev-user-config') || '{}');
       const hasSSOCookie = document.cookie.includes('idTokenV0.1.0');
-      return !!(hasSSOCookie || (saved?.userId && saved.userId !== 'visitante@guest.local'));
+      const checking = !!(
+        hasSSOCookie || (saved?.userId && saved.userId !== 'visitante@guest.local')
+      );
+      if (checking) setIsCheckingAuth(true);
     } catch {
-      return false;
+      /* ignore */
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
