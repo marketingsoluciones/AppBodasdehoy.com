@@ -102,6 +102,16 @@ export const generateAIChatV2: StateCreator<
     // if message is empty or no files, then stop
     if (!message && !hasFile) return;
 
+    // BUG-NEW-08 QA #28 (27-jun): cuando el usuario envía 2 mensajes muy
+    // rápidos, el segundo encuentra el texto del primero aún en el editor
+    // y los concatena ("msg1msg2"). Limpiar editor inmediatamente al
+    // iniciar el envío, antes de cualquier await asíncrono.
+    try {
+      mainInputEditor?.setJSONState(null as any);
+    } catch {
+      /* editor puede no estar montado en algunos paths (welcome question) */
+    }
+
     if (onlyAddUserMessage) {
       await get().addUserMessage({ message, fileList: fileIdList });
 
