@@ -94,11 +94,35 @@ async function loadUserConfig(): Promise<{
 async function saveUserConfig(partial: Record<string, unknown>): Promise<void> {
   const { userId, development } = getCtx();
   if (!userId) return;
-  await fetch(`${API_IA_BASE}/api/auth/save-user-config`, {
-    body: JSON.stringify({ config: partial, development, user_id: userId }),
-    headers: authHeaders(),
-    method: 'POST',
-  });
+  // BUG-NEW-05 api-ia diagnóstico 27-jun: el endpoint da 503 intermitente
+  // por cold start del worker. Timeout 8s (antes 15s) + 1 retry tras 500ms.
+  // Si sigue fallando, continuar silente (config se sincronizará en GET
+  // siguiente).
+  const TIMEOUT_MS = 8000;
+  const body = JSON.stringify({ config: partial, development, user_id: userId });
+  const tryOnce = async (): Promise<Response | null> => {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+    try {
+      return await fetch(`${API_IA_BASE}/api/auth/save-user-config`, {
+        body,
+        headers: authHeaders(),
+        method: 'POST',
+        signal: ctrl.signal,
+      });
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(t);
+    }
+  };
+  let res = await tryOnce();
+  if (!res || res.status >= 500) {
+    await new Promise((r) => setTimeout(r, 500));
+    res = await tryOnce();
+  }
+  // Si la 2ª pasada también falla, no lanzamos: el GET de config funciona
+  // estable y la próxima sincronización lo recupera.
 }
 
 function toDetailItem(p: UserConfigAiProvider): AiProviderDetailItem {
