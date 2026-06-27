@@ -19,7 +19,7 @@ function getNotificationUrl(n: AppNotification): string | null {
   if (focused.startsWith('/messages') || focused.startsWith('/chat/') || focused.startsWith('/settings')) {
     return focused.split('?')[0]; // strip query params for chat-ia navigation
   }
-  if (focused.startsWith('/tasks')) return '/messages'; // /tasks redirige a /messages
+  if (focused.startsWith('/tasks')) return '/pendientes'; // /tasks legacy → vista unificada
   if (n.type === 'whatsapp_message') return '/messages';
   if (n.type === 'task_reminder') return '/messages';
   if (n.type === 'access_revoked' || n.type === 'permission_updated') return '/settings';
