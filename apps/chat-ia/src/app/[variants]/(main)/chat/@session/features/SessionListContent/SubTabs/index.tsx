@@ -1,10 +1,10 @@
 'use client';
 
 import { createStyles } from 'antd-style';
+import Link from 'next/link';
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ChannelSidebar } from '@/app/[variants]/(main)/messages/components/ChannelSidebar';
 import ConversationHistory from '../ConversationHistory';
 import DefaultMode from '../DefaultMode';
 
@@ -71,7 +71,12 @@ const useStyles = createStyles(({ css, token }) => ({
   `,
 }));
 
-type SubTabType = 'conversaciones' | 'bandeja' | 'historial';
+// Plan rediseño chat-ia (commit 3bcec0be): tab "📥 Bandeja" eliminado del
+// sidebar /chat. El sidebar de /chat ya NO duplica ChannelSidebar — para
+// la bandeja completa el usuario va a /messages (link "Ver bandeja completa").
+// Esto reduce instancias de ChannelSidebar simultáneas (de 3 a 1) y el
+// número de SSE conexiones a /api/messages/stream.
+type SubTabType = 'conversaciones' | 'historial';
 
 const SubTabs = memo(() => {
   const { styles } = useStyles();
@@ -80,7 +85,9 @@ const SubTabs = memo(() => {
 
   return (
     <div className={styles.container}>
-      {/* Sub-pestañas: Conversaciones | Bandeja (canales + mensajes directos) | Historial */}
+      {/* Sub-pestañas: Conversaciones (sesiones IA) | Historial (conversaciones backend).
+          La bandeja completa (multicanal mensajería humanos) vive en /messages —
+          ver link debajo de los tabs. */}
       <div className={styles.tabsContainer}>
         <button
           className={`${styles.tab} ${activeTab === 'conversaciones' ? 'active' : ''}`}
@@ -91,13 +98,6 @@ const SubTabs = memo(() => {
           💬 {(t as any)('conversations')}
         </button>
         <button
-          className={`${styles.tab} ${activeTab === 'bandeja' ? 'active' : ''}`}
-          onClick={() => setActiveTab('bandeja')}
-          type="button"
-        >
-          📥 Bandeja
-        </button>
-        <button
           className={`${styles.tab} ${activeTab === 'historial' ? 'active' : ''}`}
           onClick={() => setActiveTab('historial')}
           type="button"
@@ -106,10 +106,28 @@ const SubTabs = memo(() => {
         </button>
       </div>
 
-      {/* Contenido: Bandeja = canales + mensajes directos; Historial = conversaciones API2 */}
+      {/* Link a /messages — sustituye al antiguo tab "📥 Bandeja" inline.
+          Evita duplicar ChannelSidebar dentro del sidebar de /chat. */}
+      <Link
+        href="/messages"
+        style={{
+          alignItems: 'center',
+          color: '#7C3AED',
+          display: 'flex',
+          fontSize: 11,
+          fontWeight: 600,
+          gap: 6,
+          justifyContent: 'center',
+          padding: '6px 12px',
+          textDecoration: 'none',
+        }}
+      >
+        📥 Ver bandeja completa →
+      </Link>
+
+      {/* Contenido: solo sesiones IA o historial conversaciones backend. */}
       <div className={styles.content}>
         {activeTab === 'conversaciones' && <DefaultMode />}
-        {activeTab === 'bandeja' && <ChannelSidebar compact />}
         {activeTab === 'historial' && <ConversationHistory />}
       </div>
     </div>
