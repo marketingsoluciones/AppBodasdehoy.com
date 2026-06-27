@@ -2,12 +2,38 @@
 
 import dynamic from 'next/dynamic';
 import { notFound, useRouter } from 'next/navigation';
-import React, { CSSProperties } from 'react';
+import React, { CSSProperties, useEffect, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
 import Loading from '@/components/Loading/BrandTextLoading';
 import { useChatStore } from '@/store/chat';
 import { SettingsTabs } from '@/store/global/initialState';
+
+/**
+ * BUG-NEW-01 QA #24 (27-jun): si accedes a /settings/llm desde URL externa,
+ * el store chat aún no ha hidratado currentUserId → muestra el gate
+ * "Configuración solo para usuarios registrados" pese a que el usuario SÍ
+ * está autenticado vía cookie SSO Firebase. Fast-path: si hay JWT en
+ * localStorage (cookie compartida .bodasdehoy.com) damos tiempo de gracia
+ * para que el store se hidrate antes de mostrar el gate.
+ */
+function hasLocalJwtSettings(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const t = localStorage.getItem('mcp_jwt_token') || localStorage.getItem('jwt_token');
+    if (t && t !== 'null' && t !== 'undefined' && t.length > 20) return true;
+    const cfg = localStorage.getItem('dev-user-config');
+    if (cfg) {
+      const parsed = JSON.parse(cfg);
+      if (parsed?.token && parsed.token !== 'null' && parsed.token.length > 20) return true;
+    }
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
+
+const AUTH_GRACE_SETTINGS_MS = 5000;
 
 const componentMap = {
   [SettingsTabs.Common]: dynamic(() => import('../common'), {
@@ -58,6 +84,25 @@ const SettingsContent = ({ mobile, activeTab, showLLM = true }: SettingsContentP
   const router = useRouter();
   const currentUserId = useChatStore((s) => s.currentUserId);
   const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
+
+  // BUG-NEW-01: fast-path JWT + ventana de gracia para hidratación store.
+  const [localJwtPresent, setLocalJwtPresent] = useState(false);
+  const [graceElapsed, setGraceElapsed] = useState(false);
+  useEffect(() => {
+    setLocalJwtPresent(hasLocalJwtSettings());
+    const t = setTimeout(() => setGraceElapsed(true), AUTH_GRACE_SETTINGS_MS);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Mientras el store no haya hidratado Y haya JWT local (o estemos dentro
+  // de la gracia), mostrar spinner en lugar del gate "solo registrados".
+  if (!isAuthenticated && localJwtPresent && !graceElapsed) {
+    return (
+      <Flexbox align="center" justify="center" style={{ minHeight: 400, width: '100%' }}>
+        <Loading />
+      </Flexbox>
+    );
+  }
 
   // Usuarios anónimos no tienen acceso a configuración
   if (!isAuthenticated) {
