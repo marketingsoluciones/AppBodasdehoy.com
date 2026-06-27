@@ -163,7 +163,14 @@ export const generateAIChatV2: StateCreator<
 
     let data: SendMessageServerResponse | undefined;
     try {
-      const { model, provider } = agentSelectors.currentAgentConfig(getAgentStoreState());
+      // BUG-01 root cause (api-ia diagnóstico 27-jun): si agentConfig no tiene
+      // model/provider (sesiones legacy o agentes mal inicializados), cleanObject
+      // en aiChatService los quita → backend recibe newAssistantMessage incompleto
+      // → 500 → topic no se persiste → toast "Failed query insert into topics"
+      // que ve el usuario. Guard: usar defaults sane si vienen undefined.
+      const cfg = agentSelectors.currentAgentConfig(getAgentStoreState());
+      const safeModel = cfg.model ?? 'llama-3.3-70b-versatile';
+      const safeProvider = cfg.provider ?? 'groq';
       data = await aiChatService.sendMessageInServer(
         {
           newUserMessage: {
@@ -180,7 +187,7 @@ export const generateAIChatV2: StateCreator<
               }
             : undefined,
           sessionId: activeId === INBOX_SESSION_ID ? undefined : activeId,
-          newAssistantMessage: { model, provider: provider! },
+          newAssistantMessage: { model: safeModel, provider: safeProvider },
         },
         abortController,
       );
