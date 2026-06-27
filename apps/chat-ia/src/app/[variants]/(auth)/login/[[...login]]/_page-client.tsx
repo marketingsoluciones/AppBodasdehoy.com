@@ -126,6 +126,59 @@ function RightPanel() {
 
   const mcpUrl = resolveMcpOrigin();
 
+  // ── Recuperar contraseña (Firebase nativo, sin redirect a app-dev productivo) ──
+  const handleForgotPassword = async () => {
+    const email = window.prompt('Introduce tu email para recibir un enlace de recuperación de contraseña:');
+    if (!email || !email.includes('@')) return;
+    try {
+      const { getAuth, sendPasswordResetEmail } = await import('firebase/auth');
+      await sendPasswordResetEmail(getAuth(), email.trim());
+      messageApi.success(
+        'Te hemos enviado un enlace para restablecer tu contraseña. Revisa tu correo (incluida la carpeta de spam).',
+      );
+    } catch (err: any) {
+      const code: string = err?.code ?? '';
+      if (code === 'auth/user-not-found') {
+        messageApi.warning('No encontramos una cuenta con ese email.');
+      } else if (code === 'auth/invalid-email') {
+        messageApi.error('Email no válido.');
+      } else if (code === 'auth/too-many-requests') {
+        messageApi.error('Demasiados intentos. Inténtalo de nuevo en unos minutos.');
+      } else {
+        messageApi.error(err?.message || 'No se pudo enviar el enlace. Inténtalo de nuevo.');
+      }
+    }
+  };
+
+  // ── Crear cuenta (registro inline con email+password Firebase) ──
+  const handleRegister = async () => {
+    const email = window.prompt('Email para crear tu cuenta:');
+    if (!email || !email.includes('@')) return;
+    const password = window.prompt('Contraseña (mínimo 6 caracteres):');
+    if (!password || password.length < 6) {
+      messageApi.error('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+    try {
+      const { getAuth, createUserWithEmailAndPassword } = await import('firebase/auth');
+      const cred = await createUserWithEmailAndPassword(getAuth(), email.trim(), password);
+      // Tras crear el user en Firebase, el siguiente login email/password ya
+      // funciona contra api-mcp via exchangeFirebaseTokenForJWT.
+      messageApi.success('Cuenta creada. Iniciando sesión...');
+      await handleEmailLogin(email.trim(), password);
+      void cred;
+    } catch (err: any) {
+      const code: string = err?.code ?? '';
+      if (code === 'auth/email-already-in-use') {
+        messageApi.warning('Ya existe una cuenta con ese email. Inicia sesión normal.');
+      } else if (code === 'auth/weak-password') {
+        messageApi.error('Contraseña demasiado débil. Usa al menos 6 caracteres.');
+      } else {
+        messageApi.error(err?.message || 'No se pudo crear la cuenta.');
+      }
+    }
+  };
+
   // ── Email/password ──
   const handleEmailLogin = async (email: string, password: string) => {
     const result = await loginWithEmailPassword(email, password, development);
@@ -365,6 +418,11 @@ function RightPanel() {
         onGoogleLogin={handleGoogleLogin}
         onVisitor={handleVisitor}
         onWhatsAppLogin={() => { setWaStep('phone'); setWaError(null); }}
+        // QA auditoría 26-jun: chat-ia login carecía de "Olvidé contraseña"
+        // y "Crear cuenta". Cableamos al flow Firebase nativo dentro de
+        // chat-ia (NO redirigimos a app-dev que tiene datos productivos).
+        onForgotPassword={handleForgotPassword}
+        onRegister={handleRegister}
         sessionExpiredMessage={
           reasonAfterMount === 'session_expired' ? 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.' : null
         }
