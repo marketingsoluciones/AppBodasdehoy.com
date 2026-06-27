@@ -1,0 +1,145 @@
+═══════════════════════════════════════════════════════════════════════════════
+INVENTARIO — Bandeja /chat sidebar (Bandeja A) vs Bandeja /messages (Bandeja B)
+Fecha: 2026-06-27 · Autor: COORD-AppEventos
+SCOPE: apps/chat-ia
+═══════════════════════════════════════════════════════════════════════════════
+
+## TL;DR (revelación importante)
+
+Bandeja A NO es una implementación paralela completa. Es el MISMO componente
+ChannelSidebar (de Bandeja B) montado con prop compact dentro del sidebar
+de /chat. La duplicación de red NO viene de 2 implementaciones distintas,
+viene de:
+
+  · 2-3 instancias de ChannelSidebar montadas simultáneamente en /messages
+  · Cada instancia ejecuta sus hooks (useUnifiedFeed, useRecentConversations,
+    useWhatsAppSession, useMessageStream) sin SWR cache compartido
+  · 2 hooks abren SSE independientes (useUnifiedFeed + useMessageStream)
+  · Cuando navegas /chat → /messages, hooks viejos no se desmontan
+    limpiamente → SSE listeners se acumulan
+
+Por tanto la "eliminación Bandeja A" del plan original se reformula:
+  · NO hay 2 Bandejas distintas. Hay 1 ChannelSidebar montado N veces.
+  · Solución: 1 store singleton, todos los componentes lo consumen.
+  · Eliminar el tab "📥 Bandeja" del SubTabs en /chat sidebar (deja
+    "Conversaciones" + "Historial") y poner un botón "Ver bandeja completa
+    →" que linkea a /messages.
+
+═══════════════════════════════════════════════════════════════════════════════
+## ARCHIVOS DE BANDEJA A (a tocar / eliminar)
+═══════════════════════════════════════════════════════════════════════════════
+
+  apps/chat-ia/src/app/[variants]/(main)/chat/@session/features/SessionListContent/
+    └─ SubTabs/
+       └─ index.tsx              ← QUITAR tab "📥 Bandeja", dejar 2 tabs
+    └─ Inbox/
+       └─ index.tsx              ← MANTENER (es el inbox del chat IA, no
+                                    conversaciones humanos)
+
+ALCANCE EXACTO:
+  · SubTabs/index.tsx — eliminar línea 93-99 (botón Bandeja)
+  · SubTabs/index.tsx — eliminar línea 112 (render ChannelSidebar compact)
+  · Añadir botón "Ver bandeja completa →" que linkea a /messages
+  · NO eliminar el componente ChannelSidebar (sigue usado por /messages)
+
+═══════════════════════════════════════════════════════════════════════════════
+## FEATURES por componente — ¿migrar o ya está en B?
+═══════════════════════════════════════════════════════════════════════════════
+
+[FEAT-1] Tab "📥 Bandeja" en sidebar /chat
+  · Renderiza: ChannelSidebar compact mode
+  · Filtros: heredados de ChannelSidebar (Todo / WA / Web ...)
+  · Scope selector: NO (ChannelSidebar compact no lo muestra)
+  · Acciones rápidas: NO
+  · Conclusión: ELIMINAR el tab + reemplazar con link a /messages
+
+[FEAT-2] Tab "💬 Conversaciones" en sidebar /chat
+  · Renderiza: DefaultMode = sesiones del Asistente IA
+  · Es el listado de chats IA, NO conversaciones humanas
+  · Conclusión: MANTENER (es el inbox del Asistente, distinto de bandeja)
+
+[FEAT-3] Tab "📋 Historial" en sidebar /chat
+  · Renderiza: ConversationHistory = conversaciones API2 (api-mcp)
+  · Diferente de Tab Historial de /messages (notificaciones)
+  · ¿Solapamiento con /messages?: verificar funcionalmente
+  · Conclusión: REVISAR si el "Historial" de /chat sidebar duplica algo
+
+[FEAT-4] Compact mode de ChannelSidebar
+  · Cuando compact=true, ChannelSidebar muestra:
+    · Lista canales (WhatsApp, Web, Email, IG, FB, TG)
+    · Sin scope selector, sin filtros RSVP
+    · Badges canal + unread count
+  · Esto SÍ es útil en sidebar /chat (vista compacta)
+  · Conclusión: MANTENER el compact mode como capability del componente,
+    pero NO renderizarlo dentro del SubTabs de /chat.
+  · Si decidimos rediseño global, evaluar si tiene sentido un
+    "mini-bandeja" en el sidebar global
+
+═══════════════════════════════════════════════════════════════════════════════
+## HOOKS Y STORES — duplicación REAL
+═══════════════════════════════════════════════════════════════════════════════
+
+Hooks de mensajería en chat-ia:
+
+  /messages/hooks/
+    · useUnifiedFeed.ts          ← abre SSE /api/messages/stream (4× obs)
+    · useRecentConversations.ts  ← fetch /whatsapp/conversations + /conversations
+    · useConversations.ts        ← fetch /conversations por canal
+    · useMessageStream.ts        ← abre OTRO SSE /api/messages/stream
+    · useWhatsAppSession.ts      ← fetch /whatsapp/session ×3 endpoints
+    · useDraftSync.ts            ← fetch/PUT/DELETE drafts
+    · useConversationActions.ts  ← mark read, archive, assign
+
+Cada componente que necesita conversaciones invoca su propio hook.
+CERO cache compartido entre hooks.
+
+Stores:
+  · useChatStore        — sesiones IA (NO bandeja)
+  · useAgentStore       — config agentes IA
+  · useGlobalStore      — UI state global
+  · useUserStore        — user data
+  · useServerConfigStore — whitelabel config
+  · useAiInfraStore     — providers IA (BUG-NEW-02 lo arregló)
+  · ❌ NO existe useBandejaStore — los hooks no consolidan en store único
+
+═══════════════════════════════════════════════════════════════════════════════
+## SOLUCIÓN técnica concreta (Eje A)
+═══════════════════════════════════════════════════════════════════════════════
+
+Crear: apps/chat-ia/src/store/bandeja/
+
+  index.ts          → useBandejaStore Zustand singleton
+  types.ts          → tipos Conversation, Notification, etc.
+  sseClient.ts      → EventSource manager singleton
+  broadcastSync.ts  → BroadcastChannel cross-tab
+  selectors.ts      → selectores ergonómicos
+  actions.ts        → init, send, markRead, etc.
+
+  REST initial load: 1 sola vez al login
+  SSE: 1 conexión por device, todos los componentes consumen del store
+
+Refactor hooks viejos → wrappers @deprecated que delegan al store.
+Migración componente a componente sin breaking.
+
+═══════════════════════════════════════════════════════════════════════════════
+## DECISIONES PARA EL USER
+═══════════════════════════════════════════════════════════════════════════════
+
+  [DEC-1] ¿Eliminar tab "📥 Bandeja" en sidebar /chat?
+          RECOMENDADO: SÍ. Sustituir por botón "Ver bandeja completa →"
+          que linkea a /messages.
+          IMPACTO: -1 tab visual, +1 link, -100% duplicación.
+
+  [DEC-2] ¿"Historial" tab en sidebar /chat duplica /messages tab Historial?
+          PENDIENTE: revisar funcionalmente.
+
+  [DEC-3] ¿Mantener capability compact en ChannelSidebar?
+          RECOMENDADO: SÍ, por si rediseño futuro lo necesita.
+
+  [DEC-4] ¿Refactor hooks → store inmediato o gradual?
+          RECOMENDADO: GRADUAL. Implementar store + 1 wrapper compatible
+          (useUnifiedFeed). Resto migrar componente a componente.
+
+═══════════════════════════════════════════════════════════════════════════════
+FIN — listo para implementación cuando user OK
+═══════════════════════════════════════════════════════════════════════════════
