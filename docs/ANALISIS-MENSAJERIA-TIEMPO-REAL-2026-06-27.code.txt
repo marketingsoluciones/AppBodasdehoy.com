@@ -1,0 +1,153 @@
+═══════════════════════════════════════════════════════════════════════════════
+ANÁLISIS — MENSAJERÍA TIEMPO REAL ESTILO iMessage + PUSH NOTIFS
+Fecha: 2026-06-27 · Autor: COORD-AppEventos
+SCOPE: chat-ia (/messages) + appEventos (servicios, itinerario, comentarios)
+═══════════════════════════════════════════════════════════════════════════════
+
+## Pregunta QA
+
+¿Existe sistema tipo iMessage (edición simultánea bidireccional con
+sincronización inmediata) para 2 usuarios? ¿Hay notificaciones push
+para comentarios en servicios e itinerario?
+
+Respuesta corta:
+  · iMessage bidireccional sincronizado: PARCIAL (SSE + GraphQL Sub)
+    pero NO está expuesto como feature de UI (solo realtime backend)
+  · Push notifications cross-app servicios/itinerario: NO existen
+
+═══════════════════════════════════════════════════════════════════════════════
+1. INVENTARIO ACTUAL — mecanismos tiempo real
+═══════════════════════════════════════════════════════════════════════════════
+
+[MEC-1] SSE GET /api/messages/stream
+  Dirección: SERVIDOR → CLIENTE (unidireccional)
+  Estado:    UNSTABLE (BUG-NEW-07 — 524/503 Cloudflare timeouts)
+  Uso:       streaming respuesta IA en /chat, ahora también notificaciones
+             nuevas vía useBandejaStore (commit 3bcec0be)
+
+[MEC-2] WebSocket Apollo GraphQL Subscription
+  Dirección: BIDIRECCIONAL (subscribe + publish)
+  Estado:    funcional pero limitada
+  Suscripción confirmada: onNewMessage(sessionId: String!)
+  Uso:       notificación nuevo mensaje en sesión chat IA
+
+[MEC-3] Polling cada 60s (visibilitychange)
+  Dirección: CLIENTE → SERVIDOR
+  Estado:    funcional pero degradado tras eje A migración SSE
+  Uso:       notificaciones, drafts cross-device, presence pasiva
+
+[MEC-4] socket.io (api-ia.bodasdehoy.com)
+  Dirección: BIDIRECCIONAL nativo
+  Estado:    activo, usado por appEventos (NO por chat-ia)
+  Uso:       realtime edición concurrente eventos (informe RT-01)
+
+[NO EXISTE] Web Push Notifications (Service Worker)
+[NO EXISTE] WebRTC (peer-to-peer audio/video/data)
+[NO EXISTE] Pub/Sub central tipo Redis para coordinar todos los canales
+
+═══════════════════════════════════════════════════════════════════════════════
+2. ¿SE COMPORTA COMO iMessage?
+═══════════════════════════════════════════════════════════════════════════════
+
+iMessage = sincronización bidireccional INMEDIATA entre N devices del
+mismo user + entre N users de la conversación. Latencia <500ms.
+Características clave:
+  · "Está escribiendo..." (typing indicator)
+  · Read receipts (✓✓ azul)
+  · Edit/delete cross-device (el mensaje cambia/desaparece en todos)
+  · Reacciones tap-to-react sincronizadas
+  · Multi-device del MISMO user (iPhone + iPad + Mac muestran el mismo hilo)
+
+Estado en chat-ia HOY:
+  ✅ Nuevos mensajes se reciben en /messages vía SSE (1-3s típico)
+  ✅ Cross-tab del mismo browser sync vía BroadcastChannel (eje A)
+  ⚠️ Typing indicator: el TIPO está en el store (state.typingByConv)
+     pero el backend NO emite eventos 'typing' aún
+  ⚠️ Read receipts: el TIPO está en el store (event 'read_receipt')
+     pero el backend NO los emite cross-device
+  ❌ Edit/delete cross-device: no implementado
+  ❌ Reacciones tap-to-react: no implementado
+  ❌ Multi-device sync ROBUSTO: con BUG-NEW-07 SSE cae, no es robusto
+
+Resumen: estructura para iMessage AHÍ ESTÁ (store + tipos de eventos
+listos). Falta:
+  · Backend emita typing + read_receipt + edited/deleted events
+  · Estabilizar SSE (resolver 524 Cloudflare)
+  · Implementar UI typing/receipts/reacciones en components/Conversation
+
+═══════════════════════════════════════════════════════════════════════════════
+3. ¿HAY PUSH NOTIFICATIONS PARA SERVICIOS E ITINERARIO?
+═══════════════════════════════════════════════════════════════════════════════
+
+NO existen Web Push Notifications.
+
+Lo que SÍ existe:
+  · NotificationBell en chat-ia (campanita header) — POLLING REST cada 60s
+  · Sistema notificaciones in-app (badge contador, lista en /notifications)
+  · Email SES para algunas acciones (RSVP, recordatorios eventos)
+
+Para comentarios en /servicios y /itinerario de appEventos:
+  · Realtime via socket.io ya existe a nivel edición concurrente
+  · Pero NO se traduce a notificación visible para el otro usuario si
+    está en otra ruta o con la app cerrada
+
+CASO DE USO REAL:
+  Ana edita una tarea en /servicios → comenta @Pedro
+  Hoy: Pedro NO recibe alerta hasta que entre a /servicios o /notifications
+  Deseado: Pedro recibe push browser (incluso app cerrada) "Ana te mencionó
+           en 'Catering Casa Roma'"
+
+═══════════════════════════════════════════════════════════════════════════════
+4. PLAN PROPUESTO — implementar iMessage + Push (4 sprints)
+═══════════════════════════════════════════════════════════════════════════════
+
+SPRINT 1 (1 sem) — Estabilizar SSE actual
+  · Backend api-ia: keepalive heartbeat cada 30s ': ping\n\n'
+    evita timeout Cloudflare 100s
+  · Frontend: ya tiene reconnect backoff via store
+  · Resultado: BUG-NEW-07 cerrado
+
+SPRINT 2 (1 sem) — Typing indicators + read receipts
+  · Backend api-ia emite eventos 'typing' y 'read_receipt' al stream
+  · Frontend useBandejaStore ya tiene state typingByConv y los recibe
+  · Renderizar "Pedro está escribiendo..." en lista + thread
+  · Renderizar ✓✓ azul cuando otro user marcó leído
+
+SPRINT 3 (1.5 sem) — Edit / delete mensajes cross-device
+  · Backend: añadir eventos 'message_updated' y 'message_deleted'
+  · Frontend: aplicar al store, mostrar "(editado)" pill o tachado
+  · Cross-device: edit en mobile → desktop refleja en <2s
+
+SPRINT 4 (1 sem) — Web Push Notifications (Service Worker)
+  · Service Worker en chat-ia + appEventos
+  · Suscripción Push API + envío de notifs desde api-ia cuando:
+    - Mensaje nuevo en conv asignada al user
+    - Mención @ en nota CRM
+    - Comentario en /servicios o /itinerario donde el user es viewer
+  · UX: cuando app cerrada → notif del sistema operativo
+  · UX: cuando app abierta → badge contador (ya existe)
+
+OPCIONAL SPRINT 5 — Reacciones tap-to-react
+  · UX iMessage: long-press mensaje → emoji bar
+  · Backend persiste reactions JSONB, emite 'reaction_added' event
+  · UI muestra reactions debajo del mensaje
+
+═══════════════════════════════════════════════════════════════════════════════
+5. PRIORIZACIÓN RECOMENDADA
+═══════════════════════════════════════════════════════════════════════════════
+
+Para 2-usuarios-misma-conv (caso QA pregunta):
+  P0 SPRINT 1: estabilizar SSE (BUG-NEW-07)
+  P0 SPRINT 2: typing + receipts (UX percibida tiempo real)
+
+Para mejorar productividad multi-app (comentarios servicios/itinerario):
+  P1 SPRINT 4: Web Push Notifications
+
+Para paridad completa iMessage:
+  P2 SPRINT 3 + 5: edit/delete + reacciones
+
+ESTIMACIÓN total 4-5 semanas con 1 dev front + 1 dev backend en paralelo.
+
+═══════════════════════════════════════════════════════════════════════════════
+FIN — base para decisión user
+═══════════════════════════════════════════════════════════════════════════════
