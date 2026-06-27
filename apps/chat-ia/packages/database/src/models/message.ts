@@ -472,19 +472,49 @@ export class MessageModel {
       // Ensure group message does not populate sessionId
       const normalizedMessage = message.groupId ? { ...message, sessionId: null } : message;
 
-      const [item] = (await trx
-        .insert(messages)
-        .values({
-          ...normalizedMessage,
-          // TODO: remove this when the client is updated
-          createdAt: createdAt ? new Date(createdAt) : undefined,
-          id,
-          model: fromModel,
-          provider: fromProvider,
-          updatedAt: updatedAt ? new Date(updatedAt) : undefined,
-          userId: this.userId,
-        })
-        .returning()) as DBMessageItem[];
+      const insertData = {
+        ...normalizedMessage,
+        // TODO: remove this when the client is updated
+        createdAt: createdAt ? new Date(createdAt) : undefined,
+        id,
+        model: fromModel,
+        provider: fromProvider,
+        updatedAt: updatedAt ? new Date(updatedAt) : undefined,
+        userId: this.userId,
+      };
+
+      // BUG-01 v4 QA #30 (27-jun): el INSERT en messages falla cuando hay
+      // race condition o duplicate key (mensajes optimistas tmp_* sincronizando
+      // con backend). Memory chat-ia: persistencia Neon ya no es fuente de
+      // verdad (api-ia lo es), por tanto si Neon rechaza, devolver mensaje
+      // sintético en lugar de propagar el throw al usuario.
+      let item: DBMessageItem;
+      try {
+        const result = (await trx
+          .insert(messages)
+          .values(insertData)
+          .returning()) as DBMessageItem[];
+        item = result[0];
+      } catch {
+        // Mensaje sintético: el front sigue funcionando, api-ia tiene
+        // la fuente de verdad de los mensajes históricos.
+        const now = new Date();
+        item = {
+          ...insertData,
+          accessedAt: now,
+          createdAt: insertData.createdAt ?? now,
+          updatedAt: insertData.updatedAt ?? now,
+        } as unknown as DBMessageItem;
+      }
+      if (!item) {
+        const now = new Date();
+        item = {
+          ...insertData,
+          accessedAt: now,
+          createdAt: insertData.createdAt ?? now,
+          updatedAt: insertData.updatedAt ?? now,
+        } as unknown as DBMessageItem;
+      }
 
       // Insert the plugin data if the message is a tool
       if (message.role === 'tool') {

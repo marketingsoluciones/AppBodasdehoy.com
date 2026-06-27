@@ -102,12 +102,13 @@ export const generateAIChatV2: StateCreator<
     // if message is empty or no files, then stop
     if (!message && !hasFile) return;
 
-    // BUG-NEW-08 QA #28 (27-jun): cuando el usuario envía 2 mensajes muy
-    // rápidos, el segundo encuentra el texto del primero aún en el editor
-    // y los concatena ("msg1msg2"). Limpiar editor inmediatamente al
-    // iniciar el envío, antes de cualquier await asíncrono.
+    // BUG-NEW-08 v2 QA #30 (27-jun): el setJSONState(null) NO limpia el
+    // editor visualmente — usar clearContent() que invoca editor.cleanDocument()
+    // (método correcto del ChatInputEditor). Sin esto, msg2 enviado rápido
+    // tras msg1 incluye el texto de msg1 concatenado en el INSERT params,
+    // disparando BUG-01 (race on insert de duplicado/conflict).
     try {
-      mainInputEditor?.setJSONState(null as any);
+      mainInputEditor?.clearContent?.();
     } catch {
       /* editor puede no estar montado en algunos paths (welcome question) */
     }
