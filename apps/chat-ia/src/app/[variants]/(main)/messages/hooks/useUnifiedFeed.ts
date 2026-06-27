@@ -10,10 +10,10 @@ import {
 } from '@/services/mcpApi/notifications';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
+import { useBandejaStore } from '@/store/bandeja';
 import { useChatStore } from '@/store/chat';
 
 import { type ChannelKind, useRecentConversations } from './useRecentConversations';
-import { buildHeaders } from '../utils/auth';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -181,81 +181,27 @@ export function useUnifiedFeed(maxItems = 60): {
     };
   }, [isGuestUser, development]);
 
-  // SSE — GET /api/messages/stream (api-ia, desplegado 2026-04-13)
-  // Usa fetch+ReadableStream en lugar de EventSource para enviar el JWT en el
-  // header Authorization y evitar exponerlo en la URL (logs de servidor, historial).
-  const sseRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const sseAbortRef = useRef<AbortController | null>(null);
-
+  // SSE — Eje A rediseño (commit cc6cac82): el SSE singleton vive ahora en
+  // useBandejaStore (initBandeja). En lugar de abrir un EventSource propio
+  // aquí, nos suscribimos al store: cuando entra new_message / conv_updated /
+  // notification, el _lastSyncAt del store cambia → disparamos refresh local.
+  //
+  // Esto elimina el SSE duplicado que abría este hook (1 conexión menos).
+  // Cuando el resto de hooks (useMessageStream, useRecentConversations) se
+  // migren al store, el total bajará a 1 SSE por device (o tab leader).
   useEffect(() => {
     if (isGuestUser || typeof window === 'undefined') return;
-
-    const dev = development || 'bodasdehoy';
-    let retryDelay = 3000;
-    let cancelled = false;
-
-    async function connect() {
-      if (cancelled) return;
-
-      sseAbortRef.current?.abort();
-      const controller = new AbortController();
-      sseAbortRef.current = controller;
-
-      const authHeaders = buildHeaders();
-
-      try {
-        const response = await fetch(`/api/messages/stream?development=${dev}`, {
-          headers: {
-            Accept: 'text/event-stream',
-            ...(authHeaders['Authorization'] ? { Authorization: authHeaders['Authorization'] } : {}),
-            ...(authHeaders['X-Development'] ? { 'X-Development': authHeaders['X-Development'] } : {}),
-            ...(authHeaders['X-User-ID'] ? { 'X-User-ID': authHeaders['X-User-ID'] } : {}),
-          },
-          signal: controller.signal,
-        });
-
-        if (!response.ok || !response.body) throw new Error(`SSE ${response.status}`);
-
-        retryDelay = 3000; // reset backoff on successful connection
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buf = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done || cancelled) break;
-
-          buf += decoder.decode(value, { stream: true });
-          const blocks = buf.split('\n\n');
-          buf = blocks.pop() ?? '';
-
-          for (const block of blocks) {
-            if (block.includes('event: message') || block.startsWith('data:')) {
-              refresh();
-            }
-            // any event resets the backoff
-            retryDelay = 3000;
-          }
-        }
-      } catch (e: any) {
-        if (e?.name === 'AbortError' || cancelled) return;
-        // Reconectar con backoff exponencial (máx 60s)
-        sseRetryRef.current = setTimeout(() => {
-          retryDelay = Math.min(retryDelay * 2, 60_000);
-          connect();
-        }, retryDelay);
+    let lastSync = useBandejaStore.getState()._lastSyncAt;
+    const unsub = useBandejaStore.subscribe((state) => {
+      if (state._lastSyncAt !== lastSync) {
+        lastSync = state._lastSyncAt;
+        refresh();
       }
-    }
-
-    connect();
-
+    });
     return () => {
-      cancelled = true;
-      sseAbortRef.current?.abort();
-      sseAbortRef.current = null;
-      if (sseRetryRef.current) clearTimeout(sseRetryRef.current);
+      unsub();
     };
-  }, [isGuestUser, development]);
+  }, [isGuestUser, refresh]);
 
   // Map conversations → FeedItem
   const convItems: FeedItem[] = conversations.map((conv) => ({
