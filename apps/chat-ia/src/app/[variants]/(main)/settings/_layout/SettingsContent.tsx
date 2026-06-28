@@ -112,8 +112,13 @@ const SettingsContent = ({ mobile, activeTab, showLLM = true }: SettingsContentP
     );
   }
 
-  // Usuarios anónimos no tienen acceso a configuración
-  if (!isAuthenticated) {
+  // BUG-A3 v3 QA #32 (28-jun, 5º build sin fix): el fast-path v2 solo
+  // pasaba durante 5s de gracia. Tras gracia, si currentUserId seguía sin
+  // hidratarse (mobile, cross-app SSO) → gate fallaba. Si tenemos cookie
+  // SSO válida (.bodasdehoy.com idTokenV0.1.0) es señal DEFINITIVA de
+  // user real → SIEMPRE pasar gate, no solo durante gracia.
+  // Usuarios anónimos (sin cookie SSO Y sin currentUserId) sí ven gate.
+  if (!isAuthenticated && !localJwtPresent) {
     return (
       <Flexbox
         align="center"

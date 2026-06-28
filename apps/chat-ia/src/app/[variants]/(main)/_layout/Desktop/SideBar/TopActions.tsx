@@ -138,19 +138,20 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
         </Link>
       )}
       {isServerMode && isLoggedIn && (
-        <Link aria-label="Pendientes para ti" href={'/pendientes'} suppressHydrationWarning>
+        <Link aria-label="Bandeja de mensajes" href={'/messages'} suppressHydrationWarning>
           <div style={{ position: 'relative' }}>
             <ActionIcon
-              icon={ListChecks}
+              active={tab === SidebarTabKey.Messages}
+              icon={Inbox}
               size={ICON_SIZE}
-              title="Pendientes para ti"
+              title="Bandeja de mensajes"
               tooltipProps={{ placement: 'right' }}
             />
             {inboxUnread > 0 && (
               <span
                 style={{
                   alignItems: 'center',
-                  background: '#a855f7',
+                  background: '#ef4444',
                   borderRadius: '50%',
                   color: '#fff',
                   display: 'flex',
@@ -173,20 +174,19 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
         </Link>
       )}
       {isServerMode && isLoggedIn && (
-        <Link aria-label="Bandeja de mensajes" href={'/messages'} suppressHydrationWarning>
+        <Link aria-label="Pendientes para ti" href={'/pendientes'} suppressHydrationWarning>
           <div style={{ position: 'relative' }}>
             <ActionIcon
-              active={tab === SidebarTabKey.Messages}
-              icon={Inbox}
+              icon={ListChecks}
               size={ICON_SIZE}
-              title="Bandeja de mensajes"
+              title="Pendientes para ti"
               tooltipProps={{ placement: 'right' }}
             />
             {inboxUnread > 0 && (
               <span
                 style={{
                   alignItems: 'center',
-                  background: '#ef4444',
+                  background: '#a855f7',
                   borderRadius: '50%',
                   color: '#fff',
                   display: 'flex',

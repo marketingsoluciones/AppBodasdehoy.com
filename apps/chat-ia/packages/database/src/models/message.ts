@@ -483,11 +483,29 @@ export class MessageModel {
         userId: this.userId,
       };
 
-      const result = (await trx
-        .insert(messages)
-        .values(insertData)
-        .returning()) as DBMessageItem[];
-      const item = result[0];
+      // BUG-NEW-BUILD32-01 QA #32 (28-jun): el INSERT puede fallar (causa raíz
+      // backend: user_id pasado como email en lugar de UUID Firebase). Antes
+      // (v4) un try/catch retornaba mensaje sintético → BUG-NEW-09 (BD vacía
+      // al recargar). Tras revertir v5 → el error SQL crudo se exponía al
+      // user con schema completo + content + user_id (Y12 information leakage).
+      //
+      // v6 balance: capturar SOLO para mapear a Error genérico (sin SQL).
+      // El throw sí se propaga (no sintético) — la causa raíz hay que
+      // arreglarla en backend (api-mcp debe pasar UUID, no email). Mientras,
+      // el user ve toast genérico y Sentry recibe el error real con stack.
+      let item: DBMessageItem;
+      try {
+        const result = (await trx
+          .insert(messages)
+          .values(insertData)
+          .returning()) as DBMessageItem[];
+        item = result[0];
+      } catch (rawError) {
+        // Log completo a console (Sentry lo captura con tag http.kind=db.insert).
+        console.error('[MessageModel.create] INSERT messages failed:', rawError);
+        // Mensaje al user sin SQL crudo ni contenido del mensaje.
+        throw new Error('No se pudo guardar el mensaje. Inténtalo de nuevo.');
+      }
 
       // Insert the plugin data if the message is a tool
       if (message.role === 'tool') {
