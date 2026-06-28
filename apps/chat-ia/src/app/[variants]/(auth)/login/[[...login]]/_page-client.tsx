@@ -199,9 +199,15 @@ function RightPanel() {
     if (!result) return; // signInWithRedirect en progreso
     if (!result.success) throw new Error(result.errors?.join(', ') || 'Error con Google.');
     const email = result.user?.email || '';
+    // BUG-NEW-BUILD32-01 fix (28-jun): pasábamos email como userId →
+    // MessageModel.create() insertaba email en user_id (UUID column) → INSERT
+    // fallaba ("Failed query: insert into messages"). Firebase devuelve uid
+    // (UUID real) — usarlo. Si por alguna razón uid no está, fallback email
+    // (mejor mantener funcional aunque siga el bug, que crash login).
+    const uid = result.user?.uid || email;
     const token = localStorage.getItem('mcp_jwt_token') || null;
-    saveSession(email, result.development, token, email);
-    await setExternalChatConfig(email, result.development, token || undefined, 'registered');
+    saveSession(uid, result.development, token, email);
+    await setExternalChatConfig(uid, result.development, token || undefined, 'registered');
     fetchExternalChats().catch((e) => console.warn('[login] fetchExternalChats falló:', e?.message));
     if (token) {
       registerReferralIfPending(token, result.development, mcpUrl).catch((e) => console.warn('[login] registerReferralIfPending falló:', e?.message));
@@ -216,9 +222,11 @@ function RightPanel() {
     if (!result) return;
     if (!result.success) throw new Error(result.errors?.join(', ') || 'Error con Facebook.');
     const email = result.user?.email || '';
+    // BUG-NEW-BUILD32-01 fix (28-jun): ver handleGoogleLogin arriba.
+    const uid = result.user?.uid || email;
     const token = localStorage.getItem('mcp_jwt_token') || null;
-    saveSession(email, result.development, token, email);
-    await setExternalChatConfig(email, result.development, token || undefined, 'registered');
+    saveSession(uid, result.development, token, email);
+    await setExternalChatConfig(uid, result.development, token || undefined, 'registered');
     fetchExternalChats().catch((e) => console.warn('[login] fetchExternalChats falló:', e?.message));
     if (token) {
       registerReferralIfPending(token, result.development, mcpUrl).catch((e) => console.warn('[login] registerReferralIfPending falló:', e?.message));
