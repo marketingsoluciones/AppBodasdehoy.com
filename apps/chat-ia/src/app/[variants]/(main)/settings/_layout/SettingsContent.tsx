@@ -27,6 +27,14 @@ function hasLocalJwtSettings(): boolean {
       const parsed = JSON.parse(cfg);
       if (parsed?.token && parsed.token !== 'null' && parsed.token.length > 20) return true;
     }
+    // A3 QA #31 (28-jun): el SSO cross-app guarda `idTokenV0.1.0` en cookie
+    // del dominio .bodasdehoy.com (SessionBridge). Si el usuario navega
+    // directamente a /settings/llm antes de que los JWT lleguen a localStorage,
+    // este helper debe detectar también la cookie para evitar el falso gate.
+    if (typeof document !== 'undefined' && document.cookie) {
+      const cookieMatch = document.cookie.match(/(?:^|;\s*)idTokenV0\.1\.0=([^;]+)/);
+      if (cookieMatch && cookieMatch[1] && cookieMatch[1].length > 20) return true;
+    }
   } catch {
     /* ignore */
   }

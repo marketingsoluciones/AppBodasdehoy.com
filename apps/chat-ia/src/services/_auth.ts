@@ -198,6 +198,15 @@ export const createHeaderWithAuth = async (params?: AuthParams): Promise<Headers
   const headers: Record<string, string> = { [LOBE_CHAT_AUTH_HEADER]: token };
   if (params?.headers) Object.assign(headers, params.headers as Record<string, string>);
 
+  // BUG-UX-02 QA #31 (28-jun): api-ia rechazaba /webapi/chat/openai con
+  // "Whitelabel no encontrado: None / development=None" porque este helper
+  // común NO incluía X-Development. Mismo patrón que api-ia.ts:50, aiChat.ts:33,
+  // inbox-api.ts:57 — lee localStorage.current_development con fallback bodasdehoy.
+  if (typeof window !== 'undefined') {
+    headers['X-Development'] =
+      localStorage.getItem('current_development') || 'bodasdehoy';
+  }
+
   // Obtener JWT de localStorage si está disponible y NO está expirado
   if (typeof window !== 'undefined') {
     // Verificar expiración antes de incluir el JWT
