@@ -85,15 +85,19 @@ const Home: NextPage = () => {
       setRestoreSessionSeconds(Math.floor((Date.now() - start) / 1000))
     }, 400)
 
+    // BUG-NEW-12 fix QA #32 (28-jun): el setTimeout de 6s borraba
+    // activeEventId cuando Firebase tardaba en hidratar en mobile/4G
+    // → user perdía su evento activo y al re-loguear veía "primero
+    // crea evento" pese a tener bodas en BD.
+    // Fix: NO borrar activeEventId al timeout (solo redirigir a login).
+    // Si la sesión sigue válida tras login, el evento se restaura.
+    // Subido timeout 6s→15s para mobile/4G más lento.
     const giveUpId = window.setTimeout(() => {
       setRestoreSessionGiveUp(true)
-      try {
-        localStorage.removeItem('appEventos_activeEventId')
-      } catch {}
 
       const loginUrl = config?.pathLogin ? `${config.pathLogin}?restore=1` : '/login?restore=1'
       window.location.href = loginUrl
-    }, 6000)
+    }, 15000)
 
     return () => {
       window.clearInterval(intervalId)
