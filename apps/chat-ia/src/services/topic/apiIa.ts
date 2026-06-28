@@ -51,8 +51,23 @@ export class ApiIaTopicService implements ITopicService {
     const res = await call('GET', '/chat/topics');
     return unwrap(res);
   };
-  updateTopic: ITopicService['updateTopic'] = async (id, data) =>
-    call('PATCH', `/chat/topics/${encodeURIComponent(id)}`, data);
+  updateTopic: ITopicService['updateTopic'] = async (id, data) => {
+    // BUG-NEW-BUILD34-01 QA #34 (29-jun): PATCH /chat/topics/:id devuelve 404
+    // cuando topic no existe en api-ia (sesiones legacy/auto-created tras
+    // el bug INSERT). El error visible en console era ruido — el chat sigue
+    // funcionando aunque el título no se actualice. Capturamos 404 silente.
+    try {
+      return await call('PATCH', `/chat/topics/${encodeURIComponent(id)}`, data);
+    } catch (e: any) {
+      const msg = e?.message || '';
+      if (msg.includes('404') || msg.toLowerCase().includes('not found')) {
+        // Silent: el topic puede haber sido eliminado o no llegó a persistirse.
+        console.warn(`[topic/apiIa] updateTopic ${id} → 404 (silenciado)`);
+        return undefined as any;
+      }
+      throw e;
+    }
+  };
   removeTopic: ITopicService['removeTopic'] = async (id) =>
     call('DELETE', `/chat/topics/${encodeURIComponent(id)}`);
   removeTopics: ITopicService['removeTopics'] = async (sessionId) =>

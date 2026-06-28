@@ -81,7 +81,34 @@ export async function GET(request: NextRequest) {
       return resp;
     }
 
-    const userId = data.user_id || data.email || '';
+    // FIX α v2 QA #34 (29-jun): el fallback `data.user_id || data.email` metía
+    // email como userId cuando backend NO devolvía user_id (caso save-user-config
+    // 502/503). Resultado: dev-user-config.userId=email → TRPC ctx → MessageModel
+    // recibía email donde la columna user_id espera UUID → INSERT fallaba.
+    //
+    // Fix: si backend NO devuelve user_id, EXTRAER uid del JWT Firebase
+    // (ssoToken, payload.sub o payload.user_id). NUNCA caer a email.
+    let userId = data.user_id;
+    if (!userId && ssoToken) {
+      try {
+        // JWT payload está en el 2º segmento (separado por puntos), base64url-encoded
+        const payloadB64 = ssoToken.split('.')[1];
+        if (payloadB64) {
+          const padded = payloadB64.padEnd(payloadB64.length + (4 - payloadB64.length % 4) % 4, '=');
+          const json = JSON.parse(Buffer.from(padded, 'base64').toString('utf-8'));
+          // Firebase ID token usa `user_id` o `sub` para el uid
+          userId = json.user_id || json.sub || '';
+        }
+      } catch (e) {
+        console.warn('[sso-auto] No se pudo extraer uid del JWT firebase:', (e as Error)?.message);
+      }
+    }
+    // Último fallback: SOLO si no hay manera de obtener uid, usar email
+    // (mejor login degradado que crash total). Loguear para diagnóstico.
+    if (!userId) {
+      userId = data.email || '';
+      if (userId) console.warn('[sso-auto] FALLBACK email como userId — INSERT messages fallará:', userId);
+    }
     const token = data.token || data.jwt_token || '';
     const email = data.email || '';
 
