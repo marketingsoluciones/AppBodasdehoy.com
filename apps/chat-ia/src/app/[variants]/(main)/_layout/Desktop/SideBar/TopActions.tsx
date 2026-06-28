@@ -1,7 +1,7 @@
 'use client';
 
 import { ActionIcon, ActionIconProps, Hotkey } from '@lobehub/ui';
-import { BookOpen, Compass, FolderOpen, Heart, ImagePlus, Images, Inbox, MessageSquare, ShieldCheck } from 'lucide-react';
+import { BookOpen, Compass, FolderOpen, Heart, ImagePlus, Images, Inbox, ListChecks, MessageSquare, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -135,6 +135,41 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
             title="Base de conocimiento"
             tooltipProps={{ placement: 'right' }}
           />
+        </Link>
+      )}
+      {isServerMode && isLoggedIn && (
+        <Link aria-label="Pendientes para ti" href={'/pendientes'} suppressHydrationWarning>
+          <div style={{ position: 'relative' }}>
+            <ActionIcon
+              icon={ListChecks}
+              size={ICON_SIZE}
+              title="Pendientes para ti"
+              tooltipProps={{ placement: 'right' }}
+            />
+            {inboxUnread > 0 && (
+              <span
+                style={{
+                  alignItems: 'center',
+                  background: '#a855f7',
+                  borderRadius: '50%',
+                  color: '#fff',
+                  display: 'flex',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  height: 14,
+                  justifyContent: 'center',
+                  lineHeight: 1,
+                  minWidth: 14,
+                  paddingInline: 2,
+                  position: 'absolute',
+                  right: 2,
+                  top: 2,
+                }}
+              >
+                {inboxUnread > 99 ? '99+' : inboxUnread}
+              </span>
+            )}
+          </div>
         </Link>
       )}
       {isServerMode && isLoggedIn && (
