@@ -1,6 +1,6 @@
 'use client';
 
-import { use, type ComponentType } from 'react';
+import { use, useEffect, type ComponentType } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { ConversationList } from '../components/ConversationList';
@@ -11,6 +11,13 @@ import { TelegramSetup } from '../components/TelegramSetup';
 import { EmailSetup } from '../components/EmailSetup';
 import { WebChatSetup } from '../components/WebChatSetup';
 import { FacebookSetup } from '../components/FacebookSetup';
+
+// B-MSG-SMS-02 QA #34 (29-jun): /messages/sms no tiene componente Setup
+// propio (no hay provider Twilio/Vonage backend). Fallback genérico de
+// la página mostraba "Sin conversaciones — Configura WhatsApp...".
+// Hasta que se implemente SMS provider: redirect a /messages (bandeja
+// unificada) o mensaje claro "Canal SMS aún no disponible".
+const PENDING_BACKEND_CHANNELS = new Set(['sms']);
 
 interface ChannelPageProps {
   params: Promise<{ channel: string }>;
@@ -69,9 +76,32 @@ function SelectTaskEmpty() {
 
 export default function ChannelPage({ params }: ChannelPageProps) {
   const { channel } = use(params);
+  const router = useRouter();
   const { checkAuth } = useAuthCheck();
   const { development } = checkAuth();
   const dev = development || 'bodasdehoy';
+
+  // B-MSG-SMS-02 fix: canales sin backend (sms) → redirect a bandeja
+  useEffect(() => {
+    if (PENDING_BACKEND_CHANNELS.has(channel)) {
+      router.replace('/messages');
+    }
+  }, [channel, router]);
+
+  if (PENDING_BACKEND_CHANNELS.has(channel)) {
+    return (
+      <div className="flex flex-1 items-center justify-center bg-gray-50">
+        <div className="max-w-sm text-center">
+          <div className="mb-4 text-5xl">🚧</div>
+          <h3 className="mb-2 text-lg font-semibold text-gray-700">Canal aún no disponible</h3>
+          <p className="text-sm text-gray-500">
+            Estamos trabajando en este canal. Mientras tanto, usa otros canales
+            disponibles desde la bandeja unificada.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // ── Canales de setup (WhatsApp, Instagram, etc.)
   if (channel in SETUP_CHANNELS) {

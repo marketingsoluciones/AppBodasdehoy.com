@@ -172,25 +172,19 @@ export function UnifiedFeedView({ items, loading, onItemClick }: UnifiedFeedView
   >('all');
 
   const availableFilters = useMemo(() => {
+    // B-FILTER-03 QA #34 (29-jun): este sub-filtro tenía chips de canal
+    // (WA/IG/FB/TG/@/Web) DUPLICADOS de los chips del top (InboxFilters).
+    // Si user activaba "WA" arriba y "Web" abajo, ambos filtros se aplicaban
+    // en serie → intersección imposible → lista vacía sin razón aparente.
+    // Fix: eliminar chips de canal duplicados. Sub-filtro mantiene solo
+    // toggles ortogonales (Sin leer / Notifs) que NO se solapan con el top.
     const kinds = new Set<string>();
     for (const it of items) {
       if (it.kind === 'notification') kinds.add('notifications');
-      else kinds.add(String(it.channelKind));
     }
     const base: { key: typeof filter; label: string }[] = [{ key: 'all', label: 'Todo' }];
     if (items.some((it) => (it.unreadCount ?? 0) > 0 || !it.isRead)) base.push({ key: 'unread', label: 'Sin leer' });
     if (kinds.has('notifications')) base.push({ key: 'notifications', label: 'Notifs' });
-    const ordered: Array<{ key: typeof filter; kind: string, label: string; }> = [
-      { key: 'whatsapp', kind: 'whatsapp', label: 'WA' },
-      { key: 'instagram', kind: 'instagram', label: 'IG' },
-      { key: 'facebook', kind: 'facebook', label: 'FB' },
-      { key: 'telegram', kind: 'telegram', label: 'TG' },
-      { key: 'email', kind: 'email', label: '@' },
-      { key: 'web', kind: 'web', label: 'Web' },
-    ];
-    for (const o of ordered) {
-      if (kinds.has(o.kind)) base.push({ key: o.key, label: o.label });
-    }
     return base;
   }, [items]);
 
@@ -262,7 +256,7 @@ export function UnifiedFeedView({ items, loading, onItemClick }: UnifiedFeedView
             </div>
             <button
               className="mt-2 rounded-lg bg-pink-500 px-4 py-2 text-sm font-medium text-white hover:bg-pink-600 transition-colors"
-              onClick={() => router.push('/messages/whatsapp')}
+              onClick={() => router.push('/settings/integrations')}
               type="button"
             >
               Conectar canal

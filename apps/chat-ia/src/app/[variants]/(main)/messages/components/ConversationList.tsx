@@ -27,12 +27,20 @@ function WhatsAppConversationList({ development, selectedId }: { development: st
   const { loading: sessionLoading, status } = useWhatsAppSession(development);
 
   if (sessionLoading) {
+    // B-MSG-WA-02 QA #34 (29-jun): mensaje "Verificando sesión..." en
+    // pantalla completa generaba flash blanco percibido como crash.
+    // Skeleton de items mantiene la sensación de carga sin texto técnico.
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <div className="mb-2 text-3xl">⏳</div>
-          <p className="text-sm text-gray-500">Verificando sesión de WhatsApp...</p>
-        </div>
+      <div className="flex h-full flex-col gap-2 p-3">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="flex animate-pulse items-start gap-3 rounded-lg p-2">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-gray-200" />
+            <div className="flex-1 space-y-2">
+              <div className="h-3 w-1/2 rounded bg-gray-200" />
+              <div className="h-3 w-3/4 rounded bg-gray-100" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
