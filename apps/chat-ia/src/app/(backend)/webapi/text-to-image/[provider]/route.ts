@@ -28,6 +28,8 @@ export const POST = async (req: Request, { params }: { params: Promise<{ provide
     if (cookie) headers['Cookie'] = cookie;
     const supportKey = req.headers.get('X-Support-Key');
     if (supportKey) headers['X-Support-Key'] = supportKey;
+    // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret server-side.
+    if (process.env.INTERNAL_SECRET) headers['X-Internal-Secret'] = process.env.INTERNAL_SECRET;
 
     const upstream = await fetch(`${backendUrl}/webapi/text-to-image/${provider}`, {
       body,
