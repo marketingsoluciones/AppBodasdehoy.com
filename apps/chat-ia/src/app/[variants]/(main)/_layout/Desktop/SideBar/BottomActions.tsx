@@ -45,8 +45,14 @@ const PlanBadge = memo(() => {
           cursor: 'pointer',
           fontSize: 10,
           fontWeight: 600,
+          // MOB-16 QA #34 (29-jun): el badge tenía whiteSpace:'nowrap' que en
+          // sidebar mobile (rail estrecho ~56px) extendía el texto fuera del
+          // contenedor y solapaba los iconos abajo. Fix: maxWidth 100% + truncate.
+          maxWidth: '100%',
+          overflow: 'hidden',
           padding: '3px 8px',
           textAlign: 'center',
+          textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
         }}
         title="Ver planes disponibles"
@@ -128,9 +134,16 @@ const BottomActions = memo(() => {
 
   return (
     <Flexbox gap={8}>
-      {/* Wallet + Quota + Plan badge solo para usuarios con sesión activa válida */}
+      {/* Wallet + Quota + Plan badge solo para usuarios con sesión activa válida.
+          MOB-16 QA #34 (29-jun): añadido maxWidth + overflow al contenedor
+          para que el contenido nunca exceda el ancho del rail (sidebar mobile
+          es ~56px). Cada hijo se trunca con ellipsis si es muy largo. */}
       {isServerMode && !isGuestOrExpired && (
-        <Flexbox align="center" gap={4}>
+        <Flexbox
+          align="center"
+          gap={4}
+          style={{ maxWidth: '100%', overflow: 'hidden' }}
+        >
           <WalletWidget size="small" />
           <QuotaMiniBar />
           <PlanBadge />
