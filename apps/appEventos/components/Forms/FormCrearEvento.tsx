@@ -173,10 +173,20 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       });
 
       if (!result?.success) {
+        // BUG-NEW-13 diagnóstico QA 29-jun: el toast "El servidor rechazó..." era
+        // demasiado vago. Loguear payload completo del input + response del
+        // server para que QA pueda capturar la causa real (límite plan,
+        // validación schema, etc.).
+        console.error('[createEvent] backend rejected:', {
+          input,
+          result,
+          backendErrors: result?.errors,
+          message: result?.message,
+        });
         const backendErrors = Array.isArray(result?.errors) ? result.errors : []
         const errorMsg = backendErrors.length
           ? backendErrors.map((e: any) => `${e.field ?? ''}: ${e.message ?? ''}`).join('; ')
-          : "El servidor rechazó la creación del evento"
+          : (result?.message || "El servidor rechazó la creación del evento")
         throw new Error(errorMsg)
       }
 
