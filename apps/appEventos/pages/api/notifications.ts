@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { resolveApiBodasGraphqlUrl } from '../../utils/apiEndpoints';
+import { getInternalSecret } from '../../utils/internalSecret';
 
 /**
  * /api/notifications — Proxy server-side a api2 para notificaciones.
@@ -17,14 +18,37 @@ import { resolveApiBodasGraphqlUrl } from '../../utils/apiEndpoints';
 
 const API_MCP_URL = resolveApiBodasGraphqlUrl();
 
+/**
+ * Lee SUPPORT_SECRET_KEY de env. Throw EXPLÍCITO si no está configurada.
+ * Antes había un fallback hardcoded (mismo valor 3 veces) que filtraba la
+ * key real en git → eliminado 2026-06-26 por política PROHIBIDO FALLBACK +
+ * recomendación AWS SES "no almacenar credenciales en repos terceros".
+ */
+function getSupportKey(): string {
+  const key = process.env.SUPPORT_SECRET_KEY;
+  if (!key) {
+    throw new Error(
+      '[notifications.ts] SUPPORT_SECRET_KEY no configurado. Configurar en .env del servidor (NUNCA hardcodear en código).',
+    );
+  }
+  return key;
+}
+
 // Server-side: generar Firebase ID token para api2
 async function getServerToken(userId: string): Promise<string | null> {
   try {
     // 1. Generar custom token via Firebase Admin en api2
-    const supportKey = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
+    const supportKey = getSupportKey();
+    // Unificación secretos api-mcp (29-jun): X-Internal-Secret junto a legacy.
+    const internalSecret = getInternalSecret();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'X-Development': 'bodasdehoy',
+      ...(internalSecret ? { 'X-Internal-Secret': internalSecret } : {}),
+    };
     const impersonateRes = await fetch(API_MCP_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Development': 'bodasdehoy' },
+      headers,
       body: JSON.stringify({
         query: `mutation($args: SupportImpersonationArgs!) {
           supportGenerateImpersonationToken(args: $args) { success token }
@@ -76,6 +100,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       headers['X-Support-Key'] = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
       if (uid) headers['X-User-Id'] = uid;
     }
+    // Unificación secretos api-mcp (29-jun): incluir X-Internal-Secret SIEMPRE
+    // junto al header legacy. api-mcp acepta ambos durante transición.
+    const internalSecret = getInternalSecret();
+    if (internalSecret) headers['X-Internal-Secret'] = internalSecret;
     try {
       const r = await fetch(API_MCP_URL, { method: 'POST', headers, body: JSON.stringify({ query: MARK_AS_READ, variables: { notificationId } }) });
       const d = await r.json();
@@ -113,6 +141,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     headers['X-Support-Key'] = supportKey;
     headers['X-User-Id'] = userId;
   }
+  // Unificación secretos api-mcp (29-jun): incluir X-Internal-Secret SIEMPRE
+  // junto al header legacy. api-mcp acepta ambos durante transición.
+  const internalSecret = getInternalSecret();
+  if (internalSecret) headers['X-Internal-Secret'] = internalSecret;
 
   try {
     // Query notifications
