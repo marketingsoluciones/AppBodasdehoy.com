@@ -27,6 +27,27 @@ export default function MessagesPage() {
   // un eventId (no 'support'), conservar solo conversaciones cuyo linkedEventId
   // coincide. Las notificaciones (kind='notification') no llevan linkedEventId
   // y se mantienen como están en tab history.
+  const [rsvpFilter, setRsvpFilter] = useState<RsvpFilter>('all');
+  const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all');
+  // FASE B v2.0 (Diseño 25-jun): cola Pendientes IA. Visible solo cuando
+  // iaLevel='copilot'. Por ahora iaLevel se gestiona por conversación.
+  const [pendingIaActive, setPendingIaActive] = useState(false);
+  const pendingIaCount = 0; // TODO: contar items con draftState='pending' cuando api-ia exponga
+
+  // BUG-INBOX-03 fix QA #34 (29-jun): los chips de canal/RSVP/Pendientes IA
+  // del componente InboxFilters cambiaban el state pero filteredItems NO
+  // aplicaba ningún filtro de canal/rsvp/pendingIa → "filtros muertos".
+  // Aquí aplico los filtros que faltan + mapeo channel codes (wa→whatsapp,
+  // ig→instagram, tg→telegram, fb→facebook) al campo channelParam del item.
+  const CHANNEL_MAP: Record<ChannelFilter, string | null> = {
+    all: null,
+    wa: 'whatsapp',
+    sms: 'sms',
+    ig: 'instagram',
+    web: 'web',
+    tg: 'telegram',
+    fb: 'facebook',
+  };
   const filteredItems = useMemo(() => {
     let arr = items;
     if (activeTab === 'history') arr = arr.filter((i) => i.kind === 'notification');
@@ -36,8 +57,27 @@ export default function MessagesPage() {
         (i) => i.kind !== 'conversation' || i.linkedEventId === activeScope,
       );
     }
+    // BUG-INBOX-03: filtro canal
+    const targetChannel = CHANNEL_MAP[channelFilter];
+    if (targetChannel) {
+      arr = arr.filter(
+        (i) => i.kind !== 'conversation' || i.channelParam?.includes(targetChannel),
+      );
+    }
+    // BUG-INBOX-03: filtro RSVP
+    if (rsvpFilter !== 'all') {
+      arr = arr.filter(
+        (i) => i.kind !== 'conversation' || (i as any).rsvpStatus === rsvpFilter,
+      );
+    }
+    // BUG-INBOX-03: filtro Pendientes IA (draftState='pending')
+    if (pendingIaActive) {
+      arr = arr.filter(
+        (i) => i.kind !== 'conversation' || (i as any).draftState === 'pending',
+      );
+    }
     return arr;
-  }, [items, activeTab, activeScope]);
+  }, [items, activeTab, activeScope, channelFilter, rsvpFilter, pendingIaActive]);
 
   const notifUnreadCount = useMemo(
     () => items.filter((i) => i.kind === 'notification' && !i.isRead).length,
@@ -47,15 +87,6 @@ export default function MessagesPage() {
     () => items.filter((i) => i.kind === 'conversation' && i.unreadCount > 0).length,
     [items],
   );
-  const [rsvpFilter, setRsvpFilter] = useState<RsvpFilter>('all');
-  const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all');
-  // FASE B v2.0 (Diseño 25-jun): cola Pendientes IA. Visible solo cuando
-  // iaLevel='copilot'. Por ahora iaLevel se gestiona por conversación en el
-  // header — cuando se persista por workspace, leemos de ahí. Mientras
-  // mostramos el filtro si HAY borradores pendientes (count > 0).
-  const [pendingIaActive, setPendingIaActive] = useState(false);
-  const pendingIaCount = 0; // TODO: contar items con draftState='pending' cuando api-ia exponga
-
   // Al cambiar de scope: resetear filtros (regla state management Diseño).
   const handleScopeChange = useCallback((s: ScopeId) => {
     setActiveScope(s);

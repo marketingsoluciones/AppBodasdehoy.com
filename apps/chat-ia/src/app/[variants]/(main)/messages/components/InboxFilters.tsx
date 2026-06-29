@@ -57,7 +57,11 @@ const CHANNEL_OPTIONS: Array<{
 }> = [
   { value: 'all', label: 'Todo', activeBg: '#EDE9FE', activeColor: '#5B21B6' },
   { value: 'wa', label: 'WA', activeBg: '#DCFCE7', activeColor: '#166534' },
-  { value: 'sms', label: 'SMS', activeBg: '#E2E8F0', activeColor: '#1F2937' },
+  // BUG-INBOX-08 QA #34 (29-jun): SMS visible en filtros pero sin canal SMS
+  // configurable (no hay /messages/sms con setup propio ni backend provider
+  // tipo Twilio/Vonage). Ocultar hasta que se implemente. El type
+  // ChannelFilter mantiene 'sms' para no romper consumidores existentes.
+  // { value: 'sms', label: 'SMS', activeBg: '#E2E8F0', activeColor: '#1F2937' },
   { value: 'ig', label: 'IG', activeBg: '#FCE7F3', activeColor: '#9D174D' },
   { value: 'web', label: 'Web', activeBg: '#EDE9FE', activeColor: '#5B21B6' },
   { value: 'tg', label: 'TG', activeBg: '#DBEAFE', activeColor: '#1E40AF' },
