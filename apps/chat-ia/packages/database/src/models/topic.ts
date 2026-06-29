@@ -195,7 +195,6 @@ export class TopicModel {
         userId: this.userId,
       };
 
-<<<<<<< HEAD
       // BUG-01 QA #24 (27-jun): el INSERT falla por causas múltiples
       // (constraint único (clientId,userId), PK, conflict transacción, etc.).
       // Memory chat-ia: persistencia local Neon ya no aporta porque api-ia
@@ -247,59 +246,6 @@ export class TopicModel {
           updatedAt: now,
         };
       }
-=======
-      // BUG-01 QA #24 (27-jun): el INSERT falla por causas múltiples
-      // (constraint único (clientId,userId), PK, conflict transacción, etc.).
-      // Memory chat-ia: persistencia local Neon ya no aporta porque api-ia
-      // gestiona el streaming. Si Neon rechaza el INSERT, hacemos best-effort
-      // SELECT del existente, y si no, devolvemos un topic SINTÉTICO con el
-      // id pedido sin persistir. El front sigue funcionando y la respuesta
-      // streaming aún se procesa por api-ia.
-      let topic: any;
-      try {
-        const inserted = await tx
-          .insert(topics)
-          .values(insertData)
-          .onConflictDoNothing()
-          .returning();
-        topic = inserted[0];
-      } catch {
-        /* swallow — fallback abajo */
-      }
-      if (!topic) {
-        try {
-          const existing = await tx
-            .select()
-            .from(topics)
-            .where(and(eq(topics.userId, this.userId), eq(topics.id, id)))
-            .limit(1);
-          topic = existing[0];
-          if (!topic && (clientId ?? null) !== null) {
-            const byClient = await tx
-              .select()
-              .from(topics)
-              .where(and(eq(topics.userId, this.userId), eq(topics.clientId, clientId as string)))
-              .limit(1);
-            topic = byClient[0];
-          }
-        } catch {
-          /* swallow */
-        }
-      }
-      if (!topic) {
-        // Best-effort sintético: el front recibe un objeto con el id pedido
-        // y continúa el flujo de chat. La persistencia Neon se omite.
-        const now = new Date();
-        topic = {
-          ...insertData,
-          accessedAt: now,
-          createdAt: now,
-          historySummary: null,
-          metadata: null,
-          updatedAt: now,
-        };
-      }
->>>>>>> 028a44d0 (🐛 fix(chat-ia): BUG-01 topics duplicate v2 — try/catch + topic sintetico)
 
       // Update associated messages' topicId
       // BUG-01 retest #28 (27-jun): los IDs temporales optimistas tmp_* no

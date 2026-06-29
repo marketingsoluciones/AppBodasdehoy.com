@@ -480,17 +480,19 @@ const nextConfig: NextConfig = {
   // También excluimos sharp para evitar errores de compatibilidad ARM64 en Vercel
   serverExternalPackages: isProd ? ['@electric-sql/pglite', 'sharp'] : undefined,
 
-  // ⚡ FASE 4 PR-4.3 (2026-05-13): packages compartidos eliminados de transpilePackages
-  // tras FASE 3 (dist build). Next los carga pre-compilados → ahorra recompile en cada build.
-  // SOLO quedan los packages externos que aún requieren transpile (no tienen dist propio).
-  // SPRINT-AG 2026-05-20: eliminado @lobehub/ui del array (estaba como workaround Next 15.5.9
-  // RSC bug del 2026-05-18). Si Modal/Drawer/Markdown rompen, revertir esta línea.
-  // SPRINT-AH 2026-05-20: eliminado pdfjs-dist — dep removida en SPRINT-J, transpile sin efecto.
-  // 🧪 2026-06-02: eliminado 'mermaid' de transpilePackages. @lobehub/ui ya lo carga LAZY
-  // (es/hooks/useMermaid.js → `import('mermaid')`), así que transpilarlo eager (65MB + cytoscape
-  // + d3) solo inflaba el grafo de compilación de /chat sin necesidad. Si los diagramas mermaid
-  // dejan de renderizar en el chat, revertir esta línea a ['mermaid'].
-  transpilePackages: [],
+  // Algunos workspaces internos siguen exportando `src/*.ts` y Next 15 no los resuelve
+  // de forma fiable si no pasan por transpilePackages. Mantener aquí solo los packages
+  // realmente importados desde fuente para no reabrir el sobrecoste de builds viejos.
+  transpilePackages: [
+    '@lobechat/const',
+    '@lobechat/context-engine',
+    '@lobechat/database',
+    '@lobechat/model-runtime',
+    '@lobechat/prompts',
+    '@lobechat/types',
+    '@lobechat/utils',
+    'model-bank',
+  ],
 
   webpack(config) {
     config.experiments = {
