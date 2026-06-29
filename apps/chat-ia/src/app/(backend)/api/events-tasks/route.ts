@@ -80,6 +80,12 @@ export async function GET(req: NextRequest) {
         'Origin': 'https://bodasdehoy.com',
         'X-Development': development,
         'X-Support-Key': supportKey,
+        // Unificación secretos api-mcp (29-jun): X-Internal-Secret leído de
+        // env INTERNAL_SECRET (server-side). api-mcp acepta ambos durante
+        // transición. Helper inline para no añadir dep package.
+        ...(process.env.INTERNAL_SECRET
+          ? { 'X-Internal-Secret': process.env.INTERNAL_SECRET }
+          : {}),
       },
       method: 'POST',
       signal: AbortSignal.timeout(15_000),
