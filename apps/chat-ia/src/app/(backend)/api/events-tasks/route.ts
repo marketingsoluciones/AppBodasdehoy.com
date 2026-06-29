@@ -79,10 +79,11 @@ export async function GET(req: NextRequest) {
         'Content-Type': 'application/json',
         'Origin': 'https://bodasdehoy.com',
         'X-Development': development,
-        'X-Support-Key': supportKey,
-        // Unificación secretos api-mcp (29-jun): X-Internal-Secret leído de
-        // env INTERNAL_SECRET (server-side). api-mcp acepta ambos durante
-        // transición. Helper inline para no añadir dep package.
+        // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret es el
+        // único secret servicio-servicio. X-Support-Key retirado (api-mcp
+        // /api/internal/* ya devuelve 401 al viejo). supportKey local se
+        // mantiene en el codebase por compatibilidad con otros callers que
+        // van a api-ia (no a api-mcp).
         ...(process.env.INTERNAL_SECRET
           ? { 'X-Internal-Secret': process.env.INTERNAL_SECRET }
           : {}),
