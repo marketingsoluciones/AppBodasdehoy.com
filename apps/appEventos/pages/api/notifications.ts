@@ -93,9 +93,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!notificationId) return res.status(400).json({ error: 'notificationId required' });
     const development = bodyDev || 'bodasdehoy';
     const uid = bodyUserId || '';
+    // BUG 3 v2: leer Authorization Bearer del header (prioridad) + cookie (fallback).
+    const postAuthHeader = req.headers.authorization || req.headers.Authorization;
+    const postBearer = typeof postAuthHeader === 'string' && postAuthHeader.startsWith('Bearer ')
+      ? postAuthHeader.slice('Bearer '.length).trim()
+      : null;
     const cookieToken = req.cookies?.['idTokenV0.1.0'];
     const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-Development': development };
-    if (cookieToken && cookieToken.startsWith('ey')) headers['Authorization'] = `Bearer ${cookieToken}`;
+    if (postBearer && postBearer.startsWith('ey')) headers['Authorization'] = `Bearer ${postBearer}`;
+    else if (cookieToken && cookieToken.startsWith('ey')) headers['Authorization'] = `Bearer ${cookieToken}`;
     else if (uid) {
       headers['X-User-Id'] = uid;
     }
@@ -122,8 +128,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!userId) return res.status(400).json({ error: 'userId required' });
 
-  // Intentar obtener token server-side
-  // Primero probar con la cookie del request (si el usuario tiene Firebase auth real)
+  // BUG 3 v2 QA #34 (29-jun): el handler antes SOLO leía cookies. Si el
+  // front enviaba Authorization: Bearer en header (como hace Notifications.tsx
+  // tras el fix anterior), el handler lo IGNORABA → hadToken:false →
+  // backend usaba support key fallback → 0 notifs.
+  // Fix: priorizar header Authorization explícito, luego cookie.
+  const reqAuthHeader = req.headers.authorization || req.headers.Authorization;
+  const bearerFromHeader = typeof reqAuthHeader === 'string' && reqAuthHeader.startsWith('Bearer ')
+    ? reqAuthHeader.slice('Bearer '.length).trim()
+    : null;
   const cookieToken = req.cookies?.['idTokenV0.1.0'];
 
   // Construir headers para api2
@@ -132,7 +145,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     'X-Development': development,
   };
 
-  if (cookieToken && cookieToken.startsWith('ey')) {
+  // Prioridad: 1) Authorization Bearer header explícito (Notifications.tsx),
+  //            2) cookie idTokenV0.1.0 (SSO cross-app)
+  if (bearerFromHeader && bearerFromHeader.startsWith('ey')) {
+    headers['Authorization'] = `Bearer ${bearerFromHeader}`;
+  } else if (cookieToken && cookieToken.startsWith('ey')) {
     headers['Authorization'] = `Bearer ${cookieToken}`;
   }
 
