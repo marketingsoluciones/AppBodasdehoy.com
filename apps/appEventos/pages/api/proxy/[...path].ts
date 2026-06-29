@@ -46,6 +46,10 @@ export default async function handler(
     if (req.headers['isproduction']) {
       requestHeaders['IsProduction'] = req.headers['isproduction'] as string;
     }
+    // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret server-side.
+    if (process.env.INTERNAL_SECRET) {
+      requestHeaders['X-Internal-Secret'] = process.env.INTERNAL_SECRET;
+    }
 
     const response = await fetch(targetUrl, {
       method: req.method,

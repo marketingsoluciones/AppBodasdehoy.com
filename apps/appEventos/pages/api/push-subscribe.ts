@@ -29,6 +29,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Cookie de sesión se pasa automáticamente si hay mismo dominio
         // Para cross-domain, usamos el sessionBodas del cliente
         ...(req.headers.cookie ? { Cookie: req.headers.cookie } : {}),
+        // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret.
+        ...(process.env.INTERNAL_SECRET
+          ? { 'X-Internal-Secret': process.env.INTERNAL_SECRET }
+          : {}),
       },
       body: JSON.stringify({ token, userId, platform: 'web' }),
     });
