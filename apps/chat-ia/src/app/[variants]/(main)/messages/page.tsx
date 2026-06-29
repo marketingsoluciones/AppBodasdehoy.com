@@ -57,6 +57,15 @@ export default function MessagesPage() {
         (i) => i.kind !== 'conversation' || i.linkedEventId === activeScope,
       );
     }
+    // MOB-21 QA #34 (29-jun): inbox WA tenía 270+ msgs spam de newsletters
+    // y status broadcasts ahogando el inbox real del organizador.
+    // Filtro auto: ocultar conversaciones cuyo jidType sea 'newsletter' o
+    // 'broadcast' por default. (TODO próxima ronda: toggle "ver spam".)
+    arr = arr.filter((i) => {
+      if (i.kind !== 'conversation') return true;
+      const jid = (i as any).jidType;
+      return jid !== 'newsletter' && jid !== 'broadcast';
+    });
     // BUG-INBOX-03: filtro canal
     const targetChannel = CHANNEL_MAP[channelFilter];
     if (targetChannel) {

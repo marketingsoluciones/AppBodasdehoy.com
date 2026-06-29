@@ -42,6 +42,8 @@ export interface FeedItem {
   /** ISO string for sorting and display */
   timestamp: string;
   unreadCount: number;
+  /** MOB-21 QA #34 (29-jun): tipo JID para filtrar spam (newsletter/broadcast). */
+  jidType?: string | null;
   /** FASE B v2.0: estado RSVP del invitado en modo Evento. Solo se pinta el
    *  badge cuando hay valor. Vendrá de ConversationExtended.guestStatus
    *  (api-mcp) — hoy se queda undefined hasta que api-mcp lo exponga. */
@@ -204,6 +206,7 @@ export function useUnifiedFeed(maxItems = 60): {
     conversationId: conv.conversationId,
     id: `conv-${conv.channelParam}-${conv.conversationId}`,
     isRead: conv.unreadCount === 0,
+    jidType: (conv as any).jidType ?? null,
     kind: 'conversation' as const,
     linkedContactId: conv.linkedContactId,
     linkedEventId: conv.linkedEventId,
