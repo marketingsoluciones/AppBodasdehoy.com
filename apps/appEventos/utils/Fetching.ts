@@ -994,11 +994,7 @@ export const queries = {
       fecha
       galerySvgVersion
       listaRegalos
-      listIdentifiers{
-        table
-        start_Id
-        end_Id
-      }
+      listIdentifiers
       poblacion
       pais
       timeZone
@@ -1581,11 +1577,7 @@ export const queries = {
       fecha
       galerySvgVersion
       listaRegalos
-      listIdentifiers{
-        table
-        start_Id
-        end_Id
-      }
+      listIdentifiers
       poblacion
       pais
       lugar {
