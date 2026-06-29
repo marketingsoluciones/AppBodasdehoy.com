@@ -20,6 +20,10 @@ const MOBILE_NAV_ROUTES = new Set([
   '/discover/model',
   '/discover/provider',
   '/me',
+  // BUG-MOB QA 29-jun: /pendientes y /messages estaban fuera del set
+  // → sin NavBar mobile, el user se sentía "fuera de contexto" en mobile.
+  '/pendientes',
+  '/messages',
 ]);
 
 const Layout = memo(({ children }: PropsWithChildren) => {
