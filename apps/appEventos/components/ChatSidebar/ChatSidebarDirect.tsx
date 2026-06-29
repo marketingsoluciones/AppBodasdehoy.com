@@ -173,7 +173,18 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
       stored = loadSessions(stableUserId);
     }
     setSessions(stored);
-    setActiveSessionId(prev => (stored.some(s => s.id === prev) ? prev : defaultSessionId));
+    // BUG 2 (29-jun): cuando user.uid llega tarde (Firebase hidratación),
+    // activeSessionId estaba inicializado a guestSessionId y el `prev` (guest)
+    // estaba en stored → NUNCA migraba a user_{uid}. Como resultado:
+    // /api/copilot/chat recibía sessionId=guest_* aunque user logged →
+    // backend respondía 402 "Saldo insuficiente" (guest sin verificar saldo).
+    // Fix: si defaultSessionId es user_* y prev es guest_*, forzar transición.
+    setActiveSessionId(prev => {
+      if (defaultSessionId.startsWith('user_') && (prev?.startsWith('guest') || prev?.startsWith('copilot_guest'))) {
+        return defaultSessionId;
+      }
+      return stored.some(s => s.id === prev) ? prev : defaultSessionId;
+    });
   }, [stableUserId, defaultSessionId]);
 
   const handleNewSession = useCallback(() => {

@@ -8,6 +8,20 @@ import { useTranslation } from "react-i18next";
 import { ImageAvatar } from "./Utils/ImageAvatar";
 import { RelativeTime } from "./Utils/RelativeTime";
 import { useRouter } from "next/navigation";
+import { getAuth } from "firebase/auth";
+
+// BUG 3 (29-jun): el handler /api/notifications.ts hace fallback a
+// support key cuando no recibe Authorization Bearer → devuelve siempre
+// notifications:[] del usuario porque no puede identificarlo. Causa:
+// fetch sin Authorization. Fix: añadir Bearer token Firebase a cada
+// llamada. credentials:'include' garantiza cookie idTokenV0.1.0 también.
+async function notifAuthHeaders(): Promise<Record<string, string>> {
+  try {
+    const idToken = await getAuth().currentUser?.getIdToken();
+    if (idToken) return { Authorization: `Bearer ${idToken}` };
+  } catch { /* sin firebase user, sigue sin header */ }
+  return {};
+}
 
 // ========================================
 // Types
@@ -82,9 +96,11 @@ export const Notifications = () => {
   const markAsRead = useCallback(async (notifId: string) => {
     if (!userId) return;
     try {
+      const authH = await notifAuthHeaders();
       await fetch('/api/notifications', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authH },
+        credentials: 'include',
         body: JSON.stringify({ notificationId: notifId, userId, dev: development }),
       });
       setApi2Notifs(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n));
@@ -103,7 +119,8 @@ export const Notifications = () => {
       // Fetch more if filtering client-side by event name
       const limit = filterEventName ? 200 : (tab === 'history' ? 50 : PAGE_SIZE);
       const url = `/api/notifications?userId=${userId}&dev=${development}&tab=${tab}&page=${page}&limit=${limit}`;
-      const res = await fetch(url);
+      const authH = await notifAuthHeaders();
+      const res = await fetch(url, { headers: authH, credentials: 'include' });
       const data = await res.json();
       if (data.success) {
         let notifs = data.notifications || [];
@@ -127,7 +144,11 @@ export const Notifications = () => {
   const pollUnread = useCallback(async () => {
     if (!userId) return;
     try {
-      const res = await fetch(`/api/notifications?userId=${userId}&dev=${development}&tab=pending&page=1&limit=100`);
+      const authH = await notifAuthHeaders();
+      const res = await fetch(`/api/notifications?userId=${userId}&dev=${development}&tab=pending&page=1&limit=100`, {
+        headers: authH,
+        credentials: 'include',
+      });
       const data = await res.json();
       if (data.success) {
         setApi2UnreadCount(data.unreadCount || 0);
