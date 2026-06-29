@@ -206,7 +206,14 @@ async function proxyToPythonBackend(req: Request, provider: string): Promise<Res
       }
     });
 
-    // Inyectar X-Support-Key para que api-ia pueda resolver la API key del developer vía MCP
+    // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret server-side
+    // para AUTH servicio→servicio. api-ia acepta en su inbound centralizado.
+    if (process.env.INTERNAL_SECRET && !headers['X-Internal-Secret']) {
+      headers['X-Internal-Secret'] = process.env.INTERNAL_SECRET;
+    }
+    // X-Support-Key per-tenant (whitelabel): identidad de tenant, NO auth.
+    // api-ia lo usa para resolver la API key del developer vía MCP. Distinto
+    // del INTERNAL_SECRET unificado — mantener.
     if (!headers['X-Support-Key'] && !headers['x-support-key']) {
       const dev = req.headers.get('x-development') || 'bodasdehoy';
       headers['X-Support-Key'] = getSupportKey(dev);

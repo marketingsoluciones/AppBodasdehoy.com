@@ -196,7 +196,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       notifications: notifs?.notifications ?? [],
       _debug: {
         hadToken: !!headers['Authorization'],
-        usedSupportKey: !!headers['X-Support-Key'],
+        hadInternalSecret: !!headers['X-Internal-Secret'],
         api2Response: notifData?.errors ? 'errors' : 'ok',
       },
     });

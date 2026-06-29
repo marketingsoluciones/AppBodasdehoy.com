@@ -1,17 +1,19 @@
 /**
  * INTERNAL_SECRET — unificación de secretos internos servicio↔servicio
- * (api-mcp directiva 2026-06-29).
+ * (api-mcp directiva 2026-06-29 v2).
  *
  * Contrato:
- *   - api-mcp acepta header X-Internal-Secret con el valor de INTERNAL_SECRET
- *   - Durante transición api-mcp acepta los headers viejos (X-Support-Key) Y el
- *     nuevo a la vez → migración sin downtime
- *   - El valor LO LEE de env var, NO se hardcoded en código ni se commit
+ *   - api-mcp y api-ia aceptan header X-Internal-Secret con el valor de
+ *     env var INTERNAL_SECRET (el mismo que api-mcp tiene en su .env).
+ *   - X-Support-Key LEGACY auth retirado de los callers a api-mcp. Mantiene
+ *     uso como identidad per-tenant (whitelabel) donde aplique (NO en
+ *     callers a /api/internal/* de api-mcp).
+ *   - El valor LO LEE de env var, NO se hardcodea en código ni se commit.
  *
- * Uso:
+ * Uso (caller a api-mcp directo):
  *   const headers = {
- *     ...(getInternalSecret() ? { 'X-Internal-Secret': getInternalSecret() } : {}),
- *     'X-Support-Key': supportKey, // legacy, retirar tras confirmar migración
+ *     'X-Internal-Secret': getInternalSecret(),
+ *     'X-User-Id': uid, // identidad usuario, no secret
  *   };
  */
 export function getInternalSecret(): string {

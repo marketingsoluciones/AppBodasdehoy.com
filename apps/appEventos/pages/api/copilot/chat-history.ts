@@ -54,7 +54,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       headers: {
         ...(auth ? { Authorization: auth } : {}),
         'X-Development': development,
+        // X-Support-Key per-tenant: identidad whitelabel.
         'X-Support-Key': supportKey,
+        // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret AUTH
+        // servicio-servicio. api-ia acepta en su inbound centralizado.
+        ...(process.env.INTERNAL_SECRET
+          ? { 'X-Internal-Secret': process.env.INTERNAL_SECRET }
+          : {}),
       },
       method: 'GET',
     });
