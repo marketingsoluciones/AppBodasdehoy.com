@@ -51,7 +51,9 @@ step_rsync_up() {
   echo "=== rsync-up) node_modules local → portátil ==="
   rsync -az --delete -e "ssh -o BatchMode=yes" \
     "$LOCAL_DIR/node_modules/" "$REMOTE_HOST:$REMOTE_DIR/node_modules/"
-  echo "✅ node_modules sincronizado"
+  rsync -az --delete -e "ssh -o BatchMode=yes" \
+    "$LOCAL_DIR/apps/chat-ia/node_modules/" "$REMOTE_HOST:$REMOTE_DIR/apps/chat-ia/node_modules/"
+  echo "✅ node_modules raíz + chat-ia sincronizados"
 }
 
 step_shared() {
