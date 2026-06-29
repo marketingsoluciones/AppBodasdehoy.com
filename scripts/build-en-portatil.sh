@@ -53,7 +53,14 @@ step_rsync_up() {
     "$LOCAL_DIR/node_modules/" "$REMOTE_HOST:$REMOTE_DIR/node_modules/"
   rsync -az --delete -e "ssh -o BatchMode=yes" \
     "$LOCAL_DIR/apps/chat-ia/node_modules/" "$REMOTE_HOST:$REMOTE_DIR/apps/chat-ia/node_modules/"
-  echo "✅ node_modules raíz + chat-ia sincronizados"
+  ssh -o BatchMode=yes -T "$REMOTE_HOST" <<EOF
+mkdir -p "$REMOTE_DIR/apps/chat-ia/node_modules/@lobechat"
+ln -sfn "$REMOTE_DIR/apps/chat-ia/packages/model-runtime" \
+  "$REMOTE_DIR/apps/chat-ia/node_modules/@lobechat/model-runtime"
+ln -sfn "$REMOTE_DIR/node_modules/.pnpm/ollama@0.6.3/node_modules/ollama" \
+  "$REMOTE_DIR/apps/chat-ia/node_modules/ollama"
+EOF
+  echo "✅ node_modules raíz + chat-ia sincronizados (workspace links reparados)"
 }
 
 step_shared() {
