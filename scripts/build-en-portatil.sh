@@ -21,7 +21,7 @@ set -euo pipefail
 REMOTE_HOST="100.105.48.36"
 REMOTE_DIR="/Users/juancarlosparra/Projects/AppBodasdehoy.com"
 REMOTE_PATH="/opt/homebrew/bin"
-BRANCH="tj/refactor/adelgazar-chat-ia"
+BRANCH="${BUILD_BRANCH:-tj/refactor/adelgazar-chat-ia}"
 LOCAL_DIR="/Users/juancarlosparra/Projects/AppBodasdehoy.com"
 HEAP_MB=16384
 
