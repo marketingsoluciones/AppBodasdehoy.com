@@ -247,7 +247,20 @@ export const sendChatMessage = async (
     // SEGURIDAD: si el usuario es anónimo/visitante, no enviar token de auth.
     // El cookie idTokenV0.1.0 puede pertenecer a otro usuario logueado en chat-ia,
     // lo que causaría fuga de datos privados de ese usuario al visitante.
-    const authToken = isAnonymous ? '' : getAuthToken();
+    let authToken = isAnonymous ? '' : getAuthToken();
+
+    // BUG 2 v2 QA #34 (29-jun): si getAuthToken() devuelve vacío (cookies no
+    // disponibles en algunos contextos, dev-user-config sin token), intentar
+    // Firebase Auth como último recurso garantizado. /api/copilot/chat sin
+    // Authorization → 402 "Saldo insuficiente" independiente del sessionId.
+    if (!authToken && !isAnonymous) {
+      try {
+        const { getAuth } = await import('firebase/auth');
+        const fbToken = await getAuth().currentUser?.getIdToken();
+        if (fbToken) authToken = fbToken;
+      } catch { /* sin firebase auth disponible — sigue sin token */ }
+    }
+
     const response = await fetch(`${CHAT_API_BASE}/api/copilot/chat`, {
       method: 'POST',
       headers: {
