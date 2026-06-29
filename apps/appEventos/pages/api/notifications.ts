@@ -96,12 +96,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const cookieToken = req.cookies?.['idTokenV0.1.0'];
     const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-Development': development };
     if (cookieToken && cookieToken.startsWith('ey')) headers['Authorization'] = `Bearer ${cookieToken}`;
-    else {
-      headers['X-Support-Key'] = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
-      if (uid) headers['X-User-Id'] = uid;
+    else if (uid) {
+      headers['X-User-Id'] = uid;
     }
-    // Unificación secretos api-mcp (29-jun): incluir X-Internal-Secret SIEMPRE
-    // junto al header legacy. api-mcp acepta ambos durante transición.
+    // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret es el ÚNICO
+    // secret auth servicio-servicio. X-Support-Key retirado (api-mcp endpoint
+    // /api/internal/* ya devuelve 401 al viejo). X-User-Id se mantiene como
+    // identidad (no secret).
     const internalSecret = getInternalSecret();
     if (internalSecret) headers['X-Internal-Secret'] = internalSecret;
     try {
@@ -135,14 +136,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     headers['Authorization'] = `Bearer ${cookieToken}`;
   }
 
-  // Si no hay token, usar support key + X-User-Id como fallback (bypass/test)
-  const supportKey = process.env.SUPPORT_SECRET_KEY || 'b83ac223ebddaf5a3a303c3972e4efa27039b6d8bafc40793599cb7cefc7f433';
+  // Si no hay JWT del usuario, identificar el caller con X-User-Id.
+  // El AUTH servicio-servicio lo da X-Internal-Secret abajo.
   if (!headers['Authorization']) {
-    headers['X-Support-Key'] = supportKey;
     headers['X-User-Id'] = userId;
   }
-  // Unificación secretos api-mcp (29-jun): incluir X-Internal-Secret SIEMPRE
-  // junto al header legacy. api-mcp acepta ambos durante transición.
+  // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret es el ÚNICO
+  // secret auth servicio-servicio. X-Support-Key retirado.
   const internalSecret = getInternalSecret();
   if (internalSecret) headers['X-Internal-Secret'] = internalSecret;
 
