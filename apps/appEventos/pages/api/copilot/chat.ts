@@ -402,9 +402,16 @@ async function getWhitelabelApiKey(development: string): Promise<{ apiKey: strin
   `;
 
   try {
+    // Unificación secretos api-mcp v2 (29-jun): X-Internal-Secret auth
+    // servicio-servicio. getWhiteLabelConfig antes iba sin auth (pública),
+    // añadimos por consistencia con el resto de callers a api-mcp.
+    const internalSecret = process.env.INTERNAL_SECRET;
     const response = await fetch(API_MCP_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(internalSecret ? { 'X-Internal-Secret': internalSecret } : {}),
+      },
       body: JSON.stringify({ query }),
     });
 
