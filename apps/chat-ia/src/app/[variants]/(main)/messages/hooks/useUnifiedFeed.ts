@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   type AppNotification,
   getNotifications,
+  markAllNotificationsAsRead,
   markNotificationAsRead,
 } from '@/services/mcpApi/notifications';
 
@@ -41,6 +42,16 @@ export interface FeedItem {
   /** ISO string for sorting and display */
   timestamp: string;
   unreadCount: number;
+  /** MOB-21 QA #34 (29-jun): tipo JID para filtrar spam (newsletter/broadcast). */
+  jidType?: string | null;
+  /** FASE B v2.0: estado RSVP del invitado en modo Evento. Solo se pinta el
+   *  badge cuando hay valor. Vendrá de ConversationExtended.guestStatus
+   *  (api-mcp) — hoy se queda undefined hasta que api-mcp lo exponga. */
+  rsvpStatus?: 'confirmed' | 'pending' | 'declined';
+  /** ID de evento vinculado (linkedEventId) — para filtrar por scope evento. */
+  linkedEventId?: string | null;
+  /** ID del contacto CRM vinculado. */
+  linkedContactId?: string | null;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -76,6 +87,7 @@ function computeNotificationUrl(n: AppNotification): string | null {
 export function useUnifiedFeed(maxItems = 60): {
   items: FeedItem[];
   loading: boolean;
+  markAllNotificationsRead: () => Promise<void>;
   markNotificationRead: (notificationId: string) => void;
   /** Fuerza un refresh inmediato del feed (p.ej. tras recibir un SSE message) */
   refresh: () => void;
@@ -247,10 +259,14 @@ export function useUnifiedFeed(maxItems = 60): {
     conversationId: conv.conversationId,
     id: `conv-${conv.channelParam}-${conv.conversationId}`,
     isRead: conv.unreadCount === 0,
+    jidType: (conv as any).jidType ?? null,
     kind: 'conversation' as const,
+    linkedContactId: conv.linkedContactId,
+    linkedEventId: conv.linkedEventId,
     name: conv.name,
     notificationId: null,
     preview: conv.lastMessage,
+    rsvpStatus: conv.guestStatus ?? undefined,
     timestamp: conv.lastMessageAt,
     unreadCount: conv.unreadCount,
   }));
@@ -293,9 +309,21 @@ export function useUnifiedFeed(maxItems = 60): {
     });
   }, []);
 
+  const markAllNotificationsRead = useCallback(async () => {
+    const prev = notifications;
+    setNotifications((curr) => curr.map((n) => ({ ...n, read: true })));
+    try {
+      const ok = await markAllNotificationsAsRead();
+      if (!ok) setNotifications(prev);
+    } catch {
+      setNotifications(prev);
+    }
+  }, [notifications]);
+
   return {
     items,
     loading: convLoading || notifLoading,
+    markAllNotificationsRead,
     markNotificationRead,
     refresh,
   };
