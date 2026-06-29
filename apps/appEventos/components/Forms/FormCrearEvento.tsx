@@ -3,6 +3,7 @@ import { fetchApiBodas, fetchApiEventos, getApiErrorMessage, queries } from "../
 import { AuthContextProvider, EventsGroupContextProvider, EventContextProvider } from "../../context";
 import InputField from "./InputField";
 import SelectField from "./SelectField";
+import DropdownCountries from "../Utils/DropdownCountries";
 import { useToast } from "../../hooks/useToast";
 import * as yup from "yup";
 import { Dispatch, FC, SetStateAction, useEffect, useState } from "react";
@@ -365,12 +366,16 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
                   <ModuloSubida setValueImage={setValueImage} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={defaultImagenes[values.tipo?.toLowerCase()]} />
                 </div>
               </div>
-              {/* <DropdownCountries
-            name="pais"
-            placeholder="Selecciona el pais"
-            label="Selecciona el pais"
-            value={values.pais}
-            /> */}
+              {/* api-mcp 29-jun: país seleccionable en form (backend ya tiene
+                  default si no se pasa). Auto-detect via api.country.is +
+                  selección manual. Opcional — backend resuelve si vacío. */}
+              <div>
+                <DropdownCountries
+                  name="pais"
+                  placeholder={t("Selecciona el país")}
+                  label={t("País")}
+                />
+              </div>
               {/* <InputField
             name="poblacion"
             placeholder="Murcia"
