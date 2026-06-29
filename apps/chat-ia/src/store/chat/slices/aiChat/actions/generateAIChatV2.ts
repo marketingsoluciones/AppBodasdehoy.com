@@ -326,10 +326,28 @@ export const generateAIChatV2: StateCreator<
     );
   },
   internal_refreshAiChat: ({ topics, messages, sessionId, topicId }) => {
+    // BUG-NEW-08 silent loss fix QA #34 (29-jun): este método sobrescribía
+    // messagesMap[key] con la respuesta del server. En ráfaga, msg N+1
+    // enviado mientras msg N termina creaba tmp_* en flight. Cuando msg N
+    // respondía, refresh borraba el tmp_* del state → msg N+1 desaparecía
+    // silentemente del UI (síntoma observado QA: "RAFAGA-2 desaparece").
+    //
+    // Fix: preservar mensajes pending (tmp_*) que no estén en server response.
+    // El siguiente refresh tras su propia respuesta los limpiará naturalmente.
+    const key = messageMapKey(sessionId, topicId);
+    const currentMessages = get().messagesMap[key] || [];
+    const serverIds = new Set(messages.map((m: any) => m.id));
+    const pendingMessages = currentMessages.filter(
+      (m: any) => typeof m.id === 'string' && m.id.startsWith('tmp_') && !serverIds.has(m.id),
+    );
+    const mergedMessages = pendingMessages.length > 0
+      ? [...messages, ...pendingMessages]
+      : messages;
+
     set(
       {
         topicMaps: topics ? { ...get().topicMaps, [sessionId]: topics } : get().topicMaps,
-        messagesMap: { ...get().messagesMap, [messageMapKey(sessionId, topicId)]: messages },
+        messagesMap: { ...get().messagesMap, [key]: mergedMessages },
       },
       false,
       'refreshAiChat',
