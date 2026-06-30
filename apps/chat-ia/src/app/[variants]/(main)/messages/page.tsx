@@ -66,11 +66,14 @@ export default function MessagesPage() {
       const jid = (i as any).jidType;
       return jid !== 'newsletter' && jid !== 'broadcast';
     });
-    // BUG-INBOX-03: filtro canal
+    // BUG-INBOX-03 v2 (QA 30-jun): WA items tienen channelParam='wa-{id}' (no
+    // 'whatsapp'), por lo que includes('whatsapp') vaciaba la bandeja cuando
+    // se filtraba por WA con canales configurados. Comparar por channelKind
+    // del item (que SÍ es 'whatsapp'|'instagram'|...).
     const targetChannel = CHANNEL_MAP[channelFilter];
     if (targetChannel) {
       arr = arr.filter(
-        (i) => i.kind !== 'conversation' || i.channelParam?.includes(targetChannel),
+        (i) => i.kind !== 'conversation' || i.channelKind === targetChannel,
       );
     }
     // BUG-INBOX-03: filtro RSVP

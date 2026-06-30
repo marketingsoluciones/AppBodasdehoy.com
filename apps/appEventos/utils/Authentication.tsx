@@ -68,12 +68,28 @@ export const useAuthentication = () => {
 
   const getSessionCookie = useCallback(async (tokenID: any): Promise<string | undefined> => {
     if (tokenID) {
-      console.log("[Auth] Llamando auth mutation con development:", config?.development)
+      // BUG-LOGIN QA 30-jun: AuthContext hidrata `config.development` en
+      // useEffect (async), pero el login puede dispararse antes de la 1ª
+      // hidratación → development=undefined → api-mcp rechaza la auth.
+      // Fallback derivado del hostname (app-dev/chat-dev → bodasdehoy).
+      const fallbackDevelopment = (() => {
+        if (typeof window === 'undefined') return 'bodasdehoy';
+        const host = window.location.hostname || '';
+        if (host === 'localhost' || host === '127.0.0.1') return 'bodasdehoy';
+        const parts = host.split('.');
+        const tenant = parts.length >= 3 ? parts[parts.length - 3] : null;
+        if (tenant && tenant !== 'app-dev' && tenant !== 'chat-dev' && tenant !== 'app-test' && tenant !== 'chat-test' && tenant !== 'app' && tenant !== 'chat') {
+          return tenant;
+        }
+        return 'bodasdehoy';
+      })();
+      const effectiveDevelopment = config?.development || fallbackDevelopment;
+      console.log("[Auth] Llamando auth mutation con development:", effectiveDevelopment, "(config?.development:", config?.development, ")");
       console.log("[Auth] Token ID (primeros 50 chars):", tokenID?.substring(0, 50))
       const authResult: any = await fetchApiBodas({
         query: queries.auth,
         variables: { idToken: tokenID },
-        development: config?.development
+        development: effectiveDevelopment
       });
       console.log("[Auth] Resultado COMPLETO de auth mutation:", authResult)
       console.log("[Auth] Análisis del resultado:", {
@@ -342,6 +358,20 @@ export const useAuthentication = () => {
               if (res?.user?.uid && res?.user?.email) {
                 console.log("[Auth] Creando usuario automáticamente en la API...")
                 try {
+                  // BUG-LOGIN QA 30-jun: mismo fix que getSessionCookie —
+                  // config?.development puede estar undefined si createUser
+                  // dispara antes de hidratar AuthContext.
+                  const fallbackDev = (() => {
+                    if (typeof window === 'undefined') return 'bodasdehoy';
+                    const host = window.location.hostname || '';
+                    if (host === 'localhost' || host === '127.0.0.1') return 'bodasdehoy';
+                    const parts = host.split('.');
+                    const tenant = parts.length >= 3 ? parts[parts.length - 3] : null;
+                    if (tenant && tenant !== 'app-dev' && tenant !== 'chat-dev' && tenant !== 'app-test' && tenant !== 'chat-test' && tenant !== 'app' && tenant !== 'chat') {
+                      return tenant;
+                    }
+                    return 'bodasdehoy';
+                  })();
                   // Crear usuario en la API con rol por defecto
                   const createResult = await fetchApiBodas({
                     query: queries.createUser,
@@ -349,7 +379,7 @@ export const useAuthentication = () => {
                       uid: res.user.uid,
                       role: whoYouAre && whoYouAre !== "" ? [whoYouAre] : ["creator"]
                     },
-                    development: config?.development
+                    development: config?.development || fallbackDev
                   })
 
                   if (createResult) {
