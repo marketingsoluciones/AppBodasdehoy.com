@@ -75,10 +75,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  // Solo permitir en desarrollo o subdominios de test
+  // Solo permitir en desarrollo o subdominios de test/dev
+  // QA 30-jun: app-dev y chat-dev (entornos de desarrollo servidos en
+  // producción Next) estaban fuera del whitelist → bypass 403 en QA.
+  // Patrón `-dev` también cubre subdominios *-dev futuros sin abrir el
+  // endpoint a hosts arbitrarios que contengan "dev".
   const host = req.headers.host || ''
   const isLocalHost = host.includes('localhost') || host.includes('127.0.0.1')
-  const isDevOrTest = isLocalHost || host.includes('chat-test') || host.includes('app-test') || host.includes('test')
+  const isDevOrTest =
+    isLocalHost ||
+    host.includes('-test') ||
+    host.includes('-dev') ||
+    host.includes('chat-test') ||
+    host.includes('app-test')
 
   // Detectar si estamos detrás de un proxy (Cloudflare Tunnel)
   // En ese caso, la conexión interna es HTTP aunque el cliente use HTTPS
