@@ -21,7 +21,7 @@ set -euo pipefail
 REMOTE_HOST="100.105.48.36"
 REMOTE_DIR="/Users/juancarlosparra/Projects/AppBodasdehoy.com"
 REMOTE_PATH="/opt/homebrew/bin"
-BRANCH="tj/refactor/adelgazar-chat-ia"
+BRANCH="${BUILD_BRANCH:-tj/refactor/adelgazar-chat-ia}"
 LOCAL_DIR="/Users/juancarlosparra/Projects/AppBodasdehoy.com"
 HEAP_MB=16384
 
@@ -51,7 +51,16 @@ step_rsync_up() {
   echo "=== rsync-up) node_modules local → portátil ==="
   rsync -az --delete -e "ssh -o BatchMode=yes" \
     "$LOCAL_DIR/node_modules/" "$REMOTE_HOST:$REMOTE_DIR/node_modules/"
-  echo "✅ node_modules sincronizado"
+  rsync -az --delete -e "ssh -o BatchMode=yes" \
+    "$LOCAL_DIR/apps/chat-ia/node_modules/" "$REMOTE_HOST:$REMOTE_DIR/apps/chat-ia/node_modules/"
+  ssh -o BatchMode=yes -T "$REMOTE_HOST" <<EOF
+mkdir -p "$REMOTE_DIR/apps/chat-ia/node_modules/@lobechat"
+ln -sfn "$REMOTE_DIR/apps/chat-ia/packages/model-runtime" \
+  "$REMOTE_DIR/apps/chat-ia/node_modules/@lobechat/model-runtime"
+ln -sfn "$REMOTE_DIR/node_modules/.pnpm/ollama@0.6.3/node_modules/ollama" \
+  "$REMOTE_DIR/apps/chat-ia/node_modules/ollama"
+EOF
+  echo "✅ node_modules raíz + chat-ia sincronizados (workspace links reparados)"
 }
 
 step_shared() {
