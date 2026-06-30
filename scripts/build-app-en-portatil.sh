@@ -88,15 +88,17 @@ step_restart() {
     echo "⚠️ puerto 3220 AÚN ocupado tras kill"
   fi
 
-  cat > /tmp/start-app.sh <<'INNER'
+  # Path persistente — /tmp se limpia y dispara N restarts (aprendido 30-jun).
+  mkdir -p "$HOME/.pm2-scripts"
+  cat > "$HOME/.pm2-scripts/start-app.sh" <<'INNER'
 #!/bin/bash
 export PATH="/opt/homebrew/bin:$PATH"
 cd /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/appEventos
 exec pnpm next start -p 3220 -H 0.0.0.0
 INNER
-  chmod +x /tmp/start-app.sh
+  chmod +x "$HOME/.pm2-scripts/start-app.sh"
 
-  pm2 start /tmp/start-app.sh --name app-dev --interpreter bash --log /tmp/pm2-app-dev.log 2>&1 | tail -3
+  pm2 start "$HOME/.pm2-scripts/start-app.sh" --name app-dev --interpreter bash --log /tmp/pm2-app-dev.log 2>&1 | tail -3
   sleep 6
   echo "✅ PM2 status: $(pm2 jlist 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); p=[x for x in d if x['name']=='app-dev']; print(p[0]['pm2_env']['status'] if p else 'NO ENCONTRADO')" 2>/dev/null)"
 }

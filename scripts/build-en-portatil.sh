@@ -104,15 +104,17 @@ step_restart() {
     echo "⚠️ puerto 3210 AÚN ocupado tras kill — revisar zombis"
   fi
 
-  cat > /tmp/start-chat.sh <<'INNER'
+  # Path persistente — /tmp se limpia y dispara 561 restarts (aprendido 30-jun).
+  mkdir -p "$HOME/.pm2-scripts"
+  cat > "$HOME/.pm2-scripts/start-chat.sh" <<'INNER'
 #!/bin/bash
 export PATH="/opt/homebrew/bin:$PATH"
 cd /Users/juancarlosparra/Projects/AppBodasdehoy.com/apps/chat-ia
 exec pnpm next start -p 3210 -H 0.0.0.0
 INNER
-  chmod +x /tmp/start-chat.sh
+  chmod +x "$HOME/.pm2-scripts/start-chat.sh"
 
-  pm2 start /tmp/start-chat.sh --name chat-dev --interpreter bash --log /tmp/pm2-chat-dev.log 2>&1 | tail -3
+  pm2 start "$HOME/.pm2-scripts/start-chat.sh" --name chat-dev --interpreter bash --log /tmp/pm2-chat-dev.log 2>&1 | tail -3
   sleep 8
   echo "✅ PM2 status: $(pm2 jlist 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); p=[x for x in d if x['name']=='chat-dev']; print(p[0]['pm2_env']['status'] if p else 'NO ENCONTRADO')" 2>/dev/null)"
 }
