@@ -29,6 +29,8 @@ const FormLogin: FC<any> = ({ setStage }) => {
   const errorsCode: Record<string, string> = {
     'auth/wrong-password': t('usuario o contraseña inválida'),
     'auth/invalid-credential': t('usuario o contraseña inválida'),
+    // BUG #5 QA 30-jun: Firebase v10+ con enumeration protection devuelve este código
+    'auth/invalid-login-credentials': t('usuario o contraseña inválida'),
     'auth/user-not-found': t('usuario o contraseña inválida'),
     'auth/invalid-email': t('usuario o contraseña inválida'),
     'auth/too-many-requests': 'Demasiados intentos fallidos. Intenta de nuevo más tarde.',

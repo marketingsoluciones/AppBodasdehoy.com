@@ -459,12 +459,20 @@ export const useAuthentication = () => {
         setLoading(false);
         setIsStartingRegisterOrLogin(false);
         const errorCode: string = error?.code ?? error?.message ?? '';
+        // BUG #5 QA 30-jun: el toast NO aparecía cuando Firebase devolvía
+        // `auth/invalid-login-credentials` (Firebase v10+ con email enumeration
+        // protection enabled). Lista ampliada para cubrir TODOS los códigos
+        // de credencial-inválida que las versiones modernas pueden emitir.
         const isAuthCredentialError =
           errorCode === 'auth/invalid-credential' ||
+          errorCode === 'auth/invalid-login-credentials' ||
           errorCode === 'auth/wrong-password' ||
           errorCode === 'auth/user-not-found' ||
           errorCode === 'auth/invalid-email' ||
-          errorCode === 'auth/too-many-requests';
+          errorCode === 'auth/too-many-requests' ||
+          errorCode === 'auth/user-disabled' ||
+          errorCode === 'auth/account-exists-with-different-credential';
+        console.error('[Auth] Login error code:', errorCode, '| message:', error?.message);
         if (isAuthCredentialError) {
           toast('error', t('usuario o contraseña inválida'));
         } else if (errorCode === 'user does not exist into events bd') {
@@ -480,7 +488,10 @@ export const useAuthentication = () => {
             toast('error', msg.length > 80 ? 'Error al iniciar sesión. Reintenta o comprueba tu conexión.' : msg);
           }
         }
-        console.warn('[Auth] Error en login:', errorCode, error?.message);
+        // Re-throw para que el llamador (FormLogin) tenga safety-net si quiere
+        // mostrar mensaje adicional o limpiar estado. Antes el error se
+        // consumía y nadie más arriba sabía que el login falló.
+        throw error;
       }
     },
     [getSessionCookie, router, setLoading, setUser, toast]

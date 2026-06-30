@@ -809,8 +809,27 @@ const AuthProvider = ({ children }) => {
         }
         // No reintentar auth API2 en bucle por cada onAuthStateChanged si ya falló con esta cookie/uid
         skipApi2SessionRestoreKeyRef.current = restoreLoopKey
-        // Fallback: continuar sin sessionBodas (acceso limitado)
-        setUser(user)
+        // BUG #3 QA 30-jun (CASO D): cuando llegamos aquí el usuario está
+        // autenticado en Firebase pero NO tenemos sessionBodas válida y NO
+        // pudimos restaurarla. Antes la app cargaba en estado "limitado" sin
+        // avisar — el usuario veía pantallas pero las llamadas a la API
+        // fallaban silenciosamente.
+        // Ahora marcamos el flag y exponemos warning estructurado para que
+        // las llamadas a la API puedan diagnosticar y para que QA vea por
+        // qué la app está en degradado.
+        console.error('[Verificator] ❌ CASO D: usuario Firebase sin sessionBodas — acceso degradado', {
+          firebaseUid: user?.uid,
+          email: user?.email,
+        })
+        if (typeof window !== 'undefined') {
+          (window as any).__authDegraded = {
+            reason: 'no_session_bodas',
+            firebaseUid: user?.uid,
+            email: user?.email,
+            at: Date.now(),
+          }
+        }
+        setUser({ ...user, __authDegraded: true })
         moreInfo(user) // ← setVerificationDone(true) se llama dentro de moreInfo
         return
       }
