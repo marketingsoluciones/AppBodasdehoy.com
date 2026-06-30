@@ -1,10 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
+import { resolveServerMcpGraphqlUrl } from '@/const/mcpEndpoints';
 
 export const runtime = 'nodejs';
 
 const BACKEND_URL = resolveServerBackendOrigin();
+const MCP_GRAPHQL_URL = resolveServerMcpGraphqlUrl();
+
+/**
+ * BUG QA #2 (30-jun): `next start -H 0.0.0.0` hace que `request.url` sea
+ * `https://0.0.0.0:3210/...` cuando estamos detrás de cloudflared tunnel.
+ * `new URL('/login', request.url)` propaga ese host inválido al header
+ * `Location` → el navegador lo recibe y trata de cargar 0.0.0.0:3210.
+ *
+ * Reconstruimos la base usando X-Forwarded-Host (Cloudflare) / Host header,
+ * que SÍ tienen el dominio real (chat-dev.bodasdehoy.com).
+ */
+function buildPublicUrl(request: NextRequest, pathname: string): URL {
+  const xfHost = request.headers.get('x-forwarded-host');
+  const host = xfHost || request.headers.get('host') || new URL(request.url).host;
+  const xfProto = request.headers.get('x-forwarded-proto');
+  const proto = xfProto || (host.includes('localhost') ? 'http' : 'https');
+  return new URL(pathname, `${proto}://${host}`);
+}
 
 // Dominios permitidos para redirect (misma lista que login/page.tsx)
 const ALLOWED_REDIRECT_HOSTS = [
@@ -36,7 +55,7 @@ export async function GET(request: NextRequest) {
 
   // Sin cookie SSO → redirigir al login normal para mostrar formulario
   if (!ssoToken) {
-    return NextResponse.redirect(new URL('/login', request.url), 307);
+    return NextResponse.redirect(buildPublicUrl(request, '/login'), 307);
   }
 
   const urlParams = new URL(request.url).searchParams;
@@ -71,7 +90,7 @@ export async function GET(request: NextRequest) {
 
     if (!data?.success) {
       // Token inválido/expirado → redirigir al login + limpiar cookie para evitar bucle infinito
-      const resp = NextResponse.redirect(new URL('/login', request.url), 307);
+      const resp = NextResponse.redirect(buildPublicUrl(request, '/login'), 307);
       resp.cookies.set('idTokenV0.1.0', '', {
         domain: '.bodasdehoy.com',
         expires: new Date(0),
@@ -112,6 +131,32 @@ export async function GET(request: NextRequest) {
     const token = data.token || data.jwt_token || '';
     const email = data.email || '';
 
+    // BUG QA #4 (30-jun): chat-dev login NO generaba sessionBodas → SSO
+    // chat→app no funcionaba (appEventos espera esa cookie para considerarse
+    // autenticado). appEventos llama a la mutation `auth(idToken)` de api-mcp
+    // y guarda el resultado como sessionBodas. Replicamos esa llamada aquí
+    // para que chat-dev produzca el mismo set de cookies que app-dev.
+    let sessionBodas = '';
+    try {
+      const mcpAuthRes = await fetch(MCP_GRAPHQL_URL, {
+        body: JSON.stringify({
+          query: 'mutation Auth($idToken: String!) { auth(idToken: $idToken) { sessionCookie } }',
+          variables: { idToken: ssoToken },
+        }),
+        headers: { 'Content-Type': 'application/json', Development: development },
+        method: 'POST',
+        signal: AbortSignal.timeout(5000),
+      });
+      const mcpAuthData = await mcpAuthRes.json().catch(() => null);
+      sessionBodas = mcpAuthData?.data?.auth?.sessionCookie || '';
+      if (!sessionBodas) {
+        const errMsg = mcpAuthData?.errors?.[0]?.message || 'sin sessionCookie';
+        console.warn('[sso-auto] mutation auth NO devolvió sessionCookie:', errMsg);
+      }
+    } catch (e: any) {
+      console.warn('[sso-auto] mutation auth(idToken) falló:', e?.message);
+    }
+
     const config = {
       developer: development,
       development,
@@ -123,6 +168,11 @@ export async function GET(request: NextRequest) {
       user_type: 'registered',
     };
     const configJson = JSON.stringify(config);
+    // Cookie sessionBodas cross-subdomain (.bodasdehoy.com) — 30 días.
+    // Si la mutación falló, queda vacío y NO seteamos cookie inválida.
+    const sessionBodasCookieScript = sessionBodas
+      ? `document.cookie = 'sessionBodas=' + ${JSON.stringify(encodeURIComponent(sessionBodas))} + '; path=/; domain=.bodasdehoy.com; max-age=' + (30 * 24 * 60 * 60) + '; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');`
+      : `console.warn('[sso-auto] sessionBodas vacío — SSO chat→app no disponible esta sesión');`;
 
     // Retornar HTML con script que setea localStorage y redirige a /chat
     // Esto ejecuta inmediatamente sin necesidad de React/hydration
@@ -137,6 +187,7 @@ try {
   localStorage.setItem('jwt_token', ${JSON.stringify(token)});
   localStorage.setItem('mcp_jwt_token', ${JSON.stringify(token)});
   document.cookie = 'dev-user-config=' + encodeURIComponent(JSON.stringify(cfg)) + '; path=/; max-age=' + (30 * 24 * 60 * 60) + '; SameSite=Lax';
+  ${sessionBodasCookieScript}
 } catch(e) {}
 window.location.replace(${JSON.stringify(safeRedirect)});
 </script>
@@ -153,7 +204,7 @@ window.location.replace(${JSON.stringify(safeRedirect)});
     const isTimeout = error?.name === 'AbortError';
     console.error('[sso-auto] Error:', isTimeout ? `TIMEOUT después de ${TIMEOUT_MS}ms` : error.message);
     // Timeout o error de red → redirigir al login con flag para mostrar mensaje
-    const loginUrl = new URL('/login', request.url);
+    const loginUrl = buildPublicUrl(request, '/login');
     if (isTimeout) loginUrl.searchParams.set('sso_timeout', '1');
     return NextResponse.redirect(loginUrl, 307);
   }
