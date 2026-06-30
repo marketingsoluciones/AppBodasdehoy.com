@@ -3,7 +3,7 @@ import { signInWithPopup, signInWithRedirect, UserCredential, signInWithEmailAnd
 import { useRouter } from "next/navigation";
 import Cookies from 'js-cookie';
 import { LoadingContextProvider, AuthContextProvider } from "../context";
-import { fetchApiBodas, queries, getApiErrorMessage } from "./Fetching";
+import { fetchApiBodas, queries, getApiErrorMessage, lastFetchApiBodasError } from "./Fetching";
 import { normalizeRedirectAfterLogin } from "./urlHelpers";
 import { useToast } from "../hooks/useToast";
 import { PhoneNumberUtil } from 'google-libphonenumber';
@@ -171,14 +171,35 @@ export const useAuthentication = () => {
 
         return sessionCookie
       } else {
+        // QA 30-jun: capturamos los errores GraphQL del backend para distinguir
+        // "Timeout (3000ms) en Mongo save user" de otros fallos. Antes el toast
+        // era genérico y el usuario aterrizaba en home como si no hubiera
+        // pasado nada → bloqueo silencioso de E2E.
+        const backendErrors = lastFetchApiBodasError?.errors || []
+        const backendMessages = backendErrors
+          .map((e: any) => e?.message)
+          .filter(Boolean)
+        const traceId = lastFetchApiBodasError?.traceId
         console.error("[Auth] ❌ No se recibió sessionCookie de la API")
         console.error("[Auth] authResult completo:", JSON.stringify(authResult, null, 2))
-        console.error("[Auth] Config development:", config?.development)
-        console.error("[Auth] Es un Error?:", authResult instanceof Error)
-        if (authResult instanceof Error) {
-          console.error("[Auth] Detalles del error:", authResult.message, authResult.stack)
+        console.error("[Auth] Config development:", effectiveDevelopment)
+        console.error("[Auth] Backend errors[]:", backendMessages)
+        if (traceId) console.error("[Auth] traceId:", traceId)
+        const isMongoTimeout = backendMessages.some((m: string) =>
+          /timeout.*mongo|mongo.*timeout|mongo save user/i.test(m),
+        )
+        if (isMongoTimeout) {
+          try { toast("error", `🛑 El servidor de auth (api-mcp) no respondió a tiempo. Reintenta en unos segundos.${traceId ? ` [${traceId}]` : ''}`) } catch {}
+        } else if (backendMessages.length > 0) {
+          try { toast("error", `❌ Auth falló: ${backendMessages[0]}${traceId ? ` [${traceId}]` : ''}`) } catch {}
         }
-        throw new Error("No se pudo cargar la cookie de sesión por que hubo un problema")
+        const reason = isMongoTimeout
+          ? `Backend auth timeout (Mongo save user)`
+          : backendMessages[0] || 'unknown'
+        const err: any = new Error(`Login falló: ${reason}`)
+        err.backendErrors = backendErrors
+        err.traceId = traceId
+        throw err
       }
     } else {
       console.warn("[Auth] No hay tokenID para pedir la cookie de sesion")
@@ -337,10 +358,16 @@ export const useAuthentication = () => {
                 if (sessionCookie && idToken) {
                   console.log("[Auth] ✅ Cookies verificadas (popup), redirigiendo...")
                 } else {
-                  console.warn("[Auth] ⚠️ Algunas cookies no están presentes (popup):", {
+                  // QA 30-jun: si no hay cookies tras 1.5s, el SSO NO se
+                  // consolidó (típicamente backend devolvió auth:null por
+                  // timeout Mongo). NO redirigir a home — el usuario aterriza
+                  // en landing pública sin saber qué pasó.
+                  console.error("[Auth] ⚠️ Cookies de sesión faltantes tras login (popup):", {
                     sessionCookie: !!sessionCookie,
                     idToken: !!idToken
                   })
+                  try { toast("error", "El login no se consolidó (cookies ausentes). Reintenta o contacta soporte.") } catch {}
+                  return
                 }
 
                 if (window.location.pathname === '/login' || window.location.pathname.includes('/login')) {

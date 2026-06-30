@@ -90,6 +90,35 @@ interface propsFetchApiBodas {
   token?: string;
 }
 
+// QA 30-jun: backend api-mcp puede devolver data:null + errors[] (ej.
+// "Timeout (3000ms) en Mongo save user"). Los 103 callsites legacy esperan
+// `null` en ese caso, así que mantenemos esa semántica, pero ESCRIBIMOS los
+// errores aquí para que callsites críticos (login/auth) puedan inspeccionar
+// la causa y mostrar mensaje al usuario en vez de fallar en silencio.
+export interface FetchApiBodasErrorInfo {
+  errors: any[];
+  query: string;
+  timestamp: number;
+  traceId?: string;
+}
+export let lastFetchApiBodasError: FetchApiBodasErrorInfo | null = null;
+
+function rememberError(query: string, errors: any[], headers?: any) {
+  const traceId =
+    headers?.['x-trace-id'] ||
+    headers?.['X-Trace-Id'] ||
+    headers?.['x-request-id'] ||
+    headers?.['X-Request-Id'] ||
+    errors?.[0]?.extensions?.traceId ||
+    undefined;
+  lastFetchApiBodasError = {
+    errors,
+    query: query?.substring(0, 200) || '',
+    timestamp: Date.now(),
+    traceId,
+  };
+}
+
 export const fetchApiBodas = async ({
   query = ``,
   variables = {},
@@ -99,17 +128,23 @@ export const fetchApiBodas = async ({
 }: propsFetchApiBodas): Promise<any> => {
   try {
     if (type === "json") {
-      const {
-        data: { data, errors },
-      } = await api.ApiBodas({
+      const response = await api.ApiBodas({
         data: { query, variables },
         development,
         token,
       });
+      const { data, errors } = response?.data || {};
       if (!data && errors) {
-        console.warn("[fetchApiBodas] GraphQL errors:", errors);
+        rememberError(query, errors, response?.headers);
+        console.warn("[fetchApiBodas] GraphQL errors:", {
+          errors: errors.map((e: any) => ({ message: e?.message, path: e?.path })),
+          query: query?.substring(0, 200),
+          traceId: lastFetchApiBodasError?.traceId,
+        });
         return null;
       }
+      // Limpiar último error si esta llamada fue OK (evita arrastre cross-llamada)
+      if (data) lastFetchApiBodasError = null;
       maybeInvalidateOnMutation(query);
       return data ? Object.values(data)[0] : null;
     } else if (type === "formData") {
