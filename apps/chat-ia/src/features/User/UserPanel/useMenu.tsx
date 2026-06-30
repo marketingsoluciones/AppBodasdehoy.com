@@ -74,7 +74,10 @@ export const useMenu = () => {
   const { canInstall, install } = usePWAInstall();
   const hasNewVersion = useNewVersion();
   const { t } = useTranslation(['common', 'setting', 'auth']);
-  const { showCloudPromotion, hideDocs } = useServerConfigStore(featureFlagsSelectors);
+  // QA 30-jun: ver Desktop/index.tsx — defensa frente a featureFlags=undefined.
+  const featureFlags = (useServerConfigStore(featureFlagsSelectors) || {}) as any;
+  const showCloudPromotion = featureFlags.showCloudPromotion === true;
+  const hideDocs = featureFlags.hideDocs === true;
   const { openLoginModal } = useLoginModal();
   const [isLogin, isLoginWithAuth] = useUserStore((s) => [
     authSelectors.isLogin(s),

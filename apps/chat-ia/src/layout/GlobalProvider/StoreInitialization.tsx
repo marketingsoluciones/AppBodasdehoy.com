@@ -26,7 +26,10 @@ const StoreInitialization = memo(() => {
   const router = useRouter();
   const useInitUserState = useUserStore((s) => s.useInitUserState);
 
-  const { serverConfig: currentServerConfig } = useServerConfigStore();
+  // QA 30-jun: hook puede devolver state parcial (sin serverConfig) tras un
+  // setState fallido en initNonCritical. Destructuring strict → crash UI.
+  const serverConfigState = useServerConfigStore();
+  const currentServerConfig = serverConfigState?.serverConfig;
 
   const useInitSystemStatus = useGlobalStore((s) => s.useInitSystemStatus);
 
@@ -85,19 +88,29 @@ const StoreInitialization = memo(() => {
         const { globalService } = await import('@/services/global');
         const config = await globalService.getGlobalConfig();
 
-        if (serverConfigStore) {
-          serverConfigStore.setState({
-            featureFlags: config.serverFeatureFlags,
-            serverConfig: config.serverConfig,
-          });
+        // QA 30-jun: NO sobrescribir con undefined — si config no trae
+        // serverConfig/serverFeatureFlags el store queda parcial y todos los
+        // selectors crashean. Solo aplicar las claves que sí vienen.
+        if (serverConfigStore && config) {
+          const patch: Record<string, unknown> = {};
+          if (config.serverFeatureFlags) patch.featureFlags = config.serverFeatureFlags;
+          if (config.serverConfig) patch.serverConfig = config.serverConfig;
+          if (Object.keys(patch).length > 0) serverConfigStore.setState(patch);
         }
       } catch {
         // globalService already returns a fallback config, no action needed
       }
 
-      const oAuthSSOProviders = serverConfigStore
-        ? serverConfigSelectors.oAuthSSOProviders(serverConfigStore.getState())
-        : [];
+      // QA 30-jun: state puede estar parcial; nunca pasar undefined al selector.
+      let oAuthSSOProviders: string[] = [];
+      try {
+        const state = serverConfigStore?.getState?.();
+        if (state?.serverConfig) {
+          oAuthSSOProviders = serverConfigSelectors.oAuthSSOProviders(state) ?? [];
+        }
+      } catch {
+        oAuthSSOProviders = [];
+      }
       useUserStore.setState({ oAuthSSOProviders });
     };
 

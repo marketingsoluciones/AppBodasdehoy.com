@@ -31,7 +31,9 @@ const Layout = memo(({ children }: PropsWithChildren) => {
   const pathname = usePathname();
   const showNav = !showMobileWorkspace && MOBILE_NAV_ROUTES.has(pathname);
 
-  const { showCloudPromotion } = useServerConfigStore(featureFlagsSelectors);
+  // QA 30-jun: ver Desktop/index.tsx — defensa frente a featureFlags=undefined.
+  const featureFlags = useServerConfigStore(featureFlagsSelectors) || {};
+  const showCloudPromotion = (featureFlags as any).showCloudPromotion === true;
 
   return (
     <>

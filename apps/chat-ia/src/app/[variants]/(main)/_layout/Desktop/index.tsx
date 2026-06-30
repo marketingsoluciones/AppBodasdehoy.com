@@ -38,7 +38,11 @@ const Layout = memo<PropsWithChildren>(({ children }) => {
   const { isPWA } = usePlatform();
   const theme = useTheme();
 
-  const { showCloudPromotion } = useServerConfigStore(featureFlagsSelectors);
+  // QA 30-jun: si StoreInitialization llega a hacer setState con featureFlags=undefined
+  // (caso `getGlobalConfig` retorna serverFeatureFlags=undefined), el selector devuelve
+  // undefined y el destructuring crashea la página entera. Defensa: empty obj fallback.
+  const featureFlags = useServerConfigStore(featureFlagsSelectors) || {};
+  const showCloudPromotion = (featureFlags as any).showCloudPromotion === true;
 
   // Modo embed: ocultar SideBar y elementos no esenciales.
   if (isEmbed) {
