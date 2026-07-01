@@ -119,6 +119,36 @@ function rememberError(query: string, errors: any[], headers?: any) {
   };
 }
 
+/**
+ * QA-R5 (30-jun): backend api-mcp con cluster Mongo M0 Free Tier tiene
+ * latencias punta > 3s en `save user` que devuelven
+ *   errors: [{ message: "Timeout (3000ms) en Mongo save user" }]
+ * Retry exponencial con backoff (1s, 2s, 4s) para transitorios de este tipo,
+ * SOLO cuando el mensaje es idempotente-seguro (auth es idempotente:
+ * mismo idToken → misma sessionCookie).
+ *
+ * NO retry para mutations de negocio (createEvent, updateInvitado, etc.) —
+ * un timeout allí podría haber persistido parcialmente y un segundo intento
+ * duplicaría. Solo query `auth` está whitelisted.
+ */
+const RETRYABLE_ERROR_PATTERNS = [
+  /timeout.*mongo|mongo.*timeout|mongo save user/i,
+];
+const RETRYABLE_QUERY_PATTERNS = [
+  /mutation\s*\(?\s*\$?\s*idToken\s*:\s*String!?\s*\)?\s*\{?\s*auth\s*\(/i,
+  /mutation\s+Auth\b/i,
+];
+const RETRY_DELAYS_MS = [1000, 2000, 4000];
+
+function isRetryable(query: string, errors: any[]): boolean {
+  const queryOk = RETRYABLE_QUERY_PATTERNS.some((p) => p.test(query || ''));
+  if (!queryOk) return false;
+  const messages = errors.map((e: any) => String(e?.message || ''));
+  return messages.some((m) => RETRYABLE_ERROR_PATTERNS.some((p) => p.test(m)));
+}
+
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export const fetchApiBodas = async ({
   query = ``,
   variables = {},
@@ -128,22 +158,34 @@ export const fetchApiBodas = async ({
 }: propsFetchApiBodas): Promise<any> => {
   try {
     if (type === "json") {
-      const response = await api.ApiBodas({
-        data: { query, variables },
-        development,
-        token,
-      });
+      let response: any;
+      let attempt = 0;
+      const maxAttempts = 1 + RETRY_DELAYS_MS.length;
+      // Bucle de reintentos SOLO para queries whitelisted + errores retryable.
+      while (attempt < maxAttempts) {
+        response = await api.ApiBodas({ data: { query, variables }, development, token });
+        const errs = response?.data?.errors;
+        const hasErrs = Array.isArray(errs) && errs.length > 0;
+        if (!hasErrs || !isRetryable(query, errs)) break;
+        // último intento: no dormir más, salir del bucle
+        if (attempt + 1 >= maxAttempts) break;
+        const delay = RETRY_DELAYS_MS[attempt];
+        console.warn(
+          `[fetchApiBodas] Retry ${attempt + 1}/${RETRY_DELAYS_MS.length} en ${delay}ms — motivo:`,
+          errs[0]?.message,
+        );
+        await wait(delay);
+        attempt++;
+      }
       const { data, errors } = response?.data || {};
       // BUG QA-R5 (30-jun): backend puede devolver `{data: {auth: null}, errors: [...]}`
       // — data NO es null (es objeto con field null) → el guard viejo
       // `if (!data && errors)` NO capturaba y los errores se perdían silente.
-      // Consecuencia: Authentication.tsx leía lastFetchApiBodasError=null y
-      // el toast salía como "Login falló: unknown" en lugar del mensaje real
-      // del backend ("Token no tiene formato JWT válido", timeout Mongo, etc.).
       const hasErrors = Array.isArray(errors) && errors.length > 0;
       if (hasErrors) {
         rememberError(query, errors, response?.headers);
         console.warn("[fetchApiBodas] GraphQL errors:", {
+          attempts: attempt + 1,
           errors: errors.map((e: any) => ({ message: e?.message, path: e?.path })),
           query: query?.substring(0, 200),
           traceId: lastFetchApiBodasError?.traceId,
@@ -152,8 +194,6 @@ export const fetchApiBodas = async ({
         // Limpiar último error si esta llamada fue completamente OK.
         lastFetchApiBodasError = null;
       }
-      // Retornar el primer field de data. Si data.<mutation>=null (por el error),
-      // el caller obtiene null y sabrá consultar lastFetchApiBodasError.
       if (!data) return null;
       maybeInvalidateOnMutation(query);
       return Object.values(data)[0] ?? null;

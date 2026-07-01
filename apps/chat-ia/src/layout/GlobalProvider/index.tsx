@@ -1,3 +1,4 @@
+import dynamic from 'next/dynamic';
 import { ReactNode, Suspense } from 'react';
 
 import { LobeAnalyticsProviderWrapper } from '@/components/Analytics/LobeAnalyticsProviderWrapper';
@@ -8,6 +9,8 @@ import CaptationProvider from '@/providers/CaptationProvider';
 import { getServerGlobalConfig } from '@/server/globalConfig';
 import { ServerConfigStoreProvider } from '@/store/serverConfig/Provider';
 import { getAntdLocale } from '@/utils/locale';
+
+const DebugFooter = dynamic(() => import('@/components/DebugFooter'), { ssr: false });
 
 import AntdV5MonkeyPatch from './AntdV5MonkeyPatch';
 import ApolloProviderWrapper from './Apollo';
@@ -106,6 +109,7 @@ const GlobalLayout = async ({
               <ImportSettings />
               {process.env.NODE_ENV === 'development' && <DevPanelWrapper />}
             </Suspense>
+            <DebugFooter />
           </ServerConfigStoreProvider>
         </AppTheme>
       </Locale>

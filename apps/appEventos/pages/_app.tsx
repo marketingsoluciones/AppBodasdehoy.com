@@ -33,6 +33,8 @@ const DevWhitelabelSwitcher = dynamic(
   { ssr: false }
 );
 
+const DebugFooter = dynamic(() => import('../components/DebugFooter'), { ssr: false });
+
 const MyApp = ({ Component, pageProps }) => {
   const [valirBlock, setValirBlock] = useState<boolean>()
   const [message, setMessage] = useState<string>()
@@ -116,6 +118,7 @@ const MyApp = ({ Component, pageProps }) => {
         </UploadProvider>
       </I18nextProvider>
       {process.env.NODE_ENV === 'development' && <DevWhitelabelSwitcher />}
+      <DebugFooter />
     </ErrorBoundary>
   )
 }

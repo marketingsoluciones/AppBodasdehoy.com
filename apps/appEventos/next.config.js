@@ -1,8 +1,21 @@
 /** @type {import('next').NextConfig} */
 const path = require('path');
+// QA 30-jun: inyectar commit SHA en NEXT_PUBLIC_COMMIT_SHA para que el
+// footer de debug pueda mostrarlo sin depender de ninguna env var manual.
+const { execSync } = require('child_process');
+try {
+  if (!process.env.NEXT_PUBLIC_COMMIT_SHA) {
+    process.env.NEXT_PUBLIC_COMMIT_SHA = execSync('git rev-parse --short HEAD', {
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).toString().trim();
+  }
+} catch (_) { /* falla silente si no hay git */ }
 const nextConfig = {
   // Habilitar React Strict Mode para mejor desarrollo
   reactStrictMode: true,
+  env: {
+    NEXT_PUBLIC_COMMIT_SHA: process.env.NEXT_PUBLIC_COMMIT_SHA || 'unknown',
+  },
 
   // Ignorar errores de ESLint durante el build (son solo warnings)
   eslint: {

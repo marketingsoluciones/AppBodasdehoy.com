@@ -2,6 +2,16 @@ import analyzer from '@next/bundle-analyzer';
 import withSerwistInit from '@serwist/next';
 import type { NextConfig } from 'next';
 import ReactComponentName from 'react-scan/react-component-name/webpack';
+import { execSync } from 'node:child_process';
+
+// QA 30-jun: commit SHA para DebugFooter (no depende de env var manual).
+try {
+  if (!process.env.NEXT_PUBLIC_COMMIT_SHA) {
+    process.env.NEXT_PUBLIC_COMMIT_SHA = execSync('git rev-parse --short HEAD', {
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).toString().trim();
+  }
+} catch (_) { /* silent en entornos sin git */ }
 
 const isProd = process.env.NODE_ENV === 'production';
 const buildWithDocker = process.env.DOCKER === 'true';
@@ -28,6 +38,9 @@ const standaloneConfig: NextConfig = {
 const nextConfig: NextConfig = {
   ...(isStandaloneMode ? standaloneConfig : {}),
   assetPrefix: process.env.NEXT_PUBLIC_ASSET_PREFIX,
+  env: {
+    NEXT_PUBLIC_COMMIT_SHA: process.env.NEXT_PUBLIC_COMMIT_SHA || 'unknown',
+  },
   // ⚡ PERF 2026-06-03: en dev, NO retener páginas compiladas inactivas en memoria.
   // En esta Mac (16GB, swap saturado) cada página retenida del árbol de 40k módulos
   // come RAM y empuja a swap → recompilación lenta por I/O. Liberar rápido las inactivas

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { MouseEvent as ReactMouseEvent } from 'react';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
+import { useTypingInConv } from '@/store/bandeja/selectors';
 import { Conversation } from '../hooks/useConversations';
 import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
@@ -61,8 +62,12 @@ export function ConversationItem({
   const minutesAgo = (Date.now() - lastMsgTime) / 60_000;
   const isOnline = minutesAgo < 5;
 
-  // Simulate typing (randomly for demo — in production this comes from websocket)
-  const isTyping = false; // Would come from real-time state
+  // SPRINT 2 iMessage (30-jun): cablear typing real desde el store bandeja.
+  // Backend api-ia YA emite `typing` en SSE; el store lo reduce en
+  // typingByConv[convId] con expiresAt. Filtramos por currentUserId para
+  // NO mostrar "escribiendo…" cuando SOMOS nosotros los que escribimos.
+  const typers = useTypingInConv(conversation.id);
+  const isTyping = typers.some((t) => !userId || t.userId !== userId);
 
   // Close context menu on outside click, scroll, or Escape
   useEffect(() => {
