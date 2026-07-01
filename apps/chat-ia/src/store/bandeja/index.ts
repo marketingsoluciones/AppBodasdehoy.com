@@ -258,6 +258,21 @@ export const useBandejaStore = create<BandejaStore>((set, get) => ({
   setActiveChannelFilter: (channel) => set({ activeChannelFilter: channel }),
 }));
 
+// QA 30-jun: exponer el store en window en dev/-dev/-test para E2E
+// (typing UI test, inspección manual desde DevTools). Producción real (host
+// exacto sin `-dev/-test`) queda sin exponer.
+if (typeof window !== 'undefined') {
+  const host = window.location.hostname;
+  const isDevLike =
+    host.includes('-dev') ||
+    host.includes('-test') ||
+    host === 'localhost' ||
+    host === '127.0.0.1';
+  if (isDevLike) {
+    (window as any).useBandejaStore = useBandejaStore;
+  }
+}
+
 function startSSEIfLeader() {
   const state = useBandejaStore.getState();
   if (!state._isLeaderTab) return;

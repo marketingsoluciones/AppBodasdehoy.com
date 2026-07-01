@@ -37,13 +37,15 @@ const DebugFooter: FC = () => {
     }
     const readBuildId = (): string => {
       try {
+        // App Router: casi cualquier script del bundle vive bajo
+        // /_next/static/<BUILD_ID>/... — captamos el primer segmento.
         const scripts = Array.from(document.scripts)
         for (const s of scripts) {
           const src = s.src || ''
-          const m = src.match(/\/_next\/static\/([^/]+)\/_buildManifest/)
+          const m = src.match(/\/_next\/static\/([A-Za-z0-9_-]{6,25})\//)
           if (m) return m[1]
         }
-        // fallback: buscar en __next_f
+        // Pages Router: __NEXT_DATA__.buildId (chat-ia lo tiene mixto)
         const raw = document.querySelector('script[id="__NEXT_DATA__"]')?.textContent
         if (raw) {
           try {
@@ -51,9 +53,9 @@ const DebugFooter: FC = () => {
             if (j?.buildId) return String(j.buildId).slice(0, 21)
           } catch {}
         }
-        // Última opción: primer chunk hash del __next_f del stream
-        const bodyText = document.body?.innerHTML?.match(/"b":"([A-Za-z0-9_-]+)"/)
-        if (bodyText?.[1]) return bodyText[1]
+        // App Router streams: buscar {"b":"<buildId>"} en __next_f
+        const bodyMatch = document.body?.innerHTML?.match(/\\"b\\":\\"([A-Za-z0-9_-]+)\\"/)
+        if (bodyMatch?.[1]) return bodyMatch[1]
       } catch {}
       return 'unknown'
     }
