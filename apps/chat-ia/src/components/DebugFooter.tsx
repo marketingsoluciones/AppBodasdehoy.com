@@ -2,6 +2,12 @@
 
 import { FC, useEffect, useState } from 'react'
 
+// Import lateral solo para forzar la carga del módulo del store bandeja en
+// TODAS las páginas donde el DebugFooter monte — así el side-effect que
+// expone `window.useBandejaStore` (dev/-test hosts) ocurre siempre, sin
+// tener que navegar a /messages primero.
+import '@/store/bandeja'
+
 /**
  * DebugFooter — QA 30-jun. Chat-ia edition.
  * Muestra en dev/-dev/-test: commit SHA + BUILD_ID + tenant + auth flags.
@@ -42,7 +48,9 @@ const DebugFooter: FC = () => {
         const scripts = Array.from(document.scripts)
         for (const s of scripts) {
           const src = s.src || ''
-          const m = src.match(/\/_next\/static\/([A-Za-z0-9_-]{6,25})\//)
+          // Excluimos "chunks", "css", "media" — solo capturamos el segmento
+          // que es realmente el buildId hash de Next.
+          const m = src.match(/\/_next\/static\/(?!chunks\/|css\/|media\/)([A-Za-z0-9_-]{6,25})\//)
           if (m) return m[1]
         }
         // Pages Router: __NEXT_DATA__.buildId (chat-ia lo tiene mixto)
