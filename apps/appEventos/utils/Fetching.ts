@@ -134,19 +134,29 @@ export const fetchApiBodas = async ({
         token,
       });
       const { data, errors } = response?.data || {};
-      if (!data && errors) {
+      // BUG QA-R5 (30-jun): backend puede devolver `{data: {auth: null}, errors: [...]}`
+      // — data NO es null (es objeto con field null) → el guard viejo
+      // `if (!data && errors)` NO capturaba y los errores se perdían silente.
+      // Consecuencia: Authentication.tsx leía lastFetchApiBodasError=null y
+      // el toast salía como "Login falló: unknown" en lugar del mensaje real
+      // del backend ("Token no tiene formato JWT válido", timeout Mongo, etc.).
+      const hasErrors = Array.isArray(errors) && errors.length > 0;
+      if (hasErrors) {
         rememberError(query, errors, response?.headers);
         console.warn("[fetchApiBodas] GraphQL errors:", {
           errors: errors.map((e: any) => ({ message: e?.message, path: e?.path })),
           query: query?.substring(0, 200),
           traceId: lastFetchApiBodasError?.traceId,
         });
-        return null;
+      } else if (data) {
+        // Limpiar último error si esta llamada fue completamente OK.
+        lastFetchApiBodasError = null;
       }
-      // Limpiar último error si esta llamada fue OK (evita arrastre cross-llamada)
-      if (data) lastFetchApiBodasError = null;
+      // Retornar el primer field de data. Si data.<mutation>=null (por el error),
+      // el caller obtiene null y sabrá consultar lastFetchApiBodasError.
+      if (!data) return null;
       maybeInvalidateOnMutation(query);
-      return data ? Object.values(data)[0] : null;
+      return Object.values(data)[0] ?? null;
     } else if (type === "formData") {
       const formData = new FormData();
       const values = Object?.entries(variables);
