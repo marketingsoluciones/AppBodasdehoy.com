@@ -47,6 +47,18 @@ function getCookieDomain(configDomain?: string): string | undefined {
   return configDomain || (process.env.NEXT_PUBLIC_PRODUCTION ? configDomain : process.env.NEXT_PUBLIC_DOMINIO) || '.bodasdehoy.com';
 }
 
+/**
+ * BUG R4-002 (QA 30-jun): si AuthContext.config aún no está hidratado
+ * cuando login completa, Cookies.set(resolveCookieName(config?.cookie), …) escribe una cookie
+ * literal llamada "undefined" → basura en navegador + tracking imposible.
+ * Helper centralizado con fallback al cookie estándar de bodasdehoy.
+ */
+function resolveCookieName(configCookie?: string): string {
+  if (typeof configCookie === 'string' && configCookie.length > 0) return configCookie;
+  console.warn('[Auth] config.cookie undefined — usando fallback "sessionBodas". Hidratación tardía de AuthContext.');
+  return 'sessionBodas';
+}
+
 export const useAuthentication = () => {
   const { setLoading } = LoadingContextProvider();
   const { config, setUser, geoInfo, SetWihtProvider } = AuthContextProvider();
@@ -123,7 +135,7 @@ export const useAuthentication = () => {
           tooLarge: sessionCookieSize > 4000
         })
 
-        Cookies.set(config?.cookie, sessionCookie, {
+        Cookies.set(resolveCookieName(config?.cookie), sessionCookie, {
           domain: cookieDomain,
           expires: dateExpire,
           path: "/",
@@ -133,19 +145,19 @@ export const useAuthentication = () => {
 
         // Verificar que la cookie se estableció. Si falla, reintentar tras un
         // breve delay (race con popup callback) antes de declarar fallo.
-        let cookieVerificada = Cookies.get(config?.cookie)
+        let cookieVerificada = Cookies.get(resolveCookieName(config?.cookie))
         if (!cookieVerificada) {
           // BUG-CW-N05 (informe QA 23-jun): el popup de Firebase puede tener
           // race condition con Cookies.set en el callback. Reintentar 1 vez.
           await new Promise(resolve => setTimeout(resolve, 100))
-          Cookies.set(config?.cookie, sessionCookie, {
+          Cookies.set(resolveCookieName(config?.cookie), sessionCookie, {
             domain: cookieDomain,
             expires: dateExpire,
             path: "/",
             secure: window.location.protocol === "https:",
             sameSite: "lax"
           });
-          cookieVerificada = Cookies.get(config?.cookie)
+          cookieVerificada = Cookies.get(resolveCookieName(config?.cookie))
         }
         if (cookieVerificada) {
           console.log("[Auth] ✅ Cookie sessionBodas establecida correctamente (popup)")
@@ -352,7 +364,7 @@ export const useAuthentication = () => {
               // Esperar un momento para asegurar que las cookies se establezcan correctamente
               setTimeout(() => {
                 // Verificar que las cookies estén establecidas
-                const sessionCookie = Cookies.get(config?.cookie)
+                const sessionCookie = Cookies.get(resolveCookieName(config?.cookie))
                 const idToken = Cookies.get("idTokenV0.1.0")
 
                 if (sessionCookie && idToken) {

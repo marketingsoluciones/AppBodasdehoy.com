@@ -13,6 +13,16 @@ function safeCookieDomain(domain?: string): string | undefined {
   return domain;
 }
 
+/**
+ * BUG R4-002 (QA 30-jun): fallback nombre cookie cuando config aún no
+ * está hidratado — antes escribíamos cookie literal llamada "undefined".
+ */
+function resolveCookieName(configCookie?: string, fallback: string = 'sessionBodas'): string {
+  if (typeof configCookie === 'string' && configCookie.length > 0) return configCookie;
+  console.warn(`[AuthContext] config.cookie undefined — usando fallback "${fallback}".`);
+  return fallback;
+}
+
 function safeJsonParse<T>(raw: unknown, fallback: T): T {
   if (typeof raw !== 'string') return fallback;
   try {
@@ -420,7 +430,7 @@ const AuthProvider = ({ children }) => {
                   })
                   
                   // Establecer la cookie con el dominio correcto
-                  Cookies.set(config?.cookie, sessionCookie, { 
+                  Cookies.set(resolveCookieName(config?.cookie), sessionCookie, { 
                     domain: cookieDomain || ".bodasdehoy.com", 
                     expires: dateExpire,
                     path: "/",
@@ -429,7 +439,7 @@ const AuthProvider = ({ children }) => {
                   })
                   
                   // Verificar inmediatamente que la cookie se estableció
-                  const cookieInmediata = Cookies.get(config?.cookie)
+                  const cookieInmediata = Cookies.get(resolveCookieName(config?.cookie))
                   console.log("[Auth] Verificación inmediata de cookie:", {
                     cookie: config?.cookie,
                     presente: !!cookieInmediata,
@@ -437,7 +447,7 @@ const AuthProvider = ({ children }) => {
                   })
                   
                   // Verificar que la cookie se estableció correctamente
-                  const cookieVerificada = Cookies.get(config?.cookie)
+                  const cookieVerificada = Cookies.get(resolveCookieName(config?.cookie))
                   if (cookieVerificada) {
                     console.log("[Auth] ✅ Cookie sessionBodas establecida correctamente")
                   } else {
@@ -551,7 +561,7 @@ const AuthProvider = ({ children }) => {
                 // Esperar 1 segundo para asegurar que las cookies se establezcan
                 setTimeout(() => {
                   // Verificar cookies antes de redirigir
-                  const sessionCookie = Cookies.get(config?.cookie)
+                  const sessionCookie = Cookies.get(resolveCookieName(config?.cookie))
                   const idToken = Cookies.get("idTokenV0.1.0")
 
                   if (sessionCookie && idToken) {
@@ -632,7 +642,7 @@ const AuthProvider = ({ children }) => {
     verificatorDebounceRef.current = setTimeout(() => {
       verificatorDebounceRef.current = null
       const u = getAuth().currentUser
-      const sessionCookie = Cookies.get(config?.cookie)
+      const sessionCookie = Cookies.get(resolveCookieName(config?.cookie))
       void verificator({ user: u, sessionCookie })
     }, 400)
     return () => {
@@ -778,7 +788,7 @@ const AuthProvider = ({ children }) => {
               if (sessionResult?.sessionCookie) {
                 const isDevLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
                 const cookieDomain = isDevLocal ? undefined : (process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : (process.env.NEXT_PUBLIC_DOMINIO || '.bodasdehoy.com'))
-                Cookies.set(config?.cookie, sessionResult.sessionCookie, {
+                Cookies.set(resolveCookieName(config?.cookie), sessionResult.sessionCookie, {
                   domain: safeCookieDomain(cookieDomain),
                   expires: 365,
                   path: '/',
@@ -812,11 +822,12 @@ const AuthProvider = ({ children }) => {
         // BUG #3 QA 30-jun (CASO D): cuando llegamos aquí el usuario está
         // autenticado en Firebase pero NO tenemos sessionBodas válida y NO
         // pudimos restaurarla. Antes la app cargaba en estado "limitado" sin
-        // avisar — el usuario veía pantallas pero las llamadas a la API
-        // fallaban silenciosamente.
-        // Ahora marcamos el flag y exponemos warning estructurado para que
-        // las llamadas a la API puedan diagnosticar y para que QA vea por
-        // qué la app está en degradado.
+        // avisar.
+        // REGRESIÓN R4-001/002/003/004/005: usamos spread `{...user, ...}`
+        // y eso rompía el objeto Firebase User (uid/email son getters de
+        // prototipo y NO se copian con spread → user.uid llegaba undefined).
+        // Fix: dejamos setUser(user) intacto y exponemos la marca degraded
+        // SOLO en window para diagnóstico (no en el state del user).
         console.error('[Verificator] ❌ CASO D: usuario Firebase sin sessionBodas — acceso degradado', {
           firebaseUid: user?.uid,
           email: user?.email,
@@ -829,7 +840,7 @@ const AuthProvider = ({ children }) => {
             at: Date.now(),
           }
         }
-        setUser({ ...user, __authDegraded: true })
+        setUser(user)
         moreInfo(user) // ← setVerificationDone(true) se llama dentro de moreInfo
         return
       }
@@ -954,7 +965,7 @@ const AuthProvider = ({ children }) => {
             if (ssoAuthResult?.sessionCookie) {
               const isDevLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
               const cookieDomain = isDevLocal ? undefined : (process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : (process.env.NEXT_PUBLIC_DOMINIO || ".bodasdehoy.com"));
-              Cookies.set(config?.cookie, ssoAuthResult.sessionCookie, {
+              Cookies.set(resolveCookieName(config?.cookie), ssoAuthResult.sessionCookie, {
                 domain: cookieDomain,
                 expires: 365,
               })
@@ -993,7 +1004,7 @@ const AuthProvider = ({ children }) => {
         if (!guestUid) {
           const dateExpire = new Date(new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000))
           guestUid = nanoid(28)
-          Cookies.set(config?.cookieGuest, JSON.stringify({ guestUid }), { domain: safeCookieDomain(config?.domain), expires: dateExpire })
+          Cookies.set(resolveCookieName(config?.cookieGuest, 'guestbodas'), JSON.stringify({ guestUid }), { domain: safeCookieDomain(config?.domain), expires: dateExpire })
         }
         setUser({ uid: guestUid, displayName: "guest" })
         setVerificationDone(true)
@@ -1087,7 +1098,7 @@ const AuthProvider = ({ children }) => {
 
   const handleSkipLoading = () => {
     const currentUser = getAuth().currentUser;
-    const sessionCookie = Cookies.get(config?.cookie);
+    const sessionCookie = Cookies.get(resolveCookieName(config?.cookie));
     setShowSkipLoadingButton(false);
     void verificator({ user: currentUser, sessionCookie });
   };

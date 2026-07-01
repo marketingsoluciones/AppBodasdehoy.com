@@ -19,6 +19,10 @@ const FormLogin: FC<any> = ({ setStage }) => {
   const { setIsStartingRegisterOrLogin } = AuthContextProvider()
   const { signIn } = useAuthentication();
   const [passwordView, setPasswordView] = useState(false)
+  // BUG R4-006 (QA 30-jun): el toast rojo del error no se veía inequívoco
+  // (bottom-3 z-1000 en un flow de login con overlay loading arriba). Bloque
+  // inline rojo sobre el botón + toast global — doble canal visible.
+  const [inlineError, setInlineError] = useState<string>('')
   const toast = useToast()
   const initialValues: MyFormValues = {
     identifier: "",
@@ -37,12 +41,16 @@ const FormLogin: FC<any> = ({ setStage }) => {
   };
 
   const handleSubmit = async (values: MyFormValues) => {
+    setInlineError('')
     try {
       await signIn({ type: 'credentials', payload: values, setStage, setIsStartingRegisterOrLogin });
     } catch (error: any) {
       console.error('[FormLogin]', error?.code, error?.message);
       const msg = error?.code ? errorsCode[error.code] : error?.message || t('usuario o contraseña inválida');
-      if (msg) toast('error', msg);
+      if (msg) {
+        toast('error', msg);
+        setInlineError(msg);
+      }
     }
   };
 
@@ -86,6 +94,16 @@ const FormLogin: FC<any> = ({ setStage }) => {
         <div onClick={() => setStage("resetPassword")} className="text-sm text-primary w-full text-left hover:text-gray-300 transition cursor-pointer">
           {t("iforgotmypassword")}
         </div>
+        {inlineError ? (
+          <div
+            role="alert"
+            data-testid="login-inline-error"
+            className="rounded-md bg-red-100 border border-red-500 text-red-800 px-4 py-3 text-sm font-semibold flex items-start gap-2"
+          >
+            <span aria-hidden="true">⚠️</span>
+            <span className="first-letter:capitalize">{inlineError}</span>
+          </div>
+        ) : null}
         <ButtonComponent
           onClick={() => { }}
           type="submit"
