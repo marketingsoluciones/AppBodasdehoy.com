@@ -2,11 +2,12 @@
 
 import { FC, useEffect, useState } from 'react'
 
-// Import lateral solo para forzar la carga del módulo del store bandeja en
-// TODAS las páginas donde el DebugFooter monte — así el side-effect que
-// expone `window.useBandejaStore` (dev/-test hosts) ocurre siempre, sin
-// tener que navegar a /messages primero.
-import '@/store/bandeja'
+// Forzar carga del módulo del store bandeja para que el side-effect que
+// expone `window.useBandejaStore` (dev/-test hosts) ocurra siempre, sin
+// tener que navegar a /messages primero. Usamos el import como VALOR
+// (asignación) para que Webpack NO tree-shake el side-effect.
+import { useBandejaStore as _useBandejaStore } from '@/store/bandeja'
+void _useBandejaStore
 
 /**
  * DebugFooter — QA 30-jun. Chat-ia edition.
