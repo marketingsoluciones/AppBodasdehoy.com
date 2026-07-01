@@ -1,6 +1,6 @@
-import dynamic from 'next/dynamic';
 import { ReactNode, Suspense } from 'react';
 
+import DebugFooter from '@/components/DebugFooter';
 import { LobeAnalyticsProviderWrapper } from '@/components/Analytics/LobeAnalyticsProviderWrapper';
 import { getServerFeatureFlagsValue } from '@/config/featureFlags';
 import { appEnv } from '@/envs/app';
@@ -9,8 +9,6 @@ import CaptationProvider from '@/providers/CaptationProvider';
 import { getServerGlobalConfig } from '@/server/globalConfig';
 import { ServerConfigStoreProvider } from '@/store/serverConfig/Provider';
 import { getAntdLocale } from '@/utils/locale';
-
-const DebugFooter = dynamic(() => import('@/components/DebugFooter'), { ssr: false });
 
 import AntdV5MonkeyPatch from './AntdV5MonkeyPatch';
 import ApolloProviderWrapper from './Apollo';
