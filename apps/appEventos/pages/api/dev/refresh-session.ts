@@ -70,6 +70,22 @@ async function getSessionFromIdToken(idToken: string) {
   return data?.data?.auth?.sessionCookie || null
 }
 
+/**
+ * QA-R6 (2-jul): el bypass "force" antes emitía `Buffer.from(JSON.stringify(...)).toString('base64')`
+ * → una sola parte, sin puntos → parseSessionJwt lo rechazaba y chat-dev quedaba
+ * en guest shell tras SSO. Ahora emitimos un pseudo-JWT (header.payload.signature)
+ * con firma placeholder — el shape valida en el front (isLikelyJwt requiere 3
+ * partes separadas por '.'), aunque el backend real lo rechazaría por firma.
+ * El campo `dev:true + force:true` sigue marcando el token como no-productivo.
+ */
+function mintDevPseudoJwt(payload: Record<string, unknown>): string {
+  const b64url = (s: string) => Buffer.from(s).toString('base64').replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+  const header = b64url(JSON.stringify({ alg: 'none', typ: 'JWT' }));
+  const body = b64url(JSON.stringify(payload));
+  const sig = b64url('dev-refresh-session-force-bypass-not-verified');
+  return `${header}.${body}.${sig}`;
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -116,14 +132,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const oneYear = 365 * 24 * 60 * 60 * 1000
         const expires = new Date(Date.now() + oneYear)
 
-        const devSessionToken = Buffer.from(JSON.stringify({
+        const devSessionToken = mintDevPseudoJwt({
           email,
+          sub: 'dev_user_' + Date.now(),
           user_id: 'dev_user_' + Date.now(),
+          uid: 'dev_user_' + Date.now(),
           role: 'user',
           dev: true,
           force: true,
-          exp: Date.now() + oneYear
-        })).toString('base64')
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + (365 * 24 * 60 * 60),
+        })
 
         cookies.set('sessionBodas', devSessionToken, {
           domain: isLocalHost ? undefined : '.bodasdehoy.com',
@@ -147,14 +166,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const oneYear = 365 * 24 * 60 * 60 * 1000
         const expires = new Date(Date.now() + oneYear)
 
-        // Crear un token de desarrollo simple (NO usar en producción real)
-        const devSessionToken = Buffer.from(JSON.stringify({
+        // QA-R6 (2-jul): pseudo-JWT 3 partes para que chat-dev acepte cookie
+        // cross-domain (parseSessionJwt requiere `header.payload.signature`).
+        const devSessionToken = mintDevPseudoJwt({
           email,
+          sub: userData.user_id,
           user_id: userData.user_id,
+          uid: userData.user_id,
           role: userData.role,
           dev: true,
-          exp: Date.now() + oneYear
-        })).toString('base64')
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + (365 * 24 * 60 * 60),
+        })
 
         cookies.set('sessionBodas', devSessionToken, {
           domain: isLocalHost ? undefined : '.bodasdehoy.com',

@@ -228,9 +228,15 @@ export function LoginForm({
         <div style={s.alert('warning')}>{sessionExpiredMessage}</div>
       )}
 
-      {/* Error */}
+      {/* Error — role=alert + data-testid para E2E QA-R6 (2-jul) */}
       {displayError && (
-        <div style={s.alert('error')}>{displayError}</div>
+        <div
+          style={s.alert('error')}
+          role="alert"
+          data-testid="login-inline-error"
+        >
+          {displayError}
+        </div>
       )}
 
       {/* Botones sociales */}

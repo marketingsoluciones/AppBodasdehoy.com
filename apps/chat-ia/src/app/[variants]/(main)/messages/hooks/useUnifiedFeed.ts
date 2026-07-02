@@ -63,6 +63,10 @@ const TYPE_LABEL: Record<string, { icon: string; label: string }> = {
   resource_shared: { icon: '📤', label: 'Recurso compartido' },
   task_reminder: { icon: '📋', label: 'Tarea pendiente' },
   whatsapp_message: { icon: '💬', label: 'Mensaje WhatsApp' },
+  // 2-jul: shape acordado con BACKEND-api-mcp para notifs de comentarios en
+  // /servicios y /itinerario. Payload esperado: { entity_type, entity_id,
+  // comment_id, author_id, author_name, excerpt, created_at, url }.
+  comment_added: { icon: '💭', label: 'Nuevo comentario' },
 };
 
 function computeNotificationUrl(n: AppNotification): string | null {
@@ -78,6 +82,10 @@ function computeNotificationUrl(n: AppNotification): string | null {
   if (n.type === 'whatsapp_message') return '/messages';
   if (n.type === 'task_reminder') return '/messages';
   if (n.type === 'access_revoked' || n.type === 'permission_updated') return '/settings';
+  // comment_added: navegar directo al recurso comentado. El backend nos manda
+  // `url` en el payload → si focused viene con ese URL, respeta el default
+  // (primer if). Si no, best-effort a /messages.
+  if (n.type === 'comment_added') return focused || '/messages';
   if (focused) return '/messages';
   return null;
 }

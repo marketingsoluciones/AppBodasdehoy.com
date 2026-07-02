@@ -126,7 +126,20 @@ const AuthContext = createContext<Context>(initialContext);
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState<any>(initialContext.user);
   const [verificationDone, setVerificationDone] = useState<any>(false);
-  const [config, setConfig] = useState<any>();
+  // BUG QA-R5+ (2-jul): antes config se hidrataba SOLO tras el primer useEffect
+  // (line 242). Si un login popup Firebase completaba antes de esa hidratación
+  // el warning "config.cookie undefined" aparecía y resolveCookieName caía a
+  // fallback. Ahora init síncrono desde hostname para que config esté
+  // disponible desde el primer render (guard SSR).
+  const [config, setConfig] = useState<any>(() => {
+    if (typeof window === 'undefined') return undefined;
+    try {
+      const hostname = window.location.hostname;
+      const domainDevelop = getDevelopmentNameFromHostname(hostname);
+      const initial = developments.find((elem) => elem.name === domainDevelop) || developments[0];
+      return initial;
+    } catch { return undefined; }
+  });
   const [isMounted, setIsMounted] = useState<boolean>(false)
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<any>(0);
   const [actionModals, setActionModals] = useState(false);

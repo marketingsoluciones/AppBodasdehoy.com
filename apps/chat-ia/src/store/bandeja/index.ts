@@ -237,6 +237,19 @@ export const useBandejaStore = create<BandejaStore>((set, get) => ({
         });
         get().recomputeUnreads();
         _broadcastHandle?.broadcastFromLeader(event);
+        // SPRINT 2 iMessage 2-jul: propagar el evento al hook useMessages
+        // vía CustomEvent en window. Así el mensaje individual con msgId
+        // pinta ✓✓ azul (getStatusIcon en MessageItem.tsx) sin acoplar
+        // el hook al store bandeja.
+        if (typeof window !== 'undefined') {
+          try {
+            window.dispatchEvent(
+              new CustomEvent('bandeja:read_receipt', {
+                detail: { convId: event.convId, msgId: event.msgId, readByUserId: event.readByUserId },
+              }),
+            );
+          } catch { /* CustomEvent no disponible en SSR */ }
+        }
         break;
       }
     }

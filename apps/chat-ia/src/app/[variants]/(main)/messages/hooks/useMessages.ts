@@ -192,6 +192,23 @@ export function useMessages(channel: string, conversationId: string) {
     onMessage: handleStreamMessage,
   });
 
+  // SPRINT 2 iMessage 2-jul: read receipts en tiempo real.
+  // El store bandeja emite `bandeja:read_receipt` CustomEvent en window
+  // cuando llega el evento SSE. Escuchamos aquí y marcamos el mensaje
+  // individual con status='read' → MessageItem pinta ✓✓ azul.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = (ev: Event) => {
+      const detail = (ev as CustomEvent).detail as { convId?: string; msgId?: string } | undefined;
+      if (!detail || detail.convId !== conversationId || !detail.msgId) return;
+      setMessages((prev) =>
+        prev.map((m) => (m.id === detail.msgId ? { ...m, status: 'read' as const } : m)),
+      );
+    };
+    window.addEventListener('bandeja:read_receipt', handler as EventListener);
+    return () => window.removeEventListener('bandeja:read_receipt', handler as EventListener);
+  }, [conversationId]);
+
   // Poll for new messages — only when SSE is not connected.
   // BUG-CW-N18 + perf mobile (informe QA 23-jun 5ª ronda): polling cada 10s
   // drena batería en mobile y se ejecuta incluso con pestaña en background.

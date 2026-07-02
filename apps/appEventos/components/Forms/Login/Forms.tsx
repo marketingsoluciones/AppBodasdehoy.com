@@ -21,21 +21,65 @@ interface propsLogin {
 export const Login: FC<propsLogin> = ({ setStage, whoYouAre }) => {
   const { SetWihtProvider, setIsStartingRegisterOrLogin } = AuthContextProvider();
   const { signIn } = useAuthentication();
+  // QA-R6 (2-jul): mi banner rojo estaba en FormLogin.tsx que YA NO USA la
+  // app (usa LoginForm de @bodasdehoy/auth-ui). Capturamos aquí el error
+  // re-thrown por signIn y lo pasamos por prop `error` de LoginForm →
+  // LoginForm pinta <div role="alert" data-testid="login-inline-error">.
+  const [inlineError, setInlineError] = useState<string | null>(null);
+
+  const translateError = (err: any): string => {
+    const code = err?.code || '';
+    if (
+      code === 'auth/wrong-password' ||
+      code === 'auth/invalid-credential' ||
+      code === 'auth/invalid-login-credentials' ||
+      code === 'auth/user-not-found' ||
+      code === 'auth/invalid-email'
+    ) {
+      return 'Usuario o contraseña inválida';
+    }
+    if (code === 'auth/too-many-requests') {
+      return 'Demasiados intentos fallidos. Intenta de nuevo más tarde.';
+    }
+    if (code === 'auth/user-disabled') {
+      return 'Esta cuenta está deshabilitada. Contacta con soporte.';
+    }
+    if (err?.message?.includes('Timeout Mongo') || err?.message?.includes('Mongo save user')) {
+      return 'El servidor tardó demasiado. Reintenta en unos segundos.';
+    }
+    return err?.message || 'No se pudo iniciar sesión. Reintenta.';
+  };
 
   const handleEmailLogin = async (email: string, password: string) => {
-    await signIn({ type: 'credentials', payload: { identifier: email, password }, setStage, setIsStartingRegisterOrLogin });
+    setInlineError(null);
+    try {
+      await signIn({ type: 'credentials', payload: { identifier: email, password }, setStage, setIsStartingRegisterOrLogin });
+    } catch (err: any) {
+      setInlineError(translateError(err));
+    }
   };
 
   const handleGoogleLogin = async () => {
-    await signIn({ type: 'provider', payload: GoogleProvider(), setStage, whoYouAre, setIsStartingRegisterOrLogin });
+    setInlineError(null);
+    try {
+      await signIn({ type: 'provider', payload: GoogleProvider(), setStage, whoYouAre, setIsStartingRegisterOrLogin });
+    } catch (err: any) {
+      setInlineError(translateError(err));
+    }
   };
 
   const handleFacebookLogin = async () => {
-    await signIn({ type: 'provider', payload: FacebookProvider, setStage, whoYouAre, setIsStartingRegisterOrLogin });
+    setInlineError(null);
+    try {
+      await signIn({ type: 'provider', payload: FacebookProvider, setStage, whoYouAre, setIsStartingRegisterOrLogin });
+    } catch (err: any) {
+      setInlineError(translateError(err));
+    }
   };
 
   return (
     <LoginForm
+      error={inlineError}
       onEmailLogin={handleEmailLogin}
       onFacebookLogin={handleFacebookLogin}
       onForgotPassword={() => setStage('resetPassword')}
