@@ -48,12 +48,18 @@ step_rsync_up() {
 }
 
 step_shared() {
-  echo "=== shared) Rebuild packages/shared en portátil ==="
+  echo "=== shared) Rebuild packages/shared + auth-ui en portátil ==="
   ssh -o BatchMode=yes -T "$REMOTE_HOST" <<EOF
 export PATH=$REMOTE_PATH:\$PATH
 cd $REMOTE_DIR/packages/shared
 npx tsc 2>&1 | tail -5
 echo '✅ shared/dist rebuilded'
+# QA-R6 (2-jul): auth-ui/dist NO se regeneraba antes → cambios como
+# data-testid en LoginForm.tsx quedaban solo en src y el bundle appEventos
+# consumía el dist viejo. Rebuild explícito.
+cd $REMOTE_DIR/packages/auth-ui
+npx tsc 2>&1 | tail -5
+echo '✅ auth-ui/dist rebuilded'
 EOF
 }
 
