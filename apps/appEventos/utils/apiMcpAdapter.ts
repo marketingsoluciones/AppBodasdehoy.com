@@ -442,6 +442,29 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     },
   },
 
+  // QA MOM-02 (04-jul): portal público /e/[eventId] usa el field GraphQL
+  // `queryenEvento_id(var_1)` (variante legacy con "_id" sufijo). El adapter
+  // solo tenía `queryenEvento` sin sufijo → activate falso → query literal a
+  // api-mcp → 400 "Cannot query field queryenEvento_id" → error server_error
+  // en /e/[id] y "No se pudo cargar el evento" para el visitante.
+  //
+  // Alias que reusa el mismo canonicalQuery de queryenEvento pero mapea
+  // v.var_1 → id (el portal público solo pasa el ObjectId, sin variable/valor).
+  queryenEvento_id: {
+    canonicalQuery: `query($id:ID!){ getEventoById(id:$id){
+      _id nombre tipo fecha timeZone poblacion pais color
+      imgEventoUrl
+      itinerarios_array
+    } }`,
+    mapVariables: (v) => {
+      const id = v.var_1 ?? v.id ?? v.valor;
+      if (!id) return { id: '__NO_OP__' };
+      return { id };
+    },
+    // El caller espera { queryenEvento_id: {...} } — el wrapper lo reescribirá.
+    mapResponse: (p) => p,
+  },
+
   // updateActivity → updateActivityV2(args:inputActivity!) — args:{activityId,eventId,development,nombre,...}
   updateActivity: {
     canonicalQuery: `mutation($args:inputActivity!){ updateActivityV2(args:$args){ success errors{ field message code } } }`,

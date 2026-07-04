@@ -2,15 +2,39 @@ import React, { FC } from "react";
 import { useRouter } from "next/navigation";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
+import { EventContextProvider } from "../../context";
 
 const BlockListaRegalos: FC = () => {
   const router = useRouter()
   const { t } = useTranslation();
-  const ListaBlockRegalos: { amount: number, subtitle: string }[] = [
-    { amount: 1000, subtitle: t("raised") },
-    { amount: 10, subtitle: t("participants") },
-  ]
+  const { event } = EventContextProvider();
   const [isAllowed, ht] = useAllowed()
+
+  // QA GIF-01 (04-jul): antes los valores eran HARDCODED (1000€, 10 participantes)
+  // → Resumen mostraba 1000€ Recaudados mientras Lista de Regalos real 0.00€.
+  // Ahora derivamos del evento real. Si no hay datos → 0 (esperado hasta que
+  // el usuario active la lista). Shape esperada de listaRegalos aún no tipada
+  // (es JSON en schema api-mcp) → parseo defensivo.
+  const lista: any = event?.listaRegalos ?? null;
+  const items: any[] = Array.isArray(lista?.items) ? lista.items
+                     : Array.isArray(lista?.regalos) ? lista.regalos
+                     : Array.isArray(lista) ? lista
+                     : [];
+  const raised = items.reduce((sum, it: any) => {
+    const contribs = Array.isArray(it?.contribuciones) ? it.contribuciones : [];
+    const contribSum = contribs.reduce((s: number, c: any) => s + (Number(c?.monto ?? c?.importe ?? 0) || 0), 0);
+    const conseguido = Number(it?.conseguido ?? 0) || 0;
+    return sum + (contribSum || conseguido);
+  }, 0);
+  const participants = items.reduce((sum, it: any) => {
+    const contribs = Array.isArray(it?.contribuciones) ? it.contribuciones : [];
+    return sum + contribs.length;
+  }, 0);
+
+  const ListaBlockRegalos: { amount: number, subtitle: string }[] = [
+    { amount: raised, subtitle: t("raised") },
+    { amount: participants, subtitle: t("participants") },
+  ]
 
 
   return (
