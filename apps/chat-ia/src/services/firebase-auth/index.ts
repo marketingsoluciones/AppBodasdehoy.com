@@ -206,41 +206,21 @@ async function exchangeFirebaseTokenForJWT(
       document.cookie = `mcp_jwt=${encodeURIComponent(data.token)}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=Lax`;
     }
 
-    // QA-R6 (2-jul): SSO chat→app requiere sessionBodas cross-domain, y
-    // api-ia no la emite. Llamamos directamente a la mutation `auth(idToken)`
-    // de api-mcp (misma que appEventos usa) y seteamos sessionBodas con
-    // Domain=.bodasdehoy.com. Así app-dev reconoce la sesión sin re-login.
+    // QA-R6 (2-jul, refactor 4-jul): SSO chat→app requiere sessionBodas
+    // cross-domain via mutation auth(idToken) de api-mcp. Extraído a
+    // services/mcpAuth.ts para evitar drift con sso-auto/route.ts.
     if (typeof window !== 'undefined') {
       try {
-        const MCP_GRAPHQL = (typeof process !== 'undefined'
-          ? (process.env.NEXT_PUBLIC_API_MCP_GRAPHQL_URL || process.env.API_MCP_GRAPHQL_URL)
-          : null) || 'https://api-mcp.eventosorganizador.com/graphql';
-        const mcpRes = await fetch(MCP_GRAPHQL, {
-          body: JSON.stringify({
-            query: 'mutation Auth($idToken: String!) { auth(idToken: $idToken) { sessionCookie } }',
-            variables: { idToken: firebaseIdToken },
-          }),
-          headers: { 'Content-Type': 'application/json', Development: development },
-          method: 'POST',
-          signal: AbortSignal.timeout(6000),
-        });
-        const mcpData = await mcpRes.json().catch(() => null);
-        const sessionCookie = mcpData?.data?.auth?.sessionCookie;
-        if (sessionCookie) {
-          const hostParts = window.location.hostname.split('.');
-          const rootDomain = hostParts.length >= 2 ? '.' + hostParts.slice(-2).join('.') : '';
-          const cookieAttrs = [
-            `sessionBodas=${encodeURIComponent(sessionCookie)}`,
-            'path=/',
-            `max-age=${30 * 24 * 60 * 60}`,
-            'SameSite=Lax',
-          ];
-          if (rootDomain) cookieAttrs.push(`Domain=${rootDomain}`);
-          if (window.location.protocol === 'https:') cookieAttrs.push('Secure');
-          document.cookie = cookieAttrs.join('; ');
+        const { callMcpAuthMutation, writeSessionBodasCookie } = await import('@/services/mcpAuth');
+        const result = await callMcpAuthMutation(firebaseIdToken, development);
+        if (result.sessionCookie) {
+          writeSessionBodasCookie(result.sessionCookie);
         } else {
-          const errMsg = mcpData?.errors?.[0]?.message || 'sin sessionCookie';
-          console.warn('[firebase-auth] mutation auth NO devolvió sessionCookie:', errMsg);
+          console.warn(
+            '[firebase-auth] mutation auth NO devolvió sessionCookie:',
+            result.errorMessage,
+            result.traceId ? `[${result.traceId}]` : '',
+          );
         }
       } catch (e: any) {
         console.warn('[firebase-auth] Fallo mutation auth (sessionBodas cross-app):', e?.message);

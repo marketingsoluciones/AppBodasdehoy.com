@@ -96,21 +96,11 @@ export const useAuthentication = () => {
         return 'bodasdehoy';
       })();
       const effectiveDevelopment = config?.development || fallbackDevelopment;
-      console.log("[Auth] Llamando auth mutation con development:", effectiveDevelopment, "(config?.development:", config?.development, ")");
-      // BUG QA-R5: backend rechaza "Token no tiene formato JWT válido (3 partes)".
-      // Diagnóstico del token que enviamos a la mutation.
-      const _tokenStr = typeof tokenID === 'string' ? tokenID : '';
-      const _tokenParts = _tokenStr ? _tokenStr.split('.') : [];
-      console.log("[Auth] tokenID diagnóstico:", {
-        type: typeof tokenID,
-        length: _tokenStr.length,
-        partsCount: _tokenParts.length,
-        first20: _tokenStr.slice(0, 20),
-        last20: _tokenStr.slice(-20),
-      });
-      if (_tokenParts.length !== 3) {
-        console.error("[Auth] ❌ tokenID NO parece Firebase ID token (no tiene 3 partes)");
-      }
+      // 4-jul: retirado diagnóstico tokenID temporal (R5, 30-jun). Backend
+      // cerró save-user timeout el 1-jul (fix audit skipAudit) → tokens
+      // Firebase se aceptan sin problema y el log era ruido de consola.
+      // Si vuelve el "no tiene 3 partes", inspeccionar via DebugFooter.
+      console.log("[Auth] Llamando auth mutation con development:", effectiveDevelopment);
       const authResult: any = await fetchApiBodas({
         query: queries.auth,
         variables: { idToken: tokenID },

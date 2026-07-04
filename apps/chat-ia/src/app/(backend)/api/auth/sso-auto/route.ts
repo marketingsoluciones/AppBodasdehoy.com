@@ -131,27 +131,24 @@ export async function GET(request: NextRequest) {
     const token = data.token || data.jwt_token || '';
     const email = data.email || '';
 
-    // BUG QA #4 (30-jun): chat-dev login NO generaba sessionBodas → SSO
-    // chat→app no funcionaba (appEventos espera esa cookie para considerarse
-    // autenticado). appEventos llama a la mutation `auth(idToken)` de api-mcp
-    // y guarda el resultado como sessionBodas. Replicamos esa llamada aquí
-    // para que chat-dev produzca el mismo set de cookies que app-dev.
+    // BUG QA #4 (30-jun, refactor 4-jul): chat-dev login NO generaba
+    // sessionBodas → SSO chat→app no funcionaba. Replicamos la llamada a
+    // mutation auth(idToken) de api-mcp. Extraído a services/mcpAuth.ts
+    // para evitar drift con firebase-auth/index.ts (login directo).
     let sessionBodas = '';
     try {
-      const mcpAuthRes = await fetch(MCP_GRAPHQL_URL, {
-        body: JSON.stringify({
-          query: 'mutation Auth($idToken: String!) { auth(idToken: $idToken) { sessionCookie } }',
-          variables: { idToken: ssoToken },
-        }),
-        headers: { 'Content-Type': 'application/json', Development: development },
-        method: 'POST',
-        signal: AbortSignal.timeout(5000),
+      const { callMcpAuthMutation } = await import('@/services/mcpAuth');
+      const result = await callMcpAuthMutation(ssoToken, development, {
+        timeoutMs: 5000,
+        graphqlUrl: MCP_GRAPHQL_URL,
       });
-      const mcpAuthData = await mcpAuthRes.json().catch(() => null);
-      sessionBodas = mcpAuthData?.data?.auth?.sessionCookie || '';
+      sessionBodas = result.sessionCookie || '';
       if (!sessionBodas) {
-        const errMsg = mcpAuthData?.errors?.[0]?.message || 'sin sessionCookie';
-        console.warn('[sso-auto] mutation auth NO devolvió sessionCookie:', errMsg);
+        console.warn(
+          '[sso-auto] mutation auth NO devolvió sessionCookie:',
+          result.errorMessage,
+          result.traceId ? `[${result.traceId}]` : '',
+        );
       }
     } catch (e: any) {
       console.warn('[sso-auto] mutation auth(idToken) falló:', e?.message);
