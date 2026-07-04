@@ -63,12 +63,10 @@ export function useConversations(channel: string | null) {
       if (response.ok) {
         const data = await response.json();
         const rawList = Array.isArray(data) ? data : data.conversations || [];
-        // N31 retirado 24-jun: api-ia commit 665097b normalizó lastMessage a
-        // string (+ lastMessageAt, lastMessageFromMe). Ya no llega objeto.
-        // Mantengo defensa de string vacío por si algún canal aún no migrado
-        // devuelve null/undefined.
-        // N33 mantengo: phoneNumber JID Newsletter sigue sin normalizar
-        // backend (parseJid pendiente api-ia).
+        // N31 CERRADO 24-jun (api-ia commit 665097b normalizó lastMessage).
+        // Mantengo `|| ''` como cinturón-tirantes por canal legacy sin migrar.
+        // N33 activa: parseJid en api-ia sigue pendiente. Defensa vive en
+        // utils/jid.ts (friendlyContactName + classifyJidLike). Ver docs/AUTH-FLOW.md.
         const normalized: Conversation[] = rawList.map((c: any) => {
           const rawName = c.displayName || c.contactInfo?.name || c.phoneNumber || '';
           return {

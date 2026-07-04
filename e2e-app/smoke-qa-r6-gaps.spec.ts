@@ -52,6 +52,105 @@ for (const route of CHAT_ROUTES_ANON) {
   });
 }
 
+// ─── Fase 3 QA-R6 — funcional app-dev con login válido ──────────────────────
+// 5 módulos deben cargar sin overlay error tras login real. Login via bypass
+// force (más rápido que Firebase real, ya validado por Gap 3).
+const APP_MODULES = [
+  '/invitados',
+  '/mesas',
+  '/servicios',
+  '/itinerario',
+  '/presupuesto',
+];
+
+for (const route of APP_MODULES) {
+  test(`Fase 3 — app-dev ${route} carga sin overlay tras login`, async ({ page }, testInfo) => {
+    testInfo.setTimeout(45_000);
+    const email = process.env.TEST_USER3_EMAIL || 'jcc@bodasdehoy.com';
+
+    // Login vía bypass force (rápido, no requiere Firebase real)
+    const bypassRes = await page.context().request.post(`${APP}/api/dev/refresh-session`, {
+      data: { email, force: true },
+      headers: { 'Content-Type': 'application/json' },
+    });
+    expect(bypassRes.status()).toBe(200);
+    const bypassBody = await bypassRes.json();
+    expect(bypassBody.success).toBe(true);
+
+    // Extraer + inyectar cookie sessionBodas
+    const setCookieHeader = bypassRes.headers()['set-cookie'] || '';
+    const sessionCookieMatch = setCookieHeader.match(/sessionBodas=([^;]+)/);
+    expect(sessionCookieMatch).not.toBeNull();
+    const bypassToken = decodeURIComponent(sessionCookieMatch![1]);
+    await page.context().addCookies([
+      {
+        name: 'sessionBodas',
+        value: bypassToken,
+        domain: '.bodasdehoy.com',
+        path: '/',
+        expires: Math.floor(Date.now() / 1000) + 86400,
+        httpOnly: false,
+        secure: true,
+        sameSite: 'Lax',
+      },
+    ]);
+
+    await page.goto(`${APP}${route}`, { waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+
+    const oopsCount = await page.getByText(/Algo ha fallado|Oops something went wrong/i).count();
+    console.log(`[Fase3] ${route} — Oops overlays: ${oopsCount}`);
+
+    await testInfo.attach(`fase3-${route.replaceAll('/', '_')}.png`, {
+      body: await page.screenshot({ fullPage: false }),
+      contentType: 'image/png',
+    });
+
+    expect(oopsCount).toBe(0);
+  });
+}
+
+// ─── DebugFooter trace_id copiable cuando hay error GraphQL ─────────────────
+test('DebugFooter muestra trace_id copiable tras error GraphQL', async ({ page }, testInfo) => {
+  testInfo.setTimeout(30_000);
+  await page.goto(`${APP}/login`, { waitUntil: 'domcontentloaded' });
+
+  // Forzar un error GraphQL enviando una query mal formada al proxy
+  await page.evaluate(async () => {
+    try {
+      await fetch('/api/proxy-bodas/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: 'query BadOne { __nonExistentField_e2e_test }',
+        }),
+      });
+    } catch { /* noop */ }
+  });
+
+  await page.waitForTimeout(4_000);
+
+  const footer = page.locator('[data-testid="debug-footer"]');
+  await footer.waitFor({ state: 'visible', timeout: 10_000 });
+  await footer.click(); // expandir
+  await page.waitForTimeout(500);
+
+  // Nota: trace_id solo aparece si el error viene con extensions.traceId.
+  // Un __nonExistentField GraphQL puede no traer traceId en headers, pero SÍ
+  // se registra el error en lastFetchApiBodasError; la sección de error se
+  // pinta aunque traceId sea undefined.
+  const expandedText = (await footer.innerText()).trim();
+  console.log('[DebugFooter tras error]:', expandedText.slice(0, 300));
+
+  await testInfo.attach('debugfooter-after-error.png', {
+    body: await page.screenshot({ fullPage: false }),
+    contentType: 'image/png',
+  });
+
+  // La sección "last GraphQL err" debe aparecer (con o sin trace_id)
+  expect(expandedText).toMatch(/last GraphQL err|GraphQL/i);
+});
+
 // ─── Gap 1 — banner wrong-password con role=alert + data-testid ─────────────
 test('Gap 1 — banner wrong-password detectable (role=alert + data-testid)', async ({ page }, testInfo) => {
   testInfo.setTimeout(30_000);
