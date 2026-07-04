@@ -671,6 +671,7 @@ export const es = {
     'waitOwner': "Espera que el dueño del evento comparta una tarea contigo",
     'noData2': "No hay datos disponibles en esta vista",
     'waitOwner2': "Espera que el dueño del evento comparta algo contigo",
+    'ownerCreateItinerary': "Aún no has creado ningún itinerario, empieza aquí",
     'hour': "hora",
     'activityTime': 'hora de la actividad',
     'duplicar': 'duplicar',

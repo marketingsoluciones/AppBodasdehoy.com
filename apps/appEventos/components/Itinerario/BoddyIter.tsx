@@ -27,8 +27,11 @@ interface Modal {
 }
 
 export const BoddyIter = () => {
-    const { config } = AuthContextProvider()
+    const { config, user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
+    // QA ITI-01 (04-jul): mensaje "espera al dueño" se mostraba al PROPIO
+    // Propietario. Detectamos owner para render distinto en ViewWihtoutData.
+    const isOwner = Boolean(user?.uid && event?.usuario_id && user.uid === event.usuario_id)
     const { copilotFilter } = EventsGroupContextProvider()
     const [itinerario, setItinerario] = useState<Itinerary>()
     const [editTitle, setEditTitle] = useState<boolean>(false)
@@ -407,10 +410,10 @@ export const BoddyIter = () => {
                                 selectTask={selectTask}
                                 setSelectTask={setSelectTask}
                                 orderAndDirection={orderAndDirection}
-                            /> : <ViewWihtoutData />}
+                            /> : <ViewWihtoutData isOwner={isOwner} />}
                           </ModuleErrorBoundary>
                         : <div className="h-full">
-                            <ViewWihtoutData />
+                            <ViewWihtoutData isOwner={isOwner} />
                         </div>
                 }
             </div>
@@ -419,14 +422,16 @@ export const BoddyIter = () => {
 }
 
 
-const ViewWihtoutData = () => {
+const ViewWihtoutData = ({ isOwner = false }: { isOwner?: boolean }) => {
     return (
         <div className=" capitalize w-full h-full flex flex-col justify-center items-center bg-white rounded-lg mt-3 text-gray-500">
             <div>
                 {t("noData2")}
             </div>
             <div>
-                {t("waitOwner2")}
+                {/* QA ITI-01 (04-jul): al propietario NO le decimos "espera al dueño"
+                    (ese es él mismo). Se le sugiere crear su itinerario. */}
+                {isOwner ? t("ownerCreateItinerary") : t("waitOwner2")}
             </div>
             <div>
                 <LiaUserClockSolid className="h-12 w-auto" />
