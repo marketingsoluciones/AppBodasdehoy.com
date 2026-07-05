@@ -1085,11 +1085,6 @@ export const queries = {
       timeZone
       templateEmailSelect
       templateWhatsappSelect
-      # Schema api-mcp 04-jul: los campos siguientes son String/JSON escalares
-      # (no admiten subselections). El backend devuelve el JSON opaco; el
-      # cliente lo consume tal cual (arrays de objetos). Fix del error
-      # "must not have a selection since type String/JSON has no subfields"
-      # que rompía createEvento (QA 04-jul BUG EVT-01).
       imgEvento
       imgInvitacion
       notificaciones_array
@@ -1104,6 +1099,15 @@ export const queries = {
     }
   }
 }`,
+  /* Nota: los 9 campos anteriores (imgEvento/imgInvitacion/*_array/
+     presupuesto_objeto) son String/JSON escalares en el schema api-mcp
+     (04-jul). Sin subselections. Cliente consume el JSON opaco tal cual
+     (arrays de objetos). Fix del error EVT-01 "must not have a selection
+     since type X has no subfields".
+     IMPORTANTE: comentarios GraphQL con `#` NO deben ir dentro del template
+     string — el cliente aplasta el string a 1 línea antes de enviarlo al
+     server, y el `#` come todo hasta el final del string → nuevo error
+     "Syntax Error: Expected Name, found <EOF>" (QA 05-jul EVT-01 v2). */
 
   sendComunications: ` mutation( $evento_id:String, $invitados_ids_array:[String], $dominio:String, $transport:String, $lang:String, $template_id:ID){
     sendComunications(evento_id:$evento_id, invitados_ids_array:$invitados_ids_array, dominio:$dominio, transport:$transport, lang:$lang, template_id:$template_id){
@@ -1416,8 +1420,6 @@ export const queries = {
       timeZone
       templateEmailSelect
       templateWhatsappSelect
-      # Schema api-mcp 04-jul: escalares String/JSON, sin subselections.
-      # Cliente consume el JSON opaco (arrays de objetos preservados).
       imgEvento
       imgInvitacion
       notificaciones_array
@@ -1431,6 +1433,9 @@ export const queries = {
       showChildrenGuest
     }
   }`,
+  /* Nota (getEventsByID): mismos campos escalares que createEvento. Sin
+     subselections. Sin comentarios # dentro del template (aplasta a 1 línea
+     y rompe el parser). Ver EVT-01 v2 en createEvento. */
   eventDelete: `mutation ($eventoID : ID!) {
     deleteEvento(id:$eventoID){
       success
