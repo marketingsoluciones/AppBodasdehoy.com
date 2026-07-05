@@ -14,6 +14,8 @@
  * Este módulo unifica ambos comportamientos.
  */
 
+import { rememberGraphqlError } from './lastGraphqlError';
+
 const DEFAULT_MCP_GRAPHQL_URL = 'https://api-mcp.eventosorganizador.com/graphql';
 
 function resolveMcpGraphqlUrl(): string {
@@ -73,6 +75,9 @@ export async function callMcpAuthMutation(
   const errors = Array.isArray(data?.errors) ? data.errors : [];
   const errorMessage = errors[0]?.message || 'sin sessionCookie';
   const traceId = errors[0]?.extensions?.traceId;
+
+  // Registrar para DebugFooter y diagnóstico QA.
+  rememberGraphqlError(errorMessage, 'mcpAuth.mutation Auth', traceId);
 
   return { sessionCookie: null, errorMessage, traceId };
 }

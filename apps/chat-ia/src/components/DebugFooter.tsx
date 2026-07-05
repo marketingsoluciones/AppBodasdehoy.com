@@ -9,6 +9,8 @@ import { FC, useEffect, useState } from 'react'
 import { useBandejaStore as _useBandejaStore } from '@/store/bandeja'
 void _useBandejaStore
 
+import { lastChatIaGraphqlError } from '@/services/lastGraphqlError'
+
 /**
  * DebugFooter — QA 30-jun. Chat-ia edition.
  * Muestra en dev/-dev/-test: commit SHA + BUILD_ID + tenant + auth flags.
@@ -29,6 +31,12 @@ const DebugFooter: FC = () => {
     hasMcpJwt: false,
     hasFirebase: false,
     authDegraded: null as null | Record<string, unknown>,
+    lastGraphqlError: null as null | {
+      message: string;
+      source: string;
+      traceId?: string;
+      at: number;
+    },
   })
   const commit = (process.env.NEXT_PUBLIC_COMMIT_SHA || 'unknown').slice(0, 7)
 
@@ -82,6 +90,7 @@ const DebugFooter: FC = () => {
         hasMcpJwt: lsHas('mcp_jwt_token'),
         hasFirebase: lsHas('user_uid'),
         authDegraded: (window as any).__authDegraded ?? null,
+        lastGraphqlError: lastChatIaGraphqlError,
       })
     }
     refresh()
@@ -139,6 +148,14 @@ const DebugFooter: FC = () => {
         {state.authDegraded ? (
           <span style={{ color: '#fbbf24', marginLeft: 4 }} title="auth degraded">deg</span>
         ) : null}
+        {state.lastGraphqlError ? (
+          <span
+            style={{ color: '#fb7185', marginLeft: 4 }}
+            title={state.lastGraphqlError.message}
+          >
+            err
+          </span>
+        ) : null}
       </div>
       {expanded ? (
         <div style={{ marginTop: 8, lineHeight: 1.4 }}>
@@ -154,6 +171,51 @@ const DebugFooter: FC = () => {
           {state.authDegraded ? (
             <div style={{ marginTop: 6, color: '#fbbf24' }}>
               <b>__authDegraded</b>: {JSON.stringify(state.authDegraded).slice(0, 200)}
+            </div>
+          ) : null}
+          {state.lastGraphqlError ? (
+            <div
+              style={{
+                marginTop: 8,
+                padding: 6,
+                background: 'rgba(251, 113, 133, 0.15)',
+                border: '1px solid rgba(251, 113, 133, 0.4)',
+                borderRadius: 4,
+                color: '#fecaca',
+              }}
+            >
+              <div>
+                <b>last GraphQL err</b>{' '}
+                ({Math.max(0, Math.round((Date.now() - state.lastGraphqlError.at) / 1000))}s ago):
+              </div>
+              <div style={{ fontSize: 10, marginTop: 2 }}>
+                [{state.lastGraphqlError.source}] {state.lastGraphqlError.message}
+              </div>
+              {state.lastGraphqlError.traceId ? (
+                <div style={{ marginTop: 4 }}>
+                  <b>trace_id</b>:
+                  <span
+                    style={{
+                      marginLeft: 4,
+                      padding: '1px 4px',
+                      background: 'rgba(0,0,0,0.3)',
+                      borderRadius: 3,
+                      cursor: 'pointer',
+                      userSelect: 'all',
+                    }}
+                    onClick={(ev) => {
+                      ev.stopPropagation();
+                      try {
+                        navigator.clipboard.writeText(state.lastGraphqlError!.traceId!);
+                      } catch { /* noop */ }
+                    }}
+                    title="click para copiar"
+                    data-testid="debug-footer-traceid"
+                  >
+                    {state.lastGraphqlError.traceId}
+                  </span>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
