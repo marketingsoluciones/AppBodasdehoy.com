@@ -16,6 +16,7 @@ import { defaultImagenes } from "../Home/Card";
 import SelectWithSearchField from "./SelectWithSearchField";
 import { useDateTime } from "../../hooks/useDateTime";
 import { getAuth } from "firebase/auth";
+import { getDefaultGruposPorTipo } from "../../utils/defaultGruposPorTipo";
 
 // Valores reales del enum EventoTipo en api-mcp (SDL): sin acentos, BABY_SHOWER/DESPEDIDA_SOLTERO/GRADUACION.
 const TIPO_ENUM_MAP: Record<string, string> = {
@@ -165,6 +166,11 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
         usuario_id,
         usuario_nombre,
         timeZone: sanitizedTimeZone,
+        // QA I2 (04-jul) / D3 JCP (06-jul): grupos por defecto SEGÚN tipo de
+        // evento. Sin esto grupos_array quedaba vacío → select "Rol" de
+        // FormInvitado bloqueaba la creación de invitados. `values.tipo` es
+        // lowercase (boda/cumpleaños/...), que es lo que espera el helper.
+        grupos_array: getDefaultGruposPorTipo(values.tipo),
       }
 
       const result = await fetchApiBodas({
