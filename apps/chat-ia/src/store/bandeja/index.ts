@@ -252,6 +252,48 @@ export const useBandejaStore = create<BandejaStore>((set, get) => ({
         }
         break;
       }
+      // SPRINT 3 iMessage 6-jul: edit/delete cross-device.
+      // El store no guarda la lista de mensajes de cada conv (viven en
+      // useMessages hook). Igual que read_receipt, broadcasteamos con
+      // CustomEvent para que useMessages actualice el message individual.
+      case 'message_updated': {
+        _broadcastHandle?.broadcastFromLeader(event);
+        if (typeof window !== 'undefined') {
+          try {
+            window.dispatchEvent(
+              new CustomEvent('bandeja:message_updated', {
+                detail: {
+                  convId: event.convId,
+                  msgId: event.msgId,
+                  text: event.text,
+                  editedAt: event.editedAt,
+                  editedBy: event.editedBy,
+                },
+              }),
+            );
+          } catch { /* CustomEvent no disponible en SSR */ }
+        }
+        break;
+      }
+      case 'message_deleted': {
+        _broadcastHandle?.broadcastFromLeader(event);
+        if (typeof window !== 'undefined') {
+          try {
+            window.dispatchEvent(
+              new CustomEvent('bandeja:message_deleted', {
+                detail: {
+                  convId: event.convId,
+                  msgId: event.msgId,
+                  deletedAt: event.deletedAt,
+                  deletedBy: event.deletedBy,
+                  mode: event.mode ?? 'soft',
+                },
+              }),
+            );
+          } catch { /* CustomEvent no disponible en SSR */ }
+        }
+        break;
+      }
     }
   },
 

@@ -22,6 +22,13 @@ export interface Message {
   status?: 'sent' | 'delivered' | 'read';
   text: string;
   timestamp: string;
+  // SPRINT 3 iMessage (6-jul) — edit/delete cross-device.
+  /** Fecha ISO de la última edición. Se muestra pill "(editado)" cuando presente. */
+  editedAt?: string;
+  /** true si el mensaje fue borrado en modo soft (tachar + placeholder). */
+  deleted?: boolean;
+  /** Fecha ISO del borrado. */
+  deletedAt?: string;
 }
 
 function buildFetchUrl(channel: string, conversationId: string): string | null {
@@ -207,6 +214,50 @@ export function useMessages(channel: string, conversationId: string) {
     };
     window.addEventListener('bandeja:read_receipt', handler as EventListener);
     return () => window.removeEventListener('bandeja:read_receipt', handler as EventListener);
+  }, [conversationId]);
+
+  // SPRINT 3 iMessage 6-jul: edit/delete cross-device.
+  // Mismo patrón que read_receipt: store dispatch CustomEvent en window,
+  // aquí lo escuchamos y actualizamos el mensaje individual del hook.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const onUpdated = (ev: Event) => {
+      const d = (ev as CustomEvent).detail as
+        | { convId?: string; msgId?: string; text?: string; editedAt?: string }
+        | undefined;
+      if (!d || d.convId !== conversationId || !d.msgId) return;
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === d.msgId ? { ...m, text: d.text ?? m.text, editedAt: d.editedAt } : m,
+        ),
+      );
+    };
+
+    const onDeleted = (ev: Event) => {
+      const d = (ev as CustomEvent).detail as
+        | { convId?: string; msgId?: string; deletedAt?: string; mode?: 'soft' | 'hard' }
+        | undefined;
+      if (!d || d.convId !== conversationId || !d.msgId) return;
+      if (d.mode === 'hard') {
+        // Modo admin — eliminar del store por completo.
+        setMessages((prev) => prev.filter((m) => m.id !== d.msgId));
+      } else {
+        // Soft delete (default): marcamos como deleted → UI muestra placeholder.
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === d.msgId ? { ...m, deleted: true, deletedAt: d.deletedAt } : m,
+          ),
+        );
+      }
+    };
+
+    window.addEventListener('bandeja:message_updated', onUpdated as EventListener);
+    window.addEventListener('bandeja:message_deleted', onDeleted as EventListener);
+    return () => {
+      window.removeEventListener('bandeja:message_updated', onUpdated as EventListener);
+      window.removeEventListener('bandeja:message_deleted', onDeleted as EventListener);
+    };
   }, [conversationId]);
 
   // Poll for new messages — only when SSE is not connected.

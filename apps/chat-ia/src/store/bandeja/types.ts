@@ -52,7 +52,36 @@ export type SSEEvent =
   | { type: 'conv_updated'; convId: string; fields: Partial<Conversation> }
   | { type: 'notification'; notif: Notification }
   | { type: 'typing'; convId: string; userId: string; ttl: number }
-  | { type: 'read_receipt'; convId: string; msgId: string; readByUserId: string };
+  | { type: 'read_receipt'; convId: string; msgId: string; readByUserId: string }
+  // SPRINT 3 iMessage — edit/delete cross-device (6-jul):
+  // Emitidos por api-ia cuando otro device del mismo user edita/borra un
+  // mensaje. Front actualiza en tiempo real sin refresh.
+  | {
+      type: 'message_updated';
+      convId: string;
+      msgId: string;
+      /** Texto nuevo tras la edición. */
+      text: string;
+      /** ISO timestamp de la edición. */
+      editedAt: string;
+      /** userId que editó (validar que soy yo o autor original). */
+      editedBy?: string;
+    }
+  | {
+      type: 'message_deleted';
+      convId: string;
+      msgId: string;
+      /** ISO timestamp del borrado. */
+      deletedAt: string;
+      /** userId que borró (validar que soy yo o autor original). */
+      deletedBy?: string;
+      /**
+       * 'soft' = mensaje sigue existiendo pero se muestra "Este mensaje se
+       *          eliminó" (WhatsApp/iMessage default).
+       * 'hard' = eliminar del store completamente (uso admin/moderación).
+       */
+      mode?: 'soft' | 'hard';
+    };
 
 export interface BandejaState {
   // Datos

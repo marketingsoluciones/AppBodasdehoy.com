@@ -74,6 +74,26 @@ export function MessageItem({ message, compact }: MessageItemProps) {
     await sendFeedback({ messageId: message.id, rating });
   };
 
+  // SPRINT 3 iMessage (6-jul): soft delete → placeholder tachado.
+  if (message.deleted) {
+    return (
+      <div className={`flex ${isFromUser ? 'justify-start' : 'justify-end'}`}>
+        <div
+          data-testid="message-deleted"
+          className={`max-w-[70%] px-4 ${compact ? 'py-1' : 'py-2'} italic text-xs ${
+            isFromUser
+              ? 'bg-gray-100 text-gray-500 rounded-lg'
+              : 'bg-gray-200 text-gray-500 rounded-lg'
+          }`}
+        >
+          <span aria-hidden="true">🚫 </span>
+          <span className="line-through">Este mensaje se eliminó</span>
+          <span className="ml-2 opacity-70">{formatTime(message.timestamp)}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`flex ${isFromUser ? 'justify-start' : 'justify-end'}`}>
       <div
@@ -92,6 +112,16 @@ export function MessageItem({ message, compact }: MessageItemProps) {
             isFromUser ? 'text-gray-500' : 'text-blue-100'
           }`}
         >
+          {/* SPRINT 3 iMessage (6-jul): pill (editado) si editedAt está */}
+          {message.editedAt ? (
+            <span
+              data-testid="message-edited-pill"
+              className={`italic ${isFromUser ? 'text-gray-400' : 'text-blue-200'}`}
+              title={`Editado ${formatTime(message.editedAt)}`}
+            >
+              (editado)
+            </span>
+          ) : null}
           <span>{formatTime(message.timestamp)}</span>
           {!isFromUser && message.status && (
             <span className="ml-1">{getStatusIcon(message.status)}</span>
