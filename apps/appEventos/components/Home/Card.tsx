@@ -281,7 +281,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
           </div>}
         </div>
 
-        {data[idx]?._id == user?.eventSelected ? <div className="flex w-[304px] h-40 border-dashed border-2 border-yellow-300 absolute z-0 rounded-xl" /> : <></>}
+        {data[idx]?._id == user?.eventSelected ? <div className="flex w-[304px] max-w-full h-40 border-dashed border-2 border-yellow-300 absolute z-0 rounded-xl" /> : <></>}
         <div onClick={(e) => {
           e.preventDefault()
           e.stopPropagation()
@@ -338,7 +338,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
                 setIsNavigating(false)
               }
             })
-        }} className={`w-72 h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden ${isNavigating ? 'opacity-70' : ''}`}>
+        }} className={`w-72 max-w-full h-36 rounded-xl cardEvento z-[8] cursor-pointer shadow-lg relative overflow-hidden ${isNavigating ? 'opacity-70' : ''}`}>
           <img
             src={data[idx]?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${data[idx].imgEvento.i320}`)}` : defaultImagenes[data[idx]?.tipo?.toLowerCase()]}
             alt={data[idx]?.nombre || data[idx]?.tipo || 'Evento'}
