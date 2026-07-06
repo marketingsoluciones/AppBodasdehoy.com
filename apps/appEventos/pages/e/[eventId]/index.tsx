@@ -57,9 +57,15 @@ interface GuestPersonalData {
 // Helpers
 // ──────────────────────────────────────────────
 
+/* Portal público de invitados (SSR, sin sesión). Usa getEventoPublicoById
+   (api-mcp commit a2452dd) — endpoint SIN auth con whitelist de campos
+   no-sensibles. Antes usaba queryenEvento_id (campo legacy inexistente en
+   api-mcp) → server_error → "No se pudo cargar el evento" (MOM-02).
+   itinerarios_array viene como JSON (solo items spectatorView=true, filtrado
+   server-side). */
 const EVENT_QUERY = `
-  query ($var_1: String) {
-    queryenEvento_id(var_1: $var_1) {
+  query ($id: ID!) {
+    getEventoPublicoById(id: $id) {
       _id
       nombre
       tipo
@@ -69,11 +75,8 @@ const EVENT_QUERY = `
       pais
       color
       imgEventoUrl
-      lugar { _id title slug }
-      itinerarios_array {
-        _id
-        title
-      }
+      lugar { title slug }
+      itinerarios_array
     }
   }
 `;
@@ -803,20 +806,24 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   try {
     const data = await fetchApiEventosServer({
       query: EVENT_QUERY,
-      variables: { var_1: eventId },
-      development: false, // portal público: busca en todos los tenants
+      variables: { id: eventId },
+      development: false, // portal público: endpoint sin auth, cross-tenant
     });
 
-    const eventos = data?.queryenEvento_id;
-    const evento = Array.isArray(eventos) ? eventos[0] : eventos;
+    // getEventoPublicoById devuelve el evento directo (no array).
+    const evento = data?.getEventoPublicoById;
 
     if (!evento) {
       return { props: { event: null, error: 'not_found' } };
     }
 
+    // itinerarios_array llega como JSON (backend ya filtra spectatorView=true).
+    const itinerarios = Array.isArray(evento.itinerarios_array)
+      ? evento.itinerarios_array
+      : [];
     const filtered: PublicEvent = {
       ...evento,
-      itinerarios_array: (evento.itinerarios_array ?? []).map((it: any) => ({
+      itinerarios_array: itinerarios.map((it: any) => ({
         ...it,
         tasks: (it.tasks ?? []).filter((t: any) => t.spectatorView === true),
       })),
