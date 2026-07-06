@@ -87,10 +87,17 @@ EOF
 }
 
 step_rsync_down() {
-  echo "=== rsync-down) .next portátil → local ==="
+  echo "=== rsync-down) .next + public/sw.* portátil → local ==="
   rsync -az --delete -e "ssh -o BatchMode=yes" \
     "$REMOTE_HOST:$REMOTE_DIR/apps/chat-ia/.next/" "$LOCAL_DIR/apps/chat-ia/.next/"
+  # Serwist genera public/sw.js + sw.js.map durante el build. Sin esto,
+  # Next start sirve el fallback SPA en /sw.js (HTML) y las Web Push notifs
+  # nunca llegan al browser. Ver docs/SPRINT-4-WEB-PUSH.md.
+  rsync -az -e "ssh -o BatchMode=yes" \
+    --include="sw.js" --include="sw.js.map" --exclude="*" \
+    "$REMOTE_HOST:$REMOTE_DIR/apps/chat-ia/public/" "$LOCAL_DIR/apps/chat-ia/public/"
   echo "✅ BUILD_ID local: $(cat "$LOCAL_DIR/apps/chat-ia/.next/BUILD_ID" 2>/dev/null)"
+  echo "✅ sw.js local: $(ls -la "$LOCAL_DIR/apps/chat-ia/public/sw.js" 2>/dev/null | awk '{print $5" bytes"}' || echo 'MISSING')"
 }
 
 step_restart() {
