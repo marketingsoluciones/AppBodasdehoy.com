@@ -137,8 +137,10 @@ const BlockPrincipal: FC = () => {
         </ModalLeft>
       )}
       <BlockVista >
-        <div className="absolute top-3 right-5 flex gap-2 z-30">
-          <div onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="w-1 h-1 -translate-y-0.5">
+        <div className="absolute top-3 right-5 flex items-center gap-2 z-30">
+          {/* shrink-0 + ancho natural: antes era w-1 h-1 (4px) y los avatares desbordaban
+              solapándose con los iconos share/lápiz. El overlap queda SOLO entre avatares. */}
+          <div onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="shrink-0 flex items-center">
             <UsuariosCompartidos event={event} />
           </div>
           <span

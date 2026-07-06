@@ -623,15 +623,18 @@ const GridCards: FC<propsGridCards> = ({
               return 0;
             });
           }
+          // Grid por ancho REAL del contenedor (auto-fill + minmax), no por breakpoints de
+          // viewport. Al hacer dock del Copilot y encoger el contenedor, el nº de columnas se
+          // recalcula → las cards (w-72 = 18rem) no se solapan.
           return (
-            <div key={idx} className={`${isActiveStateSwiper !== idx && "hidden"} mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-4 gap-y-3`}>
+            <div key={idx} className={`${isActiveStateSwiper !== idx && "hidden"} mb-6 grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-3`}>
               {isActiveStateSwiper == idx ? (
                 <>
                   {group?.data?.map((evento, idx) => {
                     return (
                       <div
                         key={idx}
-                        className="flex items-center justify-center my-3"
+                        className="flex items-center justify-center my-3 min-w-0"
                       >
                         <Card data={group.data} grupoStatus={group.status} idx={idx} onSelect={() => setIdxGroupEvent({ idx, isActiveStateSwiper, event_id: evento._id })} />
                       </div>

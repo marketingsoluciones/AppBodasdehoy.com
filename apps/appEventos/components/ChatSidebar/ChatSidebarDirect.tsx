@@ -10,7 +10,8 @@
 import { FC, memo, useCallback, useRef, useEffect, useLayoutEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useChatSidebar } from '../../context/ChatSidebarContext';
-import { AuthContextProvider, EventContextProvider } from '../../context';
+import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from '../../context';
+import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import type { StoredSession } from '../Copilot/SessionsPanel';
 
@@ -108,11 +109,18 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
 
   const authContext = AuthContextProvider();
   const eventContext = EventContextProvider();
+  const { eventsGroup } = EventsGroupContextProvider();
+  const pathname = usePathname();
 
   const user = authContext?.user;
   const config = authContext?.config;
   const verificationDone = authContext?.verificationDone;
   const event = eventContext?.event;
+
+  // CTX-B (lista de eventos "/") vs CTX-A (evento abierto). En la lista NO hay un
+  // evento único: no arrastrar el eventId residual del último abierto → respuestas
+  // incoherentes. Ver docs/ANALISIS-COPILOT-CONTEXTO-EVENTO.
+  const isEventListRoute = pathname === '/';
 
   // Timeout local del Copilot (2s) para no mantener "Cargando..." cuando Firebase tarda.
   // El safety global de AuthContext es 10s — demasiado para UX del Copilot. Si verificationDone
@@ -153,10 +161,24 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
     return ((myDetail?.permissions ?? []) as unknown) as string[];
   }, [userEventRole, event?.detalles_compartidos_array, user?.uid]);
 
+  // Evento activo autoritativo (CTX-A). En la lista de eventos (CTX-B) es null y se
+  // adjunta la lista disponible para que el backend agregue o desambigüe sin usar residual.
+  const activeEventId = isEventListRoute ? null : (event?._id ?? null);
+  const availableEvents = useMemo(
+    () => (Array.isArray(eventsGroup) ? eventsGroup : [])
+      .filter((e: any) => e?._id)
+      .slice(0, 20)
+      .map((e: any) => ({ id: e._id as string, name: (e.nombre ?? '') as string })),
+    [eventsGroup],
+  );
+
   const pageContext = useMemo(() => ({
     userRole: userEventRole,
+    activeEventId,
+    eventScope: (isEventListRoute ? 'all' : 'active') as 'all' | 'active',
+    ...(isEventListRoute && availableEvents.length > 0 && { availableEvents }),
     ...(collaboratorPermissions.length > 0 && { permissions: collaboratorPermissions }),
-  }), [userEventRole, collaboratorPermissions]);
+  }), [userEventRole, collaboratorPermissions, activeEventId, isEventListRoute, availableEvents]);
 
   const stableUserId = user?.email || user?.uid || guestSessionId;
   const defaultSessionId = user?.uid ? `user_${user.uid}` : guestSessionId;
@@ -254,7 +276,9 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
   const sessionId = activeSessionId;
   const userId = stableUserId;
   const development = config?.development || 'bodasdehoy';
-  const eventId = event?._id;
+  // En la lista de eventos no hay evento activo → no enviar el id residual (CTX-B).
+  const eventId = isEventListRoute ? undefined : event?._id;
+  const eventNameForContext = isEventListRoute ? undefined : event?.nombre;
 
   const sidebarWidthRef = useRef(width);
   const wasMobileViewportRef = useRef(false);
@@ -342,11 +366,11 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
     const params = new URLSearchParams({ sessionId: sessionId || guestSessionId, userId, development });
     if (user?.email) params.set('email', user.email);
     if (eventId) params.set('eventId', eventId);
-    if (event?.nombre) params.set('eventName', event.nombre);
+    if (eventNameForContext) params.set('eventName', eventNameForContext);
     // Preservar locale español al abrir en nueva pestaña (el middleware usa ?hl como máxima prioridad)
     params.set('hl', 'es-ES');
     window.open(`${copilotUrl}?${params.toString()}`, '_blank', 'noopener,noreferrer');
-  }, [sessionId, guestSessionId, userId, development, user?.email, eventId, event?.nombre, copilotUrl]);
+  }, [sessionId, guestSessionId, userId, development, user?.email, eventId, eventNameForContext, copilotUrl]);
 
   const activeSessionLabel = sessions.find(s => s.id === activeSessionId)?.label || 'Nueva conversación';
 
@@ -548,6 +572,24 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
             </button>
           </div>
 
+          {/* ── Indicador de contexto ───────────────────────────────────────
+              Coherencia UI ↔ contexto: deja claro de qué evento habla el Copilot.
+              En la lista de eventos (CTX-B) no hay evento único → "todos tus eventos". */}
+          {authReady && !isGuest && (
+            <div className="flex items-center gap-1.5 px-3 py-1 border-b border-gray-100 bg-gray-50 text-[11px] text-gray-500 flex-shrink-0">
+              <span aria-hidden>{isEventListRoute ? '🗂️' : '📅'}</span>
+              {isEventListRoute ? (
+                <span className="truncate">Contexto: todos tus eventos</span>
+              ) : eventNameForContext ? (
+                <span className="truncate">
+                  Contexto: <span className="font-medium text-gray-700">{eventNameForContext}</span>
+                </span>
+              ) : (
+                <span className="truncate">Sin evento seleccionado</span>
+              )}
+            </div>
+          )}
+
           {/* ── Chat embed ──────────────────────────────────────────────── */}
           <div className="flex-1 min-w-0 overflow-hidden">
             {/* Esperar a que auth resuelva antes de montar el embed.
@@ -563,7 +605,7 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
               sessionId={sessionId}
               development={development}
               eventId={eventId}
-              eventName={event?.nombre}
+              eventName={eventNameForContext}
               isGuest={isGuest}
               pageContext={pageContext}
               className="w-full h-full"

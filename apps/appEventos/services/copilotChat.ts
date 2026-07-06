@@ -145,6 +145,16 @@ export interface PageContext {
   pageName?: string;
   eventName?: string;
   eventId?: string;
+  /**
+   * Evento activo AUTORITATIVO: el que el usuario tiene abierto (CTX-A). `null` en la
+   * lista de eventos (CTX-B), donde el backend debe usar `eventScope`/`availableEvents`
+   * para agregar o desambiguar en vez de arrastrar un id residual.
+   */
+  activeEventId?: string | null;
+  /** 'active' = la conversación se refiere al evento abierto; 'all' = lista de eventos, sin evento único. */
+  eventScope?: 'active' | 'all';
+  /** Eventos del usuario (id+nombre) para que el backend pueda desambiguar cuando eventScope='all'. */
+  availableEvents?: Array<{ id: string; name: string }>;
   screenData?: Record<string, any>;
   eventsList?: Array<{ name?: string; type?: string; date?: string; id?: string }>;
   /** Rol del usuario respecto al evento: owner | collaborator | registered | guest */
