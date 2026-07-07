@@ -20,8 +20,11 @@ import { useEffect, useRef } from 'react';
 
 import { buildHeaders } from '../utils/auth';
 
+// Shape ratificado 07-jul contra api-ia:
+//   PUT body → { text: string }  (Pydantic model exige `text`, no `content`)
+//   GET res  → { text, iaGenerated?, iaModel?, updatedAt? }
 export interface ServerDraft {
-  content: string;
+  text: string;
   iaGenerated?: boolean;
   iaModel?: string | null;
   updatedAt?: string;
@@ -47,17 +50,17 @@ async function fetchDraft(conversationId: string): Promise<ServerDraft | null> {
     if (res.status === 404) return null;
     if (!res.ok) return null;
     const json = await res.json();
-    if (typeof json?.content === 'string') return json as ServerDraft;
+    if (typeof json?.text === 'string') return json as ServerDraft;
     return null;
   } catch {
     return null;
   }
 }
 
-async function putDraft(conversationId: string, content: string): Promise<void> {
+async function putDraft(conversationId: string, text: string): Promise<void> {
   try {
     await fetch(`/api/messages/conversations/${encodeURIComponent(conversationId)}/draft`, {
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ text }),
       headers: buildHeaders(),
       method: 'PUT',
     });

@@ -137,7 +137,7 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
         setIaDraft(draft);
       } else if (!text.trim()) {
         // Solo poblar si el textarea está vacío (no pisar lo que el user escribe).
-        setText(draft.content);
+        setText(draft.text);
       }
     },
     text,
@@ -216,7 +216,7 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
 
   const handleUseIaDraft = () => {
     if (!iaDraft) return;
-    setText(iaDraft.content);
+    setText(iaDraft.text);
     setIaDraft(null);
     textareaRef.current?.focus();
   };
@@ -267,7 +267,7 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
             <p className="font-semibold text-violet-900">
               Borrador del asistente {iaDraft.iaModel ? `(${iaDraft.iaModel})` : ''}
             </p>
-            <p className="mt-0.5 line-clamp-2 text-violet-800">{iaDraft.content}</p>
+            <p className="mt-0.5 line-clamp-2 text-violet-800">{iaDraft.text}</p>
           </div>
           <div className="flex shrink-0 gap-1">
             <button
