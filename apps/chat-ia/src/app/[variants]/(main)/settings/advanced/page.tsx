@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
+import { PushSubscribeButton } from '@/features/WebPush/PushSubscribeButton';
+
 interface StorageInfo {
   chatDrafts: number;
   conversationActions: number;
@@ -157,6 +159,14 @@ export default function AdvancedSettingsPage() {
       <p className="text-sm text-gray-500 mb-6">Gestión de datos locales, depuración y herramientas avanzadas.</p>
 
       <div className="space-y-4">
+        {/* Notificaciones Web Push — SPRINT 4 (jul-2026) */}
+        <SettingCard
+          description="Recibe notificaciones del sistema cuando llegue un mensaje nuevo, aunque tengas cerrada la app. Requiere permiso del navegador."
+          title="Notificaciones en este dispositivo"
+        >
+          <PushSubscribeButton />
+        </SettingCard>
+
         {/* Debug Mode */}
         <SettingCard
           description="Muestra información adicional en consola para diagnóstico de problemas."
