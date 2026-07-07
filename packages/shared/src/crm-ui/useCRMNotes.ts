@@ -98,10 +98,8 @@ export function useCRMNotes({
       try {
         const data = await callMcpGraphQL<{
           getCRMNotesByMultipleEntities: {
-            success: boolean;
-            errors: any[];
             notes: CRMNote[];
-            total: number;
+            totalCount: number;
           };
         }>(GQL_GET_CRM_NOTES_BY_MULTIPLE_ENTITIES, {
           entities,
@@ -114,7 +112,7 @@ export function useCRMNotes({
         const result = data.getCRMNotesByMultipleEntities;
         const fetched = result?.notes ?? [];
         setNotes((prev) => (reset ? fetched : [...prev, ...fetched]));
-        setHasMore(fetched.length === LIMIT && pageRef.current * LIMIT < (result.total ?? 0));
+        setHasMore(fetched.length === LIMIT && pageRef.current * LIMIT < (result.totalCount ?? 0));
         setError(null);
       } catch (e: any) {
         if (currentRequest !== requestIdRef.current) return;
@@ -293,10 +291,13 @@ export function useCRMNotes({
     setNotes((prev) => prev.filter((n) => n.id !== id));
 
     try {
-      const data = await callMcpGraphQL<{ deleteCRMNote: { success: boolean } }>(GQL_DELETE_CRM_NOTE, {
-        id,
-      });
-      return !!data.deleteCRMNote?.success;
+      // api-mcp deleteCRMNote devuelve CRM_SimpleError { message, code }.
+      // Éxito = ausencia de excepción GraphQL. `code` viene solo si es error.
+      const data = await callMcpGraphQL<{ deleteCRMNote: { message: string; code?: string } }>(
+        GQL_DELETE_CRM_NOTE,
+        { id },
+      );
+      return !data.deleteCRMNote?.code;
     } catch (e) {
       // Revertir
       setNotes((prev) => [prevNote, ...prev]);
