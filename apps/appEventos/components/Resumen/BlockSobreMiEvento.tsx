@@ -76,7 +76,12 @@ const InsideBlockWithMultiSelected: FC<propsInsideBlock> = ({
   const toast = useToast()
   const { event, setEvent } = EventContextProvider()
   const { t } = useTranslation();
-  const [selectedItems, setSelectedItems] = useState(event.color)
+  // event[title] (p.ej. event.color) llega null cuando no hay selección → normalizar a
+  // array SIEMPRE. Sin esto, selectedItems.includes(...) reventaba "Sobre mi evento".
+  // Usar event[title] (no hardcodear .color) generaliza el patrón para reutilización.
+  const [selectedItems, setSelectedItems] = useState<string[]>(
+    Array.isArray(event?.[title]) ? event[title] : []
+  )
 
   const handleItemClick = (item) => {
     if (selectedItems.includes(item)) {
@@ -200,7 +205,7 @@ const ElementItemInsideBlockSelect: FC<{
       onClick={onClick}
       className={`
         w-full h-full p-3 rounded-3xl flex flex-col items-center justify-center gap-1 transform transition hover:scale-105 focus:outline-none
-        ${selectedItems.includes(title) ? 'bg-gray-200' : ''}
+        ${(selectedItems ?? []).includes(title) ? 'bg-gray-200' : ''}
       `}
     >
       {icon && cloneElement(icon, { className: `${color} w-8 h-8` })}
