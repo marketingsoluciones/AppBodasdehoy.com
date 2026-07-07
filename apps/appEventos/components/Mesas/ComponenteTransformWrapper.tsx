@@ -194,11 +194,21 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
       {/* <Cuadricula className="w-100 h-100 text-black" /> */}
       <TransformComponent
         wrapperStyle={{ width: "100%", height: "100%", background: "gray" }}
-        contentStyle={{ width: `${lienzo?.width}px`, height: `${lienzo?.height}px`, background: "blue" }}
+        contentStyle={{
+          width: `${lienzo?.width}px`,
+          height: `${lienzo?.height}px`,
+          // Antes: background:"blue" (debug residual). Plano = blanco + retícula gris clara
+          // (1 m = 100px, coherente con el tamaño del lienzo). No se toca el paper.svg
+          // compartido (verde) para no afectar otras vistas (home).
+          backgroundColor: "#ffffff",
+          backgroundImage:
+            "linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px)",
+          backgroundSize: "100px 100px",
+        }}
       >
         <div
           id={"lienzo-drop"}
-          className="js-dropTables bg-gray-300 paper lienzo flex justify-center items-center">
+          className="js-dropTables bg-transparent lienzo flex justify-center items-center">
           <div className="lienzo border-4 border-indigo-600"></div>
           <LiezoDragable scale={state.scale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
         </div>
