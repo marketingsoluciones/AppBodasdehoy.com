@@ -1,6 +1,6 @@
-import { FC, useState } from "react"
+import { FC, useState, useRef, useCallback } from "react"
+import { createPortal } from "react-dom"
 import { detalle_compartidos_array } from "../../utils/Interfaces"
-import { useRouter } from "next/navigation"
 
 interface props {
   user: detalle_compartidos_array
@@ -9,8 +9,10 @@ interface props {
 }
 
 export const ImageAvatar: FC<props> = ({ user, disabledTooltip, size = "lg" }) => {
-  const [showName, setShowName] = useState<boolean>()
-  const router = useRouter()
+  // Posición del tooltip en coordenadas de viewport (position:fixed vía portal).
+  const [tip, setTip] = useState<{ top: number; left: number } | null>(null)
+  const wrapRef = useRef<HTMLDivElement>(null)
+
   const h = (str: string): string => {
     if (str) {
       str.slice(0, 2).charCodeAt(1).toString(16)
@@ -19,10 +21,21 @@ export const ImageAvatar: FC<props> = ({ user, disabledTooltip, size = "lg" }) =
     }
   }
 
+  const pathname = typeof window !== "undefined" ? window.location.pathname : ""
+  const tooltipEnabled = !disabledTooltip && !["/itinerario", "/eventos"].includes(pathname)
+  const label = user?.displayName ? user?.displayName : user?.email
+
+  // Al hacer hover, calcular la posición del avatar y colocar el tooltip DEBAJO,
+  // centrado. Se renderiza en un portal a document.body para que NO lo recorte
+  // ningún contenedor con overflow:hidden (header/tarjeta del evento).
+  const openTip = useCallback(() => {
+    if (!tooltipEnabled || !label || !wrapRef.current) return
+    const r = wrapRef.current.getBoundingClientRect()
+    setTip({ top: r.bottom + 6, left: r.left + r.width / 2 })
+  }, [tooltipEnabled, label])
+
   return (
-    <div onMouseOver={() => {
-      setShowName(true)
-    }} onMouseOut={() => setShowName(false)} className="w-full h-full relative">
+    <div ref={wrapRef} onMouseOver={openTip} onMouseOut={() => setTip(null)} className="w-full h-full relative">
       {!!(user?.photoURL || user?.icon)
         ?
         <div className={`flex items-center justify-center text-white uppercase w-full h-full rounded-full overflow-hidden`}>
@@ -45,11 +58,17 @@ export const ImageAvatar: FC<props> = ({ user, disabledTooltip, size = "lg" }) =
           }
         </div>
       }
-      {(!["/itinerario", "/eventos"].includes(window?.location?.pathname) && showName && !disabledTooltip) && <div style={{ right: 10, top: 30 }} className="absolute z-20 bg-black rounded-md flex items-center justify-center leading-[1.2] opacity-75">
-        <span className="text-white text-[10px] py-1 px-2">
-          {user?.displayName ? user?.displayName : user?.email}
-        </span>
-      </div>}
+      {tip && label && typeof document !== "undefined" && createPortal(
+        <div
+          style={{ position: "fixed", top: tip.top, left: tip.left, transform: "translateX(-50%)", zIndex: 9999 }}
+          className="bg-black rounded-md opacity-90 pointer-events-none max-w-[92vw]"
+        >
+          <span className="block text-white text-[10px] leading-[1.2] py-1 px-2 whitespace-nowrap overflow-hidden text-ellipsis">
+            {label}
+          </span>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }
