@@ -50,7 +50,9 @@ const InsideBlockWithButtons: FC<propsInsideBlock> = ({
                   variables: { idEvento: event._id, input: { [title]: item.title } },
                   token: null
                 })
-                if (result.errors) {
+                // errors llega [] (array vacío) en éxito → truthy en JS. Sólo lanzar si HAY
+                // errores reales; si no, saltaba toast falso y setEvent no corría (UI stale).
+                if (result?.errors?.length) {
                   throw new Error("Hubo un error")
                 }
                 setEvent({ ...event, [title]: item.title })
@@ -147,7 +149,8 @@ const InsideBlockWithForm: FC<propsInsideBlock> = ({ setEditing, setFieldValue, 
             query: queries.eventUpdate,
             variables: { idEvento: event._id, input: { [title]: values.title } }, token: null
           })
-          if (result?.errors) {
+          // errors llega [] en éxito → truthy. Sólo lanzar si HAY errores reales.
+          if (result?.errors?.length) {
             throw new Error("Hubo un error")
           }
           setEvent({ ...event, [title]: values.title })
