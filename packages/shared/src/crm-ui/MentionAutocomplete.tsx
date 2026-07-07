@@ -22,7 +22,7 @@ import { callMcpGraphQL } from './client';
 import { GQL_SEARCH_CRM_USERS } from './graphql';
 
 interface MentionedUser {
-  id: string;
+  user_id: string;
   name: string;
   email?: string | null;
 }
@@ -203,7 +203,7 @@ export function MentionAutocomplete({
                 className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-[11px] transition-colors ${
                   i === activeIdx ? 'bg-violet-50' : 'hover:bg-gray-50'
                 }`}
-                key={u.id}
+                key={u.user_id}
                 onMouseDown={(e) => {
                   e.preventDefault(); // evita perder focus textarea
                   insertMention(u);

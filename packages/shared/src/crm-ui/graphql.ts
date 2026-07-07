@@ -123,3 +123,17 @@ export const GQL_REMOVE_NOTE_RELATION = `
     }
   }
 `;
+
+// searchCRMUsers — usado por MentionAutocomplete para el @autocomplete.
+// Shape verificado 07-jul contra api-mcp:
+//   CRM_User { user_id, name, email }   (NO id, NO avatar)
+//   CRM_SearchUsersResponse { users, total, errors }
+export const GQL_SEARCH_CRM_USERS = `
+  query SearchCrmUsers($search: String, $limit: Int) {
+    searchCRMUsers(search: $search, limit: $limit) {
+      users { user_id name email }
+      total
+      errors { field message code }
+    }
+  }
+`;
