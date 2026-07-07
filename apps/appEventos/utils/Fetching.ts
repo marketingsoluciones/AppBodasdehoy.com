@@ -973,20 +973,20 @@ export const queries = {
       reason
     }
   }`,
-  // api-mcp 2026-06-05 (rev. 10:30): nuevo endpoint getUsersByIds(ids, development).
-  // Tipo User actual: { id, email, role }. Campos displayName/photoURL/phoneNumber/onLine
-  // NO existen aún en User (reportado a api-mcp en mensaje pendiente).
-  //
-  // Aliases para preservar shape esperado por los call-sites:
+  // api-mcp getUsersByIds(ids, development): [User!]!
+  // 07-jul: User ya expone displayName/photoURL/phoneNumber/onLine reales
+  // (api-mcp confirmado). Retirado el alias fallback `displayName: email` y
+  // pedidos los campos reales. Se mantiene:
   //   - getUsers: getUsersByIds  (campo response sigue siendo "getUsers")
-  //   - uid: id                  (front lee u.uid → ahora == u.id)
-  //   - displayName: email       (fallback: muestra email cuando no hay nombre)
-  //   - photoURL: "" desde lado front (no se selecciona aquí; queda undefined)
+  //   - uid: id                  (call-sites leen u.uid → == u.id)
   getUsers: `query ($ids:[ID!]!, $development:String!){
     getUsers: getUsersByIds(ids:$ids, development:$development){
       uid: id
       email
-      displayName: email
+      displayName
+      photoURL
+      phoneNumber
+      onLine
     }
   }`,
   auth: `mutation ($idToken : String!){
