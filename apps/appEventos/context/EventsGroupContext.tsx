@@ -250,11 +250,16 @@ const EventsGroupProvider = ({ children }) => {
             const list: Event[] = []
 
             for (const settled of results) {
-              if (settled.status === "fulfilled") {
+              // fetchApiBodas devuelve null en errores GraphQL (token caducado/auth) SIN lanzar.
+              // Tratar ese null como FALLO, no como "0 eventos": si no, un refresh con token
+              // stale pinta lista vacía engañosa (y obligaba a logout/login para recuperar).
+              if (settled.status === "fulfilled" && settled.value !== null) {
                 hadFulfilled = true
                 list.push(...coerceQueryenEventoList(settled.value))
               } else if (!firstError) {
-                firstError = settled.reason
+                firstError = settled.status === "rejected"
+                  ? settled.reason
+                  : new Error("getEventosByUsuario devolvió null (posible error GraphQL/token caducado)")
               }
             }
 
@@ -325,7 +330,8 @@ const EventsGroupProvider = ({ children }) => {
                 const detailsTime = performance.now() - detailsStartTime
                 console.log(`[EventsGroup] ✅ Detalles cargados en ${detailsTime.toFixed(0)}ms`)
                 console.log(`[EventsGroup] ✅ TOTAL tiempo de carga: ${totalTime.toFixed(0)}ms (${(totalTime/1000).toFixed(1)}s)`)
-                if (Array.isArray(values)) writeCachedEvents(values)
+                // No cachear vacío: evita que un fetch fallido/vacío pise un cache bueno.
+                if (Array.isArray(values) && values.length > 0) writeCachedEvents(values)
                 setEventsGroup({ type: "INITIAL_STATE", payload: values })
                 setEventsGroupDone(true)
               })
@@ -343,9 +349,12 @@ const EventsGroupProvider = ({ children }) => {
               }
               const friendlyMessage = getApiErrorMessage(error)
               const cached = readCachedEvents()
-              if ((status === 502 || status === 503) && cached && cached.length > 0) {
+              // Cualquier error transitorio (502/503, timeout, o null por token caducado): si hay
+              // cache válido, mostrar los eventos guardados en vez de una lista vacía engañosa.
+              // Así un refresh con token stale NO borra la vista (antes obligaba a logout/login).
+              if (cached && cached.length > 0) {
                 setEventsGroup({ type: "INITIAL_STATE", payload: cached })
-                setEventsGroupErrorMessage(`${friendlyMessage || 'El servidor no está disponible. Inténtalo en unos minutos.'} Mostrando datos guardados.`)
+                setEventsGroupErrorMessage(`${friendlyMessage || 'No se pudieron actualizar los eventos ahora.'} Mostrando datos guardados.`)
                 setEventsGroupSessionExpired(false)
                 setEventsGroupError(true)
                 setEventsGroupDone(true)
