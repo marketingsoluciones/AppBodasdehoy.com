@@ -11,10 +11,8 @@
  *   · Tablet/Mobile: oculto por defecto (el usuario lo abre desde header).
  *   · Migración localStorage → CRM_Note se dispara una vez al montar.
  *
- * Nota sobre el workaround del bug Mongo enum CONVERSATION:
- *   api-mcp aún no acepta entityType: CONVERSATION en Mongo. Usamos
- *   entityType: ENTITY como catch-all. Cuando lo arreglen, cambiar
- *   `entityType: 'ENTITY'` → `entityType: 'CONVERSATION'` aquí abajo.
+ * Update 07-jul: api-mcp confirmó CRM_NoteEntityType enum acepta
+ * CONVERSATION en producción — workaround ENTITY catch-all retirado.
  */
 
 import { useEffect } from 'react';
@@ -50,8 +48,9 @@ export function ConversationNotesSidebar({
   }, []);
 
   // Entidad principal: si hay linked_contact_id, las notas pertenecen al
-  // CONTACTO (vida del contacto, supervive a la conv). Si no, usamos la
-  // conversación como entidad ENTITY (workaround bug Mongo, ver header).
+  // CONTACTO (vida del contacto, supervive a la conv). Si no, entityType:
+  // CONVERSATION vincula las notas al ciclo de vida de esa conversación
+  // concreta (útil para hilos de soporte one-off).
   const entity: CRMEntityRef = linkedContactId
     ? {
         entityId: linkedContactId,
@@ -61,8 +60,7 @@ export function ConversationNotesSidebar({
     : {
         entityId: conversationId,
         entityName: contactName ?? `Conversación ${conversationId.slice(0, 8)}`,
-        // WORKAROUND bug Mongo: usar ENTITY hasta que api-mcp arregle enum.
-        entityType: 'ENTITY',
+        entityType: 'CONVERSATION',
       };
 
   // Si la conversación está vinculada a un evento, mostramos también las

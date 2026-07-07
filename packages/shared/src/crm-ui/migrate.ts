@@ -124,8 +124,6 @@ export async function migrateLocalStorageNotesToCRM(opts?: {
     // Crear cada nota en backend. Si una falla, se conserva en localStorage.
     for (const note of notes) {
       try {
-        // WORKAROUND: el enum Mongo de api-mcp no acepta 'CONVERSATION'
-        // (bug reportado). Usamos ENTITY catch-all hasta que arreglen.
         await callMcpGraphQL<{ createCRMNote: { success: boolean } }>(GQL_CREATE_CRM_NOTE, {
           input: {
             content: note.text,
@@ -134,7 +132,7 @@ export async function migrateLocalStorageNotesToCRM(opts?: {
               {
                 entityId: convId,
                 entityName: `Conversación ${convId.slice(0, 12)}…`,
-                entityType: 'ENTITY',
+                entityType: 'CONVERSATION',
               },
             ],
             tags: ['migrado-localstorage'],

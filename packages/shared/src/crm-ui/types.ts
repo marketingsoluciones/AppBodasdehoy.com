@@ -19,10 +19,9 @@
 /**
  * Tipos de entidad a los que se puede vincular una nota.
  *
- * IMPORTANTE: el SDL GraphQL declara CONVERSATION pero el schema Mongo
- * real NO lo acepta todavía (bug reportado a api-mcp 24-jun). Para
- * conversaciones huérfanas sin contact registrado, usar ENTITY como
- * catch-all hasta que se arregle el bug Mongo.
+ * Enum ratificado 07-jul-2026 contra schema api-mcp
+ * (dist-production/src/graphql/typeDefs/crm/note.ts). Todos los valores
+ * están soportados en Mongo layer — incluido CONVERSATION.
  */
 export type CRMNoteEntityType =
   | 'CONTACT'
