@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
+import { MemoryManager } from '@/features/Memory/MemoryManager';
 import { PushSubscribeButton } from '@/features/WebPush/PushSubscribeButton';
 
 interface StorageInfo {
@@ -165,6 +166,14 @@ export default function AdvancedSettingsPage() {
           title="Notificaciones en este dispositivo"
         >
           <PushSubscribeButton />
+        </SettingCard>
+
+        {/* Memoria del usuario — api-ia (jul-2026) */}
+        <SettingCard
+          description="Lo que la IA recuerda de ti entre conversaciones. Puedes buscar, editar o borrar recuerdos, y ver tu consumo."
+          title="Memoria"
+        >
+          <MemoryManager />
         </SettingCard>
 
         {/* Debug Mode */}
