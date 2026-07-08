@@ -75,6 +75,10 @@ function getDraftKey(conversationId: string, mode: ComposerMode): string {
 }
 
 function loadDraft(conversationId: string, mode: ComposerMode): string {
+  // BUG-04 QA #13 (25-jun): SSR no tiene localStorage. Guard `typeof window`
+  // + retornar '' en server. El caller carga el draft real en useEffect tras
+  // hidratar, no en el useState initializer.
+  if (typeof window === 'undefined') return '';
   try {
     return localStorage.getItem(getDraftKey(conversationId, mode)) || '';
   } catch {

@@ -52,11 +52,13 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
   const isLoaded = useUserStore(authSelectors.isLoaded);
   const isGuest = useDomainGuestUser();
   const [graceElapsed, setGraceElapsed] = useState(false);
-  // Fast-path: comprobado UNA vez al montar. Si hay JWT local válido,
-  // saltamos el spinner de "Cargando…" y el redirect a /login.
-  const [localJwtPresent] = useState(hasLocalJwt);
+  // BUG-04 QA #13 (25-jun): leer localStorage en useState initializer rompe
+  // hydration (SSR=false, CSR=true). Inicializar a false y hidratar en effect
+  // tras el primer paint. Patrón estándar Next.js para datos client-only.
+  const [localJwtPresent, setLocalJwtPresent] = useState(false);
 
   useEffect(() => {
+    setLocalJwtPresent(hasLocalJwt());
     const t = setTimeout(() => setGraceElapsed(true), AUTH_GRACE_MS);
     return () => clearTimeout(t);
   }, []);

@@ -28,7 +28,14 @@ export const useAllowed = () => {
     const NON_MODULE_ROUTES = ['','login','login-rapido','registro','register','configuracion','facturacion','eventos','perfil','diseno','mi-web-creador','asistente','chat','momentos-publicos','public-card','public-itinerary','confirmar-asistencia','info-app','bandeja-de-mensajes','InvitationEmailEditor','aiEmail','api-debug','debug-error','debug-front','prueba','app']
 
     const isAllowed = (pathM?: keyof typeof types) => {
-      if (event?.usuario_id === user?.uid) {
+      // BUG-11 QA #13 (25-jun): ampliar la comparación también por email.
+      // Eventos legacy guardan `usuario_id` como email; eventos nuevos como
+      // Firebase uid. El QA veía "waitOwner" siendo el dueño porque uid !==
+      // email guardado. Conservador: NO toca lógica de permissions.
+      if (
+        event?.usuario_id === user?.uid ||
+        (event?.usuario_id && user?.email && event.usuario_id === user.email)
+      ) {
         return true
       }
       let path = pathM ? pathM : pathname.split("/")[1].split("-")[0]
@@ -72,7 +79,14 @@ export const useAllowedRouter = () => {
     const NON_MODULE_ROUTES = ['','login','login-rapido','registro','register','configuracion','facturacion','eventos','perfil','diseno','mi-web-creador','asistente','chat','momentos-publicos','public-card','public-itinerary','confirmar-asistencia','info-app','bandeja-de-mensajes','InvitationEmailEditor','aiEmail','api-debug','debug-error','debug-front','prueba','app']
 
     const isAllowedRouter = (pathM?: any) => {
-      if (event?.usuario_id === user?.uid) {
+      // BUG-11 QA #13 (25-jun): ampliar la comparación también por email.
+      // Eventos legacy guardan `usuario_id` como email; eventos nuevos como
+      // Firebase uid. El QA veía "waitOwner" siendo el dueño porque uid !==
+      // email guardado. Conservador: NO toca lógica de permissions.
+      if (
+        event?.usuario_id === user?.uid ||
+        (event?.usuario_id && user?.email && event.usuario_id === user.email)
+      ) {
         return true
       }
       let path = pathM ? pathM.split("/")[1].split("-")[0] : pathname.split("/")[1].split("-")[0]
@@ -127,7 +141,14 @@ export const useAllowedViewer = () => {
           }
         }
       }
-      if (event?.usuario_id === user?.uid) {
+      // BUG-11 QA #13 (25-jun): ampliar la comparación también por email.
+      // Eventos legacy guardan `usuario_id` como email; eventos nuevos como
+      // Firebase uid. El QA veía "waitOwner" siendo el dueño porque uid !==
+      // email guardado. Conservador: NO toca lógica de permissions.
+      if (
+        event?.usuario_id === user?.uid ||
+        (event?.usuario_id && user?.email && event.usuario_id === user.email)
+      ) {
         return true
       }
       if (viewers?.includes(user.uid)) {
