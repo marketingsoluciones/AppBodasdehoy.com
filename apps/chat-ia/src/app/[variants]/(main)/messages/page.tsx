@@ -15,23 +15,6 @@ export default function MessagesPage() {
   const activeTab = useActiveBandejaTab();
   const { items, loading, markNotificationRead } = useUnifiedFeed();
 
-  // FASE B v2.0 (Diseño 24-jun): items filtrados según tab activa.
-  //   inbox   → conversaciones (kind === 'conversation')
-  //   history → notificaciones (kind === 'notification')
-  const filteredItems = useMemo(() => {
-    if (activeTab === 'history') return items.filter((i) => i.kind === 'notification');
-    if (activeTab === 'inbox') return items.filter((i) => i.kind === 'conversation');
-    return items;
-  }, [items, activeTab]);
-
-  const notifUnreadCount = useMemo(
-    () => items.filter((i) => i.kind === 'notification' && !i.isRead).length,
-    [items],
-  );
-  const convUnreadCount = useMemo(
-    () => items.filter((i) => i.kind === 'conversation' && i.unreadCount > 0).length,
-    [items],
-  );
   // FASE B v2.0: scope selector. 'support' = bandeja del equipo;
   // un eventId = bandeja de ese evento. Al cambiar, el caller debe
   // (futuro) recargar lista filtrada por linkedEvents=eventId.
