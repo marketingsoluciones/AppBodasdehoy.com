@@ -28,13 +28,17 @@ export const useAllowed = () => {
     const NON_MODULE_ROUTES = ['','login','login-rapido','registro','register','configuracion','facturacion','eventos','perfil','diseno','mi-web-creador','asistente','chat','momentos-publicos','public-card','public-itinerary','confirmar-asistencia','info-app','bandeja-de-mensajes','InvitationEmailEditor','aiEmail','api-debug','debug-error','debug-front','prueba','app']
 
     const isAllowed = (pathM?: keyof typeof types) => {
-      // BUG-11 QA #13 (25-jun): ampliar la comparación también por email.
-      // Eventos legacy guardan `usuario_id` como email; eventos nuevos como
-      // Firebase uid. El QA veía "waitOwner" siendo el dueño porque uid !==
-      // email guardado. Conservador: NO toca lógica de permissions.
+      // BUG-11 QA #17 (25-jun) SSH MongoDB verificado: eventos legacy tienen
+      // `usuario_id` = uid HISTÓRICO Firebase (distinto del uid actual del
+      // creador porque Firebase re-emitió uid) + `usuario_nombre` con el email
+      // del creador. Comparar por 3 vías cubre todos los casos:
+      //   1. uid actual coincide (evento nuevo)
+      //   2. usuario_id === email (legacy raro)
+      //   3. usuario_nombre === email (legacy común: uid distinto, email igual)
       if (
         event?.usuario_id === user?.uid ||
-        (event?.usuario_id && user?.email && event.usuario_id === user.email)
+        (event?.usuario_id && user?.email && event.usuario_id === user.email) ||
+        (event?.usuario_nombre && user?.email && event.usuario_nombre === user.email)
       ) {
         return true
       }
@@ -79,13 +83,17 @@ export const useAllowedRouter = () => {
     const NON_MODULE_ROUTES = ['','login','login-rapido','registro','register','configuracion','facturacion','eventos','perfil','diseno','mi-web-creador','asistente','chat','momentos-publicos','public-card','public-itinerary','confirmar-asistencia','info-app','bandeja-de-mensajes','InvitationEmailEditor','aiEmail','api-debug','debug-error','debug-front','prueba','app']
 
     const isAllowedRouter = (pathM?: any) => {
-      // BUG-11 QA #13 (25-jun): ampliar la comparación también por email.
-      // Eventos legacy guardan `usuario_id` como email; eventos nuevos como
-      // Firebase uid. El QA veía "waitOwner" siendo el dueño porque uid !==
-      // email guardado. Conservador: NO toca lógica de permissions.
+      // BUG-11 QA #17 (25-jun) SSH MongoDB verificado: eventos legacy tienen
+      // `usuario_id` = uid HISTÓRICO Firebase (distinto del uid actual del
+      // creador porque Firebase re-emitió uid) + `usuario_nombre` con el email
+      // del creador. Comparar por 3 vías cubre todos los casos:
+      //   1. uid actual coincide (evento nuevo)
+      //   2. usuario_id === email (legacy raro)
+      //   3. usuario_nombre === email (legacy común: uid distinto, email igual)
       if (
         event?.usuario_id === user?.uid ||
-        (event?.usuario_id && user?.email && event.usuario_id === user.email)
+        (event?.usuario_id && user?.email && event.usuario_id === user.email) ||
+        (event?.usuario_nombre && user?.email && event.usuario_nombre === user.email)
       ) {
         return true
       }
@@ -141,13 +149,17 @@ export const useAllowedViewer = () => {
           }
         }
       }
-      // BUG-11 QA #13 (25-jun): ampliar la comparación también por email.
-      // Eventos legacy guardan `usuario_id` como email; eventos nuevos como
-      // Firebase uid. El QA veía "waitOwner" siendo el dueño porque uid !==
-      // email guardado. Conservador: NO toca lógica de permissions.
+      // BUG-11 QA #17 (25-jun) SSH MongoDB verificado: eventos legacy tienen
+      // `usuario_id` = uid HISTÓRICO Firebase (distinto del uid actual del
+      // creador porque Firebase re-emitió uid) + `usuario_nombre` con el email
+      // del creador. Comparar por 3 vías cubre todos los casos:
+      //   1. uid actual coincide (evento nuevo)
+      //   2. usuario_id === email (legacy raro)
+      //   3. usuario_nombre === email (legacy común: uid distinto, email igual)
       if (
         event?.usuario_id === user?.uid ||
-        (event?.usuario_id && user?.email && event.usuario_id === user.email)
+        (event?.usuario_id && user?.email && event.usuario_id === user.email) ||
+        (event?.usuario_nombre && user?.email && event.usuario_nombre === user.email)
       ) {
         return true
       }

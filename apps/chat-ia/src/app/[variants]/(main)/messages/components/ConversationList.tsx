@@ -230,7 +230,11 @@ function ChannelConversationList({
     setConnected(true);
   };
 
-  if (!connected) {
+  // BUG-08 QA #13 (25-jun): si el caller pasa selectedId, una conversación
+  // está abierta — por tanto el canal SÍ está operativo aunque localStorage
+  // no haya marcado connected. Mostrar la lista en lugar del setup (que
+  // tapaba el panel izquierdo con el snippet HTML de setup).
+  if (!connected && !selectedId) {
     const setupProps = { development, onConnected: handleConnected };
     const setupMap: Record<string, React.ReactNode> = {
       email: <EmailSetup {...setupProps} />,

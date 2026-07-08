@@ -145,11 +145,15 @@ export function useDelayUnmount(isMounted: boolean, delayTime: number) {
 }
 
 export const getCurrency = (value: number | string, currency?: string) => {
+  // BUG-09 QA #13 (25-jun): si el evento no tiene currency definido el
+  // negocio Bodas de Hoy es España → EUR por defecto, NO USD ni "decimal sin
+  // símbolo". Fallback a 'eur' para evitar US$ por defecto.
+  const cur = currency ?? "eur"
   const v = typeof value === "string" ? parseFloat(value) : value
-  if (v == null || isNaN(v)) return currency ? "0" : "0.00"
-  return v.toLocaleString(currency ? navigator.language : undefined, {
-    style: currency ? "currency" : "decimal",
-    currency: currency,
+  if (v == null || isNaN(v)) return "0.00"
+  return v.toLocaleString(navigator.language, {
+    style: "currency",
+    currency: cur,
     minimumFractionDigits: !["cop"].includes(GlobalCurrency) ? 2 : 0,
     maximumFractionDigits: !["cop"].includes(GlobalCurrency) ? 2 : 0,
   })
