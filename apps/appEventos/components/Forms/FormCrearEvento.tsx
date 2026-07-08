@@ -268,6 +268,13 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       if (imagePreviewUrl?.file) {
         const imgEvento = await subir_archivo({ imagePreviewUrl, event, use: "imgEvento" })
         if (imgEvento) {
+          // Persistir la portada en el evento (BD): subir_archivo SOLO sube el fichero a R2,
+          // NO asocia imgEvento al evento (a diferencia de nombre/tipo/fecha arriba, que sí
+          // hacen eventUpdate). Sin esto la nueva foto se veía local pero se PERDÍA al recargar.
+          await fetchApiBodas({
+            query: queries.eventUpdate,
+            variables: { idEvento: values._id, input: { imgEvento } }, token: null
+          })
           updatedValues = { ...updatedValues, imgEvento }
         }
       }
