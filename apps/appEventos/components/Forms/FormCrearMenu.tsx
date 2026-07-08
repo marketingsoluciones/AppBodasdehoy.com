@@ -24,20 +24,27 @@ const FormCrearMenu = ({ set, state }) => {
 
   const handleSubmit = async (values, actions) => {
     try {
-      const { evento }: any = await fetchApiBodas({
+      const result: any = await fetchApiBodas({
         query: queries.createMenu,
         variables: {
           eventID: event._id,
           menu: { title: values.nombre, nombre: values.nombre, nombre_menu: values.nombre, precio: 0 },
         },
       });
+      // fetchApiBodas devuelve null en error GraphQL (NO lanza). No destructurar {evento}
+      // directo (lanzaría en null) y confirmar éxito REAL antes del toast + actualizar lista.
+      if (!result?.success || (result?.errors?.length ?? 0) > 0) {
+        const backendMsg = result?.errors?.[0]?.message;
+        toast("error", `${t("Ha ocurrido un error al crear el menú")}${backendMsg ? `: ${backendMsg}` : ""}`);
+        return;
+      }
       setEvent((old) => ({
         ...old,
-        menus_array: normalizeMenus(evento?.menus_array),
+        menus_array: normalizeMenus(result?.evento?.menus_array),
       }));
       toast("success", t("Menú creado con exito"));
     } catch (error) {
-      toast("error", t("Ha ocurrido un error al crear el grupo"));
+      toast("error", t("Ha ocurrido un error al crear el menú"));
     } finally {
       actions.resetForm()
     }

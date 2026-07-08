@@ -21,16 +21,23 @@ const FormCrearGrupo = ({ set, state }) => {
 
   const handleSubmit = async (values, actions) => {
     try {
-      const { evento }: any = await fetchApiBodas({
+      const result: any = await fetchApiBodas({
         query: queries.createGroup,
         variables: {
           eventID: event._id,
           grupo: values.nombre,
         },
       });
+      // fetchApiBodas devuelve null en error GraphQL (NO lanza). No destructurar {evento}
+      // directo (lanzaría en null) y confirmar éxito REAL antes del toast + actualizar lista.
+      if (!result?.success || (result?.errors?.length ?? 0) > 0) {
+        const backendMsg = result?.errors?.[0]?.message;
+        toast("error", `${t("Ha ocurrido un error al crear el grupo")}${backendMsg ? `: ${backendMsg}` : ""}`);
+        return;
+      }
       setEvent((old) => ({
         ...old,
-        grupos_array: evento?.grupos_array || old?.grupos_array,
+        grupos_array: result?.evento?.grupos_array ?? old?.grupos_array,
       }));
       toast("success", t("Grupo creado con exito"));
     } catch (error) {
