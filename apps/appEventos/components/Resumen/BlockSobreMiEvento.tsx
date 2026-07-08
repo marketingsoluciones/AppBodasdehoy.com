@@ -372,7 +372,10 @@ const BlockSobreMiEvento: FC = () => {
       >
         {schema.map((item, idx) => (
           <SwiperSlide key={idx} className="py-2 pb-8 relative">
-            {item.title != "tarta" && <AboutItem
+            {/* Tarta usa el mismo editor de TEXTO que Temática (ambos list:null →
+                InsideBlockWithForm). Antes abría TartaButton (subida de imagen); QA pidió
+                texto libre como Temática (decisión de producto 08-jul). */}
+            <AboutItem
               {...item}
               toggleClick={() => {
                 if (!isMounted) {
@@ -381,20 +384,7 @@ const BlockSobreMiEvento: FC = () => {
                 }
               }}
               value={values[item.title]}
-            />}
-            {
-              item.title === "tarta" && <TartaButton
-                {...item}
-                toggleClick={() => {
-                  if (!isMounted) {
-                    setItemSelected(item)
-                    setIsMounted(true)
-                  }
-                }}
-                value={values[item.title]}
-                setFieldValue={setFieldValue}
-              />
-            }
+            />
           </SwiperSlide>
         ))}
       </Swiper>
