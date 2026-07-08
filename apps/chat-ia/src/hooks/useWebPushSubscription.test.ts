@@ -16,6 +16,20 @@ const originalNavigator = global.navigator;
 const originalFetch = global.fetch;
 const originalProcessEnv = { ...process.env };
 
+// Clave pública VAPID real de api-ia (pública por diseño, sin riesgo en tests).
+const VAPID_PUBLIC_KEY =
+  'BCUXyM5TY-RNY0Kr88yuubLcG44IUTH0TbgHaoJoEdMaaWOnlVbHVZ_X0BLmS1VddEZkpkMvYFsDiToWjY1qeMs';
+
+/** fetch que responde la clave VAPID en el GET y `postResult` en el POST/DELETE. */
+function mockFetch(postResult: any = { ok: true, status: 200 }, publicKey: any = VAPID_PUBLIC_KEY) {
+  return vi.fn().mockImplementation((url: string) => {
+    if (url === '/api/push/vapid-public-key') {
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ publicKey }) });
+    }
+    return Promise.resolve(postResult);
+  });
+}
+
 function mockBrowserSupport(opts?: {
   permission?: NotificationPermission;
   existingSubscription?: any;
@@ -50,10 +64,6 @@ function mockBrowserSupport(opts?: {
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
 describe('useWebPushSubscription', () => {
-  beforeEach(() => {
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = 'BExampleKey_base64url_87chars_' + 'a'.repeat(58);
-  });
-
   afterEach(() => {
     process.env = { ...originalProcessEnv };
     (global as any).navigator = originalNavigator;
@@ -87,7 +97,7 @@ describe('useWebPushSubscription', () => {
     mockBrowserSupport({ permission: 'default' });
     (global as any).Notification.requestPermission = vi.fn().mockResolvedValue('granted');
 
-    const fetchSpy = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    const fetchSpy = mockFetch();
     global.fetch = fetchSpy as any;
 
     const { result } = renderHook(() => useWebPushSubscription());
@@ -99,6 +109,11 @@ describe('useWebPushSubscription', () => {
       await result.current.subscribe();
     });
 
+    // Pide la clave VAPID al proxy antes de suscribir.
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/api/push/vapid-public-key',
+      expect.objectContaining({ credentials: 'include' }),
+    );
     expect(fetchSpy).toHaveBeenCalledWith(
       '/api/push/subscribe',
       expect.objectContaining({
@@ -107,7 +122,8 @@ describe('useWebPushSubscription', () => {
       }),
     );
 
-    const [, opts] = fetchSpy.mock.calls[0];
+    const postCall = fetchSpy.mock.calls.find(([u]: [string]) => u === '/api/push/subscribe');
+    const [, opts] = postCall;
     const body = JSON.parse(opts.body);
     expect(body.endpoint).toBe('https://fcm.googleapis.com/fcm/send/xyz');
     expect(body.keys).toEqual({ p256dh: 'p256dh-value', auth: 'auth-value' });
@@ -138,10 +154,12 @@ describe('useWebPushSubscription', () => {
     expect(result.current.error).toContain('Permiso denegado');
   });
 
-  it('subscribe() falla si NEXT_PUBLIC_VAPID_PUBLIC_KEY no está', async () => {
+  it('subscribe() falla si el servidor no devuelve la clave VAPID', async () => {
     mockBrowserSupport({ permission: 'default' });
     (global as any).Notification.requestPermission = vi.fn().mockResolvedValue('granted');
-    delete process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+    // El proxy responde 200 pero sin publicKey → escalar como error (no fallback).
+    global.fetch = mockFetch({ ok: true, status: 200 }, null) as any;
 
     const { result } = renderHook(() => useWebPushSubscription());
     await act(async () => {
@@ -153,6 +171,6 @@ describe('useWebPushSubscription', () => {
     });
 
     expect(result.current.subscribed).toBe(false);
-    expect(result.current.error).toContain('VAPID public key');
+    expect(result.current.error).toContain('VAPID');
   });
 });

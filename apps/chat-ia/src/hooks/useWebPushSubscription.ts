@@ -10,9 +10,9 @@
  *     PushSubscription serializada.
  *   - Desuscribe → DELETE al backend con el endpoint.
  *
- * VAPID public key debe venir del server-side rendering vía la env var
- * NEXT_PUBLIC_VAPID_PUBLIC_KEY (base64url uncompressed, 87 chars). El
- * backend api-ia genera el par y expone la pública en su config.
+ * La VAPID public key se pide en runtime al proxy /api/push/vapid-public-key
+ * (que reenvía a api-ia). No se inyecta en build: así una rotación de la clave
+ * en api-ia NO obliga a rebuildar el front. La pública NO es secreta.
  *
  * Uso:
  *   const push = useWebPushSubscription();
@@ -25,18 +25,18 @@ import { useCallback, useEffect, useState } from 'react';
 export type PushPermissionState = 'default' | 'granted' | 'denied' | 'unsupported';
 
 export interface UseWebPushSubscription {
-  /** true si el browser soporta ServiceWorker + PushManager. */
-  supported: boolean;
-  /** Estado actual del permiso. 'unsupported' si el browser no lo tiene. */
-  permission: PushPermissionState;
-  /** true si ya hay suscripción activa registrada en el SW. */
-  subscribed: boolean;
-  /** true mientras la operación está en curso. */
-  loading: boolean;
   /** Último error de subscribe/unsubscribe. null si OK. */
   error: string | null;
+  /** true mientras la operación está en curso. */
+  loading: boolean;
+  /** Estado actual del permiso. 'unsupported' si el browser no lo tiene. */
+  permission: PushPermissionState;
   /** Inicia el flujo de permiso + subscribe + POST al backend. */
   subscribe: () => Promise<void>;
+  /** true si ya hay suscripción activa registrada en el SW. */
+  subscribed: boolean;
+  /** true si el browser soporta ServiceWorker + PushManager. */
+  supported: boolean;
   /** Elimina la suscripción del SW + DELETE al backend. */
   unsubscribe: () => Promise<void>;
 }
@@ -117,26 +117,34 @@ export function useWebPushSubscription(): UseWebPushSubscription {
         return;
       }
 
-      // 2. Obtener VAPID public key inyectada en build.
-      const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-      if (!vapidPublic) {
-        setError('VAPID public key no configurada. Backend api-ia pendiente.');
-        return;
+      // 2. Obtener la VAPID public key desde api-ia en runtime (vía proxy).
+      //    Se pide al servidor en cada suscripción en vez de inyectarla en
+      //    build: una rotación de la clave en api-ia NO obliga a rebuildar.
+      const keyRes = await fetch('/api/push/vapid-public-key', {
+        credentials: 'include',
+      });
+      if (!keyRes.ok) {
+        throw new Error(`No se pudo obtener la clave VAPID (HTTP ${keyRes.status}).`);
+      }
+      const keyJson = await keyRes.json().catch(() => null);
+      const vapidPublic = keyJson?.publicKey;
+      if (!vapidPublic || typeof vapidPublic !== 'string') {
+        throw new Error('Clave VAPID pública no disponible en el servidor (api-ia).');
       }
 
       // 3. Suscribir con el Service Worker registrado.
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidPublic),
+        userVisibleOnly: true,
       });
 
       // 4. POST al backend con la suscripción serializada.
       const res = await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(serializeSubscription(sub)),
         credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
       });
       if (!res.ok) {
         // Rollback: quitar suscripción local si backend rechazó.
@@ -163,10 +171,10 @@ export function useWebPushSubscription(): UseWebPushSubscription {
         // DELETE al backend antes de invalidar local (para que el emisor
         // deje de enviar a un endpoint muerto ASAP).
         await fetch('/api/push/subscribe', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ endpoint: sub.endpoint }),
           credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          method: 'DELETE',
         }).catch(() => {
           // Si backend falla, seguimos con unsubscribe local. Backend
           // debe tener una purga por TTL de endpoints muertos.
@@ -181,5 +189,5 @@ export function useWebPushSubscription(): UseWebPushSubscription {
     }
   }, [supported]);
 
-  return { supported, permission, subscribed, loading, error, subscribe, unsubscribe };
+  return { error, loading, permission, subscribe, subscribed, supported, unsubscribe };
 }
