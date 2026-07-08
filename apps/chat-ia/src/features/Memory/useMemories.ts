@@ -49,12 +49,31 @@ export interface UseMemories {
 
 const BASE = '/api/backend/api/memory';
 
+/** userId + development desde dev-user-config (misma fuente que messages/utils/auth). */
+function getMemoryUser(): { development?: string; userId?: string } {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem('dev-user-config');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return { development: parsed?.development, userId: parsed?.userId };
+    }
+  } catch {
+    /* ignore */
+  }
+  return {};
+}
+
 function memoryHeaders(): Record<string, string> {
-  return {
+  const { userId, development } = getMemoryUser();
+  const headers: Record<string, string> = {
     ...buildAuthHeaders(),
     'Content-Type': 'application/json',
-    'X-Development': getCurrentDevelopment(),
+    // api-ia exige X-User-Id (no lo resuelve del JWT en /api/memory).
+    'X-Development': development || getCurrentDevelopment(),
   };
+  if (userId) headers['X-User-ID'] = userId;
+  return headers;
 }
 
 export function useMemories(): UseMemories {
