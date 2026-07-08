@@ -61,6 +61,14 @@ export async function fetchAICredentials(
   developerId: string
 ): Promise<AICredentialsMap | null> {
   try {
+    // Guard 08-jul: el string literal 'development' es un placeholder sin
+    // interpolar (leftover de código viejo o query `?developer=development`
+    // en bookmarks). api-mcp responde 404 y dispara alerta
+    // "Whitelabel no encontrado: development" (ver Slack 12:29 CET). NO llamar.
+    if (!developerId || developerId === 'development') {
+      console.warn(`⚠️ fetchAICredentials skip: developerId inválido "${developerId}" — usar tenant real`);
+      return null;
+    }
     console.log(`🔑 Obteniendo credenciales de IA para developer: ${developerId}`);
 
     const url = `${BACKEND_URL}/api/developers/${developerId}/ai-credentials`;
