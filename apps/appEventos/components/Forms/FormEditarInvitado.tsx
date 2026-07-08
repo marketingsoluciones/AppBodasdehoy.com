@@ -75,6 +75,14 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
         datos,
       },
     });
+    // fetchApiBodas devuelve null en error GraphQL (NO lanza). Confirmar éxito antes de
+    // actualizar la UI: si no, el cambio se veía local pero NO persistía (se perdía al recargar,
+    // sin ningún aviso de error).
+    if (!result?.success || (result?.errors?.length ?? 0) > 0) {
+      const backendMsg = result?.errors?.[0]?.message;
+      toast("error", `${t("Ha ocurrido un error")}${backendMsg ? `: ${backendMsg}` : ""}`);
+      return;
+    }
     const f1 = event?.invitados_array?.findIndex(elem => elem._id === values._id)
     const updatedInvitado = { ...invitado, ...values }
     // Sincronizar el invitado actualizado en el estado de forma inmutable.
