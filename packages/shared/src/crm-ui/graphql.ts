@@ -167,15 +167,6 @@ mutation AssignConversationToUser($conversationId: ID!, $userId: ID) {
 }
 `;
 
-/** Buscar usuarios del workspace por nombre o email (Diseño picker asignación).
- *  api-mcp YA expuesto en schema — devuelve users del mismo development.
- *  CRM_SearchUsersResponse { users, total, errors }. */
-export const GQL_SEARCH_CRM_USERS = `
-query SearchCrmUsers($search: String, $limit: Int) {
-  searchCRMUsers(search: $search, limit: $limit) {
-    users { id name email avatar }
-    total
-    errors { field message code }
-  }
-}
-`;
+// Nota: GQL_SEARCH_CRM_USERS declarado arriba (línea ~131) con shape verificado
+// 07-jul contra api-mcp. Duplicado del commit FASE B eliminado — el shape
+// {user_id, name, email} de arriba es el correcto (schema NO expone id ni avatar).

@@ -182,11 +182,11 @@ export function EventSidebar({
       setLoadingUsers(true);
       try {
         const data = await callMcpGraphQL<{
-          searchCRMUsers: { users: Array<{ id: string; name: string; email: string | null }> };
+          searchCRMUsers: { users: Array<{ user_id: string; name: string; email: string | null }> };
         }>(GQL_SEARCH_CRM_USERS, { search: userSearch || null, limit: 20 });
         const list = data?.searchCRMUsers?.users ?? [];
         // Excluir el currentUser para no duplicar con "Asignármela a mí".
-        setUserResults(list.filter((u) => u.id !== currentUserId));
+        setUserResults(list.filter((u) => u.user_id !== currentUserId));
       } catch {
         setUserResults([]);
       } finally {
@@ -392,13 +392,13 @@ export function EventSidebar({
                   userResults.map((u) => (
                     <button
                       className="flex w-full items-center gap-2 border-b border-gray-100 px-3 py-2 text-left text-[12px] transition-colors hover:bg-gray-50"
-                      key={u.id}
+                      key={u.user_id}
                       onClick={() => {
-                        void handleAssignToUser(u.id, u.name);
+                        void handleAssignToUser(u.user_id, u.name);
                         setAssignPickerOpen(false);
                       }}
                       role="option"
-                      aria-selected={assignedToLocal?.id === u.id}
+                      aria-selected={assignedToLocal?.id === u.user_id}
                       type="button"
                     >
                       <span aria-hidden className="text-base">👤</span>
