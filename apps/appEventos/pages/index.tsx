@@ -370,7 +370,7 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
         >
           {/* <CircleBanner className="w-full h-auto top-12 transform translate-y-1/6 absolute bottom-0 right-0 left-2 z-0" /> */}
           <img
-            className="z-20 image mx-auto inset-x-0 relative top-6 md:top-16 w-full max-w-[520px]"
+            className="z-20 image mx-auto inset-x-0 relative top-6 md:top-16 w-full h-auto max-w-[520px] object-contain"
             src="/IndexImg2.png"
             alt=""
             width={520}
@@ -388,19 +388,9 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
             width: 600px;
           }
           .image {
-            height: 260px;
-          }
-
-          @media only screen and (min-width: 1536px) {
-            .image {
-              height: 500px;
-
-            }
-          }
-          @media only screen and (min-width: 768px) {
-            .image {
-              height: 500px;
-            }
+            /* Altura automática: el mockup del teléfono conserva su proporción
+               natural (antes height fija 260/500px + w-full = imagen estirada). */
+            height: auto;
           }
         `}
       </style>
