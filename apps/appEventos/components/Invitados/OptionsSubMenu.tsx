@@ -58,89 +58,121 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick, setL
     }
   };
 
-  const convertirExcelAJson = (file) => {
-    try {
-      const lector = new FileReader();
-      lector.onload = (evento) => {
+  // Normaliza cabeceras: sin acentos, MAYÚSCULAS, sin espacios extremos → tolera
+  // "Nombre", "correo", "Teléfono", "Acompañantes"… sin romper la importación.
+  const normHeader = (s: any) =>
+    String(s ?? '').trim().toLocaleUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+  const convertirExcelAJson = (file: any) => {
+    const lector = new FileReader();
+    lector.onload = (evento: any) => {
+      try {
         const datosBinarios = evento.target.result;
-        const libro = XLSX.read(datosBinarios, { type: 'binary' });
+        // readAsArrayBuffer → type:'array' (antes era 'binary', pareja incorrecta que podía
+        // corromper el parseo de algunos .xlsx y provocar "El archivo contiene errores").
+        const libro = XLSX.read(new Uint8Array(datosBinarios), { type: 'array' });
         const nombreHoja = libro.SheetNames[0];
         const hoja = libro.Sheets[nombreHoja];
-        const dataImport = XLSX.utils.sheet_to_json(hoja).map(elem => {
-          return {
-            nombre: (elem["NOMBRE"] ?? elem["NAME"]),
-            correo: (elem["CORREO"] ?? elem["EMAIL"])?.toLocaleLowerCase(),
-            telefono: `+${(`${elem["TELEFONO"] ?? elem["PHONE"]}`)?.replace(/[^0-9]/g, '')}`,
-            passesQuantity: elem["ACOMPAÑANTES"] ?? elem["COMPANIONS"],
-            sexo: (!!elem["SEXO"] ? elem["SEXO"] : elem["GENDER"]?.toLocaleLowerCase()?.slice(0, 3) === "fem" ? "mujer" : "hombre")?.toLocaleLowerCase()?.slice(0, 3) === "muj" ? "mujer" : "hombre",
-            grupo_edad: (!!elem["GRUPO DE EDAD"] ? elem["GRUPO DE EDAD"] : elem["GROUP AGE"]?.toLocaleLowerCase()?.slice(0, 3) === "chi" ? "niños" : "adultos")?.toLocaleLowerCase()?.slice(0, 3) === "adu" ? "adultos" : "niños",
+        const filas: any[] = XLSX.utils.sheet_to_json(hoja, { defval: '' });
+
+        // Lee una celda por alias de cabecera, tolerante a mayúsculas/acentos/espacios.
+        const getCell = (fila: any, aliases: string[]) => {
+          const mapa: Record<string, any> = {};
+          Object.keys(fila).forEach((k) => { mapa[normHeader(k)] = fila[k]; });
+          for (const a of aliases) {
+            const v = mapa[normHeader(a)];
+            if (v !== undefined && v !== null && String(v).trim() !== '') return String(v).trim();
           }
-        })
-        const dataImportReduce = dataImport.reduce((acc, item) => {
-          if (item.correo !== undefined && item.grupo_edad !== undefined && item.nombre !== undefined && item.passesQuantity !== undefined && item.sexo !== undefined && item.telefono !== undefined) {
-            if (event.invitados_array.findIndex(elem => elem.correo === item.correo) < 0) {
-              if (event.invitados_array.findIndex(elem => elem.telefono === item.telefono) < 0) {
-                if (dataImport.findIndex(elem => elem.correo === item.correo && elem.nombre !== item.nombre) < 0) {
-                  if (dataImport.findIndex(elem => elem.telefono === item.telefono && elem.nombre !== item.nombre) < 0) {
-                    acc.corrects.push(item)
-                  } else {
-                    acc.duplicatesPhone.push(item)
-                  }
-                } else {
-                  acc.duplicatesEmail.push(item)
-                }
-              } else {
-                acc.duplicatePhoneBD.push(item)
-              }
-            } else {
-              acc.duplicateEmailBD.push(item)
-            }
-          } else {
-            acc.incorrects.push(item)
-            if (event.invitados_array.findIndex(elem => elem.correo === item.correo) > -1) {
-              acc.duplicateEmailBD.push(item)
-            } else {
-              if (event.invitados_array.findIndex(elem => elem.telefono === item.telefono) > -1) {
-                acc.duplicatePhoneBD.push(item)
-              }
-            }
-          }
-          return acc
-        }, {
-          corrects: [],
-          incorrects: [],
-          duplicatesEmail: [],
-          duplicatesPhone: [],
-          duplicateEmailBD: [],
-          duplicatePhoneBD: [],
-        })
-        if (dataImport.length !== dataImportReduce.corrects.length) {
-          toast("error", t("fileErrors"))
-        } else {
-          fetchApiBodas({
-            query: queries.createGuests,
-            variables: {
-              eventID: event._id,
-              invitados_array: dataImportReduce.corrects,
-            },
-          })
-            .then((results: any) => {
-              // Inmutable: usar updater functional. Importante porque otro setEvent
-              // puede haber corrido en paralelo (race con socket de realtime).
-              const nuevos = results?.evento?.invitados_array
-              if (nuevos) {
-                setEvent((prev: any) => ({ ...prev, invitados_array: nuevos }))
-              }
-              toast("success", `${dataImportReduce.corrects.length} ${t("importCorrect")}`)
-            })
+          return undefined;
+        };
+
+        const validos: any[] = [];
+        const invalidos: { fila: number; faltan: string[] }[] = [];
+
+        filas.forEach((elem: any, idx: number) => {
+          const nombre = getCell(elem, ['NOMBRE', 'NAME']);
+          const correo = getCell(elem, ['CORREO', 'EMAIL'])?.toLocaleLowerCase();
+          const rawTel = getCell(elem, ['TELEFONO', 'PHONE']);
+          const rawAcomp = getCell(elem, ['ACOMPANANTES', 'ACOMPAÑANTES', 'COMPANIONS']);
+          const rawSexo = getCell(elem, ['SEXO']);
+          const rawGender = getCell(elem, ['GENDER']);
+          const rawEdad = getCell(elem, ['GRUPO DE EDAD']);
+          const rawGroupAge = getCell(elem, ['GROUP AGE']);
+
+          // Fila totalmente vacía → ignorar en silencio (no cuenta como error).
+          if (!nombre && !correo && !rawTel && rawAcomp === undefined && !rawSexo && !rawGender && !rawEdad && !rawGroupAge) return;
+
+          // Campos obligatorios (los mismos que exigía el importador original).
+          const faltan: string[] = [];
+          if (!nombre) faltan.push('NOMBRE');
+          if (!correo) faltan.push('CORREO');
+          if (rawAcomp === undefined) faltan.push('ACOMPAÑANTES');
+          if (faltan.length) { invalidos.push({ fila: idx + 2, faltan }); return; }
+
+          const telefono = `+${`${rawTel ?? ''}`.replace(/[^0-9]/g, '')}`;
+          const sexoBase = rawSexo ? rawSexo : (rawGender?.toLocaleLowerCase()?.slice(0, 3) === 'fem' ? 'mujer' : 'hombre');
+          const sexo = sexoBase?.toLocaleLowerCase()?.slice(0, 3) === 'muj' ? 'mujer' : 'hombre';
+          const edadBase = rawEdad ? rawEdad : (rawGroupAge?.toLocaleLowerCase()?.slice(0, 3) === 'chi' ? 'niños' : 'adultos');
+          const grupo_edad = edadBase?.toLocaleLowerCase()?.slice(0, 3) === 'adu' ? 'adultos' : 'niños';
+          const passesQuantity = Number(`${rawAcomp}`.replace(/[^0-9]/g, '')) || 0;
+
+          validos.push({ nombre, correo, telefono, passesQuantity, sexo, grupo_edad });
+        });
+
+        // Dedup: descarta los ya existentes en el evento y los repetidos en el archivo
+        // (misma intención que antes, pero ahora NO aborta todo el lote por una fila).
+        const corrects: any[] = [];
+        let dupBD = 0;
+        let dupArchivo = 0;
+        validos.forEach((item) => {
+          const existeBD = event.invitados_array.findIndex((el: any) => el.correo === item.correo || el.telefono === item.telefono) > -1;
+          if (existeBD) { dupBD++; return; }
+          const repetido = corrects.findIndex((el) => (el.correo === item.correo || el.telefono === item.telefono) && el.nombre !== item.nombre) > -1;
+          if (repetido) { dupArchivo++; return; }
+          corrects.push(item);
+        });
+
+        // Feedback DETALLADO (ya no un genérico "El archivo contiene errores").
+        const avisos: string[] = [];
+        if (invalidos.length) {
+          const det = invalidos.slice(0, 6).map((e) => `fila ${e.fila} (falta ${e.faltan.join('/')})`).join(', ');
+          avisos.push(`${invalidos.length} con datos incompletos: ${det}${invalidos.length > 6 ? '…' : ''}`);
         }
-        setTimeout(() => {
-          setActiveInputUpload(false)
-        }, 1000);
-      };
-      lector.readAsArrayBuffer(file);
-    } catch (error) {
-    }
+        if (dupBD) avisos.push(`${dupBD} ya existían en el evento`);
+        if (dupArchivo) avisos.push(`${dupArchivo} repetidas en el archivo`);
+
+        if (corrects.length === 0) {
+          toast('error', avisos.length ? `No se importó nada. ${avisos.join(' | ')}` : t('fileErrors'));
+          setTimeout(() => setActiveInputUpload(false), 1000);
+          return;
+        }
+
+        fetchApiBodas({
+          query: queries.createGuests,
+          variables: { eventID: event._id, invitados_array: corrects },
+        })
+          .then((results: any) => {
+            // fetchApiBodas devuelve null en error GraphQL (NO lanza). Confirmar éxito real.
+            if (!results?.success || (results?.errors?.length ?? 0) > 0) {
+              const msg = results?.errors?.[0]?.message;
+              toast('error', `No se pudieron guardar los invitados${msg ? `: ${msg}` : ''}`);
+              return;
+            }
+            // Inmutable + updater functional (evita race con el socket de realtime).
+            const nuevos = results?.evento?.invitados_array;
+            if (nuevos) setEvent((prev: any) => ({ ...prev, invitados_array: nuevos }));
+            const base = `${corrects.length} ${t('importCorrect')}`;
+            toast('success', avisos.length ? `${base}. Omitidas: ${avisos.join(' | ')}` : base);
+          })
+          .finally(() => {
+            setTimeout(() => setActiveInputUpload(false), 1000);
+          });
+      } catch (error) {
+        toast('error', t('fileErrors'));
+        setActiveInputUpload(false);
+      }
+    };
+    lector.readAsArrayBuffer(file);
   };
 
   // Descargar plantilla de importación: se genera EN EL NAVEGADOR con XLSX (sin depender de
