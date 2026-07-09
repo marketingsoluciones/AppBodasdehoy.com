@@ -143,6 +143,25 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick, setL
     }
   };
 
+  // Descargar plantilla de importación: se genera EN EL NAVEGADOR con XLSX (sin depender de
+  // ninguna URL externa — antes apuntaba a api-mcp, que es GraphQL y devolvía "Cannot GET ...").
+  // Las cabeceras deben coincidir EXACTAMENTE con las que lee convertirExcelAJson.
+  const descargarPlantilla = () => {
+    try {
+      const cabeceras = ["NOMBRE", "CORREO", "TELEFONO", "ACOMPAÑANTES", "SEXO", "GRUPO DE EDAD"];
+      const ejemplo = [
+        { "NOMBRE": "Juan Pérez", "CORREO": "juan@ejemplo.com", "TELEFONO": "+34600000000", "ACOMPAÑANTES": 1, "SEXO": "hombre", "GRUPO DE EDAD": "adultos" },
+        { "NOMBRE": "María López", "CORREO": "maria@ejemplo.com", "TELEFONO": "+34600000001", "ACOMPAÑANTES": 0, "SEXO": "mujer", "GRUPO DE EDAD": "adultos" },
+      ];
+      const hoja = XLSX.utils.json_to_sheet(ejemplo, { header: cabeceras });
+      const libro = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(libro, hoja, "Contactos");
+      XLSX.writeFile(libro, "Plantilla de Contactos.xlsx");
+    } catch (error) {
+      toast("error", t("Ha ocurrido un error al generar la plantilla"));
+    }
+  };
+
   return (
     <div className="flex items-center justify-between relative my-1">
       {activeInputUpload && <input type="file" id="fileInput" className="hidden" onChange={handleFileUpload} />}
@@ -184,9 +203,7 @@ export const OptionsSubMenu: FC<props> = ({ ConditionalAction, handleClick, setL
                   <span className="first-letter:uppercase">{t("uploadExcel")}</span>
                 </button>
                 <button
-                  onClick={() => {
-                    window.open(`https://api-mcp.eventosorganizador.com/${t("contactTemplateFileName")}.xlsx`, "_self");
-                  }}
+                  onClick={descargarPlantilla}
                   className="focus:outline-none bg-white px-2 md:px-6 py-1 flex gap-1 md:gap-2 items-center justify-between text-primary font-display font-semibold text-[10px] md:text-sm rounded-lg hover:bg-primary hover:text-white transition border border-primary w-max text-center"
                 >
                   <span className="first-letter:uppercase">{t("downloadTemplate")}</span>
