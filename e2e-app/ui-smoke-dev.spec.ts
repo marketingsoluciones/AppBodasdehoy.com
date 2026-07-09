@@ -1,21 +1,16 @@
 import { test, expect } from '@playwright/test';
-import fs from 'fs';
 import { TEST_URLS } from './fixtures';
 import { clearSession, loginAndSelectEvent, navigateToModule, waitForAppReady } from './helpers';
 
 const BASE_URL = process.env.BASE_URL || TEST_URLS.app;
-const MODE = process.env.UI_SMOKE_MODE || 'bypass';
 const EMAIL = process.env.TEST_USER_EMAIL || '';
 const PASSWORD = process.env.TEST_USER_PASSWORD || '';
-const BYPASS_EMAIL = process.env.UI_BYPASS_EMAIL || EMAIL || 'jcc@bodasdehoy.com';
-const BYPASS_UID = process.env.UI_BYPASS_UID || 'upSETrmXc7ZnsIhrjDjbHd7u2up1';
-const BYPASS_ROLE = process.env.UI_BYPASS_ROLE || 'creator';
-const BYPASS_EVENTOS_RAW = (() => {
-  if (process.env.UI_BYPASS_EVENTOS) return process.env.UI_BYPASS_EVENTOS;
-  const f = process.env.UI_BYPASS_EVENTOS_FILE;
-  if (f && fs.existsSync(f)) return fs.readFileSync(f, 'utf8');
-  return '[]';
-})();
+
+// NOTA seguridad (9-jul-2026): se ELIMINÓ el modo 'bypass'. Inyectaba dev_bypass* en
+// localStorage para fingir sesión sin credenciales — patrón inseguro (cualquiera podía
+// impersonar un usuario desde la consola del navegador) y además ya muerto: la app dejó
+// de leer esas claves. El E2E usa SIEMPRE login real.
+// Ver docs/DIAGNOSTICO-LOGIN-2026-07-09.md
 
 test.describe('UI smoke (-dev)', () => {
   test.setTimeout(180_000);
@@ -30,31 +25,8 @@ test.describe('UI smoke (-dev)', () => {
     );
   }
 
-  async function activateBypass(page: any) {
-    await page.addInitScript(
-      ({ email, uid, role, eventosRaw }) => {
-        localStorage.setItem('dev_bypass', 'true');
-        localStorage.setItem('dev_bypass_email', email);
-        localStorage.setItem('dev_bypass_uid', uid);
-        localStorage.setItem('dev_bypass_role', role);
-        localStorage.setItem('dev_bypass_eventos', eventosRaw);
-      },
-      { email: BYPASS_EMAIL, uid: BYPASS_UID, role: BYPASS_ROLE, eventosRaw: BYPASS_EVENTOS_RAW },
-    );
-  }
-
   async function openHomeWithMode(page: any) {
-    if (MODE === 'bypass') {
-      await activateBypass(page);
-      try {
-        await page.goto(`${BASE_URL}/`, { waitUntil: 'commit', timeout: 90_000 });
-      } catch (e) {
-        if (!String(e).includes('interrupted by another navigation')) throw e;
-      }
-      await page.waitForLoadState('domcontentloaded').catch(() => {});
-      return;
-    }
-
+    // Login REAL siempre (el atajo inseguro 'bypass' se eliminó — ver nota de seguridad arriba).
     const eventId = await loginAndSelectEvent(page, EMAIL, PASSWORD, BASE_URL);
     expect(eventId).not.toBeNull();
   }
