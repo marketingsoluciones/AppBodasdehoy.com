@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect, SetStateAction, Dispatch, useReducer, Reducer, useCallback } from 'react';
+import { createContext, useState, useContext, useEffect, SetStateAction, Dispatch, useReducer, Reducer, useCallback, useRef } from 'react';
 import { AuthContextProvider } from "../context";
 import { fetchApiBodas, fetchApiEventos, queries, getApiErrorMessage } from "../utils/Fetching";
 import { Event, detalle_compartidos_array } from '../utils/Interfaces';
@@ -124,6 +124,11 @@ const EventsGroupProvider = ({ children }) => {
   const setCopilotFilter = useCallback((filter: CopilotFilter | null) => setCopilotFilterState(filter), [])
   const clearCopilotFilter = useCallback(() => setCopilotFilterState(null), [])
   const refreshEventsGroup = useCallback(() => setRefreshTrigger(t => t + 1), [])
+  // Auto-recuperación: reintentos acotados si el fetch de eventos falla de forma transitoria
+  // (token aún no refrescado tras un refresh, 502/timeout). Evita que "Mis eventos" quede
+  // congelado en vacío hasta hacer logout/login. Se resetea al primer fetch con éxito.
+  const eventsRetryRef = useRef(0)
+  const MAX_EVENTS_RETRIES = 4
   const withTimeout = useCallback(<T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
     let timer: ReturnType<typeof setTimeout> | undefined
     const timeoutPromise = new Promise<T>((_, reject) => {
@@ -334,11 +339,23 @@ const EventsGroupProvider = ({ children }) => {
                 if (Array.isArray(values) && values.length > 0) writeCachedEvents(values)
                 setEventsGroup({ type: "INITIAL_STATE", payload: values })
                 setEventsGroupDone(true)
+                eventsRetryRef.current = 0 // fetch OK → resetear contador de reintentos
               })
             .catch((error) => {
               const errorTime = performance.now() - startTime
               const status = error?.response?.status
               console.error(`[EventsGroup] ❌ Error después de ${errorTime.toFixed(0)}ms (status ${status}):`, error)
+              // Reintento automático acotado (backoff 1s/2s/4s/8s) para fallos transitorios:
+              // token aún no refrescado tras un refresh, 502/503, timeout o null por GraphQL.
+              // Así la lista se auto-recupera sin logout/login. NO se reintenta en 401/403.
+              const scheduleEventsRetry = () => {
+                if (eventsRetryRef.current < MAX_EVENTS_RETRIES) {
+                  eventsRetryRef.current += 1
+                  const delay = Math.min(1000 * 2 ** (eventsRetryRef.current - 1), 8000)
+                  console.warn(`[EventsGroup] reintento automático ${eventsRetryRef.current}/${MAX_EVENTS_RETRIES} en ${delay}ms`)
+                  setTimeout(() => setRefreshTrigger((t) => t + 1), delay)
+                }
+              }
               if (status === 401 || status === 403) {
                 console.warn('[EventsGroup] 401/403: sesión expirada o no autorizada')
                 setEventsGroup({ type: "INITIAL_STATE", payload: [] })
@@ -358,6 +375,7 @@ const EventsGroupProvider = ({ children }) => {
                 setEventsGroupSessionExpired(false)
                 setEventsGroupError(true)
                 setEventsGroupDone(true)
+                scheduleEventsRetry() // refresca a datos frescos en background
                 return
               }
               setEventsGroup({ type: "INITIAL_STATE", payload: [] })
@@ -365,6 +383,7 @@ const EventsGroupProvider = ({ children }) => {
               setEventsGroupSessionExpired(false)
               setEventsGroupError(true)
               setEventsGroupDone(true)
+              scheduleEventsRetry() // caso "vacío engañoso": auto-recuperar sin logout/login
             });
           // NOTE 2026-05-15: backend schema cambió — getPsTemplate ahora requiere
           // `evento_id: ID!` que este contexto NO tiene (se carga antes de seleccionar
