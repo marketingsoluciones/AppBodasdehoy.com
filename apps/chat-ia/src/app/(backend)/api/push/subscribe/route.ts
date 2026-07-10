@@ -46,10 +46,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // BUG-QA-01 (10-jul): api-ia expone Pydantic SubscribeRequest con
+    // `subscription: object` como field REQUIRED. El hook front envía el
+    // shape plano {endpoint, keys, subscribedAt, userAgent}. Sin el
+    // wrapper `subscription`, api-ia devolvía 422 → subscribe rompía y
+    // el user nunca quedaba suscrito. Aquí adaptamos el contract sin
+    // duplicar lógica en el hook (proxies son el lugar correcto para
+    // shape-shims entre front y backend).
+    const upstream = { subscription: body };
     const upstreamRes = await fetch(`${API_IA}/api/push/subscribe`, {
       method: 'POST',
       headers: forwardHeaders(request),
-      body: JSON.stringify(body),
+      body: JSON.stringify(upstream),
       signal: AbortSignal.timeout(6000),
     });
 
@@ -74,10 +82,14 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const upstreamRes = await fetch(`${API_IA}/api/push/subscribe`, {
-      method: 'DELETE',
+    // BUG-QA-02 (10-jul): api-ia NO expone DELETE en /api/push/subscribe.
+    // El endpoint de baja es POST /api/push/unsubscribe con body {endpoint}
+    // (UnsubscribeRequest, sin wrapper). El proxy antes hacía DELETE al path
+    // /subscribe → 404 → el desuscribir del front nunca purgaba backend.
+    const upstreamRes = await fetch(`${API_IA}/api/push/unsubscribe`, {
+      method: 'POST',
       headers: forwardHeaders(request),
-      body: JSON.stringify(body),
+      body: JSON.stringify({ endpoint: body.endpoint }),
       signal: AbortSignal.timeout(6000),
     });
 
