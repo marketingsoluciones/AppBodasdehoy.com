@@ -56,7 +56,9 @@ const FormTask: FC<propsFormTask> = ({ showEditTask, setShowEditTask, itinerario
       };
       delete dataSend.hora;
       delete dataSend.duracionUnidad;
-      fetchApiEventos({
+      // await: sin él, si fetchApiEventos rechaza (error), el .then se salta y el catch
+      // NO lo captura (promesa async sin await) → fallo silencioso (ni éxito ni error).
+      await fetchApiEventos({
         query: queries.editTask,
         variables: {
           eventID: event._id,
