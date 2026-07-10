@@ -145,16 +145,6 @@ export interface PageContext {
   pageName?: string;
   eventName?: string;
   eventId?: string;
-  /**
-   * Evento activo AUTORITATIVO: el que el usuario tiene abierto (CTX-A). `null` en la
-   * lista de eventos (CTX-B), donde el backend debe usar `eventScope`/`availableEvents`
-   * para agregar o desambiguar en vez de arrastrar un id residual.
-   */
-  activeEventId?: string | null;
-  /** 'active' = la conversación se refiere al evento abierto; 'all' = lista de eventos, sin evento único. */
-  eventScope?: 'active' | 'all';
-  /** Eventos del usuario (id+nombre) para que el backend pueda desambiguar cuando eventScope='all'. */
-  availableEvents?: Array<{ id: string; name: string }>;
   screenData?: Record<string, any>;
   eventsList?: Array<{ name?: string; type?: string; date?: string; id?: string }>;
   /** Rol del usuario respecto al evento: owner | collaborator | registered | guest */
@@ -283,11 +273,16 @@ export const sendChatMessage = async (
       signal: controller.signal,
     }).finally(() => clearTimeout(timeoutId));
 
+    // Suffix "ref: trc_xxx" para que el usuario pueda reportar el error (contrato api-ia:
+    // { success:false, error, message, trace_id }). Se muestra pequeñito bajo el mensaje.
+    const withTraceRef = (m: string, traceId?: string): string =>
+      traceId ? `${m}\n\n_ref: ${traceId}_` : m;
+
     // 401: no autorizado — mensaje específico (no confundir con 503)
     if (response.status === 401) {
       let errorData: any = {};
       try { errorData = await response.json(); } catch {}
-      const msg = errorData?.message || 'No autorizado. Inicia sesión de nuevo para usar el asistente.';
+      const msg = withTraceRef(errorData?.message || 'No autorizado. Inicia sesión de nuevo para usar el asistente.', errorData?.trace_id);
       if (onChunk) onChunk(msg);
       return { content: msg, toolCalls: [], navigationUrl: undefined, enrichedEvents: [] };
     }
@@ -298,9 +293,9 @@ export const sendChatMessage = async (
       try { errorData = await response.json(); } catch {}
       const msg = errorData?.message || 'Saldo de IA agotado. Recarga tu cuenta para continuar usando el asistente.';
       const recargaUrl = errorData?.payment_url || errorData?.billing_url;
-      const contentWithLink = recargaUrl
+      const contentWithLink = withTraceRef(recargaUrl
         ? `${msg}\n\n[Recargar saldo](${recargaUrl})`
-        : msg;
+        : msg, errorData?.trace_id);
       if (onChunk) onChunk(contentWithLink);
       return { content: contentWithLink, toolCalls: [], navigationUrl: recargaUrl || undefined, enrichedEvents: [] };
     }
@@ -359,8 +354,9 @@ export const sendChatMessage = async (
         msg += when ? ` Inténtalo de nuevo ${when}.` : ' Inténtalo de nuevo en unos minutos.';
       }
 
-      onChunk?.(msg);
-      return { content: msg, toolCalls: [] };
+      const msgWithRef = withTraceRef(msg, errorData?.trace_id);
+      onChunk?.(msgWithRef);
+      return { content: msgWithRef, toolCalls: [] };
     }
 
     // Streaming mode
