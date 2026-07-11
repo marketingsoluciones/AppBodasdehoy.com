@@ -339,13 +339,13 @@ export async function loginAndSelectEvent(
     await waitForAppReady(page, 20_000);
   }
 
-  // Buscar tarjeta de evento (Card component)
+  // Buscar tarjeta de evento (Card component). La tarjeta real lleva la clase .cardEvento
+  // (components/Home/Card.tsx:341). Esperar a que aparezca — los eventos cargan async tras el
+  // login, y con el backend lento pueden tardar; sin esta espera se caía al fallback y timeout.
   // hasNotText excluye los eventos marcados como [ZOMBIE] en BD (clones de test obsoletos)
   const notEventCard = /\[ZOMBIE\]|crea\s*evento|crear\s+un\s+evento|crear\s+evento/i;
-  let eventCards = page.locator('[class*="rounded"][class*="shadow"]').filter({
-    hasText: /\d{4}|boda|evento|fiesta|aniversario|cumpleaños/i,
-    hasNotText: notEventCard,
-  });
+  await page.locator('.cardEvento').first().waitFor({ state: 'visible', timeout: 20_000 }).catch(() => {});
+  let eventCards = page.locator('.cardEvento').filter({ hasNotText: notEventCard });
   let cardCount = await eventCards.count();
   if (cardCount === 0) {
     eventCards = page.locator('[class*="rounded"][class*="shadow"], [class*="card"], [data-testid*="event"]').filter({
