@@ -1095,17 +1095,25 @@ const AuthProvider = ({ children }) => {
     return () => clearInterval(id);
   }, [verificationDone]);
 
-  // Timeout de seguridad: desbloquear UI si la verificación se cuelga (antes 5s; algo más corto mejora sensación de carga).
+  // Timeout de seguridad: desbloquear UI si la verificación se cuelga.
+  //
+  // Histórico: era 3,5s → QA 10-jul reportó que agravaba el Bug #1 (crash
+  // PaymentCard) porque en redes lentas el AuthContext forzaba render con
+  // datos incompletos (evento/config sin resolver) y algunos componentes
+  // aguas abajo recibían objetos parciales. Ampliado a 6s: sigue siendo
+  // rápido comparado con "app en blanco 20s" y da más margen a redes
+  // móviles/backends con cold-start. Botón manual `showSkipLoadingButton`
+  // aparece igualmente a los 2s por si el user quiere forzar antes.
   useEffect(() => {
     const t = setTimeout(() => {
       setVerificationDone((done) => {
         if (!done) {
-          console.warn('[AuthContext] Timeout de carga (~3,5s), mostrando app');
+          console.warn('[AuthContext] Timeout de carga (~6s), mostrando app sin verificación completa. Si te aparece "Comprobando sesión…" tras navegar es probable que un componente aguas abajo esté recibiendo datos parciales.');
           return true;
         }
         return done;
       });
-    }, 3500);
+    }, 6000);
     return () => clearTimeout(t);
   }, []);
 
