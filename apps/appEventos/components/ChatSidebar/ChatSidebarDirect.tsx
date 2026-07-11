@@ -14,6 +14,7 @@ import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider }
 import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import type { StoredSession } from '../Copilot/SessionsPanel';
+import { ModuleErrorBoundary } from '../ErrorBoundary';
 
 const CopilotEmbed = dynamic(
   () => import('../Copilot/CopilotEmbed').then((m) => m.CopilotEmbed),
@@ -600,17 +601,25 @@ const ChatSidebarDirect: FC<ChatSidebarDirectProps> = ({ forceOverlay, overlayBr
                 Cargando...
               </div>
             ) : (
-            <CopilotEmbed
-              userId={userId}
-              sessionId={sessionId}
-              development={development}
-              eventId={eventId}
-              eventName={eventNameForContext}
-              isGuest={isGuest}
-              pageContext={pageContext}
-              className="w-full h-full"
-              onFirstMessage={handleSessionLabelUpdate}
-            />
+            // BUG QA 10-jul: errores transversales del embed (getThemeColors
+            // TypeError, exportedColors undefined, hydration warnings del
+            // theme antd-style) llegaban a producir stack traces en consola
+            // sin arreglar. Envolvemos en ModuleErrorBoundary: si el embed
+            // crashea, el error queda contenido en un card rojo pequeño y
+            // el resto de la app sigue navegable.
+            <ModuleErrorBoundary label="Copilot">
+              <CopilotEmbed
+                userId={userId}
+                sessionId={sessionId}
+                development={development}
+                eventId={eventId}
+                eventName={eventNameForContext}
+                isGuest={isGuest}
+                pageContext={pageContext}
+                className="w-full h-full"
+                onFirstMessage={handleSessionLabelUpdate}
+              />
+            </ModuleErrorBoundary>
             )}
           </div>
         </div>
