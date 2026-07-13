@@ -25,6 +25,8 @@ const Redirect = memo<RedirectProps>(({ setActiveStage }) => {
     // ✅ FIX: Verificar si ya estamos en una ruta que NO debe redirigir
     if (typeof window !== 'undefined') {
       const currentPath = window.location.pathname;
+      // BUG QA 14-jul #B: faltaban rutas legítimas (/labs, /pendientes, etc.) →
+      // el Redirect intentaba llevarlas a /chat al aterrizar directo por URL.
       const routesToSkip = [
         '/wedding-creator',
         '/knowledge',
@@ -32,6 +34,16 @@ const Redirect = memo<RedirectProps>(({ setActiveStage }) => {
         '/settings',
         '/login',
         '/onboard',
+        '/labs',
+        '/pendientes',
+        '/messages',
+        '/memories',
+        '/notifications',
+        '/profile',
+        '/tasks',
+        '/admin',
+        '/image',
+        '/changelog',
       ];
       
       // Si estamos en una de estas rutas, NO redirigir
@@ -57,6 +69,8 @@ const Redirect = memo<RedirectProps>(({ setActiveStage }) => {
     // ✅ FIX CRÍTICO: Verificar ruta actual PRIMERO - si estamos en una ruta excluida, NO hacer NADA
     if (typeof window !== 'undefined') {
       const currentPath = window.location.pathname;
+      // BUG QA 14-jul #B: faltaban rutas legítimas (/labs, /pendientes, etc.) →
+      // el Redirect intentaba llevarlas a /chat al aterrizar directo por URL.
       const routesToSkip = [
         '/wedding-creator',
         '/knowledge',
@@ -64,6 +78,16 @@ const Redirect = memo<RedirectProps>(({ setActiveStage }) => {
         '/settings',
         '/login',
         '/onboard',
+        '/labs',
+        '/pendientes',
+        '/messages',
+        '/memories',
+        '/notifications',
+        '/profile',
+        '/tasks',
+        '/admin',
+        '/image',
+        '/changelog',
       ];
       
       // Si estamos en una de estas rutas, NO hacer NADA - salir inmediatamente

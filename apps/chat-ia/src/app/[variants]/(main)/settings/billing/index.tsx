@@ -135,6 +135,19 @@ const BillingPage = memo(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // BUG QA 14-jul #C: al volver de Stripe con ?recharge=success|cancelled el
+  // query param no se limpiaba en algunos flujos. useWallet ya tiene su propio
+  // useEffect para eso pero puede no llegar a montar si billing entra en la
+  // rama de skeleton por checking-auth. Limpieza defensiva en el page.tsx,
+  // que sí monta siempre. El refetch de saldo lo sigue haciendo useWallet.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const rechargeStatus = searchParams?.get('recharge');
+    if (rechargeStatus === 'success' || rechargeStatus === 'cancelled') {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     if (isAuthenticated) {
       setIsCheckingAuth(false);

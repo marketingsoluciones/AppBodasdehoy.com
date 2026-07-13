@@ -9,7 +9,12 @@ interface ContentProps {
   loadingStage: AppLoadingStage;
 }
 
-// ✅ Rutas que NO deben mostrar el loading screen
+// Rutas que NO deben mostrar el loading screen. Cualquier ruta legítima
+// dentro de (main) tiene que estar aquí; si no, Next.js sirve este fallback
+// global durante la navegación y el usuario ve "Bodas de Hoy X de 5" en
+// lugar del contenido real. BUG QA 14-jul #B: faltaban /labs, /pendientes,
+// /messages, /memories, /notifications, /profile, /tasks, /admin, /image,
+// /changelog → pantalla mínima e inservible al navegar directo.
 const ROUTES_TO_SKIP = [
   '/wedding-creator',
   '/knowledge',
@@ -18,6 +23,16 @@ const ROUTES_TO_SKIP = [
   '/login',
   '/onboard',
   '/chat',
+  '/labs',
+  '/pendientes',
+  '/messages',
+  '/memories',
+  '/notifications',
+  '/profile',
+  '/tasks',
+  '/admin',
+  '/image',
+  '/changelog',
 ];
 
 const Content = memo<ContentProps>(({ loadingStage }) => {
