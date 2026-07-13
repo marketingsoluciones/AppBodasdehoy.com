@@ -153,7 +153,16 @@ export const useMenu = () => {
     },
     {
       key: 'advanced',
-      label: <Link href={'/settings/advanced'}>{t('userPanel.advanced', 'Avanzado')}</Link>,
+      // QA 14-jul: en el build anterior `t('userPanel.advanced', 'Avanzado')` quedó
+      // como etiqueta VACÍA en runtime (el default del 2º arg no se aplicó porque la
+      // key aún no existía en zh-CN → sin key el fallback devolvía ''). Ya está
+      // añadida en locales/default/common.ts; hasta que el CI genere la traducción
+      // ES, mostramos el texto directo para no dejar un item fantasma.
+      label: (
+        <Link href={'/settings/advanced'}>
+          {t('userPanel.advanced', { defaultValue: 'Avanzado' }) || 'Avanzado'}
+        </Link>
+      ),
     },
     {
       type: 'divider',
