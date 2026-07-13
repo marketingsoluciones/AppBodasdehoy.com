@@ -153,7 +153,7 @@ export const useMenu = () => {
     },
     {
       key: 'advanced',
-      label: <Link href={'/settings/advanced'}>Advanced</Link>,
+      label: <Link href={'/settings/advanced'}>{t('userPanel.advanced', 'Avanzado')}</Link>,
     },
     {
       type: 'divider',

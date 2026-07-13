@@ -146,8 +146,14 @@ export class ApiIaUserService implements IUserService {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       const createdAt = json.createdAt || json.created_at || new Date().toISOString();
-      const duration = Number(json.durationSeconds ?? json.duration_seconds ?? 0);
-      return { createdAt, duration, updatedAt: new Date().toISOString() };
+      // BUG QA 10-jul #9: /profile/stats mostraba "8.896.524 días" — la API devuelve
+      // `durationSeconds` (segundos) pero Welcome.tsx lo pinta como `days`. La API
+      // también expone `durationDays`; preferirlo, y si solo llega en segundos
+      // convertirlo a días (mínimo 1 para no leer "0 días" en día de registro).
+      const days =
+        Number(json.durationDays ?? json.duration_days ?? NaN) ||
+        Math.max(1, Math.floor(Number(json.durationSeconds ?? json.duration_seconds ?? 0) / 86_400));
+      return { createdAt, duration: days, updatedAt: new Date().toISOString() };
     } catch {
       const now = new Date();
       return { createdAt: now.toISOString(), duration: 0, updatedAt: now.toISOString() };

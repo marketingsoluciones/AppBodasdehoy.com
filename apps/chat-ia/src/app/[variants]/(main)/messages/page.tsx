@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 
+import { useAuthCheck } from '@/hooks/useAuthCheck';
+
 import { BandejaTabs, useActiveBandejaTab } from './components/BandejaTabs';
 import { ChannelSidebar } from './components/ChannelSidebar';
 import { InboxFilters, type ChannelFilter, type RsvpFilter } from './components/InboxFilters';
@@ -14,6 +16,12 @@ export default function MessagesPage() {
   const router = useRouter();
   const activeTab = useActiveBandejaTab();
   const { items, loading, markNotificationRead } = useUnifiedFeed();
+  // BUG QA 10-jul #5: /messages era accesible sin login (mostraba UI vacía sin explicar
+  // por qué). El hook useUnifiedFeed ya cortaba el fetch para guests, pero el usuario
+  // no tenía feedback. Guard visible: si el user no está autenticado, gate con CTA
+  // "Iniciar sesión" en vez de UI muda.
+  const { checkAuth, getLoginUrl } = useAuthCheck();
+  const { isAuthenticated } = checkAuth();
 
   // FASE B v2.0: scope selector. 'support' = bandeja del equipo;
   // un eventId = bandeja de ese evento. Al cambiar, el caller debe
@@ -123,6 +131,31 @@ export default function MessagesPage() {
     },
     [router, markNotificationRead],
   );
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
+        <div className="max-w-md">
+          <div className="text-5xl">🔒</div>
+          <div className="mt-4 text-lg font-semibold text-gray-800">
+            Inicia sesión para ver tu bandeja
+          </div>
+          <div className="mt-2 text-sm text-gray-500">
+            Los mensajes y notificaciones están reservados a usuarios con cuenta.
+          </div>
+          <button
+            className="mt-6 rounded-lg bg-pink-500 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-600"
+            onClick={() => {
+              window.location.href = getLoginUrl();
+            }}
+            type="button"
+          >
+            Iniciar sesión
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

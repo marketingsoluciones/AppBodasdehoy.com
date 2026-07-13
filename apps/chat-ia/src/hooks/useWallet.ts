@@ -255,7 +255,11 @@ export const useWallet = (): UseWalletReturn => {
         }
         setHasMoreTransactions(data.hasMore || false);
       } else {
-        const errorMsg = data.errors?.[0]?.message || 'Error al obtener transacciones';
+        // Si backend cambia el shape (message pasa a ser objeto), normalizar a string
+        // para no romper el render como React #31.
+        const raw: unknown = data.errors?.[0]?.message;
+        const errorMsg =
+          typeof raw === 'string' ? raw : raw ? JSON.stringify(raw) : 'Error al obtener transacciones';
         setError(errorMsg);
         setTransactions([]);
       }
