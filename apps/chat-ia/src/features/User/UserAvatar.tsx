@@ -19,6 +19,14 @@ import {
 } from '@/utils/developmentDetector';
 
 const useStyles = createStyles(({ css, token }) => ({
+  hydrating: css`
+    opacity: 0.55;
+    animation: user-avatar-hydrating-pulse 1.4s ease-in-out infinite;
+    @keyframes user-avatar-hydrating-pulse {
+      0%, 100% { opacity: 0.35; }
+      50% { opacity: 0.75; }
+    }
+  `,
   clickable: css`
     position: relative;
     transition: all 200ms ease-out 0s;
@@ -54,6 +62,28 @@ export interface UserAvatarProps extends AvatarProps {
   clickable?: boolean;
 }
 
+// BUG QA 13-jul #24: tras refresh (cmd+R) el avatar mostraba "BB" (initials de la
+// marca) durante ~1-2s antes de pintar el avatar real "UC" — el store aún no había
+// hidratado desde localStorage/cookie SSO pero el componente decidía "guest" y
+// pintaba el placeholder. Si detectamos cookie SSO (.bodasdehoy.com) o JWT local,
+// tratamos ese lapso como "sesión probable, aún hidratando" → skeleton pulsante
+// en vez del placeholder de invitado. Ventana de gracia de 3s.
+const AUTH_HYDRATION_GRACE_MS = 3000;
+
+const hasSsoSessionSignal = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (typeof document !== 'undefined' && document.cookie) {
+      if (/(?:^|;\s*)idTokenV0\.1\.0=([^;]{20,})/.test(document.cookie)) return true;
+    }
+    const t = localStorage.getItem('jwt_token') || localStorage.getItem('mcp_jwt_token');
+    if (t && t.length > 20) return true;
+  } catch {
+    /* ignore */
+  }
+  return false;
+};
+
 const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
   (
     { size = 40, background, clickable, className, style, onClick, onError, ...rest },
@@ -75,6 +105,17 @@ const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
 
     /** Sesión real (no el “siempre logueado” cuando enableAuth=false). */
     const isRealLogin = useUserStore(authSelectors.isLoginWithAuth);
+
+    // Gracia de hidratación: si hay SSO cookie/JWT local y aún no llegó el store,
+    // marcamos "hidratando" durante AUTH_HYDRATION_GRACE_MS.
+    const [ssoSignal, setSsoSignal] = useState(false);
+    const [graceElapsed, setGraceElapsed] = useState(false);
+    useEffect(() => {
+      setSsoSignal(hasSsoSessionSignal());
+      const t = setTimeout(() => setGraceElapsed(true), AUTH_HYDRATION_GRACE_MS);
+      return () => clearTimeout(t);
+    }, []);
+    const hydrating = ssoSignal && !isRealLogin && !graceElapsed;
     const remoteServerUrl = useElectronStore(electronSyncSelectors.remoteServerUrl);
 
     const avatarUrl = useMemo(() => {
@@ -124,6 +165,25 @@ const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
       branding?.color_secondary ||
       (typeof theme.colorInfo === 'string' ? theme.colorInfo : undefined) ||
       '#764ba2';
+
+    if (hydrating) {
+      return (
+        <div
+          aria-hidden="true"
+          className={cx(className, styles.hydrating)}
+          data-testid="user-avatar-hydrating"
+          ref={ref}
+          style={{
+            background: theme.colorFillTertiary,
+            borderRadius: '50%',
+            flex: 'none',
+            height: size,
+            width: size,
+            ...style,
+          }}
+        />
+      );
+    }
 
     if (useGradientFallback) {
       return (

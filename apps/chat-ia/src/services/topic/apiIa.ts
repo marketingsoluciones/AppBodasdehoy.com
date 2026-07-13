@@ -73,12 +73,9 @@ export class ApiIaTopicService implements ITopicService {
   removeTopics: ITopicService['removeTopics'] = async (sessionId) =>
     call('DELETE', `/chat/topics?sessionId=${encodeURIComponent(sessionId)}`);
 
-  // ───────── pending: NO existen en api-mcp / poco usadas (no bloquean) ─────────
-  private pending(method: string, note: string): never {
-    throw new Error(
-      `[topic/apiIa] ${method}: ${note}. No bloquea el flujo principal. ` +
-        `Ver project_migracion_api_ia_estado_03jun.`,
-    );
+  // BUG QA 13-jul #25: sanitizar mensaje para no filtrar nombres internos al navegador.
+  private pending(method: string, _note: string): never {
+    throw new Error(`Operación no soportada: ${method}`);
   }
   cloneTopic: ITopicService['cloneTopic'] = async () =>
     this.pending('cloneTopic', 'duplicar topic — NO existe en api-mcp (UX secundaria)');

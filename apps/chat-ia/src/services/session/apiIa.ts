@@ -120,12 +120,11 @@ export class ApiIaSessionService implements ISessionService {
       `/chat/session-groups/${encodeURIComponent(id)}${removeChildren ? '?removeChildren=true' : ''}`,
     );
 
-  // ───────── 5 ops NO existentes en api-mcp (api-ia 2026-06-03) — pending, no bloquean ─────────
-  private pending(method: string, note: string): never {
-    throw new Error(
-      `[session/apiIa] ${method}: ${note}. NO existe en api-mcp (api-ia 2026-06-03). ` +
-        `No bloquea el flujo principal. Ver project_migracion_api_ia_estado_03jun.`,
-    );
+  // Ops secundarias sin endpoint en backend actual — throw silencioso sin filtrar
+  // referencias internas (nombres de documento, fechas de migración) al navegador.
+  // BUG QA 13-jul #25: el texto anterior aparecía en la consola de usuarios finales.
+  private pending(method: string, _note: string): never {
+    throw new Error(`Operación no soportada: ${method}`);
   }
   cloneSession: ISessionService['cloneSession'] = async () =>
     this.pending('cloneSession', 'duplicar sesión (UX secundaria)');
