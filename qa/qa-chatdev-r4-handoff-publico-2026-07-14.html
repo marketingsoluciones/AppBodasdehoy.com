@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QA chat-dev Ronda 4 · Handoff público</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121933;
+      --panel-2: #0f1530;
+      --text: #eef2ff;
+      --muted: #a7b0d6;
+      --accent: #6ea8fe;
+      --ok: #55d6a6;
+      --warn: #ffd166;
+      --bad: #ff7b7b;
+      --border: rgba(255,255,255,.1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(110,168,254,.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(255,123,123,.14), transparent 24%),
+        linear-gradient(180deg, #0b1020 0%, #0a0f1b 100%);
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; }
+    .hero, .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    }
+    .hero { padding: 28px; margin-bottom: 24px; }
+    h1, h2, h3 { margin: 0 0 12px; line-height: 1.1; }
+    h1 { font-size: 38px; }
+    h2 { font-size: 24px; margin-top: 32px; }
+    p, li { color: var(--muted); font-size: 16px; line-height: 1.6; }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: rgba(255,255,255,.06);
+      border-radius: 10px;
+    }
+    code { padding: 2px 6px; }
+    pre {
+      padding: 16px;
+      white-space: pre-wrap;
+      overflow: auto;
+      border: 1px solid var(--border);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin: 20px 0 8px;
+    }
+    .stat {
+      padding: 18px;
+      border-radius: 16px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+    }
+    .stat b { display: block; font-size: 28px; margin-bottom: 6px; color: var(--text); }
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-right: 8px;
+    }
+    .ok { background: rgba(85,214,166,.12); color: var(--ok); }
+    .warn { background: rgba(255,209,102,.12); color: var(--warn); }
+    .bad { background: rgba(255,123,123,.12); color: var(--bad); }
+    .panel { padding: 24px; margin-top: 20px; }
+    .routes li { margin-bottom: 8px; }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+    figure {
+      margin: 0;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+    img { display: block; width: 100%; height: auto; background: #fff; }
+    figcaption {
+      padding: 12px 14px 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="pill warn">Ronda 4</div>
+      <div class="pill ok">BUILD confirmado</div>
+      <h1>QA chat-dev · handoff público</h1>
+      <p>Documento público para pasar a otro agente o equipo con lo ya verificado, las URLs exactas y las capturas de la ronda 4 sin necesidad de acceder a esta sesión.</p>
+      <div class="grid">
+        <div class="stat">
+          <b>WoWSpZqL1GmHK-CAsBLQO</b>
+          <span>BUILD_ID confirmado en el HTML inicial.</span>
+        </div>
+        <div class="stat">
+          <b>dbg 983a9df | sBiTmcp</b>
+          <span>Footer/runtime visible durante la ejecución.</span>
+        </div>
+        <div class="stat">
+          <b>2 fixes validados</b>
+          <span>`/messages` ya redirige a login y `memories` ya muestra “Iniciar Sesión”.</span>
+        </div>
+        <div class="stat">
+          <b>Rutas aún rotas</b>
+          <span>`/labs` y `/pendientes` ya no muestran `X de 5`, pero quedan casi vacías.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Qué ya se vio</h2>
+      <ul>
+        <li><b>`/messages` sin login:</b> ahora redirige correctamente a <code>/login?redirect=/messages</code>.</li>
+        <li><b>`/memories/invalid-qa-r4`:</b> ya muestra el gate con el texto <code>Iniciar Sesión</code> con tilde.</li>
+        <li><b>`/labs` y `/pendientes`:</b> ya no muestran la pantalla antigua <code>Bodas de Hoy X de 5</code>, pero siguen rotas porque quedan prácticamente en blanco.</li>
+        <li><b>`/notifications`, `/profile`, `/changelog`:</b> cargan contenido propio y no caen en la pantalla mínima anterior.</li>
+        <li><b>Bloque pendiente:</b> toda la batería con login manual del humano, wallet, avatar, logout, deep links autenticados, Firebase 10 min, race conditions, a11y, offline y multi-pestaña.</li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>URLs exactas probadas</h2>
+      <ul class="routes">
+        <li><a href="https://chat-dev.bodasdehoy.com/login">https://chat-dev.bodasdehoy.com/login</a></li>
+        <li><a href="https://chat-dev.bodasdehoy.com/messages">https://chat-dev.bodasdehoy.com/messages</a></li>
+        <li><a href="https://chat-dev.bodasdehoy.com/memories/invalid-qa-r4">https://chat-dev.bodasdehoy.com/memories/invalid-qa-r4</a></li>
+        <li><a href="https://chat-dev.bodasdehoy.com/labs">https://chat-dev.bodasdehoy.com/labs</a></li>
+        <li><a href="https://chat-dev.bodasdehoy.com/pendientes">https://chat-dev.bodasdehoy.com/pendientes</a></li>
+        <li><a href="https://chat-dev.bodasdehoy.com/notifications">https://chat-dev.bodasdehoy.com/notifications</a></li>
+        <li><a href="https://chat-dev.bodasdehoy.com/profile">https://chat-dev.bodasdehoy.com/profile</a></li>
+        <li><a href="https://chat-dev.bodasdehoy.com/changelog">https://chat-dev.bodasdehoy.com/changelog</a></li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>Prompt copiable para otro agente</h2>
+      <pre>Continúa la QA de chat-dev desde este estado previo, sin repetir trabajo ya hecho.
+
+Contexto confirmado:
+- URL: https://chat-dev.bodasdehoy.com
+- BUILD_ID esperado confirmado: WoWSpZqL1GmHK-CAsBLQO
+- Footer/runtime observado: dbg 983a9df | sBiTmcp
+
+Trabajo ya hecho:
+- /messages sin login ya redirige a /login?redirect=/messages
+- /memories/invalid-qa-r4 ya muestra gate con “Iniciar Sesión”
+- /labs y /pendientes ya no muestran “Bodas de Hoy X de 5”, pero siguen mal: quedan casi vacías
+- /notifications, /profile y /changelog sí cargan contenido real
+
+URLs exactas:
+- https://chat-dev.bodasdehoy.com/login
+- https://chat-dev.bodasdehoy.com/messages
+- https://chat-dev.bodasdehoy.com/memories/invalid-qa-r4
+- https://chat-dev.bodasdehoy.com/labs
+- https://chat-dev.bodasdehoy.com/pendientes
+- https://chat-dev.bodasdehoy.com/notifications
+- https://chat-dev.bodasdehoy.com/profile
+- https://chat-dev.bodasdehoy.com/changelog
+
+Qué debes hacer ahora:
+1. Pedir al humano que teclee él mismo la contraseña y validar la parte autenticada.
+2. Ejecutar:
+   - Avanzado en UserPanel
+   - billing / wallet / Stripe query cleanup
+   - avatar tras cmd+R
+   - logout limpio
+   - cuenta paid y FREE
+   - settings?active=llm|billing|common
+   - Firebase 10 min
+   - race conditions
+   - a11y
+   - offline / slow 3G
+   - multi-pestaña
+3. Mantener numeración desde #26 y no duplicar hallazgos ya cerrados.</pre>
+    </section>
+
+    <section class="panel">
+      <h2>Capturas publicadas</h2>
+      <div class="gallery">
+        <figure><img src="data:image/jpeg;base64,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" alt="qa_r4_messages_redirect_login.png"><figcaption><b>qa_r4_messages_redirect_login.png</b><br>messages_redirect</figcaption></figure>
+        <figure><img src="data:image/jpeg;base64,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" alt="qa_r4_memories_invalid_gate.png"><figcaption><b>qa_r4_memories_invalid_gate.png</b><br>memories_gate</figcaption></figure>
+        <figure><img src="data:image/jpeg;base64,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" alt="qa_r4_labs_blank.png"><figcaption><b>qa_r4_labs_blank.png</b><br>labs_blank</figcaption></figure>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
