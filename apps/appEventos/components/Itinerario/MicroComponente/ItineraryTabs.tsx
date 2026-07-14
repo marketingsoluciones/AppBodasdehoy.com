@@ -54,6 +54,18 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     const addTask = async () => {
         try {
             if (!itinerario) {
+                // Estado vacío: si NO existe ningún itinerario de este tipo, crear el PRIMERO
+                // directamente. Antes bloqueaba con "Selecciona un itinerario primero", que no
+                // tiene sentido cuando no hay ninguno creado (contradicción UX del estado vacío).
+                // Si SÍ existen itinerarios pero ninguno está seleccionado, sí pedimos seleccionar.
+                const tipo = window?.location?.pathname.slice(1)
+                const existentes = Array.isArray(event?.itinerarios_array)
+                    ? event.itinerarios_array.filter(el => el?.tipo === tipo)
+                    : []
+                if (existentes.length === 0) {
+                    await handleCreateItinerario();
+                    return;
+                }
                 toast("warning", t("Selecciona un itinerario primero"));
                 return;
             }
