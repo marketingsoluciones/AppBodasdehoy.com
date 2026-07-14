@@ -26,7 +26,7 @@ cargue. **No** manipulas localStorage ni usas atajos/bypass. Tu salida es un **i
 1. Ve a `https://app-dev.bodasdehoy.com`. Haz **login real** con las credenciales que te den
    (email + contraseña). Confirma avatar arriba-derecha.
 2. Verifica el **build**: en el debug footer (abajo-derecha) o en Network busca
-   `/_next/static/<BUILD_ID>/` → debe ser **`jjySJBwY-LZP2KqdwzLRE`**. Si no coincide, **detente**
+   `/_next/static/<BUILD_ID>/` → debe ser **`Ghy-9WfP_ygTnykPfor4d`**. Si no coincide, **detente**
    y repórtalo (estás probando un build distinto).
 3. Abre consola (errores) y Network (fallos/latencia) y mantenlos activos.
 4. Ignora como ruido conocido (NO reportar): `React #418`, `react-i18next sin instancia`,
@@ -42,7 +42,9 @@ cargue. **No** manipulas localStorage ni usas atajos/bypass. Tu salida es un **i
 
 ### BLOQUE B · Mis eventos (`/`)
 - B1: se ven las tarjetas; hay **espacio** entre pestañas (Pendientes/Archivados/Realizados) y grid.
-- B2: abrir Copilot en escritorio → tarjetas **no se solapan**.
+- B2: abrir Copilot en escritorio → el grid **reflowa** (baja a menos columnas) y las tarjetas
+  **NO se solapan** ni se montan/cortan. Cerrar Copilot → vuelve a más columnas. Prueba a ~1280px
+  y ~1920px de ancho. (valida fix #182)
 - B3: menú superior **Novia / Proveedores** → deben ir a `https://bodasdehoy.com/...` (marketing),
   **NO a 404** en app-dev. (valida fix #179)
 - B4 (ERROR): crear evento **sin nombre** → validación, no crea.
@@ -74,6 +76,9 @@ cargue. **No** manipulas localStorage ni usas atajos/bypass. Tu salida es un **i
 - E3: `/presupuesto` → carga categorías/coste sin "Comprobando sesión…" ni pantalla roja; tabs OK.
 - E4 (ERROR): añadir pago con **importe no numérico/negativo** → validación.
 - E5 (ERROR): **editar una tarea** con guardado fallido → sale **aviso de error** (no silencio). (fix #177)
+- E6 (fix #183): en un evento SIN itinerarios → `/itinerario` (estado vacío) → pulsar el botón **"+"**
+  de la barra → ESPERADO: **crea el primer itinerario** directamente. FALLO si aparece el toast
+  "Selecciona un itinerario primero". Con un itinerario ya creado, "+" añade tareas normalmente.
 
 ### BLOQUE F · Copilot
 - F1: con evento abierto → cabecera "**Contexto: \<evento\>**". Pregunta de lectura

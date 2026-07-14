@@ -6,7 +6,7 @@
 > persona de QA o para un agente de navegación.
 >
 > - **Entorno:** https://app-dev.bodasdehoy.com · chat: https://chat-dev.bodasdehoy.com (SOLO dev)
-> - **Build objetivo:** `jjySJBwY-LZP2KqdwzLRE` (dev @ `481b1d5`). Verifícalo en el **debug footer**
+> - **Build objetivo:** `Ghy-9WfP_ygTnykPfor4d` (dev @ `f4004027`). Verifícalo en el **debug footer**
 >   (recuadro oscuro abajo-derecha: `dbg <commit> | sB … iT`). Si no coincide, avisar antes de probar.
 > - **Fecha:** 2026-07-12 · **Autor:** COORD-FRONT AppEventos
 
