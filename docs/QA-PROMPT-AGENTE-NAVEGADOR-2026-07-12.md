@@ -26,11 +26,18 @@ cargue. **No** manipulas localStorage ni usas atajos/bypass. Tu salida es un **i
 1. Ve a `https://app-dev.bodasdehoy.com`. Haz **login real** con las credenciales que te den
    (email + contraseña). Confirma avatar arriba-derecha.
 2. Verifica el **build**: en el debug footer (abajo-derecha) o en Network busca
-   `/_next/static/<BUILD_ID>/` → debe ser **`Ghy-9WfP_ygTnykPfor4d`**. Si no coincide, **detente**
+   `/_next/static/<BUILD_ID>/` → debe ser **`d2X-ujl9gHJeZnxUyhTgy`**. Si no coincide, **detente**
    y repórtalo (estás probando un build distinto).
 3. Abre consola (errores) y Network (fallos/latencia) y mantenlos activos.
 4. Ignora como ruido conocido (NO reportar): `React #418`, `react-i18next sin instancia`,
    `[getThemeColors] TypeError`, abortos hacia `chat-dev`.
+5. **LA CUENTA YA TIENE EVENTOS (≈26, ej. "ITEL2 S.L PRUEBA").** NO crees un evento nuevo
+   (el campo fecha es `type=date` nativo y no se puede teclear por automatización — no lo
+   intentes). Si en tu snapshot "no ves eventos", es **límite del snapshot**: haz scroll,
+   toma un snapshot más completo, o **haz clic directo en una tarjeta de evento visible**.
+6. Para probar módulos (Itinerario/Invitados/etc.): **ENTRA en un evento existente** y navega
+   desde ahí. Para el estado vacío de Itinerario, usa un evento que **no tenga itinerarios de
+   ese tipo** (o entra a `/itinerario` y si ya hay, prueba el flujo de tareas).
 
 ## EJECUCIÓN — recorre estos bloques. Para CADA prueba emite un registro (ver formato al final).
 
