@@ -1,5 +1,4 @@
 import { FC } from "react";
-import Link from "next/link";
 import { AuthContextProvider } from "../../context";
 import { useTranslation } from "react-i18next";
 
@@ -17,12 +16,14 @@ const NavbarDirectory: FC = () => {
         <>
             <nav className="hidden lg:block">
                 <ul className="flex md:gap-3 lg:gap-4 xl:gap-4 text-sm text-gray-700">
+                    {/* <a> nativo (no next/link): los enlaces del navbar son EXTERNOS al sitio de
+                        marketing; con next/link el router podía interceptar y dejar al usuario en "/". */}
                     {config?.navbarDirectory?.map((item: any, idx: number) => (
-                        <Link key={idx} href={`${marketingBase}/${String(item?.path).replace(/^\//, '')}`}>
+                        <a key={idx} href={`${marketingBase}/${String(item?.path).replace(/^\//, '')}`} rel="noopener">
                             < li className="font-medium uppercase flex items-center justify-center cursor-pointer relative transition text-gray-700 hover:text-primary" >
                                 {t(item.title)}
                             </li >
-                        </Link >
+                        </a >
                     )
                     )}
                 </ul >
