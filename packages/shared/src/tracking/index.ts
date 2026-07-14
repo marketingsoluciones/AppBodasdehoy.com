@@ -46,36 +46,112 @@ declare global {
   }
 }
 
+// ─── Consent gate (RGPD) ─────────────────────────────────────────────────────
+
+/**
+ * ¿El usuario ha dado consentimiento de marketing?
+ * Fuentes (en orden): cookie `consent_marketing=1`, localStorage
+ * `consent_marketing=granted`. En dev/test devuelve `true` para no
+ * bloquear el desarrollo; en producción es fail-closed.
+ *
+ * El cookie banner (o quien gestione consent) debe llamar `setMarketingConsent`
+ * para setear la cookie de forma explícita.
+ */
+export function hasMarketingConsent(): boolean {
+  if (typeof window === 'undefined') return false;
+  // Fail-open en dev/test para no romper QA local
+  if (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production') {
+    return true;
+  }
+  try {
+    if (typeof document !== 'undefined' && document.cookie) {
+      if (/(?:^|;\s*)consent_marketing=1(?:;|$)/.test(document.cookie)) return true;
+    }
+    if (localStorage.getItem('consent_marketing') === 'granted') return true;
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
+
+export function setMarketingConsent(granted: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (granted) {
+      localStorage.setItem('consent_marketing', 'granted');
+      if (typeof document !== 'undefined') {
+        // 6 meses; SameSite Lax es lo mínimo razonable para 1st-party consent
+        const maxAge = 60 * 60 * 24 * 180;
+        document.cookie = `consent_marketing=1; path=/; max-age=${maxAge}; SameSite=Lax`;
+      }
+    } else {
+      localStorage.removeItem('consent_marketing');
+      if (typeof document !== 'undefined') {
+        document.cookie = 'consent_marketing=; path=/; max-age=0; SameSite=Lax';
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 // ─── Captura de parámetros al aterrizar ──────────────────────────────────────
 
 /**
  * Captura UTMs, ?ref= y referrer al aterrizar en cualquier página.
  * Guarda first_touch (permanente) y last_touch (actualizable) en localStorage.
  * Debe llamarse en el layout raíz del cliente (useEffect de mount).
+ *
+ * RGPD: en producción sólo captura si `hasMarketingConsent()` devuelve true.
+ * En dev/test siempre captura para no bloquear QA local.
+ * Excepción: `?ref=<code>` de afiliados se persiste igualmente — no es
+ * atribución publicitaria, es un identificador introducido por el usuario
+ * vía enlace explícito (consentimiento contextual + necesario para atribuir
+ * la comisión).
  */
 export function captureTrackingParams(): void {
   if (typeof window === 'undefined') return;
 
   const params = new URLSearchParams(window.location.search);
 
-  // Capturar ?ref= para el sistema de afiliados (no sobreescribir si ya hay uno)
+  // Capturar ?ref= para el sistema de afiliados (no sobreescribir si ya hay uno).
+  // Va antes del gate: es identificador de referido, no tracking publicitario.
   const ref = params.get('ref');
   if (ref && !localStorage.getItem('pending_referral_code')) {
     localStorage.setItem('pending_referral_code', ref.toUpperCase());
   }
+
+  // Gate RGPD para el resto de captura publicitaria (utm/gclid/fbclid/…)
+  if (!hasMarketingConsent()) return;
 
   const hasTrackingParams =
     params.get('utm_source') || params.get('gclid') || params.get('fbclid') ||
     params.get('msclkid') || params.get('ttclid') || params.get('twclid') ||
     params.get('li_fat_id') || params.get('ref');
 
-  if (!hasTrackingParams && !document.referrer) return;
+  // Filtro same-host referrer: si el usuario viene navegando dentro de nuestros
+  // propios dominios, ignorar el referrer (no queremos atribuir "google.com/precios
+  // → nuestro checkout" cuando en realidad viene de "nuestra propia landing").
+  const rawReferrer = document.referrer;
+  let externalReferrer = '';
+  if (rawReferrer) {
+    try {
+      const referrerHost = new URL(rawReferrer).hostname;
+      if (referrerHost !== window.location.hostname) {
+        externalReferrer = rawReferrer;
+      }
+    } catch {
+      /* referrer inválido — ignorar */
+    }
+  }
+
+  if (!hasTrackingParams && !externalReferrer) return;
 
   // Normalizar referrer orgánico cuando no hay UTMs
   let referrerSource = '';
-  if (!params.get('utm_source') && document.referrer) {
+  if (!params.get('utm_source') && externalReferrer) {
     try {
-      const host = new URL(document.referrer).hostname;
+      const host = new URL(externalReferrer).hostname;
       if (host.includes('google')) referrerSource = 'google';
       else if (host.includes('bing')) referrerSource = 'bing';
       else if (host.includes('facebook') || host.includes('fb.com')) referrerSource = 'facebook';
@@ -92,7 +168,7 @@ export function captureTrackingParams(): void {
 
   const attribution: Attribution = {
     utm_source:   params.get('utm_source') || referrerSource || undefined,
-    utm_medium:   params.get('utm_medium') || (document.referrer ? 'organic' : 'direct') || undefined,
+    utm_medium:   params.get('utm_medium') || (externalReferrer ? 'organic' : 'direct') || undefined,
     utm_campaign: params.get('utm_campaign') || undefined,
     utm_content:  params.get('utm_content') || undefined,
     utm_term:     params.get('utm_term') || undefined,
@@ -101,7 +177,7 @@ export function captureTrackingParams(): void {
     fbclid:       params.get('fbclid') || undefined,
     msclkid:      params.get('msclkid') || undefined,
     ttclid:       params.get('ttclid') || undefined,
-    referrer:     document.referrer || undefined,
+    referrer:     externalReferrer || undefined,
     landing_page: window.location.pathname + window.location.search,
     timestamp:    Date.now(),
   };
@@ -195,6 +271,9 @@ export async function sendAttributionToApi(
   api2Url = DEFAULT_API_MCP_URL,
 ): Promise<void> {
   if (typeof window === 'undefined') return;
+  // Fail-closed en prod: si el user revocó consent después de capturar,
+  // no publicamos la atribución al backend.
+  if (!hasMarketingConsent()) return;
 
   const firstTouch = getFirstTouchData();
   const lastTouch = getAttributionData();
@@ -236,6 +315,8 @@ const META_EVENT_MAP: Record<string, string> = {
  */
 export function trackEvent(eventName: string, properties: TrackEventProperties = {}): void {
   if (typeof window === 'undefined') return;
+  // Fail-closed en prod: sin consent no disparamos pixels a Meta/GTM/PostHog.
+  if (!hasMarketingConsent()) return;
 
   const attribution = getAttributionData();
   const enriched = { ...properties, ...attribution };
