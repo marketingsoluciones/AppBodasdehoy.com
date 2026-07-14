@@ -18,9 +18,12 @@
  */
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
+import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useBandejaStore } from '@/store/bandeja';
+
+import { buildHeaders } from '../messages/utils/auth';
 
 const SECTION_META: Record<
   string,
@@ -77,6 +80,24 @@ export default function PendientesPage() {
   const conversations = useBandejaStore((s) => Object.values(s.conversations));
   const notifications = useBandejaStore((s) => s.notifications);
   const unreadCounts = useBandejaStore((s) => s.unreadCounts);
+  const initBandeja = useBandejaStore((s) => s.initBandeja);
+  const destroyBandeja = useBandejaStore((s) => s.destroyBandeja);
+
+  // BUG QA 14-jul: /pendientes salía "en blanco" (empty state "¡Sin pendientes!")
+  // porque el store bandeja solo se inicializa desde messages/layout.tsx, y esta
+  // ruta no está bajo ese layout — nadie llamaba initBandeja, así que
+  // conversations/notifications estaban vacías siempre. Inicializar aquí también
+  // (idempotente: initBandeja se auto-cierra si ya hay SSE viva).
+  const { checkAuth, isGuest } = useAuthCheck();
+  useEffect(() => {
+    if (isGuest) return;
+    const { development } = checkAuth();
+    const dev = development || 'bodasdehoy';
+    void initBandeja(dev, () => buildHeaders());
+    return () => {
+      destroyBandeja();
+    };
+  }, [isGuest, checkAuth, initBandeja, destroyBandeja]);
 
   const items: PendingItem[] = useMemo(() => {
     const convItems: PendingItem[] = conversations
