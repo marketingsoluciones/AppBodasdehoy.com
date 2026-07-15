@@ -5,10 +5,56 @@ import { useEffect, useRef, useState } from 'react';
 
 import { useMessages } from '../hooks/useMessages';
 import { useSendMessage } from '../hooks/useSendMessage';
-import { useDraftSync, type ServerDraft } from '../hooks/useDraftSync';
+import { approveDraft, useDraftSync, type ServerDraft } from '../hooks/useDraftSync';
 import { useConversations } from '../hooks/useConversations';
-import { isWhatsAppWindowExpired } from '../hooks/useWhatsAppTemplates';
+import {
+  isWhatsAppWindowExpired,
+  templateBodyText,
+  type WhatsAppTemplate,
+} from '../hooks/useWhatsAppTemplates';
 import { WhatsAppTemplatePicker } from './WhatsAppTemplatePicker';
+
+/**
+ * Compara body original de la template (con `{{1}}`, `{{2}}`) contra el body ya
+ * rellenado por el picker (con textos sustituidos), y extrae los valores en
+ * orden posicional que Meta HSM espera en `parameters: string[]`.
+ *
+ * Uso: cuando el picker devuelve `filled = templateFillParams(body, values)`,
+ * el `filled` puede contener los valores del user pero perdimos el array. Este
+ * helper reconstruye el array desde el body original + el body rellenado.
+ */
+function extractHsmParamsFromFilledBody(filled: string, tpl: WhatsAppTemplate): string[] {
+  const raw = templateBodyText(tpl);
+  if (!raw) return [];
+  // Detecta el nº máximo de placeholders en el raw
+  let max = 0;
+  const re = /\{\{\s*(\d+)\s*\}\}/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(raw)) !== null) {
+    const n = Number(m[1]);
+    if (Number.isFinite(n) && n > max) max = n;
+  }
+  if (max === 0) return [];
+  // Reconstruye regex del raw como capturas
+  const escaped = raw.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = escaped.replaceAll(/\\\{\\\{\s*\d+\s*\\\}\\\}/g, '(.*?)');
+  const captureRe = new RegExp('^' + pattern + '$', 's');
+  const match = filled.match(captureRe);
+  if (!match) return Array.from({ length: max }, (_, i) => `{{${i + 1}}}`);
+  // match[1..N] son las capturas en el orden que aparecen en el body raw,
+  // NO en el orden posicional 1..N. Necesitamos mapear.
+  const raw2 = raw;
+  const order: number[] = [];
+  const re2 = /\{\{\s*(\d+)\s*\}\}/g;
+  let m2: RegExpExecArray | null;
+  while ((m2 = re2.exec(raw2)) !== null) order.push(Number(m2[1]));
+  const out: string[] = Array.from({ length: max }, () => '');
+  order.forEach((paramIdx, capIdx) => {
+    const val = match[capIdx + 1] ?? '';
+    if (paramIdx - 1 < out.length) out[paramIdx - 1] = val;
+  });
+  return out;
+}
 
 interface MessageInputProps {
   channel: string;
@@ -127,6 +173,15 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
   const [emojiSearch, setEmojiSearch] = useState('');
   const [recentEmojis, setRecentEmojis] = useState<string[]>([]);
   const [iaDraft, setIaDraft] = useState<ServerDraft | null>(null);
+  // Fix 15-jul: HSM template pendiente de envío. Cuando el user selecciona una
+  // template del picker, guardamos (name+lang+params) para que el próximo send
+  // vaya via /api/whatsapp/messages/template en vez de /messages/send (Meta
+  // rechazaría text-only si ventana 24h cerrada).
+  const [pendingTemplate, setPendingTemplate] = useState<{
+    templateName: string;
+    languageCode: string;
+    parameters: string[];
+  } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const emojiRef = useRef<HTMLDivElement>(null);
   const { sendMessage, sending } = useSendMessage();
@@ -217,13 +272,19 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
     }
 
     try {
-      const result = await sendMessage(channel, conversationId, messageText);
+      const result = await sendMessage(
+        channel,
+        conversationId,
+        messageText,
+        pendingTemplate ?? undefined,
+      );
 
       if (result.success && result.message) {
         addMessage(result.message);
         // M1: limpia draft cross-device tras envío exitoso.
         void clearDraft();
         setIaDraft(null);
+        setPendingTemplate(null);
       } else {
         setText(messageText);
       }
@@ -278,11 +339,38 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
       {/* P5 Diseño — Picker plantillas HSM cuando ventana 24h WA expira */}
       {showTemplatePicker && (
         <WhatsAppTemplatePicker
-          onSelect={(_, body) => {
+          onSelect={(tpl, body) => {
             if (body) setText(body);
+            // 15-jul: guardar template pendiente. El próximo send usará el
+            // endpoint HSM en vez de text-only (Meta rechaza text si 24h cerrada).
+            // Extraer params rellenados: los tokens {{N}} deberían haber sido
+            // sustituidos por el picker; si sobran, van vacíos (Meta rechaza).
+            const parameters = extractHsmParamsFromFilledBody(body, tpl);
+            setPendingTemplate({
+              languageCode: tpl.language || 'es',
+              parameters,
+              templateName: tpl.name,
+            });
           }}
           onDismiss={() => setWaTemplateDismissed(true)}
         />
+      )}
+      {pendingTemplate && (
+        <div className="mb-1 flex items-center justify-between rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] text-amber-900">
+          <span>
+            📝 Enviando como plantilla HSM: <b>{pendingTemplate.templateName}</b> ({pendingTemplate.languageCode})
+            {pendingTemplate.parameters.length > 0 && (
+              <> · {pendingTemplate.parameters.length} {pendingTemplate.parameters.length === 1 ? 'parámetro' : 'parámetros'}</>
+            )}
+          </span>
+          <button
+            className="text-[11px] font-semibold text-amber-800 hover:text-amber-900"
+            onClick={() => setPendingTemplate(null)}
+            type="button"
+          >
+            Cancelar plantilla
+          </button>
+        </div>
       )}
 
       {/* M1 — Borrador IA pendiente (cross-device, TTL 24h api-ia) */}
@@ -302,8 +390,31 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
               className="rounded-md bg-violet-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-violet-700"
               onClick={handleUseIaDraft}
               type="button"
+              title="Editar antes de enviar"
             >
               Usar
+            </button>
+            {/* Fix 15-jul (auditoría api-ia): endpoint /draft/approve existe y funciona
+                (POST body vacío → envía + borra). Antes sin caller. Ahora el user
+                puede aprobar directamente sin pasar por el textarea. */}
+            <button
+              className="rounded-md bg-emerald-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
+              onClick={async () => {
+                if (!iaDraft) return;
+                const optimistic: ServerDraft = { ...iaDraft };
+                setIaDraft(null);
+                const ok = await approveDraft(conversationId);
+                if (!ok) {
+                  // Rollback: si falla el approve, restauramos el banner y avisamos
+                  setIaDraft(optimistic);
+                  // eslint-disable-next-line no-alert
+                  alert('No se pudo aprobar el borrador. Prueba con "Usar" y envíalo manualmente.');
+                }
+              }}
+              type="button"
+              title="Aprobar y enviar en un click"
+            >
+              ✓ Aprobar
             </button>
             <button
               className="rounded-md border border-violet-300 bg-white px-2 py-1 text-[11px] font-semibold text-violet-700 hover:bg-violet-100"

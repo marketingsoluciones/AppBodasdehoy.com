@@ -37,6 +37,15 @@ const GET_WA_CHANNELS = `
   }
 `;
 
+// ⚠️ STUB confirmado en auditoría READ-ONLY api-mcp 15-jul:
+// `whatsappSendMessage(to, message, development): JSON` en
+// evento-mutations.resolver.ts:2575 SOLO LOGUEA. Devuelve `{success:true,
+// sent:true}` engañoso — NUNCA envía a WhatsApp. El resolver REAL es
+// `sendWhatsAppMessage(developerId, to, message: WhatsAppMessageInput!)` en
+// whatsapp.ts:841, con shape distinto. Este helper `sendWhatsAppMessage()`
+// del front NO tiene callers (grep confirmado). Mantenemos por compat pero
+// no cablear a callers hasta confirmar shape exacto del schema real y
+// migrar a la mutation correcta.
 const SEND_WA_MESSAGE = `
   mutation SendWAMessage($args: SendWhatsAppMessageArgs) {
     whatsappSendMessage(args: $args)
@@ -248,8 +257,13 @@ export async function getWhatsAppBusinessConfig(developerId: string): Promise<Wa
 
 // ─── Channel management GraphQL ───────────────────────────────────────────────
 
+// Fix 15-jul (auditoría READ-ONLY api-mcp): el nombre real del input en el
+// schema es `WhatsAppCreateChannelInput` (typeDefs/whatsapp.ts:520), NO
+// `CreateWhatsAppChannelInput` como usábamos antes → devolvía `Unknown type`
+// en todos los tenants. Ver bloque catch abajo (mantenemos el fallback por
+// si algún tenant legacy tiene schema aún más antiguo).
 const CREATE_WA_CHANNEL = `
-  mutation CreateWhatsAppChannel($input: CreateWhatsAppChannelInput!) {
+  mutation CreateWhatsAppChannel($input: WhatsAppCreateChannelInput!) {
     createWhatsAppChannel(input: $input) {
       channel { development id name phoneNumber status type }
       success
@@ -284,9 +298,12 @@ export async function createWhatsAppChannel(name: string, type: string = 'QR_USE
     return data.createWhatsAppChannel?.success ? data.createWhatsAppChannel.channel : null;
   } catch (err: any) {
     const msg = (err?.message ?? '').toString();
-    if (msg.includes('Unknown type "CreateWhatsAppChannelInput"')) {
+    if (
+      msg.includes('Unknown type "WhatsAppCreateChannelInput"') ||
+      msg.includes('Unknown type "CreateWhatsAppChannelInput"')
+    ) {
       throw new Error(
-        'Tu API2 no soporta crear canales WhatsApp desde aquí (schema sin CreateWhatsAppChannelInput). Crea el canal desde CRM/API2 o pide a API2 habilitar el schema multi-canal.',
+        'Tu API2 no soporta crear canales WhatsApp desde aquí (schema multi-canal no habilitado). Crea el canal desde CRM/API2 o pide a API2 habilitar el schema.',
       );
     }
     throw err;
