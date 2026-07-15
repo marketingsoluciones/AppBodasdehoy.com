@@ -60,6 +60,36 @@ export function templateBodyText(t: WhatsAppTemplate): string {
   return '';
 }
 
+/**
+ * Cuenta los placeholders únicos `{{N}}` presentes en el texto (Meta HSM).
+ * Devuelve el nº máximo, no la cantidad — `"Hola {{1}}, tu pedido {{3}}"` → 3.
+ * Meta permite huecos: los placeholders no tienen por qué ser consecutivos.
+ */
+export function templateParamCount(body: string): number {
+  if (!body) return 0;
+  let max = 0;
+  const re = /\{\{\s*(\d+)\s*\}\}/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(body)) !== null) {
+    const n = Number(m[1]);
+    if (Number.isFinite(n) && n > max) max = n;
+  }
+  return max;
+}
+
+/**
+ * Sustituye `{{1}}`, `{{2}}`... por los valores dados. Índices vacíos se
+ * conservan como placeholder — así el usuario ve qué falta por rellenar.
+ */
+export function templateFillParams(body: string, values: string[]): string {
+  if (!body) return '';
+  return body.replaceAll(/\{\{\s*(\d+)\s*\}\}/g, (match, num) => {
+    const i = Number(num) - 1;
+    const v = values[i];
+    return v && v.trim() ? v : match;
+  });
+}
+
 export function useWhatsAppTemplates(enabled: boolean = true) {
   const [templates, setTemplates] = useState<WhatsAppTemplate[]>([]);
   const [loading, setLoading] = useState(false);

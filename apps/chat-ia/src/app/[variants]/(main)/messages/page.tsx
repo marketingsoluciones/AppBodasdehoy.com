@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { BandejaTabs, useActiveBandejaTab } from './components/BandejaTabs';
 import { ChannelSidebar } from './components/ChannelSidebar';
@@ -40,6 +40,35 @@ export default function MessagesPage() {
   const [pendingIaActive, setPendingIaActive] = useState(false);
   const pendingIaCount = 0; // TODO: contar items con draftState='pending' cuando api-ia exponga
 
+  // MOB-21 (15-jul): toggle "ver spam" para newsletters/broadcasts. Persistido en
+  // localStorage para que sobreviva recargas. Default OFF (filtrado activo) —
+  // conserva el comportamiento actual que oculta el ruido. El usuario que quiera
+  // ver newsletters/broadcasts (raro para organizadores, más útil para admins)
+  // activa el toggle y su estado queda memorizado.
+  const [showSpam, setShowSpam] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem('inbox_show_spam');
+      if (raw === '1') setShowSpam(true);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+  const toggleShowSpam = useCallback(() => {
+    setShowSpam((prev) => {
+      const next = !prev;
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('inbox_show_spam', next ? '1' : '0');
+        }
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
+
   // BUG-INBOX-03 fix QA #34 (29-jun): los chips de canal/RSVP/Pendientes IA
   // del componente InboxFilters cambiaban el state pero filteredItems NO
   // aplicaba ningún filtro de canal/rsvp/pendingIa → "filtros muertos".
@@ -66,12 +95,15 @@ export default function MessagesPage() {
     // MOB-21 QA #34 (29-jun): inbox WA tenía 270+ msgs spam de newsletters
     // y status broadcasts ahogando el inbox real del organizador.
     // Filtro auto: ocultar conversaciones cuyo jidType sea 'newsletter' o
-    // 'broadcast' por default. (TODO próxima ronda: toggle "ver spam".)
-    arr = arr.filter((i) => {
-      if (i.kind !== 'conversation') return true;
-      const jid = (i as any).jidType;
-      return jid !== 'newsletter' && jid !== 'broadcast';
-    });
+    // 'broadcast' por default. Toggle "ver spam" (15-jul) lo desactiva
+    // temporalmente para admins que quieran auditar.
+    if (!showSpam) {
+      arr = arr.filter((i) => {
+        if (i.kind !== 'conversation') return true;
+        const jid = (i as any).jidType;
+        return jid !== 'newsletter' && jid !== 'broadcast';
+      });
+    }
     // BUG-INBOX-03 v2 (QA 30-jun): WA items tienen channelParam='wa-{id}' (no
     // 'whatsapp'), por lo que includes('whatsapp') vaciaba la bandeja cuando
     // se filtraba por WA con canales configurados. Comparar por channelKind
@@ -95,7 +127,7 @@ export default function MessagesPage() {
       );
     }
     return arr;
-  }, [items, activeTab, activeScope, channelFilter, rsvpFilter, pendingIaActive]);
+  }, [items, activeTab, activeScope, channelFilter, rsvpFilter, pendingIaActive, showSpam]);
 
   const notifUnreadCount = useMemo(
     () => items.filter((i) => i.kind === 'notification' && !i.isRead).length,
@@ -162,6 +194,18 @@ export default function MessagesPage() {
                   pendingIaActive={pendingIaActive}
                   onPendingIaToggle={() => setPendingIaActive((v) => !v)}
                 />
+                {/* MOB-21 toggle "ver spam" (15-jul) — chip discreto que revierte
+                    el filtro auto de newsletter/broadcast si el usuario lo pide. */}
+                <div className="flex justify-end border-b border-gray-100 px-3 py-1">
+                  <button
+                    aria-pressed={showSpam}
+                    className="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-600 hover:bg-gray-100"
+                    onClick={toggleShowSpam}
+                    type="button"
+                  >
+                    {showSpam ? '📢 Ocultar newsletters/estados' : '👁 Ver newsletters/estados'}
+                  </button>
+                </div>
               </>
             )}
             <div className="min-h-0 flex-1 overflow-hidden">
