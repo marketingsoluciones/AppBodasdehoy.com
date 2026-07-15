@@ -249,7 +249,7 @@ const Mesas: FC = () => {
               <CopilotFilterBar entity={['tables', 'guests']} />
               <BlockTitle title={"Mesas y asientos"} />
             </motion.div>
-            <div className={`${fullScreen || forCms ? "absolute z-[50] w-[100vw] h-[100vh] top-0 left-0" : "w-full h-[calc(100vh-208px)] md:h-[calc(100vh-210px)] md:mt-2"}`}>
+            <div className={`${fullScreen || forCms ? "absolute z-[50] w-[100vw] h-[100vh] top-0 left-0" : "w-full h-[calc(100vh-240px)] md:h-[calc(100vh-242px)] md:mt-2"}`}>
               <div className={`flex flex-col md:flex-row w-full items-center h-full`}>
                 <div className={`w-[calc(100%-0px)] mt-2 md:mt-0 ${fullScreen ? " md:w-[23%] h-[calc(30%-8px)]" : " md:w-[25%] h-[calc(30%-8px)]"} md:h-[100%] flex flex-col items-center`}>
                   <div className="bg-primary rounded-t-lg md:rounded-none w-[100%] ] h-10 ">
