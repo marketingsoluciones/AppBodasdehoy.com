@@ -254,7 +254,7 @@ const Invitaciones = () => {
                 id="enviados-container"
                 ref={enviadosContainerRef}
                 onClick={handleScrollToEnviados}
-                className={`flex w-full border ${stateConfi ? "h-[calc(100vh-616px)]" : "h-[calc(100vh-260px)]"}`}
+                className={`flex w-full border ${stateConfi ? "h-[calc(100vh-648px)]" : "h-[calc(100vh-292px)]"}`}
               >
                 <EnviadosComponent stateConfi={stateConfi} />
               </div>
