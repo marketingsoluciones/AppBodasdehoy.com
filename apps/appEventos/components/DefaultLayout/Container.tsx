@@ -175,7 +175,7 @@ const Container = (props) => {
             entity={["events", "guests", "tables", "services", "moments", "budget_items"]}
             className="shrink-0 mx-2 mt-2 md:mx-4 md:mt-3"
           />
-          <main id="rootElementMain" className="w-full h-full flex-1 min-h-0">
+          <main id="rootElementMain" className="w-full h-full flex-1 min-h-0 pt-3 md:pt-4">
             {children}
           </main>
         </div>
