@@ -234,8 +234,25 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
   eventUpdate: {
     canonicalQuery: `mutation($idEvento:ID!,$input:EventoUpdateInput!){ updateEvento(id:$idEvento, input:$input){ success errors{ field message code } evento{ _id } } }`,
     mapVariables: (v) => {
-      if (v.input) return { idEvento: v.idEvento, input: v.input };
+      // DEFENSA imgEvento/imgInvitacion: al LEER, el adapter convierte estos campos String(slug)
+      // → objeto de tamaños ({i320,i640,...}) para pintar la UI. NUNCA reenviar ese objeto en un
+      // update: el schema de api-mcp los declara String y Mongoose rechaza el save del EVENTO
+      // entero → rompía crear invitado/grupo/menú (validation failed: imgInvitacion Cast to string).
+      // Se omiten del input cuando son objeto (el flujo real de imagen va por singleUpload).
+      const stripImgObjects = (input: any) => {
+        if (!input || typeof input !== 'object') return input;
+        const out: any = { ...input };
+        for (const k of ['imgEvento', 'imgInvitacion']) {
+          if (out[k] && typeof out[k] === 'object') delete out[k];
+        }
+        return out;
+      };
+      if (v.input) return { idEvento: v.idEvento, input: stripImgObjects(v.input) };
       if (v.variable == null) return null;
+      // Update de campo suelto: si es imgEvento/imgInvitacion como objeto, ignorarlo (no persistir).
+      if ((v.variable === 'imgEvento' || v.variable === 'imgInvitacion') && v.value && typeof v.value === 'object') {
+        return { idEvento: v.idEvento, input: {} };
+      }
       // P3 estatus: api-mcp ya acepta lowercase. tipo: el adapter mapea lowercase→enum EventoTipo.
       const val = v.variable === 'tipo' ? mapTipo(v.value) : v.value;
       return { idEvento: v.idEvento, input: { [v.variable]: val } };
