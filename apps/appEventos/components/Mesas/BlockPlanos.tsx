@@ -27,11 +27,12 @@ export const BlockPlanos: FC = () => {
   return (
     <BlockDefault listaLength={event?.planSpace?.length}>
       {event?.planSpace?.map((item, idx) => {
+        const active = planSpaceSelect === item?._id
         return (
-          <div onClick={() => handleClick(item)} key={idx} className="w-20 h-20 p-2 flex-col justify-center items-center cursor-pointer">
-            <div key={idx} className={`${planSpaceSelect === item?._id ? "bg-gray-200" : "bg-none"} rounded-lg flex flex-col w-full h-full transform hover:scale-105 transition justify-center items-center`}>
-              <VscLayoutMenubar className={`text-primary w-8 h-8 2xl:w-12 2xl:h-12 `} />
-              <span className='text-gray-700 capitalize text-[10px]'> {t(item?.title)}</span>
+          <div onClick={() => handleClick(item)} key={idx} className="w-20 h-20 p-1 cursor-pointer">
+            <div key={idx} className={`rounded-xl border flex flex-col gap-1 w-full h-full transform hover:scale-105 transition justify-center items-center ${active ? "border-primary bg-primary/5 shadow-sm" : "border-gray-200 bg-white hover:border-gray-300"}`}>
+              <VscLayoutMenubar className={`w-7 h-7 2xl:w-9 2xl:h-9 ${active ? "text-primary" : "text-gray-400"}`} />
+              <span className={`capitalize text-[10px] leading-none truncate max-w-full px-1 ${active ? "text-primary font-medium" : "text-gray-500"}`}>{t(item?.title)}</span>
             </div>
           </div>)
       })

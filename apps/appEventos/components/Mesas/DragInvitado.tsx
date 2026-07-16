@@ -11,7 +11,7 @@ const DragInvitado = (props) => {
 
   return (
     <>
-      <div className="w-full flex justify-between items-center px-5 py-1 hover:bg-base transition">
+      <div className="w-full flex justify-between items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">
         {
           invitado.father && invitado.isChild && (
             <div className=" flex items-center pl-2 py-1  -mt-[11px]">
@@ -66,7 +66,7 @@ const DragInvitado = (props) => {
               element && rootElement.removeChild(document.getElementById(`dragM${invitado._id}`))
             }}>
             <img
-              className="w-7 h-7 rounded-full mr-2 text-gray-700 border-gray-300"
+              className="w-7 h-7 rounded-full mr-2 object-cover ring-1 ring-gray-200 text-gray-700"
               src={ImageProfile[invitado.sexo]?.image}
               alt={ImageProfile[invitado.sexo]?.alt}
             />
