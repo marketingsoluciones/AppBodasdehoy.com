@@ -21,42 +21,29 @@ const BlockResumen: FC<propsBlockResumen> = ({ InvitadoSentados }) => {
         { title: `${InvitadoSentados?.length} de ${event?.invitados_array?.length}`, subtitle: t("seatedguests") },
     ]
     return (
-        <div className="bg-primary w-[calc(100%-16px)] h-[calc(100%-6px)] m-auto flex flex-col rounded-lg overflow-y-auto pt-2">
+        <div className="w-[calc(100%-16px)] h-[calc(100%-6px)] m-auto flex flex-col gap-2 rounded-lg overflow-y-auto p-1">
             {
                 event.planSpace.map((item, idx) => {
+                    const totalInvitados = event?.invitados_array?.length || 0
+                    const sentados = item?.tables?.length
+                        ? item.tables.map((tb) => tb.guests).flat().filter(Boolean).length
+                        : 0
+                    const pct = totalInvitados ? Math.round((sentados / totalInvitados) * 100) : 0
                     return (
-                        <div key={idx} className="md:mb-3 px-2">
-                            <h2 className="text-tertiary font-display text-medium md:text-lg capitalize -mb-1">{t(item?.title)}</h2>
-                            <div className="flex flex-wrap items-center">
-                                <div className="flex w-28 items-center ml-2">
-                                    <MesaIcon className="text-white w-6 h-6" />
-                                    <p className="text-white m-1 font-display font-semibold text-lg leading-4 text-[12px]">
-                                        {item?.tables?.length} {/* <span className="text-xs md:text-sm m- font-light text-right"> */} {t("table")}{/* </span> */}
-                                    </p>
-                                </div>
-                                <div className="flex w-max items-center">
-                                    <InvitadosIcon className="text-white w-6 h-6 ml-2 mr-1" />
-                                    {(() => {
-                                        if (item.tables.length != 0) {
-                                            const invi = item.tables.map((item) => {
-                                                return item.guests
-                                            })
-                                            const inviReduce = invi.flat()
-                                            return (
-                                                < p key={idx} className="text-white m-1 leading-4 text-[12px]" >
-                                                    {inviReduce.length} de {event?.invitados_array?.length}
-                                                    {/* <span className="text-xs md:text-sm m- font-light text-right"> */} {t("seatedguests")}{/* </span> */}
-                                                </p>
-                                            )
-                                        } else {
-                                            return (
-                                                <p className="text-white font-display leading-4 text-[12px] ">
-                                                    {t("zeroof")} {event?.invitados_array?.length} {/* <span className=" md:text-[10px] text-right"> */} {t("seatedguests")}{/* </span> */}
-                                                </p>
-                                            )
-                                        }
-                                    })()}
-                                </div>
+                        <div key={idx} className="bg-white rounded-xl border border-gray-100 shadow-sm p-3">
+                            <h2 className="text-gray-700 font-display font-semibold capitalize text-sm mb-2">{t(item?.title)}</h2>
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-2 text-[12px] text-gray-500">
+                                <span className="flex items-center gap-1">
+                                    <MesaIcon className="text-primary w-4 h-4" />
+                                    <span className="font-semibold text-gray-700">{item?.tables?.length}</span> {t("table")}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                    <InvitadosIcon className="text-primary w-4 h-4" />
+                                    <span className="font-semibold text-gray-700">{sentados}</span> de {totalInvitados} {t("seatedguests")}
+                                </span>
+                            </div>
+                            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
                             </div>
                         </div>
                     )
