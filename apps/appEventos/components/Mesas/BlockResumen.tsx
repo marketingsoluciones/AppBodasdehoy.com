@@ -1,55 +1,73 @@
-import { FC, useEffect, useState } from "react"
+import { FC } from "react"
 import { EventContextProvider } from "../../context"
-import { InvitadosIcon, MesaIcon } from "../icons"
 import { guests } from '../../utils/Interfaces';
 import { useTranslation } from 'react-i18next';
 
+// Rediseño fiel al prototipo (MESAS.dc.html): tarjeta de resumen (% ocupado + 3 stats)
+// + lista "Por espacio" con barra de progreso. Conserva la derivación de datos real
+// (sentados por planSpace a partir de tables[].guests).
 interface propsBlockResumen {
     InvitadoSentados: guests[]
 }
 const BlockResumen: FC<propsBlockResumen> = ({ InvitadoSentados }) => {
     const { t } = useTranslation();
-    const { event } = EventContextProvider()
-    const [totalMesas, setTotalMesas] = useState<number | null>(event?.mesas_array?.length)
+    const { event, planSpaceSelect } = EventContextProvider()
 
-    useEffect(() => {
-        setTotalMesas(event?.mesas_array?.length)
-    }, [event?.mesas_array])
+    const totalInvitados = event?.invitados_array?.length || 0
+    const perSpace = (event?.planSpace || []).map((ps) => {
+        const sentados = ps?.tables?.length
+            ? ps.tables.map((tb) => tb.guests).flat().filter(Boolean).length
+            : 0
+        return { _id: ps?._id, title: ps?.title, sentados, pct: totalInvitados ? Math.round((sentados / totalInvitados) * 100) : 0 }
+    })
+    const totalSentados = perSpace.reduce((a, p) => a + p.sentados, 0)
+    const totalMesas = event?.mesas_array?.length || 0
+    const overallPct = totalInvitados ? Math.round((totalSentados / totalInvitados) * 100) : 0
 
-    const Datos = [
-        { title: totalMesas, subtitle: t("totaltables") },
-        { title: `${InvitadoSentados?.length} de ${event?.invitados_array?.length}`, subtitle: t("seatedguests") },
+    const stats = [
+        { n: totalMesas, l: t("tables") || "Mesas" },
+        { n: totalInvitados, l: t("guests") || "Invitados" },
+        { n: totalSentados, l: t("seated") || "Sentados" },
     ]
+
     return (
-        <div className="w-[calc(100%-16px)] h-[calc(100%-6px)] m-auto flex flex-col gap-2 rounded-lg overflow-y-auto p-1">
-            {
-                event.planSpace.map((item, idx) => {
-                    const totalInvitados = event?.invitados_array?.length || 0
-                    const sentados = item?.tables?.length
-                        ? item.tables.map((tb) => tb.guests).flat().filter(Boolean).length
-                        : 0
-                    const pct = totalInvitados ? Math.round((sentados / totalInvitados) * 100) : 0
-                    return (
-                        <div key={idx} className="bg-white rounded-xl border border-gray-100 shadow-sm p-3">
-                            <h2 className="text-gray-700 font-display font-semibold capitalize text-sm mb-2">{t(item?.title)}</h2>
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-2 text-[12px] text-gray-500">
-                                <span className="flex items-center gap-1">
-                                    <MesaIcon className="text-primary w-4 h-4" />
-                                    <span className="font-semibold text-gray-700">{item?.tables?.length}</span> {t("table")}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                    <InvitadosIcon className="text-primary w-4 h-4" />
-                                    <span className="font-semibold text-gray-700">{sentados}</span> de {totalInvitados} {t("seatedguests")}
-                                </span>
-                            </div>
-                            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
-                            </div>
+        <div className="w-full h-full overflow-auto flex flex-col gap-[11px] p-1">
+            <div className="rounded-[13px] p-3.5 bg-white border border-[#f0f0f2] shadow-[0_3px_10px_rgba(0,0,0,.04)]">
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-baseline gap-1.5">
+                        <span className="text-2xl font-bold leading-none text-[#EF5B94]">{overallPct}%</span>
+                        <span className="text-[10.5px] font-semibold text-[#8a8a90]">{t("occupied") || "ocupado"}</span>
+                    </div>
+                    <span className="text-[9px] font-bold tracking-wider uppercase text-[#b3b3ba]">{t("eventsummary") || "Resumen del evento"}</span>
+                </div>
+                <div className="flex gap-2">
+                    {stats.map((s, i) => (
+                        <div key={i} className="flex-1 bg-[#faf9fb] border border-[#f0f0f2] rounded-[9px] px-2.5 py-[7px]">
+                            <div className="text-[15px] font-bold text-[#3A3A42]">{s.n}</div>
+                            <div className="text-[9.5px] font-medium text-[#a0a0a8]">{s.l}</div>
                         </div>
-                    )
-                })
-            }
-        </div >
+                    ))}
+                </div>
+            </div>
+            <div className="text-[10px] font-bold tracking-wider uppercase text-[#b3b3ba]">{t("perspace") || "Por espacio"}</div>
+            {perSpace.map((r, idx) => {
+                const active = planSpaceSelect === r._id
+                return (
+                    <div key={idx} className={`rounded-[11px] px-3 py-[11px] border ${active ? "bg-[#FCF2F6] border-[#f7c2da]" : "bg-white border-[#f0f0f2]"}`}>
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-[#EF5B94]" />
+                                <span className="text-[12.5px] font-semibold text-[#3A3A42] capitalize">{t(r.title)}</span>
+                            </div>
+                            <div className="text-[11px] font-semibold text-[#EF5B94]">{r.sentados} · {r.pct}%</div>
+                        </div>
+                        <div className="h-[7px] rounded-[7px] bg-[#ececed] overflow-hidden">
+                            <div className="h-full rounded-[7px] bg-[#EF5B94] transition-all duration-300" style={{ width: `${r.pct}%` }} />
+                        </div>
+                    </div>
+                )
+            })}
+        </div>
     )
 }
 
