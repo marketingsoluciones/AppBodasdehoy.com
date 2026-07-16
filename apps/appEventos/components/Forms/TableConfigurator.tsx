@@ -54,6 +54,14 @@ export function TableConfiguratorFloating() {
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, planSpaceSelect } = EventContextProvider();
   const toast = useToast();
 
+  // El estado vacío del lienzo (ComponenteTransformWrapper) abre este panel disparando
+  // un evento global — así no hay que subir el estado `open` ni acoplar componentes.
+  useEffect(() => {
+    const openDesigner = () => setOpen(true);
+    window.addEventListener('open-table-designer', openDesigner);
+    return () => window.removeEventListener('open-table-designer', openDesigner);
+  }, []);
+
   if (!event || !planSpaceActive) return null;
 
   const handleConfirm = async (config: TableConfig, svgString: string) => {
@@ -194,21 +202,21 @@ export function TableConfiguratorFloating() {
           bottom: 24,
           right: 24,
           zIndex: 200,
-          background: '#8B6914',
+          background: '#EF5B94',
           color: '#fff',
           border: 'none',
-          borderRadius: 40,
-          padding: '10px 18px',
+          borderRadius: 10,
+          padding: '13px 20px',
           fontSize: 13,
           fontWeight: 600,
           cursor: 'pointer',
-          boxShadow: '0 4px 16px rgba(139,105,20,0.35)',
+          boxShadow: '0 8px 20px rgba(239,91,148,0.4)',
           display: 'flex',
           alignItems: 'center',
           gap: 6,
         }}
       >
-        ✦ Diseñar mesa
+        ＋ Añadir mesa
       </button>
 
       <button
@@ -217,20 +225,20 @@ export function TableConfiguratorFloating() {
         style={{
           position: 'fixed',
           bottom: 24,
-          right: 152,
+          right: 188,
           zIndex: 200,
-          background: '#111827',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 40,
-          padding: '10px 14px',
+          background: '#fff',
+          color: '#EF5B94',
+          border: '1.5px solid #f0aecb',
+          borderRadius: 10,
+          padding: '12px 16px',
           fontSize: 13,
           fontWeight: 600,
           cursor: 'pointer',
-          boxShadow: '0 4px 16px rgba(17,24,39,0.25)',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.08)',
         }}
       >
-        + Bancos
+        ＋ Bancos
       </button>
 
       {/* Modal configurador */}
