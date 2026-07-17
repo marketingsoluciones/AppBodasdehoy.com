@@ -1,6 +1,8 @@
 export const es = {
   translation: {
     'adjust': 'Ajustar',
+    'all': 'Todos',
+    'tobeseated': 'Por sentar',
     'eventspaces': 'Espacios del evento',
     'occupied': 'ocupado',
     'perspace': 'Por espacio',
