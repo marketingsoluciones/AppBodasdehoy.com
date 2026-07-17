@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import { ButtonConstrolsLienzo } from "./ControlsLienzo";
-import { Lock, SearchIcon, WarningIcon } from "../icons";
+import { Lock, WarningIcon } from "../icons";
 import * as mdIcons from "react-icons/md";
 import { TransformComponent } from "react-zoom-pan-pinch";
 import { LiezoDragable } from "./LienzoDragable";
@@ -76,20 +76,15 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
   !reset ? handleReset(centerView) : () => { }
   return (
     < >
-      <div className="bg-white flex w-full h-8 items-center justify-between absolute z-[20] transform translate-y-[-32px] shadow-md pl-1 md:pl-2">
-        <div className="flex">
-          <ButtonConstrolsLienzo onClick={() => zoomIn(0.1)}>
-            <SearchIcon className="w-[13px] h-6" />
-            <span className="text-sm">+</span>
-          </ButtonConstrolsLienzo>
-          <ButtonConstrolsLienzo onClick={() => centerView(scaleIni)}>
-            <SearchIcon className="w-[13px] h-6" />
-            <span>100%</span>
-          </ButtonConstrolsLienzo>
-          <ButtonConstrolsLienzo onClick={() => zoomOut(0.1)}>
-            <SearchIcon className="w-[13px] h-6" />
-            <span className="text-sm pb-1">- </span>
-          </ButtonConstrolsLienzo>
+      <div className="bg-white flex w-full h-8 items-center justify-between absolute z-[20] transform translate-y-[-32px] shadow-sm border-b border-[#f0f0f2] pl-1 md:pl-2">
+        <div className="flex items-center gap-1.5">
+          {/* Rediseño Fase C: zoom agrupado en pastilla blanca (fiel a MESAS.dc.html).
+              Mismos handlers: zoomOut/centerView(reset a ajuste)/zoomIn. */}
+          <div className="flex items-center bg-white rounded-lg border border-[#f0f0f2] shadow-sm overflow-hidden h-7">
+            <button type="button" onClick={() => zoomOut(0.1)} className="w-7 h-7 flex items-center justify-center text-[#EF5B94] text-base leading-none md:hover:bg-[#FCF2F6] transition">−</button>
+            <button type="button" onClick={() => centerView(scaleIni)} title={t('adjust') || 'Ajustar'} className="px-2 h-7 min-w-[46px] text-[11px] font-bold text-[#3A3A42] md:hover:bg-[#FCF2F6] transition">{Math.round((state?.previousScale || 1) * 100)}%</button>
+            <button type="button" onClick={() => zoomIn(0.1)} className="w-7 h-7 flex items-center justify-center text-[#EF5B94] text-base leading-none md:hover:bg-[#FCF2F6] transition">＋</button>
+          </div>
           <ButtonConstrolsLienzo onClick={() => {
             window.getSelection()?.removeAllRanges()
             !isAllowed() ? ht() : handleSetDisableDrag()
@@ -186,10 +181,12 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
           }
         </div>
       </div>
-      <div className="bg-gray-200 w-80 h-5 grid grid-cols-3 absolute z-[10] top-0 left-2 md:left-8 rounded-b-md opacity-70 items-center text-[9px] md:text-[10px] px-2 text-gray-800">
-        <span className="font-bold capitalize truncate">{`${t("plan")}: ${t(planSpaceActive?.title)}`}</span>
-        <span>{`${t("Size")} ${lienzo?.width / 100}x${lienzo?.height / 100}mts`}</span>
-        <span>{`${t("zoom")} ${state.previousScale.toFixed(2)}X`}</span>
+      {/* Rediseño Fase C: etiqueta del plano en pastilla blanca (rosa marca), fiel al
+          prototipo. El % de zoom ahora vive en la pastilla de zoom de arriba. */}
+      <div className="absolute z-[10] top-1 left-2 md:left-8">
+        <div className="bg-white rounded-lg shadow-sm border border-[#f0f0f2] px-3 py-1 text-[10px] font-semibold text-[#EF5B94] truncate max-w-[240px]">
+          {`${t("plan")}: ${t(planSpaceActive?.title)} · ${lienzo?.width / 100}×${lienzo?.height / 100} m`}
+        </div>
       </div>
       {/* <Cuadricula className="w-100 h-100 text-black" /> */}
       <TransformComponent

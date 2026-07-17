@@ -1,5 +1,6 @@
 export const en = {
   translation: {
+    'adjust': "Fit",
     'eventspaces': "Event spaces",
     'occupied': "occupied",
     'perspace': "Per space",
