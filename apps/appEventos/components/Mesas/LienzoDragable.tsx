@@ -447,6 +447,15 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
           .js-dropListInvitados.-drop-possibleHover:hover {
             background-color: orange;
           }
+          /* Rediseño Fase C (fiel a MESAS.dc.html): resalta en rosa las sillas LIBRES
+             (bg-white) mientras se arrastra un invitado. interact ya añade -drop-possible
+             a las sillas dropzone en dropactivate; las ocupadas (bg-primary) no se resaltan.
+             Solo CSS — no toca el motor de arrastre. */
+          .silla.bg-white.-drop-possible {
+            border-color: #EF5B94 !important;
+            background-color: #FCE7F0 !important;
+            box-shadow: 0 0 0 3px rgba(239, 91, 148, 0.25);
+          }
           .js-dragInvitadoN {
             touch-action: none;
             user-select: none;
