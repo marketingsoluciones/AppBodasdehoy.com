@@ -214,8 +214,14 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
   }, [eventsGroup, valir, user?.eventSelected]);
 
   useEffect(() => {
-    setPlanSpaceActive(event?.planSpace?.find(elem => elem?._id === planSpaceSelect))
-    console.log("seteado planSpaceActive")
+    const found = event?.planSpace?.find(elem => elem?._id === planSpaceSelect)
+    setPlanSpaceActive(found)
+    // Robustez: si el id seleccionado no corresponde a ningún plano (id vacío o plano
+    // borrado) pero SÍ existen planos, auto-seleccionar el primero para no dejar el lienzo
+    // en blanco. Si no hay planos, no hace nada (se muestra el mensaje "No hay plano cargado").
+    if (!found && (event?.planSpace?.length ?? 0) > 0 && planSpaceSelect !== event.planSpace[0]?._id) {
+      setPlanSpaceSelect(event.planSpace[0]._id)
+    }
   }, [event?.planSpace, planSpaceSelect])
 
   useEffect(() => {
