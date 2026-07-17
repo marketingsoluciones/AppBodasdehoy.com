@@ -1,5 +1,15 @@
 export const es = {
   translation: {
+    'eventspaces': 'Espacios del evento',
+    'occupied': 'ocupado',
+    'perspace': 'Por espacio',
+    'eventsummary': 'Resumen del evento',
+    'tables': 'Mesas',
+    'seated': 'Sentados',
+    'guests': 'Invitados',
+    'notablesyet': 'Aún no hay mesas',
+    'startcreatingtable': 'Empieza creando tu primera mesa para este espacio.',
+    'createfirsttable': 'Crea tu primera mesa',
     'about': 'Acerca de',
     'aboutmyevent': 'Sobre mi evento',
     'accept': 'Aceptar',

@@ -213,6 +213,28 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
           <LiezoDragable scale={state.scale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
         </div>
       </TransformComponent>
+      {/* Estado vacío (rediseño Fase C, fiel a MESAS.dc.html): cuando el plano no tiene
+          mesas. El CTA abre el panel "Diseñar mesa" disparando el evento global que
+          escucha TableConfiguratorFloating. pointer-events-none salvo el botón, para no
+          bloquear el dropzone js-dropTables. */}
+      {(planSpaceActive?.tables?.length ?? 0) === 0 && (
+        <div className="absolute inset-0 z-[15] flex flex-col items-center justify-center gap-3.5 pointer-events-none px-4">
+          <div className="w-16 h-16 rounded-full bg-white border-2 border-dashed border-[#f0aecb] flex items-center justify-center text-[#EF5B94] shadow-[0_6px_18px_rgba(0,0,0,.06)]">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><ellipse cx="12" cy="9" rx="8" ry="3"></ellipse><path d="M6 10v8M18 10v8"></path></svg>
+          </div>
+          <div className="text-center">
+            <div className="text-[16px] font-bold text-[#3A3A42]">{t("notablesyet") || "Aún no hay mesas"}</div>
+            <div className="text-[12.5px] font-medium text-[#8a8a90] mt-0.5">{t("startcreatingtable") || "Empieza creando tu primera mesa para este espacio."}</div>
+          </div>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('open-table-designer'))}
+            className="pointer-events-auto px-[22px] py-[13px] rounded-[10px] bg-[#EF5B94] text-white text-[13.5px] font-semibold shadow-[0_8px_20px_rgba(239,91,148,.35)]"
+          >
+            ＋ {t("createfirsttable") || "Crea tu primera mesa"}
+          </button>
+        </div>
+      )}
       <style >
         {`
           .lienzo {
