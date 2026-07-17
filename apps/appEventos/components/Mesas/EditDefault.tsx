@@ -38,6 +38,8 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
             tableID: item._id
           }
         })
+        // Toast con «Deshacer» (MesasUndoToast escucha este evento).
+        window.dispatchEvent(new CustomEvent('mesas-toast', { detail: { action: 'delete', table: item } }))
       }
       if (itemTipo == "element") {
         await fetchApiBodas({

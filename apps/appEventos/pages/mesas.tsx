@@ -31,6 +31,7 @@ import { useToast } from "../hooks/useToast";
 import BlockPlantillas from "../components/Mesas/BlockPlantillas";
 import BlockZonas from "../components/Mesas/BlockZonas";
 import { TableConfiguratorFloating } from "../components/Forms/TableConfigurator";
+import { MesasUndoToast } from "../components/Mesas/MesasUndoToast";
 import { useAllowed } from "../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
@@ -340,6 +341,8 @@ const Mesas: FC = () => {
         </ModalBottomSinAway>
         {/* Capa superior: configurador visual de mesas (no modifica el sistema existente) */}
         <TableConfiguratorFloating />
+        {/* Toast «Deshacer» tras crear/borrar mesa */}
+        <MesasUndoToast />
       </>
     );
   }

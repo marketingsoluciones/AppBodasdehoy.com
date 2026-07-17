@@ -12,6 +12,7 @@ import ClickAwayListener from "react-click-away-listener";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
+import { exportPlanoPdf } from "../../utils/exportPlanoPdf";
 
 interface propsComponenteTransformWrapper {
   zoomIn: any
@@ -96,6 +97,15 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
           </span>
         </div>
         <div className="flex text-red items-center pr-2 md:pr-3 gap-1 md:gap-2">
+          {/* Rediseño Fase D: exportar el plano a PDF (croquis + invitados por mesa). */}
+          <mdIcons.MdPictureAsPdf
+            title={t('exportpdf') || 'Exportar PDF'}
+            className="w-6 h-6 cursor-pointer text-primary"
+            onClick={() => {
+              const ok = exportPlanoPdf({ planSpaceActive, event, planoTitle: t(planSpaceActive?.title) })
+              if (!ok) toast('error', t('popupblocked') || 'Permite las ventanas emergentes para exportar el PDF')
+            }}
+          />
           <ClickAwayListener onClickAway={() => setShowMiniMenu(false)}>
             <div>
               <MdSaveAlt className="h-6 w-6 cursor-pointer text-primary" onClick={() => { !isAllowed() ? ht() : setShowMiniMenu(!showMiniMenu) }} />
