@@ -125,7 +125,8 @@ export function TableConfiguratorFloating() {
         }),
       };
       setEvent(nextEvent);
-      toast('success', `Mesa "${title}" creada con el configurador visual`);
+      // Toast con «Deshacer» (MesasUndoToast escucha este evento).
+      window.dispatchEvent(new CustomEvent('mesas-toast', { detail: { action: 'create', table: newTable } }));
     } catch {
       toast('error', 'Error al crear la mesa desde el configurador');
     } finally {
