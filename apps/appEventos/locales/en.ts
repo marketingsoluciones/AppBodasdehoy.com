@@ -8,6 +8,8 @@ export const en = {
     'tabledeleted': "Table deleted",
     'exportpdf': "Export PDF",
     'popupblocked': "Allow pop-ups to export the PDF",
+    'noplanloaded': "No floor plan loaded",
+    'selectplanhint': "Select a space in the «Plans» tab to view and edit its tables.",
     'eventspaces': "Event spaces",
     'occupied': "occupied",
     'perspace': "Per space",

@@ -8,6 +8,8 @@ export const es = {
     'tabledeleted': 'Mesa eliminada',
     'exportpdf': 'Exportar PDF',
     'popupblocked': 'Permite las ventanas emergentes para exportar el PDF',
+    'noplanloaded': 'No hay un plano cargado',
+    'selectplanhint': 'Selecciona un espacio en la pestaña «Planos» para ver y editar sus mesas.',
     'eventspaces': 'Espacios del evento',
     'occupied': 'ocupado',
     'perspace': 'Por espacio',

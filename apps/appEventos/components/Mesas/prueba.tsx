@@ -5,6 +5,8 @@ import { EventContextProvider } from "../../context";
 import { size } from "../../utils/Interfaces";
 import { EditDefault } from "./EditDefault";
 import ClickAwayListener from "react-click-away-listener";
+import { useTranslation } from "react-i18next";
+import { HiTemplate } from "react-icons/hi";
 
 type propsPrueba = {
   setShowFormEditar: any
@@ -13,6 +15,7 @@ type propsPrueba = {
 }
 
 const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen }) => {
+  const { t } = useTranslation()
   const { planSpaceSelect } = EventContextProvider()
   const refDiv = useRef(null)
   const [scaleIni, setScaleIni] = useState(0)
@@ -68,21 +71,36 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
               </div>
             </ClickAwayListener>
           }
-          {scaleIni && <TransformWrapper
-            disabled={disableWrapper}
-            limitToBounds={true}
-            initialScale={scaleIni}
-            minScale={scaleIni}
-            maxScale={6}
-            wheel={{ step: 0.25 }}
-            pinch={{ step: 5 }}
-            doubleClick={{ step: 0.5 }}
-            centerOnInit={false}
-          >
-            {(params) => {
-              return <ComponenteTransformWrapper {...params} fullScreen={fullScreen} setFullScreen={setFullScreen} disableWrapper={disableWrapper} setDisableWrapper={setDisableWrapper} lienzo={lienzo} setLienzo={setLienzo} setShowFormEditar={setShowFormEditar} scaleIni={scaleIni} />
-            }}
-          </TransformWrapper>}
+          {/* OJO: usar ternario, NO `scaleIni && ...`. Con scaleIni===0 (número), React
+              renderizaba literalmente «0» en el lienzo (bug clásico). Además, si no hay
+              plano cargado (sin lienzo), mostramos un mensaje en vez de un lienzo en blanco. */}
+          {scaleIni ? (
+            <TransformWrapper
+              disabled={disableWrapper}
+              limitToBounds={true}
+              initialScale={scaleIni}
+              minScale={scaleIni}
+              maxScale={6}
+              wheel={{ step: 0.25 }}
+              pinch={{ step: 5 }}
+              doubleClick={{ step: 0.5 }}
+              centerOnInit={false}
+            >
+              {(params) => {
+                return <ComponenteTransformWrapper {...params} fullScreen={fullScreen} setFullScreen={setFullScreen} disableWrapper={disableWrapper} setDisableWrapper={setDisableWrapper} lienzo={lienzo} setLienzo={setLienzo} setShowFormEditar={setShowFormEditar} scaleIni={scaleIni} />
+              }}
+            </TransformWrapper>
+          ) : (
+            !lienzo ? (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-2.5 text-center px-6">
+                <div className="w-14 h-14 rounded-full bg-white border-2 border-dashed border-[#f0aecb] flex items-center justify-center text-[#EF5B94]">
+                  <HiTemplate className="w-6 h-6" />
+                </div>
+                <div className="text-[15px] font-semibold text-[#3A3A42]">{t('noplanloaded') || 'No hay un plano cargado'}</div>
+                <div className="text-[12px] text-[#8a8a90] max-w-[280px]">{t('selectplanhint') || 'Selecciona un espacio en la pestaña «Planos» para ver y editar sus mesas.'}</div>
+              </div>
+            ) : null
+          )}
         </div>
       </div>
     </>
