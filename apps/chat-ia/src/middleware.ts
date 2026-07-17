@@ -89,7 +89,13 @@ export const config = {
 
 const backendApiEndpoints = ['/api', '/trpc', '/webapi', '/oidc'];
 
-const DEFAULT_VARIANT_PATH = 'en-US__0__light';
+// BUG QA 17-jul: nuevos usuarios veían chat en INGLÉS ("I am your personal
+// intelligent assistant...") aunque welcome.json/es-ES está traducido correcto.
+// Causa: middleware rewrite forzaba en-US__0__light por default. Bodas de Hoy
+// es app en español para hablantes ES → default debe ser es-ES. Usuarios de
+// otros locales (ver: wildliberty) seguirán funcionando: al cambiar idioma en
+// settings/common la cookie de variant pisa este default.
+const DEFAULT_VARIANT_PATH = 'es-ES__0__light';
 
 const defaultMiddleware = (request: NextRequest) => {
   const url = new URL(request.url);
