@@ -204,12 +204,14 @@ const defaultMiddleware = (request: NextRequest) => {
     const explicitlyLocale = (url.searchParams.get('hl') || undefined) as Locales | undefined;
 
     // if it's a new user, there's no cookie, So we need to use the fallback language parsed by accept-language
+    // BUG QA 17-jul: bots (Playwright) y usuarios sin Accept-Language claro caían
+    // a 'en-US' → app en inglés aunque Bodas de Hoy es ES. Fallback cambiado a 'es-ES'.
     let browserLanguage: string;
     try {
       browserLanguage = parseBrowserLanguage(request.headers);
     } catch (langError) {
       console.warn('⚠️ Error parsing browser language, using default:', langError);
-      browserLanguage = 'en-US';
+      browserLanguage = 'es-ES';
     }
 
     const locale =
@@ -231,11 +233,12 @@ const defaultMiddleware = (request: NextRequest) => {
     });
 
     // 2. Create normalized preference values
+    // BUG QA 17-jul: fallbacks 'en-US' → 'es-ES' (app Bodas de Hoy es ES).
     let route: string;
     try {
       route = RouteVariants.serializeVariants({
         isMobile,
-        locale: locale || 'en-US',
+        locale: locale || 'es-ES',
         theme: (theme as any) || 'light',
       });
     } catch (routeError) {
@@ -243,7 +246,7 @@ const defaultMiddleware = (request: NextRequest) => {
       // Fallback a ruta por defecto
       route = RouteVariants.serializeVariants({
         isMobile: false,
-        locale: 'en-US',
+        locale: 'es-ES',
         theme: 'light',
       });
     }
