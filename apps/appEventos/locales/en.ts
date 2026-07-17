@@ -1,6 +1,8 @@
 export const en = {
   translation: {
     'adjust': "Fit",
+    'all': "All",
+    'tobeseated': "To be seated",
     'eventspaces': "Event spaces",
     'occupied': "occupied",
     'perspace': "Per space",
