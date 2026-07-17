@@ -116,7 +116,15 @@ const FeatureGate = memo<FeatureGateProps>(({
     resolvedUserId === 'anonymous' ||
     (typeof resolvedUserId === 'string' && resolvedUserId.startsWith('visitor_'));
 
-  const { loading, totalBalance, setShowRechargeModal } = useWallet();
+  // BUG QA 17-jul: en wedding-creator (u otros features gate-adas) aparecía
+  // "Saldo insuficiente" aunque la wallet tenía €84.71. Causa: este FeatureGate
+  // montaba su propia instancia de useWallet y evaluaba `totalBalance <= 0`
+  // ANTES de que su fetch resolviera. Con el timeout de escape 5s, tras el
+  // corte el gate veía `totalBalance=0` (aún sin cargar) y mostraba el gate
+  // falso, aunque otra instancia (WalletBadge del sidebar) ya tenía el saldo.
+  // Fix: usar `isCreditExhausted` que sí respeta el flag `balanceLoaded`
+  // (useWallet.ts:124 — `balanceLoaded && totalBalance + creditLimit <= 0`).
+  const { loading, isCreditExhausted, setShowRechargeModal } = useWallet();
 
   // Timeout de escape: si el wallet no resuelve en 5s, renderizar igualmente.
   // Evita skeleton infinito cuando currentUserId llega tarde al store Zustand.
@@ -171,8 +179,9 @@ const FeatureGate = memo<FeatureGateProps>(({
     );
   }
 
-  // Sin saldo — usuario registrado pero balance ≤ 0
-  if (totalBalance <= 0) {
+  // Sin saldo — usuario registrado pero balance ≤ 0. Usar isCreditExhausted
+  // que requiere balanceLoaded=true (evita falso "sin saldo" con ceros iniciales).
+  if (isCreditExhausted) {
     return (
       <Flexbox className={styles.container} gap={16}>
         <div className={`${styles.icon} ${styles.iconBalance}`}>
