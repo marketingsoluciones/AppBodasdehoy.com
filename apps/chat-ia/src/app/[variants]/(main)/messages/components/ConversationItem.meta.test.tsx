@@ -44,7 +44,9 @@ describe('ConversationItem meta', () => {
     );
 
     expect(screen.getByText('En espera')).toBeInTheDocument();
-    expect(screen.getByText('Asignada')).toBeInTheDocument();
+    // Rediseño 18-jul: la etiqueta "Asignada" se rebautizó como "Asignada a ti"
+    // (más claro para el usuario en la propia conversación).
+    expect(screen.getByText('Asignada a ti')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button'));
   });

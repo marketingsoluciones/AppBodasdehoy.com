@@ -8,7 +8,6 @@ import { useTypingInConv } from '@/store/bandeja/selectors';
 import { Conversation } from '../hooks/useConversations';
 import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
-import { ChannelBadge } from './ChannelBadge';
 
 interface ConversationItemProps {
   conversation: Conversation;
@@ -32,16 +31,27 @@ const formatTimestamp = (timestamp: string) => {
 
 function TypingIndicator() {
   return (
-    <span className="inline-flex items-center gap-0.5 text-xs text-blue-600 italic">
+    <span className="inline-flex items-center gap-0.5 text-xs italic" style={{ color: '#6B4EFF' }}>
       <span>Escribiendo</span>
       <span className="flex gap-px">
-        <span className="h-1 w-1 animate-bounce rounded-full bg-blue-500" style={{ animationDelay: '0ms' }} />
-        <span className="h-1 w-1 animate-bounce rounded-full bg-blue-500" style={{ animationDelay: '150ms' }} />
-        <span className="h-1 w-1 animate-bounce rounded-full bg-blue-500" style={{ animationDelay: '300ms' }} />
+        <span className="h-1 w-1 animate-bounce rounded-full" style={{ animationDelay: '0ms', backgroundColor: '#6B4EFF' }} />
+        <span className="h-1 w-1 animate-bounce rounded-full" style={{ animationDelay: '150ms', backgroundColor: '#6B4EFF' }} />
+        <span className="h-1 w-1 animate-bounce rounded-full" style={{ animationDelay: '300ms', backgroundColor: '#6B4EFF' }} />
       </span>
     </span>
   );
 }
+
+// Colores canal (rediseño 18-jul). Solo puntos indicadores, no fondos.
+const CHANNEL_DOT: Record<string, string> = {
+  whatsapp: '#25D366',
+  instagram: '#E1306C',
+  facebook: '#1877F2',
+  telegram: '#2AABEE',
+  web: '#6B4EFF',
+  email: '#84848F',
+  sms: '#84848F',
+};
 
 export function ConversationItem({
   conversation,
@@ -115,101 +125,154 @@ export function ConversationItem({
     }
   };
 
+  const channelDot = CHANNEL_DOT[conversation.channel] ?? '#84848F';
+  // Señal ✦: si esta conversación tiene IA activa (copilot o autopilot).
+  // Preservamos la señal cromática de los mensajes (teal/cyan/morado) — este ✦
+  // es solo un marcador de "hay IA operando aquí" en la lista. Cast defensivo:
+  // el hook useConversations no tipa `iaLevel`, pero el store bandeja sí lo
+  // propaga en algunos endpoints — si no viene, hasIa cae a false.
+  const iaLevel = (conversation as unknown as { iaLevel?: string }).iaLevel;
+  const hasIa = iaLevel === 'copilot' || iaLevel === 'autopilot';
+
   return (
     <>
       <button
-        className={`w-full text-left transition-colors ${
-          isSelected
-            ? 'bg-blue-50 border-l-4 border-blue-600'
-            : 'hover:bg-gray-50'
-        }`}
+        className="w-full text-left transition-colors"
         onClick={handleClick}
         onContextMenu={handleContextMenu}
+        style={{
+          backgroundColor: isSelected ? '#F2F1F6' : 'transparent',
+        }}
+        onMouseEnter={(e) => {
+          if (!isSelected) e.currentTarget.style.backgroundColor = '#FCFCFD';
+        }}
+        onMouseLeave={(e) => {
+          if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
+        }}
         type="button"
       >
-        <div className="flex items-start gap-3 p-4">
-          {/* Avatar with presence indicator */}
+        <div className="flex items-start gap-3 px-3 py-3">
+          {/* Avatar 40x40 con punto de canal 12px bottom-right */}
           <div className="relative flex-shrink-0">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-lg font-semibold text-white">
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-full text-base font-semibold"
+              style={{
+                backgroundColor: '#F2F1F6',
+                color: '#1C1C22',
+              }}
+            >
               {conversation.contact.name.charAt(0).toUpperCase()}
             </div>
-            {/* Unread badge */}
-            {conversation.unreadCount > 0 && (
-              <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
-                {conversation.unreadCount}
-              </div>
-            )}
-            {/* Presence dot */}
+            {/* Punto de canal (rediseño 18-jul) */}
             <span
-              aria-label={isOnline ? 'En línea' : 'Desconectado'}
-              className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white ${
-                isOnline ? 'bg-green-500' : 'bg-gray-300'
-              }`}
+              aria-label={`Canal ${conversation.channel}`}
+              className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full"
+              style={{
+                backgroundColor: channelDot,
+                boxShadow: '0 0 0 2px #FFFFFF',
+              }}
             />
+            {/* Presence dot: si hay presencia, encima del canal en top-right */}
+            {isOnline && (
+              <span
+                aria-label="En línea"
+                className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full"
+                style={{
+                  backgroundColor: '#22C55E',
+                  boxShadow: '0 0 0 2px #FFFFFF',
+                }}
+              />
+            )}
           </div>
 
           {/* Content */}
           <div className="min-w-0 flex-1">
-            {/* Header */}
-            <div className="mb-1 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <h3
-                  className={`truncate text-sm font-semibold ${
-                    conversation.unreadCount > 0
-                      ? 'text-gray-900'
-                      : 'text-gray-700'
-                  }`}
-                >
-                  {conversation.contact.name}
-                </h3>
-                <ChannelBadge channel={conversation.channel} size="sm" />
-                <span
-                  className={
-                    status === 'open'
-                      ? 'rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-700'
-                      : status === 'pending'
-                        ? 'rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700'
-                        : 'rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600'
-                  }
-                >
-                  {status === 'open' ? 'Abierta' : status === 'pending' ? 'En espera' : 'Cerrada'}
-                </span>
-              </div>
-              <div className="flex flex-shrink-0 items-center gap-2">
-                {assignedToMe ? (
-                  <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
-                    Asignada
-                  </span>
-                ) : null}
-                <span className="text-xs text-gray-500">
-                  {formatTimestamp(conversation.lastMessage.timestamp)}
-                </span>
-              </div>
+            {/* Header: nombre + hora */}
+            <div className="mb-0.5 flex items-baseline justify-between gap-2">
+              <h3
+                className="truncate text-sm font-semibold"
+                style={{
+                  color: conversation.unreadCount > 0 ? '#1C1C22' : '#1C1C22',
+                }}
+              >
+                {conversation.contact.name}
+              </h3>
+              <span className="flex-shrink-0 text-xs" style={{ color: '#9A9AA6' }}>
+                {formatTimestamp(conversation.lastMessage.timestamp)}
+              </span>
             </div>
 
-            {/* Last Message or Typing */}
-            {isTyping ? (
-              <TypingIndicator />
-            ) : (
-              <div className="flex items-center gap-2">
-                {!conversation.lastMessage.fromUser && (
-                  <span className="text-xs text-blue-600">Tú:</span>
+            {/* Preview mensaje / Typing + contador no leídos */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                {isTyping ? (
+                  <TypingIndicator />
+                ) : (
+                  <p
+                    className="truncate text-sm"
+                    style={{
+                      color: conversation.unreadCount > 0 ? '#1C1C22' : '#84848F',
+                      fontWeight: conversation.unreadCount > 0 ? 500 : 400,
+                    }}
+                  >
+                    {hasIa && (
+                      <span
+                        aria-hidden
+                        style={{ color: '#6B4EFF', marginRight: 4 }}
+                      >
+                        ✦
+                      </span>
+                    )}
+                    {!conversation.lastMessage.fromUser && (
+                      <span style={{ color: '#9A9AA6' }}>Tú: </span>
+                    )}
+                    {conversation.lastMessage.text}
+                  </p>
                 )}
-                <p
-                  className={`truncate text-sm ${
-                    conversation.unreadCount > 0
-                      ? 'font-medium text-gray-900'
-                      : 'text-gray-600'
-                  }`}
-                >
-                  {conversation.lastMessage.text}
-                </p>
               </div>
-            )}
+              {/* Contador no leídos: pill morado #6B4EFF */}
+              {conversation.unreadCount > 0 && (
+                <span
+                  aria-label={`${conversation.unreadCount} sin leer`}
+                  className="flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold text-white"
+                  style={{ backgroundColor: '#6B4EFF', minWidth: 20 }}
+                >
+                  {conversation.unreadCount}
+                </span>
+              )}
+            </div>
 
-            {/* Contact Info */}
-            <div className="mt-1 text-xs text-gray-500">
-              {conversation.contact.phone || conversation.contact.username || ''}
+            {/* Fila 3: chips secundarios (status + asignada + phone) */}
+            <div className="mt-1 flex items-center gap-1.5 text-[11px]" style={{ color: '#9A9AA6' }}>
+              {status === 'pending' && (
+                <span
+                  className="rounded-full px-1.5 py-0.5 font-medium"
+                  style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
+                >
+                  En espera
+                </span>
+              )}
+              {status === 'closed' && (
+                <span
+                  className="rounded-full px-1.5 py-0.5 font-medium"
+                  style={{ backgroundColor: '#F2F1F6', color: '#84848F' }}
+                >
+                  Cerrada
+                </span>
+              )}
+              {assignedToMe && (
+                <span
+                  className="rounded-full px-1.5 py-0.5 font-medium"
+                  style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
+                >
+                  Asignada a ti
+                </span>
+              )}
+              {(conversation.contact.phone || conversation.contact.username) && (
+                <span className="truncate">
+                  {conversation.contact.phone || conversation.contact.username}
+                </span>
+              )}
             </div>
           </div>
         </div>
