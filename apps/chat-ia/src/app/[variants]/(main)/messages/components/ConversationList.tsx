@@ -112,12 +112,33 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
   );
 
   if (loading) {
+    // Rediseño A.2: skeleton simple 3 filas con tokens del sistema
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <div className="mb-2 text-3xl">⏳</div>
-          <p className="text-sm text-gray-500">Cargando conversaciones...</p>
+      <div style={{ backgroundColor: '#FFFFFF' }} className="h-full">
+        <div
+          className="sticky top-0 z-10 px-4 py-3"
+          style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #EDEDF0' }}
+        >
+          <div className="h-4 w-32 rounded" style={{ backgroundColor: '#F2F1F6' }} />
+          <div className="mt-1.5 h-3 w-24 rounded" style={{ backgroundColor: '#F2F1F6' }} />
+          <div className="mt-2 h-8 w-full rounded-md" style={{ backgroundColor: '#F2F1F6' }} />
         </div>
+        {[1, 2, 3, 4].map((n) => (
+          <div
+            key={n}
+            className="flex items-start gap-3 px-3 py-3"
+            style={{ borderBottom: '1px solid #EDEDF0' }}
+          >
+            <div
+              className="h-10 w-10 flex-shrink-0 rounded-full"
+              style={{ backgroundColor: '#F2F1F6' }}
+            />
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <div className="h-3 w-3/5 rounded" style={{ backgroundColor: '#F2F1F6' }} />
+              <div className="h-3 w-4/5 rounded" style={{ backgroundColor: '#F2F1F6' }} />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -125,9 +146,13 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
   if (error) {
     return (
       <div className="flex h-full items-center justify-center p-4">
-        <div className="text-center">
-          <div className="mb-2 text-3xl">❌</div>
-          <p className="text-sm text-red-600">Error: {error.message}</p>
+        <div className="text-center max-w-xs">
+          <p className="text-sm font-medium" style={{ color: '#1C1C22' }}>
+            No pudimos cargar tus conversaciones
+          </p>
+          <p className="mt-1 text-xs" style={{ color: '#84848F' }}>
+            {error.message}
+          </p>
         </div>
       </div>
     );
@@ -135,12 +160,13 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
 
   if (conversations.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center p-4">
-        <div className="text-center">
-          <div className="mb-2 text-4xl">📭</div>
-          <p className="text-sm text-gray-500">No hay conversaciones</p>
-          <p className="text-xs text-gray-400 mt-1">
-            Tus conversaciones aparecerán aquí cuando recibas mensajes
+      <div className="flex h-full items-center justify-center p-6">
+        <div className="text-center max-w-xs">
+          <p className="text-sm font-medium" style={{ color: '#1C1C22' }}>
+            Aún no hay conversaciones
+          </p>
+          <p className="mt-1 text-xs" style={{ color: '#84848F' }}>
+            Cuando recibas mensajes aparecerán aquí.
           </p>
         </div>
       </div>
@@ -148,55 +174,117 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
   }
 
   return (
-    <div className="h-full overflow-auto">
-      {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-gray-200 bg-white p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-gray-900">Conversaciones</h2>
-            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
-              {conversations.length}
-            </span>
-            {totalUnread > 0 && (
-              <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
-                {totalUnread} sin leer
-              </span>
-            )}
+    <div className="h-full overflow-auto" style={{ backgroundColor: '#FFFFFF' }}>
+      {/* Header rediseñado (Bloque A.2) — título "Comunicaciones" + subtítulo
+          con contadores dinámicos + buscador con icono + botón sort discreto. */}
+      <div
+        className="sticky top-0 z-10 px-4 py-3"
+        style={{
+          backgroundColor: '#FFFFFF',
+          borderBottom: '1px solid #EDEDF0',
+        }}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <h2
+              className="truncate text-base font-semibold"
+              style={{ color: '#1C1C22', letterSpacing: '-0.01em' }}
+            >
+              Comunicaciones
+            </h2>
+            <p className="mt-0.5 text-xs" style={{ color: '#84848F' }}>
+              {conversations.length}{' '}
+              {conversations.length === 1 ? 'conversación' : 'conversaciones'}
+              {totalUnread > 0 && (
+                <>
+                  <span style={{ color: '#EDEDF0', margin: '0 6px' }}>·</span>
+                  <span style={{ color: '#6B4EFF', fontWeight: 500 }}>
+                    {totalUnread} sin leer
+                  </span>
+                </>
+              )}
+            </p>
           </div>
-          {/* Sort toggle */}
+          {/* Sort toggle discreto */}
           <button
-            className="rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 transition-colors"
+            className="flex-shrink-0 rounded-md px-2 py-1 text-[11px] transition-colors"
             onClick={() => setSortMode((m) => (m === 'recent' ? 'unread' : 'recent'))}
-            title={sortMode === 'recent' ? 'Ordenar: no leídos primero' : 'Ordenar: recientes primero'}
+            style={{
+              color: '#84848F',
+              backgroundColor: 'transparent',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            title={
+              sortMode === 'recent'
+                ? 'Ordenar: no leídos primero'
+                : 'Ordenar: recientes primero'
+            }
             type="button"
           >
-            {sortMode === 'recent' ? '🕐 Recientes' : '🔴 No leídos'}
+            {sortMode === 'recent' ? 'Recientes' : 'No leídos'}
           </button>
         </div>
-        <div className="mt-2">
+        {/* Buscador con icono Search y tokens del sistema */}
+        <div className="mt-2 relative">
+          <svg
+            aria-hidden
+            className="absolute left-2.5 top-1/2 -translate-y-1/2"
+            fill="none"
+            height="14"
+            stroke="#9A9AA6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="1.8"
+            viewBox="0 0 24 24"
+            width="14"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
           <input
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-md py-1.5 pr-3 text-sm focus:outline-none"
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar conversación..."
+            style={{
+              backgroundColor: '#F2F1F6',
+              border: '1px solid transparent',
+              color: '#1C1C22',
+              paddingLeft: '2rem',
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.backgroundColor = '#FFFFFF';
+              e.currentTarget.style.borderColor = '#6B4EFF';
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.backgroundColor = '#F2F1F6';
+              e.currentTarget.style.borderColor = 'transparent';
+            }}
             type="text"
             value={search}
           />
         </div>
       </div>
 
-      {/* Conversations */}
-      <div className="divide-y divide-gray-200">
+      {/* Conversations — divide-y con color sutil del sistema */}
+      <div style={{ borderColor: '#EDEDF0' }}>
         {filtered.length === 0 && search.trim() ? (
-          <div className="p-4 text-center text-sm text-gray-400">
+          <div className="p-4 text-center text-sm" style={{ color: '#9A9AA6' }}>
             Sin resultados para &ldquo;{search}&rdquo;
           </div>
         ) : null}
-        {filtered.map((conversation) => (
-          <ConversationItem
-            conversation={conversation}
-            isSelected={conversation.id === selectedId}
+        {filtered.map((conversation, idx) => (
+          <div
             key={conversation.id}
-          />
+            style={{
+              borderTop: idx === 0 ? 'none' : '1px solid #EDEDF0',
+            }}
+          >
+            <ConversationItem
+              conversation={conversation}
+              isSelected={conversation.id === selectedId}
+            />
+          </div>
         ))}
       </div>
     </div>
