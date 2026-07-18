@@ -51,6 +51,16 @@ const ICON_HISTORY = (
   </svg>
 );
 
+// Rediseño 18-jul Fase B — item nuevo "Agentes" (Cowork). Ver /agentes.
+const ICON_AGENTS = (
+  <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="20">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+    <circle cx="10" cy="7" r="4" />
+    <path d="M22 11l-2 2-2-2" />
+    <path d="M20 13V7" />
+  </svg>
+);
+
 interface MessagesRailProps {
   inboxUnread?: number;
   historyUnread?: number;
@@ -81,6 +91,12 @@ export function MessagesRail({
         matchPrefix: '/messages',
         icon: ICON_INBOX,
         unreadCount: inboxUnread,
+      },
+      {
+        href: '/agentes',
+        label: 'Agentes',
+        matchPrefix: '/agentes',
+        icon: ICON_AGENTS,
       },
       {
         href: '/messages?tab=history',
