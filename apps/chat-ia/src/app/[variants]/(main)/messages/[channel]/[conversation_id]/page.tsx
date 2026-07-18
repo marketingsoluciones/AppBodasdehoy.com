@@ -45,11 +45,14 @@ export default function ConversationPage({ params }: ConversationPageProps) {
 
   return (
     <>
-      <div className="hidden w-[420px] shrink-0 overflow-auto border-r border-gray-200 bg-white md:block">
+      <div
+        className="hidden w-[300px] shrink-0 overflow-auto md:block"
+        style={{ borderRight: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+      >
         <ConversationList channel={channel} selectedId={conversation_id} />
       </div>
 
-      <div className="flex flex-1 flex-col bg-gray-50">
+      <div className="flex flex-1 flex-col" style={{ backgroundColor: '#FCFCFD' }}>
         <div className="md:hidden flex items-center gap-2 border-b border-gray-200 bg-white px-2 py-1">
           <button
             aria-label="Volver"

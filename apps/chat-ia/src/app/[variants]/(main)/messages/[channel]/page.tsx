@@ -168,7 +168,10 @@ export default function ChannelPage({ params }: ChannelPageProps) {
 
       {/* Desktop: lista de conversaciones del canal + empty right */}
       <div className="hidden flex-1 overflow-hidden md:flex">
-        <div className="w-[420px] shrink-0 overflow-auto border-r border-gray-200 bg-white">
+        <div
+          className="w-[300px] shrink-0 overflow-auto"
+          style={{ borderRight: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+        >
           <ConversationList channel={channel} />
         </div>
         <div className="flex flex-1 items-center justify-center bg-gray-50">

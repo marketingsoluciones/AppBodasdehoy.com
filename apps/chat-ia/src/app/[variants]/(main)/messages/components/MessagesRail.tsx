@@ -1,7 +1,8 @@
 'use client';
 
 /**
- * MessagesRail — rail vertical 54px del lado izquierdo de la Bandeja.
+ * MessagesRail — rail vertical 56px del lado izquierdo de la Bandeja.
+ * Rediseño 18-jul: 54 → 56px + fondo #FCFCFD + border #EDEDF0 (tokens sistema).
  * Diseño 25-jun-2026 (handoff v2):
  *
  * De arriba a abajo:
@@ -102,8 +103,8 @@ export function MessagesRail({
   return (
     <nav
       aria-label="Rail navegación Bandeja"
-      className="hidden h-full w-[54px] shrink-0 flex-col items-center justify-between border-r py-3 lg:flex"
-      style={{ backgroundColor: '#F6F4FB', borderColor: '#EFEFF3' }}
+      className="hidden h-full w-[56px] shrink-0 flex-col items-center justify-between border-r py-3 lg:flex"
+      style={{ backgroundColor: '#FCFCFD', borderColor: '#EDEDF0' }}
     >
       {/* Top: avatar + items navegación */}
       <div className="flex flex-col items-center gap-2">
