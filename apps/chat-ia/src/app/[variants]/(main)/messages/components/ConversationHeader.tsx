@@ -12,9 +12,18 @@ interface ConversationHeaderProps {
   channel?: string;
   conversationId: string;
   onSearchFilter?: (term: string) => void;
+  /** Rediseño A.4 (18-jul): controla el sidebar desplegable de detalles. */
+  detailsOpen?: boolean;
+  onToggleDetails?: () => void;
 }
 
-export function ConversationHeader({ channel, conversationId, onSearchFilter }: ConversationHeaderProps) {
+export function ConversationHeader({
+  channel,
+  conversationId,
+  onSearchFilter,
+  detailsOpen,
+  onToggleDetails,
+}: ConversationHeaderProps) {
   const { conversations, loading: convListLoading } = useConversations(channel ?? null);
   const conversation = conversations.find((c) => c.id === conversationId);
 
@@ -342,6 +351,42 @@ export function ConversationHeader({ channel, conversationId, onSearchFilter }: 
             </svg>
           </button>
 
+          {/* Toggle "Detalles" — abre/cierra el sidebar derecho (A.4) */}
+          {onToggleDetails && (
+            <button
+              aria-label={detailsOpen ? 'Ocultar detalles' : 'Mostrar detalles'}
+              aria-pressed={!!detailsOpen}
+              className="flex h-8 w-8 items-center justify-center rounded-md transition-colors"
+              onClick={onToggleDetails}
+              style={{
+                backgroundColor: detailsOpen ? '#EDE9FE' : 'transparent',
+                color: detailsOpen ? '#6B4EFF' : '#84848F',
+              }}
+              onMouseEnter={(e) => {
+                if (!detailsOpen) e.currentTarget.style.backgroundColor = '#F2F1F6';
+              }}
+              onMouseLeave={(e) => {
+                if (!detailsOpen) e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+              title={detailsOpen ? 'Ocultar detalles del contacto' : 'Mostrar detalles del contacto'}
+              type="button"
+            >
+              {/* Lucide PanelRightOpen / PanelRightClose (stroke 1.8) */}
+              <svg
+                fill="none"
+                height="16"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.8"
+                viewBox="0 0 24 24"
+                width="16"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="15" x2="15" y1="3" y2="21" />
+              </svg>
+            </button>
+          )}
           {/* Menú más opciones — Lucide MoreVertical (antes ⋮) */}
           <div className="relative" ref={menuRef}>
             <button

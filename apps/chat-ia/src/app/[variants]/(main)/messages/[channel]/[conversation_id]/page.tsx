@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ConversationList } from '../../components/ConversationList';
 import { MessageList } from '../../components/MessageList';
@@ -25,12 +25,43 @@ function parseTaskChannel(channel: string): string | null {
   return m ? m[1] : null;
 }
 
+const SIDEBAR_EXPANDED_KEY = 'messages_sidebar_expanded_default';
+
 export default function ConversationPage({ params }: ConversationPageProps) {
   const { channel, conversation_id } = use(params);
   const router = useRouter();
   const [searchFilter, setSearchFilter] = useState('');
   // Móvil: bottom sheet con sidebar info contacto (Diseño 24-jun móvil)
   const [infoSheetOpen, setInfoSheetOpen] = useState(false);
+
+  // Rediseño A.4 (18-jul): panel derecho (EventSidebar / ConversationNotesSidebar)
+  // pasa de fijo 280px a desplegable con toggle "Detalles" en el header.
+  // Estado inicial COLAPSADO — persistido en localStorage. Hidratación via
+  // useEffect post-mount para no romper SSR (BUG-04 QA #13).
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (localStorage.getItem(SIDEBAR_EXPANDED_KEY) === '1') {
+        setSidebarExpanded(true);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+  const toggleSidebar = useCallback(() => {
+    setSidebarExpanded((prev) => {
+      const next = !prev;
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(SIDEBAR_EXPANDED_KEY, next ? '1' : '0');
+        }
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
 
   // Datos extra de la conversación para el sidebar de notas (linked_contact_id,
   // linked_event_id, nombre del contacto). useConversations ya carga la lista.
@@ -85,6 +116,8 @@ export default function ConversationPage({ params }: ConversationPageProps) {
             channel={channel}
             conversationId={conversation_id}
             onSearchFilter={setSearchFilter}
+            detailsOpen={sidebarExpanded}
+            onToggleDetails={toggleSidebar}
           />
         </div>
 
@@ -97,36 +130,38 @@ export default function ConversationPage({ params }: ConversationPageProps) {
         </div>
       </div>
 
-      {/* Sidebar derecho 280px — FASE B v2.0 handoff Bandeja Diseño 24-jun.
-          P9: render condicional según contexto:
-            · linkedEventId presente → EventSidebar (RSVP + asignación + datos + notas)
-            · linkedEventId vacío    → ConversationNotesSidebar (modo Soporte: solo notas)
-          Solo desktop ≥1024px. */}
-      <aside className="hidden w-[280px] shrink-0 overflow-hidden border-l border-gray-200 bg-white lg:flex lg:flex-col">
-        {conv?.linkedEventId ? (
-          <EventSidebar
-            conversationId={conversation_id}
-            contactName={conv.contact?.name}
-            contactPhone={conv.contact?.phone}
-            linkedContactId={conv.linkedContactId}
-            linkedEventId={conv.linkedEventId}
-            channel={conv.channel ?? channel}
-            // FASE B v2.0 — api-mcp commit 7d52fec (25-jun) expone guestStatus
-            // resolviendo invitado por teléfono internamente.
-            rsvpStatus={conv.guestStatus ?? undefined}
-            // assignedTo: api-mcp confirma user-asignación ya disponible
-            // (team requiere entidad Teams, sprint aparte). Cableo en próximo commit.
-          />
-        ) : (
-          <ConversationNotesSidebar
-            conversationId={conversation_id}
-            contactName={conv?.contact?.name}
-            linkedContactId={conv?.linkedContactId}
-            linkedEventId={conv?.linkedEventId}
-            channel={conv?.channel ?? channel}
-          />
-        )}
-      </aside>
+      {/* Sidebar derecho DESPLEGABLE 280px — Rediseño A.4 (18-jul).
+          Antes era fijo siempre visible ≥1024. Ahora se controla con toggle
+          "Detalles" en el header. Estado persistido en localStorage.
+          Render condicional (preservado):
+            · linkedEventId presente → EventSidebar (RSVP + asignación + notas)
+            · linkedEventId vacío    → ConversationNotesSidebar (modo Soporte) */}
+      {sidebarExpanded && (
+        <aside
+          className="hidden w-[280px] shrink-0 overflow-hidden lg:flex lg:flex-col"
+          style={{ borderLeft: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+        >
+          {conv?.linkedEventId ? (
+            <EventSidebar
+              conversationId={conversation_id}
+              contactName={conv.contact?.name}
+              contactPhone={conv.contact?.phone}
+              linkedContactId={conv.linkedContactId}
+              linkedEventId={conv.linkedEventId}
+              channel={conv.channel ?? channel}
+              rsvpStatus={conv.guestStatus ?? undefined}
+            />
+          ) : (
+            <ConversationNotesSidebar
+              conversationId={conversation_id}
+              contactName={conv?.contact?.name}
+              linkedContactId={conv?.linkedContactId}
+              linkedEventId={conv?.linkedEventId}
+              channel={conv?.channel ?? channel}
+            />
+          )}
+        </aside>
+      )}
 
       {/* Bottom sheet móvil 75% con sidebar info contacto.
           El sidebar derecho lateral NO existe en móvil (Diseño 24-jun). */}
