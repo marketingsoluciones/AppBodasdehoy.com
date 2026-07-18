@@ -14,6 +14,14 @@
  *   await registerReferralIfPending(jwtToken, development);
  */
 
+// Shim mínimo para `process.env.NODE_ENV` sin añadir @types/node al workspace.
+// El código real ya hace `typeof process !== 'undefined'` antes de usarlo,
+// pero TypeScript sin @types/node no reconoce el identificador y emitía
+// TS2580 al compilar packages/shared. Declaración local, no export.
+declare const process:
+  | { env?: { NODE_ENV?: string } | Record<string, string | undefined> }
+  | undefined;
+
 const DEFAULT_API_MCP_URL = 'https://api-mcp.eventosorganizador.com';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
