@@ -10,54 +10,33 @@
  * Layout 3 columnas:
  *   rail 56px  ·  lista agentes 260px  ·  ficha agente flex-1
  *
- * FUENTES DE DATOS:
- *   ✅ Sessions custom del usuario: `sessionSelectors.defaultSessions`
- *      filtrado por `type === 'agent'` (fuente real, ya cableada).
- *   ✅ Prompt editable: `useAgentStore.updateAgentConfig({ systemRole })`
- *      (ya existe, cableado).
- *   🔵 Estado activo/pausado: `config.disabled?: boolean` — extensión
- *      pendiente de `LobeAgentConfig`. Persistencia via PATCH
- *      /chat/sessions/{id}. MOCK con localStorage por ahora.
+ * FUENTES DE DATOS (actualizado 19-jul — commit "MOCK_AGENTS→sessions reales"):
+ *   ✅ Lista agentes: `sessionSelectors.defaultSessions` filtrado por
+ *      type='agent'. Real, persistido por backend (getSessionsService).
+ *   ✅ Prompt editable (systemRole): cableado con `useAgentStore.updateAgentConfig`
+ *      → internal_updateAgentConfig → sessionService.updateSessionConfig →
+ *      PATCH /chat/sessions/{id}. Persiste entre dispositivos.
+ *   ✅ Avatar / título / descripción: de `session.meta.{avatar,title,description}`.
+ *   🔵 Estado activo/pausado: `config.disabled?: boolean` — campo NO existe
+ *      aún en LobeAgentConfig. MOCK con localStorage hasta que backend lo
+ *      añada (Slack ts 1784383734).
  *   🔵 Métricas hoy (replies_count, resolved_percent, avg_response_seconds):
  *      endpoint /api/backend/chat/agents/{userId}/metrics?period=today
  *      pendiente backend (Slack ts 1784383734). MOCK por agente.
  *   🔵 Canales asignados: shape backend pendiente (Slack ts 1784383734).
  *      MOCK con localStorage.
  *   🔵 Actividad reciente + evento handoff: SSE type='handoff' pendiente
- *      backend. MOCK con datos ficticios.
+ *      backend. Vacía por defecto — sin mocks inventados.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useAgentStore } from '@/store/agent';
+import { useSessionStore } from '@/store/session';
+import { sessionSelectors } from '@/store/session/selectors';
+import { LobeSessionType, type LobeAgentSession } from '@/types/session';
+
 import { MessagesRail } from '../messages/components/MessagesRail';
-
-// ⚠️ MOCKS marcados con `TODO: reemplazar cuando backend exponga`.
-// Sin cablear con backend real hasta que api-ia confirme shapes.
-
-interface AgentMetrics {
-  replies_count: number;
-  resolved_percent: number;
-  avg_response_seconds: number;
-}
-
-interface AgentActivity {
-  id: string;
-  timestamp: string;
-  type: 'reply' | 'handoff' | 'config_change' | 'suggestion';
-  description: string;
-}
-
-interface AgentSummary {
-  agentId: string;
-  name: string;
-  description: string;
-  avatar: string; // emoji o inicial
-  disabled: boolean;
-  systemRole: string;
-  channels: string[]; // channelParams asignados
-  metrics: AgentMetrics;
-  activity: AgentActivity[];
-}
 
 // Colores canal (mismos que ConversationItem — coherencia con Fase A)
 const CHANNEL_DOT: Record<string, string> = {
@@ -77,56 +56,24 @@ const CHANNEL_LABEL: Record<string, string> = {
   email: 'Email',
 };
 
-// TODO: reemplazar por sessionSelectors.defaultSessions filtrado por type='agent'
-//       + fusionar con métricas del endpoint pendiente backend.
-const MOCK_AGENTS: AgentSummary[] = [
-  {
-    agentId: 'mock-agent-1',
-    name: 'Ana',
-    description: 'Especialista en atención a invitados',
-    avatar: '✦',
-    disabled: false,
-    systemRole:
-      'Eres Ana, asistente especializada en atención a invitados. Respondes con calidez, confirmas RSVPs y ayudas con dudas de menú, dieta, alojamiento y transporte. No inventes datos del evento — si no sabes, escala al organizador.',
-    channels: ['whatsapp', 'web'],
-    metrics: { replies_count: 47, resolved_percent: 82, avg_response_seconds: 23 },
-    activity: [
-      { id: 'a1', timestamp: '2h', type: 'reply', description: 'Respondió a María sobre menú vegetariano' },
-      { id: 'a2', timestamp: '3h', type: 'suggestion', description: 'Sugirió respuesta a Carlos (aprobada)' },
-      { id: 'a3', timestamp: '5h', type: 'handoff', description: 'Handoff a organizador — pregunta sobre alojamiento' },
-    ],
-  },
-  {
-    agentId: 'mock-agent-2',
-    name: 'Beto',
-    description: 'Comercial · calificación de leads',
-    avatar: '✦',
-    disabled: false,
-    systemRole:
-      'Eres Beto, comercial encargado de calificar leads entrantes. Preguntas por presupuesto, fecha estimada, número de invitados y tipo de evento. Marcas la conversación como calificada cuando tengas los 4 datos.',
-    channels: ['instagram', 'facebook', 'email'],
-    metrics: { replies_count: 12, resolved_percent: 33, avg_response_seconds: 45 },
-    activity: [
-      { id: 'b1', timestamp: '1h', type: 'reply', description: 'Nuevo lead — preguntando por presupuesto' },
-      { id: 'b2', timestamp: '4h', type: 'config_change', description: 'Prompt actualizado por Juan Carlos' },
-    ],
-  },
-  {
-    agentId: 'mock-agent-3',
-    name: 'Ceci',
-    description: 'Soporte técnico web (pausada)',
-    avatar: '✦',
-    disabled: true,
-    systemRole: 'Eres Ceci, encargada de resolver dudas técnicas de la web del evento.',
-    channels: ['web'],
-    metrics: { replies_count: 0, resolved_percent: 0, avg_response_seconds: 0 },
-    activity: [],
-  },
-];
+interface AgentActivity {
+  id: string;
+  timestamp: string;
+  type: 'reply' | 'handoff' | 'config_change' | 'suggestion';
+  description: string;
+}
+
+// Estado local persistido en localStorage — sólo los 4 mocks pendientes
+// de backend (disabled + channels). Métricas/actividad viven en memoria
+// mientras no lleguen del server (no tiene sentido cachearlos vacíos).
+interface LocalAgentState {
+  disabled?: boolean;
+  channels?: string[];
+}
 
 const AGENT_STATE_KEY_PREFIX = 'cowork_agent_state_';
 
-function loadLocalAgentState(agentId: string): Partial<AgentSummary> {
+function loadLocalAgentState(agentId: string): LocalAgentState {
   if (typeof window === 'undefined') return {};
   try {
     const raw = localStorage.getItem(`${AGENT_STATE_KEY_PREFIX}${agentId}`);
@@ -136,7 +83,7 @@ function loadLocalAgentState(agentId: string): Partial<AgentSummary> {
   }
 }
 
-function saveLocalAgentState(agentId: string, patch: Partial<AgentSummary>): void {
+function saveLocalAgentState(agentId: string, patch: LocalAgentState): void {
   if (typeof window === 'undefined') return;
   try {
     const current = loadLocalAgentState(agentId);
@@ -149,98 +96,170 @@ function saveLocalAgentState(agentId: string, patch: Partial<AgentSummary>): voi
   }
 }
 
-export default function AgentesPage() {
-  // TODO: reemplazar MOCK_AGENTS por sessionSelectors.defaultSessions filtrado
-  //       + fusionar con métricas del endpoint /api/backend/chat/agents/{userId}/metrics
-  const [agents, setAgents] = useState<AgentSummary[]>(MOCK_AGENTS);
-  const [selectedId, setSelectedId] = useState<string>(MOCK_AGENTS[0]?.agentId ?? '');
+// Extrae inicial del meta.title para el avatar cuando no hay meta.avatar.
+function agentInitial(title: string | undefined): string {
+  if (!title) return '✦';
+  const trimmed = title.trim();
+  return trimmed ? trimmed[0]!.toUpperCase() : '✦';
+}
 
-  // Hidratar estado local (disabled + channels + systemRole editados)
-  useEffect(() => {
-    setAgents((prev) =>
-      prev.map((a) => {
-        const local = loadLocalAgentState(a.agentId);
-        return { ...a, ...local };
-      }),
+export default function AgentesPage() {
+  // Sessions reales del store (persistidas por backend).
+  const agentSessions = useSessionStore((s) => {
+    const all = sessionSelectors.defaultSessions(s);
+    return all.filter(
+      (session): session is LobeAgentSession => session.type === LobeSessionType.Agent,
     );
-  }, []);
+  });
+  const switchSession = useSessionStore((s) => s.switchSession);
+  const activeId = useSessionStore((s) => s.activeId);
+  const isSessionListInit = useSessionStore(sessionSelectors.isSessionListInit);
+
+  // Prompt editable → escritura vía useAgentStore.updateAgentConfig
+  // (persiste PATCH /chat/sessions/{id}). Actúa sobre `activeId`, por eso
+  // la selección de la lista hace switchSession(id) antes de editar.
+  const updateAgentConfig = useAgentStore((s) => s.updateAgentConfig);
+
+  // Selección visual local (no cambia el activo hasta que el usuario
+  // interactúa con la ficha → evita side-effect al montar).
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!selectedId && agentSessions.length > 0) {
+      setSelectedId(agentSessions[0].id);
+    }
+  }, [selectedId, agentSessions]);
+
+  // Estado local (disabled + channels) por agente — memoria hasta backend.
+  const [localStates, setLocalStates] = useState<Record<string, LocalAgentState>>({});
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const map: Record<string, LocalAgentState> = {};
+    agentSessions.forEach((a) => {
+      map[a.id] = loadLocalAgentState(a.id);
+    });
+    setLocalStates(map);
+  }, [agentSessions]);
 
   const selected = useMemo(
-    () => agents.find((a) => a.agentId === selectedId) ?? agents[0],
-    [agents, selectedId],
+    () => agentSessions.find((a) => a.id === selectedId) ?? null,
+    [agentSessions, selectedId],
   );
 
-  const toggleAgentDisabled = useCallback(
-    (agentId: string) => {
-      setAgents((prev) =>
-        prev.map((a) => {
-          if (a.agentId !== agentId) return a;
-          const next = { ...a, disabled: !a.disabled };
-          saveLocalAgentState(agentId, { disabled: next.disabled });
-          // TODO: cablear PATCH /chat/sessions/{agentId} con { config: { disabled: next.disabled } }
-          //       cuando LobeAgentConfig acepte el campo (Slack ts 1784383734).
-          return next;
-        }),
-      );
+  const selectedLocal = selected ? (localStates[selected.id] ?? {}) : {};
+  const selectedDisabled = !!selectedLocal.disabled;
+  const selectedChannels = selectedLocal.channels ?? [];
+
+  // Estado del prompt en edición — controlled input con debounce a backend.
+  // Al cambiar de agente se re-hidrata desde session.config.systemRole.
+  const [promptDraft, setPromptDraft] = useState<string>('');
+  useEffect(() => {
+    setPromptDraft(selected?.config.systemRole ?? '');
+  }, [selected?.id, selected?.config.systemRole]);
+
+  const persistPrompt = useCallback(
+    async (systemRole: string) => {
+      if (!selected) return;
+      // updateAgentConfig actúa sobre activeId — cambiarlo primero si no coincide.
+      if (activeId !== selected.id) {
+        switchSession(selected.id);
+        // switchSession es sync, pero updateAgentConfig lee activeId en el instante
+        // siguiente. useEffect en el store actualiza. Pequeño retardo para asegurar.
+        await new Promise((r) => setTimeout(r, 0));
+      }
+      await updateAgentConfig({ systemRole });
     },
-    [],
+    [selected, activeId, switchSession, updateAgentConfig],
   );
 
-  const toggleChannelAssignment = useCallback(
-    (agentId: string, channel: string) => {
-      setAgents((prev) =>
-        prev.map((a) => {
-          if (a.agentId !== agentId) return a;
-          const has = a.channels.includes(channel);
-          const nextChannels = has ? a.channels.filter((c) => c !== channel) : [...a.channels, channel];
-          saveLocalAgentState(agentId, { channels: nextChannels });
-          // TODO: cablear POST /api/backend/chat/agents/{userId}/channel-assignments
-          //       body { agentId, channels: nextChannels } (Slack ts 1784383734).
-          return { ...a, channels: nextChannels };
-        }),
-      );
-    },
-    [],
-  );
+  // Debounce 800ms — al parar de escribir persiste. Coherente con el patrón
+  // de otros settings del propio LobeChat (AgentSetting).
+  useEffect(() => {
+    if (!selected) return;
+    if (promptDraft === (selected.config.systemRole ?? '')) return;
+    const t = setTimeout(() => {
+      void persistPrompt(promptDraft);
+    }, 800);
+    return () => clearTimeout(t);
+  }, [promptDraft, selected, persistPrompt]);
 
-  const updateSystemRole = useCallback((agentId: string, systemRole: string) => {
-    setAgents((prev) =>
-      prev.map((a) => {
-        if (a.agentId !== agentId) return a;
-        saveLocalAgentState(agentId, { systemRole });
-        // ✅ CABLEADO: PATCH /chat/sessions/{agentId} con { config: { systemRole } }
-        //    via useAgentStore.updateAgentConfig — ya existe en el store.
-        //    (implementación real usará el store cuando sustituyamos MOCK_AGENTS
-        //    por sessionSelectors.defaultSessions).
-        return { ...a, systemRole };
-      }),
-    );
+  const toggleAgentDisabled = useCallback((agentId: string) => {
+    setLocalStates((prev) => {
+      const current = prev[agentId] ?? {};
+      const next: LocalAgentState = { ...current, disabled: !current.disabled };
+      saveLocalAgentState(agentId, { disabled: next.disabled });
+      // TODO: cablear PATCH /chat/sessions/{agentId} con { config: { disabled } }
+      //       cuando LobeAgentConfig acepte el campo (Slack ts 1784383734).
+      return { ...prev, [agentId]: next };
+    });
   }, []);
 
-  if (!selected) {
+  const toggleChannelAssignment = useCallback((agentId: string, channel: string) => {
+    setLocalStates((prev) => {
+      const current = prev[agentId] ?? {};
+      const has = (current.channels ?? []).includes(channel);
+      const nextChannels = has
+        ? (current.channels ?? []).filter((c) => c !== channel)
+        : [...(current.channels ?? []), channel];
+      const next: LocalAgentState = { ...current, channels: nextChannels };
+      saveLocalAgentState(agentId, { channels: nextChannels });
+      // TODO: cablear POST /api/backend/chat/agents/{userId}/channel-assignments
+      //       body { agentId, channels: nextChannels } (Slack ts 1784383734).
+      return { ...prev, [agentId]: next };
+    });
+  }, []);
+
+  // === Empty states =========================================================
+
+  // Sessions aún no hidratadas — Redirect.tsx ya evita el fullscreen loader
+  // en /agentes (ROUTES_TO_SKIP). Aquí ponemos placeholder discreto para
+  // evitar mostrar "no tienes agentes" mientras cargan.
+  if (!isSessionListInit) {
     return (
-      <div
-        className="flex h-full items-center justify-center px-6"
-        style={{ backgroundColor: '#FCFCFD' }}
-      >
-        <div className="text-center max-w-md">
-          <p className="text-lg font-semibold" style={{ color: '#1C1C22' }}>
-            Aún no tienes agentes creados
+      <div className="flex h-full" style={{ backgroundColor: '#FFFFFF' }}>
+        <MessagesRail />
+        <div className="flex flex-1 items-center justify-center">
+          <p className="text-sm" style={{ color: '#84848F' }}>
+            Cargando tus agentes…
           </p>
-          <p className="mt-2 text-sm" style={{ color: '#84848F' }}>
-            Crea tu primer agente para automatizar respuestas en tus canales.
-          </p>
-          <button
-            className="mt-4 rounded-md px-4 py-2 text-sm font-semibold text-white"
-            style={{ backgroundColor: '#1C1C22' }}
-            type="button"
-          >
-            Crear agente
-          </button>
         </div>
       </div>
     );
   }
+
+  if (agentSessions.length === 0) {
+    return (
+      <div className="flex h-full" style={{ backgroundColor: '#FFFFFF' }}>
+        <MessagesRail />
+        <div className="flex flex-1 items-center justify-center px-6">
+          <div className="max-w-md text-center">
+            <div
+              className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full text-2xl font-semibold"
+              style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
+            >
+              ✦
+            </div>
+            <p className="text-lg font-semibold" style={{ color: '#1C1C22' }}>
+              Aún no tienes agentes creados
+            </p>
+            <p className="mt-2 text-sm" style={{ color: '#84848F' }}>
+              Crea tu primer agente en Copilot para atender conversaciones por WhatsApp,
+              Instagram, Facebook y otros canales de forma automática.
+            </p>
+            <a
+              className="mt-4 inline-block rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
+              href="/chat"
+              style={{ backgroundColor: '#1C1C22' }}
+            >
+              Ir a Copilot
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // === Vista principal ======================================================
 
   return (
     <div className="flex h-full overflow-hidden" style={{ backgroundColor: '#FFFFFF' }}>
@@ -260,19 +279,23 @@ export default function AgentesPage() {
             Tu equipo
           </h1>
           <p className="mt-0.5 text-xs" style={{ color: '#84848F' }}>
-            {agents.filter((a) => !a.disabled).length} activos · {agents.length}{' '}
-            {agents.length === 1 ? 'agente' : 'agentes'}
+            {agentSessions.filter((a) => !localStates[a.id]?.disabled).length} activos ·{' '}
+            {agentSessions.length} {agentSessions.length === 1 ? 'agente' : 'agentes'}
           </p>
         </div>
         <div className="flex-1 overflow-auto">
-          {agents.map((agent) => {
-            const isSelected = agent.agentId === selectedId;
+          {agentSessions.map((agent) => {
+            const isSelected = agent.id === selectedId;
+            const disabled = !!localStates[agent.id]?.disabled;
+            const title = agent.meta.title ?? 'Sin nombre';
+            const description = agent.meta.description ?? '';
+            const avatar = agent.meta.avatar || agentInitial(agent.meta.title);
             return (
               <button
-                key={agent.agentId}
+                key={agent.id}
                 aria-current={isSelected}
                 className="w-full text-left transition-colors"
-                onClick={() => setSelectedId(agent.agentId)}
+                onClick={() => setSelectedId(agent.id)}
                 style={{
                   backgroundColor: isSelected ? '#F2F1F6' : 'transparent',
                   borderBottom: '1px solid #EDEDF0',
@@ -288,30 +311,37 @@ export default function AgentesPage() {
                 <div className="flex items-start gap-3 px-3 py-3">
                   <div className="relative flex-shrink-0">
                     <div
-                      className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold"
+                      className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full text-sm font-semibold"
                       style={{
-                        backgroundColor: agent.disabled ? '#F2F1F6' : '#EDE9FE',
-                        color: agent.disabled ? '#84848F' : '#6B4EFF',
+                        backgroundColor: disabled ? '#F2F1F6' : '#EDE9FE',
+                        color: disabled ? '#84848F' : '#6B4EFF',
                       }}
                     >
-                      {agent.avatar}
+                      {avatar.startsWith('http') || avatar.startsWith('data:') ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img alt="" className="h-full w-full object-cover" src={avatar} />
+                      ) : (
+                        avatar
+                      )}
                     </div>
                     <span
-                      aria-label={agent.disabled ? 'Pausado' : 'Activo'}
+                      aria-label={disabled ? 'Pausado' : 'Activo'}
                       className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full"
                       style={{
-                        backgroundColor: agent.disabled ? '#D4D4D8' : '#22C55E',
+                        backgroundColor: disabled ? '#D4D4D8' : '#22C55E',
                         boxShadow: '0 0 0 2px #FFFFFF',
                       }}
                     />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold" style={{ color: '#1C1C22' }}>
-                      {agent.name}
+                      {title}
                     </div>
-                    <div className="mt-0.5 truncate text-xs" style={{ color: '#84848F' }}>
-                      {agent.description}
-                    </div>
+                    {description && (
+                      <div className="mt-0.5 truncate text-xs" style={{ color: '#84848F' }}>
+                        {description}
+                      </div>
+                    )}
                   </div>
                 </div>
               </button>
@@ -319,20 +349,12 @@ export default function AgentesPage() {
           })}
         </div>
         <div style={{ borderTop: '1px solid #EDEDF0' }}>
-          <button
+          <a
             className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium transition-colors"
-            onClick={() => {
-              // TODO: reusar sessionService.createSession({ type: 'agent' })
-              //       cuando sustituyamos MOCK_AGENTS por sessions reales.
-              // eslint-disable-next-line no-alert
-              alert(
-                'Crear agente: aún no cableado. Se conectará con sessionService.createSession cuando sustituyamos MOCK_AGENTS por sessions reales.',
-              );
-            }}
-            style={{ color: '#6B4EFF', backgroundColor: 'transparent' }}
+            href="/chat"
+            style={{ color: '#6B4EFF' }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-            type="button"
           >
             <svg
               fill="none"
@@ -346,252 +368,240 @@ export default function AgentesPage() {
             >
               <path d="M12 5v14M5 12h14" />
             </svg>
-            Crear agente
-          </button>
+            Crear agente en Copilot
+          </a>
         </div>
       </aside>
 
       {/* Ficha del agente flex-1 */}
-      <section className="flex flex-1 flex-col overflow-auto">
-        {/* Cabecera ficha */}
-        <div
-          className="sticky top-0 z-10 px-6 py-4"
-          style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #EDEDF0' }}
-        >
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div
-                className="flex h-11 w-11 items-center justify-center rounded-full text-lg font-semibold"
-                style={{
-                  backgroundColor: selected.disabled ? '#F2F1F6' : '#EDE9FE',
-                  color: selected.disabled ? '#84848F' : '#6B4EFF',
-                }}
-              >
-                {selected.avatar}
+      {selected && (
+        <section className="flex flex-1 flex-col overflow-auto">
+          {/* Cabecera ficha */}
+          <div
+            className="sticky top-0 z-10 px-6 py-4"
+            style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #EDEDF0' }}
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div
+                  className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full text-lg font-semibold"
+                  style={{
+                    backgroundColor: selectedDisabled ? '#F2F1F6' : '#EDE9FE',
+                    color: selectedDisabled ? '#84848F' : '#6B4EFF',
+                  }}
+                >
+                  {(() => {
+                    const av = selected.meta.avatar || agentInitial(selected.meta.title);
+                    return av.startsWith('http') || av.startsWith('data:') ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img alt="" className="h-full w-full object-cover" src={av} />
+                    ) : (
+                      av
+                    );
+                  })()}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-semibold" style={{ color: '#1C1C22' }}>
+                      {selected.meta.title ?? 'Sin nombre'}
+                    </h2>
+                    <span
+                      className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                      style={{
+                        backgroundColor: selectedDisabled ? '#F2F1F6' : '#DCFCE7',
+                        color: selectedDisabled ? '#84848F' : '#166534',
+                      }}
+                    >
+                      {selectedDisabled ? 'Pausado' : 'Activo'}
+                    </span>
+                  </div>
+                  {selected.meta.description && (
+                    <p className="mt-0.5 text-xs" style={{ color: '#84848F' }}>
+                      {selected.meta.description}
+                    </p>
+                  )}
+                </div>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold" style={{ color: '#1C1C22' }}>
-                    {selected.name}
-                  </h2>
+              <button
+                aria-pressed={!selectedDisabled}
+                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+                onClick={() => toggleAgentDisabled(selected.id)}
+                style={{
+                  backgroundColor: selectedDisabled ? '#F2F1F6' : '#1C1C22',
+                  color: selectedDisabled ? '#1C1C22' : '#FFFFFF',
+                }}
+                type="button"
+              >
+                {selectedDisabled ? 'Reanudar' : 'Pausar'}
+              </button>
+            </div>
+          </div>
+
+          {/* Contenido ficha */}
+          <div className="flex-1 overflow-auto px-6 py-6">
+            <div className="mx-auto max-w-3xl space-y-6">
+              {/* Rendimiento hoy — mock hasta backend */}
+              <div
+                className="rounded-lg p-4"
+                style={{ border: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
+                    Rendimiento hoy
+                  </h3>
                   <span
-                    className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                    style={{
-                      backgroundColor: selected.disabled ? '#F2F1F6' : '#DCFCE7',
-                      color: selected.disabled ? '#84848F' : '#166534',
-                    }}
+                    className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
+                    style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
+                    title="Datos mock — backend pendiente"
                   >
-                    {selected.disabled ? 'Pausado' : 'Activo'}
+                    PRÓXIMAMENTE
                   </span>
                 </div>
-                <p className="mt-0.5 text-xs" style={{ color: '#84848F' }}>
-                  {selected.description}
+                <div className="grid grid-cols-3 gap-4">
+                  <MetricCard label="Respuestas" value="—" />
+                  <MetricCard label="Resueltas sola" value="—" />
+                  <MetricCard label="Tiempo medio" value="—" />
+                </div>
+                <p className="mt-3 text-[11px]" style={{ color: '#9A9AA6' }}>
+                  Las métricas se activarán cuando el backend exponga el endpoint
+                  de rendimiento por agente.
                 </p>
               </div>
-            </div>
-            {/* Toggle Encendido/Apagado */}
-            <button
-              aria-pressed={!selected.disabled}
-              className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
-              onClick={() => toggleAgentDisabled(selected.agentId)}
-              style={{
-                backgroundColor: selected.disabled ? '#F2F1F6' : '#1C1C22',
-                color: selected.disabled ? '#1C1C22' : '#FFFFFF',
-              }}
-              type="button"
-            >
-              {selected.disabled ? 'Reanudar' : 'Pausar'}
-            </button>
-          </div>
-        </div>
 
-        {/* Contenido ficha */}
-        <div className="flex-1 overflow-auto px-6 py-6">
-          <div className="mx-auto max-w-3xl space-y-6">
-            {/* Rendimiento hoy */}
-            <div
-              className="rounded-lg p-4"
-              style={{ border: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
-                  Rendimiento hoy
-                </h3>
-                <span
-                  className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
-                  style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
-                  title="Datos mock — backend pendiente"
-                >
-                  DEMO
-                </span>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <MetricCard
-                  label="Respuestas"
-                  value={selected.metrics.replies_count.toString()}
-                />
-                <MetricCard
-                  label="Resueltas sola"
-                  value={`${selected.metrics.resolved_percent}%`}
-                />
-                <MetricCard
-                  label="Tiempo medio"
-                  value={`${selected.metrics.avg_response_seconds}s`}
-                />
-              </div>
-            </div>
-
-            {/* Canales asignados */}
-            <div
-              className="rounded-lg p-4"
-              style={{ border: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
-                  Canales asignados
-                </h3>
-                <span
-                  className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
-                  style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
-                  title="Persistencia local hasta que backend confirme shape"
-                >
-                  BETA
-                </span>
-              </div>
-              <p className="mb-3 text-xs" style={{ color: '#84848F' }}>
-                Cuando llegue un mensaje por uno de estos canales, este agente lo atenderá según su
-                configuración.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {Object.keys(CHANNEL_LABEL).map((ch) => {
-                  const isActive = selected.channels.includes(ch);
-                  return (
-                    <button
-                      key={ch}
-                      aria-pressed={isActive}
-                      className="flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
-                      onClick={() => toggleChannelAssignment(selected.agentId, ch)}
-                      style={{
-                        backgroundColor: isActive ? '#EDE9FE' : '#FFFFFF',
-                        border: `1px solid ${isActive ? '#EDE9FE' : '#EDEDF0'}`,
-                        color: isActive ? '#6B4EFF' : '#84848F',
-                      }}
-                      type="button"
-                    >
-                      <span
-                        className="h-2 w-2 rounded-full"
-                        style={{ backgroundColor: CHANNEL_DOT[ch] ?? '#84848F' }}
-                      />
-                      {CHANNEL_LABEL[ch]}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Instrucciones del agente (prompt editable) */}
-            <div
-              className="rounded-lg p-4"
-              style={{ border: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
-            >
-              <h3 className="mb-2 text-sm font-semibold" style={{ color: '#1C1C22' }}>
-                Instrucciones del agente
-              </h3>
-              <p className="mb-3 text-xs" style={{ color: '#84848F' }}>
-                Estas son las reglas que sigue el agente al responder. Cámbialas para ajustar tono,
-                límites y comportamiento.
-              </p>
-              <textarea
-                className="w-full rounded-md p-3 text-sm focus:outline-none"
-                onChange={(e) => updateSystemRole(selected.agentId, e.target.value)}
-                rows={6}
-                style={{
-                  backgroundColor: '#F2F1F6',
-                  border: '1px solid transparent',
-                  color: '#1C1C22',
-                  resize: 'vertical',
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.backgroundColor = '#FFFFFF';
-                  e.currentTarget.style.borderColor = '#6B4EFF';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.backgroundColor = '#F2F1F6';
-                  e.currentTarget.style.borderColor = 'transparent';
-                }}
-                value={selected.systemRole}
-              />
-            </div>
-
-            {/* Actividad reciente */}
-            <div
-              className="rounded-lg p-4"
-              style={{ border: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
-                  Actividad reciente
-                </h3>
-                <span
-                  className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
-                  style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
-                  title="Datos mock — evento handoff pendiente en SSE"
-                >
-                  DEMO
-                </span>
-              </div>
-              {selected.activity.length === 0 ? (
-                <p className="text-xs" style={{ color: '#9A9AA6' }}>
-                  Sin actividad reciente. Cuando el agente responda o se produzca un handoff aparecerá
-                  aquí.
+              {/* Canales asignados — beta local */}
+              <div
+                className="rounded-lg p-4"
+                style={{ border: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
+                    Canales asignados
+                  </h3>
+                  <span
+                    className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
+                    style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
+                    title="Persistencia local hasta que backend confirme shape"
+                  >
+                    BETA
+                  </span>
+                </div>
+                <p className="mb-3 text-xs" style={{ color: '#84848F' }}>
+                  Cuando llegue un mensaje por uno de estos canales, este agente lo atenderá según su
+                  configuración.
                 </p>
-              ) : (
-                <ul className="space-y-2">
-                  {selected.activity.map((a) => (
-                    <li key={a.id} className="flex items-start gap-3">
-                      <span
-                        className="mt-1 h-2 w-2 shrink-0 rounded-full"
+                <div className="flex flex-wrap gap-2">
+                  {Object.keys(CHANNEL_LABEL).map((ch) => {
+                    const isActive = selectedChannels.includes(ch);
+                    return (
+                      <button
+                        key={ch}
+                        aria-pressed={isActive}
+                        className="flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
+                        onClick={() => toggleChannelAssignment(selected.id, ch)}
                         style={{
-                          backgroundColor:
-                            a.type === 'handoff'
-                              ? '#F59E0B'
-                              : a.type === 'config_change'
-                                ? '#84848F'
-                                : '#6B4EFF',
+                          backgroundColor: isActive ? '#EDE9FE' : '#FFFFFF',
+                          border: `1px solid ${isActive ? '#EDE9FE' : '#EDEDF0'}`,
+                          color: isActive ? '#6B4EFF' : '#84848F',
                         }}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs" style={{ color: '#1C1C22' }}>
-                          {a.description}
-                        </p>
-                        <p className="mt-0.5 text-[11px]" style={{ color: '#9A9AA6' }}>
-                          hace {a.timestamp}
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+                        type="button"
+                      >
+                        <span
+                          className="h-2 w-2 rounded-full"
+                          style={{ backgroundColor: CHANNEL_DOT[ch] ?? '#84848F' }}
+                        />
+                        {CHANNEL_LABEL[ch]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-            {/* Nota mocks */}
-            <p className="text-center text-[11px] italic" style={{ color: '#9A9AA6' }}>
-              Los datos marcados DEMO son mocks. Se cablearán cuando backend confirme shapes
-              (endpoint métricas + asignación canales + evento handoff, Slack ts 1784383734).
-            </p>
+              {/* Instrucciones del agente — cableado a updateAgentConfig */}
+              <div
+                className="rounded-lg p-4"
+                style={{ border: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
+                    Instrucciones del agente
+                  </h3>
+                  <span
+                    className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
+                    style={{ backgroundColor: '#DCFCE7', color: '#166534' }}
+                    title="Se guarda en el backend"
+                  >
+                    GUARDADO EN LA NUBE
+                  </span>
+                </div>
+                <p className="mb-3 text-xs" style={{ color: '#84848F' }}>
+                  Estas son las reglas que sigue el agente al responder. Los cambios se guardan
+                  automáticamente y persisten entre dispositivos.
+                </p>
+                <textarea
+                  className="w-full rounded-md p-3 text-sm focus:outline-none"
+                  onChange={(e) => setPromptDraft(e.target.value)}
+                  rows={8}
+                  style={{
+                    backgroundColor: '#F2F1F6',
+                    border: '1px solid transparent',
+                    color: '#1C1C22',
+                    resize: 'vertical',
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.backgroundColor = '#FFFFFF';
+                    e.currentTarget.style.borderColor = '#6B4EFF';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.backgroundColor = '#F2F1F6';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }}
+                  value={promptDraft}
+                />
+              </div>
+
+              {/* Actividad reciente — mock hasta SSE handoff */}
+              <div
+                className="rounded-lg p-4"
+                style={{ border: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
+                    Actividad reciente
+                  </h3>
+                  <span
+                    className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
+                    style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
+                    title="Feed de actividad pendiente en SSE"
+                  >
+                    PRÓXIMAMENTE
+                  </span>
+                </div>
+                <p className="text-xs" style={{ color: '#9A9AA6' }}>
+                  Cuando el agente responda o se produzca un handoff aparecerá aquí. Feed en tiempo
+                  real por SSE (pendiente backend).
+                </p>
+              </div>
+
+              {/* Nota al pie */}
+              <p className="text-center text-[11px] italic" style={{ color: '#9A9AA6' }}>
+                Instrucciones y datos del agente ({selected.meta.title ?? 'agente'}) guardados en la
+                nube. Rendimiento, asignación de canales y feed en tiempo real se activarán cuando
+                backend confirme shapes (Slack ts 1784383734).
+              </p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }
 
+// Silenciar warning TS por reservar el type (útil para futuros expandir)
+export type _AgentActivity = AgentActivity;
+
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div
-      className="rounded-md px-3 py-2"
-      style={{ backgroundColor: '#F2F1F6' }}
-    >
+    <div className="rounded-md px-3 py-2" style={{ backgroundColor: '#F2F1F6' }}>
       <div className="text-xs" style={{ color: '#84848F' }}>
         {label}
       </div>
