@@ -14,6 +14,7 @@ import { BANNER_HEIGHT } from '@/features/AlertBanner/CloudBanner';
 import { TITLE_BAR_HEIGHT } from '@/features/ElectronTitlebar/const';
 import { useCrossAppActiveEventSync } from '@/hooks/useCrossAppActiveEventSync';
 import { usePlatform } from '@/hooks/usePlatform';
+import { useStickyEventPerSession } from '@/hooks/useStickyEventPerSession';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { HotkeyScopeEnum } from '@/types/hotkey';
 
@@ -40,6 +41,7 @@ const Layout = memo<PropsWithChildren>(({ children }) => {
   const theme = useTheme();
 
   useCrossAppActiveEventSync();
+  useStickyEventPerSession();
 
   // QA 30-jun: si StoreInitialization llega a hacer setState con featureFlags=undefined
   // (caso `getGlobalConfig` retorna serverFeatureFlags=undefined), el selector devuelve

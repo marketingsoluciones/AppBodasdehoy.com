@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 
+import { trackContextAmbiguity } from '@/utils/copilotTelemetry';
+
 const COOKIE_NAME = 'bodas_active_event';
 const LS_ID = 'current_event_id';
 const LS_NAME = 'current_event_name';
@@ -29,13 +31,26 @@ export const useCrossAppActiveEventSync = () => {
 
     const sync = () => {
       const cookieId = readCookie(COOKIE_NAME);
-      if (!cookieId) return;
       const localId = localStorage.getItem(LS_ID);
+      if (!cookieId) {
+        // X3: sin cookie ni localStorage → ambigüedad completa. Logueamos una
+        // sola vez por sesión (evitamos ruido con SESSION storage).
+        if (!localId && !sessionStorage.getItem('chatia:ambig_logged')) {
+          sessionStorage.setItem('chatia:ambig_logged', '1');
+          trackContextAmbiguity({
+            reason: 'no_context_at_all',
+            route: window.location.pathname,
+          });
+        }
+        return;
+      }
       if (cookieId === localId) return;
 
       localStorage.setItem(LS_ID, cookieId);
       localStorage.removeItem(LS_NAME);
       localStorage.removeItem(LS_TYPE);
+      // Cambio real: reset flag para permitir volver a loguear si cambia el estado
+      sessionStorage.removeItem('chatia:ambig_logged');
       window.dispatchEvent(
         new CustomEvent('chatia:activeEventChanged', {
           detail: { eventId: cookieId, prevEventId: localId },

@@ -34,6 +34,9 @@
 - ✅ **Login `apps/appEventos/pages/login.tsx` usa `SplitLoginPage`** de `@bodasdehoy/auth-ui` ([login.tsx:6,187](../apps/appEventos/pages/login.tsx#L6)) — auditoría cerrada 2026-07-20.
 - ✅ **Auto-sugerir provider por dominio** — [`packages/auth-ui/src/LoginForm.tsx:172`](../packages/auth-ui/src/LoginForm.tsx#L172) ya mapea domain → provider.
 - ✅ **Lazy shiki/katex/cytoscape** — verificado sin imports directos en `apps/chat-ia/src` (transitive OK), no aplica.
+- ✅ **X2(a) Write-guard mutación IA** — flujo `confirm_required` SSE end-to-end: front handler + `ConfirmationCard` en [`CopilotEmbed.tsx:710-712,597,1163-1173`](../apps/appEventos/components/Copilot/CopilotEmbed.tsx#L710); prompt backend obliga confirmación en [`chat.ts:154`](../apps/appEventos/pages/api/copilot/chat.ts#L154). Tipos en [`copilotChat.ts:72,113,196`](../apps/appEventos/services/copilotChat.ts#L72).
+- ✅ **B4 Guard notas CRM `CRM_NotesResponse.notes` null** — cerrado en fuente compartida [`useCRMNotes.ts:113`](../packages/shared/src/crm-ui/useCRMNotes.ts#L113) `result?.notes ?? []`. El bug backend api-mcp sigue abierto (`docs/BUG-CRM-NOTES-NON-NULLABLE-2026-07-07.md`), pero front está protegido.
+- ⚫ **B5 Rename `/api/lobe/*` → `/api/chat/*`** — descartado. El rename real fue a `/api/history/*` (`a0ec2c32`). Renombrar otra vez no aporta.
 
 ---
 
@@ -57,31 +60,36 @@ Esfuerzo: **S** ≤ ½ día · **M** 1-2 días · **L** > 3 días.
 |---|---|---|---|---|---|
 | ~~C1a~~ | ~~Borrar pglite + neondatabase (fantasmas)~~ | ~~P0~~ | — | ❌ **CANCELADO** | No eran fantasmas: viven en el sub-package `@lobechat/database` que sí se usa |
 | C1b | Migrar `drizzle-orm` fuera de `src/` | P1 | M | 🟡 parcial | Con C6 desaparecen 1 de 3 imports (`nextAuthUser`); quedan `oidc-provider/adapter` y `import/client.test.ts` |
-| C1c | **Migrar 6 routers lambda a api-ia** (aiChat, memory, agent, generation, apiKey, aiModel) | P1 | **L** | 🔴 | Cerrar la migración a medias del PLAN-ADELGAZAR. Solo así se puede quitar `@lobechat/database` + drizzle + pglite del root |
-| C2 | Borrar dir `(main)/discover/` (175 archivos) tras extraer `MCPShared` | P1 | M | 🔴 | Ya oculto por flag |
-| C3a | Borrar dir `(main)/knowledge/` (31 archivos) | P1 | S | 🔴 | Oculto por flag; reactivable si api-ia cierra B1 |
-| C3b | Decidir `(main)/image/` (63 archivos): borrar o extraer | P2 | L | 🔴 | Decisión producto |
+| C1c | **Migrar 9 routers lambda a api-ia** (aiChat, memory, agent, generation, apiKey, aiModel, **exporter, importer, market**) | P1 | **XL** | 🔴 | Cerrar la migración a medias del PLAN-ADELGAZAR. Solo así se puede quitar `@lobechat/database` + drizzle + pglite del root. **Auditoría 2026-07-20 corrigió de 6 a 9 routers** |
+| C2 | Decidir `(main)/discover/` (175 archivos) | P1 | M | 🔴 | **NO está oculto** — layout no gatea, ruta `/discover` accesible en dev; `showMarket=true` default solo oculta sidebar. Decidir producto: borrar completo o gatear con `notFound()` en el layout |
+| C3a | Decidir `(main)/knowledge/` (31 archivos) | P1 | S | 🔴 | Gateado en `knowledge/layout.tsx:7-9` pero `knowledge_base=true` default → **hoy es accesible**. Reactivable si api-ia cierra B1 |
+| C3b | Decidir `(main)/image/` (63 archivos) | P2 | L | 🔴 | Gateado `!isServerMode` pero `NEXT_PUBLIC_SERVICE_MODE=server` en prod → **hoy es accesible**. Decisión producto |
 | C5 | Actualizar 5 líneas obsoletas en `PLAN-COPILOT-MONOREPO.md` | P2 | S | ✅ 2026-07-20 | apps/web→apps/appEventos · packages/copilot-ui→copilot-shared |
 | **C6** | **Borrar código muerto identificado en auditoría 2026-07-20** | P0 | S | ✅ 2026-07-20 | 9 archivos, ~1140 líneas: `services/{document,nextAuthUser,user}`, Clerk webhooks (Clerk off), avatar route (0 consumers). Type-check verde |
-| C7 | Borrar árbol OIDC (`libs/oidc-provider/*` + rutas + oauth pages) | P2 | M | 🔴 | Bloqueado por `libs/trpc/lambda/context.ts:8` que importa `validateOIDCJWT`. Requiere refactor del context |
+| **C7** | **Borrar árbol OIDC** | P2 | M | ✅ 2026-07-20 | Stub minimal en `libs/oidc-provider/jwt.ts` (getJWKS/validateOIDCJWT lanzan 401). Borrado: 6 archivos libs + 4 rutas backend + 8 pages oauth + 2 server/services/oidc + limpieza middleware.ts. ~3600 líneas |
+| **C8** | **Borrar stubs SSO + UI SSOProvidersList** | P1 | S | ✅ 2026-07-20 | UI `SSOProvidersList` + métodos `getUserSSOProviders`/`unlinkSSOProvider` + imports `AdapterAccount`. ~112 líneas |
+| **C9** | **Borrar dead code pglite import service** | P2 | S | ✅ 2026-07-20 | `services/import/client.ts` + `.test.ts` + require condicional. ~1080 líneas |
 
 ### 2.2 · Copilot / contexto evento (front puede casi todo)
 
 | # | Objetivo | Prio | Esf | Estado | Detalle |
 |---|---|---|---|---|---|
 | **X1** | **CTX-C** — `activeEventId` mutable cross-app entre appEventos ↔ chat-ia fullscreen | **P0** | S | ✅ 2026-07-20 | Cookie `bodas_active_event` en `.bodasdehoy.com` desde `EventContext.setEvent()` + hook `useCrossAppActiveEventSync` en chat-ia (Desktop/Mobile layout) lee al montar y en `visibilitychange`. Emite `CustomEvent('chatia:activeEventChanged')` |
-| X2 | Best practices §5.1 front Copilot | P1 | M | Write-guard antes de mutar por IA · sticky de evento por conversación · normalización de nombres (accents/case) · quick-replies "¿cuál evento?" · chip contexto editable en header. | api-ia parcial (X3) |
-| X3 | Telemetría de ambigüedad de contexto | P1 | S | Log estructurado cuando IA no puede resolver evento (nombre repetido, sin activeEventId). | Backend api-ia P4 (user_id en logs) |
+| **X2(b)** | **Sticky evento por conversación (MVP client-only)** | P1 | M | ✅ 2026-07-21 | `hooks/useStickyEventPerSession.ts` monitoriza `useSessionStore.activeId`; al cambiar guarda `current_event_id` bajo `chatia:session_event:<sessionId>` (localStorage) y restaura el guardado de la nueva. Emite `chatia:activeEventChanged { source: 'sticky-session' }`. Wired en Desktop+Mobile. Migrar a `session.metadata.eventId` cuando api-ia lo soporte |
+| **X2(c)** | **Normalización nombres eventos** | P1 | S | ✅ 2026-07-21 | `utils/normalizeEventName.ts` (NFD + strip acentos + colapsa espacios + lowercase) + `eventNamesMatch(a,b)` + 6 tests verdes |
+| X2(d) | Quick-replies "¿cuál evento?" — chips selección | P1 | M | 🔴 | Requiere que appEventos publique `availableEvents` cross-app (más que solo `activeEventId`) + trigger SSE `ambiguous_event` desde api-ia. Sprint γ |
+| **X2(e)** | **Chip contexto en header del chat** | P1 | S | ✅ 2026-07-21 | `ChatHeader/ActiveEventChip.tsx` — Tag azul con icono calendario + nombre del evento activo; se refresca vía `chatia:activeEventChanged` + `storage` event. Wired en `Main.tsx` |
+| **X3** | **Telemetría de ambigüedad de contexto** | P1 | S | ✅ 2026-07-21 | `utils/copilotTelemetry.ts` `trackContextAmbiguity({reason, route,...})` → console.warn + posthog.capture (`copilot_context_ambiguity`). Integrado en `useCrossAppActiveEventSync` (emite `no_context_at_all` cuando no hay cookie ni localStorage) con flag session-storage anti-ruido |
 
 ### 2.3 · Bloqueado backend — solo empujar / defensas front
 
 | # | Objetivo | Prio | Bloqueo | Defensa front temporal |
 |---|---|---|---|---|
-| B1 | Knowledge/RAG — 3 bugs api-ia `embed`/`batch-embed`/`query-embedding` | P1 | api-ia | Ya oculto. Reactivar cuando cierren los 3 tickets. |
-| B2 | Tool `get_event_guests`: recibir `activeEventId`, param `status`, retry cap, propagar error, preguntar con `availableEvents` | **P0** | api-ia | Sin defensa útil; escalar Slack. |
-| B3 | api-mcp BUG-07 whitelabel keys timeout >15s | P1 | api-mcp | Retry front + toast informativo si backend no cierra en próxima sprint. |
-| B4 | Notas CRM `CRM_NotesResponse.notes` non-nullable devuelve null | **P0** | api-mcp | Guard front ya endurecido; escalado en doc `BUG-CRM-NOTES-NON-NULLABLE-2026-07-07.md`. |
-| B5 | api-ia rename endpoints `/api/lobe/*` → `/api/chat/*` | P2 | api-ia | Sin impacto en usuario; hacer post-cierre backend. |
+| ~~B1~~ | ~~Knowledge/RAG — 3 bugs api-ia~~ | — | ⚫ ya no aplica | Front usa `batch-embed-file` + `search` ([services/rag.ts:75,80,91](../apps/chat-ia/src/services/rag.ts#L75)); superficie del bug original no existe. Reabrir solo si backend reporta bugs concretos |
+| B2 | Tool `get_event_guests`: recibir `activeEventId`, param `status`, retry cap, propagar error, preguntar con `availableEvents` | **P0** | api-ia | Front ya envía `activeEventId`/`eventScope`/`availableEvents` ([ChatSidebarDirect.tsx:167-182](../apps/appEventos/components/Copilot/ChatSidebarDirect.tsx#L167)); tool corre backend-side. Cubierto lo que puede el front |
+| B3 | api-mcp BUG-07 whitelabel keys timeout >15s | P1 | api-mcp | 0 retry/backoff explícito front — añadir si aparece regresión visible |
+| ~~B4~~ | ~~Notas CRM null~~ | — | ✅ front cerrado | Ver §1 |
+| ~~B5~~ | ~~Rename endpoints api-ia~~ | — | ⚫ descartado | Ver §1 |
 | B6 | api-ia P2-P5 (intent routing / EMPTY_RESPONSE fallback / user_id logs / conversation_length) | P1 | api-ia | — |
 
 ### 2.4 · Rediseño estratégico (necesita decisión producto ANTES)
@@ -96,7 +104,7 @@ Esfuerzo: **S** ≤ ½ día · **M** 1-2 días · **L** > 3 días.
 | # | Objetivo | Prio | Esf | Verificación dev HEAD |
 |---|---|---|---|---|
 | A2 | Turnstile CAPTCHA en OTP WhatsApp | P2 | M | 0 matches `turnstile` |
-| A4 | Account linking completo (mismo email varios providers) | P2 | M | Solo `unlinkSSOProvider` implementado ([`SSOProvidersList/index.tsx:33`](../apps/chat-ia/src/app/[variants]/(main)/profile/(home)/features/SSOProvidersList/index.tsx#L33)) — falta linking |
+| A4 | **Account linking Y unlinking ambos rotos** | P1 | M | Auditoría 2026-07-20: `getUserSSOProviders`/`unlinkSSOProvider` son stubs en [`services/user/apiIa.ts:120-127`](../apps/chat-ia/src/services/user/apiIa.ts#L120). UI [SSOProvidersList/index.tsx:31](../apps/chat-ia/src/app/[variants]/(main)/profile/(home)/features/SSOProvidersList/index.tsx#L31) renderiza siempre vacía. Ver también C8 |
 | A5 | "Remember device" (skip 2FA) | P2 | M | 0 matches `rememberDevice` |
 
 ---
@@ -109,21 +117,29 @@ Esfuerzo: **S** ≤ ½ día · **M** 1-2 días · **L** > 3 días.
 - ✅ **X1** — CTX-C: cookie `bodas_active_event` en `.bodasdehoy.com` + hook `useCrossAppActiveEventSync` en Desktop/Mobile de chat-ia.
 - ❌ C1a — cancelado (no eran fantasmas).
 
-**Sprint β · Cerrar migración a medias del PLAN-ADELGAZAR (3-5 días)**
-- **C1c** — migrar 6 routers lambda a api-ia (aiChat, memory, agent, generation, apiKey, aiModel). Al cerrar → remove `@lobechat/database` + `drizzle-orm` + `pglite` + `neondatabase` del root.
+**Sprint β · ✅ CERRADO 2026-07-21** (misma rama `tj/feat/sprint-alpha-chat-ia-limpieza`, commits `1a3b…5fc7…`)
+- ✅ **C7** OIDC — 22 archivos, ~3600 líneas.
+- ✅ **C8** SSO stubs + UI — 4 archivos, ~112 líneas.
+- ✅ **C9** import pglite dead code — 3 archivos, ~1080 líneas.
+- ✅ **X2(c)** normalizeEventName + tests.
+- ✅ **X2(e)** ActiveEventChip en ChatHeader.
+- ✅ **X2(b)** useStickyEventPerSession (MVP client-only).
+- ✅ **X3** trackContextAmbiguity + integrado.
+- 🔴 **X2(d)** picker "¿cuál evento?" — aplazado a sprint γ (requiere `availableEvents` cross-app + SSE trigger).
+
+**Sprint γ · Cerrar migración a medias del PLAN-ADELGAZAR (5-10 días)**
+- **C1c** — migrar **9 routers lambda** a api-ia (aiChat, memory, agent, generation, apiKey, aiModel, exporter, importer, market). Al cerrar → remove `@lobechat/database` + `drizzle-orm` + `pglite` + `neondatabase` del root.
 - **C3a** — borrar `knowledge/` dir (31 archivos).
 
-**Sprint γ · Copilot UX (2-3 días)**
-- **X2** — write-guard mutación IA · sticky evento por conversación · quick-replies "¿cuál evento?" · chip contexto editable header.
-- **X3** — telemetría estructurada de ambigüedad.
+**Sprint δ · Copilot UX pesado (2-3 días)**
+- **X2(b)** — sticky evento por conversación (persistir `eventId` en session/topic metadata).
+- **X2(d)** — quick-replies "¿cuál evento?".
 
-**Sprint δ · Limpieza gorda + backend recibido**
-- **C2** — extraer `MCPShared` + borrar `discover/` (175 archivos).
-- **C3b** — decidir `image/` (63 archivos).
-- **B1** — reactivar knowledge cuando api-ia cierre 3 bugs embed.
-- **B3/B5/B6** — según respuesta backend.
+**Sprint ε · Decisión producto + limpieza gorda**
+- **C2/C3a/C3b** — decidir producto: `discover`/`knowledge`/`image` — borrar completo o gatear con `notFound()` en layout. Los tres son accesibles hoy en dev.
+- **B3/B6** — según respuesta backend.
 
-**Congelado hasta decisión producto:** R1 (renombrado URLs), R2 (modelo contacto), A2/A4/A5.
+**Congelado hasta decisión producto:** R1 (renombrado URLs), R2 (modelo contacto), A2, A5. A4 ya no está congelado — decidir C8 (borrar UI o implementar completo).
 
 ---
 

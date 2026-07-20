@@ -1,4 +1,3 @@
-import type { AdapterAccount } from 'next-auth/adapters';
 import type { PartialDeep } from 'type-fest';
 
 import { UserGuide, UserInitializationState, UserPreference } from '@/types/user';
@@ -9,10 +8,9 @@ import { IUserService } from './type';
 // CAPA 2 PASO C 2026-06-05: ApiIaUserService usa los endpoints REST de api-ia:
 // - GET  /api/auth/get-user-config           → getUserState
 // - POST /api/auth/save-user-config          → updateAvatar/Guide/Preference/Settings + reset
-// Los 4 métodos SSO/registration (getUserSSOProviders, unlinkSSOProvider,
-// getUserRegistrationDuration, resetUserSettings con efecto real) NO tienen endpoint
-// equivalente en api-ia; ver pregunta 3.2 a backend en docs/backend-asks/slack-ready/.
-// Mientras: stubs que devuelven valores neutros para no romper la UI de settings.
+// C8 2026-07-20: SSO se gestiona en Firebase SDK cliente (api-ia confirmó 05-jun);
+// los stubs getUserSSOProviders/unlinkSSOProvider y la UI SSOProvidersList se
+// borraron por inútiles (siempre retornaban []).
 
 const API_IA_BASE = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8080';
 
@@ -112,18 +110,6 @@ export class ApiIaUserService implements IUserService {
 
   resetUserSettings = async () => {
     await saveUserConfig({ settings: null });
-  };
-
-  // ─── Sin endpoint api-ia equivalente — SSO se gestiona en Firebase SDK cliente ──
-  // api-ia confirmó (msg 04:41, 05-jun): "SSO providers → Firebase SDK en cliente,
-  // NO backend". Mantenemos stubs neutros para compatibilidad con IUserService.
-
-  getUserSSOProviders = async (): Promise<AdapterAccount[]> => {
-    return [];
-  };
-
-  unlinkSSOProvider = async (_provider: string, _providerAccountId: string) => {
-    return;
   };
 
   // ─── /api/auth/registration-duration LIVE desde 05-jun 08:35 ──────────
