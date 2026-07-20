@@ -66,20 +66,20 @@ Esfuerzo: **S** ≤ ½ día · **M** 1-2 días · **L** > 3 días.
 | C3b | Decidir `(main)/image/` (63 archivos) | P2 | L | 🔴 | Gateado `!isServerMode` pero `NEXT_PUBLIC_SERVICE_MODE=server` en prod → **hoy es accesible**. Decisión producto |
 | C5 | Actualizar 5 líneas obsoletas en `PLAN-COPILOT-MONOREPO.md` | P2 | S | ✅ 2026-07-20 | apps/web→apps/appEventos · packages/copilot-ui→copilot-shared |
 | **C6** | **Borrar código muerto identificado en auditoría 2026-07-20** | P0 | S | ✅ 2026-07-20 | 9 archivos, ~1140 líneas: `services/{document,nextAuthUser,user}`, Clerk webhooks (Clerk off), avatar route (0 consumers). Type-check verde |
-| C7 | Borrar árbol OIDC (`libs/oidc-provider/*` + rutas + oauth pages) | P2 | M | 🟡 viable | El bloqueo real es solo stubear `validateOIDCJWT` → `null` en `libs/trpc/lambda/context.ts:117` (ya gateado por `oidcEnv.ENABLE_OIDC`, default `false`). Verificar antes que prod no setea `ENABLE_OIDC=1` |
-| C8 | Borrar/decidir stubs SSO `services/user/apiIa.ts:120-127` + UI `SSOProvidersList/` (rendera lista vacía siempre) | P1 | S | 🆕 | Hallazgo auditoría 2026-07-20: `getUserSSOProviders` retorna `[]` siempre, `unlinkSSOProvider` no-op. La UI se renderiza inútil. Borrar o marcar TODO visible al usuario |
-| C9 | Borrar `services/import/client.ts` + require condicional pglite en `services/import/index.ts:8` (nunca activo — `NEXT_PUBLIC_CLIENT_DB` no seteado en `.env.*`) | P2 | S | 🆕 | Hallazgo auditoría 2026-07-20. Dead code adicional |
+| **C7** | **Borrar árbol OIDC** | P2 | M | ✅ 2026-07-20 | Stub minimal en `libs/oidc-provider/jwt.ts` (getJWKS/validateOIDCJWT lanzan 401). Borrado: 6 archivos libs + 4 rutas backend + 8 pages oauth + 2 server/services/oidc + limpieza middleware.ts. ~3600 líneas |
+| **C8** | **Borrar stubs SSO + UI SSOProvidersList** | P1 | S | ✅ 2026-07-20 | UI `SSOProvidersList` + métodos `getUserSSOProviders`/`unlinkSSOProvider` + imports `AdapterAccount`. ~112 líneas |
+| **C9** | **Borrar dead code pglite import service** | P2 | S | ✅ 2026-07-20 | `services/import/client.ts` + `.test.ts` + require condicional. ~1080 líneas |
 
 ### 2.2 · Copilot / contexto evento (front puede casi todo)
 
 | # | Objetivo | Prio | Esf | Estado | Detalle |
 |---|---|---|---|---|---|
 | **X1** | **CTX-C** — `activeEventId` mutable cross-app entre appEventos ↔ chat-ia fullscreen | **P0** | S | ✅ 2026-07-20 | Cookie `bodas_active_event` en `.bodasdehoy.com` desde `EventContext.setEvent()` + hook `useCrossAppActiveEventSync` en chat-ia (Desktop/Mobile layout) lee al montar y en `visibilitychange`. Emite `CustomEvent('chatia:activeEventChanged')` |
-| X2(b) | Sticky evento por conversación — persistir `eventId` en session/topic metadata | P1 | M | 🔴 | 0 matches en `store/session` o `store/chat`. Hoy `eventId` se recomputa cada request desde `activeEvent` ([services/chat/index.ts:392-407](../apps/chat-ia/src/services/chat/index.ts#L392)) |
-| X2(c) | Normalización nombres (accents/case) para resolver ambigüedad | P1 | S | 🔴 | 0 matches `normalizeEventName`/`deburr`/`unaccent` |
-| X2(d) | Quick-replies "¿cuál evento?" — chips selección cuando IA no puede resolver | P1 | M | 🔴 | 0 componentes `EventDisambiguation`/`AmbiguousEventPicker`. `availableEvents` llega al backend pero front no renderiza chips |
-| X2(e) | Chip contexto editable en header del chat | P1 | S | 🔴 | Header solo pinta `agentTitle` + `<Tags/>`, sin pill de evento activo |
-| X3 | Telemetría de ambigüedad de contexto | P1 | S | 🔴 | Posthog init existe ([Analytics/Posthog.tsx:16](../apps/chat-ia/src/components/Analytics/Posthog.tsx#L16)) pero cero `track('event_ambig*')` |
+| **X2(b)** | **Sticky evento por conversación (MVP client-only)** | P1 | M | ✅ 2026-07-21 | `hooks/useStickyEventPerSession.ts` monitoriza `useSessionStore.activeId`; al cambiar guarda `current_event_id` bajo `chatia:session_event:<sessionId>` (localStorage) y restaura el guardado de la nueva. Emite `chatia:activeEventChanged { source: 'sticky-session' }`. Wired en Desktop+Mobile. Migrar a `session.metadata.eventId` cuando api-ia lo soporte |
+| **X2(c)** | **Normalización nombres eventos** | P1 | S | ✅ 2026-07-21 | `utils/normalizeEventName.ts` (NFD + strip acentos + colapsa espacios + lowercase) + `eventNamesMatch(a,b)` + 6 tests verdes |
+| X2(d) | Quick-replies "¿cuál evento?" — chips selección | P1 | M | 🔴 | Requiere que appEventos publique `availableEvents` cross-app (más que solo `activeEventId`) + trigger SSE `ambiguous_event` desde api-ia. Sprint γ |
+| **X2(e)** | **Chip contexto en header del chat** | P1 | S | ✅ 2026-07-21 | `ChatHeader/ActiveEventChip.tsx` — Tag azul con icono calendario + nombre del evento activo; se refresca vía `chatia:activeEventChanged` + `storage` event. Wired en `Main.tsx` |
+| **X3** | **Telemetría de ambigüedad de contexto** | P1 | S | ✅ 2026-07-21 | `utils/copilotTelemetry.ts` `trackContextAmbiguity({reason, route,...})` → console.warn + posthog.capture (`copilot_context_ambiguity`). Integrado en `useCrossAppActiveEventSync` (emite `no_context_at_all` cuando no hay cookie ni localStorage) con flag session-storage anti-ruido |
 
 ### 2.3 · Bloqueado backend — solo empujar / defensas front
 
@@ -117,12 +117,15 @@ Esfuerzo: **S** ≤ ½ día · **M** 1-2 días · **L** > 3 días.
 - ✅ **X1** — CTX-C: cookie `bodas_active_event` en `.bodasdehoy.com` + hook `useCrossAppActiveEventSync` en Desktop/Mobile de chat-ia.
 - ❌ C1a — cancelado (no eran fantasmas).
 
-**Sprint β · Limpieza sin migración pesada (1-2 días, 0 bloqueos)**
-- **C7** — árbol OIDC: stubear `validateOIDCJWT` → `null` en context, borrar `libs/oidc-provider/*` + rutas + oauth pages (previa verificación `ENABLE_OIDC` en prod).
-- **C8** — decidir SSO stubs (`services/user/apiIa.ts:120-127` + UI `SSOProvidersList/`): borrar o marcar TODO visible al usuario.
-- **C9** — borrar dead code `services/import/client.ts` + require condicional pglite.
-- **X2(c)/X2(e)** — normalización nombres + chip contexto editable header (S).
-- **X3** — telemetría ambigüedad (Posthog + logger.warn estructurado).
+**Sprint β · ✅ CERRADO 2026-07-21** (misma rama `tj/feat/sprint-alpha-chat-ia-limpieza`, commits `1a3b…5fc7…`)
+- ✅ **C7** OIDC — 22 archivos, ~3600 líneas.
+- ✅ **C8** SSO stubs + UI — 4 archivos, ~112 líneas.
+- ✅ **C9** import pglite dead code — 3 archivos, ~1080 líneas.
+- ✅ **X2(c)** normalizeEventName + tests.
+- ✅ **X2(e)** ActiveEventChip en ChatHeader.
+- ✅ **X2(b)** useStickyEventPerSession (MVP client-only).
+- ✅ **X3** trackContextAmbiguity + integrado.
+- 🔴 **X2(d)** picker "¿cuál evento?" — aplazado a sprint γ (requiere `availableEvents` cross-app + SSE trigger).
 
 **Sprint γ · Cerrar migración a medias del PLAN-ADELGAZAR (5-10 días)**
 - **C1c** — migrar **9 routers lambda** a api-ia (aiChat, memory, agent, generation, apiKey, aiModel, exporter, importer, market). Al cerrar → remove `@lobechat/database` + `drizzle-orm` + `pglite` + `neondatabase` del root.
