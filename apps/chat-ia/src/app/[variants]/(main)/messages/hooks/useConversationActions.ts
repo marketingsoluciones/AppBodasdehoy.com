@@ -16,6 +16,9 @@ type ActionsMap = Record<string, ActionState>;
 
 // ─── external store for cross-component reactivity ──────────────────────────
 
+// Referencia estable — ver useConversationMeta.ts para el motivo.
+const EMPTY_MAP: ActionsMap = Object.freeze({}) as ActionsMap;
+
 let listeners = new Set<() => void>();
 
 function subscribe(cb: () => void) {
@@ -23,19 +26,22 @@ function subscribe(cb: () => void) {
   return () => listeners.delete(cb);
 }
 
-function getMap(): ActionsMap {
-  if (typeof window === 'undefined') return {};
+function readFromStorage(): ActionsMap {
+  if (typeof window === 'undefined') return EMPTY_MAP;
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return EMPTY_MAP;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : EMPTY_MAP;
   } catch {
-    return {};
+    return EMPTY_MAP;
   }
 }
 
-let cachedSnapshot: ActionsMap = getMap();
+let cachedSnapshot: ActionsMap = readFromStorage();
 
 function notify() {
-  cachedSnapshot = getMap();
+  cachedSnapshot = readFromStorage();
   listeners.forEach((cb) => cb());
 }
 
@@ -49,7 +55,7 @@ function getSnapshot(): ActionsMap {
 }
 
 function getServerSnapshot(): ActionsMap {
-  return {};
+  return EMPTY_MAP;
 }
 
 // ─── hook ───────────────────────────────────────────────────────────────────
@@ -68,21 +74,21 @@ export function useConversationActions() {
   );
 
   const toggleArchive = useCallback((conversationId: string) => {
-    const map = getMap();
+    const map = { ...readFromStorage() };
     const current = map[conversationId] ?? {};
     map[conversationId] = { ...current, archived: !current.archived };
     saveMap(map);
   }, []);
 
   const toggleMute = useCallback((conversationId: string) => {
-    const map = getMap();
+    const map = { ...readFromStorage() };
     const current = map[conversationId] ?? {};
     map[conversationId] = { ...current, muted: !current.muted };
     saveMap(map);
   }, []);
 
   const deleteConversation = useCallback((conversationId: string) => {
-    const map = getMap();
+    const map = { ...readFromStorage() };
     map[conversationId] = { ...map[conversationId], archived: true };
     saveMap(map);
   }, []);

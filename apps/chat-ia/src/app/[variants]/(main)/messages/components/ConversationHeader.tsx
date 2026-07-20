@@ -12,9 +12,18 @@ interface ConversationHeaderProps {
   channel?: string;
   conversationId: string;
   onSearchFilter?: (term: string) => void;
+  /** Rediseño A.4 (18-jul): controla el sidebar desplegable de detalles. */
+  detailsOpen?: boolean;
+  onToggleDetails?: () => void;
 }
 
-export function ConversationHeader({ channel, conversationId, onSearchFilter }: ConversationHeaderProps) {
+export function ConversationHeader({
+  channel,
+  conversationId,
+  onSearchFilter,
+  detailsOpen,
+  onToggleDetails,
+}: ConversationHeaderProps) {
   const { conversations, loading: convListLoading } = useConversations(channel ?? null);
   const conversation = conversations.find((c) => c.id === conversationId);
 
@@ -194,30 +203,36 @@ export function ConversationHeader({ channel, conversationId, onSearchFilter }: 
   const isOnline = minutesAgo < 5;
 
   return (
-    <div className="border-b border-gray-200 bg-white">
-      <div className="flex items-center justify-between p-4">
+    <div style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #EDEDF0' }}>
+      <div className="flex items-center justify-between gap-3 px-4 py-3">
         {/* Left: Contact Info */}
-        <div className="flex items-center gap-3">
-          {/* Avatar with presence */}
-          <div className="relative">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-lg font-semibold text-white">
+        <div className="flex min-w-0 items-center gap-3">
+          {/* Avatar 40x40 con presence + punto canal */}
+          <div className="relative flex-shrink-0">
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-full text-base font-semibold"
+              style={{ backgroundColor: '#F2F1F6', color: '#1C1C22' }}
+            >
               {conversation.contact.name.charAt(0).toUpperCase()}
             </div>
-            <span
-              aria-label={isOnline ? 'En línea' : 'Desconectado'}
-              className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white ${
-                isOnline ? 'bg-green-500' : 'bg-gray-300'
-              }`}
-            />
+            {isOnline && (
+              <span
+                aria-label="En línea"
+                className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: '#22C55E', boxShadow: '0 0 0 2px #FFFFFF' }}
+              />
+            )}
           </div>
 
-          {/* Info */}
-          <div>
+          {/* Info: nombre + ChannelBadge (preservado) + IaLevelPicker (preservado) */}
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="font-semibold text-gray-900">
+              <h2 className="truncate text-sm font-semibold" style={{ color: '#1C1C22' }}>
                 {conversation.contact.name}
               </h2>
               <ChannelBadge channel={conversation.channel} size="sm" />
+              {/* IaLevelPicker PRESERVADO 3-niveles — solo se rediseña visualmente
+                  desde su propio componente en un bloque posterior si se decide. */}
               <IaLevelPicker
                 level={iaLevel}
                 onChange={(next) => {
@@ -227,52 +242,53 @@ export function ConversationHeader({ channel, conversationId, onSearchFilter }: 
                 }}
               />
             </div>
-            <p className="text-xs text-gray-500">
-              {isOnline ? (
-                <span className="text-green-600 font-medium">En línea</span>
-              ) : (
-                conversation.contact.phone || conversation.contact.username || 'Sin info de contacto'
-              )}
+            <p className="mt-0.5 truncate text-xs" style={{ color: '#84848F' }}>
+              {isOnline
+                ? 'En línea'
+                : conversation.contact.phone ||
+                  conversation.contact.username ||
+                  'Sin info de contacto'}
             </p>
           </div>
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-2">
-          <div className="hidden items-center gap-2 md:flex">
-            <div className="flex items-center gap-1">
-              <span
-                className={
-                  status === 'open'
-                    ? 'rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700'
-                    : status === 'pending'
-                      ? 'rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700'
-                      : 'rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600'
-                }
-              >
-                {status === 'open' ? 'Abierta' : status === 'pending' ? 'En espera' : 'Cerrada'}
-              </span>
-              <select
-                aria-label="Cambiar estado"
-                className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs text-gray-600 hover:border-gray-300"
-                onChange={(e) => setStatus(e.target.value as ConversationStatus)}
-                value={status}
-              >
-                <option value="open">Abierta</option>
-                <option value="pending">En espera</option>
-                <option value="closed">Cerrada</option>
-              </select>
-            </div>
+        <div className="flex flex-shrink-0 items-center gap-1.5">
+          <div className="hidden items-center gap-1.5 md:flex">
+            {/* Selector estado — solo select, sin duplicar pill (la señal cromática
+                queda en el select mismo). */}
+            <select
+              aria-label="Cambiar estado de la conversación"
+              className="rounded-md px-2 py-1 text-xs focus:outline-none"
+              onChange={(e) => setStatus(e.target.value as ConversationStatus)}
+              style={{
+                backgroundColor:
+                  status === 'open' ? '#FFFFFF' : status === 'pending' ? '#FEF3C7' : '#F2F1F6',
+                border: `1px solid ${
+                  status === 'open' ? '#EDEDF0' : status === 'pending' ? '#FCD34D' : '#EDEDF0'
+                }`,
+                color:
+                  status === 'open' ? '#1C1C22' : status === 'pending' ? '#92400E' : '#84848F',
+              }}
+              value={status}
+            >
+              <option value="open">Abierta</option>
+              <option value="pending">En espera</option>
+              <option value="closed">Cerrada</option>
+            </select>
 
+            {/* Asignación */}
             <button
-              className={
-                assignedToMe
-                  ? 'rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100'
-                  : 'rounded-md border border-gray-200 bg-white px-2 py-1 text-xs text-gray-600 hover:border-gray-300 hover:bg-gray-50'
-              }
+              className="rounded-md px-2 py-1 text-xs transition-colors"
               onClick={() => {
                 if (!userId) return;
                 assignToUser(assignedToMe ? null : userId);
+              }}
+              style={{
+                backgroundColor: assignedToMe ? '#EDE9FE' : '#FFFFFF',
+                border: `1px solid ${assignedToMe ? '#EDE9FE' : '#EDEDF0'}`,
+                color: assignedToMe ? '#6B4EFF' : '#84848F',
+                fontWeight: assignedToMe ? 500 : 400,
               }}
               type="button"
             >
@@ -280,61 +296,172 @@ export function ConversationHeader({ channel, conversationId, onSearchFilter }: 
             </button>
           </div>
 
+          {/* Botón búsqueda con Lucide SVG (antes emoji 🔍) */}
           <button
-            className={`flex h-9 w-9 items-center justify-center rounded-lg text-lg transition-colors ${
-              searchOpen ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'
-            }`}
-            onClick={() => searchOpen ? closeSearch() : setSearchOpen(true)}
-            title="Buscar en conversación"
+            aria-label="Buscar en conversación"
+            className="flex h-8 w-8 items-center justify-center rounded-md transition-colors"
+            onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
+            style={{
+              backgroundColor: searchOpen ? '#EDE9FE' : 'transparent',
+              color: searchOpen ? '#6B4EFF' : '#84848F',
+            }}
+            onMouseEnter={(e) => {
+              if (!searchOpen) e.currentTarget.style.backgroundColor = '#F2F1F6';
+            }}
+            onMouseLeave={(e) => {
+              if (!searchOpen) e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+            title="Buscar en conversación (⌘K)"
             type="button"
           >
-            🔍
+            <svg
+              fill="none"
+              height="16"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              viewBox="0 0 24 24"
+              width="16"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
           </button>
+          {/* Botón llamar disabled — Lucide phone SVG (antes emoji 📞) */}
           <button
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-lg text-gray-300 cursor-not-allowed"
+            aria-label="Llamar (próximamente)"
+            className="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-md"
             disabled
+            style={{ color: '#D4D4D8' }}
             title="Llamar (próximamente)"
             type="button"
           >
-            📞
+            <svg
+              fill="none"
+              height="16"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              viewBox="0 0 24 24"
+              width="16"
+            >
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+            </svg>
           </button>
 
-          {/* More options menu */}
+          {/* Toggle "Detalles" — abre/cierra el sidebar derecho (A.4) */}
+          {onToggleDetails && (
+            <button
+              aria-label={detailsOpen ? 'Ocultar detalles' : 'Mostrar detalles'}
+              aria-pressed={!!detailsOpen}
+              className="flex h-8 w-8 items-center justify-center rounded-md transition-colors"
+              onClick={onToggleDetails}
+              style={{
+                backgroundColor: detailsOpen ? '#EDE9FE' : 'transparent',
+                color: detailsOpen ? '#6B4EFF' : '#84848F',
+              }}
+              onMouseEnter={(e) => {
+                if (!detailsOpen) e.currentTarget.style.backgroundColor = '#F2F1F6';
+              }}
+              onMouseLeave={(e) => {
+                if (!detailsOpen) e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+              title={detailsOpen ? 'Ocultar detalles del contacto' : 'Mostrar detalles del contacto'}
+              type="button"
+            >
+              {/* Lucide PanelRightOpen / PanelRightClose (stroke 1.8) */}
+              <svg
+                fill="none"
+                height="16"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.8"
+                viewBox="0 0 24 24"
+                width="16"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="15" x2="15" y1="3" y2="21" />
+              </svg>
+            </button>
+          )}
+          {/* Menú más opciones — Lucide MoreVertical (antes ⋮) */}
           <div className="relative" ref={menuRef}>
             <button
               aria-expanded={menuOpen}
-              className={`flex h-9 w-9 items-center justify-center rounded-lg text-lg transition-colors ${
-                menuOpen ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-100'
-              }`}
+              aria-label="Más opciones"
+              className="flex h-8 w-8 items-center justify-center rounded-md transition-colors"
               onClick={() => setMenuOpen(!menuOpen)}
+              style={{
+                backgroundColor: menuOpen ? '#F2F1F6' : 'transparent',
+                color: menuOpen ? '#1C1C22' : '#84848F',
+              }}
+              onMouseEnter={(e) => {
+                if (!menuOpen) e.currentTarget.style.backgroundColor = '#F2F1F6';
+              }}
+              onMouseLeave={(e) => {
+                if (!menuOpen) e.currentTarget.style.backgroundColor = 'transparent';
+              }}
               title="Más opciones"
               type="button"
             >
-              ⋮
+              <svg
+                fill="none"
+                height="16"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.8"
+                viewBox="0 0 24 24"
+                width="16"
+              >
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="12" cy="5" r="1" />
+                <circle cx="12" cy="19" r="1" />
+              </svg>
             </button>
             {menuOpen && (
-              <div className="absolute right-0 top-full z-10 mt-1 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg" role="menu">
+              <div
+                className="absolute right-0 top-full z-10 mt-1 w-56 overflow-hidden rounded-lg py-1"
+                role="menu"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #EDEDF0',
+                  boxShadow: '0 4px 12px rgba(28,28,34,0.08)',
+                }}
+              >
                 <button
-                  className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors"
                   onClick={() => handleMenuAction('archive')}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  style={{ color: '#1C1C22' }}
                   type="button"
                 >
-                  📦 Archivar conversación
+                  Archivar conversación
                 </button>
                 <button
-                  className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors"
                   onClick={() => handleMenuAction('mute')}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  style={{ color: '#1C1C22' }}
                   type="button"
                 >
-                  {conversationMuted ? '🔔 Activar sonido' : '🔇 Silenciar'}
+                  {conversationMuted ? 'Activar sonido' : 'Silenciar'}
                 </button>
-                <div className="my-1 h-px bg-gray-100" />
+                <div style={{ borderTop: '1px solid #EDEDF0', margin: '4px 0' }} />
                 <button
-                  className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors"
                   onClick={() => handleMenuAction('clear')}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FEF2F2')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  style={{ color: '#DC2626' }}
                   type="button"
                 >
-                  🗑️ Limpiar chat
+                  Limpiar chat
                 </button>
               </div>
             )}
@@ -342,25 +469,43 @@ export function ConversationHeader({ channel, conversationId, onSearchFilter }: 
         </div>
       </div>
 
-      {/* Inline search bar */}
+      {/* Inline search bar rediseñada con tokens del sistema */}
       {searchOpen && (
-        <div className="flex items-center gap-2 border-t border-gray-100 px-4 py-2">
-          <span className="text-gray-400 text-sm">🔍</span>
+        <div
+          className="flex items-center gap-2 px-4 py-2"
+          style={{ borderTop: '1px solid #EDEDF0' }}
+        >
+          <svg
+            aria-hidden
+            fill="none"
+            height="14"
+            stroke="#9A9AA6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="1.8"
+            viewBox="0 0 24 24"
+            width="14"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
           <input
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
+            className="flex-1 bg-transparent text-sm outline-none"
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Buscar mensajes..."
             ref={searchInputRef}
+            style={{ color: '#1C1C22' }}
             type="text"
             value={searchTerm}
           />
           {searchTerm && (
             <button
-              className="text-xs text-gray-400 hover:text-gray-600"
+              className="text-xs transition-colors"
               onClick={closeSearch}
+              style={{ color: '#84848F' }}
               type="button"
             >
-              ✕
+              Cerrar
             </button>
           )}
         </div>

@@ -45,7 +45,14 @@ describe('ConversationHeader meta', () => {
 
     render(<ConversationHeader channel="web" conversationId="c1" />);
 
-    expect(screen.getByText('Abierta', { selector: 'span' })).toBeInTheDocument();
+    // Rediseño A.3 (18-jul): el badge de estado dejó de ser <span> y pasó a
+    // <select> nativo con opciones. Se comprueba el select con value inicial "open".
+    const statusSelect = screen.getByRole('combobox', {
+      name: 'Cambiar estado de la conversación',
+    }) as HTMLSelectElement;
+    expect(statusSelect.value).toBe('open');
+    expect(screen.getByText('Abierta', { selector: 'option' })).toBeInTheDocument();
+
     const assignBtn = screen.getByRole('button', { name: 'Sin asignar' });
     fireEvent.click(assignBtn);
 

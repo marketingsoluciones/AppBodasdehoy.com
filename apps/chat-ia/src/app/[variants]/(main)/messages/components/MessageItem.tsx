@@ -30,7 +30,8 @@ const getStatusIcon = (status?: string) => {
       return '\u2713\u2713';
     }
     case 'read': {
-      return <span className="text-blue-500">{'\u2713\u2713'}</span>;
+      // Redise\u00f1o 18-jul: azul m\u00e1s sutil #3B82F6 (Tailwind blue-500 segu\u00eda ok).
+      return <span style={{ color: '#3B82F6' }}>{'\u2713\u2713'}</span>;
     }
     default: {
       return null;
@@ -43,24 +44,32 @@ export function MessageItem({ message, compact }: MessageItemProps) {
   const [feedback, setFeedback] = useState<FeedbackRating | null>(null);
 
   if (message.kind === 'internal_note') {
+    // Nota interna rediseñada — tokens amber más sutiles del sistema.
     return (
       <div className="flex justify-center">
         <div
-          className={`max-w-[80%] rounded-xl border border-amber-200 bg-amber-50 px-4 ${
-            compact ? 'py-1.5' : 'py-3'
-          } text-amber-950`}
+          className={`max-w-[80%] rounded-xl px-4 ${compact ? 'py-1.5' : 'py-3'}`}
+          style={{
+            backgroundColor: '#FFFBEB',
+            border: '1px solid #FDE68A',
+            color: '#78350F',
+          }}
         >
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Lock className="h-4 w-4 text-amber-700" />
-              <span className="text-xs font-semibold text-amber-900">Nota interna</span>
+              <Lock className="h-3.5 w-3.5" style={{ color: '#B45309' }} />
+              <span className="text-xs font-semibold" style={{ color: '#92400E' }}>
+                Nota interna
+              </span>
               {message.author && (
-                <span className="text-xs text-amber-700">
+                <span className="text-xs" style={{ color: '#B45309' }}>
                   {message.author}
                 </span>
               )}
             </div>
-            <span className="shrink-0 text-xs text-amber-700">{formatTime(message.timestamp)}</span>
+            <span className="shrink-0 text-xs" style={{ color: '#B45309' }}>
+              {formatTime(message.timestamp)}
+            </span>
           </div>
           <p className="mt-2 whitespace-pre-wrap break-words text-sm">{message.text}</p>
         </div>
@@ -74,16 +83,24 @@ export function MessageItem({ message, compact }: MessageItemProps) {
     await sendFeedback({ messageId: message.id, rating });
   };
 
-  // FASE B v2.0 — distinción visual por origen (Diseño 24-jun):
-  //   contact (fromUser=true)              → blanco, borde, radius 4-16-16-16, izq
-  //   equipo humano (fromUser=false sin IA) → morado #7C3AED, radius 16-4-16-16, der
+  // FASE B v2.0 — distinción visual por origen (Diseño 24-jun) — PRESERVADO
+  // en el rediseño 18-jul (Opción A: no unificar colores para conservar la
+  // señal cromática al vuelo):
+  //   contact (fromUser=true)              → blanco, borde sutil, izq
+  //   equipo humano (fromUser=false sin IA) → morado #7C3AED, der
   //   IA copilot aprobada                  → teal #2DD4BF + texto #0A2A28
   //   IA autopilot                         → gradiente teal→cyan #0D9488→#0891B2
   const isIa = !isFromUser && message.iaGenerated === true;
   const isIaAutopilot = isIa && message.iaMode === 'autopilot';
 
   const bubbleStyle: React.CSSProperties = isFromUser
-    ? {}
+    ? {
+        // Rediseño: burbuja entrante blanca con borde sutil #EDEDF0 (antes solo
+        // shadow-sm). Más minimalista tipo Claude/ChatGPT.
+        backgroundColor: '#FFFFFF',
+        border: '1px solid #EDEDF0',
+        color: '#1C1C22',
+      }
     : isIaAutopilot
       ? { background: 'linear-gradient(135deg, #0D9488, #0891B2)', color: '#fff' }
       : isIa
@@ -93,9 +110,9 @@ export function MessageItem({ message, compact }: MessageItemProps) {
   return (
     <div className={`flex ${isFromUser ? 'justify-start' : 'justify-end'}`}>
       <div
-        className={`group max-w-[70%] px-4 ${compact ? 'py-0.5' : 'py-2'} shadow-sm ${
+        className={`group max-w-[70%] px-4 ${compact ? 'py-0.5' : 'py-2'} ${
           compact ? 'rounded-lg' : 'rounded-2xl'
-        } ${isFromUser ? 'bg-white' : ''}`}
+        }`}
         style={bubbleStyle}
       >
         {/* Sello IA — solo cuando viene del modelo */}
@@ -116,9 +133,12 @@ export function MessageItem({ message, compact }: MessageItemProps) {
 
         {/* Timestamp & Status */}
         <div
-          className={`mt-1 flex items-center justify-end gap-1 text-xs ${
-            isFromUser ? 'text-gray-500' : 'text-white/70'
-          }`}
+          className="mt-1 flex items-center justify-end gap-1 text-xs"
+          style={{
+            color: isFromUser
+              ? '#9A9AA6' // contact — token secundario sistema
+              : 'rgba(255,255,255,0.75)', // IA/humano equipo — blanco 75%
+          }}
         >
           {/* SPRINT 3 iMessage (6-jul): pill (editado) si editedAt está */}
           {message.editedAt ? (

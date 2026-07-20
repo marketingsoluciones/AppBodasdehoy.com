@@ -33,6 +33,7 @@ const ROUTES_TO_SKIP = [
   '/admin',
   '/image',
   '/changelog',
+  '/agentes',
 ];
 
 const Content = memo<ContentProps>(({ loadingStage }) => {

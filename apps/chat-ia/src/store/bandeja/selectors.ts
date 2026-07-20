@@ -5,8 +5,15 @@
  * componentes. Evita que cada componente recompute filtros desde el state
  * crudo y permite memoización fina.
  */
+import { useShallow } from 'zustand/react/shallow';
+
 import { useBandejaStore } from './index';
 import type { ChannelKind, Conversation } from './types';
+
+// Referencia estable para el caso "sin typers" — evita crear array nuevo cada
+// llamada del selector, lo que disparaba loop "Maximum update depth" en tests
+// con jsdom (Zustand compara por identity por default).
+const EMPTY_TYPERS: readonly never[] = Object.freeze([]);
 
 /** Lista plana de conversaciones ordenadas por lastMessageAt desc. */
 export const useConversationsList = (): Conversation[] => {
@@ -45,12 +52,20 @@ export const useUnreadCounts = () => useBandejaStore((s) => s.unreadCounts);
 /** Notificaciones. */
 export const useNotifications = () => useBandejaStore((s) => s.notifications);
 
-/** Indicador de typing en una conversación. */
+/** Indicador de typing en una conversación.
+ *  useShallow: si el array resultante tiene los mismos userIds vigentes,
+ *  Zustand no dispara rerender aunque el selector cree un array nuevo.
+ *  Sin esto entraba en loop "Maximum update depth" al montar. */
 export const useTypingInConv = (convId: string) =>
-  useBandejaStore((s) => {
-    const now = Date.now();
-    return (s.typingByConv[convId] ?? []).filter((t) => t.expiresAt > now);
-  });
+  useBandejaStore(
+    useShallow((s) => {
+      const list = s.typingByConv[convId];
+      if (!list || list.length === 0) return EMPTY_TYPERS;
+      const now = Date.now();
+      const filtered = list.filter((t) => t.expiresAt > now);
+      return filtered.length === 0 ? EMPTY_TYPERS : filtered;
+    }),
+  );
 
 /** Loading + error global. */
 export const useBandejaStatus = () =>

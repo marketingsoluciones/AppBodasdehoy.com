@@ -13,6 +13,11 @@ type MetaMap = Record<string, ConversationMeta>;
 
 const STORAGE_KEY = 'inbox_conversation_meta';
 
+// Referencia estable para SSR y para el estado inicial vacío en cliente.
+// useSyncExternalStore compara con Object.is; devolver `{}` nuevo en cada
+// llamada disparaba loop "Maximum update depth" en tests con jsdom.
+const EMPTY_MAP: MetaMap = Object.freeze({}) as MetaMap;
+
 let listeners = new Set<() => void>();
 
 function subscribe(cb: () => void) {
@@ -20,19 +25,22 @@ function subscribe(cb: () => void) {
   return () => listeners.delete(cb);
 }
 
-function getMap(): MetaMap {
-  if (typeof window === 'undefined') return {};
+function readFromStorage(): MetaMap {
+  if (typeof window === 'undefined') return EMPTY_MAP;
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return EMPTY_MAP;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : EMPTY_MAP;
   } catch {
-    return {};
+    return EMPTY_MAP;
   }
 }
 
-let cachedSnapshot: MetaMap = getMap();
+let cachedSnapshot: MetaMap = readFromStorage();
 
 function notify() {
-  cachedSnapshot = getMap();
+  cachedSnapshot = readFromStorage();
   listeners.forEach((cb) => cb());
 }
 
@@ -46,7 +54,7 @@ function getSnapshot(): MetaMap {
 }
 
 function getServerSnapshot(): MetaMap {
-  return {};
+  return EMPTY_MAP;
 }
 
 export function useConversationMeta(conversationId: string | null | undefined) {
@@ -60,7 +68,7 @@ export function useConversationMeta(conversationId: string | null | undefined) {
   const setStatus = useCallback(
     (status: ConversationStatus) => {
       if (!conversationId) return;
-      const map = getMap();
+      const map = { ...readFromStorage() };
       const current = map[conversationId] ?? {};
       map[conversationId] = { ...current, status };
       saveMap(map);
@@ -71,7 +79,7 @@ export function useConversationMeta(conversationId: string | null | undefined) {
   const assignToUser = useCallback(
     (assignedUserId: string | null) => {
       if (!conversationId) return;
-      const map = getMap();
+      const map = { ...readFromStorage() };
       const current = map[conversationId] ?? {};
       map[conversationId] = { ...current, assignedUserId };
       saveMap(map);
@@ -81,7 +89,7 @@ export function useConversationMeta(conversationId: string | null | undefined) {
 
   const clearMeta = useCallback(() => {
     if (!conversationId) return;
-    const map = getMap();
+    const map = { ...readFromStorage() };
     delete map[conversationId];
     saveMap(map);
   }, [conversationId]);

@@ -175,7 +175,10 @@ export default function MessagesPage() {
           counts={{ history: notifUnreadCount, inbox: convUnreadCount }}
         />
         <div className="flex flex-1 overflow-hidden">
-          <div className="flex w-[420px] shrink-0 flex-col overflow-hidden border-r border-gray-200 bg-white">
+          <div
+            className="flex w-[300px] shrink-0 flex-col overflow-hidden"
+            style={{ borderRight: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+          >
             {/* ScopeSelector + filtros solo visibles en tab 'inbox'. En 'history'
                 el feed es plano (notificaciones) sin scope ni filtros canal/RSVP. */}
             {activeTab === 'inbox' && (

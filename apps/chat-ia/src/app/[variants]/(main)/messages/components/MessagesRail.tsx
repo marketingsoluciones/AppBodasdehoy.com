@@ -1,7 +1,8 @@
 'use client';
 
 /**
- * MessagesRail — rail vertical 54px del lado izquierdo de la Bandeja.
+ * MessagesRail — rail vertical 56px del lado izquierdo de la Bandeja.
+ * Rediseño 18-jul: 54 → 56px + fondo #FCFCFD + border #EDEDF0 (tokens sistema).
  * Diseño 25-jun-2026 (handoff v2):
  *
  * De arriba a abajo:
@@ -50,6 +51,16 @@ const ICON_HISTORY = (
   </svg>
 );
 
+// Rediseño 18-jul Fase B — item nuevo "Agentes" (Cowork). Ver /agentes.
+const ICON_AGENTS = (
+  <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="20">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+    <circle cx="10" cy="7" r="4" />
+    <path d="M22 11l-2 2-2-2" />
+    <path d="M20 13V7" />
+  </svg>
+);
+
 interface MessagesRailProps {
   inboxUnread?: number;
   historyUnread?: number;
@@ -82,6 +93,12 @@ export function MessagesRail({
         unreadCount: inboxUnread,
       },
       {
+        href: '/agentes',
+        label: 'Agentes',
+        matchPrefix: '/agentes',
+        icon: ICON_AGENTS,
+      },
+      {
         href: '/messages?tab=history',
         label: 'Historial',
         matchPrefix: '/messages?tab=history',
@@ -102,8 +119,8 @@ export function MessagesRail({
   return (
     <nav
       aria-label="Rail navegación Bandeja"
-      className="hidden h-full w-[54px] shrink-0 flex-col items-center justify-between border-r py-3 lg:flex"
-      style={{ backgroundColor: '#F6F4FB', borderColor: '#EFEFF3' }}
+      className="hidden h-full w-[56px] shrink-0 flex-col items-center justify-between border-r py-3 lg:flex"
+      style={{ backgroundColor: '#FCFCFD', borderColor: '#EDEDF0' }}
     >
       {/* Top: avatar + items navegación */}
       <div className="flex flex-col items-center gap-2">
