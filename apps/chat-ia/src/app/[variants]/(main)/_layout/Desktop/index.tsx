@@ -12,6 +12,7 @@ import { BANNER_HEIGHT } from '@/features/AlertBanner/CloudBanner';
 // SPRINT-G 2026-05-19: TitleBar import dynamic + ssr:false — solo se renderiza si isDesktop,
 // pero antes era static y arrastraba @lobechat/electron-client-ipc + 39 archivos al bundle web.
 import { TITLE_BAR_HEIGHT } from '@/features/ElectronTitlebar/const';
+import { useCrossAppActiveEventSync } from '@/hooks/useCrossAppActiveEventSync';
 import { usePlatform } from '@/hooks/usePlatform';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 import { HotkeyScopeEnum } from '@/types/hotkey';
@@ -37,6 +38,8 @@ const Layout = memo<PropsWithChildren>(({ children }) => {
 
   const { isPWA } = usePlatform();
   const theme = useTheme();
+
+  useCrossAppActiveEventSync();
 
   // QA 30-jun: si StoreInitialization llega a hacer setState con featureFlags=undefined
   // (caso `getGlobalConfig` retorna serverFeatureFlags=undefined), el selector devuelve

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { PropsWithChildren, memo } from 'react';
 
 import { withSuspense } from '@/components/withSuspense';
+import { useCrossAppActiveEventSync } from '@/hooks/useCrossAppActiveEventSync';
 import { useShowMobileWorkspace } from '@/hooks/useShowMobileWorkspace';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
@@ -34,6 +35,8 @@ const Layout = memo(({ children }: PropsWithChildren) => {
   // QA 30-jun: ver Desktop/index.tsx — defensa frente a featureFlags=undefined.
   const featureFlags = useServerConfigStore(featureFlagsSelectors) || {};
   const showCloudPromotion = (featureFlags as any).showCloudPromotion === true;
+
+  useCrossAppActiveEventSync();
 
   return (
     <>
