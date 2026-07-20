@@ -43,7 +43,7 @@ Plan paso a paso del monorepo (appEventos + chat-ia), integración del Copilot s
 | 2.1 | Raíz | `pnpm-workspace.yaml`; scripts en `package.json`: `dev`, `dev:local`, `dev:web`, `dev:web:local`, `dev:copilot`, `test:web`, `build`, etc. |
 | 2.2 | `apps/appEventos` | Next.js (organizador: eventos, invitados, itinerario, etc.). **Aquí vive el panel del Copilot (ChatSidebar + CopilotEmbed).** |
 | 2.3 | `apps/chat-ia` | Next.js (chat-ia). Se usa para administración y para flujos que viven en chat-ia. |
-| 2.4 | `packages/copilot-ui` | Componentes compartidos: **CopilotEmbed** (chat como componentes, sin iframe, recomendado) y **CopilotDirect** (iframe). La web depende de este paquete. |
+| 2.4 | `packages/copilot-shared` | Componentes compartidos: **CopilotEmbed** (chat como componentes, sin iframe, recomendado) y **CopilotDirect** (iframe). `apps/appEventos` depende de este paquete. |
 | 2.5 | `packages/shared` | Otros shared del monorepo. |
 
 **Comandos desde la raíz:**
@@ -105,7 +105,7 @@ Plan paso a paso del monorepo (appEventos + chat-ia), integración del Copilot s
 
 | # | Paso | Comando / acción |
 |---|------|-------------------|
-| 6.1 | Ejecutar tests de la web | Desde la raíz: `pnpm test:web`. Tests usan **datos reales** (fixtures en `apps/web/__fixtures__/copilot.ts`). Incluye: servicio `copilotChat`, handlers chat/chat-history/messages, **utils/copilotMetrics** (reportCopilotMessageSent, setCopilotMetricsReporter). |
+| 6.1 | Ejecutar tests de la web | Desde la raíz: `pnpm test:web`. Tests usan **datos reales** (fixtures en `apps/appEventos/__fixtures__/copilot.ts`). Incluye: servicio `copilotChat`, handlers chat/chat-history/messages, **utils/copilotMetrics** (reportCopilotMessageSent, setCopilotMetricsReporter). |
 | 6.2 | Script de verificación | `./scripts/verificar-copilot-embed.sh` (ejecuta tests y muestra cómo comprobar APIs en local). |
 | 6.3 | Health de la web | `curl -s http://127.0.0.1:8080/api/health` → esperado `{"ok":true,...}`. |
 | 6.4 | Historial (store en memoria) | `curl -s 'http://127.0.0.1:8080/api/chat/messages?sessionId=test123'` → `{"messages":[]}` o mensajes si hubo POST. |
@@ -141,7 +141,7 @@ Plan paso a paso del monorepo (appEventos + chat-ia), integración del Copilot s
 
 | # | Paso | Detalle |
 |------|------|---------|
-| 9.1 | app-test | Despliegue de `apps/web`. Dominio típico: app-test.bodasdehoy.com. Usuarios usan aquí el Copilot en embed. |
+| 9.1 | app-test | Despliegue de `apps/appEventos`. Dominio típico: app-test.bodasdehoy.com. Usuarios usan aquí el Copilot en embed. |
 | 9.2 | chat-test | Despliegue de `apps/chat-ia` si aplica. Solo necesario si se usa **CopilotDirect (iframe)** o el botón "Abrir en nueva pestaña". |
 | 9.3 | api-ia | Backend de IA en producción (p. ej. api-ia.bodasdehoy.com). La web debe tener `API_IA_URL` apuntando a esta URL. |
 | 9.4 | MCP | GraphQL en producción. La ruta `/api/copilot/chat-history` debe poder llamar a MCP (con `API_MCP_GRAPHQL_URL` si aplica; legacy: `API2_GRAPHQL_URL`). |
@@ -156,7 +156,7 @@ Plan paso a paso del monorepo (appEventos + chat-ia), integración del Copilot s
 | Panel del Copilot en blanco | AuthContext: si `verificationDone` no se pone a true, puede mostrarse carga o blanco. Timeout de seguridad 2s. Revisar que el layout renderice ChatSidebar cuando corresponda. |
 | "Servicio IA no disponible" al enviar mensaje | `API_IA_URL` y que api-ia responda (health, CORS, auth). Ver docs del backend. |
 | Historial siempre vacío | 1) SessionId estable (user_ o guest_). 2) Que api-ia esté enviando `event: done` para que guarde en MCP. 3) Que `/api/copilot/chat-history` llegue a MCP con JWT y X-Development correctos. 4) Que la query `getChatMessages` exista en MCP y devuelva datos. |
-| Tests fallan (jest not found) | 1) Desde la raíz: `pnpm install` (si el lockfile pide actualización: `pnpm install --no-frozen-lockfile`). 2) Luego `pnpm test:web`. En `apps/web` el script usa `pnpm exec jest` para que Jest se resuelva desde las dependencias del workspace. |
+| Tests fallan (jest not found) | 1) Desde la raíz: `pnpm install` (si el lockfile pide actualización: `pnpm install --no-frozen-lockfile`). 2) Luego `pnpm test:web`. En `apps/appEventos` el script usa `pnpm exec jest` para que Jest se resuelva desde las dependencias del workspace. |
 | Eventos enriquecidos no se ven | Que el proxy reenvíe los tipos (event_card, usage, etc.) y que el cliente los tenga en ENRICHED_EVENT_TYPES. Revisar que api-ia envíe `event: <tipo>\ndata: ...`. |
 
 ---
@@ -168,7 +168,7 @@ Plan paso a paso del monorepo (appEventos + chat-ia), integración del Copilot s
 | **docs/MONOREPO-INTEGRACION-COPILOT.md** | Estado, resumen, estructura, siguientes pasos, verificación rápida. |
 | **docs/ANALISIS-RESPUESTA-BACKEND-COPILOT.md** | Análisis de la respuesta de IA: historial, sessionId, MCP, SSE, métricas, auth; acciones en el front. |
 | **docs/PREGUNTAS-BACKEND-COPILOT.md** | Preguntas enviadas al backend (historial, sessionId, MCP, SSE, métricas, auth). |
-| **packages/copilot-ui/README.md** | Uso de CopilotEmbed y CopilotDirect, props, ejemplo de código. |
+| **packages/copilot-shared/README.md** | Uso de CopilotEmbed y CopilotDirect, props, ejemplo de código. |
 | **scripts/verificar-copilot-embed.sh** | Ejecuta tests y muestra comandos para comprobar APIs en local. |
 | **docs/PREGUNTAS-API-IA-TEST-DATOS-REALES.md** | Peticiones a api-ia para trabajar solo con datos reales y tests (contratos, ejemplos SSE, entorno de prueba). |
 | **docs/DESPLIEGUE-APP-TEST-COPILOT.md** | Checklist de despliegue de app-test con Copilot (variables, build, comprobación). |

@@ -86,10 +86,19 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
           } else {
             localStorage.removeItem('appEventos_activeEventId')
           }
-          // BUG-H-03/H-05 (informe QA 22-jun): notificar a otros provider/componentes
-          // (Notifications, Copilot, etc.) que el evento activo cambió. Esto permite
-          // que el sync useEffect de arriba reaccione inmediato sin esperar a
-          // re-render del contexto.
+          // CTX-C · X1 (plan consolidado 2026-07-20): además del localStorage
+          // mismo-origen, propagamos el evento activo por cookie con Domain=
+          // .bodasdehoy.com para que chat-ia (subdominio distinto) abierto en
+          // otra pestaña pueda leerlo. En localhost se omite Domain (el
+          // navegador rechaza cookies con dominio .bodasdehoy.com).
+          const isProd = !!process.env.NEXT_PUBLIC_PRODUCTION
+          const domainAttr = isProd ? '; Domain=.bodasdehoy.com' : ''
+          if (next?._id) {
+            const maxAge = 60 * 60 * 24 * 30 // 30 días
+            document.cookie = `bodas_active_event=${encodeURIComponent(next._id)}; Path=/; SameSite=Lax; Max-Age=${maxAge}${domainAttr}`
+          } else {
+            document.cookie = `bodas_active_event=; Path=/; SameSite=Lax; Max-Age=0${domainAttr}`
+          }
           if (prevId !== next?._id) {
             window.dispatchEvent(new CustomEvent('appEventos:activeEventChanged', {
               detail: { eventId: next?._id, prevEventId: prevId }
