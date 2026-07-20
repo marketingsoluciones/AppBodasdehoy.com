@@ -7,6 +7,7 @@ import { PropsWithChildren, memo } from 'react';
 import { withSuspense } from '@/components/withSuspense';
 import { useCrossAppActiveEventSync } from '@/hooks/useCrossAppActiveEventSync';
 import { useShowMobileWorkspace } from '@/hooks/useShowMobileWorkspace';
+import { useStickyEventPerSession } from '@/hooks/useStickyEventPerSession';
 import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfig';
 
 import NavBar from './NavBar';
@@ -37,6 +38,7 @@ const Layout = memo(({ children }: PropsWithChildren) => {
   const showCloudPromotion = (featureFlags as any).showCloudPromotion === true;
 
   useCrossAppActiveEventSync();
+  useStickyEventPerSession();
 
   return (
     <>

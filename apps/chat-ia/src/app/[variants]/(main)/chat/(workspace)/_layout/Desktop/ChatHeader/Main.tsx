@@ -17,6 +17,7 @@ import { sessionMetaSelectors, sessionSelectors } from '@/store/session/selector
 import { ShareChatButton } from '@/features/SharePermissions';
 
 import TogglePanelButton from '../../../../features/TogglePanelButton';
+import ActiveEventChip from './ActiveEventChip';
 import Tags from './Tags';
 
 const useStyles = createStyles(({ css }) => ({
@@ -91,6 +92,7 @@ const Main = memo<{ className?: string }>(({ className }) => {
       <Flexbox align={'center'} className={styles.container} gap={8} horizontal>
         <div className={styles.title}>{displayTitle}</div>
         <Tags />
+        <ActiveEventChip />
       </Flexbox>
       {/* Botón para compartir chat con permisos granulares */}
       {!isInbox && currentSessionId && (
