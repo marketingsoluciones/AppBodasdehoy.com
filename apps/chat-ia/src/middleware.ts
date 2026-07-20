@@ -72,8 +72,6 @@ export const config = {
     '/signup(.*)',
     '/dev-login(.*)',
     '/next-auth/(.*)',
-    '/oauth(.*)',
-    '/oidc(.*)',
     '/onboard(.*)', // ✅ Agregado para manejar redirección
     '/tasks',
     '/tasks(.*)',
@@ -87,7 +85,7 @@ export const config = {
   ],
 };
 
-const backendApiEndpoints = ['/api', '/trpc', '/webapi', '/oidc'];
+const backendApiEndpoints = ['/api', '/trpc', '/webapi'];
 
 // BUG QA 17-jul: nuevos usuarios veían chat en INGLÉS ("I am your personal
 // intelligent assistant...") aunque welcome.json/es-ES está traducido correcto.
@@ -286,7 +284,7 @@ const defaultMiddleware = (request: NextRequest) => {
     return NextResponse.rewrite(url, { status: 200 });
   } catch (error) {
     console.error('❌ Error in defaultMiddleware:', error);
-    const bypassPrefixes = ['/api', '/trpc', '/webapi', '/oidc', '/next-auth', '/_next'];
+    const bypassPrefixes = ['/api', '/trpc', '/webapi', '/next-auth', '/_next'];
     const shouldBypass = bypassPrefixes.some((p) => originalPathname.startsWith(p));
     if (shouldBypass) return NextResponse.next();
 
@@ -321,9 +319,6 @@ const PUBLIC_ROUTE_PATTERNS = [
   '/signup',
   // dev login (página de desarrollo)
   '/dev-login(.*)',
-  // oauth
-  '/oidc/handoff',
-  '/oidc/token',
   // ✅ DESPROTEGER: Gestor de archivos (no requiere auth)
   '/files(.*)',
   // ✅ Panel admin (playground, tests, etc.) accesible sin auth para desarrollo
@@ -334,7 +329,6 @@ const PROTECTED_ROUTE_PATTERNS = [
   '/settings(.*)',
   // '/files(.*)',  // ✅ MOVIDO A isPublicRoute - no requiere autenticación
   '/onboard(.*)',
-  '/oauth(.*)',
   // ↓ cloud ↓
 ];
 
