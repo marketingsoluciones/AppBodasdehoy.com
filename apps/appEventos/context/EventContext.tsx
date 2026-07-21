@@ -137,6 +137,31 @@ const EventProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => { eventRef.current = event }, [event])
   useEffect(() => { eventsGroupRef.current = eventsGroup }, [eventsGroup])
 
+  // X2(d) · plan consolidado 2026-07-20 (sprint γ). Publica la lista compacta
+  // de eventos del usuario en cookie `bodas_available_events` con Domain=
+  // .bodasdehoy.com para que chat-ia pueda ofrecer un picker al usuario cuando
+  // la IA no puede resolver el evento (o cuando el usuario abre el chip del
+  // header). Formato compacto: [{i, n}] con nombre truncado a 40 chars y
+  // limitado a los 20 eventos más recientes para caber en el ~4KB de cookie.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const isProd = !!process.env.NEXT_PUBLIC_PRODUCTION
+      const domainAttr = isProd ? '; Domain=.bodasdehoy.com' : ''
+      if (!eventsGroup || eventsGroup.length === 0) {
+        document.cookie = `bodas_available_events=; Path=/; SameSite=Lax; Max-Age=0${domainAttr}`
+        return
+      }
+      const compact = eventsGroup
+        .slice(0, 20)
+        .map((e: any) => ({ i: e?._id, n: String(e?.nombre || '').slice(0, 40) }))
+        .filter((e: any) => e.i)
+      const payload = encodeURIComponent(JSON.stringify(compact))
+      const maxAge = 60 * 60 * 24 * 30 // 30 días
+      document.cookie = `bodas_available_events=${payload}; Path=/; SameSite=Lax; Max-Age=${maxAge}${domainAttr}`
+    } catch { /* nunca romper la UI por telemetría */ }
+  }, [eventsGroup])
+
   useEffect(() => {
     if (typeof window === 'undefined') return
     const sync = () => {
