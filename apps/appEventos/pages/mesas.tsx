@@ -267,7 +267,7 @@ const Mesas: FC = () => {
                           <BlockInvitados set={setIsMounted} setEditInv={setEditInv} editInv={editInv} setSelected={setSelected} />
                         }
                         {itemSelect == "mesas" &&
-                          <BlockPanelMesas />
+                          <BlockPanelMesas setShowFormEditar={setShowFormEditar} />
                         }
                         {itemSelect == "mobiliario" &&
                           <BlockPanelElements listElements={listElements} setListElements={setListElements} />
