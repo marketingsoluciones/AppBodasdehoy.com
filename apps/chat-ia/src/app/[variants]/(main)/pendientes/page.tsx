@@ -34,7 +34,7 @@ const SECTION_META: Record<
     icon: '💬',
     label: 'Mensajería',
   },
-  chat_ia: { color: '#A855F7', icon: '🤖', label: 'Chat IA' },
+  chat_ia: { color: '#A855F7', icon: '🤖', label: 'Asistente' },
   service_comment: { color: '#F59E0B', icon: '📋', label: 'Servicios' },
   itinerary_comment: { color: '#3B82F6', icon: '📅', label: 'Itinerario' },
   notification_otra: { color: '#6B7280', icon: '🔔', label: 'Otras' },

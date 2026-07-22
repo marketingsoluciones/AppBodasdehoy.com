@@ -127,8 +127,9 @@ const CopilotIframe = ({
       const variants = encodeURIComponent(development || 'bodasdehoy');
 
       // LobeChat en este repo usa rutas con `[variants]`, por ejemplo:
-      //   /{variants}/chat
-      // Si cargamos solo `/chat` en root, devuelve 404 (lo que ves en pantalla).
+      //   /{variants}/asistente
+      // R1 rename (22-jul): la ruta del workspace del asistente pasó de /chat a
+      // /asistente. Apuntamos directo (antes iba por redirect 308 /chat→/asistente).
       const chatBase = (() => {
         try {
           const u = new URL(baseUrl, typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3210');
@@ -139,16 +140,16 @@ const CopilotIframe = ({
             u.pathname = `${path}/${variants}`;
           }
 
-          // Asegurar /chat (workspace)
-          if (!u.pathname.endsWith('/chat')) {
-            u.pathname = `${u.pathname.replace(/\/$/, '')}/chat`;
+          // Asegurar /asistente (workspace)
+          if (!u.pathname.endsWith('/asistente')) {
+            u.pathname = `${u.pathname.replace(/\/$/, '')}/asistente`;
           }
 
           return u.toString().replace(/\/$/, '');
         } catch {
           // Fallback string-based
           const withVariants = baseUrl.includes(`/${variants}`) ? baseUrl : `${baseUrl}/${variants}`;
-          return withVariants.endsWith('/chat') ? withVariants : `${withVariants}/chat`;
+          return withVariants.endsWith('/asistente') ? withVariants : `${withVariants}/asistente`;
         }
       })();
 
