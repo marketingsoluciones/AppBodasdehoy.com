@@ -109,7 +109,7 @@ const SubTabs = memo(() => {
       {/* Link a /messages — sustituye al antiguo tab "📥 Bandeja" inline.
           Evita duplicar ChannelSidebar dentro del sidebar de /chat. */}
       <Link
-        href="/messages"
+        href="/bandeja"
         style={{
           alignItems: 'center',
           color: '#7C3AED',

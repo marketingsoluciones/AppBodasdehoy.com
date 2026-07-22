@@ -88,7 +88,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
           <button
             aria-label="Volver"
             className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100"
-            onClick={() => router.push('/messages')}
+            onClick={() => router.push('/bandeja')}
             type="button"
           >
             ←

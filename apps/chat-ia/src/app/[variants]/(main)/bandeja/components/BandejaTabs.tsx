@@ -41,7 +41,7 @@ export function BandejaTabs({ active, counts }: BandejaTabsProps) {
       const params = new URLSearchParams(sp?.toString() ?? '');
       params.set('tab', tab.id);
       // Conservar otros params (scope, filtros, etc.)
-      router.replace(`/messages?${params.toString()}`);
+      router.replace(`/bandeja?${params.toString()}`);
     },
     [router, sp],
   );

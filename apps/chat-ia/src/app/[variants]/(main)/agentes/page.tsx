@@ -36,7 +36,7 @@ import { useSessionStore } from '@/store/session';
 import { sessionSelectors } from '@/store/session/selectors';
 import { LobeSessionType, type LobeAgentSession } from '@/types/session';
 
-import { MessagesRail } from '../messages/components/MessagesRail';
+import { MessagesRail } from '../bandeja/components/MessagesRail';
 
 // Colores canal (mismos que ConversationItem — coherencia con Fase A)
 const CHANNEL_DOT: Record<string, string> = {

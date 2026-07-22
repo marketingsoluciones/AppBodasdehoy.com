@@ -77,6 +77,9 @@ export const config = {
     '/tasks(.*)',
     '/notifications',
     '/notifications(.*)',
+    '/bandeja',
+    '/bandeja(.*)',
+    // R1 rename: /messages sigue en el matcher SOLO para redirigir a /bandeja.
     '/messages',
     '/messages(.*)',
     '/memories',
@@ -111,6 +114,15 @@ const defaultMiddleware = (request: NextRequest) => {
     pathname = '/chat';
     url.pathname = '/chat';
     logDefault('Root path: treating as /chat');
+  }
+
+  // R1 (rename de ruta): /messages → /bandeja. La ruta canónica ahora es
+  // /bandeja; redirect permanente (308) para enlaces/marcadores antiguos.
+  // Preserva sub-rutas (/messages/whatsapp/...) y query (?tab=inbox).
+  if (pathname === '/messages' || pathname.startsWith('/messages/')) {
+    url.pathname = pathname.replace(/^\/messages/, '/bandeja');
+    logDefault('Redirect R1 /messages → %s', url.pathname);
+    return NextResponse.redirect(url, { status: 308 });
   }
 
   try {

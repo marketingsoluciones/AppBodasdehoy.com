@@ -11,7 +11,7 @@ import { UnifiedFeedView } from './components/UnifiedFeedView';
 import { type FeedItem, useUnifiedFeed } from './hooks/useUnifiedFeed';
 
 // El guard de auth vive en el layout hermano (messages/layout.tsx): valida
-// con ventana de gracia y hace router.replace('/login?redirect=/messages').
+// con ventana de gracia y hace router.replace('/login?redirect=/bandeja').
 // Cualquier código que llegue a este page.tsx ya pasó ese filtro, por eso
 // aquí no hace falta un segundo gate — sería inalcanzable.
 export default function MessagesPage() {
@@ -153,7 +153,7 @@ export default function MessagesPage() {
       }
       if (item.channelParam && item.conversationId) {
         router.push(
-          `/messages/${encodeURIComponent(item.channelParam)}/${encodeURIComponent(item.conversationId)}`,
+          `/bandeja/${encodeURIComponent(item.channelParam)}/${encodeURIComponent(item.conversationId)}`,
         );
       }
     },
@@ -244,7 +244,7 @@ export default function MessagesPage() {
                   <div className="mt-4 flex items-center justify-center gap-2">
                     <button
                       className="rounded-lg bg-pink-500 px-3 py-2 text-xs font-semibold text-white hover:bg-pink-600"
-                      onClick={() => router.push('/messages/whatsapp')}
+                      onClick={() => router.push('/bandeja/whatsapp')}
                       type="button"
                     >
                       Conectar WhatsApp

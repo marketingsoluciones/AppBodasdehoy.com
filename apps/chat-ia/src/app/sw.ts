@@ -35,7 +35,7 @@ serwist.addEventListeners();
 //     icon:   "/icons/icon-192.png",  (opcional, default LobeChat icon)
 //     badge:  "/icons/badge.png",     (opcional, iOS/Android status bar)
 //     tag:    "<msg-id>",             (agrupa notifs del mismo hilo)
-//     url:    "/messages/wa-abc/conv-xyz",  (a dónde navegar al click)
+//     url:    "/bandeja/wa-abc/conv-xyz",  (a dónde navegar al click)
 //     data:   { convId, msgId, type: 'whatsapp'|'comment'|... }
 //   }
 // Si el payload NO trae title/body (edge case), mostramos un placeholder.
@@ -61,7 +61,7 @@ self.addEventListener('push', (event) => {
     badge: payload.badge || '/icons/badge.png',
     tag: payload.tag,
     data: {
-      url: payload.url || '/messages',
+      url: payload.url || '/bandeja',
       ...(payload.data || {}),
     },
     // requireInteraction: true cuando la notif es "importante" (mención directa)
@@ -73,7 +73,7 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = (event.notification.data as any)?.url || '/messages';
+  const targetUrl = (event.notification.data as any)?.url || '/bandeja';
 
   event.waitUntil(
     (async () => {

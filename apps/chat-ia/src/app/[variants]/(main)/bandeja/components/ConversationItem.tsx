@@ -96,7 +96,7 @@ export function ConversationItem({
 
   const handleClick = () => {
     router.push(
-      `/messages/${encodeURIComponent(conversation.channel)}/${encodeURIComponent(conversation.id)}`,
+      `/bandeja/${encodeURIComponent(conversation.channel)}/${encodeURIComponent(conversation.id)}`,
     );
   };
 

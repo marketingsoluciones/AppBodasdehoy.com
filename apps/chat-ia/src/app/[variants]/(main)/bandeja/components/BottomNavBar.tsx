@@ -27,8 +27,8 @@ const ITEMS: Array<{
   href: string;
 }> = [
   { href: '/chat', icon: '💬', id: 'conv', label: 'Asistente' },
-  { href: '/messages?tab=inbox', icon: '📥', id: 'inbox', label: 'Bandeja' },
-  { href: '/messages?tab=history', icon: '🕒', id: 'history', label: 'Historial' },
+  { href: '/bandeja?tab=inbox', icon: '📥', id: 'inbox', label: 'Bandeja' },
+  { href: '/bandeja?tab=history', icon: '🕒', id: 'history', label: 'Historial' },
 ];
 
 export function BottomNavBar({

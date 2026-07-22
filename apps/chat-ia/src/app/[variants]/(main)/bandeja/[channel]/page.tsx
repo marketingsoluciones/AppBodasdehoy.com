@@ -50,7 +50,7 @@ function MobileBackButton() {
     <div className="flex items-center gap-2 border-b border-gray-200 bg-white px-2 py-1 md:hidden">
       <button
         className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100"
-        onClick={() => router.push('/messages')}
+        onClick={() => router.push('/bandeja')}
         type="button"
       >
         ←
@@ -84,7 +84,7 @@ export default function ChannelPage({ params }: ChannelPageProps) {
   // B-MSG-SMS-02 fix: canales sin backend (sms) → redirect a bandeja
   useEffect(() => {
     if (PENDING_BACKEND_CHANNELS.has(channel)) {
-      router.replace('/messages');
+      router.replace('/bandeja');
     }
   }, [channel, router]);
 

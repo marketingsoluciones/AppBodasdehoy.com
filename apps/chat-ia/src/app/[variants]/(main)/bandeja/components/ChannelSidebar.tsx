@@ -518,16 +518,16 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
 
   // Navigation handlers
   const handleEventClick = (eventId: string) => {
-    router.push(`/messages/ev-${eventId}-itinerary`);
+    router.push(`/bandeja/ev-${eventId}-itinerary`);
   };
   const handleConvClick = (conv: RecentConversation) => {
-    router.push(`/messages/${conv.channelParam}/${conv.conversationId}`);
+    router.push(`/bandeja/${conv.channelParam}/${conv.conversationId}`);
   };
   const handleTaskClick = (item: PendingTaskItem) => {
-    router.push(`/messages/ev-${item.eventId}-task/${item.tarea._id}`);
+    router.push(`/bandeja/ev-${item.eventId}-task/${item.tarea._id}`);
   };
   const handleChannelSelect = (channelId: string) => {
-    router.push(`/messages/${channelId}`);
+    router.push(`/bandeja/${channelId}`);
   };
 
   return (
@@ -563,7 +563,7 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
           <div className="flex items-center gap-0.5">
             <Link
               className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
-              href="/messages/whatsapp"
+              href="/bandeja/whatsapp"
               title="Nueva conversación"
             >
               <svg
@@ -738,7 +738,7 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
                   extra={
                     <Link
                       className="text-[9px] font-medium text-purple-500 hover:text-purple-700"
-                      href="/messages"
+                      href="/bandeja"
                     >
                       Ver todo
                     </Link>

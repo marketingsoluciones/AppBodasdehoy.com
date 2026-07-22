@@ -25,7 +25,9 @@ const MOBILE_NAV_ROUTES = new Set([
   // BUG-MOB QA 29-jun: /pendientes y /messages estaban fuera del set
   // → sin NavBar mobile, el user se sentía "fuera de contexto" en mobile.
   '/pendientes',
-  '/messages',
+  '/bandeja',
+  // Rediseño Fase B: /agentes (Cowork) también necesita NavBar móvil.
+  '/agentes',
 ]);
 
 const Layout = memo(({ children }: PropsWithChildren) => {

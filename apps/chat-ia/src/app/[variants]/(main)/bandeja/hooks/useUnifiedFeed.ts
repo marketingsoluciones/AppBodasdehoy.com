@@ -70,21 +70,21 @@ const TYPE_LABEL: Record<string, { icon: string; label: string }> = {
 function computeNotificationUrl(n: AppNotification): string | null {
   const focused = n.focused ?? '';
   if (
-    focused.startsWith('/messages') ||
+    focused.startsWith('/bandeja') ||
     focused.startsWith('/chat/') ||
     focused.startsWith('/settings')
   ) {
     return focused.split('?')[0];
   }
-  if (focused.startsWith('/tasks')) return '/messages';
-  if (n.type === 'whatsapp_message') return '/messages';
-  if (n.type === 'task_reminder') return '/messages';
+  if (focused.startsWith('/tasks')) return '/bandeja';
+  if (n.type === 'whatsapp_message') return '/bandeja';
+  if (n.type === 'task_reminder') return '/bandeja';
   if (n.type === 'access_revoked' || n.type === 'permission_updated') return '/settings';
   // comment_added: navegar directo al recurso comentado. El backend nos manda
   // `url` en el payload → si focused viene con ese URL, respeta el default
   // (primer if). Si no, best-effort a /messages.
-  if (n.type === 'comment_added') return focused || '/messages';
-  if (focused) return '/messages';
+  if (n.type === 'comment_added') return focused || '/bandeja';
+  if (focused) return '/bandeja';
   return null;
 }
 

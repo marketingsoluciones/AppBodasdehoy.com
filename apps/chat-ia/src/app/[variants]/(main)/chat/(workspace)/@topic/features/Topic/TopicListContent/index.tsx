@@ -97,7 +97,7 @@ const TopicListContent = memo(() => {
             Tus conversaciones pueden estar en la bandeja de entrada
           </div>
           <Button
-            onClick={() => router.push('/messages')}
+            onClick={() => router.push('/bandeja')}
             style={{ margin: '0 auto' }}
             type="primary"
           >

@@ -23,7 +23,7 @@ import { useEffect, useMemo } from 'react';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useBandejaStore } from '@/store/bandeja';
 
-import { buildHeaders } from '../messages/utils/auth';
+import { buildHeaders } from '../bandeja/utils/auth';
 
 const SECTION_META: Record<
   string,
@@ -110,8 +110,8 @@ export default function PendientesPage() {
         title: c.name,
         unreadCount: c.unreadCount,
         url: c.channelParam
-          ? `/messages/${encodeURIComponent(c.channelParam)}/${encodeURIComponent(c.conversationId)}`
-          : '/messages',
+          ? `/bandeja/${encodeURIComponent(c.channelParam)}/${encodeURIComponent(c.conversationId)}`
+          : '/bandeja',
       }));
 
     const notifItems: PendingItem[] = notifications

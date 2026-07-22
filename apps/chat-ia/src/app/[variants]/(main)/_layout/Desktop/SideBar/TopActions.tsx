@@ -138,7 +138,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
         </Link>
       )}
       {isServerMode && isLoggedIn && (
-        <Link aria-label="Bandeja de mensajes" href={'/messages'} suppressHydrationWarning>
+        <Link aria-label="Bandeja de mensajes" href={'/bandeja'} suppressHydrationWarning>
           <div style={{ position: 'relative' }}>
             <ActionIcon
               active={tab === SidebarTabKey.Messages}

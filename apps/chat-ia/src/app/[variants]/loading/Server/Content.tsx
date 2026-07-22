@@ -25,7 +25,7 @@ const ROUTES_TO_SKIP = [
   '/chat',
   '/labs',
   '/pendientes',
-  '/messages',
+  '/bandeja',
   '/memories',
   '/notifications',
   '/profile',

@@ -155,7 +155,7 @@ function RelatedTasks({
             <button
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-zinc-800"
               key={t._id}
-              onClick={() => router.push(`/messages/ev-${eventId}-task/${t._id}`)}
+              onClick={() => router.push(`/bandeja/ev-${eventId}-task/${t._id}`)}
               type="button"
             >
               <span className={`text-xs ${done ? 'text-green-400' : 'text-zinc-500'}`}>
@@ -224,7 +224,7 @@ export function TaskDetailWorkspace({ eventId, taskId }: TaskDetailWorkspaceProp
           <p className="text-sm text-zinc-500">Tarea no encontrada</p>
           <button
             className="mt-3 rounded-lg bg-zinc-800 px-4 py-2 text-xs text-zinc-300 hover:bg-zinc-700"
-            onClick={() => router.push('/messages')}
+            onClick={() => router.push('/bandeja')}
             type="button"
           >
             ← Volver a bandeja
@@ -245,7 +245,7 @@ export function TaskDetailWorkspace({ eventId, taskId }: TaskDetailWorkspaceProp
         {/* Mobile back */}
         <button
           className="mr-1 rounded-lg p-1 text-zinc-400 hover:bg-zinc-800 md:hidden"
-          onClick={() => router.push('/messages')}
+          onClick={() => router.push('/bandeja')}
           type="button"
         >
           ←

@@ -87,7 +87,7 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
   // hidratado todavía — significa que volvimos a abrir directo a /messages tras login.
   useEffect(() => {
     if (isLoaded && isGuest && graceElapsed && !localJwtPresent) {
-      router.replace('/login?redirect=/messages');
+      router.replace('/login?redirect=/bandeja');
     }
   }, [isLoaded, isGuest, graceElapsed, localJwtPresent, router]);
 
@@ -113,7 +113,7 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
           <div className="mt-1 text-xs text-gray-500">Redirigiendo a login…</div>
           <button
             className="mt-4 rounded-lg bg-purple-600 px-4 py-2 text-xs font-semibold text-white hover:bg-purple-700"
-            onClick={() => router.push('/login?redirect=/messages')}
+            onClick={() => router.push('/login?redirect=/bandeja')}
             type="button"
           >
             Ir a login

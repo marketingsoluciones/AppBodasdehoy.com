@@ -86,9 +86,9 @@ export function MessagesRail({
         icon: ICON_CONVERSATIONS,
       },
       {
-        href: '/messages',
+        href: '/bandeja',
         label: 'Bandeja',
-        matchPrefix: '/messages',
+        matchPrefix: '/bandeja',
         icon: ICON_INBOX,
         unreadCount: inboxUnread,
       },
@@ -99,9 +99,9 @@ export function MessagesRail({
         icon: ICON_AGENTS,
       },
       {
-        href: '/messages?tab=history',
+        href: '/bandeja?tab=history',
         label: 'Historial',
-        matchPrefix: '/messages?tab=history',
+        matchPrefix: '/bandeja?tab=history',
         icon: ICON_HISTORY,
         unreadCount: historyUnread,
       },

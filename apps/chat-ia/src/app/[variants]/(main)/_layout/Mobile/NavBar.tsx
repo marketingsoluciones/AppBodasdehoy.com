@@ -87,7 +87,7 @@ const NavBar = memo(() => {
           ),
           key: SidebarTabKey.Messages,
           onClick: () => {
-            router.push('/messages');
+            router.push('/bandeja');
           },
           title: 'Mensajes',
         },
