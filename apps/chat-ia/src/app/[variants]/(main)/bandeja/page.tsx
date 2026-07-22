@@ -38,7 +38,11 @@ export default function MessagesPage() {
   // header — cuando se persista por workspace, leemos de ahí. Mientras
   // mostramos el filtro si HAY borradores pendientes (count > 0).
   const [pendingIaActive, setPendingIaActive] = useState(false);
-  const pendingIaCount = 0; // TODO: contar items con draftState='pending' cuando api-ia exponga
+  // Cablead 22-jul: cuenta real de conversaciones con borrador IA pendiente.
+  // Los items de useUnifiedFeed ya traen draftState (api-ia); antes era 0 fijo.
+  const pendingIaCount = items.filter(
+    (i) => i.kind === 'conversation' && (i as any).draftState === 'pending',
+  ).length;
 
   // MOB-21 (15-jul): toggle "ver spam" para newsletters/broadcasts. Persistido en
   // localStorage para que sobreviva recargas. Default OFF (filtrado activo) —
@@ -76,12 +80,12 @@ export default function MessagesPage() {
   // ig→instagram, tg→telegram, fb→facebook) al campo channelParam del item.
   const CHANNEL_MAP: Record<ChannelFilter, string | null> = {
     all: null,
-    wa: 'whatsapp',
-    sms: 'sms',
-    ig: 'instagram',
-    web: 'web',
-    tg: 'telegram',
     fb: 'facebook',
+    ig: 'instagram',
+    sms: 'sms',
+    tg: 'telegram',
+    wa: 'whatsapp',
+    web: 'web',
   };
   const filteredItems = useMemo(() => {
     let arr = items;
@@ -177,7 +181,7 @@ export default function MessagesPage() {
         <div className="flex flex-1 overflow-hidden">
           <div
             className="flex w-[300px] shrink-0 flex-col overflow-hidden"
-            style={{ borderRight: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+            style={{ backgroundColor: '#FFFFFF', borderRight: '1px solid #EDEDF0' }}
           >
             {/* ScopeSelector + filtros solo visibles en tab 'inbox'. En 'history'
                 el feed es plano (notificaciones) sin scope ni filtros canal/RSVP. */}
@@ -187,15 +191,15 @@ export default function MessagesPage() {
                   <ScopeSelector activeScope={activeScope} onChange={handleScopeChange} />
                 </div>
                 <InboxFilters
-                  hideRsvp={activeScope === 'support'}
-                  rsvp={rsvpFilter}
                   channel={channelFilter}
-                  onRsvpChange={setRsvpFilter}
-                  onChannelChange={setChannelFilter}
+                  hideRsvp={activeScope === 'support'}
                   iaCopilotActive={true}
-                  pendingIaCount={pendingIaCount}
-                  pendingIaActive={pendingIaActive}
+                  onChannelChange={setChannelFilter}
                   onPendingIaToggle={() => setPendingIaActive((v) => !v)}
+                  onRsvpChange={setRsvpFilter}
+                  pendingIaActive={pendingIaActive}
+                  pendingIaCount={pendingIaCount}
+                  rsvp={rsvpFilter}
                 />
                 {/* MOB-21 toggle "ver spam" (15-jul) — chip discreto que revierte
                     el filtro auto de newsletter/broadcast si el usuario lo pide. */}

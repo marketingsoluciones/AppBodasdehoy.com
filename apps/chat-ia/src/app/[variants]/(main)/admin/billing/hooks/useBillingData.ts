@@ -61,7 +61,18 @@ export function useBillingData(period: 'day' | 'week' | 'month', development = '
       const billingData: BillingData = {
         avgCostPerRequest: stats.total_requests ? realCost / stats.total_requests : 0,
         billedCost,
-        byDay: [],
+        // Cablead 22-jul: desglose por día desde api-ia stats.cost_by_day
+        // (UsageStats: date, requests_count, tokens_used, cost_usd). Antes byDay:[].
+        byDay: (stats.cost_by_day || []).map((d: any) => {
+          const dayRealCost = d.cost_usd || 0;
+          return {
+            billedCost: dayRealCost * marginMultiplier,
+            date: d.date,
+            margin: dayRealCost * (marginMultiplier - 1),
+            realCost: dayRealCost,
+            requests: d.requests_count || 0,
+          };
+        }),
         byProvider: Object.entries(stats.providers || {}).map(([provider, data]: [string, any]) => ({
           avgResponseTime: data.avg_response_time_ms || 0,
           billedCost: (data.cost_usd || 0) * marginMultiplier,
