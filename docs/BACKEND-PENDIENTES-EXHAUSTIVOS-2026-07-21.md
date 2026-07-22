@@ -1,5 +1,15 @@
 # BACKEND PENDIENTES — inventario exhaustivo 2026-07-21
 
+> **⚠️ ACTUALIZACIÓN 2026-07-22 (auditoría SSH read-only):** muestreo de 8 items
+> contra el código real de **api-ia** (`/opt/backend`) y **api-mcp**
+> (`/var/www/api-production`) encontró **7 de 8 YA IMPLEMENTADOS** en backend —
+> eran TODOs/mocks viejos del front, no falta real (p.ej. `sendWhatsAppMessage`,
+> `channel-assignments`, `cost_by_day`, `/draft/approve`, mapping invitado-por-teléfono).
+> Único pendiente de backend confirmado en el muestreo: **descarga ZIP de álbumes**
+> (api-ia). Conclusión: **esta lista SOBREESTIMA lo pendiente** — verificar cada
+> item contra el código antes de escalarlo. El trabajo real que queda es sobre todo
+> de **front** (cablear a endpoints que ya existen + quitar mocks).
+>
 > Auditoría exhaustiva de TODO lo escalado/documentado/enterrado que espera acción
 > de **api-ia** (Python/agent runtime) o **api-mcp** (GraphQL Node) o equipos
 > externos (infra/producto). Verificado contra `docs/backend-asks/*`, todos los
