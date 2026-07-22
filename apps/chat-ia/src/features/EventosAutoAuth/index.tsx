@@ -11,6 +11,7 @@ import { consumeInviteToken } from '@/services/mcpApi/invite';
 import { processGoogleRedirectResult, processFacebookRedirectResult, initCrossAppTokenRefresh } from '@/services/firebase-auth';
 import { useChatStore } from '@/store/chat';
 import { useAgentStore } from '@/store/agent';
+import { useUserStore } from '@/store/user';
 import { authBridge } from '@bodasdehoy/shared/auth';
 
 // ✅ OPTIMIZACIÓN: Solo loguear en desarrollo
@@ -105,7 +106,7 @@ function EventosAutoAuthComponent() {
       useUserStore.setState({
         isSignedIn: true,
         user: {
-          ...(us.user || {}),
+          ...us.user,
           avatar: p.avatar || p.photoURL || us.user?.avatar,
           email: p.email || (currentUserId.includes('@') ? currentUserId : us.user?.email),
           fullName: p.fullName || p.displayName || p.name || us.user?.fullName,
