@@ -55,7 +55,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
     <Flexbox gap={8}>
       <Link
         aria-label={t('tab.chat')}
-        href={'/chat'}
+        href={'/asistente'}
         onClick={(e) => {
           // If Cmd key is pressed, let the default link behavior happen (open in new tab)
           if (e.metaKey || e.ctrlKey) {

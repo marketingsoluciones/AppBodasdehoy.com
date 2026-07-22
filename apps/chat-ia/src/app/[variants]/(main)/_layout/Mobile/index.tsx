@@ -14,7 +14,7 @@ import NavBar from './NavBar';
 
 const CloudBanner = dynamic(() => import('@/features/AlertBanner/CloudBanner'));
 const MOBILE_NAV_ROUTES = new Set([
-  '/chat',
+  '/asistente',
   '/discover',
   '/discover/assistant',
   '/discover/mcp',

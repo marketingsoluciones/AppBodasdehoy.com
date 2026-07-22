@@ -51,7 +51,7 @@ const NavBar = memo(() => {
           ),
           key: SidebarTabKey.Chat,
           onClick: () => {
-            router.push('/chat');
+            router.push('/asistente');
           },
           title: t('tab.chat'),
         },

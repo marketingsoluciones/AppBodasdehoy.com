@@ -146,7 +146,7 @@ const ExternalChatsMode = memo(() => {
 
   const handleChatClick = (chatId: string, source: string) => {
     // Navegar a la conversación externa en modo chat
-    router.push(`/chat?external=true&session=${chatId}&channel=${source}&session_type=chat`);
+    router.push(`/asistente?external=true&session=${chatId}&channel=${source}&session_type=chat`);
   };
 
   if (!externalChats || externalChats.length === 0) {

@@ -23,7 +23,15 @@ const MobileHeader = memo(() => {
     <ChatHeader
       center={<ChatHeaderTitle />}
       onBackClick={() =>
-        router.push('/chat', { query: { session: INBOX_SESSION_ID }, replace: true })
+        // BUG MÓVIL (22-jul): la flecha "‹" no hacía nada → el usuario quedaba
+        // ATRAPADO en el asistente sin barra inferior para llegar a Bandeja.
+        // Causa: useShowMobileWorkspace default=true, y el back NO lo ponía a
+        // false, así que se seguía viendo el workspace. Fix: showMobileWorkspace
+        // false → muestra la LISTA de sesiones + la barra inferior (Chat/Bandeja/Me).
+        router.push('/asistente', {
+          query: { session: INBOX_SESSION_ID, showMobileWorkspace: false },
+          replace: true,
+        })
       }
       right={
         <>

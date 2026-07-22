@@ -58,7 +58,7 @@ const Redirect = memo<RedirectProps>(({ setActiveStage }) => {
     performanceMonitor.startPhase('REDIRECT_TO_CHAT');
 
     setActiveStage(AppLoadingStage.GoToChat);
-    router.replace('/chat');
+    router.replace('/asistente');
 
     // Finalizar medición después de un pequeño delay
     setTimeout(() => {

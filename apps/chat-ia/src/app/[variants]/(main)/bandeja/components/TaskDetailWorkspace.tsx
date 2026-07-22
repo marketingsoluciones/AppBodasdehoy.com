@@ -70,7 +70,7 @@ function TaskInput({ tarea, itinerarioTitle }: { itinerarioTitle: string, tarea:
     setText('');
     const contextPrefix = `[Tarea: "${tarea.descripcion}" · ${itinerarioTitle}]\n\n`;
     await sendMessage({ message: contextPrefix + trimmed });
-    router.push('/chat');
+    router.push('/asistente');
   };
 
   return (

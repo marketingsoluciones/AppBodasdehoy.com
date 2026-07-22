@@ -22,7 +22,7 @@ const ROUTES_TO_SKIP = [
   '/settings',
   '/login',
   '/onboard',
-  '/chat',
+  '/asistente',
   '/labs',
   '/pendientes',
   '/bandeja',

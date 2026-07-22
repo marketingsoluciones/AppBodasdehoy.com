@@ -190,7 +190,7 @@ export default function PendientesPage() {
               de itinerario, o el asistente termine una tarea, aparecerá aquí.
             </p>
             <Link
-              href="/chat"
+              href="/asistente"
               className="mt-4 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700"
             >
               Ir al asistente

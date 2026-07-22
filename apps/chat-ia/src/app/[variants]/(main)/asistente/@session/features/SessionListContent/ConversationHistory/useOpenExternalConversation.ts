@@ -33,7 +33,7 @@ export const useOpenExternalConversation = () => {
       }
 
       // Navegar a la conversación externa
-      router.push(`/chat?${params.toString()}`);
+      router.push(`/asistente?${params.toString()}`);
     },
     [router]
   );

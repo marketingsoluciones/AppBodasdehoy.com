@@ -248,7 +248,7 @@ export default function AgentesPage() {
             </p>
             <a
               className="mt-4 inline-block rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
-              href="/chat"
+              href="/asistente"
               style={{ backgroundColor: '#1C1C22' }}
             >
               Ir a Copilot
@@ -351,7 +351,7 @@ export default function AgentesPage() {
         <div style={{ borderTop: '1px solid #EDEDF0' }}>
           <a
             className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium transition-colors"
-            href="/chat"
+            href="/asistente"
             style={{ color: '#6B4EFF' }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}

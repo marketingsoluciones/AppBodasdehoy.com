@@ -23,7 +23,7 @@ interface BandejaTabsProps {
 }
 
 const TAB_META: Array<{ id: BandejaTab; label: string; icon: string; redirectsTo?: string }> = [
-  { id: 'conv', icon: '💬', label: 'Conversaciones', redirectsTo: '/chat' },
+  { id: 'conv', icon: '💬', label: 'Conversaciones', redirectsTo: '/asistente' },
   { id: 'inbox', icon: '📥', label: 'Bandeja' },
   { id: 'history', icon: '🕒', label: 'Historial' },
 ];

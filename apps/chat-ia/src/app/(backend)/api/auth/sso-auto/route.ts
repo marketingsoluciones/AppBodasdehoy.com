@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
   const urlParams = new URL(request.url).searchParams;
   const development = urlParams.get('developer') || 'bodasdehoy';
   const redirectAfterLogin = urlParams.get('redirect');
-  const safeRedirect = redirectAfterLogin && isSafeRedirect(redirectAfterLogin) ? redirectAfterLogin : '/chat';
+  const safeRedirect = redirectAfterLogin && isSafeRedirect(redirectAfterLogin) ? redirectAfterLogin : '/asistente';
 
   // BUG-CW-N14 (informe QA 23-jun 5ª ronda): /messages directo se quedaba
   // colgado >20s sin timeout. El fetch a firebase-login no tenía AbortController

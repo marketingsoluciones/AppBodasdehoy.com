@@ -26,7 +26,7 @@ const ITEMS: Array<{
   icon: string;
   href: string;
 }> = [
-  { href: '/chat', icon: '💬', id: 'conv', label: 'Asistente' },
+  { href: '/asistente', icon: '💬', id: 'conv', label: 'Asistente' },
   { href: '/bandeja?tab=inbox', icon: '📥', id: 'inbox', label: 'Bandeja' },
   { href: '/bandeja?tab=history', icon: '🕒', id: 'history', label: 'Historial' },
 ];

@@ -80,9 +80,9 @@ export function MessagesRail({
   const items: RailItem[] = useMemo(
     () => [
       {
-        href: '/chat',
+        href: '/asistente',
         label: 'Conversaciones',
-        matchPrefix: '/chat',
+        matchPrefix: '/asistente',
         icon: ICON_CONVERSATIONS,
       },
       {

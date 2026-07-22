@@ -19,14 +19,14 @@ export const generateMetadata = async (props: DynamicLayoutProps) => {
     return metadataModule.generate({
       description: t('chat.description', { appName: BRANDING_NAME }),
       title: t('chat.title', { appName: BRANDING_NAME }),
-      url: '/chat',
+      url: '/asistente',
     });
   } catch (error) {
     console.error('❌ Error in chat page generateMetadata:', error);
     return metadataModule.generate({
       description: 'AI Chat Assistant',
       title: BRANDING_NAME,
-      url: '/chat',
+      url: '/asistente',
     });
   }
 };
@@ -38,7 +38,7 @@ const Page = async (props: DynamicLayoutProps) => {
     const ld = ldModule.generate({
       description: t('chat.description', { appName: BRANDING_NAME }),
       title: t('chat.title', { appName: BRANDING_NAME }),
-      url: '/chat',
+      url: '/asistente',
     });
 
     return (

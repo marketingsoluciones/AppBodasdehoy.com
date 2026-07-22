@@ -40,7 +40,7 @@ function useRequireRegisteredUser() {
         const rawConfig = localStorage.getItem('dev-user-config');
 
         if (!rawConfig) {
-          router.replace('/chat');
+          router.replace('/asistente');
           setIsChecking(false);
           return;
         }
@@ -70,7 +70,7 @@ function useRequireRegisteredUser() {
         );
 
         if (!isValidUser) {
-          router.replace('/chat');
+          router.replace('/asistente');
           setIsChecking(false);
           return;
         }
@@ -78,7 +78,7 @@ function useRequireRegisteredUser() {
         setIsRegistered(true);
       } catch (error) {
         console.error('❌ KnowledgeRouter: Error verificando acceso:', error);
-        router.replace('/chat');
+        router.replace('/asistente');
       } finally {
         setIsChecking(false);
       }

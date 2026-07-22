@@ -291,7 +291,7 @@ export class Sitemap {
     const hideDocs = serverFeatureFlags().hideDocs;
     return [
       ...this._genSitemap('/', { noLocales: true }),
-      ...this._genSitemap('/chat', { noLocales: true }),
+      ...this._genSitemap('/asistente', { noLocales: true }),
       ...(!hideDocs ? this._genSitemap('/changelog', { noLocales: true }) : []),
       /* ↓ cloud slot ↓ */
 
