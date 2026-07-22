@@ -53,7 +53,8 @@ const NavBar = memo(() => {
           onClick: () => {
             router.push('/asistente');
           },
-          title: t('tab.chat'),
+          // R1 nomenclatura (diseño PLAN-CHAT-IA-REDISENO): "Chat IA" → "Asistente".
+          title: 'Asistente',
         },
         // Bandeja de mensajes — solo usuarios registrados en server mode
         isServerMode && isLoggedIn && {
@@ -89,7 +90,8 @@ const NavBar = memo(() => {
           onClick: () => {
             router.push('/bandeja');
           },
-          title: 'Mensajes',
+          // R1 nomenclatura: la mensajería unificada se llama "Bandeja".
+          title: 'Bandeja',
         },
         // Discover/Market - Marketplace de agentes y plugins
         showMarket && {
