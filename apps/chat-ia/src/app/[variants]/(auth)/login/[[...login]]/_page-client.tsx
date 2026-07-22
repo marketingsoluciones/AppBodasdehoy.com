@@ -99,7 +99,7 @@ function RightPanel() {
     if (redirectAfterLogin && isSafeRedirect(redirectAfterLogin)) {
       window.location.href = redirectAfterLogin;
     } else {
-      router.replace('/chat');
+      router.replace('/asistente');
     }
   };
 
@@ -306,7 +306,7 @@ function RightPanel() {
       await setExternalChatConfig(visitorId, development, undefined, 'visitor');
     } catch { /* continuar sin config */ }
     messageApi.info('Modo visitante activado. Algunas funciones requieren cuenta.');
-    setTimeout(() => router.replace('/chat'), 800);
+    setTimeout(() => router.replace('/asistente'), 800);
   };
 
   // ── Render WhatsApp OTP inline ───────────────────────────────────────────────
@@ -488,7 +488,7 @@ const SSO_SCRIPT = `
           isSafe = ALLOWED.some(function(h) { return parsed.hostname === h || parsed.hostname.endsWith('.' + h); });
         } catch(e) { isSafe = redirectParam.startsWith('/'); }
       }
-      window.location.replace(isSafe ? redirectParam : '/chat');
+      window.location.replace(isSafe ? redirectParam : '/asistente');
     })
     .catch(function() {}); // falla → formulario normal
   } catch(e) {}

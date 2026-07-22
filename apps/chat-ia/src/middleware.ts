@@ -46,6 +46,9 @@ export const config = {
     '/',
     '/discover',
     '/discover(.*)',
+    '/asistente',
+    '/asistente(.*)',
+    // R1 rename: /chat sigue en el matcher SOLO para redirigir a /asistente.
     '/chat',
     '/chat(.*)',
     '/changelog(.*)',
@@ -77,6 +80,9 @@ export const config = {
     '/tasks(.*)',
     '/notifications',
     '/notifications(.*)',
+    '/bandeja',
+    '/bandeja(.*)',
+    // R1 rename: /messages sigue en el matcher SOLO para redirigir a /bandeja.
     '/messages',
     '/messages(.*)',
     '/memories',
@@ -108,9 +114,33 @@ const defaultMiddleware = (request: NextRequest) => {
   }
 
   if (pathname === '/' || pathname === '') {
-    pathname = '/chat';
-    url.pathname = '/chat';
-    logDefault('Root path: treating as /chat');
+    pathname = '/asistente';
+    url.pathname = '/asistente';
+    logDefault('Root path: treating as /asistente');
+  }
+
+  // R1 (rename de ruta): /messages → /bandeja. La ruta canónica ahora es
+  // /bandeja; redirect permanente (308) para enlaces/marcadores antiguos.
+  // Preserva sub-rutas (/messages/whatsapp/...) y query (?tab=inbox).
+  if (pathname === '/messages' || pathname.startsWith('/messages/')) {
+    url.pathname = pathname.replace(/^\/messages/, '/bandeja');
+    logDefault('Redirect R1 /messages → %s', url.pathname);
+    return NextResponse.redirect(url, { status: 308 });
+  }
+
+  // R1 (rename de ruta): /chat → /asistente. Redirect 308 para enlaces/embed
+  // antiguos. Cubre /chat directo y la variante con slug de desarrollador
+  // (/bodasdehoy/chat, /eventosorganizador/chat) que usaba el iframe Copilot.
+  // NO afecta rutas API (van bajo /api/* y se saltan más abajo).
+  {
+    const chatRouteMatch = pathname.match(
+      /^(\/(?:bodasdehoy|eventosorganizador))?\/chat(\/.*)?$/,
+    );
+    if (chatRouteMatch) {
+      url.pathname = (chatRouteMatch[1] || '') + '/asistente' + (chatRouteMatch[2] || '');
+      logDefault('Redirect R1 /chat → %s', url.pathname);
+      return NextResponse.redirect(url, { status: 308 });
+    }
   }
 
   try {
@@ -132,7 +162,7 @@ const defaultMiddleware = (request: NextRequest) => {
     // ✅ FIX: Redirigir /onboard a /chat (onboarding deshabilitado)
     if (url.pathname === '/onboard' || url.pathname.startsWith('/onboard/')) {
       logDefault('Redirecting /onboard to /chat');
-      const chatUrl = new URL('/chat', request.url);
+      const chatUrl = new URL('/asistente', request.url);
       // Preservar parámetros de búsqueda
       chatUrl.search = url.search;
       return NextResponse.redirect(chatUrl, { status: 307 });

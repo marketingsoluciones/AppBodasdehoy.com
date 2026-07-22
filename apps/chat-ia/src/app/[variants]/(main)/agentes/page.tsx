@@ -36,7 +36,7 @@ import { useSessionStore } from '@/store/session';
 import { sessionSelectors } from '@/store/session/selectors';
 import { LobeSessionType, type LobeAgentSession } from '@/types/session';
 
-import { MessagesRail } from '../messages/components/MessagesRail';
+import { MessagesRail } from '../bandeja/components/MessagesRail';
 
 // Colores canal (mismos que ConversationItem — coherencia con Fase A)
 const CHANNEL_DOT: Record<string, string> = {
@@ -136,7 +136,15 @@ export default function AgentesPage() {
     if (typeof window === 'undefined') return;
     const map: Record<string, LocalAgentState> = {};
     agentSessions.forEach((a) => {
-      map[a.id] = loadLocalAgentState(a.id);
+      const local = loadLocalAgentState(a.id);
+      // disabled: fuente de verdad = backend (session.config.disabled), cablead
+      // 23-jul. Si el backend aún no lo trae, cae al valor local. (channels sigue
+      // local hasta que api-ia keyee por agente — decisión A, pendiente).
+      const backendDisabled = (a.config as any)?.disabled;
+      map[a.id] = {
+        ...local,
+        disabled: typeof backendDisabled === 'boolean' ? backendDisabled : local.disabled,
+      };
     });
     setLocalStates(map);
   }, [agentSessions]);
@@ -183,16 +191,30 @@ export default function AgentesPage() {
     return () => clearTimeout(t);
   }, [promptDraft, selected, persistPrompt]);
 
-  const toggleAgentDisabled = useCallback((agentId: string) => {
-    setLocalStates((prev) => {
-      const current = prev[agentId] ?? {};
-      const next: LocalAgentState = { ...current, disabled: !current.disabled };
-      saveLocalAgentState(agentId, { disabled: next.disabled });
-      // TODO: cablear PATCH /chat/sessions/{agentId} con { config: { disabled } }
-      //       cuando LobeAgentConfig acepte el campo (Slack ts 1784383734).
-      return { ...prev, [agentId]: next };
-    });
-  }, []);
+  const toggleAgentDisabled = useCallback(
+    async (agentId: string) => {
+      const nextDisabled = !(localStates[agentId]?.disabled);
+      // Optimista local (respuesta inmediata en la UI).
+      setLocalStates((prev) => ({
+        ...prev,
+        [agentId]: { ...(prev[agentId] ?? {}), disabled: nextDisabled },
+      }));
+      saveLocalAgentState(agentId, { disabled: nextDisabled });
+      // Cablead 23-jul (Cowork per-agente): persistir en backend vía
+      // PATCH /chat/sessions/{id} (config.disabled). api-ia lo acepta ya.
+      // updateAgentConfig actúa sobre activeId → switchSession primero.
+      try {
+        if (activeId !== agentId) {
+          switchSession(agentId);
+          await new Promise((r) => setTimeout(r, 0));
+        }
+        await updateAgentConfig({ disabled: nextDisabled } as any);
+      } catch {
+        /* el estado local ya está aplicado; se reintenta al reabrir la ficha */
+      }
+    },
+    [localStates, activeId, switchSession, updateAgentConfig],
+  );
 
   const toggleChannelAssignment = useCallback((agentId: string, channel: string) => {
     setLocalStates((prev) => {
@@ -248,7 +270,7 @@ export default function AgentesPage() {
             </p>
             <a
               className="mt-4 inline-block rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
-              href="/chat"
+              href="/asistente"
               style={{ backgroundColor: '#1C1C22' }}
             >
               Ir a Copilot
@@ -351,7 +373,7 @@ export default function AgentesPage() {
         <div style={{ borderTop: '1px solid #EDEDF0' }}>
           <a
             className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium transition-colors"
-            href="/chat"
+            href="/asistente"
             style={{ color: '#6B4EFF' }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}

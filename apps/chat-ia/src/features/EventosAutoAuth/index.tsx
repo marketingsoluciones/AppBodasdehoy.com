@@ -11,6 +11,7 @@ import { consumeInviteToken } from '@/services/mcpApi/invite';
 import { processGoogleRedirectResult, processFacebookRedirectResult, initCrossAppTokenRefresh } from '@/services/firebase-auth';
 import { useChatStore } from '@/store/chat';
 import { useAgentStore } from '@/store/agent';
+import { useUserStore } from '@/store/user';
 import { authBridge } from '@bodasdehoy/shared/auth';
 
 // ✅ OPTIMIZACIÓN: Solo loguear en desarrollo
@@ -75,7 +76,7 @@ export function EventosAutoAuth() {
 
 function EventosAutoAuthComponent() {
   const searchParams = useSearchParams();
-  const { setExternalChatConfig, currentUserId } = useChatStore();
+  const { setExternalChatConfig, currentUserId, userProfile } = useChatStore();
   const { togglePlugin } = useAgentStore();
   const [lastIdentifiedUserId, setLastIdentifiedUserId] = useState<string | null>(null);
   // ✅ FIX: Inicializar sincrónicamente para que el primer render ya sepa si está en iframe.
@@ -85,6 +86,38 @@ function EventosAutoAuthComponent() {
     () => typeof window !== 'undefined' ? window.parent !== window : false
   );
   const [receivedAuthFromParent, setReceivedAuthFromParent] = useState(false);
+
+  // ── FIX auth shell (22-jul): sincronizar isSignedIn (user store LobeChat) con
+  // la sesión Bodas. El SSO Bodas puebla currentUserId + userProfile en el CHAT
+  // store, pero isSignedIn — que usa TODO el shell/nav (cabecera, "Visitante",
+  // pestaña Bandeja en móvil, useDomainGuestUser) — nunca se ponía a true porque
+  // el auth nativo LobeChat (NextAuth/Clerk) está DESACTIVADO. Resultado: usuarios
+  // LOGUEADOS por Bodas aparecían como "Visitante" y en móvil no veían Bandeja.
+  // Aquí lo mantenemos en sync (raíz común de varios síntomas de QA).
+  useEffect(() => {
+    const isRealUser =
+      !!currentUserId &&
+      currentUserId !== 'visitante@guest.local' &&
+      currentUserId !== 'guest' &&
+      currentUserId !== 'anonymous';
+    const us = useUserStore.getState();
+    if (isRealUser && !us.isSignedIn) {
+      const p: any = userProfile || {};
+      useUserStore.setState({
+        isSignedIn: true,
+        user: {
+          ...us.user,
+          avatar: p.avatar || p.photoURL || us.user?.avatar,
+          email: p.email || (currentUserId.includes('@') ? currentUserId : us.user?.email),
+          fullName: p.fullName || p.displayName || p.name || us.user?.fullName,
+          id: currentUserId,
+          username: p.displayName || p.name || p.email || currentUserId,
+        } as any,
+      });
+    } else if (!isRealUser && us.isSignedIn) {
+      useUserStore.setState({ isSignedIn: false });
+    }
+  }, [currentUserId, userProfile]);
 
   // ── SSO token refresh: renueva idTokenV0.1.0 automáticamente cada ~55 min
   // Mantiene la sesión cross-domain válida indefinidamente mientras el usuario esté activo

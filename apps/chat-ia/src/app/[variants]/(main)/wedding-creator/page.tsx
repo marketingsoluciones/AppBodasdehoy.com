@@ -584,7 +584,7 @@ function WeddingCreatorContent() {
               <div className="flex items-center gap-3">
                 <button
                   className="text-gray-500 hover:text-gray-700 transition-colors"
-                  onClick={() => router.push('/chat')}
+                  onClick={() => router.push('/asistente')}
                   title="Volver al inicio"
                   type="button"
                 >

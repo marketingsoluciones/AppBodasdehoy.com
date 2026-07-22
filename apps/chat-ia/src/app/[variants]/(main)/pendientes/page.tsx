@@ -23,7 +23,7 @@ import { useEffect, useMemo } from 'react';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useBandejaStore } from '@/store/bandeja';
 
-import { buildHeaders } from '../messages/utils/auth';
+import { buildHeaders } from '../bandeja/utils/auth';
 
 const SECTION_META: Record<
   string,
@@ -34,7 +34,7 @@ const SECTION_META: Record<
     icon: '💬',
     label: 'Mensajería',
   },
-  chat_ia: { color: '#A855F7', icon: '🤖', label: 'Chat IA' },
+  chat_ia: { color: '#A855F7', icon: '🤖', label: 'Asistente' },
   service_comment: { color: '#F59E0B', icon: '📋', label: 'Servicios' },
   itinerary_comment: { color: '#3B82F6', icon: '📅', label: 'Itinerario' },
   notification_otra: { color: '#6B7280', icon: '🔔', label: 'Otras' },
@@ -110,8 +110,8 @@ export default function PendientesPage() {
         title: c.name,
         unreadCount: c.unreadCount,
         url: c.channelParam
-          ? `/messages/${encodeURIComponent(c.channelParam)}/${encodeURIComponent(c.conversationId)}`
-          : '/messages',
+          ? `/bandeja/${encodeURIComponent(c.channelParam)}/${encodeURIComponent(c.conversationId)}`
+          : '/bandeja',
       }));
 
     const notifItems: PendingItem[] = notifications
@@ -190,7 +190,7 @@ export default function PendientesPage() {
               de itinerario, o el asistente termine una tarea, aparecerá aquí.
             </p>
             <Link
-              href="/chat"
+              href="/asistente"
               className="mt-4 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700"
             >
               Ir al asistente

@@ -23,7 +23,14 @@ export function useDomainGuestUser(): boolean {
   );
   const lobeName = (username || fullName || '').toLowerCase().trim();
   const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
-  if (isServerMode && !isSignedIn) return true;
+  // BUG MÓVIL (22-jul): un usuario autenticado por Bodas-SSO (EventosAutoAuth →
+  // currentUserId en chatStore) tiene isSignedIn=false (no usa el auth NATIVO de
+  // LobeChat). Esta línea lo trataba como GUEST → en móvil ocultaba la pestaña
+  // Bandeja (y su badge de notificaciones) a usuarios Bodas LOGUEADOS.
+  // Fix: solo es guest si AMBOS lo confirman — LobeChat (!isSignedIn) Y el chat
+  // store Bodas (fromChat, que ya considera currentUserId + userType). Un guest
+  // real sigue con fromChat=true → sigue bloqueado (0 impacto de seguridad).
+  if (isServerMode && !isSignedIn && fromChat) return true;
   // ✅ Si el usuario está autenticado por el sistema nativo de LobeChat (isSignedIn),
   // NO es invitado aunque el chatStore aún no tenga currentUserId (puebla EventosAutoAuth).
   // Esto evita tratar como guest a un usuario logueado por isSignedIn (regresión del gate de

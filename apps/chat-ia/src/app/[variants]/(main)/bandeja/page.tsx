@@ -1,0 +1,272 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
+import { BandejaTabs, useActiveBandejaTab } from './components/BandejaTabs';
+import { ChannelSidebar } from './components/ChannelSidebar';
+import { InboxFilters, type ChannelFilter, type RsvpFilter } from './components/InboxFilters';
+import { ScopeSelector, type ScopeId } from './components/ScopeSelector';
+import { UnifiedFeedView } from './components/UnifiedFeedView';
+import { type FeedItem, useUnifiedFeed } from './hooks/useUnifiedFeed';
+
+// El guard de auth vive en el layout hermano (messages/layout.tsx): valida
+// con ventana de gracia y hace router.replace('/login?redirect=/bandeja').
+// Cualquier código que llegue a este page.tsx ya pasó ese filtro, por eso
+// aquí no hace falta un segundo gate — sería inalcanzable.
+export default function MessagesPage() {
+  const router = useRouter();
+  const activeTab = useActiveBandejaTab();
+  const { items, loading, markNotificationRead } = useUnifiedFeed();
+
+  // FASE B v2.0: scope selector. 'support' = bandeja del equipo;
+  // un eventId = bandeja de ese evento. Al cambiar, el caller debe
+  // (futuro) recargar lista filtrada por linkedEvents=eventId.
+  const [activeScope, setActiveScope] = useState<ScopeId>('support');
+
+  // FASE B v2.0 (Diseño 24-jun): items filtrados según tab activa.
+  //   inbox   → conversaciones (kind === 'conversation')
+  //   history → notificaciones (kind === 'notification')
+  // BUG-06 QA #13 (25-jun): además filtrar por scope evento — si activeScope es
+  // un eventId (no 'support'), conservar solo conversaciones cuyo linkedEventId
+  // coincide. Las notificaciones (kind='notification') no llevan linkedEventId
+  // y se mantienen como están en tab history.
+  const [rsvpFilter, setRsvpFilter] = useState<RsvpFilter>('all');
+  const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all');
+  // FASE B v2.0 (Diseño 25-jun): cola Pendientes IA. Visible solo cuando
+  // iaLevel='copilot'. Por ahora iaLevel se gestiona por conversación en el
+  // header — cuando se persista por workspace, leemos de ahí. Mientras
+  // mostramos el filtro si HAY borradores pendientes (count > 0).
+  const [pendingIaActive, setPendingIaActive] = useState(false);
+  // Cablead 22-jul: cuenta real de conversaciones con borrador IA pendiente.
+  // Los items de useUnifiedFeed ya traen draftState (api-ia); antes era 0 fijo.
+  const pendingIaCount = items.filter(
+    (i) => i.kind === 'conversation' && (i as any).draftState === 'pending',
+  ).length;
+
+  // MOB-21 (15-jul): toggle "ver spam" para newsletters/broadcasts. Persistido en
+  // localStorage para que sobreviva recargas. Default OFF (filtrado activo) —
+  // conserva el comportamiento actual que oculta el ruido. El usuario que quiera
+  // ver newsletters/broadcasts (raro para organizadores, más útil para admins)
+  // activa el toggle y su estado queda memorizado.
+  const [showSpam, setShowSpam] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem('inbox_show_spam');
+      if (raw === '1') setShowSpam(true);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+  const toggleShowSpam = useCallback(() => {
+    setShowSpam((prev) => {
+      const next = !prev;
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('inbox_show_spam', next ? '1' : '0');
+        }
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
+
+  // BUG-INBOX-03 fix QA #34 (29-jun): los chips de canal/RSVP/Pendientes IA
+  // del componente InboxFilters cambiaban el state pero filteredItems NO
+  // aplicaba ningún filtro de canal/rsvp/pendingIa → "filtros muertos".
+  // Aquí aplico los filtros que faltan + mapeo channel codes (wa→whatsapp,
+  // ig→instagram, tg→telegram, fb→facebook) al campo channelParam del item.
+  const CHANNEL_MAP: Record<ChannelFilter, string | null> = {
+    all: null,
+    fb: 'facebook',
+    ig: 'instagram',
+    sms: 'sms',
+    tg: 'telegram',
+    wa: 'whatsapp',
+    web: 'web',
+  };
+  const filteredItems = useMemo(() => {
+    let arr = items;
+    if (activeTab === 'history') arr = arr.filter((i) => i.kind === 'notification');
+    else if (activeTab === 'inbox') arr = arr.filter((i) => i.kind === 'conversation');
+    if (activeScope !== 'support') {
+      arr = arr.filter(
+        (i) => i.kind !== 'conversation' || i.linkedEventId === activeScope,
+      );
+    }
+    // MOB-21 QA #34 (29-jun): inbox WA tenía 270+ msgs spam de newsletters
+    // y status broadcasts ahogando el inbox real del organizador.
+    // Filtro auto: ocultar conversaciones cuyo jidType sea 'newsletter' o
+    // 'broadcast' por default. Toggle "ver spam" (15-jul) lo desactiva
+    // temporalmente para admins que quieran auditar.
+    if (!showSpam) {
+      arr = arr.filter((i) => {
+        if (i.kind !== 'conversation') return true;
+        const jid = (i as any).jidType;
+        return jid !== 'newsletter' && jid !== 'broadcast';
+      });
+    }
+    // BUG-INBOX-03 v2 (QA 30-jun): WA items tienen channelParam='wa-{id}' (no
+    // 'whatsapp'), por lo que includes('whatsapp') vaciaba la bandeja cuando
+    // se filtraba por WA con canales configurados. Comparar por channelKind
+    // del item (que SÍ es 'whatsapp'|'instagram'|...).
+    const targetChannel = CHANNEL_MAP[channelFilter];
+    if (targetChannel) {
+      arr = arr.filter(
+        (i) => i.kind !== 'conversation' || i.channelKind === targetChannel,
+      );
+    }
+    // BUG-INBOX-03: filtro RSVP
+    if (rsvpFilter !== 'all') {
+      arr = arr.filter(
+        (i) => i.kind !== 'conversation' || (i as any).rsvpStatus === rsvpFilter,
+      );
+    }
+    // BUG-INBOX-03: filtro Pendientes IA (draftState='pending')
+    if (pendingIaActive) {
+      arr = arr.filter(
+        (i) => i.kind !== 'conversation' || (i as any).draftState === 'pending',
+      );
+    }
+    return arr;
+  }, [items, activeTab, activeScope, channelFilter, rsvpFilter, pendingIaActive, showSpam]);
+
+  const notifUnreadCount = useMemo(
+    () => items.filter((i) => i.kind === 'notification' && !i.isRead).length,
+    [items],
+  );
+  const convUnreadCount = useMemo(
+    () => items.filter((i) => i.kind === 'conversation' && i.unreadCount > 0).length,
+    [items],
+  );
+  // Al cambiar de scope: resetear filtros (regla state management Diseño).
+  const handleScopeChange = useCallback((s: ScopeId) => {
+    setActiveScope(s);
+    setRsvpFilter('all');
+    setChannelFilter('all');
+  }, []);
+
+  const handleItemClick = useCallback(
+    (item: FeedItem) => {
+      if (item.kind === 'notification' && item.notificationId) {
+        markNotificationRead(item.notificationId);
+        if (item.navigationUrl) router.push(item.navigationUrl);
+        return;
+      }
+      if (item.channelParam && item.conversationId) {
+        router.push(
+          `/bandeja/${encodeURIComponent(item.channelParam)}/${encodeURIComponent(item.conversationId)}`,
+        );
+      }
+    },
+    [router, markNotificationRead],
+  );
+
+  return (
+    <>
+      {/* Mobile: ChannelSidebar ocupa todo el ancho (el layout lo oculta en desktop) */}
+      <div className="flex flex-1 flex-col overflow-hidden md:hidden">
+        <ChannelSidebar />
+      </div>
+
+      {/* Desktop: tabs Conversaciones / Bandeja / Historial + feed por tab */}
+      <div className="hidden flex-1 flex-col overflow-hidden md:flex">
+        {/* Tabs FASE B v2.0 Diseño 24-jun */}
+        <BandejaTabs
+          active={activeTab}
+          counts={{ history: notifUnreadCount, inbox: convUnreadCount }}
+        />
+        <div className="flex flex-1 overflow-hidden">
+          <div
+            className="flex w-[300px] shrink-0 flex-col overflow-hidden"
+            style={{ backgroundColor: '#FFFFFF', borderRight: '1px solid #EDEDF0' }}
+          >
+            {/* ScopeSelector + filtros solo visibles en tab 'inbox'. En 'history'
+                el feed es plano (notificaciones) sin scope ni filtros canal/RSVP. */}
+            {activeTab === 'inbox' && (
+              <>
+                <div className="border-b border-gray-100 px-3 py-2">
+                  <ScopeSelector activeScope={activeScope} onChange={handleScopeChange} />
+                </div>
+                <InboxFilters
+                  channel={channelFilter}
+                  hideRsvp={activeScope === 'support'}
+                  iaCopilotActive={true}
+                  onChannelChange={setChannelFilter}
+                  onPendingIaToggle={() => setPendingIaActive((v) => !v)}
+                  onRsvpChange={setRsvpFilter}
+                  pendingIaActive={pendingIaActive}
+                  pendingIaCount={pendingIaCount}
+                  rsvp={rsvpFilter}
+                />
+                {/* MOB-21 toggle "ver spam" (15-jul) — chip discreto que revierte
+                    el filtro auto de newsletter/broadcast si el usuario lo pide. */}
+                <div className="flex justify-end border-b border-gray-100 px-3 py-1">
+                  <button
+                    aria-pressed={showSpam}
+                    className="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-600 hover:bg-gray-100"
+                    onClick={toggleShowSpam}
+                    type="button"
+                  >
+                    {showSpam ? '📢 Ocultar newsletters/estados' : '👁 Ver newsletters/estados'}
+                  </button>
+                </div>
+              </>
+            )}
+            <div className="min-h-0 flex-1 overflow-hidden">
+              <UnifiedFeedView
+                items={filteredItems}
+                loading={loading}
+                onItemClick={handleItemClick}
+              />
+            </div>
+          </div>
+          {/* Panel principal — empty state según tab */}
+          <div className="flex flex-1 flex-col items-center justify-center bg-gray-50 px-6 text-center">
+            <div className="max-w-md">
+              {activeTab === 'history' ? (
+                <>
+                  <div className="text-4xl">🕒</div>
+                  <div className="mt-3 text-sm font-semibold text-gray-800">Historial</div>
+                  <div className="mt-1 text-xs text-gray-500">
+                    Selecciona una notificación para ver el detalle. Las acciones se
+                    enlazan al hilo de la conversación o entidad correspondiente.
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-4xl">💬</div>
+                  <div className="mt-3 text-sm font-semibold text-gray-800">
+                    Bandeja unificada
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500">
+                    Mensajes y notificaciones en un solo sitio. Selecciona una conversación
+                    para ver el detalle.
+                  </div>
+                  <div className="mt-4 flex items-center justify-center gap-2">
+                    <button
+                      className="rounded-lg bg-pink-500 px-3 py-2 text-xs font-semibold text-white hover:bg-pink-600"
+                      onClick={() => router.push('/bandeja/whatsapp')}
+                      type="button"
+                    >
+                      Conectar WhatsApp
+                    </button>
+                    <button
+                      className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                      onClick={() => router.push('/settings/integrations')}
+                      type="button"
+                    >
+                      Conectar canal
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

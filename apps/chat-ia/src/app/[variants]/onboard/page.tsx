@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
  */
 const OnboardPage = () => {
   // Redirección del servidor - más confiable que router.replace
-  redirect('/chat');
+  redirect('/asistente');
 };
 
 export default OnboardPage;

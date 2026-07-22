@@ -18,7 +18,7 @@ import {
   type WhatsAppChannel,
 } from '@/services/mcpApi/whatsapp';
 import { useChatStore } from '@/store/chat';
-import { useWhatsAppSession } from '../../messages/hooks/useWhatsAppSession';
+import { useWhatsAppSession } from '../../bandeja/hooks/useWhatsAppSession';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -370,7 +370,7 @@ function SocialChannelCard({
           </Button>
         )}
         {comingSoon && !onConnect && (
-          <Link href={`/messages/${channelId}`} style={{ display: 'block' }}>
+          <Link href={`/bandeja/${channelId}`} style={{ display: 'block' }}>
             <Button block size="small" style={{ fontSize: 12 }}>
               Configurar →
             </Button>
@@ -558,7 +558,7 @@ function IntegrationsPageInner() {
     <div style={{ margin: '0 auto', maxWidth: 768, padding: '24px 16px' }}>
       {/* Móvil: breadcrumb */}
       <div className="md:hidden" style={{ marginBottom: 20 }}>
-        <Link href="/messages">
+        <Link href="/bandeja">
           <Button size="small" style={{ paddingLeft: 0 }} type="link">← Mensajes</Button>
         </Link>
         <Text type="secondary"> / Integraciones</Text>

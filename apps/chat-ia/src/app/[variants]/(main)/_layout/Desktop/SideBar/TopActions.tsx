@@ -54,8 +54,8 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
   return (
     <Flexbox gap={8}>
       <Link
-        aria-label={t('tab.chat')}
-        href={'/chat'}
+        aria-label="Asistente"
+        href={'/asistente'}
         onClick={(e) => {
           // If Cmd key is pressed, let the default link behavior happen (open in new tab)
           if (e.metaKey || e.ctrlKey) {
@@ -74,7 +74,8 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           size={ICON_SIZE}
           title={
             <Flexbox align={'center'} gap={8} horizontal justify={'space-between'}>
-              <span>{t('tab.chat')}</span>
+              {/* R1 nomenclatura: "Chat IA" → "Asistente". */}
+              <span>Asistente</span>
               <Hotkey inverseTheme keys={hotkey} />
             </Flexbox>
           }
@@ -138,13 +139,13 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
         </Link>
       )}
       {isServerMode && isLoggedIn && (
-        <Link aria-label="Bandeja de mensajes" href={'/messages'} suppressHydrationWarning>
+        <Link aria-label="Bandeja" href={'/bandeja'} suppressHydrationWarning>
           <div style={{ position: 'relative' }}>
             <ActionIcon
               active={tab === SidebarTabKey.Messages}
               icon={Inbox}
               size={ICON_SIZE}
-              title="Bandeja de mensajes"
+              title="Bandeja"
               tooltipProps={{ placement: 'right' }}
             />
             {inboxUnread > 0 && (

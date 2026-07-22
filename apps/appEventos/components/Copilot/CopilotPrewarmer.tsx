@@ -32,7 +32,7 @@ export const CopilotPrewarmer: React.FC<CopilotPrewarmerProps> = ({ development 
         const cleanBase = getCopilotBaseUrl();
 
         const prewarmUrls = [
-          `/${development}/chat`, // Página principal del chat
+          `/${development}/asistente`, // Página principal del chat
           `/${development}`,       // Página base
         ];
 
