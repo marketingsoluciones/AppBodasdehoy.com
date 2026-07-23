@@ -41,35 +41,35 @@ import { buildHeaders, getUserContext } from '../bandeja/utils/auth';
 
 // Colores canal (mismos que ConversationItem — coherencia con Fase A)
 const CHANNEL_DOT: Record<string, string> = {
-  whatsapp: '#25D366',
-  instagram: '#E1306C',
+  email: '#84848F',
   facebook: '#1877F2',
+  instagram: '#E1306C',
   telegram: '#2AABEE',
   web: '#6B4EFF',
-  email: '#84848F',
+  whatsapp: '#25D366',
 };
 const CHANNEL_LABEL: Record<string, string> = {
-  whatsapp: 'WhatsApp',
-  instagram: 'Instagram',
+  email: 'Email',
   facebook: 'Facebook',
+  instagram: 'Instagram',
   telegram: 'Telegram',
   web: 'Web chat',
-  email: 'Email',
+  whatsapp: 'WhatsApp',
 };
 
 interface AgentActivity {
+  description: string;
   id: string;
   timestamp: string;
   type: 'reply' | 'handoff' | 'config_change' | 'suggestion';
-  description: string;
 }
 
 // Estado local persistido en localStorage — sólo los 4 mocks pendientes
 // de backend (disabled + channels). Métricas/actividad viven en memoria
 // mientras no lleguen del server (no tiene sentido cachearlos vacíos).
 interface LocalAgentState {
-  disabled?: boolean;
   channels?: string[];
+  disabled?: boolean;
 }
 
 const AGENT_STATE_KEY_PREFIX = 'cowork_agent_state_';
@@ -102,6 +102,19 @@ function agentInitial(title: string | undefined): string {
   if (!title) return '✦';
   const trimmed = title.trim();
   return trimmed ? trimmed[0]!.toUpperCase() : '✦';
+}
+
+function MetricCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md px-3 py-2" style={{ backgroundColor: '#F2F1F6' }}>
+      <div className="text-xs" style={{ color: '#84848F' }}>
+        {label}
+      </div>
+      <div className="mt-0.5 text-lg font-semibold" style={{ color: '#1C1C22' }}>
+        {value}
+      </div>
+    </div>
+  );
 }
 
 export default function AgentesPage() {
@@ -173,7 +186,7 @@ export default function AgentesPage() {
           for (const a of assignments) {
             const id = a.agent_id ?? a.agentId;
             if (!id) continue;
-            next[id] = { ...(next[id] ?? {}), channels: a.channels ?? [] };
+            next[id] = { ...next[id], channels: a.channels ?? [] };
           }
           return next;
         });
@@ -241,7 +254,9 @@ export default function AgentesPage() {
         switchSession(selected.id);
         // switchSession es sync, pero updateAgentConfig lee activeId en el instante
         // siguiente. useEffect en el store actualiza. Pequeño retardo para asegurar.
-        await new Promise((r) => setTimeout(r, 0));
+        await new Promise<void>((r) => {
+          setTimeout(r, 0);
+        });
       }
       await updateAgentConfig({ systemRole });
     },
@@ -265,7 +280,7 @@ export default function AgentesPage() {
       // Optimista local (respuesta inmediata en la UI).
       setLocalStates((prev) => ({
         ...prev,
-        [agentId]: { ...(prev[agentId] ?? {}), disabled: nextDisabled },
+        [agentId]: { ...prev[agentId], disabled: nextDisabled },
       }));
       saveLocalAgentState(agentId, { disabled: nextDisabled });
       // Cablead 23-jul (Cowork per-agente): persistir en backend vía
@@ -274,7 +289,9 @@ export default function AgentesPage() {
       try {
         if (activeId !== agentId) {
           switchSession(agentId);
-          await new Promise((r) => setTimeout(r, 0));
+          await new Promise<void>((r) => {
+          setTimeout(r, 0);
+        });
         }
         await updateAgentConfig({ disabled: nextDisabled } as any);
       } catch {
@@ -374,7 +391,7 @@ export default function AgentesPage() {
       {/* Lista agentes 260px */}
       <aside
         className="flex w-[260px] shrink-0 flex-col overflow-hidden"
-        style={{ borderRight: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+        style={{ backgroundColor: '#FFFFFF', borderRight: '1px solid #EDEDF0' }}
       >
         <div
           className="sticky top-0 z-10 px-4 py-3"
@@ -397,19 +414,19 @@ export default function AgentesPage() {
             const avatar = agent.meta.avatar || agentInitial(agent.meta.title);
             return (
               <button
-                key={agent.id}
                 aria-current={isSelected}
                 className="w-full text-left transition-colors"
+                key={agent.id}
                 onClick={() => setSelectedId(agent.id)}
-                style={{
-                  backgroundColor: isSelected ? '#F2F1F6' : 'transparent',
-                  borderBottom: '1px solid #EDEDF0',
-                }}
                 onMouseEnter={(e) => {
                   if (!isSelected) e.currentTarget.style.backgroundColor = '#FCFCFD';
                 }}
                 onMouseLeave={(e) => {
                   if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+                style={{
+                  backgroundColor: isSelected ? '#F2F1F6' : 'transparent',
+                  borderBottom: '1px solid #EDEDF0',
                 }}
                 type="button"
               >
@@ -457,9 +474,9 @@ export default function AgentesPage() {
           <a
             className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium transition-colors"
             href="/asistente"
-            style={{ color: '#6B4EFF' }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F2F1F6')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            style={{ color: '#6B4EFF' }}
           >
             <svg
               fill="none"
@@ -548,7 +565,7 @@ export default function AgentesPage() {
               {/* Rendimiento hoy — cablead 23-jul: métricas reales per-agente (api-ia) */}
               <div
                 className="rounded-lg p-4"
-                style={{ border: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+                style={{ backgroundColor: '#FFFFFF', border: '1px solid #EDEDF0' }}
               >
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
@@ -574,7 +591,7 @@ export default function AgentesPage() {
               {/* Canales asignados — beta local */}
               <div
                 className="rounded-lg p-4"
-                style={{ border: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+                style={{ backgroundColor: '#FFFFFF', border: '1px solid #EDEDF0' }}
               >
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
@@ -590,9 +607,9 @@ export default function AgentesPage() {
                     const isActive = selectedChannels.includes(ch);
                     return (
                       <button
-                        key={ch}
                         aria-pressed={isActive}
                         className="flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
+                        key={ch}
                         onClick={() => toggleChannelAssignment(selected.id, ch)}
                         style={{
                           backgroundColor: isActive ? '#EDE9FE' : '#FFFFFF',
@@ -615,7 +632,7 @@ export default function AgentesPage() {
               {/* Instrucciones del agente — cableado a updateAgentConfig */}
               <div
                 className="rounded-lg p-4"
-                style={{ border: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+                style={{ backgroundColor: '#FFFFFF', border: '1px solid #EDEDF0' }}
               >
                 <div className="mb-2 flex items-center justify-between">
                   <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
@@ -635,21 +652,21 @@ export default function AgentesPage() {
                 </p>
                 <textarea
                   className="w-full rounded-md p-3 text-sm focus:outline-none"
+                  onBlur={(e) => {
+                    e.currentTarget.style.backgroundColor = '#F2F1F6';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }}
                   onChange={(e) => setPromptDraft(e.target.value)}
+                  onFocus={(e) => {
+                    e.currentTarget.style.backgroundColor = '#FFFFFF';
+                    e.currentTarget.style.borderColor = '#6B4EFF';
+                  }}
                   rows={8}
                   style={{
                     backgroundColor: '#F2F1F6',
                     border: '1px solid transparent',
                     color: '#1C1C22',
                     resize: 'vertical',
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.backgroundColor = '#FFFFFF';
-                    e.currentTarget.style.borderColor = '#6B4EFF';
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.backgroundColor = '#F2F1F6';
-                    e.currentTarget.style.borderColor = 'transparent';
                   }}
                   value={promptDraft}
                 />
@@ -658,7 +675,7 @@ export default function AgentesPage() {
               {/* Actividad reciente — mock hasta SSE handoff */}
               <div
                 className="rounded-lg p-4"
-                style={{ border: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+                style={{ backgroundColor: '#FFFFFF', border: '1px solid #EDEDF0' }}
               >
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
@@ -694,16 +711,3 @@ export default function AgentesPage() {
 
 // Silenciar warning TS por reservar el type (útil para futuros expandir)
 export type _AgentActivity = AgentActivity;
-
-function MetricCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md px-3 py-2" style={{ backgroundColor: '#F2F1F6' }}>
-      <div className="text-xs" style={{ color: '#84848F' }}>
-        {label}
-      </div>
-      <div className="mt-0.5 text-lg font-semibold" style={{ color: '#1C1C22' }}>
-        {value}
-      </div>
-    </div>
-  );
-}

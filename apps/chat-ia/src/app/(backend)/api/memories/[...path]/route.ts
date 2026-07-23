@@ -34,17 +34,21 @@ async function proxyRequest(request: NextRequest, path: string[]): Promise<NextR
     }
 
     const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
-    let bodyToSend: BodyInit | undefined;
+    let bodyToSend: ArrayBuffer | undefined;
     if (hasBody) {
       // Read as arrayBuffer to avoid stream consumption issues
       bodyToSend = await request.arrayBuffer();
     }
 
+    // Descarga del ZIP de álbum (GET /zip-downloads/{token}): puede pesar cientos de MB,
+    // el timeout general de 30s la cortaría a medias → 5 min solo para esa ruta.
+    const isZipDownload = request.method === 'GET' && subpath.startsWith('zip-downloads/');
+
     const response = await fetch(targetUrl, {
       body: bodyToSend,
       headers,
       method: request.method,
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(isZipDownload ? 300_000 : 30_000),
     });
 
     const responseContentType = response.headers.get('content-type') || '';
@@ -53,11 +57,22 @@ async function proxyRequest(request: NextRequest, path: string[]): Promise<NextR
     if (responseContentType.includes('application/json')) {
       const data = await response.json().catch(() => ({}));
       return NextResponse.json(data, { status: responseStatus });
-    } else if (responseContentType.startsWith('image/') || responseContentType.startsWith('video/') || responseContentType.startsWith('audio/')) {
-      // Binary media — pass through as-is
-      const buf = await response.arrayBuffer();
-      return new NextResponse(buf, {
-        headers: { 'Content-Type': responseContentType },
+    } else if (
+      responseContentType.startsWith('image/') ||
+      responseContentType.startsWith('video/') ||
+      responseContentType.startsWith('audio/') ||
+      responseContentType.includes('application/zip') ||
+      responseContentType.includes('application/octet-stream')
+    ) {
+      // Binario (fotos, vídeo, ZIP de álbum) — stream directo sin bufferizar en memoria.
+      // Content-Disposition se preserva para que el browser respete el filename (album.zip).
+      const passHeaders: Record<string, string> = { 'Content-Type': responseContentType };
+      const disposition = response.headers.get('content-disposition');
+      if (disposition) passHeaders['Content-Disposition'] = disposition;
+      const length = response.headers.get('content-length');
+      if (length) passHeaders['Content-Length'] = length;
+      return new NextResponse(response.body, {
+        headers: passHeaders,
         status: responseStatus,
       });
     } else {
