@@ -107,21 +107,25 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
           </div>
         </div>
         <div className="flex text-red items-center pr-2 md:pr-3 gap-1 md:gap-2">
-          {/* Rediseño Fase D: exportar el plano a PDF (croquis + invitados por mesa). */}
-          <mdIcons.MdPictureAsPdf
-            title={t('exportpdf') || 'Exportar PDF'}
-            className="w-6 h-6 cursor-pointer text-primary"
-            onClick={() => {
-              const ok = exportPlanoPdf({ planSpaceActive, event, planoTitle: t(planSpaceActive?.title) })
-              if (!ok) toast('error', t('popupblocked') || 'Permite las ventanas emergentes para exportar el PDF')
-            }}
-          />
+          {/* PDF suelto eliminado para un plano más limpio: ahora "Exportar PDF" vive
+              DENTRO del menú del icono de descargas (abajo). */}
           <ClickAwayListener onClickAway={() => setShowMiniMenu(false)}>
             <div>
               <MdSaveAlt className="h-6 w-6 cursor-pointer text-primary" onClick={() => { !isAllowed() ? ht() : setShowMiniMenu(!showMiniMenu) }} />
               {showMiniMenu &&
                 <div className="bg-white flex flex-col absolute z-[50] top-8 right-18 rounded-b-md shadow-md items-center text-[9px] px-3 pt-1 pb-3 text-gray-800 gap-y-2">
                   <div className="bg-white flex flex-col absolute z-[10] top-[0px] right-0 rounded-b-md shadow-md min-w-[140px] md:min-w-[120px] items-center text-[10px] md:text-[12px] px-3 pt-1 pb-2 text-gray-800">
+                    {/* Exportar PDF — movido aquí desde el icono suelto (plano más limpio) */}
+                    <button
+                      onClick={() => {
+                        setShowMiniMenu(false)
+                        const ok = exportPlanoPdf({ planSpaceActive, event, planoTitle: t(planSpaceActive?.title) })
+                        if (!ok) toast('error', t('popupblocked') || 'Permite las ventanas emergentes para exportar el PDF')
+                      }}
+                      className="w-full flex items-center gap-2 text-left font-semibold py-1.5 mb-1 border-b border-gray-100 hover:text-primary"
+                    >
+                      <mdIcons.MdPictureAsPdf className="w-4 h-4 text-primary" />{t('exportpdf') || 'Exportar PDF'}
+                    </button>
                     <span className="w-full text-left font-bold transform -ml-2">{t("savetemplate")}</span>
                     <span className="flex flex-col text-[9px] md:text-[11px]">
                       <span className="capitalize">{t("names")}</span>
@@ -203,23 +207,27 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
       </div>
       {/* <Cuadricula className="w-100 h-100 text-black" /> */}
       <TransformComponent
-        wrapperStyle={{ width: "100%", height: "100%", background: "#F3F1EC" }}
+        wrapperStyle={{
+          width: "100%",
+          height: "100%",
+          // Fiel al prototipo MESAS.dc.html: la RETÍCULA es un fondo ESTÁTICO que llena TODO
+          // el viewport (no solo la caja del plano). Beige #F3F1EC + líneas #E4E1D8, 44px.
+          background: "#F3F1EC",
+          backgroundImage:
+            "linear-gradient(#E4E1D8 1px, transparent 1px), linear-gradient(90deg, #E4E1D8 1px, transparent 1px)",
+          backgroundSize: "44px 44px",
+        }}
         contentStyle={{
           width: `${lienzo?.width}px`,
           height: `${lienzo?.height}px`,
-          // Fiel al prototipo MESAS.dc.html: plano beige #F3F1EC + retícula #E4E1D8.
-          // (1 m = 100px, coherente con el tamaño del lienzo). Wrapper también beige para
-          // que se vea completo en pantalla (antes era "gray" → borde gris alrededor).
-          backgroundColor: "#F3F1EC",
-          backgroundImage:
-            "linear-gradient(#E4E1D8 1px, transparent 1px), linear-gradient(90deg, #E4E1D8 1px, transparent 1px)",
-          backgroundSize: "100px 100px",
+          // Transparente: deja ver la retícula estática del wrapper por todo el plano
+          // (antes tenía su propia retícula acotada a la caja + borde morado).
+          background: "transparent",
         }}
       >
         <div
           id={"lienzo-drop"}
           className="js-dropTables bg-transparent lienzo flex justify-center items-center">
-          <div className="lienzo border-4 border-indigo-600"></div>
           <LiezoDragable scale={state.scale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
         </div>
       </TransformComponent>
