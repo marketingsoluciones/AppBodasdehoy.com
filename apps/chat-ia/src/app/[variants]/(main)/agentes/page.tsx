@@ -17,14 +17,14 @@
  *      → internal_updateAgentConfig → sessionService.updateSessionConfig →
  *      PATCH /chat/sessions/{id}. Persiste entre dispositivos.
  *   ✅ Avatar / título / descripción: de `session.meta.{avatar,title,description}`.
- *   🔵 Estado activo/pausado: `config.disabled?: boolean` — campo NO existe
- *      aún en LobeAgentConfig. MOCK con localStorage hasta que backend lo
- *      añada (Slack ts 1784383734).
- *   🔵 Métricas hoy (replies_count, resolved_percent, avg_response_seconds):
- *      endpoint /api/backend/chat/agents/{userId}/metrics?period=today
- *      pendiente backend (Slack ts 1784383734). MOCK por agente.
- *   🔵 Canales asignados: shape backend pendiente (Slack ts 1784383734).
- *      MOCK con localStorage.
+ *   ✅ Estado activo/pausado (cablead 23-jul): PATCH /chat/sessions/{id}
+ *      config.disabled (per-agente). localStorage solo como fallback offline.
+ *   ✅ Métricas hoy (cablead 23-jul, decisión A per-agente): GET
+ *      /api/backend/chat/agents/{userId}/metrics?period=today&agentId=X →
+ *      replies_count / resolved_percent / avg_response_seconds.
+ *   ✅ Canales asignados (cablead 23-jul, decisión A): GET (lista de todas
+ *      las asignaciones) + POST {agentId, channels} per-agente en api-ia.
+ *      localStorage solo como fallback offline; backend = fuente de verdad.
  *   🔵 Actividad reciente + evento handoff: SSE type='handoff' pendiente
  *      backend. Vacía por defecto — sin mocks inventados.
  */
@@ -37,6 +37,7 @@ import { sessionSelectors } from '@/store/session/selectors';
 import { LobeSessionType, type LobeAgentSession } from '@/types/session';
 
 import { MessagesRail } from '../bandeja/components/MessagesRail';
+import { buildHeaders, getUserContext } from '../bandeja/utils/auth';
 
 // Colores canal (mismos que ConversationItem — coherencia con Fase A)
 const CHANNEL_DOT: Record<string, string> = {
@@ -149,6 +150,73 @@ export default function AgentesPage() {
     setLocalStates(map);
   }, [agentSessions]);
 
+  // ── Cablead 23-jul (Cowork decisión A, per-agente) ─────────────────────────
+  // GET sin agentId devuelve TODAS las asignaciones del user → pisa el estado
+  // local con el backend (fuente de verdad). POST persiste por agente.
+  useEffect(() => {
+    const { userId } = getUserContext();
+    if (!userId || agentSessions.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/backend/chat/agents/${encodeURIComponent(userId)}/channel-assignments`,
+          { credentials: 'include', headers: buildHeaders() },
+        );
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        const assignments: Array<{ agentId?: string; agent_id?: string; channels?: string[] }> =
+          data?.assignments ?? (data?.agentId || data?.agent_id ? [data] : []);
+        if (assignments.length === 0) return;
+        setLocalStates((prev) => {
+          const next = { ...prev };
+          for (const a of assignments) {
+            const id = a.agent_id ?? a.agentId;
+            if (!id) continue;
+            next[id] = { ...(next[id] ?? {}), channels: a.channels ?? [] };
+          }
+          return next;
+        });
+      } catch {
+        /* backend caído → se mantiene el estado local */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [agentSessions.length]);
+
+  // Métricas reales per-agente (replies_count / resolved_percent / avg_response_seconds).
+  const [agentMetrics, setAgentMetrics] = useState<{
+    avg_response_seconds?: number;
+    replies_count?: number;
+    resolved_percent?: number;
+  } | null>(null);
+  useEffect(() => {
+    const { userId } = getUserContext();
+    if (!userId || !selectedId) {
+      setAgentMetrics(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/backend/chat/agents/${encodeURIComponent(userId)}/metrics?period=today&agentId=${encodeURIComponent(selectedId)}`,
+          { credentials: 'include', headers: buildHeaders() },
+        );
+        if (!res.ok || cancelled) return;
+        const m = await res.json();
+        if (!cancelled) setAgentMetrics(m);
+      } catch {
+        if (!cancelled) setAgentMetrics(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedId]);
+
   const selected = useMemo(
     () => agentSessions.find((a) => a.id === selectedId) ?? null,
     [agentSessions, selectedId],
@@ -225,8 +293,23 @@ export default function AgentesPage() {
         : [...(current.channels ?? []), channel];
       const next: LocalAgentState = { ...current, channels: nextChannels };
       saveLocalAgentState(agentId, { channels: nextChannels });
-      // TODO: cablear POST /api/backend/chat/agents/{userId}/channel-assignments
-      //       body { agentId, channels: nextChannels } (Slack ts 1784383734).
+      // Cablead 23-jul (decisión A): persistir per-agente en api-ia. Optimista
+      // local primero; si el POST falla, el estado local se mantiene y el GET
+      // del próximo montaje reconcilia.
+      const { userId } = getUserContext();
+      if (userId) {
+        void fetch(
+          `/api/backend/chat/agents/${encodeURIComponent(userId)}/channel-assignments`,
+          {
+            body: JSON.stringify({ agentId, channels: nextChannels }),
+            credentials: 'include',
+            headers: buildHeaders(),
+            method: 'POST',
+          },
+        ).catch(() => {
+          /* local ya aplicado */
+        });
+      }
       return { ...prev, [agentId]: next };
     });
   }, []);
@@ -462,7 +545,7 @@ export default function AgentesPage() {
           {/* Contenido ficha */}
           <div className="flex-1 overflow-auto px-6 py-6">
             <div className="mx-auto max-w-3xl space-y-6">
-              {/* Rendimiento hoy — mock hasta backend */}
+              {/* Rendimiento hoy — cablead 23-jul: métricas reales per-agente (api-ia) */}
               <div
                 className="rounded-lg p-4"
                 style={{ border: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
@@ -471,23 +554,21 @@ export default function AgentesPage() {
                   <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
                     Rendimiento hoy
                   </h3>
-                  <span
-                    className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
-                    style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
-                    title="Datos mock — backend pendiente"
-                  >
-                    PRÓXIMAMENTE
-                  </span>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
-                  <MetricCard label="Respuestas" value="—" />
-                  <MetricCard label="Resueltas sola" value="—" />
-                  <MetricCard label="Tiempo medio" value="—" />
+                  <MetricCard
+                    label="Respuestas"
+                    value={agentMetrics ? String(agentMetrics.replies_count ?? 0) : '—'}
+                  />
+                  <MetricCard
+                    label="Resueltas sola"
+                    value={agentMetrics ? `${agentMetrics.resolved_percent ?? 0}%` : '—'}
+                  />
+                  <MetricCard
+                    label="Tiempo medio"
+                    value={agentMetrics ? `${agentMetrics.avg_response_seconds ?? 0}s` : '—'}
+                  />
                 </div>
-                <p className="mt-3 text-[11px]" style={{ color: '#9A9AA6' }}>
-                  Las métricas se activarán cuando el backend exponga el endpoint
-                  de rendimiento por agente.
-                </p>
               </div>
 
               {/* Canales asignados — beta local */}
@@ -499,13 +580,6 @@ export default function AgentesPage() {
                   <h3 className="text-sm font-semibold" style={{ color: '#1C1C22' }}>
                     Canales asignados
                   </h3>
-                  <span
-                    className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
-                    style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
-                    title="Persistencia local hasta que backend confirme shape"
-                  >
-                    BETA
-                  </span>
                 </div>
                 <p className="mb-3 text-xs" style={{ color: '#84848F' }}>
                   Cuando llegue un mensaje por uno de estos canales, este agente lo atenderá según su
