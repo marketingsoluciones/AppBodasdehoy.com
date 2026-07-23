@@ -156,7 +156,11 @@ const Mesas: FC = () => {
           // Update inmutable: añadir elemento al planSpaceActive.
           const newPlanSpaceActive = {
             ...planSpaceActive,
-            elements: [...(planSpaceActive.elements ?? []), { ...inputValues }],
+            // `_id` temporal para que el elemento recién soltado SEA arrastrable (interact usa
+            // el id del div `element_<_id>`). createElement no devuelve el _id del elemento
+            // (solo evento{_id}); al recargar llega el _id real del backend. Mismo patrón que
+            // TableConfigurator para las mesas.
+            elements: [...(planSpaceActive.elements ?? []), { ...inputValues, _id: `tmp_${Date.now()}_${Math.round(Math.random() * 100000)}` }],
           }
           setPlanSpaceActive(newPlanSpaceActive)
           // planSpaceSelect es ID (string) — match por _id, no por índice (mismo bug latente que FormCrearMesa).

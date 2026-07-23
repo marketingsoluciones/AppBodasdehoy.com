@@ -37,7 +37,7 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
   const [showSetup, setShowSetup] = useState(false)
   const [showMiniMenu, setShowMiniMenu] = useState(false)
   const { user } = AuthContextProvider()
-  const { event, planSpaceActive } = EventContextProvider()
+  const { event, planSpaceActive, setEditDefault } = EventContextProvider()
   const { psTemplates, setPsTemplates } = EventsGroupContextProvider()
   const [value, setValue] = useState("")
   const [valir, setValir] = useState(true)
@@ -227,6 +227,11 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
       >
         <div
           id={"lienzo-drop"}
+          onClick={(e) => {
+            // Click en el PLANO vacío (no sobre una mesa/elemento) → deseleccionar (fiel al HTML clearSel).
+            const el = e.target as HTMLElement
+            if (!el.closest('[id^="element_"]') && !el.closest('[id^="table_"]')) setEditDefault({})
+          }}
           className="js-dropTables bg-transparent lienzo flex justify-center items-center">
           <LiezoDragable scale={state.scale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
         </div>
