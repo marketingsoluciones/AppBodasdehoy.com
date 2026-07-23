@@ -7,9 +7,8 @@ import {
   ComfyUIKeyVault,
   OpenAICompatibleKeyVault,
   VertexAIKeyVault,
-} from '@lobechat/types';
+ ModelProvider } from '@lobechat/types';
 import { clientApiKeyManager } from '@lobechat/utils/client';
-import { ModelProvider } from '@lobechat/types';
 
 import { aiProviderSelectors, useAiInfraStore } from '@/store/aiInfra';
 import { useUserStore } from '@/store/user';
@@ -217,13 +216,27 @@ export const createHeaderWithAuth = async (params?: AuthParams): Promise<Headers
       return new Date(expiresAt) <= new Date();
     };
 
-    if (isJwtExpired()) {
-      // Sesión expirada: no incluir JWT para evitar que api-ia devuelva datos privados
-      // con un token caducado que el servidor aún no ha invalidado.
+    // BUG-2 QA (23-jul): un expires_at VIEJO en localStorage hacía que un INVITADO
+    // (que nunca tuvo sesión) se tratara como "sesión expirada" → route.ts bloqueaba
+    // su mensaje con 401 y el asistente respondía "tu sesión ha expirado" (y su burbuja
+    // no se pintaba). Solo es "expirada" para un usuario REAL (no visitor_/guest).
+    const currentUid = String(userProfileSelectors.userId(useUserStore.getState()) || '');
+    const isRealUser =
+      !!currentUid &&
+      currentUid !== 'guest' &&
+      currentUid !== 'anonymous' &&
+      !currentUid.startsWith('visitor_');
+
+    if (isJwtExpired() && isRealUser) {
+      // Sesión expirada de un usuario real: no incluir JWT para evitar que api-ia
+      // devuelva datos privados con un token caducado que el servidor aún no ha invalidado.
       console.warn('⚠️ [createHeaderWithAuth] JWT expirado — Authorization header OMITIDO. Disparando evento session-expired.');
       window.dispatchEvent(new CustomEvent('mcp:token-expired'));
       // Añadir header para que route.ts lo detecte y bloquee antes de llegar a api-ia
       (headers as Record<string, string>)['X-Session-Expired'] = '1';
+    } else if (isJwtExpired() && !isRealUser) {
+      // Invitado con expires_at obsoleto: NO es una sesión expirada. Continúa como
+      // visitante (sin JWT, sujeto a los límites de visitante) — no se bloquea el mensaje.
     } else {
       const jwtToken =
         localStorage.getItem('jwt_token') ||
