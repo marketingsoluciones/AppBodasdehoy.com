@@ -50,6 +50,12 @@ function hasLocalJwt(): boolean {
   return false;
 }
 
+/** Lee tab activa del URL y la pasa al BottomNavBar (móvil only). */
+function MobileBottomNav() {
+  const activeTab = useActiveBandejaTab();
+  return <BottomNavBar activeTab={activeTab} />;
+}
+
 export default function MessagesLayout({ children }: MessagesLayoutProps) {
   const router = useRouter();
   const isLoaded = useUserStore(authSelectors.isLoaded);
@@ -97,9 +103,16 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
   // Mientras carga la auth O dentro de la ventana de gracia (aún puede resolverse a
   // usuario real), mostramos el spinner en vez de la pantalla "Acceso requerido".
   if (!localJwtPresent && (!isLoaded || (isGuest && !graceElapsed))) {
+    // BUG-4 QA (23-jul): antes era un spinner MUDO (pantalla en negro sin texto)
+    // durante 5s hasta redirigir a login → el usuario no sabía qué pasaba.
+    // Ahora se explica qué está ocurriendo mientras se comprueba la sesión.
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-purple-500" />
+        <div className="text-sm font-medium text-gray-600">Comprobando tu sesión…</div>
+        <div className="max-w-xs text-xs text-gray-400">
+          La bandeja necesita una sesión iniciada. Si no tienes cuenta, te llevaremos al login.
+        </div>
       </div>
     );
   }
@@ -142,10 +155,4 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
       <MobileBottomNav />
     </div>
   );
-}
-
-/** Lee tab activa del URL y la pasa al BottomNavBar (móvil only). */
-function MobileBottomNav() {
-  const activeTab = useActiveBandejaTab();
-  return <BottomNavBar activeTab={activeTab} />;
 }
