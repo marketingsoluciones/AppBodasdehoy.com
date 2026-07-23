@@ -136,8 +136,11 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
     );
   }
 
+  // BUG-11 QA (23-jul): w-full + flex-1 para que la bandeja OCUPE todo el ancho del
+  // contenedor (antes se quedaba en ~910px dejando franja vacía a la derecha en
+  // desktop ancho, porque la raíz no forzaba el ancho del padre).
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-white">
+    <div className="flex h-full w-full flex-1 flex-col overflow-hidden bg-white">
       <div className="flex flex-1 overflow-hidden">
         {/* Rail 54px FASE B v2.0 Diseño 25-jun — solo desktop ≥1024px.
             Iconos avatar + Conversaciones + Bandeja + Historial + badge plan. */}

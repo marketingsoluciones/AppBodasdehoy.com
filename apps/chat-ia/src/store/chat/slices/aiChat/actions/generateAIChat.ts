@@ -786,6 +786,19 @@ export const generateAIChat: StateCreator<
           imageList: finalImages.length > 0 ? finalImages : undefined,
           metadata: speed ? { ...usage, ...speed } : usage,
         });
+
+        // BUG-8 QA (23-jul): red de seguridad. El toggle-off de reasoning solo salta
+        // en onMessageHandle al transicionar de "thinking" a contenido; si el stream
+        // termina sin esa transición, el id se queda en reasoningLoadingIds y el header
+        // "Analizando tu solicitud…" queda pegado tras completar la respuesta. Al
+        // finalizar el stream lo limpiamos siempre (idempotente si ya estaba off).
+        if (chatSelectors.isMessageInChatReasoning(messageId)(get())) {
+          internal_toggleChatReasoning(
+            false,
+            messageId,
+            n('toggleChatReasoning/finish-cleanup') as string,
+          );
+        }
       },
       onMessageHandle: async (chunk) => {
         switch (chunk.type) {
