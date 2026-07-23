@@ -1,6 +1,5 @@
 import { FC, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import BlockDefault from "./BlockDefault";
 import DragTable from "./DragTable"
 import SvgFromString from '../SvgFromString';
 import { getSvgOptimizationInfo, SVG_SIZE_LIMITS } from '../../utils/svgSizeUtils';
@@ -10,7 +9,7 @@ import { EventContextProvider } from "../../context";
 import { useToast } from "../../hooks/useToast";
 import { GalerySvg } from "../../utils/Interfaces";
 import { convertBackendSvgsToReact } from "../../pages/mesas";
-import { CiText } from "react-icons/ci";
+import { FURNITURE } from "./furnitureIcons";
 
 interface propsBlockPanelElements {
   listElements: GalerySvg[]
@@ -232,34 +231,35 @@ const BlockPanelElements: FC<propsBlockPanelElements> = ({ listElements, setList
         </div>
         {/* Cabecera de sección */}
         <div className="flex-none text-[11px] font-bold tracking-wider uppercase text-[#b3b3ba] mb-[10px]">Elementos decorativos</div>
-        {/* Grid — BlockDefault + DragTable preservan el motor de arrastre (NO tocar IDs/js-dragDefault) */}
-        <div className="flex-1 min-h-0">
-          <BlockDefault listaLength={listElements.length}>
-            <DragTable item={{
-              size: { width: 60, height: 120 },
-              tipo: "text",
-              title: "",
-              icon: <CiText className="w-8 h-8 text-gray-400" />
-            }} />
-            {listElements.map((item, idx) => (
-              <DragTable key={idx} item={item} />
+        {/* Grid 3-col de tarjetas fiel al HTML. DragTable conserva el motor de arrastre
+            (mismos IDs #dragN/#icon + js-dragDefault + handlers); `label` = modo tarjeta. */}
+        <div className="flex-1 min-h-0 overflow-auto">
+          <div className="grid grid-cols-3 gap-[9px] content-start">
+            {/* 6 elementos base del HTML: Texto · Árbol · Planta · Cabina DJ · Arco · Piano */}
+            {FURNITURE.map((f) => {
+              const isText = f.model === 'text'
+              const item = {
+                icon: <f.Icon />,
+                title: isText ? '' : f.model,
+                tipo: isText ? 'text' : 'element',
+                size: f.size,
+              } as GalerySvg
+              return <DragTable key={f.model} item={item} label={f.label} />
+            })}
+            {/* SVGs personalizados subidos por el usuario (galery, tienen _id) */}
+            {listElements.filter((el) => (el as any)?._id).map((item, idx) => (
+              <DragTable key={(item as any)._id || idx} item={item} label={item.title} />
             ))}
-            {/* Añadir SVG — tile punteado rosa; abre el modal real (createGalerySvgs). Es un botón, no un draggable. */}
+            {/* Añadir SVG — tarjeta punteada; abre el modal real (createGalerySvgs) */}
             <div
               id="added-svg"
               onClick={() => { setShowModal(true) }}
-              className="w-14 h-14 flex flex-col items-center justify-center gap-1 rounded-[12px] bg-white border-[1.5px] border-dashed border-[#f0aecb] cursor-pointer hover:bg-[#FCF2F6] transition-colors"
+              className="w-full flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-[12px] bg-white border-[1.5px] border-dashed border-[#f0aecb] cursor-pointer hover:bg-[#FCF2F6] transition-colors"
             >
               <span className="text-[#EF5B94] text-[18px] leading-none">＋</span>
-              <span className="text-[9px] font-semibold text-[#EF5B94] leading-none">SVG</span>
+              <span className="text-[10px] font-semibold text-[#EF5B94] text-center leading-tight">Añadir SVG</span>
             </div>
-            <style>{`
-              .listTables {
-                touch - action: none;
-                user-select: none;
-              }
-            `}</style>
-          </BlockDefault>
+          </div>
         </div>
       </div>
     </>

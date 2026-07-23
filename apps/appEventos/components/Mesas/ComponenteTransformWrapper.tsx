@@ -77,8 +77,11 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
   !reset ? handleReset(centerView) : () => { }
   return (
     < >
-      <div className="bg-white flex w-full h-8 items-center justify-between absolute z-[20] transform translate-y-[-32px] shadow-sm border-b border-[#f0f0f2] pl-1 md:pl-2">
-        <div className="flex items-center gap-1.5">
+      {/* Controles FLOTANTES sobre el plano (fiel a MESAS.dc.html): sin franja/barra, cada
+          grupo es una pastilla que flota sobre el beige. pointer-events-none en el contenedor
+          + auto en los hijos → los huecos transparentes no bloquean el lienzo. */}
+      <div className="flex w-full items-center justify-between absolute z-[20] top-2 left-0 px-2 md:px-3 gap-2 pointer-events-none [&>*]:pointer-events-auto">
+        <div className="flex items-center gap-2">
           {/* Rediseño Fase C: zoom agrupado en pastilla blanca (fiel a MESAS.dc.html).
               Mismos handlers: zoomOut/centerView(reset a ajuste)/zoomIn. */}
           <div className="flex items-center bg-white rounded-lg border border-[#f0f0f2] shadow-sm overflow-hidden h-7">
@@ -95,6 +98,10 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
           <span className={`${disableDrag ? "block" : "hidden"}  `} onClick={() => { toast("error", t("unlocktables")) }}>
             <Lock className="text-primary md:block h-6 w-5" />
           </span>
+          {/* Plano actual — pastilla flotante rosa marca, integrada en el grupo izq (fiel al HTML) */}
+          <div className="hidden sm:block bg-white rounded-lg shadow-sm border border-[#f0f0f2] px-3 py-1.5 text-[10px] font-semibold text-[#EF5B94] truncate max-w-[220px]">
+            {`${t("plan")}: ${t(planSpaceActive?.title)} · ${lienzo?.width / 100}×${lienzo?.height / 100} m`}
+          </div>
         </div>
         <div className="flex text-red items-center pr-2 md:pr-3 gap-1 md:gap-2">
           {/* Rediseño Fase D: exportar el plano a PDF (croquis + invitados por mesa). */}
@@ -189,13 +196,6 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
             ? <mdIcons.MdFullscreen className="w-7 h-7 cursor-pointer text-primary" onClick={() => setFullScreen(!fullScreen)} />
             : <mdIcons.MdFullscreenExit className="w-7 h-7 cursor-pointer text-primary" onClick={() => setFullScreen(!fullScreen)} />
           }
-        </div>
-      </div>
-      {/* Rediseño Fase C: etiqueta del plano en pastilla blanca (rosa marca), fiel al
-          prototipo. El % de zoom ahora vive en la pastilla de zoom de arriba. */}
-      <div className="absolute z-[10] top-1 left-2 md:left-8">
-        <div className="bg-white rounded-lg shadow-sm border border-[#f0f0f2] px-3 py-1 text-[10px] font-semibold text-[#EF5B94] truncate max-w-[240px]">
-          {`${t("plan")}: ${t(planSpaceActive?.title)} · ${lienzo?.width / 100}×${lienzo?.height / 100} m`}
         </div>
       </div>
       {/* <Cuadricula className="w-100 h-100 text-black" /> */}
