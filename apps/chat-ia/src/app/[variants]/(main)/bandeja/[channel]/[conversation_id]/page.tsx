@@ -6,6 +6,7 @@ import { ConversationList } from '../../components/ConversationList';
 import { MessageList } from '../../components/MessageList';
 import { MessageInput } from '../../components/MessageInput';
 import { ConversationHeader } from '../../components/ConversationHeader';
+import { ContactConversationsPanel } from '../../components/ContactConversationsPanel';
 import { ConversationNotesSidebar } from '../../components/ConversationNotesSidebar';
 import { EventSidebar } from '../../components/EventSidebar';
 import { TaskDetailWorkspace } from '../../components/TaskDetailWorkspace';
@@ -78,7 +79,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
     <>
       <div
         className="hidden w-[300px] shrink-0 overflow-auto md:block"
-        style={{ borderRight: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+        style={{ backgroundColor: '#FFFFFF', borderRight: '1px solid #EDEDF0' }}
       >
         <ConversationList channel={channel} selectedId={conversation_id} />
       </div>
@@ -115,8 +116,8 @@ export default function ConversationPage({ params }: ConversationPageProps) {
           <ConversationHeader
             channel={channel}
             conversationId={conversation_id}
-            onSearchFilter={setSearchFilter}
             detailsOpen={sidebarExpanded}
+            onSearchFilter={setSearchFilter}
             onToggleDetails={toggleSidebar}
           />
         </div>
@@ -139,26 +140,38 @@ export default function ConversationPage({ params }: ConversationPageProps) {
       {sidebarExpanded && (
         <aside
           className="hidden w-[280px] shrink-0 overflow-hidden lg:flex lg:flex-col"
-          style={{ borderLeft: '1px solid #EDEDF0', backgroundColor: '#FFFFFF' }}
+          style={{ backgroundColor: '#FFFFFF', borderLeft: '1px solid #EDEDF0' }}
         >
-          {conv?.linkedEventId ? (
-            <EventSidebar
-              conversationId={conversation_id}
-              contactName={conv.contact?.name}
-              contactPhone={conv.contact?.phone}
-              linkedContactId={conv.linkedContactId}
-              linkedEventId={conv.linkedEventId}
-              channel={conv.channel ?? channel}
-              rsvpStatus={conv.guestStatus ?? undefined}
-            />
-          ) : (
-            <ConversationNotesSidebar
-              conversationId={conversation_id}
-              contactName={conv?.contact?.name}
-              linkedContactId={conv?.linkedContactId}
-              linkedEventId={conv?.linkedEventId}
-              channel={conv?.channel ?? channel}
-            />
+          <div className="min-h-0 flex-1 overflow-auto">
+            {conv?.linkedEventId ? (
+              <EventSidebar
+                channel={conv.channel ?? channel}
+                contactName={conv.contact?.name}
+                contactPhone={conv.contact?.phone}
+                conversationId={conversation_id}
+                linkedContactId={conv.linkedContactId}
+                linkedEventId={conv.linkedEventId}
+                rsvpStatus={conv.guestStatus ?? undefined}
+              />
+            ) : (
+              <ConversationNotesSidebar
+                channel={conv?.channel ?? channel}
+                contactName={conv?.contact?.name}
+                conversationId={conversation_id}
+                linkedContactId={conv?.linkedContactId}
+                linkedEventId={conv?.linkedEventId}
+              />
+            )}
+          </div>
+          {/* R2 (23-jul): conversaciones cross-canal/cross-evento del contacto. */}
+          {conv?.linkedContactId && (
+            <div className="max-h-[45%] flex-none overflow-auto">
+              <ContactConversationsPanel
+                contactId={conv.linkedContactId}
+                contactName={conv.contact?.name}
+                currentConversationId={conversation_id}
+              />
+            </div>
           )}
         </aside>
       )}
@@ -166,28 +179,36 @@ export default function ConversationPage({ params }: ConversationPageProps) {
       {/* Bottom sheet móvil 75% con sidebar info contacto.
           El sidebar derecho lateral NO existe en móvil (Diseño 24-jun). */}
       <BottomSheet
-        open={infoSheetOpen}
         onClose={() => setInfoSheetOpen(false)}
+        open={infoSheetOpen}
         title={conv?.contact?.name ?? 'Detalles de la conversación'}
       >
         {conv?.linkedEventId ? (
           <EventSidebar
-            conversationId={conversation_id}
+            channel={conv.channel ?? channel}
             contactName={conv.contact?.name}
             contactPhone={conv.contact?.phone}
+            conversationId={conversation_id}
             linkedContactId={conv.linkedContactId}
             linkedEventId={conv.linkedEventId}
-            channel={conv.channel ?? channel}
             rsvpStatus={conv.guestStatus ?? undefined}
           />
         ) : (
           <ConversationNotesSidebar
-            conversationId={conversation_id}
-            contactName={conv?.contact?.name}
-            linkedContactId={conv?.linkedContactId}
-            linkedEventId={conv?.linkedEventId}
             channel={conv?.channel ?? channel}
             compact
+            contactName={conv?.contact?.name}
+            conversationId={conversation_id}
+            linkedContactId={conv?.linkedContactId}
+            linkedEventId={conv?.linkedEventId}
+          />
+        )}
+        {/* R2 (23-jul): también en móvil, bajo las notas del sheet. */}
+        {conv?.linkedContactId && (
+          <ContactConversationsPanel
+            contactId={conv.linkedContactId}
+            contactName={conv.contact?.name}
+            currentConversationId={conversation_id}
           />
         )}
       </BottomSheet>
