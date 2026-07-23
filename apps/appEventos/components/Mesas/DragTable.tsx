@@ -46,11 +46,16 @@ const onUp = (item: GalerySvg) => {
 
 interface propsDragTable {
   item: GalerySvg
+  /** Si se pasa, se renderiza como TARJETA con icono + nombre debajo (menú Mobiliario fiel
+   * al HTML). Los hooks de drag (#dragN/#icon/js-dragDefault/handlers) NO cambian. */
+  label?: string
 }
-const DragTable: FC<propsDragTable> = ({ item }) => {
+const DragTable: FC<propsDragTable> = ({ item, label }) => {
 
   return (
-    <div className="w-14 h-14 static bg-[#faf9fb] border-[1.5px] border-[#f0f0f2] hover:border-[#e2e2e6] rounded-[12px] transition-colors">
+    <div className={label
+      ? "w-full flex flex-col items-center gap-1.5 py-3 px-1 bg-[#faf9fb] border-[1.5px] border-[#f0f0f2] hover:border-[#e2e2e6] rounded-[12px] transition-colors cursor-grab"
+      : "w-14 h-14 static bg-[#faf9fb] border-[1.5px] border-[#f0f0f2] hover:border-[#e2e2e6] rounded-[12px] transition-colors"}>
       <div id={`icon${item.title}_${item.tipo}`} className="hidden">
         <div className="bg-gray-100 opacity-80 rounded-lg w-16 h-16 flex justify-center items-center">
           <SvgWrapper
@@ -63,16 +68,16 @@ const DragTable: FC<propsDragTable> = ({ item }) => {
           <PlusIcon className={`absolute inset-0 m-auto text-primary w-3 h-3`} />
         </div>
       </div>
-      <div className="w-full h-full flex-col justify-center items-center cursor-pointer relative">
-        <div className="w-full h-full flex transform hover:scale-105 transition justify-center items-center relative">
-          <div id={`dragN${item.title}_${item.tipo}`} className="js-dragDefault w-full h-12 flex justify-center items-center"
+      <div className={label ? "flex justify-center items-center text-[#EF5B94]" : "w-full h-full flex-col justify-center items-center cursor-pointer relative"}>
+        <div className={label ? "flex justify-center items-center" : "w-full h-full flex transform hover:scale-105 transition justify-center items-center relative"}>
+          <div id={`dragN${item.title}_${item.tipo}`} className={label ? "js-dragDefault w-7 h-7 flex justify-center items-center" : "js-dragDefault w-full h-12 flex justify-center items-center"}
             onMouseDown={(e) => { onMouseDown(e, item) }}
             onMouseUp={() => { onUp(item) }}
             onTouchStart={(e) => { onTouchStart(e, item) }}
             onTouchEnd={() => { onUp(item) }} >
             <SvgWrapper
-              width={"85%"}
-              height={"85%"}
+              width={label ? "100%" : "85%"}
+              height={label ? "100%" : "85%"}
               autoScale={true}
             >
               {item.icon}
@@ -81,6 +86,7 @@ const DragTable: FC<propsDragTable> = ({ item }) => {
           </div>
         </div>
       </div>
+      {label && <span className="text-[10px] font-semibold text-[#3A3A42] text-center leading-tight">{label}</span>}
     </div>
   );
 };

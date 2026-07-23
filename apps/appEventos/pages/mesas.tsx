@@ -36,18 +36,24 @@ import { useAllowed } from "../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
 import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
 import { GalerySvg } from "../utils/Interfaces";
-import { Arbol, Arbol2, Dj, Layer2, Piano } from "../components/icons";
+import { Arbol2, Layer2 } from "../components/icons";
+import { ArbolIcon, PlantaIcon, CabinaDjIcon, ArcoIcon, PianoIcon } from "../components/Mesas/furnitureIcons";
 import SvgFromString from "../components/SvgFromString";
 
 // eslint-disable-next-line react-hooks/rules-of-hooks
 SwiperCore.use([Pagination]);
 
 export const ListElements: GalerySvg[] = [
-  { icon: <Arbol className="" />, title: "arbol", tipo: "element", size: { width: 60, height: 120 } },
+  // Mobiliario fiel al HTML (iconos de furnitureIcons). El MISMO icono se usa en el menú
+  // (BlockPanelElements) y en el plano (ElementContent), para que sean consistentes.
+  { icon: <ArbolIcon />, title: "arbol", tipo: "element", size: { width: 60, height: 120 } },
+  { icon: <PlantaIcon />, title: "planta", tipo: "element", size: { width: 70, height: 100 } },
+  { icon: <CabinaDjIcon />, title: "dj", tipo: "element", size: { width: 140, height: 110 } },
+  { icon: <ArcoIcon />, title: "arco", tipo: "element", size: { width: 120, height: 120 } },
+  { icon: <PianoIcon />, title: "piano", tipo: "element", size: { width: 120, height: 120 } },
+  // Legacy (fuera del menú): tipos antiguos que pudieran tener elementos ya colocados.
   { icon: <Arbol2 className="" />, title: "arbol2", tipo: "element", size: { width: 60, height: 120 } },
-  { icon: <Dj className="" />, title: "dj", tipo: "element", size: { width: 140, height: 110 } },
   { icon: <Layer2 className="" />, title: "layer2", tipo: "element", size: { width: 280, height: 250 } },
-  { icon: <Piano className="" />, title: "piano", tipo: "element", size: { width: 120, height: 120 } },
 ];
 
 // Función helper para convertir SVGs del backend en elementos React
@@ -150,7 +156,11 @@ const Mesas: FC = () => {
           // Update inmutable: añadir elemento al planSpaceActive.
           const newPlanSpaceActive = {
             ...planSpaceActive,
-            elements: [...(planSpaceActive.elements ?? []), { ...inputValues }],
+            // `_id` temporal para que el elemento recién soltado SEA arrastrable (interact usa
+            // el id del div `element_<_id>`). createElement no devuelve el _id del elemento
+            // (solo evento{_id}); al recargar llega el _id real del backend. Mismo patrón que
+            // TableConfigurator para las mesas.
+            elements: [...(planSpaceActive.elements ?? []), { ...inputValues, _id: `tmp_${Date.now()}_${Math.round(Math.random() * 100000)}` }],
           }
           setPlanSpaceActive(newPlanSpaceActive)
           // planSpaceSelect es ID (string) — match por _id, no por índice (mismo bug latente que FormCrearMesa).

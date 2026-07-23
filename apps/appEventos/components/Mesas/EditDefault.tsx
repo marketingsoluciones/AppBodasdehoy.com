@@ -107,6 +107,31 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
     }
   }
 
+  // Agrandar/achicar el elemento (fiel al HTML: scaleFurn ±). Escala el size de forma
+  // inmutable y lo persiste con editElement (mismo patrón que la rotación). Solo elementos.
+  const handleScale = async (factor: number) => {
+    const current = item?.size && typeof item.size.width === 'number' ? item.size : { width: 80, height: 80 }
+    const clamp = (v: number) => Math.max(24, Math.min(600, Math.round(v)))
+    const newSize = { width: clamp(current.width * factor), height: clamp(current.height * factor) }
+    const newPlanSpaceActive = {
+      ...planSpaceActive,
+      elements: planSpaceActive.elements.map(elem =>
+        elem._id !== item._id ? elem : { ...elem, size: newSize }
+      ),
+    }
+    setPlanSpaceActive(newPlanSpaceActive)
+    setEvent((prev) => ({
+      ...prev,
+      planSpace: prev.planSpace.map(ps =>
+        ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+      ),
+    }))
+    await fetchApiBodas({
+      query: queries.editElement,
+      variables: { evento_id: event._id, element_id: item._id, datos: { size: newSize } }
+    })
+  }
+
   return (
     <div className="bg-transparent absolute w-full h-full flex flex-col items-center justify-between py-3" >
       <button disabled={!isAllowed()} onClick={handleDeleteItem} className="bg-white border border-primary rounded-md w-7 h-7 flex items-center justify-center">
@@ -120,6 +145,12 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
         disabled={!isAllowed() || itemTipo === "element"}>
         <EditarIcon className={`${itemTipo === "table" ? "text-gray-600" : "text-gray-300"} w-5 h-5`} />
       </button>
+      {itemTipo === "element" &&
+        <>
+          <button disabled={!isAllowed()} onClick={() => handleScale(1.2)} title="Agrandar" className="bg-white border border-primary rounded-md w-7 h-7 flex items-center justify-center text-gray-600 text-lg leading-none">＋</button>
+          <button disabled={!isAllowed()} onClick={() => handleScale(1 / 1.2)} title="Achicar" className="bg-white border border-primary rounded-md w-7 h-7 flex items-center justify-center text-gray-600 text-lg leading-none">−</button>
+        </>
+      }
       <button disabled={!isAllowed()} onClick={() => { handleRotate("right") }} className="bg-white border border-primary rounded-md w-7 h-7 flex items-center justify-center">
         <MdRotateRight className="text-gray-600 w-5 h-5" />
       </button>

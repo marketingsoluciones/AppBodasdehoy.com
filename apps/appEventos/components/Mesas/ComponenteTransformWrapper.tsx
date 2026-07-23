@@ -1,6 +1,5 @@
 import { FC, useEffect, useState } from "react";
-import { ButtonConstrolsLienzo } from "./ControlsLienzo";
-import { Lock, WarningIcon } from "../icons";
+import { WarningIcon } from "../icons";
 import * as mdIcons from "react-icons/md";
 import { TransformComponent } from "react-zoom-pan-pinch";
 import { LiezoDragable } from "./LienzoDragable";
@@ -38,7 +37,7 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
   const [showSetup, setShowSetup] = useState(false)
   const [showMiniMenu, setShowMiniMenu] = useState(false)
   const { user } = AuthContextProvider()
-  const { event, planSpaceActive } = EventContextProvider()
+  const { event, planSpaceActive, setEditDefault } = EventContextProvider()
   const { psTemplates, setPsTemplates } = EventsGroupContextProvider()
   const [value, setValue] = useState("")
   const [valir, setValir] = useState(true)
@@ -77,8 +76,11 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
   !reset ? handleReset(centerView) : () => { }
   return (
     < >
-      <div className="bg-white flex w-full h-8 items-center justify-between absolute z-[20] transform translate-y-[-32px] shadow-sm border-b border-[#f0f0f2] pl-1 md:pl-2">
-        <div className="flex items-center gap-1.5">
+      {/* Controles FLOTANTES sobre el plano (fiel a MESAS.dc.html): sin franja/barra, cada
+          grupo es una pastilla que flota sobre el beige. pointer-events-none en el contenedor
+          + auto en los hijos → los huecos transparentes no bloquean el lienzo. */}
+      <div className="flex w-full items-center justify-between absolute z-[20] top-2 left-0 px-2 md:px-3 gap-2 pointer-events-none [&>*]:pointer-events-auto">
+        <div className="flex items-center gap-2">
           {/* Rediseño Fase C: zoom agrupado en pastilla blanca (fiel a MESAS.dc.html).
               Mismos handlers: zoomOut/centerView(reset a ajuste)/zoomIn. */}
           <div className="flex items-center bg-white rounded-lg border border-[#f0f0f2] shadow-sm overflow-hidden h-7">
@@ -86,32 +88,44 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
             <button type="button" onClick={() => centerView(scaleIni)} title={t('adjust') || 'Ajustar'} className="px-2 h-7 min-w-[46px] text-[11px] font-bold text-[#3A3A42] md:hover:bg-[#FCF2F6] transition">{Math.round((state?.previousScale || 1) * 100)}%</button>
             <button type="button" onClick={() => zoomIn(0.1)} className="w-7 h-7 flex items-center justify-center text-[#EF5B94] text-base leading-none md:hover:bg-[#FCF2F6] transition">＋</button>
           </div>
-          <ButtonConstrolsLienzo onClick={() => {
-            window.getSelection()?.removeAllRanges()
-            !isAllowed() ? ht() : handleSetDisableDrag()
-          }} pulseButton={disableDrag}>
-            <span className="text-[10px] w-28 h-6 px-1 pt-[3px]">{disableDrag ? t('unlockfloorplan') : t('lockflat')}</span>
-          </ButtonConstrolsLienzo>
-          <span className={`${disableDrag ? "block" : "hidden"}  `} onClick={() => { toast("error", t("unlocktables")) }}>
-            <Lock className="text-primary md:block h-6 w-5" />
-          </span>
+          {/* Bloquear/Desbloquear plano — pastilla flotante fiel al HTML (🔒 + texto),
+              sustituye al ButtonConstrolsLienzo con pulso + al icono Lock separado. */}
+          <button
+            type="button"
+            onClick={() => {
+              window.getSelection()?.removeAllRanges()
+              !isAllowed() ? ht() : handleSetDisableDrag()
+            }}
+            className="flex items-center gap-1.5 bg-white rounded-lg shadow-sm border border-[#f0f0f2] px-3 py-1.5 text-[12px] font-semibold text-[#3A3A42] md:hover:bg-[#FCF2F6] transition whitespace-nowrap"
+          >
+            <span className="text-[13px] leading-none">🔒</span>
+            {disableDrag ? t('unlockfloorplan') : t('lockflat')}
+          </button>
+          {/* Plano actual — pastilla flotante rosa marca, integrada en el grupo izq (fiel al HTML) */}
+          <div className="hidden sm:block bg-white rounded-lg shadow-sm border border-[#f0f0f2] px-3 py-1.5 text-[10px] font-semibold text-[#EF5B94] truncate max-w-[220px]">
+            {`${t("plan")}: ${t(planSpaceActive?.title)} · ${lienzo?.width / 100}×${lienzo?.height / 100} m`}
+          </div>
         </div>
         <div className="flex text-red items-center pr-2 md:pr-3 gap-1 md:gap-2">
-          {/* Rediseño Fase D: exportar el plano a PDF (croquis + invitados por mesa). */}
-          <mdIcons.MdPictureAsPdf
-            title={t('exportpdf') || 'Exportar PDF'}
-            className="w-6 h-6 cursor-pointer text-primary"
-            onClick={() => {
-              const ok = exportPlanoPdf({ planSpaceActive, event, planoTitle: t(planSpaceActive?.title) })
-              if (!ok) toast('error', t('popupblocked') || 'Permite las ventanas emergentes para exportar el PDF')
-            }}
-          />
+          {/* PDF suelto eliminado para un plano más limpio: ahora "Exportar PDF" vive
+              DENTRO del menú del icono de descargas (abajo). */}
           <ClickAwayListener onClickAway={() => setShowMiniMenu(false)}>
             <div>
               <MdSaveAlt className="h-6 w-6 cursor-pointer text-primary" onClick={() => { !isAllowed() ? ht() : setShowMiniMenu(!showMiniMenu) }} />
               {showMiniMenu &&
                 <div className="bg-white flex flex-col absolute z-[50] top-8 right-18 rounded-b-md shadow-md items-center text-[9px] px-3 pt-1 pb-3 text-gray-800 gap-y-2">
                   <div className="bg-white flex flex-col absolute z-[10] top-[0px] right-0 rounded-b-md shadow-md min-w-[140px] md:min-w-[120px] items-center text-[10px] md:text-[12px] px-3 pt-1 pb-2 text-gray-800">
+                    {/* Exportar PDF — movido aquí desde el icono suelto (plano más limpio) */}
+                    <button
+                      onClick={() => {
+                        setShowMiniMenu(false)
+                        const ok = exportPlanoPdf({ planSpaceActive, event, planoTitle: t(planSpaceActive?.title) })
+                        if (!ok) toast('error', t('popupblocked') || 'Permite las ventanas emergentes para exportar el PDF')
+                      }}
+                      className="w-full flex items-center gap-2 text-left font-semibold py-1.5 mb-1 border-b border-gray-100 hover:text-primary"
+                    >
+                      <mdIcons.MdPictureAsPdf className="w-4 h-4 text-primary" />{t('exportpdf') || 'Exportar PDF'}
+                    </button>
                     <span className="w-full text-left font-bold transform -ml-2">{t("savetemplate")}</span>
                     <span className="flex flex-col text-[9px] md:text-[11px]">
                       <span className="capitalize">{t("names")}</span>
@@ -191,32 +205,34 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
           }
         </div>
       </div>
-      {/* Rediseño Fase C: etiqueta del plano en pastilla blanca (rosa marca), fiel al
-          prototipo. El % de zoom ahora vive en la pastilla de zoom de arriba. */}
-      <div className="absolute z-[10] top-1 left-2 md:left-8">
-        <div className="bg-white rounded-lg shadow-sm border border-[#f0f0f2] px-3 py-1 text-[10px] font-semibold text-[#EF5B94] truncate max-w-[240px]">
-          {`${t("plan")}: ${t(planSpaceActive?.title)} · ${lienzo?.width / 100}×${lienzo?.height / 100} m`}
-        </div>
-      </div>
       {/* <Cuadricula className="w-100 h-100 text-black" /> */}
       <TransformComponent
-        wrapperStyle={{ width: "100%", height: "100%", background: "gray" }}
+        wrapperStyle={{
+          width: "100%",
+          height: "100%",
+          // Fiel al prototipo MESAS.dc.html: la RETÍCULA es un fondo ESTÁTICO que llena TODO
+          // el viewport (no solo la caja del plano). Beige #F3F1EC + líneas #E4E1D8, 44px.
+          background: "#F3F1EC",
+          backgroundImage:
+            "linear-gradient(#E4E1D8 1px, transparent 1px), linear-gradient(90deg, #E4E1D8 1px, transparent 1px)",
+          backgroundSize: "44px 44px",
+        }}
         contentStyle={{
           width: `${lienzo?.width}px`,
           height: `${lienzo?.height}px`,
-          // Antes: background:"blue" (debug residual). Plano = blanco + retícula gris clara
-          // (1 m = 100px, coherente con el tamaño del lienzo). No se toca el paper.svg
-          // compartido (verde) para no afectar otras vistas (home).
-          backgroundColor: "#ffffff",
-          backgroundImage:
-            "linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px)",
-          backgroundSize: "100px 100px",
+          // Transparente: deja ver la retícula estática del wrapper por todo el plano
+          // (antes tenía su propia retícula acotada a la caja + borde morado).
+          background: "transparent",
         }}
       >
         <div
           id={"lienzo-drop"}
+          onClick={(e) => {
+            // Click en el PLANO vacío (no sobre una mesa/elemento) → deseleccionar (fiel al HTML clearSel).
+            const el = e.target as HTMLElement
+            if (!el.closest('[id^="element_"]') && !el.closest('[id^="table_"]')) setEditDefault({})
+          }}
           className="js-dropTables bg-transparent lienzo flex justify-center items-center">
-          <div className="lienzo border-4 border-indigo-600"></div>
           <LiezoDragable scale={state.scale} lienzo={lienzo} setDisableWrapper={setDisableWrapper} disableDrag={disableDrag} setShowFormEditar={setShowFormEditar} />
         </div>
       </TransformComponent>
