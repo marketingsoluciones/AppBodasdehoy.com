@@ -1,33 +1,19 @@
-import { InvitadosIcon, MesaIcon } from "../icons"
-import { GiGrandPiano } from 'react-icons/gi';
-import { HiDocumentReport, HiTemplate } from 'react-icons/hi';
 import { useTranslation } from "react-i18next";
 
 // Barra de pestañas del módulo Mesas. Rediseño fiel al prototipo (MESAS.dc.html):
-// tabs de icono + texto sobre fondo blanco, la activa con subrayado rosa marca.
+// tabs de SOLO texto (SIN iconos) sobre fondo blanco. La activa en rosa marca
+// (#EF5B94) con subrayado rosa 2.5px; las inactivas en gris #9a9aa2 sin subrayado.
+// Fuente 600 10.5px (spec exacto del proto, líneas 74-76 y B.tabs 712-716).
 // IMPORTANTE: NO cambiar los `title` (son los `itemSelect==` que enrutan el panel
 // en pages/mesas.tsx) ni la altura del contenedor (h-10 alimenta el calc del panel).
 const sutMenus = [
-  {
-    title: "invitados",
-    icon: <InvitadosIcon className="w-[18px] h-[18px]" />,
-  },
-  {
-    title: "planos",
-    icon: <HiTemplate className="w-[18px] h-[18px]" />,
-  },
-  {
-    title: "mesas",
-    icon: <MesaIcon className="w-[18px] h-[18px]" />,
-  },
-  {
-    title: "mobiliario",
-    icon: <GiGrandPiano className="w-[18px] h-[18px]" />,
-  },
-  {
-    title: "resumen",
-    icon: <HiDocumentReport className="w-[18px] h-[18px]" />,
-  },
+  // `invitados` solo se muestra en móvil (md:hidden); en desktop Invitados es el
+  // bloque colapsable inferior, por eso el proto solo tiene 4 tabs visibles.
+  { title: "invitados" },
+  { title: "planos" },
+  { title: "mesas" },
+  { title: "mobiliario" },
+  { title: "resumen" },
 ]
 
 
@@ -48,12 +34,11 @@ export const SubMenu = ({ itemSelect, setItemSelect }) => {
             type="button"
             onClick={() => handleClick(elem)}
             title={t(elem?.title)}
-            className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 border-b-[2.5px] -mb-px transition-colors
+            className={`flex-1 min-w-0 flex items-center justify-center border-b-[2.5px] -mb-px transition-colors
               ${active ? "border-[#EF5B94]" : "border-transparent"}
               ${elem?.title === "invitados" ? "md:hidden" : ""}`}
           >
-            <span className={active ? "text-[#EF5B94]" : "text-[#a0a0a8]"}>{elem?.icon}</span>
-            <span className={`text-[10px] font-semibold capitalize leading-none truncate max-w-full ${active ? "text-[#EF5B94]" : "text-[#6b6b72]"}`}>{t(elem?.title)}</span>
+            <span className={`text-[10.5px] font-semibold capitalize leading-none truncate max-w-full ${active ? "text-[#EF5B94]" : "text-[#9a9aa2]"}`}>{t(elem?.title)}</span>
           </button>
         )
       })}

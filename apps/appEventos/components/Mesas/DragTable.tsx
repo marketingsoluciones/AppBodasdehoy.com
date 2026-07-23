@@ -50,7 +50,7 @@ interface propsDragTable {
 const DragTable: FC<propsDragTable> = ({ item }) => {
 
   return (
-    <div className="w-14 h-14 static border-[1px] border-gray-300 hover:border-gray-400 rounded-lg">
+    <div className="w-14 h-14 static bg-[#faf9fb] border-[1.5px] border-[#f0f0f2] hover:border-[#e2e2e6] rounded-[12px] transition-colors">
       <div id={`icon${item.title}_${item.tipo}`} className="hidden">
         <div className="bg-gray-100 opacity-80 rounded-lg w-16 h-16 flex justify-center items-center">
           <SvgWrapper
