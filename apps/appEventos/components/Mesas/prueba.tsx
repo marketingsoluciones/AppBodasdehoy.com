@@ -54,7 +54,9 @@ const Prueba: FC<propsPrueba> = ({ setShowFormEditar, fullScreen, setFullScreen 
         {/* BUG-6 (informe QA 21-jun): bg-blue-200 era debug hardcoded. Cambiamos a
             bg-base (token de tema) para que respete el diseño del whitelabel. */}
         <div id="rootElementTables" ref={refDiv} className="bg-base flex w-[100%] h-[calc(100%-32px)] relative">
-          {editDefault?.clicked &&
+          {/* Barra lateral izquierda: solo para mesas y texto. El mobiliario usa los
+              controles SOBRE el elemento (papelera + −/＋), fieles al HTML (DragableDefault). */}
+          {editDefault?.clicked && !(editDefault?.itemTipo === "element" && editDefault?.item?.tipo !== "text") &&
             <ClickAwayListener
               onClickAway={() => {
                 if (editDefault.activeButtons) {
