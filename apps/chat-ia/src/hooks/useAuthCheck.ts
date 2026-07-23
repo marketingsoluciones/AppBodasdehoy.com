@@ -155,8 +155,21 @@ export const useAuthCheck = () => {
 
     const hasValidJwt = checkJwtValidity();
 
-    // Usuario identificado pero sin JWT válido = necesita re-login
-    const needsRelogin = isAuthenticated && !hasValidJwt;
+    // BUG-1 QA (23-jul): el banner "Tu cuenta ha caducado" se mostraba a usuarios
+    // que NUNCA iniciaron sesión. "Caducado/expirado" solo es correcto si EXISTIÓ
+    // un token que ahora es inválido. Si no hay NINGÚN token (nunca hubo sesión de
+    // chat), no es un re-login: es un estado no-autenticado → no alarmar con "caducado".
+    const hasAnyToken =
+      typeof window !== 'undefined' &&
+      !!(
+        localStorage.getItem('jwt_token') ||
+        localStorage.getItem('mcp_jwt_token') ||
+        config?.token ||
+        localStorage.getItem('jwt_token_cache')
+      );
+
+    // Usuario identificado + TENÍA token (ahora inválido/expirado) = necesita re-login.
+    const needsRelogin = isAuthenticated && !hasValidJwt && hasAnyToken;
 
     if (needsRelogin) {
       warnOnce('needs-relogin', '⚠️ Usuario identificado pero sin JWT válido - necesita re-login');
