@@ -1,6 +1,5 @@
 import { FC, useEffect, useState } from "react";
-import { ButtonConstrolsLienzo } from "./ControlsLienzo";
-import { Lock, WarningIcon } from "../icons";
+import { WarningIcon } from "../icons";
 import * as mdIcons from "react-icons/md";
 import { TransformComponent } from "react-zoom-pan-pinch";
 import { LiezoDragable } from "./LienzoDragable";
@@ -89,15 +88,19 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
             <button type="button" onClick={() => centerView(scaleIni)} title={t('adjust') || 'Ajustar'} className="px-2 h-7 min-w-[46px] text-[11px] font-bold text-[#3A3A42] md:hover:bg-[#FCF2F6] transition">{Math.round((state?.previousScale || 1) * 100)}%</button>
             <button type="button" onClick={() => zoomIn(0.1)} className="w-7 h-7 flex items-center justify-center text-[#EF5B94] text-base leading-none md:hover:bg-[#FCF2F6] transition">＋</button>
           </div>
-          <ButtonConstrolsLienzo onClick={() => {
-            window.getSelection()?.removeAllRanges()
-            !isAllowed() ? ht() : handleSetDisableDrag()
-          }} pulseButton={disableDrag}>
-            <span className="text-[10px] w-28 h-6 px-1 pt-[3px]">{disableDrag ? t('unlockfloorplan') : t('lockflat')}</span>
-          </ButtonConstrolsLienzo>
-          <span className={`${disableDrag ? "block" : "hidden"}  `} onClick={() => { toast("error", t("unlocktables")) }}>
-            <Lock className="text-primary md:block h-6 w-5" />
-          </span>
+          {/* Bloquear/Desbloquear plano — pastilla flotante fiel al HTML (🔒 + texto),
+              sustituye al ButtonConstrolsLienzo con pulso + al icono Lock separado. */}
+          <button
+            type="button"
+            onClick={() => {
+              window.getSelection()?.removeAllRanges()
+              !isAllowed() ? ht() : handleSetDisableDrag()
+            }}
+            className="flex items-center gap-1.5 bg-white rounded-lg shadow-sm border border-[#f0f0f2] px-3 py-1.5 text-[12px] font-semibold text-[#3A3A42] md:hover:bg-[#FCF2F6] transition whitespace-nowrap"
+          >
+            <span className="text-[13px] leading-none">🔒</span>
+            {disableDrag ? t('unlockfloorplan') : t('lockflat')}
+          </button>
           {/* Plano actual — pastilla flotante rosa marca, integrada en el grupo izq (fiel al HTML) */}
           <div className="hidden sm:block bg-white rounded-lg shadow-sm border border-[#f0f0f2] px-3 py-1.5 text-[10px] font-semibold text-[#EF5B94] truncate max-w-[220px]">
             {`${t("plan")}: ${t(planSpaceActive?.title)} · ${lienzo?.width / 100}×${lienzo?.height / 100} m`}
