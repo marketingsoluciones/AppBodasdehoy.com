@@ -200,16 +200,16 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
       </div>
       {/* <Cuadricula className="w-100 h-100 text-black" /> */}
       <TransformComponent
-        wrapperStyle={{ width: "100%", height: "100%", background: "gray" }}
+        wrapperStyle={{ width: "100%", height: "100%", background: "#F3F1EC" }}
         contentStyle={{
           width: `${lienzo?.width}px`,
           height: `${lienzo?.height}px`,
-          // Antes: background:"blue" (debug residual). Plano = blanco + retícula gris clara
-          // (1 m = 100px, coherente con el tamaño del lienzo). No se toca el paper.svg
-          // compartido (verde) para no afectar otras vistas (home).
-          backgroundColor: "#ffffff",
+          // Fiel al prototipo MESAS.dc.html: plano beige #F3F1EC + retícula #E4E1D8.
+          // (1 m = 100px, coherente con el tamaño del lienzo). Wrapper también beige para
+          // que se vea completo en pantalla (antes era "gray" → borde gris alrededor).
+          backgroundColor: "#F3F1EC",
           backgroundImage:
-            "linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px)",
+            "linear-gradient(#E4E1D8 1px, transparent 1px), linear-gradient(90deg, #E4E1D8 1px, transparent 1px)",
           backgroundSize: "100px 100px",
         }}
       >
