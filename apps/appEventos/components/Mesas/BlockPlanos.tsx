@@ -21,7 +21,7 @@ const FloorPlanIcon: FC<{ className?: string }> = ({ className = '' }) => (
 
 export const BlockPlanos: FC = () => {
   const { t } = useTranslation();
-  const { event, planSpaceSelect, setPlanSpaceSelect } = EventContextProvider()
+  const { event, setEvent, planSpaceSelect, setPlanSpaceSelect } = EventContextProvider()
   const { user } = AuthContextProvider()
   // Modal "Crear plano nuevo" (proto líneas 302-317). Local a este bloque.
   const [newPlanoOpen, setNewPlanoOpen] = useState(false)
@@ -53,13 +53,28 @@ export const BlockPlanos: FC = () => {
     setNewPlanoOpen(true)
   }
   const closeNewPlano = () => setNewPlanoOpen(false)
-  const handleCreatePlano = () => {
+  const handleCreatePlano = async () => {
     const name = newPlanoName.trim()
     if (!name) return
-    // ⚠️ createPlanSpace NO existe en api-mcp (escalado 16-jul, sin respuesta).
-    // No se falsea el éxito (regla proyecto: no fallback / no parchear API desde front).
-    // Se informa que la creación está pendiente de backend.
-    setCreateNotice(t('createplanopending', 'La creación de espacios estará disponible en breve.'))
+    setCreateNotice(null)
+    try {
+      // createPlanSpace (api-mcp) crea el plano, lo añade a evento.planSpace, pone
+      // planSpaceSelect = nuevo._id y DEVUELVE el planSpace nuevo (verificado en el resolver).
+      const nuevo: any = await fetchApiEventos({
+        query: queries.createPlanSpace,
+        variables: { evento_id: event?._id, title: name },
+      })
+      if (!nuevo?._id) {
+        setCreateNotice(t('createplanoerror', 'No se pudo crear el plano. Inténtalo de nuevo.'))
+        return
+      }
+      // Reflejar en el front: añadir el nuevo espacio y seleccionarlo (el backend ya hizo el select).
+      setEvent((prev: any) => ({ ...prev, planSpace: [...(prev?.planSpace ?? []), nuevo] }))
+      setPlanSpaceSelect(nuevo._id)
+      closeNewPlano()
+    } catch {
+      setCreateNotice(t('createplanoerror', 'No se pudo crear el plano. Inténtalo de nuevo.'))
+    }
   }
 
   return (

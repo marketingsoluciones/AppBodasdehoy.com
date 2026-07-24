@@ -153,17 +153,18 @@ const Mesas: FC = () => {
             element: { ...inputValues, planSpaceID: planSpaceActive._id }
           },
         }).then((result: any) => {
-          // Update inmutable: añadir elemento al planSpaceActive.
-          const newPlanSpaceActive = {
+          // createElement ahora devuelve evento{ _id planSpace } → usamos el planSpace REAL
+          // (con el _id real del elemento nuevo) para que el arrastre PERSISTA al recargar.
+          const updatedPs = Array.isArray(result?.evento?.planSpace)
+            ? result.evento.planSpace.find((ps: any) => ps?._id === planSpaceSelect)
+            : null
+          const newPlanSpaceActive = updatedPs ?? {
+            // Fallback defensivo: si el backend no devolviera planSpace, _id temporal (drag visual).
             ...planSpaceActive,
-            // `_id` temporal para que el elemento recién soltado SEA arrastrable (interact usa
-            // el id del div `element_<_id>`). createElement no devuelve el _id del elemento
-            // (solo evento{_id}); al recargar llega el _id real del backend. Mismo patrón que
-            // TableConfigurator para las mesas.
             elements: [...(planSpaceActive.elements ?? []), { ...inputValues, _id: `tmp_${Date.now()}_${Math.round(Math.random() * 100000)}` }],
           }
           setPlanSpaceActive(newPlanSpaceActive)
-          // planSpaceSelect es ID (string) — match por _id, no por índice (mismo bug latente que FormCrearMesa).
+          // planSpaceSelect es ID (string) — match por _id, no por índice.
           setEvent((prev) => ({
             ...prev,
             planSpace: prev.planSpace.map(ps =>
