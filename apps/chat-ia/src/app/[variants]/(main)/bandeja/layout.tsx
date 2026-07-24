@@ -9,6 +9,7 @@ import { useBandejaStore } from '@/store/bandeja';
 import { useUserStore } from '@/store/user';
 import { authSelectors } from '@/store/user/selectors';
 
+import { useBandejaBrand } from './utils/brand';
 import { ChannelSidebar } from './components/ChannelSidebar';
 import { MessagesRail } from './components/MessagesRail';
 import { BottomNavBar } from './components/BottomNavBar';
@@ -57,6 +58,7 @@ function MobileBottomNav() {
 }
 
 export default function MessagesLayout({ children }: MessagesLayoutProps) {
+  const brand = useBandejaBrand();
   const router = useRouter();
   const isLoaded = useUserStore(authSelectors.isLoaded);
   const isGuest = useDomainGuestUser();
@@ -108,7 +110,10 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
     // Ahora se explica qué está ocurriendo mientras se comprueba la sesión.
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-purple-500" />
+        <div
+          className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200"
+          style={{ borderTopColor: brand.brand }}
+        />
         <div className="text-sm font-medium text-gray-600">Comprobando tu sesión…</div>
         <div className="max-w-xs text-xs text-gray-400">
           La bandeja necesita una sesión iniciada. Si no tienes cuenta, te llevaremos al login.
@@ -121,12 +126,16 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
     return (
       <div className="flex h-full items-center justify-center bg-white px-6">
         <div className="w-full max-w-sm text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-purple-500" />
+          <div
+            className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200"
+            style={{ borderTopColor: brand.brand }}
+          />
           <div className="mt-4 text-sm font-semibold text-gray-900">Acceso requerido</div>
           <div className="mt-1 text-xs text-gray-500">Redirigiendo a login…</div>
           <button
-            className="mt-4 rounded-lg bg-purple-600 px-4 py-2 text-xs font-semibold text-white hover:bg-purple-700"
+            className="mt-4 rounded-lg px-4 py-2 text-xs font-semibold text-white"
             onClick={() => router.push('/login?redirect=/bandeja')}
+            style={{ backgroundColor: brand.brand }}
             type="button"
           >
             Ir a login

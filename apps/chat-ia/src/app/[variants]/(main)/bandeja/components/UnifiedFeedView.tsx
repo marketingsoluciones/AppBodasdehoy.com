@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 
 import type { FeedItem } from '../hooks/useUnifiedFeed';
+import { useBandejaBrand } from '../utils/brand';
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -165,6 +166,7 @@ interface UnifiedFeedViewProps {
 // ─── Main component ──────────────────────────────────────────────────────────
 
 export function UnifiedFeedView({ items, loading, onItemClick }: UnifiedFeedViewProps) {
+  const brand = useBandejaBrand();
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<
@@ -230,10 +232,11 @@ export function UnifiedFeedView({ items, loading, onItemClick }: UnifiedFeedView
             {availableFilters.map((t) => (
               <button
                 className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${
-                  filter === t.key ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  filter === t.key ? 'text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}
                 key={t.key}
                 onClick={() => setFilter(t.key)}
+                style={filter === t.key ? { backgroundColor: brand.brand } : undefined}
                 type="button"
               >
                 {t.label}
