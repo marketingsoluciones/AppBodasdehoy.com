@@ -6,6 +6,7 @@ import { useConversations } from '../hooks/useConversations';
 import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
 import { ChannelBadge } from './ChannelBadge';
+import { useBandejaBrand } from '../utils/brand';
 import { IaLevelPicker, type IaLevel } from './IaLevelPicker';
 
 interface ConversationHeaderProps {
@@ -24,6 +25,7 @@ export function ConversationHeader({
   detailsOpen,
   onToggleDetails,
 }: ConversationHeaderProps) {
+  const brand = useBandejaBrand();
   const { conversations, loading: convListLoading } = useConversations(channel ?? null);
   const conversation = conversations.find((c) => c.id === conversationId);
 
@@ -285,9 +287,9 @@ export function ConversationHeader({
                 assignToUser(assignedToMe ? null : userId);
               }}
               style={{
-                backgroundColor: assignedToMe ? '#EDE9FE' : '#FFFFFF',
-                border: `1px solid ${assignedToMe ? '#EDE9FE' : '#EDEDF0'}`,
-                color: assignedToMe ? '#6B4EFF' : '#84848F',
+                backgroundColor: assignedToMe ? brand.brandBg : '#FFFFFF',
+                border: `1px solid ${assignedToMe ? brand.brandBg : '#EDEDF0'}`,
+                color: assignedToMe ? brand.brand : '#84848F',
                 fontWeight: assignedToMe ? 500 : 400,
               }}
               type="button"
@@ -302,8 +304,8 @@ export function ConversationHeader({
             className="flex h-8 w-8 items-center justify-center rounded-md transition-colors"
             onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
             style={{
-              backgroundColor: searchOpen ? '#EDE9FE' : 'transparent',
-              color: searchOpen ? '#6B4EFF' : '#84848F',
+              backgroundColor: searchOpen ? brand.brandBg : 'transparent',
+              color: searchOpen ? brand.brand : '#84848F',
             }}
             onMouseEnter={(e) => {
               if (!searchOpen) e.currentTarget.style.backgroundColor = '#F2F1F6';
@@ -359,8 +361,8 @@ export function ConversationHeader({
               className="flex h-8 w-8 items-center justify-center rounded-md transition-colors"
               onClick={onToggleDetails}
               style={{
-                backgroundColor: detailsOpen ? '#EDE9FE' : 'transparent',
-                color: detailsOpen ? '#6B4EFF' : '#84848F',
+                backgroundColor: detailsOpen ? brand.brandBg : 'transparent',
+                color: detailsOpen ? brand.brand : '#84848F',
               }}
               onMouseEnter={(e) => {
                 if (!detailsOpen) e.currentTarget.style.backgroundColor = '#F2F1F6';

@@ -20,6 +20,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
+
+import { useBandejaBrand } from '../utils/brand';
 import { getEventosByUsuario, type Evento } from '@/services/mcpApi/eventos';
 
 export type ScopeId = 'support' | string; // 'support' o un eventId
@@ -44,6 +46,7 @@ function isEventScope(kind: 'support' | 'event'): boolean {
 }
 
 export function ScopeSelector({ activeScope, onChange, events }: ScopeSelectorProps) {
+  const brand = useBandejaBrand();
   const [open, setOpen] = useState(false);
   const [internalEvents, setInternalEvents] = useState<Evento[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
@@ -100,7 +103,7 @@ export function ScopeSelector({ activeScope, onChange, events }: ScopeSelectorPr
   const isEvent = isEventScope(active.kind);
   const pillStyle = isEvent
     ? { borderColor: '#FBD0D7', backgroundColor: '#FFF6F7', color: '#9F1239' }
-    : { borderColor: '#C4B5FD', backgroundColor: '#F4F1FE', color: '#5B21B6' };
+    : { borderColor: brand.brandBorder, backgroundColor: brand.brandBg, color: brand.brandText };
 
   return (
     <div className="relative" ref={ref}>
@@ -116,7 +119,7 @@ export function ScopeSelector({ activeScope, onChange, events }: ScopeSelectorPr
           <span
             aria-hidden
             className="inline-block h-1.5 w-1.5 rounded-full"
-            style={{ backgroundColor: isEvent ? '#E11D48' : '#7C3AED' }}
+            style={{ backgroundColor: isEvent ? '#E11D48' : brand.brand }}
           />
           <span className="truncate">{active.label}</span>
         </span>

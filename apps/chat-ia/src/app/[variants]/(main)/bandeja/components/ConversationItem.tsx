@@ -6,6 +6,7 @@ import type { MouseEvent as ReactMouseEvent } from 'react';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useTypingInConv } from '@/store/bandeja/selectors';
 import { Conversation } from '../hooks/useConversations';
+import { useBandejaBrand } from '../utils/brand';
 import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
 
@@ -30,13 +31,14 @@ const formatTimestamp = (timestamp: string) => {
 };
 
 function TypingIndicator() {
+  const brand = useBandejaBrand();
   return (
-    <span className="inline-flex items-center gap-0.5 text-xs italic" style={{ color: '#6B4EFF' }}>
+    <span className="inline-flex items-center gap-0.5 text-xs italic" style={{ color: brand.brand }}>
       <span>Escribiendo</span>
       <span className="flex gap-px">
-        <span className="h-1 w-1 animate-bounce rounded-full" style={{ animationDelay: '0ms', backgroundColor: '#6B4EFF' }} />
-        <span className="h-1 w-1 animate-bounce rounded-full" style={{ animationDelay: '150ms', backgroundColor: '#6B4EFF' }} />
-        <span className="h-1 w-1 animate-bounce rounded-full" style={{ animationDelay: '300ms', backgroundColor: '#6B4EFF' }} />
+        <span className="h-1 w-1 animate-bounce rounded-full" style={{ animationDelay: '0ms', backgroundColor: brand.brand }} />
+        <span className="h-1 w-1 animate-bounce rounded-full" style={{ animationDelay: '150ms', backgroundColor: brand.brand }} />
+        <span className="h-1 w-1 animate-bounce rounded-full" style={{ animationDelay: '300ms', backgroundColor: brand.brand }} />
       </span>
     </span>
   );
@@ -57,6 +59,7 @@ export function ConversationItem({
   conversation,
   isSelected,
 }: ConversationItemProps) {
+  const brand = useBandejaBrand();
   const router = useRouter();
   const { checkAuth } = useAuthCheck();
   const { userId } = checkAuth();
@@ -218,7 +221,7 @@ export function ConversationItem({
                     {hasIa && (
                       <span
                         aria-hidden
-                        style={{ color: '#6B4EFF', marginRight: 4 }}
+                        style={{ color: brand.brand, marginRight: 4 }}
                       >
                         ✦
                       </span>
