@@ -6,6 +6,8 @@ import { useMemo, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
+import { useBandejaBrand } from '../utils/brand';
+
 import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMetaState } from '../hooks/useConversationMeta';
 import { useConversations } from '../hooks/useConversations';
@@ -198,7 +200,7 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
               {totalUnread > 0 && (
                 <>
                   <span style={{ color: '#EDEDF0', margin: '0 6px' }}>·</span>
-                  <span style={{ color: '#6B4EFF', fontWeight: 500 }}>
+                  <span style={{ color: brand.brand, fontWeight: 500 }}>
                     {totalUnread} sin leer
                   </span>
                 </>
@@ -254,7 +256,7 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
             }}
             onFocus={(e) => {
               e.currentTarget.style.backgroundColor = '#FFFFFF';
-              e.currentTarget.style.borderColor = '#6B4EFF';
+              e.currentTarget.style.borderColor = brand.brand;
             }}
             onBlur={(e) => {
               e.currentTarget.style.backgroundColor = '#F2F1F6';
@@ -371,6 +373,7 @@ function EmptyStateWithChannels(_props: { onSelectChannel: (ch: string) => void 
 }
 
 export function ConversationList({ channel, selectedId }: ConversationListProps) {
+  const brand = useBandejaBrand();
   const { checkAuth } = useAuthCheck();
   const { development } = checkAuth();
   const dev = development || 'bodasdehoy';

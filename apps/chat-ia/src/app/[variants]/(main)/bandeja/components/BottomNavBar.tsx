@@ -14,6 +14,8 @@
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 
+import { useBandejaBrand } from '../utils/brand';
+
 interface BottomNavBarProps {
   activeTab: 'conv' | 'inbox' | 'history';
   inboxUnread?: number;
@@ -36,6 +38,7 @@ export function BottomNavBar({
   inboxUnread = 0,
   historyUnread = 0,
 }: BottomNavBarProps) {
+  const brand = useBandejaBrand();
   const router = useRouter();
 
   const handleClick = useCallback(
@@ -61,7 +64,7 @@ export function BottomNavBar({
             className="flex flex-1 flex-col items-center gap-0.5 py-2 transition-colors"
             key={item.id}
             onClick={() => handleClick(item.href)}
-            style={{ color: isActive ? '#7C3AED' : '#6B6678' }}
+            style={{ color: isActive ? brand.brand : '#6B6678' }}
             type="button"
           >
             <span aria-hidden className="relative text-xl">

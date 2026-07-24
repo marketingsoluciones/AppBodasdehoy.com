@@ -12,6 +12,8 @@
  */
 import { useMemo } from 'react';
 
+import { useBandejaBrand } from '../utils/brand';
+
 export type RsvpFilter = 'all' | 'pending' | 'confirmed' | 'declined';
 export type ChannelFilter = 'all' | 'wa' | 'sms' | 'ig' | 'web' | 'tg' | 'fb';
 
@@ -81,6 +83,14 @@ export function InboxFilters({
   pendingIaActive = false,
   onPendingIaToggle,
 }: InboxFiltersProps) {
+  const brand = useBandejaBrand();
+  // Los filtros de MARCA del config estático (#EDE9FE/#5B21B6, ej. "Todos"/"Todo"/"Web")
+  // se resuelven a la paleta del whitelabel. Los SEMÁNTICOS (RSVP ámbar/verde/rojo,
+  // canal WA/IG/TG) conservan su color fijo.
+  const activeStyle = (opt: { activeBg: string; activeColor: string }) =>
+    opt.activeBg === '#EDE9FE'
+      ? { backgroundColor: brand.brandBg, color: brand.brandText }
+      : { backgroundColor: opt.activeBg, color: opt.activeColor };
   const rsvpRow = useMemo(
     () =>
       RSVP_OPTIONS.map((opt) => {
@@ -92,7 +102,7 @@ export function InboxFilters({
             className="inline-flex items-center gap-1 rounded-[9px] px-2 py-1 text-[11px] font-semibold transition-colors"
             key={opt.value}
             onClick={() => onRsvpChange(opt.value)}
-            style={isActive ? { backgroundColor: opt.activeBg, color: opt.activeColor } : INACTIVE_STYLE}
+            style={isActive ? activeStyle(opt) : INACTIVE_STYLE}
             type="button"
           >
             {opt.icon && <span aria-hidden>{opt.icon}</span>}
@@ -119,7 +129,7 @@ export function InboxFilters({
             className="inline-flex items-center gap-1 rounded-[9px] px-2 py-1 text-[11px] font-semibold transition-colors"
             key={opt.value}
             onClick={() => onChannelChange(opt.value)}
-            style={isActive ? { backgroundColor: opt.activeBg, color: opt.activeColor } : INACTIVE_STYLE}
+            style={isActive ? activeStyle(opt) : INACTIVE_STYLE}
             type="button"
           >
             <span>{opt.label}</span>

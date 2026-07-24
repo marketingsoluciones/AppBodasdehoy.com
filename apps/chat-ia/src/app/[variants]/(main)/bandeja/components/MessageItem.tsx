@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { Lock } from 'lucide-react';
 
+import { useBandejaBrand } from '../utils/brand';
+
 import { sendFeedback, type FeedbackRating } from '@/services/feedback';
 
 import { Message } from '../hooks/useMessages';
@@ -40,6 +42,7 @@ const getStatusIcon = (status?: string) => {
 };
 
 export function MessageItem({ message, compact }: MessageItemProps) {
+  const brand = useBandejaBrand();
   const isFromUser = message.fromUser;
   const [feedback, setFeedback] = useState<FeedbackRating | null>(null);
 
@@ -105,7 +108,7 @@ export function MessageItem({ message, compact }: MessageItemProps) {
       ? { background: 'linear-gradient(135deg, #0D9488, #0891B2)', color: '#fff' }
       : isIa
         ? { backgroundColor: '#2DD4BF', color: '#0A2A28' }
-        : { backgroundColor: '#7C3AED', color: '#fff' };
+        : { backgroundColor: brand.brand, color: brand.onBrand };
 
   return (
     <div className={`flex ${isFromUser ? 'justify-start' : 'justify-end'}`}>
