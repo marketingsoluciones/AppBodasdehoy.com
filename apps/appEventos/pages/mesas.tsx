@@ -16,7 +16,6 @@ import { SkeletonMesas } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import SwiperCore, { Pagination } from 'swiper';
 import Prueba from "../components/Mesas/prueba";
-import FormEditarMesa from "../components/Forms/FormEditarMesa";
 import BlockTitle from "../components/Utils/BlockTitle";
 import { useMounted } from "../hooks/useMounted"
 import ModalBottomSinAway from "../components/Utils/ModalBottomSinAway";
@@ -30,7 +29,7 @@ import { fetchApiEventos, fetchApiBodas, queries } from "../utils/Fetching";
 import { useToast } from "../hooks/useToast";
 import BlockPlantillas from "../components/Mesas/BlockPlantillas";
 import BlockZonas from "../components/Mesas/BlockZonas";
-import { TableConfiguratorFloating } from "../components/Forms/TableConfigurator";
+import TableConfigurator, { TableConfiguratorFloating } from "../components/Forms/TableConfigurator";
 import { MesasUndoToast } from "../components/Mesas/MesasUndoToast";
 import { useAllowed } from "../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
@@ -66,6 +65,16 @@ export const convertBackendSvgsToReact = (backendSvgs: any[]): GalerySvg[] => {
   }));
 };
 
+
+// Mapa forma(TableConfigurator) ↔ tipo(backend), para editar una mesa reutilizando el
+// panel del HTML (TableConfigurator con initialConfig = modo "Editar mesa", línea 324).
+const SHAPE_TO_TIPO_EDIT: Record<string, string> = { round: 'redonda', rectangular: 'imperial', oval: 'redonda', square: 'cuadrada', semicircle: 'podio', head: 'podio' }
+const TIPO_TO_SHAPE_EDIT: Record<string, string> = { redonda: 'round', cuadrada: 'square', imperial: 'rectangular', podio: 'semicircle', militar: 'rectangular', bancos: 'rectangular', banco: 'rectangular' }
+const mesaAConfig = (table: any): any => ({
+  shape: TIPO_TO_SHAPE_EDIT[table?.tipo] ?? 'round',
+  seats: table?.numberChair ?? 8,
+  tableName: table?.title ?? '',
+})
 
 const Mesas: FC = () => {
   const { t } = useTranslation();
@@ -113,6 +122,44 @@ const Mesas: FC = () => {
     }
   }, [event?.galerySvgVersion])
 
+  // Guardar cambios del modal "Editar mesa" (TableConfigurator) → editTable por campo,
+  // como FormEditarMesa (title / numberChair / guests) + tipo si cambió la forma.
+  const guardarEdicion = async (config: any) => {
+    const table = showFormEditar?.table
+    if (!table?._id) { setShowFormEditar({ table: {}, visible: false }); return }
+    const newTitle = (config?.tableName || table.title || '').toString()
+    const newTipo = SHAPE_TO_TIPO_EDIT[config?.shape] ?? table.tipo
+    const newSeats = Number(config?.seats ?? table.numberChair) || table.numberChair
+    const baseVars = { eventID: event._id, planSpaceID: planSpaceActive._id, tableID: table._id }
+    try {
+      if (newTitle !== table.title) {
+        await fetchApiEventos({ query: queries.editTable, variables: { ...baseVars, variable: 'title', valor: JSON.stringify(newTitle) } })
+      }
+      if (newTipo !== table.tipo) {
+        await fetchApiEventos({ query: queries.editTable, variables: { ...baseVars, variable: 'tipo', valor: JSON.stringify(newTipo) } })
+      }
+      let newGuests = table.guests
+      if (newSeats !== table.numberChair) {
+        // Reducir sillas → quitar invitados de las sillas eliminadas (chair >= newSeats).
+        if (newSeats < (table.numberChair ?? 0) && Array.isArray(table.guests)) {
+          newGuests = table.guests.filter((g: any) => (g?.chair ?? 0) < newSeats)
+          if (newGuests.length !== table.guests.length) {
+            await fetchApiEventos({ query: queries.editTable, variables: { ...baseVars, variable: 'guests', valor: JSON.stringify(newGuests) } })
+          }
+        }
+        await fetchApiEventos({ query: queries.editTable, variables: { ...baseVars, variable: 'numberChair', valor: JSON.stringify(newSeats) } })
+      }
+      const updatedTable = { ...table, title: newTitle, nombre_mesa: newTitle, tipo: newTipo, numberChair: newSeats, guests: newGuests }
+      const nps: any = { ...planSpaceActive, tables: (planSpaceActive.tables ?? []).map((tb: any) => tb._id === table._id ? updatedTable : tb) }
+      setPlanSpaceActive(nps)
+      setEvent((prev: any) => ({ ...prev, planSpace: prev.planSpace.map((ps: any) => ps._id === planSpaceActive._id ? nps : ps) }))
+    } catch {
+      toast('error', t('Ha ocurrido un error al editar la mesa'))
+    } finally {
+      setShowFormEditar({ table: {}, visible: false })
+    }
+  }
+
   const handleOnDrop = (values: any) => {
     if (!isAllowed()) { ht() } else {
       setValues(values)
@@ -153,17 +200,18 @@ const Mesas: FC = () => {
             element: { ...inputValues, planSpaceID: planSpaceActive._id }
           },
         }).then((result: any) => {
-          // Update inmutable: añadir elemento al planSpaceActive.
-          const newPlanSpaceActive = {
+          // createElement ahora devuelve evento{ _id planSpace } → usamos el planSpace REAL
+          // (con el _id real del elemento nuevo) para que el arrastre PERSISTA al recargar.
+          const updatedPs = Array.isArray(result?.evento?.planSpace)
+            ? result.evento.planSpace.find((ps: any) => ps?._id === planSpaceSelect)
+            : null
+          const newPlanSpaceActive = updatedPs ?? {
+            // Fallback defensivo: si el backend no devolviera planSpace, _id temporal (drag visual).
             ...planSpaceActive,
-            // `_id` temporal para que el elemento recién soltado SEA arrastrable (interact usa
-            // el id del div `element_<_id>`). createElement no devuelve el _id del elemento
-            // (solo evento{_id}); al recargar llega el _id real del backend. Mismo patrón que
-            // TableConfigurator para las mesas.
             elements: [...(planSpaceActive.elements ?? []), { ...inputValues, _id: `tmp_${Date.now()}_${Math.round(Math.random() * 100000)}` }],
           }
           setPlanSpaceActive(newPlanSpaceActive)
-          // planSpaceSelect es ID (string) — match por _id, no por índice (mismo bug latente que FormCrearMesa).
+          // planSpaceSelect es ID (string) — match por _id, no por índice.
           setEvent((prev) => ({
             ...prev,
             planSpace: prev.planSpace.map(ps =>
@@ -234,12 +282,13 @@ const Mesas: FC = () => {
         ) : null}
         {/* formulario emergente para editar mesas */}
         {showFormEditar.visible ? (
-          <ModalMesa set={setShowFormEditar} state={showFormEditar} title={`${t("table")}: "${showFormEditar.table.title}"`}>
-            <FormEditarMesa
-              set={setShowFormEditar}
-              state={showFormEditar}
-            />
-          </ModalMesa>
+          // Modal "Editar mesa" fiel al HTML: reutiliza TableConfigurator (initialConfig →
+          // header "Editar mesa"). onConfirm guarda vía editTable (guardarEdicion).
+          <TableConfigurator
+            initialConfig={mesaAConfig(showFormEditar.table)}
+            onConfirm={guardarEdicion}
+            onCancel={() => setShowFormEditar({ table: {}, visible: false })}
+          />
         ) : null}
         {/* formulario emergente para agregar un invitado */}
         {shouldRenderChild && (
@@ -262,12 +311,14 @@ const Mesas: FC = () => {
             </motion.div>
             <div className={`${fullScreen || forCms ? "absolute z-[50] w-[100vw] h-[100vh] top-0 left-0" : "w-full h-[calc(100vh-240px)] md:h-[calc(100vh-242px)] md:mt-2"}`}>
               <div className={`flex flex-col md:flex-row w-full items-center h-full`}>
-                <div className={`w-[calc(100%-0px)] mt-2 md:mt-0 ${fullScreen ? " md:w-[23%] h-[calc(30%-8px)]" : " md:w-[25%] h-[calc(30%-8px)]"} md:h-[100%] flex flex-col items-center`}>
+                <div className={`mesas-left-menu w-[calc(100%-0px)] mt-2 md:mt-0 ${fullScreen ? " md:w-[23%] h-[calc(30%-8px)]" : " md:w-[25%] h-[calc(30%-8px)]"} md:h-[100%] flex flex-col items-center`}>
+                  {/* Scrollbars INVISIBLES en todo el menú izquierdo (el theme los pinta rosa). El scroll sigue funcionando. */}
+                  <style>{`.mesas-left-menu ::-webkit-scrollbar{width:0 !important;height:0 !important;display:none !important}.mesas-left-menu,.mesas-left-menu *{scrollbar-width:none !important;-ms-overflow-style:none !important}`}</style>
                   <div className="bg-white rounded-t-lg md:rounded-none w-[100%] h-10 ">
                     <SubMenu itemSelect={itemSelect} setItemSelect={setItemSelect} />
                   </div>
                   <div className={`bg-white flex w-[100%] h-[calc(100%-40px)]`} >
-                    <div className="flex flex-col h-[100%] w-full md:px-2 justify-start transform transition duration-700">
+                    <div className="flex flex-col h-[100%] min-h-0 w-full md:px-2 justify-start transform transition duration-700 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                       {/* BUG-18 (informe QA 21-jun): el panel con `h-[40%]` (md+ no full) cortaba los
                           últimos items de ListTables (banco/bancos quedaban fuera del área visible
                           aunque BlockDefault tuviera overflow-auto). Subimos a 50% + min-h específico

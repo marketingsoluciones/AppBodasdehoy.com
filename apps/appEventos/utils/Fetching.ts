@@ -1565,11 +1565,17 @@ export const queries = {
       errors{ field message code }
     }
   }`,
+  /* createPlanSpace EXISTE en api-mcp (verificado por SSH en el resolver): crea el
+     planSpace, lo hace push a evento.planSpace, pone planSpaceSelect = nuevo._id y
+     DEVUELVE el planSpace nuevo (JSON). */
+  createPlanSpace: `mutation ($evento_id: ID!, $title: String) {
+    createPlanSpace(evento_id: $evento_id, title: $title)
+  }`,
   createElement: `mutation ($evento_id: ID!, $element: JSON!) {
     createElement(evento_id: $evento_id, element: $element) {
       success
       errors{ field message code }
-      evento{ _id }
+      evento{ _id planSpace }
     }
   }`,
   editElement: `mutation ($evento_id: ID!, $element_id: ID!, $datos: JSON!) {
