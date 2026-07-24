@@ -16,7 +16,6 @@ import { SkeletonMesas } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import SwiperCore, { Pagination } from 'swiper';
 import Prueba from "../components/Mesas/prueba";
-import FormEditarMesa from "../components/Forms/FormEditarMesa";
 import BlockTitle from "../components/Utils/BlockTitle";
 import { useMounted } from "../hooks/useMounted"
 import ModalBottomSinAway from "../components/Utils/ModalBottomSinAway";
@@ -30,7 +29,7 @@ import { fetchApiEventos, fetchApiBodas, queries } from "../utils/Fetching";
 import { useToast } from "../hooks/useToast";
 import BlockPlantillas from "../components/Mesas/BlockPlantillas";
 import BlockZonas from "../components/Mesas/BlockZonas";
-import { TableConfiguratorFloating } from "../components/Forms/TableConfigurator";
+import TableConfigurator, { TableConfiguratorFloating } from "../components/Forms/TableConfigurator";
 import { MesasUndoToast } from "../components/Mesas/MesasUndoToast";
 import { useAllowed } from "../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
@@ -66,6 +65,16 @@ export const convertBackendSvgsToReact = (backendSvgs: any[]): GalerySvg[] => {
   }));
 };
 
+
+// Mapa forma(TableConfigurator) ↔ tipo(backend), para editar una mesa reutilizando el
+// panel del HTML (TableConfigurator con initialConfig = modo "Editar mesa", línea 324).
+const SHAPE_TO_TIPO_EDIT: Record<string, string> = { round: 'redonda', rectangular: 'imperial', oval: 'redonda', square: 'cuadrada', semicircle: 'podio', head: 'podio' }
+const TIPO_TO_SHAPE_EDIT: Record<string, string> = { redonda: 'round', cuadrada: 'square', imperial: 'rectangular', podio: 'semicircle', militar: 'rectangular', bancos: 'rectangular', banco: 'rectangular' }
+const mesaAConfig = (table: any) => ({
+  shape: TIPO_TO_SHAPE_EDIT[table?.tipo] ?? 'round',
+  seats: table?.numberChair ?? 8,
+  tableName: table?.title ?? '',
+})
 
 const Mesas: FC = () => {
   const { t } = useTranslation();
@@ -112,6 +121,44 @@ const Mesas: FC = () => {
       })
     }
   }, [event?.galerySvgVersion])
+
+  // Guardar cambios del modal "Editar mesa" (TableConfigurator) → editTable por campo,
+  // como FormEditarMesa (title / numberChair / guests) + tipo si cambió la forma.
+  const guardarEdicion = async (config: any) => {
+    const table = showFormEditar?.table
+    if (!table?._id) { setShowFormEditar({ table: {}, visible: false }); return }
+    const newTitle = (config?.tableName || table.title || '').toString()
+    const newTipo = SHAPE_TO_TIPO_EDIT[config?.shape] ?? table.tipo
+    const newSeats = Number(config?.seats ?? table.numberChair) || table.numberChair
+    const baseVars = { eventID: event._id, planSpaceID: planSpaceActive._id, tableID: table._id }
+    try {
+      if (newTitle !== table.title) {
+        await fetchApiEventos({ query: queries.editTable, variables: { ...baseVars, variable: 'title', valor: JSON.stringify(newTitle) } })
+      }
+      if (newTipo !== table.tipo) {
+        await fetchApiEventos({ query: queries.editTable, variables: { ...baseVars, variable: 'tipo', valor: JSON.stringify(newTipo) } })
+      }
+      let newGuests = table.guests
+      if (newSeats !== table.numberChair) {
+        // Reducir sillas → quitar invitados de las sillas eliminadas (chair >= newSeats).
+        if (newSeats < (table.numberChair ?? 0) && Array.isArray(table.guests)) {
+          newGuests = table.guests.filter((g: any) => (g?.chair ?? 0) < newSeats)
+          if (newGuests.length !== table.guests.length) {
+            await fetchApiEventos({ query: queries.editTable, variables: { ...baseVars, variable: 'guests', valor: JSON.stringify(newGuests) } })
+          }
+        }
+        await fetchApiEventos({ query: queries.editTable, variables: { ...baseVars, variable: 'numberChair', valor: JSON.stringify(newSeats) } })
+      }
+      const updatedTable = { ...table, title: newTitle, nombre_mesa: newTitle, tipo: newTipo, numberChair: newSeats, guests: newGuests }
+      const nps: any = { ...planSpaceActive, tables: (planSpaceActive.tables ?? []).map((tb: any) => tb._id === table._id ? updatedTable : tb) }
+      setPlanSpaceActive(nps)
+      setEvent((prev: any) => ({ ...prev, planSpace: prev.planSpace.map((ps: any) => ps._id === planSpaceActive._id ? nps : ps) }))
+    } catch {
+      toast('error', t('Ha ocurrido un error al editar la mesa'))
+    } finally {
+      setShowFormEditar({ table: {}, visible: false })
+    }
+  }
 
   const handleOnDrop = (values: any) => {
     if (!isAllowed()) { ht() } else {
@@ -235,12 +282,13 @@ const Mesas: FC = () => {
         ) : null}
         {/* formulario emergente para editar mesas */}
         {showFormEditar.visible ? (
-          <ModalMesa set={setShowFormEditar} state={showFormEditar} title={`${t("table")}: "${showFormEditar.table.title}"`}>
-            <FormEditarMesa
-              set={setShowFormEditar}
-              state={showFormEditar}
-            />
-          </ModalMesa>
+          // Modal "Editar mesa" fiel al HTML: reutiliza TableConfigurator (initialConfig →
+          // header "Editar mesa"). onConfirm guarda vía editTable (guardarEdicion).
+          <TableConfigurator
+            initialConfig={mesaAConfig(showFormEditar.table)}
+            onConfirm={guardarEdicion}
+            onCancel={() => setShowFormEditar({ table: {}, visible: false })}
+          />
         ) : null}
         {/* formulario emergente para agregar un invitado */}
         {shouldRenderChild && (
