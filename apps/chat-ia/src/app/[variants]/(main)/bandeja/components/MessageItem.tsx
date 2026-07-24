@@ -110,13 +110,22 @@ export function MessageItem({ message, compact }: MessageItemProps) {
         ? { backgroundColor: '#2DD4BF', color: '#0A2A28' }
         : { backgroundColor: brand.brand, color: brand.onBrand };
 
+  // Fase 2 hifi (spec Bandeja - Prototipo): radio asimétrico con "cola" (4px) en la
+  // esquina superior del lado del emisor. Contacto (izq): 4px 16px 16px 16px.
+  // Equipo/IA (der): 16px 4px 16px 16px.
+  const bubbleRadius = compact
+    ? undefined
+    : isFromUser
+      ? '4px 16px 16px 16px'
+      : '16px 4px 16px 16px';
+
   return (
     <div className={`flex ${isFromUser ? 'justify-start' : 'justify-end'}`}>
       <div
         className={`group max-w-[70%] px-4 ${compact ? 'py-0.5' : 'py-2'} ${
-          compact ? 'rounded-lg' : 'rounded-2xl'
+          compact ? 'rounded-lg' : ''
         }`}
-        style={bubbleStyle}
+        style={{ ...bubbleStyle, borderRadius: bubbleRadius }}
       >
         {/* Sello IA — solo cuando viene del modelo */}
         {isIa && (
