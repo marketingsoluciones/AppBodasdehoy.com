@@ -70,7 +70,7 @@ export const convertBackendSvgsToReact = (backendSvgs: any[]): GalerySvg[] => {
 // panel del HTML (TableConfigurator con initialConfig = modo "Editar mesa", línea 324).
 const SHAPE_TO_TIPO_EDIT: Record<string, string> = { round: 'redonda', rectangular: 'imperial', oval: 'redonda', square: 'cuadrada', semicircle: 'podio', head: 'podio' }
 const TIPO_TO_SHAPE_EDIT: Record<string, string> = { redonda: 'round', cuadrada: 'square', imperial: 'rectangular', podio: 'semicircle', militar: 'rectangular', bancos: 'rectangular', banco: 'rectangular' }
-const mesaAConfig = (table: any) => ({
+const mesaAConfig = (table: any): any => ({
   shape: TIPO_TO_SHAPE_EDIT[table?.tipo] ?? 'round',
   seats: table?.numberChair ?? 8,
   tableName: table?.title ?? '',
