@@ -110,7 +110,7 @@ export function ScopeSelector({ activeScope, onChange, events }: ScopeSelectorPr
       <button
         aria-expanded={open}
         aria-haspopup="listbox"
-        className="flex w-full items-center justify-between gap-2 rounded-[10px] border px-3 py-1.5 text-xs font-semibold transition-colors hover:brightness-95"
+        className="flex w-full items-center justify-between gap-2 rounded-[10px] border px-2.5 py-[7px] text-xs font-semibold transition-colors hover:brightness-95"
         onClick={() => setOpen((v) => !v)}
         style={pillStyle}
         type="button"
