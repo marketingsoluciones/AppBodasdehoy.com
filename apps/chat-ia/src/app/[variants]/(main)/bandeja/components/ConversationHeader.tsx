@@ -179,19 +179,19 @@ export function ConversationHeader({
     // Fallback tras gracia: render mínimo con el conversationId (no bloqueante).
     // Permite seguir interactuando (notas, mensajes) aunque la conv no esté
     // en la lista del canal pedido (puede venir de otro endpoint backend).
+    // TICKET P1 (24-jul): NUNCA exponer el id interno del canal/conversación al usuario.
+    // Antes se filtraba "No disponible en la lista de wa-69d8…". Copy neutral + amable.
+    // El estado solo-lectura (banner + compositor) lo pinta la página del hilo.
     return (
       <div className="flex items-center justify-between border-b border-gray-200 bg-white p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-rose-500 text-sm font-semibold text-white">
-            ?
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-gray-500">
+            ⚠
           </div>
-          <div>
-            <h2 className="font-semibold text-gray-700">
-              Conversación {conversationId.slice(0, 12)}…
-            </h2>
-            <p className="text-xs text-gray-500">
-              No disponible en la lista de {channel ?? 'este canal'} —
-              el contenido sigue accesible.
+          <div className="min-w-0">
+            <h2 className="truncate font-semibold text-gray-700">Conversación anterior</h2>
+            <p className="truncate text-xs text-gray-500">
+              El historial sigue disponible. Conexión no activa.
             </p>
           </div>
         </div>

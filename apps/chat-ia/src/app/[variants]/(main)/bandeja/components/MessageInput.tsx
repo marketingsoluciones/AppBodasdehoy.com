@@ -13,6 +13,7 @@ import {
   type WhatsAppTemplate,
 } from '../hooks/useWhatsAppTemplates';
 import { WhatsAppTemplatePicker } from './WhatsAppTemplatePicker';
+import { useBandejaBrand } from '../utils/brand';
 
 /**
  * Compara body original de la template (con `{{1}}`, `{{2}}`) contra el body ya
@@ -64,6 +65,44 @@ interface MessageInputProps {
    *  (Mientras el backend no exponga el contrato de capacidades por conversación, el
    *  front lo deriva de aquí; ver Slack contrato 24-jul.) */
   jidType?: string | null;
+  /** TICKET P1: la conversación pertenece a un canal no activo (conexión WA anterior) →
+   *  banner + compositor solo-lectura. El backend debe canonicalizar el channelId (raíz). */
+  readOnly?: boolean;
+}
+
+/** Banner "canal desvinculado / solo lectura" (TICKET P1). Ámbar semántico fijo; el
+ *  botón primario [Reconectar] usa el color de MARCA del whitelabel (no #EF5B94 fijo). */
+function ChannelInactiveBanner({ brandColor }: { brandColor: string }) {
+  return (
+    <div
+      style={{
+        alignItems: 'center',
+        background: '#FBF0DA',
+        borderTop: '1px solid #EBD9A8',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 9,
+        padding: '9px 14px',
+      }}
+    >
+      <span aria-hidden style={{ color: '#B07E14', flexShrink: 0, fontSize: 16 }}>⚠</span>
+      <span style={{ color: '#7A5A0E', flex: '1 1 130px', fontSize: 11.5, fontWeight: 700, minWidth: 0 }}>
+        Conexión de WhatsApp anterior — solo lectura
+      </span>
+      <a
+        href="/settings/integrations"
+        style={{ backgroundColor: brandColor, borderRadius: 999, color: '#fff', flexShrink: 0, fontSize: 11, fontWeight: 800, padding: '5px 11px' }}
+      >
+        Reconectar
+      </a>
+      <a
+        href="/settings/integrations"
+        style={{ background: '#fff', border: '1px solid #EBD9A8', borderRadius: 999, color: '#7A5A0E', flexShrink: 0, fontSize: 11, fontWeight: 700, padding: '5px 11px' }}
+      >
+        Conexiones
+      </a>
+    </div>
+  );
 }
 
 type ComposerMode = 'reply' | 'internal';
@@ -170,9 +209,10 @@ function appendInternalNote(conversationId: string, note: { author: string; id: 
 
 const SMS_MAX_CHARS = 160;
 
-export function MessageInput({ channel, conversationId, jidType }: MessageInputProps) {
+export function MessageInput({ channel, conversationId, jidType, readOnly }: MessageInputProps) {
   // HD-01: canal de UNA VÍA (status/newsletter/broadcast) → sin respuesta externa.
   const isOneWayChannel = jidType === 'newsletter' || jidType === 'broadcast';
+  const composerBrand = useBandejaBrand();
   const [mode, setMode] = useState<ComposerMode>(isOneWayChannel ? 'internal' : 'reply');
   const [text, setText] = useState(() => loadDraft(conversationId, 'reply'));
   // HD-01: si el canal es de una vía, forzar modo nota interna (no hay respuesta externa).
@@ -345,8 +385,17 @@ export function MessageInput({ channel, conversationId, jidType }: MessageInputP
   const charCount = text.length;
   const smsSegments = Math.ceil(charCount / SMS_MAX_CHARS) || 1;
 
+  // TICKET P1: canal no activo → banner solo-lectura + compositor deshabilitado
+  // (opacity .45 + pointer-events:none). El banner va FUERA del contenedor
+  // deshabilitado para que [Reconectar]/[Conexiones] sí sean clicables.
   return (
-    <div className="space-y-1">
+    <>
+      {readOnly && <ChannelInactiveBanner brandColor={composerBrand.brand} />}
+      <div
+        aria-disabled={readOnly || undefined}
+        className="space-y-1"
+        style={readOnly ? { opacity: 0.45, pointerEvents: 'none' } : undefined}
+      >
       {/* P5 Diseño — Picker plantillas HSM cuando ventana 24h WA expira */}
       {showTemplatePicker && (
         <WhatsAppTemplatePicker
@@ -634,6 +683,7 @@ export function MessageInput({ channel, conversationId, jidType }: MessageInputP
           </span>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
