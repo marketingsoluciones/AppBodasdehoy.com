@@ -127,7 +127,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
         </div>
 
         <div className="border-t border-gray-200 bg-white p-4">
-          <MessageInput channel={channel} conversationId={conversation_id} />
+          <MessageInput channel={channel} conversationId={conversation_id} jidType={conv?.jidType} />
         </div>
       </div>
 

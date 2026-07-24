@@ -59,6 +59,11 @@ function extractHsmParamsFromFilledBody(filled: string, tpl: WhatsAppTemplate): 
 interface MessageInputProps {
   channel: string;
   conversationId: string;
+  /** api-mcp jidType: user|group|newsletter|broadcast|... — HD-01: newsletter/broadcast
+   *  son canales de UNA VÍA (status): no admiten respuesta externa, solo nota interna.
+   *  (Mientras el backend no exponga el contrato de capacidades por conversación, el
+   *  front lo deriva de aquí; ver Slack contrato 24-jul.) */
+  jidType?: string | null;
 }
 
 type ComposerMode = 'reply' | 'internal';
@@ -165,9 +170,15 @@ function appendInternalNote(conversationId: string, note: { author: string; id: 
 
 const SMS_MAX_CHARS = 160;
 
-export function MessageInput({ channel, conversationId }: MessageInputProps) {
-  const [mode, setMode] = useState<ComposerMode>('reply');
+export function MessageInput({ channel, conversationId, jidType }: MessageInputProps) {
+  // HD-01: canal de UNA VÍA (status/newsletter/broadcast) → sin respuesta externa.
+  const isOneWayChannel = jidType === 'newsletter' || jidType === 'broadcast';
+  const [mode, setMode] = useState<ComposerMode>(isOneWayChannel ? 'internal' : 'reply');
   const [text, setText] = useState(() => loadDraft(conversationId, 'reply'));
+  // HD-01: si el canal es de una vía, forzar modo nota interna (no hay respuesta externa).
+  useEffect(() => {
+    if (isOneWayChannel && mode === 'reply') setMode('internal');
+  }, [isOneWayChannel, mode]);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [emojiCategory, setEmojiCategory] = useState('Caras');
   const [emojiSearch, setEmojiSearch] = useState('');
@@ -426,15 +437,30 @@ export function MessageInput({ channel, conversationId }: MessageInputProps) {
           </div>
         </div>
       )}
+      {/* HD-01: banda de MODO del composer. Canal de una vía (status/newsletter/
+          broadcast) → no admite respuesta externa; solo nota interna. */}
+      {isOneWayChannel && (
+        <div
+          className="mb-1 flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-[11px] font-medium"
+          style={{ backgroundColor: '#F6F4FB', borderColor: '#E6E5EC', color: '#6B6678' }}
+        >
+          <span aria-hidden>📢</span>
+          <span>Canal informativo (status/newsletter): no admite respuesta externa. Solo nota interna.</span>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1 rounded-lg bg-gray-50 p-1">
           <button
             className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
-              mode === 'reply'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:bg-white/60 hover:text-gray-800'
+              isOneWayChannel
+                ? 'cursor-not-allowed text-gray-300'
+                : mode === 'reply'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:bg-white/60 hover:text-gray-800'
             }`}
+            disabled={isOneWayChannel}
             onClick={() => setMode('reply')}
+            title={isOneWayChannel ? 'Este canal no admite respuesta externa' : 'Responder'}
             type="button"
           >
             Responder
