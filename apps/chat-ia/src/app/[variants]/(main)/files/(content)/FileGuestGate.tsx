@@ -6,7 +6,7 @@ import { FolderLock, Sparkles } from 'lucide-react';
 import { memo, type ReactNode } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import { useChatStore } from '@/store/chat';
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 
 const getAppLoginUrl = () => {
   if (typeof window === 'undefined') return 'https://app.bodasdehoy.com/login';
@@ -60,26 +60,12 @@ const useStyles = createStyles(({ css, token }) => ({
  */
 const FileGuestGate = memo<{ children: ReactNode }>(({ children }) => {
   const { styles } = useStyles();
-  const currentUserId = useChatStore((s) => s.currentUserId);
-
-  const resolvedUserId = currentUserId || (() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      const saved = localStorage.getItem('dev-user-config');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return parsed.userId || parsed.user_id || null;
-      }
-    } catch { /* ignore */ }
-    return null;
-  })();
-
-  const isGuest =
-    !resolvedUserId ||
-    resolvedUserId === 'visitante@guest.local' ||
-    resolvedUserId === 'guest' ||
-    resolvedUserId === 'anonymous' ||
-    (typeof resolvedUserId === 'string' && resolvedUserId.startsWith('visitor_'));
+  // HD-03/HD-04 QA (24-jul): antes decidía guest solo por currentUserId/dev-config →
+  // cuando Firebase perdía el token (HD-05), mostraba el gate de VISITANTE aunque el
+  // usuario tuviera sesión (isSignedIn). Ahora usa la detección CANÓNICA
+  // useDomainGuestUser (requiere !isSignedIn Y confirmación del chat store), consistente
+  // con el fix raíz de auth (PR #207). Evita la caída silenciosa a visitante.
+  const isGuest = useDomainGuestUser();
 
   if (isGuest) {
     return (
