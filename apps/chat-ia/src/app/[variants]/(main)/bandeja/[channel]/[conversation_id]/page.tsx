@@ -66,8 +66,12 @@ export default function ConversationPage({ params }: ConversationPageProps) {
 
   // Datos extra de la conversación para el sidebar de notas (linked_contact_id,
   // linked_event_id, nombre del contacto). useConversations ya carga la lista.
-  const { conversations } = useConversations(channel);
+  const { conversations, loading } = useConversations(channel);
   const conv = conversations.find((c) => c.id === conversation_id);
+  // TICKET P1: canal no activo — la conv cargó (historial accesible) pero NO está en la
+  // lista del canal activo (conexión WA anterior, channelId huérfano) → compositor
+  // solo-lectura. Raíz = backend canonicalizar el channelId (coordinado).
+  const isChannelInactive = !loading && !conv;
 
   const taskEventId = parseTaskChannel(channel);
 
@@ -122,12 +126,14 @@ export default function ConversationPage({ params }: ConversationPageProps) {
           />
         </div>
 
-        <div className="flex-1 overflow-auto">
+        {/* TICKET P1 robustez layout: min-h suelo para que header+lista+banner+compositor
+            no empujen el compositor fuera de pantalla (validar a 1024×540). */}
+        <div className="min-h-[140px] flex-1 overflow-auto">
           <MessageList channel={channel} conversationId={conversation_id} searchFilter={searchFilter} />
         </div>
 
         <div className="border-t border-gray-200 bg-white p-4">
-          <MessageInput channel={channel} conversationId={conversation_id} jidType={conv?.jidType} />
+          <MessageInput channel={channel} conversationId={conversation_id} jidType={conv?.jidType} readOnly={isChannelInactive} />
         </div>
       </div>
 
