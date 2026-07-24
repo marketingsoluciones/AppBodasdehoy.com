@@ -23,11 +23,13 @@ import { type ReactNode, useMemo } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
+import { useBandejaBrand } from '../utils/brand';
+
 interface RailItem {
   href: string;
+  icon: ReactNode;
   label: string;
   matchPrefix: string;
-  icon: ReactNode;
   unreadCount?: number;
 }
 
@@ -62,8 +64,8 @@ const ICON_AGENTS = (
 );
 
 interface MessagesRailProps {
-  inboxUnread?: number;
   historyUnread?: number;
+  inboxUnread?: number;
   planLabel?: string;
 }
 
@@ -73,6 +75,7 @@ export function MessagesRail({
   planLabel,
 }: MessagesRailProps) {
   const pathname = usePathname();
+  const brand = useBandejaBrand();
   const { checkAuth } = useAuthCheck();
   const auth = checkAuth();
   const userInitial = (auth.userId || '?').charAt(0).toUpperCase();
@@ -81,28 +84,28 @@ export function MessagesRail({
     () => [
       {
         href: '/asistente',
+        icon: ICON_CONVERSATIONS,
         label: 'Conversaciones',
         matchPrefix: '/asistente',
-        icon: ICON_CONVERSATIONS,
       },
       {
         href: '/bandeja',
+        icon: ICON_INBOX,
         label: 'Bandeja',
         matchPrefix: '/bandeja',
-        icon: ICON_INBOX,
         unreadCount: inboxUnread,
       },
       {
         href: '/agentes',
+        icon: ICON_AGENTS,
         label: 'Agentes',
         matchPrefix: '/agentes',
-        icon: ICON_AGENTS,
       },
       {
         href: '/bandeja?tab=history',
+        icon: ICON_HISTORY,
         label: 'Historial',
         matchPrefix: '/bandeja?tab=history',
-        icon: ICON_HISTORY,
         unreadCount: historyUnread,
       },
     ],
@@ -148,7 +151,7 @@ export function MessagesRail({
               key={item.href}
               style={
                 active
-                  ? { backgroundColor: '#7C3AED', color: '#fff' }
+                  ? { backgroundColor: brand.brand, color: brand.onBrand }
                   : { backgroundColor: 'transparent', color: '#A39DB5' }
               }
               title={item.label}
@@ -175,7 +178,7 @@ export function MessagesRail({
       {planLabel && (
         <div
           className="rounded-md px-1.5 py-0.5 text-[9px] font-bold"
-          style={{ backgroundColor: '#EFE9FB', color: '#7C3AED' }}
+          style={{ backgroundColor: brand.brandBg, color: brand.brand }}
           title={`Plan ${planLabel}`}
         >
           {planLabel}
