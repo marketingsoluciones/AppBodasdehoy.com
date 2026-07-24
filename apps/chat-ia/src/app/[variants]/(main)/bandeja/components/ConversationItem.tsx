@@ -154,7 +154,8 @@ export function ConversationItem({
         }}
         type="button"
       >
-        <div className="flex items-start gap-3 px-3 py-3">
+        {/* Fase 2 hifi: padding 10px 12px (spec Bandeja - Prototipo). */}
+        <div className="flex items-start gap-3 px-3 py-2.5">
           {/* Avatar 40x40 con punto de canal 12px bottom-right */}
           <div className="relative flex-shrink-0">
             <div
@@ -192,15 +193,11 @@ export function ConversationItem({
           <div className="min-w-0 flex-1">
             {/* Header: nombre + hora */}
             <div className="mb-0.5 flex items-baseline justify-between gap-2">
-              <h3
-                className="truncate text-sm font-semibold"
-                style={{
-                  color: conversation.unreadCount > 0 ? '#1C1C22' : '#1C1C22',
-                }}
-              >
+              {/* Fase 2 hifi: nombre 13px/700 #262131, timestamp 10px #A8A3B5 (spec). */}
+              <h3 className="truncate text-[13px] font-bold" style={{ color: '#262131' }}>
                 {conversation.contact.name}
               </h3>
-              <span className="flex-shrink-0 text-xs" style={{ color: '#9A9AA6' }}>
+              <span className="flex-shrink-0 text-[10px]" style={{ color: '#A8A3B5' }}>
                 {formatTimestamp(conversation.lastMessage.timestamp)}
               </span>
             </div>
@@ -212,9 +209,9 @@ export function ConversationItem({
                   <TypingIndicator />
                 ) : (
                   <p
-                    className="truncate text-sm"
+                    className="truncate text-[11.5px]"
                     style={{
-                      color: conversation.unreadCount > 0 ? '#1C1C22' : '#84848F',
+                      color: conversation.unreadCount > 0 ? '#1C1C22' : '#8B8698',
                       fontWeight: conversation.unreadCount > 0 ? 500 : 400,
                     }}
                   >
