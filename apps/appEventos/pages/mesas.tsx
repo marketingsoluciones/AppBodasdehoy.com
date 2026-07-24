@@ -263,12 +263,14 @@ const Mesas: FC = () => {
             </motion.div>
             <div className={`${fullScreen || forCms ? "absolute z-[50] w-[100vw] h-[100vh] top-0 left-0" : "w-full h-[calc(100vh-240px)] md:h-[calc(100vh-242px)] md:mt-2"}`}>
               <div className={`flex flex-col md:flex-row w-full items-center h-full`}>
-                <div className={`w-[calc(100%-0px)] mt-2 md:mt-0 ${fullScreen ? " md:w-[23%] h-[calc(30%-8px)]" : " md:w-[25%] h-[calc(30%-8px)]"} md:h-[100%] flex flex-col items-center`}>
+                <div className={`mesas-left-menu w-[calc(100%-0px)] mt-2 md:mt-0 ${fullScreen ? " md:w-[23%] h-[calc(30%-8px)]" : " md:w-[25%] h-[calc(30%-8px)]"} md:h-[100%] flex flex-col items-center`}>
+                  {/* Scrollbars INVISIBLES en todo el menú izquierdo (el theme los pinta rosa). El scroll sigue funcionando. */}
+                  <style>{`.mesas-left-menu ::-webkit-scrollbar{width:0 !important;height:0 !important;display:none !important}.mesas-left-menu,.mesas-left-menu *{scrollbar-width:none !important;-ms-overflow-style:none !important}`}</style>
                   <div className="bg-white rounded-t-lg md:rounded-none w-[100%] h-10 ">
                     <SubMenu itemSelect={itemSelect} setItemSelect={setItemSelect} />
                   </div>
                   <div className={`bg-white flex w-[100%] h-[calc(100%-40px)]`} >
-                    <div className="flex flex-col h-[100%] w-full md:px-2 justify-start transform transition duration-700">
+                    <div className="flex flex-col h-[100%] min-h-0 w-full md:px-2 justify-start transform transition duration-700 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                       {/* BUG-18 (informe QA 21-jun): el panel con `h-[40%]` (md+ no full) cortaba los
                           últimos items de ListTables (banco/bancos quedaban fuera del área visible
                           aunque BlockDefault tuviera overflow-auto). Subimos a 50% + min-h específico
