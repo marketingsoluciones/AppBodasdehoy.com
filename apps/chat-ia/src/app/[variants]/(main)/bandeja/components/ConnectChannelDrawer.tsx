@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { useBandejaBrand } from '../utils/brand';
+
 interface ConnectChannelDrawerProps {
   onClose: () => void;
   open: boolean;
@@ -55,6 +57,7 @@ const CHANNELS = [
 ];
 
 export function ConnectChannelDrawer({ onClose, open }: ConnectChannelDrawerProps) {
+  const brand = useBandejaBrand();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -133,9 +136,10 @@ export function ConnectChannelDrawer({ onClose, open }: ConnectChannelDrawerProp
         {/* Footer */}
         <div className="shrink-0 border-t border-gray-100 px-4 py-3">
           <Link
-            className="block w-full rounded-lg bg-purple-600 py-2 text-center text-xs font-semibold text-white transition-colors hover:bg-purple-700"
+            className="block w-full rounded-lg py-2 text-center text-xs font-semibold text-white transition-colors"
             href="/settings/integrations"
             onClick={onClose}
+            style={{ backgroundColor: brand.brand }}
           >
             Gestión avanzada de canales →
           </Link>

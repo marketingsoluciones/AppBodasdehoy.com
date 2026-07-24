@@ -352,6 +352,7 @@ const SETUP_CHANNELS = new Set(['instagram', 'telegram', 'email', 'web', 'facebo
 
 /** Empty state sin duplicar la lista de canales: redirige a Integraciones */
 function EmptyStateWithChannels(_props: { onSelectChannel: (ch: string) => void }) {
+  const brand = useBandejaBrand();
   return (
     <div className="flex h-full flex-col items-center justify-center p-6">
       <div className="mb-3 text-5xl">💬</div>
@@ -360,8 +361,9 @@ function EmptyStateWithChannels(_props: { onSelectChannel: (ch: string) => void 
         Configura WhatsApp, Instagram, Email y otros canales en Integraciones para recibir mensajes
       </p>
       <Link
-        className="flex w-full max-w-xs items-center justify-center gap-2 rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 text-sm font-medium text-purple-700 transition-colors hover:border-purple-300 hover:bg-purple-100"
+        className="flex w-full max-w-xs items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition-colors"
         href="/settings/integrations"
+        style={{ backgroundColor: brand.brandBg, borderColor: brand.brandBorder, color: brand.brand }}
       >
         Ir a Integraciones →
       </Link>
