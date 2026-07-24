@@ -243,6 +243,10 @@ export const LiezoDragable: FC<propsLienzoDragable> = ({ scale, lienzo, setDisab
   interact('.js-dragElement')
     .draggable(optionsDrag)
     .resizable({
+      // DESHABILITADO: el resize por arrastre de bordes deformaba el vector
+      // (preserveAspectRatio:false). El tamaño solo cambia con los botones +/−
+      // (handleScaleEl, escala width y height por el mismo factor → proporcional).
+      enabled: false,
       inertia: {
         resistance: 30,
         minSpeed: 200,
