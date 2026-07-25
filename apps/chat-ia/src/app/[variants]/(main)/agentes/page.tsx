@@ -38,6 +38,7 @@ import { LobeSessionType, type LobeAgentSession } from '@/types/session';
 
 import { MessagesRail } from '../bandeja/components/MessagesRail';
 import { buildHeaders, getUserContext } from '../bandeja/utils/auth';
+import { useAgentActivity } from './useAgentActivity';
 
 // Colores canal (mismos que ConversationItem — coherencia con Fase A)
 const CHANNEL_DOT: Record<string, string> = {
@@ -128,6 +129,9 @@ export default function AgentesPage() {
   const switchSession = useSessionStore((s) => s.switchSession);
   const activeId = useSessionStore((s) => s.activeId);
   const isSessionListInit = useSessionStore(sessionSelectors.isSessionListInit);
+
+  // Feed en tiempo real de actividad/handoff del agente (SSE api-ia /api/messages/stream).
+  const activityEvents = useAgentActivity(getUserContext().development ?? 'bodasdehoy');
 
   // Prompt editable → escritura vía useAgentStore.updateAgentConfig
   // (persiste PATCH /chat/sessions/{id}). Actúa sobre `activeId`, por eso
@@ -672,7 +676,7 @@ export default function AgentesPage() {
                 />
               </div>
 
-              {/* Actividad reciente — mock hasta SSE handoff */}
+              {/* Actividad reciente — feed en vivo por SSE (api-ia /api/messages/stream). */}
               <div
                 className="rounded-lg p-4"
                 style={{ backgroundColor: '#FFFFFF', border: '1px solid #EDEDF0' }}
@@ -682,17 +686,45 @@ export default function AgentesPage() {
                     Actividad reciente
                   </h3>
                   <span
-                    className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
-                    style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
-                    title="Feed de actividad pendiente en SSE"
+                    className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold"
+                    style={{ backgroundColor: '#DCFCE7', color: '#166534' }}
+                    title="Feed de actividad en tiempo real (SSE)"
                   >
-                    PRÓXIMAMENTE
+                    <span
+                      className="inline-block h-1.5 w-1.5 rounded-full"
+                      style={{ backgroundColor: '#16A34A' }}
+                    />
+                    EN VIVO
                   </span>
                 </div>
-                <p className="text-xs" style={{ color: '#9A9AA6' }}>
-                  Cuando el agente responda o se produzca un handoff aparecerá aquí. Feed en tiempo
-                  real por SSE (pendiente backend).
-                </p>
+                {activityEvents.length === 0 ? (
+                  <p className="text-xs" style={{ color: '#9A9AA6' }}>
+                    Cuando el agente responda o se produzca un handoff aparecerá aquí en tiempo real.
+                  </p>
+                ) : (
+                  <ul className="flex flex-col gap-2">
+                    {activityEvents.map((evt) => (
+                      <li className="flex items-start gap-2" key={evt.id}>
+                        <span
+                          className="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+                          style={{
+                            backgroundColor: evt.type === 'handoff' ? '#DC2626' : '#16A34A',
+                          }}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs" style={{ color: '#1C1C22' }}>
+                            {evt.text}
+                          </p>
+                          {evt.timestamp ? (
+                            <p className="text-[10px]" style={{ color: '#9A9AA6' }}>
+                              {evt.timestamp}
+                            </p>
+                          ) : null}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               {/* Nota al pie */}
