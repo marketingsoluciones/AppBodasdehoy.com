@@ -29,6 +29,7 @@ const GET_CONTACT_CONVERSATIONS = gql`
       total
       conversations {
         id
+        channel
         phoneNumber
         contactInfo {
           name
@@ -48,6 +49,7 @@ const GET_CONTACT_CONVERSATIONS = gql`
 `;
 
 interface ContactConversation {
+  channel?: string | null;
   contactInfo?: { name?: string | null } | null;
   guestStatus?: string | null;
   id: string;
@@ -166,12 +168,12 @@ export function ContactConversationsPanel({
         disabled={isCurrent}
         key={c.id}
         onClick={() => {
-          // channel no expuesto aún por api-mcp (ver docstring) → whatsapp.
-          if (!isCurrent) router.push(`/bandeja/whatsapp/${c.id}`);
+          // channel ya expuesto por api-mcp (25-jul) → navegar al canal REAL de la conv.
+          if (!isCurrent) router.push(`/bandeja/${c.channel || 'whatsapp'}/${c.id}`);
         }}
         type="button"
       >
-        <ChannelBadge channel="whatsapp" size="sm" />
+        <ChannelBadge channel={(c.channel as any) || 'whatsapp'} size="sm" />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-xs font-medium text-gray-700">
             {name}
