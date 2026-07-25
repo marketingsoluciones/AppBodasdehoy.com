@@ -73,15 +73,17 @@ export default function ConversationPage({ params }: ConversationPageProps) {
   // lista del canal activo (conexión WA anterior, channelId huérfano) → compositor
   // solo-lectura. Raíz = backend canonicalizar el channelId (coordinado).
   const isChannelInactive = !loading && !conv;
-  // HD-01: capacidades REALES del backend (api-ia). Cuando el backend dice que el canal no
-  // admite ni respuesta ni nota → solo-lectura. Complementa la heurística de canal inactivo.
+  // HD-01: capacidades REALES del backend (api-ia). Shape real:
+  // { canReplyFreeText, requiresTemplate, readOnlyReason, windowExpiresAt }. Cuando el
+  // backend exige plantilla (ventana 24h WA cerrada) → forzamos el picker de plantilla en
+  // el composer (verdad del backend, no la heurística local). La nota interna siempre está.
   const { capabilities } = useConversationCapabilities(
     conversation_id,
     conv?.channel ?? channel,
     conv?.contact?.phone,
   );
-  const capsReadOnly = capabilities
-    ? !capabilities.canReplyFreeText && !capabilities.canAddInternalNote
+  const capsRequiresTemplate = capabilities
+    ? capabilities.requiresTemplate || !capabilities.canReplyFreeText
     : false;
 
   const taskEventId = parseTaskChannel(channel);
@@ -144,7 +146,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
         </div>
 
         <div className="border-t border-gray-200 bg-white p-4">
-          <MessageInput channel={channel} conversationId={conversation_id} jidType={conv?.jidType} readOnly={isChannelInactive || capsReadOnly} />
+          <MessageInput channel={channel} conversationId={conversation_id} jidType={conv?.jidType} readOnly={isChannelInactive} requiresTemplate={capsRequiresTemplate} />
         </div>
       </div>
 

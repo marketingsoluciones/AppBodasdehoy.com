@@ -7,31 +7,36 @@ import { buildHeaders } from '../utils/auth';
  *   GET /api/backend/api/conversations/{convId}/capabilities?channel=&phone=
  *   (via proxy /api/backend → añade X-Internal-Secret; directo da "secreto interno inválido").
  *
- * Sustituye la inferencia por jidType/ventana-24h por la política real del backend.
- * ⚠️ CABLEADO EN RAMA (no desplegado): pendiente que api-ia confirme el SHAPE exacto de
- * la respuesta. El parseo es tolerante (varios nombres de campo) para no romper.
+ * SHAPE REAL (verificado en api-ia conversation_capabilities.py):
+ *   { channel, canReplyFreeText, requiresTemplate, readOnlyReason, windowExpiresAt }
+ * Es la política autoritativa de la ventana 24h de WhatsApp (sustituye la heurística
+ * local isWhatsAppWindowExpired por la verdad del backend). NO trae canAddInternalNote:
+ * la nota interna siempre está disponible (equipo), así que el composer nunca queda 100%
+ * read-only por capabilities — como mucho "solo plantilla".
  */
 export interface ConversationCapabilities {
-  canAddInternalNote: boolean;
-  canAttachFiles: boolean;
   canReplyFreeText: boolean;
-  channelType?: string;
+  channel?: string;
   readOnlyReason?: string | null;
   requiresTemplate: boolean;
+  windowExpiresAt?: string | null;
 }
 
-const b = (v: any, def: boolean) => (typeof v === 'boolean' ? v : def);
+const bool = (v: any, def: boolean) => (typeof v === 'boolean' ? v : def);
 
 function parseCaps(raw: any): ConversationCapabilities | null {
   const d = raw?.data ?? raw?.capabilities ?? raw;
   if (!d || typeof d !== 'object') return null;
+  // Requiere al menos uno de los campos clave para considerarlo respuesta válida.
+  if (typeof d.canReplyFreeText !== 'boolean' && typeof d.requiresTemplate !== 'boolean') {
+    return null;
+  }
   return {
-    canAddInternalNote: b(d.canAddInternalNote ?? d.can_add_internal_note, true),
-    canAttachFiles: b(d.canAttachFiles ?? d.can_attach_files, true),
-    canReplyFreeText: b(d.canReplyFreeText ?? d.can_reply_free_text, true),
-    channelType: d.channelType ?? d.channel_type ?? d.channel,
-    readOnlyReason: d.readOnlyReason ?? d.read_only_reason ?? null,
-    requiresTemplate: b(d.requiresTemplate ?? d.requires_template, false),
+    canReplyFreeText: bool(d.canReplyFreeText, true),
+    channel: d.channel,
+    readOnlyReason: d.readOnlyReason ?? null,
+    requiresTemplate: bool(d.requiresTemplate, false),
+    windowExpiresAt: d.windowExpiresAt ?? null,
   };
 }
 
@@ -60,7 +65,7 @@ export function useConversationCapabilities(
         const caps = parseCaps(json);
         if (!cancelled && caps) setCapabilities(caps);
       } catch {
-        /* sin capabilities → el composer usa su derivación por canal (jidType/24h) */
+        /* sin capabilities → el composer usa su derivación local (ventana 24h) */
       } finally {
         if (!cancelled) setLoading(false);
       }
