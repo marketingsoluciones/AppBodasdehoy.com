@@ -68,6 +68,9 @@ interface MessageInputProps {
   /** TICKET P1: la conversación pertenece a un canal no activo (conexión WA anterior) →
    *  banner + compositor solo-lectura. El backend debe canonicalizar el channelId (raíz). */
   readOnly?: boolean;
+  /** HD-01: el backend (capabilities) exige plantilla (ventana 24h WA cerrada) → fuerza el
+   *  picker de plantilla. Verdad autoritativa del backend sobre la heurística local. */
+  requiresTemplate?: boolean;
 }
 
 /** Banner "canal desvinculado / solo lectura" (TICKET P1). Ámbar semántico fijo; el
@@ -209,7 +212,7 @@ function appendInternalNote(conversationId: string, note: { author: string; id: 
 
 const SMS_MAX_CHARS = 160;
 
-export function MessageInput({ channel, conversationId, jidType, readOnly }: MessageInputProps) {
+export function MessageInput({ channel, conversationId, jidType, readOnly, requiresTemplate }: MessageInputProps) {
   // HD-01: canal de UNA VÍA (status/newsletter/broadcast) → sin respuesta externa.
   const isOneWayChannel = jidType === 'newsletter' || jidType === 'broadcast';
   const composerBrand = useBandejaBrand();
@@ -247,7 +250,10 @@ export function MessageInput({ channel, conversationId, jidType, readOnly }: Mes
     currentConv?.lastInboundAt,
   );
   const [waTemplateDismissed, setWaTemplateDismissed] = useState(false);
-  const showTemplatePicker = waWindowExpired && !waTemplateDismissed && mode === 'reply';
+  // HD-01: OR con la capability del backend (requiresTemplate) — verdad autoritativa sobre
+  // la heurística local de ventana 24h.
+  const showTemplatePicker =
+    (waWindowExpired || !!requiresTemplate) && !waTemplateDismissed && mode === 'reply';
 
   // M1 drafts api-ia (24-jun): sincroniza el texto del modo 'reply' con backend
   // (TTL 24h, cross-device). Si el backend devuelve un draft existente al
