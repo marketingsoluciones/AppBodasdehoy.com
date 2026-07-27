@@ -67,16 +67,25 @@ class AiChatService {
     void _abortController;
     const sessionId = params.sessionId;
 
-    // 1) Topic: crear si viene newTopic; si no, usar el activo.
+    // 1) Topic: BEST-EFFORT. /chat/messages NO usa topicId (verificado SSH api-ia
+    //    rest_chat_handler.py:6885 — el input a sendMessage solo lleva role/content/type),
+    //    así que el topic es solo para la lista de topics. Si falla (p.ej. inbox sin sesión
+    //    api-mcp → POST /chat/topics 422), NO debe abortar la persistencia del mensaje ni la
+    //    respuesta del asistente: se continúa sin topic y se reporta. NO es un fallback
+    //    try{nuevo}catch{viejo} — es un efecto secundario best-effort.
     let topicId = params.topicId;
     let isCreateNewTopic = false;
     if (params.newTopic) {
-      topicId = await topicService.createTopic({
-        sessionId,
-        title: params.newTopic.title,
-        // TODO api-ia: mover params.newTopic.topicMessageIds al topic nuevo (server-side antes).
-      } as any);
-      isCreateNewTopic = true;
+      try {
+        topicId = await topicService.createTopic({
+          sessionId,
+          title: params.newTopic.title,
+          // TODO api-ia: mover params.newTopic.topicMessageIds al topic nuevo (server-side antes).
+        } as any);
+        isCreateNewTopic = true;
+      } catch (e) {
+        console.error('[aiChat] createTopic falló; se continúa sin topic:', e);
+      }
     }
 
     // 2) Mensaje de usuario.
