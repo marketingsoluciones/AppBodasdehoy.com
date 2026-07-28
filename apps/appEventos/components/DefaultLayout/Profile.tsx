@@ -228,6 +228,8 @@ const Profile = ({ user, state, set, ...rest }) => {
           localStorage.removeItem('sessionBodas_fallback')
           localStorage.removeItem('appEventos_activeEventId')
         }
+        // Fase 3 (cross-tab): avisar a otras pestañas de appEventos para cierre inmediato.
+        try { new BroadcastChannel('appeventos-auth').postMessage({ type: 'logout' }) } catch { /* no soportado */ }
         signOut(getAuth()).then(() => {
           // BUG-CW-N03 (informe QA 22-jun noche): el CopilotIframe puede volver a setear
           // jwt_token/mcp_jwt_token durante la transición de logout (race condition con el

@@ -666,6 +666,21 @@ const AuthProvider = ({ children }) => {
     return () => clearTimeout(safetyTimeout);
   }, [])
 
+  // Fase 3 (cross-tab logout, LO-4): si otra pestaña de appEventos cierra sesión, reflejarlo
+  // aquí al instante (redirigir). BroadcastChannel es same-origin; el cierre cross-APP ya lo
+  // cubre el borrado de la cookie compartida .tenant.com (Fase 3, Profile.tsx).
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof BroadcastChannel === 'undefined') return;
+    const bc = new BroadcastChannel('appeventos-auth');
+    bc.onmessage = (ev) => {
+      if (ev?.data?.type === 'logout') {
+        setUser(null);
+        window.location.href = config?.pathSignout ? `${config.pathSignout}?end=true` : '/';
+      }
+    };
+    return () => bc.close();
+  }, [config?.pathSignout]);
+
   const moreInfo = async (user) => {
     try {
       let idToken = Cookies.get("idTokenV0.1.0")
