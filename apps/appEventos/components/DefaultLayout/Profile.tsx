@@ -207,8 +207,19 @@ const Profile = ({ user, state, set, ...rest }) => {
         updateActivity("logoutd")
         updateActivityLink("logoutd")
         authBridge.clearAuth()
-        Cookies.remove(config?.cookie, { domain: config?.domain ?? "" });
-        Cookies.remove("idTokenV0.1.0", { domain: config?.domain ?? "" });
+        // Fase 3: logout completo — borrar TODAS las variantes de cada cookie de sesión
+        // (Domain configurado + host-only + cross-app .tenant.com). Si una variante sobrevive,
+        // getSharedAuthState sigue autenticando (isAuthenticated = idToken O sessionBodas).
+        const _crossAppDomain = typeof window !== "undefined"
+          ? "." + window.location.hostname.split(".").slice(-2).join(".")
+          : undefined;
+        const _removeAllVariants = (name?: string) => {
+          if (!name) return;
+          Cookies.remove(name, { domain: config?.domain ?? "" });
+          Cookies.remove(name);
+          if (_crossAppDomain) Cookies.remove(name, { domain: _crossAppDomain });
+        };
+        ["idTokenV0.1.0", "guestbodas", "current_development", config?.cookie].forEach(_removeAllVariants);
         clearDevBypass()
         // BUG-01 (informe QA 22-jun): el logout del menú de Profile no limpiaba
         // sessionBodas_fallback ni appEventos_activeEventId. Riesgo de fuga de
