@@ -36,8 +36,10 @@ export interface AuthBridgeConfig {
 }
 
 // Firebase JWKS for token signature validation
-const FIREBASE_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'eventosorganizador-55d58';
-const FIREBASE_ISSUER = `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`;
+// Fase 4 (fail-closed): SIN default. El proyecto Firebase (issuer) se exige por env y
+// se deriva dentro de validateFirebaseToken (comprobación diferida), para no validar
+// contra un proyecto obsoleto en silencio ni crashear al importar en apps que no hacen
+// validación server-side.
 const FIREBASE_JWKS_URL = 'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
 let _jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
 
@@ -54,9 +56,14 @@ function getJWKS() {
  */
 export async function validateFirebaseToken(token: string): Promise<JWTPayload | null> {
   if (!token) return null;
+  // Fase 4 (fail-closed): exigir el proyecto Firebase por env; sin default obsoleto.
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  if (!projectId) {
+    throw new Error('[AuthBridge] NEXT_PUBLIC_FIREBASE_PROJECT_ID no configurado — no se puede validar el issuer de Firebase (no hay default seguro).');
+  }
   try {
     const { payload } = await jwtVerify(token, getJWKS(), {
-      issuer: FIREBASE_ISSUER,
+      issuer: `https://securetoken.google.com/${projectId}`,
       algorithms: ['RS256'],
     });
     if (payload.exp && payload.exp < Date.now() / 1000) return null;
