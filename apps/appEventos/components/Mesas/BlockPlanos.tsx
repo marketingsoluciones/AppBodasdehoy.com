@@ -47,6 +47,32 @@ export const BlockPlanos: FC = () => {
   const seatedCount = (item: any): number =>
     (item?.tables || []).reduce((n: number, tb: any) => n + (tb?.guests?.length || 0), 0)
 
+  // Eliminar un plano. api-mcp NO tiene deletePlanSpace (sí deleteTable/deleteElement);
+  // se persiste vía updateEvento con el array planSpace ya filtrado
+  // (EventoUpdateInput.planSpace: [JSON!]). Solo se aplica en UI si el backend confirma.
+  const handleDeletePlano = async (e: any, item: planSpace) => {
+    e.stopPropagation()
+    const mesas = (item as any)?.tables?.length || 0
+    const nombre = t((item as any)?.title) || t('thisplan', 'este plano')
+    const msg = mesas > 0
+      ? t('confirmdeleteplanotables', `¿Eliminar el plano «${nombre}»? Se borrarán también sus ${mesas} mesa(s). Esta acción no se puede deshacer.`)
+      : t('confirmdeleteplano', `¿Eliminar el plano «${nombre}»? Esta acción no se puede deshacer.`)
+    if (typeof window !== 'undefined' && !window.confirm(msg)) return
+    const nuevos = (event?.planSpace || []).filter((ps: any) => ps?._id !== item?._id)
+    try {
+      const res: any = await fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: { idEvento: event?._id, input: { planSpace: nuevos } },
+      })
+      if (!res?.success) return
+      setEvent((prev: any) => ({ ...prev, planSpace: nuevos }))
+      // Si borramos el plano activo, seleccionar el primero restante (o ninguno).
+      if (planSpaceSelect === item?._id) setPlanSpaceSelect(nuevos[0]?._id ?? null)
+    } catch {
+      /* error de red: no se aplica el borrado en UI (no queda inconsistente) */
+    }
+  }
+
   const openNewPlano = () => {
     setNewPlanoName('')
     setCreateNotice(null)
@@ -104,6 +130,13 @@ export const BlockPlanos: FC = () => {
                 <div className="text-[12.5px] font-semibold text-[#3A3A42] truncate capitalize">{t(item?.title)}</div>
                 <div className="text-[10.5px] font-medium text-[#a0a0a8]">{mesas} {mesasLabel} · {sentados} {seatedLabel}</div>
               </div>
+              <button
+                onClick={(e) => handleDeletePlano(e, item)}
+                title={t('deleteplano', 'Eliminar plano')}
+                className="flex-none w-[24px] h-[24px] rounded-md flex items-center justify-center text-[#c2c2ca] hover:text-[#EF5B94] hover:bg-[#FCE7F0] transition"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg>
+              </button>
               {active &&
                 <div className="w-[18px] h-[18px] rounded-full flex-none bg-[#EF5B94] flex items-center justify-center">
                   <svg className="w-[11px] h-[11px]" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
