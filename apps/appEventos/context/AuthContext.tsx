@@ -43,6 +43,7 @@ import {
   parseJwt,
   parseSessionJwt,
   getSessionUserIdFromToken,
+  setCrossAppIdToken,
 } from '@bodasdehoy/shared/auth';
 import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
 import { registerReferralIfPending, trackRegistrationComplete, sendAttributionToApi } from '@bodasdehoy/shared';
@@ -367,13 +368,8 @@ const AuthProvider = ({ children }) => {
                 expires: dateExpire.toISOString()
               })
               
-              Cookies.set("idTokenV0.1.0", idToken, { 
-                domain: idTokenDomain, 
-                expires: dateExpire,
-                path: "/",
-                secure: window.location.protocol === "https:",
-                sameSite: "lax"
-              })
+              // Escritor único de la cookie compartida (SessionBridge), atributos consistentes.
+              setCrossAppIdToken(idToken)
               
               // Verificar que la cookie se estableció
               const idTokenVerificado = Cookies.get("idTokenV0.1.0")
@@ -687,8 +683,7 @@ const AuthProvider = ({ children }) => {
       if (!idToken) {
         idToken = await getAuth().currentUser?.getIdToken(true)
         // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → session cookie.
-        const dateExpire = safeJwtExpiry(idToken)
-        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: safeCookieDomain(process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO), expires: dateExpire })
+        if (idToken) setCrossAppIdToken(idToken)
       }
       const userInfo = await fetchApiBodas({
         query: queries.getUser,

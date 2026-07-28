@@ -5,6 +5,7 @@ import { api } from '../api';
 import { Dispatch } from 'react';
 import { getCookie } from '../utils/Cookies';
 import Cookies from "js-cookie";
+import { setCrossAppIdToken } from "@bodasdehoy/shared/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { parseJwt } from "../utils/Authentication"
 import { Notification, ResultNotifications } from "../utils/Interfaces";
@@ -63,7 +64,7 @@ const SocketProvider: FC<any> = ({ children }): React.ReactElement => {
         const newToken = await firebaseUser.getIdToken()
         if (newToken && newToken !== lastTokenRef.current) {
           lastTokenRef.current = newToken
-          Cookies.set("idTokenV0.1.0", newToken, { domain: process.env.NEXT_PUBLIC_PRODUCTION ? ".bodasdehoy.com" : undefined })
+          setCrossAppIdToken(newToken)
           if (socket) {
             socket.disconnect()
             setSocket(api.socketIO({
