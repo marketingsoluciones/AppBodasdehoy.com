@@ -271,6 +271,8 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
   const [config, setConfig] = useState<TableConfig>({
     tableNumber: nextTableNumber,
     ...(TABLE_DEFAULTS[defaultShape] ?? TABLE_DEFAULTS.round),
+    // Look del prototipo: mesa y sillas en GRIS (no beige) — sobrescribe los defaults beige.
+    tableColor: '#e6e6ea', chairColor: '#c9c9cf', chairStyle: 'modern',
     ...initialConfig,
   });
   const [previewSVG, setPreviewSVG] = useState('');
@@ -327,6 +329,12 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
 
         <div style={s.body}>
           <div style={s.controls}>
+            {/* NOMBRE DE LA MESA */}
+            <section style={s.section}>
+              <div style={s.sectionTitle}>Nombre de la mesa</div>
+              <input type="text" value={config.tableName ?? ''} placeholder="Ej: Mesa 1" onChange={e => update('tableName', e.target.value)} style={{ ...s.textInput, width: '100%', boxSizing: 'border-box' }} />
+            </section>
+
             {/* FORMA */}
             <section style={s.section}>
               <div style={s.sectionTitle}>Forma</div>
@@ -381,29 +389,13 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
                   <option value="none">Sin sillas</option>
                 </select>
               </div>
-              <div style={s.fieldRow}>
-                <label style={s.label}>Color sillas</label>
-                <input type="color" value={config.chairColor ?? '#E8D5B7'} onChange={e => update('chairColor', e.target.value)} style={s.colorPicker} />
-              </div>
             </section>
 
-            {/* ASPECTO */}
+            {/* TIPO DE MESA — el usuario pidió mantener Novios / Infantil */}
             <section style={s.section}>
-              <div style={s.sectionTitle}>Aspecto</div>
-              <div style={s.fieldRow}>
-                <label style={s.label}>Color mesa</label>
-                <input type="color" value={config.tableColor ?? '#F5F0E8'} onChange={e => update('tableColor', e.target.value)} style={s.colorPicker} />
-              </div>
-              <div style={s.fieldRow}>
-                <label style={s.label}>Nº de mesa</label>
-                <input type="number" value={config.tableNumber ?? 1} min={1} max={999} onChange={e => update('tableNumber', Number(e.target.value))} style={s.numInput} />
-              </div>
-              <div style={s.fieldRow}>
-                <label style={s.label}>Nombre</label>
-                <input type="text" value={config.tableName ?? ''} placeholder="Ej: Mesa Familia García" onChange={e => update('tableName', e.target.value)} style={s.textInput} />
-              </div>
+              <div style={s.sectionTitle}>Tipo de mesa</div>
               <div style={s.toggleRow}>
-                {([['showNumber', 'Mostrar número'], ['showName', 'Mostrar nombre'], ['isHeadTable', 'Mesa de novios'], ['isKidsTable', 'Mesa infantil']] as [keyof TableConfig, string][]).map(([key, label]) => (
+                {([['isHeadTable', 'Mesa de novios'], ['isKidsTable', 'Mesa infantil']] as [keyof TableConfig, string][]).map(([key, label]) => (
                   <label key={key} style={s.toggleLabel}>
                     <input type="checkbox" checked={!!config[key]} onChange={e => update(key, e.target.checked as any)} />{' '}{label}
                   </label>
@@ -490,7 +482,7 @@ function SeatDistributor({ seatsTop, seatsBottom, seatsLeft, seatsRight, maxPerS
 const s: Record<string, CSSProperties> = {
   // Drawer desde la IZQUIERDA (fiel al HTML): full-height, no centrado → no se corta.
   overlay: { position: 'fixed', inset: 0, background: 'rgba(43,43,48,0.45)', display: 'flex', alignItems: 'stretch', justifyContent: 'flex-start', zIndex: 1000, backdropFilter: 'blur(3px)' },
-  modal: { background: '#fff', borderRadius: 0, width: 'min(760px, 94vw)', height: '100vh', maxHeight: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '24px 0 80px rgba(0,0,0,0.3)' },
+  modal: { background: '#fff', borderTopRightRadius: 18, borderBottomRightRadius: 18, width: 'min(600px, 92vw)', height: '100vh', maxHeight: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '24px 0 80px rgba(0,0,0,0.3)' },
   header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid #f0f0f2', background: '#fff' },
   title: { margin: 0, fontSize: 17, fontWeight: 700, color: '#3A3A42' },
   closeBtn: { background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#a0a0a8', padding: '4px 8px' },
@@ -522,7 +514,7 @@ const s: Record<string, CSSProperties> = {
   textInput: { flex: 1, padding: '9px 10px', border: '1px solid #E7E7EA', borderRadius: 10, fontSize: 13, color: '#3A3A42' },
   toggleRow: { display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 8 },
   toggleLabel: { fontSize: 13, color: '#6b6b72', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 },
-  preview: { width: 320, padding: 20, background: '#FAFAFB', display: 'flex', flexDirection: 'column' },
+  preview: { width: 250, flexShrink: 0, padding: 16, background: '#FAFAFB', display: 'flex', flexDirection: 'column' },
   previewTitle: { fontSize: 11, fontWeight: 700, color: '#b3b3ba', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 },
   previewCanvas: { flex: 1, background: '#fff', borderRadius: 16, border: '1px solid #E7E7EA', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: 12, backgroundImage: 'radial-gradient(circle, #e2e2e6 1px, transparent 1px)', backgroundSize: '15px 15px' },
   previewSVG: { maxWidth: '100%', maxHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' },
