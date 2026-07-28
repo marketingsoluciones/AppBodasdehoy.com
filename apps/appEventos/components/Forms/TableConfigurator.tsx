@@ -271,7 +271,7 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
     tableNumber: nextTableNumber,
     ...(TABLE_DEFAULTS[defaultShape] ?? TABLE_DEFAULTS.round),
     // Look del prototipo: mesa y sillas en GRIS (no beige) — sobrescribe los defaults beige.
-    tableColor: '#e6e6ea', chairColor: '#c9c9cf', chairStyle: 'modern',
+    tableColor: '#ececef', chairColor: '#ffffff', chairStyle: 'modern',
     ...initialConfig,
   });
   const [previewSVG, setPreviewSVG] = useState('');

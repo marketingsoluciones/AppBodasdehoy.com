@@ -65,7 +65,7 @@ const MIN_CM_PER_SEAT = 42;
 
 const CHAIR_STYLES: Record<string, { fill: string; stroke: string; strokeWidth: number; rx: number } | null> = {
   chiavari: { fill: '#E8D5B7', stroke: '#8B6914', strokeWidth: 1.8, rx: 3 },
-  modern:   { fill: '#D0D0D0', stroke: '#555555', strokeWidth: 1.5, rx: 2 },
+  modern:   { fill: '#ffffff', stroke: '#c2c2ca', strokeWidth: 1.6, rx: 2 },
   ghost:    { fill: 'rgba(220,220,220,0.25)', stroke: '#AAAAAA', strokeWidth: 2, rx: 4 },
   bench:    { fill: '#C4A882', stroke: '#6B4226', strokeWidth: 2, rx: 2 },
   none:     null,
@@ -175,13 +175,13 @@ function chairSVG(x: number, y: number, angleDeg: number, style: ChairStyle, col
   const s = CHAIR_STYLES[style];
   if (!s) return '';
   const fill = color ?? s.fill;
+  // Sillas como el prototipo: círculo con contorno (no rect). angleDeg no aplica a un círculo.
+  void angleDeg;
+  const rChair = Math.min(CHAIR_W, CHAIR_H) / 2;
   return `
-    <rect
-      x="${-CHAIR_W / 2}" y="${-CHAIR_H / 2}"
-      width="${CHAIR_W}" height="${CHAIR_H}"
-      rx="${s.rx}"
+    <circle
+      cx="${x}" cy="${y}" r="${rChair}"
       fill="${fill}" stroke="${s.stroke}" stroke-width="${s.strokeWidth}"
-      transform="translate(${x},${y}) rotate(${angleDeg})"
     />`;
 }
 
