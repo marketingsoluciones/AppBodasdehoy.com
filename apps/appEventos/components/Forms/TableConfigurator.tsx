@@ -488,8 +488,9 @@ function SeatDistributor({ seatsTop, seatsBottom, seatsLeft, seatsRight, maxPerS
 // ─── Estilos ───────────────────────────────────────────────────────────────
 
 const s: Record<string, CSSProperties> = {
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(43,43,48,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(3px)' },
-  modal: { background: '#fff', borderRadius: 16, width: '90vw', maxWidth: 900, maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.3)' },
+  // Drawer desde la IZQUIERDA (fiel al HTML): full-height, no centrado → no se corta.
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(43,43,48,0.45)', display: 'flex', alignItems: 'stretch', justifyContent: 'flex-start', zIndex: 1000, backdropFilter: 'blur(3px)' },
+  modal: { background: '#fff', borderRadius: 0, width: 'min(760px, 94vw)', height: '100vh', maxHeight: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '24px 0 80px rgba(0,0,0,0.3)' },
   header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid #f0f0f2', background: '#fff' },
   title: { margin: 0, fontSize: 17, fontWeight: 700, color: '#3A3A42' },
   closeBtn: { background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#a0a0a8', padding: '4px 8px' },
@@ -498,8 +499,8 @@ const s: Record<string, CSSProperties> = {
   section: { marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid #f2f2f4' },
   sectionTitle: { fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#b3b3ba', marginBottom: 12 },
   shapeGrid: { display: 'flex', flexWrap: 'wrap', gap: 7 },
-  shapeBtn: { padding: '8px 13px', border: '1.5px solid #E7E7EA', borderRadius: 9, background: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#6b6b72' },
-  shapeBtnActive: { borderColor: '#EF5B94', background: '#FCF2F6', color: '#EF5B94', fontWeight: 600 },
+  shapeBtn: { padding: '8px 13px', border: '1.5px solid #E7E7EA', borderRadius: 9, background: '#f7f7f9', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#6b6b72' },
+  shapeBtnActive: { borderColor: '#c4c4cc', background: '#e9e9ee', color: '#3A3A42', fontWeight: 700 },
   fieldRow: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 },
   label: { fontSize: 13, color: '#6b6b72', minWidth: 100, flexShrink: 0 },
   sliderWrap: { flex: 1, display: 'flex', alignItems: 'center', gap: 10 },
