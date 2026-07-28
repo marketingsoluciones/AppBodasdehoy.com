@@ -94,8 +94,22 @@ export const BlockPlanos: FC = () => {
         setCreateNotice(t('createplanoerror', 'No se pudo crear el plano. Inténtalo de nuevo.'))
         return
       }
-      // Reflejar en el front: añadir el nuevo espacio y seleccionarlo (el backend ya hizo el select).
-      setEvent((prev: any) => ({ ...prev, planSpace: [...(prev?.planSpace ?? []), nuevo] }))
+      // createPlanSpace NO asigna `size` → el lienzo saldría vacío ("No hay un plano cargado").
+      // Le damos un tamaño por defecto (como los planos existentes ~1500×800) para que la
+      // cuadrícula aparezca lista para colocar mesas, y lo persistimos vía updateEvento.
+      const nuevoConLienzo = {
+        ...nuevo,
+        size: nuevo.size ?? { width: 1500, height: 800 },
+        tables: nuevo.tables ?? [],
+        elements: nuevo.elements ?? [],
+      }
+      const planSpaceNuevo = [...(event?.planSpace ?? []), nuevoConLienzo]
+      await fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: { idEvento: event?._id, input: { planSpace: planSpaceNuevo } },
+      })
+      // Reflejar en el front: añadir el nuevo espacio (con lienzo) y seleccionarlo.
+      setEvent((prev: any) => ({ ...prev, planSpace: planSpaceNuevo }))
       setPlanSpaceSelect(nuevo._id)
       closeNewPlano()
     } catch {
@@ -130,6 +144,11 @@ export const BlockPlanos: FC = () => {
                 <div className="text-[12.5px] font-semibold text-[#3A3A42] truncate capitalize">{t(item?.title)}</div>
                 <div className="text-[10.5px] font-medium text-[#a0a0a8]">{mesas} {mesasLabel} · {sentados} {seatedLabel}</div>
               </div>
+              {active &&
+                <div className="w-[18px] h-[18px] rounded-full flex-none bg-[#EF5B94] flex items-center justify-center">
+                  <svg className="w-[11px] h-[11px]" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                </div>
+              }
               <button
                 onClick={(e) => handleDeletePlano(e, item)}
                 title={t('deleteplano', 'Eliminar plano')}
@@ -137,11 +156,6 @@ export const BlockPlanos: FC = () => {
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg>
               </button>
-              {active &&
-                <div className="w-[18px] h-[18px] rounded-full flex-none bg-[#EF5B94] flex items-center justify-center">
-                  <svg className="w-[11px] h-[11px]" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
-                </div>
-              }
             </div>
           )
         })}
