@@ -37,7 +37,6 @@ import { initializeApp } from "firebase/app";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useActivity } from "../hooks/useActivity";
 import { isTestSubdomain, normalizeRedirectAfterLogin } from "../utils/urlHelpers";
-import { safeJwtExpiry } from "../utils/Authentication";
 import {
   authBridge,
   parseJwt,
@@ -358,16 +357,6 @@ const AuthProvider = ({ children }) => {
             // Procesar el login completo como en el flujo normal
             try {
               const idToken = await result.user.getIdToken()
-              // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → cookie sin TTL, evita crash.
-              const dateExpire = safeJwtExpiry(idToken)
-              
-              const idTokenDomain = safeCookieDomain(process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : process.env.NEXT_PUBLIC_DOMINIO || ".bodasdehoy.com")
-              
-              console.log("[Auth] Estableciendo cookie idTokenV0.1.0:", {
-                domain: idTokenDomain,
-                expires: dateExpire.toISOString()
-              })
-              
               // Escritor único de la cookie compartida (SessionBridge), atributos consistentes.
               setCrossAppIdToken(idToken)
               
@@ -682,7 +671,6 @@ const AuthProvider = ({ children }) => {
       let idToken = Cookies.get("idTokenV0.1.0")
       if (!idToken) {
         idToken = await getAuth().currentUser?.getIdToken(true)
-        // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → session cookie.
         if (idToken) setCrossAppIdToken(idToken)
       }
       const userInfo = await fetchApiBodas({
