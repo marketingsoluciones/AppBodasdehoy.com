@@ -484,8 +484,9 @@ function SeatDistributor({ seatsTop, seatsBottom, seatsLeft, seatsRight, maxPerS
 
 const s: Record<string, CSSProperties> = {
   // Drawer desde la IZQUIERDA (fiel al HTML): full-height, no centrado → no se corta.
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(43,43,48,0.45)', display: 'flex', alignItems: 'stretch', justifyContent: 'flex-start', zIndex: 99999, backdropFilter: 'blur(3px)' },
-  modal: { background: '#fff', borderTopRightRadius: 18, borderBottomRightRadius: 18, width: 'min(700px, 94vw)', height: '100vh', maxHeight: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '24px 0 80px rgba(0,0,0,0.3)' },
+  // Card flotante a la izquierda (fiel al HTML): NO full-height, con márgenes + esquinas redondeadas.
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(43,43,48,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', padding: '20px 20px 20px 24px', zIndex: 99999, backdropFilter: 'blur(3px)' },
+  modal: { background: '#fff', borderRadius: 20, width: 'min(700px, 94vw)', maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.3)' },
   header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid #f0f0f2', background: '#fff' },
   title: { margin: 0, fontSize: 17, fontWeight: 700, color: '#3A3A42' },
   closeBtn: { background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#a0a0a8', padding: '4px 8px' },
