@@ -65,7 +65,7 @@ const MIN_CM_PER_SEAT = 42;
 
 const CHAIR_STYLES: Record<string, { fill: string; stroke: string; strokeWidth: number; rx: number } | null> = {
   chiavari: { fill: '#E8D5B7', stroke: '#8B6914', strokeWidth: 1.8, rx: 3 },
-  modern:   { fill: '#ffffff', stroke: '#c2c2ca', strokeWidth: 1.6, rx: 2 },
+  modern:   { fill: '#ffffff', stroke: '#B4B4BC', strokeWidth: 1.5, rx: 2 },
   ghost:    { fill: 'rgba(220,220,220,0.25)', stroke: '#AAAAAA', strokeWidth: 2, rx: 4 },
   bench:    { fill: '#C4A882', stroke: '#6B4226', strokeWidth: 2, rx: 2 },
   none:     null,
@@ -212,7 +212,7 @@ function generateRoundTableSVG(config: TableConfig): string {
     chairsSVG += chairSVG(sx, sy, angleDeg, chairStyle, chairColor);
   }
 
-  const strokeColor = isHeadTable ? '#8B4513' : isKidsTable ? '#FFD700' : '#2C2C2C';
+  const strokeColor = isHeadTable ? '#8B4513' : isKidsTable ? '#FFD700' : '#4a4a52';
   const strokeWidth = isHeadTable ? 3 : 2;
 
   let centerText = '';
@@ -287,7 +287,7 @@ function generateRectangularTableSVG(config: TableConfig): string {
     }
   }
 
-  const strokeColor = isHeadTable ? '#8B4513' : isKidsTable ? '#FFD700' : '#2C2C2C';
+  const strokeColor = isHeadTable ? '#8B4513' : isKidsTable ? '#FFD700' : '#4a4a52';
   const strokeWidth = isHeadTable ? 3 : 2;
   const textCx = mx + W / 2;
   const textCy = my + H / 2;
@@ -346,7 +346,7 @@ function generateOvalTableSVG(config: TableConfig): string {
     chairsSVG += chairSVG(cx + nx * dist, cy + ny * dist, (angle * 180) / Math.PI + 90, chairStyle, chairColor);
   }
 
-  const strokeColor = isHeadTable ? '#8B4513' : isKidsTable ? '#FFD700' : '#2C2C2C';
+  const strokeColor = isHeadTable ? '#8B4513' : isKidsTable ? '#FFD700' : '#4a4a52';
   let centerText = '';
   if (showNumber && tableNumber) {
     centerText = `<text x="${cx}" y="${cy + 6}" font-family="Georgia,serif"
