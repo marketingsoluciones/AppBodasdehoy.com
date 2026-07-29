@@ -11,6 +11,7 @@
  * + datos adicionales (svgString, tableConfig) que el sistema actual ignora.
  */
 import { useState, useEffect, useCallback, CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import { generateTableSVG, getMaxSeats, TABLE_DEFAULTS, getTableTotalSize } from '@bodasdehoy/shared/utils';
 import type { TableConfig, ChairStyle, TableShape } from '@bodasdehoy/shared/utils';
 import { EventContextProvider } from '../../context';
@@ -318,9 +319,11 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
   const maxPerLongSide = isRect ? Math.floor((config.realWidthCm ?? 240) / 45) : 0;
   const totalSize = getTableTotalSize(config);
 
-  return (
+  if (typeof document === 'undefined') return null;
+  return createPortal(
     <div style={s.overlay}>
       <div style={s.modal}>
+        <style>{`.tc-round-check{appearance:none;-webkit-appearance:none;width:17px;height:17px;border:1.6px solid #c4c4cc;border-radius:50%;cursor:pointer;position:relative;flex:none;vertical-align:middle}.tc-round-check:checked{background:#EF5B94;border-color:#EF5B94}.tc-round-check:checked::after{content:'';position:absolute;left:5px;top:2.5px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}`}</style>
         <div style={s.header}>
           <h2 style={s.title}>{initialConfig ? 'Editar mesa' : 'Diseñar mesa'}</h2>
           <button style={s.closeBtn} type="button" onClick={onCancel}>✕</button>
@@ -396,7 +399,7 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
               <div style={s.toggleRow}>
                 {([['isHeadTable', 'Mesa de novios'], ['isKidsTable', 'Mesa infantil']] as [keyof TableConfig, string][]).map(([key, label]) => (
                   <label key={key} style={s.toggleLabel}>
-                    <input type="checkbox" checked={!!config[key]} onChange={e => update(key, e.target.checked as any)} />{' '}{label}
+                    <input type="checkbox" className="tc-round-check" checked={!!config[key]} onChange={e => update(key, e.target.checked as any)} />{' '}{label}
                   </label>
                 ))}
               </div>
@@ -424,7 +427,8 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -481,7 +485,7 @@ function SeatDistributor({ seatsTop, seatsBottom, seatsLeft, seatsRight, maxPerS
 const s: Record<string, CSSProperties> = {
   // Drawer desde la IZQUIERDA (fiel al HTML): full-height, no centrado → no se corta.
   overlay: { position: 'fixed', inset: 0, background: 'rgba(43,43,48,0.45)', display: 'flex', alignItems: 'stretch', justifyContent: 'flex-start', zIndex: 99999, backdropFilter: 'blur(3px)' },
-  modal: { background: '#fff', borderTopRightRadius: 18, borderBottomRightRadius: 18, width: 'min(600px, 92vw)', height: '100vh', maxHeight: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '24px 0 80px rgba(0,0,0,0.3)' },
+  modal: { background: '#fff', borderTopRightRadius: 18, borderBottomRightRadius: 18, width: 'min(700px, 94vw)', height: '100vh', maxHeight: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '24px 0 80px rgba(0,0,0,0.3)' },
   header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid #f0f0f2', background: '#fff' },
   title: { margin: 0, fontSize: 17, fontWeight: 700, color: '#3A3A42' },
   closeBtn: { background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#a0a0a8', padding: '4px 8px' },
