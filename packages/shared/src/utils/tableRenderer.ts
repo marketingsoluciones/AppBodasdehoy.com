@@ -81,7 +81,7 @@ export const TABLE_DEFAULTS: Record<string, TableConfig> = {
     realDiameterCm: 150,
     seats: 8,
     minSeats: 4, maxSeats: 14,
-    tableColor: '#F5F0E8', chairColor: '#E8D5B7', chairStyle: 'chiavari',
+    tableColor: '#F0F0F2', chairColor: '#ffffff', chairStyle: 'modern',
     showChairs: true, showNumber: true, showName: false,
     isHeadTable: false, isKidsTable: false,
   },
@@ -90,7 +90,7 @@ export const TABLE_DEFAULTS: Record<string, TableConfig> = {
     realDiameterCm: 180,
     seats: 10,
     minSeats: 6, maxSeats: 16,
-    tableColor: '#F5F0E8', chairColor: '#E8D5B7', chairStyle: 'chiavari',
+    tableColor: '#F0F0F2', chairColor: '#ffffff', chairStyle: 'modern',
     showChairs: true, showNumber: true, showName: false,
     isHeadTable: false, isKidsTable: false,
   },
@@ -100,7 +100,7 @@ export const TABLE_DEFAULTS: Record<string, TableConfig> = {
     seatsTop: 3, seatsBottom: 3, seatsLeft: 1, seatsRight: 1,
     seats: 8,
     minSeats: 2, maxSeats: 30,
-    tableColor: '#F5F0E8', chairColor: '#E8D5B7', chairStyle: 'chiavari',
+    tableColor: '#F0F0F2', chairColor: '#ffffff', chairStyle: 'modern',
     showChairs: true, showNumber: true, showName: false,
     isHeadTable: false, isKidsTable: false,
   },
@@ -109,7 +109,7 @@ export const TABLE_DEFAULTS: Record<string, TableConfig> = {
     realWidthCm: 220, realHeightCm: 110,
     seats: 10,
     minSeats: 6, maxSeats: 18,
-    tableColor: '#F5F0E8', chairColor: '#E8D5B7', chairStyle: 'chiavari',
+    tableColor: '#F0F0F2', chairColor: '#ffffff', chairStyle: 'modern',
     showChairs: true, showNumber: true, showName: false,
     isHeadTable: false, isKidsTable: false,
   },
@@ -119,7 +119,7 @@ export const TABLE_DEFAULTS: Record<string, TableConfig> = {
     seatsTop: 1, seatsBottom: 1, seatsLeft: 1, seatsRight: 1,
     seats: 4,
     minSeats: 2, maxSeats: 8,
-    tableColor: '#F5F0E8', chairColor: '#E8D5B7', chairStyle: 'chiavari',
+    tableColor: '#F0F0F2', chairColor: '#ffffff', chairStyle: 'modern',
     showChairs: true, showNumber: true, showName: false,
     isHeadTable: false, isKidsTable: false,
   },
@@ -139,7 +139,7 @@ export const TABLE_DEFAULTS: Record<string, TableConfig> = {
     seatsTop: 7, seatsBottom: 7, seatsLeft: 1, seatsRight: 1,
     seats: 16,
     minSeats: 6, maxSeats: 40,
-    tableColor: '#F5F0E8', chairColor: '#E8D5B7', chairStyle: 'chiavari',
+    tableColor: '#F0F0F2', chairColor: '#ffffff', chairStyle: 'modern',
     showChairs: true, showNumber: true, showName: false,
     isHeadTable: false, isKidsTable: false,
   },
@@ -191,8 +191,8 @@ function chairSVG(x: number, y: number, angleDeg: number, style: ChairStyle, col
 
 function generateRoundTableSVG(config: TableConfig): string {
   const {
-    realDiameterCm = 150, seats, tableColor = '#F5F0E8', chairColor,
-    chairStyle = 'chiavari', showNumber, showName, tableName, tableNumber,
+    realDiameterCm = 150, seats, tableColor = '#F0F0F2', chairColor,
+    chairStyle = 'modern', showNumber, showName, tableName, tableNumber,
     isHeadTable, isKidsTable,
   } = config;
 
@@ -247,7 +247,7 @@ function generateRectangularTableSVG(config: TableConfig): string {
   const {
     realWidthCm = 240, realHeightCm = 90,
     seatsTop = 0, seatsBottom = 0, seatsLeft = 0, seatsRight = 0,
-    tableColor = '#F5F0E8', chairColor, chairStyle = 'chiavari',
+    tableColor = '#F0F0F2', chairColor, chairStyle = 'modern',
     showNumber, showName, tableName, tableNumber,
     isHeadTable, isKidsTable,
   } = config;
@@ -321,7 +321,7 @@ function generateRectangularTableSVG(config: TableConfig): string {
 function generateOvalTableSVG(config: TableConfig): string {
   const {
     realWidthCm = 220, realHeightCm = 110, seats,
-    tableColor = '#F5F0E8', chairColor, chairStyle = 'chiavari',
+    tableColor = '#F0F0F2', chairColor, chairStyle = 'modern',
     showNumber, showName, tableName, tableNumber,
     isHeadTable, isKidsTable,
   } = config;
@@ -371,7 +371,7 @@ function generateOvalTableSVG(config: TableConfig): string {
 function generateHeadTableSVG(config: TableConfig): string {
   const {
     realWidthCm = 400, realHeightCm = 220, seats,
-    tableColor = '#FDF5EC', chairColor, chairStyle = 'chiavari',
+    tableColor = '#FDF5EC', chairColor, chairStyle = 'modern',
     showName, tableName,
   } = config;
 

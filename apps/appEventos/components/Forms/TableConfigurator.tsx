@@ -323,14 +323,14 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
   return createPortal(
     <div style={s.overlay}>
       <div style={s.modal}>
-        <style>{`.tc-round-check{appearance:none;-webkit-appearance:none;width:17px;height:17px;border:1.6px solid #c4c4cc;border-radius:50%;cursor:pointer;position:relative;flex:none;vertical-align:middle}.tc-round-check:checked{background:#EF5B94;border-color:#EF5B94}.tc-round-check:checked::after{content:'';position:absolute;left:5px;top:2.5px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}.tc-slider{-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;background:#E7E7EA;width:100%;outline:none}.tc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#EF5B94;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.25)}.tc-slider::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:#EF5B94;cursor:pointer}`}</style>
+        <style>{`.tc-round-check{appearance:none;-webkit-appearance:none;width:17px;height:17px;border:1.6px solid #c4c4cc;border-radius:50%;cursor:pointer;position:relative;flex:none;vertical-align:middle}.tc-round-check:checked{background:#EF5B94;border-color:#EF5B94}.tc-round-check:checked::after{content:'';position:absolute;left:5px;top:2.5px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}.tc-slider{-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;background:#E7E7EA;width:100%;outline:none}.tc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#EF5B94;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.25)}.tc-slider::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:#EF5B94;cursor:pointer}.tc-scroll::-webkit-scrollbar{width:0;height:0;display:none}`}</style>
         <div style={s.header}>
           <h2 style={s.title}>{initialConfig ? 'Editar mesa' : 'Diseñar mesa'}</h2>
           <button style={s.closeBtn} type="button" onClick={onCancel}>✕</button>
         </div>
 
         <div style={s.body}>
-          <div style={s.controls}>
+          <div className="tc-scroll" style={s.controls}>
             {/* NOMBRE DE LA MESA */}
             <section style={s.section}>
               <div style={s.sectionTitle}>Nombre de la mesa</div>
@@ -490,7 +490,7 @@ const s: Record<string, CSSProperties> = {
   title: { margin: 0, fontSize: 17, fontWeight: 700, color: '#3A3A42' },
   closeBtn: { background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#a0a0a8', padding: '4px 8px' },
   body: { display: 'flex', flex: 1, overflow: 'hidden' },
-  controls: { width: 296, flexShrink: 0, overflowY: 'auto', padding: 20, borderRight: '1px solid #f2f2f4', display: 'flex', flexDirection: 'column', gap: 18 },
+  controls: { width: 296, flexShrink: 0, overflowY: 'auto', padding: 20, borderRight: '1px solid #f2f2f4', display: 'flex', flexDirection: 'column', gap: 18, scrollbarWidth: 'none', msOverflowStyle: 'none' } as CSSProperties,
   section: {},
   sectionTitle: { fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#b3b3ba', marginBottom: 10 },
   shapeGrid: { display: 'flex', flexWrap: 'wrap', gap: 7 },
@@ -508,7 +508,7 @@ const s: Record<string, CSSProperties> = {
   sizeHint: { fontSize: 12, color: '#8a8a90', marginTop: 8, background: '#F0F0F2', padding: '8px 12px', borderRadius: 9 },
   seatDistrib: { background: '#faf9fb', borderRadius: 9, padding: 12, marginBottom: 10 },
   distribLabel: { fontSize: 13, color: '#6b6b72', marginBottom: 10 },
-  distribGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 },
+  distribGrid: { display: 'flex', flexDirection: 'column', gap: 8 },
   distribRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   distribSide: { fontSize: 12, color: '#8a8a90', minWidth: 32 },
   select: { flex: 1, padding: '9px 10px', border: '1px solid #E7E7EA', borderRadius: 10, fontSize: 13, background: '#fff', color: '#3A3A42' },
