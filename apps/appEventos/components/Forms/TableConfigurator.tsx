@@ -262,7 +262,6 @@ export function TableConfiguratorFloating() {
 const SHAPES: { id: TableShape; label: string }[] = [
   { id: 'round', label: 'Redonda' },
   { id: 'rectangular', label: 'Rectangular' },
-  { id: 'oval', label: 'Oval' },
   { id: 'square', label: 'Cuadrada' },
 ];
 
