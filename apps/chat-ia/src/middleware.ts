@@ -87,6 +87,18 @@ export const config = {
     '/messages(.*)',
     '/memories',
     '/memories(.*)',
+    // BUG QA 30-jul: estas rutas existían en (main) pero NO estaban en el matcher →
+    // el middleware no las procesaba (sin rewrite de variante) → Next no resolvía la
+    // ruta con variante y rebotaban a /asistente. Añadidas: agentes (feed SSE), labs,
+    // pendientes ("Pendientes para ti") y wedding.
+    '/agentes',
+    '/agentes(.*)',
+    '/labs',
+    '/labs(.*)',
+    '/pendientes',
+    '/pendientes(.*)',
+    '/wedding',
+    '/wedding(.*)',
     // ↓ cloud ↓
   ],
 };
