@@ -8,13 +8,12 @@ import { Flexbox } from 'react-layout-kit';
 
 import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 
-const getAppLoginUrl = () => {
-  if (typeof window === 'undefined') return 'https://app.bodasdehoy.com/login';
-  const h = window.location.hostname;
-  if (h.includes('-dev.')) return 'https://app-dev.bodasdehoy.com/login';
-  if (h.includes('-test.')) return 'https://app-test.bodasdehoy.com/login';
-  return 'https://app.bodasdehoy.com/login';
-};
+// BUG QA 30-jul: el gate mandaba a app*.bodasdehoy.com/login (la app de eventos) →
+// desde chat-dev saltaba a PRODUCCIÓN (app.bodasdehoy.com) y sacaba al usuario de
+// chat-dev. El login unificado vive en chat-ia mismo, así que apuntamos a /login del
+// MISMO origen: en chat-dev se queda en chat-dev, en chat en chat, etc. El middleware
+// SSO (idTokenV0.1.0 → /api/auth/sso-auto) resuelve la sesión sin salir de la app.
+const getLoginUrl = () => '/login';
 
 const useStyles = createStyles(({ css, token }) => ({
   container: css`
@@ -81,16 +80,16 @@ const FileGuestGate = memo<{ children: ReactNode }>(({ children }) => {
         </div>
         <Flexbox gap={10} horizontal style={{ flexWrap: 'wrap', justifyContent: 'center', marginTop: 8 }}>
           <Button
-            href={getAppLoginUrl()}
+            href={getLoginUrl()}
             icon={<Sparkles size={15} />}
             size="large"
             style={{ fontWeight: 600 }}
-            target="_parent"
+            target="_self"
             type="primary"
           >
             Crear cuenta gratis
           </Button>
-          <Button href={getAppLoginUrl()} size="large" target="_parent">
+          <Button href={getLoginUrl()} size="large" target="_self">
             Iniciar sesion
           </Button>
         </Flexbox>
