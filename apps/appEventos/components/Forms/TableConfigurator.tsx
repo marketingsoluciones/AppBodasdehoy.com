@@ -73,33 +73,9 @@ export function TableConfiguratorFloating() {
       };
       const title = config.tableName || `Mesa ${config.tableNumber ?? planSpaceActive.tables.length + 1}`;
       const tipo = SHAPE_TO_TIPO[config.shape] ?? 'redonda';
-      const result: any = await fetchApiEventos({
-        query: queries.createTable,
-        variables: {
-          eventID: event._id,
-          planSpaceID: planSpaceActive._id,
-          values: JSON.stringify({
-            title,
-            numberChair: config.seats,
-            position,
-            rotation: 0,
-            size: { width: 100, height: 80 },
-            tipo,
-            // Datos del nuevo configurador (el canvas existente los ignora, quedan en DB)
-            tableConfig: JSON.stringify(config),
-            svgString,
-          }),
-        },
-      });
-      if (!result?.success) {
-        toast('error', result?.errors?.[0]?.message ?? 'Error al crear la mesa');
-        return;
-      }
-      // Construir la mesa LOCAL con los datos que el front conoce (no usar result crudo,
-      // que solo trae { success, errors, evento }). Garantiza que `position` existe y
-      // evita crashes en DragableDefault al renderizar la mesa recién creada.
+      // Mesa nueva dentro del planSpace (el front es dueño de planSpace[].tables).
       const newTable: any = {
-        _id: result?.table?._id ?? result?.evento?._id ?? `tmp_${Date.now()}`,
+        _id: genTableId(),
         title,
         nombre_mesa: title,
         tipo,
@@ -110,22 +86,27 @@ export function TableConfiguratorFloating() {
         size: { width: 100, height: 80 },
         tableConfig: config,
         svgString,
+        guests: [],
       };
       const nextPlanSpace = {
         ...planSpaceActive,
         tables: [...(planSpaceActive.tables ?? []), newTable],
       };
+      const nextPlanSpaces = (event.planSpace ?? []).map((ps: any) =>
+        (ps?._id === nextPlanSpace._id || ps?._id === planSpaceSelect) ? nextPlanSpace : ps
+      );
+      // Persistir vía updateEvento({planSpace}) — createTable escribe en el legacy
+      // mesas_array, desconectado de esta UI. Igual que eliminar/crear plano.
+      const result: any = await fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: { idEvento: event._id, input: { planSpace: nextPlanSpaces } },
+      });
+      if (!result?.success) {
+        toast('error', result?.errors?.[0]?.message ?? 'Error al crear la mesa');
+        return;
+      }
       setPlanSpaceActive(nextPlanSpace);
-
-      const nextEvent = {
-        ...event,
-        planSpace: (event.planSpace ?? []).map((ps: any, idx: number) => {
-          if (ps?._id === nextPlanSpace._id) return nextPlanSpace;
-          if (ps?._id === planSpaceSelect) return nextPlanSpace;
-          return ps;
-        }),
-      };
-      setEvent(nextEvent);
+      setEvent({ ...event, planSpace: nextPlanSpaces });
       // Toast con «Deshacer» (MesasUndoToast escucha este evento).
       window.dispatchEvent(new CustomEvent('mesas-toast', { detail: { action: 'create', table: newTable } }));
     } catch {
@@ -142,28 +123,8 @@ export function TableConfiguratorFloating() {
         y: 240 + Math.round(Math.random() * 80),
       };
       const title = `Bancos ceremonia ${((planSpaceActive.tables?.length ?? 0) + 1)}`;
-      const result: any = await fetchApiEventos({
-        query: queries.createTable,
-        variables: {
-          eventID: event._id,
-          planSpaceID: planSpaceActive._id,
-          values: JSON.stringify({
-            title,
-            numberChair: 12,
-            position,
-            rotation: 0,
-            size: { width: 100, height: 40 },
-            tipo: 'bancos',
-          }),
-        },
-      });
-      if (!result?.success) {
-        toast('error', result?.errors?.[0]?.message ?? 'Error al añadir bancos al plano');
-        return;
-      }
-      // Mesa LOCAL (createTable devuelve { success, errors, evento }, no la mesa entera)
       const newTable: any = {
-        _id: result?.table?._id ?? result?.evento?._id ?? `tmp_${Date.now()}`,
+        _id: genTableId(),
         title,
         nombre_mesa: title,
         tipo: 'bancos',
@@ -172,20 +133,25 @@ export function TableConfiguratorFloating() {
         position,
         rotation: 0,
         size: { width: 100, height: 40 },
+        guests: [],
       };
       const nextPlanSpace = {
         ...planSpaceActive,
         tables: [...(planSpaceActive.tables ?? []), newTable],
       };
-      setPlanSpaceActive(nextPlanSpace);
-      setEvent({
-        ...event,
-        planSpace: (event.planSpace ?? []).map((ps: any, idx: number) => {
-          if (ps?._id === nextPlanSpace._id) return nextPlanSpace;
-          if (ps?._id === planSpaceSelect) return nextPlanSpace;
-          return ps;
-        }),
+      const nextPlanSpaces = (event.planSpace ?? []).map((ps: any) =>
+        (ps?._id === nextPlanSpace._id || ps?._id === planSpaceSelect) ? nextPlanSpace : ps
+      );
+      const result: any = await fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: { idEvento: event._id, input: { planSpace: nextPlanSpaces } },
       });
+      if (!result?.success) {
+        toast('error', result?.errors?.[0]?.message ?? 'Error al añadir bancos al plano');
+        return;
+      }
+      setPlanSpaceActive(nextPlanSpace);
+      setEvent({ ...event, planSpace: nextPlanSpaces });
 
       toast('success', `"${title}" añadido al plano`);
     } catch {
@@ -278,6 +244,17 @@ function distributeSeatsBySide(total: number, shape: TableShape): { seatsTop: nu
   const ends = n >= 2 ? 1 : 0;
   const rest = n - ends * 2;
   return { seatsTop: Math.ceil(rest / 2), seatsBottom: Math.floor(rest / 2), seatsLeft: ends, seatsRight: ends };
+}
+
+// El front es dueño de planSpace[].tables. El backend createTable escribe en el
+// legacy `evento.mesas_array` (desconectado de esta UI), así que generamos aquí un
+// _id estilo ObjectId (24 hex) y persistimos la mesa dentro del planSpace vía
+// updateEvento({planSpace}) — el mismo mecanismo que eliminar/crear plano.
+function genTableId(): string {
+  const ts = Math.floor(Date.now() / 1000).toString(16).padStart(8, '0');
+  let rest = '';
+  for (let i = 0; i < 16; i++) rest += Math.floor(Math.random() * 16).toString(16);
+  return ts + rest;
 }
 
 export default function TableConfigurator({ initialConfig, onConfirm, onCancel, nextTableNumber = 1 }: TableConfiguratorProps) {
