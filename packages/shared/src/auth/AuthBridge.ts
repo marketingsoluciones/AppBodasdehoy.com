@@ -51,19 +51,33 @@ function getJWKS() {
 }
 
 /**
- * Validates a Firebase ID token with full signature verification.
- * Use in middleware/API routes for server-side validation.
+ * Valida un Firebase ID token con verificación completa de firma.
+ * Uso: middleware / API routes para validación server-side.
+ *
+ * MULTI-TENANT (GAP 5): appEventos usa un proyecto Firebase DISTINTO por whitelabel, así que
+ * un único `NEXT_PUBLIC_FIREBASE_PROJECT_ID` no vale para validar el issuer de todos. El
+ * llamador que sea multi-tenant debe PASAR el `projectId` correcto (lo conoce por su config,
+ * p.ej. appEventos/firebase.tsx → fileConfig.projectId del development). Si no se pasa, se cae
+ * al env (correcto para apps de un solo proyecto, p.ej. chat-ia = bodasdehoy-1063). Fail-closed:
+ * sin `projectId` ni env → throw (no validar contra un proyecto obsoleto en silencio).
+ *
+ * @param token    Firebase ID token a validar.
+ * @param projectId Proyecto Firebase esperado (opcional). Si se omite, usa el env.
  */
-export async function validateFirebaseToken(token: string): Promise<JWTPayload | null> {
+export async function validateFirebaseToken(
+  token: string,
+  projectId?: string,
+): Promise<JWTPayload | null> {
   if (!token) return null;
-  // Fase 4 (fail-closed): exigir el proyecto Firebase por env; sin default obsoleto.
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-  if (!projectId) {
-    throw new Error('[AuthBridge] NEXT_PUBLIC_FIREBASE_PROJECT_ID no configurado — no se puede validar el issuer de Firebase (no hay default seguro).');
+  const resolvedProjectId = projectId || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  if (!resolvedProjectId) {
+    throw new Error(
+      '[AuthBridge] validateFirebaseToken: falta projectId (ni argumento ni NEXT_PUBLIC_FIREBASE_PROJECT_ID) — no se puede resolver el issuer de Firebase sin default seguro.',
+    );
   }
   try {
     const { payload } = await jwtVerify(token, getJWKS(), {
-      issuer: `https://securetoken.google.com/${projectId}`,
+      issuer: `https://securetoken.google.com/${resolvedProjectId}`,
       algorithms: ['RS256'],
     });
     if (payload.exp && payload.exp < Date.now() / 1000) return null;
