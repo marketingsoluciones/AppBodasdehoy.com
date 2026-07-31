@@ -8,11 +8,11 @@ import { ButtonComponent } from "../../ButtonComponent";
 import { useToast } from "../../../../hooks/useToast";
 import { AuthContextProvider, LoadingContextProvider } from "../../../../context";
 import { UserCredential, createUserWithEmailAndPassword, getAuth, signInWithCustomToken, updateProfile } from "firebase/auth";
-import { parseJwt, safeJwtExpiry, phoneUtil, useAuthentication } from "../../../../utils/Authentication";
+import { parseJwt, phoneUtil, useAuthentication } from "../../../../utils/Authentication";
 import { fetchApiBodas, fetchApiEventos, queries } from "../../../../utils/Fetching";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from 'firebase/app';
-import Cookies from 'js-cookie';
+import { setCrossAppIdToken } from '@bodasdehoy/shared/auth';
 import * as yup from "yup";
 import { useActivity } from '../../../../hooks/useActivity';
 import InputField from '../../InputField';
@@ -131,14 +131,8 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
       UserFirebase = userCredential.user;
       const idToken = await userCredential.user.getIdToken()
       // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → session cookie.
-      const dateExpire = safeJwtExpiry(idToken)
-      Cookies.set("idTokenV0.1.0", idToken ?? "", {
-        domain: process.env.NEXT_PUBLIC_DOMINIO ?? "",
-        expires: dateExpire,
-        path: "/",
-        secure: typeof window !== "undefined" && window.location.protocol === "https:",
-        sameSite: "lax",
-      })
+      // Escritor único de la cookie compartida (SessionBridge), atributos consistentes.
+      if (idToken) setCrossAppIdToken(idToken)
 
       values.uid = userCredential.user.uid;
     } catch (error) {
@@ -159,14 +153,8 @@ const FormRegister: FC<any> = ({ whoYouAre, setStage }) => {
             UserFirebase = userCredential.user
             const idToken = await userCredential.user.getIdToken()
             // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → session cookie.
-            const dateExpire = safeJwtExpiry(idToken)
-            Cookies.set("idTokenV0.1.0", idToken ?? "", {
-              domain: process.env.NEXT_PUBLIC_DOMINIO ?? "",
-              expires: dateExpire,
-              path: "/",
-              secure: typeof window !== "undefined" && window.location.protocol === "https:",
-              sameSite: "lax",
-            })
+            // Escritor único de la cookie compartida (SessionBridge), atributos consistentes.
+            if (idToken) setCrossAppIdToken(idToken)
             await getSessionCookie(idToken)
             values.uid = UserFirebase.uid
           } catch {

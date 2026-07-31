@@ -37,12 +37,12 @@ import { initializeApp } from "firebase/app";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useActivity } from "../hooks/useActivity";
 import { isTestSubdomain, normalizeRedirectAfterLogin } from "../utils/urlHelpers";
-import { safeJwtExpiry } from "../utils/Authentication";
 import {
   authBridge,
   parseJwt,
   parseSessionJwt,
   getSessionUserIdFromToken,
+  setCrossAppIdToken,
 } from '@bodasdehoy/shared/auth';
 import { getDevelopmentNameFromHostname } from '@bodasdehoy/shared/types';
 import { registerReferralIfPending, trackRegistrationComplete, sendAttributionToApi } from '@bodasdehoy/shared';
@@ -357,23 +357,8 @@ const AuthProvider = ({ children }) => {
             // Procesar el login completo como en el flujo normal
             try {
               const idToken = await result.user.getIdToken()
-              // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → cookie sin TTL, evita crash.
-              const dateExpire = safeJwtExpiry(idToken)
-              
-              const idTokenDomain = safeCookieDomain(process.env.NEXT_PUBLIC_PRODUCTION ? config?.domain : process.env.NEXT_PUBLIC_DOMINIO || ".bodasdehoy.com")
-              
-              console.log("[Auth] Estableciendo cookie idTokenV0.1.0:", {
-                domain: idTokenDomain,
-                expires: dateExpire.toISOString()
-              })
-              
-              Cookies.set("idTokenV0.1.0", idToken, { 
-                domain: idTokenDomain, 
-                expires: dateExpire,
-                path: "/",
-                secure: window.location.protocol === "https:",
-                sameSite: "lax"
-              })
+              // Escritor único de la cookie compartida (SessionBridge), atributos consistentes.
+              setCrossAppIdToken(idToken)
               
               // Verificar que la cookie se estableció
               const idTokenVerificado = Cookies.get("idTokenV0.1.0")
@@ -681,14 +666,27 @@ const AuthProvider = ({ children }) => {
     return () => clearTimeout(safetyTimeout);
   }, [])
 
+  // Fase 3 (cross-tab logout, LO-4): si otra pestaña de appEventos cierra sesión, reflejarlo
+  // aquí al instante (redirigir). BroadcastChannel es same-origin; el cierre cross-APP ya lo
+  // cubre el borrado de la cookie compartida .tenant.com (Fase 3, Profile.tsx).
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof BroadcastChannel === 'undefined') return;
+    const bc = new BroadcastChannel('appeventos-auth');
+    bc.onmessage = (ev) => {
+      if (ev?.data?.type === 'logout') {
+        setUser(null);
+        window.location.href = config?.pathSignout ? `${config.pathSignout}?end=true` : '/';
+      }
+    };
+    return () => bc.close();
+  }, [config?.pathSignout]);
+
   const moreInfo = async (user) => {
     try {
       let idToken = Cookies.get("idTokenV0.1.0")
       if (!idToken) {
         idToken = await getAuth().currentUser?.getIdToken(true)
-        // BUG-1 (informe QA 21-jun): safeJwtExpiry undefined → session cookie.
-        const dateExpire = safeJwtExpiry(idToken)
-        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: safeCookieDomain(process.env.NEXT_PUBLIC_PRODUCTION ? varGlobalDomain : process.env.NEXT_PUBLIC_DOMINIO), expires: dateExpire })
+        if (idToken) setCrossAppIdToken(idToken)
       }
       const userInfo = await fetchApiBodas({
         query: queries.getUser,

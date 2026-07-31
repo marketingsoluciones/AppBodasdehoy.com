@@ -9,7 +9,7 @@ import { useToast } from "../hooks/useToast";
 import { PhoneNumberUtil } from 'google-libphonenumber';
 import { useActivity } from "../hooks/useActivity";
 import { useTranslation } from "react-i18next";
-import { authBridge, parseJwt } from '@bodasdehoy/shared/auth';
+import { authBridge, parseJwt, setCrossAppIdToken } from '@bodasdehoy/shared/auth';
 
 export { parseJwt }; // re-exportar para compatibilidad con imports existentes
 
@@ -333,13 +333,8 @@ export const useAuthentication = () => {
             expires: dateExpire.toISOString()
           })
           
-          Cookies.set("idTokenV0.1.0", idToken, { 
-            domain: idTokenDomain, 
-            expires: dateExpire,
-            path: "/",
-            secure: window.location.protocol === "https:",
-            sameSite: "lax"
-          })
+          // Escritor único de la cookie compartida (SessionBridge), atributos consistentes.
+          if (idToken) setCrossAppIdToken(idToken)
           
           // Verificar que la cookie se estableció
           const idTokenVerificado = Cookies.get("idTokenV0.1.0")

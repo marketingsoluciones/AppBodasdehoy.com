@@ -2,9 +2,10 @@ import axios from "axios";
 import Cookies from "js-cookie"
 import { Manager } from "socket.io-client";
 import { getAuth } from "firebase/auth";
-import { parseJwt, safeJwtExpiry } from "./utils/Authentication";
+import { parseJwt } from "./utils/Authentication";
 import { varGlobalDomain, varGlobalDevelopment, varGlobalSubdomain } from "./context/AuthContext"
 import { resolveApiBodasAuthGraphqlUrl, resolveApiEventosOrigin } from "./utils/apiEndpoints";
+import { setCrossAppIdToken } from "@bodasdehoy/shared/auth";
 
 /** En localhost el navegador rechaza cookies con domain=.bodasdehoy.com */
 const _isDevLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -73,14 +74,11 @@ export const api = {
     let idToken = Cookies.get("idTokenV0.1.0")
     try {
       if (getAuth().currentUser) {
-        if (!idToken) {
-          idToken = await getAuth().currentUser?.getIdToken(true)
-          // BUG-1: safeJwtExpiry devuelve undefined si el token es null/inválido/expirado;
-          // Cookies.set sin `expires` queda como session cookie (no persiste tras cerrar
-          // pestaña) — comportamiento seguro vs. crash por .exp en null.
-          const dateExpire = safeJwtExpiry(idToken)
-          Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: _cookieDomain(), expires: dateExpire })
-        }
+        // Fase 2: pedir SIEMPRE token fresco al SDK (getIdToken cachea si es válido y
+        // auto-refresca cerca de expirar); no enviar el de la cookie, que puede estar caducado.
+        // setCrossAppIdToken lo persiste con atributos consistentes (escritor único).
+        const fresh = await getAuth().currentUser?.getIdToken()
+        if (fresh) { idToken = fresh; setCrossAppIdToken(fresh) }
       }
     } catch (error) {
       //
@@ -100,12 +98,9 @@ export const api = {
     let idToken = Cookies.get("idTokenV0.1.0")
     if (getAuth().currentUser) {
       //idToken = Cookies.get("idTokenV0.1.0")
-      if (!idToken) {
-        idToken = await getAuth().currentUser?.getIdToken(true)
-        // BUG-1: safeJwtExpiry undefined → session cookie sin TTL, seguro.
-        const dateExpire = safeJwtExpiry(idToken)
-        Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: _cookieDomain(), expires: dateExpire })
-      }
+      // Fase 2: token fresco del SDK en cada request (ver ApiApp).
+      const fresh = await getAuth().currentUser?.getIdToken()
+      if (fresh) { idToken = fresh; setCrossAppIdToken(fresh) }
     }
     return await instance.post("/graphql", data, {
       headers: {
@@ -153,14 +148,11 @@ export const api = {
     let idToken = Cookies.get("idTokenV0.1.0")
     try {
       if (getAuth().currentUser) {
-        if (!idToken) {
-          idToken = await getAuth().currentUser?.getIdToken(true)
-          // BUG-1: safeJwtExpiry devuelve undefined si el token es null/inválido/expirado;
-          // Cookies.set sin `expires` queda como session cookie (no persiste tras cerrar
-          // pestaña) — comportamiento seguro vs. crash por .exp en null.
-          const dateExpire = safeJwtExpiry(idToken)
-          Cookies.set("idTokenV0.1.0", idToken ?? "", { domain: _cookieDomain(), expires: dateExpire })
-        }
+        // Fase 2: pedir SIEMPRE token fresco al SDK (getIdToken cachea si es válido y
+        // auto-refresca cerca de expirar); no enviar el de la cookie, que puede estar caducado.
+        // setCrossAppIdToken lo persiste con atributos consistentes (escritor único).
+        const fresh = await getAuth().currentUser?.getIdToken()
+        if (fresh) { idToken = fresh; setCrossAppIdToken(fresh) }
       }
     } catch (error) {
       console.log("error no firebase")
@@ -211,14 +203,10 @@ export const api = {
 export const fetchApiViewConfig = async (params: any) => {
   let idToken = Cookies.get("idTokenV0.1.0");
   try {
-    if (getAuth().currentUser && !idToken) {
-      idToken = await getAuth().currentUser?.getIdToken(true);
-      // BUG-1: safeJwtExpiry undefined → session cookie sin TTL, seguro.
-      const dateExpire = safeJwtExpiry(idToken);
-      Cookies.set("idTokenV0.1.0", idToken ?? "", {
-        domain: _cookieDomain(),
-        expires: dateExpire
-      });
+    if (getAuth().currentUser) {
+      // Fase 2: token fresco del SDK en cada request (ver ApiApp).
+      const fresh = await getAuth().currentUser?.getIdToken();
+      if (fresh) { idToken = fresh; setCrossAppIdToken(fresh); }
     }
   } catch (error) {
     console.error("Error getting token:", error);
