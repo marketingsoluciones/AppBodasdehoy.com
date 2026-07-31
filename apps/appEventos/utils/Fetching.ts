@@ -79,6 +79,16 @@ export function getApiErrorMessage(error: any): string | null {
   if (error?.code === 'ECONNREFUSED' || error?.message?.includes('Network Error')) {
     return 'No se pudo conectar con el servidor. Comprueba tu conexión.';
   }
+  // El servidor (api-mcp) puede responder success:false con un error de conexión a su
+  // BD DENTRO de data (DATABASE_CONNECTION_ERROR / "Client must be connected"). No es
+  // "sin datos" ni sesión caducada: es un fallo temporal del backend → mensaje claro + reintento.
+  if (
+    error?.code === 'DATABASE_CONNECTION_ERROR' ||
+    error?.message?.includes('base de datos no está conectada') ||
+    error?.message?.includes('Client must be connected')
+  ) {
+    return 'Problema temporal de conexión con el servidor. Reintentando…';
+  }
   return null;
 }
 
@@ -1375,6 +1385,8 @@ export const queries = {
   // → se piden SIN subselección; devuelven el objeto completo (el front accede en runtime).
   getEventosByUsuario: `query ($uid: String!, $pag: CRM_PaginationInput!, $dev: String) {
     getEventosByUsuario(usuario_id: $uid, pagination: $pag, development: $dev){
+      success
+      errors{ message code }
       total
       eventos{
         _id development grupos_array compartido_array detalles_compartidos_array

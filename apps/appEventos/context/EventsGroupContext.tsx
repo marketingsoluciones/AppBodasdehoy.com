@@ -259,8 +259,23 @@ const EventsGroupProvider = ({ children }) => {
               // Tratar ese null como FALLO, no como "0 eventos": si no, un refresh con token
               // stale pinta lista vacía engañosa (y obligaba a logout/login para recuperar).
               if (settled.status === "fulfilled" && settled.value !== null) {
-                hadFulfilled = true
-                list.push(...coerceQueryenEventoList(settled.value))
+                // El resolver puede responder success:false con el error DENTRO de data
+                // (p.ej. DATABASE_CONNECTION_ERROR: la BD de api-mcp no está conectada, o
+                // "Client must be connected"). Eso NO es "0 eventos" — es un FALLO del backend:
+                // tratarlo como error para reintentar y NO pintar lista vacía engañosa.
+                const val = settled.value as any
+                if (val?.success === false) {
+                  if (!firstError) {
+                    const dbErr: any = new Error(
+                      val?.errors?.[0]?.message || "No se pudieron obtener los eventos (error del servidor)"
+                    )
+                    dbErr.code = val?.errors?.[0]?.code
+                    firstError = dbErr
+                  }
+                } else {
+                  hadFulfilled = true
+                  list.push(...coerceQueryenEventoList(settled.value))
+                }
               } else if (!firstError) {
                 firstError = settled.status === "rejected"
                   ? settled.reason
