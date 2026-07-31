@@ -1,5 +1,6 @@
 'use client';
 
+import { startSessionRefresh } from '@bodasdehoy/shared';
 import { useRouter } from 'next/navigation';
 import { memo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +23,25 @@ const StoreInitialization = memo(() => {
   useTranslation('error');
 
   useTokenRefresh();
+
+  // FASE 1 auth (fallback FB-2 de la auditoría 28-jul): refresco CENTRAL y proactivo de la
+  // cookie SSO `idTokenV0.1.0`. Antes SOLO appEventos la refrescaba (SocketContext), así que
+  // en chat-ia el token de 1 h moría dentro de la cookie de 30 d → sesión "muerta" en silencio.
+  // Ahora chat-ia también la mantiene al día vía el primitivo compartido startSessionRefresh
+  // (onIdTokenChanged + timer proactivo). Import diferido de firebase para no romper SSR.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let stop: (() => void) | undefined;
+    (async () => {
+      try {
+        const { auth } = await import('@/libs/firebase');
+        if (auth) stop = startSessionRefresh(auth as any);
+      } catch (e) {
+        console.warn('[StoreInitialization] no se pudo arrancar el refresco de sesión central:', e);
+      }
+    })();
+    return () => stop?.();
+  }, []);
 
   const router = useRouter();
   const useInitUserState = useUserStore((s) => s.useInitUserState);

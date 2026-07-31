@@ -13,3 +13,9 @@ export {
   clearCrossAppSession,
   CROSS_APP_DEVELOPMENT_COOKIE,
 } from './SessionBridge';
+export {
+  startSessionRefresh,
+  stopSessionRefresh,
+  getFreshToken,
+} from './SessionManager';
+export type { FirebaseAuthLike, FirebaseUserLike } from './SessionManager';
