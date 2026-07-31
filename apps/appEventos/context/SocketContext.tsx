@@ -5,7 +5,7 @@ import { api } from '../api';
 import { Dispatch } from 'react';
 import { getCookie } from '../utils/Cookies';
 import Cookies from "js-cookie";
-import { setCrossAppIdToken } from "@bodasdehoy/shared/auth";
+import { setCrossAppIdToken, startSessionRefresh } from "@bodasdehoy/shared/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { parseJwt } from "../utils/Authentication"
 import { Notification, ResultNotifications } from "../utils/Interfaces";
@@ -81,6 +81,22 @@ const SocketProvider: FC<any> = ({ children }): React.ReactElement => {
       // Firebase no inicializado (SSR o anonymous)
     }
   }, [socket, config?.development])
+
+  // Refresco CENTRAL y PROACTIVO del token (SessionManager compartido). El efecto de
+  // arriba solo reacciona a la rotación natural del SDK (~1h) y reconecta el socket;
+  // startSessionRefresh añade además un timer que fuerza getIdToken(true) ~10 min antes
+  // de expirar → mantiene viva la cookie SSO cross-app aunque la pestaña esté en background
+  // (raíz de la incidencia 17-19jul). Es el MISMO primitivo que usa chat-ia → un único
+  // mecanismo de refresco en las 4 apps. No-op si no hay sesión.
+  useEffect(() => {
+    if (!config?.development) return
+    try {
+      const stop = startSessionRefresh(getAuth() as any)
+      return () => stop()
+    } catch (e) {
+      // Firebase no inicializado (SSR/anonymous)
+    }
+  }, [config?.development])
 
   useEffect(() => {
     if (!socket) return
