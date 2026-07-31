@@ -116,20 +116,36 @@ export function setCrossAppDevelopment(development: string): void {
 }
 
 /**
- * Limpia las cookies cross-app en logout.
+ * Expira SOLO la cookie `idTokenV0.1.0`, en AMBAS variantes: con Domain (cross-app) y
+ * host-only (sin Domain). Por LO-3 de la auditoría, la cookie pudo escribirse con atributos
+ * distintos según el path (unos con Domain, otros host-only), y borrar solo una deja la otra
+ * viva. Se usa para auto-sanar una cookie envenenada (token muerto) sin tocar el resto de la
+ * sesión (no borra current_development).
+ */
+export function clearCrossAppIdToken(): void {
+  if (typeof document === 'undefined') return;
+  const domain = getCrossAppDomain();
+  const base = 'idTokenV0.1.0=; path=/; max-age=0; SameSite=Lax';
+  const variants = [base];
+  if (domain) variants.push(`${base}; Domain=${domain}`);
+  for (const c of variants) {
+    // eslint-disable-next-line unicorn/no-document-cookie
+    document.cookie = c;
+  }
+}
+
+/**
+ * Limpia las cookies cross-app en logout (idTokenV0.1.0 en todas sus variantes +
+ * current_development).
  */
 export function clearCrossAppSession(): void {
   if (typeof document === 'undefined') return;
 
-  const domain = getCrossAppDomain();
-  const buildExpired = (name: string) => {
-    const parts = [`${name}=`, 'path=/', 'max-age=0', 'SameSite=Lax'];
-    if (domain) parts.push(`Domain=${domain}`);
-    return parts.join('; ');
-  };
+  clearCrossAppIdToken();
 
+  const domain = getCrossAppDomain();
+  const parts = [`${CROSS_APP_DEVELOPMENT_COOKIE}=`, 'path=/', 'max-age=0', 'SameSite=Lax'];
+  if (domain) parts.push(`Domain=${domain}`);
   // eslint-disable-next-line unicorn/no-document-cookie
-  document.cookie = buildExpired('idTokenV0.1.0');
-  // eslint-disable-next-line unicorn/no-document-cookie
-  document.cookie = buildExpired(CROSS_APP_DEVELOPMENT_COOKIE);
+  document.cookie = parts.join('; ');
 }

@@ -3,12 +3,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // Aislar SessionManager de la escritura real de cookie.
 vi.mock('../SessionBridge', () => ({
   setCrossAppIdToken: vi.fn(),
+  clearCrossAppIdToken: vi.fn(),
 }));
 
-import { setCrossAppIdToken } from '../SessionBridge';
+import { setCrossAppIdToken, clearCrossAppIdToken } from '../SessionBridge';
 import { startSessionRefresh, stopSessionRefresh, getFreshToken } from '../SessionManager';
 
 const mockSet = setCrossAppIdToken as unknown as ReturnType<typeof vi.fn>;
+const mockClear = clearCrossAppIdToken as unknown as ReturnType<typeof vi.fn>;
+
+// JWTs de prueba (sin firma real; solo el payload importa para isExpiredJwt).
+const b64url = (obj: unknown) =>
+  Buffer.from(JSON.stringify(obj)).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const jwtWithExp = (expSec: number) => `eyJhbGciOiJSUzI1NiJ9.${b64url({ exp: expSec })}.sig`;
+const EXPIRED_JWT = jwtWithExp(1); // exp en 1970 → caducado
+const VALID_JWT = jwtWithExp(9_999_999_999); // exp lejano → válido
 
 // Mock mínimo con la forma FirebaseAuthLike que usa SessionManager.
 function makeAuth(token: string | null) {
@@ -27,11 +36,13 @@ function makeAuth(token: string | null) {
 beforeEach(() => {
   (globalThis as any).window = (globalThis as any).window || {};
   mockSet.mockClear();
+  mockClear.mockClear();
   vi.useFakeTimers();
 });
 
 afterEach(() => {
   stopSessionRefresh();
+  delete (globalThis as any).document;
   vi.useRealTimers();
 });
 
@@ -75,6 +86,31 @@ describe('SessionManager — refresco central del token cross-app', () => {
     startSessionRefresh(auth);
     expect(() => stopSessionRefresh()).not.toThrow();
     expect(() => stopSessionRefresh()).not.toThrow();
+  });
+
+  it('AUTO-SANADO: sin usuario y cookie con token CADUCADO → limpia la cookie SSO', async () => {
+    (globalThis as any).document = { cookie: `idTokenV0.1.0=${EXPIRED_JWT}` };
+    const auth = makeAuth('x');
+    startSessionRefresh(auth);
+    await auth._cb!(null); // onIdTokenChanged sin usuario
+    expect(mockClear).toHaveBeenCalledTimes(1);
+    expect(mockSet).not.toHaveBeenCalled();
+  });
+
+  it('AUTO-SANADO: sin usuario pero cookie VÁLIDA → NO limpia', async () => {
+    (globalThis as any).document = { cookie: `idTokenV0.1.0=${VALID_JWT}` };
+    const auth = makeAuth('x');
+    startSessionRefresh(auth);
+    await auth._cb!(null);
+    expect(mockClear).not.toHaveBeenCalled();
+  });
+
+  it('AUTO-SANADO: sin usuario y sin cookie → NO limpia', async () => {
+    (globalThis as any).document = { cookie: '' };
+    const auth = makeAuth('x');
+    startSessionRefresh(auth);
+    await auth._cb!(null);
+    expect(mockClear).not.toHaveBeenCalled();
   });
 
   it('sin window (SSR) no arranca nada y devuelve noop', () => {

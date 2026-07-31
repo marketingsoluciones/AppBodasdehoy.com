@@ -21,7 +21,34 @@ declare var window: any;
  * instancia con la forma mínima que usamos. Sin fallback silencioso: si el refresco falla,
  * se reporta por consola y NO se rompe el hilo (el backend rechazará y la UI podrá escalar).
  */
-import { setCrossAppIdToken } from './SessionBridge';
+import { clearCrossAppIdToken, setCrossAppIdToken } from './SessionBridge';
+
+/** Lee una cookie por nombre (cliente). null si no existe. */
+function readCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const escaped = name.replace(/[$()*+.?[\\\]^{|}]/g, '\\$&');
+  const m = document.cookie.match(new RegExp('(?:^|; )' + escaped + '=([^;]*)'));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+/** true si el JWT está caducado o es ilegible. Sin verificar firma (solo `exp`). */
+function isExpiredJwt(token: string): boolean {
+  try {
+    const seg = token.split('.')[1];
+    if (!seg) return true;
+    const b64 = seg.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(
+      atob(b64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join(''),
+    );
+    const payload = JSON.parse(json);
+    return typeof payload.exp === 'number' ? payload.exp < Date.now() / 1000 : false;
+  } catch {
+    return true;
+  }
+}
 
 export interface FirebaseUserLike {
   getIdToken: (forceRefresh?: boolean) => Promise<string>;
@@ -49,7 +76,19 @@ export function startSessionRefresh(auth: FirebaseAuthLike): () => void {
 
   // 1) Rotación natural del SDK → mantener la cookie cross-app al día.
   _unsub = auth.onIdTokenChanged(async (user) => {
-    if (!user) return;
+    if (!user) {
+      // AUTO-SANADO (incidente 17-19 jul): sin usuario Firebase pero con cookie SSO que trae
+      // un token CADUCADO → el navegador seguiría enviando un token muerto hasta 30 días
+      // ("sesión muerta" que obligaba a incógnito). La limpiamos para no servir el token
+      // muerto; el próximo login la vuelve a escribir fresca. Solo si está caducada (no si
+      // falta ni si es válida).
+      const stale = readCookie('idTokenV0.1.0');
+      if (stale && isExpiredJwt(stale)) {
+        clearCrossAppIdToken();
+        console.warn('[SessionManager] cookie SSO con token caducado y sin usuario → limpiada (auto-sanado)');
+      }
+      return;
+    }
     try {
       const token = await user.getIdToken();
       if (token) setCrossAppIdToken(token);
