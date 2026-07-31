@@ -11,6 +11,7 @@
  * + datos adicionales (svgString, tableConfig) que el sistema actual ignora.
  */
 import { useState, useEffect, useCallback, CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import { generateTableSVG, getMaxSeats, TABLE_DEFAULTS, getTableTotalSize } from '@bodasdehoy/shared/utils';
 import type { TableConfig, ChairStyle, TableShape } from '@bodasdehoy/shared/utils';
 import { EventContextProvider } from '../../context';
@@ -261,9 +262,7 @@ export function TableConfiguratorFloating() {
 const SHAPES: { id: TableShape; label: string }[] = [
   { id: 'round', label: 'Redonda' },
   { id: 'rectangular', label: 'Rectangular' },
-  { id: 'oval', label: 'Oval' },
   { id: 'square', label: 'Cuadrada' },
-  { id: 'semicircle', label: 'Novios' },
 ];
 
 export default function TableConfigurator({ initialConfig, onConfirm, onCancel, nextTableNumber = 1 }: TableConfiguratorProps) {
@@ -271,6 +270,8 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
   const [config, setConfig] = useState<TableConfig>({
     tableNumber: nextTableNumber,
     ...(TABLE_DEFAULTS[defaultShape] ?? TABLE_DEFAULTS.round),
+    // Look del prototipo: mesa y sillas en GRIS (no beige) — sobrescribe los defaults beige.
+    tableColor: '#F0F0F2', chairColor: '#ffffff', chairStyle: 'modern',
     ...initialConfig,
   });
   const [previewSVG, setPreviewSVG] = useState('');
@@ -317,16 +318,24 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
   const maxPerLongSide = isRect ? Math.floor((config.realWidthCm ?? 240) / 45) : 0;
   const totalSize = getTableTotalSize(config);
 
-  return (
+  if (typeof document === 'undefined') return null;
+  return createPortal(
     <div style={s.overlay}>
       <div style={s.modal}>
+        <style>{`.tc-round-check{appearance:none;-webkit-appearance:none;width:17px;height:17px;border:1.6px solid #c4c4cc;border-radius:50%;cursor:pointer;position:relative;flex:none;vertical-align:middle}.tc-round-check:checked{background:#EF5B94;border-color:#EF5B94}.tc-round-check:checked::after{content:'';position:absolute;left:5px;top:2.5px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}.tc-slider{-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;background:#E7E7EA;width:100%;outline:none}.tc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#EF5B94;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.25)}.tc-slider::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:#EF5B94;cursor:pointer}.tc-scroll::-webkit-scrollbar{width:0;height:0;display:none}`}</style>
         <div style={s.header}>
           <h2 style={s.title}>{initialConfig ? 'Editar mesa' : 'Diseñar mesa'}</h2>
           <button style={s.closeBtn} type="button" onClick={onCancel}>✕</button>
         </div>
 
         <div style={s.body}>
-          <div style={s.controls}>
+          <div className="tc-scroll" style={s.controls}>
+            {/* NOMBRE DE LA MESA */}
+            <section style={s.section}>
+              <div style={s.sectionTitle}>Nombre de la mesa</div>
+              <input type="text" value={config.tableName ?? ''} placeholder="Ej: Mesa 1" onChange={e => update('tableName', e.target.value)} style={{ ...s.textInput, width: '100%', boxSizing: 'border-box' }} />
+            </section>
+
             {/* FORMA */}
             <section style={s.section}>
               <div style={s.sectionTitle}>Forma</div>
@@ -381,31 +390,15 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
                   <option value="none">Sin sillas</option>
                 </select>
               </div>
-              <div style={s.fieldRow}>
-                <label style={s.label}>Color sillas</label>
-                <input type="color" value={config.chairColor ?? '#E8D5B7'} onChange={e => update('chairColor', e.target.value)} style={s.colorPicker} />
-              </div>
             </section>
 
-            {/* ASPECTO */}
+            {/* TIPO DE MESA — el usuario pidió mantener Novios / Infantil */}
             <section style={s.section}>
-              <div style={s.sectionTitle}>Aspecto</div>
-              <div style={s.fieldRow}>
-                <label style={s.label}>Color mesa</label>
-                <input type="color" value={config.tableColor ?? '#F5F0E8'} onChange={e => update('tableColor', e.target.value)} style={s.colorPicker} />
-              </div>
-              <div style={s.fieldRow}>
-                <label style={s.label}>Nº de mesa</label>
-                <input type="number" value={config.tableNumber ?? 1} min={1} max={999} onChange={e => update('tableNumber', Number(e.target.value))} style={s.numInput} />
-              </div>
-              <div style={s.fieldRow}>
-                <label style={s.label}>Nombre</label>
-                <input type="text" value={config.tableName ?? ''} placeholder="Ej: Mesa Familia García" onChange={e => update('tableName', e.target.value)} style={s.textInput} />
-              </div>
+              <div style={s.sectionTitle}>Tipo de mesa</div>
               <div style={s.toggleRow}>
-                {([['showNumber', 'Mostrar número'], ['showName', 'Mostrar nombre'], ['isHeadTable', 'Mesa de novios'], ['isKidsTable', 'Mesa infantil']] as [keyof TableConfig, string][]).map(([key, label]) => (
+                {([['isHeadTable', 'Mesa de novios'], ['isKidsTable', 'Mesa infantil']] as [keyof TableConfig, string][]).map(([key, label]) => (
                   <label key={key} style={s.toggleLabel}>
-                    <input type="checkbox" checked={!!config[key]} onChange={e => update(key, e.target.checked as any)} />{' '}{label}
+                    <input type="checkbox" className="tc-round-check" checked={!!config[key]} onChange={e => update(key, e.target.checked as any)} />{' '}{label}
                   </label>
                 ))}
               </div>
@@ -414,7 +407,6 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
 
           {/* Preview */}
           <div style={s.preview}>
-            <div style={s.previewTitle}>Vista previa</div>
             <div style={s.previewCanvas}>
               {previewSVG && <div style={s.previewSVG} dangerouslySetInnerHTML={{ __html: previewSVG }} />}
             </div>
@@ -433,7 +425,8 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -444,7 +437,7 @@ function SliderField({ label, value, min, max, step = 1, unit = '', onChange }: 
     <div style={s.fieldRow}>
       <label style={s.label}>{label}</label>
       <div style={s.sliderWrap}>
-        <input type="range" min={min} max={max} step={step} value={value} onChange={e => onChange(Number(e.target.value))} style={s.slider} />
+        <input type="range" className="tc-slider" min={min} max={max} step={step} value={value} onChange={e => onChange(Number(e.target.value))} style={s.slider} />
         <span style={s.sliderValue}>{value}{unit}</span>
       </div>
     </div>
@@ -488,31 +481,33 @@ function SeatDistributor({ seatsTop, seatsBottom, seatsLeft, seatsRight, maxPerS
 // ─── Estilos ───────────────────────────────────────────────────────────────
 
 const s: Record<string, CSSProperties> = {
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(43,43,48,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(3px)' },
-  modal: { background: '#fff', borderRadius: 16, width: '90vw', maxWidth: 900, maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.3)' },
+  // Drawer desde la IZQUIERDA (fiel al HTML): full-height, no centrado → no se corta.
+  // Card flotante a la izquierda (fiel al HTML): NO full-height, con márgenes + esquinas redondeadas.
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(43,43,48,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', padding: '20px 20px 20px 24px', zIndex: 99999, backdropFilter: 'blur(3px)' },
+  modal: { background: '#fff', borderRadius: 20, width: 'min(700px, 94vw)', maxHeight: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.3)', fontFamily: 'Poppins, system-ui, -apple-system, sans-serif' },
   header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid #f0f0f2', background: '#fff' },
   title: { margin: 0, fontSize: 17, fontWeight: 700, color: '#3A3A42' },
   closeBtn: { background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#a0a0a8', padding: '4px 8px' },
   body: { display: 'flex', flex: 1, overflow: 'hidden' },
-  controls: { flex: 1, overflowY: 'auto', padding: '16px 20px', borderRight: '1px solid #f2f2f4' },
-  section: { marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid #f2f2f4' },
-  sectionTitle: { fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#b3b3ba', marginBottom: 12 },
+  controls: { width: 296, flexShrink: 0, overflowY: 'auto', padding: 20, borderRight: '1px solid #f2f2f4', display: 'flex', flexDirection: 'column', gap: 18, scrollbarWidth: 'none', msOverflowStyle: 'none' } as CSSProperties,
+  section: {},
+  sectionTitle: { fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#b3b3ba', marginBottom: 10 },
   shapeGrid: { display: 'flex', flexWrap: 'wrap', gap: 7 },
-  shapeBtn: { padding: '8px 13px', border: '1.5px solid #E7E7EA', borderRadius: 9, background: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#6b6b72' },
-  shapeBtnActive: { borderColor: '#EF5B94', background: '#FCF2F6', color: '#EF5B94', fontWeight: 600 },
+  shapeBtn: { padding: '8px 13px', border: '1.5px solid #E7E7EA', borderRadius: 9, background: '#f7f7f9', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#6b6b72' },
+  shapeBtnActive: { borderColor: '#c4c4cc', background: '#e9e9ee', color: '#3A3A42', fontWeight: 700 },
   fieldRow: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 },
   label: { fontSize: 13, color: '#6b6b72', minWidth: 100, flexShrink: 0 },
   sliderWrap: { flex: 1, display: 'flex', alignItems: 'center', gap: 10 },
   slider: { flex: 1, accentColor: '#EF5B94' } as CSSProperties,
   sliderValue: { fontSize: 13, fontWeight: 700, color: '#3A3A42', minWidth: 50, textAlign: 'right' },
   stepper: { display: 'flex', alignItems: 'center', gap: 8 },
-  stepBtn: { width: 32, height: 32, border: 'none', borderRadius: 10, background: '#f7f7f9', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF5B94', fontWeight: 700 },
+  stepBtn: { width: 38, height: 38, border: 'none', borderRadius: 10, background: '#f7f7f9', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF5B94', fontWeight: 700 },
   stepValue: { fontSize: 16, fontWeight: 700, color: '#3A3A42', minWidth: 28, textAlign: 'center' },
   maxHint: { fontSize: 11, color: '#b3b3ba', marginTop: 2, marginBottom: 8 },
   sizeHint: { fontSize: 12, color: '#8a8a90', marginTop: 8, background: '#F0F0F2', padding: '8px 12px', borderRadius: 9 },
   seatDistrib: { background: '#faf9fb', borderRadius: 9, padding: 12, marginBottom: 10 },
   distribLabel: { fontSize: 13, color: '#6b6b72', marginBottom: 10 },
-  distribGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 },
+  distribGrid: { display: 'flex', flexDirection: 'column', gap: 8 },
   distribRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   distribSide: { fontSize: 12, color: '#8a8a90', minWidth: 32 },
   select: { flex: 1, padding: '9px 10px', border: '1px solid #E7E7EA', borderRadius: 10, fontSize: 13, background: '#fff', color: '#3A3A42' },
@@ -521,9 +516,9 @@ const s: Record<string, CSSProperties> = {
   textInput: { flex: 1, padding: '9px 10px', border: '1px solid #E7E7EA', borderRadius: 10, fontSize: 13, color: '#3A3A42' },
   toggleRow: { display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 8 },
   toggleLabel: { fontSize: 13, color: '#6b6b72', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 },
-  preview: { width: 320, padding: 20, background: '#FAFAFB', display: 'flex', flexDirection: 'column' },
+  preview: { flex: 1, padding: 20, background: '#FAFAFB', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 },
   previewTitle: { fontSize: 11, fontWeight: 700, color: '#b3b3ba', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 },
-  previewCanvas: { flex: 1, background: '#fff', borderRadius: 16, border: '1px solid #E7E7EA', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: 12, backgroundImage: 'radial-gradient(circle, #e2e2e6 1px, transparent 1px)', backgroundSize: '15px 15px' },
+  previewCanvas: { width: 290, height: 230, background: '#fff', borderRadius: 16, border: '1px solid #E7E7EA', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: 12, backgroundImage: 'radial-gradient(#e2e2e6 1px, transparent 1px)', backgroundSize: '15px 15px' },
   previewSVG: { maxWidth: '100%', maxHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   previewInfo: { marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 12, color: '#6b6b72' },
   footer: { display: 'flex', justifyContent: 'flex-end', gap: 12, padding: '14px 24px', borderTop: '1px solid #f0f0f2', background: '#fff' },

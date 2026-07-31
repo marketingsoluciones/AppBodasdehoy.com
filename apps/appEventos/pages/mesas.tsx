@@ -69,11 +69,16 @@ export const convertBackendSvgsToReact = (backendSvgs: any[]): GalerySvg[] => {
 // Mapa forma(TableConfigurator) ↔ tipo(backend), para editar una mesa reutilizando el
 // panel del HTML (TableConfigurator con initialConfig = modo "Editar mesa", línea 324).
 const SHAPE_TO_TIPO_EDIT: Record<string, string> = { round: 'redonda', rectangular: 'imperial', oval: 'redonda', square: 'cuadrada', semicircle: 'podio', head: 'podio' }
-const TIPO_TO_SHAPE_EDIT: Record<string, string> = { redonda: 'round', cuadrada: 'square', imperial: 'rectangular', podio: 'semicircle', militar: 'rectangular', bancos: 'rectangular', banco: 'rectangular' }
-const mesaAConfig = (table: any): any => ({
+const TIPO_TO_SHAPE_EDIT: Record<string, string> = { redonda: 'round', cuadrada: 'square', imperial: 'rectangular', podio: 'round', militar: 'rectangular', bancos: 'rectangular', banco: 'rectangular' }
+const mesaAConfig = (table: any, num?: number): any => ({
+  // 'podio' (antigua forma "media luna"/Novios) ya no es una forma seleccionable:
+  // se muestra como redonda + se marca el toggle "Mesa de novios".
   shape: TIPO_TO_SHAPE_EDIT[table?.tipo] ?? 'round',
   seats: table?.numberChair ?? 8,
   tableName: table?.title ?? '',
+  // Número REAL de la mesa (índice+1 en el plano), para que el preview no muestre siempre "1"
+  ...(typeof num === 'number' && num > 0 ? { tableNumber: num } : {}),
+  isHeadTable: table?.tipo === 'podio',
 })
 
 const Mesas: FC = () => {
@@ -285,7 +290,10 @@ const Mesas: FC = () => {
           // Modal "Editar mesa" fiel al HTML: reutiliza TableConfigurator (initialConfig →
           // header "Editar mesa"). onConfirm guarda vía editTable (guardarEdicion).
           <TableConfigurator
-            initialConfig={mesaAConfig(showFormEditar.table)}
+            initialConfig={mesaAConfig(
+              showFormEditar.table,
+              (planSpaceActive?.tables ?? []).findIndex((tb: any) => tb?._id === showFormEditar.table?._id) + 1
+            )}
             onConfirm={guardarEdicion}
             onCancel={() => setShowFormEditar({ table: {}, visible: false })}
           />

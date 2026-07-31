@@ -45,7 +45,7 @@ const BlockInvitados: FC<propsBlockInvitados> = ({ set, setEditInv, editInv, set
     ]
 
     return (
-        <div className="w-full h-full flex flex-col bg-white relative">
+        <div className={`w-full h-full flex flex-col bg-white relative ${open ? '' : 'justify-end'}`}>
             <div onClick={() => setOpen(!open)} className="flex items-center justify-between px-3 pt-2 pb-1 cursor-pointer select-none flex-none">
                 <div className="flex items-center gap-1.5">
                     <HiChevronDown className={`w-4 h-4 text-[#6b6b72] transition-transform ${open ? '' : '-rotate-90'}`} />
