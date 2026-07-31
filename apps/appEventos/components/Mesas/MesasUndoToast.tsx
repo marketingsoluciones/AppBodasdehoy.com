@@ -31,46 +31,28 @@ export const MesasUndoToast = () => {
 
   if (!toast) return null;
 
-  const applyTables = (tables: any[]) => {
-    const nextPS = { ...planSpaceActive, tables };
-    setPlanSpaceActive(nextPS);
-    setEvent((prev: any) => ({
-      ...prev,
-      planSpace: (prev?.planSpace ?? []).map((ps: any) => ps?._id === nextPS._id ? nextPS : ps),
-    }));
-  };
-
   const handleUndo = async () => {
     const { action, table } = toast;
     setToast(null);
     clearTimeout(timerRef.current);
     try {
-      if (action === 'create') {
-        // Deshacer creación: quitar la mesa (estado + backend).
-        applyTables((planSpaceActive?.tables ?? []).filter((tb: any) => tb._id !== table._id));
-        await fetchApiEventos({
-          query: queries.deleteTable,
-          variables: { eventID: event._id, planSpaceID: planSpaceActive._id, tableID: table._id },
-        });
-      } else {
-        // Deshacer borrado: recrear la mesa con sus propiedades (misma mutación que el alta).
-        applyTables([...(planSpaceActive?.tables ?? []), table]);
-        await fetchApiEventos({
-          query: queries.createTable,
-          variables: {
-            eventID: event._id,
-            planSpaceID: planSpaceActive._id,
-            values: JSON.stringify({
-              title: table.title || table.nombre_mesa,
-              numberChair: table.numberChair ?? table.cantidad_sillas,
-              position: table.position,
-              rotation: table.rotation ?? 0,
-              size: table.size ?? { width: 100, height: 80 },
-              tipo: table.tipo,
-            }),
-          },
-        });
-      }
+      // Deshacer creación → quitar la mesa; deshacer borrado → recrearla.
+      const nextTables = action === 'create'
+        ? (planSpaceActive?.tables ?? []).filter((tb: any) => tb._id !== table._id)
+        : [...(planSpaceActive?.tables ?? []), table];
+      const nextPS = { ...planSpaceActive, tables: nextTables };
+      const nextPlanSpaces = (event.planSpace ?? []).map((ps: any) => ps?._id === nextPS._id ? nextPS : ps);
+      setPlanSpaceActive(nextPS);
+      setEvent((prev: any) => ({
+        ...prev,
+        planSpace: (prev?.planSpace ?? []).map((ps: any) => ps?._id === nextPS._id ? nextPS : ps),
+      }));
+      // Persistir vía updateEvento({planSpace}) — create/deleteTable escriben en el
+      // legacy evento.mesas_array (desconectado de esta UI de planos).
+      await fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: { idEvento: event._id, input: { planSpace: nextPlanSpaces } },
+      });
     } catch { /* noop — el estado local ya refleja el undo */ }
   };
 

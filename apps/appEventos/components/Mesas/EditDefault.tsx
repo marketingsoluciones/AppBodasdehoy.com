@@ -30,13 +30,14 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
         ),
       }))
       if (itemTipo == "table") {
+        // Persistir vía updateEvento({planSpace}) — deleteTable escribe en el legacy
+        // evento.mesas_array (desconectado de esta UI de planos).
+        const nextPlanSpaces = (event.planSpace ?? []).map(ps =>
+          ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+        )
         await fetchApiEventos({
-          query: queries.deleteTable,
-          variables: {
-            eventID: event._id,
-            planSpaceID: planSpaceActive._id,
-            tableID: item._id
-          }
+          query: queries.eventUpdate,
+          variables: { idEvento: event._id, input: { planSpace: nextPlanSpaces } }
         })
         // Toast con «Deshacer» (MesasUndoToast escucha este evento).
         window.dispatchEvent(new CustomEvent('mesas-toast', { detail: { action: 'delete', table: item } }))
@@ -80,19 +81,14 @@ export const EditDefault: FC<EditDefaultState> = ({ item, setShowFormEditar, ite
       ),
     }))
     if (itemTipo === "table") {
-      // BUG-M-03 (informe QA 22-jun): la mutación se disparaba pero no persistía.
-      // Causa: JSON.stringify(15) = "15" (string) y backend espera number. Si
-      // valor es number, va sin stringify; si el backend exige string, va el
-      // toString plano (no JSON-encoded).
+      // Persistir la rotación vía updateEvento({planSpace}) — editTable escribe en el
+      // legacy evento.mesas_array (desconectado de esta UI de planos).
+      const nextPlanSpaces = (event.planSpace ?? []).map(ps =>
+        ps._id !== planSpaceActive._id ? ps : newPlanSpaceActive
+      )
       await fetchApiEventos({
-        query: queries.editTable,
-        variables: {
-          eventID: event._id,
-          planSpaceID: planSpaceActive?._id,
-          tableID: item._id,
-          variable: "rotation",
-          valor: String(newRotation)
-        }
+        query: queries.eventUpdate,
+        variables: { idEvento: event._id, input: { planSpace: nextPlanSpaces } }
       })
     }
     if (itemTipo === "element") {

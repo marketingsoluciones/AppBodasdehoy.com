@@ -135,27 +135,25 @@ const Mesas: FC = () => {
     const newTitle = (config?.tableName || table.title || '').toString()
     const newTipo = SHAPE_TO_TIPO_EDIT[config?.shape] ?? table.tipo
     const newSeats = Number(config?.seats ?? table.numberChair) || table.numberChair
-    const baseVars = { eventID: event._id, planSpaceID: planSpaceActive._id, tableID: table._id }
     try {
-      if (newTitle !== table.title) {
-        await fetchApiEventos({ query: queries.editTable, variables: { ...baseVars, variable: 'title', valor: JSON.stringify(newTitle) } })
-      }
-      if (newTipo !== table.tipo) {
-        await fetchApiEventos({ query: queries.editTable, variables: { ...baseVars, variable: 'tipo', valor: JSON.stringify(newTipo) } })
-      }
+      // Reducir sillas → quitar invitados de las sillas eliminadas (chair >= newSeats).
       let newGuests = table.guests
-      if (newSeats !== table.numberChair) {
-        // Reducir sillas → quitar invitados de las sillas eliminadas (chair >= newSeats).
-        if (newSeats < (table.numberChair ?? 0) && Array.isArray(table.guests)) {
-          newGuests = table.guests.filter((g: any) => (g?.chair ?? 0) < newSeats)
-          if (newGuests.length !== table.guests.length) {
-            await fetchApiEventos({ query: queries.editTable, variables: { ...baseVars, variable: 'guests', valor: JSON.stringify(newGuests) } })
-          }
-        }
-        await fetchApiEventos({ query: queries.editTable, variables: { ...baseVars, variable: 'numberChair', valor: JSON.stringify(newSeats) } })
+      if (newSeats < (table.numberChair ?? 0) && Array.isArray(table.guests)) {
+        newGuests = table.guests.filter((g: any) => (g?.chair ?? 0) < newSeats)
       }
-      const updatedTable = { ...table, title: newTitle, nombre_mesa: newTitle, tipo: newTipo, numberChair: newSeats, guests: newGuests }
+      const updatedTable = { ...table, title: newTitle, nombre_mesa: newTitle, tipo: newTipo, numberChair: newSeats, cantidad_sillas: newSeats, guests: newGuests }
       const nps: any = { ...planSpaceActive, tables: (planSpaceActive.tables ?? []).map((tb: any) => tb._id === table._id ? updatedTable : tb) }
+      const nextPlanSpaces = (event.planSpace ?? []).map((ps: any) => ps._id === planSpaceActive._id ? nps : ps)
+      // Persistir vía updateEvento({planSpace}) — editTable escribe en el legacy
+      // evento.mesas_array (desconectado de esta UI de planos).
+      const res: any = await fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: { idEvento: event._id, input: { planSpace: nextPlanSpaces } },
+      })
+      if (!res?.success) {
+        toast('error', res?.errors?.[0]?.message ?? t('Ha ocurrido un error al editar la mesa'))
+        return
+      }
       setPlanSpaceActive(nps)
       setEvent((prev: any) => ({ ...prev, planSpace: prev.planSpace.map((ps: any) => ps._id === planSpaceActive._id ? nps : ps) }))
     } catch {
