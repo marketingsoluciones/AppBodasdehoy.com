@@ -265,14 +265,37 @@ const SHAPES: { id: TableShape; label: string }[] = [
   { id: 'square', label: 'Cuadrada' },
 ];
 
+// El usuario edita el TOTAL de sillas (el plano las reparte automáticamente).
+// El SVG de la preview sí dibuja por lado, así que derivamos un reparto sensato
+// del total para que la preview siga funcionando (rectangular: 1 en cada extremo
+// corto + resto en los lados largos; cuadrada: reparto uniforme en 4 lados).
+function distributeSeatsBySide(total: number, shape: TableShape): { seatsTop: number; seatsBottom: number; seatsLeft: number; seatsRight: number } {
+  const n = Math.max(0, Math.floor(total || 0));
+  if (shape === 'square') {
+    const per = Math.floor(n / 4), r = n % 4;
+    return { seatsTop: per + (r > 0 ? 1 : 0), seatsRight: per + (r > 1 ? 1 : 0), seatsBottom: per + (r > 2 ? 1 : 0), seatsLeft: per };
+  }
+  const ends = n >= 2 ? 1 : 0;
+  const rest = n - ends * 2;
+  return { seatsTop: Math.ceil(rest / 2), seatsBottom: Math.floor(rest / 2), seatsLeft: ends, seatsRight: ends };
+}
+
 export default function TableConfigurator({ initialConfig, onConfirm, onCancel, nextTableNumber = 1 }: TableConfiguratorProps) {
   const defaultShape = (initialConfig?.shape ?? 'round') as TableShape;
-  const [config, setConfig] = useState<TableConfig>({
-    tableNumber: nextTableNumber,
-    ...(TABLE_DEFAULTS[defaultShape] ?? TABLE_DEFAULTS.round),
-    // Look del prototipo: mesa y sillas en GRIS (no beige) — sobrescribe los defaults beige.
-    tableColor: '#F0F0F2', chairColor: '#ffffff', chairStyle: 'modern',
-    ...initialConfig,
+  const [config, setConfig] = useState<TableConfig>(() => {
+    const base = {
+      tableNumber: nextTableNumber,
+      ...(TABLE_DEFAULTS[defaultShape] ?? TABLE_DEFAULTS.round),
+      // Look del prototipo: mesa y sillas en GRIS (no beige) — sobrescribe los defaults beige.
+      tableColor: '#F0F0F2', chairColor: '#ffffff', chairStyle: 'modern',
+      ...initialConfig,
+    } as TableConfig;
+    // Para rectangular/cuadrada el usuario edita el TOTAL; derivamos el reparto por
+    // lado del total real (numberChair de la mesa) para que la preview SVG cuadre.
+    if (base.shape === 'rectangular' || base.shape === 'square') {
+      Object.assign(base, distributeSeatsBySide(base.seats ?? 0, base.shape));
+    }
+    return base;
   });
   const [previewSVG, setPreviewSVG] = useState('');
 
@@ -291,14 +314,16 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
         const maxS = getMaxSeats(next);
         if ((next.seats ?? 0) > maxS) next.seats = maxS;
       }
+      // El usuario edita el TOTAL de sillas; para rectangular/cuadrada derivamos el
+      // reparto por lado (solo alimenta la preview SVG; el plano reparte el total).
+      if (key === 'seats' && (next.shape === 'rectangular' || next.shape === 'square')) {
+        Object.assign(next, distributeSeatsBySide(next.seats ?? 0, next.shape));
+      }
       if (key === 'realWidthCm' || key === 'realHeightCm') {
         const maxS = getMaxSeats(next);
-        const total = (next.seatsTop ?? 0) + (next.seatsBottom ?? 0) + (next.seatsLeft ?? 0) + (next.seatsRight ?? 0);
-        if (total > maxS) {
-          next.seatsTop = Math.floor((next.seatsTop ?? 0) * maxS / total);
-          next.seatsBottom = Math.floor((next.seatsBottom ?? 0) * maxS / total);
-          next.seatsLeft = Math.min(next.seatsLeft ?? 0, 2);
-          next.seatsRight = Math.min(next.seatsRight ?? 0, 2);
+        if ((next.seats ?? 0) > maxS) {
+          next.seats = maxS;
+          Object.assign(next, distributeSeatsBySide(maxS, next.shape));
         }
       }
       return next;
@@ -306,16 +331,13 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
   }, []);
 
   const handleConfirm = () => {
-    const final = { ...config };
-    if (final.shape === 'rectangular' || final.shape === 'square') {
-      final.seats = (final.seatsTop ?? 0) + (final.seatsBottom ?? 0) + (final.seatsLeft ?? 0) + (final.seatsRight ?? 0);
-    }
-    onConfirm(final, generateTableSVG(final));
+    // config.seats es el TOTAL (fuente de verdad); el reparto por lado ya está
+    // derivado en `update` solo para la preview SVG.
+    onConfirm({ ...config }, generateTableSVG(config));
   };
 
   const maxSeats = getMaxSeats(config);
   const isRect = config.shape === 'rectangular' || config.shape === 'square';
-  const maxPerLongSide = isRect ? Math.floor((config.realWidthCm ?? 240) / 45) : 0;
   const totalSize = getTableTotalSize(config);
 
   if (typeof document === 'undefined') return null;
@@ -371,14 +393,8 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
             {/* SILLAS */}
             <section style={s.section}>
               <div style={s.sectionTitle}>Sillas</div>
-              {!isRect ? (<>
-                <NumberStepper label="Número de sillas" value={config.seats} min={1} max={maxSeats} onChange={v => update('seats', v)} />
-                <div style={s.maxHint}>Máximo recomendado: {maxSeats} personas</div>
-              </>) : (
-                <SeatDistributor seatsTop={config.seatsTop ?? 0} seatsBottom={config.seatsBottom ?? 0}
-                  seatsLeft={config.seatsLeft ?? 0} seatsRight={config.seatsRight ?? 0}
-                  maxPerSide={maxPerLongSide} onChange={(side, v) => setConfig(p => ({ ...p, [side]: v }))} />
-              )}
+              <NumberStepper label="Número de sillas" value={config.seats} min={1} max={maxSeats} onChange={v => update('seats', v)} />
+              <div style={s.maxHint}>Máximo recomendado: {maxSeats} personas</div>
               <div style={s.fieldRow}>
                 <label style={s.label}>Estilo silla</label>
                 <select style={s.select} value={config.chairStyle ?? 'chiavari'}
@@ -411,7 +427,7 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
               {previewSVG && <div style={s.previewSVG} dangerouslySetInnerHTML={{ __html: previewSVG }} />}
             </div>
             <div style={s.previewInfo}>
-              <span>🪑 {isRect ? (config.seatsTop ?? 0) + (config.seatsBottom ?? 0) + (config.seatsLeft ?? 0) + (config.seatsRight ?? 0) : config.seats} personas</span>
+              <span>🪑 {config.seats} personas</span>
               {config.tableName && <span>📋 {config.tableName}</span>}
               {config.isHeadTable && <span>💍 Novios</span>}
             </div>
@@ -452,27 +468,6 @@ function NumberStepper({ label, value, min, max, onChange }: { label: string; va
         <button style={s.stepBtn} type="button" onClick={() => onChange(Math.max(min, value - 1))}>−</button>
         <span style={s.stepValue}>{value}</span>
         <button style={s.stepBtn} type="button" onClick={() => onChange(Math.min(max, value + 1))}>+</button>
-      </div>
-    </div>
-  );
-}
-
-function SeatDistributor({ seatsTop, seatsBottom, seatsLeft, seatsRight, maxPerSide, onChange }: { seatsTop: number; seatsBottom: number; seatsLeft: number; seatsRight: number; maxPerSide: number; onChange: (side: string, v: number) => void }) {
-  const total = seatsTop + seatsBottom + seatsLeft + seatsRight;
-  return (
-    <div style={s.seatDistrib}>
-      <div style={s.distribLabel}>Distribución · Total: <strong>{total}</strong></div>
-      <div style={s.distribGrid}>
-        {[['seatsTop', 'Arriba', seatsTop, maxPerSide], ['seatsBottom', 'Abajo', seatsBottom, maxPerSide], ['seatsLeft', 'Izq.', seatsLeft, 4], ['seatsRight', 'Der.', seatsRight, 4]].map(([key, label, val, max]) => (
-          <div key={key as string} style={s.distribRow}>
-            <span style={s.distribSide}>{label}</span>
-            <div style={s.stepper}>
-              <button style={s.stepBtn} type="button" onClick={() => onChange(key as string, Math.max(0, (val as number) - 1))}>−</button>
-              <span style={s.stepValue}>{val}</span>
-              <button style={s.stepBtn} type="button" onClick={() => onChange(key as string, Math.min(max as number, (val as number) + 1))}>+</button>
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );
