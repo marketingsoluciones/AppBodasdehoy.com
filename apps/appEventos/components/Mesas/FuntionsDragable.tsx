@@ -38,6 +38,11 @@ export const setupDropzone = ({ target, accept, handleOnDrop, setEvent, event: e
     interact(target)
       .dropzone({
         accept: accept,
+        // El item arrastrable (sidebar) NO se mueve — solo el "espejo" (dragM) sigue al
+        // cursor. Con overlap por elemento (default) el dropzone del canvas nunca detecta
+        // el item (queda en el sidebar) → el evento 'drop' no se disparaba. overlap:'pointer'
+        // = soltar donde está el CURSOR (patrón paleta→lienzo). Así el drop sí se registra.
+        overlap: 'pointer',
         ondropactivate: function (event) {
         },
         ondropdeactivate: function (event) {
