@@ -57,12 +57,15 @@ export const ListElements: GalerySvg[] = [
 
 // Función helper para convertir SVGs del backend en elementos React
 export const convertBackendSvgsToReact = (backendSvgs: any[]): GalerySvg[] => {
-  return backendSvgs.map((svgItem: any) => ({
-    ...svgItem,
-    // Convertir el string SVG del backend en un componente React usando SvgFromString
-    icon: <SvgFromString svgString={svgItem.icon} className="relative w-max" />,
-    size: { width: 60, height: 60 }
-  }));
+  return (Array.isArray(backendSvgs) ? backendSvgs : [])
+    // Solo convertir los que traen el SVG como STRING. Si `icon` ya es un React element
+    // (doble conversión) o falta, dejar el item tal cual → evita `undefined.match(...)`
+    // dentro de SvgFromString (crash CRÍTICO de la pestaña Mobiliario).
+    .map((svgItem: any) => (
+      typeof svgItem?.icon === 'string'
+        ? { ...svgItem, icon: <SvgFromString svgString={svgItem.icon} className="relative w-max" />, size: { width: 60, height: 60 } }
+        : svgItem
+    ));
 };
 
 
