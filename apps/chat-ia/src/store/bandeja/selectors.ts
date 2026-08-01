@@ -15,28 +15,40 @@ import type { ChannelKind, Conversation } from './types';
 // con jsdom (Zustand compara por identity por default).
 const EMPTY_TYPERS: readonly never[] = Object.freeze([]);
 
+// useShallow en los 3 selectores: Object.values()/.filter()/.sort() devuelven un array nuevo en
+// cada llamada. Con Zustand 5 (useSyncExternalStore, sin memoización) eso rompe la estabilidad
+// del snapshot → bucle "Maximum update depth exceeded" (React #185) en el primer componente que
+// los monte. useShallow devuelve la referencia previa si el contenido es shallow-igual. (Mismo
+// motivo por el que /pendientes crasheó — PR #249. Aquí es preventivo: hoy sin consumidores.)
+
 /** Lista plana de conversaciones ordenadas por lastMessageAt desc. */
 export const useConversationsList = (): Conversation[] => {
-  return useBandejaStore((s) => {
-    const arr = Object.values(s.conversations);
-    return arr.sort((a, b) => {
-      const ta = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
-      const tb = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
-      return tb - ta;
-    });
-  });
+  return useBandejaStore(
+    useShallow((s) => {
+      const arr = Object.values(s.conversations);
+      return arr.sort((a, b) => {
+        const ta = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+        const tb = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+        return tb - ta;
+      });
+    }),
+  );
 };
 
 /** Conversaciones filtradas por canal. */
 export const useConversationsByChannel = (channel: ChannelKind): Conversation[] => {
-  return useBandejaStore((s) => Object.values(s.conversations).filter((c) => c.channel === channel));
+  return useBandejaStore(
+    useShallow((s) => Object.values(s.conversations).filter((c) => c.channel === channel)),
+  );
 };
 
 /** Conversaciones filtradas por scope (evento concreto o 'support'). */
 export const useConversationsByScope = (scope: string): Conversation[] => {
-  return useBandejaStore((s) =>
-    Object.values(s.conversations).filter((c) =>
-      scope === 'support' ? !c.linkedEventId : c.linkedEventId === scope,
+  return useBandejaStore(
+    useShallow((s) =>
+      Object.values(s.conversations).filter((c) =>
+        scope === 'support' ? !c.linkedEventId : c.linkedEventId === scope,
+      ),
     ),
   );
 };
