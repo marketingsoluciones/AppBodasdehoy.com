@@ -81,4 +81,7 @@ export const useTypingInConv = (convId: string) =>
 
 /** Loading + error global. */
 export const useBandejaStatus = () =>
-  useBandejaStore((s) => ({ loading: s.loading, error: s.error }));
+  // useShallow: devuelve un objeto nuevo cada llamada → sobre useBandejaStore (create() plano,
+  // igualdad Object.is) rompería el snapshot → React #185 en el componente que lo monte. (Las
+  // stores de LobeChat no lo necesitan: usan createWithEqualityFn(..., shallow).)
+  useBandejaStore(useShallow((s) => ({ error: s.error, loading: s.loading })));
