@@ -19,6 +19,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useBandejaStore } from '@/store/bandeja';
@@ -77,7 +78,12 @@ function classifyNotification(type: string | undefined): SectionKey {
 
 export default function PendientesPage() {
   const router = useRouter();
-  const conversations = useBandejaStore((s) => Object.values(s.conversations));
+  // useShallow: Object.values() crea un array nuevo en cada llamada del selector.
+  // Con Zustand 5 (useSyncExternalStore sin memoización) eso rompe la estabilidad
+  // del snapshot → bucle "Maximum update depth exceeded" (React #185) que crasheaba
+  // /pendientes al 100%. useShallow devuelve la referencia anterior si el contenido
+  // es shallow-igual, cortando el loop. (Mismo patrón que useTypingInConv en el store.)
+  const conversations = useBandejaStore(useShallow((s) => Object.values(s.conversations)));
   const notifications = useBandejaStore((s) => s.notifications);
   const unreadCounts = useBandejaStore((s) => s.unreadCounts);
   const initBandeja = useBandejaStore((s) => s.initBandeja);
