@@ -249,6 +249,22 @@ const Mesas: FC = () => {
     setupDropzone({ target: '.js-dropTables', accept: `${[...defaultTablesDraggable, ...defaultElementsDraggable, "#dragN_text"]}`, handleOnDrop, setEvent, event, planSpaceActive, setPlanSpaceActive, planSpaceSelect })
   }, [planSpaceActive, event?.galerySvgs])
 
+  // Click-para-agregar mobiliario: el drop de interact.js sobre el canvas con zoom/pan
+  // es frágil; DragTable emite 'mesas-add-element' al hacer clic y aquí lo colocamos en
+  // el centro visible del plano (el usuario puede moverlo luego — ya persiste).
+  useEffect(() => {
+    const onAddElement = (e: any) => {
+      const modelo = e?.detail?.modelo
+      const tipo = e?.detail?.tipo
+      if (tipo !== 'element' && tipo !== 'text') return
+      const offsetX = 250 + Math.round(Math.random() * 80 - 40)
+      const offsetY = 230 + Math.round(Math.random() * 80 - 40)
+      handleOnDrop({ modelo, tipo, offsetX, offsetY })
+    }
+    window.addEventListener('mesas-add-element', onAddElement)
+    return () => window.removeEventListener('mesas-add-element', onAddElement)
+  }, [planSpaceActive, event])
+
   useEffect(() => {
     if (allFilterGuests) {
       setFilterGuests(allFilterGuests[event?.planSpace?.findIndex(elem => elem._id === planSpaceActive?._id)])

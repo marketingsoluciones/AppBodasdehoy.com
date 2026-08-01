@@ -52,11 +52,19 @@ interface propsDragTable {
 }
 const DragTable: FC<propsDragTable> = ({ item, label }) => {
   // Handlers de drag (crean el espejo dragM y lo limpian). Comunes a ambos modos.
+  // + click-para-agregar: el drop de interact.js sobre el canvas con zoom/pan es
+  // frágil; un clic simple añade el elemento al centro del plano (fallback fiable).
+  // mesas.tsx escucha 'mesas-add-element'. Solo para mobiliario (element/text).
   const dragHandlers = {
     onMouseDown: (e: MouseEvent<HTMLDivElement>) => { onMouseDown(e, item) },
     onMouseUp: () => { onUp(item) },
     onTouchStart: (e: TouchEvent<HTMLDivElement>) => { onTouchStart(e, item) },
     onTouchEnd: () => { onUp(item) },
+    onClick: () => {
+      if (item.tipo === 'element' || item.tipo === 'text') {
+        window.dispatchEvent(new CustomEvent('mesas-add-element', { detail: { modelo: item.title, tipo: item.tipo } }))
+      }
+    },
   }
   // Espejo oculto que se clona al arrastrar (común a ambos modos).
   const mirror = (
