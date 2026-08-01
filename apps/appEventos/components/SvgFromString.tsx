@@ -13,6 +13,12 @@ const SvgFromString: React.FC<SvgFromStringProps> = ({
   style = {},
   ...props
 }) => {
+  // Guard: si el svgString no es un string válido (galerySvg sin `icon`, dato roto del
+  // backend), NO reventar toda la pestaña Mobiliario con `undefined.match(...)`. Degradar
+  // ocultando solo este icono. (Crash CRÍTico informe QA: "Cannot read properties of
+  // undefined (reading 'match')").
+  if (typeof svgString !== 'string' || !svgString.trim()) return null;
+
   // Función para limpiar y convertir atributos HTML a React
   const convertHtmlAttributesToReact = (attributes: Record<string, string>): Record<string, string> => {
     const reactAttributes: Record<string, string> = {};
