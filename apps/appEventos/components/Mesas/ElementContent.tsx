@@ -171,11 +171,15 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
         : ListElements.find(elem => elem.title === item.tipo)
       if (element?.icon) {
         const size = item?.size ? item?.size : element?.size
-        setReactElement(cloneElement(element?.icon as React.ReactElement<any>, { 
-          style: { ...size, rotate: `${item?.rotation}deg` }, 
-          'data-width': size?.width, 
-          'data-height': size?.height, 
-          'data-rotation': item?.rotation 
+        // En el plano el mobiliario va en GRIS CLARO (como antes) y con el vector más fino
+        // (los iconos usan stroke=currentColor/strokeWidth 1.7; aquí los sobreescribimos).
+        setReactElement(cloneElement(element?.icon as React.ReactElement<any>, {
+          style: { ...size, rotate: `${item?.rotation}deg`, color: '#B4B4BC' },
+          stroke: '#B4B4BC',
+          strokeWidth: 1.3,
+          'data-width': size?.width,
+          'data-height': size?.height,
+          'data-rotation': item?.rotation
         } as any))
       }
     }
