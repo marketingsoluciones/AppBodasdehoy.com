@@ -257,6 +257,25 @@ function genTableId(): string {
   return ts + rest;
 }
 
+// Preview LINEAL para bancos: una sola fila de sillas sobre una barra (coherente con
+// cómo se dibuja el banco en el plano), en vez de una mesa con figura geométrica.
+function benchPreviewSVG(seats: number): string {
+  const n = Math.max(1, Math.min(40, Math.floor(seats || 1)));
+  const W = 290, H = 230, pad = 20;
+  const gap = (W - pad * 2) / n;
+  const r = Math.max(5, Math.min(11, gap * 0.36));
+  const cy = H / 2 - 16;
+  const barY = cy + r + 8;
+  let chairs = '';
+  for (let i = 0; i < n; i++) {
+    const cx = pad + gap * (i + 0.5);
+    chairs += `<circle cx="${cx.toFixed(1)}" cy="${cy}" r="${r.toFixed(1)}" fill="#ffffff" stroke="#B4B4BC" stroke-width="1.5"/>`;
+  }
+  const bar = `<rect x="${pad}" y="${barY}" width="${W - pad * 2}" height="16" rx="6" fill="#F0F0F2" stroke="#4a4a52" stroke-width="1.2"/>`;
+  const label = `<text x="${W / 2}" y="${barY + 42}" font-size="12" fill="#8a8a90" text-anchor="middle" font-family="Poppins, sans-serif">Banco lineal · ${n} sillas</text>`;
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${bar}${chairs}${label}</svg>`;
+}
+
 export default function TableConfigurator({ initialConfig, onConfirm, onCancel, nextTableNumber = 1 }: TableConfiguratorProps) {
   const defaultShape = (initialConfig?.shape ?? 'round') as TableShape;
   const [config, setConfig] = useState<TableConfig>(() => {
@@ -315,6 +334,9 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
 
   const maxSeats = getMaxSeats(config);
   const isRect = config.shape === 'rectangular' || config.shape === 'square';
+  // Banco = fila lineal de sillas sueltas: el modal oculta Forma/Tamaño/Tipo-mesa
+  // y muestra solo Nombre + Sillas + Estilo silla, con una preview lineal.
+  const isBench = !!(config as any).isBench;
   const totalSize = getTableTotalSize(config);
 
   if (typeof document === 'undefined') return null;
@@ -323,7 +345,7 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
       <div style={s.modal}>
         <style>{`.tc-round-check{appearance:none;-webkit-appearance:none;width:17px;height:17px;border:1.6px solid #c4c4cc;border-radius:50%;cursor:pointer;position:relative;flex:none;vertical-align:middle}.tc-round-check:checked{background:#EF5B94;border-color:#EF5B94}.tc-round-check:checked::after{content:'';position:absolute;left:5px;top:2.5px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}.tc-slider{-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;background:#E7E7EA;width:100%;outline:none}.tc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#EF5B94;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.25)}.tc-slider::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:#EF5B94;cursor:pointer}.tc-scroll::-webkit-scrollbar{width:0;height:0;display:none}`}</style>
         <div style={s.header}>
-          <h2 style={s.title}>{initialConfig ? 'Editar mesa' : 'Diseñar mesa'}</h2>
+          <h2 style={s.title}>{isBench ? 'Editar banco' : (initialConfig ? 'Editar mesa' : 'Diseñar mesa')}</h2>
           <button style={s.closeBtn} type="button" onClick={onCancel}>✕</button>
         </div>
 
@@ -335,7 +357,8 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
               <input type="text" value={config.tableName ?? ''} placeholder="Ej: Mesa 1" onChange={e => update('tableName', e.target.value)} style={{ ...s.textInput, width: '100%', boxSizing: 'border-box' }} />
             </section>
 
-            {/* FORMA */}
+            {/* FORMA — no aplica a un banco (fila lineal) */}
+            {!isBench && (
             <section style={s.section}>
               <div style={s.sectionTitle}>Forma</div>
               <div style={s.shapeGrid}>
@@ -346,8 +369,10 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
                 ))}
               </div>
             </section>
+            )}
 
-            {/* TAMAÑO */}
+            {/* TAMAÑO — no aplica a un banco (fila lineal) */}
+            {!isBench && (
             <section style={s.section}>
               <div style={s.sectionTitle}>Tamaño</div>
               {(config.shape === 'round') && (
@@ -366,12 +391,13 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
               )}
               <div style={s.sizeHint}>Espacio total con sillas: <strong>{Math.round(totalSize.widthCm)} × {Math.round(totalSize.heightCm)} cm</strong></div>
             </section>
+            )}
 
             {/* SILLAS */}
             <section style={s.section}>
               <div style={s.sectionTitle}>Sillas</div>
-              <NumberStepper label="Número de sillas" value={config.seats} min={1} max={maxSeats} onChange={v => update('seats', v)} />
-              <div style={s.maxHint}>Máximo recomendado: {maxSeats} personas</div>
+              <NumberStepper label="Número de sillas" value={config.seats} min={1} max={isBench ? 60 : maxSeats} onChange={v => update('seats', v)} />
+              {!isBench && <div style={s.maxHint}>Máximo recomendado: {maxSeats} personas</div>}
               <div style={s.fieldRow}>
                 <label style={s.label}>Estilo silla</label>
                 <select style={s.select} value={config.chairStyle ?? 'chiavari'}
@@ -385,7 +411,8 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
               </div>
             </section>
 
-            {/* TIPO DE MESA — el usuario pidió mantener Novios / Infantil */}
+            {/* TIPO DE MESA — no aplica a un banco (fila lineal) */}
+            {!isBench && (
             <section style={s.section}>
               <div style={s.sectionTitle}>Tipo de mesa</div>
               <div style={s.toggleRow}>
@@ -396,17 +423,20 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
                 ))}
               </div>
             </section>
+            )}
           </div>
 
           {/* Preview */}
           <div style={s.preview}>
             <div style={s.previewCanvas}>
-              {previewSVG && <div style={s.previewSVG} dangerouslySetInnerHTML={{ __html: previewSVG }} />}
+              {isBench
+                ? <div style={s.previewSVG} dangerouslySetInnerHTML={{ __html: benchPreviewSVG(config.seats) }} />
+                : (previewSVG && <div style={s.previewSVG} dangerouslySetInnerHTML={{ __html: previewSVG }} />)}
             </div>
             <div style={s.previewInfo}>
-              <span>🪑 {config.seats} personas</span>
+              <span>🪑 {config.seats} {isBench ? 'sillas' : 'personas'}</span>
               {config.tableName && <span>📋 {config.tableName}</span>}
-              {config.isHeadTable && <span>💍 Novios</span>}
+              {!isBench && config.isHeadTable && <span>💍 Novios</span>}
             </div>
           </div>
         </div>

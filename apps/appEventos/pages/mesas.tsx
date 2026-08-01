@@ -70,16 +70,25 @@ export const convertBackendSvgsToReact = (backendSvgs: any[]): GalerySvg[] => {
 // panel del HTML (TableConfigurator con initialConfig = modo "Editar mesa", línea 324).
 const SHAPE_TO_TIPO_EDIT: Record<string, string> = { round: 'redonda', rectangular: 'imperial', oval: 'redonda', square: 'cuadrada', semicircle: 'podio', head: 'podio' }
 const TIPO_TO_SHAPE_EDIT: Record<string, string> = { redonda: 'round', cuadrada: 'square', imperial: 'rectangular', podio: 'round', militar: 'rectangular', bancos: 'rectangular', banco: 'rectangular' }
-const mesaAConfig = (table: any, num?: number): any => ({
-  // 'podio' (antigua forma "media luna"/Novios) ya no es una forma seleccionable:
-  // se muestra como redonda + se marca el toggle "Mesa de novios".
-  shape: TIPO_TO_SHAPE_EDIT[table?.tipo] ?? 'round',
-  seats: table?.numberChair ?? 8,
-  tableName: table?.title ?? '',
-  // Número REAL de la mesa (índice+1 en el plano), para que el preview no muestre siempre "1"
-  ...(typeof num === 'number' && num > 0 ? { tableNumber: num } : {}),
-  isHeadTable: table?.tipo === 'podio',
-})
+// Tipos lineales (sillas sueltas en fila) — no son mesas con forma geométrica.
+const BENCH_TIPOS = ['bancos', 'banco', 'militar']
+const mesaAConfig = (table: any, num?: number): any => {
+  const isBench = BENCH_TIPOS.includes(table?.tipo)
+  return {
+    // 'podio' (antigua forma "media luna"/Novios) ya no es una forma seleccionable:
+    // se muestra como redonda + se marca el toggle "Mesa de novios".
+    shape: TIPO_TO_SHAPE_EDIT[table?.tipo] ?? 'round',
+    seats: table?.numberChair ?? 8,
+    tableName: table?.title ?? '',
+    // Número REAL de la mesa (índice+1 en el plano), para que el preview no muestre siempre "1"
+    ...(typeof num === 'number' && num > 0 ? { tableNumber: num } : {}),
+    isHeadTable: table?.tipo === 'podio',
+    // Banco = fila lineal de sillas sueltas → el modal muestra un modo simplificado
+    // (sin Forma/Tamaño/Tipo-mesa) y preselecciona el estilo de silla "Banco".
+    isBench,
+    ...(isBench ? { chairStyle: table?.tableConfig?.chairStyle ?? 'bench' } : {}),
+  }
+}
 
 const Mesas: FC = () => {
   const { t } = useTranslation();
@@ -133,7 +142,10 @@ const Mesas: FC = () => {
     const table = showFormEditar?.table
     if (!table?._id) { setShowFormEditar({ table: {}, visible: false }); return }
     const newTitle = (config?.tableName || table.title || '').toString()
-    const newTipo = SHAPE_TO_TIPO_EDIT[config?.shape] ?? table.tipo
+    // Banco = tipo lineal: NUNCA remapear desde la forma (evita banco→imperial que
+    // destruiría el layout lineal). Se conserva el tipo original.
+    const isBench = BENCH_TIPOS.includes(table?.tipo)
+    const newTipo = isBench ? table.tipo : (SHAPE_TO_TIPO_EDIT[config?.shape] ?? table.tipo)
     const newSeats = Number(config?.seats ?? table.numberChair) || table.numberChair
     try {
       // Reducir sillas → quitar invitados de las sillas eliminadas (chair >= newSeats).
