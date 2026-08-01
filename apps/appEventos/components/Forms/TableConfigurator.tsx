@@ -27,6 +27,8 @@ export interface TableConfiguratorProps {
   onConfirm: (config: TableConfig, svgString: string) => void;
   onCancel: () => void;
   nextTableNumber?: number;
+  /** Modo "banco" al CREAR: fila lineal de sillas sueltas + nº de filas paralelas. */
+  benchMode?: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,6 +54,7 @@ const SHAPE_TO_TIPO: Record<TableShape, string> = {
  */
 export function TableConfiguratorFloating() {
   const [open, setOpen] = useState(false);
+  const [benchOpen, setBenchOpen] = useState(false);
   const { event, setEvent, planSpaceActive, setPlanSpaceActive, planSpaceSelect } = EventContextProvider();
   const toast = useToast();
 
@@ -116,28 +119,32 @@ export function TableConfiguratorFloating() {
     }
   };
 
-  const handleAddBenchRow = async () => {
+  // Crea N bancos PARALELOS (cada uno = fila lineal de `seats` sillas), apilados con
+  // separación vertical, desde el modal en modo banco. Persiste vía updateEvento(planSpace).
+  const handleAddBenchRows = async (config: any) => {
     try {
-      const position = {
-        x: 180 + Math.round(Math.random() * 80),
-        y: 240 + Math.round(Math.random() * 80),
-      };
-      const title = `Bancos ceremonia ${((planSpaceActive.tables?.length ?? 0) + 1)}`;
-      const newTable: any = {
-        _id: genTableId(),
-        title,
-        nombre_mesa: title,
-        tipo: 'bancos',
-        cantidad_sillas: 12,
-        numberChair: 12,
-        position,
-        rotation: 0,
-        size: { width: 100, height: 40 },
-        guests: [],
-      };
+      const rows = Math.max(1, Math.min(10, Math.floor(config?.rows ?? 1)));
+      const seats = Math.max(1, Math.floor(config?.seats ?? 12));
+      const baseName = (config?.tableName || 'Bancos ceremonia').toString();
+      const baseX = 180 + Math.round(Math.random() * 60);
+      const baseY = 200 + Math.round(Math.random() * 40);
+      const rowGap = 60; // separación vertical entre bancos paralelos
+      const startN = (planSpaceActive.tables?.length ?? 0) + 1;
+      const newTables = Array.from({ length: rows }, (_, r) => {
+        const title = rows > 1 ? `${baseName} ${startN + r}` : `${baseName} ${startN}`;
+        return {
+          _id: genTableId(),
+          title, nombre_mesa: title, tipo: 'bancos',
+          cantidad_sillas: seats, numberChair: seats,
+          position: { x: baseX, y: baseY + r * rowGap },
+          rotation: 0, size: { width: 100, height: 40 },
+          tableConfig: { shape: 'rectangular', seats, chairStyle: config?.chairStyle ?? 'bench', isBench: true },
+          guests: [],
+        } as any;
+      });
       const nextPlanSpace = {
         ...planSpaceActive,
-        tables: [...(planSpaceActive.tables ?? []), newTable],
+        tables: [...(planSpaceActive.tables ?? []), ...newTables],
       };
       const nextPlanSpaces = (event.planSpace ?? []).map((ps: any) =>
         (ps?._id === nextPlanSpace._id || ps?._id === planSpaceSelect) ? nextPlanSpace : ps
@@ -152,10 +159,11 @@ export function TableConfiguratorFloating() {
       }
       setPlanSpaceActive(nextPlanSpace);
       setEvent({ ...event, planSpace: nextPlanSpaces });
-
-      toast('success', `"${title}" añadido al plano`);
+      toast('success', rows > 1 ? `${rows} bancos añadidos al plano` : 'Banco añadido al plano');
     } catch {
       toast('error', 'Error al añadir bancos al plano');
+    } finally {
+      setBenchOpen(false);
     }
   };
 
@@ -189,7 +197,7 @@ export function TableConfiguratorFloating() {
 
       <button
         type="button"
-        onClick={handleAddBenchRow}
+        onClick={() => setBenchOpen(true)}
         style={{
           position: 'fixed',
           bottom: 24,
@@ -209,12 +217,22 @@ export function TableConfiguratorFloating() {
         ＋ Bancos
       </button>
 
-      {/* Modal configurador */}
+      {/* Modal configurador de MESA */}
       {open && (
         <TableConfigurator
           nextTableNumber={(planSpaceActive.tables?.length ?? 0) + 1}
           onConfirm={handleConfirm}
           onCancel={() => setOpen(false)}
+        />
+      )}
+
+      {/* Modal configurador de BANCO (fila lineal + nº de filas paralelas) */}
+      {benchOpen && (
+        <TableConfigurator
+          benchMode
+          nextTableNumber={(planSpaceActive.tables?.length ?? 0) + 1}
+          onConfirm={handleAddBenchRows}
+          onCancel={() => setBenchOpen(false)}
         />
       )}
     </>
@@ -259,26 +277,36 @@ function genTableId(): string {
 
 // Preview LINEAL para bancos: una sola fila de sillas sobre una barra (coherente con
 // cómo se dibuja el banco en el plano), en vez de una mesa con figura geométrica.
-function benchPreviewSVG(seats: number): string {
+function benchPreviewSVG(seats: number, rows = 1): string {
   const n = Math.max(1, Math.min(40, Math.floor(seats || 1)));
+  const R = Math.max(1, Math.min(10, Math.floor(rows || 1)));
   const W = 290, H = 230, pad = 20;
   const gap = (W - pad * 2) / n;
-  const r = Math.max(5, Math.min(11, gap * 0.36));
-  const cy = H / 2 - 16;
-  const barY = cy + r + 8;
-  let chairs = '';
-  for (let i = 0; i < n; i++) {
-    const cx = pad + gap * (i + 0.5);
-    chairs += `<circle cx="${cx.toFixed(1)}" cy="${cy}" r="${r.toFixed(1)}" fill="#ffffff" stroke="#B4B4BC" stroke-width="1.5"/>`;
+  const r = Math.max(4, Math.min(10, gap * 0.34));
+  const rowH = Math.min(46, (H - 60) / R);         // separación vertical entre filas
+  const top = (H - 30 - (R - 1) * rowH) / 2;
+  let body = '';
+  for (let row = 0; row < R; row++) {
+    const cy = top + row * rowH;
+    const barY = cy + r + 6;
+    body += `<rect x="${pad}" y="${barY}" width="${W - pad * 2}" height="12" rx="5" fill="#F0F0F2" stroke="#4a4a52" stroke-width="1.1"/>`;
+    for (let i = 0; i < n; i++) {
+      const cx = pad + gap * (i + 0.5);
+      body += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="#ffffff" stroke="#B4B4BC" stroke-width="1.4"/>`;
+    }
   }
-  const bar = `<rect x="${pad}" y="${barY}" width="${W - pad * 2}" height="16" rx="6" fill="#F0F0F2" stroke="#4a4a52" stroke-width="1.2"/>`;
-  const label = `<text x="${W / 2}" y="${barY + 42}" font-size="12" fill="#8a8a90" text-anchor="middle" font-family="Poppins, sans-serif">Banco lineal · ${n} sillas</text>`;
-  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${bar}${chairs}${label}</svg>`;
+  const label = `<text x="${W / 2}" y="${H - 8}" font-size="12" fill="#8a8a90" text-anchor="middle" font-family="Poppins, sans-serif">${R > 1 ? R + ' bancos paralelos · ' : 'Banco lineal · '}${n} sillas c/u</text>`;
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${body}${label}</svg>`;
 }
 
-export default function TableConfigurator({ initialConfig, onConfirm, onCancel, nextTableNumber = 1 }: TableConfiguratorProps) {
+export default function TableConfigurator({ initialConfig, onConfirm, onCancel, nextTableNumber = 1, benchMode = false }: TableConfiguratorProps) {
   const defaultShape = (initialConfig?.shape ?? 'round') as TableShape;
   const [config, setConfig] = useState<TableConfig>(() => {
+    // Modo banco (CREAR): fila lineal de sillas sueltas + nº de filas paralelas.
+    if (benchMode) {
+      return { tableNumber: nextTableNumber, shape: 'rectangular', seats: 12, chairStyle: 'bench',
+        tableName: '', isBench: true, rows: 1, tableColor: '#F0F0F2', chairColor: '#ffffff' } as any;
+    }
     const base = {
       tableNumber: nextTableNumber,
       ...(TABLE_DEFAULTS[defaultShape] ?? TABLE_DEFAULTS.round),
@@ -336,7 +364,7 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
   const isRect = config.shape === 'rectangular' || config.shape === 'square';
   // Banco = fila lineal de sillas sueltas: el modal oculta Forma/Tamaño/Tipo-mesa
   // y muestra solo Nombre + Sillas + Estilo silla, con una preview lineal.
-  const isBench = !!(config as any).isBench;
+  const isBench = benchMode || !!(config as any).isBench;
   const totalSize = getTableTotalSize(config);
 
   if (typeof document === 'undefined') return null;
@@ -345,7 +373,7 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
       <div style={s.modal}>
         <style>{`.tc-round-check{appearance:none;-webkit-appearance:none;width:17px;height:17px;border:1.6px solid #c4c4cc;border-radius:50%;cursor:pointer;position:relative;flex:none;vertical-align:middle}.tc-round-check:checked{background:#EF5B94;border-color:#EF5B94}.tc-round-check:checked::after{content:'';position:absolute;left:5px;top:2.5px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}.tc-slider{-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;background:#E7E7EA;width:100%;outline:none}.tc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#EF5B94;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.25)}.tc-slider::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:#EF5B94;cursor:pointer}.tc-scroll::-webkit-scrollbar{width:0;height:0;display:none}`}</style>
         <div style={s.header}>
-          <h2 style={s.title}>{isBench ? 'Editar banco' : (initialConfig ? 'Editar mesa' : 'Diseñar mesa')}</h2>
+          <h2 style={s.title}>{isBench ? (initialConfig ? 'Editar banco' : 'Diseñar banco') : (initialConfig ? 'Editar mesa' : 'Diseñar mesa')}</h2>
           <button style={s.closeBtn} type="button" onClick={onCancel}>✕</button>
         </div>
 
@@ -396,8 +424,11 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
             {/* SILLAS */}
             <section style={s.section}>
               <div style={s.sectionTitle}>Sillas</div>
-              <NumberStepper label="Número de sillas" value={config.seats} min={1} max={isBench ? 60 : maxSeats} onChange={v => update('seats', v)} />
+              <NumberStepper label={isBench ? 'Sillas por fila' : 'Número de sillas'} value={config.seats} min={1} max={isBench ? 60 : maxSeats} onChange={v => update('seats', v)} />
               {!isBench && <div style={s.maxHint}>Máximo recomendado: {maxSeats} personas</div>}
+              {benchMode && (
+                <NumberStepper label="Filas paralelas" value={(config as any).rows ?? 1} min={1} max={10} onChange={v => setConfig(p => ({ ...p, rows: v } as any))} />
+              )}
               <div style={s.fieldRow}>
                 <label style={s.label}>Estilo silla</label>
                 <select style={s.select} value={config.chairStyle ?? 'chiavari'}
@@ -430,7 +461,7 @@ export default function TableConfigurator({ initialConfig, onConfirm, onCancel, 
           <div style={s.preview}>
             <div style={s.previewCanvas}>
               {isBench
-                ? <div style={s.previewSVG} dangerouslySetInnerHTML={{ __html: benchPreviewSVG(config.seats) }} />
+                ? <div style={s.previewSVG} dangerouslySetInnerHTML={{ __html: benchPreviewSVG(config.seats, (config as any).rows ?? 1) }} />
                 : (previewSVG && <div style={s.previewSVG} dangerouslySetInnerHTML={{ __html: previewSVG }} />)}
             </div>
             <div style={s.previewInfo}>
