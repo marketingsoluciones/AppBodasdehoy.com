@@ -191,53 +191,57 @@ const Mesas: FC = () => {
   }
 
   useEffect(() => {
-    if (creaElement) {
-      const element = values.tipo === "element"
-        ? event?.galerySvgs
-          ? [...event?.galerySvgs, ...ListElements].find(elem => elem.title === values.modelo)
-          : ListElements.find(elem => elem.title === values.modelo)
-        : null
-      try {
-        const inputValues = {
-          title: values.tipo === "text" ? "text" : values.modelo,
-          position: {
-            x: Math.round(values.offsetX - (element?.size?.width ?? 60) / 2),
-            y: Math.round(values.offsetY - (element?.size?.height ?? 60) / 2)
-          },
-          tipo: values.tipo === "text" ? "text" : values.modelo,
-          rotation: 0,
-          size: element?.size ?? { width: 60, height: 60 }
-        }
-        fetchApiBodas({
-          query: queries.createElement,
-          variables: {
-            evento_id: event._id,
-            element: { ...inputValues, planSpaceID: planSpaceActive._id }
-          },
-        }).then((result: any) => {
-          // createElement ahora devuelve evento{ _id planSpace } → usamos el planSpace REAL
-          // (con el _id real del elemento nuevo) para que el arrastre PERSISTA al recargar.
-          const updatedPs = Array.isArray(result?.evento?.planSpace)
-            ? result.evento.planSpace.find((ps: any) => ps?._id === planSpaceSelect)
-            : null
-          const newPlanSpaceActive = updatedPs ?? {
-            // Fallback defensivo: si el backend no devolviera planSpace, _id temporal (drag visual).
-            ...planSpaceActive,
-            elements: [...(planSpaceActive.elements ?? []), { ...inputValues, _id: `tmp_${Date.now()}_${Math.round(Math.random() * 100000)}` }],
-          }
-          setPlanSpaceActive(newPlanSpaceActive)
-          // planSpaceSelect es ID (string) — match por _id, no por índice.
-          setEvent((prev) => ({
-            ...prev,
-            planSpace: prev.planSpace.map(ps =>
-              ps?._id === planSpaceSelect ? newPlanSpaceActive : ps
-            ),
-          }))
-          setCreaElement(false)
-        })
-      } catch (err) {
-        toast("error", t("Ha ocurrido un error al añadir el objeto"))
+    if (!creaElement) return
+    const element = values.tipo === "element"
+      ? event?.galerySvgs
+        ? [...event?.galerySvgs, ...ListElements].find(elem => elem.title === values.modelo)
+        : ListElements.find(elem => elem.title === values.modelo)
+      : null
+    try {
+      // _id estilo ObjectId (24 hex) — el front es dueño de planSpace[].elements.
+      const genId = () => {
+        const ts = Math.floor(Date.now() / 1000).toString(16).padStart(8, '0')
+        let rest = ''; for (let i = 0; i < 16; i++) rest += Math.floor(Math.random() * 16).toString(16)
+        return ts + rest
       }
+      const newElement: any = {
+        _id: genId(),
+        title: values.tipo === "text" ? "text" : values.modelo,
+        position: {
+          x: Math.round((values.offsetX ?? 250) - (element?.size?.width ?? 60) / 2),
+          y: Math.round((values.offsetY ?? 230) - (element?.size?.height ?? 60) / 2)
+        },
+        tipo: values.tipo === "text" ? "text" : values.modelo,
+        rotation: 0,
+        size: element?.size ?? { width: 60, height: 60 }
+      }
+      // El backend createElement hace evento.planSpace.push(element) — mete el mueble
+      // como un PLANO nuevo (bug), no en planSpace[activo].elements. Persistimos vía
+      // updateEvento({planSpace}) añadiéndolo a los elements del plano activo (igual que mesas).
+      const newPlanSpaceActive: any = {
+        ...planSpaceActive,
+        elements: [...(planSpaceActive.elements ?? []), newElement],
+      }
+      const nextPlanSpaces = (event.planSpace ?? []).map((ps: any) =>
+        (ps?._id === planSpaceActive._id || ps?._id === planSpaceSelect) ? newPlanSpaceActive : ps
+      )
+      setPlanSpaceActive(newPlanSpaceActive)
+      setEvent((prev: any) => ({
+        ...prev,
+        planSpace: prev.planSpace.map((ps: any) =>
+          (ps?._id === planSpaceActive._id || ps?._id === planSpaceSelect) ? newPlanSpaceActive : ps
+        ),
+      }))
+      fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: { idEvento: event._id, input: { planSpace: nextPlanSpaces } },
+      }).then((r: any) => {
+        if (r && r.success === false) toast("error", t("Ha ocurrido un error al añadir el objeto"))
+      }).catch(() => toast("error", t("Ha ocurrido un error al añadir el objeto")))
+      setCreaElement(false)
+    } catch (err) {
+      toast("error", t("Ha ocurrido un error al añadir el objeto"))
+      setCreaElement(false)
     }
   }, [creaElement])
 
