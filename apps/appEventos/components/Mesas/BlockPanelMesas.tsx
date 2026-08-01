@@ -28,8 +28,11 @@ interface propsBlockPanelMesas {
 // selección del canvas.
 const BlockPanelMesas: FC<propsBlockPanelMesas> = ({ setShowFormEditar }) => {
   const { t } = useTranslation();
-  const { planSpaceActive } = EventContextProvider()
+  const { planSpaceActive, editDefault } = EventContextProvider()
   const tables: any[] = planSpaceActive?.tables || []
+  // Mesa seleccionada en el canvas (DragableDefault setea editDefault.clicked = _id).
+  // Sombreamos su fila en el menú para saber cuál es.
+  const selectedId = editDefault?.itemTipo === 'table' ? editDefault?.clicked : null
 
   const openEdit = (table: any) => {
     if (setShowFormEditar) setShowFormEditar({ table, visible: true })
@@ -52,11 +55,12 @@ const BlockPanelMesas: FC<propsBlockPanelMesas> = ({ setShowFormEditar }) => {
           const num = idx + 1
           const name = table?.title || table?.nombre_mesa || `${t('table', 'Mesa')} ${num}`
           const sillas = table?.numberChair ?? table?.cantidad_sillas ?? (table?.guests?.length || 0)
+          const isSelected = !!selectedId && table?._id === selectedId
           return (
             <div
               key={table?._id || idx}
               onClick={() => openEdit(table)}
-              className="flex items-center gap-[11px] px-2.5 py-[9px] rounded-[11px] bg-white border border-[#f0f0f2] hover:border-[#e2e2e6] hover:bg-[#faf9fb] cursor-pointer transition-colors"
+              className={`flex items-center gap-[11px] px-2.5 py-[9px] rounded-[11px] border cursor-pointer transition-colors ${isSelected ? 'bg-[#eeeef1] border-[#d2d2d8]' : 'bg-white border-[#f0f0f2] hover:border-[#e2e2e6] hover:bg-[#faf9fb]'}`}
             >
               <div className="w-[30px] h-[30px] rounded-[9px] flex-none flex items-center justify-center bg-[#F0F0F2] border-[1.5px] border-[#E2E2E6] text-[12px] font-bold text-[#6b6b72]">{num}</div>
               <div className="flex-1 min-w-0">
