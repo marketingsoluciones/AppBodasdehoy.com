@@ -38,6 +38,24 @@ export interface GetEventosByUsuarioResponse {
   getEventosByUsuario: EventosResponse;
 }
 
+// Evento con los datos RICOS del evento (para el panel contextual del chat).
+// Los *_array y presupuesto_objeto son escalares JSON opacos en el schema api-mcp
+// (04-jul, EVT-01): sin subselección → el cliente los consume tal cual (arrays de
+// objetos). Verificado contra la query que appEventos ya usa en prod (Fetching.ts
+// getEventsByID → queryenEvento).
+export interface EventoDetalle extends Evento {
+  invitados_array?: unknown;
+  itinerarios_array?: unknown;
+  lugar?: { _id?: string; slug?: string; title?: string } | null;
+  menus_array?: unknown;
+  presupuesto_objeto?: unknown;
+  showChildrenGuest?: boolean;
+}
+
+export interface QueryenEventoResponse {
+  queryenEvento: EventoDetalle | null;
+}
+
 // ========================================
 // QUERIES
 // ========================================
@@ -54,6 +72,30 @@ const GET_EVENTOS_BY_USUARIO = `
         development
         usuario_id
       }
+    }
+  }
+`;
+
+// Lectura de UN evento con sus datos ricos (presupuesto/itinerario/invitados).
+// Espeja la query PROBADA de appEventos (Fetching.ts getEventsByID): resolver
+// `queryenEvento(variable, valor, development)`. variable="_id" + valor=eventoId.
+// IMPORTANTE: NO poner comentarios `#` dentro de este template (el proxy lo aplasta
+// a 1 línea → el `#` come hasta EOF → "Syntax Error: Expected Name, found <EOF>").
+const GET_EVENTO_DETALLE = `
+  query GetEventoDetalle($variable: String, $valor: String, $development: String!) {
+    queryenEvento(variable: $variable, valor: $valor, development: $development) {
+      _id
+      nombre
+      fecha
+      tipo
+      usuario_id
+      development
+      lugar { _id title slug }
+      itinerarios_array
+      presupuesto_objeto
+      invitados_array
+      menus_array
+      showChildrenGuest
     }
   }
 `;
@@ -78,6 +120,24 @@ export const getEventosByUsuario = async (
     usuario_id: usuarioId,
   });
   return data.getEventosByUsuario?.eventos ?? [];
+};
+
+/**
+ * Obtiene UN evento con sus datos ricos (presupuesto/itinerario/invitados/menús)
+ * para el panel contextual del chat. Devuelve null si no se resuelve.
+ * Nota: los *_array y presupuesto_objeto vuelven como JSON opaco (parsear en el consumidor).
+ */
+export const getEventoDetalle = async (
+  development: string,
+  eventoId: string,
+): Promise<EventoDetalle | null> => {
+  if (!eventoId) return null;
+  const data = await mcpClient.query<QueryenEventoResponse>(GET_EVENTO_DETALLE, {
+    development,
+    valor: eventoId,
+    variable: '_id',
+  });
+  return data.queryenEvento ?? null;
 };
 
 /**
