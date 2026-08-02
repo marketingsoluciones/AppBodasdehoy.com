@@ -3,6 +3,7 @@ import { StateCreator } from 'zustand/vanilla';
 import { ChatStore } from '@/store/chat/store';
 
 import { ChatDallEAction, dalleSlice } from './dalle';
+import { ChatEventPanelAction, eventPanelSlice } from './eventPanel';
 import { ChatFilterAppViewAction, filterAppViewSlice } from './filterAppView';
 import { ChatFloorPlanEditorAction, floorPlanEditorSlice } from './floorPlanEditor';
 import { ChatCodeInterpreterAction, codeInterpreterSlice } from './interpreter';
@@ -18,6 +19,7 @@ export interface ChatBuiltinToolAction
     ChatCodeInterpreterAction,
     ChatVenueVisualizerAction,
     ChatFilterAppViewAction,
+    ChatEventPanelAction,
     ChatFloorPlanEditorAction {}
 
 export const chatToolSlice: StateCreator<
@@ -31,5 +33,6 @@ export const chatToolSlice: StateCreator<
   ...codeInterpreterSlice(...params),
   ...venueVisualizerSlice(...params),
   ...filterAppViewSlice(...params),
+  ...eventPanelSlice(...params),
   ...floorPlanEditorSlice(...params),
 });
