@@ -46,7 +46,40 @@ export const EventPanel = () => {
     return () => window.removeEventListener('keydown', h);
   }, [isOpen, close]);
 
-  if (!isOpen) return null;
+  const openPanel = useEventPanelStore((s) => s.open);
+
+  // Disparador manual: mientras la IA no pueda abrirlo (dep. #1), un botón flotante
+  // permite abrir el panel del evento actual. También sirve como entrada directa.
+  if (!isOpen) {
+    return (
+      <button
+        aria-label="Ver datos del evento"
+        onClick={() => openPanel('presupuesto')}
+        style={{
+          alignItems: 'center',
+          background: '#6366f1',
+          border: 'none',
+          borderRadius: 999,
+          bottom: 88,
+          boxShadow: '0 4px 14px rgba(99,102,241,.4)',
+          color: '#fff',
+          cursor: 'pointer',
+          display: 'flex',
+          fontSize: 13,
+          fontWeight: 600,
+          gap: 6,
+          padding: '10px 16px',
+          position: 'fixed',
+          right: 20,
+          zIndex: 999,
+        }}
+        title="Ver presupuesto / itinerario / servicios del evento"
+        type="button"
+      >
+        📋 Evento
+      </button>
+    );
+  }
 
   return (
     <>
