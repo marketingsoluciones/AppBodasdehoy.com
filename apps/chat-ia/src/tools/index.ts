@@ -3,6 +3,7 @@ import { LobeBuiltinTool } from '@lobechat/types';
 import { ArtifactsManifest } from './artifacts';
 import { CodeInterpreterManifest } from './code-interpreter';
 import { DalleManifest } from './dalle';
+import { EventPanelManifest } from './event-panel';
 import { FilterAppViewManifest } from './filter-app-view';
 import { FloorPlanEditorManifest } from './floor-plan-editor';
 import { VenueVisualizerManifest } from './venue-visualizer';
@@ -22,6 +23,12 @@ export const builtinTools: LobeBuiltinTool[] = [
   {
     identifier: DalleManifest.identifier,
     manifest: DalleManifest,
+    type: 'builtin',
+  },
+  {
+    hidden: true,
+    identifier: EventPanelManifest.identifier,
+    manifest: EventPanelManifest,
     type: 'builtin',
   },
   {

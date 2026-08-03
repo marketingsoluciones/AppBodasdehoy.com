@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 
 import { CodeInterpreterManifest } from './code-interpreter';
 import { DalleManifest } from './dalle';
+import { EventPanelManifest } from './event-panel';
 import { FilterAppViewManifest } from './filter-app-view';
 import { FloorPlanEditorManifest } from './floor-plan-editor';
 import { VenueVisualizerManifest } from './venue-visualizer';
@@ -30,8 +31,12 @@ const FloorPlanEditorRender = dynamic(() => import('./floor-plan-editor/Render')
 const FilterAppViewRender = dynamic(() => import('./filter-app-view/Render'), {
   ssr: false,
 }) as BuiltinRender;
+const EventPanelRender = dynamic(() => import('./event-panel/Render'), {
+  ssr: false,
+}) as BuiltinRender;
 
 export const BuiltinToolsRenders: Record<string, BuiltinRender> = {
+  [EventPanelManifest.identifier]: EventPanelRender,
   [DalleManifest.identifier]: DalleRender,
   [WebBrowsingManifest.identifier]: WebBrowsing,
   [CodeInterpreterManifest.identifier]: CodeInterpreterRender,
