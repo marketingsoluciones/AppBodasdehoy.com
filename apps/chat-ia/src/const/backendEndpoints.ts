@@ -1,4 +1,6 @@
-export const DEFAULT_API_IA_ORIGIN = 'https://api-ia.bodasdehoy.com';
+// 2026-08-03 (informe integración api-ia #4): host canónico = zona eventosorganizador.com.
+// La zona bodasdehoy sufre 526 intermitente (Cloudflare↔origin); el origin es el MISMO backend.
+export const DEFAULT_API_IA_ORIGIN = 'https://api-ia.eventosorganizador.com';
 
 const LEGACY_ALIASES = [
   'NEXT_PUBLIC_API3_IA_URL',
