@@ -1,6 +1,7 @@
 import { DynamicLayoutProps } from '@/types/next';
 import { RouteVariants } from '@/utils/server/routeVariants';
 import { EventosAutoAuth } from '@/features/EventosAutoAuth';
+import { EventPanel } from '@/features/EventPanel';
 
 import ConditionalChatView from './features/ConditionalChatView';
 import ConditionalHydration from './features/ConditionalHydration';
@@ -15,6 +16,7 @@ const ChatConversation = async (props: DynamicLayoutProps) => {
       <ZenModeToast />
       <ConditionalChatView mobile={isMobile} />
       <ConditionalHydration />
+      <EventPanel />
     </>
   );
 };

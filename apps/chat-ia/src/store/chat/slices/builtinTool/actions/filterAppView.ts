@@ -1,9 +1,7 @@
 import { StateCreator } from 'zustand/vanilla';
 
+import { ENTITY_TO_SECTION, useEventPanelStore } from '@/features/EventPanel/store';
 import { ChatStore } from '@/store/chat/store';
-import { setNamespace } from '@/utils/storeDebug';
-
-const n = setNamespace('tool');
 
 interface FilterViewData {
   entity: string;
@@ -21,7 +19,7 @@ export const filterAppViewSlice: StateCreator<
   [['zustand/devtools', never]],
   [],
   ChatFilterAppViewAction
-> = (set, get) => ({
+> = () => ({
   // eslint-disable-next-line @typescript-eslint/naming-convention
   filter_view: async (_id, data) => {
     if (typeof window === 'undefined') return;
@@ -29,6 +27,19 @@ export const filterAppViewSlice: StateCreator<
     const { entity, ids, query } = data;
 
     if (!entity) return;
+
+    // EMBEBIDO (chat-ia dentro del iframe de appEventos): avisar al parent para que
+    // filtre su vista nativa. En STANDALONE window.parent === window → ese postMessage
+    // no lo escucha nadie (audit F1). En ese caso, si la entidad es una sección de
+    // evento (presupuesto/itinerario/servicios), abrir el PANEL CONTEXTUAL local (#7).
+    const isEmbedded = window.parent !== window;
+    const section = ENTITY_TO_SECTION[String(entity).toLowerCase()];
+
+    if (!isEmbedded && section) {
+      // ids[0] puede venir como id de evento; si no, el panel resuelve el evento actual.
+      useEventPanelStore.getState().open(section, ids?.[0]);
+      return;
+    }
 
     window.parent.postMessage(
       {
@@ -39,6 +50,5 @@ export const filterAppViewSlice: StateCreator<
       },
       '*',
     );
-
   },
 });
