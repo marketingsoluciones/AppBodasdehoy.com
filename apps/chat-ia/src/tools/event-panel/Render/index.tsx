@@ -9,6 +9,7 @@ interface ShowEventSectionContent {
 const LABEL: Record<string, string> = {
   itinerario: 'itinerario',
   presupuesto: 'presupuesto',
+  servicios: 'servicios',
 };
 
 /** Resumen inline en el cuerpo del chat; el detalle vive en el Portal (panel lateral). */

@@ -11,7 +11,7 @@ export const EventPanelManifest: BuiltinToolManifest = {
   api: [
     {
       description:
-        'Abre el panel lateral del chat mostrando una sección del evento actual (presupuesto o itinerario) con sus datos reales. Úsalo cuando el usuario hable de su presupuesto/gastos/pagos o de su itinerario/agenda y quiera verlo.',
+        'Abre el panel lateral del chat mostrando una sección del evento actual (presupuesto, itinerario o servicios) con sus datos reales. Úsalo cuando el usuario hable de su presupuesto/gastos/pagos, de su itinerario/agenda, o de sus servicios/proveedores y quiera verlo.',
       name: 'show_event_section',
       parameters: {
         properties: {
@@ -22,7 +22,7 @@ export const EventPanelManifest: BuiltinToolManifest = {
           },
           section: {
             description: 'Sección del evento a mostrar en el panel.',
-            enum: ['presupuesto', 'itinerario'],
+            enum: ['presupuesto', 'itinerario', 'servicios'],
             type: 'string',
           },
         },
@@ -36,7 +36,7 @@ export const EventPanelManifest: BuiltinToolManifest = {
     avatar: '📊',
     title: 'Panel del evento',
   },
-  systemRole: `Cuando el usuario hable del PRESUPUESTO (gastos, coste, pagos, cuánto llevo) o del ITINERARIO (agenda, tareas, timing) de su evento y quiera verlo, invoca show_event_section con { section, eventoId }.
+  systemRole: `Cuando el usuario hable del PRESUPUESTO (gastos, coste, pagos, cuánto llevo), del ITINERARIO (agenda, tareas, timing) o de los SERVICIOS (proveedores, contrataciones) de su evento y quiera verlo, invoca show_event_section con { section, eventoId }.
 - El eventoId está en el contexto de página (screenData) del evento actual.
 - Tras invocarlo, el panel lateral del chat muestra la sección con los datos REALES (solo lectura por ahora).
 - En tu respuesta menciónalo brevemente: "Te muestro el presupuesto en el panel derecho."

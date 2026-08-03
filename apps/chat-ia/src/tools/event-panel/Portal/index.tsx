@@ -85,7 +85,8 @@ const Presupuesto = ({ evento }: { evento: any }) => {
 
 const Itinerario = ({ evento }: { evento: any }) => {
   const arr = asObj<any[]>(evento?.itinerarios_array);
-  const items: any[] = Array.isArray(arr) ? arr : [];
+  // Los itinerarios con tipo 'servicios' van en la sección Servicios (abajo).
+  const items: any[] = Array.isArray(arr) ? arr.filter((it) => it?.tipo !== 'servicios') : [];
   return (
     <div style={wrap}>
       <div style={h}>📅 Itinerario — {evento?.nombre ?? 'Evento'}</div>
@@ -105,6 +106,39 @@ const Itinerario = ({ evento }: { evento: any }) => {
             </div>
           );
         })
+      )}
+      <div style={{ color: '#9ca3af', fontSize: 11, marginTop: 16 }}>Solo lectura</div>
+    </div>
+  );
+};
+
+// Servicios: itinerarios_array con tipo 'servicios' (verificado en vivo 3-ago: el
+// evento real tenía 7 de tipo 'servicios'). Cada task = un servicio/proveedor.
+const Servicios = ({ evento }: { evento: any }) => {
+  const arr = asObj<any[]>(evento?.itinerarios_array);
+  const grupos: any[] = Array.isArray(arr) ? arr.filter((it) => it?.tipo === 'servicios') : [];
+  const tareas = grupos.flatMap((g) => (Array.isArray(g?.tasks) ? g.tasks : []));
+  return (
+    <div style={wrap}>
+      <div style={h}>🛎️ Servicios — {evento?.nombre ?? 'Evento'}</div>
+      {tareas.length === 0 ? (
+        <div style={{ color: '#9ca3af' }}>Sin servicios registrados.</div>
+      ) : (
+        tareas.map((t, i) => (
+          <div key={t?._id ?? i} style={{ ...row, alignItems: 'baseline' }}>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              {t?.descripcion ?? t?.title ?? `Servicio ${i + 1}`}
+              {t?.responsable && (
+                <span style={{ color: '#6b7280', fontSize: 11 }}> · {t.responsable}</span>
+              )}
+            </span>
+            {(t?.estatus || t?.estado) && (
+              <b style={{ fontSize: 11, textTransform: 'capitalize' }}>
+                {String(t?.estatus ?? t?.estado).replace(/_/g, ' ')}
+              </b>
+            )}
+          </div>
+        ))
       )}
       <div style={{ color: '#9ca3af', fontSize: 11, marginTop: 16 }}>Solo lectura</div>
     </div>
@@ -137,7 +171,9 @@ const EventPanelPortal = memo<BuiltinPortalProps<{ eventoId?: string; section?: 
       return <div style={wrap}><div style={{ color: '#9ca3af' }}>Cargando…</div></div>;
     }
 
-    return section === 'itinerario' ? <Itinerario evento={evento} /> : <Presupuesto evento={evento} />;
+    if (section === 'itinerario') return <Itinerario evento={evento} />;
+    if (section === 'servicios') return <Servicios evento={evento} />;
+    return <Presupuesto evento={evento} />;
   },
 );
 
