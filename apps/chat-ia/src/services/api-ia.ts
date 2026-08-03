@@ -50,19 +50,65 @@ const jsonHeaders = () => ({
   'X-Development': getTenant(),
 });
 
+// ─────────── ENDPOINT 0: preparar turno (topic+thread+par user/assistant) ───────────
+// Contrato informe integración api-ia (3-ago): POST /chat/messages/turn crea de forma ATÓMICA
+// el topic + thread + par user/assistant y devuelve los IDs. api-ia resuelve/crea la sesión.
+// ⚠️ VERIFICADO EN VIVO 3-ago: este endpoint devuelve 502 con token+sessionId válidos
+//    (bug del endpoint, escalado a backend). NO activar el flujo turn→stream hasta que
+//    devuelva 200. /chat/stream (abajo) sí funciona.
+export interface PrepareTurnResult {
+  assistantMessageId: string;
+  topicId: string;
+  userMessageId: string;
+}
+export async function prepareTurn(params: {
+  newTopic?: { title: string };
+  newUserMessage: { content: string };
+  sessionId: string;
+  topicId?: string;
+}): Promise<PrepareTurnResult> {
+  ensureEnabled('prepareTurn');
+  const r = await fetch(`${API_IA_BASE}/chat/messages/turn`, {
+    body: JSON.stringify({ development: getTenant(), ...params }),
+    headers: jsonHeaders(),
+    method: 'POST',
+  });
+  const res = await r.json();
+  if (!r.ok || res?.success === false) {
+    const msg = res?.errors?.[0]?.message || res?.error || `HTTP ${r.status}`;
+    throw new Error(`[api-ia] prepareTurn falló: ${msg}`);
+  }
+  const d = res?.data ?? res;
+  return {
+    assistantMessageId: d.assistantMessageId,
+    topicId: d.topicId,
+    userMessageId: d.userMessageId,
+  };
+}
+
 // ─────────── ENDPOINT 1: chat streaming + persistencia (SSE) ───────────
 // Ruta DEFINITIVA (api-ia 2026-06-03, Opción A): POST /chat/stream REEMPLAZA a /webapi/chat.
 // Con persist:true streamea Y persiste user+assistant en api-mcp (billing+JWT). Sin persist:true
 // se comporta como /webapi/chat hoy (migración opt-in sin riesgo). Devuelve SSE.
+// CONTRATO VERIFICADO EN VIVO 3-ago (eventosorganizador.com): body = {provider:'auto', stream:true,
+//   sessionId, persist, messages:[{role,content}]} → SSE reasoning→text→done. OK.
 export async function sendChatMessage(
   sessionId: string,
-  message: string,
-  opts?: { maxTokens?: number; model?: string; persist?: boolean; temperature?: number },
+  messages: Array<{ content: string; role: string }>,
+  opts?: { maxTokens?: number; model?: string; persist?: boolean; provider?: string; temperature?: number },
 ): Promise<Response> {
   ensureEnabled('sendChatMessage');
-  const { persist = true, ...rest } = opts || {};
+  const { persist = true, provider = 'auto', ...rest } = opts || {};
   return fetch(`${API_IA_BASE}/chat/stream`, {
-    body: JSON.stringify({ development: getTenant(), message, persist, sessionId, ...rest }),
+    body: JSON.stringify({
+      development: getTenant(),
+      messages,
+      persist,
+      provider,
+      sessionId,
+      stream: true,
+      ...rest,
+    }),
     headers: jsonHeaders(),
     method: 'POST',
   });
@@ -81,7 +127,8 @@ export async function sendChatMessage(
 export interface ApiIaStreamHandlers {
   onDone?: () => void;
   onError?: (error: string, meta?: { code?: string; traceId?: string }) => void;
-  onEvent?: (event: string, data: any) => void; // extras: tool_calls, reasoning, etc.
+  onEvent?: (event: string, data: any) => void; // extras: tool_calls, tool_result, etc.
+  onReasoning?: (chunk: string) => void; // "pensando…" (verificado en vivo 3-ago)
   onText?: (chunk: string) => void; // delta acumulable
   onUsage?: (usage: any) => void;
 }
@@ -124,6 +171,10 @@ export async function consumeChatStream(
     }
 
     switch (event) {
+      case 'reasoning': {
+        handlers.onReasoning?.(typeof parsed === 'string' ? parsed : rawData);
+        break;
+      }
       case 'text': {
         handlers.onText?.(typeof parsed === 'string' ? parsed : rawData);
         break;
