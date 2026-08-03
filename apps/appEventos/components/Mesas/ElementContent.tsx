@@ -227,7 +227,9 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
           border: ${isEditing ? "1.5px solid #EF5B94" : "none"} !important;
           border-radius: ${isEditing ? "9999px" : "0"};
           padding: ${isEditing ? "4px 16px" : "0"};
-          background: white;
+          /* Sin fondo blanco en display: el texto se ve limpio sobre la cuadrícula.
+             Solo pinta blanco dentro del pill rosa al editar. */
+          background: ${isEditing ? "white" : "transparent"};
           transition: border-color .15s ease, padding .15s ease;
         }
         .textTable-editor_${item._id} .ql-container.ql-snow {
