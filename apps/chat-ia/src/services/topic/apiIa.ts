@@ -29,7 +29,17 @@ async function call(method: string, path: string, body?: unknown): Promise<any> 
   });
   if (!res.ok) throw new Error(`[topic/apiIa] ${method} ${path} → HTTP ${res.status}`);
   const text = await res.text();
-  return text ? JSON.parse(text) : null;
+  const json = text ? JSON.parse(text) : null;
+  // REGLA DE ORO (contrato api-ia): un HTTP 200 con { success:false, errors:[...] } es FALLO.
+  if (
+    json &&
+    typeof json === 'object' &&
+    (json.success === false || (Array.isArray(json.errors) && json.errors.length > 0))
+  ) {
+    const msg = json.errors?.[0]?.message || 'operación no exitosa';
+    throw new Error(`[topic/apiIa] ${method} ${path} → ${msg}`);
+  }
+  return json;
 }
 
 const unwrap = (res: any) => res?.data ?? res?.topics ?? res ?? [];
