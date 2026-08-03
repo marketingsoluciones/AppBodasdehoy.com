@@ -38,6 +38,22 @@ export interface GetEventosByUsuarioResponse {
   getEventosByUsuario: EventosResponse;
 }
 
+// Evento RICO para el panel contextual del chat (#7). Los *_array / *_objeto son
+// escalares JSON en api-mcp (sin subselección) → se tipan laxos y se parsean en el render.
+// Gate por dueño a nivel campo (backend, verificado): cross-tenant recibe solo el stub
+// público {_id,nombre,fecha,tipo} con los ricos en null.
+export interface EventoDetalle extends Evento {
+  invitados_array?: any[] | null;
+  itinerarios_array?: any[] | null;
+  menus_array?: any[] | null;
+  planSpace?: any[] | null;
+  presupuesto_objeto?: Record<string, any> | null;
+}
+
+export interface GetEventoByIdResponse {
+  getEventoById: EventoDetalle | null;
+}
+
 // ========================================
 // QUERIES
 // ========================================
@@ -54,6 +70,26 @@ const GET_EVENTOS_BY_USUARIO = `
         development
         usuario_id
       }
+    }
+  }
+`;
+
+// Panel contextual del chat (#7). Verificado EN VIVO 3-ago vs api-mcp:
+// getEventoById(id: ID!) — NO acepta `development`; `id` es ID! (no String).
+// Devuelve el evento rico (itinerarios_array/presupuesto_objeto/invitados_array).
+const GET_EVENTO_BY_ID = `
+  query GetEventoById($id: ID!) {
+    getEventoById(id: $id) {
+      _id
+      nombre
+      fecha
+      tipo
+      development
+      itinerarios_array
+      presupuesto_objeto
+      invitados_array
+      menus_array
+      planSpace
     }
   }
 `;
@@ -78,6 +114,19 @@ export const getEventosByUsuario = async (
     usuario_id: usuarioId,
   });
   return data.getEventosByUsuario?.eventos ?? [];
+};
+
+/**
+ * Obtiene UN evento con sus sub-objetos ricos (itinerario/presupuesto/servicios/invitados)
+ * para el panel contextual del chat (#7). Lectura DIRECTA a api-mcp (NO pasa por el LLM →
+ * sin coste IA, sin doble billing). El gate por dueño lo aplica api-mcp: si el usuario no
+ * es dueño, los *_array/*_objeto llegan en null (solo stub público).
+ * Devuelve null si no existe o no hay id.
+ */
+export const getEventoById = async (id: string): Promise<EventoDetalle | null> => {
+  if (!id) return null;
+  const data = await mcpClient.query<GetEventoByIdResponse>(GET_EVENTO_BY_ID, { id });
+  return data.getEventoById ?? null;
 };
 
 /**
