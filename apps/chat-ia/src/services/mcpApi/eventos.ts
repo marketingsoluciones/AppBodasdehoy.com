@@ -41,8 +41,7 @@ export interface GetEventosByUsuarioResponse {
 // Evento con los datos RICOS del evento (para el panel contextual del chat).
 // Los *_array y presupuesto_objeto son escalares JSON opacos en el schema api-mcp
 // (04-jul, EVT-01): sin subselección → el cliente los consume tal cual (arrays de
-// objetos). Verificado contra la query que appEventos ya usa en prod (Fetching.ts
-// getEventsByID → queryenEvento).
+// objetos). Se obtienen por el resolver canónico getEventoById(id) de api-mcp.
 export interface EventoDetalle extends Evento {
   invitados_array?: unknown;
   itinerarios_array?: unknown;
@@ -52,8 +51,8 @@ export interface EventoDetalle extends Evento {
   showChildrenGuest?: boolean;
 }
 
-export interface QueryenEventoResponse {
-  queryenEvento: EventoDetalle | null;
+export interface GetEventoByIdResponse {
+  getEventoById: EventoDetalle | null;
 }
 
 // ========================================
@@ -77,20 +76,21 @@ const GET_EVENTOS_BY_USUARIO = `
 `;
 
 // Lectura de UN evento con sus datos ricos (presupuesto/itinerario/invitados).
-// Espeja la query PROBADA de appEventos (Fetching.ts getEventsByID): resolver
-// `queryenEvento(variable, valor, development)`. variable="_id" + valor=eventoId.
+// Resolver CANÓNICO de api-mcp: `getEventoById(id: ID!)` (confirmado por api-ia 3-ago;
+// `queryenEvento` era nombre legacy de adapter, api-mcp NO lo expone directo). El gate
+// por dueño lo aplica getEventoById a nivel campo (cross-tenant → solo stub público).
+// development/auth van por header (X-Development + Bearer) del mcpClient, NO como arg.
 // IMPORTANTE: NO poner comentarios `#` dentro de este template (el proxy lo aplasta
 // a 1 línea → el `#` come hasta EOF → "Syntax Error: Expected Name, found <EOF>").
 const GET_EVENTO_DETALLE = `
-  query GetEventoDetalle($variable: String, $valor: String, $development: String!) {
-    queryenEvento(variable: $variable, valor: $valor, development: $development) {
+  query GetEventoDetalle($id: ID!) {
+    getEventoById(id: $id) {
       _id
       nombre
       fecha
       tipo
       usuario_id
       development
-      lugar { _id title slug }
       itinerarios_array
       presupuesto_objeto
       invitados_array
@@ -127,17 +127,10 @@ export const getEventosByUsuario = async (
  * para el panel contextual del chat. Devuelve null si no se resuelve.
  * Nota: los *_array y presupuesto_objeto vuelven como JSON opaco (parsear en el consumidor).
  */
-export const getEventoDetalle = async (
-  development: string,
-  eventoId: string,
-): Promise<EventoDetalle | null> => {
+export const getEventoDetalle = async (eventoId: string): Promise<EventoDetalle | null> => {
   if (!eventoId) return null;
-  const data = await mcpClient.query<QueryenEventoResponse>(GET_EVENTO_DETALLE, {
-    development,
-    valor: eventoId,
-    variable: '_id',
-  });
-  return data.queryenEvento ?? null;
+  const data = await mcpClient.query<GetEventoByIdResponse>(GET_EVENTO_DETALLE, { id: eventoId });
+  return data.getEventoById ?? null;
 };
 
 /**

@@ -21,18 +21,6 @@ export interface ChatEventPanelAction {
   show_event_section: (id: string, data: ShowEventSectionData) => Promise<void>;
 }
 
-/** development del usuario (misma fuente que useAuthCheck: dev-user-config en localStorage). */
-function resolveDevelopment(): string {
-  if (typeof window === 'undefined') return 'bodasdehoy';
-  try {
-    const raw = localStorage.getItem('dev-user-config');
-    const cfg = raw ? JSON.parse(raw) : null;
-    return cfg?.development || 'bodasdehoy';
-  } catch {
-    return 'bodasdehoy';
-  }
-}
-
 export const eventPanelSlice: StateCreator<
   ChatStore,
   [['zustand/devtools', never]],
@@ -54,7 +42,7 @@ export const eventPanelSlice: StateCreator<
     }
 
     try {
-      const evento = await getEventoDetalle(resolveDevelopment(), eventoId);
+      const evento = await getEventoDetalle(eventoId);
       // BUG#5 (api-mcp DB caída): distinguir "no encontrado" de "error de servidor"
       // no es posible aquí sin más señal → si no hay evento, marcarlo como not_found
       // (el consumer muestra estado honesto + reintento, no miente con datos vacíos).
