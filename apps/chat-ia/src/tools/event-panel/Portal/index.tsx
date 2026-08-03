@@ -38,23 +38,44 @@ const Presupuesto = ({ evento }: { evento: any }) => {
   const gastado = p.coste_final ?? 0;
   const restante = Number(total) - Number(gastado);
   const cats: any[] = Array.isArray(p.categorias_array) ? p.categorias_array : [];
+  const pct = Number(total) > 0 ? Math.min(100, Math.round((Number(gastado) / Number(total)) * 100)) : 0;
+  const over = restante < 0;
   return (
     <div style={wrap}>
       <div style={h}>💰 Presupuesto — {evento?.nombre ?? 'Evento'}</div>
+      <div style={{ margin: '4px 0 12px' }}>
+        <div style={{ background: '#eee', borderRadius: 6, height: 8, overflow: 'hidden' }}>
+          <div style={{ background: over ? '#dc2626' : '#16a34a', height: '100%', width: `${pct}%` }} />
+        </div>
+        <div style={{ color: '#6b7280', fontSize: 11, marginTop: 4 }}>{pct}% del presupuesto usado</div>
+      </div>
       <div style={row}><span>Presupuesto total</span><b>{eur(total)}</b></div>
       <div style={row}><span>Gastado</span><b>{eur(gastado)}</b></div>
-      <div style={{ ...row, color: restante < 0 ? '#dc2626' : '#16a34a' }}>
+      <div style={{ ...row, color: over ? '#dc2626' : '#16a34a' }}>
         <span>Restante</span><b>{eur(restante)}</b>
       </div>
       {cats.length > 0 && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>Categorías</div>
-          {cats.map((c, i) => (
-            <div key={c?._id ?? i} style={row}>
-              <span>{c?.nombre ?? `Categoría ${i + 1}`}</span>
-              <b>{eur(c?.coste_final ?? c?.coste_estimado ?? 0)}</b>
-            </div>
-          ))}
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>Categorías ({cats.length})</div>
+          {cats.map((c, i) => {
+            const cFinal = Number(c?.coste_final ?? 0);
+            const cEst = Number(c?.coste_estimado ?? 0);
+            const gastos = Array.isArray(c?.gastos_array) ? c.gastos_array : [];
+            return (
+              <div key={c?._id ?? i} style={{ borderBottom: '1px solid rgba(0,0,0,0.06)', padding: '8px 0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ fontWeight: 500 }}>{c?.nombre ?? `Categoría ${i + 1}`}</span>
+                  <b>{eur(cFinal || cEst)}</b>
+                </div>
+                {(gastos.length > 0 || cEst > 0) && (
+                  <div style={{ color: '#6b7280', fontSize: 11, marginTop: 2 }}>
+                    {gastos.length > 0 ? `${gastos.length} gasto${gastos.length === 1 ? '' : 's'}` : 'sin gastos'}
+                    {cEst > 0 ? ` · estimado ${eur(cEst)}` : ''}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
       <div style={{ color: '#9ca3af', fontSize: 11, marginTop: 16 }}>Solo lectura</div>
