@@ -55,7 +55,19 @@ async function call(method: string, path: string, body?: unknown): Promise<any> 
   if (!res.ok) throw new Error(`[message/apiIa] ${method} ${path} → HTTP ${res.status}`);
   // 204/empty → null
   const text = await res.text();
-  return text ? JSON.parse(text) : null;
+  const json = text ? JSON.parse(text) : null;
+  // REGLA DE ORO (contrato api-ia): un HTTP 200 puede traer { success:false, errors:[...] }
+  // (data:null + errors). Sin este chequeo se tragaba como éxito → el par no se persistía
+  // y el fallo quedaba oculto. Tratarlo como FALLO explícito con el error real.
+  if (
+    json &&
+    typeof json === 'object' &&
+    (json.success === false || (Array.isArray(json.errors) && json.errors.length > 0))
+  ) {
+    const msg = json.errors?.[0]?.message || 'operación no exitosa';
+    throw new Error(`[message/apiIa] ${method} ${path} → ${msg}`);
+  }
+  return json;
 }
 
 /**
