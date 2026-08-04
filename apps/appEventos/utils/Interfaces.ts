@@ -410,6 +410,7 @@ interface propsBase {
 }
 export interface element extends propsBase {
     tipo: string
+    fontSize?: number // px del texto (elementos tipo "text"). planSpace es JSON → persiste.
 }
 
 export interface guest {

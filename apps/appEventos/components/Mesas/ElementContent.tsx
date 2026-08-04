@@ -21,7 +21,8 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
   const { editDefault } = EventContextProvider()
   const [reactElement, setReactElement] = useState<React.ReactElement>();
   const { event, planSpaceActive, setPlanSpaceActive, setEvent } = EventContextProvider()
-  const [customEditor, setCustomEditor] = useState<string>(item?.title || `<p class="ql-align-center">texto</p>`)
+  // Vacío por defecto → se muestra el placeholder "Escribe aquí" (fiel al prototipo).
+  const [customEditor, setCustomEditor] = useState<string>(item?.title || "")
   const [editDefaultOld, setEditDefaultOld] = useState<any>()
   const [isMounted, setIsMounted] = useState(false)
   const [isClickEditor, setIsClickEditor] = useState(false)
@@ -69,13 +70,12 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
       const handleClickOutside = (e: MouseEvent) => {
         const elem = document.getElementById(`editor-textTable_${item._id}`)
         const editor = elem?.querySelector('.ql-editor') as HTMLElement
-        const toolbar = elem?.querySelector('.ql-toolbar') as HTMLElement
-        if (editor && toolbar) {
+        if (editor) {
           const target = e.target as Node
-          const isClickInsideEditor = editor.contains(target)
-          const isClickInsideToolbar = toolbar.contains(target)
-          if (!isClickInsideEditor && !isClickInsideToolbar) {
+          // Los botones lápiz/+/- hacen stopPropagation → no llegan aquí.
+          if (!editor.contains(target)) {
             setTriggerClickOutside(new Date())
+            setIsClickEditor(false)
           }
         }
       }
@@ -96,17 +96,25 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
       setIsMounted(false)
     }
   }, [])
-  // Configuración del editor Quill
-  const quillModules = {
-    toolbar: [
-      [{ 'size': ['small', false, 'large', 'huge'] }], // Selector de tamaño de fuente
-      ['bold', 'italic', 'underline', 'strike'],
-      ['clean'],
-      [{ 'align': [] }],
-      [{ 'color': [] }, { 'background': [] }],
 
-    ],
-  };
+  // El botón LÁPIZ (en DragableDefault) dispara la edición del texto vía evento,
+  // para mostrar el input tipo píldora con borde rosa (fiel al prototipo).
+  useEffect(() => {
+    const onEdit = (e: any) => {
+      if (e?.detail?.id === item._id) {
+        setIsClickEditor(true)
+        setTimeout(() => {
+          const editor = document.getElementById(`editor-textTable_${item._id}`)?.querySelector('.ql-editor') as HTMLElement | null
+          editor?.focus()
+        }, 0)
+      }
+    }
+    window.addEventListener('mesas-text-edit', onEdit as any)
+    return () => window.removeEventListener('mesas-text-edit', onEdit as any)
+  }, [item?._id])
+  // Sin toolbar Quill: el diseño (prototipo) usa lápiz para editar y +/- para el
+  // tamaño de letra (como mobiliario). Texto plano centrado.
+  const quillModules = { toolbar: false };
 
   useEffect(() => {
     if (isMounted && item?.tipo === "text") {
@@ -161,6 +169,7 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
           modules={quillModules}
           formats={quillFormats}
           theme="snow"
+          placeholder="Escribe aquí"
           className={`bg-white border-none textTable-editor_${item._id}`}
         />
       </div>
@@ -185,6 +194,11 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
     }
   }, [item, event?.galerySvgs]);
 
+  // Modo edición del texto: seleccionado + click-editor activo (lápiz o clic en el texto).
+  // El pill con borde rosa aparece solo aquí. (isClickEditor se resetea al soltar el drag.)
+  const isEditing = editDefault?.clicked === item?._id && isClickEditor
+  const fontSize = item?.fontSize ?? 14
+
   return (
     <>
       {reactElement
@@ -206,24 +220,34 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
           height: auto !important;
           overflow: hidden;
           font-family: inherit;
-          font-size: 0.875rem;
-          line-height: 1.5rem;
-          border: none !important;
+          font-size: ${fontSize}px;
+          line-height: 1.4;
           position: static !important;
+          /* Input tipo píldora con borde rosa SOLO al editar (fiel al prototipo). */
+          border: ${isEditing ? "1.5px solid #EF5B94" : "none"} !important;
+          border-radius: ${isEditing ? "9999px" : "0"};
+          padding: ${isEditing ? "4px 16px" : "0"};
+          /* Sin fondo blanco en display: el texto se ve limpio sobre la cuadrícula.
+             Solo pinta blanco dentro del pill rosa al editar. */
+          background: ${isEditing ? "white" : "transparent"};
+          transition: border-color .15s ease, padding .15s ease;
         }
         .textTable-editor_${item._id} .ql-container.ql-snow {
           border: none !important;
           position: static !important;
         }
         .textTable-editor_${item._id} .ql-editor {
-          background-color: white;
-          min-width: 50px;
-          //min-height: 200px;
+          background-color: transparent;
+          min-width: 60px;
           padding: 0;
-          font-size: 12px;
+          font-size: ${fontSize}px;
+          font-weight: 600;
+          text-align: center;
+          color: #1f2937;
           height: 100%;
           overflow-y: auto;
           position: static !important;
+          cursor: ${isEditing ? "text" : "pointer"};
         }
         .textTable-editor_${item._id} .ql-toolbar {
           ${editDefault?.clicked === item._id && !disableDrag && isClickEditor ? "visibility: visible" : "display: none"};
@@ -301,9 +325,13 @@ export const ElementContent: FC<propsElement> = ({ item, scale, disableDrag }) =
           fill: currentColor;
         }
         .textTable-editor_${item._id} .ql-editor.ql-blank::before {
-          color: #9ca3af;
+          color: ${isEditing ? "#c4c4cc" : "#1f2937"};
           font-style: normal;
-          font-size: 12px;
+          font-weight: 600;
+          font-size: ${fontSize}px;
+          left: 0;
+          right: 0;
+          text-align: center;
         }
       `}</style>
     </>
