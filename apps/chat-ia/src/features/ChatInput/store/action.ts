@@ -46,6 +46,12 @@ export const store: CreateStore = (publicState) => (set, get) => ({
     // siguiente keystroke del user. clearContent del callback queda
     // no-op porque ya se limpió.
     const snapshot = String(editor?.getDocument('markdown') || '').trimEnd();
+
+    // QA Bug#8: si el snapshot sale VACÍO (carrera de serialización del editor / clic
+    // sin contenido), NO limpiar ni enviar — evita el síntoma "el texto se borra pero
+    // el mensaje nunca se envía". Con contenido no vacío se procede normal.
+    if (!snapshot) return;
+
     editor?.cleanDocument();
 
     get().onSend?.({
