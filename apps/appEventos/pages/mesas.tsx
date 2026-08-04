@@ -61,11 +61,18 @@ export const convertBackendSvgsToReact = (backendSvgs: any[]): GalerySvg[] => {
   // cloneElement). Envolvemos en SvgFromString: si el string no es válido/está vacío,
   // SvgFromString degrada a null (pero sigue siendo un element válido para cloneElement),
   // evitando tanto `undefined.match(...)` como `cloneElement(undefined)`.
-  return (Array.isArray(backendSvgs) ? backendSvgs : []).map((svgItem: any) => ({
-    ...svgItem,
-    icon: <SvgFromString svgString={typeof svgItem?.icon === 'string' ? svgItem.icon : ''} className="relative w-max" />,
-    size: { width: 60, height: 60 },
-  }));
+  return (Array.isArray(backendSvgs) ? backendSvgs : [])
+    // Un mueble/elemento decorativo SIEMPRE tiene un SVG. Filtramos entradas SIN SVG
+    // válido: son datos corruptos (p.ej. NOMBRES DE PLANO como "recepción"/"ceremonia"
+    // guardados por error como galerySvg de tipo element) que se colaban en la grilla
+    // de Mobiliario como tarjetas de solo texto. (Data-fix backend aparte; esto evita
+    // mostrarlas.)
+    .filter((svgItem: any) => typeof svgItem?.icon === 'string' && svgItem.icon.includes('<svg'))
+    .map((svgItem: any) => ({
+      ...svgItem,
+      icon: <SvgFromString svgString={svgItem.icon} className="relative w-max" />,
+      size: { width: 60, height: 60 },
+    }));
 };
 
 
