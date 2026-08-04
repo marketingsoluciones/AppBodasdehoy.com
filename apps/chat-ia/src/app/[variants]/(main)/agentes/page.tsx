@@ -148,6 +148,12 @@ export default function AgentesPage() {
     }
   }, [selectedId, agentSessions]);
 
+  // Guard de hidratación (React #418, QA 4-ago): los selectores de Zustand pueden diferir
+  // entre SSR (estado inicial) y el primer render del cliente (store ya hidratado) → mismatch.
+  // Renderizamos el placeholder hasta `mounted` para garantizar HTML SSR == 1er render cliente.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   // Estado local (disabled + channels) por agente — memoria hasta backend.
   const [localStates, setLocalStates] = useState<Record<string, LocalAgentState>>({});
   useEffect(() => {
@@ -340,7 +346,7 @@ export default function AgentesPage() {
   // Sessions aún no hidratadas — Redirect.tsx ya evita el fullscreen loader
   // en /agentes (ROUTES_TO_SKIP). Aquí ponemos placeholder discreto para
   // evitar mostrar "no tienes agentes" mientras cargan.
-  if (!isSessionListInit) {
+  if (!mounted || !isSessionListInit) {
     return (
       <div className="flex h-full" style={{ backgroundColor: '#FFFFFF' }}>
         <MessagesRail />
