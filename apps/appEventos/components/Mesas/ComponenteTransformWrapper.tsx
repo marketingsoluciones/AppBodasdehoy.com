@@ -119,12 +119,16 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
                     <button
                       onClick={async () => {
                         setShowMiniMenu(false)
-                        // Capturar el LIENZO tal cual se ve en la app (html2canvas) para que
-                        // el PDF del plano sea idéntico. Si falla, exportPlanoPdf cae al croquis.
+                        // Capturar el plano TAL CUAL en la web = una FOTO con la cuadrícula.
+                        // La cuadrícula vive en el wrapper del zoom (.react-transform-wrapper),
+                        // no en #lienzo-drop; por eso capturamos el wrapper (cuadrícula + mesas
+                        // + muebles + textos, exactamente como se ve). Si falla → croquis vectorial.
                         let planoImage: string | undefined
                         try {
                           const html2canvas = (await import('html2canvas')).default
-                          const el = document.getElementById('lienzo-drop')
+                          const el =
+                            (document.querySelector('.react-transform-wrapper') as HTMLElement | null) ||
+                            document.getElementById('lienzo-drop')
                           if (el) {
                             const canvas = await html2canvas(el, { backgroundColor: '#F3F1EC', scale: 2, useCORS: true, logging: false } as any)
                             planoImage = canvas.toDataURL('image/png')
