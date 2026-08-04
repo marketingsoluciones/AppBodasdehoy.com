@@ -8,6 +8,9 @@ interface ExportArgs {
   planSpaceActive: any
   event: any
   planoTitle: string
+  // Captura del lienzo (html2canvas, dataURL PNG). Si viene, la página 1 muestra el
+  // plano TAL CUAL en la app. Si no, se dibuja el croquis vectorial.
+  planoImage?: string
 }
 
 // Colores de marca (RGB para jsPDF).
@@ -27,7 +30,7 @@ const stripHtml = (s: any): string =>
 
 const ROUND_TIPOS = ['redonda', 'oval', 'podio'];
 
-export const exportPlanoPdf = ({ planSpaceActive, event, planoTitle }: ExportArgs): boolean => {
+export const exportPlanoPdf = ({ planSpaceActive, event, planoTitle, planoImage }: ExportArgs): boolean => {
   try {
     const tables: any[] = planSpaceActive?.tables ?? [];
     const elements: any[] = planSpaceActive?.elements ?? [];
@@ -50,6 +53,21 @@ export const exportPlanoPdf = ({ planSpaceActive, event, planoTitle }: ExportArg
     doc.setDrawColor(...C.border); doc.setLineWidth(1);
     doc.roundedRect(areaX, areaY, areaW, areaH, 8, 8, 'S');
 
+    // Si viene la CAPTURA del plano (html2canvas) → la pintamos = idéntico a la app.
+    let usedImage = false;
+    if (planoImage) {
+      try {
+        const props: any = doc.getImageProperties(planoImage);
+        const pad = 10;
+        const r = Math.min((areaW - pad * 2) / props.width, (areaH - pad * 2) / props.height);
+        const iw = props.width * r, ih = props.height * r;
+        doc.addImage(planoImage, 'PNG', areaX + (areaW - iw) / 2, areaY + (areaH - ih) / 2, iw, ih);
+        usedImage = true;
+      } catch { /* imagen inválida → se dibuja el croquis vectorial abajo */ }
+    }
+
+    // Croquis vectorial: SOLO si no se pudo usar la captura de la app.
+    if (!usedImage) {
     const W = planSpaceActive?.size?.width || 1400;
     const H = planSpaceActive?.size?.height || 1400;
     // pad para que las sillas del borde no se salgan del área
@@ -135,6 +153,7 @@ export const exportPlanoPdf = ({ planSpaceActive, event, planoTitle }: ExportArg
         doc.text(label, cx, cy, { align: 'center', baseline: 'middle', maxWidth: Math.max(20, w - 4) });
       }
     });
+    } // fin croquis vectorial (solo si no hubo captura de la app)
 
     // ---------- PÁGINAS 2+: invitados por mesa + sin mesa (2 columnas) ----------
     doc.addPage('letter', 'portrait');

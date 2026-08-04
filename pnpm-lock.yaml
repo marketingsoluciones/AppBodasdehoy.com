@@ -153,6 +153,9 @@ importers:
       heic2any:
         specifier: ^0.0.4
         version: 0.0.4
+      html2canvas:
+        specifier: ^1.4.1
+        version: 1.4.1
       i18next:
         specifier: ^23.15.1
         version: 23.16.8
@@ -19372,7 +19375,6 @@ packages:
     engines: {node: '>= 0.6.0'}
     requiresBuild: true
     dev: false
-    optional: true
 
   /base64-js@0.0.8:
     resolution: {integrity: sha512-3XSA2cR/h/73EzlXXdU6YNycmYI7+kicTxks4eJg2g39biHR84slg2+des+p7iHYhbRg/udIS4TD53WabcOUkw==}
@@ -20887,7 +20889,6 @@ packages:
     dependencies:
       utrie: 1.0.2
     dev: false
-    optional: true
 
   /css-mediaquery@0.1.2:
     resolution: {integrity: sha512-COtn4EROW5dBGlE/4PiKnh6rZpAPxDeFLaEEwt4i10jpDMFt2EhQGS79QmmrO+iKCHv0PU/HrOWEhijFd1x99Q==}
@@ -25353,7 +25354,6 @@ packages:
       css-line-break: 2.1.0
       text-segmentation: 1.0.3
     dev: false
-    optional: true
 
   /http-assert@1.5.0:
     resolution: {integrity: sha512-uPpH7OKX4H25hBmU6G1jWNaqJGpTXxey+YOUizJUAgu0AjLUeC8D73hTrhvDS5D+GJN1DN1+hhc/eF/wpxtp0w==}
@@ -37240,7 +37240,6 @@ packages:
     dependencies:
       utrie: 1.0.2
     dev: false
-    optional: true
 
   /text-table@0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
@@ -38428,7 +38427,6 @@ packages:
     dependencies:
       base64-arraybuffer: 1.0.2
     dev: false
-    optional: true
 
   /uuid@10.0.0:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}

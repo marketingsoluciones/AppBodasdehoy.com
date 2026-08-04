@@ -117,67 +117,29 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
                   <div className="bg-white flex flex-col absolute z-[10] top-[0px] right-0 rounded-b-md shadow-md min-w-[140px] md:min-w-[120px] items-center text-[10px] md:text-[12px] px-3 pt-1 pb-2 text-gray-800">
                     {/* Exportar PDF — movido aquí desde el icono suelto (plano más limpio) */}
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         setShowMiniMenu(false)
-                        const ok = exportPlanoPdf({ planSpaceActive, event, planoTitle: t(planSpaceActive?.title) })
+                        // Capturar el LIENZO tal cual se ve en la app (html2canvas) para que
+                        // el PDF del plano sea idéntico. Si falla, exportPlanoPdf cae al croquis.
+                        let planoImage: string | undefined
+                        try {
+                          const html2canvas = (await import('html2canvas')).default
+                          const el = document.getElementById('lienzo-drop')
+                          if (el) {
+                            const canvas = await html2canvas(el, { backgroundColor: '#F3F1EC', scale: 2, useCORS: true, logging: false } as any)
+                            planoImage = canvas.toDataURL('image/png')
+                          }
+                        } catch (e) {
+                          console.warn('[exportPDF] captura del plano falló; uso croquis vectorial:', e)
+                        }
+                        const ok = exportPlanoPdf({ planSpaceActive, event, planoTitle: t(planSpaceActive?.title), planoImage })
                         if (!ok) toast('error', t('pdferror') || 'No se pudo generar el PDF')
                       }}
                       className="w-full flex items-center gap-2 text-left font-semibold py-1.5 mb-1 border-b border-gray-100 hover:text-primary"
                     >
                       <mdIcons.MdPictureAsPdf className="w-4 h-4 text-primary" />{t('exportpdf') || 'Exportar PDF'}
                     </button>
-                    <span className="w-full text-left font-bold transform -ml-2">{t("savetemplate")}</span>
-                    <span className="flex flex-col text-[9px] md:text-[11px]">
-                      <span className="capitalize">{t("names")}</span>
-                      <input
-                        type="text"
-                        value={value}
-                        onChange={(e) => {
-                          setValue(e.target.value)
-                          const exists = psTemplates?.some(t => t.title === e.target.value)
-                          setident(!!exists)
-                        }}
-                        placeholder={t("templatename") || "Nombre del plano"}
-                        className="w-full border border-gray-300 rounded px-2 py-1 text-xs mt-1 focus:border-primary focus:outline-none"
-                      />
-                      <div className="relative">
-                        {!valir && <p className="w-[75%] font-display absolute rounded-xl text-xs left-0 bottom-0 transform translate-y-full text-red flex gap-1"><WarningIcon className="w-4 h-4" />{t("saveitreplaces")}</p>}
-                      </div>
-                      <div className="w-full flex justify-end mt-2 ">
-                        <button onClick={async () => {
-                          if (ident && valir) {
-                            setValir(!valir)
-                            return
-                          }
-                          if (value !== "") {
-                            setShowMiniMenu(false)
-                            setValir(true)
-                            if (!valir) {
-                              //aqui actualizo en vez de guarda
-                            } else {
-                              const resp = await fetchApiEventos({
-                                query: queries.createPsTemplate,
-                                variables: {
-                                  evento_id: event._id,
-                                  template: {
-                                    planSpaceID: planSpaceActive._id,
-                                    title: value,
-                                    uid: user?.uid
-                                  }
-                                }
-                              })
-                              setPsTemplates(old => {
-                                old.push(resp)
-                                return [...old]
-                              })
-                            }
-                          }
-                          setValue("")
-                          toast("success", t("savedtemplate"))
-                        }}
-                          className="bg-primary w-16 h-5 rounded-lg text-white capitalize">{t("save")}</button>
-                      </div>
-                    </span>
+                    {/* "Guardar como plantilla" eliminado del menú (petición): solo Exportar PDF. */}
                   </div>
                 </div>
               }
