@@ -1,13 +1,8 @@
-// Rediseño Fase D (fiel a MESAS.dc.html): exportar el plano a PDF.
-// Sin dependencias: genera un HTML con croquis SVG (mesas posicionadas) + lista de
-// invitados por mesa, lo abre en una ventana nueva y lanza print() → el usuario elige
-// "Guardar como PDF". Usa datos reales (planSpaceActive.tables, table.guests,
-// event.invitados_array). El _buildPDF del prototipo es solo referencia de layout.
-
-const escapeHtml = (s: any): string =>
-  String(s ?? '').replace(/[&<>"']/g, (c) => (
-    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' } as Record<string, string>
-  )[c]);
+// Exportar el plano a PDF con DESCARGA real (jsPDF, sin popup ni servicios externos).
+// Página 1: croquis del plano (mesas posicionadas a escala + nombre).
+// Páginas siguientes: lista de invitados por mesa (asiento + nombre).
+// Datos reales: planSpaceActive.tables, table.guests, event.invitados_array.
+import { jsPDF } from 'jspdf';
 
 interface ExportArgs {
   planSpaceActive: any
@@ -15,66 +10,136 @@ interface ExportArgs {
   planoTitle: string
 }
 
+// Colores de marca (RGB para jsPDF).
+const C = {
+  bg: [240, 240, 242] as [number, number, number],
+  border: [231, 231, 234] as [number, number, number],
+  ink: [58, 58, 66] as [number, number, number],
+  muted: [138, 138, 144] as [number, number, number],
+  pink: [239, 91, 148] as [number, number, number],
+  line: [242, 242, 244] as [number, number, number],
+};
+
 export const exportPlanoPdf = ({ planSpaceActive, event, planoTitle }: ExportArgs): boolean => {
-  const tables: any[] = planSpaceActive?.tables ?? [];
-  const W = planSpaceActive?.size?.width || 1400;
-  const H = planSpaceActive?.size?.height || 1400;
+  try {
+    const tables: any[] = planSpaceActive?.tables ?? [];
+    const guestsById: Record<string, any> = {};
+    (event?.invitados_array ?? []).forEach((g: any) => { if (g?._id) guestsById[g._id] = g; });
 
-  const guestsById: Record<string, any> = {};
-  (event?.invitados_array ?? []).forEach((g: any) => { if (g?._id) guestsById[g._id] = g; });
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
+    const pw = doc.internal.pageSize.getWidth();
+    const ph = doc.internal.pageSize.getHeight();
+    const M = 40;
 
-  const svgTables = tables.map((tb: any) => {
-    const x = tb?.position?.x ?? 0;
-    const y = tb?.position?.y ?? 0;
-    const w = tb?.size?.width ?? 100;
-    const h = tb?.size?.height ?? 100;
-    const round = ['redonda', 'oval', 'podio'].includes(tb?.tipo);
-    const shape = round
-      ? `<ellipse cx="${x + w / 2}" cy="${y + h / 2}" rx="${w / 2}" ry="${h / 2}" fill="#F0F0F2" stroke="#3A3A42" stroke-width="2"/>`
-      : `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="#F0F0F2" stroke="#3A3A42" stroke-width="2"/>`;
-    const label = `<text x="${x + w / 2}" y="${y + h / 2}" text-anchor="middle" dominant-baseline="central" font-size="24" font-weight="700" fill="#3A3A42" font-family="Poppins,Arial">${escapeHtml(tb?.title || tb?.nombre_mesa || '')}</text>`;
-    return shape + label;
-  }).join('');
+    // ---------- PÁGINA 1: croquis del plano ----------
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.setTextColor(...C.ink);
+    doc.text(String(planoTitle || 'Plano'), M, M + 4);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...C.muted);
+    doc.text(`${tables.length} mesa${tables.length === 1 ? '' : 's'}${event?.nombre ? '  ·  ' + event.nombre : ''}`, M, M + 20);
 
-  const svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-height:58vh;border:1px solid #E7E7EA;border-radius:12px;background:#fff">${svgTables}</svg>`;
+    const areaX = M, areaY = M + 34;
+    const areaW = pw - M * 2, areaH = ph - areaY - M;
+    doc.setDrawColor(...C.border); doc.setLineWidth(1);
+    doc.roundedRect(areaX, areaY, areaW, areaH, 8, 8, 'S');
 
-  const lists = tables.map((tb: any) => {
-    const rows = (tb?.guests ?? [])
-      .slice()
-      .sort((a: any, b: any) => (a?.chair ?? 0) - (b?.chair ?? 0))
-      .map((gg: any) => {
-        const guest = guestsById[gg?._id];
-        return `<li><span class="seat">A${(gg?.chair ?? 0) + 1}</span> ${escapeHtml(guest?.nombre || '—')}</li>`;
-      }).join('');
-    const cap = tb?.numberChair ? ` / ${tb.numberChair}` : '';
-    return `<div class="tbl"><h3>${escapeHtml(tb?.title || tb?.nombre_mesa || '')} <small>${tb?.guests?.length ?? 0}${cap}</small></h3><ul>${rows || '<li class="empty">Sin invitados</li>'}</ul></div>`;
-  }).join('');
+    const W = planSpaceActive?.size?.width || 1400;
+    const H = planSpaceActive?.size?.height || 1400;
+    const scale = Math.min(areaW / W, areaH / H);
+    const offX = areaX + (areaW - W * scale) / 2;
+    const offY = areaY + (areaH - H * scale) / 2;
 
-  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escapeHtml(planoTitle)}</title>
-<style>
-  *{box-sizing:border-box} body{font-family:Poppins,Arial,sans-serif;color:#3A3A42;margin:28px}
-  h1{font-size:22px;margin:0 0 4px} .sub{color:#8a8a90;font-size:12px;margin-bottom:18px}
-  h2{font-size:15px;margin:22px 0 12px;color:#EF5B94}
-  .lists{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
-  .tbl{border:1px solid #E7E7EA;border-radius:10px;padding:10px 12px;break-inside:avoid}
-  .tbl h3{font-size:13px;margin:0 0 6px} .tbl small{color:#a0a0a8;font-weight:500}
-  .tbl ul{list-style:none;padding:0;margin:0} .tbl li{font-size:12px;padding:3px 0;border-top:1px solid #f2f2f4;display:flex;gap:8px;align-items:center}
-  .tbl li:first-child{border-top:none} .seat{color:#EF5B94;font-weight:700;font-size:10px;min-width:26px}
-  .empty{color:#c8c8ce}
-  @media print{ body{margin:12mm} }
-</style></head><body>
-  <h1>${escapeHtml(planoTitle)}</h1>
-  <div class="sub">${tables.length} mesas${event?.nombre ? ' · ' + escapeHtml(event.nombre) : ''}</div>
-  <div class="croquis">${svg}</div>
-  <h2>Invitados por mesa</h2>
-  <div class="lists">${lists || '<div class="empty">Sin mesas</div>'}</div>
-  <script>window.onload=function(){setTimeout(function(){window.print()},300)}</script>
-</body></html>`;
+    if (tables.length === 0) {
+      doc.setFontSize(12); doc.setTextColor(...C.muted);
+      doc.text('Este plano no tiene mesas todavía.', pw / 2, areaY + areaH / 2, { align: 'center', baseline: 'middle' });
+    }
 
-  const win = window.open('', '_blank');
-  if (!win) return false;
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-  return true;
+    tables.forEach((tb: any) => {
+      const x = offX + (tb?.position?.x ?? 0) * scale;
+      const y = offY + (tb?.position?.y ?? 0) * scale;
+      const w = (tb?.size?.width ?? 100) * scale;
+      const h = (tb?.size?.height ?? 100) * scale;
+      doc.setFillColor(...C.bg); doc.setDrawColor(...C.ink); doc.setLineWidth(1);
+      const round = ['redonda', 'oval', 'podio'].includes(tb?.tipo);
+      if (round) doc.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 'FD');
+      else doc.roundedRect(x, y, w, h, 3, 3, 'FD');
+      const label = String(tb?.title || tb?.nombre_mesa || '');
+      if (label) {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(Math.max(5, Math.min(9, w / 7)));
+        doc.setTextColor(...C.ink);
+        doc.text(label, x + w / 2, y + h / 2, { align: 'center', baseline: 'middle', maxWidth: Math.max(20, w - 4) });
+      }
+    });
+
+    // ---------- PÁGINAS 2+: invitados por mesa (2 columnas, con salto de página) ----------
+    doc.addPage('letter', 'portrait');
+    const pw2 = doc.internal.pageSize.getWidth();
+    const ph2 = doc.internal.pageSize.getHeight();
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.setTextColor(...C.pink);
+    doc.text('Invitados por mesa', M, M + 2);
+
+    const colGap = 18;
+    const colW = (pw2 - M * 2 - colGap) / 2;
+    const colX = [M, M + colW + colGap];
+    const topY = M + 22;
+    const bottomY = ph2 - M;
+    let col = 0;
+    let y = topY;
+
+    const newColumnOrPage = (blockH: number) => {
+      if (y + blockH <= bottomY) return;
+      if (col === 0) { col = 1; y = topY; }
+      else { doc.addPage('letter', 'portrait'); col = 0; y = topY; }
+    };
+
+    if (tables.length === 0) {
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(...C.muted);
+      doc.text('Sin mesas.', M, topY + 6);
+    }
+
+    tables.forEach((tb: any) => {
+      const guests = (tb?.guests ?? [])
+        .slice()
+        .sort((a: any, b: any) => (a?.chair ?? 0) - (b?.chair ?? 0));
+      const rowH = 13;
+      const headH = 20;
+      const blockH = headH + Math.max(1, guests.length) * rowH + 8;
+      newColumnOrPage(blockH);
+      const x = colX[col];
+
+      // header de la mesa
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(...C.ink);
+      const cap = tb?.numberChair ? ` / ${tb.numberChair}` : '';
+      doc.text(String(tb?.title || tb?.nombre_mesa || 'Mesa'), x, y + 8, { maxWidth: colW - 40 });
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...C.muted);
+      doc.text(`${guests.length}${cap}`, x + colW, y + 8, { align: 'right' });
+      y += headH;
+
+      if (guests.length === 0) {
+        doc.setFont('helvetica', 'italic'); doc.setFontSize(9); doc.setTextColor(...C.muted);
+        doc.text('Sin invitados', x + 4, y + 2);
+        y += rowH;
+      } else {
+        guests.forEach((gg: any) => {
+          const guest = guestsById[gg?._id];
+          doc.setDrawColor(...C.line); doc.setLineWidth(0.5);
+          doc.line(x, y - 3, x + colW, y - 3);
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(...C.pink);
+          doc.text(`A${(gg?.chair ?? 0) + 1}`, x + 2, y + 5);
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...C.ink);
+          doc.text(String(guest?.nombre || '—'), x + 26, y + 5, { maxWidth: colW - 30 });
+          y += rowH;
+        });
+      }
+      y += 10;
+    });
+
+    const fname = `${event?.nombre || 'evento'} ${planoTitle || 'plano'}`
+      .replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_') + '.pdf';
+    doc.save(fname);
+    return true;
+  } catch (e) {
+    console.error('[exportPlanoPdf]', e);
+    return false;
+  }
 };

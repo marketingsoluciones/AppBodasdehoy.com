@@ -120,7 +120,7 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
                       onClick={() => {
                         setShowMiniMenu(false)
                         const ok = exportPlanoPdf({ planSpaceActive, event, planoTitle: t(planSpaceActive?.title) })
-                        if (!ok) toast('error', t('popupblocked') || 'Permite las ventanas emergentes para exportar el PDF')
+                        if (!ok) toast('error', t('pdferror') || 'No se pudo generar el PDF')
                       }}
                       className="w-full flex items-center gap-2 text-left font-semibold py-1.5 mb-1 border-b border-gray-100 hover:text-primary"
                     >

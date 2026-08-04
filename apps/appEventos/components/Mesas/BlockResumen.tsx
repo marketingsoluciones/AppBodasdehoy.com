@@ -1,6 +1,7 @@
 import { FC } from "react"
-import { EventContextProvider } from "../../context"
+import { AuthContextProvider, EventContextProvider } from "../../context"
 import { guests } from '../../utils/Interfaces';
+import { fetchApiEventos, queries } from '../../utils/Fetching';
 import { useTranslation } from 'react-i18next';
 
 // Rediseño fiel al prototipo (MESAS.dc.html): tarjeta de resumen (% ocupado + 3 stats)
@@ -11,7 +12,27 @@ interface propsBlockResumen {
 }
 const BlockResumen: FC<propsBlockResumen> = ({ InvitadoSentados }) => {
     const { t } = useTranslation();
-    const { event, planSpaceSelect } = EventContextProvider()
+    const { event, planSpaceSelect, setPlanSpaceSelect } = EventContextProvider()
+    const { user } = AuthContextProvider()
+
+    // Al clicar un espacio en "Por espacio", cambiar el plano activo a ese espacio.
+    // setPlanSpaceSelect dispara el efecto del context que actualiza planSpaceActive
+    // (mismo patrón que BlockPlanos.handleClick). Persiste la selección en backend.
+    const handleSelectSpace = (id?: string) => {
+        if (!id || planSpaceSelect === id) return
+        try {
+            setPlanSpaceSelect(id)
+            fetchApiEventos({
+                query: queries.setPlanSpaceSelect,
+                variables: {
+                    evento_id: event?._id,
+                    planSpaceSelect: id,
+                    isOwner: user?.uid === event?.usuario_id,
+                },
+            })
+        } catch {
+        }
+    }
 
     const totalInvitados = event?.invitados_array?.length || 0
     const perSpace = (event?.planSpace || []).map((ps) => {
@@ -53,7 +74,7 @@ const BlockResumen: FC<propsBlockResumen> = ({ InvitadoSentados }) => {
             {perSpace.map((r, idx) => {
                 const active = planSpaceSelect === r._id
                 return (
-                    <div key={idx} className={`rounded-[11px] px-3 py-[11px] border ${active ? "bg-[#FCF2F6] border-[#f7c2da]" : "bg-white border-[#f0f0f2]"}`}>
+                    <div key={idx} onClick={() => handleSelectSpace(r._id)} title={t("showthisplan") || "Mostrar este plano"} className={`cursor-pointer rounded-[11px] px-3 py-[11px] border transition-colors ${active ? "bg-[#FCF2F6] border-[#f7c2da]" : "bg-white border-[#f0f0f2] hover:border-[#f7c2da] hover:bg-[#fdf7fa]"}`}>
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-[#EF5B94]" />
