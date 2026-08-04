@@ -16,6 +16,7 @@ import LeadQualificationContext from '@/features/LeadQualificationContext';
 
 import MessageFromUrl from './MessageFromUrl';
 import ContextFromEmbed from '../../ContextFromEmbed';
+import StandaloneEventContext from '../../StandaloneEventContext';
 import { useSendMenuItems } from './useSendMenuItems';
 
 const leftActions: ActionKeys[] = [
@@ -78,6 +79,7 @@ const ClassicChatInput = memo(() => {
       <Suspense fallback={null}>
         <MessageFromUrl />
         <ContextFromEmbed />
+        <StandaloneEventContext />
         <LeadMonitor />
         <LeadQualificationContext />
       </Suspense>
