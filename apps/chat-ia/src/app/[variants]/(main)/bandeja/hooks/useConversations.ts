@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
 import { buildHeaders } from '../utils/auth';
+import { dedupeFetch } from '../utils/dedupeFetch';
 import { friendlyContactName, safePhoneOrEmpty } from '../utils/jid';
 import { useMessageStream } from './useMessageStream';
 
@@ -66,7 +67,8 @@ export function useConversations(channel: string | null) {
           ? `${proxyBase}/whatsapp/conversations/${dev}`
           : `${proxyBase}/conversations?development=${dev}&channel=${channel}`;
 
-      const response = await fetch(fetchUrl, { headers });
+      // H2: dedup de GET concurrentes idénticos (feed + detalle piden el mismo recurso).
+      const response = await dedupeFetch(fetchUrl, { headers });
 
       if (response.ok) {
         const data = await response.json();

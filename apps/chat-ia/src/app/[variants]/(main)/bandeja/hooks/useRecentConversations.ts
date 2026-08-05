@@ -7,6 +7,7 @@ import { getWhatsAppChannels, getWhatsAppConversationsGQL } from '@/services/mcp
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { buildHeaders } from '../utils/auth';
+import { dedupeFetch } from '../utils/dedupeFetch';
 import { friendlyContactName } from '../utils/jid';
 import { useMessageStream } from './useMessageStream';
 
@@ -92,7 +93,7 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
 
         // Fetch WhatsApp conversations
         // Primary: REST via Baileys (live sessions). Fallback: GraphQL api2 store (works even if external WA service is down).
-        const waPromise = fetch(`/api/messages/whatsapp/conversations/${dev}`, {
+        const waPromise = dedupeFetch(`/api/messages/whatsapp/conversations/${dev}`, {
           headers: buildHeaders(),
         })
           .then(async (res) => {
@@ -153,7 +154,7 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
 
         // Fetch other channels conversations (if backend supports them)
         const otherChannels: ChannelKind[] = ['instagram', 'telegram', 'email', 'web', 'facebook'];
-        const othersPromise = fetch(`/api/messages/conversations?development=${dev}`, {
+        const othersPromise = dedupeFetch(`/api/messages/conversations?development=${dev}`, {
           headers: buildHeaders(),
         })
           .then(async (res) => {
