@@ -10,11 +10,26 @@ interface ShowEventSectionData {
 
 /** Estado que consume el Portal (event-panel/Portal). */
 export interface EventPanelState {
-  error?: 'not_found' | 'fetch_failed';
+  error?: 'not_found' | 'fetch_failed' | 'no_event';
   evento?: unknown;
   loading?: boolean;
   section?: string;
 }
+
+const OBJECT_ID_RE = /^[\da-f]{24}$/i;
+
+/**
+ * Resuelve el eventoId del panel. El LLM no siempre pasa un `eventoId` válido en
+ * `show_event_section`; en ese caso caemos al evento activo que fija el selector
+ * (`ActiveEventChip`) / el sync cross-app en `localStorage.current_event_id`.
+ * Devuelve '' si no hay ninguno válido (el caller marca `no_event`).
+ */
+const resolveEventoId = (fromLLM?: string): string => {
+  if (fromLLM && OBJECT_ID_RE.test(fromLLM)) return fromLLM;
+  if (typeof window === 'undefined') return '';
+  const active = window.localStorage.getItem('current_event_id') || '';
+  return OBJECT_ID_RE.test(active) ? active : '';
+};
 
 export interface ChatEventPanelAction {
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -36,13 +51,15 @@ export const eventPanelSlice: StateCreator<
     openToolUI(id, 'lobe-event-panel');
     await updatePluginState(id, { loading: true, section } as EventPanelState);
 
-    if (!eventoId) {
-      await updatePluginState(id, { error: 'not_found', section } as EventPanelState);
+    // Fallback: si el LLM no pasó un eventoId válido, usar el evento activo del selector.
+    const resolvedId = resolveEventoId(eventoId);
+    if (!resolvedId) {
+      await updatePluginState(id, { error: 'no_event', section } as EventPanelState);
       return;
     }
 
     try {
-      const evento = await getEventoDetalle(eventoId);
+      const evento = await getEventoDetalle(resolvedId);
       // BUG#5 (api-mcp DB caída): distinguir "no encontrado" de "error de servidor"
       // no es posible aquí sin más señal → si no hay evento, marcarlo como not_found
       // (el consumer muestra estado honesto + reintento, no miente con datos vacíos).
