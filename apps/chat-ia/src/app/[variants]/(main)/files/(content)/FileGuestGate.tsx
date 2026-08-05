@@ -6,7 +6,10 @@ import { FolderLock, Sparkles } from 'lucide-react';
 import { memo, type ReactNode } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
+import CircleLoading from '@/components/Loading/CircleLoading';
 import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
+import { useUserStore } from '@/store/user';
+import { preferenceSelectors } from '@/store/user/selectors';
 
 // BUG QA 30-jul: el gate mandaba a app*.bodasdehoy.com/login (la app de eventos) →
 // desde chat-dev saltaba a PRODUCCIÓN (app.bodasdehoy.com) y sacaba al usuario de
@@ -65,6 +68,20 @@ const FileGuestGate = memo<{ children: ReactNode }>(({ children }) => {
   // useDomainGuestUser (requiere !isSignedIn Y confirmación del chat store), consistente
   // con el fix raíz de auth (PR #207). Evita la caída silenciosa a visitante.
   const isGuest = useDomainGuestUser();
+  // #10 (QA 5-ago): no decidir "invitado" hasta que el estado de usuario esté
+  // inicializado. Antes, durante el arranque de auth (recarga forzada), el gate caía
+  // a guest=true por defecto y mostraba el muro de "Crear cuenta" pese a haber sesión
+  // válida (falso-negativo). Mientras inicializa, mostramos loader (no cambiamos la
+  // lógica de determinación de guest → cero impacto de seguridad).
+  const isUserStateInit = useUserStore(preferenceSelectors.isPreferenceInit);
+
+  if (!isUserStateInit) {
+    return (
+      <Flexbox className={styles.container} gap={16}>
+        <CircleLoading />
+      </Flexbox>
+    );
+  }
 
   if (isGuest) {
     return (
