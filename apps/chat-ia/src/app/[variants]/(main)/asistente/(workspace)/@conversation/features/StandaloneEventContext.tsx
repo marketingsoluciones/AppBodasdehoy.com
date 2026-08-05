@@ -28,14 +28,24 @@ const StandaloneEventContext = () => {
         // Si hay contexto del embed pendiente, lo maneja ContextFromEmbed (más rico).
         if (sessionStorage.getItem('copilot_open_context')) return;
         const eventId = localStorage.getItem('current_event_id');
-        if (!eventId) return;
         const eventName = localStorage.getItem('current_event_name') || '';
 
         const lines = [MARK_START];
-        if (eventName) lines.push(`Evento: ${eventName}`);
-        lines.push(`ID de evento: ${eventId}`, 
-          'Cuando el usuario pida ver su presupuesto, itinerario o servicios, invoca show_event_section con este eventoId.', MARK_END
-        );
+        if (eventId) {
+          if (eventName) lines.push(`Evento: ${eventName}`);
+          lines.push(
+            `ID de evento: ${eventId}`,
+            'Cuando el usuario pida ver su presupuesto, itinerario o servicios, invoca show_event_section con este eventoId.',
+            MARK_END,
+          );
+        } else {
+          // [P1] Sin evento activo: que el asistente PREGUNTE de qué evento, no responda a ciegas.
+          lines.push(
+            'El usuario NO tiene un evento activo seleccionado.',
+            'Si pregunta sobre presupuesto, itinerario, servicios o invitados de un evento, NO respondas sin evento: pregúntale "¿De qué evento hablamos?" o pídele que lo elija en el selector del encabezado.',
+            MARK_END,
+          );
+        }
         const contextBlock = lines.join('\n');
 
         const [{ useAgentStore }, { agentSelectors }] = await Promise.all([
