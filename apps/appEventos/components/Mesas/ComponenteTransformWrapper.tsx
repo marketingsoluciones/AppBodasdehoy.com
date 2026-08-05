@@ -125,7 +125,9 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
                         // + muebles + textos, exactamente como se ve). Si falla → croquis vectorial.
                         let planoImage: string | undefined
                         try {
-                          const html2canvas = (await import('html2canvas')).default
+                          // html2canvas-pro (fork): soporta colores oklch/lab/color() de Tailwind v4.
+                          // El html2canvas clásico (1.4.1) lanzaba con oklch → abortaba la captura → croquis.
+                          const html2canvas = (await import('html2canvas-pro')).default
                           // Capturar el CONTENIDO del plano (#lienzo-drop) a tamaño natural = el
                           // plano ENTERO con mesas, sillas, ICONOS de mobiliario y TEXTOS. NO se
                           // captura el wrapper del zoom (.react-transform-wrapper): su transform
