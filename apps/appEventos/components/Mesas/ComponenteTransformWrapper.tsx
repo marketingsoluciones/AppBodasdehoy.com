@@ -124,28 +124,32 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
                         // no en #lienzo-drop; por eso capturamos el wrapper (cuadrícula + mesas
                         // + muebles + textos, exactamente como se ve). Si falla → croquis vectorial.
                         let planoImage: string | undefined
-                        // Guardar el encuadre actual para restaurarlo tras la foto.
-                        const prevT = { x: state?.positionX ?? 0, y: state?.positionY ?? 0, s: state?.scale ?? scaleIni }
                         try {
                           const html2canvas = (await import('html2canvas')).default
-                          // Encuadrar el plano ENTERO (mismo fit que al abrir) para que salgan
-                          // TODAS las mesas, muebles y textos — no solo lo visible al zoom actual.
-                          try { centerView(scaleIni) } catch { /* noop */ }
-                          await new Promise((r) => setTimeout(r, 500))
-                          const el =
-                            (document.querySelector('.react-transform-wrapper') as HTMLElement | null) ||
-                            document.getElementById('lienzo-drop')
+                          // Capturar el CONTENIDO del plano (#lienzo-drop) a tamaño natural = el
+                          // plano ENTERO con mesas, sillas, ICONOS de mobiliario y TEXTOS. NO se
+                          // captura el wrapper del zoom (.react-transform-wrapper): su transform
+                          // rompe html2canvas (por eso salía el croquis de fallback). Se añade la
+                          // cuadrícula temporal por CSS para que la foto salga como en la web.
+                          const el = document.getElementById('lienzo-drop')
                           if (el) {
-                            const canvas = await html2canvas(el, { allowTaint: true, backgroundColor: '#F3F1EC', logging: false, scale: 2, useCORS: true } as any)
-                            planoImage = canvas.toDataURL('image/png')
+                            const prev = { background: el.style.background, backgroundImage: el.style.backgroundImage, backgroundSize: el.style.backgroundSize }
+                            el.style.background = '#F3F1EC'
+                            el.style.backgroundImage = 'linear-gradient(#E4E1D8 1px, transparent 1px), linear-gradient(90deg, #E4E1D8 1px, transparent 1px)'
+                            el.style.backgroundSize = '44px 44px'
+                            const w = el.scrollWidth || (lienzo?.width ?? 0)
+                            const h = el.scrollHeight || (lienzo?.height ?? 0)
+                            try {
+                              const canvas = await html2canvas(el, { backgroundColor: '#F3F1EC', height: h, logging: false, scale: 2, useCORS: true, width: w, windowHeight: h, windowWidth: w } as any)
+                              planoImage = canvas.toDataURL('image/png')
+                            } finally {
+                              el.style.background = prev.background
+                              el.style.backgroundImage = prev.backgroundImage
+                              el.style.backgroundSize = prev.backgroundSize
+                            }
                           }
                         } catch (e) {
                           console.warn('[exportPDF] captura del plano falló; uso croquis vectorial:', e)
-                        } finally {
-                          // Restaurar el encuadre que tenía el usuario.
-                          const st = (params as any)?.setTransform
-                          if (typeof st === 'function') st(prevT.x, prevT.y, prevT.s, 0)
-                          else try { centerView(prevT.s) } catch { /* noop */ }
                         }
                         const ok = exportPlanoPdf({ planSpaceActive, event, planoTitle: t(planSpaceActive?.title), planoImage })
                         if (!ok) toast('error', t('pdferror') || 'No se pudo generar el PDF')

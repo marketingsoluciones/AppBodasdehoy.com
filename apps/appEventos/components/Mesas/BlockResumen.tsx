@@ -39,11 +39,20 @@ const BlockResumen: FC<propsBlockResumen> = ({ InvitadoSentados }) => {
         const sentados = ps?.tables?.length
             ? ps.tables.map((tb) => tb.guests).flat().filter(Boolean).length
             : 0
-        return { _id: ps?._id, title: ps?.title, sentados, pct: totalInvitados ? Math.round((sentados / totalInvitados) * 100) : 0 }
+        return { _id: ps?._id, title: ps?.title, sentados, pct: totalInvitados ? Math.min(100, Math.round((sentados / totalInvitados) * 100)) : 0 }
     })
-    const totalSentados = perSpace.reduce((a, p) => a + p.sentados, 0)
+    // Sentados TOTALES = invitados ÚNICOS sentados en cualquier plano (un invitado sentado
+    // en Recepción Y Ceremonia cuenta 1, no 2). Antes se sumaban los per-space → daba >100%.
+    const seatedIds = new Set<string>()
+    ;(event?.planSpace || []).forEach((ps: any) =>
+        (ps?.tables || []).forEach((tb: any) =>
+            (tb?.guests || []).forEach((g: any) => { if (g?._id) seatedIds.add(g._id) })
+        )
+    )
+    const totalSentados = seatedIds.size
     const totalMesas = event?.mesas_array?.length || 0
-    const overallPct = totalInvitados ? Math.round((totalSentados / totalInvitados) * 100) : 0
+    // Ocupación acotada a 0–100% (no puede haber más sentados únicos que invitados).
+    const overallPct = totalInvitados ? Math.min(100, Math.round((totalSentados / totalInvitados) * 100)) : 0
 
     const stats = [
         { n: totalMesas, l: t("tables") || "Mesas" },
