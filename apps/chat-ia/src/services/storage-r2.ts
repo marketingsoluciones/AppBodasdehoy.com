@@ -221,8 +221,14 @@ export async function deleteFile(fileId: string, eventId?: string): Promise<{ er
  */
 export function getCurrentEventId(): string | null {
   if (typeof window === 'undefined') return null;
-  
+
   try {
+    // Clave canónica top-level: la que fijan el header (ActiveEventChip) y el
+    // contexto standalone (#266) al seleccionar evento. /files debe heredar de ahí
+    // (antes solo miraba dev-user-config → no heredaba el evento de /asistente). QA #9.
+    const topLevel = localStorage.getItem('current_event_id');
+    if (topLevel) return topLevel;
+
     const devConfig = localStorage.getItem('dev-user-config');
     if (devConfig) {
       const config = JSON.parse(devConfig);
