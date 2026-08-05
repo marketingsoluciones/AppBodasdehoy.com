@@ -160,6 +160,16 @@ const EventPanelPortal = memo<BuiltinPortalProps<{ eventoId?: string; section?: 
         </div>
       );
     }
+    if (error === 'no_event') {
+      return (
+        <div style={wrap}>
+          <div style={{ fontWeight: 600 }}>¿De qué evento?</div>
+          <div style={{ color: '#6b7280', marginTop: 8 }}>
+            No tienes un evento activo. Elige uno en el selector del encabezado y vuelve a pedírmelo.
+          </div>
+        </div>
+      );
+    }
     if (error === 'not_found') {
       return (
         <div style={wrap}>
