@@ -45,6 +45,7 @@ const Redirect = memo<RedirectProps>(({ setActiveStage }) => {
         '/image',
         '/changelog',
         '/agentes',
+        '/files',
       ];
       
       // Si estamos en una de estas rutas, NO redirigir
@@ -90,6 +91,7 @@ const Redirect = memo<RedirectProps>(({ setActiveStage }) => {
         '/image',
         '/changelog',
         '/agentes',
+        '/files',
       ];
       
       // Si estamos en una de estas rutas, NO hacer NADA - salir inmediatamente
