@@ -124,17 +124,28 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
                         // no en #lienzo-drop; por eso capturamos el wrapper (cuadrícula + mesas
                         // + muebles + textos, exactamente como se ve). Si falla → croquis vectorial.
                         let planoImage: string | undefined
+                        // Guardar el encuadre actual para restaurarlo tras la foto.
+                        const prevT = { x: state?.positionX ?? 0, y: state?.positionY ?? 0, s: state?.scale ?? scaleIni }
                         try {
                           const html2canvas = (await import('html2canvas')).default
+                          // Encuadrar el plano ENTERO (mismo fit que al abrir) para que salgan
+                          // TODAS las mesas, muebles y textos — no solo lo visible al zoom actual.
+                          try { centerView(scaleIni) } catch { /* noop */ }
+                          await new Promise((r) => setTimeout(r, 500))
                           const el =
                             (document.querySelector('.react-transform-wrapper') as HTMLElement | null) ||
                             document.getElementById('lienzo-drop')
                           if (el) {
-                            const canvas = await html2canvas(el, { backgroundColor: '#F3F1EC', scale: 2, useCORS: true, logging: false } as any)
+                            const canvas = await html2canvas(el, { allowTaint: true, backgroundColor: '#F3F1EC', logging: false, scale: 2, useCORS: true } as any)
                             planoImage = canvas.toDataURL('image/png')
                           }
                         } catch (e) {
                           console.warn('[exportPDF] captura del plano falló; uso croquis vectorial:', e)
+                        } finally {
+                          // Restaurar el encuadre que tenía el usuario.
+                          const st = (params as any)?.setTransform
+                          if (typeof st === 'function') st(prevT.x, prevT.y, prevT.s, 0)
+                          else try { centerView(prevT.s) } catch { /* noop */ }
                         }
                         const ok = exportPlanoPdf({ planSpaceActive, event, planoTitle: t(planSpaceActive?.title), planoImage })
                         if (!ok) toast('error', t('pdferror') || 'No se pudo generar el PDF')
