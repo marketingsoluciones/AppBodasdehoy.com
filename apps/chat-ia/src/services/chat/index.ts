@@ -487,6 +487,17 @@ class ChatService {
         ...(finalPayload as any).metadata,
         development: development || undefined,
         eventId: eventId || undefined,
+        // [P0] api-ia lee el evento activo en metadata.pageContext.activeEventId (ANIDADO),
+        // no en metadata.eventId (plano). Sin esto el asistente pedía "selecciona un evento"
+        // aunque hubiera evento activo (desajuste de shape). eventId plano queda de fallback.
+        pageContext: {
+          ...((finalPayload as any).metadata?.pageContext),
+          activeEventId: eventId || undefined,
+          availableEvents: (userEvents || [])
+            .map((e: any) => ({ id: e._id || e.id || e.id_evento, name: e.nombre || e.titulo || e.name }))
+            .filter((e: any) => e.id),
+          eventScope: eventId ? 'active' : 'all',
+        },
         userId: currentUserId || undefined,
       };
     }
