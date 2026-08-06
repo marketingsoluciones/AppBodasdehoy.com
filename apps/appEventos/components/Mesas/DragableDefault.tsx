@@ -125,7 +125,7 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
         })
         !disableDrag && setDisableWrapper(false)
       }}
-      className={`${!disableDrag ? prefijo === "table" || item?.tipo === "text" ? "js-drag" : "js-dragElement" : ""} ${editDefault?.clicked === item?._id ? "bg-gray-200 bg-opacity-50 border-gray-300 shadow-md" : ""} draggable-touch absolute hover:bg-gray-300 hover:bg-opacity-50 border border-transparent hover:border-gray-200 hover:shadow-md ${prefijo === "table" ? "p-10" : "p-3"} rounded-2xl ${editDefault?.clicked === item?._id ? "z-10" : ""}`} style={prefijo === "table" || item?.tipo === "text" ? { rotate: `${item?.rotation ?? 0}deg` } : {}} >
+      className={`${!disableDrag ? prefijo === "table" || item?.tipo === "text" ? "js-drag" : "js-dragElement" : ""} ${editDefault?.clicked === item?._id ? "ring-2 ring-primary shadow-md" : ""} draggable-touch absolute border border-transparent hover:ring-2 hover:ring-gray-300 hover:shadow-md ${prefijo === "table" ? "p-10" : "p-3"} rounded-2xl ${editDefault?.clicked === item?._id ? "z-10" : ""}`} style={prefijo === "table" || item?.tipo === "text" ? { rotate: `${item?.rotation ?? 0}deg` } : {}} >
       <div className="relative">
         {prefijo === "table"
           ? <MesaContent
