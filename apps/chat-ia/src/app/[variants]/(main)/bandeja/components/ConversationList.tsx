@@ -60,6 +60,10 @@ type InboxView = 'all' | 'mine' | 'unassigned' | 'closed';
 
 function ConversationListInner({ channel, selectedId }: ConversationListProps) {
   const { conversations, loading, error } = useConversations(channel);
+  // P0 (QA 6-ago): ConversationListInner usaba `brand.brand` (líneas ~221/277) sin definir
+  // `brand` → ReferenceError que crasheaba toda la app al renderizar el contador "N sin leer"
+  // (solo se disparaba con no-leídos > 0). Definirlo aquí como en ConversationList/ChannelConversationList.
+  const brand = useBandejaBrand();
   const { isArchived } = useConversationActions();
   const metaState = useConversationMetaState();
   const { checkAuth } = useAuthCheck();
