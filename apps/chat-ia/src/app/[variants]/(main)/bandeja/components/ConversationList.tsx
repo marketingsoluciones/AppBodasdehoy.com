@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
@@ -68,10 +68,28 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
   const view = (searchParams.get('view') as InboxView) || 'all';
   const [search, setSearch] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('recent');
+  // A2 (QA 6-ago): el detalle debe respetar el MISMO filtro de newsletters/broadcasts
+  // que el feed (persistido en localStorage.inbox_show_spam, ver page.tsx:104) para no
+  // "cambiar de universo" al abrir una conversación (el salto 5→10 que reportó QA).
+  const [showSpam, setShowSpam] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      setShowSpam(localStorage.getItem('inbox_show_spam') === '1');
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const filtered = useMemo(() => {
     // Hide archived conversations
     let list = conversations.filter((c) => !isArchived(c.id));
+
+    // A2: ocultar newsletters/broadcasts salvo que "ver spam" esté activo (mismo criterio
+    // que el feed) — así la lista del detalle no se repuebla sin filtrar.
+    if (!showSpam) {
+      list = list.filter((c) => c.jidType !== 'newsletter' && c.jidType !== 'broadcast');
+    }
 
     const getStatus = (id: string): ConversationStatus => metaState[id]?.status ?? 'open';
     const getAssigned = (id: string): string | null | undefined => metaState[id]?.assignedUserId;
@@ -106,7 +124,7 @@ function ConversationListInner({ channel, selectedId }: ConversationListProps) {
     }
 
     return list;
-  }, [conversations, isArchived, metaState, search, sortMode, userId, view]);
+  }, [conversations, isArchived, metaState, search, showSpam, sortMode, userId, view]);
 
   const totalUnread = useMemo(
     () => conversations.reduce((n, c) => n + c.unreadCount, 0),
