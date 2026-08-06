@@ -1,4 +1,5 @@
 import { Formik, FormikValues, Form } from 'formik';
+import { formikValidateUx } from "./formikValidateUx";
 import { useEffect, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { BorrarInvitado } from "../../hooks/EditarInvitado";
@@ -128,6 +129,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
 
   return (
     <Formik
+      {...formikValidateUx}
       initialValues={initialValues}
       onSubmit={handleSubmit}
       validationSchema={validationSchema}

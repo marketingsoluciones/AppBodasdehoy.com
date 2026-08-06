@@ -47,7 +47,7 @@ const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, 
                             )
                         })}
                     </select>
-                    {(meta.touched || meta.error) && <p className="font-display absolute rounded-xl text-xs text-red flex gap-1">{meta.error}</p>}
+                    {meta.touched && meta.error && <p className="font-display absolute rounded-xl text-xs text-red flex gap-1">{meta.error}</p>}
                 </div>
             </div>
             <style jsx>

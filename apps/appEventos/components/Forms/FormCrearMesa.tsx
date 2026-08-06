@@ -1,4 +1,5 @@
 import { Form, Formik, FormikValues } from "formik";
+import { formikValidateUx } from "./formikValidateUx";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import { MesaCuadrada, MesaImperial, MesaPodio, MesaRedonda, LineaBancos, Banco, MesaMilitar } from "../icons";
 import InputField from "./InputField";
@@ -142,6 +143,7 @@ const FormCrearMesa: FC<propsFormCrearMesa> = ({ values, set, state }) => {
 
   return (
     <Formik
+      {...formikValidateUx}
       initialValues={initialValues}
       validationSchema={validationSchema}
       onSubmit={handleSubmit}

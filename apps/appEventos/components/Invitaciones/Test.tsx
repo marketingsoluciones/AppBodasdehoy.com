@@ -1,4 +1,5 @@
 import { Formik, Form, useFormikContext } from "formik";
+import { formikValidateUx } from "../Forms/formikValidateUx";
 import { AuthContextProvider } from "../../context/AuthContext";
 import { EventContextProvider } from "../../context/EventContext";
 import InputField from "../Forms/InputField";
@@ -369,6 +370,7 @@ export const Test: FC<Props> = ({ TitleComponent, setEmailEditorModal, setPrevie
         </div>
         <div className="h-[170px]">
           <Formik
+      {...formikValidateUx}
             validationSchema={TitleComponent === "email" ? validationSchemaEmail : validationSchemaPhoneNumber}
             onSubmit={(values) => handleClick(values)}
             initialValues={initialValues}

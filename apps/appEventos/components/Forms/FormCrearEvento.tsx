@@ -1,4 +1,5 @@
 import { Form, Formik, FormikValues, useFormikContext } from "formik";
+import { formikValidateUx } from "./formikValidateUx";
 import { fetchApiBodas, fetchApiEventos, getApiErrorMessage, queries } from "../../utils/Fetching";
 import { AuthContextProvider, EventsGroupContextProvider, EventContextProvider } from "../../context";
 import InputField from "./InputField";
@@ -338,6 +339,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
 
   return (
     <Formik
+      {...formikValidateUx}
       initialValues={initialValues}
       onSubmit={handleSubmit}
       validationSchema={validationSchema}
@@ -389,8 +391,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
                   <ModuloSubida setValueImage={setValueImage} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={defaultImagenes[values.tipo?.toLowerCase()]} />
                 </div>
               </div>
-              {/* api-mcp 29-jun: país seleccionable en form (backend ya tiene
-                  default si no se pasa). Auto-detect via api.country.is +
+              {/* País: auto via /api/geo (CF/Vercel o fallback server) +
                   selección manual. Opcional — backend resuelve si vacío. */}
               <div>
                 <DropdownCountries
@@ -426,19 +427,11 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
 export default FormCrearEvento;
 
 const AutoSubmitToken = ({ valueImage }) => {
-  const { values, errors, setValues } = useFormikContext();
-  useEffect(() => {
-    // console.log("errors", errors)
-  }, [errors]);
+  const { values, setValues } = useFormikContext();
 
   useEffect(() => {
-    // console.log(100030, values)
-  }, [values]);
-
-  useEffect(() => {
-    // console.log(100031, valueImage)
-    const newValues = { ...values as any, imgEvento: valueImage }
-    setValues(newValues)
+    if (valueImage === undefined) return
+    setValues({ ...(values as object), imgEvento: valueImage })
   }, [valueImage]);
 
   return null;

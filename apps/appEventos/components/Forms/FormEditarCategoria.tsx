@@ -1,4 +1,5 @@
 import { Formik } from "formik";
+import { formikValidateUx } from "./formikValidateUx";
 import { useContext, useState } from "react";
 import { fetchApiBodas } from "../../utils/Fetching";
 import { EventContextProvider } from "../../context";
@@ -23,6 +24,7 @@ const FormEditarCategoria = ({ set, state, categoria }: Props) => {
   const { event, setEvent } = EventContextProvider() as any;
   return (
     <Formik
+      {...formikValidateUx}
       initialValues={{
         nombre: categoria?.nombre && capitalize(categoria?.nombre),
       }}

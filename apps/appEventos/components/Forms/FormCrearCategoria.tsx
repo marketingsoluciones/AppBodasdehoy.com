@@ -1,4 +1,5 @@
 import { Formik } from "formik";
+import { formikValidateUx } from "./formikValidateUx";
 import { useContext, useState } from "react";
 import { api } from "../../api";
 import { EventContextProvider } from "../../context";
@@ -30,6 +31,7 @@ const FormCrearCategoria = ({ set, state }: Props) => {
   const { event, setEvent } = EventContextProvider() as any;
   return (
     <Formik
+      {...formikValidateUx}
       initialValues={{
         nombre: "",
       }}

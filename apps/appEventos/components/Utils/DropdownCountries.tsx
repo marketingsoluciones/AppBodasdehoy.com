@@ -1,39 +1,86 @@
-import axios from "axios";
 import { useField } from "formik";
-import { memo, useEffect } from "react";
-import { useState, useMemo } from "react";
+import { memo, useEffect, useRef, useState, useMemo } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import DataCountries from "../../utils/RestCountries.json";
+import { AuthContextProvider } from "../../context";
+
+type Country = {
+  name: string;
+  alpha2Code: string;
+  flag?: string;
+};
+
+const flagUrl = (alpha2Code?: string): string =>
+  alpha2Code ? `https://flagcdn.com/w40/${alpha2Code.toLowerCase()}.png` : "";
 
 const DropdownCountries = memo(({ label, ...props }: { label?: string; [key: string]: any }) => {
-  const Countries = useMemo(() => DataCountries, []);
+  const Countries = useMemo(() => DataCountries as Country[], []);
   const [ciudades, setCiudades] = useState(Countries);
-  const [field, meta, helpers] = useField(props as any);
+  const [field, , helpers] = useField(props as any);
   const [show, setShow] = useState(false);
   const { setValue } = helpers;
   const [image, setImage] = useState("");
-  const [country, setCountry] = useState("")
+  const { geoInfo } = AuthContextProvider();
+  const autoAppliedRef = useRef(false);
+  const userTouchedRef = useRef(false);
 
-
+  // Bandera según valor actual del campo
   useEffect(() => {
-    GeolocationIP()
-  }, [])
+    if (!field.value || typeof field.value !== "string") {
+      setImage("");
+      return;
+    }
+    const match = Countries.find(
+      (item) => item.name.toLowerCase() === field.value.toLowerCase()
+    );
+    setImage(match ? flagUrl(match.alpha2Code) : "");
+  }, [field.value, Countries]);
 
+  // Auto-selección: solo si el campo está vacío y el usuario no ha tocado el input
   useEffect(() => {
-    const res = DataCountries.find(item => item.alpha2Code == country)
-    setValue(res?.name)
-    setImage(res?.flag)
-  }, [country])
+    if (autoAppliedRef.current || userTouchedRef.current) return;
+    if (field.value) {
+      autoAppliedRef.current = true;
+      return;
+    }
 
-  const GeolocationIP = async () => {
-    const { data } = await axios.get("https://api.country.is")
-    setCountry(data.country)
+    const code =
+      typeof geoInfo?.ipcountry === "string" ? geoInfo.ipcountry.toUpperCase() : "";
+    if (!code || code === "XX") return;
 
-  }
+    const match = Countries.find((item) => item.alpha2Code === code);
+    if (!match) return;
 
+    autoAppliedRef.current = true;
+    setValue(match.name);
+  }, [geoInfo, field.value, Countries, setValue]);
+
+  // Fallback si AuthContext aún no tiene geo (p. ej. form antes de verificationDone)
+  useEffect(() => {
+    if (autoAppliedRef.current || userTouchedRef.current || field.value) return;
+    if (geoInfo?.ipcountry) return;
+
+    let cancelled = false;
+    fetch("/api/geo")
+      .then((r) => r.json())
+      .then((data: { ipcountry?: string }) => {
+        if (cancelled || autoAppliedRef.current || userTouchedRef.current || field.value) return;
+        const code = typeof data?.ipcountry === "string" ? data.ipcountry.toUpperCase() : "";
+        if (!code || code === "XX") return;
+        const match = Countries.find((item) => item.alpha2Code === code);
+        if (!match) return;
+        autoAppliedRef.current = true;
+        setValue(match.name);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [geoInfo, field.value, Countries, setValue]);
 
   return (
-    <ClickAwayListener onClickAway={() => show ? setShow(false) : null} >
+    <ClickAwayListener onClickAway={() => (show ? setShow(false) : null)}>
       <div onFocus={() => setShow(true)} className="relative">
         <div className="flex flex-col py-4">
           <label className="text-sm text-primary font-display w-full">{label}</label>
@@ -42,58 +89,53 @@ const DropdownCountries = memo(({ label, ...props }: { label?: string; [key: str
               {...field}
               {...props}
               autoComplete="off"
-              onChange={async (e) => {
+              onChange={(e) => {
+                userTouchedRef.current = true;
                 setShow(true);
                 setValue(e.target.value);
-                setImage("");
                 setCiudades(
                   Countries.filter(({ name }) =>
                     name.toLowerCase().includes(e.target.value.toLowerCase())
                   )
                 );
               }}
-              className="text-sm py-1 border border-gray-100 w-full rounded-full px-4 focus:outline-none"
-            ></input>
-            <img
-              src={image}
-              alt="Bandera del país seleccionado"
-              className="absolute top-0 bottom-0 my-auto right-6 w-6 h-4 rounded"
+              className="text-sm py-1 border border-gray-100 w-full rounded-full px-4 focus:outline-none pr-12"
             />
+            {image ? (
+              <img
+                src={image}
+                alt=""
+                className="absolute top-0 bottom-0 my-auto right-4 w-6 h-4 object-cover rounded"
+              />
+            ) : null}
           </span>
         </div>
 
-
         <div
-          className={`max-h-40 top-20 mx-auto w-full absolute bg-white z-50  shadow-2xl rounded-lg overflow-auto ${show ? "block" : "hidden"
-            }`}
+          className={`max-h-40 top-20 mx-auto w-full absolute bg-white z-50 shadow-2xl rounded-lg overflow-auto ${
+            show ? "block" : "hidden"
+          }`}
         >
           <ul>
-            {ciudades.map((country, index) => {
-              return (
-                <>
-                  <li
-                    key={index}
-                    className="flex items-center justify-between gap-2 text-sm px-4 py-2 hover:bg-gray-100 cursor-pointer transition"
-                    onClick={() => {
-                      setValue(country.name);
-                      setShow(false);
-                      setImage(country.flag);
-                    }}
-                  >
-                    {country.name}
-                    <div id="flag" className="w-6 h-4 rounded" />
-                  </li>
-                  <style jsx>
-                    {`
-                    #flag {
-                      background: url(${country.flag});
-                      background-size: contain;
-                    }
-                  `}
-                  </style>
-                </>
-              );
-            })}
+            {ciudades.map((c) => (
+              <li
+                key={c.alpha2Code}
+                className="flex items-center justify-between gap-2 text-sm px-4 py-2 hover:bg-gray-100 cursor-pointer transition"
+                onClick={() => {
+                  userTouchedRef.current = true;
+                  setValue(c.name);
+                  setShow(false);
+                }}
+              >
+                <span>{c.name}</span>
+                <img
+                  src={flagUrl(c.alpha2Code)}
+                  alt=""
+                  className="w-6 h-4 object-cover rounded shrink-0"
+                  loading="lazy"
+                />
+              </li>
+            ))}
           </ul>
         </div>
       </div>
@@ -101,6 +143,6 @@ const DropdownCountries = memo(({ label, ...props }: { label?: string; [key: str
   );
 });
 
-DropdownCountries.displayName = 'DropdownCountries';
+DropdownCountries.displayName = "DropdownCountries";
 
 export default DropdownCountries;

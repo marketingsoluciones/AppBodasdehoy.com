@@ -1,4 +1,5 @@
 import { Formik } from "formik";
+import { formikValidateUx } from "./formikValidateUx";
 import { useEffect, useState } from "react";
 import { GoFileDiff } from "react-icons/go";
 import { AuthContextProvider, EventContextProvider } from "../../context";
@@ -125,6 +126,7 @@ const FormEditarPago = ({ ListaPagos, IDPagoAModificar, IDs, set, state, categor
 
   return (
     <Formik
+      {...formikValidateUx}
       initialValues={initialValues}
       onSubmit={async (values: any) => {
         try {
