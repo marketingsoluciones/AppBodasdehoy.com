@@ -7,6 +7,7 @@ import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
 import { ChannelBadge } from './ChannelBadge';
 import { useBandejaBrand } from '../utils/brand';
+import { dedupeFetch } from '../utils/dedupeFetch';
 import { IaLevelPicker, type IaLevel } from './IaLevelPicker';
 
 interface ConversationHeaderProps {
@@ -68,7 +69,8 @@ export function ConversationHeader({
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/messages/workspace/${encodeURIComponent(development)}/ia-config`);
+        // H2 (QA 6-ago): dedup del GET de ia-config (el header se monta 2x al abrir).
+        const res = await dedupeFetch(`/api/messages/workspace/${encodeURIComponent(development)}/ia-config`);
         if (!res.ok) return;
         const json = await res.json();
         const lvl = json?.config?.ia_level;
