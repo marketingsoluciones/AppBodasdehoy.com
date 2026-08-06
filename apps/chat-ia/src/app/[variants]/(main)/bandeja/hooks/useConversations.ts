@@ -62,40 +62,26 @@ export function useConversations(channel: string | null) {
       const headers = buildHeaders();
       const dev = development || 'bodasdehoy';
 
-      // A2 (QA 6-ago): el detalle debe usar la MISMA fuente COMBINADA que el feed
-      // (useRecentConversations: WhatsApp + otros canales), NO re-pedir
-      // /conversations?channel=X — ese endpoint solo indexa WhatsApp → devolvía vacío para
-      // web/IG/TG (vaciaba toda la lista) o desalineado con el feed para WhatsApp. Combinamos
-      // ambas fuentes + dedup por id + filtro de canal en cliente. dedupeFetch coalescE los
-      // GET concurrentes (el feed ya pide los mismos).
-      const [waRes, otherRes] = await Promise.all([
-        dedupeFetch(`${proxyBase}/whatsapp/conversations/${dev}`, { headers }),
-        dedupeFetch(`${proxyBase}/conversations?development=${dev}`, { headers }),
-      ]);
+      const fetchUrl =
+        channel === 'whatsapp' || !channel
+          ? `${proxyBase}/whatsapp/conversations/${dev}`
+          : `${proxyBase}/conversations?development=${dev}&channel=${channel}`;
 
-      const readRaw = async (res: Response, sourceKind: string): Promise<any[]> => {
-        if (!res.ok) return [];
-        try {
-          const data = await res.json();
-          const arr = Array.isArray(data) ? data : data.conversations || [];
-          return arr.map((c: any) => ({ ...c, __sourceKind: sourceKind }));
-        } catch {
-          return [];
-        }
-      };
+      // H2: dedup de GET concurrentes idénticos (feed + detalle piden el mismo recurso).
+      const response = await dedupeFetch(fetchUrl, { headers });
 
-      if (waRes.ok || otherRes.ok) {
-        // Mismo criterio de canal que useRecentConversations: WA→'whatsapp'; otros→'web' por defecto.
-        const rawList = [
-          ...(await readRaw(waRes, 'whatsapp')),
-          ...(await readRaw(otherRes, 'web')),
-        ];
-        // N31/N33: lastMessage/JID defensivos (utils/jid.ts). Ver docs/AUTH-FLOW.md.
+      if (response.ok) {
+        const data = await response.json();
+        const rawList = Array.isArray(data) ? data : data.conversations || [];
+        // N31 CERRADO 24-jun (api-ia commit 665097b normalizó lastMessage).
+        // Mantengo `|| ''` como cinturón-tirantes por canal legacy sin migrar.
+        // N33 activa: parseJid en api-ia sigue pendiente. Defensa vive en
+        // utils/jid.ts (friendlyContactName + classifyJidLike). Ver docs/AUTH-FLOW.md.
         const normalized: Conversation[] = rawList.map((c: any) => {
           const rawName = c.displayName || c.contactInfo?.name || c.phoneNumber || '';
           return {
             assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
-            channel: (c.channel || c.platform || c.__sourceKind || 'whatsapp') as Conversation['channel'],
+            channel: (c.channel || c.platform || channel || 'whatsapp') as Conversation['channel'],
             contact: {
               name: friendlyContactName(rawName, c.phoneNumber, c.jidType ?? c.jid_type),
               phone: safePhoneOrEmpty(c.phoneNumber, c.jidType ?? c.jid_type),
@@ -124,23 +110,15 @@ export function useConversations(channel: string | null) {
             unreadCountForAgent: c.unreadCountForAgent ?? c.unread_count_for_agent ?? undefined,
           };
         });
-        // Dedup por id (ambas fuentes pueden solapar en WhatsApp).
-        const seen = new Set<string>();
-        const deduped = normalized.filter((c) => {
-          const key = String(c.id ?? '');
-          if (!key || seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        });
-        const filtered = channel ? deduped.filter((c) => c.channel === channel) : deduped;
+        const filtered = channel ? normalized.filter((c) => c.channel === channel) : normalized;
         setConversations(filtered);
         setError(null);
-      } else if ([waRes.status, otherRes.status].some((s) => s === 401 || s === 403)) {
+      } else if (response.status === 401 || response.status === 403) {
         setConversations([]);
         setError(null);
       } else {
         setConversations([]);
-        setError(new Error('Error al cargar conversaciones'));
+        setError(new Error(`Error ${response.status} al cargar conversaciones`));
       }
     } catch (err) {
       setConversations([]);
