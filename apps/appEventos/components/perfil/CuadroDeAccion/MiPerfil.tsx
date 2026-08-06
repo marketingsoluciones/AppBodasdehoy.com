@@ -1,5 +1,6 @@
 import { updateProfile, getAuth, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { Form, Formik } from "formik";
+import { formikValidateUx } from "../../Forms/formikValidateUx";
 import { useState } from "react";
 import { AuthContextProvider } from "../../../context";
 import { BlockConfiguration } from "../../../pages/configuracion";
@@ -96,7 +97,8 @@ export const MiPerfil = () => {
 
   return (
     <div className="flex flex-col w-full gap-6 container ">
-      <Formik initialValues={initialValues} onSubmit={() => { }} validationSchema={validationSchema ?? {}}>
+      <Formik
+      {...formikValidateUx} initialValues={initialValues} onSubmit={() => { }} validationSchema={validationSchema ?? {}}>
         {({ values, errors, setValues, setErrors }) => {
           return (
             <BlockConfiguration title={t("accessdata")}>

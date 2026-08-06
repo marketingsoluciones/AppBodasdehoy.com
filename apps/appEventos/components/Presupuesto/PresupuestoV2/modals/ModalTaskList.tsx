@@ -1,5 +1,6 @@
 import { t } from "i18next";
 import { Form, Formik } from "formik";
+import { formikValidateUx } from "../../../Forms/formikValidateUx";
 import InputField from "../../../Forms/InputField";
 import { useRouter } from "next/navigation";
 import { PiXBold } from "react-icons/pi";
@@ -131,7 +132,12 @@ export const ModalTaskList = ({ setModal, event, categoria, gasto, setEvent }) =
 
             {/* Form Section */}
             <div className="px-3 py-2 border-b border-gray-100">
-                <Formik initialValues={initialValues} onSubmit={handleSubmit} validationSchema={validationSchema}>
+                <Formik
+                    {...formikValidateUx}
+                    initialValues={initialValues}
+                    onSubmit={handleSubmit}
+                    validationSchema={validationSchema}
+                >
                     {({ isSubmitting }) => (
                         <Form className="space-y-2">
                             <div className="space-y-1 pb-2">

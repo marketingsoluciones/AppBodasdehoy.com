@@ -1,4 +1,5 @@
 import { Formik } from "formik";
+import { formikValidateUx } from "./formikValidateUx";
 import { useEffect, useState } from "react";
 import { EventContextProvider, AuthContextProvider } from "../../context/";
 import { CheckIcon, DiamanteIcon } from "../icons";
@@ -115,6 +116,7 @@ const FormAddPago = ({ GastoID, cate, setGastoID }) => {
 
   return (
     <Formik
+      {...formikValidateUx}
       initialValues={initialValues}
       onSubmit={async (values) => {
         try {

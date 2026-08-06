@@ -1,4 +1,5 @@
 import { Formik } from "formik";
+import { formikValidateUx } from "./formikValidateUx";
 import { useContext, useState } from "react";
 import { api } from "../../api";
 import { EventContextProvider } from "../../context";
@@ -24,6 +25,7 @@ const FormPresupuesto = ({ set, state }: FormPresupuestoProps) => {
   const { event, setEvent } = EventContextProvider();
   return (
     <Formik
+      {...formikValidateUx}
       initialValues={{
         nombre: "",
       }}

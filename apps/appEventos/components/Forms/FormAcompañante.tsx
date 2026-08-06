@@ -1,4 +1,5 @@
 import { Form, Formik, FormikValues, useField } from "formik";
+import { formikValidateUx } from "./formikValidateUx";
 import { FC, HtmlHTMLAttributes } from "react";
 import { AuthContextProvider, EventContextProvider } from "../../context";
 import { WarningIcon } from "../icons";
@@ -83,6 +84,7 @@ const FormAcompañante: FC<propsFormAcompañante> = ({ state, set, guestFather }
 
   return (
     <Formik
+      {...formikValidateUx}
       initialValues={initialValues}
       onSubmit={handleSubmit}
       validationSchema={validationSchema}

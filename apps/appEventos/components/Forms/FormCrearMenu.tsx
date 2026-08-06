@@ -1,4 +1,5 @@
 import { Form, Formik } from "formik";
+import { formikValidateUx } from "./formikValidateUx";
 import { EventContextProvider } from "../../context";
 import InputField from "./InputField";
 import * as yup from "yup";
@@ -77,6 +78,7 @@ const FormCrearMenu = ({ set, state }) => {
     <>
       <div className="w-full">
         <Formik
+      {...formikValidateUx}
           initialValues={initialValues}
           onSubmit={handleSubmit}
           validationSchema={validationSchema}
