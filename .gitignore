@@ -83,3 +83,6 @@ resultados-bateria-api2-*.json
 test-results/
 .agent-browser/
 node_modules
+
+# Análisis local (no versionar)
+analisis/
