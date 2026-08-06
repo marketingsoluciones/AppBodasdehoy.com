@@ -208,6 +208,9 @@ export default function MessagesPage() {
                     aria-pressed={showSpam}
                     className="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-600 hover:bg-gray-100"
                     onClick={toggleShowSpam}
+                    // A4 (QA 6-ago): color inline gana al override global del tema oscuro
+                    // (el repo no usa variantes dark:), evitando texto invisible sobre el bg blanco.
+                    style={{ color: '#4b5563' }}
                     type="button"
                   >
                     {showSpam ? '📢 Ocultar newsletters/estados' : '👁 Ver newsletters/estados'}
@@ -256,6 +259,8 @@ export default function MessagesPage() {
                     <button
                       className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
                       onClick={() => router.push('/settings/integrations')}
+                      // A4 (QA 6-ago): color inline evita texto invisible en tema oscuro.
+                      style={{ color: '#374151' }}
                       type="button"
                     >
                       Conectar canal
