@@ -6,6 +6,7 @@ import { useAuthCheck } from '@/hooks/useAuthCheck';
 
 import { getWhatsAppMessagesGQL } from '@/services/mcpApi/whatsapp';
 import { buildHeaders, parseWhatsAppConversationId } from '../utils/auth';
+import { dedupeFetch } from '../utils/dedupeFetch';
 import { useMessageStream } from './useMessageStream';
 import type { StreamMessage } from './useMessageStream';
 
@@ -122,7 +123,8 @@ export function useMessages(channel: string, conversationId: string) {
 
     try {
       setLoading(true);
-      const response = await fetch(url, { headers: buildHeaders() });
+      // H2-resto: dedup de GET concurrentes idénticos (el detalle monta useMessages 2x al abrir).
+      const response = await dedupeFetch(url, { headers: buildHeaders() });
 
       if (!response.ok) {
         if (response.status === 404) {
