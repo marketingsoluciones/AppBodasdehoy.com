@@ -125,8 +125,10 @@ export const DragableDefault: FC<propsTable> = forwardRef(({ item, setDisableWra
         })
         !disableDrag && setDisableWrapper(false)
       }}
-      className={`${!disableDrag ? prefijo === "table" || item?.tipo === "text" ? "js-drag" : "js-dragElement" : ""} ${editDefault?.clicked === item?._id ? "ring-2 ring-primary shadow-md" : ""} draggable-touch absolute border border-transparent hover:ring-2 hover:ring-gray-300 hover:shadow-md ${prefijo === "table" ? "p-10" : "p-3"} rounded-2xl ${editDefault?.clicked === item?._id ? "z-10" : ""}`} style={prefijo === "table" || item?.tipo === "text" ? { rotate: `${item?.rotation ?? 0}deg` } : {}} >
-      <div className="relative">
+      className={`${!disableDrag ? prefijo === "table" || item?.tipo === "text" ? "js-drag" : "js-dragElement" : ""} ${editDefault?.clicked === item?._id ? "shadow-md" : ""} group draggable-touch absolute border border-transparent hover:shadow-md ${prefijo === "table" ? "p-10" : "p-3"} rounded-2xl ${editDefault?.clicked === item?._id ? "z-10" : ""}`} style={prefijo === "table" || item?.tipo === "text" ? { rotate: `${item?.rotation ?? 0}deg` } : {}} >
+      {/* Ring de selección/hover pegado a la FORMA (no al wrapper con p-10, que dejaba el ring
+          40px fuera del círculo → QA no lo veía). Seleccionada = ring rosa; hover = ring gris. */}
+      <div className={`relative rounded-2xl ${editDefault?.clicked === item?._id ? "ring-2 ring-primary" : "group-hover:ring-2 group-hover:ring-gray-300"}`}>
         {prefijo === "table"
           ? <MesaContent
             table={item as table}
