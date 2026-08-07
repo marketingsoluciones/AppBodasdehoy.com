@@ -44,7 +44,13 @@ step_rsync_up() {
   echo "=== rsync-up) node_modules local → portátil ==="
   rsync -az --delete -e "ssh -o BatchMode=yes" \
     "$LOCAL_DIR/node_modules/" "$REMOTE_HOST:$REMOTE_DIR/node_modules/"
-  echo "✅ node_modules sincronizado"
+  # 7-ago: pnpm NO hoista todo al root; deps propias de appEventos (p.ej.
+  # html2canvas-pro del PDF de Mesas) viven en apps/appEventos/node_modules y el
+  # build del portátil fallaba ("Module not found"). Sincronizar también ese árbol
+  # (igual que hace build-en-portatil.sh con apps/chat-ia/node_modules).
+  rsync -az -e "ssh -o BatchMode=yes" \
+    "$LOCAL_DIR/apps/appEventos/node_modules/" "$REMOTE_HOST:$REMOTE_DIR/apps/appEventos/node_modules/"
+  echo "✅ node_modules (root + appEventos) sincronizado"
 }
 
 step_shared() {
