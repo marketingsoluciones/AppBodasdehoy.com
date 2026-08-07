@@ -24,9 +24,14 @@ export default async function handler(
       headers.Authorization = req.headers.authorization;
     }
 
-    // Pasar Development si existe
-    if (req.headers.development) {
-      headers.Development = req.headers.development;
+    // crm-ui / planLimits envían X-Development; Node lo expone como x-development.
+    // Antes solo se leía `development` → se perdía el header hacia api-mcp.
+    const developmentHeader =
+      (req.headers['x-development'] as string | undefined) ||
+      (req.headers.development as string | undefined);
+    if (developmentHeader) {
+      headers['X-Development'] = developmentHeader;
+      headers.Development = developmentHeader;
     }
 
     // Pasar IsProduction si existe

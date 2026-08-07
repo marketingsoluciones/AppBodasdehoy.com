@@ -131,14 +131,25 @@ const AuthProvider = ({ children }) => {
   // el warning "config.cookie undefined" aparecía y resolveCookieName caía a
   // fallback. Ahora init síncrono desde hostname para que config esté
   // disponible desde el primer render (guard SSR).
+  // SSR: NO devolver undefined — /login leía config?.headTitle/theme y caía a
+  // defaults distintos del cliente → hydration mismatch (Bodas de Hoy vs
+  // headTitle de bodasdehoy + gradiente rosa vs marca).
   const [config, setConfig] = useState<any>(() => {
-    if (typeof window === 'undefined') return undefined;
+    const resolveDev = (name: string) =>
+      developments.find((elem) => elem.name === name || elem.development === name) || developments[0];
     try {
-      const hostname = window.location.hostname;
-      const domainDevelop = getDevelopmentNameFromHostname(hostname);
-      const initial = developments.find((elem) => elem.name === domainDevelop) || developments[0];
-      return initial;
-    } catch { return undefined; }
+      if (typeof window === 'undefined') {
+        const ssrName =
+          process.env.NEXT_PUBLIC_DEV_WHITELABEL ||
+          process.env.NEXT_PUBLIC_DEVELOPMENT ||
+          'bodasdehoy';
+        return resolveDev(ssrName);
+      }
+      const domainDevelop = getDevelopmentNameFromHostname(window.location.hostname);
+      return resolveDev(domainDevelop);
+    } catch {
+      return resolveDev('bodasdehoy');
+    }
   });
   const [isMounted, setIsMounted] = useState<boolean>(false)
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<any>(0);

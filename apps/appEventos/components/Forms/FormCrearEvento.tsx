@@ -177,6 +177,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       const result = await fetchApiBodas({
         query: queries.eventCreate,
         variables: { input },
+        development: config?.development || process.env.NEXT_PUBLIC_DEVELOPMENT || 'bodasdehoy',
       });
 
       if (!result?.success) {

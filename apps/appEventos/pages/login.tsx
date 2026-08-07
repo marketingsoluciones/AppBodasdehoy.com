@@ -11,8 +11,9 @@ import type { ImgHTMLAttributes, ReactElement } from "react";
 const safeThemeValue = (v: unknown) =>
   (typeof v === 'string' && !/[\r\n`\\]/.test(v) ? v : '')
 
+/** Defaults alineados con firebase.tsx / developments[bodasdehoy] para SSR=cliente. */
 const APP_EVENTOS_LEFT_PANEL = {
-  brandName: 'Bodas de Hoy',
+  brandName: 'Bodas de hoy - Organizador de Bodas',
   /** Un solo mensaje de marca: sin rotación (el default de auth-ui rota boda/comunión/bautizo…). */
   eventTypesForRotation: [],
   headline: 'La plataforma todo-en-uno para organizar tu boda',
@@ -26,6 +27,7 @@ const APP_EVENTOS_LEFT_PANEL = {
   ],
   /** Oculta el bloque de cifras del default (evita otra “capa” de marketing). */
   stats: [],
+  gradient: 'linear-gradient(150deg, #F7628C 0%, #87F3B5 60%, #FBFF4E 100%)',
 };
 
 const PageLogin = () => {
@@ -48,17 +50,22 @@ const PageLogin = () => {
   const [isMounted, setIsMounted] = useState(false)
   const [logoError, setLogoError] = useState(false)
 
-  const themePrimary = safeThemeValue(config?.theme?.primaryColor) || '#ec4899'
-  const themeSecondary = safeThemeValue(config?.theme?.secondaryColor) || '#f472b6'
-  const themeTertiary = safeThemeValue(config?.theme?.tertiaryColor) || '#f9a8d4'
+  // Hasta montar: mismos defaults en SSR y 1er paint cliente (evita hydration mismatch
+  // si AuthContext aún no tiene el tenant definitivo).
+  const themePrimary = safeThemeValue(config?.theme?.primaryColor) || '#F7628C'
+  const themeSecondary = safeThemeValue(config?.theme?.secondaryColor) || '#87F3B5'
+  const themeTertiary = safeThemeValue(config?.theme?.tertiaryColor) || '#FBFF4E'
   const splitLeftPanel = useMemo(() => {
+    if (!isMounted) {
+      return { ...APP_EVENTOS_LEFT_PANEL }
+    }
     const brandName = (typeof config?.headTitle === 'string' && config.headTitle.trim()) ? config.headTitle : APP_EVENTOS_LEFT_PANEL.brandName
     return {
       ...APP_EVENTOS_LEFT_PANEL,
       brandName,
       gradient: `linear-gradient(150deg, ${themePrimary} 0%, ${themeSecondary} 60%, ${themeTertiary} 100%)`,
     }
-  }, [config?.headTitle, themePrimary, themeSecondary, themeTertiary])
+  }, [isMounted, config?.headTitle, themePrimary, themeSecondary, themeTertiary])
 
   useEffect(() => {
     if (!isMounted) {
@@ -208,31 +215,32 @@ const PageLogin = () => {
             multi-tenant: botón "Ir a {brand}" que usa pathDirectory de cada
             whitelabel — si está definido se muestra, si no, no aparece.
             Esto es consistente entre los 11 tenants y autoexplicativo. */}
-        {(() => {
-          // OBS-02 (informe QA 22-jun): config.pathDirectory se sobrescribe a window.origin
-          // (app-dev) en subdominios -dev/-test por la lógica de mantener al usuario en
-          // el mismo entorno tras SSO. Pero el botón "Ir a {brand}" debe ir SIEMPRE a la
-          // web de marketing del tenant (bodasdehoy.com, etc.), no al subdominio dev.
-          // Fix: derivar el host de producción del hostname actual.
+        {/* Solo tras montar: en SSR buildProdDirectory devolvía '' (sin window) y
+            el cliente sí pintaba el <a> → hydration mismatch. */}
+        {isMounted && (() => {
+          // OBS-02: el botón debe ir a la web de marketing del tenant, no al
+          // pathDirectory sobrescrito a window.origin en -dev/-test.
           const buildProdDirectory = (): string => {
-            // Si config.pathDirectory original (sin override) está disponible, usarlo.
-            // Si estamos en dev/test/local, derivar el host de prod del hostname actual.
-            if (typeof window === 'undefined') return ''
-            const host = window.location.hostname
-            // En prod (bodasdehoy.com) usamos config.pathDirectory directamente.
-            if (host && !host.includes('-dev.') && !host.includes('-test.') && host !== 'localhost' && host !== '127.0.0.1') {
-              return typeof config?.pathDirectory === 'string' ? config.pathDirectory.trim() : ''
+            const host = typeof window !== 'undefined' ? window.location.hostname : ''
+            const cfgPath = typeof config?.pathDirectory === 'string' ? config.pathDirectory.trim() : ''
+            // Preferir path de marketing del tenant (firebase developments), no el override local.
+            const marketingPath =
+              typeof config?.pathDomain === 'string' && config.pathDomain.trim()
+                ? config.pathDomain.trim()
+                : ''
+            if (host && !host.includes('-dev.') && !host.includes('-test.') && host !== 'localhost' && host !== '127.0.0.1' && !/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {
+              return marketingPath || cfgPath
             }
-            // En dev/test/local, derivar el host de prod (quitar prefix dev/test).
-            const baseHost = host
-              .replace(/^app-dev\./, '')
-              .replace(/^app-test\./, '')
-              .replace(/^app\./, '')
-            if (baseHost && baseHost.includes('.')) {
-              return `https://${baseHost}`
+            if (host) {
+              const baseHost = host
+                .replace(/^app-dev\./, '')
+                .replace(/^app-test\./, '')
+                .replace(/^app\./, '')
+              if (baseHost && baseHost.includes('.')) {
+                return `https://${baseHost}`
+              }
             }
-            // Fallback final.
-            return typeof config?.pathDirectory === 'string' ? config.pathDirectory.trim() : ''
+            return marketingPath || cfgPath
           }
 
           const path = buildProdDirectory()

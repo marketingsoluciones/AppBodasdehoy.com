@@ -229,14 +229,17 @@ export function useCRMNotes({
           isPrivate: input.isPrivate,
           attachments: input.attachments,
         };
-        const data = await callMcpGraphQL<{ createCRMNote: { success: boolean; note: CRMNote } }>(
+        const data = await callMcpGraphQL<{ createCRMNote: { success: boolean; note: CRMNote; errors?: Array<{ message: string }> } }>(
           GQL_CREATE_CRM_NOTE,
           { input: fullInput },
         );
-        const realNote = data.createCRMNote?.note;
-        if (!realNote) throw new Error('Backend no devolvió la nota creada');
-        setNotes((prev) => prev.map((n) => (n.id === tempId ? realNote : n)));
-        return realNote;
+        const payload = data.createCRMNote;
+        if (!payload?.success || !payload?.note) {
+          const msg = payload?.errors?.[0]?.message || 'Backend no devolvió la nota creada';
+          throw new Error(msg);
+        }
+        setNotes((prev) => prev.map((n) => (n.id === tempId ? payload.note : n)));
+        return payload.note;
       } catch (e) {
         // Revertir optimistic
         setNotes((prev) => prev.filter((n) => n.id !== tempId));

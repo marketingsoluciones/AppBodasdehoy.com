@@ -149,7 +149,11 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   }, [acompañanteID.id])
 
   useEffect(() => {
-    setInvitadoCero(event?.invitados_array?.filter(elem => elem?.rol === event?.grupos_array?.[0])[0]?.nombre)
+    setInvitadoCero(
+      event?.invitados_array?.find(
+        (elem) => elem?.rol?.toLowerCase() === event?.grupos_array?.[0]?.toLowerCase()
+      )?.nombre
+    )
   }, [event?.invitados_array, event?.grupos_array, event])
 
   useEffect(() => {
@@ -171,15 +175,20 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
       item.tableNameRecepcion = tableRecepcion?.title ? tableRecepcion : { title: "no asignado" }
       item.tableNameCeremonia = tableCeremonia?.title ? tableCeremonia : { title: "no asignado" }
 
-      if (event?.grupos_array?.includes(item?.rol)) {
-        acc[item.rol] = { titulo: item.rol, data: acc[item.rol]?.data ? [...acc[item.rol]?.data, item] : [item] }
+      // Match case-insensitive: SelectField antiguo guardaba rol en minúsculas
+      // mientras grupos_array mantiene "Familia novia". Usar la clave canónica del grupo.
+      const grupoKey = event?.grupos_array?.find(
+        (g) => g?.toLowerCase() === item?.rol?.toLowerCase()
+      )
+      if (grupoKey) {
+        acc[grupoKey] = { titulo: grupoKey, data: acc[grupoKey]?.data ? [...acc[grupoKey]?.data, item] : [item] }
       } else {
         acc["no asignado"] = { titulo: "no asignado", data: acc["no asignado"]?.data ? [...acc["no asignado"]?.data, item] : [item] }
       }
       return acc;
     }, asd);
     Data && setData(Object.values(Data));
-  }, [allFilterGuests]);
+  }, [allFilterGuests, event?.invitados_array, event?.grupos_array, event?.planSpace]);
 
   const renderRowSubComponent = useCallback(({ row }) => (
     <SubTabla

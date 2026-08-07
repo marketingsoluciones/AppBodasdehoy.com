@@ -159,8 +159,14 @@ export const api = {
     }
 
     const bodasApiUrl = isLocalhost ? '/api/proxy-bodas/graphql' : resolveApiBodasAuthGraphqlUrl();
+    const resolvedDevelopment =
+      development ||
+      varGlobalDevelopment ||
+      process.env.NEXT_PUBLIC_DEVELOPMENT ||
+      'bodasdehoy';
     const headers: Record<string, any> = {
-      Development: development,
+      Development: resolvedDevelopment,
+      'X-Development': resolvedDevelopment,
       IsProduction: (process?.env?.NEXT_PUBLIC_PRODUCTION && !["testticket", "testinvitado"].includes(varGlobalSubdomain)) ?? false,
       "Content-Type": "application/json",
     };

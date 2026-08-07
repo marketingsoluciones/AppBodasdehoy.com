@@ -95,8 +95,11 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
             item.tableNameRecepcion = tableRecepcion?.title ? tableRecepcion : { title: "no asignado" }
             item.tableNameCeremonia = tableCeremonia?.title ? tableCeremonia : { title: "no asignado" }
 
-            if (event?.grupos_array?.includes(item?.rol)) {
-                acc[item.rol] = { titulo: item.rol, data: acc[item.rol]?.data ? [...acc[item.rol]?.data, item] : [item] }
+            const grupoKey = event?.grupos_array?.find(
+                (g) => g?.toLowerCase() === item?.rol?.toLowerCase()
+            )
+            if (grupoKey) {
+                acc[grupoKey] = { titulo: grupoKey, data: acc[grupoKey]?.data ? [...acc[grupoKey]?.data, item] : [item] }
             } else {
                 acc["no asignado"] = { titulo: "no asignado", data: acc["no asignado"]?.data ? [...acc["no asignado"]?.data, item] : [item] }
             }
@@ -810,8 +813,11 @@ export const AcompañantesCard: FC<propsAcompañantesCard> = ({ passesQuantity, 
             item.tableNameRecepcion = tableRecepcion?.title ? tableRecepcion : { title: "no asignado" }
             item.tableNameCeremonia = tableCeremonia?.title ? tableCeremonia : { title: "no asignado" }
 
-            if (event?.grupos_array?.includes(item?.rol)) {
-                acc[item.rol] = { titulo: item.rol, data: acc[item.rol]?.data ? [...acc[item.rol]?.data, item] : [item] }
+            const grupoKey = event?.grupos_array?.find(
+                (g) => g?.toLowerCase() === item?.rol?.toLowerCase()
+            )
+            if (grupoKey) {
+                acc[grupoKey] = { titulo: grupoKey, data: acc[grupoKey]?.data ? [...acc[grupoKey]?.data, item] : [item] }
             } else {
                 acc["no asignado"] = { titulo: "no asignado", data: acc["no asignado"]?.data ? [...acc["no asignado"]?.data, item] : [item] }
             }
