@@ -1,5 +1,6 @@
 import type { PartialDeep } from 'type-fest';
 
+import { resolvePublicBackendOrigin } from '@/const/backendEndpoints';
 import { UserGuide, UserInitializationState, UserPreference } from '@/types/user';
 import { UserSettings } from '@/types/user/settings';
 
@@ -12,7 +13,10 @@ import { IUserService } from './type';
 // los stubs getUserSSOProviders/unlinkSSOProvider y la UI SSOProvidersList se
 // borraron por inútiles (siempre retornaban []).
 
-const API_IA_BASE = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8080';
+// /agentes carga infinita (QA 7-ago): getUserState pegaba a NEXT_PUBLIC_API_IA_URL || localhost:8080
+// (inalcanzable desde el browser si el env no está seteado) → timeout 5s → pantalla colgada.
+// Resolver canónico (browser): api-ia.eventosorganizador.com (no-flaky).
+const API_IA_BASE = resolvePublicBackendOrigin();
 
 function getUserConfigContext(): { development: string; idToken?: string; userId?: string } {
   if (typeof window === 'undefined') {
