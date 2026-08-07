@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 const BACKEND_URL =
-  process.env.API_IA_URL ||
-  process.env.NEXT_PUBLIC_API_IA_URL ||
-  'https://api-ia.bodasdehoy.com';
+  resolveServerBackendOrigin();
 
 /**
  * GET /api/storage/proxy-image?url=<encoded-image-url>
