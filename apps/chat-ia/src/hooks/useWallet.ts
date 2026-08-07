@@ -19,6 +19,10 @@ import {
 
 export interface UseWalletState {
   balance: number;
+  /** true solo cuando el saldo se leyó con ÉXITO al menos una vez. Mientras sea false
+   *  (carga inicial o fallo de api-mcp), el saldo es DESCONOCIDO → la UI debe mostrar
+   *  "—"/"no disponible", NO "€0.00" (evita el falso €0/"saldo insuficiente"). */
+  balanceLoaded: boolean;
   bonusBalance: number;
   creditLimit: number;
   currency: string;
@@ -165,7 +169,10 @@ export const useWallet = (): UseWalletReturn => {
 
   const canAfford = useCallback(async (amount: number): Promise<BalanceCheck> => {
     const check = await walletService.checkBalance(amount);
-    if (!check.allowed) {
+    // Solo abrir el modal de recarga ante una DENEGACIÓN REAL por saldo. Si la consulta a
+    // MCP falló (error_code API_ERROR → saldo DESCONOCIDO, no insuficiente), NO mostrar
+    // "saldo insuficiente": evita el falso B-12 durante caídas de api-mcp (QA 7-ago).
+    if (!check.allowed && check.error_code !== 'API_ERROR') {
       setLastBalanceCheck(check);
       setShowRechargeModal(true);
     }
@@ -341,6 +348,7 @@ export const useWallet = (): UseWalletReturn => {
 
   return {
     balance,
+    balanceLoaded,
     bonusBalance,
     canAfford,
     consumeService,

@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
+
 export const POST = async (req: Request, { params }: { params: Promise<{ provider: string }> }) => {
   const { provider } = await params;
-  const backendUrl = process.env.API_IA_URL || process.env.NEXT_PUBLIC_API_IA_URL;
+  const backendUrl = resolveServerBackendOrigin();
 
   if (!backendUrl) {
     return NextResponse.json(
