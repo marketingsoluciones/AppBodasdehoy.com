@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 export const runtime = 'nodejs';
 
 const getBackendUrl = (): string =>
-  process.env.API_IA_URL ||
-  process.env.NEXT_PUBLIC_API_IA_URL ||
-  'https://api-ia.bodasdehoy.com';
+  resolveServerBackendOrigin();
 
 /**
  * Proxy catch-all: /api/memories/[...path] → api-ia/api/memories/[...path]

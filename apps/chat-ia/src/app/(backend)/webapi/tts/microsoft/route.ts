@@ -1,3 +1,4 @@
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 /**
  * Microsoft Speech TTS proxy → api-ia backend
  * Migrado 2026-05-20 LOTE 5. Antes usaba @lobehub/tts MicrosoftSpeechTTS local.
@@ -7,9 +8,7 @@
 export const runtime = 'edge';
 
 const getBackendUrl = () =>
-  process.env.API_IA_URL ||
-  process.env.NEXT_PUBLIC_API_IA_URL ||
-  'https://api-ia.bodasdehoy.com';
+  resolveServerBackendOrigin();
 
 export const POST = async (req: Request) => {
   const backendUrl = getBackendUrl();

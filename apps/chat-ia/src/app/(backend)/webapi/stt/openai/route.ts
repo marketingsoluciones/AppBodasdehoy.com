@@ -1,3 +1,4 @@
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 /**
  * STT proxy → api-ia backend
  * No llama a OpenAI directamente. El audio pasa por api-ia para
@@ -9,9 +10,7 @@
 export const runtime = 'edge';
 
 const getBackendUrl = () =>
-  process.env.API_IA_URL ||
-  process.env.NEXT_PUBLIC_API_IA_URL ||
-  'https://api-ia.bodasdehoy.com';
+  resolveServerBackendOrigin();
 
 export const POST = async (req: Request) => {
   const backendUrl = getBackendUrl();

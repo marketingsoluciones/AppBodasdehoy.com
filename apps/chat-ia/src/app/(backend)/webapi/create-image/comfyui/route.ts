@@ -9,13 +9,12 @@
 
 import { NextResponse } from 'next/server';
 
+import { resolveServerBackendOrigin } from '@/const/backendEndpoints';
 export const runtime = 'nodejs';
 export const maxDuration = 300;
 
 const getBackendUrl = () =>
-  process.env.API_IA_URL ||
-  process.env.NEXT_PUBLIC_API_IA_URL ||
-  'https://api-ia.bodasdehoy.com';
+  resolveServerBackendOrigin();
 
 export const POST = async (req: Request) => {
   const backendUrl = getBackendUrl();
