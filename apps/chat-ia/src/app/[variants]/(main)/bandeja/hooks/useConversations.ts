@@ -39,6 +39,10 @@ export interface Conversation {
   unreadCountForAgent?: number;
 }
 
+// A2-web: canales "otros" conocidos. Alineado 1:1 con useRecentConversations (feed).
+// Cualquier canal fuera de este set (o sin channel) se clasifica como "web" (cajón).
+const OTHER_CHANNELS = new Set(['instagram', 'telegram', 'email', 'web', 'facebook']);
+
 export function useConversations(channel: string | null) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,10 +66,17 @@ export function useConversations(channel: string | null) {
       const headers = buildHeaders();
       const dev = development || 'bodasdehoy';
 
-      const fetchUrl =
-        channel === 'whatsapp' || !channel
-          ? `${proxyBase}/whatsapp/conversations/${dev}`
-          : `${proxyBase}/conversations?development=${dev}&channel=${channel}`;
+      // A2-web (CAUSA RAÍZ): el feed (useRecentConversations) clasifica "web" como CAJÓN
+      // por defecto (channel||platform||'web', desconocido→'web') pegando a
+      // `/conversations?development=` SIN filtro. Aquí antes se pegaba con `&channel=web`
+      // + default 'whatsapp' → una conversación sin `channel` aparecía como "web" en el
+      // feed pero se PERDÍA al abrirla (lista vacía + banner WA colado). Fix: MISMO
+      // endpoint que el feed (dedupeFetch coalesce → sin fetch extra, sin el 429 de #286)
+      // + MISMA clasificación de canal (abajo).
+      const isWaView = channel === 'whatsapp' || !channel;
+      const fetchUrl = isWaView
+        ? `${proxyBase}/whatsapp/conversations/${dev}`
+        : `${proxyBase}/conversations?development=${dev}`;
 
       // H2: dedup de GET concurrentes idénticos (feed + detalle piden el mismo recurso).
       const response = await dedupeFetch(fetchUrl, { headers });
@@ -79,9 +90,18 @@ export function useConversations(channel: string | null) {
         // utils/jid.ts (friendlyContactName + classifyJidLike). Ver docs/AUTH-FLOW.md.
         const normalized: Conversation[] = rawList.map((c: any) => {
           const rawName = c.displayName || c.contactInfo?.name || c.phoneNumber || '';
+          // Clasificación IDÉNTICA al feed (useRecentConversations): en vista WA todo es
+          // 'whatsapp'; en vista "otros", desconocido/sin-channel → 'web' (cajón). Esto
+          // hace que la conv sobreviva al abrirla (el filtro de abajo ya cuadra).
+          const rawKind = c.channel || c.platform || (isWaView ? 'whatsapp' : 'web');
+          const kind = isWaView
+            ? 'whatsapp'
+            : OTHER_CHANNELS.has(rawKind)
+              ? rawKind
+              : 'web';
           return {
             assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
-            channel: (c.channel || c.platform || channel || 'whatsapp') as Conversation['channel'],
+            channel: kind as Conversation['channel'],
             contact: {
               name: friendlyContactName(rawName, c.phoneNumber, c.jidType ?? c.jid_type),
               phone: safePhoneOrEmpty(c.phoneNumber, c.jidType ?? c.jid_type),

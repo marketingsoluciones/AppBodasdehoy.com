@@ -75,7 +75,13 @@ interface MessageInputProps {
 
 /** Banner "canal desvinculado / solo lectura" (TICKET P1). Ámbar semántico fijo; el
  *  botón primario [Reconectar] usa el color de MARCA del whitelabel (no #EF5B94 fijo). */
-function ChannelInactiveBanner({ brandColor }: { brandColor: string }) {
+function ChannelInactiveBanner({ brandColor, channel }: { brandColor: string; channel?: string }) {
+  // A2-web: no rotular "WhatsApp anterior" en canales que NO son WhatsApp (el banner se
+  // colaba en conversaciones Web). Texto genérico salvo en el canal de WhatsApp.
+  const label =
+    channel === 'whatsapp' || !channel
+      ? 'Conexión de WhatsApp anterior — solo lectura'
+      : 'Este canal está en solo lectura';
   return (
     <div
       style={{
@@ -90,7 +96,7 @@ function ChannelInactiveBanner({ brandColor }: { brandColor: string }) {
     >
       <span aria-hidden style={{ color: '#B07E14', flexShrink: 0, fontSize: 16 }}>⚠</span>
       <span style={{ color: '#7A5A0E', flex: '1 1 130px', fontSize: 11.5, fontWeight: 700, minWidth: 0 }}>
-        Conexión de WhatsApp anterior — solo lectura
+        {label}
       </span>
       <a
         href="/settings/integrations"
@@ -396,7 +402,7 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
   // deshabilitado para que [Reconectar]/[Conexiones] sí sean clicables.
   return (
     <>
-      {readOnly && <ChannelInactiveBanner brandColor={composerBrand.brand} />}
+      {readOnly && <ChannelInactiveBanner brandColor={composerBrand.brand} channel={channel} />}
       <div
         aria-disabled={readOnly || undefined}
         className="space-y-1"
