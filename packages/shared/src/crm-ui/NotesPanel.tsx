@@ -159,7 +159,15 @@ function NoteItem({ note, readOnly, onUpdate, onDelete, onTogglePin, compact }: 
                   type="button"
                   onClick={() => void handleSave()}
                   disabled={busy || !draft.trim()}
-                  className="rounded bg-violet-600 px-2 py-0.5 text-xs text-white hover:bg-violet-700 disabled:opacity-50"
+                  className={cn(
+                    'rounded font-medium transition',
+                    'px-2 py-0.5 text-xs',
+                  )}
+                  style={
+                    busy || !draft.trim()
+                      ? { backgroundColor: '#E5E7EB', color: '#6B7280', cursor: 'not-allowed' }
+                      : { backgroundColor: 'var(--color-primary, #ec4899)', color: '#FFFFFF' }
+                  }
                 >
                   {busy ? 'Guardando…' : 'Guardar'}
                 </button>
@@ -453,9 +461,14 @@ export function NotesPanel({
               onClick={() => void handleCreate()}
               disabled={busy || !draft.trim()}
               className={cn(
-                'rounded bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50',
+                'rounded font-medium transition',
                 compact ? 'px-2 py-0.5 text-[10px]' : 'px-3 py-1 text-xs',
               )}
+              style={
+                busy || !draft.trim()
+                  ? { backgroundColor: '#E5E7EB', color: '#6B7280', cursor: 'not-allowed' }
+                  : { backgroundColor: 'var(--color-primary, #ec4899)', color: '#FFFFFF' }
+              }
             >
               {busy ? 'Guardando…' : 'Añadir nota'}
             </button>

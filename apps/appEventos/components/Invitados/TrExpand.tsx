@@ -13,7 +13,7 @@ export const TrExpand: FC<props> = ({ row, ColSpan, renderRowSubComponent }) => 
     <>
       <tr
         {...rowProps}
-        className="w-full bg-white border-b font-display text-sm grid grid-cols-24"
+        className="w-full bg-white border-b border-gray-200 font-display text-sm grid grid-cols-24"
       >
         {
           row.cells.map((cell: any, i: number) => {

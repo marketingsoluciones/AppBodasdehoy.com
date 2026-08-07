@@ -49,15 +49,18 @@ export const SubTabla: FC<propsSubTabla> = ({ row, getId, handleClick, setSelect
             item.tableNameRecepcion = tableRecepcion?.title ? tableRecepcion : { title: "no asignado" }
             item.tableNameCeremonia = tableCeremonia?.title ? tableCeremonia : { title: "no asignado" }
 
-            if (event?.grupos_array?.includes(item?.rol)) {
-                acc[item.rol] = { titulo: item.rol, data: acc[item.rol]?.data ? [...acc[item.rol]?.data, item] : [item] }
+            const grupoKey = event?.grupos_array?.find(
+                (g) => g?.toLowerCase() === item?.rol?.toLowerCase()
+            )
+            if (grupoKey) {
+                acc[grupoKey] = { titulo: grupoKey, data: acc[grupoKey]?.data ? [...acc[grupoKey]?.data, item] : [item] }
             } else {
                 acc["no asignado"] = { titulo: "no asignado", data: acc["no asignado"]?.data ? [...acc["no asignado"]?.data, item] : [item] }
             }
             return acc;
         }, asd);
         Data && setData(Object.values(Data));
-    }, [allFilterGuests]);
+    }, [allFilterGuests, event?.invitados_array, event?.grupos_array, event?.planSpace]);
 
     return (
         <div className=" bg-base px-10 pb-12 pt-6 relative">
@@ -145,7 +148,7 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather, handleClick, setSele
             <p className="text-gray-500 text-lg pb-2">
                 {t("companionss")}
             </p>
-            <div className="grid grid-cols-12 px-5 justify-between border-b py-4 border-gray-100  transition bg-white capitalize">
+            <div className="grid grid-cols-12 px-5 justify-between border-b py-4 border-gray-200  transition bg-white capitalize">
                 <span className="items-center col-span-4 flex flex-col ">
                     <p className="font-body text-[15px] font-semibold">{t("name")}</p>
                 </span>
@@ -173,7 +176,7 @@ const ListadoComponent: FC<props> = ({ row, GuestsByFather, handleClick, setSele
                 return (
                     <div
                         key={idx}
-                        className="grid grid-cols-12 px-5 justify-between border-b py-4 border-gray-100  transition bg-white">
+                        className="grid grid-cols-12 px-5 justify-between border-b py-4 border-gray-200  transition bg-white">
                         <span className="items-center col-span-4 flex flex-col ">
                             <div className="flex items-center justify-start gap-1 w-full p-2">
                                 <img

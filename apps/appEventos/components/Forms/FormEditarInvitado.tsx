@@ -178,7 +178,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                 <div className="md:grid md:grid-cols-9 w-full gap-6 relative  ">
                   <SelectField
                     colSpan={3}
-                    options={event?.grupos_array}
+                    options={event?.grupos_array ?? []}
                     name="rol"
                     label={t("roleguestgroup")}
                   />
@@ -186,12 +186,12 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     colSpan={2}
                     options={[
                       { _id: null, title: "No Asignado" },
-                      ...event?.planSpace.find(elem => elem?.title === "recepción")?.tables?.reduce((acc, elem) => {
-                        if (elem?.guests.length < elem?.numberChair || values?.tableNameRecepcion?._id === elem?._id) {
+                      ...(event?.planSpace?.find(elem => elem?.title === "recepción")?.tables?.reduce((acc, elem) => {
+                        if ((elem?.guests?.length ?? 0) < elem?.numberChair || values?.tableNameRecepcion?._id === elem?._id) {
                           acc.push({ _id: elem._id, title: elem.title })
                         }
                         return acc
-                      }, [])
+                      }, []) ?? []),
                     ]}
                     name="tableNameRecepcion"
                     label={t("receptiontable")}
@@ -200,19 +200,19 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
                     colSpan={2}
                     options={[
                       { _id: null, title: "No Asignado" },
-                      ...event?.planSpace.find(elem => elem?.title === "ceremonia")?.tables?.reduce((acc, elem) => {
-                        if (elem?.guests.length < elem?.numberChair || values?.tableNameRecepcion?._id === elem?._id) {
+                      ...(event?.planSpace?.find(elem => elem?.title === "ceremonia")?.tables?.reduce((acc, elem) => {
+                        if ((elem?.guests?.length ?? 0) < elem?.numberChair || values?.tableNameCeremonia?._id === elem?._id) {
                           acc.push({ _id: elem._id, title: elem.title })
                         }
                         return acc
-                      }, [])
+                      }, []) ?? []),
                     ]}
                     name="tableNameCeremonia"
                     label={t("ceremonytable")}
                   />
                   <SelectField
                     colSpan={2}
-                    options={[...event?.menus_array?.map((item) => item?.nombre_menu), "sin menú"]}
+                    options={[...(event?.menus_array?.map((item) => item?.nombre_menu) ?? []), "sin menú"]}
                     name="nombre_menu"
                     label={t("menu")}
                   />
@@ -273,7 +273,7 @@ const FormEditarInvitado = ({ state, set, invitado, setInvitadoSelected }) => {
             </Form>
             {invitado?._id && (
               <EntityNotesSection
-                entityType="CONTACT"
+                entityType="INVITADO"
                 entityId={invitado._id}
                 entityName={invitado?.nombre || 'Invitado'}
               />

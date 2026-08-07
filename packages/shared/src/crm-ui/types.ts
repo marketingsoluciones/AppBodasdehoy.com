@@ -31,7 +31,8 @@ export type CRMNoteEntityType =
   | 'ENTITY'
   | 'CAMPAIGN'
   | 'TASK'
-  | 'CONVERSATION';
+  | 'CONVERSATION'
+  | 'INVITADO';
 
 /**
  * Identificación de una entidad a la que se vincula una nota.

@@ -23,9 +23,13 @@ const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, 
         }
     }
 
-    if (typeof options[0] != "string") {
+    const opts = options ?? []
+    const isStringOptions = typeof opts[0] === "string"
+
+    if (!isStringOptions && opts.length > 0) {
         field.onChange = (e: ChangeEvent<HTMLSelectElement>) => {
-            setValue((options as Array<{ _id: string, title: string }>).find(elem => elem['_id'] === e.target.value))
+            const selected = e.target.value
+            setValue((opts as Array<{ _id: string, title: string }>).find(elem => String(elem?._id ?? "") === selected) ?? { _id: null, title: "No Asignado" })
         }
     }
 
@@ -34,16 +38,20 @@ const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, 
             <div className={`relative* w-full h-full col-span${colSpan && `-${colSpan}`} content-between`}>
                 <label className={`font-display text-sm ${labelClass ? "text-primary" : "text-textGrisClaro"} w-full`}>{label}</label>
                 <div className="relative">
-                    <select id="selector-field" className={`font-display capitalize cursor-pointer text-sm text-gray-500 border border-gray-300 focus:border-gray-400 focus:ring-0 transition w-full py-2 pr-7 rounded-xl focus:outline-none ${props.className}`} value={typeof options[0] === "string" ? field?.value : field?.value?._id} name={field?.name} onChange={field?.onChange} >
+                    <select id="selector-field" className={`font-display capitalize cursor-pointer text-sm text-gray-500 border border-gray-300 focus:border-gray-400 focus:ring-0 transition w-full py-2 pr-7 rounded-xl focus:outline-none ${props.className}`} value={isStringOptions ? (field?.value ?? "") : String(field?.value?._id ?? "")} name={field?.name} onChange={field?.onChange} >
                         {nullable &&
                             <option >
                                 {t("select")}
                             </option>}
-                        {options?.map((option: string | { _id: string, title: string }, idx: number) => {
+                        {opts.map((option: string | { _id: string, title: string }, idx: number) => {
                             const label = typeof option === "string" ? t(option) : t(option?.title)
-                            const value = typeof option === "string" ? option : option?._id
+                            const rawValue = typeof option === "string" ? option : option?._id
+                            const value = rawValue == null ? "" : String(rawValue)
+                            const display = typeof option === "string"
+                                ? (rawValue && `${!String(rawValue).match("(nombre)") ? rawValue : String(rawValue).replace("(nombre)", (invitadoCero ? invitadoCero : event?.grupos_array?.[0]))}`)
+                                : (option?.title ?? value)
                             return (
-                                <option key={idx} label={label} value={value?.toLowerCase()} >{value && `${!value?.match("(nombre)") ? value : value?.replace("(nombre)", (invitadoCero ? invitadoCero : event?.grupos_array?.[0]))}`}</option>
+                                <option key={idx} label={label} value={value}>{display}</option>
                             )
                         })}
                     </select>

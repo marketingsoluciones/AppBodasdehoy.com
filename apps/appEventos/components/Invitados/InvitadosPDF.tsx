@@ -36,8 +36,11 @@ export const InvitadosPDF = (props) => {
             item.tableNameRecepcion = tableRecepcion?.title ? tableRecepcion : { title: "no asignado" }
             item.tableNameCeremonia = tableCeremonia?.title ? tableCeremonia : { title: "no asignado" }
 
-            if (eventFound?.grupos_array?.includes(item?.rol)) {
-                acc[item.rol] = { titulo: item.rol, data: acc[item.rol]?.data ? [...acc[item.rol]?.data, item] : [item] }
+            const grupoKey = eventFound?.grupos_array?.find(
+                (g) => g?.toLowerCase() === item?.rol?.toLowerCase()
+            )
+            if (grupoKey) {
+                acc[grupoKey] = { titulo: grupoKey, data: acc[grupoKey]?.data ? [...acc[grupoKey]?.data, item] : [item] }
             } else {
                 acc["no asignado"] = { titulo: "no asignado", data: acc["no asignado"]?.data ? [...acc["no asignado"]?.data, item] : [item] }
             }
