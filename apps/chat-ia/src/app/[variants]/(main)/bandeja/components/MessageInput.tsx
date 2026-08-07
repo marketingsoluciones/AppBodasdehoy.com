@@ -78,10 +78,11 @@ interface MessageInputProps {
 function ChannelInactiveBanner({ brandColor, channel }: { brandColor: string; channel?: string }) {
   // A2-web: no rotular "WhatsApp anterior" en canales que NO son WhatsApp (el banner se
   // colaba en conversaciones Web). Texto genérico salvo en el canal de WhatsApp.
-  const label =
-    channel === 'whatsapp' || !channel
-      ? 'Conexión de WhatsApp anterior — solo lectura'
-      : 'Este canal está en solo lectura';
+  // WhatsApp llega como kind 'whatsapp' o como channelParam 'wa-{id}' (URL del detalle).
+  const isWhatsApp = channel === 'whatsapp' || channel?.startsWith('wa-') || !channel;
+  const label = isWhatsApp
+    ? 'Conexión de WhatsApp anterior — solo lectura'
+    : 'Este canal está en solo lectura';
   return (
     <div
       style={{

@@ -73,7 +73,12 @@ export function useConversations(channel: string | null) {
       // feed pero se PERDÍA al abrirla (lista vacía + banner WA colado). Fix: MISMO
       // endpoint que el feed (dedupeFetch coalesce → sin fetch extra, sin el 429 de #286)
       // + MISMA clasificación de canal (abajo).
-      const isWaView = channel === 'whatsapp' || !channel;
+      // isWaView: la vista WhatsApp llega como kind 'whatsapp', como null (feed) o como
+      // channelPARAM 'wa-{id}' (URL del detalle: /bandeja/wa-xxx/conv_yyy). Los tres deben
+      // pegar al endpoint WA y clasificarse como 'whatsapp'. Antes 'wa-xxx' caía al endpoint
+      // de "otros" y filtraba c.channel==='wa-xxx' → SIEMPRE vacío → toda conv WA abierta
+      // desde el detalle quedaba "solo lectura" falsamente (no solo las huérfanas).
+      const isWaView = channel === 'whatsapp' || channel?.startsWith('wa-') || !channel;
       const fetchUrl = isWaView
         ? `${proxyBase}/whatsapp/conversations/${dev}`
         : `${proxyBase}/conversations?development=${dev}`;
@@ -130,7 +135,14 @@ export function useConversations(channel: string | null) {
             unreadCountForAgent: c.unreadCountForAgent ?? c.unread_count_for_agent ?? undefined,
           };
         });
-        const filtered = channel ? normalized.filter((c) => c.channel === channel) : normalized;
+        // En vista WA devolvemos TODAS las conversaciones WA: el channelParam 'wa-{id}'
+        // identifica la CUENTA, no el canal de cada conv (que es 'whatsapp'); el detalle
+        // localiza la suya por id. En "otros" sí filtramos por el kind clasificado.
+        const filtered = isWaView
+          ? normalized
+          : channel
+            ? normalized.filter((c) => c.channel === channel)
+            : normalized;
         setConversations(filtered);
         setError(null);
       } else if (response.status === 401 || response.status === 403) {
