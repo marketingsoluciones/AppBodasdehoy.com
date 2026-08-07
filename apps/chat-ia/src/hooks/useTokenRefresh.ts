@@ -12,6 +12,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { message } from 'antd';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 
+import { resolvePublicBackendOrigin } from '@/const/backendEndpoints';
+
 // Importar auth de forma lazy para evitar errores en SSR
 let auth: any = null;
 const getAuth = async () => {
@@ -29,7 +31,10 @@ interface TokenRefreshStatus {
   nextRefresh: Date | null;
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_IA_URL || 'http://localhost:8030';
+// 503 firebase-login (QA 7-ago): usaba NEXT_PUBLIC_API_IA_URL (zona FLAKY bodasdehoy) con
+// fallback a localhost. El resolver canónico cae a DEFAULT_API_IA_ORIGIN (eventosorganizador,
+// no-flaky) — alinea la renovación de JWT con el proxy de messages y quita el 503 de /agentes.
+const BACKEND_URL = resolvePublicBackendOrigin();
 
 // Configuración
 const CHECK_INTERVAL_MS = 5 * 60 * 1000; // Verificar cada 5 minutos
