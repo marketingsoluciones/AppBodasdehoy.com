@@ -1,6 +1,8 @@
 import { FC, useCallback, useEffect, useRef, useState } from "react";
 import Head from "next/head";
 import { useTranslation } from "react-i18next";
+import BlockTitle from "../Utils/BlockTitle";
+import { subir_archivo } from "./ModuloSubida";
 import { EventContextProvider } from "../../context/EventContext";
 import { AuthContextProvider } from "../../context/AuthContext";
 import { useToast } from "../../hooks/useToast";
@@ -119,6 +121,9 @@ export const InvitacionesStudio: FC = () => {
   const [templateId, setTemplateId] = useState<string | undefined>(event?.templateEmailSelect);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("saved");
   const [showOnb, setShowOnb] = useState(true);
+  const [coverLocal, setCoverLocal] = useState<string>("");
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
   const loadedRef = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -169,6 +174,23 @@ export const InvitacionesStudio: FC = () => {
     });
   }, [persist]);
 
+  // Subida de la foto de portada — MISMO backend (singleUpload → R2, subir_archivo reutilizado)
+  const handleCoverFile = useCallback(async (file?: File | null) => {
+    if (!file || !event?._id) return;
+    setCoverLocal(URL.createObjectURL(file)); // preview inmediato mientras sube
+    setUploadingCover(true);
+    try {
+      const r: any = await subir_archivo({ imagePreviewUrl: { file }, event, use: "portada" });
+      const url = r?.i1024 || r?.i800 || r?.i640;
+      if (url) update({ cover: url });
+      else toast("error", "No se pudo subir la imagen");
+    } catch {
+      toast("error", "No se pudo subir la imagen");
+    } finally {
+      setUploadingCover(false);
+    }
+  }, [event, update, toast]);
+
   const preset = PRESETS[design.template];
   const invFont = FONTS[design.font].family;
 
@@ -185,18 +207,9 @@ export const InvitacionesStudio: FC = () => {
       </Head>
       <div style={{ maxWidth: 1000, margin: "0 auto", padding: "22px 30px 60px" }}>
 
-        {/* Barra de título */}
-        <div style={{ ...card, padding: "16px 22px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ font: "700 20px Poppins", color: "#4a4a52" }}>Invitaciones</div>
-            <span style={{ display: "flex", alignItems: "center", gap: 6, background: "#FEF6D8", color: "#B8860B", font: "600 11.5px Poppins", padding: "5px 12px", borderRadius: 20 }}>★ Propietario</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ lineHeight: 1.2, textAlign: "right" }}>
-              <div style={{ font: "600 10px Poppins", color: PINK, letterSpacing: ".4px" }}>BODA</div>
-              <div style={{ font: "700 13px Poppins", color: INK }}>{event?.nombre || "—"}</div>
-            </div>
-          </div>
+        {/* Cabecera ESTÁNDAR compartida (misma que presupuesto/mesas/invitados) */}
+        <div style={{ marginBottom: 20 }}>
+          <BlockTitle title={"Invitaciones"} />
         </div>
 
         {/* Tabs 1 Diseñar / 2 Enviar */}
@@ -252,8 +265,15 @@ export const InvitacionesStudio: FC = () => {
                     </div>
                   </div>
                   <div style={{ width: "100%", background: "#fff", borderRadius: 18, boxShadow: "0 12px 34px rgba(0,0,0,.12)", overflow: "hidden", border: "1px solid #f0f0f2" }}>
-                    <div style={{ height: 190, background: design.cover ? `url(${design.cover}) center/cover` : preset.grad, borderBottom: `3px solid ${design.accent}`, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,.85)", font: "600 12px Poppins", flexDirection: "column", gap: 4 }}>
-                      <span style={{ fontSize: 26 }}>🖼</span>Arrastra la foto de portada
+                    <div
+                      onClick={() => coverInputRef.current?.click()}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => { e.preventDefault(); handleCoverFile(e.dataTransfer.files?.[0]); }}
+                      style={{ height: 190, background: (design.cover || coverLocal) ? `url(${design.cover || coverLocal}) center/cover` : preset.grad, borderBottom: `3px solid ${design.accent}`, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,.92)", font: "600 12px Poppins", flexDirection: "column", gap: 4, cursor: "pointer", position: "relative" }}
+                    >
+                      {!(design.cover || coverLocal) && (<><span style={{ fontSize: 26 }}>🖼</span>Arrastra la foto de portada<span style={{ fontSize: 10, opacity: .85, textDecoration: "underline" }}>o haz clic para subir</span></>)}
+                      {uploadingCover && (<span style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.35)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", font: "600 12px Poppins" }}>Subiendo…</span>)}
+                      <input ref={coverInputRef} type="file" accept="image/*" onChange={(e) => handleCoverFile(e.target.files?.[0])} style={{ display: "none" }} />
                     </div>
                     {face === "front" ? (
                       <div style={{ padding: "26px 26px 30px", textAlign: "center" }}>
