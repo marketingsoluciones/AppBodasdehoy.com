@@ -102,7 +102,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   const queryTask = searchParams.get("task")
   const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFile[]>([]);
   const [loading, setLoading] = useState<boolean>(false)
-  const [currentItinerario, setCurrentItinerario] = useState<Itinerary>(itinerario);
+  const [currentItinerario, setCurrentItinerario] = useState<Itinerary | undefined>(itinerario);
   const updateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Per-field API debounce: key = `${taskId}:${fieldName}` → pending timer
   const apiTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
@@ -320,7 +320,14 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       const found = event.itinerarios_array.find(
         (it: Itinerary) => it && it._id === itinerario._id
       );
-      if (found) setCurrentItinerario({ ...found });
+      if (found) {
+        setCurrentItinerario({ ...found });
+      } else {
+        // Itinerario eliminado del evento: no dejar tareas stale en pantalla.
+        setCurrentItinerario(undefined);
+        setTasks([]);
+        setTasksReduce([]);
+      }
     }
   }, [event, itinerario?._id, orderAndDirection]);
 
@@ -724,8 +731,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       {modal.state && <SimpleDeleteConfirmation
         loading={loading}
         setModal={setModal}
+        title={modal.title}
         handleDelete={() => deleteTask(modal.values, modal.itinerario)}
-        message={<p className="text-azulCorporativo mx-8 text-center capitalize" > Estas seguro de borrar <span className='font-semibold'>{modal.title}</span></p>}
+        message={t('warningdeletetask', 'Si borras esta tarea no la podrás recuperar.')}
       />}
       {["/itinerario"].includes(window?.location?.pathname) &&
         <SubHeader

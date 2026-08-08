@@ -1,4 +1,4 @@
-import { cloneElement, FC, useEffect, useState } from "react";
+import { cloneElement, FC, ReactNode, useEffect, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { useDelayUnmount } from "../../utils/Funciones";
 import { useToast } from "../../hooks/useToast";
@@ -51,7 +51,12 @@ export const BlockTableroInvitados: FC<propsBlockListaInvitados> = ({ Conditiona
     const [invitadoSelected, setSelected] = useState<string | null>(null);
     const GuestsFathers = event?.invitados_array?.filter((invitado) => !invitado?.father)
     const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
-    const [modal, setModal] = useState({ state: false, title: null, handle: () => { } })
+    const [modal, setModal] = useState<{
+        state: boolean
+        title: string | ReactNode | null
+        subTitle?: ReactNode
+        handle: (() => void) | null
+    }>({ state: false, title: null, subTitle: null, handle: () => { } })
     const [showCards, setShowCards] = useState({})
     const [isAllowed, ht] = useAllowed()
 
@@ -425,7 +430,7 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
     return (
         <>
             {modal.state &&
-                <Modal set={setModal} state={modal.state} classe={"w-[95%] md:w-[450px] h-[200px] flex items-center justify-center"}>
+                <Modal set={setModal} state={modal.state} classe={"w-[380px] max-w-[95%] h-auto min-h-[220px] !top-1/2 !left-1/2 !right-auto !bottom-auto -translate-x-1/2 -translate-y-1/2"}>
                     <DeleteConfirmation setModal={setModal} modal={modal} />
                 </Modal>}
             {
@@ -666,25 +671,24 @@ export const GuestCard = ({ guestData, modal, setModal, setSelected, setIsMounte
                                                 <ul
                                                     className={` top-5 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10 translate-x-[-12px]`}
                                                 >
-                                                    {ListaOption.map((item, idx) => (
+                                                    {ListaOption.map((opt, idx) => (
                                                         <li
                                                             key={idx}
                                                             onClick={() => {
-                                                                item.title.toLowerCase() === "borrar"
+                                                                opt.title.toLowerCase() === "borrar"
                                                                     ? setModal({
                                                                         state: true,
-                                                                        title: <span>
-                                                                            <strong>
-                                                                                Deseas eliminar a este invitado y a sus acompañantes ?
-                                                                            </strong>
-                                                                        </span>,
-                                                                        handle: () => item.function()
+                                                                        title: item.nombre,
+                                                                        subTitle: <strong>
+                                                                            {t("warningdeleteguest", "Si borras este invitado y a sus acompañantes no lo podrás recuperar.")}
+                                                                        </strong>,
+                                                                        handle: () => opt.function()
                                                                     })
-                                                                    : item.function()
+                                                                    : opt.function()
                                                             }}
                                                             className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
                                                         >
-                                                            {item.title}
+                                                            {opt.title}
                                                         </li>
                                                     ))}
                                                 </ul>)}
@@ -1057,25 +1061,24 @@ export const AcompañantesCard: FC<propsAcompañantesCard> = ({ passesQuantity, 
                                                             <ul
                                                                 className={` top-5 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10 translate-x-[-12px]`}
                                                             >
-                                                                {ListaOption.map((item, idx) => (
+                                                                {ListaOption.map((opt, idx) => (
                                                                     <li
                                                                         key={idx}
                                                                         onClick={() => {
-                                                                            item.title.toLowerCase() === "borrar"
+                                                                            opt.title.toLowerCase() === "borrar"
                                                                                 ? setModal({
                                                                                     state: true,
-                                                                                    title: <span>
-                                                                                        <strong>
-                                                                                            Deseas eliminar a este acompañante ?
-                                                                                        </strong>
-                                                                                    </span>,
-                                                                                    handle: () => item.function()
+                                                                                    title: item.nombre,
+                                                                                    subTitle: <strong>
+                                                                                        {t("warningdeletecompanion", "Si borras este acompañante no lo podrás recuperar.")}
+                                                                                    </strong>,
+                                                                                    handle: () => opt.function()
                                                                                 })
-                                                                                : item.function()
+                                                                                : opt.function()
                                                                         }}
                                                                         className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
                                                                     >
-                                                                        {item.title}
+                                                                        {opt.title}
                                                                     </li>
                                                                 ))}
                                                             </ul>

@@ -154,15 +154,7 @@ export const BoddyIter = () => {
             state: true,
             title: itinerario.title,
             subTitle: <span className="flex flex-col">
-                <strong>{itinerario.title}</strong>
                 <strong>{t("warningdelete1")}</strong>
-                <p className="text-xs gap-2 flex justify-center">
-                    {t("textwarningdelete1")}
-                    <span className="font-semibold">
-                        {itinerario.title.replace(/\s+/g, '').toLocaleLowerCase()}
-                    </span>
-                    {t("textwarningdelete2")}
-                </p>
             </span>,
             handle: async () => {
                 try {
@@ -208,15 +200,39 @@ export const BoddyIter = () => {
                                                 }
                                             }
                                             // Inmutable: filtrar fuera del array en vez de splice.
+                                            const deletedId = itinerario._id
+                                            const pathSlice = typeof window !== "undefined"
+                                                ? window.location.pathname.slice(1)
+                                                : ""
+                                            if (event?._id && pathSlice) {
+                                                const lsKey = `E_${event._id}_${pathSlice}`
+                                                if (localStorage.getItem(lsKey) === deletedId) {
+                                                    localStorage.removeItem(lsKey)
+                                                }
+                                            }
                                             setEvent((prev: any) => {
                                                 if (!Array.isArray(prev?.itinerarios_array)) return prev
-                                                return {
-                                                    ...prev,
-                                                    itinerarios_array: prev.itinerarios_array.filter(
-                                                        (elem: any) => elem._id !== itinerario._id
+                                                const nextArr = prev.itinerarios_array.filter(
+                                                    (elem: any) => elem._id !== deletedId
+                                                )
+                                                const remaining = nextArr.filter(
+                                                    (elem: any) => elem?.tipo === pathSlice
+                                                )
+                                                if (remaining.length && event?._id && pathSlice) {
+                                                    localStorage.setItem(
+                                                        `E_${event._id}_${pathSlice}`,
+                                                        remaining[0]._id
                                                     )
                                                 }
+                                                return {
+                                                    ...prev,
+                                                    itinerarios_array: nextArr
+                                                }
                                             })
+                                            // Limpiar selección local; el useEffect reasigna al
+                                            // siguiente itinerario o deja ViewWihtoutData.
+                                            setItinerario(undefined)
+                                            setSelectTask(undefined)
                                             setModal({ state: false })
                                             setTimeout(() => {
                                                 setLoadingModal(false)
@@ -327,32 +343,39 @@ export const BoddyIter = () => {
         const pathSlice = window?.location?.pathname.slice(1)
         const itinerarios = arr.filter(elem => elem?.tipo === pathSlice)
         const itinerarioSeleccionado = event?._id ? localStorage.getItem(`E_${event._id}_${pathSlice}`) : null
-        const itinerario = arr.find(elem => elem?._id === itinerarioSeleccionado)
+        // No sombrear el state `itinerario`: hay que comparar el estado React
+        // con el elegido (LS / query) para detectar borrados.
+        const selectedFromStorage = arr.find(elem => elem?._id === itinerarioSeleccionado)
         if (itinerarios.length) {
-            let nuevoItinerario = itinerario;
+            let nuevoItinerario = selectedFromStorage
             if (queryItinerary) {
                 const found = itinerarios.find(elem => elem?._id === queryItinerary)
                 if (found) nuevoItinerario = found
-            } else if (!itinerario || !itinerarios.some(elem => elem?._id === itinerario._id)) {
+            } else if (!selectedFromStorage || !itinerarios.some(elem => elem?._id === selectedFromStorage._id)) {
                 nuevoItinerario = itinerarios[0]
             }
             // Guard CRÍTICO: si después de todo no hay nuevoItinerario, no continuar.
             if (!nuevoItinerario || !nuevoItinerario._id) {
                 return
             }
+            if (event?._id && pathSlice && nuevoItinerario._id) {
+                localStorage.setItem(`E_${event._id}_${pathSlice}`, nuevoItinerario._id)
+            }
             if (!itinerario || nuevoItinerario._id !== itinerario._id) {
                 const tasksOrdenadas = sortTasks(nuevoItinerario.tasks ?? [], orderAndDirection);
                 setItinerario({ ...nuevoItinerario, tasks: tasksOrdenadas });
             } else if (orderAndDirection) {
-                const tasksOrdenadas = sortTasks(itinerario.tasks ?? [], orderAndDirection);
-                setItinerario({ ...itinerario, tasks: tasksOrdenadas });
+                const tasksOrdenadas = sortTasks(nuevoItinerario.tasks ?? [], orderAndDirection);
+                setItinerario({ ...nuevoItinerario, tasks: tasksOrdenadas });
             }
         } else {
-            // No hay itinerarios para este pathSlice. Solo actualizar si tenemos
-            // un itinerario válido (no propagar undefined).
-            if (itinerario && itinerario._id) {
-                setItinerario({ ...itinerario })
+            // No quedan itinerarios de este tipo: limpiar estado (antes se
+            // re-seteaba el borrado y las tareas seguían visibles).
+            if (event?._id && pathSlice) {
+                localStorage.removeItem(`E_${event._id}_${pathSlice}`)
             }
+            setItinerario(undefined)
+            setSelectTask(undefined)
         }
     }, [event, queryItinerary, orderAndDirection, itinerario?._id, view, copilotFilter])
 
@@ -364,7 +387,7 @@ export const BoddyIter = () => {
             >
                 {
                     modal.state &&
-                    <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[250px]"} loading={loadingModal} >
+                    <Modal set={setModal} classe={"w-[380px] max-w-[95%] h-auto min-h-[220px] !top-1/2 !left-1/2 !right-auto !bottom-auto -translate-x-1/2 -translate-y-1/2"} loading={loadingModal} >
                         <DeleteConfirmation setModal={setModal} modal={modal} />
                     </Modal>
                 }
@@ -411,7 +434,7 @@ export const BoddyIter = () => {
                                 setSelectTask={setSelectTask}
                                 orderAndDirection={orderAndDirection}
                             /> : <ViewWihtoutData isOwner={isOwner} />}
-                          </ModuleErrorBoundary>
+                        </ModuleErrorBoundary>
                         : <div className="h-full">
                             <ViewWihtoutData isOwner={isOwner} />
                         </div>

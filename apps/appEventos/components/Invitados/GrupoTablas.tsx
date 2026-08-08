@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo, FC, Dispatch, SetStateAction, cloneElement, useCallback } from "react";
+import { useEffect, useRef, useState, useMemo, FC, Dispatch, SetStateAction, cloneElement, useCallback, ReactNode } from "react";
 import ClickAwayListener from "react-click-away-listener";
 import { useRouter } from "next/navigation";
 import { EventContextProvider, EventsGroupContextProvider } from "../../context";
@@ -141,7 +141,12 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   const [data, setData] = useState<{ titulo: string; data: guestsExt[] }[]>([]);
   const [isAllowed] = useAllowed()
   const [acompañanteID, setAcompañanteID] = useState({ id: "", crear: true })
-  const [modal, setModal] = useState({ state: false, title: null, handle: () => { } })
+  const [modal, setModal] = useState<{
+    state: boolean
+    title: string | null
+    subTitle?: ReactNode
+    handle: (() => void) | null
+  }>({ state: false, title: null, subTitle: null, handle: () => { } })
 
 
   useEffect(() => {
@@ -684,6 +689,7 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                 ...old,
                 grupos_array: old.grupos_array.filter((e) => e !== title),
               }));
+              setModal({ state: false, title: null, handle: null });
             }
           };
 
@@ -703,7 +709,24 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
                   {Lista.map((item, idx) => (
                     <li
                       key={idx}
-                      onClick={() => DeleteGroup()}
+                      onClick={() => {
+                        setShow(false);
+                        setModal({
+                          state: true,
+                          title: title,
+                          subTitle: (
+                            <span className="flex flex-col">
+                              <strong>
+                                {t(
+                                  "warningdeletegroup",
+                                  "Si borras el grupo no lo podrás recuperar."
+                                )}
+                              </strong>
+                            </span>
+                          ),
+                          handle: () => DeleteGroup(),
+                        });
+                      }}
                       className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base"
                     >
                       {t(item)}
@@ -760,55 +783,47 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
           ];
 
           return (
-            <>
-              {modal.state && <Modal set={setModal} state={modal} classe={"w-[95%] md:w-[450px] h-[200px] flex items-center justify-center"}>
-                <DeleteConfirmation setModal={setModal} modal={modal} />
-              </Modal>}
-              <ClickAwayListener onClickAway={() => show && setShow(false)}>
-                <div className="w-full flex justify-end items-center relative">
-                  <span
-                    onClick={() => !isAllowed() ? null : setShow(!show)}
-                    className="cursor-pointer relative w-max rounded-lg text-sm text-gray-700"
-                  >
-                    <DotsOpcionesIcon className="text-gray-500 w-4 h-4" />
-                  </span>
-                  <ul
-                    className={`${show ? "block" : "hidden"
-                      } top-0 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10 translate-x-[-12px]`}
-                  >
-                    {Lista.map((item, idx) => (
-                      <li
-                        key={idx}
-                        onClick={() => {
-                          item.title.toLowerCase() === "borrar"
-                            ? setModal({
-                              state: true,
-                              title: <span>
-                                <strong>
-                                  {`${row.row.cells[0].value} `}
-                                </strong>
-                                <span>{`${!row.row.cells[5].value
-                                  ? "será borrado"
-                                  : row.row.cells[5].value === 1
-                                    ? `y su acompañante serán borrados`
-                                    : `y sus ${row.row.cells[5].value} acompañantes serán borrados`
-                                  } de la lista de invitados`}
-                                </span>
-                              </span>,
-                              handle: () => item.function()
-                            })
-                            : item.function()
-                        }
-                        }
-                        className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
-                      >
-                        {t(item.title)}
-                      </li>
-                    ))}
-                  </ul>
-                </div >
-              </ClickAwayListener >
-            </>
+            <ClickAwayListener onClickAway={() => show && setShow(false)}>
+              <div className="w-full flex justify-end items-center relative">
+                <span
+                  onClick={() => !isAllowed() ? null : setShow(!show)}
+                  className="cursor-pointer relative w-max rounded-lg text-sm text-gray-700"
+                >
+                  <DotsOpcionesIcon className="text-gray-500 w-4 h-4" />
+                </span>
+                <ul
+                  className={`${show ? "block" : "hidden"
+                    } top-0 right-0 absolute w-max border border-base bg-white capitalize rounded-md overflow-hidden shadow-lg z-10 translate-x-[-12px]`}
+                >
+                  {Lista.map((item, idx) => (
+                    <li
+                      key={idx}
+                      onClick={() => {
+                        item.title.toLowerCase() === "borrar"
+                          ? setModal({
+                            state: true,
+                            title: `${row.row.cells[0].value}`,
+                            subTitle: <span>
+                              {!row.row.cells[5].value
+                                ? "Será borrado de la lista de invitados."
+                                : row.row.cells[5].value === 1
+                                  ? "Él y su acompañante serán borrados de la lista de invitados."
+                                  : `Él y sus ${row.row.cells[5].value} acompañantes serán borrados de la lista de invitados.`
+                              }
+                            </span>,
+                            handle: () => item.function()
+                          })
+                          : item.function()
+                      }
+                      }
+                      className="font-display cursor-pointer border-base border block px-4 text-sm text-gray-500 hover:text-gray-500 hover:bg-base py-3"
+                    >
+                      {t(item.title)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </ClickAwayListener>
           );
         },
       },
@@ -828,6 +843,15 @@ const DatatableGroup: FC<propsDatatableGroup> = ({ setSelected, isMounted, setIs
   return (
     <DataTableGroupProvider>
       <div className="w-[200%] md:w-[100%]">
+        {modal.state && (
+          <Modal
+            set={setModal}
+            state={modal}
+            classe={"w-[380px] max-w-[95%] h-auto min-h-[220px] !top-1/2 !left-1/2 !right-auto !bottom-auto -translate-x-1/2 -translate-y-1/2"}
+          >
+            <DeleteConfirmation setModal={setModal} modal={modal} />
+          </Modal>
+        )}
         <CopilotFilterBar entity="guests" />
         {/* <CheckBoxAll /> */}
         {displayedData?.map((item, idx: number) => {

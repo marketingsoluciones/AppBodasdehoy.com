@@ -386,8 +386,9 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         <SimpleDeleteConfirmation
           loading={loading}
           setModal={setModal}
+          title={modal.title}
           handleDelete={() => deleteTask(modal.values, modal.itinerario)}
-          message={<p className="text-azulCorporativo mx-8 text-center capitalize">Estas seguro de borrar <span className='font-semibold'>{modal.title}</span></p>}
+          message={t('warningdeletetask', 'Si borras esta tarea no la podrás recuperar.')}
         />
       )}
 
