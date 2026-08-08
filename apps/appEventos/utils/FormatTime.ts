@@ -58,3 +58,91 @@ export const getOffsetMinutes = (date?: Date | number | string, timeZone?: strin
     return 0; // UTC offset
   }
 }
+
+export type EventDateParts = { year: number; month: number; day: number }
+
+/** Día del evento (Y-M-D). Acepta epoch ms, string numérica o `YYYY-MM-DD`. */
+export const getEventDateParts = (eventFecha?: string | number | null): EventDateParts => {
+  if (typeof eventFecha === 'string' && /^\d{4}-\d{2}-\d{2}/.test(eventFecha)) {
+    const [ys, ms, ds] = eventFecha.slice(0, 10).split('-')
+    return { year: Number(ys), month: Number(ms), day: Number(ds) }
+  }
+  const parsed = eventFecha != null && eventFecha !== '' ? Number(eventFecha) : NaN
+  const base = !Number.isNaN(parsed) && parsed > 0 ? new Date(parsed) : new Date()
+  const safe = Number.isNaN(base.getTime()) ? new Date() : base
+  return {
+    year: safe.getUTCFullYear(),
+    month: safe.getUTCMonth() + 1,
+    day: safe.getUTCDate(),
+  }
+}
+
+/**
+ * Instant UTC para un horario de pared (wall clock) en una zona IANA.
+ * Ej: 6:00 en America/Caracas → Date en UTC equivalente.
+ */
+export const zonedWallTimeToUtcDate = (
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  timeZone?: string
+): Date => {
+  const tz = timeZone && typeof timeZone === 'string' ? timeZone : 'UTC'
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  })
+  let utc = Date.UTC(year, month - 1, day, hour, minute, 0)
+  for (let i = 0; i < 3; i++) {
+    const parts = Object.fromEntries(
+      dtf.formatToParts(new Date(utc))
+        .filter((p) => p.type !== 'literal')
+        .map((p) => [p.type, p.value])
+    ) as Record<string, string>
+    const asUtc = Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      Number(parts.hour),
+      Number(parts.minute),
+      Number(parts.second || 0)
+    )
+    const wanted = Date.UTC(year, month - 1, day, hour, minute, 0)
+    utc += wanted - asUtc
+  }
+  return new Date(utc)
+}
+
+/**
+ * Fecha/hora de tarea al estilo Old_AppBodasdehoy / TimeTask:
+ * se guarda `YYYY-MM-DDTHH:mm:00.000Z` con los dígitos de pared deseados.
+ * `timeFormated(..., event.timeZone)` muestra esos dígitos (Inicio = 06:00).
+ */
+export const eventDateAtHourZ = (
+  eventFecha?: string | number | null,
+  hour = 6,
+  minute = 0
+): Date => {
+  const { year, month, day } = getEventDateParts(eventFecha)
+  const y = String(year).padStart(4, '0')
+  const m = String(month).padStart(2, '0')
+  const d = String(day).padStart(2, '0')
+  const hh = String(hour).padStart(2, '0')
+  const mm = String(minute).padStart(2, '0')
+  return new Date(`${y}-${m}-${d}T${hh}:${mm}:00.000Z`)
+}
+
+/** @deprecated Prefer eventDateAtHourZ — misma convención UI que TimeTask. */
+export const eventDateAt6Am = (
+  eventFecha?: string | number | null,
+  _timeZone?: string
+): Date => eventDateAtHourZ(eventFecha, 6, 0)
+

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AuthContextProvider, EventContextProvider } from '../../context';
 import { ModalInterface } from "../../utils/Interfaces";
 import { handleDelete } from '../TablesComponents/tableBudgetV8.handles';
@@ -16,6 +17,7 @@ interface Categoria {
 }
 
 export const ExcelView = ({ showCategoria, setShowCategoria, categorias_array }: any) => {
+    const { t } = useTranslation()
     const [windowsWidth, setWindowsWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 0)
     const { user } = AuthContextProvider()
     const { event, setEvent } = EventContextProvider()
@@ -77,18 +79,15 @@ export const ExcelView = ({ showCategoria, setShowCategoria, categorias_array }:
                 showModalDelete.state && <SimpleDeleteConfirmation
                     loading={loading}
                     setModal={setShowModalDelete}
+                    title={showModalDelete.title}
                     handleDelete={() => handleDelete({ showModalDelete, event, setEvent, setLoading, setShowModalDelete })}
                     message={
-                        <p className="text-azulCorporativo mx-8 text-center" >
-                            {`Estas seguro de borrar ${showModalDelete.values?.object === "categoria"
-                                ? "Categoria"
-                                : showModalDelete.values?.object === "gasto"
-                                    ? "Partida de gasto" :
-                                    "Item"}: `}
-                            <span className='font-semibold capitalize'>
-                                {showModalDelete.title}
-                            </span>
-                        </p>}
+                        showModalDelete.values?.object === "categoria"
+                            ? t('warningdeletecategory')
+                            : showModalDelete.values?.object === "gasto"
+                                ? t('warningdeleteexpense')
+                                : t('warningdeleteitem')
+                    }
                 />
             }
             <div className="flex  w-full h-[calc(100vh-300px)] md:h-[calc(100vh-266px)]  justify-center items-center" >

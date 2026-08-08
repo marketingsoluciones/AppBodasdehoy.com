@@ -65,14 +65,9 @@ export const ItemCategoria: FC<props> = ({ item, setShowCategoria, showCategoria
         <SimpleDeleteConfirmation
           loading={loading}
           setModal={setShowModalDelete}
+          title={showModalDelete.title}
           handleDelete={() => handleDelete({ showModalDelete, event, setEvent, setLoading, setShowModalDelete })}
-          message={
-            <p className="text-azulCorporativo mx-8 text-center" >
-              {`Estas seguro de borrar Categoria: `}
-              <span className='font-semibold capitalize'>
-                {showModalDelete.title}
-              </span>
-            </p>}
+          message={t('warningdeletecategory')}
         />}
       <li
         onClick={() => {

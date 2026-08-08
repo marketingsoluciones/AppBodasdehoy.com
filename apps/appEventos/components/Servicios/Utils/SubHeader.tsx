@@ -69,7 +69,7 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
     }
     return (
         <div className="w-full px-4 md:px-10 py-4" >
-            {modal.state && <Modal set={setModal} classe={"w-[95%] md:w-[450px] h-[200px] flex items-center justify-center"}>
+            {modal.state && <Modal set={setModal} classe={"w-[380px] max-w-[95%] h-auto min-h-[220px] !top-1/2 !left-1/2 !right-auto !bottom-auto -translate-x-1/2 -translate-y-1/2"}>
                 <DeleteConfirmation setModal={setModal} modal={modal} />
             </Modal>}
             <div className="flex w-full justify-between items-start relative">

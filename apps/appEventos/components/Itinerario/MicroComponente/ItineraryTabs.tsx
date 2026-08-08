@@ -12,7 +12,7 @@ import { SelectModeSort } from "../../Utils/SelectModeSort"
 import { PermissionSelectModeView } from '../../Servicios/Utils/PermissionSelectModeView';
 import { PermissionAddButton } from "../../Servicios/Utils/PermissionAddButton"
 import { TimeZone } from "../../icons"
-import { getTimeZoneCity } from "../../../utils/FormatTime"
+import { getTimeZoneCity, eventDateAtHourZ } from "../../../utils/FormatTime"
 
 interface props {
     itinerario: Itinerary
@@ -69,27 +69,17 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 toast("warning", t("Selecciona un itinerario primero"));
                 return;
             }
-            // BUG-IT-01 (informe QA 22-jun): si event.fecha es null/undefined/no-number,
-            // new Date(parseInt(undefined)) = Invalid Date → API 400 → toast error sin contexto.
-            // Guard: usar fecha del evento si es válida, si no fallback a hoy.
-            const fechaParsed = event?.fecha ? parseInt(String(event.fecha)) : NaN
-            const f = !isNaN(fechaParsed) && fechaParsed > 0
-                ? new Date(fechaParsed)
-                : new Date()
-            const baseDate = isNaN(f.getTime()) ? new Date() : f
-            const fy = baseDate.getUTCFullYear()
-            const fm = baseDate.getUTCMonth()
-            const fd = baseDate.getUTCDate()
-            let newEpoch = new Date(fy, fm + 1, fd).getTime() + 7 * 60 * 60 * 1000
+            // Primera tarea: día del evento a las 06:00Z (convención TimeTask /
+            // Old_AppBodasdehoy: dígitos de pared en Z; Inicio muestra 06:00).
+            let fecha = eventDateAtHourZ(event?.fecha, 6, 0)
             const tasks = itinerario.tasks || [];
             if (tasks.length) {
                 const item = tasks[tasks.length - 1]
                 const epoch = item?.fecha ? new Date(item.fecha).getTime() : NaN
                 if (!isNaN(epoch)) {
-                    newEpoch = epoch + (item.duracion || 0) * 60 * 1000
+                    fecha = new Date(epoch + (item.duracion || 0) * 60 * 1000)
                 }
             }
-            const fecha = new Date(newEpoch)
             await fetchApiEventos({
                 query: queries.createTask,
                 variables: {
@@ -98,9 +88,13 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                     task: {
                         itinerario_id: itinerario._id,
                         descripcion: itinerario.tipo === "itinerario" ? "Tarea nueva" : "Servicio nuevo",
-                        ...(itinerario.tipo === "itinerario" && { fecha: fecha }),
-                        ...(itinerario.tipo === "itinerario" && { duracion: 30 }),
-                        ...(itinerario.tipo === "itinerario" && { spectatorView: true })
+                        ...(itinerario.tipo === "itinerario" && {
+                            fecha: fecha.toISOString(),
+                            horaActiva: true,
+                            duracion: 30,
+                            spectatorView: true,
+                            ...(tasks.length === 0 ? { hora: "06:00" } : {}),
+                        }),
                     }
                 },
                 domain: config.domain
@@ -269,7 +263,8 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     }, [event, setEvent])
     const handleCreateItinerario = async () => {
         const safeItins = Array.isArray(event?.itinerarios_array) ? event.itinerarios_array : []
-        if (safeItins.filter(elem => elem?.tipo === window?.location?.pathname.slice(1)).length > 15) {
+        const pathSlice = window?.location?.pathname.slice(1)
+        if (safeItins.filter(elem => elem?.tipo === pathSlice).length > 15) {
             toast("warning", t("maxLimitedItineraries"));
             return
         }
@@ -284,18 +279,19 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
         const y = baseDate.getUTCFullYear()
         const m = baseDate.getUTCMonth()
         const d = baseDate.getUTCDate()
-        fetchApiEventos({
-            query: queries.createItinerario,
-            variables: {
-                evento_id: event._id,
-                itinerario: {
-                    title: t("unnamed"),
-                    dateTime: new Date(y, m, d, 8, 0),
-                    tipo: window?.location?.pathname.slice(1)
-                }
-            },
-            domain: config.domain
-        }).then((r: any) => {
+        try {
+            const r: any = await fetchApiEventos({
+                query: queries.createItinerario,
+                variables: {
+                    evento_id: event._id,
+                    itinerario: {
+                        title: t("unnamed"),
+                        dateTime: new Date(y, m, d, 8, 0),
+                        tipo: pathSlice
+                    }
+                },
+                domain: config.domain
+            })
             const result: Itinerary = r?.itinerario || r
             // BUG-IT-01: si el API devuelve null/error, abortar sin romper
             // (antes intentaba result._id → crash "Cannot read properties of null").
@@ -304,7 +300,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 console.warn("[ItineraryTabs] createItinerario devolvió result null/sin _id", r)
                 return
             }
-            const pathSlice = window?.location?.pathname.slice(1)
             const safeList = Array.isArray(event?.listIdentifiers) ? [...event.listIdentifiers] : []
             const fListIdentifiers = safeList.findIndex(elem => elem?.table === pathSlice)
             const sameTipo = Array.isArray(event?.itinerarios_array)
@@ -345,7 +340,70 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 )
             }
 
-            const newItinerario = { ...result, tasks: result.tasks ?? [], viewers: result.viewers ?? [] }
+            // Tarea inicial al crear itinerario/servicio.
+            // Itinerario: fecha del evento a las 06:00 en event.timeZone.
+            let initialTasks: Task[] = Array.isArray(result.tasks) ? [...result.tasks] : []
+            try {
+                const isItinerario = pathSlice === "itinerario"
+                const fecha6 = eventDateAtHourZ(event?.fecha, 6, 0)
+                const createResult: any = await fetchApiEventos({
+                    query: queries.createTask,
+                    variables: {
+                        evento_id: event._id,
+                        development: config.development || "bodasdehoy",
+                        task: {
+                            itinerario_id: result._id,
+                            descripcion: isItinerario ? "Tarea nueva" : "Servicio nuevo",
+                            ...(isItinerario && {
+                                fecha: fecha6.toISOString(),
+                                hora: "06:00",
+                                horaActiva: true,
+                                duracion: 30,
+                                spectatorView: true,
+                            }),
+                        },
+                    },
+                    domain: config.domain,
+                })
+                const createdTask = (createResult?.task || createResult) as Task
+                if (createdTask?._id) {
+                    const taskFecha = createdTask.fecha
+                        ? new Date(createdTask.fecha as string | Date)
+                        : fecha6
+                    const task: Task = {
+                        ...createdTask,
+                        fecha: taskFecha,
+                        ...(isItinerario
+                            ? {
+                                horaActiva: true,
+                                spectatorView: true,
+                                duracion: createdTask.duracion ?? 30,
+                            }
+                            : {}),
+                        estatus: true,
+                    }
+                    initialTasks = [...initialTasks, task]
+                    setSelectTask(task._id)
+                    fetchApiEventos({
+                        query: queries.editTask,
+                        variables: {
+                            evento_id: event._id,
+                            itinerario_id: result._id,
+                            task_id: task._id,
+                            development: config.development || "bodasdehoy",
+                            updates: { estatus: true },
+                        },
+                    }).catch((e) => console.warn('[ItineraryTabs] editTask estatus falló:', e?.message ?? e))
+                }
+            } catch (taskErr: any) {
+                console.warn('[ItineraryTabs] createTask inicial falló:', taskErr?.message ?? taskErr)
+            }
+
+            const newItinerario = {
+                ...result,
+                tasks: initialTasks,
+                viewers: result.viewers ?? [],
+            }
             nextItinerarios = [...nextItinerarios, newItinerario]
             setEvent((prev) => ({
                 ...prev,
@@ -353,8 +411,11 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 itinerarios_array: nextItinerarios,
             }))
             setItinerario({ ...newItinerario })
-            /*  setEditTitle(true) */
-        })
+            localStorage.setItem(`E_${event._id}_${pathSlice}`, result._id)
+        } catch (error: any) {
+            console.warn('[ItineraryTabs] handleCreateItinerario error:', error?.message ?? error)
+            toast("error", t("Error al crear itinerario"))
+        }
     }
     const handleSelectItinerario = (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, item: Itinerary) => {
         localStorage.setItem(`E_${event._id}_${window?.location?.pathname.slice(1)}`, item._id)
