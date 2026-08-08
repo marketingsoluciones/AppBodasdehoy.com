@@ -13,6 +13,7 @@ import { TaskDetailWorkspace } from '../../components/TaskDetailWorkspace';
 import { BottomSheet } from '../../components/BottomSheet';
 import { useConversations } from '../../hooks/useConversations';
 import { useConversationCapabilities } from '../../hooks/useConversationCapabilities';
+import { buildHeaders } from '../../utils/auth';
 
 interface ConversationPageProps {
   params: Promise<{
@@ -32,6 +33,20 @@ const SIDEBAR_EXPANDED_KEY = 'messages_sidebar_expanded_default';
 export default function ConversationPage({ params }: ConversationPageProps) {
   const { channel, conversation_id } = use(params);
   const router = useRouter();
+
+  // MSG-03 (QA 8-ago): al ABRIR la conversación, marcarla como leída en el backend
+  // (POST /api/messages/{conversationId}/read — expuesto por api-ia, persiste vía
+  // markWhatsAppMessageAsRead). Así el unreadCount baja a 0 y NO vuelve al refrescar.
+  // Best-effort: si falla, no rompe la vista.
+  useEffect(() => {
+    if (!conversation_id) return;
+    fetch(`/api/messages/${encodeURIComponent(conversation_id)}/read`, {
+      headers: buildHeaders(),
+      method: 'POST',
+    }).catch(() => {
+      // best-effort; el backend es la fuente de verdad del contador
+    });
+  }, [conversation_id]);
   const [searchFilter, setSearchFilter] = useState('');
   // Móvil: bottom sheet con sidebar info contacto (Diseño 24-jun móvil)
   const [infoSheetOpen, setInfoSheetOpen] = useState(false);
