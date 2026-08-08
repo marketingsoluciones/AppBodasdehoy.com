@@ -74,8 +74,8 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             // Guard: usar fecha del evento si es válida, si no fallback a hoy.
             const fechaParsed = event?.fecha ? parseInt(String(event.fecha)) : NaN
             const f = !isNaN(fechaParsed) && fechaParsed > 0
-              ? new Date(fechaParsed)
-              : new Date()
+                ? new Date(fechaParsed)
+                : new Date()
             const baseDate = isNaN(f.getTime()) ? new Date() : f
             const fy = baseDate.getUTCFullYear()
             const fm = baseDate.getUTCMonth()
@@ -116,6 +116,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                     query: queries.editTask,
                     variables: {
                         evento_id: event._id,
+                        itinerario_id: itinerario._id,
                         task_id: addNewTask._id,
                         development: config.development || "bodasdehoy",
                         updates: { estatus: true }
@@ -192,33 +193,41 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                     start_Id: itineraries[0]?._id,
                     end_Id: itineraries[itineraries.length - 1]?._id
                 }
-                // Reconstruir el array de listIdentifiers de forma segura.
-                const newListIdentifiers = [...safeListIdentifiers, listIdentifier]
-                fetchApiEventos({
-                    query: queries.eventUpdate,
-                    variables: {
-                        idEvento: event._id,
-                        variable: "listIdentifiers",
-                        value: JSON.stringify(newListIdentifiers)
-                    }
-                })
+                // Sustituir entrada existente (p. ej. start_Id null) o añadir.
+                // Antes siempre hacía push + setEvent({...prev}) sin meter listIdentifiers
+                // → el guard seguía true → bucle infinito de setEvent + hydrate socket.
+                const newListIdentifiers = fListIdentifiers >= 0
+                    ? safeListIdentifiers.map((el, i) => i === fListIdentifiers ? listIdentifier : el)
+                    : [...safeListIdentifiers, listIdentifier]
+                const nextById = new Map<string, string | null>()
                 if (itineraries.length > 1) {
-                    const itinerariesSlice = itineraries.slice(0, itineraries.length - 1)
-                    itinerariesSlice.map((elem, idx) => {
-                        if (elem) elem.next_id = itineraries[idx + 1]?._id
-                    })
-                }
-                fetchApiEventos({
-                    query: queries.eventUpdate,
-                    variables: {
-                        idEvento: event._id,
-                        variable: "itinerarios_array",
-                        value: JSON.stringify(event.itinerarios_array)
+                    for (let idx = 0; idx < itineraries.length - 1; idx++) {
+                        const cur = itineraries[idx]
+                        if (cur?._id) nextById.set(cur._id, itineraries[idx + 1]?._id ?? null)
                     }
-                })
-                // Trigger re-render con copia top-level del estado actual.
-                setEvent((prev) => ({ ...prev }))
-                setItineraries([...itineraries])
+                }
+                const baseItinerarios = Array.isArray(event?.itinerarios_array) ? event.itinerarios_array : []
+                const nextItinerarios = nextById.size
+                    ? baseItinerarios.map((it) =>
+                        nextById.has(it._id) ? { ...it, next_id: nextById.get(it._id) } : it
+                    )
+                    : baseItinerarios
+                const orderedForTabs = nextById.size
+                    ? itineraries.map((it) =>
+                        nextById.has(it._id) ? { ...it, next_id: nextById.get(it._id) } : it
+                    )
+                    : [...itineraries]
+                if (!event?._id) return
+                // EventoUpdateInput.listIdentifiers es [String!] en api-v2 (bug vs Event: JSON).
+                // Enviar objetos → 400 "String cannot represent a non string value".
+                // Solo estado local; la persistencia real de orden/tabs sigue por flujos
+                // que API2 alinee el SDL (JSON) o por editItinerario de next_id.
+                setEvent((prev) => ({
+                    ...prev,
+                    listIdentifiers: newListIdentifiers,
+                    itinerarios_array: nextItinerarios,
+                }))
+                setItineraries(orderedForTabs)
             } else {
                 let newItineraries: any[] = []
                 const itinerariesCopy = [...itineraries] // Copia para no modificar el original mientras iteramos
@@ -269,8 +278,8 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
         // Usar la fecha del evento si es válida, si no fallback a "hoy".
         const fechaParsed = event?.fecha ? parseInt(String(event.fecha)) : NaN
         const f = !isNaN(fechaParsed) && fechaParsed > 0
-          ? new Date(fechaParsed)
-          : new Date()
+            ? new Date(fechaParsed)
+            : new Date()
         const baseDate = isNaN(f.getTime()) ? new Date() : f
         const y = baseDate.getUTCFullYear()
         const m = baseDate.getUTCMonth()
@@ -295,56 +304,55 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                 console.warn("[ItineraryTabs] createItinerario devolvió result null/sin _id", r)
                 return
             }
-            const fListIdentifiers = event?.listIdentifiers?.findIndex(elem => elem.table === window?.location?.pathname.slice(1))
-            if (event.itinerarios_array?.filter(elem => elem.tipo === window?.location?.pathname.slice(1)).length) {
-                const lastListIdentifiers = { ...event.listIdentifiers[fListIdentifiers] }
-                const f1 = event.itinerarios_array.findIndex(elem => elem._id === lastListIdentifiers.end_Id)
-                if (f1 > -1) {
-                    event.itinerarios_array[f1].next_id = result._id
-                    updatedNextId(event.itinerarios_array[f1])
-                    event.listIdentifiers[fListIdentifiers].end_Id = result._id
-                    updatedListIdentifiers(event)
+            const pathSlice = window?.location?.pathname.slice(1)
+            const safeList = Array.isArray(event?.listIdentifiers) ? [...event.listIdentifiers] : []
+            const fListIdentifiers = safeList.findIndex(elem => elem?.table === pathSlice)
+            const sameTipo = Array.isArray(event?.itinerarios_array)
+                ? event.itinerarios_array.filter(elem => elem?.tipo === pathSlice)
+                : []
+
+            let nextList = safeList
+            let nextItinerarios = Array.isArray(event?.itinerarios_array) ? [...event.itinerarios_array] : []
+
+            if (sameTipo.length) {
+                const lastListIdentifiers = fListIdentifiers >= 0 ? { ...safeList[fListIdentifiers] } : null
+                const f1 = lastListIdentifiers?.end_Id
+                    ? nextItinerarios.findIndex(elem => elem._id === lastListIdentifiers.end_Id)
+                    : -1
+                if (f1 > -1 && lastListIdentifiers) {
+                    nextItinerarios[f1] = { ...nextItinerarios[f1], next_id: result._id }
+                    updatedNextId(nextItinerarios[f1])
+                    nextList = safeList.map((li, i) =>
+                        i === fListIdentifiers ? { ...li, end_Id: result._id } : li
+                    )
+                    updatedListIdentifiers({ ...event, listIdentifiers: nextList })
                 } else {
-                    event.listIdentifiers.push({
+                    nextList = [...safeList, {
                         end_Id: result._id,
                         start_Id: result._id,
-                        table: window?.location?.pathname.slice(1)
-                    })
-                    fetchApiEventos({
-                        query: queries.eventUpdate,
-                        variables: {
-                            idEvento: event._id,
-                            variable: "listIdentifiers",
-                            value: JSON.stringify(event.listIdentifiers)
-                        }
-                    })
+                        table: pathSlice,
+                    }]
                 }
+            } else if (fListIdentifiers < 0) {
+                nextList = [...safeList, {
+                    start_Id: result._id,
+                    end_Id: result._id,
+                    table: pathSlice,
+                }]
             } else {
-                if (fListIdentifiers === -1) {
-                    event.listIdentifiers.push({
-                        start_Id: result._id,
-                        end_Id: result._id,
-                        table: window?.location?.pathname.slice(1)
-                    })
-                } else {
-                    event.listIdentifiers[fListIdentifiers].start_Id = result._id
-                    event.listIdentifiers[fListIdentifiers].end_Id = result._id
-                }
-                fetchApiEventos({
-                    query: queries.eventUpdate,
-                    variables: {
-                        idEvento: event._id,
-                        variable: "listIdentifiers",
-                        value: JSON.stringify(event.listIdentifiers)
-                    }
-                })
+                nextList = safeList.map((li, i) =>
+                    i === fListIdentifiers ? { ...li, start_Id: result._id, end_Id: result._id } : li
+                )
             }
-            const newItinerario = { ...result, viewers: [] as any[] }
+
+            const newItinerario = { ...result, tasks: result.tasks ?? [], viewers: result.viewers ?? [] }
+            nextItinerarios = [...nextItinerarios, newItinerario]
             setEvent((prev) => ({
                 ...prev,
-                itinerarios_array: [...prev.itinerarios_array, newItinerario],
+                listIdentifiers: nextList,
+                itinerarios_array: nextItinerarios,
             }))
-            setItinerario({ ...result })
+            setItinerario({ ...newItinerario })
             /*  setEditTitle(true) */
         })
     }
@@ -585,7 +593,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     }
 
     return (
-        <div className="flex w-full max-w-[1050px] h-10 items-center justify-center border-b md:px-4 md:py-2 shadow-md">
+        <div className="flex w-full max-w-[1050px] h-10 items-center justify-center border-primary border-b md:px-4 md:py-2 shadow-md">
             <div id="content" className="flex-1 h-full flex justify-between">
                 {/* Vista Desktop */}
                 {!isMobile && (

@@ -168,6 +168,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
           query: queries.editTask,
           variables: {
             evento_id: event._id,
+            itinerario_id: itinerario._id,
             task_id: task._id,
             development: config.development || "bodasdehoy",
             updates: { [fieldName]: apiValue },
@@ -368,6 +369,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         query: queries.editTask,
         variables: {
           evento_id: event._id,
+          itinerario_id: itinerario._id,
           task_id: values._id,
           development: config.development || "bodasdehoy",
           updates: { spectatorView: newSpectatorViewValue }

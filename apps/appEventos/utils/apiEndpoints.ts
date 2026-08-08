@@ -84,8 +84,13 @@ export function resolveApiBodasGraphqlUrl(): string {
 
   if (typeof window !== 'undefined' && window?.location?.hostname) {
     const hostname = window.location.hostname;
-    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-    if (isLocalhost) return '/api/proxy-bodas/graphql';
+    // Misma barra que api.ts isLocalhost: -dev/-test van por proxy (CORS).
+    const useProxy =
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.includes('-dev.') ||
+      hostname.includes('-test.');
+    if (useProxy) return '/api/proxy-bodas/graphql';
   }
 
   return resolved;
@@ -102,13 +107,17 @@ export function resolveApiIaOrigin(): string {
 }
 
 export function resolveApiEventosOrigin(): string {
-  // Host del GraphQL canónico (api-mcp). NUNCA usar NEXT_PUBLIC_IMAGES_BASE_URL
-  // como fallback: ese apunta al host de IMÁGENES legacy (media-apiapp), y mezclarlos
-  // hacía que /api/proxy/graphql y el socket fallback golpearan un host muerto → 502/404.
+  // Host del GraphQL canónico (api-mcp). Misma fuente que resolveApiBodasGraphqlUrl.
+  // Antes solo leía BASE_URL → en DEV sin BASE_URL caía a api-mcp.eventosorganizador.com
+  // (prod) mientras ApiBodas usaba API_MCP_GRAPHQL_URL local → createTask fallback ERR_NETWORK.
+  failIfLegacyAliasSet();
   const raw =
+    process.env.API_MCP_GRAPHQL_URL ||
+    process.env.NEXT_PUBLIC_API_MCP_GRAPHQL_URL ||
     process.env.NEXT_PUBLIC_BASE_URL ||
     process.env.BASE_URL;
-  return (raw || DEFAULT_EVENTOS_ORIGIN).trim().replace(/\/+$/, '');
+  const url = (raw || DEFAULT_EVENTOS_ORIGIN).trim().replace(/\/+$/, '');
+  return url.replace(/\/graphql\/?$/i, '');
 }
 
 // Host que sirve los FICHEROS de imagen (slugs relativos de imágenes ya subidas).

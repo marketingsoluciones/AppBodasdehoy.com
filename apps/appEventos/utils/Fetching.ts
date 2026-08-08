@@ -321,6 +321,27 @@ export const fetchApiEventos = async ({
       maybeInvalidateOnMutation(query);
       return __adapter.mapResponse(canonical, variables || {});
     }
+    // crearTarea/actualizarTarea: la query ya es canónica; sin map no hay fallback CRM válido.
+    if (__field === 'crearTarea' || __field === 'actualizarTarea') {
+      throw new Error(
+        `[fetchApiEventos] ${__field}: adapter no pudo mapear (falta evento_id, itinerario_id o task_id)`
+      );
+    }
+    if (__field === 'createTask' || __field === 'editTask') {
+      const vars = (variables || {}) as Record<string, any>;
+      const task = vars.task ?? vars.tarea ?? {};
+      const hasItin = !!(
+        vars.itinerario_id ||
+        vars.itinerarioID ||
+        task?.itinerario_id ||
+        task?.itinerarioID
+      );
+      if (hasItin) {
+        throw new Error(
+          `[fetchApiEventos] ${__field}: adapter no pudo mapear (falta evento_id, itinerario_id o task_id)`
+        );
+      }
+    }
   }
   try {
     const axiosRes = await api.ApiApp({ query, variables }, token);
@@ -704,44 +725,52 @@ export const queries = {
     }
   }`,
 
-  editTask: `mutation ($evento_id:ID!, $task_id:ID!, $development:String!, $updates:TaskUpdateInput!){
-    editTask(evento_id:$evento_id, task_id:$task_id, development:$development, updates:$updates){
+  editTask: `mutation ($evento_id:ID!, $itinerario_id:ID!, $tarea_id:ID!, $updates:TareaUpdateInput!){
+    actualizarTarea(evento_id:$evento_id, itinerario_id:$itinerario_id, tarea_id:$tarea_id, updates:$updates){
       success
       errors{ field message code }
-      task{ _id }
+      itinerario {
+        _id
+        tasks {
+          _id
+          descripcion
+          fecha
+          responsable
+          duracion
+          tags
+          icon
+          completada
+          attachments
+          comments
+          commentsViewers
+          fecha_creacion
+          updatedAt
+        }
+      }
     }
   }`,
 
-  createTask: `mutation ($evento_id:ID!, $development:String!, $task:TaskInput!){
-    createTask(evento_id:$evento_id, development:$development, task:$task){
+  createTask: `mutation ($evento_id:ID!, $itinerario_id:ID!, $tarea:TareaInput!){
+    crearTarea(evento_id:$evento_id, itinerario_id:$itinerario_id, tarea:$tarea){
       success
       errors{ field message code }
-      task{
+      itinerario {
         _id
-        fecha
-        hora
-        horaActiva
-        icon
-        descripcion
-        responsable
-        duracion
-        tags
-        tips
-        estatus
-        attachments{ _id name url size createdAt updatedAt }
-        spectatorView
-        comments{
+        tasks {
           _id
-          comment
-          uid
-          createdAt
-          nicknameUnregistered
-          attachments{ _id name size }
+          descripcion
+          fecha
+          responsable
+          duracion
+          tags
+          icon
+          completada
+          attachments
+          comments
+          commentsViewers
+          fecha_creacion
+          updatedAt
         }
-        commentsViewers
-        estado
-        prioridad
-        fecha_creacion
       }
     }
   }`,
@@ -771,53 +800,21 @@ export const queries = {
   mutation  ( $eventID:String, $itinerarioID:String, $taskID:String, $commentID:String  ) {
     deleteComment ( eventID:$eventID  itinerarioID:$itinerarioID  taskID:$taskID, commentID:$commentID)
   }`,
-  createItinerario: `mutation ($evento_id:ID!, $itinerario:JSON!){
-    createItinerario(evento_id:$evento_id, itinerario:$itinerario){
+  createItinerario: `mutation ($evento_id:ID!, $itinerario:ItinerarioInput!){
+    crearItinerario(evento_id:$evento_id, itinerario:$itinerario){
       success
       errors{ field message code }
       itinerario{
         _id
-      next_id
-      title
-      tasks{
-        _id
-        fecha
-        hora
-        horaActiva
-        icon
-        descripcion
-        responsable
-        duracion
-        tags
-        tips
-        estatus
-        attachments{
-          _id
-          name
-          url
-          size
-          createdAt
-          updatedAt
-        }
-        spectatorView
-        comments{
-          _id
-          comment
-          uid
-          createdAt
-          nicknameUnregistered
-          attachments{
-            _id
-            name
-            size
-          }
-        }
-        commentsViewers
-        estado
-        prioridad
-      }
-      tipo
-      fecha_creacion
+        title
+        tipo
+        tasks{ _id descripcion fecha responsable duracion tags icon completada }
+        viewers
+        participantes
+        chat_id
+        completion_percentage
+        fecha_creacion
+        updatedAt
       }
     }
   }`,

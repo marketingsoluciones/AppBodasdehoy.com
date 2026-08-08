@@ -44,7 +44,7 @@ export const BlockTitle = ({ title }) => {
             overflow-hidden en el wrapper aseguran banner SIEMPRE 56px. */}
         <img
           src={event?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i320}`)}` : defaultImagenes[event?.tipo?.toLowerCase()]}
-          className="h-[90%] max-h-[50px] object-cover object-top rounded-md border-1 border-gray-600 hidden md:block shrink-0"
+          className="h-[90%] max-h-[50px] object-cover object-top rounded-md border-1 border-gray-300 hidden md:block shrink-0"
           alt={event?.nombre}
           onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
         />
