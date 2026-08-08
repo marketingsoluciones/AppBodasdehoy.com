@@ -36,7 +36,7 @@ interface DesignData {
 
 // Gradientes de plantilla EXACTOS del HTML
 const PRESETS: Record<TemplateKey, { label: string; grad: string }> = {
-  elegante: { label: "Elegante", grad: "linear-gradient(135deg,#f7c2da,#EF5B94)" },
+  elegante: { label: "Elegante", grad: "linear-gradient(135deg,#e9d6c3,#d8bfa3)" },
   clasica: { label: "Clásica", grad: "linear-gradient(135deg,#ece4d6,#dccdb4)" },
   moderna: { label: "Moderna", grad: "linear-gradient(135deg,#dfe6ec,#b9cbdb)" },
 };
@@ -88,7 +88,7 @@ const chanIcon = (c: ChannelKey, color: string): ReactNode => {
 };
 
 export const InvitacionesStudio: FC = () => {
-  useTranslation();
+  const { i18n } = useTranslation();
   const { event } = EventContextProvider() as any;
   const auth = AuthContextProvider() as any;
   const toast = useToast();
@@ -97,12 +97,20 @@ export const InvitacionesStudio: FC = () => {
   const [channel, setChannel] = useState<ChannelKey>("email");
   const [face, setFace] = useState<"front" | "back">("front");
   const [previewMobile, setPreviewMobile] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [design, setDesign] = useState<DesignData>(() => defaultDesign(event));
   const [templateId, setTemplateId] = useState<string | undefined>(event?.templateEmailSelect);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("saved");
   const [showOnb, setShowOnb] = useState(true);
   const [coverLocal, setCoverLocal] = useState<string>("");
   const [uploadingCover, setUploadingCover] = useState(false);
+  // Paso "Enviar" (Fase B)
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const [searchB, setSearchB] = useState("");
+  const [filterB, setFilterB] = useState<"todos" | "sin" | "enviadas" | "abiertas" | "pend">("todos");
+  const [sendChan, setSendChan] = useState<ChannelKey>("email");
+  const [sendMode, setSendMode] = useState<"now" | "sched">("now");
+  const [sending, setSending] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const loadedRef = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -156,6 +164,35 @@ export const InvitacionesStudio: FC = () => {
     } catch { toast("error", "No se pudo subir la imagen"); }
     finally { setUploadingCover(false); }
   }, [event, update, toast]);
+
+  // Envío real — mismo backend que el módulo actual (sendComunications: email/whatsapp).
+  const doSend = useCallback(async () => {
+    const ids = Object.keys(checked).filter((k) => checked[k]);
+    if (!ids.length) { toast("error", "Selecciona al menos un invitado"); return; }
+    if (sendChan === "sms") { toast("error", "El envío por SMS aún no está disponible"); return; }
+    if (sendChan === "email" && !templateId) { toast("error", "Diseña y guarda la invitación antes de enviar"); return; }
+    if (sendChan === "whatsapp" && !event?.templateWhatsappSelect) { toast("error", "Configura una plantilla de WhatsApp antes de enviar"); return; }
+    setSending(true);
+    try {
+      await fetchApiEventos({
+        query: queries.sendComunications,
+        variables: {
+          evento_id: event?._id,
+          invitados_ids_array: ids,
+          dominio: auth?.config?.dominio || auth?.config?.domain,
+          transport: sendChan,
+          lang: i18n?.language || "es",
+          template_id: sendChan === "email" ? templateId : event?.templateWhatsappSelect,
+        },
+      });
+      toast("success", sendChan === "email" ? "Envío por email exitoso" : "Envío por WhatsApp exitoso");
+      setChecked({});
+    } catch {
+      toast("error", "Error al enviar invitaciones");
+    } finally {
+      setSending(false);
+    }
+  }, [checked, sendChan, templateId, event, auth, i18n, toast]);
 
   const grad = PRESETS[design.template].grad;
   const invFont = FONTS[design.font].family;
@@ -236,8 +273,13 @@ export const InvitacionesStudio: FC = () => {
                       <div key={f} onClick={() => setFace(f)} style={{ padding: "6px 13px", borderRadius: 7, background: face === f ? "#fff" : "transparent", color: face === f ? "#D83E7C" : "#9aa0a8", font: "600 11px Poppins", cursor: "pointer" }}>{f === "front" ? "Portada" : "Detalles"}</div>
                     ))}
                   </div>
-                  <div onClick={() => setPreviewMobile((v) => !v)} style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto", padding: "6px 12px", borderRadius: 9, border: `1.5px solid ${previewMobile ? "#EF5B94" : "#E7E7EA"}`, background: "#fff", color: previewMobile ? "#D83E7C" : "#6b6b72", font: "600 11px Poppins", cursor: "pointer" }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><rect x="7" y="2" width="10" height="20" rx="2.5" /><path d="M11 18h2" /></svg>Móvil
+                  <div onClick={() => setPreviewMobile((v) => !v)} style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto", padding: "6px 12px", borderRadius: 9, border: "1.5px solid #EF5B94", background: "#fff", color: "#D83E7C", font: "600 11px Poppins", cursor: "pointer" }}>
+                    {previewMobile ? (
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><rect x="2" y="4" width="20" height="13" rx="2" /><path d="M8 21h8M12 17v4" /></svg>
+                    ) : (
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><rect x="7" y="2" width="10" height="20" rx="2.5" /><path d="M11 18h2" /></svg>
+                    )}
+                    {previewMobile ? "Escritorio" : "Móvil"}
                   </div>
                 </div>
               )}
@@ -249,7 +291,7 @@ export const InvitacionesStudio: FC = () => {
                   <div style={{ width: "100%", background: "#fff", borderRadius: 18, boxShadow: "0 12px 34px rgba(0,0,0,.12)", overflow: "hidden", border: "1px solid #f0f0f2" }}>
                     <div onClick={() => coverInputRef.current?.click()} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); handleCoverFile(e.dataTransfer.files?.[0]); }}
                       style={{ height: 190, position: "relative", background: coverBg, borderBottom: `3px solid ${accent}`, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 4, color: "rgba(255,255,255,.92)", font: "600 12px Poppins", cursor: "pointer" }}>
-                      {!(design.cover || coverLocal) && (<><span style={{ fontSize: 26 }}>🖼</span>Arrastra la foto de portada<span style={{ fontSize: 10, opacity: .85, textDecoration: "underline" }}>o haz clic para subir</span></>)}
+                      {!(design.cover || coverLocal) && (<>Arrastra la foto de portada<span style={{ fontSize: 10, opacity: .85, textDecoration: "underline" }}>o haz clic para subir</span></>)}
                       {uploadingCover && <span style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.35)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", font: "600 12px Poppins" }}>Subiendo…</span>}
                       <input ref={coverInputRef} type="file" accept="image/*" onChange={(e) => handleCoverFile(e.target.files?.[0])} style={{ display: "none" }} />
                     </div>
@@ -389,7 +431,7 @@ export const InvitacionesStudio: FC = () => {
 
               {/* Botones */}
               <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-                <button style={{ padding: "12px 20px", borderRadius: 10, border: "1.5px solid #E7E7EA", background: "#fff", color: "#6b6b72", font: "600 13px Poppins", cursor: "pointer" }}>Vista previa completa</button>
+                <button onClick={() => setShowPreview(true)} style={{ padding: "12px 20px", borderRadius: 10, border: "1.5px solid #E7E7EA", background: "#fff", color: "#6b6b72", font: "600 13px Poppins", cursor: "pointer" }}>Vista previa completa</button>
                 <button onClick={() => setTab("envio")} style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 24px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.3)", cursor: "pointer" }}>
                   Continuar a enviar
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
@@ -399,12 +441,202 @@ export const InvitacionesStudio: FC = () => {
           </div>
         )}
 
-        {tab === "envio" && (
-          <div style={{ ...cardBox, padding: 40, textAlign: "center", color: "#9aa0a8", font: "600 14px Poppins" }}>
-            Paso “Enviar” — Fase B (tabla de invitados + barra de envío). Próximamente.
-          </div>
-        )}
+        {tab === "envio" && (() => {
+          const invitados: any[] = event?.invitados_array || [];
+          const isSent = (inv: any) => !!inv.invitacion;
+          const total = invitados.length;
+          const sentN = invitados.filter(isSent).length;
+          const unsentN = total - sentN;
+          const openN = 0; // el backend aún no rastrea aperturas
+          const stMap: Record<string, [string, string]> = {
+            "Enviada": ["#2FB37E", "#E4F5EE"], "Abierta": ["#EF5B94", "#FCE7F0"],
+            "Pendiente": ["#E0A32B", "#FBF0DA"], "Sin enviar": ["#b3b3ba", "#f2f2f4"], "Programada": ["#6E8BAA", "#EEF2F6"],
+          };
+          const avPal = ["#EF5B94", "#f588b3", "#d86fa0", "#EF5B94", "#f588b3"];
+          const stats = [
+            { v: total, l: "Total invitados", c: "#3A3A42" },
+            { v: sentN, l: "Enviadas", c: "#2FB37E" },
+            { v: openN, l: "Abiertas", c: "#EF5B94" },
+            { v: unsentN, l: "Sin enviar", c: "#E0A32B" },
+          ];
+          const q = searchB.trim().toLowerCase();
+          const rows = invitados.map((inv, i) => {
+            const st = isSent(inv) ? "Enviada" : "Sin enviar";
+            const ch: ChannelKey = inv.correo ? "email" : (inv.telefono ? "whatsapp" : "email");
+            return {
+              id: inv._id as string, initial: ((inv.nombre || "?").trim().charAt(0) || "?").toUpperCase(),
+              name: inv.nombre || "Sin nombre", email: inv.correo || "Sin correo",
+              channel: ch === "email" ? "Email" : ch === "whatsapp" ? "WhatsApp" : "SMS", channelKey: ch,
+              status: st, action: st === "Sin enviar" ? "Enviar" : "Reenviar", avBg: avPal[i % avPal.length],
+            };
+          });
+          const fMap: Record<string, string | null> = { todos: null, sin: "Sin enviar", enviadas: "Enviada", abiertas: "Abierta", pend: "Pendiente" };
+          const want = fMap[filterB];
+          const guests = rows.filter((g) => (!want || g.status === want) && (!q || g.name.toLowerCase().includes(q) || g.email.toLowerCase().includes(q)));
+          const fbDefs: [typeof filterB, string, number][] = [
+            ["todos", "Todos", total], ["sin", "Sin enviar", unsentN], ["enviadas", "Enviadas", sentN], ["abiertas", "Abiertas", openN], ["pend", "Pendientes", 0],
+          ];
+          const selIds = Object.keys(checked).filter((k) => checked[k]);
+          const selN = selIds.length;
+          const visibleIds = guests.map((g) => g.id);
+          const allOn = visibleIds.length > 0 && visibleIds.every((id) => checked[id]);
+          const toggleAll = () => {
+            const c = { ...checked };
+            if (allOn) visibleIds.forEach((id) => delete c[id]); else visibleIds.forEach((id) => { c[id] = true; });
+            setChecked(c);
+          };
+          const noEmailN = selIds.filter((id) => { const inv = invitados.find((x) => x._id === id); return inv && !inv.correo; }).length;
+          const checkMark = <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>;
+          const sumTpl = PRESETS[design.template].label;
+          const sendChanLabel = sendChan === "email" ? "Email" : sendChan === "whatsapp" ? "WhatsApp" : "SMS";
+          const sendPreview = sendChan === "email" ? "Correo con diseño completo e imagen de portada." : sendChan === "whatsapp" ? `${design.names} · ¡Nos casamos! ${design.message} 📅 ${design.date}` : smsText;
+
+          return (
+            <div style={{ animation: "fadein .2s ease" }}>
+              {/* Stats */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 16 }}>
+                {stats.map((s, i) => (
+                  <div key={i} style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, padding: "15px 18px", boxShadow: "0 4px 14px rgba(0,0,0,.05)" }}>
+                    <div style={{ font: `700 22px Poppins`, color: s.c }}>{s.v}</div>
+                    <div style={{ font: "500 11px Poppins", color: "#8a8a90" }}>{s.l}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Toolbar: invitación + buscador */}
+              <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap", boxShadow: "0 4px 14px rgba(0,0,0,.05)", marginBottom: 14 }}>
+                <div onClick={() => setTab("diseno")} title="Editar el diseño de la invitación" style={{ display: "flex", alignItems: "center", gap: 9, border: "1.5px solid #f0d9e4", background: "#fdf8fa", borderRadius: 11, padding: "9px 14px", cursor: "pointer" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8}><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 9h8M8 13h5" /></svg>
+                  <span style={{ font: "500 11.5px Poppins", color: "#8a8a90" }}>Invitación:</span>
+                  <span style={{ font: "600 11.5px Poppins", color: "#3A3A42" }}>{sumTpl}</span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 9, background: "#faf9fb", border: "1.5px solid #E7E7EA", borderRadius: 11, padding: "8px 13px" }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b3b3ba" strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+                  <input value={searchB} onChange={(e) => setSearchB(e.target.value)} type="text" placeholder="Buscar invitado" style={{ border: "none", outline: "none", background: "transparent", font: "500 12px Poppins", width: 130 }} />
+                </div>
+              </div>
+
+              {/* Filtros + seleccionar todos */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {fbDefs.map(([key, label, count]) => {
+                    const a = filterB === key;
+                    return (
+                      <div key={key} onClick={() => setFilterB(key)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 14px", borderRadius: 10, border: `1.5px solid ${a ? "#EF5B94" : "#E7E7EA"}`, background: a ? "#EF5B94" : "#fff", color: a ? "#fff" : "#6b6b72", font: "600 12px Poppins", cursor: "pointer" }}>
+                        {label}<span style={{ font: "600 10.5px Poppins", color: a ? "#fff" : "#a0a0a8" }}>{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div onClick={toggleAll} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 15px", borderRadius: 10, background: allOn ? "#EF5B94" : "#fff", border: `1.5px solid ${allOn ? "#EF5B94" : "#E7E7EA"}`, color: allOn ? "#fff" : "#6b6b72", font: "600 12px Poppins", cursor: "pointer", flex: "none" }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
+                  {allOn ? "Quitar selección" : "Seleccionar todos"}
+                </div>
+              </div>
+
+              {/* Tabla */}
+              <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 6px 20px rgba(0,0,0,.05)", overflow: "hidden" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "34px 1.6fr 1fr 1fr 1fr", gap: 12, alignItems: "center", padding: "10px 22px", background: "#faf9fb", borderBottom: "1px solid #f0f0f2", font: "700 10px Poppins", color: "#a0a0a8", letterSpacing: ".5px", textTransform: "uppercase" }}>
+                  <div><div onClick={toggleAll} style={{ width: 17, height: 17, borderRadius: 5, border: `1.8px solid ${allOn ? "#EF5B94" : "#d8d8de"}`, background: allOn ? "#EF5B94" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>{allOn ? checkMark : null}</div></div>
+                  <div style={{ textAlign: "left" }}>Invitado</div><div style={{ textAlign: "left" }}>Canal</div><div style={{ textAlign: "left" }}>Estado</div><div style={{ textAlign: "left" }}>Acción</div>
+                </div>
+                {guests.length === 0 && (
+                  <div style={{ padding: "40px 22px", textAlign: "center", font: "500 12.5px Poppins", color: "#a0a0a8" }}>{total === 0 ? "Aún no tienes invitados en este evento." : "No hay invitados que coincidan con el filtro."}</div>
+                )}
+                {guests.map((g) => {
+                  const on = !!checked[g.id];
+                  const st = stMap[g.status];
+                  return (
+                    <div key={g.id} style={{ display: "grid", gridTemplateColumns: "34px 1.6fr 1fr 1fr 1fr", gap: 12, alignItems: "center", padding: "13px 22px", borderBottom: "1px solid #f5f5f7" }}>
+                      <div><div onClick={() => setChecked((c) => ({ ...c, [g.id]: !c[g.id] }))} style={{ width: 17, height: 17, borderRadius: 5, border: `1.8px solid ${on ? "#EF5B94" : "#d8d8de"}`, background: on ? "#EF5B94" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>{on ? checkMark : null}</div></div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                        <div style={{ width: 32, height: 32, borderRadius: "50%", flex: "none", background: g.avBg, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 12px Poppins" }}>{g.initial}</div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ font: "600 12.5px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.name}</div>
+                          <div style={{ font: "500 10.5px Poppins", color: "#a0a0a8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.email}</div>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, font: "600 11.5px Poppins", color: "#8a8a90" }}>{chanIcon(g.channelKey, "#8a8a90")}{g.channel}</div>
+                      <div><span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: st[1], color: st[0], font: "600 10.5px Poppins", padding: "5px 10px", borderRadius: 20 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: st[0] }} />{g.status}</span></div>
+                      <div style={{ justifySelf: "start" }}><button onClick={() => setChecked((c) => ({ ...c, [g.id]: true }))} style={{ padding: "7px 15px", borderRadius: 9, border: "1.5px solid #EF5B94", background: "#fff", color: "#EF5B94", font: "600 11px Poppins", cursor: "pointer" }}>{g.action}</button></div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Barra flotante de envío / aviso vacío */}
+              {selN > 0 ? (
+                <div style={{ position: "sticky", bottom: 20, marginTop: 18, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap", boxShadow: "0 14px 34px rgba(0,0,0,.16)", animation: "fadein .2s ease" }}>
+                  <div style={{ flexBasis: "100%", display: "flex", alignItems: "flex-start", gap: 11, background: "#faf9fb", border: "1px solid #f0f0f2", borderRadius: 12, padding: "11px 14px" }}>
+                    <div style={{ width: 30, height: 30, borderRadius: 8, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}>{chanIcon(sendChan, "#EF5B94")}</div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ font: "700 10px Poppins", color: "#a0a0a8", letterSpacing: ".5px", textTransform: "uppercase" }}>Vista previa · {sendChanLabel}</div>
+                      <div style={{ font: "500 12px Poppins", color: "#4a4a52", marginTop: 3, lineHeight: 1.5 }}>{sendPreview}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#EF5B94", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 13px Poppins", flex: "none" }}>{selN}</div>
+                    <div style={{ lineHeight: 1.3 }}>
+                      <div style={{ font: "600 13px Poppins", color: "#3A3A42" }}>{selN} seleccionado{selN > 1 ? "s" : ""}</div>
+                      <div onClick={() => setChecked({})} style={{ font: "500 11px Poppins", color: "#EF5B94", cursor: "pointer" }}>Quitar selección</div>
+                    </div>
+                    {noEmailN > 0 && <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#FBF0DA", color: "#B8860B", font: "600 10.5px Poppins", padding: "5px 10px", borderRadius: 20 }}>⚠ {noEmailN} sin correo · se enviarán por WhatsApp</span>}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: 4, background: "#f2f2f4", borderRadius: 11, padding: 4 }}>
+                      <div onClick={() => setSendMode("now")} style={{ padding: "8px 13px", borderRadius: 8, background: sendMode === "now" ? "#fff" : "transparent", color: sendMode === "now" ? "#3A3A42" : "#8a8a90", font: "600 11.5px Poppins", cursor: "pointer", boxShadow: sendMode === "now" ? "0 1px 3px rgba(0,0,0,.12)" : "none" }}>Ahora</div>
+                      <div title="Próximamente" style={{ padding: "8px 13px", borderRadius: 8, background: "transparent", color: "#c5c5cc", font: "600 11.5px Poppins", cursor: "not-allowed" }}>Programar</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ font: "500 11.5px Poppins", color: "#8a8a90" }}>Enviar por</span>
+                      <div style={{ display: "flex", gap: 4, background: "#f2f2f4", borderRadius: 11, padding: 4 }}>
+                        {(["email", "whatsapp", "sms"] as ChannelKey[]).map((c) => {
+                          const a = sendChan === c;
+                          return <div key={c} onClick={() => setSendChan(c)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 13px", borderRadius: 8, background: a ? "#fff" : "transparent", color: a ? "#3A3A42" : "#8a8a90", font: "600 11.5px Poppins", cursor: "pointer", boxShadow: a ? "0 1px 3px rgba(0,0,0,.12)" : "none" }}>{chanIcon(c, a ? "#EF5B94" : "#9aa0a8")}{c === "email" ? "Email" : c === "whatsapp" ? "WhatsApp" : "SMS"}</div>;
+                        })}
+                      </div>
+                    </div>
+                    <button onClick={doSend} disabled={sending} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.35)", border: "none", cursor: sending ? "wait" : "pointer", opacity: sending ? .7 : 1 }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" /></svg>
+                      {sending ? "Enviando…" : `Enviar por ${sendChanLabel}`}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ marginTop: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: 14, border: "1.5px dashed #e6d0da", borderRadius: 14, background: "#fdf8fa" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8}><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
+                  <span style={{ font: "500 12.5px Poppins", color: "#8a8a90" }}>Marca los invitados que quieras y elige cómo enviarles la invitación.</span>
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
+
+      {/* Modal "Vista previa de la invitación" — markup exacto del HTML */}
+      {showPreview && (
+        <div onClick={() => setShowPreview(false)} style={{ position: "fixed", inset: 0, background: "rgba(43,43,48,.62)", zIndex: 64, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px", overflow: "auto" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: 420, maxWidth: "100%", animation: "fadein .22s ease" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <div style={{ font: "600 13px Poppins", color: "#fff" }}>Vista previa de la invitación</div>
+              <div onClick={() => setShowPreview(false)} style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,.16)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", cursor: "pointer" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </div>
+            </div>
+            <div style={{ background: "#fff", borderRadius: 22, overflow: "hidden", boxShadow: "0 30px 80px rgba(0,0,0,.4)" }}>
+              <div style={{ height: 300, background: coverBg, borderBottom: `3px solid ${accent}` }} />
+              <div style={{ padding: "40px 40px 46px", textAlign: "center" }}>
+                <div style={{ fontFamily: invFont, fontWeight: 700, fontSize: 16, color: accent, letterSpacing: 4 }}>{design.title}</div>
+                <div style={{ height: 1, background: accent, opacity: .4, margin: "16px 44px" }} />
+                <div style={{ fontFamily: invFont, fontWeight: 700, fontSize: 34, color: "#3A3A42" }}>{design.names}</div>
+                <div style={{ font: "600 14px Poppins", color: accent, marginTop: 12, letterSpacing: ".5px" }}>{design.date}</div>
+                <div style={{ fontFamily: invFont, fontSize: 14, color: "#8a8a90", marginTop: 20, lineHeight: 1.7 }}>{design.message}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
