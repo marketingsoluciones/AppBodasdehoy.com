@@ -1,4 +1,5 @@
 import { FC, useCallback, useEffect, useRef, useState } from "react";
+import Head from "next/head";
 import { useTranslation } from "react-i18next";
 import { EventContextProvider } from "../../context/EventContext";
 import { AuthContextProvider } from "../../context/AuthContext";
@@ -21,7 +22,7 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 
 // ---- Tipos y presets --------------------------------------------------------
 type TemplateKey = "elegante" | "clasica" | "moderna";
-type FontKey = "poppins" | "playfair" | "dancing";
+type FontKey = "elegante" | "moderna" | "script";
 type ChannelKey = "email" | "whatsapp" | "sms";
 
 interface DesignData {
@@ -44,19 +45,22 @@ const PINK_HOVER = "#D83E7C";
 const INK = "#3A3A42";
 const BORDER = "#E7E7EA";
 
-const PRESETS: Record<TemplateKey, { label: string; grad: string; accent: string }> = {
-  elegante: { label: "Elegante", grad: "linear-gradient(135deg,#FBD3E4,#F3A9CB)", accent: "#EF5B94" },
-  clasica: { label: "Clásica", grad: "linear-gradient(135deg,#EBE1CD,#D8C7A6)", accent: "#C79A3B" },
-  moderna: { label: "Moderna", grad: "linear-gradient(135deg,#DcCcFb,#B79BF0)", accent: "#7C5CFF" },
+// Gradientes de plantilla EXACTOS del HTML "Invitaciones estudio"
+const PRESETS: Record<TemplateKey, { label: string; grad: string }> = {
+  elegante: { label: "Elegante", grad: "linear-gradient(135deg,#f7c2da,#EF5B94)" },
+  clasica: { label: "Clásica", grad: "linear-gradient(135deg,#ece4d6,#dccdb4)" },
+  moderna: { label: "Moderna", grad: "linear-gradient(135deg,#dfe6ec,#b9cbdb)" },
 };
 
+// Tipografías del diseño: Elegante=Playfair · Moderna=Poppins · Script=Dancing Script
 const FONTS: Record<FontKey, { label: string; family: string }> = {
-  poppins: { label: "Poppins", family: "'Poppins',sans-serif" },
-  playfair: { label: "Playfair", family: "'Playfair Display',serif" },
-  dancing: { label: "Dancing", family: "'Dancing Script',cursive" },
+  elegante: { label: "Elegante", family: "'Playfair Display',serif" },
+  moderna: { label: "Moderna", family: "'Poppins',sans-serif" },
+  script: { label: "Script", family: "'Dancing Script',cursive" },
 };
 
-const ACCENTS = ["#EF5B94", "#C79A3B", "#7C5CFF", "#2FB37E", "#E76F51", "#3A3A42"];
+// Paleta "Color de acento" (tonos suaves): rosa · crema · oliva · azul acero · oro
+const ACCENTS = ["#C99AA6", "#E8DEC5", "#8DA07A", "#6E8BAA", "#C9A24B"];
 
 const TEXT_FIELDS: { key: keyof DesignData; label: string; area?: boolean }[] = [
   { key: "title", label: "Encabezado" },
@@ -71,8 +75,8 @@ const TEXT_FIELDS: { key: keyof DesignData; label: string; area?: boolean }[] = 
 const defaultDesign = (event: any): DesignData => ({
   _studio: "v1",
   template: "elegante",
-  font: "poppins",
-  accent: PRESETS.elegante.accent,
+  font: "elegante",
+  accent: "#C99AA6",
   cover: "",
   title: "NOS CASAMOS",
   names: event?.nombre || "Ana & Marcos",
@@ -175,6 +179,10 @@ export const InvitacionesStudio: FC = () => {
 
   return (
     <div style={{ background: "#f1f1f4", minHeight: "100%", fontFamily: "'Poppins',sans-serif" }}>
+      <Head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet" />
+      </Head>
       <div style={{ maxWidth: 1000, margin: "0 auto", padding: "22px 30px 60px" }}>
 
         {/* Barra de título */}
@@ -296,7 +304,7 @@ export const InvitacionesStudio: FC = () => {
                   {(Object.keys(PRESETS) as TemplateKey[]).map((k) => {
                     const sel = design.template === k;
                     return (
-                      <div key={k} onClick={() => update({ template: k, accent: PRESETS[k].accent })} style={{ border: `2px solid ${sel ? PINK : "#f0f0f2"}`, borderRadius: 12, overflow: "hidden", cursor: "pointer", background: "#fff" }}>
+                      <div key={k} onClick={() => update({ template: k })} style={{ border: `2px solid ${sel ? PINK : "#f0f0f2"}`, borderRadius: 12, overflow: "hidden", cursor: "pointer", background: "#fff" }}>
                         <div style={{ height: 70, background: PRESETS[k].grad }} />
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px" }}>
                           <span style={{ font: "600 12px Poppins", color: INK }}>{PRESETS[k].label}</span>
