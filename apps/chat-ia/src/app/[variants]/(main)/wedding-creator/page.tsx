@@ -20,6 +20,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
+import { Markdown } from '@lobehub/ui';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   MobileTabs,
@@ -648,7 +649,14 @@ function WeddingCreatorContent() {
                             : 'bg-gray-100 text-gray-800'
                         }`}
                       >
-                        <div className="whitespace-pre-wrap text-sm">{message.content}</div>
+                        {/* UX-04 (QA 8-ago): renderizar markdown en las respuestas del
+                            asistente (antes salía **texto** literal). El mensaje del user
+                            se queda como texto plano. */}
+                        {message.role === 'user' ? (
+                          <div className="whitespace-pre-wrap text-sm">{message.content}</div>
+                        ) : (
+                          <Markdown fontSize={13}>{message.content}</Markdown>
+                        )}
                       </div>
                     )}
                   </div>
