@@ -121,7 +121,26 @@ export class ApiIaUserService implements IUserService {
   // Devuelve { createdAt, durationSeconds, durationDays }.
   getUserRegistrationDuration = async () => {
     const { userId, development } = getUserConfigContext();
+    // UX-03 (QA 8-ago, integridad de datos): /profile/stats mostraba "1.618 días" y a la
+    // siguiente "1 día" con fecha de HOY. Causa: si la lectura fallaba, se FABRICABA
+    // createdAt=now/duration=0 → "1 día". Fix: cachear el último valor bueno y reusarlo en
+    // fallo, en vez de inventar la fecha de alta.
+    const CACHE_KEY = 'registration-duration-cache';
+    const readCache = () => {
+      if (typeof window === 'undefined') return null;
+      try {
+        const c = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+        if (c && c.userId === userId && c.createdAt) {
+          return { createdAt: c.createdAt, duration: c.duration ?? 0, updatedAt: new Date().toISOString() };
+        }
+      } catch {
+        // ignore
+      }
+      return null;
+    };
     if (!userId) {
+      const cached = readCache();
+      if (cached) return cached;
       const now = new Date();
       return { createdAt: now.toISOString(), duration: 0, updatedAt: now.toISOString() };
     }
@@ -143,8 +162,19 @@ export class ApiIaUserService implements IUserService {
       const days =
         Number(json.durationDays ?? json.duration_days ?? NaN) ||
         Math.max(1, Math.floor(Number(json.durationSeconds ?? json.duration_seconds ?? 0) / 86_400));
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ createdAt, duration: days, userId }));
+        } catch {
+          // ignore
+        }
+      }
       return { createdAt, duration: days, updatedAt: new Date().toISOString() };
     } catch {
+      // UX-03: NO fabricar createdAt=now/duration=0 (mostraba "1 día / hoy" contradiciendo
+      // el valor real). Reusar el último valor cacheado si existe.
+      const cached = readCache();
+      if (cached) return cached;
       const now = new Date();
       return { createdAt: now.toISOString(), duration: 0, updatedAt: now.toISOString() };
     }
