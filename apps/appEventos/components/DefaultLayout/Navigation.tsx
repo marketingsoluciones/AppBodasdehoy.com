@@ -234,7 +234,7 @@ const Navigation: FC = () => {
               </span>
             )}
           </span>
-          <NavbarDirectory />
+          {/* <NavbarDirectory /> */}
           <div className="flex items-center gap-3">
             {canSeeCopilot && <ChatToggleButton />}
             <Profile
@@ -248,13 +248,13 @@ const Navigation: FC = () => {
         {/* segundo menu superior con las redirecciones funcionales de la app */}
         <div className={`${(urls.includes(url)) ? "hidden" : "block"}`}>
           <div className={`w-full h-20 hidden md:flex bg-base justify-center items-start`}>
-              <div style={{ width, height }} className={`absolute top-16 z-10 px-16 flex justify-center transition-opacity duration-200 ${width > 0 ? 'opacity-100' : 'opacity-0'}`}>
-                <Tooltip
-                  label={navNoEventHint}
-                  icon={<IconLightBulb16 className="w-6 h-6" />}
-                  disabled={!!event?._id}
-                  className="w-full h-full"
-                >
+            <div style={{ width, height }} className={`absolute top-16 z-10 px-16 flex justify-center transition-opacity duration-200 ${width > 0 ? 'opacity-100' : 'opacity-0'}`}>
+              <Tooltip
+                label={navNoEventHint}
+                icon={<IconLightBulb16 className="w-6 h-6" />}
+                disabled={!!event?._id}
+                className="w-full h-full"
+              >
                 <div className="flex w-full h-full justify-center items-center">
                   <ul className="flex w-full h-max justify-between">
                     {Navbar.filter(item => !(item.hideForGuest && user?.displayName === 'guest')).map((item, idx) => (
@@ -297,8 +297,8 @@ const Navigation: FC = () => {
                     ))}
                   </ul>
                 </div>
-                </Tooltip>
-              </div>
+              </Tooltip>
+            </div>
             <div ref={refBanner} className="flex max-w-[1020px] flex-1 items-start">
               <Banner
                 className={`${pathname === "/" ? "text-primary" : "text-white"} transition`}

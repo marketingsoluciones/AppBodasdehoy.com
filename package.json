@@ -35,6 +35,7 @@
     "dev:copilot:local": "pnpm --filter @bodasdehoy/chat-ia run dev:local",
     "dev:local": "turbo run dev:local --concurrency=12",
     "dev:web": "pnpm --filter @bodasdehoy/appEventos dev",
+    "dev:web:turbo": "pnpm --filter @bodasdehoy/appEventos run dev:turbo",
     "dev:safe:web": "bash scripts/dev-safe-appEventos.sh",
     "dev:web:local": "pnpm --filter @bodasdehoy/appEventos run dev:local",
     "lint": "turbo run lint",

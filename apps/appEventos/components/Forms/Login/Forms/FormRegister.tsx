@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { publicKey } from './../../../../publicKey.js'
+import { publicKey } from './../../../../publicKey'
 import { Formik, Form, ErrorMessage } from "formik";
 import { Dispatch, FC, SetStateAction, useState } from "react";
 import { EmailIcon, Eye, EyeSlash, LockClosed, PhoneMobile, UserForm } from "../../../icons";

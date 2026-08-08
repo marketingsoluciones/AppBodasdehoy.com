@@ -228,17 +228,13 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapResponse: (p) => ({ _id: p?.evento?._id, listaRegalos: p?.evento?.listaRegalos, success: p?.success, errors: p?.errors }),
   },
 
-  // ── eventUpdate (variable/value → input) ── captura los call-sites legacy que aún pasan
-  // {idEvento, variable, value}. Salta estatus/tipo (enum: estatus pendiente P3; tipo necesita mapeo)
-  // devolviendo null en mapVariables → cae a apiapp hasta que se resuelvan.
-  eventUpdate: {
+  // ── updateEvento / eventUpdate ──
+  // extractGraphqlField sobre queries.eventUpdate captura "updateEvento" (campo GQL),
+  // no "eventUpdate" (nombre del wrapper). Alias obligatorio o el adapter no corre.
+  // Soporta call-sites con {input} y legacy {variable, value}.
+  updateEvento: {
     canonicalQuery: `mutation($idEvento:ID!,$input:EventoUpdateInput!){ updateEvento(id:$idEvento, input:$input){ success errors{ field message code } evento{ _id } } }`,
     mapVariables: (v) => {
-      // DEFENSA imgEvento/imgInvitacion: al LEER, el adapter convierte estos campos String(slug)
-      // → objeto de tamaños ({i320,i640,...}) para pintar la UI. NUNCA reenviar ese objeto en un
-      // update: el schema de api-mcp los declara String y Mongoose rechaza el save del EVENTO
-      // entero → rompía crear invitado/grupo/menú (validation failed: imgInvitacion Cast to string).
-      // Se omiten del input cuando son objeto (el flujo real de imagen va por singleUpload).
       const stripImgObjects = (input: any) => {
         if (!input || typeof input !== 'object') return input;
         const out: any = { ...input };
@@ -247,15 +243,29 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
         }
         return out;
       };
-      if (v.input) return { idEvento: v.idEvento, input: stripImgObjects(v.input) };
+      // listIdentifiers en Event es JSON (objetos {table,start_Id,end_Id}); el SDL de
+      // EventoUpdateInput aún dice [String!] — si llega stringificado, parsear.
+      const normalizeInput = (input: any) => {
+        const cleaned = stripImgObjects(input);
+        if (!cleaned || typeof cleaned !== 'object') return cleaned;
+        if (typeof cleaned.listIdentifiers === 'string') {
+          try { cleaned.listIdentifiers = JSON.parse(cleaned.listIdentifiers); } catch { /* leave */ }
+        }
+        if (typeof cleaned.itinerarios_array === 'string') {
+          try { cleaned.itinerarios_array = JSON.parse(cleaned.itinerarios_array); } catch { /* leave */ }
+        }
+        return cleaned;
+      };
+      if (v.input) return { idEvento: v.idEvento, input: normalizeInput(v.input) };
       if (v.variable == null) return null;
-      // Update de campo suelto: si es imgEvento/imgInvitacion como objeto, ignorarlo (no persistir).
       if ((v.variable === 'imgEvento' || v.variable === 'imgInvitacion') && v.value && typeof v.value === 'object') {
         return { idEvento: v.idEvento, input: {} };
       }
-      // P3 estatus: api-mcp ya acepta lowercase. tipo: el adapter mapea lowercase→enum EventoTipo.
-      const val = v.variable === 'tipo' ? mapTipo(v.value) : v.value;
-      return { idEvento: v.idEvento, input: { [v.variable]: val } };
+      let val = v.variable === 'tipo' ? mapTipo(v.value) : v.value;
+      if ((v.variable === 'listIdentifiers' || v.variable === 'itinerarios_array') && typeof val === 'string') {
+        try { val = JSON.parse(val); } catch { /* leave */ }
+      }
+      return { idEvento: v.idEvento, input: normalizeInput({ [v.variable]: val }) };
     },
     mapResponse: (p) => p,
   },
@@ -338,31 +348,111 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
   // P1 ITINERARIO/TASKS — desplegado 2026-05-29
   // Front pasa itinerarioID (verificado). TareaInput: descripcion/fecha/responsable/duracion/tags/icon/completada.
   // ═══════════════════════════════════════════════════════════
-  // Front editTask(evento_id, task_id, development, updates:TaskUpdateInput) → actualizarTarea
+  // Front editTask (varias formas legacy) → actualizarTarea
+  // Formas: {evento_id,task_id,updates} | {eventID,itinerarioID,taskID,variable,valor}
+  // Sin itinerario_id el adapter devolvía null → editTask CRM (Task.id) → error "_id".
   editTask: {
     canonicalQuery: `mutation($evento_id:ID!,$itinerario_id:ID!,$tarea_id:ID!,$updates:TareaUpdateInput!){
       actualizarTarea(evento_id:$evento_id, itinerario_id:$itinerario_id, tarea_id:$tarea_id, updates:$updates){
         success errors{ field message code }
+        itinerario {
+          _id
+          tasks {
+            _id descripcion fecha responsable duracion tags icon completada
+            attachments comments commentsViewers fecha_creacion updatedAt
+          }
+        }
       }
     }`,
     mapVariables: (v) => {
-      const it = v.itinerario_id ?? v.itinerarioID;
-      const tk = v.tarea_id ?? v.task_id ?? v.taskID;
-      if (!it || !tk) return null;
-      return { evento_id: v.evento_id, itinerario_id: it, tarea_id: tk, updates: v.updates ?? {} };
+      const evento_id = v.evento_id ?? v.eventID ?? v.eventoID;
+      const itinerario_id = v.itinerario_id ?? v.itinerarioID;
+      const tarea_id = v.tarea_id ?? v.task_id ?? v.taskID;
+      if (!evento_id || !itinerario_id || !tarea_id) return null;
+
+      let updates: Record<string, unknown> =
+        v.updates && typeof v.updates === 'object' ? { ...v.updates } : {};
+      if (Object.keys(updates).length === 0 && v.variable != null) {
+        const key = String(v.variable);
+        let valor: unknown = v.valor;
+        if (key === 'all' && typeof valor === 'string') {
+          try { updates = JSON.parse(valor); } catch { updates = {}; }
+        } else {
+          if (typeof valor === 'string' && (valor.startsWith('{') || valor.startsWith('['))) {
+            try { valor = JSON.parse(valor); } catch { /* leave string */ }
+          }
+          updates = { [key]: valor };
+        }
+      }
+
+      // Front usa estatus (bool/string); api-v2 actualizarTarea persiste completada.
+      if (updates.estatus !== undefined && updates.completada === undefined) {
+        const e = updates.estatus;
+        updates.completada = e === true || e === 'true' || e === 1 || e === '1';
+      }
+      // fecha Date → string
+      if (updates.fecha instanceof Date) {
+        const d = updates.fecha;
+        updates.fecha = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      }
+      // Quitar campos que no van en TareaUpdateInput / no aplica el resolver
+      delete updates.itinerario_id;
+      delete updates.itinerarioID;
+      delete updates._id;
+
+      return { evento_id, itinerario_id, tarea_id, updates };
     },
-    mapResponse: (p) => ({ success: p?.success, errors: p?.errors, task: { _id: p?.itinerario?._id } }),
+    mapResponse: (p, v) => {
+      const tasks = Array.isArray(p?.itinerario?.tasks) ? p.itinerario.tasks : [];
+      const tid = (v as any)?.task_id ?? (v as any)?.taskID ?? (v as any)?.tarea_id;
+      const task = tid
+        ? tasks.find((t: any) => t?._id === tid) ?? (tasks.length ? tasks[tasks.length - 1] : null)
+        : (tasks.length ? tasks[tasks.length - 1] : null);
+      return { success: p?.success, errors: p?.errors, task };
+    },
   },
-  // Front createItinerario(evento_id, title, tipo) → crearItinerario(evento_id, itinerario:ItinerarioInput!)
+  // Front createItinerario(evento_id, itinerario:{title,tipo,...}) → crearItinerario
+  // Antes: canonical sin selection de itinerario → {success,errors} sin _id;
+  // mapVariables ignoraba v.itinerario y mandaba title:''.
   createItinerario: {
     canonicalQuery: `mutation($evento_id:ID!,$itinerario:ItinerarioInput!){
-      crearItinerario(evento_id:$evento_id, itinerario:$itinerario){ success errors{ field message code } }
+      crearItinerario(evento_id:$evento_id, itinerario:$itinerario){
+        success
+        errors{ field message code }
+        itinerario {
+          _id
+          title
+          tipo
+          tasks { _id descripcion fecha responsable duracion tags icon completada }
+          viewers
+          participantes
+          chat_id
+          completion_percentage
+          fecha_creacion
+          updatedAt
+        }
+      }
     }`,
-    mapVariables: (v) => ({
-      evento_id: v.evento_id,
-      itinerario: { title: v.title ?? v.nombre ?? '', tipo: v.tipo ?? 'itinerario', viewers: v.viewers, participantes: v.participantes },
+    mapVariables: (v) => {
+      const raw =
+        v.itinerario && typeof v.itinerario === 'object'
+          ? (v.itinerario as Record<string, unknown>)
+          : (v as Record<string, unknown>);
+      return {
+        evento_id: v.evento_id,
+        itinerario: {
+          title: (raw.title as string) ?? (raw.nombre as string) ?? (v.title as string) ?? '',
+          tipo: (raw.tipo as string) ?? (v.tipo as string) ?? 'itinerario',
+          viewers: (raw.viewers as string[]) ?? v.viewers,
+          participantes: (raw.participantes as string[]) ?? v.participantes,
+        },
+      };
+    },
+    mapResponse: (p) => ({
+      success: p?.success,
+      errors: p?.errors,
+      itinerario: p?.itinerario ?? null,
     }),
-    mapResponse: (p) => p,
   },
   // Front editItinerario(evento_id, itinerario_id, datos) → actualizarItinerario
   editItinerario: {
@@ -544,19 +634,61 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapResponse: (p) => p,
   },
 
-  // Front createTask(evento_id, development, task:TaskInput) → crearTarea
+  // Front createTask(evento_id, development, task:{itinerario_id,...}) → crearTarea
+  // Antes mapVariables solo miraba itinerario_id top-level → siempre null → ApiApp
+  // con query legacy (Task CRM) + proxy a host equivocado → ERR_NETWORK / 400.
   createTask: {
     canonicalQuery: `mutation($evento_id:ID!,$itinerario_id:ID!,$tarea:TareaInput!){
       crearTarea(evento_id:$evento_id, itinerario_id:$itinerario_id, tarea:$tarea){
         success errors{ field message code }
+        itinerario {
+          _id
+          tasks {
+            _id descripcion fecha responsable duracion tags icon completada
+            attachments comments commentsViewers fecha_creacion updatedAt
+          }
+        }
       }
     }`,
     mapVariables: (v) => {
-      const it = v.itinerario_id ?? v.itinerarioID;
-      if (!it) return null;
-      return { evento_id: v.evento_id, itinerario_id: it, tarea: v.task ?? v.tarea ?? {} };
+      const rawTask = (v.task ?? v.tarea ?? {}) as Record<string, unknown>;
+      const itinerario_id =
+        (v.itinerario_id as string | undefined) ??
+        (v.itinerarioID as string | undefined) ??
+        (rawTask.itinerario_id as string | undefined) ??
+        (rawTask.itinerarioID as string | undefined);
+      if (!itinerario_id || !v.evento_id) return null;
+      const {
+        itinerario_id: _drop1,
+        itinerarioID: _drop2,
+        ...rest
+      } = rawTask;
+      const tarea: Record<string, unknown> = { ...rest };
+      if (tarea.fecha instanceof Date) {
+        const d = tarea.fecha;
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        tarea.fecha = `${y}-${m}-${day}`;
+        if (tarea.hora == null) {
+          tarea.hora = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        }
+      } else if (typeof tarea.fecha === 'number') {
+        const d = new Date(tarea.fecha);
+        if (!Number.isNaN(d.getTime())) {
+          tarea.fecha = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+      }
+      if (typeof tarea.descripcion !== 'string' || !tarea.descripcion) {
+        tarea.descripcion = 'Tarea nueva';
+      }
+      return { evento_id: v.evento_id, itinerario_id, tarea };
     },
-    mapResponse: (p) => ({ success: p?.success, errors: p?.errors, task: { _id: p?.itinerario?._id } }),
+    mapResponse: (p) => {
+      const tasks = Array.isArray(p?.itinerario?.tasks) ? p.itinerario.tasks : [];
+      const task = tasks.length ? tasks[tasks.length - 1] : null;
+      return { success: p?.success, errors: p?.errors, task };
+    },
   },
 
   // getPsTemplate(evento_id, development): JSON — front legacy pasa (uid, evento_id, development),
@@ -1178,6 +1310,13 @@ export const MCP_ADAPTERS: Record<string, McpAdapterEntry> = {
     mapResponse: (p) => p,
   },
 };
+
+// Alias: queries.eventUpdate (wrapper) vs campo GQL updateEvento — misma entrada.
+MCP_ADAPTERS.eventUpdate = MCP_ADAPTERS.updateEvento;
+// Alias: queries.createTask → campo GQL crearTarea; editTask → actualizarTarea.
+MCP_ADAPTERS.crearTarea = MCP_ADAPTERS.createTask;
+MCP_ADAPTERS.actualizarTarea = MCP_ADAPTERS.editTask;
+MCP_ADAPTERS.crearItinerario = MCP_ADAPTERS.createItinerario;
 
 export const ADAPTER_ENABLED = (field: string | null): boolean =>
   !!field && field in MCP_ADAPTERS;

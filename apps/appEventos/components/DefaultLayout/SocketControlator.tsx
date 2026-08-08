@@ -19,6 +19,7 @@ export const SocketControlator = () => {
   const [received, setReceived] = useState({ channel: "", msg: null, d: null })
   const router = useRouter()
   const senderPlanSpaceActiveRef = useRef(false)
+  const setEventEmitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [countEvent, setCountEvent] = useState(0)
   const [countPlanSpaceActive, setCountPlanSpaceActive] = useState(0)
 
@@ -329,17 +330,25 @@ export const SocketControlator = () => {
 
   useEffect(() => {
     if (!valirRemoteEvent && !valirRemotePlanSpaceActive && !senderPlanSpaceActiveRef.current) {
-      // console.log(100010, "EMIT event")
-      socket?.emit(`app:message`, {
-        event: event?._id,
-        emit: user?.uid,
-        receiver: event?._id,
-        type: "event",
-        payload: {
-          action: "setEvent",
-          value: event?._id
-        }
-      })
+      const eventId = event?._id
+      if (!eventId || !socket) {
+        countEvent < 5 && setCountEvent(countEvent + 1)
+        return
+      }
+      // Debounce: ráfagas de setEvent (p. ej. init itinerario) colapsan a 1 emit.
+      if (setEventEmitTimerRef.current) clearTimeout(setEventEmitTimerRef.current)
+      setEventEmitTimerRef.current = setTimeout(() => {
+        socket.emit(`app:message`, {
+          event: eventId,
+          emit: user?.uid,
+          receiver: eventId,
+          type: "event",
+          payload: {
+            action: "setEvent",
+            value: eventId
+          }
+        })
+      }, 400)
     } else {
       if (senderPlanSpaceActiveRef.current) {
         senderPlanSpaceActiveRef.current = false
@@ -348,6 +357,12 @@ export const SocketControlator = () => {
       setValirRemotePlanSpaceActive(false)
     }
     countEvent < 5 && setCountEvent(countEvent + 1)
+    return () => {
+      if (setEventEmitTimerRef.current) {
+        clearTimeout(setEventEmitTimerRef.current)
+        setEventEmitTimerRef.current = null
+      }
+    }
   }, [event])
 
 

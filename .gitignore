@@ -9,6 +9,9 @@ dist/
 build/
 out/
 
+# Node.js V8 module compile cache (cwd del proceso; no versionar)
+node-compile-cache/
+
 # Lock files (pnpm generates these)
 # pnpm-lock.yaml is tracked
 
