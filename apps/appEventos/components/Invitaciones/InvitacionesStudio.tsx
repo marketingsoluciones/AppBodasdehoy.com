@@ -216,6 +216,14 @@ export const InvitacionesStudio: FC = () => {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet" />
       </Head>
+      {/* Keyframes del HTML (fadein/slidein) + responsive del studio */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slidein{from{transform:translateX(-26px);opacity:0}to{transform:translateX(0);opacity:1}}
+        @media (max-width:900px){.inv-design-grid{grid-template-columns:1fr !important}}
+        @media (max-width:720px){.inv-stats-grid{grid-template-columns:repeat(2,1fr) !important}}
+        @media (max-width:560px){.inv-stats-grid{grid-template-columns:1fr !important}}
+      ` }} />
       <div style={{ maxWidth: 1000, margin: "0 auto", padding: "22px 30px 60px" }}>
 
         {/* Cabecera estándar compartida */}
@@ -248,7 +256,7 @@ export const InvitacionesStudio: FC = () => {
         )}
 
         {tab === "diseno" && (
-          <div style={{ animation: "fadein .2s ease", display: "grid", gridTemplateColumns: "380px 1fr", gap: 22, alignItems: "start" }}>
+          <div className="inv-design-grid" style={{ animation: "fadein .2s ease", display: "grid", gridTemplateColumns: "380px 1fr", gap: 22, alignItems: "start" }}>
 
             {/* LIVE PREVIEW */}
             <div style={{ position: "sticky", top: 20 }}>
@@ -494,7 +502,7 @@ export const InvitacionesStudio: FC = () => {
           return (
             <div style={{ animation: "fadein .2s ease" }}>
               {/* Stats */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 16 }}>
+              <div className="inv-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 16 }}>
                 {stats.map((s, i) => (
                   <div key={i} style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, padding: "15px 18px", boxShadow: "0 4px 14px rgba(0,0,0,.05)" }}>
                     <div style={{ font: `700 22px Poppins`, color: s.c }}>{s.v}</div>
