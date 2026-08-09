@@ -6,6 +6,14 @@ import { EventContextProvider } from "../../context";
 import BlockTitle from "../Utils/BlockTitle";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
+import { useDelayUnmount } from "../../utils/Funciones";
+import ModalLeft from "../Utils/ModalLeft";
+import FormInvitado from "../Forms/FormInvitado";
+import FormCrearGrupo from "../Forms/FormCrearGrupo";
+import FormCrearMenu from "../Forms/FormCrearMenu";
+import FormAcompañante from "../Forms/FormAcompañante";
+import FormEditarInvitado from "../Forms/FormEditarInvitado";
+import { BorrarInvitado } from "../../hooks/EditarInvitado";
 
 /**
  * InvitadosStudio — rediseño de la tabla de Invitados fiel al HTML "Prototipo tablas v2".
@@ -21,6 +29,21 @@ export const InvitadosStudio: FC = () => {
   const [search, setSearch] = useState("");
   const [ddSt, setDdSt] = useState<string | null>(null);
   const [ddMn, setDdMn] = useState<string | null>(null);
+  // Formularios (reusa los del módulo actual vía ModalLeft) + menú de fila
+  const [formShow, setFormShow] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  const shouldRenderChild = useDelayUnmount(isMounted, 500);
+  const [acompFather, setAcompFather] = useState<string | null>(null);
+  const [editGuest, setEditGuest] = useState<any>(null);
+  const [rowMenu, setRowMenu] = useState<string | null>(null);
+  const openForm = (type: string) => { setFormShow(type); setIsMounted(true); setRowMenu(null); };
+  const delGuest = (r: any) => {
+    setRowMenu(null);
+    if (typeof window !== "undefined" && !window.confirm(`¿Eliminar a ${r?.nombre || "este invitado"}?`)) return;
+    setEvent((prev: any) => ({ ...prev, invitados_array: (prev?.invitados_array || []).filter((x: any) => x._id !== r._id && x.father !== r._id) }));
+    BorrarInvitado(event._id, r._id);
+    toast("success", "Invitado eliminado");
+  };
 
   // Opciones de menú del evento + guardado inline (mismo patrón que BlockTableroInvitados)
   const menuOpts: string[] = (event?.menus_array || []).map((m: any) => m?.nombre_menu || m).filter(Boolean);
@@ -89,6 +112,23 @@ export const InvitadosStudio: FC = () => {
   const plusW = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>;
   const plusG = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b6b72" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>;
 
+  // Exportar a PDF (imprime la tabla → PDF del navegador), como el mock
+  const genPDF = () => {
+    const stC: Record<string, string> = { confirmado: "#2FB37E", pendiente: "#E0A32B", cancelado: "#D83E7C" };
+    const body = groups.map((gr) => {
+      const head = `<tr><td colspan="6" style="background:#fbfbfc;font-weight:600;color:#6b6b72;padding:8px 12px;text-transform:capitalize;">${gr.name} (${gr.guests.length})</td></tr>`;
+      const rows = gr.guests.map((r) => {
+        const st = (r?.asistencia || "pendiente").toLowerCase();
+        return `<tr><td>${r?.nombre || ""}</td><td style="color:${stC[st] || "#E0A32B"};text-transform:capitalize;">${cap(st)}</td><td>${r?.nombre_menu || "—"}</td><td>${seatOf(r._id, 0)}</td><td>${seatOf(r._id, 1)}</td><td>${all.filter((x) => x?.father === r._id).length}</td></tr>`;
+      }).join("");
+      return head + rows;
+    }).join("");
+    const html = `<html><head><meta charset="utf-8"><title>Invitados — ${event?.nombre || ""}</title><style>body{font-family:Poppins,Arial,sans-serif;padding:24px;color:#3A3A42}h1{color:#EF5B94;font-size:20px;margin:0 0 4px}.sub{font-size:12px;color:#8a8a90;margin-bottom:16px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #eee;padding:8px 10px;text-align:left}th{background:#f7f7f9;color:#5a5a62;text-transform:uppercase;font-size:10px}</style></head><body><h1>Invitados — ${event?.nombre || ""}</h1><div class="sub">${total} invitados · ${adultos} adultos · ${ninos} niños · ${conf} confirmados · ${pend} por confirmar · ${canc} cancelados</div><table><thead><tr><th>Invitado</th><th>Asistencia</th><th>Menú</th><th>Asientos recepción</th><th>Asientos ceremonia</th><th>Acompañantes</th></tr></thead><tbody>${body}</tbody></table></body></html>`;
+    const w = window.open("", "_blank");
+    if (!w) { toast("error", "Permite ventanas emergentes para exportar"); return; }
+    w.document.write(html); w.document.close(); w.focus(); setTimeout(() => { try { w.print(); } catch { /* noop */ } }, 350);
+  };
+
   return (
     <div style={{ background: "#f1f1f4", minHeight: "100%", fontFamily: "'Poppins',sans-serif" }}>
       <Head>
@@ -96,6 +136,17 @@ export const InvitadosStudio: FC = () => {
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </Head>
       <style dangerouslySetInnerHTML={{ __html: `@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}` }} />
+
+      {/* Formularios (reusa los del módulo actual vía ModalLeft) */}
+      {shouldRenderChild && (
+        <ModalLeft state={isMounted} set={setIsMounted}>
+          {formShow === "invitado" && <FormInvitado state={isMounted} set={setIsMounted} />}
+          {formShow === "grupo" && <FormCrearGrupo state={isMounted} set={setIsMounted} />}
+          {formShow === "menu" && <FormCrearMenu state={isMounted} set={setIsMounted} />}
+          {formShow === "acompañante" && <FormAcompañante state={isMounted} set={setIsMounted} guestFather={acompFather as string} />}
+          {formShow === "editar" && <FormEditarInvitado state={isMounted} set={setIsMounted} invitado={editGuest} setInvitadoSelected={setEditGuest} />}
+        </ModalLeft>
+      )}
 
       <div style={{ maxWidth: 1040, margin: "0 auto", padding: "22px 20px 60px", animation: "fadein .2s ease" }}>
         {/* Cabecera estándar */}
@@ -117,10 +168,10 @@ export const InvitadosStudio: FC = () => {
 
         {/* ACTION BUTTONS */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18, flexWrap: "wrap" }}>
-          <button style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 11, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.3)", border: "none", cursor: "pointer" }}>{plusW}Invitados</button>
-          <button style={btnGhost}>{plusG}Grupo</button>
-          <button style={btnGhost}>{plusG}Menú</button>
-          <button style={btnGhost}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b6b72" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>Importar</button>
+          <button onClick={() => openForm("invitado")} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 11, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.3)", border: "none", cursor: "pointer" }}>{plusW}Invitados</button>
+          <button onClick={() => openForm("grupo")} style={btnGhost}>{plusG}Grupo</button>
+          <button onClick={() => openForm("menu")} style={btnGhost}>{plusG}Menú</button>
+          <button onClick={genPDF} style={btnGhost}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b6b72" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>Exportar</button>
           <div style={{ flex: 1 }} />
           <div style={{ display: "flex", alignItems: "center", gap: 9, background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 11, padding: "9px 14px" }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b3b3ba" strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
@@ -195,7 +246,18 @@ export const InvitadosStudio: FC = () => {
                           <div style={{ font: "600 11px Poppins", color: "#6b6b72", letterSpacing: ".4px", textTransform: "uppercase" }}>{seatOf(r._id, 0)}</div>
                           <div style={{ font: "600 11px Poppins", color: "#6b6b72", letterSpacing: ".4px", textTransform: "uppercase" }}>{seatOf(r._id, 1)}</div>
                           <div style={{ display: "flex", alignItems: "center", gap: 5, font: "600 12px Poppins", color: "#6b6b72" }}>{acomp}</div>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 9, color: "#c4c4cc" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="12" cy="19" r="1.6" /></svg></div>
+                          <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 9, color: "#c4c4cc" }}>
+                            <svg onClick={() => { setDdSt(null); setDdMn(null); setRowMenu(rowMenu === r._id ? null : r._id); }} width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ cursor: "pointer" }}><circle cx="12" cy="5" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="12" cy="19" r="1.6" /></svg>
+                            {rowMenu === r._id && (
+                              <ClickAwayListener onClickAway={() => setRowMenu(null)}>
+                                <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 6, background: "#fff", border: "1px solid #eee", borderRadius: 12, boxShadow: "0 12px 30px rgba(0,0,0,.16)", zIndex: 9, padding: 6, minWidth: 180 }}>
+                                  <div onClick={() => { setEditGuest(r); openForm("editar"); }} style={{ padding: "9px 12px", borderRadius: 9, font: "600 12px Poppins", color: "#3A3A42", cursor: "pointer" }}>Editar invitado</div>
+                                  <div onClick={() => { setAcompFather(r._id); openForm("acompañante"); }} style={{ padding: "9px 12px", borderRadius: 9, font: "600 12px Poppins", color: "#3A3A42", cursor: "pointer" }}>Añadir acompañante</div>
+                                  <div onClick={() => delGuest(r)} style={{ padding: "9px 12px", borderRadius: 9, font: "600 12px Poppins", color: "#D83E7C", cursor: "pointer" }}>Eliminar</div>
+                                </div>
+                              </ClickAwayListener>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
