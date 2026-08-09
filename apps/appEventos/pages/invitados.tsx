@@ -16,6 +16,7 @@ import { ModuleErrorBoundary } from "../components/ErrorBoundary";
 import FormCrearMenu from "../components/Forms/FormCrearMenu";
 import { useMounted } from "../hooks/useMounted";
 import { BlockTableroInvitados } from "../components/Invitados/BlockTableroInvitados";
+import { InvitadosStudio } from "../components/Invitados/InvitadosStudio";
 import { SelectModeView } from "../components/Utils/SelectModeView";
 import FormAcompañante from "../components/Forms/FormAcompañante";
 
@@ -101,6 +102,8 @@ const Invitados: FC = () => {
       )
     }
     if (!event) return <EventLoadingOrError skeletonRows={8} />
+    // Rediseño de la tabla de Invitados (Prototipo tablas v2) detrás de ?studio=1 — no altera la vista actual.
+    if (searchParams.get("studio")) return <InvitadosStudio />
     return (
       <>
         {shouldRenderChild && (
