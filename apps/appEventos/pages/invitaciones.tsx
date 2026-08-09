@@ -188,8 +188,10 @@ const Invitaciones = () => {
       )
     }
     if (!event) return <EventLoadingOrError skeletonRows={3} />
-    // Rediseño UI (wizard 2 pasos) detrás de flag ?studio=1 — no altera la vista actual.
-    if (router.query.studio) return <InvitacionesStudio />
+    // Rediseño UI (wizard 2 pasos) = vista POR DEFECTO del módulo (aprobado por owner 9-ago).
+    // Salida de emergencia al módulo clásico con ?studio=legacy (rollback sin build; la vista
+    // antigua sigue en el código, no se borra → no se pierde funcionalidad).
+    if (router.query.studio !== "legacy") return <InvitacionesStudio />
     return (
       <DataTableGroupProvider>
         <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base. w-full pt-2 md:py-0"}>
