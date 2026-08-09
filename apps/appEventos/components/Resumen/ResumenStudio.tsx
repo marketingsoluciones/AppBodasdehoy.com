@@ -6,6 +6,7 @@ import { ModalAddUserToEvent } from "../Utils/Compartir";
 import { defaultImagenes } from "../Home/Card";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
+import { EntityNotesSection } from "../Notes/EntityNotesSection";
 
 /**
  * ResumenStudio — rediseño de la hoja de Resumen fiel al HTML "Resumen.dc.html".
@@ -47,7 +48,12 @@ export const ResumenStudio: FC = () => {
 
   const estimado = Number(event?.presupuesto_objeto?.coste_estimado || 0);
   const gastado = Number(event?.presupuesto_objeto?.coste_final || 0);
-  const cur = event?.presupuesto_objeto?.currency || "€";
+  const curSym = (c?: string) => {
+    const m: Record<string, string> = { EUR: "€", USD: "$", GBP: "£", MXN: "$", ARS: "$", COP: "$", CLP: "$", PEN: "S/", BRL: "R$", USB: "$" };
+    if (!c) return "€";
+    return m[c.toUpperCase()] || (c.length <= 2 ? c : "€");
+  };
+  const cur = curSym(event?.presupuesto_objeto?.currency);
   const over = gastado > estimado && estimado > 0;
   const fmt = (n: number) => `${Math.round(n).toLocaleString("es-ES")} ${cur}`;
   const presupPct = estimado > 0 ? Math.min((gastado / estimado) * 100, 100) : 0;
@@ -455,6 +461,12 @@ export const ResumenStudio: FC = () => {
             {closeX}
           </div>
         )}
+
+        {/* NOTAS INTERNAS */}
+        <div style={{ marginTop: 22 }}>
+          <div style={{ font: "600 16px Poppins", color: "#6b6b72", marginBottom: 14 }}>Notas internas</div>
+          <EntityNotesSection entityType="EVENTO" entityId={event._id} entityName={event.nombre || "Evento"} />
+        </div>
 
       </div>
 
