@@ -4,6 +4,7 @@ import { Input } from 'antd';
 import { memo, useMemo, useState } from 'react';
 
 import { useConversationHistory } from '@/hooks/useConversationHistory';
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 import { useChatStore } from '@/store/chat';
 
 import ConversationItem from './ConversationItem';
@@ -29,23 +30,31 @@ const ConversationHistory = memo(() => {
       (currentUserId && currentUserId.includes('@') ? currentUserId : undefined),
     [profileEmail, currentUserId],
   );
-  // Detectar si es usuario invitado (no tiene conversaciones en MCP)
-  const isGuestUser = useMemo(
+  // Coherencia de sesión (QA 9-ago): antes marcaba "invitado" en cuanto faltaba el email
+  // → un usuario AUTENTICADO cuyo email aún resuelve (EventosAutoAuth) veía "Inicia sesión"
+  // en el historial (salto de visitante). Ahora: invitado REAL = detección canónica
+  // useDomainGuestUser (JWT-aware) o email con pinta de invitado. Si está autenticado pero
+  // el email todavía no pobló, es un estado transitorio (loading), NO login.
+  const emailLooksGuest = useMemo(
     () =>
-      !userEmail ||
-      userEmail.includes('guest') ||
-      userEmail.includes('visitante') ||
-      userEmail.includes('anonymous') ||
-      userEmail === 'dev-user@localhost',
+      !!userEmail &&
+      (userEmail.includes('guest') ||
+        userEmail.includes('visitante') ||
+        userEmail.includes('anonymous') ||
+        userEmail === 'dev-user@localhost'),
     [userEmail],
   );
+  const isDomainGuest = useDomainGuestUser();
+  const isGuestUser = isDomainGuest || emailLooksGuest;
+  // Autenticado pero el email aún no resolvió → transitorio, no login.
+  const emailResolving = !isGuestUser && !userEmail;
   const [searchQuery, setSearchQuery] = useState('');
 
   const {
     data,
     isLoading,
     error,
-  } = useConversationHistory(development, isGuestUser ? undefined : userEmail);
+  } = useConversationHistory(development, isGuestUser || !userEmail ? undefined : userEmail);
   const conversations = data?.conversations ?? [];
 
   const filteredConversations = useMemo(() => {
@@ -59,8 +68,18 @@ const ConversationHistory = memo(() => {
     );
   }, [conversations, searchQuery]);
 
-  // Si no hay email o es usuario invitado, mostrar mensaje de login
-  if (!userEmail || isGuestUser) {
+  // Autenticado pero el email aún resuelve (EventosAutoAuth) → loading, NO login.
+  if (emailResolving) {
+    return (
+      <div className="text-center text-gray-500 text-sm mt-8 py-4 px-4">
+        <div className="mb-2">⏳</div>
+        <div className="font-medium">Cargando tu historial…</div>
+      </div>
+    );
+  }
+
+  // Invitado real → mensaje de login.
+  if (isGuestUser) {
     return (
       <div className="text-center text-gray-500 text-sm mt-8 py-4 px-4">
         <div className="mb-2">🔐</div>
