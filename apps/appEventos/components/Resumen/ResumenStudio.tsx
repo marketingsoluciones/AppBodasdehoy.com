@@ -24,6 +24,23 @@ export const ResumenStudio: FC = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [editName, setEditName] = useState("");
   const [editDate, setEditDate] = useState("");
+  // Checklist "Toca para completar" — arranca reflejando el estado real del evento;
+  // al tocar alterna (mueve la barra de progreso). Toggle local (no persiste).
+  const [stepsDone, setStepsDone] = useState<boolean[]>(() => {
+    const iv: any[] = event?.invitados_array || [];
+    const seatedN = iv.filter((x) => x?.nombre_mesa && String(x.nombre_mesa).toLowerCase() !== "no asignado").length;
+    const est = Number(event?.presupuesto_objeto?.coste_estimado || 0);
+    const gas = Number(event?.presupuesto_objeto?.coste_final || 0);
+    const sent = iv.filter((x) => !!x?.invitacion).length;
+    return [
+      !!(event?.nombre && event?.fecha),
+      iv.length > 0,
+      est > 0 || gas > 0,
+      seatedN > 0,
+      sent > 0,
+      (event?.itinerarios_array?.length || 0) > 0,
+    ];
+  });
 
   // Persistencia de aspectos/evento — mismo patrón que BlockSobreMiEvento (eventUpdate)
   const saveField = async (patch: Record<string, any>) => {
@@ -67,19 +84,13 @@ export const ResumenStudio: FC = () => {
   const dias = fechaValida ? Math.max(0, Math.ceil((fechaObj!.getTime() - Date.now()) / 86400000)) : null;
   const tipoTxt = event?.tipo ? event.tipo.charAt(0).toUpperCase() + event.tipo.slice(1).toLowerCase() : "Evento";
 
-  // Checklist derivado del estado real del evento
-  const steps: { title: string; done: boolean; to: string | null }[] = [
-    { title: "Datos del evento", done: !!(event?.nombre && event?.fecha), to: null },
-    { title: "Lista de invitados", done: total > 0, to: "/invitados" },
-    { title: "Presupuesto", done: estimado > 0 || gastado > 0, to: "/presupuesto" },
-    { title: "Plano de mesas", done: seated > 0, to: "/mesas" },
-    { title: "Enviar invitaciones", done: enviadas > 0, to: "/invitaciones" },
-    { title: "Crear itinerario", done: (event?.itinerarios_array?.length || 0) > 0, to: "/itinerario" },
-  ];
-  const doneN = steps.filter((s) => s.done).length;
-  const totalSteps = steps.length;
+  // Checklist "Toca para completar" — usa el estado toggleable stepsDone (mueve la barra)
+  const stepTitles = ["Datos del evento", "Lista de invitados", "Presupuesto", "Plano de mesas", "Enviar invitaciones", "Crear itinerario"];
+  const steps = stepTitles.map((title, i) => ({ title, done: !!stepsDone[i] }));
+  const doneN = stepsDone.filter(Boolean).length;
+  const totalSteps = stepTitles.length;
   const pct = Math.round((doneN / totalSteps) * 100);
-  const firstPending = steps.findIndex((s) => !s.done);
+  const firstPending = stepsDone.findIndex((v) => !v);
   const estadoMsg = pct === 0 ? "¡Empieza tu evento!" : pct < 50 ? "¡Vamos comenzando!" : pct < 100 ? "¡Vas por buen camino!" : "¡A celebrar!";
   const ticks = [1, 2, 3, 4, 5].map((k) => ({ left: `${((k / totalSteps) * 100).toFixed(1)}%`, on: (k / totalSteps) * 100 <= pct }));
 
@@ -246,7 +257,7 @@ export const ResumenStudio: FC = () => {
               const bg = s.done ? "#f4f4f6" : active ? "#FDEEF4" : "#faf9fb";
               const border = s.done ? "#e4e4e8" : active ? "#EF5B94" : "#f0f0f2";
               return (
-                <div key={i} onClick={() => s.to && router.push(s.to)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 10, background: bg, border: `1.5px ${active ? "dashed" : "solid"} ${border}`, boxShadow: active ? "0 3px 12px rgba(239,91,148,.22)" : "none", cursor: s.to ? "pointer" : "default" }}>
+                <div key={i} onClick={() => setStepsDone((prev) => prev.map((v, idx) => (idx === i ? !v : v)))} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 10, background: bg, border: `1.5px ${active ? "dashed" : "solid"} ${border}`, boxShadow: active ? "0 3px 12px rgba(239,91,148,.22)" : "none", cursor: "pointer" }}>
                   <div style={{ width: 20, height: 20, borderRadius: "50%", background: dotBg, display: "flex", alignItems: "center", justifyContent: "center", color: dotFg, font: "700 10px Poppins", flex: "none" }}>
                     {s.done ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg> : i + 1}
                   </div>
