@@ -116,7 +116,13 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                         updates: { estatus: true }
                     }
                 }).catch((e) => console.warn('[ItineraryTabs] editTask estatus falló:', e?.message ?? e))
-                const task = { ...(addNewTask as any), spectatorView: false, estatus: "true" } as Task
+                // Mantener spectatorView del API (itinerario crea con true); no forzar false
+                // o la vista esquema / filtros de compartidos quedan desfasados del backend.
+                const task = {
+                  ...(addNewTask as any),
+                  spectatorView: addNewTask?.spectatorView ?? (itinerario.tipo === "itinerario"),
+                  estatus: "true",
+                } as Task
                 const f1 = event.itinerarios_array.findIndex(elem => elem._id === itinerario._id)
                 setEvent((prev) => ({
                     ...prev,
