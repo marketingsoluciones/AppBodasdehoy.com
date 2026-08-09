@@ -14,6 +14,7 @@ import FormCrearMenu from "../Forms/FormCrearMenu";
 import FormAcompañante from "../Forms/FormAcompañante";
 import FormEditarInvitado from "../Forms/FormEditarInvitado";
 import { BorrarInvitado } from "../../hooks/EditarInvitado";
+import { CopiarLink } from "../Utils/Compartir";
 
 /**
  * InvitadosStudio — rediseño de la tabla de Invitados fiel al HTML "Prototipo tablas v2".
@@ -36,7 +37,17 @@ export const InvitadosStudio: FC = () => {
   const [acompFather, setAcompFather] = useState<string | null>(null);
   const [editGuest, setEditGuest] = useState<any>(null);
   const [rowMenu, setRowMenu] = useState<string | null>(null);
+  const [shareOpen, setShareOpen] = useState<string | null>(null);
+  const [grpMenu, setGrpMenu] = useState<string | null>(null);
   const openForm = (type: string) => { setFormShow(type); setIsMounted(true); setRowMenu(null); };
+  const guestLink = (id: string) => `${typeof window !== "undefined" ? window.location.origin : ""}?pGuestEvent=${id}${event?._id?.slice(3, 9)}${event?._id}`;
+  const delGroup = (name: string) => {
+    setGrpMenu(null);
+    if (typeof window !== "undefined" && !window.confirm(`¿Borrar el grupo "${name}"? No se podrá recuperar.`)) return;
+    fetchApiBodas({ query: `mutation($evento_id:ID!,$grupo_id:ID!){ borraGrupo(evento_id:$evento_id, grupo_id:$grupo_id){ success errors{ field message code } } }`, variables: { evento_id: event._id, grupo_id: name } });
+    setEvent((old: any) => ({ ...old, grupos_array: (old?.grupos_array || []).filter((e: string) => e !== name) }));
+    toast("success", "Grupo borrado");
+  };
   const delGuest = (r: any) => {
     setRowMenu(null);
     if (typeof window !== "undefined" && !window.confirm(`¿Eliminar a ${r?.nombre || "este invitado"}?`)) return;
@@ -203,6 +214,19 @@ export const InvitadosStudio: FC = () => {
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c4c4cc" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" style={{ transition: "transform .18s", transform: `rotate(${open ? 90 : 0}deg)` }}><path d="M9 6l6 6-6 6" /></svg>
                   <span style={{ font: "500 14px Poppins", color: "#6b6b72", textTransform: "capitalize" }}>{gr.name}</span>
                   <span style={{ font: "600 10px Poppins", color: "#c4c4cc", background: "#f2f2f4", padding: "2px 8px", borderRadius: 10 }}>{gr.guests.length}</span>
+                  <div style={{ flex: 1 }} />
+                  {gr.name !== "no asignado" && (
+                    <div style={{ position: "relative" }} onClick={(e) => e.stopPropagation()}>
+                      <svg onClick={() => setGrpMenu(grpMenu === gr.name ? null : gr.name)} width="16" height="16" viewBox="0 0 24 24" fill="#c4c4cc" style={{ cursor: "pointer" }}><circle cx="12" cy="5" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="12" cy="19" r="1.6" /></svg>
+                      {grpMenu === gr.name && (
+                        <ClickAwayListener onClickAway={() => setGrpMenu(null)}>
+                          <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 6, background: "#fff", border: "1px solid #eee", borderRadius: 12, boxShadow: "0 12px 30px rgba(0,0,0,.16)", zIndex: 9, padding: 6, minWidth: 150 }}>
+                            <div onClick={() => delGroup(gr.name)} style={{ padding: "9px 12px", borderRadius: 9, font: "600 12px Poppins", color: "#D83E7C", cursor: "pointer" }}>Borrar grupo</div>
+                          </div>
+                        </ClickAwayListener>
+                      )}
+                    </div>
+                  )}
                 </div>
                 {open && (
                   <div style={{ animation: "fadein .18s ease" }}>
@@ -247,7 +271,18 @@ export const InvitadosStudio: FC = () => {
                           <div style={{ font: "600 11px Poppins", color: "#6b6b72", letterSpacing: ".4px", textTransform: "uppercase" }}>{seatOf(r._id, 1)}</div>
                           <div style={{ display: "flex", alignItems: "center", gap: 5, font: "600 12px Poppins", color: "#6b6b72" }}>{acomp}</div>
                           <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 9, color: "#c4c4cc" }}>
-                            <svg onClick={() => { setDdSt(null); setDdMn(null); setRowMenu(rowMenu === r._id ? null : r._id); }} width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ cursor: "pointer" }}><circle cx="12" cy="5" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="12" cy="19" r="1.6" /></svg>
+                            <div style={{ position: "relative", display: "flex" }}>
+                              <svg onClick={() => { setRowMenu(null); setShareOpen(shareOpen === r._id ? null : r._id); }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} style={{ cursor: "pointer" }}><title>Compartir invitación</title><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1" /><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1" /></svg>
+                              {shareOpen === r._id && (
+                                <ClickAwayListener onClickAway={() => setShareOpen(null)}>
+                                  <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 8, background: "#fff", border: "1px solid #eee", borderRadius: 12, boxShadow: "0 12px 30px rgba(0,0,0,.16)", zIndex: 9, padding: 12, width: 300 }}>
+                                    <div style={{ font: "600 11px Poppins", color: "#6b6b72", marginBottom: 8 }}>Compartir invitación de {r?.nombre}</div>
+                                    <CopiarLink link={guestLink(r._id)} />
+                                  </div>
+                                </ClickAwayListener>
+                              )}
+                            </div>
+                            <svg onClick={() => { setDdSt(null); setDdMn(null); setShareOpen(null); setRowMenu(rowMenu === r._id ? null : r._id); }} width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ cursor: "pointer" }}><circle cx="12" cy="5" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="12" cy="19" r="1.6" /></svg>
                             {rowMenu === r._id && (
                               <ClickAwayListener onClickAway={() => setRowMenu(null)}>
                                 <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 6, background: "#fff", border: "1px solid #eee", borderRadius: 12, boxShadow: "0 12px 30px rgba(0,0,0,.16)", zIndex: 9, padding: 6, minWidth: 180 }}>
