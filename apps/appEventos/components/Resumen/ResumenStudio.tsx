@@ -81,6 +81,30 @@ export const ResumenStudio: FC = () => {
     { count: `${cancelados} de ${total}`, label: "canceladas", soft: "#FBE4EF", fg: "#D83E7C", icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M6 6l12 12M18 6L6 18" /></svg> },
   ];
 
+  // Mesas por espacio (planSpace → tables; sentados por coincidencia de nombre_mesa)
+  const spaces: any[] = event?.planSpace || [];
+  const mesasList = spaces.map((sp: any) => {
+    const tables: any[] = sp?.tables || [];
+    const names = new Set(tables.map((t: any) => t?.title));
+    const capacity = tables.reduce((s: number, t: any) => s + (Number(t?.numberChair) || 0), 0);
+    const seatedHere = inv.filter((g) => g?.nombre_mesa && names.has(g.nombre_mesa)).length;
+    return { name: sp?.title || "Espacio", total: tables.length, seated: seatedHere, capacity };
+  });
+
+  // Lista de regalos (misma lógica que BlockListaRegalos)
+  const lista: any = event?.listaRegalos ?? null;
+  const regItems: any[] = Array.isArray(lista?.items) ? lista.items : Array.isArray(lista?.regalos) ? lista.regalos : Array.isArray(lista) ? lista : [];
+  const raised = regItems.reduce((s: number, it: any) => {
+    const c = Array.isArray(it?.contribuciones) ? it.contribuciones : [];
+    const cs = c.reduce((a: number, x: any) => a + (Number(x?.monto ?? x?.importe ?? 0) || 0), 0);
+    return s + (cs || (Number(it?.conseguido ?? 0) || 0));
+  }, 0);
+  const participantes = regItems.reduce((s: number, it: any) => s + (Array.isArray(it?.contribuciones) ? it.contribuciones.length : 0), 0);
+  const listaActiva = regItems.length > 0;
+
+  // Momentos
+  const albumes = Number((event as any)?.memoriesAlbumCount || 0);
+
   const dashBtn: React.CSSProperties = { alignSelf: "center", marginTop: "auto", height: 42, width: 160, padding: "0 18px", borderRadius: 11, background: "transparent", border: "1.5px dashed #F4A9C8", color: "#EF5B94", font: "600 12.5px Poppins", cursor: "pointer" };
 
   return (
@@ -240,6 +264,78 @@ export const ResumenStudio: FC = () => {
               </div>
               <button onClick={() => router.push("/invitados")} style={dashBtn}>Añadir Invitados</button>
             </div>
+          </div>
+        </div>
+
+        {/* BANNER INVITACIONES */}
+        <div style={{ borderRadius: 16, padding: "18px 24px", background: "linear-gradient(135deg,#EF5B94,#f588b3)", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22, boxShadow: "0 10px 24px rgba(239,91,148,.28)", flexWrap: "wrap", gap: 12 }}>
+          <div style={{ font: "600 16px Poppins", color: "#fff" }}>Invitaciones</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 26, flexWrap: "wrap" }}>
+            <div style={{ textAlign: "center" }}><span style={{ font: "600 13px Poppins", color: "#fff", opacity: .9 }}>enviadas </span><span style={{ font: "600 16px Poppins", color: "#fff" }}>{enviadas}</span></div>
+            <div style={{ textAlign: "center" }}><span style={{ font: "600 13px Poppins", color: "#fff", opacity: .9 }}>por enviar </span><span style={{ font: "600 16px Poppins", color: "#fff" }}>{sinEnviar}</span></div>
+            <div style={{ textAlign: "center" }}><span style={{ font: "600 13px Poppins", color: "#fff", opacity: .9 }}>confirmadas </span><span style={{ font: "600 16px Poppins", color: "#fff" }}>{confirmados}</span></div>
+            <button onClick={() => router.push("/invitaciones")} style={{ padding: "11px 18px", borderRadius: 10, background: "#fff", color: "#EF5B94", font: "600 12.5px Poppins", cursor: "pointer", border: "none" }}>Ver mis invitaciones</button>
+          </div>
+        </div>
+
+        {/* MESAS + LISTA DE REGALOS */}
+        <div className="rs-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginBottom: 18, alignItems: "stretch" }}>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+              <div style={{ font: "600 16px Poppins", color: "#6b6b72" }}>Mesas</div>
+            </div>
+            <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: "8px 18px 18px", flex: 1, display: "flex", flexDirection: "column", boxShadow: "0 4px 14px rgba(0,0,0,.06)" }}>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                {mesasList.length === 0 && <div style={{ textAlign: "center", padding: "22px 0", font: "500 12px Poppins", color: "#a0a0a8" }}>Aún no has creado planos de mesas.</div>}
+                {mesasList.map((m, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 0", borderBottom: `1px solid ${i < mesasList.length - 1 ? "#f0f0f2" : "transparent"}` }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}><svg width="22" height="22" viewBox="-2 -2 28 28" fill="none" stroke="currentColor" strokeWidth={1.7}><ellipse cx="12" cy="9" rx="8" ry="3" /><path d="M6 10v8M18 10v8" /></svg></div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ font: "600 13px Poppins", color: "#3A3A42" }}>{m.name}</div>
+                      <div style={{ font: "500 11px Poppins", color: "#a0a0a8", marginTop: 1 }}>{m.total} mesas</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#FCE7F0", padding: "5px 11px", borderRadius: 20 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="3.2" /></svg><span style={{ font: "600 12px Poppins", color: "#EF5B94" }}>{m.seated}{m.capacity ? ` de ${m.capacity}` : ""} sentados</span></div>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => router.push("/mesas")} style={dashBtn}>Ver mesas</button>
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+              <div style={{ font: "600 16px Poppins", color: "#6b6b72" }}>Lista de regalos</div>
+            </div>
+            <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", gap: 16, flex: 1, boxShadow: "0 4px 14px rgba(0,0,0,.06)" }}>
+              <div style={{ display: "flex", gap: 12, flex: 1, alignItems: "center" }}>
+                <div style={{ flex: 1, background: "#faf9fb", borderRadius: 12, padding: "16px 14px", textAlign: "center" }}><div style={{ font: "600 16px Poppins", color: "#3A3A42" }}>{Math.round(raised).toLocaleString("es-ES")}€</div><div style={{ font: "500 10.5px Poppins", color: "#a0a0a8", marginTop: 2 }}>Recaudado</div></div>
+                <div style={{ flex: 1, background: "#faf9fb", borderRadius: 12, padding: "16px 14px", textAlign: "center" }}><div style={{ font: "600 16px Poppins", color: "#3A3A42" }}>{participantes}</div><div style={{ font: "500 10.5px Poppins", color: "#a0a0a8", marginTop: 2 }}>Participantes</div></div>
+              </div>
+              <button onClick={() => router.push("/lista-regalos")} style={dashBtn}>{listaActiva ? "Ver lista" : "Activar lista"}</button>
+            </div>
+          </div>
+        </div>
+
+        {/* ACCESOS RÁPIDOS */}
+        <div className="rs-hero" style={{ display: "grid", gridTemplateColumns: "44% 1fr", gap: 18, marginBottom: 16 }}>
+          <button onClick={() => router.push("/itinerario")} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: 13, borderRadius: 12, background: "#FCE7F0", color: "#EF5B94", font: "600 13px Poppins", border: "none", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M8 3v4M16 3v4" /></svg>Ver itinerarios</button>
+          <div style={{ display: "flex", alignItems: "stretch", borderRadius: 12, overflow: "hidden", boxShadow: "0 4px 14px rgba(0,0,0,.06)" }}>
+            <button title="Directorio de lugares (próximamente)" style={{ flex: "none", padding: "13px 20px", background: "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "default" }}>Lugar del evento</button>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, background: "#fff", padding: "12px 16px" }}>
+              <input type="text" placeholder="Buscar lugar en el directorio de Bodasdehoy…" style={{ flex: 1, border: "none", outline: "none", background: "transparent", font: "500 13px Poppins", color: "#3A3A42" }} />
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+            </div>
+          </div>
+        </div>
+
+        {/* MOMENTOS */}
+        <div className="rs-2col" style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: "18px 22px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, alignItems: "center", marginBottom: 22, boxShadow: "0 6px 20px rgba(0,0,0,.06)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7}><rect x="4" y="5" width="16" height="14" rx="2" /><circle cx="9" cy="10" r="1.6" /><path d="M5.5 18l4-4 2.5 2.5L16 13l2.5 3" /></svg></div>
+            <div style={{ flex: 1 }}><div style={{ font: "600 16px Poppins", color: "#6b6b72" }}>Momentos</div><div style={{ font: "500 11.5px Poppins", color: "#8a8a90", marginTop: 2 }}>Álbumes de fotos compartidos con tus invitados.</div></div>
+            <div style={{ textAlign: "center" }}><div style={{ font: "600 16px Poppins", color: "#EF5B94" }}>{albumes}</div><div style={{ font: "500 10.5px Poppins", color: "#a0a0a8" }}>álbumes</div></div>
+          </div>
+          <div style={{ display: "flex", justifyContent: "center", paddingLeft: 22 }}>
+            <button onClick={() => router.push("/momentos")} style={{ height: 42, width: 160, padding: "0 18px", borderRadius: 11, background: "transparent", border: "1.5px dashed #F4A9C8", color: "#EF5B94", font: "600 12.5px Poppins", cursor: "pointer" }}>{albumes > 0 ? "Ver álbumes" : "Crear álbum"}</button>
           </div>
         </div>
 
