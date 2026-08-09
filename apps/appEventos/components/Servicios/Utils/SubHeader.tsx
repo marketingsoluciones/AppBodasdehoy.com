@@ -19,6 +19,7 @@ import ClickAwayListener from "react-click-away-listener";
 import { CopiarLink } from "../../Utils/Compartir";
 
 import axios from "axios";
+import { buildSchemaPdfHtml } from "../../../utils/buildSchemaPdfHtml";
 
 interface props {
     itinerario: Itinerary
@@ -50,18 +51,25 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
     const downloadPdf = async () => {
         try {
             setLoading(true);
+            const root = document.querySelector('[data-pdf-root="itinerario-schema"]');
+            if (!(root instanceof HTMLElement)) {
+                toast("error", "No se encontró el esquema para exportar");
+                return;
+            }
+            const html = buildSchemaPdfHtml(root);
             const response = await axios.post('/api/generate-pdf', {
-                url: `${window.location.origin}/public-itinerary/itinerary-${event._id}-${itinerario._id}`,
+                html,
                 format: "letter"
             });
             const blob = new Blob([Uint8Array.from(atob(response.data.base64), c => c.charCodeAt(0))], { type: 'application/pdf' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `${event.nombre} ${itinerario.title}`.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, "_") + '.pdf';
-            link.click();
-            window.URL.revokeObjectURL(url);
+            const objectUrl = window.URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = objectUrl;
+            anchor.download = `${event.nombre} ${itinerario.title}`.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, "_") + '.pdf';
+            anchor.click();
+            window.URL.revokeObjectURL(objectUrl);
         } catch (error) {
+            console.error('[SubHeader] generate-pdf', error);
             toast("error", "Error al generar PDF");
         } finally {
             setLoading(false);
@@ -89,7 +97,7 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
                     </div>
 
                     :
-                    <div className="flex items-center absolute  right-6 space-x-1">
+                    <div className="flex items-center absolute  right-6 space-x-1" data-pdf-hide>
                         <div onClick={() => downloadPdf()} className="bg-gray-100 hover:bg-gray-200 w-10 h-10 rounded-full absolute* flex justify-center items-center right-6* cursor-pointer">
                             <GrDocumentPdf className="w-5 h-5 text-primary" />
                             {loading &&
@@ -106,6 +114,7 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
                 {
                     showModalCompartir && <ClickAwayListener onClickAway={() => showModalCompartir && setShowModalCompartir(false)}>
                         <ul
+                            data-pdf-hide
                             className={`${showModalCompartir ? "block opacity-100" : "hidden opacity-0"
                                 } absolute bg-white transition shadow-lg rounded-lg overflow-hidden duration-500 top-[30px] right-5 w-[300px] z-50`}
                         >

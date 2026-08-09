@@ -82,7 +82,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   const { config, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
   const [isAllowed, ht] = useAllowed()
-  const { canViewTask, canEditTask } = useServicePermissions(itinerario?.viewers ?? [])
+  const { canViewTask, canEditTask } = useServicePermissions(itinerario?.viewers)
   const toast = useToast()
   const [tasks, setTasks] = useState<Task[]>()
   const [tasksReduce, setTasksReduce] = useState<TaskReduce[]>()
@@ -365,7 +365,9 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
       setTasks(prev => (prev && prev.length === 0 ? prev : []));
       setTasksReduce(prev => (prev && prev.length === 0 ? prev : []));
     }
-  }, [currentItinerario, itinerario]);
+    // canViewTask NO va en deps: se recrea cada render (useAllowed / viewers ?? [])
+    // y provoca Maximum update depth. view sí, para refiltrar al cambiar esquema/cards.
+  }, [currentItinerario, itinerario, view]);
 
   const handleAddSpectatorView = async (values: Task) => {
     try {
@@ -735,6 +737,10 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
         handleDelete={() => deleteTask(modal.values, modal.itinerario)}
         message={t('warningdeletetask', 'Si borras esta tarea no la podrás recuperar.')}
       />}
+      <div
+        {...(view === "schema" ? { "data-pdf-root": "itinerario-schema" } : {})}
+        className="w-full flex-1 flex flex-col"
+      >
       {["/itinerario"].includes(window?.location?.pathname) &&
         <SubHeader
           view={view}
@@ -902,6 +908,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                 </div>
               </div>
         }
+      </div>
       </div>
       {modalStatus && <Modal set={setModalStatus} state={modalStatus} classe={"w-[95%] md:w-[450px] h-[370px]"}>
         <WarningMessage setModal={setModalStatus} modal={modalStatus} title={t("visibility")} />
