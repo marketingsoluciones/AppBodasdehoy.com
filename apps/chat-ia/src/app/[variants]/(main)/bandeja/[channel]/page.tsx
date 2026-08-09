@@ -55,7 +55,7 @@ function MobileBackButton() {
       >
         ←
       </button>
-      <span className="text-sm font-medium text-gray-700">Mensajes</span>
+      <span className="text-sm font-medium text-gray-700">Bandeja</span>
     </div>
   );
 }

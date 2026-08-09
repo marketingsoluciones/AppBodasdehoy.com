@@ -559,7 +559,7 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
 
         {/* ── Header ── */}
         <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3">
-          <span className="text-sm font-semibold text-gray-900">Mensajes</span>
+          <span className="text-sm font-semibold text-gray-900">Bandeja</span>
           <div className="flex items-center gap-0.5">
             <Link
               className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
@@ -745,8 +745,8 @@ export function ChannelSidebar({ compact = false }: ChannelSidebarProps) {
                   }
                   label={
                     channelFilter === 'all'
-                      ? 'Mensajes'
-                      : (FILTER_TABS.find((t) => t.key === channelFilter)?.label ?? 'Mensajes')
+                      ? 'Bandeja'
+                      : (FILTER_TABS.find((t) => t.key === channelFilter)?.label ?? 'Bandeja')
                   }
                 />
                 <div className="space-y-0 px-2">
