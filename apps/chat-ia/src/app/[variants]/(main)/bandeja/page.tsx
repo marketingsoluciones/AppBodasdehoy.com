@@ -171,7 +171,8 @@ export default function MessagesPage() {
         <ChannelSidebar />
       </div>
 
-      {/* Desktop: tabs Conversaciones / Bandeja / Historial + feed por tab */}
+      {/* Desktop: tabs Bandeja / Historial + feed por tab. La tab "Conversaciones"
+          (redirigía a /asistente, ya en el sidebar) se retiró — QA H-4. */}
       <div className="hidden flex-1 flex-col overflow-hidden md:flex">
         {/* Tabs FASE B v2.0 Diseño 24-jun */}
         <BandejaTabs
