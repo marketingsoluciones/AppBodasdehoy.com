@@ -1,20 +1,23 @@
 'use client';
 
 /**
- * BandejaTabs — wrapper de tabs principales /messages.
- * Diseño handoff v2 (24-jun) Sección "Las 3 pestañas".
+ * BandejaTabs — wrapper de tabs principales de /bandeja.
+ * Diseño handoff v2 (24-jun) planteó "3 pestañas", pero la pestaña
+ * "Conversaciones" solo REDIRIGÍA a /asistente (el chat), que YA está en el
+ * sidebar (icono 💬). Esa duplicidad confundía — una "tab" que en realidad
+ * teletransporta fuera de la bandeja (QA H-4, 8-ago). Retirada: quedan 2
+ * pestañas de contenido real dentro de la bandeja.
  *
- *   1. CONVERSACIONES (Workspace LobeChat actual integrado, ruta /chat)
- *   2. BANDEJA       (lista de conversaciones — vista actual de /messages)
- *   3. HISTORIAL     (feed notificaciones del sistema)
+ *   1. BANDEJA    (lista de conversaciones)
+ *   2. HISTORIAL  (feed de notificaciones del sistema)
  *
- * Sincronizado con URL via `?tab=conv|inbox|history`.
- * Default `inbox`. Si tab='conv' redirigimos a /chat (no embedimos).
+ * Sincronizado con URL via `?tab=inbox|history`. Default `inbox`.
+ * El acceso al chat sigue disponible desde el sidebar (💬 → /asistente).
  */
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 
-export type BandejaTab = 'conv' | 'inbox' | 'history';
+export type BandejaTab = 'inbox' | 'history';
 
 interface BandejaTabsProps {
   active: BandejaTab;
@@ -22,10 +25,9 @@ interface BandejaTabsProps {
   counts?: Partial<Record<BandejaTab, number>>;
 }
 
-const TAB_META: Array<{ id: BandejaTab; label: string; icon: string; redirectsTo?: string }> = [
-  { id: 'conv', icon: '💬', label: 'Conversaciones', redirectsTo: '/asistente' },
-  { id: 'inbox', icon: '📥', label: 'Bandeja' },
-  { id: 'history', icon: '🕒', label: 'Historial' },
+const TAB_META: Array<{ icon: string; id: BandejaTab; label: string }> = [
+  { icon: '📥', id: 'inbox', label: 'Bandeja' },
+  { icon: '🕒', id: 'history', label: 'Historial' },
 ];
 
 export function BandejaTabs({ active, counts }: BandejaTabsProps) {
@@ -34,10 +36,6 @@ export function BandejaTabs({ active, counts }: BandejaTabsProps) {
 
   const handleClick = useCallback(
     (tab: (typeof TAB_META)[number]) => {
-      if (tab.redirectsTo) {
-        router.push(tab.redirectsTo);
-        return;
-      }
       const params = new URLSearchParams(sp?.toString() ?? '');
       params.set('tab', tab.id);
       // Conservar otros params (scope, filtros, etc.)
@@ -85,10 +83,11 @@ export function BandejaTabs({ active, counts }: BandejaTabsProps) {
   );
 }
 
-/** Lee el tab activo desde la URL. Default 'inbox'. */
+/** Lee el tab activo desde la URL. Default 'inbox'. Cualquier valor legacy
+ *  (p.ej. `?tab=conv` de la pestaña "Conversaciones" retirada) cae a 'inbox'. */
 export function useActiveBandejaTab(): BandejaTab {
   const sp = useSearchParams();
   const t = sp?.get('tab');
-  if (t === 'conv' || t === 'history') return t;
+  if (t === 'history') return 'history';
   return 'inbox';
 }
