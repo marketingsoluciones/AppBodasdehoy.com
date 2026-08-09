@@ -18,13 +18,18 @@ import { BlockMomentos } from "../components/Resumen/BlockMomentos";
 import { ModuleErrorBoundary } from "../components/ErrorBoundary";
 import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
 import { EntityNotesSection } from "../components/Notes/EntityNotesSection";
+import { useRouter } from "next/router";
+import { ResumenStudio } from "../components/Resumen/ResumenStudio";
 
 const Resumen = () => {
   const { event } = EventContextProvider()
+  const router = useRouter()
   useMounted()
   useEventSyncWithUrl()  // BUG-12: sincronizar event activo con ?event= de URL
 
   if (!event) return <EventLoadingOrError skeletonRows={6} />
+  // Rediseño de Resumen (Resumen.dc.html) detrás de ?studio=1 — no altera la vista actual.
+  if (router.query.studio) return <ResumenStudio />
   return (
     <>
       <section className="bg-base w-full md:py-10 px-2 md:px-0">
