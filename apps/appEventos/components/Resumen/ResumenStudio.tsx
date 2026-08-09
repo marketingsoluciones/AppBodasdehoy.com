@@ -4,6 +4,8 @@ import { useRouter } from "next/router";
 import { EventContextProvider, AuthContextProvider } from "../../context";
 import { ModalAddUserToEvent } from "../Utils/Compartir";
 import { defaultImagenes } from "../Home/Card";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
+import { useToast } from "../../hooks/useToast";
 
 /**
  * ResumenStudio — rediseño de la hoja de Resumen fiel al HTML "Resumen.dc.html".
@@ -12,9 +14,27 @@ import { defaultImagenes } from "../Home/Card";
  */
 export const ResumenStudio: FC = () => {
   const router = useRouter();
-  const { event } = EventContextProvider() as any;
+  const { event, setEvent } = EventContextProvider() as any;
   const { user } = AuthContextProvider() as any;
+  const toast = useToast();
   const [openShare, setOpenShare] = useState(false);
+  const [picker, setPicker] = useState<null | "color" | "temporada" | "estilo" | "tematica">(null);
+  const [tematicaDraft, setTematicaDraft] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editDate, setEditDate] = useState("");
+
+  // Persistencia de aspectos/evento — mismo patrón que BlockSobreMiEvento (eventUpdate)
+  const saveField = async (patch: Record<string, any>) => {
+    try {
+      const r: any = await fetchApiBodas({ query: queries.eventUpdate, variables: { idEvento: event._id, input: patch }, token: null });
+      if (r?.errors?.length) throw new Error();
+      setEvent({ ...event, ...patch });
+      toast("success", "Guardado con éxito");
+    } catch {
+      toast("error", "Ha ocurrido un error");
+    }
+  };
 
   const inv: any[] = event?.invitados_array || [];
   const total = inv.length;
@@ -105,6 +125,45 @@ export const ResumenStudio: FC = () => {
   // Momentos
   const albumes = Number((event as any)?.memoriesAlbumCount || 0);
 
+  // Sobre mi evento (aspectos) — mismos campos/valores que BlockSobreMiEvento
+  const colorVal = Array.isArray(event?.color) ? event.color[0] : event?.color;
+  const colorOpts = [
+    { name: "Amarillo", hex: "#F2C230" }, { name: "Celeste", hex: "#29C2E0" }, { name: "Rosado", hex: "#EF5B94" },
+    { name: "Rojo", hex: "#E23B2E" }, { name: "Morado", hex: "#8B3FD6" }, { name: "Beige", hex: "#E4D3A6" },
+    { name: "Dorado", hex: "#E0A32B" }, { name: "Plata", hex: "#A9B0BC" }, { name: "Naranja", hex: "#F07B29" }, { name: "verde", hex: "#4CA83D" },
+  ];
+  const colorHex = colorOpts.find((c) => c.name === colorVal)?.hex;
+  const seasonOpts: { name: string; color: string; paths: ReactNode }[] = [
+    { name: "Invierno", color: "#29C2E0", paths: <><path d="M12 2v20M3.34 7l17.32 10M3.34 17L20.66 7" /><path d="M12 5.6l-2.2-2.2M12 5.6l2.2-2.2M12 18.4l-2.2 2.2M12 18.4l2.2 2.2M6.8 9l-2.9-.2M6.8 9l-.2-2.9M17.2 15l2.9 .2M17.2 15l.2 2.9M6.8 15l-.2 2.9M6.8 15l-2.9 .2M17.2 9l.2-2.9M17.2 9l2.9-.2" /></> },
+    { name: "Primavera", color: "#4CA83D", paths: <><circle cx="12" cy="12" r="2.4" /><ellipse cx="12" cy="6" rx="2.5" ry="3.4" /><ellipse cx="12" cy="6" rx="2.5" ry="3.4" transform="rotate(60 12 12)" /><ellipse cx="12" cy="6" rx="2.5" ry="3.4" transform="rotate(120 12 12)" /><ellipse cx="12" cy="6" rx="2.5" ry="3.4" transform="rotate(180 12 12)" /><ellipse cx="12" cy="6" rx="2.5" ry="3.4" transform="rotate(240 12 12)" /><ellipse cx="12" cy="6" rx="2.5" ry="3.4" transform="rotate(300 12 12)" /></> },
+    { name: "Verano", color: "#F2A81E", paths: <><circle cx="12" cy="12" r="4.2" /><path d="M12 2.4v2.3M12 19.3v2.3M2.4 12h2.3M19.3 12h2.3M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7" /></> },
+    { name: "Otoño", color: "#C77A2E", paths: <><path d="M12 2 L13.3 5.6 L16.6 4.5 L15.3 7.9 L19.2 7.6 L16.4 10.4 L20.2 11.9 L16 12.7 L17.9 16 L14.1 14.7 L13.8 18.6 L12 15.6 L10.2 18.6 L9.9 14.7 L6.1 16 L8 12.7 L3.8 11.9 L7.6 10.4 L4.8 7.6 L8.7 7.9 L7.4 4.5 L10.7 5.6 Z" /><path d="M12 15.6V22" /></> },
+  ];
+  const estiloOpts: { name: string; paths: ReactNode }[] = [
+    { name: "Aire libre", paths: <><circle cx="9" cy="8" r="4" /><path d="M9 12v9M3 21h18M15 21v-5h5v5" /></> },
+    { name: "Salón", paths: <><circle cx="12" cy="12" r="7" /><path d="M5 12h14M12 5v14M6.5 7.5c3.5 2.5 7.5 2.5 11 0M6.5 16.5c3.5-2.5 7.5-2.5 11 0" /></> },
+    { name: "Piscina", paths: <><path d="M12 4a7 7 0 0 1 7 7H5a7 7 0 0 1 7-7Z" /><path d="M12 4v9" /><path d="M4 21l5-5h8" /></> },
+    { name: "En casa", paths: <><path d="M6 21V4h12v17" /><path d="M9 8h2M13 8h2M9 12h2M13 12h2M9 16h2M13 16h2" /></> },
+    { name: "Salon historico", paths: <><path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M3 10h18L12 3 3 10Z" /></> },
+  ];
+  const seasonIcon = (name?: string, size = 30) => { const s = seasonOpts.find((o) => o.name === name); return s ? <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={s.color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">{s.paths}</svg> : null; };
+  const estiloIcon = (name?: string, size = 30) => { const s = estiloOpts.find((o) => o.name === name); return s ? <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#7A7A82" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">{s.paths}</svg> : null; };
+  const aspectVisual = (key: string) => {
+    if (key === "color") return <div style={{ width: 30, height: 30, borderRadius: "50%", background: colorHex || "#e6e6ea", border: "2px solid #fff", boxShadow: "0 0 0 1.5px #e6e6ea" }} />;
+    if (key === "temporada") return event?.temporada ? seasonIcon(event.temporada, 30) : <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#b3b3ba" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>;
+    if (key === "estilo") return event?.estilo ? estiloIcon(event.estilo, 30) : <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#b3b3ba" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18M5 21V9l7-5 7 5v12" /></svg>;
+    return <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={event?.tematica ? "#EF5B94" : "#b3b3ba"} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l2.4 5.3 5.6.5-4.2 3.8 1.3 5.6L12 17l-5.1 2.5 1.3-5.6L4 10.3l5.6-.5z" /></svg>;
+  };
+  const aspects = [
+    { key: "color", name: "Color", value: colorVal || "Sin definir", has: !!colorVal },
+    { key: "temporada", name: "Temporada", value: event?.temporada || "Sin definir", has: !!event?.temporada },
+    { key: "estilo", name: "Estilo", value: event?.estilo || "Sin definir", has: !!event?.estilo },
+    { key: "tematica", name: "Temática", value: event?.tematica || "Sin definir", has: !!event?.tematica },
+  ];
+  const popover: React.CSSProperties = { background: "#fff", borderRadius: 14, boxShadow: "0 6px 22px rgba(0,0,0,.09)", padding: "24px 30px", marginBottom: 14, position: "relative", display: "flex", alignItems: "flex-start", flexWrap: "wrap", gap: "20px 30px", animation: "fadein .18s ease" };
+  const closeX = <button onClick={() => setPicker(null)} style={{ position: "absolute", top: 12, right: 16, width: 26, height: 26, color: "#8a8a90", fontSize: 16, background: "none", border: "none", cursor: "pointer" }}>✕</button>;
+  const openEdit = () => { setEditName(event?.nombre || ""); setEditDate(fechaValida ? fechaObj!.toISOString().slice(0, 10) : ""); setEditOpen(true); };
+
   const dashBtn: React.CSSProperties = { alignSelf: "center", marginTop: "auto", height: 42, width: 160, padding: "0 18px", borderRadius: 11, background: "transparent", border: "1.5px dashed #F4A9C8", color: "#EF5B94", font: "600 12.5px Poppins", cursor: "pointer" };
 
   return (
@@ -135,7 +194,7 @@ export const ResumenStudio: FC = () => {
               <div onClick={() => isOwner && setOpenShare(true)} title="Compartir" style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", cursor: isOwner ? "pointer" : "default" }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg>
               </div>
-              <div title="Editar evento (próximamente)" style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", opacity: .5, cursor: "default" }}>
+              <div onClick={() => isOwner && openEdit()} title="Editar evento" style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", opacity: isOwner ? 1 : .5, cursor: isOwner ? "pointer" : "default" }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
               </div>
             </div>
@@ -220,7 +279,7 @@ export const ResumenStudio: FC = () => {
             <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, padding: "20px 18px", display: "flex", flexDirection: "column", flex: 1, gap: 16, boxShadow: "0 4px 14px rgba(0,0,0,.06)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                 <div style={{ width: 40, height: 40, borderRadius: 12, flex: "none", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}>
-                  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18v12H3zM3 10h18" /><circle cx="12" cy="14" r="1.6" /></svg>
+                  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z" /><path d="M2 9v1c0 1.1.9 2 2 2h1" /><path d="M16 11h0" /></svg>
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ font: "500 11px Poppins", color: "#a0a0a8" }}>Estimado</div>
@@ -317,10 +376,10 @@ export const ResumenStudio: FC = () => {
 
         {/* ACCESOS RÁPIDOS */}
         <div className="rs-hero" style={{ display: "grid", gridTemplateColumns: "44% 1fr", gap: 18, marginBottom: 16 }}>
-          <button onClick={() => router.push("/itinerario")} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: 13, borderRadius: 12, background: "#FCE7F0", color: "#EF5B94", font: "600 13px Poppins", border: "none", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M8 3v4M16 3v4" /></svg>Ver itinerarios</button>
+          <button onClick={() => router.push("/itinerario")} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: "9px 13px", borderRadius: 12, background: "#FCE7F0", color: "#EF5B94", font: "600 13px Poppins", border: "none", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M8 3v4M16 3v4" /></svg>Ver itinerarios</button>
           <div style={{ display: "flex", alignItems: "stretch", borderRadius: 12, overflow: "hidden", boxShadow: "0 4px 14px rgba(0,0,0,.06)" }}>
-            <button title="Directorio de lugares (próximamente)" style={{ flex: "none", padding: "13px 20px", background: "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "default" }}>Lugar del evento</button>
-            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, background: "#fff", padding: "12px 16px" }}>
+            <button title="Directorio de lugares (próximamente)" style={{ flex: "none", padding: "9px 20px", background: "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "default" }}>Lugar del evento</button>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, background: "#fff", padding: "8px 16px" }}>
               <input type="text" placeholder="Buscar lugar en el directorio de Bodasdehoy…" style={{ flex: 1, border: "none", outline: "none", background: "transparent", font: "500 13px Poppins", color: "#3A3A42" }} />
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
             </div>
@@ -339,7 +398,85 @@ export const ResumenStudio: FC = () => {
           </div>
         </div>
 
+        {/* SOBRE MI EVENTO */}
+        <div style={{ font: "600 16px Poppins", color: "#6b6b72", marginBottom: 14 }}>Sobre mi evento</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 30, marginBottom: 14, justifyItems: "center" }}>
+          {aspects.map((a) => (
+            <div key={a.key} onClick={() => { if (a.key === "tematica") setTematicaDraft(event?.tematica || ""); setPicker(picker === (a.key as any) ? null : (a.key as any)); }} style={{ width: "100%", aspectRatio: "1", maxWidth: 150, borderRadius: "50%", background: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, textAlign: "center", boxShadow: "0 8px 20px rgba(0,0,0,.07)", cursor: "pointer" }}>
+              {aspectVisual(a.key)}
+              <div style={{ font: "500 12px Poppins", color: "#8a8a90" }}>{a.name}</div>
+              {a.has && <div style={{ font: "700 11.5px Poppins", color: "#6b6b72" }}>{a.value}</div>}
+            </div>
+          ))}
+        </div>
+
+        {picker === "color" && (
+          <div style={popover}>
+            {colorOpts.map((c) => (
+              <div key={c.name} onClick={() => { saveField({ color: [c.name] }); setPicker(null); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7, cursor: "pointer", minWidth: 52 }}>
+                <div style={{ height: 46, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="30" height="34" viewBox="0 0 24 25"><path d="M12 2 C12 2 4.5 11 4.5 16 a7.5 7.5 0 0 0 15 0 C19.5 11 12 2 12 2 Z" fill={c.hex} stroke={colorVal === c.name ? "#3A3A42" : "rgba(0,0,0,.14)"} strokeWidth={colorVal === c.name ? 1.6 : 1} /></svg>
+                </div>
+                <span style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{c.name}</span>
+              </div>
+            ))}
+            {closeX}
+          </div>
+        )}
+        {picker === "temporada" && (
+          <div style={{ ...popover, justifyContent: "space-around" }}>
+            {seasonOpts.map((s) => (
+              <div key={s.name} onClick={() => { saveField({ temporada: s.name }); setPicker(null); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 9, cursor: "pointer", minWidth: 72 }}>
+                <div style={{ height: 34, display: "flex", alignItems: "center", justifyContent: "center" }}>{seasonIcon(s.name, 30)}</div>
+                <span style={{ font: "500 13px Poppins", color: "#6b6b72" }}>{s.name}</span>
+              </div>
+            ))}
+            {closeX}
+          </div>
+        )}
+        {picker === "estilo" && (
+          <div style={{ ...popover, justifyContent: "space-around" }}>
+            {estiloOpts.map((s) => (
+              <div key={s.name} onClick={() => { saveField({ estilo: s.name }); setPicker(null); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 9, cursor: "pointer", minWidth: 72 }}>
+                <div style={{ height: 34, display: "flex", alignItems: "center", justifyContent: "center" }}>{estiloIcon(s.name, 30)}</div>
+                <span style={{ font: "500 13px Poppins", color: "#6b6b72" }}>{s.name}</span>
+              </div>
+            ))}
+            {closeX}
+          </div>
+        )}
+        {picker === "tematica" && (
+          <div style={{ ...popover, display: "block", padding: "22px 30px 24px" }}>
+            <div style={{ font: "600 13px Poppins", color: "#EF5B94", marginBottom: 10 }}>Temática del evento</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <input value={tematicaDraft} onChange={(e) => setTematicaDraft(e.target.value)} placeholder="Escribe la temática de tu evento…" style={{ flex: 1, border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "11px 15px", font: "500 13px Poppins", color: "#3A3A42", outline: "none" }} />
+              <button onClick={() => { saveField({ tematica: tematicaDraft.trim() }); setPicker(null); }} style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "11px 20px", height: 44, background: "#EF5B94", borderRadius: 10, color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5L20 7" /></svg>Guardar</button>
+            </div>
+            {closeX}
+          </div>
+        )}
+
       </div>
+
+      {/* MODAL EDITAR EVENTO */}
+      {editOpen && (
+        <div onClick={() => setEditOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(43,43,48,.45)", zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: 460, maxWidth: "100%", background: "#fff", borderRadius: 18, boxShadow: "0 30px 70px rgba(0,0,0,.3)", padding: "24px 26px", animation: "fadein .2s ease" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <div style={{ font: "700 17px Poppins", color: "#3A3A42" }}>Editar evento</div>
+              <button onClick={() => setEditOpen(false)} style={{ width: 28, height: 28, borderRadius: 8, color: "#a0a0a8", fontSize: 17, background: "none", border: "none", cursor: "pointer" }}>✕</button>
+            </div>
+            <div style={{ font: "600 13px Poppins", color: "#EF5B94", marginBottom: 8 }}>Nombre del evento</div>
+            <input value={editName} onChange={(e) => setEditName(e.target.value)} style={{ width: "100%", border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "11px 15px", font: "500 13px Poppins", color: "#3A3A42", outline: "none", marginBottom: 16 }} />
+            <div style={{ font: "600 13px Poppins", color: "#EF5B94", marginBottom: 8 }}>Fecha del evento</div>
+            <input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} style={{ width: "100%", border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "11px 15px", font: "500 13px Poppins", color: "#3A3A42", outline: "none", marginBottom: 20 }} />
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setEditOpen(false)} style={{ flex: "none", padding: "12px 20px", borderRadius: 10, background: "#f7f7f9", color: "#6b6b72", font: "600 13px Poppins", border: "none", cursor: "pointer" }}>Cancelar</button>
+              <button onClick={async () => { const patch: any = { nombre: editName.trim() }; if (editDate) patch.fecha = new Date(`${editDate}T12:00:00`).getTime(); await saveField(patch); setEditOpen(false); }} style={{ flex: 1, padding: 12, borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>Guardar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
