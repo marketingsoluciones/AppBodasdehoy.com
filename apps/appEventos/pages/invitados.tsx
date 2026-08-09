@@ -102,8 +102,9 @@ const Invitados: FC = () => {
       )
     }
     if (!event) return <EventLoadingOrError skeletonRows={8} />
-    // Rediseño de la tabla de Invitados (Prototipo tablas v2) detrás de ?studio=1 — no altera la vista actual.
-    if (searchParams.get("studio")) return <InvitadosStudio />
+    // Rediseño de la tabla de Invitados (Prototipo tablas v2) = vista POR DEFECTO (aprobado por owner).
+    // Salida de emergencia a la tabla clásica con ?studio=legacy (rollback sin build; no se borra).
+    if (searchParams.get("studio") !== "legacy") return <InvitadosStudio />
     return (
       <>
         {shouldRenderChild && (
