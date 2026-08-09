@@ -1,8 +1,11 @@
 import { FC, ReactNode, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import ClickAwayListener from "react-click-away-listener";
 import { EventContextProvider } from "../../context";
 import BlockTitle from "../Utils/BlockTitle";
+import { fetchApiBodas, queries } from "../../utils/Fetching";
+import { useToast } from "../../hooks/useToast";
 
 /**
  * InvitadosStudio — rediseño de la tabla de Invitados fiel al HTML "Prototipo tablas v2".
@@ -12,9 +15,29 @@ import BlockTitle from "../Utils/BlockTitle";
  */
 export const InvitadosStudio: FC = () => {
   const router = useRouter();
-  const { event, allFilterGuests } = EventContextProvider() as any;
+  const { event, allFilterGuests, setEvent } = EventContextProvider() as any;
+  const toast = useToast();
   const [closed, setClosed] = useState<Record<string, boolean>>({});
   const [search, setSearch] = useState("");
+  const [ddSt, setDdSt] = useState<string | null>(null);
+  const [ddMn, setDdMn] = useState<string | null>(null);
+
+  // Opciones de menú del evento + guardado inline (mismo patrón que BlockTableroInvitados)
+  const menuOpts: string[] = (event?.menus_array || []).map((m: any) => m?.nombre_menu || m).filter(Boolean);
+  const saveGuestField = (guestId: string, field: string, value: any) => {
+    setEvent((prev: any) => {
+      const arr = prev?.invitados_array || [];
+      const next = arr.map((inv: any) => {
+        if (inv._id === guestId) {
+          fetchApiBodas({ query: queries.editGuests, variables: { eventID: event._id, guestID: inv._id, datos: { [field]: value } } });
+          return { ...inv, [field]: value };
+        }
+        return inv;
+      });
+      return { ...prev, invitados_array: next };
+    });
+    toast("success", "Cambio guardado");
+  };
 
   const all: any[] = event?.invitados_array || [];
   const fathers = all.filter((inv) => !inv?.father);
@@ -137,17 +160,38 @@ export const InvitadosStudio: FC = () => {
                       const st = (r?.asistencia || "pendiente").toLowerCase();
                       const c = stMap[st] || stMap.pendiente;
                       const acomp = all.filter((x) => x?.father === r._id).length;
-                      const initial = (r?.nombre || "?").trim().charAt(0).toUpperCase() || "?";
+                      const isWoman = (r?.sexo || "").toLowerCase() === "mujer";
                       return (
                         <div key={r._id} style={{ display: "grid", gridTemplateColumns: GRID, alignItems: "center", gap: 10, padding: "16px 24px", borderBottom: "1px solid #f5f5f7" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 11, minWidth: 0 }}>
-                            <div style={{ width: 34, height: 34, borderRadius: "50%", flex: "none", background: "#EFEFF2", color: "#8a8a90", display: "flex", alignItems: "center", justifyContent: "center", font: "700 12px Poppins" }}>{initial}</div>
+                            <div style={{ width: 34, height: 34, borderRadius: "50%", flex: "none", overflow: "hidden", background: "#c9c9cf" }}><img src={isWoman ? "/profile_woman.png" : "/profile_men.png"} alt={isWoman ? "Mujer" : "Hombre"} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} /></div>
                             <span style={{ font: "500 13px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r?.nombre}</span>
                           </div>
-                          <div style={{ display: "flex", justifyContent: "center" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 18, height: 18, borderRadius: "50%", background: c[0], display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>{stIcon(st)}</span><span style={{ font: "600 12px Poppins", color: c[0] }}>{cap(st)}</span></div>
+                          <div style={{ position: "relative", display: "flex", justifyContent: "center" }}>
+                            <div onClick={() => { setDdMn(null); setDdSt(ddSt === r._id ? null : r._id); }} style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer" }}><span style={{ width: 18, height: 18, borderRadius: "50%", background: c[0], display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>{stIcon(st)}</span><span style={{ font: "600 12px Poppins", color: c[0] }}>{cap(st)}</span></div>
+                            {ddSt === r._id && (
+                              <ClickAwayListener onClickAway={() => setDdSt(null)}>
+                                <div style={{ position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", marginTop: 8, background: "#fff", border: "1px solid #eee", borderRadius: 12, boxShadow: "0 12px 30px rgba(0,0,0,.16)", zIndex: 8, padding: 6, minWidth: 150 }}>
+                                  {["confirmado", "pendiente", "cancelado"].map((o) => { const oc = stMap[o]; return (
+                                    <div key={o} onClick={() => { saveGuestField(r._id, "asistencia", o); setDdSt(null); }} style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 12px", borderRadius: 9, cursor: "pointer" }}><span style={{ width: 18, height: 18, borderRadius: "50%", background: oc[0], display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>{stIcon(o)}</span><span style={{ font: "600 12px Poppins", color: oc[0] }}>{cap(o)}</span></div>
+                                  ); })}
+                                </div>
+                              </ClickAwayListener>
+                            )}
                           </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ font: "500 12px Poppins", color: "#6b6b72" }}>{r?.nombre_menu || "—"}</span></div>
+                          <div style={{ position: "relative" }}>
+                            <div onClick={() => { setDdSt(null); setDdMn(ddMn === r._id ? null : r._id); }} style={{ display: "flex", alignItems: "center", gap: 5, cursor: "pointer" }}><span style={{ font: "500 12px Poppins", color: "#6b6b72" }}>{r?.nombre_menu || "—"}</span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c4c4cc" strokeWidth={2.4}><path d="M6 9l6 6 6-6" /></svg></div>
+                            {ddMn === r._id && (
+                              <ClickAwayListener onClickAway={() => setDdMn(null)}>
+                                <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 8, background: "#fff", border: "1px solid #eee", borderRadius: 12, boxShadow: "0 12px 30px rgba(0,0,0,.16)", zIndex: 8, padding: 6, minWidth: 150, maxHeight: 190, overflow: "auto" }}>
+                                  {menuOpts.length === 0 && <div style={{ padding: "9px 12px", font: "500 12px Poppins", color: "#a0a0a8" }}>Sin menús</div>}
+                                  {menuOpts.map((m, mi) => (
+                                    <div key={mi} onClick={() => { saveGuestField(r._id, "nombre_menu", m); setDdMn(null); }} style={{ padding: "9px 12px", borderRadius: 9, font: "500 12px Poppins", color: "#3A3A42", cursor: "pointer" }}>{m}</div>
+                                  ))}
+                                </div>
+                              </ClickAwayListener>
+                            )}
+                          </div>
                           <div style={{ font: "600 11px Poppins", color: "#6b6b72", letterSpacing: ".4px", textTransform: "uppercase" }}>{seatOf(r._id, 0)}</div>
                           <div style={{ font: "600 11px Poppins", color: "#6b6b72", letterSpacing: ".4px", textTransform: "uppercase" }}>{seatOf(r._id, 1)}</div>
                           <div style={{ display: "flex", alignItems: "center", gap: 5, font: "600 12px Poppins", color: "#6b6b72" }}>{acomp}</div>
