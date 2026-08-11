@@ -100,14 +100,14 @@ export const UsuariosCompartidos = ({ event }) => {
                     }}
                 >
                     {overflow > 0 && (
-                        <div className="bg-white rounded-full w-7 h-7 flex items-center justify-center text-center border border-gray-300 text-[13px] truncate font-semibold z-10">
+                        <div className="bg-[#f2f2f4] text-[#8a8a90] rounded-full w-8 h-8 flex items-center justify-center text-center border-2 border-white text-[11px] truncate font-bold z-10">
                             +{overflow}
                         </div>
                     )}
                     {visible.map((item, idx) => (
                         <div
                             key={idx}
-                            className={`${idx === 0 && overflow === 0 ? '' : '-ml-2'} bg-gray-300 rounded-full w-7 h-7 flex items-center justify-center border relative`}
+                            className={`${idx === 0 && overflow === 0 ? '' : '-ml-[9px]'} bg-gray-300 rounded-full w-8 h-8 flex items-center justify-center border-2 border-white relative`}
                         >
                             <ImageAvatar user={item} />
                             <div className={`h-2.5 w-2.5 ${getOnlineInfo(item?.onLine).status ? "bg-green" : "bg-none"} absolute rounded-full right-1 -bottom-1`} />
@@ -115,7 +115,7 @@ export const UsuariosCompartidos = ({ event }) => {
                     ))}
                 </button>
             ) : (
-                <div className="bg-gray-300 rounded-full w-7 h-7 flex items-center justify-center border relative">
+                <div className="bg-gray-300 rounded-full w-8 h-8 flex items-center justify-center border-2 border-white relative">
                     <ImageAvatar user={event?.detalles_usuario_id} />
                     <div className={`h-2.5 w-2.5 ${getOnlineInfo(event?.detalles_usuario_id?.onLine).status ? "bg-green" : "bg-none"} absolute rounded-full right-1 -bottom-1`} />
                 </div>

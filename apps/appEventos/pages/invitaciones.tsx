@@ -16,6 +16,8 @@ import { useEventSyncWithUrl } from "../hooks/useEventSyncWithUrl"
 import { OptionsMenu } from "../components/Invitaciones/OptionsMenu";
 import { EnviadosComponent } from "../components/Invitaciones/EnviadosComponent";
 import { DiseñoComponent } from "../components/Invitaciones/DiseñoComponent";
+import { useRouter } from "next/router";
+import { InvitacionesStudio } from "../components/Invitaciones/InvitacionesStudio";
 import { Test, TitleComponent } from "../components/Invitaciones/Test";
 import { PlantillaTextos } from "../components/Invitaciones/PlantillaTextos";
 import { GoChevronDown } from "react-icons/go";
@@ -37,6 +39,7 @@ const CONFIG_PANEL_STORAGE_KEY = 'app-bodasdehoy-invitaciones-config';
 
 const Invitaciones = () => {
   const { t } = useTranslation();
+  const router = useRouter();
   const { user, verificationDone, forCms } = AuthContextProvider()
   const { event } = EventContextProvider();
   const [hoverRef, isHovered] = useHover();
@@ -185,6 +188,10 @@ const Invitaciones = () => {
       )
     }
     if (!event) return <EventLoadingOrError skeletonRows={3} />
+    // Rediseño UI (wizard 2 pasos) = vista POR DEFECTO del módulo (aprobado por owner 9-ago).
+    // Salida de emergencia al módulo clásico con ?studio=legacy (rollback sin build; la vista
+    // antigua sigue en el código, no se borra → no se pierde funcionalidad).
+    if (router.query.studio !== "legacy") return <InvitacionesStudio />
     return (
       <DataTableGroupProvider>
         <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-full top-0 left-4" : "bg-base. w-full pt-2 md:py-0"}>

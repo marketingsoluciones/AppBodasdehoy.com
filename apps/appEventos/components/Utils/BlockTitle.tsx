@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import Head from 'next/head'
 import { AuthContextProvider, EventContextProvider } from '../../context'
 import { defaultImagenes } from '../Home/Card'
 import { ModalAddUserToEvent, UsuariosCompartidos } from './Compartir'
@@ -11,7 +12,15 @@ import { useTranslation } from 'react-i18next'
 import { PermissionIndicator } from '../Servicios/Utils/PermissionIndicator'
 import ClickAwayListener from 'react-click-away-listener'
 
-
+/**
+ * BlockTitle — encabezado estándar de módulo. Rediseño estético fiel al HTML
+ * "Barra holder nueva" (radius 18, sombra suave, título 21px, badge de rol en
+ * píldora, chip de evento a la derecha, botón compartir con hover rosa).
+ * MISMOS datos y función: rol (PermissionIndicator), avatares/compartir
+ * (UsuariosCompartidos + ModalAddUserToEvent), extras por módulo (Drive/Mesas).
+ * La imagen del evento va a tamaño FIJO 40x40 (flex/shrink-0 + overflow) → nunca
+ * estira el header (cierra BUG-CW-N28 sin necesidad de altura fija).
+ */
 export const BlockTitle = ({ title }) => {
   const { t } = useTranslation()
   const { forCms, user } = AuthContextProvider()
@@ -20,89 +29,103 @@ export const BlockTitle = ({ title }) => {
   const [openModalDrive, setOpenModalDrive] = useState(false)
   const [showSeatingLink, setShowSeatingLink] = useState(false)
 
+  const isOwner = event?.usuario_id === user?.uid
+  const canShare = isOwner && user?.displayName !== "guest"
   const seatingUrl = event?._id
     ? `${typeof window !== 'undefined' ? window.location.origin : ''}/buscador-mesa/${event._id}`
     : ''
 
   return (
-    <div className={`w-full h-14 max-h-14 overflow-hidden bg-white rounded-xl shadow-lg ${forCms ? "hidden" : "flex"} items-center justify-between max-w-screen-lg mx-auto`}>
+    <div
+      style={{ background: "#fff", borderRadius: 18, boxShadow: "0 6px 20px rgba(0,0,0,.06)", padding: "16px 24px", fontFamily: "'Poppins',sans-serif" }}
+      className={`w-full ${forCms ? "hidden" : "flex"} items-center justify-between gap-5 max-w-screen-lg mx-auto`}
+    >
+      <Head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+      </Head>
       <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={event} />
-      <div className='flex md:flex-1 flex-col px-2 md:px-6 font-display'>
-        <div className="flex items-center space-x-2">
-          <span className="text-gray-500 text-[18px] leading-[20px] font-bold">{t(title)}</span>
+
+      {/* IZQUIERDA: título + badge de rol */}
+      <div className="flex flex-col min-w-0">
+        <div className="flex items-center gap-3.5 min-w-0">
+          <span style={{ font: "700 21px Poppins", color: "#4a4a52" }} className="truncate">{t(title)}</span>
           <PermissionIndicator />
         </div>
-        <div className='space-x-1'>
-          <span className='md:hidden capitalize text-primary text-[12px] leading-[12px]'>{event?.tipo}</span>
-          <span className='md:hidden capitalize text-gray-600 text-[12px] leading-[20px] font-medium'>{event?.nombre}</span>
+        {/* móvil: tipo + nombre (no perder info en pantallas chicas) */}
+        <div className="md:hidden mt-0.5 space-x-1">
+          <span style={{ color: "#EF5B94" }} className="capitalize text-[12px] leading-[12px]">{event?.tipo}</span>
+          <span className="capitalize text-gray-600 text-[12px] font-medium">{event?.nombre}</span>
         </div>
       </div>
-      <div className='flex-1 md:flex-none h-[100%] flex flex-row-reverse md:flex-row items-center gap-2 pr-2'>
-        {/* BUG-CW-N28 (informe QA 7ª ronda): h-[90%] sin max-h hacía que la imagen
-            de evento expandiera el contenedor a 402px en /presupuesto (vs 56px en
-            /mesas, donde la imagen cacheada era más pequeña). max-h-[50px] +
-            overflow-hidden en el wrapper aseguran banner SIEMPRE 56px. */}
-        <img
-          src={event?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i320}`)}` : defaultImagenes[event?.tipo?.toLowerCase()]}
-          className="h-[90%] max-h-[50px] object-cover object-top rounded-md border-1 border-gray-300 hidden md:block shrink-0"
-          alt={event?.nombre}
-          onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
-        />
-        <div className='hidden md:flex flex-col font-display font-semibold text-md text-gray-500 px-2 md:pt-2 gap-2 min-w-0 max-w-[120px] lg:max-w-[180px]'>
-          <span className='text-sm translate-y-2 text-primary text-[12px] first-letter:capitalize'>{event?.tipo}</span>
-          <span className='uppercase truncate'>{event?.nombre}</span>
+
+      {/* DERECHA: avatares | divisor | evento | imagen | extras | compartir */}
+      <div className="flex items-center gap-4 shrink-0">
+        {/* avatares (datos reales + panel de permisos) */}
+        <div onClick={() => { isOwner && setOpenModal(!openModal) }} className="flex items-center">
+          <UsuariosCompartidos event={event} />
         </div>
-        <div className='flex items-center gap-1 shrink-0'>
-          <div className='flex items-center h-8'>
-            <div onClick={() => { event?.usuario_id === user?.uid && setOpenModal(!openModal) }} className="flex items-center h-8">
-              <UsuariosCompartidos event={event} />
-            </div>
-            <span
-              className={`flex items-center h-8 transition transform ${event?.usuario_id === user?.uid && user?.displayName !== "guest" ? "hover:scale-110 cursor-pointer text-primary" : "text-gray-300"}`}
-              onClick={() => { event?.usuario_id === user?.uid && user?.displayName !== "guest" && setOpenModal(!openModal) }}
-            >
-              <IoShareSocial className="w-6 h-6" />
-            </span>
+
+        {/* divisor */}
+        <div className="hidden md:block" style={{ width: 1, height: 30, background: "#eee" }} />
+
+        {/* evento (tipo + nombre) */}
+        <div className="hidden md:block text-right" style={{ lineHeight: 1.3 }}>
+          <div style={{ font: "600 10px Poppins", color: "#EF5B94", letterSpacing: ".6px" }} className="uppercase">{event?.tipo}</div>
+          <div style={{ font: "500 14px Poppins", color: "#3A3A42" }} className="uppercase truncate max-w-[120px] lg:max-w-[180px]">{event?.nombre}</div>
+        </div>
+
+        {/* imagen del evento — tamaño FIJO (no estira el header) */}
+        <div className="hidden md:block shrink-0" style={{ width: 40, height: 40, borderRadius: 10, overflow: "hidden", background: "#f2f2f4" }}>
+          <img
+            src={event?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i320}`)}` : defaultImagenes[event?.tipo?.toLowerCase()]}
+            alt={event?.nombre}
+            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
+            onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[event?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
+          />
+        </div>
+
+        {/* extra Presupuesto: Google Drive (WIP, comportamiento intacto) */}
+        {title === "Presupuesto" && (
+          <div onClick={() => "setOpenModalDrive(!openModalDrive)"} className="flex items-center justify-center cursor-pointer hover:bg-[#FCE7F0] rounded-[10px] transition" style={{ width: 38, height: 38, color: "#EF5B94" }}>
+            <DiGoogleDrive style={{ width: 22, height: 22 }} />
           </div>
-          {
-            title === "Presupuesto" ?
-              <div onClick={() => "setOpenModalDrive(!openModalDrive)"} className='cursor-pointer'>
-                <DiGoogleDrive className='w-[32px] h-[32px] text-primary' />
-              </div> :
-              null
-          }
-          {title === "Mesas y asientos" && event?._id && (
-            <div className='relative'>
-              <button
-                onClick={() => setShowSeatingLink(!showSeatingLink)}
-                title="Compartir buscador de mesa"
-                className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition text-primary"
-              >
-                <MdOutlineChair className="w-5 h-5" />
-              </button>
-              {showSeatingLink && (
-                <ClickAwayListener onClickAway={() => setShowSeatingLink(false)}>
-                  <div className="absolute right-0 top-10 bg-white shadow-lg rounded-lg p-4 w-[300px] z-50 border border-gray-100">
-                    <p className="text-xs text-gray-500 mb-2 font-medium">
-                      Link buscador de mesa para invitados (sin login)
-                    </p>
-                    <CopiarLink link={seatingUrl} />
-                  </div>
-                </ClickAwayListener>
-              )}
-            </div>
-          )}
-        </div>
+        )}
+
+        {/* extra Mesas: link del buscador de mesa */}
+        {title === "Mesas y asientos" && event?._id && (
+          <div className="relative">
+            <button onClick={() => setShowSeatingLink(!showSeatingLink)} title="Compartir buscador de mesa" className="flex items-center justify-center cursor-pointer hover:bg-[#FCE7F0] rounded-[10px] transition" style={{ width: 38, height: 38, color: "#EF5B94" }}>
+              <MdOutlineChair style={{ width: 20, height: 20 }} />
+            </button>
+            {showSeatingLink && (
+              <ClickAwayListener onClickAway={() => setShowSeatingLink(false)}>
+                <div className="absolute right-0 top-12 bg-white shadow-lg rounded-lg p-4 w-[300px] z-50 border border-gray-100">
+                  <p className="text-xs text-gray-500 mb-2 font-medium">Link buscador de mesa para invitados (sin login)</p>
+                  <CopiarLink link={seatingUrl} />
+                </div>
+              </ClickAwayListener>
+            )}
+          </div>
+        )}
+
+        {/* compartir */}
+        <span
+          onClick={() => { canShare && setOpenModal(!openModal) }}
+          className={`flex items-center justify-center rounded-[10px] transition ${canShare ? "cursor-pointer hover:bg-[#FCE7F0]" : ""}`}
+          style={{ width: 38, height: 38, color: canShare ? "#EF5B94" : "#d1d5db" }}
+        >
+          <IoShareSocial style={{ width: 16, height: 16 }} />
+        </span>
       </div>
-      {
-        openModalDrive ?
-          <Modal {...({ openIcon: openModalDrive, setOpenIcon: setOpenModalDrive, classe: "h-max w-[40%] flex items-center justify-center" } as any)}>
-            <div className='my-10 mx-32'>
-              <img alt="Work in progress" src='/WIP.png' />
-            </div>
-          </Modal>
-          : null
-      }
+
+      {openModalDrive ? (
+        <Modal {...({ openIcon: openModalDrive, setOpenIcon: setOpenModalDrive, classe: "h-max w-[40%] flex items-center justify-center" } as any)}>
+          <div className='my-10 mx-32'>
+            <img alt="Work in progress" src='/WIP.png' />
+          </div>
+        </Modal>
+      ) : null}
     </div>
   )
 }
