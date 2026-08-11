@@ -1,8 +1,26 @@
+import { useEffect, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
 import { useChatStore } from '@/store/chat';
 import { externalChatSelectors } from '@/store/chat/selectors';
 import { useUserStore } from '@/store/user';
+
+// AUTH-03 / coherencia de sesión (QA 9-ago): un usuario autenticado por email/Google/SSO
+// tiene su JWT en localStorage (mcp_jwt_token/jwt_token) AUNQUE el chat store todavía no
+// haya poblado currentUserId (EventosAutoAuth en curso). Sin este fast-path,
+// isDomainGuestUser cae a guest=true durante el arranque ("sin id → guest") → el sidebar y
+// menús mostraban "Iniciar sesión" con contenido ya cargado, y /files el muro "Crear
+// cuenta" a usuarios YA logueados: identidad incoherente entre módulos. Mismo patrón que
+// ya usan bandeja/layout y settings. 0 impacto de seguridad: un visitante real no tiene JWT.
+function hasLocalJwt(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const t = localStorage.getItem('mcp_jwt_token') || localStorage.getItem('jwt_token');
+    return !!t && t.length > 20;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Invitado en dominio Bodas: combina chat store + nombre en useUserStore (Lobe),
@@ -21,8 +39,18 @@ export function useDomainGuestUser(): boolean {
     }),
     shallow,
   );
+  // Fast-path JWT local (lectura post-mount → SSR-safe: server y primer render cliente
+  // devuelven false, sin hydration mismatch; tras montar refleja el JWT real). Ver nota arriba.
+  const [hasJwt, setHasJwt] = useState(false);
+  useEffect(() => {
+    setHasJwt(hasLocalJwt());
+  }, []);
+
   const lobeName = (username || fullName || '').toLowerCase().trim();
   const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
+
+  // Usuario con JWT local = autenticado → nunca invitado (coherencia en toda la app).
+  if (hasJwt) return false;
   // BUG MÓVIL (22-jul): un usuario autenticado por Bodas-SSO (EventosAutoAuth →
   // currentUserId en chatStore) tiene isSignedIn=false (no usa el auth NATIVO de
   // LobeChat). Esta línea lo trataba como GUEST → en móvil ocultaba la pestaña

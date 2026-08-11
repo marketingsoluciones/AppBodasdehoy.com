@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 export interface LoginFormProps {
   /** Handler para login con email/contraseña */
@@ -200,8 +200,16 @@ export function LoginForm({
   primaryColor = '#A93E8C',
   enableProviderHint = true,
 }: LoginFormProps) {
+  // QA 10-ago: los inputs email/password eran CONTROLADOS (`value={state}`). Un re-render
+  // asíncrono durante el montaje (carrera con el tecleo) pisaba el estado y TRUNCABA el valor
+  // tecleado ("bodasdehoy.com@gmail.com" → "gmail.com"), provocando en chat-dev "Email o
+  // contraseña incorrectos" con credenciales correctas (reproducido con Playwright: reset
+  // one-shot, mismo nodo DOM = reset de estado controlado, no remount). Fix: inputs
+  // NO-CONTROLADOS (ref, el DOM es la fuente de verdad) → ningún re-render puede borrar lo
+  // tecleado. `email` se mantiene solo como espejo para el hint de provider (no autoritativo).
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -221,14 +229,17 @@ export function LoginForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    // Fuente de verdad = DOM (inputs no-controlados), no el estado (ver nota arriba).
+    const emailVal = (emailRef.current?.value ?? '').trim();
+    const passwordVal = passwordRef.current?.value ?? '';
+    if (!emailVal || !passwordVal) {
       setError('Introduce tu email y contraseña.');
       return;
     }
     setError(null);
     setLoading(true);
     try {
-      await onEmailLogin(email, password);
+      await onEmailLogin(emailVal, passwordVal);
     } catch (err: any) {
       setError(err?.message || 'Email o contraseña incorrectos.');
     } finally {
@@ -337,11 +348,13 @@ export function LoginForm({
               autoComplete="email"
               disabled={anyLoading}
               name="email"
+              // No-controlado: onChange solo espeja `email` para el hint de provider; el
+              // valor autoritativo se lee de emailRef en el submit (evita truncación).
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tu@email.com"
+              ref={emailRef}
               style={s.input}
               type="email"
-              value={email}
             />
           </div>
           {/* Hint multimarca auto-sugerir provider */}
@@ -397,11 +410,10 @@ export function LoginForm({
               autoComplete="current-password"
               disabled={anyLoading}
               name="password"
-              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+              ref={passwordRef}
               style={s.input}
               type={showPassword ? 'text' : 'password'}
-              value={password}
             />
             <button
               onClick={() => setShowPassword((v) => !v)}
