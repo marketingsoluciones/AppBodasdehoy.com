@@ -66,7 +66,7 @@ function extractEventName(message: string): string | null {
 // Component
 // ========================================
 
-export const Notifications = () => {
+export const Notifications = ({ studio = false }: { studio?: boolean } = {}) => {
   const { t } = useTranslation()
   const { event: selectedEvent } = EventContextProvider()
   const { eventsGroup } = EventsGroupContextProvider();
@@ -262,23 +262,59 @@ export const Notifications = () => {
           aria-label={api2UnreadCount > 0 ? `Notificaciones, ${api2UnreadCount} sin leer` : "Notificaciones"}
           aria-expanded={showPanel}
           aria-haspopup="dialog"
-          className="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer border-0 p-0 relative"
+          title={studio ? "Notificaciones" : undefined}
+          className={studio
+            ? "w-[42px] h-[42px] rounded-full flex items-center justify-center cursor-pointer border-0 p-0 relative bg-[#F7F6F8] hover:bg-[#FCE7F0] text-[#6b6b72] hover:text-[#EF5B94] transition"
+            : "bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer border-0 p-0 relative"}
         >
-          <RiNotification2Fill className="text-primary w-6 h-6 scale-x-90" />
+          {studio ? (
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg>
+          ) : (
+            <RiNotification2Fill className="text-primary w-6 h-6 scale-x-90" />
+          )}
           {api2UnreadCount > 0 && (
-            <span className="absolute -top-2 -right-2 min-w-[24px] h-[24px] rounded-full bg-red-600 flex items-center justify-center shadow-md">
-              <span className="text-white text-[11px] font-bold leading-none">{api2UnreadCount > 99 ? '99+' : api2UnreadCount}</span>
-            </span>
+            studio ? (
+              <span className="absolute flex items-center justify-center" style={{ top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 10, background: "#EF5B94", color: "#fff", font: "700 9.5px Poppins", padding: "0 4px", border: "2px solid #fff" }}>
+                {api2UnreadCount > 9 ? '9+' : api2UnreadCount}
+              </span>
+            ) : (
+              <span className="absolute -top-2 -right-2 min-w-[24px] h-[24px] rounded-full bg-red-600 flex items-center justify-center shadow-md">
+                <span className="text-white text-[11px] font-bold leading-none">{api2UnreadCount > 99 ? '99+' : api2UnreadCount}</span>
+              </span>
+            )
           )}
         </button>
 
         {/* Panel */}
         {showPanel && (
           <div
-            className="absolute bg-white rounded-lg w-96 shadow-lg shadow-gray-400 top-0 right-10 translate-x-1/2 translate-y-[46px] overflow-hidden z-[60]"
+            className={studio
+              ? "absolute right-0 top-full mt-3 w-[400px] bg-white rounded-[18px] border border-[#f0f0f2] overflow-hidden z-[60]"
+              : "absolute bg-white rounded-lg w-96 shadow-lg shadow-gray-400 top-0 right-10 translate-x-1/2 translate-y-[46px] overflow-hidden z-[60]"}
+            style={studio ? { boxShadow: "0 24px 70px rgba(0,0,0,.16)" } : undefined}
             onClick={e => e.stopPropagation()}
           >
+            {studio && <style dangerouslySetInnerHTML={{ __html: ".nf-noscroll{scrollbar-width:none;-ms-overflow-style:none;}.nf-noscroll::-webkit-scrollbar{display:none;width:0;height:0;}" }} />}
             {/* Header */}
+            {studio ? (
+              <>
+                <div className="flex items-center gap-[9px] px-[22px] pt-[18px]">
+                  <span style={{ font: "700 15px Poppins", color: "#3A3A42" }}>{t("Notificaciones")}</span>
+                  {api2Total > 0 && <span style={{ background: "#FCE7F0", color: "#D83E7C", font: "700 10.5px Poppins", padding: "3px 9px", borderRadius: 12 }}>{api2Total}</span>}
+                </div>
+                <div className="flex gap-1 px-[22px] pt-[14px] pb-3 border-b border-[#f4f4f6]">
+                  <TabBtn studio active={view === 'legacy'} onClick={() => handleViewChange('legacy')} label={t("Actual")} badge={api2Notifs.length} />
+                  <TabBtn
+                    studio
+                    active={view === 'events-overview' || view === 'event-notifications' || view === 'all-pending'}
+                    onClick={() => handleViewChange('events-overview')}
+                    label={t("Pendientes")}
+                    badge={api2UnreadCount}
+                  />
+                  <TabBtn studio active={view === 'history'} onClick={() => handleViewChange('history')} label={t("Historial")} />
+                </div>
+              </>
+            ) : (
             <div className="border-b-2 border-gray-300 py-2 px-3">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-600 text-sm font-medium">
@@ -304,10 +340,12 @@ export const Notifications = () => {
                 <TabBtn active={view === 'history'} onClick={() => handleViewChange('history')} label={t("Historial")} />
               </div>
             </div>
+            )}
 
             {/* ========== VIEW: ACTUAL (últimas notificaciones via api2) ========== */}
             {view === 'legacy' && (
               <NotifList
+                studio={studio}
                 notifications={api2Notifs}
                 loading={api2Loading}
                 emptyText={t("No hay notificaciones")}
@@ -322,7 +360,7 @@ export const Notifications = () => {
 
             {/* ========== VIEW: EVENTS OVERVIEW (sin evento seleccionado) ========== */}
             {view === 'events-overview' && (
-              <div className="max-h-[400px] overflow-y-auto">
+              <div className={`max-h-[400px] overflow-y-auto ${studio ? 'nf-noscroll' : ''}`}>
                 {/* Ver todas button */}
                 <button onClick={handleShowAll} className="w-full text-left px-4 py-2.5 text-xs font-medium text-primary hover:bg-pink-50 border-b border-gray-100 flex justify-between items-center">
                   <span>📋 {t("Ver todas las pendientes")}</span>
@@ -370,6 +408,7 @@ export const Notifications = () => {
                   </div>
                 </div>
                 <NotifList
+                  studio={studio}
                   notifications={api2Notifs}
                   loading={api2Loading}
                   emptyText={t("No hay notificaciones")}
@@ -384,7 +423,7 @@ export const Notifications = () => {
 
             {/* ========== VIEW: HISTORY (grouped by event) ========== */}
             {view === 'history' && (
-              <ul className="max-h-[400px] overflow-y-auto">
+              <ul className={`max-h-[400px] overflow-y-auto ${studio ? 'nf-noscroll' : ''}`}>
                 {api2Loading ? (
                   <li className="py-8 text-center text-gray-400 text-xs">{t("cargando")}...</li>
                 ) : api2Notifs.length === 0 ? (
@@ -421,7 +460,7 @@ export const Notifications = () => {
                     </li>
                   ));
                 })()}
-                {api2TotalPages > 1 && <li><Pagination page={api2Page} total={api2TotalPages} onPageChange={setApi2Page} t={t} /></li>}
+                {api2TotalPages > 1 && <li><Pagination studio={studio} page={api2Page} total={api2TotalPages} onPageChange={setApi2Page} t={t} /></li>}
               </ul>
             )}
           </div>
@@ -435,7 +474,17 @@ export const Notifications = () => {
 // Sub-components
 // ========================================
 
-function TabBtn({ active, onClick, label, badge }: { active: boolean; onClick: () => void; label: string; badge?: number }) {
+function TabBtn({ active, onClick, label, badge, studio }: { active: boolean; onClick: () => void; label: string; badge?: number; studio?: boolean }) {
+  if (studio) {
+    return (
+      <button onClick={onClick} className="flex items-center gap-1.5 rounded-[10px] cursor-pointer" style={{ padding: "8px 16px", font: "600 12px Poppins", background: active ? "#EF5B94" : "#f5f5f7", color: active ? "#fff" : "#6b6b72", border: "none" }}>
+        {label}
+        {!!badge && badge > 0 && (
+          <span style={{ font: "700 9.5px Poppins", padding: "2px 7px", borderRadius: 10, background: active ? "rgba(255,255,255,.25)" : "#e7e7ea", color: active ? "#fff" : "#6b6b72" }}>{badge > 99 ? '99+' : badge}</span>
+        )}
+      </button>
+    );
+  }
   return (
     <button onClick={onClick} className={`px-2 py-1 text-[10px] font-medium rounded transition-colors flex items-center gap-1 ${active ? 'bg-primary text-white' : 'text-gray-400 hover:bg-gray-100'}`}>
       {label}
@@ -446,20 +495,39 @@ function TabBtn({ active, onClick, label, badge }: { active: boolean; onClick: (
   );
 }
 
-function NotifList({ notifications, loading, emptyText, totalPages, page, onPageChange, t, router, onMarkRead }: {
+function NotifList({ notifications, loading, emptyText, totalPages, page, onPageChange, t, router, onMarkRead, studio }: {
   notifications: Api2Notification[]; loading: boolean; emptyText: string;
   totalPages: number; page: number; onPageChange: (p: number) => void;
-  t: (k: string) => string; router: any; onMarkRead?: (id: string) => void;
+  t: (k: string) => string; router: any; onMarkRead?: (id: string) => void; studio?: boolean;
 }) {
   return (
     <div>
-      <ul className="max-h-[340px] overflow-y-auto">
+      <ul className={studio ? "overflow-y-auto nf-noscroll" : "overflow-y-auto"} style={studio ? { maxHeight: 380, padding: "8px 10px" } : { maxHeight: 340 }}>
         {loading ? (
-          <li className="py-8 text-center text-gray-400 text-xs">{t("cargando")}...</li>
+          <li className={`py-8 text-center text-xs ${studio ? 'text-[#a0a0a8]' : 'text-gray-400'}`}>{t("cargando")}...</li>
         ) : notifications.length === 0 ? (
-          <li className="py-8 text-center text-gray-400 text-xs">{emptyText}</li>
+          <li className={`py-8 text-center text-xs ${studio ? 'text-[#a0a0a8]' : 'text-gray-400'}`}>{emptyText}</li>
         ) : notifications.map(n => {
           const eventName = n.resourceName || extractEventName(n.message);
+          if (studio) {
+            return (
+              <li key={n.id} className="flex items-start gap-3 p-3 rounded-xl cursor-pointer hover:bg-[#fdf7fa]"
+                  onClick={() => { if (!n.read && onMarkRead) onMarkRead(n.id); }}>
+                <div className="flex items-center justify-center flex-none mt-0.5" style={{ width: 34, height: 34, borderRadius: 11, background: "#FCE7F0", color: "#EF5B94" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z" /></svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div style={{ font: "400 12.5px/1.55 Poppins", color: "#6b6b72", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" } as any}>
+                    <Interweave content={n.message} />
+                  </div>
+                  <div style={{ font: "400 11px Poppins", color: "#a0a0a8", marginTop: 4 }}>
+                    <RelativeTime date={new Date(n.createdAt).getTime()} />
+                  </div>
+                </div>
+                {!n.read && <span className="flex-none mt-1.5" style={{ width: 9, height: 9, borderRadius: "50%", background: "#2FB37E" }} />}
+              </li>
+            );
+          }
           return (
             <li key={n.id} className="flex gap-2 px-4 py-2.5 hover:bg-base border-b border-gray-50 cursor-pointer"
                 onClick={() => { if (!n.read && onMarkRead) onMarkRead(n.id); }}>
@@ -474,12 +542,21 @@ function NotifList({ notifications, loading, emptyText, totalPages, page, onPage
           );
         })}
       </ul>
-      {totalPages > 1 && <Pagination page={page} total={totalPages} onPageChange={onPageChange} t={t} />}
+      {totalPages > 1 && <Pagination studio={studio} page={page} total={totalPages} onPageChange={onPageChange} t={t} />}
     </div>
   );
 }
 
-function Pagination({ page, total, onPageChange, t }: { page: number; total: number; onPageChange: (p: number) => void; t: (k: string) => string }) {
+function Pagination({ page, total, onPageChange, t, studio }: { page: number; total: number; onPageChange: (p: number) => void; t: (k: string) => string; studio?: boolean }) {
+  if (studio) {
+    return (
+      <div className="flex justify-between items-center px-[22px] py-3 border-t border-[#f4f4f6]">
+        <button onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page <= 1} style={{ font: "600 12px Poppins", color: page <= 1 ? "#c4c4cc" : "#EF5B94", background: "none", border: "none", cursor: page <= 1 ? "default" : "pointer" }}>← {t("Anterior")}</button>
+        <span style={{ font: "500 12px Poppins", color: "#8a8a90" }}>{page}/{total}</span>
+        <button onClick={() => onPageChange(Math.min(total, page + 1))} disabled={page >= total} style={{ font: "600 12px Poppins", color: page >= total ? "#c4c4cc" : "#EF5B94", background: "none", border: "none", cursor: page >= total ? "default" : "pointer" }}>{t("Siguiente")} →</button>
+      </div>
+    );
+  }
   return (
     <div className="flex justify-between items-center px-4 py-2 border-t bg-gray-50">
       <button onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page <= 1} className="text-[10px] text-gray-500 disabled:opacity-30">← {t("Anterior")}</button>

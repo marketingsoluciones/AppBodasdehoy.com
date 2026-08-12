@@ -10,10 +10,29 @@ import { IoChatbubbleEllipsesOutline, IoChatbubbleEllipses } from 'react-icons/i
 
 interface ChatToggleButtonProps {
   className?: string;
+  studio?: boolean;
 }
 
-const ChatToggleButton: FC<ChatToggleButtonProps> = ({ className = '' }) => {
+const ChatToggleButton: FC<ChatToggleButtonProps> = ({ className = '', studio = false }) => {
   const { isOpen, toggleSidebar } = useChatSidebar();
+
+  // Variante "studio" — píldora rosa fiel al HTML (Mis eventos.dc.html). Misma lógica (toggle).
+  if (studio) {
+    return (
+      <button
+        type="button"
+        data-testid="copilot-toggle"
+        aria-label={isOpen ? 'Cerrar Copilot' : 'Abrir Copilot'}
+        onClick={toggleSidebar}
+        title={isOpen ? 'Cerrar Copilot (⌘⇧C)' : 'Abrir Copilot (⌘⇧C)'}
+        style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDF1F6', borderRadius: 22, padding: '10px 18px', border: 'none', cursor: 'pointer' }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#EF5B94"><path d="M12 3l1.7 4.6L18 9l-4.3 1.4L12 15l-1.7-4.6L6 9l4.3-1.4L12 3z" /><path d="M18.5 14l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9.9-2.3z" opacity=".6" /></svg>
+        <span style={{ font: '600 13px Poppins', color: '#EF5B94' }}>Copilot</span>
+        <span style={{ width: 7, height: 7, borderRadius: '50%', background: isOpen ? '#EF5B94' : '#2FB37E' }} />
+      </button>
+    );
+  }
 
   return (
     <button
