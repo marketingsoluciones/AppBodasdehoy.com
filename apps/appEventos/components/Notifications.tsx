@@ -264,7 +264,7 @@ export const Notifications = ({ studio = false }: { studio?: boolean } = {}) => 
           aria-haspopup="dialog"
           title={studio ? "Notificaciones" : undefined}
           className={studio
-            ? "w-[42px] h-[42px] rounded-full flex items-center justify-center cursor-pointer border-0 p-0 relative bg-[#F7F6F8] hover:bg-[#FCE7F0] text-[#6b6b72] hover:text-[#EF5B94] transition"
+            ? "w-[42px] h-[42px] shrink-0 rounded-full flex items-center justify-center cursor-pointer border-0 p-0 relative bg-[#F7F6F8] hover:bg-[#FCE7F0] text-[#6b6b72] hover:text-[#EF5B94] transition"
             : "bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer border-0 p-0 relative"}
         >
           {studio ? (

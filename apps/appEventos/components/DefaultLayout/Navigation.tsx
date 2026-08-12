@@ -18,7 +18,7 @@ import { useChatSidebar, CHAT_SIDEBAR_MIN_WIDTH, CHAT_SIDEBAR_MAX_WIDTH, CHAT_SI
 // Barra de módulos rediseñada (studio) — iconos EXACTOS del HTML "menumodulos".
 // fill=currentColor (color del item); los "huecos" (.mhole) se pintan con --hole (color del fondo).
 const STUDIO_ORDER = ["Mis eventos", "Resumen", "Invitados", "Mesas", "Presupuesto", "Invitaciones", "Itinerario", "Lista de regalos", "Momentos"];
-const STUDIO_ICONS: Record<string, JSX.Element> = {
+const STUDIO_ICONS: Record<string, ReactElement> = {
   "Mis eventos": (<svg viewBox="0 0 24 24"><path d="M9 2C6.2 2 4 4.4 4 7.4c0 2.9 2 5.3 4.4 5.6l-.6 1.5h2.4L9.6 13C12 12.7 14 10.3 14 7.4 14 4.4 11.8 2 9 2z" /><path opacity={0.55} d="M16.5 5c-1.9 0-3.5 1.7-3.5 3.9 0 2 1.3 3.7 3 4l-.4 1.1h1.8L17 12.9c1.7-.3 3-2 3-4C20 6.7 18.4 5 16.5 5z" /></svg>),
   "Resumen": (<svg viewBox="0 0 24 24"><path d="M5.5 3A2.5 2.5 0 0 0 3 5.5v4A2.5 2.5 0 0 0 5.5 12h4A2.5 2.5 0 0 0 12 9.5v-4A2.5 2.5 0 0 0 9.5 3h-4z" /><path opacity={0.55} d="M15.5 3A2.5 2.5 0 0 0 13 5.5v2A2.5 2.5 0 0 0 15.5 10h3A2.5 2.5 0 0 0 21 7.5v-2A2.5 2.5 0 0 0 18.5 3h-3z" /><path d="M15.5 11A2.5 2.5 0 0 0 13 13.5v5a2.5 2.5 0 0 0 2.5 2.5h3a2.5 2.5 0 0 0 2.5-2.5v-5a2.5 2.5 0 0 0-2.5-2.5h-3z" /><path opacity={0.55} d="M5.5 13A2.5 2.5 0 0 0 3 15.5v3A2.5 2.5 0 0 0 5.5 21h4a2.5 2.5 0 0 0 2.5-2.5v-3A2.5 2.5 0 0 0 9.5 13h-4z" /></svg>),
   "Invitados": (<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.6" /><path d="M3 19.2c0-3.3 2.7-5.7 6-5.7s6 2.4 6 5.7c0 .4-.3.8-.8.8H3.8a.8.8 0 0 1-.8-.8z" /><circle opacity={0.55} cx="16.8" cy="9" r="2.8" /><path opacity={0.55} d="M16.4 13.4c2.7.2 4.6 2.3 4.6 5 0 .3-.3.6-.6.6h-3.2c.2-.5.3-1 .3-1.6 0-1.5-.5-2.9-1.1-4z" /></svg>),
@@ -300,8 +300,9 @@ const Navigation: FC = () => {
               <style dangerouslySetInnerHTML={{ __html: ".mbar-item svg{width:32px;height:32px;fill:currentColor}.mbar-item .mhole{fill:var(--hole)}" }} />
               <div className="max-w-[1100px] mx-auto px-6">
                 <nav
-                  className="flex justify-center gap-2 rounded-b-[22px] px-[26px] pt-2 pb-[9px] transition-colors"
+                  className="flex items-center justify-center gap-2 rounded-b-[22px] px-[26px] transition-colors"
                   style={{
+                    height: 74,
                     background: pathname === '/' ? 'linear-gradient(180deg,#F473A4,#EF5B94 55%,#E94F89)' : '#fff',
                     boxShadow: pathname === '/' ? '0 14px 30px rgba(239,91,148,.35)' : '0 14px 30px rgba(0,0,0,.08)',
                     ['--hole' as any]: pathname === '/' ? '#EF5B94' : '#fff',

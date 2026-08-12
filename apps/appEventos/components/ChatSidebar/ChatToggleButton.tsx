@@ -25,7 +25,7 @@ const ChatToggleButton: FC<ChatToggleButtonProps> = ({ className = '', studio = 
         aria-label={isOpen ? 'Cerrar Copilot' : 'Abrir Copilot'}
         onClick={toggleSidebar}
         title={isOpen ? 'Cerrar Copilot (⌘⇧C)' : 'Abrir Copilot (⌘⇧C)'}
-        style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDF1F6', borderRadius: 22, padding: '10px 18px', border: 'none', cursor: 'pointer' }}
+        style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDF1F6', borderRadius: 22, padding: '10px 18px', border: 'none', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="#EF5B94"><path d="M12 3l1.7 4.6L18 9l-4.3 1.4L12 15l-1.7-4.6L6 9l4.3-1.4L12 3z" /><path d="M18.5 14l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9.9-2.3z" opacity=".6" /></svg>
         <span style={{ font: '600 13px Poppins', color: '#EF5B94' }}>Copilot</span>

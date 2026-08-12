@@ -298,12 +298,12 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
     <>
       <div className="text-gray-100 flex space-x-4 relative" {...rest} >
         {isAuthenticatedUser &&
-          <div className="items-center hidden md:flex gap-1 relative cursor-default">
+          <div className="items-center hidden md:flex gap-1 relative cursor-default shrink-0">
             <div onClick={() => {
               !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/servicios") ? ht() : router.push("/servicios")
-            }} title={t("Servicios")} className={`${!event ? "opacity-40" : ""} ${studio ? "w-[42px] h-[42px] bg-[#F7F6F8] hover:bg-[#FCE7F0] text-[#6b6b72] hover:text-[#EF5B94]" : "bg-slate-100 w-8 h-8 hover:bg-primary/10"} rounded-full flex items-center justify-center cursor-pointer transition`} >
+            }} title={t("Servicios")} className={`${!event ? "opacity-40" : ""} ${studio ? "w-[42px] h-[42px] shrink-0 bg-[#F7F6F8] hover:bg-[#FCE7F0] text-[#6b6b72] hover:text-[#EF5B94]" : "bg-slate-100 w-8 h-8 hover:bg-primary/10"} rounded-full flex items-center justify-center cursor-pointer transition`} >
               {studio ? (
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round"><path d="M4.5 6.5l1 1 2-2M4.5 12l1 1 2-2M4.5 17.5l1 1 2-2" /><path d="M11 6.5h8.5M11 12h8.5M11 17.5h8.5" /></svg>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" className="shrink-0"><path d="M4.5 6.5l1 1 2-2M4.5 12l1 1 2-2M4.5 17.5l1 1 2-2" /><path d="M11 6.5h8.5M11 12h8.5M11 17.5h8.5" /></svg>
               ) : (
                 <GoTasklist className="text-primary w-5 h-5 scale-x-90" />
               )}

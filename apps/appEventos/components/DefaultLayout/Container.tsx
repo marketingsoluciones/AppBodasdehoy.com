@@ -1,4 +1,4 @@
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { AuthContextProvider, LoadingContextProvider, useChatSidebar } from "../../context";
 import { EventsGroupContextProvider } from "../../context";
 import NavigationMobile from "./NavigationMobile";
@@ -25,6 +25,11 @@ const Container = (props) => {
   const { forCms } = AuthContextProvider();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  // Header rediseñado (studio) = ON por defecto (rollback ?studio=legacy). Mide más alto que el
+  // clásico (78px + 74px = 152px vs 144px), así que reservamos ese espacio en desktop para que
+  // la cabecera quede fija arriba y no la arrastre el scroll del contenido.
+  const studioHeader = searchParams?.get("studio") !== "legacy";
   const { setLoading } = LoadingContextProvider();
   const chatSidebar = useChatSidebar();
 
@@ -139,7 +144,7 @@ const Container = (props) => {
       }
 
       <div
-        className={`w-full max-w-full min-w-0 ${pathname === "/" ? "" : "bg-base"} ${isFullHeight ? "h-[100vh]" : urls.includes(pathname) ? "" : forCms ? "h-[100vh]" : "h-[calc(100vh-144px)]"}`}
+        className={`w-full max-w-full min-w-0 ${pathname === "/" ? "" : "bg-base"} ${isFullHeight ? "h-[100vh]" : urls.includes(pathname) ? "" : forCms ? "h-[100vh]" : studioHeader ? "h-[calc(100vh-144px)] md:h-[calc(100vh-152px)]" : "h-[calc(100vh-144px)]"}`}
         style={{
           display: "grid",
           width: "100%",
