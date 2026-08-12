@@ -294,6 +294,7 @@ export const Notifications = ({ studio = false }: { studio?: boolean } = {}) => 
             style={studio ? { boxShadow: "0 24px 70px rgba(0,0,0,.16)" } : undefined}
             onClick={e => e.stopPropagation()}
           >
+            {studio && <style dangerouslySetInnerHTML={{ __html: ".nf-noscroll{scrollbar-width:none;-ms-overflow-style:none;}.nf-noscroll::-webkit-scrollbar{display:none;width:0;height:0;}" }} />}
             {/* Header */}
             {studio ? (
               <>
@@ -359,7 +360,7 @@ export const Notifications = ({ studio = false }: { studio?: boolean } = {}) => 
 
             {/* ========== VIEW: EVENTS OVERVIEW (sin evento seleccionado) ========== */}
             {view === 'events-overview' && (
-              <div className="max-h-[400px] overflow-y-auto">
+              <div className={`max-h-[400px] overflow-y-auto ${studio ? 'nf-noscroll' : ''}`}>
                 {/* Ver todas button */}
                 <button onClick={handleShowAll} className="w-full text-left px-4 py-2.5 text-xs font-medium text-primary hover:bg-pink-50 border-b border-gray-100 flex justify-between items-center">
                   <span>📋 {t("Ver todas las pendientes")}</span>
@@ -422,7 +423,7 @@ export const Notifications = ({ studio = false }: { studio?: boolean } = {}) => 
 
             {/* ========== VIEW: HISTORY (grouped by event) ========== */}
             {view === 'history' && (
-              <ul className="max-h-[400px] overflow-y-auto">
+              <ul className={`max-h-[400px] overflow-y-auto ${studio ? 'nf-noscroll' : ''}`}>
                 {api2Loading ? (
                   <li className="py-8 text-center text-gray-400 text-xs">{t("cargando")}...</li>
                 ) : api2Notifs.length === 0 ? (
@@ -501,7 +502,7 @@ function NotifList({ notifications, loading, emptyText, totalPages, page, onPage
 }) {
   return (
     <div>
-      <ul className="overflow-y-auto" style={studio ? { maxHeight: 380, padding: "8px 10px" } : { maxHeight: 340 }}>
+      <ul className={studio ? "overflow-y-auto nf-noscroll" : "overflow-y-auto"} style={studio ? { maxHeight: 380, padding: "8px 10px" } : { maxHeight: 340 }}>
         {loading ? (
           <li className={`py-8 text-center text-xs ${studio ? 'text-[#a0a0a8]' : 'text-gray-400'}`}>{t("cargando")}...</li>
         ) : notifications.length === 0 ? (
