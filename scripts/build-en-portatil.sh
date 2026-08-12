@@ -64,12 +64,17 @@ EOF
 }
 
 step_shared() {
-  echo "=== shared) Rebuild packages/shared en portátil ==="
+  echo "=== shared) Rebuild packages compartidos (main→dist) en portátil ==="
+  # chat-ia BUNDLEA el dist de estos packages (no el src) y el dist está gitignored,
+  # así que gitsync NO lo trae → hay que recompilarlo aquí o el build usa código viejo.
+  # (10-ago: un fix en auth-ui/LoginForm no llegó a chat-dev por saltarse auth-ui.)
   ssh -o BatchMode=yes -T "$REMOTE_HOST" <<EOF
 export PATH=$REMOTE_PATH:\$PATH
-cd $REMOTE_DIR/packages/shared
-npx tsc 2>&1 | tail -5
-echo '✅ shared/dist rebuilded'
+for pkg in shared auth-ui; do
+  echo "--- tsc packages/\$pkg ---"
+  cd $REMOTE_DIR/packages/\$pkg && npx tsc 2>&1 | tail -5
+done
+echo '✅ shared + auth-ui dist rebuilded'
 EOF
 }
 
