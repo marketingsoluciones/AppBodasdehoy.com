@@ -288,10 +288,32 @@ export const Notifications = ({ studio = false }: { studio?: boolean } = {}) => 
         {/* Panel */}
         {showPanel && (
           <div
-            className="absolute bg-white rounded-lg w-96 shadow-lg shadow-gray-400 top-0 right-10 translate-x-1/2 translate-y-[46px] overflow-hidden z-[60]"
+            className={studio
+              ? "absolute right-0 top-full mt-3 w-[400px] bg-white rounded-[18px] border border-[#f0f0f2] overflow-hidden z-[60]"
+              : "absolute bg-white rounded-lg w-96 shadow-lg shadow-gray-400 top-0 right-10 translate-x-1/2 translate-y-[46px] overflow-hidden z-[60]"}
+            style={studio ? { boxShadow: "0 24px 70px rgba(0,0,0,.16)" } : undefined}
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
+            {studio ? (
+              <>
+                <div className="flex items-center gap-[9px] px-[22px] pt-[18px]">
+                  <span style={{ font: "700 15px Poppins", color: "#3A3A42" }}>{t("Notificaciones")}</span>
+                  {api2Total > 0 && <span style={{ background: "#FCE7F0", color: "#D83E7C", font: "700 10.5px Poppins", padding: "3px 9px", borderRadius: 12 }}>{api2Total}</span>}
+                </div>
+                <div className="flex gap-1 px-[22px] pt-[14px] pb-3 border-b border-[#f4f4f6]">
+                  <TabBtn studio active={view === 'legacy'} onClick={() => handleViewChange('legacy')} label={t("Actual")} badge={api2Notifs.length} />
+                  <TabBtn
+                    studio
+                    active={view === 'events-overview' || view === 'event-notifications' || view === 'all-pending'}
+                    onClick={() => handleViewChange('events-overview')}
+                    label={t("Pendientes")}
+                    badge={api2UnreadCount}
+                  />
+                  <TabBtn studio active={view === 'history'} onClick={() => handleViewChange('history')} label={t("Historial")} />
+                </div>
+              </>
+            ) : (
             <div className="border-b-2 border-gray-300 py-2 px-3">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-600 text-sm font-medium">
@@ -317,10 +339,12 @@ export const Notifications = ({ studio = false }: { studio?: boolean } = {}) => 
                 <TabBtn active={view === 'history'} onClick={() => handleViewChange('history')} label={t("Historial")} />
               </div>
             </div>
+            )}
 
             {/* ========== VIEW: ACTUAL (últimas notificaciones via api2) ========== */}
             {view === 'legacy' && (
               <NotifList
+                studio={studio}
                 notifications={api2Notifs}
                 loading={api2Loading}
                 emptyText={t("No hay notificaciones")}
@@ -383,6 +407,7 @@ export const Notifications = ({ studio = false }: { studio?: boolean } = {}) => 
                   </div>
                 </div>
                 <NotifList
+                  studio={studio}
                   notifications={api2Notifs}
                   loading={api2Loading}
                   emptyText={t("No hay notificaciones")}
@@ -434,7 +459,7 @@ export const Notifications = ({ studio = false }: { studio?: boolean } = {}) => 
                     </li>
                   ));
                 })()}
-                {api2TotalPages > 1 && <li><Pagination page={api2Page} total={api2TotalPages} onPageChange={setApi2Page} t={t} /></li>}
+                {api2TotalPages > 1 && <li><Pagination studio={studio} page={api2Page} total={api2TotalPages} onPageChange={setApi2Page} t={t} /></li>}
               </ul>
             )}
           </div>
@@ -448,7 +473,17 @@ export const Notifications = ({ studio = false }: { studio?: boolean } = {}) => 
 // Sub-components
 // ========================================
 
-function TabBtn({ active, onClick, label, badge }: { active: boolean; onClick: () => void; label: string; badge?: number }) {
+function TabBtn({ active, onClick, label, badge, studio }: { active: boolean; onClick: () => void; label: string; badge?: number; studio?: boolean }) {
+  if (studio) {
+    return (
+      <button onClick={onClick} className="flex items-center gap-1.5 rounded-[10px] cursor-pointer" style={{ padding: "8px 16px", font: "600 12px Poppins", background: active ? "#EF5B94" : "#f5f5f7", color: active ? "#fff" : "#6b6b72", border: "none" }}>
+        {label}
+        {!!badge && badge > 0 && (
+          <span style={{ font: "700 9.5px Poppins", padding: "2px 7px", borderRadius: 10, background: active ? "rgba(255,255,255,.25)" : "#e7e7ea", color: active ? "#fff" : "#6b6b72" }}>{badge > 99 ? '99+' : badge}</span>
+        )}
+      </button>
+    );
+  }
   return (
     <button onClick={onClick} className={`px-2 py-1 text-[10px] font-medium rounded transition-colors flex items-center gap-1 ${active ? 'bg-primary text-white' : 'text-gray-400 hover:bg-gray-100'}`}>
       {label}
@@ -459,20 +494,39 @@ function TabBtn({ active, onClick, label, badge }: { active: boolean; onClick: (
   );
 }
 
-function NotifList({ notifications, loading, emptyText, totalPages, page, onPageChange, t, router, onMarkRead }: {
+function NotifList({ notifications, loading, emptyText, totalPages, page, onPageChange, t, router, onMarkRead, studio }: {
   notifications: Api2Notification[]; loading: boolean; emptyText: string;
   totalPages: number; page: number; onPageChange: (p: number) => void;
-  t: (k: string) => string; router: any; onMarkRead?: (id: string) => void;
+  t: (k: string) => string; router: any; onMarkRead?: (id: string) => void; studio?: boolean;
 }) {
   return (
     <div>
-      <ul className="max-h-[340px] overflow-y-auto">
+      <ul className="overflow-y-auto" style={studio ? { maxHeight: 380, padding: "8px 10px" } : { maxHeight: 340 }}>
         {loading ? (
-          <li className="py-8 text-center text-gray-400 text-xs">{t("cargando")}...</li>
+          <li className={`py-8 text-center text-xs ${studio ? 'text-[#a0a0a8]' : 'text-gray-400'}`}>{t("cargando")}...</li>
         ) : notifications.length === 0 ? (
-          <li className="py-8 text-center text-gray-400 text-xs">{emptyText}</li>
+          <li className={`py-8 text-center text-xs ${studio ? 'text-[#a0a0a8]' : 'text-gray-400'}`}>{emptyText}</li>
         ) : notifications.map(n => {
           const eventName = n.resourceName || extractEventName(n.message);
+          if (studio) {
+            return (
+              <li key={n.id} className="flex items-start gap-3 p-3 rounded-xl cursor-pointer hover:bg-[#fdf7fa]"
+                  onClick={() => { if (!n.read && onMarkRead) onMarkRead(n.id); }}>
+                <div className="flex items-center justify-center flex-none mt-0.5" style={{ width: 34, height: 34, borderRadius: 11, background: "#FCE7F0", color: "#EF5B94" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z" /></svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div style={{ font: "400 12.5px/1.55 Poppins", color: "#6b6b72", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" } as any}>
+                    <Interweave content={n.message} />
+                  </div>
+                  <div style={{ font: "400 11px Poppins", color: "#a0a0a8", marginTop: 4 }}>
+                    <RelativeTime date={new Date(n.createdAt).getTime()} />
+                  </div>
+                </div>
+                {!n.read && <span className="flex-none mt-1.5" style={{ width: 9, height: 9, borderRadius: "50%", background: "#2FB37E" }} />}
+              </li>
+            );
+          }
           return (
             <li key={n.id} className="flex gap-2 px-4 py-2.5 hover:bg-base border-b border-gray-50 cursor-pointer"
                 onClick={() => { if (!n.read && onMarkRead) onMarkRead(n.id); }}>
@@ -487,12 +541,21 @@ function NotifList({ notifications, loading, emptyText, totalPages, page, onPage
           );
         })}
       </ul>
-      {totalPages > 1 && <Pagination page={page} total={totalPages} onPageChange={onPageChange} t={t} />}
+      {totalPages > 1 && <Pagination studio={studio} page={page} total={totalPages} onPageChange={onPageChange} t={t} />}
     </div>
   );
 }
 
-function Pagination({ page, total, onPageChange, t }: { page: number; total: number; onPageChange: (p: number) => void; t: (k: string) => string }) {
+function Pagination({ page, total, onPageChange, t, studio }: { page: number; total: number; onPageChange: (p: number) => void; t: (k: string) => string; studio?: boolean }) {
+  if (studio) {
+    return (
+      <div className="flex justify-between items-center px-[22px] py-3 border-t border-[#f4f4f6]">
+        <button onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page <= 1} style={{ font: "600 12px Poppins", color: page <= 1 ? "#c4c4cc" : "#EF5B94", background: "none", border: "none", cursor: page <= 1 ? "default" : "pointer" }}>← {t("Anterior")}</button>
+        <span style={{ font: "500 12px Poppins", color: "#8a8a90" }}>{page}/{total}</span>
+        <button onClick={() => onPageChange(Math.min(total, page + 1))} disabled={page >= total} style={{ font: "600 12px Poppins", color: page >= total ? "#c4c4cc" : "#EF5B94", background: "none", border: "none", cursor: page >= total ? "default" : "pointer" }}>{t("Siguiente")} →</button>
+      </div>
+    );
+  }
   return (
     <div className="flex justify-between items-center px-4 py-2 border-t bg-gray-50">
       <button onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page <= 1} className="text-[10px] text-gray-500 disabled:opacity-30">← {t("Anterior")}</button>
