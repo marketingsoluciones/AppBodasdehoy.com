@@ -316,7 +316,9 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>
           <div
             data-testid="profile-menu-trigger"
-            className="bg-white items-center pr-2 flex relative cursor-pointer"
+            className={studio
+              ? "relative flex items-center gap-2.5 cursor-pointer rounded-[26px] py-[5px] pl-[5px] pr-3 hover:bg-[#F7F6F8] transition"
+              : "bg-white items-center pr-2 flex relative cursor-pointer"}
             onClick={() => setDropwdon(!dropdown)}>
             {dropdown && (
               <div data-testid="profile-menu-dropdown" className="bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 absolute top-0 right-0 translate-y-[46px] translate-x-[20px] md:-translate-x-[0px]  overflow-hidden z-[60] title-display">
@@ -388,12 +390,42 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
                 · Desktop: texto "Iniciar sesión" junto al icono en ≥lg
             */}
             {isAuthenticatedUser ? (
-              <div className="flex items-center gap-2">
+              studio ? (
+                <>
+                  <div className="w-[38px] h-[38px] rounded-full overflow-hidden bg-[#EF5B94] flex-none">
+                    <ImageAvatar user={user} disabledTooltip />
+                  </div>
+                  <div className="hidden md:block" style={{ lineHeight: 1.2 }}>
+                    <div style={{ font: "600 12.5px Poppins", color: "#3A3A42", maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.displayName || user?.email}</div>
+                    <div
+                      className="relative flex items-center gap-1 mt-[1px] w-max"
+                      style={{ font: "500 10.5px Poppins", color: "#8a8a90" }}
+                      onClick={(e) => { e.stopPropagation(); setShowFlags(!showFlags); }}
+                    >
+                      <img alt={optionSelect?.title ?? 'idioma'} src={`/flags-svg/${optionSelect?.flag}.svg`.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')} style={{ width: 16, height: 11, objectFit: "cover", borderRadius: 2 }} />
+                      <span>{optionSelect?.value === 'en' ? 'English' : 'Español'}</span>
+                      {showFlags && (
+                        <ClickAwayListener onClickAway={() => setShowFlags(false)}>
+                          <div className="bg-white w-max h-max absolute left-0 top-full mt-1 z-[70] border border-gray-200 rounded-lg flex flex-col shadow-md" onClick={(e) => e.stopPropagation()}>
+                            <ul className="w-full cursor-pointer text-gray-900 text-xs py-1">
+                              {idiomaArray.map((elem, idx) => (
+                                <li key={idx} onClick={(e) => { e.stopPropagation(); setOptionSelect(elem); setShowFlags(false); }} className="flex gap-1.5 items-center hover:bg-gray-100 px-3 py-1.5">
+                                  <img alt={elem.title ?? 'idioma'} src={`/flags-svg/${elem.flag}.svg`.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')} className="object-cover w-5 h-3.5 rounded-[2px]" />
+                                  <span className="text-gray-700">{elem.value === 'en' ? 'English' : 'Español'}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </ClickAwayListener>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
                 <div className="w-10 h-10">
                   <ImageAvatar user={user} disabledTooltip />
                 </div>
-                {studio && <span className="hidden md:block" style={{ font: "600 12.5px Poppins", color: "#3A3A42", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.displayName || user?.email}</span>}
-              </div>
+              )
             ) : (
               <div
                 className="h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center gap-1.5 px-2 lg:px-3 text-primary hover:bg-primary/15 transition"
@@ -404,23 +436,22 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
                 <span className="hidden lg:inline text-sm font-medium whitespace-nowrap">{t("signin")}</span>
               </div>
             )}
-            <ArrowDownBodasIcon className="w-5 h-5 rotate-90 transform text-black" />
+            {studio ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2.2}><path d="M6 9l6 6 6-6" /></svg>
+            ) : (
+              <ArrowDownBodasIcon className="w-5 h-5 rotate-90 transform text-black" />
+            )}
           </div>
         </ClickAwayListener>
-        <div onClick={() => { setShowFlags(!showFlags) }} className=" flex items-center cursor-pointer" >
-          {studio ? (
-            <div className="flex items-center gap-1.5 -ml-3" style={{ font: "500 11px Poppins", color: "#8a8a90" }}>
-              <span style={{ fontSize: 14, lineHeight: 1 }}>{optionSelect?.value === 'en' ? '\ud83c\uddec\ud83c\udde7' : '\ud83c\uddea\ud83c\uddf8'}</span>
-              <span className="hidden md:flex">{optionSelect?.value === 'en' ? 'English' : 'Espa\u00f1ol'}</span>
-            </div>
-          ) : (
+        {!studio && <div onClick={() => { setShowFlags(!showFlags) }} className=" flex items-center cursor-pointer" >
+          {
             optionSelect?.flag &&
             <div className="space-x-1 flex items-center justify-center text-sm -ml-4">
               <img alt={optionSelect?.title ?? 'idioma'} src={`/flags-svg/${optionSelect?.flag}.svg`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')} width={22} className="border-[1px] border-gray-500" />
               <span className="hidden md:flex text-gray-600">{optionSelect?.title}</span>
             </div >
-          )}
-          <IoIosArrowDown className={studio ? "text-[#8a8a90]" : "text-gray-500"} />
+          }
+          <IoIosArrowDown className="text-gray-500" />
           {showFlags && <ClickAwayListener onClickAway={() => { setShowFlags(false) }}>
             <div className={`bg-white w-max h-max absolute translate-y-10 z-10 border-[1px] rounded-b-xl flex flex-col right-0 shadow-md`}>
               <ul className="w-full  cursor-pointer text-gray-900 text-xs py-1  ">
@@ -442,7 +473,7 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
             </div>
           </ClickAwayListener>
           }
-        </div>
+        </div>}
       </div>
       {/* Modal ObtenerFullAcceso eliminado — el botón ahora navega a /facturacion directamente */}
     </>
