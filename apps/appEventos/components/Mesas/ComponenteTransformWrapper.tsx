@@ -11,7 +11,8 @@ import ClickAwayListener from "react-click-away-listener";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useTranslation } from 'react-i18next';
-import { exportPlanoPdf } from "../../utils/exportPlanoPdf";
+import axios from "axios";
+import { buildPlanoPdfHtml } from "../../utils/buildPlanoPdfHtml";
 
 interface propsComponenteTransformWrapper {
   zoomIn: any
@@ -43,6 +44,46 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
   const [valir, setValir] = useState(true)
   const [ident, setident] = useState(false)
   const [isAllowed, ht] = useAllowed()
+  const [pdfLoading, setPdfLoading] = useState(false)
+
+  const downloadPlanoPdf = async (): Promise<void> => {
+    try {
+      setPdfLoading(true)
+      setShowMiniMenu(false)
+      const root = document.getElementById('lienzo-drop')
+      if (!(root instanceof HTMLElement)) {
+        toast('error', t('pdferror') || 'No se encontró el plano para exportar')
+        return
+      }
+      const html = buildPlanoPdfHtml({
+        lienzoRoot: root,
+        planSpaceActive,
+        event,
+        planoTitle: t(planSpaceActive?.title),
+      })
+      const response = await axios.post('/api/generate-pdf', {
+        html,
+        format: 'letter',
+      })
+      const blob = new Blob(
+        [Uint8Array.from(atob(response.data.base64), (c) => c.charCodeAt(0))],
+        { type: 'application/pdf' },
+      )
+      const objectUrl = window.URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = objectUrl
+      anchor.download = `${event?.nombre || 'evento'} ${planSpaceActive?.title || 'plano'}`
+        .replace(/[^a-zA-Z0-9\s]/g, '')
+        .replace(/\s+/g, '_') + '.pdf'
+      anchor.click()
+      window.URL.revokeObjectURL(objectUrl)
+    } catch (e) {
+      console.error('[exportPDF] generate-pdf', e)
+      toast('error', t('pdferror') || 'No se pudo generar el PDF')
+    } finally {
+      setPdfLoading(false)
+    }
+  }
 
   useEffect(() => {
     centerView(scaleIni)
@@ -79,6 +120,11 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
       {/* Controles FLOTANTES sobre el plano (fiel a MESAS.dc.html): sin franja/barra, cada
           grupo es una pastilla que flota sobre el beige. pointer-events-none en el contenedor
           + auto en los hijos → los huecos transparentes no bloquean el lienzo. */}
+      {pdfLoading && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 pointer-events-auto">
+          <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 border-t-primary" />
+        </div>
+      )}
       <div className="flex w-full items-center justify-between absolute z-[20] top-2 left-0 px-2 md:px-3 gap-2 pointer-events-none [&>*]:pointer-events-auto">
         <div className="flex items-center gap-2">
           {/* Rediseño Fase C: zoom agrupado en pastilla blanca (fiel a MESAS.dc.html).
@@ -115,48 +161,12 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
               {showMiniMenu &&
                 <div className="bg-white flex flex-col absolute z-[50] top-8 right-18 rounded-b-md shadow-md items-center text-[9px] px-3 pt-1 pb-3 text-gray-800 gap-y-2">
                   <div className="bg-white flex flex-col absolute z-[10] top-[0px] right-0 rounded-b-md shadow-md min-w-[140px] md:min-w-[120px] items-center text-[10px] md:text-[12px] px-3 pt-1 pb-2 text-gray-800">
-                    {/* Exportar PDF — movido aquí desde el icono suelto (plano más limpio) */}
+                    {/* Exportar PDF — mismo flujo que itinerario: HTML → /api/generate-pdf → api-convert */}
                     <button
-                      onClick={async () => {
-                        setShowMiniMenu(false)
-                        // Capturar el plano TAL CUAL en la web = una FOTO con la cuadrícula.
-                        // La cuadrícula vive en el wrapper del zoom (.react-transform-wrapper),
-                        // no en #lienzo-drop; por eso capturamos el wrapper (cuadrícula + mesas
-                        // + muebles + textos, exactamente como se ve). Si falla → croquis vectorial.
-                        let planoImage: string | undefined
-                        try {
-                          // html2canvas-pro (fork): soporta colores oklch/lab/color() de Tailwind v4.
-                          // El html2canvas clásico (1.4.1) lanzaba con oklch → abortaba la captura → croquis.
-                          const html2canvas = (await import('html2canvas-pro')).default
-                          // Capturar el CONTENIDO del plano (#lienzo-drop) a tamaño natural = el
-                          // plano ENTERO con mesas, sillas, ICONOS de mobiliario y TEXTOS. NO se
-                          // captura el wrapper del zoom (.react-transform-wrapper): su transform
-                          // rompe html2canvas (por eso salía el croquis de fallback). Se añade la
-                          // cuadrícula temporal por CSS para que la foto salga como en la web.
-                          const el = document.getElementById('lienzo-drop')
-                          if (el) {
-                            const prev = { background: el.style.background, backgroundImage: el.style.backgroundImage, backgroundSize: el.style.backgroundSize }
-                            el.style.background = '#F3F1EC'
-                            el.style.backgroundImage = 'linear-gradient(#E4E1D8 1px, transparent 1px), linear-gradient(90deg, #E4E1D8 1px, transparent 1px)'
-                            el.style.backgroundSize = '44px 44px'
-                            const w = el.scrollWidth || (lienzo?.width ?? 0)
-                            const h = el.scrollHeight || (lienzo?.height ?? 0)
-                            try {
-                              const canvas = await html2canvas(el, { backgroundColor: '#F3F1EC', height: h, logging: false, scale: 2, useCORS: true, width: w, windowHeight: h, windowWidth: w } as any)
-                              planoImage = canvas.toDataURL('image/png')
-                            } finally {
-                              el.style.background = prev.background
-                              el.style.backgroundImage = prev.backgroundImage
-                              el.style.backgroundSize = prev.backgroundSize
-                            }
-                          }
-                        } catch (e) {
-                          console.warn('[exportPDF] captura del plano falló; uso croquis vectorial:', e)
-                        }
-                        const ok = exportPlanoPdf({ planSpaceActive, event, planoTitle: t(planSpaceActive?.title), planoImage })
-                        if (!ok) toast('error', t('pdferror') || 'No se pudo generar el PDF')
-                      }}
-                      className="w-full flex items-center gap-2 text-left font-semibold py-1.5 mb-1 border-b border-gray-100 hover:text-primary"
+                      type="button"
+                      disabled={pdfLoading}
+                      onClick={() => { void downloadPlanoPdf() }}
+                      className="w-full flex items-center gap-2 text-left font-semibold py-1.5 mb-1 border-b border-gray-100 hover:text-primary disabled:opacity-50"
                     >
                       <mdIcons.MdPictureAsPdf className="w-4 h-4 text-primary" />{t('exportpdf') || 'Exportar PDF'}
                     </button>
