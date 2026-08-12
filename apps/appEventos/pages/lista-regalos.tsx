@@ -9,6 +9,8 @@ import GuestUpsellPage from "../components/Utils/GuestUpsellPage";
 import { SkeletonPage } from "../components/Utils/SkeletonPage";
 import EventLoadingOrError from "../components/Utils/EventLoadingOrError";
 import FormGuardarRegalos from "../components/Forms/FormGuardarRegalos"
+import { useRouter } from "next/router";
+import { ListaRegalosStudio } from "../components/ListaDeRegalos/ListaRegalosStudio";
 import { useMounted } from "../hooks/useMounted"
 import { useEventSyncWithUrl } from "../hooks/useEventSyncWithUrl"
 import { useAllowed } from "../hooks/useAllowed"
@@ -20,6 +22,7 @@ const ListaRegalos = () => {
   const { user, verificationDone } = AuthContextProvider() as any;
   const [showForm, setShowForm] = useState(false)
   const [isAllowed, ht] = useAllowed()
+  const router = useRouter()
 
   useMounted()
   useEventSyncWithUrl()  // BUG-12: sincronizar event activo con ?event= de URL
@@ -45,6 +48,8 @@ const ListaRegalos = () => {
       )
     }
     if (!event) return <EventLoadingOrError skeletonRows={4} />
+    // Rediseño de Lista de regalos (fiel al HTML, versión reducida: solo enlace) detrás de ?studio=1.
+    if (router.query.studio) return <ListaRegalosStudio />
     return (
       <>
         {showForm ? (
