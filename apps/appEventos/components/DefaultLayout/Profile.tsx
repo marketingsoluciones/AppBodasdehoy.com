@@ -57,7 +57,7 @@ const clearDevBypass = () => {
   localStorage.removeItem('appEventos_activeEventId')
 }
 
-const Profile = ({ user, state, set, ...rest }) => {
+const Profile = ({ user, state, set, studio = false, ...rest }) => {
   const { t } = useTranslation()
   const router = useRouter()
   const pathname = usePathname()
@@ -301,7 +301,7 @@ const Profile = ({ user, state, set, ...rest }) => {
           <div className="items-center hidden md:flex gap-1 relative cursor-default">
             <div onClick={() => {
               !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/servicios") ? ht() : router.push("/servicios")
-            }} title={t("Servicios")} className={`${!event ? "opacity-40" : ""} bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/10 cursor-pointer transition`} >
+            }} title={t("Servicios")} className={`${!event ? "opacity-40" : ""} ${studio ? "w-[42px] h-[42px] bg-[#F7F6F8] hover:bg-[#FCE7F0]" : "bg-slate-100 w-8 h-8 hover:bg-primary/10"} rounded-full flex items-center justify-center cursor-pointer transition`} >
               <GoTasklist className="text-primary w-5 h-5 scale-x-90" />
             </div>
           </div>
@@ -384,8 +384,11 @@ const Profile = ({ user, state, set, ...rest }) => {
                 · Desktop: texto "Iniciar sesión" junto al icono en ≥lg
             */}
             {isAuthenticatedUser ? (
-              <div className="w-10 h-10">
-                <ImageAvatar user={user} disabledTooltip />
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10">
+                  <ImageAvatar user={user} disabledTooltip />
+                </div>
+                {studio && <span className="hidden md:block" style={{ font: "600 12.5px Poppins", color: "#3A3A42", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.displayName || user?.email}</span>}
               </div>
             ) : (
               <div

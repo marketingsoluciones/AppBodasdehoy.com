@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useState, FC, useRef, cloneElement, isValidElement } from "react";
 import type { ImgHTMLAttributes, ReactElement } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context";
 import { Banner, IconLightBulb16, InvitacionesIcon, InvitadosIcon, ListaRegalosIcon, MesasIcon, MisEventosIcon, PresupuestoIcon, ResumenIcon } from "../icons";
 import { useToast } from "../../hooks/useToast";
@@ -24,6 +24,7 @@ const Navigation: FC = () => {
   const toast = useToast();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [showSidebar, setShowSidebar] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [logoError, setLogoError] = useState(false);
@@ -180,6 +181,24 @@ const Navigation: FC = () => {
   }, []);
 
 
+  // Flag global del rediseño de header (Mis eventos.dc.html): header nuevo solo con ?studio,
+  // el actual por defecto. ?studio=legacy mantiene el clásico (coherente con los módulos).
+  const studioParam = searchParams?.get("studio");
+  const studioHeader = !!studioParam && studioParam !== "legacy";
+  const handleLogoClick = () => {
+    const path = config?.pathDomain || '/';
+    const isExternal = path.startsWith('http://') || path.startsWith('https://');
+    if (isExternal) {
+      try {
+        const parsed = new URL(path);
+        if (typeof window !== 'undefined' && parsed.origin === window.location.origin) {
+          router.push(parsed.pathname + parsed.search + parsed.hash || '/');
+        } else { router.push('/'); }
+      } catch { router.push('/'); }
+    } else { router.push(path); }
+    setIsActiveStateSwiper(0);
+  };
+
   return (
     <>
       {shouldRenderChild && user?.displayName !== 'guest' && (
@@ -193,6 +212,17 @@ const Navigation: FC = () => {
         className="f-top relative w-full bg-white"
         style={{ paddingLeft: copilotPushPx, transition: 'padding-left 0.2s ease' }}
       >
+        {studioHeader ? (
+          <div style={{ maxWidth: 1100, margin: "0 auto", height: 78, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px" }}>
+            <span onClick={handleLogoClick} className="cursor-pointer flex items-center h-[60px] shrink-0 overflow-visible" style={{ maxWidth: 208 }}>
+              {safeLogoNode ?? (<span className="px-3 py-1 rounded-lg bg-primary text-white font-title text-sm max-w-full truncate">{(typeof config?.headTitle === 'string' && config.headTitle.trim()) ? config.headTitle : (typeof config?.name === 'string' && config.name.trim()) ? config.name : 'App'}</span>)}
+            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {canSeeCopilot && <ChatToggleButton studio />}
+              <Profile studio state={isMounted} set={(act) => setIsMounted(act)} user={user} />
+            </div>
+          </div>
+        ) : (
         <div className="max-w-screen-lg h-16 px-5 lg:px-0 w-full flex justify-between items-center mx-auto inset-x-0  ">
           <span
             onClick={() => {
@@ -244,6 +274,7 @@ const Navigation: FC = () => {
             />
           </div>
         </div>
+        )}
 
         {/* segundo menu superior con las redirecciones funcionales de la app */}
         <div className={`${(urls.includes(url)) ? "hidden" : "block"}`}>
