@@ -358,7 +358,7 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
                       {t(item.title)}
                     </div>
                   ))}
-                  {optionsReduceEnd.filter((o: Option) => !["Mi perfil", "Cerrar Sesión"].includes(o.title)).map((item: Option, idx) => (
+                  {optionsReduceEnd.filter((o: Option) => !["Mi perfil", "Cerrar Sesión", "Facturacion"].includes(o.title)).map((item: Option, idx) => (
                     <div key={`e-${idx}`} onClick={(e) => { setDropwdon(false); item.onClick?.(e); }} className="flex items-center gap-[11px] px-[13px] py-2.5 rounded-[11px] cursor-pointer hover:bg-[#FCE7F0]" style={{ font: "500 13px Poppins", color: "#3A3A42" }}>
                       <span className="w-4 h-4 flex items-center justify-center text-[#6b6b72]">{item.icon}</span>
                       {t(item.title)}
