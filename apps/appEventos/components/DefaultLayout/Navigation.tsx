@@ -184,7 +184,9 @@ const Navigation: FC = () => {
   // Flag global del rediseño de header (Mis eventos.dc.html): header nuevo solo con ?studio,
   // el actual por defecto. ?studio=legacy mantiene el clásico (coherente con los módulos).
   const studioParam = searchParams?.get("studio");
-  const studioHeader = !!studioParam && studioParam !== "legacy";
+  // Encabezado rediseñado = vista POR DEFECTO en todas las pantallas (aprobado por owner).
+  // Rollback a la barra clásica con ?studio=legacy.
+  const studioHeader = studioParam !== "legacy";
   const handleLogoClick = () => {
     const path = config?.pathDomain || '/';
     const isExternal = path.startsWith('http://') || path.startsWith('https://');
