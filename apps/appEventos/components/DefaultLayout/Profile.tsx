@@ -320,7 +320,98 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
               ? "relative flex items-center gap-2.5 cursor-pointer rounded-[26px] py-[5px] pl-[5px] pr-3 hover:bg-[#F7F6F8] transition"
               : "bg-white items-center pr-2 flex relative cursor-pointer"}
             onClick={() => setDropwdon(!dropdown)}>
-            {dropdown && (
+            {dropdown && studio && (
+              <div
+                data-testid="profile-menu-dropdown"
+                className="absolute right-0 top-full mt-2.5 z-[60] w-[300px] bg-white rounded-[18px] border border-[#f0f0f2] overflow-hidden"
+                style={{ boxShadow: "0 24px 70px rgba(0,0,0,.16)" }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Cabecera */}
+                <div className="px-6 pt-[22px] pb-[18px] text-center border-b border-[#f4f4f6]">
+                  <div className="relative w-14 h-14 mx-auto mb-2.5">
+                    <div className="w-14 h-14 rounded-full overflow-hidden bg-[#EF5B94]">
+                      {isAuthenticatedUser ? <ImageAvatar user={user} disabledTooltip /> : <div className="w-full h-full flex items-center justify-center"><UserIcon className="w-7 h-7 text-white" /></div>}
+                    </div>
+                    {isAuthenticatedUser && primaryRole && (
+                      <span className="absolute -bottom-0.5 -right-1.5 bg-[#FEF6D8] text-[#B8860B] px-2 py-[3px] rounded-[10px] border-[1.5px] border-white uppercase" style={{ font: "700 8.5px Poppins", letterSpacing: ".6px" }}>{isAdmin ? "ADMIN" : t(primaryRole)}</span>
+                    )}
+                  </div>
+                  <div style={{ font: "700 15px Poppins", color: "#3A3A42" }}>{isAuthenticatedUser ? (user?.displayName || user?.email || "—") : "Invitado"}</div>
+                  {isAuthenticatedUser && <div style={{ font: "400 12px Poppins", color: "#8a8a90" }}>{user?.email || "—"}</div>}
+                </div>
+
+                {/* Opciones */}
+                <div className="p-2.5">
+                  <div onClick={() => { setDropwdon(false); config?.pathPerfil ? router.push(config.pathPerfil) : router.push("/configuracion"); }} className="flex items-center gap-[11px] px-[13px] py-2.5 rounded-[11px] cursor-pointer hover:bg-[#FCE7F0]" style={{ font: "500 13px Poppins", color: "#3A3A42" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6b72" strokeWidth={1.8} strokeLinecap="round"><circle cx="12" cy="8" r="3.4" /><path d="M5 20c1.2-3.2 3.8-5 7-5s5.8 1.8 7 5" /></svg>
+                    Mi perfil
+                  </div>
+                  <div onClick={() => { setDropwdon(false); router.push("/facturacion"); }} className="flex items-center gap-[11px] px-[13px] py-2.5 rounded-[11px] cursor-pointer hover:bg-[#FCE7F0]" style={{ font: "500 13px Poppins", color: "#3A3A42" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6b72" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="6" width="18" height="13" rx="2" /><path d="M3 10h18" /></svg>
+                    Facturación
+                  </div>
+                  {/* Módulos (se conservan todas las acciones existentes) */}
+                  {optionsReduceCenter.map((item: Option, idx) => (
+                    <div key={`c-${idx}`} onClick={(e) => { setDropwdon(false); item.onClick?.(e); }} className="flex items-center gap-[11px] px-[13px] py-2.5 rounded-[11px] cursor-pointer hover:bg-[#FCE7F0]" style={{ font: "500 13px Poppins", color: "#3A3A42" }}>
+                      <span className="w-4 h-4 flex items-center justify-center text-[#6b6b72]">{item.icon}</span>
+                      {t(item.title)}
+                    </div>
+                  ))}
+                  {optionsReduceEnd.filter((o: Option) => !["Mi perfil", "Cerrar Sesión"].includes(o.title)).map((item: Option, idx) => (
+                    <div key={`e-${idx}`} onClick={(e) => { setDropwdon(false); item.onClick?.(e); }} className="flex items-center gap-[11px] px-[13px] py-2.5 rounded-[11px] cursor-pointer hover:bg-[#FCE7F0]" style={{ font: "500 13px Poppins", color: "#3A3A42" }}>
+                      <span className="w-4 h-4 flex items-center justify-center text-[#6b6b72]">{item.icon}</span>
+                      {t(item.title)}
+                    </div>
+                  ))}
+                  {/* Notificaciones push + toggle */}
+                  {isAuthenticatedUser && (
+                    <div className="flex items-center justify-between px-[13px] py-2.5 rounded-[11px] hover:bg-[#FCE7F0]" style={{ font: "500 13px Poppins", color: "#3A3A42" }}>
+                      <div className="flex items-center gap-[11px]">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6b72" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M18 9a6 6 0 1 0-12 0c0 6-2.5 7-2.5 7h17S18 15 18 9z" /><path d="M10 20a2.2 2.2 0 0 0 4 0" /></svg>
+                        Notificaciones push
+                      </div>
+                      <div
+                        onClick={(e) => { e.stopPropagation(); if (pushPermission !== 'granted') requestPushPermission(); }}
+                        className={`w-9 h-5 rounded-xl relative flex-none transition-colors ${pushPermission === 'granted' ? 'bg-[#2FB37E] cursor-default' : 'bg-[#d4d4da] cursor-pointer'}`}
+                        title={pushPermission === 'granted' ? 'Activadas' : 'Activar'}
+                      >
+                        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${pushPermission === 'granted' ? 'left-[18px]' : 'left-0.5'}`} style={{ boxShadow: "0 1px 4px rgba(0,0,0,.2)" }} />
+                      </div>
+                    </div>
+                  )}
+                  {/* Idioma */}
+                  <div onClick={(e) => { e.stopPropagation(); setShowFlags(!showFlags); }} className="flex items-center justify-between px-[13px] py-2.5 rounded-[11px] cursor-pointer hover:bg-[#FCE7F0]" style={{ font: "500 13px Poppins", color: "#3A3A42" }}>
+                    <div className="flex items-center gap-[11px]">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6b72" strokeWidth={1.8} strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" /></svg>
+                      Idioma
+                    </div>
+                    <span style={{ font: "500 12px Poppins", color: "#8a8a90" }}>{optionSelect?.value === 'en' ? 'English' : 'Español'} ›</span>
+                  </div>
+                  {showFlags && (
+                    <div className="mx-[13px] mb-1 rounded-[10px] border border-gray-100 overflow-hidden">
+                      {idiomaArray.map((elem, idx) => (
+                        <div key={idx} onClick={(e) => { e.stopPropagation(); setOptionSelect(elem); setShowFlags(false); }} className="px-4 py-2 cursor-pointer hover:bg-gray-100" style={{ font: "500 12px Poppins", color: elem.value === optionSelect?.value ? "#EF5B94" : "#3A3A42" }}>
+                          {elem.value === 'en' ? 'English' : 'Español'}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="px-3.5 pt-3 pb-3.5 border-t border-[#f4f4f6] flex flex-col gap-2">
+                  {!!user?.uid && !["guest", "anonymous"].includes(user?.displayName) && (
+                    <button onClick={() => { setDropwdon(false); router.push("/facturacion"); }} className="py-[11px] rounded-[11px] text-white border-none cursor-pointer hover:bg-[#D83E7C]" style={{ background: "#EF5B94", font: "600 12.5px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>{t("Ver planes")}</button>
+                  )}
+                  <button onClick={(e) => { setDropwdon(false); const f = optionsEnd.find((o: Option) => o.title === "Cerrar Sesión")?.onClick; if (f) f(e); }} className="flex items-center justify-center gap-2 py-2 rounded-[10px] cursor-pointer border-none bg-transparent text-[#8a8a90] hover:bg-[#f5f5f7] hover:text-[#D83E7C]" style={{ font: "500 12.5px Poppins" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
+                    Cerrar sesión
+                  </button>
+                </div>
+              </div>
+            )}
+            {dropdown && !studio && (
               <div data-testid="profile-menu-dropdown" className="bg-white rounded-lg w-80 h-max shadow-lg shadow-gray-400 absolute top-0 right-0 translate-y-[46px] translate-x-[20px] md:-translate-x-[0px]  overflow-hidden z-[60] title-display">
                 <div className="w-full border-b border-gray-100 pb-2">
                   <p className="text-gray-500 font-extralight uppercase tracking-wider	text-xs text-center  cursor-default">
