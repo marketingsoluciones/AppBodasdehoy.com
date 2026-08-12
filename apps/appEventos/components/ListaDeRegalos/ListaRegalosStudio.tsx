@@ -53,9 +53,11 @@ export const ListaRegalosStudio: FC = () => {
       </Head>
       <style dangerouslySetInnerHTML={{ __html: `@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}@media(max-width:820px){.lr-hero{grid-template-columns:1fr !important}.lr-how{grid-template-columns:1fr !important}}` }} />
 
-      <ModalGuardarRegalo set={setShowForm} state={showForm}>
-        <FormGuardarRegalos set={setShowForm} state={showForm} />
-      </ModalGuardarRegalo>
+      {showForm && (
+        <ModalGuardarRegalo set={setShowForm} state={showForm}>
+          <FormGuardarRegalos set={setShowForm} state={showForm} />
+        </ModalGuardarRegalo>
+      )}
 
       <div style={{ maxWidth: 1040, margin: "0 auto", padding: "22px 20px 60px", animation: "fadein .2s ease" }}>
         {/* Cabecera estándar */}
