@@ -324,6 +324,9 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
   const { eventsGroup } = EventsGroupContextProvider();
   const { actionModals, setActionModals } = AuthContextProvider()
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const routerBanner = useRouter()
+  // Banner rediseñado (studio) = vista POR DEFECTO (rollback ?studio=legacy).
+  const studio = routerBanner.query.studio !== "legacy"
 
   // Dynamic import to avoid SSR issues
   const [planLimits, setPlanLimits] = useState<any>(null)
@@ -341,6 +344,119 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
     }
   }
   return (
+    studio ? (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .she-hero{max-width:1100px;margin:0 auto;padding:44px 24px 70px;display:grid;grid-template-columns:1.05fr 1fr;gap:44px;align-items:center;font-family:'Poppins',sans-serif;}
+          @media (max-width:900px){.she-hero{grid-template-columns:1fr;}}
+          .she-chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #FCE7F0;box-shadow:0 3px 10px rgba(239,91,148,.1);color:#D83E7C;font:600 12px Poppins;padding:7px 16px;border-radius:20px;margin-bottom:24px;}
+          .she-titulo{font:600 40px/1.14 Poppins;color:#3A3A42;letter-spacing:-1px;margin-bottom:12px;}
+          .she-titulo .grad{background:linear-gradient(100deg,#EF5B94,#D83E7C);-webkit-background-clip:text;background-clip:text;color:transparent;}
+          .she-sub{font:400 14.5px/1.6 Poppins;color:#6b6b72;margin-bottom:24px;max-width:390px;}
+          .she-cta{display:inline-flex;align-items:center;gap:9px;padding:13px 26px;border-radius:10px;background:#EF5B94;color:#fff;font:600 14px Poppins;border:none;cursor:pointer;box-shadow:0 6px 16px rgba(239,91,148,.3);transition:transform .15s,background .15s;}
+          .she-cta:hover{background:#D83E7C;transform:translateY(-2px);}
+          .she-social{display:flex;align-items:center;gap:12px;margin-top:26px;}
+          .she-avatars{display:flex;}
+          .she-avatars>div{width:34px;height:34px;border-radius:50%;border:2.5px solid #fff;}
+          .she-avatars>div+div{margin-left:-10px;}
+          .she-av1{background:linear-gradient(135deg,#f9c8dc,#EF5B94);}
+          .she-av2{background:linear-gradient(135deg,#e8d3c4,#c9a24b);}
+          .she-av3{background:linear-gradient(135deg,#d4c8e8,#8e7cc3);}
+          .she-avmas{background:#FCE7F0;color:#D83E7C;display:flex;align-items:center;justify-content:center;font:700 10px Poppins;}
+          .she-social-txt{font:500 12.5px/1.45 Poppins;color:#8a8a90;}
+          .she-social-txt b{color:#3A3A42;}
+          .she-visual{position:relative;max-width:390px;justify-self:end;width:100%;pointer-events:none;user-select:none;}
+          .she-halo{position:absolute;inset:-30px -10px -30px 30px;background:radial-gradient(circle at 65% 40%, #FCE7F0 0%, rgba(252,231,240,0) 68%);z-index:0;}
+          .she-card{position:relative;z-index:1;background:#fff;border:1px solid #f0f0f2;border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,.1);overflow:hidden;}
+          .she-card-head{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f4f4f6;}
+          .she-card-tipo{font:600 10px Poppins;color:#EF5B94;letter-spacing:.6px;}
+          .she-card-nombre{font:700 15px Poppins;color:#3A3A42;}
+          .she-card-fecha{display:flex;align-items:center;gap:6px;background:#FBF0DA;color:#E0A32B;font:600 11px Poppins;padding:5px 12px;border-radius:20px;}
+          .she-card-fecha i{width:6px;height:6px;border-radius:50%;background:#E0A32B;}
+          .she-card-foto{width:100%;height:170px;object-fit:cover;display:block;background:#f2f2f4;}
+          .she-card-stats{padding:16px 20px;display:flex;gap:10px;}
+          .she-stat{flex:1;background:#faf9fb;border:1px solid #f0f0f2;border-radius:12px;padding:10px 14px;text-align:center;}
+          .she-stat .num{font:700 16px Poppins;color:#3A3A42;}
+          .she-stat .num.rosa{color:#EF5B94;}
+          .she-stat .num.verde{color:#2FB37E;}
+          .she-stat .lbl{font:500 10px Poppins;color:#9aa0a6;}
+          .she-card-botones{padding:0 20px 18px;display:flex;gap:10px;}
+          .she-card-botones button{flex:1;padding:12px;border-radius:10px;background:#fff;border:1.5px solid #F3B6CE;color:#EF5B94;font:600 12.5px Poppins;cursor:pointer;}
+          .she-countdown{position:absolute;bottom:-52px;right:-14px;z-index:2;background:#fff;border:1px solid #f0f0f2;border-radius:14px;box-shadow:0 10px 26px rgba(0,0,0,.12);padding:12px 16px;display:flex;gap:14px;}
+          .she-countdown .sep{width:1px;background:#f0f0f2;}
+          .she-countdown .u{text-align:center;}
+          .she-countdown .n{font:700 17px Poppins;color:#3A3A42;}
+          .she-countdown .n.rosa{color:#EF5B94;}
+          .she-countdown .l{font:500 9.5px Poppins;color:#9aa0a6;}
+        ` }} />
+        <div style={{ background: "#F6F5F7", width: "100%" }}>
+          <section className="she-hero">
+            {/* IZQUIERDA */}
+            <div>
+              <div className="she-chip">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#EF5B94"><path d="M12 3l1.7 4.6L18 9l-4.3 1.4L12 15l-1.7-4.6L6 9l4.3-1.4L12 3z" /></svg>
+                Para wedding planners, proveedores y parejas
+              </div>
+              <h1 className="she-titulo">Todos tus eventos,<br />gestionados <span className="grad">sin estrés</span></h1>
+              <p className="she-sub">Invitados, mesas, presupuesto e invitaciones, cada evento en un solo lugar.</p>
+              <button className="she-cta" onClick={() => ConditionalAction()}>
+                Empieza a organizar
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+              </button>
+              <div className="she-social">
+                <div className="she-avatars">
+                  <div className="she-av1"></div><div className="she-av2"></div><div className="she-av3"></div><div className="she-avmas">+12k</div>
+                </div>
+                <div className="she-social-txt">Más de <b>12.000 profesionales y parejas</b><br />ya organizan sus eventos aquí</div>
+              </div>
+            </div>
+            {/* DERECHA: tarjeta de ejemplo (ilustrativa) */}
+            <div className="she-visual">
+              <div className="she-halo"></div>
+              <div className="she-card">
+                <div className="she-card-head">
+                  <div style={{ lineHeight: 1.25 }}>
+                    <div className="she-card-tipo">BODA</div>
+                    <div className="she-card-nombre">Boda Luis y Carla</div>
+                  </div>
+                  <span className="she-card-fecha"><i></i>18 Nov 2028</span>
+                </div>
+                <img className="she-card-foto" src="/studio/hero-evento-ejemplo.jpg" alt="Foto del evento" />
+                <div className="she-card-stats">
+                  <div className="she-stat"><div className="num rosa">4 de 6</div><div className="lbl">pasos del evento</div></div>
+                  <div className="she-stat"><div className="num">100</div><div className="lbl">invitados totales</div></div>
+                  <div className="she-stat"><div className="num verde">50 de 50</div><div className="lbl">sentados en tu evento</div></div>
+                </div>
+                <div className="she-card-botones">
+                  <button>Ver mi itinerario</button>
+                  <button>Lugar del evento</button>
+                </div>
+              </div>
+              <div className="she-countdown">
+                <div className="u"><div className="n">24</div><div className="l">días</div></div>
+                <div className="sep"></div>
+                <div className="u"><div className="n">12</div><div className="l">horas</div></div>
+                <div className="sep"></div>
+                <div className="u"><div className="n rosa">59</div><div className="l">min</div></div>
+              </div>
+            </div>
+          </section>
+        </div>
+        {showUpgradeModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 flex flex-col items-center gap-4 text-center">
+              <div className="text-4xl">🎉</div>
+              <h2 className="font-display text-xl font-semibold text-gray-800">Has llegado al límite de eventos</h2>
+              <p className="text-sm text-gray-600 leading-relaxed">{planLimits?.upgradeMessage?.('events-count') || 'Actualiza tu plan para crear más eventos.'}</p>
+              <div className="flex flex-col gap-2 w-full mt-2">
+                <Link href="/facturacion" className="w-full py-3 rounded-full bg-primary text-white font-medium text-sm hover:opacity-80 transition text-center">Ver planes</Link>
+                <button onClick={() => setShowUpgradeModal(false)} className="w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition">Cerrar</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    ) : (
     <div className="banner bg-base w-full flex justify-center h-[48%] md:h-[60%] min-h-[48%] md:min-h-[400px] px-5 md:px-0 overflow-hidden relative mb-1">
       <div className="md:max-w-screen-lg 2xl:max-w-screen-xl w-full grid md:grid-cols-5 h-full">
         <div className="flex flex-col justify-center relative py-10 md:py-0 col-span-2">
@@ -424,6 +540,7 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
         </div>
       )}
     </div>
+    )
   );
 };
 
