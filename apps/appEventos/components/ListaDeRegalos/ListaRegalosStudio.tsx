@@ -63,6 +63,20 @@ export const ListaRegalosStudio: FC = () => {
         {/* Cabecera estándar */}
         <div style={{ marginBottom: 16 }}><BlockTitle title={"Lista de regalos"} /></div>
 
+        {/* STATS ROW — fiel al HTML. Importes en 0,00 € (sin backend de aportaciones aún) */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginBottom: 18 }}>
+          <div style={{ font: "800 22px Poppins", color: "#EF5B94" }}>0,00 € <span style={{ font: "600 14px Poppins", color: "#3A3A42" }}>Valor total</span></div>
+          <div style={{ flex: 1 }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 7, background: "#E4F5EE", color: "#2FB37E", font: "600 12px Poppins", padding: "8px 14px", borderRadius: 20 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#2FB37E" }} />Conseguido 0,00 €</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 7, background: "#FBF0DA", color: "#E0A32B", font: "600 12px Poppins", padding: "8px 14px", borderRadius: 20 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#E0A32B" }} />Pendiente 0,00 €</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 11, padding: "8px 14px" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="7" width="18" height="12" rx="2" /><path d="M3 11h18" /></svg>
+            <span style={{ font: "500 12px Poppins", color: "#8a8a90" }}>Saldo transferible</span>
+            <span style={{ font: "700 13px Poppins", color: "#3A3A42" }}>0,00 €</span>
+            <button title="Disponible cuando la lista tenga aportaciones" disabled style={{ marginLeft: 4, padding: "6px 12px", borderRadius: 9, background: "#FCE7F0", color: "#D83E7C", font: "600 11.5px Poppins", border: "none", cursor: "not-allowed", opacity: .55 }}>Transferir</button>
+          </div>
+        </div>
+
         {/* divisor rosa */}
         <div style={{ height: 3, borderRadius: 3, background: "linear-gradient(90deg,#EF5B94,#f9b6d1)", marginBottom: 22 }} />
 
@@ -73,7 +87,7 @@ export const ListaRegalosStudio: FC = () => {
               <div style={{ maxWidth: 520 }}>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#FCE7F0", color: "#D83E7C", font: "600 11px Poppins", letterSpacing: ".6px", padding: "6px 13px", borderRadius: 20, marginBottom: 14 }}>CONECTA CON AMAZON</div>
                 <div style={{ font: "700 26px/1.3 Poppins", color: "#3A3A42", marginBottom: 10 }}>Crea la lista de regalos del evento</div>
-                <div style={{ font: "400 13.5px/1.65 Poppins", color: "#8a8a90", marginBottom: 24 }}>Millones de opciones para elegir. Comparte el enlace con tus invitados para que puedan ver tu lista y elegir su regalo.</div>
+                <div style={{ font: "400 13.5px/1.65 Poppins", color: "#8a8a90", marginBottom: 24 }}>Millones de opciones para elegir. Los invitados podrán comprar el regalo o aportar dinero, y el saldo se transfiere a los anfitriones del evento.</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                   <a href={isAllowed() ? AMAZON_CREATE_URL : undefined} onClick={!isAllowed() ? (e) => { e.preventDefault(); ht(); } : undefined} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 9, padding: "12px 22px", borderRadius: 11, background: "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", textDecoration: "none" }}><span style={{ display: "flex", filter: "brightness(0) invert(1)" }}><AmazonIcon /></span>Crear la lista en Amazon</a>
                   <button onClick={guardEdit} style={{ padding: "12px 20px", borderRadius: 11, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12.5px Poppins", cursor: "pointer" }}>Ya tengo una lista · Vincular</button>
@@ -88,8 +102,8 @@ export const ListaRegalosStudio: FC = () => {
             <div style={{ font: "700 15px Poppins", color: "#3A3A42", marginBottom: 14 }}>¿Cómo funciona la lista?</div>
             <div className="lr-how" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
               {card("1", <ListaOne />, "Crea la lista", "Añade los regalos del evento entre millones de opciones de Amazon.")}
-              {card("2", <CompartirIcon />, "Compártela", "Envía el enlace a tus invitados para que puedan ver la lista y elegir su regalo.")}
-              {card("3", <DineroIcon />, "Recibe el regalo", "Tus invitados eligen y compran el regalo directamente desde tu lista.")}
+              {card("2", <CompartirIcon />, "Compártela", "Envíala a los invitados para que puedan participar y elegir su regalo.")}
+              {card("3", <DineroIcon />, "Recibe el dinero", "El saldo conseguido se transfiere a la cuenta de los anfitriones cuando quieran.")}
             </div>
           </>
         ) : (
