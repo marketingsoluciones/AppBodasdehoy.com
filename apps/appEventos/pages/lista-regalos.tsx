@@ -48,8 +48,9 @@ const ListaRegalos = () => {
       )
     }
     if (!event) return <EventLoadingOrError skeletonRows={4} />
-    // Rediseño de Lista de regalos (fiel al HTML, versión reducida: solo enlace) detrás de ?studio=1.
-    if (router.query.studio) return <ListaRegalosStudio />
+    // Rediseño de Lista de regalos (fiel al HTML) = vista POR DEFECTO (aprobado por owner).
+    // Rollback a la vista clásica con ?studio=legacy. Datos de regalos pendientes de backend.
+    if (router.query.studio !== "legacy") return <ListaRegalosStudio />
     return (
       <>
         {showForm ? (
