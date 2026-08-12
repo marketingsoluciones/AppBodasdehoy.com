@@ -66,7 +66,7 @@ function extractEventName(message: string): string | null {
 // Component
 // ========================================
 
-export const Notifications = () => {
+export const Notifications = ({ studio = false }: { studio?: boolean } = {}) => {
   const { t } = useTranslation()
   const { event: selectedEvent } = EventContextProvider()
   const { eventsGroup } = EventsGroupContextProvider();
@@ -262,13 +262,26 @@ export const Notifications = () => {
           aria-label={api2UnreadCount > 0 ? `Notificaciones, ${api2UnreadCount} sin leer` : "Notificaciones"}
           aria-expanded={showPanel}
           aria-haspopup="dialog"
-          className="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer border-0 p-0 relative"
+          title={studio ? "Notificaciones" : undefined}
+          className={studio
+            ? "w-[42px] h-[42px] rounded-full flex items-center justify-center cursor-pointer border-0 p-0 relative bg-[#F7F6F8] hover:bg-[#FCE7F0] text-[#6b6b72] hover:text-[#EF5B94] transition"
+            : "bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 cursor-pointer border-0 p-0 relative"}
         >
-          <RiNotification2Fill className="text-primary w-6 h-6 scale-x-90" />
+          {studio ? (
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg>
+          ) : (
+            <RiNotification2Fill className="text-primary w-6 h-6 scale-x-90" />
+          )}
           {api2UnreadCount > 0 && (
-            <span className="absolute -top-2 -right-2 min-w-[24px] h-[24px] rounded-full bg-red-600 flex items-center justify-center shadow-md">
-              <span className="text-white text-[11px] font-bold leading-none">{api2UnreadCount > 99 ? '99+' : api2UnreadCount}</span>
-            </span>
+            studio ? (
+              <span className="absolute flex items-center justify-center" style={{ top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 10, background: "#EF5B94", color: "#fff", font: "700 9.5px Poppins", padding: "0 4px", border: "2px solid #fff" }}>
+                {api2UnreadCount > 9 ? '9+' : api2UnreadCount}
+              </span>
+            ) : (
+              <span className="absolute -top-2 -right-2 min-w-[24px] h-[24px] rounded-full bg-red-600 flex items-center justify-center shadow-md">
+                <span className="text-white text-[11px] font-bold leading-none">{api2UnreadCount > 99 ? '99+' : api2UnreadCount}</span>
+              </span>
+            )
           )}
         </button>
 

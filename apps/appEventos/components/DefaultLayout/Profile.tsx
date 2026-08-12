@@ -301,13 +301,17 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
           <div className="items-center hidden md:flex gap-1 relative cursor-default">
             <div onClick={() => {
               !event ? toast("error", t("nohaveeventscreated")) : !isAllowedRouter("/servicios") ? ht() : router.push("/servicios")
-            }} title={t("Servicios")} className={`${!event ? "opacity-40" : ""} ${studio ? "w-[42px] h-[42px] bg-[#F7F6F8] hover:bg-[#FCE7F0]" : "bg-slate-100 w-8 h-8 hover:bg-primary/10"} rounded-full flex items-center justify-center cursor-pointer transition`} >
-              <GoTasklist className="text-primary w-5 h-5 scale-x-90" />
+            }} title={t("Servicios")} className={`${!event ? "opacity-40" : ""} ${studio ? "w-[42px] h-[42px] bg-[#F7F6F8] hover:bg-[#FCE7F0] text-[#6b6b72] hover:text-[#EF5B94]" : "bg-slate-100 w-8 h-8 hover:bg-primary/10"} rounded-full flex items-center justify-center cursor-pointer transition`} >
+              {studio ? (
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round"><path d="M4.5 6.5l1 1 2-2M4.5 12l1 1 2-2M4.5 17.5l1 1 2-2" /><path d="M11 6.5h8.5M11 12h8.5M11 17.5h8.5" /></svg>
+              ) : (
+                <GoTasklist className="text-primary w-5 h-5 scale-x-90" />
+              )}
             </div>
           </div>
         }
         {isAuthenticatedUser &&
-          <Notifications />
+          <Notifications studio={studio} />
         }
         <ClickAwayListener onClickAway={() => dropdown && setDropwdon(false)}>
           <div
@@ -404,14 +408,19 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
           </div>
         </ClickAwayListener>
         <div onClick={() => { setShowFlags(!showFlags) }} className=" flex items-center cursor-pointer" >
-          {
+          {studio ? (
+            <div className="flex items-center gap-1.5 -ml-3" style={{ font: "500 11px Poppins", color: "#8a8a90" }}>
+              <span style={{ fontSize: 14, lineHeight: 1 }}>{optionSelect?.value === 'en' ? '\ud83c\uddec\ud83c\udde7' : '\ud83c\uddea\ud83c\uddf8'}</span>
+              <span className="hidden md:flex">{optionSelect?.value === 'en' ? 'English' : 'Espa\u00f1ol'}</span>
+            </div>
+          ) : (
             optionSelect?.flag &&
             <div className="space-x-1 flex items-center justify-center text-sm -ml-4">
               <img alt={optionSelect?.title ?? 'idioma'} src={`/flags-svg/${optionSelect?.flag}.svg`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')} width={22} className="border-[1px] border-gray-500" />
               <span className="hidden md:flex text-gray-600">{optionSelect?.title}</span>
             </div >
-          }
-          <IoIosArrowDown className="text-gray-500" />
+          )}
+          <IoIosArrowDown className={studio ? "text-[#8a8a90]" : "text-gray-500"} />
           {showFlags && <ClickAwayListener onClickAway={() => { setShowFlags(false) }}>
             <div className={`bg-white w-max h-max absolute translate-y-10 z-10 border-[1px] rounded-b-xl flex flex-col right-0 shadow-md`}>
               <ul className="w-full  cursor-pointer text-gray-900 text-xs py-1  ">
