@@ -402,15 +402,13 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
                       style={{ font: "500 10.5px Poppins", color: "#8a8a90" }}
                       onClick={(e) => { e.stopPropagation(); setShowFlags(!showFlags); }}
                     >
-                      <img alt={optionSelect?.title ?? 'idioma'} src={`/flags-svg/${optionSelect?.flag}.svg`.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')} style={{ width: 16, height: 11, objectFit: "cover", borderRadius: 2 }} />
                       <span>{optionSelect?.value === 'en' ? 'English' : 'Español'}</span>
                       {showFlags && (
                         <ClickAwayListener onClickAway={() => setShowFlags(false)}>
                           <div className="bg-white w-max h-max absolute left-0 top-full mt-1 z-[70] border border-gray-200 rounded-lg flex flex-col shadow-md" onClick={(e) => e.stopPropagation()}>
                             <ul className="w-full cursor-pointer text-gray-900 text-xs py-1">
                               {idiomaArray.map((elem, idx) => (
-                                <li key={idx} onClick={(e) => { e.stopPropagation(); setOptionSelect(elem); setShowFlags(false); }} className="flex gap-1.5 items-center hover:bg-gray-100 px-3 py-1.5">
-                                  <img alt={elem.title ?? 'idioma'} src={`/flags-svg/${elem.flag}.svg`.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')} className="object-cover w-5 h-3.5 rounded-[2px]" />
+                                <li key={idx} onClick={(e) => { e.stopPropagation(); setOptionSelect(elem); setShowFlags(false); }} className="px-4 py-1.5 hover:bg-gray-100">
                                   <span className="text-gray-700">{elem.value === 'en' ? 'English' : 'Español'}</span>
                                 </li>
                               ))}
