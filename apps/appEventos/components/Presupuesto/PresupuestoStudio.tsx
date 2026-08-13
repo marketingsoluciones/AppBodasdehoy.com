@@ -7,10 +7,8 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { getCurrency } from "../../utils/Funciones";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useToast } from "../../hooks/useToast";
-import ModalLeft from "../Utils/ModalLeft";
 import ClickAwayListener from "react-click-away-listener";
 import BlockTitle from "../Utils/BlockTitle";
-import FormCrearCategoria from "../Forms/FormCrearCategoria";
 import BlockCategoria from "./BlockCategoria";
 import BlockPagos from "./BlockPagos";
 import { ExcelView } from "./ExcelView";
@@ -21,6 +19,9 @@ import { DuplicatePresupuesto } from "./DuplicatePesupuesto";
 interface Props {
   categorias: any[];
 }
+
+// Nombre de categoría: iniciar SIEMPRE con mayúscula (solo la primera letra, resto tal cual).
+const cap1 = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s || "");
 
 const PresupuestoStudio: FC<Props> = ({ categorias }) => {
   const { t } = useTranslation();
@@ -33,6 +34,9 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
   const [showCategoria, setShowCategoria] = useState<{ state: boolean; _id: string }>({ state: false, _id: "" });
   const [getId, setGetId] = useState<any>();
   const [showCreateCat, setShowCreateCat] = useState(false);
+  const [ncName, setNcName] = useState("");
+  const [ncEst, setNcEst] = useState("");
+  const [ncSaving, setNcSaving] = useState(false);
   const [showDup, setShowDup] = useState(false);
   const [totOpen, setTotOpen] = useState(false);
   const [totDraft, setTotDraft] = useState("");
@@ -133,6 +137,53 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
     }).catch(() => { });
   };
 
+  // Parseo de importe en formato español: "1.500" -> 1500, "1500,50" -> 1500.5
+  const parseEs = (s: string) => {
+    const n = parseFloat(String(s).replace(/[^\d.,]/g, "").replace(/\./g, "").replace(",", "."));
+    return Number.isNaN(n) ? 0 : n;
+  };
+
+  const closeCreateCat = () => { setShowCreateCat(false); setNcName(""); setNcEst(""); };
+
+  const createCategoria = async () => {
+    const nombre = ncName.trim();
+    if (!nombre || ncSaving) return;
+    if (!isAllowed()) { ht(); return; }
+    setNcSaving(true);
+    try {
+      const prevIds = new Set((event?.presupuesto_objeto?.categorias_array || []).map((c: any) => c._id));
+      const result: any = await fetchApiEventos({
+        query: queries.nuevoCategoria,
+        variables: { evento_id: event._id, nombre },
+      });
+      if (result?.success === false && Array.isArray(result?.errors) && result.errors.length) {
+        setNcSaving(false);
+        toast("error", t("Ha ocurrido un error"));
+        return;
+      }
+      let po = result?.evento?.presupuesto_objeto;
+      const est = parseEs(ncEst);
+      if (est > 0 && Array.isArray(po?.categorias_array)) {
+        const nueva = po.categorias_array.find((c: any) => !prevIds.has(c._id))
+          || [...po.categorias_array].reverse().find((c: any) => String(c.nombre || "").toLowerCase() === nombre.toLowerCase());
+        if (nueva?._id) {
+          const r2: any = await fetchApiEventos({
+            query: queries.editCategoria,
+            variables: { evento_id: event._id, categoria_id: nueva._id, updates: { coste_estimado: est } },
+          });
+          if (r2?.evento?.presupuesto_objeto) po = r2.evento.presupuesto_objeto;
+        }
+      }
+      if (po) setEvent((prev: any) => ({ ...prev, presupuesto_objeto: po }));
+      closeCreateCat();
+      toast("success", t("Categoría creada"));
+    } catch (e) {
+      toast("error", t("Ha ocurrido un error"));
+    } finally {
+      setNcSaving(false);
+    }
+  };
+
   const deleteCat = async (categoria: any) => {
     try {
       await fetchApiEventos({
@@ -165,6 +216,8 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
     .ps-del:hover{background:#FBE4EF!important;color:#D83E7C!important;}
     .ps-btn2:hover{background:#faf9fb!important;color:#3A3A42!important;}
     .ps-mod:hover{color:#EF5B94!important;}
+    .ps-ncinput:focus{border-color:#EF5B94!important;}
+    .ps-close:hover{background:#faf9fb!important;color:#3A3A42!important;}
     .ps-scroll{scrollbar-width:none;-ms-overflow-style:none;}
     .ps-scroll::-webkit-scrollbar{display:none;}
     @keyframes grow{from{opacity:0;transform:scale(.96);}to{opacity:1;transform:scale(1);}}
@@ -178,10 +231,10 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
     const stTitle = fin === 0 ? t("Sin gasto") : fin > est ? t("Excedido") : t("Dentro del estimado");
     const totCol = fin > est && fin > 0 ? "#D83E7C" : "#3A3A42";
     return (
-      <div key={c._id} className="ps-row" onClick={() => selectCat(c)} style={{ display: "grid", gridTemplateColumns: "minmax(120px,1fr) 76px 76px 18px 32px", gap: 8, alignItems: "center", padding: faded ? "9px 18px" : "12px 18px", borderBottom: "1px solid #f6f6f8", cursor: "pointer", background: showCategoria._id === c._id ? "#FCF4F8" : "#fff" }}>
+      <div key={c._id} className="ps-row" onClick={() => selectCat(c)} style={{ display: "grid", gridTemplateColumns: "minmax(120px,1fr) 76px 76px 18px 32px", gap: 8, alignItems: "center", padding: faded ? "9px 18px" : "12px 18px", borderBottom: "1px solid #f6f6f8", cursor: "pointer", background: showCategoria._id === c._id ? "#FCE7F0" : "#fff" }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{ font: faded ? "500 12.5px Poppins" : "600 13px Poppins", color: faded ? "#a0a0a8" : "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.nombre}</div>
-          {!faded && <div style={{ height: 4, borderRadius: 4, background: "#f0f0f2", marginTop: 5, overflow: "hidden" }}><div style={{ height: "100%", width: `${barW}%`, background: "#EF5B94", borderRadius: 4, transition: "width .8s cubic-bezier(.2,.7,.2,1)" }} /></div>}
+          <div style={{ font: faded ? "500 12.5px Poppins" : "600 13px Poppins", color: faded ? "#a0a0a8" : "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cap1(c.nombre)}</div>
+          {!faded && <div style={{ height: 4, borderRadius: 4, background: "#f0f0f2", marginTop: 5, overflow: "hidden" }}><div style={{ height: "100%", width: `${barW}%`, background: fin > est ? "#D83E7C" : "#EF5B94", borderRadius: 4, transition: "width .8s cubic-bezier(.2,.7,.2,1)" }} /></div>}
         </div>
         <div style={{ textAlign: "right", font: faded ? "500 12px Poppins" : "600 12.5px Poppins", color: faded ? "#b3b3ba" : "#8a8a90" }}>{getCurrency(est, cur)}</div>
         <div style={{ textAlign: "right", font: faded ? "500 12px Poppins" : "700 12.5px Poppins", color: faded ? "#c0c0c8" : totCol }}>{getCurrency(fin, cur)}</div>
@@ -195,10 +248,29 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
     <div className="w-full h-full flex flex-col" style={{ background: "#faf9fb", fontFamily: "'Poppins',sans-serif" }}>
       <style dangerouslySetInnerHTML={{ __html: CATSTYLE }} />
 
-      {showCreateCat && (
-        <ModalLeft state={showCreateCat} set={setShowCreateCat}>
-          <FormCrearCategoria state={showCreateCat} set={setShowCreateCat} />
-        </ModalLeft>
+      {showCreateCat && mounted && typeof document !== "undefined" && createPortal(
+        <div onClick={closeCreateCat} style={{ position: "fixed", inset: 0, background: "rgba(30,30,40,.38)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, padding: 20, fontFamily: "'Poppins',sans-serif" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "#fff", borderRadius: 16, boxShadow: "0 20px 50px rgba(0,0,0,.2)", width: "min(420px,92vw)", padding: "26px 28px", animation: "grow .25s ease" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+              <div style={{ font: "700 17px Poppins", color: "#3A3A42" }}>{t("Nueva categoría")}</div>
+              <button className="ps-close" title={t("Cerrar")} onClick={closeCreateCat} style={{ width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#a0a0a8", background: "none", border: "none", cursor: "pointer" }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg></button>
+            </div>
+            <div style={{ font: "500 12px Poppins", color: "#8a8a90", marginBottom: 18 }}>{t("Crea una categoría para organizar los gastos de tu evento.")}</div>
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ font: "600 12px Poppins", color: "#6b6b72", marginBottom: 6 }}>{t("Nombre de la categoría")}</div>
+              <input className="ps-ncinput" autoFocus value={ncName} onChange={(e) => setNcName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") createCategoria(); }} placeholder={t("Ej. Transporte") as string} style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid #E7E7EA", font: "500 13.5px Poppins", color: "#3A3A42", outline: "none" }} />
+            </div>
+            <div style={{ marginBottom: 22 }}>
+              <div style={{ font: "600 12px Poppins", color: "#6b6b72", marginBottom: 6 }}>{t("Presupuesto estimado")} <span style={{ fontWeight: 500, color: "#a0a0a8" }}>({t("opcional")})</span></div>
+              <input className="ps-ncinput" value={ncEst} onChange={(e) => setNcEst(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") createCategoria(); }} placeholder="0 €" style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid #E7E7EA", font: "500 13.5px Poppins", color: "#3A3A42", outline: "none" }} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button className="ps-btn2" onClick={closeCreateCat} style={{ padding: "10px 18px", borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12.5px Poppins", cursor: "pointer" }}>{t("Cancelar")}</button>
+              <button onClick={createCategoria} disabled={!ncName.trim() || ncSaving} style={{ padding: "10px 20px", borderRadius: 10, background: ncName.trim() ? "#EF5B94" : "#c8c8ce", border: "none", color: "#fff", font: "600 12.5px Poppins", cursor: ncName.trim() ? "pointer" : "default", boxShadow: "0 6px 16px rgba(239,91,148,.25)", transition: "background .15s" }}>{t("createcategory")}</button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
       {showDup && (
         <div className="absolute z-50 flex justify-center w-full">
@@ -333,7 +405,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                   <>
                     <div className="ps-row" onClick={() => setShowZero((v) => !v)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 18px", borderBottom: "1px solid #f6f6f8", cursor: "pointer", font: "600 12.5px Poppins", color: "#8a8a90" }}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" style={{ transform: showZero ? "rotate(180deg)" : "none", transition: "transform .15s" }}><path d="M6 9l6 6 6-6" /></svg>
-                      {showZero ? t("Ocultar categorías sin gasto") : `${t("Ver categorías sin gasto")} (${catsZero.length})`}
+                      {showZero ? t("Ocultar categorías sin gasto") : `${t("Ver")} ${catsZero.length} ${catsZero.length === 1 ? t("categoría sin gasto") : t("categorías sin gasto")}`}
                     </div>
                     {showZero && catsZero.map((c) => catRow(c, true))}
                   </>
@@ -343,11 +415,6 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                   <div style={{ textAlign: "right", font: "700 13px Poppins", color: "#3A3A42" }}>{getCurrency(sumEst, cur)}</div>
                   <div style={{ textAlign: "right", font: "700 13px Poppins", color: "#EF5B94" }}>{getCurrency(sumFinal, cur)}</div>
                   <div /><div />
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 18px 14px", font: "500 10.5px Poppins", color: "#a0a0a8", flexWrap: "wrap" }}>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#2FB37E" }} />{t("Dentro del estimado")}</span>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#D83E7C" }} />{t("Excedido")}</span>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#d6d6dc" }} />{t("Sin gasto")}</span>
                 </div>
               </div>
 
@@ -384,7 +451,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                           {donut.segs.map((s, i) => (
                             <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                               <span style={{ width: 10, height: 10, borderRadius: 3, flex: "none", background: s.color }} />
-                              <div style={{ flex: 1, font: "600 12px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>{s.nombre}</div>
+                              <div style={{ flex: 1, font: "600 12px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>{cap1(s.nombre)}</div>
                               <div style={{ font: "600 11.5px Poppins", color: "#a0a0a8" }}>{s.pct}%</div>
                               <div style={{ font: "700 12px Poppins", color: "#3A3A42", width: 64, textAlign: "right" }}>{getCurrency(s.val, cur)}</div>
                             </div>
