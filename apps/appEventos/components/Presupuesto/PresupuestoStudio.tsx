@@ -9,7 +9,7 @@ import { useAllowed } from "../../hooks/useAllowed";
 import { useToast } from "../../hooks/useToast";
 import ClickAwayListener from "react-click-away-listener";
 import BlockTitle from "../Utils/BlockTitle";
-import BlockCategoria from "./BlockCategoria";
+import DetalleCategoriaStudio from "./DetalleCategoriaStudio";
 import BlockPagos from "./BlockPagos";
 import { ExcelView } from "./ExcelView";
 import WeddingFinanceManager from "./TableroPresupuesto/WeddingFinanceManager";
@@ -421,7 +421,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
               {/* DERECHA: DETALLE o DONUT */}
               <div className="min-w-0">
                 {showCategoria.state ? (
-                  <BlockCategoria showCategoria={showCategoria} setShowCategoria={setShowCategoria} setGetId={setGetId} categorias_array={cats} />
+                  <DetalleCategoriaStudio categoriaId={showCategoria._id} onClose={() => setShowCategoria({ state: false, _id: "" })} />
                 ) : (
                   <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 4px 14px rgba(0,0,0,.05)", padding: 20 }}>
                     {/* Cabecera clicable → alterna abierto/cerrado */}
