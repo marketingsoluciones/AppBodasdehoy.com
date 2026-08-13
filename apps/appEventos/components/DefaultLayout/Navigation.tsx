@@ -296,7 +296,7 @@ const Navigation: FC = () => {
         {/* segundo menu superior con las redirecciones funcionales de la app */}
         <div className={`${(urls.includes(url)) ? "hidden" : "block"}`}>
           {studioHeader ? (
-            <div className="hidden md:block bg-base">
+            <div className={`hidden md:block ${pathname === '/' ? 'bg-base' : ''}`}>
               <style dangerouslySetInnerHTML={{ __html: ".mbar-item svg{width:32px;height:32px;fill:currentColor}.mbar-item .mhole{fill:var(--hole)}" }} />
               <div className="max-w-[1100px] mx-auto px-6">
                 <nav
