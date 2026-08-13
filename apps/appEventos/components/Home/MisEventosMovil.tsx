@@ -75,7 +75,7 @@ const MisEventosMovil: FC<{ onCreate: () => void }> = ({ onCreate }) => {
   ];
 
   return (
-    <div className="md:hidden" style={{ position: "fixed", inset: 0, zIndex: 50, background: "#F6F5F7", display: "flex", flexDirection: "column", fontFamily: "'Poppins',sans-serif" }}>
+    <div className="md:hidden flex flex-col" style={{ position: "fixed", inset: 0, zIndex: 50, background: "#F6F5F7", fontFamily: "'Poppins',sans-serif" }}>
       <style dangerouslySetInnerHTML={{ __html: ".mev-scroll,.mev-tabs{scrollbar-width:none;-ms-overflow-style:none;}.mev-scroll::-webkit-scrollbar,.mev-tabs::-webkit-scrollbar{display:none;width:0;height:0;}" }} />
 
       {/* Spacer = alto del header fijo (barra superior studio 78px). La cabecera visible
