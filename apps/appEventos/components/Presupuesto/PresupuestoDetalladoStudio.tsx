@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from "react";
+import { FC, useMemo, useRef, useState } from "react";
 import { EventContextProvider } from "../../context";
 import { useTranslation } from "react-i18next";
 import { fetchApiEventos, queries } from "../../utils/Fetching";
@@ -37,9 +37,22 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
   const [guestMode, setGuestMode] = useState<"conf" | "est">("conf");
   const [editRow, setEditRow] = useState<string | null>(null);
   const [editVals, setEditVals] = useState<{ nombre: string; coste_estimado: string; coste_final: string }>({ nombre: "", coste_estimado: "", coste_final: "" });
+  const filRef = useRef<HTMLButtonElement>(null);
+  const infRef = useRef<HTMLButtonElement>(null);
+  const colRef = useRef<HTMLButtonElement>(null);
+  // Ancla un panel debajo de su botón (relativo al contenedor position:relative del componente).
+  const anchorPos = (ref: any, w: number, alignRight = false) => {
+    const b = ref.current;
+    if (!b) return { top: 48, left: 12 };
+    const top = b.offsetTop + b.offsetHeight + 10;
+    const left = alignRight ? Math.max(8, b.offsetLeft + b.offsetWidth - w) : Math.max(8, b.offsetLeft);
+    return { top, left };
+  };
 
   const cats = Array.isArray(categorias) ? categorias : [];
   const isOpen = (id: string) => open[id] !== false;
+  // Checkbox custom (rosa garantizado, sin depender de accent-color del navegador)
+  const chkBox = (on: boolean): any => ({ width: 16, height: 16, borderRadius: 5, display: "inline-flex", alignItems: "center", justifyContent: "center", background: on ? "#EF5B94" : "#fff", border: `1.5px solid ${on ? "#EF5B94" : "#d8d8dd"}`, color: "#fff", fontSize: 11, flex: "none" });
 
   // Columnas (algunas ocultables desde "Columnas")
   const ALL_COLS = [
@@ -158,9 +171,9 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
             <input className="pd-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Buscar…") as string} style={{ border: "none", background: "none", flex: 1, minWidth: 0, font: "500 12.5px Poppins", color: "#3A3A42", outline: "none" }} />
           </div>
 
-          <button className="pd-tool" onClick={() => setPanel(panel === "filtros" ? null : "filtros")} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12.5px Poppins", color: filtersActive ? "#EF5B94" : "#6b6b72", cursor: "pointer", background: "none", border: "none", padding: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M3 5h18l-7 8v6l-4 2v-8z" /></svg>{t("Filtros")}</button>
-          <button className="pd-tool" onClick={() => setPanel(panel === "info" ? null : "info")} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12.5px Poppins", color: panel === "info" ? "#EF5B94" : "#6b6b72", cursor: "pointer", background: "none", border: "none", padding: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h0" /></svg>{t("Info evento")}</button>
-          <button className="pd-tool" onClick={() => setPanel(panel === "columnas" ? null : "columnas")} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12.5px Poppins", color: panel === "columnas" ? "#EF5B94" : "#6b6b72", cursor: "pointer", background: "none", border: "none", padding: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M10 4v16M14 4v16" /></svg>{t("Columnas")}</button>
+          <button ref={filRef} className="pd-tool" onClick={() => setPanel(panel === "filtros" ? null : "filtros")} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12.5px Poppins", color: filtersActive ? "#EF5B94" : "#6b6b72", cursor: "pointer", background: "none", border: "none", padding: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M3 5h18l-7 8v6l-4 2v-8z" /></svg>{t("Filtros")}</button>
+          <button ref={infRef} className="pd-tool" onClick={() => setPanel(panel === "info" ? null : "info")} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12.5px Poppins", color: panel === "info" ? "#EF5B94" : "#6b6b72", cursor: "pointer", background: "none", border: "none", padding: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h0" /></svg>{t("Info evento")}</button>
+          <button ref={colRef} className="pd-tool" onClick={() => setPanel(panel === "columnas" ? null : "columnas")} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12.5px Poppins", color: panel === "columnas" ? "#EF5B94" : "#6b6b72", cursor: "pointer", background: "none", border: "none", padding: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M10 4v16M14 4v16" /></svg>{t("Columnas")}</button>
 
           <div style={{ display: "flex", alignItems: "center", gap: 28, marginLeft: "auto" }}>
             <div style={{ textAlign: "right", whiteSpace: "nowrap" }}><div style={{ font: "500 11.5px Poppins", color: "#a0a0a8" }}>{t("Total")}</div><div style={{ font: "700 13px Poppins", color: "#3A3A42" }}>{getCurrency(totals.tot, cur)}</div></div>
@@ -267,7 +280,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
         const lblTxt: any = { font: "600 13px Poppins", color: "#3A3A42", marginBottom: 7 };
         const allChecked = cats.length > 0 && filters.categories.length === cats.length;
         return (
-          <div style={{ position: "absolute", top: 48, left: 12, zIndex: 50, width: 320, background: "#fff", border: "1px solid #ececef", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,.14)", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}>
+          <div style={{ position: "absolute", ...anchorPos(filRef, 320), zIndex: 50, width: 320, background: "#fff", border: "1px solid #ececef", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,.14)", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}>
             <div style={{ display: "flex", alignItems: "center", padding: "16px 18px", borderBottom: "1px solid #f2f2f4" }}>
               <div style={{ font: "700 15px Poppins", color: "#3A3A42", flex: 1 }}>{t("Filtros")}</div>
               <button className="pd-limpiar" onClick={() => { onClearFilters(); setViewLevel(3); }} style={{ font: "600 12.5px Poppins", color: "#EF5B94", background: "none", border: "none", cursor: "pointer", padding: "4px 8px" }}>{t("Limpiar")}</button>
@@ -286,14 +299,14 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
               <div>
                 <div style={lblTxt}>{t("Filtrar por categorías")} ({filters.categories.length} {t("seleccionadas")})</div>
                 <div className="pd-scrollx" style={{ border: "1.5px solid #E7E7EA", borderRadius: 10, maxHeight: 150, overflowY: "auto" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 12px", borderBottom: "1px solid #f4f4f6", cursor: "pointer", font: "600 12.5px Poppins", color: "#EF5B94" }}>
-                    <input type="checkbox" checked={allChecked} onChange={(e) => onFilterChange("categories", e.target.checked ? cats.map((c) => c._id) : [])} style={{ accentColor: "#EF5B94", width: 15, height: 15 }} />{t("Seleccionar todas")}
+                  <label onClick={() => onFilterChange("categories", allChecked ? [] : cats.map((c) => c._id))} style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 12px", borderBottom: "1px solid #f4f4f6", cursor: "pointer", font: "600 12.5px Poppins", color: "#EF5B94" }}>
+                    <span style={chkBox(allChecked)}>{allChecked ? "✓" : ""}</span>{t("Seleccionar todas")}
                   </label>
                   {cats.map((c) => {
                     const checked = filters.categories.includes(c._id);
                     return (
-                      <label key={c._id} className="pd-cat" style={{ display: "flex", alignItems: "center", gap: 9, padding: "8px 12px", borderBottom: "1px solid #f8f8fa", cursor: "pointer", font: "500 12.5px Poppins", color: "#6b6b72" }}>
-                        <input type="checkbox" checked={checked} onChange={(e) => onFilterChange("categories", e.target.checked ? [...filters.categories, c._id] : filters.categories.filter((id: string) => id !== c._id))} style={{ accentColor: "#EF5B94", width: 15, height: 15 }} />{cap1(c.nombre)}
+                      <label key={c._id} className="pd-cat" onClick={() => onFilterChange("categories", checked ? filters.categories.filter((id: string) => id !== c._id) : [...filters.categories, c._id])} style={{ display: "flex", alignItems: "center", gap: 9, padding: "8px 12px", borderBottom: "1px solid #f8f8fa", cursor: "pointer", font: "500 12.5px Poppins", color: "#6b6b72" }}>
+                        <span style={chkBox(checked)}>{checked ? "✓" : ""}</span>{cap1(c.nombre)}
                       </label>
                     );
                   })}
@@ -330,7 +343,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
         );
       })()}
       {panel === "info" && (
-        <div style={{ position: "absolute", top: 48, left: 12, zIndex: 50, width: 340, background: "#fff", border: "1px solid #ececef", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,.14)", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}>
+        <div style={{ position: "absolute", ...anchorPos(infRef, 340), zIndex: 50, width: 340, background: "#fff", border: "1px solid #ececef", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,.14)", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}>
           <div style={{ display: "flex", alignItems: "center", padding: "16px 18px", borderBottom: "1px solid #f2f2f4" }}>
             <div style={{ font: "700 15px Poppins", color: "#3A3A42", flex: 1 }}>{t("Información del evento")}</div>
             <button className="pd-x" onClick={() => setPanel(null)} style={{ width: 26, height: 26, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#a0a0a8", background: "none", border: "none", cursor: "pointer" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
@@ -389,20 +402,23 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
       {panel === "columnas" && (() => {
         const allChecked = COLUMNAS.every((c) => columnConfig[c.k]?.visible !== false);
         return (
-          <div style={{ position: "absolute", top: 48, right: 12, zIndex: 50, width: 280, background: "#fff", border: "1px solid #ececef", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,.14)", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}>
+          <div style={{ position: "absolute", ...anchorPos(colRef, 280, true), zIndex: 50, width: 280, background: "#fff", border: "1px solid #ececef", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,.14)", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}>
             <div style={{ display: "flex", alignItems: "center", padding: "16px 18px", borderBottom: "1px solid #f2f2f4" }}>
               <div style={{ font: "700 15px Poppins", color: "#3A3A42", flex: 1 }}>{t("Columnas")}</div>
               <button className="pd-x" onClick={() => setPanel(null)} style={{ width: 26, height: 26, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#a0a0a8", background: "none", border: "none", cursor: "pointer" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
             </div>
-            <label className="pd-cat" style={{ display: "flex", alignItems: "center", gap: 11, padding: "12px 18px", borderBottom: "1px solid #f2f2f4", cursor: "pointer", font: "600 13px Poppins", color: "#3A3A42" }}>
-              <input type="checkbox" checked={allChecked} onChange={(e) => setColumnConfig((cc: any) => { const next = { ...cc }; COLUMNAS.forEach((c) => (next[c.k] = { visible: e.target.checked })); return next; })} style={{ accentColor: "#EF5B94", width: 16, height: 16 }} />{t("Seleccionar todo")}
+            <label className="pd-cat" onClick={() => setColumnConfig((cc: any) => { const next = { ...cc }; COLUMNAS.forEach((c) => (next[c.k] = { visible: !allChecked })); return next; })} style={{ display: "flex", alignItems: "center", gap: 11, padding: "12px 18px", borderBottom: "1px solid #f2f2f4", cursor: "pointer", font: "600 13px Poppins", color: "#3A3A42" }}>
+              <span style={chkBox(allChecked)}>{allChecked ? "✓" : ""}</span>{t("Seleccionar todo")}
             </label>
             <div className="pd-scrollx" style={{ maxHeight: 400, overflowY: "auto", padding: "4px 0" }}>
-              {COLUMNAS.map((c) => (
-                <label key={c.k} className="pd-cat" style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 18px", cursor: "pointer", font: "500 12.5px Poppins", color: "#3A3A42" }}>
-                  <input type="checkbox" checked={columnConfig[c.k]?.visible !== false} onChange={() => toggleColumnVisibility(c.k)} style={{ accentColor: "#EF5B94", width: 16, height: 16 }} />{c.l}
-                </label>
-              ))}
+              {COLUMNAS.map((c) => {
+                const vis = columnConfig[c.k]?.visible !== false;
+                return (
+                  <label key={c.k} className="pd-cat" onClick={() => toggleColumnVisibility(c.k)} style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 18px", cursor: "pointer", font: "500 12.5px Poppins", color: "#3A3A42" }}>
+                    <span style={chkBox(vis)}>{vis ? "✓" : ""}</span>{c.l}
+                  </label>
+                );
+              })}
             </div>
           </div>
         );

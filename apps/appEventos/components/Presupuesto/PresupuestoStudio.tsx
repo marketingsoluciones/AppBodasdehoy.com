@@ -97,7 +97,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
   const tabs = [
     { key: "resumen", label: t("budget") },
     { key: "excelView", label: t("budgetdetails") },
-    { key: "pagos", label: t("payments") },
+    { key: "pagos", label: t("Pagos") },
     { key: "pendiente", label: t("pendingpayments") },
     ...(isOwner ? [{ key: "dashboard", label: t("dashboard") }] : []),
   ];
