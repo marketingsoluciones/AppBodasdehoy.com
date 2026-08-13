@@ -663,17 +663,27 @@ const GridCards: FC<propsGridCards> = ({
   // Grid rediseñado (studio, por defecto; rollback ?studio=legacy)
   const studio = (router as any)?.query?.studio !== "legacy";
   const activeIdx = Number.isInteger(isActiveStateSwiper) ? isActiveStateSwiper : 0;
+  // Estados (spec owner): Activos/Realizados automáticos por FECHA; Archivados manual;
+  // Compartidos = eventos donde NO soy dueño. Activos/Realizados/Archivados listan solo MIS eventos.
   const studioGroups = useMemo(() => {
-    const byStatus = (s: string) => displayedTabsGroup.find(g => g.status === s)?.data?.filter(Boolean) ?? [];
-    const all = (eventsGroup ?? []).filter(Boolean);
-    const compartidos = all.filter((e: any) => e?.usuario_id && user?.uid && e.usuario_id !== user.uid);
+    const uid = user?.uid;
+    const idSet = (copilotFilter && copilotFilter.entity === "events" && copilotFilter.ids?.length) ? new Set(copilotFilter.ids) : null;
+    const all = (eventsGroup ?? []).filter(Boolean).filter((e: any) => !idSet || idSet.has(e._id));
+    const todayStart = new Date().setHours(0, 0, 0, 0);
+    const bucketOf = (e: any) => {
+      if (String(e?.estatus ?? "").toLowerCase().includes("archiv")) return "archivado";
+      const ts = parseInt(e?.fecha);
+      return (!Number.isNaN(ts) && ts < todayStart) ? "realizado" : "activo";
+    };
+    const mine = all.filter((e: any) => e?.usuario_id === uid);
+    const shared = all.filter((e: any) => e?.usuario_id && uid && e.usuario_id !== uid);
     return [
-      { label: "Pendientes", status: "pendiente", data: byStatus("pendiente") },
-      { label: "Archivados", status: "archivado", data: byStatus("archivado") },
-      { label: "Realizados", status: "realizado", data: byStatus("realizado") },
-      { label: "Compartidos", status: "compartido", data: compartidos },
+      { label: "Activos", status: "activo", data: mine.filter((e: any) => bucketOf(e) === "activo") },
+      { label: "Realizados", status: "realizado", data: mine.filter((e: any) => bucketOf(e) === "realizado") },
+      { label: "Archivados", status: "archivado", data: mine.filter((e: any) => bucketOf(e) === "archivado") },
+      { label: "Compartidos", status: "compartido", data: shared },
     ];
-  }, [displayedTabsGroup, eventsGroup, user]);
+  }, [eventsGroup, user, copilotFilter]);
   const sortEvents = (arr: any[]) => {
     const items = [...(arr || [])];
     if (orderAndDirection?.order === "fecha") {
@@ -718,6 +728,11 @@ const GridCards: FC<propsGridCards> = ({
           .evc-foto{position:relative;height:104px;border-radius:15px 15px 0 0;background-color:#f2f2f4;overflow:hidden;}
           .evc-tipo{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.92);color:#3A3A42;font:700 9.5px Poppins;letter-spacing:.8px;padding:4px 10px;border-radius:12px;text-transform:uppercase;z-index:2;}
           .evc-avatar-wrap{position:absolute;top:8px;right:8px;z-index:2;}
+          .evc-avatars{display:flex;align-items:center;}
+          .evc-av{width:22px;height:22px;border-radius:50%;border:2px solid #fff;color:#fff;font:700 9px Poppins;display:flex;align-items:center;justify-content:center;position:relative;flex:none;}
+          .evc-av + .evc-av{margin-left:-8px;}
+          .evc-av-more{background:#f2f2f4;color:#8a8a90;}
+          .evc-av-dot{position:absolute;bottom:-1px;right:-1px;width:7px;height:7px;border-radius:50%;background:#2FB37E;border:1.5px solid #fff;}
           .evc-body{padding:12px 14px 13px;}
           .evc-fila{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;position:relative;}
           .evc-nombre{font:600 13px Poppins;color:#3A3A42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -727,6 +742,7 @@ const GridCards: FC<propsGridCards> = ({
           .evc-pie{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:9px;}
           .evc-pill{display:inline-flex;align-items:center;gap:5px;font:600 10px Poppins;padding:4px 10px;border-radius:12px;}
           .evc-pill i{width:5px;height:5px;border-radius:50%;background:currentColor;}
+          .evc-pill--activo{background:#FBF0DA;color:#E0A32B;}
           .evc-pill--pendiente{background:#FBF0DA;color:#E0A32B;}
           .evc-pill--archivado{background:#f2f2f4;color:#8a8a90;}
           .evc-pill--realizado{background:#E4F5EE;color:#2FB37E;}
@@ -771,7 +787,7 @@ const GridCards: FC<propsGridCards> = ({
                   </div>
                   <div style={{ font: "600 16px Poppins", color: "#3A3A42", marginBottom: 6 }}>{t("Aún no tienes eventos aquí")}</div>
                   <div style={{ font: "400 13px/1.6 Poppins", color: "#8a8a90", maxWidth: 340, marginBottom: 22 }}>{t("Crea tu primer evento y empieza a organizar invitados, mesas e invitaciones en un solo lugar.")}</div>
-                  {g.status === "pendiente" && (
+                  {g.status === "activo" && (
                     <button onClick={() => setNewEvent(!state)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "13px 26px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Crear mi primer evento")}
                     </button>

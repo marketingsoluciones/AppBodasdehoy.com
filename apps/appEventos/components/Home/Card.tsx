@@ -28,6 +28,15 @@ export const defaultImagenes = {
   otro: "/cards/pexels-pixabay-50675.jpg"
 };
 
+// Color estable por usuario para los avatares pequeños de la tarjeta studio
+const avatarColorFor = (s: string) => {
+  const colors = ["#EF5B94", "#8e7cc3", "#c9a24b", "#5aa9e6", "#2FB37E", "#e07a5f", "#7b8794"];
+  let h = 0;
+  for (const c of String(s || "?")) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return colors[h % colors.length];
+};
+const isOnline = (u: any) => { const o = u?.onLine; return typeof o === "boolean" ? o : (o?.status !== false); };
+
 export const handleClickCard = async ({ t, final = true, data, user, setUser, config, setEvent, router }: any) => {
   try {
     // Establecer timeZone si no está definido
@@ -188,7 +197,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
         if (!ok) return
       }
       try {
-        const value = grupoStatus === "pendiente" ? "archivado" : "pendiente"
+        const value = String(grupoStatus ?? "").toLowerCase() === "archivado" ? "pendiente" : "archivado"
         // estatus es enum EventoStatus (PENDIENTE/ARCHIVADO uppercase) en api-mcp; el front usa
         // lowercase ("archivado"/"pendiente"). Migrar rompería el enum + consistencia con apiapp.
         // Se mantiene en apiapp hasta que BACKEND alinee el enum. Ver hilo coordinación.
@@ -277,8 +286,12 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
     const imgUrl = ev?.imgEvento?.i320
       ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${ev.imgEvento.i320}`)}`
       : (defaultImagenes[ev?.tipo?.toLowerCase()] || defaultImagenes['otro']);
-    const estadoRaw = String(ev?.estatus ?? grupoStatus ?? 'pendiente').toLowerCase();
-    const estadoKey = estadoRaw.includes('archiv') ? 'archivado' : estadoRaw.includes('realiz') ? 'realizado' : 'pendiente';
+    // Estado real: Archivado (manual) → Realizado (fecha pasada) → Activo (fecha futura/actual)
+    const archivado = String(ev?.estatus ?? grupoStatus ?? '').toLowerCase().includes('archiv');
+    const ts = parseInt(ev?.fecha);
+    const pasado = !archivado && !Number.isNaN(ts) && ts < new Date().setHours(0, 0, 0, 0);
+    const estadoKey = archivado ? 'archivado' : pasado ? 'realizado' : 'activo';
+    const estadoLabel = archivado ? t('Archivado') : pasado ? t('Realizado') : t('Activo');
     const seleccionado = ev?._id === user?.eventSelected;
     return (
       <>
@@ -289,14 +302,32 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
         </div>
         <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={ev} />
         <div className="evc-card" onClick={abrirEvento} title={t("Abrir resumen del evento")}
-          style={seleccionado ? { outline: '2px dashed #FBBF24', outlineOffset: 2 } : undefined}>
+          style={{ ...(seleccionado ? { outline: '2px dashed #FBBF24', outlineOffset: 2 } : {}), zIndex: openMenu ? 30 : undefined }}>
           <div className="evc-foto">
             <img src={imgUrl} alt={ev?.nombre || ev?.tipo || 'Evento'}
               onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[ev?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
               style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '15px 15px 0 0', display: 'block' }} />
             <span className="evc-tipo">{ev?.tipo === 'otro' ? t('otro') : t(ev?.tipo)}</span>
-            <div className="evc-avatar-wrap" onClick={(e) => { e.stopPropagation(); if (isOwner) setOpenModal(!openModal); }}>
-              <UsuariosCompartidos event={ev} />
+            <div className="evc-avatar-wrap" onClick={(e) => e.stopPropagation()}>
+              {(() => {
+                const shared = [...(ev?.detalles_compartidos_array ?? [])];
+                if (ev?.detalles_usuario_id) shared.push(ev.detalles_usuario_id);
+                if (shared.length === 0) return null;
+                const maxShown = 3;
+                const overflow = shared.length > maxShown ? shared.length - maxShown : 0;
+                const visible = shared.slice(-Math.min(shared.length, maxShown));
+                return (
+                  <div className="evc-avatars">
+                    {overflow > 0 && <span className="evc-av evc-av-more">+{overflow}</span>}
+                    {visible.map((u: any, i: number) => (
+                      <span key={i} className="evc-av" title={u?.email || u?.displayName || ''} style={{ background: avatarColorFor(u?.email || u?.displayName) }}>
+                        {String(u?.displayName || u?.email || '?').charAt(0).toUpperCase()}
+                        {isOnline(u) && <i className="evc-av-dot" />}
+                      </span>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </div>
           <div className="evc-body">
@@ -313,7 +344,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
               {isOwner && openMenu && (
                 <ClickAwayListener onClickAway={() => setOpenMenu(false)}>
                   <div className="evc-menu" onClick={(e) => e.stopPropagation()}>
-                    <div className="evc-menu-item" onClick={() => { setOpenMenu(false); handleArchivarEvent(); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5" /><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4" /></svg>{String(grupoStatus ?? '').toLowerCase() === 'archivado' ? t('Desarchivar') : t('Archivar')}</div>
+                    <div className="evc-menu-item" onClick={() => { setOpenMenu(false); handleArchivarEvent(); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5" /><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4" /></svg>{archivado ? t('Desarchivar') : t('Archivar')}</div>
                     <div className="evc-menu-item" onClick={() => { setOpenMenu(false); compartirEvento(); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg>{t('Compartir')}</div>
                     <div className="evc-menu-item" onClick={() => { setOpenMenu(false); isAllowed() ? handleEdit() : ht(); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h10M18 8h2M4 16h2M10 16h10" /><circle cx="16" cy="8" r="2.2" /><circle cx="8" cy="16" r="2.2" /></svg>{t('Editar')}</div>
                     <div className="evc-menu-sep" />
@@ -323,7 +354,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
               )}
             </div>
             <div className="evc-pie">
-              <span className={`evc-pill evc-pill--${estadoKey}`}><i />{t(ev?.estatus || estadoKey)}</span>
+              <span className={`evc-pill evc-pill--${estadoKey}`}><i />{estadoLabel}</span>
               {compartido && <span className="evc-compartido">{t('compartido contigo')}</span>}
             </div>
           </div>
