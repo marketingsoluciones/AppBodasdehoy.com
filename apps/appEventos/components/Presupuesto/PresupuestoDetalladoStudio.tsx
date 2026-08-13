@@ -7,7 +7,6 @@ import { useAllowed } from "../../hooks/useAllowed";
 import { useToast } from "../../hooks/useToast";
 import ClickAwayListener from "react-click-away-listener";
 import ModalAddPagoStudio from "./ModalAddPagoStudio";
-import { FiltersModal } from "./PresupuestoV2/modals/FiltersModal";
 import { EventInfoModal } from "./PresupuestoV2/modals/EventInfoModal";
 import { ColumnsConfigModal } from "./PresupuestoV2/modals/ColumnsConfigModal";
 
@@ -45,15 +44,15 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
 
   // Columnas (algunas ocultables desde "Columnas")
   const ALL_COLS = [
-    { key: "partida", label: t("Partida de gasto"), w: "minmax(230px,2.2fr)", always: true, align: "left" },
-    { key: "unidad", label: t("Unidad"), w: "80px", align: "center" },
-    { key: "cantidad", label: t("Cantidad"), w: "86px", align: "center" },
-    { key: "valor", label: t("Valor unit."), w: "106px", align: "center" },
-    { key: "coste", label: t("Coste total"), w: "116px", always: true, align: "center" },
-    { key: "estimado", label: t("Estimado"), w: "110px", align: "center" },
-    { key: "pagado", label: t("Pagado"), w: "104px", always: true, align: "center" },
-    { key: "pendiente", label: t("Pendiente"), w: "114px", always: true, align: "center" },
-    { key: "menu", label: "", w: "44px", always: true, align: "center" },
+    { key: "partida", label: t("Partida de gasto"), w: "minmax(180px,2.2fr)", always: true, align: "left" },
+    { key: "unidad", label: t("Unidad"), w: "60px", align: "center" },
+    { key: "cantidad", label: t("Cantidad"), w: "68px", align: "center" },
+    { key: "valor", label: t("Valor unit."), w: "92px", align: "center" },
+    { key: "coste", label: t("Coste total"), w: "100px", always: true, align: "center" },
+    { key: "estimado", label: t("Estimado"), w: "96px", align: "center" },
+    { key: "pagado", label: t("Pagado"), w: "90px", always: true, align: "center" },
+    { key: "pendiente", label: t("Pendiente"), w: "100px", always: true, align: "center" },
+    { key: "menu", label: "", w: "38px", always: true, align: "center" },
   ];
   const COLMAP: any = { partida: "gasto", unidad: "unidad", cantidad: "cantidad", valor: "valor_unitario", coste: "coste_final", estimado: "coste_estimado", pagado: "pagado", pendiente: "pendiente_pagar", menu: "options" };
   const visibleCols = ALL_COLS.filter((c) => columnConfig[COLMAP[c.key]]?.visible !== false);
@@ -65,13 +64,14 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
     return { tot, pag, est, pen: tot - pag, nCat: cats.length, nPart: nP };
   }, [cats]);
   const tableTotals = { estimado: totals.est, total: totals.tot, pagado: totals.pag };
-  const noFilters = filters.categories.length === 0 && filters.paymentStatus === "all";
+  const rmin = parseEs(filters.amountRange.min), rmax = parseEs(filters.amountRange.max);
+  const noFilters = filters.categories.length === 0 && filters.paymentStatus === "all" && filters.visibilityStatus === "all" && !filters.amountRange.min && !filters.amountRange.max;
 
   const ql = q.trim().toLowerCase();
   const filtered = cats.map((c) => {
     if (filters.categories.length && !filters.categories.includes(c._id)) return { c, gastos: [] as any[] };
     const catMatch = String(c.nombre || "").toLowerCase().includes(ql);
-    let gastos = (c.gastos_array || []).filter((g: any) => g?.estatus !== false);
+    let gastos = (c.gastos_array || []).filter((g: any) => filters.visibilityStatus === "hidden" ? g?.estatus === false : g?.estatus !== false);
     gastos = gastos.filter((g: any) => {
       const ct = g.coste_final || 0, pag = g.pagado || 0, pen = ct - pag;
       if (filters.paymentStatus === "paid") return ct > 0 && pen <= 0;
@@ -79,6 +79,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
       if (filters.paymentStatus === "partial") return pag > 0 && pen > 0;
       return true;
     });
+    gastos = gastos.filter((g: any) => { const ct = g.coste_final || 0; if (filters.amountRange.min && ct < rmin) return false; if (filters.amountRange.max && ct > rmax) return false; return true; });
     gastos = gastos.filter((g: any) => !ql || catMatch || String(g.nombre || "").toLowerCase().includes(ql));
     return { c, gastos };
   }).filter((x) => x.gastos.length > 0 || (!ql && noFilters));
@@ -127,6 +128,10 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
         .pd-scrollx::-webkit-scrollbar{display:none;}
         .pd-pop label:hover{background:#faf9fb;}
         .pd-search:focus,.pd-search:focus-visible{outline:none!important;box-shadow:none!important;border:none!important;}
+        .pd-fsel:focus,.pd-fin:focus{border-color:#EF5B94!important;}
+        .pd-cat:hover{background:#faf9fb;}
+        .pd-limpiar:hover{color:#D83E7C!important;}
+        .pd-x:hover{background:#faf9fb!important;color:#3A3A42!important;}
       `}} />
 
       {pagoTarget && <ModalAddPagoStudio categoriaId={pagoTarget.cat} gastoId={pagoTarget.gasto} onClose={() => setPagoTarget(null)} />}
@@ -160,8 +165,8 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
 
         {/* Tabla */}
         <div className="pd-scrollx">
-          <div style={{ minWidth: 880 }}>
-            <div style={{ display: "grid", gridTemplateColumns: gridTemplate, gap: 8, padding: "14px 30px 14px 22px", background: "#faf9fb", borderBottom: "1px solid #f2f2f4", font: "700 10.5px Poppins", color: "#5a5a62", letterSpacing: ".5px", textTransform: "uppercase" }}>
+          <div style={{ minWidth: 820 }}>
+            <div style={{ display: "grid", gridTemplateColumns: gridTemplate, gap: 8, padding: "14px 20px 14px 22px", background: "#faf9fb", borderBottom: "1px solid #f2f2f4", font: "700 10.5px Poppins", color: "#5a5a62", letterSpacing: ".5px", textTransform: "uppercase" }}>
               {visibleCols.map((c) => <div key={c.key} style={{ textAlign: c.align === "left" ? "left" : c.align } as any}>{c.label}</div>)}
             </div>
 
@@ -229,7 +234,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
                       ),
                     };
                     return (
-                      <div key={g._id} className="pd-row" style={{ display: "grid", gridTemplateColumns: gridTemplate, gap: 8, alignItems: "center", padding: "11px 30px 11px 22px", borderBottom: "1px solid #f4f4f6" }}>
+                      <div key={g._id} className="pd-row" style={{ display: "grid", gridTemplateColumns: gridTemplate, gap: 8, alignItems: "center", padding: "11px 20px 11px 22px", borderBottom: "1px solid #f4f4f6" }}>
                         {visibleCols.map((col) => <div key={col.key} style={cellStyle(col.align)}>{render[col.key]}</div>)}
                       </div>
                     );
@@ -242,9 +247,74 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
       </div>
 
       {/* Modales (fuera del overflow del card; se posicionan absolute top-12 left-3) */}
-      {panel === "filtros" && (
-        <FiltersModal filters={filters} onFilterChange={onFilterChange} onClose={() => setPanel(null)} onClearFilters={onClearFilters} categorias_array={cats} viewLevel={viewLevel} setViewLevel={setViewLevel} />
-      )}
+      {panel === "filtros" && (() => {
+        const selFsel: any = { width: "100%", padding: "9px 12px", border: "1.5px solid #E7E7EA", borderRadius: 10, font: "500 12.5px Poppins", color: "#3A3A42", background: "#fff", outline: "none" };
+        const helpTxt: any = { font: "500 11px Poppins", color: "#a0a0a8", marginTop: 5 };
+        const lblTxt: any = { font: "600 13px Poppins", color: "#3A3A42", marginBottom: 7 };
+        const allChecked = cats.length > 0 && filters.categories.length === cats.length;
+        return (
+          <div style={{ position: "absolute", top: 48, left: 12, zIndex: 50, width: 320, background: "#fff", border: "1px solid #ececef", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,.14)", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}>
+            <div style={{ display: "flex", alignItems: "center", padding: "16px 18px", borderBottom: "1px solid #f2f2f4" }}>
+              <div style={{ font: "700 15px Poppins", color: "#3A3A42", flex: 1 }}>{t("Filtros")}</div>
+              <button className="pd-limpiar" onClick={() => { onClearFilters(); setViewLevel(3); }} style={{ font: "600 12.5px Poppins", color: "#EF5B94", background: "none", border: "none", cursor: "pointer", padding: "4px 8px" }}>{t("Limpiar")}</button>
+              <button className="pd-x" onClick={() => setPanel(null)} style={{ width: 26, height: 26, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#a0a0a8", background: "none", border: "none", cursor: "pointer" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
+            </div>
+            <div className="pd-scrollx" style={{ maxHeight: 420, overflowY: "auto", padding: "16px 18px", display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Vista de detalle */}
+              <div>
+                <div style={lblTxt}>{t("Vista de detalle")}</div>
+                <select className="pd-fsel" value={viewLevel} onChange={(e) => setViewLevel(Number(e.target.value))} style={selFsel}>
+                  <option value={3}>{t("Detalle completo")}</option><option value={1}>{t("Solo categorías")}</option><option value={2}>{t("Categorías y gastos")}</option>
+                </select>
+                <div style={helpTxt}>{viewLevel === 1 ? t("Mostrar únicamente las categorías principales") : viewLevel === 2 ? t("Mostrar categorías y sus gastos asociados") : t("Mostrar todos los elementos: categorías, gastos e ítems")}</div>
+              </div>
+              {/* Filtrar por categorías */}
+              <div>
+                <div style={lblTxt}>{t("Filtrar por categorías")} ({filters.categories.length} {t("seleccionadas")})</div>
+                <div className="pd-scrollx" style={{ border: "1.5px solid #E7E7EA", borderRadius: 10, maxHeight: 150, overflowY: "auto" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 12px", borderBottom: "1px solid #f4f4f6", cursor: "pointer", font: "600 12.5px Poppins", color: "#EF5B94" }}>
+                    <input type="checkbox" checked={allChecked} onChange={(e) => onFilterChange("categories", e.target.checked ? cats.map((c) => c._id) : [])} style={{ accentColor: "#EF5B94", width: 15, height: 15 }} />{t("Seleccionar todas")}
+                  </label>
+                  {cats.map((c) => {
+                    const checked = filters.categories.includes(c._id);
+                    return (
+                      <label key={c._id} className="pd-cat" style={{ display: "flex", alignItems: "center", gap: 9, padding: "8px 12px", borderBottom: "1px solid #f8f8fa", cursor: "pointer", font: "500 12.5px Poppins", color: "#6b6b72" }}>
+                        <input type="checkbox" checked={checked} onChange={(e) => onFilterChange("categories", e.target.checked ? [...filters.categories, c._id] : filters.categories.filter((id: string) => id !== c._id))} style={{ accentColor: "#EF5B94", width: 15, height: 15 }} />{cap1(c.nombre)}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+              {/* Estado de pago */}
+              <div>
+                <div style={lblTxt}>{t("Estado de pago")}</div>
+                <select className="pd-fsel" value={filters.paymentStatus} onChange={(e) => onFilterChange("paymentStatus", e.target.value)} style={selFsel}>
+                  <option value="all">{t("Todos los estados")}</option><option value="paid">{t("Pagado")}</option><option value="pending">{t("Pendiente")}</option><option value="partial">{t("Pago parcial")}</option>
+                </select>
+                <div style={helpTxt}>{t("Mostrar elementos con cualquier estado de pago")}</div>
+              </div>
+              {/* Estado de visibilidad */}
+              <div>
+                <div style={lblTxt}>{t("Estado de visibilidad")}</div>
+                <select className="pd-fsel" value={filters.visibilityStatus} onChange={(e) => onFilterChange("visibilityStatus", e.target.value)} style={selFsel}>
+                  <option value="all">{t("Todos (visibles y ocultos)")}</option><option value="visible">{t("Solo visibles")}</option><option value="hidden">{t("Solo ocultos")}</option>
+                </select>
+                <div style={helpTxt}>{t("Mostrar todos los elementos sin filtrar por visibilidad")}</div>
+              </div>
+              {/* Rango de montos */}
+              <div>
+                <div style={lblTxt}>{t("Rango de montos (coste total)")}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <input className="pd-fin" type="text" value={filters.amountRange.min} onChange={(e) => onFilterChange("amountRange", { ...filters.amountRange, min: e.target.value })} placeholder={t("Mínimo") as string} style={{ flex: 1, minWidth: 0, padding: "9px 12px", border: "1.5px solid #E7E7EA", borderRadius: 10, font: "500 12.5px Poppins", color: "#3A3A42", outline: "none" }} />
+                  <span style={{ font: "500 12px Poppins", color: "#a0a0a8" }}>{t("a")}</span>
+                  <input className="pd-fin" type="text" value={filters.amountRange.max} onChange={(e) => onFilterChange("amountRange", { ...filters.amountRange, max: e.target.value })} placeholder={t("Máximo") as string} style={{ flex: 1, minWidth: 0, padding: "9px 12px", border: "1.5px solid #E7E7EA", borderRadius: 10, font: "500 12.5px Poppins", color: "#3A3A42", outline: "none" }} />
+                </div>
+                <div style={helpTxt}>{t("Ingresa valores para filtrar por rango de montos")}</div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       {panel === "info" && (
         <EventInfoModal event={event} currency={cur} categorias_array={cats} totalStimatedGuests={event?.presupuesto_objeto?.totalStimatedGuests ?? { adults: 0, children: 0 }} totals={tableTotals} formatNumber={formatNumber} onClose={() => setPanel(null)} />
       )}
