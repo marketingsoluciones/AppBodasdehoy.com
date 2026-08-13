@@ -288,8 +288,9 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
       : (defaultImagenes[ev?.tipo?.toLowerCase()] || defaultImagenes['otro']);
     // Estado real: Archivado (manual) → Realizado (fecha pasada) → Activo (fecha futura/actual)
     const archivado = String(ev?.estatus ?? grupoStatus ?? '').toLowerCase().includes('archiv');
-    const ts = parseInt(ev?.fecha);
-    const pasado = !archivado && !Number.isNaN(ts) && ts < new Date().setHours(0, 0, 0, 0);
+    const _fs = String(ev?.fecha ?? '');
+    const _fms = (_fs && !_fs.includes('T') && !_fs.includes('-')) ? new Date(parseInt(_fs)).getTime() : new Date(_fs).getTime();
+    const pasado = !archivado && !Number.isNaN(_fms) && _fms < new Date().setHours(0, 0, 0, 0);
     const estadoKey = archivado ? 'archivado' : pasado ? 'realizado' : 'activo';
     const estadoLabel = archivado ? t('Archivado') : pasado ? t('Realizado') : t('Activo');
     const seleccionado = ev?._id === user?.eventSelected;
