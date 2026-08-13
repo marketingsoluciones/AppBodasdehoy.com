@@ -10,7 +10,7 @@ import { useToast } from "../../hooks/useToast";
 import ClickAwayListener from "react-click-away-listener";
 import BlockTitle from "../Utils/BlockTitle";
 import DetalleCategoriaStudio from "./DetalleCategoriaStudio";
-import BlockPagos from "./BlockPagos";
+import PagosStudio from "./PagosStudio";
 import PresupuestoDetalladoStudio from "./PresupuestoDetalladoStudio";
 import WeddingFinanceManager from "./TableroPresupuesto/WeddingFinanceManager";
 import ExportExcelPresupuesto from "./ExportExcelPresupuesto";
@@ -470,8 +470,8 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
 
         {/* ===== OTRAS VISTAS (existentes, se rediseñan en fases siguientes) ===== */}
         {active === "excelView" && <PresupuestoDetalladoStudio categorias={cats} onAddCategoria={() => setShowCreateCat(true)} />}
-        {active === "pagos" && <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={cats} estado={"pagado"} />}
-        {active === "pendiente" && <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={cats} estado={"pendiente"} />}
+        {active === "pagos" && <PagosStudio categorias={cats} estado="pagado" />}
+        {active === "pendiente" && <PagosStudio categorias={cats} estado="pendiente" />}
         {active === "dashboard" && isOwner && <WeddingFinanceManager />}
       </div>
       </div>

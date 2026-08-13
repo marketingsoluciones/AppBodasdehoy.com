@@ -14,27 +14,28 @@ const parseEs = (s: string) => {
   return Number.isNaN(n) ? 0 : n;
 };
 
-interface Props { categoriaId: string; gastoId: string; onClose: () => void; }
+interface Props { categoriaId: string; gastoId: string; onClose: () => void; pago?: any; }
 
-const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose }) => {
+const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose, pago }) => {
   const { t } = useTranslation();
   const { event, setEvent } = EventContextProvider() as any;
   const { config } = AuthContextProvider() as any;
   const [isAllowed, ht] = useAllowed();
   const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
+  const editing = !!pago;
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const [tab, setTab] = useState<"pago" | "prox">("pago");
-  const [importe, setImporte] = useState("");
-  const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
-  const [detOpen, setDetOpen] = useState(false);
-  const [medioPago, setMedioPago] = useState("");
-  const [pagadoPor, setPagadoPor] = useState("");
-  const [wp, setWp] = useState(false);
-  const [concepto, setConcepto] = useState("");
+  const [tab, setTab] = useState<"pago" | "prox">(pago?.estado === "pendiente" ? "prox" : "pago");
+  const [importe, setImporte] = useState(pago ? String(pago.importe ?? "") : "");
+  const [fecha, setFecha] = useState(() => pago ? (pago.fecha_pago || pago.fecha_vencimiento || new Date().toISOString().slice(0, 10)) : new Date().toISOString().slice(0, 10));
+  const [detOpen, setDetOpen] = useState(!!pago);
+  const [medioPago, setMedioPago] = useState(pago?.medio_pago || "");
+  const [pagadoPor, setPagadoPor] = useState(pago?.pagado_por && pago.pagado_por !== "wedding planer" ? pago.pagado_por : "");
+  const [wp, setWp] = useState(pago?.pagado_por === "wedding planer");
+  const [concepto, setConcepto] = useState(pago?.concepto || "");
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -66,7 +67,8 @@ const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose }) => {
           if (url) soporte = { image_url: url, medium_url: url, thumb_url: url };
         } catch { toast("error", t("Error al subir la imagen")); }
       }
-      const pago = {
+      const pagoObj = {
+        ...(editing ? pago : {}),
         importe: imp,
         estado: esPago ? "pagado" : "pendiente",
         fecha_pago: esPago ? fecha : "",
@@ -74,16 +76,15 @@ const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose }) => {
         pagado_por: esPago ? (wp ? "wedding planer" : pagadoPor) : "",
         medio_pago: esPago ? medioPago : "",
         concepto,
-        soporte,
+        ...(soporte ? { soporte } : {}),
       };
-      const result: any = await fetchApiEventos({
-        query: queries.nuevoPago,
-        variables: { evento_id: event._id, categoria_id: categoriaId, gasto_id: gastoId, pagos_array: [pago] },
-      });
+      const result: any = editing
+        ? await fetchApiEventos({ query: queries.editPago, variables: { evento_id: event._id, categoria_id: categoriaId, gasto_id: gastoId, pago_id: pago._id, pagos_array: [pagoObj] } })
+        : await fetchApiEventos({ query: queries.nuevoPago, variables: { evento_id: event._id, categoria_id: categoriaId, gasto_id: gastoId, pagos_array: [pagoObj] } });
       if (result?.success === false && result?.errors?.length) { toast("error", t("Ha ocurrido un error")); setSaving(false); return; }
       const po = result?.evento?.presupuesto_objeto;
       if (po) setEvent((prev: any) => ({ ...prev, presupuesto_objeto: po }));
-      toast("success", esPago ? t("Pago registrado") : t("Próximo pago programado"));
+      toast("success", editing ? t("Pago actualizado") : esPago ? t("Pago registrado") : t("Próximo pago programado"));
       onClose();
     } catch (e) {
       toast("error", t("Ha ocurrido un error"));
@@ -114,7 +115,7 @@ const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose }) => {
         <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ font: "600 11.5px Poppins", color: "#a0a0a8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cap1(categoria?.nombre)} · {gasto?.nombre}</div>
-            <div style={{ font: "700 18px Poppins", color: "#3A3A42", marginTop: 2 }}>{esPago ? t("Añadir pago") : t("Añadir próximo pago")}</div>
+            <div style={{ font: "700 18px Poppins", color: "#3A3A42", marginTop: 2 }}>{editing ? t("Editar pago") : esPago ? t("Añadir pago") : t("Añadir próximo pago")}</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start", flex: "none", marginTop: 2 }}>
             <button onClick={() => setTab("pago")} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", padding: 0, font: "600 12px Poppins", color: esPago ? "#3A3A42" : "#a0a0a8", whiteSpace: "nowrap" }}><Toggle on={esPago} />{t("Añadir pago")}</button>
@@ -194,7 +195,7 @@ const ModalAddPagoStudio: FC<Props> = ({ categoriaId, gastoId, onClose }) => {
         )}
 
         {/* CTA */}
-        <button className="ap-cta" onClick={save} disabled={saving} style={{ width: "100%", marginTop: 20, padding: 13, borderRadius: 10, background: "#EF5B94", color: "#fff", border: "none", font: "600 13.5px Poppins", cursor: saving ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", opacity: saving ? 0.7 : 1 }}>{esPago ? t("Añadir pago") : t("Añadir próximo pago")}</button>
+        <button className="ap-cta" onClick={save} disabled={saving} style={{ width: "100%", marginTop: 20, padding: 13, borderRadius: 10, background: "#EF5B94", color: "#fff", border: "none", font: "600 13.5px Poppins", cursor: saving ? "default" : "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)", opacity: saving ? 0.7 : 1 }}>{editing ? t("Guardar cambios") : esPago ? t("Añadir pago") : t("Añadir próximo pago")}</button>
       </div>
     </div>,
     document.body
