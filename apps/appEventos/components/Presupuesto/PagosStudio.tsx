@@ -9,7 +9,10 @@ import ClickAwayListener from "react-click-away-listener";
 import ModalAddPagoStudio from "./ModalAddPagoStudio";
 
 const cap1 = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s || "");
-const COLS = "2.4fr 112px 105px 100px 18px 1.1fr 1.1fr 40px";
+// Pago (pagado): Registro·Estado·Fecha de pago·Importe·(sep)·Modo de pago·Concepto·⋮
+const COLS_PAGADO = "2.4fr 112px 105px 100px 18px 1.1fr 1.1fr 40px";
+// Pagos pendientes: Registro·Estado·Fecha futuro pago·Concepto·⋮
+const COLS_PEND = "1.2fr 130px 150px 1.6fr 40px";
 
 interface Props { categorias: any[]; estado: "pagado" | "pendiente"; }
 
@@ -26,6 +29,9 @@ const PagosStudio: FC<Props> = ({ categorias, estado }) => {
 
   const cats = Array.isArray(categorias) ? categorias : [];
   const isOpen = (id: string) => open[id] !== false;
+  const isPagado = estado === "pagado";
+  const COLS = isPagado ? COLS_PAGADO : COLS_PEND;
+  const minW = isPagado ? 820 : 620;
 
   // Agrupar pagos por categoría (cada fila = un pago del estado pedido).
   const grupos = cats.map((c) => {
@@ -64,9 +70,11 @@ const PagosStudio: FC<Props> = ({ categorias, estado }) => {
 
       <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 4px 14px rgba(0,0,0,.05)", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}>
         <div className="pg-scrollx">
-          <div style={{ minWidth: 820 }}>
+          <div style={{ minWidth: minW }}>
             <div style={{ display: "grid", gridTemplateColumns: COLS, gap: 8, padding: "14px 22px", background: "#faf9fb", borderBottom: "1px solid #f2f2f4", font: "700 10.5px Poppins", color: "#5a5a62", letterSpacing: ".5px", textTransform: "uppercase" }}>
-              <div>{t("Registro")}</div><div>{t("Estado")}</div><div>{estado === "pagado" ? t("Fecha de pago") : t("Fecha de vencimiento")}</div><div style={{ textAlign: "right" }}>{t("Importe")}</div><div /><div>{t("Modo de pago")}</div><div>{t("Concepto")}</div><div />
+              {isPagado
+                ? <><div>{t("Registro")}</div><div>{t("Estado")}</div><div>{t("Fecha de pago")}</div><div style={{ textAlign: "right" }}>{t("Importe")}</div><div /><div>{t("Modo de pago")}</div><div>{t("Concepto")}</div><div /></>
+                : <><div>{t("Registro")}</div><div>{t("Estado")}</div><div>{t("Fecha futuro pago")}</div><div>{t("Concepto")}</div><div /></>}
             </div>
 
             {grupos.length === 0 && (
@@ -88,11 +96,20 @@ const PagosStudio: FC<Props> = ({ categorias, estado }) => {
                       <div key={key} className="pg-row" onClick={() => setModalTarget({ cat: c._id, gasto: gasto._id, pago: null })} style={{ display: "grid", gridTemplateColumns: COLS, gap: 8, alignItems: "center", padding: "12px 22px", borderBottom: "1px solid #f6f6f8", cursor: "pointer" }}>
                         <div style={{ font: "600 13.5px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={gasto.nombre}>{gasto.nombre}</div>
                         <div><span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: chip.bg, color: chip.fg, borderRadius: 999, padding: "5px 12px", font: "600 11.5px Poppins", whiteSpace: "nowrap" }}>{chip.icon}{chip.label}</span></div>
-                        <div style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{estado === "pagado" ? (pago.fecha_pago || "—") : (pago.fecha_vencimiento || pago.fecha_pago || "—")}</div>
-                        <div style={{ textAlign: "right", font: "700 13px Poppins", color: "#3A3A42" }}>{getCurrency(pago.importe || 0, cur)}</div>
-                        <div />
-                        <div style={{ font: "500 12.5px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={pago.medio_pago}>{pago.medio_pago || "—"}</div>
-                        <div style={{ font: "500 12.5px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={pago.concepto}>{pago.concepto || "—"}</div>
+                        {isPagado ? (
+                          <>
+                            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{pago.fecha_pago || "—"}</div>
+                            <div style={{ textAlign: "right", font: "700 13px Poppins", color: "#3A3A42" }}>{getCurrency(pago.importe || 0, cur)}</div>
+                            <div />
+                            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={pago.medio_pago}>{pago.medio_pago || "—"}</div>
+                            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={pago.concepto}>{pago.concepto || "—"}</div>
+                          </>
+                        ) : (
+                          <>
+                            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{pago.fecha_vencimiento || pago.fecha_pago || "—"}</div>
+                            <div style={{ font: "500 12.5px Poppins", color: "#6b6b72", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={pago.concepto}>{pago.concepto || "—"}</div>
+                          </>
+                        )}
                         <div style={{ position: "relative", display: "flex", justifyContent: "center" }} onClick={(e) => e.stopPropagation()}>
                           <button className="pg-dots" onClick={(e) => { e.stopPropagation(); setMenuAt(menuAt === key ? null : key); }} style={{ width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#c8c8ce", background: "none", border: "none", cursor: "pointer" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="12" cy="19" r="1.8" /></svg></button>
                           {menuAt === key && (
