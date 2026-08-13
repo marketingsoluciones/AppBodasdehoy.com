@@ -10,9 +10,10 @@ interface propsSelectField extends HtmlHTMLAttributes<HTMLSelectElement> {
     colSpan?: number
     labelClass?: boolean
     nullable?: boolean
+    capitalizeLabels?: boolean
 
 }
-const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, labelClass = true, nullable, ...props }) => {
+const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, labelClass = true, nullable, capitalizeLabels, ...props }: any) => {
     const { t } = useTranslation();
     const { invitadoCero, event } = EventContextProvider();
     const [field, meta, { setValue }] = useField({ name: props.name })
@@ -48,7 +49,9 @@ const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, 
                             const rawValue = typeof option === "string" ? option : option?._id
                             const value = rawValue == null ? "" : String(rawValue)
                             const display = typeof option === "string"
-                                ? (rawValue && `${!String(rawValue).match("(nombre)") ? rawValue : String(rawValue).replace("(nombre)", (invitadoCero ? invitadoCero : event?.grupos_array?.[0]))}`)
+                                ? (capitalizeLabels && !String(rawValue).match("(nombre)")
+                                    ? (label && label.length ? label.charAt(0).toUpperCase() + label.slice(1) : label)
+                                    : (rawValue && `${!String(rawValue).match("(nombre)") ? rawValue : String(rawValue).replace("(nombre)", (invitadoCero ? invitadoCero : event?.grupos_array?.[0]))}`))
                                 : (option?.title ?? value)
                             return (
                                 <option key={idx} label={label} value={value}>{display}</option>

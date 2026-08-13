@@ -359,6 +359,8 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
               .ce-close:hover{background:#f5f5f7;}
               .ce-body{flex:1;overflow:auto;padding:22px 30px;display:flex;flex-direction:column;gap:16px;scrollbar-width:none;}
               .ce-body::-webkit-scrollbar{display:none;width:0;}
+              .ce-studio .overflow-auto{scrollbar-width:none;-ms-overflow-style:none;}
+              .ce-studio .overflow-auto::-webkit-scrollbar{display:none;width:0;height:0;}
               .ce-fila2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
               .ce-label{display:block;font:600 12.5px Poppins;color:#EF5B94;margin-bottom:7px;}
               .ce-foot{display:flex;gap:12px;padding:16px 30px 22px;border-top:1px solid #f0f0f2;flex:none;background:#fff;}
@@ -379,10 +381,10 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
             </div>
             <div className="ce-body">
               <div><InputField name="nombre" label={t("nameevent")} /></div>
-              <div><SelectField name="tipo" label={t("eventtype")} options={ListaTipo} nullable={true} /></div>
+              <div><SelectField name="tipo" label={t("eventtype")} options={ListaTipo} nullable={true} capitalizeLabels /></div>
               <div className="ce-fila2">
                 <div><InputField name="fecha" label={t("eventdate")} type="date" /></div>
-                <div><SelectWithSearchField name="timeZone" label={t("timeZone")} options={Intl?.supportedValuesOf('timeZone')} nullable={true} /></div>
+                <div><SelectWithSearchField name="timeZone" label={t("timeZone")} options={["Europe/Madrid", "Atlantic/Canary", "Europe/Lisbon", "Europe/London", "Europe/Paris", "Europe/Andorra", "Europe/Rome", "Europe/Berlin", "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "America/Mexico_City", "America/Tijuana", "America/Guatemala", "America/El_Salvador", "America/Tegucigalpa", "America/Managua", "America/Costa_Rica", "America/Panama", "America/Havana", "America/Santo_Domingo", "America/Puerto_Rico", "America/Bogota", "America/Lima", "America/Guayaquil", "America/Caracas", "America/La_Paz", "America/Santiago", "America/Argentina/Buenos_Aires", "America/Asuncion", "America/Montevideo"]} nullable={true} /></div>
               </div>
               <div>
                 <label className="ce-label">{t("Foto del evento")}</label>
@@ -390,7 +392,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
                   <ModuloSubida studio setValueImage={setValueImage} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={defaultImagenes[values.tipo?.toLowerCase()]} />
                 </div>
               </div>
-              <div><DropdownCountries name="pais" placeholder={t("Selecciona el país")} label={t("País")} /></div>
+              <div><DropdownCountries studio name="pais" placeholder={t("Seleccionar país")} label={t("País")} /></div>
             </div>
             <div className="ce-foot">
               <button type="button" className="ce-btn ce-btn-sec" onClick={() => set(!state)}>{t("Cancelar")}</button>

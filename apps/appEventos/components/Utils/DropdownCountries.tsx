@@ -13,7 +13,7 @@ type Country = {
 const flagUrl = (alpha2Code?: string): string =>
   alpha2Code ? `https://flagcdn.com/w40/${alpha2Code.toLowerCase()}.png` : "";
 
-const DropdownCountries = memo(({ label, ...props }: { label?: string; [key: string]: any }) => {
+const DropdownCountries = memo(({ label, studio, ...props }: { label?: string; studio?: boolean;[key: string]: any }) => {
   const Countries = useMemo(() => DataCountries as Country[], []);
   const [ciudades, setCiudades] = useState(Countries);
   const [field, , helpers] = useField(props as any);
@@ -38,6 +38,7 @@ const DropdownCountries = memo(({ label, ...props }: { label?: string; [key: str
 
   // Auto-selección: solo si el campo está vacío y el usuario no ha tocado el input
   useEffect(() => {
+    if (studio) return; // studio: sin auto-detección, el usuario elige el país
     if (autoAppliedRef.current || userTouchedRef.current) return;
     if (field.value) {
       autoAppliedRef.current = true;
@@ -57,6 +58,7 @@ const DropdownCountries = memo(({ label, ...props }: { label?: string; [key: str
 
   // Fallback si AuthContext aún no tiene geo (p. ej. form antes de verificationDone)
   useEffect(() => {
+    if (studio) return; // studio: sin auto-detección
     if (autoAppliedRef.current || userTouchedRef.current || field.value) return;
     if (geoInfo?.ipcountry) return;
 
@@ -82,7 +84,7 @@ const DropdownCountries = memo(({ label, ...props }: { label?: string; [key: str
   return (
     <ClickAwayListener onClickAway={() => (show ? setShow(false) : null)}>
       <div onFocus={() => setShow(true)} className="relative">
-        <div className="flex flex-col py-4">
+        <div className={`flex flex-col ${studio ? "" : "py-4"}`}>
           <label className="text-sm text-primary font-display w-full">{label}</label>
           <span className="relative">
             <input
