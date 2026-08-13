@@ -24,9 +24,13 @@ import { DuplicatePresupuesto } from "../components/Presupuesto/DuplicatePesupue
 import { useAllowed } from "../hooks/useAllowed";
 import WeddingFinanceManager from "../components/Presupuesto/TableroPresupuesto/WeddingFinanceManager";
 import { PresupuestoInitModal } from "../components/Presupuesto/PresupuestoInitModal";
+import { useSearchParams } from "next/navigation";
+import PresupuestoStudio from "../components/Presupuesto/PresupuestoStudio";
 
 const Presupuesto = () => {
   useMounted()
+  const searchParams = useSearchParams();
+  const studio = searchParams?.get("studio") !== "legacy";
   useEventSyncWithUrl()  // BUG-12: sincronizar event activo con ?event= de URL
   const { t } = useTranslation();
   const { user, verificationDone, forCms } = AuthContextProvider() as any;
@@ -94,6 +98,24 @@ const Presupuesto = () => {
       )
     }
     if (!event) return <EventLoadingOrError skeleton={<SkeletonBudget categories={5} />} />
+    if (studio) {
+      return (
+        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "w-full h-full"} style={{ background: "#faf9fb" }}>
+          {showInitModal && isAllowed() && (
+            <PresupuestoInitModal onClose={() => setShowInitModal(false)} onDuplicate={() => setShowModalDuplicate(true)} />
+          )}
+          {showModalDuplicate && (
+            <div className="absolute z-50 flex justify-center w-full">
+              <DuplicatePresupuesto showModalDuplicate={showModalDuplicate} setModal={setShowModalDuplicate} />
+            </div>
+          )}
+          <CopilotFilterBar entity="budget_items" />
+          <ModuleErrorBoundary label="Presupuesto">
+            <PresupuestoStudio categorias={categoriasToShow} />
+          </ModuleErrorBoundary>
+        </section>
+      );
+    }
     return (
       <>
         {event &&
