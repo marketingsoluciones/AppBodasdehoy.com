@@ -215,7 +215,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
           {tabs.map((tb) => {
             const on = active === tb.key;
             return (
-              <button key={tb.key} className="ps-seg" onClick={() => { setActive(tb.key); setShowCategoria({ state: false, _id: "" }); }} style={{ flex: 1, textAlign: "center", padding: "10px 8px", borderRadius: 10, font: "600 13px Poppins", cursor: "pointer", background: "transparent", color: on ? "#EF5B94" : "#6b6b72", border: "none", whiteSpace: "nowrap", transition: "all .15s" }}>
+              <button key={tb.key} className="ps-seg" onClick={() => { setActive(tb.key); setShowCategoria({ state: false, _id: "" }); }} style={{ flex: 1, textAlign: "center", padding: "10px 8px", borderRadius: 10, font: "600 13px Poppins", cursor: "pointer", background: "transparent", color: on ? "#EF5B94" : "#6b6b72", border: "none", whiteSpace: "nowrap", textTransform: "capitalize", transition: "all .15s" }}>
                 {tb.label}
               </button>
             );
