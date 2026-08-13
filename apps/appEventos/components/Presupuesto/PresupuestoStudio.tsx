@@ -11,7 +11,7 @@ import ClickAwayListener from "react-click-away-listener";
 import BlockTitle from "../Utils/BlockTitle";
 import DetalleCategoriaStudio from "./DetalleCategoriaStudio";
 import BlockPagos from "./BlockPagos";
-import { ExcelView } from "./ExcelView";
+import PresupuestoDetalladoStudio from "./PresupuestoDetalladoStudio";
 import WeddingFinanceManager from "./TableroPresupuesto/WeddingFinanceManager";
 import ExportExcelPresupuesto from "./ExportExcelPresupuesto";
 import { DuplicatePresupuesto } from "./DuplicatePesupuesto";
@@ -469,7 +469,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
         )}
 
         {/* ===== OTRAS VISTAS (existentes, se rediseñan en fases siguientes) ===== */}
-        {active === "excelView" && <ExcelView setShowCategoria={setShowCategoria} categorias_array={cats} showCategoria={showCategoria} />}
+        {active === "excelView" && <PresupuestoDetalladoStudio categorias={cats} onAddCategoria={() => setShowCreateCat(true)} />}
         {active === "pagos" && <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={cats} estado={"pagado"} />}
         {active === "pendiente" && <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={cats} estado={"pendiente"} />}
         {active === "dashboard" && isOwner && <WeddingFinanceManager />}
