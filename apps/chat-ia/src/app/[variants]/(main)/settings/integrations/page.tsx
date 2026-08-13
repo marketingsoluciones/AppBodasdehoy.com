@@ -33,9 +33,12 @@ function QRModal({
   development: string;
   onClose: () => void;
 }) {
-  const sessionKey = channel?.id ?? development;
+  // F1 estabilización (informe técnico 13-ago): el alta del QR nuevo devolvía 400. El backend
+  // keyea la sesión de WhatsApp por el SLUG del development —igual que WhatsAppDirectSession,
+  // que SÍ funciona— NO por el ObjectId del canal. Pasar `channel.id` mandaba un sessionKey
+  // inválido (un ObjectId opaco) → 400 → modal "congelado" sin QR.
   const { connectedAt, disconnectSession, error, loading, phoneNumber, qrCode, requestPairingCode, startSession, status } =
-    useWhatsAppSession(sessionKey);
+    useWhatsAppSession(development);
 
   const [mode, setMode] = useState<'qr' | 'code'>('qr');
   const [pairingPhone, setPairingPhone] = useState('');
