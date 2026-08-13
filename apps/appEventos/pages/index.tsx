@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { LineaHome } from "../components/icons";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, LoadingContextProvider, } from "../context";
 import Card, { handleClickCard, defaultImagenes } from "../components/Home/Card";
+import MisEventosMovil from "../components/Home/MisEventosMovil";
 import CardEmpty from "../components/Home/CardEmpty";
 import FormCrearEvento from "../components/Forms/FormCrearEvento";
 import ModalLeft from "../components/Utils/ModalLeft";
@@ -283,6 +284,7 @@ const Home: NextPage = () => {
           </div>
         )}
 
+        {router.query.studio !== "legacy" && <MisEventosMovil onCreate={() => setValirQuery(true)} />}
         <section id="rootsection" className="section relative w-full flex flex-col">
           <Banner state={valirQuery} set={setValirQuery} />
           <GridCards

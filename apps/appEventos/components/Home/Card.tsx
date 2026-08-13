@@ -125,7 +125,7 @@ export const handleClickCard = async ({ t, final = true, data, user, setUser, co
   }
 };
 
-const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
+const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
   const { t } = useTranslation()
   const [hoverRef, isHovered] = useHover();
   const { user, setUser, config, actionModals, setActionModals } = AuthContextProvider()
@@ -294,6 +294,57 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
     const estadoKey = archivado ? 'archivado' : pasado ? 'realizado' : 'activo';
     const estadoLabel = archivado ? t('Archivado') : pasado ? t('Realizado') : t('Activo');
     const seleccionado = ev?._id === user?.eventSelected;
+    const sharedArr = [...(ev?.detalles_compartidos_array ?? [])];
+    const avLabel = sharedArr.length > 0 ? `+${sharedArr.length}` : String(ev?.detalles_usuario_id?.displayName || ev?.usuario_nombre || ev?.nombre || "?").charAt(0).toUpperCase();
+
+    if (mobile) {
+      return (
+        <>
+          <div className={`${!shouldRenderChild ? "hidden" : "fixed z-30"}`}>
+            {shouldRenderChild && <ModalLeft set={setIsMounted} state={isMounted} clickAwayListened={false} studio={studio}>
+              <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} eventData={ev} />
+            </ModalLeft>}
+          </div>
+          <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={ev} />
+          <div onClick={abrirEvento} style={{ borderRadius: 16, background: "#fff", border: seleccionado ? "1.5px solid #EF5B94" : "1px solid #f0f0f2", boxShadow: "0 4px 14px rgba(0,0,0,.05)", cursor: "pointer", fontFamily: "'Poppins',sans-serif" }}>
+            <div style={{ position: "relative", height: 120, borderRadius: "15px 15px 0 0", overflow: "hidden", background: "#f2f2f4" }}>
+              <img src={imgUrl} alt={ev?.nombre || "Evento"} onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[ev?.tipo?.toLowerCase()] || defaultImagenes["otro"]; }} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+              <span style={{ position: "absolute", top: 10, left: 10, background: "rgba(255,255,255,.92)", color: "#3A3A42", font: "700 9px Poppins", letterSpacing: ".8px", padding: "4px 10px", borderRadius: 12, textTransform: "uppercase" }}>{ev?.tipo === "otro" ? t("otro") : t(ev?.tipo)}</span>
+              {seleccionado && <span style={{ position: "absolute", bottom: -9, left: 12, display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap", background: "#EF5B94", color: "#fff", font: "600 9.5px Poppins", letterSpacing: ".4px", padding: "4px 11px", borderRadius: 12, boxShadow: "0 4px 12px rgba(239,91,148,.4)", zIndex: 3 }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>{t("SELECCIONADO")}</span>}
+              <span style={{ position: "absolute", top: 8, right: 8, width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,.94)", color: "#EF5B94", display: "flex", alignItems: "center", justifyContent: "center", font: "700 10.5px Poppins" }}>{avLabel}</span>
+            </div>
+            <div style={{ padding: "11px 13px 12px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ font: "600 13px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{ev?.nombre}</div>
+                  <div style={{ font: "500 10.5px Poppins", color: "#8a8a90", marginTop: 2 }}>{utcDateFormated(ev?.fecha)}</div>
+                </div>
+                {isOwner && <button onClick={(e) => { e.stopPropagation(); setOpenMenu(true); }} style={{ width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#8a8a90", flex: "none", background: "none", border: "none", cursor: "pointer" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg></button>}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, font: "600 9.5px Poppins", padding: "4px 10px", borderRadius: 12, marginTop: 8, background: estadoKey === "realizado" ? "#E4F5EE" : estadoKey === "archivado" ? "#f2f2f4" : "#FBF0DA", color: estadoKey === "realizado" ? "#2FB37E" : estadoKey === "archivado" ? "#8a8a90" : "#E0A32B" }}><i style={{ width: 5, height: 5, borderRadius: "50%", background: "currentColor" }} />{estadoLabel}</span>
+                {compartido && <span style={{ font: "500 10px Poppins", color: "#8a8a90", marginTop: 8 }}>{t("compartido contigo")}</span>}
+              </div>
+            </div>
+          </div>
+          {isOwner && openMenu && (
+            <>
+              <div onClick={() => setOpenMenu(false)} style={{ position: "fixed", inset: 0, zIndex: 70, background: "rgba(43,43,48,.4)" }} />
+              <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 71, background: "#fff", borderRadius: "18px 18px 0 0", boxShadow: "0 -10px 30px rgba(0,0,0,.16)", padding: "16px 16px 34px", fontFamily: "'Poppins',sans-serif", maxWidth: 430, margin: "0 auto" }}>
+                <div style={{ width: 38, height: 4, borderRadius: 3, background: "#e5e5e9", margin: "0 auto 12px" }} />
+                <div style={{ font: "600 13px Poppins", color: "#3A3A42", textAlign: "center", marginBottom: 12 }}>{ev?.nombre}</div>
+                <div onClick={() => { setOpenMenu(false); handleArchivarEvent(); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 14px", borderRadius: 12, font: "500 13px Poppins", color: "#3A3A42", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5" /><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4" /></svg>{archivado ? t("Desarchivar") : t("Archivar")}</div>
+                <div onClick={() => { setOpenMenu(false); compartirEvento(); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 14px", borderRadius: 12, font: "500 13px Poppins", color: "#3A3A42", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg>{t("Compartir")}</div>
+                <div onClick={() => { setOpenMenu(false); isAllowed() ? handleEdit() : ht(); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 14px", borderRadius: 12, font: "500 13px Poppins", color: "#3A3A42", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h10M18 8h2M4 16h2M10 16h10" /><circle cx="16" cy="8" r="2.2" /><circle cx="8" cy="16" r="2.2" /></svg>{t("Editar")}</div>
+                <div style={{ height: 1, background: "#f0f0f2", margin: "6px 10px" }} />
+                <div onClick={() => { setOpenMenu(false); handleRemoveEvent(grupoStatus); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 14px", borderRadius: 12, font: "500 13px Poppins", color: "#D83E7C", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m3 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7" /></svg>{t("Borrar")}</div>
+              </div>
+            </>
+          )}
+        </>
+      );
+    }
+
     return (
       <>
         <div className={`${!shouldRenderChild ? "hidden" : "fixed z-30"}`}>
