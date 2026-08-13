@@ -738,6 +738,7 @@ const GridCards: FC<propsGridCards> = ({
           .evc-menu-item.peligro:hover{background:#FBE4EF;}
           .evc-menu-sep{height:1px;background:#f0f0f2;margin:4px 8px;}
         ` }} />
+        <div className="md:flex-1 min-w-0 overflow-y-auto" style={{ background: "#fff", borderTop: "1px solid #f0f0f2", width: "100%", paddingTop: 28 }}>
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 14, maxWidth: 1240, margin: "0 auto", padding: "0 24px", width: "100%" }}>
           <div style={{ flex: 1, minWidth: 0 }} className="hidden md:block" />
           <div style={{ display: "flex", gap: 6, background: "#f5f5f7", borderRadius: 12, padding: 5, flexWrap: "wrap", justifyContent: "center" }}>
@@ -758,7 +759,7 @@ const GridCards: FC<propsGridCards> = ({
             </div>
           </div>
         </div>
-        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "22px 24px 64px", width: "100%" }} className="overflow-y-auto md:flex-1 min-w-0">
+        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "22px 24px 64px", width: "100%" }} className="min-w-0">
           {(() => {
             const g = studioGroups[activeIdx] || studioGroups[0];
             const items = sortEvents(g.data);
@@ -786,6 +787,7 @@ const GridCards: FC<propsGridCards> = ({
               </div>
             );
           })()}
+        </div>
         </div>
       </>
       ) : (
