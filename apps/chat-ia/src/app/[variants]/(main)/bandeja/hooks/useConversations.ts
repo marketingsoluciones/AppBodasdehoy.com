@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 
 import { buildHeaders } from '../utils/auth';
+import { classifyOtherChannel, isWhatsAppView } from '../utils/channelClassify';
 import { dedupeFetch } from '../utils/dedupeFetch';
 import { friendlyContactName, safePhoneOrEmpty } from '../utils/jid';
 import { useMessageStream } from './useMessageStream';
@@ -39,10 +40,6 @@ export interface Conversation {
   unreadCountForAgent?: number;
 }
 
-// A2-web: canales "otros" conocidos. Alineado 1:1 con useRecentConversations (feed).
-// Cualquier canal fuera de este set (o sin channel) se clasifica como "web" (cajón).
-const OTHER_CHANNELS = new Set(['instagram', 'telegram', 'email', 'web', 'facebook']);
-
 export function useConversations(channel: string | null) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,7 +75,7 @@ export function useConversations(channel: string | null) {
       // pegar al endpoint WA y clasificarse como 'whatsapp'. Antes 'wa-xxx' caía al endpoint
       // de "otros" y filtraba c.channel==='wa-xxx' → SIEMPRE vacío → toda conv WA abierta
       // desde el detalle quedaba "solo lectura" falsamente (no solo las huérfanas).
-      const isWaView = channel === 'whatsapp' || channel?.startsWith('wa-') || !channel;
+      const isWaView = isWhatsAppView(channel);
       const fetchUrl = isWaView
         ? `${proxyBase}/whatsapp/conversations/${dev}`
         : `${proxyBase}/conversations?development=${dev}`;
@@ -98,12 +95,7 @@ export function useConversations(channel: string | null) {
           // Clasificación IDÉNTICA al feed (useRecentConversations): en vista WA todo es
           // 'whatsapp'; en vista "otros", desconocido/sin-channel → 'web' (cajón). Esto
           // hace que la conv sobreviva al abrirla (el filtro de abajo ya cuadra).
-          const rawKind = c.channel || c.platform || (isWaView ? 'whatsapp' : 'web');
-          const kind = isWaView
-            ? 'whatsapp'
-            : OTHER_CHANNELS.has(rawKind)
-              ? rawKind
-              : 'web';
+          const kind = isWaView ? 'whatsapp' : classifyOtherChannel(c.channel, c.platform);
           return {
             assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
             channel: kind as Conversation['channel'],
