@@ -297,7 +297,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
     return (
       <>
         <div className={`${!shouldRenderChild ? "hidden" : "fixed z-30"}`}>
-          {shouldRenderChild && <ModalLeft set={setIsMounted} state={isMounted} clickAwayListened={false}>
+          {shouldRenderChild && <ModalLeft set={setIsMounted} state={isMounted} clickAwayListened={false} studio={studio}>
             <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} eventData={ev} />
           </ModalLeft>}
         </div>
@@ -373,7 +373,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
   return (
     <>
       <div className={`${!shouldRenderChild ? "hidden" : "fixed z-30"}`}>
-        {shouldRenderChild && <ModalLeft set={setIsMounted} state={isMounted} clickAwayListened={false}>
+        {shouldRenderChild && <ModalLeft set={setIsMounted} state={isMounted} clickAwayListened={false} studio={studio}>
           <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} eventData={data[idx]} />
         </ModalLeft>}
       </div>

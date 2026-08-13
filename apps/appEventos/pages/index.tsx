@@ -245,7 +245,7 @@ const Home: NextPage = () => {
     return (
       <>
         {shouldRenderChild && (
-          <ModalLeft state={valirQuery} set={setValirQuery}>
+          <ModalLeft state={valirQuery} set={setValirQuery} studio={router.query.studio !== "legacy"}>
             {showEditEvent ?
               <FormCrearEvento state={valirQuery} set={setValirQuery} EditEvent={showEditEvent} />
               : <FormCrearEvento state={valirQuery} set={setValirQuery} />
