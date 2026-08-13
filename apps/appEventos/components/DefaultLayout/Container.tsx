@@ -144,7 +144,7 @@ const Container = (props) => {
       }
 
       <div
-        className={`w-full max-w-full min-w-0 ${pathname === "/" ? "" : "bg-base"} ${isFullHeight ? "h-[100vh]" : urls.includes(pathname) ? "" : forCms ? "h-[100vh]" : studioHeader ? "h-[calc(100vh-144px)] md:h-[calc(100vh-152px)]" : "h-[calc(100vh-144px)]"}`}
+        className={`w-full max-w-full min-w-0 ${pathname === "/" ? (studioHeader ? "bg-base" : "") : "bg-base"} ${isFullHeight ? "h-[100vh]" : urls.includes(pathname) ? "" : forCms ? "h-[100vh]" : studioHeader ? "h-[calc(100vh-144px)] md:h-[calc(100vh-152px)]" : "h-[calc(100vh-144px)]"}`}
         style={{
           display: "grid",
           width: "100%",

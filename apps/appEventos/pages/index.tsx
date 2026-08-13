@@ -389,7 +389,7 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
           .she-countdown .n.rosa{color:#EF5B94;}
           .she-countdown .l{font:500 9.5px Poppins;color:#9aa0a6;}
         ` }} />
-        <div style={{ background: "#F6F5F7", width: "100%" }}>
+        <div className="bg-base w-full">
           <section className="she-hero">
             {/* IZQUIERDA */}
             <div>
