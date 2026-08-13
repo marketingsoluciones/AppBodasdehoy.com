@@ -1,8 +1,9 @@
 'use client';
 
 import { ActionIcon, ActionIconProps, Hotkey } from '@lobehub/ui';
-import { BookOpen, Compass, FolderOpen, Heart, ImagePlus, Images, Inbox, ListChecks, MessageSquare, ShieldCheck } from 'lucide-react';
+import { BookOpen, Bot, Compass, FolderOpen, Heart, ImagePlus, Images, Inbox, ListChecks, MessageSquare, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
@@ -49,6 +50,9 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
   const isChatActive = tab === SidebarTabKey.Chat && !isPinned;
   const isMemoriesActive = tab === SidebarTabKey.Memories;
 
+  const pathname = usePathname();
+  const isAgentsActive = pathname?.includes('/agentes') ?? false;
+
   const inboxUnread = useInboxUnreadCount();
 
   return (
@@ -82,6 +86,21 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           tooltipProps={{ placement: 'right' }}
         />
       </Link>
+      {/* Agentes IA (equipo de agentes coworker) — DISTINTO del Asistente (chats IA).
+          Rediseño mensajería 13-ago: /agentes no estaba en el sidebar → los agentes no
+          se distinguían del asistente. Icono Bot (vs MessageSquare) + gateado a logueados
+          (requiere sesión api-ia). */}
+      {isLoggedIn && (
+        <Link aria-label="Agentes" href={'/agentes'} suppressHydrationWarning>
+          <ActionIcon
+            active={isAgentsActive}
+            icon={Bot}
+            size={ICON_SIZE}
+            title="Agentes"
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
       <Link aria-label={t('tab.memories' as any)} href={'/memories'} suppressHydrationWarning>
         <ActionIcon
           active={isMemoriesActive}
