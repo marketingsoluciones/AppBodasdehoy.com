@@ -1,4 +1,6 @@
 import { SetStateAction, useEffect, useState, useRef, Dispatch, FC, useMemo } from "react";
+import { createPortal } from "react-dom";
+import ClickAwayListener from "react-click-away-listener";
 import { motion } from "framer-motion";
 import { LineaHome } from "../components/icons";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, LoadingContextProvider, } from "../context";
@@ -582,6 +584,9 @@ const GridCards: FC<propsGridCards> = ({
   const [idxNew, setIdxNew] = useState<number>(-2)
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [orderAndDirection, setOrderAndDirection] = useState<SelectModeSortType>({ order: "fecha", direction: "desc" })
+  const [ordenOpen, setOrdenOpen] = useState(false)
+  const [mountedFab, setMountedFab] = useState(false)
+  useEffect(() => { setMountedFab(true) }, [])
 
   const handleMouseEnter = () => {
     setIsModalVisible(true);
@@ -763,6 +768,7 @@ const GridCards: FC<propsGridCards> = ({
           .evc-menu-item.peligro{color:#D83E7C;}
           .evc-menu-item.peligro:hover{background:#FBE4EF;}
           .evc-menu-sep{height:1px;background:#f0f0f2;margin:4px 8px;}
+          .orden-item:hover{background:#fdf8fa;}
         ` }} />
         <div className="md:flex-1 min-w-0 overflow-y-auto" style={{ background: "#fff", borderTop: "1px solid #f0f0f2", width: "100%", paddingTop: 28 }}>
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 14, maxWidth: 1240, margin: "0 auto", padding: "0 24px", width: "100%" }}>
@@ -779,7 +785,35 @@ const GridCards: FC<propsGridCards> = ({
             })}
           </div>
           <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 16 }} className="justify-center md:justify-end">
-            <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
+            <div style={{ position: "relative" }}>
+              <div onClick={() => setOrdenOpen(!ordenOpen)} style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", color: (orderAndDirection.order !== "fecha" || orderAndDirection.direction !== "desc") ? "#EF5B94" : "#6b6b72" }}>
+                <span style={{ font: "600 12.5px Poppins" }}>{t("Ordenar")}</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}><path d="M6 9l6 6 6-6" /></svg>
+              </div>
+              {ordenOpen && (
+                <ClickAwayListener onClickAway={() => setOrdenOpen(false)}>
+                  <div style={{ position: "absolute", top: 26, right: 0, zIndex: 20, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 12, boxShadow: "0 12px 30px rgba(0,0,0,.14)", padding: 6, minWidth: 150 }}>
+                    {[{ k: "fecha", l: "Fecha" }, { k: "nombre", l: "Nombre" }].map((o) => {
+                      const sel = orderAndDirection.order === o.k;
+                      return (
+                        <div key={o.k} className="orden-item" onClick={() => setOrderAndDirection((p) => ({ ...p, order: o.k as any }))} style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 12px", borderRadius: 8, font: `${sel ? 600 : 500} 12px Poppins`, color: "#3A3A42", cursor: "pointer" }}>
+                          <span style={{ width: 7, height: 7, borderRadius: "50%", background: sel ? "#2FB37E" : "#e7e7ea", flex: "none" }} />{t(o.l)}
+                        </div>
+                      );
+                    })}
+                    <div style={{ height: 1, background: "#f0f0f2", margin: "4px 8px" }} />
+                    {[{ k: "asc", l: "Ascendente" }, { k: "desc", l: "Descendente" }].map((o) => {
+                      const sel = orderAndDirection.direction === o.k;
+                      return (
+                        <div key={o.k} className="orden-item" onClick={() => setOrderAndDirection((p) => ({ ...p, direction: o.k as any }))} style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 12px", borderRadius: 8, font: `${sel ? 600 : 500} 12px Poppins`, color: "#3A3A42", cursor: "pointer" }}>
+                          <span style={{ width: 7, height: 7, borderRadius: "50%", background: sel ? "#2FB37E" : "#e7e7ea", flex: "none" }} />{t(o.l)}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ClickAwayListener>
+              )}
+            </div>
             <div onClick={() => router.push("/eventos")} title={t("Ver como tabla") as string} className="hidden md:flex" style={{ width: 34, height: 34, borderRadius: 9, border: "1.5px solid #E7E7EA", background: "#fff", alignItems: "center", justifyContent: "center", color: "#6b6b72", cursor: "pointer", flex: "none" }}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18M9 9v11" /></svg>
             </div>
@@ -815,10 +849,11 @@ const GridCards: FC<propsGridCards> = ({
           })()}
         </div>
         </div>
-        {studioGroups.some(g => g.data.length > 0) && (
-          <button onClick={() => setNewEvent(!state)} title={t("Crear evento") as string} style={{ position: "fixed", bottom: 26, right: 30, zIndex: 50, display: "flex", alignItems: "center", gap: 8, padding: "14px 24px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 10px 26px rgba(239,91,148,.4)" }}>
+        {mountedFab && studioGroups.some(g => g.data.length > 0) && createPortal(
+          <button onClick={() => setNewEvent(!state)} title={t("Crear evento") as string} style={{ position: "fixed", bottom: 26, right: 30, zIndex: 60, display: "flex", alignItems: "center", gap: 8, padding: "14px 24px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 10px 26px rgba(239,91,148,.4)" }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Crear evento")}
-          </button>
+          </button>,
+          document.body
         )}
       </>
       ) : (
