@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '../../hooks/useToast';
 import { BsDownload } from 'react-icons/bs';
 
-const ExportExcelPresupuesto = ({ className = "" }: { className?: string }) => {
+const ExportExcelPresupuesto = ({ className = "", studio = false }: { className?: string; studio?: boolean }) => {
   const { event } = EventContextProvider();
   const { t } = useTranslation();
   const toast = useToast();
@@ -385,13 +385,27 @@ const ExportExcelPresupuesto = ({ className = "" }: { className?: string }) => {
     }
   };
 
+  if (studio) {
+    return (
+      <button
+        onClick={exportToExcel}
+        title="Exportar presupuesto a Excel"
+        className="ps-btn2"
+        style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 15V3M7 8l5-5 5 5M4 21h16" /></svg>
+        {t("export")}
+      </button>
+    );
+  }
+
   return (
     <button
       onClick={exportToExcel}
       className={`capitalize text-gray-500 cursor-pointer flex justify-center items-center border border-primary rounded-md px-3 text-xs text-primary ${className}`}
       title="Exportar presupuesto a Excel"
     >
-      
+
       {t("export")}
     </button>
   );
