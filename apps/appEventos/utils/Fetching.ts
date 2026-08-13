@@ -1344,6 +1344,24 @@ export const queries = {
       evento{ _id presupuesto_objeto }
     }
   }`,
+  // Depósitos Wedding Planner (Dashboard). El backend expone estas mutaciones (verificado por
+  // introspección api-mcp): addWeddingPlannerIngreso(evento_id:ID!, ingreso:JSON!):EventoResponse!
+  // y deleteWeddingPlannerIngreso(evento_id:ID!, ingreso_id:ID!):EventoResponse!. Antes faltaban
+  // en el front (se enviaba query:undefined) → registrar/borrar depósito estaba roto.
+  addWeddingPlannerIngreso: `mutation($evento_id:ID!, $ingreso:JSON!){
+    addWeddingPlannerIngreso(evento_id:$evento_id, ingreso:$ingreso){
+      success
+      errors{ field message code }
+      evento{ _id presupuesto_objeto }
+    }
+  }`,
+  deleteWeddingPlannerIngreso: `mutation($evento_id:ID!, $ingreso_id:ID!){
+    deleteWeddingPlannerIngreso(evento_id:$evento_id, ingreso_id:$ingreso_id){
+      success
+      errors{ field message code }
+      evento{ _id presupuesto_objeto }
+    }
+  }`,
   guardarListaRegalos: `mutation($evento_id: String!, $variable_reemplazar: String, $valor_reemplazar: String){
     editEvento(
       evento_id:$evento_id

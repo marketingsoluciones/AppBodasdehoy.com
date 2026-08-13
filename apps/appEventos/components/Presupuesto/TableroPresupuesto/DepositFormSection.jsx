@@ -35,7 +35,7 @@ const DepositFormSection = ({
         query: queries.addWeddingPlannerIngreso,
         variables: {
           evento_id: event?._id,
-          weddingPlannerIngreso: {
+          ingreso: {
             fecha: new Date(),
             monto: values.monto,
             metodo: values.metodoPago,
