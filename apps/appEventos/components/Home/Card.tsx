@@ -303,16 +303,16 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
 
     // Modal de confirmación de borrado (portal a body → escapa el stacking del overlay/contenido).
     const confirmModal = (confirmDelete && mountedPortal && typeof document !== "undefined") ? createPortal(
-      <div onClick={() => setConfirmDelete(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(43,43,48,.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: "'Poppins',sans-serif" }}>
-        <div onClick={(e) => e.stopPropagation()} style={{ width: 380, maxWidth: "100%", background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 20px 50px rgba(0,0,0,.22)", padding: "26px 24px 22px", textAlign: "center" }}>
-          <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#D83E7C", margin: "0 auto 14px" }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m3 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7M10 11v6M14 11v6" /></svg>
+      <div onClick={() => setConfirmDelete(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(43,43,48,.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: "'Poppins',sans-serif" }}>
+        <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 320, background: "#fff", borderRadius: 16, boxShadow: "0 30px 80px rgba(0,0,0,.3)", padding: "22px 22px 18px", textAlign: "center" }}>
+          <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#FBE4EF", display: "flex", alignItems: "center", justifyContent: "center", color: "#D83E7C", margin: "0 auto 12px" }}>
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m3 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7" /></svg>
           </div>
-          <div style={{ font: "700 18px Poppins", color: "#3A3A42", marginBottom: 8 }}>{t("¿Borrar evento?")}</div>
-          <div style={{ font: "400 13px/1.6 Poppins", color: "#6b6b72", marginBottom: 20 }}>{t("Se eliminará")} <b style={{ color: "#3A3A42" }}>{ev?.nombre}</b> {t("de forma permanente. Esta acción no se puede deshacer.")}</div>
-          <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-            <button onClick={() => setConfirmDelete(false)} style={{ flex: 1, padding: "11px 16px", borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 13px Poppins", cursor: "pointer" }}>{t("Cancelar")}</button>
-            <button onClick={() => { setConfirmDelete(false); handleRemoveEvent(grupoStatus); }} style={{ flex: 1, padding: "11px 16px", borderRadius: 10, background: "#D83E7C", border: "none", color: "#fff", font: "600 13px Poppins", cursor: "pointer", boxShadow: "0 6px 16px rgba(216,62,124,.32)" }}>{t("Borrar")}</button>
+          <div style={{ font: "600 14.5px Poppins", color: "#3A3A42", marginBottom: 6 }}>{t("¿Borrar")} "{ev?.nombre}"?</div>
+          <div style={{ font: "400 12px/1.55 Poppins", color: "#8a8a90", marginBottom: 18 }}>{t("Es")} <b style={{ color: "#D83E7C", fontWeight: 600 }}>{t("definitivo")}</b> {t("y no se podrá recuperar.")}</div>
+          <div style={{ display: "flex", gap: 9, justifyContent: "center" }}>
+            <button onClick={() => setConfirmDelete(false)} style={{ flex: 1, padding: 10, borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12px Poppins", cursor: "pointer" }}>{t("Cancelar")}</button>
+            <button onClick={() => { setConfirmDelete(false); handleRemoveEvent(grupoStatus); }} style={{ flex: 1, padding: 10, borderRadius: 10, background: "#D83E7C", border: "none", color: "#fff", font: "600 12px Poppins", cursor: "pointer", boxShadow: "0 6px 16px rgba(216,62,124,.3)" }}>{t("Borrar")}</button>
           </div>
         </div>
       </div>,
