@@ -8,6 +8,8 @@ import { getCurrency } from "../../utils/Funciones";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useToast } from "../../hooks/useToast";
 import ModalLeft from "../Utils/ModalLeft";
+import ClickAwayListener from "react-click-away-listener";
+import BlockTitle from "../Utils/BlockTitle";
 import FormCrearCategoria from "../Forms/FormCrearCategoria";
 import BlockCategoria from "./BlockCategoria";
 import Grafico from "./Grafico";
@@ -36,6 +38,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
   const [totOpen, setTotOpen] = useState(false);
   const [totDraft, setTotDraft] = useState("");
   const [showZero, setShowZero] = useState(false);
+  const [curOpen, setCurOpen] = useState(false);
   const [confirmCat, setConfirmCat] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -95,6 +98,24 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
     }
   };
 
+  const CURRENCIES = [
+    { v: "eur", l: "EUR" }, { v: "usd", l: "USD" }, { v: "mxn", l: "MXN" },
+    { v: "cop", l: "COP" }, { v: "ars", l: "ARS" }, { v: "ves", l: "VES" }, { v: "uyu", l: "UYU" },
+  ];
+
+  const changeCurrency = (moneda: string) => {
+    setCurOpen(false);
+    if (!isAllowed()) { ht(); return; }
+    if (!event?._id) return;
+    fetchApiEventos({
+      query: `mutation($evento_id:ID!,$moneda:String!){ editCurrency(evento_id:$evento_id, moneda:$moneda){ success errors{ field message code } evento{ _id presupuesto_objeto } } }`,
+      variables: { evento_id: event._id, moneda },
+    }).then((result: any) => {
+      const po = result?.evento?.presupuesto_objeto;
+      setEvent((prev: any) => ({ ...prev, presupuesto_objeto: po || { ...prev.presupuesto_objeto, currency: moneda } }));
+    }).catch(() => { });
+  };
+
   const deleteCat = async (categoria: any) => {
     try {
       await fetchApiEventos({
@@ -121,6 +142,8 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
 
   const CATSTYLE = `
     .ps-seg:hover{background:#faf9fb!important;}
+    .ps-cur:hover{background:#faf9fb!important;color:#6b6b72!important;}
+    .ps-curtog:hover{color:#6b6b72!important;}
     .ps-row:hover{background:#faf9fb!important;}
     .ps-del:hover{background:#FBE4EF!important;color:#D83E7C!important;}
     .ps-btn2:hover{background:#faf9fb!important;color:#3A3A42!important;}
@@ -181,11 +204,14 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
         document.body
       )}
 
-      {/* Contenedor centrado */}
-      <div className="mx-auto w-full ps-scroll" style={{ maxWidth: 1080, padding: "8px 16px 40px", overflowY: "auto", flex: 1 }}>
+      {/* Scroll único: título + secciones + contenido bajan juntos, mismo ancho (max-w-screen-lg) */}
+      <div className="ps-scroll" style={{ overflowY: "auto", flex: 1 }}>
+      <div className="max-w-screen-lg mx-auto" style={{ padding: "12px 16px 40px" }}>
+
+        <BlockTitle title={"Presupuesto"} />
 
         {/* BARRA DE SECCIONES (tarjeta blanca, fiel al HTML) */}
-        <div className="ps-scroll" style={{ display: "flex", gap: 6, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, padding: 6, boxShadow: "0 4px 14px rgba(0,0,0,.05)", marginBottom: 18, overflowX: "auto" }}>
+        <div className="ps-scroll" style={{ display: "flex", gap: 6, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, padding: 6, boxShadow: "0 4px 14px rgba(0,0,0,.05)", marginTop: 16, marginBottom: 16, overflowX: "auto" }}>
           {tabs.map((tb) => {
             const on = active === tb.key;
             return (
@@ -225,6 +251,21 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                   </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
+                  <div style={{ position: "relative" }}>
+                    <div className="ps-curtog" onClick={() => { if (!isAllowed()) { ht(); return; } setCurOpen((v) => !v); }} title={t("Cambiar moneda")} style={{ display: "flex", alignItems: "center", gap: 4, font: "600 11.5px Poppins", color: "#a0a0a8", cursor: "pointer" }}>
+                      {(cur || "eur").toUpperCase()}
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}><path d="M6 9l6 6 6-6" /></svg>
+                    </div>
+                    {curOpen && (
+                      <ClickAwayListener onClickAway={() => setCurOpen(false)}>
+                        <div style={{ position: "absolute", top: 22, right: 0, zIndex: 40, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 10, boxShadow: "0 12px 32px rgba(0,0,0,.14)", padding: 6, minWidth: 92 }}>
+                          {CURRENCIES.map((c) => (
+                            <div key={c.v} className="ps-cur" onClick={() => changeCurrency(c.v)} style={{ padding: "7px 12px", borderRadius: 8, font: "600 12px Poppins", color: (cur || "eur") === c.v ? "#EF5B94" : "#6b6b72", cursor: "pointer" }}>{c.l}</div>
+                          ))}
+                        </div>
+                      </ClickAwayListener>
+                    )}
+                  </div>
                   <button className="ps-btn2" onClick={() => { if (!isAllowed()) { ht(); return; } setShowDup(true); }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16" /></svg>{t("import")}</button>
                   <ExportExcelPresupuesto studio />
                 </div>
@@ -313,6 +354,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
         {active === "pagos" && <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={cats} estado={"pagado"} />}
         {active === "pendiente" && <BlockPagos cate={showCategoria?._id} setGetId={setGetId} getId={getId} categorias_array={cats} estado={"pendiente"} />}
         {active === "dashboard" && isOwner && <WeddingFinanceManager />}
+      </div>
       </div>
     </div>
   );
