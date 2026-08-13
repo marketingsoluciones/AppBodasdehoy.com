@@ -30,7 +30,7 @@ const ITEMS: Array<{
 }> = [
   { href: '/asistente', icon: '💬', id: 'conv', label: 'Asistente' },
   { href: '/bandeja?tab=inbox', icon: '📥', id: 'inbox', label: 'Bandeja' },
-  { href: '/bandeja?tab=history', icon: '🕒', id: 'history', label: 'Historial' },
+  { href: '/bandeja?tab=history', icon: '🔔', id: 'history', label: 'Notificaciones' },
 ];
 
 export function BottomNavBar({

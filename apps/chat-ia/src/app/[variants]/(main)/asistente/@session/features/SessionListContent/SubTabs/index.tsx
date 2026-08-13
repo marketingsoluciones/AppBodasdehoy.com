@@ -2,13 +2,11 @@
 
 import { createStyles } from 'antd-style';
 import Link from 'next/link';
-import { memo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { memo } from 'react';
 
-import ConversationHistory from '../ConversationHistory';
 import DefaultMode from '../DefaultMode';
 
-const useStyles = createStyles(({ css, token }) => ({
+const useStyles = createStyles(({ css }) => ({
   container: css`
     display: flex;
     flex-direction: column;
@@ -18,96 +16,20 @@ const useStyles = createStyles(({ css, token }) => ({
     overflow-y: auto;
     flex: 1;
   `,
-  tab: css`
-    cursor: pointer;
-
-    flex: 1;
-    min-width: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 6px 4px;
-    border: none;
-    border-bottom: 2px solid transparent;
-    border-radius: 0;
-
-    font-size: 11px;
-    font-weight: 600;
-    color: ${token.colorTextSecondary};
-    text-align: center;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    background: transparent;
-
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
-
-    &:hover {
-      color: ${token.colorPrimary};
-      background: ${token.colorPrimaryBg};
-    }
-
-    &.active {
-      border-bottom-color: ${token.colorPrimary};
-      color: ${token.colorPrimary};
-      background: ${token.colorPrimaryBg};
-    }
-  `,
-  tabsContainer: css`
-    display: flex;
-    align-items: stretch;
-    gap: 0;
-
-    margin-block-end: 8px;
-    padding-inline: 6px;
-    padding-block: 0;
-
-    border-bottom: 1px solid ${token.colorBorderSecondary};
-    min-height: 36px;
-  `,
 }));
 
-// Plan rediseño chat-ia (commit 3bcec0be): tab "📥 Bandeja" eliminado del
-// sidebar /chat. El sidebar de /chat ya NO duplica ChannelSidebar — para
-// la bandeja completa el usuario va a /messages (link "Ver bandeja completa").
-// Esto reduce instancias de ChannelSidebar simultáneas (de 3 a 1) y el
-// número de SSE conexiones a /api/messages/stream.
-type SubTabType = 'conversaciones' | 'historial';
-
+// Rediseño mensajería (13-ago): el sidebar del asistente tenía sub-pestañas
+// "Conversaciones" (sesiones IA) | "Historial" (conversaciones backend WA/IG). Esa
+// segunda pestaña DUPLICABA la bandeja de /bandeja, pero pidiéndola a OTRA API
+// (useConversationHistory) → conteos incoherentes y sensación de "bandejas duplicadas".
+// Se retira: el asistente muestra SOLO las sesiones de IA; los mensajes de canales
+// viven en /bandeja (una sola bandeja, una sola fuente). Link debajo para ir allí.
 const SubTabs = memo(() => {
   const { styles } = useStyles();
-  const { t } = useTranslation('chat');
-  const [activeTab, setActiveTab] = useState<SubTabType>('conversaciones');
 
   return (
     <div className={styles.container}>
-      {/* Sub-pestañas: Conversaciones (sesiones IA) | Historial (conversaciones backend).
-          La bandeja completa (multicanal mensajería humanos) vive en /messages —
-          ver link debajo de los tabs. */}
-      <div className={styles.tabsContainer}>
-        <button
-          className={`${styles.tab} ${activeTab === 'conversaciones' ? 'active' : ''}`}
-          onClick={() => setActiveTab('conversaciones')}
-          type="button"
-        >
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          💬 {(t as any)('conversations')}
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'historial' ? 'active' : ''}`}
-          onClick={() => setActiveTab('historial')}
-          type="button"
-        >
-          📋 Historial
-        </button>
-      </div>
-
-      {/* Link a /messages — sustituye al antiguo tab "📥 Bandeja" inline.
-          Evita duplicar ChannelSidebar dentro del sidebar de /chat. */}
+      {/* Acceso a la bandeja única de mensajes (WA/IG/Web) — no se duplica aquí. */}
       <Link
         href="/bandeja"
         style={{
@@ -118,17 +40,16 @@ const SubTabs = memo(() => {
           fontWeight: 600,
           gap: 6,
           justifyContent: 'center',
-          padding: '6px 12px',
+          padding: '8px 12px',
           textDecoration: 'none',
         }}
       >
-        📥 Ver bandeja completa →
+        📥 Ver bandeja de mensajes →
       </Link>
 
-      {/* Contenido: solo sesiones IA o historial conversaciones backend. */}
+      {/* Solo sesiones de IA. */}
       <div className={styles.content}>
-        {activeTab === 'conversaciones' && <DefaultMode />}
-        {activeTab === 'historial' && <ConversationHistory />}
+        <DefaultMode />
       </div>
     </div>
   );
@@ -137,4 +58,3 @@ const SubTabs = memo(() => {
 SubTabs.displayName = 'SubTabs';
 
 export default SubTabs;
-

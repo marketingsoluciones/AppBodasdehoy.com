@@ -8,8 +8,12 @@
  * teletransporta fuera de la bandeja (QA H-4, 8-ago). Retirada: quedan 2
  * pestañas de contenido real dentro de la bandeja.
  *
- *   1. BANDEJA    (lista de conversaciones)
- *   2. HISTORIAL  (feed de notificaciones del sistema)
+ *   1. BANDEJA        (lista de conversaciones de canales)
+ *   2. NOTIFICACIONES (feed de notificaciones del sistema)
+ *
+ * Antes la 2ª se llamaba "Historial", pero "Historial" también nombraba el inbox
+ * WA/IG duplicado del asistente → choque de nombres (rediseño 13-ago). Renombrada a
+ * "Notificaciones" (que es lo que muestra de verdad) y el inbox duplicado retirado.
  *
  * Sincronizado con URL via `?tab=inbox|history`. Default `inbox`.
  * El acceso al chat sigue disponible desde el sidebar (💬 → /asistente).
@@ -27,7 +31,7 @@ interface BandejaTabsProps {
 
 const TAB_META: Array<{ icon: string; id: BandejaTab; label: string }> = [
   { icon: '📥', id: 'inbox', label: 'Bandeja' },
-  { icon: '🕒', id: 'history', label: 'Historial' },
+  { icon: '🔔', id: 'history', label: 'Notificaciones' },
 ];
 
 export function BandejaTabs({ active, counts }: BandejaTabsProps) {
