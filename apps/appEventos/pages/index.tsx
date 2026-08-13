@@ -4,7 +4,7 @@ import ClickAwayListener from "react-click-away-listener";
 import { motion } from "framer-motion";
 import { LineaHome } from "../components/icons";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, LoadingContextProvider, } from "../context";
-import Card, { handleClickCard } from "../components/Home/Card";
+import Card, { handleClickCard, defaultImagenes } from "../components/Home/Card";
 import CardEmpty from "../components/Home/CardEmpty";
 import FormCrearEvento from "../components/Forms/FormCrearEvento";
 import ModalLeft from "../components/Utils/ModalLeft";
@@ -15,6 +15,7 @@ import VistaSinCookie from "../pages/vista-sin-cookie"
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { useToast } from "../hooks/useToast";
+import { useDateTime } from "../hooks/useDateTime";
 import { useTranslation } from 'react-i18next';
 import { TbTableShare } from "react-icons/tb";
 import { SelectModeSort } from "../components/Utils/SelectModeSort";
@@ -577,8 +578,11 @@ const GridCards: FC<propsGridCards> = ({
 }) => {
   const { t } = useTranslation();
   const { eventsGroup, copilotFilter } = EventsGroupContextProvider();
-  const { user } = AuthContextProvider();
-  const { idxGroupEvent, setIdxGroupEvent } = EventContextProvider()
+  const { user, setUser, config } = AuthContextProvider();
+  const { idxGroupEvent, setIdxGroupEvent, setEvent } = EventContextProvider()
+  const toastGrid = useToast()
+  const { utcDateFormated } = useDateTime()
+  const [vista, setVista] = useState<"grid" | "tabla">("grid")
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<number>(idxGroupEvent?.isActiveStateSwiper)
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
   const [idxNew, setIdxNew] = useState<number>(-2)
@@ -697,18 +701,28 @@ const GridCards: FC<propsGridCards> = ({
       { label: "Compartidos", status: "compartido", data: shared },
     ];
   }, [eventsGroup, user, copilotFilter]);
+  const fechaMsOf = (f: any) => { if (f == null) return NaN; const s = String(f); const d = (!s.includes("T") && !s.includes("-")) ? new Date(parseInt(s)) : new Date(s); return d.getTime(); };
   const sortEvents = (arr: any[]) => {
     const items = [...(arr || [])];
     if (orderAndDirection?.order === "fecha") {
-      items.sort((a, b) => {
-        const da = new Date(parseInt(a?.fecha)).getTime(); const db = new Date(parseInt(b?.fecha)).getTime();
-        return orderAndDirection.direction === "asc" ? da - db : db - da;
-      });
+      items.sort((a, b) => orderAndDirection.direction === "asc" ? fechaMsOf(a?.fecha) - fechaMsOf(b?.fecha) : fechaMsOf(b?.fecha) - fechaMsOf(a?.fecha));
     } else if (orderAndDirection?.order === "nombre") {
       items.sort((a, b) => orderAndDirection.direction === "asc" ? String(a.nombre).localeCompare(b.nombre) : String(b.nombre).localeCompare(a.nombre));
     }
     return items;
   };
+  // Helpers vista tabla
+  const getBucket = (e: any): "activo" | "realizado" | "archivado" => {
+    if (String(e?.estatus ?? "").toLowerCase().includes("archiv")) return "archivado";
+    const ms = fechaMsOf(e?.fecha);
+    return (!Number.isNaN(ms) && ms < new Date().setHours(0, 0, 0, 0)) ? "realizado" : "activo";
+  };
+  const bucketLbl: Record<string, string> = { activo: t("Activo"), realizado: t("Realizado"), archivado: t("Archivado") };
+  const tevColor = (s: string) => { const c = ["#EF5B94", "#8e7cc3", "#c9a24b", "#5aa9e6", "#2FB37E", "#e07a5f", "#7b8794"]; let h = 0; for (const ch of String(s || "?")) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return c[h % c.length]; };
+  const eventoImg = (e: any) => e?.imgEvento?.i320 ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${e.imgEvento.i320}`)}` : (defaultImagenes[e?.tipo?.toLowerCase()] || defaultImagenes["otro"]);
+  const invitadosCount = (e: any) => { const a = e?.invitados_array; if (Array.isArray(a)) return a.length; if (typeof a === "string") { try { const p = JSON.parse(a); return Array.isArray(p) ? p.length : 0; } catch { return 0; } } return 0; };
+  const presupuestoFmt = (e: any) => { let po: any = e?.presupuesto_objeto; if (typeof po === "string") { try { po = JSON.parse(po); } catch { po = null; } } const val = Number(po?.coste_estimado ?? po?.presupuesto_total ?? po?.coste_final ?? 0) || 0; try { return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(val); } catch { return `${val} €`; } };
+  const abrirFila = (ev: any) => { if (!ev?._id) { toastGrid("error", t("Error: Evento no válido")); return; } toastGrid("success", t("Abriendo evento...")); handleClickCard({ t, final: true, config, data: ev, setEvent, user, setUser, router }).then((r: any) => { if (r) toastGrid("warning", r); }).catch(() => { try { setEvent(ev); setTimeout(() => router.push("/resumen-evento"), 100); } catch { } }); };
 
   return (
     <div className="flex flex-col max-h-[calc(52%-4px)]">
@@ -769,6 +783,29 @@ const GridCards: FC<propsGridCards> = ({
           .evc-menu-item.peligro:hover{background:#FBE4EF;}
           .evc-menu-sep{height:1px;background:#f0f0f2;margin:4px 8px;}
           .orden-item:hover{background:#fdf8fa;}
+          .tev-tabla{background:#fff;border:1px solid #f0f0f2;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.05);overflow:hidden;}
+          .tev-head,.tev-row{display:grid;grid-template-columns:2.2fr 1fr 1.2fr 0.8fr 1.2fr 0.8fr 1fr 1.1fr;gap:12px;align-items:center;padding:12px 22px;}
+          .tev-head{background:#faf9fb;border-bottom:1px solid #f0f0f2;font:700 10.5px Poppins;color:#a0a0a8;letter-spacing:.6px;text-transform:uppercase;}
+          .tev-head>div,.tev-row>div{text-align:center;}
+          .tev-head>div:first-child,.tev-row>div:first-child{text-align:left;}
+          .tev-row{border-bottom:1px solid #f5f5f7;cursor:pointer;}
+          .tev-row:hover{background:#fdf8fa;}
+          .tev-row:last-child{border-bottom:none;}
+          .tev-nombre{display:flex;align-items:center;gap:11px;min-width:0;}
+          .tev-foto{width:40px;height:40px;border-radius:10px;flex:none;background-size:cover;background-position:center;background-color:#f2f2f4;}
+          .tev-nombre b{font:600 12.5px Poppins;color:#3A3A42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .tev-pill{display:inline-flex;align-items:center;gap:5px;font:600 10.5px Poppins;padding:4px 10px;border-radius:12px;}
+          .tev-pill i{width:5px;height:5px;border-radius:50%;background:currentColor;}
+          .tev-pill--activo{background:#FBF0DA;color:#E0A32B;}
+          .tev-pill--realizado{background:#E4F5EE;color:#2FB37E;}
+          .tev-pill--archivado{background:#f2f2f4;color:#8a8a90;}
+          .tev-txt{font:500 12px Poppins;color:#6b6b72;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .tev-tipo{font:600 11px Poppins;color:#8a8a90;letter-spacing:.5px;text-transform:uppercase;}
+          .tev-num{font:600 12.5px Poppins;color:#3A3A42;}
+          .tev-avatars{display:flex;align-items:center;justify-content:center;}
+          .tev-av{width:24px;height:24px;border-radius:50%;color:#fff;display:inline-flex;align-items:center;justify-content:center;font:700 9.5px Poppins;border:2px solid #fff;flex:none;}
+          .tev-av+.tev-av{margin-left:-8px;}
+          .tev-av-gris{background:#f2f2f4;color:#8a8a90;}
         ` }} />
         <div className="md:flex-1 min-w-0 overflow-y-auto" style={{ background: "#fff", borderTop: "1px solid #f0f0f2", width: "100%", paddingTop: 28 }}>
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 14, maxWidth: 1240, margin: "0 auto", padding: "0 24px", width: "100%" }}>
@@ -814,8 +851,12 @@ const GridCards: FC<propsGridCards> = ({
                 </ClickAwayListener>
               )}
             </div>
-            <div onClick={() => router.push("/eventos")} title={t("Ver como tabla") as string} className="hidden md:flex" style={{ width: 34, height: 34, borderRadius: 9, border: "1.5px solid #E7E7EA", background: "#fff", alignItems: "center", justifyContent: "center", color: "#6b6b72", cursor: "pointer", flex: "none" }}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18M9 9v11" /></svg>
+            <div onClick={() => setVista(v => v === "tabla" ? "grid" : "tabla")} title={(vista === "tabla" ? t("Ver como tarjetas") : t("Ver como tabla")) as string} className="hidden md:flex" style={{ width: 34, height: 34, borderRadius: 9, border: "1.5px solid #E7E7EA", background: "#fff", alignItems: "center", justifyContent: "center", color: "#6b6b72", cursor: "pointer", flex: "none" }}>
+              {vista === "tabla" ? (
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
+              ) : (
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18M9 9v11" /></svg>
+              )}
             </div>
           </div>
         </div>
@@ -836,6 +877,41 @@ const GridCards: FC<propsGridCards> = ({
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Empezar")}
                     </button>
                   )}
+                </div>
+              );
+            }
+            if (vista === "tabla") {
+              return (
+                <div style={{ overflowX: "auto" }}>
+                  <div className="tev-tabla" style={{ minWidth: 900 }}>
+                    <div className="tev-head">
+                      <div>{t("Nombre del evento")}</div><div>{t("Estado")}</div><div>{t("Propietario")}</div><div>{t("Tipo")}</div><div>{t("Fecha del evento")}</div><div>{t("Invitados")}</div><div>{t("Compartidos")}</div><div>{t("Presupuesto")}</div>
+                    </div>
+                    {items.map((ev, i) => {
+                      const bk = getBucket(ev);
+                      const shared = [...(ev?.detalles_compartidos_array ?? [])];
+                      const propietario = ev?.detalles_usuario_id?.displayName || ev?.usuario_nombre || "—";
+                      return (
+                        <div key={ev?._id || i} className="tev-row" onClick={() => abrirFila(ev)}>
+                          <div className="tev-nombre"><div className="tev-foto" style={{ backgroundImage: `url('${eventoImg(ev)}')` }} /><b>{ev?.nombre}</b></div>
+                          <div><span className={`tev-pill tev-pill--${bk}`}><i />{bucketLbl[bk]}</span></div>
+                          <div className="tev-txt">{propietario}</div>
+                          <div className="tev-tipo">{ev?.tipo === "otro" ? t("otro") : t(ev?.tipo)}</div>
+                          <div className="tev-txt">{utcDateFormated(ev?.fecha)}</div>
+                          <div className="tev-num">{invitadosCount(ev)}</div>
+                          <div className="tev-avatars">
+                            {shared.length > 0 ? (() => {
+                              const maxShown = 3; const overflow = shared.length > maxShown ? shared.length - maxShown : 0; const visible = shared.slice(-Math.min(shared.length, maxShown));
+                              return (<>{overflow > 0 && <span className="tev-av tev-av-gris">+{overflow}</span>}{visible.map((u: any, k: number) => <span key={k} className="tev-av" title={u?.email || u?.displayName || ""} style={{ background: tevColor(u?.email || u?.displayName) }}>{String(u?.displayName || u?.email || "?").charAt(0).toUpperCase()}</span>)}</>);
+                            })() : (
+                              <span className="tev-av tev-av-gris">{String(propietario || "?").charAt(0).toUpperCase()}</span>
+                            )}
+                          </div>
+                          <div className="tev-num">{presupuestoFmt(ev)}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             }

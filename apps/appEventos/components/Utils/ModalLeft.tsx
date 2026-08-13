@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import ClickAwayListener from 'react-click-away-listener'
 
 const ModalLeft = ({ children, state, set, clickAwayListened = true, studio = false, ...rest }) => {
   const [initial, setInitial] = useState("-translate-x-full")
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     let timeout = setTimeout(() => {
@@ -13,7 +16,7 @@ const ModalLeft = ({ children, state, set, clickAwayListened = true, studio = fa
     }
   }, [])
 
-  return (
+  const content = (
     <>
       <div 
         className={`fixed top-0 left-0 w-full h-screen bg-black/60 transition-opacity duration-300 ${state ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"} `} 
@@ -49,6 +52,9 @@ const ModalLeft = ({ children, state, set, clickAwayListened = true, studio = fa
       </style>
     </>
   )
+
+  if (studio && mounted && typeof document !== "undefined") return createPortal(content, document.body)
+  return content
 }
 
 export default ModalLeft
