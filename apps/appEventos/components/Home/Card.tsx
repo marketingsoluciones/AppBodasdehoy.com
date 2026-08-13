@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context/";
 import useHover from "../../hooks/useHover";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import ClickAwayListener from "react-click-away-listener";
 import { fetchApiBodas, fetchApiEventos, queries, getApiErrorMessage } from "../../utils/Fetching";
 import { useToast } from '../../hooks/useToast'
 import { IoShareSocial } from "react-icons/io5";
@@ -26,6 +27,15 @@ export const defaultImagenes = {
   graduación: "/cards/graduacion.webp",
   otro: "/cards/pexels-pixabay-50675.jpg"
 };
+
+// Color estable por usuario para los avatares pequeños de la tarjeta studio
+const avatarColorFor = (s: string) => {
+  const colors = ["#EF5B94", "#8e7cc3", "#c9a24b", "#5aa9e6", "#2FB37E", "#e07a5f", "#7b8794"];
+  let h = 0;
+  for (const c of String(s || "?")) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return colors[h % colors.length];
+};
+const isOnline = (u: any) => { const o = u?.onLine; return typeof o === "boolean" ? o : (o?.status !== false); };
 
 export const handleClickCard = async ({ t, final = true, data, user, setUser, config, setEvent, router }: any) => {
   try {
@@ -128,8 +138,38 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
   const { utcDateFormated } = useDateTime();
   const [isNavigating, setIsNavigating] = useState(false); // Previene múltiples clics
+  const searchParams = useSearchParams();
+  const studio = searchParams?.get("studio") !== "legacy";
+  const [openMenu, setOpenMenu] = useState(false);
 
   const toast = useToast()
+
+  // Abrir el resumen del evento (misma lógica que la tarjeta clásica)
+  const abrirEvento = () => {
+    if (isNavigating) return;
+    const eventData = data[idx];
+    if (!eventData || !eventData._id) { toast("error", t("Error: Evento no válido")); return; }
+    setIsNavigating(true);
+    toast("success", t("Abriendo evento..."));
+    handleClickCard({ t, final: true, config, data: eventData, setEvent, user, setUser, router })
+      .then((resp) => { if (resp) { toast("warning", resp); setIsNavigating(false); } })
+      .catch((error) => {
+        toast("error", getApiErrorMessage(error) || t("Ha ocurrido un error"));
+        setIsNavigating(false);
+        try { setIsNavigating(true); setEvent(eventData); setTimeout(() => { router.push("/resumen-evento"); }, 100); } catch { setIsNavigating(false); }
+      });
+  };
+
+  // Compartir (abre modal de usuarios compartidos, solo dueño)
+  const compartirEvento = () => {
+    if (user?.displayName === "guest") return;
+    setTimeout(() => {
+      handleClickCard({ t, final: false, config, data: data[idx], setEvent, user, setUser, router, toast } as any)
+        .then((resp) => { if (resp) toast("warning", resp); })
+        .catch((error) => { console.error("Error en handleClickCard:", error); });
+    }, 100);
+    setOpenModal(!openModal);
+  };
 
   const handleArchivarEvent = () => {
     /* setActionModals(!actionModals) */
@@ -157,7 +197,7 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
         if (!ok) return
       }
       try {
-        const value = grupoStatus === "pendiente" ? "archivado" : "pendiente"
+        const value = String(grupoStatus ?? "").toLowerCase() === "archivado" ? "pendiente" : "archivado"
         // estatus es enum EventoStatus (PENDIENTE/ARCHIVADO uppercase) en api-mcp; el front usa
         // lowercase ("archivado"/"pendiente"). Migrar rompería el enum + consistencia con apiapp.
         // Se mantiene en apiapp hasta que BACKEND alinee el enum. Ver hilo coordinación.
@@ -239,10 +279,101 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
     setIsMounted(!isMounted);
   };
 
+  if (studio) {
+    const ev = data[idx] || {};
+    const isOwner = ev?.usuario_id === user?.uid;
+    const compartido = ev?.usuario_id !== user?.uid;
+    const imgUrl = ev?.imgEvento?.i320
+      ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${ev.imgEvento.i320}`)}`
+      : (defaultImagenes[ev?.tipo?.toLowerCase()] || defaultImagenes['otro']);
+    // Estado real: Archivado (manual) → Realizado (fecha pasada) → Activo (fecha futura/actual)
+    const archivado = String(ev?.estatus ?? grupoStatus ?? '').toLowerCase().includes('archiv');
+    const _fs = String(ev?.fecha ?? '');
+    const _fms = (_fs && !_fs.includes('T') && !_fs.includes('-')) ? new Date(parseInt(_fs)).getTime() : new Date(_fs).getTime();
+    const pasado = !archivado && !Number.isNaN(_fms) && _fms < new Date().setHours(0, 0, 0, 0);
+    const estadoKey = archivado ? 'archivado' : pasado ? 'realizado' : 'activo';
+    const estadoLabel = archivado ? t('Archivado') : pasado ? t('Realizado') : t('Activo');
+    const seleccionado = ev?._id === user?.eventSelected;
+    return (
+      <>
+        <div className={`${!shouldRenderChild ? "hidden" : "fixed z-30"}`}>
+          {shouldRenderChild && <ModalLeft set={setIsMounted} state={isMounted} clickAwayListened={false} studio={studio}>
+            <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} eventData={ev} />
+          </ModalLeft>}
+        </div>
+        <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={ev} />
+        <div className={`evc-card${seleccionado ? ' seleccionada' : ''}`} onClick={abrirEvento} title={t("Abrir resumen del evento")}
+          style={{ zIndex: openMenu ? 30 : undefined }}>
+          <div className="evc-foto">
+            <img src={imgUrl} alt={ev?.nombre || ev?.tipo || 'Evento'}
+              onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[ev?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '15px 15px 0 0', display: 'block' }} />
+            <span className="evc-tipo">{ev?.tipo === 'otro' ? t('otro') : t(ev?.tipo)}</span>
+            {seleccionado && (
+              <span className="evc-badge-sel">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
+                {t('SELECCIONADO')}
+              </span>
+            )}
+            <div className="evc-avatar-wrap" onClick={(e) => e.stopPropagation()}>
+              {(() => {
+                const shared = [...(ev?.detalles_compartidos_array ?? [])];
+                if (ev?.detalles_usuario_id) shared.push(ev.detalles_usuario_id);
+                if (shared.length === 0) return null;
+                const maxShown = 3;
+                const overflow = shared.length > maxShown ? shared.length - maxShown : 0;
+                const visible = shared.slice(-Math.min(shared.length, maxShown));
+                return (
+                  <div className="evc-avatars">
+                    {overflow > 0 && <span className="evc-av evc-av-more">+{overflow}</span>}
+                    {visible.map((u: any, i: number) => (
+                      <span key={i} className="evc-av" title={u?.email || u?.displayName || ''} style={{ background: avatarColorFor(u?.email || u?.displayName) }}>
+                        {String(u?.displayName || u?.email || '?').charAt(0).toUpperCase()}
+                        {isOnline(u) && <i className="evc-av-dot" />}
+                      </span>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+          <div className="evc-body">
+            <div className="evc-fila">
+              <div style={{ minWidth: 0 }}>
+                <div className="evc-nombre">{ev?.nombre}</div>
+                <div className="evc-fecha">{utcDateFormated(ev?.fecha)}</div>
+              </div>
+              {isOwner && (
+                <button className="evc-dots" onClick={(e) => { e.stopPropagation(); setOpenMenu(!openMenu); }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>
+                </button>
+              )}
+              {isOwner && openMenu && (
+                <ClickAwayListener onClickAway={() => setOpenMenu(false)}>
+                  <div className="evc-menu" onClick={(e) => e.stopPropagation()}>
+                    <div className="evc-menu-item" onClick={() => { setOpenMenu(false); handleArchivarEvent(); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5" /><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4" /></svg>{archivado ? t('Desarchivar') : t('Archivar')}</div>
+                    <div className="evc-menu-item" onClick={() => { setOpenMenu(false); compartirEvento(); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg>{t('Compartir')}</div>
+                    <div className="evc-menu-item" onClick={() => { setOpenMenu(false); isAllowed() ? handleEdit() : ht(); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h10M18 8h2M4 16h2M10 16h10" /><circle cx="16" cy="8" r="2.2" /><circle cx="8" cy="16" r="2.2" /></svg>{t('Editar')}</div>
+                    <div className="evc-menu-sep" />
+                    <div className="evc-menu-item peligro" onClick={() => { setOpenMenu(false); handleRemoveEvent(grupoStatus); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m3 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7" /></svg>{t('Borrar')}</div>
+                  </div>
+                </ClickAwayListener>
+              )}
+            </div>
+            <div className="evc-pie">
+              <span className={`evc-pill evc-pill--${estadoKey}`}><i />{estadoLabel}</span>
+              {compartido && <span className="evc-compartido">{t('compartido contigo')}</span>}
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <div className={`${!shouldRenderChild ? "hidden" : "fixed z-30"}`}>
-        {shouldRenderChild && <ModalLeft set={setIsMounted} state={isMounted} clickAwayListened={false}>
+        {shouldRenderChild && <ModalLeft set={setIsMounted} state={isMounted} clickAwayListened={false} studio={studio}>
           <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} eventData={data[idx]} />
         </ModalLeft>}
       </div>

@@ -96,7 +96,7 @@ export const subir_archivo = async ({ imagePreviewUrl, event, use }) => {
 };
 
 const ModuloSubida = (props) => {
-  const { event, use, defaultImagen, setValueImage } = props
+  const { event, use, defaultImagen, setValueImage, studio } = props
   const defaultImagePreviewUrl = {
     file: null,
     preview: false,
@@ -183,6 +183,37 @@ const ModuloSubida = (props) => {
       console.error(100088, error);
     }
   };
+
+  if (studio) {
+    const hasImg = imagePreviewUrl?.preview || (event && event[use]?.i800);
+    return (
+      <>
+        <input id="file" type="file" name="file" accept=".heic,.heif,image/*" onChange={handleChange} className="hidden" ref={fileInputRef} />
+        <div
+          onClick={() => { if (!isAllowed()) { ht(); return; } fileInputRef.current?.click(); }}
+          style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 6, height: 110, border: "1.5px dashed #E7A5C2", borderRadius: 14, background: hasImg ? "#fff" : "#FDF4F8", cursor: "pointer", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}
+        >
+          {hasImg ? (
+            <>
+              <div className="ms-studio-img" style={{ position: "absolute", inset: 0 }} />
+              <span style={{ position: "absolute", bottom: 8, display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,.92)", color: "#D83E7C", font: "600 11px Poppins", padding: "5px 12px", borderRadius: 20, boxShadow: "0 2px 8px rgba(0,0,0,.12)" }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-2.5h6L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" /><circle cx="12" cy="14" r="3.4" /></svg>{t("change") || "Cambiar"}
+              </span>
+            </>
+          ) : (
+            <>
+              <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", boxShadow: "0 3px 10px rgba(239,91,148,.15)" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h3l2-2.5h6L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" /><circle cx="12" cy="14" r="3.4" /></svg>
+              </div>
+              <div style={{ font: "600 12px Poppins", color: "#D83E7C" }}>{t("Subir una foto")}</div>
+              <div style={{ font: "400 11px Poppins", color: "#a0a0a8" }}>JPG o PNG · máx. 10 MB</div>
+            </>
+          )}
+        </div>
+        <style jsx>{`.ms-studio-img{background-image:url('${imagePreviewUrl?.image}');background-size:cover;background-position:center;background-repeat:no-repeat;}`}</style>
+      </>
+    );
+  }
 
   return (
     <>

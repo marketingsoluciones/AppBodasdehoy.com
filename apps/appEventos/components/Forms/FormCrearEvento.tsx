@@ -16,6 +16,7 @@ import ModuloSubida, { subir_archivo } from "../Invitaciones/ModuloSubida";
 import { defaultImagenes } from "../Home/Card";
 import SelectWithSearchField from "./SelectWithSearchField";
 import { useDateTime } from "../../hooks/useDateTime";
+import { useSearchParams } from "next/navigation";
 import { getAuth } from "firebase/auth";
 import { getDefaultGruposPorTipo } from "../../utils/defaultGruposPorTipo";
 
@@ -60,6 +61,8 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
   const { setEventsGroup, eventsGroup } = EventsGroupContextProvider();
   const toast = useToast();
   const [valir, setValir] = useState(false)
+  const searchParams = useSearchParams();
+  const studio = searchParams?.get("studio") !== "legacy";
   const [event] = useState(eventData ? eventData : eventOrigin)
   const [valueImage, setValueImage] = useState()
   const { utcDate } = useDateTime();
@@ -337,6 +340,69 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
     "despedida de soltero",
     "otro",
   ];
+
+  if (studio) {
+    return (
+      <Formik
+        {...formikValidateUx}
+        initialValues={initialValues}
+        onSubmit={handleSubmit}
+        validationSchema={validationSchema}
+        enableReinitialize
+      >
+        {({ isSubmitting, values }) => (
+          <Form className="ce-studio flex flex-col h-full w-full" style={{ fontFamily: "'Poppins',sans-serif" }}>
+            <style dangerouslySetInnerHTML={{ __html: `
+              .ce-head{display:flex;align-items:center;justify-content:space-between;padding:22px 30px 16px;border-bottom:1px solid #f0f0f2;flex:none;}
+              .ce-title{font:700 17px Poppins;color:#3A3A42;}
+              .ce-close{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#8a8a90;cursor:pointer;background:none;border:none;}
+              .ce-close:hover{background:#f5f5f7;}
+              .ce-body{flex:1;overflow:auto;padding:22px 30px;display:flex;flex-direction:column;gap:16px;scrollbar-width:none;}
+              .ce-body::-webkit-scrollbar{display:none;width:0;}
+              .ce-studio .overflow-auto{scrollbar-width:none;-ms-overflow-style:none;}
+              .ce-studio .overflow-auto::-webkit-scrollbar{display:none;width:0;height:0;}
+              .ce-fila2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+              .ce-label{display:block;font:600 12.5px Poppins;color:#EF5B94;margin-bottom:7px;}
+              .ce-foot{display:flex;gap:12px;padding:16px 30px 22px;border-top:1px solid #f0f0f2;flex:none;background:#fff;}
+              .ce-btn{flex:1;padding:12px 20px;border-radius:10px;font:600 13px Poppins;cursor:pointer;font-family:inherit;}
+              .ce-btn-sec{background:#fff;border:1.5px solid #E7E7EA;color:#6b6b72;}
+              .ce-btn-pri{background:#EF5B94;color:#fff;border:none;box-shadow:0 6px 16px rgba(239,91,148,.3);}
+              .ce-btn-pri:hover{background:#D83E7C;}
+              .ce-studio label{display:block!important;font:600 12.5px Poppins!important;color:#EF5B94!important;margin-bottom:7px!important;text-transform:none!important;}
+              .ce-studio input[type="text"],.ce-studio input[type="date"],.ce-studio select,.ce-studio input:not([type]){width:100%!important;border:1.5px solid #E7E7EA!important;border-radius:10px!important;padding:11px 14px!important;font:500 13px Poppins!important;color:#3A3A42!important;outline:none!important;background:#fff!important;height:auto!important;text-transform:none!important;}
+              .ce-studio input:focus,.ce-studio select:focus{border-color:#EF5B94!important;box-shadow:none!important;}
+            ` }} />
+            <AutoSubmitToken valueImage={valueImage} />
+            <div className="ce-head">
+              <div className="ce-title">{EditEvent ? t("Editar evento") : t("Crear evento")}</div>
+              <button type="button" className="ce-close" aria-label={t("Cerrar") as string} onClick={() => set(!state)}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
+            </div>
+            <div className="ce-body">
+              <div><InputField name="nombre" label={t("nameevent")} /></div>
+              <div><SelectField name="tipo" label={t("eventtype")} options={ListaTipo} nullable={true} capitalizeLabels /></div>
+              <div className="ce-fila2">
+                <div><InputField name="fecha" label={t("eventdate")} type="date" /></div>
+                <div><SelectWithSearchField name="timeZone" label={t("timeZone")} options={["Europe/Madrid", "Atlantic/Canary", "Europe/Lisbon", "Europe/London", "Europe/Paris", "Europe/Andorra", "Europe/Rome", "Europe/Berlin", "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "America/Mexico_City", "America/Tijuana", "America/Guatemala", "America/El_Salvador", "America/Tegucigalpa", "America/Managua", "America/Costa_Rica", "America/Panama", "America/Havana", "America/Santo_Domingo", "America/Puerto_Rico", "America/Bogota", "America/Lima", "America/Guayaquil", "America/Caracas", "America/La_Paz", "America/Santiago", "America/Argentina/Buenos_Aires", "America/Asuncion", "America/Montevideo"]} nullable={true} /></div>
+              </div>
+              <div>
+                <label className="ce-label">{t("Foto del evento")}</label>
+                <div className="w-full">
+                  <ModuloSubida studio setValueImage={setValueImage} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={defaultImagenes[values.tipo?.toLowerCase()]} />
+                </div>
+              </div>
+              <div><DropdownCountries studio name="pais" placeholder={t("Seleccionar país")} label={t("País")} /></div>
+            </div>
+            <div className="ce-foot">
+              <button type="button" className="ce-btn ce-btn-sec" onClick={() => set(!state)}>{t("Cancelar")}</button>
+              <button type="submit" disabled={isSubmitting} className="ce-btn ce-btn-pri">{t("save")}</button>
+            </div>
+          </Form>
+        )}
+      </Formik>
+    );
+  }
 
   return (
     <Formik
