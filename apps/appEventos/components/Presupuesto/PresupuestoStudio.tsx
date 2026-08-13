@@ -12,7 +12,7 @@ import BlockTitle from "../Utils/BlockTitle";
 import DetalleCategoriaStudio from "./DetalleCategoriaStudio";
 import PagosStudio from "./PagosStudio";
 import PresupuestoDetalladoStudio from "./PresupuestoDetalladoStudio";
-import WeddingFinanceManager from "./TableroPresupuesto/WeddingFinanceManager";
+import DashboardStudio from "./DashboardStudio";
 import ExportExcelPresupuesto from "./ExportExcelPresupuesto";
 import { DuplicatePresupuesto } from "./DuplicatePesupuesto";
 
@@ -472,7 +472,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
         {active === "excelView" && <PresupuestoDetalladoStudio categorias={cats} onAddCategoria={() => setShowCreateCat(true)} />}
         {active === "pagos" && <PagosStudio categorias={cats} estado="pagado" />}
         {active === "pendiente" && <PagosStudio categorias={cats} estado="pendiente" />}
-        {active === "dashboard" && isOwner && <WeddingFinanceManager />}
+        {active === "dashboard" && isOwner && <DashboardStudio categorias={cats} />}
       </div>
       </div>
     </div>
