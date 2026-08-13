@@ -386,8 +386,8 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
               </div>
               <div>
                 <label className="ce-label">{t("Foto del evento")}</label>
-                <div className="relative w-full h-[150px]">
-                  <ModuloSubida setValueImage={setValueImage} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={defaultImagenes[values.tipo?.toLowerCase()]} />
+                <div className="w-full">
+                  <ModuloSubida studio setValueImage={setValueImage} event={EditEvent ? event : undefined} use={"imgEvento"} defaultImagen={defaultImagenes[values.tipo?.toLowerCase()]} />
                 </div>
               </div>
               <div><DropdownCountries name="pais" placeholder={t("Selecciona el país")} label={t("País")} /></div>
