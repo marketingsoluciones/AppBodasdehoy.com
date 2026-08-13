@@ -232,8 +232,8 @@ export default function MessagesPage() {
             <div className="max-w-md">
               {activeTab === 'history' ? (
                 <>
-                  <div className="text-4xl">🕒</div>
-                  <div className="mt-3 text-sm font-semibold text-gray-800">Historial</div>
+                  <div className="text-4xl">🔔</div>
+                  <div className="mt-3 text-sm font-semibold text-gray-800">Notificaciones</div>
                   <div className="mt-1 text-xs text-gray-500">
                     Selecciona una notificación para ver el detalle. Las acciones se
                     enlazan al hilo de la conversación o entidad correspondiente.

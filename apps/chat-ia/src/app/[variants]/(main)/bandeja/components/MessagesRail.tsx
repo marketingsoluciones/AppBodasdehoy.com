@@ -104,7 +104,7 @@ export function MessagesRail({
       {
         href: '/bandeja?tab=history',
         icon: ICON_HISTORY,
-        label: 'Historial',
+        label: 'Notificaciones',
         matchPrefix: '/bandeja?tab=history',
         unreadCount: historyUnread,
       },
