@@ -189,10 +189,9 @@ const ModuloSubida = (props) => {
     return (
       <>
         <input id="file" type="file" name="file" accept=".heic,.heif,image/*" onChange={handleChange} className="hidden" ref={fileInputRef} />
-        <label
-          onClick={() => (!isAllowed() ? ht() : null)}
-          htmlFor={!isAllowed() ? "null" : "file"}
-          style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, height: 110, border: "1.5px dashed #E7A5C2", borderRadius: 14, background: hasImg ? "#fff" : "#FDF4F8", cursor: "pointer", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}
+        <div
+          onClick={() => { if (!isAllowed()) { ht(); return; } fileInputRef.current?.click(); }}
+          style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 6, height: 110, border: "1.5px dashed #E7A5C2", borderRadius: 14, background: hasImg ? "#fff" : "#FDF4F8", cursor: "pointer", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}
         >
           {hasImg ? (
             <>
@@ -210,7 +209,7 @@ const ModuloSubida = (props) => {
               <div style={{ font: "400 11px Poppins", color: "#a0a0a8" }}>JPG o PNG · máx. 10 MB</div>
             </>
           )}
-        </label>
+        </div>
         <style jsx>{`.ms-studio-img{background-image:url('${imagePreviewUrl?.image}');background-size:cover;background-position:center;background-repeat:no-repeat;}`}</style>
       </>
     );
