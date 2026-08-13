@@ -575,6 +575,7 @@ const GridCards: FC<propsGridCards> = ({
 }) => {
   const { t } = useTranslation();
   const { eventsGroup, copilotFilter } = EventsGroupContextProvider();
+  const { user } = AuthContextProvider();
   const { idxGroupEvent, setIdxGroupEvent } = EventContextProvider()
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<number>(idxGroupEvent?.isActiveStateSwiper)
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
@@ -659,6 +660,33 @@ const GridCards: FC<propsGridCards> = ({
     }));
   }, [tabsGroup, copilotFilter]);
 
+  // Grid rediseñado (studio, por defecto; rollback ?studio=legacy)
+  const studio = (router as any)?.query?.studio !== "legacy";
+  const activeIdx = Number.isInteger(isActiveStateSwiper) ? isActiveStateSwiper : 0;
+  const studioGroups = useMemo(() => {
+    const byStatus = (s: string) => displayedTabsGroup.find(g => g.status === s)?.data?.filter(Boolean) ?? [];
+    const all = (eventsGroup ?? []).filter(Boolean);
+    const compartidos = all.filter((e: any) => e?.usuario_id && user?.uid && e.usuario_id !== user.uid);
+    return [
+      { label: "Pendientes", status: "pendiente", data: byStatus("pendiente") },
+      { label: "Archivados", status: "archivado", data: byStatus("archivado") },
+      { label: "Realizados", status: "realizado", data: byStatus("realizado") },
+      { label: "Compartidos", status: "compartido", data: compartidos },
+    ];
+  }, [displayedTabsGroup, eventsGroup, user]);
+  const sortEvents = (arr: any[]) => {
+    const items = [...(arr || [])];
+    if (orderAndDirection?.order === "fecha") {
+      items.sort((a, b) => {
+        const da = new Date(parseInt(a?.fecha)).getTime(); const db = new Date(parseInt(b?.fecha)).getTime();
+        return orderAndDirection.direction === "asc" ? da - db : db - da;
+      });
+    } else if (orderAndDirection?.order === "nombre") {
+      items.sort((a, b) => orderAndDirection.direction === "asc" ? String(a.nombre).localeCompare(b.nombre) : String(b.nombre).localeCompare(a.nombre));
+    }
+    return items;
+  };
+
   return (
     <div className="flex flex-col max-h-[calc(52%-4px)]">
       {eventsGroupError && !eventsGroupSessionExpired && (
@@ -682,6 +710,86 @@ const GridCards: FC<propsGridCards> = ({
         </div>
       )}
       <CopilotFilterBar entity="events" className="mx-4" />
+      {studio ? (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .evc-card{position:relative;border-radius:16px;background:#fff;border:1px solid #f0f0f2;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.05);transition:transform .18s,box-shadow .18s;}
+          .evc-card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.12);}
+          .evc-foto{position:relative;height:104px;border-radius:15px 15px 0 0;background-color:#f2f2f4;overflow:hidden;}
+          .evc-tipo{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.92);color:#3A3A42;font:700 9.5px Poppins;letter-spacing:.8px;padding:4px 10px;border-radius:12px;text-transform:uppercase;z-index:2;}
+          .evc-avatar-wrap{position:absolute;top:8px;right:8px;z-index:2;}
+          .evc-body{padding:12px 14px 13px;}
+          .evc-fila{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;position:relative;}
+          .evc-nombre{font:600 13px Poppins;color:#3A3A42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .evc-fecha{font:500 11px Poppins;color:#8a8a90;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .evc-dots{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#8a8a90;flex:none;background:none;border:none;cursor:pointer;}
+          .evc-dots:hover{background:#f5f5f7;color:#EF5B94;}
+          .evc-pie{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:9px;}
+          .evc-pill{display:inline-flex;align-items:center;gap:5px;font:600 10px Poppins;padding:4px 10px;border-radius:12px;}
+          .evc-pill i{width:5px;height:5px;border-radius:50%;background:currentColor;}
+          .evc-pill--pendiente{background:#FBF0DA;color:#E0A32B;}
+          .evc-pill--archivado{background:#f2f2f4;color:#8a8a90;}
+          .evc-pill--realizado{background:#E4F5EE;color:#2FB37E;}
+          .evc-compartido{font:500 10px Poppins;color:#8a8a90;}
+          .evc-menu{position:absolute;top:30px;right:0;z-index:10;background:#fff;border:1px solid #f0f0f2;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.14);padding:6px;min-width:150px;}
+          .evc-menu-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:8px;font:500 12px Poppins;color:#3A3A42;cursor:pointer;}
+          .evc-menu-item:hover{background:#fdf8fa;color:#EF5B94;}
+          .evc-menu-item.peligro{color:#D83E7C;}
+          .evc-menu-item.peligro:hover{background:#FBE4EF;}
+          .evc-menu-sep{height:1px;background:#f0f0f2;margin:4px 8px;}
+        ` }} />
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 14, maxWidth: 1240, margin: "0 auto", padding: "0 24px", width: "100%" }}>
+          <div style={{ flex: 1, minWidth: 0 }} className="hidden md:block" />
+          <div style={{ display: "flex", gap: 6, background: "#f5f5f7", borderRadius: 12, padding: 5, flexWrap: "wrap", justifyContent: "center" }}>
+            {studioGroups.map((g, i) => {
+              const active = activeIdx === i;
+              return (
+                <div key={i} onClick={() => setIsActiveStateSwiper(i)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 9, color: active ? "#EF5B94" : "#8a8a90", font: "600 12.5px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}>
+                  {t(g.label)}
+                  <span style={{ minWidth: 20, height: 20, borderRadius: 10, background: active ? "#FCE7F0" : "#ececef", color: active ? "#D83E7C" : "#8a8a90", font: "600 10.5px Poppins", display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 6px" }}>{g.data.length}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 16 }} className="justify-center md:justify-end">
+            <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
+            <div onClick={() => router.push("/eventos")} title={t("Ver como tabla") as string} className="hidden md:flex" style={{ width: 34, height: 34, borderRadius: 9, border: "1.5px solid #E7E7EA", background: "#fff", alignItems: "center", justifyContent: "center", color: "#6b6b72", cursor: "pointer", flex: "none" }}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18M9 9v11" /></svg>
+            </div>
+          </div>
+        </div>
+        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "22px 24px 64px", width: "100%" }} className="overflow-y-auto md:flex-1 min-w-0">
+          {(() => {
+            const g = studioGroups[activeIdx] || studioGroups[0];
+            const items = sortEvents(g.data);
+            if (items.length === 0) {
+              return (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "60px 20px", background: "#fff", border: "1.5px dashed #E7E7EA", borderRadius: 18 }}>
+                  <div style={{ width: 72, height: 72, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", marginBottom: 18 }}>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M9 2C6.2 2 4 4.4 4 7.4c0 2.9 2 5.3 4.4 5.6l-.6 1.5h2.4L9.6 13C12 12.7 14 10.3 14 7.4 14 4.4 11.8 2 9 2z" /><path d="M16.5 5c-1.9 0-3.5 1.7-3.5 3.9 0 2 1.3 3.7 3 4l-.4 1.1h1.8L17 12.9c1.7-.3 3-2 3-4C20 6.7 18.4 5 16.5 5z" opacity=".55" /></svg>
+                  </div>
+                  <div style={{ font: "600 16px Poppins", color: "#3A3A42", marginBottom: 6 }}>{t("Aún no tienes eventos aquí")}</div>
+                  <div style={{ font: "400 13px/1.6 Poppins", color: "#8a8a90", maxWidth: 340, marginBottom: 22 }}>{t("Crea tu primer evento y empieza a organizar invitados, mesas e invitaciones en un solo lugar.")}</div>
+                  {g.status === "pendiente" && (
+                    <button onClick={() => setNewEvent(!state)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "13px 26px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Crear mi primer evento")}
+                    </button>
+                  )}
+                </div>
+              );
+            }
+            return (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {items.map((evento, i) => (
+                  <Card key={evento?._id || i} data={items} grupoStatus={g.status} idx={i} onSelect={() => setIdxGroupEvent({ idx: i, isActiveStateSwiper: activeIdx, event_id: evento._id })} />
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+      </>
+      ) : (
+      <>
       <div className="w-full h-10 flex">
         <div className="flex-1" />
         <div className="inline-flex gap-4 py-2">
@@ -762,6 +870,8 @@ const GridCards: FC<propsGridCards> = ({
           )
         })}
       </div>
+      </>
+      )}
     </div >
   );
 };
