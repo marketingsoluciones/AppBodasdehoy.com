@@ -126,6 +126,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
         .pd-scrollx{overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
         .pd-scrollx::-webkit-scrollbar{display:none;}
         .pd-pop label:hover{background:#faf9fb;}
+        .pd-search:focus,.pd-search:focus-visible{outline:none!important;box-shadow:none!important;border:none!important;}
       `}} />
 
       {pagoTarget && <ModalAddPagoStudio categoriaId={pagoTarget.cat} gastoId={pagoTarget.gasto} onClose={() => setPagoTarget(null)} />}
@@ -133,9 +134,9 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
       <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 4px 14px rgba(0,0,0,.05)", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}>
         {/* Toolbar */}
         <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", borderBottom: "1px solid #f2f2f4", flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "0 1 260px", minWidth: 160, maxWidth: 260, border: "1.5px solid #E7E7EA", borderRadius: 999, padding: "8px 14px", color: "#a0a0a8" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "0 1 250px", minWidth: 150, maxWidth: 250, border: "1px solid #E7E7EA", borderRadius: 999, padding: "5px 13px", color: "#a0a0a8" }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b3b3ba" strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Buscar…") as string} style={{ border: "none", background: "none", flex: 1, minWidth: 0, font: "500 12.5px Poppins", color: "#3A3A42", outline: "none" }} />
+            <input className="pd-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Buscar…") as string} style={{ border: "none", background: "none", flex: 1, minWidth: 0, font: "500 12.5px Poppins", color: "#3A3A42", outline: "none" }} />
           </div>
 
           <button className="pd-tool" onClick={() => setPanel(panel === "filtros" ? null : "filtros")} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12.5px Poppins", color: filtersActive ? "#EF5B94" : "#6b6b72", cursor: "pointer", background: "none", border: "none", padding: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M3 5h18l-7 8v6l-4 2v-8z" /></svg>{t("Filtros")}</button>
