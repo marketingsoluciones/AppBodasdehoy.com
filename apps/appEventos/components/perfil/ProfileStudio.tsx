@@ -9,6 +9,8 @@ import { convertHeicIfNeeded, validateFile, withRetry } from "@bodasdehoy/shared
 import { setCrossAppIdToken } from "@bodasdehoy/shared/auth";
 
 const cap1 = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s || "");
+// Ciudades: primera letra de cada palabra en mayúscula (ej. "MARACAIBO"/"maracaibo" -> "Maracaibo").
+const titleCase = (s?: string) => String(s || "").toLowerCase().split(" ").map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : w)).join(" ");
 
 const ProfileStudio: FC = () => {
   const { t } = useTranslation();
@@ -29,7 +31,7 @@ const ProfileStudio: FC = () => {
 
   const initial = String(user?.displayName || user?.email || "?").charAt(0).toUpperCase();
   const rol = cap1(user?.role?.length ? user.role[0] : "usuario");
-  const ciudad = user?.city || user?.ciudad || "";
+  const ciudad = titleCase(user?.city || user?.ciudad || "");
   const creado = (() => {
     try { const c = auth.currentUser?.metadata?.creationTime; if (!c) return ""; const d = new Date(c); return `${cap1(d.toLocaleDateString("es-ES", { month: "long" }))} ${d.getFullYear()}`; } catch { return ""; }
   })();
