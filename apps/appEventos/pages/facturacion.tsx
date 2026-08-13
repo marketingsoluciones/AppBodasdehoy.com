@@ -3,6 +3,8 @@ import { AuthContextProvider } from "../context"
 import { motion } from "framer-motion"
 import { fetchApiBodas, queries } from "../utils/Fetching"
 import { MetodosDePago, InformacionFacturacion, HistorialFacturacion } from "../components/Facturacion"
+import FacturacionStudio from "../components/Facturacion/FacturacionStudio"
+import { useSearchParams } from "next/navigation"
 import { countries_eur } from "../utils/Currencies"
 import VistaSinCookie from "./vista-sin-cookie"
 import { usePlanLimits } from "../hooks/usePlanLimits"
@@ -258,6 +260,8 @@ const PlanesAPI2 = () => {
 
 const Facturacion = () => {
     const { forCms, user, config, geoInfo, verificationDone } = AuthContextProvider()
+    const searchParams = useSearchParams()
+    const studio = searchParams?.get("studio") !== "legacy"
     const [dataFetch, setDataFetch] = useState<any>({})
     const [data, setData] = useState([])
     const [optionSelect, setOptionSelect] = useState(0)
@@ -315,6 +319,13 @@ const Facturacion = () => {
         if (!user) {
             return (
                 <VistaSinCookie />
+            )
+        }
+        if (studio) {
+            return (
+                <section className={forCms ? " w-[calc(100vw-40px)] " : "bg-base w-full"}>
+                    <FacturacionStudio />
+                </section>
             )
         }
         return (
