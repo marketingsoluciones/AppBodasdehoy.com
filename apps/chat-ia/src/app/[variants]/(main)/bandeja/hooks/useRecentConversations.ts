@@ -7,6 +7,7 @@ import { getWhatsAppChannels, getWhatsAppConversationsGQL } from '@/services/mcp
 
 import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { buildHeaders } from '../utils/auth';
+import { classifyOtherChannel } from '../utils/channelClassify';
 import { dedupeFetch } from '../utils/dedupeFetch';
 import { friendlyContactName } from '../utils/jid';
 import { useMessageStream } from './useMessageStream';
@@ -153,7 +154,6 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
           .catch(() => [] as RecentConversation[]);
 
         // Fetch other channels conversations (if backend supports them)
-        const otherChannels: ChannelKind[] = ['instagram', 'telegram', 'email', 'web', 'facebook'];
         const othersPromise = dedupeFetch(`/api/messages/conversations?development=${dev}`, {
           headers: buildHeaders(),
         })
@@ -162,15 +162,15 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
             const data = await res.json();
             const rawList: any[] = Array.isArray(data) ? data : (data.conversations ?? []);
             return rawList.map((c: any) => {
-              const kind = (c.channel || c.platform || 'web') as ChannelKind;
-              const isKnown = otherChannels.includes(kind);
+              // Clasificación de canal — fuente ÚNICA compartida con useConversations (rail).
+              const ch = classifyOtherChannel(c.channel, c.platform);
               // N31 retirado 24-jun: api-ia commit 665097b normalizó lastMessage
               // a string + lastMessageAt + lastMessageFromMe. Ya no llega objeto.
               return {
                 assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
-                channelParam: isKnown ? kind : 'web',
+                channelParam: ch,
                 conversationId: c.conversationId || c.id || '',
-                kind: isKnown ? kind : ('web' as const),
+                kind: ch,
                 lastMessage: c.lastMessage || '',
                 lastMessageAt: c.lastMessageAt || c.updatedAt || '',
                 lastInboundAt: c.lastInboundAt ?? c.last_inbound_at ?? undefined,
