@@ -13,9 +13,17 @@ type Country = {
 const flagUrl = (alpha2Code?: string): string =>
   alpha2Code ? `https://flagcdn.com/w40/${alpha2Code.toLowerCase()}.png` : "";
 
+// Países comunes (studio): España + Europa cercana + Norteamérica + Latinoamérica hispana + Brasil
+const COMMON_CC = new Set([
+  "ES", "PT", "GB", "FR", "AD", "IT", "DE",
+  "US", "CA", "MX", "GT", "SV", "HN", "NI", "CR", "PA", "CU", "DO", "PR",
+  "CO", "PE", "EC", "VE", "BO", "CL", "AR", "PY", "UY", "BR",
+]);
+
 const DropdownCountries = memo(({ label, studio, ...props }: { label?: string; studio?: boolean;[key: string]: any }) => {
   const Countries = useMemo(() => DataCountries as Country[], []);
-  const [ciudades, setCiudades] = useState(Countries);
+  const baseList = useMemo(() => studio ? Countries.filter((c) => COMMON_CC.has(c.alpha2Code)) : Countries, [Countries, studio]);
+  const [ciudades, setCiudades] = useState(baseList);
   const [field, , helpers] = useField(props as any);
   const [show, setShow] = useState(false);
   const { setValue } = helpers;
@@ -96,7 +104,7 @@ const DropdownCountries = memo(({ label, studio, ...props }: { label?: string; s
                 setShow(true);
                 setValue(e.target.value);
                 setCiudades(
-                  Countries.filter(({ name }) =>
+                  baseList.filter(({ name }) =>
                     name.toLowerCase().includes(e.target.value.toLowerCase())
                   )
                 );
