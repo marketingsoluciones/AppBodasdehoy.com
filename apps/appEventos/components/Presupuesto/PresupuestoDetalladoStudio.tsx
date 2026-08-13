@@ -7,8 +7,6 @@ import { useAllowed } from "../../hooks/useAllowed";
 import { useToast } from "../../hooks/useToast";
 import ClickAwayListener from "react-click-away-listener";
 import ModalAddPagoStudio from "./ModalAddPagoStudio";
-import { EventInfoModal } from "./PresupuestoV2/modals/EventInfoModal";
-import { ColumnsConfigModal } from "./PresupuestoV2/modals/ColumnsConfigModal";
 
 const cap1 = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s || "");
 const parseEs = (s: string) => { const n = parseFloat(String(s).replace(/[^\d.,]/g, "").replace(/\./g, "").replace(",", ".")); return Number.isNaN(n) ? 0 : n; };
@@ -36,6 +34,7 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
   const onFilterChange = (type: any, value: any) => setFilters((f: any) => ({ ...f, [type]: value }));
   const onClearFilters = () => setFilters(EMPTY_FILTERS);
   const [viewLevel, setViewLevel] = useState(3);
+  const [guestMode, setGuestMode] = useState<"conf" | "est">("conf");
   const [editRow, setEditRow] = useState<string | null>(null);
   const [editVals, setEditVals] = useState<{ nombre: string; coste_estimado: string; coste_final: string }>({ nombre: "", coste_estimado: "", coste_final: "" });
 
@@ -112,7 +111,22 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
   const cellStyle = (align: string): any => ({ textAlign: align === "left" ? "left" : align, minWidth: 0 });
   const editInput: any = { width: "100%", padding: "5px 7px", borderRadius: 7, border: "1.5px solid #EF5B94", font: "500 12px Poppins", color: "#3A3A42", outline: "none", boxSizing: "border-box" };
   const filtersActive = filters.categories.length > 0 || filters.paymentStatus !== "all";
-  const formatNumber = (v: number) => getCurrency(v, cur);
+
+  // Info evento
+  const confAdults = (Array.isArray(event?.invitados_array) ? event.invitados_array : []).filter((i: any) => !i.edad || i.edad >= 18 || i.tipo === "adulto").length;
+  const confChildren = (Array.isArray(event?.invitados_array) ? event.invitados_array : []).filter((i: any) => (i.edad && i.edad < 18) || i.tipo === "niño").length;
+  const estAdults = event?.presupuesto_objeto?.totalStimatedGuests?.adults || 0;
+  const estChildren = event?.presupuesto_objeto?.totalStimatedGuests?.children || 0;
+  const guests = guestMode === "conf"
+    ? { n: confAdults + confChildren, ad: confAdults, kid: confChildren, label: t("Invitados confirmados") }
+    : { n: estAdults + estChildren, ad: estAdults, kid: estChildren, label: t("Invitados estimados") };
+  const pct = totals.tot > 0 ? Math.round((totals.pag / totals.tot) * 100) : 0;
+  const totalGastos = cats.reduce((a, c) => a + ((c.gastos_array?.length) || 0), 0);
+  const COLUMNAS = [
+    { k: "gasto", l: t("Partida de gasto") }, { k: "unidad", l: t("Unidad") }, { k: "cantidad", l: t("Cantidad") },
+    { k: "valor_unitario", l: t("Valor unitario") }, { k: "coste_final", l: t("Coste total") }, { k: "coste_estimado", l: t("Coste estimado") },
+    { k: "pagado", l: t("Pagado") }, { k: "pendiente_pagar", l: t("Pendiente") }, { k: "options", l: t("Acciones") },
+  ];
 
   return (
     <div style={{ position: "relative" }}>
@@ -316,11 +330,83 @@ const PresupuestoDetalladoStudio: FC<Props> = ({ categorias, onAddCategoria }) =
         );
       })()}
       {panel === "info" && (
-        <EventInfoModal event={event} currency={cur} categorias_array={cats} totalStimatedGuests={event?.presupuesto_objeto?.totalStimatedGuests ?? { adults: 0, children: 0 }} totals={tableTotals} formatNumber={formatNumber} onClose={() => setPanel(null)} />
+        <div style={{ position: "absolute", top: 48, left: 12, zIndex: 50, width: 340, background: "#fff", border: "1px solid #ececef", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,.14)", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}>
+          <div style={{ display: "flex", alignItems: "center", padding: "16px 18px", borderBottom: "1px solid #f2f2f4" }}>
+            <div style={{ font: "700 15px Poppins", color: "#3A3A42", flex: 1 }}>{t("Información del evento")}</div>
+            <button className="pd-x" onClick={() => setPanel(null)} style={{ width: 26, height: 26, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#a0a0a8", background: "none", border: "none", cursor: "pointer" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
+          </div>
+          <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Resumen de invitados */}
+            <div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, gap: 10 }}>
+                <div style={{ font: "600 13px Poppins", color: "#3A3A42" }}>{t("Resumen de invitados")}</div>
+                <div style={{ display: "flex", background: "#faf9fb", border: "1px solid #ececef", borderRadius: 10, padding: 3 }}>
+                  {[{ k: "conf", l: t("Confirmados") }, { k: "est", l: t("Estimados") }].map((m) => {
+                    const on = guestMode === m.k;
+                    return <button key={m.k} onClick={() => setGuestMode(m.k as any)} style={{ padding: "5px 12px", borderRadius: 8, border: "none", cursor: "pointer", font: "600 11.5px Poppins", background: on ? "#fff" : "transparent", color: on ? "#EF5B94" : "#8a8a90", boxShadow: on ? "0 2px 6px rgba(0,0,0,.08)" : "none" }}>{m.l}</button>;
+                  })}
+                </div>
+              </div>
+              <div style={{ border: "1.5px solid #ececef", borderRadius: 12, padding: 16, textAlign: "center" }}>
+                <div style={{ font: "700 26px Poppins", color: "#EF5B94" }}>{guests.n}</div>
+                <div style={{ font: "700 10px Poppins", color: "#8a8a90", letterSpacing: ".8px", textTransform: "uppercase", marginTop: 2 }}>{guests.label}</div>
+                <div style={{ display: "flex", justifyContent: "center", gap: 34, marginTop: 12 }}>
+                  <div><div style={{ font: "600 16px Poppins", color: "#3A3A42" }}>{guests.ad}</div><div style={{ font: "500 11px Poppins", color: "#a0a0a8" }}>{t("Adultos")}</div></div>
+                  <div style={{ width: 1, background: "#ececef" }} />
+                  <div><div style={{ font: "600 16px Poppins", color: "#3A3A42" }}>{guests.kid}</div><div style={{ font: "500 11px Poppins", color: "#a0a0a8" }}>{t("Niños")}</div></div>
+                </div>
+              </div>
+            </div>
+            {/* Detalles del evento */}
+            <div>
+              <div style={{ font: "600 13px Poppins", color: "#3A3A42", marginBottom: 8 }}>{t("Detalles del evento")}</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 7, font: "500 12.5px Poppins" }}>
+                {[
+                  { l: t("Nombre"), v: event?.nombre || "—" },
+                  { l: t("Moneda"), v: (cur || "eur").toUpperCase() },
+                  { l: t("Categorías"), v: String(cats.length) },
+                  { l: t("Total gastos"), v: String(totalGastos) },
+                ].map((r, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "#a0a0a8" }}>{r.l}</span><span style={{ color: "#3A3A42", fontWeight: 600 }}>{r.v}</span></div>
+                ))}
+              </div>
+            </div>
+            {/* Progreso del presupuesto */}
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 7 }}>
+                <div style={{ font: "600 13px Poppins", color: "#3A3A42" }}>{t("Progreso del presupuesto")}</div>
+                <div style={{ font: "700 13px Poppins", color: "#3A3A42" }}>{pct}%</div>
+              </div>
+              <div style={{ height: 8, borderRadius: 8, background: "#f0f0f2", overflow: "hidden" }}><div style={{ height: "100%", width: `${Math.min(pct, 100)}%`, background: "#EF5B94", borderRadius: 8 }} /></div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 7, font: "600 11.5px Poppins" }}>
+                <span style={{ color: "#2FB37E" }}>{t("Pagado")}: {getCurrency(totals.pag, cur)}</span>
+                <span style={{ color: "#D83E7C" }}>{t("Pendiente")}: {getCurrency(totals.pen, cur)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
-      {panel === "columnas" && (
-        <ColumnsConfigModal columnConfig={columnConfig} toggleColumnVisibility={toggleColumnVisibility} onClose={() => setPanel(null)} />
-      )}
+      {panel === "columnas" && (() => {
+        const allChecked = COLUMNAS.every((c) => columnConfig[c.k]?.visible !== false);
+        return (
+          <div style={{ position: "absolute", top: 48, right: 12, zIndex: 50, width: 280, background: "#fff", border: "1px solid #ececef", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,.14)", overflow: "hidden", fontFamily: "'Poppins',sans-serif" }}>
+            <div style={{ display: "flex", alignItems: "center", padding: "16px 18px", borderBottom: "1px solid #f2f2f4" }}>
+              <div style={{ font: "700 15px Poppins", color: "#3A3A42", flex: 1 }}>{t("Columnas")}</div>
+              <button className="pd-x" onClick={() => setPanel(null)} style={{ width: 26, height: 26, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#a0a0a8", background: "none", border: "none", cursor: "pointer" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
+            </div>
+            <label className="pd-cat" style={{ display: "flex", alignItems: "center", gap: 11, padding: "12px 18px", borderBottom: "1px solid #f2f2f4", cursor: "pointer", font: "600 13px Poppins", color: "#3A3A42" }}>
+              <input type="checkbox" checked={allChecked} onChange={(e) => setColumnConfig((cc: any) => { const next = { ...cc }; COLUMNAS.forEach((c) => (next[c.k] = { visible: e.target.checked })); return next; })} style={{ accentColor: "#EF5B94", width: 16, height: 16 }} />{t("Seleccionar todo")}
+            </label>
+            <div className="pd-scrollx" style={{ maxHeight: 400, overflowY: "auto", padding: "4px 0" }}>
+              {COLUMNAS.map((c) => (
+                <label key={c.k} className="pd-cat" style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 18px", cursor: "pointer", font: "500 12.5px Poppins", color: "#3A3A42" }}>
+                  <input type="checkbox" checked={columnConfig[c.k]?.visible !== false} onChange={() => toggleColumnVisibility(c.k)} style={{ accentColor: "#EF5B94", width: 16, height: 16 }} />{c.l}
+                </label>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };
