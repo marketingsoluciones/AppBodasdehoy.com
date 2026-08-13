@@ -100,7 +100,7 @@ const Presupuesto = () => {
     if (!event) return <EventLoadingOrError skeleton={<SkeletonBudget categories={5} />} />
     if (studio) {
       return (
-        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "w-full h-full"} style={{ background: "#faf9fb" }}>
+        <section className={forCms ? "absolute z-[50] w-[calc(100vw-40px)] h-[100vh] top-0 left-4" : "w-full h-full flex flex-col"} style={{ background: "#faf9fb" }}>
           {showInitModal && isAllowed() && (
             <PresupuestoInitModal onClose={() => setShowInitModal(false)} onDuplicate={() => setShowModalDuplicate(true)} />
           )}
@@ -109,10 +109,15 @@ const Presupuesto = () => {
               <DuplicatePresupuesto showModalDuplicate={showModalDuplicate} setModal={setShowModalDuplicate} />
             </div>
           )}
-          <CopilotFilterBar entity="budget_items" />
-          <ModuleErrorBoundary label="Presupuesto">
-            <PresupuestoStudio categorias={categoriasToShow} />
-          </ModuleErrorBoundary>
+          <div className="shrink-0 px-2 md:px-4 pt-2 md:pt-3">
+            <BlockTitle title={"Presupuesto"} />
+          </div>
+          <CopilotFilterBar entity="budget_items" className="shrink-0 mx-2 md:mx-4 mt-2" />
+          <div className="flex-1 min-h-0">
+            <ModuleErrorBoundary label="Presupuesto">
+              <PresupuestoStudio categorias={categoriasToShow} />
+            </ModuleErrorBoundary>
+          </div>
         </section>
       );
     }

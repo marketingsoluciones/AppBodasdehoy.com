@@ -120,7 +120,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
   const selectCat = (c: any) => setShowCategoria({ state: true, _id: c._id });
 
   const CATSTYLE = `
-    .ps-tab{background:none;border:none;cursor:pointer;padding:10px 2px;font:600 13.5px Poppins;white-space:nowrap;position:relative;transition:color .15s;}
+    .ps-seg:hover{background:#faf9fb!important;}
     .ps-row:hover{background:#faf9fb!important;}
     .ps-del:hover{background:#FBE4EF!important;color:#D83E7C!important;}
     .ps-btn2:hover{background:#faf9fb!important;color:#3A3A42!important;}
@@ -184,14 +184,13 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
       {/* Contenedor centrado */}
       <div className="mx-auto w-full ps-scroll" style={{ maxWidth: 1080, padding: "8px 16px 40px", overflowY: "auto", flex: 1 }}>
 
-        {/* TABS sin recuadro */}
-        <div className="ps-scroll" style={{ display: "flex", gap: 24, overflowX: "auto", borderBottom: "1px solid #f0f0f2", marginBottom: 20 }}>
+        {/* BARRA DE SECCIONES (tarjeta blanca, fiel al HTML) */}
+        <div className="ps-scroll" style={{ display: "flex", gap: 6, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, padding: 6, boxShadow: "0 4px 14px rgba(0,0,0,.05)", marginBottom: 18, overflowX: "auto" }}>
           {tabs.map((tb) => {
             const on = active === tb.key;
             return (
-              <button key={tb.key} className="ps-tab" onClick={() => { setActive(tb.key); setShowCategoria({ state: false, _id: "" }); }} style={{ color: on ? "#EF5B94" : "#6b6b72" }}>
+              <button key={tb.key} className="ps-seg" onClick={() => { setActive(tb.key); setShowCategoria({ state: false, _id: "" }); }} style={{ flex: 1, textAlign: "center", padding: "10px 8px", borderRadius: 10, font: "600 13px Poppins", cursor: "pointer", background: "transparent", color: on ? "#EF5B94" : "#6b6b72", border: "none", whiteSpace: "nowrap", transition: "all .15s" }}>
                 {tb.label}
-                {on && <span style={{ position: "absolute", left: 0, right: 0, bottom: -1, height: 2.5, borderRadius: 3, background: "#EF5B94" }} />}
               </button>
             );
           })}
@@ -227,7 +226,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
                   <button className="ps-btn2" onClick={() => { if (!isAllowed()) { ht(); return; } setShowDup(true); }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16" /></svg>{t("import")}</button>
-                  <ExportExcelPresupuesto />
+                  <ExportExcelPresupuesto studio />
                 </div>
               </div>
 
