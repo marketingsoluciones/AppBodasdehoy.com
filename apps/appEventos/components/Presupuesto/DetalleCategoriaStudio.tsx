@@ -5,9 +5,8 @@ import { fetchApiEventos, queries } from "../../utils/Fetching";
 import { getCurrency } from "../../utils/Funciones";
 import { useAllowed } from "../../hooks/useAllowed";
 import { useToast } from "../../hooks/useToast";
-import { EntityNotesSection } from "../Notes/EntityNotesSection";
-import ModalLeft from "../Utils/ModalLeft";
-import FormAddPago from "../Forms/FormAddPago";
+import StudioNotesSection from "./StudioNotesSection";
+import ModalAddPagoStudio from "./ModalAddPagoStudio";
 
 // Nombre de categoría: iniciar con mayúscula (solo primera letra).
 const cap1 = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s || "");
@@ -88,11 +87,9 @@ const DetalleCategoriaStudio: FC<Props> = ({ categoriaId, onClose }) => {
         .dc-link:hover{color:#D83E7C!important;}
       `}} />
 
-      {/* Modal Añadir pago (reusa el form existente) */}
+      {/* Modal Añadir pago (fiel al HTML) */}
       {pagoGasto && (
-        <ModalLeft state={!!pagoGasto} set={() => setPagoGasto(null)}>
-          <FormAddPago GastoID={pagoGasto} cate={categoria._id} setGastoID={() => setPagoGasto(null)} />
-        </ModalLeft>
+        <ModalAddPagoStudio categoriaId={categoria._id} gastoId={pagoGasto} onClose={() => setPagoGasto(null)} />
       )}
 
       {/* TARJETA DETALLE */}
@@ -149,9 +146,9 @@ const DetalleCategoriaStudio: FC<Props> = ({ categoriaId, onClose }) => {
         </div>
       </div>
 
-      {/* NOTAS INTERNAS (colapsable, backend real) */}
+      {/* NOTAS INTERNAS (colapsable, fiel al HTML, backend real) */}
       {categoria._id && (
-        <EntityNotesSection entityType="ENTITY" entityId={categoria._id} entityName={categoria?.nombre || "Categoría"} />
+        <StudioNotesSection entityId={categoria._id} entityName={categoria?.nombre || "Categoría"} />
       )}
     </>
   );
