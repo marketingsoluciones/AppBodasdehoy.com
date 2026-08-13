@@ -301,13 +301,19 @@ const Card = ({ data, grupoStatus, idx, onSelect }: any) => {
           </ModalLeft>}
         </div>
         <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={ev} />
-        <div className="evc-card" onClick={abrirEvento} title={t("Abrir resumen del evento")}
-          style={{ ...(seleccionado ? { outline: '2px dashed #FBBF24', outlineOffset: 2 } : {}), zIndex: openMenu ? 30 : undefined }}>
+        <div className={`evc-card${seleccionado ? ' seleccionada' : ''}`} onClick={abrirEvento} title={t("Abrir resumen del evento")}
+          style={{ zIndex: openMenu ? 30 : undefined }}>
           <div className="evc-foto">
             <img src={imgUrl} alt={ev?.nombre || ev?.tipo || 'Evento'}
               onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[ev?.tipo?.toLowerCase()] || defaultImagenes['otro']; }}
               style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '15px 15px 0 0', display: 'block' }} />
             <span className="evc-tipo">{ev?.tipo === 'otro' ? t('otro') : t(ev?.tipo)}</span>
+            {seleccionado && (
+              <span className="evc-badge-sel">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
+                {t('SELECCIONADO')}
+              </span>
+            )}
             <div className="evc-avatar-wrap" onClick={(e) => e.stopPropagation()}>
               {(() => {
                 const shared = [...(ev?.detalles_compartidos_array ?? [])];

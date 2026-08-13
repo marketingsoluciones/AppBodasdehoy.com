@@ -725,7 +725,9 @@ const GridCards: FC<propsGridCards> = ({
         <style dangerouslySetInnerHTML={{ __html: `
           .evc-card{position:relative;border-radius:16px;background:#fff;border:1px solid #f0f0f2;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.05);transition:transform .18s,box-shadow .18s;}
           .evc-card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.12);}
-          .evc-foto{position:relative;height:104px;border-radius:15px 15px 0 0;background-color:#f2f2f4;overflow:hidden;}
+          .evc-card.seleccionada{border:1.5px solid #EF5B94;}
+          .evc-badge-sel{position:absolute;bottom:-9px;left:14px;display:flex;align-items:center;gap:5px;white-space:nowrap;background:#EF5B94;color:#fff;font:600 9.5px Poppins;letter-spacing:.4px;padding:4px 11px;border-radius:12px;box-shadow:0 4px 12px rgba(239,91,148,.4);z-index:3;}
+          .evc-foto{position:relative;height:104px;border-radius:15px 15px 0 0;background-color:#f2f2f4;}
           .evc-tipo{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.92);color:#3A3A42;font:700 9.5px Poppins;letter-spacing:.8px;padding:4px 10px;border-radius:12px;text-transform:uppercase;z-index:2;}
           .evc-avatar-wrap{position:absolute;top:8px;right:8px;z-index:2;}
           .evc-avatars{display:flex;align-items:center;}
