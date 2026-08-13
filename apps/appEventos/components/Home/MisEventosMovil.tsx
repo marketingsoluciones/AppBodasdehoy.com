@@ -3,8 +3,6 @@ import { useRouter, usePathname } from "next/navigation";
 import { AuthContextProvider, EventsGroupContextProvider } from "../../context";
 import { useTranslation } from "react-i18next";
 import Card from "./Card";
-import { Notifications } from "../Notifications";
-import { ImageAvatar } from "../Utils/ImageAvatar";
 
 // Igual que desktop: fecha puede venir ms ("1830297600000") o ISO ("2028-01-01").
 const fechaMs = (f: any) => {
@@ -30,13 +28,11 @@ const ICONS: Record<string, ReactElement> = {
 const MisEventosMovil: FC<{ onCreate: () => void }> = ({ onCreate }) => {
   const { t } = useTranslation();
   const { eventsGroup } = EventsGroupContextProvider();
-  const { user, config } = AuthContextProvider();
+  const { user } = AuthContextProvider();
   const router = useRouter();
   const pathname = usePathname();
   const [tab, setTab] = useState(0);
   const [showAll, setShowAll] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
-  const [q, setQ] = useState("");
   const [masOpen, setMasOpen] = useState(false);
 
   const groups = useMemo(() => {
@@ -59,7 +55,7 @@ const MisEventosMovil: FC<{ onCreate: () => void }> = ({ onCreate }) => {
   }, [eventsGroup, user]);
 
   const g = groups[tab] || groups[0];
-  const filtered = q.trim() ? g.data.filter((e: any) => String(e?.nombre || "").toLowerCase().includes(q.toLowerCase())) : g.data;
+  const filtered = g.data;
   const visible = showAll ? filtered : filtered.slice(0, 3);
   const restantes = filtered.length - visible.length;
 
@@ -82,15 +78,9 @@ const MisEventosMovil: FC<{ onCreate: () => void }> = ({ onCreate }) => {
     <div className="md:hidden" style={{ position: "fixed", inset: 0, zIndex: 50, background: "#F6F5F7", display: "flex", flexDirection: "column", fontFamily: "'Poppins',sans-serif" }}>
       <style dangerouslySetInnerHTML={{ __html: ".mev-scroll,.mev-tabs{scrollbar-width:none;-ms-overflow-style:none;}.mev-scroll::-webkit-scrollbar,.mev-tabs::-webkit-scrollbar{display:none;width:0;height:0;}" }} />
 
-      {/* Cabecera */}
-      <div style={{ background: "#fff", padding: "14px 16px 10px", display: "flex", alignItems: "center", justifyContent: "space-between", flex: "none" }}>
-        <div style={{ font: "700 17px Poppins", color: "#EF5B94" }}>Bodasdehoy<span style={{ color: "#3A3A42", fontSize: 11 }}>.com</span></div>
-        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-          <button onClick={() => setShowSearch(v => !v)} style={{ width: 34, height: 34, borderRadius: "50%", background: "#F7F6F8", display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer", color: "#6b6b72" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg></button>
-          <Notifications studio />
-          <div onClick={() => router.push(config?.pathPerfil || "/configuracion")} style={{ width: 34, height: 34, borderRadius: "50%", overflow: "hidden", background: "#EF5B94", cursor: "pointer", flex: "none" }}><ImageAvatar user={user} disabledTooltip /></div>
-        </div>
-      </div>
+      {/* Spacer = alto del header fijo (barra superior studio 78px). La cabecera visible
+          (logo + Copilot estrellita + campana + avatar) la pinta el header global por encima. */}
+      <div style={{ height: 78, flex: "none" }} />
 
       {/* Scroll */}
       <div className="mev-scroll" style={{ flex: 1, overflowY: "auto" }}>
@@ -104,13 +94,6 @@ const MisEventosMovil: FC<{ onCreate: () => void }> = ({ onCreate }) => {
 
         {/* Contenedor tarjetas */}
         <div style={{ padding: "0 26px 130px" }}>
-          {showSearch && (
-            <div style={{ display: "flex", alignItems: "center", gap: 9, background: "#fff", border: "1.5px solid #F3B6CE", borderRadius: 11, padding: "10px 14px", marginTop: 20 }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Buscar evento") as string} style={{ flex: 1, border: "none", outline: "none", background: "transparent", font: "500 13px Poppins", color: "#3A3A42" }} />
-            </div>
-          )}
-
           {/* Pestañas slider */}
           <div className="mev-tabs" style={{ display: "flex", gap: 6, overflowX: "auto", padding: "22px 2px 4px" }}>
             {groups.map((gr, i) => {

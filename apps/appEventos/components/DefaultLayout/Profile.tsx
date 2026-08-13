@@ -526,7 +526,7 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
               </div>
             )}
             {studio ? (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2.2}><path d="M6 9l6 6 6-6" /></svg>
+              <svg className="hidden md:block" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2.2}><path d="M6 9l6 6 6-6" /></svg>
             ) : (
               <ArrowDownBodasIcon className="w-5 h-5 rotate-90 transform text-black" />
             )}
