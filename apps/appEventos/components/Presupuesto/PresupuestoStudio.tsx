@@ -12,7 +12,6 @@ import ClickAwayListener from "react-click-away-listener";
 import BlockTitle from "../Utils/BlockTitle";
 import FormCrearCategoria from "../Forms/FormCrearCategoria";
 import BlockCategoria from "./BlockCategoria";
-import Grafico from "./Grafico";
 import BlockPagos from "./BlockPagos";
 import { ExcelView } from "./ExcelView";
 import WeddingFinanceManager from "./TableroPresupuesto/WeddingFinanceManager";
@@ -39,6 +38,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
   const [totDraft, setTotDraft] = useState("");
   const [showZero, setShowZero] = useState(false);
   const [curOpen, setCurOpen] = useState(false);
+  const [donutOpen, setDonutOpen] = useState(false);
   const [confirmCat, setConfirmCat] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -61,6 +61,23 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
     const sumFinal = cats.reduce((s, c) => s + (c.coste_final || 0), 0);
     return { total, pagado, costeFinal, porPagar, disponible, paidW, dueW, catsActive: active, catsZero: zero, sumEst, sumFinal };
   }, [p, cats]);
+
+  // Donut "¿Cuánto cuesta mi evento?" — distribución del gasto real (coste_final) por categoría.
+  const donut = useMemo(() => {
+    const COLORS = ["#EF5B94", "#5FBE8E", "#F4A26B", "#5EC0C4", "#8E8CE0", "#C58BD8", "#E7C24B", "#7BC67E", "#F0885A", "#6AA9E0", "#E0728F", "#9BD07B"];
+    const CIRC = 490.09; // 2·π·78
+    const data = cats.filter((c) => (c.coste_final || 0) > 0).map((c) => ({ nombre: c.nombre, val: c.coste_final || 0 })).sort((a, b) => b.val - a.val);
+    const totalG = data.reduce((s, d) => s + d.val, 0);
+    let off = 0;
+    const segs = data.map((d, i) => {
+      const frac = totalG > 0 ? d.val / totalG : 0;
+      const arc = frac * CIRC;
+      const seg = { color: COLORS[i % COLORS.length], arc, offset: -off, pct: Math.round(frac * 100), val: d.val, nombre: d.nombre };
+      off += arc;
+      return seg;
+    });
+    return { segs, totalG, CIRC };
+  }, [cats]);
 
   const excedido = disponible < 0;
   const frMsgBg = total === 0 ? "#FBF0DA" : excedido ? "#FBF0DA" : "#E4F5EE";
@@ -150,6 +167,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
     .ps-mod:hover{color:#EF5B94!important;}
     .ps-scroll{scrollbar-width:none;-ms-overflow-style:none;}
     .ps-scroll::-webkit-scrollbar{display:none;}
+    @keyframes grow{from{opacity:0;transform:scale(.96);}to{opacity:1;transform:scale(1);}}
   `;
 
   const catRow = (c: any, faded = false) => {
@@ -338,10 +356,44 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                 {showCategoria.state ? (
                   <BlockCategoria showCategoria={showCategoria} setShowCategoria={setShowCategoria} setGetId={setGetId} categorias_array={cats} />
                 ) : (
-                  <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 4px 14px rgba(0,0,0,.05)", padding: "18px 20px" }}>
-                    <div style={{ font: "700 15px Poppins", color: "#3A3A42", marginBottom: 4 }}>{t("Distribución por categoría")}</div>
-                    <div style={{ font: "500 11.5px Poppins", color: "#a0a0a8", marginBottom: 8 }}>{t("Toca una categoría para ver sus gastos")}</div>
-                    <Grafico categorias={cats} />
+                  <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 4px 14px rgba(0,0,0,.05)", padding: 20 }}>
+                    {/* Cabecera clicable → alterna abierto/cerrado */}
+                    <div onClick={() => setDonutOpen((v) => !v)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", gap: 10 }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ font: "700 15px Poppins", color: "#3A3A42" }}>{t("¿Cuánto cuesta mi evento?")}</div>
+                        <div style={{ font: "500 11.5px Poppins", color: "#a0a0a8", marginTop: 2 }}>{t("Distribución del gasto real por categoría")}</div>
+                      </div>
+                      <span style={{ font: "600 12px Poppins", color: "#EF5B94", whiteSpace: "nowrap", textDecoration: "underline", textUnderlineOffset: 3, flex: "none" }}>{donutOpen ? t("Ocultar") : t("Ver distribución")}</span>
+                    </div>
+
+                    {donutOpen && (donut.totalG > 0 ? (
+                      <>
+                        <div style={{ position: "relative", display: "flex", justifyContent: "center", alignItems: "center", height: 220, animation: "grow .5s ease" }}>
+                          <svg width="200" height="200" viewBox="0 0 200 200">
+                            <circle cx="100" cy="100" r="78" fill="none" stroke="#f2f2f4" strokeWidth="26" />
+                            {donut.segs.map((s, i) => (
+                              <circle key={i} cx="100" cy="100" r="78" fill="none" stroke={s.color} strokeWidth="26" strokeDasharray={`${s.arc} ${donut.CIRC}`} strokeDashoffset={s.offset} transform="rotate(-90 100 100)" />
+                            ))}
+                          </svg>
+                          <div style={{ position: "absolute", textAlign: "center" }}>
+                            <div style={{ font: "600 10.5px Poppins", color: "#a0a0a8" }}>{t("Gastado")}</div>
+                            <div style={{ font: "700 20px Poppins", color: "#3A3A42" }}>{getCurrency(donut.totalG, cur)}</div>
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 9, marginTop: 14 }}>
+                          {donut.segs.map((s, i) => (
+                            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <span style={{ width: 10, height: 10, borderRadius: 3, flex: "none", background: s.color }} />
+                              <div style={{ flex: 1, font: "600 12px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>{s.nombre}</div>
+                              <div style={{ font: "600 11.5px Poppins", color: "#a0a0a8" }}>{s.pct}%</div>
+                              <div style={{ font: "700 12px Poppins", color: "#3A3A42", width: 64, textAlign: "right" }}>{getCurrency(s.val, cur)}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <div style={{ padding: "26px 6px 6px", textAlign: "center", font: "500 12px Poppins", color: "#a0a0a8" }}>{t("Aún no hay gasto registrado")}</div>
+                    ))}
                   </div>
                 )}
               </div>
