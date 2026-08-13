@@ -130,7 +130,7 @@ const Container = (props) => {
   return (
     <>
       {showNavigation && <>
-        {showMobileNav && <NavigationMobile />}
+        {showMobileNav && !(studioHeader && pathname === "/") && <NavigationMobile />}
         {!forCms && <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, transition: { duration: 0.28, delay: 0.08 } }}
