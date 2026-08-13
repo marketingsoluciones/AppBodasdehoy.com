@@ -194,7 +194,7 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
     },
     {
       title: "Mi perfil",
-      onClick: async () => { config?.pathPerfil ? router.push(config?.pathPerfil) : router.push("/configuracion") },
+      onClick: async () => { studio ? router.push("/configuracion") : (config?.pathPerfil ? router.push(config?.pathPerfil) : router.push("/configuracion")) },
       icon: <UserIcon />,
       development: ["bodasdehoy", "all"],
       rol: ["novio", "novia", "otro", "empresa"],
