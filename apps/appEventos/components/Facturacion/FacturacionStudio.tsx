@@ -1,8 +1,9 @@
 import { FC, useState } from "react";
+import { AuthContextProvider } from "../../context";
 import { usePlanLimits } from "../../hooks/usePlanLimits";
 import { humanizeQuota, TIER_COLORS } from "@bodasdehoy/shared/plans";
 import { resolveApiBodasGraphqlUrl } from "../../utils/apiEndpoints";
-import { MetodosDePago, InformacionFacturacion, HistorialFacturacion } from "./index";
+import { InformacionFacturacion, HistorialFacturacion } from "./index";
 
 const QUOTA_SKUS = ["events-count", "guests-per-event", "ai-tokens", "image-gen", "whatsapp-msg", "sms-invitations", "storage-gb"];
 const eur = (n: number) => n.toFixed(2).replace(".", ",") + "€";
@@ -38,16 +39,30 @@ async function handleSubscribePlan(planId: string, billingPeriod: "monthly" | "y
   if (url) window.location.href = url;
 }
 
+async function openCustomerPortal(token: string, development: string, returnUrl: string) {
+  const res = await fetch(resolveApiBodasGraphqlUrl(), {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, "X-Development": development },
+    body: JSON.stringify({ query: `mutation CreateCustomerPortalSession($return_url: String!) { createCustomerPortalSession(return_url: $return_url) { success portal_url } }`, variables: { return_url: returnUrl } }),
+  });
+  const json = await res.json();
+  return json.data?.createCustomerPortalSession ?? { success: false };
+}
+
 const WL_FEATS = ["Instancia dedicada", "Firebase propio", "Branding personalizado", "Copiloto IA", "Wallet prepago", "Soporte prioritario", "API acceso completo", "Gestor de cuenta dedicado"];
 const TABS = ["Planes", "Métodos de pago", "Información de facturación", "Historial de facturación"];
 const ORDER = ["FREE", "BASIC", "PRO", "MAX", "ENTERPRISE"];
 
 const FacturacionStudio: FC = () => {
-  const { allPlans, tier, loading } = usePlanLimits() as any;
+  const { config } = AuthContextProvider() as any;
+  const { allPlans, tier: realTier, loading } = usePlanLimits() as any;
+  // Plan seleccionado: si el backend no da un plan principal (o es ENTERPRISE) → mostrar Pro.
+  const tier = (!realTier || realTier === "ENTERPRISE") ? "PRO" : realTier;
   const [tab, setTab] = useState(0);
   const [anual, setAnual] = useState(false);
   const [modal, setModal] = useState<any>(null);
   const [subscribing, setSubscribing] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
 
   const allActive = (allPlans || []).filter((p: any) => p.is_active !== false).sort((a: any, b: any) => a.pricing.monthly_fee - b.pricing.monthly_fee);
   const mainPlans = allActive.filter((p: any) => p.tier !== "ENTERPRISE" && p.tier !== "CUSTOM");
@@ -57,6 +72,20 @@ const FacturacionStudio: FC = () => {
   const curIdx = ORDER.indexOf(tier);
 
   const choose = async (planId: string) => { setSubscribing(planId); try { await handleSubscribePlan(planId, anual ? "yearly" : "monthly"); } finally { setSubscribing(null); } };
+
+  const openPortal = async () => {
+    setPortalLoading(true);
+    try {
+      const { getAuth } = await import("firebase/auth");
+      const token = await getAuth().currentUser?.getIdToken();
+      if (!token) throw new Error("no auth");
+      const development = config?.development || "bodasdehoy";
+      const returnUrl = typeof window !== "undefined" ? `${window.location.origin}/facturacion` : "";
+      const result = await openCustomerPortal(token, development, returnUrl);
+      if (result.success && result.portal_url) window.location.href = result.portal_url;
+      else setTab(0);
+    } catch { /* portal no disponible */ } finally { setPortalLoading(false); }
+  };
 
   const openModal = (plan: any) => {
     const upgrade = ORDER.indexOf(plan.tier) > curIdx;
@@ -110,28 +139,6 @@ const FacturacionStudio: FC = () => {
               </div>
             </div>
 
-            {/* Whitelabel como plan actual (arriba) */}
-            {whitelabelPlan && tier === "ENTERPRISE" && (
-              <section style={{ background: "#fff", border: "1.5px solid #F8CFE2", borderRadius: 16, padding: "30px 34px", marginBottom: 30 }}>
-                <div style={{ display: "flex", gap: 30, alignItems: "flex-start", flexWrap: "wrap" }}>
-                  <div style={{ flex: 1, minWidth: 260 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-                      <div style={{ font: "700 20px Poppins", color: "#3A3A42" }}>Whitelabel</div>
-                      {pill("#E4F5EE", "#1E8F63", "#E4F5EE", <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1E8F63" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>Tu plan actual</>)}
-                    </div>
-                    <div style={{ font: "500 13px Poppins", color: "#8a8a90", lineHeight: 1.6, maxWidth: 560, marginBottom: 18 }}>Para empresas que quieren desplegar su propia marca blanca. Incluye instancia dedicada, Firebase propio, branding personalizado y soporte prioritario.</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3,auto)", gap: "10px 34px", justifyContent: "start" }}>
-                      {WL_FEATS.map((f) => <div key={f} style={{ display: "flex", alignItems: "center", gap: 9 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg><span style={{ font: "500 12.5px Poppins", color: "#6b6b72", whiteSpace: "nowrap" }}>{f}</span></div>)}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: "right", flex: "none" }}>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 5, justifyContent: "flex-end" }}><span style={{ font: "800 34px Poppins", color: "#3A3A42" }}>149€</span><span style={{ font: "500 13px Poppins", color: "#a0a0a8" }}>/mes</span></div>
-                    <button disabled style={{ marginTop: 14, padding: "12px 24px", borderRadius: 10, background: "#f7f7f9", color: "#a0a0a8", font: "600 13px Poppins", cursor: "default", border: "none" }}>Plan actual</button>
-                  </div>
-                </div>
-              </section>
-            )}
-
             <div style={{ font: "700 12px Poppins", letterSpacing: 1.5, textTransform: "uppercase", color: "#a0a0a8", marginBottom: 22 }}>Planes disponibles</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 18, alignItems: "stretch", marginBottom: 24 }}>
               {mainPlans.map((plan: any) => {
@@ -164,12 +171,15 @@ const FacturacionStudio: FC = () => {
               })}
             </div>
 
-            {/* Whitelabel upsell (abajo) */}
-            {whitelabelPlan && tier !== "ENTERPRISE" && (
+            {/* Whitelabel SIEMPRE abajo (actual o upsell) */}
+            {whitelabelPlan && (
               <section style={{ background: "#fff", border: "1.5px solid #F8CFE2", borderRadius: 16, padding: "30px 34px", marginBottom: 24 }}>
                 <div style={{ display: "flex", gap: 30, alignItems: "flex-start", flexWrap: "wrap" }}>
                   <div style={{ flex: 1, minWidth: 260 }}>
-                    <div style={{ font: "700 20px Poppins", color: "#3A3A42", marginBottom: 10 }}>Whitelabel</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+                      <div style={{ font: "700 20px Poppins", color: "#3A3A42" }}>Whitelabel</div>
+                      {tier === "ENTERPRISE" && pill("#E4F5EE", "#1E8F63", "#B7E3CE", <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1E8F63" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>Tu plan actual</>)}
+                    </div>
                     <div style={{ font: "500 13px Poppins", color: "#8a8a90", lineHeight: 1.6, maxWidth: 560, marginBottom: 18 }}>Para empresas que quieren desplegar su propia marca blanca. Incluye instancia dedicada, Firebase propio, branding personalizado y soporte prioritario.</div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3,auto)", gap: "10px 34px", justifyContent: "start" }}>
                       {WL_FEATS.map((f) => <div key={f} style={{ display: "flex", alignItems: "center", gap: 9 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg><span style={{ font: "500 12.5px Poppins", color: "#6b6b72", whiteSpace: "nowrap" }}>{f}</span></div>)}
@@ -177,7 +187,9 @@ const FacturacionStudio: FC = () => {
                   </div>
                   <div style={{ textAlign: "right", flex: "none" }}>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 5, justifyContent: "flex-end" }}><span style={{ font: "800 34px Poppins", color: "#3A3A42" }}>149€</span><span style={{ font: "500 13px Poppins", color: "#a0a0a8" }}>/mes</span></div>
-                    <button onClick={() => openModal(whitelabelPlan)} style={{ marginTop: 14, padding: "12px 24px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.3)", border: "none", cursor: "pointer" }}>Cambiar a Whitelabel</button>
+                    {tier === "ENTERPRISE"
+                      ? <button disabled style={{ marginTop: 14, padding: "12px 24px", borderRadius: 10, background: "#f7f7f9", color: "#a0a0a8", font: "600 13px Poppins", cursor: "default", border: "none" }}>Plan actual</button>
+                      : <button onClick={() => openModal(whitelabelPlan)} style={{ marginTop: 14, padding: "12px 24px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.3)", border: "none", cursor: "pointer" }}>Cambiar a Whitelabel</button>}
                   </div>
                 </div>
               </section>
@@ -211,7 +223,22 @@ const FacturacionStudio: FC = () => {
       )}
 
       {/* ===== OTRAS PESTAÑAS (componentes existentes; se rediseñan en fases siguientes) ===== */}
-      {tab === 1 && <div style={{ width: "100%", display: "flex", justifyContent: "center", paddingTop: 16 }}><MetodosDePago setOptionSelect={setTab} stripeCurrency={null} /></div>}
+      {tab === 1 && (
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: 16 }}>
+          <section style={{ background: "#fff", border: "1px solid #ececef", borderRadius: 16, padding: "44px 50px", maxWidth: 520, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", fontFamily: "'Poppins',sans-serif" }}>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="3" /><path d="M2 10h20M6 15h4" /></svg></div>
+            <div style={{ font: "700 18px Poppins", color: "#3A3A42", marginBottom: 8 }}>Sin métodos de pago</div>
+            <div style={{ font: "500 13px Poppins", color: "#8a8a90", lineHeight: 1.6, maxWidth: 340, marginBottom: 24 }}>Gestiona tus tarjetas y métodos de pago de forma segura a través del portal de Stripe.</div>
+            <button onClick={openPortal} disabled={portalLoading} style={{ display: "inline-flex", alignItems: "center", gap: 9, padding: "12px 24px", borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", boxShadow: "0 6px 16px rgba(239,91,148,.3)", border: "none", cursor: "pointer", opacity: portalLoading ? 0.7 : 1 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="9" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+              {portalLoading ? "Abriendo…" : "Gestionar métodos de pago"}
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7M9 7h8v8" /></svg>
+            </button>
+            <div style={{ marginTop: 12, font: "500 11.5px Poppins", color: "#8a8a90" }}>Se abre el portal seguro de Stripe en una pestaña nueva</div>
+            <a href="#" onClick={(e) => { e.preventDefault(); setTab(0); }} style={{ marginTop: 10, font: "500 12.5px Poppins", color: "#8a8a90", textDecoration: "underline" }}>Ver planes de suscripción</a>
+          </section>
+        </div>
+      )}
       {tab === 2 && <div style={{ width: "100%", display: "flex", justifyContent: "center", paddingTop: 16 }}><InformacionFacturacion /></div>}
       {tab === 3 && <div style={{ width: "100%", display: "flex", justifyContent: "center", paddingTop: 16 }}><HistorialFacturacion /></div>}
     </div>
