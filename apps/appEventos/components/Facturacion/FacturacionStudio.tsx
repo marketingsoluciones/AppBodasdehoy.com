@@ -3,8 +3,8 @@ import { AuthContextProvider } from "../../context";
 import { usePlanLimits } from "../../hooks/usePlanLimits";
 import { humanizeQuota, TIER_COLORS } from "@bodasdehoy/shared/plans";
 import { resolveApiBodasGraphqlUrl } from "../../utils/apiEndpoints";
-import { HistorialFacturacion } from "./index";
 import InformacionFacturacionStudio from "./InformacionFacturacionStudio";
+import HistorialFacturacionStudio from "./HistorialFacturacionStudio";
 
 const QUOTA_SKUS = ["events-count", "guests-per-event", "ai-tokens", "image-gen", "whatsapp-msg", "sms-invitations", "storage-gb"];
 const eur = (n: number) => n.toFixed(2).replace(".", ",") + "€";
@@ -241,7 +241,7 @@ const FacturacionStudio: FC = () => {
         </div>
       )}
       {tab === 2 && <InformacionFacturacionStudio />}
-      {tab === 3 && <div style={{ width: "100%", display: "flex", justifyContent: "center", paddingTop: 16 }}><HistorialFacturacion /></div>}
+      {tab === 3 && <HistorialFacturacionStudio />}
     </div>
   );
 };
