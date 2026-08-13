@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from "../../context/";
 import useHover from "../../hooks/useHover";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -141,6 +142,9 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
   const searchParams = useSearchParams();
   const studio = searchParams?.get("studio") !== "legacy";
   const [openMenu, setOpenMenu] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [mountedPortal, setMountedPortal] = useState(false);
+  useEffect(() => setMountedPortal(true), []);
 
   const toast = useToast()
 
@@ -297,6 +301,24 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
     const sharedArr = [...(ev?.detalles_compartidos_array ?? [])];
     const avLabel = sharedArr.length > 0 ? `+${sharedArr.length}` : String(ev?.detalles_usuario_id?.displayName || ev?.usuario_nombre || ev?.nombre || "?").charAt(0).toUpperCase();
 
+    // Modal de confirmación de borrado (portal a body → escapa el stacking del overlay/contenido).
+    const confirmModal = (confirmDelete && mountedPortal && typeof document !== "undefined") ? createPortal(
+      <div onClick={() => setConfirmDelete(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(43,43,48,.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: "'Poppins',sans-serif" }}>
+        <div onClick={(e) => e.stopPropagation()} style={{ width: 380, maxWidth: "100%", background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 20px 50px rgba(0,0,0,.22)", padding: "26px 24px 22px", textAlign: "center" }}>
+          <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#D83E7C", margin: "0 auto 14px" }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m3 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7M10 11v6M14 11v6" /></svg>
+          </div>
+          <div style={{ font: "700 18px Poppins", color: "#3A3A42", marginBottom: 8 }}>{t("¿Borrar evento?")}</div>
+          <div style={{ font: "400 13px/1.6 Poppins", color: "#6b6b72", marginBottom: 20 }}>{t("Se eliminará")} <b style={{ color: "#3A3A42" }}>{ev?.nombre}</b> {t("de forma permanente. Esta acción no se puede deshacer.")}</div>
+          <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+            <button onClick={() => setConfirmDelete(false)} style={{ flex: 1, padding: "11px 16px", borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 13px Poppins", cursor: "pointer" }}>{t("Cancelar")}</button>
+            <button onClick={() => { setConfirmDelete(false); handleRemoveEvent(grupoStatus); }} style={{ flex: 1, padding: "11px 16px", borderRadius: 10, background: "#D83E7C", border: "none", color: "#fff", font: "600 13px Poppins", cursor: "pointer", boxShadow: "0 6px 16px rgba(216,62,124,.32)" }}>{t("Borrar")}</button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    ) : null;
+
     if (mobile) {
       return (
         <>
@@ -305,6 +327,7 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
               <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} eventData={ev} />
             </ModalLeft>}
           </div>
+          {confirmModal}
           <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={ev} />
           <div onClick={abrirEvento} style={{ borderRadius: 16, background: "#fff", border: seleccionado ? "1.5px solid #EF5B94" : "1px solid #f0f0f2", boxShadow: "0 4px 14px rgba(0,0,0,.05)", cursor: "pointer", fontFamily: "'Poppins',sans-serif" }}>
             <div style={{ position: "relative", height: 120, borderRadius: "15px 15px 0 0", overflow: "hidden", background: "#f2f2f4" }}>
@@ -337,7 +360,7 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
                 <div onClick={() => { setOpenMenu(false); compartirEvento(); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 14px", borderRadius: 12, font: "500 13px Poppins", color: "#3A3A42", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg>{t("Compartir")}</div>
                 <div onClick={() => { setOpenMenu(false); isAllowed() ? handleEdit() : ht(); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 14px", borderRadius: 12, font: "500 13px Poppins", color: "#3A3A42", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h10M18 8h2M4 16h2M10 16h10" /><circle cx="16" cy="8" r="2.2" /><circle cx="8" cy="16" r="2.2" /></svg>{t("Editar")}</div>
                 <div style={{ height: 1, background: "#f0f0f2", margin: "6px 10px" }} />
-                <div onClick={() => { setOpenMenu(false); handleRemoveEvent(grupoStatus); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 14px", borderRadius: 12, font: "500 13px Poppins", color: "#D83E7C", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m3 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7" /></svg>{t("Borrar")}</div>
+                <div onClick={() => { setOpenMenu(false); setConfirmDelete(true); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 14px", borderRadius: 12, font: "500 13px Poppins", color: "#D83E7C", cursor: "pointer" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m3 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7" /></svg>{t("Borrar")}</div>
               </div>
             </>
           )}
@@ -352,7 +375,8 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
             <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} eventData={ev} />
           </ModalLeft>}
         </div>
-        <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={ev} />
+        {confirmModal}
+          <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={ev} />
         <div className={`evc-card${seleccionado ? ' seleccionada' : ''}`} onClick={abrirEvento} title={t("Abrir resumen del evento")}
           style={{ zIndex: openMenu ? 30 : undefined }}>
           <div className="evc-foto">
@@ -406,7 +430,7 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
                     <div className="evc-menu-item" onClick={() => { setOpenMenu(false); compartirEvento(); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg>{t('Compartir')}</div>
                     <div className="evc-menu-item" onClick={() => { setOpenMenu(false); isAllowed() ? handleEdit() : ht(); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h10M18 8h2M4 16h2M10 16h10" /><circle cx="16" cy="8" r="2.2" /><circle cx="8" cy="16" r="2.2" /></svg>{t('Editar')}</div>
                     <div className="evc-menu-sep" />
-                    <div className="evc-menu-item peligro" onClick={() => { setOpenMenu(false); handleRemoveEvent(grupoStatus); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m3 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7" /></svg>{t('Borrar')}</div>
+                    <div className="evc-menu-item peligro" onClick={() => { setOpenMenu(false); setConfirmDelete(true); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m3 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7" /></svg>{t('Borrar')}</div>
                   </div>
                 </ClickAwayListener>
               )}
