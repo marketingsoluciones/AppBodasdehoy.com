@@ -296,13 +296,13 @@ const Navigation: FC = () => {
         {/* segundo menu superior con las redirecciones funcionales de la app */}
         <div className={`${(urls.includes(url)) ? "hidden" : "block"}`}>
           {studioHeader ? (
-            <div className={`hidden md:block ${pathname === '/' ? 'bg-base' : ''}`}>
+            <div className="hidden md:block bg-base" style={{ height: 74 }}>
               <style dangerouslySetInnerHTML={{ __html: ".mbar-item svg{width:32px;height:32px;fill:currentColor}.mbar-item .mhole{fill:var(--hole)}" }} />
-              <div className="max-w-[1100px] mx-auto px-6">
+              <div className="max-w-[1100px] mx-auto px-6 h-full flex items-center">
                 <nav
-                  className="flex items-center justify-center gap-2 rounded-b-[22px] px-[26px] transition-colors"
+                  className="flex items-center justify-center gap-2 rounded-[22px] px-[26px] w-full transition-colors"
                   style={{
-                    height: 74,
+                    height: 60,
                     background: pathname === '/' ? 'linear-gradient(180deg,#F473A4,#EF5B94 55%,#E94F89)' : '#fff',
                     boxShadow: pathname === '/' ? '0 14px 30px rgba(239,91,148,.35)' : '0 14px 30px rgba(0,0,0,.08)',
                     ['--hole' as any]: pathname === '/' ? '#EF5B94' : '#fff',
