@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AuthContextProvider, LoadingContextProvider } from "../context";
 import { ArrowLeft } from "../components/icons";
 import { SplitLoginPage } from "@bodasdehoy/auth-ui";
+import LoginStudio from "../components/Forms/Login/LoginStudio";
 import { resolveChatOrigin } from "@bodasdehoy/shared/utils";
 import { cloneElement, isValidElement } from "react";
 import type { ImgHTMLAttributes, ReactElement } from "react";
@@ -38,6 +39,9 @@ const PageLogin = () => {
   const queryQ = typeof router.query.q === 'string' ? router.query.q : null
   const queryD = typeof router.query.d === 'string' ? router.query.d : null
   const sessionExpired = router.query.session_expired === '1'
+  // Rediseño studio por defecto; rollback con ?studio=legacy. router.query='{}' en SSR
+  // → studio=true en servidor y 1er paint cliente (sin hydration mismatch).
+  const studio = router.query.studio !== 'legacy'
 
   // BUG-CW-N04 (informe QA 7ª ronda): React #418 "hydration mismatch HTML root"
   // en /login. Causa: useState inicial leía `linkMedia` (AuthContext, hidratado
@@ -187,6 +191,20 @@ const PageLogin = () => {
       <div className="min-h-screen w-full flex items-center justify-center bg-base">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
+    )
+  }
+
+  // Rediseño studio (gate ?studio, default ON): login + recuperar contraseña.
+  // Reusa el MISMO backend de auth; registro delega al flujo legacy (setStage).
+  if (studio && stage === "login") {
+    return (
+      <LoginStudio
+        logo={safeLogoNode}
+        config={config}
+        whoYouAre={whoYouAre}
+        setStage={setStage}
+        onClose={handleClose}
+      />
     )
   }
 
