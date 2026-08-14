@@ -197,8 +197,12 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           </div>
         </Link>
       )}
+      {/* Rediseño Fase B (14-ago): "Pendientes" ya no es una segunda bandeja con
+          store propio — apunta a la vista "Esperan respuesta" DENTRO de la Bandeja
+          (?view=esperan). Misma superficie, filtro no-leídos. Evita la percepción
+          de bandejas duplicadas. La ruta /pendientes redirige aquí. */}
       {isServerMode && isLoggedIn && (
-        <Link aria-label="Pendientes para ti" href={'/pendientes'} suppressHydrationWarning>
+        <Link aria-label="Pendientes para ti" href={'/bandeja?view=esperan'} suppressHydrationWarning>
           <div style={{ position: 'relative' }}>
             <ActionIcon
               icon={ListChecks}
