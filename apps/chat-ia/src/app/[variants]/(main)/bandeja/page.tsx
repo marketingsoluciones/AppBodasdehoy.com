@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { BandejaTabs, useActiveBandejaTab } from './components/BandejaTabs';
@@ -17,6 +17,14 @@ import { type FeedItem, useUnifiedFeed } from './hooks/useUnifiedFeed';
 export default function MessagesPage() {
   const router = useRouter();
   const activeTab = useActiveBandejaTab();
+  const searchParams = useSearchParams();
+  // FASE B (14-ago): vista "Esperan respuesta" — absorbe la antigua /pendientes.
+  // Se activa con ?view=esperan (el rail y el redirect de /pendientes apuntan aquí).
+  // Muestra lo NO leído de AMBOS tipos (conversaciones con unreadCount>0 +
+  // notificaciones sin leer) en una sola lista, en vez de una segunda "bandeja"
+  // con su propio store (lo que se percibía como bandejas duplicadas — informe
+  // rediseño mensajería 13-ago). useUnifiedFeed ya trae ambos tipos: 0 fuente nueva.
+  const esperanOnly = searchParams?.get('view') === 'esperan';
   const { items, loading, markNotificationRead } = useUnifiedFeed();
 
   // FASE B v2.0: scope selector. 'support' = bandeja del equipo;
@@ -89,7 +97,15 @@ export default function MessagesPage() {
   };
   const filteredItems = useMemo(() => {
     let arr = items;
-    if (activeTab === 'history') arr = arr.filter((i) => i.kind === 'notification');
+    if (esperanOnly) {
+      // Vista "Esperan respuesta": no leídos de AMBOS tipos (reemplaza el filtro
+      // por-tab). Conserva scope/spam/canal/RSVP debajo (por defecto no-op).
+      arr = arr.filter(
+        (i) =>
+          (i.kind === 'conversation' && i.unreadCount > 0) ||
+          (i.kind === 'notification' && !i.isRead),
+      );
+    } else if (activeTab === 'history') arr = arr.filter((i) => i.kind === 'notification');
     else if (activeTab === 'inbox') arr = arr.filter((i) => i.kind === 'conversation');
     if (activeScope !== 'support') {
       arr = arr.filter(
@@ -131,7 +147,7 @@ export default function MessagesPage() {
       );
     }
     return arr;
-  }, [items, activeTab, activeScope, channelFilter, rsvpFilter, pendingIaActive, showSpam]);
+  }, [items, esperanOnly, activeTab, activeScope, channelFilter, rsvpFilter, pendingIaActive, showSpam]);
 
   const notifUnreadCount = useMemo(
     () => items.filter((i) => i.kind === 'notification' && !i.isRead).length,
@@ -184,6 +200,25 @@ export default function MessagesPage() {
             className="flex w-[300px] shrink-0 flex-col overflow-hidden"
             style={{ backgroundColor: '#FFFFFF', borderRight: '1px solid #EDEDF0' }}
           >
+            {/* FASE B (14-ago): cabecera de la vista "Esperan respuesta" (?view=esperan,
+                antes /pendientes). Deja claro que es un filtro de "no leídos" y permite
+                volver a la bandeja completa sin perderse. */}
+            {esperanOnly && (
+              <div className="flex items-center justify-between gap-2 border-b border-gray-100 bg-amber-50 px-3 py-2">
+                <span className="text-[12px] font-semibold" style={{ color: '#92400e' }}>
+                  🔴 Esperan respuesta
+                </span>
+                <button
+                  className="text-[11px] font-medium underline"
+                  onClick={() => router.push('/bandeja')}
+                  // Color inline: el repo no usa variantes dark:, evita texto invisible.
+                  style={{ color: '#4b5563' }}
+                  type="button"
+                >
+                  Ver toda la bandeja
+                </button>
+              </div>
+            )}
             {/* ScopeSelector + filtros solo visibles en tab 'inbox'. En 'history'
                 el feed es plano (notificaciones) sin scope ni filtros canal/RSVP. */}
             {activeTab === 'inbox' && (

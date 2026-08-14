@@ -19,7 +19,7 @@ function getNotificationUrl(n: AppNotification): string | null {
   if (focused.startsWith('/bandeja') || focused.startsWith('/chat/') || focused.startsWith('/settings')) {
     return focused.split('?')[0]; // strip query params for chat-ia navigation
   }
-  if (focused.startsWith('/tasks')) return '/pendientes'; // /tasks legacy → vista unificada
+  if (focused.startsWith('/tasks')) return '/bandeja?view=esperan'; // /tasks legacy → vista "Esperan respuesta"
   if (n.type === 'whatsapp_message') return '/bandeja';
   if (n.type === 'task_reminder') return '/bandeja';
   if (n.type === 'access_revoked' || n.type === 'permission_updated') return '/settings';
