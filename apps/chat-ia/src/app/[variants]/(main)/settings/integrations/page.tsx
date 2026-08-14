@@ -274,12 +274,14 @@ function CreateChannelModal({
       setLoading(true);
       setError(null);
       const ch = await createWhatsAppChannel(name.trim(), 'QR_USER');
-      if (ch) {
-        onCreate(ch);
-        onClose();
-      } else {
-        setError('No se pudo crear el canal. Inténtalo de nuevo.');
-      }
+      // FAIL-UX (informe 14-ago): el modal se quedaba abierto con "No se pudo crear" PESE al
+      // éxito. Raíz: el backend acepta el alta y a veces devuelve `success` SIN el objeto
+      // `channel` ("solo loguea") → createWhatsAppChannel retornaba null y caíamos al error.
+      // Los errores REALES (schema no soportado, red) sí LANZAN y los coge el catch de abajo,
+      // así que "no lanzó" = alta aceptada → cerrar el modal y limpiar el formulario.
+      if (ch) onCreate(ch);
+      form.resetFields();
+      onClose();
     } catch (err: any) {
       if (err?.errorFields) return; // validation error, handled by form
       setError(err?.message ?? 'Error al crear canal');
