@@ -114,10 +114,10 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
           className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200"
           style={{ borderTopColor: brand.brand }}
         />
-        <div className="text-sm font-medium text-gray-600">Comprobando tu sesión…</div>
-        <div className="max-w-xs text-xs text-gray-400">
-          La bandeja necesita una sesión iniciada. Si no tienes cuenta, te llevaremos al login.
-        </div>
+        {/* QA 14-ago: el texto anterior ("necesita una sesión iniciada") se leía como shell
+            de visitante durante la resolución de sesión de un usuario YA logueado. Texto
+            neutro de carga: aplica igual a "cargando" y a "comprobando". */}
+        <div className="text-sm font-medium text-gray-600">Cargando tu bandeja…</div>
       </div>
     );
   }
