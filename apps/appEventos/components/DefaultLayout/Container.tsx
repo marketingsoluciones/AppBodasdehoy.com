@@ -127,6 +127,15 @@ const Container = (props) => {
   const copilotOverlay = shouldMountChatSidebar && !copilotDocked;
   const copilotSlotWidth = copilotDocked ? dockedCopilotWidth + 4 : 0; // +4 px = asa de resize dentro del panel
 
+  // /login = pantalla full-screen propia (LoginStudio/SplitLoginPage gestionan su
+  // layout split a 100vh). Sin nav, sin barra de filtro, sin altura reservada de
+  // header (la de 152px) ni padding → elimina la "barra blanca" superior y el
+  // scroll; toda la info entra en una sola pantalla.
+  const isLoginScreen = (pathname?.split("/")[1] || "") === "login";
+  if (isLoginScreen) {
+    return <div className="w-screen h-screen overflow-hidden bg-base">{children}</div>;
+  }
+
   return (
     <>
       {showNavigation && <>
