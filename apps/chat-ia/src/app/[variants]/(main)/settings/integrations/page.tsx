@@ -454,6 +454,16 @@ function IntegrationsPageInner() {
   const [channels, setChannels] = useState<WhatsAppChannel[]>([]);
   const [loadingChannels, setLoadingChannels] = useState(true);
   const [apiError, setApiError] = useState(false);
+  // P0 verdad-doble (QA 14-ago): useDomainGuestUser resuelve el JWT post-mount (~1 frame),
+  // así que había una ventana en la que isAuthenticated=false y se pintaba "Inicia sesión"
+  // pese a haber sesión (shell de invitado con canales reales detrás). Durante esa ventana
+  // mostramos un loader; el prompt de login solo tras la gracia = visitante real. Mismo
+  // criterio que el gate de /files (que por eso NO flashea).
+  const [sessionResolving, setSessionResolving] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setSessionResolving(false), 1500);
+    return () => clearTimeout(t);
+  }, []);
 
   const [qrTarget, setQrTarget] = useState<WhatsAppChannel | undefined>(undefined);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -583,8 +593,12 @@ function IntegrationsPageInner() {
         </Paragraph>
       </div>
 
-      {/* Sesión requerida */}
-      {!isAuthenticated && (
+      {/* Sesión resolviéndose (JWT post-mount) → loader, NO el prompt de invitado. */}
+      {!isAuthenticated && sessionResolving && (
+        <Skeleton active paragraph={{ rows: 1 }} style={{ marginBottom: 24 }} title={false} />
+      )}
+      {/* Sesión requerida — solo tras la gracia = visitante real. */}
+      {!isAuthenticated && !sessionResolving && (
         <Alert
           action={
             <Link href="/login">
