@@ -5,7 +5,6 @@ import { BookOpen, Bot, Compass, FolderOpen, Heart, ImagePlus, Images, Inbox, Li
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { memo } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
 import { useInboxUnreadCount } from '@/hooks/useInboxUnreadCount';
@@ -28,6 +27,11 @@ const ICON_SIZE: ActionIconProps['size'] = {
   strokeWidth: 2,
 };
 
+// Rediseño de navegación (informe 14-ago): Discover y Conocimiento son features de LobeChat
+// que Bodas NO usa y sólo llenan el rail de opciones. Se ocultan del sidebar (la ruta sigue
+// accesible por URL). Reversible poniendo esto a true. Ver plan de rediseño chat-ia.
+const SHOW_LOBECHAT_EXTRAS = false;
+
 export interface TopActionProps {
   isPinned?: boolean | null;
   tab?: SidebarTabKey;
@@ -35,7 +39,6 @@ export interface TopActionProps {
 
 //  TODO Change icons
 const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
-  const { t } = useTranslation('common');
   const switchBackToChat = useGlobalStore((s) => s.switchBackToChat);
   const hotkey = useUserStore(settingsSelectors.getHotkeyById(HotkeyEnum.NavigateToChat));
 
@@ -101,41 +104,42 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           />
         </Link>
       )}
-      <Link aria-label={t('tab.memories' as any)} href={'/memories'} suppressHydrationWarning>
+      {/* Rediseño: "Memories" → "Momentos" (nombre del prototipo; ruta /memories intacta). */}
+      <Link aria-label="Momentos" href={'/memories'} suppressHydrationWarning>
         <ActionIcon
           active={isMemoriesActive}
           icon={Images}
           size={ICON_SIZE}
-          title={t('tab.memories' as any)}
+          title="Momentos"
           tooltipProps={{ placement: 'right' }}
         />
       </Link>
       {/* Generación de imágenes (/image standalone) — gateado por showAiImage.
           NOTA: NO afecta la tool DALL-E del chat (esa la controla `dalle`, intacta). */}
       {showAiImage && (
-        <Link aria-label="Imágenes" href={'/image'} suppressHydrationWarning>
+        <Link aria-label="Estudio" href={'/image'} suppressHydrationWarning>
           <ActionIcon
             active={tab === SidebarTabKey.Image}
             icon={ImagePlus}
             size={ICON_SIZE}
-            title="Generación de imágenes"
+            title="Estudio"
             tooltipProps={{ placement: 'right' }}
           />
         </Link>
       )}
       {/* Resto de opciones — solo usuarios registrados */}
       {isLoggedIn && isServerMode && (
-        <Link aria-label={t('tab.weddingCreator' as any)} href={'/wedding-creator'} suppressHydrationWarning>
+        <Link aria-label="Web de boda" href={'/wedding-creator'} suppressHydrationWarning>
           <ActionIcon
             active={tab === SidebarTabKey.WeddingCreator}
             icon={Heart}
             size={ICON_SIZE}
-            title={t('tab.weddingCreator' as any)}
+            title="Web de boda"
             tooltipProps={{ placement: 'right' }}
           />
         </Link>
       )}
-      {isLoggedIn && showMarket && (
+      {SHOW_LOBECHAT_EXTRAS && isLoggedIn && showMarket && (
         <Link aria-label="Discover" href={'/discover'} suppressHydrationWarning>
           <ActionIcon
             active={tab === SidebarTabKey.Discover}
@@ -146,7 +150,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           />
         </Link>
       )}
-      {isLoggedIn && enableKnowledgeBase && (
+      {SHOW_LOBECHAT_EXTRAS && isLoggedIn && enableKnowledgeBase && (
         <Link aria-label="Conocimiento" href={'/knowledge'} suppressHydrationWarning>
           <ActionIcon
             active={tab === SidebarTabKey.Knowledge}
@@ -228,13 +232,14 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           </div>
         </Link>
       )}
+      {/* Rediseño: "Archivos" → "Biblioteca" (en Fase C absorberá Conocimiento). Ruta /files intacta. */}
       {isServerMode && isLoggedIn && (
-        <Link aria-label="Archivos" href={'/files'} suppressHydrationWarning>
+        <Link aria-label="Biblioteca" href={'/files'} suppressHydrationWarning>
           <ActionIcon
             active={tab === SidebarTabKey.Files}
             icon={FolderOpen}
             size={ICON_SIZE}
-            title="Archivos"
+            title="Biblioteca"
             tooltipProps={{ placement: 'right' }}
           />
         </Link>
