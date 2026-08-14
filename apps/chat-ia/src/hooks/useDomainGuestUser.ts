@@ -40,7 +40,9 @@ export function useDomainGuestUser(): boolean {
     shallow,
   );
   // Fast-path JWT local (lectura post-mount → SSR-safe: server y primer render cliente
-  // devuelven false, sin hydration mismatch; tras montar refleja el JWT real). Ver nota arriba.
+  // devuelven false, sin hydration mismatch; tras montar refleja el JWT real). NO leer en el
+  // useState initializer: rompe la hidratación (BUG-04 QA #13). El parpadeo transitorio se
+  // resuelve en el consumidor mostrando un loader durante la ventana (ver /integraciones, /files).
   const [hasJwt, setHasJwt] = useState(false);
   useEffect(() => {
     setHasJwt(hasLocalJwt());
