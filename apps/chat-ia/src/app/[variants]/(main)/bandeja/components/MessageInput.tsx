@@ -246,6 +246,11 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const emojiRef = useRef<HTMLDivElement>(null);
   const { sendMessage, sending } = useSendMessage();
+  // F1 estabilización (informe 13-ago): el envío no dejaba claro el resultado — en error
+  // restauraba el texto SIN avisar y en 200-sin-message también lo restauraba (parecía que
+  // había fallado pese al 200). Estado visible: error (con reintento) + confirmación breve.
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [justSent, setJustSent] = useState(false);
   const { addMessage } = useMessages(channel, conversationId);
 
   // Detección ventana 24h WhatsApp (Diseño P5): si lastInboundAt > 24h,
@@ -292,6 +297,13 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
     return () => clearTimeout(timer);
   }, [text, conversationId, mode]);
 
+  // F1: ocultar la confirmación "Enviado" tras un instante.
+  useEffect(() => {
+    if (!justSent) return;
+    const t = setTimeout(() => setJustSent(false), 1600);
+    return () => clearTimeout(t);
+  }, [justSent]);
+
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
@@ -335,6 +347,7 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
       return;
     }
 
+    setSendError(null);
     try {
       const result = await sendMessage(
         channel,
@@ -343,17 +356,23 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
         pendingTemplate ?? undefined,
       );
 
-      if (result.success && result.message) {
-        addMessage(result.message);
+      if (result.success) {
+        // 200 = enviado. Si el backend devolvió el message lo pintamos ya; si no, llegará
+        // por SSE/refresh — pero NO restauramos el texto (antes eso, en 200-sin-message,
+        // hacía parecer que el envío había fallado pese al éxito).
+        if (result.message) addMessage(result.message);
         // M1: limpia draft cross-device tras envío exitoso.
         void clearDraft();
         setIaDraft(null);
         setPendingTemplate(null);
+        setJustSent(true);
       } else {
         setText(messageText);
+        setSendError('No se pudo enviar el mensaje. Reinténtalo.');
       }
     } catch {
       setText(messageText);
+      setSendError('No se pudo enviar (error de conexión). Reinténtalo.');
     }
   };
 
@@ -668,7 +687,7 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
         <textarea
           className="max-h-32 min-h-[2.5rem] flex-1 resize-none rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
           disabled={sending}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => { setText(e.target.value); if (sendError) setSendError(null); }}
           onKeyDown={handleKeyDown}
           placeholder={mode === 'internal' ? 'Escribe una nota interna...' : 'Escribe un mensaje...'}
           ref={textareaRef}
@@ -687,6 +706,20 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
           {sending ? '⏳' : mode === 'internal' ? '🔒' : '📤'}
         </button>
       </div>
+
+      {/* F1: estado del envío — error con reintento + confirmación breve (antes el fallo
+          restauraba el texto sin avisar y el usuario creía que no había pasado nada). */}
+      {sendError && (
+        <div className="mt-1 flex items-center justify-between gap-2 rounded-md bg-red-50 px-3 py-1.5 text-xs text-red-700">
+          <span>⚠️ {sendError}</span>
+          <button className="flex-shrink-0 font-semibold text-red-700 underline hover:text-red-800" onClick={handleSend} type="button">
+            Reintentar
+          </button>
+        </div>
+      )}
+      {justSent && !sendError && (
+        <div className="mt-1 px-1 text-xs text-green-600">✓ Enviado</div>
+      )}
 
       {/* SMS character counter */}
       {isSmsChannel && text.length > 0 && (
