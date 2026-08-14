@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { EventosAutoAuth } from '@/features/EventosAutoAuth';
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 import {
   disconnectSocialAccount,
   getSocialAccounts,
@@ -439,9 +440,14 @@ function WhatsAppDirectSession({ development }: { development: string }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 function IntegrationsPageInner() {
-  const currentUserId = useChatStore((s) => s.currentUserId);
   const development = useChatStore((s) => s.development) || 'bodasdehoy';
-  const isAuthenticated = !!(currentUserId && currentUserId !== 'visitante@guest.local');
+  // P0 "verdad doble" (informe unificado 14-ago): antes isAuthenticated era SOLO por
+  // currentUserId → /integraciones mostraba "Sin conectar / Iniciar sesión" aunque hubiera
+  // JWT y canales reales (el DOM los tenía). Los canales se piden con el JWT (buildHeaders),
+  // no con currentUserId; si el SSO aún no pobló currentUserId pero hay JWT, estás
+  // autenticado y hay que cargarlos. Usamos la detección canónica JWT-aware (la misma que
+  // sidebar/bandeja/files) → deja de mostrar el shell de visitante con datos autenticados.
+  const isAuthenticated = !useDomainGuestUser();
 
   const [channels, setChannels] = useState<WhatsAppChannel[]>([]);
   const [loadingChannels, setLoadingChannels] = useState(true);
