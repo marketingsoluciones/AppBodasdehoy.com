@@ -10,17 +10,10 @@ import { useLoginModal } from '@/contexts/LoginModalContext';
 import { useDeveloperBranding } from '@/hooks/useDeveloperBranding';
 import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 import { useChatStore } from '@/store/chat';
-import { useUserStore } from '@/store/user';
-import { authSelectors } from '@/store/user/selectors';
 import { resolveDisplayBrandName } from '@/utils/brandingDisplay';
 import { resolveActiveDeveloperForBranding } from '@/utils/developmentDetector';
 
 const useStyles = createStyles(({ css }) => ({
-  root: css`
-    min-width: 0;
-    flex: 1;
-    max-width: 100%;
-  `,
   guestCta: css`
     font-size: 11px;
     font-weight: 600;
@@ -31,6 +24,11 @@ const useStyles = createStyles(({ css }) => ({
     white-space: nowrap;
     cursor: pointer;
     user-select: none;
+  `,
+  root: css`
+    min-width: 0;
+    flex: 1;
+    max-width: 100%;
   `,
   subtitle: css`
     font-size: 10px;
@@ -67,11 +65,16 @@ export const DeveloperSessionBrand = memo<DeveloperSessionBrandProps>(({ classNa
   const storeDevelopment = useChatStore((s) => s.development);
   const { openLoginModal } = useLoginModal();
   const isDomainGuest = useDomainGuestUser();
-  const isLoginWithAuth = useUserStore(authSelectors.isLoginWithAuth);
   const slug = resolveActiveDeveloperForBranding(storeDevelopment);
 
   const title = resolveDisplayBrandName(branding?.name, branding?.developer || slug);
-  const isVisitor = !isLoginWithAuth || isDomainGuest;
+  // P0 coherencia de sesión (QA 15-ago): NO usar !isLoginWithAuth. Ese flag es el auth
+  // NATIVO de LobeChat, que para usuarios Bodas SSO es false hasta que EventosAutoAuth lo
+  // resuelve → durante toda esa ventana la marca mostraba "Usuario no registrado / 🔐 Inicia
+  // sesión / Regístrate" a usuarios YA autenticados (flash de invitado en /asistente que
+  // veía QA). useDomainGuestUser es la detección canónica cookie-aware (fast-path SSO): un
+  // guest REAL sigue saliendo como visitante; un usuario SSO no.
+  const isVisitor = isDomainGuest;
   const subtitle = isVisitor ? `Usuario no registrado · IA · ${slug}` : `IA · ${slug}`;
 
   if (loading && !branding) {
