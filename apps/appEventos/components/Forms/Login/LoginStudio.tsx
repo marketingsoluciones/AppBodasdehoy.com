@@ -31,6 +31,8 @@ interface Props {
   whoYouAre: string;
   setStage: (s: string) => void;
   onClose: () => void;
+  /** Vista inicial (p.ej. "register" cuando se llega con ?q=register). */
+  initialView?: "login" | "register";
 }
 
 type View = "login" | "forgot" | "sent" | "register" | "regform";
@@ -61,14 +63,14 @@ const ROLES: { key: string; label: string; icon: ReactNode }[] = [
   { key: "novios", label: "Novios", icon: <img src="/studio/role-novios.png" alt="" style={{ width: 50, height: 50, objectFit: "contain" }} /> },
 ];
 
-const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose }) => {
+const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, initialView }) => {
   const { SetWihtProvider, setIsStartingRegisterOrLogin, setUser, setVerificationDone, geoInfo, linkMedia, preregister } = AuthContextProvider() as any;
   const { signIn, resetPassword, getSessionCookie } = useAuthentication();
   const toast = useToast();
   const { t } = useTranslation();
   const [updateActivity, updateActivityLink] = useActivity() as any;
 
-  const [view, setView] = useState<View>("login");
+  const [view, setView] = useState<View>(initialView === "register" ? "register" : "login");
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [showPw, setShowPw] = useState(false);

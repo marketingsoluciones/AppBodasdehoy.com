@@ -327,11 +327,16 @@ interface propsBanner {
 const Banner: FC<propsBanner> = ({ set, state }) => {
   const { t } = useTranslation();
   const { eventsGroup } = EventsGroupContextProvider();
-  const { actionModals, setActionModals } = AuthContextProvider()
+  const { actionModals, setActionModals, user, config } = AuthContextProvider()
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const routerBanner = useRouter()
   // Banner rediseñado (studio) = vista POR DEFECTO (rollback ?studio=legacy).
   const studio = routerBanner.query.studio !== "legacy"
+  // Nudge de registro: solo para invitados (guest). Reusa la ruta de registro
+  // existente (?q=register → registro studio).
+  const isGuest = user?.displayName === "guest"
+  const pathLoginBanner = config?.pathLogin || "/login"
+  const registerHref = pathLoginBanner.includes("?") ? `${pathLoginBanner}&q=register` : `${pathLoginBanner}?q=register`
 
   // Dynamic import to avoid SSR issues
   const [planLimits, setPlanLimits] = useState<any>(null)
@@ -352,6 +357,7 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
     studio ? (
       <>
         <style dangerouslySetInnerHTML={{ __html: `
+          .nudge-cta:hover{background:#D83E7C !important;}
           .she-hero{max-width:1100px;margin:0 auto;padding:44px 24px 70px;display:grid;grid-template-columns:1.05fr 1fr;gap:44px;align-items:center;font-family:'Poppins',sans-serif;}
           @media (max-width:900px){.she-hero{grid-template-columns:1fr;}}
           .she-chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #FCE7F0;box-shadow:0 3px 10px rgba(239,91,148,.1);color:#D83E7C;font:600 12px Poppins;padding:7px 16px;border-radius:20px;margin-bottom:24px;}
@@ -395,6 +401,23 @@ const Banner: FC<propsBanner> = ({ set, state }) => {
           .she-countdown .l{font:500 9.5px Poppins;color:#9aa0a6;}
         ` }} />
         <div className="bg-base w-full">
+          {isGuest && (
+            <div style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 24px 0" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", background: "linear-gradient(100deg,#FFF0F6,#FDE8F1)", border: "1px solid #F8CFE2", borderRadius: 14, padding: "12px 16px 12px 14px", fontFamily: "'Poppins',sans-serif" }}>
+                <span style={{ width: 36, height: 36, borderRadius: 11, background: "linear-gradient(135deg,#F586B1,#EF5B94)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", boxShadow: "0 5px 12px rgba(239,91,148,.28)" }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 3l1.8 4.8 4.7 1.2-4.7 1.2L12 15l-1.8-4.8L5.5 9l4.7-1.2z" /><path d="M18.5 15l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9z" opacity=".6" /></svg>
+                </span>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <div style={{ font: "600 13.5px Poppins", color: "#3A3A42" }}>{t("guestNudge.title", { defaultValue: "Estás en modo prueba" })}</div>
+                  <div style={{ font: "500 12px/1.4 Poppins", color: "#9c6480" }}>{t("guestNudge.desc", { defaultValue: "Regístrate gratis para guardar tu evento y no perder tus cambios." })}</div>
+                </div>
+                <Link href={registerHref} className="nudge-cta" style={{ flex: "none", display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 999, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", textDecoration: "none", boxShadow: "0 6px 16px rgba(239,91,148,.32)" }}>
+                  {t("guestNudge.cta", { defaultValue: "Regístrate gratis" })}
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                </Link>
+              </div>
+            </div>
+          )}
           <section className="she-hero">
             {/* IZQUIERDA */}
             <div>
