@@ -84,7 +84,34 @@ function QRModal({
         </div>
       )}
 
-      {!loading && status === 'connected' && (
+      {/* QA 15-ago (caso 5): el backend keyea la sesión de WhatsApp por SLUG del development
+          → hay UNA sola sesión por espacio. Si el usuario pulsa "Conectar" en un canal
+          DESCONECTADO mientras OTRO número ya está conectado en el espacio, antes salía el
+          bloque "✅ Conectado +34…" bajo el título "Conectar: <este canal>" → confuso (parecía
+          que ESTE canal estaba conectado a ese número). Ahora se explica la restricción real
+          en vez de mostrar ambiguo. (No se parchea la API: es límite del backend, se comunica.) */}
+      {!loading && status === 'connected' && channel && channel.status !== 'ACTIVE' && (
+        <Space direction="vertical" size="middle" style={{ textAlign: 'center', width: '100%' }}>
+          <div style={{ fontSize: 40 }}>⚠️</div>
+          <div>
+            <Text strong>Ya hay un WhatsApp conectado en este espacio</Text>
+            {phoneNumber && <div><Text type="secondary">+{phoneNumber}</Text></div>}
+          </div>
+          <Alert
+            message={`WhatsApp permite un número por espacio. Para vincular «${channel.name}», primero desconecta el número actual.`}
+            showIcon
+            type="warning"
+          />
+          <Space>
+            <Button onClick={onClose}>Cancelar</Button>
+            <Button danger onClick={async () => { await disconnectSession(); onClose(); }}>
+              Desconectar el actual
+            </Button>
+          </Space>
+        </Space>
+      )}
+
+      {!loading && status === 'connected' && (!channel || channel.status === 'ACTIVE') && (
         <Space direction="vertical" size="middle" style={{ textAlign: 'center', width: '100%' }}>
           <div style={{ fontSize: 48 }}>✅</div>
           <div>
