@@ -22,6 +22,12 @@ const ICON_SIZE: ActionIconProps['size'] = {
   strokeWidth: 1.5,
 };
 
+// Rediseño nav (QA 15-ago, caso 6): GitHub y Laboratorio son entradas del fork
+// LobeChat fuera del objetivo del producto — llenaban el rail de opciones. Se ocultan
+// (rutas siguen accesibles por URL). Reversible poniendo esto a true. Mismo patrón que
+// SHOW_LOBECHAT_EXTRAS en TopActions.
+const SHOW_LOBECHAT_EXTRAS = false;
+
 /** Plan tier badge — nudges FREE/TRIAL users to upgrade */
 const PlanBadge = memo(() => {
   const { tier, isTrial, trialDaysLeft, loading, isFreePlan } = usePlanLimits();
@@ -160,7 +166,7 @@ const BottomActions = memo(() => {
           />
         </Link>
       )}
-      {!hideGitHub && (
+      {SHOW_LOBECHAT_EXTRAS && !hideGitHub && (
         <Link aria-label={'GitHub'} href={GITHUB} target={'_blank'}>
           <ActionIcon
             icon={Github}
@@ -170,14 +176,16 @@ const BottomActions = memo(() => {
           />
         </Link>
       )}
-      <Link aria-label={t('labs')} href={'/labs'} suppressHydrationWarning>
-        <ActionIcon
-          icon={FlaskConical}
-          size={ICON_SIZE}
-          title={t('labs')}
-          tooltipProps={{ placement: 'right' }}
-        />
-      </Link>
+      {SHOW_LOBECHAT_EXTRAS && (
+        <Link aria-label={t('labs')} href={'/labs'} suppressHydrationWarning>
+          <ActionIcon
+            icon={FlaskConical}
+            size={ICON_SIZE}
+            title={t('labs')}
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
     </Flexbox>
   );
 });

@@ -48,6 +48,21 @@ function hasLocalJwt(): boolean {
   } catch {
     /* ignore */
   }
+  // P0 coherencia de sesión (QA 15-ago): la llegada por SSO trae la sesión en cookies
+  // (idTokenV0.1.0 / mcp_jwt / sessionBodas) con localStorage aún vacío → sin esto,
+  // /bandeja mostraba "Acceso requerido" a usuarios YA autenticados. Un visitante real
+  // no tiene estas cookies. Ver el mismo fix en hooks/useDomainGuestUser.
+  try {
+    const hasCookie = document.cookie.split(';').some((part) => {
+      const idx = part.indexOf('=');
+      const k = (idx === -1 ? part : part.slice(0, idx)).trim();
+      const v = idx === -1 ? '' : part.slice(idx + 1).trim();
+      return (k === 'idTokenV0.1.0' || k === 'mcp_jwt' || k === 'sessionBodas') && v.length > 20;
+    });
+    if (hasCookie) return true;
+  } catch {
+    /* ignore */
+  }
   return false;
 }
 
