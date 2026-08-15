@@ -19,6 +19,7 @@ import { featureFlagsSelectors, useServerConfigStore } from '@/store/serverConfi
 import { HotkeyScopeEnum } from '@/types/hotkey';
 
 import { resolveChatEmbedMode } from '@/utils/resolveChatEmbedMode';
+import { hydrateDomainConfigFromCookie } from '@/utils/domainSessionBridge';
 
 import DesktopLayoutContainer from './DesktopLayoutContainer';
 import RegisterHotkeys from './RegisterHotkeys';
@@ -31,6 +32,12 @@ const TitleBar = dynamic(() => import('@/features/ElectronTitlebar'), { ssr: fal
 const HotkeyHelperPanel = dynamic(() => import('@/features/HotkeyHelperPanel'), { ssr: false });
 
 const Layout = memo<PropsWithChildren>(({ children }) => {
+  // P0 sesión coherente (QA 15-ago): sembrar localStorage desde la cookie SSO ANTES
+  // de que rendericen los hijos (SideBar/UserInfo) y EventosAutoAuth, para cerrar la
+  // ventana de "Visitante"/gate-invitado en llegada por SSO. Idempotente + no-op en
+  // sesión caliente (ver domainSessionBridge). Corre en cliente (guard interno SSR).
+  hydrateDomainConfigFromCookie();
+
   const searchParams = useSearchParams();
   const isEmbed = resolveChatEmbedMode(
     searchParams,

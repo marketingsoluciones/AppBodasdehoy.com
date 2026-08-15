@@ -202,12 +202,12 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           (?view=esperan). Misma superficie, filtro no-leídos. Evita la percepción
           de bandejas duplicadas. La ruta /pendientes redirige aquí. */}
       {isServerMode && isLoggedIn && (
-        <Link aria-label="Pendientes para ti" href={'/bandeja?view=esperan'} suppressHydrationWarning>
+        <Link aria-label="Pendientes" href={'/bandeja?view=esperan'} suppressHydrationWarning>
           <div style={{ position: 'relative' }}>
             <ActionIcon
               icon={ListChecks}
               size={ICON_SIZE}
-              title="Pendientes para ti"
+              title="Pendientes"
               tooltipProps={{ placement: 'right' }}
             />
             {inboxUnread > 0 && (
