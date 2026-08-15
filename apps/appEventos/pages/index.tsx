@@ -1023,112 +1023,12 @@ const GridCards: FC<propsGridCards> = ({
 };
 
 /** Landing comercial multimarca para visitantes no logueados */
-/** Iconos de funcionalidad (SVG blancos, mismo set que la barra de la app). */
-const svIcon = (children: any) => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff">{children}</svg>
-);
-const LANDING_FEATS = [
-  { key: "guests", title: "Gestión de invitados", desc: "RSVP, acompañantes y asistencia", icon: svIcon(<><circle cx="9" cy="8" r="3.6" /><path d="M3 19.2c0-3.3 2.7-5.7 6-5.7s6 2.4 6 5.7c0 .4-.3.8-.8.8H3.8a.8.8 0 0 1-.8-.8z" /><circle cx="16.8" cy="9" r="2.8" opacity=".55" /><path d="M16.4 13.4c2.7.2 4.6 2.3 4.6 5 0 .3-.3.6-.6.6h-3.2c.2-.5.3-1 .3-1.6 0-1.5-.5-2.9-1.1-4z" opacity=".55" /></>) },
-  { key: "tables", title: "Editor de mesas", desc: "Drag & drop y asignación automática", icon: svIcon(<><circle cx="12" cy="12" r="4.2" /><circle cx="12" cy="4.5" r="1.7" opacity=".55" /><circle cx="12" cy="19.5" r="1.7" opacity=".55" /><circle cx="4.5" cy="12" r="1.7" opacity=".55" /><circle cx="19.5" cy="12" r="1.7" opacity=".55" /><circle cx="6.7" cy="6.7" r="1.5" opacity=".55" /><circle cx="17.3" cy="6.7" r="1.5" opacity=".55" /><circle cx="6.7" cy="17.3" r="1.5" opacity=".55" /><circle cx="17.3" cy="17.3" r="1.5" opacity=".55" /></>) },
-  { key: "budget", title: "Presupuesto", desc: "Partidas, pagos y gráficos en vivo", icon: svIcon(<path d="M6.5 2A2.5 2.5 0 0 0 4 4.5v15A2.5 2.5 0 0 0 6.5 22h11a2.5 2.5 0 0 0 2.5-2.5v-15A2.5 2.5 0 0 0 17.5 2h-11zM7 5.5h10a1 1 0 0 1 1 1V8a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1zM7.5 12a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zm4.5 0a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zm4.5 0a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zm-9 4.5a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zm4.5 0a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zm4.5 0a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6z" />) },
-  { key: "invitations", title: "Invitaciones", desc: "Envía por email o WhatsApp", icon: svIcon(<><path d="M3 8.8l8.4-5.2a1.2 1.2 0 0 1 1.2 0L21 8.8V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8.8z" /><path d="M12 15.6l-8.7-5.4v-.2L12 15l8.7-5v.2L12 15.6z" fill="#EF5B94" opacity=".9" /><path d="M12 13.4c-.9-1-2.4-1.6-2.4-3 0-1 .7-1.7 1.5-1.7.4 0 .7.2.9.5.2-.3.5-.5.9-.5.8 0 1.5.7 1.5 1.7 0 1.4-1.5 2-2.4 3z" fill="#EF5B94" /></>) },
-  { key: "ai", title: "Copiloto IA", desc: "Te ayuda a planificar cada detalle", nuevo: true, icon: svIcon(<><path d="M12 3l1.8 4.8 4.7 1.2-4.7 1.2L12 15l-1.8-4.8L5.5 9l4.7-1.2z" /><path d="M18.5 15l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9z" opacity=".55" /></>) },
-  { key: "gifts", title: "Lista de regalos", desc: "Compártela y lleva el control", icon: svIcon(<><path d="M3.5 8A1.5 1.5 0 0 1 5 6.5h14A1.5 1.5 0 0 1 20.5 8v2a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1V8z" /><path d="M5 12.5h6V21H6.5A1.5 1.5 0 0 1 5 19.5v-7zM13 12.5h6v7a1.5 1.5 0 0 1-1.5 1.5H13v-8.5z" /><path d="M12 6.5c-1.2-2.2-3-3.6-4.6-2.7C6 4.6 6.3 6.5 8 6.5h4zm0 0c1.2-2.2 3-3.6 4.6-2.7 1.4.8 1.1 2.7-.6 2.7H12z" opacity=".55" /></>) },
-];
-
 const LandingVisitante: FC = () => {
   const { config } = AuthContextProvider();
   const { t } = useTranslation();
-  const router = useRouter();
-  const studio = router.query.studio !== "legacy";
   const pathLogin = config?.pathLogin || '/login';
   const registerHref = pathLogin.includes('?') ? `${pathLogin}&q=register` : `${pathLogin}?q=register`;
 
-  // Rediseño studio (default): full-screen fiel al HTML de Bienvenida.
-  if (studio) {
-    const brand = config?.brand || "Bodasdehoy.com";
-    return (
-      <div style={{ height: "100vh", minHeight: 640, display: "flex", flexDirection: "column", overflow: "auto", background: "#F2F1F1", fontFamily: "'Poppins',sans-serif", color: "#3A3A42" }}>
-        <style dangerouslySetInnerHTML={{ __html: `
-          .lv-logo img{height:32px !important;width:auto !important;object-fit:contain;}
-          .lv-login:hover{background:#FCE7F0 !important;}
-          .lv-primary:hover{background:#D83E7C !important;}
-          .lv-demo:hover{background:#FCE7F0 !important;}
-          .lv-card{transition:transform .18s, box-shadow .18s;}
-          .lv-card:hover{transform:translateY(-5px);box-shadow:0 14px 30px rgba(239,91,148,.16);border-color:#f0aecb !important;}
-          .lv-grid{grid-template-columns:repeat(6,1fr);}
-          @media(max-width:1080px){.lv-grid{grid-template-columns:repeat(3,1fr) !important;}}
-          @media(max-width:640px){.lv-grid{grid-template-columns:repeat(2,1fr) !important;} .lv-h1{font-size:32px !important;} .lv-main{padding:20px !important;}}
-        ` }} />
-
-        {/* HEADER PÚBLICO */}
-        <header style={{ background: "#fff", borderBottom: "1px solid #ececef", flex: "none" }}>
-          <div style={{ maxWidth: 1240, margin: "0 auto", padding: "0 40px", height: 68, display: "flex", alignItems: "center", gap: 16 }}>
-            <span className="lv-logo" style={{ display: "flex", alignItems: "center", height: 32 }}>{config?.logoDirectory}</span>
-            <div style={{ flex: 1 }} />
-            <Link href={pathLogin} className="lv-login" style={{ display: "inline-flex", alignItems: "center", gap: 9, padding: "9px 19px", borderRadius: 999, border: "1.5px solid #EF5B94", background: "#fff", font: "600 13px Poppins", color: "#EF5B94", textDecoration: "none" }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" /></svg>
-              {t("landing.cta.login", { defaultValue: "Iniciar sesión" })}
-            </Link>
-          </div>
-        </header>
-
-        {/* HERO + FEATURES */}
-        <main className="lv-main" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", maxWidth: 1240, width: "100%", margin: "0 auto", padding: "26px 40px 34px" }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 999, background: "#fff", border: "1px solid #f0f0f2", boxShadow: "0 4px 14px rgba(58,58,66,.06)", marginBottom: 20 }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8Z" /></svg>
-              <span style={{ font: "600 12px Poppins", color: "#EF5B94", whiteSpace: "nowrap" }}>{t("landing.badge", { defaultValue: "Para wedding planners, organizadores y novios" })}</span>
-            </div>
-            <h1 className="lv-h1" style={{ font: "600 44px/1.15 Poppins", color: "#3A3A42", letterSpacing: "-1px", maxWidth: 720, margin: "0 auto 14px" }}>
-              {t("landing.titleMain", { defaultValue: "Todos tus eventos," })} <span style={{ color: "#EF5B94" }}>{t("landing.titleAccent", { defaultValue: "bajo control" })}</span>
-            </h1>
-            <div style={{ font: "400 14.5px/1.55 Poppins", color: "#6b6b72", maxWidth: 500, margin: "0 auto 26px" }}>{t("landing.subtitle", { defaultValue: "Del primer invitado al último brindis, todo en un solo lugar." })}</div>
-            <div style={{ display: "flex", justifyContent: "center", gap: 14, marginBottom: 18, flexWrap: "wrap" }}>
-              <Link href={registerHref} className="lv-primary" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "13px 28px", borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 14.5px Poppins", textDecoration: "none", boxShadow: "0 8px 22px rgba(239,91,148,.35)" }}>
-                {t("landing.cta.register", { defaultValue: "Empezar gratis" })}
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-              </Link>
-              <Link href={pathLogin} className="lv-demo" style={{ display: "inline-flex", alignItems: "center", gap: 9, padding: "13px 28px", borderRadius: 12, border: "1.5px solid #EF5B94", background: "#fff", color: "#EF5B94", font: "600 14.5px Poppins", textDecoration: "none" }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M10 8.5l6 3.5-6 3.5z" /></svg>
-                {t("landing.cta.demo", { defaultValue: "Ver demo" })}
-              </Link>
-            </div>
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 12, marginBottom: 44, flexWrap: "wrap" }}>
-              <div style={{ display: "flex" }}>
-                <span style={{ width: 30, height: 30, borderRadius: "50%", background: "#F586B1", border: "2.5px solid #F2F1F1" }} />
-                <span style={{ width: 30, height: 30, borderRadius: "50%", background: "#E8C795", border: "2.5px solid #F2F1F1", marginLeft: -9 }} />
-                <span style={{ width: 30, height: 30, borderRadius: "50%", background: "#B9AEDF", border: "2.5px solid #F2F1F1", marginLeft: -9 }} />
-                <span style={{ width: 30, height: 30, borderRadius: "50%", background: "#FCE7F0", border: "2.5px solid #F2F1F1", marginLeft: -9, display: "flex", alignItems: "center", justifyContent: "center", font: "700 8.5px Poppins", color: "#EF5B94" }}>+12k</span>
-              </div>
-              <div style={{ font: "400 12px Poppins", color: "#8a8a90" }}>{t("landing.social.pre", { defaultValue: "Más de" })} <b style={{ color: "#3A3A42", fontWeight: 600 }}>{t("landing.social.count", { defaultValue: "12.000 profesionales y parejas" })}</b> {t("landing.social.post", { defaultValue: "ya organizan aquí" })}</div>
-            </div>
-          </div>
-
-          <div className="lv-grid" style={{ display: "grid", gap: 14, alignItems: "stretch" }}>
-            {LANDING_FEATS.map((f) => (
-              <Link key={f.key} href={registerHref} className="lv-card" style={{ display: "block", textDecoration: "none", position: "relative", background: f.nuevo ? "#FDF4F8" : "#fff", border: `1.5px solid ${f.nuevo ? "#F8CFE2" : "#ececef"}`, borderRadius: 16, padding: "20px 14px 18px", textAlign: "center" }}>
-                {f.nuevo && <span style={{ position: "absolute", top: -9, left: "50%", transform: "translateX(-50%)", padding: "3px 11px", borderRadius: 999, background: "#EF5B94", color: "#fff", font: "700 9px Poppins", letterSpacing: ".5px", boxShadow: "0 4px 12px rgba(239,91,148,.35)", whiteSpace: "nowrap" }}>{t("landing.new", { defaultValue: "NUEVO" })}</span>}
-                <div style={{ width: 46, height: 46, borderRadius: 14, background: "linear-gradient(135deg,#F586B1,#EF5B94)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", boxShadow: "0 6px 14px rgba(239,91,148,.3)" }}>{f.icon}</div>
-                <div style={{ font: "600 12.5px/1.3 Poppins", color: "#3A3A42", marginBottom: 4 }}>{t(`landing.feat.${f.key}`, { defaultValue: f.title })}</div>
-                <div style={{ font: "400 10.5px/1.5 Poppins", color: "#8a8a90" }}>{t(`landing.feat.${f.key}Desc`, { defaultValue: f.desc })}</div>
-              </Link>
-            ))}
-          </div>
-        </main>
-
-        {/* FOOTER */}
-        <footer style={{ background: "#fff", borderTop: "1px solid #ececef", flex: "none" }}>
-          <div style={{ maxWidth: 1240, margin: "0 auto", padding: "14px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-            <div style={{ font: "400 11.5px Poppins", color: "#a0a0a8" }}>{t("landing.footer.free", { defaultValue: "Gratis para empezar · sin tarjeta de crédito" })}</div>
-            <div style={{ font: "400 11.5px Poppins", color: "#a0a0a8" }}>© {brand}</div>
-          </div>
-        </footer>
-      </div>
-    );
-  }
-
-  // Legacy (rollback ?studio=legacy)
   const features = [
     { icon: '👥', title: t('landing.feat.guests', { defaultValue: 'Gestión de invitados' }), desc: t('landing.feat.guestsDesc', { defaultValue: 'Lista completa, confirmaciones RSVP, acompañantes y control de asistencia' }) },
     { icon: '🪑', title: t('landing.feat.tables', { defaultValue: 'Editor de mesas' }), desc: t('landing.feat.tablesDesc', { defaultValue: 'Organiza mesas visualmente con drag & drop y asignación automática' }) },
