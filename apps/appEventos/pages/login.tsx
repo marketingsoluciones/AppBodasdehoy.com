@@ -194,9 +194,11 @@ const PageLogin = () => {
     )
   }
 
-  // Rediseño studio (gate ?studio, default ON): login + recuperar contraseña.
-  // Reusa el MISMO backend de auth; registro delega al flujo legacy (setStage).
-  if (studio && stage === "login") {
+  // Rediseño studio (gate ?studio, default ON): login + recuperar + registro.
+  // Reusa el MISMO backend de auth. `?q=register` llega como stage "register" y
+  // abre la vista de registro studio. Flujos especiales (linkMedia/preregistro)
+  // siguen en el registro legacy.
+  if (studio && (stage === "login" || stage === "register") && linkMedia == null && !preregister) {
     return (
       <LoginStudio
         logo={safeLogoNode}
@@ -204,6 +206,7 @@ const PageLogin = () => {
         whoYouAre={whoYouAre}
         setStage={setStage}
         onClose={handleClose}
+        initialView={stage === "register" ? "register" : "login"}
       />
     )
   }
