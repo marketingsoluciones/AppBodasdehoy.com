@@ -369,13 +369,13 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose }) 
             {view === "register" && (
               <div style={{ textAlign: "center" }}>
                 <div style={{ font: "600 24px Poppins", color: "#EF5B94", marginBottom: 34 }}>¿Quién eres?</div>
-                <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", gap: 20, marginBottom: 36, flexWrap: "nowrap" }}>
+                <div style={{ display: "flex", justifyContent: "center", gap: 30, marginBottom: 36, flexWrap: "nowrap" }}>
                   {ROLES.map((r) => {
                     const sel = role === r.key;
                     return (
-                      <button key={r.key} type="button" onClick={() => setRole(r.key)} style={{ width: 106, flex: "0 0 auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                      <button key={r.key} type="button" onClick={() => setRole(r.key)} style={{ minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                         <span className="ls-role" style={{ width: 96, height: 96, borderRadius: "50%", background: "#f0f0f2", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", filter: sel ? "none" : "grayscale(1) opacity(.55)", transition: "filter .2s, transform .2s", boxShadow: sel ? "0 8px 20px rgba(239,91,148,.28)" : "none" }}>{r.icon}</span>
-                        <span style={{ font: "500 14px/1.3 Poppins", color: sel ? "#EF5B94" : "#6b6b72", textAlign: "center" }}>{r.label}</span>
+                        <span style={{ font: "500 15px Poppins", color: sel ? "#EF5B94" : "#6b6b72", textAlign: "center" }}>{r.label}</span>
                       </button>
                     );
                   })}
