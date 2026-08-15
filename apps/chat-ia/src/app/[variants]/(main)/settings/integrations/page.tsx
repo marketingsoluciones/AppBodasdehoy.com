@@ -23,6 +23,11 @@ import { useWhatsAppSession } from '../../bandeja/hooks/useWhatsAppSession';
 
 const { Title, Text, Paragraph } = Typography;
 
+// Normaliza el prefijo "+" de un teléfono (QA 15-ago: algunos números ya venían con
+// "+" del backend y la UI anteponía otro → "++34…"). Un solo "+" siempre.
+const withPlus = (n?: string | number | null): string =>
+  n === undefined || n === null || n === '' ? '' : `+${String(n).replace(/^\++/, '')}`;
+
 // ─── QR Modal (antd) ──────────────────────────────────────────────────────────
 
 function QRModal({
@@ -95,7 +100,7 @@ function QRModal({
           <div style={{ fontSize: 40 }}>⚠️</div>
           <div>
             <Text strong>Ya hay un WhatsApp conectado en este espacio</Text>
-            {phoneNumber && <div><Text type="secondary">+{phoneNumber}</Text></div>}
+            {phoneNumber && <div><Text type="secondary">{withPlus(phoneNumber)}</Text></div>}
           </div>
           <Alert
             message={`WhatsApp permite un número por espacio. Para vincular «${channel.name}», primero desconecta el número actual.`}
@@ -116,7 +121,7 @@ function QRModal({
           <div style={{ fontSize: 48 }}>✅</div>
           <div>
             <Text strong>WhatsApp Conectado</Text>
-            {phoneNumber && <div><Text type="secondary">+{phoneNumber}</Text></div>}
+            {phoneNumber && <div><Text type="secondary">{withPlus(phoneNumber)}</Text></div>}
             {connectedAt && (
               <div><Text style={{ fontSize: 12 }} type="secondary">Desde {new Date(connectedAt).toLocaleString('es-ES')}</Text></div>
             )}
@@ -266,7 +271,7 @@ function ChannelCard({
               <Badge status={cfg.status} text={cfg.label} />
               <Text style={{ fontSize: 12, marginLeft: 8 }} type="secondary">{TYPE_LABELS[channel.type] ?? channel.type}</Text>
             </div>
-            {channel.phoneNumber && <div><Text style={{ fontSize: 12 }} type="secondary">+{channel.phoneNumber}</Text></div>}
+            {channel.phoneNumber && <div><Text style={{ fontSize: 12 }} type="secondary">{withPlus(channel.phoneNumber)}</Text></div>}
           </div>
         </Space>
         <Space>
@@ -427,7 +432,7 @@ function WhatsAppDirectSession({ development }: { development: string }) {
       <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}>
         <Space>
           <Badge status="success" text="Conectado" />
-          {phoneNumber && <Text type="secondary">+{phoneNumber}</Text>}
+          {phoneNumber && <Text type="secondary">{withPlus(phoneNumber)}</Text>}
           {connectedAt && (
             <Text style={{ fontSize: 12 }} type="secondary">
               desde {new Date(connectedAt).toLocaleDateString('es-ES')}
