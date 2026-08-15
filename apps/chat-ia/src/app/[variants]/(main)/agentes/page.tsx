@@ -30,6 +30,16 @@ const AgentsCoworkView = dynamic(() => import('./AgentsCoworkView'), {
   ssr: false,
 });
 
+// Fix QA 15-ago: dispara el fetch de sesiones al entrar DIRECTO a /agentes (si no,
+// isSessionListInit nunca se pone → "Cargando tus agentes…" infinito). ssr:false
+// para que el SWR con suspense sea client-only, igual que la vista. Ver SessionsBootstrap.
+const SessionsBootstrap = dynamic(() => import('./SessionsBootstrap'), { ssr: false });
+
 export default function AgentesPage() {
-  return <AgentsCoworkView />;
+  return (
+    <>
+      <SessionsBootstrap />
+      <AgentsCoworkView />
+    </>
+  );
 }

@@ -22,6 +22,27 @@ function hasLocalJwt(): boolean {
   }
 }
 
+// P0 coherencia de sesión (QA 15-ago, repro fiel): un usuario que llega por SSO
+// (primer load desde appEventos / pestaña nueva) trae la sesión en COOKIES
+// —idTokenV0.1.0 / mcp_jwt / sessionBodas— pero localStorage AÚN vacío hasta que
+// EventosAutoAuth lo puebla. hasLocalJwt() (solo localStorage) devolvía false en esa
+// ventana → todos los gates caían a "shell de visitante" pese a haber sesión válida
+// (bandeja mostraba "Acceso requerido", /files el muro, etc.). Un visitante REAL no
+// tiene ninguna de estas cookies → 0 impacto de seguridad. Detectarla cierra la ventana.
+function hasSsoCookie(): boolean {
+  if (typeof document === 'undefined') return false;
+  try {
+    return document.cookie.split(';').some((part) => {
+      const idx = part.indexOf('=');
+      const k = (idx === -1 ? part : part.slice(0, idx)).trim();
+      const v = idx === -1 ? '' : part.slice(idx + 1).trim();
+      return (k === 'idTokenV0.1.0' || k === 'mcp_jwt' || k === 'sessionBodas') && v.length > 20;
+    });
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Invitado en dominio Bodas: combina chat store + nombre en useUserStore (Lobe),
  * por si el perfil del chat llegó inconsistente por el merge de userData.
@@ -45,7 +66,9 @@ export function useDomainGuestUser(): boolean {
   // resuelve en el consumidor mostrando un loader durante la ventana (ver /integraciones, /files).
   const [hasJwt, setHasJwt] = useState(false);
   useEffect(() => {
-    setHasJwt(hasLocalJwt());
+    // localStorage O cookie SSO: cubre tanto el login directo (LS) como la llegada
+    // por SSO con LS aún sin poblar (cookie). Ver hasSsoCookie.
+    setHasJwt(hasLocalJwt() || hasSsoCookie());
   }, []);
 
   const lobeName = (username || fullName || '').toLowerCase().trim();
