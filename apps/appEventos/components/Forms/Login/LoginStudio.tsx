@@ -286,9 +286,8 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose }) 
 
       {/* PANEL IZQUIERDO · marca */}
       <div className="ls-left" style={{ width: 440, flex: "none", color: "#fff", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", background: "#D83E7C" }}>
-        {/* Foto boda/evento del panel (image-slot del HTML) — bajo el gradiente.
-            Hero floral del studio; sustituir src por la foto definitiva cuando esté. */}
-        <img src="/studio/hero-evento-ejemplo.jpg" alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
+        {/* Foto floral del panel (image-slot del HTML, extraída del bundle) — bajo el gradiente */}
+        <img src="/login-hero.jpg" alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(200deg,rgba(216,62,124,.22) 0%,rgba(216,62,124,.5) 55%,rgba(122,20,60,.85) 100%)", pointerEvents: "none" }} />
         <div style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: "56px 46px 52px", pointerEvents: "none" }}>
           <div style={{ font: "700 31px/1.25 Poppins", marginBottom: 10, textShadow: "0 2px 14px rgba(0,0,0,.2)" }}>Todos tus eventos, <span style={{ color: "#FCE7F0" }}>bajo control</span></div>
