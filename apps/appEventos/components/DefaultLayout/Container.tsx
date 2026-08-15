@@ -22,7 +22,7 @@ const ChatSidebarDirect = dynamic(() => import('../ChatSidebar/ChatSidebarDirect
 
 const Container = (props) => {
   const { children } = props;
-  const { forCms, user, verificationDone } = AuthContextProvider();
+  const { forCms } = AuthContextProvider();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -132,11 +132,7 @@ const Container = (props) => {
   // header (la de 152px) ni padding → elimina la "barra blanca" superior y el
   // scroll; toda la info entra en una sola pantalla.
   const isLoginScreen = (pathname?.split("/")[1] || "") === "login";
-  // Landing de visitante (home sin sesión) con studio = full-screen propio
-  // (LandingVisitante trae su header público + hero + features + footer). Sin barra
-  // de módulos ni cabecera de la app, igual que el HTML de Bienvenida.
-  const isGuestLanding = studioHeader && pathname === "/" && verificationDone && !user;
-  if (isLoginScreen || isGuestLanding) {
+  if (isLoginScreen) {
     return <div className="w-screen h-screen overflow-hidden bg-base">{children}</div>;
   }
 
