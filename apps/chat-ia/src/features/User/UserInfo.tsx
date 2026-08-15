@@ -135,9 +135,13 @@ const UserInfo = memo<UserInfoProps>(({ avatarProps, onClick, ...rest }) => {
           </Flexbox>
           <div className={styles.username}>
             {/* ✅ CORRECCIÓN CRÍTICA: SIEMPRE mostrar currentUserId si existe y es válido */}
+            {/* P0 (QA 15-ago): si hay sesión (no es domain-guest) pero currentUserId aún no
+                llegó (ventana SSO en nav client-side), NO mostrar "Visitante" —era el flash de
+                identidad que veía QA. Se deja neutro hasta que resuelve. Un guest real (isDomainGuest)
+                sigue viendo "Visitante". */}
             {currentUserId && currentUserId !== 'visitante@guest.local'
               ? currentUserId  // Mostrar email del usuario registrado
-              : (userEmail || 'Visitante')}  {/* Solo usar userEmail como fallback, NO username de useUserStore */}
+              : (userEmail || (isDomainGuest ? 'Visitante' : ''))}
           </div>
         </Flexbox>
       </Flexbox>
