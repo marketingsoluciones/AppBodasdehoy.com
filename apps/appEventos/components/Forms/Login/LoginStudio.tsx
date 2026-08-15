@@ -53,21 +53,12 @@ const eye = (open: boolean) => (
   </svg>
 );
 
-// Iconos de perfil (SVG inline, sin assets externos). Pintados en rosa;
-// el filtro grayscale del contenedor los apaga cuando no están seleccionados.
+// Iconos de perfil (PNG incrustados en el HTML, extraídos a /studio). El filtro
+// grayscale del contenedor los apaga cuando el perfil no está seleccionado.
 const ROLES: { key: string; label: string; icon: ReactNode }[] = [
-  {
-    key: "wedding planner", label: "Wedding planner",
-    icon: <svg width="44" height="44" viewBox="0 0 24 24" fill="#EF5B94"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z" /></svg>,
-  },
-  {
-    key: "organizador", label: "Organizador de eventos",
-    icon: <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="5" width="16" height="16" rx="2" /><path d="M8 3v4M16 3v4M4 10h16M8 14h5M8 17h8" /></svg>,
-  },
-  {
-    key: "novios", label: "Novios",
-    icon: <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8}><circle cx="9" cy="14" r="5" /><circle cx="15" cy="14" r="5" /><path d="M7.5 5.2 9 3l1.5 2.2M13.5 5.2 15 3l1.5 2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>,
-  },
+  { key: "wedding planner", label: "Wedding planner", icon: <img src="/studio/role-wp.png" alt="" style={{ width: 46, height: 46, objectFit: "contain" }} /> },
+  { key: "organizador", label: "Organizador de eventos", icon: <img src="/studio/role-organizador.png" alt="" style={{ width: 46, height: 46, objectFit: "contain" }} /> },
+  { key: "novios", label: "Novios", icon: <img src="/studio/role-novios.png" alt="" style={{ width: 50, height: 50, objectFit: "contain" }} /> },
 ];
 
 const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose }) => {
