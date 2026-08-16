@@ -18,6 +18,7 @@ import { deleteAllFiles, deleteRecursive } from "../Utils/storages";
 import { getStorage } from "firebase/storage";
 import { ModalDuplicate } from "../Servicios/Utils/ModalDuplicate";
 import { PermissionWrapper } from "../Servicios/Utils/PermissionWrapper";
+import ItinerarioVacioStudio from "./ItinerarioVacioStudio";
 
 interface Modal {
     state: boolean
@@ -378,6 +379,20 @@ export const BoddyIter = () => {
             setSelectTask(undefined)
         }
     }, [event, queryItinerary, orderAndDirection, itinerario?._id, view, copilotFilter])
+
+    // Rediseño studio (gate ?studio, default ON): estado vacío de itinerario fiel
+    // al HTML. Solo cuando el evento está cargado y NO hay itinerarios del tipo.
+    // Scoped a "itinerario" (servicios conserva su vista). Rollback ?studio=legacy.
+    const studioIter = searchParams.get("studio") !== "legacy"
+    const pathSliceIter = typeof window !== "undefined" ? window.location.pathname.slice(1) : "itinerario"
+    const isEmptyTipo = !(Array.isArray(event?.itinerarios_array) && event.itinerarios_array.some((el: any) => el?.tipo === pathSliceIter))
+    if (studioIter && event?._id && pathSliceIter === "itinerario" && isEmptyTipo) {
+        return (
+            <PermissionWrapper>
+                <ItinerarioVacioStudio event={event} setEvent={setEvent} config={config} isOwner={isOwner} pathSlice={pathSliceIter} />
+            </PermissionWrapper>
+        )
+    }
 
     return (
         <PermissionWrapper>
