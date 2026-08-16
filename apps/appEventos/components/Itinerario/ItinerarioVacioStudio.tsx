@@ -18,9 +18,10 @@ interface Props {
   config: any;
   isOwner: boolean;
   pathSlice: string;
+  userInitial?: string;
 }
 
-const ItinerarioVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pathSlice }) => {
+const ItinerarioVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pathSlice, userInitial }) => {
   const { t } = useTranslation();
   const toast = useToast();
   const [creating, setCreating] = useState(false);
@@ -135,6 +136,12 @@ const ItinerarioVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pa
           )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          {userInitial && (
+            <>
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#8a6f5c", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 12px Poppins", border: "2px solid #fff", flex: "none" }}>{userInitial}</div>
+              <div style={{ width: 1, height: 30, background: "#eee", flex: "none" }} />
+            </>
+          )}
           <div style={{ lineHeight: 1.3, textAlign: "right" }}>
             <div style={{ font: "600 10px Poppins", color: "#EF5B94", letterSpacing: ".6px", textTransform: "uppercase" }}>{event?.tipo || ""}</div>
             <div style={{ font: "700 14px Poppins", color: "#3A3A42" }}>{event?.nombre || ""}</div>
