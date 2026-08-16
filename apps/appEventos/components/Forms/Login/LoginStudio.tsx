@@ -1,4 +1,4 @@
-import { FC, ReactNode, useState } from "react";
+import { FC, ReactNode, useEffect, useState } from "react";
 import { AuthContextProvider } from "../../../context";
 import { phoneUtil, useAuthentication } from "../../../utils/Authentication";
 import { GoogleProvider, FacebookProvider } from "../../../firebase";
@@ -71,6 +71,11 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
   const [updateActivity, updateActivityLink] = useActivity() as any;
 
   const [view, setView] = useState<View>(initialView === "register" ? "register" : "login");
+  // `?q=register` llega como stage async → initialView cambia login→register tras
+  // el 1er render; sincronizamos la vista para abrir en "¿Quién eres?" (no login).
+  useEffect(() => {
+    if (initialView === "register") setView("register");
+  }, [initialView]);
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [showPw, setShowPw] = useState(false);
