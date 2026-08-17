@@ -275,10 +275,18 @@ export default function AgentesPage() {
   // `assignedAgentId` en la conversación; ese día el MISMO enlace se convierte en filtro
   // por-agente EXACTO sin tocar nada aquí. Sin canal → solo ?agent= (hoy = bandeja completa,
   // igual que antes; mañana = las de este agente). 0 dead code, 0 fallback.
-  const agentParam = `agent=${encodeURIComponent(selected.id)}`;
+  // BUG QA (17-ago, FALLO 1 crítico): `selected` puede ser null en el render inicial
+  // (antes de que el useEffect fije selectedId) → `selected.id` lanzaba
+  // "Cannot read properties of null (reading 'id')" y tumbaba /agentes al error boundary.
+  // Se computa a nivel de componente (fuera del guard {selected && …}), por eso hay que
+  // hacerlo null-safe aquí (mismo patrón que selectedLocal arriba). bandejaClientsHref solo
+  // se USA dentro del guard, pero la EXPRESIÓN se evalúa siempre → no puede tocar selected.id.
+  const agentParam = selected ? `agent=${encodeURIComponent(selected.id)}` : '';
   const bandejaClientsHref = bandejaChannelCode
-    ? `/bandeja?channel=${bandejaChannelCode}&${agentParam}`
-    : `/bandeja?${agentParam}`;
+    ? `/bandeja?channel=${bandejaChannelCode}${agentParam ? `&${agentParam}` : ''}`
+    : agentParam
+      ? `/bandeja?${agentParam}`
+      : '/bandeja';
 
   // Estado del prompt en edición — controlled input con debounce a backend.
   // Al cambiar de agente se re-hidrata desde session.config.systemRole.
