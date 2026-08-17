@@ -32,6 +32,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useSwitchSession } from '@/hooks/useSwitchSession';
 import { useAgentStore } from '@/store/agent';
 import { useSessionStore } from '@/store/session';
 import { sessionSelectors } from '@/store/session/selectors';
@@ -140,6 +141,12 @@ export default function AgentesPage() {
   const switchSession = useSessionStore((s) => s.switchSession);
   const activeId = useSessionStore((s) => s.activeId);
   const isSessionListInit = useSessionStore(sessionSelectors.isSessionListInit);
+
+  // "Abrir chat" = hilos propios del agente (tú↔agente). useSwitchSession
+  // hace switchSession(id) + navega a /asistente?session=id → la conversación
+  // del agente (sus topics). Es el gesto Claude/ChatGPT/Trae: click agente →
+  // chatear con él. Complementa "Ver sus conversaciones de cliente" (Bandeja).
+  const openAgentChat = useSwitchSession();
 
   // Feed en tiempo real de actividad/handoff del agente (SSE api-ia /api/messages/stream).
   const activityEvents = useAgentActivity(getUserContext().development ?? 'bodasdehoy');
@@ -572,18 +579,44 @@ export default function AgentesPage() {
                   )}
                 </div>
               </div>
-              <button
-                aria-pressed={!selectedDisabled}
-                className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
-                onClick={() => toggleAgentDisabled(selected.id)}
-                style={{
-                  backgroundColor: selectedDisabled ? '#F2F1F6' : '#1C1C22',
-                  color: selectedDisabled ? '#1C1C22' : '#FFFFFF',
-                }}
-                type="button"
-              >
-                {selectedDisabled ? 'Reanudar' : 'Pausar'}
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Acción primaria: abrir el chat propio del agente (sus hilos
+                    contigo). Modelo Claude/ChatGPT/Trae: click agente → chatear. */}
+                <button
+                  className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-semibold text-white transition-colors"
+                  onClick={() => openAgentChat(selected.id)}
+                  style={{ backgroundColor: '#1C1C22' }}
+                  type="button"
+                >
+                  <svg
+                    fill="none"
+                    height="16"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.8"
+                    viewBox="0 0 24 24"
+                    width="16"
+                  >
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                  Abrir chat
+                </button>
+                {/* Estado del agente (activo/pausado). Secundario. */}
+                <button
+                  aria-pressed={!selectedDisabled}
+                  className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+                  onClick={() => toggleAgentDisabled(selected.id)}
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #EDEDF0',
+                    color: '#1C1C22',
+                  }}
+                  type="button"
+                >
+                  {selectedDisabled ? 'Reanudar' : 'Pausar'}
+                </button>
+              </div>
             </div>
           </div>
 
