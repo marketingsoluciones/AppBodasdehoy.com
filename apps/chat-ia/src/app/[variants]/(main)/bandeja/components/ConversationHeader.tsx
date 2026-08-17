@@ -253,6 +253,20 @@ export function ConversationHeader({
                   conversation.contact.username ||
                   'Sin info de contacto'}
             </p>
+            {/* FASE 2 Agentes (17-ago, FALLO 2 QA): responsable = AGENTE IA de esta
+                conversación, visible también en el detalle (no solo en la lista). Solo
+                se pinta cuando hay assignedAgentName (null-safe). Distinto del botón
+                "Asignada" de la derecha, que es la asignación a un HUMANO. */}
+            {conversation.assignedAgentName ? (
+              <span
+                aria-label={`Responsable: ${conversation.assignedAgentName}`}
+                className="mt-1 inline-flex max-w-full items-center gap-1 truncate rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
+              >
+                <span aria-hidden="true">🤖</span>
+                <span className="truncate">Responsable: {conversation.assignedAgentName}</span>
+              </span>
+            ) : null}
           </div>
         </div>
 

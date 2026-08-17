@@ -9,6 +9,10 @@ import { friendlyContactName, safePhoneOrEmpty } from '../utils/jid';
 import { useMessageStream } from './useMessageStream';
 
 export interface Conversation {
+  /** FASE 2 Agentes: agente IA responsable (distinto de assignedToUserId=humano).
+   *  Null-safe hasta que backend lo expone; ya LIVE en api-ia (17-ago). */
+  assignedAgentId?: string | null;
+  assignedAgentName?: string | null;
   assignedToUserId?: string | null;
   channel: 'whatsapp' | 'instagram' | 'telegram' | 'email' | 'web' | 'facebook';
   contact: {
@@ -97,6 +101,9 @@ export function useConversations(channel: string | null) {
           // hace que la conv sobreviva al abrirla (el filtro de abajo ya cuadra).
           const kind = isWaView ? 'whatsapp' : classifyOtherChannel(c.channel, c.platform);
           return {
+            // FASE 2 Agentes: responsable = agente IA (null-safe). Ya LIVE en api-ia.
+            assignedAgentId: c.assignedAgentId ?? c.assigned_agent_id ?? null,
+            assignedAgentName: c.assignedAgentName ?? c.assigned_agent_name ?? null,
             assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
             channel: kind as Conversation['channel'],
             contact: {
