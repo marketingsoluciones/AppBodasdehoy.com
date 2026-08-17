@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { BandejaTabs, useActiveBandejaTab } from './components/BandejaTabs';
 import { ChannelSidebar } from './components/ChannelSidebar';
@@ -41,6 +41,20 @@ export default function MessagesPage() {
   // y se mantienen como están en tab history.
   const [rsvpFilter, setRsvpFilter] = useState<RsvpFilter>('all');
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all');
+  // Puente Agente→Bandeja (17-ago): la ficha de un agente enlaza a /bandeja?channel=<wa|ig|tg|fb|web>
+  // para "ver las conversaciones de sus canales". Se aplica UNA sola vez al montar (ref) para
+  // no pelear con los cambios manuales de filtro del usuario. SSR/1er render = 'all' (sin
+  // mismatch); el efecto post-mount aplica el canal. v1 filtra por CANAL (no por agente aún:
+  // la asignación conversación→agente es backend pendiente).
+  const appliedChannelRef = useRef(false);
+  useEffect(() => {
+    if (appliedChannelRef.current) return;
+    const c = searchParams?.get('channel');
+    if (c && ['fb', 'ig', 'sms', 'tg', 'wa', 'web'].includes(c)) {
+      setChannelFilter(c as ChannelFilter);
+      appliedChannelRef.current = true;
+    }
+  }, [searchParams]);
   // FASE B v2.0 (Diseño 25-jun): cola Pendientes IA. Visible solo cuando
   // iaLevel='copilot'. Por ahora iaLevel se gestiona por conversación en el
   // header — cuando se persista por workspace, leemos de ahí. Mientras

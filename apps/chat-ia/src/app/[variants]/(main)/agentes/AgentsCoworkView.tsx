@@ -29,6 +29,7 @@
  *      backend. Vacía por defecto — sin mocks inventados.
  */
 
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useAgentStore } from '@/store/agent';
@@ -56,6 +57,16 @@ const CHANNEL_LABEL: Record<string, string> = {
   telegram: 'Telegram',
   web: 'Web chat',
   whatsapp: 'WhatsApp',
+};
+
+// Puente Agente→Bandeja (17-ago): canal del agente → código de filtro de la Bandeja.
+// (email no tiene filtro en la Bandeja todavía → cae a bandeja sin filtro.)
+const AGENT_CHANNEL_TO_BANDEJA: Record<string, string> = {
+  facebook: 'fb',
+  instagram: 'ig',
+  telegram: 'tg',
+  web: 'web',
+  whatsapp: 'wa',
 };
 
 interface AgentActivity {
@@ -248,6 +259,13 @@ export default function AgentesPage() {
   const selectedLocal = selected ? (localStates[selected.id] ?? {}) : {};
   const selectedDisabled = !!selectedLocal.disabled;
   const selectedChannels = selectedLocal.channels ?? [];
+  // Puente a la Bandeja filtrada por el canal del agente (v1: por canal, no por agente).
+  const bandejaChannelCode = selectedChannels
+    .map((c) => AGENT_CHANNEL_TO_BANDEJA[c])
+    .find(Boolean);
+  const bandejaClientsHref = bandejaChannelCode
+    ? `/bandeja?channel=${bandejaChannelCode}`
+    : '/bandeja';
 
   // Estado del prompt en edición — controlled input con debounce a backend.
   // Al cambiar de agente se re-hidrata desde session.config.systemRole.
@@ -637,6 +655,17 @@ export default function AgentesPage() {
                     );
                   })}
                 </div>
+                {/* Puente Agente→Bandeja (17-ago): "sus conversaciones de cliente" =
+                    Bandeja filtrada por su canal. Responde a "¿dónde veo las conversaciones
+                    del agente?". v1 filtra por canal; el filtro por-agente exacto es backend
+                    pendiente (asignación conversación→agente). */}
+                <Link
+                  className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold"
+                  href={bandejaClientsHref}
+                  style={{ color: '#6B4EFF' }}
+                >
+                  Ver sus conversaciones de cliente →
+                </Link>
               </div>
 
               {/* Instrucciones del agente — cableado a updateAgentConfig */}
