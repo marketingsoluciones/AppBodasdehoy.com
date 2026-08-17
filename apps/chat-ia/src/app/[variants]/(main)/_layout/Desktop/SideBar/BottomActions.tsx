@@ -1,7 +1,7 @@
 import { ActionIcon, ActionIconProps } from '@lobehub/ui';
 import { FlaskConical, Github, LogIn } from 'lucide-react';
 import Link from 'next/link';
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
@@ -135,6 +135,15 @@ const BottomActions = memo(() => {
   const { needsRelogin } = useAuthCheck();
   const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
 
+  // P0 coherencia de sesión (QA 17-ago): el servidor renderiza SIN sesión cliente →
+  // isGuest=true en SSR → antes pintaba el icono "Iniciar sesión" en el HTML SSR, que el
+  // Service Worker cacheaba y servía en navegación directa. Con mounted-gate NO renderizamos
+  // el CTA de invitado hasta montar (SSR y primer render cliente coinciden → sin mismatch);
+  // tras montar, si de verdad es invitado, aparece. (El bloque de wallet ya está gateado por
+  // !isGuestOrExpired, que en SSR es false, así que no se pinta de más.)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   // Sesión expirada: tratamos igual que guest — sin billing/plan hasta re-login
   const isGuestOrExpired = isGuest || needsRelogin;
 
@@ -155,7 +164,7 @@ const BottomActions = memo(() => {
           <PlanBadge />
         </Flexbox>
       )}
-      {isGuestOrExpired && (
+      {mounted && isGuestOrExpired && (
         <Link aria-label="Iniciar sesión" href="/login">
           <ActionIcon
             icon={LogIn}

@@ -19,14 +19,6 @@ import {
 } from '@/utils/developmentDetector';
 
 const useStyles = createStyles(({ css, token }) => ({
-  hydrating: css`
-    opacity: 0.55;
-    animation: user-avatar-hydrating-pulse 1.4s ease-in-out infinite;
-    @keyframes user-avatar-hydrating-pulse {
-      0%, 100% { opacity: 0.35; }
-      50% { opacity: 0.75; }
-    }
-  `,
   clickable: css`
     position: relative;
     transition: all 200ms ease-out 0s;
@@ -56,6 +48,14 @@ const useStyles = createStyles(({ css, token }) => ({
       }
     }
   `,
+  hydrating: css`
+    opacity: 0.55;
+    animation: user-avatar-hydrating-pulse 1.4s ease-in-out infinite;
+    @keyframes user-avatar-hydrating-pulse {
+      0%, 100% { opacity: 0.35; }
+      50% { opacity: 0.75; }
+    }
+  `,
 }));
 
 export interface UserAvatarProps extends AvatarProps {
@@ -73,8 +73,12 @@ const AUTH_HYDRATION_GRACE_MS = 3000;
 const hasSsoSessionSignal = (): boolean => {
   if (typeof window === 'undefined') return false;
   try {
-    if (typeof document !== 'undefined' && document.cookie) {
-      if (/(?:^|;\s*)idTokenV0\.1\.0=([^;]{20,})/.test(document.cookie)) return true;
+    if (
+      typeof document !== 'undefined' &&
+      document.cookie &&
+      /(?:^|;\s*)idTokenV0\.1\.0=([^;]{20,})/.test(document.cookie)
+    ) {
+      return true;
     }
     const t = localStorage.getItem('jwt_token') || localStorage.getItem('mcp_jwt_token');
     if (t && t.length > 20) return true;
@@ -110,12 +114,20 @@ const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
     // marcamos "hidratando" durante AUTH_HYDRATION_GRACE_MS.
     const [ssoSignal, setSsoSignal] = useState(false);
     const [graceElapsed, setGraceElapsed] = useState(false);
+    // P0 coherencia de sesión (QA 17-ago): el servidor renderiza este componente SIN
+    // sesión cliente → antes pintaba "Visitante · marca" en el HTML SSR, que el Service
+    // Worker cacheaba (NetworkFirst) y servía en navegación DIRECTA (Ctrl+Shift+R lo
+    // bypaseaba y por eso "se arreglaba"). En SSR + primer render cliente (mounted=false)
+    // NO decidimos invitado: mostramos el skeleton neutro. SSR y primer render coinciden
+    // (ambos skeleton) → 0 hydration mismatch. Tras montar resolvemos identidad real.
+    const [mounted, setMounted] = useState(false);
     useEffect(() => {
+      setMounted(true);
       setSsoSignal(hasSsoSessionSignal());
       const t = setTimeout(() => setGraceElapsed(true), AUTH_HYDRATION_GRACE_MS);
       return () => clearTimeout(t);
     }, []);
-    const hydrating = ssoSignal && !isRealLogin && !graceElapsed;
+    const hydrating = !mounted || (ssoSignal && !isRealLogin && !graceElapsed);
     const remoteServerUrl = useElectronStore(electronSyncSelectors.remoteServerUrl);
 
     const avatarUrl = useMemo(() => {
