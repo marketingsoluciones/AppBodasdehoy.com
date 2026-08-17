@@ -4,7 +4,7 @@ import { ActionIcon, ActionIconProps, Hotkey } from '@lobehub/ui';
 import { BookOpen, Bot, Compass, FolderOpen, Heart, ImagePlus, Images, Inbox, ListChecks, MessageSquare, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
 import { useInboxUnreadCount } from '@/hooks/useInboxUnreadCount';
@@ -45,7 +45,15 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
   const isServerMode = process.env.NEXT_PUBLIC_SERVICE_MODE === 'server';
 
   const isGuest = useDomainGuestUser();
-  const isLoggedIn = !isGuest;
+  // Suavizado del "pop-in" del rail (QA 17-ago): los items solo-logueado dependen de
+  // useDomainGuestUser, que se resuelve post-mount → en SSR/primer render el rail salía
+  // parcial y "completaba" al hidratar. Render OPTIMISTA: hasta montar asumimos logueado
+  // (la mayoría de usuarios de chat-dev lo están) → rail completo desde el 1er render, sin
+  // pop-in. Un invitado REAL ve los iconos un instante y desaparecen al confirmar. NO es
+  // el shell de "Visitante" (eso son UserAvatar/BottomActions, con su propio mounted-gate).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const isLoggedIn = !mounted || !isGuest;
 
   const isAdmin = useChatStore((s) => s.userRole === 'admin');
   const { enableKnowledgeBase, showMarket, showAiImage } = useServerConfigStore(featureFlagsSelectors);
@@ -89,78 +97,11 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           tooltipProps={{ placement: 'right' }}
         />
       </Link>
-      {/* Agentes IA (equipo de agentes coworker) — DISTINTO del Asistente (chats IA).
-          Rediseño mensajería 13-ago: /agentes no estaba en el sidebar → los agentes no
-          se distinguían del asistente. Icono Bot (vs MessageSquare) + gateado a logueados
-          (requiere sesión api-ia). */}
-      {isLoggedIn && (
-        <Link aria-label="Agentes" href={'/agentes'} suppressHydrationWarning>
-          <ActionIcon
-            active={isAgentsActive}
-            icon={Bot}
-            size={ICON_SIZE}
-            title="Agentes"
-            tooltipProps={{ placement: 'right' }}
-          />
-        </Link>
-      )}
-      {/* Rediseño: "Memories" → "Momentos" (nombre del prototipo; ruta /memories intacta). */}
-      <Link aria-label="Momentos" href={'/memories'} suppressHydrationWarning>
-        <ActionIcon
-          active={isMemoriesActive}
-          icon={Images}
-          size={ICON_SIZE}
-          title="Momentos"
-          tooltipProps={{ placement: 'right' }}
-        />
-      </Link>
-      {/* Generación de imágenes (/image standalone) — gateado por showAiImage.
-          NOTA: NO afecta la tool DALL-E del chat (esa la controla `dalle`, intacta). */}
-      {showAiImage && (
-        <Link aria-label="Estudio" href={'/image'} suppressHydrationWarning>
-          <ActionIcon
-            active={tab === SidebarTabKey.Image}
-            icon={ImagePlus}
-            size={ICON_SIZE}
-            title="Estudio"
-            tooltipProps={{ placement: 'right' }}
-          />
-        </Link>
-      )}
-      {/* Resto de opciones — solo usuarios registrados */}
-      {isLoggedIn && isServerMode && (
-        <Link aria-label="Web de boda" href={'/wedding-creator'} suppressHydrationWarning>
-          <ActionIcon
-            active={tab === SidebarTabKey.WeddingCreator}
-            icon={Heart}
-            size={ICON_SIZE}
-            title="Web de boda"
-            tooltipProps={{ placement: 'right' }}
-          />
-        </Link>
-      )}
-      {SHOW_LOBECHAT_EXTRAS && isLoggedIn && showMarket && (
-        <Link aria-label="Discover" href={'/discover'} suppressHydrationWarning>
-          <ActionIcon
-            active={tab === SidebarTabKey.Discover}
-            icon={Compass}
-            size={ICON_SIZE}
-            title="Discover"
-            tooltipProps={{ placement: 'right' }}
-          />
-        </Link>
-      )}
-      {SHOW_LOBECHAT_EXTRAS && isLoggedIn && enableKnowledgeBase && (
-        <Link aria-label="Conocimiento" href={'/knowledge'} suppressHydrationWarning>
-          <ActionIcon
-            active={tab === SidebarTabKey.Knowledge}
-            icon={BookOpen}
-            size={ICON_SIZE}
-            title="Base de conocimiento"
-            tooltipProps={{ placement: 'right' }}
-          />
-        </Link>
-      )}
+      {/* ORDEN (auditoría nav 16-ago): IA → Mensajes → Automatización → Biblioteca →
+          grupo "Boda" → Admin. Bandeja sube al 2º puesto porque el trabajo diario de
+          chat-dev es "IA + gestión de mensajes". */}
+
+      {/* 2) Bandeja (Mensajes) */}
       {isServerMode && isLoggedIn && (
         <Link aria-label="Bandeja" href={'/bandeja'} suppressHydrationWarning>
           <div style={{ position: 'relative' }}>
@@ -197,10 +138,9 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           </div>
         </Link>
       )}
-      {/* Rediseño Fase B (14-ago): "Pendientes" ya no es una segunda bandeja con
-          store propio — apunta a la vista "Esperan respuesta" DENTRO de la Bandeja
-          (?view=esperan). Misma superficie, filtro no-leídos. Evita la percepción
-          de bandejas duplicadas. La ruta /pendientes redirige aquí. */}
+      {/* 3) Pendientes — atajo "Esperan respuesta" DENTRO de la Bandeja (?view=esperan);
+          se coloca junto a Bandeja porque es una vista filtrada, no un módulo aparte.
+          La ruta /pendientes redirige aquí. */}
       {isServerMode && isLoggedIn && (
         <Link aria-label="Pendientes" href={'/bandeja?view=esperan'} suppressHydrationWarning>
           <div style={{ position: 'relative' }}>
@@ -236,7 +176,20 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           </div>
         </Link>
       )}
-      {/* Rediseño: "Archivos" → "Biblioteca" (en Fase C absorberá Conocimiento). Ruta /files intacta. */}
+      {/* 4) Agentes IA (equipo coworker) — DISTINTO del Asistente (chats IA). Icono Bot.
+          Gateado a logueados (requiere sesión api-ia). */}
+      {isLoggedIn && (
+        <Link aria-label="Agentes" href={'/agentes'} suppressHydrationWarning>
+          <ActionIcon
+            active={isAgentsActive}
+            icon={Bot}
+            size={ICON_SIZE}
+            title="Agentes"
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
+      {/* 5) Biblioteca (Archivos + Conocimiento en tabs). Ruta /files intacta. */}
       {isServerMode && isLoggedIn && (
         <Link aria-label="Biblioteca" href={'/files'} suppressHydrationWarning>
           <ActionIcon
@@ -244,6 +197,64 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
             icon={FolderOpen}
             size={ICON_SIZE}
             title="Biblioteca"
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
+
+      {/* ─── Grupo "Boda" (superficies de evento) ─── */}
+      {/* 6) Momentos (antes "Memories"; ruta /memories intacta). */}
+      <Link aria-label="Momentos" href={'/memories'} suppressHydrationWarning>
+        <ActionIcon
+          active={isMemoriesActive}
+          icon={Images}
+          size={ICON_SIZE}
+          title="Momentos"
+          tooltipProps={{ placement: 'right' }}
+        />
+      </Link>
+      {/* 7) Estudio (/image standalone) — gateado por showAiImage. NO afecta la tool DALL-E. */}
+      {showAiImage && (
+        <Link aria-label="Estudio" href={'/image'} suppressHydrationWarning>
+          <ActionIcon
+            active={tab === SidebarTabKey.Image}
+            icon={ImagePlus}
+            size={ICON_SIZE}
+            title="Estudio"
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
+      {/* 8) Web de boda (creador) — solo registrados. */}
+      {isLoggedIn && isServerMode && (
+        <Link aria-label="Web de boda" href={'/wedding-creator'} suppressHydrationWarning>
+          <ActionIcon
+            active={tab === SidebarTabKey.WeddingCreator}
+            icon={Heart}
+            size={ICON_SIZE}
+            title="Web de boda"
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
+      {SHOW_LOBECHAT_EXTRAS && isLoggedIn && showMarket && (
+        <Link aria-label="Discover" href={'/discover'} suppressHydrationWarning>
+          <ActionIcon
+            active={tab === SidebarTabKey.Discover}
+            icon={Compass}
+            size={ICON_SIZE}
+            title="Discover"
+            tooltipProps={{ placement: 'right' }}
+          />
+        </Link>
+      )}
+      {SHOW_LOBECHAT_EXTRAS && isLoggedIn && enableKnowledgeBase && (
+        <Link aria-label="Conocimiento" href={'/knowledge'} suppressHydrationWarning>
+          <ActionIcon
+            active={tab === SidebarTabKey.Knowledge}
+            icon={BookOpen}
+            size={ICON_SIZE}
+            title="Base de conocimiento"
             tooltipProps={{ placement: 'right' }}
           />
         </Link>

@@ -103,7 +103,7 @@ function QRModal({
             {phoneNumber && <div><Text type="secondary">{withPlus(phoneNumber)}</Text></div>}
           </div>
           <Alert
-            message={`WhatsApp permite un número por espacio. Para vincular «${channel.name}», primero desconecta el número actual.`}
+            message={`WhatsApp QR permite un número por espacio. Para vincular «${channel.name}», primero desconecta el número actual. (La conexión por Meta Business API va aparte y no tiene este límite.)`}
             showIcon
             type="warning"
           />
