@@ -119,6 +119,18 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
           <span className="shrink-0 text-xs text-gray-400">{timeAgo(item.timestamp)}</span>
         </div>
         <p className="truncate text-xs text-gray-500">{item.preview}</p>
+        {/* FASE 2 Agentes (17-ago) — badge "responsable": qué AGENTE IA atiende esta
+            conversación. Solo se pinta cuando backend expone assignedAgentName (null-safe,
+            mismo patrón que el badge RSVP). Hoy queda dormido: 0 dead code, 0 fallback. */}
+        {item.kind === 'conversation' && item.assignedAgentName && (
+          <span
+            aria-label={`Responsable: ${item.assignedAgentName}`}
+            className="mt-1 inline-flex max-w-full items-center gap-1 truncate rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-medium text-violet-600"
+          >
+            <span aria-hidden="true">🤖</span>
+            <span className="truncate">{item.assignedAgentName}</span>
+          </span>
+        )}
       </div>
 
       {/* Unread indicator */}

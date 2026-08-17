@@ -270,9 +270,15 @@ export default function AgentesPage() {
   const bandejaChannelCode = selectedChannels
     .map((c) => AGENT_CHANNEL_TO_BANDEJA[c])
     .find(Boolean);
+  // Puente a la Bandeja. HOY filtra por CANAL (Fase 1). Añadimos TAMBIÉN &agent=<id>
+  // (FASE 2, dormido): la Bandeja ignora ?agent= hasta que backend exponga el campo
+  // `assignedAgentId` en la conversación; ese día el MISMO enlace se convierte en filtro
+  // por-agente EXACTO sin tocar nada aquí. Sin canal → solo ?agent= (hoy = bandeja completa,
+  // igual que antes; mañana = las de este agente). 0 dead code, 0 fallback.
+  const agentParam = `agent=${encodeURIComponent(selected.id)}`;
   const bandejaClientsHref = bandejaChannelCode
-    ? `/bandeja?channel=${bandejaChannelCode}`
-    : '/bandeja';
+    ? `/bandeja?channel=${bandejaChannelCode}&${agentParam}`
+    : `/bandeja?${agentParam}`;
 
   // Estado del prompt en edición — controlled input con debounce a backend.
   // Al cambiar de agente se re-hidrata desde session.config.systemRole.

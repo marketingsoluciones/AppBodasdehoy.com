@@ -50,6 +50,12 @@ export interface FeedItem {
   linkedEventId?: string | null;
   /** ID del contacto CRM vinculado. */
   linkedContactId?: string | null;
+  /** FASE 2 Agentes (17-ago): AGENTE IA responsable de la conversación. Null-safe:
+   *  undefined hasta que backend exponga assignedAgentId (mismo patrón que rsvpStatus).
+   *  El badge de responsable y el filtro ?agent= de la Bandeja se auto-activan cuando
+   *  hay valor; hasta entonces quedan dormidos. */
+  assignedAgentId?: string | null;
+  assignedAgentName?: string | null;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -205,6 +211,9 @@ export function useUnifiedFeed(maxItems = 60): {
 
   // Map conversations → FeedItem
   const convItems: FeedItem[] = conversations.map((conv) => ({
+    // FASE 2 Agentes (dormido hasta backend): responsable = agente IA. Null-safe.
+    assignedAgentId: conv.assignedAgentId ?? undefined,
+    assignedAgentName: conv.assignedAgentName ?? undefined,
     channelKind: conv.kind,
     channelLabel: conv.channelLabel,
     channelParam: conv.channelParam,

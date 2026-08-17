@@ -55,6 +55,22 @@ export default function MessagesPage() {
       appliedChannelRef.current = true;
     }
   }, [searchParams]);
+  // FASE 2 Agentes (17-ago) — ESQUELETO DORMIDO hasta backend. Cuando exista el campo
+  // `assignedAgentId` en la conversación (ticket abierto), la ficha del agente enlazará a
+  // /bandeja?agent=<id> y aquí filtraremos por agente EXACTO (no por canal). Se siembra
+  // una vez (ref) y SOLO se aplica si hay datos de agente en la lista (agentDataAvailable),
+  // así que hoy es un no-op: nada enlaza a ?agent= y ningún item trae assignedAgentId.
+  // 0 dead code, 0 fallback — se auto-activa el día que backend expone el dato.
+  const appliedAgentRef = useRef(false);
+  const [agentFilter, setAgentFilter] = useState<string | null>(null);
+  useEffect(() => {
+    if (appliedAgentRef.current) return;
+    const a = searchParams?.get('agent');
+    if (a) {
+      setAgentFilter(a);
+      appliedAgentRef.current = true;
+    }
+  }, [searchParams]);
   // FASE B v2.0 (Diseño 25-jun): cola Pendientes IA. Visible solo cuando
   // iaLevel='copilot'. Por ahora iaLevel se gestiona por conversación en el
   // header — cuando se persista por workspace, leemos de ahí. Mientras
@@ -109,6 +125,19 @@ export default function MessagesPage() {
     wa: 'whatsapp',
     web: 'web',
   };
+  // FASE 2 Agentes (dormido): ¿hay datos de agente en la lista? Solo entonces se activan
+  // el filtro ?agent= y el banner. Hoy false (backend no expone assignedAgentId todavía).
+  const agentDataAvailable = useMemo(
+    () => items.some((i) => i.kind === 'conversation' && !!i.assignedAgentId),
+    [items],
+  );
+  const agentFilterName = useMemo(() => {
+    if (!agentFilter) return null;
+    const hit = items.find(
+      (i) => i.kind === 'conversation' && i.assignedAgentId === agentFilter,
+    );
+    return hit?.assignedAgentName ?? null;
+  }, [items, agentFilter]);
   const filteredItems = useMemo(() => {
     let arr = items;
     if (esperanOnly) {
@@ -160,8 +189,17 @@ export default function MessagesPage() {
         (i) => i.kind !== 'conversation' || (i as any).draftState === 'pending',
       );
     }
+    // FASE 2 Agentes (dormido hasta backend): filtro por AGENTE EXACTO. Solo se aplica si
+    // agentDataAvailable (algún item con assignedAgentId). Hasta entonces es no-op → la
+    // Bandeja se comporta igual que hoy. Cuando backend exponga el campo, ?agent=<id>
+    // filtra las conversaciones de ese agente sin importar el canal.
+    if (agentFilter && agentDataAvailable) {
+      arr = arr.filter(
+        (i) => i.kind !== 'conversation' || i.assignedAgentId === agentFilter,
+      );
+    }
     return arr;
-  }, [items, esperanOnly, activeTab, activeScope, channelFilter, rsvpFilter, pendingIaActive, showSpam]);
+  }, [items, esperanOnly, activeTab, activeScope, channelFilter, rsvpFilter, pendingIaActive, showSpam, agentFilter, agentDataAvailable]);
 
   const notifUnreadCount = useMemo(
     () => items.filter((i) => i.kind === 'notification' && !i.isRead).length,
@@ -226,6 +264,27 @@ export default function MessagesPage() {
                   className="text-[11px] font-medium underline"
                   onClick={() => router.push('/bandeja')}
                   // Color inline: el repo no usa variantes dark:, evita texto invisible.
+                  style={{ color: '#4b5563' }}
+                  type="button"
+                >
+                  Ver toda la bandeja
+                </button>
+              </div>
+            )}
+            {/* FASE 2 Agentes (17-ago) — banner del filtro por agente. Solo aparece cuando
+                agentDataAvailable (backend expone assignedAgentId) Y hay ?agent= activo.
+                Hoy dormido: nada enlaza a ?agent= y no hay datos de agente. */}
+            {agentFilter && agentDataAvailable && (
+              <div className="flex items-center justify-between gap-2 border-b border-gray-100 bg-violet-50 px-3 py-2">
+                <span className="truncate text-[12px] font-semibold" style={{ color: '#6B4EFF' }}>
+                  🤖 Conversaciones de {agentFilterName ?? 'este agente'}
+                </span>
+                <button
+                  className="shrink-0 text-[11px] font-medium underline"
+                  onClick={() => {
+                    setAgentFilter(null);
+                    router.push('/bandeja');
+                  }}
                   style={{ color: '#4b5563' }}
                   type="button"
                 >

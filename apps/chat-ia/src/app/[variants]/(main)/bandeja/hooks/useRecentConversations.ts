@@ -21,6 +21,13 @@ export interface RecentConversation {
   channelParam: string;
   /** Conversation id used as the second URL segment */
   conversationId: string;
+  /** FASE 2 Agentes (17-ago): id/nombre del AGENTE IA (sesión LobeChat) responsable
+   *  de la conversación. DISTINTO de assignedToUserId (humano). Null-safe: undefined
+   *  hasta que backend exponga el campo (ticket assignedAgentId). Mismo patrón que
+   *  guestStatus → el badge de responsable y el filtro ?agent= solo se ACTIVAN cuando
+   *  llega el dato; hasta entonces quedan dormidos (0 dead code, 0 fallback). */
+  assignedAgentId?: string | null;
+  assignedAgentName?: string | null;
   assignedToUserId?: string | null;
   kind: ChannelKind;
   lastMessage: string;
@@ -110,6 +117,9 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
               const channelParam = matchedChannel ? `wa-${matchedChannel.id}` : defaultWaParam;
               const channelLabel = matchedChannel ? channelLabelMap.get(matchedChannel.id) : undefined;
               return {
+                // FASE 2 (dormido hasta backend): responsable = AGENTE IA. Null-safe.
+                assignedAgentId: c.assignedAgentId ?? c.assigned_agent_id ?? null,
+                assignedAgentName: c.assignedAgentName ?? c.assigned_agent_name ?? null,
                 assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
                 channelLabel,
                 channelParam,
@@ -167,6 +177,9 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
               // N31 retirado 24-jun: api-ia commit 665097b normalizó lastMessage
               // a string + lastMessageAt + lastMessageFromMe. Ya no llega objeto.
               return {
+                // FASE 2 (dormido hasta backend): responsable = AGENTE IA. Null-safe.
+                assignedAgentId: c.assignedAgentId ?? c.assigned_agent_id ?? null,
+                assignedAgentName: c.assignedAgentName ?? c.assigned_agent_name ?? null,
                 assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
                 channelParam: ch,
                 conversationId: c.conversationId || c.id || '',
