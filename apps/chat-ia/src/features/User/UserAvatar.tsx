@@ -128,33 +128,40 @@ const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
       return () => clearTimeout(t);
     }, []);
     const hydrating = !mounted || (ssoSignal && !isRealLogin && !graceElapsed);
+    // Identidad para DISPLAY: isLoginWithAuth (isRealLogin) es el login NATIVO de LobeChat,
+    // que para usuarios Bodas SSO es FALSE → el avatar los trataba como invitados y el alt
+    // decía "Visitante · marca" (hallazgo QA 17-ago en /bandeja?tab=history). Con hasSession
+    // (login nativo O señal SSO: cookie idTokenV0.1.0 / JWT local) el avatar muestra la
+    // identidad real del usuario SSO y el alt nunca dice "Visitante" habiendo sesión.
+    const hasSession = isRealLogin || ssoSignal;
     const remoteServerUrl = useElectronStore(electronSyncSelectors.remoteServerUrl);
 
     const avatarUrl = useMemo(() => {
-      if (isRealLogin && avatar) {
+      if (hasSession && avatar) {
         if (isDesktop && avatar.startsWith('/') && remoteServerUrl) {
           return remoteServerUrl + avatar;
         }
         return avatar;
       }
-      if (isRealLogin && !avatar) {
+      if (hasSession && !avatar) {
         return DEFAULT_USER_AVATAR_URL;
       }
       const fromApi = branding?.logo?.trim();
       return fromApi || DEFAULT_USER_AVATAR_URL;
-    }, [isRealLogin, avatar, remoteServerUrl, branding?.logo]);
+    }, [hasSession, avatar, remoteServerUrl, branding?.logo]);
 
     useEffect(() => {
       setImageLoadFailed(false);
     }, [avatarUrl]);
 
-    const altText =
-      isRealLogin && username
-        ? username
+    const altText = username
+      ? username
+      : hasSession
+        ? guestBrandName
         : `Visitante · ${guestBrandName}`;
 
     const labelForInitials = (
-      isRealLogin ? (nickName || username || '').trim() : ''
+      hasSession ? (nickName || username || '').trim() : ''
     ) || guestBrandName;
 
     const initials = useMemo(
