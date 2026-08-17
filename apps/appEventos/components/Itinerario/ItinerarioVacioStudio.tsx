@@ -18,18 +18,14 @@ interface Props {
   config: any;
   isOwner: boolean;
   pathSlice: string;
-  userInitial?: string;
 }
 
-const ItinerarioVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pathSlice, userInitial }) => {
+const ItinerarioVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pathSlice }) => {
   const { t } = useTranslation();
   const toast = useToast();
   const [creating, setCreating] = useState(false);
 
   const isItinerario = pathSlice === "itinerario";
-  const imgUrl = event?.imgEvento?.i320
-    ? `/api/proxy-image?url=${encodeURIComponent(`https://api-mcp.eventosorganizador.com/${event.imgEvento.i320}`)}`
-    : null;
   const tzCity = getTimeZoneCity(event?.timeZone) || "Madrid";
 
   const handleCreate = async () => {
@@ -124,40 +120,7 @@ const ItinerarioVacioStudio: FC<Props> = ({ event, setEvent, config, isOwner, pa
         .iv-nuevo:hover:not(:disabled){filter:brightness(.97);}
       ` }} />
 
-      {/* HEADER */}
-      <div style={{ background: "#fff", borderRadius: 18, boxShadow: "0 6px 20px rgba(0,0,0,.06)", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, marginBottom: 16, flexWrap: "wrap" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ font: "700 21px Poppins", color: "#4a4a52" }}>{t("itinerary", { defaultValue: "Itinerario" })}</div>
-          {isOwner && (
-            <span style={{ display: "flex", alignItems: "center", gap: 6, background: "#FEF6D8", color: "#B8860B", font: "600 12px Poppins", padding: "6px 13px", borderRadius: 20 }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="#B8860B"><path d="M3 8l4 4 5-6 5 6 4-4v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z" /></svg>
-              {t("owner", { defaultValue: "Propietario" })}
-            </span>
-          )}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          {userInitial && (
-            <>
-              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#8a6f5c", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", font: "700 12px Poppins", border: "2px solid #fff", flex: "none" }}>{userInitial}</div>
-              <div style={{ width: 1, height: 30, background: "#eee", flex: "none" }} />
-            </>
-          )}
-          <div style={{ lineHeight: 1.3, textAlign: "right" }}>
-            <div style={{ font: "600 10px Poppins", color: "#EF5B94", letterSpacing: ".6px", textTransform: "uppercase" }}>{event?.tipo || ""}</div>
-            <div style={{ font: "700 14px Poppins", color: "#3A3A42" }}>{event?.nombre || ""}</div>
-          </div>
-          <div style={{ width: 40, height: 40, borderRadius: 10, overflow: "hidden", background: "#f2f2f4", flex: "none" }}>
-            {imgUrl && <img src={imgUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
-          </div>
-          <button type="button" className="iv-share" title={t("share", { defaultValue: "Compartir" }) as string}
-            onClick={() => toast("warning", t("Crea un itinerario para poder compartirlo", { defaultValue: "Crea un itinerario para poder compartirlo" }))}
-            style={{ width: 38, height: 38, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", background: "none", border: "none", cursor: "pointer" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><circle cx="6" cy="12" r="2.4" /><circle cx="17" cy="6" r="2.4" /><circle cx="17" cy="18" r="2.4" /><path d="M8.2 10.9l6.6-3.8M8.2 13.1l6.6 3.8" /></svg>
-          </button>
-        </div>
-      </div>
-
-      {/* PANEL */}
+      {/* PANEL (el header lo pinta <BlockTitle> de la página, no lo duplicamos) */}
       <div style={{ background: "#fff", borderRadius: 18, boxShadow: "0 6px 20px rgba(0,0,0,.06)", overflow: "hidden" }}>
         {/* toolbar */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 24px", borderBottom: "1px solid #f0f0f2", flexWrap: "wrap" }}>

@@ -387,10 +387,9 @@ export const BoddyIter = () => {
     const pathSliceIter = typeof window !== "undefined" ? window.location.pathname.slice(1) : "itinerario"
     const isEmptyTipo = !(Array.isArray(event?.itinerarios_array) && event.itinerarios_array.some((el: any) => el?.tipo === pathSliceIter))
     if (studioIter && event?._id && pathSliceIter === "itinerario" && isEmptyTipo) {
-        const userInitial = String(user?.displayName && user.displayName !== "guest" ? user.displayName : (user?.email || "")).trim().charAt(0).toUpperCase()
         return (
             <PermissionWrapper>
-                <ItinerarioVacioStudio event={event} setEvent={setEvent} config={config} isOwner={isOwner} pathSlice={pathSliceIter} userInitial={userInitial} />
+                <ItinerarioVacioStudio event={event} setEvent={setEvent} config={config} isOwner={isOwner} pathSlice={pathSliceIter} />
             </PermissionWrapper>
         )
     }
