@@ -3,6 +3,7 @@
  * Usa el paquete compartido; opcionalmente redirige a Copilot para la UI completa.
  */
 import { AuthContextProvider, EventContextProvider } from '../context';
+import ModuloBloqueadoInvitado from '../components/Utils/ModuloBloqueadoInvitado';
 import { useEventSyncWithUrl } from '../hooks/useEventSyncWithUrl';
 import { MemoriesProvider, useMemoriesStore } from '@bodasdehoy/memories';
 import { resolveChatOrigin } from '@bodasdehoy/shared/utils';
@@ -263,6 +264,12 @@ export default function MomentosPage() {
         <div className="animate-pulse text-gray-500">Cargando...</div>
       </section>
     );
+  }
+
+  // Invitado (usuario fantasma): módulo bloqueado con preview + tarjeta de registro.
+  // (El portal QR público de Momentos vive en otra ruta y no se bloquea.)
+  if (user?.displayName === 'guest') {
+    return <ModuloBloqueadoInvitado modulo="momentos" />;
   }
 
   if (!userId) {
