@@ -181,6 +181,8 @@ const Container = (props) => {
 
         {/* Scroll invisible (rueda/táctil/teclado siguen funcionando) en Mis eventos "/". */}
         <style dangerouslySetInnerHTML={{ __html: `.app-scroll-hide{scrollbar-width:none;-ms-overflow-style:none;} .app-scroll-hide::-webkit-scrollbar{width:0;height:0;display:none;}` }} />
+        {/* En "/" ocultamos también la barra de la ventana (html/body), por si el contenido desborda el viewport. */}
+        {pathname === "/" && <style dangerouslySetInnerHTML={{ __html: `html,body{scrollbar-width:none!important;-ms-overflow-style:none!important;} html::-webkit-scrollbar,body::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;}` }} />}
 
         {/* Columna de resultados/app (banner "Organiza tus eventos", tarjetas, etc.): siempre a la derecha del Copilot */}
         <div

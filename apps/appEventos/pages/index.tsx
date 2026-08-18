@@ -269,13 +269,13 @@ const Home: NextPage = () => {
         {showGuestRegisterModal && (
           <div className="fixed inset-0 z-[9999] flex items-center justify-center" style={{ background: 'rgba(40,40,46,.45)', padding: 24, fontFamily: "'Poppins',sans-serif" }}>
             <style dangerouslySetInnerHTML={{ __html: "@keyframes gpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}.gcta:hover{background:#D83E7C!important;}.ginv:hover{color:#3A3A42!important;}" }} />
-            <div style={{ width: 440, maxWidth: '94vw', background: '#fff', borderRadius: 22, boxShadow: '0 30px 80px rgba(0,0,0,.35)', overflow: 'hidden', padding: '30px 30px 26px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ width: 372, maxWidth: '92vw', background: '#fff', borderRadius: 20, boxShadow: '0 26px 70px rgba(0,0,0,.32)', overflow: 'hidden', padding: '24px 26px 22px', display: 'flex', flexDirection: 'column', gap: 13 }}>
               {/* Cabecera */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 4 }}>
-                <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#FCE7F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF5B94', animation: 'gpop .45s ease', marginBottom: 10 }}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M5.8 11.3L2 22l10.7-3.8" /><path d="M4 3h.01M22 8h.01M15 2h.01M22 20h.01" /><path d="M22 2l-2.2.7a2 2 0 0 0-1.4 2.1c.2 1.2-.8 2.2-2 2L14 6.5" /><path d="M6 12.5c1.5 1 3 2.5 4 4" /></svg>
+                <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#FCE7F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF5B94', animation: 'gpop .45s ease', marginBottom: 6 }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M5.8 11.3L2 22l10.7-3.8" /><path d="M4 3h.01M22 8h.01M15 2h.01M22 20h.01" /><path d="M22 2l-2.2.7a2 2 0 0 0-1.4 2.1c.2 1.2-.8 2.2-2 2L14 6.5" /><path d="M6 12.5c1.5 1 3 2.5 4 4" /></svg>
                 </div>
-                <div style={{ font: '700 19px Poppins', color: '#3A3A42' }}>¡Tu evento está listo!</div>
+                <div style={{ font: '700 17px Poppins', color: '#3A3A42' }}>¡Tu evento está listo!</div>
                 {(eventsGroup?.[eventsGroup.length - 1]?.nombre) && <div style={{ font: '500 12.5px Poppins', color: '#D83E7C' }}>{eventsGroup[eventsGroup.length - 1].nombre}</div>}
               </div>
               {/* Intro */}
@@ -290,7 +290,7 @@ const Home: NextPage = () => {
                 ))}
               </div>
               {/* CTA */}
-              <a href={config?.pathLogin ? `${config.pathLogin}?q=register` : '/login?q=register'} className="gcta" style={{ width: '100%', padding: 14, borderRadius: 12, background: '#EF5B94', color: '#fff', font: '600 14px Poppins', border: 'none', cursor: 'pointer', boxShadow: '0 6px 16px rgba(239,91,148,.3)', textAlign: 'center', textDecoration: 'none', display: 'block' }}>Crear cuenta gratis</a>
+              <a href={config?.pathLogin ? `${config.pathLogin}?q=register` : '/login?q=register'} className="gcta" style={{ width: '100%', padding: 12, borderRadius: 12, background: '#EF5B94', color: '#fff', font: '600 13.5px Poppins', border: 'none', cursor: 'pointer', boxShadow: '0 6px 16px rgba(239,91,148,.3)', textAlign: 'center', textDecoration: 'none', display: 'block' }}>Crear cuenta gratis</a>
               {/* Secundario */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
                 <button onClick={() => setShowGuestRegisterModal(false)} className="ginv" style={{ font: '600 12.5px Poppins', color: '#6b6b72', cursor: 'pointer', padding: '4px 8px', background: 'none', border: 'none' }}>Continuar como invitado</button>
