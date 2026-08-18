@@ -21,6 +21,11 @@ export const ModalConfirmEvento: FC<ConfirmProps> = ({ variant, nombre, onCancel
   const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onCancel(); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [onCancel]);
   if (!mounted || typeof document === "undefined") return null;
 
   const esBorrar = variant === "borrar";
@@ -66,6 +71,11 @@ export const ModalCompartirEvento: FC<ShareProps> = ({ event, onClose }) => {
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [onClose]);
 
   // Lista viva desde eventsGroup (se re-renderiza tras invitar/cambiar/revocar).
   const evLive = useMemo(() => (Array.isArray(eventsGroup) ? eventsGroup.find((e: any) => e._id === event?._id) : null) || event, [eventsGroup, event]);
