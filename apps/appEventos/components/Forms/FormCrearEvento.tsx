@@ -205,13 +205,22 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
       if (createdEvent) {
         createdEvent.invitados_array = normalizeInvitados((createdEvent as any).invitados)
         createdEvent.menus_array = normalizeMenus((createdEvent as any).menus)
-        const imgEvento = await subir_archivo({ imagePreviewUrl, event: createdEvent, use: "imgEvento" })
-        // Persistir la portada subida en el evento (BD): subir_archivo SOLO sube el fichero a R2, no lo
-        // asocia al evento. Sin esto, al CREAR con foto la imagen se veía local pero se PERDÍA al recargar
-        // (mismo fix que ya existe en el flujo de editar). Si no se subió foto, imgEvento=undefined → default.
-        if (imgEvento && createdEvent?._id) {
-          try { await fetchApiBodas({ query: queries.eventUpdate, variables: { idEvento: createdEvent._id, input: { imgEvento } }, token: null }) }
-          catch (e) { console.warn("[CrearEvento] no se pudo asociar la portada al evento:", (e as any)?.message ?? e) }
+        // La portada NUNCA debe abortar la creación: el evento ya está creado en la BD. Si la subida
+        // falla (p.ej. singleUpload 400 al ser invitado / sin auth), se cae con gracia a la imagen por
+        // defecto y se avisa en tono suave (no error rojo). subir_archivo SOLO sube el fichero a R2 →
+        // hay que asociarlo al evento con eventUpdate (como en editar) o la foto se perdería al recargar.
+        let imgEvento: any = undefined
+        if (imagePreviewUrl?.file) {
+          try {
+            imgEvento = await subir_archivo({ imagePreviewUrl, event: createdEvent, use: "imgEvento" })
+            if (imgEvento && createdEvent?._id) {
+              await fetchApiBodas({ query: queries.eventUpdate, variables: { idEvento: createdEvent._id, input: { imgEvento } }, token: null })
+            }
+          } catch (e) {
+            console.warn("[CrearEvento] la portada no se pudo subir; se usará la imagen por defecto:", (e as any)?.message ?? e)
+            imgEvento = undefined
+            toast("warning", t("No se pudo subir la foto; se usó la imagen por defecto.", { defaultValue: "No se pudo subir la foto; se usó la imagen por defecto." }))
+          }
         }
         const eventWithImg = { ...createdEvent, imgEvento }
         setEventsGroup({ type: "ADD_EVENT", payload: eventWithImg });
