@@ -22,8 +22,8 @@ const parseISO = (s: any): { y: number; m: number; d: number } | null => {
 };
 const eq = (a: any, b: { y: number; m: number; d: number }) => !!a && a.y === b.y && a.m === b.m && a.d === b.d;
 
-const navBtn: any = { width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", border: "1px solid #ececef", color: "#6b6b72", cursor: "pointer" };
-const footBtn: any = { background: "none", border: "none", cursor: "pointer", font: "600 12px Poppins", color: "#EF5B94", padding: "4px 6px" };
+const navBtn: any = { width: 25, height: 25, borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", background: "#fff", border: "1px solid #ececef", color: "#6b6b72", cursor: "pointer" };
+const footBtn: any = { background: "none", border: "none", cursor: "pointer", font: "600 11.5px Poppins", color: "#EF5B94", padding: "3px 5px" };
 
 interface Props { name: string; label?: string; }
 
@@ -64,10 +64,10 @@ const StudioDateField: FC<Props> = ({ name, label }) => {
   const cal = open && mounted && pos ? createPortal(
     <>
       <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 10000 }} />
-      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 10001, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 20px 50px rgba(0,0,0,.18)", padding: "14px 16px 12px", width: 300, maxWidth: "94vw", fontFamily: "'Poppins',sans-serif" }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 10001, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, boxShadow: "0 18px 44px rgba(0,0,0,.16)", padding: "11px 12px 9px", width: 258, maxWidth: "94vw", fontFamily: "'Poppins',sans-serif" }}>
         {/* Cabecera mes + navegación */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-          <div style={{ font: "700 14px Poppins", color: "#3A3A42", textTransform: "capitalize" }}>{MESES[view.m]} {view.y}</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}>
+          <div style={{ font: "700 12.5px Poppins", color: "#3A3A42", textTransform: "capitalize" }}>{MESES[view.m]} {view.y}</div>
           <div style={{ display: "flex", gap: 6 }}>
             <button type="button" title={t("Mes anterior", { defaultValue: "Mes anterior" }) as string} onClick={() => setView((v) => v.m === 0 ? { y: v.y - 1, m: 11 } : { y: v.y, m: v.m - 1 })} style={navBtn}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg></button>
             <button type="button" title={t("Mes siguiente", { defaultValue: "Mes siguiente" }) as string} onClick={() => setView((v) => v.m === 11 ? { y: v.y + 1, m: 0 } : { y: v.y, m: v.m + 1 })} style={navBtn}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg></button>
@@ -75,7 +75,7 @@ const StudioDateField: FC<Props> = ({ name, label }) => {
         </div>
         {/* Días de la semana */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, marginBottom: 4 }}>
-          {DOW.map((d) => <div key={d} style={{ textAlign: "center", font: "600 10.5px Poppins", color: "#a0a0a8", padding: "2px 0" }}>{d}</div>)}
+          {DOW.map((d) => <div key={d} style={{ textAlign: "center", font: "600 9.5px Poppins", color: "#a0a0a8", padding: "1px 0" }}>{d}</div>)}
         </div>
         {/* Rejilla de días */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2 }}>
@@ -86,8 +86,8 @@ const StudioDateField: FC<Props> = ({ name, label }) => {
             const isToday = eq(today, cur);
             return (
               <button type="button" key={i} onClick={() => pick(d)} className="sdf-day" style={{
-                height: 34, borderRadius: 9, border: "none", cursor: "pointer",
-                font: isSel ? "700 12.5px Poppins" : "500 12.5px Poppins",
+                height: 29, borderRadius: 8, border: "none", cursor: "pointer",
+                font: isSel ? "700 11.5px Poppins" : "500 11.5px Poppins",
                 background: isSel ? "#EF5B94" : "transparent",
                 color: isSel ? "#fff" : inMonth ? "#3A3A42" : "#c9c9cf",
                 boxShadow: isToday && !isSel ? "inset 0 0 0 1.5px #F5A8C7" : "none",
