@@ -179,9 +179,12 @@ const Container = (props) => {
           </div>
         )}
 
+        {/* Scroll invisible (rueda/táctil/teclado siguen funcionando) en Mis eventos "/". */}
+        <style dangerouslySetInnerHTML={{ __html: `.app-scroll-hide{scrollbar-width:none;-ms-overflow-style:none;} .app-scroll-hide::-webkit-scrollbar{width:0;height:0;display:none;}` }} />
+
         {/* Columna de resultados/app (banner "Organiza tus eventos", tarjetas, etc.): siempre a la derecha del Copilot */}
         <div
-          className="min-w-0 overflow-auto overflow-y-scroll transition-all duration-300 relative z-[45] flex flex-col"
+          className={`min-w-0 overflow-auto overflow-y-scroll transition-all duration-300 relative z-[45] flex flex-col ${pathname === "/" ? "app-scroll-hide" : ""}`}
           style={{ isolation: "isolate" }}
         >
           {/* Barra de filtro global: visible cuando el Copilot aplicó un filtro (mesa X, tarea X, etc.) */}
