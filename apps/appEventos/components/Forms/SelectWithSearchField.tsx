@@ -11,9 +11,10 @@ interface propsSelectField extends HtmlHTMLAttributes<HTMLSelectElement> {
     colSpan?: number
     labelClass?: boolean
     nullable?: boolean
+    formatLabel?: (v: string) => string  // transforma SOLO el texto mostrado (el valor guardado no cambia)
 
 }
-const SelectWithSearchField: FC<propsSelectField> = ({ label, children, options, colSpan, labelClass = true, nullable, ...props }) => {
+const SelectWithSearchField: FC<propsSelectField> = ({ label, children, options, colSpan, labelClass = true, nullable, formatLabel, ...props }) => {
     const { t } = useTranslation();
     const { invitadoCero, event } = EventContextProvider();
     const [field, meta, { setValue }] = useField({ name: props.name })
@@ -36,7 +37,7 @@ const SelectWithSearchField: FC<propsSelectField> = ({ label, children, options,
     // Sincronizar inputValue con el valor del campo
     useEffect(() => {
         if (typeof field.value === "string") {
-            setInputValue(field.value)
+            setInputValue(formatLabel ? formatLabel(field.value) : field.value)
         } else if (field.value && typeof field.value === "object" && 'title' in field.value) {
             setInputValue(field.value.title)
         } else if (field.value === null || field.value === undefined) {
@@ -94,7 +95,7 @@ const SelectWithSearchField: FC<propsSelectField> = ({ label, children, options,
     const handleOptionSelect = (option: string | { _id: string, title: string }) => {
         if (typeof option === "string") {
             setValue(option)
-            setInputValue(option)
+            setInputValue(formatLabel ? formatLabel(option) : option)
         } else {
             setValue(option)
             setInputValue(option.title)
@@ -195,7 +196,7 @@ const SelectWithSearchField: FC<propsSelectField> = ({ label, children, options,
     useEffect(() => {
         if (isOpen) return
         if (typeof field.value === "string") {
-            setInputValue(field.value)
+            setInputValue(formatLabel ? formatLabel(field.value) : field.value)
             return
         }
         if (field.value && typeof field.value === "object" && 'title' in field.value) {
@@ -258,7 +259,7 @@ const SelectWithSearchField: FC<propsSelectField> = ({ label, children, options,
                                         onClick={() => handleOptionSelect(option)}
                                         onMouseEnter={() => handleOptionHover(idx)}
                                     >
-                                        {displayValue}
+                                        {formatLabel && typeof option === "string" ? formatLabel(String(value)) : displayValue}
                                     </div>
                                 )
                             })

@@ -20,6 +20,12 @@ const COMMON_CC = new Set([
   "CO", "PE", "EC", "VE", "BO", "CL", "AR", "PY", "UY", "BR",
 ]);
 
+// Nombre del país en español (Intl.DisplayNames); fallback al nombre inglés del JSON.
+let _esRegion: Intl.DisplayNames | null = null;
+const esCountryName = (code: string, fallback: string) => {
+  try { if (!_esRegion) _esRegion = new Intl.DisplayNames(["es"], { type: "region" }); return _esRegion.of(code) || fallback; } catch { return fallback; }
+};
+
 const DropdownCountries = memo(({ label, studio, ...props }: { label?: string; studio?: boolean;[key: string]: any }) => {
   const Countries = useMemo(() => DataCountries as Country[], []);
   const baseList = useMemo(() => studio ? Countries.filter((c) => COMMON_CC.has(c.alpha2Code)) : Countries, [Countries, studio]);
@@ -39,7 +45,7 @@ const DropdownCountries = memo(({ label, studio, ...props }: { label?: string; s
       return;
     }
     const match = Countries.find(
-      (item) => item.name.toLowerCase() === field.value.toLowerCase()
+      (item) => item.name.toLowerCase() === field.value.toLowerCase() || esCountryName(item.alpha2Code, item.name).toLowerCase() === field.value.toLowerCase()
     );
     setImage(match ? flagUrl(match.alpha2Code) : "");
   }, [field.value, Countries]);
@@ -104,8 +110,9 @@ const DropdownCountries = memo(({ label, studio, ...props }: { label?: string; s
                 setShow(true);
                 setValue(e.target.value);
                 setCiudades(
-                  baseList.filter(({ name }) =>
-                    name.toLowerCase().includes(e.target.value.toLowerCase())
+                  baseList.filter((c) =>
+                    esCountryName(c.alpha2Code, c.name).toLowerCase().includes(e.target.value.toLowerCase()) ||
+                    c.name.toLowerCase().includes(e.target.value.toLowerCase())
                   )
                 );
               }}
@@ -133,11 +140,11 @@ const DropdownCountries = memo(({ label, studio, ...props }: { label?: string; s
                 className="flex items-center justify-between gap-2 text-sm px-4 py-2 hover:bg-gray-100 cursor-pointer transition"
                 onClick={() => {
                   userTouchedRef.current = true;
-                  setValue(c.name);
+                  setValue(esCountryName(c.alpha2Code, c.name));
                   setShow(false);
                 }}
               >
-                <span>{c.name}</span>
+                <span>{esCountryName(c.alpha2Code, c.name)}</span>
                 <img
                   src={flagUrl(c.alpha2Code)}
                   alt=""

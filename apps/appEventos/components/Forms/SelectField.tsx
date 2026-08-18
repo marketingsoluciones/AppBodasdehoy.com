@@ -54,7 +54,7 @@ const SelectField: FC<propsSelectField> = ({ label, children, options, colSpan, 
                                     : (rawValue && `${!String(rawValue).match("(nombre)") ? rawValue : String(rawValue).replace("(nombre)", (invitadoCero ? invitadoCero : event?.grupos_array?.[0]))}`))
                                 : (option?.title ?? value)
                             return (
-                                <option key={idx} label={label} value={value}>{display}</option>
+                                <option key={idx} label={typeof option === "string" && capitalizeLabels ? display : label} value={value}>{display}</option>
                             )
                         })}
                     </select>

@@ -206,6 +206,13 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
         createdEvent.invitados_array = normalizeInvitados((createdEvent as any).invitados)
         createdEvent.menus_array = normalizeMenus((createdEvent as any).menus)
         const imgEvento = await subir_archivo({ imagePreviewUrl, event: createdEvent, use: "imgEvento" })
+        // Persistir la portada subida en el evento (BD): subir_archivo SOLO sube el fichero a R2, no lo
+        // asocia al evento. Sin esto, al CREAR con foto la imagen se veía local pero se PERDÍA al recargar
+        // (mismo fix que ya existe en el flujo de editar). Si no se subió foto, imgEvento=undefined → default.
+        if (imgEvento && createdEvent?._id) {
+          try { await fetchApiBodas({ query: queries.eventUpdate, variables: { idEvento: createdEvent._id, input: { imgEvento } }, token: null }) }
+          catch (e) { console.warn("[CrearEvento] no se pudo asociar la portada al evento:", (e as any)?.message ?? e) }
+        }
         const eventWithImg = { ...createdEvent, imgEvento }
         setEventsGroup({ type: "ADD_EVENT", payload: eventWithImg });
         if (user?.displayName === 'guest') {
@@ -384,7 +391,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
               <div><SelectField name="tipo" label={t("eventtype")} options={ListaTipo} nullable={true} capitalizeLabels /></div>
               <div className="ce-fila2">
                 <div><InputField name="fecha" label={t("eventdate")} type="date" /></div>
-                <div><SelectWithSearchField name="timeZone" label={t("timeZone")} options={["Europe/Madrid", "Atlantic/Canary", "Europe/Lisbon", "Europe/London", "Europe/Paris", "Europe/Andorra", "Europe/Rome", "Europe/Berlin", "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "America/Mexico_City", "America/Tijuana", "America/Guatemala", "America/El_Salvador", "America/Tegucigalpa", "America/Managua", "America/Costa_Rica", "America/Panama", "America/Havana", "America/Santo_Domingo", "America/Puerto_Rico", "America/Bogota", "America/Lima", "America/Guayaquil", "America/Caracas", "America/La_Paz", "America/Santiago", "America/Argentina/Buenos_Aires", "America/Asuncion", "America/Montevideo"]} nullable={true} /></div>
+                <div><SelectWithSearchField name="timeZone" label={t("timeZone")} options={["Europe/Madrid", "Atlantic/Canary", "Europe/Lisbon", "Europe/London", "Europe/Paris", "Europe/Andorra", "Europe/Rome", "Europe/Berlin", "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "America/Mexico_City", "America/Tijuana", "America/Guatemala", "America/El_Salvador", "America/Tegucigalpa", "America/Managua", "America/Costa_Rica", "America/Panama", "America/Havana", "America/Santo_Domingo", "America/Puerto_Rico", "America/Bogota", "America/Lima", "America/Guayaquil", "America/Caracas", "America/La_Paz", "America/Santiago", "America/Argentina/Buenos_Aires", "America/Asuncion", "America/Montevideo"]} nullable={true} formatLabel={(tz) => { const p = String(tz).split("/"); return p[p.length - 1].replace(/_/g, " "); }} /></div>
               </div>
               <div>
                 <label className="ce-label">{t("Foto del evento")}</label>
