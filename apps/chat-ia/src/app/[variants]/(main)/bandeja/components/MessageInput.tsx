@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { useMessages } from '../hooks/useMessages';
 import { useSendMessage } from '../hooks/useSendMessage';
-import { approveDraft, useDraftSync, type ServerDraft } from '../hooks/useDraftSync';
+import { approveDraft, generateDraft, useDraftSync, type ServerDraft } from '../hooks/useDraftSync';
 import { useConversations } from '../hooks/useConversations';
 import {
   isWhatsAppWindowExpired,
@@ -234,6 +234,8 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
   const [emojiSearch, setEmojiSearch] = useState('');
   const [recentEmojis, setRecentEmojis] = useState<string[]>([]);
   const [iaDraft, setIaDraft] = useState<ServerDraft | null>(null);
+  // FASE 4 Copilot (18-ago): estado del disparador manual "Sugerir respuesta".
+  const [generating, setGenerating] = useState(false);
   // Fix 15-jul: HSM template pendiente de envío. Cuando el user selecciona una
   // template del picker, guardamos (name+lang+params) para que el próximo send
   // vaya via /api/whatsapp/messages/template en vez de /messages/send (Meta
@@ -386,6 +388,21 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
   const handleDiscardIaDraft = () => {
     setIaDraft(null);
     void clearDraft();
+  };
+
+  // FASE 4 Copilot (18-ago): dispara la generación de un borrador IA a demanda
+  // (api-ia POST /draft/generate, consciente del evento). El resultado se muestra
+  // en el MISMO panel "Borrador del asistente" que ya existe (setIaDraft). Best-effort:
+  // si falla, no bloquea el compositor (el humano escribe a mano). 0 fallback.
+  const handleGenerateDraft = async () => {
+    if (generating || !conversationId) return;
+    setGenerating(true);
+    try {
+      const draft = await generateDraft(conversationId);
+      if (draft) setIaDraft(draft);
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -562,6 +579,22 @@ export function MessageInput({ channel, conversationId, jidType, readOnly, requi
           <span className="text-[11px] font-medium text-amber-700">
             Visible solo para tu equipo
           </span>
+        )}
+        {/* FASE 4 Copilot (18-ago): disparador manual de borrador IA. Solo en modo
+            respuesta, cuando no hay ya un borrador pendiente y el canal admite respuesta.
+            El resultado cae en el panel "Borrador del asistente" existente (arriba). */}
+        {mode === 'reply' && !iaDraft && !isOneWayChannel && (
+          <button
+            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors disabled:opacity-60"
+            disabled={generating}
+            onClick={handleGenerateDraft}
+            style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
+            title="Genera una respuesta sugerida por IA (usa el evento del cliente)"
+            type="button"
+          >
+            <span aria-hidden="true">{generating ? '⏳' : '✨'}</span>
+            {generating ? 'Generando…' : 'Sugerir respuesta'}
+          </button>
         )}
       </div>
       <div className="flex items-end gap-2">

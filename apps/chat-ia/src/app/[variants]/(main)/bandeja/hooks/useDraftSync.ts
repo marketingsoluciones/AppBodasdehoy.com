@@ -96,6 +96,33 @@ export async function approveDraft(conversationId: string): Promise<boolean> {
   }
 }
 
+/**
+ * FASE 4 Copilot (18-ago): genera una respuesta IA sugerida para la conversación.
+ * Endpoint cableado por api-ia (07-ago, "os pido cablear un botón Sugerir respuesta"):
+ *   POST /api/messages/conversations/{id}/draft/generate
+ *   → 200 { success, draft: { text, iaGenerated:true, iaModel } }
+ * Es CONSCIENTE DEL EVENTO (usa el teléfono del cliente para resolver su evento).
+ * Aditivo y best-effort (nunca 500). Devuelve el draft o null (sin lanzar).
+ */
+export async function generateDraft(
+  conversationId: string,
+  opts?: { instructions?: string; provider?: string },
+): Promise<ServerDraft | null> {
+  try {
+    const res = await fetch(
+      `/api/messages/conversations/${encodeURIComponent(conversationId)}/draft/generate`,
+      { body: JSON.stringify(opts ?? {}), headers: buildHeaders(), method: 'POST' },
+    );
+    if (!res.ok) return null;
+    const json = await res.json();
+    const draft = json?.draft ?? json;
+    if (draft && typeof draft.text === 'string') return draft as ServerDraft;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function useDraftSync({ conversationId, text, disabled = false, onRemoteDraft }: UseDraftSyncOpts) {
   const lastSentTextRef = useRef<string>('');
   const initialLoadDoneRef = useRef<string>(''); // tracks conversationId loaded
