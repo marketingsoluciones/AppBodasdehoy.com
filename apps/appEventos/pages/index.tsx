@@ -239,6 +239,16 @@ const Home: NextPage = () => {
         )
       }
       if (router.pathname === "/") {
+        // bodasdehoy: la entrada es invitado + nudge (NUNCA la landing de marketing).
+        // El verificador crea el guest; aquí solo evitamos el flash de LandingVisitante
+        // por si en algún borde queda user=null tras verificar.
+        if (["bodasdehoy"].includes(config?.development)) {
+          return (
+            <div className="flex items-center justify-center h-screen w-full bg-white">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+            </div>
+          );
+        }
         return <LandingVisitante />;
       }
       return <VistaSinCookie />;

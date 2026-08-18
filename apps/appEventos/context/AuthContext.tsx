@@ -896,6 +896,7 @@ const AuthProvider = ({ children }) => {
         // ("Sesión inválida o expirada"). getCurrentUser pasa por context.ts dual-accept (NEW→OLD).
         // Decisión BACKEND-api-mcp 2026-05-24: no compat legacy, migración en front.
         // Ver SEGUIMIENTO-BUG-API-MCP-STATUS.md.
+        let sessionResolved = false
         try {
           const currentUser = await fetchApiBodas({
             query: queries.getCurrentUser,
@@ -930,11 +931,24 @@ const AuthProvider = ({ children }) => {
             }
             setUser(merged)
             moreInfo(merged)
+            sessionResolved = true
           } else {
             console.warn('[Auth] getCurrentUser no devolvió usuario — sesión inválida')
           }
         } catch (err) {
           console.error('[Auth] Validación getCurrentUser falló:', err)
+        }
+        // Sesión residual inválida/expirada: en bodasdehoy la entrada es invitado + nudge (NUNCA la landing).
+        // Sin esto, quedábamos con user=null y verificationDone=true → pages/index mostraba LandingVisitante.
+        if (!sessionResolved && ["bodasdehoy"].includes(config?.development) && !user?.uid) {
+          console.log('[Verificator] Sesión residual sin validar → creando usuario guest (bodasdehoy)')
+          const cookieContent = safeJsonParse<{ guestUid?: string }>(Cookies.get(config?.cookieGuest), {})
+          let guestUid = cookieContent?.guestUid
+          if (!guestUid) {
+            guestUid = nanoid(28)
+            Cookies.set(resolveCookieName(config?.cookieGuest, 'guestbodas'), JSON.stringify({ guestUid }), { domain: safeCookieDomain(config?.domain), expires: new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000) })
+          }
+          setUser({ uid: guestUid, displayName: 'guest' })
         }
         setVerificationDone(true)
       }
@@ -1019,8 +1033,8 @@ const AuthProvider = ({ children }) => {
       }
 
       // IMPORTANTE: Solo crear guest si NO hay usuario autenticado en Firebase
-      if (["bodasdehoy"].includes(config?.development) && !sessionCookie && !user?.uid) {
-        console.log("[Verificator] Creando usuario guest (no hay sessionCookie ni usuario Firebase)")
+      if (["bodasdehoy"].includes(config?.development) && !sessionUidFromCookie && !user?.uid) {
+        console.log("[Verificator] Creando usuario guest (sin sesión válida ni usuario Firebase)")
         const cookieContent = safeJsonParse<{ guestUid?: string }>(Cookies.get(config?.cookieGuest), {})
         let guestUid = cookieContent?.guestUid
         if (!guestUid) {
