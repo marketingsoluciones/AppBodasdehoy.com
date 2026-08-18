@@ -265,30 +265,36 @@ const Home: NextPage = () => {
           </ModalLeft>
         )}
 
-        {/* Modal de conversión para guests — aparece tras crear el primer evento */}
+        {/* Modal de conversión para guests — aparece tras crear el primer evento (fiel a modaleventolisto.html) */}
         {showGuestRegisterModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
-            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 flex flex-col items-center gap-4 text-center">
-              <div className="text-4xl">🎉</div>
-              <h2 className="font-display text-xl font-semibold text-gray-800">
-                ¡Tu evento está listo!
-              </h2>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Has creado tu evento. <strong>Regístrate gratis</strong> para guardarlo de forma permanente, gestionar invitados, presupuesto e itinerario, y usar el asistente IA.
-              </p>
-              <div className="flex flex-col gap-2 w-full mt-2">
-                <a
-                  href={config?.pathLogin ? `${config.pathLogin}?q=register` : '/login?q=register'}
-                  className="w-full py-3 rounded-full bg-primary text-white font-medium text-sm hover:opacity-80 transition text-center"
-                >
-                  Crear cuenta gratis
-                </a>
-                <button
-                  onClick={() => setShowGuestRegisterModal(false)}
-                  className="w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition"
-                >
-                  Continuar como invitado (perderás los datos al cerrar)
-                </button>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center" style={{ background: 'rgba(40,40,46,.45)', padding: 24, fontFamily: "'Poppins',sans-serif" }}>
+            <style dangerouslySetInnerHTML={{ __html: "@keyframes gpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}.gcta:hover{background:#D83E7C!important;}.ginv:hover{color:#3A3A42!important;}" }} />
+            <div style={{ width: 440, maxWidth: '94vw', background: '#fff', borderRadius: 22, boxShadow: '0 30px 80px rgba(0,0,0,.35)', overflow: 'hidden', padding: '30px 30px 26px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Cabecera */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 4 }}>
+                <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#FCE7F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF5B94', animation: 'gpop .45s ease', marginBottom: 10 }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M5.8 11.3L2 22l10.7-3.8" /><path d="M4 3h.01M22 8h.01M15 2h.01M22 20h.01" /><path d="M22 2l-2.2.7a2 2 0 0 0-1.4 2.1c.2 1.2-.8 2.2-2 2L14 6.5" /><path d="M6 12.5c1.5 1 3 2.5 4 4" /></svg>
+                </div>
+                <div style={{ font: '700 19px Poppins', color: '#3A3A42' }}>¡Tu evento está listo!</div>
+                {(eventsGroup?.[eventsGroup.length - 1]?.nombre) && <div style={{ font: '500 12.5px Poppins', color: '#D83E7C' }}>{eventsGroup[eventsGroup.length - 1].nombre}</div>}
+              </div>
+              {/* Intro */}
+              <div style={{ font: '400 12.5px/1.6 Poppins', color: '#6b6b72', textAlign: 'center' }}>Crea tu cuenta gratis para guardarlo y gestionarlo todo:</div>
+              {/* Beneficios */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+                {['Tu evento guardado de forma permanente', 'Invitados, mesas, presupuesto e itinerario', 'Copilot, tu asistente IA para planificar'].map((b, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#E2F6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1F8A5F" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 6" /></svg></span>
+                    <span style={{ font: '500 12.5px Poppins', color: '#3A3A42' }}>{b}</span>
+                  </div>
+                ))}
+              </div>
+              {/* CTA */}
+              <a href={config?.pathLogin ? `${config.pathLogin}?q=register` : '/login?q=register'} className="gcta" style={{ width: '100%', padding: 14, borderRadius: 12, background: '#EF5B94', color: '#fff', font: '600 14px Poppins', border: 'none', cursor: 'pointer', boxShadow: '0 6px 16px rgba(239,91,148,.3)', textAlign: 'center', textDecoration: 'none', display: 'block' }}>Crear cuenta gratis</a>
+              {/* Secundario */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
+                <button onClick={() => setShowGuestRegisterModal(false)} className="ginv" style={{ font: '600 12.5px Poppins', color: '#6b6b72', cursor: 'pointer', padding: '4px 8px', background: 'none', border: 'none' }}>Continuar como invitado</button>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5, font: '400 11px Poppins', color: '#8F6E14' }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3L2 20h20L12 3z" /><path d="M12 10v4M12 17.5v.1" /></svg>Perderás los datos al cerrar la sesión</span>
               </div>
             </div>
           </div>
