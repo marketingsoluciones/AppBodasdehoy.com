@@ -4,6 +4,7 @@ import { fetchApiBodas, fetchApiEventos, getApiErrorMessage, queries } from "../
 import { AuthContextProvider, EventsGroupContextProvider, EventContextProvider } from "../../context";
 import InputField from "./InputField";
 import SelectField from "./SelectField";
+import StudioDateField from "./StudioDateField";
 import DropdownCountries from "../Utils/DropdownCountries";
 import { useToast } from "../../hooks/useToast";
 import * as yup from "yup";
@@ -399,7 +400,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
               <div><InputField name="nombre" label={t("nameevent")} /></div>
               <div><SelectField name="tipo" label={t("eventtype")} options={ListaTipo} nullable={true} capitalizeLabels /></div>
               <div className="ce-fila2">
-                <div><InputField name="fecha" label={t("eventdate")} type="date" /></div>
+                <div><StudioDateField name="fecha" label={t("eventdate")} /></div>
                 <div><SelectWithSearchField name="timeZone" label={t("timeZone")} options={["Europe/Madrid", "Atlantic/Canary", "Europe/Lisbon", "Europe/London", "Europe/Paris", "Europe/Andorra", "Europe/Rome", "Europe/Berlin", "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles", "America/Mexico_City", "America/Tijuana", "America/Guatemala", "America/El_Salvador", "America/Tegucigalpa", "America/Managua", "America/Costa_Rica", "America/Panama", "America/Havana", "America/Santo_Domingo", "America/Puerto_Rico", "America/Bogota", "America/Lima", "America/Guayaquil", "America/Caracas", "America/La_Paz", "America/Santiago", "America/Argentina/Buenos_Aires", "America/Asuncion", "America/Montevideo"]} nullable={true} formatLabel={(tz) => { const p = String(tz).split("/"); return p[p.length - 1].replace(/_/g, " "); }} /></div>
               </div>
               <div>
