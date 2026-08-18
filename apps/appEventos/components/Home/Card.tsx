@@ -8,6 +8,7 @@ import { fetchApiBodas, fetchApiEventos, queries, getApiErrorMessage } from "../
 import { useToast } from '../../hooks/useToast'
 import { IoShareSocial } from "react-icons/io5";
 import { ModalAddUserToEvent, UsuariosCompartidos } from "../Utils/Compartir"
+import { ModalConfirmEvento, ModalCompartirEvento } from "./EventCardModalsStudio"
 import { useTranslation } from "react-i18next";
 import { FaRegFolderOpen } from "react-icons/fa6";
 import { MdDelete } from "react-icons/md";
@@ -143,6 +144,7 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
   const studio = searchParams?.get("studio") !== "legacy";
   const [openMenu, setOpenMenu] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const [mountedPortal, setMountedPortal] = useState(false);
   useEffect(() => setMountedPortal(true), []);
 
@@ -164,85 +166,45 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
       });
   };
 
-  // Compartir (abre modal de usuarios compartidos, solo dueño)
+  // Compartir: abre el modal studio de compartir (solo dueño).
   const compartirEvento = () => {
     if (user?.displayName === "guest") return;
-    setTimeout(() => {
-      handleClickCard({ t, final: false, config, data: data[idx], setEvent, user, setUser, router, toast } as any)
-        .then((resp) => { if (resp) toast("warning", resp); })
-        .catch((error) => { console.error("Error en handleClickCard:", error); });
-    }, 100);
-    setOpenModal(!openModal);
+    setOpenModal(true);
   };
 
-  const handleArchivarEvent = () => {
-    /* setActionModals(!actionModals) */
-    if (true) {
-      // BUG-13 (informes QA 21-jun y batería post-commit): archivar era inmediato
-      // sin confirmación. En la primera tanda comparé con === "pendiente" estricto,
-      // pero el QA verificó que el dialog NO aparecía. Causa: si grupoStatus llega
-      // como "PENDIENTE" (uppercase del enum api-mcp), undefined, null o el flujo
-      // entra desde otro path, mi check fallaba y archivaba sin confirmar.
-      // Fix: confirmar SIEMPRE al ARCHIVAR (toBe→"archivado"). Desarchivar sigue
-      // siendo seguro (no requiere confirmación) — solo se evita el typo.
-      const willArchivar = String(grupoStatus ?? "").toLowerCase() !== "archivado"
-      if (willArchivar) {
-        const nombre = data[idx]?.nombre ?? "este evento"
-        // BUG-13 (informe QA 22-jun): window.confirm bloquea el renderer en CDP/
-        // automated testing (~30s timeout). Solución: detectar webdriver/headless
-        // y saltarse la confirmación en esos casos (UX humana sigue intacta).
-        const isAutomated = typeof navigator !== "undefined" &&
-          ((navigator as any).webdriver === true || /HeadlessChrome|Puppeteer|Playwright/.test(navigator.userAgent))
-        const ok = isAutomated
-          ? true
-          : typeof window !== "undefined"
-            ? window.confirm(`¿Archivar "${nombre}"?\n\nEl evento se moverá a Archivados. Podrás recuperarlo en cualquier momento.`)
-            : true
-        if (!ok) return
+  // Ejecuta el toggle archivar/desarchivar en backend (sin confirmación).
+  const doArchiveToggle = () => {
+    try {
+      const value = String(grupoStatus ?? "").toLowerCase() === "archivado" ? "pendiente" : "archivado"
+      // estatus es enum EventoStatus (PENDIENTE/ARCHIVADO uppercase) en api-mcp; el front usa
+      // lowercase ("archivado"/"pendiente"). Migrar rompería el enum + consistencia con apiapp.
+      const result = fetchApiEventos({
+        query: queries.eventUpdate,
+        variables: { idEvento: data[idx]?._id, input: { estatus: value } },
+        token: null
+      })
+      if (!result || (result as any).errors) {
+        throw new Error("Ha ocurrido un error")
       }
-      try {
-        const value = String(grupoStatus ?? "").toLowerCase() === "archivado" ? "pendiente" : "archivado"
-        // estatus es enum EventoStatus (PENDIENTE/ARCHIVADO uppercase) en api-mcp; el front usa
-        // lowercase ("archivado"/"pendiente"). Migrar rompería el enum + consistencia con apiapp.
-        // Se mantiene en apiapp hasta que BACKEND alinee el enum. Ver hilo coordinación.
-        const result = fetchApiEventos({
-          query: queries.eventUpdate,
-          variables: { idEvento: data[idx]?._id, input: { estatus: value } },
-          token: null
-        })
-        if (!result || (result as any).errors) {
-          throw new Error("Ha ocurrido un error")
-        }
-        setEventsGroup({
-          type: "EDIT_EVENT",
-          payload: {
-            _id: data[idx]?._id,
-            estatus: value
-          }
-        })
-
-        /* if (grupoStatus === "archivado") {
-          setEvent(data[idx])
-          setTimeout(() => {
-            setIdxGroupEvent({ idx: 0, isActiveStateSwiper: 0, event_id: data[idx]?._id })
-          }, 50);
-          router.push("/resumen-evento");
-        } */
-
-        if (idxGroupEvent?.idx == idx && value === "archivado") {
-          const valir = (data?.length - idx) > 1
-          setTimeout(() => {
-            setEvent(data[valir ? idx + 1 : idx - 1]);
-            setIdxGroupEvent({ ...idxGroupEvent, idx: valir ? idx : idx - 1, event_id: data[idx]?._id })
-          }, 50);
-        }
-        toast("success", `${value == "archivado" ? `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha archivado` : `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha desarchivado`}`)
-      } catch (error) {
-        toast("error", "Ha ocurrido un error al archivar el evento")
+      setEventsGroup({ type: "EDIT_EVENT", payload: { _id: data[idx]?._id, estatus: value } })
+      if (idxGroupEvent?.idx == idx && value === "archivado") {
+        const valir = (data?.length - idx) > 1
+        setTimeout(() => {
+          setEvent(data[valir ? idx + 1 : idx - 1]);
+          setIdxGroupEvent({ ...idxGroupEvent, idx: valir ? idx : idx - 1, event_id: data[idx]?._id })
+        }, 50);
       }
-    } else {
-      setActionModals(!actionModals)
+      toast("success", `${value == "archivado" ? `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha archivado` : `El evento ${data[idx].tipo} de "${data[idx].nombre.toUpperCase()}" se ha desarchivado`}`)
+    } catch (error) {
+      toast("error", "Ha ocurrido un error al archivar el evento")
     }
+  }
+
+  // Menú "Archivar/Desarchivar": al ARCHIVAR se confirma con el modal studio; desarchivar es directo (reversible).
+  const handleArchivarEvent = () => {
+    const willArchivar = String(grupoStatus ?? "").toLowerCase() !== "archivado"
+    if (willArchivar) { setArchiveOpen(true); return }
+    doArchiveToggle()
   }
 
   const handleRemoveEvent = (grupoStatus) => {
@@ -301,22 +263,12 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
     const sharedArr = [...(ev?.detalles_compartidos_array ?? [])];
     const avLabel = sharedArr.length > 0 ? `+${sharedArr.length}` : String(ev?.detalles_usuario_id?.displayName || ev?.usuario_nombre || ev?.nombre || "?").charAt(0).toUpperCase();
 
-    // Modal de confirmación de borrado (portal a body → escapa el stacking del overlay/contenido).
-    const confirmModal = (confirmDelete && mountedPortal && typeof document !== "undefined") ? createPortal(
-      <div onClick={() => setConfirmDelete(false)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(43,43,48,.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: "'Poppins',sans-serif" }}>
-        <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 320, background: "#fff", borderRadius: 16, boxShadow: "0 30px 80px rgba(0,0,0,.3)", padding: "22px 22px 18px", textAlign: "center" }}>
-          <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#FBE4EF", display: "flex", alignItems: "center", justifyContent: "center", color: "#D83E7C", margin: "0 auto 12px" }}>
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m3 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7" /></svg>
-          </div>
-          <div style={{ font: "600 14.5px Poppins", color: "#3A3A42", marginBottom: 6 }}>{t("¿Borrar")} "{ev?.nombre}"?</div>
-          <div style={{ font: "400 12px/1.55 Poppins", color: "#8a8a90", marginBottom: 18 }}>{t("Es")} <b style={{ color: "#D83E7C", fontWeight: 600 }}>{t("definitivo")}</b> {t("y no se podrá recuperar.")}</div>
-          <div style={{ display: "flex", gap: 9, justifyContent: "center" }}>
-            <button onClick={() => setConfirmDelete(false)} style={{ flex: 1, padding: 10, borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12px Poppins", cursor: "pointer" }}>{t("Cancelar")}</button>
-            <button onClick={() => { setConfirmDelete(false); handleRemoveEvent(grupoStatus); }} style={{ flex: 1, padding: 10, borderRadius: 10, background: "#D83E7C", border: "none", color: "#fff", font: "600 12px Poppins", cursor: "pointer", boxShadow: "0 6px 16px rgba(216,62,124,.3)" }}>{t("Borrar")}</button>
-          </div>
-        </div>
-      </div>,
-      document.body
+    // Modales studio de la tarjeta (Borrar / Archivar) — reemplazan los confirm() nativos.
+    const confirmModal = confirmDelete ? (
+      <ModalConfirmEvento variant="borrar" nombre={ev?.nombre} onCancel={() => setConfirmDelete(false)} onConfirm={() => { setConfirmDelete(false); handleRemoveEvent(grupoStatus); }} />
+    ) : null;
+    const archiveModal = archiveOpen ? (
+      <ModalConfirmEvento variant="archivar" nombre={ev?.nombre} onCancel={() => setArchiveOpen(false)} onConfirm={() => { setArchiveOpen(false); doArchiveToggle(); }} />
     ) : null;
 
     if (mobile) {
@@ -328,7 +280,8 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
             </ModalLeft>}
           </div>
           {confirmModal}
-          <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={ev} />
+          {archiveModal}
+          {openModal && <ModalCompartirEvento event={ev} onClose={() => setOpenModal(false)} />}
           <div onClick={abrirEvento} style={{ borderRadius: 16, background: "#fff", border: seleccionado ? "1.5px solid #EF5B94" : "1px solid #f0f0f2", boxShadow: "0 4px 14px rgba(0,0,0,.05)", cursor: "pointer", fontFamily: "'Poppins',sans-serif" }}>
             <div style={{ position: "relative", height: 120, borderRadius: "15px 15px 0 0", overflow: "hidden", background: "#f2f2f4" }}>
               <img src={imgUrl} alt={ev?.nombre || "Evento"} onError={(e) => { (e.target as HTMLImageElement).src = defaultImagenes[ev?.tipo?.toLowerCase()] || defaultImagenes["otro"]; }} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -376,7 +329,8 @@ const Card = ({ data, grupoStatus, idx, onSelect, mobile }: any) => {
           </ModalLeft>}
         </div>
         {confirmModal}
-          <ModalAddUserToEvent openModal={openModal} setOpenModal={setOpenModal} event={ev} />
+        {archiveModal}
+        {openModal && <ModalCompartirEvento event={ev} onClose={() => setOpenModal(false)} />}
         <div className={`evc-card${seleccionado ? ' seleccionada' : ''}`} onClick={abrirEvento} title={t("Abrir resumen del evento")}
           style={{ zIndex: openMenu ? 30 : undefined }}>
           <div className="evc-foto">
