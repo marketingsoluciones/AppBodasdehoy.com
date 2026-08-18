@@ -310,9 +310,10 @@ const Home: NextPage = () => {
               </div>
               {/* CTA */}
               <a href={config?.pathLogin ? `${config.pathLogin}?q=register` : '/login?q=register'} className="gcta" style={{ width: '100%', padding: 12, borderRadius: 12, background: '#EF5B94', color: '#fff', font: '600 13.5px Poppins', border: 'none', cursor: 'pointer', boxShadow: '0 6px 16px rgba(239,91,148,.3)', textAlign: 'center', textDecoration: 'none', display: 'block' }}>Crear cuenta gratis</a>
-              {/* Secundario */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-                <button onClick={() => setShowGuestRegisterModal(false)} className="ginv" style={{ font: '600 12.5px Poppins', color: '#6b6b72', cursor: 'pointer', padding: '4px 8px', background: 'none', border: 'none' }}>Continuar como invitado</button>
+              {/* Secundario: iniciar sesión + seguir como invitado */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7 }}>
+                <div style={{ font: '500 12.5px Poppins', color: '#6b6b72' }}>¿Ya tienes cuenta? <a href={config?.pathLogin || '/login'} style={{ color: '#EF5B94', fontWeight: 600, textDecoration: 'none' }}>Inicia sesión</a></div>
+                <button onClick={() => setShowGuestRegisterModal(false)} className="ginv" style={{ font: '600 12.5px Poppins', color: '#6b6b72', cursor: 'pointer', padding: '4px 8px', background: 'none', border: 'none' }}>Seguir como invitado</button>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 5, font: '400 11px Poppins', color: '#8F6E14' }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3L2 20h20L12 3z" /><path d="M12 10v4M12 17.5v.1" /></svg>Perderás los datos al cerrar la sesión</span>
               </div>
             </div>
