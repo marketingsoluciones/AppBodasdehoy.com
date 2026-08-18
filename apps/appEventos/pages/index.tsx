@@ -268,7 +268,7 @@ const Home: NextPage = () => {
         {/* Modal de conversión para guests — aparece tras crear el primer evento (fiel a modaleventolisto.html).
             Portal a body: escapa ancestros con transform → el backdrop oscurece TODO (incl. header) y centra en el viewport real. */}
         {showGuestRegisterModal && typeof document !== "undefined" && createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center" style={{ background: 'rgba(40,40,46,.45)', padding: 24, fontFamily: "'Poppins',sans-serif" }}>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(40,40,46,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: "'Poppins',sans-serif" }}>
             <style dangerouslySetInnerHTML={{ __html: "@keyframes gpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}.gcta:hover{background:#D83E7C!important;}.ginv:hover{color:#3A3A42!important;}" }} />
             <div style={{ width: 372, maxWidth: '92vw', background: '#fff', borderRadius: 20, boxShadow: '0 26px 70px rgba(0,0,0,.32)', overflow: 'hidden', padding: '24px 26px 22px', display: 'flex', flexDirection: 'column', gap: 13 }}>
               {/* Cabecera */}
