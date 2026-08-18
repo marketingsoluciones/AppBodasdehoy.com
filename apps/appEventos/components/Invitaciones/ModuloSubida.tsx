@@ -25,10 +25,12 @@ export const subir_archivo = async ({ imagePreviewUrl, event, use }) => {
       ? (getDevelopmentNameFromHostname(window.location.hostname) || 'bodasdehoy')
       : 'bodasdehoy';
 
-    let idToken = Cookies.get("idTokenV0.1.0");
-    if (!idToken && getAuth().currentUser) {
-      idToken = await getAuth().currentUser?.getIdToken(true);
-    }
+    // Preferir un idToken FRESCO de Firebase (getIdToken auto-refresca si expiró); si no hay
+    // usuario Firebase (login vía SSO/cookie), caer a la cookie idTokenV0.1.0. Evita mandar un
+    // Bearer caducado → singleUpload 400 aunque la sesión de la app siga siendo válida.
+    let idToken: string | undefined;
+    try { if (getAuth().currentUser) idToken = await getAuth().currentUser?.getIdToken(); } catch { /* noop */ }
+    if (!idToken) idToken = Cookies.get("idTokenV0.1.0");
 
     const newFile = new FormData();
     const params = {
@@ -66,7 +68,9 @@ export const subir_archivo = async ({ imagePreviewUrl, event, use }) => {
         body: newFile,
       });
       if (!res.ok) {
-        const err: any = new Error(`singleUpload HTTP ${res.status}`);
+        let bodyTxt = "";
+        try { bodyTxt = (await res.text())?.slice(0, 300) || ""; } catch { /* noop */ }
+        const err: any = new Error(`singleUpload HTTP ${res.status}${bodyTxt ? ` — ${bodyTxt}` : ""}`);
         err.status = res.status;
         throw err;
       }
