@@ -669,9 +669,12 @@ const GridCards: FC<propsGridCards> = ({
       const result: dataTab[] = Object.entries(arrNuevo).map((eventos: any[]) => {
         const events = eventos[1]
         const eventsSort = events?.sort((a: any, b: any) => {
-          const aNew = a.fecha_creacion.length < 16 ? parseInt(a.fecha_creacion) : new Date(a.fecha_creacion).getTime()
-          const bNew = b.fecha_creacion.length < 16 ? parseInt(b.fecha_creacion) : new Date(b.fecha_creacion).getTime()
-          return bNew - aNew
+          // Defensivo: eventos locales de invitado (u otros) pueden no traer fecha_creacion → no romper.
+          const aFc = String(a?.fecha_creacion ?? "")
+          const bFc = String(b?.fecha_creacion ?? "")
+          const aNew = aFc.length < 16 ? parseInt(aFc) : new Date(aFc).getTime()
+          const bNew = bFc.length < 16 ? parseInt(bFc) : new Date(bFc).getTime()
+          return (bNew || 0) - (aNew || 0)
         })
         return ({
           status: eventos[0],

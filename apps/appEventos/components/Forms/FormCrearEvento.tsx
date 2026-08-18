@@ -186,6 +186,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
         const localEvent: any = {
           ...input,
           _id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          fecha_creacion: String(Date.now()), // requerido por la ordenación de Mis eventos (evita crash)
           estatus: "pendiente",
           invitados_array: [],
           menus_array: [],
