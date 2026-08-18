@@ -178,6 +178,32 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
         grupos_array: getDefaultGruposPorTipo(values.tipo),
       }
 
+      // OPCIÓN A (decisión UX owner): usuario INVITADO (fantasma) puede crear evento sin registrarse.
+      // NO llamamos al backend (rechaza "Usuario no autenticado"): creamos el evento LOCAL (ephemeral)
+      // → se ve en Mis eventos y salta el modal "regístrate para guardarlo" (index.tsx detecta el
+      // cambio de eventsGroup del guest). Al registrarse se persistirá. Sin error rojo.
+      if (user?.displayName === "guest") {
+        const localEvent: any = {
+          ...input,
+          _id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          estatus: "pendiente",
+          invitados_array: [],
+          menus_array: [],
+          detalles_compartidos_array: [],
+          compartido_array: [],
+          _local: true,
+        }
+        setEventsGroup({ type: "ADD_EVENT", payload: localEvent })
+        try {
+          const key = `guest_events_${user.uid}`
+          const existing = JSON.parse(localStorage.getItem(key) || "[]")
+          localStorage.setItem(key, JSON.stringify([...existing, localEvent]))
+        } catch { /* noop */ }
+        succeeded = true
+        toast("success", t("successfullycreatedevent"))
+        return
+      }
+
       const result = await fetchApiBodas({
         query: queries.eventCreate,
         variables: { input },
