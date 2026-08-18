@@ -1023,7 +1023,8 @@ const GridCards: FC<propsGridCards> = ({
                 return orderAndDirection.direction === "asc" ? dateA - dateB : dateB - dateA;
               }
               if (orderAndDirection.order === "nombre") {
-                return orderAndDirection.direction === "asc" ? a.nombre.localeCompare(b.nombre) : b.nombre.localeCompare(a.nombre);
+                const an = String(a?.nombre || ""); const bn = String(b?.nombre || "");
+                return orderAndDirection.direction === "asc" ? an.localeCompare(bn) : bn.localeCompare(an);
               }
               return 0;
             });

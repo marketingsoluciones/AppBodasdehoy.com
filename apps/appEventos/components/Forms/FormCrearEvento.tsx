@@ -188,10 +188,20 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
           _id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           fecha_creacion: String(Date.now()), // requerido por la ordenación de Mis eventos (evita crash)
           estatus: "pendiente",
+          // Defaults seguros: el invitado puede abrir Resumen de su evento local; sin estos campos
+          // ResumenStudio/tarjetas romperían al leer presupuesto/planSpace/itinerario/invitados.
           invitados_array: [],
           menus_array: [],
+          grupos_array: input.grupos_array || [],
           detalles_compartidos_array: [],
           compartido_array: [],
+          planSpace: [],
+          itinerarios_array: [],
+          presupuesto_objeto: {
+            presupuesto_total: 0, coste_estimado: 0, coste_final: 0, pagado: 0,
+            currency: "EUR", categorias_array: [], weddingPlannerIngresos: [],
+            totalStimatedGuests: { adults: 0, children: 0 },
+          },
           _local: true,
         }
         setEventsGroup({ type: "ADD_EVENT", payload: localEvent })
