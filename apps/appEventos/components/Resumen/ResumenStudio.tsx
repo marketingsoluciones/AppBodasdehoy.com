@@ -184,7 +184,7 @@ export const ResumenStudio: FC = () => {
   const dashBtn: React.CSSProperties = { alignSelf: "center", marginTop: "auto", height: 42, width: 160, padding: "0 18px", borderRadius: 11, background: "transparent", border: "1.5px dashed #F4A9C8", color: "#EF5B94", font: "600 12.5px Poppins", cursor: "pointer" };
 
   return (
-    <div style={{ background: "#ECECEE", minHeight: "100%", fontFamily: "'Poppins',sans-serif" }}>
+    <div style={{ background: "#F2F2F2", minHeight: "100%", fontFamily: "'Poppins',sans-serif" }}>
       <Head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
