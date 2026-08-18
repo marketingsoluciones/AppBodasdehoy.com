@@ -288,13 +288,13 @@ const Home: NextPage = () => {
         {showGuestRegisterModal && typeof document !== "undefined" && createPortal(
           <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(40,40,46,.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: "'Poppins',sans-serif" }}>
             <style dangerouslySetInnerHTML={{ __html: "@keyframes gpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}.gcta:hover{background:#D83E7C!important;}.ginv:hover{color:#3A3A42!important;}" }} />
-            <div style={{ width: 372, maxWidth: '92vw', background: '#fff', borderRadius: 20, boxShadow: '0 26px 70px rgba(0,0,0,.32)', overflow: 'hidden', padding: '24px 26px 22px', display: 'flex', flexDirection: 'column', gap: 13 }}>
+            <div style={{ width: 440, maxWidth: '94vw', background: '#fff', borderRadius: 22, boxShadow: '0 30px 80px rgba(0,0,0,.35)', overflow: 'hidden', padding: '30px 30px 26px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Cabecera */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 4 }}>
-                <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#FCE7F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF5B94', animation: 'gpop .45s ease', marginBottom: 6 }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M5.8 11.3L2 22l10.7-3.8" /><path d="M4 3h.01M22 8h.01M15 2h.01M22 20h.01" /><path d="M22 2l-2.2.7a2 2 0 0 0-1.4 2.1c.2 1.2-.8 2.2-2 2L14 6.5" /><path d="M6 12.5c1.5 1 3 2.5 4 4" /></svg>
+                <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#FCE7F0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF5B94', animation: 'gpop .45s ease', marginBottom: 10 }}>
+                  <svg width="26" height="26" viewBox="1.5 1.5 21 13.5" style={{ overflow: 'visible' }} fill="currentColor"><path d="M9 2C6.2 2 4 4.4 4 7.4c0 2.9 2 5.3 4.4 5.6l-.6 1.5h2.4L9.6 13C12 12.7 14 10.3 14 7.4 14 4.4 11.8 2 9 2z" /><path d="M16.5 5c-1.9 0-3.5 1.7-3.5 3.9 0 2 1.3 3.7 3 4l-.4 1.1h1.8L17 12.9c1.7-.3 3-2 3-4C20 6.7 18.4 5 16.5 5z" opacity=".55" /></svg>
                 </div>
-                <div style={{ font: '700 17px Poppins', color: '#3A3A42' }}>¡Tu evento está listo!</div>
+                <div style={{ font: '700 19px Poppins', color: '#3A3A42' }}>¡Tu evento está listo!</div>
                 {(eventsGroup?.[eventsGroup.length - 1]?.nombre) && <div style={{ font: '500 12.5px Poppins', color: '#D83E7C' }}>{eventsGroup[eventsGroup.length - 1].nombre}</div>}
               </div>
               {/* Intro */}
@@ -309,11 +309,12 @@ const Home: NextPage = () => {
                 ))}
               </div>
               {/* CTA */}
-              <a href={config?.pathLogin ? `${config.pathLogin}?q=register` : '/login?q=register'} className="gcta" style={{ width: '100%', padding: 12, borderRadius: 12, background: '#EF5B94', color: '#fff', font: '600 13.5px Poppins', border: 'none', cursor: 'pointer', boxShadow: '0 6px 16px rgba(239,91,148,.3)', textAlign: 'center', textDecoration: 'none', display: 'block' }}>Crear cuenta gratis</a>
-              {/* Secundario: iniciar sesión + seguir como invitado */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7 }}>
-                <div style={{ font: '500 12.5px Poppins', color: '#6b6b72' }}>¿Ya tienes cuenta? <a href={config?.pathLogin || '/login'} style={{ color: '#EF5B94', fontWeight: 600, textDecoration: 'none' }}>Inicia sesión</a></div>
-                <button onClick={() => setShowGuestRegisterModal(false)} className="ginv" style={{ font: '600 12.5px Poppins', color: '#6b6b72', cursor: 'pointer', padding: '4px 8px', background: 'none', border: 'none' }}>Seguir como invitado</button>
+              <a href={config?.pathLogin ? `${config.pathLogin}?q=register` : '/login?q=register'} className="gcta" style={{ width: '100%', padding: 14, borderRadius: 12, background: '#EF5B94', color: '#fff', font: '600 14px Poppins', border: 'none', cursor: 'pointer', boxShadow: '0 6px 16px rgba(239,91,148,.3)', textAlign: 'center', textDecoration: 'none', display: 'block' }}>Crear cuenta gratis</a>
+              {/* Login (línea suelta, centrada) */}
+              <div style={{ font: '500 12.5px Poppins', color: '#6b6b72', textAlign: 'center' }}>¿Ya tienes cuenta? <a href={config?.pathLogin || '/login'} style={{ color: '#EF5B94', fontWeight: 600, textDecoration: 'none' }}>Inicia sesión</a></div>
+              {/* Secundario: franja gris diferenciada (full-bleed a los bordes del card) */}
+              <div style={{ background: '#FAF9FB', borderTop: '1px solid #f0f0f2', margin: '0 -30px -26px', padding: '14px 30px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <button onClick={() => setShowGuestRegisterModal(false)} className="ginv" style={{ font: '600 12.5px Poppins', color: '#6b6b72', cursor: 'pointer', padding: '2px 8px', background: 'none', border: 'none' }}>Seguir como invitado</button>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 5, font: '400 11px Poppins', color: '#8F6E14' }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3L2 20h20L12 3z" /><path d="M12 10v4M12 17.5v.1" /></svg>Perderás los datos al cerrar la sesión</span>
               </div>
             </div>
