@@ -32,7 +32,7 @@ const Toast: FC<ToastType> = ({ message, id, type }) => {
   const colors = {
     success: "bg-[#2FB37E]", // verde guía UI
     error: "bg-red",
-    warning: "bg-yellow-700",
+    warning: "bg-[#6b6b72]", // gris guía UI (antes bg-yellow-700 marrón)
 
   }
   return (
