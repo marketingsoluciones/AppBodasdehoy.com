@@ -54,7 +54,6 @@ const DashboardStudio: FC<Props> = ({ categorias }) => {
     { label: t("Fondos disponibles"), val: data.disponible, sub: `${pctDisp}% ${t("del total")}`, tone: "#3A3A42", bg: "#faf9fb" },
     { label: t("Total utilizado"), val: data.utilizado, sub: `${t("En")} ${data.wpPagos.length} ${t("pagos")}`, tone: "#B4801F", bg: "#FBF0DA" },
     { label: t("Pagos directos"), val: data.totalDirectos, sub: `${data.directos.length} ${t("pagos")}`, tone: "#EF5B94", bg: "#FCE7F0" },
-    { label: t("Presupuesto total"), val: data.presupuestoTotal, sub: t("Todos los gastos"), tone: "#D83E7C", bg: "#FBE4EF" },
   ];
   const finStats = [
     { label: t("Presupuesto total"), val: data.presupuestoTotal, sub: t("Todos los gastos incluidos"), tone: "#3A3A42", bg: "#faf9fb" },
@@ -94,14 +93,13 @@ const DashboardStudio: FC<Props> = ({ categorias }) => {
     <div style={{ display: "flex", flexDirection: "column", gap: 16, fontFamily: "'Poppins',sans-serif" }}>
       <style dangerouslySetInnerHTML={{ __html: ".ds-in:focus{border-color:#EF5B94!important;}.ds-ghost:hover{border-color:#EF5B94!important;color:#EF5B94!important;}" }} />
 
-      {/* Cabecera */}
-      <div style={{ ...card, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "20px 22px", flexWrap: "wrap" }}>
+      {/* Cabecera (sin repetir el nombre del evento — ya está en el holder de la página) */}
+      <div style={{ ...card, display: "flex", alignItems: "center", gap: 16, padding: "20px 22px", flexWrap: "wrap" }}>
         <div><div style={{ font: "700 17px Poppins", color: "#3A3A42" }}>{t("Gestión financiera")}</div><div style={{ font: "500 12px Poppins", color: "#a0a0a8", marginTop: 2 }}>{t("Depósitos, pagos directos y pagos por Wedding Planner")}</div></div>
-        <div style={{ textAlign: "right" }}><div style={{ font: "700 11px Poppins", color: "#EF5B94", letterSpacing: 1 }}>{t("EVENTO")}</div><div style={{ font: "700 14px Poppins", color: "#3A3A42" }}>{event?.nombre}</div></div>
       </div>
 
-      {/* 5 KPI */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12 }}>
+      {/* 4 KPI (sin "Presupuesto total", redundante con el holder) */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
         {kpis.map((d, i) => (
           <div key={i} style={{ ...card, padding: 16 }}>
             <div style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "4px 11px", font: "700 9.5px Poppins", letterSpacing: ".4px", textTransform: "uppercase", background: d.bg, color: d.tone, whiteSpace: "nowrap" }}>{d.label}</div>

@@ -9,12 +9,11 @@ import { useAllowed } from "../../hooks/useAllowed";
 import { useToast } from "../../hooks/useToast";
 import ClickAwayListener from "react-click-away-listener";
 import BlockTitle from "../Utils/BlockTitle";
-import DetalleCategoriaStudio from "./DetalleCategoriaStudio";
-import PagosStudio from "./PagosStudio";
+import StudioNotesSection from "./StudioNotesSection";
 import PresupuestoDetalladoStudio from "./PresupuestoDetalladoStudio";
 import DashboardStudio from "./DashboardStudio";
 import ExportExcelPresupuesto from "./ExportExcelPresupuesto";
-import { DuplicatePresupuesto } from "./DuplicatePesupuesto";
+import ModalImportarStudio from "./ModalImportarStudio";
 
 interface Props {
   categorias: any[];
@@ -37,13 +36,14 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
   const [ncName, setNcName] = useState("");
   const [ncEst, setNcEst] = useState("");
   const [ncSaving, setNcSaving] = useState(false);
-  const [showDup, setShowDup] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [totOpen, setTotOpen] = useState(false);
   const [totDraft, setTotDraft] = useState("");
   const [showZero, setShowZero] = useState(false);
   const [curOpen, setCurOpen] = useState(false);
   const [donutOpen, setDonutOpen] = useState(false);
   const [confirmCat, setConfirmCat] = useState<any>(null);
+  const [focusCat, setFocusCat] = useState<string | null>(null); // categoría a enfocar al saltar Resumen→Gastos
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -95,11 +95,9 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
   const isOwner = event?.usuario_id === user?.uid;
 
   const tabs = [
-    { key: "resumen", label: t("budget") },
-    { key: "excelView", label: t("budgetdetails") },
-    { key: "pagos", label: t("Pagos") },
-    { key: "pendiente", label: t("pendingpayments") },
-    ...(isOwner ? [{ key: "dashboard", label: t("dashboard") }] : []),
+    { key: "resumen", label: t("Resumen", { defaultValue: "Resumen" }) },
+    { key: "excelView", label: t("Gastos", { defaultValue: "Gastos" }) },
+    ...(isOwner ? [{ key: "dashboard", label: t("Panel del planner", { defaultValue: "Panel del planner" }) }] : []),
   ];
 
   const saveTotal = async () => {
@@ -231,7 +229,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
     const stTitle = fin === 0 ? t("Sin gasto") : fin > est ? t("Excedido") : t("Dentro del estimado");
     const totCol = fin > est && fin > 0 ? "#D83E7C" : "#3A3A42";
     return (
-      <div key={c._id} className="ps-row" onClick={() => selectCat(c)} style={{ display: "grid", gridTemplateColumns: "minmax(120px,1fr) 76px 76px 18px 32px", gap: 8, alignItems: "center", padding: faded ? "9px 18px" : "12px 18px", borderBottom: "1px solid #f6f6f8", cursor: "pointer", background: showCategoria._id === c._id ? "#FCE7F0" : "#fff" }}>
+      <div key={c._id} className="ps-row" onClick={() => selectCat(c)} style={{ display: "grid", gridTemplateColumns: "minmax(120px,1fr) 76px 76px 18px", gap: 8, alignItems: "center", padding: faded ? "9px 18px" : "12px 18px", borderBottom: "1px solid #f6f6f8", cursor: "pointer", background: showCategoria._id === c._id ? "#FCE7F0" : "#fff" }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ font: faded ? "500 12.5px Poppins" : "600 13px Poppins", color: faded ? "#a0a0a8" : "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cap1(c.nombre)}</div>
           {!faded && <div style={{ height: 4, borderRadius: 4, background: "#f0f0f2", marginTop: 5, overflow: "hidden" }}><div style={{ height: "100%", width: `${barW}%`, background: fin > est ? "#D83E7C" : "#EF5B94", borderRadius: 4, transition: "width .8s cubic-bezier(.2,.7,.2,1)" }} /></div>}
@@ -239,8 +237,57 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
         <div style={{ textAlign: "right", font: faded ? "500 12px Poppins" : "600 12.5px Poppins", color: faded ? "#b3b3ba" : "#8a8a90" }}>{getCurrency(est, cur)}</div>
         <div style={{ textAlign: "right", font: faded ? "500 12px Poppins" : "700 12.5px Poppins", color: faded ? "#c0c0c8" : totCol }}>{getCurrency(fin, cur)}</div>
         <div style={{ display: "flex", justifyContent: "center" }} title={stTitle}><span style={{ width: 9, height: 9, borderRadius: "50%", background: stColor }} /></div>
-        <button className="ps-del" onClick={(e) => { e.stopPropagation(); if (!isAllowed()) { ht(); return; } setConfirmCat(c); }} style={{ width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#c8c8ce", background: "none", border: "none", cursor: "pointer" }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg></button>
       </div>
+    );
+  };
+
+  // Detalle de categoría (solo lectura) fiel al definitivo: cabecera + tabla
+  // Partida/Coste real/Pagado/Pendiente + "Editar en Gastos" + Total + Notas.
+  const catDetailRO = () => {
+    const selCat = (cats || []).find((c: any) => c._id === showCategoria._id);
+    if (!selCat) return null;
+    const rows = (selCat.gastos_array || []).filter((g: any) => g?.estatus !== false);
+    const selTot = selCat.coste_final || 0;
+    const selPag = selCat.pagado || 0;
+    const selPen = Math.max(0, selTot - selPag);
+    const GRID = "minmax(110px,1.3fr) 74px 72px 74px";
+    return (
+      <>
+        <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 4px 14px rgba(0,0,0,.05)", overflow: "hidden", marginBottom: 18 }}>
+          <div style={{ position: "relative", padding: "18px 20px 14px", borderBottom: "1px solid #f2f2f4" }}>
+            <div style={{ textAlign: "center", font: "700 16px Poppins", color: "#EF5B94" }}>{cap1(selCat.nombre)}</div>
+            <button className="ps-close" onClick={() => setShowCategoria({ state: false, _id: "" })} title={t("Cerrar")} style={{ position: "absolute", top: 14, right: 14, width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#a0a0a8", background: "none", border: "none", cursor: "pointer" }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: GRID, gap: 6, padding: "11px 16px", background: "#faf9fb", borderBottom: "1px solid #f2f2f4", font: "700 10.5px Poppins", color: "#5a5a62", letterSpacing: ".4px", textTransform: "uppercase" }}>
+            <div>{t("Partida de gasto", { defaultValue: "Partida de gasto" })}</div>
+            <div style={{ textAlign: "right" }}>{t("Coste real", { defaultValue: "Coste real" })}<div style={{ font: "600 10.5px Poppins", color: "#a0a0a8", textTransform: "none", letterSpacing: 0 }}>{getCurrency(selTot, cur)}</div></div>
+            <div style={{ textAlign: "right" }}>{t("Pagado", { defaultValue: "Pagado" })}<div style={{ font: "600 10.5px Poppins", color: "#a0a0a8", textTransform: "none", letterSpacing: 0 }}>{getCurrency(selPag, cur)}</div></div>
+            <div style={{ textAlign: "right" }}>{t("Pendiente", { defaultValue: "Pendiente" })}<div style={{ font: "600 10.5px Poppins", color: "#a0a0a8", textTransform: "none", letterSpacing: 0 }}>{getCurrency(selPen, cur)}</div></div>
+          </div>
+          {rows.length === 0 && <div style={{ padding: "22px 16px", textAlign: "center", font: "500 12px Poppins", color: "#a0a0a8" }}>{t("Sin partidas todavía", { defaultValue: "Sin partidas todavía" })}</div>}
+          {rows.map((g: any, i: number) => {
+            const tot = g.coste_final || 0; const pag = g.pagado || 0; const pen = Math.max(0, tot - pag);
+            return (
+              <div key={g._id || i} className="ps-row" style={{ display: "grid", gridTemplateColumns: GRID, gap: 6, alignItems: "center", padding: "12px 16px", borderBottom: "1px solid #f4f4f6" }}>
+                <div style={{ font: "500 12.5px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={g.nombre}>{g.nombre}</div>
+                <div style={{ textAlign: "right", font: "600 12px Poppins", color: "#3A3A42" }}>{getCurrency(tot, cur)}</div>
+                <div style={{ textAlign: "right", font: "600 12px Poppins", color: "#2FB37E" }}>{getCurrency(pag, cur)}</div>
+                <div style={{ textAlign: "right", font: "600 12px Poppins", color: pen > 0 ? "#B4801F" : "#a0a0a8" }}>{getCurrency(pen, cur)}</div>
+              </div>
+            );
+          })}
+          <div style={{ display: "flex", justifyContent: "center", padding: "12px 20px", borderBottom: "1px solid #f2f2f4" }}>
+            <button onClick={() => { setFocusCat(selCat._id); setShowCategoria({ state: false, _id: "" }); setActive("excelView"); }} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#EF5B94", color: "#fff", border: "none", borderRadius: 10, padding: "9px 20px", font: "600 12.5px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}>{t("Editar en Gastos", { defaultValue: "Editar en Gastos" })}</button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: GRID, gap: 6, alignItems: "center", padding: "13px 16px", background: "#faf9fb", borderTop: "1px solid #ececef" }}>
+            <div style={{ font: "700 13px Poppins", color: "#5a5a62" }}>{t("Total")}</div>
+            <div style={{ textAlign: "right", font: "700 12px Poppins", color: "#5a5a62" }}>{getCurrency(selTot, cur)}</div>
+            <div style={{ textAlign: "right", font: "700 12px Poppins", color: "#2FB37E" }}>{getCurrency(selPag, cur)}</div>
+            <div style={{ textAlign: "right", font: "700 12px Poppins", color: "#B4801F" }}>{getCurrency(selPen, cur)}</div>
+          </div>
+        </div>
+        {selCat._id && <StudioNotesSection entityId={selCat._id} entityName={selCat?.nombre || "Categoría"} />}
+      </>
     );
   };
 
@@ -272,11 +319,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
         </div>,
         document.body
       )}
-      {showDup && (
-        <div className="absolute z-50 flex justify-center w-full">
-          <DuplicatePresupuesto showModalDuplicate={showDup} setModal={setShowDup} />
-        </div>
-      )}
+      {showImport && <ModalImportarStudio onClose={() => setShowImport(false)} />}
 
       {/* Confirmación borrar categoría */}
       {confirmCat && mounted && typeof document !== "undefined" && createPortal(
@@ -305,7 +348,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
           {tabs.map((tb) => {
             const on = active === tb.key;
             return (
-              <button key={tb.key} className="ps-seg" onClick={() => { setActive(tb.key); setShowCategoria({ state: false, _id: "" }); }} style={{ flex: 1, textAlign: "center", padding: "10px 8px", borderRadius: 10, font: "600 13px Poppins", cursor: "pointer", background: "transparent", color: on ? "#EF5B94" : "#6b6b72", border: "none", whiteSpace: "nowrap", textTransform: "capitalize", transition: "all .15s" }}>
+              <button key={tb.key} className="ps-seg" onClick={() => { setActive(tb.key); setShowCategoria({ state: false, _id: "" }); }} style={{ flex: 1, textAlign: "center", padding: "10px 8px", borderRadius: 10, font: "600 13px Poppins", cursor: "pointer", background: "transparent", color: on ? "#EF5B94" : "#6b6b72", border: "none", whiteSpace: "nowrap", transition: "all .15s" }}>
                 {tb.label}
               </button>
             );
@@ -356,7 +399,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                       </ClickAwayListener>
                     )}
                   </div>
-                  <button className="ps-btn2" onClick={() => { if (!isAllowed()) { ht(); return; } setShowDup(true); }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16" /></svg>{t("import")}</button>
+                  <button className="ps-btn2" onClick={() => { if (!isAllowed()) { ht(); return; } setShowImport(true); }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12px Poppins", cursor: "pointer", whiteSpace: "nowrap" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16" /></svg>{t("import")}</button>
                   <ExportExcelPresupuesto studio />
                 </div>
               </div>
@@ -391,11 +434,25 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
               {/* TABLA CATEGORÍAS */}
               <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 4px 14px rgba(0,0,0,.05)", overflow: "hidden" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px", borderBottom: "1px solid #f2f2f4" }}>
-                  <div style={{ font: "700 15px Poppins", color: "#3A3A42" }}>{t("Categorías")}</div>
-                  <button className="ps-btn2" onClick={() => { if (!isAllowed()) { ht(); return; } setShowCreateCat(true); }} style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 16px", borderRadius: 10, background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72", font: "600 12.5px Poppins", whiteSpace: "nowrap", cursor: "pointer" }}><span style={{ fontSize: 14, lineHeight: 1 }}>＋</span>{t("newcategory")}</button>
+                  <div style={{ font: "700 15px Poppins", color: "#3A3A42", whiteSpace: "nowrap" }}>{t("¿Cómo va tu presupuesto?", { defaultValue: "¿Cómo va tu presupuesto?" })}</div>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "minmax(120px,1fr) 76px 76px 18px 32px", gap: 8, padding: "11px 18px", font: "700 10.5px Poppins", color: "#b3b3ba", letterSpacing: ".6px", textTransform: "uppercase", borderBottom: "1px solid #f2f2f4" }}>
-                  <div>{t("category")}</div><div style={{ textAlign: "right" }}>{t("Presupuesté")}</div><div style={{ textAlign: "right" }}>{t("Gastado")}</div><div /><div />
+                {(() => {
+                  const over = (cats || []).filter((c: any) => (c.coste_final || 0) > (c.coste_estimado || 0) && (c.coste_estimado || 0) > 0);
+                  if (!over.length) return null;
+                  const txt = over.length === 1
+                    ? `${t("Atención:", { defaultValue: "Atención:" })} ${cap1(over[0].nombre)} ${t("supera su estimado", { defaultValue: "supera su estimado" })}`
+                    : `${t("Atención:", { defaultValue: "Atención:" })} ${over.length} ${t("categorías superan su estimado", { defaultValue: "categorías superan su estimado" })}`;
+                  return (
+                    <div style={{ padding: "12px 18px 0" }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "#FBF0DA", borderRadius: 999, padding: "8px 15px", font: "500 11.5px Poppins", color: "#B4801F", maxWidth: "100%" }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flex: "none" }}><path d="M13 2L4.5 12.5c-.4.5 0 1.2.6 1.2H11l-1 8.3 8.5-10.5c.4-.5 0-1.2-.6-1.2H12l1-8.1z" /></svg>
+                        <span>{txt}</span>
+                      </span>
+                    </div>
+                  );
+                })()}
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(120px,1fr) 76px 76px 18px", gap: 8, padding: "11px 18px", font: "700 10.5px Poppins", color: "#b3b3ba", letterSpacing: ".6px", textTransform: "uppercase", borderBottom: "1px solid #f2f2f4" }}>
+                  <div>{t("category", { defaultValue: "Categoría" })}</div><div style={{ textAlign: "right" }}>{t("Estimado", { defaultValue: "Estimado" })}</div><div style={{ textAlign: "right" }}>{t("Coste real", { defaultValue: "Coste real" })}</div><div />
                 </div>
                 {catsActive.length === 0 && catsZero.length === 0 && (
                   <div style={{ padding: "34px 18px", textAlign: "center", font: "500 12.5px Poppins", color: "#a0a0a8" }}>{t("Aún no hay categorías")}</div>
@@ -410,18 +467,18 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                     {showZero && catsZero.map((c) => catRow(c, true))}
                   </>
                 )}
-                <div style={{ display: "grid", gridTemplateColumns: "minmax(120px,1fr) 76px 76px 18px 32px", gap: 8, padding: "14px 18px", background: "#faf9fb" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(120px,1fr) 76px 76px 18px", gap: 8, padding: "14px 18px", background: "#faf9fb" }}>
                   <div style={{ font: "700 13px Poppins", color: "#3A3A42" }}>{t("Total")}</div>
                   <div style={{ textAlign: "right", font: "700 13px Poppins", color: "#3A3A42" }}>{getCurrency(sumEst, cur)}</div>
                   <div style={{ textAlign: "right", font: "700 13px Poppins", color: "#EF5B94" }}>{getCurrency(sumFinal, cur)}</div>
-                  <div /><div />
+                  <div />
                 </div>
               </div>
 
               {/* DERECHA: DETALLE o DONUT */}
               <div className="min-w-0">
                 {showCategoria.state ? (
-                  <DetalleCategoriaStudio categoriaId={showCategoria._id} onClose={() => setShowCategoria({ state: false, _id: "" })} />
+                  catDetailRO()
                 ) : (
                   <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 16, boxShadow: "0 4px 14px rgba(0,0,0,.05)", padding: 20 }}>
                     {/* Cabecera clicable → alterna abierto/cerrado */}
@@ -469,9 +526,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
         )}
 
         {/* ===== OTRAS VISTAS (existentes, se rediseñan en fases siguientes) ===== */}
-        {active === "excelView" && <PresupuestoDetalladoStudio categorias={cats} onAddCategoria={() => setShowCreateCat(true)} />}
-        {active === "pagos" && <PagosStudio categorias={cats} estado="pagado" />}
-        {active === "pendiente" && <PagosStudio categorias={cats} estado="pendiente" />}
+        {active === "excelView" && <PresupuestoDetalladoStudio categorias={cats} onAddCategoria={() => setShowCreateCat(true)} focusCatId={focusCat} onFocusHandled={() => setFocusCat(null)} />}
         {active === "dashboard" && isOwner && <DashboardStudio categorias={cats} />}
       </div>
       </div>
