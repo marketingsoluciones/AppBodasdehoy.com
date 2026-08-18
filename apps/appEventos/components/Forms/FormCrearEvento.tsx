@@ -210,7 +210,7 @@ const FormCrearEvento: FC<propsFromCrearEvento> = ({ state, set, EditEvent, even
         // defecto y se avisa en tono suave (no error rojo). subir_archivo SOLO sube el fichero a R2 →
         // hay que asociarlo al evento con eventUpdate (como en editar) o la foto se perdería al recargar.
         let imgEvento: any = undefined
-        if (imagePreviewUrl?.file) {
+        if ((imagePreviewUrl as any)?.file) {
           try {
             imgEvento = await subir_archivo({ imagePreviewUrl, event: createdEvent, use: "imgEvento" })
             if (imgEvento && createdEvent?._id) {
