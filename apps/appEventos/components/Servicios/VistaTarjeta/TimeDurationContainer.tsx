@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Calendar, Clock } from 'lucide-react';
 import { DurationTask } from './DurationTask';
 import { TimeIndicators } from './TimeIndicators';
+import { TimeTask } from './TimeTask';
 import { DateTask } from './DateTask';
 import { useDateTime } from '../../../hooks/useDateTime';
 import { EventContextProvider } from '../../../context';
@@ -24,6 +25,11 @@ export const TimeDurationContainer: FC<TimeDurationContainerProps> = ({ task, ca
   const [editingEndTime, setEditingEndTime] = useState(false);
   const { dateTimeFormated } = useDateTime();
   const ruta = usePathname();
+  // Rediseño studio (gate ?studio, default ON): solo /itinerario. Fiel a
+  // tarjetatareaitinerario.html (.horario: fecha-linea + grilla Inicio/Final/Duración con dots).
+  const isStudio = typeof window !== "undefined"
+    && window.location.pathname === "/itinerario"
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   const ValidationEdit = useMemo(() => {
     if (["/itinerario"].includes(ruta)) {
@@ -47,6 +53,36 @@ export const TimeDurationContainer: FC<TimeDurationContainerProps> = ({ task, ca
 
   if (!task.fecha) {
     return null;
+  }
+
+  if (isStudio) {
+    const chipStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: 7, background: "#fff", border: "1px solid #ececef", borderRadius: 9, padding: "5px 10px" };
+    const lblStyle: React.CSSProperties = { font: "500 12px Poppins", color: "#8a8a90", flex: "none" };
+    const dotStyle = (bg: string): React.CSSProperties => ({ width: 8, height: 8, borderRadius: "50%", flex: "none", background: bg });
+    return (
+      <div style={{ background: "#fafafa", borderRadius: 12, padding: "8px 10px", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <div style={chipStyle}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9h18M8 3v4M16 3v4" /></svg>
+          <span style={lblStyle}>{t('Fecha')}</span>
+          <DateTask handleUpdate={handleUpdate} canEdit={canEdit} task={task} setEditing={setEditingDate} editing={editingDate} uso="itinerary" ValidationEdit={ValidationEdit} />
+        </div>
+        <div style={chipStyle}>
+          <span style={dotStyle("#2FB37E")} />
+          <span style={lblStyle}>{t('Inicio')}</span>
+          <TimeTask handleUpdate={handleUpdate} canEdit={canEdit} task={task} setEditing={setEditingStartTime} editing={editingStartTime} uso="startTime" ValidationEdit={ValidationEdit} />
+        </div>
+        <div style={chipStyle}>
+          <span style={dotStyle("#D83E7C")} />
+          <span style={lblStyle}>{t('Final')}</span>
+          <TimeTask handleUpdate={() => Promise.resolve()} canEdit={canEdit} task={task} setEditing={setEditingEndTime} editing={editingEndTime} uso="endTime" ValidationEdit={ValidationEdit} />
+        </div>
+        <div style={chipStyle}>
+          <span style={dotStyle("#8a8a90")} />
+          <span style={lblStyle}>{t('Duración')}</span>
+          <DurationTask handleUpdate={handleUpdate} canEdit={canEdit} task={task} ValidationEdit={ValidationEdit} />
+        </div>
+      </div>
+    );
   }
 
   return (

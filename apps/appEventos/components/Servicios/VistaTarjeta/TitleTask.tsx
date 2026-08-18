@@ -9,14 +9,20 @@ interface TitleTaskProps {
   handleUpdate: (field: string, value: any) => Promise<void>;
   task: Task;
   owner: boolean;
+  subtitle?: React.ReactNode;
 }
 
-export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task, owner }) => {
+export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task, owner, subtitle }) => {
   const { t } = useTranslation();
   const [value, setValue] = useState<string>();
   const [editing, setEditing] = useState<boolean>(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const ruta = usePathname();
+  // Rediseño studio (gate ?studio, default ON): solo /itinerario. Fiel a
+  // tarjetatareaitinerario.html (.t-ico círculo punteado rosa). Rollback ?studio=legacy.
+  const isStudio = typeof window !== "undefined"
+    && window.location.pathname === "/itinerario"
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   useEffect(() => {
     setValue(null);
@@ -44,9 +50,9 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task, own
   }, [editing, value]);
 
   return (
-    <div className="flex h-[44px] items-center space-x-2 flex-1">
+    <div className={`flex items-center flex-1 min-w-0 ${isStudio ? "gap-3" : "h-[44px] space-x-2"}`}>
       <div className="flex items-center justify-center">
-        <div className={`w-11 h-11 flex items-center justify-center rounded-full transition-colors`}
+        <div className={`flex items-center justify-center rounded-full transition-colors ${isStudio ? "w-10 h-10 bg-[#f5f5f7] border-[1.5px] border-solid border-[#ececef] text-[#6b6b72] hover:bg-[#ececef]" : "w-11 h-11"}`}
           title={canEdit && "Cambiar ícono"} >
           <SelectIconNew
             handleChange={handleIconChange}
@@ -55,7 +61,7 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task, own
           />
         </div>
       </div>
-      <div className="flex-1 h-10 relative flex items-center">
+      <div className={isStudio ? "flex-1 min-w-0 flex flex-col justify-center relative" : "flex-1 h-10 relative flex items-center"}>
         {editing
           ? <textarea
             ref={textareaRef}
@@ -89,7 +95,7 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task, own
             autoFocus
           />
           : <div
-            className={`text-[17px] font-semibold flex-1 leading-[1.1] line-clamp-2 break-all text-gray-700 ${owner ? 'cursor-pointer hover:text-gray-900' : task.estatus ? 'cursor-pointer hover:text-gray-900' : ''}`}
+            className={`font-semibold flex-1 leading-[1.1] line-clamp-2 break-all ${isStudio ? "text-[16.5px] text-[#3A3A42]" : "text-[17px] text-gray-700"} ${owner ? 'cursor-pointer hover:text-gray-900' : task.estatus ? 'cursor-pointer hover:text-gray-900' : ''}`}
             onClick={() => {
               if (["/itinerario"].includes(ruta)) {
                 owner
@@ -110,6 +116,7 @@ export const TitleTask: FC<TitleTaskProps> = ({ canEdit, handleUpdate, task, own
             {task?.descripcion || t('Sin título')}
           </div>
         }
+        {isStudio && subtitle && <div className="truncate" style={{ font: "400 12px Poppins", color: "#8a8a90", marginTop: 2 }}>{subtitle}</div>}
       </div>
     </div>
   )

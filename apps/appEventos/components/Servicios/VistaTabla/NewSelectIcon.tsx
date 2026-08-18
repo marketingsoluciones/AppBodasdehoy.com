@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Search, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Anillos, FuegosArtificiales, Baile, Baile2, Brindis, Carro, Cena, Cocteles, Comida, Fotografo, Iglesia, Maquillaje, Merienda, Novios, Salida, SesionFotos, Sol, Torta, Vestido, Dress } from "../../icons";
@@ -157,6 +158,11 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  // Rediseño studio (gate ?studio, default ON): modal fiel a modalselectoriconos.html.
+  // Reutiliza IconArray/categories del backend. Solo /itinerario. Rollback ?studio=legacy.
+  const isStudio = typeof window !== "undefined"
+    && window.location.pathname === "/itinerario"
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   useEffect(() => {
     // Focus search input when modal opens
@@ -189,6 +195,61 @@ export const NewSelectIcon: React.FC<Props> = ({ value, onChange, onClose }) => 
       onClose();
     }
   };
+
+  if (isStudio) {
+    const modalContent = (
+      <div style={{ position: "fixed", inset: 0, background: "rgba(43,43,48,.5)", zIndex: 80, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onKeyDown={handleKeyDown}>
+        <div ref={modalRef} style={{ width: 560, maxWidth: "92vw", maxHeight: "80vh", background: "#fff", borderRadius: 18, boxShadow: "0 30px 80px rgba(0,0,0,.3)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          {/* cabecera */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 26px 14px" }}>
+            <div style={{ font: "700 16px Poppins", color: "#3A3A42" }}>{t('Elige un icono', { defaultValue: 'Elige un icono' })}</div>
+            <button onClick={onClose} aria-label={t('Cerrar', { defaultValue: 'Cerrar' })} className="msi-close" style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#8a8a90", cursor: "pointer", background: "none", border: "none" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          </div>
+          {/* buscador + categorías */}
+          <div style={{ padding: "0 26px 14px", display: "flex", flexDirection: "column", gap: 12, borderBottom: "1px solid #f0f0f2" }}>
+            <div className="msi-buscador" style={{ display: "flex", alignItems: "center", gap: 9, border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "9px 13px" }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2} strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+              <input ref={searchInputRef} type="text" placeholder={t('Buscar iconos…', { defaultValue: 'Buscar iconos…' })} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ border: "none", outline: "none", font: "400 13px Poppins", color: "#3A3A42", flex: 1, background: "transparent" }} />
+            </div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {categories.map(category => {
+                const on = selectedCategory === category.id;
+                return (
+                  <button key={category.id} onClick={() => setSelectedCategory(category.id)}
+                    style={{ padding: "6px 14px", borderRadius: 16, border: `1.5px solid ${on ? "#EF5B94" : "#E7E7EA"}`, cursor: "pointer", font: "600 11.5px Poppins", background: on ? "#EF5B94" : "#fff", color: on ? "#fff" : "#6b6b72" }}>
+                    {category.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {/* cuadrícula de iconos (del backend) */}
+          <div className="msi-gridwrap" style={{ flex: 1, overflow: "auto", padding: "18px 26px 22px", scrollbarWidth: "none" }}>
+            {filteredIcons.length > 0 ? (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 10 }}>
+                {filteredIcons.map((iconData) => {
+                  const sel = value === iconData.title;
+                  return (
+                    <button key={iconData.title} onClick={() => { onChange(iconData.title); onClose(); }} title={iconData.title}
+                      className="msi-icono"
+                      style={{ aspectRatio: "1", borderRadius: "50%", background: sel ? "#f5f5f7" : "transparent", border: "none", display: "flex", alignItems: "center", justifyContent: "center", color: "#6b6b72", cursor: "pointer", padding: 8 }}>
+                      <span style={{ width: 42, height: 42, display: "flex", alignItems: "center", justifyContent: "center" }}>{iconData.icon}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ textAlign: "center", font: "400 12.5px Poppins", color: "#a0a0a8", padding: "26px 0 10px" }}>{t('No hay iconos que coincidan con tu búsqueda', { defaultValue: 'No hay iconos que coincidan con tu búsqueda' })}</div>
+            )}
+          </div>
+        </div>
+        <style dangerouslySetInnerHTML={{ __html: ".msi-close:hover{background:#f5f5f7;}.msi-buscador:focus-within{border-color:#EF5B94 !important;}.msi-gridwrap::-webkit-scrollbar{display:none;}.msi-icono:hover{background:#ececef !important;}" }} />
+      </div>
+    );
+    return typeof document !== "undefined" ? createPortal(modalContent, document.body) : modalContent;
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onKeyDown={handleKeyDown}>

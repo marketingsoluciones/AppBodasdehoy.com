@@ -52,9 +52,13 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   setSelectTask?: (taskId: string) => void;
   selectTask?: string;
   handleUpdate?: (field: string, value: any) => Promise<void>;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
+  gripDraggable?: boolean;
+  onGripDragStart?: (e: React.DragEvent) => void;
 }
 
-export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryButtonBox, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, selectTask, handleUpdate, ...props }) => {
+export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryButtonBox, showModalCompartir, setShowModalCompartir, tempPastedAndDropFiles, setTempPastedAndDropFiles, isTaskPublic = false, minimalView = false, setSelectTask, selectTask, handleUpdate, isExpanded, onToggleExpand, gripDraggable, onGripDragStart, ...props }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider();
   const { event, setEvent } = EventContextProvider();
@@ -315,6 +319,11 @@ export const TaskNew: FC<Props> = ({ itinerario, task, view, optionsItineraryBut
           handleUpdate={handleUpdate}
           optionsItineraryButtonBox={optionsItineraryButtonBox}
           isSelect={selectTask === task._id}
+          isExpanded={isExpanded}
+          onToggleExpand={onToggleExpand}
+          onDuplicate={handleDuplicate}
+          gripDraggable={gripDraggable}
+          onGripDragStart={onGripDragStart}
         />
         : view === "cards" || view === "kanban"
           ? <TaskFullView

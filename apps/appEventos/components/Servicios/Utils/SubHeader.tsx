@@ -17,6 +17,7 @@ import { LiaLinkSolid } from "react-icons/lia";
 import { BsCalendarPlus } from "react-icons/bs";
 import ClickAwayListener from "react-click-away-listener";
 import { CopiarLink } from "../../Utils/Compartir";
+import { useSearchParams } from "next/navigation";
 
 import axios from "axios";
 import { buildSchemaPdfHtml } from "../../../utils/buildSchemaPdfHtml";
@@ -30,6 +31,8 @@ interface props {
     title: string
     setTitle: any
     view: ViewItinerary
+    allExpanded?: boolean
+    onToggleExpandAll?: () => void
 }
 interface Modal {
     state: boolean
@@ -37,7 +40,7 @@ interface Modal {
     handle?: () => void
 }
 
-export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle, handleDeleteItinerario, handleUpdateTitle, title, setTitle }) => {
+export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle, handleDeleteItinerario, handleUpdateTitle, title, setTitle, allExpanded, onToggleExpandAll }) => {
     const { event } = EventContextProvider()
     const { config } = AuthContextProvider()
     const toast = useToast()
@@ -46,7 +49,20 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
     const [isAllowed, ht] = useAllowed()
     const [loading, setLoading] = useState<boolean>()
     const [showModalCompartir, setShowModalCompartir] = useState(false);
+    const [copied, setCopied] = useState(false);
     const link = `${window.location.origin}/public-itinerary/itinerary-${event?._id}-${itinerario?._id}`
+    const handleCopyStudio = () => {
+        try { navigator.clipboard?.writeText(link) } catch (e) { /* noop */ }
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+    }
+
+    // Rediseño studio (gate ?studio, default ON): cabecera del itinerario fiel a
+    // itinerariovistatarjeta.html (.cab). Solo /itinerario; Servicios usa
+    // SubHeaderServicios. Rollback ?studio=legacy. Mismo backend/handlers.
+    const searchParams = useSearchParams()
+    const isStudio = searchParams.get("studio") !== "legacy"
+        && (typeof window !== "undefined" && window.location.pathname === "/itinerario")
 
     const downloadPdf = async () => {
         try {
@@ -75,6 +91,76 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
             setLoading(false);
         }
     }
+
+    // ── Rediseño studio: cabecera fiel a itinerariovistatarjeta.html (.cab) ──
+    if (isStudio) {
+        return (
+            <div style={{ width: "100%", padding: "0 32px", position: "relative" }}>
+                {modal.state && <Modal set={setModal} classe={"w-[380px] max-w-[95%] h-auto min-h-[220px] !top-1/2 !left-1/2 !right-auto !bottom-auto -translate-x-1/2 -translate-y-1/2"}>
+                    <DeleteConfirmation setModal={setModal} modal={modal} />
+                </Modal>}
+                <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", margin: "24px 0 10px" }}>
+                    {/* acciones (renombrar · enlace · borrar) — o (PDF · enlace) en esquema */}
+                    <div style={{ position: "absolute", top: 0, right: 0, display: "flex", gap: 6 }}>
+                        {view !== "schema"
+                            ? <>
+                                {view === "cards" && onToggleExpandAll && <button className="cab-acc" title={allExpanded ? t("collapseAll", { defaultValue: "Contraer todo" }) : t("expandAll", { defaultValue: "Expandir todo" })} onClick={() => onToggleExpandAll()}>
+                                    {allExpanded
+                                        ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M7 4l5 5 5-5" /><path d="M7 20l5-5 5 5" /></svg>
+                                        : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M7 9l5-5 5 5" /><path d="M7 15l5 5 5-5" /></svg>}
+                                </button>}
+                                <button className="cab-acc" title={t("Copiar enlace")} onClick={() => setShowModalCompartir(!showModalCompartir)}><LiaLinkSolid className="w-[15px] h-[15px]" /></button>
+                                <button className="cab-acc" title={t("Eliminar itinerario")} onClick={() => !isAllowed() ? ht() : handleDeleteItinerario()}><MdOutlineDeleteOutline className="w-[15px] h-[15px]" /></button>
+                            </>
+                            : <>
+                                <button className="cab-acc" title={t("Descargar PDF", { defaultValue: "Descargar PDF" })} onClick={() => downloadPdf()}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14" /></svg></button>
+                                <button className="cab-acc" title={t("Copiar enlace")} onClick={() => setShowModalCompartir(!showModalCompartir)}><LiaLinkSolid className="w-[15px] h-[15px]" /></button>
+                            </>}
+                        {showModalCompartir && <ClickAwayListener onClickAway={() => showModalCompartir && setShowModalCompartir(false)}>
+                            <div data-pdf-hide style={{ position: "absolute", top: "100%", right: 0, marginTop: 8, width: 320, background: "#fff", borderRadius: 14, border: "1px solid #f0f0f2", boxShadow: "0 18px 50px rgba(0,0,0,.16)", zIndex: 50, padding: 14 }}>
+                                <input type="text" readOnly value={link} onClick={(e) => e.currentTarget.select()} className="share-url-studio" style={{ width: "100%", border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "10px 13px", font: "400 12px Poppins", color: "#6b6b72", outline: "none", background: "#fafafa", marginBottom: 10 }} />
+                                <div onClick={handleCopyStudio} className="share-copy-studio" style={{ display: "flex", alignItems: "center", gap: 8, font: "600 13px Poppins", color: "#EF5B94", cursor: "pointer", padding: "4px 2px 12px", borderBottom: "1px solid #f0f0f2" }}>
+                                    <span>{copied ? t("¡Enlace copiado!", { defaultValue: "¡Enlace copiado!" }) : t("Copiar Enlace", { defaultValue: "Copiar Enlace" })}</span>
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>
+                                </div>
+                                <a href={`/api/ical/${event?._id}/${itinerario?._id}`} download={`itinerario-${itinerario?._id}.ics`} onClick={() => setShowModalCompartir(false)} className="share-ics-studio" style={{ display: "flex", alignItems: "center", gap: 10, font: "500 13px Poppins", color: "#6b6b72", cursor: "pointer", padding: "12px 2px 2px", textDecoration: "none" }}>
+                                    <span style={{ width: 26, height: 26, borderRadius: 8, background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", flex: "none" }}>
+                                        <BsCalendarPlus className="w-[14px] h-[14px]" />
+                                    </span>
+                                    {t("Añadir al calendario (.ics)", { defaultValue: "Añadir al calendario (.ics)" })}
+                                </a>
+                            </div>
+                        </ClickAwayListener>}
+                    </div>
+                    {/* título centrado */}
+                    {!editTitle
+                        ? <h2 onClick={() => !isAllowed() ? ht() : setEditTitle(true)} title={t("Haz clic para renombrar", { defaultValue: "Haz clic para renombrar" })} style={{ font: "700 24px Poppins", color: "#3A3A42", textAlign: "center", margin: 0, cursor: "pointer" }}>{title}</h2>
+                        : <div style={{ display: "flex", gap: 8, width: "min(60%, 420px)" }}>
+                            <input onChange={(e) => setTitle(e.target.value)} type="text" value={title} autoFocus style={{ flex: 1, font: "500 14px Poppins", color: "#3A3A42", textAlign: "center", border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "8px 14px", outline: "none" }} />
+                            <button type="button" onClick={() => handleUpdateTitle()} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 38, borderRadius: 10, background: "#EF5B94", color: "#fff", border: "none", cursor: "pointer" }}>
+                                <FaCheck />
+                            </button>
+                        </div>}
+                    {/* subrayado rosa */}
+                    <div style={{ width: 56, height: 3, borderRadius: 3, background: "#EF5B94", marginTop: 10 }} />
+                </div>
+                {loading && <div className="fixed top-0 left-0 w-[100vw] h-[100vh] flex items-center justify-center z-50">
+                    <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4" />
+                </div>}
+                <style jsx>{`
+                    .cab-acc{width:34px;height:34px;border-radius:10px;background:#fff;border:1.5px solid #E7E7EA;display:flex;align-items:center;justify-content:center;color:#6b6b72;cursor:pointer;transition:all .15s;}
+                    .cab-acc:hover{border-color:#EF5B94;color:#EF5B94;}
+                    .share-copy-studio:hover{color:#D83E7C;}
+                    .share-ics-studio:hover{color:#3A3A42;}
+                    .share-url-studio:focus{border-color:#EF5B94;}
+                    .loader{border-top-color:${config?.theme?.primaryColor || "#EF5B94"};-webkit-animation:spinner 1.5s linear infinite;animation:spinner 1.5s linear infinite;}
+                    @-webkit-keyframes spinner{0%{-webkit-transform:rotate(0deg);}100%{-webkit-transform:rotate(360deg);}}
+                    @keyframes spinner{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+                `}</style>
+            </div>
+        )
+    }
+
     return (
         <div className="w-full px-4 md:px-10 py-4" >
             {modal.state && <Modal set={setModal} classe={"w-[380px] max-w-[95%] h-auto min-h-[220px] !top-1/2 !left-1/2 !right-auto !bottom-auto -translate-x-1/2 -translate-y-1/2"}>

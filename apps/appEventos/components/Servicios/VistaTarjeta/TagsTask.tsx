@@ -10,11 +10,17 @@ interface Props {
   task: any;
   handleUpdate: (field: string, value: any) => Promise<void>;
   owner: boolean;
+  suggestions?: string[];
 }
-export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) => {
+export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate, owner, suggestions }) => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState<boolean>(false);
   const ruta = usePathname();
+  // Rediseño studio (gate ?studio, default ON): solo /itinerario. Fiel a
+  // tarjetatareaitinerario.html (.fila-tags / .caja-tags / .tag / .tag-input).
+  const isStudio = typeof window !== "undefined"
+    && window.location.pathname === "/itinerario"
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   // Lógica de validación extraída fuera del return
   const isItinerarioRoute = ["/itinerario"].includes(ruta);
@@ -44,6 +50,59 @@ export const TagsTask: FC<Props> = ({ canEdit, task, handleUpdate, owner }) => {
     const updatedTags = (task.tags || []).filter(tag => tag !== tagToRemove);
     handleUpdate('tags', updatedTags);
   };
+
+  if (isStudio) {
+    return (
+      <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 14, alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7, font: "600 12.5px Poppins", color: "#a0a0a8" }}>
+          <Tag className="w-[14px] h-[14px]" />
+          {t('Etiquetas')}
+        </div>
+        <div style={{ minHeight: 44, border: "1.5px solid #E7E7EA", borderRadius: 12, padding: "7px 12px", display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+          {(task.tags || []).map((tag, idx) => (
+            <span key={idx} className="group" style={{ display: "flex", alignItems: "center", gap: 4, font: "600 11px Poppins", color: "#D83E7C", background: "#FCE7F0", padding: "5px 12px", borderRadius: 14 }}>
+              {tag}
+              {canEdit && (
+                <button onClick={() => handleRemoveTag(tag)} className="transition-opacity" style={{ display: "inline-flex" }}>
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </span>
+          ))}
+          {editing ? (
+            <ClickAwayListener onClickAway={() => setEditing(false)}>
+              <span className="inline-flex">
+                <input
+                  type="text"
+                  placeholder={t('Agregar etiqueta…')}
+                  list={`tags-sug-${task?._id}`}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      const input = e.target as HTMLInputElement;
+                      if (input.value.trim()) { handleAddTag(input.value.trim()); input.value = ''; }
+                    }
+                  }}
+                  style={{ border: "1.5px solid #E7E7EA", borderRadius: 16, padding: "5px 13px", font: "400 12px Poppins", color: "#3A3A42", outline: "none", width: 150, background: "transparent" }}
+                  autoFocus
+                />
+                {Array.isArray(suggestions) && suggestions.length > 0 && (
+                  <datalist id={`tags-sug-${task?._id}`}>
+                    {suggestions.map((s) => <option key={s} value={s} />)}
+                  </datalist>
+                )}
+              </span>
+            </ClickAwayListener>
+          ) : (
+            canShowAddButton && (
+              <button onClick={() => setEditing(true)} style={{ display: "inline-flex", color: "#EF5B94" }}>
+                <Plus className="w-4 h-4" />
+              </button>
+            )
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex items-center space-x-4">

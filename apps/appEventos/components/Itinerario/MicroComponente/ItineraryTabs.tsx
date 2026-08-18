@@ -13,6 +13,26 @@ import { PermissionSelectModeView } from '../../Servicios/Utils/PermissionSelect
 import { PermissionAddButton } from "../../Servicios/Utils/PermissionAddButton"
 import { TimeZone } from "../../icons"
 import { getTimeZoneCity, eventDateAtHourZ } from "../../../utils/FormatTime"
+import { useSearchParams } from "next/navigation"
+import ClickAwayListener from "react-click-away-listener"
+
+// Zonas horarias: principales ciudades de Europa, Latinoamérica, EE. UU. y Canadá.
+const TIME_ZONES: string[] = [
+    // Europa
+    "Europe/Madrid", "Europe/Lisbon", "Europe/London", "Europe/Dublin", "Europe/Paris",
+    "Europe/Brussels", "Europe/Amsterdam", "Europe/Berlin", "Europe/Rome", "Europe/Zurich",
+    "Europe/Vienna", "Europe/Warsaw", "Europe/Stockholm", "Europe/Athens", "Europe/Istanbul", "Europe/Moscow",
+    // Estados Unidos
+    "America/New_York", "America/Chicago", "America/Denver", "America/Phoenix",
+    "America/Los_Angeles", "America/Anchorage", "Pacific/Honolulu",
+    // Canadá
+    "America/Toronto", "America/Winnipeg", "America/Edmonton", "America/Vancouver", "America/Halifax", "America/St_Johns",
+    // Latinoamérica
+    "America/Mexico_City", "America/Guatemala", "America/Costa_Rica", "America/Panama",
+    "America/Bogota", "America/Lima", "America/Caracas", "America/Guayaquil", "America/La_Paz",
+    "America/Santiago", "America/Argentina/Buenos_Aires", "America/Montevideo", "America/Asuncion",
+    "America/Sao_Paulo", "America/Santo_Domingo", "America/Havana", "America/Puerto_Rico",
+]
 
 interface props {
     itinerario: Itinerary
@@ -30,9 +50,11 @@ interface props {
     setSelectTask: any
     orderAndDirection: SelectModeSortType
     setOrderAndDirection: Dispatch<SetStateAction<SelectModeSortType>>
+    allExpanded?: boolean
+    onToggleExpandAll?: () => void
 }
 
-export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setItinerario, setEditTitle, view, setView, handleDeleteItinerario, handleUpdateTitle, title, setTitle, editTitle, selectTask, setSelectTask, orderAndDirection, setOrderAndDirection }) => {
+export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setItinerario, setEditTitle, view, setView, handleDeleteItinerario, handleUpdateTitle, title, setTitle, editTitle, selectTask, setSelectTask, orderAndDirection, setOrderAndDirection, allExpanded, onToggleExpandAll }) => {
     const [isAllowed, ht] = useAllowed()
     const [isAllowedViewer] = useAllowedViewer()
     const { config, user } = AuthContextProvider()
@@ -50,6 +72,31 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState<boolean>(false)
     const [isMobile, setIsMobile] = useState<boolean>(false)
     const toast = useToast()
+    // Rediseño studio (gate ?studio, default ON): toolbar fiel a
+    // itinerariovistatarjeta.html (.toolbar). Solo /itinerario (BoddyIter es
+    // compartido con Servicios → excluido por el path). Rollback ?studio=legacy.
+    const searchParams = useSearchParams()
+    const isStudio = searchParams.get("studio") !== "legacy"
+        && (typeof window !== "undefined" && window.location.pathname === "/itinerario")
+    const [verOpen, setVerOpen] = useState<boolean>(false)
+    const [tzOpen, setTzOpen] = useState<boolean>(false)
+
+    const handleChangeTimeZone = async (tz: string) => {
+        setTzOpen(false)
+        if (!event?._id || tz === event?.timeZone) return
+        const prevTz = event?.timeZone
+        setEvent((prev) => ({ ...prev, timeZone: tz }))
+        try {
+            await fetchApiEventos({
+                query: queries.eventUpdate,
+                variables: { idEvento: event._id, variable: "timeZone", value: tz },
+            })
+            toast("success", t("Campo actualizado"))
+        } catch (e: any) {
+            setEvent((prev) => ({ ...prev, timeZone: prevTz }))
+            toast("error", t("Error al actualizar"))
+        }
+    }
 
     const addTask = async () => {
         try {
@@ -657,6 +704,108 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
     }
     const toggleMobileDropdown = () => {
         setIsMobileDropdownOpen(!isMobileDropdownOpen)
+    }
+
+    // ── Rediseño studio: toolbar de escritorio fiel a .toolbar del HTML ──
+    if (isStudio && !isMobile) {
+        const verOptions = [
+            { v: "cards", label: t("card", { defaultValue: "Tarjeta" }), icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18" /></svg> },
+            { v: "table", label: t("Tabla", { defaultValue: "Tabla" }), icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg> },
+            { v: "schema", label: t("schema", { defaultValue: "Esquema" }), icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><circle cx="6" cy="6" r="2" /><circle cx="6" cy="18" r="2" /><path d="M11 6h9M11 18h9M6 8v8" /></svg> },
+        ]
+        const activeVer = verOptions.find(o => o.v === view) || verOptions[0]
+        const selectTab = (item: Itinerary) => {
+            if (event?._id) localStorage.setItem(`E_${event._id}_${window?.location?.pathname.slice(1)}`, item._id)
+            if (item?._id !== itinerario?._id) { setItinerario(item); setEditTitle(false) }
+        }
+        return (
+            <div className="w-full" style={{ background: "#fff", borderRadius: "18px 18px 0 0", display: "flex", flexDirection: "column", gap: 10, padding: "12px 24px", borderBottom: "1px solid #f0f0f2" }}>
+                <style dangerouslySetInnerHTML={{ __html: ".iti-tabs-rail::-webkit-scrollbar{display:none;}" }} />
+
+                {/* FILA 1: pestañas (carril con scroll invisible) + Nuevo */}
+                <div className="flex items-center" style={{ gap: 8 }}>
+                    <div ref={refTabs} className="iti-tabs-rail flex items-center select-none" style={{ gap: 4, overflowX: "auto", minWidth: 0, whiteSpace: "nowrap", scrollbarWidth: "none", flex: "0 1 auto" }}>
+                        {itineraries?.map((item, idx) => (
+                            (isAllowedViewer(item?.viewers) || window?.location?.pathname === "/itinerario") &&
+                            <button key={idx} onClick={() => selectTab(item)}
+                                style={itinerario?._id === item?._id
+                                    ? { display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 9, border: "none", background: "#FCE7F0", color: "#D83E7C", font: "600 12.5px Poppins", whiteSpace: "nowrap", cursor: "pointer", flex: "none", maxWidth: 240 }
+                                    : { display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 9, border: "none", background: "transparent", color: "#6b6b72", font: "600 12.5px Poppins", whiteSpace: "nowrap", cursor: "pointer", flex: "none", maxWidth: 240 }}>
+                                {!!item?.icon && <span className="flex w-4 h-4 items-center justify-center">{item.icon}</span>}
+                                <span className="line-clamp-1">{item?.title}</span>
+                            </button>
+                        ))}
+                    </div>
+                    {/* ⊕ Nuevo (secundario ghost: borde suave, texto rosa — es una acción, no una pestaña) */}
+                    <button onClick={handleCreateItinerario} style={{ display: "flex", alignItems: "center", gap: 6, height: 32, padding: "0 13px", borderRadius: 9, border: "1.5px solid #F3B6CE", background: "transparent", color: "#D83E7C", cursor: "pointer", font: "600 12px Poppins", flex: "none" }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                        {t("Nuevo", { defaultValue: "Nuevo" })}
+                    </button>
+                </div>
+
+                {/* FILA 2: acciones justificadas a la derecha */}
+                {isAllowed() && <div className="flex items-center" style={{ gap: 12, justifyContent: "flex-end", flexWrap: "wrap" }}>
+                    {/* zona horaria (dropdown con lista + check verde) */}
+                    <ClickAwayListener onClickAway={() => setTzOpen(false)}>
+                        <div style={{ position: "relative", flex: "none" }}>
+                            <div onClick={() => setTzOpen(v => !v)} title={t("timeZone")} style={{ display: "flex", alignItems: "center", gap: 6, font: "600 12px Poppins", color: "#3A3A42", padding: "7px 10px", borderRadius: 9, cursor: "pointer" }}>
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={1.8} strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" /></svg>
+                                {getTimeZoneCity(event?.timeZone)}
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2} strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>
+                            </div>
+                            {tzOpen && <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 6, width: 260, maxHeight: 300, overflowY: "auto", background: "#fff", borderRadius: 12, border: "1px solid #f0f0f2", boxShadow: "0 14px 40px rgba(0,0,0,.14)", zIndex: 50, padding: 6 }}>
+                                {TIME_ZONES.map(tz => {
+                                    const on = tz === event?.timeZone
+                                    return (
+                                        <div key={tz} onClick={() => handleChangeTimeZone(tz)} style={{ display: "flex", alignItems: "center", gap: 9, padding: "8px 12px", borderRadius: 8, font: on ? "600 12.5px Poppins" : "500 12.5px Poppins", color: on ? "#D83E7C" : "#6b6b72", background: on ? "#FCE7F0" : "transparent", cursor: "pointer" }}>
+                                            <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{getTimeZoneCity(tz)}</span>
+                                            {on && <svg style={{ flex: "none" }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2FB37E" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>}
+                                        </div>
+                                    )
+                                })}
+                            </div>}
+                        </div>
+                    </ClickAwayListener>
+                    {["cards", "table"].includes(view) && (
+                        <PermissionAddButton
+                            onClick={addTask}
+                            className="flex items-center gap-[7px] bg-[#EF5B94] text-white rounded-[10px] px-4 py-[9px] text-[12.5px] font-semibold shadow-[0_6px_16px_rgba(239,91,148,0.3)] flex-none"
+                        >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.2} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                            {t("Añadir tarea", { defaultValue: "Añadir tarea" })}
+                        </PermissionAddButton>
+                    )}
+                    {["cards", "table", "schema"].includes(view) && (
+                        <div style={{ flex: "none" }}>
+                            <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
+                        </div>
+                    )}
+                    {/* Ver (dropdown compacto: icono + vista activa + flecha) */}
+                    <ClickAwayListener onClickAway={() => setVerOpen(false)}>
+                        <div style={{ position: "relative", flex: "none" }}>
+                            <button onClick={() => setVerOpen(v => !v)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 13px", borderRadius: 10, border: "1.5px solid #E7E7EA", cursor: "pointer", font: "600 12px Poppins", background: "#fff", color: "#D83E7C", textTransform: "capitalize" }}>
+                                {activeVer.icon}
+                                {activeVer.label}
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2} strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>
+                            </button>
+                            {verOpen && <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 6, width: 170, background: "#fff", borderRadius: 12, border: "1px solid #f0f0f2", boxShadow: "0 14px 40px rgba(0,0,0,.14)", zIndex: 40, padding: 6 }}>
+                                {verOptions.map(opt => {
+                                    const on = view === opt.v
+                                    return (
+                                        <div key={opt.v} onClick={() => { setView(opt.v as ViewItinerary); setVerOpen(false) }}
+                                            style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 12px", borderRadius: 8, font: "600 12.5px Poppins", color: on ? "#D83E7C" : "#6b6b72", background: on ? "#FCE7F0" : "transparent", cursor: "pointer", textTransform: "capitalize" }}>
+                                            {opt.icon}
+                                            {opt.label}
+                                            {on && <svg style={{ marginLeft: "auto" }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2FB37E" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>}
+                                        </div>
+                                    )
+                                })}
+                            </div>}
+                        </div>
+                    </ClickAwayListener>
+                </div>}
+            </div>
+        )
     }
 
     return (

@@ -26,6 +26,35 @@ export const SimpleDeleteConfirmation: FC<props> = ({
   title,
 }) => {
   const { t } = useTranslation();
+  const isStudio = typeof window !== "undefined"
+    && window.location.pathname === "/itinerario"
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
+
+  if (isStudio) {
+    return (
+      <Modal set={setModal} loading={loading} classe="w-[320px] max-w-[92%] h-auto !top-1/2 !left-1/2 !right-auto !bottom-auto -translate-x-1/2 -translate-y-1/2">
+        <div style={{ padding: "22px 22px 18px", textAlign: "center" }}>
+          <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#FBE4EF", display: "flex", alignItems: "center", justifyContent: "center", color: "#D83E7C", margin: "0 auto 12px" }}>
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m3 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7" /></svg>
+          </div>
+          <div style={{ font: "600 14.5px Poppins", color: "#3A3A42", marginBottom: 6 }}>
+            ¿{t("Borrar", { defaultValue: "Borrar" })} &quot;{title}&quot;?
+          </div>
+          <div style={{ font: "400 12px/1.55 Poppins", color: "#8a8a90", marginBottom: 18 }}>
+            {t("Es")} <b style={{ color: "#D83E7C", fontWeight: 600 }}>{t("definitivo", { defaultValue: "definitivo" })}</b> {t("y no se podrá recuperar.", { defaultValue: "y no se podrá recuperar." })}
+          </div>
+          <div style={{ display: "flex", gap: 9, justifyContent: "center" }}>
+            <button type="button" onClick={() => setModal({ state: false })} style={{ flex: 1, padding: 10, borderRadius: 10, font: "600 12px Poppins", cursor: "pointer", background: "#fff", border: "1.5px solid #E7E7EA", color: "#6b6b72" }}>
+              {t("cancel", "Cancelar")}
+            </button>
+            <button type="button" onClick={handleDelete} style={{ flex: 1, padding: 10, borderRadius: 10, font: "600 12px Poppins", cursor: "pointer", background: "#D83E7C", color: "#fff", border: "none", boxShadow: "0 6px 16px rgba(216,62,124,.3)" }}>
+              {t("Borrar", { defaultValue: "Borrar" })}
+            </button>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal set={setModal} loading={loading} classe={modalShellClass}>

@@ -88,6 +88,9 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
   const [deletingFiles, setDeletingFiles] = useState<string[]>([]);
   const ruta = usePathname();
   const isItinerarioRoute = ["/itinerario"].includes(ruta);
+  const isStudio = typeof window !== "undefined"
+    && window.location.pathname === "/itinerario"
+    && new URLSearchParams(window.location.search).get("studio") !== "legacy";
 
   const handleFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -305,13 +308,13 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
   return (
     <div className="flex flex-col bg-white max-h-[144px] w-1/2. ">
       {/* Header fijo con título y botón de agregar */}
-      <div className="flex items-center justify-between flex-shrink-0  ">
+      <div className="flex items-center justify-between flex-shrink-0">
         <div className={`flex items-center gap-1 ${!canEdit? task.attachments.length > 0 && 'cursor-pointer' : ''}`} onClick={() => !canEdit ? task.attachments.length > 0 && setShowAttachments(!showAttachments) : setShowAttachments(!showAttachments)}>
-          <span className="text-xs text-gray-700">{t('Archivos adjuntos')}</span>
-          <div className={`w-5 h-5 rounded-full ${task.attachments.length > 0 ? 'bg-emerald-600' : 'bg-gray-300'} flex items-center justify-center`}>
-            <span className="text-xs text-white font-extrabold">{task.attachments.length}</span>
+          <span className={isStudio ? "text-xs text-[#a0a0a8] font-semibold" : "text-xs text-gray-700"}>{isStudio ? t('Adjuntos') : t('Archivos adjuntos')}</span>
+          <div className={`w-5 h-5 rounded-full flex items-center justify-center ${isStudio ? 'bg-[#f2f2f4]' : (task.attachments.length > 0 ? 'bg-emerald-600' : 'bg-gray-300')}`}>
+            <span className={`text-xs font-extrabold ${isStudio ? 'text-[#8a8a90] !font-bold text-[10.5px]' : 'text-white'}`}>{task.attachments.length}</span>
           </div>
-          <span className={`text-xs ${task.attachments.length > 0 ? 'text-emerald-600' : 'text-gray-500'} font-bold`}>{showAttachments ? t("Ocultar") : t("Ver")}</span>
+          <span className={`text-xs font-bold ${isStudio ? 'text-[#EF5B94]' : (task.attachments.length > 0 ? 'text-emerald-600' : 'text-gray-500')}`}>{showAttachments ? t("Ocultar") : t("Ver")}</span>
           {/*  {!canEdit && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
               <Lock className="w-3 h-3 mr-1" />
@@ -355,7 +358,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
         )}
       </div>
       {/* Contenedor con scroll para archivos */}
-      <div className={`flex-1  overflow-y-auto px-3 py-1 space-y-0.5 border-[1px] border-gray-200 rounded-lg ${showAttachments ? 'block' : 'hidden'}`}
+      <div className={`flex-1 overflow-y-auto space-y-0.5 ${isStudio ? `border-0 p-0 mt-2 ${showAttachments ? 'block' : 'hidden'}` : `px-3 py-1 border-[1px] border-gray-200 rounded-lg ${showAttachments ? 'block' : 'hidden'}`}`}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
@@ -446,7 +449,7 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
           ))
           : canEdit && uploadingFiles.length === 0 &&
           <div
-            className={`h-full flex items-center justify-center min-h-[40px] border border-dashed rounded-md text-center transition-all ${isDragging
+            className={`h-full flex items-center justify-center border border-dashed rounded-md text-center transition-all ${isStudio ? 'min-h-[62px] py-5' : 'min-h-[40px]'} ${isDragging
               ? 'border-primary bg-primary/5'
               : 'border-gray-300'
               }`}
@@ -455,19 +458,26 @@ export const NewAttachmentsEditor: React.FC<Props> = ({ handleUpdate, task, itin
               <p className="text-xs text-gray-500">
                 {isDragging
                   ? <span className="text-primary font-medium">{t('Suelta los archivos aquí')}</span>
-                  : <>
-                    {t('Arrastra archivos o')}{' '}
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="text-primary hover:text-primary/80 font-medium"
-                    >
-                      {t('haz clic aquí')}
-                    </button>
-                  </>
+                  : isStudio
+                    ? <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-primary hover:text-primary/80 font-medium"
+                      >
+                        {t('Subir foto JPG o PNG', { defaultValue: 'Subir foto JPG o PNG' })}
+                      </button>
+                    : <>
+                      {t('Arrastra archivos o')}{' '}
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-primary hover:text-primary/80 font-medium"
+                      >
+                        {t('haz clic aquí')}
+                      </button>
+                    </>
                 }
               </p>
               <p className="text-xs text-gray-400 mt-0.5">
-                {t('Máx: 10MB')}
+                {isStudio ? t('máx. 10 MB', { defaultValue: 'máx. 10 MB' }) : t('Máx: 10MB')}
               </p>
             </div>
           </div>

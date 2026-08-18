@@ -1,6 +1,6 @@
 import { TaskNew } from "../../Servicios/VistaTarjeta/TaskNew"
 import { fetchApiEventos, queries } from "../../../utils/Fetching";
-import { Dispatch, FC, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
+import { Dispatch, FC, Fragment, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 import { AuthContextProvider } from "../../../context/AuthContext";
 import { EventContextProvider } from "../../../context/EventContext";
 import { Modal } from "../../Utils/Modal";
@@ -38,7 +38,8 @@ import { NewTableView } from "../../Servicios/VistaTabla/NewTableView";
 import { PermissionTaskWrapper } from "../../Servicios/Utils/PermissionTaskWrapper";
 import { PermissionTaskActionWrapper } from "../../Servicios/Utils/PermissionTaskActionWrapper";
 import useSWR from 'swr';
-import { handleCopyLink } from "../../Servicios/VistaTarjeta/TaskNewUtils";
+import { handleCopyLink, cleanResponsables } from "../../Servicios/VistaTarjeta/TaskNewUtils";
+import { IconArray } from "../../Servicios/VistaTabla/NewSelectIcon";
 
 interface props {
   itinerario: Itinerary
@@ -52,6 +53,11 @@ interface props {
   selectTask: string
   setSelectTask: Dispatch<SetStateAction<string>>
   orderAndDirection: SelectModeSortType  // Agregar esta línea
+  expandedTasks?: Set<string>
+  toggleTaskExpand?: (id: string) => void
+  setOrderAndDirection?: Dispatch<SetStateAction<SelectModeSortType>>
+  allExpanded?: boolean
+  onToggleExpandAll?: () => void
 }
 
 export interface EditTastk {
@@ -77,7 +83,7 @@ export type TempPastedAndDropFile = {
 
 export const Details = undefined
 
-export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle, selectTask, setSelectTask, orderAndDirection }) => {
+export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle, view, handleDeleteItinerario, handleUpdateTitle, title, setTitle, selectTask, setSelectTask, orderAndDirection, expandedTasks, toggleTaskExpand, setOrderAndDirection, allExpanded, onToggleExpandAll }) => {
   const { t } = useTranslation();
   const { config, user } = AuthContextProvider()
   const { event, setEvent } = EventContextProvider()
@@ -100,6 +106,108 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
 
   // Query params usando useSearchParams (Next.js 15)
   const queryTask = searchParams.get("task")
+
+  // Rediseño studio (gate ?studio, default ON): solo /itinerario. Añade los
+  // huecos temporales entre tareas (fiel a itinerariovistatarjeta.html .gap).
+  // Servicios (BoddyIter compartido) queda excluido por el path. Mismo backend.
+  const isStudioIti = searchParams.get("studio") !== "legacy"
+    && (typeof window !== "undefined" && window.location.pathname === "/itinerario")
+
+  // Hueco temporal entre dos tareas consecutivas (mismo día): "+X libres" o,
+  // si se solapan, aviso ámbar. Null cuando no aplica (sin hora activa / 0 min).
+  const renderStudioGap = (prev: Task, next: Task) => {
+    try {
+      if (!prev?.horaActiva || !next?.horaActiva) return null
+      const startPrev = prev?.fecha ? new Date(prev.fecha).getTime() : NaN
+      const startNext = next?.fecha ? new Date(next.fecha).getTime() : NaN
+      if (isNaN(startPrev) || isNaN(startNext)) return null
+      const endPrev = startPrev + (Number(prev?.duracion) || 0) * 60000
+      const diffMin = Math.round((startNext - endPrev) / 60000)
+      if (diffMin === 0) return null
+      const overlap = diffMin < 0
+      const abs = Math.abs(diffMin)
+      const h = Math.floor(abs / 60)
+      const m = abs % 60
+      const dur = [h ? `${h} h` : "", m ? `${m} min` : ""].filter(Boolean).join(" ")
+      return (
+        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "0 10px" }}>
+          <div style={{ flex: 1, height: 1, background: "#ececef" }} />
+          <span style={{ font: "500 11px Poppins", color: overlap ? "#E0A32B" : "#a0a0a8", whiteSpace: "nowrap" }}>
+            {overlap ? `⚠ ${t("Se solapa con la tarea anterior")}` : `+${dur} ${t("libres")}`}
+          </span>
+          <div style={{ flex: 1, height: 1, background: "#ececef" }} />
+        </div>
+      )
+    } catch { return null }
+  }
+
+  // Reordenar tareas (arrastre del asa ⋮⋮): mueve draggedId antes de targetId,
+  // persiste con updateTasksOrder y desactiva el orden por fecha para que se vea.
+  const handleReorderTasks = (draggedId: string, targetId: string) => {
+    if (!draggedId || draggedId === targetId) return
+    if (!Array.isArray(event?.itinerarios_array) || !itinerario?._id) return
+    const f1 = event.itinerarios_array.findIndex((it: any) => it?._id === itinerario._id)
+    if (f1 < 0) return
+    const arr = Array.isArray(event.itinerarios_array[f1]?.tasks) ? [...event.itinerarios_array[f1].tasks] : []
+    const from = arr.findIndex((t: any) => t?._id === draggedId)
+    const to = arr.findIndex((t: any) => t?._id === targetId)
+    if (from < 0 || to < 0 || from === to) return
+    const [moved] = arr.splice(from, 1)
+    arr.splice(to, 0, moved)
+    const newIds = arr.map((t: any) => t._id)
+    setOrderAndDirection?.({ order: "ninguna", direction: "asc" })
+    setEvent((prev: any) => ({
+      ...prev,
+      itinerarios_array: prev.itinerarios_array.map((it: any, i: number) => i === f1 ? { ...it, tasks: arr } : it),
+    }))
+    fetchApiEventos({
+      query: queries.updateTasksOrder,
+      variables: { evento_id: event._id, itinerario_id: itinerario._id, taskIds: newIds },
+      domain: config.domain,
+    }).catch((e: any) => {
+      console.warn('[ItineraryPanel] updateTasksOrder falló:', e?.message ?? e)
+      toast("error", t("Error al reordenar"))
+    })
+  }
+
+  // ── Vista Esquema studio: timeline vertical de solo lectura (fiel al HTML) ──
+  const fmtHoraEsq = (f: any) => { const d = new Date(f); if (isNaN(d.getTime())) return ""; let h = d.getUTCHours(); const m = d.getUTCMinutes(); const ap = h < 12 ? "a. m." : "p. m."; h = h % 12; if (h === 0) h = 12; return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ap}` }
+  const fmtDurEsq = (min: any) => { const v = Number(min) || 0; if (!v) return ""; const h = Math.floor(v / 60); const m = v % 60; return [h ? `${h} h` : "", m ? `${m} m` : ""].filter(Boolean).join(" ") }
+  const renderStudioSchema = () => {
+    const list: any[] = Array.isArray(tasks) ? tasks : []
+    return (
+      <div style={{ maxWidth: 1120, margin: "0 auto", padding: "12px 40px 40px" }}>
+        <div style={{ textAlign: "center", font: "400 12px Poppins", color: "#a0a0a8", marginBottom: 22 }}>{t("schemaHint", { defaultValue: "Vista resumida del itinerario · ideal para compartir o descargar en PDF" })}</div>
+        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+          {list.map((task, idx) => {
+            const first = idx === 0
+            const last = idx === list.length - 1
+            const responsables = cleanResponsables(task?.responsable)
+            const icon = IconArray.find(el => el?.title === task?.icon)?.icon
+            const hora = task?.horaActiva !== false ? fmtHoraEsq(task?.fecha) : ""
+            const dur = fmtDurEsq(task?.duracion)
+            return (
+              <div key={task?._id || idx} style={{ display: "grid", gridTemplateColumns: "44px 26px 1fr", gap: "0 16px" }}>
+                <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#f7f7f9", border: "1px solid #E7E7EA", display: "flex", alignItems: "center", justifyContent: "center", color: "#4a4a52", flex: "none", marginTop: 4 }}>
+                  <span style={{ width: 17, height: 17, display: "flex", alignItems: "center", justifyContent: "center" }}>{icon || <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><path d="M12 4v4M12 16v4M4 12h4M16 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8" /></svg>}</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                  <div style={{ width: 1.5, height: 14, background: first ? "transparent" : "#F3B6CE" }} />
+                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#fff", border: "3px solid #EF5B94", flex: "none" }} />
+                  <div style={{ width: 1.5, flex: 1, background: last ? "transparent" : "#F3B6CE" }} />
+                </div>
+                <div style={{ paddingBottom: 22 }}>
+                  <div style={{ font: "700 15px Poppins", color: "#3A3A42" }}>{hora}{dur && <span style={{ font: "500 11.5px Poppins", color: "#a0a0a8", marginLeft: 6 }}>{t("duracion")} {dur}</span>}</div>
+                  <div style={{ font: "600 13.5px Poppins", color: "#EF5B94", marginTop: 3 }}>{task?.descripcion || t("Sin título")}</div>
+                  <div style={{ font: "400 12px Poppins", color: "#8a8a90", marginTop: 2 }}>{t("responsible")}: {responsables.length ? <b style={{ color: "#6b6b72", fontWeight: 500 }}>{responsables.join(", ")}</b> : <span style={{ color: "#c4c4cc" }}>{t("Sin asignar", { defaultValue: "sin asignar" })}</span>}</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
   const [tempPastedAndDropFiles, setTempPastedAndDropFiles] = useState<TempPastedAndDropFile[]>([]);
   const [loading, setLoading] = useState<boolean>(false)
   const [currentItinerario, setCurrentItinerario] = useState<Itinerary | undefined>(itinerario);
@@ -720,7 +828,8 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
   }, [selectTask, currentItinerario])
 
   return (
-    <div className="w-full flex-1 flex flex-col overflow-auto">
+    <div className={`w-full flex-1 flex flex-col ${isStudioIti && view === "table" ? "overflow-visible" : `overflow-auto ${isStudioIti ? "iti-hidescroll" : ""}`}`}>
+      {isStudioIti && <style dangerouslySetInnerHTML={{ __html: ".iti-hidescroll{scrollbar-width:none;-ms-overflow-style:none;}.iti-hidescroll::-webkit-scrollbar{display:none;width:0;height:0;}" }} />}
       <InfoLateral ubication="left" infoOptions={infoLeftOptions} />
       <InfoLateral ubication="right" infoOptions={[]} />
       {showEditTask?.state && (
@@ -751,12 +860,16 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
           handleUpdateTitle={handleUpdateTitle}
           title={title}
           setTitle={setTitle}
+          allExpanded={allExpanded}
+          onToggleExpandAll={onToggleExpandAll}
         />
       }
       <div className="w-full flex-1 flex flex-col pt-2 md:px-2 lg:px-6 z-0">
         {
           tasksReduce?.length > 0
-            ? view === "boardView"
+            ? (isStudioIti && view === "schema")
+              ? renderStudioSchema()
+              : view === "boardView"
               ? (<div className="w-full flex-1">
                 <PermissionTaskWrapper isTaskVisible={true}>
                   <BoardView
@@ -825,20 +938,31 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                   : view !== "table"
                     ? tasksReduce?.map((el, i) => {
                       return (
-                        <div key={i} className="w-full mt-4 flex flex-col gap-4">
+                        <div key={i} className="w-full mt-2 flex flex-col gap-4">
                           {["/itinerario"].includes(window?.location?.pathname) && <div className={`w-full flex ${view === "schema" ? "justify-start" : "justify-center"}`}>
-                            <span className={`${view === "schema" ? "border-primary border-dotted mb-1" : "border-gray-300 mb-1"} border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
-                              {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit" })}
-                            </span>
+                            {isStudioIti && view !== "schema"
+                              ? <span style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 20, padding: "6px 16px", font: "600 12.5px Poppins", color: "#3A3A42" }}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9h18M8 3v4M16 3v4" /></svg>
+                                {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit" })}
+                              </span>
+                              : <span className={`${view === "schema" ? "border-primary border-dotted mb-1" : "border-gray-300"} border-[1px] px-5 py-[1px] rounded-full text-[12px] font-semibold`}>
+                                {new Date(el?.fecha).toLocaleString(navigator.language, { year: "numeric", month: "long", day: "2-digit" })}
+                              </span>}
                           </div>}
                           {el?.tasks?.map((elem, idx) => {
+                            const prevTask = idx > 0 ? el.tasks[idx - 1] : null
                             return (
-                              <PermissionTaskActionWrapper
-                                key={idx}
-                                task={elem}
-                                isTaskVisible={elem.spectatorView}
-                                optionsItineraryButtonBox={optionsItineraryButtonBox}
-                              >
+                              <Fragment key={idx}>
+                                {isStudioIti && prevTask && renderStudioGap(prevTask, elem)}
+                                <div
+                                  onDragOver={isStudioIti ? (e) => e.preventDefault() : undefined}
+                                  onDrop={isStudioIti ? (e) => { e.preventDefault(); handleReorderTasks(e.dataTransfer.getData('text/plain'), elem._id) } : undefined}
+                                >
+                                <PermissionTaskActionWrapper
+                                  task={elem}
+                                  isTaskVisible={elem.spectatorView}
+                                  optionsItineraryButtonBox={optionsItineraryButtonBox}
+                                >
                                 <TaskNew
                                   id={elem._id}
                                   key={idx}
@@ -855,15 +979,21 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
                                   setSelectTask={setSelectTask}
                                   selectTask={selectTask}
                                   handleUpdate={handleUpdate}
+                                  isExpanded={expandedTasks ? expandedTasks.has(elem._id) : true}
+                                  onToggleExpand={() => toggleTaskExpand?.(elem._id)}
+                                  gripDraggable={isStudioIti}
+                                  onGripDragStart={(e) => { e.dataTransfer.setData('text/plain', elem._id); e.dataTransfer.effectAllowed = 'move' }}
                                 />
-                              </PermissionTaskActionWrapper>
+                                </PermissionTaskActionWrapper>
+                                </div>
+                              </Fragment>
                             )
                           })}
                         </div>
                       )
                     })
-                    : <div className="relative overflow-x-auto md:overflow-x-visible h-full">
-                      <div className="w-[250%] md:w-[100%]">
+                    : <div className={isStudioIti ? "w-full" : "relative overflow-x-auto md:overflow-x-visible h-full"}>
+                      <div className={isStudioIti ? "w-full" : "w-[250%] md:w-[100%]"}>
                         <div className="w-full">
                           <PermissionTaskWrapper isTaskVisible={true}>
                             <ItineraryColumns

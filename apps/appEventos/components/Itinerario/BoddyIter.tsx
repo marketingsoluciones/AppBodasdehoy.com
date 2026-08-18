@@ -49,6 +49,22 @@ export const BoddyIter = () => {
     const storage = getStorage();
     const [selectTask, setSelectTask] = useState<string>()
     const [orderAndDirection, setOrderAndDirection] = useState<SelectModeSortType>()
+    // Rediseño studio: expansión de tarjetas de tarea (vista Tarjeta). Por defecto
+    // la PRIMERA tarea del itinerario expandida y el resto colapsadas. "Expandir todo /
+    // Contraer todo" alterna todas. Solo presentación (no toca backend).
+    const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
+    const allTaskIds = Array.isArray(itinerario?.tasks) ? itinerario.tasks.map((tk: any) => tk?._id).filter(Boolean) : []
+    const allExpanded = allTaskIds.length > 0 && allTaskIds.every((id: string) => expandedTasks.has(id))
+    const toggleExpandAll = () => setExpandedTasks(allExpanded ? new Set() : new Set(allTaskIds))
+    const toggleTaskExpand = (id: string) => setExpandedTasks((prev) => {
+        const next = new Set(prev)
+        next.has(id) ? next.delete(id) : next.add(id)
+        return next
+    })
+    useEffect(() => {
+        const first = Array.isArray(itinerario?.tasks) ? itinerario.tasks.find((tk: any) => tk?._id)?._id : undefined
+        setExpandedTasks(first ? new Set([first]) : new Set())
+    }, [itinerario?._id])
 
     // Query params usando useSearchParams (Next.js 15)
     const queryItinerary = searchParams.get("itinerary")
@@ -398,7 +414,7 @@ export const BoddyIter = () => {
         <PermissionWrapper>
             <div
                 className={`bg-white ${view === "cards" ? "max-w-[1050px] mx-auto" : "w-auto"
-                    } md:h-[calc(100vh-244px)] flex flex-col items-center rounded-t-lg mt-3 relative overflow-hidden`}
+                    } ${(studioIter && view === "table" && pathSliceIter === "itinerario") ? "md:min-h-[calc(100vh-244px)]" : "md:h-[calc(100vh-244px)] overflow-hidden"} flex flex-col items-center rounded-t-lg mt-3 relative`}
             >
                 {
                     modal.state &&
@@ -428,6 +444,8 @@ export const BoddyIter = () => {
                     setSelectTask={setSelectTask}
                     orderAndDirection={orderAndDirection}
                     setOrderAndDirection={setOrderAndDirection}
+                    allExpanded={allExpanded}
+                    onToggleExpandAll={toggleExpandAll}
                 />
                 {
                     (canAccessList || window?.location?.pathname === "/itinerario")
@@ -448,6 +466,11 @@ export const BoddyIter = () => {
                                 selectTask={selectTask}
                                 setSelectTask={setSelectTask}
                                 orderAndDirection={orderAndDirection}
+                                expandedTasks={expandedTasks}
+                                toggleTaskExpand={toggleTaskExpand}
+                                setOrderAndDirection={setOrderAndDirection}
+                                allExpanded={allExpanded}
+                                onToggleExpandAll={toggleExpandAll}
                             /> : <ViewWihtoutData isOwner={isOwner} />}
                         </ModuleErrorBoundary>
                         : <div className="h-full">
