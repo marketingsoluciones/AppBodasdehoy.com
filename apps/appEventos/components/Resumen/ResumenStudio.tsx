@@ -165,7 +165,7 @@ export const ResumenStudio: FC = () => {
     { name: "En casa", paths: <><path d="M6 21V4h12v17" /><path d="M9 8h2M13 8h2M9 12h2M13 12h2M9 16h2M13 16h2" /></> },
     { name: "Salon historico", paths: <><path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M3 10h18L12 3 3 10Z" /></> },
   ];
-  const seasonIcon = (name?: string, size = 30) => { const s = seasonOpts.find((o) => o.name === name); return s ? <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={s.color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">{s.paths}</svg> : null; };
+  const seasonIcon = (name?: string, size = 30) => { const s = seasonOpts.find((o) => o.name === name); return s ? <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={s.color} strokeWidth={1.3} strokeLinecap="round" strokeLinejoin="round">{s.paths}</svg> : null; };
   const estiloIcon = (name?: string, size = 30) => { const s = estiloOpts.find((o) => o.name === name); return s ? <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#7A7A82" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">{s.paths}</svg> : null; };
   const aspectVisual = (key: string) => {
     if (key === "color") return <div style={{ width: 30, height: 30, borderRadius: "50%", background: colorHex || "#e6e6ea", border: "2px solid #fff", boxShadow: "0 0 0 1.5px #e6e6ea" }} />;
