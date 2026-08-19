@@ -196,7 +196,9 @@ export function UnifiedFeedView({ items, loading, onItemClick }: UnifiedFeedView
     for (const it of items) {
       if (it.kind === 'notification') kinds.add('notifications');
     }
-    const base: { key: typeof filter; label: string }[] = [{ key: 'all', label: 'Todo' }];
+    // SIN "Todo" (duplicaba el chip "Todo" de canales del top → confusión reportada
+    // por owner 19-ago). Solo toggles ortogonales: "Sin leer" (y "Notifs" si hay).
+    const base: { key: typeof filter; label: string }[] = [];
     if (items.some((it) => (it.unreadCount ?? 0) > 0 || !it.isRead)) base.push({ key: 'unread', label: 'Sin leer' });
     if (kinds.has('notifications')) base.push({ key: 'notifications', label: 'Notifs' });
     return base;
@@ -222,15 +224,10 @@ export function UnifiedFeedView({ items, loading, onItemClick }: UnifiedFeedView
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-white">
-      {/* Header */}
-      <div className="border-b border-gray-100 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-gray-800">Bandeja</h2>
-          {!loading && items.length > 0 && (
-            <span className="text-xs text-gray-400">{items.length} items</span>
-          )}
-        </div>
-        <div className="mt-2 flex items-center gap-2">
+      {/* Header — SIN título "Bandeja" (la pestaña de arriba ya lo dice; evita el
+          "dos bandejas" que reportó el owner 19-ago). Solo buscador + filtro sin-leer. */}
+      <div className="border-b border-gray-100 px-4 py-2">
+        <div className="flex items-center gap-2">
           <input
             className="flex-1 rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs placeholder:text-gray-400 focus:border-blue-400 focus:bg-white focus:outline-none"
             onChange={(e) => setSearch(e.target.value)}
@@ -239,7 +236,7 @@ export function UnifiedFeedView({ items, loading, onItemClick }: UnifiedFeedView
             value={search}
           />
         </div>
-        {availableFilters.length > 1 && (
+        {availableFilters.length > 0 && (
           <div className="mt-2 flex gap-1 overflow-x-auto pb-1">
             {availableFilters.map((t) => (
               <button
@@ -247,7 +244,7 @@ export function UnifiedFeedView({ items, loading, onItemClick }: UnifiedFeedView
                   filter === t.key ? 'text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}
                 key={t.key}
-                onClick={() => setFilter(t.key)}
+                onClick={() => setFilter(filter === t.key ? 'all' : t.key)}
                 style={filter === t.key ? { backgroundColor: brand.brand } : undefined}
                 type="button"
               >

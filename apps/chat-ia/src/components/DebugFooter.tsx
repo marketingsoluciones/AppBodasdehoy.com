@@ -40,6 +40,20 @@ const DebugFooter: FC = () => {
   })
   const commit = (process.env.NEXT_PUBLIC_COMMIT_SHA || 'unknown').slice(0, 7)
 
+  // OPT-IN (owner 19-ago: el footer de debug molestaba en el review de chat-dev).
+  // Oculto por DEFECTO incluso en -dev/-test. QA/dev lo activan con ?debug=1 (persiste
+  // en localStorage) y lo ocultan con ?debug=0. El check de build sigue por curl (BUILD_ID).
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const q = new URLSearchParams(window.location.search).get('debug')
+      if (q === '1') window.localStorage.setItem('showDebugFooter', '1')
+      else if (q === '0') window.localStorage.removeItem('showDebugFooter')
+      setVisible(window.localStorage.getItem('showDebugFooter') === '1')
+    } catch { /* ignore */ }
+  }, [])
+
   useEffect(() => {
     if (typeof window === 'undefined') return
     const cookieHas = (name: string): boolean => {
@@ -99,6 +113,7 @@ const DebugFooter: FC = () => {
   }, [])
 
   if (typeof window === 'undefined') return null
+  if (!visible) return null
   if (!state.hostname) return null
   if (HIDDEN_HOSTS_PATTERN.test(state.hostname)) return null
 
