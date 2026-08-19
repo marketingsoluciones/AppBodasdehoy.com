@@ -2,7 +2,7 @@ import { FC, ReactNode, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { EventContextProvider, AuthContextProvider } from "../../context";
-import { ModalAddUserToEvent } from "../Utils/Compartir";
+import ModalCompartirEventoStudio from "../Utils/ModalCompartirEventoStudio";
 import { defaultImagenes } from "../Home/Card";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
@@ -193,7 +193,7 @@ export const ResumenStudio: FC = () => {
         @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
         @media (max-width:820px){.rs-hero{grid-template-columns:1fr !important}.rs-2col{grid-template-columns:1fr !important}.rs-3col{grid-template-columns:1fr !important}.rs-check{grid-template-columns:repeat(2,1fr) !important}}
       ` }} />
-      {isOwner && <ModalAddUserToEvent openModal={openShare} setOpenModal={setOpenShare} event={event} />}
+      {isOwner && openShare && <ModalCompartirEventoStudio event={event} onClose={() => setOpenShare(false)} />}
 
       <div style={{ maxWidth: 1040, margin: "0 auto", padding: "24px 20px 48px", animation: "fadein .2s ease" }}>
 
