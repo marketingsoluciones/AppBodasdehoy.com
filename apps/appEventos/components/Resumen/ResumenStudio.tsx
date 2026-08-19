@@ -166,7 +166,7 @@ export const ResumenStudio: FC = () => {
     { name: "Salon historico", paths: <><path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M3 10h18L12 3 3 10Z" /></> },
   ];
   const seasonIcon = (name?: string, size = 30) => { const s = seasonOpts.find((o) => o.name === name); return s ? <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={s.color} strokeWidth={1.3} strokeLinecap="round" strokeLinejoin="round">{s.paths}</svg> : null; };
-  const estiloIcon = (name?: string, size = 30) => { const s = estiloOpts.find((o) => o.name === name); return s ? <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#7A7A82" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">{s.paths}</svg> : null; };
+  const estiloIcon = (name?: string, size = 30) => { const s = estiloOpts.find((o) => o.name === name); return s ? <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#7A7A82" strokeWidth={1.3} strokeLinecap="round" strokeLinejoin="round">{s.paths}</svg> : null; };
   const aspectVisual = (key: string) => {
     if (key === "color") return <div style={{ width: 30, height: 30, borderRadius: "50%", background: colorHex || "#e6e6ea", border: "2px solid #fff", boxShadow: "0 0 0 1.5px #e6e6ea" }} />;
     if (key === "temporada") return event?.temporada ? seasonIcon(event.temporada, 30) : <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#b3b3ba" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>;
@@ -433,7 +433,7 @@ export const ResumenStudio: FC = () => {
             {colorOpts.map((c) => (
               <div key={c.name} onClick={() => { saveField({ color: [c.name] }); setPicker(null); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7, cursor: "pointer", minWidth: 52 }}>
                 <div style={{ height: 46, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="30" height="34" viewBox="0 0 24 25"><path d="M12 2 C12 2 4.5 11 4.5 16 a7.5 7.5 0 0 0 15 0 C19.5 11 12 2 12 2 Z" fill={c.hex} stroke={colorVal === c.name ? "#3A3A42" : "rgba(0,0,0,.14)"} strokeWidth={colorVal === c.name ? 1.6 : 1} /></svg>
+                  <svg width="30" height="34" viewBox="0 0 24 25"><path d="M12 2 C12 2 4.5 11 4.5 16 a7.5 7.5 0 0 0 15 0 C19.5 11 12 2 12 2 Z" fill={c.hex} stroke={colorVal === c.name ? "#3A3A42" : "rgba(0,0,0,.14)"} strokeWidth={colorVal === c.name ? 1.2 : 0.8} /></svg>
                 </div>
                 <span style={{ font: "500 12.5px Poppins", color: "#6b6b72" }}>{c.name}</span>
               </div>
