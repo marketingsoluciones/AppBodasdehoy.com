@@ -166,6 +166,13 @@ export default function AgentesPage() {
     }
   }, [selectedId, agentSessions]);
 
+  // Pestañas del espacio del agente (18-ago, modelo "espacio del agente con pestañas"):
+  // Resumen (rendimiento + actividad) · Configuración (canales + instrucciones). Se
+  // resetea a "resumen" al cambiar de agente. "Abrir chat" (hilos) y "Ver conversaciones
+  // de cliente" siguen como acciones (cabecera/tarjeta), no como pestañas vacías.
+  const [fichaTab, setFichaTab] = useState<'resumen' | 'config'>('resumen');
+  useEffect(() => setFichaTab('resumen'), [selectedId]);
+
   // Guard de hidratación (React #418, QA 4-ago): los selectores de Zustand pueden diferir
   // entre SSR (estado inicial) y el primer render del cliente (store ya hidratado) → mismatch.
   // Renderizamos el placeholder hasta `mounted` para garantizar HTML SSR == 1er render cliente.
@@ -634,10 +641,31 @@ export default function AgentesPage() {
             </div>
           </div>
 
+          {/* Pestañas del espacio del agente (modelo 18-ago) */}
+          <div className="flex gap-1 px-6 pt-3" style={{ borderBottom: '1px solid #EDEDF0' }}>
+            {([['resumen', 'Resumen'], ['config', 'Configuración']] as const).map(([key, label]) => (
+              <button
+                aria-current={fichaTab === key}
+                className="px-3 py-2 text-sm font-medium transition-colors"
+                key={key}
+                onClick={() => setFichaTab(key)}
+                style={{
+                  borderBottom: fichaTab === key ? '2px solid #6B4EFF' : '2px solid transparent',
+                  color: fichaTab === key ? '#6B4EFF' : '#84848F',
+                  marginBottom: '-1px',
+                }}
+                type="button"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           {/* Contenido ficha */}
           <div className="flex-1 overflow-auto px-6 py-6">
             <div className="mx-auto max-w-3xl space-y-6">
               {/* Rendimiento hoy — cablead 23-jul: métricas reales per-agente (api-ia) */}
+              {fichaTab === 'resumen' && (
               <div
                 className="rounded-lg p-4"
                 style={{ backgroundColor: '#FFFFFF', border: '1px solid #EDEDF0' }}
@@ -662,8 +690,11 @@ export default function AgentesPage() {
                   />
                 </div>
               </div>
+              )}
 
               {/* Canales asignados — beta local */}
+              {fichaTab === 'config' && (
+              <>
               <div
                 className="rounded-lg p-4"
                 style={{ backgroundColor: '#FFFFFF', border: '1px solid #EDEDF0' }}
@@ -757,8 +788,11 @@ export default function AgentesPage() {
                   value={promptDraft}
                 />
               </div>
+              </>
+              )}
 
               {/* Actividad reciente — feed en vivo por SSE (api-ia /api/messages/stream). */}
+              {fichaTab === 'resumen' && (
               <div
                 className="rounded-lg p-4"
                 style={{ backgroundColor: '#FFFFFF', border: '1px solid #EDEDF0' }}
@@ -808,6 +842,7 @@ export default function AgentesPage() {
                   </ul>
                 )}
               </div>
+              )}
 
               {/* Nota al pie */}
               <p className="text-center text-[11px] italic" style={{ color: '#9A9AA6' }}>
