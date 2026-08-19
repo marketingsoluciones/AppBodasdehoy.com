@@ -7,6 +7,9 @@ import { defaultImagenes } from "../Home/Card";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { EntityNotesSection } from "../Notes/EntityNotesSection";
+import FormCrearEvento from "../Forms/FormCrearEvento";
+import ModalLeft from "../Utils/ModalLeft";
+import { useDelayUnmount } from "../../utils/Funciones";
 
 /**
  * ResumenStudio — rediseño de la hoja de Resumen fiel al HTML "Resumen.dc.html".
@@ -21,9 +24,8 @@ export const ResumenStudio: FC = () => {
   const [openShare, setOpenShare] = useState(false);
   const [picker, setPicker] = useState<null | "color" | "temporada" | "estilo" | "tematica">(null);
   const [tematicaDraft, setTematicaDraft] = useState("");
-  const [editOpen, setEditOpen] = useState(false);
-  const [editName, setEditName] = useState("");
-  const [editDate, setEditDate] = useState("");
+  const [isMounted, setIsMounted] = useState(false);       // drawer FormCrearEvento (editar)
+  const shouldRenderChild = useDelayUnmount(isMounted, 500);
   // Checklist "Toca para completar" — arranca reflejando el estado real del evento;
   // al tocar alterna (mueve la barra de progreso). Toggle local (no persiste).
   const [stepsDone, setStepsDone] = useState<boolean[]>(() => {
@@ -179,7 +181,6 @@ export const ResumenStudio: FC = () => {
   ];
   const popover: React.CSSProperties = { background: "#fff", borderRadius: 14, boxShadow: "0 6px 22px rgba(0,0,0,.09)", padding: "24px 30px", marginBottom: 14, position: "relative", display: "flex", alignItems: "flex-start", flexWrap: "wrap", gap: "20px 30px", animation: "fadein .18s ease" };
   const closeX = <button onClick={() => setPicker(null)} style={{ position: "absolute", top: 12, right: 16, width: 26, height: 26, color: "#8a8a90", fontSize: 16, background: "none", border: "none", cursor: "pointer" }}>✕</button>;
-  const openEdit = () => { setEditName(event?.nombre || ""); setEditDate(fechaValida ? fechaObj!.toISOString().slice(0, 10) : ""); setEditOpen(true); };
 
   const dashBtn: React.CSSProperties = { alignSelf: "center", marginTop: "auto", height: 42, width: 160, padding: "0 18px", borderRadius: 11, background: "transparent", border: "1.5px dashed #F4A9C8", color: "#EF5B94", font: "600 12.5px Poppins", cursor: "pointer" };
 
@@ -211,7 +212,7 @@ export const ResumenStudio: FC = () => {
               <div onClick={() => isOwner && setOpenShare(true)} title="Compartir" style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", cursor: isOwner ? "pointer" : "default" }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg>
               </div>
-              <div onClick={() => isOwner && openEdit()} title="Editar evento" style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", opacity: isOwner ? 1 : .5, cursor: isOwner ? "pointer" : "default" }}>
+              <div onClick={() => isOwner && setIsMounted(true)} title="Editar evento" style={{ width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94", opacity: isOwner ? 1 : .5, cursor: isOwner ? "pointer" : "default" }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
               </div>
             </div>
@@ -248,7 +249,7 @@ export const ResumenStudio: FC = () => {
 
         {/* CHECKLIST: PASOS PARA COMPLETAR */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "2px 0", marginBottom: 16 }}>
-          <div style={{ font: "500 11px Poppins", color: "#a0a0a8", whiteSpace: "nowrap", flex: "none" }}>Toca para completar</div>
+          <div style={{ font: "500 11px Poppins", color: "#a0a0a8", whiteSpace: "nowrap", flex: "none" }}>Marca lo completado</div>
           <div className="rs-check" style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 8, flex: 1 }}>
             {steps.map((s, i) => {
               const active = i === firstPending;
@@ -481,25 +482,15 @@ export const ResumenStudio: FC = () => {
 
       </div>
 
-      {/* MODAL EDITAR EVENTO */}
-      {editOpen && (
-        <div onClick={() => setEditOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(43,43,48,.45)", zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: 460, maxWidth: "100%", background: "#fff", borderRadius: 18, boxShadow: "0 30px 70px rgba(0,0,0,.3)", padding: "24px 26px", animation: "fadein .2s ease" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <div style={{ font: "700 17px Poppins", color: "#3A3A42" }}>Editar evento</div>
-              <button onClick={() => setEditOpen(false)} style={{ width: 28, height: 28, borderRadius: 8, color: "#a0a0a8", fontSize: 17, background: "none", border: "none", cursor: "pointer" }}>✕</button>
-            </div>
-            <div style={{ font: "600 13px Poppins", color: "#EF5B94", marginBottom: 8 }}>Nombre del evento</div>
-            <input value={editName} onChange={(e) => setEditName(e.target.value)} style={{ width: "100%", border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "11px 15px", font: "500 13px Poppins", color: "#3A3A42", outline: "none", marginBottom: 16 }} />
-            <div style={{ font: "600 13px Poppins", color: "#EF5B94", marginBottom: 8 }}>Fecha del evento</div>
-            <input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} style={{ width: "100%", border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "11px 15px", font: "500 13px Poppins", color: "#3A3A42", outline: "none", marginBottom: 20 }} />
-            <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => setEditOpen(false)} style={{ flex: "none", padding: "12px 20px", borderRadius: 10, background: "#f7f7f9", color: "#6b6b72", font: "600 13px Poppins", border: "none", cursor: "pointer" }}>Cancelar</button>
-              <button onClick={async () => { const patch: any = { nombre: editName.trim() }; if (editDate) patch.fecha = new Date(`${editDate}T12:00:00`).getTime(); await saveField(patch); setEditOpen(false); }} style={{ flex: 1, padding: 12, borderRadius: 10, background: "#EF5B94", color: "#fff", font: "600 13px Poppins", border: "none", cursor: "pointer", boxShadow: "0 6px 16px rgba(239,91,148,.3)" }}>Guardar</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* EDITAR EVENTO — reusa el modal de Crear evento (FormCrearEvento) en modo edición.
+          Los cambios se guardan en el evento (eventUpdate + setEvent dentro del propio form). */}
+      <div className={`${!shouldRenderChild ? "hidden" : "fixed z-30 top-0 left-0"}`}>
+        {shouldRenderChild && (
+          <ModalLeft set={setIsMounted} state={isMounted} clickAwayListened={false} studio={true}>
+            <FormCrearEvento set={setIsMounted} state={isMounted} EditEvent={true} eventData={event} />
+          </ModalLeft>
+        )}
+      </div>
     </div>
   );
 };
