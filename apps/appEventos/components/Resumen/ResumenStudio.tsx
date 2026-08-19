@@ -6,7 +6,7 @@ import ModalCompartirEventoStudio from "../Utils/ModalCompartirEventoStudio";
 import { defaultImagenes } from "../Home/Card";
 import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
-import { EntityNotesSection } from "../Notes/EntityNotesSection";
+import StudioNotesSection from "../Presupuesto/StudioNotesSection";
 import FormCrearEvento from "../Forms/FormCrearEvento";
 import ModalLeft from "../Utils/ModalLeft";
 import { useDelayUnmount } from "../../utils/Funciones";
@@ -156,7 +156,7 @@ export const ResumenStudio: FC = () => {
     { name: "Invierno", color: "#29C2E0", paths: <><path d="M12 2v20M3.34 7l17.32 10M3.34 17L20.66 7" /><path d="M12 5.6l-2.2-2.2M12 5.6l2.2-2.2M12 18.4l-2.2 2.2M12 18.4l2.2 2.2M6.8 9l-2.9-.2M6.8 9l-.2-2.9M17.2 15l2.9 .2M17.2 15l.2 2.9M6.8 15l-.2 2.9M6.8 15l-2.9 .2M17.2 9l.2-2.9M17.2 9l2.9-.2" /></> },
     { name: "Primavera", color: "#4CA83D", paths: <><circle cx="12" cy="12" r="2.4" /><ellipse cx="12" cy="6" rx="2.5" ry="3.4" /><ellipse cx="12" cy="6" rx="2.5" ry="3.4" transform="rotate(60 12 12)" /><ellipse cx="12" cy="6" rx="2.5" ry="3.4" transform="rotate(120 12 12)" /><ellipse cx="12" cy="6" rx="2.5" ry="3.4" transform="rotate(180 12 12)" /><ellipse cx="12" cy="6" rx="2.5" ry="3.4" transform="rotate(240 12 12)" /><ellipse cx="12" cy="6" rx="2.5" ry="3.4" transform="rotate(300 12 12)" /></> },
     { name: "Verano", color: "#F2A81E", paths: <><circle cx="12" cy="12" r="4.2" /><path d="M12 2.4v2.3M12 19.3v2.3M2.4 12h2.3M19.3 12h2.3M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7" /></> },
-    { name: "Otoño", color: "#C77A2E", paths: <><path d="M12 2 L13.3 5.6 L16.6 4.5 L15.3 7.9 L19.2 7.6 L16.4 10.4 L20.2 11.9 L16 12.7 L17.9 16 L14.1 14.7 L13.8 18.6 L12 15.6 L10.2 18.6 L9.9 14.7 L6.1 16 L8 12.7 L3.8 11.9 L7.6 10.4 L4.8 7.6 L8.7 7.9 L7.4 4.5 L10.7 5.6 Z" /><path d="M12 15.6V22" /></> },
+    { name: "Otoño", color: "#8B5A2B", paths: <><path d="M12 2.6C11.7 5.4 11 6.6 9.7 7.3 8.2 6.2 6 6 4 6.7c.3 2.4 1.9 4.1 3.7 5-1 1-1.5 2.5-1.1 4.1 1.5.2 3.2-.4 4.4-1.7.4-.4.7-.8 1-1.3.3.5.6.9 1 1.3 1.2 1.3 2.9 1.9 4.4 1.7.4-1.6-.1-3.1-1.1-4.1 1.8-.9 3.4-2.6 3.7-5-2-.7-4.2-.5-5.7.6C13 6.6 12.3 5.4 12 2.6Z" /><path d="M12 22V9M12 12.4 6.5 8.5M12 12.4l5.5-4M12 12.4 8.5 14M12 12.4l3.5 1.6" /></> },
   ];
   const estiloOpts: { name: string; paths: ReactNode }[] = [
     { name: "Aire libre", paths: <><circle cx="9" cy="8" r="4" /><path d="M9 12v9M3 21h18M15 21v-5h5v5" /></> },
@@ -171,7 +171,7 @@ export const ResumenStudio: FC = () => {
     if (key === "color") return <div style={{ width: 30, height: 30, borderRadius: "50%", background: colorHex || "#e6e6ea", border: "2px solid #fff", boxShadow: "0 0 0 1.5px #e6e6ea" }} />;
     if (key === "temporada") return event?.temporada ? seasonIcon(event.temporada, 30) : <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#b3b3ba" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>;
     if (key === "estilo") return event?.estilo ? estiloIcon(event.estilo, 30) : <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#b3b3ba" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18M5 21V9l7-5 7 5v12" /></svg>;
-    return <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={event?.tematica ? "#EF5B94" : "#b3b3ba"} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l2.4 5.3 5.6.5-4.2 3.8 1.3 5.6L12 17l-5.1 2.5 1.3-5.6L4 10.3l5.6-.5z" /></svg>;
+    return null; // Temática: sin icono → el texto (nombre + valor) queda centrado en el círculo
   };
   const aspects = [
     { key: "color", name: "Color", value: colorVal || "Sin definir", has: !!colorVal },
@@ -477,7 +477,7 @@ export const ResumenStudio: FC = () => {
         {/* NOTAS INTERNAS */}
         <div style={{ marginTop: 22 }}>
           <div style={{ font: "600 16px Poppins", color: "#6b6b72", marginBottom: 14 }}>Notas internas</div>
-          <EntityNotesSection entityType="EVENTO" entityId={event._id} entityName={event.nombre || "Evento"} />
+          <StudioNotesSection entityType="EVENTO" entityId={event._id} entityName={event.nombre || "Evento"} />
         </div>
 
       </div>

@@ -4,7 +4,8 @@ import { EventContextProvider } from "../../context";
 import { useTranslation } from "react-i18next";
 
 // Notas internas fiel al HTML (Detalle_Categoria.html), reusando el backend real (useCRMNotes).
-interface Props { entityId: string; entityName: string; }
+// entityType por defecto "ENTITY" (categorías de Presupuesto); Resumen lo usa con "EVENTO".
+interface Props { entityId: string; entityName: string; entityType?: string; }
 
 const fmtFecha = (iso?: string) => {
   if (!iso) return "";
@@ -12,14 +13,15 @@ const fmtFecha = (iso?: string) => {
 };
 
 // Cuerpo (monta el hook solo cuando el acordeón está abierto → no fetch en cerrado).
-const NotesBody: FC<Props> = ({ entityId, entityName }) => {
+const NotesBody: FC<Props> = ({ entityId, entityName, entityType = "ENTITY" }) => {
   const { t } = useTranslation();
   const { event } = EventContextProvider() as any;
   const [text, setText] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const entity: any = { entityId, entityName, entityType: "ENTITY" };
-  const alsoShow: any = event?._id ? [{ entityId: event._id, entityName: event.nombre ?? "Evento", entityType: "EVENTO" }] : [];
+  const entity: any = { entityId, entityName, entityType };
+  // No duplicar el evento en alsoShow cuando la propia entidad YA es el EVENTO.
+  const alsoShow: any = (event?._id && entityType !== "EVENTO") ? [{ entityId: event._id, entityName: event.nombre ?? "Evento", entityType: "EVENTO" }] : [];
   const { notes, createNote, deleteNote } = useCRMNotes({ entity, alsoShow } as any);
 
   const save = async () => {
@@ -49,7 +51,7 @@ const NotesBody: FC<Props> = ({ entityId, entityName }) => {
           ))}
         </div>
       )}
-      <textarea className="sn-ta" value={text} onChange={(e) => setText(e.target.value)} placeholder={t("Escribe una nota interna sobre esta categoría…") as string} style={{ width: "100%", minHeight: 80, resize: "vertical", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #E7E7EA", font: "500 13px Poppins", color: "#3A3A42", outline: "none" }} />
+      <textarea className="sn-ta" value={text} onChange={(e) => setText(e.target.value)} placeholder={t(entityType === "EVENTO" ? "Escribe una nota interna sobre este evento…" : "Escribe una nota interna sobre esta categoría…") as string} style={{ width: "100%", minHeight: 80, resize: "vertical", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #E7E7EA", font: "500 13px Poppins", color: "#3A3A42", outline: "none" }} />
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
         <button className={canSave ? "sn-save" : ""} onClick={save} disabled={!canSave} style={{ background: canSave ? "#EF5B94" : "#c8c8ce", color: "#fff", border: "none", borderRadius: 12, padding: "10px 22px", font: "600 13px Poppins", cursor: canSave ? "pointer" : "default", whiteSpace: "nowrap" }}>{t("Guardar nota")}</button>
       </div>
@@ -57,7 +59,7 @@ const NotesBody: FC<Props> = ({ entityId, entityName }) => {
   );
 };
 
-export const StudioNotesSection: FC<Props> = ({ entityId, entityName }) => {
+export const StudioNotesSection: FC<Props> = ({ entityId, entityName, entityType }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   if (!entityId) return null;
@@ -68,7 +70,7 @@ export const StudioNotesSection: FC<Props> = ({ entityId, entityName }) => {
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? "rotate(90deg)" : "none", transition: "transform .18s" }}><path d="M9 6l6 6-6 6" /></svg>
         <span style={{ font: "600 16px Poppins", color: "#6b6b72" }}>{t("Notas internas")}</span>
       </div>
-      {open && <NotesBody entityId={entityId} entityName={entityName} />}
+      {open && <NotesBody entityId={entityId} entityName={entityName} entityType={entityType} />}
     </div>
   );
 };
