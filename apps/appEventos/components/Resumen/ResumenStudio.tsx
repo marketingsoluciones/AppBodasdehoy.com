@@ -477,9 +477,8 @@ export const ResumenStudio: FC = () => {
           </div>
         )}
 
-        {/* NOTAS INTERNAS */}
+        {/* NOTAS INTERNAS (el componente ya trae su propio título colapsable) */}
         <div style={{ marginTop: 22 }}>
-          <div style={{ font: "600 16px Poppins", color: "#6b6b72", marginBottom: 14 }}>Notas internas</div>
           <StudioNotesSection entityType="EVENTO" entityId={event._id} entityName={event.nombre || "Evento"} />
         </div>
 

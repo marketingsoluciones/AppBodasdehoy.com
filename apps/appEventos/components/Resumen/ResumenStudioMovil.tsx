@@ -41,7 +41,6 @@ const ResumenStudioMovil: FC = () => {
   const [openShare, setOpenShare] = useState(false);
   const [isMounted, setIsMounted] = useState(false);   // drawer editar evento
   const shouldRenderChild = useDelayUnmount(isMounted, 500);
-  const [notasOpen, setNotasOpen] = useState(false);
   const [lugarOpen, setLugarOpen] = useState(false);
 
   const inv: any[] = event?.invitados_array || [];
@@ -259,13 +258,9 @@ const ResumenStudioMovil: FC = () => {
           <button onClick={() => router.push("/momentos")} style={{ flex: "none", height: 36, padding: "0 14px", borderRadius: 10, background: "transparent", border: DASH, color: "#EF5B94", font: "600 11.5px Poppins", whiteSpace: "nowrap", cursor: "pointer" }}>{albumes > 0 ? "Ver álbumes" : "Crear álbum"}</button>
         </div>
 
-        {/* NOTAS INTERNAS (colapsable, backend real StudioNotesSection) */}
-        <div onClick={() => setNotasOpen((v) => !v)} style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer", margin: "0 2px 16px" }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" style={{ transition: "transform .18s", transform: notasOpen ? "rotate(90deg)" : "none" }}><path d="M9 6l6 6-6 6" /></svg>
-          <span style={{ font: "600 15px Poppins", color: "#6b6b72" }}>Notas internas</span>
-        </div>
-        {notasOpen && event?._id && (
-          <div style={{ marginBottom: 16, animation: "fadein .18s ease" }}>
+        {/* NOTAS INTERNAS (el propio componente ya es colapsable con su título + backend real) */}
+        {event?._id && (
+          <div style={{ marginBottom: 16 }}>
             <StudioNotesSection entityType="EVENTO" entityId={event._id} entityName={event.nombre || "Evento"} />
           </div>
         )}
