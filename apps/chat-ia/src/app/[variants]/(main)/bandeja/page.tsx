@@ -4,7 +4,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { BandejaTabs, useActiveBandejaTab } from './components/BandejaTabs';
-import { ChannelSidebar } from './components/ChannelSidebar';
 import { InboxFilters, type ChannelFilter, type RsvpFilter } from './components/InboxFilters';
 import { ScopeSelector, type ScopeId } from './components/ScopeSelector';
 import { UnifiedFeedView } from './components/UnifiedFeedView';
@@ -255,14 +254,14 @@ export default function MessagesPage() {
 
   return (
     <>
-      {/* Mobile: ChannelSidebar ocupa todo el ancho (el layout lo oculta en desktop) */}
-      <div className="flex flex-1 flex-col overflow-hidden md:hidden">
-        <ChannelSidebar />
-      </div>
-
-      {/* Desktop: tabs Bandeja / Historial + feed por tab. La tab "Conversaciones"
-          (redirigía a /asistente, ya en el sidebar) se retiró — QA H-4. */}
-      <div className="hidden flex-1 flex-col overflow-hidden md:flex">
+      {/* Unificación bandeja (owner 20-ago, opción B): UNA sola bandeja (tabs + filtros +
+          UnifiedFeedView) en TODOS los tamaños. Antes el móvil usaba ChannelSidebar (otra
+          implementación distinta) → "dos bandejas según viewport" (hallazgo QA). El
+          ScopeSelector da scope por evento OPCIONAL (default "Soporte" = sin evento
+          seleccionado) → cumple: se puede usar sin seleccionar evento/proyecto. La lista es
+          full-width en móvil; el panel de detalle (empty state) se oculta en móvil (al tocar
+          una conversación se navega a su ruta de detalle a pantalla completa). */}
+      <div className="flex flex-1 flex-col overflow-hidden">
         {/* Tabs FASE B v2.0 Diseño 24-jun */}
         <BandejaTabs
           active={activeTab}
@@ -270,7 +269,7 @@ export default function MessagesPage() {
         />
         <div className="flex flex-1 overflow-hidden">
           <div
-            className="flex w-[300px] shrink-0 flex-col overflow-hidden"
+            className="flex w-full shrink-0 flex-col overflow-hidden md:w-[300px]"
             style={{ backgroundColor: '#FFFFFF', borderRight: '1px solid #EDEDF0' }}
           >
             {/* FASE B (14-ago): cabecera de la vista "Esperan respuesta" (?view=esperan,
@@ -358,8 +357,9 @@ export default function MessagesPage() {
               />
             </div>
           </div>
-          {/* Panel principal — empty state según tab */}
-          <div className="flex flex-1 flex-col items-center justify-center bg-gray-50 px-6 text-center">
+          {/* Panel principal — empty state según tab. Oculto en móvil (la lista va full-width;
+              al tocar una conversación se navega a su ruta de detalle a pantalla completa). */}
+          <div className="hidden flex-1 flex-col items-center justify-center bg-gray-50 px-6 text-center md:flex">
             <div className="max-w-md">
               {activeTab === 'history' ? (
                 <>

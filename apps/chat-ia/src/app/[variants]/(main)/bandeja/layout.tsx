@@ -10,7 +10,6 @@ import { useUserStore } from '@/store/user';
 import { authSelectors } from '@/store/user/selectors';
 
 import { useBandejaBrand } from './utils/brand';
-import { ChannelSidebar } from './components/ChannelSidebar';
 import { MessagesRail } from './components/MessagesRail';
 import { BottomNavBar } from './components/BottomNavBar';
 import { useActiveBandejaTab } from './components/BandejaTabs';
@@ -169,10 +168,10 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
         {/* Rail 54px FASE B v2.0 Diseño 25-jun — solo desktop ≥1024px.
             Iconos avatar + Conversaciones + Bandeja + Historial + badge plan. */}
         <MessagesRail />
-        {/* Panel izquierdo persistente — tipo WhatsApp/Slack — solo desktop md..lg */}
-        <div className="hidden md:flex md:w-80 md:shrink-0 md:flex-col md:border-r md:border-gray-200 lg:hidden">
-          <ChannelSidebar compact />
-        </div>
+        {/* Unificación bandeja (owner 20-ago, opción B): se RETIRA el panel compact
+            ChannelSidebar (tablet md..lg). Antes convivía con el UnifiedFeedView del page
+            en tablet = "dos bandejas" a la vez. Ahora una sola bandeja (UnifiedFeedView del
+            page) en todos los tamaños. */}
         {/* Panel derecho: contenido específico de cada ruta */}
         <div className="flex flex-1 overflow-hidden">
           {children}
