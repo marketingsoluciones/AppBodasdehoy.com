@@ -1,11 +1,19 @@
 'use client';
 
 import { App, Spin } from 'antd';
-import { memo, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { memo, useEffect } from 'react';
 import { MemoryRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { Center } from 'react-layout-kit';
 import dynamic from 'next/dynamic';
+
+// ISSUE-005 (informe dogfood 20-ago): /knowledge salía "shell vacío" a usuarios
+// logueados. Causa: el guard propio (useRequireRegisteredUser) decidía acceso leyendo
+// `dev-user-config` de localStorage — clave LEGACY de dev-login que un usuario Bodas por
+// SSO/JWT NO tiene → caía a no-registrado → Spin/redirect infinito. Reusamos el gate
+// CANÓNICO de la misma sección Biblioteca (/files): useDomainGuestUser + isPreferenceInit,
+// sin redirect. Registrados ven Conocimiento completo (bases RAG + archivos); invitados,
+// el muro claro con CTA de login. Coherente con la pestaña "Archivos".
+import FileGuestGate from '../files/(content)/FileGuestGate';
 
 // ✅ OPTIMIZACIÓN: Lazy loading de páginas para reducir bundle inicial
 const KnowledgeBaseDetailPage = dynamic(() => import('./routes/KnowledgeBaseDetail'), {
@@ -22,78 +30,6 @@ const KnowledgeHomePage = dynamic(() => import('./routes/KnowledgeHome'), {
   loading: () => <Center style={{ height: '100%' }}><Spin size="large" /></Center>,
   ssr: false,
 });
-
-/**
- * Hook para verificar si el usuario está logueado
- * Funcionalidad premium - disponible para usuarios con sesión activa
- * ✅ CORREGIDO: Acepta cualquier usuario logueado (no solo "registered" de API2)
- */
-function useRequireRegisteredUser() {
-  const router = useRouter();
-  const [isChecking, setIsChecking] = useState(true);
-  const [isRegistered, setIsRegistered] = useState(false);
-
-  useEffect(() => {
-    // ✅ OPTIMIZACIÓN: Deferir verificación para no bloquear render inicial
-    const checkAuth = () => {
-      try {
-        const rawConfig = localStorage.getItem('dev-user-config');
-
-        if (!rawConfig) {
-          router.replace('/asistente');
-          setIsChecking(false);
-          return;
-        }
-
-        // ✅ FIX: Manejo robusto de parsing JSON
-        let config;
-        try {
-          if (!rawConfig.trim().startsWith('{') && !rawConfig.trim().startsWith('[')) {
-            throw new Error('Raw config is not valid JSON');
-          }
-          config = JSON.parse(rawConfig);
-        } catch (parseError) {
-          console.warn('⚠️ Error parseando rawConfig en knowledge:', parseError);
-          config = null;
-        }
-        // NOTA: dev-login guarda como "userId" (camelCase), no "user_id"
-        const userId = config?.userId || config?.user_id;
-
-        // ✅ CORREGIDO: Aceptar cualquier userId válido (email, teléfono, etc.)
-        // Excluir solo valores genéricos de invitado
-        const isValidUser = !!(
-          userId &&
-          userId !== 'guest' &&
-          userId !== 'anonymous' &&
-          userId !== '' &&
-          userId !== 'visitante@guest.local'
-        );
-
-        if (!isValidUser) {
-          router.replace('/asistente');
-          setIsChecking(false);
-          return;
-        }
-
-        setIsRegistered(true);
-      } catch (error) {
-        console.error('❌ KnowledgeRouter: Error verificando acceso:', error);
-        router.replace('/asistente');
-      } finally {
-        setIsChecking(false);
-      }
-    };
-
-    // ✅ Deferir verificación para permitir render inicial más rápido
-    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-      requestIdleCallback(checkAuth, { timeout: 100 });
-    } else {
-      setTimeout(checkAuth, 0);
-    }
-  }, [router]);
-
-  return { isChecking, isRegistered };
-}
 
 // Get initial path from URL
 const getInitialPath = () => {
@@ -137,43 +73,27 @@ const UrlSynchronizer = () => {
  * - /bases/:id → Knowledge base detail (file list for specific base)
  */
 const KnowledgeRouter = memo(() => {
-  const { isChecking, isRegistered } = useRequireRegisteredUser();
-
-  // Show loading while checking auth
-  if (isChecking) {
-    return (
-      <Center style={{ height: '100%', width: '100%' }}>
-        <Spin size="large" />
-      </Center>
-    );
-  }
-
-  // Only render if registered (redirect happens in hook)
-  if (!isRegistered) {
-    return (
-      <Center style={{ height: '100%', width: '100%' }}>
-        <Spin size="large" />
-      </Center>
-    );
-  }
-
+  // Gate CANÓNICO de Biblioteca (mismo que /files): registrados ven todo; invitados, el
+  // muro con CTA de login; durante el arranque de auth, un loader (sin falso-negativo).
   return (
-    <App style={{ display: 'flex', flex: 1, height: '100%' }}>
-      <MemoryRouter initialEntries={[getInitialPath()]} initialIndex={0}>
-        <UrlSynchronizer />
-        <Routes>
-          {/* Knowledge home - file list page */}
-          <Route element={<KnowledgeHomePage />} path="/" />
+    <FileGuestGate>
+      <App style={{ display: 'flex', flex: 1, height: '100%' }}>
+        <MemoryRouter initialEntries={[getInitialPath()]} initialIndex={0}>
+          <UrlSynchronizer />
+          <Routes>
+            {/* Knowledge home - file list page */}
+            <Route element={<KnowledgeHomePage />} path="/" />
 
-          {/* Knowledge bases routes */}
-          <Route element={<KnowledgeBasesListPage />} path="/bases" />
-          <Route element={<KnowledgeBaseDetailPage />} path="/bases/:id" />
+            {/* Knowledge bases routes */}
+            <Route element={<KnowledgeBasesListPage />} path="/bases" />
+            <Route element={<KnowledgeBaseDetailPage />} path="/bases/:id" />
 
-          {/* Fallback */}
-          <Route element={<Navigate replace to="/" />} path="*" />
-        </Routes>
-      </MemoryRouter>
-    </App>
+            {/* Fallback */}
+            <Route element={<Navigate replace to="/" />} path="*" />
+          </Routes>
+        </MemoryRouter>
+      </App>
+    </FileGuestGate>
   );
 });
 
