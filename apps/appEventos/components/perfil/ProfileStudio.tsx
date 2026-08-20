@@ -98,7 +98,7 @@ const ProfileStudio: FC = () => {
 
   return (
     <div style={{ width: "100%", maxWidth: 1160, margin: "0 auto", padding: "32px 20px 60px", fontFamily: "'Poppins',sans-serif" }}>
-      <style dangerouslySetInnerHTML={{ __html: ".ps-in:focus{border-color:#EF5B94!important;}" }} />
+      <style dangerouslySetInnerHTML={{ __html: ".ps-in:focus{border-color:#EF5B94!important;}.ps-pwlbl-m{display:none;}@media (max-width:767px){.ps-grid{grid-template-columns:1fr!important;gap:16px!important;}.ps-acc{grid-template-columns:1fr!important;}.ps-pw{grid-template-columns:1fr!important;align-items:stretch!important;}.ps-pw>button{width:100%!important;}.ps-grid>section,.ps-grid section{padding:22px 20px!important;}.ps-pwlbl-d{display:none!important;}.ps-pwlbl-m{display:inline!important;}}" }} />
       <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={onPhoto} />
 
       <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 24, alignItems: "start" }} className="ps-grid">
@@ -175,7 +175,7 @@ const ProfileStudio: FC = () => {
                   <button onClick={() => setPwVis((v) => !v)} title={t("Mostrar")} style={{ width: 36, height: 36, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", cursor: "pointer" }}>{eye(pwVis)}</button>
                 </div>
               </div>
-              <button onClick={() => pwEdit ? savePw() : (setPwEdit(true), setPwVis(false))} style={editBtn(pwEdit)}>{pwEdit ? t("Guardar") : t("Editar")}</button>
+              <button onClick={() => pwEdit ? savePw() : (setPwEdit(true), setPwVis(false))} style={editBtn(pwEdit)}><span className="ps-pwlbl-d">{pwEdit ? t("Guardar") : t("Editar")}</span><span className="ps-pwlbl-m">{pwEdit ? t("Guardar cambios") : t("Editar contraseña")}</span></button>
             </div>
           </section>
         </div>
