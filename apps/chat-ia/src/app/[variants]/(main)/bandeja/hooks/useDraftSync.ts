@@ -97,6 +97,29 @@ export async function approveDraft(conversationId: string): Promise<boolean> {
 }
 
 /**
+ * FASE 4 Copilot (20-ago): "Resumir conversación" para el agente. Endpoint LIVE en api-ia
+ * (verificado: {success, summary, model:gemini-2.5-flash}). NO persiste como draft (es
+ * lectura, no una respuesta al cliente). Best-effort: devuelve {summary} o null sin lanzar.
+ */
+export async function generateSummary(
+  conversationId: string,
+  opts?: { instructions?: string; lastN?: number },
+): Promise<{ model?: string; summary: string } | null> {
+  try {
+    const res = await fetch(
+      `/api/messages/conversations/${encodeURIComponent(conversationId)}/summary`,
+      { body: JSON.stringify(opts ?? {}), headers: buildHeaders(), method: 'POST' },
+    );
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (json && typeof json.summary === 'string') return { model: json.model, summary: json.summary };
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * FASE 4 Copilot (18-ago): genera una respuesta IA sugerida para la conversación.
  * Endpoint cableado por api-ia (07-ago, "os pido cablear un botón Sugerir respuesta"):
  *   POST /api/messages/conversations/{id}/draft/generate

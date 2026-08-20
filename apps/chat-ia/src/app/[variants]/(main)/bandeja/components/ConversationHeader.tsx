@@ -5,6 +5,7 @@ import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useConversations } from '../hooks/useConversations';
 import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
+import { generateSummary } from '../hooks/useDraftSync';
 import { ChannelBadge } from './ChannelBadge';
 import { useBandejaBrand } from '../utils/brand';
 import { dedupeFetch } from '../utils/dedupeFetch';
@@ -49,6 +50,20 @@ export function ConversationHeader({
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  // FASE 4 Copilot (20-ago): "Resumir conversación" — resumen IA read-only (endpoint api-ia
+  // /summary LIVE). NO es un borrador de respuesta: solo para que el agente se ponga al día.
+  const [summary, setSummary] = useState<{ model?: string; summary: string } | null>(null);
+  const [summarizing, setSummarizing] = useState(false);
+  const handleSummarize = async () => {
+    if (summarizing || !conversationId) return;
+    setSummarizing(true);
+    try {
+      const s = await generateSummary(conversationId);
+      setSummary(s);
+    } finally {
+      setSummarizing(false);
+    }
+  };
   // FASE B v2.0: nivel IA por workspace (Diseño P2: scope workspace).
   // Persistencia api-ia (commit 9080fe9):
   //   GET  /api/messages/workspace/{dev}/ia-config
@@ -314,6 +329,21 @@ export function ConversationHeader({
             </button>
           </div>
 
+          {/* FASE 4 (20-ago): Resumir conversación (IA) — panel read-only bajo la cabecera.
+              Endpoint /summary de api-ia LIVE. NO es borrador de respuesta. */}
+          <button
+            aria-label="Resumir conversación"
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition-colors disabled:opacity-60"
+            disabled={summarizing}
+            onClick={handleSummarize}
+            style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
+            title="Resumen IA de la conversación (para ponerte al día)"
+            type="button"
+          >
+            <span aria-hidden="true">{summarizing ? '⏳' : '✦'}</span>
+            {summarizing ? 'Resumiendo…' : 'Resumir'}
+          </button>
+
           {/* Botón búsqueda con Lucide SVG (antes emoji 🔍) */}
           <button
             aria-label="Buscar en conversación"
@@ -486,6 +516,34 @@ export function ConversationHeader({
           </div>
         </div>
       </div>
+
+      {/* FASE 4 (20-ago): panel de RESUMEN IA (read-only). Aparece bajo la cabecera al pulsar
+          "✦ Resumir". Es lectura para el agente (ponerse al día), NO un borrador de respuesta. */}
+      {summary && (
+        <div
+          className="flex items-start gap-2 px-4 py-2"
+          style={{ borderTop: '1px solid #EDEDF0', backgroundColor: '#F6F4FB' }}
+        >
+          <span aria-hidden="true" className="mt-0.5 text-sm">✦</span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold" style={{ color: '#6B4EFF' }}>
+              Resumen del asistente {summary.model ? `(${summary.model})` : ''}
+            </p>
+            <p className="mt-0.5 whitespace-pre-wrap text-xs" style={{ color: '#1C1C22' }}>
+              {summary.summary}
+            </p>
+          </div>
+          <button
+            aria-label="Cerrar resumen"
+            className="shrink-0 rounded-md px-2 py-0.5 text-[11px] font-semibold"
+            onClick={() => setSummary(null)}
+            style={{ color: '#84848F' }}
+            type="button"
+          >
+            Cerrar
+          </button>
+        </div>
+      )}
 
       {/* Inline search bar rediseñada con tokens del sistema */}
       {searchOpen && (
