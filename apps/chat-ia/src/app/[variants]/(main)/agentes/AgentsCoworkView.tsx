@@ -32,10 +32,11 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
 import { useSwitchSession } from '@/hooks/useSwitchSession';
 import { useAgentStore } from '@/store/agent';
 import { useSessionStore } from '@/store/session';
-import { sessionMetaSelectors, sessionSelectors } from '@/store/session/selectors';
+import { sessionSelectors } from '@/store/session/selectors';
 import { LobeSessionType, type LobeAgentSession } from '@/types/session';
 
 import { MessagesRail } from '../bandeja/components/MessagesRail';
@@ -117,6 +118,25 @@ function agentInitial(title: string | undefined): string {
   return trimmed ? trimmed[0]!.toUpperCase() : '✦';
 }
 
+// ISSUE-003 (informe dogfood 20-ago): muchos agentes se crean SIN meta.title →
+// getTitle caía a "Nueva conversación" para TODOS → 14 agentes indistinguibles en
+// /agentes ("imposible saber cuál hizo qué"). Derivamos un nombre estable y
+// distinguible: título real → descripción → 1ª frase de la instrucción (systemRole)
+// → "Agente {id corto}". Los agentes CON título siguen coherentes con /asistente
+// (rama `title`); los SIN título ganan identidad operativa en vez de repetir el default.
+function agentDisplayName(agent: LobeAgentSession): string {
+  const title = agent.meta?.title?.trim();
+  if (title) return title;
+  const desc = agent.meta?.description?.trim();
+  if (desc) return desc.length > 42 ? `${desc.slice(0, 42)}…` : desc;
+  const role = agent.config?.systemRole?.trim();
+  if (role) {
+    const firstLine = role.split(/[\n.]/)[0]?.trim() ?? '';
+    if (firstLine) return firstLine.length > 42 ? `${firstLine.slice(0, 42)}…` : firstLine;
+  }
+  return `Agente ${agent.id.slice(0, 6)}`;
+}
+
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md px-3 py-2" style={{ backgroundColor: '#F2F1F6' }}>
@@ -178,6 +198,13 @@ export default function AgentesPage() {
   // Renderizamos el placeholder hasta `mounted` para garantizar HTML SSR == 1er render cliente.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  // ISSUE-001 (informe dogfood 20-ago): a un invitado, /agentes le mostraba "Aún no
+  // tienes agentes creados" (implica logueado-y-vacío) en vez de pedir login → confuso
+  // ("¿está roto? ¿modo visitante?"). Distinguimos invitado de logueado-sin-agentes en
+  // el estado vacío. NO redirigimos (useDomainGuestUser tiene ventana transitoria
+  // post-mount → un redirect rebotaría a logueados a /login). Ver estado vacío abajo.
+  const isGuest = useDomainGuestUser();
 
   // Estado local (disabled + channels) por agente — memoria hasta backend.
   const [localStates, setLocalStates] = useState<Record<string, LocalAgentState>>({});
@@ -406,6 +433,9 @@ export default function AgentesPage() {
   }
 
   if (agentSessions.length === 0) {
+    // ISSUE-001: distinguir INVITADO (necesita login) de LOGUEADO-SIN-AGENTES. Antes ambos
+    // veían "Aún no tienes agentes creados" → a un invitado le implicaba estar logueado y
+    // vacío (confuso). Ahora el invitado ve un CTA de login contextual y claro.
     return (
       <div className="flex h-full" style={{ backgroundColor: '#FFFFFF' }}>
         <MessagesRail />
@@ -415,21 +445,22 @@ export default function AgentesPage() {
               className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full text-2xl font-semibold"
               style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
             >
-              ✦
+              {isGuest ? '🔒' : '✦'}
             </div>
             <p className="text-lg font-semibold" style={{ color: '#1C1C22' }}>
-              Aún no tienes agentes creados
+              {isGuest ? 'Inicia sesión para ver tus agentes' : 'Aún no tienes agentes creados'}
             </p>
             <p className="mt-2 text-sm" style={{ color: '#84848F' }}>
-              Crea tu primer agente en Copilot para atender conversaciones por WhatsApp,
-              Instagram, Facebook y otros canales de forma automática.
+              {isGuest
+                ? 'Tus agentes atienden conversaciones por WhatsApp, Instagram, Facebook y otros canales. Inicia sesión para gestionarlos.'
+                : 'Crea tu primer agente en Copilot para atender conversaciones por WhatsApp, Instagram, Facebook y otros canales de forma automática.'}
             </p>
             <a
               className="mt-4 inline-block rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
-              href="/asistente"
+              href={isGuest ? '/login?redirect=/agentes' : '/asistente'}
               style={{ backgroundColor: '#1C1C22' }}
             >
-              Ir a Copilot
+              {isGuest ? 'Iniciar sesión' : 'Ir a Copilot'}
             </a>
           </div>
         </div>
@@ -465,12 +496,12 @@ export default function AgentesPage() {
           {agentSessions.map((agent) => {
             const isSelected = agent.id === selectedId;
             const disabled = !!localStates[agent.id]?.disabled;
-            // Coherencia Agentes↔Sesiones (owner 20-ago): mismo fallback de nombre que
-            // /asistente (sessionMetaSelectors.getTitle) → un agente sin título se llama
-            // IGUAL en las dos vistas (antes: /agentes "Sin nombre" vs /asistente otro).
-            const title = sessionMetaSelectors.getTitle(agent.meta);
+            // Nombre distinguible (ISSUE-003): título real, o derivado de descripción/
+            // instrucción/id corto → nunca 14× "Nueva conversación". Coherente con
+            // /asistente para agentes con título.
+            const title = agentDisplayName(agent);
             const description = agent.meta.description ?? '';
-            const avatar = agent.meta.avatar || agentInitial(agent.meta.title);
+            const avatar = agent.meta.avatar || agentInitial(title);
             return (
               <button
                 aria-current={isSelected}
@@ -572,7 +603,7 @@ export default function AgentesPage() {
                   }}
                 >
                   {(() => {
-                    const av = selected.meta.avatar || agentInitial(selected.meta.title);
+                    const av = selected.meta.avatar || agentInitial(agentDisplayName(selected));
                     return av.startsWith('http') || av.startsWith('data:') ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img alt="" className="h-full w-full object-cover" src={av} />
@@ -584,7 +615,7 @@ export default function AgentesPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold" style={{ color: '#1C1C22' }}>
-                      {sessionMetaSelectors.getTitle(selected.meta)}
+                      {agentDisplayName(selected)}
                     </h2>
                     <span
                       className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
@@ -847,11 +878,13 @@ export default function AgentesPage() {
               </div>
               )}
 
-              {/* Nota al pie */}
+              {/* Nota al pie. ISSUE-004 (informe dogfood 20-ago): la nota anterior exponía
+                  estado interno ("se activarán cuando backend confirme shapes") — ya obsoleto:
+                  métricas y asignación de canales están cableadas (api-ia, 23-jul) y el
+                  responsable por conversación desplegado (api-mcp). Nota neutra y de usuario. */}
               <p className="text-center text-[11px] italic" style={{ color: '#9A9AA6' }}>
-                Instrucciones y datos del agente ({selected.meta.title ?? 'agente'}) guardados en la
-                nube. Rendimiento, asignación de canales y feed en tiempo real se activarán cuando
-                backend confirme shapes (Slack ts 1784383734).
+                Las instrucciones y la configuración de {agentDisplayName(selected)} se guardan en
+                la nube y se aplican a todas sus conversaciones.
               </p>
             </div>
           </div>

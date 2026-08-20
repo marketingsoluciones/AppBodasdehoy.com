@@ -30,6 +30,9 @@ export interface FeedItem {
   /** 'conv-{channelParam}-{conversationId}' or 'notif-{notificationId}' */
   id: string;
   isRead: boolean;
+  /** api-mcp jidType (user|group|newsletter|broadcast). One-way (informativo) si
+   *  newsletter/broadcast → la lista pinta un tag "Informativo" (ISSUE-002 dogfood 20-ago). */
+  jidType?: string | null;
   kind: FeedItemKind;
   /** Contact name or notification type label */
   name: string;

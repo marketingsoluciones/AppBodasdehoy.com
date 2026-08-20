@@ -51,6 +51,12 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
   const channelKey = item.channelKind as string;
   const cfg = FEED_CHANNEL_CONFIG[channelKey] ?? FEED_CHANNEL_CONFIG.web;
   const hasUnread = item.unreadCount > 0 || !item.isRead;
+  // ISSUE-002 (dogfood 20-ago): items newsletter/broadcast (status de WhatsApp, canales
+  // informativos) NO admiten respuesta — al abrirlos el composer solo deja "nota interna".
+  // Antes parecían conversaciones WA normales en la lista → el operador abría a ciegas.
+  // Tag "Informativo" en la fila para saberlo ANTES de abrir. (Solo se ven si el usuario
+  // activa "Ver newsletters/estados"; por defecto están filtrados.)
+  const isOneWay = item.jidType === 'newsletter' || item.jidType === 'broadcast';
 
   let rowBg = 'bg-white hover:bg-gray-50';
   if (!item.isRead && item.kind === 'notification') rowBg = 'bg-pink-50/60 hover:bg-pink-50';
@@ -116,6 +122,14 @@ function FeedItemRow({ item, onClick }: { item: FeedItem; onClick: () => void })
           >
             {item.name}
           </span>
+          {isOneWay && (
+            <span
+              className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-gray-500"
+              title="Canal informativo (newsletter/estado): no admite respuesta"
+            >
+              Informativo
+            </span>
+          )}
           <span className="shrink-0 text-xs text-gray-400">{timeAgo(item.timestamp)}</span>
         </div>
         <p className="truncate text-xs text-gray-500">{item.preview}</p>
