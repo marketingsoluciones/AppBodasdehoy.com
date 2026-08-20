@@ -10,6 +10,27 @@ import { ScopeSelector, type ScopeId } from './components/ScopeSelector';
 import { UnifiedFeedView } from './components/UnifiedFeedView';
 import { type FeedItem, useUnifiedFeed } from './hooks/useUnifiedFeed';
 
+// RESTAURA la categorización de la antigua /pendientes (auditoría 20-ago: se perdió al
+// fusionarla en "Esperan respuesta" como lista plana). Replica exacta de su
+// SECTION_META + classifyNotification, aplicada como agrupación de la vista ?view=esperan.
+const PENDING_GROUPS: { color: string; icon: string; key: string; label: string }[] = [
+  { color: '#22C55E', icon: '💬', key: 'conversation_externa', label: 'Mensajería' },
+  { color: '#A855F7', icon: '🤖', key: 'chat_ia', label: 'Asistente' },
+  { color: '#F59E0B', icon: '📋', key: 'service_comment', label: 'Servicios' },
+  { color: '#3B82F6', icon: '📅', key: 'itinerary_comment', label: 'Itinerario' },
+  { color: '#6B7280', icon: '🔔', key: 'notification_otra', label: 'Otras' },
+];
+function classifyPendingItem(item: FeedItem): string {
+  if (item.kind === 'conversation') return 'conversation_externa';
+  const type = item.notifType;
+  if (!type) return 'notification_otra';
+  if (type === 'whatsapp_message') return 'conversation_externa';
+  if (type.startsWith('service_') || type === 'task_reminder') return 'service_comment';
+  if (type.startsWith('itinerary_')) return 'itinerary_comment';
+  if (type.startsWith('chat_ia') || type === 'agent_completed') return 'chat_ia';
+  return 'notification_otra';
+}
+
 // El guard de auth vive en el layout hermano (messages/layout.tsx): valida
 // con ventana de gracia y hace router.replace('/login?redirect=/bandeja').
 // Cualquier código que llegue a este page.tsx ya pasó ese filtro, por eso
@@ -329,6 +350,8 @@ export default function MessagesPage() {
             )}
             <div className="min-h-0 flex-1 overflow-hidden">
               <UnifiedFeedView
+                groupBy={esperanOnly ? classifyPendingItem : undefined}
+                groups={esperanOnly ? PENDING_GROUPS : undefined}
                 items={filteredItems}
                 loading={loading}
                 onItemClick={handleItemClick}

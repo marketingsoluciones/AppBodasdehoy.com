@@ -169,15 +169,26 @@ function FeedSkeleton() {
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
+interface FeedGroup {
+  color: string;
+  icon: string;
+  key: string;
+  label: string;
+}
 interface UnifiedFeedViewProps {
   items: FeedItem[];
   loading: boolean;
   onItemClick: (item: FeedItem) => void;
+  /** Vista "Esperan respuesta" (restaura la categorización de la antigua /pendientes,
+   *  auditoría 20-ago): si se pasan groupBy+groups, renderiza secciones con cabecera por
+   *  dominio (Mensajería/Servicios/Itinerario/Asistente/Otras) en vez de lista plana. */
+  groupBy?: (item: FeedItem) => string;
+  groups?: FeedGroup[];
 }
 
 // ─── Main component ──────────────────────────────────────────────────────────
 
-export function UnifiedFeedView({ items, loading, onItemClick }: UnifiedFeedViewProps) {
+export function UnifiedFeedView({ items, loading, onItemClick, groupBy, groups }: UnifiedFeedViewProps) {
   const brand = useBandejaBrand();
   const router = useRouter();
   const [search, setSearch] = useState('');
@@ -273,6 +284,30 @@ export function UnifiedFeedView({ items, loading, onItemClick }: UnifiedFeedView
             >
               Conectar canal
             </button>
+          </div>
+        ) : groupBy && groups ? (
+          // Vista "Esperan respuesta" agrupada por dominio (no virtualizado: los no-leídos
+          // son un nº acotado). Restaura la categorización de la antigua /pendientes.
+          <div className="h-full overflow-auto">
+            {groups.map((g) => {
+              const groupItems = filteredItems.filter((it) => groupBy(it) === g.key);
+              if (groupItems.length === 0) return null;
+              return (
+                <div key={g.key}>
+                  <div
+                    className="sticky top-0 z-[1] flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide"
+                    style={{ color: g.color }}
+                  >
+                    <span aria-hidden="true">{g.icon}</span>
+                    <span>{g.label}</span>
+                    <span className="text-gray-400">{groupItems.length}</span>
+                  </div>
+                  {groupItems.map((it) => (
+                    <FeedItemRow item={it} key={it.id} onClick={() => onItemClick(it)} />
+                  ))}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <Virtuoso

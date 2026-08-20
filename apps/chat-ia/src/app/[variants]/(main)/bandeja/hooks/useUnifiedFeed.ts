@@ -37,6 +37,9 @@ export interface FeedItem {
   navigationUrl?: string;
   /** null for conversations */
   notificationId: string | null;
+  /** Tipo crudo de la notificación (service_comment, itinerary_*, whatsapp_message…)
+   *  para clasificar por dominio en la vista "Esperan respuesta". undefined en conversaciones. */
+  notifType?: string;
   /** Last message preview or notification message */
   preview: string;
   /** ISO string for sorting and display */
@@ -245,6 +248,7 @@ export function useUnifiedFeed(maxItems = 60): {
       kind: 'notification' as const,
       name: typeInfo ? `${typeInfo.icon} ${typeInfo.label}` : (n.type ?? 'Notificación'),
       navigationUrl: computeNotificationUrl(n) ?? undefined,
+      notifType: n.type ?? undefined,
       notificationId: n.id,
       preview: n.message,
       timestamp: n.createdAt,
