@@ -1,7 +1,7 @@
 'use client';
 
 import { ActionIcon, ActionIconProps, Hotkey } from '@lobehub/ui';
-import { BookOpen, Bot, Compass, FolderOpen, Heart, ImagePlus, Images, Inbox, ListChecks, MessageSquare, ShieldCheck } from 'lucide-react';
+import { BookOpen, Bot, Compass, FolderOpen, Heart, ImagePlus, Images, Inbox, MessageSquare, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { memo, useEffect, useState } from 'react';
@@ -138,44 +138,12 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           </div>
         </Link>
       )}
-      {/* 3) Pendientes — atajo "Esperan respuesta" DENTRO de la Bandeja (?view=esperan);
-          se coloca junto a Bandeja porque es una vista filtrada, no un módulo aparte.
-          La ruta /pendientes redirige aquí. */}
-      {isServerMode && isLoggedIn && (
-        <Link aria-label="Pendientes" href={'/bandeja?view=esperan'} suppressHydrationWarning>
-          <div style={{ position: 'relative' }}>
-            <ActionIcon
-              icon={ListChecks}
-              size={ICON_SIZE}
-              title="Pendientes"
-              tooltipProps={{ placement: 'right' }}
-            />
-            {inboxUnread > 0 && (
-              <span
-                style={{
-                  alignItems: 'center',
-                  background: '#a855f7',
-                  borderRadius: '50%',
-                  color: '#fff',
-                  display: 'flex',
-                  fontSize: 9,
-                  fontWeight: 700,
-                  height: 14,
-                  justifyContent: 'center',
-                  lineHeight: 1,
-                  minWidth: 14,
-                  paddingInline: 2,
-                  position: 'absolute',
-                  right: 2,
-                  top: 2,
-                }}
-              >
-                {inboxUnread > 99 ? '99+' : inboxUnread}
-              </span>
-            )}
-          </div>
-        </Link>
-      )}
+      {/* 3) "Pendientes" del rail RETIRADO (owner 20-ago, opción A): era una vista FILTRADA
+          de la Bandeja (?view=esperan) con un badge de no-leídos DUPLICADO del de Bandeja
+          (el "99+ en Bandeja Y Pendientes" que marcó QA). El contador de no-leídos vive en
+          Bandeja (arriba); "Esperan respuesta" sigue accesible desde dentro de la Bandeja y
+          por /bandeja?view=esperan (la ruta /pendientes sigue redirigiendo ahí). REGLA 0: no
+          se pierde nada (el badge de no-leídos ya estaba en Bandeja). */}
       {/* 4) Agentes IA (equipo coworker) — DISTINTO del Asistente (chats IA). Icono Bot.
           Gateado a logueados (requiere sesión api-ia). */}
       {isLoggedIn && (
