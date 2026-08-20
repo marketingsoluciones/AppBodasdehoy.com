@@ -268,23 +268,25 @@ const ResumenStudioMovil: FC = () => {
 
       {/* LUGAR DEL EVENTO — overlay pantalla completa (directorio, demo hasta conectar backend) */}
       {lugarOpen && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 60, background: "#f6f6f8", display: "flex", flexDirection: "column", maxWidth: 420, left: "50%", transform: "translateX(-50%)", animation: "fadein .18s ease" }}>
-          <div style={{ background: "#fff", padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #f0f0f2" }}>
-            <button onClick={() => setLugarOpen(false)} style={{ width: 32, height: 32, flex: "none", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", color: "#3A3A42", background: "#f4f4f6", border: "none", cursor: "pointer" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg></button>
-            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 11, padding: "9px 12px" }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a0a0a8" strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
-              <input placeholder="Busca lugares en el directorio…" style={{ flex: 1, border: "none", outline: "none", font: "500 12.5px Poppins", color: "#3A3A42", background: "transparent" }} />
-            </div>
-          </div>
-          <div style={{ flex: 1, overflow: "auto", padding: "14px 16px" }}>
-            <div style={{ font: "600 11px Poppins", color: "#a0a0a8", textTransform: "uppercase", letterSpacing: ".6px", marginBottom: 10 }}>Directorio Bodas de Hoy</div>
-            {DIRECTORIO.map((l, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 13, padding: "12px 14px", marginBottom: 9 }}>
-                <div style={{ width: 40, height: 40, flex: "none", borderRadius: 11, background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z" /><circle cx="12" cy="10" r="2.6" /></svg></div>
-                <div style={{ flex: 1, minWidth: 0 }}><div style={{ font: "600 12.5px Poppins", color: "#3A3A42" }}>{l[0]}</div><div style={{ font: "500 10.5px Poppins", color: "#a0a0a8" }}>{l[1]}</div></div>
-                <button style={{ flex: "none", padding: "8px 13px", borderRadius: 9, border: "1.5px solid #E7E7EA", background: "#fff", font: "600 11px Poppins", color: "#EF5B94", cursor: "pointer" }}>Elegir</button>
+        <div style={{ position: "fixed", inset: 0, zIndex: 60, background: "#f6f6f8", display: "flex", justifyContent: "center", animation: "fadein .18s ease" }}>
+          <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", background: "#f6f6f8" }}>
+            <div style={{ background: "#fff", padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #f0f0f2" }}>
+              <button onClick={() => setLugarOpen(false)} style={{ width: 34, height: 34, flex: "none", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", color: "#3A3A42", background: "#f4f4f6", border: "none", cursor: "pointer" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg></button>
+              <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 11, padding: "10px 12px" }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a0a0a8" strokeWidth={2} style={{ flex: "none" }}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+                <input placeholder="Busca lugares en el directorio…" style={{ flex: 1, minWidth: 0, border: "none", outline: "none", font: "500 13px Poppins", color: "#3A3A42", background: "transparent" }} />
               </div>
-            ))}
+            </div>
+            <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 24px" }}>
+              <div style={{ font: "600 11px Poppins", color: "#a0a0a8", textTransform: "uppercase", letterSpacing: ".6px", marginBottom: 12 }}>Directorio Bodas de Hoy</div>
+              {DIRECTORIO.map((l, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 13, padding: "13px 14px", marginBottom: 10 }}>
+                  <div style={{ width: 42, height: 42, flex: "none", borderRadius: 11, background: "#FCE7F0", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF5B94" }}><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z" /><circle cx="12" cy="10" r="2.6" /></svg></div>
+                  <div style={{ flex: 1, minWidth: 0 }}><div style={{ font: "600 13px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l[0]}</div><div style={{ font: "500 11px Poppins", color: "#a0a0a8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l[1]}</div></div>
+                  <button style={{ flex: "none", padding: "9px 15px", borderRadius: 9, border: "1.5px solid #E7E7EA", background: "#fff", font: "600 11.5px Poppins", color: "#EF5B94", cursor: "pointer" }}>Elegir</button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
