@@ -1,7 +1,7 @@
 'use client';
 
 import { ActionIcon, ActionIconProps, Hotkey } from '@lobehub/ui';
-import { BookOpen, Bot, Compass, FolderOpen, Heart, ImagePlus, Images, Inbox, MessageSquare, ShieldCheck } from 'lucide-react';
+import { BookOpen, Bot, Compass, FolderOpen, Heart, Images, Inbox, MessageSquare, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { memo, useEffect, useState } from 'react';
@@ -56,7 +56,7 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
   const isLoggedIn = !mounted || !isGuest;
 
   const isAdmin = useChatStore((s) => s.userRole === 'admin');
-  const { enableKnowledgeBase, showMarket, showAiImage } = useServerConfigStore(featureFlagsSelectors);
+  const { enableKnowledgeBase, showMarket } = useServerConfigStore(featureFlagsSelectors);
 
   const isChatActive = tab === SidebarTabKey.Chat && !isPinned;
   const isMemoriesActive = tab === SidebarTabKey.Memories;
@@ -181,18 +181,10 @@ const TopActions = memo<TopActionProps>(({ tab, isPinned }) => {
           tooltipProps={{ placement: 'right' }}
         />
       </Link>
-      {/* 7) Estudio (/image standalone) — gateado por showAiImage. NO afecta la tool DALL-E. */}
-      {showAiImage && (
-        <Link aria-label="Estudio" href={'/image'} suppressHydrationWarning>
-          <ActionIcon
-            active={tab === SidebarTabKey.Image}
-            icon={ImagePlus}
-            size={ICON_SIZE}
-            title="Estudio"
-            tooltipProps={{ placement: 'right' }}
-          />
-        </Link>
-      )}
+      {/* 7) "Estudio" (/image standalone, DALL-E de LobeChat) RETIRADO del rail (owner 20-ago,
+          mejor práctica): Bodas genera imágenes por la TOOL venue-visualizer dentro del chat,
+          no por un módulo standalone → entrada redundante. La ruta /image queda (comparte
+          componentes con /files, no se borra); solo se quita del rail. */}
       {/* 8) Web de boda (creador) — solo registrados. */}
       {isLoggedIn && isServerMode && (
         <Link aria-label="Web de boda" href={'/wedding-creator'} suppressHydrationWarning>
