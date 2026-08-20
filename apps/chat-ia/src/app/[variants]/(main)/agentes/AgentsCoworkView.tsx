@@ -30,6 +30,7 @@
  */
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useDomainGuestUser } from '@/hooks/useDomainGuestUser';
@@ -180,11 +181,20 @@ export default function AgentesPage() {
   // interactúa con la ficha → evita side-effect al montar).
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  // Deep-link ?agent=<id> — round-trip desde el chat ("Gestionar agente" en /asistente
+  // → /agentes?agent=id): preselecciona ESE agente para que las dos vistas se sientan
+  // como un solo espacio (mismo agente a ambos lados). Si el id no existe, cae al 1º.
+  const searchParams = useSearchParams();
+  const requestedAgentId = searchParams?.get('agent') ?? null;
+
   useEffect(() => {
-    if (!selectedId && agentSessions.length > 0) {
-      setSelectedId(agentSessions[0].id);
+    if (selectedId || agentSessions.length === 0) return;
+    if (requestedAgentId && agentSessions.some((a) => a.id === requestedAgentId)) {
+      setSelectedId(requestedAgentId);
+      return;
     }
-  }, [selectedId, agentSessions]);
+    setSelectedId(agentSessions[0].id);
+  }, [selectedId, agentSessions, requestedAgentId]);
 
   // Pestañas del espacio del agente (18-ago, modelo "espacio del agente con pestañas"):
   // Resumen (rendimiento + actividad) · Configuración (canales + instrucciones). Se
