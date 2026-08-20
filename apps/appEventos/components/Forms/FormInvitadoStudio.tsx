@@ -1,4 +1,5 @@
 import { Formik, Form, useField, FormikValues } from "formik";
+import { createPortal } from "react-dom";
 import { formikValidateUx } from "./formikValidateUx";
 import { FC, useEffect, useState } from "react";
 import { AuthContextProvider, EventContextProvider } from "../../context";
@@ -115,6 +116,8 @@ const FormInvitadoStudio: FC<{ onClose: () => void }> = ({ onClose }) => {
   const [contact, setContact] = useState<any>(null);
   const [showMedioSelectImport, setShowMedioSelectImport] = useState(false);
   const [showForApiGoogle, setShowForApiGoogle] = useState<any>({ state: false, payload: {} });
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     const scriptGsi = document.createElement("script");
@@ -185,7 +188,7 @@ const FormInvitadoStudio: FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const roleOptions = (event?.grupos_array || []).map((g: string) => ({ value: g, label: g }));
 
-  return (
+  const content = (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(40,40,46,.45)", display: "flex", alignItems: "stretch", fontFamily: "'Poppins',sans-serif" }}>
       <style dangerouslySetInnerHTML={{ __html: "@keyframes fis-slidein{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}.fis-in:focus{border-color:#EF5B94!important;}.fis-body::-webkit-scrollbar{width:0;height:0;}" }} />
       <div onClick={(e) => e.stopPropagation()} style={{ width: 420, maxWidth: "94vw", height: "100%", background: "#fff", display: "flex", flexDirection: "column", boxShadow: "8px 0 40px rgba(0,0,0,.14)", animation: "fis-slidein .22s ease" }}>
@@ -239,6 +242,8 @@ const FormInvitadoStudio: FC<{ onClose: () => void }> = ({ onClose }) => {
       </div>
     </div>
   );
+
+  return mounted && typeof document !== "undefined" ? createPortal(content, document.body) : null;
 };
 
 export default FormInvitadoStudio;
