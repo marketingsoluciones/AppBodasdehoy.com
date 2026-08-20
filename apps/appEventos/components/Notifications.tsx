@@ -289,7 +289,7 @@ export const Notifications = ({ studio = false }: { studio?: boolean } = {}) => 
         {showPanel && (
           <div
             className={studio
-              ? "absolute right-0 top-full mt-3 w-[400px] max-w-[calc(100vw-28px)] bg-white rounded-[18px] border border-[#f0f0f2] overflow-hidden z-[60]"
+              ? "fixed left-3 right-3 top-[72px] md:absolute md:left-auto md:right-0 md:top-full md:mt-3 md:w-[400px] bg-white rounded-[18px] border border-[#f0f0f2] overflow-hidden z-[60]"
               : "absolute bg-white rounded-lg w-96 shadow-lg shadow-gray-400 top-0 right-10 translate-x-1/2 translate-y-[46px] overflow-hidden z-[60]"}
             style={studio ? { boxShadow: "0 24px 70px rgba(0,0,0,.16)" } : undefined}
             onClick={e => e.stopPropagation()}
