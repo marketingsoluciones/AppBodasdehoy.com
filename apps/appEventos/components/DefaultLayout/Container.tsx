@@ -179,14 +179,14 @@ const Container = (props) => {
           </div>
         )}
 
-        {/* Scroll invisible (rueda/táctil/teclado siguen funcionando) en Mis eventos "/". */}
+        {/* Scroll invisible en TODA la app (rueda/táctil/teclado siguen funcionando). */}
         <style dangerouslySetInnerHTML={{ __html: `.app-scroll-hide{scrollbar-width:none;-ms-overflow-style:none;} .app-scroll-hide::-webkit-scrollbar{width:0;height:0;display:none;}` }} />
-        {/* En "/" ocultamos también la barra de la ventana (html/body), por si el contenido desborda el viewport. */}
-        {pathname === "/" && <style dangerouslySetInnerHTML={{ __html: `html,body{scrollbar-width:none!important;-ms-overflow-style:none!important;} html::-webkit-scrollbar,body::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;}` }} />}
+        {/* Ocultamos también la barra de la ventana (html/body), por si el contenido desborda el viewport. */}
+        <style dangerouslySetInnerHTML={{ __html: `html,body{scrollbar-width:none!important;-ms-overflow-style:none!important;} html::-webkit-scrollbar,body::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;}` }} />
 
         {/* Columna de resultados/app (banner "Organiza tus eventos", tarjetas, etc.): siempre a la derecha del Copilot */}
         <div
-          className={`min-w-0 overflow-auto overflow-y-scroll transition-all duration-300 relative z-[45] flex flex-col ${pathname === "/" ? "app-scroll-hide" : ""}`}
+          className="min-w-0 overflow-auto overflow-y-scroll transition-all duration-300 relative z-[45] flex flex-col app-scroll-hide"
           style={{ isolation: "isolate" }}
         >
           {/* Barra de filtro global: visible cuando el Copilot aplicó un filtro (mesa X, tarea X, etc.) */}
