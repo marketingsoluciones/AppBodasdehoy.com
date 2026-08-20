@@ -163,7 +163,10 @@ export function InboxFilters({
             title="Borradores IA esperando aprobación"
           >
             <span aria-hidden>✦</span>
-            <span>Pendientes</span>
+            {/* Etiqueta "Borradores IA" (no "Pendientes"): "Pendientes" en el rail = "Esperan
+                respuesta" (no leídos); esto es la cola de borradores IA sin aprobar. Nombres
+                distintos para no confundir (feedback owner + QA 19-ago "Pendientes duplicado"). */}
+            <span>Borradores IA</span>
             {pendingIaCount > 0 && (
               <span
                 className="rounded-md px-1 text-[10px] font-bold"
