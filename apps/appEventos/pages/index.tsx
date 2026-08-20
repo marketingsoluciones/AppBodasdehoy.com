@@ -18,7 +18,6 @@ import Link from "next/link";
 import { useToast } from "../hooks/useToast";
 import { useDateTime } from "../hooks/useDateTime";
 import { useTranslation } from 'react-i18next';
-import { TbTableShare } from "react-icons/tb";
 import { SelectModeSort } from "../components/Utils/SelectModeSort";
 import EventNotFound from "../components/Utils/EventNotFound";
 import CopilotFilterBar from "../components/Utils/CopilotFilterBar";
@@ -649,20 +648,13 @@ const GridCards: FC<propsGridCards> = ({
   const [isActiveStateSwiper, setIsActiveStateSwiper] = useState<number>(idxGroupEvent?.isActiveStateSwiper)
   const [tabsGroup, setTabsGroup] = useState<dataTab[]>([]);
   const [idxNew, setIdxNew] = useState<number>(-2)
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [orderAndDirection, setOrderAndDirection] = useState<SelectModeSortType>({ order: "fecha", direction: "desc" })
   const [ordenOpen, setOrdenOpen] = useState(false)
   const [mountedFab, setMountedFab] = useState(false)
   useEffect(() => { setMountedFab(true) }, [])
 
-  const handleMouseEnter = () => {
-    setIsModalVisible(true);
-  };
   const router = useRouter()
 
-  const handleMouseLeave = () => {
-    setIsModalVisible(false);
-  };
   useEffect(() => {
     if (eventsGroup) {
       const arrNuevo = eventsGroup?.reduce((acc, event) => {
@@ -1018,19 +1010,6 @@ const GridCards: FC<propsGridCards> = ({
         </div>
         <div className="flex-1 h-full flex justify-end items-center px-4 relative space-x-4" >
           <SelectModeSort value={orderAndDirection} setValue={setOrderAndDirection} />
-          <div
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            className="cursor-pointer hidden md:block "
-            onClick={() => router.push("/eventos")}
-          >
-            <TbTableShare className="h-5 w-5 text-gray-700 hover:text-gray-900" />
-            {isModalVisible && (
-              <div className="modal absolute w-36 z-50 text-[10px] px-[5px] bg-gray-500 text-white rounded-md -translate-x-full flex justify-center">
-                Cambiar a vista de tabla
-              </div>
-            )}
-          </div>
         </div>
       </div>
       <div className="flex flex-col md:flex-1 min-w-0 overflow-x-scroll md:overflow-clip pt-4">
