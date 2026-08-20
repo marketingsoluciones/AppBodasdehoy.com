@@ -161,7 +161,11 @@ function agentDisplayName(agent: LobeAgentSession): string {
     const firstLine = role.split(/[\n.]/)[0]?.trim() ?? '';
     if (firstLine) return firstLine.length > 42 ? `${firstLine.slice(0, 42)}…` : firstLine;
   }
-  return `Agente ${agent.id.slice(0, 6)}`;
+  // QA 3ª ronda (build jIsPcFdK): "Agente 6a7416" se repetía. Causa: los ids son ObjectIds
+  // de Mongo cuyo PREFIJO es el timestamp de creación → todas las sesiones creadas en la
+  // misma ventana comparten los primeros hex. La COLA del id (contador incremental + random)
+  // sí distingue. Usamos slice(-6) → agentes sin título/desc/instrucción quedan únicos.
+  return `Agente ${agent.id.slice(-6)}`;
 }
 
 function MetricCard({ label, value }: { label: string; value: string }) {
@@ -331,6 +335,30 @@ export default function AgentesPage() {
   const selected = useMemo(
     () => agentSessions.find((a) => a.id === selectedId) ?? null,
     [agentSessions, selectedId],
+  );
+
+  // Nombres GARANTIZADAMENTE únicos en la lista (QA 3ª ronda B3): agentDisplayName ya deriva
+  // un nombre, pero dos agentes podrían derivar el MISMO (misma descripción/instrucción, o
+  // ids con misma cola). Desambiguamos aquí con la cola del id SOLO cuando hay colisión, y
+  // usamos este mapa en lista Y ficha → los nombres son distinguibles y coherentes entre ambas.
+  const agentNameById = useMemo(() => {
+    const base = new Map<string, string>();
+    const counts = new Map<string, number>();
+    for (const a of agentSessions) {
+      const n = agentDisplayName(a);
+      base.set(a.id, n);
+      counts.set(n, (counts.get(n) ?? 0) + 1);
+    }
+    const out = new Map<string, string>();
+    for (const a of agentSessions) {
+      const n = base.get(a.id) ?? 'Agente';
+      out.set(a.id, (counts.get(n) ?? 0) > 1 ? `${n} · ${a.id.slice(-4)}` : n);
+    }
+    return out;
+  }, [agentSessions]);
+  const nameOf = useCallback(
+    (a: LobeAgentSession) => agentNameById.get(a.id) ?? agentDisplayName(a),
+    [agentNameById],
   );
 
   const selectedLocal = selected ? (localStates[selected.id] ?? {}) : {};
@@ -535,7 +563,7 @@ export default function AgentesPage() {
             // Nombre distinguible (ISSUE-003): título real, o derivado de descripción/
             // instrucción/id corto → nunca 14× "Nueva conversación". Coherente con
             // /asistente para agentes con título.
-            const title = agentDisplayName(agent);
+            const title = nameOf(agent);
             const description = agent.meta.description ?? '';
             const avatar = agent.meta.avatar || agentInitial(title);
             return (
@@ -639,7 +667,7 @@ export default function AgentesPage() {
                   }}
                 >
                   {(() => {
-                    const av = selected.meta.avatar || agentInitial(agentDisplayName(selected));
+                    const av = selected.meta.avatar || agentInitial(nameOf(selected));
                     return av.startsWith('http') || av.startsWith('data:') ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img alt="" className="h-full w-full object-cover" src={av} />
@@ -651,7 +679,7 @@ export default function AgentesPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold" style={{ color: '#1C1C22' }}>
-                      {agentDisplayName(selected)}
+                      {nameOf(selected)}
                     </h2>
                     <span
                       className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
@@ -919,7 +947,7 @@ export default function AgentesPage() {
                   métricas y asignación de canales están cableadas (api-ia, 23-jul) y el
                   responsable por conversación desplegado (api-mcp). Nota neutra y de usuario. */}
               <p className="text-center text-[11px] italic" style={{ color: '#9A9AA6' }}>
-                Las instrucciones y la configuración de {agentDisplayName(selected)} se guardan en
+                Las instrucciones y la configuración de {nameOf(selected)} se guardan en
                 la nube y se aplican a todas sus conversaciones.
               </p>
             </div>
