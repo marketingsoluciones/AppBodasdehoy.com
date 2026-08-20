@@ -231,8 +231,8 @@ const Navigation: FC = () => {
       >
         {studioHeader ? (
           <div style={{ maxWidth: 1100, margin: "0 auto", height: 78, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px" }}>
-            {/* En móvil el logo se muestra un poco más pequeño (altura 60→44px + imagen escalada). */}
-            <style dangerouslySetInnerHTML={{ __html: "@media (max-width:767px){.nav-logo{height:44px!important;}.nav-logo img,.nav-logo svg{height:100%!important;width:auto!important;max-width:100%!important;object-fit:contain!important;}}" }} />
+            {/* En móvil el logo se muestra mucho más pequeño (altura 60→30px + imagen escalada). */}
+            <style dangerouslySetInnerHTML={{ __html: "@media (max-width:767px){.nav-logo{height:30px!important;max-width:150px!important;}.nav-logo img,.nav-logo svg{height:100%!important;width:auto!important;max-width:100%!important;object-fit:contain!important;}}" }} />
             <span onClick={handleLogoClick} className="nav-logo cursor-pointer flex items-center h-[60px] shrink-0 overflow-visible" style={{ maxWidth: 208 }}>
               {safeLogoNode ?? (<span className="px-3 py-1 rounded-lg bg-primary text-white font-title text-sm max-w-full truncate">{(typeof config?.headTitle === 'string' && config.headTitle.trim()) ? config.headTitle : (typeof config?.name === 'string' && config.name.trim()) ? config.name : 'App'}</span>)}
             </span>
