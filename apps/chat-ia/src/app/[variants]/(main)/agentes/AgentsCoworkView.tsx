@@ -35,7 +35,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSwitchSession } from '@/hooks/useSwitchSession';
 import { useAgentStore } from '@/store/agent';
 import { useSessionStore } from '@/store/session';
-import { sessionSelectors } from '@/store/session/selectors';
+import { sessionMetaSelectors, sessionSelectors } from '@/store/session/selectors';
 import { LobeSessionType, type LobeAgentSession } from '@/types/session';
 
 import { MessagesRail } from '../bandeja/components/MessagesRail';
@@ -465,7 +465,10 @@ export default function AgentesPage() {
           {agentSessions.map((agent) => {
             const isSelected = agent.id === selectedId;
             const disabled = !!localStates[agent.id]?.disabled;
-            const title = agent.meta.title ?? 'Sin nombre';
+            // Coherencia Agentes↔Sesiones (owner 20-ago): mismo fallback de nombre que
+            // /asistente (sessionMetaSelectors.getTitle) → un agente sin título se llama
+            // IGUAL en las dos vistas (antes: /agentes "Sin nombre" vs /asistente otro).
+            const title = sessionMetaSelectors.getTitle(agent.meta);
             const description = agent.meta.description ?? '';
             const avatar = agent.meta.avatar || agentInitial(agent.meta.title);
             return (
@@ -581,7 +584,7 @@ export default function AgentesPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold" style={{ color: '#1C1C22' }}>
-                      {selected.meta.title ?? 'Sin nombre'}
+                      {sessionMetaSelectors.getTitle(selected.meta)}
                     </h2>
                     <span
                       className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
