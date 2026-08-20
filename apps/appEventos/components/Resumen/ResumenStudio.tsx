@@ -10,6 +10,7 @@ import StudioNotesSection from "../Presupuesto/StudioNotesSection";
 import FormCrearEvento from "../Forms/FormCrearEvento";
 import ModalLeft from "../Utils/ModalLeft";
 import { useDelayUnmount } from "../../utils/Funciones";
+import ResumenStudioMovil from "./ResumenStudioMovil";
 
 /**
  * ResumenStudio — rediseño de la hoja de Resumen fiel al HTML "Resumen.dc.html".
@@ -185,7 +186,9 @@ export const ResumenStudio: FC = () => {
   const dashBtn: React.CSSProperties = { alignSelf: "center", marginTop: "auto", height: 42, width: 160, padding: "0 18px", borderRadius: 11, background: "transparent", border: "1.5px dashed #F4A9C8", color: "#EF5B94", font: "600 12.5px Poppins", cursor: "pointer" };
 
   return (
-    <div style={{ background: "#F2F2F2", minHeight: "100%", fontFamily: "'Poppins',sans-serif" }}>
+    <>
+    {/* ===== ESCRITORIO ===== */}
+    <div className="hidden md:block" style={{ background: "#F2F2F2", minHeight: "100%", fontFamily: "'Poppins',sans-serif" }}>
       <Head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -492,5 +495,9 @@ export const ResumenStudio: FC = () => {
         )}
       </div>
     </div>
+
+    {/* ===== MÓVIL ===== */}
+    <ResumenStudioMovil />
+    </>
   );
 };
