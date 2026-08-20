@@ -8,7 +8,7 @@ import { fetchApiBodas, queries } from "../../utils/Fetching";
 import { useToast } from "../../hooks/useToast";
 import { useDelayUnmount } from "../../utils/Funciones";
 import ModalLeft from "../Utils/ModalLeft";
-import FormInvitado from "../Forms/FormInvitado";
+import FormInvitadoStudio from "../Forms/FormInvitadoStudio";
 import FormCrearGrupo from "../Forms/FormCrearGrupo";
 import FormCrearMenu from "../Forms/FormCrearMenu";
 import FormAcompañante from "../Forms/FormAcompañante";
@@ -148,10 +148,13 @@ export const InvitadosStudio: FC = () => {
       </Head>
       <style dangerouslySetInnerHTML={{ __html: `@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}` }} />
 
-      {/* Formularios (reusa los del módulo actual vía ModalLeft) */}
-      {shouldRenderChild && (
+      {/* Crear invitado — panel studio propio, anclado a la IZQUIERDA por encima de todo */}
+      {shouldRenderChild && formShow === "invitado" && (
+        <FormInvitadoStudio onClose={() => setIsMounted(false)} />
+      )}
+      {/* Resto de formularios (reusa los del módulo actual vía ModalLeft) */}
+      {shouldRenderChild && formShow !== "invitado" && (
         <ModalLeft state={isMounted} set={setIsMounted}>
-          {formShow === "invitado" && <FormInvitado state={isMounted} set={setIsMounted} />}
           {formShow === "grupo" && <FormCrearGrupo state={isMounted} set={setIsMounted} />}
           {formShow === "menu" && <FormCrearMenu state={isMounted} set={setIsMounted} />}
           {formShow === "acompañante" && <FormAcompañante state={isMounted} set={setIsMounted} guestFather={acompFather as string} />}
