@@ -5,21 +5,8 @@ import { humanizeQuota, TIER_COLORS } from "@bodasdehoy/shared/plans";
 import { resolveApiBodasGraphqlUrl } from "../../utils/apiEndpoints";
 import InformacionFacturacionStudio from "./InformacionFacturacionStudio";
 import HistorialFacturacionStudio from "./HistorialFacturacionStudio";
-
-const QUOTA_SKUS = ["events-count", "guests-per-event", "ai-tokens", "image-gen", "whatsapp-msg", "sms-invitations", "storage-gb"];
-const eur = (n: number) => n.toFixed(2).replace(".", ",") + "€";
-
-function getSupportLabel(r: any) { return r?.white_label ? "Dedicado" : r?.priority_support ? "Prioritario" : "Comunidad"; }
-function extractFlags(plan: any) {
-  const r = plan.feature_restrictions ?? {};
-  const flags: { label: string; included: boolean }[] = [{ label: "Copiloto IA", included: true }, { label: "Wallet prepago", included: true }];
-  if (plan.global_discount?.value) flags.push({ label: `${plan.global_discount.value}% descuento en servicios`, included: true });
-  else flags.push({ label: "Descuentos en servicios", included: false });
-  flags.push({ label: `Soporte ${getSupportLabel(r)}`, included: true });
-  if (r.api_access) flags.push({ label: "API acceso completo", included: true });
-  if (r.white_label) flags.push({ label: "Gestor de cuenta dedicado", included: true });
-  return flags;
-}
+import FacturacionStudioMovil from "./FacturacionStudioMovil";
+import { QUOTA_SKUS, eur, extractFlags, WL_FEATS, ORDER } from "./facturacionShared";
 
 async function handleSubscribePlan(planId: string, billingPeriod: "monthly" | "yearly") {
   const { authBridge } = await import("@bodasdehoy/shared");
@@ -50,9 +37,7 @@ async function openCustomerPortal(token: string, development: string, returnUrl:
   return json.data?.createCustomerPortalSession ?? { success: false };
 }
 
-const WL_FEATS = ["Instancia dedicada", "Firebase propio", "Branding personalizado", "Copiloto IA", "Wallet prepago", "Soporte prioritario", "API acceso completo", "Gestor de cuenta dedicado"];
 const TABS = ["Planes", "Métodos de pago", "Información de facturación", "Historial de facturación"];
-const ORDER = ["FREE", "BASIC", "PRO", "MAX", "ENTERPRISE"];
 
 const FacturacionStudio: FC = () => {
   const { config } = AuthContextProvider() as any;
@@ -107,7 +92,9 @@ const FacturacionStudio: FC = () => {
   );
 
   return (
-    <div style={{ width: "100%", maxWidth: 1160, margin: "0 auto", padding: "24px 20px 80px", fontFamily: "'Poppins',sans-serif" }}>
+    <>
+    {/* ===== ESCRITORIO ===== */}
+    <div className="hidden md:block" style={{ width: "100%", maxWidth: 1160, margin: "0 auto", padding: "24px 20px 80px", fontFamily: "'Poppins',sans-serif" }}>
       <style dangerouslySetInnerHTML={{ __html: ".fs-in:focus{border-color:#EF5B94!important;}" }} />
 
       {/* TABS */}
@@ -243,6 +230,19 @@ const FacturacionStudio: FC = () => {
       {tab === 2 && <InformacionFacturacionStudio />}
       {tab === 3 && <HistorialFacturacionStudio />}
     </div>
+
+    {/* ===== MÓVIL ===== */}
+    <FacturacionStudioMovil
+      loading={loading}
+      tab={tab} setTab={setTab}
+      anual={anual} setAnual={setAnual}
+      mainPlans={mainPlans} whitelabelPlan={whitelabelPlan} curPlan={curPlan}
+      tier={tier} curIdx={curIdx} curPrice={curPrice}
+      openModal={openModal} choose={choose} subscribing={subscribing}
+      openPortal={openPortal} portalLoading={portalLoading}
+      modal={modal} setModal={setModal}
+    />
+    </>
   );
 };
 
