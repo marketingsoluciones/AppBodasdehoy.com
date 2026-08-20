@@ -31,7 +31,7 @@ const ChatToggleButton: FC<ChatToggleButtonProps> = ({ className = '', studio = 
           aria-label={isOpen ? 'Cerrar Copilot' : 'Abrir Copilot'}
           onClick={toggleSidebar}
           title={isOpen ? 'Cerrar Copilot' : 'Abrir Copilot'}
-          className="relative flex md:hidden items-center justify-center"
+          className={`relative flex md:hidden items-center justify-center ${className}`}
           style={{ width: 40, height: 40, borderRadius: '50%', background: '#FDF1F6', border: 'none', cursor: 'pointer', flexShrink: 0 }}
         >
           {sparkle}

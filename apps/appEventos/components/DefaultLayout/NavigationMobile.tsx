@@ -62,7 +62,7 @@ const NavigationMobile = () => {
     <>
       {canSeeCopilot && (
         <div className="fixed bottom-[92px] right-4 z-[80] md:hidden">
-          <ChatToggleButton className="shadow-lg" />
+          <ChatToggleButton studio className="shadow-lg" />
         </div>
       )}
       <MobileBottomNav onNavigate={handleNav} hideItinerario={isGuest} />
