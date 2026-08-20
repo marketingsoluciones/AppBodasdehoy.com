@@ -119,15 +119,41 @@ function agentInitial(title: string | undefined): string {
   return trimmed ? trimmed[0]!.toUpperCase() : '✦';
 }
 
-// ISSUE-003 (informe dogfood 20-ago): muchos agentes se crean SIN meta.title →
-// getTitle caía a "Nueva conversación" para TODOS → 14 agentes indistinguibles en
-// /agentes ("imposible saber cuál hizo qué"). Derivamos un nombre estable y
-// distinguible: título real → descripción → 1ª frase de la instrucción (systemRole)
-// → "Agente {id corto}". Los agentes CON título siguen coherentes con /asistente
-// (rama `title`); los SIN título ganan identidad operativa en vez de repetir el default.
+// ISSUE-003 (informe dogfood 20-ago): muchos agentes NO tienen meta.title REAL —
+// LobeChat les persiste el título por DEFECTO ("Asistente predeterminado" / "Sesión
+// predeterminada" / la variante que toque) → /agentes mostraba N agentes idénticos
+// ("imposible saber cuál hizo qué"). QA 2ª ronda confirmó que seguían colapsando: mi
+// 1er intento solo derivaba cuando el título estaba VACÍO, pero aquí el título es el
+// PLACEHOLDER por defecto (no vacío). Tratamos esos placeholders como "sin título".
+const PLACEHOLDER_AGENT_TITLES = new Set(
+  [
+    'nueva conversación',
+    'nueva conversacion',
+    'new conversation',
+    'asistente predeterminado',
+    'sesión predeterminada',
+    'sesion predeterminada',
+    'default agent',
+    'default session',
+    'asistente personalizado',
+    'default topic',
+    '自定义助手',
+    '默认话题',
+    '默认对话',
+  ].map((s) => s.toLowerCase()),
+);
+
+function isRealTitle(title: string | undefined): title is string {
+  const t = title?.trim();
+  return !!t && !PLACEHOLDER_AGENT_TITLES.has(t.toLowerCase());
+}
+
+// Derivamos un nombre estable y distinguible: título REAL → descripción → 1ª frase de
+// la instrucción (systemRole) → "Agente {id corto}". Los agentes CON título real siguen
+// coherentes con /asistente; los que solo tienen el placeholder ganan identidad operativa.
 function agentDisplayName(agent: LobeAgentSession): string {
   const title = agent.meta?.title?.trim();
-  if (title) return title;
+  if (isRealTitle(title)) return title;
   const desc = agent.meta?.description?.trim();
   if (desc) return desc.length > 42 ? `${desc.slice(0, 42)}…` : desc;
   const role = agent.config?.systemRole?.trim();
