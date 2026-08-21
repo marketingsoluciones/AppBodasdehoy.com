@@ -9,7 +9,7 @@ import { useToast } from "../../hooks/useToast";
 import { useDelayUnmount } from "../../utils/Funciones";
 import ModalLeft from "../Utils/ModalLeft";
 import FormInvitadoStudio from "../Forms/FormInvitadoStudio";
-import FormCrearGrupo from "../Forms/FormCrearGrupo";
+import FormCrearGrupoStudio from "../Forms/FormCrearGrupoStudio";
 import FormCrearMenu from "../Forms/FormCrearMenu";
 import FormAcompañante from "../Forms/FormAcompañante";
 import FormEditarInvitado from "../Forms/FormEditarInvitado";
@@ -148,14 +148,16 @@ export const InvitadosStudio: FC = () => {
       </Head>
       <style dangerouslySetInnerHTML={{ __html: `@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}` }} />
 
-      {/* Crear invitado — panel studio propio, anclado a la IZQUIERDA por encima de todo */}
+      {/* Crear invitado / Crear grupo — paneles studio propios, anclados a la IZQUIERDA por encima de todo */}
       {shouldRenderChild && formShow === "invitado" && (
         <FormInvitadoStudio onClose={() => setIsMounted(false)} />
       )}
+      {shouldRenderChild && formShow === "grupo" && (
+        <FormCrearGrupoStudio onClose={() => setIsMounted(false)} />
+      )}
       {/* Resto de formularios (reusa los del módulo actual vía ModalLeft) */}
-      {shouldRenderChild && formShow !== "invitado" && (
+      {shouldRenderChild && formShow !== "invitado" && formShow !== "grupo" && (
         <ModalLeft state={isMounted} set={setIsMounted}>
-          {formShow === "grupo" && <FormCrearGrupo state={isMounted} set={setIsMounted} />}
           {formShow === "menu" && <FormCrearMenu state={isMounted} set={setIsMounted} />}
           {formShow === "acompañante" && <FormAcompañante state={isMounted} set={setIsMounted} guestFather={acompFather as string} />}
           {formShow === "editar" && <FormEditarInvitado state={isMounted} set={setIsMounted} invitado={editGuest} setInvitadoSelected={setEditGuest} />}
