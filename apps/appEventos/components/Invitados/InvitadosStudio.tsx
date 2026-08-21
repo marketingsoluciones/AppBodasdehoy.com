@@ -10,7 +10,7 @@ import { useDelayUnmount } from "../../utils/Funciones";
 import ModalLeft from "../Utils/ModalLeft";
 import FormInvitadoStudio from "../Forms/FormInvitadoStudio";
 import FormCrearGrupoStudio from "../Forms/FormCrearGrupoStudio";
-import FormCrearMenu from "../Forms/FormCrearMenu";
+import FormCrearMenuStudio from "../Forms/FormCrearMenuStudio";
 import FormAcompañante from "../Forms/FormAcompañante";
 import FormEditarInvitado from "../Forms/FormEditarInvitado";
 import { BorrarInvitado } from "../../hooks/EditarInvitado";
@@ -155,10 +155,12 @@ export const InvitadosStudio: FC = () => {
       {shouldRenderChild && formShow === "grupo" && (
         <FormCrearGrupoStudio onClose={() => setIsMounted(false)} />
       )}
+      {shouldRenderChild && formShow === "menu" && (
+        <FormCrearMenuStudio onClose={() => setIsMounted(false)} />
+      )}
       {/* Resto de formularios (reusa los del módulo actual vía ModalLeft) */}
-      {shouldRenderChild && formShow !== "invitado" && formShow !== "grupo" && (
+      {shouldRenderChild && formShow !== "invitado" && formShow !== "grupo" && formShow !== "menu" && (
         <ModalLeft state={isMounted} set={setIsMounted}>
-          {formShow === "menu" && <FormCrearMenu state={isMounted} set={setIsMounted} />}
           {formShow === "acompañante" && <FormAcompañante state={isMounted} set={setIsMounted} guestFather={acompFather as string} />}
           {formShow === "editar" && <FormEditarInvitado state={isMounted} set={setIsMounted} invitado={editGuest} setInvitadoSelected={setEditGuest} />}
         </ModalLeft>
