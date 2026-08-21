@@ -10,7 +10,6 @@ import { useUserStore } from '@/store/user';
 import { authSelectors } from '@/store/user/selectors';
 
 import { useBandejaBrand } from './utils/brand';
-import { MessagesRail } from './components/MessagesRail';
 import { BottomNavBar } from './components/BottomNavBar';
 import { useActiveBandejaTab } from './components/BandejaTabs';
 import { buildHeaders } from './utils/auth';
@@ -118,7 +117,12 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
   // navegación directa a /messages tras refresh.
   // Mientras carga la auth O dentro de la ventana de gracia (aún puede resolverse a
   // usuario real), mostramos el spinner en vez de la pantalla "Acceso requerido".
-  if (!localJwtPresent && (!isLoaded || (isGuest && !graceElapsed))) {
+  // H4 (QA re-run 21-ago): antes gateaba también en `!isLoaded` → si `isLoaded` se
+  // quedaba en false para un INVITADO real, el spinner "Cargando tu bandeja…" era
+  // INFINITO (nunca llegaba al muro de la línea de abajo). Ahora el spinner solo se
+  // muestra DURANTE la gracia; pasada la gracia, un invitado cae al muro con CTA
+  // (coherente con /agentes, /files, /knowledge) y un usuario real renderiza.
+  if (!localJwtPresent && !graceElapsed) {
     // BUG-4 QA (23-jul): antes era un spinner MUDO (pantalla en negro sin texto)
     // durante 5s hasta redirigir a login → el usuario no sabía qué pasaba.
     // Ahora se explica qué está ocurriendo mientras se comprueba la sesión.
@@ -165,9 +169,11 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
   return (
     <div className="flex h-full w-full flex-1 flex-col overflow-hidden bg-white">
       <div className="flex flex-1 overflow-hidden">
-        {/* Rail 54px FASE B v2.0 Diseño 25-jun — solo desktop ≥1024px.
-            Iconos avatar + Conversaciones + Bandeja + Historial + badge plan. */}
-        <MessagesRail />
+        {/* H3 (QA re-run 21-ago): MessagesRail (Conversaciones/Bandeja/Agentes/Notificaciones)
+            RETIRADO — era un 2º rail vertical (solo desktop ≥1024px) que DUPLICABA el rail
+            principal de la app (Asistente/Bandeja/Agentes) + las tabs de la bandeja
+            (Bandeja/Notificaciones). Chrome duplicado (queja recurrente del owner "dos
+            bandejas"). El rail principal ya da toda la navegación. */}
         {/* Unificación bandeja (owner 20-ago, opción B): se RETIRA el panel compact
             ChannelSidebar (tablet md..lg). Antes convivía con el UnifiedFeedView del page
             en tablet = "dos bandejas" a la vez. Ahora una sola bandeja (UnifiedFeedView del

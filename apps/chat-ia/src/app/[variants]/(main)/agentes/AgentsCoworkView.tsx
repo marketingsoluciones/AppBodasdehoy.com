@@ -40,7 +40,6 @@ import { useSessionStore } from '@/store/session';
 import { sessionSelectors } from '@/store/session/selectors';
 import { LobeSessionType, type LobeAgentSession } from '@/types/session';
 
-import { MessagesRail } from '../bandeja/components/MessagesRail';
 import { buildHeaders, getUserContext } from '../bandeja/utils/auth';
 import { useAgentActivity } from './useAgentActivity';
 
@@ -486,7 +485,6 @@ export default function AgentesPage() {
   if (!mounted || !isSessionListInit) {
     return (
       <div className="flex h-full" style={{ backgroundColor: '#FFFFFF' }}>
-        <MessagesRail />
         <div className="flex flex-1 items-center justify-center">
           <p className="text-sm" style={{ color: '#84848F' }}>
             Cargando tus agentes…
@@ -502,7 +500,6 @@ export default function AgentesPage() {
     // vacío (confuso). Ahora el invitado ve un CTA de login contextual y claro.
     return (
       <div className="flex h-full" style={{ backgroundColor: '#FFFFFF' }}>
-        <MessagesRail />
         <div className="flex flex-1 items-center justify-center px-6">
           <div className="max-w-md text-center">
             <div
@@ -536,9 +533,7 @@ export default function AgentesPage() {
 
   return (
     <div className="flex h-full overflow-hidden" style={{ backgroundColor: '#FFFFFF' }}>
-      {/* Rail 56px — misma navegación que /messages (coherencia rediseño) */}
-      <MessagesRail />
-
+      {/* H3 (QA re-run 21-ago): MessagesRail RETIRADO — duplicaba el rail principal. */}
       {/* Lista agentes 260px */}
       <aside
         className="flex w-[260px] shrink-0 flex-col overflow-hidden"
