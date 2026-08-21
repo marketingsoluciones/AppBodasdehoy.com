@@ -7,7 +7,22 @@ type HeadersInput = Headers | Array<[string, string]> | Record<string, string>;
 let lastLogTime = 0;
 const LOG_THROTTLE_MS = 5000; // Solo loguear cada 5 segundos
 
+// H5 (QA re-run 21-ago): los logs [TOKEN-DEBUG] filtraban en producción (chat-dev) porque
+// shouldLog() era SOLO un throttle, no un gate de entorno → "[TOKEN-DEBUG] NO SE ENCONTRÓ
+// NINGÚN TOKEN" salía en la consola de usuarios reales. Ahora son OPT-IN: solo con
+// ?debug=1 o localStorage debug_auth=1 (mismo patrón que el DebugFooter). Silencio por defecto.
+const authDebugEnabled = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (localStorage.getItem('debug_auth') === '1') return true;
+    return new URLSearchParams(window.location.search).get('debug') === '1';
+  } catch {
+    return false;
+  }
+};
+
 const shouldLog = () => {
+  if (!authDebugEnabled()) return false;
   const now = Date.now();
   if (now - lastLogTime > LOG_THROTTLE_MS) {
     lastLogTime = now;
@@ -56,7 +71,7 @@ const readTokenFromDevConfig = () => {
     }
     return typeof token === 'string' && token ? token : undefined;
   } catch (e) {
-    console.error('❌ [TOKEN-DEBUG] Error leyendo dev-user-config:', e);
+    if (authDebugEnabled()) console.error('❌ [TOKEN-DEBUG] Error leyendo dev-user-config:', e);
     return undefined;
   }
 };
