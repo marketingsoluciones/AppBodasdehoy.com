@@ -6,6 +6,7 @@ import { ConversationList } from '../../components/ConversationList';
 import { MessageList } from '../../components/MessageList';
 import { MessageInput } from '../../components/MessageInput';
 import { ConversationHeader } from '../../components/ConversationHeader';
+import { WindowExpiryBanner } from '../../components/WindowExpiryBanner';
 import { ContactConversationsPanel } from '../../components/ContactConversationsPanel';
 import { ConversationNotesSidebar } from '../../components/ConversationNotesSidebar';
 import { EventSidebar } from '../../components/EventSidebar';
@@ -160,6 +161,13 @@ export default function ConversationPage({ params }: ConversationPageProps) {
           <MessageList channel={channel} conversationId={conversation_id} searchFilter={searchFilter} />
         </div>
 
+        {/* Aviso PROACTIVO de ventana 24h (gap auditoría 22-ago): avisa ANTES de que
+            expire la ventana de respuesta gratis; el estado ya-cerrado lo gestiona el
+            TemplatePicker dentro de MessageInput. */}
+        <WindowExpiryBanner
+          canReplyFreeText={capabilities?.canReplyFreeText}
+          windowExpiresAt={capabilities?.windowExpiresAt}
+        />
         <div className="border-t border-gray-200 bg-white p-4">
           <MessageInput channel={channel} conversationId={conversation_id} jidType={conv?.jidType} readOnly={isChannelInactive} requiresTemplate={capsRequiresTemplate} />
         </div>
