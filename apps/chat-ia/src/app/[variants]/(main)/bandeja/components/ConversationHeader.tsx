@@ -9,6 +9,7 @@ import { generateSummary } from '../hooks/useDraftSync';
 import { ChannelBadge } from './ChannelBadge';
 import { useBandejaBrand } from '../utils/brand';
 import { dedupeFetch } from '../utils/dedupeFetch';
+import { ChannelTypeChip } from './ChannelTypeChip';
 import { IaLevelPicker, type IaLevel } from './IaLevelPicker';
 
 interface ConversationHeaderProps {
@@ -261,13 +262,20 @@ export function ConversationHeader({
                 }}
               />
             </div>
-            <p className="mt-0.5 truncate text-xs" style={{ color: '#84848F' }}>
-              {isOnline
-                ? 'En línea'
-                : conversation.contact.phone ||
-                  conversation.contact.username ||
-                  'Sin info de contacto'}
-            </p>
+            <div className="mt-0.5 flex items-center gap-1.5">
+              <p className="truncate text-xs" style={{ color: '#84848F' }}>
+                {isOnline
+                  ? 'En línea'
+                  : conversation.contact.phone ||
+                    conversation.contact.username ||
+                    'Sin info de contacto'}
+              </p>
+              {/* G1 (auditoría 22-ago): tipo del número (Meta API vs QR) + salud EN CONTEXTO.
+                  Render null salvo canal WhatsApp `wa-<id>` resoluble → 0 ruido. */}
+              <span className="flex-none">
+                <ChannelTypeChip channelParam={channel} />
+              </span>
+            </div>
             {/* FASE 2 Agentes (17-ago, FALLO 2 QA): responsable = AGENTE IA de esta
                 conversación, visible también en el detalle (no solo en la lista). Solo
                 se pinta cuando hay assignedAgentName (null-safe). Distinto del botón
