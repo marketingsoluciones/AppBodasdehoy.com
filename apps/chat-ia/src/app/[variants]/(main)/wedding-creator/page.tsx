@@ -38,6 +38,8 @@ import {
   type WeddingChangeAction,
 } from '@/services/weddingChatService';
 import { getCurrentEventId } from '@/services/storage-r2';
+
+import { WeddingEventPicker } from './WeddingEventPicker';
 import { FeatureGate } from '@/components/FeatureGate';
 
 
@@ -594,6 +596,18 @@ function WeddingCreatorContent() {
                   </svg>
                 </button>
                 <h1 className="text-lg font-semibold">Editor de Eventos & Bodas</h1>
+                {/* Selector de evento (gap QA 22-ago): elegir QUÉ boda edita la web pública.
+                    Reutiliza el flujo eventId existente (useWeddingWebGraphQL) — sin él, el
+                    editor caía a la plantilla dummy. Con buscador (owner tiene 50+ eventos). */}
+                <WeddingEventPicker
+                  eventId={eventId}
+                  onSelect={(id) => {
+                    setEventId(id);
+                    if (typeof window !== 'undefined') {
+                      window.history.replaceState({}, '', `?eventId=${encodeURIComponent(id)}`);
+                    }
+                  }}
+                />
                 {/* Auto-save indicator */}
                 {isSaving && (
                   <span className="ml-2 text-xs text-gray-400 animate-pulse">Guardando...</span>
