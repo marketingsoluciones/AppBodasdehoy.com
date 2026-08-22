@@ -105,6 +105,16 @@ export class ApiIaMessageService implements IMessageService {
   // POST /chat/messages — crear. body confirmado: {sessionId, role, content, type?}.
   // Devuelve {success, data:{id,...}}. toDbSessionId mapea INBOX_SESSION_ID → null (no revertir).
   createMessage: IMessageService['createMessage'] = async ({ sessionId, ...params }) => {
+    const dbSessionId = this.toDbSessionId(sessionId);
+    // B2 (auditoría 22-ago, causa raíz del 422): el INBOX no tiene sesión real en BD
+    // (dbSessionId=null). El READ (getMessages) YA guarda este caso; el WRITE no lo hacía →
+    // POST /chat/messages con sessionId:null → api-ia 422 ("chat no consolida" en la
+    // conversación de bienvenida). Además es REDUNDANTE: el inbox ya persiste por el
+    // streaming (/chat/stream persist:true). Guardamos igual que getMessages: id local,
+    // sin tocar el servidor. Sesiones reales (dbSessionId no-null) → sin cambios.
+    if (dbSessionId === null || dbSessionId === undefined || dbSessionId === '') {
+      return `local-inbox-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    }
     const res = await call('POST', '/chat/messages', {
       // campos extra del flujo (parentId, topicId, etc.) van también — api-ia ignora los no usados.
       // ...params PRIMERO para que los campos explícitos de abajo NO sean sobreescritos (TS2783).
@@ -114,7 +124,7 @@ export class ApiIaMessageService implements IMessageService {
       // api-ia uppercasea antes de api-mcp (cuya comparación es role==='ASSISTANT' para facturar).
       // NO cambiar a mayúsculas aquí — romperías el doble-uppercase y la facturación. [[contrato]]
       role: String((params as any).role),
-      sessionId: this.toDbSessionId(sessionId),
+      sessionId: dbSessionId,
       type: (params as any).type,
     });
     const d = res?.data ?? res;
@@ -123,15 +133,22 @@ export class ApiIaMessageService implements IMessageService {
     return id as string;
   };
 
-  updateMessage: IMessageService['updateMessage'] = async (id, value) =>
-    call('PATCH', `/chat/messages/${encodeURIComponent(id)}`, value);
+  updateMessage: IMessageService['updateMessage'] = async (id, value) => {
+    // B2: los mensajes del inbox tienen id local (no se escribieron en servidor) → no PATCH
+    // (evita el "PATCH /chat/messages/tmp_* → Error" que veía QA). Coherente con createMessage.
+    if (typeof id === 'string' && id.startsWith('local-inbox-')) return;
+    return call('PATCH', `/chat/messages/${encodeURIComponent(id)}`, value);
+  };
 
   updateMessageError: IMessageService['updateMessageError'] = async (id, error) =>
     this.updateMessage(id, { error } as any);
 
   // DELETE /chat/messages/{id}?reason=X (reason opcional, confirmado por api-ia).
-  removeMessage: IMessageService['removeMessage'] = async (id) =>
-    call('DELETE', `/chat/messages/${encodeURIComponent(id)}?reason=user_delete`);
+  removeMessage: IMessageService['removeMessage'] = async (id) => {
+    // B2: id local del inbox → no existe en servidor, no DELETE.
+    if (typeof id === 'string' && id.startsWith('local-inbox-')) return;
+    return call('DELETE', `/chat/messages/${encodeURIComponent(id)}?reason=user_delete`);
+  };
 
   // ───────── pending: métodos raros — confirmar endpoint antes de activar ─────────
   private pending(method: string): never {
