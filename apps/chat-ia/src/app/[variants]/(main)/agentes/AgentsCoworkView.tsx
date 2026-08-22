@@ -559,7 +559,13 @@ export default function AgentesPage() {
             // instrucción/id corto → nunca 14× "Nueva conversación". Coherente con
             // /asistente para agentes con título.
             const title = nameOf(agent);
-            const description = agent.meta.description ?? '';
+            // #5 QA (re-análisis 22-ago): un agente SIN descripción NI instrucción es un
+            // agente vacío de test → mostrar "Sin configurar" para distinguirlo de uno con
+            // propósito real ("no sé para qué es cada agente"). Si tiene instrucción, el
+            // nombre ya la refleja (agentDisplayName deriva de systemRole).
+            const description =
+              agent.meta.description?.trim() ||
+              (agent.config?.systemRole?.trim() ? '' : 'Sin configurar');
             const avatar = agent.meta.avatar || agentInitial(title);
             return (
               <button
