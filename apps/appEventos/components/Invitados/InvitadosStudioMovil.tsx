@@ -122,7 +122,7 @@ const InvitadosStudioMovil: FC = () => {
       {isOwner && shareOpen && <ModalCompartirEventoStudio event={event} onClose={() => setShareOpen(false)} />}
 
       {/* HEADER DEL MÓDULO (sticky) */}
-      <div style={{ background: "#fff", padding: "14px 16px", display: "flex", alignItems: "center", gap: 10, position: "sticky", top: 0, zIndex: 10, boxShadow: "0 2px 10px rgba(0,0,0,.04)" }}>
+      <div style={{ background: "#fff", padding: "14px 16px", display: "flex", alignItems: "center", gap: 10, position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ font: "700 17px Poppins", color: "#3A3A42" }}>Invitados</div>
           <div style={{ font: "500 10px Poppins", color: "#a0a0a8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}><b style={{ color: "#EF5B94", fontWeight: 600 }}>{tipoTxt}</b> · {event?.nombre}</div>
