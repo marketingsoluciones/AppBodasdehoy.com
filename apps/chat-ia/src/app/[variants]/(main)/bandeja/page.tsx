@@ -323,7 +323,7 @@ export default function MessagesPage() {
                 {/* G2 (auditoría 22-ago): resumen del dueño en modo Global (sin evento
                     seleccionado). Datos agregados en front (eventos + no-leídos ya en memoria). */}
                 {activeScope === 'support' && !esperanOnly && !agentFilter && (
-                  <GlobalSummaryCard convUnread={convUnreadCount} notifUnread={notifUnreadCount} />
+                  <GlobalSummaryCard convUnread={convUnreadCount} />
                 )}
                 <InboxFilters
                   channel={channelFilter}

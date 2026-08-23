@@ -2,49 +2,53 @@
 
 import { useEffect, useState } from 'react';
 
-import { useAuthCheck } from '@/hooks/useAuthCheck';
-import { getEventosByUsuario } from '@/services/mcpApi/eventos';
+import { buildHeaders, getUserContext } from '../utils/auth';
 
 /**
  * GlobalSummaryCard — "modo Global": cuando NO hay evento seleccionado (scope = Soporte),
  * el dueño ve un resumen de TODAS sus bodas a la vez.
  *
- * G2 de la auditoría (22-ago). Verificado que es front-agregable con datos ya disponibles:
- *   · nº de bodas → getEventosByUsuario (lista lean, barata).
- *   · conversaciones sin leer / notificaciones → ya calculadas en la bandeja (useUnifiedFeed).
- * El motor de "digests del dueño" ya existe en api-ia (/api/event-followup/run-digests);
- * cuando exponga un GET de resumen de lectura, esta tarjeta migra a consumirlo (menos coste).
+ * G5 (23-ago): api-ia expone GET /api/owner/summary (motor de digests del dueño) →
+ * { eventos, conversacionesAbiertas, esperanRespuesta, confirmados }. Lo consumimos vía el
+ * proxy /api/backend/[...path] (→ api-ia/api/owner/summary). Autoritativo y en 1 llamada
+ * (incluye `confirmados`, que el front no podía calcular). `convUnread` (de la bandeja, ya en
+ * memoria) se muestra de inmediato mientras el summary carga.
  */
-export function GlobalSummaryCard({
-  convUnread,
-  notifUnread,
-}: {
-  convUnread: number;
-  notifUnread: number;
-}) {
-  const { checkAuth, isGuest } = useAuthCheck();
-  const { development, userId } = checkAuth();
-  const [eventCount, setEventCount] = useState<number | null>(null);
+interface OwnerSummary {
+  confirmados?: number;
+  conversacionesAbiertas?: number;
+  esperanRespuesta?: number;
+  eventos?: number;
+}
+
+const num = (v: number | undefined) => (typeof v === 'number' ? v : null);
+
+export function GlobalSummaryCard({ convUnread }: { convUnread: number }) {
+  const [summary, setSummary] = useState<OwnerSummary | null>(null);
 
   useEffect(() => {
-    if (isGuest || !userId || !development) return;
+    const { development, userId } = getUserContext();
+    if (!development || !userId) return;
     let cancelled = false;
-    getEventosByUsuario(development, userId, { limit: 50, page: 1 })
-      .then((list) => {
-        if (!cancelled) setEventCount(Array.isArray(list) ? list.length : null);
+    const qs = new URLSearchParams({ development, owner_email: userId });
+    fetch(`/api/backend/api/owner/summary?${qs.toString()}`, { headers: buildHeaders() })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled && d && d.success !== false) setSummary(d as OwnerSummary);
       })
       .catch(() => {
-        /* backend caído → no mostramos número inventado */
+        /* backend caído → no mostramos números inventados (se queda en '…') */
       });
     return () => {
       cancelled = true;
     };
-  }, [isGuest, userId, development]);
+  }, []);
 
   const stats: Array<{ icon: string; label: string; value: number | null }> = [
-    { icon: '💍', label: eventCount === 1 ? 'boda' : 'bodas', value: eventCount },
+    { icon: '💍', label: 'bodas', value: num(summary?.eventos) },
     { icon: '💬', label: 'sin leer', value: convUnread },
-    { icon: '🔔', label: 'notificaciones', value: notifUnread },
+    { icon: '⏳', label: 'esperan', value: num(summary?.esperanRespuesta) },
+    { icon: '✅', label: 'confirmados', value: num(summary?.confirmados) },
   ];
 
   return (
@@ -55,7 +59,7 @@ export function GlobalSummaryCard({
       >
         <span aria-hidden="true">🌐</span> Todas tus bodas
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
         {stats.map((s) => (
           <div className="flex items-baseline gap-1" key={s.label}>
             <span className="text-sm">{s.icon}</span>
