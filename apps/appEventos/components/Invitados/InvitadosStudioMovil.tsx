@@ -116,7 +116,7 @@ const InvitadosStudioMovil: FC = () => {
   );
 
   return (
-    <div className="md:hidden" style={{ background: "#F6F5F7", minHeight: "100%", position: "relative", paddingBottom: 40, fontFamily: "'Poppins',sans-serif" }}>
+    <div className="md:hidden" style={{ background: "#fff", minHeight: "100%", position: "relative", display: "flex", flexDirection: "column", fontFamily: "'Poppins',sans-serif" }}>
       <style dangerouslySetInnerHTML={{ __html: "@keyframes ism-up{from{transform:translate(-50%,100%)}to{transform:translate(-50%,0)}}@keyframes ism-fade{from{opacity:0}to{opacity:1}}.ism-hs{scrollbar-width:none;}.ism-hs::-webkit-scrollbar{display:none;}" }} />
 
       {isOwner && shareOpen && <ModalCompartirEventoStudio event={event} onClose={() => setShareOpen(false)} />}
@@ -142,6 +142,8 @@ const InvitadosStudioMovil: FC = () => {
         </div>
       )}
 
+      {/* Contenido — fondo gris para resaltar tarjetas (la cabecera queda blanca, sin franja gris) */}
+      <div style={{ background: "#F6F5F7", flex: 1, paddingBottom: 40 }}>
       {/* RESUMEN + CHIPS */}
       <div style={{ padding: "16px 16px 4px", display: "flex", alignItems: "baseline", gap: 8 }}>
         <span style={{ font: "800 24px Poppins", color: "#EF5B94" }}>{total}</span>
@@ -192,6 +194,7 @@ const InvitadosStudioMovil: FC = () => {
           );
         })}
       </div>
+      </div>{/* fin contenido gris */}
 
       {/* FAB "+" */}
       <button onClick={() => setAddOpen((v) => !v)} style={{ position: "fixed", right: 16, bottom: 150, width: 54, height: 54, borderRadius: "50%", background: "#EF5B94", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 26px rgba(239,91,148,.45)", cursor: "pointer", zIndex: 55, border: "none" }}>
