@@ -4,6 +4,7 @@ import { AuthContextProvider, EventContextProvider } from "../context";
 import { useEventSyncWithUrl } from "../hooks/useEventSyncWithUrl";
 import FormCrearMesa from "../components/Forms/FormCrearMesa";
 import BlockPanelMesas, { ListTables } from "../components/Mesas/BlockPanelMesas";
+import MesasStudioMovil from "../components/Mesas/MesasStudioMovil";
 import BlockResumen from "../components/Mesas/BlockResumen";
 import BlockInvitados from "../components/Mesas/BlockInvitados";
 import ModalMesa from "../components/Mesas/ModalMesa";
@@ -347,7 +348,10 @@ const Mesas: FC = () => {
             />
           </ModalLeft>
         )}
-        <div className="font-display">
+        {/* ===== MÓVIL (Fase 1) ===== */}
+        <MesasStudioMovil />
+        {/* ===== ESCRITORIO ===== */}
+        <div className="hidden md:block font-display">
           <section id="areaDrag" className={`w-full h-full pt-2 md:py-0 static`}>
             <motion.div
               initial={{ opacity: 0 }}
