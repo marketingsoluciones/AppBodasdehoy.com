@@ -229,8 +229,10 @@ export default function AgentesPage() {
   // Resumen (rendimiento + actividad) · Configuración (canales + instrucciones). Se
   // resetea a "resumen" al cambiar de agente. "Abrir chat" (hilos) y "Ver conversaciones
   // de cliente" siguen como acciones (cabecera/tarjeta), no como pestañas vacías.
-  const [fichaTab, setFichaTab] = useState<'resumen' | 'config'>('resumen');
-  useEffect(() => setFichaTab('resumen'), [selectedId]);
+  // FUSIÓN single-pane (owner 23-ago): el chat del agente es una PESTAÑA más ("Chat"),
+  // primera y por defecto → una sola pantalla estilo Cloudflare/Trae. Resumen/Config intactos.
+  const [fichaTab, setFichaTab] = useState<'chat' | 'resumen' | 'config'>('chat');
+  useEffect(() => setFichaTab('chat'), [selectedId]);
 
   // Guard de hidratación (React #418, QA 4-ago): los selectores de Zustand pueden diferir
   // entre SSR (estado inicial) y el primer render del cliente (store ya hidratado) → mismatch.
@@ -742,7 +744,7 @@ export default function AgentesPage() {
 
           {/* Pestañas del espacio del agente (modelo 18-ago) */}
           <div className="flex gap-1 px-6 pt-3" style={{ borderBottom: '1px solid #EDEDF0' }}>
-            {([['resumen', 'Resumen'], ['config', 'Configuración']] as const).map(([key, label]) => (
+            {([['chat', 'Chat'], ['resumen', 'Resumen'], ['config', 'Configuración']] as const).map(([key, label]) => (
               <button
                 aria-current={fichaTab === key}
                 className="px-3 py-2 text-sm font-medium transition-colors"
@@ -761,6 +763,20 @@ export default function AgentesPage() {
           </div>
 
           {/* Contenido ficha */}
+          {fichaTab === 'chat' ? (
+            /* FUSIÓN single-pane: el chat del agente EMBEBIDO. El iframe activa el modo embed
+               automáticamente (win.self!==win.top → resolveChatEmbedMode) → oculta rail/header/
+               paneles → solo conversación+input. El motor del chat NO se toca (corre como
+               /asistente dentro del iframe). REGLA 0: Resumen/Config/acciones siguen intactos. */
+            <div className="flex-1" style={{ minHeight: 0 }}>
+              <iframe
+                key={selected.id}
+                src={`/asistente?session=${encodeURIComponent(selected.id)}`}
+                style={{ border: 0, height: '100%', width: '100%' }}
+                title={`Chat de ${nameOf(selected)}`}
+              />
+            </div>
+          ) : (
           <div className="flex-1 overflow-auto px-6 py-6">
             <div className="mx-auto max-w-3xl space-y-6">
               {/* Rendimiento hoy — cablead 23-jul: métricas reales per-agente (api-ia) */}
@@ -953,6 +969,7 @@ export default function AgentesPage() {
               </p>
             </div>
           </div>
+          )}
         </section>
       )}
     </div>
