@@ -39,6 +39,7 @@ import {
 } from '@/services/weddingChatService';
 import { getCurrentEventId } from '@/services/storage-r2';
 
+import { useEventSeed } from './useEventSeed';
 import { WeddingEventPicker } from './WeddingEventPicker';
 import { FeatureGate } from '@/components/FeatureGate';
 
@@ -201,7 +202,7 @@ function WeddingCreatorContent() {
   const legacyHook = useWeddingWeb({ autoSave: true });
   const activeHook = graphQLHook || legacyHook;
 
-  const wedding = activeHook.wedding || legacyHook.wedding || {
+  const rawWedding = activeHook.wedding || legacyHook.wedding || {
     couple: { partner1: { name: '' }, partner2: { name: '' } },
     createdAt: '1970-01-01T00:00:00.000Z',
     date: { date: '1970-01-01T00:00:00.000Z' },
@@ -213,6 +214,24 @@ function WeddingCreatorContent() {
     style: { palette: 'romantic' },
     updatedAt: '1970-01-01T00:00:00.000Z',
   };
+
+  // P1 (QA 23-ago): si el evento seleccionado NO tiene wedding-web configurada, getWeddingWeb
+  // devuelve vacío → el editor mostraba "Nombre 1 & Nombre 2". Sembramos pareja + fecha desde
+  // los datos REALES del evento (getEventoById) para que el editor refleje la boda elegida.
+  // Solo se aplica cuando NO hay pareja real cargada (no pisa datos ya guardados en la web).
+  const eventSeed = useEventSeed(eventId);
+  const hasRealCouple = !!(rawWedding as any)?.couple?.partner1?.name?.trim();
+  const wedding =
+    !hasRealCouple && eventSeed
+      ? {
+          ...rawWedding,
+          couple: {
+            partner1: { name: eventSeed.coupleNames[0] },
+            partner2: { name: eventSeed.coupleNames[1] },
+          },
+          date: { ...(rawWedding as any).date, date: eventSeed.date || (rawWedding as any)?.date?.date },
+        }
+      : rawWedding;
 
   const isDirty = activeHook.isDirty ?? legacyHook.isDirty ?? false;
   const isSaving = activeHook.isSaving ?? legacyHook.isSaving ?? false;
