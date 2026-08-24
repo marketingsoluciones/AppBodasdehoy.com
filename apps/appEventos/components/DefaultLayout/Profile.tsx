@@ -319,7 +319,20 @@ const Profile = ({ user, state, set, studio = false, ...rest }) => {
             className={studio
               ? "relative flex items-center gap-2.5 cursor-pointer rounded-[26px] py-[5px] pl-[5px] pr-3 hover:bg-[#F7F6F8] transition"
               : "bg-white items-center pr-2 flex relative cursor-pointer"}
-            onClick={() => setDropwdon(!dropdown)}>
+            onClick={() => {
+              // Invitado (sin sesión): el pill dice "Iniciar sesión" → ir DIRECTO al login,
+              // no abrir el menú de cuenta (que no tiene sentido sin sesión). Sí se puede
+              // volver con ?redirect a la pantalla actual tras autenticarse.
+              if (!isAuthenticatedUser) {
+                if (config?.pathLogin) {
+                  window.location.href = `${config.pathLogin}?redirect=${encodeURIComponent(window.location.origin + pathname)}`
+                } else {
+                  router.push(`/login?d=${pathname}`)
+                }
+                return
+              }
+              setDropwdon(!dropdown)
+            }}>
             {dropdown && studio && (
               <div
                 data-testid="profile-menu-dropdown"
