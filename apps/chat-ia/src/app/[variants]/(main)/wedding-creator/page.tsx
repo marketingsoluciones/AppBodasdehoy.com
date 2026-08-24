@@ -221,6 +221,32 @@ function WeddingCreatorContent() {
   // Solo se aplica cuando NO hay pareja real cargada (no pisa datos ya guardados en la web).
   const eventSeed = useEventSeed(eventId);
   const hasRealCouple = !!(rawWedding as any)?.couple?.partner1?.name?.trim();
+  // Sección de agenda ("Programa del día") sembrada desde el itinerario del evento
+  // (itinerarios_array → ScheduleEvent[]). Solo si el evento trae itinerario y el editor está
+  // vacío (no pisa una agenda ya guardada en la web).
+  // any[]: la sección se pasa al renderer del paquete; evitamos fricción de tipos con
+  // los literales (type:'schedule'/'other') sin renunciar a la validación en runtime.
+  const seededSections: any[] =
+    eventSeed?.schedule?.length && !hasRealCouple
+      ? [
+          {
+            data: {
+              events: eventSeed.schedule.map((s, i) => ({
+                description: undefined,
+                id: `seed-${i}`,
+                location: s.location,
+                time: s.time || '',
+                title: s.title,
+                type: 'other',
+              })),
+              title: 'Programa del día',
+            },
+            enabled: true,
+            order: 1,
+            type: 'schedule',
+          },
+        ]
+      : [];
   const wedding =
     !hasRealCouple && eventSeed
       ? {
@@ -230,6 +256,7 @@ function WeddingCreatorContent() {
             partner2: { name: eventSeed.coupleNames[1] },
           },
           date: { ...(rawWedding as any).date, date: eventSeed.date || (rawWedding as any)?.date?.date },
+          sections: [...seededSections, ...(((rawWedding as any).sections as any[]) || [])],
         }
       : rawWedding;
 
