@@ -9,7 +9,7 @@ import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { buildHeaders } from '../utils/auth';
 import { classifyOtherChannel } from '../utils/channelClassify';
 import { dedupeFetch } from '../utils/dedupeFetch';
-import { friendlyContactName } from '../utils/jid';
+import { friendlyContactName, inferJidType } from '../utils/jid';
 import { useMessageStream } from './useMessageStream';
 
 export type ChannelKind = 'whatsapp' | 'instagram' | 'telegram' | 'email' | 'web' | 'facebook';
@@ -157,8 +157,10 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
               kind: 'whatsapp' as const,
               lastMessage: '',
               lastMessageAt: c.lastMessageAt || '',
-              name: friendlyContactName(c.contactName, c.phoneNumber),
-              unreadCount: 0,
+              assignedAgentId: c.assignedAgentId ?? null,
+              jidType: c.jidType ?? null,
+              name: friendlyContactName(c.contactName, c.phoneNumber, c.jidType),
+              unreadCount: c.unreadCountForAgent ?? 0,
             }));
           })
           .catch(() => [] as RecentConversation[]);
@@ -174,6 +176,12 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
             return rawList.map((c: any) => {
               // Clasificación de canal — fuente ÚNICA compartida con useConversations (rail).
               const ch = classifyOtherChannel(c.channel, c.platform);
+              // api-ia devuelve `contact:{name,phone}` — no displayName/phoneNumber
+              // (verificado 24-ago). Sin esto la fila se pintaba "Desconocido" y
+              // `jidType` ni se ponía → el filtro anti-spam de page.tsx no la veía.
+              const rawPhone = c.phoneNumber ?? c.contact?.phone ?? null;
+              const rawName = c.displayName || c.contactName || c.username || c.contact?.name || rawPhone;
+              const jidType = inferJidType(c.jidType ?? c.jid_type, rawName, rawPhone);
               // N31 retirado 24-jun: api-ia commit 665097b normalizó lastMessage
               // a string + lastMessageAt + lastMessageFromMe. Ya no llega objeto.
               return {
@@ -191,7 +199,8 @@ export function useRecentConversations(max = 50, refreshKey = 0) {
                 labels: c.labels ?? c.labelIds ?? c.label_ids ?? undefined,
                 linkedContactId: c.linkedContactId ?? c.linked_contact_id ?? null,
                 linkedEventId: c.linkedEventId ?? c.linked_event_id ?? null,
-                name: friendlyContactName(c.displayName || c.contactName || c.username, c.phoneNumber, c.jidType ?? c.jid_type),
+                jidType,
+                name: friendlyContactName(rawName, rawPhone, jidType),
                 unreadCount: c.unreadCount || 0,
                 unreadCountForAgent: c.unreadCountForAgent ?? c.unread_count_for_agent ?? undefined,
                 status: c.status ?? c.conversationStatus ?? undefined,

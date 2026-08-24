@@ -351,12 +351,19 @@ export async function addWhatsAppChannelMember(channelId: string, userId: string
 // ─── GraphQL conversations / messages (MCP native store) ─────────────────────
 
 export interface WaConversation {
+  /** Agente de bandeja asignado. DISTINTO de assignedTo (dueño CRM) — lo escribe
+   *  setConversationAgent y api-ia lo mirror-ea (esquema api-mcp whatsapp.ts:168). */
+  assignedAgentId?: string | null;
   contactName?: string;
   id: string;
+  /** user | group | newsletter | broadcast | lid | unknown. Si != user,
+   *  phoneNumber NO es un teléfono. Lo usan los filtros anti-spam de la Bandeja. */
+  jidType?: string | null;
   lastMessageAt: string;
   messageCount: number;
   phoneNumber: string;
   status: string;
+  unreadCountForAgent?: number;
 }
 
 export interface WaMessage {
@@ -378,6 +385,9 @@ const GET_WA_CONVERSATIONS = `
         lastMessageAt
         messageCount
         status
+        jidType
+        assignedAgentId
+        unread_count_for_agent
       }
     }
   }
@@ -409,16 +419,41 @@ export async function getWhatsAppConversationsGQL(
       getWhatsAppConversations: { conversations: any[] };
     }>(GET_WA_CONVERSATIONS, { developerId });
     return (data.getWhatsAppConversations?.conversations ?? []).map((c: any) => ({
+      assignedAgentId: c.assignedAgentId ?? null,
       contactName: c.contactInfo?.name || undefined,
       id: c.id,
+      jidType: c.jidType ?? null,
       lastMessageAt: c.lastMessageAt,
       messageCount: c.messageCount ?? 0,
       phoneNumber: c.phoneNumber,
       status: c.status,
+      unreadCountForAgent: c.unread_count_for_agent ?? 0,
     }));
   } catch {
     return [];
   }
+}
+
+const SET_CONVERSATION_AGENT = `
+  mutation SetConversationAgent($conversationId: ID!, $agentId: ID) {
+    setConversationAgent(conversationId: $conversationId, agentId: $agentId)
+  }
+`;
+
+/** Asigna (o desasigna con agentId=null) el AGENTE de bandeja de una conversación.
+ *
+ *  Confirmado en el esquema de api-mcp (typeDefs/whatsapp.ts:454) el 24-ago: hasta
+ *  hoy el front sabía LEER `assignedAgentId` pero no existía ni una llamada de
+ *  escritura, así que el responsable no se podía cambiar desde la interfaz.
+ *  api-ia mirror-ea el valor, así que la Bandeja lo ve por su vía habitual. */
+export async function setConversationAgent(
+  conversationId: string,
+  agentId: string | null,
+): Promise<boolean> {
+  const data = await mcpClient.query<{ setConversationAgent: boolean }>(
+    SET_CONVERSATION_AGENT, { agentId, conversationId },
+  );
+  return data.setConversationAgent === true;
 }
 
 /** Fetch messages for a conversation from MCP native store */

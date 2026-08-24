@@ -5,7 +5,7 @@ import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { buildHeaders } from '../utils/auth';
 import { classifyOtherChannel, isWhatsAppView } from '../utils/channelClassify';
 import { dedupeFetch } from '../utils/dedupeFetch';
-import { friendlyContactName, safePhoneOrEmpty } from '../utils/jid';
+import { friendlyContactName, inferJidType, safePhoneOrEmpty } from '../utils/jid';
 import { useMessageStream } from './useMessageStream';
 
 export interface Conversation {
@@ -95,7 +95,12 @@ export function useConversations(channel: string | null) {
         // N33 activa: parseJid en api-ia sigue pendiente. Defensa vive en
         // utils/jid.ts (friendlyContactName + classifyJidLike). Ver docs/AUTH-FLOW.md.
         const normalized: Conversation[] = rawList.map((c: any) => {
-          const rawName = c.displayName || c.contactInfo?.name || c.phoneNumber || '';
+          // api-mcp manda displayName/contactInfo/phoneNumber; api-ia manda
+          // `contact:{name,phone}` (verificado 24-ago contra /api/messages/conversations).
+          // Sin leer su forma, TODA conversación de api-ia se pintaba "Desconocido".
+          const rawPhone = c.phoneNumber ?? c.contact?.phone ?? null;
+          const rawName = c.displayName || c.contactInfo?.name || c.contact?.name || rawPhone || '';
+          const jidType = inferJidType(c.jidType ?? c.jid_type, rawName, rawPhone);
           // Clasificación IDÉNTICA al feed (useRecentConversations): en vista WA todo es
           // 'whatsapp'; en vista "otros", desconocido/sin-channel → 'web' (cajón). Esto
           // hace que la conv sobreviva al abrirla (el filtro de abajo ya cuadra).
@@ -107,8 +112,8 @@ export function useConversations(channel: string | null) {
             assignedToUserId: c.assignedUserId ?? c.assigned_to ?? c.assignedTo ?? null,
             channel: kind as Conversation['channel'],
             contact: {
-              name: friendlyContactName(rawName, c.phoneNumber, c.jidType ?? c.jid_type),
-              phone: safePhoneOrEmpty(c.phoneNumber, c.jidType ?? c.jid_type),
+              name: friendlyContactName(rawName, rawPhone, jidType),
+              phone: safePhoneOrEmpty(rawPhone, jidType),
             },
             id: c.conversationId || c.id,
             lastMessage: {
@@ -127,7 +132,7 @@ export function useConversations(channel: string | null) {
               | 'pending'
               | 'declined'
               | null,
-            jidType: c.jidType ?? c.jid_type ?? null,
+            jidType,
             jidRaw: c.jidRaw ?? c.jid_raw ?? null,
             status: c.status ?? c.conversationStatus ?? undefined,
             unreadCount: c.unreadCount || 0,

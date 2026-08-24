@@ -46,6 +46,39 @@ export function classifyJidLike(raw: string | null | undefined): JidKind {
   return 'unknown';
 }
 
+/** Rellena `jidType` cuando el backend NO lo manda.
+ *
+ *  api-mcp sí lo expone (commit 7d52fec) pero api-ia NO: su
+ *  `/api/messages/conversations` devuelve `{contact:{name,phone}}` y nada más.
+ *  Sin este relleno, `jidType` llegaba `null` a los filtros anti-spam
+ *  (page.tsx + ConversationList.tsx) y `null !== 'newsletter'` es true → el
+ *  filtro NO ocultaba nada y los estados de difusión y canales se colaban en
+ *  la bandeja del organizador (auditoría 24-ago: 618 de 622 no-leídos).
+ *
+ *  Devuelve el vocabulario de api-mcp para que los consumidores que ya
+ *  comparaban contra él sigan funcionando sin cambios. `null` cuando no hay
+ *  forma de saberlo: preferimos no clasificar antes que inventar.
+ */
+export function inferJidType(
+  backendJidType: string | null | undefined,
+  ...candidates: (string | null | undefined)[]
+): string | null {
+  if (backendJidType) return String(backendJidType);
+  const raw = candidates.find((c) => String(c ?? '').trim() !== '');
+  switch (classifyJidLike(raw)) {
+    case 'person':
+      return 'user';
+    case 'group':
+      return 'group';
+    case 'newsletter':
+      return 'newsletter';
+    case 'broadcast':
+      return 'broadcast';
+    default:
+      return null;
+  }
+}
+
 /** Devuelve un nombre amigable a mostrar al usuario cuando el campo
  *  recibido es probablemente un JID/prefijo y no un nombre real.
  *

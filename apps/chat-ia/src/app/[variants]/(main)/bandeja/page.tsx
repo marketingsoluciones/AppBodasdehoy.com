@@ -148,6 +148,18 @@ export default function MessagesPage() {
   };
   // FASE 2 Agentes (dormido): ¿hay datos de agente en la lista? Solo entonces se activan
   // el filtro ?agent= y el banner. Hoy false (backend no expone assignedAgentId todavía).
+  // El contador y la lista TIENEN que mirar el mismo conjunto. Antes la lista
+  // ocultaba difusiones/canales (filtro de abajo) pero `convUnreadCount` contaba
+  // sobre `items` sin filtrar → el badge enseñaba pendientes que no aparecían al
+  // abrir la bandeja (auditoría 24-ago). Un solo predicado para los dos.
+  const hidesAsSpam = useCallback(
+    (i: FeedItem) => {
+      if (showSpam || i.kind !== 'conversation') return false;
+      const jid = (i as any).jidType;
+      return jid === 'newsletter' || jid === 'broadcast';
+    },
+    [showSpam],
+  );
   const agentDataAvailable = useMemo(
     () => items.some((i) => i.kind === 'conversation' && !!i.assignedAgentId),
     [items],
@@ -181,13 +193,7 @@ export default function MessagesPage() {
     // Filtro auto: ocultar conversaciones cuyo jidType sea 'newsletter' o
     // 'broadcast' por default. Toggle "ver spam" (15-jul) lo desactiva
     // temporalmente para admins que quieran auditar.
-    if (!showSpam) {
-      arr = arr.filter((i) => {
-        if (i.kind !== 'conversation') return true;
-        const jid = (i as any).jidType;
-        return jid !== 'newsletter' && jid !== 'broadcast';
-      });
-    }
+    arr = arr.filter((i) => !hidesAsSpam(i));
     // BUG-INBOX-03 v2 (QA 30-jun): WA items tienen channelParam='wa-{id}' (no
     // 'whatsapp'), por lo que includes('whatsapp') vaciaba la bandeja cuando
     // se filtraba por WA con canales configurados. Comparar por channelKind
@@ -220,15 +226,17 @@ export default function MessagesPage() {
       );
     }
     return arr;
-  }, [items, esperanOnly, activeTab, activeScope, channelFilter, rsvpFilter, pendingIaActive, showSpam, agentFilter, agentDataAvailable]);
+  }, [items, esperanOnly, activeTab, activeScope, channelFilter, rsvpFilter, pendingIaActive, hidesAsSpam, agentFilter, agentDataAvailable]);
 
   const notifUnreadCount = useMemo(
     () => items.filter((i) => i.kind === 'notification' && !i.isRead).length,
     [items],
   );
   const convUnreadCount = useMemo(
-    () => items.filter((i) => i.kind === 'conversation' && i.unreadCount > 0).length,
-    [items],
+    () =>
+      items.filter((i) => i.kind === 'conversation' && i.unreadCount > 0 && !hidesAsSpam(i))
+        .length,
+    [items, hidesAsSpam],
   );
   // Al cambiar de scope: resetear filtros (regla state management Diseño).
   const handleScopeChange = useCallback((s: ScopeId) => {
