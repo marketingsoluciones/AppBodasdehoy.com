@@ -2,6 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuthCheck } from '@/hooks/useAuthCheck';
+import { setConversationAgent } from '@/services/mcpApi/whatsapp';
+import { useSessionStore } from '@/store/session';
+import { sessionSelectors } from '@/store/session/selectors';
+import { LobeSessionType, type LobeAgentSession } from '@/types/session';
+import { isWhatsAppView } from '../utils/channelClassify';
 import { useConversations } from '../hooks/useConversations';
 import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
@@ -51,6 +56,45 @@ export function ConversationHeader({
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  // ASIGNAR AGENTE (24-ago): api-mcp confirmó la mutation setConversationAgent
+  // (typeDefs/whatsapp.ts:454). Hasta hoy el chip "Responsable" era de SOLO
+  // LECTURA: se veía quién atendía y no había forma de cambiarlo. La lista de
+  // agentes es la misma que /agentes (sesiones type='agent', backend real).
+  // Solo en conversaciones de WhatsApp: la mutation vive en el store de
+  // WhatsApp de api-mcp; para email/telegram/web no hay a quién escribirle.
+  const agentSessions = useSessionStore((st) => {
+    const all = sessionSelectors.defaultSessions(st);
+    return all.filter(
+      (session): session is LobeAgentSession => session.type === LobeSessionType.Agent,
+    );
+  });
+  const canAssignAgent = isWhatsAppView(channel) && agentSessions.length > 0;
+  // Override optimista: api-ia mirror-ea el valor, pero no al instante.
+  const [agentOverride, setAgentOverride] = useState<{ id: string | null; name: string | null } | null>(null);
+  const [assigningAgent, setAssigningAgent] = useState(false);
+  useEffect(() => {
+    setAgentOverride(null);
+  }, [conversationId]);
+  const handleAssignAgent = async (agentId: string) => {
+    const next = agentId || null;
+    const nextName = next
+      ? (agentSessions.find((a) => a.id === next)?.meta?.title ?? 'Agente')
+      : null;
+    const previous = agentOverride;
+    setAgentOverride({ id: next, name: nextName });
+    setAssigningAgent(true);
+    try {
+      const ok = await setConversationAgent(conversationId, next);
+      if (!ok) throw new Error('respuesta negativa');
+    } catch {
+      setAgentOverride(previous);
+      // eslint-disable-next-line no-alert
+      alert('No se pudo cambiar el responsable. Vuelve a intentarlo en un momento.');
+    } finally {
+      setAssigningAgent(false);
+    }
+  };
+
   // FASE 4 Copilot (20-ago): "Resumir conversación" — resumen IA read-only (endpoint api-ia
   // /summary LIVE). NO es un borrador de respuesta: solo para que el agente se ponga al día.
   const [summary, setSummary] = useState<{ model?: string; summary: string } | null>(null);
@@ -280,16 +324,48 @@ export function ConversationHeader({
                 conversación, visible también en el detalle (no solo en la lista). Solo
                 se pinta cuando hay assignedAgentName (null-safe). Distinto del botón
                 "Asignada" de la derecha, que es la asignación a un HUMANO. */}
-            {conversation.assignedAgentName ? (
-              <span
-                aria-label={`Responsable: ${conversation.assignedAgentName}`}
-                className="mt-1 inline-flex max-w-full items-center gap-1 truncate rounded-full px-1.5 py-0.5 text-[10px] font-medium"
-                style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
-              >
-                <span aria-hidden="true">🤖</span>
-                <span className="truncate">Responsable: {conversation.assignedAgentName}</span>
-              </span>
-            ) : null}
+            {(() => {
+              const agentId = agentOverride ? agentOverride.id : (conversation.assignedAgentId ?? null);
+              const agentName = agentOverride ? agentOverride.name : (conversation.assignedAgentName ?? null);
+              // Con agentes disponibles el chip pasa a ser SELECTOR (mismo patrón
+              // que el select de estado de la derecha). Sin ellos, o en canales
+              // que no son WhatsApp, se queda como etiqueta de solo lectura.
+              if (canAssignAgent) {
+                return (
+                  <select
+                    aria-label="Cambiar el agente responsable de esta conversación"
+                    className="mt-1 max-w-full truncate rounded-full px-1.5 py-0.5 text-[10px] font-medium focus:outline-none"
+                    disabled={assigningAgent}
+                    onChange={(e) => void handleAssignAgent(e.target.value)}
+                    style={{
+                      backgroundColor: agentId ? '#EDE9FE' : '#F2F1F6',
+                      border: 'none',
+                      color: agentId ? '#6B4EFF' : '#84848F',
+                      cursor: assigningAgent ? 'wait' : 'pointer',
+                    }}
+                    title={agentName ? `Responsable: ${agentName}` : 'Sin responsable asignado'}
+                    value={agentId ?? ''}
+                  >
+                    <option value="">🤖 Sin responsable</option>
+                    {agentSessions.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        🤖 {a.meta?.title ?? 'Agente'}
+                      </option>
+                    ))}
+                  </select>
+                );
+              }
+              return agentName ? (
+                <span
+                  aria-label={`Responsable: ${agentName}`}
+                  className="mt-1 inline-flex max-w-full items-center gap-1 truncate rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                  style={{ backgroundColor: '#EDE9FE', color: '#6B4EFF' }}
+                >
+                  <span aria-hidden="true">🤖</span>
+                  <span className="truncate">Responsable: {agentName}</span>
+                </span>
+              ) : null;
+            })()}
           </div>
         </div>
 
