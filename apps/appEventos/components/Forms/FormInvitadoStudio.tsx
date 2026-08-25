@@ -38,7 +38,7 @@ const Field: FC<{ name: string; label: string; type?: string; inputMode?: any }>
   return (
     <div>
       <span style={labelStyle}>{label}</span>
-      <input {...field} name={name} type={type} inputMode={inputMode} className="fis-in" style={{ ...inputStyle, borderColor: meta.touched && meta.error ? "#E85C7A" : "#E7E7EA" }} />
+      <input {...field} name={name} type={type} inputMode={inputMode} autoComplete="off" className="fis-in" style={{ ...inputStyle, borderColor: meta.touched && meta.error ? "#E85C7A" : "#E7E7EA" }} />
       {meta.touched && meta.error && <div style={errStyle}>{String(meta.error)}</div>}
     </div>
   );
@@ -88,7 +88,7 @@ const PhoneField: FC = () => {
         <select value={pfx} onChange={(e) => setBoth(e.target.value, num)} style={{ ...selectStyle, width: 92, flex: "none" }}>
           {opts.map((c) => <option key={c.pfx} value={c.pfx}>{c.label}</option>)}
         </select>
-        <input name="telefono" inputMode="tel" value={num} onChange={(e) => setBoth(pfx, e.target.value)} onBlur={() => helpers.setTouched(true)} className="fis-in" style={{ ...inputStyle, flex: 1, borderColor: meta.touched && meta.error ? "#E85C7A" : "#E7E7EA" }} />
+        <input name="telefono" inputMode="tel" autoComplete="off" value={num} onChange={(e) => setBoth(pfx, e.target.value)} onBlur={() => helpers.setTouched(true)} className="fis-in" style={{ ...inputStyle, flex: 1, borderColor: meta.touched && meta.error ? "#E85C7A" : "#E7E7EA" }} />
       </div>
       {meta.touched && meta.error && <div style={errStyle}>{String(meta.error)}</div>}
     </div>
@@ -194,7 +194,7 @@ const FormInvitadoStudio: FC<{ onClose: () => void }> = ({ onClose }) => {
       <div onClick={(e) => e.stopPropagation()} style={{ width: 420, maxWidth: "94vw", height: "100%", background: "#fff", display: "flex", flexDirection: "column", boxShadow: "8px 0 40px rgba(0,0,0,.14)", animation: "fis-slidein .22s ease" }}>
         <Formik {...formikValidateUx} initialValues={initialValues} onSubmit={handleSubmit} validationSchema={validationSchema}>
           {({ isSubmitting, values, setFieldValue, resetForm }) => (
-            <Form style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+            <Form autoComplete="off" style={{ display: "flex", flexDirection: "column", height: "100%" }}>
               <ResetForm setFieldValue={setFieldValue} resetForm={resetForm} contact={contact} />
               {showForApiGoogle.state && <ForApiPeople setContact={setContact} showForApiGoogle={showForApiGoogle} setShowForApiGoogle={setShowForApiGoogle} />}
               {showMedioSelectImport && <ImportGuest setShowMedioSelectImport={setShowMedioSelectImport} setContact={setContact} setShowForApiGoogle={setShowForApiGoogle} />}
