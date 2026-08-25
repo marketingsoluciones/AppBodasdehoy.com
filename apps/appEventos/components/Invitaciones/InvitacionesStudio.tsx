@@ -230,6 +230,9 @@ export const InvitacionesStudio: FC = () => {
           .inv-tabs{display:flex !important;width:100% !important;}
           .inv-tab{flex:1 !important;justify-content:center !important;padding:10px 6px !important;}
           .inv-mob-cta{display:block !important;}
+          .inv-chan-icons{display:none !important;}
+          .inv-chan-text{display:flex !important;}
+          .inv-mobtoggle{display:none !important;}
         }
       ` }} />
       <div className="inv-container" style={{ maxWidth: 1000, margin: "0 auto", padding: "22px 30px 60px" }}>
@@ -281,10 +284,19 @@ export const InvitacionesStudio: FC = () => {
                   {saveState === "saved" && <span style={{ display: "inline-flex", alignItems: "center", gap: 4, font: "600 10px Poppins", color: "#2FB37E", background: "#E4F5EE", padding: "3px 8px", borderRadius: 10 }}>✓ Guardado</span>}
                   {saveState === "saving" && <span style={{ font: "600 10px Poppins", color: "#a0a0a8", background: "#f0f0f2", padding: "3px 8px", borderRadius: 10 }}>Guardando…</span>}
                 </div>
-                <div style={{ display: "flex", gap: 3, background: "#ececed", borderRadius: 9, padding: 3 }}>
+                {/* ESCRITORIO: iconos de canal */}
+                <div className="inv-chan-icons" style={{ display: "flex", gap: 3, background: "#ececed", borderRadius: 9, padding: 3 }}>
                   {(["email", "whatsapp", "sms"] as ChannelKey[]).map((c) => {
                     const a = channel === c;
                     return <div key={c} onClick={() => setChannel(c)} title={c} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 26, borderRadius: 7, background: a ? "#fff" : "transparent", boxShadow: a ? "0 1px 3px rgba(0,0,0,.14)" : "none", cursor: "pointer" }}>{chanIcon(c, a ? "#EF5B94" : "#9aa0a8")}</div>;
+                  })}
+                </div>
+                {/* MÓVIL: pastillas de texto (fiel al HTML) */}
+                <div className="inv-chan-text" style={{ display: "none", gap: 3, background: "#ececed", borderRadius: 9, padding: 3 }}>
+                  {(["email", "whatsapp", "sms"] as ChannelKey[]).map((c) => {
+                    const a = channel === c;
+                    const label = c === "email" ? "Email" : c === "whatsapp" ? "WhatsApp" : "SMS";
+                    return <div key={c} onClick={() => setChannel(c)} style={{ padding: "5px 11px", borderRadius: 7, background: a ? "#fff" : "transparent", color: a ? "#EF5B94" : "#8a8a90", font: "600 10.5px Poppins", cursor: "pointer", boxShadow: a ? "0 1px 3px rgba(0,0,0,.12)" : "none", whiteSpace: "nowrap" }}>{label}</div>;
                   })}
                 </div>
               </div>
@@ -296,7 +308,7 @@ export const InvitacionesStudio: FC = () => {
                       <div key={f} onClick={() => setFace(f)} style={{ padding: "6px 13px", borderRadius: 7, background: face === f ? "#fff" : "transparent", color: face === f ? "#D83E7C" : "#9aa0a8", font: "600 11px Poppins", cursor: "pointer" }}>{f === "front" ? "Portada" : "Detalles"}</div>
                     ))}
                   </div>
-                  <div onClick={() => setPreviewMobile((v) => !v)} style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto", padding: "6px 12px", borderRadius: 9, border: "1.5px solid #EF5B94", background: "#fff", color: "#D83E7C", font: "600 11px Poppins", cursor: "pointer" }}>
+                  <div className="inv-mobtoggle" onClick={() => setPreviewMobile((v) => !v)} style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto", padding: "6px 12px", borderRadius: 9, border: "1.5px solid #EF5B94", background: "#fff", color: "#D83E7C", font: "600 11px Poppins", cursor: "pointer" }}>
                     {previewMobile ? (
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}><rect x="2" y="4" width="20" height="13" rx="2" /><path d="M8 21h8M12 17v4" /></svg>
                     ) : (
