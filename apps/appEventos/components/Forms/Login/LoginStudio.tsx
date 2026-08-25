@@ -286,6 +286,10 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
           .ls-card{background:transparent !important;border:none !important;box-shadow:none !important;padding:2px 0 0 !important;}
           .ls-roles-desk{display:none !important;}
           .ls-roles-mob{display:flex !important;}
+          .ls-topback{display:none !important;}
+          .ls-backmob{display:inline-flex !important;}
+          .ls-fp-desk{display:none !important;}
+          .ls-fp-mob{display:inline !important;}
         }
       ` }} />
 
@@ -308,6 +312,12 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
       {/* PANEL DERECHO · formulario */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "#faf9fb", minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 30px", flex: "none" }}>
+          {/* MÓVIL: flecha circular (fiel al HTML), oculta en la 1ª pantalla (login) */}
+          {view !== "login" && (
+            <button type="button" onClick={topBack} className="ls-backmob" aria-label="Volver" style={{ display: "none", alignItems: "center", justifyContent: "center", width: 38, height: 38, borderRadius: "50%", background: "#fff", border: "1px solid #ececef", boxShadow: "0 3px 10px rgba(0,0,0,.06)", cursor: "pointer", flex: "none" }}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3A3A42" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+            </button>
+          )}
           <button type="button" onClick={topBack} className="ls-topback" style={{ display: "inline-flex", alignItems: "center", gap: 8, font: "600 13px Poppins", color: "#6b6b72", textDecoration: "none", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>Volver
           </button>
@@ -347,7 +357,7 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
                     <div>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
                         <label htmlFor="ls-pw" style={{ font: "600 12px Poppins", color: "#6b6b72" }}>Contraseña</label>
-                        <a href="#" className="ls-link" onClick={(e) => { e.preventDefault(); setFEmail(email); setFErr(""); setView("forgot"); }} style={{ font: "500 11.5px Poppins" }}>¿Olvidaste tu contraseña?</a>
+                        <a href="#" className="ls-link" onClick={(e) => { e.preventDefault(); setFEmail(email); setFErr(""); setView("forgot"); }} style={{ font: "500 11.5px Poppins" }}><span className="ls-fp-desk">¿Olvidaste tu contraseña?</span><span className="ls-fp-mob" style={{ display: "none" }}>¿La olvidaste?</span></a>
                       </div>
                       <div style={{ position: "relative" }}>
                         <input id="ls-pw" className="ls-in" type={showPw ? "text" : "password"} autoComplete="current-password" value={pw}
