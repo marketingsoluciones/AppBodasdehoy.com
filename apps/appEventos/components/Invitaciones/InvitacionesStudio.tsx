@@ -236,14 +236,29 @@ export const InvitacionesStudio: FC = () => {
           .inv-stat-card{padding:10px 6px !important;text-align:center !important;}
           .inv-stat-num{font-size:17px !important;}
           .inv-stat-lbl{font-size:9px !important;}
-          /* Cabecera del módulo a todo el ancho (bloque blanco de lado a lado, fiel al HTML) */
-          .inv-header{margin:-14px -14px 14px !important;padding:12px 16px 11px !important;background:#fff !important;border-bottom:1px solid #f0f0f2 !important;}
+          /* Cabecera: en móvil se muestra la limpia (título + BODA·evento) a todo el ancho */
+          .inv-header-desk{display:none !important;}
+          .inv-header-mob{display:block !important;}
+          /* Filtros del paso Enviar: una sola línea con scroll horizontal (fiel al HTML) */
+          .inv-envio-controls{flex-direction:column !important;align-items:stretch !important;}
+          .inv-filters{flex-wrap:nowrap !important;overflow-x:auto !important;-webkit-overflow-scrolling:touch;}
+          .inv-filters::-webkit-scrollbar{display:none;}
+          .inv-selall{width:100% !important;}
         }
       ` }} />
       <div className="inv-container" style={{ maxWidth: 1000, margin: "0 auto", padding: "22px 30px 60px" }}>
 
         {/* Cabecera estándar compartida */}
-        <div className="inv-header" style={{ marginBottom: 20 }}><BlockTitle title={"Invitaciones"} /></div>
+        {/* ESCRITORIO: cabecera estándar (BlockTitle con avatares/compartir) */}
+        <div className="inv-header-desk" style={{ marginBottom: 20 }}><BlockTitle title={"Invitaciones"} /></div>
+        {/* MÓVIL: cabecera limpia a todo el ancho (fiel al HTML): solo título + BODA · evento */}
+        <div className="inv-header-mob" style={{ display: "none", margin: "-14px -14px 14px", padding: "13px 16px 12px", background: "#fff", borderBottom: "1px solid #f0f0f2" }}>
+          <div style={{ font: "700 19px Poppins", color: "#3A3A42" }}>Invitaciones</div>
+          <div style={{ marginTop: 2 }}>
+            <span style={{ font: "700 10px Poppins", color: "#EF5B94", letterSpacing: ".5px", textTransform: "uppercase" }}>{event?.tipo || "Boda"}</span>
+            <span style={{ font: "500 11px Poppins", color: "#8a8a90", marginLeft: 5 }}>· {event?.nombre}</span>
+          </div>
+        </div>
 
         {/* Tabs 1 Diseñar / 2 Enviar */}
         <div className="inv-tabs" style={{ display: "inline-flex", gap: 6, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, boxShadow: "0 4px 14px rgba(0,0,0,.05)", padding: 6, marginBottom: 24 }}>
@@ -558,18 +573,18 @@ export const InvitacionesStudio: FC = () => {
               </div>
 
               {/* Filtros + seleccionar todos */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <div className="inv-envio-controls" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+                <div className="inv-filters" style={{ display: "flex", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
                   {fbDefs.map(([key, label, count]) => {
                     const a = filterB === key;
                     return (
-                      <div key={key} onClick={() => setFilterB(key)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 14px", borderRadius: 10, border: `1.5px solid ${a ? "#EF5B94" : "#E7E7EA"}`, background: a ? "#EF5B94" : "#fff", color: a ? "#fff" : "#6b6b72", font: "600 12px Poppins", cursor: "pointer" }}>
+                      <div key={key} onClick={() => setFilterB(key)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 14px", borderRadius: 10, border: `1.5px solid ${a ? "#EF5B94" : "#E7E7EA"}`, background: a ? "#EF5B94" : "#fff", color: a ? "#fff" : "#6b6b72", font: "600 12px Poppins", cursor: "pointer", flex: "none", whiteSpace: "nowrap" }}>
                         {label}<span style={{ font: "600 10.5px Poppins", color: a ? "#fff" : "#a0a0a8" }}>{count}</span>
                       </div>
                     );
                   })}
                 </div>
-                <div onClick={toggleAll} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 15px", borderRadius: 10, background: allOn ? "#EF5B94" : "#fff", border: `1.5px solid ${allOn ? "#EF5B94" : "#E7E7EA"}`, color: allOn ? "#fff" : "#6b6b72", font: "600 12px Poppins", cursor: "pointer", flex: "none" }}>
+                <div className="inv-selall" onClick={toggleAll} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "8px 15px", borderRadius: 10, background: allOn ? "#EF5B94" : "#fff", border: `1.5px solid ${allOn ? "#EF5B94" : "#E7E7EA"}`, color: allOn ? "#fff" : "#6b6b72", font: "600 12px Poppins", cursor: "pointer", flex: "none" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9}><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
                   {allOn ? "Quitar selección" : "Seleccionar todos"}
                 </div>
