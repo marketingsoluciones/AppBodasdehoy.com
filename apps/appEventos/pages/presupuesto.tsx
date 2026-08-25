@@ -26,6 +26,7 @@ import WeddingFinanceManager from "../components/Presupuesto/TableroPresupuesto/
 import { PresupuestoInitModal } from "../components/Presupuesto/PresupuestoInitModal";
 import { useSearchParams } from "next/navigation";
 import PresupuestoStudio from "../components/Presupuesto/PresupuestoStudio";
+import PresupuestoStudioMovil from "../components/Presupuesto/PresupuestoStudioMovil";
 
 const Presupuesto = () => {
   useMounted()
@@ -110,7 +111,10 @@ const Presupuesto = () => {
             </div>
           )}
           <ModuleErrorBoundary label="Presupuesto">
-            <PresupuestoStudio categorias={categoriasToShow} />
+            {/* MÓVIL (studio) */}
+            <PresupuestoStudioMovil />
+            {/* ESCRITORIO (intacto) */}
+            <div className="hidden md:block h-full"><PresupuestoStudio categorias={categoriasToShow} /></div>
           </ModuleErrorBoundary>
         </section>
       );
