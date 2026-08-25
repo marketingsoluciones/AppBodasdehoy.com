@@ -1,13 +1,10 @@
 import { ImageProfile } from "../../utils/Funciones";
-import { EditarIcon } from "../icons";
-import { useAllowed } from "../../hooks/useAllowed";
 import { BsArrow90DegUp } from "react-icons/bs";
 
 
 
 const DragInvitado = (props) => {
-  const { invitado, setEditInv, editInv, setSelected } = props;
-  const [isAllowed, ht] = useAllowed()
+  const { invitado } = props;
 
   return (
     <>
@@ -19,7 +16,7 @@ const DragInvitado = (props) => {
             </div>
           )
         }
-        <span className="w-[90%] flex gap-3 items-center">
+        <span className="w-full flex gap-3 items-center">
           <span
             id={`dragN${invitado._id}`}
             className="w-full h-full text-gray-500 text-left flex items-center js-dragInvitadoN rounded-lg px-2 md:px-0"
@@ -70,33 +67,9 @@ const DragInvitado = (props) => {
               src={ImageProfile[invitado.sexo]?.image}
               alt={ImageProfile[invitado.sexo]?.alt}
             />
-            <p className="w-full font-display text-sm truncate">{invitado?.nombre} {/* {
-              invitado.father != null &&
-                !invitado?.isChild
-                ? invitado.parentName
-                  ? ''
-                  : `Acompañante de ${invitado?.parentName}`
-                : ''
-            } */}
-            </p>
-            {/* <p className="w-full font-display text-sm truncate">{invitado?.nombre} {
-              invitado.father != null &&
-                !invitado?.isChild
-                ? invitado.parentName
-                  ? ''
-                  : `Acompañante de ${invitado?.parentName}`
-                : ''
-            }
-            </p> */}
+            <p className="w-full font-display text-sm truncate">{invitado?.nombre}</p>
           </span>
         </span>
-        <EditarIcon
-          onClick={() => {
-            !isAllowed()
-              ? ht()
-              : [setEditInv(!editInv), setSelected(invitado._id)]
-          }}
-          className="h-5 w-5 cursor-pointer" />
       </div>
     </>
   );

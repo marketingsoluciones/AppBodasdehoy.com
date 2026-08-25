@@ -421,6 +421,8 @@ const MesasStudioMovil: FC = () => {
             <div style={{ animation: "msm-fade .2s ease", display: "flex", flexDirection: "column", gap: 8 }}>
               <div style={{ font: "700 10.5px Poppins", color: "#b3b3ba", letterSpacing: 1, textTransform: "uppercase", margin: "0 4px" }}>Mesas en «{space?.title}» · <span style={{ color: "#EF5B94" }}>{tables.length}</span></div>
               {tables.length === 0 && <div style={{ padding: "10px 4px", font: "500 12px Poppins", color: "#a0a0a8" }}>Sin mesas en este plano.</div>}
+              {/* Si hay más de 5 mesas, la lista se limita a ~5 y el resto se ve con scroll (invisible). */}
+              <div className="msm-hs" style={{ display: "flex", flexDirection: "column", gap: 8, ...(tables.length > 5 ? { maxHeight: 300, overflowY: "auto" } : {}) }}>
               {tables.map((m, i) => (
                 <div key={m._id} onClick={() => openEditTable(m)} style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 12px", borderRadius: 12, background: "#fff", border: "1.5px solid #f0f0f2", cursor: "pointer" }}>
                   <div style={{ width: 30, height: 30, borderRadius: 9, flex: "none", background: "#F0F0F2", border: "1.5px solid #E2E2E6", display: "flex", alignItems: "center", justifyContent: "center", font: "700 12px Poppins", color: "#6b6b72" }}>{i + 1}</div>
@@ -428,6 +430,7 @@ const MesasStudioMovil: FC = () => {
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c8c8ce" strokeWidth={2}><path d="M9 18l6-6-6-6" /></svg>
                 </div>
               ))}
+              </div>
             </div>
           )}
 
@@ -478,7 +481,7 @@ const MesasStudioMovil: FC = () => {
                   })}
                 </div>
                 {picked && <div style={{ background: "#FCF2F6", border: "1px solid #f7c2da", borderRadius: 999, padding: "9px 16px", marginBottom: 10 }}><div style={{ font: "500 10px Poppins", color: "#c14a78", lineHeight: 1.35 }}>Toca una mesa del plano para sentar a {picked.nombre}.</div></div>}
-                <div style={{ display: "flex", flexDirection: "column", gap: 7, maxHeight: 260, overflow: "auto" }}>
+                <div className="msm-hs" style={{ display: "flex", flexDirection: "column", gap: 7, maxHeight: 260, overflow: "auto" }}>
                   {listForFilter.length === 0 && <div style={{ padding: "14px 4px", textAlign: "center", font: "500 11.5px Poppins", color: "#c4c4cc" }}>Sin invitados aquí.</div>}
                   {listForFilter.map((gm) => {
                     const info = seatedInSpace.get(gm._id);
@@ -513,7 +516,7 @@ const MesasStudioMovil: FC = () => {
       {mounted && designOpen && createPortal(
         <div>
           <div onClick={() => setDesignOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(43,43,48,.38)", zIndex: 99998, animation: "msm-fade .15s ease" }} />
-          <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 420, background: "#fff", borderRadius: "22px 22px 0 0", zIndex: 99999, boxShadow: "0 -12px 40px rgba(0,0,0,.2)", animation: "msm-up .25s ease", maxHeight: "86vh", overflow: "auto", fontFamily: "'Poppins',sans-serif" }}>
+          <div className="msm-hs" style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 420, background: "#fff", borderRadius: "22px 22px 0 0", zIndex: 99999, boxShadow: "0 -12px 40px rgba(0,0,0,.2)", animation: "msm-up .25s ease", maxHeight: "86vh", overflow: "auto", fontFamily: "'Poppins',sans-serif" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "16px 18px 12px", borderBottom: "1px solid #f0f0f2", position: "sticky", top: 0, background: "#fff", borderRadius: "22px 22px 0 0" }}>
               <div style={{ font: "700 16px Poppins", color: "#3A3A42", flex: 1 }}>{editId ? "Editar mesa" : "Diseñar mesa"}</div>
               <button onClick={() => setDesignOpen(false)} style={{ width: 30, height: 30, borderRadius: 9, color: "#a0a0a8", fontSize: 17, border: "none", background: "none", cursor: "pointer" }}>✕</button>
