@@ -158,7 +158,12 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
                       }}
                       className="w-full flex items-center gap-2 text-left font-semibold py-1.5 mb-1 border-b border-gray-100 hover:text-primary"
                     >
-                      <mdIcons.MdPictureAsPdf className="w-4 h-4 text-primary" />{t('exportpdf') || 'Exportar PDF'}
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden="true">
+                        <path d="M6.5 2.75h7L18 7.25V19a2.25 2.25 0 0 1-2.25 2.25H6.5A2.25 2.25 0 0 1 4.25 19V5A2.25 2.25 0 0 1 6.5 2.75Z" fill="#fff" stroke="#EF5B94" strokeWidth="1.5" />
+                        <path d="M13.25 2.75V7.5H18" stroke="#EF5B94" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <rect x="4.25" y="12.4" width="13.75" height="5.9" rx="1.4" fill="#EF5B94" />
+                        <text x="11.1" y="16.75" textAnchor="middle" fontFamily="'Poppins',Arial,sans-serif" fontSize="4.3" fontWeight="700" fill="#fff">PDF</text>
+                      </svg>{t('exportpdf') || 'Exportar PDF'}
                     </button>
                     {/* "Guardar como plantilla" eliminado del menú (petición): solo Exportar PDF. */}
                   </div>
@@ -172,12 +177,28 @@ export const ComponenteTransformWrapper: FC<propsComponenteTransformWrapper> = (
             <div>
               <mdIcons.MdSettings className="w-6 h-6 cursor-pointer text-primary" onClick={() => setShowSetup(!showSetup)} />
               {showSetup &&
-                <div className="bg-white flex flex-col absolute z-[10] top-8 right-12 rounded-b-md shadow-md min-w-[95px] md:min-w-[120px] items-center text-[10px] md:text-[12px] px-3 pt-1 pb-3 text-gray-800">
-                  <span className="w-full text-left font-bold transform -ml-2">{t("canvassize")}</span>
-                  <InputMini label={"ancho"} lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
-                  <InputMini label={"alto"} lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
-                  <span className="w-full text-left font-bold transform -ml-2 mt-2">{t("seatingspace")}</span>
-                  <InputMini label={"espacio"} lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
+                <div className="bg-white absolute z-[50] top-9 right-8 rounded-2xl border border-[#f0f0f2] w-[252px] p-4 text-gray-800" style={{ fontFamily: "'Poppins',sans-serif", boxShadow: "0 16px 44px rgba(0,0,0,.18)" }}>
+                  <div className="flex items-center gap-2.5 mb-3.5">
+                    <div className="w-8 h-8 rounded-[10px] bg-[#FCE7F0] text-[#EF5B94] flex items-center justify-center flex-none">
+                      <mdIcons.MdSettings className="w-[17px] h-[17px]" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[13px] font-bold text-[#3A3A42] leading-tight">{t("planosettings") || "Configuración del plano"}</div>
+                      <div className="text-[10.5px] text-[#a0a0a8]">{t("planosettingssub") || "Medidas reales del espacio"}</div>
+                    </div>
+                  </div>
+                  <div className="text-[10px] font-bold uppercase tracking-wide text-[#b3b3ba] mb-2">{t("canvassize")}</div>
+                  <div className="flex flex-col gap-2 mb-3.5">
+                    <InputMini label={"ancho"} lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
+                    <InputMini label={"alto"} lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
+                  </div>
+                  <div className="text-[10px] font-bold uppercase tracking-wide text-[#b3b3ba] mb-2">{t("seatingspace")}</div>
+                  <div className="flex flex-col gap-2">
+                    <InputMini label={"espacio"} lienzo={lienzo} setLienzo={setLienzo} centerView={centerView} resetTransform={resetTransform} />
+                  </div>
+                  <div className="mt-3.5 pt-3 border-t border-[#f4f4f6] text-[10px] text-[#a0a0a8] leading-relaxed">
+                    {t("planosettingshint") || "«Ancho» y «Alto» definen el tamaño del lienzo. «Espacio entre asientos» ajusta la separación entre sillas."}
+                  </div>
                 </div>
               }
             </div>

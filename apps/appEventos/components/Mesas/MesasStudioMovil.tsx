@@ -1,4 +1,4 @@
-import { FC, useMemo, useState, useEffect } from "react";
+import { FC, useMemo, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { EventContextProvider, AuthContextProvider } from "../../context";
 import { fetchApiEventos, fetchApiBodas, queries } from "../../utils/Fetching";
@@ -76,6 +76,9 @@ const MesasStudioMovil: FC = () => {
   const [zoom, setZoom] = useState(100);
   const [picked, setPicked] = useState<any>(null);   // invitado elegido para sentar
   const [selected, setSelected] = useState<{ id: string; type: "table" | "element" } | null>(null); // selección en lienzo
+  const [locked, setLocked] = useState(true);   // plano BLOQUEADO por defecto: tocar = sentar/seleccionar. DESBLOQUEADO = mover mesas/muebles.
+  const [dragPos, setDragPos] = useState<{ id: string; x: number; y: number } | null>(null);
+  const dragRef = useRef<any>(null);
   const [tab, setTab] = useState<"mesas" | "mobiliario" | "resumen">("mesas");
   const [guestsOpen, setGuestsOpen] = useState(true);
   const [gFilter, setGFilter] = useState<"todos" | "porsentar" | "sentados">("todos");
@@ -269,6 +272,36 @@ const MesasStudioMovil: FC = () => {
   };
 
   const zoomScale = zoom / 100;
+
+  // ── Arrastre de mesas/muebles en modo EDICIÓN (desbloqueado) ──
+  // El delta de PANTALLA se divide por el zoom para pasar a coords del lienzo.
+  // Al soltar (si hubo movimiento) se persiste la nueva posición vía updateEvento(planSpace).
+  const beginDrag = (e: any, id: string, type: "table" | "element", px: number, py: number) => {
+    if (locked) return;
+    e.stopPropagation();
+    dragRef.current = { id, type, sx: e.clientX, sy: e.clientY, ox: px, oy: py, moved: false };
+    setDragPos({ id, x: px, y: py });
+    try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); } catch { }
+  };
+  const moveDrag = (e: any) => {
+    const d = dragRef.current; if (!d) return;
+    if (Math.abs(e.clientX - d.sx) > 3 || Math.abs(e.clientY - d.sy) > 3) d.moved = true;
+    const nx = Math.max(0, Math.round(d.ox + (e.clientX - d.sx) / zoomScale));
+    const ny = Math.max(0, Math.round(d.oy + (e.clientY - d.sy) / zoomScale));
+    setDragPos({ id: d.id, x: nx, y: ny });
+  };
+  const endDrag = async (e: any) => {
+    const d = dragRef.current; const pos = dragPos;
+    dragRef.current = null;
+    if (!d) return;
+    setDragPos(null);
+    if (!d.moved) { setSelected((sel) => (sel?.id === d.id && sel.type === d.type ? null : { id: d.id, type: d.type })); return; }
+    if (!pos) return;
+    const key = d.type === "table" ? "tables" : "elements";
+    const arr = (space[key] || []).map((it: any) => it._id !== d.id ? it : { ...it, position: { x: pos.x, y: pos.y } });
+    await commitSpace({ ...space, [key]: arr }, "No se pudo mover");
+  };
+  const toggleLock = () => { setLocked((v) => !v); setPicked(null); setSelected(null); };
   const listForFilter = gFilter === "porsentar" ? pendingGuests : gFilter === "sentados" ? seatedGuests : invitados;
 
   // Preview del sheet Diseñar mesa (misma geometría que el lienzo, escalada a 180×130).
@@ -345,6 +378,21 @@ const MesasStudioMovil: FC = () => {
               <div style={{ background: "#fff", borderRadius: 10, boxShadow: "0 3px 10px rgba(0,0,0,.08)", padding: "8px 12px", font: "600 11px Poppins", color: "#EF5B94", whiteSpace: "nowrap" }}>{space?.title}</div>
             </div>
 
+            {/* Bloquear / Editar plano (mover mesas y muebles) */}
+            {!canvasEmpty && (
+              <div onClick={(e) => { e.stopPropagation(); toggleLock(); }} style={{ position: "absolute", top: 10, right: 10, zIndex: 3, display: "flex", alignItems: "center", gap: 6, background: locked ? "#fff" : "#EF5B94", color: locked ? "#3A3A42" : "#fff", borderRadius: 10, boxShadow: "0 3px 10px rgba(0,0,0,.1)", padding: "8px 11px", font: "600 10.5px Poppins", cursor: "pointer" }}>
+                {locked
+                  ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="9" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+                  : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="9" rx="2" /><path d="M8 11V7a4 4 0 0 1 7.5-2" /></svg>}
+                {locked ? "Bloqueado" : "Editando"}
+              </div>
+            )}
+
+            {/* Aviso modo edición */}
+            {!locked && !canvasEmpty && (
+              <div style={{ position: "absolute", left: 10, bottom: 10, zIndex: 3, background: "rgba(58,58,66,.9)", color: "#fff", borderRadius: 999, padding: "6px 12px", font: "600 9.5px Poppins", whiteSpace: "nowrap", boxShadow: "0 4px 14px rgba(0,0,0,.22)" }}>Arrastra para mover · toca para editar</div>
+            )}
+
             <div style={{ position: "absolute", inset: 0, transform: `scale(${zoomScale})`, transformOrigin: "center center" }}>
               {/* Elementos de mobiliario */}
               {elements.map((el, i) => {
@@ -352,9 +400,14 @@ const MesasStudioMovil: FC = () => {
                 const w = Math.min(el?.size?.width ?? 60, 90); const h = Math.min(el?.size?.height ?? 60, 90);
                 const px = el?.position?.x ?? (30 + (i % 3) * 90); const py = el?.position?.y ?? (30 + Math.floor(i / 3) * 90);
                 return (
-                  <div key={el._id} onClick={(e) => { e.stopPropagation(); onElementTap(el); }} style={{ position: "absolute", left: px, top: py, zIndex: on ? 4 : 1, cursor: "pointer" }}>
+                  <div key={el._id}
+                    onClick={(e) => { e.stopPropagation(); if (locked) onElementTap(el); }}
+                    onPointerDown={locked ? undefined : (e) => beginDrag(e, el._id, "element", px, py)}
+                    onPointerMove={locked ? undefined : moveDrag}
+                    onPointerUp={locked ? undefined : endDrag}
+                    style={{ position: "absolute", left: (dragPos?.id === el._id ? dragPos.x : px), top: (dragPos?.id === el._id ? dragPos.y : py), zIndex: (on || dragPos?.id === el._id) ? 4 : 1, cursor: locked ? "pointer" : "grab", touchAction: locked ? "auto" : "none" }}>
                     {on && (
-                      <div onClick={(e) => { e.stopPropagation(); deleteElement(el); }} style={{ position: "absolute", top: -13, left: -13, width: 26, height: 26, borderRadius: "50%", background: "#fff", border: "1px solid #f2c9d9", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 3px 8px rgba(0,0,0,.18)", zIndex: 6 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg></div>
+                      <div onClick={(e) => { e.stopPropagation(); deleteElement(el); }} onPointerDown={(e) => e.stopPropagation()} style={{ position: "absolute", top: -13, left: -13, width: 26, height: 26, borderRadius: "50%", background: "#fff", border: "1px solid #f2c9d9", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 3px 8px rgba(0,0,0,.18)", zIndex: 6 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg></div>
                     )}
                     <div style={{ width: w, height: h, display: "flex", alignItems: "center", justifyContent: "center", color: "#6b6b72", border: on ? "2px dashed #EF5B94" : "none", borderRadius: 10 }}>{furnIcon(el.tipo || el.title, Math.min(w, h))}</div>
                   </div>
@@ -370,7 +423,12 @@ const MesasStudioMovil: FC = () => {
                 const px = t?.position?.x ?? (24 + (i % 3) * 120);
                 const py = t?.position?.y ?? (24 + Math.floor(i / 3) * 120);
                 return (
-                  <div key={t._id} onClick={(e) => { e.stopPropagation(); onTableTap(t); }} style={{ position: "absolute", left: px, top: py, zIndex: on ? 5 : 2, cursor: "pointer" }}>
+                  <div key={t._id}
+                    onClick={(e) => { e.stopPropagation(); if (locked) onTableTap(t); }}
+                    onPointerDown={locked ? undefined : (e) => beginDrag(e, t._id, "table", px, py)}
+                    onPointerMove={locked ? undefined : moveDrag}
+                    onPointerUp={locked ? undefined : endDrag}
+                    style={{ position: "absolute", left: (dragPos?.id === t._id ? dragPos.x : px), top: (dragPos?.id === t._id ? dragPos.y : py), zIndex: (on || dragPos?.id === t._id) ? 5 : 2, cursor: locked ? "pointer" : "grab", touchAction: locked ? "auto" : "none" }}>
                     {slots.map((s) => {
                       const seatOn = occ.has(s.chair);
                       return <div key={s.chair} style={{ position: "absolute", left: s.x, top: s.y, width: 15, height: 15, borderRadius: "50%", background: seatOn ? "#EF5B94" : "#fff", border: `1.5px solid ${seatOn ? "#EF5B94" : "#cfcfd6"}`, zIndex: 1, boxShadow: seatOn ? "0 0 0 2px rgba(239,91,148,.18)" : "none" }} />;
@@ -378,8 +436,8 @@ const MesasStudioMovil: FC = () => {
                     {/* Acciones al seleccionar (borrar / editar) */}
                     {on && !picked && (
                       <>
-                        <div onClick={(e) => { e.stopPropagation(); deleteTable(t); }} style={{ position: "absolute", top: -13, left: -13, width: 26, height: 26, borderRadius: "50%", background: "#fff", border: "1px solid #f2c9d9", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 3px 8px rgba(0,0,0,.18)", zIndex: 6 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg></div>
-                        <div onClick={(e) => { e.stopPropagation(); openEditTable(t); }} style={{ position: "absolute", top: -13, right: -13, width: 26, height: 26, borderRadius: "50%", background: "#fff", border: "1px solid #e7e7ea", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 3px 8px rgba(0,0,0,.18)", zIndex: 6 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b6b72" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></div>
+                        <div onClick={(e) => { e.stopPropagation(); deleteTable(t); }} onPointerDown={(e) => e.stopPropagation()} style={{ position: "absolute", top: -13, left: -13, width: 26, height: 26, borderRadius: "50%", background: "#fff", border: "1px solid #f2c9d9", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 3px 8px rgba(0,0,0,.18)", zIndex: 6 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg></div>
+                        <div onClick={(e) => { e.stopPropagation(); openEditTable(t); }} onPointerDown={(e) => e.stopPropagation()} style={{ position: "absolute", top: -13, right: -13, width: 26, height: 26, borderRadius: "50%", background: "#fff", border: "1px solid #e7e7ea", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 3px 8px rgba(0,0,0,.18)", zIndex: 6 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b6b72" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></div>
                       </>
                     )}
                     <div style={{ position: "relative", width: g.w, height: g.h, borderRadius: g.round ? "50%" : 12, background: "#F0F0F2", border: `2.5px solid ${on ? "#EF5B94" : picked ? "#EF5B94" : "#d8d8de"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 10px rgba(0,0,0,.1)" }}>

@@ -3,10 +3,8 @@ import Head from 'next/head'
 import { AuthContextProvider, EventContextProvider } from '../../context'
 import { defaultImagenes } from '../Home/Card'
 import { ModalAddUserToEvent, UsuariosCompartidos } from './Compartir'
-import { CopiarLink } from './Compartir/CopiarLink'
 import { IoShareSocial } from 'react-icons/io5'
 import { DiGoogleDrive } from "react-icons/di";
-import { MdOutlineChair } from "react-icons/md";
 import { Modal } from './Modal'
 import { useTranslation } from 'react-i18next'
 import { PermissionIndicator } from '../Servicios/Utils/PermissionIndicator'
@@ -27,13 +25,9 @@ export const BlockTitle = ({ title }) => {
   const { event } = EventContextProvider()
   const [openModal, setOpenModal] = useState(false)
   const [openModalDrive, setOpenModalDrive] = useState(false)
-  const [showSeatingLink, setShowSeatingLink] = useState(false)
 
   const isOwner = event?.usuario_id === user?.uid
   const canShare = isOwner && user?.displayName !== "guest"
-  const seatingUrl = event?._id
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/buscador-mesa/${event._id}`
-    : ''
 
   return (
     <div
@@ -89,23 +83,6 @@ export const BlockTitle = ({ title }) => {
         {title === "Presupuesto" && (
           <div onClick={() => "setOpenModalDrive(!openModalDrive)"} className="flex items-center justify-center cursor-pointer hover:bg-[#FCE7F0] rounded-[10px] transition" style={{ width: 38, height: 38, color: "#EF5B94" }}>
             <DiGoogleDrive style={{ width: 22, height: 22 }} />
-          </div>
-        )}
-
-        {/* extra Mesas: link del buscador de mesa */}
-        {title === "Mesas y asientos" && event?._id && (
-          <div className="relative">
-            <button onClick={() => setShowSeatingLink(!showSeatingLink)} title="Compartir buscador de mesa" className="flex items-center justify-center cursor-pointer hover:bg-[#FCE7F0] rounded-[10px] transition" style={{ width: 38, height: 38, color: "#EF5B94" }}>
-              <MdOutlineChair style={{ width: 20, height: 20 }} />
-            </button>
-            {showSeatingLink && (
-              <ClickAwayListener onClickAway={() => setShowSeatingLink(false)}>
-                <div className="absolute right-0 top-12 bg-white shadow-lg rounded-lg p-4 w-[300px] z-50 border border-gray-100">
-                  <p className="text-xs text-gray-500 mb-2 font-medium">Link buscador de mesa para invitados (sin login)</p>
-                  <CopiarLink link={seatingUrl} />
-                </div>
-              </ClickAwayListener>
-            )}
           </div>
         )}
 
