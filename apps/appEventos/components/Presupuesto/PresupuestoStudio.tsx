@@ -229,7 +229,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
     const stTitle = fin === 0 ? t("Sin gasto") : fin > est ? t("Excedido") : t("Dentro del estimado");
     const totCol = fin > est && fin > 0 ? "#D83E7C" : "#3A3A42";
     return (
-      <div key={c._id} className="ps-row" onClick={() => selectCat(c)} style={{ display: "grid", gridTemplateColumns: "minmax(120px,1fr) 76px 76px 18px", gap: 8, alignItems: "center", padding: faded ? "9px 18px" : "12px 18px", borderBottom: "1px solid #f6f6f8", cursor: "pointer", background: showCategoria._id === c._id ? "#FCE7F0" : "#fff" }}>
+      <div key={c._id} className="ps-row" onClick={() => selectCat(c)} style={{ display: "grid", gridTemplateColumns: "minmax(60px,1fr) 106px 106px 14px", gap: 8, alignItems: "center", padding: faded ? "9px 18px" : "12px 18px", borderBottom: "1px solid #f6f6f8", cursor: "pointer", background: showCategoria._id === c._id ? "#FCE7F0" : "#fff" }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ font: faded ? "500 12.5px Poppins" : "600 13px Poppins", color: faded ? "#a0a0a8" : "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cap1(c.nombre)}</div>
           {!faded && <div style={{ height: 4, borderRadius: 4, background: "#f0f0f2", marginTop: 5, overflow: "hidden" }}><div style={{ height: "100%", width: `${barW}%`, background: fin > est ? "#D83E7C" : "#EF5B94", borderRadius: 4, transition: "width .8s cubic-bezier(.2,.7,.2,1)" }} /></div>}
@@ -451,7 +451,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                     </div>
                   );
                 })()}
-                <div style={{ display: "grid", gridTemplateColumns: "minmax(120px,1fr) 76px 76px 18px", gap: 8, padding: "11px 18px", font: "700 10.5px Poppins", color: "#b3b3ba", letterSpacing: ".6px", textTransform: "uppercase", borderBottom: "1px solid #f2f2f4" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(60px,1fr) 106px 106px 14px", gap: 8, padding: "11px 18px", font: "700 10.5px Poppins", color: "#b3b3ba", letterSpacing: ".6px", textTransform: "uppercase", borderBottom: "1px solid #f2f2f4" }}>
                   <div>{t("category", { defaultValue: "Categoría" })}</div><div style={{ textAlign: "right" }}>{t("Estimado", { defaultValue: "Estimado" })}</div><div style={{ textAlign: "right" }}>{t("Coste real", { defaultValue: "Coste real" })}</div><div />
                 </div>
                 {catsActive.length === 0 && catsZero.length === 0 && (
@@ -467,7 +467,7 @@ const PresupuestoStudio: FC<Props> = ({ categorias }) => {
                     {showZero && catsZero.map((c) => catRow(c, true))}
                   </>
                 )}
-                <div style={{ display: "grid", gridTemplateColumns: "minmax(120px,1fr) 76px 76px 18px", gap: 8, padding: "14px 18px", background: "#faf9fb" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(60px,1fr) 106px 106px 14px", gap: 8, padding: "14px 18px", background: "#faf9fb" }}>
                   <div style={{ font: "700 13px Poppins", color: "#3A3A42" }}>{t("Total")}</div>
                   <div style={{ textAlign: "right", font: "700 13px Poppins", color: "#3A3A42" }}>{getCurrency(sumEst, cur)}</div>
                   <div style={{ textAlign: "right", font: "700 13px Poppins", color: "#EF5B94" }}>{getCurrency(sumFinal, cur)}</div>
