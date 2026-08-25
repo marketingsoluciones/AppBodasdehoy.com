@@ -223,18 +223,26 @@ export const InvitacionesStudio: FC = () => {
         @media (max-width:900px){.inv-design-grid{grid-template-columns:1fr !important}}
         @media (max-width:720px){.inv-stats-grid{grid-template-columns:repeat(2,1fr) !important}}
         @media (max-width:560px){.inv-stats-grid{grid-template-columns:1fr !important}}
+        /* MÓVIL (fiel al HTML): padding compacto, tabs full-width y CTA/barra inferior fija */
+        .inv-mob-cta{display:none;}
+        @media (max-width:640px){
+          .inv-container{padding:14px 14px 96px !important;}
+          .inv-tabs{display:flex !important;width:100% !important;}
+          .inv-tab{flex:1 !important;justify-content:center !important;padding:10px 6px !important;}
+          .inv-mob-cta{display:block !important;}
+        }
       ` }} />
-      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "22px 30px 60px" }}>
+      <div className="inv-container" style={{ maxWidth: 1000, margin: "0 auto", padding: "22px 30px 60px" }}>
 
         {/* Cabecera estándar compartida */}
         <div style={{ marginBottom: 20 }}><BlockTitle title={"Invitaciones"} /></div>
 
         {/* Tabs 1 Diseñar / 2 Enviar */}
-        <div style={{ display: "inline-flex", gap: 6, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, boxShadow: "0 4px 14px rgba(0,0,0,.05)", padding: 6, marginBottom: 24 }}>
+        <div className="inv-tabs" style={{ display: "inline-flex", gap: 6, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, boxShadow: "0 4px 14px rgba(0,0,0,.05)", padding: 6, marginBottom: 24 }}>
           {([["diseno", "1", "Diseñar invitación"], ["envio", "2", "Enviar"]] as const).map(([key, num, txt]) => {
             const a = tab === key;
             return (
-              <div key={key} onClick={() => setTab(key)} style={{ display: "flex", alignItems: "center", gap: 9, padding: "10px 22px", borderRadius: 10, background: a ? "#FCE7F0" : "transparent", color: a ? "#D83E7C" : "#6b6b72", font: `${a ? 700 : 600} 14px Poppins`, cursor: "pointer" }}>
+              <div key={key} className="inv-tab" onClick={() => setTab(key)} style={{ display: "flex", alignItems: "center", gap: 9, padding: "10px 22px", borderRadius: 10, background: a ? "#FCE7F0" : "transparent", color: a ? "#D83E7C" : "#6b6b72", font: `${a ? 700 : 600} 14px Poppins`, cursor: "pointer" }}>
                 <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: "50%", background: a ? "#EF5B94" : "#EDEDF0", color: a ? "#fff" : "#9aa0a8", font: "700 11px Poppins", flex: "none" }}>{num}</span>
                 {txt}
               </div>
@@ -252,6 +260,13 @@ export const InvitacionesStudio: FC = () => {
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M6 6l12 12M18 6L6 18" /></svg>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* CTA fija SOLO móvil (fiel al HTML): pasar de Diseñar → Enviar */}
+        {tab === "diseno" && (
+          <div className="inv-mob-cta" style={{ position: "fixed", left: 10, right: 10, bottom: 16, zIndex: 40 }}>
+            <button onClick={() => setTab("envio")} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: 14, borderRadius: 12, background: "#EF5B94", color: "#fff", font: "600 14px Poppins", border: "none", boxShadow: "0 10px 26px rgba(239,91,148,.4)", cursor: "pointer" }}>Continuar a enviar<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></button>
           </div>
         )}
 
