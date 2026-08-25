@@ -116,7 +116,7 @@ const InvitadosStudioMovil: FC = () => {
   );
 
   return (
-    <div className="md:hidden" style={{ background: "#fff", minHeight: "100%", position: "relative", display: "flex", flexDirection: "column", fontFamily: "'Poppins',sans-serif" }}>
+    <div className="md:hidden flex flex-col" style={{ background: "#fff", minHeight: "100%", position: "relative", fontFamily: "'Poppins',sans-serif" }}>
       <style dangerouslySetInnerHTML={{ __html: "@keyframes ism-up{from{transform:translate(-50%,100%)}to{transform:translate(-50%,0)}}@keyframes ism-fade{from{opacity:0}to{opacity:1}}.ism-hs{scrollbar-width:none;}.ism-hs::-webkit-scrollbar{display:none;}" }} />
 
       {isOwner && shareOpen && <ModalCompartirEventoStudio event={event} onClose={() => setShareOpen(false)} />}
