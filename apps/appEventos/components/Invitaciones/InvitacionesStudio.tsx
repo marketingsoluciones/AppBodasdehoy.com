@@ -221,8 +221,6 @@ export const InvitacionesStudio: FC = () => {
         @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
         @keyframes slidein{from{transform:translateX(-26px);opacity:0}to{transform:translateX(0);opacity:1}}
         @media (max-width:900px){.inv-design-grid{grid-template-columns:1fr !important}.inv-preview-col{position:static !important;top:auto !important}}
-        @media (max-width:720px){.inv-stats-grid{grid-template-columns:repeat(2,1fr) !important}}
-        @media (max-width:560px){.inv-stats-grid{grid-template-columns:1fr !important}}
         /* MÓVIL (fiel al HTML): padding compacto, tabs full-width y CTA/barra inferior fija */
         .inv-mob-cta{display:none;}
         @media (max-width:640px){
@@ -233,12 +231,19 @@ export const InvitacionesStudio: FC = () => {
           .inv-chan-icons{display:none !important;}
           .inv-chan-text{display:flex !important;}
           .inv-mobtoggle{display:none !important;}
+          /* Stats: 4 en fila compactos (fiel al HTML), NO apilados */
+          .inv-stats-grid{gap:8px !important;}
+          .inv-stat-card{padding:10px 6px !important;text-align:center !important;}
+          .inv-stat-num{font-size:17px !important;}
+          .inv-stat-lbl{font-size:9px !important;}
+          /* Cabecera del módulo a todo el ancho (bloque blanco de lado a lado, fiel al HTML) */
+          .inv-header{margin:-14px -14px 14px !important;padding:12px 16px 11px !important;background:#fff !important;border-bottom:1px solid #f0f0f2 !important;}
         }
       ` }} />
       <div className="inv-container" style={{ maxWidth: 1000, margin: "0 auto", padding: "22px 30px 60px" }}>
 
         {/* Cabecera estándar compartida */}
-        <div style={{ marginBottom: 20 }}><BlockTitle title={"Invitaciones"} /></div>
+        <div className="inv-header" style={{ marginBottom: 20 }}><BlockTitle title={"Invitaciones"} /></div>
 
         {/* Tabs 1 Diseñar / 2 Enviar */}
         <div className="inv-tabs" style={{ display: "inline-flex", gap: 6, background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, boxShadow: "0 4px 14px rgba(0,0,0,.05)", padding: 6, marginBottom: 24 }}>
@@ -489,7 +494,7 @@ export const InvitacionesStudio: FC = () => {
           };
           const avPal = ["#EF5B94", "#f588b3", "#d86fa0", "#EF5B94", "#f588b3"];
           const stats = [
-            { v: total, l: "Total invitados", c: "#3A3A42" },
+            { v: total, l: "Total", c: "#3A3A42" },
             { v: sentN, l: "Enviadas", c: "#2FB37E" },
             { v: openN, l: "Abiertas", c: "#EF5B94" },
             { v: unsentN, l: "Sin enviar", c: "#E0A32B" },
@@ -531,9 +536,9 @@ export const InvitacionesStudio: FC = () => {
               {/* Stats */}
               <div className="inv-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 16 }}>
                 {stats.map((s, i) => (
-                  <div key={i} style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, padding: "15px 18px", boxShadow: "0 4px 14px rgba(0,0,0,.05)" }}>
-                    <div style={{ font: `700 22px Poppins`, color: s.c }}>{s.v}</div>
-                    <div style={{ font: "500 11px Poppins", color: "#8a8a90" }}>{s.l}</div>
+                  <div key={i} className="inv-stat-card" style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, padding: "15px 18px", boxShadow: "0 4px 14px rgba(0,0,0,.05)" }}>
+                    <div className="inv-stat-num" style={{ font: `700 22px Poppins`, color: s.c }}>{s.v}</div>
+                    <div className="inv-stat-lbl" style={{ font: "500 11px Poppins", color: "#8a8a90" }}>{s.l}</div>
                   </div>
                 ))}
               </div>
