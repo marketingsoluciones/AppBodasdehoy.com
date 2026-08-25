@@ -220,7 +220,7 @@ export const InvitacionesStudio: FC = () => {
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
         @keyframes slidein{from{transform:translateX(-26px);opacity:0}to{transform:translateX(0);opacity:1}}
-        @media (max-width:900px){.inv-design-grid{grid-template-columns:1fr !important}}
+        @media (max-width:900px){.inv-design-grid{grid-template-columns:1fr !important}.inv-preview-col{position:static !important;top:auto !important}}
         @media (max-width:720px){.inv-stats-grid{grid-template-columns:repeat(2,1fr) !important}}
         @media (max-width:560px){.inv-stats-grid{grid-template-columns:1fr !important}}
         /* MÓVIL (fiel al HTML): padding compacto, tabs full-width y CTA/barra inferior fija */
@@ -274,7 +274,7 @@ export const InvitacionesStudio: FC = () => {
           <div className="inv-design-grid" style={{ animation: "fadein .2s ease", display: "grid", gridTemplateColumns: "380px 1fr", gap: 22, alignItems: "start" }}>
 
             {/* LIVE PREVIEW */}
-            <div style={{ position: "sticky", top: 20 }}>
+            <div className="inv-preview-col" style={{ position: "sticky", top: 20 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ font: "700 10.5px Poppins", color: "#a0a0a8", letterSpacing: ".8px", textTransform: "uppercase" }}>Vista previa</div>
