@@ -280,6 +280,11 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
         .ls-topback:hover{color:#3A3A42 !important;}
         .ls-role:hover{filter:none !important;transform:scale(1.04);}
         @media(max-width:820px){.ls-left{display:none !important;}}
+        /* MÓVIL (fiel al HTML): sin píldora de marca y formulario SIN tarjeta (va sobre el fondo). */
+        @media(max-width:560px){
+          .ls-brandpill{display:none !important;}
+          .ls-card{background:transparent !important;border:none !important;box-shadow:none !important;padding:2px 0 0 !important;}
+        }
       ` }} />
 
       {/* PANEL IZQUIERDO · marca */}
@@ -304,7 +309,7 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
           <button type="button" onClick={topBack} className="ls-topback" style={{ display: "inline-flex", alignItems: "center", gap: 8, font: "600 13px Poppins", color: "#6b6b72", textDecoration: "none", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>Volver
           </button>
-          <a href={brandHref} style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "500 12.5px Poppins", color: "#6b6b72", textDecoration: "none", border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "7px 14px", background: "#fff" }}>Ir a <b style={{ color: "#3A3A42" }}>{brandHost}</b><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M7 17L17 7M9 7h8v8" /></svg></a>
+          <a className="ls-brandpill" href={brandHref} style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "500 12.5px Poppins", color: "#6b6b72", textDecoration: "none", border: "1.5px solid #E7E7EA", borderRadius: 10, padding: "7px 14px", background: "#fff" }}>Ir a <b style={{ color: "#3A3A42" }}>{brandHost}</b><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M7 17L17 7M9 7h8v8" /></svg></a>
         </div>
 
         <div style={{ flex: 1, display: "flex", justifyContent: "center", overflow: "auto", padding: "0 20px 16px", minHeight: 0 }}>
@@ -318,7 +323,7 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
 
             {view === "login" && (
               <>
-                <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 20, padding: "24px 28px 22px", boxShadow: "0 10px 30px rgba(0,0,0,.06)" }}>
+                <div className="ls-card" style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 20, padding: "24px 28px 22px", boxShadow: "0 10px 30px rgba(0,0,0,.06)" }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 16 }}>
                     <button type="button" className="ls-prov" style={provBtn} onClick={google}>{GoogleIcon}Continuar con Google</button>
                     <button type="button" className="ls-prov" style={provBtn} onClick={facebook}>{FbIcon}Continuar con Facebook</button>
@@ -460,7 +465,7 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
 
             {view === "forgot" && (
               <>
-                <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 20, padding: "26px 28px 24px", boxShadow: "0 10px 30px rgba(0,0,0,.06)" }}>
+                <div className="ls-card" style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 20, padding: "26px 28px 24px", boxShadow: "0 10px 30px rgba(0,0,0,.06)" }}>
                   <div style={{ font: "700 17px Poppins", color: "#3A3A42", marginBottom: 6 }}>Recuperar contraseña</div>
                   <div style={{ font: "500 12.5px/1.6 Poppins", color: "#8a8a90", marginBottom: 18 }}>Escribe el email de tu cuenta y te enviaremos un enlace para restablecerla.</div>
                   <label htmlFor="ls-femail" style={lbl}>Email</label>
@@ -484,7 +489,7 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
 
             {view === "sent" && (
               <>
-                <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 20, padding: "34px 28px 28px", boxShadow: "0 10px 30px rgba(0,0,0,.06)", textAlign: "center" }}>
+                <div className="ls-card" style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 20, padding: "34px 28px 28px", boxShadow: "0 10px 30px rgba(0,0,0,.06)", textAlign: "center" }}>
                   <div style={{ width: 58, height: 58, borderRadius: "50%", background: "#E4F5EE", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2FB37E" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                   </div>
