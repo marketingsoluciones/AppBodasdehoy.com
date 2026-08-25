@@ -284,6 +284,8 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
         @media(max-width:560px){
           .ls-brandpill{display:none !important;}
           .ls-card{background:transparent !important;border:none !important;box-shadow:none !important;padding:2px 0 0 !important;}
+          .ls-roles-desk{display:none !important;}
+          .ls-roles-mob{display:flex !important;}
         }
       ` }} />
 
@@ -381,13 +383,29 @@ const LoginStudio: FC<Props> = ({ logo, config, whoYouAre, setStage, onClose, in
             {view === "register" && (
               <div style={{ textAlign: "center" }}>
                 <div style={{ font: "600 24px Poppins", color: "#EF5B94", marginBottom: 34 }}>¿Quién eres?</div>
-                <div style={{ display: "flex", justifyContent: "center", gap: 30, marginBottom: 36, flexWrap: "nowrap" }}>
+                {/* ESCRITORIO: roles en fila (columnas con círculo) */}
+                <div className="ls-roles-desk" style={{ display: "flex", justifyContent: "center", gap: 30, marginBottom: 36, flexWrap: "nowrap" }}>
                   {ROLES.map((r) => {
                     const sel = role === r.key;
                     return (
                       <button key={r.key} type="button" onClick={() => setRole(r.key)} style={{ minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                         <span className="ls-role" style={{ width: 96, height: 96, borderRadius: "50%", background: "#f0f0f2", display: "flex", alignItems: "center", justifyContent: "center", flex: "none", filter: sel ? "none" : "grayscale(1) opacity(.55)", transition: "filter .2s, transform .2s", boxShadow: sel ? "0 8px 20px rgba(239,91,148,.28)" : "none" }}>{r.icon}</span>
                         <span style={{ font: "500 15px Poppins", color: sel ? "#EF5B94" : "#6b6b72", textAlign: "center" }}>{r.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* MÓVIL: roles apilados como tarjetas (fiel al HTML) */}
+                <div className="ls-roles-mob" style={{ display: "none", flexDirection: "column", gap: 14, marginBottom: 30, textAlign: "left" }}>
+                  {ROLES.map((r) => {
+                    const sel = role === r.key;
+                    return (
+                      <button key={r.key} type="button" onClick={() => setRole(r.key)} style={{ display: "flex", alignItems: "center", gap: 16, background: "#fff", border: `1.5px solid ${sel ? "#EF5B94" : "#f0f0f2"}`, borderRadius: 16, padding: "14px 18px", minHeight: 76, width: "100%", cursor: "pointer" }}>
+                        <span style={{ width: 56, height: 56, flex: "none", borderRadius: "50%", background: "#f0f0f2", display: "flex", alignItems: "center", justifyContent: "center", filter: sel ? "none" : "grayscale(1) opacity(.55)", transition: "filter .2s" }}>{r.icon}</span>
+                        <span style={{ font: "600 14.5px Poppins", color: sel ? "#EF5B94" : "#6b6b72" }}>{r.label}</span>
+                        <span style={{ marginLeft: "auto", flex: "none", width: 22, height: 22, borderRadius: "50%", border: `1.5px solid ${sel ? "#EF5B94" : "#cfced4"}`, background: sel ? "#EF5B94" : "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {sel && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>}
+                        </span>
                       </button>
                     );
                   })}
