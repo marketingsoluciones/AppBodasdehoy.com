@@ -244,6 +244,10 @@ export const InvitacionesStudio: FC = () => {
           .inv-filters{flex-wrap:nowrap !important;overflow-x:auto !important;-webkit-overflow-scrolling:touch;}
           .inv-filters::-webkit-scrollbar{display:none;}
           .inv-selall{width:100% !important;}
+          /* Toolbar del paso Enviar: sin buscador y con la fila "Invitación:" a todo el ancho (fiel al HTML) */
+          .inv-search{display:none !important;}
+          .inv-toolbar{background:transparent !important;border:none !important;box-shadow:none !important;padding:0 !important;}
+          .inv-invsel{width:100% !important;}
         }
       ` }} />
       <div className="inv-container" style={{ maxWidth: 1000, margin: "0 auto", padding: "22px 30px 60px" }}>
@@ -559,14 +563,14 @@ export const InvitacionesStudio: FC = () => {
               </div>
 
               {/* Toolbar: invitación + buscador */}
-              <div style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap", boxShadow: "0 4px 14px rgba(0,0,0,.05)", marginBottom: 14 }}>
-                <div onClick={() => setTab("diseno")} title="Editar el diseño de la invitación" style={{ display: "flex", alignItems: "center", gap: 9, border: "1.5px solid #f0d9e4", background: "#fdf8fa", borderRadius: 11, padding: "9px 14px", cursor: "pointer" }}>
+              <div className="inv-toolbar" style={{ background: "#fff", border: "1px solid #f0f0f2", borderRadius: 14, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap", boxShadow: "0 4px 14px rgba(0,0,0,.05)", marginBottom: 14 }}>
+                <div className="inv-invsel" onClick={() => setTab("diseno")} title="Editar el diseño de la invitación" style={{ display: "flex", alignItems: "center", gap: 9, border: "1.5px solid #f0d9e4", background: "#fdf8fa", borderRadius: 11, padding: "9px 14px", cursor: "pointer" }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8}><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 9h8M8 13h5" /></svg>
                   <span style={{ font: "500 11.5px Poppins", color: "#8a8a90" }}>Invitación:</span>
                   <span style={{ font: "600 11.5px Poppins", color: "#3A3A42" }}>{sumTpl}</span>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 9, background: "#faf9fb", border: "1.5px solid #E7E7EA", borderRadius: 11, padding: "8px 13px" }}>
+                <div className="inv-search" style={{ display: "flex", alignItems: "center", gap: 9, background: "#faf9fb", border: "1.5px solid #E7E7EA", borderRadius: 11, padding: "8px 13px" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b3b3ba" strokeWidth={2}><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
                   <input value={searchB} onChange={(e) => setSearchB(e.target.value)} type="text" placeholder="Buscar invitado" style={{ border: "none", outline: "none", background: "transparent", font: "500 12px Poppins", width: 130 }} />
                 </div>
