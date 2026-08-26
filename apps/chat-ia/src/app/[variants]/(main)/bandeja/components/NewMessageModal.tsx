@@ -52,24 +52,10 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
     const jid = `${phoneClean}@s.whatsapp.net`;
     const conversationId = `${development}:${jid}`;
     try {
-      // 1) Crear la conversación AUTÓNOMA en la bandeja (nombre + teléfono). Best-effort:
-      //    si falla, el envío igualmente persiste la conversación en el backend.
-      try {
-        await fetch('/api/messages/internal/conversation', {
-          body: JSON.stringify({
-            channel: 'whatsapp',
-            contact: { name: name.trim() || phoneClean, phone: phoneClean },
-            development,
-            id: conversationId,
-          }),
-          headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
-          method: 'POST',
-        });
-      } catch {
-        /* la crea el envío igualmente */
-      }
-
-      // 2) Enviar el primer mensaje por número (endpoint real de api-mcp vía el proxy whatsapp/*).
+      // Enviar el primer mensaje por número. El backend (api-ia) PERSISTE la conversación al
+      // enviar, así que aparece en la bandeja como contacto autónomo (vinculable después) — no
+      // hace falta crearla aparte (internal/conversation es interno y rechaza el token de usuario).
+      // El proxy /api/messages/whatsapp/messages/* enruta a api-ia (MCP ya no expone /whatsapp/messages/*).
       const res = await fetch(
         `/api/messages/whatsapp/messages/send?development=${encodeURIComponent(development)}`,
         {
