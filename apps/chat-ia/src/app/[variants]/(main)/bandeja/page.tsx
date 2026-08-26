@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BandejaTabs, useActiveBandejaTab } from './components/BandejaTabs';
 import { GlobalSummaryCard } from './components/GlobalSummaryCard';
 import { InboxFilters, type ChannelFilter, type RsvpFilter } from './components/InboxFilters';
+import { NewMessageModal } from './components/NewMessageModal';
 import { ScopeSelector, type ScopeId } from './components/ScopeSelector';
 import { UnifiedFeedView } from './components/UnifiedFeedView';
 import { type FeedItem, useUnifiedFeed } from './hooks/useUnifiedFeed';
@@ -61,6 +62,8 @@ export default function MessagesPage() {
   // coincide. Las notificaciones (kind='notification') no llevan linkedEventId
   // y se mantienen como están en tab history.
   const [rsvpFilter, setRsvpFilter] = useState<RsvpFilter>('all');
+  // "Nuevo mensaje": iniciar conversación WhatsApp con un número nuevo (contacto autónomo).
+  const [showNewMessage, setShowNewMessage] = useState(false);
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all');
   // Puente Agente→Bandeja (17-ago): la ficha de un agente enlaza a /bandeja?channel=<wa|ig|tg|fb|web>
   // para "ver las conversaciones de sus canales". Se aplica UNA sola vez al montar (ref) para
@@ -396,6 +399,13 @@ export default function MessagesPage() {
                   </div>
                   <div className="mt-4 flex items-center justify-center gap-2">
                     <button
+                      className="rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-700"
+                      onClick={() => setShowNewMessage(true)}
+                      type="button"
+                    >
+                      ✍️ Nuevo mensaje
+                    </button>
+                    <button
                       className="rounded-lg bg-pink-500 px-3 py-2 text-xs font-semibold text-white hover:bg-pink-600"
                       onClick={() => router.push('/bandeja/whatsapp')}
                       type="button"
@@ -418,6 +428,7 @@ export default function MessagesPage() {
           </div>
         </div>
       </div>
+      {showNewMessage && <NewMessageModal onClose={() => setShowNewMessage(false)} />}
     </>
   );
 }
