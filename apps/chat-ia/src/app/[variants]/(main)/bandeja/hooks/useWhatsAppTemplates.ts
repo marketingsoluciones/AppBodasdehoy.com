@@ -14,6 +14,8 @@ import { useEffect, useState } from 'react';
 
 import { callMcpGraphQL } from '@bodasdehoy/shared/crm-ui';
 
+import { getUserContext } from '../utils/auth';
+
 export interface WhatsAppTemplate {
   name: string;
   language: string;
@@ -25,8 +27,8 @@ export interface WhatsAppTemplate {
 }
 
 const GQL_GET_WHATSAPP_TEMPLATES = `
-query GetWhatsAppTemplates {
-  getWhatsAppTemplates {
+query GetWhatsAppTemplates($developerId: String!) {
+  getWhatsAppTemplates(developerId: $developerId) {
     success
     errors { field message code }
     total
@@ -98,7 +100,12 @@ export function useWhatsAppTemplates(enabled: boolean = true) {
   useEffect(() => {
     if (!enabled) return;
 
-    const cached = cache.get('default');
+    // getWhatsAppTemplates(developerId: String!) exige el development como argumento — sin él,
+    // api-mcp responde 400 "argument developerId is required" (origen del toast "[crm-ui] HTTP 400").
+    const { development } = getUserContext();
+    if (!development) return;
+
+    const cached = cache.get(development);
     if (cached && Date.now() - cached.fetchedAt < TTL_MS) {
       setTemplates(cached.data);
       return;
@@ -115,14 +122,14 @@ export function useWhatsAppTemplates(enabled: boolean = true) {
             total: number;
             templates: WhatsAppTemplate[];
           };
-        }>(GQL_GET_WHATSAPP_TEMPLATES, {});
+        }>(GQL_GET_WHATSAPP_TEMPLATES, { developerId: development });
 
         if (cancelled) return;
 
         const list = data?.getWhatsAppTemplates?.templates ?? [];
         // Solo APPROVED (Meta puede tener PENDING/REJECTED en la lista).
         const approved = list.filter((t) => (t.status ?? '').toUpperCase() === 'APPROVED');
-        cache.set('default', { data: approved, fetchedAt: Date.now() });
+        cache.set(development, { data: approved, fetchedAt: Date.now() });
         setTemplates(approved);
         setError(null);
       } catch (e: any) {
