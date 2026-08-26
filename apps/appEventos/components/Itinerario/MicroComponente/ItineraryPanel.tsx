@@ -864,7 +864,7 @@ export const ItineraryPanel: FC<props> = ({ itinerario, editTitle, setEditTitle,
           onToggleExpandAll={onToggleExpandAll}
         />
       }
-      <div className="w-full flex-1 flex flex-col pt-2 md:px-2 lg:px-6 z-0">
+      <div className="w-full flex-1 flex flex-col pt-2 px-4 md:px-2 lg:px-6 z-0">
         {
           tasksReduce?.length > 0
             ? (isStudioIti && view === "schema")

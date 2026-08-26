@@ -101,7 +101,7 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
                 </Modal>}
                 <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", margin: "24px 0 10px" }}>
                     {/* acciones (renombrar · enlace · borrar) — o (PDF · enlace) en esquema */}
-                    <div style={{ position: "absolute", top: 0, right: 0, display: "flex", gap: 6 }}>
+                    <div className="sh-actions" style={{ position: "absolute", top: 0, right: 0, display: "flex", gap: 6 }}>
                         {view !== "schema"
                             ? <>
                                 {view === "cards" && onToggleExpandAll && <button className="cab-acc" title={allExpanded ? t("collapseAll", { defaultValue: "Contraer todo" }) : t("expandAll", { defaultValue: "Expandir todo" })} onClick={() => onToggleExpandAll()}>
@@ -153,6 +153,7 @@ export const SubHeader: FC<props> = ({ view, itinerario, editTitle, setEditTitle
                     .share-copy-studio:hover{color:#D83E7C;}
                     .share-ics-studio:hover{color:#3A3A42;}
                     .share-url-studio:focus{border-color:#EF5B94;}
+                    @media(max-width:767px){.sh-actions{display:none !important;}}
                     .loader{border-top-color:${config?.theme?.primaryColor || "#EF5B94"};-webkit-animation:spinner 1.5s linear infinite;animation:spinner 1.5s linear infinite;}
                     @-webkit-keyframes spinner{0%{-webkit-transform:rotate(0deg);}100%{-webkit-transform:rotate(360deg);}}
                     @keyframes spinner{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
