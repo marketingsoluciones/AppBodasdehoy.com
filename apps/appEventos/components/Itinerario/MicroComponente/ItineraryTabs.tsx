@@ -816,7 +816,7 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
         ]
         const activeVerM = verOptionsM.find(o => o.v === view) || verOptionsM[0]
         const fmtFecha = (f: any) => { try { const d = new Date(f); if (isNaN(d.getTime())) return ""; return d.toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" }); } catch { return "" } }
-        const fechaTxt = fmtFecha(itinerario?.fecha) || fmtFecha(event?.fecha)
+        const fechaTxt = fmtFecha((itinerario as any)?.fecha) || fmtFecha(event?.fecha)
         return (
             <div style={{ width: "100%", fontFamily: "'Poppins',sans-serif" }}>
                 {/* Selector de itinerario + Nuevo */}
