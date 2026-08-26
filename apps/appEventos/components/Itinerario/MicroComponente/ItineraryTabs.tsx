@@ -815,8 +815,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
             { v: "schema", label: t("schema", { defaultValue: "Esquema" }), icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><circle cx="6" cy="6" r="2" /><circle cx="6" cy="18" r="2" /><path d="M11 6h9M11 18h9M6 8v8" /></svg> },
         ]
         const activeVerM = verOptionsM.find(o => o.v === view) || verOptionsM[0]
-        const fmtFecha = (f: any) => { try { const d = new Date(f); if (isNaN(d.getTime())) return ""; return d.toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" }); } catch { return "" } }
-        const fechaTxt = fmtFecha((itinerario as any)?.fecha) || fmtFecha(event?.fecha)
         return (
             <div style={{ width: "100%", fontFamily: "'Poppins',sans-serif" }}>
                 {/* Selector de itinerario + Nuevo */}
@@ -837,14 +835,6 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                             ))}
                         </div>
                     )}
-                </div>
-                {/* Título + subraya + fecha */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "18px 16px 4px" }}>
-                    <div style={{ font: "700 18px Poppins", color: "#3A3A42", textAlign: "center" }}>{itinerario?.title}</div>
-                    <div style={{ width: 44, height: 3, borderRadius: 3, background: "#EF5B94", marginTop: 8 }} />
-                    {fechaTxt && <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 12, background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 18, padding: "6px 14px", font: "600 11.5px Poppins", color: "#3A3A42" }}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9h18M8 3v4M16 3v4" /></svg>{fechaTxt}
-                    </div>}
                 </div>
                 {/* Selector de vista: Tarjeta / Esquema */}
                 <div style={{ display: "flex", justifyContent: "flex-end", padding: "12px 16px 0" }}>
@@ -869,8 +859,8 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
                     </ClickAwayListener>
                 </div>
                 {/* FAB Añadir tarea (solo vista Tarjeta, fiel al HTML) */}
-                {view === "cards" && isAllowed() && (
-                    <button onClick={addTask} style={{ position: "fixed", right: 18, bottom: 28, display: "flex", alignItems: "center", gap: 7, padding: "13px 18px", borderRadius: 26, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 10px 26px rgba(239,91,148,.45)", zIndex: 30 }}>
+                {view === "cards" && (
+                    <button onClick={addTask} style={{ position: "fixed", right: 16, bottom: 84, display: "flex", alignItems: "center", gap: 7, padding: "13px 18px", borderRadius: 26, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 10px 26px rgba(239,91,148,.45)", zIndex: 50 }}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Añadir tarea", { defaultValue: "Añadir tarea" })}
                     </button>
                 )}
