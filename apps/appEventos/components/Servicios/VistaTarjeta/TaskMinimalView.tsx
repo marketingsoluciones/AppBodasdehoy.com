@@ -153,10 +153,11 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
         {/* DETALLE (solo expandido) */}
         {isExpanded && (
           <div className="mt-4 flex flex-col gap-3.5">
-            <AssignedTask canEdit={canEdit} task={task} handleUpdate={handleUpdate} owner={owner} />
+            {/* Orden fiel al HTML: chips inicio/fin/duración → responsables → descripción → etiqueta */}
             <TimeDurationContainer task={task} canEdit={canEdit} handleUpdate={handleUpdate} owner={owner} />
-            <TagsTask canEdit={canEdit} task={task} handleUpdate={handleUpdate} owner={owner} suggestions={tagSuggestions} />
+            <AssignedTask canEdit={canEdit} task={task} handleUpdate={handleUpdate} owner={owner} />
             <DescriptionTask canEdit={canEdit} task={task} handleUpdate={handleUpdate} owner={owner} />
+            <TagsTask canEdit={canEdit} task={task} handleUpdate={handleUpdate} owner={owner} suggestions={tagSuggestions} />
             <NewAttachmentsEditor
               handleUpdate={(files) => handleUpdate('attachments', files)}
               task={task}
