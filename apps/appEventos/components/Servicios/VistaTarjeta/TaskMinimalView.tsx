@@ -107,7 +107,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
         <div className="flex items-center justify-between gap-3.5">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             {/* asa de arrastre (visual; reordenar pendiente de backend) */}
-            <span title={t("Arrastra para reordenar")} draggable={gripDraggable} onDragStart={onGripDragStart} className="flex items-center text-[#c4c4cc] cursor-grab active:cursor-grabbing flex-none -ml-2">
+            <span title={t("Arrastra para reordenar")} draggable={gripDraggable} onDragStart={onGripDragStart} className="hidden md:flex items-center text-[#c4c4cc] cursor-grab active:cursor-grabbing flex-none -ml-2">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5" /><circle cx="15" cy="6" r="1.5" /><circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" /><circle cx="9" cy="18" r="1.5" /><circle cx="15" cy="18" r="1.5" /></svg>
             </span>
             <TitleTask
@@ -118,8 +118,9 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
               subtitle={resumenText || null}
             />
           </div>
-          {/* grupo de acciones: ojo · borrar · duplicar · candado · flecha */}
-          <div className="flex items-center bg-white border-[1.5px] border-[#E7E7EA] rounded-[10px] overflow-hidden flex-none">
+          {/* grupo de acciones: cerrada = solo flecha limpia (fiel al HTML); abierta = acciones */}
+          <div className={`flex items-center rounded-[10px] overflow-hidden flex-none ${isExpanded ? "bg-white border-[1.5px] border-[#E7E7EA]" : ""}`}>
+            {isExpanded && <>
             {optOjo && (
               <button onClick={() => runHeaderOption(optOjo)} title={t("Visible para invitados · clic para ocultar")} className={tBtn("border-r border-[#f0f0f2] text-[#8a8a90]")}>
                 <span className="flex" style={{ transform: "scale(0.85)" }}>{optOjo.getIcon ? optOjo.getIcon(task.spectatorView) : optOjo.icon}</span>
@@ -140,6 +141,7 @@ export const TaskMinimalView: FC<TaskMinimalViewProps> = ({
                 <span className="flex" style={{ transform: "scale(0.85)" }}>{optCandado.getIcon ? optCandado.getIcon(task.estatus) : optCandado.icon}</span>
               </button>
             )}
+            </>}
             <button onClick={onToggleExpand} title={isExpanded ? t("Contraer tarea") : t("Expandir tarea")} className={tBtn("text-[#EF5B94]")}>
               {isExpanded
                 ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M18 15l-6-6-6 6" /></svg>
