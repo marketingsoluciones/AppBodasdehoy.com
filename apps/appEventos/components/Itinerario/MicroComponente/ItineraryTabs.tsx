@@ -808,6 +808,76 @@ export const ItineraryTabs: FC<props> = ({ setModalDuplicate, itinerario, setIti
         )
     }
 
+    // ── Rediseño studio MÓVIL: toolbar fiel al HTML (selector + Nuevo + título/fecha + vista Tarjeta/Esquema + FAB) ──
+    if (isStudio && isMobile) {
+        const verOptionsM = [
+            { v: "cards", label: t("card", { defaultValue: "Tarjeta" }), icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18" /></svg> },
+            { v: "schema", label: t("schema", { defaultValue: "Esquema" }), icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><circle cx="6" cy="6" r="2" /><circle cx="6" cy="18" r="2" /><path d="M11 6h9M11 18h9M6 8v8" /></svg> },
+        ]
+        const activeVerM = verOptionsM.find(o => o.v === view) || verOptionsM[0]
+        const fmtFecha = (f: any) => { try { const d = new Date(f); if (isNaN(d.getTime())) return ""; return d.toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" }); } catch { return "" } }
+        const fechaTxt = fmtFecha(itinerario?.fecha) || fmtFecha(event?.fecha)
+        return (
+            <div style={{ width: "100%", fontFamily: "'Poppins',sans-serif" }}>
+                {/* Selector de itinerario + Nuevo */}
+                <div className="mobile-dropdown" style={{ position: "relative", display: "flex", alignItems: "center", gap: 8, padding: "12px 16px 0", zIndex: 15 }}>
+                    <div onClick={toggleMobileDropdown} style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, background: "#fff", border: "1px solid #f0f0f2", boxShadow: "0 3px 10px rgba(0,0,0,.04)", borderRadius: 12, padding: "11px 14px", cursor: "pointer" }}>
+                        <span style={{ font: "600 13px Poppins", color: "#3A3A42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{itinerario?.title || t("Seleccionar itinerario")}</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={2.2} strokeLinecap="round" style={{ flex: "none", transform: isMobileDropdownOpen ? "rotate(180deg)" : "none", transition: "transform .18s" }}><path d="M6 9l6 6 6-6" /></svg>
+                    </div>
+                    <button onClick={handleCreateItinerario} style={{ display: "flex", alignItems: "center", gap: 5, padding: "11px 14px", borderRadius: 12, border: "1px solid #f0f0f2", boxShadow: "0 3px 10px rgba(0,0,0,.04)", background: "#fff", color: "#EF5B94", cursor: "pointer", font: "600 12px Poppins", flex: "none" }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Nuevo", { defaultValue: "Nuevo" })}
+                    </button>
+                    {isMobileDropdownOpen && (
+                        <div style={{ position: "absolute", left: 16, right: 16, top: "calc(100% + 6px)", background: "#fff", borderRadius: 13, border: "1px solid #f0f0f2", boxShadow: "0 14px 40px rgba(0,0,0,.14)", padding: 6, zIndex: 20, maxHeight: 280, overflowY: "auto" }}>
+                            {itineraries?.map((item, idx) => (
+                                (isAllowedViewer(item?.viewers) || window?.location?.pathname === "/itinerario") && (
+                                    <div key={idx} onClick={() => handleMobileSelectItinerario(item)} style={{ padding: "11px 13px", borderRadius: 9, font: "600 12.5px Poppins", color: itinerario?._id === item?._id ? "#D83E7C" : "#3A3A42", background: itinerario?._id === item?._id ? "#FCE7F0" : "transparent", cursor: "pointer" }}>{item?.title}</div>
+                                )
+                            ))}
+                        </div>
+                    )}
+                </div>
+                {/* Título + subraya + fecha */}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "18px 16px 4px" }}>
+                    <div style={{ font: "700 18px Poppins", color: "#3A3A42", textAlign: "center" }}>{itinerario?.title}</div>
+                    <div style={{ width: 44, height: 3, borderRadius: 3, background: "#EF5B94", marginTop: 8 }} />
+                    {fechaTxt && <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 12, background: "#fff", border: "1.5px solid #E7E7EA", borderRadius: 18, padding: "6px 14px", font: "600 11.5px Poppins", color: "#3A3A42" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF5B94" strokeWidth={1.8} strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9h18M8 3v4M16 3v4" /></svg>{fechaTxt}
+                    </div>}
+                </div>
+                {/* Selector de vista: Tarjeta / Esquema */}
+                <div style={{ display: "flex", justifyContent: "flex-end", padding: "12px 16px 0" }}>
+                    <ClickAwayListener onClickAway={() => setVerOpen(false)}>
+                        <div style={{ position: "relative", zIndex: 14 }}>
+                            <button onClick={() => setVerOpen(v => !v)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 12px", borderRadius: 10, border: "1.5px solid #E7E7EA", background: "#fff", color: "#D83E7C", font: "600 11.5px Poppins", cursor: "pointer" }}>
+                                {activeVerM.label}
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8a8a90" strokeWidth={2} strokeLinecap="round" style={{ transform: verOpen ? "rotate(180deg)" : "none", transition: "transform .18s" }}><path d="M6 9l6 6 6-6" /></svg>
+                            </button>
+                            {verOpen && <div style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", minWidth: 150, background: "#fff", borderRadius: 13, border: "1px solid #f0f0f2", boxShadow: "0 14px 40px rgba(0,0,0,.14)", padding: 6, zIndex: 40 }}>
+                                {verOptionsM.map(opt => {
+                                    const on = view === opt.v
+                                    return (
+                                        <div key={opt.v} onClick={() => { setView(opt.v as ViewItinerary); setVerOpen(false) }} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 13px", borderRadius: 9, font: "600 12.5px Poppins", color: on ? "#D83E7C" : "#3A3A42", background: on ? "#FCE7F0" : "transparent", cursor: "pointer" }}>
+                                            {opt.icon}{opt.label}
+                                            {on && <svg style={{ marginLeft: "auto" }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2FB37E" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>}
+                                        </div>
+                                    )
+                                })}
+                            </div>}
+                        </div>
+                    </ClickAwayListener>
+                </div>
+                {/* FAB Añadir tarea (solo vista Tarjeta, fiel al HTML) */}
+                {view === "cards" && isAllowed() && (
+                    <button onClick={addTask} style={{ position: "fixed", right: 18, bottom: 28, display: "flex", alignItems: "center", gap: 7, padding: "13px 18px", borderRadius: 26, background: "#EF5B94", color: "#fff", font: "600 12.5px Poppins", border: "none", cursor: "pointer", boxShadow: "0 10px 26px rgba(239,91,148,.45)", zIndex: 30 }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>{t("Añadir tarea", { defaultValue: "Añadir tarea" })}
+                    </button>
+                )}
+            </div>
+        )
+    }
+
     return (
         <div className="flex w-full max-w-[1050px] h-10 items-center justify-center border-primary border-b md:px-4 md:py-2 shadow-md">
             <div id="content" className="flex-1 h-full flex justify-between">
