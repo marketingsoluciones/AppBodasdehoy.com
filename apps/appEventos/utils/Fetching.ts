@@ -327,6 +327,19 @@ export const fetchApiEventos = async ({
         `[fetchApiEventos] ${__field}: adapter no pudo mapear (falta evento_id, itinerario_id o task_id)`
       );
     }
+    // updateEvento: la query legacy declara `$input: EventoUpdateInput!` como OBLIGATORIO, así
+    // que la llamada directa sale siempre sin `input` → 400 garantizado. Al repetirse, api-mcp
+    // contesta 429 ("Demasiadas solicitudes desde esta IP") y tumba al resto de la app: eso
+    // llenó 4,9 GB de log el 27-ago. No hay llamada válida que salvar aquí, así que cortamos
+    // antes de la red y dejamos dicho QUÉ llegó, que es lo que faltaba para dar con el llamante.
+    if (__field === 'updateEvento') {
+      const vars = (variables || {}) as Record<string, any>;
+      throw new Error(
+        `[fetchApiEventos] updateEvento: adapter no pudo mapear (falta 'input' o 'variable') — ` +
+          `idEvento=${vars.idEvento ?? '(vacío)'} input=${typeof vars.input} ` +
+          `variable=${typeof vars.variable} keys=[${Object.keys(vars).join(',')}]`
+      );
+    }
     if (__field === 'createTask' || __field === 'editTask') {
       const vars = (variables || {}) as Record<string, any>;
       const task = vars.task ?? vars.tarea ?? {};
