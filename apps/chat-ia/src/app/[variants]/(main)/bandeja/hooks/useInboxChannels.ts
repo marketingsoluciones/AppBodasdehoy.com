@@ -10,6 +10,16 @@ import { getWhatsAppChannels } from '@/services/mcpApi/whatsapp';
 import type { WhatsAppChannel } from '@/services/mcpApi/whatsapp';
 import { buildHeaders } from '../utils/auth';
 
+/**
+ * Canales de tipo "placeholder" que SÍ se muestran en la lista.
+ *
+ * Telegram, Email y Chat Web están fuera porque api-ia todavía no los sirve
+ * (501 / 404, verificado el 27-ago). Su pantalla de configuración era alcanzable y el
+ * usuario podía rellenarla entera para nada. Añadir aquí el id los devuelve a la lista
+ * en cuanto backend los implemente — los componentes de configuración siguen en el repo.
+ */
+const SHOWN_PLACEHOLDER_CHANNELS: string[] = [];
+
 export type ChannelKind =
   | 'whatsapp'
   | 'instagram'
@@ -195,27 +205,23 @@ export function useInboxChannels(options?: { enableUnread?: boolean }) {
         unread: 0,
       };
     })(),
-    {
-      id: 'telegram',
-      isPlaceholder: true,
-      kind: 'telegram' as const,
-      label: 'Telegram',
-      unread: 0,
-    },
-    {
-      id: 'email',
-      isPlaceholder: true,
-      kind: 'email' as const,
-      label: 'Email',
-      unread: 0,
-    },
-    {
-      id: 'web',
-      isPlaceholder: true,
-      kind: 'web' as const,
-      label: 'Chat Web',
-      unread: 0,
-    },
+    // Canales OCULTOS hasta que api-ia los implemente (verificado 27-ago contra
+    // api-ia.eventosorganizador.com):
+    //   telegram/connect  → 501 "Este canal no está disponible aún"
+    //   email/connect     → 501 not_implemented   · email/oauth-url → 404
+    //   messages/web/config → 404
+    // Se mostraban como placeholder y su pantalla de configuración era ALCANZABLE: el
+    // usuario rellenaba SMTP/IMAP o el token del bot y no había nada al otro lado.
+    // Un canal que no aparece no decepciona; uno que aparece y falla, sí.
+    // Para reactivarlos: añadir su id a SHOWN_PLACEHOLDER_CHANNELS. Los componentes
+    // TelegramSetup/EmailSetup/WebChatSetup siguen intactos (REGLA 0: no se pierde nada).
+    ...([
+      { id: 'telegram', kind: 'telegram' as const, label: 'Telegram' },
+      { id: 'email', kind: 'email' as const, label: 'Email' },
+      { id: 'web', kind: 'web' as const, label: 'Chat Web' },
+    ]
+      .filter((c) => SHOWN_PLACEHOLDER_CHANNELS.includes(c.id))
+      .map((c) => ({ ...c, isPlaceholder: true, unread: 0 }))),
     (() => {
       const fb = socialAccounts.find((a) => a.platform === 'FACEBOOK');
       return {

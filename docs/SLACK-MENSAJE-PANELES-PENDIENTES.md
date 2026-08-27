@@ -1,3 +1,16 @@
+> [!WARNING]
+> **DOCUMENTO OBSOLETO — no usar como referencia (marcado el 27-ago-2026).**
+>
+> Describe `apps/copilot`, una carpeta que ya no existe: la app se llama `apps/chat-ia` y
+> la bandeja vive en `apps/chat-ia/src/app/[variants]/(main)/bandeja`. Los endpoints y el
+> reparto entre api-ia y api-mcp han cambiado varias veces desde mayo de 2026.
+>
+> Estado real de los canales, verificado el 27-ago contra api-ia:
+> WhatsApp mensajes ✅ (api-ia) · sesión/QR en api-mcp · Instagram ✅ · Facebook ✅ ·
+> Telegram ❌ 501 · Email ❌ 501/404 · Chat Web ❌ 404.
+>
+> Se conserva por su valor histórico.
+
 # Mensaje para Slack #copilot-api-ia – Paneles pendientes (Frontend)
 
 Copia y pega el bloque siguiente en #copilot-api-ia (o adapta si lo envías por otro canal / a MCP).
