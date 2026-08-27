@@ -1,6 +1,5 @@
 import axios from "axios";
 import Cookies from "js-cookie"
-import { Manager } from "socket.io-client";
 import { getAuth } from "firebase/auth";
 import { parseJwt } from "./utils/Authentication";
 import { varGlobalDomain, varGlobalDevelopment, varGlobalSubdomain } from "./context/AuthContext"
@@ -111,7 +110,10 @@ export const api = {
     });
   },
 
-  socketIO: ({ token, development, father, origin }: { token?: any; development?: any; father?: any; origin?: any }) => {
+  // PERF: socket.io-client se carga BAJO DEMANDA. api.ts se importa en toda la app, así que
+  // un import estático metía el cliente de sockets en el bundle común de las 58 páginas —
+  // incluidas las públicas, donde no hay realtime. Ahora entra solo al abrir el socket.
+  socketIO: async ({ token, development, father, origin }: { token?: any; development?: any; father?: any; origin?: any }) => {
     if (!development) return
     const rawSocketUrl = (process.env.NEXT_PUBLIC_SOCKET_URL || "").trim()
     const socketUrl = (() => {
@@ -130,6 +132,7 @@ export const api = {
         return resolveApiEventosOrigin() || ""
       }
     })()
+    const { Manager } = await import("socket.io-client")
     const manager = new Manager(socketUrl, {
       closeOnBeforeunload: true,
     })

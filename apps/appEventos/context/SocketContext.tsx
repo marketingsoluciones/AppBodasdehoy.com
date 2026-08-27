@@ -1,5 +1,5 @@
 import { createContext, FC, useState, useEffect, useContext, useRef, SetStateAction } from "react";
-import { Socket } from "socket.io-client";
+import type { Socket } from "socket.io-client";
 import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider } from ".";
 import { api } from '../api';
 import { Dispatch } from 'react';
@@ -40,19 +40,30 @@ const SocketProvider: FC<any> = ({ children }): React.ReactElement => {
     const development = config?.development
     const father = searchParams?.get("father")
     if (!development) return
+    // api.socketIO ahora es async (carga diferida de socket.io-client). El flag evita
+    // montar un socket huérfano si el efecto se re-ejecuta antes de que resuelva.
+    let cancelled = false
     if ((token && !socket?.connected) || (user?.displayName === "anonymous" && !socket?.connected)) {
       lastTokenRef.current = token ?? null
-      setSocket(api.socketIO({
+      api.socketIO({
         token,
         development,
         father,
         origin: window?.origin
-      }))
+      }).then((s) => {
+        if (cancelled) { s?.disconnect(); return }
+        setSocket(s ?? null)
+      }).catch((err) => {
+        // El import dinámico puede fallar (ChunkLoadError tras un deploy, red caída). Sin
+        // esto sería un unhandled rejection y el realtime se quedaría muerto en silencio:
+        // ni notificaciones ni refresco de evento, sin ningún rastro en consola.
+        console.error("[SocketProvider] no se pudo cargar socket.io-client:", err)
+      })
     }
     if (!token && socket) {
       socket.disconnect();
     }
-
+    return () => { cancelled = true }
   }, [user, config?.development, searchParams])
 
   // Reconectar socket cuando Firebase rota el token (~1h)
@@ -67,12 +78,19 @@ const SocketProvider: FC<any> = ({ children }): React.ReactElement => {
           setCrossAppIdToken(newToken)
           if (socket) {
             socket.disconnect()
-            setSocket(api.socketIO({
-              token: newToken,
-              development: config.development,
-              father: searchParams?.get("father"),
-              origin: window?.origin
-            }))
+            try {
+              const reconnected = await api.socketIO({
+                token: newToken,
+                development: config.development,
+                father: searchParams?.get("father"),
+                origin: window?.origin
+              })
+              setSocket(reconnected ?? null)
+            } catch (err) {
+              // Si falla aquí el socket queda desconectado tras la rotación de token (~1h).
+              // Dejar rastro: si no, el realtime muere a la hora de sesión sin explicación.
+              console.error("[SocketProvider] reconexión tras rotar token falló:", err)
+            }
           }
         }
       })
