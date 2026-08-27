@@ -33,11 +33,11 @@ import {
 type Network = 'whatsapp' | 'sms' | 'email' | 'instagram' | 'telegram';
 
 const NETWORKS: Array<{
-  id: Network;
-  label: string;
-  icon: string;
   enabled: boolean;
   hint: string;
+  icon: string;
+  id: Network;
+  label: string;
 }> = [
   { enabled: true, hint: 'Teléfono con prefijo. Fuera de 24h: plantilla HSM.', icon: '💬', id: 'whatsapp', label: 'WhatsApp' },
   { enabled: false, hint: 'Próximamente (requiere canal SMS).', icon: '✉️', id: 'sms', label: 'SMS' },
