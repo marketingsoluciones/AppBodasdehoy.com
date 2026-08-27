@@ -3,7 +3,7 @@ import { AuthContextProvider, EventContextProvider, EventsGroupContextProvider, 
 import { useRouter } from "next/navigation";
 import { handleClickCard } from "../Home/Card";
 import { useTranslation } from 'react-i18next';
-import { fetchApiBodas, queries } from "../../utils/Fetching";
+import { fetchApiBodas, fetchApiEventos, queries } from "../../utils/Fetching";
 import { detalle_compartidos_array, Event } from "../../utils/Interfaces";
 
 export const SocketControlator = () => {
@@ -78,7 +78,11 @@ export const SocketControlator = () => {
           }
 
           if (typeof rawAnon === 'string') {
-            fetchApiBodas({
+            // FIX: getEventsByID usa el campo legacy `queryenEvento` (apiapp), que api-mcp
+            // NO tiene. Solo fetchApiEventos pasa por MCP_ADAPTERS, que lo traduce a
+            // getEventoById; fetchApiBodas mandaba la query literal y devolvía
+            // GRAPHQL_VALIDATION_FAILED en bucle → el evento nunca se refrescaba por socket.
+            fetchApiEventos({
               query: queries?.getEventsByID,
               variables: { variable: "_id", valor: rawAnon, development: config?.development },
               development: config?.development,
@@ -161,7 +165,8 @@ export const SocketControlator = () => {
           }
 
           if (typeof rawValue === 'string') {
-            fetchApiBodas({
+            // FIX: ver nota del otro call-site — getEventsByID exige el adaptador de api-mcp.
+            fetchApiEventos({
               query: queries?.getEventsByID,
               variables: { variable: "_id", valor: rawValue, development: config?.development },
               development: config?.development
