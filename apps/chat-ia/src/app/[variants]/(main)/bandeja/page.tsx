@@ -79,12 +79,14 @@ export default function MessagesPage() {
       appliedChannelRef.current = true;
     }
   }, [searchParams]);
-  // FASE 2 Agentes (17-ago) — ESQUELETO DORMIDO hasta backend. Cuando exista el campo
-  // `assignedAgentId` en la conversación (ticket abierto), la ficha del agente enlazará a
-  // /bandeja?agent=<id> y aquí filtraremos por agente EXACTO (no por canal). Se siembra
-  // una vez (ref) y SOLO se aplica si hay datos de agente en la lista (agentDataAvailable),
-  // así que hoy es un no-op: nada enlaza a ?agent= y ningún item trae assignedAgentId.
-  // 0 dead code, 0 fallback — se auto-activa el día que backend expone el dato.
+  // FASE 2 Agentes — filtro por agente. CORRECCIÓN 27-ago: el comentario anterior decía
+  // que el backend no exponía `assignedAgentId`. SÍ lo expone: api-ia lo devuelve en
+  // GET /api/messages/conversations. Lo que ocurre es que llega SIEMPRE en null, porque
+  // el responsable se ESCRIBE contra api-mcp (mutation setConversationAgent) y se LEE de
+  // api-ia, y no está confirmado que api-ia espeje ese valor (escalado a backend 27-ago).
+  // Consecuencia: agentDataAvailable es false y el filtro queda inerte, así que la ficha
+  // del agente enlaza a la bandeja SIN filtrar → "agentes sin conversaciones".
+  // El código de abajo es correcto y se activa solo en cuanto llegue un valor no nulo.
   const appliedAgentRef = useRef(false);
   const [agentFilter, setAgentFilter] = useState<string | null>(null);
   useEffect(() => {
@@ -149,8 +151,9 @@ export default function MessagesPage() {
     wa: 'whatsapp',
     web: 'web',
   };
-  // FASE 2 Agentes (dormido): ¿hay datos de agente en la lista? Solo entonces se activan
-  // el filtro ?agent= y el banner. Hoy false (backend no expone assignedAgentId todavía).
+  // FASE 2 Agentes: ¿hay datos de agente en la lista? Solo entonces se activan el filtro
+  // ?agent= y el banner. Hoy false porque todas las conversaciones llegan con
+  // assignedAgentId en null — el campo SÍ existe en api-ia (ver nota de arriba).
   // El contador y la lista TIENEN que mirar el mismo conjunto. Antes la lista
   // ocultaba difusiones/canales (filtro de abajo) pero `convUnreadCount` contaba
   // sobre `items` sin filtrar → el badge enseñaba pendientes que no aparecían al
@@ -219,10 +222,9 @@ export default function MessagesPage() {
         (i) => i.kind !== 'conversation' || (i as any).draftState === 'pending',
       );
     }
-    // FASE 2 Agentes (dormido hasta backend): filtro por AGENTE EXACTO. Solo se aplica si
-    // agentDataAvailable (algún item con assignedAgentId). Hasta entonces es no-op → la
-    // Bandeja se comporta igual que hoy. Cuando backend exponga el campo, ?agent=<id>
-    // filtra las conversaciones de ese agente sin importar el canal.
+    // FASE 2 Agentes: filtro por AGENTE EXACTO. Solo se aplica si agentDataAvailable
+    // (algún item con assignedAgentId no nulo). Mientras el espejo api-mcp→api-ia no esté
+    // confirmado, es un no-op y la Bandeja se comporta igual que hoy.
     if (agentFilter && agentDataAvailable) {
       arr = arr.filter(
         (i) => i.kind !== 'conversation' || i.assignedAgentId === agentFilter,
