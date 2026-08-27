@@ -4,38 +4,77 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { buildHeaders, getUserContext } from '../utils/auth';
+import {
+  templateBodyText,
+  templateFillParams,
+  templateParamCount,
+  useWhatsAppTemplates,
+} from '../hooks/useWhatsAppTemplates';
 
 /**
- * NewMessageModal — iniciar una conversación de WhatsApp con un número NUEVO.
+ * NewMessageModal — iniciar una conversación con un contacto NUEVO (v2, multi-red).
  *
- * Antes solo se podía RESPONDER a conversaciones existentes: el envío deriva el teléfono del
- * `conversationId` (`${dev}:${jid}`) de una conversación ya creada, así que sin conversación
- * previa no había forma de escribir a un número. El backend SÍ lo soporta:
- *   POST /api/whatsapp/messages/send      { phone_number, content }        (texto, ventana 24h / QR)
- *   POST /api/whatsapp/messages/template  { phone_number, template_name }  (HSM, inicio en frío)
+ * v1 solo hacía WhatsApp por texto libre. v2 añade:
+ *  - Selector de RED (canal). Cada red usa un identificador distinto y tiene reglas propias
+ *    de la PLATAFORMA sobre iniciar conversaciones (no es limitación nuestra):
+ *      · WhatsApp/SMS → teléfono. WhatsApp fuera de 24h exige plantilla HSM (Meta).
+ *      · Email        → dirección de email (libre).
+ *      · Instagram / Telegram / Messenger → NO se puede iniciar en frío (solo responder
+ *        dentro de la ventana / si el usuario inició el bot). Se muestran deshabilitados.
+ *  - Envío por PLANTILLA HSM para escribir a un número fuera de la ventana de 24h.
  *
- * Diseño (decisión owner 26-ago): el contacto nuevo es AUTÓNOMO — se crea como conversación de
- * WhatsApp independiente (`/api/messages/internal/conversation`) y luego, desde la conversación,
- * se puede vincular a un evento/proyecto, a un invitado o a un cliente del CRM.
+ * Nota: elegir el NÚMERO EMISOR (QR vs Meta API) requiere que api-ia acepte un param `from`
+ * en el send (hoy solo {phone_number, content} → usa el número por defecto del whitelabel).
+ * Cuando el backend lo soporte, aquí se añade el selector de emisor.
  *
- * Reutiliza el flujo existente: construimos `${dev}:${phone}@s.whatsapp.net` y navegamos al
- * detalle, cuyo compositor ya sabe enviar por número.
+ * El contacto es AUTÓNOMO (decisión owner): se crea como conversación y luego se vincula a
+ * evento/invitado/CRM. El backend persiste la conversación al enviar.
  */
+type Network = 'whatsapp' | 'sms' | 'email' | 'instagram' | 'telegram';
+
+const NETWORKS: Array<{
+  id: Network;
+  label: string;
+  icon: string;
+  enabled: boolean;
+  hint: string;
+}> = [
+  { enabled: true, hint: 'Teléfono con prefijo. Fuera de 24h: plantilla HSM.', icon: '💬', id: 'whatsapp', label: 'WhatsApp' },
+  { enabled: false, hint: 'Próximamente (requiere canal SMS).', icon: '✉️', id: 'sms', label: 'SMS' },
+  { enabled: false, hint: 'Próximamente.', icon: '📧', id: 'email', label: 'Email' },
+  { enabled: false, hint: 'Instagram no permite escribir en frío: solo responder dentro de 24h.', icon: '📷', id: 'instagram', label: 'Instagram' },
+  { enabled: false, hint: 'Telegram solo permite escribir a quien haya iniciado el bot.', icon: '✈️', id: 'telegram', label: 'Telegram' },
+];
+
 function normalizePhone(raw: string): string {
-  // Deja solo dígitos (WhatsApp usa el número con prefijo de país, sin +, espacios ni guiones).
   return (raw || '').replaceAll(/\D/g, '');
 }
 
 export function NewMessageModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
+  const [network, setNetwork] = useState<Network>('whatsapp');
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [text, setText] = useState('');
+  const [useTemplate, setUseTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [tplParams, setTplParams] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Plantillas HSM solo cuando el usuario las pide (evita la query si no hace falta).
+  const { templates, loading: tplLoading } = useWhatsAppTemplates(network === 'whatsapp' && useTemplate);
+
   const phoneClean = normalizePhone(phone);
-  const canSend = phoneClean.length >= 8 && text.trim().length > 0 && !sending;
+  const selectedTpl = templates.find((t) => t.name === templateName);
+  const tplNeeded = selectedTpl ? templateParamCount(templateBodyText(selectedTpl)) : 0;
+
+  const canSend =
+    !sending &&
+    phoneClean.length >= 8 &&
+    (useTemplate ? !!templateName : text.trim().length > 0);
+
+  const netHint = NETWORKS.find((n) => n.id === network)?.hint || '';
 
   const handleSend = async () => {
     setError(null);
@@ -49,35 +88,37 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
       return;
     }
     setSending(true);
-    const jid = `${phoneClean}@s.whatsapp.net`;
-    const conversationId = `${development}:${jid}`;
+    const conversationId = `${development}:${phoneClean}@s.whatsapp.net`;
     try {
-      // Enviar el primer mensaje por número. El backend (api-ia) PERSISTE la conversación al
-      // enviar, así que aparece en la bandeja como contacto autónomo (vinculable después) — no
-      // hace falta crearla aparte (internal/conversation es interno y rechaza el token de usuario).
-      // El proxy /api/messages/whatsapp/messages/* enruta a api-ia (MCP ya no expone /whatsapp/messages/*).
-      const res = await fetch(
-        `/api/messages/whatsapp/messages/send?development=${encodeURIComponent(development)}`,
-        {
-          body: JSON.stringify({ content: text.trim(), phone_number: phoneClean }),
-          headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
-          method: 'POST',
-        },
-      );
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        // Fuera de la ventana 24h (o Business API) WhatsApp exige plantilla HSM aprobada.
-        const needsTemplate = res.status === 403 || body?.error === 'template_required' || body?.requiresTemplate;
+      let url: string;
+      let body: string;
+      if (useTemplate && selectedTpl) {
+        // Plantilla HSM (fuera de la ventana 24h) → endpoint de plantillas.
+        url = `/api/messages/whatsapp/messages/template?development=${encodeURIComponent(development)}`;
+        body = JSON.stringify({
+          language_code: selectedTpl.language || 'es',
+          parameters: tplParams.slice(0, tplNeeded),
+          phone_number: phoneClean,
+          template_name: selectedTpl.name,
+        });
+      } else {
+        // Texto libre (solo válido dentro de la ventana de 24h) → endpoint de envío.
+        url = `/api/messages/whatsapp/messages/send?development=${encodeURIComponent(development)}`;
+        body = JSON.stringify({ content: text.trim(), phone_number: phoneClean });
+      }
+      const res = await fetch(url, { body, headers: { ...buildHeaders(), 'Content-Type': 'application/json' }, method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.success === false) {
+        const msg = data?.message || data?.error || `HTTP ${res.status}`;
+        const isWindow = /24|window|template|hsm|re-?engage/i.test(String(msg));
         setError(
-          needsTemplate
-            ? 'Ese número no ha escrito en 24h: WhatsApp exige una plantilla aprobada (HSM). Ábrelo y usa "Plantilla" en el compositor.'
-            : `No se pudo enviar (HTTP ${res.status}). ${body?.message || body?.error || ''}`,
+          isWindow && !useTemplate
+            ? 'Ese número no ha escrito en 24h. Activa "Usar plantilla" y elige una plantilla aprobada (HSM).'
+            : `No se pudo enviar: ${msg}`,
         );
         setSending(false);
         return;
       }
-
-      // 3) Ir a la conversación (el compositor del detalle ya envía por este mismo número).
       router.push(`/bandeja/whatsapp/${encodeURIComponent(conversationId)}`);
       onClose();
     } catch (e) {
@@ -87,27 +128,36 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      onClick={onClose}
-      role="presentation"
-    >
-      <div
-        className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose} role="presentation">
+      <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()} role="dialog">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-base font-semibold text-gray-900">✍️ Nuevo mensaje</h2>
-          <button
-            aria-label="Cerrar"
-            className="text-gray-400 hover:text-gray-600"
-            onClick={onClose}
-            type="button"
-          >
-            ✕
-          </button>
+          <button aria-label="Cerrar" className="text-gray-400 hover:text-gray-600" onClick={onClose} type="button">✕</button>
         </div>
+
+        {/* Selector de RED */}
+        <div className="mb-1 text-xs font-medium text-gray-600">Red</div>
+        <div className="mb-1.5 flex flex-wrap gap-1.5">
+          {NETWORKS.map((n) => (
+            <button
+              className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors ${
+                network === n.id
+                  ? 'border-violet-400 bg-violet-50 text-violet-700'
+                  : n.enabled
+                    ? 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                    : 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300'
+              }`}
+              disabled={!n.enabled}
+              key={n.id}
+              onClick={() => n.enabled && setNetwork(n.id)}
+              title={n.hint}
+              type="button"
+            >
+              <span aria-hidden>{n.icon}</span> {n.label}
+            </button>
+          ))}
+        </div>
+        <p className="mb-3 text-[11px] leading-snug text-gray-400">{netHint}</p>
 
         <label className="mb-1 block text-xs font-medium text-gray-600" htmlFor="nm-phone">
           Teléfono (con prefijo de país)
@@ -133,26 +183,54 @@ export function NewMessageModal({ onClose }: { onClose: () => void }) {
           value={name}
         />
 
-        <label className="mb-1 block text-xs font-medium text-gray-600" htmlFor="nm-text">
-          Mensaje
+        {/* Toggle plantilla HSM */}
+        <label className="mb-2 flex items-center gap-2 text-xs text-gray-700">
+          <input checked={useTemplate} onChange={(e) => setUseTemplate(e.target.checked)} type="checkbox" />
+          El número no me ha escrito en 24h → usar plantilla aprobada (HSM)
         </label>
-        <textarea
-          className="mb-2 h-24 w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-400"
-          id="nm-text"
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Escribe el primer mensaje…"
-          value={text}
-        />
+
+        {useTemplate ? (
+          <div className="mb-3">
+            <select
+              className="mb-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-400"
+              onChange={(e) => { setTemplateName(e.target.value); setTplParams([]); }}
+              value={templateName}
+            >
+              <option value="">{tplLoading ? 'Cargando plantillas…' : 'Elige una plantilla…'}</option>
+              {templates.map((t) => (
+                <option key={t.name} value={t.name}>{t.name} ({t.language})</option>
+              ))}
+            </select>
+            {selectedTpl && (
+              <div className="rounded-lg bg-gray-50 p-2 text-[11px] text-gray-500">
+                {templateFillParams(templateBodyText(selectedTpl), tplParams) || '(sin cuerpo)'}
+              </div>
+            )}
+            {Array.from({ length: tplNeeded }).map((_, i) => (
+              <input
+                className="mt-2 w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs outline-none focus:border-violet-400"
+                key={i}
+                onChange={(e) => setTplParams((p) => { const n = [...p]; n[i] = e.target.value; return n; })}
+                placeholder={`Valor {{${i + 1}}}`}
+                value={tplParams[i] || ''}
+              />
+            ))}
+          </div>
+        ) : (
+          <textarea
+            className="mb-2 h-24 w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-400"
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Escribe el primer mensaje…"
+            value={text}
+          />
+        )}
 
         <p className="mb-3 text-[11px] leading-snug text-gray-400">
-          Se crea como conversación independiente; luego podrás vincularla a un evento, invitado o
-          cliente. Si el número no te ha escrito en 24h (o usas Business API), WhatsApp exige una
-          plantilla aprobada.
+          Se enviará desde el número WhatsApp del negocio. Se crea como conversación independiente
+          (vinculable después a evento, invitado o cliente).
         </p>
 
-        {error && (
-          <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{error}</div>
-        )}
+        {error && <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{error}</div>}
 
         <div className="flex justify-end gap-2">
           <button
