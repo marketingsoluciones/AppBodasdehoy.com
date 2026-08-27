@@ -89,13 +89,24 @@ export function EmailSetup({ development, onConnected }: EmailSetupProps) {
   };
 
   const handleDisconnect = async () => {
+    setError(null);
     try {
-      await fetch('/api/messages/email/disconnect', {
+      const res = await fetch('/api/messages/email/disconnect', {
         body: JSON.stringify({ development }),
         headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
         method: 'POST',
       });
-    } catch { /* ignore */ }
+      // fetch NO lanza ante 4xx/5xx. Sin este control, un 404 dejaba la interfaz en
+      // "desconectado" mientras el backend seguía conectado (auditoría 27-ago).
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || data.detail || `Error ${res.status}`);
+      }
+    } catch (err: any) {
+      setError(err?.message ?? 'No se pudo desconectar');
+      setStatus('error');
+      return;
+    }
     setStatus('idle');
     setProvider(null);
     setConnectedEmail(null);
