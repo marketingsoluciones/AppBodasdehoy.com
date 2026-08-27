@@ -7,6 +7,7 @@ import { useSessionStore } from '@/store/session';
 import { sessionSelectors } from '@/store/session/selectors';
 import { LobeSessionType, type LobeAgentSession } from '@/types/session';
 import { isWhatsAppView } from '../utils/channelClassify';
+import { useAgentAssignmentOverrides } from '../hooks/useAgentAssignmentOverrides';
 import { useConversations } from '../hooks/useConversations';
 import { useConversationActions } from '../hooks/useConversationActions';
 import { ConversationStatus, useConversationMeta } from '../hooks/useConversationMeta';
@@ -71,6 +72,8 @@ export function ConversationHeader({
   const canAssignAgent = isWhatsAppView(channel) && agentSessions.length > 0;
   // Override optimista: api-ia mirror-ea el valor, pero no al instante.
   const [agentOverride, setAgentOverride] = useState<{ id: string | null; name: string | null } | null>(null);
+  // Override para la LISTA (este de arriba solo afecta a esta cabecera).
+  const setAgentOverrideForList = useAgentAssignmentOverrides((st) => st.setOverride);
   const [assigningAgent, setAssigningAgent] = useState(false);
   useEffect(() => {
     setAgentOverride(null);
@@ -86,6 +89,10 @@ export function ConversationHeader({
     try {
       const ok = await setConversationAgent(conversationId, next);
       if (!ok) throw new Error('respuesta negativa');
+      // La escritura va a api-mcp y la LISTA lee de api-ia, que cachea el valor 120 s. Sin
+      // este override, el usuario asigna un responsable y la lista no se entera durante dos
+      // minutos: ni el chip ni el filtro por agente. Se retira solo al coincidir el backend.
+      setAgentOverrideForList(conversationId, { id: next, name: nextName });
     } catch {
       setAgentOverride(previous);
       // eslint-disable-next-line no-alert

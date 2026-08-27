@@ -13,6 +13,7 @@ import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { useBandejaStore } from '@/store/bandeja';
 import { useChatStore } from '@/store/chat';
 
+import { useAgentAssignmentOverrides } from './useAgentAssignmentOverrides';
 import { type ChannelKind, useRecentConversations } from './useRecentConversations';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -120,6 +121,7 @@ export function useUnifiedFeed(maxItems = 60): {
   const isGuestUser = isGuest || userType === 'guest' || userType === 'visitor';
 
   const { conversations, loading: convLoading } = useRecentConversations(50, refreshTick);
+  const resolveAgent = useAgentAssignmentOverrides((s) => s.resolve);
 
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRefreshAtRef = useRef(0);
@@ -216,28 +218,37 @@ export function useUnifiedFeed(maxItems = 60): {
   }, [isGuestUser, refresh]);
 
   // Map conversations → FeedItem
-  const convItems: FeedItem[] = conversations.map((conv) => ({
-    // FASE 2 Agentes (dormido hasta backend): responsable = agente IA. Null-safe.
-    assignedAgentId: conv.assignedAgentId ?? undefined,
-    assignedAgentName: conv.assignedAgentName ?? undefined,
-    channelKind: conv.kind,
-    channelLabel: conv.channelLabel,
-    channelParam: conv.channelParam,
-    conversationId: conv.conversationId,
-    id: `conv-${conv.channelParam}-${conv.conversationId}`,
-    isRead: conv.unreadCount === 0,
-    jidType: (conv as any).jidType ?? null,
-    kind: 'conversation' as const,
-    linkedContactId: conv.linkedContactId,
-    linkedEventId: conv.linkedEventId,
-    name: conv.name,
-    notificationId: null,
-    preview: conv.lastMessage,
-    // FASE B v2.0 — api-mcp commit 7d52fec (25-jun) expone guestStatus.
-    rsvpStatus: conv.guestStatus ?? undefined,
-    timestamp: conv.lastMessageAt,
-    unreadCount: conv.unreadCount,
-  }));
+  const convItems: FeedItem[] = conversations.map((conv) => {
+    // FASE 2 Agentes: responsable = agente IA. api-ia cachea el valor que viene de api-mcp
+    // durante 120 s, así que tras asignar hay hasta dos minutos en los que la lista seguiría
+    // mostrando el dato viejo. resolveAgent superpone la asignación recién hecha y se retira
+    // sola cuando el backend coincide (ver useAgentAssignmentOverrides).
+    const agent = resolveAgent(conv.conversationId, {
+      id: conv.assignedAgentId ?? null,
+      name: conv.assignedAgentName ?? null,
+    });
+    return {
+      assignedAgentId: agent.id ?? undefined,
+      assignedAgentName: agent.name ?? undefined,
+      channelKind: conv.kind,
+      channelLabel: conv.channelLabel,
+      channelParam: conv.channelParam,
+      conversationId: conv.conversationId,
+      id: `conv-${conv.channelParam}-${conv.conversationId}`,
+      isRead: conv.unreadCount === 0,
+      jidType: (conv as any).jidType ?? null,
+      kind: 'conversation' as const,
+      linkedContactId: conv.linkedContactId,
+      linkedEventId: conv.linkedEventId,
+      name: conv.name,
+      notificationId: null,
+      preview: conv.lastMessage,
+      // FASE B v2.0 — api-mcp commit 7d52fec (25-jun) expone guestStatus.
+      rsvpStatus: conv.guestStatus ?? undefined,
+      timestamp: conv.lastMessageAt,
+      unreadCount: conv.unreadCount,
+    };
+  });
 
   // Map notifications → FeedItem
   const notifItems: FeedItem[] = notifications.map((n) => {
